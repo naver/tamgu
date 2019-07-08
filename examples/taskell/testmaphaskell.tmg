@@ -1,0 +1,15 @@
+//we declare our map
+map m={"a":1,"b":2,"c":3,"d":4};
+
+//this map is the recipient to the Haskell expression...
+//We iterate among key/value in m, and we return the same values inverted...
+mapis mr=< {x:y} | {y:x} <- m>;
+println(mr);
+
+
+
+ivector iv=[1..100];
+
+iv=<x*2 | x <- iv>;
+println(iv);
+

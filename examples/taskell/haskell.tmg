@@ -1,0 +1,43 @@
+vector rightTriangles = < [a,b,c] | c <- [-10..10], b <- [1..c], a <- [1..b], a×b×c == 24 >;
+println(rightTriangles);
+
+vector égal=< a | a <- [1..15] ; b <- [1..], a==b>;
+println(égal);
+
+<trimme(v) : if (x.iscontainer()) trimme(x) else if (x.isstring()) x.trim() else x | x <- v >;
+
+svector vs=["    12 ","     kkk     ","   lll   "];
+
+svector vss=trimme(vs);
+println("Trimme",vss);
+
+ivector iv=range(0,10,1);
+ivector vi=range(-10,0,1);
+
+ivector vj;
+
+< produit(v,vv) : (x*y) | x <- v, y <- vv, x%2==0 and y%2==0>
+
+vj=produit(iv,vi);
+println(vj);
+
+vj=< 1 | x <- iv, y <- vi, x%2==0 >;
+println(vj);
+
+println(trimme(iv));
+
+println(trimme(vs));
+
+vector sv=["   hhhh  ",["    12 ","     kkk     ","   lll   "],"  kkk "];
+
+sv=trimme(sv);
+
+println(sv);
+
+
+
+
+
+
+
+

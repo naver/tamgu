@@ -1,0 +1,6 @@
+
+function rappel(string e) {
+    e+="_I've added this to the string from within the example.tmg file";
+    return(e);
+}
+

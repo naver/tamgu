@@ -1,0 +1,26 @@
+function explore(string s, string chemin) {
+    svector vs = _sys.ls(chemin);
+
+    vs = < x | x <- vs, x[0] != '.'>;
+
+    string nom;
+
+    for (nom in vs) {
+        string n = chemin+nom;
+        if (_sys.isdirectory(n))
+            explore(s, n+"/");
+        elif (".cxx" in nom && s not in nom) {
+            string txt;
+            txt.read(n);
+            if (s in txt)
+                println(nom);
+        }
+    }
+}
+
+
+string ch = _args[0]+"/";
+explore("map", ch);
+
+
+

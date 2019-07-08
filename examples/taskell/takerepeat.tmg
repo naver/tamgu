@@ -1,0 +1,17 @@
+//ivector iv =<take 10 [1..200:3]>;
+//println(iv);
+
+string s="12345ABCD123";
+vector v=<dropWhile (isdigit) "12345ABCD123" >;
+
+println(v);
+
+
+
+
+
+
+
+
+
+

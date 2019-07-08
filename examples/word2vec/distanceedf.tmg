@@ -1,0 +1,31 @@
+use("word2vec");
+use("allmaps");
+
+word2vec wrd;
+
+wrd.loadmodel(_current+"edfpos.bin");
+svector v=["Fukushima_noun"];
+
+mapsf res=wrd.distance(v);
+
+function tri(mapsf res) {
+     treemapfs vals;
+
+     string s;
+     for (s in res) {
+          vals[res[s]]=s;
+     }
+     return(vals);
+}
+
+
+treemapfs vals=tri(res);
+println(vals);
+
+
+
+
+
+
+
+

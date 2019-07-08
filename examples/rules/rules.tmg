@@ -1,0 +1,176 @@
+/@
+Date: 09/03/2018
+Author: Claude Roux
+Description: Annotation rules
+@/
+
+tamgu pos(_current+'tagging.tmg');
+
+//The lexicon...
+loadin(_current+'lexicon.tmg');
+
+string snt = @"
+@neutral ← bien.
+
+a_neutral ← #neutral+.
+a_negative ← #negative+.
+a_negative ← not,?*:3,#positive.
+"@;
+
+string rgs=@"
+a_place ← >{in, from, at}<, "%C%a+", {"%C%a+", ["-","%C%a+"], #PREP,#DET}+.
+
+a_drink ← #drink, {#drink, #PREP,#DET}*.
+
+a_food ← #food, {#food, with, [from, (the), #Place+]}*.
+a_service ← #service+.
+a_ambience ← #ambience+.
+a_resto ← #resto+.
+a_price ← #price+.
+"@;
+
+
+//Simply words associated with a "lexicon label"
+function intercepte(vector v, annotator a) {
+    //println("Liste:",v);
+    v=pos.tagger(v);
+    //println("Tokenization:",v);
+    return v;
+}
+
+
+//All these rules will be access through an annotator
+annotator r with intercepte;
+
+//We load our english dictionary
+transducer lex(_current+"english.tra");
+//Which we associate with our annotator...
+r.lexicon(lex);
+r.compile(rgs);
+r.compilelexicons();
+
+ustring u=@"
+It was mediocre.
+It was also bien.
+- No Comparison... 
+I can't say enough about this place.
+It has "great sushi" and better mojito.
+It has "great sushi" and even better service.
+The cabernet sauvignon, from Napa Valley, was quite good.
+The waiters were extremely accomodating and tended to my every need.
+I've been to this restaurant over a dozen times with no complaints to date.
+"@;
+
+ustring uu= @"
+Overrated and not good. 
+– I was highly disappointed in the food at Pagoda of East-Vietnam - .
+The lemon chicken with almonds from the US that tasted like sticky sweet donuts and the honey walnut prawns, the few they actually give you.....were not good.
+The prices are outrageous, especially since the food was actually less satisfying than most neighborhood Chinese establishments.
+Nice ambience, but highly overrated place.
+I will not go back.
+The waiters were extremely accomodating and tended to my taste and to my need.
+
+"@;
+
+annotator rbis;
+//rbis.spans(false);
+//rbis.select(['a_negative']);
+rbis.lexicon(lex);
+rbis.compile(snt);
+
+function analyse(string u) {
+    println(u);
+    //r.select(["a_neutral","a_appel","a_place","a_food","a_service","a_ambience","a_resto","a_price","a_drink"]);
+    
+    //We apply our rules to the text above...
+    time t1;
+    vector res=r.parse(u,true);
+    time t2;
+    
+    float d=t2-t1;
+    println("Temps:",d);
+    
+    println("RES:",res);
+    println();
+
+    
+    
+    //r.dependencies();
+    
+    
+    vector resbis=rbis.parse(u, true);
+    println(resbis);
+    println(rbis.tokens());
+    println();
+
+    /@
+
+    rbis.dependencies();
+
+    vector vdeps = predicatedump();
+    printjln(vdeps);
+    println();
+    @/
+
+    println('Words:');
+    println();
+    string dsp;
+    
+    for (self e in res) {
+        self v=e[1:];
+        dsp=e[0]+"\t\t";
+        bool fst=true;
+        for (self iv in v) {
+            if (not fst) {
+                dsp+=' ';
+            }
+            else
+                fst=false;
+
+            dsp+=u[iv[0]:iv[1]];
+        }
+        println(dsp);
+    }
+
+    println('-----------');
+}
+
+analyse(u);
+analyse(uu);
+
+
+uu = @"
+Overrated and not good.
+I was highly disappointed in the food at Pagoda.
+The lemon chicken with almonds that tasted like sticky sweet donuts and the honey walnut prawns, the few they actually give you...were not good.
+The prices are outrageous, especially since the food was actually less satisfying than most neighborhood Chinese establishments.
+"@;
+
+analyse(uu);
+
+uu="It has great sushi from Japan and better mojito";
+analyse(uu);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

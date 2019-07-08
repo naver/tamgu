@@ -1,0 +1,43 @@
+vector v;
+int i;
+
+v=[1,[i+1,i+2]];
+
+//predicate sentence,noun_phrase,det,noun,verb_phrase,verb;
+
+//sentence._trace(true);
+
+sentence(?S1,?S3) :- noun_phrase(?S1,?S2), verb_phrase(?S2,?S3).
+noun_phrase(?S1,?S3) :- det(?S1,?S2), noun(?S2,?S3).
+verb_phrase(?S1,?S3) :- verb(?S1,?S2), noun_phrase(?S2,?S3).
+det(["the"|?X], ?X)  :- true.
+det(["a"|?X], ?X)  :- true.
+noun(["cat"|?X], ?X)  :- true.
+noun(["dog"|?X], ?X)  :- true.
+noun(["bat"|?X], ?X)  :- true.
+verb(["eats"|?X], ?X)  :- true.
+
+
+
+v=sentence(?X,[]);
+printjln(v);
+v=sentence(["the", "dog", "eats", "a", "bat"],[]);
+println("Check",v);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

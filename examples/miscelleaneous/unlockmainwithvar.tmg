@@ -1,0 +1,27 @@
+/@
+Date: 24/06/2019
+Author: Claude Roux
+Description: Unlock main with variable
+@/
+
+long i=1000;
+
+//a simple thread that wait on i to be 0...
+thread callme() {
+    while (i > -100) {
+        i--;
+        if ((i%10) == 0)
+            println(i);
+    }
+}
+
+callme();
+
+//We then decrement i... When i is 0, the thread is unlocked...
+
+waitonfalse(i);
+
+println("Fin");
+
+
+

@@ -1,0 +1,10 @@
+
+<truc('ll') = "x">;
+<truc('uu') = "y">;
+<truc(x) = "autre">;
+
+println(truc('uu'));
+println(truc('ll'));
+
+
+

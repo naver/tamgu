@@ -1,0 +1,28 @@
+/@
+Date: 28/03/2018
+Author: Claude Roux
+Description: Data functions in Taskell
+@/
+
+
+<data Forme = Cercle float float float  | Rectangle float float float float deriving (Show)>
+
+<Surface :: Forme -> float>
+<Surface(Cercle 10 _ r) = 2π×r²>
+<Surface(Rectangle x y xx yy) = abs(xx-x) × abs(yy-y)>
+
+
+float c;
+float r;
+try {
+    c=Surface(<Cercle 10 20 30>);
+}
+catch;
+
+r=Surface(<Rectangle 20 20 40 40>);
+
+println("Cercle",c);
+println("Rectangle",r);
+
+
+

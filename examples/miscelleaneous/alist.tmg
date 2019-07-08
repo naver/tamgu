@@ -1,0 +1,59 @@
+/@
+Date: 08/01/2019
+Author: Claude Roux
+Description: a_list
+@/
+
+
+
+ring av;
+
+joined thread appel(int i) {
+    for (int e in <i>)
+        av.push(e);
+    
+    av.popfirst();
+    av.popfirst();
+    av.popfirst();
+    av.popfirst();
+    av.popfirst();
+}
+
+
+int i;
+for (i in <100>)
+    appel(i);
+
+waitonjoined();
+
+int nb =  _nbthreads();
+
+av.insert(4400,3000);
+
+
+av.clear();
+
+for (i in <63000>)
+    av.push(i);
+
+println("Fin:", av.size(), nb);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

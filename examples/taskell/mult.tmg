@@ -1,0 +1,40 @@
+function inv(string s) {
+    return(s+"INV");
+}
+
+<Invert :: call -> string ->string>
+<Invert(f,x) : <f x>>
+println(Invert(reverse,"test"+"_truc"));
+println(<Invert inv "test">);
+println(<Invert reverse "test">);
+
+< :: int -> vector Ajoute(u) = x | x <- [1..20], x <= u >
+
+ivector e=Ajoute(10);
+println(e, e.type());
+
+
+< :: int -> int -> float -> float Mult(x,y,z) = 3x-y+z>
+< :: int -> int -> vector -> vector Mult(x,y,v) = [2x+y+v[0]]>
+
+int j= 17+Mult(10,2,3);
+
+println(j); // result is 48 (first definition of Mult)
+
+let b= Mult(10,2,[3]);
+println(b); // result is [25] (second definition of Mult)
+
+
+let r=< :: svector case x of 1 -> 12, 2 -> 24 otherwise 34 | x <- [1..10]>;
+
+println(r,r.type());
+
+< :: call methode() : reverse>;
+
+let rapp=methode();
+println(Invert(rapp,"abcdef"));
+
+
+
+
+

@@ -1,0 +1,24 @@
+ivector iv=[-50..50];
+iv.shuffle();
+
+println(iv);
+println();
+// l1 &&& l2 merge list into one
+
+<fastsort([]) = ivector()>;  //if the list is empty, we return an empty "list"
+<fastsort([fv:v]) =  mn &&& fv &&& mx where    //we merge the different list...
+     let mn = fastsort(<filter (<=fv) v>), //we apply our "sort" on the list that contains the elements smaller than fv
+     let mx = fastsort(<filter (>fv) v>)>;//we apply our "sort" on the list that contains the elements larger than fv
+
+ivector fastlist=fastsort(iv);
+
+println(fastlist);
+
+<asort([]) = []>;  //if the list is empty, we return an empty "list"
+<asort([fv:v]) =  <asort mn> &&& fv &&& <asort mx> where let mn = <filter (<=fv) v>,  let mx = <filter (>fv) v>>;
+
+ivector alist=asort(iv);
+
+println();
+println(alist);
+

@@ -1,0 +1,7 @@
+vector v;
+
+v=<takeWhile (<162) . map(+1) . zipWith (+) [1..] [1..] [1..]>;
+println("zipWith map +",v);
+
+
+

@@ -1,0 +1,8 @@
+<see([]) : "empty">;
+<see([first:rest]) : [a,first] | let a = see(rest)>;
+
+ivector iv=[1..10];
+println(iv);
+vector v;
+v=see(iv);
+println(v);

@@ -1,0 +1,470 @@
+//Ce programme sert à produire des bitmaps à partir d'un dessin fait par l'utilisateur à la souris.
+
+//Les dimensions de l'image... 64x64 (vous pouvez augmenter ces values bien sûr, il faut que ces dimensions soient divisables par 8)
+use('fltk');
+int dx=88,dy=88;
+int iconesize=(dx×dy)>>3;
+
+bool grille=true;
+
+//Ces paramètres permettent de contrôler la taille de la grille
+int px=50,py=50, pw=dx*10,ph=dy*10;
+
+int positionbuttony=50;
+int positionbuttonx=1200;
+int positionx=120;
+int positiony=120;
+
+bool effacer=false;
+bool switch=false;
+map pixels;
+ivector lesbits;
+
+frame coords {
+    int  x,y;
+
+    function _initial() {
+        x=20;
+        y=20;
+    }
+
+    function string() {
+        string s=x+":"+y;
+        return(s);
+    }
+}
+
+coords origine;
+bool originefixée=false;
+
+bool laligne=false;
+bool lecercle=false;
+bool fixeorigine=false;
+winput nomfichier;
+woutput positions;
+
+//Variable principale pour garder la trace des coordonnées de notre rectangle
+coords xy;
+
+//ivector icone=[78,14,12,128,12,194,0,0,148,249,191,123,255,15,0,0,63,0,224,13,0,224,63,0,251,0,0,0,0,48,56,0,21,0,0,0,0,16,28,0,7,252,15,0,0,0,240,1,14,7,24,0,0,0,0,12,138,1,32,0,248,223,15,96,207,0,0,0,14,80,56,128,125,0,1,0,2,0,32,0,1,224,30,16,252,7,240,11,6,248,67,48,246,29,0,0,60,124,70,104,136,19,250,15,224,23,78,72,56,130,3,56,12,211,71,200,248,3,252,102,128,241,75,9,124,0,0,220,0,240,141,8,155,1,0,128,0,192,134,100,6,0,32,0,135,65,7,0,12,0,252,5,240,196,7,0,56,128,255,63,28,14,3,8,0,0,0,226,31,248,65,140,13,64,0,128,48,0,144,192,40,0,246,29,0,0,152,0,126,0,128,25,30,0,8,0,84,64,127,50,224,1,152,24,92,192,128,103,3,7,88,56,204,128,3,70,252,199,249,252,134,128,0,78,0,96,252,93,130,134,55,87,224,63,252,211,131,24,32,206,30,15,100,2,128,160,225,12,0,0,2,0,128,0,228,15,248,65,1,0,192,1,64,12,6,104,1,0,112,62,64,60,192,63,24,128,33,192,7,120,31,62,200,218,37,4,203,248,248,31,204,111,39,60,199,169,128,15,164,37,39,128,121,171,48,6,52,10,36,128,64,15,4,103,156,3,52,130,58,26,129,153,12,216,20,172,33,18,252,206,108,254,28,192,127,50,128,97,228,177,12,130,207,32,64,56,144,144,4,12,158,33,32,44,144,128,33,224,31,1,16,179,24,2,176,128,32,0,140,216,12,70,144,135,38,0,198,192,4,92,16,152,110,0,161,245,0,192,9,224,74,0,144,79,0,16,122,128,83,0,136,70,16,25,128,132,17,0,4,69,152,107,136,141,48,0,4,183,169,207,220,187,33,0,128,255,229,205,245,255,0,0,192,255,101,77,127,230,0,0,96,227,47,109,30,32,0,0,16,227,63,121,30,0,0,0,16,35,127,105,6,0,0,0,128,1,96,105,2,0,0,0,128,1,32,97,2,0,0,0,128,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+ivector icone= [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+128,255,255,255,255,255,255,255,255,255,15,128,0,0,0,0,0,0,0,0,0,8,128,252,255,255,255,255,255,255,255,255,9,128,252,255,255,255,255,255,255,255,255,9,128,252,255,255,255,255,255,255,255,255,9,128,28,0,0,0,0,0,0,0,192,9,128,28,0,0,0,0,0,0,0,192,9,128,28,0,0,0,0,0,0,0,192,9,
+128,28,0,0,0,0,0,0,0,192,9,128,252,255,255,255,7,255,255,255,255,9,128,252,255,255,255,7,255,255,255,255,9,128,252,255,255,255,7,255,255,255,255,9,128,0,0,0,0,7,7,0,0,0,8,128,248,255,31,14,7,199,255,255,31,8,128,248,255,31,14,7,199,255,255,31,8,128,248,255,31,14,7,199,255,255,31,8,
+128,0,0,0,14,7,7,0,0,28,8,128,0,0,0,14,7,7,0,0,28,8,128,248,255,31,62,7,7,0,0,28,8,128,248,255,31,62,7,7,0,0,28,8,128,248,255,31,62,7,7,0,0,28,8,128,56,0,0,62,7,7,0,0,28,8,128,56,0,0,14,7,7,0,0,28,8,128,56,0,0,14,7,7,0,0,28,8,
+128,248,255,31,14,7,7,0,0,28,8,128,248,255,31,14,7,7,0,0,28,8,128,248,255,31,14,7,7,0,0,28,8,128,0,0,0,0,7,7,0,0,0,8,128,248,255,255,31,7,247,255,255,255,8,128,248,255,255,31,7,247,255,255,255,8,128,248,255,255,31,7,247,255,255,255,8,128,56,0,0,28,7,7,0,14,0,8,
+128,56,0,0,28,7,7,0,14,0,8,128,56,0,0,28,7,7,0,14,0,8,128,56,0,0,28,7,7,0,14,0,8,128,56,0,0,28,7,7,0,14,0,8,128,56,0,0,28,7,7,0,14,0,8,128,56,0,0,28,7,7,0,14,0,8,128,56,0,0,28,7,7,0,14,0,8,128,248,255,255,31,7,7,0,14,0,8,
+128,248,255,255,31,7,7,0,14,0,8,128,248,255,255,31,7,7,0,14,0,8,128,0,0,0,0,7,7,0,0,0,8,128,0,0,0,0,7,7,0,0,0,8,128,0,0,0,0,7,7,0,0,0,8,128,0,0,0,0,7,7,0,15,0,8,128,0,192,3,0,7,7,0,15,0,8,128,0,192,3,0,7,7,0,15,0,8,
+128,0,192,3,0,7,7,0,15,0,8,128,0,192,3,0,7,7,0,0,0,8,128,0,0,0,0,7,7,0,0,0,8,128,0,0,0,0,7,7,0,0,0,8,128,0,0,0,0,7,7,0,0,0,8,128,0,0,0,0,7,7,0,0,0,8,128,248,255,28,112,7,247,63,56,224,8,128,248,255,28,112,7,247,63,56,224,8,
+128,248,255,28,112,7,247,63,56,224,8,128,0,0,28,112,7,119,0,56,224,8,128,0,0,124,124,7,119,0,56,224,8,128,248,255,124,124,7,119,0,56,224,8,128,248,255,124,124,7,119,0,56,224,8,128,248,255,12,96,7,119,255,59,224,8,128,56,224,236,111,7,119,255,59,224,8,128,56,224,236,111,7,119,255,59,224,8,
+128,56,224,236,111,7,119,128,59,224,8,128,56,224,140,99,7,119,128,59,224,8,128,56,224,156,115,7,119,128,59,224,8,128,56,224,156,115,7,119,128,59,224,8,128,56,224,28,112,7,119,128,59,224,8,128,56,224,28,112,7,247,191,251,255,8,128,56,224,28,112,255,247,191,251,255,8,128,56,224,28,112,255,247,191,251,255,8,
+128,0,0,0,0,255,7,0,0,0,8,128,0,0,0,0,0,0,0,0,0,8,128,255,255,255,255,255,255,255,255,255,15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+];
+
+/@
+[0,0,0,0,0,0,0,0,0,0,0,224,255,255,255,255,255,255,255,255,3,0,32,0,0,0,0,0,0,0,0,2,0,32,255,255,255,255,255,255,255,127,2,0,32,255,255,255,255,255,255,255,127,2,0,32,255,255,255,255,255,255,255,127,2,0,32,255,255,255,255,255,255,255,127,2,0,32,255,255,255,255,255,255,255,127,2,0,
+32,255,255,255,255,255,255,255,127,2,0,32,255,255,255,255,255,255,255,127,2,0,32,255,255,255,255,255,255,255,127,2,0,32,0,0,192,255,255,1,0,0,2,0,32,0,0,192,255,255,1,0,0,2,0,32,0,0,192,255,255,1,0,0,2,0,32,255,112,192,255,255,241,255,127,2,0,32,255,112,192,255,255,241,255,127,2,0,
+32,7,112,192,255,255,241,255,127,2,0,32,7,112,192,255,255,241,255,127,2,0,32,7,112,192,255,255,113,0,120,2,0,32,7,112,192,255,255,113,0,120,2,0,32,7,112,192,255,255,113,0,126,2,0,32,7,112,192,255,255,113,0,126,2,0,32,255,243,199,255,255,113,0,0,2,0,32,255,243,199,255,255,113,0,0,2,0,
+32,255,243,199,255,255,113,240,127,2,0,32,7,112,192,255,255,113,240,127,2,0,32,7,112,192,255,255,113,240,127,2,0,32,7,112,192,255,255,113,112,96,2,0,32,7,112,192,255,255,113,112,96,2,0,32,7,112,192,255,255,113,0,96,2,0,32,7,112,192,255,255,113,0,96,2,0,32,7,112,192,255,255,241,255,127,2,0,
+32,255,112,192,255,255,241,255,127,2,0,32,255,0,192,255,255,241,255,127,2,0,32,0,0,192,255,255,1,0,0,2,0,32,0,0,192,255,255,1,0,0,2,0,32,0,0,192,255,255,1,0,0,2,0,32,255,255,199,255,255,193,255,31,2,0,32,255,255,199,255,255,193,255,31,2,0,32,255,255,199,255,255,193,255,31,2,0,
+32,255,255,199,255,255,1,0,30,2,0,32,7,0,199,255,255,1,0,30,2,0,32,7,0,199,255,255,1,0,30,2,0,32,255,255,199,255,255,1,0,30,2,0,32,255,255,199,255,255,241,255,127,2,0,32,255,255,199,255,255,241,255,127,2,0,32,0,0,192,255,255,241,255,127,2,0,32,7,0,199,255,255,1,248,0,2,0,
+32,7,0,199,255,255,1,248,0,2,0,32,7,0,199,255,255,1,248,0,2,0,32,7,0,199,255,255,1,248,0,2,0,32,7,0,199,255,255,1,248,0,2,0,32,0,0,192,255,255,1,0,0,2,0,32,0,0,192,255,255,1,0,0,2,0,32,7,0,199,255,255,113,0,112,2,0,32,127,240,199,255,255,113,0,112,2,0,
+32,127,240,199,255,255,113,0,112,2,0,32,199,31,199,255,255,113,0,112,2,0,32,7,7,199,255,255,113,0,112,2,0,32,7,2,199,255,255,241,255,127,2,0,32,7,0,199,255,255,241,255,127,2,0,32,7,0,199,255,255,241,255,127,2,0,32,0,0,0,0,0,0,0,0,2,0,224,255,255,255,255,255,255,255,255,3,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+];
+@/
+
+
+
+
+
+
+//ivector icone=<0 | x <- [1..iconesize]>;
+
+//icone=< (x^255) | x <- icone>;
+
+ivector gomme=[0,62,0,128,127,0,192,255,0,224,255,1,240,255,3,248,255,7,252,255,12,252,127,24,248,15,24,248,7,
+    112,240,3,96,224,0,192,192,0,192,128,1,192,0,3,224,0,3,240,0,6,120,0,12,60,0,24,30,0,240,7,0,224,3,0,192,0,0,0,0,0,0,0];
+
+
+ivector crayon=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,14,0,192,15,0,224,15,0,240,7,0,248,3,0,252,3,0,
+    94,3,0,175,1,128,247,0,192,123,0,224,61,0,224,31,0,240,15,0,252,55,0,60,27,0,204,13,0,120,7,0,240,1,0,192,0,0];
+
+ivector tligne=[0,0,240,0,0,248,0,0,252,0,0,254,0,0,127,0,128,63,0,192,31,0,224,15,0,240,7,0,248,3,0,252,1,0,
+    254,0,0,127,0,128,63,0,192,31,0,224,15,0,240,7,0,248,3,0,252,1,0,254,0,0,127,0,0,63,0,0,31,0,0,15,0,0];
+
+ivector tcercle=[0,0,0,0,0,0,0,62,0,192,227,1,96,0,3,48,0,6,24,0,12,12,0,24,4,0,16,4,0,48,6,0,32,2,0,32,2,0,32,2,0,32,
+    6,0,32,4,0,48,4,0,16,12,0,24,24,0,8,48,0,12,96,0,7,192,193,1,0,127,0,0,0,0];
+
+bitmap bgomme(gomme,24,24);
+bitmap bcrayon(crayon,24,24);
+bitmap btligne(tligne,24,24);
+bitmap btcercle(tcercle,24,24);
+
+function calculbitmap() {
+    //Chaque élément de la table comprend 8 bits, soit des blocs de 8 pixels...
+    int nb=dx>>3;
+    int sz=nb×dy;
+
+    //Un peu d'haskell pour initialiser un tableau de sz 0
+    lesbits=<replicate sz 0>;
+
+    int x,y,p;
+    for (self o in pixels.values()) {
+        x=o[2];
+        y=o[3]*nb;
+        p=x>>3;
+        x= 1<< (x-(p<<3));
+        lesbits[y+p] = lesbits[y+p] | x;
+    }
+}
+
+bool printints=true;
+//calcul du tableau de bits...
+function calcul(button b,window f) {
+    calculbitmap();
+    //Une fois la table de bits calculée, on peut la redessiner
+    f.redraw();
+    string sv="ivector btm="+lesbits+";\n";
+    string nfiche=_current+_sep+nomfichier.value()+".btm";
+    file fsauve(nfiche,"w");
+    fsauve.write(sv);
+    fsauve.close();
+    if (printints) {
+        int nb=0;
+        int mx=lesbits.size()/dx;
+        print("[");
+        bool premier=true;
+        for (int nx in <0,mx,1>) {
+            for (int ny in <0,dy,1>) {
+                if (not premier)
+                    print(",");
+                premier=false;
+                print(lesbits[nb]);
+                nb++;
+            }
+            if (nx<mx-1)
+                println(",");
+            premier=true;
+        }
+        println("\n];");
+    }
+}
+
+
+function efface(button b,self e)  {
+    effacer=1-effacer;
+    switch=true;
+    if (effacer)
+        b.bitmap(bgomme,FL_RED);
+    else
+        b.bitmap(bcrayon,FL_RED);
+}
+
+bool nerienfaire=false;
+function calculposition(coords o) {
+    if (o.x>=px and o.x<px+pw and o.y>=py and o.y<py+ph) {
+        int xp,yp,i,j;
+        xp=(o.x-px)/10;
+        xp*=10;
+        xp+=px;
+        yp=(o.y-py)/10;
+        yp*=10;
+        yp+=py;
+
+        i=(xp-px)/10;
+        j=(yp-py)/10;
+
+        //Un petit truc: On construit une clef sur la base de nos positions: elle est unique and facilement retrouvable
+        return([xp,yp,i,j]);
+    }
+    return([]);
+}
+
+
+function relirebitmap(ivector tn,int lignes,int colonnes) {
+    int tailleunecolonne=colonnes/8;
+    int xp,yp,x;
+    string clef;
+    for (int l in <0,lignes,1>) {
+        for (int c in <0,tailleunecolonne,1>) {
+            int pos=c+l*tailleunecolonne;
+            int n=tn[pos];
+            if (n!=0) {
+                x=c<<3;
+                for (int xx in <0,8,1>) {
+                    if (n.bit(xx)) {
+                        xp=px+10x;
+                        yp=py+10l;
+                        clef=xp+":"+yp;
+                        pixels[clef]=[xp,yp,x,l];
+                    }
+                    x++;
+                }
+            }
+        }
+    }
+}
+
+relirebitmap(icone,dx,dy);
+
+map lignes;
+function dessineuneligne(window f,coords o) {
+    //D'abord la la pente...
+    float pente;
+    if (o.x==origine.x)
+        pente=0;
+    else
+        pente=(origine.y-o.y)/(origine.x-o.x);
+
+    float d=origine.y-origine.x*pente;
+
+    int xp,yp,i,j;
+    ivector iv;
+
+    float incrément=0.05;
+    if (o.x<origine.x)
+        incrément=-0.05;
+
+    float y;
+
+    coords e;
+    lignes.clear();
+    string clef;
+    for (float i in <origine.x,o.x,incrément>) {
+        e.x=i;
+        e.y=i*pente+d;
+        iv=calculposition(e);
+        if (iv!=[]) {
+            [xp,yp,i,j]=iv;
+            f.rectanglefill(xp,yp,10,10,FL_GREEN);
+            clef=xp+":"+yp;
+            lignes[clef]=iv;
+        }
+    }
+}
+
+function dessineuncercle(window f, coords o) {
+    //Le rayon, c'est la droite entre origine and o
+    float rayon;
+    if (origine.y!=o.y)
+        rayon=√((origine.x-o.x)² +(origine.y-o.y)²);
+    else
+        rayon=origine.x-o.x;
+
+    if (rayon==0)
+        rayon=1;
+    coords e;
+    lignes.clear();
+    string clef;
+    ivector iv;
+    int xp,yp,i,j;
+
+    iv=calculposition(origine);
+    if (iv==[])
+        return;
+
+    [xp,yp,i,j]=iv;
+    f.rectanglefill(xp,yp,10,10,FL_BLUE);
+    for (float i in <-π,π,1/rayon>) {
+        e.x=origine.x+rayon*i.cos();
+        e.y=origine.y+rayon*i.sin();
+        iv=calculposition(e);
+        if (iv!=[]) {
+            [xp,yp,i,j]=iv;
+            f.rectanglefill(xp,yp,10,10,FL_GREEN);
+            clef=xp+":"+yp;
+            lignes[clef]=iv;
+        }
+    }
+}
+
+//Cette function est associée avec la construction de la fenêtre...
+function dessin(window f,coords o) {
+
+    bitmap bico(icone,dx,dy);
+    f.bitmap(bico,FL_DARK_GREEN,positionbuttonx-100,20);
+
+    f.drawcolor(FL_BLACK);
+    if (grille) {
+        //On dessine la grille par incrément de 10
+        for (int i in <px,px+pw+1,10>)
+            f.line(i,px,i,px+pw);
+
+        for (int j in <py,py+ph+1,10>)
+            f.line(py,j,py+ph,j);
+    }
+
+    if (nerienfaire==true) {
+        nerienfaire=false;
+        return;
+    }
+
+
+    string k;
+    if (switch==false) {
+        if (originefixée==false) {
+            //Nous avons la position de la souris
+            //elle doit etre comprise entre px and px+pw
+            if (o.x>=px and o.x<px+pw and o.y>=py and o.y<py+ph) {
+                int xp,yp,i,j;
+                xp=(o.x-px)/10;
+                xp*=10;
+                xp+=px;
+                yp=(o.y-py)/10;
+                yp*=10;
+                yp+=py;
+
+                //Un petit truc: On construit une clef sur la base de nos positions: elle est unique and facilement retrouvable
+                k=xp+":"+yp;
+                i=(xp-px)/10;
+                j=(yp-py)/10;
+                if (effacer)
+                    pixels.pop(k);
+                else
+                    pixels[k]=[xp,yp,i,j];
+            }
+        }
+    }
+    switch=false;
+    for (self oo in pixels.values())
+        f.rectanglefill(oo[0],oo[1],10,10,FL_DARK_BLUE);
+
+    if (originefixée==true) {
+        if (laligne)
+            dessineuneligne(f,o);
+        elif (lecercle)
+            dessineuncercle(f,o);
+    }
+
+    //On print notre bitmap grandeur réelle
+    if (lesbits.size()) {
+        bitmap btm(lesbits,dx,dy);
+        f.bitmap(btm,FL_RED,positionbuttonx-200,100);
+    }
+}
+
+
+//On traque la position du curseur à l'écran pour printr les coordonnées de la grille in positions.
+function gcurseur(window f, map cds, coords ob) {
+    coords o;
+    o.x=cds["x"];
+    o.y=cds["y"];
+    ivector iv=calculposition(o);
+    if (iv!=[]) {
+        string clef=iv[2]+":"+iv[3];
+        positions.value(clef);
+    }
+}
+
+//Quand la souris bouge, cette function est automatiquement appelée
+function gbougé(window f, map cds, coords o) {
+    //cds contient les informations propres au mouvement de la souris
+    o.x=cds["x"];
+    o.y=cds["y"];
+    if (fixeorigine==true) {
+        origine.x=o.x;
+        origine.y=o.y;
+        fixeorigine=false;
+        originefixée=true;
+    }
+    f.redraw();
+}
+
+
+
+function dessineligne(button b,self e) {
+    laligne=true;
+    fixeorigine=true;
+    b.bitmap(btligne,FL_BLUE);
+}
+
+button bligne with dessineligne;
+
+function dessinecercle(button b,self e) {
+    lecercle=true;
+    fixeorigine=true;
+    b.bitmap(btcercle,FL_BLUE);
+}
+
+button bcercle with dessinecercle;
+
+function jedessine(window f, map cds, coords o) {
+    //cds contient les informations propres au mouvement de la souris
+    if (originefixée==true) {
+        originefixée=false;
+        bligne.bitmap(btligne,FL_RED);
+        bcercle.bitmap(btcercle,FL_RED);
+        for (string oo in lignes) {
+            if (effacer)
+                pixels.pop(oo);
+            else
+                pixels[oo]=lignes[oo];
+        }
+        laligne=false;
+        lecercle=false;
+    }
+    //calculbitmap();
+    printints=false;
+    calcul(bcercle,f);
+    printints=true;
+    f.redraw();
+}
+
+
+function Nettoie(button b,window f) {
+    nerienfaire=true;
+    lesbits.clear();
+    pixels.clear();
+    f.redraw();
+}
+
+function fgrille(button b, window w) {
+    grille=1-grille;
+    w.redraw();
+}
+
+//On create notre window
+window f(xy) with dessin;
+button bt(f) with calcul;
+button eff with efface;
+button bgrille(f) with fgrille;
+
+button nettoyer(f) with Nettoie;
+
+f.begin(positionx,positiony,1500,1000,"Dessin");
+int coulEur=f.rgbcolor(210,210,255);
+f.backgroundcolor(coulEur);
+//On offre deux actions selon que l'on maintient le button de la souris appuyé
+f.onmouse(FL_RELEASE,jedessine,xy);
+
+f.onmouse(FL_PUSH,gbougé,xy);
+f.onmouse(FL_DRAG,gbougé,xy);
+f.onmouse(FL_MOVE,gcurseur,xy);
+
+positions.create(940,10,50,25,false,"");
+
+nomfichier.create(700,10,200,25,false,"Nom:");
+nomfichier.value("letest");
+
+bt.create(positionbuttonx,positionbuttony-30,60,30,"Ok");
+nettoyer.create(positionbuttonx,positionbuttony+10,60,30,FL_Image,FL_NORMAL_BUTTON,"");
+eff.create(positionbuttonx,positionbuttony+80,60,30,FL_Image,FL_NORMAL_BUTTON,"");
+bligne.create(positionbuttonx,positionbuttony+120,60,30,FL_Image,FL_NORMAL_BUTTON,"");
+bcercle.create(positionbuttonx,positionbuttony+160,60,30,FL_Image,FL_NORMAL_BUTTON,"");
+bgrille.create(positionbuttonx+100,positionbuttony,60,30,FL_NORMAL_BUTTON,"Grille");
+
+
+nettoyer.bitmap(bgomme,FL_BLUE);
+eff.bitmap(bcrayon,FL_RED);
+bligne.bitmap(btligne,FL_RED);
+bcercle.bitmap(btcercle,FL_RED);
+
+f.end();
+f.run();
+
+
+
+
+

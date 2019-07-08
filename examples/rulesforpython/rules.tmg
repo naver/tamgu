@@ -1,0 +1,110 @@
+/@
+Date: 09/03/2018
+Author: Claude Roux
+Description: Annotation rules
+@/
+
+
+//The lexicon...
+//loadin(_current+'lexicon.tmg');
+
+//All these rules will be access through an annotator
+annotator r;
+
+function regarde(string u, annotator r, int i) {
+    println("regarde:",u,i);
+    return(true);
+}
+
+
+a_test ← "not", <regarde 10>.
+a_place ← >{in, from, at}<, "%C%a+", {"%C%a+", ["-","%C%a+"], of,from,the,with}+.
+
+a_food ← #food, {#food, with, [from, (the), #PLACE+]}*.
+a_service ← #service+.
+a_ambience ← #ambience+.
+a_negative ← #negative+.
+a_resto ← #resto+.
+a_price ← #price+.
+
+//Simply words associated with a "lexicon label"
+
+//We load our english dictionary
+transducer lex(_current+"english.tra");
+//Which we associate with our annotator...
+r.lexicon(lex);
+
+function analyse(string u) {
+    println(u);
+    //We apply our rules to the text above...
+    vector res=r.parse(u,true);
+    println(res);
+
+    println();
+    println('Words:');
+    println();
+    for (self e in res) {
+        vector v=e[1:];
+        print(e[0]," ");
+        for (self iv in v)
+            print(u[iv[0]:iv[1]]," / ");
+        println();
+    }
+    println('-----------');
+    return(res);
+}
+
+ustring uu= @"
+like nothing happened...
+Overrated and not very delicious. Glumpish...
+– I was highly disappointed in the food at Pagoda of East-Vietnam - .
+The lemon chicken with almonds from the US that tasted like sticky sweet donuts and the honey walnut prawns, the few they actually give you.....were not good.
+The prices are outrageous, especially since the food was actually less satisfying than most neighborhood Chinese establishments.
+Nice ambience, but highly overrated place.
+I will not go back.
+The waiters were extremely accomodating and tended to my taste and to my need.
+
+"@;
+
+
+println(analyse(uu));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

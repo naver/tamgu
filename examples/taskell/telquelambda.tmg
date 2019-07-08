@@ -1,0 +1,41 @@
+<imb(bmi) : | bmi<=10 = "truc" | bmi<=20 = "machin" | otherwise = "jjkjk">;
+println(imb(12));
+
+<facto(n) : if (n==0) 1 else (n*facto(n-1))>;
+
+svector vs=[" jkjk ", "kllkklk    ", "   la fin "];
+<trimme(v) : (x.trim()+v[-1]) | x <- v >;
+<Trimme(v) : (x.trim()) | x <- v >;
+println(trimme(vs));
+
+<tete(u) : u[0] >;
+<queue(u) : if (u.size()==0) -1 else u[1:]>;
+
+<ajoute(x,y,z) : (x+y+z) >;
+println(ajoute(1,2,3));
+
+svector uu;
+
+println(tete(vs),queue(vs),queue(uu));
+
+int g=8;
+vector rightTriangles = < [a,b,c] | c <- [1..20], b <- [1..c], a <- [1..b], a*a+b*b == c*c and (a+b+c)==24>;
+
+println("Triangles:",rightTriangles);
+
+ivector iv=range(-10,10,1);
+
+ivector vv=range(0,20,1);
+ivector vi;
+vi=< (x*y) | x <- iv, y <- [1..5], x%4==0 and y%3==0>;
+println(vi);
+
+svector vss=< ("Trimmed"+x.trim()) | x <- vs>;
+println(vss);
+
+<fusionne(s,h,b) : s.merge([h])>;
+
+
+
+
+

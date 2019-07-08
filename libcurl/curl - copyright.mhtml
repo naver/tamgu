@@ -1,0 +1,290 @@
+From: <Saved by Blink>
+Snapshot-Content-Location: https://curl.haxx.se/docs/copyright.html
+Subject: curl - copyright
+Date: Wed, 22 May 2019 13:23:06 -0000
+MIME-Version: 1.0
+Content-Type: multipart/related;
+	type="text/html";
+	boundary="----MultipartBoundary--ijZT5ez5abzlXzQj4XfQlC6a8sFLH4uopC3DekstRM----"
+
+
+------MultipartBoundary--ijZT5ez5abzlXzQj4XfQlC6a8sFLH4uopC3DekstRM----
+Content-Type: text/html
+Content-ID: <frame-77A5EA4850A4751303CF9BE7178A7D06@mhtml.blink>
+Content-Transfer-Encoding: quoted-printable
+Content-Location: https://curl.haxx.se/docs/copyright.html
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.=
+w3.org/TR/html4/loose.dtd"><html><head><meta http-equiv=3D"Content-Type" co=
+ntent=3D"text/html; charset=3DUTF-8"> <title>curl - copyright</title>
+<meta name=3D"viewport" content=3D"width=3Ddevice-width, initial-scale=3D1.=
+0">
+
+<link rel=3D"stylesheet" type=3D"text/css" href=3D"https://curl.haxx.se/cur=
+l.css">
+<link rel=3D"shortcut icon" href=3D"https://curl.haxx.se/favicon.ico">
+<link rel=3D"icon" href=3D"https://curl.haxx.se/logo/curl-symbol.svg" type=
+=3D"image/svg+xml">
+</head>
+<body bgcolor=3D"#ffffff" text=3D"#000000">
+<div class=3D"main">
+<div class=3D"menu">
+<a href=3D"https://curl.haxx.se/docs/" class=3D"menuitem" title=3D"Document=
+ation main page">Docs Overview</a>
+<a href=3D"https://curl.haxx.se/docs/companies.html" class=3D"menuitem" tit=
+le=3D"Commercial users of curl">Companies</a>
+<a href=3D"https://curl.haxx.se/docs/copyright.html" class=3D"itemselect">C=
+opyright</a>
+<a href=3D"https://curl.haxx.se/legal/licmix.html" class=3D"menuitem" title=
+=3D"About mixing licenses ">License Mixing</a>
+<a href=3D"https://curl.haxx.se/sponsors.html" class=3D"menuitem" title=3D"=
+Project Sponsors">Sponsors</a>
+<a href=3D"https://curl.haxx.se/docs/thanks.html" class=3D"menuitem" title=
+=3D"Named and listed contributors">Thanks</a>
+<a href=3D"https://curl.haxx.se/legal/thename.html" class=3D"menuitem" titl=
+e=3D"Who owns the name">The Name</a>
+</div>
+<div style=3D"text-align: center; font-size: 140%; padding: 8px 8px 8px 8px=
+; background: #ffffe0;">
+The curl user survey 2019 is up. Please donate a few minutes and <a class=
+=3D"alert" href=3D"https://daniel.haxx.se/blog/2019/05/13/the-curl-user-sur=
+vey-2019/%22%22">answer
+some questions</a>!
+</div>
+<div class=3D"contents">
+<div class=3D"where"><a href=3D"https://curl.haxx.se/">curl</a> / <a href=
+=3D"https://curl.haxx.se/docs/">Docs</a> / <a href=3D"https://curl.haxx.se/=
+docs/whodocs.html">Who and Why</a> / <b>Copyright</b></div>
+<h1> Copyright - License </h1>
+<div class=3D"relatedbox">
+<b>Related:</b>
+<br><a href=3D"https://curl.haxx.se/legal/thename.html">The curl name</a>
+<br><a href=3D"https://curl.haxx.se/legal/licmix.html">license mix</a>
+<br><a href=3D"https://curl.haxx.se/docs/faq.html">FAQ</a>
+<br><a href=3D"https://curl.haxx.se/docs/thanks.html">Thanks</a>
+</div>
+<p>
+ Curl and libcurl are true Open Source/Free Software and meet all definitio=
+ns
+ as such. It means that you are free to modify and redistribute all content=
+s
+ of the curl distributed archives. You may also freely use curl and libcurl=
+ in
+ your commercial projects.
+</p><p>
+ Curl and libcurl are licensed under the license below, which is inspired b=
+y MIT/X,
+ but not identical.
+</p><p>
+ There are other computer-related projects using the name curl as well.  Fo=
+r
+ details, check out <a href=3D"https://curl.haxx.se/legal/thename.html">our=
+ position on the curl
+ name issue</a>.
+</p><h2> The curl license </h2>
+<div class=3D"quote">
+<p>COPYRIGHT AND PERMISSION NOTICE</p>
+<p>Copyright (c) 1996 - 2019, Daniel Stenberg, <a href=3D"mailto:daniel@hax=
+x.se">daniel@haxx.se</a>, and many
+contributors, see the THANKS file.</p>
+<p>All rights reserved.</p>
+<p>Permission to use, copy, modify, and distribute this software for any pu=
+rpose
+with or without fee is hereby granted, provided that the above copyright
+notice and this permission notice appear in all copies.</p>
+<p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS =
+OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF THIRD PARTY RIGHTS.=
+ IN
+NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE U=
+SE
+OR OTHER DEALINGS IN THE SOFTWARE.</p>
+<p>Except as contained in this notice, the name of a copyright holder shall=
+ not
+be used in advertising or otherwise to promote the sale, use or other deali=
+ngs
+in this Software without prior written authorization of the copyright holde=
+r.</p>
+</div>
+</div>
+</div>
+
+
+
+</body></html>
+------MultipartBoundary--ijZT5ez5abzlXzQj4XfQlC6a8sFLH4uopC3DekstRM----
+Content-Type: text/css
+Content-Transfer-Encoding: quoted-printable
+Content-Location: https://curl.haxx.se/curl.css
+
+@charset "utf-8";
+
+body { background-color: white; font-family: arial, helvetica, ariel, sans-=
+serif; font-size: 20px; color: black; margin: 0px; padding: 0px; overflow-x=
+: hidden; }
+
+a { text-decoration: none; color: rgb(64, 64, 255); }
+
+a:hover { text-decoration: none; color: rgb(255, 255, 255); background-colo=
+r: rgb(9, 55, 84); }
+
+.title { color: rgb(0, 0, 0); background-color: rgb(240, 240, 255); font-fa=
+mily: arial, helvetica, ariel, sans-serif; font-size: 120%; }
+
+h1 { border-bottom: 1px solid black; margin-top: 1em; }
+
+h2 { border-bottom: 1px solid black; }
+
+.subtitle { font-weight: bold; }
+
+tr.tabletop { color: rgb(0, 0, 0); background-color: rgb(240, 240, 255); }
+
+.tabletop a { color: rgb(255, 255, 255); }
+
+.buildfail { color: rgb(0, 0, 0); background-color: rgb(255, 128, 128); }
+
+.buildserverprob { color: rgb(0, 0, 0); background-color: rgb(255, 255, 0);=
+ }
+
+.buildfine { color: rgb(0, 0, 0); background-color: rgb(0, 255, 0); }
+
+.compile, .changetable { border: 2px outset rgb(255, 255, 255); }
+
+.news { border: 2px outset rgb(128, 128, 255); }
+
+table.secbox { border: 2px outset rgb(128, 128, 255); background-color: rgb=
+(224, 224, 255); }
+
+table.latestmail { border: 2px outset rgb(128, 128, 255); font-size: 100%; =
+}
+
+td.newsdate { text-align: right; }
+
+.warning { font-size: 14pt; color: rgb(0, 0, 0); background-color: rgb(255,=
+ 128, 128); }
+
+.alert { color: rgb(255, 255, 255); background-color: rgb(240, 0, 0); paddi=
+ng: 4px; }
+
+a.alert { text-decoration: underline; }
+
+td.desc { color: rgb(0, 0, 0); background: rgb(224, 224, 255); }
+
+td.ostitle { color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); fon=
+t-family: arial, helvetica, ariel, sans-serif; font-size: 120%; font-weight=
+: bold; padding: 4px; margin: 0px; border-top: 1px solid black; border-left=
+: 1px solid black; border-right: 1px solid black; }
+
+.latest2 { color: rgb(0, 0, 0); background-color: rgb(255, 255, 68); border=
+-left: 1px solid black; border-right: 1px solid black; margin: 0px; padding=
+: 1px 0px; }
+
+.older2 { color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); border=
+-left: 1px solid black; border-right: 1px solid black; margin: 0px; padding=
+: 1px 0px; }
+
+.col1 { border-left: 1px solid black; margin: 0px; border-bottom: none; bor=
+der-top: none; }
+
+.col7 { margin: 0px; border-right: 1px solid black; border-bottom: none; bo=
+rder-top: none; }
+
+.col2, .col3, .col4, .col5, .col6 { margin: 0px; padding: 0px 4px; }
+
+.osend { border-top: 1px solid black; margin: 0px 0px 10px; }
+
+.download2 { background-color: rgb(224, 224, 224); padding: 10px; }
+
+span.version { font-weight: bold; font-size: 120%; border-style: solid; bor=
+der-width: thin; border-color: black; padding: 4px; }
+
+span.whodate { font-weight: bold; }
+
+tr.odd { color: rgb(0, 0, 0); background-color: rgb(224, 224, 224); }
+
+span.metalink { font-weight: bold; }
+
+.menuitem { text-decoration: none; white-space: nowrap; padding: 0px 1em 0p=
+x 0px; font-family: sans-serif; color: rgb(255, 255, 255); }
+
+.menuitem:hover { text-decoration: none; color: rgb(208, 208, 208); }
+
+.itemselect { font-family: sans-serif; font-size: 110%; text-decoration: no=
+ne; padding: 0px 1em 0px 0px; font-weight: bold; color: rgb(234, 234, 234);=
+ }
+
+.menu { width: 100%; background-color: rgb(9, 55, 84); text-align: center; =
+padding-top: 0.5em; padding-bottom: 0.5em; line-height: 130%; font-size: 26=
+px; }
+
+.tailmenu { color: rgb(255, 255, 255); background-color: rgb(64, 128, 255);=
+ padding: 4px; }
+
+.relatedbox { box-shadow: rgba(0, 0, 0, 0.2) 0px 8px 16px 0px; color: rgb(0=
+, 0, 0); float: right; text-align: left; padding: 4px; margin: 0px 10px 0px=
+ 0px; background: white; font-size: 24px; }
+
+div.oslinks { clear: right; border-color: black; border-width: 1px; border-=
+style: outset; color: rgb(0, 0, 0); float: right; text-align: right; paddin=
+g: 2px; background: white; font-size: 80%; }
+
+div.pollbox { border-color: black; border-width: 2px; border-style: outset;=
+ font-size: 80%; color: rgb(0, 0, 0); float: right; text-align: left; paddi=
+ng: 0px 2px; background: rgb(255, 255, 224); }
+
+p.ingres { width: 80%; font-family: arial, helvetica, ariel, sans-serif; fo=
+nt-style: italic; margin-left: auto; margin-right: auto; }
+
+div.quote { border-style: solid; border-width: thin; border-color: black; p=
+adding: 2px; background-color: rgb(240, 240, 255); width: 90%; margin-left:=
+ 5%; margin-right: 5%; }
+
+div.yellowbox { border-style: outset; border-width: 3px; border-color: blac=
+k; padding: 2px; background-color: rgb(255, 255, 240); }
+
+.bindingbox { float: right; border: 1px solid rgb(0, 0, 0); background-colo=
+r: rgb(255, 255, 255); padding: 2px; }
+
+.bottomad { border: 1px solid rgb(0, 0, 0); background-color: rgb(224, 224,=
+ 224); padding: 5px; margin-left: auto; margin-right: auto; }
+
+.main { }
+
+.where { padding-top: 0.5em; }
+
+.contents { padding-top: 0px; margin-top: 0px; max-width: 50em; margin-left=
+: auto; margin-right: auto; }
+
+@media screen and (max-width: 640px) {
+  .contents { margin-left: 5px; margin-right: 5px; }
+}
+
+.filtermenu { display: inline; }
+
+.inputbox { width: 6em; background: rgb(255, 255, 255); }
+
+table.download { margin-left: 1em; font-size: 120%; }
+
+td.download { padding-right: 10px; }
+
+.dropbtn { background-color: rgb(9, 55, 84); color: white; padding-right: 1=
+em; border: none; cursor: pointer; }
+
+.dropdown { position: relative; display: inline-block; }
+
+.dropdown-content { display: none; position: absolute; background-color: rg=
+b(249, 249, 249); min-width: 160px; box-shadow: rgba(0, 0, 0, 0.2) 0px 8px =
+16px 0px; z-index: 100; }
+
+.dropdown-content a { color: rgb(9, 55, 84); padding: 4px; text-decoration:=
+ none; display: block; font-size: 80%; text-align: left; }
+
+.dropdown-content a:hover { background-color: rgb(241, 241, 241); }
+
+.dropdown:hover .dropdown-content { display: block; }
+
+.dropdown:hover .dropbtn { color: rgb(192, 192, 192); }
+------MultipartBoundary--ijZT5ez5abzlXzQj4XfQlC6a8sFLH4uopC3DekstRM------

@@ -1,0 +1,369 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{1F625741-494B-48FD-B527-8E8A34D8CB77}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>libtamgu</RootNamespace>
+    <ProjectName>tamgu</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <TargetName>lib$(ProjectName)</TargetName>
+    <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <TargetName>lib$(ProjectName)</TargetName>
+    <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_WINDOWS;DOSOUTPUT;Tamgu_REGEX;TamguLIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>false</SDLCheck>
+      <AdditionalIncludeDirectories>$(SolutionDir)\;$(SolutionDir)\include</AdditionalIncludeDirectories>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>AVXSUPPORT;INTELINTRINSICS;TamguSTATIC;WIN32;_DEBUG;_LIB;_WINDOWS;_MBCS;DOSOUTPUT;Tamgu_REGEX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>false</SDLCheck>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)include;$(SolutionDir)include\windows</AdditionalIncludeDirectories>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_WINDOWS;DOSOUTPUT;Tamgu_REGEX;TamguLIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalUsingDirectories>$(SolutionDir);$(SolutionDir)\include</AdditionalUsingDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>AVXSUPPORT;INTELINTRINSICS;TamguSTATIC;WIN32;NDEBUG;_LIB;_WINDOWS;_MBCS;DOSOUTPUT;Tamgu_REGEX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>false</SDLCheck>
+      <AdditionalUsingDirectories>
+      </AdditionalUsingDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)include;$(SolutionDir)include\windows</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\tamgu.h" />
+    <ClInclude Include="..\include\tamgutamgu.h" />
+    <ClInclude Include="..\include\tamgua_mapii.h" />
+    <ClInclude Include="..\include\tamgua_mapif.h" />
+    <ClInclude Include="..\include\tamgua_mapis.h" />
+    <ClInclude Include="..\include\tamgua_mapiu.h" />
+    <ClInclude Include="..\include\tamgua_mapfu.h" />
+    <ClInclude Include="..\include\tamgua_mapfs.h" />
+    <ClInclude Include="..\include\tamgua_mapff.h" />
+    <ClInclude Include="..\include\tamgua_mapfi.h" />
+    <ClInclude Include="..\include\tamgua_mapss.h" />
+    <ClInclude Include="..\include\tamgua_mapsi.h" />
+    <ClInclude Include="..\include\tamgua_mapsf.h" />
+    <ClInclude Include="..\include\tamgua_mapuu.h" />
+    <ClInclude Include="..\include\tamgua_mapui.h" />
+    <ClInclude Include="..\include\tamgua_mapuf.h" />
+    <ClInclude Include="..\include\tamgubinmap.h" />
+    <ClInclude Include="..\include\tamgubinmapf.h" />
+    <ClInclude Include="..\include\tamgubinmapi.h" />
+    <ClInclude Include="..\include\tamgubinmaps.h" />
+    <ClInclude Include="..\include\tamgubinmapu.h" />
+    <ClInclude Include="..\include\tamgubool.h" />
+    <ClInclude Include="..\include\tamgubvector.h" />
+    <ClInclude Include="..\include\tamgubyte.h" />
+    <ClInclude Include="..\include\tamguconstants.h" />
+    <ClInclude Include="..\include\tamgudecimal.h" />
+    <ClInclude Include="..\include\tamgudvector.h" />
+    <ClInclude Include="..\include\tamgufile.h" />
+    <ClInclude Include="..\include\tamgufloat.h" />
+    <ClInclude Include="..\include\tamguframeinstance.h" />
+    <ClInclude Include="..\include\tamgufvector.h" />
+    <ClInclude Include="..\include\tamguglobal.h" />
+    <ClInclude Include="..\include\tamguint.h" />
+    <ClInclude Include="..\include\tamguiterator.h" />
+    <ClInclude Include="..\include\tamguivector.h" />
+    <ClInclude Include="..\include\tamgulist.h" />
+    <ClInclude Include="..\include\tamgulong.h" />
+    <ClInclude Include="..\include\tamgulvector.h" />
+    <ClInclude Include="..\include\tamgumap.h" />
+    <ClInclude Include="..\include\tamgumapf.h" />
+    <ClInclude Include="..\include\tamgumapff.h" />
+    <ClInclude Include="..\include\tamgumapfi.h" />
+    <ClInclude Include="..\include\tamgumapfs.h" />
+    <ClInclude Include="..\include\tamgumapfu.h" />
+    <ClInclude Include="..\include\tamgumapi.h" />
+    <ClInclude Include="..\include\tamgumapif.h" />
+    <ClInclude Include="..\include\tamgumapii.h" />
+    <ClInclude Include="..\include\tamgumapis.h" />
+    <ClInclude Include="..\include\tamgumapiu.h" />
+    <ClInclude Include="..\include\tamgumapsf.h" />
+    <ClInclude Include="..\include\tamgumapsi.h" />
+    <ClInclude Include="..\include\tamgumapss.h" />
+    <ClInclude Include="..\include\tamgumapu.h" />
+    <ClInclude Include="..\include\tamgumapuf.h" />
+    <ClInclude Include="..\include\tamgumapui.h" />
+    <ClInclude Include="..\include\tamgumapuu.h" />
+    <ClInclude Include="..\include\tamguprimemap.h" />
+    <ClInclude Include="..\include\tamguprimemapf.h" />
+    <ClInclude Include="..\include\tamguprimemapff.h" />
+    <ClInclude Include="..\include\tamguprimemapfi.h" />
+    <ClInclude Include="..\include\tamguprimemapfs.h" />
+    <ClInclude Include="..\include\tamguprimemapfu.h" />
+    <ClInclude Include="..\include\tamguprimemapi.h" />
+    <ClInclude Include="..\include\tamguprimemapif.h" />
+    <ClInclude Include="..\include\tamguprimemapii.h" />
+    <ClInclude Include="..\include\tamguprimemapis.h" />
+    <ClInclude Include="..\include\tamguprimemapiu.h" />
+    <ClInclude Include="..\include\tamguprimemapsf.h" />
+    <ClInclude Include="..\include\tamguprimemapsi.h" />
+    <ClInclude Include="..\include\tamguprimemapss.h" />
+    <ClInclude Include="..\include\tamguprimemapu.h" />
+    <ClInclude Include="..\include\tamguprimemapuf.h" />
+    <ClInclude Include="..\include\tamguprimemapui.h" />
+    <ClInclude Include="..\include\tamguprimemapuu.h" />
+    <ClInclude Include="..\include\tamgushort.h" />
+    <ClInclude Include="..\include\tamgustdin.h" />
+    <ClInclude Include="..\include\tamgustring.h" />
+    <ClInclude Include="..\include\tamgusvector.h" />
+    <ClInclude Include="..\include\tamgutreemap.h" />
+    <ClInclude Include="..\include\tamgutreemapf.h" />
+    <ClInclude Include="..\include\tamgutreemapff.h" />
+    <ClInclude Include="..\include\tamgutreemapfi.h" />
+    <ClInclude Include="..\include\tamgutreemapfs.h" />
+    <ClInclude Include="..\include\tamgutreemapfu.h" />
+    <ClInclude Include="..\include\tamgutreemapi.h" />
+    <ClInclude Include="..\include\tamgutreemapif.h" />
+    <ClInclude Include="..\include\tamgutreemapii.h" />
+    <ClInclude Include="..\include\tamgutreemapis.h" />
+    <ClInclude Include="..\include\tamgutreemapiu.h" />
+    <ClInclude Include="..\include\tamgutreemapsf.h" />
+    <ClInclude Include="..\include\tamgutreemapsi.h" />
+    <ClInclude Include="..\include\tamgutreemapss.h" />
+    <ClInclude Include="..\include\tamgutreemapu.h" />
+    <ClInclude Include="..\include\tamgutreemapuf.h" />
+    <ClInclude Include="..\include\tamgutreemapui.h" />
+    <ClInclude Include="..\include\tamgutreemapuu.h" />
+    <ClInclude Include="..\include\tamguufile.h" />
+    <ClInclude Include="..\include\tamguustring.h" />
+    <ClInclude Include="..\include\tamguuvector.h" />
+    <ClInclude Include="..\include\tamguvector.h" />
+    <ClInclude Include="..\include\tamguversion.h" />
+    <ClInclude Include="..\include\automate.h" />
+    <ClInclude Include="..\include\binmap.h" />
+    <ClInclude Include="..\include\compilecode.h" />
+    <ClInclude Include="..\include\constobjects.h" />
+    <ClInclude Include="..\include\conversion.h" />
+    <ClInclude Include="..\include\globaltamgu.h" />
+    <ClInclude Include="..\include\instructions.h" />
+    <ClInclude Include="..\include\libs\tamgudate.h" />
+    <ClInclude Include="..\include\parsecode.h" />
+    <ClInclude Include="..\include\vecta.h" />
+    <ClInclude Include="..\include\x_node.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="targetver.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\tamgu.cxx" />
+    <ClCompile Include="..\src\tamguannotator.cxx" />
+    <ClCompile Include="..\src\tamgutamgu.cxx" />
+    <ClCompile Include="..\src\tamgubool.cxx" />
+    <ClCompile Include="..\src\tamgubvector.cxx" />
+    <ClCompile Include="..\src\tamgubyte.cxx" />
+    <ClCompile Include="..\src\tamgudate.cxx" />
+    <ClCompile Include="..\src\tamgudecimal.cxx" />
+    <ClCompile Include="..\src\tamgudvector.cxx" />
+    <ClCompile Include="..\src\tamgufile.cxx" />
+    <ClCompile Include="..\src\tamgufloat.cxx" />
+    <ClCompile Include="..\src\tamgufmatrix.cxx" />
+    <ClCompile Include="..\src\tamgufraction.cxx" />
+    <ClCompile Include="..\src\tamguframeinstance.cxx" />
+    <ClCompile Include="..\src\tamgufvector.cxx" />
+    <ClCompile Include="..\src\tamgugrammar.cxx" />
+    <ClCompile Include="..\src\tamgutaskell.cxx" />
+    <ClCompile Include="..\src\tamguhvector.cxx" />
+    <ClCompile Include="..\src\tamguimatrix.cxx" />
+    <ClCompile Include="..\src\tamguint.cxx" />
+    <ClCompile Include="..\src\tamguiterator.cxx" />
+    <ClCompile Include="..\src\tamguivector.cxx" />
+    <ClCompile Include="..\src\tamgulist.cxx" />
+    <ClCompile Include="..\src\tamgulong.cxx" />
+    <ClCompile Include="..\src\tamgulvector.cxx" />
+    <ClCompile Include="..\src\tamgumap.cxx" />
+    <ClCompile Include="..\src\tamgumapf.cxx" />
+    <ClCompile Include="..\src\tamgumapff.cxx" />
+    <ClCompile Include="..\src\tamgumapfi.cxx" />
+    <ClCompile Include="..\src\tamgumapfl.cxx" />
+    <ClCompile Include="..\src\tamgumapfs.cxx" />
+    <ClCompile Include="..\src\tamgumapfu.cxx" />
+    <ClCompile Include="..\src\tamgumapi.cxx" />
+    <ClCompile Include="..\src\tamgumapif.cxx" />
+    <ClCompile Include="..\src\tamgumapii.cxx" />
+    <ClCompile Include="..\src\tamgumapis.cxx" />
+    <ClCompile Include="..\src\tamgumapiu.cxx" />
+    <ClCompile Include="..\src\tamgumapl.cxx" />
+    <ClCompile Include="..\src\tamgumaplf.cxx" />
+    <ClCompile Include="..\src\tamgumapll.cxx" />
+    <ClCompile Include="..\src\tamgumapls.cxx" />
+    <ClCompile Include="..\src\tamgumaplu.cxx" />
+    <ClCompile Include="..\src\tamgumapsf.cxx" />
+    <ClCompile Include="..\src\tamgumapsi.cxx" />
+    <ClCompile Include="..\src\tamgumapsl.cxx" />
+    <ClCompile Include="..\src\tamgumapss.cxx" />
+    <ClCompile Include="..\src\tamgumapu.cxx" />
+    <ClCompile Include="..\src\tamgumapuf.cxx" />
+    <ClCompile Include="..\src\tamgumapui.cxx" />
+    <ClCompile Include="..\src\tamgumapul.cxx" />
+    <ClCompile Include="..\src\tamgumapuu.cxx" />
+    <ClCompile Include="..\src\tamguprimemap.cxx" />
+    <ClCompile Include="..\src\tamguprimemapsf.cxx" />
+    <ClCompile Include="..\src\tamguprimemapsi.cxx" />
+    <ClCompile Include="..\src\tamguprimemapsl.cxx" />
+    <ClCompile Include="..\src\tamguprimemapss.cxx" />
+    <ClCompile Include="..\src\tamgurawstring.cxx" />
+    <ClCompile Include="..\src\tamgushort.cxx" />
+    <ClCompile Include="..\src\tamgusocket.cxx" />
+    <ClCompile Include="..\src\tamgustdin.cxx" />
+    <ClCompile Include="..\src\tamgustring.cxx" />
+    <ClCompile Include="..\src\tamgusvector.cxx" />
+    <ClCompile Include="..\src\tamgusynode.cxx" />
+    <ClCompile Include="..\src\tamgusys.cxx" />
+    <ClCompile Include="..\src\tamgutable.cxx" />
+    <ClCompile Include="..\src\tamgutime.cxx" />
+    <ClCompile Include="..\src\tamgutransducer.cxx" />
+    <ClCompile Include="..\src\tamgutreemap.cxx" />
+    <ClCompile Include="..\src\tamgutreemapi.cxx" />
+    <ClCompile Include="..\src\tamgutreemapif.cxx" />
+    <ClCompile Include="..\src\tamgutreemapls.cxx" />
+    <ClCompile Include="..\src\tamgutreemapsf.cxx" />
+    <ClCompile Include="..\src\tamgutreemapsi.cxx" />
+    <ClCompile Include="..\src\tamgutreemapsl.cxx" />
+    <ClCompile Include="..\src\tamgutreemapss.cxx" />
+    <ClCompile Include="..\src\tamguufile.cxx" />
+    <ClCompile Include="..\src\tamguustring.cxx" />
+    <ClCompile Include="..\src\tamguuvector.cxx" />
+    <ClCompile Include="..\src\tamguvector.cxx" />
+    <ClCompile Include="..\src\tamguautomaton.cxx" />
+    <ClCompile Include="..\src\automaton.cxx" />
+    <ClCompile Include="..\src\codecompile.cxx" />
+    <ClCompile Include="..\src\codeexecute.cxx" />
+    <ClCompile Include="..\src\codeoperations.cxx" />
+    <ClCompile Include="..\src\codeparse.cxx" />
+    <ClCompile Include="..\src\containerrecording.cxx" />
+    <ClCompile Include="..\src\conversion.cxx" />
+    <ClCompile Include="..\src\globaltamgu.cxx" />
+    <ClCompile Include="..\src\objectrecording.cxx" />
+    <ClCompile Include="..\src\predicate.cxx" />
+    <ClCompile Include="..\src\predicatefunctions.cxx" />
+    <ClCompile Include="..\src\procedures.cxx" />
+    <ClCompile Include="..\src\tools.cxx" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

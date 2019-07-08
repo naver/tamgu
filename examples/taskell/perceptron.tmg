@@ -1,0 +1,33 @@
+
+//First we create a bunch of values...
+int nb=100;
+vector values;
+
+//Generate one x...
+<onex(nb) : if (x>0.5) x else (x*-1) | y <- [1.0..nb], let x=1/(1+random(100))>;
+values=< [onex(nb),y] | x <- [1..500], let y= if (random(100)>50) 1 else -1>;
+
+
+//The dot product is simply the sum of the product of each element from the vector...
+<dot(v1,v2) : sum . zipWith (*) v1 v2>;
+<cosine(v1,v2) : if (p==0) 0 else (a/p) | let a=<dot v1 v2>, let p=<sqrt . dot v1 v1>*<sqrt . dot v2 v2>>;
+<sign(f) : if (f<0) -1 else 1>;
+
+fvector w=<replicate nb 0>; //we set our vector to 0
+fvector wref; //the reference, which we will use to control the main loop
+
+println("Perceptron");
+int y;
+float ŷ,tst;
+self  x;
+while (tst<0.85) {
+     wref=w;
+     for ([x,y] in values) {
+          ŷ = <dot w x>;
+          if (sign(ŷ)!=y)
+               w=w+x*y;
+     }
+     tst=cosine(wref,w);
+     println(tst);
+}
+println(w);

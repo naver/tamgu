@@ -1,0 +1,44 @@
+/@
+Date: 29/08/2018
+Author: Claude Roux
+Description: Curl test
+@/
+
+use("tamgucurl");
+
+string contents;
+
+function fonc(string content,self o) {
+    contents+=content;
+}
+
+curl c with fonc;
+//we load our web page. For each block, func will be called...
+c.url("https://www.wired.com");
+
+println(contents);
+string res;
+function evalue(self s,int p) {
+    s[1]=s[1].evaluate();
+    return(true);
+}
+
+string htmlgrm=@"
+
+html := _object+.
+_object := tag;%s_;text.
+tag := "<",?+,">".
+text := _characters, evalue.
+_characters := ~"<"+.
+
+"@;
+
+
+grammar g(htmlgrm);
+
+vector v=g.apply(contents);
+
+
+
+
+

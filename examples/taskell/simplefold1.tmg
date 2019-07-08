@@ -1,0 +1,10 @@
+/@
+Date: 29/08/2018
+Author: Claude Roux
+Description: fold
+@/
+
+int k=<foldl1 (+) [18,18]>;
+println("Ici:",k);
+
+

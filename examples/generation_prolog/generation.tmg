@@ -1,0 +1,324 @@
+/@
+Programme Prolog de référence
+det(dame,la).
+det(pomme,la).
+adj(pomme,belle).
+subj(manger,dame).
+obj(manger,pomme).
+
+nounphrase(Noun,np(Det,Adj,Noun)) :-
+    det(Noun,Det),
+    adj(Noun,Adj).
+
+nounphrase(Noun,np(Det,Noun)) :-
+    det(Noun,Det).
+
+nounphrase(Noun,np(Noun)).
+
+verbphrase(Verb,vp(Verb,NP)) :-
+    obj(Verb,Noun),!,
+    nounphrase(Noun,NP).
+
+verbphrase(Verb,vp(Verb)).
+
+sentence([NP,VP]) :-
+    subj(Verb,Noun),
+    nounphrase(Noun,NP),
+    verbphrase(Verb,VP).
+@/
+
+/@
+adj("pomme","beau").
+adj("poisson","beau").
+adj("pomme","bleu").
+adj("pomme","vert").
+subj("manger","dame").
+subj("manger","Pierre").
+subj("manger","chien").
+subj("manger","chats").
+obj("manger","os").
+obj("manger","pomme").
+obj("manger","poisson").
+obj("manger","poire").
+adj("poire","gros").
+adj("poire","rouge").
+@/
+
+prep("de","maison").
+prep("de","océan").
+
+comp("poire","de").
+comp("poisson","de").
+
+subj("manger","Pierre").
+adj("pomme","bleu").
+obj("manger","pomme").
+
+subj("regarder","marin").
+conjunction("que","marin").
+
+avant("gros").
+avant("beau").
+
+après("bleu").
+après("rouge").
+après("vert").
+
+transducer trans(_current+'french.tra');
+
+
+string verbsing="\t+Verb+Sg+P3+Pres+Indic";
+string verbplur="\t+Verb+Pl+P3+Pres+Indic";
+string verbppe="\t+Verb$+Past+Part";
+
+string adjfeat="\t+Adj+Qual";
+
+
+function iscommon(string x) {
+    if (x[0].isupper())
+        return(false);
+    return(true);
+}
+
+function genre(string n) {
+    vector v=trans.lookup(n);
+    v=v.unique();
+    for (string m in v) {
+        if ("+Noun" in m) {
+            if ("+Pl" in m)
+                return("les");
+            if (n[0].isvowel())
+                return("l'");
+            if ("+Fem" in m)
+                return("la");
+        }
+    }
+    if (n[0].isvowel())
+        return("l'");
+    return("le");
+}
+
+function genreindef(string n) {
+    vector v=trans.lookup(n);
+    v=v.unique();
+    for (string m in v) {
+        if ("+Noun" in m) {
+            if ("+Pl" in m)
+                return("des");
+            if ("+Fem" in m)
+                return("une");
+        }
+    }
+    return("un");
+}
+
+
+function genreadj(string n,string adj) {
+    adj+=adjfeat;
+    vector v=trans.lookup(n);
+    v=v.unique();
+    for (string m in v) {
+        if ("+Noun" in m) {
+            if ("+Pl" in m)
+                adj+="+Pl";
+            else
+                adj+="+Sg";
+            if ("+Fem" in m)
+                adj+="+Fem";
+            else
+                adj+="+Masc";
+            break;
+        }
+    }
+    v=trans.lookdown(adj);
+    if (v.size())
+        return(v[0]);
+    return(adj);
+}
+
+function cppe(string n,string verb) {
+    verb+=verbppe;
+    vector v=trans.lookup(n);
+    v=v.unique();
+    string feat;
+    for (string m in v) {
+        if ("+Noun" in m) {
+            if ("+Pl" in m)
+                feat+="+Pl";
+            else
+                feat+="+Sg";
+            if ("+Fem" in m)
+                feat+="+Fem";
+            else
+                feat+="+Masc";
+            break;
+        }
+    }
+    
+    verb["$"]=feat;
+    svector vs=trans.lookdown(verb);
+    if (vs.size())
+        return(vs[0]);
+    return(verb);
+}
+
+function conjugaison(string noun,string verb) {
+    vector v=trans.lookup(noun);
+    v=v.unique();
+    string form;
+    for (string m in v) {
+        if ("+Noun" in m) {
+            if ("+Pl" in m)
+                form=verb+verbplur;
+            else
+                form=verb+verbsing;
+            svector vs=trans.lookdown(form);
+            if (vs.size())
+                return(vs[0]);
+        }
+    }
+    
+    form= verb + verbsing;
+    svector vs=trans.lookdown(form);
+    if (vs.size())
+        return(vs[0]);
+    return(form);
+}
+
+function preposition(string x, term y) {
+    if (y[0][0].isvowel()) {
+        return("d'");
+    }
+    
+    return(x);
+}
+
+predicate saute;
+
+det(?Noun,?Det) :-
+    iscommon(?Noun),
+    ?Det is genre(?Noun).
+
+det(?Noun,?Det) :-
+    iscommon(?Noun),
+    ?Det is genreindef(?Noun).
+
+conjugue(?Noun,?Verb,?Verbc) :-
+    ?Verbc is conjugaison(?Noun,?Verb).
+
+verb_phrase_no_obj(?Noun,?Verb,VP(?Verbc)) :-
+    conjugue(?Noun,?Verb,?Verbc).
+
+subsentence(?Noun, P(?NP,?VP)) :-
+    subj(?Verb,?Noun),
+    noun_phrase(?Noun,?NP),
+    verb_phrase_no_obj(?Noun,?Verb,?VP).
+
+sub_phrase(?Noun,?Conj, S(?Conj,?P)) :-
+    subsentence(?Noun,?P).
+    
+prep_phrase(?Noun,PP(?Prep,?NP)) :-
+    comp(?Noun,?Prep),
+    prep(?Prepx,?Nounbis),
+    noun_phrase(?Nounbis,?NP),
+    ?Prep is preposition(?Prepx,?NP).
+
+noun_phrase(?Nb,NP(?Det,?Nb,?Sub)) :-
+    conjunction(?Conj,?Noun),
+    ?Noun is not ?Nb,
+    det(?Nb,?Det),
+    sub_phrase(?Noun,?Conj, ?Sub).
+
+noun_phrase(?Noun,NP(?Det,?Noun,AP(?Adjc),?PP)) :-
+    det(?Noun,?Det),
+    adj(?Noun,?Adj),
+    ?Adjc is genreadj(?Noun,?Adj),
+    après(?Adj),
+    prep_phrase(?Noun,?PP).
+
+noun_phrase(?Noun,NP(?Det,?Adjc,?Noun,?PP)) :-
+    det(?Noun,?Det),
+    adj(?Noun,?Adj),
+    avant(?Adj),
+    ?Adjc is genreadj(?Noun,?Adj),
+    prep_phrase(?Noun,?PP).
+
+noun_phrase(?Noun,NP(?Det,?Noun,AP(?Adjaccord))) :-
+    det(?Noun,?Det),
+    adj(?Noun,?Adj),
+    ?Adjaccord is genreadj(?Noun,?Adj),
+    après(?Adj).
+
+noun_phrase(?Noun,NP(?Det,?Adjc,?Noun)) :-
+    det(?Noun,?Det),
+    adj(?Noun,?Adj),
+    ?Adjc is genreadj(?Noun,?Adj),
+    avant(?Adj).
+
+noun_phrase(?Noun,NP(?Det,?Noun)) :- !,
+    det(?Noun,?Det).
+
+noun_phrase(?Noun,NP(?Noun)).
+
+verb_phrase(?SNoun,?Verb,VP(?Verbc,?NP)) :- !,
+    obj(?Verb,?Noun),
+    conjugue(?SNoun,?Verb,?Verbc),
+    noun_phrase(?Noun,?NP).
+
+verb_phrase(?SNoun,?Verb,VP(?Verbc)) :-
+    conjugue(?SNoun,?Verb,?Verbc).
+
+verb_phrase_passif(?SNoun,?Verb,VP(?Aux,?Verbp,"par",?NP)) :-
+    subj(?Verb,?Noun),
+    conjugue(?SNoun,"être",?Aux),
+    ?Verbp is cppe(?SNoun,?Verb),
+    noun_phrase(?Noun,?NP).
+
+verb_phrase_negation(?SNoun,?Verb,VP("ne",?Verbc,"pas",?NP)) :-
+    obj(?Verb,?Noun),
+    conjugue(?SNoun,?Verb,?Verbc),
+    noun_phrase(?Noun,?NP).
+
+sentence(P(?NP,?VP)) :-
+    subj(?Verb,?Noun),
+    noun_phrase(?Noun,?NP),
+    verb_phrase(?Noun,?Verb,?VP).
+
+sentence(P(?NP,?VP)) :-
+    subj(?Verb,?Noun),
+    noun_phrase(?Noun,?NP),
+    verb_phrase_negation(?Noun,?Verb,?VP).
+
+sentence(P(?NP,?VP)) :-
+    obj(?Verb,?Noun),
+    noun_phrase(?Noun,?NP),
+    verb_phrase_passif(?Noun,?Verb,?VP).
+
+predicate sentence;
+//sentence.trace(true);
+time t1;
+vector v=sentence(?X);
+time t2;
+
+svector phrases;
+vector rv;
+string r;
+for (self e in v) {
+    rv=e.leaves();
+    r=rv.join(" ");
+    r[0]=r[0].upper();
+    r=r.replace("' ","'");
+    phrases.push(r.trim()+".");
+}
+
+printjln(phrases);
+float dif=t2-t1;
+println();
+println('Time:',dif);
+println(phrases.size(), "generated sentences");
+
+
+
+
+
+

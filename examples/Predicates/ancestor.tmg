@@ -1,0 +1,31 @@
+//we declare all our predicates
+
+//Then our rules
+ancestor(?X,?X) :- true.
+ancestor(?X,?Z) :- parent(?X,?Y),ancestor(?Y,?Z).
+
+//Our parent relations, which are stored in the fact base
+parent("george","sam").
+parent("george","andy").
+parent("andy","mary").
+parent("sam","christine").
+
+ajoute(?X,?Y) :- asserta(parent(?X,?Y)),println("ok").
+ajoute("laurent","martin");
+
+male("george") :- true.
+male("sam") :- true.
+male("andy") :- true.
+
+female("mary") :- true.
+female("christine") :- true.
+
+father(?X,?Y) :- parent(?X,?Y), male(?X).
+
+test(?X,?Q) :- ancestor(?X,?Q), female(?Q), ?X is not ?Q. 
+
+//In this case, since the recipient variable is a vector, we explore all possibilities.
+vector v=test(?X,?Z);
+println(v);
+
+

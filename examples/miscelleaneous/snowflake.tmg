@@ -1,0 +1,81 @@
+use("fltk");
+
+//These two variables keep track of the screen size
+
+int maxx=1000;
+int maxy=900;
+
+int rot=0;
+
+function rotate(window w,float x,float y,ivector angles,float dx,int nb) {
+    if (nb==0) {
+        //We rotate each point according to the angles...
+        for (float θ in angles) {
+            [x,y]=w.rotation(x,y,dx,θ.radian(),true);
+        }
+
+        return([x,y]);
+    }
+
+    //we apply the following rotations to the angles
+    //This is actually how you draw a "pike"
+    ivector rotations=[0,-60,120,-60];
+    for (int r in rotations) {
+        angles+=r;
+        [x,y]=rotate(w,x,y,angles,dx,nb-1);
+    }
+    return([x,y]);
+}
+
+//This function is used to draw a flake... nb defines the recursion depth when drawing each pike
+function flake(window w,float dx,int nb) {
+    ivector angles=[0,-60,60,0];
+    float x=460;
+    float y=maxy-440;
+    //In tamgu you can add a value to each element of an ivector in one operation
+    angles+=rot;
+    dx÷=(3^^nb);
+    for (int i in <3>) {
+        [x,y]=rotate(w,x,y,angles,dx,nb);
+        angles+=120;
+    }
+}
+
+//We associate a callback function with f, which will be called every 0.01s
+window f with flakeback;
+
+//flakeback is the callback function, which is called every 0.01s (see redrawing)
+int increment=20;
+function flakeback(window w,self o) {
+    w.drawcolor(FL_BLACK);
+    //flake(w,150,0);
+    //flake(w,150,1);
+    //flake(w,150,2);
+    flake(w,150,3);
+    //at each call (see redrawing below, which defines the timelapse), we modify the position of the
+    //flake. The flake rotates in the plan according to "rot"
+    rot+=increment;
+    //When we have reached the top of the window, we change the direction of the increment...
+    if (rot <=0 or rot >= 360)
+        increment=-increment;
+}
+
+f.begin(50,50,maxx,maxy,"Koch Snowflake");
+//The callback function will be called now every 0.01s
+f.redrawing(0.01);
+f.end();
+f.run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+

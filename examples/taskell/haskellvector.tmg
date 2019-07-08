@@ -1,0 +1,50 @@
+
+
+vector vx;
+ivector iv=[0..10]; 
+
+<sup(v) : k | let k=<x | x<-v[1:], (x>8)>>;
+
+vx=sup(iv);
+println(vx);
+
+<vecteur([]) : ["u"]>;
+<vecteur([a,["b","i"]|c]) : [a,["b" &&& "i" &&& c]]>;
+<vecteur(v) : (v &&& "fin")>;
+
+vector v=["a",["b","i"],"c","d"];
+
+vx=vecteur([1,2,3]);
+println(vx);
+
+vx=vecteur(v);
+
+println(vx);
+
+vx=vecteur([]);
+println(vx);
+
+
+
+
+<autre(v) : ["u"]| v==[]>;
+<autre(v,s) : [v,s] | v!=[]>;
+
+
+vx=autre(iv,"test");
+println(vx);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

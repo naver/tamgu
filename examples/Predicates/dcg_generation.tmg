@@ -1,0 +1,40 @@
+predicate sentence,det;
+
+term s,np,vp,d,n,v;
+
+function calc(fvector v) {
+     float r=v.product()/v.size();
+     v[-1]*=0.1;
+     return(r);
+}
+
+int decompte;
+function inter(fvector v) {
+     decompte++;
+     if (decompte>10)
+          return(false);
+     return(true);
+}
+
+//sentence.trace(true);
+
+fr(d("le")) --> ["le"],det(?D).
+
+sentence(s(?NP,?VP)) --> noun_phrase(?NP), verb_phrase(?VP).
+noun_phrase(np(?D,?N)) --> det(?D), noun(?N).
+verb_phrase(vp(?V,?NP)) --> verb(?V), noun_phrase(?NP).
+det(d("the")) --> ["the"].
+det(d("a")) --> ["a"].
+
+noun(n("bat")) --> ["bat"].
+noun(n("cat")) --> ["cat"].
+verb(v("eats")) --> ["eats"].
+
+//sentence._trace(true);
+//we generate all possible interpretations...
+vector vr=sentence(?Y,[],?X);
+println(vr);
+
+
+
+

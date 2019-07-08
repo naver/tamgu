@@ -1,0 +1,41 @@
+
+vector tous;
+
+joined thread explore(ivector iv) {
+    svector v;
+    v.push(iv[0]);
+    v=<x | x ← iv>;
+    v.insert(0,iv[0]);
+    tous.push(v);
+}
+
+
+explore([0..90]);
+explore([100..190]);
+explore([200..290]);
+explore([300..390]);
+explore([400..490]);
+explore([500..590]);
+explore([600..690]);
+explore([700..790]);
+explore([800..890]);
+explore([900..990]);
+explore([1000..1090]);
+explore([2000..2090]);
+explore([3000..3090]);
+explore([4000..4090]);
+explore([5000..5090]);
+explore([6000..6090]);
+explore([7000..7090]);
+explore([8000..8090]);
+explore([9000..9090]);
+
+waitonjoined();
+
+println(tous);
+println("fin");
+
+
+
+
+

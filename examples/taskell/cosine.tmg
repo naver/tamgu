@@ -1,0 +1,56 @@
+string s=@"
+55512	70.7107	1 0 1 0 1 1 0 0 0 	ok - so what is she attempting to download if there is no message in the inbox ? 
+56836	70.7107	1 0 0 0 1 1 0 1 0 	ok do you have any data indication in the notification bar ? no 3g or anything correct ? 
+80803	70.7107	1 1 0 1 0 1 0 0 0 	then it appears that this device has no sd card slot . it most likely only has the sim . 
+89103	70.7107	1 0 1 0 1 1 0 0 0 	well for most. there is no national data roaming charges . it 's just a generic message the put in phones . 
+7203	68.6406	0 0 1 0 1 3 1 1 0 	as in if you slide down the status bar to see the notifications , you cannot tap on it to go to the message ? 
+50244	67.082	1 2 0 0 1 2 0 0 0 	no it would dot work in the s3 as the s3 uses a mini sim card and most older phones did not use this type of sim card . 
+23519	66.8153	1 0 0 1 1 2 0 0 0 	hi i have a new htc one ppd and the keyboard no longer appears when in the landscape mode . is this a hardware or software problem ? 
+35862	66.8153	0 0 1 0 1 2 0 1 0 	if there is an update available , the phone will populate a message in the notifcation bar stating there is an update . 
+37519	66.8153	0 0 1 0 2 1 1 0 0 	in problem state , i dont see any usb related message in the notifications 
+42803	66.8153	1 0 0 0 1 2 0 1 0 	it puts it where ? so you get the icon in the bar but no sound ? 
+82234	66.8153	0 0 0 0 1 2 1 1 0 	there are notifications in the notification bar , but not externally on an led light on the phone 
+93971	66.8153	0 0 1 0 1 2 0 1 0 	when the customer gets a new message that will display in the notification bar 
+2056	61.2372	1 0 0 0 1 1 0 0 0 	all right . well , there is an sd card slot in the phone . are you certain there 's no sd ? 
+2161	61.2372	0 0 0 1 1 1 0 0 0 	all right then i would suggest calling in our swap / return line anthony . the device appears to be defective . 
+2607	61.2372	1 0 0 0 1 1 0 0 0 	alright , in this case , i will have to refer the customer back to you for further options then . there is no more troubleshooting we 
+3083	61.2372	0 0 0 0 1 1 0 1 0 	alright looks like it 's actually just a setting in this phone . go ahead and slide down the status bar , then select settings , thehi marissa , 
+3749	61.2372	0 0 0 1 1 1 0 0 0 	and , in general the samsung galaxy note 7 appears to be new , and of great size 
+3945	61.2372	0 0 0 0 1 1 0 1 0 	and do you see a data symbol in the notification bar ? 
+4248	61.2372	0 0 0 0 1 1 0 1 0 	and in the notification bar do you see indication of a network connection ? 
+4284	61.2372	0 1 0 0 1 1 0 0 0 	and is there a sim card in that pjhone to save the contacts ? 
+"@;
+
+
+//First the substrings are retrieved, then cut along spaces, after trimming them. We discard the ones that are empty.
+//Then only the digits 0 to 9 are retrieved, by removing the last one... We start from the third element....
+vector v=< u[:-1] | line ← < <split . trim x> | x ← <split s "\n">, <trim x>!="">, let u=filter (in ['0'..'9']) line[2:]>;
+
+//dot product implementation
+<dot(v1,v2) = sum <* v1 v2> >;
+<norm(v1) = √ . ∑ . map (*) v1>; //this is equivalent to "sqrt . sum . map..." but with mathematical symbols 
+<cosine(v1,v2) = if (d==0) 0 else (n/d) | let n=<dot v1 v2>, let d=<* <norm v1> <norm v2>>>;
+
+//Our vector of 1, based on the extracted string size
+ivector uni=<replicate <size v[0]> 1>;
+
+ivector iv;
+//We traverse the table, converting strings in numbers, then the cosine is computed
+for (iv in v)
+     println(iv,cosine(uni,iv));
+
+println('----------------------------------');
+map m={"a":1,"b":2,"c":3,"d":4};
+
+
+
+
+
+
+
+
+
+
+
+
+

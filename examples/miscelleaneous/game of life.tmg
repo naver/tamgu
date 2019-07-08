@@ -1,0 +1,160 @@
+/@
+Date: 11/12/2017
+Author: Claude Roux
+Description: Game of life
+@/
+
+use("fltk");
+use("allmaps");
+
+vector points;
+
+vector sub;
+ivector v;
+int u;
+for (u in <0,100,1>) {
+    v=[100+random(30),50+random(20)];
+    sub.push(v);
+}
+
+sub = [[120,56],[123,67],[122,68],[127,54],[102,50],[113,67],[124,56],[104,55],[115,60],[105,52],[105,61],[103,66],[125,51],[103,63],[121,66],[106,59],[100,51],[115,56],[109,63],[100,50],[122,56],[104,50],[119,57],[115,68],[100,69],[126,52],[105,67],[121,51],[110,55],[123,53],[102,65],[125,64],[126,68],[102,50],[121,67],[103,52],[125,51],[127,54],[124,69],[107,50],[114,68],[121,63],[125,68],[101,62],[107,51],[112,54],[119,60],[107,64],[109,51],[102,66],[100,58],[129,67],[117,64],[124,57],[108,67],[114,58],[113,59],[110,52],[105,61],[109,54],[111,69],[129,59],[115,53],[105,59],[113,55],[107,50],[126,58],[117,52],[124,53],[122,67],[114,65],[125,53],[110,56],[104,59],[128,61],[120,58],[129,55],[111,53],[118,64],[106,51],[119,55],[129,57],[120,56],[128,67],[125,54],[115,55],[120,58],[122,67],[117,57],[129,60],[128,59],[119,53],[122,69],[121,62],[108,64],[111,61],[117,54],[104,55],[125,67],[101,67]];
+
+self xx;
+for (xx in sub)
+    points.push(xx);
+
+ivector bloc=[-1,0,1];
+
+//Create a new individual
+function Create(self im,self actions,int i, int j, int er) {
+    //This function computes the number of neighbours for our current point...
+    //long nb= <∑ <::ivector x | ii ← bloc, jj ← bloc, int x=im[i+ii][j+jj],x==1>>;
+    long nb= <length < x | ii ← bloc, jj ← bloc, int x=im[i+ii][j+jj],x==1>>;
+
+    //We need three neighbours to create it...
+    if (nb==3) {
+        actions.push([i,j,2]);
+        if (im.test(i)==false) {
+            im[i]=mapii();
+        }
+        im[i][j]=2;
+        return(true);
+    }
+    
+    //on ne fait rien
+    return false;
+}
+
+int mx,my;
+
+function Destroy(self im,self actions, int i, int j) {
+    //long nb=<∑ <::ivector x | ii ← bloc, jj ← bloc, int x=im[i+ii][j+jj], x==1>>;
+    long nb=<length <x | ii ← bloc, jj ← bloc, int x=im[i+ii][j+jj], x==1>>;
+    nb--;
+
+    <Create(im,actions,i+ii,j+jj,i) | ii ← bloc, jj ← bloc, int x=im[i+ii][j+jj], x==0>;
+    
+    //If we have more than 3 neighbours or less than 2, the current element dies...
+    if (nb <2 or nb>3) {
+        actions.push([i,j,1]);
+        return(true);
+    }
+    //it survives
+    mx=i;
+    my=j;
+    return(false);
+}
+
+function Compute() {
+    self e;
+    
+    int i,j;
+    
+    binmap im;
+
+    for (e in points) {
+        [i,j]=e;
+        if (im.test(i)==false)
+            im[i]=mapii();
+        im[i][j]=1;
+    }
+
+    vector actions;
+    //On détecte d'abord les cellules à détruire…
+    for (i in im) {
+        for (j in im[i]) {
+            Destroy(im,actions,i,j);
+        }
+    }
+    
+    for (e in actions) {
+        if (e[2]==2) {
+            im[e[0]][e[1]]=1;
+        }
+        else {
+            im[e[0]][e[1]]=0;
+        }
+    }
+    
+    points=[];
+    for (i in im) {
+        for (j in im[i]) {
+            if (im[i][j]==1) {
+                points.push(ivector([i,j]));
+            }
+        }
+    }
+}
+
+int maxloop=0;
+
+woutput o;
+
+function Draw(window w, self e) {
+    w.drawcolor(FL_BLACK);
+    o.value(maxloop);
+
+    
+    int i,x,y, xp, yp;
+    for (i in <points>) {
+        xp = points[i][0];
+        yp = points[i][1];
+        x=500+(xp-100)<<2;
+        y=400+(yp-50)<<2;
+        w.rectanglefill(x,y,4,4,FL_BLUE);
+    }
+    
+    Compute();
+    //println(maxloop,_poolstats(), points.size());
+    if (maxloop==1000) {
+        self xx;
+        maxloop = 0;
+        points.clear();
+        for (xx in sub)
+            points.push(xx);
+    }
+    else
+        maxloop++;
+}
+
+window w with Draw;
+
+w.begin(30,30,1000,1000,"Life");
+o.create(900,30,50,30,false,'nb:');
+w.redrawing(0.05);
+w.end();
+w.run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+

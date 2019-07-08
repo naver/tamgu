@@ -1,0 +1,242 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{912D18B8-DBC3-4DC0-BA3A-C98A21B46C46}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>tamgudll</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;TamguDLL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>AVXSUPPORT;INTELINTRINSICS;MULTIGLOBALTAMGU;DOSOUTPUT;Tamgu_REGEX;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(SolutionDir)\include\windows;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>Comctl32.lib;ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;TamguDLL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>AVXSUPPORT;INTELINTRINSICS;MULTIGLOBALTAMGU;DOSOUTPUT;Tamgu_REGEX;WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(SolutionDir)\include\windows;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>Comctl32.lib;ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\tamgu.cxx" />
+    <ClCompile Include="..\src\tamguannotator.cxx" />
+    <ClCompile Include="..\src\tamgutamgu.cxx" />
+    <ClCompile Include="..\src\tamgubool.cxx" />
+    <ClCompile Include="..\src\tamgubvector.cxx" />
+    <ClCompile Include="..\src\tamgubyte.cxx" />
+    <ClCompile Include="..\src\tamgudate.cxx" />
+    <ClCompile Include="..\src\tamgudecimal.cxx" />
+    <ClCompile Include="..\src\tamgudvector.cxx" />
+    <ClCompile Include="..\src\tamgufile.cxx" />
+    <ClCompile Include="..\src\tamgufloat.cxx" />
+    <ClCompile Include="..\src\tamgufmatrix.cxx" />
+    <ClCompile Include="..\src\tamgufraction.cxx" />
+    <ClCompile Include="..\src\tamguframeinstance.cxx" />
+    <ClCompile Include="..\src\tamgufvector.cxx" />
+    <ClCompile Include="..\src\tamgugrammar.cxx" />
+    <ClCompile Include="..\src\tamgutaskell.cxx" />
+    <ClCompile Include="..\src\tamguhvector.cxx" />
+    <ClCompile Include="..\src\tamguimatrix.cxx" />
+    <ClCompile Include="..\src\tamguint.cxx" />
+    <ClCompile Include="..\src\tamguiterator.cxx" />
+    <ClCompile Include="..\src\tamguivector.cxx" />
+    <ClCompile Include="..\src\tamgulist.cxx" />
+    <ClCompile Include="..\src\tamgulong.cxx" />
+    <ClCompile Include="..\src\tamgulvector.cxx" />
+    <ClCompile Include="..\src\tamgumap.cxx" />
+    <ClCompile Include="..\src\tamgumapf.cxx" />
+    <ClCompile Include="..\src\tamgumapff.cxx" />
+    <ClCompile Include="..\src\tamgumapfi.cxx" />
+    <ClCompile Include="..\src\tamgumapfl.cxx" />
+    <ClCompile Include="..\src\tamgumapfs.cxx" />
+    <ClCompile Include="..\src\tamgumapfu.cxx" />
+    <ClCompile Include="..\src\tamgumapi.cxx" />
+    <ClCompile Include="..\src\tamgumapif.cxx" />
+    <ClCompile Include="..\src\tamgumapii.cxx" />
+    <ClCompile Include="..\src\tamgumapis.cxx" />
+    <ClCompile Include="..\src\tamgumapiu.cxx" />
+    <ClCompile Include="..\src\tamgumapl.cxx" />
+    <ClCompile Include="..\src\tamgumaplf.cxx" />
+    <ClCompile Include="..\src\tamgumapll.cxx" />
+    <ClCompile Include="..\src\tamgumapls.cxx" />
+    <ClCompile Include="..\src\tamgumaplu.cxx" />
+    <ClCompile Include="..\src\tamgumapsf.cxx" />
+    <ClCompile Include="..\src\tamgumapsi.cxx" />
+    <ClCompile Include="..\src\tamgumapsl.cxx" />
+    <ClCompile Include="..\src\tamgumapss.cxx" />
+    <ClCompile Include="..\src\tamgumapu.cxx" />
+    <ClCompile Include="..\src\tamgumapuf.cxx" />
+    <ClCompile Include="..\src\tamgumapui.cxx" />
+    <ClCompile Include="..\src\tamgumapul.cxx" />
+    <ClCompile Include="..\src\tamgumapuu.cxx" />
+    <ClCompile Include="..\src\tamguprimemap.cxx" />
+    <ClCompile Include="..\src\tamguprimemapsf.cxx" />
+    <ClCompile Include="..\src\tamguprimemapsi.cxx" />
+    <ClCompile Include="..\src\tamguprimemapsl.cxx" />
+    <ClCompile Include="..\src\tamguprimemapss.cxx" />
+    <ClCompile Include="..\src\tamgurawstring.cxx" />
+    <ClCompile Include="..\src\tamgushort.cxx" />
+    <ClCompile Include="..\src\tamgusocket.cxx" />
+    <ClCompile Include="..\src\tamgustdin.cxx" />
+    <ClCompile Include="..\src\tamgustring.cxx" />
+    <ClCompile Include="..\src\tamgusvector.cxx" />
+    <ClCompile Include="..\src\tamgusynode.cxx" />
+    <ClCompile Include="..\src\tamgusys.cxx" />
+    <ClCompile Include="..\src\tamgutable.cxx" />
+    <ClCompile Include="..\src\tamgutime.cxx" />
+    <ClCompile Include="..\src\tamgutransducer.cxx" />
+    <ClCompile Include="..\src\tamgutreemap.cxx" />
+    <ClCompile Include="..\src\tamgutreemapi.cxx" />
+    <ClCompile Include="..\src\tamgutreemapif.cxx" />
+    <ClCompile Include="..\src\tamgutreemapls.cxx" />
+    <ClCompile Include="..\src\tamgutreemapsf.cxx" />
+    <ClCompile Include="..\src\tamgutreemapsi.cxx" />
+    <ClCompile Include="..\src\tamgutreemapsl.cxx" />
+    <ClCompile Include="..\src\tamgutreemapss.cxx" />
+    <ClCompile Include="..\src\tamguufile.cxx" />
+    <ClCompile Include="..\src\tamguustring.cxx" />
+    <ClCompile Include="..\src\tamguuvector.cxx" />
+    <ClCompile Include="..\src\tamguvector.cxx" />
+    <ClCompile Include="..\src\tamguautomaton.cxx" />
+    <ClCompile Include="..\src\automaton.cxx" />
+    <ClCompile Include="..\src\codecompile.cxx" />
+    <ClCompile Include="..\src\codeexecute.cxx" />
+    <ClCompile Include="..\src\codeoperations.cxx" />
+    <ClCompile Include="..\src\codeparse.cxx" />
+    <ClCompile Include="..\src\containerrecording.cxx" />
+    <ClCompile Include="..\src\conversion.cxx" />
+    <ClCompile Include="..\src\globaltamgu.cxx" />
+    <ClCompile Include="..\src\objectrecording.cxx" />
+    <ClCompile Include="..\src\predicate.cxx" />
+    <ClCompile Include="..\src\predicatefunctions.cxx" />
+    <ClCompile Include="..\src\procedures.cxx" />
+    <ClCompile Include="..\src\tools.cxx" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

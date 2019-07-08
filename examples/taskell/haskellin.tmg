@@ -1,0 +1,19 @@
+vector v;
+
+
+<carrein(v) :  let val = map (^^pw) v, b= takeWhile (<mx) val in (b+3),  where pw = 2, mx=200 >;
+println("CARRE IN",carrein([1..1000:0.5]));
+
+
+
+
+
+
+
+
+
+
+
+
+
+

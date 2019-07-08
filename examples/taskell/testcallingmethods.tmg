@@ -1,0 +1,76 @@
+/@
+Date: 14/03/2018
+Author: Claude Roux
+Description: Test appels taskell
+@/
+
+//This function returns another function that divides x and y
+<fonction :: call>
+<renvoie :: _ -> _ -> int>
+<fonction() = < renvoie(x,y) : x/y>>
+//We call this function
+call app= fonction();
+//And applies it to 201,25
+println(1,app(201,25)); //it returns 8, the function declaration implies an int
+
+
+//A more complex example:
+function machine(int j, int k) {
+    return(3k-j);
+}
+
+function valeur(int x) {
+    return 2x;
+}
+
+<calcule(x) : 3x>
+<machin(f,x) : <f x>>
+
+println(<machin size "toto">); //4
+println(<machin valeur 18>); //36
+println(<machin calcule 18>); //54
+
+//Here we return a function according to the value of x
+<Choice(x) :
+case x of
+	1 -> <calculus(x,y) : x-y>, //a local lambda
+	2 -> <calculus(x,y) : y/x>,
+ 	4 -> reverse, //it can be a method
+	5 -> machine //or another function
+	otherwise <calculus(x,y) : x+2y>
+>
+
+app=Choice(1);
+println(2,app(20,25)); // return -5
+app=Choice(2);
+println(3,app(20,25)); //returns 1.25
+app=Choice(3);
+println(3,app(20,25)); //returns 70
+
+//Below the function that is applied is returned by Choice
+println(4,<<Choice 2> 123 456>); // return 3.70732 (it calls calculus)
+println(5,<<Choice 4> "abcdef">); //return fedcba (it calls reverse)
+println(6,<<Choice 5> 123 456>); //return 1245 (it calls machine)
+
+function adding(string r) {
+    return(r+"_here");
+}
+
+<appl:: call -> _ -> _>
+<appl(x,y) = <x y>>
+
+println(<appl reverse "abc">); //return cba
+println(appl(adding,"abc")); //return abc_here
+
+<ope(x,y,"+") = <+x y>>
+<ope(x,y,"-") = <-x y>>
+<ope(x,y,"*") = <*x y>>
+<ope(x,y,"/") = </ x y>>
+
+println(ope(10,20,"+"));
+println(ope(10,20,"-"));
+println(ope(10,20,"*"));
+println(ope(10,20,"/"));
+
+
+

@@ -1,0 +1,9 @@
+string anglais="The revolution that took place in Ethiopia was not a real success";
+string français="La révolution qui a eu lieu en Ethiopie n'a pas été un réel succès";
+
+<compare(A,F) : [a,f,dist] | a ← <tokenize A>, f <- <tokenize F>, let dist=<editdistance a <deaccentuate f>>, a[0]==f[0] and a.size()>=3 and dist<=2>
+
+vector res=compare(anglais,français);
+println(res);
+
+

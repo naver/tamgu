@@ -1,0 +1,24 @@
+predicate comp, rec;
+
+rajoute(?X,?Y) :- asserta(comp(?X,?Y)).
+ajoute(?X,?Y) :- asserta(rec(?X,?Y)).
+
+appel(?X,?Y) :-
+    comp(?X,?Z),
+    rec(?Z,?Y).
+
+compare(?X) :- between(10,20,?X).
+
+rajoute("a","b non");
+ajoute("b non","c");
+
+vector v=appel("a","c");
+println(v);
+
+
+asserta(comp(12,34));
+
+bool cp=compare(15);
+println(cp);
+
+

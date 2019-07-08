@@ -1,0 +1,17 @@
+vector v;
+
+<compare(s1,s2) : if (a1==a2) 1 else 0 | a1 <- s1.padding(sz,"0") ;  a2 <- s2.padding(zs,"."), where sz=(s1.size()-s2.size()), zs=(s2.size()-s1.size())>;
+v=compare("test","teite");
+println(v);
+
+
+
+
+
+
+
+
+
+
+
+

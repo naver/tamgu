@@ -1,0 +1,18 @@
+
+//as([],[]).
+//as(['a'|?X],?Y) :- as(?X,?Y).
+
+predicate phrase;
+
+as --> [].
+as --> ['a'],as.
+
+phrase(?X,?Y) :- as(?X,?Y).
+
+
+
+phrase.trace(true);
+
+bool b=phrase(['a','a','a'],[]);
+println(b);
+

@@ -1,0 +1,95 @@
+/@
+Date: 26/03/2018
+Author: Claude Roux
+Description: Tagging
+@/
+
+use('wapiti');
+
+wapiti wtagger(_current+'model');
+
+//line=[0:'w',1:'digit',2:'alpha',3:'Upper',4:'Comb',5:'Agree',6:'Proper',7:'POS'];
+function tagger(vector v) {
+    svector line, vcut;
+    string wrd;
+    vector lines;
+    string s,feat;
+    treemapss pos;
+    
+    //The vector is composed of a list of strings, each corresponding to a reading...
+    for (self reading in v) {
+        line=['','0','0','0','','0','0','NOUN'];
+        
+        wrd=reading[0];
+        line[0]=wrd;
+        if (wrd.isdigit())
+            line[1]='1';
+        else {
+            if (wrd.isalpha())
+                line[2]='1';
+                
+            if (wrd[0].isupper())
+                line[3]='1';
+        }
+        
+        pos={};
+
+        for (int i in <1,reading.size()-2,2>) {
+            vcut=reading[i+1].split('+');
+            if ('+Guess' in reading[i+1])
+                pos="GU";
+            else
+                pos[vcut[-1][:2]]=true;
+                
+            for (feat in vcut) {
+                if (feat=="Sg" or feat=="Pl")
+                    line[5]=feat;
+                elif (feat=="Prop")
+                    line[6]=feat;
+            }
+        }
+        
+        line[4]=pos.keys().join("");
+        lines.push(line.join("\t"));
+    }
+
+    svector res=wtagger.label(lines);
+    vector result;
+    long sz;
+    svector rsub;
+    
+    for (int i in <0,res,1>) {
+        sz=v[i].size();
+        if (sz==5) {
+            rsub=v[i];
+            result.push(rsub);
+            continue;
+        }
+
+        rsub=[v[i][0]];
+        bool found=false;
+        for (int k in <1,sz-2,2>) {
+            if (res[i] in v[i][k+1]) {
+                rsub.push(v[i][k]);
+                rsub.push(v[i][k+1]);
+                found=true;
+                break;
+            }
+        }
+
+        //Wrong POS detected, we reinject the whole line...
+        if (not found) {
+            rsub=v[i];
+            result.push(rsub);
+            continue;
+        }
+        rsub.push(v[i][-2]);
+        rsub.push(v[i][-1]);
+        result.push(rsub);
+    }
+    return(result);
+}
+
+
+
+

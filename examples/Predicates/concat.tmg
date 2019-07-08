@@ -1,0 +1,10 @@
+//predicate concat;
+concat([],?X,?X).
+concat([?H|?T],?Y, [?H|?Z]) :- concat(?T,?Y,?Z).
+
+//trace(concat,true);
+
+vector v=concat(["english",'russian'],['spanish'],?L);
+println(v);
+
+

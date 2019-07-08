@@ -1,0 +1,71 @@
+/@
+Date: 22/02/2019
+Author: Claude Roux
+Description: size sur scan
+@/
+
+ustring s= "👋🏾🖐️ 👁️‍🗨️ceci est un test 👁️‍🗨️ avec des 👋🏾🖐️ et des 🖐️ et des 💚";
+
+uvector vs = s.split('');
+println(<x.format("%x") | x <-s.ord()>);
+println(vs);
+vs = r"%e+" in s;
+
+println(vs);
+
+
+vector v= [['NB',1],['CHARGÉS',1],['SP',1],['TOP',1],['GY',1],['CAFARD',1],['NYC',1],['TGV',1],['TRES',1],['JAP',1],['LA',1],['ROSE',1],['GH',1],['DF',1],['GRATUIT',1],['BB',1],['BIA',2],['SES',1],['EVER',1],['LE',2],['OUT',1],['JN',1],['GOÛTER',1],['JD',2],['LOIN',1],['TRÈS',1],['IL',1],['LES',1],['MAIS',1],['SIDES',1],['VEAU',1],['CY',1],['BAGELS',1],['HH',1],['WOW',1],['FAUT',1],['CREAM',1],['VII',1],['TOUS',1],['CHEESE',1],['BON',3],['DE',2],['QUE',1],['PC',1],['ESCALOPE',1],['MONTAGNARDE',1],['ENORME',1],['ENFIN',1]];
+
+
+function cmp(vector a, vector b) {
+    return (a[1] > b[1]);
+}
+v.sort(cmp);
+println(v);
+println();
+<lacomp(a,b) : (a[1] > b[1])>
+v.sort(lacomp);
+println(v);
+println();
+
+v = < x | [x,y] <- v>;
+
+v.sort(size);
+
+println(v);
+println();
+
+<calc(x) : x.size()>
+
+v.sort(calc);
+println(v);
+println();
+
+
+function mm(self e) {
+    return e.size();
+}
+
+v.sort(mm, true);
+println(v);
+println();
+
+vs.read(_current+"scansize.tmg");
+uvector uv;
+
+uv.read(_current+"scansize.tmg");
+
+vector vv;
+println(vv.read(_current+"scansize.tmg"));
+
+
+grammar_macros("X","({%+-})0x%x+(.%x+)(p({%+-})%d+)");
+
+s="ceci est: 0x1.0d0e44bfeec9p-3 dans la chaine.";
+
+vs = r"%X" in s;
+println(vs);
+
+
+
+

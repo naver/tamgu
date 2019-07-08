@@ -1,0 +1,87 @@
+/@
+Date: 02/01/2019
+Author: Claude Roux
+Description: Fibres
+@/
+
+//-----------------------------------------------------------------------
+function display(int i, int x, int y, int idx) {
+    return i+x+y;
+}
+
+<myfiber(x,y,idx) = display(i,x,y,idx) | i <- [x..y]>
+
+//We initialize a fibre variable with myfiber
+fibre f = myfiber;
+vector v;
+int i;
+
+//-----------------------------------------------------------------------
+//recording is done from a thread...
+bool go=true;
+joined thread recording(int i, int x, int y) {
+    if (i==-1) {
+        go = false;
+        return;
+    }
+    printlnerr("Fiber:",i);
+    v[i] <<< f(x,y,i);
+    if (i == 10)
+        f.block();
+}
+
+joined thread running() {
+    while (true) {
+        if (f) {
+            println('je prends');
+            f.run();
+            if (not go) {
+                println("Taille:", f.size());
+                return;
+            }
+        }
+    }
+}
+//-----------------------------------------------------------------------
+//We execute them...
+running();
+
+//The fibers are launched from a thread...
+int n;
+for (i in <0,580,20>) {
+    recording(n, i, i+19);
+    n++;
+}
+
+recording(-1,-1,-1);
+
+//We wait for all fibers to record
+waitonjoined();
+
+//-----------------------------------------------------------------------
+
+if (f.size()) {
+    println("On débloque:", f.size());
+    f.unblock();
+    f.run();
+}
+println(v);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

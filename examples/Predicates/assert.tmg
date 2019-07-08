@@ -1,0 +1,19 @@
+
+//Note that you need to declare "parent" if you want to use it in an assert
+predicate parent;
+
+float e=1;
+ajout(?X,?Y) :- asserta(parent(?X,?Y)), e is (e - 0.1), println(e).
+
+//ajout("Pierre","Roland");
+
+int i;
+for (i=0;i<10;i++)
+     ajout(i,i+3);
+
+vector v=predicatedump(parent);
+println(v,e);
+
+
+
+

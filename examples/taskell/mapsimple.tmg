@@ -1,0 +1,22 @@
+<dot(v1,v2) : sum <* v1 v2> >;
+<norme(v1) : sqrt . sum . map (*) v1>;
+<cosine(v1,v2) : if (d==0) 0 else n/d | let d=<* <norme v1> <norme v2>>, let n=<dot v1 v2>>;
+
+ivector v1=[1..10];
+ivector v2=[11..20];
+
+float f;
+f=cosine(v1,v2);
+println(f);
+
+
+int i;
+i=10-(23*4);
+println(i);
+
+i+=20-30;
+println(i);
+
+
+
+

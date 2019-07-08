@@ -1,0 +1,32 @@
+vector v;
+
+int j;
+
+bool recj=<all (>10) [11..21]>; 
+println("Tous > 10",recj);
+
+j=<foldl1 (+) [1..10]>;
+println(j);
+
+j=<a | where a=100>;
+println(j);
+
+j=<a | let a=w*xc+10, (a<210), where w=20, xc=10>;
+println("Where:",j);
+
+<description(lst) = "Liste="+<what lst> | where <what([]) : "vide">, <what([a]) : "un">, <what(xs): "tout">>;
+println(description([1]));
+
+j=<a | let a=w*xc+10, where w=20, xc=10>;
+
+println("Where:",j);
+
+//we prepare a vector in which we have: [[1,2,3,4],..,[1,2,3,4]]
+v=<replicate 5 [1..4]>;
+println("Replicate:",v);
+
+//we match the sub-lists against vector patterns
+v=<case x of [a,b,c,5] -> (a+b-c), [a,2|_] -> (a+b)  otherwise <sum x> | x <- v>;
+println(v);
+
+

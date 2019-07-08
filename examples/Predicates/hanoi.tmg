@@ -1,0 +1,36 @@
+//we declare our predicate
+predicate move;
+
+//move._trace(false);
+
+//_trace(move,true);
+//Note the variable names, which all start with a "?"
+move(1,?X,?Y,_) :-  
+    println('Move the top disk from ',?X,' to ',?Y).
+
+move(?N,?X,?Y,?Z) :- 
+    ?N>1, 
+    ?M is ?N-1,
+    println("Increment:",?N,?M),
+    move(?M,?X,?Z,?Y), 
+    move(1,?X,?Y,_), 
+    move(?M,?Z,?Y,?X).
+
+//The result will be assigned to res
+predicatevar res;
+
+res=move(3,"left","right","centre");
+
+println("Res:",res);
+
+res=move(3,"left","right","centre");
+println("Res:",res);
+
+
+
+
+
+
+
+
+

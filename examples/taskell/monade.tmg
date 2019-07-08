@@ -1,0 +1,7 @@
+vector v=[1..5];
+<Sum :: int -> int -> int>
+<Sum(x,y): x+y>
+
+int i=Sum(10,20);
+
+println(i);

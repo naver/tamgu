@@ -1,0 +1,37 @@
+int k;
+
+k=<foldl1 (+) [1..10]>;
+println(k);
+
+list v=[1..10];
+
+k=<foldl1 (+) v>;
+println(k);
+
+k=<foldl1 (+) [10,18,24,28,30,30,28,24,18,10]>;
+println(k);
+
+k=<foldl1 (+) [18,18]>;
+println("Ici:",k);
+
+k=<foldl1 (+) []>;
+println(k);
+
+ivector iv=<scanl1 (\ acc x -> acc+x) [1..10]>;
+println(iv);
+
+iv=[1..10];
+println(iv.sum());
+
+
+svector vv=["aa","bb","cc","dd","ee"];
+
+svector res=<scanr (+) "x" vv>;
+println(res);
+
+iv=<scanl (+) 0 [3,5,2,1]>;
+println(iv);
+
+
+
+

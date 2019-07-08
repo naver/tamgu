@@ -1,0 +1,20 @@
+/@
+Date: 09/07/2018
+Author: Claude Roux
+Description: Divisions Maybe
+@/
+
+<division :: float → float → Maybe float>
+<division(x,y) : x/y>
+
+println(division(5,0));
+println(division(5,10));
+println(division(5,100));
+println(division(5,1000));
+println(division(5,10000));
+
+
+
+
+
+

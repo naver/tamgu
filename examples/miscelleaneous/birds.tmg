@@ -1,0 +1,273 @@
+use("fltk");
+use("allmaps");
+
+int maxx=900,maxy=900;
+a_mapii oiseaux;
+int nb=0;
+int zone=30;
+vector lesoiseaux;
+bool prêt=false;
+ivector garde;
+
+winput depuis;
+
+frame positions {
+
+    int x,y,xc,yc;
+    float ix,iy;
+    int idx;
+    int clef;
+    bool kill;
+
+    function _initial() {
+        kill=false;
+    }
+
+    function string() {
+        string chaine=x+":"+ix+","+y+":"+iy;
+        return chaine;
+    }
+    
+    function _initial(int xx,int yy) {
+        x=xx;
+        kill=false;
+        y=yy;
+        ix=random(10)+1;
+        iy=random(10)+1;
+        idx=nb;
+        nb++;
+        xc=x/zone;
+        yc=y/zone;
+        clef=xc+":"+yc;
+        oiseaux[clef]=116;
+    }
+
+
+    function setkill() {
+        kill=true;
+    }
+
+    function killed() {
+        return kill;
+    }
+
+    function X() {
+        return x;
+    }
+
+    function Y() {
+        return(y);
+    }
+
+    function IX() {
+        return ix;
+    }
+
+    function IY() {
+        return iy;
+    }
+
+    function Idx() {
+        return idx;
+    }
+
+    function dessine(window f) {
+        f.circle(x,y,10);
+        f.drawtext(idx,x-5,y+2);
+    }
+
+    function increment() {
+        if (prêt==false)
+            return;
+
+        //depuis.value(idx);
+        
+        lock("dessine");
+        if (idx!=0) {
+            int x0=lesoiseaux[0].X();
+            int y0=lesoiseaux[0].Y();
+
+            //voit-il le premier oiseau?
+            xc=x/zone;
+            yc=y/zone;
+            int nclef=(xc<<8) | yc;
+            if (clef!=nclef && oiseaux.test(nclef)) {
+                //On récupère l'index de l'élément correspondant
+                int ixx=oiseaux[nclef];
+                ix=lesoiseaux[ixx].IX()×-2;
+                iy=lesoiseaux[ixx].IY()×-2;
+                if (ix==0)
+                    ix=-2;
+                if (iy==0)
+                    iy=-2;
+            }
+            else {
+                oiseaux.pop(clef);
+                clef=nclef;
+                oiseaux[clef]=idx;
+                oiseaux[clef]=idx;
+                if (x>=x0)
+                    ix=-1;
+                else
+                    ix=1;
+
+                if (y>=y0)
+                    iy=-1;
+                else
+                    iy=1;
+            }
+        }
+        unlock("dessine");
+        
+        x+=ix;
+        y+=iy;
+        
+        if (x>=maxx) {
+            ix = -random(10)-1;
+            if (ix==0)
+                ix=-1;
+            x--;
+        }
+        else
+            if (x<=0) {
+                ix=random(10)+1;
+                if (ix==0)
+                    ix=1;
+                x++;
+            }
+
+        if (y>=maxy) {
+            iy= -random(10)-1;
+            if (iy==0)
+                iy=-1;
+            y--;
+        }
+        else {
+            if (y<=0) {
+                iy=random(10)+1;
+                if (iy==0)
+                    iy=1;
+                y++;
+            }
+        }
+    }
+}
+
+int cpt=11;
+
+thread bouge(window f,positions oiseau) {
+   
+    while (true) {
+        
+        if (oiseau.killed())
+            return;
+
+        oiseau.increment();
+        //on redessine uniquement tous les 100
+        if (cpt>=100) {
+            depuis.value(oiseau.idx);
+            f.redraw();
+            cpt=0;
+        }
+        else
+            cpt++;        
+    }
+}
+
+
+function Ajoute(window f,int x0,int y0) {
+    positions o(x0,y0);
+    lesoiseaux.push(o);
+    bouge(f,o);
+}
+
+function Affiche(window f,vector bs) {
+    let o;
+    f.drawcolor(FL_RED);
+    for (o in lesoiseaux) {
+        o.dessine(f);
+        f.drawcolor(FL_BLACK);
+    }
+}
+
+winput nbthreads;
+
+function ajouteoiseau(button b,window wnd) {
+    Ajoute(wnd,random(maxx-1),random(maxy-1));
+    nbthreads.value(lesoiseaux.size());
+}
+
+function retireoiseau(button b, self o) {
+    lesoiseaux.last().setkill();
+    lesoiseaux.pop();
+    nbthreads.value(lesoiseaux.size());
+}
+
+window wnd with Affiche;
+
+int compte;
+int incre;
+thread Rajouter() {
+    while (true) {
+        if (compte>=100) {
+            incre=-1;
+        }
+        elif (compte==0)
+            incre=1;
+        compte+=incre;
+        if (incre==1)
+            Ajoute(wnd,random(maxx-1),random(maxy-1));
+        else {
+            lesoiseaux.last().setkill();
+            lesoiseaux.pop();
+        }
+        nbthreads.value(lesoiseaux.size());
+    }
+}
+
+function incr(slider i,self o) {
+    zone=i.value();
+}
+
+slider inc with incr;
+
+button rajout(wnd) with ajouteoiseau;
+button retire with retireoiseau;
+
+
+wnd.begin(100,50,maxx,maxy,"Dessin");
+inc.create(50,maxy-50,200,20,true,FL_HOR_SLIDER,"Zone");
+rajout.create(350,maxy-50,30,20,"+");
+retire.create(400,maxy-50,30,20,"-");
+
+inc.bounds(5,100);
+inc.value(zone);
+nbthreads.create(850,30,40,20,false,"Nb");
+depuis.create(850,90,40,20,false,"Thread");
+wnd.end();
+int i;
+for (i  in <0,20,1>)
+    Ajoute(wnd,random(maxx-1),random(maxy-1));
+
+prêt=true;
+//Rajouter();
+
+wnd.run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

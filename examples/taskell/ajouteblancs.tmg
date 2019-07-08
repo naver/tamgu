@@ -1,0 +1,6 @@
+function addblanks(string s) {
+     return <::string if (x==' ') "% " else if (x=='0') "%0 " else (x+" ")| x <- s>;
+}
+
+println("<"+addblanks("res 1023")+">");
+

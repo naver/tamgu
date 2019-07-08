@@ -1,0 +1,44 @@
+<plusone(v) = (x+1) | x <- v>;
+vector r=plusone([1..10]);
+println(r);
+
+<one(x) = (x+1)>;
+println(one(12));
+
+
+<see([]) = "empty">;
+<see([first|rest]) = [a,first] | let a = see(rest)>;
+
+println(see(['a'..'e']));
+
+<trim1(w) = x | let x=w.trim()>; //the simplest one
+println("<"+trim1("   lll  ")+">");
+
+<trim2(w) = x | let x=<trim w>>; //pure Haskell
+println("<"+trim2("   lll  ")+">");
+
+//We define a Tamgu function
+function Trim(string c) {
+     return(c.trim());
+}
+
+<trim3(w) = x | let x=Trim(w)>; //Through an external function
+println("<"+trim3("   lll  ")+">");
+
+<trim4(w) = x | let x=<Trim w>>; //The same, but with a Haskell flavor
+println("<"+trim4("   lll  ")+">");
+
+<adding(v) = <sum v>>;
+
+println(adding([1..10]));
+
+vector XY=[1..100];
+float incb=10;
+float inca=1;
+
+
+
+
+
+
+

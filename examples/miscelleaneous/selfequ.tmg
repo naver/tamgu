@@ -1,0 +1,31 @@
+/@
+Date: 07/01/2019
+Author: Claude Roux
+Description: Frame threads
+@/
+
+
+frame lance {
+    a_int i = 100;
+    
+    
+    joined thread tst(int u) {
+        i+=10;
+        println(u, i);
+    }
+}
+
+
+lance l;
+
+int u;
+for (u in <50>)
+    l.tst(u);
+
+waitonjoined();
+
+println(l.i);
+
+
+
+

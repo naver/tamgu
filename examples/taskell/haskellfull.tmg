@@ -1,0 +1,59 @@
+ivector iv=range(0,10,1);
+
+<testage(v) : x | x <- v, (x>1000) >
+
+vector u=testage(iv);
+println(u);
+
+vector rightTriangles = < [a,b,c] | c <- range(1,20,1), b <- range(1,c,1), a <- range(1,b,1), a*a+b*b == c*c and (a+b+c)==24 >;
+println(rightTriangles);
+
+
+svector vdir=_sys.ls(".").sort(true);
+
+<trimme(v) : if (x.iscontainer()) trimme(x) else x.trim() | x <- v >;
+
+svector vs=["    12 ","     kkk     ","   lll   "];
+
+svector vss=trimme(vs);
+println("Trimme",vss);
+
+
+ivector vi=range(-10,0,1);
+
+
+ivector vj;
+
+<produit(v,vv) : x*y | x <- v, y <- vv, even(x) and even(y)>;
+
+vj=produit(iv,vi);
+println("Produit:",vj);
+
+vj=< 1 | x <- iv, y <- vi, x%2==0 >;
+println(vj);
+
+
+println("Fin",trimme(vs));
+
+vector sv=["   hhhh  ",["    12 ","     kkk     ","   lll   "],"  kkk "];
+
+sv=trimme(sv);
+
+println("Final",sv);
+
+
+vector tab=["a","b","c"];
+
+vector rtab;
+int i;
+
+rtab=< y | x <- tab,let y=(x+"a")>;
+
+println(rtab);
+
+
+
+
+
+
+

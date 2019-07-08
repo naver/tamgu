@@ -1,0 +1,241 @@
+<project name="JTamgu" default="all" basedir=".">
+  <taskdef resource="cpptasks.tasks">
+    <classpath>
+      <pathelement location="./cpptasks.jar"/>
+    </classpath>
+  </taskdef>
+  <typedef resource="cpptasks.types">
+    <classpath>
+      <pathelement location="./cpptasks-1.0b5.jar"/>
+    </classpath>
+  </typedef>
+
+  <taskdef resource="net/sf/antcontrib/antlib.xml">
+    <classpath>
+      <pathelement location="./ant-contrib-1.0b3.jar"/>
+    </classpath>
+  </taskdef>
+
+  <target name="platformIdentification"
+          description="platform identification: set the property solaris, 
+            linux or mac to true when one of this platform has been identified">
+
+    <condition property="linux">
+      <os name="Linux" />
+    </condition>
+    <condition property="mac">
+      <or>
+        <os name="Mac OS X" />
+        <os name="Darwin" />
+      </or>
+    </condition>
+    <condition property="mac-ppc">
+      <os name="Mac OS X"  />
+    </condition>
+    <condition property="mac-i386">
+      <os name="Darwin" />
+    </condition>
+  </target>
+
+  <target name="platformSetting" depends="platformIdentification" if="linux" description="define properties for the platform : linux" >
+
+    <available file="regexcpp.txt" property="regexcpp" value="true"/>
+    <available file="regexboost.txt" property="regexboost" value="true"/>
+
+    <available file="objspath.txt" property="objspath" value="true"/>
+
+    <if>
+      <isset property="objspath"/>
+      <then>
+        <loadfile property="libobjs.path" srcFile="objspath.txt" />
+        <loadfile property="objs.path" srcFile="objspath.txt" />
+      </then>
+      <else>
+        <property name="libobjs.path" 		value="objs/linux" />
+        <property name="objs.path" 		value="objs/linux" />
+      </else>
+    </if>
+
+    <property name="platform" 		value="linux" />
+    <property name="obj.suffixe" 		value="o" />
+    <property name="compilerC.name" 	value="gcc" />
+    <property name="system.libC.names"  	value="c, m" />
+    <property name="compilerCplus.name" 	value="g++" />
+
+    <property name="system.libCplus.names"  value="m, pthread, dl"/>
+
+    <property name="compiler.arg"           value="-w" />
+    <property name="linker.static.arg"      value="-mt" />
+    <property name="linker.shared.arg"      value="-shared" />
+
+    <if>
+      <equals arg1="${env.MACHTYPE}" arg2="x86_64" />
+      <then>
+        <property name="arch64bits"     value="true" />
+        <property name="platformArch" 	value="linux64" />
+        <property name="linux64" 	value="true" />
+      </then>
+      <else>
+        <property name="platformArch" 	value="linux" />
+      </else>
+    </if>
+  </target>
+
+  <target name="platformSettingmac" depends="platformIdentification" if="mac" description="define properties for the platform : linux" >
+
+    <property name="platform" 		value="mac" />
+    <property name="obj.suffixe" 		value="o" />
+    <property name="objs.path" 		value="objs/mac" />
+    <property name="libobjs.path" 		value="objs/mac" />
+    <property name="compilerC.name" 	value="gcc" />
+    <property name="system.libC.names"  	value="c, m" />
+    <property name="compilerCplus.name" 	value="g++" />
+
+    <property name="system.libCplus.names"  value="m, pthread, dl"/>
+
+    <property name="compiler.arg"           value="-w" />
+    <property name="linker.static.arg"      value="-mt" />
+    <property name="linker.shared.arg"      value="-shared" />
+
+    <property name="platformArch" 	value="mac-i386" />
+    <property name="mac" 	value="true" />
+  </target>
+
+  <target name="cxxcompile" depends="" description="">
+    <property name="libdir" location="lib/${platformArch}" />
+    <mkdir dir="${libdir}" />
+    <property name="output.lib.name" location="libs" />
+    <property name="objdir" location="${objs.path}" />
+    <mkdir dir="${objdir}" />
+    <property name="tamgu.objs" location="../${libobjs.path}" />
+    <cc name="${compilerCplus.name}" warnings="none" optimize="extreme" subsystem="console"
+          exceptions="true" multithreaded="true" runtime="dynamic"
+          objdir="${objdir}" outtype="shared" outfile="${libdir}/jtamgu">
+      <compiler name="${compilerCplus.name}" >
+        <compilerarg value="-std=c++11" location="start"/>
+        <compilerarg value="-DMAVERICK" location="start" if="mac"/>
+        <compilerarg value="-DTamgu_REGEX" location="start" if="regexboost"/>
+        <compilerarg value="-DREGEXCPP" location="start" if="regexcpp"/>
+        <fileset dir="src/cxx/" includes="*.cxx"/>
+        <includepath location="../include"/>
+        <includepath location="${build.include.dir}"/>
+        <includepath if="mac">
+          <pathelement location="${java.home}/../include"/>
+        </includepath>
+        <includepath unless="mac">
+          <pathelement location="${java.home}/../include"/>
+        </includepath>
+        <includepath>
+          <pathelement location="include"/>
+        </includepath>
+        <includepath if="windows">
+          <pathelement location="${java.home}/../include/win32"/>
+        </includepath>
+        <includepath if="mac">
+          <pathelement location="${java.home}/../include/darwin"/>
+        </includepath>
+        <includepath if="linux">
+          <pathelement location="${java.home}/../include/${platform}"/>
+        </includepath>
+        <includepath if="linux64">
+          <pathelement location="${java.home}/../include/${platform}"/>
+        </includepath>
+        <defineset define="WINDOWS WIN32" if="windows"/>
+        <defineset define="APPLE" if="mac"/>
+        <defineset define="UNIX" if="linux"/>
+        <defineset define="UNIX" if="linux64"/>
+      </compiler>
+      <linker name="${compilerCplus.name}">
+        <!-- 
+                 - I want only libjTamgu.so, without other lib dyn required to avoid dynamic link a runtime 
+                        (otherwise it will required to set LD_LIBRARY_PATH)
+                 - I cant't use the libxip.a (static lib) to build libjTamgu.so in the delivery (because *.so must 
+                        be build with object files compiled with the -fPIC option (it's not the case with libxip.a)
+                 - To build this shared lib on linux and solaris the object files of the libraries like fst
+                    must be compile for a shared lib (with -fPIC) but if we use the shared lib(fsp.so) it will
+                    be linked dynamically at runtime: so to avoid this, we include directly these object files
+                    in this link.
+                -->
+        <fileset dir="${tamgu.objs}" includes="*.${obj.suffixe}"  />
+        <syslibset libs="m, pthread, dl" />
+        <libset libs="z" unless="regexcpp"/>
+        <!-- It's required to used the dynamic lib to be sure than python works fine, mainly with java + 
+                            python script which imports a module (import math) -->
+      </linker>
+    </cc>
+  </target>
+
+
+  <target name="jarjtamgu" depends="">
+    <property name="jtamgu.package" value="com.naver.jtamgu"/>
+    <property name="distdir" location="dist" />
+    <mkdir dir="${distdir}" />
+    <antcall target="createJar" >
+      <param name="jar.file"           location="${distdir}/jtamgu.jar" />
+      <param name="build.libElem.dir"  location="lib"  />
+    </antcall>
+  </target>
+
+
+  <target name="createJar" depends="" description="" >
+    <delete file="${jar.file}" />
+    <!-- init.properties used by DynLoaderFromJar -->
+    <!-- create jar file -->
+    <property name="build.libElem.dir" location="lib/${platformArch}" />
+    <property name="build.classes.dir" location="classes"/>
+    <mkdir dir="${build.classes.dir}" />
+    <jar jarfile="${jar.file}" update="no">
+      <fileset file="${build.classes.dir}/init.properties"/>
+      <fileset dir="${build.classes.dir}"/>
+      <fileset dir="${build.libElem.dir}" excludes="**/*.lib">
+        <include name="**/*.dll"/>
+        <include name="**/*.so"/>
+      </fileset>
+      <manifest>
+        <attribute name="Built-By" value="${env.USER}"/>
+        <attribute name="Main-class" value="${jtamgu.package}.JTamgu"/>
+        <attribute name="Class-path" value="."/>
+      </manifest>
+    </jar>
+  </target>
+
+  <!-- generate the native header file from the Java class -->
+  <target name="nativeHeader" depends="">
+    <javah destdir="${build.include.dir}" classpath="${build.classes.dir}">
+      <class name="${jtamgu.package}.JTamgu"/>
+    </javah>
+  </target>
+
+  <!-- compile java source file -->
+  <target name="javaCompile" depends="">
+    <javac srcdir="${java.source.dir}/com/naver/jtamgu" destdir="${build.classes.dir}"
+           debug="off" deprecation="on" optimize="on" target="1.7" source="1.7" >
+      <include name="*.java"/>
+      <compilerarg value="-Xlint"/>
+    </javac>
+  </target>
+
+  <!-- Clean  -->
+  <target name="clean" depends="" description="clean directories only for the current platform">
+    <delete includeemptydirs="true">
+      <fileset dir="objs" includes="**/*"/>
+    </delete>
+    <delete file="${basedir}/log.${platform}"/>
+  </target>
+
+
+  <target name="compile" depends="platformSetting, platformSettingmac" description="" >
+    <property name="build.include.dir" location="include"/>
+    <mkdir dir="${build.include.dir}" />
+    <property name="jtamgu.package" value="com.naver.jtamgu"/>
+    <property name="build.classes.dir" location="classes"/>
+    <mkdir dir="${build.classes.dir}" />
+    <property name="java.source.dir" location="src/java" />
+    <antcall target="javaCompile" />
+    <antcall target="nativeHeader" />
+    <antcall target="cxxcompile" />
+    <antcall target="jarjtamgu" />
+  </target>
+
+</project>
+

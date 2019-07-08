@@ -1,0 +1,16 @@
+map e={'Great Yarmouth':[4,5,'LOC'],'Jack Simith':[0,1,'PER']};
+vector truc=<[i,j,y,st] | st <- e.keys(), let [i,j,y]=e[st]>;
+println(truc);
+
+vector v=[[1,"P",true],[2,"C",false],[3,"E",true]];
+vector vv=<[y,t] | [y,n,t] <- v, (y>1)>;
+
+println(vv);
+
+v=<zip [1..] [10..] [1..20]>;
+println(v);
+
+
+
+
+

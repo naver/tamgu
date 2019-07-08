@@ -1,0 +1,75 @@
+use("fltk");
+
+//Ces deux variables ci-dessous gardent la trace de la taille de l'écran
+int maxx=1000;
+int maxy=900;
+
+int inca=0,incb=0;
+
+function equation(float θ) {
+    float f=θ×inca;
+    return(f.cos()+incb);
+}
+
+//Cette function est rappelée tous les 0,01 de seconde
+function dessine(window f) {
+
+    //Voici un deux tableaux ne contenant que des décimaux, d'où le pluriel
+    vector lesxy=<[x,y] | t <- [0,0.005..2π], let ρ=equation(t), let x=ρ×t.cos(),let y=ρ×t.sin()>;
+       
+    //Couleur rouge
+    f.drawcolor(FL_RED);
+    //Cette méthode calcule automatiquement en function de l'aire de la window les dimensions idéales pour que tous les points apparaissent à l'écran...
+    f.plot(lesxy,0);
+
+}
+
+bool sense=true;
+int maxj=10;
+
+//Cette function est associée avec la construction de la fenêtre...
+function dessin(window f,self o) {
+    if (sense) {
+        inca+=2;
+        if (inca>maxj)
+            sense=false;
+    }
+    else {
+        inca-=2;
+        if (inca<3)
+            sense=true;
+    }
+    
+    f.drawcolor(FL_BLACK);
+    dessine(f);
+}
+
+function modifj(slider  g, window o) {
+    maxj=g.value();
+}
+
+function modifa(slider  g, window o) {
+    maxj=g.value()+1;
+}
+
+function modifb(slider  g, window o) {
+    incb=g.value()+1;
+}
+
+
+//On crée notre fenêtre. associée avec la function ci-dessus dessin
+window f with dessin;
+slider Inca(f) with modifa;
+slider Incb(f) with modifb;
+
+f.begin(50,50,maxx,maxy,"Dessin");
+f.redrawing(0.01);
+Inca.create(50,maxy-50,200,20,true,FL_HOR_SLIDER,"inca");
+Inca.bounds(0,1000);
+Incb.create(350,maxy-50,200,20,true,FL_HOR_SLIDER,"incb");
+Incb.bounds(-1000,1000);
+f.end();
+f.run();
+
+
+

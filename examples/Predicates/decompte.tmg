@@ -1,0 +1,43 @@
+function fin(predicatevar p,string s) {
+     println("Execution",p,s);
+     return(true);
+}
+
+string s="Essai";
+
+predicate compte(s) with fin;
+compte.trace(true);
+
+
+compte(0,0) :- true.
+compte(?V,?D) :-
+   ?V is ?V-1,
+   ?D++,
+   compte(?V,?D).
+
+
+predicatevar pv;
+
+pv=compte(10,?D);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

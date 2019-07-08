@@ -1,0 +1,17 @@
+<imb(bmi) : | bmi<=10 = "truc" | bmi<=20 = "machin" | otherwise = "jjkjk">;
+println(imb(12));
+
+<myloop(v): if (v.size()>10) break else v[0]>;
+<myloop(v): v[10]>;
+
+int i=<myloop([1..10])>;
+println(i); //1 
+i=<myloop([1..20])>;
+println(i); //11 
+
+
+
+
+
+
+

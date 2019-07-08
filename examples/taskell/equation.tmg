@@ -1,0 +1,14 @@
+
+<equation(n) = <cos <+ n 0.4>>>;
+
+
+float n=equation(0.01);
+println(n);
+
+
+
+
+
+
+
+

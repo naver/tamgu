@@ -1,0 +1,126 @@
+frame Personne {
+    string nom;
+    string prenom;
+    int age;
+
+    function _initial() {}
+    
+    function _initial(string n, string p, int a) {
+        nom=n;
+        prenom=p;
+        age=a;
+    }
+    
+    function string() {
+        return("<Personne "+nom+" "+prenom+" "+age+">");
+    }
+    
+    function machin() {
+        return(nom);
+    }
+}
+
+<data Longdata = Longstruct string string int float string string string string int int float float vector deriving(Show)>
+frame Longstruct {
+    function D() {
+        return([d10_Longstruct,d12_Longstruct,d13_Longstruct]);
+    }
+}
+
+
+<data Personne = Unepersonne string string int float string string deriving(Show)>
+<data Unepersonne= <D2() = d2_Unepersonne> >
+//<data Unepersonne=<string() = "Test:"+d1_Unepersonne+"_"+d2_Unepersonne+"_"+d3_Unepersonne>>
+
+let gars = <Unepersonne "Pierre" "Michel" 63 80 "220-30-30" "Chocolat">;
+println(gars, gars.D2());
+
+self np = <Personne "Robert" "Durand" 49>;
+println(np);
+np= <Personne {nom="Jerome", age=35}>;
+println(np);
+
+<data Person = Person {name :: string, lastname:: string, age :: int} deriving(Eq, Show)>
+
+self nr=<Person {lastname = "Jean", name = "Dupont", age =40}>;
+println("Data assignment",nr);
+
+nr=<Person "Pierre" "Jean" 46>;
+println(nr, <_name nr>);
+
+<calcul :: _ → _ → float>
+<calcul(x,y) = x÷2y>
+
+println(calcul(200,51));
+
+<data Forme = Cercle float float float  | Rectangle float float float float deriving (Show)>
+
+vector v=<map (Cercle 10 20) [1..20]>;
+println(v);
+
+<Surface :: Forme -> float>
+<Surface(Cercle _ _ r) = 2π×r²>
+<Surface(Rectangle x y xx yy) = abs(xx-x) × abs(yy-y)>
+
+
+float  i=Surface(<Cercle 10 20 30>);
+println(i);
+i=Surface(<Rectangle 20 20 40 40>);
+println(i);
+
+//Fist we declare a Point data
+<data Point = Point float float deriving(Show)>
+//Which is then used to replace coordinates.
+<data Shape = Circle Point float | Rect Point Point deriving(Show)>
+
+//We modify our Point with the b offset
+<dep :: Point -> float -> Point>
+<dep(Point x y, b) = <Point (x+b) (y+b)>>
+
+//Our movement function will modify a Shape object...
+//Note the $ operator, which replaces <..> around the last expression...
+<mouve :: Shape -> float -> Shape>
+<mouve(Circle p z, b) = <Circle  <dep p b> z> >
+<mouve(Rect p1 p2, b) = <Rect <dep p1 b>  $ dep p2 b >>
+
+let be= <mouve <Circle <Point 17 18> 30>  40>;
+println(be); // Result is: <Circle <Point 57 58> 30>
+
+let br= <mouve <Rect <Point 17 18> $ Point 30 40 >  40>;
+println(br); //Result is: <Rect <Point 57 58> <Point 70 80>>
+
+int kk=20;
+<tst(i) = x | x <- [1..i], let v=<* 2 kk>, {println("X",x);}, where y=2x, {println("Y=",y);} >
+tst(10);
+
+frame Cercle {
+    function D1() {
+        return([d1_Cercle,d2_Cercle,d3_Cercle]);
+    }
+}
+
+let bb=<Cercle 20 30 50>;
+println(bb.D1());
+
+
+<division :: float → float → Maybe float>
+<division(x,y) : x/y>
+
+println(division(5,10));
+println(division(5,100));
+println(division(5,1000));
+println(division(5,10000));
+println(division(5,0));
+
+if (division(5,0) == Nothing)
+    println("Yep");
+
+
+
+
+
+
+
+
+
+

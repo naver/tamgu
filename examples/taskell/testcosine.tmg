@@ -1,0 +1,47 @@
+
+function tst(self a,self b,self c) {
+     println(a,b,c);
+     if ((b*c)==0)
+          return(0);
+     return(a/(b*c));
+}
+
+<sign(x) : if (x<0) -1 else 1>;
+<dot(v1,v2) : sum . zipWith (*) v1 v2>;
+<cosine(v1,v2) : tst(a,b,c) | let a=<dot v1 v2>, let b=<sqrt . dot v1 v1>, let c=<sqrt . dot v2 v2>>;
+
+
+int nb=10;
+fvector w=[0.0,0.1..10];
+fvector wref=[0.0,0.1..10];
+w.shuffle();
+wref.shuffle();
+
+println("Cos:",cosine(wref,w));
+if (cosine(wref,w)<0.8)
+     println("ok");
+else
+     println("Hum");
+
+
+
+
+//First we create a bunch of values...
+int seuil=nb/2;
+
+//Generate one x...
+<onex(nb) : if (x>0.5) x else (x*-1) | y <- [1.0..nb], let x=1/(1+random(100))>;
+vector values=< [onex(nb),y] | x <- [1..500], let y= if (random(100)>50) 1 else -1>;
+
+function affiche(self z) {
+     printlnerr(z.size());
+     return(true);
+}
+
+<liste([],w):w>;
+<liste([[x,y]|z],w) : s | let yy = <dot w x>, let aff=affiche(z), let s=if (sign(yy)!=y) liste(z,(w+x*y)) else liste(z,w)>;
+
+println("Liste:",liste(values,w));
+
+
+

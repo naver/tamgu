@@ -1,0 +1,15 @@
+REGEDIT
+; Ce fichier .REG peut être utilisé par votre programme d'installation.
+;   Si aucun programme d'installation n'est disponible, les entrées suivantes sont
+;   automatiquement inscrites dans votre InitInstance via un appel à
+;   CWinApp::RegisterShellFileTypes et à COleObjectFactory::UpdateRegistryAll.
+
+HKEY_CLASSES_ROOT\.tmg = WXIP.Document
+HKEY_CLASSES_ROOT\WXIP.Document\shell\open\command = WXIP.EXE %1
+HKEY_CLASSES_ROOT\WXIP.Document\shell\open\ddeexec = [open("%1")]
+HKEY_CLASSES_ROOT\WXIP.Document\shell\open\ddeexec\application = WXIP
+    ; remarque : l'application est optionnelle
+    ;  (par défaut, prend le nom d'application spécifié dans "command")
+
+HKEY_CLASSES_ROOT\WXIP.Document = WXIP.Document
+

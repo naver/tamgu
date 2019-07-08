@@ -1,0 +1,720 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\atoms">
+      <UniqueIdentifier>{7d1aa644-bf24-46f9-ab45-3fe7b193b64f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\compiler">
+      <UniqueIdentifier>{9a10385b-cd81-4952-b278-bb821211a6a4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\divers">
+      <UniqueIdentifier>{5bec1918-157a-4f03-8240-217ffa9cc1a8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\maps">
+      <UniqueIdentifier>{f0ce0803-3f08-4983-b630-0879e08484b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\primemaps">
+      <UniqueIdentifier>{9c196222-3e34-4920-a5ab-59c20732a3b1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\treemaps">
+      <UniqueIdentifier>{3ffb1c01-c176-4eea-8ed2-223d5c7b9837}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\vectors">
+      <UniqueIdentifier>{ea5c6302-13e4-43e6-8e6c-b3cc4968ecc8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\headers">
+      <UniqueIdentifier>{57301824-dc13-4035-a7d8-0cb24a78a5e3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\headers\vectors">
+      <UniqueIdentifier>{590b9fa0-3229-41ff-bb5e-bce15b4416e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\headers\maps">
+      <UniqueIdentifier>{38629df8-864a-4077-9512-129c23a14af0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\headers\atoms">
+      <UniqueIdentifier>{6f2c1233-86a6-48f0-bd0e-fa14466f5a44}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\headers\tamgu">
+      <UniqueIdentifier>{34321890-e22d-4a07-ba55-d7b947dd221b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\headers\treemaps">
+      <UniqueIdentifier>{17a7ad5c-8ce6-427a-b1cd-c01f7458c9f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\headers\primemaps">
+      <UniqueIdentifier>{b5a20c90-a443-48a3-bbeb-9a0f437a9f6f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\headers\divers">
+      <UniqueIdentifier>{4dc5b4ec-ff08-4aa7-a037-a595e3d65d56}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\objects">
+      <UniqueIdentifier>{d4acd2c4-d500-4720-a48b-2b14d492eff2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\binmap">
+      <UniqueIdentifier>{0acd365e-3361-4703-8824-086342595c2f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\headers\binmap">
+      <UniqueIdentifier>{ec66d21f-e34b-4b85-8789-16749c4e5cad}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgubvector.h">
+      <Filter>Header Files\headers\vectors</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgufvector.h">
+      <Filter>Header Files\headers\vectors</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamguivector.h">
+      <Filter>Header Files\headers\vectors</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgulist.h">
+      <Filter>Header Files\headers\vectors</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgusvector.h">
+      <Filter>Header Files\headers\vectors</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamguuvector.h">
+      <Filter>Header Files\headers\vectors</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamguvector.h">
+      <Filter>Header Files\headers\vectors</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgumap.h">
+      <Filter>Header Files\headers\maps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgumapf.h">
+      <Filter>Header Files\headers\maps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgumapff.h">
+      <Filter>Header Files\headers\maps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgumapfi.h">
+      <Filter>Header Files\headers\maps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgumapfs.h">
+      <Filter>Header Files\headers\maps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgumapfu.h">
+      <Filter>Header Files\headers\maps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgumapi.h">
+      <Filter>Header Files\headers\maps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgumapif.h">
+      <Filter>Header Files\headers\maps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgumapii.h">
+      <Filter>Header Files\headers\maps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgumapis.h">
+      <Filter>Header Files\headers\maps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgumapiu.h">
+      <Filter>Header Files\headers\maps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgumapsf.h">
+      <Filter>Header Files\headers\maps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgumapsi.h">
+      <Filter>Header Files\headers\maps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgumapss.h">
+      <Filter>Header Files\headers\maps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgumapu.h">
+      <Filter>Header Files\headers\maps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgumapuf.h">
+      <Filter>Header Files\headers\maps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgumapui.h">
+      <Filter>Header Files\headers\maps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgumapuu.h">
+      <Filter>Header Files\headers\maps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgubool.h">
+      <Filter>Header Files\headers\atoms</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgubyte.h">
+      <Filter>Header Files\headers\atoms</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgufile.h">
+      <Filter>Header Files\headers\atoms</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgufloat.h">
+      <Filter>Header Files\headers\atoms</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamguint.h">
+      <Filter>Header Files\headers\atoms</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgulong.h">
+      <Filter>Header Files\headers\atoms</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgushort.h">
+      <Filter>Header Files\headers\atoms</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgustring.h">
+      <Filter>Header Files\headers\atoms</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamguustring.h">
+      <Filter>Header Files\headers\atoms</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\libs\tamgudate.h">
+      <Filter>Header Files\headers\atoms</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgu.h">
+      <Filter>Header Files\headers\tamgu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamguconstants.h">
+      <Filter>Header Files\headers\tamgu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamguframeinstance.h">
+      <Filter>Header Files\headers\tamgu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamguglobal.h">
+      <Filter>Header Files\headers\tamgu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamguiterator.h">
+      <Filter>Header Files\headers\tamgu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamguversion.h">
+      <Filter>Header Files\headers\tamgu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\compilecode.h">
+      <Filter>Header Files\headers\tamgu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\constobjects.h">
+      <Filter>Header Files\headers\tamgu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\instructions.h">
+      <Filter>Header Files\headers\tamgu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgutreemap.h">
+      <Filter>Header Files\headers\treemaps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgutreemapf.h">
+      <Filter>Header Files\headers\treemaps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgutreemapff.h">
+      <Filter>Header Files\headers\treemaps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgutreemapfi.h">
+      <Filter>Header Files\headers\treemaps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgutreemapfs.h">
+      <Filter>Header Files\headers\treemaps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgutreemapfu.h">
+      <Filter>Header Files\headers\treemaps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgutreemapi.h">
+      <Filter>Header Files\headers\treemaps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgutreemapif.h">
+      <Filter>Header Files\headers\treemaps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgutreemapii.h">
+      <Filter>Header Files\headers\treemaps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgutreemapis.h">
+      <Filter>Header Files\headers\treemaps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgutreemapiu.h">
+      <Filter>Header Files\headers\treemaps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgutreemapsf.h">
+      <Filter>Header Files\headers\treemaps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgutreemapsi.h">
+      <Filter>Header Files\headers\treemaps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgutreemapss.h">
+      <Filter>Header Files\headers\treemaps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgutreemapu.h">
+      <Filter>Header Files\headers\treemaps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgutreemapuf.h">
+      <Filter>Header Files\headers\treemaps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgutreemapui.h">
+      <Filter>Header Files\headers\treemaps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgutreemapuu.h">
+      <Filter>Header Files\headers\treemaps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamguprimemap.h">
+      <Filter>Header Files\headers\primemaps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamguprimemapf.h">
+      <Filter>Header Files\headers\primemaps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamguprimemapff.h">
+      <Filter>Header Files\headers\primemaps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamguprimemapfi.h">
+      <Filter>Header Files\headers\primemaps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamguprimemapfs.h">
+      <Filter>Header Files\headers\primemaps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamguprimemapfu.h">
+      <Filter>Header Files\headers\primemaps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamguprimemapi.h">
+      <Filter>Header Files\headers\primemaps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamguprimemapif.h">
+      <Filter>Header Files\headers\primemaps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamguprimemapii.h">
+      <Filter>Header Files\headers\primemaps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamguprimemapis.h">
+      <Filter>Header Files\headers\primemaps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamguprimemapiu.h">
+      <Filter>Header Files\headers\primemaps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamguprimemapsf.h">
+      <Filter>Header Files\headers\primemaps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamguprimemapsi.h">
+      <Filter>Header Files\headers\primemaps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamguprimemapss.h">
+      <Filter>Header Files\headers\primemaps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamguprimemapu.h">
+      <Filter>Header Files\headers\primemaps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamguprimemapuf.h">
+      <Filter>Header Files\headers\primemaps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamguprimemapui.h">
+      <Filter>Header Files\headers\primemaps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamguprimemapuu.h">
+      <Filter>Header Files\headers\primemaps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\binmap.h">
+      <Filter>Header Files\headers\divers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\conversion.h">
+      <Filter>Header Files\headers\divers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\parsecode.h">
+      <Filter>Header Files\headers\divers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\vecta.h">
+      <Filter>Header Files\headers\divers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\x_node.h">
+      <Filter>Header Files\headers\divers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\automate.h">
+      <Filter>Header Files\headers\divers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamguufile.h">
+      <Filter>Header Files\headers\atoms</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgutamgu.h">
+      <Filter>Header Files\headers\tamgu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgustdin.h">
+      <Filter>Header Files\headers\atoms</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\globaltamgu.h">
+      <Filter>Header Files\headers\tamgu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgudvector.h">
+      <Filter>Header Files\headers\vectors</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgulvector.h">
+      <Filter>Header Files\headers\vectors</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgudecimal.h">
+      <Filter>Header Files\headers\atoms</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgubinmapi.h">
+      <Filter>Header Files\headers\binmap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgubinmaps.h">
+      <Filter>Header Files\headers\binmap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgubinmapu.h">
+      <Filter>Header Files\headers\binmap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgubinmap.h">
+      <Filter>Header Files\headers\binmap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgubinmapf.h">
+      <Filter>Header Files\headers\binmap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgua_mapii.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgua_mapif.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgua_mapis.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgua_mapiu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgua_mapfu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgua_mapfs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgua_mapff.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgua_mapfi.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgua_mapss.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgua_mapsi.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgua_mapsf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgua_mapuu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgua_mapui.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tamgua_mapuf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgubool.cxx">
+      <Filter>Source Files\atoms</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgubyte.cxx">
+      <Filter>Source Files\atoms</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgufloat.cxx">
+      <Filter>Source Files\atoms</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamguint.cxx">
+      <Filter>Source Files\atoms</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgulong.cxx">
+      <Filter>Source Files\atoms</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgushort.cxx">
+      <Filter>Source Files\atoms</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgustring.cxx">
+      <Filter>Source Files\atoms</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamguustring.cxx">
+      <Filter>Source Files\atoms</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamguannotator.cxx">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgu.cxx">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgutamgu.cxx">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamguframeinstance.cxx">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\codecompile.cxx">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\codeexecute.cxx">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\codeparse.cxx">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\containerrecording.cxx">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\procedures.cxx">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tools.cxx">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamguautomaton.cxx">
+      <Filter>Source Files\divers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\conversion.cxx">
+      <Filter>Source Files\divers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgumap.cxx">
+      <Filter>Source Files\maps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgumapf.cxx">
+      <Filter>Source Files\maps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgumapff.cxx">
+      <Filter>Source Files\maps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgumapfi.cxx">
+      <Filter>Source Files\maps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgumapfs.cxx">
+      <Filter>Source Files\maps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgumapfu.cxx">
+      <Filter>Source Files\maps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgumapi.cxx">
+      <Filter>Source Files\maps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgumapif.cxx">
+      <Filter>Source Files\maps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgumapii.cxx">
+      <Filter>Source Files\maps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgumapis.cxx">
+      <Filter>Source Files\maps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgumapiu.cxx">
+      <Filter>Source Files\maps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgumapsf.cxx">
+      <Filter>Source Files\maps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgumapsi.cxx">
+      <Filter>Source Files\maps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgumapss.cxx">
+      <Filter>Source Files\maps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgumapu.cxx">
+      <Filter>Source Files\maps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgumapuf.cxx">
+      <Filter>Source Files\maps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgumapui.cxx">
+      <Filter>Source Files\maps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgumapuu.cxx">
+      <Filter>Source Files\maps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamguprimemap.cxx">
+      <Filter>Source Files\primemaps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamguprimemapsf.cxx">
+      <Filter>Source Files\primemaps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamguprimemapsi.cxx">
+      <Filter>Source Files\primemaps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamguprimemapss.cxx">
+      <Filter>Source Files\primemaps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgutreemap.cxx">
+      <Filter>Source Files\treemaps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgutreemapi.cxx">
+      <Filter>Source Files\treemaps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgutreemapif.cxx">
+      <Filter>Source Files\treemaps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgutreemapsf.cxx">
+      <Filter>Source Files\treemaps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgutreemapsi.cxx">
+      <Filter>Source Files\treemaps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgutreemapss.cxx">
+      <Filter>Source Files\treemaps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgubvector.cxx">
+      <Filter>Source Files\vectors</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgufvector.cxx">
+      <Filter>Source Files\vectors</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamguivector.cxx">
+      <Filter>Source Files\vectors</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgulist.cxx">
+      <Filter>Source Files\vectors</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgusvector.cxx">
+      <Filter>Source Files\vectors</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamguuvector.cxx">
+      <Filter>Source Files\vectors</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamguvector.cxx">
+      <Filter>Source Files\vectors</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\objectrecording.cxx">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgufile.cxx">
+      <Filter>Source Files\objects</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgufmatrix.cxx">
+      <Filter>Source Files\objects</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgufraction.cxx">
+      <Filter>Source Files\objects</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgugrammar.cxx">
+      <Filter>Source Files\objects</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamguimatrix.cxx">
+      <Filter>Source Files\objects</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgutransducer.cxx">
+      <Filter>Source Files\objects</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgusocket.cxx">
+      <Filter>Source Files\objects</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgudate.cxx">
+      <Filter>Source Files\objects</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgusys.cxx">
+      <Filter>Source Files\objects</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgutime.cxx">
+      <Filter>Source Files\objects</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamguiterator.cxx">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\predicate.cxx">
+      <Filter>Source Files\objects</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamguufile.cxx">
+      <Filter>Source Files\objects</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgustdin.cxx">
+      <Filter>Source Files\objects</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\automaton.cxx">
+      <Filter>Source Files\divers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\globaltamgu.cxx">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgudecimal.cxx">
+      <Filter>Source Files\atoms</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgudvector.cxx">
+      <Filter>Source Files\vectors</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgulvector.cxx">
+      <Filter>Source Files\vectors</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgutaskell.cxx">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgurawstring.cxx">
+      <Filter>Source Files\atoms</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\codeoperations.cxx">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgubinmapi.cxx">
+      <Filter>Source Files\binmap</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgubinmaps.cxx">
+      <Filter>Source Files\binmap</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgubinmapu.cxx">
+      <Filter>Source Files\binmap</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgubinmap.cxx">
+      <Filter>Source Files\binmap</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgubinmapf.cxx">
+      <Filter>Source Files\binmap</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\predicatefunctions.cxx">
+      <Filter>Source Files\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgubinmapl.cxx">
+      <Filter>Source Files\binmap</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamguhvector.cxx">
+      <Filter>Source Files\vectors</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgumapul.cxx">
+      <Filter>Source Files\maps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgumapfl.cxx">
+      <Filter>Source Files\maps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgumapl.cxx">
+      <Filter>Source Files\maps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgumaplf.cxx">
+      <Filter>Source Files\maps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgumapll.cxx">
+      <Filter>Source Files\maps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgumapls.cxx">
+      <Filter>Source Files\maps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgumaplu.cxx">
+      <Filter>Source Files\maps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgumapsl.cxx">
+      <Filter>Source Files\maps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamguprimemapsl.cxx">
+      <Filter>Source Files\primemaps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgusynode.cxx">
+      <Filter>Source Files\atoms</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgutable.cxx">
+      <Filter>Source Files\vectors</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgutreemapls.cxx">
+      <Filter>Source Files\treemaps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamgutreemapsl.cxx">
+      <Filter>Source Files\treemaps</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

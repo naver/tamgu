@@ -1,0 +1,98 @@
+<Mult(x,y) : 2x+y>
+
+println(Mult(10,2)); //22 
+
+vector v=[1..5];
+<Sum :: int -> int -> int>
+<Sum(x,y): x+y>
+
+println("R:",Sum(10,20)); //30 
+
+int ik;
+
+ik=10+v;
+
+vector vx=[1,2..10];
+
+<ssom(V) : takeWhile (<400) . scanl1 (+) V >
+println("ssom:",ssom([0..])); //[0,1,3,6,10,15,21,28,36,45,55,66,78,91,105,120,136,153,171,190,210,231,253,276,300,325,351,378] 
+
+<som(V) : foldr1 (+) V >;
+<prod(V) : foldr1 (^) V >; //this is a binary xor 
+
+
+v=<map (×) . takeWhile (<100) . filter (odd) [1..] >;
+println("Filtrage",v); //square of odd numbers up to 99 = 9801
+
+v=<takeWhile (<10000) . filter (odd) . map (+3)  . map (^^2) . map (+1) [1..] >;
+println("Test",v,som(v),<som v>,<prod v>,prod(v));
+
+
+<proj(v) : map(+1) v>;
+<appel(v) : takeWhile (<100) <proj v>>;
+v=appel([1..]);
+println("Appel:",v);
+
+v=<takeWhile (<90) < (x*2) | x <- [-10..] >>;
+println("Takewhile min:",v);
+
+<carré(v) : val² | val ← v>;
+v=carré([1..100]);
+println("Carré",v);
+
+v=<takeWhile (<90) <zipWith (*) [0..] [0..] [0..]>>;
+println("Zipping borné:",v);
+
+v=<map (cos) range(0,1,0.1)>;
+println('Cos:',v);
+
+function Min(float y) {
+     return(y-1);
+}
+
+
+float t=<som <takeWhile (<10000) . filter (odd) . map (+3)  . map (^^2) . map (+1) [1..] >>;
+println("Somme 1:",t);
+
+t=<Min <som . takeWhile (<10000) . filter (odd) . map (+3)  . map (^^2) . map (+1) [1..] >>;
+println("Somme 2:",t);
+
+t=<Min . som . takeWhile (<10000) . filter (odd) . map (+3)  . map (^^2) . map (+1) [1..] >;
+println("Somme 3:",t);
+
+t=<som <takeWhile (<10000) < filter (odd) < map (+3)  < map (^^2) < map (+1) [1..] > > > > > >;
+println("Somme 4:",t);
+
+
+v=<takeWhile (<90) . zipWith (*) [0..] [0..] [0..]>;
+println("Zipping borné:",v);
+
+t=<Min <som < takeWhile (<10000) < filter (odd) . map (+3)  . map (^^2) . map (+1) [1..] >>>>;
+println("Somme 5:",t);
+//<filter (\x -> (x%2)==0) [1..10]>
+//<takeWhile (<100) [1,10..]>
+
+//<filter (odd) . takeWhile (<1000) . map (*) [1..]>
+//<zipWith (+) [0..10] [0..10] [0..10]>
+
+<takeWhile (<500) . zipWith (\x y z -> x*y+z) [0..] [0..] [0..]>;
+
+
+println('Fin');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

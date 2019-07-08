@@ -1,0 +1,27 @@
+###################################################################
+include ../Makefile.in
+################ To compile Tamgu#################################
+SOURCEPYTHON = tamgupython.cxx
+#------------------------------------------------------------
+LBINPATH = ../$(BINPATH)
+LOBJPATH = ../$(LIBOBJPATH)
+###################################################################
+OBJECTPYTHON = $(SOURCEPYTHON:%.cxx=$(LOBJPATH)/pytamgu/%.o)
+#------------------------------------------------------------
+TamguBASICFLAGS = -w -c -fPIC -O3 -DUNIX $(MULTIGA) $(INTELINT) $(REGEX) $(SPECFLAGS)
+TamguCFLAGS = -std=c99 $(TamguBASICFLAGS)
+TamguFLAGS = $(C++11Flag) $(TamguBASICFLAGS)
+Tamguincludes= -Iinclude -I../include $(INCLUDEPYTHON)
+#------------------------------------------------------------
+$(LOBJPATH)/pytamgu/%.o: src/%.cxx
+	$(COMP) -Iinclude $(TamguFLAGS) $(Tamguincludes) $< -o $@
+#------------------------------------------------------------
+pytamgu: install $(OBJECTPYTHON) $(OBJECTTamgu)
+	$(COMPPLUSPLUS) -shared -o $(LBINPATH)/pytamgu.so $(OBJECTPYTHON) $(SYSTEMSPATH) $(PYTHONLIB) $(LIBREGEX) -L$(LBINPATH) -ltamgu
+
+install:
+	mkdir -p $(LOBJPATH)/pytamgu
+
+clean:
+	rm -f $(LOBJPATH)/pytamgu/*.o
+

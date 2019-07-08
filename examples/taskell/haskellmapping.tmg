@@ -1,0 +1,156 @@
+function changer(float x,float y) {
+     return(x/y);
+}
+
+float xk=<flip (changer) 15 400>;
+println(xk); //400/15
+
+xk=<flip (-) 15 4>;
+println(xk); //4-15
+
+vector ve=[[1,2],[2,3],[4,5]];
+vector v;
+vector vx=range(1,10,1);
+
+v=<zipWith (+) [1..20] [1..20] [1..20]>;
+println("zipWith +",v);
+
+v=<takeWhile (<120) . map (+1) . zipWith (+) [1..] [1..20] [1..20]>;
+println("zipWith map +",v);
+
+<som(V) : foldr1 (+) V >;
+
+v=<map (^^2) . takeWhile(<20)  [1..]>;
+println("Filtre et carré:",v);
+
+v=<map (+1) . map (^^2) . takeWhile(<20)  [1..100]>;
+println(v);
+
+v=<takeWhile (<200) . map (+1) . map (^^2) . takeWhile(<20)  [1..100]>;
+println(v);
+
+v=<takeWhile (<100) . filter (odd) . map (+3) . map (^^2) . map (+1) [1..] >;
+println("Somme des carrés:",v,som(v),<som v>);
+
+v=<takeWhile (<100) . filter (odd) . map (^^2) . map(+3)  [1..] >;
+println("Jusqu'à 100",v);
+v=<scanl1 (\ acc x -> acc+x) [1..10]>;
+println(v);
+v=<map (cos) [0..1:0.1]>;
+println('Cos:',v);
+v=<takeWhile (<10000) . filter (odd) . map (+3) . map (^^2) . map (+1) [1..] >;
+println("Somme des carrés:",v,som(v),<som v>);
+v=<takeWhile (<30) <zipWith (+) [1..] [1..] [1..]>>;
+println("Zipping borné:",v);
+function rajoute3(int x,int acc,int v) {
+     println(acc,v,x);
+     return(acc*v+2*x);
+}
+v=<scanr (rajoute3 10) 0 [1..10]>;
+println(v);
+function ajt2(int a,int b,int c,int y) {
+     return(a*b*c*y);
+}
+v=<zipWith (ajt2 10) [1..20] [1..20] [1..20]>;
+
+println("Zipping:",v);
+function comp2(int i,int j) {
+     if (i>j)
+          return(true);
+     return(false);
+}
+v=<filter (comp2 5) vx>;
+println(1,v);
+function app2(int i,int j) {
+     return(i*j);
+}
+v=<map (app2 10) vx>;
+println(2,v);
+
+int mx=20;
+v=<takeWhile (>-3) [-2..mx]>;
+println("Mx",v);
+v= <map (5-) vx >;
+println(v);
+function rajoute(int x,int acc) {
+     return(acc+2*x);
+}
+v=<scanr (rajoute) 11 [1..10]>;
+println(v);
+
+v=<scanr (+) 11 [1..10]>;
+println(v);
+int acc=<foldr (\ x acc -> acc+x) 20 [1..10]>;
+println(acc);
+
+
+acc=<foldr (*) 2 [1..10]>;
+println(acc);
+acc=<foldl1 (\ acc x -> acc+x) [1..10]>;
+println(acc);
+println(ve);
+
+
+v=<map (\ [a,b] -> a+b) ve>;
+println(v);
+
+v= <map (*) vx >;
+println(v);
+
+
+svector vs=["   jjj   ","    kkkk  ","eee     "];
+v=<map (trim) vs>;
+println("Trim",v);
+v=<filter (\ a -> (a%2)==1) [1..20]>;
+println("Impair:",v);
+v=<map (\ a -> a+5) [1..10]>;
+println("lambda",v);
+v= <map (+5) vx >;
+println("+5",vx, v);
+v= <map (sqrt) range(1,100) >;
+println("RACINE",v);
+function app(int i) {
+     return(i*3);
+}
+v=<map (app) vx>;
+println("Triple",vx,v);
+v=<map (*5) [1..20]>;
+println(v);
+v=<filter (>2) vx>;
+println(v);
+function tst(int i) {
+     if (i>3)
+          return(true);
+     return(false);
+}
+v=<filter (tst) vx>;
+println(v);
+v=<takeWhile (<6) [1..20]>;
+println(v);
+
+
+function ajt(int a,int b,int c) {
+     return(a*b*c);
+}
+
+v=<zipWith (ajt) [1..20] [1..20] [1..20]>;
+println("Zipwith",v);
+
+v=<zipWith (\a b c -> (a*b)/c) [1..20] [1..20] [1..20]>;
+println("Zipwith lambda",v);
+
+println('Fin');
+
+
+
+
+
+
+
+
+
+
+
+
+
+

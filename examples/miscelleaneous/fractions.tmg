@@ -1,0 +1,13 @@
+
+fraction f(10,21);
+fraction g(12,33);
+
+fraction j(14,17);
+
+fraction r;
+
+r=f*g+j-10.09;
+println(r, r.simplify());
+
+
+

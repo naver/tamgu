@@ -1,0 +1,24 @@
+<project name="" default="test" basedir=".">
+
+<target name="test" depends="compile"  >
+	 <java classpath=".:build" classname="Temps" fork="true" failonerror="true" maxmemory="1024m">
+		<arg value="2000"/>
+		<arg value="2000"/>
+	</java>
+</target>
+
+<target name="compile" depends="clean">
+	<mkdir dir="build" />
+	<javac srcdir="${basedir}" destdir="build" classpath="../dist/jtamgu.jar" >
+	</javac>
+</target>
+
+<target name="clean" depends="" >
+	<delete dir="build" />
+</target>
+
+</project>
+
+
+
+

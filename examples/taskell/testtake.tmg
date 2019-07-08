@@ -1,0 +1,43 @@
+svector cv=['a','c'..'z'];
+println(cv);
+
+vector v;
+v=<replicate 3 [10]>;
+println(v);     
+
+v=<take 10 . repeat 5>;
+println(v);
+
+v=<take 10 [..0.9,1]>;
+println(v);
+
+v=<take 10 <cycle [1,2,3]>>;
+println("Cycle:",v);
+
+int i=<min [1..10]>;
+println(i);
+
+string s=<take 12 . cycle "LOL ">;
+println(s);
+
+<retire(m) : x | x <-m, x in ["A".."Z"]>;
+
+v=<retire "IdontLIKEFROGS">;
+println(v.join(""));
+
+
+function lance() {
+     vector v=[1..100];
+     
+     vector vx=<map (3-) v>;
+     println(vx);
+}
+
+lance();
+
+<retre(m) : filter (in ["A".."Z"]) m>;
+println(retre("ABCDefghIJKL"));
+
+
+
+

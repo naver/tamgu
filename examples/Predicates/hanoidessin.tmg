@@ -1,0 +1,92 @@
+use('fltk');
+
+//The initial configuration... All disks are on the left column
+map columns={'left':[90,70,50,30,10],'centre':[],'right':[]};
+
+//we draw a disk according to its position and its column
+function disk(window w,int x,int y,int sz,int position) {
+    int start=x+100-sz;
+    int level=y-50*position;
+    w.rectanglefill(start,level,sz*2+20,35,FL_BLUE);
+}
+
+function drawbar(window w,string title,int x,int y) {
+    w.drawtext(title,x,y);
+    w.rectanglefill(x+40,300,20,460,FL_BLACK);
+    w.rectanglefill(x-60,740,220,20,FL_BLACK);
+}
+
+function displaying(window w,self o) {
+
+    w.drawcolor(FL_BLACK);
+    w.font(FL_HELVETICA,40);
+
+    drawbar(w,"Left",200,200);
+    drawbar(w,"Centre",500,200);
+    drawbar(w,"Right",800,200);
+
+    //Now we draw our disks
+    vector left=columns['left'];
+    vector centre=columns['centre'];
+    vector right=columns['right'];
+    int i;
+
+    for (i=0;i<left;i++)
+        disk(w,140,740,left[i],i+1);
+    for (i=0;i<centre;i++)
+        disk(w,440,740,centre[i],i+1);
+    for (i=0;i<right;i++)
+        disk(w,740,740,right[i],i+1);
+
+}
+
+window w with displaying;
+
+
+//------ Inference engine part -------------
+//we move from column x to y
+function moving(string x,string y) {
+    columns[y].push(columns[x][-1]);
+    columns[x].pop();
+
+    w.redraw();
+    //a little pause after redrawing the whole stuff
+    pause(0.4);
+    return(true);
+}
+
+
+//Note the variable names, which all start with a "?"
+move(1,?X,?Y,_) :- moving(?X,?Y).
+
+move(?N,?X,?Y,?Z) :-
+    ?N>1,
+    ?M is ?N-1,
+    move(?M,?X,?Z,?Y),
+    move(1,?X,?Y,_),
+    move(?M,?Z,?Y,?X).
+
+
+//The inference is launched within a thread...
+thread hanoi() {
+    move(5,"left","right","centre");
+}
+
+//--------------------------------------------------------------
+
+function launch(button b,self o) {
+    columns={'left':[90,70,50,30,10],'centre':[],'right':[]};
+    w.redraw();
+    hanoi();
+}
+
+//We put a button to lauch the inference engine
+button b with launch;
+
+
+w.begin(50,50,1000,800,"HANOI");
+b.create(20,20,60,30,FL_Regular,FL_NORMAL_BUTTON ,"Launch");
+
+w.end();
+w.run();
+

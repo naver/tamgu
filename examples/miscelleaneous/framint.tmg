@@ -1,0 +1,85 @@
+/@
+Date: 03/09/2018
+Author: Claude Roux
+Description: Frame improvments
+@/
+
+frame Locloc {
+    int k=200;
+}
+
+frame Loc {
+    Locloc ll;
+    int i;
+    
+    function _initial(int s) {
+        i=s;
+    }
+    
+    function ret(int ii) {
+        return ii+i;
+    }
+}
+
+Loc l(100);
+
+frame Trt {
+    common int cm;
+    int i,j;
+    Loc l(34);
+    
+    function _initial(int ii) {
+        i = ii;
+        j = 10;
+    }
+    
+    function ajoute(int e) {
+        j+=e+l.i;
+    }
+}
+
+Trt t(10);
+Trt tt(20);
+
+tt = t;
+println(tt.i, tt.i);
+
+int i;
+float d;
+time t1;
+
+for (i in <1000000>)
+    t.ajoute(10);
+
+time t2;
+
+d=t2-t1;
+println(d);
+println(t.j);
+
+println(i, tt.i, tt.i);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,42 @@
+frame basique {
+    int i;
+    string s;
+    
+    function _initial(int v,string u) {
+        i=v;
+        s=u;
+   }
+    
+    function appel(int v) {
+        println(v,i);
+    }
+    
+    function +(int a) {
+        return (a+i);
+    }
+    
+    function -(int a) {
+        return (i-a);
+    }
+    
+    function string() {
+        return(s);
+    }
+    
+    function int() {
+        return(i);
+    }
+}
+
+int v;
+
+
+basique toto(10,"hh");
+println(10+(toto-2));
+
+
+toto.appel(13);
+toto.i =100;
+println("TOTO:",toto, toto.i);
+
+

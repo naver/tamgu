@@ -1,0 +1,31 @@
+println(<::string dropWhile (isdigit) "12345ABCD123">);
+
+
+println(<drop 5 [1..100]>);
+println(<foldl (\ acc x -> acc+(2*x)) 10 [1..10]>);
+
+
+<see([a]) : a>;
+<see([a,b]) : (a+b)>;
+<see([first|rest]) : [a,first] | let a = see(rest)>;
+println(see(['a'..'e']));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

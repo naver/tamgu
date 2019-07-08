@@ -1,0 +1,46 @@
+use('allmaps');
+
+function met(self a, int n,treemapii m) {
+     m[n]=a;
+     return(a);
+}
+
+treemapii m;
+
+<fib(0,m) : 0>
+<fib(1,m) : 1>
+<fib(n,m) : met(a,n,m) | let a=fib(n-1,m)+fib(n-2,m)>
+
+println(fib(20,m),m.values());
+
+<fibo(0,m) : 0>
+<fibo(1,m) : 1>
+<fibo(n,m) : a | let a=fibo(n-1,m)+fibo(n-2,m), {m[n] = a;}>
+
+treemapi tm;
+println(fibo(20,tm),tm.values());
+
+
+int fb=10;
+<fibonacci(0) : 0>
+<fibonacci(1) : 1>
+<fibonacci(n) : fibonacci(n-1)+fibonacci(n-2)>
+println("Fibo "+fb+":",fibonacci(fb));
+
+
+<see([]) : "empty">
+//<see([a]) : a>;
+<see([first|rest]) : [a,first] | let a = see(rest)>
+println(see(['b'..'f']));
+
+
+
+
+
+
+
+
+
+
+
+

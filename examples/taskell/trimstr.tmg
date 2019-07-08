@@ -1,0 +1,7 @@
+<trimme(v) : if (x.iscontainer()) trimme(x) else x.trim() | x <- v >;
+
+vector vs=["    12 ","     kkk     ","   lll   ",["  gg  ",["   jjj  ",' rrr  ','   ttt  '],"hh  "]];
+
+vector vss=trimme(vs);
+println("Trimme",vss);
+

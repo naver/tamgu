@@ -1,0 +1,7 @@
+vector v;
+
+v=<map (²) [1..10] >;
+println(v);
+v=<map (³) [1..10] >;
+println(v);
+

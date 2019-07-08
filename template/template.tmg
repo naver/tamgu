@@ -1,0 +1,67 @@
+//The goal of this program is to create a new template for a user library...
+
+string name="Claude Roux (claude.roux@naverlabs.com)";
+
+date d;
+string dte=d;
+
+dte=dte[:" "].trim();
+function Build(string type) {
+
+    file fcxx(_current+"template.cxx");
+
+    string cxx=fcxx.read();
+    fcxx.close();
+
+    file fh(_current+"template.h");
+
+    string h=fh.read();
+    fh.close();
+
+    _sys.mkdir(_current+"../"+type);
+    _sys.mkdir(_current+"../"+type+"/src");
+    _sys.mkdir(_current+"../"+type+"/include");
+
+    cxx=cxx.format(type,dte,name);
+    h=h.format(type,dte,name);
+
+    file scxx(_current+'../'+type+'/src/tamgu'+type+".cxx","w");
+    cxx=cxx.indent();
+    scxx.write(cxx);
+    scxx.close();
+
+    file sh(_current+'../'+type+'/include/tamgu'+type+".h","w");
+    h=h.indent();
+    sh.write(h);
+    sh.close();
+    
+    string mk;
+    mk.read(_current+"Makefile");
+    mk = mk.format(type);
+    
+    file fmk(_current+'../'+type+'/Makefile',"w");
+    fmk.write(mk);
+    fmk.close();
+    
+    string wmk;
+    wmk.read(_current+"template.vcxproj");
+    wmk = wmk.format(type);
+    
+    file wfmk(_current+'../'+type+'/lib'+type+".vcxproj","w");
+    wfmk.write(wmk);
+    wfmk.close();
+
+    string thepath = _sys.realpath(_current+"../"+type);    
+    
+    println("Created directory:", thepath);
+    println("Created file:", thepath+"/src/tamgu"+type+".cxx");
+    println("Created file:", thepath+"/include/tamgu"+type+".h");
+    println("Created file:", thepath+"/Makefile");
+}
+
+string objecttype;
+
+objecttype=kget("Please enter your class name:");
+Build(objecttype);
+
+

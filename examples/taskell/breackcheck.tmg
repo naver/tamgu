@@ -1,0 +1,16 @@
+/@
+Date: 29/08/2018
+Author: Claude Roux
+Description: Check break
+@/
+
+
+<myloop(v): if (v.size()>10) break else v[0]>;
+<myloop(v): v[10]>;
+
+println(<myloop([1..11])>);
+
+
+
+
+

@@ -1,0 +1,17 @@
+/@
+Date: 23/01/2019
+Author: Claude Roux
+Description: Currying méthodes
+@/
+
+
+<méthode(f,x) : <f x>>
+
+int i = <méthode (size) "abcdefg">;
+
+println(i);
+
+
+
+
+

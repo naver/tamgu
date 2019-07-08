@@ -1,0 +1,15 @@
+predicate ancestor,parent,male,female,test;
+term func;
+
+ancestor(func("pierre","jean")).
+ancestor(func("jean","alain")).
+ancestor(func("alain","roland")).
+
+parent(?X,?Y) :- ancestor(func(?X,?W)), ancestor(func(?W,?Y)).
+
+parent.trace(true);
+vector v=parent(?X,?B);
+
+println(v);
+
+

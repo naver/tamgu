@@ -1,0 +1,52 @@
+//We declare our predicates
+//predicate sentence;
+
+//sentence._trace(true);
+
+//det(["the"|?X], ?X,dét("the")).
+det(dét("the")) --> ["the"].
+
+//det(["a"|?X], ?X,dét("a")).
+det(dét("a")) --> ["a"].
+
+
+noun(["cat"|?X], ?X,nom("cat")).
+noun(["dog"|?X], ?X,nom("dog")).
+noun(["bat"|?X], ?X,nom("bat")).
+
+verb(["eats"|?X], ?X,verbe("eats")).
+
+noun_phrase(?S1,?S3,SN(dét(?U),?B)) :-
+     det(?S1,?S2,dét(?U)),
+     noun(?S2,?S3,?B).
+
+
+verb_phrase(?S1,?S3,SV(?A,?B)) :-
+     verb(?S1,?S2,?A),
+     noun_phrase(?S2,?S3,?B).
+
+
+sentence(?S1,?S3,P(?A,?B)) :-
+     noun_phrase(?S1,?S2,?A),
+     verb_phrase(?S2,?S3,?B).
+
+vector v;
+
+v=sentence(?X,[],?A);
+println("All the sentences that can be generated:",v);
+println();
+
+v=verb(["eats"],?X,?Y);
+println(v);
+
+//we analyze a sentence
+//sentence.trace(true);
+v=sentence(["the", "dog", "eats", "a", "bat"],[],?A);
+println();
+println("The analysis:",v[0]);
+
+v=sentence(["the", ?X, "eats", ?Y, "bat"],[],?A);
+println();
+for (self e in v)
+     println(e[2]);
+

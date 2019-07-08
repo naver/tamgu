@@ -1,0 +1,67 @@
+vector v;
+
+<carrebis(v) : b  |   let b= takeWhile (<1000) . map(^^2) v>;
+vector vv = carrebis([1..]);
+println("CARRE UNIQUE", vv);
+
+<aucarré(vc) : map(^^2) vc>;
+
+<carrebis(v) : b  |  let val= <aucarré v>, let b= takeWhile (<100) val>;
+println("CARREBIS",carrebis([1..]));
+
+v=<takeWhile (<90) . zipWith (*) [0..] [0..] [0..] >;
+println("Zipping borné:",v);
+
+v=<takeWhile (<90) < (x*2) | x <- [-10..] >>;
+println("Takewhile min:",v);
+
+v=<map (cos) range(0,1,0.1)>;
+println('Cos:',v);
+<proj(v) : map(+1) v>;
+function ajt(vector v) {
+     v+=1;
+     return(v);
+}
+<appel(v) : takeWhile (<100) ajt(v)>;
+v=appel([1..10]);
+println("Appel:",v);
+<appelbis(v) : takeWhile (<100) <proj v>>;
+v=appelbis([1..]);
+println("Appel inifinitif:",v);
+function odd(int x) {
+     if (x%2==0)
+          return(false);
+     return(true);
+}
+<Sum(v) : foldr1 (+) v>;
+println(<Sum [1..10]>);
+
+vector égal=<a | a <- [1..15]; b <- [1..], a==b>;
+println(égal);
+
+
+vector vx=[1..20];
+<ajout(vc) : (x+1) | x <- vc>;
+v=ajout(vx);
+println("Ajout",v);
+
+<filtre(vc) : filter (>4) vc>;
+v=filtre(vx);
+println(v);
+<aucarre(vc) : takeWhile (<100) . map(^^2) vc>;
+v=<aucarre [1..15]>;
+println(v);
+v=<takeWhile (<100) . map (+1) . map(^^2) vx>;
+println(v);
+
+
+println('Fin');
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,34 @@
+//we declare all our predicates
+
+//Then our rules
+ancestor(?X,?X) :- true.
+ancestor(?X,?Z) :- parent(?X,?Y), ancestor(?Y,?Z).
+
+//Our parent relations, which are stored in the fact base
+parent("george","sam") :- true.
+parent("george","andy") :- true.
+parent("andy","mary") :- true.
+
+male("george") :- true.
+male("sam") :- true.
+male("andy") :- true.
+
+female("mary") :- true.
+
+predicate atest;
+atest(?X,?Q) :- ancestor(?X,?Q), female(?Q).
+atest.trace(true);
+
+string rule=@"
+test1(?X,?Y) :- parent(?X,?Y), female(?Y).
+res=test1(?X,?Y);
+"@;
+
+vector res;
+
+_eval(rule);
+println(res);
+
+
+
+

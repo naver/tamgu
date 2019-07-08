@@ -1,0 +1,19 @@
+/@
+Date: 2019/05/21
+Author: Claude Roux
+Description: Just the windows template
+@/
+
+string type = kget("Please enter your class name:");
+
+
+string wmk;
+wmk.read(_current+"template.vcxproj");
+wmk = wmk.format(type);
+
+file wfmk(_current+'../lib'+type+'/lib'+type+".vcxproj","w");
+wfmk.write(wmk);
+wfmk.close();
+
+
+

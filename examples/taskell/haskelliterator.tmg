@@ -1,0 +1,12 @@
+ivector iv=range(0,100);
+
+vector res=<[i.value()] | iterator i=iv,(i.key()%7==0)>;
+println(res);
+
+
+res=<[i.value(),j.key()] | iterator i=iv,iterator j=[1..100], (i.key()%7==0)>;
+println(res);
+
+
+res=< [i,j] | i <- [1..100] ; j <- [1..], ((i%7)==0)>;
+println(res);

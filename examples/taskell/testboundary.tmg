@@ -1,0 +1,12 @@
+/@
+Date: 08/02/2019
+Author: Claude Roux
+Description: Test boundary
+@/
+
+int mx=30;
+
+vector v = <takeWhile (> -3)  [..18,mx]>;
+
+println(v);
+

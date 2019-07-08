@@ -1,0 +1,24 @@
+/@
+Date: 23/01/2019
+Author: Claude Roux
+Description: Currying test
+@/
+
+<calc(x,y,z) = (x+y)*z>
+
+<appel :: call -> _ -> int>
+<appel(f, x) = <f x>>
+
+float i;
+i = <appel (24 -) 20>;
+println(i);
+ivector iv=[1..10];
+
+i = <appel <calc 117 23> 40>;
+println(i);
+
+
+
+
+
+

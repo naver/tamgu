@@ -1,0 +1,6 @@
+<facto(2) = 2>;
+<facto(n) = n*facto(n-1)>;
+
+int x=facto(5);
+println(x);
+

@@ -1,0 +1,30 @@
+frame Tst {
+    int i=20;
+
+    function calcul() {
+        return(2i);
+   }
+}
+
+<data Personne = Unepersonne {age :: int, revenu:: float} deriving(Show, Eq, Ord, Tst)>
+
+Unepersonne yoo=<Unepersonne {age = 40, revenu=12450}>;
+
+println(yoo.calcul());
+
+Tst d;
+println(d.calcul());
+
+Unepersonne too(45,13560);
+
+if (too > yoo)
+    println("Ok");
+
+Unepersonne roo(41,12450);
+
+if (yoo==roo)
+    println("Encore Ok");
+else
+    println("Et non");
+
+

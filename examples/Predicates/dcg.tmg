@@ -1,0 +1,60 @@
+
+
+
+//sentence(?X,?F) :- noun_phrase(?X,?Y),verb_phrase(?Y,?F);
+
+//sentence --> noun_phrase, verb_phrase;
+//noun_phrase --> det, noun;
+//verb_phrase --> verb, noun_phrase;
+//det --> [the];
+//det --> [a];
+//noun --> [cat];
+//noun --> [bat];
+//verb --> [eats];
+
+//predicate sentence,noun_phrase,verb_phrase;
+
+//term s,np,d,n,v;
+
+sentence(s(?NP,?VP)) --> noun_phrase(?NP), verb_phrase(?VP).
+noun_phrase(np(?D,?N)) --> det(?D), noun(?N).
+verb_phrase(vp(?V,?NP)) --> verb(?V), noun_phrase(?NP).
+det(d("the")) --> ["the"].
+det(d("a")) --> ["a"].
+noun(n("bat")) --> ["bat"].
+noun(n("cat")) --> ["cat"].
+verb(v("eats")) --> ["eats"].
+
+//sentence._trace(true);
+//we generate all possible interpretations...
+vector vr=sentence(?Y,[],?X);
+printjln(vr);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

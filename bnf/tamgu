@@ -1,0 +1,684 @@
+####################################################################################################################################################
+###	Tamgu BNF grammar ####
+####################################################################################################################################################
+####################################################################################################################################################
+### BNF grammar formalism 
+####################################################################################################################################################
+#
+# To compile the Tamgu BNF grammar, you need the following files:
+#	- Tamgu (the file that contains the grammar description of the Tamgu formalism)
+#	- compilateurC.py (a Python program, the BNF compiler)
+#	- rulen.py (the BNF grammar of the our BNF formalism)
+#	- optimise.Tamgu (some improvment over the generated code, it is a Tamgu program)
+#
+# You first execute the Python program: 'compilateurC.py' with the 'Tamgu' file as input: python compilateurC.py ./Tamgu
+# N.B. This Python program also requires 'rulen.py'.
+# which generates: tamgun.h, tamgun.cxx and x_nodes.h
+#
+# You can also call: 'optimise.tmg', without any parameters, it will load the last generated 'tamgun.cxx' as input.
+# You can skip this step if you do not have access to Tamgu at this stage. 
+# It provides some additional performance improvment. 
+# It then generates: codeparse.cxx, which can replace tamgun.cxx in your code.
+#
+####################################################################################################################################################
+### Left-hand-side of the rules ###
+# The system pre-tokenizes the code beforehand, thanks to loadtoken in x_nodes.h. 
+# It automatically tokenizes along the following elements:
+#	- Double quotes strings (type=1): "..."
+#	- Single quotes strings (type=2): '...'
+#	- Large strings (type=5):	@".."@
+#	- Comments, which are removed from the input:
+#		* line comments:	//....
+#		* large comments:	/@....@/
+#	- Numbers (type=3, with exponential 'e' and decimal point)
+#	- Tokens (type=4): a sequence of unicode characters, which are not punctuations or spaces, to the exception of "_". '_protégée' is a valid token for instance.
+#	- Punctuations (type=0)
+#
+# You need to use some specific meta-characters to tell the system to use these pre-defined tokens instead of their rule description.
+# You still need to declare these rules, even though their description won't be taken into account. 
+# The BNF compiler will associate these rules with specific C++ methods, which will be based on the internal code chosen within loadtoken
+#
+# These meta-characters should be placed as the first character in the rule. 
+# Their interpretation is the following: the ^x denotes a pre-tokenization according to loadtoken
+#       ^0 : punctuation                (type in loadtoken is: 0)
+#		^1 : double quote string		(type in loadtoken is: 1)
+#		^2 : simple quote string		(type in loadtoken is: 2)
+#		^3 : digits or number		    (type in loadtoken is: 3)
+#		^4 : token					    (type in loadtoken is: 4)
+#       ^5 : large strings @".."@       (type in loadtoken is: 5)
+#
+# You can leave a blank after this meta-character
+#
+# The following meta-characters have a different interpretation, they are used to control how the parsing should take place:
+#		+: defines the entry point of the grammar, in other words, which rule to use in order to start parsing the code.
+#		!: you use this meta-character to avoid the matching strings to be part of the final analysis tree
+#		%: you use this meta-characte to avoid storing substrings within the analysis tree (reducing the storage to only salient strings)
+#       ~ : fail, this operator indicates that if the rule succeeds then its calling rule should fail (it is used to prevent certain tokens to be parsed into a variable name for instance)
+#
+# IMPORTANT, the characters: +,!,%,~ should stick to their rule name...
+#           + bloc is wrong.
+#           +bloc is good.
+####################################################################################################################################################
+### Right-hand-side of the rules ###
+# You can use the following operators in the right-hand side of a rule:
+#
+# Character or Strings Operators:
+#	%x		: The '%' operator is used to introduce the character 'x'
+#	$xxx	: The '$' operator is used to introduce the string 'xxx''
+#	\ddd	: Defines a character through its unicode code.
+#	X-x		: The '-' operator defines a range of characters.
+#
+# Operators:
+#	:=		:	This operator associates a rule name with its description.
+#	' '		:	The space character defines a conjunction of rule elements.
+#	^		:	This operator is an exclusive disjunction, it stops at the first target that matches.
+#	|		:	This operator is also a disjunction, but in this case it selects the longest match between each rule element.
+#	[..]	:	This operator defines a sub-sequence of tokens. DO NOT PUT ANY SPACE BETWEEN '[' and the following element or between the last element and ']'.
+#	(..)	:	This operator defines an parenthetic sequence of tokens. DO NOT PUT ANY SPACE BETWEEN '(' and the following element or between the last element and ')'.
+#	{..}	:	This operator defines a context at the end of rule, to constrain the rule execution. The context content is not appended to the current analysis tree.
+#
+# Kleene Operators:
+# Important: These operators are compiled into 'while' loops in C++, not recursive calls...
+#	r*		:	The element 'r' should be present 0 or n times. 'r' is a rule element, it can be a sequence of elements: [..]*
+#	r+		:	The element 'r' should be present at least once. 'r' is a rule element, it can be a sequence of elements: [..]+
+#
+# Cut Operator:
+#	*n = error message : Defines an error message of numerical index 'n'. These error messages must be defined at the beginning of the file.
+#	;d		:	Introduces a 'point of no return' associated with a message (see above), it is the last point beyond which you cannot backtrack.
+#				When a "point of no return" is reached, then if there is an error later on in the code, the system will stop and returns the last error message
+#				of index 'd'.
+#			
+#
+# It is also possible to generate some BNF rules, whose contents can be modified on the fly programmatically. 
+# Basically, the system generates some C++ code out of the BNF rules, which is based on some variable content instead of characters or strings.
+#
+#	@x		:	'@' creates a "character" variable in the C++ code, whose initial value will be the character 'x'. 
+#				A Y_val_d (char) will be then created in the C++ class, 'd' is a digit corresponding to the order in which these variables were created.
+#
+#	:VARI	:	':' creates a "string" variable in the C++ code, whose initial value is the string VARI.
+#				A VS_var_d (string) will then be created in the c++ class, 'd' is a digit corresponding to the order in which these variables were created.
+#
+# It is then possible to alter the behaviour of these BNF rules in the parser by simply modifying the initial value of these variables.
+#
+#
+####################################################################################################################################################
+####################################################################################################################################################
+####################################################################################################################################################
+### Error message strings, each message is introduced with '*' followed with its number index. 
+### Last error message beyond which you cannot backtrack, it is declared in a rule with ';' followed by the corresponding index number.
+####################################################################################################################################################
+*1 = Wrong index format
+*2 = Wrong expression after an operator
+*3 = Wrong list of parameters
+*4 = Wrong expressions in parentheses
+*5 = Wrong FRAME declaration
+*6 = Wrong argument declaration
+*7 = Wrong FUNCTION declaration
+*8 = Wrong BOOLEAN EXPRESSION
+*9 = Wrong BOOLEAN expression
+*10 = Wrong IF declaration
+*11 = Wrong WHILE declaration
+*12 = Wrong FOR declaration
+*13 = Wrong FUNCTION CALL
+*14 = Wrong Expression
+*15 = Wrong Instruction
+*16 = Wrong SWITCH
+*17 = Wrong test in a SWITCH
+*18 = Wrong IN expression
+*19 = Wrong WITH expression
+*20 = Wrong PREDICATE declaration
+*21 = Wrong PATTERN in A RULE
+*22 = Wrong TRY-CATCH expression
+*23 = Wrong INTERVAL
+*24 = Wrong ELSE section
+*25 = Wrong VECTOR definition
+*26 = Wrong MAP definition
+*27 = Wrong Function call in an index reference
+*28 = Wrong comments
+*29 = Wrong dotted expression
+*30 = Wrong expression or Missing ';'
+*31 = Missing '}'
+*32 = Wrong declaration
+*33 = Wrong FOR IN declaration
+*34 = Wrong PREDICATE definition
+*35 = Wrong PREDICATE expression
+*36 = Wrong PREDICATE parameter list
+*37 = Wrong PREDICATE term
+*38 = Wrong tuple
+*39 = Wrong ASSERT definition
+*40 = Wrong PREDICATE VARIABLE
+*41 = Wrong RANGE definition
+*42 = Wrong LISP expression
+*43 = Wrong TAG expression
+*44 = Wrong DCG declaration
+*45 = Wrong DCG or Missing '.'
+*46 = Wrong Predicate Rule or Missing '.'
+*47 = Wrong LAMBDA use
+*48 = Wrong FUNCTIONAL description
+*49 = Wrong FILTER
+*50 = Wrong FOLD or SCAN
+*51 = Wrong MAP
+*52 = Wrong CYCLE or REPEAT
+*53 = Wrong REPLICATE
+*54 = Wrong taskell LAMBDA
+*55 = Wrong taskell CASE
+*56 = Wrong taskell Boolean Use
+*57 = Wrong FLIP
+*58 = Wrong EXTENSION implementation
+*59 = Expecting a meta-character
+*60 = Expecting a '.'
+*61 = Wrong tuple definition
+*62 = Wrong 'IF' expression
+*63 = Wrong 'data' expression
+*64 = Wrong 'ontology' expression
+*65 = Wrong 'range' definition
+*66 = Wrong annotation rule
+####################################################################################################################################################
+####################################################################################################################################################
+### This is the entry point of our parser: analyse, hence the "+" ######
++analyse
+####################################################################################################################################################
+
+########### SHELL and LABELS ##############################################
+path := %/ word (path)
+
+#If you define a #!path, then you do not want to parse it in your tamgu program
+!shell := %# %! [path^word]
+!signature := \239 \187 \191
+
+########### LOADTOKEN ##############################################
+# These rules match the elements that were extracted by loadtoken.
+# This is why, we do not need to provide actual bodies. Their bodies
+# is provided by compilateurC.py
+
+# punctuation as parsed by loadtoken
+^0 punct := .
+
+# String definitions as parsed by loadtoken
+^1 astringdouble := .
+^2 astringsimple := .
+^5 afullstring := .
+
+# Numbers as parsed by loadtoken
+^3 anumber := .
+
+#token as parsed by loadtoken
+^4 word := .
+^4 typename := .
+^4 astring := .
+
+#regular expressions
+^9 atreg := .
+^a astreg := .
+^b apreg := .
+^c aspreg := .
+########### OPERATORS ##############################################
+
+operator := $ifnot^$∧^$∨^$×^$÷^[%& %& %&]^[%| %| %|]^[%: %:]^[%< %<]^[%> %>]^[%^ %^]^[%* %*]^%&^%|^%+^%-^%*^%/^%%^%^
+
+operatoraffectation := [$× %=]^[$÷ %=]^[%& %& %& %=]^[%| %| %| %=]^[%: %: %=]^[%: %=]^[$is ($not)]^[%< %< %=]^[%> %> %=]^[%+ %=]^[%- %=]^[%* %* %=]^[%/ %=]^[%% %=]^[%& %=]^[%| %=]^[%^ %^ %=]^[%* %=]^[%^ %=]^[%< %< %<]^%=
+
+orand := [%| %|]^[%& %&]^$or^$and^$xor
+
+comparator := [%< %>]^[%~ %=]^[%! %=]^$≠^[%= %=]^[%< %=]^[%> %=]^%<^%>
+
+# The difference between fulloperation and operation is that fulloperation accepts the presence of a comparison in the rest of the string
+%fulloperation := operator expressions
+%operation := operator nocomparisonexpressions
+%multiply := variable (power) (operation^operationin)
+
+%comparison := comparator nocomparisonexpressions
+
+########### CURRENT DECLARATIONS ##############################################
+### Some feature definitions for functions and variables ###
+private := $private 
+common := $common 
+const := $const
+
+feature := [private (common)]^[common^const]
+
+~notatype := $if^$IF^$If^$while^$for^$switch^$elif^$frame^$polynomial^$function^$autorun^$thread^$not^$return
+type := (feature) notatype typename
+
+depend := $with ;19 word
+
+%declaration := type word (%( parameters %)) (depend) (%= wnexpressions)
+
+%declarationlist := word (%( parameters %)) (depend) (%= ;32 wnexpressions) (%, ;32 declarationlist)
+
+%multideclaration := type word (%( (parameters) %)) (depend) (%= ;32 wnexpressions) (%, ;32 declarationlist)
+
+declarationending := %;
+
+%frame := (private) $frame ;5 typename (depend) [declarationending^instruction] 
+%extension := $extension ;58 typename instruction
+
+########### FUNCTIONS ##############################################
+instruction := %{ ;15 (blocs) %}
+
+nonlimited := $...
+
+arguments := declaration (%, ;6 [nonlimited^arguments])
+
+strict := $strict 
+join := $joined
+
+protecclusive := $protected^$exclusive
+
+functionlabel := $polynomial^$function^$autorun^$thread
+
+typefunction := (join) (protecclusive) (private) (strict) functionlabel
+
+indexname := %[ %]
+intervalname := %[ %: %]
+returntype := %: %: word
+%function := typefunction ;7 [word^plusplus^operator^comparator^indexname^intervalname] %( (arguments) %) (returntype) [declarationending^instruction] 
+
+%subfunc := %. ;27 regularcall
+%subfuncbis := %. regularcall
+%subvar := %. ;29 variable
+
+~notafunction := $if^$IF^$If^$while^$for^$switch^$elif^$frame^$polynomial^$function^$autorun^$thread^$not
+framesep := %: %:
+frameup := word framesep
+functioncall := (frameup) notafunction word
+%regularcall := functioncall %(;13 (comparing^parameters) %) (interval^indexes^subfunc)
+%purecall := functioncall %( (parameters) %) (interval^indexes)
+
+returncall := $return ([comparing^nocomparisonexpressions])
+breakcall := $break
+continuecall := $continue
+
+%call := breakcall^continuecall^regularcall^returncall
+
+sep := %: 
+
+%parameters := nocomparisonexpressions [%, ;3 nocomparisonexpressions]*
+
+########### THE PARSER ##############################################
+%blocs := [extension^frame^complexbloc^function^bloc]+
+%bloc :=  annotationrule^predicatefact^[dcg ;45 %.]^[[dependencyrule^predicatedefinition] ;46 %.]^sousbloc
+%sousbloc := [[hdata^hontology^telque] (%;)]^[[conceptfunction^multideclaration^increment^affectation^call^variable]  ;30 %;]
+%complexbloc := switch^trycatch^loop^doloop^iftest^forin^for
+
+### Our entry point ####
+%analyse := (signature) (shell) blocs
+
+########### VARIABLES ##############################################
+~wrong := $or^$and^$xor^$in^$not^$else^$continue^$break^$return^$where^$otherwise^$not
+variable := wrong word (interval^indexes^subfuncbis^subvar)
+allvariable := predicatevariable^variable
+
+purevariable := wrong word (interval^indexes)
+predvariable := wrong predicatevariable^purevariable
+
+plusplus := [%+ %+]^[%- %-]
+power := $²^$³
+%affectation := [valmaptail^valvectortail^variable] [operatoraffectation;14 wnexpressions]
+
+%increment := variable [plusplus^power]
+
+########### IN & ON ##############################################
+%notin := $notin^[$not $in]^[$absent $from]
+%in := $in
+operatorin := notin^in
+%operationin := operatorin ;18 expression
+negation := %!^%~^$not^$¬
+
+########### TUPLES, VECTORS and MAPS ##############################################
+minus := %- [astringdouble^afullstring^astringsimple^apreg^aspreg^atreg^astreg^variable]
+indexes := %[;1 [minus^apreg^aspreg^atreg^astreg^expressions] %] (interval^indexes^subfunc)
+interval := %[ ([minus^apreg^aspreg^atreg^astreg^expressions]) sep;23 ([minus^apreg^aspreg^atreg^astreg^expressions]) %] (interval^indexes^subfunc)
+
+%valtuple := %( wnexpressions %,;61 (wnexpressions [%, wnexpressions]*) %)
+
+%valvector := %[;25 (wnexpressions [%, wnexpressions]*) %]
+
+%valtail := %| expression
+%valvectortail := %[;25 (expression [%, expression]* (valtail)) %]
+
+%maptail := %| variable
+%dicoval := expression %: expression
+%valmaptail := %{;26 (dicoval [%, dicoval]* (maptail)) %}
+
+intentionsep := $..
+step := %: wnexpressions
+%intentionvector := %[ [[intentionsep ;25 wnexpressions]^[wnexpressions intentionsep ;25 (wnexpressions) (step)]] %]
+%intentionwithdouble := %[ [[intentionsep ;25 wnexpressions %, wnexpressions]^[wnexpressions %, wnexpressions intentionsep ;25 (wnexpressions)]] %]
+
+%intentionvect := intentionvector^intentionwithdouble
+
+%dico := wnexpressions %: wnexpressions
+%valmap := %{ ;26 (dico [%, dico]*) %}
+
+########### JSON  ##################################################
+%jvector := %[;25 (jexpression [%, jexpression]*) %]
+%jdico := [abool^astringdouble^astringsimple^anumber^afullstring] %: jexpression
+%jmap := %{ ;26 (jdico [%, jdico]*) %}
+
+%jexpression := abool^astringdouble^astringsimple^anumber^afullstring^jvector^jmap^aconstant
+
+aconstant := $null
+########### PREDICATE ##############################################
+
+%cut := %!
+%fail := $fail
+%stop := $stop
+not := %~^$not
+
+~notapredicate := $if^$IF^$If^$while^$for^$switch^$elif^$return^$frame^$polynomial^$function^$autorun^$thread^$not
+%predicate := notapredicate word %( (predicateparameters) %)
+%predicatecall := functioncall %( (predicateparameters) %)
+
+retractcommand := $retract
+assertcommandbefore := $asserta
+assertcommandafter := $assertz^$assert
+
+%assertpredicate := [retractcommand^assertcommandbefore^assertcommandafter] %( ;39 [dependencyfact^predicate] (%, expression) %)
+
+compfeat := [%~ %- %:]^[%- %:]^[%~ %:]^%:^%=
+valplus := %+
+%feat := [astringdouble^afullstring^astringsimple^word] (compfeat [not^valplus^anumber^astringdouble^afullstring^astringsimple^word])
+features := %[ (feat [%, feat]*) %]
+modifcall := %^
+
+%dependencyparameters := predicatevariable [%, predicatevariable]*
+%dependencyfact := functioncall features %( (predicateparameters) %)
+%dependency := ([modifcall^not]) functioncall (features) %(  dependencyparameters* %)
+%dependance := [fail^cut^stop^dependency^predplusplus^affectationpredicate^comparepredicate^valpredicatevector^valmappredicate^purecall^wnexpressions]
+%dependencyresult := not^[predicatevariable [%, predicatevariable]*]^[dependency [%, dependency]*]
+%dependencyrule := [$IF^$If] %( ;62 dependance [orand dependance]* %) dependencyresult
+
+predicatevariable := [%? ;40 word]^[%# ;40 [%_^anumber] (features)]
+term := %? word %(;37 (predicateparameters) %)
+tuple := %( predicateparameters %)
+
+#affectexpression is called for an affectation such as "is" or "="
+%affectexpression := [anumber^pexpression] (operation^operationin^multiply)
+%comparepredicate := predvariable [comparator;14 affectexpression]
+
+%affectationpredicate := allvariable [operatoraffectation;14 affectexpression]
+%predplusplus := predvariable plusplus
+
+#For predicate vectors...
+
+%pintentionvector := %[ [[intentionsep ;25 pexpression]^[pexpression intentionsep ;25 (pexpression) (step)]] %]
+%pintentionwithdouble := %[ [[intentionsep ;25 pexpression %, pexpression]^[pexpression %, pexpression intentionsep ;25 (pexpression)]] %]
+
+%pintentionvect := pintentionvector^pintentionwithdouble
+
+%merging := pexpression
+%apredicatelist := pexpression ([%, ;25 apredicatelist]^[%| ;25 merging {%]}])
+%valpredicatevector := %[ (apredicatelist) %]
+
+%pexpression := term^tuple^parenthetic^predicatevariable^pintentionvect^valpredicatevector^valmappredicate^abool^astringdouble^afullstring^astringsimple^apreg^aspreg^atreg^astreg^anumber^purecall^purevariable
+%predicateparameters := pexpression [%, pexpression]*
+
+#For predicate map... The order is important for the unification
+%mapmerging := pexpression
+%mappredicatelist := predicatedico ([%, mappredicatelist]^[%| mapmerging])
+%valmappredicate := %{ ;26 (mappredicatelist) %}
+%predicatedico := pexpression %: pexpression
+
+predicateoperator := %,^%;
+
+%predicateexpression := [fail^cut^stop^assertpredicate^[(not) predicatecall]^predplusplus^affectationpredicate^comparepredicate^valpredicatevector^valmappredicate^expressions] (predicateoperator ;35 predicateexpression)
+%predicatedefinition := predicate %: %- ;20 [abool^predicateexpression]
+%predicatefact := [dependencyfact^predicate] %.
+
+dcgword := predicate^word
+finaltoken := %[ ([predicatevariable^astringdouble^astringsimple^apreg^aspreg^atreg^astreg^anumber^astring] [%, [predicatevariable^astringdouble^astringsimple^apreg^aspreg^atreg^astreg^anumber^astring]]*) %]
+finaldcg := %{ predicateexpression %}
+%dcg := dcgword %- %- %> ;44 [[finaltoken^dcgword] [%, dcgword]*] (%, finaldcg)
+
+########### T(H)ASKELL ##############################################
+
+%taskelltail := [%|^%:] taskellexpression
+%taskellexpression := taskellmap^taskellvector^abool^astringdouble^afullstring^astringsimple^apreg^aspreg^atreg^astreg^anumber^word
+%taskellvector := %[ (taskellexpression [%, taskellexpression]* (taskelltail)) %]
+
+%taskellmaptail := [%|^%:] taskellexpression
+%taskellkeymap := abool^astringdouble^afullstring^astringsimple^apreg^aspreg^atreg^astreg^anumber^word
+%taskelldico := taskellkeymap %: taskellexpression
+%taskellmap := %{ (taskelldico [%, taskelldico]* (taskellmaptail)) %}
+
+%static := $static
+letkeyword := (static) wrong word
+%let := letkeyword [valmaptail^valvectortail^purevariable] %= hmetafunctions^hoperations
+%letmin := purevariable %= [hmetafunctions^nocomparisonnorinexpressions]
+
+##this is a case when we want to mix things such as map and hbloc
+%hvalmaptail := %{ (dicoval [%, dicoval]* (maptail)) %}
+%range := let^[[hvalmaptail^valvectortail^variable] [$←^[%< %-]] ;65 hmetafunctions^hoperations]^hbloc
+
+hdeclaration := word [subdata^[taskellmap^taskellvector^abool^astringdouble^afullstring^astringsimple^apreg^aspreg^atreg^astreg^anumber^word]+]
+subtaskelldeclaration := %( hdeclaration %)
+maybe := $Maybe word
+declarationtaskell := [subtaskelldeclaration^word] [[$→^[%- %>]] [subtaskelldeclaration^maybe^word]]*
+taskelldeclaration := word %: %: declarationtaskell
+
+%taskell := word %( ([taskellmap^taskellvector^abool^astringdouble^afullstring^astringsimple^apreg^aspreg^atreg^astreg^anumber^hdeclaration^word] [%, [taskellmap^taskellvector^abool^astringdouble^afullstring^astringsimple^apreg^aspreg^atreg^astreg^anumber^hdeclaration^word]]*) %) [%:^%=]
+
+%otherwise := %| $otherwise %= expression
+%guard := %| hbooleanexpression %= ;48 expression [otherwise^guard]
+
+%hlambda := %\ ;54 [taskellmap^taskellvector^word] [taskellmap^taskellvector^word]* [$→^[%- %>]] wnexpressions
+%hboollambda := %\ ;54 [taskellmap^taskellvector^word] [taskellmap^taskellvector^word]* [$→^[%- %>]] hbooleanexpression
+composefunction := [power^word] [%. [power^word]]*
+%hfunction := composefunction expression*
+
+lfold := $foldl
+rfold := $foldr
+lscan := $scanl
+rscan := $scanr
+
+fold := lfold^rfold^rscan^lscan
+%folding := fold ;50 %( [hlambda^hfunction^operator] %) expression [hbloc^hcompose^hcomposecall^expression]
+
+taskellalloperator := $all^$any
+taskellboolcheck := $and^$or^$xor
+lfold1 := $foldl1
+rfold1 := $foldr1
+lscan1 := $scanl1
+rscan1 := $scanr1
+
+fold1 := lfold1^rfold1^rscan1^lscan1
+%folding1 := fold1 ;50 %( [hlambda^hfunction^operator] %) [hbloc^hcompose^hcomposecall^expression]
+filterkeyword := $takeWhile^$filter^$dropWhile
+takekeyword := $take^$drop
+
+%inverted := expression operator
+
+%taskcomparison := (returntype) comparison
+
+%mapping := $map ;51 %( [hlambda^operation^inverted^hfunction^operator] %) [hbloc^hcompose^hcomposecall^expression]
+%filtering := filterkeyword ;49 %( [hboollambda^taskcomparison^operationin^hfunction] %) [hbloc^hcompose^hcomposecall^expression]
+%taskellalltrue := taskellalloperator ;56 %( [hboollambda^taskcomparison^operationin^hfunction] %) [hbloc^hcompose^hcomposecall^expression]
+%taskellboolchecking := taskellboolcheck ;56 [hbloc^hcompose^hcomposecall^expression]
+
+%taking := takekeyword ;49 expression [hbloc^hcompose^hcomposecall^expression]
+
+%zipping := $zipWith %( [hlambda^operator^hfunction] %) expression expression+
+%pairing := $zip expression expression+
+
+cycle := $repeat^$cycle
+%cycling := cycle ;52 expression
+%repeating := $replicate ;53 expression expression
+
+%flipping := $flip ;57 %( [hlambda^operation^inverted^hfunction^operator] %) expression expression
+
+%taskellcaseotherwise := $otherwise [hbloc^hoperations^expression]
+%taskellresult := [valmaptail^valvectortail^booleanexpression^expression] [$→^[%- %>]] [hbloc^hoperations^expression]
+%taskellcase := $case ;55 purevariable $of taskellresult [%, taskellresult]* (taskellcaseotherwise)
+
+%curryingleft := hoper [hcompose^hcomposecall^currying^expression]
+%curryingright := [hcompose^hcomposecall^currying^expression]+ hoper
+%currying := %( [curryingleft^curryingright] %)
+%hfunctionoperation := operator [subtelque^hcompose^hcomposecall^expression] [subtelque^hcompose^hcomposecall^expression]+
+%hfunctioncall := [telque^word] [subtelque^hcompose^hcomposecall^currying^expression]+
+hoperator := %,^%;
+%hmetafunctions := folding^folding1^mapping^filtering^taskellboolchecking^taskellalltrue^taking^zipping^pairing^cycling^repeating^flipping
+%hcompose := %. [mapping^filtering^taskellboolchecking^taskellalltrue^taking^zipping^pairing^folding^folding1^cycling^repeating^flipping]
+%hcomposecall := %. hfunctioncall
+
+hoper := $∧^$∨^$×^$÷^[%& %& %&]^[%| %| %|]^[%: %:]^[%^ %^]^[%* %*]^%&^%+^%-^%*^%/^%%^%^
+%hoperation := hoper hoperations
+
+negcall := negation call
+%hitem := taskellcase^localif^abool^astringdouble^afullstring^astringsimple^apreg^aspreg^atreg^astreg^anumber^negcall^call^valtuple^parenthetic^increment^variable^subtelque^telque^intentionvect^valvector^valmap
+%hnegated := %- hitem
+%hmultiply := variable (power) (hoperation)
+%hoperations := [[hnegated^hitem] (power) (hoperation)]|[anumber hmultiply]
+
+hcomparator := [%~ %=]^$≠^[%! %=]^[%= %=]^[%< %=]^[%> %=]
+%hcomparison := hcomparator hoperations
+%hcompare := [hoperations^expression] (operationin^hcomparison)
+%hforcecompare := hoptionalboolean^[[hoperations^expression] [operationin^hcomparison]]
+
+%hoptionalboolean := (negation) %( booleanexpression %)
+%hbooleanexpression := [hoptionalboolean|hcompare] (orand ;8 [hoptionalboolean|hbooleanexpression])
+%hforcebooleanexpression := [hoptionalboolean|hcompare] orand ;8 [hoptionalboolean|hbooleanexpression]
+
+hbloc := %{ blocs %}
+
+%whereexpression := $where [hbloc^[(($let) word %=) hoperations]] [(%,^%;) hbloc^[(($let) word %=) hoperations]]*
+%hinexpression := $in hoperations
+
+~notadeclaration := $deriving
+deriving := $deriving %( word [%, word]* %)
+subdeclaration := word %: %: word
+subdata := %{ subdeclaration [%, subdeclaration]* %}
+hdatadeclaration := notadeclaration word [subdata^[notadeclaration word]+]
+%hdata := %< $data ;63 word %= [telque^[hdatadeclaration [%| hdatadeclaration]* (deriving)]] %>
+%hontology := %< $ontology ;64 [word [%, word]*] %< %= word %>
+hconcept := $concept^$role^$property
+conceptfunction := hconcept $with word
+
+returntaskelldeclaration := %: %: declarationtaskell
+
+assignfield := word %= wnexpressions
+%dataassignment := word %{ assignfield [%, assignfield]* %}
+hrange := range [hoperator range]* (%, whereexpression^[hbooleanexpression (%, whereexpression)])
+
+%telque := %< ;48 [dataassignment^taskelldeclaration^[(returntaskelldeclaration) ((hconcept) taskell) [hmetafunctions^guard^[$let letmin [[%,^%;] letmin]* hinexpression (%, whereexpression)]^hforcebooleanexpression^[[hfunctionoperation^[hforcecompare|hoperations|hfunctioncall|hrange]] ([%|^$where] [range [hoperator range]* (%, whereexpression^[hbooleanexpression (%, whereexpression)])]^whereexpression^hbooleanexpression)]^hbloc]]] %>
+%subtelque := %$ ;48 [hfunctionoperation^[hoperations|hfunctioncall]]
+
+########### EXPRESSION DEFINITIONS ##############################################
+
+%parenthetic := %( ;4 wnexpressions %)
+expression := (negation) [taskellcase^localif^abool^astringdouble^afullstring^astringsimple^apreg^aspreg^atreg^astreg^anumber^call^valtuple^parenthetic^increment^allvariable^telque^intentionvect^valvector^valmap]
+%expressions := expression (power) (fulloperation^comparison^operationin^multiply)
+
+%comparing := expression [comparison^operationin]
+
+# wnexpressions is called at the beginning of an affectation, it has been implemented to take into account "-var"
+%wnexpressions := [anumber^negated^expression] (power) (operation^comparison^operationin^multiply)
+# We do not want any comparison in the expression (as it might disrupt other parses, for instance we forbid two or more comparisons in a row)
+%nocomparisonexpressions := [anumber^negated^expression] (power) (operation^operationin^multiply)
+
+# We also prevent here, the operator in to be used in an expression, to avoid confusion with "in" in taskell
+# If you need a "in" expression, then in that case it should be embedded into (..)
+%nocomparisonnorinexpressions := [anumber^negated^expression] (power) (operation)
+
+numbers := expression (operation)
+negated := %- expression
+
+# Boolean values
+abool := $true^$false
+
+########### BASIC INSTRUCTIONS ##############################################
+
+blocfor := [affectation^expression] (%, blocfor)
+%localif := $if %( ;10 booleanexpression %) expression ($else expression)
+declarationfor := [variable $in]^[type variable $in]
+
+%optionalboolean := %( booleanexpression %)
+%booleanexpression := [optionalboolean|expressions] (orand ;8 [optionalboolean|booleanexpression])
+
+%arange := %< ;41 wnexpressions (%, wnexpressions (%, wnexpressions)) %>
+
+%iftest := $if %( ;10 booleanexpression %) [instruction^complexbloc^bloc] (testelif) ($else ;24 [instruction^complexbloc^bloc]) 
+%testelif := $elif %( ;10 booleanexpression %) [instruction^complexbloc^bloc] (testelif) ($else ;24 [instruction^complexbloc^bloc]) 
+%loop := $while %( ;11 booleanexpression %) [instruction^complexbloc^bloc] 
+%doloop := $do [instruction^complexbloc^bloc] $while %( ;11 booleanexpression %) declarationending
+%for := $for %( ;12 [multideclaration^blocfor] %; booleanexpression %; blocfor %) [instruction^complexbloc^bloc] 
+%forin := $for %( [[[valmaptail^valvectortail] $in]^declarationfor] ;33 [arange^expressions] %) [instruction^complexbloc^bloc]
+%switch := $switch %( ;16 expression %) (depend) %{ ;31 testswitch+ %} 
+%trycatch := $try %{ ;22 blocs %} $catch ;22 (%( (word) %)) [%;^[%{ ;22 blocs %}]]
+%testswitch := [default^astringdouble^afullstring^astringsimple^anumber^abool] %: ;17 [instruction^complexbloc^bloc]
+default := $default
+
+
+########### PATTERNS FOR CERTAIN SPECIALIZED OBJECTS CALLED FROM WITHIN TAMGUI INSTRUCTIONS ##############################################
+lispexpression := astringdouble^afullstring^astringsimple^anumber^astring^punct
+lispexpressions := onelisp^lispexpression 
+onelisp := @( lispexpressions* @)
+lisp := onelisp+
+
+tagexpression := astringdouble^afullstring^astringsimple^anumber^astring^punct
+tagexpressions := onetag^tagexpression 
+onetag := :OPEN tagexpressions* :CLOSE
+tag := onetag+
+
+########## Grammar pattern: tk :=  ... ############################
+ameta := [%?^[%% ;59 [%d^%p^%c^%C^%H^%a^%r^%s^%S^%?^%%]]] (%_)
+amulti := %$ word
+asimple := word
+%atoken := (negation) subgram^ameta^amulti^astringdouble^astringsimple^anumber^abool^word
+
+%anitem := ameta^amulti^astringdouble^astringsimple^anumber^abool^asimple
+
+dj := %;
+
+%aoptional := %( atoken %)
+%aoptitem := %( anitem %)
+
+akleene := [%* %*]^[%+ %+]^%*^%+
+%anelement := aoptional^[atoken (akleene)]
+%anitemelement := aoptitem^[anitem (akleene)]
+
+%body := anitemelement [[dj^%,] anitemelement]*
+
+%rule := word %: %= anelement [[dj^%,] anelement]* ;60 %.
+%subgram := %[ body (%| body)* %]
+
+%rules := rule+
+
+########### Annotation Rules: token <- body... ########################
+non :=  %~
+
+kleene := [%+^%*] (%: anumber)
+
+# a regular expression based on meta enclosed in ""
+^1 metas := .
+
+# a regular expression is enclosed in ''
+^2 rgx := .
+
+#any character
+any := %?
+
+# a meta character %x
+meta := %% .
+
+alabel :=  (non) word
+orlabels := %# %{ alabel [%, alabel]* %}
+andlabels := %# %[ alabel [%, alabel]* %]
+label := %# word
+lemma := %$ word
+
+callmatch := %< word parameters* %>
+
+# a token is a combination of all these
+token := [callmatch^andlabels^orlabels^label^lemma^word^any^meta^metas^rgx^punct] (kleene)
+
+%listoftokens := %{ annotation [%, annotation]* %} (kleene)
+%sequenceoftokens :=  %[ annotation [%, annotation]* %] (kleene)
+%optionaltokens := %( annotation [%, annotation]* %)
+%removetokens := %> annotation [%, annotation]* %<
+
+%annotation := [(non) listoftokens]^sequenceoftokens^optionaltokens^removetokens^[(non) token]
+
+ruletype := %@^%~^%#
+%annotationrule := (ruletype) word [[%< %-]^$←] ;66 annotation [%, annotation]* [%.^[%| annotation %.]]
+

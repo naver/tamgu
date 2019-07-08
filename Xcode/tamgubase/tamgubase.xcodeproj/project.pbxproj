@@ -1,0 +1,925 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 48;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0B094B5B1FD70F8200726942 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0B094B5A1FD70F8200726942 /* Cocoa.framework */; };
+		0BC57BDC22C517A400E6CF9C /* tamgutamgu.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B7922C517A000E6CF9C /* tamgutamgu.cxx */; };
+		0BC57BDD22C517A400E6CF9C /* codecompile.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B7A22C517A000E6CF9C /* codecompile.cxx */; };
+		0BC57BDE22C517A400E6CF9C /* tamgumapfi.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B7B22C517A000E6CF9C /* tamgumapfi.cxx */; };
+		0BC57BDF22C517A400E6CF9C /* tamgutable.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B7C22C517A000E6CF9C /* tamgutable.cxx */; };
+		0BC57BE022C517A400E6CF9C /* tamguprimemap.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B7D22C517A000E6CF9C /* tamguprimemap.cxx */; };
+		0BC57BE122C517A400E6CF9C /* tamguivector.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B7E22C517A000E6CF9C /* tamguivector.cxx */; };
+		0BC57BE222C517A400E6CF9C /* tamgumapu.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B7F22C517A000E6CF9C /* tamgumapu.cxx */; };
+		0BC57BE422C517A400E6CF9C /* tamgumapfl.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B8122C517A000E6CF9C /* tamgumapfl.cxx */; };
+		0BC57BE522C517A400E6CF9C /* tamgurawstring.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B8222C517A000E6CF9C /* tamgurawstring.cxx */; };
+		0BC57BE622C517A400E6CF9C /* tamgusvector.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B8322C517A000E6CF9C /* tamgusvector.cxx */; };
+		0BC57BE722C517A400E6CF9C /* tamgushort.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B8422C517A000E6CF9C /* tamgushort.cxx */; };
+		0BC57BE822C517A400E6CF9C /* predicatefunctions.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B8522C517A000E6CF9C /* predicatefunctions.cxx */; };
+		0BC57BE922C517A400E6CF9C /* tamgusys.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B8622C517A000E6CF9C /* tamgusys.cxx */; };
+		0BC57BEA22C517A400E6CF9C /* tamgulong.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B8722C517A000E6CF9C /* tamgulong.cxx */; };
+		0BC57BEB22C517A400E6CF9C /* tamgutreemapsf.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B8822C517A000E6CF9C /* tamgutreemapsf.cxx */; };
+		0BC57BEC22C517A400E6CF9C /* tamgumap.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B8922C517A000E6CF9C /* tamgumap.cxx */; };
+		0BC57BED22C517A400E6CF9C /* tamgustdin.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B8A22C517A000E6CF9C /* tamgustdin.cxx */; };
+		0BC57BEE22C517A400E6CF9C /* tamguint.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B8B22C517A000E6CF9C /* tamguint.cxx */; };
+		0BC57BEF22C517A400E6CF9C /* tamgumapsf.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B8C22C517A000E6CF9C /* tamgumapsf.cxx */; };
+		0BC57BF022C517A400E6CF9C /* tamguprimemapss.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B8D22C517A000E6CF9C /* tamguprimemapss.cxx */; };
+		0BC57BF122C517A400E6CF9C /* tamgutreemapls.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B8E22C517A000E6CF9C /* tamgutreemapls.cxx */; };
+		0BC57BF222C517A400E6CF9C /* tamgutreemapsi.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B8F22C517A000E6CF9C /* tamgutreemapsi.cxx */; };
+		0BC57BF322C517A400E6CF9C /* tamgumapi.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B9022C517A000E6CF9C /* tamgumapi.cxx */; };
+		0BC57BF422C517A400E6CF9C /* tamgubool.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B9122C517A000E6CF9C /* tamgubool.cxx */; };
+		0BC57BF522C517A400E6CF9C /* tamgugrammar.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B9222C517A000E6CF9C /* tamgugrammar.cxx */; };
+		0BC57BF622C517A400E6CF9C /* tamgumapuf.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B9322C517A000E6CF9C /* tamgumapuf.cxx */; };
+		0BC57BF722C517A400E6CF9C /* tamgutreemapi.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B9422C517A000E6CF9C /* tamgutreemapi.cxx */; };
+		0BC57BF822C517A400E6CF9C /* tamgumapii.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B9522C517A000E6CF9C /* tamgumapii.cxx */; };
+		0BC57BF922C517A400E6CF9C /* tamguufile.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B9622C517A000E6CF9C /* tamguufile.cxx */; };
+		0BC57BFA22C517A400E6CF9C /* codeparse.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B9722C517A100E6CF9C /* codeparse.cxx */; };
+		0BC57BFB22C517A400E6CF9C /* tamgumapfs.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B9822C517A100E6CF9C /* tamgumapfs.cxx */; };
+		0BC57BFC22C517A400E6CF9C /* tamgustring.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B9922C517A100E6CF9C /* tamgustring.cxx */; };
+		0BC57BFD22C517A400E6CF9C /* tamgumapiu.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B9A22C517A100E6CF9C /* tamgumapiu.cxx */; };
+		0BC57BFE22C517A400E6CF9C /* tamguhvector.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B9B22C517A100E6CF9C /* tamguhvector.cxx */; };
+		0BC57BFF22C517A400E6CF9C /* tamgumapsl.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B9C22C517A100E6CF9C /* tamgumapsl.cxx */; };
+		0BC57C0022C517A400E6CF9C /* tamgumaplf.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B9D22C517A100E6CF9C /* tamgumaplf.cxx */; };
+		0BC57C0122C517A400E6CF9C /* tamgumapff.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B9E22C517A100E6CF9C /* tamgumapff.cxx */; };
+		0BC57C0222C517A400E6CF9C /* tamguustring.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B9F22C517A100E6CF9C /* tamguustring.cxx */; };
+		0BC57C0322C517A400E6CF9C /* tamgulist.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BA022C517A100E6CF9C /* tamgulist.cxx */; };
+		0BC57C0422C517A400E6CF9C /* tamgumapif.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BA122C517A100E6CF9C /* tamgumapif.cxx */; };
+		0BC57C0522C517A400E6CF9C /* tamgumapis.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BA222C517A100E6CF9C /* tamgumapis.cxx */; };
+		0BC57C0622C517A400E6CF9C /* tamgutime.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BA322C517A100E6CF9C /* tamgutime.cxx */; };
+		0BC57C0722C517A400E6CF9C /* tamgumapls.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BA422C517A100E6CF9C /* tamgumapls.cxx */; };
+		0BC57C0822C517A400E6CF9C /* tamgulvector.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BA522C517A100E6CF9C /* tamgulvector.cxx */; };
+		0BC57C0922C517A400E6CF9C /* automaton.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BA622C517A100E6CF9C /* automaton.cxx */; };
+		0BC57C0A22C517A400E6CF9C /* tamgufile.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BA722C517A100E6CF9C /* tamgufile.cxx */; };
+		0BC57C0B22C517A400E6CF9C /* tamgutreemap.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BA822C517A100E6CF9C /* tamgutreemap.cxx */; };
+		0BC57C0C22C517A400E6CF9C /* tamgusocket.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BA922C517A100E6CF9C /* tamgusocket.cxx */; };
+		0BC57C0D22C517A400E6CF9C /* tamguannotator.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BAA22C517A100E6CF9C /* tamguannotator.cxx */; };
+		0BC57C0E22C517A400E6CF9C /* objectrecording.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BAB22C517A100E6CF9C /* objectrecording.cxx */; };
+		0BC57C0F22C517A400E6CF9C /* codeoperations.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BAC22C517A100E6CF9C /* codeoperations.cxx */; };
+		0BC57C1022C517A400E6CF9C /* conversion.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BAD22C517A100E6CF9C /* conversion.cxx */; };
+		0BC57C1122C517A400E6CF9C /* tamgu.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BAE22C517A200E6CF9C /* tamgu.cxx */; };
+		0BC57C1222C517A400E6CF9C /* tamguprimemapsf.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BAF22C517A200E6CF9C /* tamguprimemapsf.cxx */; };
+		0BC57C1322C517A400E6CF9C /* tamguvector.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BB022C517A200E6CF9C /* tamguvector.cxx */; };
+		0BC57C1622C517A400E6CF9C /* tamgufloat.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BB322C517A200E6CF9C /* tamgufloat.cxx */; };
+		0BC57C1722C517A400E6CF9C /* tamgumapll.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BB422C517A200E6CF9C /* tamgumapll.cxx */; };
+		0BC57C1822C517A400E6CF9C /* containerrecording.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BB522C517A200E6CF9C /* containerrecording.cxx */; };
+		0BC57C1922C517A400E6CF9C /* tamgudecimal.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BB622C517A200E6CF9C /* tamgudecimal.cxx */; };
+		0BC57C1A22C517A400E6CF9C /* tamgufmatrix.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BB722C517A200E6CF9C /* tamgufmatrix.cxx */; };
+		0BC57C1B22C517A400E6CF9C /* tamgutaskell.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BB822C517A200E6CF9C /* tamgutaskell.cxx */; };
+		0BC57C1C22C517A400E6CF9C /* tamguprimemapsl.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BB922C517A200E6CF9C /* tamguprimemapsl.cxx */; };
+		0BC57C1D22C517A400E6CF9C /* tamgumapul.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BBA22C517A200E6CF9C /* tamgumapul.cxx */; };
+		0BC57C1E22C517A400E6CF9C /* tamguuvector.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BBB22C517A200E6CF9C /* tamguuvector.cxx */; };
+		0BC57C1F22C517A400E6CF9C /* codeexecute.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BBC22C517A200E6CF9C /* codeexecute.cxx */; };
+		0BC57C2022C517A400E6CF9C /* tamgutransducer.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BBD22C517A200E6CF9C /* tamgutransducer.cxx */; };
+		0BC57C2122C517A400E6CF9C /* tamgubvector.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BBE22C517A200E6CF9C /* tamgubvector.cxx */; };
+		0BC57C2222C517A400E6CF9C /* tamgudate.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BBF22C517A200E6CF9C /* tamgudate.cxx */; };
+		0BC57C2422C517A400E6CF9C /* globaltamgu.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BC122C517A300E6CF9C /* globaltamgu.cxx */; };
+		0BC57C2522C517A400E6CF9C /* tamgudvector.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BC222C517A300E6CF9C /* tamgudvector.cxx */; };
+		0BC57C2622C517A400E6CF9C /* tamgubyte.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BC322C517A300E6CF9C /* tamgubyte.cxx */; };
+		0BC57C2722C517A400E6CF9C /* tamgumapuu.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BC422C517A300E6CF9C /* tamgumapuu.cxx */; };
+		0BC57C2822C517A400E6CF9C /* tamgumapf.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BC522C517A300E6CF9C /* tamgumapf.cxx */; };
+		0BC57C2922C517A400E6CF9C /* tamgufraction.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BC622C517A300E6CF9C /* tamgufraction.cxx */; };
+		0BC57C2A22C517A400E6CF9C /* tamgufvector.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BC722C517A300E6CF9C /* tamgufvector.cxx */; };
+		0BC57C2B22C517A400E6CF9C /* tools.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BC822C517A300E6CF9C /* tools.cxx */; };
+		0BC57C2C22C517A400E6CF9C /* procedures.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BC922C517A300E6CF9C /* procedures.cxx */; };
+		0BC57C2D22C517A400E6CF9C /* tamguframeinstance.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BCA22C517A300E6CF9C /* tamguframeinstance.cxx */; };
+		0BC57C2E22C517A400E6CF9C /* tamgutreemapif.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BCB22C517A300E6CF9C /* tamgutreemapif.cxx */; };
+		0BC57C2F22C517A400E6CF9C /* tamgumapl.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BCC22C517A300E6CF9C /* tamgumapl.cxx */; };
+		0BC57C3022C517A400E6CF9C /* tamgumaplu.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BCD22C517A300E6CF9C /* tamgumaplu.cxx */; };
+		0BC57C3122C517A400E6CF9C /* tamguprimemapsi.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BCE22C517A300E6CF9C /* tamguprimemapsi.cxx */; };
+		0BC57C3222C517A400E6CF9C /* tamgutreemapsl.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BCF22C517A300E6CF9C /* tamgutreemapsl.cxx */; };
+		0BC57C3322C517A400E6CF9C /* tamguimatrix.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BD022C517A300E6CF9C /* tamguimatrix.cxx */; };
+		0BC57C3422C517A400E6CF9C /* tamgumapfu.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BD122C517A300E6CF9C /* tamgumapfu.cxx */; };
+		0BC57C3522C517A400E6CF9C /* tamgusynode.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BD222C517A300E6CF9C /* tamgusynode.cxx */; };
+		0BC57C3622C517A400E6CF9C /* tamgumapss.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BD322C517A400E6CF9C /* tamgumapss.cxx */; };
+		0BC57C3722C517A400E6CF9C /* tamguiterator.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BD422C517A400E6CF9C /* tamguiterator.cxx */; };
+		0BC57C3822C517A400E6CF9C /* predicate.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BD522C517A400E6CF9C /* predicate.cxx */; };
+		0BC57C3922C517A400E6CF9C /* jag.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BD622C517A400E6CF9C /* jag.cxx */; };
+		0BC57C3A22C517A400E6CF9C /* tamguautomaton.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BD722C517A400E6CF9C /* tamguautomaton.cxx */; };
+		0BC57C3B22C517A400E6CF9C /* tamgutreemapss.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BD822C517A400E6CF9C /* tamgutreemapss.cxx */; };
+		0BC57C3C22C517A400E6CF9C /* tamgumapui.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BD922C517A400E6CF9C /* tamgumapui.cxx */; };
+		0BC57C3D22C517A400E6CF9C /* maintamgu.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BDA22C517A400E6CF9C /* maintamgu.cxx */; };
+		0BC57C3E22C517A400E6CF9C /* tamgumapsi.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57BDB22C517A400E6CF9C /* tamgumapsi.cxx */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		0B0949F91FD70E4700726942 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		0B0949FB1FD70E4700726942 /* tamgu */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = tamgu; sourceTree = BUILT_PRODUCTS_DIR; };
+		0B094B5A1FD70F8200726942 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		0BC57B7922C517A000E6CF9C /* tamgutamgu.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgutamgu.cxx; path = ../../../src/tamgutamgu.cxx; sourceTree = "<group>"; };
+		0BC57B7A22C517A000E6CF9C /* codecompile.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = codecompile.cxx; path = ../../../src/codecompile.cxx; sourceTree = "<group>"; };
+		0BC57B7B22C517A000E6CF9C /* tamgumapfi.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgumapfi.cxx; path = ../../../src/tamgumapfi.cxx; sourceTree = "<group>"; };
+		0BC57B7C22C517A000E6CF9C /* tamgutable.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgutable.cxx; path = ../../../src/tamgutable.cxx; sourceTree = "<group>"; };
+		0BC57B7D22C517A000E6CF9C /* tamguprimemap.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamguprimemap.cxx; path = ../../../src/tamguprimemap.cxx; sourceTree = "<group>"; };
+		0BC57B7E22C517A000E6CF9C /* tamguivector.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamguivector.cxx; path = ../../../src/tamguivector.cxx; sourceTree = "<group>"; };
+		0BC57B7F22C517A000E6CF9C /* tamgumapu.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgumapu.cxx; path = ../../../src/tamgumapu.cxx; sourceTree = "<group>"; };
+		0BC57B8122C517A000E6CF9C /* tamgumapfl.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgumapfl.cxx; path = ../../../src/tamgumapfl.cxx; sourceTree = "<group>"; };
+		0BC57B8222C517A000E6CF9C /* tamgurawstring.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgurawstring.cxx; path = ../../../src/tamgurawstring.cxx; sourceTree = "<group>"; };
+		0BC57B8322C517A000E6CF9C /* tamgusvector.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgusvector.cxx; path = ../../../src/tamgusvector.cxx; sourceTree = "<group>"; };
+		0BC57B8422C517A000E6CF9C /* tamgushort.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgushort.cxx; path = ../../../src/tamgushort.cxx; sourceTree = "<group>"; };
+		0BC57B8522C517A000E6CF9C /* predicatefunctions.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = predicatefunctions.cxx; path = ../../../src/predicatefunctions.cxx; sourceTree = "<group>"; };
+		0BC57B8622C517A000E6CF9C /* tamgusys.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgusys.cxx; path = ../../../src/tamgusys.cxx; sourceTree = "<group>"; };
+		0BC57B8722C517A000E6CF9C /* tamgulong.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgulong.cxx; path = ../../../src/tamgulong.cxx; sourceTree = "<group>"; };
+		0BC57B8822C517A000E6CF9C /* tamgutreemapsf.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgutreemapsf.cxx; path = ../../../src/tamgutreemapsf.cxx; sourceTree = "<group>"; };
+		0BC57B8922C517A000E6CF9C /* tamgumap.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgumap.cxx; path = ../../../src/tamgumap.cxx; sourceTree = "<group>"; };
+		0BC57B8A22C517A000E6CF9C /* tamgustdin.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgustdin.cxx; path = ../../../src/tamgustdin.cxx; sourceTree = "<group>"; };
+		0BC57B8B22C517A000E6CF9C /* tamguint.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamguint.cxx; path = ../../../src/tamguint.cxx; sourceTree = "<group>"; };
+		0BC57B8C22C517A000E6CF9C /* tamgumapsf.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgumapsf.cxx; path = ../../../src/tamgumapsf.cxx; sourceTree = "<group>"; };
+		0BC57B8D22C517A000E6CF9C /* tamguprimemapss.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamguprimemapss.cxx; path = ../../../src/tamguprimemapss.cxx; sourceTree = "<group>"; };
+		0BC57B8E22C517A000E6CF9C /* tamgutreemapls.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgutreemapls.cxx; path = ../../../src/tamgutreemapls.cxx; sourceTree = "<group>"; };
+		0BC57B8F22C517A000E6CF9C /* tamgutreemapsi.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgutreemapsi.cxx; path = ../../../src/tamgutreemapsi.cxx; sourceTree = "<group>"; };
+		0BC57B9022C517A000E6CF9C /* tamgumapi.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgumapi.cxx; path = ../../../src/tamgumapi.cxx; sourceTree = "<group>"; };
+		0BC57B9122C517A000E6CF9C /* tamgubool.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgubool.cxx; path = ../../../src/tamgubool.cxx; sourceTree = "<group>"; };
+		0BC57B9222C517A000E6CF9C /* tamgugrammar.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgugrammar.cxx; path = ../../../src/tamgugrammar.cxx; sourceTree = "<group>"; };
+		0BC57B9322C517A000E6CF9C /* tamgumapuf.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgumapuf.cxx; path = ../../../src/tamgumapuf.cxx; sourceTree = "<group>"; };
+		0BC57B9422C517A000E6CF9C /* tamgutreemapi.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgutreemapi.cxx; path = ../../../src/tamgutreemapi.cxx; sourceTree = "<group>"; };
+		0BC57B9522C517A000E6CF9C /* tamgumapii.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgumapii.cxx; path = ../../../src/tamgumapii.cxx; sourceTree = "<group>"; };
+		0BC57B9622C517A000E6CF9C /* tamguufile.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamguufile.cxx; path = ../../../src/tamguufile.cxx; sourceTree = "<group>"; };
+		0BC57B9722C517A100E6CF9C /* codeparse.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = codeparse.cxx; path = ../../../src/codeparse.cxx; sourceTree = "<group>"; };
+		0BC57B9822C517A100E6CF9C /* tamgumapfs.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgumapfs.cxx; path = ../../../src/tamgumapfs.cxx; sourceTree = "<group>"; };
+		0BC57B9922C517A100E6CF9C /* tamgustring.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgustring.cxx; path = ../../../src/tamgustring.cxx; sourceTree = "<group>"; };
+		0BC57B9A22C517A100E6CF9C /* tamgumapiu.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgumapiu.cxx; path = ../../../src/tamgumapiu.cxx; sourceTree = "<group>"; };
+		0BC57B9B22C517A100E6CF9C /* tamguhvector.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamguhvector.cxx; path = ../../../src/tamguhvector.cxx; sourceTree = "<group>"; };
+		0BC57B9C22C517A100E6CF9C /* tamgumapsl.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgumapsl.cxx; path = ../../../src/tamgumapsl.cxx; sourceTree = "<group>"; };
+		0BC57B9D22C517A100E6CF9C /* tamgumaplf.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgumaplf.cxx; path = ../../../src/tamgumaplf.cxx; sourceTree = "<group>"; };
+		0BC57B9E22C517A100E6CF9C /* tamgumapff.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgumapff.cxx; path = ../../../src/tamgumapff.cxx; sourceTree = "<group>"; };
+		0BC57B9F22C517A100E6CF9C /* tamguustring.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamguustring.cxx; path = ../../../src/tamguustring.cxx; sourceTree = "<group>"; };
+		0BC57BA022C517A100E6CF9C /* tamgulist.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgulist.cxx; path = ../../../src/tamgulist.cxx; sourceTree = "<group>"; };
+		0BC57BA122C517A100E6CF9C /* tamgumapif.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgumapif.cxx; path = ../../../src/tamgumapif.cxx; sourceTree = "<group>"; };
+		0BC57BA222C517A100E6CF9C /* tamgumapis.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgumapis.cxx; path = ../../../src/tamgumapis.cxx; sourceTree = "<group>"; };
+		0BC57BA322C517A100E6CF9C /* tamgutime.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgutime.cxx; path = ../../../src/tamgutime.cxx; sourceTree = "<group>"; };
+		0BC57BA422C517A100E6CF9C /* tamgumapls.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgumapls.cxx; path = ../../../src/tamgumapls.cxx; sourceTree = "<group>"; };
+		0BC57BA522C517A100E6CF9C /* tamgulvector.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgulvector.cxx; path = ../../../src/tamgulvector.cxx; sourceTree = "<group>"; };
+		0BC57BA622C517A100E6CF9C /* automaton.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = automaton.cxx; path = ../../../src/automaton.cxx; sourceTree = "<group>"; };
+		0BC57BA722C517A100E6CF9C /* tamgufile.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgufile.cxx; path = ../../../src/tamgufile.cxx; sourceTree = "<group>"; };
+		0BC57BA822C517A100E6CF9C /* tamgutreemap.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgutreemap.cxx; path = ../../../src/tamgutreemap.cxx; sourceTree = "<group>"; };
+		0BC57BA922C517A100E6CF9C /* tamgusocket.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgusocket.cxx; path = ../../../src/tamgusocket.cxx; sourceTree = "<group>"; };
+		0BC57BAA22C517A100E6CF9C /* tamguannotator.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamguannotator.cxx; path = ../../../src/tamguannotator.cxx; sourceTree = "<group>"; };
+		0BC57BAB22C517A100E6CF9C /* objectrecording.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = objectrecording.cxx; path = ../../../src/objectrecording.cxx; sourceTree = "<group>"; };
+		0BC57BAC22C517A100E6CF9C /* codeoperations.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = codeoperations.cxx; path = ../../../src/codeoperations.cxx; sourceTree = "<group>"; };
+		0BC57BAD22C517A100E6CF9C /* conversion.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = conversion.cxx; path = ../../../src/conversion.cxx; sourceTree = "<group>"; };
+		0BC57BAE22C517A200E6CF9C /* tamgu.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgu.cxx; path = ../../../src/tamgu.cxx; sourceTree = "<group>"; };
+		0BC57BAF22C517A200E6CF9C /* tamguprimemapsf.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamguprimemapsf.cxx; path = ../../../src/tamguprimemapsf.cxx; sourceTree = "<group>"; };
+		0BC57BB022C517A200E6CF9C /* tamguvector.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamguvector.cxx; path = ../../../src/tamguvector.cxx; sourceTree = "<group>"; };
+		0BC57BB322C517A200E6CF9C /* tamgufloat.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgufloat.cxx; path = ../../../src/tamgufloat.cxx; sourceTree = "<group>"; };
+		0BC57BB422C517A200E6CF9C /* tamgumapll.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgumapll.cxx; path = ../../../src/tamgumapll.cxx; sourceTree = "<group>"; };
+		0BC57BB522C517A200E6CF9C /* containerrecording.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = containerrecording.cxx; path = ../../../src/containerrecording.cxx; sourceTree = "<group>"; };
+		0BC57BB622C517A200E6CF9C /* tamgudecimal.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgudecimal.cxx; path = ../../../src/tamgudecimal.cxx; sourceTree = "<group>"; };
+		0BC57BB722C517A200E6CF9C /* tamgufmatrix.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgufmatrix.cxx; path = ../../../src/tamgufmatrix.cxx; sourceTree = "<group>"; };
+		0BC57BB822C517A200E6CF9C /* tamgutaskell.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgutaskell.cxx; path = ../../../src/tamgutaskell.cxx; sourceTree = "<group>"; };
+		0BC57BB922C517A200E6CF9C /* tamguprimemapsl.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamguprimemapsl.cxx; path = ../../../src/tamguprimemapsl.cxx; sourceTree = "<group>"; };
+		0BC57BBA22C517A200E6CF9C /* tamgumapul.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgumapul.cxx; path = ../../../src/tamgumapul.cxx; sourceTree = "<group>"; };
+		0BC57BBB22C517A200E6CF9C /* tamguuvector.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamguuvector.cxx; path = ../../../src/tamguuvector.cxx; sourceTree = "<group>"; };
+		0BC57BBC22C517A200E6CF9C /* codeexecute.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = codeexecute.cxx; path = ../../../src/codeexecute.cxx; sourceTree = "<group>"; };
+		0BC57BBD22C517A200E6CF9C /* tamgutransducer.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgutransducer.cxx; path = ../../../src/tamgutransducer.cxx; sourceTree = "<group>"; };
+		0BC57BBE22C517A200E6CF9C /* tamgubvector.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgubvector.cxx; path = ../../../src/tamgubvector.cxx; sourceTree = "<group>"; };
+		0BC57BBF22C517A200E6CF9C /* tamgudate.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgudate.cxx; path = ../../../src/tamgudate.cxx; sourceTree = "<group>"; };
+		0BC57BC122C517A300E6CF9C /* globaltamgu.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = globaltamgu.cxx; path = ../../../src/globaltamgu.cxx; sourceTree = "<group>"; };
+		0BC57BC222C517A300E6CF9C /* tamgudvector.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgudvector.cxx; path = ../../../src/tamgudvector.cxx; sourceTree = "<group>"; };
+		0BC57BC322C517A300E6CF9C /* tamgubyte.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgubyte.cxx; path = ../../../src/tamgubyte.cxx; sourceTree = "<group>"; };
+		0BC57BC422C517A300E6CF9C /* tamgumapuu.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgumapuu.cxx; path = ../../../src/tamgumapuu.cxx; sourceTree = "<group>"; };
+		0BC57BC522C517A300E6CF9C /* tamgumapf.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgumapf.cxx; path = ../../../src/tamgumapf.cxx; sourceTree = "<group>"; };
+		0BC57BC622C517A300E6CF9C /* tamgufraction.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgufraction.cxx; path = ../../../src/tamgufraction.cxx; sourceTree = "<group>"; };
+		0BC57BC722C517A300E6CF9C /* tamgufvector.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgufvector.cxx; path = ../../../src/tamgufvector.cxx; sourceTree = "<group>"; };
+		0BC57BC822C517A300E6CF9C /* tools.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tools.cxx; path = ../../../src/tools.cxx; sourceTree = "<group>"; };
+		0BC57BC922C517A300E6CF9C /* procedures.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = procedures.cxx; path = ../../../src/procedures.cxx; sourceTree = "<group>"; };
+		0BC57BCA22C517A300E6CF9C /* tamguframeinstance.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamguframeinstance.cxx; path = ../../../src/tamguframeinstance.cxx; sourceTree = "<group>"; };
+		0BC57BCB22C517A300E6CF9C /* tamgutreemapif.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgutreemapif.cxx; path = ../../../src/tamgutreemapif.cxx; sourceTree = "<group>"; };
+		0BC57BCC22C517A300E6CF9C /* tamgumapl.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgumapl.cxx; path = ../../../src/tamgumapl.cxx; sourceTree = "<group>"; };
+		0BC57BCD22C517A300E6CF9C /* tamgumaplu.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgumaplu.cxx; path = ../../../src/tamgumaplu.cxx; sourceTree = "<group>"; };
+		0BC57BCE22C517A300E6CF9C /* tamguprimemapsi.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamguprimemapsi.cxx; path = ../../../src/tamguprimemapsi.cxx; sourceTree = "<group>"; };
+		0BC57BCF22C517A300E6CF9C /* tamgutreemapsl.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgutreemapsl.cxx; path = ../../../src/tamgutreemapsl.cxx; sourceTree = "<group>"; };
+		0BC57BD022C517A300E6CF9C /* tamguimatrix.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamguimatrix.cxx; path = ../../../src/tamguimatrix.cxx; sourceTree = "<group>"; };
+		0BC57BD122C517A300E6CF9C /* tamgumapfu.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgumapfu.cxx; path = ../../../src/tamgumapfu.cxx; sourceTree = "<group>"; };
+		0BC57BD222C517A300E6CF9C /* tamgusynode.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgusynode.cxx; path = ../../../src/tamgusynode.cxx; sourceTree = "<group>"; };
+		0BC57BD322C517A400E6CF9C /* tamgumapss.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgumapss.cxx; path = ../../../src/tamgumapss.cxx; sourceTree = "<group>"; };
+		0BC57BD422C517A400E6CF9C /* tamguiterator.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamguiterator.cxx; path = ../../../src/tamguiterator.cxx; sourceTree = "<group>"; };
+		0BC57BD522C517A400E6CF9C /* predicate.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = predicate.cxx; path = ../../../src/predicate.cxx; sourceTree = "<group>"; };
+		0BC57BD622C517A400E6CF9C /* jag.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = jag.cxx; path = ../../../src/jag.cxx; sourceTree = "<group>"; };
+		0BC57BD722C517A400E6CF9C /* tamguautomaton.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamguautomaton.cxx; path = ../../../src/tamguautomaton.cxx; sourceTree = "<group>"; };
+		0BC57BD822C517A400E6CF9C /* tamgutreemapss.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgutreemapss.cxx; path = ../../../src/tamgutreemapss.cxx; sourceTree = "<group>"; };
+		0BC57BD922C517A400E6CF9C /* tamgumapui.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgumapui.cxx; path = ../../../src/tamgumapui.cxx; sourceTree = "<group>"; };
+		0BC57BDA22C517A400E6CF9C /* maintamgu.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = maintamgu.cxx; path = ../../../src/maintamgu.cxx; sourceTree = "<group>"; };
+		0BC57BDB22C517A400E6CF9C /* tamgumapsi.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgumapsi.cxx; path = ../../../src/tamgumapsi.cxx; sourceTree = "<group>"; };
+		0BC57C3F22C517C100E6CF9C /* tamgufloat.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgufloat.h; path = ../../../../include/tamgufloat.h; sourceTree = "<group>"; };
+		0BC57C4022C517C100E6CF9C /* tamguint.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamguint.h; path = ../../../../include/tamguint.h; sourceTree = "<group>"; };
+		0BC57C4122C517C100E6CF9C /* tamgumapls.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgumapls.h; path = ../../../../include/tamgumapls.h; sourceTree = "<group>"; };
+		0BC57C4222C517C100E6CF9C /* tamguversion.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamguversion.h; path = ../../../../include/tamguversion.h; sourceTree = "<group>"; };
+		0BC57C4322C517C100E6CF9C /* constobjects.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = constobjects.h; path = ../../../../include/constobjects.h; sourceTree = "<group>"; };
+		0BC57C4422C517C100E6CF9C /* tamgumapui.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgumapui.h; path = ../../../../include/tamgumapui.h; sourceTree = "<group>"; };
+		0BC57C4522C517C100E6CF9C /* compilecode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = compilecode.h; path = ../../../../include/compilecode.h; sourceTree = "<group>"; };
+		0BC57C4622C517C100E6CF9C /* tamgulvector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgulvector.h; path = ../../../../include/tamgulvector.h; sourceTree = "<group>"; };
+		0BC57C4822C517C100E6CF9C /* vectors.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = vectors.h; path = ../../../../include/vectors.h; sourceTree = "<group>"; };
+		0BC57C4922C517C100E6CF9C /* tamgutamgu.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgutamgu.h; path = ../../../../include/tamgutamgu.h; sourceTree = "<group>"; };
+		0BC57C4A22C517C100E6CF9C /* tamgugrammar.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgugrammar.h; path = ../../../../include/tamgugrammar.h; sourceTree = "<group>"; };
+		0BC57C4B22C517C100E6CF9C /* tamgumaplu.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgumaplu.h; path = ../../../../include/tamgumaplu.h; sourceTree = "<group>"; };
+		0BC57C4C22C517C100E6CF9C /* vecta.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = vecta.h; path = ../../../../include/vecta.h; sourceTree = "<group>"; };
+		0BC57C4D22C517C100E6CF9C /* tamgutreemapsl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgutreemapsl.h; path = ../../../../include/tamgutreemapsl.h; sourceTree = "<group>"; };
+		0BC57C4E22C517C100E6CF9C /* tamguprimemapsl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamguprimemapsl.h; path = ../../../../include/tamguprimemapsl.h; sourceTree = "<group>"; };
+		0BC57C4F22C517C100E6CF9C /* conversion.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = conversion.h; path = ../../../../include/conversion.h; sourceTree = "<group>"; };
+		0BC57C5022C517C100E6CF9C /* predicatefunctions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = predicatefunctions.h; path = ../../../../include/predicatefunctions.h; sourceTree = "<group>"; };
+		0BC57C5122C517C100E6CF9C /* tamgu.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgu.h; path = ../../../../include/tamgu.h; sourceTree = "<group>"; };
+		0BC57C5222C517C100E6CF9C /* tamgumapsi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgumapsi.h; path = ../../../../include/tamgumapsi.h; sourceTree = "<group>"; };
+		0BC57C5322C517C100E6CF9C /* codeparse.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = codeparse.h; path = ../../../../include/codeparse.h; sourceTree = "<group>"; };
+		0BC57C5422C517C100E6CF9C /* fractalhmap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = fractalhmap.h; path = ../../../../include/fractalhmap.h; sourceTree = "<group>"; };
+		0BC57C5522C517C100E6CF9C /* tamgumapuu.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgumapuu.h; path = ../../../../include/tamgumapuu.h; sourceTree = "<group>"; };
+		0BC57C5622C517C100E6CF9C /* tamgumapuf.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgumapuf.h; path = ../../../../include/tamgumapuf.h; sourceTree = "<group>"; };
+		0BC57C5722C517C100E6CF9C /* tamguvector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamguvector.h; path = ../../../../include/tamguvector.h; sourceTree = "<group>"; };
+		0BC57C5822C517C100E6CF9C /* atomicmap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = atomicmap.h; path = ../../../../include/atomicmap.h; sourceTree = "<group>"; };
+		0BC57C5922C517C100E6CF9C /* tamguconstants.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamguconstants.h; path = ../../../../include/tamguconstants.h; sourceTree = "<group>"; };
+		0BC57C5A22C517C100E6CF9C /* tamgulong128.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgulong128.h; path = ../../../../include/tamgulong128.h; sourceTree = "<group>"; };
+		0BC57C5B22C517C100E6CF9C /* tamgumapif.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgumapif.h; path = ../../../../include/tamgumapif.h; sourceTree = "<group>"; };
+		0BC57C5D22C517C100E6CF9C /* tamguimatrix.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamguimatrix.h; path = ../../../../include/tamguimatrix.h; sourceTree = "<group>"; };
+		0BC57C5F22C517C100E6CF9C /* tamgutaskell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgutaskell.h; path = ../../../../include/tamgutaskell.h; sourceTree = "<group>"; };
+		0BC57C6022C517C200E6CF9C /* matrix.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = matrix.h; path = ../../../../include/matrix.h; sourceTree = "<group>"; };
+		0BC57C6122C517C200E6CF9C /* tamgumapff.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgumapff.h; path = ../../../../include/tamgumapff.h; sourceTree = "<group>"; };
+		0BC57C6222C517C200E6CF9C /* tamguustring.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamguustring.h; path = ../../../../include/tamguustring.h; sourceTree = "<group>"; };
+		0BC57C6322C517C200E6CF9C /* tamgutreemapls.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgutreemapls.h; path = ../../../../include/tamgutreemapls.h; sourceTree = "<group>"; };
+		0BC57C6422C517C200E6CF9C /* tamguprimemap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamguprimemap.h; path = ../../../../include/tamguprimemap.h; sourceTree = "<group>"; };
+		0BC57C6522C517C200E6CF9C /* tamguprimemapsi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamguprimemapsi.h; path = ../../../../include/tamguprimemapsi.h; sourceTree = "<group>"; };
+		0BC57C6622C517C200E6CF9C /* tamgufraction.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgufraction.h; path = ../../../../include/tamgufraction.h; sourceTree = "<group>"; };
+		0BC57C6722C517C200E6CF9C /* tamgudvector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgudvector.h; path = ../../../../include/tamgudvector.h; sourceTree = "<group>"; };
+		0BC57C6822C517C200E6CF9C /* tamgudebug.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgudebug.h; path = ../../../../include/tamgudebug.h; sourceTree = "<group>"; };
+		0BC57C6922C517C200E6CF9C /* jag.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = jag.h; path = ../../../../include/jag.h; sourceTree = "<group>"; };
+		0BC57C6A22C517C200E6CF9C /* tamgumapii.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgumapii.h; path = ../../../../include/tamgumapii.h; sourceTree = "<group>"; };
+		0BC57C6B22C517C200E6CF9C /* tamgumapiu.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgumapiu.h; path = ../../../../include/tamgumapiu.h; sourceTree = "<group>"; };
+		0BC57C6C22C517C200E6CF9C /* tamgutime.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgutime.h; path = ../../../../include/tamgutime.h; sourceTree = "<group>"; };
+		0BC57C6D22C517C200E6CF9C /* comparetemplate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = comparetemplate.h; path = ../../../../include/comparetemplate.h; sourceTree = "<group>"; };
+		0BC57C6E22C517C200E6CF9C /* tamguivector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamguivector.h; path = ../../../../include/tamguivector.h; sourceTree = "<group>"; };
+		0BC57C6F22C517C200E6CF9C /* automaton.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = automaton.h; path = ../../../../include/automaton.h; sourceTree = "<group>"; };
+		0BC57C7022C517C200E6CF9C /* tamgumapu.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgumapu.h; path = ../../../../include/tamgumapu.h; sourceTree = "<group>"; };
+		0BC57C7122C517C200E6CF9C /* tamgusocket.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgusocket.h; path = ../../../../include/tamgusocket.h; sourceTree = "<group>"; };
+		0BC57C7222C517C200E6CF9C /* tamgutable.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgutable.h; path = ../../../../include/tamgutable.h; sourceTree = "<group>"; };
+		0BC57C7322C517C300E6CF9C /* tamgumapfi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgumapfi.h; path = ../../../../include/tamgumapfi.h; sourceTree = "<group>"; };
+		0BC57C7422C517C300E6CF9C /* tamgumapi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgumapi.h; path = ../../../../include/tamgumapi.h; sourceTree = "<group>"; };
+		0BC57C7522C517C300E6CF9C /* tamgumapsl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgumapsl.h; path = ../../../../include/tamgumapsl.h; sourceTree = "<group>"; };
+		0BC57C7622C517C300E6CF9C /* binmap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = binmap.h; path = ../../../../include/binmap.h; sourceTree = "<group>"; };
+		0BC57C7722C517C300E6CF9C /* tamguhvector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamguhvector.h; path = ../../../../include/tamguhvector.h; sourceTree = "<group>"; };
+		0BC57C7822C517C300E6CF9C /* tamgumapll.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgumapll.h; path = ../../../../include/tamgumapll.h; sourceTree = "<group>"; };
+		0BC57C7922C517C300E6CF9C /* tamgutreemapsi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgutreemapsi.h; path = ../../../../include/tamgutreemapsi.h; sourceTree = "<group>"; };
+		0BC57C7A22C517C300E6CF9C /* tamgufile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgufile.h; path = ../../../../include/tamgufile.h; sourceTree = "<group>"; };
+		0BC57C7B22C517C300E6CF9C /* tamguannotator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamguannotator.h; path = ../../../../include/tamguannotator.h; sourceTree = "<group>"; };
+		0BC57C7C22C517C300E6CF9C /* tamguautomaton.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamguautomaton.h; path = ../../../../include/tamguautomaton.h; sourceTree = "<group>"; };
+		0BC57C7D22C517C300E6CF9C /* tamgutreemapsf.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgutreemapsf.h; path = ../../../../include/tamgutreemapsf.h; sourceTree = "<group>"; };
+		0BC57C7E22C517C300E6CF9C /* tamguglobal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamguglobal.h; path = ../../../../include/tamguglobal.h; sourceTree = "<group>"; };
+		0BC57C7F22C517C300E6CF9C /* tamgusynode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgusynode.h; path = ../../../../include/tamgusynode.h; sourceTree = "<group>"; };
+		0BC57C8022C517C300E6CF9C /* tamgulist.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgulist.h; path = ../../../../include/tamgulist.h; sourceTree = "<group>"; };
+		0BC57C8122C517C300E6CF9C /* tamgubool.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgubool.h; path = ../../../../include/tamgubool.h; sourceTree = "<group>"; };
+		0BC57C8222C517C300E6CF9C /* tamgulong.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgulong.h; path = ../../../../include/tamgulong.h; sourceTree = "<group>"; };
+		0BC57C8322C517C300E6CF9C /* tamgumaplf.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgumaplf.h; path = ../../../../include/tamgumaplf.h; sourceTree = "<group>"; };
+		0BC57C8422C517C400E6CF9C /* tamguuvector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamguuvector.h; path = ../../../../include/tamguuvector.h; sourceTree = "<group>"; };
+		0BC57C8522C517C400E6CF9C /* tamgumapf.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgumapf.h; path = ../../../../include/tamgumapf.h; sourceTree = "<group>"; };
+		0BC57C8622C517C400E6CF9C /* tamgumapl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgumapl.h; path = ../../../../include/tamgumapl.h; sourceTree = "<group>"; };
+		0BC57C8722C517C400E6CF9C /* tamgumapul.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgumapul.h; path = ../../../../include/tamgumapul.h; sourceTree = "<group>"; };
+		0BC57C8822C517C400E6CF9C /* tamgumapss.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgumapss.h; path = ../../../../include/tamgumapss.h; sourceTree = "<group>"; };
+		0BC57C8922C517C400E6CF9C /* tamgumapfu.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgumapfu.h; path = ../../../../include/tamgumapfu.h; sourceTree = "<group>"; };
+		0BC57C8A22C517C400E6CF9C /* atoms.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = atoms.h; path = ../../../../include/atoms.h; sourceTree = "<group>"; };
+		0BC57C8B22C517C400E6CF9C /* x_node.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = x_node.h; path = ../../../../include/x_node.h; sourceTree = "<group>"; };
+		0BC57C8C22C517C400E6CF9C /* instructions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = instructions.h; path = ../../../../include/instructions.h; sourceTree = "<group>"; };
+		0BC57C8D22C517C400E6CF9C /* tamgutreemap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgutreemap.h; path = ../../../../include/tamgutreemap.h; sourceTree = "<group>"; };
+		0BC57C8E22C517C400E6CF9C /* tamgurawstring.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgurawstring.h; path = ../../../../include/tamgurawstring.h; sourceTree = "<group>"; };
+		0BC57C8F22C517C400E6CF9C /* tamgustdin.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgustdin.h; path = ../../../../include/tamgustdin.h; sourceTree = "<group>"; };
+		0BC57C9022C517C400E6CF9C /* tamgumapfl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgumapfl.h; path = ../../../../include/tamgumapfl.h; sourceTree = "<group>"; };
+		0BC57C9122C517C400E6CF9C /* equationtemplate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = equationtemplate.h; path = ../../../../include/equationtemplate.h; sourceTree = "<group>"; };
+		0BC57C9222C517C400E6CF9C /* tamgudate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgudate.h; path = ../../../../include/tamgudate.h; sourceTree = "<group>"; };
+		0BC57C9322C517C400E6CF9C /* tamguufile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamguufile.h; path = ../../../../include/tamguufile.h; sourceTree = "<group>"; };
+		0BC57C9422C517C400E6CF9C /* tamgusys.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgusys.h; path = ../../../../include/tamgusys.h; sourceTree = "<group>"; };
+		0BC57C9522C517C500E6CF9C /* tamguboost.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamguboost.h; path = ../../../../include/tamguboost.h; sourceTree = "<group>"; };
+		0BC57C9622C517C500E6CF9C /* tamguiterator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamguiterator.h; path = ../../../../include/tamguiterator.h; sourceTree = "<group>"; };
+		0BC57C9722C517C500E6CF9C /* tamgumapfs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgumapfs.h; path = ../../../../include/tamgumapfs.h; sourceTree = "<group>"; };
+		0BC57C9822C517C500E6CF9C /* tamguprimemapsf.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamguprimemapsf.h; path = ../../../../include/tamguprimemapsf.h; sourceTree = "<group>"; };
+		0BC57C9922C517C500E6CF9C /* predicate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = predicate.h; path = ../../../../include/predicate.h; sourceTree = "<group>"; };
+		0BC57C9A22C517C500E6CF9C /* parsecode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = parsecode.h; path = ../../../../include/parsecode.h; sourceTree = "<group>"; };
+		0BC57C9B22C517C500E6CF9C /* tamgufmatrix.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgufmatrix.h; path = ../../../../include/tamgufmatrix.h; sourceTree = "<group>"; };
+		0BC57C9C22C517C500E6CF9C /* globaltamgu.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = globaltamgu.h; path = ../../../../include/globaltamgu.h; sourceTree = "<group>"; };
+		0BC57C9D22C517C500E6CF9C /* tamguprimemapss.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamguprimemapss.h; path = ../../../../include/tamguprimemapss.h; sourceTree = "<group>"; };
+		0BC57C9E22C517C500E6CF9C /* tamgushort.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgushort.h; path = ../../../../include/tamgushort.h; sourceTree = "<group>"; };
+		0BC57C9F22C517C500E6CF9C /* tamgutreemapss.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgutreemapss.h; path = ../../../../include/tamgutreemapss.h; sourceTree = "<group>"; };
+		0BC57CA022C517C500E6CF9C /* tamgustring.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgustring.h; path = ../../../../include/tamgustring.h; sourceTree = "<group>"; };
+		0BC57CA122C517C500E6CF9C /* tamgutransducer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgutransducer.h; path = ../../../../include/tamgutransducer.h; sourceTree = "<group>"; };
+		0BC57CA222C517C500E6CF9C /* tamgutreemapif.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgutreemapif.h; path = ../../../../include/tamgutreemapif.h; sourceTree = "<group>"; };
+		0BC57CA322C517C500E6CF9C /* x_tokenize.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = x_tokenize.h; path = ../../../../include/x_tokenize.h; sourceTree = "<group>"; };
+		0BC57CA422C517C500E6CF9C /* tamgusvector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgusvector.h; path = ../../../../include/tamgusvector.h; sourceTree = "<group>"; };
+		0BC57CA522C517C500E6CF9C /* tamgudecimal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgudecimal.h; path = ../../../../include/tamgudecimal.h; sourceTree = "<group>"; };
+		0BC57CA622C517C600E6CF9C /* vecte.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = vecte.h; path = ../../../../include/vecte.h; sourceTree = "<group>"; };
+		0BC57CA722C517C600E6CF9C /* tamgubyte.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgubyte.h; path = ../../../../include/tamgubyte.h; sourceTree = "<group>"; };
+		0BC57CA822C517C600E6CF9C /* tamgumapsf.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgumapsf.h; path = ../../../../include/tamgumapsf.h; sourceTree = "<group>"; };
+		0BC57CA922C517C600E6CF9C /* tamguframeinstance.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamguframeinstance.h; path = ../../../../include/tamguframeinstance.h; sourceTree = "<group>"; };
+		0BC57CAA22C517C600E6CF9C /* tamgutreemapi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgutreemapi.h; path = ../../../../include/tamgutreemapi.h; sourceTree = "<group>"; };
+		0BC57CAB22C517C600E6CF9C /* tamgubvector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgubvector.h; path = ../../../../include/tamgubvector.h; sourceTree = "<group>"; };
+		0BC57CAC22C517C600E6CF9C /* directorylisting.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = directorylisting.h; path = ../../../../include/directorylisting.h; sourceTree = "<group>"; };
+		0BC57CAD22C517C600E6CF9C /* tamgumap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgumap.h; path = ../../../../include/tamgumap.h; sourceTree = "<group>"; };
+		0BC57CAE22C517C600E6CF9C /* tamgumapis.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgumapis.h; path = ../../../../include/tamgumapis.h; sourceTree = "<group>"; };
+		0BC57CAF22C517C600E6CF9C /* tamgufvector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamgufvector.h; path = ../../../../include/tamgufvector.h; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		0B0949F81FD70E4700726942 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0B094B5B1FD70F8200726942 /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0B0949F21FD70E4700726942 = {
+			isa = PBXGroup;
+			children = (
+				0B0949FD1FD70E4700726942 /* tamgubase */,
+				0B0949FC1FD70E4700726942 /* Products */,
+				0B094B531FD70F7B00726942 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		0B0949FC1FD70E4700726942 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				0B0949FB1FD70E4700726942 /* tamgu */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		0B0949FD1FD70E4700726942 /* tamgubase */ = {
+			isa = PBXGroup;
+			children = (
+				0BC57B7822C5179500E6CF9C /* include */,
+				0BC57B7722C5178F00E6CF9C /* src */,
+			);
+			path = tamgubase;
+			sourceTree = "<group>";
+		};
+		0B094B531FD70F7B00726942 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				0B094B5A1FD70F8200726942 /* Cocoa.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		0BC57B7722C5178F00E6CF9C /* src */ = {
+			isa = PBXGroup;
+			children = (
+				0BC57BA622C517A100E6CF9C /* automaton.cxx */,
+				0BC57B7A22C517A000E6CF9C /* codecompile.cxx */,
+				0BC57BBC22C517A200E6CF9C /* codeexecute.cxx */,
+				0BC57BAC22C517A100E6CF9C /* codeoperations.cxx */,
+				0BC57B9722C517A100E6CF9C /* codeparse.cxx */,
+				0BC57BB522C517A200E6CF9C /* containerrecording.cxx */,
+				0BC57BAD22C517A100E6CF9C /* conversion.cxx */,
+				0BC57BC122C517A300E6CF9C /* globaltamgu.cxx */,
+				0BC57BD622C517A400E6CF9C /* jag.cxx */,
+				0BC57BDA22C517A400E6CF9C /* maintamgu.cxx */,
+				0BC57BAB22C517A100E6CF9C /* objectrecording.cxx */,
+				0BC57BD522C517A400E6CF9C /* predicate.cxx */,
+				0BC57B8522C517A000E6CF9C /* predicatefunctions.cxx */,
+				0BC57BC922C517A300E6CF9C /* procedures.cxx */,
+				0BC57BAE22C517A200E6CF9C /* tamgu.cxx */,
+				0BC57BAA22C517A100E6CF9C /* tamguannotator.cxx */,
+				0BC57BD722C517A400E6CF9C /* tamguautomaton.cxx */,
+				0BC57B9122C517A000E6CF9C /* tamgubool.cxx */,
+				0BC57BBE22C517A200E6CF9C /* tamgubvector.cxx */,
+				0BC57BC322C517A300E6CF9C /* tamgubyte.cxx */,
+				0BC57BBF22C517A200E6CF9C /* tamgudate.cxx */,
+				0BC57BB622C517A200E6CF9C /* tamgudecimal.cxx */,
+				0BC57BC222C517A300E6CF9C /* tamgudvector.cxx */,
+				0BC57BA722C517A100E6CF9C /* tamgufile.cxx */,
+				0BC57BB322C517A200E6CF9C /* tamgufloat.cxx */,
+				0BC57BB722C517A200E6CF9C /* tamgufmatrix.cxx */,
+				0BC57BC622C517A300E6CF9C /* tamgufraction.cxx */,
+				0BC57BCA22C517A300E6CF9C /* tamguframeinstance.cxx */,
+				0BC57BC722C517A300E6CF9C /* tamgufvector.cxx */,
+				0BC57B9222C517A000E6CF9C /* tamgugrammar.cxx */,
+				0BC57B9B22C517A100E6CF9C /* tamguhvector.cxx */,
+				0BC57BD022C517A300E6CF9C /* tamguimatrix.cxx */,
+				0BC57B8B22C517A000E6CF9C /* tamguint.cxx */,
+				0BC57BD422C517A400E6CF9C /* tamguiterator.cxx */,
+				0BC57B7E22C517A000E6CF9C /* tamguivector.cxx */,
+				0BC57BA022C517A100E6CF9C /* tamgulist.cxx */,
+				0BC57B8722C517A000E6CF9C /* tamgulong.cxx */,
+				0BC57BA522C517A100E6CF9C /* tamgulvector.cxx */,
+				0BC57B8922C517A000E6CF9C /* tamgumap.cxx */,
+				0BC57BC522C517A300E6CF9C /* tamgumapf.cxx */,
+				0BC57B9E22C517A100E6CF9C /* tamgumapff.cxx */,
+				0BC57B7B22C517A000E6CF9C /* tamgumapfi.cxx */,
+				0BC57B8122C517A000E6CF9C /* tamgumapfl.cxx */,
+				0BC57B9822C517A100E6CF9C /* tamgumapfs.cxx */,
+				0BC57BD122C517A300E6CF9C /* tamgumapfu.cxx */,
+				0BC57B9022C517A000E6CF9C /* tamgumapi.cxx */,
+				0BC57BA122C517A100E6CF9C /* tamgumapif.cxx */,
+				0BC57B9522C517A000E6CF9C /* tamgumapii.cxx */,
+				0BC57BA222C517A100E6CF9C /* tamgumapis.cxx */,
+				0BC57B9A22C517A100E6CF9C /* tamgumapiu.cxx */,
+				0BC57BCC22C517A300E6CF9C /* tamgumapl.cxx */,
+				0BC57B9D22C517A100E6CF9C /* tamgumaplf.cxx */,
+				0BC57BB422C517A200E6CF9C /* tamgumapll.cxx */,
+				0BC57BA422C517A100E6CF9C /* tamgumapls.cxx */,
+				0BC57BCD22C517A300E6CF9C /* tamgumaplu.cxx */,
+				0BC57B8C22C517A000E6CF9C /* tamgumapsf.cxx */,
+				0BC57BDB22C517A400E6CF9C /* tamgumapsi.cxx */,
+				0BC57B9C22C517A100E6CF9C /* tamgumapsl.cxx */,
+				0BC57BD322C517A400E6CF9C /* tamgumapss.cxx */,
+				0BC57B7F22C517A000E6CF9C /* tamgumapu.cxx */,
+				0BC57B9322C517A000E6CF9C /* tamgumapuf.cxx */,
+				0BC57BD922C517A400E6CF9C /* tamgumapui.cxx */,
+				0BC57BBA22C517A200E6CF9C /* tamgumapul.cxx */,
+				0BC57BC422C517A300E6CF9C /* tamgumapuu.cxx */,
+				0BC57B7D22C517A000E6CF9C /* tamguprimemap.cxx */,
+				0BC57BAF22C517A200E6CF9C /* tamguprimemapsf.cxx */,
+				0BC57BCE22C517A300E6CF9C /* tamguprimemapsi.cxx */,
+				0BC57BB922C517A200E6CF9C /* tamguprimemapsl.cxx */,
+				0BC57B8D22C517A000E6CF9C /* tamguprimemapss.cxx */,
+				0BC57B8222C517A000E6CF9C /* tamgurawstring.cxx */,
+				0BC57B8422C517A000E6CF9C /* tamgushort.cxx */,
+				0BC57BA922C517A100E6CF9C /* tamgusocket.cxx */,
+				0BC57B8A22C517A000E6CF9C /* tamgustdin.cxx */,
+				0BC57B9922C517A100E6CF9C /* tamgustring.cxx */,
+				0BC57B8322C517A000E6CF9C /* tamgusvector.cxx */,
+				0BC57BD222C517A300E6CF9C /* tamgusynode.cxx */,
+				0BC57B8622C517A000E6CF9C /* tamgusys.cxx */,
+				0BC57B7C22C517A000E6CF9C /* tamgutable.cxx */,
+				0BC57B7922C517A000E6CF9C /* tamgutamgu.cxx */,
+				0BC57BB822C517A200E6CF9C /* tamgutaskell.cxx */,
+				0BC57BA322C517A100E6CF9C /* tamgutime.cxx */,
+				0BC57BBD22C517A200E6CF9C /* tamgutransducer.cxx */,
+				0BC57BA822C517A100E6CF9C /* tamgutreemap.cxx */,
+				0BC57B9422C517A000E6CF9C /* tamgutreemapi.cxx */,
+				0BC57BCB22C517A300E6CF9C /* tamgutreemapif.cxx */,
+				0BC57B8E22C517A000E6CF9C /* tamgutreemapls.cxx */,
+				0BC57B8822C517A000E6CF9C /* tamgutreemapsf.cxx */,
+				0BC57B8F22C517A000E6CF9C /* tamgutreemapsi.cxx */,
+				0BC57BCF22C517A300E6CF9C /* tamgutreemapsl.cxx */,
+				0BC57BD822C517A400E6CF9C /* tamgutreemapss.cxx */,
+				0BC57B9622C517A000E6CF9C /* tamguufile.cxx */,
+				0BC57B9F22C517A100E6CF9C /* tamguustring.cxx */,
+				0BC57BBB22C517A200E6CF9C /* tamguuvector.cxx */,
+				0BC57BB022C517A200E6CF9C /* tamguvector.cxx */,
+				0BC57BC822C517A300E6CF9C /* tools.cxx */,
+			);
+			name = src;
+			sourceTree = "<group>";
+		};
+		0BC57B7822C5179500E6CF9C /* include */ = {
+			isa = PBXGroup;
+			children = (
+				0BC57C5822C517C100E6CF9C /* atomicmap.h */,
+				0BC57C8A22C517C400E6CF9C /* atoms.h */,
+				0BC57C6F22C517C200E6CF9C /* automaton.h */,
+				0BC57C7622C517C300E6CF9C /* binmap.h */,
+				0BC57C5322C517C100E6CF9C /* codeparse.h */,
+				0BC57C6D22C517C200E6CF9C /* comparetemplate.h */,
+				0BC57C4522C517C100E6CF9C /* compilecode.h */,
+				0BC57C4322C517C100E6CF9C /* constobjects.h */,
+				0BC57C4F22C517C100E6CF9C /* conversion.h */,
+				0BC57CAC22C517C600E6CF9C /* directorylisting.h */,
+				0BC57C9122C517C400E6CF9C /* equationtemplate.h */,
+				0BC57C5422C517C100E6CF9C /* fractalhmap.h */,
+				0BC57C9C22C517C500E6CF9C /* globaltamgu.h */,
+				0BC57C8C22C517C400E6CF9C /* instructions.h */,
+				0BC57C6922C517C200E6CF9C /* jag.h */,
+				0BC57C6022C517C200E6CF9C /* matrix.h */,
+				0BC57C9A22C517C500E6CF9C /* parsecode.h */,
+				0BC57C9922C517C500E6CF9C /* predicate.h */,
+				0BC57C5022C517C100E6CF9C /* predicatefunctions.h */,
+				0BC57C5122C517C100E6CF9C /* tamgu.h */,
+				0BC57C7B22C517C300E6CF9C /* tamguannotator.h */,
+				0BC57C7C22C517C300E6CF9C /* tamguautomaton.h */,
+				0BC57C8122C517C300E6CF9C /* tamgubool.h */,
+				0BC57C9522C517C500E6CF9C /* tamguboost.h */,
+				0BC57CAB22C517C600E6CF9C /* tamgubvector.h */,
+				0BC57CA722C517C600E6CF9C /* tamgubyte.h */,
+				0BC57C5922C517C100E6CF9C /* tamguconstants.h */,
+				0BC57C9222C517C400E6CF9C /* tamgudate.h */,
+				0BC57C6822C517C200E6CF9C /* tamgudebug.h */,
+				0BC57CA522C517C500E6CF9C /* tamgudecimal.h */,
+				0BC57C6722C517C200E6CF9C /* tamgudvector.h */,
+				0BC57C7A22C517C300E6CF9C /* tamgufile.h */,
+				0BC57C3F22C517C100E6CF9C /* tamgufloat.h */,
+				0BC57C9B22C517C500E6CF9C /* tamgufmatrix.h */,
+				0BC57C6622C517C200E6CF9C /* tamgufraction.h */,
+				0BC57CA922C517C600E6CF9C /* tamguframeinstance.h */,
+				0BC57CAF22C517C600E6CF9C /* tamgufvector.h */,
+				0BC57C7E22C517C300E6CF9C /* tamguglobal.h */,
+				0BC57C4A22C517C100E6CF9C /* tamgugrammar.h */,
+				0BC57C7722C517C300E6CF9C /* tamguhvector.h */,
+				0BC57C5D22C517C100E6CF9C /* tamguimatrix.h */,
+				0BC57C4022C517C100E6CF9C /* tamguint.h */,
+				0BC57C9622C517C500E6CF9C /* tamguiterator.h */,
+				0BC57C6E22C517C200E6CF9C /* tamguivector.h */,
+				0BC57C8022C517C300E6CF9C /* tamgulist.h */,
+				0BC57C8222C517C300E6CF9C /* tamgulong.h */,
+				0BC57C5A22C517C100E6CF9C /* tamgulong128.h */,
+				0BC57C4622C517C100E6CF9C /* tamgulvector.h */,
+				0BC57CAD22C517C600E6CF9C /* tamgumap.h */,
+				0BC57C8522C517C400E6CF9C /* tamgumapf.h */,
+				0BC57C6122C517C200E6CF9C /* tamgumapff.h */,
+				0BC57C7322C517C300E6CF9C /* tamgumapfi.h */,
+				0BC57C9022C517C400E6CF9C /* tamgumapfl.h */,
+				0BC57C9722C517C500E6CF9C /* tamgumapfs.h */,
+				0BC57C8922C517C400E6CF9C /* tamgumapfu.h */,
+				0BC57C7422C517C300E6CF9C /* tamgumapi.h */,
+				0BC57C5B22C517C100E6CF9C /* tamgumapif.h */,
+				0BC57C6A22C517C200E6CF9C /* tamgumapii.h */,
+				0BC57CAE22C517C600E6CF9C /* tamgumapis.h */,
+				0BC57C6B22C517C200E6CF9C /* tamgumapiu.h */,
+				0BC57C8622C517C400E6CF9C /* tamgumapl.h */,
+				0BC57C8322C517C300E6CF9C /* tamgumaplf.h */,
+				0BC57C7822C517C300E6CF9C /* tamgumapll.h */,
+				0BC57C4122C517C100E6CF9C /* tamgumapls.h */,
+				0BC57C4B22C517C100E6CF9C /* tamgumaplu.h */,
+				0BC57CA822C517C600E6CF9C /* tamgumapsf.h */,
+				0BC57C5222C517C100E6CF9C /* tamgumapsi.h */,
+				0BC57C7522C517C300E6CF9C /* tamgumapsl.h */,
+				0BC57C8822C517C400E6CF9C /* tamgumapss.h */,
+				0BC57C7022C517C200E6CF9C /* tamgumapu.h */,
+				0BC57C5622C517C100E6CF9C /* tamgumapuf.h */,
+				0BC57C4422C517C100E6CF9C /* tamgumapui.h */,
+				0BC57C8722C517C400E6CF9C /* tamgumapul.h */,
+				0BC57C5522C517C100E6CF9C /* tamgumapuu.h */,
+				0BC57C6422C517C200E6CF9C /* tamguprimemap.h */,
+				0BC57C9822C517C500E6CF9C /* tamguprimemapsf.h */,
+				0BC57C6522C517C200E6CF9C /* tamguprimemapsi.h */,
+				0BC57C4E22C517C100E6CF9C /* tamguprimemapsl.h */,
+				0BC57C9D22C517C500E6CF9C /* tamguprimemapss.h */,
+				0BC57C8E22C517C400E6CF9C /* tamgurawstring.h */,
+				0BC57C9E22C517C500E6CF9C /* tamgushort.h */,
+				0BC57C7122C517C200E6CF9C /* tamgusocket.h */,
+				0BC57C8F22C517C400E6CF9C /* tamgustdin.h */,
+				0BC57CA022C517C500E6CF9C /* tamgustring.h */,
+				0BC57CA422C517C500E6CF9C /* tamgusvector.h */,
+				0BC57C7F22C517C300E6CF9C /* tamgusynode.h */,
+				0BC57C9422C517C400E6CF9C /* tamgusys.h */,
+				0BC57C7222C517C200E6CF9C /* tamgutable.h */,
+				0BC57C4922C517C100E6CF9C /* tamgutamgu.h */,
+				0BC57C5F22C517C100E6CF9C /* tamgutaskell.h */,
+				0BC57C6C22C517C200E6CF9C /* tamgutime.h */,
+				0BC57CA122C517C500E6CF9C /* tamgutransducer.h */,
+				0BC57C8D22C517C400E6CF9C /* tamgutreemap.h */,
+				0BC57CAA22C517C600E6CF9C /* tamgutreemapi.h */,
+				0BC57CA222C517C500E6CF9C /* tamgutreemapif.h */,
+				0BC57C6322C517C200E6CF9C /* tamgutreemapls.h */,
+				0BC57C7D22C517C300E6CF9C /* tamgutreemapsf.h */,
+				0BC57C7922C517C300E6CF9C /* tamgutreemapsi.h */,
+				0BC57C4D22C517C100E6CF9C /* tamgutreemapsl.h */,
+				0BC57C9F22C517C500E6CF9C /* tamgutreemapss.h */,
+				0BC57C9322C517C400E6CF9C /* tamguufile.h */,
+				0BC57C6222C517C200E6CF9C /* tamguustring.h */,
+				0BC57C8422C517C400E6CF9C /* tamguuvector.h */,
+				0BC57C5722C517C100E6CF9C /* tamguvector.h */,
+				0BC57C4222C517C100E6CF9C /* tamguversion.h */,
+				0BC57C4C22C517C100E6CF9C /* vecta.h */,
+				0BC57CA622C517C600E6CF9C /* vecte.h */,
+				0BC57C4822C517C100E6CF9C /* vectors.h */,
+				0BC57C8B22C517C400E6CF9C /* x_node.h */,
+				0BC57CA322C517C500E6CF9C /* x_tokenize.h */,
+			);
+			path = include;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		0B0949FA1FD70E4700726942 /* tamgu */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0B094A021FD70E4700726942 /* Build configuration list for PBXNativeTarget "tamgu" */;
+			buildPhases = (
+				0B0949F71FD70E4700726942 /* Sources */,
+				0B0949F81FD70E4700726942 /* Frameworks */,
+				0B0949F91FD70E4700726942 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = tamgu;
+			productName = tamgubase;
+			productReference = 0B0949FB1FD70E4700726942 /* tamgu */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		0B0949F31FD70E4700726942 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0920;
+				ORGANIZATIONNAME = "Claude Roux";
+				TargetAttributes = {
+					0B0949FA1FD70E4700726942 = {
+						CreatedOnToolsVersion = 9.2;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 0B0949F61FD70E4700726942 /* Build configuration list for PBXProject "tamgubase" */;
+			compatibilityVersion = "Xcode 8.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 0B0949F21FD70E4700726942;
+			productRefGroup = 0B0949FC1FD70E4700726942 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				0B0949FA1FD70E4700726942 /* tamgu */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		0B0949F71FD70E4700726942 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0BC57C0322C517A400E6CF9C /* tamgulist.cxx in Sources */,
+				0BC57C1322C517A400E6CF9C /* tamguvector.cxx in Sources */,
+				0BC57C1C22C517A400E6CF9C /* tamguprimemapsl.cxx in Sources */,
+				0BC57C1822C517A400E6CF9C /* containerrecording.cxx in Sources */,
+				0BC57C1622C517A400E6CF9C /* tamgufloat.cxx in Sources */,
+				0BC57BF922C517A400E6CF9C /* tamguufile.cxx in Sources */,
+				0BC57BE622C517A400E6CF9C /* tamgusvector.cxx in Sources */,
+				0BC57C1D22C517A400E6CF9C /* tamgumapul.cxx in Sources */,
+				0BC57C0622C517A400E6CF9C /* tamgutime.cxx in Sources */,
+				0BC57C2F22C517A400E6CF9C /* tamgumapl.cxx in Sources */,
+				0BC57BF822C517A400E6CF9C /* tamgumapii.cxx in Sources */,
+				0BC57C2B22C517A400E6CF9C /* tools.cxx in Sources */,
+				0BC57C3422C517A400E6CF9C /* tamgumapfu.cxx in Sources */,
+				0BC57BF022C517A400E6CF9C /* tamguprimemapss.cxx in Sources */,
+				0BC57C3622C517A400E6CF9C /* tamgumapss.cxx in Sources */,
+				0BC57C2122C517A400E6CF9C /* tamgubvector.cxx in Sources */,
+				0BC57C3522C517A400E6CF9C /* tamgusynode.cxx in Sources */,
+				0BC57C0A22C517A400E6CF9C /* tamgufile.cxx in Sources */,
+				0BC57BFB22C517A400E6CF9C /* tamgumapfs.cxx in Sources */,
+				0BC57C2422C517A400E6CF9C /* globaltamgu.cxx in Sources */,
+				0BC57C1122C517A400E6CF9C /* tamgu.cxx in Sources */,
+				0BC57C0122C517A400E6CF9C /* tamgumapff.cxx in Sources */,
+				0BC57BF222C517A400E6CF9C /* tamgutreemapsi.cxx in Sources */,
+				0BC57C3C22C517A400E6CF9C /* tamgumapui.cxx in Sources */,
+				0BC57C0822C517A400E6CF9C /* tamgulvector.cxx in Sources */,
+				0BC57BEA22C517A400E6CF9C /* tamgulong.cxx in Sources */,
+				0BC57C1022C517A400E6CF9C /* conversion.cxx in Sources */,
+				0BC57BF522C517A400E6CF9C /* tamgugrammar.cxx in Sources */,
+				0BC57C3D22C517A400E6CF9C /* maintamgu.cxx in Sources */,
+				0BC57C3E22C517A400E6CF9C /* tamgumapsi.cxx in Sources */,
+				0BC57BDD22C517A400E6CF9C /* codecompile.cxx in Sources */,
+				0BC57C1F22C517A400E6CF9C /* codeexecute.cxx in Sources */,
+				0BC57C1E22C517A400E6CF9C /* tamguuvector.cxx in Sources */,
+				0BC57C0C22C517A400E6CF9C /* tamgusocket.cxx in Sources */,
+				0BC57C2D22C517A400E6CF9C /* tamguframeinstance.cxx in Sources */,
+				0BC57C3222C517A400E6CF9C /* tamgutreemapsl.cxx in Sources */,
+				0BC57C3122C517A400E6CF9C /* tamguprimemapsi.cxx in Sources */,
+				0BC57BE222C517A400E6CF9C /* tamgumapu.cxx in Sources */,
+				0BC57C0722C517A400E6CF9C /* tamgumapls.cxx in Sources */,
+				0BC57BF122C517A400E6CF9C /* tamgutreemapls.cxx in Sources */,
+				0BC57C2222C517A400E6CF9C /* tamgudate.cxx in Sources */,
+				0BC57C2022C517A400E6CF9C /* tamgutransducer.cxx in Sources */,
+				0BC57BE122C517A400E6CF9C /* tamguivector.cxx in Sources */,
+				0BC57C3A22C517A400E6CF9C /* tamguautomaton.cxx in Sources */,
+				0BC57C0422C517A400E6CF9C /* tamgumapif.cxx in Sources */,
+				0BC57C0D22C517A400E6CF9C /* tamguannotator.cxx in Sources */,
+				0BC57C3722C517A400E6CF9C /* tamguiterator.cxx in Sources */,
+				0BC57C2E22C517A400E6CF9C /* tamgutreemapif.cxx in Sources */,
+				0BC57BE722C517A400E6CF9C /* tamgushort.cxx in Sources */,
+				0BC57BE522C517A400E6CF9C /* tamgurawstring.cxx in Sources */,
+				0BC57C1B22C517A400E6CF9C /* tamgutaskell.cxx in Sources */,
+				0BC57BF422C517A400E6CF9C /* tamgubool.cxx in Sources */,
+				0BC57C0522C517A400E6CF9C /* tamgumapis.cxx in Sources */,
+				0BC57BEC22C517A400E6CF9C /* tamgumap.cxx in Sources */,
+				0BC57BFC22C517A400E6CF9C /* tamgustring.cxx in Sources */,
+				0BC57C0022C517A400E6CF9C /* tamgumaplf.cxx in Sources */,
+				0BC57BFF22C517A400E6CF9C /* tamgumapsl.cxx in Sources */,
+				0BC57C2A22C517A400E6CF9C /* tamgufvector.cxx in Sources */,
+				0BC57BEB22C517A400E6CF9C /* tamgutreemapsf.cxx in Sources */,
+				0BC57C0B22C517A400E6CF9C /* tamgutreemap.cxx in Sources */,
+				0BC57BDF22C517A400E6CF9C /* tamgutable.cxx in Sources */,
+				0BC57BED22C517A400E6CF9C /* tamgustdin.cxx in Sources */,
+				0BC57BF622C517A400E6CF9C /* tamgumapuf.cxx in Sources */,
+				0BC57C2922C517A400E6CF9C /* tamgufraction.cxx in Sources */,
+				0BC57C2C22C517A400E6CF9C /* procedures.cxx in Sources */,
+				0BC57C3322C517A400E6CF9C /* tamguimatrix.cxx in Sources */,
+				0BC57C3822C517A400E6CF9C /* predicate.cxx in Sources */,
+				0BC57C2522C517A400E6CF9C /* tamgudvector.cxx in Sources */,
+				0BC57C3B22C517A400E6CF9C /* tamgutreemapss.cxx in Sources */,
+				0BC57BFE22C517A400E6CF9C /* tamguhvector.cxx in Sources */,
+				0BC57BEF22C517A400E6CF9C /* tamgumapsf.cxx in Sources */,
+				0BC57C1222C517A400E6CF9C /* tamguprimemapsf.cxx in Sources */,
+				0BC57BF722C517A400E6CF9C /* tamgutreemapi.cxx in Sources */,
+				0BC57C2722C517A400E6CF9C /* tamgumapuu.cxx in Sources */,
+				0BC57BE922C517A400E6CF9C /* tamgusys.cxx in Sources */,
+				0BC57BFD22C517A400E6CF9C /* tamgumapiu.cxx in Sources */,
+				0BC57C1722C517A400E6CF9C /* tamgumapll.cxx in Sources */,
+				0BC57C2622C517A400E6CF9C /* tamgubyte.cxx in Sources */,
+				0BC57BEE22C517A400E6CF9C /* tamguint.cxx in Sources */,
+				0BC57C3922C517A400E6CF9C /* jag.cxx in Sources */,
+				0BC57BE422C517A400E6CF9C /* tamgumapfl.cxx in Sources */,
+				0BC57C0F22C517A400E6CF9C /* codeoperations.cxx in Sources */,
+				0BC57C0922C517A400E6CF9C /* automaton.cxx in Sources */,
+				0BC57C1A22C517A400E6CF9C /* tamgufmatrix.cxx in Sources */,
+				0BC57BF322C517A400E6CF9C /* tamgumapi.cxx in Sources */,
+				0BC57BE022C517A400E6CF9C /* tamguprimemap.cxx in Sources */,
+				0BC57BFA22C517A400E6CF9C /* codeparse.cxx in Sources */,
+				0BC57C3022C517A400E6CF9C /* tamgumaplu.cxx in Sources */,
+				0BC57C1922C517A400E6CF9C /* tamgudecimal.cxx in Sources */,
+				0BC57BDC22C517A400E6CF9C /* tamgutamgu.cxx in Sources */,
+				0BC57C2822C517A400E6CF9C /* tamgumapf.cxx in Sources */,
+				0BC57BE822C517A400E6CF9C /* predicatefunctions.cxx in Sources */,
+				0BC57C0E22C517A400E6CF9C /* objectrecording.cxx in Sources */,
+				0BC57BDE22C517A400E6CF9C /* tamgumapfi.cxx in Sources */,
+				0BC57C0222C517A400E6CF9C /* tamguustring.cxx in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		0B094A001FD70E4700726942 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		0B094A011FD70E4700726942 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		0B094A031FD70E4700726942 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_X86_VECTOR_INSTRUCTIONS = avx2;
+				CODE_SIGN_STYLE = Automatic;
+				HEADER_SEARCH_PATHS = ../../include;
+				LIBRARY_SEARCH_PATHS = "";
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-DUNIX",
+					"-DFL_INTERNALS",
+					"-DMAVERICK",
+					"-DAPPLE",
+					"-DTamgu_REGEX",
+					"-DINTELINTRINSICS",
+					"-DAVXSUPPORT",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		0B094A041FD70E4700726942 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_X86_VECTOR_INSTRUCTIONS = avx2;
+				CODE_SIGN_STYLE = Automatic;
+				GCC_OPTIMIZATION_LEVEL = fast;
+				HEADER_SEARCH_PATHS = ../../include;
+				LIBRARY_SEARCH_PATHS = "";
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-DUNIX",
+					"-DFL_INTERNALS",
+					"-DMAVERICK",
+					"-DAPPLE",
+					"-DTamgu_REGEX",
+					"-DINTELINTRINSICS",
+					"-DAVXSUPPORT",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		0B0949F61FD70E4700726942 /* Build configuration list for PBXProject "tamgubase" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0B094A001FD70E4700726942 /* Debug */,
+				0B094A011FD70E4700726942 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0B094A021FD70E4700726942 /* Build configuration list for PBXNativeTarget "tamgu" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0B094A031FD70E4700726942 /* Debug */,
+				0B094A041FD70E4700726942 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 0B0949F31FD70E4700726942 /* Project object */;
+}
