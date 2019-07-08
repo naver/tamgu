@@ -6,6 +6,8 @@ TAMGU is a _multithreaded programming language_ that mixes in one single formali
 
 The language provides many features but also many libraries, which helps design and implement annotation schemes for complex documents.
 
+__Note__: _Releases_ (pre-compiled versions) are available at: https://github.com/naver/tamgu/releases
+
 ## Example of code
 
 Below is an example of the kind of code that you can implement with _Tamgu_.
