@@ -4,6 +4,8 @@ TAMGU provides also an annotation language implementation (see below for an exam
 
 TAMGU is a _multithreaded programming language_ that mixes in one single formalism an _imperative language_, a _functional language_ (close to Haskel) and a _logic programming language_ (à la Prolog). 
 
+The language provides many features but also many libraries, which helps design and implement annotation schemes for complex documents.
+
 ## Example of code
 
 Below is an example of the kind of code that you can implement with _Tamgu_.
