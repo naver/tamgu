@@ -1,20 +1,10 @@
 # TAMGU (탐구)
 
-TAMGU is a _multithreaded programming language_ that mixes in one single formalism an _imperative language_, a _functional language_ (close to Haskel) and a _logic programming language_ (à la Prolog). 
-
 TAMGU provides also an annotation language implementation (see below for an example), which allows for an efficient way to detect complex patterns in text. 
 
-__IMPORTANT__ : 
+TAMGU is a _multithreaded programming language_ that mixes in one single formalism an _imperative language_, a _functional language_ (close to Haskel) and a _logic programming language_ (à la Prolog). 
 
-```
-Pre-compiled versions for:
-
-    Windows
-    Mac OS
-    Linux: Centos, Ubuntu, Fedora 
-
-```
-are available in the *__releases__* section in this *__GitHub__* archive.
+The language provides many features but also many libraries, which helps design and implement annotation schemes for complex documents.
 
 ## Example of code
 
@@ -232,6 +222,18 @@ vector v = r.parse(sentence);
 //It reads: two 'meal' were found at position 10-16 and position 25-32...
 
 ```
+
+# __IMPORTANT__ : 
+
+```
+Pre-compiled versions for:
+
+    Windows
+    Mac OS
+    Linux: Centos, Ubuntu, Fedora 
+
+```
+are available in the *__releases__* section in this *__GitHub__* archive.
 
 ## License
 
