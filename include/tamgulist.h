@@ -912,6 +912,17 @@ public:
         return a->Long();
     }
     
+    uchar getbyte(long i) {
+        if (i < 0)
+            return 0;
+        
+        Tamgu* a = values[i];
+        if (a == NULL)
+            return 0;
+        
+        return a->Byte();
+    }
+
     short getshort(long i) {
         if (i < 0)
             return 0;

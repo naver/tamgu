@@ -450,9 +450,20 @@ public:
 			}
 			first = false;
 		}
+        
+        uchar c;
+        Tamgu* value = callfunc->Evaluate(0, aNULL, idthread);
+        if (value->isContainer()) {
+            long sz = value->Size();
+            for (long i = 0; i < sz ; i++) {
+                c =  value->getbyte(i);
+                fputc(c, thefile);
+            }
+            return aTRUE;
+        }
 
-		uchar s = callfunc->Evaluate(0, aNULL, idthread)->Byte();
-		fputc(s, thefile);
+		c = value->Byte();
+		fputc(c, thefile);
 		return aTRUE;
 	}
 

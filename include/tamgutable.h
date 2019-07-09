@@ -229,6 +229,13 @@ class Tamgutable : public TamguObjectContainer {
         return values[i]->Short();
     }
     
+    uchar getbyte(long i) {
+        if (i < 0 || i >= size)
+            return 0;
+        
+        return values[i]->Byte();
+    }
+    
     float getdecimal(long i) {
         if (i < 0 || i >= size)
             return 0;

@@ -248,6 +248,13 @@ class Tamguvector : public TamguObjectLockContainer {
         return values[i]->Long();
     }
     
+    uchar getbyte(long i) {
+        Locking _lock(this);
+        if (i < 0 || i >= values.size())
+            return 0;
+        return values[i]->Byte();
+    }
+    
     short getshort(long i) {
         Locking _lock(this);
         if (i < 0 || i >= values.size()) {
@@ -1541,6 +1548,17 @@ public:
             return 0;
         
         return a->Short();
+    }
+    
+    uchar getbyte(long i) {
+        if (i < 0)
+            return 0;
+        
+        Tamgu* a = values[i];
+        if (a == NULL)
+            return 0;
+        
+        return a->Byte();
     }
     
     Tamgu* Value(Tamgu* a) {

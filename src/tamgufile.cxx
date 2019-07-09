@@ -63,7 +63,7 @@ void Tamgufile::AddMethod(TamguGlobal* global, string name, fileMethod func, uns
     Tamgufile::AddMethod(global, "unget", &Tamgufile::MethodUnget, P_ONE, "unget(int c): return character c in the file.");
     Tamgufile::AddMethod(global, "write", &Tamgufile::MethodWrite, P_ONE, "write(string c): write string s in the file.");
     Tamgufile::AddMethod(global, "writeln", &Tamgufile::MethodWriteln, P_ONE, "writeln(string c): write string s in the file, with a final carriage return.");
-    Tamgufile::AddMethod(global, "writebin", &Tamgufile::MethodWritebin, P_ONE, "writebin(byte c): write one byte to the file.");
+    Tamgufile::AddMethod(global, "writebin", &Tamgufile::MethodWritebin, P_ONE, "writebin(byte c|bvector b): write one byte to the file or the content of a byte vector.");
     Tamgufile::AddMethod(global, "writeutf16", &Tamgufile::MethodWriteutf16, P_ONE | P_TWO, "writeutf16(ustring s, bool addln): write UTF16 characters to the file. when addln is true, works as writeln.");
     Tamgufile::AddMethod(global, "read", &Tamgufile::MethodRead, P_NONE | P_ONE, "read(int nb): read nb characters from the file or all if nb is not supplied.");
     Tamgufile::AddMethod(global, "readline", &Tamgufile::MethodReadoneline, P_NONE, "readline(): read a line from the document.");

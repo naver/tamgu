@@ -203,6 +203,13 @@ class Tamguivector : public TamguLockContainer {
         return (BLONG)values[i];
     }
 
+    uchar getbyte(long i) {
+        Locking _lock(this);
+        if (i < 0 || i >= values.size())
+            return 0;
+        return values[i];
+    }
+
     short getshort(long i) {
         Locking _lock(this);
         if (i < 0 || i >= values.size())
@@ -847,6 +854,12 @@ public:
         return (BLONG)values[i];
     }
     
+    uchar getbyte(long i) {
+        if (i < 0 || i >= values.size())
+            return 0;
+        return (uchar)values[i];
+    }
+
     short getshort(long i) {
         if (i < 0 || i >= values.size())
             return 0;

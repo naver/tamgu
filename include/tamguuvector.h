@@ -262,7 +262,14 @@ class Tamguuvector : public TamguLockContainer {
         _cleanlock(_lock);
         return v;
     }
-    
+
+    uchar getbyte(long i) {
+        Locking _lock(this);
+        if (i < 0 || i >= values.size())
+            return 0;
+        return values[i][0];
+    }
+
     short getshort(long i) {
         Locking* _lock = _getlock(this);
         if (i < 0 || i >= values.size()) {
@@ -889,6 +896,12 @@ public:
             return 0;
         }
         return convertlong(values[i].value());
+    }
+    
+    uchar getbyte(long i) {
+        if (i < 0 || i >= values.size())
+            return 0;
+        return values[i].value()[0];
     }
     
     short getshort(long i) {

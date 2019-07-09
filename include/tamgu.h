@@ -1210,6 +1210,13 @@ public:
 		return v;
 	}
 
+    virtual uchar getbyte(long i) {
+        Tamgu* a = getvalue(i);
+        uchar v = a->Byte();
+        a->Release();
+        return v;
+    }
+    
 	virtual short getshort(long i) {
 		Tamgu* a = getvalue(i);
 		short v = a->Short();

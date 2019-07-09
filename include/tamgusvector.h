@@ -255,6 +255,17 @@ class Tamgusvector : public TamguLockContainer {
         return v;
     }
     
+    uchar getbyte(long i) {
+        Locking* _lock = _getlock(this);
+        if (i < 0 || i >= values.size()) {
+            _cleanlock(_lock);
+            return 0;
+        }
+        uchar vv = values[i][0];
+        _cleanlock(_lock);
+        return vv;
+    }
+
     short getshort(long i) {
         Locking* _lock = _getlock(this);
         if (i < 0 || i >= values.size()) {
@@ -871,40 +882,42 @@ public:
         if (i < 0 || i >= values.size()) {
             return 0;
         }
-        double v = convertfloat(values[i].value());
-        return v;
+        return convertfloat(values[i].value());
     }
     
     long getinteger(long i) {
         if (i < 0 || i >= values.size()) {
             return 0;
         }
-        long v = convertlong(values[i].value());
-        return v;
+        return convertlong(values[i].value());
     }
     
     float getdecimal(long i) {
         if (i < 0 || i >= values.size()) {
             return 0;
         }
-        float v = convertfloat(values[i].value());
-        return v;
+        return convertfloat(values[i].value());
     }
     
     BLONG getlong(long i) {
         if (i < 0 || i >= values.size()) {
             return 0;
         }
-        BLONG v = convertlong(values[i].value());
-        return v;
+        return convertlong(values[i].value());
     }
-    
+
+    uchar getbyte(long i) {
+        if (i < 0 || i >= values.size()) {
+            return 0;
+        }
+        return values[i].value()[0];
+    }
+
     short getshort(long i) {
         if (i < 0 || i >= values.size()) {
             return 0;
         }
-        short vv = convertlong(values[i].value());
-        return vv;
+        return convertlong(values[i].value());
     }
     
         //---------------------------------------------------------------------------------------------------------------------
