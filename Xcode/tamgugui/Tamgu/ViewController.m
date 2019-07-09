@@ -3,8 +3,6 @@
  *
  * Copyright 2019-present NAVER Corp.
  * under BSD 3-clause
- * This file can only be used with the Tamgu (탐구) library or the executable
- * it should not and cannot be used otherwise.
  */
 /* --- CONTENTS ---
  Project    : Tamgu (탐구)
