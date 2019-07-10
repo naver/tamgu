@@ -512,7 +512,9 @@ Tamgu* Tamgustring::MethodParse(Tamgu* contextualpattern, short idthread, TamguC
     x_node* xn;
     
     xr.tokenize(str);
-    
+    if (xr.size() == 0)
+        return Selectavector(contextualpattern);
+
     xn = bnf.x_parsing(&xr, FULL, false);
     string message;
     if (xn == NULL) {

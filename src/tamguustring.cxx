@@ -1530,6 +1530,9 @@ Tamgu* Tamguustring::MethodParse(Tamgu* contextualpattern, short idthread, Tamgu
     
     string str = String();
     xr.tokenize(str);
+    if (xr.size() == 0)
+        return Selectavector(contextualpattern);
+
     xn = bnf.x_parsing(&xr, FULL, false);
     string message;
     if (xn == NULL) {
@@ -3579,6 +3582,9 @@ Tamgu* Tamgua_ustring::MethodParse(Tamgu* contextualpattern, short idthread, Tam
     
     string str = String();
     xr.tokenize(str);
+    if (xr.size() == 0)
+        return Selectavector(contextualpattern);
+
     xn = bnf.x_parsing(&xr, FULL, false);
     string message;
     if (xn == NULL) {

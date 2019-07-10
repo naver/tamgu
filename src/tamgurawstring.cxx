@@ -650,6 +650,8 @@ Tamgu* Tamgurawstring::MethodParse(Tamgu* contextualpattern, short idthread, Tam
     x_node* xn;
     string str = String();
     xr.tokenize(str);
+    if (xr.size() == 0)
+        return Selectavector(contextualpattern);
     
     xn = bnf.x_parsing(&xr, FULL, false);
     string message;

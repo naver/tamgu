@@ -181,7 +181,7 @@ Exporting short TamguCompile(string& codeinit, string filename, bool dsp) {
 			return -1;
 
         xr.tokenize(code);
-        if (!xr.stack.size())
+        if (!xr.size())
             return -1;
         
         bool puredisplay=true;

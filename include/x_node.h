@@ -413,6 +413,10 @@ public:
         operators["¬"]=true;
     }
     
+    long size() {
+        return stack.size();
+    }
+    
     virtual void reset() {
         x_rules::reset();
 

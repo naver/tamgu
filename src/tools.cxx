@@ -1887,8 +1887,14 @@ Exporting An_rules* TamguGlobal::EvaluateRules(string& body, short idthread) {
     bnf_tamgu* previous = currentbnf;
     
     xr.tokenize(body);
-    lineerror = -1;
+    if (xr.size() == 0) {
+        stringstream message;
+        message << "Empry string" << endl;
+        globalTamgu->Returnerror(message.str(), idthread);
+        return NULL;
+    }
     
+    lineerror = -1;
     
     x_node* xn = bnf.x_parsing(&xr, FULL);
     

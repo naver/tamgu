@@ -9270,6 +9270,9 @@ Tamgu* TamguCode::C_token(x_node* xn, Tamgu* kf) {
 //------------------------------------------------------------------------
 
 bool TamguCode::Load(x_reading& xr) {
+    if (xr.size() == 0)
+        return false;
+    
 	short currentspaceid = global->spaceid;
 	bnf_tamgu* previous = global->currentbnf;
     TamguRecordFile(filename, this, global);
@@ -9330,6 +9333,9 @@ bool TamguCode::Compile(string& body) {
 	bnf.baseline = global->linereference;
 
 	xr.tokenize(body);
+    if (!xr.size())
+        return false;
+    
 	global->lineerror = -1;
 
 
@@ -9395,7 +9401,13 @@ Tamgu* TamguCode::Compilefunction(string& body) {
     
     bnf.baseline = global->linereference;
 	xr.tokenize(body);
-    
+    if (xr.size() == 0) {
+        cerr << " in " << filename << endl;
+        stringstream message;
+        message << "Empty body" << endl;
+        return global->Returnerror(message.str(), global->GetThreadid());
+    }
+
 	global->lineerror = -1;
 
 	x_node* xn = bnf.x_parsing(&xr, FULL);
