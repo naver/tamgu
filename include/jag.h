@@ -42,6 +42,11 @@ class jag_editor;
 
 extern jag_editor* JAGEDITOR;
 
+const char tmg_if[] = {'i','f', 0};
+const char tmg_else[] = {'e','l','s','e', 0};
+const char tmg_elif[] = {'e','l','i','f', 0};
+long VirtualIndentation(string& codestr, const char* tmgelse, const char* tmgelif, const char* tmgif);
+
 const char m_current[] = {27, '[', '0', 'm', 0};
 const char m_red[] = {27, '[', '0', ';', '3','1', ';','4','9','m',0};
 const char m_redital[] = {27, '[', '3', ';', '3','1', ';','4','9','m',0};
@@ -189,6 +194,21 @@ public:
     
     long size() {
         return lines.size();
+    }
+    
+    long indent(long p) {
+        long i = p;
+        wchar_t c;
+        while (i >= 0) {
+            c = lines[i][0];
+            if (c != 32 && c!= 9 && c)
+                break;
+            i--;
+        }
+        wstring cd = code(i, p + 1);
+        string ccd;
+        s_unicode_to_utf8(ccd, cd);
+        return VirtualIndentation(ccd, tmg_else, tmg_elif, tmg_if);
     }
     
     long splitline(wstring& l, long linenumber, vector<wstring>& subs);

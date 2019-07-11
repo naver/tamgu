@@ -30,11 +30,6 @@
 #include <iomanip>
 #include "jag.h"
 
-static const char* tmgif = "if";
-static const char* tmgelse = "else";
-static const char* tmgelif = "elif";
-long VirtualIndentation(string& codestr, const char* tmgelse, const char* tmgelif, const char* tmgif);
-
 
 static char* _keywords[] = { "GPSdistance","True", "False","None","def","char","import","double","wstring","Maybe","Nothing","_breakpoint","_dependencies","_erroronkey","_eval","_evalfunction","_exit","_forcelocks","_getdefaulttokenizerules","_info","_initial","_mirrordisplay","_nbthreads","_poolstats","_setenv","_setmaxrange","_setmaxthreads","_setstacksize","_setvalidfeatures","_stdin","_symbols","_threadhandle","_threadid","a_bool","a_change","a_delete","a_features","a_first","a_float","a_fvector","a_insert","a_int","a_ivector","a_longest","a_mapff","a_mapfi","a_mapfs","a_mapfu","a_mapif","a_mapii","a_mapis","a_mapiu","a_mapsf","a_mapsi","a_mapss","a_mapuf","a_mapui","a_mapuu","a_nocase","a_offsets","a_random","a_repetition","a_string","a_surface","a_svector","a_switch","a_ustring","a_uvector","a_vector","a_vowel","abs","absent","acos","acosh","activate","add","addchild","addnext","addprevious","addstyle","after","alert","align","all","allobjects","and","annotate","annotator","any","aopen","append","apply","arc","asin","asinh","ask","assert","asserta","assertz","atan","atanh","attributes","autorun","backgroundcolor","barcolor","base","before","begin","begincomplexpolygon","beginline","beginloop","beginpoints","beginpolygon","binmap","binmapf","binmapi","binmapl","binmaps","binmapu","bit","bitmap","bits","block","blocking","bloop","bool","border","boundaries","bounds","box","boxtype","break","browser","buffersize","build","button","bvector","byte","byteposition","bytes","call","case","cast","catch","cbrt","cell","cellalign","cellalignheadercol","cellalignheaderrow","charposition","check","checklabel","checkword","child","children","choice","chr","circle","clear","close","color","colorbg","colorfg","column","columnchar","columnheader","columnheaderwidth","columnwidth","command","commit","common","compact","compile","compilelexicons","compilergx","concept","connect","const","constmap","constvector","content","continue","copy","cos","cosh","count","counter","create","created","createdirectory","createserver","curl","current","cursor","cursorchar","cursorstyle","curve","cut","cycle","data","date","day","deaccentuate","decimal","decode","default","definitions","degree","delete","dependencies","dependency","deriving","deselect","determinant","dimension","dloop","do","document","dos","dostoutf8","doublemetaphone","drawcolor","drawtext","drop","dropWhile","dthrough","dvector","e_arabic","e_baltic","e_celtic","e_cp1252","e_cyrillic","e_greek","e_hebrew","e_latin_ce","e_latin_ffe","e_latin_ne","e_latin_se","e_latin_see","e_latin_we","e_nordic","e_thai","e_turkish","e_windows","editdistance","editor","elif","else","emoji","emojis","empty","encode","end","endcomplexpolygon","endian","endline","endloop","endpoints","endpolygon","env","eof","erf","erfc","evaluate","even","exclusive","execute","exit","exp","exp2","expm1","exponent","extension","extract","factorize","factors","fail","false","features","fibre","file","filebrowser","fileinfo","fill","filter","find","findall","first","flatten","flip","float","floop","floor","flush","fmatrix","focus","foldl","foldr","font","fontnumber","fontsize","for","format","formatchar","fraction","frame","frameinstance","from","fthrough","function","fvector","gap","get","geterr","getfont","getfontsizes","gethostname","getpeername","getstd","getstyle","gotoline","grammar","grammar_macros","group","hash","hide","highlight","hour","html","hvector","id","if","ifnot","iloop","image","imatrix","in","indent","info","initializefonts","insert","insertbind","int","invert","is","isa","isalpha","isconsonant","iscontainer","isdigit","isdirectory","isemoji","ishangul","isjamo","islower","ismap","isnumber","isprime","ispunctuation","isstring","isupper","isutf8","isvector","isvowel","items","iterator","ithrough","ivector","jamo","join","joined","json","key","keys","kget","label","labelcolor","labelfont","labels","labelsize","labeltype","last","latin","leaves","left","length","let","levenshtein","lexicon","lgamma","line","linebounds","linecharbounds","lineshape","lisp","list","listdirectory","lloop","ln","load","loadgif","loadin","loadjpeg","lock","log","log1p","log2","logb","long","lookdown","lookup","loop","lower","ls","lstep","lthrough","lvector","mantissa","map","mapf","mapff","mapfi","mapfl","mapfs","mapfu","mapi","mapif","mapii","mapis","mapiu","mapl","maplf","mapll","mapls","maplu","mapsf","mapsi","mapsl","mapss","mapu","mapuf","mapui","mapul","mapuu","mark","match","max","maximum","memory","menu","merge","method","methods","mid","min","minimum","minute","mkdir","modal","month","mp3","mthrough","multisplit","multmatrix","name","namespace","nbchildren","nd","nearbyint","new","next","ngrams","node","nope","normalizehangul","not","notin","null","odd","of","ok","onclose","onclosing","ondragdrop","onhscroll","onkey","onmouse","ontime","ontology","onvscroll","open","openappend","openread","openwrite","options","or","ord","otherwise","padding","parameters","parent","parse","password","paste","pause","permute","pie","play","plot","plotcoords","point","polygon","polynomial","ponder","pop","popclip","popfirst","poplast","popmatrix","port","position","post","precede","pred","predicate","predicatedump","predicatevar","preg","previous","primemap","primemapf","primemapff","primemapfi","primemapfl","primemapfs","primemapfu","primemapi","primemapif","primemapii","primemapis","primemapiu","primemapl","primemaplf","primemapll","primemapls","primemaplu","primemapsf","primemapsi","primemapsl","primemapss","primemapu","primemapuf","primemapui","primemapul","primemapuu","print","printerr","printj","printjerr","printjln","printjlnerr","println","printlnerr","private","product","progress","properties","property","protected","proxy","push","pushclip","pushfirst","pushlast","pushmatrix","radian","raise","random","range","rawstring","read","readline","real","realpath","receive","rectangle","rectanglefill","redirectoutput","redraw","redrawing","remove","removefirst","removelast","repeat","replace","replaceall","replicate","reserve","reset","resizable","resize","restateoutput","retract","retractall","return","reverse","rfind","rgbcolor","right","ring","rint","role","romanization","root","ropen","rotate","rotation","round","row","rowheader","rowheaderheight","rowheight","rule","run","save","scale","scan","scanl","scanr","scrollbar","second","seek","select","selection","selectioncolor","self","send","serialize","serializestring","setdate","setstyle","settimeout","short","shortcut","show","shuffle","sibling","signature","simplify","sin","sinh","sisters","size","sizeb","sizerange","sleep","slice","slider","sloop","socket","sort","sortfloat","sortint","sortstring","sortustring","sound","spans","split","splite","sqlite","sqrt","static","step","steps","sthrough","stokenize","stop","store","strict","string","succ","succeed","sum","svector","switch","synode","sys","table","tabs","tags","take","takeWhile","tamgu","tan","tanh","tell","term","test","textcolor","textsize","tgamma","this","thread","time","tohtml","token","tokenize","tokens","tooltip","toxml","trace","transducer","transformdx","transformdy","transformedvertex","transformx","transformy","translate","transpose","treemap","treemapf","treemapff","treemapfi","treemapfl","treemapfs","treemapfu","treemapi","treemapif","treemapii","treemapis","treemapiu","treemapl","treemaplf","treemapll","treemapls","treemaplu","treemapsf","treemapsi","treemapsl","treemapss","treemapu","treemapuf","treemapui","treemapul","treemapuu","treg","trim","trimleft","trimright","true","trunc","try","type","ufile","uloop","unblock","unget","unhighlight","unique","unlink","unlock","unmark","upper","url","use","ustring","utf8","uthrough","uvector","value","values","vector","version","vertex","vthrough","wait","waitonfalse","waitonjoined","weekday","wfile","when","where","while","window","winput","with","wopen","word","words","woutput","wrap","write","writebin","writeln","writeutf16","wtable","xml","xmldoc","xmlstring","xmltype","xor","xpath","year","yearday","zip","zipWith","∏","∑","√","∛","define", "ifdef", "endif", "include", ""};
 
@@ -1523,18 +1518,8 @@ long jag_editor::handlingeditorline(bool computespace) {
         }
     }
     else {
-            //We need to find the first line not starting with a blank...
-        i = pos;
-        wchar_t c;
-        while (i >= 0) {
-            c = lines[i][0];
-            if (c != 32 && c!= 9 && c)
-                break;
-            i--;
-        }
-        wstring cd = lines.code(i, pos+1);
-        string ccd = convert(cd);
-        sp = VirtualIndentation(ccd, tmgelse, tmgelif, tmgif);
+        //We need to find the first line not starting with a blank...
+        sp = lines.indent(pos);
     }
     
     wstring space(sp, spa);
@@ -2394,19 +2379,15 @@ void jag_editor::addabuffer(wstring& b, bool instring) {
         case '}':
         case '(':
             fndchr = true;
-            if (!instring && emode() && b[0] == '}' && line.size() > 4) {
-                long i;
-                for (i = 0; i < line.size(); i++) {
-                    if (line[i] != ' ' && line[i] != '\t')
-                        break;
+            if (!instring && emode() && b[0] == '}') {
+                long sp = lines.indent(pos) - 4;
+                line = Trimleft(line);
+                if (sp > 0) {
+                    wstring space(sp, ' ');
+                    line = space;
+                    line += b;
                 }
-                if (i >= 4 && i == line.size() -1) {
-                    if (line[0] == '\t')
-                        line = line.substr(1, line.size()-1);
-                    else
-                        line = line.substr(4, line.size()-4);
-                    posinstring = line.size();
-                }
+                printline(pos, line);
             }
     }
     
