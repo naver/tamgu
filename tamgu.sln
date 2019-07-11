@@ -57,7 +57,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "liballmaps", "allmaps\libal
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tamgucom", "tamgucom\tamgucom.vcxproj", "{E3DCC37D-97DA-4E22-8207-D23653E3E1AA}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libfltk", "libfltk\libfltk.vcxproj", "{31A0C238-8D7F-4663-A63D-9DC338A767FA}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libgui", "libgui\libgui.vcxproj", "{31A0C238-8D7F-4663-A63D-9DC338A767FA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
