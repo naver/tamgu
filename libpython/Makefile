@@ -11,13 +11,13 @@ OBJECTPYTHON = $(SOURCEPYTHON:%.cxx=$(LOBJPATH)/pytamgu/%.o)
 TamguBASICFLAGS = -w -c -fPIC -O3 -DUNIX $(MULTIGA) $(INTELINT) $(REGEX) $(SPECFLAGS)
 TamguCFLAGS = -std=c99 $(TamguBASICFLAGS)
 TamguFLAGS = $(C++11Flag) $(TamguBASICFLAGS)
-Tamguincludes= -Iinclude -I../include $(INCLUDEPYTHON)
+Tamguincludes=  $(INCLUDEPYTHON) -Iinclude -I../include
 #------------------------------------------------------------
 $(LOBJPATH)/pytamgu/%.o: src/%.cxx
 	$(COMP) -Iinclude $(TamguFLAGS) $(Tamguincludes) $< -o $@
 #------------------------------------------------------------
 pytamgu: install $(OBJECTPYTHON) $(OBJECTTamgu)
-	$(COMPPLUSPLUS) -shared -o $(LBINPATH)/pytamgu.so $(OBJECTPYTHON) $(SYSTEMSPATH) $(PYTHONLIB) $(LIBREGEX) -L$(LBINPATH) -ltamgu
+	$(COMPPLUSPLUS) -shared -o $(LBINPATH)/pytamgu.so $(OBJECTPYTHON) $(SYSTEMSPATH) $(LIBREGEX) -L$(LBINPATH) -ltamgu -l$(PYTHONLIB)
 
 install:
 	mkdir -p $(LOBJPATH)/pytamgu

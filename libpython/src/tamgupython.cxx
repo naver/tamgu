@@ -80,7 +80,7 @@ short Tamgupython::idtype = 0;
 //------------------------------------------------------------------------------------------------------------------
 //If you want to implement an external library... Otherwise remove it...
 extern "C" {
-	Exporting bool python_InitialisationModule(TamguGlobal* global, string version) {
+	Exporting bool pytamgu_InitialisationModule(TamguGlobal* global, string version) {
 		if (version != TamguVersion())
 			return false;
 
@@ -656,5 +656,4 @@ extern "C" {
 	}
 #endif
 }
-
 

@@ -31,7 +31,7 @@ def displayhelp(s):
     print(" -pathregex path: Path to regex include files")
     print(" -pathpython path: Path to Python include files")
     print(" -pythonversion name: Python version (example: 2.7 or 3.6)")
-    print(" -withfltk: Compile with GUI support")
+    print(" -withgui: Compile with GUI support")
     print(" -pathfltk path: path to GUI libraries (if you have a specific version of fltk1.3 in a different directory than /usr/lib)")
     print(" -withfastint: Compile with fast int")
     print(" -intel: Compile with Intel Intrinsics instruction to speed up string conversion and string search. It impacts 'conversion.cxx' compiling...")
@@ -49,7 +49,7 @@ selectstatic = False
 withsound=False
 gccversion=False
 noregex=False
-withfltk=False
+withgui=False
 withfastint=False
 regexpath=""
 compilejava=False
@@ -91,8 +91,8 @@ while i < len(sys.argv):
         gccversion=True
     elif sys.argv[i]=="-noregex":
         noregex=True
-    elif sys.argv[i]=="-withfltk":
-        withfltk=True
+    elif sys.argv[i]=="-withgui":
+        withgui=True
     elif sys.argv[i]=="-withfastint":
         withfastint=True
     elif sys.argv[i]=="-help":
@@ -163,8 +163,8 @@ libs: install
         compilelibs += "\t$(MAKE) -C libsound sound\n"
         incpath += " -Iinclude/macos/ao"
 
-    if withfltk:
-        compilelibs += "\t$(MAKE) -C libfltk all\n"
+    if withgui:
+        compilelibs += "\t$(MAKE) -C libgui all\n"
         incpath += " -Iinclude/macos/fltk"
 
     incpath += "\n"
@@ -190,7 +190,7 @@ libs: install
     f.write("SYSTEMSPATH = -Llibs/macos -L../libs/macos\n")
     f.write("TAMGUCONSOLENAME = tamgu\n")
 
-    if withfltk:
+    if withgui:
         f.write("FLTKLIBS=-Llibs/macos -lfltk -lfltk_images\n")
         f.write("JPEGLIB = -lfltk_jpeg\n\n")
 
@@ -404,20 +404,20 @@ if len(v)!=0:
     print("--------------------------------")
     print('')
     print("Missing libraries:", v)
-    if "libfltk" in v or withfltk==False:
+    if "libfltk" in v or withgui==False:
         print('')
         print("Sorry tamgu will have no GUI functionalities. Install FLTK package for GUI features...")
-        withfltk=False
+        withgui=False
 
-if withfltk:
+if withgui:
     f.write(sourcegui)
-    compilelibs += "	$(MAKE) -C libfltk all\n"
+    compilelibs += "	$(MAKE) -C libgui all\n"
 
 ############################
 if pythonpath!=None:
     f.write("\n\n#Python support to compile tamgu python library: 'pytamgu'\n")
     f.write("INCLUDEPYTHON = -I"+pythonpath+"\n")
-    f.write("PYTHONLIB = \n")
+    f.write("PYTHONLIB = "+pythonversion+"\n")
     print('')
     print("You can compile the pytamgu library (tamgu python library)")
     print('')
@@ -426,13 +426,13 @@ elif pythonversion not in v:
     for (dirpath, dirnames, filenames) in walk("/usr/include"):
         if pythonversion in dirnames:
             f.write("INCLUDEPYTHON = -I/usr/include/"+pythonversion+"\n")
-            f.write("PYTHONLIB = \n")
+            f.write("PYTHONLIB = "+pythonversion+"\n")
             print('')
             print("You can compile the pytamgu library (tamgu python library)")
             print('')
         else:
             f.write("INCLUDEPYTHON = \n")
-            f.write("PYTHONLIB = \n")
+            f.write("PYTHONLIB = "+pythonversion+"\n")
             print('')
             print("Could not find python 2.7 include and library paths. ")
             print("Modify 'INCLUDEPYTHON' and 'PYTHONLIB' in Makefile.in if you want to compile pytamgu (the tamgu python library)")
