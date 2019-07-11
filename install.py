@@ -216,7 +216,8 @@ if guipath != None:
     sourcegui = "GUIPATH=-L"+guipath+"\nFLTKX11LIBS = -lXext -lXft -lXinerama -lX11 -lfontconfig -lXfixes -lXcursor\n"
 
 v=['libfltk', 'libfltk_images', 'libfltk_jpeg', 'libcurl', 'libboost_regex', 'libxml2', 'libssl',
-'libsqlite3', 'libmpg123', 'libao', 'libsndfile', 'libldap','libcrypto','libldap', 'libgmp', pythonversion, "libXext", "libXrender", "libXft", "libXinerama", "libX11", "libfontconfig", "libXfixes", "libXcursor"]
+'libsqlite3', 'libmpg123', 'libao', 'libsndfile', 'libldap','libcrypto','libldap', 'libgmp', "lib"+pythonversion, 
+"libXext", "libXrender", "libXft", "libXinerama", "libX11", "libfontconfig", "libXfixes", "libXcursor"]
 
 def traverse(libpath):
     for (dirpath, dirnames, filenames) in walk(libpath):
@@ -417,7 +418,7 @@ if withgui:
 if pythonpath!=None:
     f.write("\n\n#Python support to compile tamgu python library: 'pytamgu'\n")
     f.write("INCLUDEPYTHON = -I"+pythonpath+"\n")
-    f.write("PYTHONLIB = "+pythonversion+"\n")
+    f.write("PYTHONLIB = -l"+pythonversion+"\n")
     print('')
     print("You can compile the pytamgu library (tamgu python library)")
     print('')
@@ -426,13 +427,13 @@ elif pythonversion not in v:
     for (dirpath, dirnames, filenames) in walk("/usr/include"):
         if pythonversion in dirnames:
             f.write("INCLUDEPYTHON = -I/usr/include/"+pythonversion+"\n")
-            f.write("PYTHONLIB = "+pythonversion+"\n")
+            f.write("PYTHONLIB = -l"+pythonversion+"\n")
             print('')
             print("You can compile the pytamgu library (tamgu python library)")
             print('')
         else:
             f.write("INCLUDEPYTHON = \n")
-            f.write("PYTHONLIB = "+pythonversion+"\n")
+            f.write("PYTHONLIB = -l"+pythonversion+"\n")
             print('')
             print("Could not find python 2.7 include and library paths. ")
             print("Modify 'INCLUDEPYTHON' and 'PYTHONLIB' in Makefile.in if you want to compile pytamgu (the tamgu python library)")

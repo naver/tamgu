@@ -17,7 +17,7 @@ $(LOBJPATH)/pytamgu/%.o: src/%.cxx
 	$(COMP) -Iinclude $(TamguFLAGS) $(Tamguincludes) $< -o $@
 #------------------------------------------------------------
 pytamgu: install $(OBJECTPYTHON) $(OBJECTTamgu)
-	$(COMPPLUSPLUS) -shared -o $(LBINPATH)/pytamgu.so $(OBJECTPYTHON) $(SYSTEMSPATH) $(LIBREGEX) -L$(LBINPATH) -ltamgu -l$(PYTHONLIB)
+	$(COMPPLUSPLUS) -shared -o $(LBINPATH)/pytamgu.so $(OBJECTPYTHON) $(SYSTEMSPATH) $(PYTHONLIB) $(LIBREGEX) -L$(LBINPATH) -ltamgu
 
 install:
 	mkdir -p $(LOBJPATH)/pytamgu
