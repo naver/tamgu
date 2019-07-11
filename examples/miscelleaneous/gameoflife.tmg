@@ -4,7 +4,7 @@ Author: Claude Roux
 Description: Game of life
 @/
 
-use("fltk");
+use("gui");
 use("allmaps");
 
 vector points;
@@ -40,7 +40,7 @@ function Create(self im,self actions,int i, int j, int er) {
         im[i][j]=2;
         return(true);
     }
-    
+
     //on ne fait rien
     return false;
 }
@@ -53,7 +53,7 @@ function Destroy(self im,self actions, int i, int j) {
     nb--;
 
     <Create(im,actions,i+ii,j+jj,i) | ii ← bloc, jj ← bloc, int x=im[i+ii][j+jj], x==0>;
-    
+
     //If we have more than 3 neighbours or less than 2, the current element dies...
     if (nb <2 or nb>3) {
         actions.push([i,j,1]);
@@ -67,9 +67,9 @@ function Destroy(self im,self actions, int i, int j) {
 
 function Compute() {
     self e;
-    
+
     int i,j;
-    
+
     binmap im;
 
     for (e in points) {
@@ -86,7 +86,7 @@ function Compute() {
             Destroy(im,actions,i,j);
         }
     }
-    
+
     for (e in actions) {
         if (e[2]==2) {
             im[e[0]][e[1]]=1;
@@ -95,7 +95,7 @@ function Compute() {
             im[e[0]][e[1]]=0;
         }
     }
-    
+
     points=[];
     for (i in im) {
         for (j in im[i]) {
@@ -114,7 +114,7 @@ function Draw(window w, self e) {
     w.drawcolor(FL_BLACK);
     o.value(maxloop);
 
-    
+
     int i,x,y, xp, yp;
     for (i in <points>) {
         xp = points[i][0];
@@ -123,7 +123,7 @@ function Draw(window w, self e) {
         y=400+(yp-50)<<2;
         w.rectanglefill(x,y,4,4,FL_BLUE);
     }
-    
+
     Compute();
     //println(maxloop,_poolstats(), points.size());
     if (maxloop==1000) {
@@ -144,17 +144,6 @@ o.create(900,30,50,30,false,'nb:');
 w.redrawing(0.05);
 w.end();
 w.run();
-
-
-
-
-
-
-
-
-
-
-
 
 
 

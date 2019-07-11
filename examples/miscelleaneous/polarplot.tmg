@@ -1,4 +1,4 @@
-use("fltk");
+use("gui");
 
 //Ces deux variables ci-dessous gardent la trace de la taille de l'écran
 int maxx=1000;
@@ -16,7 +16,7 @@ function dessine(window f) {
 
     //Voici un deux tableaux ne contenant que des décimaux, d'où le pluriel
     vector lesxy=<[x,y] | t <- [0,0.005..2π], let ρ=equation(t), let x=ρ×t.cos(),let y=ρ×t.sin()>;
-       
+
     //Couleur rouge
     f.drawcolor(FL_RED);
     //Cette méthode calcule automatiquement en function de l'aire de la window les dimensions idéales pour que tous les points apparaissent à l'écran...
@@ -39,7 +39,7 @@ function dessin(window f,self o) {
         if (inca<3)
             sense=true;
     }
-    
+
     f.drawcolor(FL_BLACK);
     dessine(f);
 }
@@ -70,6 +70,7 @@ Incb.create(350,maxy-50,200,20,true,FL_HOR_SLIDER,"incb");
 Incb.bounds(-1000,1000);
 f.end();
 f.run();
+
 
 
 

@@ -1,4 +1,4 @@
-use("fltk");
+use("gui");
 use("allmaps");
 
 int maxx=900,maxy=900;
@@ -27,7 +27,7 @@ frame positions {
         string chaine=x+":"+ix+","+y+":"+iy;
         return chaine;
     }
-    
+
     function _initial(int xx,int yy) {
         x=xx;
         kill=false;
@@ -81,7 +81,7 @@ frame positions {
             return;
 
         //depuis.value(idx);
-        
+
         lock("dessine");
         if (idx!=0) {
             int x0=lesoiseaux[0].X();
@@ -118,10 +118,10 @@ frame positions {
             }
         }
         unlock("dessine");
-        
+
         x+=ix;
         y+=iy;
-        
+
         if (x>=maxx) {
             ix = -random(10)-1;
             if (ix==0)
@@ -156,9 +156,9 @@ frame positions {
 int cpt=11;
 
 thread bouge(window f,positions oiseau) {
-   
+
     while (true) {
-        
+
         if (oiseau.killed())
             return;
 
@@ -170,7 +170,7 @@ thread bouge(window f,positions oiseau) {
             cpt=0;
         }
         else
-            cpt++;        
+            cpt++;
     }
 }
 
@@ -253,6 +253,7 @@ prêt=true;
 //Rajouter();
 
 wnd.run();
+
 
 
 

@@ -1,4 +1,4 @@
-use("fltk");
+use("gui");
 
 //These two variables keep track of the screen size
 
@@ -65,6 +65,7 @@ f.begin(50,50,maxx,maxy,"Koch Snowflake");
 f.redrawing(0.01);
 f.end();
 f.run();
+
 
 
 

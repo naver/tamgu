@@ -1,4 +1,4 @@
-use('fltk');
+use('gui');
 
 //The initial configuration... All disks are on the left column
 map columns={'left':[90,70,50,30,10],'centre':[],'right':[]};
@@ -89,4 +89,5 @@ b.create(20,20,60,30,FL_Regular,FL_NORMAL_BUTTON ,"Launch");
 
 w.end();
 w.run();
+
 

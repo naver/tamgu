@@ -1,7 +1,7 @@
 //Ce programme sert à produire des bitmaps à partir d'un dessin fait par l'utilisateur à la souris.
 
 //Les dimensions de l'image... 64x64 (vous pouvez augmenter ces values bien sûr, il faut que ces dimensions soient divisables par 8)
-use('fltk');
+use('gui');
 int dx=88,dy=88;
 int iconesize=(dx×dy)>>3;
 
@@ -463,6 +463,7 @@ bcercle.bitmap(btcercle,FL_RED);
 
 f.end();
 f.run();
+
 
 
 
