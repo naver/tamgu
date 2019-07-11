@@ -2569,6 +2569,7 @@ bool TamguCode::Loadlibrary(string n, string& library_name) {
     }
 
     LoadMe = dlopen(lname, RTLD_LAZY);
+    string baselib;
     if (LoadMe == NULL) {
         string atanlib;
         if (Getenv("TAMGULIBS") != NULL)
@@ -2607,8 +2608,10 @@ bool TamguCode::Loadlibrary(string n, string& library_name) {
         ldlibpath = atanlib + ldlibpath;
         setenv("PATH", ldlibpath.c_str(), 1);
         
+        if (atanlib.back() != '/')
+            atanlib += "/";
         
-        atanlib += "/";
+        baselib = atanlib;
         atanlib += basename;
         atanlib = NormalizeFileName(atanlib);
         library_name = atanlib;
@@ -2616,6 +2619,14 @@ bool TamguCode::Loadlibrary(string n, string& library_name) {
     }
     
     // Check to see if the library was loaded successfully
+    
+    if (LoadMe == NULL) {
+        //We try without lib in the name
+        baselib += n;
+        if (addso)
+            baselib += ".so";
+        LoadMe = dlopen(STR(baselib), RTLD_LAZY);
+    }
     
     if (LoadMe == NULL) {
         error = dlerror();
