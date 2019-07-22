@@ -1,6 +1,6 @@
 # TAMGU (탐구): A FIL Language
 
-TAMGU is a FIL programming language: __Functional, Imperative and Logical__. 
+TAMGU is a __FIL__ programming language: __Functional, Imperative and Logical__. 
 
 TAMGU is a _multithreaded programming language_ that provides: 
 
