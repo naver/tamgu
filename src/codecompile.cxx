@@ -3595,7 +3595,7 @@ Tamgu* TamguCode::C_intentionwithdouble(x_node* xn, Tamgu* kf) {
 Tamgu* TamguCode::C_valvector(x_node* xn, Tamgu* kf) {
 	int i;
 
-	if (!compilemode) {
+	if (!compilemode && kf->Type() != a_taskellinstruction) {
 		Tamguvector* kvect = new Tamguvector(NULL, kf);
 		for (i = 0; i < xn->nodes.size(); i++) {
 			if (xn->nodes[i]->nodes.size() == 1)

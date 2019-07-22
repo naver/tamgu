@@ -6,6 +6,14 @@ This problem is at the heart of most Artificial Intelligence teams around the wo
 
 ## Tamgu (탐구)
 
+La solution est ce que Christopher Ré (PR à Standford) a appelé le Data Programming (voir Snorkel). Le Data Programming permet de palier à la carence en corpora annotés dont le Machine Learning a tant besoin pour entrainer ses modèles.
+Tamgu est une réponse à ce problème. Sous la forme d'un langage de programmation moderne, alliant la programmation impérative à la programmation fonctionnelle et la programmation logique, il vous offre les outils et les libraries dont vous avez besoin pour construire de larges corpora taillé sur mesure.
+
+Tamgu est le résultat d'une longue réflexion de chercheurs en Machine Learning, d'une quête pour disposer d'un outil riche et souple pour entraîner des algorithmes avec les données nécessaires.
+D'ailleurs, Tamgu en coréen signifie cela: quête, exploration. Vingt ans de quête, d'exploration, pour parvenir à définir un langage qui simplifie la manipulation de données textuels. 
+Comme de nombreux chercheurs, j'ai souvent eu l'occasion de me confronter à des langages de programmation comme C++ ou Python pour manipuler ce type de données.  Qui n'a été au moins une fois confronté à des erreurs d'encodage ou à la difficulté d'utiliser des patterns complexes comprendra de quoi je parle.
+
+Lorsque j'ai conçu Tamgu, j'ai voulu intégrer dans  
 In Korean, _탐구_ (tamgu) means _quest, research, exploration_.  
 
 The language has been designed to simplify the creation of new corpora.

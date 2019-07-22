@@ -1619,7 +1619,7 @@ Tamgu* Tamguannotator::MethodApply(Tamgu* contextualpattern, short idthread, Tam
                                     context->wordTolemma[wrd].push_back(lemma);
                             }
                             for (w=2; w<sz; w++) {
-                                feat=subvect->getustring(i);
+                                feat=subvect->getustring(w);
                                 context->labels[feat][wrd]=true;
                             }
                         }
