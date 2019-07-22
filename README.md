@@ -15,6 +15,7 @@ TAMGU provides also an annotation language implementation (see below for an exam
 
 The language provides many features but also many libraries, which helps design and implement annotation schemes for complex documents.
 
+## Pre-compiled Releases
 __Note__: _Releases_ for Windows, Mac OS and Linux are available at: https://github.com/naver/tamgu/releases
 
 ## Example of code
