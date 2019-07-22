@@ -10,7 +10,7 @@ TAMGU is a _multithreaded programming language_ that provides:
 
 _For each specific problem in your programming, choose the most appropriate formalism and freely mix functional, imperative and logical approaches to implement the most expressive but also the most compact code possible._
 
-## Annotation
+### Annotation
 TAMGU provides also an annotation language implementation (see below for an example), which allows for an efficient way to detect complex patterns in text. 
 
 The language provides many features but also many libraries, which helps design and implement annotation schemes for complex documents.
