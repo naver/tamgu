@@ -1,11 +1,21 @@
-# TAMGU (탐구)
+# TAMGU (탐구): A FIL Language
 
+TAMGU is a __FIL__ programming language: __Functional, Imperative and Logical__. 
+
+TAMGU is a _multithreaded programming language_ that provides: 
+
+* an _imperative_ formalism close to Python, but with a strong and powerful type system. 
+* a _functional_ formalism inspired by Haskell, which can freely mix with the _imperative_ paradigm
+* a _logical_ formalism inspired by Prolog, which can freely mix with the _imperative_ and _functional_ paradigms
+
+_For each specific problem in your programming, choose the most appropriate formalism and freely mix functional, imperative and logical approaches to implement the most expressive but also the most compact code possible._
+
+### Annotation
 TAMGU provides also an annotation language implementation (see below for an example), which allows for an efficient way to detect complex patterns in text. 
-
-TAMGU is a _multithreaded programming language_ that mixes in one single formalism an _imperative language_, a _functional language_ (close to Haskel) and a _logic programming language_ (à la Prolog). 
 
 The language provides many features but also many libraries, which helps design and implement annotation schemes for complex documents.
 
+## Pre-compiled Releases
 __Note__: _Releases_ for Windows, Mac OS and Linux are available at: https://github.com/naver/tamgu/releases
 
 ## Example of code
