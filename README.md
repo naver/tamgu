@@ -28,15 +28,12 @@ Below is an example of the kind of code that you can implement with _Tamgu_.
 
 int i=10;
 string s="20";
-
-s+=i; //s is now 2010
-i+=s; //i is now 30 (automatic conversion of a type into another)
 ------------------------------------------------------------------------------------
 //Containers
 
-map m; //all sorts of containers
-treemap t;
-vector v;
+map m = {'a':1, 'b':2}; //all sorts of containers
+treemap t = {"u":10, 'v':'toto'};
+vector v = [1..10];
 ------------------------------------------------------------------------------------
 //Functions, threads and frames
 
