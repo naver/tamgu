@@ -4758,6 +4758,17 @@ Tamgu* TamguCode::C_blocs(x_node* xn, Tamgu* kf) {
 							global->predicates[id] = new TamguPredicateFunction(global, NULL, id);
 					}
 				}
+                if (nsub->nodes.size() && nsub->nodes[0]->token == "hdata") {//Taskell data declaration
+                    try {
+                        Traverse(nsub->nodes[0], kf);
+                    }
+                    catch (TamguRaiseError* m) {
+                        throw m;
+                    }
+                    
+                    //We then mark the structure as having been consummed already
+                    nsub->nodes[0]->value = "$";
+                }
 				continue;
 			}
 
@@ -5672,6 +5683,10 @@ Tamgu* TamguCode::C_taskellbasic(x_node* xn, Tamgu* kf) {
 
 Tamgu* TamguCode::C_hdata(x_node* xn, Tamgu* kf) {
 	//we create a frame, whose name is the value of that data structure...
+    //The structure has already been analyzed...
+    if (xn->value == "$")
+        return kf;
+    
 	string name = xn->nodes[0]->value;
 	short idname = global->Getid(name);
 
