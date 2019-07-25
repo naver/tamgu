@@ -33,7 +33,9 @@ string s="20";
 
 map m = {'a':1, 'b':2}; //all sorts of containers
 treemap t = {"u":10, 'v':'toto'};
-vector v = [1..10];
+vector v = [1,2,3,"a","b"];
+ivector iv = [1..10]; //iv = [1,2,3,4,5,6,7,8,9,10]
+iv = [1,3..10]; //iv = [1,3,5,9]
 ------------------------------------------------------------------------------------
 //Functions, threads and frames
 
