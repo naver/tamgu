@@ -40,7 +40,7 @@
 #include "tamgutaskell.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 0.96.2 build 79";
+const char* tamgu_version = "Tamgu 0.96.3 build 01";
 
 Tamgu* booleantamgu[2];
 
@@ -1924,11 +1924,13 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("post"); //198
     Createid("fibre"); //199
     Createid("tam_booleanxor"); //200
+    Createid("push"); //201
 
     //This is a simple hack to handle "length" a typical Haskell operator as "size"...
     //Note that there will be a useless index
-    Createid("length");
+    Createid("length"); 
     symbolIds["length"] = a_size;
+
 
     dependenciesvariable[a_modifydependency] = a_modifydependency;
 

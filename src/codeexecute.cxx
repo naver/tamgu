@@ -454,7 +454,7 @@ Tamgu* TamguIndex::Get(Tamgu* localidx, Tamgu* obj, short idthread) {
 
 	if (kidx != NULL) {
 		if (klocal == aNOELEMENT) {
-			if (!obj->isValueContainer() && kidx->Name() == globalTamgu->Getid("push")) {
+			if (!obj->isValueContainer() && kidx->Name() == a_push) {
 				//if it is not a value container, then it can contain a vector...
 				klocal = globalTamgu->Providevector();
 				localidx = Evaluate(idthread);

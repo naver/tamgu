@@ -169,6 +169,10 @@ public:
     wstring code(long first, long end) {
         wstring c;
         bool rc = false;
+        if (first < 0)
+            first = 0;
+        if (end < lines.size())
+            end = lines.size();
         for (long i = first; i < end; i++) {
             if (status[i] != concat_line) {
                 if (rc) {

@@ -340,7 +340,7 @@ typedef enum{
 	a_if, a_try, a_switch, a_while, a_for, a_catchbloc, a_booleanand, a_booleanor, a_taskell, a_forcedaffectation,
 	a_square, a_cube, a_counter, a_synode, 
 	a_modifydependency, a_actionvariable, a_taskelldeclaration, a_drop,  a_concept, a_negation, a_taskellinstruction, a_methods,
-    a_treg, a_table, a_ifnot, a_Nothing, a_preg, a_rules, a_iftaskell, a_casetaskell, a_size, a_post, a_fibre, a_booleanxor
+    a_treg, a_table, a_ifnot, a_Nothing, a_preg, a_rules, a_iftaskell, a_casetaskell, a_size, a_post, a_fibre, a_booleanxor, a_push
 } tamgubasictypes;
 
 inline bool Isnumber(short a) {
