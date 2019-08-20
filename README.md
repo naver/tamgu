@@ -83,9 +83,9 @@ The documentation is in : **docs/tamgu.pdf**
 
 The TAMGU project has been implemented in C++. It can be compiled on most platforms:
 
-* Windows                       see https://github.com/naver/tamgu/wiki/1.1-Compiling-on-Windows
-* Mac OS                        see https://github.com/naver/tamgu/wiki/1.2-Compiling-on-Mac-OS
-* Linux                         see https://github.com/naver/tamgu/wiki/1.3-Compiling-on-Linux
+* Windows: see https://github.com/naver/tamgu/wiki/1.1-Compiling-on-Windows
+* Mac OS: see https://github.com/naver/tamgu/wiki/1.2-Compiling-on-Mac-OS
+* Linux: see https://github.com/naver/tamgu/wiki/1.3-Compiling-on-Linux
 
 ### Libraries
 Tamgu also provides different libraries:
