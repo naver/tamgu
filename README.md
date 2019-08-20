@@ -125,7 +125,7 @@ Compiling libraries: https://github.com/naver/tamgu/wiki/1.4-Compiling-libraries
 ### Python
 Furthermore, Tamgu provides a bi-directional library, which can be used to execute Tamgu code from Python (and conversely, Python code in Tamgu)
 
-See: https://github.com/naver/tamgu/wiki/1.4-Compiling-libraries-(Linux-&-Mac-OS) for more information
+See: https://github.com/naver/tamgu/wiki/1.5-Compiling-Python for more information
 
 ## License
 
