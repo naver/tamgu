@@ -1,231 +1,118 @@
-# Programmation des données
+# TAMGU
 
-Aujourd'hui, grâce aux algorithmes de Machine Learning, la reconnaissance vocale ou la traduction automatique sont entrées dans la vie de millions de gens. Hélas, pour que ces algorithmes puissent fonctionner de façon optimale, il faut leur fournir des données annotées, beaucoup de données annotées et structurées. 
-
+Aujourd'hui, grâce aux algorithmes d'Apprentissage Machine, la reconnaissance vocale ou la traduction automatique sont entrées dans la vie de millions de gens. Hélas, pour que ces algorithmes puissent fonctionner de façon optimale, il faut leur fournir des données annotées, beaucoup de données annotées et structurées.
 Ce problème est au coeur de la plupart des équipes d'Intelligence Artificielle à la travers le monde. Comment disposer de suffisamment de données pour entrainer des modèles efficaces et fiables d'apprentissage machine ?
+ 
+L’une des solutions est de générer ces corpus automatiquement grâce à des outils sur mesure. Christopher Ré (PR à Stanford) a d’ailleurs donné un nom à cette approche: le Data Programming. On oppose désormais les corpus annotés à la main par des êtres humains aux corpus créés semi-automatiquement part des moyens artificiels: Gold Standards vs Silver Standards. 
+Si le groupe de Christopher Ré a produit quant à lui son propre ensemble d’outils (Snorkel), nous avons quant à nous décidé d’adresser ce problème sous un angle très différent. 
 
-## Tamgu (탐구)
+## Grammaires formelles
 
-En coréen, _탐구_  (tamgu) signifie _quête, recherche, exploration_.  
+Mon principal axe de recherche depuis le début de mes études est le domaine des grammaires formelles. Pendant de nombreuses années, j’ai participé à la construction d’un moteur de règles qui a été largement utilisé dans des campagnes d’évaluation ou encore des projets européens et français. Mais, le monde de la recherche étant ce qu’il est, ces méthodes dites symboliques ont peu à peu perdu de leur intérêt au bénéfice d’approches statistiques. Jusqu’à l’arrivée du Data Programming. Par un étrange paradoxe, si les règles linguistiques du passé ont perdu de leur lustre, le Data Programming leur a donné une nouvelle jeunesse. Car détecter des patterns de mots, c’est appliquer des règles linguistiques, certes beaucoup plus pauvres que celles que nous manipulions il y a 10 ans. Mon expérience dans la fabrication de moteur de règles a trouvé là un nouvel espace d’étude. En revanche, cette fois, au lieu d’un outil spécialisé, j’ai décidé de créer un langage de programmation le plus ouvert possible, offrant tout ce qu’un langage moderne se doit d’offrir avec une gestion intégrée de règles lexicales puissantes.
 
-Le langage a été conçu pour simplifier la création de nouveaux corpus.
+## Tamgu
 
-D'abord, Tamgu est un langage moderne qui combine en un seul formalisme, la programmation impérative, fonctionnelle et logique. 
+Tamgu est né de ces réflexions. Il est aussi né de mes discussions avec les gens du monde de l'Apprentissage Machine pour identifier les problèmes les plus fréquents et la façon de les résoudre. En quelques mots, de façon très simplifiée, l'Apprentissage Machine a besoin de corpus annotés dans lesquels des patterns récurrents de mots sont identifiés et étiquetés. Il a encore besoin de corpus synthétiques dans lesquels des données textuelles sont générées en suivant des grammaires spécifiques. En particulier, en traduction automatique, il peut être très intéressant de disposer de corpus bruités, des corpus où l’on introduit de façon artificielle des erreurs connues de façon à ce que le modèle puisse apprendre à les reconnaitre et à les traduire correctement.
 
-* Programmation impérative: multithreaded, proche de Python dans l'esprit mais avec un typage explicite des variables, Tamgu vous offre tout l'éventail d'un langage de programmation riche et concis.
+### FIL
 
-* Programmation fonctionnelle: inspirée de Haskell, Tamgu vous permet de construire des lambda-fonctions extrêmement compactes.
+Ainsi donc, un tel langage doit à la fois fournir de quoi annoter un corpus, mais aussi de quoi générer de nouveaux textes, le tout en offrant l’éventail le plus riche possible d’instructions en tout genre pour éviter de restreindre l’utilisateur dans son travail.
 
-* Programmation logique: inspirée de Prolog, Tamgu vous permet de construire des routines logiques que vous pouvez intégrer dans votre code.
+Tamgu est un langage moderne qui appartient à une classe particulière de langages de programmation: les langages FIL: Fonctionnel, Impératif et Logique.
 
-L'interopérabilité est totale. Un vecteur Tamgu reste le même vecteur qu'il soit utilisé en programmation fonctionnelle ou logique.
+La majorité des langages sont aujourd’hui sont des langages IF, Impératif avec une touche de Fonctionnel comme peuvent l’être Kotlin ou Swift. D’autres sont franchement fonctionnels comme  Haskell ou Lisp. Enfin, certains sont purement Logiques comme Prolog.
 
-## Bibliothèques
+### Fonctionnel
 
-Tamgu est écrit en C++. Le langage est conçu de telle façon qu'il est très simple de créer de nouvelles bibliothèques. 
-
-D'ailleurs, Tamgu vient déjà avec de nombreuses bibliothèques, telles que cURL (pour manipuler des pages Web), SQLite (pour manipuler des base de données), FLTK (pour gérer des interfaces graphiques) ou AO et SNDFILE (pour jouer des fichiers audio).
-
-Tamgu fournit aussi un outil pour vous permettre de créer rapidement de nouvelles bibliothèques, de façon à enrichir le langage avec vos propres algorithmes.
-
-## Règles et Lexiques
-
-Tamgu offre aussi la possibilité de créer des lexiques sous la forme de transducteur pouvant contenir des millions de mots aussi bien pour les langues occidentales que les langues asiatiques.
-
-Ces lexiques peuvent être combinées avec des règles quasi-syntaxiques qui peuvent être rajoutées dans le code de façon transparente. Encore une fois l'interopérabilité est maintenue. Grâce à ces règles vous pouvez facilement isoler des motifs récurrents dans vos textes, afin de les annoter automatiquement.
-
-### Apprentissage machine
-
-Tamgu offre aussi quelques bibliothèques d'apprentissage machine pour manipuler des embeddings ou pour appliquer des classificateurs ou des CRFs sur vos données. Ainsi, les règles ci-dessus peuvent par exemple intégrer des capsules basées sur les embeddings pour isoler des mots proches.
-
-## Corpus bruité
-
-Tamgu permet de créer des corpus sur mesure pour vos modèles d'apprentissage. Ainsi, dans le cadre de la campagne d'évaluation en traduction automatique: WMT 2019, nous avons utilisé Tamgu pour construire un corpus bruité. Dans un premier temps, nous avons repéré automatiquement des mots mal écrit dans un corpus de commentaires, en utilisant un lexique du français. Puis nous avons pris un corpus propre et nous avons remplacé automatiquement certains mots par leur versions erronées que nous avions isolés au préalable.
-
-
-# Exemples
-
-La programmation de base en Tamgu n'est pas difficile. Nous avons essayé de garder un formalisme proche de celui dont les gens ont l'habitude. Cepandant, il faut noter que le langage impose un typage explicite comme en Java ou en C, tout en offrant de nombreuses conversions implicites entre les types. 
+Or le choix d’un langage FIL pose des problèmes particuliers d’interopérabilité. Pourtant, il suffit d’examiner les objets utilisés par toutes ces approches pour découvrir un point commun: ils manipulent peu ou prou les mêmes objets: des nombres, des chaines de caractères et des conteneurs. Aussi, je me suis librement inspiré de Haskell pour la partie fonctionnelle, qui s’est révélé le langage idéal pour écrire des lambdas fonctions compactes et efficaces. Je l’ai adapté en autorisant par exemple le langage à manipuler directement des dictionnaires Tamgu (des maps) ou encore à itérer sur des variables extérieures.
 
 ```C++
 
-int i=10;
-string s='20';
+//Nous créons: [1,2,3,4,5,6,7,8,9,10] 
+vector v = [1..10];
 
-s+=i; //s is now 2010
-i+=s; //i is now 30 (automatic conversion of a type into another)
-
-vector v=[1,2,3,4,5,6];
-
-s =  v; //s is now "[1,2,3,4,5,6]"
-
-vector vv = s; // s is converted back into a vector which is stored in vv.
+//Le ‘<...>’ identifie une expression Haskell
+vector vv = <map (+1) v>; //Nous ajoutons 1 à chaque élément
 
 ```
-Le langage offre de nombreux types de conteneurs, dictionnaires, vecteurs. Il offre aussi la possibilité de créer des classes et leurs dérivations. 
 
-## Fonctions, Frames, Threads
+## Prédicats
 
-Tamgu offre aussi le moyen d'écrire des fonctions et des classes (appelée 'frame' dans Tamgu). 
+Prolog a été longtemps le langage de choix pour construire des générateurs de texte. La syntaxe du langage permet d’écrire en quelques lignes des grammaires riches et complexes. L’une des limitations de Prolog est par exemple la difficulté à gérer de gros lexiques, ce que l’intégration dans un environnement FIL permet de résoudre en déportant cette gestion vers des objets adaptés. Pour la partie logique, il a fallu là aussi que je modifie légèrement la syntaxe du langage pour le rendre interopérable avec le reste de Tamgu. Par exemple, les variables sont identifiées dans Prolog par une majuscule au début de leur nom, tandis que les mots en minuscule sont considérés comme des atomes immutables, ce qui pose problème dans le cadre d’un langage FIL qui n’a aucune de ces restrictions. Je me suis donc inspiré de la syntaxe de SPARQL où les variables dans les expressions logiques commencent avec un « ? ». Ainsi, en identifiant différemment les variables, j’ai pu remplacer les atomes par des chaînes de caractère. Quant aux vecteurs Tamgu, ils sont ré-interprétés de façon transparente comme des vecteurs Prolog. Plus exactement, les vecteurs Tamgu possèdent désormais la capacité de s’unifier dans le cadre d’une exécution à la Prolog. L’unification par défaut est par ailleurs ramené à une simple comparaison d’égalité entre deux objets, ce qui permet alors d’utiliser n’importe quel objet Tamgu dans une expression logique. 
+
+```PROLOG
+
+concat([],?X,?X).
+concat([?H|?T],?Y, [?H|?Z]) :- concat(?T,?Y,?Z).
+
+//L'appel aux prédicats se fait comme un appel de fonction dans le code
+v=concat(['english','russian','french'],['spanish'],?L);
+println(v); //['english','russian','french','spanish']
+
+```
+ 
+## Base du langage
+
+La partie « impérative » du langage est composé des modules traditionnels de la plupart des langages existants. Nous pouvons déclarer des variables, des fonctions, des threads (et même des micro-threads), des classes. 
+
+```C++
+function appelmoi(int i, string s) {...}
+
+thread monthread(int i, string u) {...}
+
+frame maclasse {...}
+```
+
+A la différence de Python, le langage exige en revanche que les variables soient déclarés avec un type. J’ai aussi tenté de simplifier la manipulation des threads en protégeant de façon implicite toutes les variables potentiellement en danger (principalement les conteneurs). Tamgu offre un éventail très riche de types différents: strings, floats, integers, vectors, maps. 
 
 ```C++
 
-function callme(int i, string s) {...}
+int i = 10;
+float f = 1.234;
+ 
+string s = "The dog is <eating> a bone.";
 
-frame test {
-    int i;
-    string s;
-    
-    //creator
-    function _initial(int e, string u) {
-        i = e;
-        s = u;
-    }
-    
-    function test() {
-        return i;
-    }
-}
+vector v = [1,2,3];
 
-//we create an element
-test toto(10,"value");
-```
+map m = {‘a’:1, ‘b’:2};
 
-Tamgu est aussi un langage multi-threadé. Chaque objet dans Tamgu est _systématiquement_ protégé pour une utilisation potentielle dans des threads.
-Tamgu fournit des _lock_, la notion de _join_. 
+``` 
 
-```C++
+### La gestion des chaines de caractère
 
-//A thread is simply a thread...
-joined thread callme(int i, string s) {
-    println(i,s);
-}
+En particulier, Tamgu fournit un impressionnant arsenal pour manipuler vos chaînes de caractères. Tout d’abord, il reconnait de façon dynamique l’encodage d’une chaîne, même si celle-ci mêle par accident des encodages différents.
+Il existe en Tamgu une multitude de façon d’accéder au contenu d’une chaine.
 
-//We call a thread as a normal function...
-callme(1,"t1");
-callme(2,"t2");
-callme(3,"t3");
-callme(4,"t4");
-callme(5,"t5");
-callme(6,"t6");
+* Avec des indexes : str[1], str[2 :4], str[-2 :]
+* Avec des sous-chaines : str["beg" :"end"]
+* Avec des expressions régulières : str[r"ab%d+"]
 
-//We wait for all threads to end...
-waitonjoined();
-
-```
-
-Vous pouvez encore transformer n'importe quelle variable en une variable de _thread_:
-
-```C++
-
-long i=1000;
-
-//a simple thread that wait on i to be 0...
-thread callme() {
-    waitonfalse(i);
-    println("Ok");
-}
-
-callme();
-
-//We then decrement i... When i is 0, the thread is unlocked...
-for (int e = 0; e <2000; e++)
-    i--;
-
-```
-
-## La gestion des chaines de caractère
-
-Tamgu fournit un impressionnant arsenal pour manipuler vos chaînes de caractères. Tout d’abord, il reconnait de façon dynamique l’encodage d’une chaîne, même si celle-ci mêle par accident des encodages différents. 
-
-Il existe en Tamgu une multitude de façon d’accéder au contenu d’une chaine. 
-
-* Avec des indexes :                        _str[1], str[2 :4], str[-2 :]_
-* Avec des sous-chaines :               _str["beg" :"end"]_
-* Avec des expressions régulières : _str[r"ab%d+"]_
-
-Vous pouvez aussi enchaîner les descriptions: _str["a":"e"][1:-1]_
-
+Vous pouvez aussi enchaîner les descriptions: str["a":"e"][1:-1]
 Mais surtout, vous pouvez modifier le contenu d'une chaine de cette façon:
 
 ```C++
 string s="The dog is <eating> a bone.";
 
-s["<":">"][1:-1] = "biting"; //the string is now: The dog is <biting> a bone.
+s["<":">"][1:-1] = "biting"; //la chaîne contient maintenant: The dog is <biting> a bone.
 
-The first part isolates the substring between '<..>', 
-then removes them to focus on the content of
-this substring and replaces it with a new value.
-
+La première partie isole la sous-chaîne entre '<..>' et la remplace par "biting"
 ```
+## Lexiques et Règles
 
-### Lambdas
+Enfin et surtout, Tamgu offre un mécanisme de lexiques basés sur les transducteurs. Les transducteurs sont la solution la plus efficace pour encoder un lexique. Ils offrent à la fois compacité et vitesse d’accès. La version que j’ai implémenté permet en plus d’identifier un mot en parcourant le transducteur avec une distance d’édition. De cette façon, il est possible de reconnaitre des mots comprenant des erreurs courantes telles que la commutation de deux caractères, l’absence d’un caractère ou au contraire la présence d’une caractère surnuméraire. 
 
-Les lambdas en Tamgu sont écrites dans un formalisme largement emprunté à _Haskell_. Elles vous permettent de décrire de façon très compacte des manipulations complexes sur les conteneurs et les chaines de caractère en particulier. Les méthodes les plus communes de Haskell sont toutes accessibles: _map, filter, fold, scan , take, drop,  takeWhile, dropWhile, zip, repeat and cycle_ . Vous pouvez aussi enchainer plusieurs méthodes avec l'opérateur ".". Enfin, le langage offre la possibilité d'écrire des fonctions que vous pouvez appeler depuis votre code. 
-
-```Haskell
-
-vector v = [1..10]; //v contains [1,2,3,4,5,6,7,8,9,10]
-vector vres;
-
-vres = <x | x <- v, (x < 5)>; //we only keep elements inferior to 5
-vres = <filter (<5)  v>; //Same...
-
-vres = <map (+1) v>; //vres is [2,3,4,5,6,7,8,9,10,11]
-
-vres = <takeWhile (<15) . map (*2) v>; 
-//we can chain methods: vres is[2,4,6,8,10,12,14], we stop at 14, since 2*8 = 16 > 15
-
-```
-
-#### Une fonction pour trier des éléments
-
-```Haskell
-
-v.shuffle(); // we shuffle the elements in the vector...
-
-<fastsort([]) = []>;  //if the list is empty, we return an empty "list"
-<fastsort([fv:v]) =  mn &&& fv &&& mx where //we merge the different list...
-    let mn = fastsort(<filter (<=fv) v>), //we apply our "sort" on the list that contains the elements smaller than fv
-    let mx = fastsort(<filter (>fv) v>) //we apply our "sort" on the list that contains the elements larger than fv
->;
-    
-//we can call a functional definition as regular code
-vres=fastsort(v); 
-
-```
-
-
-### Prolog
-
-Tamgu offre enfin le moyen d'exécuter du code Prolog directement dans votre propre code:
-
-```Prolog
-
-concat([],?X,?X).
-concat([?H|?T],?Y, [?H|?Z]) :- concat(?T,?Y,?Z).
-
-//You can mix freely your predicate definition with some regular tamgu code
-v=concat(['english','russian','french'],['spanish'],?L);
-println(v); //['english','russian','french','spanish']
-
-```
-
-## Programmation des données
-
-Tamgu a été conçu pour la _programmation des données_. Par exemple, vous pouvez directement intégrer des règles dans votre code et détecter dans un texte des mots ou des patterns de mots en une seule opération.
+Mais surtout, ces lexiques peuvent être couplés avec des règles hors-contextes, lesquelles peuvent être _écrites directement dans le code_. Il devient dès lors possible de décrire votre propre vocabulaire, d’ajouter au besoin des lexiques généraux de l’anglais ou du français puis d’écrire des règles pour identifier des patterns complexes. Dans l’exemple qui suit, nous définissons quelques mots de vocabulaire auxquels nous associons l’étiquette _food_. Puis nous créons une simple règle qui détecte la séquence _the food_. Nous créons un _annotator_ qui va être automatiquement associé à ces règles et nous l’appliquons sur notre phrase.
 
 ```C++
-
-//We define some lexical rules (starting with a "@")
+//Nous définissions nos règles lexicales (commençant avec un "@")
 @food <- burger.
 @food <- tartare.
 
 
-//Our rule: if a "food" word is found in a sentence, then we return a "meal" label 
+//Notre règle: si un mot de type "food" est trouvé dans la phrase, on renvoie une étiquette "meal" 
 meal <- "the", #food.
 
-//We need a specific object to scan a sentence
+//L'objet dont nous avons besoin pour analyser la phrase
 annotator r;
 
 //a sentence
@@ -233,55 +120,18 @@ string sentence="Here, the burger and the tartare are delicious."
 vector v = r.parse(sentence); 
 
 //Result: v =  [['meal',[10,16]],['meal',[25,32]]]
-//It reads: two 'meal' were found at position 10-16 and position 25-32...
-
+//Ce qui donne: deux 'meal' aux positions 10-16 et 25-32...
 ```
 
-Nous avons utilisé ce mécanisme pour générer une entrée _bruitée_ pour entraîner notre modèle pour le _workshop_ WMT 2019 pour la tâche _traduction robuste_. 
+Ainsi, en quelques lignes, nous pouvons décrire un lexique couplé à des règles qui nous permet de détecter dans le texte les positions des éléments textuels qui nous intéresse.
 
-### Génération
+L’exemple est très simple, mais on peut augmenter le vocabulaire à loisir, il est compilé sous la forme d’un transducteur à la volée, et aussi le nombre de règles. Encore une fois, l’interopérabilité entre ce mécanisme et le langage FIL est totale.
 
-Vous pouvez aussi générer vos propres phrases, grâce au module DCG de notre Prolog...
+## Libraries
 
-```Prolog
+Pour terminer, Tamgu n’est pas un langage figé. Son architecture a cette particularité que l’implémentation d’une librairie externe obéit exactement au mêmes règles, à la même dérivation plus exactement, qu’un objet interne. Autrement dit, implémenter un mécanisme d’embedding basé sur Word2Vec correspond peu ou prou à l’implémentation du type _string_. A la différence de Java ou de Python qui n’autorisent que l’implémentation de méthodes externes,  il y a une correspondance directe entre un objet Tamgu et son implémentation sous la forme d’un objet C++. 
+Tamgu offre ainsi des librairies qui encapsulent  cURL, liblinear, word2vec, SQLite, FLTK (GUI) ou Wapiti (CRF). 
 
-sentence(s(?NP,?VP)) --> noun_phrase(?NP), verb_phrase(?VP).
-noun_phrase(np(?D,?N)) --> det(?D), noun(?N).
-verb_phrase(vp(?V,?NP)) --> verb(?V), noun_phrase(?NP).
-det(d("the")) --> ["the"].
-det(d("a")) --> ["a"].
+## Conclusion
 
-noun(n("bird")) --> ["bird"].
-noun(n("cat")) --> ["cat"].
-verb(v("catches")) --> ["catches"].
-
-//sentence._trace(true);
-//we generate all possible interpretations...
-vector vr=sentence(?Y,[],?X);
-printjln(vr);
-
-```
-Ce qui nous donne toutes les variations suivantes :
-
-```Prolog
-sentence(['the','bird','catches','the','bird'],[],s(np(d('the'),n('bird')),vp(v('catches'),np(d('the'),n('bird')))))
-sentence(['the','bird','catches','the','cat'],[],s(np(d('the'),n('bird')),vp(v('catches'),np(d('the'),n('cat')))))
-sentence(['the','bird','catches','a','bird'],[],s(np(d('the'),n('bird')),vp(v('catches'),np(d('a'),n('bird')))))
-sentence(['the','bird','catches','a','cat'],[],s(np(d('the'),n('bird')),vp(v('catches'),np(d('a'),n('cat')))))
-sentence(['the','cat','catches','the','bird'],[],s(np(d('the'),n('cat')),vp(v('catches'),np(d('the'),n('bird')))))
-sentence(['the','cat','catches','the','cat'],[],s(np(d('the'),n('cat')),vp(v('catches'),np(d('the'),n('cat')))))
-sentence(['the','cat','catches','a','bird'],[],s(np(d('the'),n('cat')),vp(v('catches'),np(d('a'),n('bird')))))
-sentence(['the','cat','catches','a','cat'],[],s(np(d('the'),n('cat')),vp(v('catches'),np(d('a'),n('cat')))))
-sentence(['a','bird','catches','the','bird'],[],s(np(d('a'),n('bird')),vp(v('catches'),np(d('the'),n('bird')))))
-sentence(['a','bird','catches','the','cat'],[],s(np(d('a'),n('bird')),vp(v('catches'),np(d('the'),n('cat')))))
-sentence(['a','bird','catches','a','bird'],[],s(np(d('a'),n('bird')),vp(v('catches'),np(d('a'),n('bird')))))
-sentence(['a','bird','catches','a','cat'],[],s(np(d('a'),n('bird')),vp(v('catches'),np(d('a'),n('cat')))))
-sentence(['a','cat','catches','the','bird'],[],s(np(d('a'),n('cat')),vp(v('catches'),np(d('the'),n('bird')))))
-sentence(['a','cat','catches','the','cat'],[],s(np(d('a'),n('cat')),vp(v('catches'),np(d('the'),n('cat')))))
-sentence(['a','cat','catches','a','bird'],[],s(np(d('a'),n('cat')),vp(v('catches'),np(d('a'),n('bird')))))
-sentence(['a','cat','catches','a','cat'],[],s(np(d('a'),n('cat')),vp(v('catches'),np(d('a'),n('cat')))))
-
-```
-
-Notez que nous avons construit un arbre syntaxique pour chaque phrase générée.
-
+Tamgu a été conçu pour rendre les tâches de nettoyage ou de création de corpus aussi simples que possible. Vous pouvez désormais en quelques lignes de code identifier des patterns complexes ou encore générer du texte en appliquant des grammaires.
