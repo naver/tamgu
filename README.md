@@ -23,7 +23,7 @@ __Note__: _Releases_ for Windows, Mac OS and Linux are available at: https://git
 Examples are available both as a folder: https://github.com/naver/tamgu/tree/master/examples or as an archive in: https://github.com/naver/tamgu/releases/tag/tamgu.examples.
 
 
-## Example of code
+## Code Example
 
 Below is an example of the kind of code that you can implement with _Tamgu_.
 
@@ -80,7 +80,7 @@ println(v); //["english",'russian',"french","spanish"]
 
 ```
 
-# Rules 
+## Annotation Example 
 
 Tamgu also provides an integrated rule mechanism, which combines both lexicons and rules to detect complex patterns in texts.
 
@@ -92,7 +92,7 @@ Tamgu also provides an integrated rule mechanism, which combines both lexicons a
 @food <- tartare.
 
 
-//Our rule: if _the_ "food" word is found in a sentence, then we return a "meal" label 
+//Our rule: if "the food" word is found in a sentence, then we return a "meal" label 
 meal <- "the", #food.
 
 //We need a specific object to scan a sentence
