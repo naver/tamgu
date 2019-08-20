@@ -18,6 +18,11 @@ The language provides many features but also many libraries, which helps design 
 ## Pre-compiled Releases
 __Note__: _Releases_ for Windows, Mac OS and Linux are available at: https://github.com/naver/tamgu/releases
 
+## Examples
+
+Examples are available both as a folder: https://github.com/naver/tamgu/tree/master/examples or as an archive in: https://github.com/naver/tamgu/releases/tag/tamgu.examples.
+
+
 ## Example of code
 
 Below is an example of the kind of code that you can implement with _Tamgu_.
@@ -97,12 +102,7 @@ Furthermore, Tamgu provides a bi-directional library, which can be used to execu
 
 See: https://github.com/naver/tamgu/wiki/1.4-Compiling-libraries-(Linux-&-Mac-OS) for more information
 
-# Examples
-
-Examples are available both as a folder: https://github.com/naver/tamgu/tree/master/examples or as an archive in: https://github.com/naver/tamgu/releases/tag/tamgu.examples.
-
-
-## Code Example 
+# Code Example 
 
 ```Java
 
