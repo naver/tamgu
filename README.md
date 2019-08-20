@@ -18,11 +18,6 @@ The language provides many features but also many libraries, which helps design 
 ## Pre-compiled Releases
 __Note__: _Releases_ for Windows, Mac OS and Linux are available at: https://github.com/naver/tamgu/releases
 
-## Examples
-
-Examples are available both as a folder: https://github.com/naver/tamgu/tree/master/examples or as an archive in: https://github.com/naver/tamgu/releases/tag/tamgu.examples.
-
-
 ## Code Example
 
 Below is an example of the kind of code that you can implement with _Tamgu_.
@@ -110,6 +105,10 @@ vector v = r.parse(sentence);
 
 ## Documentation
 The documentation is in : **docs/tamgu.pdf**
+
+## Examples
+
+Examples are available both as a folder: https://github.com/naver/tamgu/tree/master/examples or as an archive in: https://github.com/naver/tamgu/releases/tag/tamgu.examples.
 
 ## Compiling
 
