@@ -80,6 +80,33 @@ println(v); //["english",'russian',"french","spanish"]
 
 ```
 
+# Rules 
+
+Tamgu also provides an integrated rule mechanism, which combines both lexicons and rules to detect complex patterns in texts.
+
+
+```Java
+
+//We define some lexical rules (starting with a "@")
+@food <- burger.
+@food <- tartare.
+
+
+//Our rule: if _the_ "food" word is found in a sentence, then we return a "meal" label 
+meal <- "the", #food.
+
+//We need a specific object to scan a sentence
+annotator r;
+
+//a sentence
+string sentence="Here, the burger and the tartare are delicious."
+vector v = r.parse(sentence); 
+
+//Result: v =  [['meal',[10,16]],['meal',[25,32]]]
+//It reads: two 'meal' were found at position 10-16 and position 25-32...
+
+```
+
 
 ## Documentation
 The documentation is in : **docs/tamgu.pdf**
@@ -101,30 +128,6 @@ Compiling libraries: https://github.com/naver/tamgu/wiki/1.4-Compiling-libraries
 Furthermore, Tamgu provides a bi-directional library, which can be used to execute Tamgu code from Python (and conversely, Python code in Tamgu)
 
 See: https://github.com/naver/tamgu/wiki/1.4-Compiling-libraries-(Linux-&-Mac-OS) for more information
-
-# Code Example 
-
-```Java
-
-//We define some lexical rules (starting with a "@")
-@food <- burger.
-@food <- tartare.
-
-
-//Our rule: if a "food" word is found in a sentence, then we return a "meal" label 
-meal <- "the", #food.
-
-//We need a specific object to scan a sentence
-annotator r;
-
-//a sentence
-string sentence="Here, the burger and the tartare are delicious."
-vector v = r.parse(sentence); 
-
-//Result: v =  [['meal',[10,16]],['meal',[25,32]]]
-//It reads: two 'meal' were found at position 10-16 and position 25-32...
-
-```
 
 ## License
 
