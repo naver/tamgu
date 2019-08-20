@@ -121,18 +121,6 @@ vector v = r.parse(sentence);
 
 ```
 
-# __IMPORTANT__ : 
-
-```
-Pre-compiled versions for:
-
-    Windows
-    Mac OS
-    Linux: Centos, Ubuntu, Fedora 
-
-```
-are available in the *__releases__* section in this *__GitHub__* archive.
-
 ## License
 
 ```
