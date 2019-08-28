@@ -1,16 +1,19 @@
 # Propriétés fonctionnelles des objets
 
 C++ est une conque, un coquillage rigide avec un corps tout mou.  C’est un langage où les choix les plus robustes peuvent être ruinés par un « cast » horrible. C’est un langage qui transforme la gestion mémoire en un champ miné, où la moindre étourderie peut faire planter le code aux endroits les plus insolites. Mais C++ est aussi un langage d’une grande souplesse qui peut s’interfacer avec la plupart des langages existants tels que Java ou Python. Choisir C++, c’est comme conduire une voiture de course des années trente, une puissance colossale sans airbags et sans ceinture de sécurité sur des pneus de vélo. Ça peut faire mal.
+
 Quand j’ai commencé à travaillé sur Tamgu, en 2010, il n’y avait guère d’alternative, à part peut-être C. Le code de Tamgu a subi un grand nombre de réécriture massive à travers les années mais lors de la dernière itération, j’ai fait table rase du code existant et je suis reparti sur une architecture totalement différente. En particulier, j'ai beaucoup travaillé sur le moyen de réduire les aléas de la programmation C++ au maximum, en m'inspirant de la programmation fonctionnelle.
 
 ## Tabula Rasa
 
 Il faut souvent moins de temps pour réécrire complètement un système depuis zéro qu’il n’en faut pour débogguer un code ancien et le faire vivre envers et contre tout. Car si le code actuel repose sur une architecture nouvelle, l’expérience accumulée permet d’aller très vite sur les invariants. Cela fait plus de cinquante ans que des archéologues s’échinent à reconstruire le Parthénon alors qu’il n’a fallu que 11 ans aux Grecs de l’antiquité pour l’édifier. 
+
 Cette dernière version propose une unification de la gestion des objets qu’ils soient natifs ou issus d’une bibliothèque externe. Désormais, tous les objets manipulés par Tamgu sont implémentés de la même façon. C’est là une différence fondamentale avec les langages interprétés les plus courants.
 
 ## Machine Virtuelle
 
 En effet, la majorité des langages de programmation actuels Java, Python, Kotlin ou Perl fonctionne sur le principe d’une « machine virtuelle » conçue pour exécuter un pseudo-langage machine appelé « opcode ». Il suffit dès lors de compiler les instructions de ces langages sous la forme de routines en « opcode » qui seront ensuite exécutées par la machine virtuelle. De plus, la gestion de la mémoire est effectuée via un « garbage collector » éliminant la majorité des problèmes de « memory leak » et autres joyeusetés de la programmation C++. 
+
 Cependant, cette approche introduit un hiatus entre le fonctionnement des objets de base du langage et ceux issus des bibliothèques externes. De ce fait, une fonction externe s’exécute _en dehors de la machine virtuelle_. Si cette fonction manipule de plus ses propres structures de données internes, celles-ci échapperont à la gestion mémoire du « garbage collector ».
 Débogguer une bibliothèque externe s’apparente souvent à parcourir un labyrinthe dans le noir avec une canne d’aveugle.
 
@@ -24,16 +27,15 @@ Tamgu fonctionne sur un principe radicalement différent. Tamgu introduit une cl
 
 ### Get
 
-Tous ces objets surchargent une méthode « Get » dont le rôle est d’effectuer l’évaluation de l’objet. Un « Get » sur une instance nombre ne fera que renvoyer l’instance elle-même, tandis qu’un « Get » sur un objet instruction provoquera son exécution.
-Chaque « Get » renvoie nécessairement une valeur.
+Tous ces objets surchargent une méthode « Get » dont le rôle est d’effectuer l’évaluation de l’objet. Un « Get » sur une instance nombre ne fera que renvoyer l’instance elle-même, tandis qu’un « Get » sur un objet instruction provoquera son exécution. Chaque « Get » renvoie nécessairement une valeur.
 
 ## Compilation
 
-La compilation consiste a transformer chaque instruction du langage en un objet particulier. Par exemple, un « if » est compilé en un objet _TamguIf_, un « while » en un objet TamguWhile et une fonction en un objet TamguFunction.
+La compilation consiste a transformer chaque instruction du langage en un objet particulier. Par exemple, un « if » est compilé en un objet _TamguIf_, un « while » en un objet _TamguWhile_ et une fonction en un objet _TamguFunction_.
 
 ### Récursive
 
-De plus, la construction se fait de façon récursive. Par exemple, un objet TamguFunction comprend une liste d’instructions que l’on peut écrire en C++ sous la forme suivante:
+De plus, la construction se fait de façon récursive. Par exemple, un objet _TamguFunction_ comprend une liste d’instructions que l’on peut écrire en C++ sous la forme suivante:
 
 ```C++
 vector<Tamgu*> instructions;
