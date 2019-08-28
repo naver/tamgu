@@ -41,7 +41,7 @@ De plus, la construction se fait de façon récursive. Par exemple, un objet _Ta
 vector<Tamgu*> instructions;
 ```
 
-La première étape lors de la compilation d’un programme est la création d’un arbre syntaxique dont chaque noeud correspond à un objet Tamgu. Il suffit dès lors de suivre l'arbre de façon récursive pour créer à chaque étape les objets correspondants et les ranger dans les objets parents.
+La première étape lors de la compilation d’un programme est la création d’un arbre syntaxique dont chaque noeud correspond à un objet Tamgu. Il suffit dès lors de suivre l'arbre de façon récursive pour créer à chaque étape les objets correspondants et les ranger dans les objets parents. Ainsi, lorsque l'on construit la représentation d'une fonction, chaque objet construit à partir des sous-noeuds directs dans l'arbre sera rangé dans _instructions_.
 
 ### LISP
 

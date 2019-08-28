@@ -38,7 +38,7 @@ In addition, the construction is done in a recursive way. For example, a _TamguF
 vector<Tamgu*> instructions;
 ```
 
-The first step in compiling a program is to create a syntactic tree with each node corresponding to a Tamgu object. We then follow the tree in a recursive way to create at each step the corresponding objects and store them in their parent objects.
+The first step in compiling a program is to create a syntactic tree with each node corresponding to a Tamgu object. We then follow the tree in a recursive way to create at each step the corresponding objects and store them in their parent objects. Thus, when constructing the representation of a function, each object built from the direct subnodes in the tree will be stored in _instructions_.
 
 ### LISP
 
