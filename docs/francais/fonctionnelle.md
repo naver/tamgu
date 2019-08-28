@@ -60,10 +60,10 @@ On retrouve la même idée dans la définition d’une fonction:
 ```LISP
 
 (defun toto(x y)
-(if (< x y)
-(+ x y)
-(* x y)
-)
+    (if (< x y)
+        (+ x y)
+        (* x y)
+    )
 )
 ```
 * Une fonction Lisp est composée d’une liste de paramètres et d’une liste d’instructions. Celle-ci doit de plus renvoyer une valeur.
