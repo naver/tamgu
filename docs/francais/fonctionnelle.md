@@ -61,8 +61,8 @@ Class TamguIf : public Tamgu {
 
     //La méthode « Get ».
     Tamgu* Get() {
-        Tamgu* a = instructions[0]->Get();
-        if (a == aTrue)
+        Tamgu* test = instructions[0]->Get();
+        if (test == aTrue)
             return instructions[1]->Get();
         else
             return instructions[2]->Get();
