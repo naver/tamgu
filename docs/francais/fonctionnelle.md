@@ -47,23 +47,26 @@ Exécution sans état, réentrance, robustesse, ces bonnes propriétés sont en 
 Prenons un exemple très simple celui du « if » et comparons le à sa version dans Tamgu:
 
 ```LISP
-(if (test) then_exp else_exp)
+(if (test) 
+    then_exp
+    else_exp
+)
 ```
 
 Et en C++:
 
 ```C++
 Class TamguIf : public Tamgu {
-Tamgu* instructions[3];
+    Tamgu* instructions[3];
 
-//La méthode « Get ».
-Tamgu* Get() {
-Tamgu* a = instructions[0]->Get();
-if (a == aTrue)
-return instructions[1]->Get();
-else
-return instructions[2]->Get();
-}
+    //La méthode « Get ».
+    Tamgu* Get() {
+        Tamgu* a = instructions[0]->Get();
+        if (a == aTrue)
+            return instructions[1]->Get();
+        else
+            return instructions[2]->Get();
+    }
 };
 ```
 
