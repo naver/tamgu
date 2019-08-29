@@ -28,9 +28,10 @@ Pour exécuter un programme Tamgu, il suffit de parcourir une liste d’objets _
 
 ```C++
 Tamgu* o;
-for (auto& a : instructions)
-o = a.Get();
-o->Release();
+for (auto& a : instructions) {
+    o = a.Get();
+    o->Release();
+}
 ```
 
 Une méthode _Get_ renvoie systématiquement au niveau supérieur une valeur. Si cette valeur « o » n’a pas été sauvegardée dans une variable ou dans un conteneur, l’appel de la méthode _Release_ la détruira. Le nettoyage des objets se fait donc en passant, grâce à la magie de la pile d’exécution de l’interpréteur. Ce mécanisme permet de contrôler de façon précise la création et la destruction des structures de données.
