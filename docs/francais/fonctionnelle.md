@@ -76,7 +76,7 @@ Class TamguIf : public Tamgu {
 
 En évaluant récursivement une liste emboitée d’objets C++, on peut facilement reproduire le comportement d’une liste emboîtée de fonctions.
 
-Cette façon de faire rend aussi le langage facilement extensible et facilement optimisable. Il suffit de rajouter des objets instructions supplémentaires pour enrichir le langage. On peut aussi parfois remplacer certaines séquences récurrentes d’instructions par un seul objet plus compact et plus rapide. Mais il existe un dernier aspect important de cette approche, le fait que objets internes et externes puissent être gérés de façon homogène par le moteur d’exécution.
+Cette façon de faire rend aussi le langage facilement extensible et facilement optimisable. Il suffit de rajouter des objets instructions supplémentaires pour enrichir le langage. On peut aussi parfois remplacer certaines séquences récurrentes d’instructions par un seul objet plus compact et plus rapide. Mais il existe un dernier aspect important de cette approche, le fait qu'objets internes et externes puissent être gérés de façon semblable par le moteur d’exécution.
 
 ## Homogénéité
 
