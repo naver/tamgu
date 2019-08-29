@@ -1,122 +1,111 @@
 # Propriétés fonctionnelles des objets
 
-C++ est une conque, un coquillage rigide avec un corps tout mou.  C’est un langage où les choix les plus robustes peuvent être ruinés par un « cast » horrible. C’est un langage qui transforme la gestion mémoire en un champ miné, où la moindre étourderie peut faire planter le code aux endroits les plus insolites. Mais C++ est aussi un langage d’une grande souplesse qui peut s’interfacer avec la plupart des langages existants tels que Java ou Python. Choisir C++, c’est comme conduire une voiture de course des années trente, une puissance colossale sans airbags et sans ceinture de sécurité sur des pneus de vélo. Ça peut faire mal.
+C++ est une carapace rigide avec un corps tout mou.  C’est un langage où les choix les plus robustes peuvent être ruinés par un « cast » horrible. C++ transforme la gestion mémoire en un champ miné, où la moindre erreur peut rendre le code incontrôlable et le faire planter aux endroits les plus insolites. Mais C++ est aussi un langage d’une grande souplesse qui peut s’interfacer avec la plupart des langages existants tels que Java ou Python. Choisir C++, c’est comme conduire une voiture de course des années trente, une puissance colossale sans airbags et sans ceinture de sécurité sur des pneus de vélo.
+C’est cette souplesse et cette efficacité qui m’a amené à choisir C++ pour implanter mon langage de programmation, en dépit du danger constant de « memory leaks » et autres joyeusetés du langage. 
+Tamgu est le dernier né de toute une série d’expérimentation en C++ que j’ai mené pendant plusieurs années pour construire le langage de programmation que je recherchais. J’avais besoin de vitesse et d’efficacité pour être capable de construire et de modifier de très gros corpus textuels et C++ me semblait le seul langage à même de me fournir cette puissance. En revanche, avant d’aboutir à Tamgu, j’ai dû batailler avec le langage pour isoler un mode de fonctionnement qui permette une gestion mémoire contrôlée et efficace. 
 
-Quand j’ai commencé à travaillé sur Tamgu, en 2010, il n’y avait guère d’alternative, à part peut-être C. Le code de Tamgu a subi un grand nombre de réécriture massive à travers les années mais lors de la dernière itération, j’ai fait table rase du code existant et je suis reparti sur une architecture totalement différente. En particulier, j'ai beaucoup travaillé sur le moyen de réduire les aléas de la programmation C++ au maximum, en m'inspirant de la programmation fonctionnelle.
+# Machine Virtuelle
 
-## Tabula Rasa
+La plupart des langages modernes comme Java ou Python fonctionne sur le principe d’une machine virtuelle  conçue pour exécuter un pseudo-langage machine appelé « opcode » ou « byte code », tandis que la gestion mémoire est contrôlée parallèlement par un « garbage collector ». Ce choix est très efficace mais il pose en revanche certains problèmes lorsque l’on veut étendre ces langages avec des bibliothèques externes compatible. En particulier le code de ces bibliothèques s’exécute généralement _en dehors de la machine virtuelle_, tandis que leurs structures de données internes échappent le plus souvent au _garbage collector_.
 
-Il faut souvent moins de temps pour réécrire complètement un système depuis zéro qu’il n’en faut pour débogguer un code ancien et le faire vivre envers et contre tout. Car si le code actuel repose sur une architecture nouvelle, l’expérience accumulée permet d’aller très vite sur les invariants. Cela fait plus de cinquante ans que des archéologues s’échinent à reconstruire le Parthénon alors qu’il n’a fallu que 11 ans aux Grecs de l’antiquité pour l’édifier. 
+## Machine C++
 
-Cette dernière version propose une unification de la gestion des objets qu’ils soient natifs ou issus d’une bibliothèque externe. Désormais, tous les objets manipulés par Tamgu sont implémentés de la même façon. C’est là une différence fondamentale avec les langages interprétés les plus courants.
+Dans le cas de Tamgu, s’il existe une machine virtuelle, celle-ci se confond avec l’exécution de l’interpréteur en C++. Dans Tamgu, chaque élément du langage est implémenté sous la forme d’un objet C++. Il suffit de surcharger certaines méthodes particulières pour spécialiser leur comportement. En particulier, tous ces objets surchargent la méthode « Get » dont l’application selon le type de l’objet conduit par exemple à l’exécution d’une boucle ou d’une fonction. En revanche, un « Get » sur un objet nombre ne fera que renvoyer ce nombre lui-même.
 
-## Machine Virtuelle
+### Evaluation
 
-En effet, la majorité des langages de programmation actuels Java, Python, Kotlin ou Perl fonctionne sur le principe d’une « machine virtuelle » conçue pour exécuter un pseudo-langage machine appelé « opcode ». Il suffit dès lors de compiler les instructions de ces langages sous la forme de routines en « opcode » qui seront ensuite exécutées par la machine virtuelle. De plus, la gestion de la mémoire est effectuée via un « garbage collector » éliminant la majorité des problèmes de « memory leak » et autres joyeusetés de la programmation C++. 
-
-Cependant, cette approche introduit un hiatus entre le fonctionnement des objets de base du langage et ceux issus des bibliothèques externes. De ce fait, une fonction externe s’exécute _en dehors de la machine virtuelle_. Si cette fonction manipule de plus ses propres structures de données internes, celles-ci échapperont à la gestion mémoire du « garbage collector ».
-Débogguer une bibliothèque externe s’apparente souvent à parcourir un labyrinthe dans le noir avec une canne d’aveugle.
-
-## Classe Tamgu
-
-Tamgu fonctionne sur un principe radicalement différent. Tamgu introduit une classe commune _Tamgu_ qui se décompose en deux classes distinctes: _TamguTracked_ et _TamguReference_. 
-
-* _TamguTracked_ est la classe mère de tous les objets statiques du langage, en particulier les instructions telles les boucles ou les fonctions. Chaque instance est systématiquement enregistrée dans une liste globale d’où le nom afin de pouvoir nettoyer la mémoire en une seule itération.
-
-* _TamguReference_ est la classe mère de l’ensemble des données volatiles du langage telles que les string, les nombres ou les conteneurs.
-
-### Get
-
-Tous ces objets surchargent une méthode « Get » dont le rôle est d’effectuer l’évaluation de l’objet. Un « Get » sur une instance nombre ne fera que renvoyer l’instance elle-même, tandis qu’un « Get » sur un objet instruction provoquera son exécution. Chaque « Get » renvoie nécessairement une valeur.
-
-## Compilation
-
-La compilation consiste a transformer chaque instruction du langage en un objet particulier. Par exemple, un « if » est compilé en un objet _TamguIf_, un « while » en un objet _TamguWhile_ et une fonction en un objet _TamguFunction_.
-
-### Récursive
-
-De plus, la construction se fait de façon récursive. Par exemple, un objet _TamguFunction_ comprend une liste d’instructions que l’on peut écrire en C++ sous la forme suivante:
+Ces objets dérivent tous de la même classe mère: _Tamgu_ ce qui signifie qu’une séquence d’instructions peut être représentée par un simple vecteur:
 
 ```C++
 vector<Tamgu*> instructions;
 ```
 
-La première étape lors de la compilation d’un programme est la création d’un arbre syntaxique dont chaque noeud correspond à un objet Tamgu. Il suffit dès lors de suivre l'arbre de façon récursive pour créer à chaque étape les objets correspondants et les ranger dans les objets parents. Ainsi, lorsque l'on construit la représentation d'une fonction, chaque objet construit à partir des sous-noeuds directs dans l'arbre sera rangé dans _instructions_.
+Un programme Tamgu est donc enregistré en mémoire sous la forme d’objets encapsulés. Une fonction, par exemple, est représentée par un objet _TamguFunction_ qui contient justement une déclaration comme celle ci-dessus. Chacun des éléments de ce vecteur peut être à son tour une boucle, une affectation, un appel de fonction ou une déclaration de variable. Une boucle _while_ sera représenté par un objet _TamguWhile_ qui contiendra à son tour le même type de vecteur, lequel pourra contenir des boucles, des affectations, des appels de fonction etc. 
 
-### LISP
+Ainsi, un programme Tamgu est compilé sous la forme d’une structure arborescente imbriquée d’objets C++.
 
-Cette façon de faire s’apparente à Lisp où chaque instruction est en fait un appel de fonction.
-
-```LISP
-(if (test) then else)
-```
-
-* « if » dans Lisp est une fonction à trois arguments qui retourne soit l’évaluation de « then » soit celle de « else » selon l’évaluation de « test ».
-
-* « TamguIf » est un objet constitué d’une liste de trois éléments qui fonctionnent sur le même principe que le « if » de Lisp, à la différence près que pour évaluer les éléments on appellera « Get », là où Lisp appelle de façon implicite la méthode « eval ».
-
-On retrouve la même idée dans la définition d’une fonction:
-
-```LISP
-
-(defun toto(x y)
-    (if (< x y)
-        (+ x y)
-        (* x y)
-    )
-)
-```
-* Une fonction Lisp est composée d’une liste de paramètres et d’une liste d’instructions. Celle-ci doit de plus renvoyer une valeur.
-
-* Une fonction « TamguFunction » est un objet composé d’une liste de paramètres et d’une liste d’instructions. L’exécution d’une fonction Tamgu consiste à apparier les paramètres et les arguments, puis à parcourir la liste des instructions en appliquant la méthode « Get » sur chacun d’entre eux pour les évaluer.
-
-```C++
-for (auto& a : instructions)
-    a.Get();
-```
-
-Cette définition récursive d’objets ressemble furieusement à la définition récursive des appels de fonction dans Lisp.
-
-## Garbage Collector
-
-Tamgu n’a pas de mécanisme de « garbage collector ».  Il garde en mémoire la trace de certains objets telles que les instructions ou les constantes, mais il n’existe pas de mécanisme de destruction asynchrone des objets. 
-Pour mieux comprendre le mécanisme de gestion de la mémoire, il suffit de réécrire le code ci-dessus:
+Pour exécuter un programme Tamgu, il suffit de parcourir une liste d’objets _Tamgu_ et d’évaluer chacun d’entre eux en appelant sa méthode _Get_. Au niveau le plus haut, un programme Tamgu se résume à un simple vecteur d’instructions. La boucle principale ressemble à ceci:
 
 ```C++
 Tamgu* o;
-for (auto& a : instructions) {
-    o = a.Get();
-    o->Release();
-}
+for (auto& a : instructions)
+o = a.Get();
+o->Release();
 ```
 
-Le destin d’une structure de données est d’être rangé quelque part soit dans une variable soit dans un conteneur. Lorsqu’une donnée n’a pas été utilisée, « Release » la détruit. Dans le cas contraire, « Release » la laisse intacte.
-
-Ce mécanisme permet de contrôler appel après appel le cycle de vie d’une structure de données afin de s’en débarrasser au moment opportun.  On peut dès lors se passer d’un « garbage collector », dont l’exécution induit parfois des disruptions intempestives.
-
-### Bibliothèques dynamiques
-
-Une bibliothèque externe dans Tamgu est une simple dérivation de la classe _TamguReference_ avec une surcharge des méthodes adéquates pour l’exécution de son code. Par conséquent, les instances provenant de cette classe s’exécutent exactement de la même façon que le reste des objets natifs. Il n’existe donc aucun hiatus entre le code interne et le code externe. Une fonction enregistrera dans sa liste d’instructions un objet externe de la même façon qu’un objet interne. La création et la destruction d'un objet externe obéira au même cycle de vie qu'un objet interne.
-
-## Propriétés fonctionnelles des objets
-
-Il faut malgré tout noter que cette approche est plus gourmande en mémoire que les « opcodes » à ceci près que les instructions des langages ne sont pas mappés sur un seul opcode mais sur une routine composée d’opcode. Notons de plus que dans Tamgu les objets ont une sémantique beaucoup plus riche qu’un seul opcode.
-
-En revanche, cette façon de faire permet de bénéficier de propriétés que l’on attribue généralement aux approches fonctionnelles. 
+Une méthode _Get_ renvoie systématiquement au niveau supérieur une valeur. Si cette valeur « o » n’a pas été sauvegardée dans une variable ou dans un conteneur, l’appel de la méthode _Release_ la détruira. Le nettoyage des objets se fait donc en passant, grâce à la magie de la pile d’exécution de l’interpréteur. Ce mécanisme permet de contrôler de façon précise la création et la destruction des structures de données.
 
 ### Exécution sans état
 
-Les méthodes « Get » ne dépendent que de leur contexte local pour s’exécuter. Si l’on reprend le code du « Get » de _TamguFunction_, on peut voir qu’il n’est nul besoin de faire référence à la moindre variable globale. Pas de pointeur dans une pile d’exécution locale, aucune référence à un état extérieur du programme. Les appels s’enchainent récursivement et chaque retour est évalué localement. 
+De plus, comme le montre l’exemple ci-dessus, cette exécution ne fait appel à aucune variable globale, elle ne modifie aucun pointeur dans une pile d’exécution parallèle. L’exécution ne change aucun état global, elle est « stateless », ce qui permet d’assurer à la fois réentrance et robustesse. D’ailleurs, cette approche réduit aussi le code nécessaire à l’exécution des instructions à très peu de lignes de C++. Si l’on examine le fichier « codeexecute.cxx » qui contient le code de la plupart des instructions Tamgu, on pourra observer que la majorité des méthodes _Get_ ne dépasse pas la dizaine de lignes. Le code est réduit à de courtes méthodes simples à lire et à débogguer.
 
-### Robustesse
+### Fonctionnel
 
-Comme il n’y a pas de gestion globale du déroulement du code, les effets de bord sont très rares. De plus l’association objet/instruction conduit à du code très local et surtout très petit. Si l’on examine le code C++ dédié aux instructions Tamgu dans le fichier « codeexecute.cxx » on peut noter que les méthodes « Get » dépassent rarement la dizaine de lignes. Cette parcimonie du code associée à l’absence d’effets de bord rend le déboggage très simple.
+Exécution sans état, réentrance, robustesse, ces bonnes propriétés sont en fait dues à un choix d’implémentation qui s’inspire de la programmation fonctionnelle. Si l’on prend l’exemple d’un langage comme Lisp, la moindre instruction dans ce langage est conçue comme une fonction.
 
-### Réentrance
+Prenons un exemple très simple celui du « if » et comparons le à sa version dans Tamgu:
 
-Enfin, l’absence d’états permet aussi de rendre le code facilement réentrant. L’intégration du multithreading dans Tamgu se résume à moins de 250 lignes de code, essentiellement la préparation et le nettoyage du contexte d’exécution. Le reste des instructions peut s’exécuter sans aucune difficulté et sans modification particulière dans un thread.
+```LISP
+(if (test) then_exp else_exp)
+```
+
+Et en C++:
+
+```C++
+Class TamguIf : public Tamgu {
+Tamgu* instructions[3];
+
+//La méthode « Get ».
+Tamgu* Get() {
+Tamgu* a = instructions[0]->Get();
+if (a == aTrue)
+return instructions[1]->Get();
+else
+return instructions[2]->Get();
+}
+};
+```
+
+* « if » dans Lisp est une fonction à trois arguments qui retourne soit l’évaluation de « then_exp » soit celle de « else_exp » selon l’évaluation de « test ».
+
+* « TamguIf » est un objet constitué d’une liste de trois éléments qui fonctionnent sur le même principe que le « if » de Lisp, à la différence près que pour évaluer les éléments on appellera « Get », là où Lisp appelle de façon implicite la méthode « eval ».
+
+En évaluant récursivement une liste emboitée d’objets C++, on peut facilement reproduire le comportement d’une liste emboîtée de fonctions.
+
+Cette façon de faire rend aussi le langage facilement extensible et facilement optimisable. Il suffit de rajouter des objets instructions supplémentaires pour enrichir le langage. On peut aussi parfois remplacer certaines séquences récurrentes d’instructions par un seul objet plus compact et plus rapide. Mais il existe un dernier aspect important de cette approche, le fait que objets internes et externes puissent être gérés de façon homogène par le moteur d’exécution.
+
+## Homogénéité
+
+Comme on vient de le voir, Tamgu encapsule l’ensemble de ses éléments sous la forme d’objets C++ dont certaines méthodes sont  alors surchargés pour spécialiser leur comportement. C’est aussi le cas lorsqu’un utilisateur veut créer une bibliothèque compatible avec Tamgu. Dans ce cas, le programmeur doit construire sa propre dérivation de la classe _Tamgu_ pour encapsuler son code personnel. Or, pour des raisons évidentes de robustesse, seule la machine virtuelle peut avoir le droit de vie ou de mort sur un objet. Par conséquent, il faut cacher au programmeur tout ce qui relève du cycle de vie d’un objet, aussi bien pour la classe qu’il développe que pour les objets qui pourraient apparaître dans son code lors de l’exécution.
+
+Faire en sorte que la machine virtuelle seule ait accès à la création et à la destruction d’un objet requiert quelques ajustements.
+
+### Factory
+
+Tout d’abord, il faut s’interroger sur le mécanisme de création d’un objet. Dans Python, lorsque l’on crée une bibliothèque externe _toto_, celle-ci doit souvent fournir une méthode _totonew_ dont le but est de créer des objets dont le cycle de vie sera compatible avec la machine virtuelle Python. Dans le cas de Tamgu, on crée un objet en fournissant son type et une variable:
+
+```C++
+toto myvar;
+```
+Cette déclaration suffit à créer un objet, qu’il soit interne ou issu d’une bibliothèque externe compatible.
+
+Tamgu gère la création d’objet sur la forme d’une _factory_. Une _factory_ est une table où l’on range une instance de tous les objets correspondant à tous les types de Tamgu. Chaque type est associé à un identifiant numérique qui correspond à la case où une instance de l’objet C++ correspondant est rangé. Par exemple, à l’index 23 dans cette table se trouve une instance de la classe _Tamgustring_. Cet identifiant 23 est aussi associé à un type Tamgu: _string_. De plus, chaque objet surcharge une méthode _Newinstance_ dont le rôle est de créer une nouvelle instance de l’objet en question.
+
+```C++
+string s; //string a comme identifiant 23
+```
+
+Lorsque la déclaration de _s_ est exigée, l’index de _string_  (ici 23)  permet d’accéder à une instance de _Tamgustring_ dans la table de la _factory_. Il ne reste plus qu’à appeler la méthode _Newinstance_ pour disposer d’un nouvel objet que l’on associera à _s_.
+
+### Déclaration
+
+La table de la _factory_ est vide à l’initialisation. Ce sont les objets eux-mêmes qui viennent enregistrer une instance d’eux-mêmes et se voient attribuer en séquence un identifiant numérique unique. Il suffit de jeter un coup d’oeil aux fichiers _objectrecording.cxx_ et _containerrecording.cxx_ pour le vérifier. Chaque objet dispose d’une méthode de classe:  InitialisationModule qui enregistre dans la table de la _factory_ cette première instance. Chaque fois qu’on lance le moteur, la table de la _factory_ est ré-initialisée intégralement par les objets de base qui font partie intégrante de l’interpréteur.
+
+Dans le cas d’une bibliothèque externe compatible, le mécanisme est à peine plus élaboré. Tout d’abord chaque bibliothèque implémente une dérivation de la classe _Tamgu_. Le programmeur surcharge alors les différentes méthodes de sa propre classe pour la spécialiser. En revanche, il ajoute aussi une fonction "C" dont le nom est « nombib_InitialisationModule ». En toute fin de chargement, Tamgu exécute alors cette fonction dont le rôle est _d’appeler la méthode de classe InitialisationModule_ pour qu’une instance de l’objet implémenté vienne s’enregistrer dans la _factory.
+
+A la fin du chargement, l’origine de l’objet devient dès lors indiscernable de celles des autres objets. Pour le moteur, créer une variable de type _string_ ou de type _toto_ obéit exactement aux mêmes règles. Alors que dans Python ou Java, le code externe s’exécuter en dehors de la _machine virtuelle_, ici, il est au contraire intégré dynamiquement comme une extension naturelle de la machine virtuelle.
 
 ## Conclusion
 
-Le choix d’implémenter sous la forme d’objets emboîtées les instructions de Tamgu offre de multiples avantages en terme de maintenance et de compréhension du code. Cette approche permet de conserver la sémantique des instructions tout en gardant le code petit et lisible, offrant une grande simplicité de lecture et de déboggage. Il permet aussi de conserver une homogénéité d’interprétation entre les objets internes et externes, évitant par là le danger d’une exécution s’effectuant à l’extérieur de la machine virtuelle. De plus, le suivi très précis du cycle de vie des objets permet de réduire au maximum les risques de "memory leaks" ou de "pointer null exception".
+Le choix d’implémenter sous la forme d’objets emboîtées les instructions de Tamgu offre de multiples avantages en terme de maintenance et de compréhension du code. Cette approche permet de conserver la sémantique des instructions tout en gardant le code petit et lisible, offrant une grande simplicité de lecture et de déboggage. Il permet aussi de conserver une homogénéité d’interprétation entre les objets internes et externes, évitant par là le danger d’une exécution s’effectuant à l’extérieur de la machine virtuelle.
 
