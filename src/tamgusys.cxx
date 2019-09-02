@@ -124,7 +124,7 @@ Tamgu* Tamgusys::Put(Tamgu* idx, Tamgu* kval, short idthread) {
     return aTRUE;
 }
 
-Tamgu* Tamgusys::Get(Tamgu* context, Tamgu* idx, short idthread) {
+Tamgu* Tamgusys::Eval(Tamgu* context, Tamgu* idx, short idthread) {
     if (idx != NULL && !idx->isConst()) {
         lastcommand = idx->String();
         char* rep = Getenv(STR(lastcommand));

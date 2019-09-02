@@ -122,7 +122,7 @@ Tamgu* Tamguxml::Put(Tamgu* idx, Tamgu* kval, short idthread) {
 	return aTRUE;
 }
 
-Tamgu* Tamguxml::Get(Tamgu* context, Tamgu* idx, short idthread) {
+Tamgu* Tamguxml::Eval(Tamgu* context, Tamgu* idx, short idthread) {
 	if (node == NULL)
 		return aNOELEMENT;
 	if (idx != NULL && !idx->isConst()) {

@@ -320,7 +320,7 @@ Exporting Tamgu*  Tamgumapsl::Put(Tamgu* idx, Tamgu* ke, short idthread) {
 }
 
 
-Exporting Tamgu* Tamgumapsl::Get(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
+Exporting Tamgu* Tamgumapsl::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
 
     Locking _lock(this);
 
@@ -351,8 +351,8 @@ Exporting Tamgu* Tamgumapsl::Get(Tamgu* contextualpattern, Tamgu* idx, short idt
     Tamgu* key;
     if (idx->isInterval()) {
         Tamgumapsl* kmap = new Tamgumapsl;
-        key = ((TamguIndex*)idx)->left->Get(aNULL, aNULL, idthread);
-        Tamgu* keyright = ((TamguIndex*)idx)->right->Get(aNULL, aNULL, idthread);
+        key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
+        Tamgu* keyright = ((TamguIndex*)idx)->right->Eval(aNULL, aNULL, idthread);
         string vleft = key->String();
         string vright = keyright->String();
         hmap<string,BLONG>::iterator it = values.find(vleft);
@@ -384,7 +384,7 @@ Exporting Tamgu* Tamgumapsl::Get(Tamgu* contextualpattern, Tamgu* idx, short idt
 
     }
 
-    key = ((TamguIndex*)idx)->left->Get(aNULL, aNULL, idthread);
+    key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
     
     if (key == aNULL) {
         if (globalTamgu->erroronkey)
@@ -801,7 +801,7 @@ Exporting Tamgu* Tamgumapsl::power(Tamgu* b, bool itself) {
 Exporting Tamgu* Tamgumapsl::Loopin(TamguInstruction* ins, Tamgu* context, short idthread) {
     Locking _lock(this);
     Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
-    var = var->Get(context, aNULL, idthread);
+    var = var->Eval(context, aNULL, idthread);
 
     
     hmap<string, BLONG>::iterator it;
@@ -816,7 +816,7 @@ Exporting Tamgu* Tamgumapsl::Loopin(TamguInstruction* ins, Tamgu* context, short
 
         var->storevalue(keys[i]);
 
-        a = ins->instructions.vecteur[1]->Get(context, aNULL, idthread);
+        a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
         //Continue does not trigger needInvestigate
         if (a->needInvestigate()) {

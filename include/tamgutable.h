@@ -74,7 +74,7 @@ class Tamgutable : public TamguObjectContainer {
 
     //----------------------------------------------------------------------------------------------------------------------
     Exporting Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);
-    Exporting Tamgu* Get(Tamgu* context, Tamgu* value, short idthread);
+    Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 
 
     Exporting Tamgu* Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* env, TamguFunctionLambda* bd, short idthread);

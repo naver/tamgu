@@ -28,7 +28,7 @@ public:
         taskellif=false;
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* value, short idthread);
+    Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
     Tamgu* Compile(Tamgu* parent);
     
     void Setpartialtest(bool b) {
@@ -76,9 +76,9 @@ public:
     
     c_different(TamguGlobal* g, TamguInstruction* ins) : c_double_compare(g,ins) {}
     
-    Tamgu* Get(Tamgu* r, Tamgu* l, short idthread) {
-        l = left->Get(r, aNULL, idthread);
-        r = right->Get(r, aNULL, idthread);
+    Tamgu* Eval(Tamgu* r, Tamgu* l, short idthread) {
+        l = left->Eval(r, aNULL, idthread);
+        r = right->Eval(r, aNULL, idthread);
 
         Tamgu* rp = l->different(r);
         l->Release();
@@ -92,9 +92,9 @@ public:
     
     c_same(TamguGlobal* g, TamguInstruction* ins) : c_double_compare(g,ins) {}
     
-    Tamgu* Get(Tamgu* r, Tamgu* l, short idthread) {
-        l = left->Get(r, aNULL, idthread);
-        r = right->Get(r, aNULL, idthread);
+    Tamgu* Eval(Tamgu* r, Tamgu* l, short idthread) {
+        l = left->Eval(r, aNULL, idthread);
+        r = right->Eval(r, aNULL, idthread);
 
         Tamgu* rp = l->same(r);
         l->Release();
@@ -109,9 +109,9 @@ public:
     
     c_more(TamguGlobal* g, TamguInstruction* ins) : c_double_compare(g,ins) {}
     
-    Tamgu* Get(Tamgu* r, Tamgu* l, short idthread) {
-        l = left->Get(r, aNULL, idthread);
-        r = right->Get(r, aNULL, idthread);
+    Tamgu* Eval(Tamgu* r, Tamgu* l, short idthread) {
+        l = left->Eval(r, aNULL, idthread);
+        r = right->Eval(r, aNULL, idthread);
 
         Tamgu* rp = l->more(r);
         l->Release();
@@ -126,9 +126,9 @@ public:
     
     c_moreequal(TamguGlobal* g, TamguInstruction* ins) : c_double_compare(g,ins) {}
     
-    Tamgu* Get(Tamgu* r, Tamgu* l, short idthread) {
-        l = left->Get(r, aNULL, idthread);
-        r = right->Get(r, aNULL, idthread);
+    Tamgu* Eval(Tamgu* r, Tamgu* l, short idthread) {
+        l = left->Eval(r, aNULL, idthread);
+        r = right->Eval(r, aNULL, idthread);
 
         Tamgu* rp = l->moreequal(r);
         l->Release();
@@ -142,9 +142,9 @@ public:
     
     c_less(TamguGlobal* g, TamguInstruction* ins) : c_double_compare(g,ins) {}
     
-    Tamgu* Get(Tamgu* r, Tamgu* l, short idthread) {
-        l = left->Get(r, aNULL, idthread);
-        r = right->Get(r, aNULL, idthread);
+    Tamgu* Eval(Tamgu* r, Tamgu* l, short idthread) {
+        l = left->Eval(r, aNULL, idthread);
+        r = right->Eval(r, aNULL, idthread);
 
         Tamgu* rp = l->less(r);
         l->Release();
@@ -159,9 +159,9 @@ public:
     
     c_lessequal(TamguGlobal* g, TamguInstruction* ins) : c_double_compare(g,ins) {}
     
-    Tamgu* Get(Tamgu* r, Tamgu* l, short idthread) {
-        l = left->Get(r, aNULL, idthread);
-        r = right->Get(r, aNULL, idthread);
+    Tamgu* Eval(Tamgu* r, Tamgu* l, short idthread) {
+        l = left->Eval(r, aNULL, idthread);
+        r = right->Eval(r, aNULL, idthread);
 
         Tamgu* rp = l->lessequal(r);
         l->Release();
@@ -183,7 +183,7 @@ public:
         right = ins->instructions.vecteur[1]->Decimal();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getdecimal(idthread) >= right)
             return aTRUE;
         return aFALSE;
@@ -200,7 +200,7 @@ public:
         right = ins->instructions.vecteur[1]->Long();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getlong(idthread) >= right)
             return aTRUE;
         return aFALSE;
@@ -217,7 +217,7 @@ public:
         right = ins->instructions.vecteur[1]->UString();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getustring(idthread) >= right)
             return aTRUE;
         return aFALSE;
@@ -234,7 +234,7 @@ public:
         right = ins->instructions.vecteur[1]->Short();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getshort(idthread) >= right)
             return aTRUE;
         return aFALSE;
@@ -251,7 +251,7 @@ public:
         right = ins->instructions.vecteur[1]->Integer();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getinteger(idthread) >= right)
             return aTRUE;
         return aFALSE;
@@ -268,7 +268,7 @@ public:
         right = ins->instructions.vecteur[1]->String();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getstring(idthread) >= right)
             return aTRUE;
         return aFALSE;
@@ -285,7 +285,7 @@ public:
         right = ins->instructions.vecteur[1]->Float();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getfloat(idthread) >= right)
             return aTRUE;
         return aFALSE;
@@ -302,7 +302,7 @@ public:
         right = ins->instructions.vecteur[1]->Decimal();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getdecimal(idthread) < right)
             return aTRUE;
         return aFALSE;
@@ -319,7 +319,7 @@ public:
         right = ins->instructions.vecteur[1]->Long();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getlong(idthread) < right)
             return aTRUE;
         return aFALSE;
@@ -336,7 +336,7 @@ public:
         right = ins->instructions.vecteur[1]->UString();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getustring(idthread) < right)
             return aTRUE;
         return aFALSE;
@@ -353,7 +353,7 @@ public:
         right = ins->instructions.vecteur[1]->Short();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getshort(idthread) < right)
             return aTRUE;
         return aFALSE;
@@ -370,7 +370,7 @@ public:
         right = ins->instructions.vecteur[1]->Integer();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getinteger(idthread) < right)
             return aTRUE;
         return aFALSE;
@@ -387,7 +387,7 @@ public:
         right = ins->instructions.vecteur[1]->String();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getstring(idthread) < right)
             return aTRUE;
         return aFALSE;
@@ -404,7 +404,7 @@ public:
         right = ins->instructions.vecteur[1]->Float();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getfloat(idthread) < right)
             return aTRUE;
         return aFALSE;
@@ -421,7 +421,7 @@ public:
         right = ins->instructions.vecteur[1]->Decimal();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getdecimal(idthread) > right)
             return aTRUE;
         return aFALSE;
@@ -438,7 +438,7 @@ public:
         right = ins->instructions.vecteur[1]->Long();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getlong(idthread) > right)
             return aTRUE;
         return aFALSE;
@@ -455,7 +455,7 @@ public:
         right = ins->instructions.vecteur[1]->UString();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getustring(idthread) > right)
             return aTRUE;
         return aFALSE;
@@ -472,7 +472,7 @@ public:
         right = ins->instructions.vecteur[1]->Short();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getshort(idthread) > right)
             return aTRUE;
         return aFALSE;
@@ -489,7 +489,7 @@ public:
         right = ins->instructions.vecteur[1]->Integer();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getinteger(idthread) > right)
             return aTRUE;
         return aFALSE;
@@ -506,7 +506,7 @@ public:
         right = ins->instructions.vecteur[1]->String();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getstring(idthread) > right)
             return aTRUE;
         return aFALSE;
@@ -523,7 +523,7 @@ public:
         right = ins->instructions.vecteur[1]->Float();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getfloat(idthread) > right)
             return aTRUE;
         return aFALSE;
@@ -540,7 +540,7 @@ public:
         right = ins->instructions.vecteur[1]->Decimal();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getdecimal(idthread) <= right)
             return aTRUE;
         return aFALSE;
@@ -557,7 +557,7 @@ public:
         right = ins->instructions.vecteur[1]->Long();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getlong(idthread) <= right)
             return aTRUE;
         return aFALSE;
@@ -574,7 +574,7 @@ public:
         right = ins->instructions.vecteur[1]->UString();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getustring(idthread) <= right)
             return aTRUE;
         return aFALSE;
@@ -591,7 +591,7 @@ public:
         right = ins->instructions.vecteur[1]->Short();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getshort(idthread) <= right)
             return aTRUE;
         return aFALSE;
@@ -608,7 +608,7 @@ public:
         right = ins->instructions.vecteur[1]->Integer();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getinteger(idthread) <= right)
             return aTRUE;
         return aFALSE;
@@ -625,7 +625,7 @@ public:
         right = ins->instructions.vecteur[1]->String();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getstring(idthread) <= right)
             return aTRUE;
         return aFALSE;
@@ -642,7 +642,7 @@ public:
         right = ins->instructions.vecteur[1]->Float();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getfloat(idthread) <= right)
             return aTRUE;
         return aFALSE;
@@ -659,7 +659,7 @@ public:
         right = ins->instructions.vecteur[1]->Decimal();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getdecimal(idthread) != right)
             return aTRUE;
         return aFALSE;
@@ -676,7 +676,7 @@ public:
         right = ins->instructions.vecteur[1]->Long();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getlong(idthread) != right)
             return aTRUE;
         return aFALSE;
@@ -693,7 +693,7 @@ public:
         right = ins->instructions.vecteur[1]->UString();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getustring(idthread) != right)
             return aTRUE;
         return aFALSE;
@@ -710,7 +710,7 @@ public:
         right = ins->instructions.vecteur[1]->Short();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getshort(idthread) != right)
             return aTRUE;
         return aFALSE;
@@ -727,7 +727,7 @@ public:
         right = ins->instructions.vecteur[1]->Integer();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getinteger(idthread) != right)
             return aTRUE;
         return aFALSE;
@@ -744,7 +744,7 @@ public:
         right = ins->instructions.vecteur[1]->String();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getstring(idthread) != right)
             return aTRUE;
         return aFALSE;
@@ -761,7 +761,7 @@ public:
         right = ins->instructions.vecteur[1]->Float();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getfloat(idthread) != right)
             return aTRUE;
         return aFALSE;
@@ -778,7 +778,7 @@ public:
         right = ins->instructions.vecteur[1]->Decimal();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getdecimal(idthread) == right)
             return aTRUE;
         return aFALSE;
@@ -795,7 +795,7 @@ public:
         right = ins->instructions.vecteur[1]->Long();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getlong(idthread) == right)
             return aTRUE;
         return aFALSE;
@@ -812,7 +812,7 @@ public:
         right = ins->instructions.vecteur[1]->UString();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getustring(idthread) == right)
             return aTRUE;
         return aFALSE;
@@ -829,7 +829,7 @@ public:
         right = ins->instructions.vecteur[1]->Short();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getshort(idthread) == right)
             return aTRUE;
         return aFALSE;
@@ -846,7 +846,7 @@ public:
         right = ins->instructions.vecteur[1]->Integer();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getinteger(idthread) == right)
             return aTRUE;
         return aFALSE;
@@ -863,7 +863,7 @@ public:
         right = ins->instructions.vecteur[1]->String();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getstring(idthread) == right)
             return aTRUE;
         return aFALSE;
@@ -880,7 +880,7 @@ public:
         right = ins->instructions.vecteur[1]->Float();
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* a, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
         if (left->Getfloat(idthread) == right)
             return aTRUE;
         return aFALSE;

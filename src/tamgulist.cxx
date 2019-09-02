@@ -683,7 +683,7 @@ Exporting Tamgu*  Tamgulist::Put(Tamgu* idx, Tamgu* ke, short idthread) {
     return aTRUE;
 }
 
-Exporting Tamgu* Tamgulist::Get(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
+Exporting Tamgu* Tamgulist::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
 
     Locking _lock(this);
 
@@ -715,7 +715,7 @@ Exporting Tamgu* Tamgulist::Get(Tamgu* contextualpattern, Tamgu* idx, short idth
             Tamgulist* kvect = new Tamgulist;
 
             for (auto& it : values) {
-                ke = it->Get(aNULL, aNULL, idthread);
+                ke = it->Eval(aNULL, aNULL, idthread);
                 if (ke == aRAISEERROR) {
                     kvect->Release();
                     return aRAISEERROR;
@@ -732,7 +732,7 @@ Exporting Tamgu* Tamgulist::Get(Tamgu* contextualpattern, Tamgu* idx, short idth
     
     long ikey = ((TamguIndex*)idx)->left->Getinteger(idthread);
     if (idx->isInterval())
-        keyright = ((TamguIndex*)idx)->right->Get(aNULL, aNULL, idthread);
+        keyright = ((TamguIndex*)idx)->right->Eval(aNULL, aNULL, idthread);
 
     list<Tamgu*>::iterator it;
     int i;
@@ -2312,7 +2312,7 @@ Exporting Tamgu*  Tamguring::Put(Tamgu* idx, Tamgu* value, short idthread) {
 }
 
 
-Exporting Tamgu* Tamguring::Get(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
+Exporting Tamgu* Tamguring::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
     
     if (!idx->isIndex()) {
         if (contextualpattern->isLoop())
@@ -2344,9 +2344,9 @@ Exporting Tamgu* Tamguring::Get(Tamgu* contextualpattern, Tamgu* idx, short idth
     Tamgu* keyright = NULL;
     
     TamguIndex* kind = (TamguIndex*)idx;
-    key = kind->left->Get(aNULL, aNULL, idthread);
+    key = kind->left->Eval(aNULL, aNULL, idthread);
     if (kind->interval == true)
-        keyright = kind->right->Get(aNULL, aNULL, idthread);
+        keyright = kind->right->Eval(aNULL, aNULL, idthread);
     
     long mx = values.size();
     long ikey = key->Integer();

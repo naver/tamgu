@@ -975,14 +975,14 @@ Exporting Tamgu* TamguInfinitevector::Looptaskell(Tamgu* recipient, Tamgu* conte
     Tamgu* st = step;
     
     if (seed->isCallVariable())
-        number = number->Get(aNULL, aNULL, idthread);
+        number = number->Eval(aNULL, aNULL, idthread);
     else
         number = seed->Atom(true);
     
     number->Setreference();
     
     if (step->isCallVariable()) {
-        st = step->Get(aNULL, aNULL, idthread);
+        st = step->Eval(aNULL, aNULL, idthread);
         st->Setreference();
     }
     
@@ -996,7 +996,7 @@ Exporting Tamgu* TamguInfinitevector::Looptaskell(Tamgu* recipient, Tamgu* conte
     while (true) {
         recipient->Putvalue(number, idthread);
         
-        a = bd->DirectGet(environment, aNULL, idthread);
+        a = bd->DirectEval(environment, aNULL, idthread);
         if (a->isNULL()) {
             number->plus(st, true);
             continue;
@@ -1049,14 +1049,14 @@ Exporting Tamgu* TamguInfinitevector::Filter(short idthread, Tamgu* env, TamguFu
     Tamgu* st = step;
     
     if (seed->isCallVariable())
-        key = key->Get(aNULL, aNULL, idthread);
+        key = key->Eval(aNULL, aNULL, idthread);
     else
         key = seed->Atom(true);
     
     key->Setreference();
     
     if (step->isCallVariable()) {
-        st = step->Get(aNULL, aNULL, idthread);
+        st = step->Eval(aNULL, aNULL, idthread);
         st->Setreference();
     }
 
@@ -1075,7 +1075,7 @@ Exporting Tamgu* TamguInfinitevector::Filter(short idthread, Tamgu* env, TamguFu
         }
         else {
             var->Putvalue(key, idthread);
-            returnval = bd->DirectGet(env, aNULL, idthread);
+            returnval = bd->DirectEval(env, aNULL, idthread);
             
             if (returnval == aBREAK) {
                 accu = returnval;
@@ -1264,7 +1264,7 @@ Exporting Tamgu*  Tamguvector::Put(Tamgu* idx, Tamgu* value, short idthread) {
 }
 
 
-Exporting Tamgu* Tamguvector::Get(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
+Exporting Tamgu* Tamguvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
     Locking _lock(this);
 
     if (!idx->isIndex()) {
@@ -1297,9 +1297,9 @@ Exporting Tamgu* Tamguvector::Get(Tamgu* contextualpattern, Tamgu* idx, short id
     Tamgu* keyright = NULL;
 
     TamguIndex* kind = (TamguIndex*)idx;
-    key = kind->left->Get(aNULL, aNULL, idthread);
+    key = kind->left->Eval(aNULL, aNULL, idthread);
     if (kind->interval == true)
-        keyright = kind->right->Get(aNULL, aNULL, idthread);
+        keyright = kind->right->Eval(aNULL, aNULL, idthread);
 
     long ikey;
     bool stringkey = false;
@@ -1650,7 +1650,7 @@ Exporting bool TamguConstvector::Setvalue(Tamgu* index, Tamgu* value, short idth
         v = value->getvalue(i);
         a = values[i];
         a->Setaffectation(true);
-        a = a->Get(aNULL, aNULL, idthread);
+        a = a->Eval(aNULL, aNULL, idthread);
         a->Putvalue(v, idthread);
         v->Release();
     }
@@ -1689,7 +1689,7 @@ Exporting Tamgu* TamguConstvector::same(Tamgu* value) {
             idx.left = globalTamgu->Provideint(i);
             idx.right = aNULL;
 
-            v = value->Get(aNULL, &idx, idthread);
+            v = value->Eval(aNULL, &idx, idthread);
             a = a->same(v);
             v->Release();
             return a;
@@ -1708,7 +1708,7 @@ Exporting Tamgu* TamguConstvector::same(Tamgu* value) {
 
         if (a->isCallVariable()) {
             a->Setaffectation(true);
-            a = a->Get(aNULL, aNULL, idthread);
+            a = a->Eval(aNULL, aNULL, idthread);
             a->Putvalue(v, idthread);
             if (clean)
                 v->Release();
@@ -1747,7 +1747,7 @@ Exporting Tamgu* TamguConstvector::same(Tamgu* value) {
             continue;
         }
 
-        a = a->Get(aNULL, aNULL, idthread);
+        a = a->Eval(aNULL, aNULL, idthread);
         if (a != aNOELEMENT && a->same(v) == aFALSE) {
             if (clean)
                 v->Release();
@@ -1769,7 +1769,7 @@ Exporting void TamguConstvector::Prepare(Tamgu* env, short idthread) {
             v->Put(env, aNULL, idthread);
         else
             if (v->isVariable())
-                v->Get(env, aNULL, idthread);
+                v->Eval(env, aNULL, idthread);
             else
                 v->Prepare(env, idthread);
     }
@@ -1817,7 +1817,7 @@ Exporting Tamgu* TamguConstvector::Put(Tamgu* index, Tamgu* value, short idthrea
             idx.left = globalTamgu->Provideint(i);
             idx.right = aNULL;
 
-            v = value->Get(aNULL, &idx, idthread);
+            v = value->Eval(aNULL, &idx, idthread);
             return a->Put(index, v, idthread);
         }
 
@@ -1838,7 +1838,7 @@ Exporting Tamgu* TamguConstvector::Put(Tamgu* index, Tamgu* value, short idthrea
 
         if (a->isCallVariable()) {
             a->Setaffectation(true);
-            a = a->Get(aNULL, aNULL, idthread);
+            a = a->Eval(aNULL, aNULL, idthread);
             a->Putvalue(v, idthread);
             if (clean)
                 v->Release();
@@ -1889,7 +1889,7 @@ Exporting Tamgu* TamguConstvector::Put(Tamgu* index, Tamgu* value, short idthrea
             continue;
         }
 
-        a = a->Get(aNULL, aNULL, idthread);
+        a = a->Eval(aNULL, aNULL, idthread);
         if (a->same(v) == aFALSE) {
             if (clean)
                 v->Release();
@@ -1904,7 +1904,7 @@ Exporting Tamgu* TamguConstvector::Put(Tamgu* index, Tamgu* value, short idthrea
     return this;
 }
 
-Exporting Tamgu* TamguConstvector::Get(Tamgu* index, Tamgu* value, short idthread) {
+Exporting Tamgu* TamguConstvector::Eval(Tamgu* index, Tamgu* value, short idthread) {
 
 
     if (affectation && evaluate)
@@ -1919,7 +1919,7 @@ Exporting Tamgu* TamguConstvector::Get(Tamgu* index, Tamgu* value, short idthrea
     if (isEvaluate()) {
         Tamgu* v;
         for (it = 0; it < sz; it++) {
-            v = values[it]->Get(aNULL, aNULL, idthread);
+            v = values[it]->Eval(aNULL, aNULL, idthread);
             kvect->Push(v);
             v->Release();
         }
@@ -1965,7 +1965,7 @@ class Comp {
     bool get(Tamgu* i, Tamgu* j) {
         compare.arguments.vecteur[0] = i;
         compare.arguments.vecteur[1] = j;
-        return compare.Get(aNULL, aNULL, idthread)->Boolean();
+        return compare.Eval(aNULL, aNULL, idthread)->Boolean();
     }
 };
 
@@ -1999,8 +1999,8 @@ public:
     }
     
     bool operator() (Tamgu* i, Tamgu* j) {
-        i = compare->Get(aNULL, i, idthread);
-        j = compare->Get(aNULL, j, idthread);
+        i = compare->Eval(aNULL, i, idthread);
+        j = compare->Eval(aNULL, j, idthread);
         if (direction) {
             if (i->Integer() > j ->Integer()) {
                 i->Releasenonconst();
@@ -2068,9 +2068,9 @@ public:
     
     bool operator() (Tamgu* i, Tamgu* j) {
         compare->arguments.vecteur[0] = i;
-        i = compare->Get(aNULL, aNULL, idthread);
+        i = compare->Eval(aNULL, aNULL, idthread);
         compare->arguments.vecteur[0] = j;
-        j = compare->Get(aNULL, aNULL, idthread);
+        j = compare->Eval(aNULL, aNULL, idthread);
         if (direction) {
             if (i->Integer() > j ->Integer()) {
                 i->Releasenonconst();
@@ -2334,8 +2334,8 @@ Exporting Tamgu* Tamguvector::Sortfloat(short idthread, bool d) {
 }
 
 
-Exporting Tamgu* TamguCycleVector::Get(Tamgu* context, Tamgu* v, short idthread) {
-    value = base->Get(context, aNULL, idthread);
+Exporting Tamgu* TamguCycleVector::Eval(Tamgu* context, Tamgu* v, short idthread) {
+    value = base->Eval(context, aNULL, idthread);
     value->Setreference();
     return this;
 }
@@ -2365,9 +2365,9 @@ Exporting TamguIteration* TamguCycleVector::Newiteration(bool rev) {
     return new TamguIteratorCycleVector(this);
 }
 
-Exporting Tamgu* TamguReplicateVector::Get(Tamgu* context, Tamgu* v, short idthread) {
-    value = base->Get(context, aNULL, idthread);
-    nb = nbbase->Get(context, aNULL, idthread);
+Exporting Tamgu* TamguReplicateVector::Eval(Tamgu* context, Tamgu* v, short idthread) {
+    value = base->Eval(context, aNULL, idthread);
+    nb = nbbase->Eval(context, aNULL, idthread);
     value->Setreference();
     nb->Setreference();
     return this;
@@ -2405,7 +2405,7 @@ Exporting Tamgu* Tamguvector::Looptaskell(Tamgu* recipient, Tamgu* context, Tamg
     for (size_t i = 0; i < values.size(); i++) {
         recipient->Putvalue(values[i], idthread);
 
-        a = bd->DirectGet(environment, aNULL, idthread);
+        a = bd->DirectEval(environment, aNULL, idthread);
         if (a->isNULL())
             continue;
 
@@ -2454,7 +2454,7 @@ Exporting Tamgu* Tamguvector::Filter(short idthread, Tamgu* env, TamguFunctionLa
         }
         else {
             var->Putvalue(key, idthread);
-            returnval = bd->DirectGet(env, aNULL, idthread);
+            returnval = bd->DirectEval(env, aNULL, idthread);
 
             if (returnval == aBREAK) {
                 accu = returnval;
@@ -3552,7 +3552,7 @@ Exporting Tamgu*  Tamgua_vector::Put(Tamgu* idx, Tamgu* value, short idthread) {
 }
 
 
-Exporting Tamgu* Tamgua_vector::Get(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
+Exporting Tamgu* Tamgua_vector::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
     
     if (!idx->isIndex()) {
         if (contextualpattern->isLoop())
@@ -3584,9 +3584,9 @@ Exporting Tamgu* Tamgua_vector::Get(Tamgu* contextualpattern, Tamgu* idx, short 
     Tamgu* keyright = NULL;
     
     TamguIndex* kind = (TamguIndex*)idx;
-    key = kind->left->Get(aNULL, aNULL, idthread);
+    key = kind->left->Eval(aNULL, aNULL, idthread);
     if (kind->interval == true)
-        keyright = kind->right->Get(aNULL, aNULL, idthread);
+        keyright = kind->right->Eval(aNULL, aNULL, idthread);
     
     long mx = values.size();
     long ikey = key->Integer();
@@ -3839,7 +3839,7 @@ Exporting Tamgu* Tamgua_vector::Looptaskell(Tamgu* recipient, Tamgu* context, Ta
         recipient->Putvalue(it.second, idthread);
         it.next();
 
-        a = bd->DirectGet(environment, aNULL, idthread);
+        a = bd->DirectEval(environment, aNULL, idthread);
         if (a->isNULL())
             continue;
         
@@ -3890,7 +3890,7 @@ Exporting Tamgu* Tamgua_vector::Filter(short idthread, Tamgu* env, TamguFunction
         }
         else {
             var->Putvalue(key, idthread);
-            returnval = bd->DirectGet(env, aNULL, idthread);
+            returnval = bd->DirectEval(env, aNULL, idthread);
             
             if (returnval == aBREAK) {
                 accu = returnval;

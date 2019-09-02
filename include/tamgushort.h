@@ -72,7 +72,7 @@ class Tamgushort : public TamguReference {
 	}
 
 
-    Tamgu* Get(Tamgu* context, Tamgu* value, short idthread) {
+    Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread) {
         
         return this;
     }

@@ -68,7 +68,7 @@ Tamgu* Tamgustdin::Put(Tamgu* idx, Tamgu* kval, short idthread) {
     return aTRUE;
 }
 
-Tamgu* Tamgustdin::Get(Tamgu* context, Tamgu* idx, short idthread) {
+Tamgu* Tamgustdin::Eval(Tamgu* context, Tamgu* idx, short idthread) {
     Locking _lock(this);
     if (is == NULL || is->eof())
         return aFALSE;

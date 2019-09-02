@@ -401,7 +401,7 @@ Exporting Tamgu*  Tamgutreemapf::Put(Tamgu* idx, Tamgu* ke, short idthread) {
 }
 
 
-Exporting Tamgu* Tamgutreemapf::Get(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
+Exporting Tamgu* Tamgutreemapf::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
 
     Locking _lock(this);
 
@@ -432,8 +432,8 @@ Exporting Tamgu* Tamgutreemapf::Get(Tamgu* contextualpattern, Tamgu* idx, short 
     Tamgu* key;
     if (idx->isInterval()) {
         Tamgutreemapf* kmap = new Tamgutreemapf;
-        key = ((TamguIndex*)idx)->left->Get(aNULL, aNULL, idthread);
-        Tamgu* keyright = ((TamguIndex*)idx)->right->Get(aNULL, aNULL, idthread);
+        key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
+        Tamgu* keyright = ((TamguIndex*)idx)->right->Eval(aNULL, aNULL, idthread);
         double vleft = key->Float();
         double vright = keyright->Float();
         map<double, Tamgu*>::iterator it = values.find(vleft);
@@ -465,7 +465,7 @@ Exporting Tamgu* Tamgutreemapf::Get(Tamgu* contextualpattern, Tamgu* idx, short 
 
     }
 
-    key = ((TamguIndex*)idx)->left->Get(aNULL, aNULL, idthread);
+    key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
     
     if (key == aNULL) {
         if (globalTamgu->erroronkey)
@@ -903,7 +903,7 @@ Exporting Tamgu* Tamgutreemapf::power(Tamgu* b, bool itself) {
 Exporting Tamgu* Tamgutreemapf::Loopin(TamguInstruction* ins, Tamgu* context, short idthread) {
     Locking _lock(this);
     Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
-    var = var->Get(context, aNULL, idthread);
+    var = var->Eval(context, aNULL, idthread);
 
     map<double, Tamgu*>::iterator it;
     
@@ -917,7 +917,7 @@ Exporting Tamgu* Tamgutreemapf::Loopin(TamguInstruction* ins, Tamgu* context, sh
 
         var->storevalue(keys[i]);
 
-        a = ins->instructions.vecteur[1]->Get(context, aNULL, idthread);
+        a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
         //Continue does not trigger needInvestigate
         if (a->needInvestigate()) {

@@ -337,7 +337,7 @@ Exporting Tamgu*  Tamguprimemapsl::Put(Tamgu* idx, Tamgu* ke, short idthread) {
 }
 
 
-Exporting Tamgu* Tamguprimemapsl::Get(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
+Exporting Tamgu* Tamguprimemapsl::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
 
     Locking _lock(this);
 
@@ -368,8 +368,8 @@ Exporting Tamgu* Tamguprimemapsl::Get(Tamgu* contextualpattern, Tamgu* idx, shor
     Tamgu* key;
     if (idx->isInterval()) {
         Tamguprimemapsl* kmap = new Tamguprimemapsl;
-        key = ((TamguIndex*)idx)->left->Get(aNULL, aNULL, idthread);
-        Tamgu* keyright = ((TamguIndex*)idx)->right->Get(aNULL, aNULL, idthread);
+        key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
+        Tamgu* keyright = ((TamguIndex*)idx)->right->Eval(aNULL, aNULL, idthread);
         string vleft = key->String();
         string vright = keyright->String();
         prime_hash<string,BLONG>::iterator it = values.find(vleft);
@@ -401,7 +401,7 @@ Exporting Tamgu* Tamguprimemapsl::Get(Tamgu* contextualpattern, Tamgu* idx, shor
 
     }
 
-    key = ((TamguIndex*)idx)->left->Get(aNULL, aNULL, idthread);
+    key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
     
     if (key == aNULL) {
         if (globalTamgu->erroronkey)
@@ -824,7 +824,7 @@ Exporting Tamgu* Tamguprimemapsl::power(Tamgu* b, bool itself) {
 Exporting Tamgu* Tamguprimemapsl::Loopin(TamguInstruction* ins, Tamgu* context, short idthread) {
     Locking _lock(this);
     Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
-    var = var->Get(context, aNULL, idthread);
+    var = var->Eval(context, aNULL, idthread);
 
     
     prime_hash<string, BLONG>::iterator it;
@@ -839,7 +839,7 @@ Exporting Tamgu* Tamguprimemapsl::Loopin(TamguInstruction* ins, Tamgu* context, 
 
         var->storevalue(keys[i]);
 
-        a = ins->instructions.vecteur[1]->Get(context, aNULL, idthread);
+        a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
         //Continue does not trigger needInvestigate
         if (a->needInvestigate()) {

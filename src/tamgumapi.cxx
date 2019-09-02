@@ -407,7 +407,7 @@ Exporting Tamgu*  Tamgumapi::Put(Tamgu* idx, Tamgu* ke, short idthread) {
 }
 
 
-Exporting Tamgu* Tamgumapi::Get(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
+Exporting Tamgu* Tamgumapi::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
 
     Locking _lock(this);
 
@@ -438,8 +438,8 @@ Exporting Tamgu* Tamgumapi::Get(Tamgu* contextualpattern, Tamgu* idx, short idth
     Tamgu* key;
     if (idx->isInterval()) {
         Tamgumapi* kmap = new Tamgumapi;
-        key = ((TamguIndex*)idx)->left->Get(aNULL, aNULL, idthread);
-        Tamgu* keyright = ((TamguIndex*)idx)->right->Get(aNULL, aNULL, idthread);
+        key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
+        Tamgu* keyright = ((TamguIndex*)idx)->right->Eval(aNULL, aNULL, idthread);
         long vleft = key->Integer();
         long vright = keyright->Integer();
         hmap<long, Tamgu*>::iterator it = values.find(vleft);
@@ -471,7 +471,7 @@ Exporting Tamgu* Tamgumapi::Get(Tamgu* contextualpattern, Tamgu* idx, short idth
 
     }
 
-    key = ((TamguIndex*)idx)->left->Get(aNULL, aNULL, idthread);
+    key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
     
     if (key == aNULL) {
         if (globalTamgu->erroronkey)
@@ -899,7 +899,7 @@ Exporting Tamgu* Tamgumapi::power(Tamgu* b, bool itself) {
 Exporting Tamgu* Tamgumapi::Loopin(TamguInstruction* ins, Tamgu* context, short idthread) {
     Locking _lock(this);
     Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
-    var = var->Get(context, aNULL, idthread);
+    var = var->Eval(context, aNULL, idthread);
 
     hmap<long, Tamgu*>::iterator it;
     
@@ -913,7 +913,7 @@ Exporting Tamgu* Tamgumapi::Loopin(TamguInstruction* ins, Tamgu* context, short 
 
         var->storevalue(keys[i]);
 
-        a = ins->instructions.vecteur[1]->Get(context, aNULL, idthread);
+        a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
         //Continue does not trigger needInvestigate
         if (a->needInvestigate()) {

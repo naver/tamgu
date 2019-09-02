@@ -67,7 +67,7 @@ class Tamguvector : public TamguObjectLockContainer {
 
     //----------------------------------------------------------------------------------------------------------------------
     Exporting virtual Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);
-    Exporting virtual Tamgu* Get(Tamgu* context, Tamgu* value, short idthread);
+    Exporting virtual Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 
     void SetConst() {
         isconst = true;
@@ -859,7 +859,7 @@ class TamguConstvector : public Tamguvector {
     Exporting bool Setvalue(Tamgu* index, Tamgu* value, short idthread, bool strict = false);
 
     Exporting Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);
-    Exporting Tamgu* Get(Tamgu* index, Tamgu* value, short idthread);
+    Exporting Tamgu* Eval(Tamgu* index, Tamgu* value, short idthread);
     Tamgu* Newinstance(short idthread, Tamgu* f = NULL) {
         return this;
     }
@@ -1090,7 +1090,7 @@ class TamguCycleVector : public TamguTracked {
 
     Exporting Tamgu* Newinstance(short idthread, Tamgu* f = NULL);
     Exporting TamguIteration* Newiteration(bool direction);
-    Exporting Tamgu* Get(Tamgu* context, Tamgu* value, short idthread);
+    Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
     bool isInfinite() {
         return true;
     }
@@ -1115,7 +1115,7 @@ class TamguReplicateVector : public TamguTracked {
         nb = aNULL;
     }
 
-    Exporting Tamgu* Get(Tamgu* context, Tamgu* value, short idthread);Exporting Tamgu* Newiterator(bool);
+    Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);Exporting Tamgu* Newiterator(bool);
     Exporting Tamgu* Newinstance(short idthread, Tamgu* f = NULL);
     Exporting TamguIteration* Newiteration(bool direction);
     void AddInstruction(Tamgu* v) {
@@ -1362,7 +1362,7 @@ public:
     
         //----------------------------------------------------------------------------------------------------------------------
     Exporting Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);
-    Exporting Tamgu* Get(Tamgu* context, Tamgu* value, short idthread);
+    Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
     
     void SetConst() {
         isconst = true;

@@ -78,7 +78,7 @@ Tamgu* Tamguframeseeder::Newinstance(short idthread, Tamgu* a) {
     //The frame does not contain any frame variables...
     if (!frame->post) {
         for (long i = 0; i < frame->variables.size(); i++)
-            frame->variables[i]->Get(a, aNULL, idthread);
+            frame->variables[i]->Eval(a, aNULL, idthread);
         return a;
     }
 
@@ -95,7 +95,7 @@ Tamgu* Tamguframeseeder::Newinstance(short idthread, Tamgu* a) {
             a->Declare(o->Name(), new TamguLet);
             continue;
         }
-        o->Get(a, aNULL, idthread);
+        o->Eval(a, aNULL, idthread);
     }
 
     return a;
@@ -115,7 +115,7 @@ void Tamguframeinstance::Postinstantiation(short idthread, bool setreference) {
     // Either: we have a creation within the _initial function of frame, where this local frame is declared
     // Or: we need to use the default initialization that was declared where the local frame itself is declared
     //frame toto {
-    //        within w(10); //default initialization, see o->Get(this, aNULL, idthread);
+    //        within w(10); //default initialization, see o->Eval(this, aNULL, idthread);
     //        function _initial(int k) {
     //            w=within(k); // initialization within a _initial function that replaces the other default initialization
     
@@ -139,7 +139,7 @@ void Tamguframeinstance::Postinstantiation(short idthread, bool setreference) {
                 declarations.vecteur[ipos] = v;
             }
             else //we rollback to the default initialization...
-            o->Get(this, aNULL, idthread);
+            o->Eval(this, aNULL, idthread);
             
             if (setreference)
             declarations[ipos]->Setreference(reference);
@@ -162,7 +162,7 @@ void Tamguframemininstance::Postinstantiation(short idthread, bool setreference)
     // Either: we have a creation within the _initial function of frame, where this local frame is declared
     // Or: we need to use the default initialization that was declared where the local frame itself is declared
     //frame toto {
-    //		within w(10); //default initialization, see o->Get(this, aNULL, idthread);
+    //		within w(10); //default initialization, see o->Eval(this, aNULL, idthread);
     //		function _initial(int k) {
     //			w=within(k); // initialization within a _initial function that replaces the other default initialization
 
@@ -186,7 +186,7 @@ void Tamguframemininstance::Postinstantiation(short idthread, bool setreference)
                 declarations[ipos] = v;
             }
             else //we rollback to the default initialization...
-                o->Get(this, aNULL, idthread);
+                o->Eval(this, aNULL, idthread);
                 
             if (setreference)
                 declarations[ipos]->Setreference(reference);
@@ -195,7 +195,7 @@ void Tamguframemininstance::Postinstantiation(short idthread, bool setreference)
     Popframe(idthread);
 }
 
-Tamgu* TamguframeBaseInstance::Get(Tamgu* context, Tamgu* idx, short idthread) {
+Tamgu* TamguframeBaseInstance::Eval(Tamgu* context, Tamgu* idx, short idthread) {
     if (idx->isIndex()) {
         //In this case, we check if we have an index function
         TamguIndex* aid = (TamguIndex*)idx;
@@ -209,12 +209,12 @@ Tamgu* TamguframeBaseInstance::Get(Tamgu* context, Tamgu* idx, short idthread) {
             return globalTamgu->Returnerror("Cannot process indexes", idthread);
 
         VECTE<Tamgu*> arguments;
-        Tamgu* a = aid->left->Get(context, aNULL, idthread);
+        Tamgu* a = aid->left->Eval(context, aNULL, idthread);
         a->Setreference();
         arguments.push_back(a);
 
         if (aid->interval) {
-            a = aid->right->Get(context, aNULL, idthread);
+            a = aid->right->Eval(context, aNULL, idthread);
             a->Setreference();
             arguments.push_back(a);
         }
@@ -258,7 +258,7 @@ Tamgu* TamguframeBaseInstance::Execute(Tamgu* body, VECTE<Tamgu*>& arguments, sh
         TamguCallThread callthread(bd);
         callthread.arguments = arguments;
         callthread.idinfo = bd->idinfo;
-        return callthread.Get(this, NULL, idthread);
+        return callthread.Eval(this, NULL, idthread);
     }
 
     TamguDeclarationLocal* environment = globalTamgu->Providedeclaration(this, idthread, false);
@@ -297,7 +297,7 @@ Tamgu* TamguframeBaseInstance::Execute(Tamgu* body, VECTE<Tamgu*>& arguments, sh
 
     Pushframe(idthread);
     //We then apply our function within this environment
-    Tamgu* a = bd->Get(environment, this, idthread);
+    Tamgu* a = bd->Eval(environment, this, idthread);
     Popframe(idthread);
 
     if (a->Reference()) {
@@ -332,14 +332,14 @@ Tamgu* TamguframeBaseInstance::Execute(Tamgu* body, short idthread) {
     if (bd->isThread()) {
         TamguCallThread callthread(bd);
         callthread.idinfo = bd->idinfo;
-        return callthread.Get(this, NULL, idthread);
+        return callthread.Eval(this, NULL, idthread);
     }
 
     TamguDeclarationLocal* environment = globalTamgu->Providedeclaration(this, idthread, false);
 
     Pushframe(idthread);
     //We then apply our function within this environment
-    Tamgu* a = bd->Get(environment, this, idthread);
+    Tamgu* a = bd->Eval(environment, this, idthread);
     Popframe(idthread);
 
     if (a->Reference()) {
@@ -371,12 +371,12 @@ Tamgu* Tamguframemininstance::Put(Tamgu* idx, Tamgu* value, short idthread) {
         
         
         VECTE<Tamgu*> arguments;
-        Tamgu* a = aid->left->Get(aNULL, aNULL, idthread);
+        Tamgu* a = aid->left->Eval(aNULL, aNULL, idthread);
         a->Setreference();
         arguments.push_back(a);
         
         if (aid->interval) {
-            a = aid->right->Get(aNULL, aNULL, idthread);
+            a = aid->right->Eval(aNULL, aNULL, idthread);
             a->Setreference();
             arguments.push_back(a);
         }
@@ -453,12 +453,12 @@ Tamgu* Tamguframeinstance::Put(Tamgu* idx, Tamgu* value, short idthread) {
         
         
         VECTE<Tamgu*> arguments;
-        Tamgu* a = aid->left->Get(aNULL, aNULL, idthread);
+        Tamgu* a = aid->left->Eval(aNULL, aNULL, idthread);
         a->Setreference();
         arguments.push_back(a);
         
         if (aid->interval) {
-            a = aid->right->Get(aNULL, aNULL, idthread);
+            a = aid->right->Eval(aNULL, aNULL, idthread);
             a->Setreference();
             arguments.push_back(a);
         }

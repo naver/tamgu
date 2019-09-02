@@ -97,7 +97,7 @@ public:
 		return aTRUE;
 	}
 	
-	virtual Tamgu* Get(Tamgu* context, Tamgu* value, short idthread);
+	virtual Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 
 	virtual Tamgu* Put(Tamgu* idx, Tamgu* value, short idthread);
 	virtual Tamgu* ExtractPredicateVariables(Tamgu* context, TamguDeclaration* dom, Tamgu* val, Tamgu* e, short, bool root);
@@ -133,7 +133,7 @@ public:
         return false;
     }
 
-	Tamgu* Get(Tamgu* context, Tamgu* value, short idthread);
+	Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 
 	Tamgu* Function() {
 		return call;
@@ -210,7 +210,7 @@ public:
 
 	Tamgu* same(Tamgu* a);
 
-	Tamgu* Get(Tamgu* context, Tamgu* value, short idthread);
+	Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 
 	Tamgu* Put(Tamgu* idx, Tamgu* value, short idthread);
 
@@ -337,7 +337,7 @@ public:
 	}
 
 	Tamgu* ExtractPredicateVariables(Tamgu* context, TamguDeclaration* dom, Tamgu* val, Tamgu* e, short, bool root);
-	Tamgu* Get(Tamgu* context, Tamgu* value, short idthread);
+	Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 	Tamgu* EvaluePredicateVariables(Tamgu* context, TamguDeclaration* dom, short idthread);
 
 	Tamgu* Put(Tamgu* idx, Tamgu* value, short idthread);
@@ -455,7 +455,7 @@ public:
 	}
 
 	Tamgu* ExtractPredicateVariables(Tamgu* context, TamguDeclaration* dom, Tamgu* val, Tamgu* e, short, bool root);
-	Tamgu* Get(Tamgu* context, Tamgu* value, short idthread);
+	Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 	Tamgu* EvaluePredicateVariables(Tamgu* context, TamguDeclaration* dom, short idthread);
 
 	Tamgu* Put(Tamgu* idx, Tamgu* value, short idthread);
@@ -676,7 +676,7 @@ public:
 		return true;
 	}
 
-	Tamgu* Get(Tamgu* context, Tamgu* callfunction, short idthread);
+	Tamgu* Eval(Tamgu* context, Tamgu* callfunction, short idthread);
 	virtual Tamgu* Put(Tamgu* context, Tamgu* callfunction, short idthread);
 
 	virtual Tamgu* Newinstance(short idthread, Tamgu* f = NULL);
@@ -888,7 +888,7 @@ public:
 		add = false;
 	}
 
-	Tamgu* Get(Tamgu* context, Tamgu* callfunction, short idthread);
+	Tamgu* Eval(Tamgu* context, Tamgu* callfunction, short idthread);
 
 	Tamgu* Newinstance(short idthread, Tamgu* f = NULL) {
 		return new TamguPredicateKnowledgeBase(globalTamgu, name);
@@ -1017,7 +1017,7 @@ public:
 		name = n;
 	}
 
-	Tamgu* Get(Tamgu*, Tamgu*, short);
+	Tamgu* Eval(Tamgu*, Tamgu*, short);
 	short Type() {
 		return a_predicateinstruction;
 	}
@@ -1083,7 +1083,7 @@ public:
 		return dico->check(n);
 	}
 
-	Tamgu* Get(Tamgu* context, Tamgu* value, short idthread);
+	Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 	Tamgu* PredicateEvalue(VECTE<Tamgu*>& goals, TamguPredicate* currenthead, long depth);
 	TamguPredicate* PredicateUnification(VECTE<Tamgu*>& goals, long& posreplace, long& from);
 	Tamgu* PredicateCreate(TamguPredicate* headrule, long depth);
@@ -1096,7 +1096,7 @@ public:
 	TamguPredicate* head;
 
 	TamguInstructionLaunch(TamguGlobal* g, Tamgu* parent = NULL) : TamguTracked(a_predicatelaunch, g, parent) {}
-	Tamgu* Get(Tamgu* context, Tamgu* value, short idthread);
+	Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 
 	short Type() {
 		return a_predicatelaunch;
@@ -1196,7 +1196,7 @@ public:
 				Reorderdisjunction(disj);
 		}
 	}
-	Tamgu* Get(Tamgu* c, Tamgu* v, short idthread);
+	Tamgu* Eval(Tamgu* c, Tamgu* v, short idthread);
 	void addfinal(TamguPredicateContainer* kpc);
 };
 
@@ -1284,7 +1284,7 @@ public:
 		success = v;
 	}
 
-	virtual Tamgu* Get(Tamgu* context, Tamgu* value, short idthread);
+	virtual Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 
 	short Action() {
 		return instruction->Action();

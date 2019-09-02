@@ -322,7 +322,7 @@ Exporting Tamgu*  Tamguprimemaplf::Put(Tamgu* idx, Tamgu* ke, short idthread) {
 }
 
 
-Exporting Tamgu* Tamguprimemaplf::Get(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
+Exporting Tamgu* Tamguprimemaplf::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
 
     Locking _lock(this);
 
@@ -353,8 +353,8 @@ Exporting Tamgu* Tamguprimemaplf::Get(Tamgu* contextualpattern, Tamgu* idx, shor
     Tamgu* key;
     if (idx->isInterval()) {
         Tamguprimemaplf* kmap = new Tamguprimemaplf;
-        key = ((TamguIndex*)idx)->left->Get(aNULL, aNULL, idthread);
-        Tamgu* keyright = ((TamguIndex*)idx)->right->Get(aNULL, aNULL, idthread);
+        key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
+        Tamgu* keyright = ((TamguIndex*)idx)->right->Eval(aNULL, aNULL, idthread);
         BLONG vleft = key->Long();
         BLONG vright = keyright->Long();
         prime_hash<BLONG,double>::iterator it = values.find(vleft);
@@ -386,7 +386,7 @@ Exporting Tamgu* Tamguprimemaplf::Get(Tamgu* contextualpattern, Tamgu* idx, shor
 
     }
 
-    key = ((TamguIndex*)idx)->left->Get(aNULL, aNULL, idthread);
+    key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
     
     if (key == aNULL) {
         if (globalTamgu->erroronkey)
@@ -809,7 +809,7 @@ Exporting Tamgu* Tamguprimemaplf::power(Tamgu* b, bool itself) {
 Exporting Tamgu* Tamguprimemaplf::Loopin(TamguInstruction* ins, Tamgu* context, short idthread) {
     Locking _lock(this);
     Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
-    var = var->Get(context, aNULL, idthread);
+    var = var->Eval(context, aNULL, idthread);
 
     
     prime_hash<BLONG, double>::iterator it;
@@ -824,7 +824,7 @@ Exporting Tamgu* Tamguprimemaplf::Loopin(TamguInstruction* ins, Tamgu* context, 
 
         var->storevalue(keys[i]);
 
-        a = ins->instructions.vecteur[1]->Get(context, aNULL, idthread);
+        a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
         //Continue does not trigger needInvestigate
         if (a->needInvestigate()) {

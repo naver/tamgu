@@ -62,12 +62,12 @@ char RawStringIndexes(char* svalue, long sz, Tamgu* index, long& ileft, long& ir
         TamguIndex* kind = (TamguIndex*)index;
         sleft = kind->signleft;
         sright = kind->signright;
-        left = kind->left->Get(aNULL, aNULL, idthread);
+        left = kind->left->Eval(aNULL, aNULL, idthread);
         if (left != kind->left)
             releft = true;
         
         if (kind->interval == true) {
-            right = kind->right->Get(aNULL, aNULL, idthread);
+            right = kind->right->Eval(aNULL, aNULL, idthread);
             if (right != kind->right)
                 reright = true;
         }
@@ -308,14 +308,14 @@ TamguIteration* Tamgurawstring::Newiteration(bool direction) {
 
 Tamgu* Tamgurawstring::Loopin(TamguInstruction* ins, Tamgu* context, short idthread) {
     Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
-    var = var->Get(context, aNULL, idthread);
+    var = var->Eval(context, aNULL, idthread);
     Tamgustring v("");
     Tamgu* a;
     for (long i = 0; i < stringsize; i++) {
         v.value =  value[i];
         var->Putvalue(&v, idthread);
         
-        a = ins->instructions.vecteur[1]->Get(context, aNULL, idthread);
+        a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
         
             //Continue does not trigger needInvestigate
         if (a->needInvestigate()) {
@@ -457,7 +457,7 @@ Tamgu* Tamgurawstring::Put(Tamgu* idx, Tamgu* ke, short idthread) {
     return aTRUE;
 }
 
-Tamgu* Tamgurawstring::Get(Tamgu* context, Tamgu* idx, short idthread) {
+Tamgu* Tamgurawstring::Eval(Tamgu* context, Tamgu* idx, short idthread) {
     if (!idx->isIndex() || context == idx)
         return this;
 

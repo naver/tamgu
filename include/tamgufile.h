@@ -84,7 +84,7 @@ public:
 		return this;
 	}
 
-	Tamgu* Get(Tamgu* context, Tamgu* value, short idthread) {
+	Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread) {
 		Locking _lock(this);
 		if (thefile == NULL || feof(thefile) || op != "rb")
 			return aFALSE;

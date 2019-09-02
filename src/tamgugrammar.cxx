@@ -72,7 +72,7 @@ Tamgu* Tamgugrammar::Put(Tamgu* index, Tamgu* value, short idthread) {
     return this;
 }
 
-Tamgu* Tamgugrammar::Get(Tamgu* context, Tamgu* index, short idthread) {
+Tamgu* Tamgugrammar::Eval(Tamgu* context, Tamgu* index, short idthread) {
     return this;
 }
 
@@ -410,7 +410,7 @@ bool GrammarBaseAutomaton::callfunction(short idthread, wstring& a, Tamgu* b, lo
     kfunc.arguments.push_back(&ba);
     kfunc.arguments.push_back(b);
     kfunc.arguments.push_back(&bpos);
-    Tamgu* res = kfunc.Get(aNULL, aNULL, idthread);
+    Tamgu* res = kfunc.Eval(aNULL, aNULL, idthread);
     if (res->isError())
         return false;
     return res->Boolean();
@@ -422,7 +422,7 @@ bool GrammarBaseAutomaton::callfunction(Tamgu* func, short idthread, Tamgu* b, l
     TamguConstInt bpos(pos);
     kfunc.arguments.push_back(b);
     kfunc.arguments.push_back(&bpos);
-    Tamgu* res = kfunc.Get(aNULL, aNULL, idthread);
+    Tamgu* res = kfunc.Eval(aNULL, aNULL, idthread);
     if (res->isError())
         return false;
     return res->Boolean();

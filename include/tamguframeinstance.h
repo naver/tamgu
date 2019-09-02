@@ -131,7 +131,7 @@ public:
     }
 
 	//----------------------------------------------------------------------------------------------------------------------
-	Tamgu* Get(Tamgu* context, Tamgu* value, short idthread);
+	Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 
 
 	void Variables(vector<short>& vars) {
@@ -207,7 +207,7 @@ public:
 		Tamgu* a;
 		long i;
 		for (i = 0; i < callfunc->arguments.last; i++) {
-			a = callfunc->arguments[i]->Get(domain, aNULL, idthread);
+			a = callfunc->arguments[i]->Eval(domain, aNULL, idthread);
 			a->Setreference();
 			arguments.push_back(a);
 		}
@@ -238,7 +238,7 @@ public:
 		long i;
 
 		for (i = 0; i < callfunc->arguments.last; i++) {
-			a = callfunc->arguments[i]->Get(domain, aNULL, idthread);
+			a = callfunc->arguments[i]->Eval(domain, aNULL, idthread);
 			a->Setreference();
 			arguments.push_back(a);
 		}
@@ -266,7 +266,7 @@ public:
         long i;
         
         for (i = 0; i < callfunc->arguments.last; i++) {
-            a = callfunc->arguments[i]->Get(domain, aNULL, idthread);
+            a = callfunc->arguments[i]->Eval(domain, aNULL, idthread);
             a->Setreference();
             arguments.push_back(a);
         }

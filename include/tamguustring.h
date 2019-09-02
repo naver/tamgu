@@ -512,7 +512,7 @@ public:
 		return this;
 	}
 
-	Tamgu* Get(Tamgu* context, Tamgu* value, short idthread);
+	Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 
 	Tamgu* Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* env, TamguFunctionLambda* bd, short idthread);
 	Tamgu* Filter(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* kcont, Tamgu* accu, Tamgu* init, bool direct);
@@ -1519,7 +1519,7 @@ public:
         return this;
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* value, short idthread);
+    Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
     
     Tamgu* Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* env, TamguFunctionLambda* bd, short idthread);
     Tamgu* Filter(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* kcont, Tamgu* accu, Tamgu* init, bool direct);

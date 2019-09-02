@@ -981,7 +981,7 @@ Exporting Tamgu*  Tamgutable::Put(Tamgu* idx, Tamgu* value, short idthread) {
 }
 
 
-Exporting Tamgu* Tamgutable::Get(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
+Exporting Tamgu* Tamgutable::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
     
 
     if (!idx->isIndex()) {
@@ -1010,9 +1010,9 @@ Exporting Tamgu* Tamgutable::Get(Tamgu* contextualpattern, Tamgu* idx, short idt
     Tamgu* keyright = NULL;
 
     TamguIndex* kind = (TamguIndex*)idx;
-    key = kind->left->Get(aNULL, aNULL, idthread);
+    key = kind->left->Eval(aNULL, aNULL, idthread);
     if (kind->interval == true)
-        keyright = kind->right->Get(aNULL, aNULL, idthread);
+        keyright = kind->right->Eval(aNULL, aNULL, idthread);
 
     long ikey;
     bool stringkey = false;
@@ -1341,7 +1341,7 @@ Exporting Tamgu* Tamgutable::Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu
 
         recipient->Putvalue(values[i], idthread);
 
-        a = bd->DirectGet(environment, aNULL, idthread);
+        a = bd->DirectEval(environment, aNULL, idthread);
         if (a->isNULL())
             continue;
 
@@ -1393,7 +1393,7 @@ Exporting Tamgu* Tamgutable::Filter(short idthread, Tamgu* env, TamguFunctionLam
         }
         else {
             var->Putvalue(key, idthread);
-            returnval = bd->DirectGet(env, aNULL, idthread);
+            returnval = bd->DirectEval(env, aNULL, idthread);
 
             if (returnval == aBREAK) {
                 accu = returnval;

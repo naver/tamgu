@@ -208,7 +208,7 @@ Tamgu* Tamgustring::Loopin(TamguInstruction* ins, Tamgu* context, short idthread
     agnostring val(String());
     
     Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
-    var = var->Get(context, aNULL, idthread);
+    var = var->Eval(context, aNULL, idthread);
     Tamgustring v("");
     Tamgu* a;
     val.begin();
@@ -216,7 +216,7 @@ Tamgu* Tamgustring::Loopin(TamguInstruction* ins, Tamgu* context, short idthread
         v.value =  val.nextemoji();
         var->Putvalue(&v, idthread);
         
-        a = ins->instructions.vecteur[1]->Get(context, aNULL, idthread);
+        a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
         
             //Continue does not trigger needInvestigate
         if (a->needInvestigate()) {
@@ -398,7 +398,7 @@ Exporting Tamgu* Tamgustring::Put(Tamgu* idx, Tamgu* v, short idthread) {
 
 }
 
-Exporting Tamgu* Tamgustring::Get(Tamgu* context, Tamgu* idx, short idthread) {
+Exporting Tamgu* Tamgustring::Eval(Tamgu* context, Tamgu* idx, short idthread) {
     if (!idx->isIndex() || context == idx)
         return this;
 
@@ -2110,7 +2110,7 @@ Exporting Tamgu* Tamgustring::Looptaskell(Tamgu* recipient, Tamgu* context, Tamg
     while (!v.end()) {
         it->value = v.nextemoji();
 
-        a = bd->DirectGet(environment, aNULL, idthread);
+        a = bd->DirectEval(environment, aNULL, idthread);
         if (a->isNULL())
             continue;
         
@@ -2168,7 +2168,7 @@ Exporting Tamgu* Tamgustring::Filter(short idthread, Tamgu* env, TamguFunctionLa
         }
         else {
             var->Putvalue(key, idthread);
-            returnval = bd->DirectGet(env, aNULL, idthread);
+            returnval = bd->DirectEval(env, aNULL, idthread);
 
             if (returnval == aBREAK) {
                 accu = returnval;
@@ -2214,7 +2214,7 @@ void TamguLoopString::Callfunction() {
     ki->Setreference();
     kfunc.arguments.push_back(this);
     kfunc.arguments.push_back(ki);
-    Tamgu* ke = kfunc.Get(aNULL, aNULL, globalTamgu->GetThreadid());
+    Tamgu* ke = kfunc.Eval(aNULL, aNULL, globalTamgu->GetThreadid());
     ke->Release();
     ki->Resetreference();
 }
@@ -2536,7 +2536,7 @@ Tamgu* Tamgua_string::Loopin(TamguInstruction* ins, Tamgu* context, short idthre
     agnostring val(value.value());
     
     Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
-    var = var->Get(context, aNULL, idthread);
+    var = var->Eval(context, aNULL, idthread);
     Tamgustring v("");
     Tamgu* a;
     val.begin();
@@ -2544,7 +2544,7 @@ Tamgu* Tamgua_string::Loopin(TamguInstruction* ins, Tamgu* context, short idthre
         v.value =  val.nextemoji();
         var->Putvalue(&v, idthread);
         
-        a = ins->instructions.vecteur[1]->Get(context, aNULL, idthread);
+        a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
         
             //Continue does not trigger needInvestigate
         if (a->needInvestigate()) {
@@ -2686,7 +2686,7 @@ Exporting Tamgu* Tamgua_string::Put(Tamgu* idx, Tamgu* v, short idthread) {
     
 }
 
-Exporting Tamgu* Tamgua_string::Get(Tamgu* context, Tamgu* idx, short idthread) {
+Exporting Tamgu* Tamgua_string::Eval(Tamgu* context, Tamgu* idx, short idthread) {
     if (!idx->isIndex() || context == idx)
         return this;
 
@@ -3328,7 +3328,7 @@ Exporting Tamgu* Tamgua_string::Looptaskell(Tamgu* recipient, Tamgu* context, Ta
     while (!v.end()) {
         it->value = v.nextemoji();
         
-        a = bd->DirectGet(environment, aNULL, idthread);
+        a = bd->DirectEval(environment, aNULL, idthread);
         if (a->isNULL())
             continue;
         
@@ -3386,7 +3386,7 @@ Exporting Tamgu* Tamgua_string::Filter(short idthread, Tamgu* env, TamguFunction
         }
         else {
             var->Putvalue(key, idthread);
-            returnval = bd->DirectGet(env, aNULL, idthread);
+            returnval = bd->DirectEval(env, aNULL, idthread);
             
             if (returnval == aBREAK) {
                 accu = returnval;

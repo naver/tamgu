@@ -84,9 +84,9 @@ public:
 	Exporting Tamgu* PredicateEvalue(TamguInstructionEvaluate* context, VECTE<Tamgu*>& stack, TamguPredicate* currenthead, long depth);
 	Exporting TamguPredicate* Duplicate(Tamgu* context, TamguDeclaration* dom);
 
-	Tamgu* Get(Tamgu* context, Tamgu* obj, short idthread) {
+	Tamgu* Eval(Tamgu* context, Tamgu* obj, short idthread) {
 		if (context->Type() == a_predicateevaluate)
-			return TamguPredicateFunction::Get(context, obj, idthread);
+			return TamguPredicateFunction::Eval(context, obj, idthread);
 		return Succ();
 	}
 };
@@ -132,9 +132,9 @@ public:
 	Exporting Tamgu* PredicateEvalue(TamguInstructionEvaluate* context, VECTE<Tamgu*>& stack, TamguPredicate* currenthead, long depth);
 	Exporting TamguPredicate* Duplicate(Tamgu* context, TamguDeclaration* dom);
 
-	Tamgu* Get(Tamgu* context, Tamgu* obj, short idthread) {
+	Tamgu* Eval(Tamgu* context, Tamgu* obj, short idthread) {
 		if (context->Type() == a_predicateevaluate)
-			return TamguPredicateFunction::Get(context, obj, idthread);
+			return TamguPredicateFunction::Eval(context, obj, idthread);
 		return Pred();
 	}
 

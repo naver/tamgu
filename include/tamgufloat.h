@@ -67,7 +67,7 @@ public:
 		return this;
 	}
 
-	Tamgu* Get(Tamgu* context, Tamgu* value, short idthread) {
+	Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread) {
 
 		return this;
 	}
@@ -825,7 +825,7 @@ public:
         return this;
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* value, short idthread) {
+    Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread) {
         
         return this;
     }

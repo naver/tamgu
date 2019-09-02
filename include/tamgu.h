@@ -123,12 +123,12 @@ public:
 		return this;
 	}
 
-	virtual Tamgu* Get(Tamgu* context, Tamgu* value, short idthread) {
+	virtual Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread) {
 		return this;
 	}
 
 	virtual Tamgu* Execute(Tamgu* environment, Tamgu* value, short idthread) {
-		return Get(environment, value, idthread);
+		return Eval(environment, value, idthread);
 	}
 
     virtual Tamgu* CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -360,7 +360,7 @@ public:
 	virtual Tamgu* Newvalue(Tamgu* a, short idthread) {
 		Tamgu* v = Newinstance(idthread);
 		v->Put(aNULL, a, idthread);
-		a = v->Get(aNULL, aNULL, idthread);
+		a = v->Eval(aNULL, aNULL, idthread);
 		v->Release();
 		return a;
 	}
@@ -577,7 +577,7 @@ public:
 	}
 
 	virtual char Indexes(short idthread, long sz, long& ileft, long& iright) {
-		Tamgu* val = Get(aNULL, aNULL, idthread);
+		Tamgu* val = Eval(aNULL, aNULL, idthread);
 		ileft = val->Integer();
 		val->Release();
 		if (ileft < 0 || ileft >= sz)
@@ -1061,57 +1061,57 @@ public:
 	Exporting virtual void storevalue(wchar_t u);
 
 	virtual Tamgu* Getvector(Tamgu* value, short idthread, bool skip = false) {
-		return Get(aNULL, aNULL, idthread);
+		return Eval(aNULL, aNULL, idthread);
 	}
 
 	virtual Tamgu* Getmap(Tamgu* value, short idthread, bool skip = false) {
-		return Get(aNULL, aNULL, idthread);
+		return Eval(aNULL, aNULL, idthread);
 	}
 
 	virtual long Getinteger(short idthread) {
-		Tamgu* value = Get(aNULL, aNULL, idthread);
+		Tamgu* value = Eval(aNULL, aNULL, idthread);
 		long v = value->Integer();
 		value->Releasenonconst();
 		return v;
 	}
 
 	virtual BLONG Getlong(short idthread) {
-		Tamgu* value = Get(aNULL, aNULL, idthread);
+		Tamgu* value = Eval(aNULL, aNULL, idthread);
 		BLONG v = value->Long();
 		value->Releasenonconst();
 		return v;
 	}
 
 	virtual short Getshort(short idthread) {
-		Tamgu* value = Get(aNULL, aNULL, idthread);
+		Tamgu* value = Eval(aNULL, aNULL, idthread);
 		short v = value->Short();
 		value->Releasenonconst();
 		return v;
 	}
 
 	virtual float Getdecimal(short idthread) {
-		Tamgu* value = Get(aNULL, aNULL, idthread);
+		Tamgu* value = Eval(aNULL, aNULL, idthread);
 		float v = value->Decimal();
 		value->Releasenonconst();
 		return v;
 	}
 
 	virtual double Getfloat(short idthread) {
-		Tamgu* value = Get(aNULL, aNULL, idthread);
+		Tamgu* value = Eval(aNULL, aNULL, idthread);
 		double v = value->Float();
 		value->Releasenonconst();
 		return v;
 	}
 
 	virtual string Getstring(short idthread) {
-		Tamgu* value = Get(aNULL, aNULL, idthread);
+		Tamgu* value = Eval(aNULL, aNULL, idthread);
 		string v = value->String();
 		value->Releasenonconst();
 		return v;
 	}
 
 	virtual wstring Getustring(short idthread) {
-		Tamgu* value = Get(aNULL, aNULL, idthread);
+		Tamgu* value = Eval(aNULL, aNULL, idthread);
 		wstring v = value->UString();
 		value->Releasenonconst();
 		return v;
@@ -1122,7 +1122,7 @@ public:
 		if (isAtom())
 			return Integer();
 
-		value = Get(context, aNULL, idthread);
+		value = Eval(context, aNULL, idthread);
 		long v = value->Integer();
 		if (value != this)
 			value->Releasenonconst();
@@ -1133,7 +1133,7 @@ public:
 		if (isAtom())
 			return Long();
 
-		value = Get(context, aNULL, idthread);
+		value = Eval(context, aNULL, idthread);
 		BLONG v = value->Long();
 		if (value != this)
 			value->Releasenonconst();
@@ -1144,7 +1144,7 @@ public:
 		if (isAtom())
 			return Short();
 
-		value = Get(context, aNULL, idthread);
+		value = Eval(context, aNULL, idthread);
 		short v = value->Short();
 		if (value != this)
 			value->Releasenonconst();
@@ -1155,7 +1155,7 @@ public:
 		if (isAtom())
 			return Decimal();
 
-		value = Get(context, aNULL, idthread);
+		value = Eval(context, aNULL, idthread);
 		float v = value->Decimal();
 		if (value != this)
 			value->Releasenonconst();
@@ -1166,7 +1166,7 @@ public:
 		if (isAtom())
 			return Float();
 
-		value = Get(context, aNULL, idthread);
+		value = Eval(context, aNULL, idthread);
 		double v = value->Float();
 		if (value != this)
 			value->Releasenonconst();
@@ -1177,7 +1177,7 @@ public:
 		if (isAtom())
 			return String();
 
-		value = Get(context, aNULL, idthread);
+		value = Eval(context, aNULL, idthread);
 		string v = value->String();
 		if (value != this)
 			value->Releasenonconst();
@@ -1188,7 +1188,7 @@ public:
 		if (isAtom())
 			return UString();
 
-		value = Get(context, aNULL, idthread);
+		value = Eval(context, aNULL, idthread);
 		wstring v = value->UString();
 		if (value != this)
 			value->Releasenonconst();
@@ -2207,7 +2207,7 @@ public:
 		sibling = a;
 	}
 
-	virtual Tamgu* Get(Tamgu* context, Tamgu* callfunction, short idthread);
+	virtual Tamgu* Eval(Tamgu* context, Tamgu* callfunction, short idthread);
 };
 
 
@@ -2283,7 +2283,7 @@ public:
 		action = a_bloc;
 	}
 
-	Tamgu* Get(Tamgu* context, Tamgu* callfunction, short idthread);
+	Tamgu* Eval(Tamgu* context, Tamgu* callfunction, short idthread);
 };
 //--------------------------------------------------------------------
 //A User Function declaration.
@@ -2344,7 +2344,7 @@ public:
 			instructions.push_back(a);
 	}
 
-	virtual Tamgu* Get(Tamgu* context, Tamgu* callfunction, short idthread);
+	virtual Tamgu* Eval(Tamgu* context, Tamgu* callfunction, short idthread);
 
 	bool isPrivate() {
 		return privatefunction;
@@ -2430,7 +2430,7 @@ public:
 		return exclusive;
 	}
 
-	Tamgu* Get(Tamgu* context, Tamgu* callfunction, short idthread);
+	Tamgu* Eval(Tamgu* context, Tamgu* callfunction, short idthread);
 };
 
 class TamguProtectedFunction : public TamguThread {
@@ -2452,11 +2452,11 @@ public:
 		return a_call;
 	}
 
-	Tamgu* Get(Tamgu* context, Tamgu* callfunction, short idthread) {
+	Tamgu* Eval(Tamgu* context, Tamgu* callfunction, short idthread) {
 		if (body == NULL)
 			return globalTamgu->Returnerror("No function assigned", idthread);
 
-		return body->Get(context, callfunction, idthread);
+		return body->Eval(context, callfunction, idthread);
 	}
 
 	Tamgu* Put(Tamgu* context, Tamgu* callfunction, short idthread) {
@@ -2816,12 +2816,12 @@ public:
 		return arguments[i];
 	}
 
-	virtual Tamgu* Get(Tamgu* context, Tamgu* callfunction, short idthread) {
+	virtual Tamgu* Eval(Tamgu* context, Tamgu* callfunction, short idthread) {
 		return this;
 	}
 
 	virtual Tamgu* Evaluate(long i, Tamgu* context, short idthread) {
-		return arguments[i]->Get(context, aNULL, idthread);
+		return arguments[i]->Eval(context, aNULL, idthread);
 	}
 };
 
@@ -2835,7 +2835,7 @@ public:
 
 	//We use Evaluate to keep a track of the arguments computed out of our list
 	Tamgu* Evaluate(long ipar, Tamgu* context, short idthread) {
-		context = arguments[ipar]->Get(context, aNULL, idthread);
+		context = arguments[ipar]->Eval(context, aNULL, idthread);
         if (!context->isConst())
             cleaning.push_back(context);
 		return context;
@@ -2902,9 +2902,9 @@ public:
         signleft = idx->signleft;
         signright = idx->signright;
         
-        left = idx->left->Get(aNULL, aNULL, idthread);
+        left = idx->left->Eval(aNULL, aNULL, idthread);
         if (idx->right != NULL)
-            right = idx->right->Get(aNULL, aNULL, idthread);
+            right = idx->right->Eval(aNULL, aNULL, idthread);
         else
             right = NULL;
     }
@@ -2933,10 +2933,10 @@ public:
 	}
     
 	char Indexes(short idthread, long sz, long& ileft, long& iright) {
-		Tamgu* keyleft = left->Get(aNULL, aNULL, idthread);
+		Tamgu* keyleft = left->Eval(aNULL, aNULL, idthread);
 		Tamgu* keyright = NULL;
 		if (interval == true)
-			keyright = right->Get(aNULL, aNULL, idthread);
+			keyright = right->Eval(aNULL, aNULL, idthread);
 
 		ileft = keyleft->Integer();
 		keyleft->Release();
@@ -2977,9 +2977,9 @@ public:
         signleft = idx->signleft;
         signright = idx->signright;
         
-        left = idx->left->Get(aNULL, aNULL, idthread);
+        left = idx->left->Eval(aNULL, aNULL, idthread);
         if (idx->right != NULL)
-            right = idx->right->Get(aNULL, aNULL, idthread);
+            right = idx->right->Eval(aNULL, aNULL, idthread);
         else
             right = NULL;
     }
@@ -2996,7 +2996,7 @@ public:
 			function->AddInstruction(a);
 	}
 
-	Tamgu* Get(Tamgu* context, Tamgu* value, short idthread);
+	Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 	Tamgu* Put(Tamgu* context, Tamgu* value, short idthread);
 
 	Tamgu* Function() {
@@ -3525,9 +3525,9 @@ public:
 		value = aNOELEMENT;
 	}
 
-	Tamgu* Get(Tamgu* context, Tamgu* v, short idthread) {
+	Tamgu* Eval(Tamgu* context, Tamgu* v, short idthread) {
 		Locking _lock(this);
-		return value->Get(context, v, idthread);
+		return value->Eval(context, v, idthread);
 	}
 
 	virtual short Typevariable() {

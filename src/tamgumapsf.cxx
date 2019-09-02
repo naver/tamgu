@@ -324,7 +324,7 @@ Exporting Tamgu*  Tamgumapsf::Put(Tamgu* idx, Tamgu* ke, short idthread) {
 }
 
 
-Exporting Tamgu* Tamgumapsf::Get(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
+Exporting Tamgu* Tamgumapsf::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
 
     Locking _lock(this);
 
@@ -355,8 +355,8 @@ Exporting Tamgu* Tamgumapsf::Get(Tamgu* contextualpattern, Tamgu* idx, short idt
     Tamgu* key;
     if (idx->isInterval()) {
         Tamgumapsf* kmap = new Tamgumapsf;
-        key = ((TamguIndex*)idx)->left->Get(aNULL, aNULL, idthread);
-        Tamgu* keyright = ((TamguIndex*)idx)->right->Get(aNULL, aNULL, idthread);
+        key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
+        Tamgu* keyright = ((TamguIndex*)idx)->right->Eval(aNULL, aNULL, idthread);
         string vleft = key->String();
         string vright = keyright->String();
         hmap<string,double>::iterator it = values.find(vleft);
@@ -388,7 +388,7 @@ Exporting Tamgu* Tamgumapsf::Get(Tamgu* contextualpattern, Tamgu* idx, short idt
 
     }
 
-    key = ((TamguIndex*)idx)->left->Get(aNULL, aNULL, idthread);
+    key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
     
     if (key == aNULL) {
         if (globalTamgu->erroronkey)
@@ -805,7 +805,7 @@ Exporting Tamgu* Tamgumapsf::power(Tamgu* b, bool itself) {
 Exporting Tamgu* Tamgumapsf::Loopin(TamguInstruction* ins, Tamgu* context, short idthread) {
     Locking _lock(this);
     Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
-    var = var->Get(context, aNULL, idthread);
+    var = var->Eval(context, aNULL, idthread);
 
     
     hmap<string, double>::iterator it;
@@ -820,7 +820,7 @@ Exporting Tamgu* Tamgumapsf::Loopin(TamguInstruction* ins, Tamgu* context, short
 
         var->storevalue(keys[i]);
 
-        a = ins->instructions.vecteur[1]->Get(context, aNULL, idthread);
+        a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
         //Continue does not trigger needInvestigate
         if (a->needInvestigate()) {

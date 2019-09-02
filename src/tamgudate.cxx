@@ -75,7 +75,7 @@ Tamgu* Tamgudate::Put(Tamgu* index, Tamgu* val, short idthread) {
     return aFALSE;
 }
 
-Tamgu* Tamgudate::Get(Tamgu* context, Tamgu* index, short idthread) {
+Tamgu* Tamgudate::Eval(Tamgu* context, Tamgu* index, short idthread) {
     return this;
 }
 

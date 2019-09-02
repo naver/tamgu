@@ -90,7 +90,7 @@ Tamgu* Tamgu%1::Put(Tamgu* idx, Tamgu* kval, short idthread) {
     return aTRUE;
 }
 
-Tamgu* Tamgu%1::Get(Tamgu* context, Tamgu* idx, short idthread) {
+Tamgu* Tamgu%1::Eval(Tamgu* context, Tamgu* idx, short idthread) {
     //if your object is called from within an expression...
     return this;
 }

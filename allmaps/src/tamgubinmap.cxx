@@ -433,7 +433,7 @@ Exporting Tamgu*  Tamgubinmap::Put(Tamgu* idx, Tamgu* ke, short idthread) {
     return aTRUE;
 }
 
-Exporting Tamgu* Tamgubinmap::Get(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
+Exporting Tamgu* Tamgubinmap::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
 
     Locking _lock(this);
 
@@ -464,8 +464,8 @@ Exporting Tamgu* Tamgubinmap::Get(Tamgu* contextualpattern, Tamgu* idx, short id
     Tamgu* key;
     if (idx->isInterval()) {
         Tamgubinmap* kmap = new Tamgubinmap;
-        key = ((TamguIndex*)idx)->left->Get(aNULL, aNULL, idthread);
-        Tamgu* keyright = ((TamguIndex*)idx)->right->Get(aNULL, aNULL, idthread);
+        key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
+        Tamgu* keyright = ((TamguIndex*)idx)->right->Eval(aNULL, aNULL, idthread);
         ushort vleft = key->Short();
         ushort vright = keyright->Short();
         basebin_hash<Tamgu*>::iterator it = values.find(vleft);
@@ -497,7 +497,7 @@ Exporting Tamgu* Tamgubinmap::Get(Tamgu* contextualpattern, Tamgu* idx, short id
 
     }
 
-    key = ((TamguIndex*)idx)->left->Get(aNULL, aNULL, idthread);
+    key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
     
     if (key == aNULL) {
         if (globalTamgu->erroronkey)
@@ -951,7 +951,7 @@ Exporting Tamgu* Tamgubinmap::power(Tamgu* b, bool itself) {
 
 Exporting Tamgu* Tamgubinmap::Loopin(TamguInstruction* ins, Tamgu* context, short idthread) {
     Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
-    var = var->Get(context, aNULL, idthread);
+    var = var->Eval(context, aNULL, idthread);
 
     Locking* _lock = _getlock(this);
     basebin_hash<Tamgu*>::iterator it;
@@ -964,7 +964,7 @@ Exporting Tamgu* Tamgubinmap::Loopin(TamguInstruction* ins, Tamgu* context, shor
     for (long i = 0; i < keys.size(); i++) {
         var->storevalue(keys[i]);
 
-        a = ins->instructions.vecteur[1]->Get(context, aNULL, idthread);
+        a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
         //Continue does not trigger needInvestigate
         if (a->needInvestigate()) {

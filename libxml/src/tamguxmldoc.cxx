@@ -62,7 +62,7 @@ void startElementNs(void *ctx,
 		knode->Setreference();
 		kcf.arguments.push_back(knode);
 		kcf.arguments.push_back(xmldoc->object);
-		kcf.Get(aNULL, aNULL, 0);
+		kcf.Eval(aNULL, aNULL, 0);
 		knode->Resetreference();
 	}
 }
@@ -101,7 +101,7 @@ void endElementNs(void *ctx,
 	knode->Setreference();
 	kcf.arguments.push_back(knode);
 	kcf.arguments.push_back(xmldoc->objectend);
-	kcf.Get(aNULL, aNULL, 0);
+	kcf.Eval(aNULL, aNULL, 0);
 	knode->Resetreference();
 }
 
@@ -211,7 +211,7 @@ Tamgu* Tamguxmldoc::Put(Tamgu* index, Tamgu* kval, short idthread) {
 	return aTRUE;
 }
 
-Tamgu* Tamguxmldoc::Get(Tamgu* context, Tamgu* index, short idthread) {
+Tamgu* Tamguxmldoc::Eval(Tamgu* context, Tamgu* index, short idthread) {
 	return this;
 }
 
@@ -222,7 +222,7 @@ Tamgu* Tamguxmldoc::MethodOnClosing(Tamgu* contextualpattern, short idthread, Ta
 		return globalTamgu->Returnerror("XML(211): Expecting a function", idthread);
 	objectend = callfunc->arguments[1];
 	if (!objectend->isCallVariable())
-		objectend = objectend->Get(aNULL, aNULL, idthread);
+		objectend = objectend->Eval(aNULL, aNULL, idthread);
 	return aTRUE;
 }
 
@@ -435,12 +435,12 @@ Tamgu* Tamguxmldoc::MethodSerialize(Tamgu* contextualpattern, short idthread, Ta
 		buf = "<atan name=\"" + name + "\"/>";
 	}
 	else {
-		atanobject = atanobject->Get(aNULL, aNULL, idthread);
+		atanobject = atanobject->Eval(aNULL, aNULL, idthread);
 		buf = "<atan/>";
 	}
 	stop = false;
 	doc = xmlSAXParseMemory(NULL, STR(buf), (int)buf.size(), 0);
-	buildnode(doc->children, atanobject->Get(aNULL, aNULL, idthread));
+	buildnode(doc->children, atanobject->Eval(aNULL, aNULL, idthread));
 	return aTRUE;
 }
 
@@ -465,7 +465,7 @@ Tamgu* Tamguxmldoc::MethodSerializeString(Tamgu* contextualpattern, short idthre
 
 	stop = false;
 	doc = xmlSAXParseMemory(NULL, STR(buf), (int)buf.size(), 0);
-	buildnode(doc->children, atanobject->Get(aNULL, aNULL, idthread));
+	buildnode(doc->children, atanobject->Eval(aNULL, aNULL, idthread));
 	xmlChar* buff = NULL;
 	int longueur;
 	xmlDocDumpMemoryEnc(doc, &buff, &longueur, "UTF-8");

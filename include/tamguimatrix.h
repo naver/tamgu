@@ -92,7 +92,7 @@ public:
 	}
 	//----------------------------------------------------------------------------------------------------------------------
 	Tamgu* Put(Tamgu* v, Tamgu* i, short idthread);
-	Tamgu* Get(Tamgu* context, Tamgu* v, short idthread);
+	Tamgu* Eval(Tamgu* context, Tamgu* v, short idthread);
 	short Type() {
 		return Tamguimatrix::idtype;
 	}

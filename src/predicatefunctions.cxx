@@ -30,16 +30,16 @@ Exporting Tamgu* TamguPredicateBetween::PredicateEvalue(TamguInstructionEvaluate
     //if we are here, it means that one of the variables has not yet been assigned to...
     //We accept only two cases, either the third variable is unified or is not...
     
-    Tamgu* v=parameters[0]->Get(context, context->dom, context->threadowner);
+    Tamgu* v=parameters[0]->Eval(context, context->dom, context->threadowner);
     long left = v->Integer();
     v->Release();
-    v=parameters[1]->Get(context, context->dom, context->threadowner);
+    v=parameters[1]->Eval(context, context->dom, context->threadowner);
     long right = v->Integer();
     v->Release();
     
     v = parameters[2];
     if (v->isUnified(context->dom)) {
-        long val = v->Get(context, context->dom, context->threadowner)->Integer();
+        long val = v->Eval(context, context->dom, context->threadowner)->Integer();
         if (val >= left && val <= right)
             return context->PredicateEvalue(stack, currenthead, depth);
         return aFALSE;
@@ -109,10 +109,10 @@ Exporting bool TamguPredicateSucc::Checkparameters(TamguDeclaration* dom) {
 Exporting Tamgu* TamguPredicateSucc::PredicateEvalue(TamguInstructionEvaluate* context, VECTE<Tamgu*>& stack, TamguPredicate* currenthead, long depth) {
     Tamgu* v;
     if (parameters[0]->isUnified(context->dom)) {
-        Tamgu* v1 = parameters[0]->Get(context, context->dom, context->threadowner);
+        Tamgu* v1 = parameters[0]->Eval(context, context->dom, context->threadowner);
 
         if (parameters[1]->isUnified(context->dom)) {
-            v = parameters[1]->Get(context, context->dom, context->threadowner);
+            v = parameters[1]->Eval(context, context->dom, context->threadowner);
             if (v == aUNIVERSAL)
                 return aFALSE;
 
@@ -134,7 +134,7 @@ Exporting Tamgu* TamguPredicateSucc::PredicateEvalue(TamguInstructionEvaluate* c
     }
 
     if (parameters[1]->isUnified(context->dom)) {
-        v = parameters[1]->Get(context, context->dom, context->threadowner);
+        v = parameters[1]->Eval(context, context->dom, context->threadowner);
         if (v == aUNIVERSAL)
             return aFALSE;
 
@@ -188,10 +188,10 @@ Exporting bool TamguPredicatePred::Checkparameters(TamguDeclaration* dom) {
 Exporting Tamgu* TamguPredicatePred::PredicateEvalue(TamguInstructionEvaluate* context, VECTE<Tamgu*>& stack, TamguPredicate* currenthead, long depth) {
     Tamgu* v;
     if (parameters[0]->isUnified(context->dom)) {
-        Tamgu* v1 = parameters[0]->Get(context, context->dom, context->threadowner);
+        Tamgu* v1 = parameters[0]->Eval(context, context->dom, context->threadowner);
 
         if (parameters[1]->isUnified(context->dom)) {
-            v = parameters[1]->Get(context, context->dom, context->threadowner);
+            v = parameters[1]->Eval(context, context->dom, context->threadowner);
             if (v == aUNIVERSAL)
                 return aFALSE;
 
@@ -213,7 +213,7 @@ Exporting Tamgu* TamguPredicatePred::PredicateEvalue(TamguInstructionEvaluate* c
     }
 
     if (parameters[1]->isUnified(context->dom)) {
-        v = parameters[1]->Get(context, context->dom, context->threadowner);
+        v = parameters[1]->Eval(context, context->dom, context->threadowner);
         if (v == aUNIVERSAL)
             return aFALSE;
 
@@ -269,7 +269,7 @@ Exporting Tamgu* TamguPredicateTermMethod::Getvalues(TamguDeclaration* dom, bool
     }
 
     short idthread = globalTamgu->GetThreadid();
-    Tamgu* res = call.Get(dom, head, idthread);
+    Tamgu* res = call.Eval(dom, head, idthread);
 
     for (i = 0; i < call.arguments.size(); i++)
         call.arguments[i]->Release();
@@ -298,14 +298,14 @@ Exporting Tamgu* TamguPredicateMethod::PredicateEvalue(TamguInstructionEvaluate*
     short i;
     for (i = 0; i < last; i++) {
         if (parameters[i]->isUnified(context->dom))
-            args.push_back(parameters[i]->Get(context, context->dom, context->threadowner));
+            args.push_back(parameters[i]->Eval(context, context->dom, context->threadowner));
     }
 
     Tamgu* res = aFALSE;
     Tamgu* v;
     Tamgu* r;
     if (parameters[last]->isUnified(context->dom)) {
-        v = parameters[1]->Get(context, context->dom, context->threadowner);
+        v = parameters[1]->Eval(context, context->dom, context->threadowner);
         if (v == aUNIVERSAL) {
             for (i = 0; i < last; i++)
                 args[i]->Release();
@@ -317,7 +317,7 @@ Exporting Tamgu* TamguPredicateMethod::PredicateEvalue(TamguInstructionEvaluate*
         for (i = 1; i < last; i++)
             call.arguments.push_back(args[i]);
 
-        res = call.Get(context->dom, args[0], context->threadowner);
+        res = call.Eval(context->dom, args[0], context->threadowner);
         if (res->isVectorContainer()) {
             bool found = false;
             for (i = 0; i < res->Size(); i++) {
@@ -377,7 +377,7 @@ Exporting Tamgu* TamguPredicateMethod::PredicateEvalue(TamguInstructionEvaluate*
         parameters[last]->Setvalue(aNULL, aNOELEMENT, 0, true);
     }
 
-    r = call.Get(context->dom, args[0], context->threadowner);
+    r = call.Eval(context->dom, args[0], context->threadowner);
 
     if (r != aNOELEMENT && r != aNULL) {
         if (!negation) {
@@ -543,7 +543,7 @@ Tamgu* ProcPredicateRetract(Tamgu* context, short idthread, TamguCall* callfunc)
     TamguPredicate* head = (TamguPredicate*)a;
     long i;
     for (i = 0; i < head->parameters.size(); i++) {
-        head->parameters[i] = head->parameters[i]->Get(context, aNULL, idthread);
+        head->parameters[i] = head->parameters[i]->Eval(context, aNULL, idthread);
         head->parameters[i]->Setreference();
     }
 
@@ -568,7 +568,7 @@ Tamgu* ProcPredicateAsserta(Tamgu* context, short idthread, TamguCall* callfunc)
     TamguPredicate* head = (TamguPredicate*)a;
     long i;
     for (i = 0; i < head->parameters.size(); i++) {
-        head->parameters[i] = head->parameters[i]->Get(context, aNULL, idthread);
+        head->parameters[i] = head->parameters[i]->Eval(context, aNULL, idthread);
         head->parameters[i]->Setreference();
     }
 
@@ -589,7 +589,7 @@ Tamgu* ProcPredicateAssertz(Tamgu* context, short idthread, TamguCall* callfunc)
     TamguPredicate* head = (TamguPredicate*)a;
     long i;
     for (i = 0; i < head->parameters.size(); i++) {
-        head->parameters[i] = head->parameters[i]->Get(context, aNULL, idthread);
+        head->parameters[i] = head->parameters[i]->Eval(context, aNULL, idthread);
         head->parameters[i]->Setreference();
     }
 
@@ -661,7 +661,7 @@ Tamgu* ProcDependencies(Tamgu* contextualpattern, short idthread, TamguCall* cal
     //We force in this case the full traversal of all rules...
     kl.fulltraversal = FULLSEARCH;
 
-    e = kl.Get(contextualpattern, &domain, idthread);
+    e = kl.Eval(contextualpattern, &domain, idthread);
 
     for (i = 0; i < pv.Size(); i++)
         pv.parameters[i]->Resetreference();

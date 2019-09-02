@@ -63,7 +63,7 @@ class Tamguhvector : public TamguLockContainer {
     }
 
     Exporting Tamgu* Put(Tamgu* context, Tamgu* value, short idthread);
-    Exporting Tamgu* Get(Tamgu* context, Tamgu* value, short idthread);
+    Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
     Exporting Tamgu* Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* env, TamguFunctionLambda* bd, short idthread);
     Exporting Tamgu* Filter(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* kcont, Tamgu* accu, Tamgu* init, bool direct);
     short Type() {

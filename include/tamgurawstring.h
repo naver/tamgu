@@ -104,7 +104,7 @@ public:
 		return this;
 	}
 
-	Tamgu* Get(Tamgu* context, Tamgu* value, short idthread);
+	Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 
 
 	Tamgu* Vector(short idthread) {		

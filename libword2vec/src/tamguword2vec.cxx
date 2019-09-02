@@ -184,11 +184,11 @@ Tamgu* Tamguword2vec::Put(Tamgu* idx, Tamgu* kval, short idthread) {
     return aTRUE;
 }
 
-Tamgu* Tamguw2vector::Get(Tamgu* context, Tamgu* idx, short idthread) {
+Tamgu* Tamguw2vector::Eval(Tamgu* context, Tamgu* idx, short idthread) {
 	return this;
 }
 
-Tamgu* Tamguword2vec::Get(Tamgu* context, Tamgu* idx, short idthread) {
+Tamgu* Tamguword2vec::Eval(Tamgu* context, Tamgu* idx, short idthread) {
 	if (w2vec == NULL)
 		return globalTamgu->Returnerror("W2V(110): Empty model");
 
@@ -198,12 +198,12 @@ Tamgu* Tamguword2vec::Get(Tamgu* context, Tamgu* idx, short idthread) {
 		double threshold = 0;
 		if (idx->isIndex()) {
 			TamguIndex* kind = (TamguIndex*)idx;
-			key = kind->left->Get(aNULL, aNULL, idthread);
+			key = kind->left->Eval(aNULL, aNULL, idthread);
 			if (kind->interval == true)
 				threshold = kind->right->Getfloat(idthread);
 		}
 		else
-			key = idx->Get(aNULL, aNULL, idthread);
+			key = idx->Eval(aNULL, aNULL, idthread);
 
 		skey = key->String();
 		key->Release();

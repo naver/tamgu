@@ -120,7 +120,7 @@ public:
 	//----------------------------------------------------------------------------------------------------------------------
 	Exporting Tamgu* Put(Tamgu* v, Tamgu* i, short idthread);
 
-	Exporting Tamgu* Get(Tamgu* context, Tamgu* v, short idthread);
+	Exporting Tamgu* Eval(Tamgu* context, Tamgu* v, short idthread);
 
 
 	short Type() {
@@ -1025,7 +1025,7 @@ public:
 		return true;
 	}
 
-	Exporting Tamgu* Get(Tamgu* v, Tamgu* i, short idthread);
+	Exporting Tamgu* Eval(Tamgu* v, Tamgu* i, short idthread);
 	Exporting Tamgu* Put(Tamgu* v, Tamgu* i, short idthread);
 };
 

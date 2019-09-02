@@ -814,12 +814,12 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
         TamguIndex* kind = (TamguIndex*)index;
         sleft = kind->signleft;
         sright = kind->signright;
-        left = kind->left->Get(aNULL, aNULL, idthread);
+        left = kind->left->Eval(aNULL, aNULL, idthread);
         if (left != kind->left)
             releft = true;
         
         if (kind->interval == true) {
-            right = kind->right->Get(aNULL, aNULL, idthread);
+            right = kind->right->Eval(aNULL, aNULL, idthread);
             if (right != kind->right)
                 reright = true;
         }
@@ -994,12 +994,12 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
 		TamguIndex* kind = (TamguIndex*)index;
 		sleft = kind->signleft;
 		sright = kind->signright;
-		left = kind->left->Get(aNULL, aNULL, idthread);
+		left = kind->left->Eval(aNULL, aNULL, idthread);
 		if (left != kind->left)
 			releft = true;
 
 		if (kind->interval == true) {
-			right = kind->right->Get(aNULL, aNULL, idthread);
+			right = kind->right->Eval(aNULL, aNULL, idthread);
 			if (right != kind->right)
 				reright = true;
 		}
@@ -1151,12 +1151,12 @@ Exporting char StringIndexes(string& svalue, Tamgu* index, long& ileft, long& ir
         TamguIndex* kind = (TamguIndex*)index;
         sleft = kind->signleft;
         sright = kind->signright;
-        left = kind->left->Get(aNULL, aNULL, idthread);
+        left = kind->left->Eval(aNULL, aNULL, idthread);
         if (left != kind->left)
             releft = true;
         
         if (kind->interval == true) {
-            right = kind->right->Get(aNULL, aNULL, idthread);
+            right = kind->right->Eval(aNULL, aNULL, idthread);
             if (right != kind->right)
                 reright = true;
         }

@@ -33,7 +33,7 @@
 #define swprintf_s swprintf
 #endif
 
-Tamgu* TamguPLUSPLUS::Get(Tamgu* value, Tamgu* variable, short idthread) {
+Tamgu* TamguPLUSPLUS::Eval(Tamgu* value, Tamgu* variable, short idthread) {
     if (!globalTamgu->isthreading)
         return variable->plusplus();
     
@@ -42,7 +42,7 @@ Tamgu* TamguPLUSPLUS::Get(Tamgu* value, Tamgu* variable, short idthread) {
     return value;
 }
 
-Tamgu* TamguMINUSMINUS::Get(Tamgu* value, Tamgu* variable, short idthread) {
+Tamgu* TamguMINUSMINUS::Eval(Tamgu* value, Tamgu* variable, short idthread) {
     if (!globalTamgu->isthreading)
         return variable->minusminus();
     
@@ -51,13 +51,13 @@ Tamgu* TamguMINUSMINUS::Get(Tamgu* value, Tamgu* variable, short idthread) {
     return value;
 }
 
-Tamgu* TamguSQUARE::Get(Tamgu* value, Tamgu* variable, short idthread) {
+Tamgu* TamguSQUARE::Eval(Tamgu* value, Tamgu* variable, short idthread) {
     value = variable->multiply(variable, false);
     globalTamgu->Triggeronfalse(variable);
     return value;
 }
 
-Tamgu* TamguCUBE::Get(Tamgu* value, Tamgu* variable, short idthread) {
+Tamgu* TamguCUBE::Eval(Tamgu* value, Tamgu* variable, short idthread) {
     value = variable->multiply(variable, false);
     variable = value->multiply(variable, true);
     if (variable != value)
@@ -68,8 +68,8 @@ Tamgu* TamguCUBE::Get(Tamgu* value, Tamgu* variable, short idthread) {
 }
 
 
-Tamgu* TamguInstructionAPPLYOPERATIONEQU::Get(Tamgu* context, Tamgu* value, short idthread) {
-    Tamgu* variable = value = recipient->Get(context, aNULL, idthread);
+Tamgu* TamguInstructionAPPLYOPERATIONEQU::Eval(Tamgu* context, Tamgu* value, short idthread) {
+    Tamgu* variable = value = recipient->Eval(context, aNULL, idthread);
     
     Tamgu* idx = recipient->Function();
     bool putback = false;
@@ -81,7 +81,7 @@ Tamgu* TamguInstructionAPPLYOPERATIONEQU::Get(Tamgu* context, Tamgu* value, shor
             relvar = true;
         
         if (idx != NULL) {
-            value = variable->Get(context, idx, idthread);
+            value = variable->Eval(context, idx, idthread);
             if (value == aNOELEMENT) {
                 if (variable->isValueContainer()) {
                     value = idx->Put(variable, aNULL, idthread);
@@ -91,7 +91,7 @@ Tamgu* TamguInstructionAPPLYOPERATIONEQU::Get(Tamgu* context, Tamgu* value, shor
                         return value;
                     }
                     
-                    value = variable->Get(context, idx, idthread);
+                    value = variable->Eval(context, idx, idthread);
                     putback = true;
                 }
                 else {
@@ -107,7 +107,7 @@ Tamgu* TamguInstructionAPPLYOPERATIONEQU::Get(Tamgu* context, Tamgu* value, shor
     }
     
     //The position in the expression of our variable is the second from the bottom...
-    Tamgu* res = instruction->Get(value, aNULL, idthread);
+    Tamgu* res = instruction->Eval(value, aNULL, idthread);
     
     Tamgu* v=NULL;
     switch (action) {
@@ -191,8 +191,8 @@ Tamgu* TamguInstructionAPPLYOPERATIONEQU::Get(Tamgu* context, Tamgu* value, shor
     return aTRUE;
 }
 
-Tamgu* TamguInstructionEQUShort::Get(Tamgu* context, Tamgu* value, short idthread) {
-    value = recipient->Get(context, aNULL, idthread);
+Tamgu* TamguInstructionEQUShort::Eval(Tamgu* context, Tamgu* value, short idthread) {
+    value = recipient->Eval(context, aNULL, idthread);
     short val = value->Short();
 
     //The position in the expression of our variable is the second from the bottom...
@@ -242,8 +242,8 @@ Tamgu* TamguInstructionEQUShort::Get(Tamgu* context, Tamgu* value, short idthrea
     return aTRUE;
 }
 
-Tamgu* TamguInstructionEQUInteger::Get(Tamgu* context, Tamgu* value, short idthread) {
-    value = recipient->Get(context, aNULL, idthread);
+Tamgu* TamguInstructionEQUInteger::Eval(Tamgu* context, Tamgu* value, short idthread) {
+    value = recipient->Eval(context, aNULL, idthread);
     long val = value->Integer();
     
     //The position in the expression of our variable is the second from the bottom...
@@ -293,8 +293,8 @@ Tamgu* TamguInstructionEQUInteger::Get(Tamgu* context, Tamgu* value, short idthr
     return aTRUE;
 }
 
-Tamgu* TamguInstructionEQULong::Get(Tamgu* context, Tamgu* value, short idthread) {
-    value = recipient->Get(context, aNULL, idthread);
+Tamgu* TamguInstructionEQULong::Eval(Tamgu* context, Tamgu* value, short idthread) {
+    value = recipient->Eval(context, aNULL, idthread);
     BLONG val = value->Long();
     
     //The position in the expression of our variable is the second from the bottom...
@@ -344,8 +344,8 @@ Tamgu* TamguInstructionEQULong::Get(Tamgu* context, Tamgu* value, short idthread
     return aTRUE;
 }
 
-Tamgu* TamguInstructionEQUDecimal::Get(Tamgu* context, Tamgu* value, short idthread) {
-    value = recipient->Get(context, aNULL, idthread);
+Tamgu* TamguInstructionEQUDecimal::Eval(Tamgu* context, Tamgu* value, short idthread) {
+    value = recipient->Eval(context, aNULL, idthread);
     float val = value->Decimal();
     
     //The position in the expression of our variable is the second from the bottom...
@@ -395,8 +395,8 @@ Tamgu* TamguInstructionEQUDecimal::Get(Tamgu* context, Tamgu* value, short idthr
     return aTRUE;
 }
 
-Tamgu* TamguInstructionEQUFloat::Get(Tamgu* context, Tamgu* value, short idthread) {
-    value = recipient->Get(context, aNULL, idthread);
+Tamgu* TamguInstructionEQUFloat::Eval(Tamgu* context, Tamgu* value, short idthread) {
+    value = recipient->Eval(context, aNULL, idthread);
     double val = value->Float();
     
     //The position in the expression of our variable is the second from the bottom...
@@ -446,8 +446,8 @@ Tamgu* TamguInstructionEQUFloat::Get(Tamgu* context, Tamgu* value, short idthrea
     return aTRUE;
 }
 
-Tamgu* TamguInstructionEQUString::Get(Tamgu* context, Tamgu* value, short idthread) {
-    value = recipient->Get(context, aNULL, idthread);
+Tamgu* TamguInstructionEQUString::Eval(Tamgu* context, Tamgu* value, short idthread) {
+    value = recipient->Eval(context, aNULL, idthread);
     string val = value->String();
     
     switch (action) {
@@ -463,8 +463,8 @@ Tamgu* TamguInstructionEQUString::Get(Tamgu* context, Tamgu* value, short idthre
     return aTRUE;
 }
 
-Tamgu* TamguInstructionEQUUString::Get(Tamgu* context, Tamgu* value, short idthread) {
-    value = recipient->Get(context, aNULL, idthread);
+Tamgu* TamguInstructionEQUUString::Eval(Tamgu* context, Tamgu* value, short idthread) {
+    value = recipient->Eval(context, aNULL, idthread);
     wstring val = value->UString();
     
     //The position in the expression of our variable is the second from the bottom...
@@ -568,7 +568,7 @@ Tamgu* TamguInstructionAPPLYOPERATIONROOT::ccompute(short idthread, uchar top, s
             break;
         case a_none:
         case a_variable:
-            r = a->Get(aNULL, aNULL, idthread);
+            r = a->Eval(aNULL, aNULL, idthread);
             break;
         default:
             r = ccompute(idthread, false, d);
@@ -590,12 +590,12 @@ Tamgu* TamguInstructionAPPLYOPERATIONROOT::ccompute(short idthread, uchar top, s
             case a_const:
                 break;
             case a_none:
-                a = a->Get(aNULL, aNULL, idthread);
+                a = a->Eval(aNULL, aNULL, idthread);
                 break;
             case a_pipe:
                 return r;
             case a_variable:
-                a = a->Get(aNULL, aNULL, idthread);
+                a = a->Eval(aNULL, aNULL, idthread);
                 break;
             default:
                 a = ccompute(idthread, false, d);
@@ -711,7 +711,7 @@ Tamgu* TamguInstructionFRACTION::cfraction(short idthread, short& d) {
             break;
         case a_none:
         case a_variable:
-            r = a->Get(aNULL, aNULL, idthread);
+            r = a->Eval(aNULL, aNULL, idthread);
             break;
         default:
             r = cfraction(idthread, d);
@@ -735,12 +735,12 @@ Tamgu* TamguInstructionFRACTION::cfraction(short idthread, short& d) {
             case a_const:
                 break;
             case a_none:
-                a = a->Get(aNULL, aNULL, idthread);
+                a = a->Eval(aNULL, aNULL, idthread);
                 break;
             case a_pipe:
                 return r;
             case a_variable:
-                a = a->Get(aNULL, aNULL, idthread);
+                a = a->Eval(aNULL, aNULL, idthread);
                 break;
             default:
                 a = cfraction(idthread, d);
@@ -805,19 +805,19 @@ Tamgu* TamguInstructionFRACTION::cfraction(short idthread, short& d) {
     return r;
 }
 
-Tamgu* TamguInstructionAPPLYOPERATION::Get(Tamgu* res, Tamgu* inter, short idthread) {
+Tamgu* TamguInstructionAPPLYOPERATION::Eval(Tamgu* res, Tamgu* inter, short idthread) {
     //This is an expression that escaped the compiler...
     if (root == NULL)
         //we create it on the fly...
         root = Compile(NULL);
     
-    return root->Get(res, inter, idthread);
+    return root->Eval(res, inter, idthread);
 }
 
-Tamgu* TamguInstructionCOMPARE::Get(Tamgu* right, Tamgu* res, short idthread) {
+Tamgu* TamguInstructionCOMPARE::Eval(Tamgu* right, Tamgu* res, short idthread) {
     
-    Tamgu* left = instructions.vecteur[0]->Get(right, res, idthread);
-    right = instructions.vecteur[1]->Get(right, res, idthread);
+    Tamgu* left = instructions.vecteur[0]->Eval(right, res, idthread);
+    right = instructions.vecteur[1]->Eval(right, res, idthread);
     res = aFALSE;
     
     switch (action) {

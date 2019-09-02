@@ -85,7 +85,7 @@ Tamgu* Tamgutransducer::Put(Tamgu* index, Tamgu* value, short idthread) {
     return this;
 }
 
-Tamgu* Tamgutransducer::Get(Tamgu* context, Tamgu* index, short idthread) {
+Tamgu* Tamgutransducer::Eval(Tamgu* context, Tamgu* index, short idthread) {
     return this;
 }
 

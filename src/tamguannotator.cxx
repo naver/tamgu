@@ -122,7 +122,7 @@ Tamgu* Tamguannotator::Put(Tamgu* idx, Tamgu* kval, short idthread) {
     return aTRUE;
 }
 
-Tamgu* Tamguannotator::Get(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
+Tamgu* Tamguannotator::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
     //if your object is called from within an expression...
     if (contextualpattern == aNULL)
         return this;
@@ -545,7 +545,7 @@ An_regex::~An_regex() {
 char An_call::check(An_context* context) {
     TamguCallFunction localcall(call);
     localcall.arguments.vecteur[0]=context->annotator;
-    Tamgu* ret=localcall.Get(aNULL, aNULL, context->idthread);
+    Tamgu* ret=localcall.Eval(aNULL, aNULL, context->idthread);
     bool res=ret->Boolean();
     ret->Release();
     return res;
@@ -558,7 +558,7 @@ char An_call::compare(wstring& chr,An_context* context) {
     ustr->Setreference();
     localcall.arguments.vecteur[0]=ustr;
     localcall.arguments.vecteur[1]=context->annotator;
-    Tamgu* ret=localcall.Get(aNULL, aNULL, context->idthread);
+    Tamgu* ret=localcall.Eval(aNULL, aNULL, context->idthread);
     bool res=ret->Boolean();
     ret->Release();
     ustr->Resetreference();
@@ -1416,7 +1416,7 @@ Tamgu* Tamguannotator::Execution(Tamgu* res, Tamgu* txt, short idthread, uchar c
             TamguCallFunction localcall(function);
             localcall.arguments.push_back(&tokvect);
             localcall.arguments.push_back(this);
-            Tamgu* ret=localcall.Get(aNULL, aNULL, idthread);
+            Tamgu* ret=localcall.Eval(aNULL, aNULL, idthread);
             tokvect.Protect();
             Resetreference(1);
             if (ret->isVectorContainer() && ret != &tokvect) {

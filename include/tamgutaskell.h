@@ -199,7 +199,7 @@ public:
 		idtype = a_match;
 	}
 
-	Tamgu* Get(Tamgu* context, Tamgu* value, short idthread);
+	Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 };
 
 
@@ -239,7 +239,7 @@ public:
 	TamguFunctionTaskellParameter(short n, TamguGlobal* g, Tamgu* parent) : TamguParameterFunction(n, a_calltaskell, g, parent) {}
 
 	Tamgu* Execute(Tamgu* environment, Tamgu* value, short idthread);
-    Tamgu* Get(Tamgu* environment, Tamgu* value, short idthread);
+    Tamgu* Eval(Tamgu* environment, Tamgu* value, short idthread);
 
     bool isTaskellFunction() {
         return true;
@@ -256,7 +256,7 @@ public:
 
 	Tamgu* Execute(Tamgu* environment, Tamgu* value, short idthread);
 
-	Tamgu* Get(Tamgu* context, Tamgu* val, short idthread);
+	Tamgu* Eval(Tamgu* context, Tamgu* val, short idthread);
 
 };
 
@@ -267,7 +267,7 @@ public:
 	TamguMethodParameter(short n, TamguGlobal* g, Tamgu* parent) : TamguParameterFunction(n, a_callmethod, g, parent) {}
 
 	Tamgu* Execute(Tamgu* environment, Tamgu* value, short idthread);
-    Tamgu* Get(Tamgu* environment, Tamgu* value, short idthread);
+    Tamgu* Eval(Tamgu* environment, Tamgu* value, short idthread);
 
 };
 
@@ -301,7 +301,7 @@ public:
 	TamguFrameMethodParameter(short n, TamguGlobal* g, Tamgu* parent) : TamguParameterFunction(n, a_callmethod, g, parent) {}
 
 	Tamgu* Execute(Tamgu* environment, Tamgu* value, short idthread);
-    Tamgu* Get(Tamgu* environment, Tamgu* value, short idthread);
+    Tamgu* Eval(Tamgu* environment, Tamgu* value, short idthread);
 
 };
 
@@ -312,7 +312,7 @@ public:
 	TamguCommonParameter(short n, TamguGlobal* g, Tamgu* parent) : TamguParameterFunction(n, a_callmethod, g, parent) {}
 
 	Tamgu* Execute(Tamgu* environment, Tamgu* value, short idthread);
-    Tamgu* Get(Tamgu* environment, Tamgu* value, short idthread);
+    Tamgu* Eval(Tamgu* environment, Tamgu* value, short idthread);
 
 };
 
@@ -323,7 +323,7 @@ public:
 	TamguProcedureParameter(short n, TamguGlobal* g, Tamgu* parent) : TamguParameterFunction(n, a_callprocedure, g, parent) {}
 
 	Tamgu* Execute(Tamgu* environment, Tamgu* value, short idthread);
-    Tamgu* Get(Tamgu* environment, Tamgu* value, short idthread);
+    Tamgu* Eval(Tamgu* environment, Tamgu* value, short idthread);
 
 };
 
@@ -335,7 +335,7 @@ public:
 	TamguGetMethod(short n, TamguGlobal* g, Tamgu* parent) : TamguArguments(n, a_self, g, parent) {}
 
 
-	Tamgu* Get(Tamgu* context, Tamgu* callfunction, short idthread);
+	Tamgu* Eval(Tamgu* context, Tamgu* callfunction, short idthread);
 
 };
 
@@ -346,7 +346,7 @@ public:
 	TamguGetCommon(short n, TamguGlobal* g, Tamgu* parent) : is_size(false), TamguArguments(n, a_self, g, parent) {}
 
 
-	Tamgu* Get(Tamgu* context, Tamgu* callfunction, short idthread);
+	Tamgu* Eval(Tamgu* context, Tamgu* callfunction, short idthread);
 
     void AddInstruction(Tamgu* a) {
         if (name == a_size && a->isCallTaskellFunction())
@@ -363,7 +363,7 @@ public:
 	TamguGetFunction(short n, TamguGlobal* g, Tamgu* parent) : TamguArguments(n, a_self, g, parent) {}
 
 
-	Tamgu* Get(Tamgu* context, Tamgu* callfunction, short idthread);
+	Tamgu* Eval(Tamgu* context, Tamgu* callfunction, short idthread);
 
 };
 
@@ -374,7 +374,7 @@ public:
 	TamguGetFunctionThrough(Tamgu* c, TamguGlobal* g, Tamgu* parent) : call(c), TamguArguments(c->Name(), a_call, g, parent) {}
 
 
-	Tamgu* Get(Tamgu* context, Tamgu* callfunction, short idthread);
+	Tamgu* Eval(Tamgu* context, Tamgu* callfunction, short idthread);
 
 };
 
@@ -530,8 +530,8 @@ public:
 		return true;
 	}
 
-	Tamgu* DirectGet(Tamgu* context, Tamgu* callfunction, short idthread);	
-    Tamgu* Get(Tamgu* context, Tamgu* callfunction, short idthread);
+	Tamgu* DirectEval(Tamgu* context, Tamgu* callfunction, short idthread);	
+    Tamgu* Eval(Tamgu* context, Tamgu* callfunction, short idthread);
 
 	bool Puretaskelldeclaration() {
 		if (instructions.size() == 0 && hdeclared)
@@ -597,7 +597,7 @@ public:
 	TamguFunctionLambda* function;
 	TamguGetFunctionLambda(TamguFunctionLambda* f, TamguGlobal* g) : function(f), TamguTracked(a_calltaskell, g) {}
 
-	Tamgu* Get(Tamgu* c, Tamgu* cc, short idthread) {
+	Tamgu* Eval(Tamgu* c, Tamgu* cc, short idthread) {
 		return function;
 	}
 };
@@ -679,7 +679,7 @@ public:
 	void reset() {
 		for (size_t l = 0; l < loops.size(); l++) {
 			if (recreate[l] != NULL) {
-				Tamgu* a = recreate[l]->Get(environment, aNULL, idthread);
+				Tamgu* a = recreate[l]->Eval(environment, aNULL, idthread);
 				if (a != aNOELEMENT) {
 					vects[l]->Release();
 					loops[l]->Release();
@@ -763,7 +763,7 @@ public:
 	}
 
 
-	virtual Tamgu* Get(Tamgu*context, Tamgu* value, short idthread);
+	virtual Tamgu* Eval(Tamgu*context, Tamgu* value, short idthread);
 	Tamgu* GetTaskell2(Tamgu* context, Tamgu* env, TamguFunctionLambda*, short idthread);
 	Tamgu* GetTaskell3(Tamgu* context, Tamgu* env, TamguFunctionLambda*, short idthread);
 	Tamgu* GetTaskell5(Tamgu* context, Tamgu* env, TamguFunctionLambda*, short idthread);
@@ -835,7 +835,7 @@ public:
 		hdeclared = func->hdeclared;
 	}
 
-	virtual Tamgu* Get(Tamgu*context, Tamgu* value, short idthread);
+	virtual Tamgu* Eval(Tamgu*context, Tamgu* value, short idthread);
 
 	Tamgu* Composition() {
 		return aNOELEMENT;
@@ -995,7 +995,7 @@ public:
             TamguCallFunctionArgsTaskell::AddInstruction(a);
     }
     
-    Tamgu* Get(Tamgu*context, Tamgu* value, short idthread);
+    Tamgu* Eval(Tamgu*context, Tamgu* value, short idthread);
     
     Tamgu* Put(Tamgu* context, Tamgu* v, short idthread);
 
@@ -1144,7 +1144,7 @@ public:
         return a_call;
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* callfunction, short idthread) {
+    Tamgu* Eval(Tamgu* context, Tamgu* callfunction, short idthread) {
         return this;
     }
     
@@ -1189,8 +1189,8 @@ public:
         callreturn = false;
 	}
     
-    Tamgu* Get(Tamgu* context, Tamgu* value, short idthread);
-    Tamgu* DirectGet(Tamgu* context, Tamgu* value, short idthread);
+    Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
+    Tamgu* DirectEval(Tamgu* context, Tamgu* value, short idthread);
 
     void AddInstruction(Tamgu* a) {
         if (instructions.size() == 1 && a->investigate == is_return) {
@@ -1215,7 +1215,7 @@ public:
 		idtype = a_casetaskell;
 		other = 0;
 	}
-	Tamgu* Get(Tamgu* context, Tamgu* value, short idthread);
+	Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
     
     bool isaIF() {
         return true;
@@ -1257,7 +1257,7 @@ public:
 	TamguCallFrameMethod(short n, TamguGlobal* global = NULL, Tamgu* parent = NULL) :
 		TamguCallClean(n, a_callfunction, global, parent) {}
 
-	Tamgu* Get(Tamgu* context, Tamgu* domain, short idthread);
+	Tamgu* Eval(Tamgu* context, Tamgu* domain, short idthread);
 
 	short Typeinfered() {
 		if (function != NULL)

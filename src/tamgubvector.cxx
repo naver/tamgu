@@ -557,7 +557,7 @@ Exporting Tamgu*  Tamgubvector::Put(Tamgu* idx, Tamgu* ke, short idthread) {
     return aTRUE;
 }
 
-Exporting Tamgu* Tamgubvector::Get(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
+Exporting Tamgu* Tamgubvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
     Locking _lock(this);
 
     if (!idx->isIndex()) {
@@ -587,7 +587,7 @@ Exporting Tamgu* Tamgubvector::Get(Tamgu* contextualpattern, Tamgu* idx, short i
     Tamgu* keyright = NULL;
     ikey = idx->Getinteger(idthread);
     if (idx->isInterval())
-        keyright = ((TamguIndex*)idx)->right->Get(aNULL, aNULL, idthread);
+        keyright = ((TamguIndex*)idx)->right->Eval(aNULL, aNULL, idthread);
 
     if (ikey < 0)
         ikey = values.size() + ikey;
@@ -1016,7 +1016,7 @@ class BComp {
     }
 
     bool get() {
-        return compare.Get(aNULL, aNULL, idthread)->Boolean();
+        return compare.Eval(aNULL, aNULL, idthread)->Boolean();
     }
 };
 
@@ -1055,14 +1055,14 @@ Tamgu* Tamgubvector::MethodSort(Tamgu* contextualpattern, short idthread, TamguC
 Exporting Tamgu* Tamgubvector::Loopin(TamguInstruction* ins, Tamgu* context, short idthread) {
     Locking _lock(this);
     Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
-    var = var->Get(context, aNULL, idthread);
+    var = var->Eval(context, aNULL, idthread);
 
     
     Tamgu* a;
     for (long i = 0; i < values.size(); i++) {
         var->storevalue(values[i]);
 
-        a = ins->instructions.vecteur[1]->Get(context, aNULL, idthread);
+        a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
         //Continue does not trigger needInvestigate
         if (a->needInvestigate()) {

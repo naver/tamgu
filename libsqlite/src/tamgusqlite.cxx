@@ -107,7 +107,7 @@ Tamgu* Tamgusqlite::Put(Tamgu* index, Tamgu* value, short idthread) {
 	return this;
 }
 
-Tamgu* Tamgusqlite::Get(Tamgu* context, Tamgu* index, short idthread) {
+Tamgu* Tamgusqlite::Eval(Tamgu* context, Tamgu* index, short idthread) {
 	return this;
 }
 

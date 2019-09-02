@@ -91,8 +91,8 @@ Tamgu* Tamgufmatrix::Put(Tamgu* idx, Tamgu* ke, short idthread) {
     bool interval = idx->isInterval();
     TamguIndex* kind = (TamguIndex*)idx;
     if (interval == true && kind->left != aNULL && kind->right != aNULL) {
-        keyleft = kind->left->Get(aNULL, aNULL, idthread);
-        keyright = kind->right->Get(aNULL, aNULL, idthread);
+        keyleft = kind->left->Eval(aNULL, aNULL, idthread);
+        keyright = kind->right->Eval(aNULL, aNULL, idthread);
         populate(keyleft, keyright, ke);
         return aTRUE;
     }
@@ -103,7 +103,7 @@ Tamgu* Tamgufmatrix::Put(Tamgu* idx, Tamgu* ke, short idthread) {
         long itx = 0;
         //then it means that only the column key is present
         if (kind->right != NULL && kind->right != aNULL) {
-            keyleft = kind->right->Get(aNULL, aNULL, idthread);
+            keyleft = kind->right->Eval(aNULL, aNULL, idthread);
             c = keyleft->Integer();
 
             itr = ke->Newiteration(false);
@@ -117,7 +117,7 @@ Tamgu* Tamgufmatrix::Put(Tamgu* idx, Tamgu* ke, short idthread) {
 
         //We have the line, not the column
         if (kind->left != NULL && kind->left != aNULL) {
-            keyleft = kind->left->Get(aNULL, aNULL, idthread);
+            keyleft = kind->left->Eval(aNULL, aNULL, idthread);
             r = keyleft->Integer();
             itr = ke->Newiteration(false);
             for (itr->Begin(); itr->End() == aFALSE; itr->Next()) {
@@ -132,7 +132,7 @@ Tamgu* Tamgufmatrix::Put(Tamgu* idx, Tamgu* ke, short idthread) {
         if (ke->isMapContainer()) {
             //then it means that only the column key is present
             if (kind->right != NULL && kind->right != aNULL) {
-                keyleft = kind->right->Get(aNULL, aNULL, idthread);
+                keyleft = kind->right->Eval(aNULL, aNULL, idthread);
                 c = keyleft->Integer();
                 itr = ke->Newiteration(false);
                 for (itr->Begin(); itr->End() == aFALSE; itr->Next()) {
@@ -145,7 +145,7 @@ Tamgu* Tamgufmatrix::Put(Tamgu* idx, Tamgu* ke, short idthread) {
 
             //We have the line, not the column
             if (kind->left != NULL && kind->left != aNULL) {
-                keyleft = kind->left->Get(aNULL, aNULL, idthread);
+                keyleft = kind->left->Eval(aNULL, aNULL, idthread);
                 r = keyleft->Integer();
                 itr = ke->Newiteration(false);
                 for (itr->Begin(); itr->End() == aFALSE; itr->Next()) {
@@ -159,7 +159,7 @@ Tamgu* Tamgufmatrix::Put(Tamgu* idx, Tamgu* ke, short idthread) {
     return globalTamgu->Returnerror("MAT(131): Wrong index or Wrong value (recipient should be a map or a mvector)", idthread);
 }
 
-Tamgu* Tamgufmatrix::Get(Tamgu* context, Tamgu* idx, short idthread) {
+Tamgu* Tamgufmatrix::Eval(Tamgu* context, Tamgu* idx, short idthread) {
     Locking _lock(this);
 
     if (!idx-isIndex())
@@ -171,8 +171,8 @@ Tamgu* Tamgufmatrix::Get(Tamgu* context, Tamgu* idx, short idthread) {
     TamguIndex* kind = (TamguIndex*)idx;
     long r, c;
     if (interval == true && kind->left != aNULL && kind->right != aNULL) {
-        r = kind->left->Get(aNULL, aNULL, idthread)->Integer();
-        c = kind->right->Get(aNULL, aNULL, idthread)->Integer();
+        r = kind->left->Eval(aNULL, aNULL, idthread)->Integer();
+        c = kind->right->Eval(aNULL, aNULL, idthread)->Integer();
         if (values.check(r) && values[r].check(c))
             return globalTamgu->Providefloat(values[r][c]);
         return aZERO;
@@ -180,7 +180,7 @@ Tamgu* Tamgufmatrix::Get(Tamgu* context, Tamgu* idx, short idthread) {
 
     //then it means that only the column key is present
     if (kind->right != NULL && kind->right != aNULL) {
-        c = kind->right->Get(aNULL, aNULL, idthread)->Integer();
+        c = kind->right->Eval(aNULL, aNULL, idthread)->Integer();
         if (c < 0 || c >= columnsize)
             return aNULL;
 
@@ -197,7 +197,7 @@ Tamgu* Tamgufmatrix::Get(Tamgu* context, Tamgu* idx, short idthread) {
 
     if (kind->left != NULL && kind->left != aNULL) {
         //We have the line, not the column
-        r = kind->left->Get(aNULL, aNULL, idthread)->Integer();
+        r = kind->left->Eval(aNULL, aNULL, idthread)->Integer();
         if (r < 0 || r >= rowsize)
             return aNULL;
 

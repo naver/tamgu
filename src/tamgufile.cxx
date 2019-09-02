@@ -218,7 +218,7 @@ Tamgu* Tamgufile::Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* environme
         line.value = readoneline();
         recipient->Putvalue(&line, idthread);
         
-        a = bd->DirectGet(environment, aNULL, idthread);
+        a = bd->DirectEval(environment, aNULL, idthread);
         if (a->isNULL())
             continue;
         
@@ -274,7 +274,7 @@ Tamgu* Tamgufile::Filter(short idthread, Tamgu* env, TamguFunctionLambda* bd, Ta
         }
         else {
             var->Putvalue(key, idthread);
-            returnval = bd->DirectGet(env, aNULL, idthread);
+            returnval = bd->DirectEval(env, aNULL, idthread);
             
             if (returnval == aBREAK) {
                 accu = returnval;

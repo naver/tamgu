@@ -1059,7 +1059,7 @@ Tamgu* TamguPredicateVar::Put(Tamgu* dom, Tamgu* val, short idthread) {
     vector<Tamgu*> v;
 
     for (i = 0; i < val->Size(); i++) {
-        e = val->Parameter(i)->Get(dom, aNULL, idthread);
+        e = val->Parameter(i)->Eval(dom, aNULL, idthread);
         if (!e->isUnified((TamguDeclaration*)dom)) {
             string message("PRE(001): Cannot instantiate a predicate with this value");
             globalTamgu->Returnerror(message, idthread);
@@ -1881,7 +1881,7 @@ Tamgu* TamguPredicateVariableInstance::ExtractPredicateVariables(Tamgu* context,
 Tamgu* Tamgu::ExtractPredicateVariables(Tamgu* contextualpattern, TamguDeclaration* dom, Tamgu* param, Tamgu* e, short idthread, bool root) {
     if (e == NULL) {
         dom->Setfail(false);
-        e = Get(contextualpattern, dom, idthread);
+        e = Eval(contextualpattern, dom, idthread);
         if (dom->Failed())
             return this;
     }
@@ -2570,7 +2570,7 @@ TamguPredicate* TamguPredicate::Copyfrom(Tamgu* context, TamguDeclaration* dom, 
 //---------------------------------------------------------------------
 
 Exporting Tamgu* Tamgu::EvaluePredicateVariables(Tamgu* context, TamguDeclaration* dom, short idthread) {
-    Tamgu* e = Get(context, dom, idthread);
+    Tamgu* e = Eval(context, dom, idthread);
     return e->Atom(true);
 }
 
@@ -2735,7 +2735,7 @@ TamguPredicate* TamguInstructionEvaluate::PredicateUnification(VECTE<Tamgu*>& go
         }
         else
             if (headpredicate == NULL) {
-                res = e->Get(this, dom, threadowner);
+                res = e->Eval(this, dom, threadowner);
                 if (res->Boolean() == false) {
                     //if res==aNOELEMENT, then it means that there are no unified variables...
                     if (!e->isNegation() && !dom->Failed() && res != aNOELEMENT)
@@ -2808,7 +2808,7 @@ Tamgu* TamguPredicateConcept::Evalue(TamguDeclaration* dom, short idthread, bool
         return value;
 
     //All variables will then be evaluated...
-    value = hfunc.Get(aNULL, aNULL, idthread);
+    value = hfunc.Eval(aNULL, aNULL, idthread);
 
     //IF THE FUNCTION returns aNOELEMENT, then we cannot do anything can we...
     if (value->isNULL() || value == aFALSE) {
@@ -2936,7 +2936,7 @@ Tamgu* TamguInstructionEvaluate::PredicateCreate(TamguPredicate* headrule, long 
         func->Setreference();
         kfunc.arguments.push_back(pv);
         kfunc.arguments.push_back(func);
-        e = kfunc.Get(this, dom, threadowner);
+        e = kfunc.Eval(this, dom, threadowner);
         func->Resetreference();
         if (!e->Boolean()) {
             pv->Resetreference();
@@ -3258,7 +3258,7 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
                 kvpred = new TamguPredicate(globalTamgu, headpredicate->name);
 
             for (i = 0; i < headpredicate->parameters.size(); i++) {
-                res = headpredicate->parameters[i]->Get(this, dom, threadowner);
+                res = headpredicate->parameters[i]->Eval(this, dom, threadowner);
                 kvpred->parameters.push_back(res->Atom(true));
             }
 
@@ -3595,7 +3595,7 @@ TamguPredicateRuleItem::TamguPredicateRuleItem(TamguGlobal* g, Tamgu* parent, bo
     item = parent;
 }
 
-Tamgu* Tamgusynode::Get(Tamgu* contextualpattern, Tamgu* dom, short idthread) {
+Tamgu* Tamgusynode::Eval(Tamgu* contextualpattern, Tamgu* dom, short idthread) {
     if (contextualpattern->Type() == a_predicateevaluate) {
         if (!contextualpattern->Checkdico(name)) {
             dom->Setfail(true);
@@ -3607,20 +3607,20 @@ Tamgu* Tamgusynode::Get(Tamgu* contextualpattern, Tamgu* dom, short idthread) {
 
         dom = globalTamgu->Declarator(predicatedico, idthread);
 
-        return contextualpattern->Getdico(name)->Get(contextualpattern, dom, idthread);
+        return contextualpattern->Getdico(name)->Eval(contextualpattern, dom, idthread);
     }
 
     if (dom->isIndex()) {
         if (features == aNULL)
             return aNOELEMENT;
 
-        return features->Get(contextualpattern, dom, idthread);
+        return features->Eval(contextualpattern, dom, idthread);
     }
 
     return this;
 }
 
-Tamgu* TamguBasePredicateVariable::Get(Tamgu* contextualpattern, Tamgu* dom, short idthread) {
+Tamgu* TamguBasePredicateVariable::Eval(Tamgu* contextualpattern, Tamgu* dom, short idthread) {
     if (contextualpattern->Type() != a_predicateevaluate) {
         if (!dom->isDeclared(predicatedico)) {
             dom = globalTamgu->Declarator(predicatedico, idthread);
@@ -3638,10 +3638,10 @@ Tamgu* TamguBasePredicateVariable::Get(Tamgu* contextualpattern, Tamgu* dom, sho
         return aNOELEMENT;
     }
 
-    return contextualpattern->Getdico(name)->Get(contextualpattern, dom, idthread);
+    return contextualpattern->Getdico(name)->Eval(contextualpattern, dom, idthread);
 }
 
-Tamgu* TamguPredicateVariable::Get(Tamgu* contextualpattern, Tamgu* dom, short idthread) {
+Tamgu* TamguPredicateVariable::Eval(Tamgu* contextualpattern, Tamgu* dom, short idthread) {
     if (contextualpattern->Type() != a_predicateevaluate) {
         if (!dom->isDeclared(predicatedico)) {
             dom = globalTamgu->Declarator(predicatedico, idthread);
@@ -3662,17 +3662,17 @@ Tamgu* TamguPredicateVariable::Get(Tamgu* contextualpattern, Tamgu* dom, short i
     Tamgu* val = contextualpattern->Getdico(name);
 
     if (call != NULL) {
-        val = val->Get(contextualpattern, dom, idthread);
-        return call->Get(contextualpattern, val, idthread);
+        val = val->Eval(contextualpattern, dom, idthread);
+        return call->Eval(contextualpattern, val, idthread);
     }
 
     if (affectation)
         return val;
 
-    return val->Get(contextualpattern, dom, idthread);
+    return val->Eval(contextualpattern, dom, idthread);
 }
 
-Tamgu* TamguPredicateVariableInstance::Get(Tamgu* contextualpattern, Tamgu* dom, short idthread) {
+Tamgu* TamguPredicateVariableInstance::Eval(Tamgu* contextualpattern, Tamgu* dom, short idthread) {
     Tamgu* v = Value((TamguDeclaration*)dom);
     if (v == aNOELEMENT) {
         dom->Setfail(true);
@@ -3684,7 +3684,7 @@ Tamgu* TamguPredicateVariableInstance::Get(Tamgu* contextualpattern, Tamgu* dom,
     return v->Getvalues((TamguDeclaration*)dom, false);
 }
 
-Tamgu* TamguPredicateTerm::Get(Tamgu* contextualpattern, Tamgu* ke, short idthread) {
+Tamgu* TamguPredicateTerm::Eval(Tamgu* contextualpattern, Tamgu* ke, short idthread) {
     if (ke == NULL || ke->isConst())
         return this;
     char ty = 1;
@@ -3714,7 +3714,7 @@ Tamgu* TamguPredicateTerm::Get(Tamgu* contextualpattern, Tamgu* ke, short idthre
     return kvect;
 }
 
-Tamgu* TamguPredicateConcept::Get(Tamgu* contextualpattern, Tamgu* ke, short idthread) {
+Tamgu* TamguPredicateConcept::Eval(Tamgu* contextualpattern, Tamgu* ke, short idthread) {
     if (ke == NULL || ke->isConst())
         return this;
 
@@ -3745,7 +3745,7 @@ Tamgu* TamguPredicateConcept::Get(Tamgu* contextualpattern, Tamgu* ke, short idt
     return kvect;
 }
 
-Tamgu* TamguPredicateKnowledgeBase::Get(Tamgu* contextualpattern, Tamgu* dom, short idthread) {
+Tamgu* TamguPredicateKnowledgeBase::Eval(Tamgu* contextualpattern, Tamgu* dom, short idthread) {
     //we add it...
     if (add) {
         //In this case, we need to evaluate the parameters
@@ -3773,7 +3773,7 @@ Tamgu* TamguPredicateKnowledgeBase::Get(Tamgu* contextualpattern, Tamgu* dom, sh
     TamguPredicate pv(globalTamgu, name);
     Tamgu* e;
     for (long i = 0; i < parameters.size(); i++) {
-        e = parameters[i]->Get(contextualpattern, dom, idthread);
+        e = parameters[i]->Eval(contextualpattern, dom, idthread);
         e->Setprotect(1);
         pv.parameters.push_back(e);
     }
@@ -3787,13 +3787,13 @@ Tamgu* TamguPredicateKnowledgeBase::Get(Tamgu* contextualpattern, Tamgu* dom, sh
 }
 
 
-Tamgu* TamguInstructionPredicate::Get(Tamgu* contextualpattern, Tamgu* dom, short idthread) {
-    return instructions[0]->Get(contextualpattern, dom, idthread);
+Tamgu* TamguInstructionPredicate::Eval(Tamgu* contextualpattern, Tamgu* dom, short idthread) {
+    return instructions[0]->Eval(contextualpattern, dom, idthread);
 }
 
 
 //We test our value here...
-Tamgu* TamguPredicate::Get(Tamgu* contextualpattern, Tamgu* ke, short idthread) {
+Tamgu* TamguPredicate::Eval(Tamgu* contextualpattern, Tamgu* ke, short idthread) {
     //In this case, we have our variables in contextualpattern
 
     if (ke == NULL || ke->isConst())
@@ -3825,7 +3825,7 @@ Tamgu* TamguPredicate::Get(Tamgu* contextualpattern, Tamgu* ke, short idthread) 
     return kvect;
 }
 
-Tamgu* TamguPredicateLocalInstruction::Get(Tamgu* contextualpattern, Tamgu* domain, short idthread) {
+Tamgu* TamguPredicateLocalInstruction::Eval(Tamgu* contextualpattern, Tamgu* domain, short idthread) {
     //we need to get the right evaluation for the possible variables hidden in the instruction
     //we have been through a variable renaming, which is stored in dico[localname]=declaration name
 
@@ -3835,7 +3835,7 @@ Tamgu* TamguPredicateLocalInstruction::Get(Tamgu* contextualpattern, Tamgu* doma
     dom->Setfail(false);
 
     dom->Declare(predicatedico, this);
-    Tamgu* res = instruction->Get(this, dom, idthread);
+    Tamgu* res = instruction->Eval(this, dom, idthread);
     dom->declarations.erase(predicatedico);
 
     if (dom->Failed() || globalTamgu->Error(idthread))
@@ -3901,7 +3901,7 @@ string TamguPredicateLocalInstruction::String() {
 }
 
 //-------------------------------------------------------------------------------------------------------
-Tamgu* TamguPredicateRule::Get(Tamgu*, Tamgu*, short) {
+Tamgu* TamguPredicateRule::Eval(Tamgu*, Tamgu*, short) {
     return aTRUE;
 }
 
@@ -3934,7 +3934,7 @@ void TamguPredicateRule::Reorderdisjunction(long disjposition) {
 }
 
 //This is the entry point of a predicate analysis...
-Tamgu* TamguInstructionEvaluate::Get(Tamgu* contextualpattern, Tamgu* domcall, short idthread) {
+Tamgu* TamguInstructionEvaluate::Eval(Tamgu* contextualpattern, Tamgu* domcall, short idthread) {
     //head is our definition
     //First we create an actionable TamguPredicate
     //we gather all the rules and elements, we might be interested in
@@ -4019,7 +4019,7 @@ Tamgu* TamguInstructionEvaluate::Get(Tamgu* contextualpattern, Tamgu* domcall, s
     return aTRUE;
 }
 
-Tamgu* TamguInstructionLaunch::Get(Tamgu* context, Tamgu* val, short idthread) {
+Tamgu* TamguInstructionLaunch::Eval(Tamgu* context, Tamgu* val, short idthread) {
     //head is our definition
     //First we create an actionable TamguPredicate
     long i;
@@ -4059,7 +4059,7 @@ Tamgu* TamguInstructionLaunch::Get(Tamgu* context, Tamgu* val, short idthread) {
         pv.parameters.push_back(e);
     }
 
-    e = kl.Get(context, &domain, idthread);
+    e = kl.Eval(context, &domain, idthread);
 
     for (i = 0; i < pv.Size(); i++)
         pv.parameters[i]->Resetreference();

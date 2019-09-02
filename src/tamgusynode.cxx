@@ -362,11 +362,11 @@ Exporting Tamgu* Tamgusynode::plus(Tamgu* a, bool itself) {
     return feat;
 }
 
-Exporting Tamgu* TamguCallsynode::Get(Tamgu* actual, Tamgu* value, short idthread) {
+Exporting Tamgu* TamguCallsynode::Eval(Tamgu* actual, Tamgu* value, short idthread) {
     if (affectation)
         return this;
 
-    actual = syn->Get(actual, value, idthread);
+    actual = syn->Eval(actual, value, idthread);
     if (actual->Type() != a_synode)
         return aFALSE;
 
@@ -375,7 +375,7 @@ Exporting Tamgu* TamguCallsynode::Get(Tamgu* actual, Tamgu* value, short idthrea
 }
 
 Exporting Tamgu* TamguCallsynode::Put(Tamgu* actual, Tamgu* value, short idthread) {
-    actual = syn->Get(actual, aNULL, idthread);
+    actual = syn->Eval(actual, aNULL, idthread);
     if (actual->Type() != a_synode)
         return aFALSE;
 

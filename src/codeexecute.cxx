@@ -185,7 +185,7 @@ Tamgu* TamguGlobal::EvaluateMainVariable() {
 	for (short i = 0; i < frame->instructions.size(); i++) {
         res = frame->instructions.vecteur[i];
 		if (res->isVariable()) {
-			res = res->Get(frame, aNULL, 0);
+			res = res->Eval(frame, aNULL, 0);
 			if (res->needInvestigate())
 				return res;
 		}
@@ -217,7 +217,7 @@ Exporting Tamgu* TamguExecute(TamguCode* code, string name, vector<Tamgu*>& para
 	}
 
 	globalTamgu->Pushstack(code->Mainframe(), idthread);
-	func = call.Get(aNULL, aNULL, idthread);
+	func = call.Eval(aNULL, aNULL, idthread);
 	globalTamgu->Popstack(idthread);
 
 	for (i = 0; i < params.size(); i++)
@@ -248,7 +248,7 @@ Exporting Tamgu* TamguExecute(TamguCode* code, string name, vector<Tamgu*>& para
 	}
 	
 	globalTamgu->Pushstack(main, idthread);
-	func = call.Get(aNULL, aNULL, idthread);
+	func = call.Eval(aNULL, aNULL, idthread);
 	globalTamgu->Popstack(idthread);
 
 	for (i = 0; i < params.size(); i++)
@@ -268,7 +268,7 @@ Tamgu* TamguCode::Execute(long begininstruction, short idthread) {
         a = mainframe.instructions.vecteur[i];
 
 		_debugpush(a);
-		a = a->Get(&mainframe, aNULL, idthread);
+		a = a->Eval(&mainframe, aNULL, idthread);
 		_debugpop();
 
 		if (global->Error(idthread)) {
@@ -307,7 +307,7 @@ Tamgu* TamguCode::Loading() {
         a = mainframe.instructions.vecteur[i];
 
 		_debugpush(a);
-		a = a->Get(&mainframe, aNULL, 0);
+		a = a->Eval(&mainframe, aNULL, 0);
 		_debugpop();
 
 		if (global->Error(0)) {
@@ -354,7 +354,7 @@ Tamgu* TamguCode::Run(bool glock) {
         a = mainframe.instructions.vecteur[i];
         
 		_debugpush(a);
-		a = a->Get(&mainframe, aNULL, 0);
+		a = a->Eval(&mainframe, aNULL, 0);
 		_debugpop();
 
 		if (global->Error(0)) {
@@ -399,8 +399,8 @@ Tamgu* TamguCode::Run(bool glock) {
 }
 
 //--------------------------------------------------------------------
-Tamgu* TamguIndex::Get(Tamgu* localidx, Tamgu* obj, short idthread) {
-	Tamgu* klocal = obj->Get(localidx, this, idthread);
+Tamgu* TamguIndex::Eval(Tamgu* localidx, Tamgu* obj, short idthread) {
+	Tamgu* klocal = obj->Eval(localidx, this, idthread);
 
 	if (function == NULL)
 		return klocal;
@@ -417,7 +417,7 @@ Tamgu* TamguIndex::Get(Tamgu* localidx, Tamgu* obj, short idthread) {
 		}
 
 		//we increment
-		function->Get(aNULL, klocal, idthread);
+		function->Eval(aNULL, klocal, idthread);
 
 		if (obj->isValueContainer()) {
 			//we store the value back into place
@@ -443,7 +443,7 @@ Tamgu* TamguIndex::Get(Tamgu* localidx, Tamgu* obj, short idthread) {
 
 		obj = object;
 		localidx = kidx;
-		klocal = object->Get(aNULL, kidx, idthread);
+		klocal = object->Eval(aNULL, kidx, idthread);
 		if (klocal != object) {
 			object->Releasenonconst();
 			object = klocal;
@@ -469,7 +469,7 @@ Tamgu* TamguIndex::Get(Tamgu* localidx, Tamgu* obj, short idthread) {
 		}
 
 		if (kidx->isIncrement()) {
-			kidx->Get(aNULL, klocal, idthread);
+			kidx->Eval(aNULL, klocal, idthread);
 			if (obj->isValueContainer()) {
 				localidx = Evaluate(idthread);
 				obj->Put(localidx, klocal, idthread);
@@ -478,7 +478,7 @@ Tamgu* TamguIndex::Get(Tamgu* localidx, Tamgu* obj, short idthread) {
 			return klocal;
 		}
 
-		object = kidx->Get(aNULL, klocal, idthread);
+		object = kidx->Eval(aNULL, klocal, idthread);
 		if (object != klocal)
 			klocal->Releasenonconst();
 		return object;
@@ -505,7 +505,7 @@ Tamgu* TamguIndex::Put(Tamgu* recipient, Tamgu* value, short idthread) {
 		while (idx->function != NULL && idx->function->isIndex()) {
 			stack.push_back(idx);
 			stack.push_back(intermediate);
-			intermediate = intermediate->Get(aNULL, idx, idthread);
+			intermediate = intermediate->Eval(aNULL, idx, idthread);
 			stack.push_back(intermediate);
 			idx = (TamguIndex*)idx->function;
 		}
@@ -567,7 +567,7 @@ TamguVariableDeclaration::TamguVariableDeclaration(TamguGlobal* g, short n, shor
 }
 
 //When we call this function, we actually will create an element of type value
-Tamgu* TamguVariableDeclaration::Get(Tamgu* domain, Tamgu* value, short idthread) {
+Tamgu* TamguVariableDeclaration::Eval(Tamgu* domain, Tamgu* value, short idthread) {
 	//we create our instance...
 
 	Tamgu* a = globalTamgu->newInstance.get(typevariable)->Newinstance(idthread, function);
@@ -578,13 +578,13 @@ Tamgu* TamguVariableDeclaration::Get(Tamgu* domain, Tamgu* value, short idthread
 
 	if (initialization != NULL) {
 		if (initialization->Name() == a_initial) {
-			value = initialization->Get(domain, a, idthread);
+			value = initialization->Eval(domain, a, idthread);
 			if (value->isError())
 				return value;
 		}
 		else {
 			bool aff = a->checkAffectation();
-			value = initialization->Get(a, aAFFECTATION, idthread);
+			value = initialization->Eval(a, aAFFECTATION, idthread);
 			if (value->isError())
 				return value;
 			if (value != a)
@@ -603,7 +603,7 @@ Tamgu* TamguVariableDeclaration::Get(Tamgu* domain, Tamgu* value, short idthread
 	return a;
 }
 
-Tamgu* TamguAtomicVariableDeclaration::Get(Tamgu* domain, Tamgu* value, short idthread) {
+Tamgu* TamguAtomicVariableDeclaration::Eval(Tamgu* domain, Tamgu* value, short idthread) {
     //we create our instance...
     
     if (directcall) {
@@ -615,7 +615,7 @@ Tamgu* TamguAtomicVariableDeclaration::Get(Tamgu* domain, Tamgu* value, short id
             return value;
         }
         
-        value = initialization->Get(constant, aNULL, idthread);
+        value = initialization->Eval(constant, aNULL, idthread);
 
         if (!value->Checktype(typevariable)) {
             Tamgu* a = reference->Newvalue(value, idthread);
@@ -645,13 +645,13 @@ Tamgu* TamguAtomicVariableDeclaration::Put(Tamgu* domain, Tamgu* value, short id
 }
 
 
-Tamgu* TamguFrameVariableDeclaration::Get(Tamgu* domain, Tamgu* value, short idthread) {
+Tamgu* TamguFrameVariableDeclaration::Eval(Tamgu* domain, Tamgu* value, short idthread) {
 	//we create our instance...
 	Tamgu* a;
 	if (common) {
 		a = domain->Frame()->Declaration(name);
 		if (a == this)
-			a = TamguVariableDeclaration::Get(domain->Frame(), aNULL, idthread);
+			a = TamguVariableDeclaration::Eval(domain->Frame(), aNULL, idthread);
 		domain->Declare(name, a);
 		return a;
 	}
@@ -666,7 +666,7 @@ Tamgu* TamguFrameVariableDeclaration::Get(Tamgu* domain, Tamgu* value, short idt
 		if (initialization->Name() == a_initial) {
 			//We protect our new variable against any potential destruction
 			a->Setreference();
-			value = initialization->Get(domain, a, idthread);
+			value = initialization->Eval(domain, a, idthread);
 			//But we need to reset the internal references to 0, without deleting any of these elements.
 			a->Protect();
 
@@ -675,7 +675,7 @@ Tamgu* TamguFrameVariableDeclaration::Get(Tamgu* domain, Tamgu* value, short idt
 		}
 		else {
 			bool aff = a->checkAffectation();
-			value = initialization->Get(a, aAFFECTATION, idthread);
+			value = initialization->Eval(a, aAFFECTATION, idthread);
 			if (value->isError())
 				return value;
 			if (value != a)
@@ -695,12 +695,12 @@ Tamgu* TamguFrameVariableDeclaration::Get(Tamgu* domain, Tamgu* value, short idt
 	return a;
 }
 
-Tamgu* TamguFrameAtomicVariableDeclaration::Get(Tamgu* domain, Tamgu* value, short idthread) {
+Tamgu* TamguFrameAtomicVariableDeclaration::Eval(Tamgu* domain, Tamgu* value, short idthread) {
     //we create our instance...
     if (common) {
         value = domain->Frame()->Declaration(name);
         if (value == this)
-            value = TamguAtomicVariableDeclaration::Get(domain->Frame(), aNULL, idthread);
+            value = TamguAtomicVariableDeclaration::Eval(domain->Frame(), aNULL, idthread);
         domain->Declare(name, value);
         return value;
     }
@@ -713,7 +713,7 @@ Tamgu* TamguFrameAtomicVariableDeclaration::Get(Tamgu* domain, Tamgu* value, sho
             return value;
         }
         
-        value = initialization->Get(domain, aNULL, idthread);
+        value = initialization->Eval(domain, aNULL, idthread);
         
         if (!value->Checktype(typevariable)) {
             Tamgu* a = reference->Newvalue(value, idthread);
@@ -790,7 +790,7 @@ bool TamguVariableDeclaration::Setvalue(Tamgu* domain, Tamgu* value, short idthr
 	return false;
 }
 
-Tamgu* TamguGlobalVariableDeclaration::Get(Tamgu* domain, Tamgu* value, short idthread) {
+Tamgu* TamguGlobalVariableDeclaration::Eval(Tamgu* domain, Tamgu* value, short idthread) {
 	//we create our instance...
 	if (alreadydeclared)
 		return globalTamgu->Getmaindeclaration(name, idthread);
@@ -804,10 +804,10 @@ Tamgu* TamguGlobalVariableDeclaration::Get(Tamgu* domain, Tamgu* value, short id
 	a->Setreference(1);
 	if (initialization != NULL) {
 		if (initialization->Name() == a_initial)
-			value = initialization->Get(aNULL, a, idthread);
+			value = initialization->Eval(aNULL, a, idthread);
 		else {
             bool aff = a->checkAffectation();
-			value = initialization->Get(a, aAFFECTATION, idthread);
+			value = initialization->Eval(a, aAFFECTATION, idthread);
 			if (value->isError())
 				return value;
 
@@ -827,7 +827,7 @@ Tamgu* TamguGlobalVariableDeclaration::Get(Tamgu* domain, Tamgu* value, short id
 	return a;
 }
 
-Tamgu* TamguThroughVariableDeclaration::Get(Tamgu* domain, Tamgu* value, short idthread) {
+Tamgu* TamguThroughVariableDeclaration::Eval(Tamgu* domain, Tamgu* value, short idthread) {
 	//we create our instance...
 	if (throughvariables.find(name) != throughvariables.end())
 		return throughvariables[name];
@@ -838,7 +838,7 @@ Tamgu* TamguThroughVariableDeclaration::Get(Tamgu* domain, Tamgu* value, short i
 	a->Setreference(1);
 	if (initialization != NULL) {
         bool aff = a->checkAffectation();
-		value = initialization->Get(a, aAFFECTATION, idthread);
+		value = initialization->Eval(a, aAFFECTATION, idthread);
 		if (value->isError())
 			return value;
 		if (value != a)
@@ -996,7 +996,7 @@ bool TamguCallFrameFunction::Checkarity() {
 TamguCallTamguVariable::TamguCallTamguVariable(short n, Tamgutamgu* f, TamguGlobal* g, Tamgu* parent) : 
 	aa(f),TamguCallVariable(n, f->Typevariable(), g, parent) {}
 
-Tamgu* TamguCallTamguVariable::Get(Tamgu* context, Tamgu* object, short idthread) {
+Tamgu* TamguCallTamguVariable::Eval(Tamgu* context, Tamgu* object, short idthread) {
     if (call->Name() ==  a_methods)
         return aa->MethodMethods(context, idthread, (TamguCall*)call);
 
@@ -1028,7 +1028,7 @@ Exporting Tamgu* TamguCallMethod::Put(Tamgu* context, Tamgu* object, short idthr
 		if (function->isStop())
 			return object;
 
-		context = function->Get(context, object, idthread);
+		context = function->Eval(context, object, idthread);
 		if (context != object) {
 			if (object->isProtected()) {
 				context->Setreference();
@@ -1047,7 +1047,7 @@ Exporting Tamgu* TamguCallMethod::Put(Tamgu* context, Tamgu* object, short idthr
 	return object;
 }
 
-Exporting Tamgu* TamguCallMethod::Get(Tamgu* context, Tamgu* object, short idthread) {
+Exporting Tamgu* TamguCallMethod::Eval(Tamgu* context, Tamgu* object, short idthread) {
 	//We execute the method associated to an object...
     
 	TamguCallMethod* call = this;
@@ -1068,7 +1068,7 @@ Exporting Tamgu* TamguCallMethod::Get(Tamgu* context, Tamgu* object, short idthr
 			return object;
 		}
 
-		context = function->Get(context, object, idthread);
+		context = function->Eval(context, object, idthread);
 		if (context != object) {
 			if (object->isProtected()) {
 				context->Setreference();
@@ -1124,7 +1124,7 @@ Exporting Tamgu* TamguCallFromCall::Put(Tamgu* context, Tamgu* object, short idt
         if (function->isStop())
             return object;
         
-        context = function->Get(context, object, idthread);
+        context = function->Eval(context, object, idthread);
         if (context != object) {
             if (object->isProtected()) {
                 context->Setreference();
@@ -1143,7 +1143,7 @@ Exporting Tamgu* TamguCallFromCall::Put(Tamgu* context, Tamgu* object, short idt
     return object;
 }
 
-Exporting Tamgu* TamguCallFromCall::Get(Tamgu* context, Tamgu* object, short idthread) {
+Exporting Tamgu* TamguCallFromCall::Eval(Tamgu* context, Tamgu* object, short idthread) {
         //We execute the method associated to an object...
     short t = object->Type();
     if (!globalTamgu->methods.check(t) || Arity(globalTamgu->methods.get(t)[name], arguments.size()) == false) {
@@ -1175,7 +1175,7 @@ Exporting Tamgu* TamguCallFromCall::Get(Tamgu* context, Tamgu* object, short idt
             return object;
         }
         
-        context = function->Get(context, object, idthread);
+        context = function->Eval(context, object, idthread);
         if (context != object) {
             if (object->isProtected()) {
                 context->Setreference();
@@ -1193,7 +1193,7 @@ Exporting Tamgu* TamguCallFromCall::Get(Tamgu* context, Tamgu* object, short idt
     return object;
 }
 
-Tamgu* TamguCallCommonMethod::Get(Tamgu* context, Tamgu* object, short idthread) {
+Tamgu* TamguCallCommonMethod::Eval(Tamgu* context, Tamgu* object, short idthread) {
 	TamguCallCommonMethod* call = this;
 
 	if (idthread && call->arguments.size()) {
@@ -1211,7 +1211,7 @@ Tamgu* TamguCallCommonMethod::Get(Tamgu* context, Tamgu* object, short idthread)
 			return object;
 		}
 
-		context = function->Get(context, object, idthread);
+		context = function->Eval(context, object, idthread);
 		if (context != object) {
 			if (object->isProtected()) {
 				context->Setreference();
@@ -1241,7 +1241,7 @@ Tamgu* TamguCallFrameFunction::Put(Tamgu* context, Tamgu* object, short idthread
 		if (function->isStop())
 			return object;
 
-		Tamgu* a = function->Get(context, object, idthread);
+		Tamgu* a = function->Eval(context, object, idthread);
 		if (a != object) {
 			if (object->isProtected()) {
 				a->Setreference();
@@ -1255,7 +1255,7 @@ Tamgu* TamguCallFrameFunction::Put(Tamgu* context, Tamgu* object, short idthread
 }
 
 
-Tamgu* TamguCallFrameFunction::Get(Tamgu* context, Tamgu* object, short idthread) {
+Tamgu* TamguCallFrameFunction::Eval(Tamgu* context, Tamgu* object, short idthread) {
 	object = object->CallMethod(name, context, idthread, this);
 
 	if (function != NULL) {
@@ -1263,7 +1263,7 @@ Tamgu* TamguCallFrameFunction::Get(Tamgu* context, Tamgu* object, short idthread
 			return object;
 		}
 
-		Tamgu* a = function->Get(context, object, idthread);
+		Tamgu* a = function->Eval(context, object, idthread);
 		if (a != object) {
 			if (object->isProtected()) {
 				a->Setreference();
@@ -1287,7 +1287,7 @@ Tamgu* TamguCallTopFrameFunction::Put(Tamgu* context, Tamgu* object, short idthr
 		if (function->isStop())
 			return object;
 
-		Tamgu* a = function->Get(context, object, idthread);
+		Tamgu* a = function->Eval(context, object, idthread);
 		if (a != object) {
 			if (object->isProtected()) {
 				a->Setreference();
@@ -1301,7 +1301,7 @@ Tamgu* TamguCallTopFrameFunction::Put(Tamgu* context, Tamgu* object, short idthr
 }
 
 
-Tamgu* TamguCallTopFrameFunction::Get(Tamgu* context, Tamgu* object, short idthread) {
+Tamgu* TamguCallTopFrameFunction::Eval(Tamgu* context, Tamgu* object, short idthread) {
 	object = object->CallTopMethod(name, frame, context, idthread, this);
 
 	if (function != NULL) {
@@ -1309,7 +1309,7 @@ Tamgu* TamguCallTopFrameFunction::Get(Tamgu* context, Tamgu* object, short idthr
 			return object;
 		}
 
-		Tamgu* a = function->Get(context, object, idthread);
+		Tamgu* a = function->Eval(context, object, idthread);
 		if (a != object) {
 			if (object->isProtected()) {
 				a->Setreference();
@@ -1323,7 +1323,7 @@ Tamgu* TamguCallTopFrameFunction::Get(Tamgu* context, Tamgu* object, short idthr
 }
 
 
-Tamgu* TamguCallProcedure::Get(Tamgu* context, Tamgu* object, short idthread) {
+Tamgu* TamguCallProcedure::Eval(Tamgu* context, Tamgu* object, short idthread) {
 	TamguCallProcedure* call = this;
 
 	if (idthread && call->arguments.size()) {
@@ -1341,7 +1341,7 @@ Tamgu* TamguCallProcedure::Get(Tamgu* context, Tamgu* object, short idthread) {
 			return object;
 		}
 
-		Tamgu* a = function->Get(context, object, idthread);
+		Tamgu* a = function->Eval(context, object, idthread);
 		if (a != object) {
 			if (object->isProtected()) {
 				a->Setreference();
@@ -1361,13 +1361,13 @@ Tamgu* TamguCallProcedure::Get(Tamgu* context, Tamgu* object, short idthread) {
 
 //------------------------------------------------------------------------------------
 
-Exporting Tamgu* TamguCallFunction::Get(Tamgu* domain, Tamgu* a, short idthread) {
+Exporting Tamgu* TamguCallFunction::Eval(Tamgu* domain, Tamgu* a, short idthread) {
     TamguFunction* bd = (TamguFunction*)body->Body(idthread);
 
     if (curryfied) {
         TamguGetCurryfiedFunction* func = new TamguGetCurryfiedFunction(bd);
         for (long i = 0; i < arguments.size(); i++) {
-            a = arguments[i]->Get(aNULL, aHASKELL, idthread);
+            a = arguments[i]->Eval(aNULL, aHASKELL, idthread);
             if (a->isError()) {
                 func->Release();
                 return a;
@@ -1400,7 +1400,7 @@ Exporting Tamgu* TamguCallFunction::Get(Tamgu* domain, Tamgu* a, short idthread)
 			for (i = 0; i < sz; i++) {
 				p = bd->parameters[i];
 				if (!nonlimited || i < arguments.size())
-					a = arguments[i]->Get(domain, aNULL, idthread);
+					a = arguments[i]->Eval(domain, aNULL, idthread);
 				else {
 					a = p->Initialisation();
 					if (a == NULL) {
@@ -1438,7 +1438,7 @@ Exporting Tamgu* TamguCallFunction::Get(Tamgu* domain, Tamgu* a, short idthread)
 
 	globalTamgu->Pushstack(environment, idthread);
 	//We then apply our function within this environment
-	a = bd->Get(environment, aNULL, idthread);
+	a = bd->Eval(environment, aNULL, idthread);
 	globalTamgu->Popstack(idthread);
 
     //if a has no reference, then it means that it was recorded into the environment
@@ -1455,12 +1455,12 @@ Exporting Tamgu* TamguCallFunction::Get(Tamgu* domain, Tamgu* a, short idthread)
 }
 
 //No parameter
-Tamgu* TamguCallFunction0::Get(Tamgu* domain, Tamgu* a, short idthread) {
+Tamgu* TamguCallFunction0::Eval(Tamgu* domain, Tamgu* a, short idthread) {
     TamguDeclarationLocal* environment = globalTamgu->Providedeclaration(this, idthread, false);
     
     globalTamgu->Pushstack(environment, idthread);
     //We then apply our function within this environment
-    a = body->Get(environment, aNULL, idthread);
+    a = body->Eval(environment, aNULL, idthread);
     globalTamgu->Popstack(idthread);
     
     //if a has no reference, then it means that it was recorded into the environment
@@ -1477,9 +1477,9 @@ Tamgu* TamguCallFunction0::Get(Tamgu* domain, Tamgu* a, short idthread) {
     return a;
 }
 
-Tamgu* TamguCallFunction1::Get(Tamgu* domain, Tamgu* a, short idthread) {
+Tamgu* TamguCallFunction1::Eval(Tamgu* domain, Tamgu* a, short idthread) {
     if (nonlimited)
-        return TamguCallFunction::Get(domain, a, idthread);
+        return TamguCallFunction::Eval(domain, a, idthread);
 
     TamguDeclarationLocal* environment = globalTamgu->Providedeclaration(this, idthread, false);
     
@@ -1489,7 +1489,7 @@ Tamgu* TamguCallFunction1::Get(Tamgu* domain, Tamgu* a, short idthread) {
     if (bd != NULL)
         strict = bd->strict;
     
-    a = arguments[0]->Get(domain, aNULL, idthread);
+    a = arguments[0]->Eval(domain, aNULL, idthread);
     
     if (!bd->parameters[0]->Setvalue(environment, a, idthread, strict)) {
         a->Releasenonconst();
@@ -1500,7 +1500,7 @@ Tamgu* TamguCallFunction1::Get(Tamgu* domain, Tamgu* a, short idthread) {
     
     globalTamgu->Pushstack(environment, idthread);
     //We then apply our function within this environment
-    a = bd->Get(environment, aNULL, idthread);
+    a = bd->Eval(environment, aNULL, idthread);
     globalTamgu->Popstack(idthread);
     
     //if a has no reference, then it means that it was recorded into the environment
@@ -1517,9 +1517,9 @@ Tamgu* TamguCallFunction1::Get(Tamgu* domain, Tamgu* a, short idthread) {
     return a;
 }
 
-Tamgu* TamguCallFunction2::Get(Tamgu* domain, Tamgu* a, short idthread) {
+Tamgu* TamguCallFunction2::Eval(Tamgu* domain, Tamgu* a, short idthread) {
     if (nonlimited)
-        return TamguCallFunction::Get(domain, a, idthread);
+        return TamguCallFunction::Eval(domain, a, idthread);
     
     TamguDeclarationLocal* environment = globalTamgu->Providedeclaration(this, idthread, false);
     
@@ -1529,7 +1529,7 @@ Tamgu* TamguCallFunction2::Get(Tamgu* domain, Tamgu* a, short idthread) {
     if (bd != NULL)
         strict = bd->strict;
     
-    a = arguments[0]->Get(domain, aNULL, idthread);
+    a = arguments[0]->Eval(domain, aNULL, idthread);
     if (!bd->parameters[0]->Setvalue(environment, a, idthread, strict)) {
         environment->Release();
         a->Releasenonconst();
@@ -1537,7 +1537,7 @@ Tamgu* TamguCallFunction2::Get(Tamgu* domain, Tamgu* a, short idthread) {
         err += globalTamgu->Getsymbol(Name());
         return globalTamgu->Returnerror(err, idthread);
     }
-    a = arguments[1]->Get(domain, aNULL, idthread);
+    a = arguments[1]->Eval(domain, aNULL, idthread);
     if (!bd->parameters[1]->Setvalue(environment, a, idthread, strict)) {
         environment->Release();
         a->Releasenonconst();
@@ -1548,7 +1548,7 @@ Tamgu* TamguCallFunction2::Get(Tamgu* domain, Tamgu* a, short idthread) {
     
     globalTamgu->Pushstack(environment, idthread);
     //We then apply our function within this environment
-    a = bd->Get(environment, aNULL, idthread);
+    a = bd->Eval(environment, aNULL, idthread);
     globalTamgu->Popstack(idthread);
     
     //if a has no reference, then it means that it was recorded into the environment
@@ -1565,9 +1565,9 @@ Tamgu* TamguCallFunction2::Get(Tamgu* domain, Tamgu* a, short idthread) {
     return a;
 }
 
-Tamgu* TamguCallFunction3::Get(Tamgu* domain, Tamgu* a, short idthread) {
+Tamgu* TamguCallFunction3::Eval(Tamgu* domain, Tamgu* a, short idthread) {
     if (nonlimited)
-        return TamguCallFunction::Get(domain, a, idthread);
+        return TamguCallFunction::Eval(domain, a, idthread);
 
     TamguDeclarationLocal* environment = globalTamgu->Providedeclaration(this, idthread, false);
 
@@ -1579,7 +1579,7 @@ Tamgu* TamguCallFunction3::Get(Tamgu* domain, Tamgu* a, short idthread) {
 
     
     for (short i = 0; i < 3; i++) {
-        a = arguments[i]->Get(domain, aNULL, idthread);
+        a = arguments[i]->Eval(domain, aNULL, idthread);
         if (!bd->parameters[i]->Setvalue(environment, a, idthread, strict)) {
             environment->Release();
             a->Releasenonconst();
@@ -1591,7 +1591,7 @@ Tamgu* TamguCallFunction3::Get(Tamgu* domain, Tamgu* a, short idthread) {
     
     globalTamgu->Pushstack(environment, idthread);
     //We then apply our function within this environment
-    a = bd->Get(environment, aNULL, idthread);
+    a = bd->Eval(environment, aNULL, idthread);
     globalTamgu->Popstack(idthread);
     
     //if a has no reference, then it means that it was recorded into the environment
@@ -1607,9 +1607,9 @@ Tamgu* TamguCallFunction3::Get(Tamgu* domain, Tamgu* a, short idthread) {
     return a;
 }
 
-Tamgu* TamguCallFunction4::Get(Tamgu* domain, Tamgu* a, short idthread) {
+Tamgu* TamguCallFunction4::Eval(Tamgu* domain, Tamgu* a, short idthread) {
     if (nonlimited)
-        return TamguCallFunction::Get(domain, a, idthread);
+        return TamguCallFunction::Eval(domain, a, idthread);
 
     TamguDeclarationLocal* environment = globalTamgu->Providedeclaration(this, idthread, false);
     
@@ -1620,7 +1620,7 @@ Tamgu* TamguCallFunction4::Get(Tamgu* domain, Tamgu* a, short idthread) {
         strict = bd->strict;
     
     for (short i = 0; i < 4; i++) {
-        a = arguments[i]->Get(domain, aNULL, idthread);
+        a = arguments[i]->Eval(domain, aNULL, idthread);
         if (!bd->parameters[i]->Setvalue(environment, a, idthread, strict)) {
             environment->Release();
             a->Releasenonconst();
@@ -1633,7 +1633,7 @@ Tamgu* TamguCallFunction4::Get(Tamgu* domain, Tamgu* a, short idthread) {
     
     globalTamgu->Pushstack(environment, idthread);
     //We then apply our function within this environment
-    a = bd->Get(environment, aNULL, idthread);
+    a = bd->Eval(environment, aNULL, idthread);
     globalTamgu->Popstack(idthread);
     
     //if a has no reference, then it means that it was recorded into the environment
@@ -1649,9 +1649,9 @@ Tamgu* TamguCallFunction4::Get(Tamgu* domain, Tamgu* a, short idthread) {
     return a;
 }
 
-Tamgu* TamguCallFunction5::Get(Tamgu* domain, Tamgu* a, short idthread) {
+Tamgu* TamguCallFunction5::Eval(Tamgu* domain, Tamgu* a, short idthread) {
     if (nonlimited)
-        return TamguCallFunction::Get(domain, a, idthread);
+        return TamguCallFunction::Eval(domain, a, idthread);
 
     TamguDeclarationLocal* environment = globalTamgu->Providedeclaration(this, idthread, false);
     
@@ -1662,7 +1662,7 @@ Tamgu* TamguCallFunction5::Get(Tamgu* domain, Tamgu* a, short idthread) {
         strict = bd->strict;
     
     for (short i = 0; i < 5; i++) {
-        a = arguments[i]->Get(domain, aNULL, idthread);
+        a = arguments[i]->Eval(domain, aNULL, idthread);
         if (!bd->parameters[i]->Setvalue(environment, a, idthread, strict)) {
             environment->Release();
             a->Releasenonconst();
@@ -1675,7 +1675,7 @@ Tamgu* TamguCallFunction5::Get(Tamgu* domain, Tamgu* a, short idthread) {
     
     globalTamgu->Pushstack(environment, idthread);
     //We then apply our function within this environment
-    a = bd->Get(environment, aNULL, idthread);
+    a = bd->Eval(environment, aNULL, idthread);
     globalTamgu->Popstack(idthread);
     
     //if a has no reference, then it means that it was recorded into the environment
@@ -1722,7 +1722,7 @@ Tamgu* TamguCallFrameVariable::Put(Tamgu* context, Tamgu* value, short idthread)
     return call->Put(context, value, idthread);
 }
 
-Tamgu* TamguCallFrameVariable::Get(Tamgu* context, Tamgu* value, short idthread) {
+Tamgu* TamguCallFrameVariable::Eval(Tamgu* context, Tamgu* value, short idthread) {
     switch (nocall) {
         case 1:
             return globalTamgu->Getframedefinition(frame_name, name, idthread);
@@ -1732,7 +1732,7 @@ Tamgu* TamguCallFrameVariable::Get(Tamgu* context, Tamgu* value, short idthread)
             value = globalTamgu->Getdeclaration(frame_name, idthread);
             if (affectation && call->isStop())
                 return value;
-            return call->Get(context, value, idthread);
+            return call->Eval(context, value, idthread);
         case 4:
             return globalTamgu->Getdeclaration(frame_name, idthread);
         case 10:
@@ -1755,7 +1755,7 @@ Tamgu* TamguCallFrameVariable::Get(Tamgu* context, Tamgu* value, short idthread)
                     value = globalTamgu->Getdeclaration(frame_name, idthread);
                     if (affectation && call->isStop())
                         return value;
-                    return call->Get(context, value, idthread);
+                    return call->Eval(context, value, idthread);
                 }
             nocall=0;
     }
@@ -1764,10 +1764,10 @@ Tamgu* TamguCallFrameVariable::Get(Tamgu* context, Tamgu* value, short idthread)
     
     if (affectation && call->isStop())
         return value;
-    return call->Get(context, value, idthread);
+    return call->Eval(context, value, idthread);
 }
 
-Tamgu* TamguCallFromFrameVariable::Get(Tamgu* context, Tamgu* value, short idthread) {
+Tamgu* TamguCallFromFrameVariable::Eval(Tamgu* context, Tamgu* value, short idthread) {
     //In this case, the value is the calling variable...
     if (call == NULL)
         return value->Declaration(name);
@@ -1776,7 +1776,7 @@ Tamgu* TamguCallFromFrameVariable::Get(Tamgu* context, Tamgu* value, short idthr
     
     if (affectation && call->isStop())
         return value;
-    return call->Get(context, value, idthread);
+    return call->Eval(context, value, idthread);
 }
 
 Tamgu* TamguCallFromFrameVariable::Put(Tamgu* context, Tamgu* value, short idthread) {
@@ -1792,7 +1792,7 @@ Tamgu* TamguCallFromFrameVariable::Put(Tamgu* context, Tamgu* value, short idthr
 }
 
 
-Tamgu* TamguCallThroughVariable::Get(Tamgu* context, Tamgu* value, short idthread) {
+Tamgu* TamguCallThroughVariable::Eval(Tamgu* context, Tamgu* value, short idthread) {
     if (call == NULL)
         return throughvariables[name];
 
@@ -1802,10 +1802,10 @@ Tamgu* TamguCallThroughVariable::Get(Tamgu* context, Tamgu* value, short idthrea
             return value;
         return call->Put(context, value, idthread);
     }
-    return call->Get(context, value, idthread);
+    return call->Eval(context, value, idthread);
 }
 
-Tamgu* TamguCallVariable::Get(Tamgu* context, Tamgu* value, short idthread) {
+Tamgu* TamguCallVariable::Eval(Tamgu* context, Tamgu* value, short idthread) {
     if (call == NULL) {
         if (!forced) {
             directcall = true;
@@ -1824,10 +1824,10 @@ Tamgu* TamguCallVariable::Get(Tamgu* context, Tamgu* value, short idthread) {
             return value;
         return call->Put(context, value, idthread);
     }
-    return call->Get(context, value, idthread);
+    return call->Eval(context, value, idthread);
 }
 
-Tamgu* TamguCallGlobalVariable::Get(Tamgu* context, Tamgu* v, short idthread) {
+Tamgu* TamguCallGlobalVariable::Eval(Tamgu* context, Tamgu* v, short idthread) {
     if (!first)
         return value;
     
@@ -1849,7 +1849,7 @@ Tamgu* TamguCallGlobalVariable::Get(Tamgu* context, Tamgu* v, short idthread) {
                 return value;
             return call->Put(context, value, idthread);
         }
-        return call->Get(context, value, idthread);
+        return call->Eval(context, value, idthread);
     }
     
     if (forced) {
@@ -1860,17 +1860,17 @@ Tamgu* TamguCallGlobalVariable::Get(Tamgu* context, Tamgu* v, short idthread) {
     return value;
 }
 
-Tamgu* TamguCallConstantVariable::Get(Tamgu* context, Tamgu* value, short idthread) {
+Tamgu* TamguCallConstantVariable::Eval(Tamgu* context, Tamgu* value, short idthread) {
 	value = globalTamgu->Getdeclaration(name, idthread);
 
 	if (call != NULL)
-		return call->Get(context, value, idthread);
+		return call->Eval(context, value, idthread);
 
 	value->SetConst();
 	return value;
 }
 
-Tamgu* TamguCallFunctionVariable::Get(Tamgu* context, Tamgu* value, short idthread) {
+Tamgu* TamguCallFunctionVariable::Eval(Tamgu* context, Tamgu* value, short idthread) {
     if (call == NULL) {
         directcall = true;
         return globalTamgu->Getdeclaration(name, idthread);
@@ -1883,12 +1883,12 @@ Tamgu* TamguCallFunctionVariable::Get(Tamgu* context, Tamgu* value, short idthre
             return value;
         return call->Put(context, value, idthread);
     }
-    return call->Get(context, value, idthread);
+    return call->Eval(context, value, idthread);
 }
 
 //------------------------------------------------SELF SECTION-------------------------------------
 
-Tamgu* TamguSelfVariableDeclaration::Get(Tamgu* domain, Tamgu* value, short idthread) {
+Tamgu* TamguSelfVariableDeclaration::Eval(Tamgu* domain, Tamgu* value, short idthread) {
 	TamguLet* a;
 	if (typevariable == a_self)
 		a = globalTamgu->Provideself();
@@ -1899,7 +1899,7 @@ Tamgu* TamguSelfVariableDeclaration::Get(Tamgu* domain, Tamgu* value, short idth
 	globalTamgu->Storevariable(idthread, name, a);
 	a->Setreference();
 	if (initialization != NULL) {
-		value = initialization->Get(aNULL, aNULL, idthread);
+		value = initialization->Eval(aNULL, aNULL, idthread);
 		if (value->isError())
 			return value;
 		a->value = value;
@@ -1922,7 +1922,7 @@ Tamgu* TamguSelfVariableDeclaration::Put(Tamgu* domain, Tamgu* value, short idth
     return value;
 }
 
-Tamgu* TamguCallSelfVariable::Get(Tamgu* context, Tamgu* value, short idthread) {
+Tamgu* TamguCallSelfVariable::Eval(Tamgu* context, Tamgu* value, short idthread) {
     if (directcall)
         return globalTamgu->Getdeclaration(name, idthread);
     
@@ -1936,7 +1936,7 @@ Tamgu* TamguCallSelfVariable::Get(Tamgu* context, Tamgu* value, short idthread) 
 
 		if (affectation && call->isStop())
 			return value;
-		return call->Get(context, value, idthread);
+		return call->Eval(context, value, idthread);
 	}
 
 	if (affectation) {
@@ -1966,7 +1966,7 @@ Tamgu* TamguCallSelfVariable::Put(Tamgu* domain, Tamgu* value, short idthread) {
 }
 
 //------------------------------------------------------------------------------------
-Tamgu* TamguInstruction::Get(Tamgu* context, Tamgu* a, short idthread) {
+Tamgu* TamguInstruction::Eval(Tamgu* context, Tamgu* a, short idthread) {
 	long size = instructions.last;
     if (!size)
         return aNULL;
@@ -1974,7 +1974,7 @@ Tamgu* TamguInstruction::Get(Tamgu* context, Tamgu* a, short idthread) {
 	if (size == 1) {
         a = instructions.vecteur[0];
         _setdebugfull(idthread,a);
-		a = a->Get(context, aNULL, idthread);
+		a = a->Eval(context, aNULL, idthread);
 		_cleandebugfull;
 		return a;
 	}
@@ -1989,7 +1989,7 @@ Tamgu* TamguInstruction::Get(Tamgu* context, Tamgu* a, short idthread) {
 		a = instructions.vecteur[i];
 		
 		_debugpush(a);
-		a = a->Get(environment, aNULL, idthread);
+		a = a->Eval(environment, aNULL, idthread);
 		_debugpop();
 
 		if (globalTamgu->Error(idthread)) {
@@ -2035,7 +2035,7 @@ Tamgu* TamguInstruction::Get(Tamgu* context, Tamgu* a, short idthread) {
 	return aNULL;
 }
 
-Tamgu* TamguFunction::Get(Tamgu* environment, Tamgu* obj, short idthread) {
+Tamgu* TamguFunction::Eval(Tamgu* environment, Tamgu* obj, short idthread) {
 	long size = instructions.size();
 
 	_setdebugfull(idthread, this);
@@ -2047,7 +2047,7 @@ Tamgu* TamguFunction::Get(Tamgu* environment, Tamgu* obj, short idthread) {
         a = instructions.vecteur[i];
         
 		_debugpush(a);
-		a = a->Get(environment, obj, idthread);
+		a = a->Eval(environment, obj, idthread);
 		_debugpop();
 
 		if (globalTamgu->Error(idthread)) {			
@@ -2124,7 +2124,7 @@ void AThread(TamguThreadCall* call) {
     
     //--------------------------------------------------------
     //We launch the code of our thread
-    Tamgu* a = call->Get(call->domain, aNULL, idthread);
+    Tamgu* a = call->Eval(call->domain, aNULL, idthread);
    //Which might be returning a value..
    //--------------------------------------------------------
 
@@ -2168,7 +2168,7 @@ void AThread(TamguThreadCall* call) {
 
 }
 
-Tamgu* TamguThreadCall::Get(Tamgu* domain, Tamgu* value, short idthread) {
+Tamgu* TamguThreadCall::Eval(Tamgu* domain, Tamgu* value, short idthread) {
     TamguDeclarationLocal* environment = globalTamgu->Providedeclaration(this, idthread, false);
 
 	Tamgu* p;
@@ -2223,7 +2223,7 @@ Tamgu* TamguThreadCall::Get(Tamgu* domain, Tamgu* value, short idthread) {
 
 	globalTamgu->Pushstack(environment, idthread);
 	//We then apply our function within this environment
-	Tamgu* ret = bd->Get(environment, aNULL, idthread);
+	Tamgu* ret = bd->Eval(environment, aNULL, idthread);
 	globalTamgu->Popstack(idthread);
 
 	if (!ret->Reference())
@@ -2240,7 +2240,7 @@ Tamgu* TamguThreadCall::Get(Tamgu* domain, Tamgu* value, short idthread) {
 	return ret;
 }
 
-Tamgu* TamguThread::Get(Tamgu* environment, Tamgu* a, short idthread) {
+Tamgu* TamguThread::Eval(Tamgu* environment, Tamgu* a, short idthread) {
 	Locking* _lock = NULL;
 	if (_locker != NULL)
 		_lock = new Locking(*_locker);
@@ -2251,7 +2251,7 @@ Tamgu* TamguThread::Get(Tamgu* environment, Tamgu* a, short idthread) {
 		a = instructions.vecteur[i];
 
 		_debugpush(a);
-		a = a->Get(environment, aNULL, idthread);
+		a = a->Eval(environment, aNULL, idthread);
 		_debugpop();
 
 		if (a->isReturned()) {
@@ -2291,7 +2291,7 @@ Tamgu* TamguThread::Get(Tamgu* environment, Tamgu* a, short idthread) {
 	return aNULL;
 }
 
-Tamgu* TamguCallThread::Get(Tamgu* environment, Tamgu* value, short idthread) {
+Tamgu* TamguCallThread::Eval(Tamgu* environment, Tamgu* value, short idthread) {
 	//We enter a thread... //Now Locks will be created...
 	globalTamgu->Sethreading();
 
@@ -2337,7 +2337,7 @@ Tamgu* TamguCallThread::Get(Tamgu* environment, Tamgu* value, short idthread) {
 	//we need to evaluate our arguments beforehand
 	Tamgu* a;
 	for (i = 0; i < arguments.size(); i++) {
-		a = arguments[i]->Get(environment, aNULL, idthread)->Atom();
+		a = arguments[i]->Eval(environment, aNULL, idthread)->Atom();
 		a->Setreference();
 		threadcall->arguments.push_back(a);
 	}
@@ -2354,13 +2354,13 @@ Tamgu* TamguCallThread::Get(Tamgu* environment, Tamgu* value, short idthread) {
 }
 
 //____________________________________________________________________________________
-Tamgu* TamguInstructionGlobalVariableAFFECTATION::Get(Tamgu* context, Tamgu* value, short idthread) {
+Tamgu* TamguInstructionGlobalVariableAFFECTATION::Eval(Tamgu* context, Tamgu* value, short idthread) {
     if (first) {
         variable = globalTamgu->threads[idthread].variables.get(varname).back();
         first = false;
     }
 
-    value = instructions.vecteur[1]->Get(variable, aAFFECTATION, idthread);
+    value = instructions.vecteur[1]->Eval(variable, aAFFECTATION, idthread);
     
     if (value != variable) {
         if (value->isError())
@@ -2376,10 +2376,10 @@ Tamgu* TamguInstructionGlobalVariableAFFECTATION::Get(Tamgu* context, Tamgu* val
     return aTRUE;
 }
 
-Tamgu* TamguInstructionFunctionVariableAFFECTATION::Get(Tamgu* var, Tamgu* value, short idthread) {
+Tamgu* TamguInstructionFunctionVariableAFFECTATION::Eval(Tamgu* var, Tamgu* value, short idthread) {
     var = globalTamgu->Getdeclaration(name, idthread);
     
-    value = instructions.vecteur[1]->Get(var, aAFFECTATION, idthread);
+    value = instructions.vecteur[1]->Eval(var, aAFFECTATION, idthread);
     
     if (value !=  var) {
         if (value->isError())
@@ -2395,9 +2395,9 @@ Tamgu* TamguInstructionFunctionVariableAFFECTATION::Get(Tamgu* var, Tamgu* value
     return aTRUE;
 }
 
-Tamgu* TamguInstructionVariableAFFECTATION::Get(Tamgu* var, Tamgu* value, short idthread) {
-    var = instructions.vecteur[0]->Get(var, aNULL, idthread);
-    value = instructions.vecteur[1]->Get(var, aAFFECTATION, idthread);
+Tamgu* TamguInstructionVariableAFFECTATION::Eval(Tamgu* var, Tamgu* value, short idthread) {
+    var = instructions.vecteur[0]->Eval(var, aNULL, idthread);
+    value = instructions.vecteur[1]->Eval(var, aAFFECTATION, idthread);
     
     if (value !=  var) {
         if (value->isError())
@@ -2413,10 +2413,10 @@ Tamgu* TamguInstructionVariableAFFECTATION::Get(Tamgu* var, Tamgu* value, short 
     return aTRUE;
 }
     
-Tamgu* TamguInstructionAtomicAFFECTATION::Get(Tamgu* environment, Tamgu* value, short idthread) {
+Tamgu* TamguInstructionAtomicAFFECTATION::Eval(Tamgu* environment, Tamgu* value, short idthread) {
     if (directcall == 1) {
         value = globalTamgu->Getdeclaration(name, idthread);
-        value = instructions.vecteur[1]->Get(value, aAFFECTATION, idthread);
+        value = instructions.vecteur[1]->Eval(value, aAFFECTATION, idthread);
         if (value->isError())
             return value;
         if (globalTamgu->isthreading)
@@ -2424,13 +2424,13 @@ Tamgu* TamguInstructionAtomicAFFECTATION::Get(Tamgu* environment, Tamgu* value, 
         return aTRUE;
     }
     
-    Tamgu* var = variable->Get(environment, aNULL, idthread);
+    Tamgu* var = variable->Eval(environment, aNULL, idthread);
     if (var->isError())
         return var;
     
 	bool aff = var->checkAffectation();
 
-    value = instructions.vecteur[1]->Get(var, aAFFECTATION, idthread);
+    value = instructions.vecteur[1]->Eval(var, aAFFECTATION, idthread);
 
     if (!aff)
         var->Setaffectation(false);
@@ -2475,8 +2475,8 @@ Tamgu* TamguInstructionAtomicAFFECTATION::Get(Tamgu* environment, Tamgu* value, 
 	return aTRUE;
 }
 
-Tamgu* TamguInstructionAFFECTATION::Get(Tamgu* environment, Tamgu* value, short idthread) {
-	Tamgu* variable = instructions.vecteur[0]->Get(environment, aNULL, idthread);
+Tamgu* TamguInstructionAFFECTATION::Eval(Tamgu* environment, Tamgu* value, short idthread) {
+	Tamgu* variable = instructions.vecteur[0]->Eval(environment, aNULL, idthread);
 	if (variable->isError())
 		return variable;
 
@@ -2495,7 +2495,7 @@ Tamgu* TamguInstructionAFFECTATION::Get(Tamgu* environment, Tamgu* value, short 
 		}
 
 		if (idx != NULL) {
-			value = instructions.vecteur[1]->Get(environment, aNULL, idthread);
+			value = instructions.vecteur[1]->Eval(environment, aNULL, idthread);
 
 			//for instance: v[0]=v[0][1];
 			//we need to prevent a Clear() on "variable" to delete this element...
@@ -2517,7 +2517,7 @@ Tamgu* TamguInstructionAFFECTATION::Get(Tamgu* environment, Tamgu* value, short 
 
 	bool aff = variable->checkAffectation();
 
-	value = instructions.vecteur[1]->Get(variable, aAFFECTATION, idthread);
+	value = instructions.vecteur[1]->Eval(variable, aAFFECTATION, idthread);
 
 	if (value == variable) {
         if (!aff)
@@ -2556,18 +2556,18 @@ Tamgu* TamguInstructionAFFECTATION::Get(Tamgu* environment, Tamgu* value, short 
 	return aTRUE;
 }
 
-Tamgu* TamguInstructionSTREAM::Get(Tamgu* environment, Tamgu* value, short idthread) {
+Tamgu* TamguInstructionSTREAM::Eval(Tamgu* environment, Tamgu* value, short idthread) {
 	Tamgu* idx = instructions.vecteur[0]->Function();
-	Tamgu* variable = instructions.vecteur[0]->Get(environment, aNULL, idthread);
+	Tamgu* variable = instructions.vecteur[0]->Eval(environment, aNULL, idthread);
 
     short thetype = instructions.vecteur[1]->Type();
 	if (thetype == a_callthread) {
 		if (idx != NULL && idx->isIndex()) {
-			value = variable->Get(environment, idx, idthread);
+			value = variable->Eval(environment, idx, idthread);
             if (value->isNULL()) {
 				if (variable->isValueContainer()) {
 					variable->Put(idx, aNULL, idthread);
-					value = variable->Get(environment, idx, idthread);
+					value = variable->Eval(environment, idx, idthread);
 				}
 				else {
 					//We create a Self variable...
@@ -2579,13 +2579,13 @@ Tamgu* TamguInstructionSTREAM::Get(Tamgu* environment, Tamgu* value, short idthr
 			value = variable;
 
 		instructions.vecteur[1]->Push(value);
-		instructions.vecteur[1]->Get(environment, value, idthread);
+		instructions.vecteur[1]->Eval(environment, value, idthread);
 		return aTRUE;
 	}
 
     if (thetype == a_fibre) {
         if (idx != NULL && idx->isIndex()) {
-            value = variable->Get(environment, idx, idthread);
+            value = variable->Eval(environment, idx, idthread);
             if (value->isNULL())
                 value = new TamguContent(idx->Evaluate(idthread), variable);
         }
@@ -2593,18 +2593,18 @@ Tamgu* TamguInstructionSTREAM::Get(Tamgu* environment, Tamgu* value, short idthr
             value = variable;
 
         char aff = value->checkAffectation();
-        instructions.vecteur[1]->Get(value, aNULL, idthread);
+        instructions.vecteur[1]->Eval(value, aNULL, idthread);
         value->Setaffectation(aff);
         value->Release();
         return aTRUE;
     }
 
-    return TamguInstructionAFFECTATION::Get(environment,value,idthread);
+    return TamguInstructionAFFECTATION::Eval(environment,value,idthread);
 }
 
-Tamgu* TamguInstructionSWITCH::Get(Tamgu* context, Tamgu* ke, short idthread) {
+Tamgu* TamguInstructionSWITCH::Eval(Tamgu* context, Tamgu* ke, short idthread) {
 	//First our variable
-	Tamgu* var = instructions.vecteur[0]->Get(context, aNULL, idthread);
+	Tamgu* var = instructions.vecteur[0]->Eval(context, aNULL, idthread);
 	//First case, we have only discrete values...
 	if (usekeys == 1) {
 		//Then first, we get the string out of our variable...
@@ -2613,11 +2613,11 @@ Tamgu* TamguInstructionSWITCH::Get(Tamgu* context, Tamgu* ke, short idthread) {
 		if (keys.find(s) == keys.end()) {
 			//we test if we have a default value...
 			if (instructions.vecteur[instructions.last - 2] == aDEFAULT) {
-				return instructions.back()->Get(context, aNULL, idthread);
+				return instructions.back()->Eval(context, aNULL, idthread);
 			}
 			return aNULL;
 		}
-        return instructions.vecteur[keys[s] + 1]->Get(aNULL, aNULL, idthread);
+        return instructions.vecteur[keys[s] + 1]->Eval(aNULL, aNULL, idthread);
 	}
 
 	//Then the instructions, the odd element is the value to compare with, the even element
@@ -2630,19 +2630,19 @@ Tamgu* TamguInstructionSWITCH::Get(Tamgu* context, Tamgu* ke, short idthread) {
         callfunc.arguments.push_back(aNULL);
         
         for (long i = 1; i < maxid; i += 2) {
-            result = instructions.vecteur[i]->Get(context, aNULL, idthread);
+            result = instructions.vecteur[i]->Eval(context, aNULL, idthread);
             ke = instructions.vecteur[i + 1];
             
             if (result == aDEFAULT) {
-                ke = ke->Get(context, aNULL, idthread);
+                ke = ke->Eval(context, aNULL, idthread);
                 var->Releasenonconst();
                 return ke;
             }
 
             callfunc.arguments.vecteur[1] = result;
-            if (callfunc.Get(aNULL, aNULL, idthread)->Boolean() == true) {
+            if (callfunc.Eval(aNULL, aNULL, idthread)->Boolean() == true) {
                 result->Releasenonconst();
-                ke = ke->Get(context, aNULL, idthread);
+                ke = ke->Eval(context, aNULL, idthread);
                 var->Releasenonconst();
                 return ke;
             }
@@ -2658,18 +2658,18 @@ Tamgu* TamguInstructionSWITCH::Get(Tamgu* context, Tamgu* ke, short idthread) {
     }
     
 	for (long i = 1; i < maxid; i += 2) {
-		result = instructions.vecteur[i]->Get(context, aNULL, idthread);
+		result = instructions.vecteur[i]->Eval(context, aNULL, idthread);
 		ke = instructions.vecteur[i + 1];
 
         if (result == aDEFAULT) {
-            ke = ke->Get(context, aNULL, idthread);
+            ke = ke->Eval(context, aNULL, idthread);
             var->Releasenonconst();
             return ke;
         }
 
 		if (var->same(result)->Boolean() == true) {
 			result->Releasenonconst();
-            ke = ke->Get(context, aNULL, idthread);
+            ke = ke->Eval(context, aNULL, idthread);
             var->Releasenonconst();
             return ke;
         }
@@ -2684,9 +2684,9 @@ Tamgu* TamguInstructionSWITCH::Get(Tamgu* context, Tamgu* ke, short idthread) {
 	return aNULL;
 }
 
-Tamgu* TamguInstructionIF::Get(Tamgu* context, Tamgu* value, short idthread) {
+Tamgu* TamguInstructionIF::Eval(Tamgu* context, Tamgu* value, short idthread) {
 
-	Tamgu* result = instructions.vecteur[0]->Get(aTRUE, aNULL, idthread);
+	Tamgu* result = instructions.vecteur[0]->Eval(aTRUE, aNULL, idthread);
 
 	if (result->isError())
 		return result;
@@ -2703,13 +2703,13 @@ Tamgu* TamguInstructionIF::Get(Tamgu* context, Tamgu* value, short idthread) {
 		return aNULL;
 	}
 
-    return result->Get(context, value, idthread);
+    return result->Eval(context, value, idthread);
 }
 
-Tamgu* TamguInstructionOperationIfnot::Get(Tamgu* context, Tamgu* result, short idthread) {
+Tamgu* TamguInstructionOperationIfnot::Eval(Tamgu* context, Tamgu* result, short idthread) {
     short maxid = instructions.size();
     for (short i = 0; i < maxid; i++) {
-        result = instructions.vecteur[i]->Get(aTRUE, aNULL, idthread);
+        result = instructions.vecteur[i]->Eval(aTRUE, aNULL, idthread);
         if (!result->isConst() || result == aTRUE)
             return result;
         result->Releasenonconst();
@@ -2718,11 +2718,11 @@ Tamgu* TamguInstructionOperationIfnot::Get(Tamgu* context, Tamgu* result, short 
 }
     
     
-Tamgu* TamguInstructionOR::Get(Tamgu* context, Tamgu* result, short idthread) {
+Tamgu* TamguInstructionOR::Eval(Tamgu* context, Tamgu* result, short idthread) {
 	short maxid = instructions.size();
 	for (short i = 0; i < maxid; i++) {
 		context = instructions.vecteur[i];
-		result = context->Get(aTRUE, aNULL, idthread);
+		result = context->Eval(aTRUE, aNULL, idthread);
 		if (result->Boolean() != context->isNegation()) {
 			result->Releasenonconst();
 			return aTRUE;
@@ -2732,17 +2732,17 @@ Tamgu* TamguInstructionOR::Get(Tamgu* context, Tamgu* result, short idthread) {
 	return aFALSE;
 }
 
-Tamgu* TamguInstructionXOR::Get(Tamgu* context, Tamgu* result, short idthread) {
+Tamgu* TamguInstructionXOR::Eval(Tamgu* context, Tamgu* result, short idthread) {
     short maxid = instructions.size();
     context = instructions.vecteur[0];
-    result = context->Get(aTRUE, aNULL, idthread);
+    result = context->Eval(aTRUE, aNULL, idthread);
     bool val = false;
     if (result->Boolean() != context->isNegation())
         val = true;
     
     for (short i = 1; i < maxid; i++) {
         context = instructions.vecteur[i];
-        result = context->Get(aTRUE, aNULL, idthread);
+        result = context->Eval(aTRUE, aNULL, idthread);
         if (result->Boolean() != context->isNegation()) {
             if (!val) {
                 result->Releasenonconst();
@@ -2762,11 +2762,11 @@ Tamgu* TamguInstructionXOR::Get(Tamgu* context, Tamgu* result, short idthread) {
     return aFALSE;
 }
     
-Tamgu* TamguInstructionAND::Get(Tamgu* context, Tamgu* result, short idthread) {
+Tamgu* TamguInstructionAND::Eval(Tamgu* context, Tamgu* result, short idthread) {
 	short maxid = instructions.size();
 	for (short i = 0; i < maxid; i++) {
 		context = instructions.vecteur[i];
-		result = context->Get(aTRUE, aNULL, idthread);
+		result = context->Eval(aTRUE, aNULL, idthread);
 		if (result->Boolean() == context->isNegation()) {
 			result->Releasenonconst();
 			return aFALSE;
@@ -2776,9 +2776,9 @@ Tamgu* TamguInstructionAND::Get(Tamgu* context, Tamgu* result, short idthread) {
 	return aTRUE;
 }
 
-Tamgu* TamguInstructionWHILE::Get(Tamgu* context, Tamgu* result, short idthread) {
+Tamgu* TamguInstructionWHILE::Eval(Tamgu* context, Tamgu* result, short idthread) {
 
-	result = instructions.vecteur[0]->Get(aTRUE, aNULL, idthread);
+	result = instructions.vecteur[0]->Eval(aTRUE, aNULL, idthread);
 
     negation = instructions.vecteur[0]->isNegation();
     
@@ -2798,7 +2798,7 @@ Tamgu* TamguInstructionWHILE::Get(Tamgu* context, Tamgu* result, short idthread)
 		result->Releasenonconst();
 
 		_debugpush(bloc);
-		result = bloc->Get(context, aNULL, idthread);
+		result = bloc->Eval(context, aNULL, idthread);
 		_debugpop();
 
 		if (result->isReturned()) {
@@ -2815,7 +2815,7 @@ Tamgu* TamguInstructionWHILE::Get(Tamgu* context, Tamgu* result, short idthread)
 		}
 
 		result->Releasenonconst();
-		result = ktest->Get(aTRUE, aNULL, idthread);
+		result = ktest->Eval(aTRUE, aNULL, idthread);
 	}
 
 	result->Releasenonconst();
@@ -2824,9 +2824,9 @@ Tamgu* TamguInstructionWHILE::Get(Tamgu* context, Tamgu* result, short idthread)
 }
 
 
-Tamgu* TamguInstructionUNTIL::Get(Tamgu* context, Tamgu* result, short idthread) {
+Tamgu* TamguInstructionUNTIL::Eval(Tamgu* context, Tamgu* result, short idthread) {
 
-	result = instructions.vecteur[0]->Get(aTRUE, aNULL, idthread);
+	result = instructions.vecteur[0]->Eval(aTRUE, aNULL, idthread);
 
     negation = instructions.vecteur[0]->isNegation();
     
@@ -2845,7 +2845,7 @@ Tamgu* TamguInstructionUNTIL::Get(Tamgu* context, Tamgu* result, short idthread)
 		result->Releasenonconst();
 
 		_debugpush(bloc);
-		result = bloc->Get(context, aNULL, idthread);
+		result = bloc->Eval(context, aNULL, idthread);
 		_debugpop();
 
 		if (result->isReturned()) {
@@ -2861,7 +2861,7 @@ Tamgu* TamguInstructionUNTIL::Get(Tamgu* context, Tamgu* result, short idthread)
 		}
 
 		result->Releasenonconst();
-		result = ktest->Get(aTRUE, aNULL, idthread);
+		result = ktest->Eval(aTRUE, aNULL, idthread);
 	} while (result->Boolean() != negation);
 
 	result->Releasenonconst();
@@ -2869,9 +2869,9 @@ Tamgu* TamguInstructionUNTIL::Get(Tamgu* context, Tamgu* result, short idthread)
 	return aTRUE;
 }
 
-Tamgu* TamguInstructionIN::Get(Tamgu* context, Tamgu* value, short idthread) {
-	value = instructions.vecteur[0]->Get(context, aNULL, idthread);
-	Tamgu* object = instructions.vecteur[1]->Get(context, aNULL, idthread);
+Tamgu* TamguInstructionIN::Eval(Tamgu* context, Tamgu* value, short idthread) {
+	value = instructions.vecteur[0]->Eval(context, aNULL, idthread);
+	Tamgu* object = instructions.vecteur[1]->Eval(context, aNULL, idthread);
     if (value->isRegular())
         context = value->in(context, object, idthread);
     else
@@ -2892,13 +2892,13 @@ Tamgu* Tamgu::Loopin(TamguInstruction* ins, Tamgu* context, short idthread) {
         return globalTamgu->Returnerror("Cannot loop on this element...", idthread);
 
     Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
-    var = var->Get(context, aNULL, idthread);
+    var = var->Eval(context, aNULL, idthread);
     
     Tamgu* a;
     for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
         var->Putvalue(itr->IteratorKey(), idthread);
         
-        a = ins->instructions.vecteur[1]->Get(context, aNULL, idthread);
+        a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
         
             //Continue does not trigger needInvestigate
         if (a->needInvestigate()) {
@@ -2916,20 +2916,20 @@ Tamgu* Tamgu::Loopin(TamguInstruction* ins, Tamgu* context, short idthread) {
 }
     
     
-Tamgu* TamguInstructionFORINVALUECONTAINER::Get(Tamgu* context, Tamgu* loop, short idthread) {
-	loop = instructions.vecteur[0]->Instruction(1)->Get(context, aNULL, idthread);
+Tamgu* TamguInstructionFORINVALUECONTAINER::Eval(Tamgu* context, Tamgu* loop, short idthread) {
+	loop = instructions.vecteur[0]->Instruction(1)->Eval(context, aNULL, idthread);
 	context = loop->Loopin(this, context, idthread);
 	loop->Release();
 	return context;
 }
 
-Tamgu* TamguInstructionFORINVECTOR::Get(Tamgu* context, Tamgu* loop, short idthread) {
+Tamgu* TamguInstructionFORINVECTOR::Eval(Tamgu* context, Tamgu* loop, short idthread) {
 	loop = instructions.vecteur[0];
-	Tamgu* var = loop->Instruction(0)->Get(context, aNULL, idthread);
+	Tamgu* var = loop->Instruction(0)->Eval(context, aNULL, idthread);
 	if (var->isFrame())
-		return TamguInstructionFORIN::Get(context, loop, idthread);
+		return TamguInstructionFORIN::Eval(context, loop, idthread);
 
-	loop = loop->Instruction(1)->Get(context, aNULL, idthread);
+	loop = loop->Instruction(1)->Eval(context, aNULL, idthread);
 	
 	Tamgu* a;	
 	Tamgu* v;
@@ -2938,7 +2938,7 @@ Tamgu* TamguInstructionFORINVECTOR::Get(Tamgu* context, Tamgu* loop, short idthr
 		v = loop->getvalue(i);
 		var->Putvalue(v, idthread);
 
-		a = instructions.vecteur[1]->Get(context, aNULL, idthread);
+		a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
 		//Continue does not trigger needInvestigate
 		if (a->needInvestigate()) {
@@ -2957,10 +2957,10 @@ Tamgu* TamguInstructionFORINVECTOR::Get(Tamgu* context, Tamgu* loop, short idthr
 	return this;
 }
 
-Tamgu* TamguInstructionFORIN::Get(Tamgu* context, Tamgu* loop, short idthread) {
+Tamgu* TamguInstructionFORIN::Eval(Tamgu* context, Tamgu* loop, short idthread) {
 
 	loop = instructions.vecteur[0]->Instruction(0);
-	Tamgu* var = loop->Get(context, aNULL, idthread);
+	Tamgu* var = loop->Eval(context, aNULL, idthread);
 
 	short idname = 0;
 	short typevar = var->Type();
@@ -2972,7 +2972,7 @@ Tamgu* TamguInstructionFORIN::Get(Tamgu* context, Tamgu* loop, short idthread) {
 		dom = globalTamgu->Declarator(idname, idthread);
 	}
 
-	loop = instructions.vecteur[0]->Instruction(1)->Get(context, aNULL, idthread);
+	loop = instructions.vecteur[0]->Instruction(1)->Eval(context, aNULL, idthread);
 
 	bool cleanup = true;
 	if (loop->isValueContainer() || !var->isLetSelf())
@@ -3000,7 +3000,7 @@ Tamgu* TamguInstructionFORIN::Get(Tamgu* context, Tamgu* loop, short idthread) {
 				var->Putvalue(v, idthread);
 			}
 
-			a = instructions.vecteur[1]->Get(context, aNULL, idthread);
+			a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
 			//Continue does not trigger needInvestigate
 			if (a->needInvestigate()) {
@@ -3059,7 +3059,7 @@ Tamgu* TamguInstructionFORIN::Get(Tamgu* context, Tamgu* loop, short idthread) {
 			var->Putvalue(v, idthread);
 		}
 
-		a = instructions.vecteur[1]->Get(context, aNULL, idthread);
+		a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
 		//Continue does not trigger needInvestigate
 		if (a->needInvestigate()) {
@@ -3086,10 +3086,10 @@ Tamgu* TamguInstructionFORIN::Get(Tamgu* context, Tamgu* loop, short idthread) {
 	return this;
 }
 
-Tamgu* TamguInstructionFORVECTORIN::Get(Tamgu* context, Tamgu* loop, short idthread) {
+Tamgu* TamguInstructionFORVECTORIN::Eval(Tamgu* context, Tamgu* loop, short idthread) {
 
-	Tamgu* var = instructions.vecteur[0]->Instruction(0)->Get(context, aNULL, idthread);
-	loop = instructions.vecteur[0]->Instruction(1)->Get(context, aNULL, idthread);
+	Tamgu* var = instructions.vecteur[0]->Instruction(0)->Eval(context, aNULL, idthread);
+	loop = instructions.vecteur[0]->Instruction(1)->Eval(context, aNULL, idthread);
 	if (!loop->isVectorContainer())
 		return globalTamgu->Returnerror("Can only loop on vectors here", idthread);
 
@@ -3099,7 +3099,7 @@ Tamgu* TamguInstructionFORVECTORIN::Get(Tamgu* context, Tamgu* loop, short idthr
 	for (it->Begin(); it->End() != aTRUE; it->Next()) {
 		var->Setvalue(aNULL, it->IteratorValue(), idthread);
 
-		a = instructions.vecteur[1]->Get(context, aNULL, idthread);
+		a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
 		if (a->needInvestigate()) {
 			if (a == aBREAK)
@@ -3121,9 +3121,9 @@ Tamgu* TamguInstructionFORVECTORIN::Get(Tamgu* context, Tamgu* loop, short idthr
 	return this;
 }
 
-Tamgu* TamguInstructionFORMAPIN::Get(Tamgu* context, Tamgu* loop, short idthread) {
-	Tamgu* var = instructions.vecteur[0]->Instruction(0)->Get(context, aNULL, idthread);
-	loop = instructions.vecteur[0]->Instruction(1)->Get(context, aNULL, idthread);
+Tamgu* TamguInstructionFORMAPIN::Eval(Tamgu* context, Tamgu* loop, short idthread) {
+	Tamgu* var = instructions.vecteur[0]->Instruction(0)->Eval(context, aNULL, idthread);
+	loop = instructions.vecteur[0]->Instruction(1)->Eval(context, aNULL, idthread);
 	if (!loop->isMapContainer())
 		return globalTamgu->Returnerror("Can only loop on a map here", idthread);
 
@@ -3133,7 +3133,7 @@ Tamgu* TamguInstructionFORMAPIN::Get(Tamgu* context, Tamgu* loop, short idthread
 	for (it->Begin(); it->End() != aTRUE; it->Next()) {
 		var->Setvalue(it, aNULL, idthread);
 
-		a = instructions.vecteur[1]->Get(context, aNULL, idthread);
+		a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
 		if (a->needInvestigate()) {
 			if (a == aBREAK)
@@ -3154,14 +3154,14 @@ Tamgu* TamguInstructionFORMAPIN::Get(Tamgu* context, Tamgu* loop, short idthread
 	return aNULL;
 }
 
-Tamgu* TamguInstructionFILEIN::Get(Tamgu* context, Tamgu* loop, short idthread) {
-	Tamgu* var = instructions.vecteur[0]->Instruction(0)->Get(context, aNULL, idthread);
-	loop = instructions.vecteur[0]->Instruction(1)->Get(context, aNULL, idthread);
+Tamgu* TamguInstructionFILEIN::Eval(Tamgu* context, Tamgu* loop, short idthread) {
+	Tamgu* var = instructions.vecteur[0]->Instruction(0)->Eval(context, aNULL, idthread);
+	loop = instructions.vecteur[0]->Instruction(1)->Eval(context, aNULL, idthread);
 
 	Tamgu* a;
 
-	while (loop->Get(var, aNULL, idthread)->Boolean()) {
-		a = instructions.vecteur[1]->Get(context, aNULL, idthread);
+	while (loop->Eval(var, aNULL, idthread)->Boolean()) {
+		a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
 		if (a->needInvestigate()) {
 			if (a == aBREAK)
@@ -3178,15 +3178,15 @@ Tamgu* TamguInstructionFILEIN::Get(Tamgu* context, Tamgu* loop, short idthread) 
 	return aNULL;
 }
 
-Tamgu* TamguInstructionFOR::Get(Tamgu* context, Tamgu* stop, short idthread) {
-	Tamgu* a = instructions.vecteur[0]->Get(context, aNULL, idthread);
+Tamgu* TamguInstructionFOR::Eval(Tamgu* context, Tamgu* stop, short idthread) {
+	Tamgu* a = instructions.vecteur[0]->Eval(context, aNULL, idthread);
 	if (a->isError())
 		return a;
 
 	stop = instructions.vecteur[1];
 
-	while (stop->Get(context, aNULL, idthread)->Boolean() != stop->isNegation()) {
-		a = instructions.vecteur[3]->Get(context, aNULL, idthread);
+	while (stop->Eval(context, aNULL, idthread)->Boolean() != stop->isNegation()) {
+		a = instructions.vecteur[3]->Eval(context, aNULL, idthread);
 
 
 		if (a->needInvestigate()) {
@@ -3200,13 +3200,13 @@ Tamgu* TamguInstructionFOR::Get(Tamgu* context, Tamgu* stop, short idthread) {
         if (executionbreak)
             break;
 
-		instructions.vecteur[2]->Get(context, aNULL, idthread);
+		instructions.vecteur[2]->Eval(context, aNULL, idthread);
 	}
 	return aNULL;
 }
 
-Tamgu* TamguInstructionFORINRANGE::Get(Tamgu* context, Tamgu* value, short idthread) {
-	value = instructions.vecteur[0]->Instruction(0)->Get(context, aNULL, idthread);
+Tamgu* TamguInstructionFORINRANGE::Eval(Tamgu* context, Tamgu* value, short idthread) {
+	value = instructions.vecteur[0]->Instruction(0)->Eval(context, aNULL, idthread);
 
 	switch (value->Type()) {
 	case a_int:
@@ -3238,7 +3238,7 @@ Tamgu* TamguInstructionFORINRANGE::ExecuteInteger(Tamguint* value, Tamgu* contex
 	if (i < 0) {
 		for (; v > t; v += i) {
 			value->value = v;
-			a = instructions.vecteur[1]->Get(context, aNULL, idthread);
+			a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
 
 			if (a->needInvestigate()) {
@@ -3260,7 +3260,7 @@ Tamgu* TamguInstructionFORINRANGE::ExecuteInteger(Tamguint* value, Tamgu* contex
 
 	for (; v < t; v += i) {
 		value->value = v;
-		a = instructions.vecteur[1]->Get(context, aNULL, idthread);
+		a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
 
 		if (a->needInvestigate()) {
@@ -3292,7 +3292,7 @@ Tamgu* TamguInstructionFORINRANGE::ExecuteDecimal(Tamgudecimal* value, Tamgu* co
 	if (i < 0) {
 		for (; v > t; v += i) {
 			value->value = v;
-			a = instructions.vecteur[1]->Get(context, aNULL, idthread);
+			a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
 			if (a->needInvestigate()) {
 				value->Resetreference();
@@ -3313,7 +3313,7 @@ Tamgu* TamguInstructionFORINRANGE::ExecuteDecimal(Tamgudecimal* value, Tamgu* co
 
 	for (; v < t; v += i) {
 		value->value = v;
-		a = instructions.vecteur[1]->Get(context, aNULL, idthread);
+		a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
 
 		if (a->needInvestigate()) {
@@ -3347,7 +3347,7 @@ Tamgu* TamguInstructionFORINRANGE::ExecuteFloat(Tamgufloat* value, Tamgu* contex
 	if (i < 0) {
 		for (; v > t; v += i) {
 			value->value = v;
-			a = instructions.vecteur[1]->Get(context, aNULL, idthread);
+			a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
 			if (a->needInvestigate()) {
 				value->Resetreference();
@@ -3368,7 +3368,7 @@ Tamgu* TamguInstructionFORINRANGE::ExecuteFloat(Tamgufloat* value, Tamgu* contex
 
 	for (; v < t; v += i) {
 		value->value = v;
-		a = instructions.vecteur[1]->Get(context, aNULL, idthread);
+		a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
 		if (a->needInvestigate()) {
 			value->Resetreference();
@@ -3400,7 +3400,7 @@ Tamgu* TamguInstructionFORINRANGE::ExecuteLong(Tamgulong* value, Tamgu* context,
 	if (i < 0) {
 		for (; v > t; v += i) {
 			value->value = v;
-			a = instructions.vecteur[1]->Get(context, aNULL, idthread);
+			a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
 
 			if (a->needInvestigate()) {
@@ -3422,7 +3422,7 @@ Tamgu* TamguInstructionFORINRANGE::ExecuteLong(Tamgulong* value, Tamgu* context,
 
 	for (; v < t; v += i) {
 		value->value = v;
-		a = instructions.vecteur[1]->Get(context, aNULL, idthread);
+		a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
 
 		if (a->needInvestigate()) {
@@ -3455,7 +3455,7 @@ Tamgu* TamguInstructionFORINRANGE::ExecuteShort(Tamgushort* value, Tamgu* contex
 	if (i < 0) {
 		for (; v > t; v += i) {
 			value->value = v;
-			a = instructions.vecteur[1]->Get(context, aNULL, idthread);
+			a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
 
 			if (a->needInvestigate()) {
@@ -3477,7 +3477,7 @@ Tamgu* TamguInstructionFORINRANGE::ExecuteShort(Tamgushort* value, Tamgu* contex
 
 	for (; v < t; v += i) {
 		value->value = v;
-		a = instructions.vecteur[1]->Get(context, aNULL, idthread);
+		a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
 		if (a->needInvestigate()) {
 			value->Resetreference();
@@ -3496,19 +3496,19 @@ Tamgu* TamguInstructionFORINRANGE::ExecuteShort(Tamgushort* value, Tamgu* contex
 	return aNULL;
 }
 
-Tamgu* TamguInstructionFORINRANGEINTEGER::Get(Tamgu* context, Tamgu* a, short idthread) {
+Tamgu* TamguInstructionFORINRANGEINTEGER::Eval(Tamgu* context, Tamgu* a, short idthread) {
 	long v, t, i;
 
 	v = init->Getinteger(idthread);
 	t = test->Getinteger(idthread);
 	i = increment->Getinteger(idthread);
 
-	Tamguint* value = (Tamguint*)recipient->Get(context, aNULL, idthread);
+	Tamguint* value = (Tamguint*)recipient->Eval(context, aNULL, idthread);
 
 	if (i < 0) {
 		for (; v > t; v += i) {
 			value->value = v;
-			a = instruction->Get(aNULL, aNULL, idthread);
+			a = instruction->Eval(aNULL, aNULL, idthread);
 
 
 			if (a->needInvestigate()) {
@@ -3528,7 +3528,7 @@ Tamgu* TamguInstructionFORINRANGEINTEGER::Get(Tamgu* context, Tamgu* a, short id
 
 	for (; v < t; v += i) {
 		value->value = v;
-		a = instruction->Get(aNULL, aNULL, idthread);
+		a = instruction->Eval(aNULL, aNULL, idthread);
 
 
 		if (a->needInvestigate()) {
@@ -3546,19 +3546,19 @@ Tamgu* TamguInstructionFORINRANGEINTEGER::Get(Tamgu* context, Tamgu* a, short id
 	return aNULL;
 }
 
-Tamgu* TamguInstructionFORINRANGEDECIMAL::Get(Tamgu* context, Tamgu* a, short idthread) {
+Tamgu* TamguInstructionFORINRANGEDECIMAL::Eval(Tamgu* context, Tamgu* a, short idthread) {
 	float v, t, i;
 
 	v = init->Getdecimal(idthread);
 	t = test->Getdecimal(idthread);
 	i = increment->Getdecimal(idthread);
 
-	Tamgudecimal* value = (Tamgudecimal*)recipient->Get(context, aNULL, idthread);
+	Tamgudecimal* value = (Tamgudecimal*)recipient->Eval(context, aNULL, idthread);
 
 	if (i < 0) {
 		for (; v > t; v += i) {
 			value->value = v;
-			a = instruction->Get(aNULL, aNULL, idthread);
+			a = instruction->Eval(aNULL, aNULL, idthread);
 
 			if (a->needInvestigate()) {
 				if (a == aBREAK)
@@ -3577,7 +3577,7 @@ Tamgu* TamguInstructionFORINRANGEDECIMAL::Get(Tamgu* context, Tamgu* a, short id
 
 	for (; v < t; v += i) {
 		value->value = v;
-		a = instruction->Get(aNULL, aNULL, idthread);
+		a = instruction->Eval(aNULL, aNULL, idthread);
 
 
 		if (a->needInvestigate()) {
@@ -3596,18 +3596,18 @@ Tamgu* TamguInstructionFORINRANGEDECIMAL::Get(Tamgu* context, Tamgu* a, short id
 	return aNULL;
 }
 
-Tamgu* TamguInstructionFORINRANGEFLOAT::Get(Tamgu* context, Tamgu* a, short idthread) {
+Tamgu* TamguInstructionFORINRANGEFLOAT::Eval(Tamgu* context, Tamgu* a, short idthread) {
 	double v, t, i;
 	
 	v = init->Getfloat(idthread);
 	t = test->Getfloat(idthread);
 	i = increment->Getfloat(idthread);
 
-	Tamgufloat* value = (Tamgufloat*)recipient->Get(context, aNULL, idthread);
+	Tamgufloat* value = (Tamgufloat*)recipient->Eval(context, aNULL, idthread);
 	if (i < 0) {
 		for (; v > t; v += i) {
 			value->value = v;
-			a = instruction->Get(aNULL, aNULL, idthread);
+			a = instruction->Eval(aNULL, aNULL, idthread);
 
 			if (a->needInvestigate()) {
 				if (a == aBREAK)
@@ -3626,7 +3626,7 @@ Tamgu* TamguInstructionFORINRANGEFLOAT::Get(Tamgu* context, Tamgu* a, short idth
 
 	for (; v < t; v += i) {
 		value->value = v;
-		a = instruction->Get(aNULL, aNULL, idthread);
+		a = instruction->Eval(aNULL, aNULL, idthread);
 
 		if (a->needInvestigate()) {
 			if (a == aBREAK)
@@ -3643,18 +3643,18 @@ Tamgu* TamguInstructionFORINRANGEFLOAT::Get(Tamgu* context, Tamgu* a, short idth
 	return aNULL;
 }
 
-Tamgu* TamguInstructionFORINRANGELONG::Get(Tamgu* context, Tamgu* a, short idthread) {
+Tamgu* TamguInstructionFORINRANGELONG::Eval(Tamgu* context, Tamgu* a, short idthread) {
 	BLONG v, t, i;
 
 	v = init->Getlong(idthread);
 	t = test->Getlong(idthread);
 	i = increment->Getlong(idthread);
 
-	Tamgulong* value = (Tamgulong*)recipient->Get(context, aNULL, idthread);
+	Tamgulong* value = (Tamgulong*)recipient->Eval(context, aNULL, idthread);
 	if (i < 0) {
 		for (; v > t; v += i) {
 			value->value = v;
-			a = instruction->Get(aNULL, aNULL, idthread);
+			a = instruction->Eval(aNULL, aNULL, idthread);
 
 
 			if (a->needInvestigate()) {
@@ -3674,7 +3674,7 @@ Tamgu* TamguInstructionFORINRANGELONG::Get(Tamgu* context, Tamgu* a, short idthr
 
 	for (; v < t; v += i) {
 		value->value = v;
-		a = instruction->Get(aNULL, aNULL, idthread);
+		a = instruction->Eval(aNULL, aNULL, idthread);
 
 
 		if (a->needInvestigate()) {
@@ -3692,18 +3692,18 @@ Tamgu* TamguInstructionFORINRANGELONG::Get(Tamgu* context, Tamgu* a, short idthr
 	return aNULL;
 }
 
-Tamgu* TamguInstructionFORINRANGESHORT::Get(Tamgu* context, Tamgu* a, short idthread) {
+Tamgu* TamguInstructionFORINRANGESHORT::Eval(Tamgu* context, Tamgu* a, short idthread) {
 	short v, t, i;
 
 	v = init->Getshort(idthread);
 	t = test->Getshort(idthread);
 	i = increment->Getshort(idthread);
 
-	Tamgushort* value = (Tamgushort*)recipient->Get(context, aNULL, idthread);
+	Tamgushort* value = (Tamgushort*)recipient->Eval(context, aNULL, idthread);
 	if (i < 0) {
 		for (; v > t; v += i) {
 			value->value = v;
-			a = instruction->Get(aNULL, aNULL, idthread);
+			a = instruction->Eval(aNULL, aNULL, idthread);
 
 
 			if (a->needInvestigate()) {
@@ -3723,7 +3723,7 @@ Tamgu* TamguInstructionFORINRANGESHORT::Get(Tamgu* context, Tamgu* a, short idth
 
 	for (; v < t; v += i) {
 		value->value = v;
-		a = instruction->Get(aNULL, aNULL, idthread);
+		a = instruction->Eval(aNULL, aNULL, idthread);
 
 		if (a->needInvestigate()) {
 			if (a == aBREAK)
@@ -3742,14 +3742,14 @@ Tamgu* TamguInstructionFORINRANGESHORT::Get(Tamgu* context, Tamgu* a, short idth
 
 //------------------------------------------------------------------------------
 
-Tamgu* TamguInstructionFORINRANGECONSTINTEGER::Get(Tamgu* context, Tamgu* a, short idthread) {
-    Tamguint* value = (Tamguint*)recipient->Get(context, aNULL, idthread);
+Tamgu* TamguInstructionFORINRANGECONSTINTEGER::Eval(Tamgu* context, Tamgu* a, short idthread) {
+    Tamguint* value = (Tamguint*)recipient->Eval(context, aNULL, idthread);
     long v = V;
     
     if (i < 0) {
         while (v > t) {
             value->value = v;
-            a = instruction->Get(aNULL, aNULL, idthread);
+            a = instruction->Eval(aNULL, aNULL, idthread);
             
             
             if (a->needInvestigate()) {
@@ -3770,7 +3770,7 @@ Tamgu* TamguInstructionFORINRANGECONSTINTEGER::Get(Tamgu* context, Tamgu* a, sho
     
     while (v < t) {
         value->value = v;
-        a = instruction->Get(aNULL, aNULL, idthread);
+        a = instruction->Eval(aNULL, aNULL, idthread);
         
         
         if (a->needInvestigate()) {
@@ -3789,15 +3789,15 @@ Tamgu* TamguInstructionFORINRANGECONSTINTEGER::Get(Tamgu* context, Tamgu* a, sho
     return aNULL;
 }
     
-Tamgu* TamguInstructionFORINRANGECONSTDECIMAL::Get(Tamgu* context, Tamgu* a, short idthread) {
-    Tamgudecimal* value = (Tamgudecimal*)recipient->Get(context, aNULL, idthread);
+Tamgu* TamguInstructionFORINRANGECONSTDECIMAL::Eval(Tamgu* context, Tamgu* a, short idthread) {
+    Tamgudecimal* value = (Tamgudecimal*)recipient->Eval(context, aNULL, idthread);
     float v = V;
     
     
     if (i < 0) {
         while (v > t) {
             value->value = v;
-            a = instruction->Get(aNULL, aNULL, idthread);
+            a = instruction->Eval(aNULL, aNULL, idthread);
             
             if (a->needInvestigate()) {
                 if (a == aBREAK)
@@ -3817,7 +3817,7 @@ Tamgu* TamguInstructionFORINRANGECONSTDECIMAL::Get(Tamgu* context, Tamgu* a, sho
     
     while (v < t) {
         value->value = v;
-        a = instruction->Get(aNULL, aNULL, idthread);
+        a = instruction->Eval(aNULL, aNULL, idthread);
         
         
         if (a->needInvestigate()) {
@@ -3837,13 +3837,13 @@ Tamgu* TamguInstructionFORINRANGECONSTDECIMAL::Get(Tamgu* context, Tamgu* a, sho
     return aNULL;
 }
     
-Tamgu* TamguInstructionFORINRANGECONSTFLOAT::Get(Tamgu* context, Tamgu* a, short idthread) {
+Tamgu* TamguInstructionFORINRANGECONSTFLOAT::Eval(Tamgu* context, Tamgu* a, short idthread) {
     double v=V;
-    Tamgufloat* value = (Tamgufloat*)recipient->Get(context, aNULL, idthread);
+    Tamgufloat* value = (Tamgufloat*)recipient->Eval(context, aNULL, idthread);
     if (i < 0) {
         while (v > t) {
             value->value = v;
-            a = instruction->Get(aNULL, aNULL, idthread);
+            a = instruction->Eval(aNULL, aNULL, idthread);
             
             if (a->needInvestigate()) {
                 if (a == aBREAK)
@@ -3863,7 +3863,7 @@ Tamgu* TamguInstructionFORINRANGECONSTFLOAT::Get(Tamgu* context, Tamgu* a, short
     
     while (v < t) {
         value->value = v;
-        a = instruction->Get(aNULL, aNULL, idthread);
+        a = instruction->Eval(aNULL, aNULL, idthread);
         
         if (a->needInvestigate()) {
             if (a == aBREAK)
@@ -3881,13 +3881,13 @@ Tamgu* TamguInstructionFORINRANGECONSTFLOAT::Get(Tamgu* context, Tamgu* a, short
     return aNULL;
 }
     
-Tamgu* TamguInstructionFORINRANGECONSTLONG::Get(Tamgu* context, Tamgu* a, short idthread) {
+Tamgu* TamguInstructionFORINRANGECONSTLONG::Eval(Tamgu* context, Tamgu* a, short idthread) {
     BLONG v=V;
-    Tamgulong* value = (Tamgulong*)recipient->Get(context, aNULL, idthread);
+    Tamgulong* value = (Tamgulong*)recipient->Eval(context, aNULL, idthread);
     if (i < 0) {
         while (v > t) {
             value->value = v;
-            a = instruction->Get(aNULL, aNULL, idthread);
+            a = instruction->Eval(aNULL, aNULL, idthread);
             
             
             if (a->needInvestigate()) {
@@ -3908,7 +3908,7 @@ Tamgu* TamguInstructionFORINRANGECONSTLONG::Get(Tamgu* context, Tamgu* a, short 
     
     while (v < t) {
         value->value = v;
-        a = instruction->Get(aNULL, aNULL, idthread);
+        a = instruction->Eval(aNULL, aNULL, idthread);
         
         
         if (a->needInvestigate()) {
@@ -3927,13 +3927,13 @@ Tamgu* TamguInstructionFORINRANGECONSTLONG::Get(Tamgu* context, Tamgu* a, short 
     return aNULL;
 }
     
-Tamgu* TamguInstructionFORINRANGECONSTSHORT::Get(Tamgu* context, Tamgu* a, short idthread) {
+Tamgu* TamguInstructionFORINRANGECONSTSHORT::Eval(Tamgu* context, Tamgu* a, short idthread) {
     short v = V;
-    Tamgushort* value = (Tamgushort*)recipient->Get(context, aNULL, idthread);
+    Tamgushort* value = (Tamgushort*)recipient->Eval(context, aNULL, idthread);
     if (i < 0) {
         while (v > t) {
             value->value = v;
-            a = instruction->Get(aNULL, aNULL, idthread);
+            a = instruction->Eval(aNULL, aNULL, idthread);
             
             
             if (a->needInvestigate()) {
@@ -3954,7 +3954,7 @@ Tamgu* TamguInstructionFORINRANGECONSTSHORT::Get(Tamgu* context, Tamgu* a, short
     
     while (v < t) {
         value->value = v;
-        a = instruction->Get(aNULL, aNULL, idthread);
+        a = instruction->Eval(aNULL, aNULL, idthread);
         
         if (a->needInvestigate()) {
             if (a == aBREAK)
@@ -3972,7 +3972,7 @@ Tamgu* TamguInstructionFORINRANGECONSTSHORT::Get(Tamgu* context, Tamgu* a, short
     return aNULL;
 }
 //------------------------------------------------------------------------------
-Tamgu* TamguInstructionTRY::Get(Tamgu* res, Tamgu* ins, short idthread) {
+Tamgu* TamguInstructionTRY::Eval(Tamgu* res, Tamgu* ins, short idthread) {
 
 	short last = instructions.size() - 1;
 	bool catchbloc = false;
@@ -3986,7 +3986,7 @@ Tamgu* TamguInstructionTRY::Get(Tamgu* res, Tamgu* ins, short idthread) {
         res = instructions.vecteur[i];
         
         _debugpush(res);
-		res = res->Get(aNULL, aNULL, idthread);
+		res = res->Eval(aNULL, aNULL, idthread);
         _debugpop();
         
 		if (res->needFullInvestigate() || globalTamgu->Error(idthread)) {
@@ -4000,10 +4000,10 @@ Tamgu* TamguInstructionTRY::Get(Tamgu* res, Tamgu* ins, short idthread) {
                 return aNULL;
             }
             
-			instructions.vecteur[last]->Get(aNULL, aNULL, idthread);
+			instructions.vecteur[last]->Eval(aNULL, aNULL, idthread);
 			res = aFALSE;
 			if (catchbloc)
-				res = instructions.vecteur[last + 1]->Get(aNULL, aNULL, idthread);
+				res = instructions.vecteur[last + 1]->Eval(aNULL, aNULL, idthread);
 			return res;
 		}
 
@@ -4019,14 +4019,14 @@ Tamgu* TamguInstructionTRY::Get(Tamgu* res, Tamgu* ins, short idthread) {
 }
 
 
-Tamgu* TamguInstructionCATCH::Get(Tamgu* context, Tamgu* a, short idthread) {
+Tamgu* TamguInstructionCATCH::Eval(Tamgu* context, Tamgu* a, short idthread) {
 	long size = instructions.size();
 
 
 	if (size == 1) {
         a = instructions.vecteur[0];
         _setdebugfull(idthread, a);
-		a = a->Get(context, aNULL, idthread);
+		a = a->Eval(context, aNULL, idthread);
 		_cleandebugfull;
 		return a;
 	}
@@ -4037,7 +4037,7 @@ Tamgu* TamguInstructionCATCH::Get(Tamgu* context, Tamgu* a, short idthread) {
 		a = instructions.vecteur[i];
 
 		_debugpush(a);
-		a = a->Get(aNULL, aNULL, idthread);
+		a = a->Eval(aNULL, aNULL, idthread);
 		_debugpop();
 
 		if (a->needFullInvestigate()) {

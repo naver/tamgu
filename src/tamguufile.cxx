@@ -91,7 +91,7 @@ Tamgu* Tamguufile::Put(Tamgu* idx, Tamgu* kval, short idthread) {
     return aTRUE;
 }
 
-Tamgu* Tamguufile::Get(Tamgu* context, Tamgu* idx, short idthread) {
+Tamgu* Tamguufile::Eval(Tamgu* context, Tamgu* idx, short idthread) {
     Locking _lock(this);
     if (thefile == NULL || feof(thefile) || op != "rb")
         return aFALSE;
@@ -206,7 +206,7 @@ Tamgu* Tamguufile::Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* environm
         readoneline(line.value);
         recipient->Putvalue(&line, idthread);
         
-        a = bd->DirectGet(environment, aNULL, idthread);
+        a = bd->DirectEval(environment, aNULL, idthread);
         if (a->isNULL())
             continue;
 
@@ -263,7 +263,7 @@ Tamgu* Tamguufile::Filter(short idthread, Tamgu* env, TamguFunctionLambda* bd, T
         }
         else {
             var->Putvalue(key, idthread);
-            returnval = bd->DirectGet(env, aNULL, idthread);
+            returnval = bd->DirectEval(env, aNULL, idthread);
             
             if (returnval == aBREAK) {
                 accu = returnval;

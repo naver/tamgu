@@ -413,7 +413,7 @@ Exporting Tamgu*  Tamguprimemapl::Put(Tamgu* idx, Tamgu* ke, short idthread) {
 }
 
 
-Exporting Tamgu* Tamguprimemapl::Get(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
+Exporting Tamgu* Tamguprimemapl::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
 
     Locking _lock(this);
 
@@ -444,8 +444,8 @@ Exporting Tamgu* Tamguprimemapl::Get(Tamgu* contextualpattern, Tamgu* idx, short
     Tamgu* key;
     if (idx->isInterval()) {
         Tamguprimemapl* kmap = new Tamguprimemapl;
-        key = ((TamguIndex*)idx)->left->Get(aNULL, aNULL, idthread);
-        Tamgu* keyright = ((TamguIndex*)idx)->right->Get(aNULL, aNULL, idthread);
+        key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
+        Tamgu* keyright = ((TamguIndex*)idx)->right->Eval(aNULL, aNULL, idthread);
         BLONG vleft = key->Long();
         BLONG vright = keyright->Long();
         prime_hash<BLONG, Tamgu*>::iterator it = values.find(vleft);
@@ -477,7 +477,7 @@ Exporting Tamgu* Tamguprimemapl::Get(Tamgu* contextualpattern, Tamgu* idx, short
 
     }
 
-    key = ((TamguIndex*)idx)->left->Get(aNULL, aNULL, idthread);
+    key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
     
     if (key == aNULL) {
         if (globalTamgu->erroronkey)
@@ -922,7 +922,7 @@ Exporting Tamgu* Tamguprimemapl::power(Tamgu* b, bool itself) {
 Exporting Tamgu* Tamguprimemapl::Loopin(TamguInstruction* ins, Tamgu* context, short idthread) {
     Locking _lock(this);
     Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
-    var = var->Get(context, aNULL, idthread);
+    var = var->Eval(context, aNULL, idthread);
 
     prime_hash<BLONG, Tamgu*>::iterator it;
     
@@ -936,7 +936,7 @@ Exporting Tamgu* Tamguprimemapl::Loopin(TamguInstruction* ins, Tamgu* context, s
 
         var->storevalue(keys[i]);
 
-        a = ins->instructions.vecteur[1]->Get(context, aNULL, idthread);
+        a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
         //Continue does not trigger needInvestigate
         if (a->needInvestigate()) {

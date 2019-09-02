@@ -79,7 +79,7 @@ class Tamguiterator : public TamguObject {
         return this;
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* v, short idthread) {        
+    Tamgu* Eval(Tamgu* context, Tamgu* v, short idthread) {        
         return this;
     }
 

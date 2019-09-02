@@ -55,7 +55,7 @@ void TamguConstmap::Prepare(Tamgu* env, short idthread) {
                         return;
                     }
                     constant = 1;
-                    v->Get(env, aNULL, idthread);
+                    v->Eval(env, aNULL, idthread);
                 }
                 else {
                     if (v->isConst()) {
@@ -79,7 +79,7 @@ void TamguConstmap::Prepare(Tamgu* env, short idthread) {
             v->Put(env, aNULL, idthread);
         else
             if (v->isVariable())
-                v->Get(env, aNULL, idthread);
+                v->Eval(env, aNULL, idthread);
             else
                 v->Prepare(env, idthread);
     }
@@ -103,12 +103,12 @@ bool TamguConstmap::Setvalue(Tamgu* iter, Tamgu* value, short idthread, bool str
 
     Tamgu* k = ((TamguIteration*)iter)->IteratorKey();
     keys[0]->Setaffectation(true);
-    value = keys[0]->Get(aNULL, aNULL, idthread);
+    value = keys[0]->Eval(aNULL, aNULL, idthread);
     value->Put(aNULL, k, idthread);
 
     Tamgu* v = ((TamguIteration*)iter)->IteratorValue();
     values[0]->Setaffectation(true);
-    value = values[0]->Get(aNULL, aNULL, idthread);
+    value = values[0]->Eval(aNULL, aNULL, idthread);
     value->Put(aNULL, v, idthread);
 
     return true;
@@ -138,7 +138,7 @@ Tamgu* TamguConstmap::same(Tamgu* value) {
                 TamguIndex idx(true);
                 idx.left = it->IteratorKey();
                 idx.right = aNULL;
-                v = value->Get(aNULL, &idx, idthread);
+                v = value->Eval(aNULL, &idx, idthread);
             }
             else
                 v = value->Newinstance(idthread);
@@ -151,11 +151,11 @@ Tamgu* TamguConstmap::same(Tamgu* value) {
 
             if (a->isCallVariable()) {
                 a->Setaffectation(true);
-                a = a->Get(aNULL, aNULL, idthread);
+                a = a->Eval(aNULL, aNULL, idthread);
                 a->Putvalue(v, idthread);
             }
             else {
-                a = a->Get(aNULL, aNULL, idthread);
+                a = a->Eval(aNULL, aNULL, idthread);
                 if (a != aNOELEMENT && a->same(v) == aFALSE)
                     return aFALSE;
             }
@@ -165,7 +165,7 @@ Tamgu* TamguConstmap::same(Tamgu* value) {
 
         if (a->isCallVariable()) {
             a->Setaffectation(true);
-            a = a->Get(aNULL, aNULL, idthread);
+            a = a->Eval(aNULL, aNULL, idthread);
             a->Putvalue(v, idthread);
             continue;
         }
@@ -189,7 +189,7 @@ Tamgu* TamguConstmap::same(Tamgu* value) {
             continue;
         }
 
-        a = a->Get(aNULL, aNULL, idthread);
+        a = a->Eval(aNULL, aNULL, idthread);
         if (a != aNOELEMENT && a->same(v) == aFALSE)
             return aFALSE;
 
@@ -343,7 +343,7 @@ Tamgu* TamguConstmap::Put(Tamgu* index, Tamgu* value, short idthread) {
                 v = vkeys[j++];
                 if (a->isCallVariable()) {
                     a->Setaffectation(true);
-                    a = a->Get(aNULL, aNULL, idthread);
+                    a = a->Eval(aNULL, aNULL, idthread);
                     a->Putvalue(v, idthread);
                 }
                 else {
@@ -353,7 +353,7 @@ Tamgu* TamguConstmap::Put(Tamgu* index, Tamgu* value, short idthread) {
                         a->Putvalue(v, idthread);
                     }
                     else {
-                        a = a->Get(aNULL, aNULL, idthread);
+                        a = a->Eval(aNULL, aNULL, idthread);
                         if (a->same(v) == aFALSE) {
                             if (index->isError())
                                 return aRAISEERROR;
@@ -368,7 +368,7 @@ Tamgu* TamguConstmap::Put(Tamgu* index, Tamgu* value, short idthread) {
 
         if (a->isCallVariable()) {
             a->Setaffectation(true);
-            a = a->Get(aNULL, aNULL, idthread);
+            a = a->Eval(aNULL, aNULL, idthread);
             a->Putvalue(v, idthread);
             continue;
         }
@@ -403,7 +403,7 @@ Tamgu* TamguConstmap::Put(Tamgu* index, Tamgu* value, short idthread) {
             continue;
         }
 
-        a = a->Get(aNULL, aNULL, idthread);
+        a = a->Eval(aNULL, aNULL, idthread);
         if (a->same(v) == aFALSE) {
             if (index->isError())
                 return aRAISEERROR;
@@ -414,7 +414,7 @@ Tamgu* TamguConstmap::Put(Tamgu* index, Tamgu* value, short idthread) {
     return this;
 }
 
-Tamgu* TamguConstmap::Get(Tamgu* index, Tamgu* value, short idthread) {
+Tamgu* TamguConstmap::Eval(Tamgu* index, Tamgu* value, short idthread) {
     if (affectation && evaluate)
         return this;
 
@@ -428,8 +428,8 @@ Tamgu* TamguConstmap::Get(Tamgu* index, Tamgu* value, short idthread) {
         Tamgu* k;
         Tamgu* v;
         for (it = 0; it < sz; it++) {
-            k = keys[it]->Get(aNULL, aNULL, idthread);
-            v = values[it]->Get(aNULL, aNULL, idthread);
+            k = keys[it]->Eval(aNULL, aNULL, idthread);
+            v = values[it]->Eval(aNULL, aNULL, idthread);
             kmap->Push(k, v);
             k->Release();
             v->Release();
@@ -863,7 +863,7 @@ Tamgu*  Tamgumap::Put(Tamgu* idx, Tamgu* ke, short idthread) {
 }
 
 
-Tamgu* Tamgumap::Get(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
+Tamgu* Tamgumap::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
 
     Locking _lock(this);
 
@@ -894,8 +894,8 @@ Tamgu* Tamgumap::Get(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
     Tamgu* key;
     if (idx->isInterval()) {
         Tamgumap* kmap = globalTamgu->Providemap();
-        key = ((TamguIndex*)idx)->left->Get(aNULL, aNULL, idthread);
-        Tamgu* keyright = ((TamguIndex*)idx)->right->Get(aNULL, aNULL, idthread);
+        key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
+        Tamgu* keyright = ((TamguIndex*)idx)->right->Eval(aNULL, aNULL, idthread);
         string vleft = key->String();
         string vright = keyright->String();
         hmap<string, Tamgu*>::iterator it = values.find(vleft);
@@ -927,7 +927,7 @@ Tamgu* Tamgumap::Get(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
 
     }
 
-    key = ((TamguIndex*)idx)->left->Get(aNULL, aNULL, idthread);
+    key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
     
     if (key == aNULL) {
         if (globalTamgu->erroronkey)
@@ -1367,7 +1367,7 @@ Exporting Tamgu* Tamgumap::power(Tamgu* b, bool itself) {
 Exporting Tamgu* Tamgumap::Loopin(TamguInstruction* ins, Tamgu* context, short idthread) {
     Locking _lock(this);
     Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
-    var = var->Get(context, aNULL, idthread);
+    var = var->Eval(context, aNULL, idthread);
 
     hmap<string, Tamgu*>::iterator it;
     
@@ -1381,7 +1381,7 @@ Exporting Tamgu* Tamgumap::Loopin(TamguInstruction* ins, Tamgu* context, short i
 
         var->storevalue(keys[i]);
 
-        a = ins->instructions.vecteur[1]->Get(context, aNULL, idthread);
+        a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
         //Continue does not trigger needInvestigate
         if (a->needInvestigate()) {

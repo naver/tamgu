@@ -204,7 +204,7 @@ Tamgu* Tamgusocket::Put(Tamgu* index, Tamgu* value, short idthread) {
     return this;
 }
 
-Tamgu* Tamgusocket::Get(Tamgu* context, Tamgu* index, short idthread) {
+Tamgu* Tamgusocket::Eval(Tamgu* context, Tamgu* index, short idthread) {
     return this;
 }
 

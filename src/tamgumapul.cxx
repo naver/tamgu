@@ -328,7 +328,7 @@ Exporting Tamgu*  Tamgumapul::Put(Tamgu* idx, Tamgu* ke, short idthread) {
 }
 
 
-Exporting Tamgu* Tamgumapul::Get(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
+Exporting Tamgu* Tamgumapul::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
 
     Locking _lock(this);
 
@@ -359,8 +359,8 @@ Exporting Tamgu* Tamgumapul::Get(Tamgu* contextualpattern, Tamgu* idx, short idt
     Tamgu* key;
     if (idx->isInterval()) {
         Tamgumapul* kmap = new Tamgumapul;
-        key = ((TamguIndex*)idx)->left->Get(aNULL, aNULL, idthread);
-        Tamgu* keyright = ((TamguIndex*)idx)->right->Get(aNULL, aNULL, idthread);
+        key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
+        Tamgu* keyright = ((TamguIndex*)idx)->right->Eval(aNULL, aNULL, idthread);
         wstring vleft = key->UString();
         wstring vright = keyright->UString();
         hmap<wstring,BLONG>::iterator it = values.find(vleft);
@@ -392,7 +392,7 @@ Exporting Tamgu* Tamgumapul::Get(Tamgu* contextualpattern, Tamgu* idx, short idt
 
     }
 
-    key = ((TamguIndex*)idx)->left->Get(aNULL, aNULL, idthread);
+    key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
     
     if (key == aNULL) {
         if (globalTamgu->erroronkey)
@@ -809,7 +809,7 @@ Exporting Tamgu* Tamgumapul::power(Tamgu* b, bool itself) {
 Exporting Tamgu* Tamgumapul::Loopin(TamguInstruction* ins, Tamgu* context, short idthread) {
     Locking _lock(this);
     Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
-    var = var->Get(context, aNULL, idthread);
+    var = var->Eval(context, aNULL, idthread);
 
     
     hmap<wstring, BLONG>::iterator it;
@@ -824,7 +824,7 @@ Exporting Tamgu* Tamgumapul::Loopin(TamguInstruction* ins, Tamgu* context, short
 
         var->storevalue(keys[i]);
 
-        a = ins->instructions.vecteur[1]->Get(context, aNULL, idthread);
+        a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
         //Continue does not trigger needInvestigate
         if (a->needInvestigate()) {

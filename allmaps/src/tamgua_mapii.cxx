@@ -305,7 +305,7 @@ Exporting Tamgu*  Tamgua_mapii::Put(Tamgu* idx, Tamgu* ke, short idthread) {
     return aTRUE;
 }
 
-Exporting Tamgu* Tamgua_mapii::Get(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
+Exporting Tamgu* Tamgua_mapii::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
     if (!idx->isIndex()) {
         //particular case, the contextualpattern is a vector, which means that we expect a set of keys
         //as a result
@@ -335,8 +335,8 @@ Exporting Tamgu* Tamgua_mapii::Get(Tamgu* contextualpattern, Tamgu* idx, short i
     if (idx->isInterval()) {
         TamguIterationa_mapii it(this, false);
         Tamgua_mapii* kmap = new Tamgua_mapii;
-        key = ((TamguIndex*)idx)->left->Get(aNULL, aNULL, idthread);
-        Tamgu* keyright = ((TamguIndex*)idx)->right->Get(aNULL, aNULL, idthread);
+        key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
+        Tamgu* keyright = ((TamguIndex*)idx)->right->Eval(aNULL, aNULL, idthread);
         long vleft = key->Integer();
         long vright = keyright->Integer();
         it.find(vleft);
@@ -372,7 +372,7 @@ Exporting Tamgu* Tamgua_mapii::Get(Tamgu* contextualpattern, Tamgu* idx, short i
 
     }
 
-    key = ((TamguIndex*)idx)->left->Get(aNULL, aNULL, idthread);
+    key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
     
     if (key == aNULL) {
         if (globalTamgu->erroronkey)
@@ -856,7 +856,7 @@ Exporting Tamgu* Tamgua_mapii::power(Tamgu* b, bool itself) {
 
 Exporting Tamgu* Tamgua_mapii::Loopin(TamguInstruction* ins, Tamgu* context, short idthread) {
     Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
-    var = var->Get(context, aNULL, idthread);
+    var = var->Eval(context, aNULL, idthread);
     
     vector<long> keys;
     
@@ -869,7 +869,7 @@ Exporting Tamgu* Tamgua_mapii::Loopin(TamguInstruction* ins, Tamgu* context, sho
     for (long i = 0; i < keys.size(); i++) {
         var->storevalue(keys[i]);
 
-        a = ins->instructions.vecteur[1]->Get(context, aNULL, idthread);
+        a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
         //Continue does not trigger needInvestigate
         if (a->needInvestigate()) {

@@ -504,7 +504,7 @@ Tamgu* ProcWaitOnJoin(Tamgu* contextualpattern, short idthread, TamguCall* callf
             if (object != NULL)
                 call.arguments.push_back(object);
             
-            Tamgu* a = call.Get(aNULL, aNULL, idthread);
+            Tamgu* a = call.Eval(aNULL, aNULL, idthread);
             a->Release();
         }
         
@@ -1781,7 +1781,7 @@ Tamgu* CommonExtension(Tamgu* object, short idthread, TamguCall* callfunc) {
     TamguCallFunction call(frame->Declaration(name));
     call.arguments = callfunc->arguments;
 
-    object = call.Get(aNULL, aNULL, idthread);
+    object = call.Eval(aNULL, aNULL, idthread);
 
     globalTamgu->Removevariable(idthread, frame->Name());
     globalTamgu->Removevariable(idthread, frame->Typeframe());

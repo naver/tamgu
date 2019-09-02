@@ -83,7 +83,7 @@ Tamgu* Tamgutamgu::Put(Tamgu* index, Tamgu* value, short idthread) {
     return Load();
 }
 
-Tamgu* Tamgutamgu::Get(Tamgu* context, Tamgu* index, short idthread) {
+Tamgu* Tamgutamgu::Eval(Tamgu* context, Tamgu* index, short idthread) {
     return this;
 }
 
@@ -105,7 +105,7 @@ Tamgu* Tamgutamgu::Load() {
     //No function are actually executed here, except within an initialisation
     for (size_t i = 0; i < frame->instructions.size(); i++) {
         if (frame->instructions[i]->isVariable()) {
-            res = frame->instructions[i]->Get(frame, aNULL, 0);
+            res = frame->instructions[i]->Eval(frame, aNULL, 0);
             if (res->isError())
                 return res;
         }

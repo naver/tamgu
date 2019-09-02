@@ -1614,11 +1614,11 @@ Tamgu* TamguInstructionCOMPARE::Compile(Tamgu* parent) {
             }
         }
         else {
-            left = Evaluateatomtype(instructions.vecteur[0]->Get(aNULL, aNULL, 0));
-            right = Evaluateatomtype(instructions.vecteur[1]->Get(aNULL, aNULL, 0));
+            left = Evaluateatomtype(instructions.vecteur[0]->Eval(aNULL, aNULL, 0));
+            right = Evaluateatomtype(instructions.vecteur[1]->Eval(aNULL, aNULL, 0));
             if (left == 255) {
                 //regular expressions...
-                short ty = instructions.vecteur[0]->Get(aNULL, aNULL, 0)->Typeinfered();
+                short ty = instructions.vecteur[0]->Eval(aNULL, aNULL, 0)->Typeinfered();
                 if (ty == a_treg || ty == a_preg)
                     right = 255;
             }
@@ -2496,7 +2496,7 @@ Tamgu* TamguCode::Callingprocedure(x_node* xn, short id) {
 	//First we execute our code to evaluate the current global variables...
 	Tamgu* call = global->EvaluateMainVariable();
 	if (!call->isError())
-		call = proc.Get(&mainframe, aNULL, 0);
+		call = proc.Eval(&mainframe, aNULL, 0);
 
 	if (call->isError()) {
 		stringstream message;
@@ -3458,7 +3458,7 @@ Tamgu* TamguCode::C_intentionvector(x_node* xn, Tamgu* kf) {
 		}
 		if (getvect) {
 			//If the intention vector is only composed of const values, we can evaluate it now...
-			Tamgu* kvect = ai.instructions[0]->Get(aNULL, aNULL, 0);
+			Tamgu* kvect = ai.instructions[0]->Eval(aNULL, aNULL, 0);
 			if (kvect == aNOELEMENT)
 				kf->AddInstruction(ai.instructions[0]);
 			else {
@@ -3572,7 +3572,7 @@ Tamgu* TamguCode::C_intentionwithdouble(x_node* xn, Tamgu* kf) {
 	kroot->Setsize();
 	if (getvect && ki.instructions[0]->isConst()) {
 		//If the intention vector is only composed of const values, we can evaluate it now...
-		Tamgu* kvect = kret->Get(aNULL, aNULL, 0);
+		Tamgu* kvect = kret->Eval(aNULL, aNULL, 0);
 		if (kvect != aNOELEMENT) {
 			kvect->Setreference();
 			kvect->SetConst(); //we set to const to prevent any modification...

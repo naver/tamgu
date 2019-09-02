@@ -64,7 +64,7 @@ Tamgu* Tamgutime::Put(Tamgu* index, Tamgu* val, short idthread) {
     return aFALSE;
 }
 
-Tamgu* Tamgutime::Get(Tamgu* context, Tamgu* index, short idthread) {
+Tamgu* Tamgutime::Eval(Tamgu* context, Tamgu* index, short idthread) {
     return this;
 }
 

@@ -323,7 +323,7 @@ Tamgu* Tamgupython::Put(Tamgu* idx, Tamgu* kval, short idthread) {
 	return aTRUE;
 }
 
-Tamgu* Tamgupython::Get(Tamgu* context, Tamgu* idx, short idthread) {
+Tamgu* Tamgupython::Eval(Tamgu* context, Tamgu* idx, short idthread) {
 	return this;
 }
 

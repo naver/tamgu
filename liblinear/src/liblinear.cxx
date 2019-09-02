@@ -126,7 +126,7 @@ Tamgu* Tamguliblinear::Put(Tamgu* idx, Tamgu* kval, short idthread) {
 	return aTRUE;
 }
 
-Tamgu* Tamguliblinear::Get(Tamgu* context, Tamgu* idx, short idthread) {
+Tamgu* Tamguliblinear::Eval(Tamgu* context, Tamgu* idx, short idthread) {
 	return this;
 }
 

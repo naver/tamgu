@@ -98,8 +98,8 @@ public:
         val = v;
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* t, short idthread) {
-        return val->Get(c,t,idthread);
+    Tamgu* Eval(Tamgu* c, Tamgu* t, short idthread) {
+        return val->Eval(c,t,idthread);
     }
     
     string String() {
@@ -176,7 +176,7 @@ public:
         val = v;
     }
     
-    Tamgu* Get(Tamgu* c, Tamgu* t, short idthread) {
+    Tamgu* Eval(Tamgu* c, Tamgu* t, short idthread) {
         return val;
     }
     
@@ -258,8 +258,8 @@ public:
         return a_plus;
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* res, short idthread) {
-        res = val->Get(aNULL, aNULL, idthread);
+    Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
+        res = val->Eval(aNULL, aNULL, idthread);
         BLONG r = res->Long() + v;
         if (res->isProtected()) {
             res->storevalue(r);
@@ -301,8 +301,8 @@ public:
         return a_plus;
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* res, short idthread) {
-        res = val->Get(aNULL, aNULL, idthread);
+    Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
+        res = val->Eval(aNULL, aNULL, idthread);
         double r = res->Float() + v;
         if (res->isProtected()) {
             res->storevalue(r);
@@ -345,8 +345,8 @@ public:
         s_utf8_to_unicode(w, USTR(v), v.size());
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* res, short idthread) {
-        res = val->Get(aNULL, aNULL, idthread);
+    Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
+        res = val->Eval(aNULL, aNULL, idthread);
         string r = res->String() + v;
         if (res->isProtected()) {
             res->storevalue(r);
@@ -386,8 +386,8 @@ public:
         return a_plus;
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* res, short idthread) {
-        res = val->Get(aNULL, aNULL, idthread);
+    Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
+        res = val->Eval(aNULL, aNULL, idthread);
         string r = v;
         r += res->String();
         if (res->isProtected()) {
@@ -424,8 +424,8 @@ public:
         return a_plus;
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* res, short idthread) {
-        res = val->Get(aNULL, aNULL, idthread);
+    Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
+        res = val->Eval(aNULL, aNULL, idthread);
         wstring r = res->UString() + w;
         if (res->isProtected()) {
             res->storevalue(r);
@@ -461,8 +461,8 @@ public:
         return a_plus;
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* res, short idthread) {
-        res = val->Get(aNULL, aNULL, idthread);
+    Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
+        res = val->Eval(aNULL, aNULL, idthread);
         wstring r = w + res->UString();
         if (res->isProtected()) {
             res->storevalue(r);
@@ -541,9 +541,9 @@ public:
         return a_plus;
     }
     
-    Tamgu* Get(Tamgu* r1, Tamgu* r2, short idthread) {
-        r1 = values[0]->Get(aNULL, aNULL, idthread);
-        r2 = values[1]->Get(aNULL, aNULL, idthread);
+    Tamgu* Eval(Tamgu* r1, Tamgu* r2, short idthread) {
+        r1 = values[0]->Eval(aNULL, aNULL, idthread);
+        r2 = values[1]->Eval(aNULL, aNULL, idthread);
         if (r1->isProtected()) {
             r1->plus(r2, true);
             r2->Release();
@@ -597,8 +597,8 @@ public:
         return a_multiply;
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* res, short idthread) {
-        res = val->Get(aNULL, aNULL, idthread);
+    Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
+        res = val->Eval(aNULL, aNULL, idthread);
         BLONG r = res->Long() * v;
         if (res->isProtected()) {
             res->storevalue(r);
@@ -641,8 +641,8 @@ public:
         return a_multiply;
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* res, short idthread) {
-        res = val->Get(aNULL, aNULL, idthread);
+    Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
+        res = val->Eval(aNULL, aNULL, idthread);
         double r = res->Float() * v;
         if (res->isProtected()) {
             res->storevalue(r);
@@ -685,8 +685,8 @@ public:
         return a_minus;
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* res, short idthread) {
-        res = val->Get(aNULL, aNULL, idthread);
+    Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
+        res = val->Eval(aNULL, aNULL, idthread);
         BLONG r = res->Long() - v;
         if (res->isProtected()) {
             res->storevalue(r);
@@ -728,8 +728,8 @@ public:
         return a_minus;
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* res, short idthread) {
-        res = val->Get(aNULL, aNULL, idthread);
+    Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
+        res = val->Eval(aNULL, aNULL, idthread);
         double r = res->Float() - v;
         if (res->isProtected()) {
             res->storevalue(r);
@@ -771,8 +771,8 @@ public:
         return a_minus;
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* res, short idthread) {
-        res = val->Get(aNULL, aNULL, idthread);
+    Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
+        res = val->Eval(aNULL, aNULL, idthread);
         BLONG r = v - res->Long();
         if (res->isProtected()) {
             res->storevalue(r);
@@ -815,8 +815,8 @@ public:
         return a_minus;
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* res, short idthread) {
-        res = val->Get(aNULL, aNULL, idthread);
+    Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
+        res = val->Eval(aNULL, aNULL, idthread);
         double r = v - res->Float();
         if (res->isProtected()) {
             res->storevalue(r);
@@ -895,9 +895,9 @@ public:
         return a_minus;
     }
 
-    Tamgu* Get(Tamgu* r1, Tamgu* r2, short idthread) {
-        r1 = values[0]->Get(aNULL, aNULL, idthread);
-        r2 = values[1]->Get(aNULL, aNULL, idthread);
+    Tamgu* Eval(Tamgu* r1, Tamgu* r2, short idthread) {
+        r1 = values[0]->Eval(aNULL, aNULL, idthread);
+        r2 = values[1]->Eval(aNULL, aNULL, idthread);
         if (r1->isProtected()) {
             r1->minus(r2, true);
             r2->Release();
@@ -983,9 +983,9 @@ public:
         return a_multiply;
     }
 
-    Tamgu* Get(Tamgu* r1, Tamgu* r2, short idthread) {
-        r1 = values[0]->Get(aNULL, aNULL, idthread);
-        r2 = values[1]->Get(aNULL, aNULL, idthread);
+    Tamgu* Eval(Tamgu* r1, Tamgu* r2, short idthread) {
+        r1 = values[0]->Eval(aNULL, aNULL, idthread);
+        r2 = values[1]->Eval(aNULL, aNULL, idthread);
         if (r1->isProtected()) {
             r1->multiply(r2, true);
             r2->Release();
@@ -1031,8 +1031,8 @@ public:
         return a_divide;
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* res, short idthread) {
-        res = val->Get(aNULL, aNULL, idthread);
+    Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
+        res = val->Eval(aNULL, aNULL, idthread);
         BLONG r = res->Long() / v;
         if (res->isProtected()) {
             res->storevalue(r);
@@ -1074,8 +1074,8 @@ public:
         return a_divide;
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* res, short idthread) {
-        res = val->Get(aNULL, aNULL, idthread);
+    Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
+        res = val->Eval(aNULL, aNULL, idthread);
         double r = res->Float() / v;
         if (res->isProtected()) {
             res->storevalue(r);
@@ -1118,8 +1118,8 @@ public:
         return a_divide;
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* res, short idthread) {
-        res = val->Get(aNULL, aNULL, idthread);
+    Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
+        res = val->Eval(aNULL, aNULL, idthread);
         BLONG r = res->Long();
         if (!r)
             return globalTamgu->Returnerror("Cannot divide by 0", idthread);
@@ -1197,8 +1197,8 @@ public:
         return a_divide;
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* res, short idthread) {
-        res = val->Get(aNULL, aNULL, idthread);
+    Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
+        res = val->Eval(aNULL, aNULL, idthread);
         double r = res->Float();
         if (!r)
             return globalTamgu->Returnerror("Cannot divide by 0", idthread);
@@ -1310,9 +1310,9 @@ public:
         return simpleupdate(v);
     }
     
-    Tamgu* Get(Tamgu* r1, Tamgu* r2, short idthread) {
-        r1 = values[0]->Get(aNULL, aNULL, idthread);
-        r2 = values[1]->Get(aNULL, aNULL, idthread);
+    Tamgu* Eval(Tamgu* r1, Tamgu* r2, short idthread) {
+        r1 = values[0]->Eval(aNULL, aNULL, idthread);
+        r2 = values[1]->Eval(aNULL, aNULL, idthread);
         Tamgu* v;
         if (r1->isProtected()) {
             v = r1->divide(r2, true);
@@ -1390,8 +1390,8 @@ public:
         return a_mod;
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* res, short idthread) {
-        res = val->Get(aNULL, aNULL, idthread);
+    Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
+        res = val->Eval(aNULL, aNULL, idthread);
         BLONG r = res->Long() % v;
         if (res->isProtected()) {
             res->storevalue(r);
@@ -1434,8 +1434,8 @@ public:
         return a_mod;
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* res, short idthread) {
-        res = val->Get(aNULL, aNULL, idthread);
+    Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
+        res = val->Eval(aNULL, aNULL, idthread);
         BLONG r = res->Long();
         if (!r)
             return globalTamgu->Returnerror("Cannot divide by 0", idthread);
@@ -1532,9 +1532,9 @@ public:
         return simpleupdate(v);
     }
     
-    Tamgu* Get(Tamgu* r1, Tamgu* r2, short idthread) {
-        r1 = values[0]->Get(aNULL, aNULL, idthread);
-        r2 = values[1]->Get(aNULL, aNULL, idthread);
+    Tamgu* Eval(Tamgu* r1, Tamgu* r2, short idthread) {
+        r1 = values[0]->Eval(aNULL, aNULL, idthread);
+        r2 = values[1]->Eval(aNULL, aNULL, idthread);
         Tamgu* v;
         if (r1->isProtected()) {
             v = r1->mod(r2, true);
@@ -1607,8 +1607,8 @@ public:
         return a_shiftleft;
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* res, short idthread) {
-        res = val->Get(aNULL, aNULL, idthread);
+    Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
+        res = val->Eval(aNULL, aNULL, idthread);
         BLONG r = res->Long() << v;
         if (res->isProtected()) {
             res->storevalue(r);
@@ -1653,8 +1653,8 @@ public:
         return a_shiftleft;
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* res, short idthread) {
-        res = val->Get(aNULL, aNULL, idthread);
+    Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
+        res = val->Eval(aNULL, aNULL, idthread);
         BLONG r = v << res->Long();
         if (res->isProtected()) {
             res->storevalue(r);
@@ -1712,9 +1712,9 @@ public:
         return simpleupdate(v);
     }
 
-    Tamgu* Get(Tamgu* r1, Tamgu* r2, short idthread) {
-        r1 = values[0]->Get(aNULL, aNULL, idthread);
-        r2 = values[1]->Get(aNULL, aNULL, idthread);
+    Tamgu* Eval(Tamgu* r1, Tamgu* r2, short idthread) {
+        r1 = values[0]->Eval(aNULL, aNULL, idthread);
+        r2 = values[1]->Eval(aNULL, aNULL, idthread);
         if (r1->isProtected()) {
             r1->shiftleft(r2, true);
             r2->Release();
@@ -1764,8 +1764,8 @@ public:
         return a_shiftright;
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* res, short idthread) {
-        res = val->Get(aNULL, aNULL, idthread);
+    Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
+        res = val->Eval(aNULL, aNULL, idthread);
         BLONG r = res->Long() >> v;
         if (res->isProtected()) {
             res->storevalue(r);
@@ -1810,8 +1810,8 @@ public:
         return a_shiftright;
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* res, short idthread) {
-        res = val->Get(aNULL, aNULL, idthread);
+    Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
+        res = val->Eval(aNULL, aNULL, idthread);
         BLONG r = v >> res->Long();
         if (res->isProtected()) {
             res->storevalue(r);
@@ -1870,9 +1870,9 @@ public:
         return simpleupdate(v);
     }
 
-    Tamgu* Get(Tamgu* r1, Tamgu* r2, short idthread) {
-        r1 = values[0]->Get(aNULL, aNULL, idthread);
-        r2 = values[1]->Get(aNULL, aNULL, idthread);
+    Tamgu* Eval(Tamgu* r1, Tamgu* r2, short idthread) {
+        r1 = values[0]->Eval(aNULL, aNULL, idthread);
+        r2 = values[1]->Eval(aNULL, aNULL, idthread);
         if (r1->isProtected()) {
             r1->shiftright(r2, true);
             r2->Release();
@@ -1920,9 +1920,9 @@ public:
         return a_or;
     }
 
-    Tamgu* Get(Tamgu* r1, Tamgu* r2, short idthread) {
-        r1 = values[0]->Get(aNULL, aNULL, idthread);
-        r2 = values[1]->Get(aNULL, aNULL, idthread);
+    Tamgu* Eval(Tamgu* r1, Tamgu* r2, short idthread) {
+        r1 = values[0]->Eval(aNULL, aNULL, idthread);
+        r2 = values[1]->Eval(aNULL, aNULL, idthread);
         if (r1->isProtected()) {
             r1->orset(r2, true);
             r2->Release();
@@ -1970,9 +1970,9 @@ public:
         return a_xor;
     }
 
-    Tamgu* Get(Tamgu* r1, Tamgu* r2, short idthread) {
-        r1 = values[0]->Get(aNULL, aNULL, idthread);
-        r2 = values[1]->Get(aNULL, aNULL, idthread);
+    Tamgu* Eval(Tamgu* r1, Tamgu* r2, short idthread) {
+        r1 = values[0]->Eval(aNULL, aNULL, idthread);
+        r2 = values[1]->Eval(aNULL, aNULL, idthread);
         if (r1->isProtected()) {
             r1->xorset(r2, true);
             r2->Release();
@@ -2020,9 +2020,9 @@ public:
         return a_and;
     }
 
-    Tamgu* Get(Tamgu* r1, Tamgu* r2, short idthread) {
-        r1 = values[0]->Get(aNULL, aNULL, idthread);
-        r2 = values[1]->Get(aNULL, aNULL, idthread);
+    Tamgu* Eval(Tamgu* r1, Tamgu* r2, short idthread) {
+        r1 = values[0]->Eval(aNULL, aNULL, idthread);
+        r2 = values[1]->Eval(aNULL, aNULL, idthread);
         if (r1->isProtected()) {
             r1->andset(r2, true);
             r2->Release();
@@ -2073,8 +2073,8 @@ public:
         return a_power;
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* res, short idthread) {
-        res = val->Get(aNULL, aNULL, idthread);
+    Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
+        res = val->Eval(aNULL, aNULL, idthread);
         double r = pow(res->Float(), v);
         if (res->isProtected()) {
             res->storevalue(r);
@@ -2117,8 +2117,8 @@ public:
         return a_power;
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* res, short idthread) {
-        res = val->Get(aNULL, aNULL, idthread);
+    Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
+        res = val->Eval(aNULL, aNULL, idthread);
         double r = pow(v, res->Float());
         if (res->isProtected()) {
             res->storevalue(r);
@@ -2176,9 +2176,9 @@ public:
         return simpleupdate(v);
     }
 
-    Tamgu* Get(Tamgu* r1, Tamgu* r2, short idthread) {
-        r1 = values[0]->Get(aNULL, aNULL, idthread);
-        r2 = values[1]->Get(aNULL, aNULL, idthread);
+    Tamgu* Eval(Tamgu* r1, Tamgu* r2, short idthread) {
+        r1 = values[0]->Eval(aNULL, aNULL, idthread);
+        r2 = values[1]->Eval(aNULL, aNULL, idthread);
         if (r1->isProtected()) {
             r1->power(r2, true);
             r2->Release();
@@ -2229,7 +2229,7 @@ public:
         return a_plus;
     }
     
-    Tamgu* Get(Tamgu* r1, Tamgu* v, short idthread) {
+    Tamgu* Eval(Tamgu* r1, Tamgu* v, short idthread) {
         BLONG res = val;
         for (long i=0;i<size; i++)
             res += values[i]->Getlong(idthread);
@@ -2291,7 +2291,7 @@ public:
         return a_plus;
     }
     
-    Tamgu* Get(Tamgu* r1, Tamgu* v, short idthread) {
+    Tamgu* Eval(Tamgu* r1, Tamgu* v, short idthread) {
         double res = val;
         for (long i=0;i<size; i++)
             res += values[i]->Getfloat(idthread);
@@ -2372,15 +2372,15 @@ public:
         return simpleupdate(v);
     }
 
-    Tamgu* Get(Tamgu* context, Tamgu* res, short idthread) {
+    Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
         Tamgu* v;
         bool autoself = false;
-        res=values[0]->Get(aNULL, aNULL, idthread);
+        res=values[0]->Eval(aNULL, aNULL, idthread);
         if (res->isProtected())
             autoself = true;
         
         for (long i=1;i<size; i++) {
-            context = values[i]->Get(aNULL, aNULL, idthread);
+            context = values[i]->Eval(aNULL, aNULL, idthread);
             v =  res->plus(context, autoself);
             if (v != res) {
                 res->Releasenonconst();
@@ -2465,7 +2465,7 @@ public:
         return a_plus;
     }
     
-    Tamgu* Get(Tamgu* r1, Tamgu* v, short idthread) {
+    Tamgu* Eval(Tamgu* r1, Tamgu* v, short idthread) {
         BLONG res = val;
         for (long i=0;i<size; i++)
             res -= values[i]->Getlong(idthread);
@@ -2570,7 +2570,7 @@ public:
         return a_plus;
     }
     
-    Tamgu* Get(Tamgu* r1, Tamgu* v, short idthread) {
+    Tamgu* Eval(Tamgu* r1, Tamgu* v, short idthread) {
         double res = val;
         for (long i=0;i<size; i++)
             res -= values[i]->Getfloat(idthread);
@@ -2711,15 +2711,15 @@ public:
         return simpleupdate(v);
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* res, short idthread) {
+    Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
         Tamgu* v;
         bool autoself = false;
-        res=values[0]->Get(aNULL, aNULL, idthread);
+        res=values[0]->Eval(aNULL, aNULL, idthread);
         if (res->isProtected())
             autoself = true;
         
         for (long i=1;i<size; i++) {
-            context = values[i]->Get(aNULL, aNULL, idthread);
+            context = values[i]->Eval(aNULL, aNULL, idthread);
             v =  res->minus(context, autoself);
             if (v != res) {
                 res->Releasenonconst();
@@ -2802,7 +2802,7 @@ public:
         return a_multiply;
     }
     
-    Tamgu* Get(Tamgu* r1, Tamgu* v, short idthread) {
+    Tamgu* Eval(Tamgu* r1, Tamgu* v, short idthread) {
         BLONG res = val;
         for (long i=0;i<size; i++)
             res *= values[i]->Getlong(idthread);
@@ -2865,7 +2865,7 @@ public:
         return a_multiply;
     }
     
-    Tamgu* Get(Tamgu* r1, Tamgu* v, short idthread) {
+    Tamgu* Eval(Tamgu* r1, Tamgu* v, short idthread) {
         double res = val;
         for (long i=0;i<size; i++)
             res *= values[i]->Getfloat(idthread);
@@ -2946,15 +2946,15 @@ public:
         return simpleupdate(v);
     }
 
-    Tamgu* Get(Tamgu* context, Tamgu* res, short idthread) {
+    Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
         Tamgu* v;
         bool autoself = false;
-        res=values[0]->Get(aNULL, aNULL, idthread);
+        res=values[0]->Eval(aNULL, aNULL, idthread);
         if (res->isProtected())
             autoself = true;
         
         for (long i=1;i<size; i++) {
-            context = values[i]->Get(aNULL, aNULL, idthread);
+            context = values[i]->Eval(aNULL, aNULL, idthread);
             v =  res->multiply(context, autoself);
             if (v != res) {
                 res->Releasenonconst();
@@ -3011,15 +3011,15 @@ public:
     e_divide(TamguGlobal* g) : e_operation(g) {}
 
     
-    Tamgu* Get(Tamgu* context, Tamgu* res, short idthread) {
+    Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
         Tamgu* v;
         bool autoself = false;
-        res=values[0]->Get(aNULL, aNULL, idthread);
+        res=values[0]->Eval(aNULL, aNULL, idthread);
         if (res->isProtected())
             autoself = true;
         
         for (long i=1;i<size; i++) {
-            context = values[i]->Get(aNULL, aNULL, idthread);
+            context = values[i]->Eval(aNULL, aNULL, idthread);
             v =  res->divide(context, autoself);
             if (v != res) {
                 res->Releasenonconst();
@@ -3115,15 +3115,15 @@ public:
         return a_mod;
     }
 
-    Tamgu* Get(Tamgu* context, Tamgu* res, short idthread) {
+    Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
         Tamgu* v;
         bool autoself = false;
-        res=values[0]->Get(aNULL, aNULL, idthread);
+        res=values[0]->Eval(aNULL, aNULL, idthread);
         if (res->isProtected())
             autoself = true;
         
         for (long i=1;i<size; i++) {
-            context = values[i]->Get(aNULL, aNULL, idthread);
+            context = values[i]->Eval(aNULL, aNULL, idthread);
             v =  res->mod(context, autoself);
             if (v != res) {
                 res->Releasenonconst();
@@ -3215,15 +3215,15 @@ public:
         return a_shiftleft;
     }
 
-    Tamgu* Get(Tamgu* context, Tamgu* res, short idthread) {
+    Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
         Tamgu* v;
         bool autoself = false;
-        res=values[0]->Get(aNULL, aNULL, idthread);
+        res=values[0]->Eval(aNULL, aNULL, idthread);
         if (res->isProtected())
             autoself = true;
         
         for (long i=1;i<size; i++) {
-            context = values[i]->Get(aNULL, aNULL, idthread);
+            context = values[i]->Eval(aNULL, aNULL, idthread);
             v =  res->shiftleft(context, autoself);
             if (v != res) {
                 res->Releasenonconst();
@@ -3280,15 +3280,15 @@ public:
         return a_shiftright;
     }
 
-    Tamgu* Get(Tamgu* context, Tamgu* res, short idthread) {
+    Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
         Tamgu* v;
         bool autoself = false;
-        res=values[0]->Get(aNULL, aNULL, idthread);
+        res=values[0]->Eval(aNULL, aNULL, idthread);
         if (res->isProtected())
             autoself = true;
         
         for (long i=1;i<size; i++) {
-            context = values[i]->Get(aNULL, aNULL, idthread);
+            context = values[i]->Eval(aNULL, aNULL, idthread);
             v =  res->shiftright(context, autoself);
             if (v != res) {
                 res->Releasenonconst();
@@ -3344,15 +3344,15 @@ public:
         return a_or;
     }
 
-    Tamgu* Get(Tamgu* context, Tamgu* res, short idthread) {
+    Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
         Tamgu* v;
         bool autoself = false;
-        res=values[0]->Get(aNULL, aNULL, idthread);
+        res=values[0]->Eval(aNULL, aNULL, idthread);
         if (res->isProtected())
             autoself = true;
         
         for (long i=1;i<size; i++) {
-            context = values[i]->Get(aNULL, aNULL, idthread);
+            context = values[i]->Eval(aNULL, aNULL, idthread);
             v =  res->orset(context, autoself);
             if (v != res) {
                 res->Releasenonconst();
@@ -3423,15 +3423,15 @@ public:
         return a_xor;
     }
 
-    Tamgu* Get(Tamgu* context, Tamgu* res, short idthread) {
+    Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
         Tamgu* v;
         bool autoself = false;
-        res=values[0]->Get(aNULL, aNULL, idthread);
+        res=values[0]->Eval(aNULL, aNULL, idthread);
         if (res->isProtected())
             autoself = true;
         
         for (long i=1;i<size; i++) {
-            context = values[i]->Get(aNULL, aNULL, idthread);
+            context = values[i]->Eval(aNULL, aNULL, idthread);
             v =  res->xorset(context, autoself);
             if (v != res) {
                 res->Releasenonconst();
@@ -3521,15 +3521,15 @@ public:
         return a_and;
     }
 
-    Tamgu* Get(Tamgu* context, Tamgu* res, short idthread) {
+    Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
         Tamgu* v;
         bool autoself = false;
-        res=values[0]->Get(aNULL, aNULL, idthread);
+        res=values[0]->Eval(aNULL, aNULL, idthread);
         if (res->isProtected())
             autoself = true;
         
         for (long i=1;i<size; i++) {
-            context = values[i]->Get(aNULL, aNULL, idthread);
+            context = values[i]->Eval(aNULL, aNULL, idthread);
             v =  res->andset(context, autoself);
             if (v != res) {
                 res->Releasenonconst();
@@ -3619,15 +3619,15 @@ public:
         return a_power;
     }
 
-    Tamgu* Get(Tamgu* context, Tamgu* res, short idthread) {
+    Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
         Tamgu* v;
         bool autoself = false;
-        res=values[0]->Get(aNULL, aNULL, idthread);
+        res=values[0]->Eval(aNULL, aNULL, idthread);
         if (res->isProtected())
             autoself = true;
         
         for (long i=1;i<size; i++) {
-            context = values[i]->Get(aNULL, aNULL, idthread);
+            context = values[i]->Eval(aNULL, aNULL, idthread);
             v =  res->power(context, autoself);
             if (v != res) {
                 res->Releasenonconst();
@@ -3682,14 +3682,14 @@ public:
         return a_merge;
     }
     
-    Tamgu* Get(Tamgu* a, Tamgu* res, short idthread) {
+    Tamgu* Eval(Tamgu* a, Tamgu* res, short idthread) {
         Tamgu* v;
-        res=values[0]->Get(aNULL, aNULL, idthread);
+        res=values[0]->Eval(aNULL, aNULL, idthread);
         if (!res->isProtected())
             res = res->Atom(true);
 
         for (long i=1;i<size; i++) {
-            a = values[i]->Get(aNULL, aNULL, idthread);
+            a = values[i]->Eval(aNULL, aNULL, idthread);
             v = res->Merging(a);
             if (v != res) {
                 res->Releasenonconst();
@@ -3709,15 +3709,15 @@ public:
         return a_combine;
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* res, short idthread) {
+    Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
         Tamgu* v;
 
-        res=values[0]->Get(aNULL, aNULL, idthread);
+        res=values[0]->Eval(aNULL, aNULL, idthread);
         if (!res->isProtected())
             res = res->Atom(true);
 
         for (long i=1;i<size; i++) {
-            context = values[i]->Get(aNULL, aNULL, idthread);
+            context = values[i]->Eval(aNULL, aNULL, idthread);
             v =  res->Combine(context);
             if (v != res) {
                 res->Releasenonconst();
@@ -3737,14 +3737,14 @@ public:
         return a_add;
     }
     
-    Tamgu* Get(Tamgu* a, Tamgu* r, short idthread) {
+    Tamgu* Eval(Tamgu* a, Tamgu* r, short idthread) {
         Tamgu* v;
         
-        r=values[0]->Get(aNULL, aNULL, idthread);
+        r=values[0]->Eval(aNULL, aNULL, idthread);
         
         
         for (long i=1;i<size; i++) {
-            a = values[i]->Get(aNULL, aNULL, idthread);
+            a = values[i]->Eval(aNULL, aNULL, idthread);
             if (r->isVectorContainer())
                 v = r->Merging(a);
             else {
@@ -3963,8 +3963,8 @@ public:
 
     TamguInstructionCompute(TamguInstructionAPPLYOPERATIONROOT* r, TamguGlobal* g, Tamgu* parent = NULL) : TamguComputeValue(r, true,  a_short, g, parent) {}
     
-    Tamgu* Get(Tamgu* res, Tamgu* inter, short idthread) {
-        Tamgu* r = op->Get(aNULL, aNULL, idthread);
+    Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
+        Tamgu* r = op->Eval(aNULL, aNULL, idthread);
         
         if (inter == aAFFECTATION) {
             res->Put(aNULL, r, idthread);
@@ -3987,7 +3987,7 @@ public:
         return op->Getshort(idthread);
     }
     
-    Tamgu* Get(Tamgu* res, Tamgu* inter, short idthread) {
+    Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
         short r = op->Getshort(idthread);
         
         if (inter == aAFFECTATION) {
@@ -4014,7 +4014,7 @@ public:
         return op->Getinteger(idthread);
     }
     
-    Tamgu* Get(Tamgu* res, Tamgu* inter, short idthread) {
+    Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
         long r = op->Getinteger(idthread);
         
         if (inter == aAFFECTATION) {
@@ -4044,7 +4044,7 @@ public:
             return op->Getdecimal(idthread);
     }
     
-    Tamgu* Get(Tamgu* res, Tamgu* inter, short idthread) {
+    Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
         float r = op->Getdecimal(idthread);
 
         if (inter == aAFFECTATION) {
@@ -4072,7 +4072,7 @@ public:
         return op->Getfloat(idthread);
     }
     
-    Tamgu* Get(Tamgu* res, Tamgu* inter, short idthread) {
+    Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
         double r = op->Getfloat(idthread);
 
         if (inter == aAFFECTATION) {
@@ -4099,7 +4099,7 @@ public:
         return op->Getlong(idthread);
     }
     
-    Tamgu* Get(Tamgu* res, Tamgu* inter, short idthread) {
+    Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
         BLONG r = op->Getlong(idthread);
 
         if (inter == aAFFECTATION) {
@@ -4127,7 +4127,7 @@ public:
         return op->Getstring(idthread);
     }
     
-    Tamgu* Get(Tamgu* res, Tamgu* inter, short idthread) {
+    Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
         string r = op->Getstring(idthread);
         if (inter == aAFFECTATION) {
             res->Storevalue(r);
@@ -4153,7 +4153,7 @@ public:
         return op->Getustring(idthread);
     }
     
-    Tamgu* Get(Tamgu* res, Tamgu* inter, short idthread) {
+    Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
         wstring r = op->Getustring(idthread);
 
         if (inter == aAFFECTATION) {
@@ -4194,7 +4194,7 @@ public:
         return rv;
     }
     
-    Tamgu* Get(Tamgu* res, Tamgu* inter, short idthread) {
+    Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
         short d = (short)size - 1;
         Tamgu* r = cfraction(idthread, d);
         if (r->isError())
@@ -4231,7 +4231,7 @@ public:
         action = e->action;
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* value, short idthread);
+    Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
     
     bool isEQU() {
         return true;
@@ -4261,7 +4261,7 @@ public:
         action = e->action;
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* value, short idthread);
+    Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
     
     bool isEQU() {
         return true;
@@ -4291,7 +4291,7 @@ public:
         action = e->action;
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* value, short idthread);
+    Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
     
     bool isEQU() {
         return true;
@@ -4321,7 +4321,7 @@ public:
         action = e->action;
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* value, short idthread);
+    Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
     
     bool isEQU() {
         return true;
@@ -4351,7 +4351,7 @@ public:
         action = e->action;
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* value, short idthread);
+    Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
     
     bool isEQU() {
         return true;
@@ -4381,7 +4381,7 @@ public:
         action = e->action;
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* value, short idthread);
+    Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
     
     bool isEQU() {
         return true;
@@ -4411,7 +4411,7 @@ public:
         action = e->action;
     }
     
-    Tamgu* Get(Tamgu* context, Tamgu* value, short idthread);
+    Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
     
     bool isEQU() {
         return true;

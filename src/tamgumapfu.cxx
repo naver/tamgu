@@ -323,7 +323,7 @@ Exporting Tamgu*  Tamgumapfu::Put(Tamgu* idx, Tamgu* ke, short idthread) {
 }
 
 
-Exporting Tamgu* Tamgumapfu::Get(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
+Exporting Tamgu* Tamgumapfu::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
 
     Locking _lock(this);
 
@@ -354,8 +354,8 @@ Exporting Tamgu* Tamgumapfu::Get(Tamgu* contextualpattern, Tamgu* idx, short idt
     Tamgu* key;
     if (idx->isInterval()) {
         Tamgumapfu* kmap = new Tamgumapfu;
-        key = ((TamguIndex*)idx)->left->Get(aNULL, aNULL, idthread);
-        Tamgu* keyright = ((TamguIndex*)idx)->right->Get(aNULL, aNULL, idthread);
+        key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
+        Tamgu* keyright = ((TamguIndex*)idx)->right->Eval(aNULL, aNULL, idthread);
         double vleft = key->Float();
         double vright = keyright->Float();
         hmap<double, wstring>::iterator it = values.find(vleft);
@@ -387,7 +387,7 @@ Exporting Tamgu* Tamgumapfu::Get(Tamgu* contextualpattern, Tamgu* idx, short idt
 
     }
 
-    key = ((TamguIndex*)idx)->left->Get(aNULL, aNULL, idthread);
+    key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
     
     if (key == aNULL) {
         if (globalTamgu->erroronkey)
@@ -603,7 +603,7 @@ Exporting Tamgu* Tamgumapfu::minus(Tamgu* b, bool itself) {
 Exporting Tamgu* Tamgumapfu::Loopin(TamguInstruction* ins, Tamgu* context, short idthread) {
     Locking _lock(this);
     Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
-    var = var->Get(context, aNULL, idthread);
+    var = var->Eval(context, aNULL, idthread);
 
     
     hmap<double, wstring>::iterator it;
@@ -618,7 +618,7 @@ Exporting Tamgu* Tamgumapfu::Loopin(TamguInstruction* ins, Tamgu* context, short
 
         var->storevalue(keys[i]);
 
-        a = ins->instructions.vecteur[1]->Get(context, aNULL, idthread);
+        a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
         //Continue does not trigger needInvestigate
         if (a->needInvestigate()) {

@@ -341,7 +341,7 @@ Exporting Tamgu*  Tamguprimemapsf::Put(Tamgu* idx, Tamgu* ke, short idthread) {
 }
 
 
-Exporting Tamgu* Tamguprimemapsf::Get(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
+Exporting Tamgu* Tamguprimemapsf::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
 
     Locking _lock(this);
 
@@ -372,8 +372,8 @@ Exporting Tamgu* Tamguprimemapsf::Get(Tamgu* contextualpattern, Tamgu* idx, shor
     Tamgu* key;
     if (idx->isInterval()) {
         Tamguprimemapsf* kmap = new Tamguprimemapsf;
-        key = ((TamguIndex*)idx)->left->Get(aNULL, aNULL, idthread);
-        Tamgu* keyright = ((TamguIndex*)idx)->right->Get(aNULL, aNULL, idthread);
+        key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
+        Tamgu* keyright = ((TamguIndex*)idx)->right->Eval(aNULL, aNULL, idthread);
         string vleft = key->String();
         string vright = keyright->String();
         prime_hash<string, double>::iterator it = values.find(vleft);
@@ -405,7 +405,7 @@ Exporting Tamgu* Tamguprimemapsf::Get(Tamgu* contextualpattern, Tamgu* idx, shor
 
     }
 
-    key = ((TamguIndex*)idx)->left->Get(aNULL, aNULL, idthread);
+    key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
     
     if (key == aNULL) {
         if (globalTamgu->erroronkey)
@@ -828,7 +828,7 @@ Exporting Tamgu* Tamguprimemapsf::power(Tamgu* b, bool itself) {
 Exporting Tamgu* Tamguprimemapsf::Loopin(TamguInstruction* ins, Tamgu* context, short idthread) {
     Locking _lock(this);
     Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
-    var = var->Get(context, aNULL, idthread);
+    var = var->Eval(context, aNULL, idthread);
 
     
     prime_hash<string, double>::iterator it;
@@ -843,7 +843,7 @@ Exporting Tamgu* Tamguprimemapsf::Loopin(TamguInstruction* ins, Tamgu* context, 
 
         var->storevalue(keys[i]);
 
-        a = ins->instructions.vecteur[1]->Get(context, aNULL, idthread);
+        a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
         //Continue does not trigger needInvestigate
         if (a->needInvestigate()) {

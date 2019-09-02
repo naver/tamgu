@@ -762,7 +762,7 @@ Exporting Tamgu* Tamguivector::Vector(short idthread) {
     return kvect;
 }
 
-Exporting Tamgu* Tamguivector::Get(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
+Exporting Tamgu* Tamguivector::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
 
     if (!idx->isIndex()) {
         if (contextualpattern->isLoop())
@@ -797,7 +797,7 @@ Exporting Tamgu* Tamguivector::Get(Tamgu* contextualpattern, Tamgu* idx, short i
     TamguIndex* kind = (TamguIndex*)idx;
     ikey = kind->left->Getinteger(idthread);
     if (kind->interval == true)
-        keyright = kind->right->Get(aNULL, aNULL, idthread);
+        keyright = kind->right->Eval(aNULL, aNULL, idthread);
 
     Locking _lock(this);
     
@@ -1094,7 +1094,7 @@ Exporting Tamgu* Tamguivector::Looptaskell(Tamgu* recipient, Tamgu* context, Tam
     for (size_t i = 0; i < values.size(); i++) {
         it->value = values[i];
 
-        a = bd->DirectGet(environment, aNULL, idthread);
+        a = bd->DirectEval(environment, aNULL, idthread);
         if (a->isNULL())
             continue;
         
@@ -1146,7 +1146,7 @@ Exporting Tamgu* Tamguivector::Filter(short idthread, Tamgu* env, TamguFunctionL
         }
         else {
             var->Putvalue(key, idthread);
-            returnval = bd->DirectGet(env, aNULL, idthread);
+            returnval = bd->DirectEval(env, aNULL, idthread);
 
             if (returnval == aBREAK) {
                 accu = returnval;
@@ -1195,7 +1195,7 @@ class IComp {
     }
 
     bool get() {
-        return compare.Get(aNULL, aNULL, idthread)->Boolean();
+        return compare.Eval(aNULL, aNULL, idthread)->Boolean();
     }
 };
 
@@ -1232,7 +1232,7 @@ Tamgu* Tamguivector::MethodSort(Tamgu* contextualpattern, short idthread, TamguC
 
 Exporting Tamgu* Tamguivector::Loopin(TamguInstruction* ins, Tamgu* context, short idthread) {
     Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
-    var = var->Get(context, aNULL, idthread);
+    var = var->Eval(context, aNULL, idthread);
 
     long sz = Size();
     Tamgu* a;
@@ -1241,7 +1241,7 @@ Exporting Tamgu* Tamguivector::Loopin(TamguInstruction* ins, Tamgu* context, sho
         var->storevalue(values[i]);
         unlocking();
         
-        a = ins->instructions.vecteur[1]->Get(context, aNULL, idthread);
+        a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
         //Continue does not trigger needInvestigate
         if (a->needInvestigate()) {
@@ -1893,7 +1893,7 @@ Exporting Tamgu* Tamgua_ivector::Vector(short idthread) {
     return kvect;
 }
 
-Exporting Tamgu* Tamgua_ivector::Get(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
+Exporting Tamgu* Tamgua_ivector::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
     
     if (!idx->isIndex()) {
         if (contextualpattern->isLoop())
@@ -1921,7 +1921,7 @@ Exporting Tamgu* Tamgua_ivector::Get(Tamgu* contextualpattern, Tamgu* idx, short
     TamguIndex* kind = (TamguIndex*)idx;
     ikey = kind->left->Getinteger(idthread);
     if (kind->interval == true)
-        keyright = kind->right->Get(aNULL, aNULL, idthread);
+        keyright = kind->right->Eval(aNULL, aNULL, idthread);
     
     if (ikey < 0)
         ikey = values.size() + ikey;
@@ -2186,7 +2186,7 @@ Exporting Tamgu* Tamgua_ivector::Looptaskell(Tamgu* recipient, Tamgu* context, T
     for (; !itx.end(); itx.next()) {
         it->value = itx.second;
         
-        a = bd->DirectGet(environment, aNULL, idthread);
+        a = bd->DirectEval(environment, aNULL, idthread);
         if (a->isNULL())
             continue;
         
@@ -2239,7 +2239,7 @@ Exporting Tamgu* Tamgua_ivector::Filter(short idthread, Tamgu* env, TamguFunctio
         }
         else {
             var->Putvalue(key, idthread);
-            returnval = bd->DirectGet(env, aNULL, idthread);
+            returnval = bd->DirectEval(env, aNULL, idthread);
             
             if (returnval == aBREAK) {
                 accu = returnval;
@@ -2278,14 +2278,14 @@ Exporting Tamgu* Tamgua_ivector::Filter(short idthread, Tamgu* env, TamguFunctio
 
 Exporting Tamgu* Tamgua_ivector::Loopin(TamguInstruction* ins, Tamgu* context, short idthread) {
     Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
-    var = var->Get(context, aNULL, idthread);
+    var = var->Eval(context, aNULL, idthread);
     
     Tamgu* a;
     atomic_value_vector_iterator<long> itx(values);
     for (; !itx.end(); itx.next()) {
         var->storevalue(itx.second);
         
-        a = ins->instructions.vecteur[1]->Get(context, aNULL, idthread);
+        a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
         
             //Continue does not trigger needInvestigate
         if (a->needInvestigate()) {

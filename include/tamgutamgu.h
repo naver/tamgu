@@ -68,7 +68,7 @@ class Tamgutamgu : public TamguObject {
     //----------------------------------------------------------------------------------------------------------------------
 	Tamgu* Put(Tamgu* v, Tamgu* i, short idthread);
     
-	Tamgu* Get(Tamgu* context, Tamgu* v, short idthread);
+	Tamgu* Eval(Tamgu* context, Tamgu* v, short idthread);
 
     bool Candelete() {
         return false;
@@ -154,7 +154,7 @@ class Tamgutamgu : public TamguObject {
 		TamguCallFunction cfunc(func);
 		cfunc.arguments = callfunc->arguments;
 		globalTamgu->Pushstack(domain, idthread);
-		Tamgu* a = cfunc.Get(domain, aNULL, idthread);
+		Tamgu* a = cfunc.Eval(domain, aNULL, idthread);
 		globalTamgu->Popstack(idthread);
 		return a;
 	}

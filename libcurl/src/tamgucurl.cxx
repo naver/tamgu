@@ -265,7 +265,7 @@ static size_t call_writing(char *ptr, size_t size, size_t nmemb, Tamgucurl* user
 	kfunc.arguments.push_back(kstr);
 	kfunc.arguments.push_back(userdata->object);
 
-	kfunc.Get(aNULL, aNULL, globalTamgu->GetThreadid());
+	kfunc.Eval(aNULL, aNULL, globalTamgu->GetThreadid());
 	kstr->Resetreference();
 	userdata->object->Resetreference();
 	return max;
@@ -332,7 +332,7 @@ Tamgu* Tamgucurl::Put(Tamgu* index, Tamgu* value, short idthread) {
 	return this;
 }
 
-Tamgu* Tamgucurl::Get(Tamgu* context, Tamgu* index, short idthread) {
+Tamgu* Tamgucurl::Eval(Tamgu* context, Tamgu* index, short idthread) {
 	return this;
 }
 

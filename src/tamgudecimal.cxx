@@ -167,7 +167,7 @@ void TamguLoopDecimal::Callfunction() {
     ki->Setreference();
     kfunc.arguments.push_back(this);
     kfunc.arguments.push_back(ki);
-    Tamgu* ke = kfunc.Get(aNULL, aNULL, globalTamgu->GetThreadid());
+    Tamgu* ke = kfunc.Eval(aNULL, aNULL, globalTamgu->GetThreadid());
     ke->Release();
     ki->Resetreference();
 }

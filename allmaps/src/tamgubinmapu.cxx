@@ -332,7 +332,7 @@ Exporting Tamgu*  Tamgubinmapu::Put(Tamgu* idx, Tamgu* ke, short idthread) {
     return aTRUE;
 }
 
-Exporting Tamgu* Tamgubinmapu::Get(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
+Exporting Tamgu* Tamgubinmapu::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
 
     Locking _lock(this);
 
@@ -363,8 +363,8 @@ Exporting Tamgu* Tamgubinmapu::Get(Tamgu* contextualpattern, Tamgu* idx, short i
     Tamgu* key;
     if (idx->isInterval()) {
         Tamgubinmapu* kmap = new Tamgubinmapu;
-        key = ((TamguIndex*)idx)->left->Get(aNULL, aNULL, idthread);
-        Tamgu* keyright = ((TamguIndex*)idx)->right->Get(aNULL, aNULL, idthread);
+        key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
+        Tamgu* keyright = ((TamguIndex*)idx)->right->Eval(aNULL, aNULL, idthread);
         ushort vleft = key->Short();
         ushort  vright = keyright->Short();
         basebinn_hash<wstring>::iterator it = values.find(vleft);
@@ -396,7 +396,7 @@ Exporting Tamgu* Tamgubinmapu::Get(Tamgu* contextualpattern, Tamgu* idx, short i
 
     }
 
-    key = ((TamguIndex*)idx)->left->Get(aNULL, aNULL, idthread);
+    key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
     
     if (key == aNULL) {
         if (globalTamgu->erroronkey)
@@ -612,7 +612,7 @@ Exporting Tamgu* Tamgubinmapu::minus(Tamgu* b, bool itself) {
 
 Exporting Tamgu* Tamgubinmapu::Loopin(TamguInstruction* ins, Tamgu* context, short idthread) {
     Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
-    var = var->Get(context, aNULL, idthread);
+    var = var->Eval(context, aNULL, idthread);
     
     Locking* _lock = _getlock(this);
     basebinn_hash<wstring>::iterator it;
@@ -625,7 +625,7 @@ Exporting Tamgu* Tamgubinmapu::Loopin(TamguInstruction* ins, Tamgu* context, sho
     for (long i = 0; i < keys.size(); i++) {
         var->storevalue(keys[i]);
 
-        a = ins->instructions.vecteur[1]->Get(context, aNULL, idthread);
+        a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
         //Continue does not trigger needInvestigate
         if (a->needInvestigate()) {

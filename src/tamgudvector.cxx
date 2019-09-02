@@ -524,7 +524,7 @@ Exporting Tamgu* Tamgudvector::Unique() {
 }
 
 
-Exporting Tamgu* Tamgudvector::Get(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
+Exporting Tamgu* Tamgudvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
     Locking _lock(this);
 
     if (!idx->isIndex()) {
@@ -555,7 +555,7 @@ Exporting Tamgu* Tamgudvector::Get(Tamgu* contextualpattern, Tamgu* idx, short i
     Tamgu* keyright = NULL;
     ikey = idx->Getinteger(idthread);
     if (idx->isInterval())
-        keyright = ((TamguIndex*)idx)->right->Get(aNULL, aNULL, idthread);
+        keyright = ((TamguIndex*)idx)->right->Eval(aNULL, aNULL, idthread);
 
     if (ikey < 0)
         ikey = values.size() + ikey;
@@ -1050,7 +1050,7 @@ Exporting Tamgu* Tamgudvector::Looptaskell(Tamgu* recipient, Tamgu* context, Tam
     for (size_t i = 0; i < values.size(); i++) {
         it->value = values[i];
 
-        a = bd->DirectGet(environment, aNULL, idthread);
+        a = bd->DirectEval(environment, aNULL, idthread);
         if (a->isNULL())
             continue;
 
@@ -1103,7 +1103,7 @@ Exporting Tamgu* Tamgudvector::Filter(short idthread, Tamgu* env, TamguFunctionL
         }
         else {
             var->Putvalue(key, idthread);
-            returnval = bd->DirectGet(env, aNULL, idthread);
+            returnval = bd->DirectEval(env, aNULL, idthread);
 
             if (returnval == aBREAK) {
                 accu = returnval;
@@ -1152,7 +1152,7 @@ class DComp {
     }
 
     bool get() {
-        return compare.Get(aNULL, aNULL, idthread)->Boolean();
+        return compare.Eval(aNULL, aNULL, idthread)->Boolean();
     }
 };
 
@@ -1190,14 +1190,14 @@ Tamgu* Tamgudvector::MethodSort(Tamgu* contextualpattern, short idthread, TamguC
 Exporting Tamgu* Tamgudvector::Loopin(TamguInstruction* ins, Tamgu* context, short idthread) {
     Locking _lock(this);
     Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
-    var = var->Get(context, aNULL, idthread);
+    var = var->Eval(context, aNULL, idthread);
 
     
     Tamgu* a;
     for (long i = 0; i < values.size(); i++) {
         var->storevalue(values[i]);
 
-        a = ins->instructions.vecteur[1]->Get(context, aNULL, idthread);
+        a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
         //Continue does not trigger needInvestigate
         if (a->needInvestigate()) {
