@@ -10,7 +10,7 @@ La plupart des langages modernes comme Java ou Python fonctionne sur le principe
 
 ## Machine C++
 
-Dans le cas de Tamgu, s’il existe une machine virtuelle, celle-ci se confond avec l’exécution de l’interpréteur en C++. Dans Tamgu, chaque élément du langage est implémenté sous la forme d’un objet C++. Il suffit de surcharger certaines méthodes particulières pour spécialiser leur comportement. En particulier, tous ces objets surchargent la méthode « Get » dont l’application selon le type de l’objet conduit par exemple à l’exécution d’une boucle ou d’une fonction. En revanche, un « Get » sur un objet nombre ne fera que renvoyer ce nombre lui-même.
+Dans le cas de Tamgu, s’il existe une machine virtuelle, celle-ci se confond avec l’exécution de l’interpréteur en C++. Dans Tamgu, chaque élément du langage est implémenté sous la forme d’un objet C++. Il suffit de surcharger certaines méthodes particulières pour spécialiser leur comportement. En particulier, tous ces objets surchargent la méthode « Eval » dont l’application selon le type de l’objet conduit par exemple à l’exécution d’une boucle ou d’une fonction. En revanche, un « Eval » sur un objet nombre ne fera que renvoyer ce nombre lui-même.
 
 ### Evaluation
 
@@ -24,21 +24,21 @@ Un programme Tamgu est donc enregistré en mémoire sous la forme d’objets enc
 
 Ainsi, un programme Tamgu est compilé sous la forme d’une structure arborescente imbriquée d’objets C++.
 
-Pour exécuter un programme Tamgu, il suffit de parcourir une liste d’objets _Tamgu_ et d’évaluer chacun d’entre eux en appelant sa méthode _Get_. Au niveau le plus haut, un programme Tamgu se résume à un simple vecteur d’instructions. La boucle principale ressemble à ceci:
+Pour exécuter un programme Tamgu, il suffit de parcourir une liste d’objets _Tamgu_ et d’évaluer chacun d’entre eux en appelant sa méthode _Eval_. Au niveau le plus haut, un programme Tamgu se résume à un simple vecteur d’instructions. La boucle principale ressemble à ceci:
 
 ```C++
 Tamgu* o;
 for (auto& a : instructions) {
-    o = a.Get();
+    o = a.Eval();
     o->Release();
 }
 ```
 
-Une méthode _Get_ renvoie systématiquement au niveau supérieur une valeur. Si cette valeur « o » n’a pas été sauvegardée dans une variable ou dans un conteneur, l’appel de la méthode _Release_ la détruira. Le nettoyage des objets se fait donc en passant, grâce à la magie de la pile d’exécution de l’interpréteur. Ce mécanisme permet de contrôler de façon précise la création et la destruction des structures de données.
+Une méthode _Eval_ renvoie systématiquement au niveau supérieur une valeur. Si cette valeur « o » n’a pas été sauvegardée dans une variable ou dans un conteneur, l’appel de la méthode _Release_ la détruira. Le nettoyage des objets se fait donc en passant, grâce à la magie de la pile d’exécution de l’interpréteur. Ce mécanisme permet de contrôler de façon précise la création et la destruction des structures de données.
 
 ### Exécution sans état
 
-De plus, comme le montre l’exemple ci-dessus, cette exécution ne fait appel à aucune variable globale, elle ne modifie aucun pointeur dans une pile d’exécution parallèle. L’exécution ne change aucun état global, elle est « stateless », ce qui permet d’assurer à la fois réentrance et robustesse. D’ailleurs, cette approche réduit aussi le code nécessaire à l’exécution des instructions à très peu de lignes de C++. Si l’on examine le fichier « codeexecute.cxx » qui contient le code de la plupart des instructions Tamgu, on pourra observer que la majorité des méthodes _Get_ ne dépasse pas la dizaine de lignes. Le code est réduit à de courtes méthodes simples à lire et à débogguer.
+De plus, comme le montre l’exemple ci-dessus, cette exécution ne fait appel à aucune variable globale, elle ne modifie aucun pointeur dans une pile d’exécution parallèle. L’exécution ne change aucun état global, elle est « stateless », ce qui permet d’assurer à la fois réentrance et robustesse. D’ailleurs, cette approche réduit aussi le code nécessaire à l’exécution des instructions à très peu de lignes de C++. Si l’on examine le fichier « codeexecute.cxx » qui contient le code de la plupart des instructions Tamgu, on pourra observer que la majorité des méthodes _Eval_ ne dépasse pas la dizaine de lignes. Le code est réduit à de courtes méthodes simples à lire et à débogguer.
 
 ### Fonctionnel
 
@@ -59,20 +59,20 @@ Et en C++:
 Class TamguIf : public Tamgu {
     Tamgu* instructions[3];
 
-    //La méthode « Get ».
-    Tamgu* Get() {
-        Tamgu* test = instructions[0]->Get();
+    //La méthode « Eval ».
+    Tamgu* Eval() {
+        Tamgu* test = instructions[0]->Eval();
         if (test == aTrue)
-            return instructions[1]->Get();
+            return instructions[1]->Eval();
         else
-            return instructions[2]->Get();
+            return instructions[2]->Eval();
     }
 };
 ```
 
 * « if » dans Lisp est une fonction à trois arguments qui retourne soit l’évaluation de « then_exp » soit celle de « else_exp » selon l’évaluation de « test ».
 
-* « TamguIf » est un objet constitué d’une liste de trois éléments qui fonctionnent sur le même principe que le « if » de Lisp, à la différence près que pour évaluer les éléments on appellera « Get », là où Lisp appelle de façon implicite la méthode « eval ».
+* « TamguIf » est un objet constitué d’une liste de trois éléments qui fonctionnent sur le même principe que le « if » de Lisp, à la différence près que pour évaluer les éléments on appellera « Eval », là où Lisp appelle de façon implicite la méthode « eval ».
 
 En évaluant récursivement une liste emboitée d’objets C++, on peut facilement reproduire le comportement d’une liste emboîtée de fonctions.
 

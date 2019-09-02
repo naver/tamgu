@@ -10,7 +10,7 @@ Most modern languages such as Java or Python work on the principle of a virtual 
 
 ## C++ Machine 
 
-In the case of Tamgu, if there is a virtual machine, it blends with the execution of the interpreter in C++.  In Tamgu, each element of the language is implemented as a C++ object.  All you have to do is to overload certain particular methods to specialize their behaviour. In particular, all these objects overload the "Get" method, whose application, depending on the type of the object, may lead to the execution of a loop or a function. On the other hand, a "Get" on a number object will only return that number itself.
+In the case of Tamgu, if there is a virtual machine, it blends with the execution of the interpreter in C++.  In Tamgu, each element of the language is implemented as a C++ object.  All you have to do is to overload certain particular methods to specialize their behaviour. In particular, all these objects overload the "Eval" method, whose application, depending on the type of the object, may lead to the execution of a loop or a function. On the other hand, a "Eval" on a number object will only return that number itself.
 
 
 ### Evaluation 
@@ -25,21 +25,21 @@ A Tamgu program is therefore stored in memory as encapsulated objects.  A functi
 
 Thus, a Tamgu program is compiled as a nested tree structure of C++ objects. 
 
-To run a Tamgu program, we simply browse through a list of _Tamgu_ objects and evaluate each of them by calling their method _Get_.  At the highest level, a Tamgu program is a simple vector of instructions.  The main loop looks like this: 
+To run a Tamgu program, we simply browse through a list of _Tamgu_ objects and evaluate each of them by calling their method _Eval_.  At the highest level, a Tamgu program is a simple vector of instructions.  The main loop looks like this: 
 
 ```C++ 
 Tamgu* o; 
 for (auto& a : instructions) { 
-    o = a.Get(); 
+    o = a.Eval(); 
     o->Release(); 
 } 
 ``` 
 
-A _Get_ method systematically returns a value to the higher level.  If this "o" value has not been saved in a variable or container, the _Release_ method  will destroy it.  The cleaning of the objects is done _en passant_ thanks to the magic of the interpreter's execution stack.  This mechanism allows precise control over the creation and destruction of data structures. 
+A _Eval_ method systematically returns a value to the higher level.  If this "o" value has not been saved in a variable or container, the _Release_ method  will destroy it.  The cleaning of the objects is done _en passant_ thanks to the magic of the interpreter's execution stack.  This mechanism allows precise control over the creation and destruction of data structures. 
 
 ### Stateless execution 
 
-In addition, as shown in the example above, this execution does not use any global variables, it does not modify any pointers in a parallel execution stack.  The execution does not change any global state, it is "stateless", which ensures both reentrance and robustness.  Moreover, this approach also reduces the code required to execute instructions to very few C++ lines.  If we examine the file "codeexecute.cxx" which contains the code of most Tamgu instructions, we can see that the majority of _Get_ methods do not exceed ten lines.  The code is reduced to short methods that are easy to read and debug. 
+In addition, as shown in the example above, this execution does not use any global variables, it does not modify any pointers in a parallel execution stack.  The execution does not change any global state, it is "stateless", which ensures both reentrance and robustness.  Moreover, this approach also reduces the code required to execute instructions to very few C++ lines.  If we examine the file "codeexecute.cxx" which contains the code of most Tamgu instructions, we can see that the majority of _Eval_ methods do not exceed ten lines.  The code is reduced to short methods that are easy to read and debug. 
 
 ### Functional
 
@@ -60,20 +60,20 @@ And in C++:
 TamguIf Class: Tamgu public {
     Tamgu* instructions[3];
 
-    //The "Get" method.
-    Tamgu* Get() {
-        Tamgu* test = instructions[0]->Get();
+    //The "Eval" method.
+    Tamgu* Eval() {
+        Tamgu* test = instructions[0]->Eval();
         if (test == aTrue)
-            return instructions[1]->Get();
+            return instructions[1]->Eval();
         else
-            return instructions[2]->Get();
+            return instructions[2]->Eval();
     }
 };
 ```
 
 * "if" in Lisp is a three-argument function that returns either the evaluation of "then_exp" or that of "else_exp" depending on the evaluation of "test".
 
-* "TamguIf" is an object made up of a list of three elements that work on the same principle as the Lisp "if", with the difference that to evaluate the elements we will call "Get", where Lisp implicitly calls the "eval" method.
+* "TamguIf" is an object made up of a list of three elements that work on the same principle as the Lisp "if", with the difference that to evaluate the elements we will call "Eval", where Lisp implicitly calls the "eval" method.
 
 By recursively evaluating a nested list of C++ objects, it is easy to reproduce the behavior of a nested list of functions.
 
