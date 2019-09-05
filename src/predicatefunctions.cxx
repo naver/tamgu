@@ -74,9 +74,8 @@ Exporting Tamgu* TamguPredicateBetween::PredicateEvalue(TamguInstructionEvaluate
     return res;
 }
 
-Exporting TamguPredicate* TamguPredicateBetween::Duplicate(Tamgu* context, TamguDeclaration* dom) {
+Exporting TamguPredicate* TamguPredicateBetween::Duplicate(Tamgu* context, TamguDeclaration* dom, short idthread) {
     TamguPredicateBetween* p = new TamguPredicateBetween(globalTamgu, name);
-    short idthread = ((TamguInstructionEvaluate*)context)->threadowner;
     Tamgu* e;
 
     for (short i = 0; i < 3; i++) {
@@ -150,12 +149,11 @@ Exporting Tamgu* TamguPredicateSucc::PredicateEvalue(TamguInstructionEvaluate* c
 }
 
 
-Exporting TamguPredicate* TamguPredicateSucc::Duplicate(Tamgu* context, TamguDeclaration* dom) {
+Exporting TamguPredicate* TamguPredicateSucc::Duplicate(Tamgu* context, TamguDeclaration* dom, short idthread) {
     if (parameters.size() != 2)
         return NULL;
 
     TamguPredicateSucc* p = new TamguPredicateSucc(globalTamgu, name);
-    short idthread = ((TamguInstructionEvaluate*)context)->threadowner;
     Tamgu* e;
 
     for (short i = 0; i < 2; i++) {
@@ -229,12 +227,11 @@ Exporting Tamgu* TamguPredicatePred::PredicateEvalue(TamguInstructionEvaluate* c
 }
 
 
-Exporting TamguPredicate* TamguPredicatePred::Duplicate(Tamgu* context, TamguDeclaration* dom) {
+Exporting TamguPredicate* TamguPredicatePred::Duplicate(Tamgu* context, TamguDeclaration* dom, short idthread) {
     if (parameters.size() != 2)
         return NULL;
 
     TamguPredicatePred* p = new TamguPredicatePred(globalTamgu, name);
-    short idthread = ((TamguInstructionEvaluate*)context)->threadowner;
     Tamgu* e;
 
     for (short i = 0; i < 2; i++) {
@@ -434,9 +431,8 @@ Exporting Tamgu* TamguPredicateMethod::PredicateEvalue(TamguInstructionEvaluate*
 
 
 
-Exporting TamguPredicate* TamguPredicateMethod::Duplicate(Tamgu* context, TamguDeclaration* dom) {
+Exporting TamguPredicate* TamguPredicateMethod::Duplicate(Tamgu* context, TamguDeclaration* dom, short idthread) {
     TamguPredicateMethod* p = new TamguPredicateMethod(globalTamgu, name, size);
-    short idthread = ((TamguInstructionEvaluate*)context)->threadowner;
     Tamgu* e;
 
     for (short i = 0; i < parameters.size(); i++) {

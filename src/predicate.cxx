@@ -2417,7 +2417,7 @@ Tamgu* TamguPredicateConcept::ExtractPredicateVariables(Tamgu* context, TamguDec
 }
 //---------------------------------------------------------------------
 
-TamguPredicate* TamguPredicateKnowledgeBaseFunction::Duplicate(Tamgu* context, TamguDeclaration* dom) {
+TamguPredicate* TamguPredicateKnowledgeBaseFunction::Duplicate(Tamgu* context, TamguDeclaration* dom, short idthread) {
     Tamgu * e;
 
     TamguPredicateKnowledgeBaseFunction* p;
@@ -2436,47 +2436,6 @@ TamguPredicate* TamguPredicateKnowledgeBaseFunction::Duplicate(Tamgu* context, T
     p = (TamguPredicateKnowledgeBaseFunction*)Newinstance(0);
 
     long i, j;
-    for (i = 0; i < parameters.size(); i++) {
-        e = parameters[i]->ExtractPredicateVariables(context, dom, NULL, NULL, globalTamgu->GetThreadid(), true);
-        if (e == NULL) {
-            for (j = 0; j < i; j++) {
-                //These elements will be cleared in TamguPredicateRule::Evalue
-                if (p->parameters[j]->Type() == a_instance)
-                    p->parameters[j] = aNULL;
-            }
-            p->Release();
-            return NULL;
-        }
-
-        p->parameters.push_back(e);
-        e->Setprotect(0);
-    }
-
-    p->Setreference();
-    return p;
-}
-
-TamguPredicate* TamguPredicate::Duplicate(Tamgu* context, TamguDeclaration* dom) {
-    Tamgu * e;
-
-    TamguPredicate* p;
-
-    if (context == NULL && dom == NULL) {
-        p = new TamguPredicate(globalTamgu, name);
-        for (long i = 0; i < parameters.size(); i++) {
-            e = parameters[i]->Atom(true);
-            p->parameters.push_back(e);
-        }
-        p->Setreference();
-        return p;
-    }
-
-    p = new TamguPredicate(globalTamgu, name);
-
-    p->negation = negation;
-
-    long i, j;
-    short idthread = globalTamgu->GetThreadid();
     for (i = 0; i < parameters.size(); i++) {
         e = parameters[i]->ExtractPredicateVariables(context, dom, NULL, NULL, idthread, true);
         if (e == NULL) {
@@ -2497,7 +2456,47 @@ TamguPredicate* TamguPredicate::Duplicate(Tamgu* context, TamguDeclaration* dom)
     return p;
 }
 
-TamguPredicate* TamguDependency::Duplicate(Tamgu* context, TamguDeclaration* dom) {
+TamguPredicate* TamguPredicate::Duplicate(Tamgu* context, TamguDeclaration* dom, short idthread) {
+    Tamgu * e;
+
+    TamguPredicate* p;
+
+    if (context == NULL && dom == NULL) {
+        p = new TamguPredicate(globalTamgu, name);
+        for (long i = 0; i < parameters.size(); i++) {
+            e = parameters[i]->Atom(true);
+            p->parameters.push_back(e);
+        }
+        p->Setreference();
+        return p;
+    }
+
+    p = new TamguPredicate(globalTamgu, name);
+
+    p->negation = negation;
+
+    long i, j;
+    for (i = 0; i < parameters.size(); i++) {
+        e = parameters[i]->ExtractPredicateVariables(context, dom, NULL, NULL, idthread, true);
+        if (e == NULL) {
+            for (j = 0; j < i; j++) {
+                //These elements will be cleared in TamguPredicateRule::Evalue
+                if (p->parameters[j]->Type() == a_instance)
+                    p->parameters[j] = aNULL;
+            }
+            p->Release();
+            return NULL;
+        }
+
+        p->parameters.push_back(e);
+        e->Setprotect(0);
+    }
+
+    p->Setreference();
+    return p;
+}
+
+TamguPredicate* TamguDependency::Duplicate(Tamgu* context, TamguDeclaration* dom, short idthread) {
     Tamgu * e;
 
     TamguDependency* p;
@@ -2526,7 +2525,6 @@ TamguPredicate* TamguDependency::Duplicate(Tamgu* context, TamguDeclaration* dom
     p->negation = negation;
 
     long i, j;
-    short idthread = globalTamgu->GetThreadid();
     for (i = 0; i < parameters.size(); i++) {
         e = parameters[i]->ExtractPredicateVariables(context, dom, NULL, NULL, idthread, true);
         if (e == NULL) {
@@ -3025,6 +3023,24 @@ void Displaypredicatestack(const char* ty, TamguDeclaration* dom, TamguPredicate
     if (displayed)
         PreLocalPrint(s.str());
 }
+
+//---------------------------------------------------------------------
+
+Tamgu* TamguPredicateRuleItem::Unify(Tamgu* context, TamguDeclaration* dom, basebin_hash<TamguPredicateVariableInstance*>* dico, short idthread) {
+    if (item->isConst())
+        return item;
+    
+    if (item->isPredicate()) {
+        TamguPredicate* kvpred = ((TamguPredicate*)item)->Duplicate(context, dom, idthread);
+        if (kvpred == NULL)
+            return NULL;
+        kvpred->set(negation,disjunction);
+        return kvpred;
+    }
+    
+    return new TamguPredicateLocalInstruction(globalTamgu, dico, item, negation, disjunction);
+}
+
 //---------------------------------------------------------------------
 
 class localpredict {
@@ -3476,6 +3492,7 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
     VECTE<Tamgu*> rulegoals;
     basebin_hash<Tamgu*> basedomain = dom->declarations;
     std::unique_ptr<basebin_hash<TamguPredicateVariableInstance*> > refdico(new basebin_hash<TamguPredicateVariableInstance*>);
+    Tamgu* e;
 
     for (i = 0; i < sz; i++) {
         rb = rulebase[i];
@@ -3510,30 +3527,15 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
 
             localres = aTRUE;
             if (rb->instructions.size() != 0) {
-                TamguPredicateRuleItem* ee;
                 for (j = 0; j < rb->instructions.size(); j++) {
-                    ee = (TamguPredicateRuleItem*)rb->instructions[j];
-                    if (ee->item->isConst()) {
-                        rulegoals.push_back(ee->item);
+                    e = ((TamguPredicateRuleItem*)rb->instructions[j])->Unify(this, dom, dico, threadowner);
+                    if (e ==  NULL) {
+                        localres = aFALSE;
+                        break;
                     }
-                    else {
-                        if (ee->item->isPredicate()) {
-                            //In that case, it is worth noting that the object IS NOT STORED in the garbage collector
-                            //The same applies to kpredi below... We will then be able to destroy them in one single pass
-                            kvpred = ((TamguPredicate*)ee->item)->Duplicate(this, dom);
-                            if (kvpred == NULL)  {
-                                localres = aFALSE;
-                                break;
-                            }
-                            kvpred->set(ee->isNegation(), ee->disjunction);
-                            rulegoals.push_back(kvpred);
-                        }
-                        else {
-                            rulegoals.push_back(new TamguPredicateLocalInstruction(globalTamgu, dico, ee->item, ee->isNegation(), ee->disjunction));
-                        }
-                    }
+                    rulegoals.push_back(e);
                 }
-
+                
                 if (localres == aTRUE) {
                     for (j = rulegoals.size() - 1; j >= 0; j--)
                         Oo->localgoals.insert(posreplace, rulegoals[j]);

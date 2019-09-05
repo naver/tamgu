@@ -633,7 +633,7 @@ public:
 	Tamgu* Map(short idthread);
 
 
-	virtual TamguPredicate* Duplicate(Tamgu* context, TamguDeclaration* d);
+	virtual TamguPredicate* Duplicate(Tamgu* context, TamguDeclaration* d, short idthread);
 	TamguPredicate* Copyfrom(Tamgu* context, TamguDeclaration* d, TamguPredicate* h, short);
 
 	Tamgu* Parameter(size_t i) {
@@ -801,7 +801,7 @@ public:
 
 	void Resetintvariable(TamguDeclaration* dom, short idthread);
 
-	TamguPredicate* Duplicate(Tamgu* context, TamguDeclaration* d);
+	TamguPredicate* Duplicate(Tamgu* context, TamguDeclaration* d, short idthread);
 	bool Unify(TamguDeclaration* dom, Tamgu* a);
 
 	Tamgu* Newinstance(short idthread, Tamgu* f = NULL) {
@@ -937,7 +937,7 @@ public:
 		p->parameters.clear();
 	}
 
-	TamguPredicate* Duplicate(Tamgu* context, TamguDeclaration* d);
+	TamguPredicate* Duplicate(Tamgu* context, TamguDeclaration* d, short idthread);
 
 	virtual Tamgu* Newinstance(short idthread, Tamgu* f = NULL) {
 		TamguPredicateKnowledgeBaseFunction* p = new TamguPredicateKnowledgeBaseFunction(globalTamgu, action);
@@ -1226,6 +1226,7 @@ public:
 		return disjunction;
 	}
 
+    Tamgu* Unify(Tamgu* context, TamguDeclaration* dom, basebin_hash<TamguPredicateVariableInstance*>* dico, short idthread);
 };
 
 class TamguPredicateLocalInstruction : public TamguReference {
@@ -1247,7 +1248,6 @@ public:
 		instruction = e;
 		success = false;
 	}
-
 
 	short Type() {
 		return a_predicateevaluate;

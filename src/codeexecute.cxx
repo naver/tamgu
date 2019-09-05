@@ -2425,7 +2425,7 @@ Tamgu* TamguInstructionAtomicAFFECTATION::Eval(Tamgu* environment, Tamgu* value,
     }
     
     Tamgu* var = variable->Eval(environment, aNULL, idthread);
-    if (var->isError())
+    if (var->isError() || var->isNULL())
         return var;
     
 	bool aff = var->checkAffectation();

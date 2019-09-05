@@ -39,7 +39,7 @@ public:
 	}
 
 	Exporting Tamgu* PredicateEvalue(TamguInstructionEvaluate* context, VECTE<Tamgu*>& stack, TamguPredicate* currenthead, long depth);
-	Exporting TamguPredicate* Duplicate(Tamgu* context, TamguDeclaration* dom);
+	Exporting TamguPredicate* Duplicate(Tamgu* context, TamguDeclaration* dom, short idthread);
 	Exporting bool Checkparameters(TamguDeclaration*);
 };
 
@@ -82,7 +82,7 @@ public:
 	Exporting bool Checkparameters(TamguDeclaration*);
 
 	Exporting Tamgu* PredicateEvalue(TamguInstructionEvaluate* context, VECTE<Tamgu*>& stack, TamguPredicate* currenthead, long depth);
-	Exporting TamguPredicate* Duplicate(Tamgu* context, TamguDeclaration* dom);
+	Exporting TamguPredicate* Duplicate(Tamgu* context, TamguDeclaration* dom, short idthread);
 
 	Tamgu* Eval(Tamgu* context, Tamgu* obj, short idthread) {
 		if (context->Type() == a_predicateevaluate)
@@ -130,7 +130,7 @@ public:
 	Exporting bool Checkparameters(TamguDeclaration*);
 
 	Exporting Tamgu* PredicateEvalue(TamguInstructionEvaluate* context, VECTE<Tamgu*>& stack, TamguPredicate* currenthead, long depth);
-	Exporting TamguPredicate* Duplicate(Tamgu* context, TamguDeclaration* dom);
+	Exporting TamguPredicate* Duplicate(Tamgu* context, TamguDeclaration* dom, short idthread);
 
 	Tamgu* Eval(Tamgu* context, Tamgu* obj, short idthread) {
 		if (context->Type() == a_predicateevaluate)
@@ -182,7 +182,7 @@ public:
 	}
 
 	Exporting Tamgu* PredicateEvalue(TamguInstructionEvaluate* context, VECTE<Tamgu*>& stack, TamguPredicate* currenthead, long depth);
-	Exporting TamguPredicate* Duplicate(Tamgu* context, TamguDeclaration* dom);
+	Exporting TamguPredicate* Duplicate(Tamgu* context, TamguDeclaration* dom, short idthread);
 	Exporting bool Checkparameters(TamguDeclaration*);
 
 
