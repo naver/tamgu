@@ -19,6 +19,51 @@
 #include "tamgusynode.h"
 
 //----------------------------------------------------------------------------------------------------
+Exporting TamguPredicateVariableInstance* TamguGlobal::Providepvi(short n) {
+    if (globalLOCK)
+        return new TamguPredicateVariableInstance(predicatename++, n);
+    
+    TamguPredicateVariableInstance* kvi;
+    if (pviempties.last > 0) {
+        kvi = pvireservoire[pviempties.backpop()];
+        kvi->labelname = n;
+        kvi->value = aNOELEMENT;
+        kvi->name = predicatename++;
+        kvi->used = true;
+        return kvi;
+    }
+    
+    long mx = pvireservoire.size();
+    
+    while (pviidx < mx) {
+        if (!pvireservoire[pviidx]->used) {
+            kvi = pvireservoire[pviidx++];
+            kvi->labelname = n;
+            kvi->value = aNOELEMENT;
+            kvi->name = predicatename++;
+            kvi->used = true;
+            return kvi;
+        }
+        pviidx++;
+    }
+    
+    long sz = mx >> 2;
+    pvireservoire.resize(mx + sz);
+    pviidx = mx + sz;
+    for (long i = mx; i < pviidx; i++)
+        pvireservoire[i] = new TamguPredicateVariableInstance(i);
+    
+    pviidx = mx;
+    kvi = pvireservoire[pviidx++];
+    kvi->labelname = n;
+    kvi->value = aNOELEMENT;
+    kvi->name = predicatename++;
+    kvi->used = true;
+    return kvi;
+}
+
+//----------------------------------------------------------------------------------------------------
+
 
 Exporting bool TamguPredicateBetween::Checkparameters(TamguDeclaration* dom) {
     if (!parameters[0]->isUnified(dom) || !parameters[1]->isUnified(dom))
@@ -607,7 +652,7 @@ Tamgu* ProcPredicatePred(Tamgu* context, short idthread, TamguCall* callfunc) {
 
 Tamgu* ProcDependencies(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     int i;
-
+    
     bool trace = false;
     if (callfunc->Size())
         trace = callfunc->Evaluate(0, contextualpattern, idthread)->Boolean();
@@ -690,4 +735,9 @@ void TamguGlobal::RecordPredicates() {
     RecordOneProcedure("succ", &ProcPredicateSucc, P_ONE);
     RecordOneProcedure("pred", &ProcPredicatePred, P_ONE);
     RecordOneProcedure("_dependencies", &ProcDependencies, P_NONE | P_ONE);
+
+    for (long i = 0; i < 1000; i++)
+        pvireservoire.push_back(new TamguPredicateVariableInstance(i));
+    
+    pviidx = 0;
 }

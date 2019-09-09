@@ -29,7 +29,6 @@ static const char* d_kb = "kb";
 static const char* d_rule = "rule";
 //-------------------------------------------------------------------------------------------------
 
-
 //A little bit of explanation.
 //To avoid creating useless elements in the binmap, we initialize the actual name of a "^dependency" (code is a_modifydependency)
 //with predicatedependency, which allows for a much more compact storage in the declaration map.
@@ -375,15 +374,35 @@ void TamguPredicateVariableInstance::Resetreference(short inc) {
     if (value != aNOELEMENT)
         value->Resetreferencenoprotect(inc);
 
-    TamguReference::Resetreference(inc);
+    reference -= inc;
+    if (reference <= 0) {
+        if (!protect) {
+            if (idx == -1)
+                delete this;
+            else {
+                protect = true;
+                used = false;
+                globalTamgu->pviempties.push_back(idx);
+            }
+        }
+    }
 }
 
 void TamguPredicateVariableInstance::Resetreferencenoprotect(short inc) {
     if (value != aNOELEMENT)
         value->Resetreferencenoprotect(inc);
-
-    protect = 0;
-    TamguReference::Resetreference(inc);
+    
+    reference -= inc;
+    if (reference <= 0) {
+        if (idx == -1)
+            delete this;
+        else {
+            protect = true;
+            reference = 0;
+            used = false;
+            globalTamgu->pviempties.push_back(idx);
+        }
+    }
 }
 
 void TamguPredicateVariableInstance::affiche() {
@@ -1789,7 +1808,7 @@ Tamgu* Tamgusynode::ExtractPredicateVariables(Tamgu* context, TamguDeclaration* 
     //The previousinstance is the element which has been extracted from the goal stack...
     TamguPredicateVariableInstance* kpvi;
     if (name == a_universal) {
-        kpvi = new TamguPredicateVariableInstance(predicatename++, a_universal);
+        kpvi = globalTamgu->Providepvi(a_universal);
         kpvi->Setreference();
         dom->declarations[kpvi->Name()] = kpvi;
     }
@@ -1797,7 +1816,7 @@ Tamgu* Tamgusynode::ExtractPredicateVariables(Tamgu* context, TamguDeclaration* 
         if (context->Checkdico(name))
             kpvi = context->Getdico(name);
         else {
-            kpvi = new TamguPredicateVariableInstance(predicatename++, name);
+            kpvi = globalTamgu->Providepvi(name);
             context->Setdico(name, kpvi);
             kpvi->Setreference();
             dom->declarations[kpvi->Name()] = kpvi;
@@ -1821,7 +1840,7 @@ Tamgu* TamguBasePredicateVariable::ExtractPredicateVariables(Tamgu* context, Tam
     if (context->Checkdico(name))
         kpvi = context->Getdico(name);
     else {
-        kpvi = new TamguPredicateVariableInstance(predicatename++, name);
+        kpvi = globalTamgu->Providepvi(name);
         context->Setdico(name, kpvi);
         kpvi->Setreference();
         dom->declarations[kpvi->Name()] = kpvi;
@@ -1896,7 +1915,7 @@ Tamgu* Tamgu::ExtractPredicateVariables(Tamgu* contextualpattern, TamguDeclarati
                 //In this case, we need to duplicate this variable, in order to clean it later on...
                 //Otherwise, it will keep its value for the rest of the evaluation
                 //we create a new predicate instance, with the same label but a new name...
-                C = new TamguPredicateVariableInstance(predicatename++, ln);
+                C = globalTamgu->Providepvi(ln);
                 if (e->isConst()) {
                     //then we store our value...
                     C->value = e->Atom(true);
@@ -2008,7 +2027,7 @@ Tamgu* TamguConstvectormerge::ExtractPredicateVariables(Tamgu* context, TamguDec
         localvect->Release();
     }
     
-    TamguPredicateVariableInstance* kpvi = new TamguPredicateVariableInstance(predicatename++, a_map);
+    TamguPredicateVariableInstance* kpvi = globalTamgu->Providepvi(a_map);
 
     if (isMerge())
         kpvi->merge = true;
@@ -2148,7 +2167,7 @@ Tamgu* Tamguvector::ExtractPredicateVariables(Tamgu* context, TamguDeclaration* 
     }
 
     if (root || merge) {
-        kpvi = new TamguPredicateVariableInstance(predicatename++, a_vector);
+        kpvi = globalTamgu->Providepvi(a_vector);
 
         kpvi->value = vect;
         dom->declarations[kpvi->name] = kpvi;
@@ -2254,7 +2273,7 @@ Tamgu* TamguConstmap::ExtractPredicateVariables(Tamgu* context, TamguDeclaration
     iter->Release();
 
     if (root || merge) {
-        TamguPredicateVariableInstance* kpvi = new TamguPredicateVariableInstance(predicatename++, a_map);
+        TamguPredicateVariableInstance* kpvi = globalTamgu->Providepvi(a_map);
 
         kpvi->value = kmap;
         dom->declarations[kpvi->name] = kpvi;
@@ -2319,7 +2338,7 @@ Tamgu* TamguPredicateTerm::ExtractPredicateVariables(Tamgu* context, TamguDeclar
     }
 
     if (root) {
-        TamguPredicateVariableInstance* kpvi = new TamguPredicateVariableInstance(predicatename++, a_term);
+        TamguPredicateVariableInstance* kpvi = globalTamgu->Providepvi(a_term);
 
         kpvi->value = term;
         kpvi->Setreference();
@@ -2399,7 +2418,7 @@ Tamgu* TamguPredicateConcept::ExtractPredicateVariables(Tamgu* context, TamguDec
         e = concept;
 
     if (root) {
-        TamguPredicateVariableInstance* kpvi = new TamguPredicateVariableInstance(predicatename++, a_term);
+        TamguPredicateVariableInstance* kpvi = globalTamgu->Providepvi(a_term);
 
         kpvi->value = e;
         kpvi->Setreference();
@@ -2573,7 +2592,7 @@ Exporting Tamgu* Tamgu::EvaluePredicateVariables(Tamgu* context, TamguDeclaratio
 }
 
 Tamgu* TamguBasePredicateVariable::EvaluePredicateVariables(Tamgu* context, TamguDeclaration* dom, short idthread) {
-    TamguPredicateVariableInstance* kpi = new TamguPredicateVariableInstance(predicatename++, name);
+    TamguPredicateVariableInstance* kpi = globalTamgu->Providepvi(name);
     dom->declarations[kpi->name] = kpi;
     return kpi;
 }
@@ -4025,7 +4044,7 @@ Tamgu* TamguInstructionLaunch::Eval(Tamgu* context, Tamgu* val, short idthread) 
     //head is our definition
     //First we create an actionable TamguPredicate
     long i;
-
+    
     Tamgu* dom;
     if (val == aAFFECTATION)
         dom = globalTamgu->Topstack(idthread);

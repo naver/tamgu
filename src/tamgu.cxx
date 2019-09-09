@@ -40,7 +40,7 @@
 #include "tamgutaskell.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 0.96.4 build 02";
+const char* tamgu_version = "Tamgu 0.96.4 build 03";
 
 Tamgu* booleantamgu[2];
 
@@ -652,6 +652,9 @@ TamguGlobal::~TamguGlobal() {
     for (i = 0; i < declarationcleanreservoire.size(); i++)
         delete declarationcleanreservoire[i];
 
+    for (i = 0; i < pvireservoire.size(); i++)
+        delete pvireservoire[i];
+    
     atomic_iterator<string, ThreadLock*> itlocktables(locktables);
     atomic_iterator<string, LockedThread*> itwaitstrings(waitstrings);
     atomic_iterator<long, LockedThread*> itthreadvariables(threadvariables);

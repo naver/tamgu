@@ -81,6 +81,7 @@ class Tamguselfbuff;
 class FstCompanion;
 class TamguDoubleSideAutomaton;
 class TamguCallFibre;
+class TamguPredicateVariableInstance;
 
 //--------------------------------------------------------------------
 typedef bool(*TamguExternalModule)(TamguGlobal*, string);
@@ -396,6 +397,10 @@ public:
 	long indexidx;
 	Exporting TamguIndex* Provideindex(TamguIndex*, short);
 
+    vector<TamguPredicateVariableInstance*> pvireservoire;
+    VECTE<long> pviempties;
+    long pviidx;
+    Exporting TamguPredicateVariableInstance* Providepvi(short);
 
 	vector<Tamgumapssbuff*> mapssreservoire;
 	VECTE<long> mapssempties;

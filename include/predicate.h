@@ -145,15 +145,24 @@ class TamguPredicateVariableInstance : public TamguBasePredicateVariable {
 public:
 
 	Tamgu* value;
+    long idx;
 	short labelname;
 	bool merge;
+    char used;
 
-	TamguPredicateVariableInstance(short n, short ln) : labelname(ln), value(aNOELEMENT), merge(false), TamguBasePredicateVariable(n) {}
+    TamguPredicateVariableInstance(long i) : idx(i), labelname(-1), value(aNOELEMENT), merge(false), TamguBasePredicateVariable(-1), used(0) {}
+	TamguPredicateVariableInstance(short n, short ln) : idx(-1), labelname(ln), value(aNOELEMENT), merge(false), used(2), TamguBasePredicateVariable(n) {}
 
 	bool isToMerge() {
 		return merge;
 	}
 
+    bool Candelete() {
+        if (used == 2)
+            return true;
+        return false;
+    }
+    
 	short Type() {
 		return a_instance;
 	}
