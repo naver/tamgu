@@ -65,16 +65,6 @@ all: install libtamgu tamgu
 	$(libtamgu)
 	$(tamgu)
 
-cleanlibs: install
-	$(MAKE) -C allmaps clean
-	$(MAKE) -C libpython clean
-	$(MAKE) -C libsqlite clean
-	$(MAKE) -C libcurl clean
-	$(MAKE) -C libxml clean
-	$(MAKE) -C liblinear clean
-	$(MAKE) -C libword2vec clean
-	$(MAKE) -C libwapiti clean
-
 install:
 	mkdir -p bin
 	mkdir -p $(BINPATH)

@@ -2074,7 +2074,7 @@ Tamgu* Tamgustring::MethodLast(Tamgu* contextualpattern, short idthread, TamguCa
     string res(String());
     if (res.size() == 0)
         return aNULL;
-    res = c_char_index(res, res.size() - 1);
+    res = c_char_index(res, size_c(res) - 1);
     return globalTamgu->Providestring(res);
 }
 
@@ -2812,7 +2812,7 @@ Tamgu* Tamgua_string::MethodLast(Tamgu* contextualpattern, short idthread, Tamgu
     string res(value.value());
     if (res.size() == 0)
         return aNULL;
-    res = c_char_index(res, res.size() - 1);
+    res = c_char_index(res, size_c(res) - 1);
     return new Tamgua_string(res);
 }
 

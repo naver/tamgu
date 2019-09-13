@@ -72,31 +72,85 @@ bool check_ascii(unsigned char* src, long len, long& i) {
 }
 
 #ifdef AVXSUPPORT
+//We have to take into account the fact that wchar_t is 16 bits on Windows, while it is 32 bits on all other platforms...
+
+
 static const __m256i checkifbigzero = _mm256_set1_epi8(0xFF);
+
+//When we increment by 1 on Windows, we move by increment of 16 bits in memory. 256/16 = 16
+//When we increment by 1 on Linux, we move by increment of 32 bits in memory. 256/32 = 8
+
+//To detect if we have a potential large character (an emoji)
+
+#ifdef WIN32
+#define large_char 0x8000
+#define stringincrement 16
+#define mset_256 _mm256_set1_epi16
+#define mcomp_256 _mm256_cmpeq_epi16
+#else
+#define large_char 0x10000
+#define stringincrement 8
+#define mset_256 _mm256_set1_epi32
+#define mcomp_256 _mm256_cmpeq_epi32
+#endif
+
+bool check_large(wchar_t* src, long lensrc, long& i) {
+        //First we try to find the section in which the first character might occur
+    
+    __m256i firstchar = mset_256(large_char);
+    __m256i current_bytes = _mm256_setzero_si256();
+    
+    wchar_t* s;
+    
+        //We then scan our string for this first character...
+    for (; (i + stringincrement - 1) < lensrc; i += stringincrement) {
+            //we load our section, the length should be larger than stringincrement
+        s=src+i;
+        current_bytes = _mm256_loadu_si256((const __m256i *)s);
+        if (!_mm256_testz_si256(firstchar, current_bytes))
+            return true;
+    }
+
+	if (i < lensrc) {
+		wchar_t buffer[stringincrement + 1];
+		for (long j = 0; j < stringincrement; j++) {
+			if ((i + j) < lensrc)
+				buffer[j] = src[i + j];
+			else
+				buffer[j] = 0;
+		}
+		current_bytes = _mm256_loadu_si256((const __m256i *)buffer);
+		if (!_mm256_testz_si256(firstchar, current_bytes))
+			return true;
+	}
+
+    return false;
+}
 
 long find_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, long i) {
     //First we try to find the section in which the first character might occur
     
-    __m256i firstchar = _mm256_set1_epi16(search[0]);
+    wchar_t c = search[0];
+
+    __m256i firstchar = mset_256(c);
     __m256i current_bytes = _mm256_setzero_si256();
     
     wchar_t* s=src;
     long j;
-	wchar_t c = search[0];
 
     //We then scan our string for this first character...
-    for (; (i + 7) < lensrc; i += 8) {
-        //we load our section, the length should be larger than 8
+    for (; (i + stringincrement - 1) < lensrc; i += stringincrement) {
+        //we load our section, the length should be larger than stringincrement
         s=src+i;
         current_bytes = _mm256_loadu_si256((const __m256i *)s);
         
         //we check if we have a the first character of our string somewhere
         //in this 8 character window...
-        current_bytes = _mm256_cmpeq_epi16(firstchar, current_bytes);
+        current_bytes = mcomp_256(firstchar, current_bytes);
         if (!_mm256_testz_si256(current_bytes, checkifbigzero)) {
             //Our character is present, we now try to find where it is...
             //we find it in this section...
-            for (j=0; j<8; j++) {
+            for (j=0; j < stringincrement; j++) {
                 if (s[j] == c) {
                     if (lensearch==1 || wcharcomp(s+j+1, search+1, lensearch-2))
                         return (i+j);
@@ -121,13 +175,13 @@ long rfind_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, lon
         return -1;
     
     //First we try to find the section in which the first character might occur
-    
-    __m256i firstchar = _mm256_set1_epi16(search[0]);
+    wchar_t c = search[0];
+
+    __m256i firstchar = mset_256(c);
     __m256i current_bytes = _mm256_setzero_si256();
     
     wchar_t* s=src;
     long j;
-    wchar_t c = search[0];
 
     if ((lensrc-i) < lensearch)
         i-=lensearch-(lensrc-i);
@@ -135,25 +189,25 @@ long rfind_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, lon
         i=0;
     
     //We then scan our string for this last character...
-    while (i>=8) {
+    while (i>=stringincrement) {
         //we load our section, the length should be larger than 8
         s=src+i;
         current_bytes = _mm256_loadu_si256((const __m256i *)s);
-        current_bytes = _mm256_cmpeq_epi16(firstchar, current_bytes);
+        current_bytes = mcomp_256(firstchar, current_bytes);
 
         if (!_mm256_testz_si256(current_bytes, checkifbigzero)) {
             //we find it in this section...
-            for (j=7; j>=0; j--) {
+            for (j=stringincrement-1; j>=0; j--) {
                 if (s[j] == c) {
                     if (lensearch==1 || wcharcomp(s+j+1, search+1, lensearch-2))
                         return (i+j);
                 }
             }
         }
-        i-=8;
+        i -= stringincrement;
     }
 
-    for (j=8+i; j>=0; j--) {
+    for (j=stringincrement+i; j>=0; j--) {
         if (src[j] == c) {
             if (lensearch==1 || wcharcomp(src+j+1, search+1, lensearch-2))
                 return j;
@@ -165,27 +219,27 @@ long rfind_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, lon
 
 void find_intel_all(wchar_t* src, wchar_t* search, long lensrc, long lensearch, vector<long>& pos, long i) {
     //First we try to find the section in which the first character might occur
-    __m256i firstchar = _mm256_set1_epi16(search[0]);
+    wchar_t c = search[0];
+
+    __m256i firstchar = mset_256(c);
     __m256i current_bytes = _mm256_setzero_si256();
     
     wchar_t* s=src;
     long j;
-
-    wchar_t c = search[0];
     
     //We then scan our string for this first character...
-    for (; (i + 7) < lensrc; i += 8) {
+    for (; (i + stringincrement-1) < lensrc; i += stringincrement) {
         //we load our section, the length should be larger than 16
         s=src+i;
         current_bytes = _mm256_loadu_si256((const __m256i *)s);
         
         //we check if we have a the first character of our string somewhere
         //in this 8 character window...
-        current_bytes = _mm256_cmpeq_epi16(firstchar, current_bytes);
+        current_bytes = mcomp_256(firstchar, current_bytes);
         if (!_mm256_testz_si256(current_bytes, checkifbigzero)) {
             //Our character is present, we now try to find where it is...
             //we find it in this section...
-            for (j=0; j<8; j++) {
+            for (j=0; j<stringincrement; j++) {
                 if (s[j] == c) {
                     if (lensearch==1 || wcharcomp(s+j+1, search+1, lensearch-2))
                         pos.push_back(i+j);
@@ -204,28 +258,66 @@ void find_intel_all(wchar_t* src, wchar_t* search, long lensrc, long lensearch, 
 }
 #else
 //If we do not have AVXSUPPORT
-long find_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, long i) {
-    //First we try to find the section in which the first character might occur
+//When we increment by 1 on Linux, we move by increment of 32 bits in memory. 128/32 = 4
 
-    wchar_t c = search[0];
-    __m128i firstchar = _mm_set1_epi16(c);
+#define stringincrement 4
+#define mset_128 _mm_set1_epi32
+#define mcomp_128 _mm_cmpeq_epi32
+#define large_char 0x10000
+
+bool check_large(wchar_t* src, long lensrc, long& i) {
+    __m128i firstchar = mset_128(large_char);
     __m128i current_bytes = _mm_setzero_si128();
+    
+    wchar_t* s;
+    
+        //We then scan our string for this first character...
+    for (; (i + stringincrement - 1) < lensrc; i += stringincrement) {
+            //we load our section, the length should be larger than stringincrement
+        s=src+i;
+        current_bytes = _mm_loadu_si128((const __m128i *)s);
+        if (!_mm_testz_si128(firstchar, current_bytes))
+            return true;
+    }
+    
+    if (i < lensrc) {
+        wchar_t buffer[stringincrement + 1];
+        for (long j = 0; j < stringincrement; j++) {
+            if ((i + j) < lensrc)
+                buffer[j] = src[i + j];
+            else
+                buffer[j] = 0;
+        }
+        current_bytes = _mm_loadu_si128((const __m128i *)buffer);
+        if (!_mm_testz_si128(firstchar, current_bytes))
+            return true;
+    }
+    
+    return false;
+}
 
+long find_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, long i) {
+        //First we try to find the section in which the first character might occur
+    
+    wchar_t c = search[0];
+    __m128i firstchar = mset_128(c);
+    __m128i current_bytes = _mm_setzero_si128();
+    
     wchar_t* s=src;
     long j;
-    //We then scan our string for this first character...
-    for (; (i + 3) < lensrc; i += 4) {
-        //we load our section, the length should be larger than 4
+        //We then scan our string for this first character...
+    for (; (i + stringincrement - 1) < lensrc; i += stringincrement) {
+            //we load our section, the length should be larger than 4
         s=src+i;
         current_bytes = _mm_loadu_si128((const __m128i *)s);
         
-        //we check if we have a the first character of our string somewhere
-        //in this 16 character window...
-        current_bytes = _mm_cmpeq_epi16(firstchar, current_bytes);
+            //we check if we have a the first character of our string somewhere
+            //in this 16 character window...
+        current_bytes = mcomp_128(firstchar, current_bytes);
         if (!_mm_testz_si128(current_bytes, checkifzero)) {
-            //Our character is present, we now try to find where it is...
-            //we find it in this section...
-            for (j=0; j<4; j++) {
+                //Our character is present, we now try to find where it is...
+                //we find it in this section...
+            for (j=0; j < stringincrement; j++) {
                 if (s[j] == c) {
                     if (lensearch==1 || wcharcomp(s+j+1, search+1, lensearch-2))
                         return (i+j);
@@ -233,7 +325,7 @@ long find_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, long
             }
         }
     }
-
+    
     lensrc-=lensearch;
     for (;i<=lensrc;i++) {
         if (src[i] == c) {
@@ -241,47 +333,47 @@ long find_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, long
                 return i;
         }
     }
-
+    
     return -1;
 }
 
 long rfind_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, long i) {
-    //First we try to find the section in which the first character might occur
+        //First we try to find the section in which the first character might occur
     wchar_t c = search[0];
     
-    __m128i firstchar = _mm_set1_epi16(c);
+    __m128i firstchar = mset_128(c);
     __m128i current_bytes = _mm_setzero_si128();
-
+    
     wchar_t* s=src;
     long j;
     if ((lensrc-i) < lensearch)
         i-=lensearch-(lensrc-i);
     if (i<0)
         i=0;
-
-    //We then scan our string for this first character...
-    while (i>=4) {
-        //we load our section, the length should be larger than 16
+    
+        //We then scan our string for this first character...
+    while (i >= stringincrement) {
+            //we load our section, the length should be larger than 16
         s=src+i;
-
+        
         current_bytes = _mm_loadu_si128((const __m128i *)s);
         
-        //we check if we have a the first character of our string somewhere
-        //in this 16 character window...
-        current_bytes = _mm_cmpeq_epi16(firstchar, current_bytes);
+            //we check if we have a the first character of our string somewhere
+            //in this 16 character window...
+        current_bytes = mcomp_128(firstchar, current_bytes);
         if (!_mm_testz_si128(current_bytes, checkifzero)) {
-            //we find it in this section...
-            for (j=3; j>=0; j--) {
+                //we find it in this section...
+            for (j = stringincrement - 1; j>=0; j--) {
                 if (s[j] == c) {
                     if (lensearch==1 || wcharcomp(s+j+1, search+1, lensearch-2))
                         return(i+j);
                 }
             }
         }
-        i-=4;
+        i -= stringincrement;
     }
     
-    for (j = 4+i; j>=0; j--) {
+    for (j = stringincrement + i; j>=0; j--) {
         if (src[j] == c) {
             if (lensearch==1 || wcharcomp(src+j+1, search+1, lensearch-2))
                 return j;
@@ -292,27 +384,27 @@ long rfind_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, lon
 }
 
 void find_intel_all(wchar_t* src, wchar_t* search, long lensrc, long lensearch, vector<long>& pos, long i) {
-    //First we try to find the section in which the first character might occur
-
+        //First we try to find the section in which the first character might occur
+    
     wchar_t c = search[0];
-    __m128i firstchar = _mm_set1_epi16(c);
+    __m128i firstchar = mset_128(c);
     __m128i current_bytes = _mm_setzero_si128();
     
     wchar_t* s=src;
     long j;
-    //We then scan our string for this first character...
-    for (; (i + 3) < lensrc; i += 4) {
-        //we load our section, the length should be larger than 16
+        //We then scan our string for this first character...
+    for (; (i + stringincrement - 1) < lensrc; i += stringincrement) {
+            //we load our section, the length should be larger than 16
         s=src+i;
         current_bytes = _mm_loadu_si128((const __m128i *)s);
         
-        //we check if we have a the first character of our string somewhere
-        //in this 16 character window...
-        current_bytes = _mm_cmpeq_epi16(firstchar, current_bytes);
+            //we check if we have a the first character of our string somewhere
+            //in this 16 character window...
+        current_bytes = mcomp_128(firstchar, current_bytes);
         if (!_mm_testz_si128(current_bytes, checkifzero)) {
-            //Our character is present, we now try to find where it is...
-            //we find it in this section...
-            for (j=0; j<4; j++) {
+                //Our character is present, we now try to find where it is...
+                //we find it in this section...
+            for (j=0; j < stringincrement; j++) {
                 if (s[j] == c) {
                     if (lensearch==1 || wcharcomp(s+j+1, search+1, lensearch-2))
                         pos.push_back(i+j);
@@ -330,6 +422,7 @@ void find_intel_all(wchar_t* src, wchar_t* search, long lensrc, long lensearch, 
     }
 }
 #endif
+
 
 long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, long lensearch, long i) {
     //First we try to find the section in which the first character might occur
@@ -5297,7 +5390,7 @@ Exporting bool c_utf16_to_unicode(uint32_t& r, uint32_t code, bool second) {
         return true;
     }
     
-        //else r is code...
+    //else r is code...
     r = code;
     return false;
 }
@@ -5316,8 +5409,17 @@ Exporting long c_chartobyteposition(unsigned char* contenu, long sz, long charpo
     charpos-=i;
 #endif
     
+    long nb;
     while (charpos > 0 && i<sz) {
-        i += 1 + c_test_utf8(contenu + i);
+        nb = c_test_utf8(contenu + i);
+        if (nb == 3 && c_is_emoji(contenu,i)) {
+            i++;
+            while (c_is_emojicomp(contenu, i)) {
+                i++;
+            }
+        }
+        else
+            i += nb + 1;
         charpos--;
     }
     return i;
@@ -5325,8 +5427,17 @@ Exporting long c_chartobyteposition(unsigned char* contenu, long sz, long charpo
 
 Exporting long c_chartobyteposition(unsigned char* contenu, long charpos) {
     long i = 0;
+    long nb;
     while (charpos > 0 && contenu[i]) {
-        i += 1 + c_test_utf8(contenu + i);
+        nb = c_test_utf8(contenu + i);
+        if (nb == 3 && c_is_emoji(contenu,i)) {
+            i++;
+            while (c_is_emojicomp(contenu, i)) {
+                i++;
+            }
+        }
+        else
+            i += nb + 1;
         charpos--;
     }
     return i;
@@ -5334,26 +5445,53 @@ Exporting long c_chartobyteposition(unsigned char* contenu, long charpos) {
 
 Exporting long c_bytetocharposition(unsigned char* contenu, long charpos) {
     long i = 0;
-    long nb = 0;
+    long sz = 0;
+    long nb;
     while (i < charpos) {
-        i += 1 + c_test_utf8(contenu + i);
-        nb++;
+        nb = c_test_utf8(contenu + i);
+        if (nb == 3 && c_is_emoji(contenu,i)) {
+            i++;
+            while (c_is_emojicomp(contenu, i)) {
+                i++;
+            }
+        }
+        else
+            i += nb + 1;
+        sz++;
     }
-    return nb;
+    return sz;
 }
 
-Exporting long c_bytetocharpositionidx(unsigned char* contenu, long charpos, long& nb, long& i) {
+Exporting long c_bytetocharpositionidx(unsigned char* contenu, long charpos, long& sz, long& i) {
+    long nb;
     while (i<charpos) {
-        i += 1 + c_test_utf8(contenu + i);
-        nb++;
+        nb = c_test_utf8(contenu + i);
+        if (nb == 3 && c_is_emoji(contenu,i)) {
+            i++;
+            while (c_is_emojicomp(contenu, i)) {
+                i++;
+            }
+        }
+        else
+            i += nb + 1;
+        sz++;
     }
-    return nb;
+    return sz;
 }
 
-Exporting long c_chartobytepositionidx(unsigned char* contenu, long charpos, long& nb, long& i) {
+Exporting long c_chartobytepositionidx(unsigned char* contenu, long charpos, long& sz, long& i) {
+    long nb;
     while (charpos>0) {
-        i += 1 + c_test_utf8(contenu + i);
-        nb++;
+        nb = c_test_utf8(contenu + i);
+        if (nb == 3 && c_is_emoji(contenu,i)) {
+            i++;
+            while (c_is_emojicomp(contenu, i)) {
+                i++;
+            }
+        }
+        else
+            i += nb + 1;
+        sz++;
         charpos--;
     }
     return i;
@@ -5396,19 +5534,35 @@ wstring getfullchar(wstring& s, long& i) {
 	TAMGUCHAR c = getachar(s, i);
 	wstring res;
 	store_char_check_utf16(res, c);
-	if (c_is_emoji(c)) {
+	if (((c & 0x1F000) == 0x1F000) && c_is_emoji(c)) {
 		long j = i + 1;
-		long md = i;
 		c = getachar(s, j);
 		while (c_is_emojicomp(c)) {
-			md = j;
+			i = j++;
 			concat_char_check_utf16(res, c);
-			c = getachar(s, ++j);
+			c = getachar(s, j);
 		}
-		i = md;
 	}
 	return res;
 }
+
+void getafullchar(wstring& s, wstring& res, long& i) {
+    TAMGUCHAR c = getachar(s, i);
+	i++;
+    concat_char_check_utf16(res, c);
+    if (((c & 0x1F000) == 0x1F000) && c_is_emoji(c)) {
+        c = getachar(s, i);
+		i++;
+        long j = i;
+        while (c_is_emojicomp(c)) {
+            concat_char_check_utf16(res, c);
+            i = j;
+            c = getachar(s, j);
+			j++;
+        }
+    }
+}
+
 
 // Conversion strings
 #ifdef WSTRING_IS_UTF16
@@ -5461,66 +5615,180 @@ Exporting void concat_char_check_utf16(wstring& res, TAMGUCHAR code) {
 		concat_char_convert_utf16(res, code);
 }
 
-
-size_t size_w(wchar_t* w) {
-	size_t sz = 0;
+Exporting size_t size_w(wchar_t* w) {
+	wstring s;
 	long i = 0;
-	while (w[i] != 0) {
-		if ((w[i] & 0xD800) == 0xD800)
-			i++;
-		sz++;
-		i++;
-	}
-	return sz;
+	while (w[i] != 0)
+		s += w[i++];
+	return size_w(s);
 }
 
 size_t size_w(wstring& w) {
-	size_t sz = 0;
-	for (long i = 0; i < w.size(); i++) {
-		if ((w[i] & 0xD800) == 0xD800)
-			i++;
-		sz++;
-	}
-	return sz;
-}
+    long lg = w.size();
+	
+	long sz = 0;
+	long i = 0;
 
-size_t size_w(wstring& w, long& first) {
-	size_t sz = 0;
-	first = -1;
-	for (long i = 0; i < w.size(); i++) {
-		if ((w[i] & 0xD800) == 0xD800) {
-			//UTF16 large encoding
-			if (first == -1)
-				first = i;
-			i++;
+#ifdef INTELINTRINSICS
+        //we check if we have any large characters between 0 and ipos
+    if (!check_large(WSTR(w), lg, sz))
+        return lg;
+	i = sz;
+#endif
+
+	TAMGUCHAR c;
+	long j;
+	for (; i < lg; i++) {
+		if ((w[i] & 0xFF00) == 0xD800) {
+			c = getachar(w, i);
+			if (((c & 0x1F000) == 0x1F000) && c_is_emoji(c)) {
+				j = i + 1;
+				c = getachar(w, j);
+				while (c_is_emojicomp(c)) {
+					i = j++;
+					c = getachar(w, j);
+				}
+			}
 		}
 		sz++;
 	}
 	return sz;
 }
 
+size_t size_w(wstring& w, long& first) {
+    first = -1;
 
-//We convert a position in characters into an actual string position
-long convertchartoposutf16(wstring& w, long first, long i) {
-	long realpos = first;
-	while (first != i) {
-		if ((w[realpos] & 0xD800) == 0xD800)
-			realpos++;
-		realpos++;
-		first++;
+    long sz = 0;
+    long lg = w.size();
+    long i = 0;
+#ifdef INTELINTRINSICS
+        //we check if we have any large characters between 0 and ipos
+    if (!check_large(WSTR(w), lg, sz))
+        return lg;
+    i = sz;
+#endif
+
+	TAMGUCHAR c;
+	long j;
+	for (; i < lg; i++) {
+		if ((w[i] & 0xFF00) == 0xD800) {
+			if (first == -1)
+				first = i;
+			c = getachar(w, i);
+			if (((c & 0x1F000) == 0x1F000) && c_is_emoji(c)) {
+				j = i + 1;
+				c = getachar(w, j);
+				while (c_is_emojicomp(c)) {
+					i = j++;
+					c = getachar(w, j);
+				}
+			}
+		}
+		sz++;
 	}
-	return realpos;
+
+	return sz;
 }
 
-long convertpostocharutf16(wstring& w, long first, long i) {
-	long realpos = first;
-	while (realpos != i) {
-		if ((w[realpos] & 0xD800) == 0xD800)
-			realpos++;
-		realpos++;
+//We convert a position in characters into an actual string position
+long convertchartoposutf16(wstring& w, long first, long cpos) {
+	long  i = first;
+	long j;
+	TAMGUCHAR c;
+	while (first != cpos) {
+		if ((w[i] & 0xFF00) == 0xD800) {
+			i += getChar(w, i, c);
+			if (((c & 0x1F000) == 0x1F000) && c_is_emoji(c)) {
+				j = getChar(w, i, c);
+				while (c_is_emojicomp(c)) {
+					i += j;
+					j = getChar(w, i, c);
+				}
+			}
+		}
+		else
+            i++;
+		first++;
+	}
+	return i;
+}
+
+long convertpostocharutf16(wstring& w, long first, long spos) {
+	long  i = first;
+	long j;
+	TAMGUCHAR c;
+	while (i != spos) {
+		if ((w[i] & 0xFF00) == 0xD800) {
+			i += getChar(w, i, c);
+			if (((c & 0x1F000) == 0x1F000) && c_is_emoji(c)) {
+				j = getChar(w, i, c);
+				while (c_is_emojicomp(c)) {
+					i += j;
+					j = getChar(w, i, c);
+				}
+			}
+		}
+		else
+			i++;
 		first++;
 	}
 	return first;
+}
+
+Exporting long convertpostochar(wstring& w, long first, long spos) {
+#ifdef INTELINTRINSICS
+        //we check if we have any large characters between 0 and ipos
+	if (!check_large(WSTR(w), w.size(), first))
+        return spos;
+#endif
+    
+	long  i = first;
+	long j;
+	TAMGUCHAR c;
+	while (i != spos) {
+		if ((w[i] & 0xFF00) == 0xD800) {
+			i += getChar(w, i, c);
+			if (((c & 0x1F000) == 0x1F000) && c_is_emoji(c)) {
+				j = getChar(w, i, c);
+				while (c_is_emojicomp(c)) {
+					i += j;
+					j = getChar(w, i, c);
+				}
+			}
+		}
+		else
+			i++;
+		first++;
+	}
+	return first;
+}
+
+Exporting long convertchartopos(wstring& w, long first, long cpos) {
+#ifdef INTELINTRINSICS
+        //we check if we have any large characters between 0 and ipos
+	if (!check_large(WSTR(w), w.size(), first))
+        return cpos;
+#endif
+    
+	long  i = first;
+	long j;
+	TAMGUCHAR c;
+	while (first != cpos) {
+		if ((w[i] & 0xFF00) == 0xD800) {
+			i += getChar(w, i, c);
+			if (((c & 0x1F000) == 0x1F000) && c_is_emoji(c)) {
+				j = getChar(w, i, c);
+				while (c_is_emojicomp(c)) {
+					i += j;
+					j = getChar(w, i, c);
+				}
+			}
+		}
+		else
+			i++;
+		first++;
+	}
+	return i;
 }
 
 
@@ -5703,6 +5971,75 @@ Exporting void s_latin_to_unicode(wstring& res, unsigned char* contenu, long sz)
 }
 
 #else
+
+Exporting long convertchartopos(wstring& w, long first, long cpos) {
+    long realpos = first;
+    
+#ifdef INTELINTRINSICS
+        //we check if we have any large characters between 0 and ipos
+    if (!check_large(WSTR(w), w.size(), realpos))
+        return cpos;
+#endif
+
+    while (first != cpos) {
+        if (((w[realpos] & 0x1F000) == 0x1F000) && c_is_emoji(w[realpos])) {
+            realpos++;
+            while (c_is_emojicomp(w[realpos])) {
+                realpos++;
+            }
+        }
+        else
+            realpos++;
+        first++;
+    }
+    return realpos;
+}
+
+Exporting long convertpostochar(wstring& w, long first, long spos) {
+#ifdef INTELINTRINSICS
+        //we check if we have any large characters between 0 and ipos
+    if (!check_large(WSTR(w), spos, first))
+        return spos;
+#endif
+
+    long realpos = first;
+    while (realpos != spos) {
+        if (((w[realpos] & 0x1F000) == 0x1F000) && c_is_emoji(w[realpos])) {
+            realpos++;
+            while (c_is_emojicomp(w[realpos])) {
+                realpos++;
+            }
+        }
+        else
+            realpos++;
+        first++;
+    }
+    return first;
+}
+
+//We transform a character position into a position within w
+Exporting long c_char_to_pos_emoji(wstring& w, long charpos) {
+    long i = 0;
+#ifdef INTELINTRINSICS
+        //we check if we have any large characters between 0 and ipos
+    if (!check_large(WSTR(w), charpos, i))
+        return charpos;
+#endif
+    
+        //there is one in the block starting at i...
+    charpos -= i;
+    while (charpos > 0) {
+        if (((w[i] & 0x1F000) == 0x1F000) && c_is_emoji(w[i])) {
+            i++;
+            while (c_is_emojicomp(w[i]))
+                i++;
+        }
+        else
+            i++;
+        charpos--;
+    }
+    return i;
+}
 
 Exporting void s_latin_to_unicode(wstring& res, unsigned char* contenu, long sz) {
 	res = L"";
@@ -6308,17 +6645,54 @@ Exporting string c_char_get_next(unsigned char* m, size_t& i) {
 }
 
 Exporting string c_char_get(unsigned char* m, long& i) {
+    char str[] = {(char)m[i],0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     long nb = c_test_utf8(m + i);
-    char str[] = { (char)m[i], 0, 0, 0, 0, 0, 0, 0 };
-    
     if (nb == 0)
         return str;
-    
-    char cc = m[i + nb + 1];
-    m[i + nb + 1] = 0;
-    strcpy_s(str, 8, (char*)(m + i));
-    m[i + nb + 1] = cc;
-    i += nb;
+
+    long idx = 1;
+    long j = i;
+    if (nb == 3 && c_is_emoji(m, j)) {
+        str[idx++] = (char)m[i+1];
+        str[idx++] = (char)m[i+2];
+        str[idx++] = (char)m[i+3];
+        i = ++j;
+        while (c_is_emojicomp(m, j)) {
+            nb = c_test_utf8(m+i);
+            str[idx++] = (char)m[i];
+            switch (nb) {
+                case 1:
+                    str[idx++] = (char)m[i+1];
+                    break;
+                case 2:
+                    str[idx++] = (char)m[i+1];
+                    str[idx++] = (char)m[i+2];
+                    break;
+                case 3:
+                    str[idx++] = (char)m[i+1];
+                    str[idx++] = (char)m[i+2];
+                    str[idx++] = (char)m[i+3];
+            }
+            i = ++j;
+        }
+        --i;
+    }
+    else {
+        switch (nb) {
+            case 1:
+                str[idx] = (char)m[i+1];
+                break;
+            case 2:
+                str[idx++] = (char)m[i+1];
+                str[idx] = (char)m[i+2];
+                break;
+            case 3:
+                str[idx++] = (char)m[i+1];
+                str[idx++] = (char)m[i+2];
+                str[idx] = (char)m[i+3];
+        }
+        i += nb;
+    }
     return str;
 }
 
@@ -6336,8 +6710,18 @@ Exporting long size_c(unsigned char* contenu, long sz) {
 #endif
 
     long size = i;
+    long nb;
+    
     while (i < sz) {
-        i += c_test_utf8(contenu + i)+1;
+        nb = c_test_utf8(contenu + i);
+        if (nb == 3 && c_is_emoji(contenu,i)) {
+            i++;
+            while (c_is_emojicomp(contenu, i)) {
+                i++;
+            }
+        }
+        else
+            i += nb + 1;
         ++size;
     }
     
@@ -6352,13 +6736,21 @@ Exporting long size_c(unsigned char* contenu, long sz, long& first) {
         return sz;
 #endif
     
-    uchar nb;
+    long nb;
     long size = i;
     while (i < sz) {
         nb = c_test_utf8(contenu + i);
-        if (nb && first == -1)
+        if (nb && first == -1) {
             first = size;
-        i += nb + 1;
+        }
+        if (nb == 3 && c_is_emoji(contenu,i)) {
+            i++;
+            while (c_is_emojicomp(contenu, i)) {
+                i++;
+            }
+        }
+        else
+            i += nb + 1;
         ++size;
     }
     
@@ -6378,8 +6770,17 @@ Exporting long size_c(string& s) {
 #endif
     
     long sz = i;
+    long nb;
     while (i < lg) {
-        i += c_test_utf8(contenu + i)+1;
+        nb = c_test_utf8(contenu + i);
+        if (nb == 3 && c_is_emoji(contenu,i)) {
+            i++;
+            while (c_is_emojicomp(contenu, i)) {
+                i++;
+            }
+        }
+        else
+            i += nb + 1;
         sz++;
     }
     
@@ -6392,10 +6793,91 @@ Exporting long size_c(const char* s) {
     return size_c((unsigned char*)s, strlen((char*)s));
 }
 
+Exporting long size_c(wstring& w) {
+    long szr = w.size();
+    long i = 0;
+
+#ifdef INTELINTRINSICS
+    if (!check_large(WSTR(w), szr, i))
+        return szr;
+#endif
+    
+    long sz = i;
+    while (i < szr) {
+        if (((w[i] & 0x1F000) == 0x1F000) && c_is_emoji(w[i])) {
+            i++;
+            while (c_is_emojicomp(w[i])) {
+                i++;
+            }
+        }
+        else
+            i++;
+        sz++;
+    }
+    return sz;
+}
+
+Exporting long size_c(wstring& w, long& emoji) {
+    emoji = -1;
+    long szr = w.size();
+    long i = 0;
+
+#ifdef INTELINTRINSICS
+    if (!check_large(WSTR(w), szr, i)) {
+        return szr;
+    }
+#endif
+    
+    long sz = i;
+    while (i < szr) {
+        if (((w[i] & 0x1F000) == 0x1F000) && c_is_emoji(w[i])) {
+            i++;
+            while (c_is_emojicomp(w[i])) {
+                if (emoji == -1)
+                    emoji = i - 1;
+                i++;
+            }
+        }
+        else
+            i++;
+        sz++;
+    }
+    return sz;
+}
+
+//i is character position
+long getindex(unsigned char* contenu, long lg, long i) {
+    long x = 0;
+    
+#ifdef INTELINTRINSICS
+    if (check_ascii(contenu, lg, x))
+        return i;
+        //we then remove the length of the previous ASCII sequence
+    i -= x;
+#endif
+    
+    long nb;
+    while (i > 0 && x < lg) {
+        nb = c_test_utf8(contenu + x);
+        if (nb == 3 && c_is_emoji(contenu,x)) {
+            x++;
+            while (c_is_emojicomp(contenu, x)) {
+                x++;
+            }
+        }
+        else
+            x += nb + 1;
+        i--;
+    }
+    
+    return x;
+}
+
+
 Exporting string s_left(string& s, long nb) {
     long lg = s.size();
     if (nb >= lg || nb < 0)
-    return s;
+        return s;
     
     long i;
 #ifdef INTELINTRINSICS
@@ -6411,63 +6893,89 @@ Exporting string s_left(string& s, long nb) {
 }
 
 Exporting wstring s_left(wstring& s, long nb) {
-    if (nb < 0 || nb >= s.size())
+    if (nb < 0)
         return s;
-    return s.substr(0, nb);
+
+    long lg = s.size();
+
+#ifdef INTELINTRINSICS
+    long frst = 0;
+    //we check if we have any large characters between 0 and ipos
+    if (!check_large(WSTR(s), lg, frst)) {
+        if (nb >= lg)
+            return s;
+        return s.substr(0, nb);
+    }
+#endif
+    
+    wstring res;
+    long i = 0;
+    while (nb > 0 && i < lg) {
+        getafullchar(s, res, i);
+        nb--;
+    }
+    return res;
 }
 
 Exporting wstring s_right(wstring& s, long nb) {
-    if (nb < 0 || nb >= s.size())
+    if (nb < 0)
         return s;
-    return s.substr(s.size()-nb, nb);
+
+    long lg = s.size();
+    long l = size_c(s)-nb;
+    if (l <= 0)
+        return s;
+    
+    long i = convertchartopos(s, 0, l);
+    if (i == l)
+        return s.substr(s.size()-nb, nb);
+    
+    wstring res;
+    while (nb > 0 && i < lg) {
+        getafullchar(s, res, i);
+        nb--;
+    }
+    return res;
 }
 
-
 Exporting string s_right(string& s, long nb) {
-    long lg = s.size();
-    if (nb >= lg || nb < 0)
+    if (nb < 0)
         return s;
-    
-    long i;
-#ifdef INTELINTRINSICS
-    if (check_ascii(USTR(s),lg,i))
-        return s.substr(lg-nb, nb);
-#endif
+
+    long lg = s.size();
     
     long l = size_c(USTR(s),lg)-nb;
-    //we position on the first character
-    uchar* contenu = USTR(s);
-    for (i = 0; l>0; i++) {
-        i += c_test_utf8(contenu + i);
-        l--;
-    }
+    if (l < 0)
+        return s;
+    
+    long i = getindex(USTR(s), lg, l);
+    if (l == i)
+        return s.substr(lg-nb, nb);
     
     string res;
-    for (; i < lg; i++)
-        res += c_char_get(contenu, i);
+    while (nb > 0 && i < lg) {
+        res += c_char_get(USTR(s), i);
+        nb--;
+        i++;
+    }
     return res;
 }
 
 Exporting string s_middle(string& s, long l, long nb) {
     long lg = s.size();
-    if (l + nb >= s.size())
-        return "";
 
-    long i;
     uchar* contenu = USTR(s);
-#ifdef INTELINTRINSICS
-    if (check_ascii(contenu,lg,i))
+    
+    long i = getindex(contenu, lg, l);
+    if (i >= lg)
+        return "";
+    
+    if (i == l)
         return s.substr(l, nb);
-#endif
 
     string res;
-    //we position on the first character
-    for (i = 0; i<lg && l>0; i++) {
-        i += c_test_utf8(contenu + i);
-        l--;
-    }
-    
-    for (; i<lg && nb>0; i++) {
+
+    for (; i < lg && nb > 0; i++) {
         res += c_char_get(contenu, i);
         nb--;
     }
@@ -6475,11 +6983,18 @@ Exporting string s_middle(string& s, long l, long nb) {
 }
 
 Exporting wstring s_middle(wstring& s, long l, long nb) {
-    if (l + nb >= s.size())
-        return L"";
-    return s.substr(l, nb);
+    long i = convertchartopos(s, 0, l);
+    if (i == l)
+        return s.substr(l, nb);
+    
+    long lg  = s.size();
+    wstring res;
+    while (nb > 0 && i < lg) {
+        getafullchar(s, res, i);
+        nb--;
+    }
+    return res;
 }
-
 
 Exporting bool c_char_index_assign(string& s, string c, long x) {
     if (x > s.size())
@@ -6518,20 +7033,23 @@ Exporting bool c_char_index_insert(string& s, string c, size_t x) {
     return true;
 }
 
+//i is a character position
 Exporting string c_char_index_remove(string& s, size_t i) {
     long lg = s.size();
-    if (i >= lg)
-        return "";
+
     string res;
-    long pos = 0;
-    long x;
-    uchar* contenu = USTR(s);
-    for (x = 0; x < lg && pos != i; x++) {
-        x += c_test_utf8(contenu + x);
-        pos++;
+    
+    unsigned char* content = USTR(s);
+    
+    long x = getindex(content, lg, i);
+    if (x == i) {
+        res = s[i];
+        s.erase(i, 1);
+        return res;
     }
-    pos = x;
-    res = c_char_get(USTR(s), pos);
+
+    lg = x;
+    res = c_char_get(content, lg);
     s.erase(x, res.size());
     return res;
 }
@@ -6539,17 +7057,9 @@ Exporting string c_char_index_remove(string& s, size_t i) {
 
 Exporting string c_char_index(string& s, size_t i) {
     long lg = s.size();
-    if (i >= lg)
-        return "";
-    long x;
-    uchar* contenu = USTR(s);
-    for (x = 0; x<lg && i>0; x++) {
-        x += c_test_utf8(contenu + x);
-        i--;
-    }
-    if (x == lg)
-        return "";
-    
+    long x = getindex(USTR(s), lg, i);
+    if (x >= lg)
+        return "";    
     return c_char_get(USTR(s), x);
 }
 

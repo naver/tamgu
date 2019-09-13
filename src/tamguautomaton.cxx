@@ -1431,7 +1431,7 @@ long Au_automaton::find(wstring& w) {
     long sz = w.size();
     for (long f=0;f<sz;f++) {
         if (first->loop(w,f)!=-1)
-            return f;
+            return convertpostochar(w, 0, f);
     }
     return -1;
 }
@@ -1440,7 +1440,7 @@ long Au_automaton::find(wstring& w, long i) {
     long sz = w.size();
     for (long f = i ; f < sz; f++) {
         if (first->loop(w,f)!=-1)
-            return f;
+            return convertpostochar(w, 0, f);
     }
     return -1;
 }
@@ -1458,8 +1458,11 @@ bool Au_automaton::search(wstring& w, long& f, long& l, long init) {
     long sz = w.size();
     for (f=init;f<sz;f++) {
         l=first->loop(w,f);
-        if (l!=-1)
+        if (l!=-1) {
+            l = convertpostochar(w, 0, l);
+            f = convertpostochar(w, 0, f);
             return true;
+        }
     }
     f=-1;
     return false;
@@ -1523,8 +1526,11 @@ bool Au_automaton::searchlast(wstring& w, long& b, long& e, long init) {
         }
     }
     
-    if (b!=-1)
+    if (b!=-1) {
+        b = convertpostochar(w, 0, b);
+        e = convertpostochar(w, 0, e);
         return true;
+    }
     return false;
 }
 
@@ -1584,8 +1590,8 @@ void Au_automaton::searchall(wstring& w, vector<long>& res, long init) {
     for (long f=init;f<sz;f++) {
         l=first->loop(w,f);
         if (l!=-1) {
-            res.push_back(f);
-            res.push_back(l);
+            res.push_back(convertpostochar(w, 0, f));
+            res.push_back(convertpostochar(w, 0, l));
             f=l-1;
         }
     }

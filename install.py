@@ -29,7 +29,8 @@ def displayhelp(s):
     print(" -withsound: Compile with sound support")
     print(" -noregex: Do not compile with regular expression support")
     print(" -pathregex path: Path to regex include files")
-    print(" -pathpython path: Path to Python include files")
+    print(" -pythonpath path: Path to Python library")
+    print(" -pythoninclude path: Path to Python include files")
     print(" -pythonversion name: Python version (example: 2.7 or 3.6)")
     print(" -withgui: Compile with GUI support")
     print(" -pathfltk path: path to GUI libraries (if you have a specific version of fltk1.3 in a different directory than /usr/lib)")
@@ -54,6 +55,7 @@ withfastint=False
 regexpath=""
 compilejava=False
 guipath=None
+pythoninclude=None
 pythonpath=None
 pythonversion="python2.7"
 versionname=None
@@ -71,6 +73,14 @@ libs: install
 	$(MAKE) -C libpython pytamgu
 """
 
+cleanlibs="""
+cleanlibs:
+	$(MAKE) -C allmaps clean
+	$(MAKE) -C libpython clean
+	$(MAKE) -C liblinear clean
+	$(MAKE) -C libword2vec clean
+	$(MAKE) -C libwapiti clean
+"""
 
 while i < len(sys.argv):
     if sys.argv[i]=="-java":
@@ -108,15 +118,21 @@ while i < len(sys.argv):
         versiongcc="."+versionname
         gccversion = True
         i+=1
-    elif sys.argv[i]=="-pathpython":
+    elif sys.argv[i]=="-pythoninclude":
         if i >= len(sys.argv):
-            print("Missing GUI path on command line")
+            print("Missing python include path on command line")
+            exit(-1)
+        pythoninclude=sys.argv[i+1]
+        i+=1
+    elif sys.argv[i]=="-pythonpath":
+        if i >= len(sys.argv):
+            print("Missing python path on command line")
             exit(-1)
         pythonpath=sys.argv[i+1]
         i+=1
     elif sys.argv[i]=="-pythonversion":
         if i >= len(sys.argv):
-            print("Missing GUI path on command line")
+            print("Missing python version on command line")
             exit(-1)
         pythonversion="python"+sys.argv[i+1]
         i+=1
@@ -158,17 +174,31 @@ libs: install
 	$(MAKE) -C libwapiti wapiti
 """
 
+    cleanlibs = """
+cleanlibs:
+	$(MAKE) -C allmaps clean
+	$(MAKE) -C libpython clean
+	$(MAKE) -C libsqlite clean
+	$(MAKE) -C libcurl clean
+	$(MAKE) -C libxml clean
+	$(MAKE) -C liblinear clean
+	$(MAKE) -C libword2vec clean
+	$(MAKE) -C libwapiti clean
+"""
     incpath = "INCLUDEPATH=-I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/libxml2"
     if withsound:
         compilelibs += "\t$(MAKE) -C libsound sound\n"
+        cleanlibs += "\t$(MAKE) -C libsound clean\n"
         incpath += " -Iinclude/macos/ao"
 
     if withgui:
         compilelibs += "\t$(MAKE) -C libgui all\n"
+        cleanlibs += "\t$(MAKE) -C libgui clean\n"
         incpath += " -Iinclude/macos/fltk"
 
     incpath += "\n"
     compilelibs += "\n\n"
+    cleanlibs += "\n\n"
 
     vname = "mac"
     if compilejava:
@@ -186,6 +216,7 @@ libs: install
         f.write("MULTIGA=-stdlib=libc++ -DMULTIGLOBALTAMGU\n");
     f.write("# MAC OS support\n")
     f.write(compilelibs)
+    f.write(cleanlibs)
     f.write(MACLIBS)
     f.write("SYSTEMSPATH = -Llibs/macos -L../libs/macos\n")
     f.write("TAMGUCONSOLENAME = tamgu\n")
@@ -203,8 +234,14 @@ libs: install
         f.write("FLAGMPG123=-DUSEMPG123\n")
         f.write("LIBMPG123=-lmpg123\n\n")
     f.write("#Python\n")
-    f.write("INCLUDEPYTHON = -I/System/Library/Frameworks/Python.framework/Versions/Current/include/python2.7\n")
-    f.write("PYTHONLIB = /System/Library/Frameworks/Python.framework/Versions/Current/Python\n\n")
+    if pythonversion=="python2.7":
+        f.write("INCLUDEPYTHON = -I/System/Library/Frameworks/Python.framework/Versions/Current/include/python2.7\n")
+        f.write("PYTHONLIB = /System/Library/Frameworks/Python.framework/Versions/Current/Python\n\n")
+    else:
+        pversion=pythonversion[6:]
+        f.write("INCLUDEPYTHON = -I/Library/Frameworks/Python.framework/Versions/"+pversion+"/Headers\n")
+        f.write("PYTHONLIB = /Library/Frameworks/Python.framework/Versions/"+pversion+"/Python\n")
+
     f.write("C++11Flag = -std=c++11 -DTamgu_REGEX -DMAVERICK -DAPPLE\n")
     f.write("INTELINT = -DINTELINTRINSICS -mavx2 -DAVXSUPPORT\n")
     f.close();
@@ -216,7 +253,7 @@ if guipath != None:
     sourcegui = "GUIPATH=-L"+guipath+"\nFLTKX11LIBS = -lXext -lXft -lXinerama -lX11 -lfontconfig -lXfixes -lXcursor\n"
 
 v=['libfltk', 'libfltk_images', 'libfltk_jpeg', 'libcurl', 'libboost_regex', 'libxml2', 'libssl',
-'libsqlite3', 'libmpg123', 'libao', 'libsndfile', 'libldap','libcrypto','libldap', 'libgmp', "lib"+pythonversion, 
+'libsqlite3', 'libmpg123', 'libao', 'libsndfile', 'libldap','libcrypto','libldap', 'libgmp', "lib"+pythonversion,
 "libXext", "libXrender", "libXft", "libXinerama", "libX11", "libfontconfig", "libXfixes", "libXcursor"]
 
 def traverse(libpath):
@@ -312,12 +349,15 @@ os.system("mkdir -p systems")
 
 if "libcurl" in found:
     compilelibs += "	$(MAKE) -C libcurl curl\n"
+    cleanlibs += "	$(MAKE) -C libcurl clean\n"
 
 if "libsqlite3" in found:
     compilelibs += "	$(MAKE) -C libsqlite sqlite\n"
+    cleanlibs += "	$(MAKE) -C libsqlite clean\n"
 
 if "libxml2" in found:
     compilelibs += "	$(MAKE) -C libxml xml\n"
+    cleanlibs += "	$(MAKE) -C libxml clean\n"
 
 objpath=None
 javalibpath=None
@@ -413,11 +453,11 @@ if len(v)!=0:
 if withgui:
     f.write(sourcegui)
     compilelibs += "	$(MAKE) -C libgui all\n"
-
+    cleanlibs += "	$(MAKE) -C libgui clean\n"
 ############################
-if pythonpath!=None:
+if pythoninclude!=None:
     f.write("\n\n#Python support to compile tamgu python library: 'pytamgu'\n")
-    f.write("INCLUDEPYTHON = -I"+pythonpath+"\n")
+    f.write("INCLUDEPYTHON = -I"+pythoninclude+"\n")
     f.write("PYTHONLIB = -l"+pythonversion+"\n")
     print('')
     print("You can compile the pytamgu library (tamgu python library)")
@@ -439,6 +479,8 @@ elif pythonversion not in v:
             print("Modify 'INCLUDEPYTHON' and 'PYTHONLIB' in Makefile.in if you want to compile pytamgu (the tamgu python library)")
             print('')
         break
+if pythonpath != None:
+    f.write("PYTHONPATH = -L"+pythonpath+"\n")
 ############################
 includepath="INCLUDEPATH = -Iinclude/linux"
 ############################
@@ -487,6 +529,7 @@ soundflag="""
 if withsound==True:
     sndbool=False
     compilelibs += "	$(MAKE) -C libsound sound\n"
+    cleanlibs += "	$(MAKE) -C libsound clean\n"
     if "libao" not in v:
         soundao=soundao.replace("#LIBAO","LIBAO")
         soundflag=soundflag.replace("#","")
@@ -680,6 +723,9 @@ f.write(regexflag)
 f.write("\n")
 
 f.write(compilelibs)
+f.write("\n")
+
+f.write(cleanlibs)
 f.write("\n")
 
 f.close()

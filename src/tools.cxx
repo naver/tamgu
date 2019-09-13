@@ -792,6 +792,23 @@ Tamgu* Mapcompare(Tamgu*a, Tamgu*b, TamguGlobal* global) {
 
 //---------------------------------------------------------------------------
 #ifdef WSTRING_IS_UTF16
+
+long checkemoji(wstring& svalue, long i) {
+	if ((svalue[i] & 0xFF00) == 0xD800) {
+		TAMGUCHAR c = getachar(svalue, i);
+		if (((c & 0x1F000) == 0x1F000) && c_is_emoji(c)) {
+			long j = i + 1;
+			c = getachar(svalue, j);
+			while (c_is_emojicomp(c)) {
+				j++;
+				c = getachar(svalue, j);
+			}
+			i = j;
+		}
+	}
+	return i;
+}
+
 Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& iright, short idthread) {
     
     Tamgu* left = index;
@@ -860,7 +877,7 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
             if (releft)
                 left->Release();
 
-			if (pivot == -1 || ileft <= pivot) {
+			if (pivot == -1) {
 				if (ileft < 0)
 					ileft += sz;
 				if (ileft >= sz)
@@ -872,7 +889,8 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
 					ileft += szchar;
 				if (ileft >= szchar)
 					return 0;
-				ileft = convertchartoposutf16(svalue, pivot, ileft);
+				if (ileft >= pivot)
+					ileft = convertchartoposutf16(svalue, pivot, ileft);
 			}
 			if (ileft < 0)
 				ileft = 0;
@@ -883,6 +901,11 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
     if (right == NULL) {
         if (iright != -1)
             return 2;
+		if (pivot != -1) {
+			iright = checkemoji(svalue, ileft);
+			if (iright != ileft)
+				return 2;
+		}
         return 1;
     }
     
@@ -933,10 +956,13 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
         if (reright)
             right->Release();
         
-        if (iright < 0 || right == aNULL)
-            iright += sz;
+		if (iright < 0 || right == aNULL) {
+			iright += szchar;
+			if (iright < 0)
+				return 0;
+		}
 	
-		if (iright > szchar)
+		if (iright >= szchar)
 			iright = sz;
 		else {
 			if (pivot != -1 && pivot < iright) {
@@ -969,7 +995,7 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
 			iright = convertchartoposutf16(svalue, pivot, iright);
 	}
 
-	if (iright > szchar)
+	if (iright >= szchar)
         iright = sz;
     else
         if (iright <= ileft)
@@ -977,11 +1003,38 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
     return 2;
 }
 #else
+
+long char_to_pos_emoji(wstring& w, long& ileft, long emoji) {
+    //emoji is the position of the first emoji in the string
+    long sz = w.size();
+    while (emoji != ileft) {
+        if (c_is_emoji(w[emoji])) {
+            emoji++;
+            while (c_is_emojicomp(w[emoji])) {
+                emoji++;
+                ileft++;
+            }
+        }
+        else
+            emoji++;
+    }
+    if (emoji < sz && c_is_emoji(w[emoji])) {
+        emoji++;
+        while (emoji < sz && c_is_emojicomp(w[emoji])) {
+            emoji++;
+        }
+    }
+    else
+        emoji++;
+    return emoji;
+}
+
 Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& iright, short idthread) {
 
 	Tamgu* left = index;
 	Tamgu* right = NULL;
-	long sz = svalue.size();
+    long emoji = -1;
+	long sz = size_c(svalue, emoji);
 
 	bool sleft = false;
 	bool sright = false;
@@ -1048,11 +1101,15 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
 		}
 
 	}
-
+    
 	//We return as a non interval
 	if (right == NULL) {
 		if (iright != -1)
 			return 2;
+        if (emoji != -1 && ileft >= emoji) {
+            iright = char_to_pos_emoji(svalue, ileft, emoji);
+            return 2;
+        }
 		return 1;
 	}
 
@@ -1114,6 +1171,21 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
 			iright += right->Integer();
 	}
 
+    if (emoji != -1) {
+        if (ileft >= emoji)
+            char_to_pos_emoji(svalue, ileft, emoji);
+
+        if (iright > sz)
+            iright = sz;
+
+        if (iright >= emoji)
+            char_to_pos_emoji(svalue, iright, emoji);
+
+        if (iright <= ileft)
+            return 0;
+        return 2;
+    }
+    
 	if (iright > sz)
 		iright = sz;
 	else
@@ -1125,13 +1197,54 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
 //---------------------------------------------------------------------------
 long char_to_byteposition(unsigned char* contenu, long sz, long i, long charpos) {
     charpos-=i;
+    long nb;
 
-    while (charpos > 0 && i<sz) {
-        i += 1 + c_test_utf8(contenu + i);
+    while (charpos > 0 && i < sz) {
+        nb = c_test_utf8(contenu + i);
+        if (nb == 3 && c_is_emoji(contenu,i)) {
+            i++;
+            while (c_is_emojicomp(contenu, i)) {
+                i++;
+            }
+        }
+        else
+            i += nb + 1;
         charpos--;
     }
     return i;
 }
+
+long char_to_byteposition(unsigned char* contenu, long sz, long i, long charpos, long& emoji) {
+    emoji = -1;
+    charpos-=i;
+    long nb;
+    
+    while (charpos > 0 && i < sz) {
+        nb = c_test_utf8(contenu + i);
+        if (nb == 3 && c_is_emoji(contenu,i)) {
+            i++;
+            while (c_is_emojicomp(contenu, i)) {
+                i++;
+            }
+        }
+        else
+            i += nb + 1;
+        charpos--;
+    }
+    
+    if (c_test_utf8(contenu+i) == 3) {
+        long ii = i;
+        if (c_is_emoji(contenu,ii)) {
+            ii++;
+            while (c_is_emojicomp(contenu, ii)) {
+                ii++;
+                emoji = ii;
+            }
+        }
+    }
+    return i;
+}
+
 
 Exporting char StringIndexes(string& svalue, Tamgu* index, long& ileft, long& iright, short idthread) {
     
@@ -1163,7 +1276,7 @@ Exporting char StringIndexes(string& svalue, Tamgu* index, long& ileft, long& ir
     }
     
     
-    long sz = -1, szc = -1, pivot = -1;
+    long sz = -1, szc = -1, pivot = -1, emoji = -1;
     char utf8 = 0;
     
     if (left->isRegular()) {
@@ -1216,8 +1329,8 @@ Exporting char StringIndexes(string& svalue, Tamgu* index, long& ileft, long& ir
                     if (ileft < 0)
                         ileft = 0;
                     else {
-                        if (ileft > pivot) // the pivot is the first UTF8 element slot in characters
-                            ileft = char_to_byteposition(USTR(svalue), sz, pivot, ileft);
+                        if (ileft >= pivot) // the pivot is the first UTF8 element slot in characters
+                            ileft = char_to_byteposition(USTR(svalue), sz, pivot, ileft, emoji);
                     }
                 }
                 else {
@@ -1230,8 +1343,8 @@ Exporting char StringIndexes(string& svalue, Tamgu* index, long& ileft, long& ir
                 if (ileft > szc)
                     ileft = sz;
                 else {
-                    if (utf8 == 2 && ileft > pivot)
-                        ileft = char_to_byteposition(USTR(svalue), sz, pivot, ileft);
+                    if (utf8 == 2 && ileft >= pivot)
+                        ileft = char_to_byteposition(USTR(svalue), sz, pivot, ileft, emoji);
                 }
             }
         }
@@ -1240,8 +1353,13 @@ Exporting char StringIndexes(string& svalue, Tamgu* index, long& ileft, long& ir
     
     //We return as a non interval
     if (right == NULL) {
-        if (iright == -1)
+        if (iright == -1) {
+            if (ileft < emoji) {
+                iright = emoji;
+                return 2;
+            }
             return 1;
+        }
         return 2;
     }
     
@@ -1347,10 +1465,11 @@ Exporting char StringIndexes(string& svalue, Tamgu* index, long& ileft, long& ir
             else
                 iright += shift;
             
-            if (iright > pivot)
-                    //This is position compared to the end of the string
-                    //First we need to transform shift in bytes
+            if (iright > pivot) {
+                //This is position compared to the end of the string
+                //First we need to transform shift in bytes
                 iright = char_to_byteposition(USTR(svalue), sz, pivot, iright);
+            }
         }
         else
             iright += shift;

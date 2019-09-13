@@ -510,12 +510,13 @@ public:
 
 	void Pop(long i) {
 		Locking _lock(this);
-		if (value.size() == 0)
+        long sz = size_c(value);
+		if (!sz)
 			return;
 		if (i == -1)
-			i = value.size() - 1;
+			i = sz - 1;
 		else
-		if (i >= value.size() || i < 0)
+		if (i >= sz || i < 0)
 			return;
 		c_char_index_remove(value, i);
 	}
@@ -1406,11 +1407,13 @@ public:
         if (value.isempty())
             return;
         string v = value.value();
-
+        long sz = size_c(v);
+        if (!sz)
+            return;
         if (i == -1)
-            i = v.size() - 1;
+            i = sz - 1;
         else
-            if (i >= v.size() || i < 0)
+            if (i >= sz || i < 0)
                 return;
         c_char_index_remove(v, i);
         value = v;

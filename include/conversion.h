@@ -317,6 +317,8 @@ Exporting TAMGUCHAR c_to_upper(TAMGUCHAR c);
 
 Exporting bool c_is_emoji(TAMGUCHAR c);
 Exporting bool c_is_emojicomp(TAMGUCHAR c);
+Exporting bool c_is_emoji(unsigned char* m, long& i);
+Exporting bool c_is_emojicomp(unsigned char* m, long& i);
 Exporting string Emoji(TAMGUCHAR c);
 Exporting string Emoji(string&);
 Exporting string Emoji(wstring& s);
@@ -406,15 +408,17 @@ Exporting long size_c(unsigned char* contenu, long sz, long& first);
 Exporting long size_c(unsigned char* s, long sz);
 Exporting long size_c(string& s);
 Exporting long size_c(const char* s);
+Exporting long size_c(wstring& w);
+Exporting long size_c(wstring& w, long&);
 
 #ifdef WSTRING_IS_UTF16
+Exporting size_t size_w(wchar_t* w);
 Exporting size_t size_w(wstring& w, long& first);
 size_t size_w(wstring& w);
-size_t size_w(wchar_t* w);
 long convertchartoposutf16(wstring& w, long first, long i);
 long convertpostocharutf16(wstring& w, long first, long i);
 inline bool checklargeutf16(wchar_t c) {
-	if ((c & 0xD800) == 0xD800)
+	if ((c & 0xFF00) == 0xD800)
 		return true;
 	return false;
 }
@@ -430,6 +434,9 @@ Exporting void v_split_indent(string& thestr, vector<string>& v);
 Exporting TAMGUCHAR c_char_get_wide(unsigned char* m, long& i);
 
 Exporting unsigned char c_utf8_latin(string s);
+
+Exporting long convertpostochar(wstring& w, long first, long spos);
+Exporting long convertchartopos(wstring& w, long first, long cpos);
 
 Exporting long c_code_get(unsigned char* m, long& i, TAMGUCHAR& code);
 Exporting long c_chartobyteposition(unsigned char* contenu, long sz, long charpos);
@@ -1065,6 +1072,15 @@ inline TAMGUCHAR getachar(wstring& s, long& i) {
         c_utf16_to_unicode(c, s[++i], true);
     return c;
 }
+
+inline long getChar(wstring& s, long i, TAMGUCHAR& c) {
+	if (c_utf16_to_unicode(c, s[i], false)) {
+		c_utf16_to_unicode(c, s[i + 1], true);
+		return 2;
+	}
+	return 1;
+}
+
 #else
 #define unicodestring wstring
 #define TAMGUVALUE(w) w

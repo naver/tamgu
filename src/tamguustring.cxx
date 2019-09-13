@@ -1503,8 +1503,7 @@ Tamgu* Tamguustring::MethodLast(Tamgu* contextualpattern, short idthread, TamguC
     Locking _lock(this);
     if (value.size() == 0)
         return globalTamgu->Provideustring(L"");
-    wstring w;
-    w = value[value.size() - 1];
+    wstring w = s_right(value, 1);
     return globalTamgu->Provideustring(w);
 }
 
@@ -1930,7 +1929,40 @@ Tamgu* Tamguustring::MethodClear(Tamgu* contextualpattern, short idthread, Tamgu
     return aTRUE;
 }
 
+#ifdef WSTRING_IS_UTF16
+void Tamguustring::Pop(long i) {
+    Locking _lock(this);
+    long sz = size_w(value);
+    if (!sz)
+        return;
+    if (i == -1) {
+        //the last character
+        i = convertchartopos(value, 0, sz-1);
+        while (i < value.size())
+            value.pop_back();
+        return;
+    }
 
+    if (i < 0 || i >= sz)
+        return;
+    
+    long j = convertchartopos(value, 0, i);
+    if (j == i) {
+        value.erase(i, 1);
+        return;
+    }
+    i = j;
+    if (c_is_emoji(getachar(value, j))) {
+        j++;
+        while (c_is_emojicomp(getachar(value, j)))
+            j++;
+    }
+    else
+        j++;
+    value.erase(i, j-i);
+}
+#endif
+        
 Tamgu* Tamguustring::MethodPop(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     //First parameter should be a vector
 
@@ -3556,7 +3588,7 @@ Tamgu* Tamgua_ustring::MethodLast(Tamgu* contextualpattern, short idthread, Tamg
         return new Tamgua_ustring(L"");
     
     wstring w = value.value();
-    w = w[w.size() - 1];
+    w = s_right(w, 1);
     return new Tamgua_ustring(w);
 }
 
@@ -3920,10 +3952,47 @@ Tamgu* Tamgua_ustring::MethodClear(Tamgu* contextualpattern, short idthread, Tam
 }
 
 
-Tamgu* Tamgua_ustring::MethodPop(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        //First parameter should be a vector
+#ifdef WSTRING_IS_UTF16
+void Tamgua_ustring::Pop(long i) {
+    if (value.isempty())
+        return;
+    wstring w = value.value();
+    long sz = size_w(w);
+    if (!sz)
+        return;
+    if (i == -1) {
+            //the last character
+        i = convertchartopos(w, 0, sz-1);
+        while (i < w.size())
+            w.pop_back();
+        value = w;
+        return;
+    }
     
-        //second parameter is an integer (the number of pop)
+    if (i < 0 || i >= sz)
+        return;
+    
+    long j = convertchartopos(w, 0, i);
+    if (j == i) {
+        w.erase(i, 1);
+        value = w;
+        return;
+    }
+    i = j;
+    if (c_is_emoji(getachar(w, j))) {
+        j++;
+        while (c_is_emojicomp(getachar(w, j)))
+            j++;
+    }
+    else
+        j++;
+    w.erase(i, j-i);
+    value = w;
+}
+#endif
+
+Tamgu* Tamgua_ustring::MethodPop(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    //second parameter is an integer (the number of pop)
     long i = 0;
     long nb = 1;
     if (callfunc->Size() == 2)

@@ -989,18 +989,43 @@ public:
 		return this;
 	}
 	
+#ifdef WSTRING_IS_UTF16
+    void Pop(long i);
+#else
 	void Pop(long i) {
 		Locking _lock(this);
-		if (value.size() == 0)
-			return;
-		if (i == -1)
-			i = value.size() - 1;
-		else
-		if (i >= value.size() || i < 0)
-			return;
-		value.erase(i);
+        long sz = size_c(value);
+        if (!sz)
+            return;
+        if (i == -1) {
+            //the last character
+            i = convertchartopos(value, 0, sz-1);
+            while (i < value.size())
+                value.pop_back();
+            return;
+        }
+        
+        if (i < 0 || i >= sz)
+            return;
+        
+        long j = convertchartopos(value, 0, i);
+        if (j == i) {
+            value.erase(i,1);
+            return;
+        }
+        
+        i = j;
+        if (c_is_emoji(value[j])) {
+            j++;
+            while (c_is_emojicomp(value[j]))
+                j++;
+        }
+        else
+            j++;
+        value.erase(i, j-i);
 	}
-
+#endif
+    
     virtual long Size() {
         if (!globalTamgu->globalLOCK)
             return value.size();
@@ -1021,10 +1046,10 @@ public:
 #else
 	virtual long CommonSize() {
 		if (!globalTamgu->globalLOCK)
-			return (long)value.size();
+			return size_c(value);
 
 		Locking _lock(this);
-		return (long)value.size();
+        return size_c(value);
 	}
 #endif
 
@@ -1884,19 +1909,46 @@ public:
         return this;
     }
     
+#ifdef WSTRING_IS_UTF16
+    void Pop(long i);
+#else
     void Pop(long i) {
         if (value.isempty())
             return;
         wstring w = value.value();
-        if (i == -1)
-            i = w.size() - 1;
+        long sz = size_c(w);
+        if (i == -1) {
+                //the last character
+            i = convertchartopos(w, 0, sz-1);
+            while (i < w.size())
+                w.pop_back();
+            value = w;
+            return;
+        }
+        
+        if (i < 0 || i >= sz)
+            return;
+        
+        long j = convertchartopos(w, 0, i);
+        if (j == i) {
+            w.erase(i,1);
+            value = w;
+            return;
+        }
+        i = j;
+        if (c_is_emoji(w[j])) {
+            j++;
+            while (c_is_emojicomp(w[j]))
+                j++;
+        }
         else
-            if (i >= w.size() || i < 0)
-                return;
-        w.erase(i);
+            j++;
+        w.erase(i, j-i);
         value = w;
     }
-        //Basic operations
+#endif
+    
+    //Basic operations
     long Size() {
         return (long)value.size();
     }
