@@ -617,8 +617,6 @@ void find_intel_all(unsigned char* src, unsigned char* search, long lensrc, long
         }
     }
 }
-
-
 #endif
 //------------------------------------------------------------------------
 

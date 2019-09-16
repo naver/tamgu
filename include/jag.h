@@ -742,49 +742,12 @@ public:
     
         //The main problem here is that emojis can be composed...
         //An emoji can be composed of up to 7 emojis...
-    void forwardemoji() {
-        if (c_is_emoji(line[posinstring])) {
-            posinstring++;
-            while (c_is_emojicomp(line[posinstring]))
-                posinstring++;
-        }
-        else
-            posinstring++;
-    }
+    void forwardemoji();
+    void backwardemoji();
     
         //We find the beginning of each emoji, skipping composed ones...
-    long lastinstringforemoji(long p) {
-        bool emoji = false;
-        long last = p;
-        for (long i = 0; i < p; i++) {
-            if (emoji && c_is_emojicomp(line[i])) {
-                continue;
-            }
-            if (c_is_emoji(line[i])) {
-                emoji = true;
-                last = i;
-                continue;
-            }
-            emoji = false;
-        }
-        return last;
-    }
         //We build a string with no composed emoji, to match the position of the cursor...
-    void cleanlongemoji(wstring& s, wstring& cleaned, long p) {
-        bool emoji = false;
-        for (long i = 0; i < p; i++) {
-            if (emoji && c_is_emojicomp(s[i])) {
-                continue;
-            }
-            if (c_is_emoji(s[i])) {
-                emoji = true;
-                cleaned += s[i];
-                continue;
-            }
-            emoji = false;
-            cleaned += s[i];
-        }
-    }
+    void cleanlongemoji(wstring& s, wstring& cleaned, long p);
     
         //This size is computed to take into account Chinese/Japanese/Korean characters...
         //These characters can occupy up to two columns... We also take into account the tab size
@@ -861,38 +824,7 @@ public:
         //------------------------------------------------------------------------------------------------
     
         //The deletion of a character is different if it is an emoji...
-    long deleteachar(wstring& l, bool last, long pins) {
-        if (l == L"")
-            return pins;
-        
-        long lst = pins;
-        if (last)
-            lst = lastinstringforemoji(pins);
-        else {
-            if (c_is_emoji(l[pins])) {
-                pins++;
-                while (c_is_emojicomp(l[pins]))
-                    pins++;
-                pins--;
-            }
-        }
-        
-        if (lst < pins) {
-                //we need to delete a list of emoji characters...
-            long nb = pins - lst + 1;
-            l.erase(lst, nb);
-            pins--;
-        }
-        else {
-            if (last)
-                l.pop_back();
-            else
-                l.erase(pins, 1); //we delete a single character...
-        }
-        
-        return pins;
-    }
-    
+    long deleteachar(wstring& l, bool last, long pins);
     void deletechar();
     
         //Delete all characters after the cursor

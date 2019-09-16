@@ -757,8 +757,86 @@ void jag_editor::clearline() {
     cout << back << space;
 }
 
+
+//We build a string with no composed emoji, to match the position of the cursor...
+void jag_editor::cleanlongemoji(wstring& s, wstring& cleaned, long p) {
+    long i = 0;
+    if (!check_large(WSTR(line), line.size(), i)) {
+        cleaned = s.substr(0, p);
+        return;
+    }
+
+    if (p < i) {
+        cleaned = s.substr(0, p);
+        return;
+    }
+
+
+    cleaned = s.substr(0,i);
+    bool emoji = false;
+    for (; i < p; i++) {
+        if (emoji && c_is_emojicomp(s[i])) {
+            continue;
+        }
+        if (c_is_emoji(s[i])) {
+            emoji = true;
+            cleaned += s[i];
+            continue;
+        }
+        emoji = false;
+        cleaned += s[i];
+    }
+}
+
+    //The deletion of a character is different if it is an emoji...
+long jag_editor::deleteachar(wstring& l, bool last, long pins) {
+    if (l == L"")
+        return pins;
+    long emoji = 0;
+    
+    long sz = size_c(l, emoji);
+    if (sz == l.size() || pins < emoji) {
+        if (last)
+            l.pop_back();
+        else
+            l.erase(pins, 1);
+        return pins;
+    }
+
+    //i is the first position of a potential emoji...
+    //emojis are after the current character,
+    long nb = 1;
+    if (last) {
+        emoji = line.size() - 1;
+        if (c_is_emojicomp(l[emoji])) {
+            emoji--;
+            while (emoji > 0 && c_is_emojicomp(l[emoji])) {
+                nb++;
+                emoji--;
+            }
+            if (emoji >= 0 && !c_is_emoji(l[emoji]))
+                nb = 1;
+        }
+        line.erase(pins, nb);
+        return pins;
+    }
+    
+    emoji = pins;
+    
+    //Now we need to compute the exact position in characters
+    if (c_is_emoji(l[emoji])) {
+        emoji++;
+        while (c_is_emojicomp(l[emoji])) {
+            nb++;
+            emoji++;
+        }
+    }
+    l.erase(pins, nb);
+    return pins;
+}
+
 void jag_editor::deletechar() {
-    long sz = linesize();
+    long sz = line.size();
     bool last = false;
     if (posinstring >= sz - 1) {
             //We need to known if we are in the middle of a large string across more than one line...
@@ -1711,6 +1789,37 @@ void jag_editor::processundos() {
     movetoposition();
 }
 
+    //The main problem here is that emojis can be composed...
+    //An emoji can be composed of up to 7 emojis...
+void jag_editor::forwardemoji() {
+    if (c_is_emoji(line[posinstring])) {
+        posinstring++;
+        while (c_is_emojicomp(line[posinstring]))
+            posinstring++;
+    }
+    else
+        posinstring++;
+}
+
+void jag_editor::backwardemoji() {
+    posinstring--;
+    long i = 0;
+    if (!check_large(WSTR(line), line.size(), i))
+        return;
+
+    if (posinstring < i)
+        return;
+    
+    i = posinstring;
+    if (c_is_emojicomp(line[i])) {
+        i--;
+        while (i > 0 && c_is_emojicomp(line[i]))
+            i--;
+        if (i >= 0 && c_is_emoji(line[i]))
+            posinstring = i;
+    }
+}
+
 void jag_editor::evaluateescape(string& buff) {
     
     if (buff == homekey) {
@@ -1720,8 +1829,8 @@ void jag_editor::evaluateescape(string& buff) {
     }
     
     if (buff == endkey) {
+        posinstring = line.size();
         movetoend();
-        posinstring = linesize();
         return;
     }
     
@@ -1784,7 +1893,7 @@ void jag_editor::evaluateescape(string& buff) {
         }
         
         if (!fnd) {
-            posinstring = linesize();
+            posinstring = line.size();
             movetoend();
         }
         else {
@@ -1813,7 +1922,6 @@ void jag_editor::evaluateescape(string& buff) {
         else
             posinstring = ipos + 1;
         
-        posinstring = lastinstringforemoji(posinstring);
         movetoposition();
         return;
     }
@@ -1834,8 +1942,7 @@ void jag_editor::evaluateescape(string& buff) {
     
     if (buff == left) {
         if (posinstring > 0) {
-            posinstring--;
-            posinstring = lastinstringforemoji(posinstring);
+            backwardemoji();
             movetoposition();
         }
         else {//we go up at the end of the previous line
@@ -2020,8 +2127,8 @@ bool jag_editor::checkaction(string& buff, long& first, long& last) {
                 deleteline(0);
             return true;
         case 5://ctrl-e, moving to the end of the line...
+            posinstring = line.size();
             movetoend();
-            posinstring = linesize();
             return true;
         case 6: // ctrl-f find
             if (emode()) {
@@ -2293,7 +2400,7 @@ bool jag_editor::checkaction(string& buff, long& first, long& last) {
             return true;
         case 127: //back delete
             if (posinstring > 0) {
-                posinstring--;
+                backwardemoji();
                 deletechar();
             }
             else {

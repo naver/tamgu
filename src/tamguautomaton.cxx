@@ -1585,14 +1585,14 @@ bool Au_automaton::searchlastraw(string& s, long& f, long& l, long init) {
 
 //----------------------------------------------------------------
 void Au_automaton::searchall(wstring& w, vector<long>& res, long init) {
-    long l;
+    long f;
     long sz = w.size();
-    for (long f=init;f<sz;f++) {
-        l=first->loop(w,f);
-        if (l!=-1) {
-            res.push_back(convertpostochar(w, 0, f));
+    for (long l=init;l<sz;l++) {
+        f=first->loop(w,l);
+        if (f!=-1) {
             res.push_back(convertpostochar(w, 0, l));
-            f=l-1;
+            res.push_back(convertpostochar(w, 0, f));
+            l=f-1;
         }
     }
 }
