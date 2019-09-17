@@ -424,14 +424,6 @@ inline bool checklargeutf16(wchar_t c) {
 }
 #endif
 
-#ifdef INTELINTRINSICS
-bool check_large_char(wchar_t* src, long lensrc, long& i);
-#else
-bool check_large_char(wchar_t* src, long lensrc, long& i) {
-    return true;
-}
-#endif
-
 Exporting void s_split(string& s, string& splitter, vector<string>& strs, bool keepblanks = false);
 Exporting void s_split(wstring& s, wstring& splitter, vector<wstring>& strs, bool keepblanks = false);
 Exporting void v_split(string& thestr, string thesplitter, vector<string>& v);
