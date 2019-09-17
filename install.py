@@ -406,7 +406,7 @@ f=open("Makefile.in","w")
 f.write("TAMGUCONSOLENAME = tamguconsole\n")
 
 if avx:
-    f.write("INTELINT = -DINTELINTRINSICS -msse4.1 -mavx2 -DAVXSUPPORT\n")
+    f.write("INTELINT = -DINTELINTRINSICS -msse4.2 -mavx2 -DAVXSUPPORT\n")
 elif intel:
     f.write("INTELINT = -DINTELINTRINSICS -msse4.1\n")
 
