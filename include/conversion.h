@@ -425,9 +425,9 @@ inline bool checklargeutf16(wchar_t c) {
 #endif
 
 #ifdef INTELINTRINSICS
-bool check_large(wchar_t* src, long lensrc, long& i);
+bool check_large_char(wchar_t* src, long lensrc, long& i);
 #else
-bool check_large(wchar_t* src, long lensrc, long& i) {
+bool check_large_char(wchar_t* src, long lensrc, long& i) {
     return true;
 }
 #endif

@@ -761,7 +761,7 @@ void jag_editor::clearline() {
 //We build a string with no composed emoji, to match the position of the cursor...
 void jag_editor::cleanlongemoji(wstring& s, wstring& cleaned, long p) {
     long i = 0;
-    if (!check_large(WSTR(line), line.size(), i)) {
+    if (!check_large_char(WSTR(line), line.size(), i)) {
         cleaned = s.substr(0, p);
         return;
     }
@@ -1804,7 +1804,7 @@ void jag_editor::forwardemoji() {
 void jag_editor::backwardemoji() {
     posinstring--;
     long i = 0;
-    if (!check_large(WSTR(line), line.size(), i))
+    if (!check_large_char(WSTR(line), line.size(), i))
         return;
 
     if (posinstring < i)

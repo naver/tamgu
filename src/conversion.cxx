@@ -94,7 +94,7 @@ static const __m256i checkifbigzero = _mm256_set1_epi8(0xFF);
 #define mcomp_256 _mm256_cmpeq_epi32
 #endif
 
-bool check_large(wchar_t* src, long lensrc, long& i) {
+bool check_large_char(wchar_t* src, long lensrc, long& i) {
         //First we try to find the section in which the first character might occur
     
     __m256i firstchar = mset_256(large_char);
@@ -265,7 +265,7 @@ void find_intel_all(wchar_t* src, wchar_t* search, long lensrc, long lensearch, 
 #define mcomp_128 _mm_cmpeq_epi32
 #define large_char 0x10000
 
-bool check_large(wchar_t* src, long lensrc, long& i) {
+bool check_large_char(wchar_t* src, long lensrc, long& i) {
     __m128i firstchar = mset_128(large_char);
     __m128i current_bytes = _mm_setzero_si128();
     
@@ -5629,7 +5629,7 @@ size_t size_w(wstring& w) {
 
 #ifdef INTELINTRINSICS
         //we check if we have any large characters between 0 and ipos
-    if (!check_large(WSTR(w), lg, sz))
+    if (!check_large_char(WSTR(w), lg, sz))
         return lg;
 	i = sz;
 #endif
@@ -5661,7 +5661,7 @@ size_t size_w(wstring& w, long& first) {
     long i = 0;
 #ifdef INTELINTRINSICS
         //we check if we have any large characters between 0 and ipos
-    if (!check_large(WSTR(w), lg, sz))
+    if (!check_large_char(WSTR(w), lg, sz))
         return lg;
     i = sz;
 #endif
@@ -5736,7 +5736,7 @@ long convertpostocharutf16(wstring& w, long first, long spos) {
 Exporting long convertpostochar(wstring& w, long first, long spos) {
 #ifdef INTELINTRINSICS
         //we check if we have any large characters between 0 and ipos
-	if (!check_large(WSTR(w), w.size(), first))
+	if (!check_large_char(WSTR(w), w.size(), first))
         return spos;
 #endif
     
@@ -5764,7 +5764,7 @@ Exporting long convertpostochar(wstring& w, long first, long spos) {
 Exporting long convertchartopos(wstring& w, long first, long cpos) {
 #ifdef INTELINTRINSICS
         //we check if we have any large characters between 0 and ipos
-	if (!check_large(WSTR(w), w.size(), first))
+	if (!check_large_char(WSTR(w), w.size(), first))
         return cpos;
 #endif
     
@@ -5975,7 +5975,7 @@ Exporting long convertchartopos(wstring& w, long first, long cpos) {
     
 #ifdef INTELINTRINSICS
         //we check if we have any large characters between 0 and ipos
-    if (!check_large(WSTR(w), w.size(), realpos))
+    if (!check_large_char(WSTR(w), w.size(), realpos))
         return cpos;
 #endif
 
@@ -5996,7 +5996,7 @@ Exporting long convertchartopos(wstring& w, long first, long cpos) {
 Exporting long convertpostochar(wstring& w, long first, long spos) {
 #ifdef INTELINTRINSICS
         //we check if we have any large characters between 0 and ipos
-    if (!check_large(WSTR(w), spos, first))
+    if (!check_large_char(WSTR(w), spos, first))
         return spos;
 #endif
 
@@ -6020,7 +6020,7 @@ Exporting long c_char_to_pos_emoji(wstring& w, long charpos) {
     long i = 0;
 #ifdef INTELINTRINSICS
         //we check if we have any large characters between 0 and ipos
-    if (!check_large(WSTR(w), charpos, i))
+    if (!check_large_char(WSTR(w), charpos, i))
         return charpos;
 #endif
     
@@ -6796,7 +6796,7 @@ Exporting long size_c(wstring& w) {
     long i = 0;
 
 #ifdef INTELINTRINSICS
-    if (!check_large(WSTR(w), szr, i))
+    if (!check_large_char(WSTR(w), szr, i))
         return szr;
 #endif
     
@@ -6821,7 +6821,7 @@ Exporting long size_c(wstring& w, long& emoji) {
     long i = 0;
 
 #ifdef INTELINTRINSICS
-    if (!check_large(WSTR(w), szr, i)) {
+    if (!check_large_char(WSTR(w), szr, i)) {
         return szr;
     }
 #endif
@@ -6899,7 +6899,7 @@ Exporting wstring s_left(wstring& s, long nb) {
 #ifdef INTELINTRINSICS
     long frst = 0;
     //we check if we have any large characters between 0 and ipos
-    if (!check_large(WSTR(s), lg, frst)) {
+    if (!check_large_char(WSTR(s), lg, frst)) {
         if (nb >= lg)
             return s;
         return s.substr(0, nb);
