@@ -5740,6 +5740,9 @@ Exporting long convertpostochar(wstring& w, long first, long spos) {
         return spos;
 #endif
     
+    if (spos <= first)
+        return spos;
+    
 	long  i = first;
 	long j;
 	TAMGUCHAR c;
@@ -5767,6 +5770,9 @@ Exporting long convertchartopos(wstring& w, long first, long cpos) {
 	if (!check_large_char(WSTR(w), w.size(), first))
         return cpos;
 #endif
+    
+    if (cpos <= first)
+        return cpos;
     
 	long  i = first;
 	long j;
@@ -5978,7 +5984,11 @@ Exporting long convertchartopos(wstring& w, long first, long cpos) {
     if (!check_large_char(WSTR(w), w.size(), realpos))
         return cpos;
 #endif
+    
+    if (cpos <= realpos)
+        return cpos;
 
+    first += realpos;
     while (first != cpos) {
         if (((w[realpos] & 0x1F000) == 0x1F000) && c_is_emoji(w[realpos])) {
             realpos++;
@@ -5996,10 +6006,13 @@ Exporting long convertchartopos(wstring& w, long first, long cpos) {
 Exporting long convertpostochar(wstring& w, long first, long spos) {
 #ifdef INTELINTRINSICS
         //we check if we have any large characters between 0 and ipos
-    if (!check_large_char(WSTR(w), spos, first))
+    if (!check_large_char(WSTR(w), w.size(), first))
         return spos;
 #endif
 
+    if (spos <= first)
+        return spos;
+    
     long realpos = first;
     while (realpos != spos) {
         if (((w[realpos] & 0x1F000) == 0x1F000) && c_is_emoji(w[realpos])) {
@@ -6873,90 +6886,56 @@ long getindex(unsigned char* contenu, long lg, long i) {
 
 
 Exporting string s_left(string& s, long nb) {
+    if (nb <= 0)
+        return "";
+    
     long lg = s.size();
-    if (nb >= lg || nb < 0)
+    nb = getindex(USTR(s), lg, nb);
+    if (nb >= lg)
         return s;
     
-    long i;
-#ifdef INTELINTRINSICS
-    if (check_ascii(USTR(s),lg,i))
-        return s.substr(0, nb);
-#endif
-    string res;
-    for (i = 0; nb>0; i++) {
-        res += c_char_get(USTR(s), i);
-        nb--;
-    }
-    return res;
+    return s.substr(0, nb);
 }
 
 Exporting wstring s_left(wstring& s, long nb) {
-    if (nb < 0)
+    if (nb <= 0)
+        return L"";
+
+    nb = convertchartopos(s, 0, nb);
+    if (nb >= s.size())
         return s;
-
-    long lg = s.size();
-
-#ifdef INTELINTRINSICS
-    long frst = 0;
-    //we check if we have any large characters between 0 and ipos
-    if (!check_large_char(WSTR(s), lg, frst)) {
-        if (nb >= lg)
-            return s;
-        return s.substr(0, nb);
-    }
-#endif
     
-    wstring res;
-    long i = 0;
-    while (nb > 0 && i < lg) {
-        getafullchar(s, res, i);
-        nb--;
-    }
-    return res;
+    return s.substr(0, nb);
 }
 
 Exporting wstring s_right(wstring& s, long nb) {
-    if (nb < 0)
-        return s;
-
-    long lg = s.size();
-    long l = size_c(s)-nb;
-    if (l <= 0)
+    if (nb <= 0)
+        return L"";
+#ifdef WIN32
+	long l = size_w(s) - nb;
+#else
+	long l = size_c(s) - nb;
+#endif
+	if (l <= 0)
         return s;
     
-    long i = convertchartopos(s, 0, l);
-    if (i == l)
-        return s.substr(s.size()-nb, nb);
-    
-    wstring res;
-    while (nb > 0 && i < lg) {
-        getafullchar(s, res, i);
-        nb--;
-    }
-    return res;
+    l = convertchartopos(s, 0, l);
+    return s.substr(l, s.size());
 }
 
 Exporting string s_right(string& s, long nb) {
-    if (nb < 0)
-        return s;
+    if (nb <= 0)
+        return "";
 
     long lg = s.size();
-    
-    long l = size_c(USTR(s),lg)-nb;
-    if (l < 0)
+
+	long l = size_c(USTR(s), lg) - nb;
+
+	if (l <= 0)
         return s;
     
-    long i = getindex(USTR(s), lg, l);
-    if (l == i)
-        return s.substr(lg-nb, nb);
-    
-    string res;
-    while (nb > 0 && i < lg) {
-        res += c_char_get(USTR(s), i);
-        nb--;
-        i++;
-    }
-    return res;
+    l = getindex(USTR(s), lg, l);
+    return s.substr(l, lg);
 }
 
 Exporting string s_middle(string& s, long l, long nb) {
@@ -6967,31 +6946,23 @@ Exporting string s_middle(string& s, long l, long nb) {
     long i = getindex(contenu, lg, l);
     if (i >= lg)
         return "";
-    
-    if (i == l)
-        return s.substr(l, nb);
 
-    string res;
-
-    for (; i < lg && nb > 0; i++) {
-        res += c_char_get(contenu, i);
-        nb--;
-    }
-    return res;
+    nb += l;
+    nb = getindex(contenu, lg, nb);
+    return s.substr(i, nb - i);
 }
 
 Exporting wstring s_middle(wstring& s, long l, long nb) {
-    long i = convertchartopos(s, 0, l);
-    if (i == l)
-        return s.substr(l, nb);
+    if (l <= 0)
+        return L"";
     
-    long lg  = s.size();
-    wstring res;
-    while (nb > 0 && i < lg) {
-        getafullchar(s, res, i);
-        nb--;
-    }
-    return res;
+    long i = convertchartopos(s, 0, l);
+    if (i >= s.size())
+        return L"";
+    
+    nb += l;
+    nb = convertchartopos(s, 0, nb);
+    return s.substr(i, nb - i);
 }
 
 Exporting bool c_char_index_assign(string& s, string c, long x) {
