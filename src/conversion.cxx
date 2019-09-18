@@ -5977,18 +5977,16 @@ Exporting void s_latin_to_unicode(wstring& res, unsigned char* contenu, long sz)
 #else
 
 Exporting long convertchartopos(wstring& w, long first, long cpos) {
-    long realpos = first;
-    
 #ifdef INTELINTRINSICS
         //we check if we have any large characters between 0 and ipos
-    if (!check_large_char(WSTR(w), w.size(), realpos))
+    if (!check_large_char(WSTR(w), w.size(), first))
         return cpos;
 #endif
     
-    if (cpos <= realpos)
+    if (cpos <= first)
         return cpos;
 
-    first += realpos;
+    long realpos = first;
     while (first != cpos) {
         if (((w[realpos] & 0x1F000) == 0x1F000) && c_is_emoji(w[realpos])) {
             realpos++;
