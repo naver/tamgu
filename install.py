@@ -36,7 +36,7 @@ def displayhelp(s):
     print(" -pathfltk path: path to GUI libraries (if you have a specific version of fltk1.3 in a different directory than /usr/lib)")
     print(" -withfastint: Compile with fast int")
     print(" -intel: Compile with Intel Intrinsics instruction to speed up string conversion and string search. It impacts 'conversion.cxx' compiling...")
-    print(" -avx:   Compile with Intel Intrinsics instruction to speed up string search (must be combined with -intel). It impacts 'conversion.cxx' compiling...")
+    print(" -avx:   Combined with -intel, it uses more advanced instrinsics instructions (avx2) based on __m256i values (default is __m128i)")
     print(" -java: Prepare compiling to java")
     print(" -gccversion: Directory names for intermediate and final files depend on local gcc version")
     print(" -version name: Directory names for intermediate and final files depend on name (do not use with gccversion)")
