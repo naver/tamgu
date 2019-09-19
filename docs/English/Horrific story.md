@@ -14,7 +14,7 @@ And sometimes it didn't crash at all, running for hours without any problem. And
 
 ## Can't see any solutions
 
-My mind was full of the most convoluted scenarios that I would test by burning my eyes to follow step by step in debug mode each creation and each destruction of objects. But nothing seemed to make sense. Usuallay, there is a strange pleasure in discovering the origin of a bug, our mind lights up, a smile appears on our lips, we breathe a sigh of relief. But here, the more I tried to understand what was happening, the more frustration set in. I put traces everywhere in my code, which had the effect of _suppressing the crashes_. I began to suspect the compiler, the operating system (Windows). I could not understand how the presence of a "cout" could make a bug disappear. 
+My mind was full of the most convoluted scenarios that I would test by burning my eyes to follow step by step in debug mode each creation and each destruction of objects. But nothing seemed to make sense. Usually, there is a strange pleasure in discovering the origin of a bug, our mind lights up, a smile appears on our lips, we breathe a sigh of relief. But here, the more I tried to understand what was happening, the more frustration set in. I put traces everywhere in my code, which had the effect of _suppressing the crashes_. I began to suspect the compiler, the operating system (Windows). I could not understand how the presence of a "cout" could make a bug disappear. 
 
 ## Once you've eliminated the impossible...
 
