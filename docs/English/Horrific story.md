@@ -78,7 +78,7 @@ ARGH...
 2. increment of the reference (thread 1) --> reference is 2
 5. decrement of the reference (thread 2) --> reference is 0
 3. writing the reference (thread 1) --> write 2
-6. write the reference (thread 2) --> overwrite 2 with the value 0
+6. writing the reference (thread 2) --> overwrite 2 with the value 0
 
 This leads to the destruction of the object.
 
