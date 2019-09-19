@@ -1,6 +1,6 @@
 # The very horrific story of the reference counter
 
-There comes a time in his career when a computer scientist will have to enter a secret world where the strongest mind can turn in a few hours into a drooling and stuttering wreck. A terrifying world that transforms the slightest bug into a thick brute more dangerous than a werewolf on a full moon day. A world made for minds that have not yet been born. I obviously want to talk about multithreading. 
+There comes a time when a computer scientist will have to enter a secret world where the strongest mind can turn in a few hours into a drooling and stuttering wreck. A terrifying world that transforms the slightest bug into a thick brute more dangerous than a werewolf on a full moon day. A world made for minds that have not yet been born. I obviously want to talk about multithreading. 
 
 ## Stability
 
@@ -8,21 +8,21 @@ I had created a small Tamgu program whose purpose was to test the strength of my
 
 And the program was crashing....
 
-Not clearly, in a specific place in the code. No, it would have been too simple, it would randomly crashed in the most unusual places in the code. But worse than that, it only crashed in release mode. When I executed it in the debugger, it worked perfectly. 
+Not a neat way, in a specific location in the code. No, it would have been too simple. Actually, it would randomly crashed in the most unusual places in the code. But worse than that, it only crashed in release mode. When I executed it in the debugger, it worked perfectly. 
 
-And sometimes it didn't crash at all, running for hours without any problem. If that was not enough as a problem, it would also sometimes engage in an outrageous consumption of memory, often bringing my machine to its knees.
+And sometimes it didn't crash at all, running for hours without any problem. And sometimes, it would sundenly engage in an outrageous consumption of memory, often bringing my machine to its knees.
 
-## No solutions
+## Can't see any solutions
 
-My mind was full of the most convoluted scenarios, I would burn my eyes to follow step by step in debug mode each creation and each destruction of objects. But nothing seemed obvious to me. There is a strange pleasure in discovering the origin of a bug, our mind lights up, a smile appears on our lips, we breathe a sigh of relief. But here, the more I tried to understand what was happening, the more frustration set in. I put traces everywhere in my code, which had the effect of _suppressing the crashes_. I began to suspect the compiler, the operating system (Windows). I didn't understand how the presence of a "cout" could make a bug disappear. 
+My mind was full of the most convoluted scenarios that I would test by burning my eyes to follow step by step in debug mode each creation and each destruction of objects. But nothing seemed to make sense. Usuallay, there is a strange pleasure in discovering the origin of a bug, our mind lights up, a smile appears on our lips, we breathe a sigh of relief. But here, the more I tried to understand what was happening, the more frustration set in. I put traces everywhere in my code, which had the effect of _suppressing the crashes_. I began to suspect the compiler, the operating system (Windows). I could not understand how the presence of a "cout" could make a bug disappear. 
 
 ## Once you've eliminated the impossible...
 
 In desperation, I applied Sherlock Holmes' rule and decided to display the reference counter. Tamgu like many other languages uses a reference counter to track the life cycle of an object. When this counter goes to zero the object is destroyed. Until then, I had not given this counter any thought. It was a simple integer that was incremented or decremented according to needs. I didn't see how it could be a source of trouble.
 
-However, during an execution, I saw that a reference counter was at 2... It should have been at 1.
+However, during an execution, I saw that a reference counter was set to 2... It should have been 1.
 
-It seemed like a tiny detail, but suddenly I could see the reason why sometimes the program consummed memory. If this counter was at 2, it could never go back to 0 later and therefore the object in question could no longer be destroyed.
+It seemed like a tiny detail, but suddenly I could see the reason why sometimes the program over-consummed memory. If this counter was at 2, it could never go back to 0 later and therefore the object in question would never be destroyed.
 
 ## Light
 
@@ -37,7 +37,7 @@ I explored Stack Overflow to look at the most common type of errors in multithre
 Then during a test on Linux, I saw that a reference was 0. It should have been 1.
 The program crashed right after....
 
-I suddenly understood that these two bugs were the same. 
+I suddenly understood that these two bugs were connected. 
 
 And the light came on....
 
@@ -45,7 +45,7 @@ And the light came on....
 
 In fact, the code crashed because the reading, arithmetic and writing operations were all dissociated from each other.
 
-Let's take a simple example, like the one below. We will assume that the initial reference counter value is 1.
+Let's take a simple example. We will assume that the initial reference counter value is 1.
 
 ```
 reference+++; (thread 1)
@@ -60,7 +60,7 @@ These two operations can be represented by the following six instructions:
 3. writing the reference (thread 1)
 ———
 4. reading the reference (thread 2)
-5. reference decrement (thread 2)
+5. decrement of the reference (thread 2)
 6. reference writing (thread 2) 
 ```
 
@@ -72,11 +72,11 @@ Crashing
 _1_. reading the reference, we read 1 (thread 1)
 _4_... reading the reference, we read 1 more (thread 2) -> ARGH....
 2. increment of the reference (thread 1) --> reference is 2
-5. reference decrement (thread 2) --> reference is 0
+5. decrement of the reference (thread 2) --> reference is 0
 3. writing the reference (thread 1) --> write 2
 6. write the reference (thread 2) --> overwrite 2 with the value 0, which leads to the destruction of the object.
 
-Crash, the object was destroyed....
+Crash, the object was destroyed but still in use...
 ```
 
 As long as the memory cell containing the reference has not been written, it is 1 for both readings. The calculations are done in parallel and therefore lead to two different values. Depending on the order of operations 3 and 6, this leads either to the destruction of the object or to its indestructibility.
@@ -95,6 +95,5 @@ std::atomic<short> reference;
 ```
 
 An "atomic" value allows to synchronize readings and writings in a multithreaded program, which help avoid this type of bugs. The fact that the program does not crash in debug mode is due to the fact that since execution is slower, the risk of mixing instructions is much lower. 
-
 
 I never thought that simple mathematical operations on an integer could have such a big impact on my code.
