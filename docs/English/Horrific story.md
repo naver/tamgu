@@ -69,8 +69,8 @@ Unfortunately, in a multithreaded program, these instructions can be mixed freel
 ```
 Crashing
 
-_1_. reading the reference, we read 1 (thread 1)
-_4_... reading the reference, we read 1 more (thread 2) -> ARGH....
+1. reading the reference, we read 1 (thread 1)
+4. reading the reference, we read 1 more (thread 2) -> ARGH....
 2. increment of the reference (thread 1) --> reference is 2
 5. decrement of the reference (thread 2) --> reference is 0
 3. writing the reference (thread 1) --> write 2
@@ -84,8 +84,8 @@ As long as the memory cell containing the reference has not been written, it is 
 ```
 Indestructible
 …
-_6_. writing the reference (thread 2) --> write 0
-_3_. writing the reference (thread 1) --> overwrite 0 with the value 2, we will no longer be able to destroy this object.
+6. writing the reference (thread 2) --> write 0
+3. writing the reference (thread 1) --> overwrite 0 with the value 2, we will no longer be able to destroy this object.
 ```
 
 The solution was extremely simple, we only needed to declare the reference counter as an "atomic" value.
