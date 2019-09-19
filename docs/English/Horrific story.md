@@ -70,7 +70,10 @@ Unfortunately, in a multithreaded program, these instructions can be mixed freel
 Crashing
 
 1. reading the reference, we read 1 (thread 1)
-4. reading the reference, we read 1 more (thread 2) -> ARGH....
+4. reading the reference, we read 1 more (thread 2)
+
+ARGH....
+
 2. increment of the reference (thread 1) --> reference is 2
 5. decrement of the reference (thread 2) --> reference is 0
 3. writing the reference (thread 1) --> write 2
