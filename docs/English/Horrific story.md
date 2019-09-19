@@ -77,6 +77,9 @@ ARGH...
 
 2. increment of the reference (thread 1) --> reference is 2
 5. decrement of the reference (thread 2) --> reference is 0
+
+Then decoherence unfolds...
+
 3. writing the reference (thread 1) --> write 2
 6. writing the reference (thread 2) --> overwrite 2 with the value 0
 
