@@ -1,5 +1,7 @@
 # L’histoire très horrifique du compteur de référence
 
+[English version](https://github.com/naver/tamgu/wiki/6.-The-very-horrific-story-of-the-reference-counter)
+
 Il arrive un moment où dans sa carrière, un informaticien va devoir pénétrer dans un monde d’initiés où l’esprit le plus fort peut se transformer en quelques heures en une épave bavante et balbutiante. Un monde terrifiant qui transforme le moindre bug en une brute épaisse plus dangereuse qu’un loup garou un jour de pleine lune. Un monde fait pour des esprits qui ne sont pas encore nés. Je veux évidemment parler du multithreading. 
 
 ## Stabilité
@@ -20,7 +22,7 @@ J’avais beau imaginer les scénarios les plus alambiqués, me brûler les yeux
 
 En désespoir de causes, j’appliquais la règle de Sherlock Holmes et je décidais d’afficher le compteur de référence. Tamgu comme beaucoup d’autres langages utilise un compteur de référence pour traquer le cycle de vie d’un objet. Lorsque ce compteur passe à zéro l’objet est détruit. J’avais jusque là dédaigné ce compteur, un simple entier que l’on incrémentait ou décréméntait selon les besoins. Je ne voyais pas comment il pouvait être une source de problème.
 
-Pourtant, lors d’une exécution, je vis qu’un compteur de référence était à 2… Il aurait dû être à 1.
+Pourtant, lors d’une exécution, je vis qu’un _compteur de référence était à 2… Il aurait dû être à 1._
 
 Ça paraissait infime comme détail, mais je compris la raison pour laquelle parfois le programme consommait de la mémoire. Si ce compteur était à 2, il ne pouvait pas repasser à 0 plus tard et donc l’objet en question ne pouvait plus être détruit.
 
@@ -34,10 +36,11 @@ Je fis tourner le programme sous « gdb » et de nouveau rien n’y fit. Le pr
 
 J’explorais Stack Overflow pour regarder le type d’erreurs les plus communes en multithreading.  Mais, je ne trouvais rien de concluant.
 
-Puis lors d’un test sous Linux, je vis qu’une référence était à 0. Elle aurait dû être à 1.
+Puis lors d’un test sous Linux, je vis qu’un _compteur de référence était à 0. Il aurait dû être à 1._
+
 Le programme planta juste après…
 
-Je compris soudain que ces deux bugs étaient en fait lié à un même problème. 
+Je compris soudain que ces deux bugs étaient liés... 
 
 Et la lumière se fit…
 
@@ -57,11 +60,11 @@ Or, ces deux opérations peuvent être représentées par les six instruction su
 ```
 1. lecture de la référence (thread 1)
 2. incrémentation de la référence (thread 1)
-3. écriture de la référence (thread 1)
+3. écriture de la nouvelle référence (thread 1)
 ———
 4. lecture de la référence (thread 2)
 5. décrémentation de la référence (thread 2)
-6. écriture de référence (thread 2) 
+6. écriture de la nouvelle référence (thread 2) 
 ```
 
 Hélas dans un programme multithreadé, ces instructions peuvent se mélanger librement...
@@ -69,14 +72,22 @@ Hélas dans un programme multithreadé, ces instructions peuvent se mélanger li
 ```
 Plantage
 
-_1_. lecture de la référence, on lit 1 (thread 1)
-_4_. lecture de la référence, on lit encore 1 (thread 2) —> ARGH…
+1. lecture de la référence, on lit 1 (thread 1)
+4. lecture de la référence, on lit encore 1 (thread 2)
+
+ARGH...
+
 2. incrémentation de la référence (thread 1) --> reference vaut 2
 5. décrémentation de la référence (thread 2) --> référence vaut 0
-3. écriture de la référence (thread 1) --> on écrit 2
-6. écriture de la référence (thread 2) --> on écrase 2 avec la valeur 0, ce qui conduit à la destruction de l’objet.
 
-Plantage assuré, l’objet était détruit…
+La décohérence s'accomplit...
+
+3. écriture de la référence (thread 1) --> on écrit 2
+6. écriture de la référence (thread 2) --> on écrase 2 avec la valeur 0
+
+L’objet est détruit...
+
+Plantage assuré, l’objet était toujours utilisé…
 ```
 
 Tant que la cellule mémoire qui contient la référence n’a pas été écrite, elle vaut 1 pour les deux lectures. Les calculs se font en parallèle et conduisent donc à deux valeurs différentes. Selon l’ordre des opérations 3 et 6, cela conduit soit à une destruction de l’objet, soit à son indestructibilité.
@@ -85,16 +96,17 @@ Tant que la cellule mémoire qui contient la référence n’a pas été écrite
 Indestructible
 …
 _6_. écriture de la référence (thread 2) --> on écrit 0
-_3_. écriture de la référence (thread 1) --> on écrase 0 avec la valeur 2, on ne pourra plus détruire cet objet.
+_3_. écriture de la référence (thread 1) --> on écrase 0 avec la valeur 2.
+
+L'objet est désormais indestructible, on ne pourra plus le détruire.
 ```
 
-La solution était extrêmement simple, il suffisait de déclarer le compteur de référence comme une valeur « atomique ».
+La solution était pourtant extrêmement simple, il suffisait de déclarer le compteur de référence comme une valeur « atomique ».
 
 ```C++
 std::atomic<short> reference;
 ```
 
 Une valeur « atomique » permet de synchroniser les lectures et les écritures dans un programme multithreadé et permet d’échapper à ce bug. Le fait que le programme ne plante pas en mode débug vient de ce que l’exécution étant ralenti, le risque de mélange des instructions est beaucoup plus faible. 
-
 
 Jamais je n’aurais pensé que de simples opérations mathématiques sur un entier puisse avoir un impact aussi grand sur du code.
