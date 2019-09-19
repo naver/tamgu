@@ -20,7 +20,7 @@ My mind was full of the most convoluted scenarios that I would test by burning m
 
 In desperation, I applied Sherlock Holmes' rule and decided to display the reference counter. Tamgu like many other languages uses a reference counter to track the life cycle of an object. When this counter goes to zero the object is destroyed. Until then, I had not given this counter any thought. It was a simple integer that was incremented or decremented according to needs. I didn't see how it could be a source of trouble.
 
-However, during an execution, I saw that a reference counter was set to 2... It should have been 1.
+However, during an execution, I saw that _a reference counter was set to 2... It should have been 1_.
 
 It seemed like a tiny detail, but suddenly I could see the reason why sometimes the program over-consummed memory. If this counter was at 2, it could never go back to 0 later and therefore the object in question would never be destroyed.
 
@@ -34,7 +34,8 @@ I ran the program under "gdb" and again nothing happened. The program was workin
 
 I explored Stack Overflow to look at the most common type of errors in multithreading.  But I couldn't find anything conclusive.
 
-Then during a test on Linux, I saw that a reference was 0. It should have been 1.
+Then during a test on Linux, I saw that _a reference counter was 0. It should have been 1._
+
 The program crashed right after....
 
 I suddenly understood that these two bugs were connected. 
