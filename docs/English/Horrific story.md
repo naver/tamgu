@@ -61,7 +61,7 @@ These two operations can be represented by the following six instructions:
 ———
 4. reading the reference (thread 2)
 5. decrement of the reference (thread 2)
-6. reference writing (thread 2) 
+6. writing the reference (thread 2) 
 ```
 
 Unfortunately, in a multithreaded program, these instructions can be mixed freely...
