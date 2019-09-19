@@ -72,14 +72,16 @@ Crashing
 1. reading the reference, we read 1 (thread 1)
 4. reading the reference, we read 1 more (thread 2)
 
-ARGH....
+ARGH...
 
 2. increment of the reference (thread 1) --> reference is 2
 5. decrement of the reference (thread 2) --> reference is 0
 3. writing the reference (thread 1) --> write 2
-6. write the reference (thread 2) --> overwrite 2 with the value 0, which leads to the destruction of the object.
+6. write the reference (thread 2) --> overwrite 2 with the value 0
 
-Crash, the object was destroyed but still in use...
+This leads to the destruction of the object.
+
+The program crashes, the object was still in use...
 ```
 
 As long as the memory cell containing the reference has not been written, it is 1 for both readings. The calculations are done in parallel and therefore lead to two different values. Depending on the order of operations 3 and 6, this leads either to the destruction of the object or to its indestructibility.
