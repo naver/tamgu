@@ -58,11 +58,11 @@ These two operations can be represented by the following six instructions:
 ```
 1. reading the reference (thread 1)
 2. increment of the reference (thread 1)
-3. writing the reference (thread 1)
+3. writing the new reference (thread 1)
 ———
 4. reading the reference (thread 2)
 5. decrement of the reference (thread 2)
-6. writing the reference (thread 2) 
+6. writing the new reference (thread 2) 
 ```
 
 Unfortunately, in a multithreaded program, these instructions can be mixed freely...
@@ -75,13 +75,13 @@ Crashing
 
 ARGH...
 
-2. increment of the reference (thread 1) --> reference is 2
-5. decrement of the reference (thread 2) --> reference is 0
+2. increment of the value (thread 1) --> value is now 2
+5. decrement of the value (thread 2) --> value is now 0
 
 Then decoherence unfolds...
 
-3. writing the reference (thread 1) --> write 2
-6. writing the reference (thread 2) --> overwrite 2 with the value 0
+3. writing the value 2 to memory (thread 1) --> write 2
+6. writing the value 0 to memory (thread 2) --> overwrite 2 with the value 0
 
 This leads to the destruction of the object.
 
@@ -93,8 +93,8 @@ As long as the memory cell containing the reference has not been written, it is 
 ```
 Indestructible
 …
-6. writing the reference (thread 2) --> write 0
-3. writing the reference (thread 1) --> overwrite 0 with the value 2.
+6. writing the value 0 to memory (thread 2) --> write 0
+3. writing the value 2 to memory (thread 1) --> overwrite 0 with the value 2.
 
 We will no longer be able to destroy this object.
 ```
