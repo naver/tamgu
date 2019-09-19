@@ -90,7 +90,9 @@ As long as the memory cell containing the reference has not been written, it is 
 Indestructible
 …
 6. writing the reference (thread 2) --> write 0
-3. writing the reference (thread 1) --> overwrite 0 with the value 2, we will no longer be able to destroy this object.
+3. writing the reference (thread 1) --> overwrite 0 with the value 2.
+
+We will no longer be able to destroy this object.
 ```
 
 The solution was extremely simple, we only needed to declare the reference counter as an "atomic" value.
