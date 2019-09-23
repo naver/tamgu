@@ -33,66 +33,289 @@ void concat_char_convert_utf16(wstring& res, TAMGUCHAR code);
 
 //------------------------------------------------------------------------
 #ifdef INTELINTRINSICS
-static const __m128i checkutf8byte = _mm_set1_epi8(0x80);
-static const __m128i checkifzero = _mm_set1_epi8(0xFF);
-
 //There is a wnscmp method, however there seems to be a problem when used in conjunction with intrinsics instructions...
-static inline bool wcharcomp(wchar_t* s, wchar_t* r, long lensearch) {
-    while (lensearch>=0) {
-        if (s[lensearch] != r[lensearch])
+//Some explanations: we suppose that the first character of both strings has already been identified as being the same
+static inline bool wcharcomp(wchar_t* src, wchar_t* search, long lensearch) {
+    while (--lensearch) {
+        if (src[lensearch] != search[lensearch])
             return false;
-        --lensearch;
     }
     return true;
-}
-
-bool check_ascii(unsigned char* src, long len, long& i) {
-    __m128i current_bytes = _mm_setzero_si128();
-    
-    i = 0;
-    for (; (i + 15) < len; i += 16) {
-        //we load our section, the length should be larger than 16
-        current_bytes = _mm_loadu_si128((const __m128i *)(src + i));
-        if (!_mm_testz_si128(checkutf8byte, current_bytes))
-            return false;
-    }
-    
-    // last part
-    if (i < len) {
-        char buffer[16];
-        memset(buffer, 0, 16);
-        memcpy(buffer, src + i, len - i);
-        current_bytes = _mm_loadu_si128((const __m128i *)buffer);
-        if (!_mm_testz_si128(checkutf8byte, current_bytes))
-            return false;
-    }
-    
-    return true;
-    
 }
 
 #ifdef AVXSUPPORT
-//We have to take into account the fact that wchar_t is 16 bits on Windows, while it is 32 bits on all other platforms...
+
+//-------------------------------------------------------------------------------------!
+//-------------------------------------------------------------------------------------!
+//-------------------------------------------------------------------------------------!
+// AVX SUPPORT, we can use __256i numbers, which means that for wstring objects,       !
+// the increment will be 8 or 16 depending on whether it is on Windows (UTF16)         !
+// or on Unix machines (UTF32).                                                        !
+// The same applies to regular strings, where the increment will be 32 (256/8)         !
+//-------------------------------------------------------------------------------------!
+//-------------------------------------------------------------------------------------!
+//-------------------------------------------------------------------------------------!
+
+static const __m256i checkutf8byte = _mm256_set1_epi8(0x80);
+static const __m256i checkifzero = _mm256_set1_epi8(0xFF);
+
+bool check_ascii(unsigned char* src, long lensrc, long& i) {
+    __m256i current_bytes = _mm256_setzero_si256();
+    
+    i = 0;
+    for (; (i + 31) < lensrc; i += 32) {
+            //we load our section, the length should be larger than 16
+        current_bytes = _mm256_loadu_si256((const __m256i *)(src + i));
+        if (!_mm256_testz_si256(checkutf8byte, current_bytes))
+            return false;
+    }
+    
+        // last part
+    if (i < lensrc) {
+        char buffer[32];
+        memset(buffer, 0, 32);
+        memcpy(buffer, src + i, lensrc - i);
+        current_bytes = _mm256_loadu_si256((const __m256i *)buffer);
+        if (!_mm256_testz_si256(checkutf8byte, current_bytes))
+            return false;
+    }
+    
+    return true;
+}
+
+long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, long lensearch, long i) {
+        //First we try to find the section in which the first character might occur
+    if (lensrc+i < 64) {
+        search = (uchar*)strstr((char*)(src+i), (char*)search);
+        if (search == NULL)
+            return -1;
+        return(search-src);
+    }
+    
+    uchar c = search[0];
+    __m256i firstchar = _mm256_set1_epi8(c);
+    __m256i current_bytes = _mm256_setzero_si256();
+    
+    uchar* s=src;
+    long j;
+    
+        //We then scan our string for this first character...
+    for (; (i + 31) < lensrc; i += 32) {
+            //we load our section, the length should be larger than 32
+        s=src+i;
+        current_bytes = _mm256_loadu_si256((const __m256i *)s);
+        
+            //we check if we have a the first character of our string somewhere
+            //in this 32 character window...
+        current_bytes = _mm256_cmpeq_epi8(firstchar, current_bytes);
+        if (!_mm256_testz_si256(current_bytes, checkifzero)) {
+                //Our character is present, we now try to find where it is...
+                //we find it in this section...
+            j=strchr((char*)s,(char)c)-(char*)s;
+            if (lensearch==1 || !memcmp(s+j,search,lensearch))
+                return(i+j);
+            j++;
+            for (; j<32; j++) {
+                if (s[j] == c) {
+                    if (lensearch==1 || !memcmp(s+j,search,lensearch))
+                        return(i+j);
+                }
+            }
+        }
+    }
+    
+    lensrc-=lensearch;
+    for (;i<=lensrc;i++) {
+        if (src[i] == c) {
+            if (lensearch==1 || !memcmp(src+i,search,lensearch))
+                return i;
+        }
+    }
+    
+    return -1;
+}
+
+long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long lensearch, long i) {
+        //First we try to find the section in which the first character might occur
+        //We look for the last character, from which we will compare backward...
+    __m256i firstchar = _mm256_set1_epi8(search[0]);
+    __m256i current_bytes = _mm256_setzero_si256();
+    
+    uchar* s=src;
+    long j;
+    if ((lensrc-i) < lensearch)
+        i-=lensearch-(lensrc-i);
+    
+    if (i<0)
+        i=0;
+    
+    uchar c = search[0];
+    uchar cc;
+    
+        //We then scan our string for this first character...
+    while (i>=32) {
+            //we load our section, the length should be larger than 32
+        s=src+i;
+        current_bytes = _mm256_loadu_si256((const __m256i *)s);
+        current_bytes = _mm256_cmpeq_epi8(firstchar, current_bytes);
+        
+        if (!_mm256_testz_si256(current_bytes, checkifzero)) {
+                //we find it in this section...
+            cc = s[32];
+            s[32]=0;
+            j=strrchr((char*)s,(char)c)-(char*)s;
+            s[32] = cc;
+            if (lensearch==1 || !memcmp(s+j, search, lensearch))
+                return(i+j);
+            j--;
+            for (; j>=0; j--) {
+                if (s[j] == c) {
+                    if (lensearch==1 || !memcmp(s+j, search, lensearch))
+                        return(i+j);
+                }
+            }
+        }
+        i-=32;
+    }
+    
+    for (j = 31+i; j>=0; j--) {
+        if (src[j] == c) {
+            if (lensearch==1 || !memcmp(src+j, search, lensearch))
+                return j;
+        }
+    }
+    
+    return -1;
+}
+
+//This version of find_intel also detects the section in which potential UTF8 characters may occur...
+//The first section is then recorded into ps, ascii is then set to false to indicate the potential presence
+//of a utf8 character in the string...
+bool find_intel(unsigned char* src, unsigned char* search, long lensrc, long lensearch, long& i, long& ps) {
+        //First we try to find the section in which the first character might occur
+    __m256i current_bytes = _mm256_setzero_si256();
+    
+    uchar c = search[0];
+    __m256i firstchar = _mm256_set1_epi8(c);
+    
+    uchar* s=src;
+    long j;
+    bool ascii=true;
+    
+        //We then scan our string for this first character...
+    for (; (i + 31) < lensrc; i += 32) {
+            //we load our section, the length should be larger than 32
+        s=src+i;
+        current_bytes = _mm256_loadu_si256((const __m256i *)s);
+        if (ascii && !_mm256_testz_si256(checkutf8byte, current_bytes)) {
+            ascii = false;
+            ps = i;
+        }
+        
+            //we check if we have a the first character of our string somewhere
+            //in this 32 character window...
+        current_bytes = _mm256_cmpeq_epi8(firstchar, current_bytes);
+        if (!_mm256_testz_si256(current_bytes, checkifzero)) {
+            //Our character is present, we now try to find where it is...
+            //we find it in this section...
+            j=strchr((char*)s,(char)c)-(char*)s;
+            if (lensearch==1 || !memcmp(s+j,search,lensearch)) {
+                i += j;
+                return ascii;
+            }
+            j++;
+            for (; j<32; j++) {
+                if (s[j] == c) {
+                    if (lensearch==1 || !memcmp(s+j,search,lensearch)) {
+                        i += j;
+                        return ascii;
+                    }
+                }
+            }
+        }
+    }
+    
+    lensrc-=lensearch;
+    for (;i<=lensrc;i++) {
+        if (src[i] >= 128) {
+            ps = i;
+            ascii=false;
+        }
+        if (src[i] == c) {
+            if (lensearch==1 || !memcmp(src+i,search,lensearch))
+                return ascii;
+        }
+    }
+    
+    i=-1;
+    return false;
+}
+
+void find_intel_all(unsigned char* src, unsigned char* search, long lensrc, long lensearch, vector<long>& pos) {
+        //First we try to find the section in which the first character might occur
+    uchar c = search[0];
+    
+    __m256i firstchar = _mm256_set1_epi8(c);
+    __m256i current_bytes = _mm256_setzero_si256();
+    
+    uchar* s=src;
+    long j;
+    long i = 0;
+        //We then scan our string for this first character...
+    for (; (i + 31) < lensrc; i += 32) {
+            //we load our section, the length should be larger than 32
+        s=src+i;
+        current_bytes = _mm256_loadu_si256((const __m256i *)s);
+        current_bytes = _mm256_cmpeq_epi8(firstchar, current_bytes);
+        if (!_mm256_testz_si256(current_bytes, checkifzero)) {
+                //we find it in this section...
+            j=strchr((char*)s,(char)c)-(char*)s;
+            for (; j<32; j++) {
+                if (s[j] == c) {
+                    if (lensearch==1 || !memcmp(s+j,search,lensearch))
+                        pos.push_back(i+j);
+                }
+            }
+        }
+    }
+    
+    lensrc-=lensearch;
+    for (;i<=lensrc;i++) {
+        if (src[i] == c) {
+            if (lensearch==1 || !memcmp(src+i,search,lensearch))
+                pos.push_back(i);
+        }
+    }
+}
+
+//-------------------------------------------------------------------------------------
+//--- WSTRING SECTION
+//-------------------------------------------------------------------------------------
+
+    //We have to take into account the fact that wchar_t is 16 bits on Windows, while it is 32 bits on all other platforms...
 
 
 static const __m256i checkifbigzero = _mm256_set1_epi8(0xFF);
 
-//When we increment by 1 on Windows, we move by increment of 16 bits in memory. 256/16 = 16
+    //When we increment by 1 on Windows, we move by increment of 16 bits in memory. 256/16 = 16
 //When we increment by 1 on Linux, we move by increment of 32 bits in memory. 256/32 = 8
 
 //To detect if we have a potential large character (an emoji)
 
 #ifdef WIN32
 #define large_char 0x8000
+#define szwchar 1
 #define stringincrement 16
 #define mset_256 _mm256_set1_epi16
 #define mcomp_256 _mm256_cmpeq_epi16
 #else
+#define szwchar 2
 #define large_char 0x10000
 #define stringincrement 8
 #define mset_256 _mm256_set1_epi32
 #define mcomp_256 _mm256_cmpeq_epi32
 #endif
+
 
 bool check_large_char(wchar_t* src, long lensrc, long& i) {
         //First we try to find the section in which the first character might occur
@@ -112,13 +335,12 @@ bool check_large_char(wchar_t* src, long lensrc, long& i) {
     }
 
 	if (i < lensrc) {
-		wchar_t buffer[stringincrement + 1];
-		for (long j = 0; j < stringincrement; j++) {
-			if ((i + j) < lensrc)
-				buffer[j] = src[i + j];
-			else
-				buffer[j] = 0;
-		}
+#ifdef WIN32
+        wchar_t buffer[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+#else
+        wchar_t buffer[] = {0,0,0,0,0,0,0,0,0};
+#endif
+        memcpy(buffer, src+i, (lensrc-i)  << szwchar);
 		current_bytes = _mm256_loadu_si256((const __m256i *)buffer);
 		if (!_mm256_testz_si256(firstchar, current_bytes))
 			return true;
@@ -134,7 +356,7 @@ long find_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, long
 
     __m256i firstchar = mset_256(c);
     __m256i current_bytes = _mm256_setzero_si256();
-    
+
     wchar_t* s=src;
     long j;
 
@@ -144,17 +366,18 @@ long find_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, long
         s=src+i;
         current_bytes = _mm256_loadu_si256((const __m256i *)s);
         
-        //we check if we have a the first character of our string somewhere
+        //we check if we have the first character of our string somewhere
         //in this 8 character window...
         current_bytes = mcomp_256(firstchar, current_bytes);
         if (!_mm256_testz_si256(current_bytes, checkifbigzero)) {
             //Our character is present, we now try to find where it is...
             //we find it in this section...
             for (j=0; j < stringincrement; j++) {
-                if (s[j] == c) {
-                    if (lensearch==1 || wcharcomp(s+j+1, search+1, lensearch-2))
+                if (*s == c) {
+                    if (lensearch==1 || wcharcomp(s, search, lensearch))
                         return (i+j);
                 }
+                ++s;
             }
         }
     }
@@ -162,7 +385,7 @@ long find_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, long
     lensrc-=lensearch;
     for (;i<=lensrc;i++) {
         if (src[i] == c) {
-            if (lensearch==1 || wcharcomp(src+i+1, search+1, lensearch-2))
+            if (lensearch==1 || wcharcomp(src+i, search, lensearch))
                 return i;
         }
     }
@@ -199,7 +422,7 @@ long rfind_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, lon
             //we find it in this section...
             for (j=stringincrement-1; j>=0; j--) {
                 if (s[j] == c) {
-                    if (lensearch==1 || wcharcomp(s+j+1, search+1, lensearch-2))
+                    if (lensearch==1 || wcharcomp(s+j, search, lensearch))
                         return (i+j);
                 }
             }
@@ -209,7 +432,7 @@ long rfind_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, lon
 
     for (j=stringincrement+i; j>=0; j--) {
         if (src[j] == c) {
-            if (lensearch==1 || wcharcomp(src+j+1, search+1, lensearch-2))
+            if (lensearch==1 || wcharcomp(src+j, search, lensearch))
                 return j;
         }
     }
@@ -229,7 +452,7 @@ void find_intel_all(wchar_t* src, wchar_t* search, long lensrc, long lensearch, 
     
     //We then scan our string for this first character...
     for (; (i + stringincrement-1) < lensrc; i += stringincrement) {
-        //we load our section, the length should be larger than 16
+        //we load our section, the length should be larger than stringincrement
         s=src+i;
         current_bytes = _mm256_loadu_si256((const __m256i *)s);
         
@@ -240,8 +463,253 @@ void find_intel_all(wchar_t* src, wchar_t* search, long lensrc, long lensearch, 
             //Our character is present, we now try to find where it is...
             //we find it in this section...
             for (j=0; j<stringincrement; j++) {
+                if (*s == c) {
+                    if (lensearch==1 || wcharcomp(s, search, lensearch))
+                        pos.push_back(i+j);
+                }
+                ++s;
+            }
+        }
+    }
+    
+    lensrc-=lensearch;
+    for (;i<=lensrc;i++) {
+        if (src[i] == c) {
+            if (lensearch==1 || wcharcomp(src+i, search, lensearch))
+                pos.push_back(i);
+        }
+    }
+}
+
+#else
+//-------------------------------------------------------------------------------------!
+//-------------------------------------------------------------------------------------!
+//-------------------------------------------------------------------------------------!
+// NO AVX SUPPORT, we can only use __128i numbers, which means that for wstring objects,  !
+// the increment will be 4 = 128/32                                                    !
+// The same applies to regular strings, where the increment will be 16 (128/8)         !
+//-------------------------------------------------------------------------------------!
+//-------------------------------------------------------------------------------------!
+//-------------------------------------------------------------------------------------!
+
+static const __m128i checkutf8byte = _mm_set1_epi8(0x80);
+static const __m128i checkifzero = _mm_set1_epi8(0xFF);
+
+bool check_ascii(unsigned char* src, long len, long& i) {
+    __m128i current_bytes = _mm_setzero_si128();
+    
+    i = 0;
+    for (; (i + 15) < len; i += 16) {
+            //we load our section, the length should be larger than 16
+        current_bytes = _mm_loadu_si128((const __m128i *)(src + i));
+        if (!_mm_testz_si128(checkutf8byte, current_bytes))
+            return false;
+    }
+    
+        // last part
+    if (i < len) {
+        char buffer[16];
+        memset(buffer, 0, 16);
+        memcpy(buffer, src + i, len - i);
+        current_bytes = _mm_loadu_si128((const __m128i *)buffer);
+        if (!_mm_testz_si128(checkutf8byte, current_bytes))
+            return false;
+    }
+    
+    return true;
+    
+}
+
+long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, long lensearch, long i) {
+        //First we try to find the section in which the first character might occur
+    if (lensrc+i < 32) {
+        search = (uchar*)strstr((char*)(src+i), (char*)search);
+        if (search == NULL)
+            return -1;
+        return(search-src);
+    }
+    
+    uchar c = search[0];
+    __m128i firstchar = _mm_set1_epi8(c);
+    __m128i current_bytes = _mm_setzero_si128();
+    
+    uchar* s=src;
+    long j;
+    
+        //We then scan our string for this first character...
+    for (; (i + 15) < lensrc; i += 16) {
+            //we load our section, the length should be larger than 16
+        s=src+i;
+        current_bytes = _mm_loadu_si128((const __m128i *)s);
+        
+            //we check if we have a the first character of our string somewhere
+            //in this 16 character window...
+        current_bytes = _mm_cmpeq_epi8(firstchar, current_bytes);
+        if (!_mm_testz_si128(current_bytes, checkifzero)) {
+                //Our character is present, we now try to find where it is...
+                //we find it in this section...
+            j=strchr((char*)s,(char)c)-(char*)s;
+            if (lensearch==1 || !memcmp(s+j,search,lensearch))
+                return(i+j);
+            j++;
+            for (; j<16; j++) {
                 if (s[j] == c) {
-                    if (lensearch==1 || wcharcomp(s+j+1, search+1, lensearch-2))
+                    if (lensearch==1 || !memcmp(s+j,search,lensearch))
+                        return(i+j);
+                }
+            }
+        }
+    }
+    
+    lensrc-=lensearch;
+    for (;i<=lensrc;i++) {
+        if (src[i] == c) {
+            if (lensearch==1 || !memcmp(src+i,search,lensearch))
+                return i;
+        }
+    }
+    
+    return -1;
+}
+
+long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long lensearch, long i) {
+        //First we try to find the section in which the first character might occur
+        //We look for the last character, from which we will compare backward...
+    __m128i firstchar = _mm_set1_epi8(search[0]);
+    __m128i current_bytes = _mm_setzero_si128();
+    
+    uchar* s=src;
+    long j;
+    if ((lensrc-i) < lensearch)
+        i-=lensearch-(lensrc-i);
+    
+    if (i<0)
+        i=0;
+    
+    uchar c = search[0];
+    uchar cc;
+    
+        //We then scan our string for this first character...
+    while (i>=16) {
+            //we load our section, the length should be larger than 16
+        s=src+i;
+        current_bytes = _mm_loadu_si128((const __m128i *)s);
+        current_bytes = _mm_cmpeq_epi8(firstchar, current_bytes);
+        
+        if (!_mm_testz_si128(current_bytes, checkifzero)) {
+                //we find it in this section...
+            cc = s[16];
+            s[16]=0;
+            j=strrchr((char*)s,(char)c)-(char*)s;
+            s[16] = cc;
+            if (lensearch==1 || !memcmp(s+j, search, lensearch))
+                return(i+j);
+            j--;
+            for (; j>=0; j--) {
+                if (s[j] == c) {
+                    if (lensearch==1 || !memcmp(s+j, search, lensearch))
+                        return(i+j);
+                }
+            }
+        }
+        i-=16;
+    }
+    
+    for (j = 15+i; j>=0; j--) {
+        if (src[j] == c) {
+            if (lensearch==1 || !memcmp(src+j, search, lensearch))
+                return j;
+        }
+    }
+    
+    return -1;
+}
+
+    //This version of find_intel also detects the section in which potential UTF8 characters may occur...
+    //The first section is then recorded into ps, ascii is then set to false to indicate the potential presence
+    //of a utf8 character in the string...
+bool find_intel(unsigned char* src, unsigned char* search, long lensrc, long lensearch, long& i, long& ps) {
+        //First we try to find the section in which the first character might occur
+    __m128i current_bytes = _mm_setzero_si128();
+    
+    uchar c = search[0];
+    __m128i firstchar = _mm_set1_epi8(c);
+    
+    uchar* s=src;
+    long j;
+    bool ascii=true;
+    
+        //We then scan our string for this first character...
+    for (; (i + 15) < lensrc; i += 16) {
+            //we load our section, the length should be larger than 16
+        s=src+i;
+        current_bytes = _mm_loadu_si128((const __m128i *)s);
+        if (ascii && !_mm_testz_si128(checkutf8byte, current_bytes)) {
+            ascii = false;
+            ps = i;
+        }
+        
+            //we check if we have a the first character of our string somewhere
+            //in this 16 character window...
+        current_bytes = _mm_cmpeq_epi8(firstchar, current_bytes);
+        if (!_mm_testz_si128(current_bytes, checkifzero)) {
+                //Our character is present, we now try to find where it is...
+                //we find it in this section...
+            j=strchr((char*)s,(char)c)-(char*)s;
+            if (lensearch==1 || !memcmp(s+j,search,lensearch)) {
+                i += j;
+                return ascii;
+            }
+            j++;
+            for (; j<16; j++) {
+                if (s[j] == c) {
+                    if (lensearch==1 || !memcmp(s+j,search,lensearch)) {
+                        i += j;
+                        return ascii;
+                    }
+                }
+            }
+        }
+    }
+    
+    lensrc-=lensearch;
+    for (;i<=lensrc;i++) {
+        if (src[i] >= 128) {
+            ps = i;
+            ascii=false;
+        }
+        if (src[i] == c) {
+            if (lensearch==1 || !memcmp(src+i,search,lensearch))
+                return ascii;
+        }
+    }
+    
+    i=-1;
+    return false;
+}
+
+void find_intel_all(unsigned char* src, unsigned char* search, long lensrc, long lensearch, vector<long>& pos) {
+        //First we try to find the section in which the first character might occur
+    uchar c = search[0];
+    
+    __m128i firstchar = _mm_set1_epi8(c);
+    __m128i current_bytes = _mm_setzero_si128();
+    
+    uchar* s=src;
+    long j;
+    long i = 0;
+        //We then scan our string for this first character...
+    for (; (i + 15) < lensrc; i += 16) {
+            //we load our section, the length should be larger than 16
+        s=src+i;
+        current_bytes = _mm_loadu_si128((const __m128i *)s);
+        current_bytes = _mm_cmpeq_epi8(firstchar, current_bytes);
+        if (!_mm_testz_si128(current_bytes, checkifzero)) {
+                //we find it in this section...
+            j=strchr((char*)s,(char)c)-(char*)s;
+            for (; j<16; j++) {
+                if (s[j] == c) {
+                    if (lensearch==1 || !memcmp(s+j,search,lensearch))
                         pos.push_back(i+j);
                 }
             }
@@ -251,14 +719,15 @@ void find_intel_all(wchar_t* src, wchar_t* search, long lensrc, long lensearch, 
     lensrc-=lensearch;
     for (;i<=lensrc;i++) {
         if (src[i] == c) {
-            if (lensearch==1 || wcharcomp(src+i+1, search+1, lensearch-2))
+            if (lensearch==1 || !memcmp(src+i,search,lensearch))
                 pos.push_back(i);
         }
     }
 }
-#else
-//If we do not have AVXSUPPORT
-//When we increment by 1 on Linux, we move by increment of 32 bits in memory. 128/32 = 4
+
+//-------------------------------------------------------------------------------------
+//--- WSTRING SECTION
+//-------------------------------------------------------------------------------------
 
 #define stringincrement 4
 #define mset_128 _mm_set1_epi32
@@ -281,13 +750,8 @@ bool check_large_char(wchar_t* src, long lensrc, long& i) {
     }
     
     if (i < lensrc) {
-        wchar_t buffer[stringincrement + 1];
-        for (long j = 0; j < stringincrement; j++) {
-            if ((i + j) < lensrc)
-                buffer[j] = src[i + j];
-            else
-                buffer[j] = 0;
-        }
+        wchar_t buffer[] = {0,0,0,0,0};
+        memcpy(buffer, src+i, (lensrc-i) << 2);
         current_bytes = _mm_loadu_si128((const __m128i *)buffer);
         if (!_mm_testz_si128(firstchar, current_bytes))
             return true;
@@ -318,10 +782,11 @@ long find_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, long
                 //Our character is present, we now try to find where it is...
                 //we find it in this section...
             for (j=0; j < stringincrement; j++) {
-                if (s[j] == c) {
-                    if (lensearch==1 || wcharcomp(s+j+1, search+1, lensearch-2))
+                if (*s == c) {
+                    if (lensearch==1 || wcharcomp(s, search, lensearch))
                         return (i+j);
                 }
+                ++s;
             }
         }
     }
@@ -329,7 +794,7 @@ long find_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, long
     lensrc-=lensearch;
     for (;i<=lensrc;i++) {
         if (src[i] == c) {
-            if (lensearch==1 || wcharcomp(src+i+1, search+1, lensearch-2))
+            if (lensearch==1 || wcharcomp(src+i, search, lensearch))
                 return i;
         }
     }
@@ -365,7 +830,7 @@ long rfind_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, lon
                 //we find it in this section...
             for (j = stringincrement - 1; j>=0; j--) {
                 if (s[j] == c) {
-                    if (lensearch==1 || wcharcomp(s+j+1, search+1, lensearch-2))
+                    if (lensearch==1 || wcharcomp(s+j, search, lensearch))
                         return(i+j);
                 }
             }
@@ -375,7 +840,7 @@ long rfind_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, lon
     
     for (j = stringincrement + i; j>=0; j--) {
         if (src[j] == c) {
-            if (lensearch==1 || wcharcomp(src+j+1, search+1, lensearch-2))
+            if (lensearch==1 || wcharcomp(src+j, search, lensearch))
                 return j;
         }
     }
@@ -405,10 +870,11 @@ void find_intel_all(wchar_t* src, wchar_t* search, long lensrc, long lensearch, 
                 //Our character is present, we now try to find where it is...
                 //we find it in this section...
             for (j=0; j < stringincrement; j++) {
-                if (s[j] == c) {
-                    if (lensearch==1 || wcharcomp(s+j+1, search+1, lensearch-2))
+                if (*s == c) {
+                    if (lensearch==1 || wcharcomp(s, search, lensearch))
                         pos.push_back(i+j);
                 }
+                ++s;
             }
         }
     }
@@ -416,207 +882,14 @@ void find_intel_all(wchar_t* src, wchar_t* search, long lensrc, long lensearch, 
     lensrc-=lensearch;
     for (;i<=lensrc;i++) {
         if (src[i] == c) {
-            if (lensearch==1 || wcharcomp(src+i+1, search+1, lensearch-2))
+            if (lensearch==1 || wcharcomp(src+i, search, lensearch))
                 pos.push_back(i);
         }
     }
 }
+
+
 #endif
-
-
-long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, long lensearch, long i) {
-    //First we try to find the section in which the first character might occur
-    if (lensrc+i < 32) {
-        search = (uchar*)strstr((char*)(src+i), (char*)search);
-        if (search == NULL)
-            return -1;
-        return(search-src);
-    }
-
-    uchar c = search[0];
-    __m128i firstchar = _mm_set1_epi8(c);
-    __m128i current_bytes = _mm_setzero_si128();
-    
-    uchar* s=src;
-    long j;
-    
-    //We then scan our string for this first character...
-    for (; (i + 15) < lensrc; i += 16) {
-        //we load our section, the length should be larger than 16
-        s=src+i;
-        current_bytes = _mm_loadu_si128((const __m128i *)s);
-
-        //we check if we have a the first character of our string somewhere
-        //in this 16 character window...
-        current_bytes = _mm_cmpeq_epi8(firstchar, current_bytes);
-        if (!_mm_testz_si128(current_bytes, checkifzero)) {
-            //Our character is present, we now try to find where it is...
-            //we find it in this section...
-            j=strchr((char*)s,(char)c)-(char*)s;
-            for (; j<16; j++) {
-                if (s[j] == c) {
-                    if (lensearch==1 || !memcmp(s+j+1,search+1,lensearch-1))
-                        return(i+j);
-                }
-            }
-        }
-    }
-
-    lensrc-=lensearch;
-    for (;i<=lensrc;i++) {
-        if (src[i] == c) {
-            if (lensearch==1 || !memcmp(src+i+1,search+1,lensearch-1))
-                return i;
-        }
-    }
-    
-    return -1;
-}
-
-long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long lensearch, long i) {
-    //First we try to find the section in which the first character might occur
-    //We look for the last character, from which we will compare backward...
-    __m128i firstchar = _mm_set1_epi8(search[0]);
-    __m128i current_bytes = _mm_setzero_si128();
-
-    uchar* s=src;
-    long j;
-    if ((lensrc-i) < lensearch)
-        i-=lensearch-(lensrc-i);
-
-    if (i<0)
-        i=0;
-
-    uchar c = search[0];
-    uchar cc;
-
-    //We then scan our string for this first character...
-    while (i>=16) {
-        //we load our section, the length should be larger than 16
-        s=src+i;
-        current_bytes = _mm_loadu_si128((const __m128i *)s);
-        current_bytes = _mm_cmpeq_epi8(firstchar, current_bytes);
-        
-        if (!_mm_testz_si128(current_bytes, checkifzero)) {
-            //we find it in this section...
-            cc = s[16];
-            s[16]=0;
-            j=strrchr((char*)s,(char)c)-(char*)s;
-            s[16] = cc;
-            for (; j>=0; j--) {
-                if (s[j] == c) {
-                    if (lensearch==1 || !memcmp(s+j+1, search+1, lensearch-1))
-                        return(i+j);
-                }
-            }
-        }
-        i-=16;
-    }
-    
-    for (j = 15+i; j>=0; j--) {
-        if (src[j] == c) {
-            if (lensearch==1 || !memcmp(src+j+1, search+1, lensearch-1))
-                return j;
-        }
-    }
-
-    return -1;
-}
-
-//This version of find_intel also detects the section in which potential UTF8 characters may occur...
-//The first section is then recorded into ps, ascii is then set to false to indicate the potential presence
-//of a utf8 character in the string...
-bool find_intel(unsigned char* src, unsigned char* search, long lensrc, long lensearch, long& i, long& ps) {
-    //First we try to find the section in which the first character might occur
-    __m128i current_bytes = _mm_setzero_si128();
-
-    uchar c = search[0];
-    __m128i firstchar = _mm_set1_epi8(c);
-    
-    uchar* s=src;
-    long j;
-    bool ascii=true;
-    
-    //We then scan our string for this first character...
-    for (; (i + 15) < lensrc; i += 16) {
-        //we load our section, the length should be larger than 16
-        s=src+i;
-        current_bytes = _mm_loadu_si128((const __m128i *)s);
-        if (ascii && !_mm_testz_si128(checkutf8byte, current_bytes)) {
-            ascii = false;
-            ps = i;
-        }
-
-        //we check if we have a the first character of our string somewhere
-        //in this 16 character window...
-        current_bytes = _mm_cmpeq_epi8(firstchar, current_bytes);
-        if (!_mm_testz_si128(current_bytes, checkifzero)) {
-            //Our character is present, we now try to find where it is...
-            //we find it in this section...
-            j=strchr((char*)s,(char)c)-(char*)s;
-            for (; j<16; j++) {
-                if (s[j] == c) {
-                    if (lensearch==1 || !memcmp(s+j+1,search+1,lensearch-1)) {
-                        i += j;
-                        return ascii;
-                    }
-                }
-            }
-        }
-    }
-    
-    lensrc-=lensearch;
-    for (;i<=lensrc;i++) {
-        if (src[i] >= 128) {
-            ps = i;
-            ascii=false;
-        }
-        if (src[i] == c) {
-            if (lensearch==1 || !memcmp(src+i+1,search+1,lensearch-1))
-                return ascii;
-        }
-    }
-    
-    i=-1;
-    return false;
-}
-
-void find_intel_all(unsigned char* src, unsigned char* search, long lensrc, long lensearch, vector<long>& pos) {
-    //First we try to find the section in which the first character might occur
-    uchar c = search[0];
-
-    __m128i firstchar = _mm_set1_epi8(c);
-    __m128i current_bytes = _mm_setzero_si128();
-    
-    uchar* s=src;
-    long j;
-    long i = 0;
-    //We then scan our string for this first character...
-    for (; (i + 15) < lensrc; i += 16) {
-        //we load our section, the length should be larger than 16
-        s=src+i;
-        current_bytes = _mm_loadu_si128((const __m128i *)s);
-        current_bytes = _mm_cmpeq_epi8(firstchar, current_bytes);
-        if (!_mm_testz_si128(current_bytes, checkifzero)) {
-            //we find it in this section...
-            j=strchr((char*)s,(char)c)-(char*)s;
-            for (; j<16; j++) {
-                if (s[j] == c) {
-                    if (lensearch==1 || !memcmp(s+j+1,search+1,lensearch-1))
-                        pos.push_back(i+j);
-                }
-            }
-        }
-    }
-
-    lensrc-=lensearch;
-    for (;i<=lensrc;i++) {
-        if (src[i] == c) {
-            if (lensearch==1 || !memcmp(src+i+1,search+1,lensearch-1))
-                pos.push_back(i);
-        }
-    }
-}
 #endif
 //------------------------------------------------------------------------
 
