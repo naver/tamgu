@@ -91,7 +91,7 @@ meal <- "the", #food.
 annotator r;
 
 //a sentence
-string sentence="Here, the burger and the tartare are delicious."
+string sentence="Here, the burger and the tartare are delicious.";
 vector v = r.parse(sentence); 
 
 //Result: v =  [['meal',[10,16]],['meal',[25,32]]]
