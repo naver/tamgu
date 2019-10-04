@@ -739,6 +739,7 @@ public:
 	Tamgu* MethodTokenize(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 	Tamgu* MethodStokenize(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 	Tamgu* MethodCount(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+
 	Tamgu* MethodFind(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 	Tamgu* MethodRfind(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 	Tamgu* MethodRemovefirst(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);

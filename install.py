@@ -36,7 +36,8 @@ def displayhelp(s):
     print(" -pathfltk path: path to GUI libraries (if you have a specific version of fltk1.3 in a different directory than /usr/lib)")
     print(" -withfastint: Compile with fast int")
     print(" -intel: Compile with Intel Intrinsics instruction to speed up string conversion and string search. It impacts 'conversion.cxx' compiling...")
-    print(" -avx:   Combined with -intel, it uses more advanced instrinsics instructions (avx2) based on __m256i values (default is __m128i)")
+    print(" -avx: Compile with Intel Intrinsics instruction to speed up string conversion and string search (same as intel)")
+    print(" -avx2: Compile with more advanced Intel Intrinsics instruction to speed up string conversion and string search")
     print(" -java: Prepare compiling to java")
     print(" -gccversion: Directory names for intermediate and final files depend on local gcc version")
     print(" -version name: Directory names for intermediate and final files depend on name (do not use with gccversion)")
@@ -61,8 +62,8 @@ pythonversion="python2.7"
 versionname=None
 libpath="/usr"
 i=1
-intel=False
 avx=False
+avx2=False
 
 compilelibs="""
 libs: install
@@ -87,13 +88,13 @@ while i < len(sys.argv):
         compilejava=True
     elif sys.argv[i]=="-withsound":
         withsound=True
-    elif sys.argv[i]=="-intel":
-        intel=True
+    elif sys.argv[i]=="-intel" or sys.argv[i] == "-avx":
+        avx=True
     elif sys.argv[i]=="-static":
         selectstatic=True
-    elif sys.argv[i]=="-avx":
-        intel=True
+    elif sys.argv[i]=="-avx2":
         avx=True
+        avx2=True
     elif sys.argv[i]=="-gccversion":
         if versionname != None:
             print("It is either gccversion or version, not both")
@@ -405,9 +406,9 @@ f=open("Makefile.in","w")
 
 f.write("TAMGUCONSOLENAME = tamguconsole\n")
 
-if avx:
+if avx2:
     f.write("INTELINT = -DINTELINTRINSICS -msse4.2 -mavx2 -DAVXSUPPORT\n")
-elif intel:
+elif avx:
     f.write("INTELINT = -DINTELINTRINSICS -msse4.1\n")
 
 f.write("COMPPLUSPLUS = g++\n")

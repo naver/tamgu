@@ -17,6 +17,7 @@
 #include "codeparse.h"
 #include "tamgu.h"
 #include "tamgutaskell.h"
+#include "tamgumapui.h"
 #include "tamguustring.h"
 #include "constobjects.h"
 #include "tamguivector.h"
@@ -109,7 +110,9 @@ void Tamguustring::AddMethod(TamguGlobal* global, string name, ustringMethod fun
     Tamguustring::AddMethod(global, "splite", &Tamguustring::MethodSplite, P_ONE | P_NONE, "splite(string splitter): split a string along splitter and store the results  in a vector. If splitter=='', then the string is split into a vector of characters. Empty strings are kept in the result.");
     Tamguustring::AddMethod(global, "tokenize", &Tamguustring::MethodTokenize, P_NONE | P_ONE | P_TWO | P_THREE | P_FOUR, "tokenize(bool comma,bool separator,bool concatenate, svector rules): Segment a string into words and punctuations. If 'comma' is true, then the decimal character is ',' otherwise it is '.'. If 'separator' is true then '1,000' is accepted as a number. If 'concatenate' is true then '3a' is a valid token. rules is a set of tokenization rules that can be first initialized then modified with _getdefaulttokenizerules");
     Tamguustring::AddMethod(global, "stokenize", &Tamguustring::MethodStokenize, P_NONE | P_ONE, "stokenize(map keeps): Segment a string into words and punctuations, with a keep.");
-    Tamguustring::AddMethod(global, "count", &Tamguustring::MethodCount, P_THREE | P_TWO | P_ONE | P_NONE, "count(string sub,int pos,int mx): Count the number of substrings starting at position pos, ending at mx");
+    Tamguustring::AddMethod(global, "count", &Tamguustring::MethodCount, P_TWO | P_ONE | P_NONE, "count(string sub,int pos): Count the number of substrings starting at position pos");
+    Tamguustring::AddMethod(global, "bpe", &Tamguustring::MethodBPE, P_THREE | P_TWO, "bpe(long threshold, long nb, mapui): byte pair encoding");
+    Tamguustring::AddMethod(global, "bpereplace", &Tamguustring::MethodBPEReplace, P_TWO, "bpereplace(long nb, mapui): byte pair encoding replacement in a string");
     Tamguustring::AddMethod(global, "find", &Tamguustring::MethodFind, P_TWO | P_ONE, "find(string sub,int pos): Return the position of substring sub starting at position pos");
     Tamguustring::AddMethod(global, "rfind", &Tamguustring::MethodRfind, P_TWO | P_ONE, "rfind(string sub,int pos): Return the position of substring sub backward starting at position pos");
     Tamguustring::AddMethod(global, "removefirst", &Tamguustring::MethodRemovefirst, P_ONE, "removefirst(int nb): remove the first nb characters of a string");
@@ -422,25 +425,87 @@ Tamgu* Tamguustring::Eval(Tamgu* context, Tamgu* idx, short idthread) {
     return idx;
 }
 
-Tamgu* Tamguustring::MethodCount(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-    long i = 0, nb = 0;
+void bytepairencoding(wstring& str, long nb, hmap<wstring, long>& dicos);
+void bytepairreplace(wstring& str, wstring& res, long nbmax, hmap<wstring, long>& dicos);
 
-    long mx = -1;
-    if (callfunc->Size() >= 2) {
+Tamgu* Tamguustring::MethodBPE(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    hmap<wstring, long> values;
+
+    long threshold = callfunc->Evaluate(0, contextualpattern, idthread)->Integer();
+    long nb = callfunc->Evaluate(1, contextualpattern, idthread)->Integer();
+    
+    if (callfunc->Size() == 3) {
+        Tamgu* e = callfunc->Evaluate(2, contextualpattern, idthread);
+        if (e->Type() != Tamgumapui::idtype)
+            return globalTamgu->Returnerror("Expecting a mapui as argument", idthread);
+        values = ((Tamgumapui*)e)->values;
+    }
+
+    wstring str = UString();
+    
+    bytepairencoding(str,nb, values);
+
+    if (contextualpattern->isMapContainer()) {
+        wstring r;
+        contextualpattern->Clear();
+        if (contextualpattern->Type() == Tamgumapui::idtype) {
+            for (auto& key : values) {
+                if (key.second >= threshold) {
+                    ((Tamgumapui*)contextualpattern)->values[key.first] = key.second;
+                }
+            }
+        }
+        else {
+            Tamguustring us("");
+            us.Setreference();
+            Tamguint tint(0);
+            tint.Setreference();
+            for (auto& key : values) {
+                if (key.second >= threshold) {
+                    tint.value =  key.second;
+                    contextualpattern->Push(key.first, &tint);
+                }
+            }
+        }
+    }
+    else {
+        contextualpattern = new Tamgumapui;
+        for (auto& key : values) {
+            if (key.second >= threshold) {
+                ((Tamgumapui*)contextualpattern)->values[key.first] = key.second;
+            }
+        }
+    }
+    
+    return contextualpattern;
+}
+
+Tamgu* Tamguustring::MethodBPEReplace(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+
+    long nb = callfunc->Evaluate(0, contextualpattern, idthread)->Integer();
+    Tamgu* e = callfunc->Evaluate(1, contextualpattern, idthread);
+    if (e->Type() != Tamgumapui::idtype)
+        return globalTamgu->Returnerror("Expecting a mapui as argument", idthread);
+
+    wstring str = UString();
+    Tamguustring* res =  globalTamgu->Provideustring();
+    bytepairreplace(str, res->value, nb, ((Tamgumapui*)e)->values);
+    return res;
+}
+
+Tamgu* Tamguustring::MethodCount(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    long i = 0;
+
+    if (callfunc->Size() == 2) {
         i = callfunc->Evaluate(1, contextualpattern, idthread)->Integer();
-        if (callfunc->Size() == 3)
-            mx = callfunc->Evaluate(2, contextualpattern, idthread)->Integer();
     }
 
     Tamgu* substr = callfunc->Evaluate(0, contextualpattern, idthread);
     
     if (substr->isRegular()) {
         wstring w = UString();
-        if (mx != -1)
-            w = w.substr(i, mx-i);
-        else
-            if (i)
-                w = w.substr(i, w.size() - i);
+        if (i)
+            w = w.substr(i, w.size() - i);
         
         vector<long> values;
         substr->searchall(w,values);
@@ -451,17 +516,7 @@ Tamgu* Tamguustring::MethodCount(Tamgu* contextualpattern, short idthread, Tamgu
     if (str == L"")
         return aZERO;
     wstring sub = substr->UString();
-
-    i = str.find(sub, i);
-    while (i != -1) {
-        if (mx != -1 && i >= mx)
-            break;
-        nb++;
-        i++;
-        i = str.find(sub, i);
-    }
-
-    return globalTamgu->Provideint(nb);
+    return globalTamgu->Provideint(s_count(str, sub, i));
 }
 
 
@@ -558,20 +613,22 @@ Tamgu* Tamguustring::MethodRfind(Tamgu* contextualpattern, short idthread, Tamgu
     
     //we search for a substring starting at position idx
     wstring str = UString();
-    long i = str.size();
-    if (!i) {
+    if (!str.size()) {
         if (contextualpattern->isVectorContainer())
             return Selectavector(contextualpattern);
         return aMINUSONE;
     }
 
+    long i = -1;
     if (callfunc->Size() == 2) {
-        long sz = callfunc->Evaluate(1, contextualpattern, idthread)->Integer();
-        if (i>sz)
-            i=sz;
+        i = callfunc->Evaluate(1, contextualpattern, idthread)->Integer();
+        i = convertpostochar(str,0, i);
     }
     
     if (contextualpattern->isVectorContainer()) {
+        if (i == -1)
+            i = 0;
+        
         Tamgu* kvect = Selectavector(contextualpattern);
         long j;
         
@@ -622,6 +679,9 @@ Tamgu* Tamguustring::MethodRfind(Tamgu* contextualpattern, short idthread, Tamgu
         
         return kvect;
     }
+    
+    if (i == -1)
+        i = str.size();
     
     if (ksub->isRegular()) {
         long e;
@@ -2276,7 +2336,7 @@ bool Tamgua_ustring::InitialisationModule(TamguGlobal* global, string version) {
     Tamgua_ustring::AddMethod(global, "splite", &Tamgua_ustring::MethodSplite, P_ONE | P_NONE, "splite(string splitter): split a string along splitter and store the results  in a vector. If splitter=='', then the string is split into a vector of characters. Empty strings are kept in the result.");
     Tamgua_ustring::AddMethod(global, "tokenize", &Tamgua_ustring::MethodTokenize, P_NONE | P_ONE | P_TWO | P_THREE | P_FOUR, "tokenize(bool comma,bool separator,bool concatenate, svector rules): Segment a string into words and punctuations. If 'comma' is true, then the decimal character is ',' otherwise it is '.'. If 'separator' is true then '1,000' is accepted as a number. If 'concatenate' is true then '3a' is a valid token. rules is a set of tokenization rules that can be first initialized then modified with _getdefaulttokenizerules");
     Tamgua_ustring::AddMethod(global, "stokenize", &Tamgua_ustring::MethodStokenize, P_NONE | P_ONE, "stokenize(map keeps): Segment a string into words and punctuations, with a keep.");
-    Tamgua_ustring::AddMethod(global, "count", &Tamgua_ustring::MethodCount, P_THREE | P_TWO | P_ONE | P_NONE, "count(string sub,int pos,int mx): Count the number of substrings starting at position pos, ending at mx");
+    Tamgua_ustring::AddMethod(global, "count", &Tamgua_ustring::MethodCount, P_TWO | P_ONE | P_NONE, "count(string sub,int pos): Count the number of substrings starting at position pos");
     Tamgua_ustring::AddMethod(global, "find", &Tamgua_ustring::MethodFind, P_TWO | P_ONE, "find(string sub,int pos): Return the position of substring sub starting at position pos");
     Tamgua_ustring::AddMethod(global, "rfind", &Tamgua_ustring::MethodRfind, P_TWO | P_ONE, "rfind(string sub,int pos): Return the position of substring sub backward starting at position pos");
     Tamgua_ustring::AddMethod(global, "removefirst", &Tamgua_ustring::MethodRemovefirst, P_ONE, "removefirst(int nb): remove the first nb characters of a string");
@@ -2550,24 +2610,18 @@ Tamgu* Tamgua_ustring::Eval(Tamgu* context, Tamgu* idx, short idthread) {
 }
 
 Tamgu* Tamgua_ustring::MethodCount(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-    long i = 0, nb = 0;
+    long i = 0;
     
-    long mx = -1;
-    if (callfunc->Size() >= 2) {
+    if (callfunc->Size() == 2) {
         i = callfunc->Evaluate(1, contextualpattern, idthread)->Integer();
-        if (callfunc->Size() == 3)
-            mx = callfunc->Evaluate(2, contextualpattern, idthread)->Integer();
     }
     
     Tamgu* substr = callfunc->Evaluate(0, contextualpattern, idthread);
     
     if (substr->isRegular()) {
         wstring w = UString();
-        if (mx != -1)
-            w = w.substr(i, mx-i);
-        else
-            if (i)
-                w = w.substr(i, w.size() - i);
+        if (i)
+            w = w.substr(i, w.size() - i);
         
         vector<long> values;
         substr->searchall(w,values);
@@ -2578,17 +2632,8 @@ Tamgu* Tamgua_ustring::MethodCount(Tamgu* contextualpattern, short idthread, Tam
     if (str == L"")
         return aZERO;
     wstring sub = substr->UString();
-    
-    i = str.find(sub, i);
-    while (i != -1) {
-        if (mx != -1 && i >= mx)
-            break;
-        nb++;
-        i++;
-        i = str.find(sub, i);
-    }
-    
-    return globalTamgu->Provideint(nb);
+
+    return globalTamgu->Provideint(s_count(str, sub, i));
 }
 
 
@@ -2685,20 +2730,22 @@ Tamgu* Tamgua_ustring::MethodRfind(Tamgu* contextualpattern, short idthread, Tam
     
         //we search for a substring starting at position idx
     wstring str = value.value();
-    long i = str.size();
-    if (!i) {
+    if (!str.size()) {
         if (contextualpattern->isVectorContainer())
             return Selectavector(contextualpattern);
         return aMINUSONE;
     }
-    
+
+    long i = -1;
     if (callfunc->Size() == 2) {
-        long sz = callfunc->Evaluate(1, contextualpattern, idthread)->Integer();
-        if (i>sz)
-            i=sz;
+        i = callfunc->Evaluate(1, contextualpattern, idthread)->Integer();
+        i = convertpostochar(str,0, i);
     }
-    
+
     if (contextualpattern->isVectorContainer()) {
+        if (i == -1)
+            i = 0;
+
         Tamgu* kvect = Selectavector(contextualpattern);
         long j;
         
@@ -2750,6 +2797,9 @@ Tamgu* Tamgua_ustring::MethodRfind(Tamgu* contextualpattern, short idthread, Tam
         return kvect;
     }
     
+    if (i == -1)
+        i = str.size();
+
     if (ksub->isRegular()) {
         long e;
         if (!ksub->searchlast(str,i,e,i))

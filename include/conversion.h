@@ -177,6 +177,16 @@ union w_u_char {
     }
 };
 
+
+//Types for fast search on wstring
+#ifdef WIN32
+#define doublechar int32_t
+#define shiftint 16
+#else
+#define doublechar int64_t
+#define shiftint 32
+#endif
+
 //--------------------- Main Initialization, to be launched before using any of the following methods...
 Exporting void inittableutf8();
 
@@ -382,6 +392,8 @@ Exporting long s_rfind(string& s, string& fd, long pos);
 Exporting long s_find(wstring& s, wstring& substr, long i);
 Exporting long s_rfind(wstring& s, wstring& substr, long pos);
 
+Exporting long s_count(string& str, string& sub, long i);
+Exporting long s_count(wstring& str, wstring& sub, long i);
 //--------------------- Extracting substring
 Exporting string s_left(string& s, long nb);
 Exporting string s_right(string& s, long nb);

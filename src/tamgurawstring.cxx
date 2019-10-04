@@ -253,7 +253,7 @@ void Tamgurawstring::AddMethod(TamguGlobal* global, string name, rawstringMethod
     Tamgurawstring::AddMethod(global, "splite", &Tamgurawstring::MethodSplite, P_ONE | P_NONE, "splite(string splitter): split a string along splitter and store the results  in a vector. If splitter=='', then the string is split into a vector of characters. Empty strings are kept in the result.");
     Tamgurawstring::AddMethod(global, "tokenize", &Tamgurawstring::MethodTokenize, P_NONE | P_ONE | P_TWO | P_THREE | P_FOUR, "tokenize(bool comma,bool separator,bool concatenate, svector rules): Segment a string into words and punctuations. If 'comma' is true, then the decimal character is ',' otherwise it is '.'. If 'separator' is true then '1,000' is accepted as a number. If 'concatenate' is true then '3a' is a valid token. rules is a set of tokenization rules that can be first initialized then modified with _getdefaulttokenizerules");
     Tamgurawstring::AddMethod(global, "stokenize", &Tamgurawstring::MethodStokenize, P_NONE | P_ONE, "stokenize(map keeps): Segment a string into words and punctuations, with a keep.");
-    Tamgurawstring::AddMethod(global, "count", &Tamgurawstring::MethodCount, P_THREE | P_TWO | P_ONE | P_NONE, "count(string sub,int pos,int mx): Count the number of substrings starting at position pos, ending at mx");
+    Tamgurawstring::AddMethod(global, "count", &Tamgurawstring::MethodCount, P_TWO | P_ONE | P_NONE, "count(string sub,int pos): Count the number of substrings starting at position pos");
     Tamgurawstring::AddMethod(global, "find", &Tamgurawstring::MethodFind, P_TWO | P_ONE, "find(string sub,int pos): Return the position of substring sub starting at position pos");
     Tamgurawstring::AddMethod(global, "rfind", &Tamgurawstring::MethodRfind, P_TWO | P_ONE, "rfind(string sub,int pos): Return the position of substring sub backward starting at position pos");
     Tamgurawstring::AddMethod(global, "removefirst", &Tamgurawstring::MethodRemovefirst, P_ONE, "removefirst(int nb): remove the first nb characters of a string");
@@ -748,24 +748,18 @@ Tamgu* Tamgurawstring::MethodTags(Tamgu* contextualpattern, short idthread, Tamg
 
 
 Tamgu* Tamgurawstring::MethodCount(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-    long i = 0, nb = 0;
+    long i = 0;
 
-    long mx = -1;
-    if (callfunc->Size() >= 2) {
+    if (callfunc->Size() == 2) {
         i = callfunc->Evaluate(1, contextualpattern, idthread)->Integer();
-        if (callfunc->Size() == 3)
-            mx = callfunc->Evaluate(2, contextualpattern, idthread)->Integer();
     }
 
     Tamgu* substr = callfunc->Evaluate(0, contextualpattern, idthread);
     
     if (substr->isRegular()) {
         wstring w = UString();
-        if (mx != -1)
-            w = w.substr(i, mx-i);
-        else
-            if (i)
-                w = w.substr(i, w.size() - i);
+        if (i)
+            w = w.substr(i, w.size() - i);
         
         vector<long> values;
         substr->searchall(w,values);
@@ -777,16 +771,7 @@ Tamgu* Tamgurawstring::MethodCount(Tamgu* contextualpattern, short idthread, Tam
         return aZERO;
 
     string sub = substr->String();
-    i = str.find(sub, i);
-    while (i != -1) {
-        if (mx != -1 && i >= mx)
-            break;
-        nb++;
-        i++;
-        i = str.find(sub, i);
-    }
-
-    return globalTamgu->Provideint(nb);
+    return globalTamgu->Provideint(s_count(str, sub, i));
 }
 
 Tamgu* Tamgurawstring::MethodFind(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -883,7 +868,7 @@ Tamgu* Tamgurawstring::MethodRfind(Tamgu* contextualpattern, short idthread, Tam
         return aMINUSONE;
     }
 
-    long i = stringsize;
+    long i = -1;
     if (callfunc->Size() == 2)
         i = callfunc->Evaluate(1, contextualpattern, idthread)->Integer();
     
@@ -893,6 +878,9 @@ Tamgu* Tamgurawstring::MethodRfind(Tamgu* contextualpattern, short idthread, Tam
         long j;
 
         wstring str=UString();
+        
+        if (i == -1)
+            i = 0;
         
         vector<long> v;
         if (ksub->isRegular()) {
@@ -942,6 +930,9 @@ Tamgu* Tamgurawstring::MethodRfind(Tamgu* contextualpattern, short idthread, Tam
         return kvect;
     }
     
+    if (i == -1)
+        i = stringsize;
+
     if (ksub->isRegular()) {
         wstring str=UString();
         long e;
