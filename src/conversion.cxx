@@ -220,7 +220,10 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
             }
             break;
         }
-        default:
+        case 4:
+        case 5:
+        case 6:
+        case 7:
         {
                 //We look for the presence of four characters in a row
             int32_t cc = search[3];
@@ -251,6 +254,48 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
                         //Our character is present, we now try to find where it is...
                         //we find it in this section...
                     for (j = 0; j < 29; j++) {
+                        if (*s == c) {
+                            if (charcomp(s,search,lensearch)) {
+                                return (i + j + shift);
+                            }
+                        }
+                        ++s;
+                    }
+                }
+            }
+            break;
+        }
+        default:
+        {
+                //We look for the presence of eight characters in a row
+            int64_t cc = search[7];
+            for (shift = 6; shift >= 0; shift--) {
+                cc <<= 8;
+                cc |= search[shift];
+            }
+            
+            __m256i firstchar = _mm256_set1_epi64x(cc);
+            
+                //We then scan our string for the first two characters...
+            for (; (i + 31) < lensrc; i += 32) {
+                shift = 0;
+                    //we load our section, the length should be larger than 16
+                for (shift = 0; shift < 8; shift++) {
+                    s=src + i + shift;
+                        //we read 16 characters at a time, but with a sliding widow
+                        //of 15 characters (since we are looking for a double character)
+                    current_bytes = _mm256_loadu_si256((const __m256i *)s);
+                        //we check if we have a the first character of our string somewhere
+                        //in this 16 character window...
+                    current_bytes = _mm256_cmpeq_epi64(firstchar, current_bytes);
+                    if (_mm256_movemask_epi8(current_bytes))
+                        break;
+                }
+                
+                if (shift != 8) {
+                        //Our character is present, we now try to find where it is...
+                        //we find it in this section...
+                    for (j = 0; j < 25; j++) {
                         if (*s == c) {
                             if (charcomp(s,search,lensearch)) {
                                 return (i + j + shift);
@@ -350,7 +395,10 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
             }
             break;
         }
-        default:
+        case 4:
+        case 5:
+        case 6:
+        case 7:
         {
                 //We look for the presence of four characters in a row
             int32_t cc = search[3];
@@ -381,6 +429,47 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
                         //Our character is present, we now try to find where it is...
                         //we find it in this section...
                     for (j = 28; j>=0; j--) {
+                        if (s[j] == c) {
+                            if (charcomp(s+j,search,lensearch)) {
+                                return (i + j + shift);
+                            }
+                        }
+                    }
+                }
+            }
+            break;
+        }
+        default:
+        {
+                //We look for the presence of 8 characters in a row
+            int64_t cc = search[7];
+            for (shift = 6; shift >= 0; shift--) {
+                cc <<= 8;
+                cc |= search[shift];
+            }
+
+            __m256i firstchar = _mm256_set1_epi64x(cc);
+            
+                //We then scan our string for the first two characters...
+            for (; i > 31; i -= 32) {
+                shift = 0;
+                    //we load our section, the length should be larger than 16
+                for (shift = 0; shift < 8; shift++) {
+                    s=src + i + shift;
+                        //we read 16 characters at a time, but with a sliding widow
+                        //of 15 characters (since we are looking for a double character)
+                    current_bytes = _mm256_loadu_si256((const __m256i *)s);
+                        //we check if we have a the first character of our string somewhere
+                        //in this 16 character window...
+                    current_bytes = _mm256_cmpeq_epi64(firstchar, current_bytes);
+                    if (_mm256_movemask_epi8(current_bytes))
+                        break;
+                }
+                
+                if (shift != 8) {
+                        //Our character is present, we now try to find where it is...
+                        //we find it in this section...
+                    for (j = 24; j>=0; j--) {
                         if (s[j] == c) {
                             if (charcomp(s+j,search,lensearch)) {
                                 return (i + j + shift);
@@ -484,7 +573,10 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
             }
             break;
         }
-        default:
+        case 4:
+        case 5:
+        case 6:
+        case 7:
         {
                 //We look for the presence of four characters in a row
             int32_t cc = search[3];
@@ -515,6 +607,48 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
                         //Our character is present, we now try to find where it is...
                         //we find it in this section...
                     for (j = 0; j < 29; j++) {
+                        if (*s == c) {
+                            if (charcomp(s,USTR(search),lensearch)) {
+                                pos.push_back(i + j + shift);
+                            }
+                        }
+                        ++s;
+                    }
+                }
+            }
+            break;
+        }
+        default:
+        {
+                //We look for the presence of eight characters in a row
+            int64_t cc = search[7];
+            for (shift = 6; shift >= 0; shift--) {
+                cc <<= 8;
+                cc |= search[shift];
+            }
+            
+            __m256i firstchar = _mm256_set1_epi64x(cc);
+            
+                //We then scan our string for the first two characters...
+            for (; (i + 31) < lensrc; i += 32) {
+                shift = 0;
+                    //we load our section, the length should be larger than 16
+                for (shift = 0; shift < 8; shift++) {
+                    s=USTR(src) + i + shift;
+                        //we read 16 characters at a time, but with a sliding widow
+                        //of 15 characters (since we are looking for a double character)
+                    current_bytes = _mm256_loadu_si256((const __m256i *)s);
+                        //we check if we have a the first character of our string somewhere
+                        //in this 16 character window...
+                    current_bytes = _mm256_cmpeq_epi64(firstchar, current_bytes);
+                    if (_mm256_movemask_epi8(current_bytes))
+                        break;
+                }
+                
+                if (shift != 8) {
+                        //Our character is present, we now try to find where it is...
+                        //we find it in this section...
+                    for (j = 0; j < 25; j++) {
                         if (*s == c) {
                             if (charcomp(s,USTR(search),lensearch)) {
                                 pos.push_back(i + j + shift);
@@ -632,7 +766,10 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
             }
             break;
         }
-        default:
+        case 4:
+        case 5:
+        case 6:
+        case 7:
         {
                 //We look for the presence of four characters in a row
             int32_t cc = search[3];
@@ -663,6 +800,52 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
                         //Our character is present, we now try to find where it is...
                         //we find it in this section...
                     for (j = 0; j < 29; j++) {
+                        if (*s == c) {
+                            if (charcomp(s,USTR(search),lensearch)) {
+                                foundHere = i + j + shift;
+                                if (from != foundHere)
+                                    neo = concatstrings(neo, STR(src)+from, ineo, lenneo, foundHere-from);
+                                neo = concatstrings(neo, STR(replace), ineo, lenneo, replace.size());
+                                from = foundHere+lensearch;
+                            }
+                        }
+                        ++s;
+                    }
+                }
+            }
+            break;
+        }
+        default:
+        {
+                //We look for the presence of 8 characters in a row
+            int64_t cc = search[7];
+            for (shift = 6; shift >= 0; shift--) {
+                cc <<= 8;
+                cc |= search[shift];
+            }
+            
+            __m256i firstchar = _mm256_set1_epi64x(cc);
+
+                //We then scan our string for the first two characters...
+            for (; (i + 31) < lensrc; i += 32) {
+                shift = 0;
+                    //we load our section, the length should be larger than 16
+                for (shift = 0; shift < 8; shift++) {
+                    s=USTR(src) + i + shift;
+                        //we read 16 characters at a time, but with a sliding widow
+                        //of 15 characters (since we are looking for a double character)
+                    current_bytes = _mm256_loadu_si256((const __m256i *)s);
+                        //we check if we have a the first character of our string somewhere
+                        //in this 16 character window...
+                    current_bytes = _mm256_cmpeq_epi64(firstchar, current_bytes);
+                    if (_mm256_movemask_epi8(current_bytes))
+                        break;
+                }
+                
+                if (shift != 8) {
+                        //Our character is present, we now try to find where it is...
+                        //we find it in this section...
+                    for (j = 0; j < 25; j++) {
                         if (*s == c) {
                             if (charcomp(s,USTR(search),lensearch)) {
                                 foundHere = i + j + shift;
@@ -782,7 +965,10 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
             }
             break;
         }
-        default:
+        case 4:
+        case 5:
+        case 6:
+        case 7:
         {
                 //We look for the presence of four characters in a row
             int32_t cc = search[3];
@@ -822,6 +1008,48 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
                     }
                 }
             }
+            break;
+        }
+        default:
+        {
+                //We look for the presence of eight characters in a row
+            int64_t cc = search[7];
+            for (shift = 6; shift >= 0; shift--) {
+                cc <<= 8;
+                cc |= search[shift];
+            }
+            
+            __m256i firstchar = _mm256_set1_epi64x(cc);
+            
+                //We then scan our string for the first two characters...
+            for (; (i + 31) < lensrc; i += 32) {
+                shift = 0;
+                    //we load our section, the length should be larger than 16
+                for (shift = 0; shift < 8; shift++) {
+                    s=src + i + shift;
+                        //we read 16 characters at a time, but with a sliding widow
+                        //of 15 characters (since we are looking for a double character)
+                    current_bytes = _mm256_loadu_si256((const __m256i *)s);
+                        //we check if we have a the first character of our string somewhere
+                        //in this 16 character window...
+                    current_bytes = _mm256_cmpeq_epi64(firstchar, current_bytes);
+                    if (_mm256_movemask_epi8(current_bytes))
+                        break;
+                }
+                
+                if (shift != 8) {
+                        //Our character is present, we now try to find where it is...
+                        //we find it in this section...
+                    for (j = 0; j < 25; j++) {
+                        if (*s == c) {
+                            if (charcomp(s,search,lensearch)) {
+                                counter++;
+                            }
+                        }
+                        ++s;
+                    }
+                }
+            }            
         }
     }
     
