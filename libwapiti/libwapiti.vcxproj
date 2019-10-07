@@ -105,6 +105,7 @@
       <PreprocessorDefinitions>WAPITIPARSE;ATAN_EXPORTS;WIN32;_DEBUG;_WINDOWS;_USRDLL;LIBwapiti_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>C:\Program Files (x86)\Visual Leak Detector\include;$(SolutionDir)\include;$(SolutionDir)\libwapiti/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
