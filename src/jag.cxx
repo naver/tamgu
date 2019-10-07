@@ -2374,6 +2374,7 @@ bool jag_editor::checkaction(string& buff, long& first, long& last) {
                 processundos();
             }
             return true;
+        case 19: //it can be allowed sometimes (ctrl-s)
         case 23: //ctrl-w write the content in a file
             if (emode()) {
                 line = wconvert(thecurrentfilename);
