@@ -377,6 +377,14 @@ static void handle_ctrl_c(int theSignal) {
 jag_editor::jag_editor() : lines(this) {
     tcgetattr(0, &oldterm);
 
+    //We enable ctrl-s and ctrl-q within the editor
+    termios theterm;
+    tcgetattr(0, &theterm);
+    theterm.c_iflag &= ~IXON;
+    theterm.c_iflag |= IXOFF;
+    tcsetattr(0, TCSADRAIN, &theterm);
+
+
     tooglehelp = false;
     regularexpressionfind = false;
     findrgx = NULL;
@@ -2355,6 +2363,9 @@ bool jag_editor::checkaction(string& buff, long& first, long& last) {
             movetoline(currentline);
             movetobeginning();
             return true;
+        case 17: //ctrl-q terminate
+            currentposinstring = -1;
+            terminate();
         case 18: //ctrl-r: redo...
             if (option == x_find) { //replace mode called after a ctrl-f
                 currentfind = line;
