@@ -382,6 +382,7 @@ jag_editor::jag_editor() : lines(this) {
     tcgetattr(0, &theterm);
     theterm.c_iflag &= ~IXON;
     theterm.c_iflag |= IXOFF;
+    theterm.c_cc[VSUSP] = NULL;
     tcsetattr(0, TCSADRAIN, &theterm);
 
 
@@ -415,7 +416,7 @@ jag_editor::jag_editor() : lines(this) {
     modified = true;
     inittableutf8();
     screensizes();
-    localhelp << m_red<< "^xh" << m_current << ":help " << m_red<< "^k" << m_current << ":del after " << m_red<< "^p" << m_current << ":k-buffer " <<  m_red<< "^d" << m_current << ":del line " << m_red<< "^u/^r" << m_current << ":un/redo " << m_red<< "^f" << m_current << ":find " << m_red<< "^n" << m_current << ":next " << m_red<< "^g" << m_current << ":go " << m_red<< "^l" << m_current << ":top/bottom " << m_red<< "^t" << m_current << ":indent " << m_red<< "^w" << m_current << ":write " << m_red<< "^x" << m_current << ":commands ";
+    localhelp << m_red<< "^xh" << m_current << ":help " << m_red<< "^k" << m_current << ":del after " << m_red<< "^p" << m_current << ":k-buffer " <<  m_red<< "^d" << m_current << ":del line " << m_red<< "^uz/^r" << m_current << ":un/redo " << m_red<< "^f" << m_current << ":find " << m_red<< "^n" << m_current << ":next " << m_red<< "^g" << m_current << ":go " << m_red<< "^l" << m_current << ":top/bottom " << m_red<< "^t" << m_current << ":indent " << m_red<< "^s/w" << m_current << ":write " << m_red<< "^x" << m_current << ":commands ";
     
     updateline = true;
     
@@ -2380,7 +2381,8 @@ bool jag_editor::checkaction(string& buff, long& first, long& last) {
             if (emode())
                 indentcode(pos);
             return true;
-        case 21: //undo
+        case 21: //undo ctrl-u
+        case 26: //ctrl-z
             if (emode()) {
                 processundos();
             }
@@ -2555,7 +2557,7 @@ void jag_editor::addabuffer(wstring& b, bool instring) {
 //This is the main method that launches the terminal
 void jag_editor::launchterminal(char loadedcode) {
 
-    localhelp << m_red << "^c" << m_current << ":exit";
+    localhelp << m_red << "^c/q" << m_current << ":exit";
     
     if (loadedcode) {
         displaylist(0);

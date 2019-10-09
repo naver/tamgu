@@ -322,7 +322,7 @@ extern BOOL nouveau;
 }
 
 -(BOOL)localcolor:(char)key {
-    static const char cc[]={')','"','\'',';',']','=',' ','/'};
+    static const char cc[]={')','"','\'',';',']','=',' ','/', 0};
     
     modified=YES;
     
