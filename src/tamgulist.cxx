@@ -1454,6 +1454,7 @@ bool Tamguring::InitialisationModule(TamguGlobal* global, string version) {
     Tamguring::AddMethod(global, "sum", &Tamguring::MethodSum, P_NONE, "sum(): return the sum of elements.");
     Tamguring::AddMethod(global, "product", &Tamguring::MethodProduct, P_NONE, "product(): return the product of elements.");
     Tamguring::AddMethod(global, "push", &Tamguring::MethodPush, P_ATLEASTONE, "push(v): Push a value into the vector.");
+    Tamguring::AddMethod(global, "pushlast", &Tamguring::MethodPush, P_ATLEASTONE, "pushlast(v): Push a value at the end the vector.");
     Tamguring::AddMethod(global, "pushfirst", &Tamguring::MethodPushfirst, P_ATLEASTONE, "pushfirst(v): Push a value into the vector at the beginning.");
     Tamguring::AddMethod(global, "pop", &Tamguring::MethodPop, P_NONE | P_ONE, "pop(i): Erase an element from the vector");
     Tamguring::AddMethod(global, "poplast", &Tamguring::MethodPoplast, P_NONE, "poplast(): Remove and return the last element of the ring");
