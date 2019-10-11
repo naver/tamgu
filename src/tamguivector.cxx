@@ -82,7 +82,7 @@ void Tamguivector::AddMethod(TamguGlobal* global, string name, ivectorMethod fun
     Tamguivector::AddMethod(global, "poplast", &Tamguivector::MethodPoplast, P_NONE, "poplast(): remove and return the last element from the vector");
     Tamguivector::AddMethod(global, "merge", &Tamguivector::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
     Tamguivector::AddMethod(global, "editdistance", &Tamguivector::MethodEditDistance, P_ONE, "editdistance(v): Compute the edit distance with vector 'v'.");
-    Tamguivector::AddMethod(global, "insert", &Tamguivector::MethodPermute, P_TWO, "insert(i,v): Insert v at position i.");
+    Tamguivector::AddMethod(global, "insert", &Tamguivector::MethodInsert, P_TWO, "insert(i,v): Insert v at position i.");
 
     global->newInstance[Tamguivector::idtype] = new Tamguivector(global);
     global->RecordMethods(Tamguivector::idtype, Tamguivector::exported);

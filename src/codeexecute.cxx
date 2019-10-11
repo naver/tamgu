@@ -29,7 +29,35 @@
 #include "tamguframeinstance.h"
 #include "tamgutaskell.h"
 //--------------------------------------------------------------------
-static hmap<short, Tamgu*> throughvariables;
+static hmap<string, Tamgu*> throughvariables;
+static hmap<string, string> throughvariabletype;
+
+void RetrieveThroughVariables(string& declaration) {
+    declaration += "\n";
+    for (auto& u : throughvariabletype) {
+        declaration += u.second;
+        declaration += " ";
+        declaration += u.first;
+        declaration += ";\n";
+    }
+}
+
+void RetrieveThroughVariables(wstring& decl) {
+    string declaration = "\n";
+    for (auto& u : throughvariabletype) {
+        declaration += u.second;
+        declaration += " ";
+        declaration += u.first;
+        declaration += ";\n";
+    }
+    s_utf8_to_unicode(decl,USTR(declaration),declaration.size());
+}
+
+bool CheckThroughVariables() {
+    if (throughvariables.size())
+        return true;
+    return false;
+}
 //--------------------------------------------------------------------
 bool TestEndthreads();
 //--------------------------------------------------------------------
@@ -829,8 +857,8 @@ Tamgu* TamguGlobalVariableDeclaration::Eval(Tamgu* domain, Tamgu* value, short i
 
 Tamgu* TamguThroughVariableDeclaration::Eval(Tamgu* domain, Tamgu* value, short idthread) {
 	//we create our instance...
-	if (throughvariables.find(name) != throughvariables.end())
-		return throughvariables[name];
+	if (throughvariables.find(sname) != throughvariables.end())
+		return throughvariables[sname];
 	
 	Tamgu* a = globalTamgu->newInstance.get(globalTamgu->throughs[typevariable])->Newpureinstance(idthread);
 	a->Setname(name);
@@ -848,7 +876,8 @@ Tamgu* TamguThroughVariableDeclaration::Eval(Tamgu* domain, Tamgu* value, short 
 		value->Releasenonconst();
 	}
 
-	throughvariables[name] = a;
+    throughvariables[sname] = a;
+    throughvariabletype[sname] = tname;
 
 	return a;
 }
@@ -1794,9 +1823,9 @@ Tamgu* TamguCallFromFrameVariable::Put(Tamgu* context, Tamgu* value, short idthr
 
 Tamgu* TamguCallThroughVariable::Eval(Tamgu* context, Tamgu* value, short idthread) {
     if (call == NULL)
-        return throughvariables[name];
+        return throughvariables[sname];
 
-    value = throughvariables[name];
+    value = throughvariables[sname];
     if (affectation) {
         if (call->isStop())
             return value;

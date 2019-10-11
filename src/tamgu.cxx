@@ -40,7 +40,7 @@
 #include "tamgutaskell.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 0.96.4 build 11";
+const char* tamgu_version = "Tamgu 0.96.4 build 15";
 
 Tamgu* booleantamgu[2];
 
@@ -1670,36 +1670,36 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("lthrough"); //20 --> a_longthrough
     Createid("dthrough"); //21 --> a_decimalthrough
     Createid("fthrough"); //22 --> a_floatthrough
+    Createid("sthrough"); //23 --> a_stringthrough
+    Createid("uthrough"); //24 --> a_ustringthrough
+    Createid("vthrough"); //25 --> a_vectorthrough
+    Createid("mthrough"); //26 --> a_mapthrough
 
-    Createid("string");//23 --> a_string
-    Createid("ustring");//24 --> a_ustring
+    Createid("string");//27 --> a_string
+    Createid("ustring");//28 --> a_ustring
 
-    Createid("sloop"); //25 --> a_sloop
-    Createid("uloop");//26 --> a_uloop
+    Createid("sloop"); //29 --> a_sloop
+    Createid("uloop");//30 --> a_uloop
 
-    Createid("sthrough"); //27 --> a_stringthrough
-    Createid("uthrough"); //28 --> a_ustringthrough
 
-    Createid("constvector"); //29 --> a_constvector
-    Createid("vector");//30 --> a_vector
-    Createid("bvector");//31 --> a_bvector
-    Createid("fvector");//32 --> a_fvector
-    Createid("ivector");//33 --> a_ivector
-    Createid("hvector");//34 --> a_hvector
-    Createid("svector");//35 --> a_svector
-    Createid("uvector");//36 --> a_uvector
-    Createid("dvector");//37 --> a_dvector
-    Createid("lvector");//38 --> a_lvector
-    Createid("list"); //39 --> a_list
-    Createid("vthrough"); //40 --> a_vectorthrough
+    Createid("constvector"); //31 --> a_constvector
+    Createid("vector");//32 --> a_vector
+    Createid("bvector");//33 --> a_bvector
+    Createid("fvector");//34 --> a_fvector
+    Createid("ivector");//35 --> a_ivector
+    Createid("hvector");//36 --> a_hvector
+    Createid("svector");//37 --> a_svector
+    Createid("uvector");//38 --> a_uvector
+    Createid("dvector");//39 --> a_dvector
+    Createid("lvector");//40 --> a_lvector
+    Createid("list"); //41 --> a_list
 
-    Createid("constmap"); //41 --> a_constmap
-    Createid("map");//42 --> a_map
-    Createid("treemap"); //43 --> a_treemap
-    Createid("primemap"); //44 --> a_primemap
-    Createid("binmap"); //45 --> a_binmap
-    Createid("mapss"); //46 --> a_mapss
-    Createid("mthrough"); //47 --> a_mapthrough
+    Createid("constmap"); //42 --> a_constmap
+    Createid("map");//43 --> a_map
+    Createid("treemap"); //44 --> a_treemap
+    Createid("primemap"); //45 --> a_primemap
+    Createid("binmap"); //46 --> a_binmap
+    Createid("mapss"); //47 --> a_mapss
 
     Createid("&error");//48 --> a_error
 

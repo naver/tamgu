@@ -34,6 +34,15 @@
 
 #include <iomanip>
 
+#ifndef max
+#define max(a,b)            (((a) > (b)) ? (a) : (b))
+#define min(a,b)            (((a) < (b)) ? (a) : (b))
+#endif
+
+void RetrieveThroughVariables(string& declaration);
+void RetrieveThroughVariables(wstring& decl);
+bool CheckThroughVariables();
+
 #ifdef DOSOUTPUT
 static bool dosoutput = true;
 static void Setdosoutput(bool d) { dosoutput = d; }
@@ -70,10 +79,12 @@ static void displayhelp(string wh) {
     cout << conversiontodos("-l 'filename' load filename into the terminal console") << endl << endl;
 #endif
     cout << conversiontodos("-a 'stdin data' available in tamgu via _args") << endl;
-    cout << conversiontodos("-a 'source code' with _args fully piped") << endl;
+    cout << conversiontodos("-a 'source code' with _args fully piped") << endl  << endl;
     cout << conversiontodos("-p 'source code' with _args piped one string at a time") << endl;
+    cout << conversiontodos("-pb 'source code' inserted before the code with -p") << endl;
+    cout << conversiontodos("-pe 'source code' added after the code with -p") << endl;
     cout << conversiontodos("-c 'source code' without piped data") << endl << endl;
-    cout << conversiontodos("-i Predeclared variables:") << endl;
+    cout << conversiontodos("-i Predeclared variables:") << endl << endl;
     cout << "\t";
     cout << conversiontodos("_args: argument vector") << endl;
     cout << "\t";
@@ -545,8 +556,11 @@ public:
         long lastsz = 0;
         long thesz, asz;
 
-        beg = lines.getlinenumber(beg)+1;
-        end = lines.getlinenumber(end)+1;
+        if (beg)
+            beg = lines.getlinenumber(beg)+1;
+        
+        if (end)
+            end = lines.getlinenumber(end)+1;
 
         for (long i = beg; i <= end; i++) {
             string space(prefixe(), ' ');
@@ -741,6 +755,7 @@ public:
 
         static bool init = false;
         static hmap<wstring, thecommands> commands;
+        std::thread* tid;
         
         if (!init) {
             init = true;
@@ -977,7 +992,7 @@ public:
                         globalTamgu->Setdebugfunction(debuginfo_callback, this);
                         debuginfo.clearall();
                         prefix = "▶▶";
-                        std::thread* tid = new std::thread(debuggerthread, this);
+                        tid = new std::thread(debuggerthread, this);
                     }
                     else {
                         globalTamgu->Setdebugmode(false);
@@ -1411,17 +1426,19 @@ public:
                 if (arguments.size())
                     TamguSetArguments(arguments);
                 
-                if (initvar == 1) {
-                    string cde = "bool a,b,c; int i,j,k; float f,g,h; string s,t,u; map m; vector v; self x,y,z;";
+                if (initvar == 1 || CheckThroughVariables()) {
+                    string cde;
+                    if (initvar == 1)
+                        cde = "bool a,b,c; int i,j,k; float f,g,h; string s,t,u; map m; vector v; self x,y,z;";
+                    if (CheckThroughVariables())
+                        RetrieveThroughVariables(cde);
                     idcode = TamguCompile(cde, THEMAIN);
                     TamguRun(idcode);
-                    lines.push_back(code);
-                    pos = 1;
-                    lines.push(L"");
-                    poslines.push_back(0);
+                    code = TamguUListing();
+                    lines.setcode(code);
                 }
-                else
-                    pos = 0;
+
+                pos = 0;
                 return pos;
             case cmd_reinit:
                 addcommandline(line);
@@ -1439,14 +1456,14 @@ public:
                     TamguSetArguments(arguments);
             {
                 string cde = "bool a,b,c; int i,j,k; float f,g,h; string s,t,u; map m; vector v; self x,y,z;";
+                if (CheckThroughVariables())
+                    RetrieveThroughVariables(cde);
                 idcode = TamguCompile(cde, THEMAIN);
             }
                 TamguRun(idcode);
-                lines.push_back(code);
-                lines.push(L"");
-                poslines.clear();
-                poslines.push_back(0);
-                pos = 1;
+                code = TamguUListing();
+                lines.setcode(code);
+                pos = 0;
                 return pos;
             case cmd_debug:
                 addcommandline(line);
@@ -1805,6 +1822,12 @@ public:
                     lines[pos] = line;
                 printline(pos+1, line);
                 return true;
+            case 17:
+                if (emode()) {
+                    clear();
+                    return true;
+                }
+                return checkaction(buff, first, last);
             case 27: //Escape...
                      //we clear the current line if it is the only character...
                 if (buff.size() == 1) {
@@ -2152,6 +2175,9 @@ int main(int argc, char *argv[]) {
     //argv[1] is the file name
     string name = argv[1];
     string code = "";
+    string codepipe = "";
+    string codeafter = "";
+    string codebefore = "";
     string filename;
     bool console = false;
     string predeclarations;
@@ -2302,11 +2328,13 @@ int main(int argc, char *argv[]) {
             }
         }
         else
-            if (args == "-p")
+            if (args == "-p" || args == "-pb" || args == "-pe") {
                 piped = 2;
+            }
             else
-                if (args == "-c")
+                if (args == "-c") {
                     piped = 0;
+                }
 
         if (piped != -1) {
             if (i + 1 < argc) {
@@ -2323,6 +2351,21 @@ int main(int argc, char *argv[]) {
                 
                 cerr << conversiontodos("Error: missing code or unknown argument: ") << args << endl;
                 exit(-1);
+            }
+            
+            if (args == "-p") {
+                codepipe = code;
+                continue;
+            }
+            
+            if (args == "-pb") {
+                codebefore = code;
+                continue;
+            }
+            
+            if (args == "-pe") {
+                codeafter = code;
+                continue;
             }
             break;
         }
@@ -2389,11 +2432,21 @@ int main(int argc, char *argv[]) {
     }
 
     predeclarations = "bool a,b,c; int i,j,k; float f,g,h; string s,t,u; map m; vector v; self x,y,z;";
-
+    
     if (piped == 2) {
+        if (codebefore != "") {
+            predeclarations += "\n";
+            predeclarations += codebefore;
+            predeclarations += "\n";
+        }
         predeclarations += "function _Internal_Function(string l) {\n";
-        predeclarations += code;
+        predeclarations += codepipe;
         predeclarations += "\n}";
+        if (codeafter != "") {
+            predeclarations += "\n\nfunction _Ending_Internal_Function() {\n";
+            predeclarations += codeafter;
+            predeclarations += "\n}";
+        }
         code = predeclarations;
     }
     else
@@ -2447,6 +2500,11 @@ int main(int argc, char *argv[]) {
                 ret->Release();
                 lnstr = "";
             }
+        }
+        if (codeafter != "") {
+            params.clear();
+            ret = TamguExecute(tcode, "_Ending_Internal_Function", params);
+            ret->Release();
         }
     }
 }

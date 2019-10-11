@@ -1235,8 +1235,12 @@ public:
     
     void copy(atomic_ring<Z>* a) {
         for (short i = 0; i < 256; i++) {
+            if (a->head[i] == NULL)
+                continue;
+
             if (head[i] == NULL)
                 head[i] = new atomic_ring_element<Z>(zero);
+
             head[i]->duplicate(a->head[i]);
         }
         unsigned short pos = a->first;
@@ -1270,6 +1274,9 @@ public:
         if (sz == atomic_ring_size)
             return false;
         
+        if (!pos)
+            return push_front(val);
+        
         if (pos >= sz)
             return push_back(val);
         
@@ -1279,17 +1286,34 @@ public:
         atomic_ring_element<Z>* n = head[nb];
 
         _lock.lock();
-        unsigned short poslast = last++;
+        unsigned short poslast;
         uchar lastnb,lasti,pnb,pi;
-        while (poslast > pos) {
-            lastnb = poslast >> base_atomic_size;
-            lasti =  poslast - (lastnb << base_atomic_size);
-            poslast--;
-            pnb = poslast >> base_atomic_size;
-            pi =  poslast - (pnb << base_atomic_size);
-            if (head[lastnb] == NULL)
-                head[lastnb] = new atomic_ring_element<Z>(zero);
-            head[lastnb]->vecteur[lasti] = head[pnb]->vecteur[pi];
+
+        if ((short)pos < 0) {
+            poslast = --first;
+            while (poslast < pos) {
+                lastnb = poslast >> base_atomic_size;
+                lasti =  poslast - (lastnb << base_atomic_size);
+                poslast++;
+                pnb = poslast >> base_atomic_size;
+                pi =  poslast - (pnb << base_atomic_size);
+                if (head[lastnb] == NULL)
+                    head[lastnb] = new atomic_ring_element<Z>(zero);
+                head[lastnb]->vecteur[lasti] = head[pnb]->vecteur[pi];
+            }
+        }
+        else {
+            poslast = last++;
+            while (poslast > pos) {
+                lastnb = poslast >> base_atomic_size;
+                lasti =  poslast - (lastnb << base_atomic_size);
+                poslast--;
+                pnb = poslast >> base_atomic_size;
+                pi =  poslast - (pnb << base_atomic_size);
+                if (head[lastnb] == NULL)
+                    head[lastnb] = new atomic_ring_element<Z>(zero);
+                head[lastnb]->vecteur[lasti] = head[pnb]->vecteur[pi];
+            }
         }
         _lock.unlock();
 

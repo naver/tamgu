@@ -2221,8 +2221,9 @@ Exporting Tamgu*  Tamguring::Put(Tamgu* idx, Tamgu* value, short idthread) {
         }
         
         if (value->Type() == Tamguring::idtype) {
-                //this is one of the rare cases when we need a lock...
+            //this is one of the rare cases when we need a lock...
             values._lock.lock();
+            Clear();
             values = ((Tamguring*)value)->values;
             atomic_ring_iterator<Tamgu*> it(values);
             for (;!it.end();it.next()) {
@@ -2243,6 +2244,7 @@ Exporting Tamgu*  Tamguring::Put(Tamgu* idx, Tamgu* value, short idthread) {
                 //We copy all values from value to this
             Clear();
             {
+                Locking _lock(kvect);
                 
                 for (auto& it : kvect->values)
                     Push(it);

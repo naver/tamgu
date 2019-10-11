@@ -2191,8 +2191,8 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
 		global->predicates[idname] = new TamguPredicateFunction(global, NULL, idname);
 
 	TamguVariableDeclaration* a;
-    if (tid >= a_intthrough && tid <= a_floatthrough)
-        a = new TamguThroughVariableDeclaration(idname, tid, parent);
+    if (tid >= a_intthrough && tid <= a_mapthrough)
+        a = new TamguThroughVariableDeclaration(idname, tid, name, type, parent);
     else {
         if (tid == a_self) {
             if (parent->isTaskellFunction())
@@ -3062,7 +3062,7 @@ Tamgu* TamguCode::C_variable(x_node* xn, Tamgu* parent) {
 					case a_ustringthrough:
 					case a_vectorthrough:
 					case a_mapthrough:
-						av = new TamguCallThroughVariable(idname, tyvar, parent);
+						av = new TamguCallThroughVariable(idname, tyvar, name, parent);
 						break;
 					default:
 						if (dom->isFrame()) {

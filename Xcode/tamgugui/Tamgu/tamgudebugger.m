@@ -28,6 +28,7 @@ const char* Getcurrentfilename(void);
 void Shortname(char v);
 void Released(void);
 
+extern NSMutableDictionary *allfiles;
 extern Console* tview;
 extern AppDelegate* currentdelegate;
 
@@ -46,7 +47,6 @@ void displaydebug(const char* locals, const char* globals, const char* sstack, c
     [debugger performSelectorOnMainThread:@selector(Setglobals:) withObject:[NSString stringWithUTF8String:globals] waitUntilDone:YES];
     [debugger performSelectorOnMainThread:@selector(Setstack:) withObject:[NSString stringWithUTF8String:sstack] waitUntilDone:YES];
     [debugger Selectline:currentline];
-    Blocked();
 }
 
 - (IBAction)nextline:(id)sender {
@@ -63,13 +63,11 @@ void displaydebug(const char* locals, const char* globals, const char* sstack, c
 - (IBAction)stoprunning:(id)sender {
     StopDebug();
     [self Setlocals:@"End of Execution reached"];
-    
 }
 
 - (IBAction)runuptotheend:(id)sender {
     Gotoend();
     [self Setlocals:@"End of Execution reached"];
-    
 }
 
 - (IBAction)intfunction:(id)sender {
@@ -118,18 +116,10 @@ void displaydebug(const char* locals, const char* globals, const char* sstack, c
 -(void)Selectline:(long)l {
     NSString* filename = [NSString stringWithUTF8String: Getcurrentfilename()];
     NSNumber* ln=[NSNumber numberWithInteger:l];
+        
     
-    long nb=[[NSApp orderedWindows] count];
-    NSWindow* wnd;
-    NSViewController* n=nil;
-    for (int i=0; i< nb; i++) {
-        wnd=[[NSApp orderedWindows] objectAtIndex:i];
-        if ([filename isEqualToString:[wnd title]]) {
-            n=[wnd contentViewController];
-            break;
-        }
-    }
-    
+    NSViewController* n = [allfiles objectForKey: filename];
+
     if (n==nil)
         return;
     

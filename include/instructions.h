@@ -699,8 +699,10 @@ public:
 
 class TamguThroughVariableDeclaration : public TamguVariableDeclaration {
 public:
+    string sname;
+    string tname;
 
-	TamguThroughVariableDeclaration(short n, short t, Tamgu* parent) : TamguVariableDeclaration(NULL, n, t, parent) {}
+	TamguThroughVariableDeclaration(short n, short t, string sn, string tn, Tamgu* parent) : sname(sn), tname(tn), TamguVariableDeclaration(NULL, n, t, parent) {}
 	Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 
 	void Resetreference(short i = 1) {}
@@ -1042,7 +1044,8 @@ public:
 class TamguCallThroughVariable : public TamguCallVariable {
 public:
 
-	TamguCallThroughVariable(short n, short idt, Tamgu* parent = NULL) : TamguCallVariable(n, idt, NULL, parent) {}
+    string sname;
+	TamguCallThroughVariable(short n, short idt, string sn, Tamgu* parent = NULL) : sname(sn), TamguCallVariable(n, idt, NULL, parent) {}
 
 	Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 
