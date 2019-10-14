@@ -78,7 +78,7 @@ void Tamgusys::AddMethod(TamguGlobal* global, string name, sysMethod func, unsig
 
     Tamgusys::idtype = global->Getid("sys");
 
-    Tamgusys::AddMethod(global, "command", &Tamgusys::MethodCommand, P_ONE | P_TWO, "command(string comstring outputfile): execute the command 'com'. outputfile is optional and can be used to redirect output to a file.");
+    Tamgusys::AddMethod(global, "command", &Tamgusys::MethodCommand, P_ONE | P_TWO, "command(string com, string outputfile): execute the command 'com'. outputfile is optional and can be used to redirect output to a file.");
     Tamgusys::AddMethod(global, "isdirectory", &Tamgusys::MethodisDirectory, P_ONE, "isdirectory(string path): return 'true' if path is a directory");
     Tamgusys::AddMethod(global, "createdirectory", &Tamgusys::MethodCreateDirectory, P_ONE, "createdirectory(string path): create the directory of path 'path'");
     Tamgusys::AddMethod(global, "mkdir", &Tamgusys::MethodCreateDirectory, P_ONE, "mkdir(string path): create the directory of path 'path'");
