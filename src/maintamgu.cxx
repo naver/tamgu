@@ -646,7 +646,7 @@ public:
     }
     
     //We create an empty space
-    void addspace(string filename) {
+    void addspace(string filename, bool fromwrite = false) {
         thecurrentfilename = Trim(filename);
         if (thecurrentfilename == "")
             return;
@@ -655,15 +655,17 @@ public:
         currentfileid = ifilenames.size();
         ifilenames.push_back(thecurrentfilename);
         codes.push_back(L"");
-        //We create a local undos/redos section..
         editor_keep kp;
         editors_undos.push_back(kp);
         editors_redos.push_back(kp);
         filenames[thecurrentfilename] = currentfileid;
-        cerr << m_redbold << "Create file space: " << thecurrentfilename << m_current <<" (" << currentfileid << ")" << endl;
-        wstring c = L"\n";
-        TamguSetCode(c);
-        lines.setcode(c);
+        if (!fromwrite) {
+            //We create a local undos/redos section..
+            cerr << m_redbold << "Create file space: " << thecurrentfilename << m_current <<" (" << currentfileid << ")" << endl;
+            wstring c = L"\n";
+            TamguSetCode(c);
+            lines.setcode(c);
+        }
     }
     
     bool loadfile(wstring& name) {
@@ -742,7 +744,7 @@ public:
         wd << convert(code);
         wd.close();
         if (currentfileid == -1) {
-            addspace(thecurrentfilename);
+            addspace(thecurrentfilename, true);
             codes[0] = code;
         }
         return true;
