@@ -88,6 +88,7 @@ void Tamguvector::AddMethod(TamguGlobal* global, string name, vectorMethod func,
     Tamguvector::AddMethod(global, "editdistance", &Tamguvector::MethodEditDistance, P_ONE, "editdistance(v): Compute the edit distance with vector 'v'.");
     Tamguvector::AddMethod(global, "insert", &Tamguvector::MethodInsert, P_TWO, "insert(i,v): Insert v at position i.");
     Tamguvector::AddMethod(global, "read", &Tamguvector::MethodRead, P_ONE, "read(string path): Read the content of a file into the container.");
+    Tamguvector::AddMethod(global, "write", &Tamguvector::MethodWrite, P_ONE, "write(string path): write the string content into a file.");
 
     global->newInstance[Tamguvector::idtype] = new Tamguvector(global);
     global->RecordMethods(Tamguvector::idtype, Tamguvector::exported);
@@ -892,19 +893,50 @@ Tamgu* Tamguvector::MethodRead(Tamgu* contextualpattern, short idthread, TamguCa
         return globalTamgu->Returnerror(msg, idthread);
     }
     
-    Locking _lock(this);
     vector<string> v;
     file.readall(v);
     Tamgu* a;
+    
+    Locking _lock(this);
     for (long i = 0; i < v.size(); i++) {
         a = globalTamgu->Providestring(v[i]);
         a->Addreference(reference+1);
         values.push_back(a);
     }
-    fclose(file.thefile);
+
+    return this;
+}
+
+Tamgu* Tamguvector::MethodWrite(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        //The separator between values
+    string filename = callfunc->Evaluate(0, contextualpattern, idthread)->String();
+    Clear();
+    Tamgufile file;
+    
+#ifdef WIN32
+    fopen_s(&file.thefile, STR(filename), "wb");
+#else
+    file.thefile=fopen(STR(filename), "wb");
+#endif
+    
+    if (file.thefile == NULL) {
+        string msg="Cannot open the file:";
+        msg += filename;
+        return globalTamgu->Returnerror(msg, idthread);
+    }
+    
+    Locking _lock(this);
+    long sz = Size();
+    string v;
+    for (long i = 0; i < sz; i++) {
+        v = values[i]->String();
+        v += "\n";
+        file.write(v);
+    }
     
     return this;
 }
+
 
 //------------------------
 

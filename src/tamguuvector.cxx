@@ -25,7 +25,7 @@
 #include "tamgufvector.h"
 #include "constobjects.h"
 #include "instructions.h"
-#include "tamgufile.h"
+#include "tamguufile.h"
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<uvectorMethod>  Tamguuvector::methods;
@@ -35,9 +35,8 @@ Exporting bin_hash<unsigned long> Tamguuvector::exported;
 Exporting short Tamguuvector::idtype = 0;
 #ifndef max
 #define max(a,b)            (((a) > (b)) ? (a) : (b))
-    #define min(a,b)            (((a) < (b)) ? (a) : (b))
-        #endif
-
+#define min(a,b)            (((a) < (b)) ? (a) : (b))
+#endif
 
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamguuvector::AddMethod(TamguGlobal* global, string name, uvectorMethod func, unsigned long arity, string infos) {
@@ -81,6 +80,7 @@ void Tamguuvector::AddMethod(TamguGlobal* global, string name, uvectorMethod fun
     Tamguuvector::AddMethod(global, "insert", &Tamguuvector::MethodInsert, P_TWO, "insert(i,v): Insert v at position i.");
     Tamguuvector::AddMethod(global, "ngrams", &Tamguuvector::MethodNGrams, P_ONE|P_TWO, "ngrams(int nb, int sep): produces a ngrams svector.");
     Tamguuvector::AddMethod(global, "read", &Tamguuvector::MethodRead, P_ONE, "read(string path): Read the content of a file into the container.");
+    Tamguuvector::AddMethod(global, "write", &Tamguuvector::MethodWrite, P_ONE, "write(string path): write the string content into a file.");
 
 
     global->newInstance[Tamguuvector::idtype] = new Tamguuvector(global);
@@ -97,14 +97,32 @@ Exporting TamguIteration* Tamguuvector::Newiteration(bool direction) {
 Tamgu* Tamguuvector::MethodRead(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         //The separator between values
     string filename = callfunc->Evaluate(0, contextualpattern, idthread)->String();
-    Tamgufile file;
+    Tamguufile file;
     
-#ifdef WIN32
-    fopen_s(&file.thefile, STR(filename), "rb");
-#else
-    file.thefile=fopen(STR(filename), "rb");
-#endif
+    if (!file.openfile(filename)) {
+        string msg = "Cannot open file: ";
+        msg+=filename;
+        return globalTamgu->Returnerror(msg,idthread);
+    }
     
+    Locking _lock(this);
+    values.clear();
+    file.readall(values);
+    
+    return this;
+}
+
+Tamgu* Tamguuvector::MethodWrite(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        //The separator between values
+    string filename = callfunc->Evaluate(0, contextualpattern, idthread)->String();
+    Tamguufile file;
+    
+    if (!file.openfilewrite(filename)) {
+        string msg = "Cannot open file: ";
+        msg+=filename;
+        return globalTamgu->Returnerror(msg,idthread);
+    }
+
     if (file.thefile == NULL) {
         string msg="Cannot open the file:";
         msg += filename;
@@ -112,9 +130,9 @@ Tamgu* Tamguuvector::MethodRead(Tamgu* contextualpattern, short idthread, TamguC
     }
     
     Locking _lock(this);
-    values.clear();
-    file.readall(values);
-    fclose(file.thefile);
+    for (long i = 0; i < values.size(); i++) {
+        file.write(values[i]);
+    }
     
     return this;
 }

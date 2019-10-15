@@ -82,6 +82,7 @@ void Tamgusvector::AddMethod(TamguGlobal* global, string name, svectorMethod fun
     Tamgusvector::AddMethod(global, "ngrams", &Tamgusvector::MethodNGrams, P_ONE|P_TWO, "ngrams(int nb, int sep): produces a ngrams svector.");
     Tamgusvector::AddMethod(global, "permute", &Tamgusvector::MethodPermute, P_NONE, "permute(): permute the values in the vector after each call.");
     Tamgusvector::AddMethod(global, "read", &Tamgusvector::MethodRead, P_ONE, "read(string path): Read the content of a file into the container.");
+    Tamgusvector::AddMethod(global, "write", &Tamgusvector::MethodWrite, P_ONE, "write(string path): write the string content into a file.");
 
 
     global->newInstance[Tamgusvector::idtype] = new Tamgusvector(global);
@@ -118,10 +119,34 @@ Tamgu* Tamgusvector::MethodRead(Tamgu* contextualpattern, short idthread, TamguC
     Locking _lock(this);
     values.clear();
     file.readall(values);
-    fclose(file.thefile);
     
     return this;
 }
+
+Tamgu* Tamgusvector::MethodWrite(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        //The separator between values
+    string filename = callfunc->Evaluate(0, contextualpattern, idthread)->String();
+    Tamgufile file;
+    
+#ifdef WIN32
+    fopen_s(&file.thefile, STR(filename), "wb");
+#else
+    file.thefile=fopen(STR(filename), "wb");
+#endif
+    
+    if (file.thefile == NULL) {
+        string msg="Cannot open the file:";
+        msg += filename;
+        return globalTamgu->Returnerror(msg, idthread);
+    }
+    
+    Locking _lock(this);
+    for (long i = 0; i < values.size(); i++)
+        file.write(values[i]);
+
+    return this;
+}
+
 
 Exporting Tamgu* Tamgusvector::in(Tamgu* context, Tamgu* a, short idthread) {
     //Three cases along the container type...

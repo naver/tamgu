@@ -832,6 +832,7 @@ public:
     Tamgu* MethodTransliteration(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
     Tamgu* MethodRead(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodWrite(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
 	//---------------------------------------------------------------------------------------------------------------------
 	//ExecuteMethod must be implemented in order to execute our new Tamgu methods. This method is called when a TamguCallMethodMethod object

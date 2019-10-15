@@ -504,6 +504,20 @@ public:
 		ungetc(c, thefile);
 	}
 
+    void write(string& s) {
+        fwrite(STR(s), 1, s.size(), thefile);
+    }
+
+    void writeln(string s) {
+        #ifdef WIN32
+            s += "\r\n";
+        #else
+            s += "\n";
+        #endif
+        fwrite(STR(s), 1, s.size(), thefile);
+    }
+    
+
 	void consume_header() {
 		uchar c = fgetc(thefile);
 		uchar cc = fgetc(thefile);

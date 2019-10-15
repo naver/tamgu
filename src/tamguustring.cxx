@@ -153,6 +153,7 @@ void Tamguustring::AddMethod(TamguGlobal* global, string name, ustringMethod fun
     Tamguustring::AddMethod(global, "romanization", &Tamguustring::MethodTransliteration, P_NONE, "romanization(): romanization of Hangul characters.");
 
     Tamguustring::AddMethod(global, "read", &Tamguustring::MethodRead, P_ONE, "read(string path): read the file content into the current variable. File shoud be encoded in UTF16 characters");
+    Tamguustring::AddMethod(global, "write", &Tamguustring::MethodWrite, P_ONE, "write(string path): write the string content into a file.");
 
     global->newInstance[Tamguustring::idtype] = new Tamguustring(L"", global);
     global->newInstance[a_ustringthrough] = global->newInstance[Tamguustring::idtype];
@@ -876,6 +877,24 @@ Tamgu* Tamguustring::MethodRead(Tamgu* contextualpattern, short idthread, TamguC
     Locking _lock(this);
     value=L"";
     file.readall(value);
+    return this;
+}
+
+Tamgu* Tamguustring::MethodWrite(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    if (globalTamgu->isthreading)
+        return aFALSE;
+    
+    string filename = callfunc->Evaluate(0, contextualpattern, idthread)->String();
+    
+    Tamguufile file;
+    if (!file.openfilewrite(filename)) {
+        string msg = "Cannot open file: ";
+        msg+=filename;
+        return globalTamgu->Returnerror(msg,idthread);
+    }
+
+    Locking _lock(this);
+    file.write(value);
     return this;
 }
 

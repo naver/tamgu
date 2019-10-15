@@ -495,7 +495,8 @@ class Tamguvector : public TamguObjectLockContainer {
     }
 
     Tamgu* MethodRead(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
-    
+    Tamgu* MethodWrite(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+
     Tamgu* MethodJoin(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         //The separator between values
         string sep = callfunc->Evaluate(0, contextualpattern, idthread)->String();

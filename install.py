@@ -66,6 +66,9 @@ avx=False
 avx2=False
 
 compilelibs="""
+amaps: install
+	$(MAKE) -C allmaps all
+	
 libs: install
 	$(MAKE) -C allmaps all
 	$(MAKE) -C liblinear linear

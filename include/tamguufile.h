@@ -142,20 +142,35 @@ public:
     Tamgu* Filter(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* kcont, Tamgu* accu, Tamgu* init, bool direct);
 
     
-    bool openfile(string filename) {
-        Locking _lock(this);
-        op = "rb";
+        bool openfile(string filename) {
+            Locking _lock(this);
+            op = "rb";
 
-#ifdef WIN32
-        fopen_s(&thefile, STR(filename), STR(op));
-#else
-        thefile=fopen(STR(filename),STR(op));
-#endif
-        if (thefile == NULL)
-            return false;
-        
-        return true;
-    }
+    #ifdef WIN32
+            fopen_s(&thefile, STR(filename), STR(op));
+    #else
+            thefile=fopen(STR(filename),STR(op));
+    #endif
+            if (thefile == NULL)
+                return false;
+            
+            return true;
+        }
+
+        bool openfilewrite(string filename) {
+            Locking _lock(this);
+            op = "wb";
+
+    #ifdef WIN32
+            fopen_s(&thefile, STR(filename), STR(op));
+    #else
+            thefile=fopen(STR(filename),STR(op));
+    #endif
+            if (thefile == NULL)
+                return false;
+            
+            return true;
+        }
 
 	//---------------------------------------------------------------------------------------------------------------------
 	//This SECTION is for your specific implementation...
@@ -498,7 +513,95 @@ public:
 		//To set a variable back to empty
 	}
 
-	
+    void write(wstring& s) {
+        w_u_char wuc;
+        if (first) {
+            if (invertbytes) {
+                fputc(254, thefile);
+                fputc(255, thefile);
+            }
+            else {
+                fputc(255, thefile);
+                fputc(254, thefile);
+            }
+            first = false;
+        }
+        
+        bool full = false;
+        for (long i = 0; i < s.size(); i++) {
+                //On Windows, we are already dealing with UTF16 characters
+#ifdef WSTRING_IS_UTF16
+            wuc.c = s[i];
+#else
+            full = c_unicode_to_utf16(wuc.c, s[i]);
+#endif
+            
+            if (invertbytes) {
+                if (full) {
+                    fputc(wuc.cc[3], thefile);
+                    fputc(wuc.cc[2], thefile);
+                }
+                fputc(wuc.cc[1], thefile);
+                fputc(wuc.cc[0], thefile);
+                continue;
+            }
+            
+            if (full) {
+                fputc(wuc.cc[2], thefile);
+                fputc(wuc.cc[3], thefile);
+            }
+            fputc(wuc.cc[0], thefile);
+            fputc(wuc.cc[1], thefile);
+        }        
+    }
+
+    void writeln(wstring s) {
+#ifdef WIN32
+        s += L"\r\n";
+#else
+        s += L"\n";
+#endif
+        w_u_char wuc;
+        if (first) {
+            if (invertbytes) {
+                fputc(254, thefile);
+                fputc(255, thefile);
+            }
+            else {
+                fputc(255, thefile);
+                fputc(254, thefile);
+            }
+            first = false;
+        }
+        
+        bool full = false;
+        for (long i = 0; i < s.size(); i++) {
+                //On Windows, we are already dealing with UTF16 characters
+#ifdef WSTRING_IS_UTF16
+            wuc.c = s[i];
+#else
+            full = c_unicode_to_utf16(wuc.c, s[i]);
+#endif
+            
+            if (invertbytes) {
+                if (full) {
+                    fputc(wuc.cc[3], thefile);
+                    fputc(wuc.cc[2], thefile);
+                }
+                fputc(wuc.cc[1], thefile);
+                fputc(wuc.cc[0], thefile);
+                continue;
+            }
+            
+            if (full) {
+                fputc(wuc.cc[2], thefile);
+                fputc(wuc.cc[3], thefile);
+            }
+            fputc(wuc.cc[0], thefile);
+            fputc(wuc.cc[1], thefile);
+        }
+    }
+
 
 	string String() {
 		return filename;

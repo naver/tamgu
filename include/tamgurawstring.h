@@ -402,6 +402,7 @@ public:
 	Tamgu* MethodClear(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
     Tamgu* MethodRead(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodWrite(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
 	//---------------------------------------------------------------------------------------------------------------------
 

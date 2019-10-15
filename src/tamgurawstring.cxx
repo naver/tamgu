@@ -289,6 +289,7 @@ void Tamgurawstring::AddMethod(TamguGlobal* global, string name, rawstringMethod
     Tamgurawstring::AddMethod(global, "clear", &Tamgurawstring::MethodClear, P_NONE, "clear(): Clean the content of a string.");
 
     Tamgurawstring::AddMethod(global, "read", &Tamgurawstring::MethodRead, P_ONE, "read(string path): read the file content into the current variable.");
+    Tamgurawstring::AddMethod(global, "write", &Tamgurawstring::MethodWrite, P_ONE, "write(string path): write the string content into a file.");
 
 
     global->newInstance[Tamgurawstring::idtype] = new Tamgurawstring(global);
@@ -1939,7 +1940,6 @@ Tamgu* Tamgurawstring::MethodRead(Tamgu* contextualpattern, short idthread, Tamg
     }
     
     string val=file.read(-1);
-    fclose(file.thefile);
     
     if (value == NULL) {
         stringsize = val.size();
@@ -1958,6 +1958,35 @@ Tamgu* Tamgurawstring::MethodRead(Tamgu* contextualpattern, short idthread, Tamg
     }
     
     strcpy_s((char*)value, buffersize, STR(val));
+    
+    return aTRUE;
+}
+
+Tamgu* Tamgurawstring::MethodWrite(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    if (globalTamgu->isthreading)
+        return aFALSE;
+    
+    if (value == NULL)
+        return aFALSE;
+    
+    string filename = callfunc->Evaluate(0, contextualpattern, idthread)->String();
+    
+    Tamgufile file;
+    
+#ifdef WIN32
+    fopen_s(&file.thefile, STR(filename), "wb");
+#else
+    file.thefile=fopen(STR(filename), "wb");
+#endif
+    
+    if (file.thefile == NULL) {
+        string msg="Cannot open the file:";
+        msg += filename;
+        return globalTamgu->Returnerror(msg, idthread);
+    }
+    
+    string val((char*)value, stringsize);
+    file.write(val);
     
     return aTRUE;
 }

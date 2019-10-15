@@ -168,6 +168,7 @@ void Tamgustring::AddMethod(TamguGlobal* global, string name, stringMethod func,
     Tamgustring::AddMethod(global, "romanization", &Tamgustring::MethodTransliteration, P_NONE, "romanization(): romanization of Hangul characters.", a_null);
 
     Tamgustring::AddMethod(global, "read", &Tamgustring::MethodRead, P_ONE, "read(string path): read the file content into the current variable.", a_boolean);
+    Tamgustring::AddMethod(global, "write", &Tamgustring::MethodWrite, P_ONE, "write(string path): write the string content into a file.", a_boolean);
 
     global->newInstance[Tamgustring::idtype] = new Tamgustring("", global);
     global->newInstance[a_stringthrough] = global->newInstance[Tamgustring::idtype];
@@ -2390,6 +2391,30 @@ Tamgu* Tamgustring::MethodRead(Tamgu* contextualpattern, short idthread, TamguCa
     
     return this;
 }
+
+Tamgu* Tamgustring::MethodWrite(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    string filename = callfunc->Evaluate(0, contextualpattern, idthread)->String();
+
+    Tamgufile file;
+    
+#ifdef WIN32
+    fopen_s(&file.thefile, STR(filename), "wb");
+#else
+    file.thefile=fopen(STR(filename), "wb");
+#endif
+    
+    if (file.thefile == NULL) {
+        string msg="Cannot open the file:";
+        msg += filename;
+        return globalTamgu->Returnerror(msg, idthread);
+    }
+    
+    Locking _lock(this);
+    
+    file.write(value);
+    return this;
+}
+
 
 Tamgu* TamguLoopString::andset(Tamgu* a, bool autoself) {
     string s = a->String();
