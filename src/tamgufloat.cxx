@@ -136,6 +136,10 @@ static const double M_GOLDEN = 1.61803398874989484820458683436563811772030917980
     Tamgu* a = new TamguSystemVariable(global, new TamguConstFloat(M_PI), global->Createid("_pi"), a_float);
 
     a = new TamguSystemVariable(global, new TamguConstFloat(M_PI), global->Createid("π"), a_float);
+    
+    a = new TamguSystemVariable(global, new TamguConstFloat(2*M_PI), global->Createid("_tau"), a_float);
+    a = new TamguSystemVariable(global, new TamguConstFloat(2*M_PI), global->Createid("τ"), a_float);
+    
     a = new TamguSystemVariable(global, new TamguConstFloat(M_E), global->Createid("_e"), a_float);
     a = new TamguSystemVariable(global, new TamguConstFloat(M_E), global->Createid("ℯ"), a_float);
 

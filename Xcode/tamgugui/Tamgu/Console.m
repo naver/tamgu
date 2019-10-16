@@ -567,6 +567,10 @@ const char* Inputtext(const char* msg) {
     [tview displaychar:@"π"];
 }
 
+- (IBAction)tau:(id)sender {
+    [tview displaychar:@"τ"];
+}
+
 - (IBAction)euler:(id)sender {
     [tview displaychar:@"ℯ"];
 }

@@ -40,7 +40,7 @@
 #include "tamgutaskell.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 0.96.4 build 16";
+const char* tamgu_version = "Tamgu 0.96.4 build 17";
 
 Tamgu* booleantamgu[2];
 
@@ -439,7 +439,7 @@ idSymbols(false), methods(false), compatibilities(false), strictcompatibilities(
 
         threadcounter = 0;
         trackerslotfilled = 0;
-        
+
         waitingonfalse = false;
 
         SetThreadid();
@@ -654,7 +654,7 @@ TamguGlobal::~TamguGlobal() {
 
     for (i = 0; i < pvireservoire.size(); i++)
         delete pvireservoire[i];
-    
+
     atomic_iterator<string, ThreadLock*> itlocktables(locktables);
     atomic_iterator<string, LockedThread*> itwaitstrings(waitstrings);
     atomic_iterator<long, LockedThread*> itthreadvariables(threadvariables);
@@ -910,7 +910,7 @@ void TamguGlobal::Releasevariables() {
 void TamguGlobal::Triggeronfalse(Tamgu* a) {
     if (!waitingonfalse)
         return;
-    
+
     if (a->idtracker != -1 && threadvariables.check(a->idtracker)) {
         if (!a->Protectedboolean())
             threadvariables.getpointer(a->idtracker)->Released();
@@ -1931,7 +1931,7 @@ Exporting void TamguGlobal::RecordConstantNames() {
 
     //This is a simple hack to handle "length" a typical Haskell operator as "size"...
     //Note that there will be a useless index
-    Createid("length"); 
+    Createid("length");
     symbolIds["length"] = a_size;
 
 

@@ -34,6 +34,7 @@
 - (IBAction)disjunction:(id)sender;
 - (IBAction)conjunction:(id)sender;
 - (IBAction)pi:(id)sender;
+- (IBAction)tau:(id)sender;
 - (IBAction)euler:(id)sender;
 - (IBAction)golden:(id)sender;
 - (IBAction)multiply:(id)sender;

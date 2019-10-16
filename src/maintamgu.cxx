@@ -163,7 +163,7 @@ static void displaychar(string& bf) {
     cout << endl;
 }
 //------------------------------------------------------------------------
-static string _metacharacters = "× ÷ ← → ¬ ≠ ∨ ∧ π ℯ φ ∏ ∑ √ ∛ ² ³";
+static string _metacharacters = "× ÷ ← → ¬ ≠ ∨ ∧ π τ ℯ φ ∏ ∑ √ ∛ ² ³";
 //------------------------------------------------------------------------
 
 class tamgu_editor : public jag_editor {

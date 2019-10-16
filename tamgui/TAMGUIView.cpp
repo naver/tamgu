@@ -208,6 +208,7 @@ BEGIN_MESSAGE_MAP(CTAMGUIView, CRichEditView)
 	ON_COMMAND(ID_EDIT_NEGATION32889, &CTAMGUIView::OnEditNegation32889)
 	ON_COMMAND(ID_EDIT_RULEARROW, &CTAMGUIView::OnEditRulearrow)
 	ON_COMMAND(ID_EDIT_RULERIGHTARROW, &CTAMGUIView::OnEditRulerightarrow)
+	ON_COMMAND(ID_EDIT_TAU, &CTAMGUIView::OnEditTau)
 END_MESSAGE_MAP()
 
 //--------------------------------------------------------------------------------------------------
@@ -2776,6 +2777,18 @@ void CTAMGUIView::OnEditionPi()
 }
 
 
+void CTAMGUIView::OnEditTau()
+{
+	// TODO: Add your command handler code here
+	CRichEditCtrl& e = GetRichEditCtrl();
+	long dp, fp;
+	e.GetSel(dp, fp);
+	e.SetSel(fp, fp);
+	CString w;
+	fromstring(w, "τ");
+	e.ReplaceSel(w);
+}
+
 void CTAMGUIView::OnEditionDivide()
 {
 	// TODO: Add your command handler code here
@@ -3014,3 +3027,4 @@ void CTAMGUIView::OnEditRulerightarrow()
 	fromstring(w, ws);
 	e.ReplaceSel(w);
 }
+

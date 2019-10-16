@@ -131,6 +131,7 @@
       <PreprocessorDefinitions>TamguDLL;WIN32;_DEBUG;_WINDOWS;_MBCS;_REENTRANT;Tamgu_REGEX;DOSOUTPUT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
       <EnablePREfast>false</EnablePREfast>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
