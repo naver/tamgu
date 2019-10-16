@@ -338,6 +338,7 @@ public:
 	afx_msg void OnEditNegation32889();
 	afx_msg void OnEditRulearrow();
 	afx_msg void OnEditRulerightarrow();
+	afx_msg void OnEditTau();
 };
 
 #ifndef _DEBUG  // version debug dans TAMGUIView.cpp

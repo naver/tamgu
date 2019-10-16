@@ -208,7 +208,7 @@ BEGIN_MESSAGE_MAP(CTAMGUIView, CRichEditView)
 	ON_COMMAND(ID_EDIT_NEGATION32889, &CTAMGUIView::OnEditNegation32889)
 	ON_COMMAND(ID_EDIT_RULEARROW, &CTAMGUIView::OnEditRulearrow)
 	ON_COMMAND(ID_EDIT_RULERIGHTARROW, &CTAMGUIView::OnEditRulerightarrow)
-	ON_COMMAND(ID_EDIT_TAU, &CTAMGUIView::OnEditTau)
+	ON_COMMAND(ID_EDITION_TAU, &CTAMGUIView::OnEditTau)
 END_MESSAGE_MAP()
 
 //--------------------------------------------------------------------------------------------------
