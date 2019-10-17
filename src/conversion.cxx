@@ -8198,78 +8198,112 @@ void convertpostochar(wstring& w, vector<long>& vspos) {
 Exporting void sc_unicode_to_utf8(string& s, wstring& str) {
 	long i = 0;
 	char inter[5];
-	s = "";
-
+	long ineo = 0;
+	long sz = str.size();
+	long szo = sz << 1;
+	char* neo = new char[szo];
+	neo[0] = 0;
+	long nb;
 	TAMGUCHAR c;
-	while (i < str.size()) {
-		if (str[i] < 0x0080)
-			s += (char)str[i];
-		else {
-			if (c_utf16_to_unicode(c, str[i], false))
-				c_utf16_to_unicode(c, str[++i], true);
-			
-			c_unicode_to_utf8(c, (uchar*)inter);
-			s += inter;
+
+	while (i < sz) {
+		if (str[i] < 0x0080 && ineo < szo - 1) {
+			neo[ineo++] = (char)str[i];
+			i++;
+			continue;
 		}
+
+		if (c_utf16_to_unicode(c, str[i], false))
+			c_utf16_to_unicode(c, str[++i], true);
+
+		nb = c_unicode_to_utf8(c, (uchar*)inter);
+		neo = concatstrings(neo, inter, ineo, szo, nb);
 		i++;
 	}
+
+	neo[ineo] = 0;
+	s = neo;
+	delete[] neo;
 }
 
 Exporting void s_unicode_to_utf8(string& s, wchar_t* str, long sz) {
 	long i = 0;
 	char inter[5];
-
+	long ineo = 0;
+	long szo = sz << 1;
+	char* neo = new char[szo];
+	neo[0] = 0;
+	long nb;
 	TAMGUCHAR c;
-	while (i < sz) {
-		if (str[i] < 0x0080)
-			s += (char)str[i];
-		else {
-			if (c_utf16_to_unicode(c, str[i], false))
-				c_utf16_to_unicode(c, str[++i], true);
 
-			c_unicode_to_utf8(c, (uchar*)inter);
-			s += inter;
+	while (i < sz) {
+		if (str[i] < 0x0080 && ineo < szo - 1) {
+			neo[ineo++] = (char)str[i];
+			i++;
+			continue;
 		}
+
+		if (c_utf16_to_unicode(c, str[i], false))
+			c_utf16_to_unicode(c, str[++i], true);
+
+		nb = c_unicode_to_utf8(c, (uchar*)inter);
+		neo = concatstrings(neo, inter, ineo, szo, nb);
 		i++;
 	}
+
+	neo[ineo] = 0;
+	s += neo;
+	delete[] neo;
 }
 
 Exporting void s_unicode_to_utf8(string& s, wstring& str) {
 	long i = 0;
 	char inter[5];
-
+	long ineo = 0;
 	long sz = str.size();
-
+	long szo = sz << 1;
+	char* neo = new char[szo];
+	neo[0] = 0;
+	long nb;
 	TAMGUCHAR c;
-	while (i < sz) {
-		if (str[i] < 0x0080)
-			s += (char)str[i];
-		else {
-			if (c_utf16_to_unicode(c, str[i], false))
-				c_utf16_to_unicode(c, str[++i], true);
 
-			c_unicode_to_utf8(c, (uchar*)inter);
-			s += inter;
+	while (i < sz) {
+		if (str[i] < 0x0080 && ineo < szo - 1) {
+			neo[ineo++] = (char)str[i];
+			i++;
+			continue;
 		}
+
+		if (c_utf16_to_unicode(c, str[i], false))
+			c_utf16_to_unicode(c, str[++i], true);
+
+		nb = c_unicode_to_utf8(c, (uchar*)inter);
+		neo = concatstrings(neo, inter, ineo, szo, nb);
 		i++;
 	}
+
+	neo[ineo] = 0;
+	s += neo;
+	delete[] neo;
 }
 
-
 Exporting void s_utf8_to_unicode(wstring& w, unsigned char* str, long sz) {
+	long ineo = 0;
+	wchar_t* neo = new wchar_t[sz + 1];
+	neo[0] = 0;
 
 #ifdef INTELINTRINSICS
 	long i;
 	if (check_ascii(str, sz, i)) {
 		for (i = 0; i < sz; i++)
-			w += (wchar_t)str[i];
+			neo[ineo++] = (wchar_t)str[i];
+		neo[ineo] = 0;
+		w += neo;
+		delete[] neo;
 		return;
 	}
 #endif
-
 	TAMGUCHAR c, c16;
-	if (sz)
-		w.reserve(sz);
 	uchar nb;
 	while (sz--) {
 		if (*str & 0x80) {
@@ -8277,35 +8311,43 @@ Exporting void s_utf8_to_unicode(wstring& w, unsigned char* str, long sz) {
 			str += nb + 1;
 			sz -= nb;
 			if (!(c & 0xFFFF0000)) {
-				w += (wchar_t)c;
+				neo[ineo++] = (wchar_t)c;
 				continue;
 			}
 
 			c_unicode_to_utf16(c16, c);
-			w += (wchar_t)(c16 >> 16);
-			w += (wchar_t)(c16 & 0xFFFF);
-
+			neo[ineo++] = (wchar_t)(c16 >> 16);
+			neo[ineo++] = (wchar_t)(c16 & 0xFFFF);
 			continue;
 		}
-		w += (wchar_t)*str;
+
+		neo[ineo++] = (wchar_t)*str;
 		++str;
 	}
+
+	neo[ineo] = 0;
+	w += neo;
+	delete[] neo;
 }
 
 Exporting void sc_utf8_to_unicode(wstring& w, unsigned char* str, long sz) {
-	w = L"";
+    long ineo = 0;
+    wchar_t* neo = new wchar_t[sz + 1];
+    neo[0] = 0;
 
 #ifdef INTELINTRINSICS
 	long i;
 	if (check_ascii(str, sz, i)) {
 		for (i = 0; i < sz; i++)
-			w += (wchar_t)str[i];
+			neo[ineo++] = (wchar_t)str[i];
+        neo[ineo] = 0;
+        w = neo;
+        delete[] neo;
 		return;
 	}
 #endif
 	TAMGUCHAR c, c16;
-	if (sz)
-		w.reserve(sz);
+
 	uchar nb;
 	while (sz--) {
 		if (*str & 0x80) {
@@ -8313,29 +8355,96 @@ Exporting void sc_utf8_to_unicode(wstring& w, unsigned char* str, long sz) {
 			str += nb + 1;
 			sz -= nb;
 			if (!(c & 0xFFFF0000)) {
-				w += (wchar_t)c;
+				neo[ineo++] = (wchar_t)c;
 				continue;
 			}
 
 			c_unicode_to_utf16(c16, c);
-			w += (wchar_t)(c16 >> 16);
-			w += (wchar_t)(c16 & 0xFFFF);
-
+			neo[ineo++] = (wchar_t)(c16 >> 16);
+			neo[ineo++] = (wchar_t)(c16 & 0xFFFF);
 			continue;
 		}
-		w += (wchar_t)*str;
+        
+		neo[ineo++] = (wchar_t)*str;
 		++str;
 	}
+    
+    neo[ineo] = 0;
+    w = neo;
+    delete[] neo;
 }
 
 Exporting void s_latin_to_unicode(wstring& res, unsigned char* contenu, long sz) {
-	res = L"";
+    long ineo = 0;
+    wchar_t* neo = new wchar_t[sz+1];
+    neo[0] = 0;
+    
+#ifdef INTELINTRINSICS
+    long i;
+    if (check_ascii(contenu, sz, i)) {
+        for (i = 0; i< sz; i++)
+            neo[ineo++]= (wchar_t)contenu[i];
+        neo[ineo] = 0;
+        res += neo;
+        delete[] neo;
+        return;
+    }
+#endif
+    
+    TAMGUCHAR code, c16;
+    uchar nb;
+    
+    while (sz--) {
+        if (*contenu & 0x80) {
+                //it could be a utf8 character...
+            nb = c_utf8_to_unicode(contenu, code);
+            if (!(code & 0xFFFF0000))
+                neo[ineo++] = (wchar_t)code;
+            else {
+                c_unicode_to_utf16(c16, code);
+                neo[ineo++] = (wchar_t)(c16 >> 16);
+                neo[ineo++] = (wchar_t)(c16 & 0xFFFF);
+            }
+            if (nb) {
+                contenu += nb + 1;
+                sz -= nb;
+#ifdef INTELINTRINSICS
+                if (check_ascii(contenu, sz, i)) {
+                    for (i = 0; i< sz; i++)
+                        neo[ineo++] = (wchar_t)contenu[i];
+                    neo[ineo] = 0;
+                    res += neo;
+                    delete[] neo;
+                    return;
+                }
+#endif
+            }
+            
+            continue;
+        }
+        
+        neo[ineo++] = (wchar_t)*contenu;
+        ++contenu;
+    }
+    
+    neo[ineo] = 0;
+    res += neo;
+    delete[] neo;
+}
+
+Exporting void sc_latin_to_unicode(wstring& res, unsigned char* contenu, long sz) {
+    long ineo = 0;
+    wchar_t* neo = new wchar_t[sz+1];
+    neo[0] = 0;
+
 #ifdef INTELINTRINSICS
 	long i;
 	if (check_ascii(contenu, sz, i)) {
 		for (i = 0; i< sz; i++)
-			res += (wchar_t)contenu[i];
-
+			neo[ineo++] = (wchar_t)contenu[i];
+        neo[ineo] = 0;
+        res= neo;
+        delete[] neo;
 		return;
 	}
 #endif
@@ -8348,11 +8457,11 @@ Exporting void s_latin_to_unicode(wstring& res, unsigned char* contenu, long sz)
 			//it could be a utf8 character...
 			nb = c_utf8_to_unicode(contenu, code);
 			if (!(code & 0xFFFF0000))
-				res += (wchar_t)code;
+				neo[ineo++] = (wchar_t)code;
 			else {
 				c_unicode_to_utf16(c16, code);
-				res += (wchar_t)(c16 >> 16);
-				res += (wchar_t)(c16 & 0xFFFF);
+				neo[ineo++] = (wchar_t)(c16 >> 16);
+				neo[ineo++] = (wchar_t)(c16 & 0xFFFF);
 			}
 			if (nb) {
 				contenu += nb + 1;
@@ -8360,7 +8469,10 @@ Exporting void s_latin_to_unicode(wstring& res, unsigned char* contenu, long sz)
 #ifdef INTELINTRINSICS
 				if (check_ascii(contenu, sz, i)) {
 					for (i = 0; i< sz; i++)
-						res += (wchar_t)contenu[i];
+						neo[ineo++] = (wchar_t)contenu[i];
+                    neo[ineo] = 0;
+                    res= neo;
+                    delete[] neo;
 					return;
 				}
 #endif
@@ -8368,9 +8480,14 @@ Exporting void s_latin_to_unicode(wstring& res, unsigned char* contenu, long sz)
 
 			continue;
 		}
-		res += (wchar_t)*contenu;
+        
+		neo[ineo++] = (wchar_t)*contenu;
 		++contenu;
 	}
+    
+    neo[ineo] = 0;
+    res= neo;
+    delete[] neo;
 }
 
 #else
@@ -8516,14 +8633,19 @@ Exporting long c_char_to_pos_emoji(wstring& w, long charpos) {
     return i;
 }
 
-Exporting void s_latin_to_unicode(wstring& res, unsigned char* contenu, long sz) {
-	res = L"";
+Exporting void sc_latin_to_unicode(wstring& res, unsigned char* contenu, long sz) {
+    long ineo = 0;
+    wchar_t* neo = new wchar_t[sz+1];
+    neo[0] = 0;
+
 #ifdef INTELINTRINSICS
 	long i;
 	if (check_ascii(contenu,sz,i)) {
 		for (i=0; i< sz; i++)
-			res+=(wchar_t)contenu[i];
-
+			neo[ineo++]=(wchar_t)contenu[i];
+        neo[ineo] = 0;
+        res = neo;
+        delete[] neo;
 		return;
 	}
 #endif
@@ -8535,14 +8657,17 @@ Exporting void s_latin_to_unicode(wstring& res, unsigned char* contenu, long sz)
 		if (*contenu & 0x80) {
 			//it could be a utf8 character...
 			nb = c_utf8_to_unicode(contenu, code);
-			res += (wchar_t)code;
+			neo[ineo++] = (wchar_t)code;
 			if (nb) {
 				contenu += nb+1;
 				sz-=nb;
 #ifdef INTELINTRINSICS
 				if (check_ascii(contenu,sz,i)) {
 					for (i=0; i< sz; i++)
-						res+=(wchar_t)contenu[i];
+						neo[ineo++]=(wchar_t)contenu[i];
+                    neo[ineo] = 0;
+                    res = neo;
+                    delete[] neo;
 					return;
 				}
 #endif
@@ -8550,110 +8675,165 @@ Exporting void s_latin_to_unicode(wstring& res, unsigned char* contenu, long sz)
 
 			continue;
 		}
-		res += (wchar_t)*contenu;
+		neo[ineo++]= (wchar_t)*contenu;
 		++contenu;
 	}
+    
+    neo[ineo] = 0;
+    res = neo;
+    delete[] neo;
 }
 
 Exporting void s_unicode_to_utf8(string& s, wstring& str) {
-	long i = 0;
-	char inter[5];
+    long i = 0;
+    char inter[5];
+    long ineo = 0;
+    long sz = str.size();
+    long szo = sz << 1;
+    char* neo = new char[szo];
+    neo[0] = 0;
+    long nb;
 
-	while (i < str.size()) {
-		if (str[i] < 0x0080)
-			s += (char)str[i];
-		else {
-			c_unicode_to_utf8(str[i], (uchar*)inter);
-			s += inter;
-		}
-		i++;
-	}
+    while (i < sz) {
+        if (str[i] < 0x0080 && ineo < szo-1) {
+            neo[ineo++] = (char)str[i];
+            i++;
+            continue;
+        }
+        
+        nb = c_unicode_to_utf8(str[i], (uchar*)inter);
+        neo = concatstrings(neo,inter,ineo, szo, nb);
+        i++;
+    }
+    
+    neo[ineo] = 0;
+    s += neo;
+    delete[] neo;
 }
 
 
 Exporting void sc_unicode_to_utf8(string& s, wstring& str) {
 	long i = 0;
 	char inter[5];
-	s = "";
+    long ineo = 0;
+    long sz = str.size();
+    long szo = sz << 1;
+    char* neo = new char[szo];
+    neo[0] = 0;
+    long nb;
 
-	while (i < str.size()) {
-		if (str[i] < 0x0080)
-			s += (char)str[i];
-		else {
-			c_unicode_to_utf8(str[i], (uchar*)inter);
-			s += inter;
-		}
-		i++;
-	}
+    while (i < sz) {
+        if (str[i] < 0x0080 && ineo < szo-1) {
+            neo[ineo++] = (char)str[i];
+            i++;
+            continue;
+        }
+        
+        nb = c_unicode_to_utf8(str[i], (uchar*)inter);
+        neo = concatstrings(neo,inter,ineo, szo, nb);
+        i++;
+    }
+    
+    neo[ineo] = 0;
+    s = neo;
+    delete[] neo;
 }
 
 Exporting void s_unicode_to_utf8(string& s, wchar_t* str, long sz) {
-	long i = 0;
-	char inter[5];
+    long i = 0;
+    char inter[5];
+    long ineo = 0;
+    long szo = sz << 1;
+    char* neo = new char[szo];
+    neo[0] = 0;
+    long nb;
 
-	while (i < sz) {
-		if (str[i] < 0x0080)
-			s += (char)str[i];
-		else {
-			c_unicode_to_utf8(str[i], (uchar*)inter);
-			s += inter;
-		}
-		i++;
-	}
+    while (i < sz) {
+        if (str[i] < 0x0080 && ineo < szo-1) {
+            neo[ineo++] = (char)str[i];
+            i++;
+            continue;
+        }
+        
+        nb = c_unicode_to_utf8(str[i], (uchar*)inter);
+        neo = concatstrings(neo,inter,ineo, szo, nb);
+        i++;
+    }
+    
+    neo[ineo] = 0;
+    s += neo;
+    delete[] neo;
 }
 
 Exporting void s_utf8_to_unicode(wstring& w, unsigned char* str , long sz) {
-    
+    long ineo = 0;
+    wchar_t* neo = new wchar_t[sz+1];
+    neo[0] = 0;
+
 #ifdef INTELINTRINSICS
     long i;
     if (check_ascii(str,sz,i)) {
         for (i=0; i < sz; i++)
-            w+=(wchar_t)str[i];
+            neo[ineo++] = (wchar_t)str[i];
+        neo[ineo] = 0;
+        w += neo;
+        delete[] neo;
         return;
     }
 #endif
-    
+
     wchar_t c;
-    if (sz)
-        w.reserve(sz);
     uchar nb;
     while (sz--) {
         if (*str & 0x80) {
             nb = c_utf8_to_unicode(str, c);
             str += nb+1;
             sz-=nb;
-            w += (wchar_t)c;
+            neo[ineo++] = c;
             continue;
         }
-        w += (wchar_t)*str;
+        neo[ineo++] = (wchar_t)*str;
         ++str;
     }
+    neo[ineo] = 0;
+    w += neo;
+    delete[] neo;
 }
 
 Exporting void sc_utf8_to_unicode(wstring& w, unsigned char* str, long sz) {
     w = L"";
-    
+    long ineo = 0;
+    wchar_t* neo = new wchar_t[sz+1];
+    neo[0] = 0;
+
 #ifdef INTELINTRINSICS
     long i;
     if (check_ascii(str,sz,i)) {
         for (i=0; i < sz; i++)
-            w+=(wchar_t)str[i];
+            neo[ineo++] = (wchar_t)str[i];
+        neo[ineo] = 0;
+        w = neo;
+        delete[] neo;
         return;
     }
 #endif
     wchar_t c;
+
     uchar nb;
     while (sz--) {
         if (*str & 0x80) {
             nb = c_utf8_to_unicode(str, c);
             str += nb+1;
             sz-=nb;
-            w += (wchar_t)c;
+            neo[ineo++] = c;
             continue;
         }
-        w += (wchar_t)*str;
+        neo[ineo++] = (wchar_t)*str;
         ++str;
     }
+    neo[ineo] = 0;
+    w = neo;
+    delete[] neo;
 }
 #endif
 
@@ -8849,7 +9029,7 @@ Exporting wstring conversion_latin_table_to_unicode(short tableindex, unsigned c
     wstring res;
     
     if (!tableindex || tableindex == 1) {
-        s_latin_to_unicode(res,contenu,sz);
+        sc_latin_to_unicode(res,contenu,sz);
         return res;
     }
     
