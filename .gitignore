@@ -1,1 +1,26 @@
 
+.DS_Store
+allmaps/.DS_Store
+docs/.DS_Store
+docs/English/.DS_Store
+docs/francais/.DS_Store
+examples/.DS_Store
+java/.DS_Store
+libcurl/.DS_Store
+libcurl/include/.DS_Store
+libcurl/include/linux/.DS_Store
+libcurl/include/windows/.DS_Store
+libcurl/include/windows/curl/.DS_Store
+libcurl/libs/.DS_Store
+liblinear/.DS_Store
+libpython/.DS_Store
+libs/.DS_Store
+libs/windows/.DS_Store
+libwapiti/.DS_Store
+libwapiti/libs/.DS_Store
+libxml/.DS_Store
+libxml/libs/.DS_Store
+Xcode/.DS_Store
+Xcode/tamgubase/.DS_Store
+Xcode/tamgugui/.DS_Store
+Xcode/tamgugui/Tamgu/.DS_Store
