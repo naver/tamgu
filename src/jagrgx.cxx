@@ -155,7 +155,7 @@ void x_reading::apply(bool keepos, vector<string>* vstack, vector<unsigned char>
 
     short ty,r;
     size_t b, c;
-    long line=0,i,l, itoken;
+    long line=0,i,l,sz, itoken;
 
     if (!loaded) {
         setrules();
@@ -237,7 +237,8 @@ void x_reading::apply(bool keepos, vector<string>* vstack, vector<unsigned char>
                     stackln.push_back(line);
                     vtype->push_back(ty);
                     if (keepos) {
-                        bpos.push_back(b - charsz(currentchr));
+                        sz = charsz(currentchr);
+                        bpos.push_back(b - sz);
                         cpos.push_back(c-1);
                     }
                 }
