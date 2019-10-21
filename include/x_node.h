@@ -164,6 +164,7 @@ class x_rules {
 public:
     vector<string> rules;
     vector<vector<short> > ruleelements;
+    vector<short*> closing;
     vector<short> action;
 
     vector<long> stackln;
@@ -191,6 +192,13 @@ public:
         escape='\\';
     }
     
+    ~x_rules() {
+        for (long i = 0; i < closing.size(); i++) {
+            if (closing[i] != NULL)
+                delete[] closing[i];
+        }
+    }
+    
     virtual void reset() {
         for (short i=0; i< 255; i++) {
             table[i]=255;
@@ -205,6 +213,11 @@ public:
         action.clear();
         rules.clear();
         ruleelements.clear();
+        for (long i = 0; i < closing.size(); i++) {
+            if (closing[i] != NULL)
+                delete[] closing[i];
+        }
+        closing.clear();
     }
     
     void setrules(vector<string>& r) {
@@ -506,13 +519,22 @@ public:
         unsigned char metakey;
         map<string,string> metalines;
         bool initmetakey=false;
-        vector<short> e;
-
+        short mx = 0;
         
+        vector<short> e;
+        vector<short> stackopen;
+        vector<short> stackpar;
+        vector<string> rule;
+
         for (i=0;i<rules.size();i++) {
             line=rules[i];
+            
             ruleelements.push_back(e);
-            vector<string> rule;
+            closing.push_back(NULL);
+
+            rule.clear();
+            stackopen.clear();
+            stackpar.clear();
 
             if (line[1]==':') { //we detect a meta-rule...
                 metakey=line[0];
@@ -727,6 +749,8 @@ public:
                             if (found) {
                                 sub="(";
                                 rule.push_back(sub);
+                                mx = ruleelements[i].size();
+                                stackopen.push_back(mx);
                                 ruleelements[i].push_back(xr_optional);
                                 opening++;
                                 break;
@@ -737,7 +761,10 @@ public:
                             if (opening) {
                                 sub=")";
                                 rule.push_back(sub);
+                                stackpar.push_back(stackopen.back());
+                                stackpar.push_back(ruleelements[i].size());
                                 ruleelements[i].push_back(xr_endoptional);
+                                stackopen.pop_back();
                                 opening--;
                                 break;
                             }
@@ -757,6 +784,14 @@ public:
             //one character rules are identified for fast processing (binary code 128)...
             if (rule.size()==1 && !aplus)
                 ruleelements[i][0] |= xr_singlebody;
+            
+            if (stackpar.size()) {
+                short* clos = new short[mx+1];
+                for (k = 0; k < stackpar.size(); k+=2)
+                    clos[stackpar[k]] = stackpar[k+1];
+                closing[closing.size()-1] = clos;
+            }
+            
             tokenizer.push_back(rule);
         }
         rules.clear();
@@ -1042,6 +1077,7 @@ public:
         wchar_t cc;
         
         short opening;
+        short mx = 0;
         
         char typebrk=xr_chardisjunction;
         bool aplus;
@@ -1050,12 +1086,20 @@ public:
         map<wstring, wstring> metalines;
         bool initmetakey=false;
         vector<short> e;
+        vector<short> stackopen;
+        vector<short> stackpar;
+        vector<wstring> rule;
+
 
         for (i=0;i<rules.size();i++) {
             sc_utf8_to_unicode(line, USTR(rules[i]), rules[i].size());
+            
             ruleelements.push_back(e);
-            vector<wstring> rule;
+            closing.push_back(NULL);
 
+            rule.clear();
+            stackopen.clear();
+            stackpar.clear();
 
             if (line[1]==':') { //we detect a meta-rule...
                 metakey=line[0];
@@ -1274,6 +1318,8 @@ public:
                             if (found) {
                                 sub=L"(";
                                 rule.push_back(sub);
+                                mx = ruleelements[i].size();
+                                stackopen.push_back(mx);
                                 ruleelements[i].push_back(xr_optional);
                                 opening++;
                                 break;
@@ -1284,7 +1330,10 @@ public:
                             if (opening) {
                                 sub=L")";
                                 rule.push_back(sub);
+                                stackpar.push_back(stackopen.back());
+                                stackpar.push_back(ruleelements[i].size());
                                 ruleelements[i].push_back(xr_endoptional);
+                                stackopen.pop_back();
                                 opening--;
                                 break;
                             }
@@ -1305,6 +1354,12 @@ public:
             if (rule.size()==1 && !aplus)
                 ruleelements[i][0] |= xr_singlebody;
             tokenizer.push_back(rule);
+            if (stackpar.size()) {
+                short* clos = new short[mx+1];
+                for (k = 0; k < stackpar.size(); k+=2)
+                    clos[stackpar[k]] = stackpar[k+1];
+                closing[closing.size()-1] = clos;
+            }
         }
         rules.clear();
     }

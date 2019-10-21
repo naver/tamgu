@@ -32,7 +32,8 @@ char x_reading::loop(short i, char* token, char* chr, long& itoken, short& r, lo
 
     vector<short>& element = ruleelements[i];
     vector<string>& rule = tokenizer[i];
-
+    short* closed = closing[i];
+    
     long sz = rule.size();
             
     for (;r<sz;r++) {
@@ -58,21 +59,7 @@ char x_reading::loop(short i, char* token, char* chr, long& itoken, short& r, lo
                 token[itoken] = 0;
          
                 //we need to find the closing parenthesis
-                uchar skip = 1;
-                rr = r + 1;
-                for (;rr < sz; rr++) {
-                    if (verif(element[rr], xr_endoptional)) {
-                        skip--;
-                        if (!skip) {
-                            r = rr;
-                            break;
-                        }
-                    }
-                    else {
-                        if (verif(element[rr], xr_optional))
-                            skip++;
-                    }
-                }
+                r = closed[r];
                 continue;
             }
         }
@@ -288,7 +275,8 @@ char x_wreading::loop(wstring& toparse, short i, wchar_t* token, wchar_t* chr, l
     
     vector<short>& element = ruleelements[i];
     vector<wstring>& rule = tokenizer[i];
-
+    short* closed = closing[i];
+    
     sz = rule.size();
     
     for (;r<sz;r++) {
@@ -314,21 +302,7 @@ char x_wreading::loop(wstring& toparse, short i, wchar_t* token, wchar_t* chr, l
                 token[itoken] = 0;
          
                 //we need to find the closing parenthesis
-                uchar skip = 1;
-                rr = r + 1;
-                for (;rr < sz; rr++) {
-                    if (verif(element[rr], xr_endoptional)) {
-                        skip--;
-                        if (!skip) {
-                            r = rr;
-                            break;
-                        }
-                    }
-                    else {
-                        if (verif(element[rr], xr_optional))
-                            skip++;
-                    }
-                }
+                r = closed[r];
                 continue;
             }
         }
