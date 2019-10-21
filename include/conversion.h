@@ -472,6 +472,7 @@ Exporting void c_char_index_code_all_long(string& s, vector<TAMGUCHAR>& vect);
 
 Exporting string c_char_get(unsigned char* m, long& i);
 Exporting string c_char_get_next(unsigned char* m, size_t& i);
+void c_chars_get_next(unsigned char* m, char* str, size_t& i);
 
 //--------------------- Tokenization
 Exporting bool s_threedigits(wstring& s, long i);
@@ -644,11 +645,6 @@ public:
         charpos = c;
     }
 
-    string next() {
-        charpos++;
-        return c_char_get_next((unsigned char*)c_str(), bytepos);
-    }
-
     //In this case, we also take into account emojis and their complement
     string nextemoji() {
         charpos++;
@@ -675,13 +671,37 @@ public:
     }
     
 
-    string next(long& line) {
+    string next() {
+        char e[] = {0,0,0,0,0};
+
         charpos++;
-        string e=c_char_get_next((unsigned char*)c_str(), bytepos);
-        if (e=="\n")
-            line++;
+        c_chars_get_next((unsigned char*)c_str(), e, bytepos);
         return e;
     }
+
+    string next(long& line) {
+        char e[] = {0,0,0,0,0};
+
+        charpos++;
+        c_chars_get_next((unsigned char*)c_str(), e, bytepos);
+        if (e[0]=='\n')
+            line++;
+        
+        return e;
+    }
+
+    void nextc(char* e) {
+        charpos++;
+        c_chars_get_next((unsigned char*)c_str(), e, bytepos);
+    }
+
+    void nextc(char* e, long& line) {
+        charpos++;
+        c_chars_get_next((unsigned char*)c_str(), e, bytepos);
+        if (e[0]=='\n')
+            line++;
+    }
+
 
 	TAMGUCHAR nextcode() {
 		charpos++;

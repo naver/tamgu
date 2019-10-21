@@ -251,7 +251,7 @@ void Tamgurawstring::AddMethod(TamguGlobal* global, string name, rawstringMethod
     Tamgurawstring::AddMethod(global, "geterr", &Tamgurawstring::MethodGeterr, P_ONE, "geterr(bool): catch or release the error output");
     Tamgurawstring::AddMethod(global, "split", &Tamgurawstring::MethodSplit, P_ONE | P_NONE, "split(string splitter): split a string along splitter and store the results  in a vector. If splitter=='', then the string is split into a vector of characters");
     Tamgurawstring::AddMethod(global, "splite", &Tamgurawstring::MethodSplite, P_ONE | P_NONE, "splite(string splitter): split a string along splitter and store the results  in a vector. If splitter=='', then the string is split into a vector of characters. Empty strings are kept in the result.");
-    Tamgurawstring::AddMethod(global, "tokenize", &Tamgurawstring::MethodTokenize, P_NONE | P_ONE | P_TWO | P_THREE | P_FOUR, "tokenize(bool comma,bool separator,bool concatenate, svector rules): Segment a string into words and punctuations. If 'comma' is true, then the decimal character is ',' otherwise it is '.'. If 'separator' is true then '1,000' is accepted as a number. If 'concatenate' is true then '3a' is a valid token. rules is a set of tokenization rules that can be first initialized then modified with _getdefaulttokenizerules");
+    Tamgurawstring::AddMethod(global, "tokenize", &Tamgurawstring::MethodTokenize, P_NONE | P_ONE | P_TWO | P_THREE, "tokenize(bool comma,bool separator, svector rules): Segment a string into words and punctuations. If 'comma' is true, then the decimal character is ',' otherwise it is '.'. If 'separator' is true then '1,000' is accepted as a number. rules is a set of tokenization rules that can be first initialized then modified with _getdefaulttokenizerules");
     Tamgurawstring::AddMethod(global, "stokenize", &Tamgurawstring::MethodStokenize, P_NONE | P_ONE, "stokenize(map keeps): Segment a string into words and punctuations, with a keep.");
     Tamgurawstring::AddMethod(global, "count", &Tamgurawstring::MethodCount, P_TWO | P_ONE | P_NONE, "count(string sub,int pos): Count the number of substrings starting at position pos");
     Tamgurawstring::AddMethod(global, "find", &Tamgurawstring::MethodFind, P_TWO | P_ONE, "find(string sub,int pos): Return the position of substring sub starting at position pos");
@@ -968,26 +968,23 @@ Tamgu* Tamgurawstring::MethodTokenize(Tamgu* contextualpattern, short idthread, 
     agnostring thestr(String());
     bool comma = false;
     bool separator = false;
-    bool keepwithdigit = false;
+
     vector<string> rules;
     if (callfunc->Size() >= 1) {
         comma = callfunc->Evaluate(0, contextualpattern, idthread)->Boolean();
         if (callfunc->Size() >= 2) {
             separator = callfunc->Evaluate(1, contextualpattern, idthread)->Boolean();
             if (callfunc->Size() >= 3) {
-                keepwithdigit = callfunc->Evaluate(2, contextualpattern, idthread)->Boolean();
-                if (callfunc->Size() == 4) {
-                    Tamgu* vect = callfunc->Evaluate(3, contextualpattern, idthread);
-                    for (long i = 0; i< vect->Size(); i++)
-                        rules.push_back(vect->getstring(i));
-                }
+                Tamgu* vect = callfunc->Evaluate(3, contextualpattern, idthread);
+                for (long i = 0; i< vect->Size(); i++)
+                    rules.push_back(vect->getstring(i));
             }
         }
     }
 
     Tamgu* kvect = Selectasvector(contextualpattern);
     if (rules.size()) {
-        if (!thestr.r_tokenize(((Tamgusvector*)kvect)->values,comma, separator, keepwithdigit, rules)) {
+        if (!thestr.r_tokenize(((Tamgusvector*)kvect)->values,comma, separator, false, rules)) {
             string s = ((Tamgusvector*)kvect)->values[0];
             kvect->Clear();
             kvect->Release();
@@ -995,7 +992,7 @@ Tamgu* Tamgurawstring::MethodTokenize(Tamgu* contextualpattern, short idthread, 
         }
     }
     else
-        thestr.tokenize(((Tamgusvector*)kvect)->values,comma, separator, keepwithdigit);
+        thestr.tokenize(((Tamgusvector*)kvect)->values,comma, separator, false);
     return kvect;
 }
 

@@ -20,53 +20,176 @@
 
 static Au_automatons* gAutomatons = NULL;
 
+//--------------------------------------------------------------------
+#define setchar(x,y) x[0] = y[0]; x[1] = y[1]; x[2] = y[2]; x[3] = y[3]
+#define charsz(c) c[1] ? c[2] ? c[3] ? 4 : 3 : 2 : 1
+#define settoken(tok,c,itok) tok[itok++] = c[0]; if (c[1]) {tok[itok++]=c[1]; if (c[2]) {tok[itok++]=c[2]; if (c[3]) tok[itok++]=c[3];}} tok[itok] = 0
+#define checkcr if (chr[0] == '\n') l++
+//--------------------------------------------------------------------
+char x_reading::loop(short i, char* token, char* chr, long& itoken, short& r, long& l) {
+    size_t bp, cp;
+    short type;
+
+    vector<short>& element = ruleelements[i];
+    vector<string>& rule = tokenizer[i];
+
+    long sz = rule.size();
+            
+    for (;r<sz;r++) {
+        type=element[r];
+        if (r && (type & xr_optionality)) {
+            if (verif(type,xr_endoptional))
+                return true;
+            
+            if (verif(type,xr_optional)) {
+                parcours.getpos(bp,cp);
+                long itok =  itoken;
+                short rr = r + 1;
+                if (loop(i, token, chr, itok, rr, l)) {
+                    if (verif(element[rr],xr_plus))//if we can loop, we try...
+                        r--;
+                    else
+                        r = rr;
+                    itoken = itok;
+                    continue;
+                }
+                
+                parcours.setpos(bp, cp);
+                token[itoken] = 0;
+         
+                //we need to find the closing parenthesis
+                uchar skip = 1;
+                rr = r + 1;
+                for (;rr < sz; rr++) {
+                    if (verif(element[rr], xr_endoptional)) {
+                        skip--;
+                        if (!skip) {
+                            r = rr;
+                            break;
+                        }
+                    }
+                    else {
+                        if (verif(element[rr], xr_optional))
+                            skip++;
+                    }
+                }
+                continue;
+            }
+        }
+        
+        string& label = rule[r];
+        switch(check(label,type, chr)) {
+            case 0:
+                if (!r && verif(type,xr_char))
+                    return 2;
+                return false;
+            case 2:
+                settoken(token,chr,itoken);
+                parcours.nextc(chr);
+                checkcr;
+        }
+        
+        if (!verif(type,xr_skip)) //check if we can store this character
+            settoken(token,chr,itoken);
+        
+        parcours.nextc(chr);
+        checkcr;
+        
+        if (verif(type,xr_singlebody)) //this is a single body rule, we can stop here...
+            return true;
+
+        if (verif(type,xr_plus)) {
+            short nxt = 0;
+            short ni = 0;
+            //We then try to find the first actual character to stop at when traversing the RGX
+            if (verif(type,xr_neednext)) {
+                ni=r+1;
+                while (ni<sz) {
+                    if (!(element[ni] & xr_metachar))
+                        break;
+                    nxt++;
+                    ni++;
+                }
+            }
+            
+            string& lab = rule[r+1];
+            short esc_char=check(label,type,chr);
+
+            while (esc_char) {
+                if (esc_char==2) {
+                    settoken(token,chr,itoken);
+                    parcours.nextc(chr); //the next character should be copied without further analysis
+                    checkcr;
+                }
+                
+                if (nxt) {
+                    if (check(lab, element[r+1], chr)) {
+                        if (nxt == 1)
+                            break;
+                        
+                        char cc[] = {0,0,0,0,0};
+                        bool found = true;
+                        parcours.getpos(bp,cp);
+                        parcours.nextc(cc);
+                        for (short k = r+2; k < ni; k++) {
+                            if (!check(rule[k],element[k],cc)) {
+                                found = false;
+                                break;
+                            }
+                            parcours.nextc(cc);
+                        }
+                        
+                        parcours.setpos(bp,cp);
+                        if (found)
+                            break;
+                    }
+                }
+                
+                settoken(token,chr,itoken);
+                parcours.nextc(chr);
+                checkcr;
+                esc_char=check(label,type,chr);
+            }
+        }
+    }
+    return true;
+}
+
 void x_reading::apply(bool keepos, vector<string>* vstack, vector<unsigned char>* vtype) {
+    char currentchr[] = {0,0,0,0,0};
+    char chr[] = {0,0,0,0,0};
+
+    char* token = new char[parcours.size()+1];
+
+    long sztokenizer;
+    bool getit=false;
+    char found=true;
+    bool storetype=true;
+
+    short ty,r;
+    size_t b, c;
+    long line=0,i,l, itoken;
+
     if (!loaded) {
         setrules();
         parserules();
         loaded=true;
     }
-
-    bool storetype=true;
+    
     if (vstack==NULL)
         vstack=&stack;
-
+    
     if (vtype==NULL) {
         vtype=&stacktype;
         storetype=false;
     }
-
-    vector<string> token_opt;
-    vector<string> chr_opt;
-    VECTE<long> b_opt;
-    VECTE<long> c_opt;
-    VECTE<short> lastopt;
-
-    string tmp;
-
-    string chr;
-    string currentchr;
-    string label;
-    string token;
-
-    size_t b, c, bo, co;
-    long r,sz,ni=0,k,line=0,i, l;
-
-    short opt=0;
-    short skip;
-    short type;
-    short ty;
-
-    char nxt;
-    char esc_char;
-
-    bool getit=false;
-    bool found=true;
-
+    
+    sztokenizer = tokenizer.size();
+    
     parcours.begin();
-    currentchr=parcours.next(line);
+    parcours.nextc(currentchr, line);
 
-    while (!parcours.end() || currentchr != "") {
+    while (!parcours.end() || currentchr[0]) {
         parcours.getpos(b,c);
         getit=false;
         i=table[(uchar)currentchr[0]];
@@ -74,11 +197,11 @@ void x_reading::apply(bool keepos, vector<string>* vstack, vector<unsigned char>
             i=firstrule;
         else {
             if (verif(ruleelements[i][0],xr_singlebody)) {
-                    //if the rule only checks one character, and it is a direct check, we can stop there
+                //if the rule only checks one character, and it is a direct check, we can stop there
                 ty = action[i];
                 if (ty != -1) {
                     vstack->push_back(currentchr);
-
+                    
                     if (!juststack) {
                         stackln.push_back(line);
                         vtype->push_back(ty);
@@ -90,263 +213,238 @@ void x_reading::apply(bool keepos, vector<string>* vstack, vector<unsigned char>
                     else
                         if (storetype)
                             vtype->push_back(ty);
-
+                        
                 }
-                currentchr=parcours.next(line);
+                parcours.nextc(currentchr, line);
                 continue;
             }
         }
-
-        for (;i<tokenizer.size();i++) {
+        
+        bool breaking = false;
+        for (;i<sztokenizer;i++) {
             if (action[i]==xr_skiprule)
                 continue;
-
-            vector<string>& rule=tokenizer[i];
-            sz=rule.size();
-
-            opt=0;
-            skip=0;
-
-            l=line;
-            found=true;
-
-            token="";
-            chr=currentchr;
-            for (r=0;r<sz;r++) {
-                label=rule[r];
-                    //There was an error while parsing the content of an optional sequence...
-                if (skip>0) {
-                    while (r<sz && skip) { //we try to find the closing parenthesis that matches the current context
-                        type=ruleelements[i][r];
-                        if (verif(type,xr_optional))
-                            skip++;
-                        else
-                            if (verif(type,xr_endoptional))
-                                skip--;
-                        ++r;
-                    }
-
-                    r--;
-                    opt--;
-                    parcours.setpos(b_opt.back(),c_opt.back());
-                    chr=chr_opt.back();
-
-                    token_opt.pop_back();
-                    lastopt.pop_back();
-                    b_opt.pop_back();
-                    c_opt.pop_back();
-                    chr_opt.pop_back();
-
-                    continue;
-                }
-
-                type=ruleelements[i][r];
-                if (r) {
-                    if (verif(type,xr_endoptional)) {
-                        opt--;
-                        if (token_opt.size()>1) {
-                            tmp=token_opt.back();
-                            token_opt.pop_back();
-                            token_opt.back()+=tmp;
-                        }
-                        else {
-                            token+=token_opt.back();
-                            token_opt.pop_back();
-                        }
-                        if (verif(type,xr_plus)) //if we can loop, we try...
-                            r=lastopt.back()-1;
-
-                        lastopt.pop_back();
-                        b_opt.pop_back();
-                        c_opt.pop_back();
-                        chr_opt.pop_back();
-                        continue;
-                    }
-
-                    if (verif(type,xr_optional)) {
-                        parcours.getpos(bo,co);
-
-                        b_opt.push_back(bo);
-                        c_opt.push_back(co);
-                        chr_opt.push_back(chr);
-                        token_opt.push_back("");
-                        lastopt.push_back(r);
-
-                        opt++;
-                        continue;
-                    }
-                }
-
-                esc_char=check(label,type, chr);
-                if (esc_char == false) {
-                    if (opt) {
-                        skip=1;
-                        continue;
-                    }
-                    else {
-                            //if we expected a character and its recognition failed, we jump to rules...
-                        if (!r && verif(type,xr_char))
-                            i=firstrule-1;
-                        found=false;
+                        
+            token[0] = 0;
+            l = line;
+            setchar(chr, currentchr);
+            r = 0;
+            itoken = 0;
+            found = loop(i, token, chr, itoken, r, l);
+            if (found != true) {
+                parcours.setpos(b,c);
+                if (found == 2) {
+                    if (breaking) //already done...
                         break;
-                    }
+                    i = firstrule - 1;
+                    breaking = true;
                 }
-
-                if (esc_char == 2) {
-                    if (opt)
-                        token_opt.back()+=chr;
-                    else
-                        token+=chr;
-                    chr=parcours.next(l);
-                }
-
-                if (!verif(type,xr_skip)) { //do not store this character
-                    if (opt)
-                        token_opt.back()+=chr;
-                    else
-                        token+=chr;
-                }
-
-                chr=parcours.next(l);
-
-                if (verif(type,xr_singlebody)) //this is a single body rule, we can stop here...
-                    break;
-
-                if (verif(type,xr_plus)) {
-                    nxt=0;
-                    if (verif(type,xr_neednext)) {
-                        ni=r+1;
-                        while (ni<sz) {
-                            if (!verif(ruleelements[i][ni],xr_char) && !verif(ruleelements[i][ni],xr_meta))
-                                break;
-                            nxt++;
-                            ni++;
-                        }
-                    }
-
-                    while ((esc_char=check(label,type,chr))) {
-                        if (esc_char==2) {
-                            if (opt) //we have an esc_char character detected
-                                token_opt.back()+=chr;
-                            else
-                                token+=chr;
-                            chr=parcours.next(l); //the next character should be copied without further analysis
-                            if (opt)
-                                token_opt.back()+=chr;
-                            else
-                                token+=chr;
-                            chr=parcours.next(l); //then we jump to the next
-                            continue; //we loop to check if this character is right
-                        }
-
-                        if (nxt) {
-                            if (nxt==1) {
-                                if (check(rule[r+1],ruleelements[i][r+1],chr))
-                                    break;
-                            }
-                            else {
-                                size_t bp, cp;
-                                parcours.getpos(bp,cp);
-                                string cc=chr;
-                                bool f=true;
-                                for (k=r+1;k<ni;k++) {
-                                    if (!check(rule[k],ruleelements[i][k],cc)) {
-                                        f=false;
-                                        break;
-                                    }
-                                    cc=parcours.next();
-                                }
-
-                                parcours.setpos(bp,cp);
-                                if (f)
-                                    break;
-                            }
-                        }
-                        if (opt)
-                            token_opt.back()+=chr;
-                        else
-                            token+=chr;
-                        chr=parcours.next(l);
-                    }
-                }
+                
+                continue;
             }
-            if (found) {
-                ty=action[i];
-                if (ty != -1) {
-                    vstack->push_back(token);
-                    if (!juststack) {
-                        stackln.push_back(line);
+
+            ty=action[i];
+            if (ty != -1) {
+                vstack->push_back(token);
+                if (!juststack) {
+                    stackln.push_back(line);
+                    vtype->push_back(ty);
+                    if (keepos) {
+                        bpos.push_back(b - charsz(currentchr));
+                        cpos.push_back(c-1);
+                    }
+                }
+                else
+                    if (storetype)
                         vtype->push_back(ty);
-                        if (keepos) {
-                            bpos.push_back(b-currentchr.size());
-                            cpos.push_back(c-1);
-                        }
-                    }
-                    else
-                        if (storetype)
-                            vtype->push_back(ty);
-                }
-                getit=true;
-                currentchr=chr;
-                line=l;
-                break;
             }
-            parcours.setpos(b,c);
+            getit=true;
+            setchar(currentchr,chr);
+            line = l;
+            break;
         }
-
+        
         if (!getit) { //Character not taken into account by a rule, we suppose it is a simple UTF8 character...
             vstack->push_back(currentchr);
             stackln.push_back(line);
             vtype->push_back(255);
-            currentchr=parcours.next();
+            parcours.nextc(currentchr);
         }
     }
+    delete[] token;
+}
+
+#ifdef WIN32
+#define wset(x, y) x[0] = y[0]; x[1] = y[1];
+#define wsettoken(tok, c, itok) tok[itok++] = c[0]; if (c[1]) tok[itok++] =  c[1]; tok[itok] = 0
+#else
+#define wset(x, y) x[0] = y[0]
+#define wsettoken(tok, c, itok) tok[itok++] = c[0]; tok[itok] = 0
+#endif
+
+char x_wreading::loop(wstring& toparse, short i, wchar_t* token, wchar_t* chr, long& itoken, short& r, long& l, long& posc) {
+    long sz;
+    short type;
+    
+    vector<short>& element = ruleelements[i];
+    vector<wstring>& rule = tokenizer[i];
+
+    sz = rule.size();
+    
+    for (;r<sz;r++) {
+        type=element[r];
+        if (r && (type & xr_optionality)) {
+            if (verif(type,xr_endoptional))
+                return true;
+            
+            if (verif(type,xr_optional)) {
+                long ps = posc;
+                long itok =  itoken;
+                short rr = r + 1;
+                if (loop(toparse, i, token, chr, itok, rr, l, ps)) {
+                    if (verif(element[rr],xr_plus))//if we can loop, we try...
+                        r--;
+                    else
+                        r = rr;
+                    itoken = itok;
+                    posc = ps;
+                    continue;
+                }
+                
+                token[itoken] = 0;
+         
+                //we need to find the closing parenthesis
+                uchar skip = 1;
+                rr = r + 1;
+                for (;rr < sz; rr++) {
+                    if (verif(element[rr], xr_endoptional)) {
+                        skip--;
+                        if (!skip) {
+                            r = rr;
+                            break;
+                        }
+                    }
+                    else {
+                        if (verif(element[rr], xr_optional))
+                            skip++;
+                    }
+                }
+                continue;
+            }
+        }
+        
+        wstring& label = rule[r];
+        
+        switch(check(label,type, chr)) {
+            case 0:
+                if (!r && verif(type,xr_char))
+                    return 2;
+                return false;
+            case 2:
+                wsettoken(token,chr,itoken);
+                getnext(toparse,chr,posc,l);
+        }
+
+        if (!verif(type,xr_skip)) //do not store this character
+            wsettoken(token,chr,itoken);
+        
+        getnext(toparse,chr,posc,l);
+
+        if (verif(type,xr_singlebody)) //this is a single body rule, we can stop here...
+            return true;
+
+        if (verif(type,xr_plus)) {
+            short nxt = 0;
+            short ni = 0;
+            //We then try to find the first actual character to stop at when traversing the RGX
+            if (verif(type,xr_neednext)) {
+                ni=r+1;
+                while (ni<sz) {
+                    if (!(element[ni] & xr_metachar))
+                        break;
+                    nxt++;
+                    ni++;
+                }
+            }
+
+            wstring& lab = rule[r+1];
+            short esc_char = check(label,type,chr);
+            
+            while (esc_char) {
+                if (esc_char==2) {
+                    settoken(token,chr,itoken);
+                    getnext(toparse,chr,posc,l); //the next character should be copied without further analysis
+                }
+                
+                if (nxt) {
+                    if (check(lab,element[r+1],chr)) {
+                        if (nxt==1)
+                            break;
+
+                        long cp = posc + 1;
+                        wchar_t cc[] = {0,0,0};
+                        getnext(toparse, cc, cp);
+                        bool found = true;
+                        for (short k = r+2; k < ni; k++) {
+                            if (!check(rule[k],element[k],cc)) {
+                                found = false;
+                                break;
+                            }
+                            getnext(toparse, cc, cp);
+                        }
+                        
+                        if (found)
+                            break;
+                    }
+                }
+                wsettoken(token,chr,itoken);
+                getnext(toparse,chr,posc,l);
+                esc_char = check(label,type,chr);
+            }
+        }
+    }
+    return true;
 }
 
 void x_wreading::apply(wstring& toparse, bool keepos, vector<wstring>* vstack, vector<unsigned char>* vtype) {
+    wchar_t chr[] = {0,0,0};
+    wchar_t currentchr[] = {0,0,0};
+
+    long wsz=toparse.size();
+
+    wchar_t* token =  new wchar_t[wsz+1];
+
+    long itoken = 0;
+    long line=0,i, l;
+    short r;
+    long pos=0, posc;
+    long sztokenizer;
+    
+    short ty;
+    
+    bool getit=false;
+    char found=true;
+    bool storetype=true;
+
+
     if (!loaded) {
         setrules();
         parserules();
         loaded=true;
     }
-
-    bool storetype=true;
+    
     if (vstack==NULL)
         vstack=&stack;
-
+    
     if (vtype==NULL) {
         vtype=&stacktype;
         storetype=false;
     }
 
-    vector<wstring> token_opt;
+    sztokenizer = tokenizer.size();
 
-    vector<wstring> chr_opt;
-    VECTE<long> c_opt;
-    VECTE<short> lastopt;
-
-    wstring tmp;
-
-    wstring chr;
-    wstring currentchr;
-    wstring label;
-    wstring token;
-
-    long r,sz,ni=0,k,line=0,i, l;
-    long pos=0, posc;
-
-    short opt=0, skip=0;
-    short type;
-    short ty;
-    char nxt;
-    char esc_char;
-
-    bool getit=false;
-    bool found=true;
-
-    currentchr=next(toparse,pos,line);
-    long wsz=toparse.size();
-    while (pos < wsz || currentchr != L"") {
+    getnext(toparse,currentchr, pos,line);
+    while (pos < wsz || currentchr[0]) {
         getit=false;
         posc=pos;
         if (currentchr[0]>=256)
@@ -357,11 +455,11 @@ void x_wreading::apply(wstring& toparse, bool keepos, vector<wstring>* vstack, v
                 i=firstrule;
             else {
                 if (verif(ruleelements[i][0],xr_singlebody)) {
-                        //if the rule only checks one character, and it is a direct check, we can stop there
+                    //if the rule only checks one character, and it is a direct check, we can stop there
                     ty = action[i];
                     if (ty != -1) {
                         vstack->push_back(currentchr);
-
+                        
                         if (!juststack) {
                             stackln.push_back(line);
                             vtype->push_back(ty);
@@ -374,210 +472,63 @@ void x_wreading::apply(wstring& toparse, bool keepos, vector<wstring>* vstack, v
                                 vtype->push_back(ty);
 
                     }
-                    currentchr=next(toparse,pos,line);
+                    getnext(toparse,currentchr, pos,line);
                     continue;
                 }
             }
         }
-        for (;i<tokenizer.size();i++) {
+        bool breaking = false;
+        for (;i<sztokenizer;i++) {
             if (action[i]==xr_skiprule)
                 continue;
-
-            vector<wstring>& rule=tokenizer[i];
-            sz=rule.size();
-
-            opt=0;
-            skip=0;
-
-            l=line;
-            found=true;
-
-            token=L"";
-            chr=currentchr;
-            for (r=0;r<sz;r++) {
-                label=rule[r];
-
-                if (skip>0) {
-                    while (r<sz && skip) {
-                        type=ruleelements[i][r];
-                        if (verif(type,xr_optional))
-                            skip++;
-                        else
-                            if (verif(type,xr_endoptional))
-                                skip--;
-                        ++r;
-                    }
-
-                    r--;
-                    opt--;
-                    posc=c_opt.back();
-                    chr=chr_opt.back();
-
-                    token_opt.pop_back();
-                    lastopt.pop_back();
-                    c_opt.pop_back();
-                    chr_opt.pop_back();
-                    continue;
-                }
-
-                type=ruleelements[i][r];
-
-                if (r) {
-                    if (verif(type,xr_endoptional)) {
-                        opt--;
-                        if (token_opt.size()>1) {
-                            tmp=token_opt.back();
-                            token_opt.pop_back();
-                            token_opt.back()+=tmp;
-                        }
-                        else {
-                            token+=token_opt.back();
-                            token_opt.pop_back();
-                        }
-                        if (verif(type,xr_plus))
-                            r=lastopt.back()-1;
-                        lastopt.pop_back();
-                        c_opt.pop_back();
-                        chr_opt.pop_back();
-
-                        continue;
-                    }
-
-
-                    if (verif(type,xr_optional)) {
-
-                        c_opt.push_back(posc);
-                        token_opt.push_back(L"");
-                        lastopt.push_back(r);
-                        chr_opt.push_back(chr);
-                        opt++;
-
-                        continue;
-                    }
-                }
-
-                esc_char=check(label,type, chr);
-                if (esc_char == false) {
-                    if (opt) {
-                        skip=1;
-                        continue;
-                    }
-                    else {
-                            //if we expected a character and its recognition failed, we jump to rules...
-                        if (!r && verif(type,xr_char))
-                            i=firstrule-1;
-                        found=false;
+                        
+            token[0] = 0;
+            l = line;
+            wset(chr, currentchr);
+            r = 0;
+            itoken = 0;
+            posc = pos;
+            found = loop(toparse, i, token, chr, itoken, r, l, posc);
+            if (found != true) {
+                if (found == 2) {
+                    if (breaking) //already done...
                         break;
-                    }
+                    i = firstrule - 1;
+                    breaking = true;
                 }
-
-                if (esc_char == 2) {
-                    if (opt)
-                        token_opt.back()+=chr;
-                    else
-                        token+=chr;
-                    chr=next(toparse,posc,l);
-                }
-
-                if (!verif(type,xr_skip)) { //do not store this character
-                    if (opt)
-                        token_opt.back()+=chr;
-                    else
-                        token+=chr;
-                }
-
-                chr=next(toparse,posc,l);
-
-                if (verif(type,xr_singlebody)) //this is a single body rule, we can stop here...
-                    break;
-
-                if (verif(type,xr_plus)) {
-                    nxt=0;
-                    if (verif(type,xr_neednext)) {
-                        ni=r+1;
-                        while (ni<sz) {
-                            if (!verif(ruleelements[i][ni],xr_char) && !verif(ruleelements[i][ni],xr_meta))
-                                break;
-                            nxt++;
-                            ni++;
-                        }
-                    }
-
-                    while ((esc_char=check(label,type,chr))) {
-                        if (esc_char==2) {
-                            if (opt) //we have an esc_char character detected
-                                token_opt.back()+=chr;
-                            else
-                                token+=chr;
-                            chr=next(toparse,posc,l); //the next character should be copied without further analysis
-                            if (opt)
-                                token_opt.back()+=chr;
-                            else
-                                token+=chr;
-                            chr=next(toparse,posc,l); //then we jump to the next
-                            continue; //we loop to check if this character is right
-                        }
-
-                        if (nxt) {
-                            if (nxt==1) {
-                                if (check(rule[r+1],ruleelements[i][r+1],chr))
-                                    break;
-                            }
-                            else {
-                                long cp = posc;
-                                wstring cc=chr;
-                                bool f=true;
-                                for (k=r+1;k<ni;k++) {
-                                    if (!check(rule[k],ruleelements[i][k],cc)) {
-                                        f=false;
-                                        break;
-                                    }
-                                    cc=toparse[cp++];
-                                }
-
-                                if (f)
-                                    break;
-                            }
-                        }
-                        if (opt)
-                            token_opt.back()+=chr;
-                        else
-                            token+=chr;
-                        chr=next(toparse,posc,l);
-                    }
-                }
+                
+                continue;
             }
-            if (found) {
-                ty=action[i];
-                if (ty != -1) {
-                    vstack->push_back(token);
-                    if (!juststack) {
-                        stackln.push_back(line);
+
+            ty=action[i];
+            if (ty != -1) {
+                vstack->push_back(token);
+                if (!juststack) {
+                    stackln.push_back(line);
+                    vtype->push_back(ty);
+                    if (keepos) {
+                        cpos.push_back(pos-1);
+                    }
+                }
+                else
+                    if (storetype)
                         vtype->push_back(ty);
-                        if (keepos) {
-                            cpos.push_back(pos-1);
-                        }
-                    }
-                    else
-                        if (storetype)
-                            vtype->push_back(ty);
-                }
-                getit=true;
-                currentchr=chr;
-                line=l;
-                pos=posc;
-                break;
             }
-            posc=pos;
+            getit=true;
+            wset(currentchr,chr);
+            line=l;
+            pos=posc;
+            break;
         }
-
+        
         if (!getit) { //Character not taken into account by a rule, we suppose it is a simple UTF8 character...
             vstack->push_back(currentchr);
             stackln.push_back(line);
             vtype->push_back(255);
-            currentchr=next(toparse,pos,l);
+            getnext(toparse,currentchr, pos,l);
         }
     }
+    delete[] token;
 }
 //---------------------------------------AUTOMATON------------------------------------------------------------
 static bool tokenize(wstring& rg, vector<wstring>& stack, vector<aut_actions>& vtypes) {

@@ -34,6 +34,7 @@
 #include "tamguautomaton.h"
 #include "tamguufile.h"
 
+#include "x_tokenize.h"
 //------------------------------------------------------------------------------------------------------------------------
 //We need to declare once again our local definitions.
 Exporting basebin_hash<ustringMethod>  Tamguustring::methods;
@@ -108,7 +109,7 @@ void Tamguustring::AddMethod(TamguGlobal* global, string name, ustringMethod fun
     Tamguustring::AddMethod(global, "multisplit", &Tamguustring::MethodMultiSplit, P_ATLEASTONE, "multisplit(string splitter1,string splitter2..): split a string along different splitters. Return a uvector");
     Tamguustring::AddMethod(global, "split", &Tamguustring::MethodSplit, P_ONE | P_NONE, "split(string splitter): split a string along splitter and store the results  in a vector. If splitter=='', then the string is split into a vector of characters");
     Tamguustring::AddMethod(global, "splite", &Tamguustring::MethodSplite, P_ONE | P_NONE, "splite(string splitter): split a string along splitter and store the results  in a vector. If splitter=='', then the string is split into a vector of characters. Empty strings are kept in the result.");
-    Tamguustring::AddMethod(global, "tokenize", &Tamguustring::MethodTokenize, P_NONE | P_ONE | P_TWO | P_THREE | P_FOUR, "tokenize(bool comma,bool separator,bool concatenate, svector rules): Segment a string into words and punctuations. If 'comma' is true, then the decimal character is ',' otherwise it is '.'. If 'separator' is true then '1,000' is accepted as a number. If 'concatenate' is true then '3a' is a valid token. rules is a set of tokenization rules that can be first initialized then modified with _getdefaulttokenizerules");
+    Tamguustring::AddMethod(global, "tokenize", &Tamguustring::MethodTokenize, P_NONE | P_ONE | P_TWO | P_THREE, "tokenize(bool comma,bool separator, svector rules): Segment a string into words and punctuations. If 'comma' is true, then the decimal character is ',' otherwise it is '.'. If 'separator' is true then '1,000' is accepted as a number. rules is a set of tokenization rules that can be first initialized then modified with _getdefaulttokenizerules");
     Tamguustring::AddMethod(global, "stokenize", &Tamguustring::MethodStokenize, P_NONE | P_ONE, "stokenize(map keeps): Segment a string into words and punctuations, with a keep.");
     Tamguustring::AddMethod(global, "count", &Tamguustring::MethodCount, P_TWO | P_ONE | P_NONE, "count(string sub,int pos): Count the number of substrings starting at position pos");
     Tamguustring::AddMethod(global, "bpe", &Tamguustring::MethodBPE, P_THREE | P_TWO, "bpe(long threshold, long nb, mapui): byte pair encoding");
@@ -711,14 +712,20 @@ Tamgu* Tamguustring::MethodDoubleMetaphone(Tamgu* contextualpattern, short idthr
 
 
 Tamgu* Tamguustring::MethodTokenize(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-    wstring thestr = UString();
+    static x_wtokenize xr;
+    static bool init = false;
+    
+    if (!init) {
+        xr.juststack=true;
+        xr.load();
+        xr.keeprc(false);
+        init = true;
+    }
+
     short flag = 0;
     bool comma = false;
     bool separator = false;
-    bool keepwithdigit = false;
-    
-    vector<string> rules;
-    
+        
     if (callfunc->Size() >= 1) {
         comma = callfunc->Evaluate(0, contextualpattern, idthread)->Boolean();
         if (comma)
@@ -728,33 +735,71 @@ Tamgu* Tamguustring::MethodTokenize(Tamgu* contextualpattern, short idthread, Ta
             if (separator)
                 flag |= token_separator;
             if (callfunc->Size() == 3) {
-                keepwithdigit = callfunc->Evaluate(2, contextualpattern, idthread)->Boolean();
-                if (keepwithdigit)
-                    flag |= token_keepwithdigit;
-                if (callfunc->Size() == 4) {
-                    Tamgu* vect = callfunc->Evaluate(3, contextualpattern, idthread);
-                    for (long i = 0; i< vect->Size(); i++)
-                        rules.push_back(vect->getstring(i));
+                vector<string> rules;
+                Tamgu* vect = callfunc->Evaluate(3, contextualpattern, idthread);
+                for (long i = 0; i< vect->Size(); i++)
+                    rules.push_back(vect->getstring(i));
+                Tamgu* kvect = Selectauvector(contextualpattern);
+                short flags = token_period;
+                if (comma)
+                    flags |= token_comma;
+                if (separator)
+                    flags |= token_separator;
+
+                locking();
+                Locking _vlock((TamguObject*)kvect);
+                if (!vw_tokenize(((Tamguuvector*)kvect)->values, value, flag, rules)) {
+                    wstring w = ((Tamguuvector*)kvect)->values[0];
+                    string s;
+                    sc_unicode_to_utf8(s, w);
+                    kvect->Clear();
+                    kvect->Release();
+                    unlocking();
+                    return globalTamgu->Returnerror(s,idthread);
                 }
+                unlocking();
+                return kvect;
             }
         }
     }
 
     Tamgu* kvect = Selectauvector(contextualpattern);
-    
-    Locking _vlock((TamguObject*)kvect);
-    if (rules.size()) {
-        if (!vw_tokenize(((Tamguuvector*)kvect)->values, thestr, flag, rules)) {
-            wstring w = ((Tamguuvector*)kvect)->values[0];
-            string s;
-            sc_unicode_to_utf8(s, w);
-            kvect->Clear();
-            kvect->Release();
-            return globalTamgu->Returnerror(s,idthread);
-        }
+
+    if (!globalTamgu->globalLOCK) {
+        if (comma)
+            xr.selectcomma(true);
+        else
+            xr.selectcomma(false);
+        
+        if (token_separator)
+            xr.separator(true);
+        else
+            xr.separator(false);
+        
+        xr.tokenize(value,false,&((Tamguuvector*)kvect)->values);
+        return kvect;
     }
+    
+    x_wtokenize xwr;
+    xwr.juststack=true;
+    xwr.load();
+    xwr.keeprc(false);
+    if (comma)
+        xwr.selectcomma(true);
     else
-        vw_tokenize(((Tamguuvector*)kvect)->values, thestr, flag);
+        xwr.selectcomma(false);
+    
+    if (token_separator)
+        xwr.separator(true);
+    else
+        xwr.separator(false);
+
+    locking();
+    Locking _vlock((TamguObject*)kvect);
+
+    xwr.tokenize(value,false,&((Tamguuvector*)kvect)->values);
+
+    unlocking();
     return kvect;
 }
 
@@ -2353,7 +2398,7 @@ bool Tamgua_ustring::InitialisationModule(TamguGlobal* global, string version) {
     Tamgua_ustring::AddMethod(global, "multisplit", &Tamgua_ustring::MethodMultiSplit, P_ATLEASTONE, "multisplit(string splitter1,string splitter2..): split a string along different splitters. Return a uvector");
     Tamgua_ustring::AddMethod(global, "split", &Tamgua_ustring::MethodSplit, P_ONE | P_NONE, "split(string splitter): split a string along splitter and store the results  in a vector. If splitter=='', then the string is split into a vector of characters");
     Tamgua_ustring::AddMethod(global, "splite", &Tamgua_ustring::MethodSplite, P_ONE | P_NONE, "splite(string splitter): split a string along splitter and store the results  in a vector. If splitter=='', then the string is split into a vector of characters. Empty strings are kept in the result.");
-    Tamgua_ustring::AddMethod(global, "tokenize", &Tamgua_ustring::MethodTokenize, P_NONE | P_ONE | P_TWO | P_THREE | P_FOUR, "tokenize(bool comma,bool separator,bool concatenate, svector rules): Segment a string into words and punctuations. If 'comma' is true, then the decimal character is ',' otherwise it is '.'. If 'separator' is true then '1,000' is accepted as a number. If 'concatenate' is true then '3a' is a valid token. rules is a set of tokenization rules that can be first initialized then modified with _getdefaulttokenizerules");
+    Tamgua_ustring::AddMethod(global, "tokenize", &Tamgua_ustring::MethodTokenize, P_NONE | P_ONE | P_TWO | P_THREE, "tokenize(bool comma,bool separator, svector rules): Segment a string into words and punctuations. If 'comma' is true, then the decimal character is ',' otherwise it is '.'. If 'separator' is true then '1,000' is accepted as a number. rules is a set of tokenization rules that can be first initialized then modified with _getdefaulttokenizerules");
     Tamgua_ustring::AddMethod(global, "stokenize", &Tamgua_ustring::MethodStokenize, P_NONE | P_ONE, "stokenize(map keeps): Segment a string into words and punctuations, with a keep.");
     Tamgua_ustring::AddMethod(global, "count", &Tamgua_ustring::MethodCount, P_TWO | P_ONE | P_NONE, "count(string sub,int pos): Count the number of substrings starting at position pos");
     Tamgua_ustring::AddMethod(global, "find", &Tamgua_ustring::MethodFind, P_TWO | P_ONE, "find(string sub,int pos): Return the position of substring sub starting at position pos");
@@ -2850,7 +2895,6 @@ Tamgu* Tamgua_ustring::MethodTokenize(Tamgu* contextualpattern, short idthread, 
     short flag = 0;
     bool comma = false;
     bool separator = false;
-    bool keepwithdigit = false;
     
     vector<string> rules;
     
@@ -2863,14 +2907,9 @@ Tamgu* Tamgua_ustring::MethodTokenize(Tamgu* contextualpattern, short idthread, 
             if (separator)
                 flag |= token_separator;
             if (callfunc->Size() == 3) {
-                keepwithdigit = callfunc->Evaluate(2, contextualpattern, idthread)->Boolean();
-                if (keepwithdigit)
-                    flag |= token_keepwithdigit;
-                if (callfunc->Size() == 4) {
-                    Tamgu* vect = callfunc->Evaluate(3, contextualpattern, idthread);
-                    for (long i = 0; i< vect->Size(); i++)
-                        rules.push_back(vect->getstring(i));
-                }
+                Tamgu* vect = callfunc->Evaluate(3, contextualpattern, idthread);
+                for (long i = 0; i< vect->Size(); i++)
+                    rules.push_back(vect->getstring(i));
             }
         }
     }

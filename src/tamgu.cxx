@@ -40,7 +40,7 @@
 #include "tamgutaskell.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 0.96.4 build 17";
+const char* tamgu_version = "Tamgu 0.96.4 build 20";
 
 Tamgu* booleantamgu[2];
 

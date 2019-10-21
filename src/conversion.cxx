@@ -9308,6 +9308,35 @@ Exporting string c_char_get_next(unsigned char* m, size_t& i) {
     return str;
 }
 
+void c_chars_get_next(unsigned char* m, char* str, size_t& i) {
+    long nb = c_test_utf8(m + i);
+    str[0] = (char)m[i];
+    
+    switch (nb) {
+        case 0:
+            str[1] = 0;
+            i++;
+            return;
+        case 1:
+            str[1] = m[i + 1];
+            str[2] = 0;
+            i += 2;
+            return;
+        case 2:
+            str[1] = m[i + 1];
+            str[2] = m[i + 2];
+            str[3] = 0;
+            i += 3;
+            return;
+        case 3:
+            str[1] = m[i + 1];
+            str[2] = m[i + 2];
+            str[3] = m[i + 3];
+            str[4] = 0;
+            i += 4;
+    }
+}
+
 Exporting string c_char_get(unsigned char* m, long& i) {
     char str[] = {(char)m[i],0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     long nb = c_test_utf8(m + i);

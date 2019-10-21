@@ -145,6 +145,7 @@ public:
 
 #define xr_char 1
 #define xr_meta 2
+#define xr_metachar 3
 #define xr_chardisjunction 4
 #define xr_metadisjunction 8
 #define xr_negation 16
@@ -154,6 +155,7 @@ public:
 #define xr_singlebody 256
 #define xr_optional 512
 #define xr_endoptional 1024
+#define xr_optionality 1536
 #define xr_skiprule 2048
 
 #define verif(a,b) ((a&b)==b)
@@ -504,11 +506,11 @@ public:
         unsigned char metakey;
         map<string,string> metalines;
         bool initmetakey=false;
+        vector<short> e;
 
         
         for (i=0;i<rules.size();i++) {
             line=rules[i];
-            vector<short> e;
             ruleelements.push_back(e);
             vector<string> rule;
 
@@ -760,8 +762,8 @@ public:
         rules.clear();
     }
 
-    char check(string& label, short type, string& chr) {
-        if (chr=="")
+    char check(string& label, short type, char* chr) {
+        if (!chr[0])
             return false;
 
         if (verif(type,xr_char)) {
@@ -839,15 +841,18 @@ public:
                 case '.':
                     return true;
                 case 'C':
-                    if (s_is_upper(chr))
+                    lb = chr;
+                    if (s_is_upper(lb))
                         return true;
                     return false;
                 case 'a':
-                    if (car=='_' || car == '#' || s_is_alpha(chr))
+                    lb = chr;
+                    if (car=='_' || car == '#' || s_is_alpha(lb))
                         return true;
                     return false;
                 case 'c':
-                    if (s_is_lower(chr))
+                    lb = chr;
+                    if (s_is_lower(lb))
                         return true;
                     return false;
                 case 'd':
@@ -855,7 +860,8 @@ public:
                         return true;
                     return false;
                 case 'H':
-                    if (c_is_hangul(chr))
+                    lb = chr;
+                    if (c_is_hangul(lb))
                         return true;
                     return false;
                 case 'n': //non-breaking space
@@ -863,7 +869,8 @@ public:
                         return true;
                     return false;
                 case 'p':
-                    if (s_is_punctuation(chr))
+                    lb = chr;
+                    if (s_is_punctuation(lb))
                         return true;
                     return false;
                 case 'o':
@@ -894,6 +901,7 @@ public:
     }
     
     void apply(bool keeppos, vector<string>* vstack, vector<unsigned char>* vtype);
+    char loop(short i, char* token, char* chr, long& itoken, short& r, long& line);
     
     //We tokenize our string...
     virtual void tokenize(string& thestr, bool keeppos=false, vector<string>* vstack=NULL, vector<unsigned char>* vtype=NULL) {
@@ -1041,10 +1049,10 @@ public:
         bool addfirstrule;
         map<wstring, wstring> metalines;
         bool initmetakey=false;
+        vector<short> e;
 
         for (i=0;i<rules.size();i++) {
             sc_utf8_to_unicode(line, USTR(rules[i]), rules[i].size());
-            vector<short> e;
             ruleelements.push_back(e);
             vector<wstring> rule;
 
@@ -1301,8 +1309,8 @@ public:
         rules.clear();
     }
 
-    char check(wstring& label, short type, wstring& chr) {
-        if (chr==L"")
+    char check(wstring& label, short type, wchar_t* chr) {
+        if (!chr[0])
             return false;
         
         if (verif(type,xr_char)) {
@@ -1433,7 +1441,8 @@ public:
     }
     
     void apply(wstring& toparse, bool keeppos, vector<wstring>* vstack, vector<unsigned char>* vtype);
-    
+    char loop(wstring& toparse, short i, wchar_t* token, wchar_t* chr, long& itoken, short& r, long& line, long& posc);
+
     wstring next(wstring& w, long& pos, long& l) {
         if (pos>=w.size())
             return L"";
@@ -1449,6 +1458,39 @@ public:
         return res;
     }
     
+    void getnext(wstring& w, wchar_t* res, long& pos, long& l) {
+        if (pos>=w.size()) {
+            res[0] =  0;
+            return;
+        }
+        
+        if (w[pos]==L'\n')
+            l++;
+        res[0] = w[pos++];
+#ifdef WSTRING_IS_UTF16
+        if (checklargeutf16(res[0]))
+            res[1] = w[pos++];
+        else
+            res[1] = 0;
+#endif
+    }
+    
+    void getnext(wstring& w, wchar_t* res, long& pos) {
+        if (pos>=w.size()) {
+            res[0] =  0;
+            return;
+        }
+        
+        res[0] = w[pos++];
+#ifdef WSTRING_IS_UTF16
+        if (checklargeutf16(res[0]))
+            res[1] = w[pos++];
+        else
+            res[1] = 0;
+#endif
+    }
+    
+
     virtual void tokenize(wstring& thestr, bool keeppos=false, vector<wstring>* vstack=NULL, vector<unsigned char>* vtype=NULL) {
         //only stack is necessary
         if (vstack==NULL)
