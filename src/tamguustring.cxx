@@ -795,11 +795,13 @@ Tamgu* Tamguustring::MethodTokenize(Tamgu* contextualpattern, short idthread, Ta
         xwr.separator(false);
 
     locking();
+    wstring w  = value;
+    unlocking();
+    
     Locking _vlock((TamguObject*)kvect);
 
-    xwr.tokenize(value,false,&((Tamguuvector*)kvect)->values);
+    xwr.tokenize(w,false,&((Tamguuvector*)kvect)->values);
 
-    unlocking();
     return kvect;
 }
 

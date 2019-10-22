@@ -1032,9 +1032,12 @@ Tamgu* Tamgustring::MethodTokenize(Tamgu* contextualpattern, short idthread, Tam
         xrr.separator(false);
 
     locking();
-    Locking _lock((TamguObject*)kvect);
-    xrr.tokenize(value,false,&((Tamgusvector*)kvect)->values);
+    string s =  value;
     unlocking();
+    
+    Locking _lock((TamguObject*)kvect);
+    xrr.tokenize(s,false,&((Tamgusvector*)kvect)->values);
+
     
     return kvect;
 }
