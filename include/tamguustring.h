@@ -762,6 +762,7 @@ public:
 
     Tamgu* MethodDoubleMetaphone(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 	Tamgu* MethodOrd(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+	Tamgu* MethodBytes(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 	Tamgu* MethodSizeb(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		Locking _lock(this);
 		return globalTamgu->Provideint((long)value.size());
@@ -1747,6 +1748,7 @@ public:
     
     Tamgu* MethodDoubleMetaphone(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodOrd(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+	Tamgu* MethodBytes(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodSizeb(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         return globalTamgu->Provideint((long)value.size());
     }

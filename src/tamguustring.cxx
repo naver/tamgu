@@ -86,8 +86,9 @@ void Tamguustring::AddMethod(TamguGlobal* global, string name, ustringMethod fun
 
     Tamguustring::AddMethod(global, "doublemetaphone", &Tamguustring::MethodDoubleMetaphone, P_NONE, "doublemetaphone(): Return the string double metaphone conversion into a svector");
 
-    Tamguustring::AddMethod(global, "ord", &Tamguustring::MethodOrd, P_NONE, "ord(): Return the character unicode.");
-    Tamguustring::AddMethod(global, "hash", &Tamguustring::MethodHash, P_NONE, "hash(): Return the hash value of a string.");
+	Tamguustring::AddMethod(global, "ord", &Tamguustring::MethodOrd, P_NONE, "ord(): Return the character unicode.");
+	Tamguustring::AddMethod(global, "bytes", &Tamguustring::MethodBytes, P_NONE, "bytes(): Return the Unicode representation.");
+	Tamguustring::AddMethod(global, "hash", &Tamguustring::MethodHash, P_NONE, "hash(): Return the hash value of a string.");
     Tamguustring::AddMethod(global, "reverse", &Tamguustring::MethodReverse, P_NONE, "reverse(): reverse the string");
     Tamguustring::AddMethod(global, "format", &Tamguustring::MethodFormat, P_ATLEASTONE, "format(p1,p2,p3): Create a new string from the current string in which each '%x' is associated to one of the parameters, 'x' being the position of that parameter in the argument list. 'x' starts at 1.");
     Tamguustring::AddMethod(global, "base", &Tamguustring::MethodBase, P_ONE | P_TWO, "base(int b, bool toconvert=true): Return the value corresponding to the string in base b");
@@ -323,6 +324,36 @@ Tamgu* Tamguustring::MethodOrd(Tamgu* contextualpattern, short idthread, TamguCa
     
     return aNULL;
 }
+
+Tamgu* Tamguustring::MethodBytes(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+	wstring s = UString();
+	uint32_t c;
+	if (s.size() >= 1) {
+		if (contextualpattern->isVectorContainer() || s.size()>1) {
+			Tamgu* kvect=SelectContainer(contextualpattern,idthread);
+			if (kvect==NULL)
+				kvect=new Tamgulvector;
+
+			Locking _lock((TamguObject*)kvect);
+			for (size_t i = 0; i < s.size(); i++) {
+				kvect->storevalue((BLONG)s[i]);
+			}
+			return kvect;
+		}
+
+		if (c_utf16_to_unicode(c, s[0], false))
+			c_utf16_to_unicode(c, s[1], true);
+
+		if (contextualpattern->isNumber()) {
+			contextualpattern->storevalue((BLONG)c);
+			return contextualpattern;
+		}
+
+		return new Tamgulong(c);
+	}
+
+	return aNULL;
+}
 #else
 Tamgu* Tamguustring::MethodOrd(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 	wstring s = UString();
@@ -348,6 +379,32 @@ Tamgu* Tamguustring::MethodOrd(Tamgu* contextualpattern, short idthread, TamguCa
 
 	return aNULL;
 }
+
+Tamgu* Tamguustring::MethodBytes(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+	wstring s = UString();
+	if (s.size() >= 1) {
+		if (contextualpattern->isVectorContainer() || s.size()>1) {
+			Tamgu* kvect = SelectContainer(contextualpattern, idthread);
+			if (kvect == NULL)
+				kvect = new Tamgulvector;
+
+			Locking _lock((TamguObject*)kvect);
+			for (size_t i = 0; i < s.size(); i++)
+				kvect->storevalue(s[i]);
+			return kvect;
+		}
+
+		if (contextualpattern->isNumber()) {
+			contextualpattern->storevalue((BLONG)s[0]);
+			return contextualpattern;
+		}
+
+		return new Tamgulong(s[0]);
+	}
+
+	return aNULL;
+}
+
 #endif
 
 
@@ -2381,7 +2438,8 @@ bool Tamgua_ustring::InitialisationModule(TamguGlobal* global, string version) {
     Tamgua_ustring::AddMethod(global, "doublemetaphone", &Tamgua_ustring::MethodDoubleMetaphone, P_NONE, "doublemetaphone(): Return the string double metaphone conversion into a svector");
     
     Tamgua_ustring::AddMethod(global, "ord", &Tamgua_ustring::MethodOrd, P_NONE, "ord(): Return the character unicode.");
-    Tamgua_ustring::AddMethod(global, "hash", &Tamgua_ustring::MethodHash, P_NONE, "hash(): Return the hash value of a string.");
+	Tamgua_ustring::AddMethod(global, "bytes", &Tamgua_ustring::MethodBytes, P_NONE, "bytes(): Return the Unicode representation.");
+	Tamgua_ustring::AddMethod(global, "hash", &Tamgua_ustring::MethodHash, P_NONE, "hash(): Return the hash value of a string.");
     Tamgua_ustring::AddMethod(global, "reverse", &Tamgua_ustring::MethodReverse, P_NONE, "reverse(): reverse the string");
     Tamgua_ustring::AddMethod(global, "format", &Tamgua_ustring::MethodFormat, P_ATLEASTONE, "format(p1,p2,p3): Create a new string from the current string in which each '%x' is associated to one of the parameters, 'x' being the position of that parameter in the argument list. 'x' starts at 1.");
     Tamgua_ustring::AddMethod(global, "base", &Tamgua_ustring::MethodBase, P_ONE | P_TWO, "base(int b, bool toconvert=true): Return the value corresponding to the string in base b");
@@ -2570,6 +2628,36 @@ Tamgu* Tamgua_ustring::MethodOrd(Tamgu* contextualpattern, short idthread, Tamgu
 
 	return aNULL;
 }
+
+Tamgu* Tamgua_ustring::MethodBytes(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+	wstring s = value.value();
+	uint32_t c;
+	if (s.size() >= 1) {
+		if (contextualpattern->isVectorContainer() || s.size() > 1) {
+			Tamgu* kvect = SelectContainer(contextualpattern, idthread);
+			if (kvect == NULL)
+				kvect = new Tamgulvector;
+
+			Locking _lock((TamguObject*)kvect);
+			for (size_t i = 0; i < s.size(); i++) {
+				kvect->storevalue((BLONG)s[i]);
+				return kvect;
+			}
+		}
+
+		if (c_utf16_to_unicode(c, s[0], false))
+			c_utf16_to_unicode(c, s[1], true);
+
+		if (contextualpattern->isNumber()) {
+			contextualpattern->storevalue((BLONG)c);
+			return contextualpattern;
+		}
+
+		return new Tamgulong(c);
+	}
+
+	return aNULL;
+}
 #else
 Tamgu* Tamgua_ustring::MethodOrd(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     wstring s = value.value();
@@ -2594,6 +2682,31 @@ Tamgu* Tamgua_ustring::MethodOrd(Tamgu* contextualpattern, short idthread, Tamgu
     }
     
     return aNULL;
+}
+
+Tamgu* Tamgua_ustring::MethodBytes(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+	wstring s = value.value();
+	if (s.size() >= 1) {
+		if (contextualpattern->isVectorContainer() || s.size()>1) {
+			Tamgu* kvect = SelectContainer(contextualpattern, idthread);
+			if (kvect == NULL)
+				kvect = new Tamgulvector;
+
+			Locking _lock((TamguObject*)kvect);
+			for (size_t i = 0; i < s.size(); i++)
+				kvect->storevalue(s[i]);
+			return kvect;
+		}
+
+		if (contextualpattern->isNumber()) {
+			contextualpattern->storevalue((BLONG)s[0]);
+			return contextualpattern;
+		}
+
+		return new Tamgulong(s[0]);
+	}
+
+	return aNULL;
 }
 #endif
 
