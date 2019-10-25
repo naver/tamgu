@@ -677,7 +677,7 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
     if (lensearch > lensrc)
         return;
 
-    long lenneo = lensrc + (replace.size() << 3);
+    long lenneo = 1 + lensrc + (replace.size() << 3);
     long ineo = 0;
     char* neo = new char[lenneo];
     neo[0] = 0;
@@ -1505,7 +1505,7 @@ void replace_intel_all(wstring& noe, wstring& src, wstring& search, wstring& rep
     long from = 0;
     long foundHere;
     
-    long lenneo = lensrc + (replace.size() << 3);
+    long lenneo = 1 + lensrc + (replace.size() << 3);
     long ineo = 0;
     wchar_t* neo = new wchar_t[lenneo];
     neo[0] = 0;
@@ -2123,7 +2123,7 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
         //First we try to find the section in which the first character might occur
     __m128i current_bytes = _mm_setzero_si128();
 
-    long lenneo = lensrc + (replace.size() << 3);
+    long lenneo = 1 + lensrc + (replace.size() << 3);
     long ineo = 0;
     char* neo = new char[lenneo];
     neo[0] = 0;
@@ -2701,7 +2701,7 @@ void replace_intel_all(wstring& noe, wstring& src, wstring& search, wstring& rep
     long from = 0;
     long foundHere;
     
-    long lenneo = lensrc + (replace.size() << 3);
+    long lenneo = 1 + lensrc + (replace.size() << 3);
     long ineo = 0;
     wchar_t* neo = new wchar_t[lenneo];
     neo[0] = 0;
@@ -5215,6 +5215,85 @@ Exporting void l_emojis(map<BLONG, string>& dico) {
         dico[it.first] = it.second;
 }
 
+
+//-----------------------------------------------------------------------------------------
+bool CheckNeedConversion(string& w) {
+    #ifdef INTELINTRINSICS
+    long first = 0;
+        //we check if we have any large characters between 0 and ipos
+    return !check_ascii(USTR(w), w.size(), first);
+    #endif
+    return true;
+}
+
+bool CheckNeedConversion(wstring& w) {
+    #ifdef INTELINTRINSICS
+    long first = 0;
+        //we check if we have any large characters between 0 and ipos
+    return check_large_char(WSTR(w), w.size(), first);
+    #endif
+    return true;
+}
+
+//We only return the emoji head, when a head is present
+TAMGUCHAR getechar(wstring& s, long& i) {
+	TAMGUCHAR c = getachar(s, i);
+	if (((c & 0x1F000) == 0x1F000) && c_is_emoji(c)) {
+		long j = i + 1;
+		TAMGUCHAR cc = getachar(s, j);
+		while (c_is_emojicomp(cc)) {
+			i = j++;
+			cc = getachar(s, j);
+		}
+	}
+	return c;
+}
+
+long conversionpostochar(wstring& w, long spos) {
+    long cpos = 0;
+	long realpos = 0;
+	TAMGUCHAR c;
+	while (realpos != spos) {
+		c = getachar(w, realpos);
+		if (((c & 0x1F000) == 0x1F000) && c_is_emoji(c)) {
+			long j = ++realpos;
+			c = getachar(w, j);
+			while (c_is_emojicomp(c)) {
+				realpos = ++j;
+				c = getachar(w, j);
+			}
+		}
+		else
+			realpos++;
+		cpos++;
+	}
+	return cpos;
+}
+
+void conversionpostochar(wstring& w, long& b, long& e) {
+    long sbeg = b;
+    long cpos = 0;
+    long realpos = 0;
+    TAMGUCHAR c;
+    while (realpos != e) {
+        if (realpos == sbeg)
+            b = cpos;
+        c = getachar(w, realpos);
+        if (((c & 0x1F000) == 0x1F000) && c_is_emoji(c)) {
+            long j = ++realpos;
+            c = getachar(w, j);
+            while (c_is_emojicomp(c)) {
+                realpos = ++j;
+                c = getachar(w, j);
+            }
+        }
+        else
+            realpos++;
+        cpos++;
+    }
+    e = cpos;
+}
+
 //-----------------------------------------------------------------------------------------
 Exporting void inittableutf8() {
     static bool init = false;
@@ -7711,6 +7790,58 @@ Exporting bool c_utf16_to_unicode(uint32_t& r, uint32_t code, bool second) {
 
 //---------------------------------------------------------------------------
 //convert a character position from byte to char and back
+void c_chartobyteposition(unsigned char* contenu, long sz, long& bcpos, long& ecpos) {
+    if (ecpos > sz)
+        return;
+    
+    long begcpos = bcpos;
+    long endcpos = ecpos;
+    long i = 0;
+    long nb;
+    
+    while (endcpos > 0 && i<sz) {
+        if (!begcpos)
+            bcpos = i;
+        nb = c_test_utf8(contenu + i);
+        if (nb == 3 && c_is_emoji(contenu,i)) {
+            i++;
+            while (c_is_emojicomp(contenu, i)) {
+                i++;
+            }
+        }
+        else
+            i += nb + 1;
+        endcpos--;
+        begcpos--;
+    }
+    ecpos = i;
+}
+
+void c_bytetocharposition(unsigned char* contenu, long& bbpos, long& ebpos) {
+    long i = 0;
+    long sz = 0;
+    long nb;
+    long bpos = bbpos;
+    
+    while (i < ebpos) {
+        if (i == bpos)
+            bbpos = sz;
+        nb = c_test_utf8(contenu + i);
+        if (nb == 3 && c_is_emoji(contenu,i)) {
+            i++;
+            while (c_is_emojicomp(contenu, i)) {
+                i++;
+            }
+        }
+        else
+            i += nb + 1;
+        sz++;
+    }
+    
+    ebpos = sz;
+}
+
+
 Exporting long c_chartobyteposition(unsigned char* contenu, long sz, long charpos) {
     if (charpos > sz)
         return sz;
@@ -8200,7 +8331,9 @@ Exporting void sc_unicode_to_utf8(string& s, wstring& str) {
 	char inter[5];
 	long ineo = 0;
 	long sz = str.size();
-	long szo = sz << 1;
+	if (!sz)
+		return;
+	long szo = 1 + (sz << 1);
 	char* neo = new char[szo];
 	neo[0] = 0;
 	long nb;
@@ -8227,10 +8360,13 @@ Exporting void sc_unicode_to_utf8(string& s, wstring& str) {
 }
 
 Exporting void s_unicode_to_utf8(string& s, wchar_t* str, long sz) {
+	if (!sz)
+		return;
+
 	long i = 0;
 	char inter[5];
 	long ineo = 0;
-	long szo = sz << 1;
+	long szo = 1 + (sz << 1);
 	char* neo = new char[szo];
 	neo[0] = 0;
 	long nb;
@@ -8261,7 +8397,10 @@ Exporting void s_unicode_to_utf8(string& s, wstring& str) {
 	char inter[5];
 	long ineo = 0;
 	long sz = str.size();
-	long szo = sz << 1;
+	if (!sz)
+		return;
+
+	long szo = 1 + (sz << 1);
 	char* neo = new char[szo];
 	neo[0] = 0;
 	long nb;
@@ -8288,6 +8427,9 @@ Exporting void s_unicode_to_utf8(string& s, wstring& str) {
 }
 
 Exporting void s_utf8_to_unicode(wstring& w, unsigned char* str, long sz) {
+	if (!sz)
+		return;
+
 	long ineo = 0;
 	wchar_t* neo = new wchar_t[sz + 1];
 	neo[0] = 0;
@@ -8331,6 +8473,9 @@ Exporting void s_utf8_to_unicode(wstring& w, unsigned char* str, long sz) {
 }
 
 Exporting void sc_utf8_to_unicode(wstring& w, unsigned char* str, long sz) {
+	if (!sz)
+		return;
+
     long ineo = 0;
     wchar_t* neo = new wchar_t[sz + 1];
     neo[0] = 0;
@@ -8375,6 +8520,9 @@ Exporting void sc_utf8_to_unicode(wstring& w, unsigned char* str, long sz) {
 }
 
 Exporting void s_latin_to_unicode(wstring& res, unsigned char* contenu, long sz) {
+	if (!sz)
+		return;
+
     long ineo = 0;
     wchar_t* neo = new wchar_t[sz+1];
     neo[0] = 0;
@@ -8433,6 +8581,9 @@ Exporting void s_latin_to_unicode(wstring& res, unsigned char* contenu, long sz)
 }
 
 Exporting void sc_latin_to_unicode(wstring& res, unsigned char* contenu, long sz) {
+	if (!sz)
+		return;
+
     long ineo = 0;
     wchar_t* neo = new wchar_t[sz+1];
     neo[0] = 0;
@@ -8634,6 +8785,9 @@ Exporting long c_char_to_pos_emoji(wstring& w, long charpos) {
 }
 
 Exporting void sc_latin_to_unicode(wstring& res, unsigned char* contenu, long sz) {
+	if (!sz)
+		return;
+
     long ineo = 0;
     wchar_t* neo = new wchar_t[sz+1];
     neo[0] = 0;
@@ -8689,7 +8843,10 @@ Exporting void s_unicode_to_utf8(string& s, wstring& str) {
     char inter[5];
     long ineo = 0;
     long sz = str.size();
-    long szo = sz << 1;
+	if (!sz)
+		return;
+
+    long szo = 1 + (sz << 1);
     char* neo = new char[szo];
     neo[0] = 0;
     long nb;
@@ -8717,7 +8874,9 @@ Exporting void sc_unicode_to_utf8(string& s, wstring& str) {
 	char inter[5];
     long ineo = 0;
     long sz = str.size();
-    long szo = sz << 1;
+	if (!sz)
+		return;
+    long szo = 1 + (sz << 1);
     char* neo = new char[szo];
     neo[0] = 0;
     long nb;
@@ -8740,10 +8899,12 @@ Exporting void sc_unicode_to_utf8(string& s, wstring& str) {
 }
 
 Exporting void s_unicode_to_utf8(string& s, wchar_t* str, long sz) {
+	if (!sz)
+		return;
     long i = 0;
     char inter[5];
     long ineo = 0;
-    long szo = sz << 1;
+    long szo = 1 + (sz << 1);
     char* neo = new char[szo];
     neo[0] = 0;
     long nb;
@@ -8766,7 +8927,10 @@ Exporting void s_unicode_to_utf8(string& s, wchar_t* str, long sz) {
 }
 
 Exporting void s_utf8_to_unicode(wstring& w, unsigned char* str , long sz) {
-    long ineo = 0;
+	if (!sz)
+		return;
+
+	long ineo = 0;
     wchar_t* neo = new wchar_t[sz+1];
     neo[0] = 0;
 
@@ -8801,7 +8965,10 @@ Exporting void s_utf8_to_unicode(wstring& w, unsigned char* str , long sz) {
 }
 
 Exporting void sc_utf8_to_unicode(wstring& w, unsigned char* str, long sz) {
-    w = L"";
+	if (!sz)
+		return;
+
+	w = L"";
     long ineo = 0;
     wchar_t* neo = new wchar_t[sz+1];
     neo[0] = 0;

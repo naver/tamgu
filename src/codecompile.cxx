@@ -121,7 +121,6 @@ char x_reading::loop(short i, char* token, char* chr, long& itoken, short& r, lo
                 }
             }
             
-            string& lab = rule[r+1];
             short esc_char=check(label,type,chr);
 
             while (esc_char) {
@@ -132,7 +131,7 @@ char x_reading::loop(short i, char* token, char* chr, long& itoken, short& r, lo
                 }
                 
                 if (nxt) {
-                    if (check(lab, element[r+1], chr)) {
+					if (check(rule[r + 1], element[r + 1], chr)) {
                         if (nxt == 1)
                             break;
                         
@@ -364,7 +363,6 @@ char x_wreading::loop(wstring& toparse, short i, wchar_t* token, wchar_t* chr, l
                 }
             }
 
-            wstring& lab = rule[r+1];
             short esc_char = check(label,type,chr);
             
             while (esc_char) {
@@ -374,7 +372,7 @@ char x_wreading::loop(wstring& toparse, short i, wchar_t* token, wchar_t* chr, l
                 }
                 
                 if (nxt) {
-                    if (check(lab,element[r+1],chr)) {
+					if (check(rule[r + 1], element[r + 1], chr)) {
                         if (nxt==1)
                             break;
 

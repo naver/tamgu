@@ -28,6 +28,18 @@ bin_hash<unsigned long> Tamguregularexpression::exported;
 
 short Tamguregularexpression::idtype = 0;
 
+//We only return the emoji head, when a head is present
+TAMGUCHAR getechar(wstring& s, long& i);
+long conversionpostochar(wstring& w, long spos);
+void conversionpostochar(wstring& w, long& b, long& e);
+bool CheckNeedConversion(string& w);
+bool CheckNeedConversion(wstring& w);
+void c_chartobyteposition(unsigned char* contenu, long sz, long& bcpos, long& ecpos);
+void c_bytetocharposition(unsigned char* contenu, long& bbpos, long& ebpos);
+
+//------------------------------------------------------------------------------------------------------------------
+#define au_error -1
+#define au_stop -2
 //------------------------------------------------------------------------------------------------------------------
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamguregularexpression::AddMethod(TamguGlobal* global, string name, TamguregularexpressionMethod func, unsigned long arity, string infos) {
@@ -37,32 +49,30 @@ void Tamguregularexpression::AddMethod(TamguGlobal* global, string name, Tamgure
     exported[idname] = arity;
 }
 
+void Tamguregularexpression::Setidtype(TamguGlobal* global) {
+    Tamguregularexpression::idtype = global->Getid("treg");
+}
 
-
-    void Tamguregularexpression::Setidtype(TamguGlobal* global) {
-        Tamguregularexpression::idtype = global->Getid("treg");
-    }
-
-   bool Tamguregularexpression::InitialisationModule(TamguGlobal* global, string version) {
+bool Tamguregularexpression::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
     infomethods.clear();
     exported.clear();
     
-    //Each new object has a specific name, which will help recognize it in the code that will exploit Tamguregularexpression...
+        //Each new object has a specific name, which will help recognize it in the code that will exploit Tamguregularexpression...
     Tamguregularexpression::idtype = global->Getid("treg");
     
-    //You declare your methods here:
-    // Argument 1 is a call to global, which will record your method into Tamgu (탐구)
-    // Argument 2 is the name of your command
-    // Argument 3 links your command with its implementation into the object class
-    // Argument 4 is a combination of P_... which defines how many parameters this function can accept.
-    //Argument 5 is a description of this method.
+        //You declare your methods here:
+        // Argument 1 is a call to global, which will record your method into Tamgu (탐구)
+        // Argument 2 is the name of your command
+        // Argument 3 links your command with its implementation into the object class
+        // Argument 4 is a combination of P_... which defines how many parameters this function can accept.
+        //Argument 5 is a description of this method.
     
     Tamguregularexpression::AddMethod(global, "_initial", &Tamguregularexpression::MethodCompile, P_ONE, "_initial(string rgx): compile a tamgu regular expression.");
     Tamguregularexpression::AddMethod(global, "compile", &Tamguregularexpression::MethodCompile, P_ONE, "compile(string rgx): compile a tamgu regular expression.");
     Tamguregularexpression::AddMethod(global, "match", &Tamguregularexpression::MethodMatch, P_ONE, "match(string str): check if the string matches the tamgu regular expression.");
     
-    //We need this code, in order to create new instances of our Tamguregularexpression object... DO NOT ALTER
+        //We need this code, in order to create new instances of our Tamguregularexpression object... DO NOT ALTER
     global->newInstance[Tamguregularexpression::idtype] = new Tamguregularexpression(global);
     global->RecordMethods(Tamguregularexpression::idtype,Tamguregularexpression::exported);
     
@@ -243,14 +253,16 @@ Tamgu* Tamguregularexpression::in(Tamgu* context, Tamgu* a, short idthread) {
     if (context->isVectorContainer()) {
         Tamgu* v = Selectavector(context);
         vector<long> pos;
-        automate->searchall(val, pos);
         long i;
         if (v->isNumber()) {
+            automate->searchall(val, pos);
             for (i=0;i<pos.size();i++)
                 v->storevalue(pos[i]);
             return v;
         }
         
+        //In this case, we do not want any position conversion
+        automate->bytesearchall(val, pos);
         for (i=0; i < pos.size(); i+=2)
             v->storevalue(val.substr(pos[i], pos[i+1]-pos[i]));
         return v;
@@ -258,7 +270,8 @@ Tamgu* Tamguregularexpression::in(Tamgu* context, Tamgu* a, short idthread) {
     
     if (context->isString()) {
         long e;
-        if (!automate->search(val, i, e))
+        //No position conversion
+        if (!automate->bytesearch(val, i, e))
             return aEMPTYSTRING;
         return globalTamgu->Provideustring(val.substr(i, e-i));
     }
@@ -268,7 +281,7 @@ Tamgu* Tamguregularexpression::in(Tamgu* context, Tamgu* a, short idthread) {
         return globalTamgu->Provideint(i);
 
     //The default value is a Boolean...
-    if (i != -1)
+    if (i != au_error)
         return aTRUE;
     return aFALSE;
 }
@@ -299,28 +312,28 @@ void Tamguregularexpression::searchall(wstring& txt, vector<long>& v, long init)
 }
 
 
-bool Tamguregularexpression::search(wstring& w, long& f, long& l, long init) {
+bool Tamguregularexpression::search(wstring& w, long& b, long& e, long init) {
     if (automate==NULL)
         return false;
-    return automate->search(w,f,l,init);
+    return automate->search(w,b,e,init);
 }
 
-bool Tamguregularexpression::search(string& w, long& f, long& l, long init) {
+bool Tamguregularexpression::search(string& w, long& b, long& e, long init) {
     if (automate==NULL)
         return false;
-    return automate->search(w,f,l,init);
+    return automate->search(w,b,e,init);
 }
 
-bool Tamguregularexpression::searchlast(wstring& w, long& f, long& l, long init) {
+bool Tamguregularexpression::searchlast(wstring& w, long& b, long& e, long init) {
     if (automate==NULL)
         return false;
-    return automate->searchlast(w,f,l,init);
+    return automate->searchlast(w,b,e,init);
 }
 
-bool Tamguregularexpression::searchlast(string& w, long& f, long& l, long init) {
+bool Tamguregularexpression::searchlast(string& w, long& b, long& e, long init) {
     if (automate==NULL)
         return false;
-    return automate->searchlast(w,f,l,init);
+    return automate->searchlast(w,b,e,init);
 }
 
 
@@ -377,7 +390,7 @@ void Tamguposixregularexpression::searchall(string& val, vector<long>& v) {
     const sregex_iterator end;
     for (sregex_iterator i(val.begin(), val.end(), *pattern); i != end; ++i) {
         v.push_back(i->position());
-        v.push_back(i->position()+i->length());
+        v.push_back(i->position() + i->length());
     }
 }
 
@@ -388,7 +401,7 @@ void Tamguposixregularexpression::searchall(wstring& val, vector<long>& v) {
     const wsregex_iterator end;
     for (wsregex_iterator i(val.begin(), val.end(), *wpattern); i != end; ++i) {
         v.push_back(i->position());
-        v.push_back(i->position()+i->length());
+        v.push_back(i->position() + i->length());
     }
 }
 
@@ -402,69 +415,74 @@ void Tamguposixregularexpression::searchall(string& val, vector<long>& v, long i
             return;
         
         string w = val.substr(init,val.size()-init);
-        for (sregex_iterator i(w.begin(), w.end(), *pattern); i != end; ++i)
+        for (sregex_iterator i(w.begin(), w.end(), *pattern); i != end; ++i) {
             v.push_back(i->position());
+        }
     }
     else {
-        for (sregex_iterator i(val.begin(), val.end(), *pattern); i != end; ++i)
+        for (sregex_iterator i(val.begin(), val.end(), *pattern); i != end; ++i) {
             v.push_back(i->position());
+        }
     }
 }
 
 void Tamguposixregularexpression::searchall(wstring& val, vector<long>& v, long init) {
     if (pattern == NULL)
         return;
-
+    
     const wsregex_iterator end;
     if (init != 0) {
         if (init>=val.size())
             return;
         wstring w = val.substr(init,val.size()-init);
-        for (wsregex_iterator i(w.begin(), w.end(), *wpattern); i != end; ++i)
+
+        for (wsregex_iterator i(w.begin(), w.end(), *wpattern); i != end; ++i) {
             v.push_back(i->position());
+        }
     }
     else {
-        for (wsregex_iterator i(val.begin(), val.end(), *wpattern); i != end; ++i)
+        for (wsregex_iterator i(val.begin(), val.end(), *wpattern); i != end; ++i) {
             v.push_back(i->position());
+        }
     }
 }
 
-bool Tamguposixregularexpression::search(wstring& w, long& f, long& l, long init) {
+bool Tamguposixregularexpression::search(wstring& w, long& b, long& e, long init) {
     if (pattern == NULL)
         return false;
 
     wsmatch result;
-    f = -1;
+    b = au_error;
 
-    
     if (init) {
         if (init >= w.size())
             return false;
     
         wstring val=w.substr(init,w.size()-init);
+
         if (regex_search(val, result, *wpattern)) {
-            f = result.position();
-            l = f+result.length();
+            b = result.position();
+            e = b + result.length();
             return true;
         }
         return false;
     }
 
     if (regex_search(w, result, *wpattern)) {
-        f = result.position();
-        l = f+result.length();
+        b = result.position();
+        e = b + result.length();
         return true;
     }
     
     return false;
 }
 
-bool Tamguposixregularexpression::search(string& w, long& f, long& l, long init) {
+bool Tamguposixregularexpression::search(string& w, long& b, long& e, long init) {
     if (pattern == NULL)
         return false;
     
     smatch result;
-    f = -1;
+    b = au_error;
     
     if (init) {
         if (init >= w.size())
@@ -472,30 +490,30 @@ bool Tamguposixregularexpression::search(string& w, long& f, long& l, long init)
         
         string val=w.substr(init,w.size()-init);
         if (regex_search(val, result, *pattern)) {
-            f = result.position();
-            l = f+result.length();
+            b = result.position();
+            e = b + result.length();
             return true;
         }
         return false;
     }
     
     if (regex_search(w, result, *pattern)) {
-        f = result.position();
-        l = f+result.length();
+        b = result.position();
+        e = b + result.length();
         return true;
     }
     
     return false;
 }
 
-bool Tamguposixregularexpression::searchlast(wstring& w, long& f, long& l, long init) {
+bool Tamguposixregularexpression::searchlast(wstring& w, long& b, long& e, long init) {
     if (pattern == NULL)
         return false;
 
     const wsregex_iterator end;
 
     wsmatch result;
-    f = -1;
+    b = au_error;
     
     
     if (init) {
@@ -503,60 +521,62 @@ bool Tamguposixregularexpression::searchlast(wstring& w, long& f, long& l, long 
             return false;
         
         wstring val=w.substr(init,w.size()-init);
+        
         for (wsregex_iterator i(val.begin(), val.end(), *wpattern); i != end; ++i) {
-            f = i->position();
-            l = f+i->length();
+            b = i->position();
+            e = b + i->length();
         }
 
-        if (f != -1)
+        if (b != au_error)
             return true;
 
         return false;
     }
     
     for (wsregex_iterator i(w.begin(), w.end(), *wpattern); i != end; ++i) {
-        f = i->position();
-        l = f+i->length();
+        b = i->position();
+        e = b + i->length();
     }
 
-    if (f != -1)
+    if (b != au_error)
         return true;
 
     return false;
 }
 
-bool Tamguposixregularexpression::searchlast(string& w, long& f, long& l, long init) {
+bool Tamguposixregularexpression::searchlast(string& w, long& b, long& e, long init) {
     if (pattern == NULL)
         return false;
     
     const sregex_iterator end;
     
     smatch result;
-    f = -1;
-    
+    b = au_error;
     
     if (init) {
         if (init >= w.size())
             return false;
         
         string val=w.substr(init,w.size()-init);
+        
         for (sregex_iterator i(val.begin(), val.end(), *pattern); i != end; ++i) {
-            f = i->position();
-            l = f+i->length();
+            b = i->position();
+            e = b + i->length();
         }
         
-        if (f != -1)
+        if (b != au_error)
             return true;
         
         return false;
     }
     
+
     for (sregex_iterator i(w.begin(), w.end(), *pattern); i != end; ++i) {
-        f = i->position();
-        l = f+i->length();
+        b = i->position();
+        e = b + i->length();
     }
     
-    if (f != -1)
+    if (b != au_error)
         return true;
     
     return false;
@@ -763,10 +783,16 @@ Tamgu* Tamguposixregularexpression::in(Tamgu* context, Tamgu* a, short idthread)
         
         if (v->isNumber()) {
             wstring val = a->UString();
+            bool conv = CheckNeedConversion(val);
+            long d, f;
             const wsregex_iterator end;
             for (wsregex_iterator i(val.begin(), val.end(), *wpattern); i != end; ++i) {
-                v->storevalue(i->position());
-                v->storevalue(i->position()+i->length());
+                d = i->position();
+                f = i->position() + i->length();
+                if (conv)
+                    conversionpostochar(val,d,f);
+                v->storevalue(d);
+                v->storevalue(f);
             }
             return v;
         }
@@ -808,9 +834,11 @@ Tamgu* Tamguposixregularexpression::in(Tamgu* context, Tamgu* a, short idthread)
     if (context->isNumber()) {
         wsmatch result;
         wstring val = a->UString();
-        if (regex_search(val, result, *wpattern) == true)
+        if (regex_search(val, result, *wpattern) == true) {
+            if (CheckNeedConversion(val))
+                return globalTamgu->Provideint(conversionpostochar(val,result.position()));
             return globalTamgu->Provideint(result.position());
-        
+        }
         return aMINUSONE;
     }
     
@@ -1237,7 +1265,7 @@ void Au_state::addrule(Au_arc* r) {
 }
 
 //----------------------------------------------------------------
-//A bit of explanation... If the string is UTF16, then getachar can modify "i", when it returns
+//A bit of explanation... If the string is UTF16, then getechar can modify "i", when it returns
 //This is why we need to keep the current position before calling the function
 //In the case of 32 bits wstring, this variable is useless... i won't budge after a call to getachar...
 #ifdef WSTRING_IS_UTF16
@@ -1248,6 +1276,9 @@ void Au_state::addrule(Au_arc* r) {
 #endif
 
 bool Au_state::match(wstring& w, long i) {
+    if (status == an_error)
+        return false;
+
     if (i==w.size()) {
         if (isend())
             return true;
@@ -1255,7 +1286,7 @@ bool Au_state::match(wstring& w, long i) {
     }
 
 	_d_current_i
-    TAMGUCHAR c = getachar(w, i);
+    TAMGUCHAR c = getechar(w, i);
 
     for (long j=0;j<arcs.last;j++) {
         switch(arcs[j]->action->compare(c)) {
@@ -1304,7 +1335,7 @@ bool Au_arc::get(wstring& w, long i, hmap<long,bool>& rules) {
         return false;
     
 	_d_current_i
-    TAMGUCHAR c = getachar(w, i);
+    TAMGUCHAR c = getechar(w, i);
 
     switch(action->compare(c)) {
         case 0:
@@ -1320,22 +1351,9 @@ bool Au_arc::get(wstring& w, long i, hmap<long,bool>& rules) {
 bool Au_state::get(wstring& w, long i, hmap<long,bool>& rules) {
     long j;
     
-    if (negation) {
-        for (j=0;j<arcs.last;j++) {
-            if (arcs[j]->get(w,i,rules))
-                return false;
-        }
-
-        for (j=0;j<arcs.last;j++) {
-            if (arcs[j]->state->get(w,i+1,rules))
-                return true;
-        }
-    }
-    else {
-        for (j=0;j<arcs.last;j++) {
-            if (arcs[j]->get(w,i,rules))
-                return true;
-        }
+    for (j=0;j<arcs.last;j++) {
+        if (arcs[j]->get(w,i,rules))
+            return true;
     }
     
     if (i==w.size() && isend()) {
@@ -1354,256 +1372,284 @@ bool Au_automaton::get(wstring& w, hmap<long,bool>& rules) {
 //----------------------------------------------------------------
 
 long Au_state::loop(wstring& w, long i) {
+    if (status == an_error)
+        return au_stop;
+    
     if (i==w.size()) {
         if (isend())
             return i;
-        return -1;
+        return au_error;
     }
 
     if (status & an_beginning) {
         if (i)
-            return -1;
+            return au_error;
     }
     
-    long l=-1;
+    long l = au_error;
     long j;
 	_d_current_i
 
-    TAMGUCHAR c = getachar(w, i);
+    TAMGUCHAR c = getechar(w, i);
 
-    if (negation) {
-        //All is 0 or all is 1...
-        for (j=0;j<arcs.last;j++) {
-            switch(arcs[j]->action->compare(c)) {
-                case 0:
-                    continue;
-                case 1:
-                    return -1;
-                case 2:
-					l = arcs[j]->state->loop(w, _current_i);
-                    if (l!=-1)
-                        return -1;
-            }
-        }
-        
-        for (j=0;j<arcs.last;j++) {
-            if (!arcs[j]->action->compare(c)) {
-                l=arcs[j]->state->loop(w,i+1);
-                if (l != -1)
-                    return l;
-            }
-        }
-
-        if (isend())
-            return i;
-        
-        return -1;
-    }
-    
     for (j=0;j<arcs.last;j++) {
         switch(arcs[j]->action->compare(c)) {
             case 0:
-                l=-1;
+                l = au_error;
                 continue;
             case 1:
-                l=arcs[j]->state->loop(w,i+1);
+                l = arcs[j]->state->loop(w,i+1);
                 break;
             case 2:
 				l = arcs[j]->state->loop(w, _current_i);
         }
-        if (l!=-1)
+        if (l != au_error) {
+            if (l == au_stop)
+                break;
             return l;
+        }
     }
     
-
     if (isend()) {
         if (status & an_ending) {
             if (i != w.size())
-                return -1;
+                return au_error;
         }
         return i;
     }
     
-    return -1;
+    return au_error;
 }
 
 long Au_automaton::find(wstring& w) {
     long sz = w.size();
-    for (long f=0;f<sz;f++) {
-        if (first->loop(w,f)!=-1)
-            return convertpostochar(w, 0, f);
+    for (long d=0;d<sz;d++) {
+        if (first->loop(w,d) != au_error) {
+            if (CheckNeedConversion(w))
+                return conversionpostochar(w,d);
+            return d;
+        }
     }
-    return -1;
+    return au_error;
 }
 
 long Au_automaton::find(wstring& w, long i) {
     long sz = w.size();
-    for (long f = i ; f < sz; f++) {
-        if (first->loop(w,f)!=-1)
-            return convertpostochar(w, 0, f);
+    for (long d = i ; d < sz; d++) {
+        if (first->loop(w,d) != au_error) {
+            if (CheckNeedConversion(w))
+                return conversionpostochar(w,d);
+            return d;
+        }
     }
-    return -1;
+    return au_error;
 }
 
 bool Au_automaton::search(wstring& w) {
     long sz = w.size();
-    for (long f=0;f<sz;f++) {
-        if (first->loop(w,f)!=-1)
+    for (long d=0;d<sz;d++) {
+        if (first->loop(w,d) != au_error)
             return true;
     }
     return false;
 }
 
-bool Au_automaton::search(wstring& w, long& f, long& l, long init) {
+bool Au_automaton::search(wstring& w, long& b, long& e, long init) {
     long sz = w.size();
-    for (f=init;f<sz;f++) {
-        l=first->loop(w,f);
-        if (l!=-1) {
-            l = convertpostochar(w, 0, l);
-            f = convertpostochar(w, 0, f);
+    for (b=init;b<sz;b++) {
+        e=first->loop(w,b);
+        if (e != au_error) {
+            if (CheckNeedConversion(w)) {
+                conversionpostochar(w,b,e);
+            }
             return true;
         }
     }
-    f=-1;
+    b=au_error;
     return false;
 }
 
-bool Au_automaton::search(string& s, long& f, long& l, long init) {
+bool Au_automaton::search(string& s, long& b, long& e, long init) {
     wstring w;
     long sz = s.size();
-    s_utf8_to_unicode(w, USTR(s), sz);
-    if (init)
-        init = c_bytetocharposition(USTR(s), init);
-    if (search(w, f, l, init)) {
-        long fc=f;
-        f = c_chartobyteposition(USTR(s),sz, f);
-        //we only need to scan the characters between f and l
-        l = f + c_chartobyteposition(USTR(s)+f, sz-f, l-fc);
-        return true;
+    if (CheckNeedConversion(s)) {
+        s_utf8_to_unicode(w, USTR(s), sz);
+        if (init)
+            init = c_bytetocharposition(USTR(s), init);
+        if (search(w, b, e, init)) {
+            c_chartobyteposition(USTR(s),sz, b, e);
+            return true;
+        }
+    }
+    else {
+        for (long i = 0; i < sz; i++)
+            w +=  (wchar_t)(uchar)s[i] ;
+        if (search(w, b, e, init))
+            return true;
     }
     return false;
 }
 
-bool Au_automaton::searchc(string& s, long& f, long& l, long& fc, long init) {
+bool Au_automaton::searchc(string& s, long& b, long& e, long& fc, long init) {
     wstring w;
     long sz = s.size();
-    s_utf8_to_unicode(w, USTR(s), sz);
-    if (init)
-        init = c_bytetocharposition(USTR(s), init);
-    if (search(w, f, l, init)) {
-        fc=f;
-        f = c_chartobyteposition(USTR(s),sz, f);
-        //we only need to scan the characters between f and l
-        l = f + c_chartobyteposition(USTR(s)+f, sz-f, l-fc);
-        return true;
+    if (CheckNeedConversion(s)) {
+        s_utf8_to_unicode(w, USTR(s), sz);
+        if (init)
+            init = c_bytetocharposition(USTR(s), init);
+        if (search(w, b, e, init)) {
+            fc=b;
+            c_chartobyteposition(USTR(s),sz, b, e);
+            return true;
+        }
+    }
+    else {
+        for (long i = 0; i < sz; i++)
+            w +=  (wchar_t)(uchar)s[i] ;
+        if (search(w, b, e, init)) {
+            fc=b;
+            return true;
+        }
     }
     return false;
 }
 
 //The string is not a UTF8 string, no need for char to byte position conversion, nor to complex string conversion
-bool Au_automaton::searchraw(string& s, long& f, long& l, long init) {
+bool Au_automaton::searchraw(string& s, long& b, long& e, long init) {
     wstring w;
     long sz = s.size();
     w.reserve(sz);
     for (long i =0; i< sz; i++)
         w +=  (wchar_t)(uchar)s[i] ;
     
-    if (search(w, f, l, init))
+    if (search(w, b, e, init))
         return true;
     return false;
 }
 
 bool Au_automaton::searchlast(wstring& w, long& b, long& e, long init) {
-    b=-1;
-    long l;
+    b=au_error;
+    long f;
     long sz = w.size();
-    for (long f=init;f<sz;f++) {
-        l=first->loop(w,f);
-        if (l!=-1) {
-            b=f;
-            e=l;
-            f=l-1;
+    for (long d=init;d<sz;d++) {
+        f=first->loop(w,d);
+        if (f!=au_error) {
+            b=d;
+            e=f;
+            d=f-1;
         }
     }
     
-    if (b!=-1) {
-        b = convertpostochar(w, 0, b);
-        e = convertpostochar(w, 0, e);
+    if (b!=au_error) {
+        if (CheckNeedConversion(w)) {
+            conversionpostochar(w,b,e);
+        }
         return true;
     }
     return false;
 }
 
-bool Au_automaton::searchlast(string& s, long& f, long& l, long init) {
+bool Au_automaton::searchlast(string& s, long& b, long& e, long init) {
     wstring w;
     long sz = s.size();
     
-    s_utf8_to_unicode(w, USTR(s), sz);
-    if (init)
-        init = c_bytetocharposition(USTR(s), init);
-    
-    if (searchlast(w, f, l, init)) {
-        long fc = f;
-        f = c_chartobyteposition(USTR(s),sz, f);
-        //we only need to scan the characters between f and l
-        l = f + c_chartobyteposition(USTR(s)+f, sz-f, l-fc);
-        return true;
+    if (CheckNeedConversion(s)) {
+        s_utf8_to_unicode(w, USTR(s), sz);
+        if (init)
+            init = c_bytetocharposition(USTR(s), init);
+        
+        if (searchlast(w, b, e, init)) {
+            c_chartobyteposition(USTR(s),sz, b, e);
+            return true;
+        }
+    }
+    else {
+        for (long i = 0; i < sz; i++)
+            w +=  (wchar_t)(uchar)s[i] ;
+        if (searchlast(w, b, e, init))
+            return true;
     }
     
     return false;
 }
 
-bool Au_automaton::searchlastc(string& s, long& f, long& l, long& fc, long init) {
+bool Au_automaton::searchlastc(string& s, long& b, long& e, long& fc, long init) {
     wstring w;
     long sz = s.size();
     
-    s_utf8_to_unicode(w, USTR(s), sz);
-    if (init)
-        init = c_bytetocharposition(USTR(s), init);
-    
-    if (searchlast(w, f, l, init)) {
-        fc=f;
-        f = c_chartobyteposition(USTR(s),sz, f);
-        //we only need to scan the characters between f and l
-        l = f + c_chartobyteposition(USTR(s)+f, sz-f, l-fc);
-        return true;
+    if (CheckNeedConversion(s)) {
+        s_utf8_to_unicode(w, USTR(s), sz);
+        if (init)
+            init = c_bytetocharposition(USTR(s), init);
+        
+        if (searchlast(w, b, e, init)) {
+            fc = b;
+            c_chartobyteposition(USTR(s),sz, b, e);
+            return true;
+        }
     }
-    
+    else {
+        for (long i = 0; i < sz; i++)
+            w +=  (wchar_t)(uchar)s[i] ;
+        if (searchlast(w, b, e, init)) {
+            fc=b;
+            return true;
+        }
+    }
     return false;
 }
 
 //The string is not a UTF8 string, no need for char to byte position conversion, nor to complex string conversion
-bool Au_automaton::searchlastraw(string& s, long& f, long& l, long init) {
+bool Au_automaton::searchlastraw(string& s, long& b, long& e, long init) {
     wstring w;
     long sz = s.size();
     w.reserve(sz);
     for (long i =0; i< sz; i++)
         w +=  (wchar_t)(uchar)s[i] ;
-    
-    return searchlast(w, f, l, init);
+    return searchlast(w, b, e, init);
 }
 
 //----------------------------------------------------------------
 void Au_automaton::searchall(wstring& w, vector<long>& res, long init) {
     long f;
     long sz = w.size();
-    for (long l=init;l<sz;l++) {
-        f=first->loop(w,l);
-        if (f!=-1) {
-            res.push_back(convertpostochar(w, 0, l));
-            res.push_back(convertpostochar(w, 0, f));
-            l=f-1;
+    bool conv = CheckNeedConversion(w);
+    
+    for (long d=init;d<sz;d++) {
+        f=first->loop(w,d);
+        if (f!=au_error) {
+            if (conv) {
+                init = f;
+                conversionpostochar(w,d,init);
+                res.push_back(d);
+                res.push_back(init);
+            }
+            else {
+                res.push_back(d);
+                res.push_back(f);
+            }
+            d=f-1;
         }
     }
 }
 
+
 void Au_automaton::searchall(string& s, vector<long>& res, long init) {
     wstring w;
-    s_utf8_to_unicode(w, USTR(s), s.size());
-    if (init)
-        init = c_bytetocharposition(USTR(s), init);
-    searchall(w, res, init);
-    v_convertchartobyteposition(USTR(s), res);
+    if (CheckNeedConversion(s)) {
+        s_utf8_to_unicode(w, USTR(s), s.size());
+        if (init)
+            init = c_bytetocharposition(USTR(s), init);
+        searchall(w, res, init);
+        v_convertchartobyteposition(USTR(s), res);
+    }
+    else {
+        long sz = s.size();
+        w.reserve(sz);
+        for (long i =0; i< sz; i++)
+            w +=  (wchar_t)(uchar)s[i] ;
+        searchall(w, res, init);
+    }
 }
 
 //The string is not a UTF8 string, no need for char to byte position conversion
@@ -1622,7 +1668,7 @@ bool Au_arc::find(wstring& w, wstring& wsep, long i, vector<long>& res) {
         return false;
     
 	_d_current_i
-    TAMGUCHAR c = getachar(w, i);
+    TAMGUCHAR c = getechar(w, i);
 
     switch(action->compare(c)) {
         case 0:
@@ -1643,42 +1689,19 @@ bool Au_state::find(wstring& w, wstring& wsep, long i, vector<long>& res) {
     
     if (status & an_beginning) {
         if (i)
-            return -1;
+            return au_error;
     }
     
-    if (negation) {
-        for (j=0;j<arcs.last;j++) {
-            if (arcs[j]->find(w, wsep, i, res))
-                return false;
-
+    for (j=0;j<arcs.last;j++) {
+        if (!arcs[j]->find(w, wsep, i, res)) {
             while (ps != res.size()) {
                 res.pop_back();
             }
         }
-        
-        for (j=0;j<arcs.last;j++) {
-            res.push_back(i + 1);
-            if (!arcs[j]->state->find(w, wsep, i + 1, res)) {
-                while (ps != res.size()) {
-                    res.pop_back();
-                }
-            }
-            else
-                return true;
-        }
+        else
+            return true;
     }
-    else {
-        for (j=0;j<arcs.last;j++) {
-            if (!arcs[j]->find(w, wsep, i, res)) {
-                while (ps != res.size()) {
-                    res.pop_back();
-                }
-            }
-            else
-                return true;
-        }
-    }
-
+    
     if (isend()) {
         if (status & an_ending) {
             if (i != w.size())
@@ -1704,6 +1727,33 @@ void Au_automaton::find(string& s, string& sep, vector<long>& res) {
 void Au_automaton::find(wstring& w, wstring& wsep, vector<long>& res) {
     first->find(w,wsep,0,res);
 }
+//----------------------------------------------------------------
+//The next two methods return raw indexes... No conversion needed
+//This is used in Tamguregularexpression::in
+bool Au_automaton::bytesearch(wstring& w, long& b, long& e) {
+    long sz = w.size();
+    for (b=0; b<sz; b++) {
+        e=first->loop(w,b);
+        if (e!=au_error)
+            return true;
+    }
+    b=au_error;
+    return false;
+}
+
+
+void Au_automaton::bytesearchall(wstring& w, vector<long>& res) {
+    long f;
+    long sz = w.size();
+    for (long d=0; d<sz; d++) {
+        f=first->loop(w,d);
+        if (f!=au_error) {
+            res.push_back(d);
+            res.push_back(f);
+            d=f-1;
+        }
+    }
+}
 
 //----------------------------------------------------------------
 
@@ -1721,14 +1771,14 @@ void Au_state::merge(Au_state* a) {
             continue;
         }
         
-        long found=-1;
+        long found=au_error;
         for (long j=0;j<sz;j++) {
             if (a->arcs[i]->same(arcs[j])) {
                 found=j;
                 break;
             }
         }
-        if (found==-1)
+        if (found==au_error)
             arcs.push_back(a->arcs[i]);
         else {
             arcs[found]->state->merge(a->arcs[i]->state);
@@ -1878,6 +1928,7 @@ bool Au_automate::compiling(wstring& w,long r) {
 Au_state* Au_state::build(Au_automatons* aus, long i,vector<wstring>& toks, vector<aut_actions>& types, Au_state* common) {
     mark=false;
     Au_arc* ar;
+    bool nega = false;
 
     if (i==toks.size()) {
         status |= an_end;
@@ -1891,7 +1942,7 @@ Au_state* Au_state::build(Au_automatons* aus, long i,vector<wstring>& toks, vect
     
     if (types[i] == aut_negation) {
         ++i;
-        negation = true;
+        nega = true;
     }
     
     long j;
@@ -1900,8 +1951,9 @@ Au_state* Au_state::build(Au_automatons* aus, long i,vector<wstring>& toks, vect
     vector<wstring> ltoks;
     vector<aut_actions> ltypes;
     Au_state* ret;
+    uchar localtype = types[i];
     
-    switch(types[i]) {
+    switch(localtype) {
         case aut_ocrl_brk: { //{..}
             i++;
             Au_state* commonend=aus->state();
@@ -1931,7 +1983,7 @@ Au_state* Au_state::build(Au_automatons* aus, long i,vector<wstring>& toks, vect
                         while (i<toks.size() && count) {
                             ltoks.push_back(toks[i]);
                             ltypes.push_back(types[i]);
-                            if (types[i]==current_action) //which can other sub-elements of the same kind...
+                            if (types[i]==current_action) //which can be other sub-elements of the same kind...
                                 count++;
                             else {
                                 if (types[i]>=lbound && types[i]<=hbound) //the stop value, with a control over the potential embedding...
@@ -1960,7 +2012,7 @@ Au_state* Au_state::build(Au_automatons* aus, long i,vector<wstring>& toks, vect
                         break;
                     }
                     default:
-                        ar=build(aus, toks[i],types[i],commonend);
+                        ar=build(aus, toks[i],types[i],commonend, false);
                         if (ar==NULL)
                             return NULL;
                         locals.push_back(ar);
@@ -1971,7 +2023,17 @@ Au_state* Au_state::build(Au_automatons* aus, long i,vector<wstring>& toks, vect
             if (i==toks.size())
                 return NULL;
             
-            if (types[i]==aut_ccrl_brk_plus || types[i]==aut_ccrl_brk_star) {//The plus and the star
+            if (types[i]==aut_ccrl_brk_plus || types[i]==aut_ccrl_brk_star) {//The plus and the star for the disjunction {...}
+                if (nega) {
+                    commonend->status = an_error;
+                    //in this case, commonend is the path to error...
+                    //we create a parallel path, which lead to either a loop or a
+                    ar=aus->arc(new Au_any(aut_any));
+                    arcs.push_back(ar);
+                    commonend = ar->state;
+                    locals.push_back(ar);
+                }
+                
                 for (j=0;j<locals.size();j++)
                     commonend->arcs.push_back(locals[j]);
                 if (types[i]==aut_ccrl_brk_star) {
@@ -1981,9 +2043,13 @@ Au_state* Au_state::build(Au_automatons* aus, long i,vector<wstring>& toks, vect
                     commonend=ar->state;
                 }
             }
+            
             return commonend->build(aus, i+1,toks,types,common);
         }
         case aut_opar: {//(..)
+            if (nega)
+                return NULL;
+
             i++;
             count=1;
             while (i<toks.size()) {
@@ -2083,14 +2149,14 @@ Au_state* Au_state::build(Au_automatons* aus, long i,vector<wstring>& toks, vect
         return ret;
     }
 
-    Au_arc* retarc=build(aus, toks[i], types[i],next);
+    Au_arc* retarc=build(aus, toks[i], localtype,next, nega);
     if (retarc==NULL)
         return NULL;
 
     next = retarc->state->build(aus, i+1,toks,types,common);
     if (next != NULL && next->isend()) {
         //If the current element is a *, then it can be skipped up to the end...
-        switch(types[i]) {
+        switch(localtype) {
             case aut_meta_star:
             case aut_reg_star:
             case aut_any_star:
@@ -2100,7 +2166,7 @@ Au_state* Au_state::build(Au_automatons* aus, long i,vector<wstring>& toks, vect
     return next;
 }
 
-Au_arc* Au_state::build(Au_automatons* aus, wstring& token, uchar type, Au_state* common) {
+Au_arc* Au_state::build(Au_automatons* aus, wstring& token, uchar type, Au_state* common, bool nega) {
     //First we scan the arcs, in case, it was already created...
     Au_any* a=NULL;
     
@@ -2124,6 +2190,8 @@ Au_arc* Au_state::build(Au_automatons* aus, wstring& token, uchar type, Au_state
         default:
             return NULL;
     }
+    
+    a->setvero(nega);
     
     //we check if we already have such an arc...
     for (long j=0;j<arcs.size();j++) {

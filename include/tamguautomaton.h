@@ -19,7 +19,7 @@
 
 #include "tamguboost.h"
 
-typedef enum{ an_epsilon=0, an_end=1, an_remove=2, an_meta=3, an_negation=4, an_automaton=5, an_regex=6, an_token=7, an_label=8, an_any=9, an_char=10, an_metaplus=11, an_metastar=12, an_charplus=13, an_charstar=14, an_anyplus=15, an_rule=16, an_lemma=17, an_orlabels=18, an_andlabels=19, an_final=32, an_beginning=64, an_ending=128} an_type;
+typedef enum{ an_epsilon=0, an_end=1, an_remove=2, an_meta=3, an_negation=4, an_automaton=5, an_regex=6, an_token=7, an_label=8, an_any=9, an_char=10, an_metaplus=11, an_metastar=12, an_charplus=13, an_charstar=14, an_anyplus=15, an_rule=16, an_lemma=17, an_orlabels=18, an_andlabels=19, an_error=20, an_final=32, an_beginning=64, an_ending=128} an_type;
 
 typedef enum{aut_reg=1,aut_reg_plus,aut_reg_star,
     aut_meta, aut_meta_plus, aut_meta_star,
@@ -48,14 +48,16 @@ Au_automate* getautomate(Tamgu* tmg);
 class Au_state;
 class Au_any {
 public:
+    bool vero;
     an_type type;
     
     Au_any(unsigned char t) {
         type=(an_type)t;
+        vero = true;
     }
     
     virtual bool same(Au_any* a) {
-        if (a->Type()==type)
+        if (a->Type()==type && a->vero == vero)
             return true;
         return false;
     }
@@ -65,7 +67,11 @@ public:
     }
     
     virtual char compare(TAMGUCHAR c) {
-        return true;
+        return vero;
+    }
+    
+    void setvero(bool neg) {
+        vero = !neg;
     }
 };
 
@@ -78,15 +84,15 @@ public:
     }
     
     bool same(Au_any* a) {
-        if (a->Type()==type && ((Au_char*)a)->action==action)
+        if (a->Type()==type && a->vero == vero && ((Au_char*)a)->action==action)
             return true;
         return false;
     }
 
     char compare(TAMGUCHAR c) {
         if (action==c)
-            return true;
-        return false;
+            return vero;
+        return !vero;
     }
     
 };
@@ -97,7 +103,7 @@ public:
     Au_epsilon()  : Au_any(an_epsilon) {}
     
     bool same(Au_any* a) {
-        if (a->Type()==an_epsilon)
+        if (a->Type()==an_epsilon && a->vero == vero)
             return true;
         return false;
     }
@@ -118,7 +124,7 @@ public:
     }
     
     bool same(Au_any* a) {
-        if (a->Type()==type && ((Au_meta*)a)->action==action)
+        if (a->Type()==type && a->vero == vero && ((Au_meta*)a)->action==action)
             return true;
         return false;
     }
@@ -128,47 +134,61 @@ public:
         
         switch(action) {
             case 'C':
-                return c_is_upper(car);
+                if (c_is_upper(car))
+                    return vero;
+                return !vero;
             case 'e':
-                return c_is_emoji(car);
+                if (c_is_emoji(car))
+                    return vero;
+                return !vero;
             case 'E':
-                return c_is_emojicomp(car);
+                if (c_is_emojicomp(car))
+                    return vero;
+                return !vero;
             case 'H':
-                return c_is_hangul(car);
+                if (c_is_hangul(car))
+                    return vero;
+                return !vero;
             case 'S':
                 if (car <= 32 || car == 160)
-                    return true;
-                return false;
+                    return vero;
+                return !vero;
             case 'a':
                 if (car=='_' || c_is_alpha(car))
-                    return true;
-                return false;
+                    return vero;
+                return !vero;
             case 'c':
-                return c_is_lower(car);
+                if (c_is_lower(car))
+                    return vero;
+                return !vero;
             case 'd':
-                return c_is_digit(car);
+                if (c_is_digit(car))
+                    return vero;
+                return !vero;
             case 'n':
                 if (car == 160)
-                    return true;
-                return false;
+                    return vero;
+                return !vero;
             case 'p':
-                return c_is_punctuation(car);
+                if (c_is_punctuation(car))
+                    return vero;
+                return !vero;
             case 'r':
                 if (car == 10 || car == 13)
-                    return true;
-                return false;
+                    return vero;
+                return !vero;
             case 's':
                 if (car == 9 || car == 32 || car == 160)
-                    return true;
-                return false;
+                    return vero;
+                return !vero;
             case 'x': //hexadecimal character
                 if ((car>='A' && car <= 'F') || (car>='a' && car <= 'f') || (car >= '0' && car <= '9'))
-                    return true;
-                return false;
+                    return vero;
+                return !vero;
             default:
                 if (action == car)
-                    return true;
-                return false;
+                    return vero;
+                return !vero;
         }
     }
 };
@@ -210,10 +230,8 @@ public:
     VECTE<Au_arc*> arcs;
     uchar status;
     unsigned char mark;
-    bool negation;
     
     Au_state() {
-        negation = false;
         status=0;
         mark=false;
     }
@@ -257,7 +275,7 @@ public:
     void addrule(Au_arc*);
     void merge(Au_state*);
     
-    Au_arc* build(Au_automatons* g, wstring& token, uchar type, Au_state* common);
+    Au_arc* build(Au_automatons* g, wstring& token, uchar type, Au_state* common, bool nega);
     Au_state* build(Au_automatons* g, long i,vector<wstring>& tokens, vector<aut_actions>& types, Au_state* common);
 };
 
@@ -294,6 +312,7 @@ public:
     long find(wstring& w);
     long find(wstring& w, long i);
 
+
     bool search(wstring& w, long& first, long& last, long init = 0);
     bool search(string& w, long& first, long& last, long init = 0);
     bool searchc(string& w, long& first, long& last, long& firstc, long init = 0);
@@ -303,6 +322,9 @@ public:
     bool searchlast(string& w, long& first, long& last, long init = 0);
     bool searchlastc(string& w, long& first, long& last, long& firstc, long init = 0);
     bool searchlastraw(string& w, long& first, long& last, long init = 0);
+
+    bool bytesearch(wstring& w, long& first, long& last);
+    void bytesearchall(wstring& w, vector<long>& res);
 
     void searchall(wstring& w, vector<long>& res, long init = 0);
     void searchall(string& w, vector<long>& res, long init = 0);
