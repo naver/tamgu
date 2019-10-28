@@ -1911,7 +1911,6 @@ bool Au_automate::compiling(wstring& w,long r) {
 
 //----------------------------------------------------------------------------------------
 #define an_mandatory 8
-
 Au_state* Au_state::build(Au_automatons* aus, long i,vector<wstring>& toks, vector<aut_actions>& types, Au_state* common) {
     mark=false;
     Au_arc* ar;
@@ -2166,6 +2165,27 @@ Au_state* Au_state::build(Au_automatons* aus, long i,vector<wstring>& toks, vect
     return next;
 }
 
+bool checkmeta(wstring& tok) {
+    switch(tok[1]) {
+        case 'C':
+        case 'E':
+        case 'H':
+        case 'S':
+        case 'a':
+        case 'c':
+        case 'd':
+        case 'e':
+        case 'n':
+        case 'p':
+        case 'r':
+        case 's':
+        case 'x': //hexadecimal character
+            return true;
+        default:
+            return false;
+    }
+}
+
 Au_arc* Au_state::build(Au_automatons* aus, wstring& token, uchar type, Au_state* common, bool nega) {
     //First we scan the arcs, in case, it was already created...
     Au_any* a=NULL;
@@ -2180,7 +2200,10 @@ Au_arc* Au_state::build(Au_automatons* aus, wstring& token, uchar type, Au_state
         case aut_meta:
         case aut_meta_plus: //%x+
         case aut_meta_star: //%x*
-            a=new Au_meta(token[1], type);
+            if (checkmeta(token)) //if we are dealing with an escaped character
+                a = new Au_meta(token[1], type);
+            else
+                a = new Au_char(token[1], type);
             break;
         case aut_reg:
         case aut_reg_plus: //x+
