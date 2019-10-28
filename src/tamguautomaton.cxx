@@ -1122,20 +1122,6 @@ static bool tokenize(wstring& rg, vector<wstring>& stack, vector<aut_actions>& v
                     type = aut_meta;
                     i++;
                     sub += rg[i];
-                    //Specific for emojis... we insert [%e%E*]
-                    if (sub == L"%e") {
-                        sub = L'[';
-                        type = aut_obrk;
-                        stack.push_back(sub);
-                        vtypes.push_back((aut_actions)type);
-                        stack.push_back(L"%e");
-                        vtypes.push_back(aut_meta);
-                        stack.push_back(L"%E*");
-                        type = aut_meta + 2;
-                        vtypes.push_back((aut_actions)type);
-                        type = aut_cbrk;
-                        sub = L']';
-                    }
                 }
                 break;
             case '~': // negation of the next character
@@ -1276,7 +1262,7 @@ void Au_state::addrule(Au_arc* r) {
 #endif
 
 bool Au_state::match(wstring& w, long i) {
-    if (status == an_error)
+    if ((status&an_error) == an_error)
         return false;
 
     if (i==w.size()) {
@@ -1372,7 +1358,7 @@ bool Au_automaton::get(wstring& w, hmap<long,bool>& rules) {
 //----------------------------------------------------------------
 
 long Au_state::loop(wstring& w, long i) {
-    if (status == an_error)
+    if ((status & an_error) == an_error)
         return au_stop;
     
     if (i==w.size()) {
@@ -1924,6 +1910,7 @@ bool Au_automate::compiling(wstring& w,long r) {
 }
 
 //----------------------------------------------------------------------------------------
+#define an_mandatory 8
 
 Au_state* Au_state::build(Au_automatons* aus, long i,vector<wstring>& toks, vector<aut_actions>& types, Au_state* common) {
     mark=false;
@@ -2022,18 +2009,20 @@ Au_state* Au_state::build(Au_automatons* aus, long i,vector<wstring>& toks, vect
             
             if (i==toks.size())
                 return NULL;
-            
+
+            if (nega) {
+                commonend->status = an_error;
+                //in this case, commonend is the path to error...
+                //we create a parallel path, which lead to either a loop or a
+                ar=aus->arc(new Au_any(aut_any));
+                arcs.push_back(ar);
+                commonend = ar->state;
+                locals.push_back(ar);
+            }
+
+            //aut_ccrl_brk_plus: closing curly bracked+
+            //aut_ccrl_brk_star: closing curly bracked*
             if (types[i]==aut_ccrl_brk_plus || types[i]==aut_ccrl_brk_star) {//The plus and the star for the disjunction {...}
-                if (nega) {
-                    commonend->status = an_error;
-                    //in this case, commonend is the path to error...
-                    //we create a parallel path, which lead to either a loop or a
-                    ar=aus->arc(new Au_any(aut_any));
-                    arcs.push_back(ar);
-                    commonend = ar->state;
-                    locals.push_back(ar);
-                }
-                
                 for (j=0;j<locals.size();j++)
                     commonend->arcs.push_back(locals[j]);
                 if (types[i]==aut_ccrl_brk_star) {
@@ -2042,7 +2031,11 @@ Au_state* Au_state::build(Au_automatons* aus, long i,vector<wstring>& toks, vect
                     commonend->arcs.push_back(ar);
                     commonend=ar->state;
                 }
+                else
+                    commonend->status |= an_mandatory; //this is now an end to any automaton traversal...
             }
+            else
+                commonend->status |= an_mandatory;
             
             return commonend->build(aus, i+1,toks,types,common);
         }
@@ -2120,8 +2113,11 @@ Au_state* Au_state::build(Au_automatons* aus, long i,vector<wstring>& toks, vect
                     ar=aus->arc(new Au_epsilon(), ret);
                     arcs.push_back(ar);
                 }
+                else
+                    ret->status |= an_mandatory; //if it is a +, we expect at least one value, cannot be a potential end
             }
             else {
+                ret->status |= an_mandatory;
                 for (j=0;j<s.arcs.last;j++)
                     arcs.push_back(s.arcs[j]);
             }
@@ -2154,13 +2150,17 @@ Au_state* Au_state::build(Au_automatons* aus, long i,vector<wstring>& toks, vect
         return NULL;
 
     next = retarc->state->build(aus, i+1,toks,types,common);
-    if (next != NULL && next->isend()) {
+	    
+    if (next != NULL && next->isend() && !(next->status&an_mandatory)) {
         //If the current element is a *, then it can be skipped up to the end...
         switch(localtype) {
             case aut_meta_star:
             case aut_reg_star:
             case aut_any_star:
                 status |= an_end;
+                break;
+            default: //from now on, we are in a mandatory section
+                next->status |= an_mandatory;
         }
     }
     return next;
@@ -2210,6 +2210,7 @@ Au_arc* Au_state::build(Au_automatons* aus, wstring& token, uchar type, Au_state
         case aut_meta_plus: //+
         case aut_reg_plus:
         case aut_any_plus:
+            current->state->status |= an_mandatory; //we mark that this state as a mandatory one
             current->state->arcs.push_back(current); //the loop
             arcs.push_back(current);
             return current;
@@ -2222,6 +2223,7 @@ Au_arc* Au_state::build(Au_automatons* aus, wstring& token, uchar type, Au_state
             arcs.push_back(current);
             return current;
         default:
+            current->state->status |= an_mandatory; //we mark that this state as a mandatory one
             if (arcs.last>0) //We always insert our arc at the top to force its recognition before any loop...
                 arcs.insert(0,current);
             else
