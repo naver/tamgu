@@ -695,7 +695,8 @@ class Tamguivectorbuff : public Tamguivector {
 
                 values.clear();
                 used = false;
-                globalTamgu->ivectorempties.push_back(idx);
+                if (!globalTamgu->globalLOCK)
+                    globalTamgu->ivectorempties.push_back(idx);
             }
         }
     }
@@ -725,7 +726,7 @@ public:
         //---------------------------------------------------------------------------------------------------------------------
         //This SECTION is for your specific implementation...
         //Your personal variables here...
-    atomic_vector<long> values;
+    atomic_value_vector<long> values;
     bool isconst;
         //---------------------------------------------------------------------------------------------------------------------
     Tamgua_ivector(TamguGlobal* g, Tamgu* parent = NULL) : values(0, false), TamguContainer(g, parent) {

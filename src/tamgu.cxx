@@ -40,7 +40,7 @@
 #include "tamgutaskell.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 0.96.4 build 22";
+const char* tamgu_version = "Tamgu 0.96.4 build 25";
 
 Tamgu* booleantamgu[2];
 
@@ -136,6 +136,9 @@ Exchanging Tamgu* aNOTHING  = NULL;
 //For those who cannot tolerate non cleaned global variables...
 void FinalTamguConstantCleaning(void) {
     if (globalconstantes) {
+
+        delete aITERNULL ;
+
         delete  aNULL ;
         delete  aUNIVERSAL ;
         delete  aTRUE ;
@@ -192,7 +195,6 @@ void FinalTamguConstantCleaning(void) {
         delete aBREAKZERO ;
         delete aBREAKONE ;
         delete  aAFFECTATION ;
-        delete aITERNULL ;
         delete aFAIL ;
         delete aCUT ;
         delete aSTOP ;
@@ -704,11 +706,15 @@ TamguGlobal::~TamguGlobal() {
     if (gAutomatons!=NULL)
         delete gAutomatons;
 
+    FinalTamguConstantCleaning();
+    
     #ifdef GARBAGEFORDEBUG
     vector<Tamgu*> issues;
     vector<long> idissues;
     Garbaging(issues, idissues);
     garbage.clear();
+    if (issues.size())
+        cerr << "No fully cleaned:" << issues.size() << endl;
     #endif
 }
 
@@ -2983,12 +2989,13 @@ Exporting void TamguIndexbuff::Rollback() {
         right->Release();
 
     used = false;
-    globalTamgu->indexempties.push_back(idx);
+    if (!globalTamgu->globalLOCK)
+        globalTamgu->indexempties.push_back(idx);
 }
 
 Exporting TamguIndex* TamguGlobal::Provideindex(TamguIndex* init, short idthread) {
     if (globalLOCK)
-        return new TamguIndex(init, idthread);
+        return new TamguIndexthread(init, idthread);
 
     TamguIndexbuff* ke;
 

@@ -647,7 +647,8 @@ public:
    
                 used = false;
                 value = 0;
-                globalTamgu->fempties.push_back(idx);
+                if (!globalTamgu->globalLOCK)
+                    globalTamgu->fempties.push_back(idx);
             }
         }
 	}

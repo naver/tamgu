@@ -103,7 +103,8 @@ public:
         idthread = -1;
         if (used) {
             used = false;
-            globalTamgu->declempties.push_back(idx);
+            if (!globalTamgu->globalLOCK)
+                globalTamgu->declempties.push_back(idx);
             return;
         }
         delete this;
@@ -117,7 +118,8 @@ public:
         idthread = -1;
         if (used) {
             used = false;
-            globalTamgu->declempties.push_back(idx);
+            if (!globalTamgu->globalLOCK)
+                globalTamgu->declempties.push_back(idx);
             return;
         }
         delete this;

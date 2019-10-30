@@ -489,7 +489,8 @@ class Tamgumapssbuff : public Tamgumapss {
 
                 values.clear();
                 used = false;
-                globalTamgu->mapssempties.push_back(idx);
+                if (!globalTamgu->globalLOCK)
+                    globalTamgu->mapssempties.push_back(idx);
             }
         }
     }

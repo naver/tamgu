@@ -710,7 +710,8 @@ class Tamgusvectorbuff : public Tamgusvector {
                 
                 values.clear();
                 used = false;
-                globalTamgu->svectorempties.push_back(idx);
+                if (!globalTamgu->globalLOCK)
+                    globalTamgu->svectorempties.push_back(idx);
             }
         }
     }
@@ -739,7 +740,7 @@ public:
         //This SECTION is for your specific implementation...
         //Your personal variables here...
 	atomic_string zero;
-    atomic_vector<atomic_string> values;
+    atomic_value_vector<atomic_string> values;
     bool isconst;
         //---------------------------------------------------------------------------------------------------------------------
     Tamgua_svector(TamguGlobal* g, Tamgu* parent = NULL) : values(zero), TamguContainer(g, parent) {

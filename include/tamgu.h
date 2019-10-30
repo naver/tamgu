@@ -3134,6 +3134,20 @@ public:
 
 };
 
+class TamguIndexthread : public TamguIndex {
+public:
+    
+    TamguIndexthread(TamguIndex* idx, short idthread) : TamguIndex(idx, idthread) {}
+
+    void Rollback() {
+        left->Release();
+        if (right != NULL)
+            right->Release();
+        delete this;
+    }
+
+};
+
 class TamguIndexbuff : public TamguIndex {
 public:
 	long idx;
@@ -4030,7 +4044,8 @@ public:
                 used = false;
                 typevalue = a_const;
                 value = aNOELEMENT;
-                globalTamgu->slfempties.push_back(idx);
+                if (!globalTamgu->globalLOCK)
+                    globalTamgu->slfempties.push_back(idx);
             }
         }
     }

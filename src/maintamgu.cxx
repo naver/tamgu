@@ -2142,7 +2142,6 @@ int main(int argc, char *argv[]) {
 #endif
     
     string wh = TamguVersion();
-    vector<int> lll;
     
     if (argc <= 1) {
 #ifdef WIN32
@@ -2430,6 +2429,9 @@ int main(int argc, char *argv[]) {
         if (!TamguRun(idcode))
             cerr << TamguErrorMessage() << endl;
 
+#ifdef GARBAGEFORDEBUG
+        TamguExtinguish();
+#endif
         exit(0);
     }
 

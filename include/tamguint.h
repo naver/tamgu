@@ -700,7 +700,8 @@ public:
                 
                 used = false;
                 value = 0;
-                globalTamgu->iempties.push_back(idx);
+                if (!globalTamgu->globalLOCK)
+                    globalTamgu->iempties.push_back(idx);
             }
         }
     }

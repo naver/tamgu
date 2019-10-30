@@ -1237,7 +1237,8 @@ public:
                 
                 used = false;
                 value = L"";
-                globalTamgu->uempties.push_back(idx);
+                if (!globalTamgu->globalLOCK)
+                    globalTamgu->uempties.push_back(idx);
             }
         }
 	}

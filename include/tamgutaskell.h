@@ -103,7 +103,8 @@ public:
 
         if (used) {
             used = false;
-            globalTamgu->declarationcleanempties.push_back(idx);
+            if (!globalTamgu->globalLOCK)
+                globalTamgu->declarationcleanempties.push_back(idx);
             return;
         }
         delete this;
@@ -119,7 +120,8 @@ public:
 
         if (used) {
             used = false;
-            globalTamgu->declarationcleanempties.push_back(idx);
+            if (!globalTamgu->globalLOCK)
+                globalTamgu->declarationcleanempties.push_back(idx);
             return;
         }
         delete this;

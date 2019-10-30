@@ -726,12 +726,12 @@ public:
     bool isconst;
     
         //---------------------------------------------------------------------------------------------------------------------
-    Tamguring(TamguGlobal* g, Tamgu* parent = NULL) : values(aNULL), TamguObjectContainer(g, parent) {
+    Tamguring(TamguGlobal* g, Tamgu* parent = NULL) : values(aNOELEMENT), TamguObjectContainer(g, parent) {
             //Do not forget your variable initialisation
         isconst = false;
     }
     
-    Tamguring() : values(aNULL)  {
+    Tamguring() : values(aNOELEMENT)  {
             //Do not forget your variable initialisation
         isconst = false;
     }
@@ -1097,16 +1097,18 @@ public:
         return kvect;
     }
     
-    Tamgu* MethodLast(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        if (values.size() == 0)
+    Tamgu* MethodLast(Tamgu* val, short idthread, TamguCall* callfunc) {
+        val = values.back();
+        if (val == NULL)
             return aNOELEMENT;
-        return values.back();
+        return val;
     }
     
-    Tamgu* MethodFirst(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        if (values.size() == 0)
+    Tamgu* MethodFirst(Tamgu* val, short idthread, TamguCall* callfunc) {
+        val = values.front();
+        if (val == NULL)
             return aNOELEMENT;
-        return values.front();
+        return val;
     }
     
     Tamgu* MethodMerge(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -1180,8 +1182,9 @@ public:
     
         //Raw push
     Tamgu* push(Tamgu* v) {
-        values.push_back(v);
         v->Addreference();
+        v = values.push_back(v);
+        v->Removereference();
         return this;
     }
     
@@ -1192,22 +1195,23 @@ public:
     Exporting Tamgu* Pop(Tamgu*);
     
     Tamgu* Popfirst() {
-        if (values.size() == 0)
-            return aNOELEMENT;
         Tamgu* res = values.remove_front();
-        res->Resetreference(reference);
-        res->Protect();
-        return res;
+        if (!res->isNULL()) {
+            res->Resetreference(reference);
+            res->Protect();
+            return res;
+        }
+        return aNOELEMENT;
     }
     
     Tamgu* Poplast() {
-        if (values.size() == 0)
-            return aNOELEMENT;
-        
         Tamgu* res = values.remove_back();
-        res->Resetreference(reference);
-        res->Protect();
-        return res;
+        if (!res->isNULL()) {
+            res->Resetreference(reference);
+            res->Protect();
+            return res;
+        }
+        return aNOELEMENT;
     }
     
     void addstringto(string s, int i) {
@@ -1220,7 +1224,7 @@ public:
         }
         else {
             ke = values[i];
-            if (ke == NULL)
+            if (ke->isNULL())
                 return;
         }
         ke->addstringto(s);
@@ -1269,14 +1273,10 @@ public:
     }
     
     Tamgu* Last() {
-        if (values.size() == 0)
-            return aNULL;
         return values.back();
     }
     
     Tamgu* First() {
-        if (values.size() == 0)
-            return aNULL;
         return values.front();
     }
     

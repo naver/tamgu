@@ -331,13 +331,16 @@ public:
 
 };
 
+//-------------------------------------------------------
+//atomic_vector
+//-------------------------------------------------------
 
 const long base_atomic_size = 8;
 const long atomic_vector_size = 1 << base_atomic_size;
 
 template <class Z> class atomic_vector_element {
 public:
-    Z vecteur[atomic_vector_size];
+    std::atomic<Z> vecteur[atomic_vector_size];
     atomic_vector_element<Z>* next;
 
     atomic_vector_element(Z& z) {
@@ -359,18 +362,22 @@ public:
     }
     
     void clean(Z& z) {
+        Z v;
         for (short i = 0; i < atomic_vector_size; i++) {
-            if (vecteur[i] != z)
-                delete vecteur[i];
-            vecteur[i] = z;
+            v = vecteur[i].exchange(z);
+            if (v != z)
+                delete v;
         }
         if (next != NULL)
             next->clean(z);
     }
     
     atomic_vector_element<Z>* copy(atomic_vector_element<Z>* a, Z& z, long& nbelements) {
-        for (short i = 0; i < atomic_vector_size; i++)
-            vecteur[i] = a->vecteur[i];
+        Z v;
+        for (short i = 0; i < atomic_vector_size; i++) {
+            v = a->vecteur[i];
+            vecteur[i] = v;
+        }
         if (a->next != NULL) {
             if (next == NULL) {
                 next = new atomic_vector_element<Z>(z);
@@ -382,8 +389,19 @@ public:
     }
     
     void duplicate(atomic_vector_element<Z>* a) {
-        for (short i = 0; i < atomic_vector_size; i++)
-            vecteur[i] = a->vecteur[i];
+        Z v;
+        for (short i = 0; i < atomic_vector_size; i++) {
+            v = a->vecteur[i];
+            vecteur[i] = v;
+        }
+    }
+    
+    Z replace(Z v, long i) {
+        return vecteur[i].exchange(v);
+    }
+    
+    void set(Z v, long i) {
+        vecteur[i] = v;
     }
 };
 
@@ -398,17 +416,15 @@ public:
     //Un vecteur de Fonction
     long nbelements;
     std::atomic<long> last;
-    bool pointer;
     Z zero;
 
-	atomic_vector<Z>(Z& z) {
-		zero = z;
-		head = new atomic_vector_element<Z>(zero);
-		end = head;
-		nbelements = 1;
-		last = 0;
-		pointer = false;
-	}
+    atomic_vector<Z>(Z& z) {
+        zero = z;
+        head = new atomic_vector_element<Z>(zero);
+        end = head;
+        nbelements = 1;
+        last = 0;
+    }
 
     atomic_vector<Z>(Z z, bool p) {
         zero = z;
@@ -416,7 +432,6 @@ public:
         end = head;
         nbelements  = 1;
         last = 0;
-        pointer = p;
     }
     
     ~atomic_vector<Z>() {
@@ -429,8 +444,7 @@ public:
     
     void clean() {
         _lock.lock();
-		if (pointer)
-			head->clean(zero);
+        head->clean(zero);
         _lock.unlock();
         last = 0;
     }
@@ -491,17 +505,16 @@ public:
             return;
 
         long lst = pos;
+		Z v;
         while (n != NULL) {
             for (;i < base_atomic_size; i++) {
                 if (pos == last) {
                     last = lst;
                     return;
                 }
-                
-                if (n->vecteur[i] != NULL) {
-                    delete n->vecteur[i];
-                    n->vecteur[i] = zero;
-                }
+				v = n->replace(zero, i);
+                if (v != zero)
+					delete v;
                 pos++;
             }
             i = 0;
@@ -524,11 +537,11 @@ public:
         long i = 0;
         atomic_vector_element<Z>* n = findpos(pos, i);
         if (n != NULL) {
-            Z v = n->vecteur[i];
-            n->vecteur[i] = nv;
+            
             if (pos > last)
                 last = pos + 1;
-            return v;
+
+            return n->replace(nv, i);
         }
         
         long nb = pos >> base_atomic_size;
@@ -542,8 +555,7 @@ public:
                 n = findpos(pos, i);
                 //We check again to see if it has been created by another thread...
                 if (n != NULL) {
-                    Z v = n->vecteur[i];
-                    n->vecteur[i] = nv;
+                    Z v = n->replace(nv, i);
                     if (pos > last)
                         last = pos + 1;
                     _lock.unlock();
@@ -561,9 +573,8 @@ public:
         
         if (pos > last)
             last = pos + 1;
-        Z v = n->vecteur[i];
-        n->vecteur[i] = nv;
-        return v;
+
+        return n->replace(nv, i);
     }
 
     inline Z remove(long pos) {
@@ -572,8 +583,8 @@ public:
         if (n == NULL)
             return zero;
 
-        Z v = n->vecteur[i];
-        n->vecteur[i] = zero;
+        Z v = n->replace(zero, i);
+        
         if (last == pos+1)
             last--;
         else {
@@ -582,13 +593,13 @@ public:
                 if (i == atomic_vector_size - 1) {
                     if (n->next == NULL)
                         break;
-                    n->vecteur[i] = n->next->vecteur[0];
+                    n->set(n->next->vecteur[0], i);
                     i = 0;
                     n = n->next;
                     pos++;
                     continue;
                 }
-                n->vecteur[i] = n->vecteur[i+1];
+                n->set(n->vecteur[i+1], i);
                 i++;
                 pos++;
             }
@@ -613,13 +624,13 @@ public:
                 if (i == atomic_vector_size - 1) {
                     if (n->next == NULL)
                         break;
-                    n->vecteur[i] = n->next->vecteur[0];
+                    n->set(n->next->vecteur[0], i);
                     i = 0;
                     n = n->next;
                     pos++;
                     continue;
                 }
-                n->vecteur[i] = n->vecteur[i+1];
+                n->set(n->vecteur[i+1], i);
                 i++;
                 pos++;
             }
@@ -652,9 +663,7 @@ public:
         long pos = last;
         atomic_vector_element<Z>* n = findpos(pos, i);
         
-        Z v = n->vecteur[i];
-        n->vecteur[i] = zero;
-        return v;
+        return n->replace(zero, i);
     }
 
     inline long push_back(Z val) {
@@ -747,12 +756,10 @@ public:
     void insert(long pos, Z val) {
         long i = 0;
         atomic_vector_element<Z>* n = findpos(pos, i);
-        if (pointer) {
             //In this case we can use this slot...
-            if (n->vecteur[i] == zero) {
-                n->vecteur[i] = val;
-                return;
-            }
+        if (n->vecteur[i] == zero) {
+            n->vecteur[i] = val;
+            return;
         }
         
         _lock.lock();
@@ -780,11 +787,11 @@ public:
                 prev = head;
                 while (prev->next != n) prev=prev->next;
                 i = atomic_vector_size-1;
-                n->vecteur[0] = prev->vecteur[i];
+                n->set(prev->vecteur[i], 0);
                 n = prev;
             }
             else
-                n->vecteur[i] = n->vecteur[i-1];
+                n->set(n->vecteur[i-1], i);
             i--;
             lst--;
         }
@@ -871,11 +878,454 @@ public:
     }
 };
 
+//-------------------------------------------------------
+//atomic_value_vector
+//-------------------------------------------------------
+
+template <class Z> class atomic_value_vector_element {
+public:
+    Z vecteur[atomic_vector_size];
+    atomic_value_vector_element<Z>* next;
+
+    atomic_value_vector_element(Z& z) {
+        for (short i = 0; i < atomic_vector_size; i++)
+            vecteur[i] = z;
+        next = NULL;
+    }
+    
+    ~atomic_value_vector_element() {
+        if (next != NULL)
+            delete next;
+    }
+
+    void clear(Z& z) {
+        for (short i = 0; i < atomic_vector_size; i++)
+            vecteur[i] = z;
+        if (next != NULL)
+            next->clear(z);
+    }
+    
+    void clean(Z& z) {
+        for (short i = 0; i < atomic_vector_size; i++) {
+            if (vecteur[i] != z)
+                delete vecteur[i];
+            vecteur[i] = z;
+        }
+        if (next != NULL)
+            next->clean(z);
+    }
+    
+    atomic_value_vector_element<Z>* copy(atomic_value_vector_element<Z>* a, Z& z, long& nbelements) {
+        for (short i = 0; i < atomic_vector_size; i++)
+            vecteur[i] = a->vecteur[i];
+        if (a->next != NULL) {
+            if (next == NULL) {
+                next = new atomic_value_vector_element<Z>(z);
+                nbelements++;
+            }
+            return next->copy(a->next, z, nbelements);
+        }
+        return this;
+    }
+    
+    void duplicate(atomic_value_vector_element<Z>* a) {
+        for (short i = 0; i < atomic_vector_size; i++)
+            vecteur[i] = a->vecteur[i];
+    }
+};
+
+
+template <class Z> class atomic_value_vector {
+public:
+
+    atomic_value_vector_element<Z>* head;
+    atomic_value_vector_element<Z>* end;
+    std::recursive_mutex _lock;
+
+    //Un vecteur de Fonction
+    long nbelements;
+    std::atomic<long> last;
+    Z zero;
+
+	atomic_value_vector<Z>(Z& z) {
+		zero = z;
+		head = new atomic_value_vector_element<Z>(zero);
+		end = head;
+		nbelements = 1;
+		last = 0;
+	}
+
+    atomic_value_vector<Z>(Z z, bool p) {
+        zero = z;
+        head = new atomic_value_vector_element<Z>(zero);
+        end = head;
+        nbelements  = 1;
+        last = 0;
+    }
+    
+    ~atomic_value_vector<Z>() {
+        delete head;
+    }
+    
+    long size() {
+        return last;
+    }
+    
+    void clean() {
+        clear();
+    }
+    
+    void clear() {
+        _lock.lock();
+        head->clear(zero);
+        _lock.unlock();
+        last = 0;
+    }
+    
+    atomic_value_vector_element<Z>* findelement(long pos, long& i) {
+        if (pos >= last)
+            return NULL;
+        
+        if (pos < atomic_vector_size) {
+            i = pos;
+            return head;
+        }
+        
+        long nb = pos >> base_atomic_size;
+        i =  pos - (nb << base_atomic_size);
+
+        atomic_value_vector_element<Z>* n = head;
+        while (nb > 0) {
+            n = n->next;
+            nb--;
+        }
+        
+        return n;
+    }
+
+    atomic_value_vector_element<Z>* findpos(long pos, long& i) {
+        if (pos < atomic_vector_size) {
+            i = pos;
+            return head;
+        }
+        
+        long nb = pos >> base_atomic_size;
+        i =  pos - (nb << base_atomic_size);
+        if (nb >= nbelements)
+            return NULL;
+        
+        atomic_value_vector_element<Z>* n = head;
+        while (nb > 0) {
+            n = n->next;
+            nb--;
+        }
+        
+        return n;
+    }
+    
+
+    void cleanfrom(long pos) {
+        long i = 0;
+        atomic_value_vector_element<Z>* n = findelement(pos, i);
+        if (n == NULL)
+            return;
+
+        long lst = pos;
+        while (n != NULL) {
+            for (;i < base_atomic_size; i++) {
+                if (pos == last) {
+                    last = lst;
+                    return;
+                }
+                
+                if (n->vecteur[i] != NULL) {
+                    delete n->vecteur[i];
+                    n->vecteur[i] = zero;
+                }
+                pos++;
+            }
+            i = 0;
+            n = n->next;
+        }
+        last = lst;
+    }
+    
+    inline void erase(long pos) {
+        long i = 0;
+        atomic_value_vector_element<Z>* n = findelement(pos, i);
+        if (n == NULL)
+            return;
+        
+        n->vecteur[i] = zero;
+    }
+
+    
+    inline void replace(long pos, Z nv) {
+        long i = 0;
+        atomic_value_vector_element<Z>* n = findpos(pos, i);
+        if (n != NULL) {
+            
+            n->vecteur[i] = nv;
+            
+            if (pos > last)
+                last = pos + 1;
+            return;
+        }
+        
+        long nb = pos >> base_atomic_size;
+        i =  pos - (nb << base_atomic_size);
+        n = head;
+        
+        while (nb > 0) {
+            n = n->next;
+            if (n == NULL) {
+                _lock.lock();
+                n = findpos(pos, i);
+                //We check again to see if it has been created by another thread...
+                if (n != NULL) {
+                    n->vecteur[i] = nv;
+                    if (pos > last)
+                        last = pos + 1;
+                    _lock.unlock();
+                    return;
+                }
+                
+                n = new atomic_value_vector_element<Z>(zero);
+                ++nbelements;
+                end->next = n;
+                end = n;
+                _lock.unlock();
+            }
+            nb--;
+        }
+        
+        if (pos > last)
+            last = pos + 1;
+
+        n->vecteur[i] = nv;
+    }
+
+    inline void remove(long pos) {
+        long i = 0;
+        atomic_value_vector_element<Z>* n = findelement(pos, i);
+        if (n == NULL)
+            return zero;
+
+        n->vecteur[i] = zero;
+        if (last == pos+1)
+            last--;
+        else {
+            _lock.lock();
+            while (pos < last) {
+                if (i == atomic_vector_size - 1) {
+                    if (n->next == NULL)
+                        break;
+                    n->vecteur[i] = n->next->vecteur[0];
+                    i = 0;
+                    n = n->next;
+                    pos++;
+                    continue;
+                }
+                n->vecteur[i] = n->vecteur[i+1];
+                i++;
+                pos++;
+            }
+            last--;
+            _lock.unlock();
+        }
+    }
+    
+    inline void pop(long pos) {
+        long i = 0;
+        atomic_value_vector_element<Z>* n = findelement(pos, i);
+        if (n == NULL)
+            return;
+        
+        if (last == pos+1)
+            last--;
+        else {
+            _lock.lock();
+            while (pos < last) {
+                if (i == atomic_vector_size - 1) {
+                    if (n->next == NULL)
+                        break;
+                    n->vecteur[i] = n->next->vecteur[0];
+                    i = 0;
+                    n = n->next;
+                    pos++;
+                    continue;
+                }
+                n->vecteur[i] = n->vecteur[i+1];
+                i++;
+                pos++;
+            }
+            last--;
+            _lock.unlock();
+        }
+    }
+
+    Z back() {
+        if (!last)
+            return zero;
+        
+        long i = 0;
+        long pos = last-1;
+        atomic_value_vector_element<Z>* n = findpos(pos, i);
+        return n->vecteur[i];
+    }
+    
+    void pop_back() {
+        if (!last)
+            return;
+        --last;
+    }
+
+    Z remove_back() {
+        if (!last)
+            return zero;
+        --last;
+        long i = 0;
+        long pos = last;
+        atomic_value_vector_element<Z>* n = findpos(pos, i);
+        
+        Z v = n->vecteur[i];
+        n->vecteur[i] = zero;
+        return v;
+    }
+
+    inline long push_back(Z val) {
+        long pos = last++;
+
+        if (pos < atomic_vector_size) {
+            head->vecteur[pos] = val;
+            return pos;
+        }
+        
+        long i = 0;
+        atomic_value_vector_element<Z>* n = findpos(pos, i);
+        if (n == NULL) {
+            //This is the only case when we need to protect our structure...
+            _lock.lock();
+            n = findpos(pos, i);
+            if (n == NULL) {
+                n = new atomic_value_vector_element<Z>(zero);
+                end->next = n;
+                end = n;
+                ++nbelements;
+            }
+            _lock.unlock();
+        }
+        
+        n->vecteur[i] = val;
+        return pos;
+    }
+    
+    inline long put(Z val, long pos) {
+        //This is a case when we try to find a slot...
+        if (pos >= last)
+            return push_back(val);
+        
+        long i = 0;
+        atomic_value_vector_element<Z>* n = findpos(pos, i);
+        n->vecteur[i] = val;
+        return pos;
+    }
+
+    inline long set(Z val, long pos) {
+            //This is a case when we try to find a slot...
+        long i = 0;
+        atomic_value_vector_element<Z>* n = findelement(pos, i);
+        if (n == NULL)
+            return push_back(val);
+
+        n->vecteur[i] = val;
+        return pos;
+    }
+    
+    inline void setback(Z val) {
+            //This is a case when we try to find a slot...
+        long i = 0;
+        long pos = last-1;
+        atomic_value_vector_element<Z>* n = findpos(pos, i);
+        if (n == NULL)
+            return;
+        n->vecteur[i] = val;
+    }
+    
+    inline Z operator [](long pos) {
+        long i = 0;
+        atomic_value_vector_element<Z>* n = findelement(pos, i);
+        if (n == NULL)
+            return zero;
+        return n->vecteur[i];
+    }
+    
+    void copy(atomic_value_vector<Z>* a) {
+        end = head->copy(a->head, zero, nbelements);
+        long pos = a->last;
+        last = pos;
+        zero = a->zero;
+    }
+    
+    inline atomic_value_vector& operator=(atomic_value_vector<Z>& a) {
+        copy(&a);
+        return *this;
+    }
+    
+    inline bool check(long pos, Z v) {
+        long i = 0;
+        atomic_value_vector_element<Z>* n = findelement(pos, i);
+        if (n == NULL || n->vecteur[i] != v)
+            return false;
+        return true;
+    }
+
+    void insert(long pos, Z val) {
+        long i = 0;
+        atomic_value_vector_element<Z>* n = findpos(pos, i);
+
+        _lock.lock();
+
+        long lst = last++;
+        long nb =  lst >> base_atomic_size;
+        i =  lst - (nb << base_atomic_size);
+        
+        atomic_value_vector_element<Z>* prev;
+        if (nb == nbelements) {
+                //We need one more chunk to add stuff in...
+            n = new atomic_value_vector_element<Z>(zero);
+            end->next = n;
+            end = n;
+            ++nbelements;
+            i = 0;
+            lst--;
+        }
+        else
+            n = findpos(lst, i);
+
+        //We must shift all elements to the right...
+        while (lst != pos) {
+            if (i == 0) {
+                prev = head;
+                while (prev->next != n) prev=prev->next;
+                i = atomic_vector_size-1;
+                n->vecteur[0] = prev->vecteur[i];
+                n = prev;
+            }
+            else
+                n->vecteur[i] = n->vecteur[i-1];
+            i--;
+            lst--;
+        }
+        n->vecteur[i] = val;
+        _lock.unlock();
+    }
+};
 
 template <class Z> class atomic_value_vector_iterator {
 public:
     
-    atomic_vector_element<Z>* av;
+    atomic_value_vector_element<Z>* av;
     Z second;
     
     long last;
@@ -893,11 +1343,11 @@ public:
         last = 0;
     }
     
-    atomic_value_vector_iterator<Z>(atomic_vector<Z>& v) {
+    atomic_value_vector_iterator<Z>(atomic_value_vector<Z>& v) {
         begin(v);
     }
     
-    atomic_value_vector_iterator<Z>(atomic_vector<Z>& v, long init) {
+    atomic_value_vector_iterator<Z>(atomic_value_vector<Z>& v, long init) {
         ending =  false;
         i = 0;
         first = 0;
@@ -937,7 +1387,7 @@ public:
         return ending;
     }
     
-    void begin(atomic_vector<Z>& v) {
+    void begin(atomic_value_vector<Z>& v) {
         ending =  false;
         last = v.last;
         av =  v.head;
@@ -948,10 +1398,12 @@ public:
     }
 };
 
-
+//------------------------------------------------------------
+//// RING
+//------------------------------------------------------------
 template <class Z> class atomic_ring_element {
 public:
-    Z vecteur[atomic_vector_size];
+    std::atomic<Z> vecteur[atomic_vector_size];
     
     atomic_ring_element(Z& z) {
         for (short i = 0; i < atomic_vector_size; i++)
@@ -964,16 +1416,28 @@ public:
     }
     
     void clean(Z& z) {
+        Z v;
         for (short i = 0; i < atomic_vector_size; i++) {
-            if (vecteur[i] != z)
-                delete vecteur[i];
-            vecteur[i] = z;
+            v =  vecteur[i].exchange(z);
+            if (v != z)
+                delete v;
         }
     }
     
     void duplicate(atomic_ring_element<Z>* a) {
-        for (short i = 0; i < atomic_vector_size; i++)
-            vecteur[i] = a->vecteur[i];
+        Z v;
+        for (short i = 0; i < atomic_vector_size; i++) {
+            v = a->vecteur[i];
+            vecteur[i] = v;
+        }
+    }
+    
+    Z replace(Z v, uchar i) {
+        return vecteur[i].exchange(v);
+    }
+    
+    void set(Z v, uchar i) {
+        vecteur[i] = v;
     }
 };
 
@@ -996,6 +1460,7 @@ public:
             head[i] = NULL;
         
         head[0] = new atomic_ring_element<Z>(zero);
+        head[255] = new atomic_ring_element<Z>(zero);
         last = 0;
         first = 0;
     }
@@ -1008,6 +1473,15 @@ public:
                 delete head[i];
                 head[i] = NULL;
             }
+        }
+    }
+    
+    inline void addnewelement(uchar nb) {
+        if (head[nb] == NULL) {
+            _lock.lock();
+            if (head[nb] == NULL)
+                head[nb] = new atomic_ring_element<Z>(zero);
+            _lock.unlock();
         }
     }
     
@@ -1058,7 +1532,7 @@ public:
         first = 0;
     }
     
-    bool findelement(unsigned short pos, uchar& nb, uchar& i) {
+    bool compute(unsigned short pos, uchar& nb, uchar& i) {
         if (pos >= tally())
             return false;
         
@@ -1070,38 +1544,25 @@ public:
         
         i =  pos - (nb << base_atomic_size);
         
-        
         return true;
     }
     
     inline Z replace(unsigned short pos, Z nv) {
-        if (pos >= tally())
-            return zero;
-        
         pos += first;
         
-
         uchar nb = pos >> base_atomic_size;
-        if (head[nb] == NULL)
-            return zero;
-        
         uchar i =  pos - (nb << base_atomic_size);
 
-        Z v = head[nb]->vecteur[i];
-        head[nb]->vecteur[i] = nv;
-        return v;
+        addnewelement(nb);
+        
+        return head[nb]->replace(nv, i);
     }
     
     inline Z remove(unsigned short pos) {
-        if (pos >= tally())
-            return zero;
-        
         pos += first;
         
         uchar nb = pos >> base_atomic_size;
         uchar i =  pos - (nb << base_atomic_size);
-
-        Z v = head[nb]->vecteur[i];
         
         _lock.lock();
         unsigned short mx = --last;
@@ -1114,13 +1575,11 @@ public:
             ++pos;
             nb = pos >> base_atomic_size;
             i =  pos - (nb << base_atomic_size);
-            head[pnb]->vecteur[pi] = head[nb]->vecteur[i];
+            head[pnb]->set(head[nb]->vecteur[i], pi);
         }
-        
-        head[nb]->vecteur[i] = zero;
         _lock.unlock();
         
-        return v;
+        return head[nb]->replace(zero, i);
     }
     
     inline Z erase(unsigned short pos) {
@@ -1132,29 +1591,27 @@ public:
         uchar nb = pos >> base_atomic_size;
         uchar i =  pos - (nb << base_atomic_size);
         
-        Z v = head[nb]->vecteur[i];
-        head[nb]->vecteur[i] = zero;
-        return v;
+        return head[nb]->replace(zero, i);
     }
     
     Z front() {
-        if (first == last)
-            return zero;
-        
         unsigned short pos = first;
         
         uchar nb = pos >> base_atomic_size;
+        if (head[nb] == NULL)
+            return zero;
+        
         uchar i =  pos - (nb << base_atomic_size);
         return head[nb]->vecteur[i];
     }
     
     Z back() {
-        if (first == last)
-            return zero;
-
         unsigned short pos = last-1;
         
         uchar nb = pos >> base_atomic_size;
+        if (head[nb] == NULL)
+            return zero;
+
         uchar i =  pos - (nb << base_atomic_size);
         return head[nb]->vecteur[i];
     }
@@ -1166,9 +1623,8 @@ public:
         
         uchar nb = pos >> base_atomic_size;
         uchar i =  pos - (nb << base_atomic_size);
-        Z v = head[nb]->vecteur[i];
-        head[nb]->vecteur[i] = zero;
-        return v;
+        
+        return head[nb]->replace(zero, i);
     }
     
     Z remove_back() {
@@ -1179,57 +1635,37 @@ public:
         uchar nb = pos >> base_atomic_size;
         uchar i =  pos - (nb << base_atomic_size);
 
-        Z v = head[nb]->vecteur[i];
-        head[nb]->vecteur[i] = zero;
-        return v;
+        return head[nb]->replace(zero, i);
     }
     
-    inline bool push_back(Z val) {
-        if (tally() == atomic_ring_size)
-            return false;
-        
+    inline Z push_back(Z val) {
         unsigned short pos = last++;
         uchar nb = pos >> base_atomic_size;
         uchar i =  pos - (nb << base_atomic_size);
 
-        if (head[nb] == NULL) {
-            _lock.lock();
-            if (head[nb] == NULL)
-                head[nb] = new atomic_ring_element<Z>(zero);
-            _lock.unlock();
-        }
-        head[nb]->vecteur[i] = val;
-        return true;
+        addnewelement(nb);
+
+        return head[nb]->replace(val, i);
     }
     
-    bool push_front(Z val) {
-        if (tally() == atomic_ring_size)
-            return false;
-
+    inline Z push_front(Z val) {
         unsigned short pos = --first;
         uchar nb = pos >> base_atomic_size;
         uchar i =  pos - (nb << base_atomic_size);
         
-        if (head[nb] == NULL) {
-            _lock.lock();
-            if (head[nb] == NULL)
-                head[nb] = new atomic_ring_element<Z>(zero);
-            _lock.unlock();
-        }
-        head[nb]->vecteur[i] = val;
-        return true;
+        addnewelement(nb);
+
+        return head[nb]->replace(val, i);
     }
 
     inline Z operator [](unsigned short pos) {
-        if (pos >= tally())
-            return zero;
-        
         pos += first;
         
         uchar nb = pos >> base_atomic_size;
         uchar i =  pos - (nb << base_atomic_size);
         if (head[nb] == NULL)
             return zero;
+        
         return head[nb]->vecteur[i];
     }
     
@@ -1256,9 +1692,6 @@ public:
     }
     
     inline bool check(unsigned short pos, Z v) {
-        if (pos >= tally())
-            return false;
-        
         pos += first;
         
         uchar nb = pos >> base_atomic_size;
@@ -1266,6 +1699,7 @@ public:
         
         if (head[nb] == NULL || head[nb]->vecteur[i] != v)
             return false;
+        
         return true;
     }
     
@@ -1299,7 +1733,7 @@ public:
                 pi =  poslast - (pnb << base_atomic_size);
                 if (head[lastnb] == NULL)
                     head[lastnb] = new atomic_ring_element<Z>(zero);
-                head[lastnb]->vecteur[lasti] = head[pnb]->vecteur[pi];
+                head[lastnb]->set(head[pnb]->vecteur[pi], lasti);
             }
         }
         else {
@@ -1312,7 +1746,7 @@ public:
                 pi =  poslast - (pnb << base_atomic_size);
                 if (head[lastnb] == NULL)
                     head[lastnb] = new atomic_ring_element<Z>(zero);
-                head[lastnb]->vecteur[lasti] = head[pnb]->vecteur[pi];
+                head[lastnb]->set(head[pnb]->vecteur[pi], lasti);
             }
         }
         _lock.unlock();
@@ -1350,13 +1784,13 @@ public:
     atomic_ring_iterator<Z>(atomic_ring<Z>& v, long init) {
         ending =  false;
         pos = init;
-        ending = !v.findelement(pos, nb, i);
+        ending = !v.compute(pos, nb, i);
         av = &v;
         next();
     }
     
     void next() {
-        if (!av->findelement(pos, nb, i)) {
+        if (!av->compute(pos, nb, i)) {
             ending  = true;
             return;
         }
@@ -1364,10 +1798,10 @@ public:
         first = pos++;
         second = av->head[nb]->vecteur[i];
     }
-    
-    void replace(Z v) {
-        av->findelement(first, nb, i);
-        av->head[nb]->vecteur[i] = v;
+
+    Z replace(Z v) {
+        av->compute(first, nb, i);
+        return av->head[nb]->replace(v, i);
     }
     
     bool end() {

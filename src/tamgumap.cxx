@@ -664,7 +664,8 @@ Exporting void Tamgumapbuff::Resetreference(short inc) {
 
             values.clear();
             used = false;
-            globalTamgu->mapempties.push_back(idx);
+            if (!globalTamgu->globalLOCK)
+                globalTamgu->mapempties.push_back(idx);
         }
     }
 }

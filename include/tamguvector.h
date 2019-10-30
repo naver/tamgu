@@ -17,6 +17,7 @@
 #ifndef tamguvector_h
 #define tamguvector_h
 
+#include "vecte.h"
 #include "tamguint.h"
 #include "tamgufloat.h"
 #include "tamgustring.h"

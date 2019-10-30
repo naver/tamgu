@@ -202,7 +202,8 @@ Exporting void Tamguvectorbuff::Resetreference(short inc) {
 
             values.clear();
             used = false;
-            globalTamgu->vectorempties.push_back(idx);
+            if (!globalTamgu->globalLOCK)
+                globalTamgu->vectorempties.push_back(idx);
         }
     }
 }

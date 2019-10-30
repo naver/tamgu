@@ -1114,7 +1114,8 @@ public:
                 
                 value = "";
                 used = false;
-                globalTamgu->sempties.push_back(idx);
+                if (!globalTamgu->globalLOCK)
+                    globalTamgu->sempties.push_back(idx);
             }
         }
 	}
