@@ -7,39 +7,34 @@
 /* --- CONTENTS ---
  Project    : Tamgu (탐구)
  Version    : See tamgu.cxx for the version number
- filename   : tamgutime.h
+ filename   : tamguchrono.h
  Date       : 2017/09/01
  Purpose    :  
  Programmer : Claude ROUX (claude.roux@naverlabs.com)
  Reviewer   :
 */
 
-#ifndef tamgutime_h
-#define tamgutime_h
-#ifdef WIN32
-#include <Windows.h>
-#endif
+#ifndef tamguchrono_h
+#define tamguchrono_h
 
-#ifdef UNIX
-#include <sys/time.h>
-#endif
+#include <chrono>
 
 #include "tamgufloat.h"
 
 //We create a map between our methods, which have been declared in our class below. See MethodInitialization for an example
 //of how to declare a new method.
-class Tamgutime;
-//This typedef defines a type "timeMethod", which expose the typical parameters of a new Tamgu method implementation
-typedef Tamgu* (Tamgutime::*timeMethod)(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+class Tamguchrono;
+//This typedef defines a type "chronoMethod", which expose the typical parameters of a new Tamgu method implementation
+typedef Tamgu* (Tamguchrono::*chronoMethod)(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
 //---------------------------------------------------------------------------------------------------------------------
 
-class Tamgutime : public TamguObject {
+class Tamguchrono : public TamguObject {
     public:
     //We export the methods that will be exposed for our new object
     //this is a static object, which is common to everyone
     //We associate the method pointers with their names in the linkedmethods map
-    static Exchanging basebin_hash<timeMethod> methods;
+    static Exchanging basebin_hash<chronoMethod> methods;
     static Exchanging hmap<string, string> infomethods;
     static Exchanging bin_hash<unsigned long> exported;
 
@@ -49,22 +44,26 @@ class Tamgutime : public TamguObject {
     //This SECTION is for your specific implementation...
     //Your personal variables here...
 
-	timeval value;
+    std::chrono::high_resolution_clock::time_point value;
+    long unit;
 
     //---------------------------------------------------------------------------------------------------------------------
-	Tamgutime(TamguGlobal* g, Tamgu* parent = NULL) : TamguObject(g, parent) {
+	Tamguchrono(TamguGlobal* g, Tamgu* parent = NULL) : TamguObject(g, parent) {
         //Do not forget your variable initialisation
-		gettimeofday(&value, NULL);
+		value = std::chrono::high_resolution_clock::now();
+        unit=1;
     }
 
-	Tamgutime() {
+	Tamguchrono() {
 		//Do not forget your variable initialisation
-		gettimeofday(&value, NULL);
+        value = std::chrono::high_resolution_clock::now();
+        unit=1;
 	}
 
-	Tamgutime(timeval& t) {
+	Tamguchrono(std::chrono::high_resolution_clock::time_point& t) {
 		//Do not forget your variable initialisation
 		value = t;
+        unit=1;
 	}
 
 	//----------------------------------------------------------------------------------------------------------------------
@@ -74,7 +73,7 @@ class Tamgutime : public TamguObject {
 
 
     short Type() {
-        return Tamgutime::idtype;
+        return Tamguchrono::idtype;
     }
 
     
@@ -82,7 +81,7 @@ class Tamgutime : public TamguObject {
     static void Setidtype(TamguGlobal* global);
     
     string Typename() {
-        return "time";
+        return "chrono";
     }
 
     bool isString() {
@@ -105,9 +104,10 @@ class Tamgutime : public TamguObject {
         return true;
     }
     
+
     Tamgu* Atom(bool forced=false) {
         if (forced || !protect || reference)
-            return new  Tamgutime(value);
+            return new  Tamguchrono(value);
         return this;
     }
 
@@ -125,14 +125,14 @@ class Tamgutime : public TamguObject {
     }
 
     Tamgu* Newinstance(short, Tamgu* f = NULL) {
-        return new Tamgutime;
+        return new Tamguchrono;
     }
 
     TamguIteration* Newiteration(bool direction) {
 		return aITERNULL;
     }
 
-    static void AddMethod(TamguGlobal* g, string name, timeMethod func, unsigned long arity, string infos);
+    static void AddMethod(TamguGlobal* g, string name, chronoMethod func, unsigned long arity, string infos);
     static bool InitialisationModule(TamguGlobal* g, string version);
 
 	void Methods(Tamgu* v) {
@@ -155,8 +155,8 @@ class Tamgutime : public TamguObject {
     //This is an example of a function that could be implemented for your needs.
     //Tamgu* MethodSize(TamguGlobal* global,Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {return aZERO;}
 
-	Tamgu* MethodReset(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
-
+    Tamgu* MethodReset(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodUnit(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
     //---------------------------------------------------------------------------------------------------------------------
 
@@ -177,8 +177,7 @@ class Tamgutime : public TamguObject {
 	string String();
 
 	double Float() {
-		double mt = (((unsigned long)value.tv_sec) * 1000 + ((unsigned long)value.tv_usec) / 1000.0) + 0.5;
-		return mt;
+        return value.time_since_epoch().count();
 	}
 
 	long Integer() {
@@ -197,29 +196,11 @@ class Tamgutime : public TamguObject {
 		return true;
 	}
 
-	Tamgu* plus(Tamgu* bb, bool autoself) {
-		if (bb->Type() != idtype)
-			return aNULL;
-
-		Tamgutime* b = (Tamgutime*)bb;
-
-		return new Tamgufloat(plustime(value, b->value));
-
-	}
-
-	Tamgu* minus(Tamgu* bb, bool autoself) {
-		if (bb->Type() != idtype)
-			return aNULL;
-
-		Tamgutime* b = (Tamgutime*)bb;
-
-		return new Tamgufloat(minustime(value, b->value));
-	}
+    Tamgu* minus(Tamgu* bb, bool autoself);
 
 
 	Tamgu* less(Tamgu* a) {
-		double mt = (((unsigned long)value.tv_sec) * 1000 + ((unsigned long)value.tv_usec) / 1000.0) + 0.5;
-		if (mt<a->Float())
+		if (Float() < a->Float())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -249,7 +230,8 @@ class Tamgutime : public TamguObject {
 			return aTRUE;
 		return aFALSE;
 	}
-	long Size() {
+
+    long Size() {
 		return Integer();
 	}
 };

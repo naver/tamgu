@@ -48,6 +48,7 @@
 #include "tamgusynode.h"
 #include "tamguannotator.h"
 #include "tamgutaskell.h"
+#include "tamguchrono.h"
 #include "globaltamgu.h"
 //-------------------------------------------------------
 
@@ -114,6 +115,7 @@ void TamguGlobal::RecordObjects() {
 
     Tamgudate::InitialisationModule(this, TamguVersion());
     Tamgutime::InitialisationModule(this, TamguVersion());
+    Tamguchrono::InitialisationModule(this, TamguVersion());
 
     Tamgufraction::InitialisationModule(this, TamguVersion());
     Tamgusocket::InitialisationModule(this, TamguVersion());

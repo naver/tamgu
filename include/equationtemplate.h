@@ -910,24 +910,85 @@ public:
     }
 
     long Getinteger(short idthread) {
-        return (values[0]->Getinteger(idthread)-values[1]->Getinteger(idthread));
+        Tamgu* r1 = values[0]->Eval(aNULL, aNULL, idthread);
+        if (r1->isTime()) {
+            Tamgu* r2 = values[1]->Eval(aNULL, aNULL, idthread);
+            Tamgu* v = r1->minus(r2, false);
+            r1->Release();
+            r2->Release();
+            long vv=  v->Integer();
+            v->Release();
+            return vv;
+        }
+        long v = r1->Integer();
+        r1->Release();
+        return (v-values[1]->Getinteger(idthread));
     }
     
     short Getshort(short idthread) {
-        return (values[0]->Getshort(idthread)-values[1]->Getshort(idthread));
+        Tamgu* r1 = values[0]->Eval(aNULL, aNULL, idthread);
+        if (r1->isTime()) {
+            Tamgu* r2 = values[1]->Eval(aNULL, aNULL, idthread);
+            Tamgu* v = r1->minus(r2, false);
+            r1->Release();
+            r2->Release();
+            short vv=  v->Short();
+            v->Release();
+            return vv;
+        }
+        short v = r1->Short();
+        r1->Release();
+        return (v-values[1]->Getshort(idthread));
     }
     
     double Getfloat(short idthread) {
-        return (values[0]->Getfloat(idthread)-values[1]->Getfloat(idthread));
+        Tamgu* r1 = values[0]->Eval(aNULL, aNULL, idthread);
+        if (r1->isTime()) {
+            Tamgu* r2 = values[1]->Eval(aNULL, aNULL, idthread);
+            Tamgu* v = r1->minus(r2, false);
+            r1->Release();
+            r2->Release();
+            double vv=  v->Float();
+            v->Release();
+            return vv;
+        }
+        double v = r1->Float();
+        r1->Release();
+        return (v-values[1]->Getfloat(idthread));
     }
     
     float Getdecimal(short idthread) {
-        return (values[0]->Getdecimal(idthread)-values[1]->Getdecimal(idthread));
+        Tamgu* r1 = values[0]->Eval(aNULL, aNULL, idthread);
+        if (r1->isTime()) {
+            Tamgu* r2 = values[1]->Eval(aNULL, aNULL, idthread);
+            Tamgu* v = r1->minus(r2, false);
+            r1->Release();
+            r2->Release();
+            float vv=  v->Decimal();
+            v->Release();
+            return vv;
+        }
+        float v = r1->Decimal();
+        r1->Release();
+        return (v-values[1]->Getdecimal(idthread));
     }
-    
-    
+        
     BLONG Getlong(short idthread) {
-        return (values[0]->Getlong(idthread)-values[1]->Getlong(idthread));
+        Tamgu* r1 = values[0]->Eval(aNULL, aNULL, idthread);
+        
+        if (r1->isTime()) {
+            Tamgu* r2 = values[1]->Eval(aNULL, aNULL, idthread);
+            Tamgu* v = r1->minus(r2, false);
+            r1->Release();
+            r2->Release();
+            BLONG vv=  v->Long();
+            v->Release();
+            return vv;
+        }
+        
+        BLONG v = r1->Long();
+        r1->Release();
+        return (v-values[1]->Getlong(idthread));
     }
     
     string Getstring(short idthread) {

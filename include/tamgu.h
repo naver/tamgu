@@ -698,6 +698,10 @@ public:
 		return false;
 	}
 
+    virtual bool isTime() {
+        return false;
+    }
+    
 	virtual bool isNumber() {
 		return false;
 	}
