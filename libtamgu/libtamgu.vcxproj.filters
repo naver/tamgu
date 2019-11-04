@@ -61,9 +61,6 @@
     <Filter Include="Source Files\objects">
       <UniqueIdentifier>{d4acd2c4-d500-4720-a48b-2b14d492eff2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\binmap">
-      <UniqueIdentifier>{0acd365e-3361-4703-8824-086342595c2f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\headers\binmap">
       <UniqueIdentifier>{ec66d21f-e34b-4b85-8789-16749c4e5cad}</UniqueIdentifier>
     </Filter>
@@ -653,26 +650,8 @@
     <ClCompile Include="..\src\codeoperations.cxx">
       <Filter>Source Files\compiler</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\tamgubinmapi.cxx">
-      <Filter>Source Files\binmap</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\tamgubinmaps.cxx">
-      <Filter>Source Files\binmap</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\tamgubinmapu.cxx">
-      <Filter>Source Files\binmap</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\tamgubinmap.cxx">
-      <Filter>Source Files\binmap</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\tamgubinmapf.cxx">
-      <Filter>Source Files\binmap</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\predicatefunctions.cxx">
       <Filter>Source Files\compiler</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\tamgubinmapl.cxx">
-      <Filter>Source Files\binmap</Filter>
     </ClCompile>
     <ClCompile Include="..\src\tamguhvector.cxx">
       <Filter>Source Files\vectors</Filter>
@@ -715,6 +694,9 @@
     </ClCompile>
     <ClCompile Include="..\src\tamgutreemapsl.cxx">
       <Filter>Source Files\treemaps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tamguchrono.cxx">
+      <Filter>Source Files\atoms</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

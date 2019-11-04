@@ -145,6 +145,7 @@
   <ItemGroup>
     <ClCompile Include="..\src\tamgu.cxx" />
     <ClCompile Include="..\src\tamguannotator.cxx" />
+    <ClCompile Include="..\src\tamguchrono.cxx" />
     <ClCompile Include="..\src\tamgutamgu.cxx" />
     <ClCompile Include="..\src\tamgubool.cxx" />
     <ClCompile Include="..\src\tamgubvector.cxx" />
