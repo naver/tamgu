@@ -104,7 +104,7 @@
 		0B55A5181FC316B4005339A9 /* CodeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0B55A5171FC316B4005339A9 /* CodeViewController.m */; };
 		0B9CBB5F2298328700F7ECF2 /* tamgutreemapif.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0B9CBB5E2298328700F7ECF2 /* tamgutreemapif.cxx */; };
 		0B9CBB612298330C00F7ECF2 /* tamgutreemapi.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0B9CBB602298330C00F7ECF2 /* tamgutreemapi.cxx */; };
-		0BB2AC4C23707AC200228E91 /* tamguchrono.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BB2AC4B23707AC200228E91 /* tamguchrono.cxx */; };
+		0BB2AC44237065DA00228E91 /* tamguchrono.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BB2AC43237065DA00228E91 /* tamguchrono.cxx */; };
 		0BE181A61FCD982600463271 /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 0BE181A51FCD982600463271 /* AppIcon.icns */; };
 		0BF4E3EA1FC2D12D004C0821 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 0BF4E3E91FC2D12D004C0821 /* AppDelegate.m */; };
 		0BF4E3ED1FC2D12D004C0821 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0BF4E3EC1FC2D12D004C0821 /* ViewController.m */; };
@@ -353,8 +353,8 @@
 		0B55A5171FC316B4005339A9 /* CodeViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CodeViewController.m; sourceTree = "<group>"; };
 		0B9CBB5E2298328700F7ECF2 /* tamgutreemapif.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgutreemapif.cxx; path = ../../../src/tamgutreemapif.cxx; sourceTree = "<group>"; };
 		0B9CBB602298330C00F7ECF2 /* tamgutreemapi.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgutreemapi.cxx; path = ../../../src/tamgutreemapi.cxx; sourceTree = "<group>"; };
-		0BB2AC4B23707AC200228E91 /* tamguchrono.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamguchrono.cxx; path = ../../../src/tamguchrono.cxx; sourceTree = "<group>"; };
-		0BB2AC4D23707ADC00228E91 /* tamguchrono.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamguchrono.h; path = ../../../include/tamguchrono.h; sourceTree = "<group>"; };
+		0BB2AC43237065DA00228E91 /* tamguchrono.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamguchrono.cxx; path = ../../../src/tamguchrono.cxx; sourceTree = "<group>"; };
+		0BB2AC45237065FE00228E91 /* tamguchrono.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamguchrono.h; path = ../../../include/tamguchrono.h; sourceTree = "<group>"; };
 		0BE181A51FCD982600463271 /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
 		0BF4E3E51FC2D12D004C0821 /* Tamgu.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tamgu.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0BF4E3E81FC2D12D004C0821 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -469,7 +469,6 @@
 				0B10DF9522B910FF00CD97A1 /* conversion.h */,
 				0B428E0A22C36CB5006628B3 /* directorylisting.h */,
 				0B10DF8222B910FE00CD97A1 /* equationtemplate.h */,
-				0BB2AC4D23707ADC00228E91 /* tamguchrono.h */,
 				0B10DFB222B9110100CD97A1 /* fractalhmap.h */,
 				0B10DF5222B910FB00CD97A1 /* globaltamgu.h */,
 				0B10DFA922B9110100CD97A1 /* instructions.h */,
@@ -488,6 +487,7 @@
 				0B10DF6422B910FB00CD97A1 /* tamguboost.h */,
 				0B10DF9B22B910FF00CD97A1 /* tamgubvector.h */,
 				0B10DF4722B910FA00CD97A1 /* tamgubyte.h */,
+				0BB2AC45237065FE00228E91 /* tamguchrono.h */,
 				0B10DFB122B9110100CD97A1 /* tamguconstants.h */,
 				0B10DF9122B910FF00CD97A1 /* tamgudate.h */,
 				0B10DF5E22B910FB00CD97A1 /* tamgudebug.h */,
@@ -665,12 +665,12 @@
 				0B1596CB2294315A0049E562 /* tamgulong.cxx */,
 				0B1596C1229431590049E562 /* tamgurawstring.cxx */,
 				0B1597042294315E0049E562 /* tamgushort.cxx */,
+				0BB2AC43237065DA00228E91 /* tamguchrono.cxx */,
 				0B1596D32294315B0049E562 /* tamgusocket.cxx */,
 				0B15968B229431560049E562 /* tamgustring.cxx */,
 				0B1596EF2294315C0049E562 /* tamgusys.cxx */,
 				0B1596A9229431580049E562 /* tamgutamgu.cxx */,
 				0B1596A3229431580049E562 /* tamgutaskell.cxx */,
-				0BB2AC4B23707AC200228E91 /* tamguchrono.cxx */,
 				0B1597092294315E0049E562 /* tamgutime.cxx */,
 			);
 			name = atoms;
@@ -961,7 +961,7 @@
 				0B4EC6341FC8150400082CA6 /* tamgudebugger.m in Sources */,
 				0B1597102294315E0049E562 /* tamgumapll.cxx in Sources */,
 				0B1597492294315E0049E562 /* tamgumapsl.cxx in Sources */,
-				0BB2AC4C23707AC200228E91 /* tamguchrono.cxx in Sources */,
+				0BB2AC44237065DA00228E91 /* tamguchrono.cxx in Sources */,
 				0B15973B2294315E0049E562 /* tamgutreemap.cxx in Sources */,
 				0B1597192294315E0049E562 /* tamgumapui.cxx in Sources */,
 				0B15978E2294315F0049E562 /* tamgusys.cxx in Sources */,
@@ -1197,18 +1197,10 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = "";
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
-				OTHER_CFLAGS = "-DWAPITIPARSE";
+				OTHER_CFLAGS = "";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-DUNIX",
-					"-DWITHFLTK",
-					"-DCURL_STATICLIB",
-					"-DFL_INTERNALS",
-					"-DSQLITE_ENABLE_COLUMN_METADATA",
-					"-DSQLITE_THREADSAFE",
-					"-DUSEMPG123",
-					"-DTamguSOUND",
-					"-DMACSOUND",
 					"-DMAVERICK",
 					"-DAPPLE",
 					"-DTamgu_REGEX",
@@ -1236,18 +1228,10 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = "";
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
-				OTHER_CFLAGS = "-DWAPITIPARSE";
+				OTHER_CFLAGS = "";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-DUNIX",
-					"-DWITHFLTK",
-					"-DCURL_STATICLIB",
-					"-DFL_INTERNALS",
-					"-DSQLITE_ENABLE_COLUMN_METADATA",
-					"-DSQLITE_THREADSAFE",
-					"-DUSEMPG123",
-					"-DTamguSOUND",
-					"-DMACSOUND",
 					"-DMAVERICK",
 					"-DAPPLE",
 					"-DTamgu_REGEX",
