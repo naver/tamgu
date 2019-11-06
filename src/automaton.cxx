@@ -1816,7 +1816,7 @@ bool TamguFst::editdistance(charRead& w, bool punct, FstCompanion* f,long thresh
 //This method is called from vprocess...
 //Basically, vprocess detects the beginning of a token and process tries to detect its full range within the string.
 bool TamguFst::process(charRead& w, bool punct, FstCompanion* f,long threshold, short flags) {
-    long cw=0, u, bpos=0, cpos=0, ubpos=0, ucpos=0, i, prev;
+    long cw=0, u, bpos=0, cpos=0, ubpos=0, ucpos=0, i, prev = 0;
 	TAMGUCHAR cr = 0;
     bool endtoken = false, found = false;
 

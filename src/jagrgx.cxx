@@ -653,7 +653,7 @@ static bool tokenize(wstring& rg, vector<wstring>& stack, vector<aut_actions>& v
 
     return true;
 }
-//----------------------------------------------------------------
+//an epsilon, which points to a final state with no arcs attached
 bool Au_arc::checkfinalepsilon() {
     if (action->Type() == an_epsilon && state->isend() && !state->arcs.last)
         return true;
@@ -710,7 +710,7 @@ void Au_state::addrule(Au_arc* r) {
 #endif
 
 bool Au_state::match(wstring& w, long i) {
-    if ((status & an_error) == an_error)
+    if ((status&an_error) == an_error)
         return false;
 
     if (i==w.size()) {
@@ -764,45 +764,6 @@ void Au_state::storerulearcs(hmap<long,bool>& rules) {
     mark=false;
 }
 
-bool Au_arc::get(wstring& w, long i, hmap<long,bool>& rules) {
-    if (i==w.size())
-        return false;
-    
-    _d_current_i
-    TAMGUCHAR c = getechar(w, i);
-
-    switch(action->compare(c)) {
-        case 0:
-            return false;
-        case 1:
-            return state->get(w,i+1,rules);
-        case 2:
-            return state->get(w,_current_i,rules);
-    }
-    return false;
-}
-
-bool Au_state::get(wstring& w, long i, hmap<long,bool>& rules) {
-    long j;
-    
-    for (j=0;j<arcs.last;j++) {
-        if (arcs[j]->get(w,i,rules))
-            return true;
-    }
-    
-    if (i==w.size() && isend()) {
-        storerulearcs(rules);
-        return true;
-    }
-    return false;
-}
-
-bool Au_automaton::get(wstring& w, hmap<long,bool>& rules) {
-    if (first == NULL)
-        return false;
-    rules.clear();
-    return first->get(w,0,rules);
-}
 //----------------------------------------------------------------
 
 long Au_state::loop(wstring& w, long i) {
@@ -1313,6 +1274,7 @@ bool Au_automate::compiling(wstring& w,long r) {
 
 //----------------------------------------------------------------------------------------
 #define an_mandatory 8
+
 Au_state* Au_state::build(Au_automatons* aus, long i,vector<wstring>& toks, vector<aut_actions>& types, Au_state* common) {
     mark=false;
     Au_arc* ar;
@@ -1338,7 +1300,7 @@ Au_state* Au_state::build(Au_automatons* aus, long i,vector<wstring>& toks, vect
     short count;
     vector<wstring> ltoks;
     vector<aut_actions> ltypes;
-    Au_state* ret;
+    Au_state* ret = NULL;
     uchar localtype = types[i];
     
     switch(localtype) {
@@ -1438,7 +1400,10 @@ Au_state* Au_state::build(Au_automatons* aus, long i,vector<wstring>& toks, vect
             else
                 commonend->status |= an_mandatory;
             
-            return commonend->build(aus, i+1,toks,types,common);
+            ret = commonend->build(aus, i+1,toks,types,common);
+            if (ret != NULL && ret->isend() && !(ret->status&an_mandatory))
+                status |= an_end;
+            return ret;
         }
         case aut_opar: {//(..)
             if (nega)
@@ -1472,7 +1437,11 @@ Au_state* Au_state::build(Au_automatons* aus, long i,vector<wstring>& toks, vect
             arcs.push_back(ar);
             //These are the cases, when we have a x* at the end of an expression...
             //The current node can be an end too
-            return ret->build(aus, i+1,toks,types,common);
+            ret->status &= ~an_mandatory;
+            ret = ret->build(aus, i+1,toks,types,common);
+            if (ret != NULL && ret->isend() && !(ret->status&an_mandatory))
+                status |= an_end;
+            return ret;
         }
         case aut_obrk: { //[..]
             i++;
@@ -1502,7 +1471,8 @@ Au_state* Au_state::build(Au_automatons* aus, long i,vector<wstring>& toks, vect
                 return NULL;
             
             ret->removeend();
-            
+            ret->status |= an_mandatory; //if it is a +, we expect at least one value, cannot be a potential end
+
             if (types[i]!=aut_cbrk) {//the plus
                 //s is our starting point, it contains all the arcs we need...
                 for (j=0;j<s.arcs.last;j++) {
@@ -1513,19 +1483,20 @@ Au_state* Au_state::build(Au_automatons* aus, long i,vector<wstring>& toks, vect
                 if (types[i]==aut_cbrk_star) {//this is a star, we need an epsilon to escape it...
                     ar=aus->arc(new Au_epsilon(), ret);
                     arcs.push_back(ar);
+                    ret->status &= ~an_mandatory;
                 }
-                else
-                    ret->status |= an_mandatory; //if it is a +, we expect at least one value, cannot be a potential end
             }
             else {
-                ret->status |= an_mandatory;
                 for (j=0;j<s.arcs.last;j++)
                     arcs.push_back(s.arcs[j]);
             }
             
             //These are the cases, when we have a x* at the end of an expression...
             //The current node can be an end too
-            return ret->build(aus, i+1,toks,types,common);
+            ret = ret->build(aus, i+1,toks,types,common);
+            if (ret != NULL && ret->isend() && !(ret->status&an_mandatory))
+                status |= an_end;
+            return ret;
         }
     }
     
@@ -1564,6 +1535,7 @@ Au_state* Au_state::build(Au_automatons* aus, long i,vector<wstring>& toks, vect
                 next->status |= an_mandatory;
         }
     }
+    
     return next;
 }
 
@@ -1656,3 +1628,4 @@ Au_arc* Au_state::build(Au_automatons* aus, wstring& token, uchar type, Au_state
     }
     return current;
 }
+

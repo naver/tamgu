@@ -1946,7 +1946,7 @@ Au_state* Au_state::build(Au_automatons* aus, long i,vector<wstring>& toks, vect
     short count;
     vector<wstring> ltoks;
     vector<aut_actions> ltypes;
-    Au_state* ret;
+    Au_state* ret = NULL;
     uchar localtype = types[i];
     
     switch(localtype) {
@@ -2046,7 +2046,10 @@ Au_state* Au_state::build(Au_automatons* aus, long i,vector<wstring>& toks, vect
             else
                 commonend->status |= an_mandatory;
             
-            return commonend->build(aus, i+1,toks,types,common);
+            ret = commonend->build(aus, i+1,toks,types,common);
+            if (ret != NULL && ret->isend() && !(ret->status&an_mandatory))
+                status |= an_end;
+            return ret;
         }
         case aut_opar: {//(..)
             if (nega)
@@ -2082,7 +2085,7 @@ Au_state* Au_state::build(Au_automatons* aus, long i,vector<wstring>& toks, vect
             //The current node can be an end too
             ret->status &= ~an_mandatory;
             ret = ret->build(aus, i+1,toks,types,common);
-            if (ret->isend() && !(ret->status&an_mandatory))
+            if (ret != NULL && ret->isend() && !(ret->status&an_mandatory))
                 status |= an_end;
             return ret;
         }
@@ -2114,7 +2117,8 @@ Au_state* Au_state::build(Au_automatons* aus, long i,vector<wstring>& toks, vect
                 return NULL;
             
             ret->removeend();
-            
+            ret->status |= an_mandatory; //if it is a +, we expect at least one value, cannot be a potential end
+
             if (types[i]!=aut_cbrk) {//the plus
                 //s is our starting point, it contains all the arcs we need...
                 for (j=0;j<s.arcs.last;j++) {
@@ -2125,19 +2129,20 @@ Au_state* Au_state::build(Au_automatons* aus, long i,vector<wstring>& toks, vect
                 if (types[i]==aut_cbrk_star) {//this is a star, we need an epsilon to escape it...
                     ar=aus->arc(new Au_epsilon(), ret);
                     arcs.push_back(ar);
+                    ret->status &= ~an_mandatory;
                 }
-                else
-                    ret->status |= an_mandatory; //if it is a +, we expect at least one value, cannot be a potential end
             }
             else {
-                ret->status |= an_mandatory;
                 for (j=0;j<s.arcs.last;j++)
                     arcs.push_back(s.arcs[j]);
             }
             
             //These are the cases, when we have a x* at the end of an expression...
             //The current node can be an end too
-            return ret->build(aus, i+1,toks,types,common);
+            ret = ret->build(aus, i+1,toks,types,common);
+            if (ret != NULL && ret->isend() && !(ret->status&an_mandatory))
+                status |= an_end;
+            return ret;
         }
     }
     
@@ -2176,6 +2181,7 @@ Au_state* Au_state::build(Au_automatons* aus, long i,vector<wstring>& toks, vect
                 next->status |= an_mandatory;
         }
     }
+    
     return next;
 }
 

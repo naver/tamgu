@@ -204,8 +204,6 @@ public:
         return action->Type();
     }
 
-    bool get(wstring& w, long i, hmap<long,bool>& rules);
-
     bool same(Au_arc* a) {
         return action->same(a->action);
     }
@@ -255,8 +253,6 @@ public:
         return false;
     }
     
-    bool get(wstring& w, long i, hmap<long,bool>& rules);
-
     bool match(wstring& w, long i);
     bool find(wstring& w, wstring& sep, long i, vector<long>& res);
 
@@ -294,9 +290,7 @@ public:
     }
 
     Au_automaton(string rgx);
-
     
-    bool get(wstring& w, hmap<long,bool>& rules);
     bool match(string& w);
     bool match(wstring& w);
     bool search(wstring& w);
