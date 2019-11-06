@@ -215,8 +215,8 @@ bool An_rules::storerule(An_rule* r) {
         switch(ar->atom->type()) {
             case an_token:
             case an_meta:
-            lexicons[r->category].parse(w);
-            return true;
+                lexicons[r->category].parse(w);
+                return true;
             case an_automaton: {
                 if (w.find(L" ")!=-1) {
                     //In this case, we have a multiword expression, to parse it would not make any sense...
@@ -794,6 +794,7 @@ Tamgu* Tamguannotator::lexiconcompiling() {
             lexicon->modified = true;
         }
         compiledlexicon = true;
+        loadedlexicon = true;
     }
     
     if (globalTamgu->gTheAnnotationRules != rules && rules->multiwords.size()) {
@@ -803,6 +804,7 @@ Tamgu* Tamguannotator::lexiconcompiling() {
         
         rules->multiwords.clear();
         compiledlexicon = true;
+        loadedlexicon = true;
     }
 
     if (!loadedlexicon || lexicon->automaton == NULL)

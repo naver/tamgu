@@ -398,7 +398,7 @@ void TamguFst::add(unicodestring& w, unicodestring& lf, long posw, long posl, Ta
 		cw = lf[posl++];
 		//the last character is the feature structure, which we do not want to reinterpret
 		if (posl < lf.size())
-			cw = a.index(cw);
+			cw = a.index((uint32_t)cw);
 		cw <<= 16;
 		if (!arcs.find(cw, last)) {
 			if (a.features.find(cw) != a.features.end())
@@ -862,7 +862,7 @@ TamguFst* TamguFst::parse(TamguDoubleSideAutomaton& a, vector<wstring>& vs, vect
         case 1: //char+
         case 2: //char*
         case 3: //character...
-            cw = a.index(vs[i][0]);
+            cw = (uint32_t)a.index(vs[i][0]);
             cw |= cw << 16;
             //common is the final state to which the last arc should link (common can be NULL)
             //If we are dealing with the last character, we can use it... However, since for a "*", we need a
@@ -889,7 +889,7 @@ TamguFst* TamguFst::parse(TamguDoubleSideAutomaton& a, vector<wstring>& vs, vect
         case 4: //%x+
         case 5: //%x*
         case 6: //one character escaped...
-            cw = a.index(vs[i][1]);
+            cw = (uint32_t)a.index(vs[i][1]);
             cw |= cw << 16;
             //common is the final state to which the last arc should link (common can be NULL)
             //If we are dealing with the last character, we can use it... However, since for a "*", we need a
@@ -1168,7 +1168,7 @@ TamguFst* TamguFst::parse(TamguDoubleSideAutomaton& a, vector<wstring>& vs, vect
                 else
                     next=new TamguFst(a);
                 
-                cw = a.index(vs[i][j]);
+                cw = a.index((uint32_t)vs[i][j]);
                 cw |= cw << 16;
                 if (j==1)
                     cwfirst=cw;
@@ -1204,7 +1204,7 @@ TamguFst* TamguFst::parse(TamguDoubleSideAutomaton& a, vector<wstring>& vs, vect
         case 40: //?+
         case 41: //?*
         case 42: //?...
-            cw = a.index(0xFFFE);
+            cw = a.index((uint32_t)0xFFFE);
             cw |= cw << 16;
             //common is the final state to which the last arc should link (common can be NULL)
             //If we are dealing with the last character, we can use it... However, since for a "*", we need a
@@ -1249,9 +1249,14 @@ bool TamguFst::parse(TamguDoubleSideAutomaton& a, agnostring& expression, vector
 
 	status |= xf->status;
 
-    merge(xf,a);
+    vector<TamguFst*> marked;
+    mergein(xf,a,marked);
     a.finalize = false;
 
+    for (i = 0; i < marked.size(); i++)
+        marked[i]->mark = false;
+
+    
 	return true;
 }
 
@@ -1268,17 +1273,22 @@ bool TamguFst::parse(TamguDoubleSideAutomaton& a, wstring& w, vector<uint32_t>& 
     if (xf->parse(a, vs, types, i, indexes, NULL)==NULL)
         return false;
         
-    merge(xf,a);
+    vector<TamguFst*> marked;
+    mergein(xf,a,marked);
     a.finalize = false;
     
+    for (i = 0; i < marked.size(); i++)
+        marked[i]->mark = false;
+
     return true;
 }
 
-void TamguFst::merge(TamguFst* xf, TamguDoubleSideAutomaton& a) {
+void TamguFst::mergein(TamguFst* xf, TamguDoubleSideAutomaton& a, vector<TamguFst*>& marked) {
     if (mark)
         return;
 
     mark=true;
+    marked.push_back(this);
     
     short last;
     vector<long> unknown;
@@ -1290,7 +1300,7 @@ void TamguFst::merge(TamguFst* xf, TamguDoubleSideAutomaton& a) {
     for (i = 0; i < xf->arcs.nb; i++) {
         u = xf->arcs.indexes[i];
         if (arcs.find(u, last)) {
-            arcs.get(u, last)->merge(xf->arcs.table[i], a);
+            arcs.get(u, last)->mergein(xf->arcs.table[i], a, marked);
         }
         else
             unknown.push_back(i);
@@ -1419,7 +1429,7 @@ void TamguDoubleSideAutomaton::merge(TamguDoubleSideAutomaton* a) {
     for (long i = 1; i < a->garbage.size(); i++) {
         xe = a->garbage[i];
         if (xe != NULL) {
-            xe->id = garbage.size();
+            xe->id = (uint32_t)garbage.size();
             garbage.push_back(xe);
             a->garbage[i] = NULL;
         }
@@ -1431,15 +1441,15 @@ void TamguFst::regulars(TamguDoubleSideAutomaton& a) {
 	vector<uint32_t> indexes;
 
 	string e = "\t+Dig+Card";
-	indexes.push_back(a.index(e));
+	indexes.push_back((uint32_t)a.index(e));
 	e = "\t+Dig+Dec";
-	indexes.push_back(a.index(e));
+	indexes.push_back((uint32_t)a.index(e));
 	e = "\t+Exp+Dec";
-	indexes.push_back(a.index(e));
+	indexes.push_back((uint32_t)a.index(e));
 	e = "\t+Dig+Ord";
-	indexes.push_back(a.index(e));
+	indexes.push_back((uint32_t)a.index(e));
 	e = "\t+Dig+Rom";
-	indexes.push_back(a.index(e));
+	indexes.push_back((uint32_t)a.index(e));
 
 	agnostring expression("({+ -}) 0-9+ !1 (. 0-9+ !2 ({e E} ( {+ -} ) 0-9+ !3))");
 	parse(a, expression, indexes);
