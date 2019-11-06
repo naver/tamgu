@@ -868,9 +868,10 @@ Tamgu* Tamguannotator::MethodLexicon(Tamgu* contextualpattern, short idthread, T
         lexicon= (Tamgutransducer*)tlexicon;
         //it can be modified only once
         loadedlexicon = true;
+        return aTRUE;
     }
     
-    return aTRUE;
+    return globalTamgu->Returnerror("Wrong argument. Expecting a 'transducer' object.");
 }
 
 Tamgu* Tamguannotator::MethodCheckLabel(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
