@@ -1387,8 +1387,8 @@ Tamgu* Tamguannotator::MethodTokenize(Tamgu* contextualpattern, short idthread, 
 }
 
 Tamgu* Tamguannotator::Execution(Tamgu* res, Tamgu* txt, short idthread, uchar computelexicon) {
-    Tamguuvector uvect;
-    uvect.reference=2;
+    Tamguuvector vectoroftokens;
+    vectoroftokens.reference=2;
     long i,pos,j, idx;
     Tamgu* v;
     Tamguvector* sub;
@@ -1451,10 +1451,10 @@ Tamgu* Tamguannotator::Execution(Tamgu* res, Tamgu* txt, short idthread, uchar c
                 w += L"\t";
                 w += tokvect.values[i]->getustring(e);
             }
-            uvect.values.push_back(w);
+            vectoroftokens.values.push_back(w);
         }
         
-        res=Apply(&uvect,res, computelexicon, idthread);
+        res=Apply(&vectoroftokens,res, computelexicon, idthread);
         
         long sz;
         for (i=0;i<res->Size();i++) {
@@ -1486,8 +1486,8 @@ Tamgu* Tamguannotator::Execution(Tamgu* res, Tamgu* txt, short idthread, uchar c
     
     x_wtokenize xr;
     wstring wrds=txt->UString();
-    xr.tokenize(wrds,true,&uvect.values);
-    res=Apply(&uvect,res, computelexicon, idthread);
+    xr.tokenize(wrds,true,&vectoroftokens.values);
+    res=Apply(&vectoroftokens,res, computelexicon, idthread);
     //res is a vector, which contains vectors in which the first value is the label and the other values the indexes...
     for (i=0;i<res->Size();i++) {
         v=res->getvalue(i);
@@ -1504,7 +1504,7 @@ Tamgu* Tamguannotator::Execution(Tamgu* res, Tamgu* txt, short idthread, uchar c
             idx=v->getinteger(j); //the index of the token in uvect
             pos=xr.cpos[idx]; //its position within the initial string
             ivect->values.push_back(pos);
-            ivect->values.push_back(pos+uvect.values[idx].size());
+            ivect->values.push_back(pos+vectoroftokens.values[idx].size());
             sub->Push(ivect);
         }
         finalres->Push(sub);

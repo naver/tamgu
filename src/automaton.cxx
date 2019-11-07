@@ -1920,11 +1920,11 @@ bool TamguFst::process(charRead& w, bool punct, FstCompanion* f,long threshold, 
 			w.eset(w.w);
 			return true;
 		}
-		return false;
+		return found;
 	}
 
 	if (!arcs.nb)
-		return false;
+		return found;
 
 	i = -1;
 	if (cw) {

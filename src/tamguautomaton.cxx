@@ -1919,8 +1919,6 @@ bool Au_automate::compiling(wstring& w,long r) {
 }
 
 //----------------------------------------------------------------------------------------
-#define an_mandatory 8
-
 Au_state* Au_state::build(Au_automatons* aus, long i,vector<wstring>& toks, vector<aut_actions>& types, Au_state* common) {
     mark=false;
     Au_arc* ar;
@@ -2047,7 +2045,7 @@ Au_state* Au_state::build(Au_automatons* aus, long i,vector<wstring>& toks, vect
                 commonend->status |= an_mandatory;
             
             ret = commonend->build(aus, i+1,toks,types,common);
-            if (ret != NULL && ret->isend() && !(ret->status&an_mandatory))
+            if (ret != NULL && ret->isend() && !ret->ismandatory())
                 status |= an_end;
             return ret;
         }
@@ -2083,9 +2081,9 @@ Au_state* Au_state::build(Au_automatons* aus, long i,vector<wstring>& toks, vect
             arcs.push_back(ar);
             //These are the cases, when we have a x* at the end of an expression...
             //The current node can be an end too
-            ret->status &= ~an_mandatory;
+            ret->removemandatory();
             ret = ret->build(aus, i+1,toks,types,common);
-            if (ret != NULL && ret->isend() && !(ret->status&an_mandatory))
+            if (ret != NULL && ret->isend() && !ret->ismandatory())
                 status |= an_end;
             return ret;
         }
@@ -2140,7 +2138,7 @@ Au_state* Au_state::build(Au_automatons* aus, long i,vector<wstring>& toks, vect
             //These are the cases, when we have a x* at the end of an expression...
             //The current node can be an end too
             ret = ret->build(aus, i+1,toks,types,common);
-            if (ret != NULL && ret->isend() && !(ret->status&an_mandatory))
+            if (ret != NULL && ret->isend() && !ret->ismandatory())
                 status |= an_end;
             return ret;
         }
@@ -2169,7 +2167,7 @@ Au_state* Au_state::build(Au_automatons* aus, long i,vector<wstring>& toks, vect
 
     next = retarc->state->build(aus, i+1,toks,types,common);
 	    
-    if (next != NULL && next->isend() && !(next->status&an_mandatory)) {
+    if (next != NULL && next->isend() && !next->ismandatory()) {
         //If the current element is a *, then it can be skipped up to the end...
         switch(localtype) {
             case aut_meta_star:
