@@ -6285,7 +6285,7 @@ BLONG conversionintegerhexa(wstring& number) {
             if (digitaction[c] == '0')
                 v = (v << 3) + (v << 1) + (c & 15);
             else
-                return v*sign;
+                break;
         }
         return v*sign;
     }
