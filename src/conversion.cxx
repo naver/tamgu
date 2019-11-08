@@ -6207,52 +6207,54 @@ double conversionfloathexa(const char* s) {
 //===================================================================
 Exporting BLONG conversionintegerhexa(char* number) {
     while (*number!=0 && *number<=32) ++number;
-    if (*number==0)
+    uchar c = *number;
+    if (!c)
         return 0;
     
     int sign = 1;
-    if (number[0] == '-') {
-        ++number;
+    if (c == '-') {
+        c = *++number;
         sign = -1;
     }
     else
-        if (number[0] == '+')
-            ++number;
+        if (c == '+') {
+            c = *++number;
+        }
     
     
     BLONG v = 0;
-    if (number[0] != '0' || number[1] != 'x') {
-        while (*number && (*number >= 48 && *number<=57)) {
-            v = (v << 3) + (v << 1) + (*number & 15);
-            ++number;
+    if (c != '0' || number[1] != 'x') {
+        while (*number) {
+            c = *number++;
+            if (digitaction[c] == '0')
+                v = (v << 3) + (v << 1) + (c & 15);
+            else
+                break;
         }
         return v*sign;
     }
     
     ++number;
     ++number;
-    uchar c;
     
     while (*number) {
         v <<= 4;
         c = *number;
-        if (digitaction[c] == '0') {
-            v |= c & 15;
-            ++number;
-        }
-        else {
-            if (digitaction[c] == 'X') {
+        switch (digitaction[c]) {
+            case '0':
+                v |= c & 15;
+                ++number;
+                continue;
+            case 'X':
                 v |= c - 55;
                 ++number;
-            }
-            else {
-                if (digitaction[c] == 'x') {
-                    v |= c - 87;
-                    ++number;
-                }
-                else
-                    return v*sign;
-            }
+                continue;
+            case 'x':
+                v |= c - 87;
+                ++number;
+                continue;
+            default:
+                return v*sign;
         }
     }
     return v*sign;
@@ -6280,9 +6282,10 @@ BLONG conversionintegerhexa(wstring& number) {
     if (number[ipos] != '0' || number[ipos+1] != 'x') {
         for (i = ipos; i < l; i++) {
             c = number[i];
-            if (c<48 || c>57)
-                return (v*sign);
-            v = (v << 3) + (v << 1) + (c & 15);
+            if (digitaction[c] == '0')
+                v = (v << 3) + (v << 1) + (c & 15);
+            else
+                return v*sign;
         }
         return v*sign;
     }
@@ -6290,23 +6293,20 @@ BLONG conversionintegerhexa(wstring& number) {
     for (i = ipos+2; i < l; i++) {
         v <<= 4;
         c = number[i];
-        if (digitaction[c] == '0') {
-            v |= c & 15;
-        }
-        else {
-            if (digitaction[c] == 'X') {
+        switch (digitaction[c]) {
+            case '0':
+                v |= c & 15;
+                continue;
+            case 'X':
                 v |= c - 55;
-            }
-            else {
-                if (digitaction[c] == 'x') {
-                    v |= c - 87;
-                }
-                else
-                    return v*sign;
-            }
+                continue;
+            case 'x':
+                v |= c - 87;
+                continue;
+            default:
+                return v*sign;
         }
     }
-
     return v*sign;
 }
 
