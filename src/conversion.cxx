@@ -5974,6 +5974,36 @@ Exporting bool valid_latin_table(short tableindex) {
  *----------------------------------------------------------------------
  */
 //===================================================================
+static char digitaction[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    '+',0,'-','.',0,'0','0','0','0','0','0','0','0','0','0',0,0,0,0,0,0,0,'X','X','X','X','X','X',
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'x','x','x','x','x','x',0,0,0,0,0,0,0,0,0,'p',
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+
+
+static inline double pow10(BLONG n) {
+    double r = 1;
+    while (n)
+    {
+        if (n & 1)
+        {
+           r *= 10;
+           n--;
+        }
+        else
+        {
+            r *= 100;
+            n -= 2;
+        }
+    }
+
+    return r;
+}
+
+
 extern "C" {
     //Implementation, which replaces strtod, which does not work properly on some platform...
     double conversiontofloathexa(const char* s, char sign) {
@@ -5982,105 +6012,78 @@ extern "C" {
         BLONG mantissa = 0;
         BLONG power = 0;
         
-        bool ppres=false;
-        bool stop = false;
+        uchar flag = 0;
+        uchar c, cc;
         
-        for (; *s != 0 && !stop; ++s) {
-            switch (*s) {
-                case '+':
-                    break;
-                case '-': //mantissa sign
-                    if (ppres)
-                        sign |= 2;
-                    else
-                        stop=true;
-                    break;
-                case '.':
-                    if (mantissa)
-                        stop = false;
-                    else
-                        mantissa = 1;
-                    break;
-                case '0':
-                case '1':
-                case '2':
-                case '3':
-                case '4':
-                case '5':
-                case '6':
-                case '7':
-                case '8':
-                case '9':
-                    if (ppres) { //it is in decimal after the "p"
-                        power *= 10;
-                        power += *s - 48;
-                        break;
+        for (; *s != 0; ++s) {
+            c = *s;
+            cc = digitaction[c];
+            if (cc == '0') {
+                if (!flag) {
+                    v = (v << 4) | (c & 15);
+                }
+                else {
+                    if ((flag & 2) == 2) //it is in decimal after the "p"
+                        power = (power << 3) + (power << 1) + (c & 15);
+                    else {
+                        point = (point << 4) | (c & 15);
+                        mantissa <<= 4;
                     }
-                    if (!mantissa) {
-                        v <<= 4;
-                        v |= *s - 48;
-                        break;
-                    }
-                    point <<= 4;
-                    point |= *s - 48;
-                    mantissa <<= 4;
-                    break;
-                case 'A':
-                case 'B':
-                case 'C':
-                case 'D':
-                case 'E':
-                case 'F':
-                    if (!mantissa) {
-                        v <<= 4;
-                        v |= *s - 55;
-                        break;
-                    }
-                    point <<= 4;
-                    point |= *s - 55;
-                    mantissa <<= 4;
-                    break;
-                case 'a':
-                case 'b':
-                case 'c':
-                case 'd':
-                    if (!mantissa) {
-                        v <<= 4;
-                        v |= *s - 87;
-                        break;
-                    }
-                    point <<= 4;
-                    point |= *s - 87;
-                    mantissa <<= 4;
-                    break;
-                case 'e':
-                    if (!mantissa) {
-                        v <<= 4;
-                        v |= *s - 87;
-                        break;
-                    }
-                    point <<= 4;
-                    point |= *s - 87;
-                    mantissa <<= 4;
-                    break;
-                case 'f':
-                    if (!mantissa) {
-                        v <<= 4;
-                        v |= *s - 87;
-                        break;
-                    }
-                    point <<= 4;
-                    point |= *s - 87;
-                    mantissa <<= 4;
-                    break;
-                case 'p':
-                    if (ppres)
-                        stop = true;
-                    ppres = true;
-                    break;
-                default:
-                    stop = true;
+                }
             }
+            else {
+                if (cc == 'X') {
+                    if (!flag) {
+                        v = (v << 4) | (c - 55);
+                    }
+                    else {
+                        point = (point << 4) | (c - 55);
+                        mantissa <<= 4;
+                    }
+                }
+                else {
+                    if (cc == 'x') {
+                        if (!flag) {
+                            v = (v << 4) | (c - 87);
+                        }
+                        else {
+                            point = (point << 4) | (c - 87);
+                            mantissa <<= 4;
+                        }
+                    }
+                    else {
+                        if (c == 'p') {
+                            if ((flag & 2) == 2)
+                                break;
+                            flag |= 2;
+                        }
+                        else {
+                            if (c == '.') {
+                                if ((flag & 1) == 1)
+                                    break;
+                                mantissa = 1;
+                                flag |= 1;
+                            }
+                            else {
+                                if (c == '-') {
+                                    if ((flag & 2) != 2)
+                                        break;
+                                    sign |= 2;
+                                }
+                                else
+                                    if (!cc)
+                                        break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        if (!flag) {
+            if (sign)
+                v *= -1;
+            return v;
         }
         
         double res = v;
@@ -6090,10 +6093,12 @@ extern "C" {
         if ((sign & 1) == 1)
             res *= -1;
         
-        if (ppres) {
+        if ((flag & 2) == 2) {
+            power = 1 << power;
             if ((sign & 2) == 2)
-                power *= -1;
-            res *= pow(2, power);
+                res *= 1 / (double)power;
+            else
+                res *= power;
         }
         
         return res;
@@ -6128,72 +6133,73 @@ double conversionfloathexa(const char* s) {
     BLONG mantissa = 0;
     BLONG power = 0;
     
-    bool epres = false;
-    bool stop = false;
+    uchar flag = 0;
     
-
-    for (; *s != 0 && !stop; ++s) {
-        switch (*s) {
-            case '+':
-                break;
-            case '-': //mantissa sign
-                if (epres)
-                    sign |= 2;
-                else
-                    stop=true;
-                break;
-            case '.':
-                if (mantissa)
-                    stop = false;
-                else
-                    mantissa = 1;
-                break;
-            case '0':
-            case '1':
-            case '2':
-            case '3':
-            case '4':
-            case '5':
-            case '6':
-            case '7':
-            case '8':
-            case '9':
-                if (epres) {
-                    power *= 10;
-                    power += *s - 48;
-                    break;
+    uchar c;
+    for (; *s != 0; ++s) {
+        c = *s;
+        
+        if (digitaction[c] == '0') {
+            if (!flag) {
+                v = ( v << 3) + ( v << 1) + (c & 15);
+            }
+            else {
+                if ((flag & 2) == 2) {
+                    power = (power << 3) + (power << 1) + (c & 15);
                 }
-                if (!mantissa) {
-                    v *= 10;
-                    v += *s - 48;
-                    break;
+                else {
+                    point = (point << 3) + (point << 1) + (c & 15);
+                    mantissa = (mantissa << 3) + (mantissa << 1);
                 }
-                point *= 10;
-                point += *s - 48;
-                mantissa *= 10;
-                break;
-            case 'E':
-            case 'e':
-                if (epres)
-                    stop = true;
-                epres = true;
-                break;
-            default:
-                stop = true;
+            }
+        }
+        else {
+            if (c == '.') {
+                if (flag)
+                    break;
+                mantissa = 1;
+                flag = 1;
+            }
+            else {
+                if (c == 'e' || c == 'E') {
+                    if ((flag & 2) == 2)
+                        break;
+                    flag |= 2;
+                }
+                else {
+                    if (c == '-') {
+                        if ((flag & 2) == 2)
+                            sign |= 2;
+                        else
+                            break;
+                    }
+                    else {
+                        if (!digitaction[c])
+                            break;
+                    }
+                }
+            }
         }
     }
     
+    if (!flag) {
+        if (sign)
+            v *= -1;
+        return v;
+    }
+    
     double res = v;
-    if (mantissa)
+    if ((flag & 1) == 1)
         res += (double)point / (double)mantissa;
     
     if ((sign & 1) == 1)
         res *= -1;
     
-    if (epres) {
+    if ((flag & 2) == 2) {
         if ((sign & 2) == 2)
-            power *= -1;
-        res *= pow(10, power);
+            res *= 1 / pow10(power);
+        else
+            res *= pow10(power);
     }
     
     return res;
@@ -6217,7 +6223,7 @@ Exporting BLONG conversionintegerhexa(char* number) {
     BLONG v = 0;
     if (number[0] != '0' || number[1] != 'x') {
         while (*number && (*number >= 48 && *number<=57)) {
-            v = v * 10 + (*number - 48);
+            v = (v << 3) + (v << 1) + (*number & 15);
             ++number;
         }
         return v*sign;
@@ -6225,42 +6231,29 @@ Exporting BLONG conversionintegerhexa(char* number) {
     
     ++number;
     ++number;
+    uchar c;
     
     while (*number) {
         v <<= 4;
-        switch (*number) {
-            case '0':
-            case '1':
-            case '2':
-            case '3':
-            case '4':
-            case '5':
-            case '6':
-            case '7':
-            case '8':
-            case '9':
-                v |= *number - 48;
-                break;
-            case 'A':
-            case 'B':
-            case 'C':
-            case 'D':
-            case 'E':
-            case 'F':
-                v |= *number - 55;
-                break;
-            case 'a':
-            case 'b':
-            case 'c':
-            case 'd':
-            case 'e':
-            case 'f':
-                v |= *number - 87;
-                break;
-            default:
-                return v*sign;
+        c = *number;
+        if (digitaction[c] == '0') {
+            v |= c & 15;
+            ++number;
         }
-        ++number;
+        else {
+            if (digitaction[c] == 'X') {
+                v |= c - 55;
+                ++number;
+            }
+            else {
+                if (digitaction[c] == 'x') {
+                    v |= c - 87;
+                    ++number;
+                }
+                else
+                    return v*sign;
+            }
+        }
     }
     return v*sign;
 }
@@ -6283,123 +6276,120 @@ BLONG conversionintegerhexa(wstring& number) {
     long l = number.size();
     BLONG v = 0;
     
+    uchar c;
     if (number[ipos] != '0' || number[ipos+1] != 'x') {
         for (i = ipos; i < l; i++) {
-            if (number[i]<48 || number[i]>57)
+            c = number[i];
+            if (c<48 || c>57)
                 return (v*sign);
-            v = v * 10 + (number[i] - 48);
+            v = (v << 3) + (v << 1) + (c & 15);
         }
         return v*sign;
     }
     
     for (i = ipos+2; i < l; i++) {
         v <<= 4;
-        switch (number[i]) {
-            case '0':
-            case '1':
-            case '2':
-            case '3':
-            case '4':
-            case '5':
-            case '6':
-            case '7':
-            case '8':
-            case '9':
-                v |= number[i] - 48;
-                break;
-            case 'A':
-            case 'B':
-            case 'C':
-            case 'D':
-            case 'E':
-            case 'F':
-                v |= number[i] - 55;
-                break;
-            case 'a':
-            case 'b':
-            case 'c':
-            case 'd':
-            case 'e':
-            case 'f':
-                v |= number[i] - 87;
-                break;
-            default:
-                return v*sign;
+        c = number[i];
+        if (digitaction[c] == '0') {
+            v |= c & 15;
+        }
+        else {
+            if (digitaction[c] == 'X') {
+                v |= c - 55;
+            }
+            else {
+                if (digitaction[c] == 'x') {
+                    v |= c - 87;
+                }
+                else
+                    return v*sign;
+            }
         }
     }
+
     return v*sign;
 }
 
 //===================================================================
 Exporting double conversionfloat(char* s) {
-    double v = 0;
-    double point = 0;
-    double mantissa = 0;
-    double power = 0;
-    bool epres = false;
+    BLONG v = 0;
+    BLONG point = 0;
+    BLONG mantissa = 0;
+    BLONG power = 0;
+    uchar flag = 0;
     char sign = 0;
-    bool stop = false;
     
-    for (long i = 0; s[i] != 0 && !stop; i++) {
-        switch (s[i]) {
-            case '-':
-                if (epres)
-                    sign |= 2;
-                else
-                    sign = 1;
-                break;
-            case 'e':
-                if (epres)
-                    stop = true;
-                epres = true;
-                break;
-            case '.':
-                if (mantissa)
-                    stop = false;
-                else
-                    mantissa = 1;
-                break;
-            case '0':
-            case '1':
-            case '2':
-            case '3':
-            case '4':
-            case '5':
-            case '6':
-            case '7':
-            case '8':
-            case '9':
-                if (epres) {
-                    power *= 10;
-                    power += s[i] - 48;
-                    break;
+    uchar c;
+    for (long i = 0; s[i] != 0; i++) {
+        c = s[i];
+        if (digitaction[c] == '0') {
+            if (!flag) {
+                v = ( v << 3) + ( v << 1) + (c & 15);
+            }
+            else {
+                if ((flag & 2) == 2) {
+                    power = (power << 3) + (power << 1) + (c & 15);
                 }
-                if (!mantissa) {
-                    v *= 10;
-                    v += s[i] - 48;
-                    break;
+                else {
+                    point = (point << 3) + (point << 1) + (c & 15);
+                    mantissa = (mantissa << 3) + (mantissa << 1);
                 }
-                point *= 10;
-                point += s[i] - 48;
-                mantissa *= 10;
-                break;
-            default:
-                stop = true;
+            }
+        }
+        else {
+            if (c == '.') {
+                if (flag)
+                    break;
+                mantissa = 1;
+                flag = 1;
+            }
+            else {
+                if (c == 'e' || c == 'E') {
+                    if ((flag & 2) == 2)
+                        break;
+                    flag |= 2;
+                }
+                else {
+                    if (c == '-') {
+                        if ((flag & 2) == 2)
+                            sign |= 2;
+                        else
+                            break;
+                    }
+                    else {
+                        if (!digitaction[c])
+                            break;
+                    }
+                }
+            }
         }
     }
-    if (mantissa)
-        v += point / mantissa;
+
+    if (!flag) {
+        if (sign)
+            v *= -1;
+        return v;
+    }
+    
+    double res = 0;
+    if ((flag & 1) == 1)
+        res = (double)point / (double)mantissa;
+    
+    res += v;
     
     if ((sign & 1) == 1)
-        v *= -1;
-    if (epres) {
+        res *= -1;
+    
+    if ((flag & 2) == 2) {
         if ((sign & 2) == 2)
-            power *= -1;
-        power = pow(10, power);
-        v *= power;
+            res *= 1 / pow10(power);
+        else
+            res *= pow10(power);
     }
-    return v;
+
+    return res;
 }
+
 //===================================================================
 //Conversion from string to double...
 Exporting double convertfloat(char* s) {
