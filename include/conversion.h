@@ -29,24 +29,29 @@
 #include "tamguboost.h"
 
 #ifdef NOFASTTYPE
-#define bint long
-#define buint unsigned long
-#define bshort short
-#define bushort unsigned short
-#define ushort unsigned short
-#define binuint64 unsigned long long
+#define bshort int16_t
+#define bushort uint16_t
+#define ushort uint16_t
+#define bint int32_t
+#define buint uint32_t
+#define binuint64 uint64_t
 #define BULONG unsigned long long
 #define BLONG long long
 #else
 #include <inttypes.h>
-#define bint int_fast32_t
-#define buint uint_fast32_t
 #define bshort int_fast16_t
 #define bushort uint_fast16_t
+#define ushort uint_fast16_t
+#define bint int_fast32_t
+#define buint uint_fast32_t
 #define binuint64 uint_fast64_t
+#if (defined(APPLE) || defined(WIN32))
 #define BULONG uint_fast64_t
 #define BLONG int_fast64_t
-#define ushort uint_fast16_t
+#else
+#define BULONG unsigned long long
+#define BLONG long long
+#endif
 #endif
 #include "binmap.h"
 
@@ -229,11 +234,13 @@ Exporting long convertlong(string value);
 void DoubleMetaphone(const string &str, vector<string>& codes);
 //===================================================================
 Exporting string convertfromnumber(BLONG l);
-Exporting string convertfromnumber(long l);
-Exporting string convertfromnumber(short l);
 Exporting wstring wconvertfromnumber(BLONG l);
+
+Exporting string convertfromnumber(long l);
 Exporting wstring wconvertfromnumber(long l);
+
 Exporting wstring wconvertfromnumber(short l);
+Exporting string convertfromnumber(short l);
 
 
 Exporting string convertfromnumber(double l);

@@ -31,6 +31,20 @@ void concat_char_convert_utf16(wstring& res, TAMGUCHAR code);
 #define concat_char_convert_utf16(res,code) res += code;
 #endif
 
+static char digitaction[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    '+',0,'-','.',0,
+    '0','0','0','0','0','0','0','0','0','0',0,0,0,0,0,0,0,
+    'X','X','X','X','X','X',
+    0,0,0,0,0,0,0,0,0,'p',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    'x','x','x','x','x','x',0,0,0,0,0,0,0,0,0,'p',
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+};
+
+
 //------------------------------------------------------------------------
 #ifdef INTELINTRINSICS
 static const __m128i checkifzero = _mm_set1_epi8(0xFF);
@@ -117,6 +131,50 @@ static const __m256i checkifbigzero = _mm256_set1_epi8(0xFF);
 #define mcomp_256 _mm256_cmpeq_epi32
 #endif
 
+
+static const __m256i keepintegers = _mm256_set1_epi8(0x0F);
+static const __m256i powerof10 = _mm256_set_epi32(0,1000,0,100,0,10,0,1);
+
+BLONG convertfromstring(const char* s) {
+    bint init[]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    bint* beg = init-1;
+    bint* current = init+3;
+    BLONG v = 0;
+    uchar nb = 0;
+    __m256i value;
+    
+    while (digitaction[*s]=='0') {
+        *current++ = *s++;
+        ++beg;
+        nb++;
+        if (nb == 4) {
+            value = _mm256_set_epi32(0, beg[0], 0, beg[1], 0, beg[2], 0, beg[3]);
+            value = _mm256_and_si256(value, keepintegers);
+            value = _mm256_mul_epi32(value, powerof10);
+            v *= 1000;
+            v += _mm256_extract_epi64(value,0);
+            v += _mm256_extract_epi64(value,1);
+            v += _mm256_extract_epi64(value,2);
+            v += _mm256_extract_epi64(value,3);
+            beg = init - 1;
+            current = init + 3;
+            nb = 0;
+        }
+    }
+    
+    if (nb) {
+        value = _mm256_set_epi32(0, beg[0], 0, beg[1], 0, beg[2], 0, beg[3]);
+        value = _mm256_and_si256(value, keepintegers);
+        value = _mm256_mul_epi32(value, powerof10);
+        v *= 1000;
+        v += _mm256_extract_epi64(value,0);
+        v += _mm256_extract_epi64(value,1);
+        v += _mm256_extract_epi64(value,2);
+        v += _mm256_extract_epi64(value,3);
+    }
+        
+    return v;
+}
 
 bool check_ascii(unsigned char* src, long lensrc, long& i) {
     __m256i current_bytes = _mm256_setzero_si256();
@@ -5974,17 +6032,8 @@ Exporting bool valid_latin_table(short tableindex) {
  *----------------------------------------------------------------------
  */
 //===================================================================
-static char digitaction[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    '+',0,'-','.',0,'0','0','0','0','0','0','0','0','0','0',0,0,0,0,0,0,0,'X','X','X','X','X','X',
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'x','x','x','x','x','x',0,0,0,0,0,0,0,0,0,'p',
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
-
-static inline double pow10(BLONG n) {
+static inline double power10(long n) {
     double r = 1;
     while (n)
     {
@@ -6006,204 +6055,146 @@ static inline double pow10(BLONG n) {
 
 extern "C" {
     //Implementation, which replaces strtod, which does not work properly on some platform...
-    double conversiontofloathexa(const char* s, char sign) {
+    double conversiontofloathexa(const char* s, int sign) {
         BLONG v = 0;
-        BLONG point = 0;
-        BLONG mantissa = 0;
-        BLONG power = 0;
-        
-        uchar flag = 0;
-        uchar c, cc;
-        
-        for (; *s != 0; ++s) {
-            c = *s;
-            cc = digitaction[c];
-            if (cc == '0') {
-                if (!flag) {
+        bool cont = true;
+        uchar c = *s++;
+        while (cont) {
+            switch (digitaction[c]) {
+                case '0':
                     v = (v << 4) | (c & 15);
-                }
-                else {
-                    if ((flag & 2) == 2) //it is in decimal after the "p"
-                        power = (power << 3) + (power << 1) + (c & 15);
-                    else {
-                        point = (point << 4) | (c & 15);
-                        mantissa <<= 4;
-                    }
-                }
+                    c = *s++;
+                    continue;
+                case 'X':
+                    v = (v << 4) | (c - 55);
+                    c = *s++;
+                    continue;
+                case 'x':
+                    v = (v << 4) | (c - 87);
+                    c = *s++;
+                    continue;
+                default:
+                    cont = false;
             }
-            else {
-                if (cc == 'X') {
-                    if (!flag) {
-                        v = (v << 4) | (c - 55);
-                    }
-                    else {
-                        point = (point << 4) | (c - 55);
-                        mantissa <<= 4;
-                    }
-                }
-                else {
-                    if (cc == 'x') {
-                        if (!flag) {
-                            v = (v << 4) | (c - 87);
-                        }
-                        else {
-                            point = (point << 4) | (c - 87);
-                            mantissa <<= 4;
-                        }
-                    }
-                    else {
-                        if (c == 'p') {
-                            if ((flag & 2) == 2)
-                                break;
-                            flag |= 2;
-                        }
-                        else {
-                            if (c == '.') {
-                                if ((flag & 1) == 1)
-                                    break;
-                                mantissa = 1;
-                                flag |= 1;
-                            }
-                            else {
-                                if (c == '-') {
-                                    if ((flag & 2) != 2)
-                                        break;
-                                    sign |= 2;
-                                }
-                                else
-                                    if (!cc)
-                                        break;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        
-        if (!flag) {
-            if (sign)
-                v *= -1;
-            return v;
         }
         
         double res = v;
-        if (mantissa)
-            res += (double)point / (double)mantissa;
-        
-        if ((sign & 1) == 1)
-            res *= -1;
-        
-        if ((flag & 2) == 2) {
-            power = 1 << power;
-            if ((sign & 2) == 2)
-                res *= 1 / (double)power;
-            else
-                res *= power;
+
+        if (c == '.') {
+            BLONG mantissa = 1;
+            v = 0;
+            cont = true;
+            c = *s++;
+            while (cont) {
+                switch (digitaction[c]) {
+                    case '0':
+                        v = (v << 4) | (c & 15);
+                        c = *s++;
+                        mantissa <<= 4;
+                        continue;
+                    case 'X':
+                        v = (v << 4) | (c - 55);
+                        mantissa <<= 4;
+                        c = *s++;
+                        continue;
+                    case 'x':
+                        v = (v << 4) | (c - 87);
+                        mantissa <<= 4;
+                        c = *s++;
+                        continue;
+                    default:
+                        cont = false;
+                }
+            }
+            
+            res += (double)v/(double)mantissa;
         }
         
-        return res;
+
+        if (c == 'p') {
+            bool sgn = false;
+            if (*s == '-') {
+                sgn = true;
+                ++s;
+            }
+            v = *s++ & 15;
+            while (digitaction[*s] == '0') {
+                v = (v << 3) + (v << 1) + (*s++ & 15);
+            }
+            v = 1 << v;
+            if (sgn)
+                res *= 1 / (double)v;
+            else
+                res *= v;
+
+        }
+        
+        return res*sign;
     }
-    
 }
 
 double conversionfloathexa(const char* s) {
     while (*s!=0 && *s<=32) ++s;
     //End of string...
-    if (s[0]==0)
+    if (*s ==0 )
         return 0;
     
-    char sign = 0;
+    int sign = 1;
 
     //Sign
-    if (s[0]=='-') {
-        sign=1;
+    if (*s=='-') {
+        sign = -1;
         ++s;
     }
     else
-        if (s[0]=='+')
+        if (*s=='+')
             ++s;
     
-    if (s[0]=='0' && s[1]=='x') {
+    if (*s=='0' && s[1]=='x') {
         s+=2;
         return conversiontofloathexa(s, sign);
     }
 
-    BLONG v = 0;
-    BLONG point = 0;
-    BLONG mantissa = 0;
-    BLONG power = 0;
-    
-    uchar flag = 0;
-    
-    uchar c;
-    for (; *s != 0; ++s) {
-        c = *s;
-        
-        if (digitaction[c] == '0') {
-            if (!flag) {
-                v = ( v << 3) + ( v << 1) + (c & 15);
-            }
-            else {
-                if ((flag & 2) == 2) {
-                    power = (power << 3) + (power << 1) + (c & 15);
-                }
-                else {
-                    point = (point << 3) + (point << 1) + (c & 15);
-                    mantissa = (mantissa << 3) + (mantissa << 1);
-                }
-            }
-        }
-        else {
-            if (c == '.') {
-                if (flag)
-                    break;
-                mantissa = 1;
-                flag = 1;
-            }
-            else {
-                if (c == 'e' || c == 'E') {
-                    if ((flag & 2) == 2)
-                        break;
-                    flag |= 2;
-                }
-                else {
-                    if (c == '-') {
-                        if ((flag & 2) == 2)
-                            sign |= 2;
-                        else
-                            break;
-                    }
-                    else {
-                        if (!digitaction[c])
-                            break;
-                    }
-                }
-            }
-        }
+    BLONG v = *s++ & 15;
+    while (digitaction[*s] == '0') {
+        v = (v << 3) + (v << 1) + (*s++ & 15);
     }
-    
-    if (!flag) {
-        if (sign)
-            v *= -1;
-        return v;
-    }
-    
+
     double res = v;
-    if ((flag & 1) == 1)
-        res += (double)point / (double)mantissa;
-    
-    if ((sign & 1) == 1)
-        res *= -1;
-    
-    if ((flag & 2) == 2) {
-        if ((sign & 2) == 2)
-            res *= 1 / pow10(power);
+
+    if (*s=='.') {
+        uchar mantissa = 1;
+        ++s;
+        v = *s++ & 15;
+        while (digitaction[*s] == '0') {
+            v = (v << 3) + (v << 1) + (*s++ & 15);
+            ++mantissa;
+        }
+        res += (double)v / power10(mantissa);
+    }
+        
+    if (*s == 'e' || *s == 'E') {
+        ++s;
+        bool sgn = false;
+        if (*s == '-') {
+            sgn = true;
+            ++s;
+        }
+            
+        v = *s++ & 15;
+        while (digitaction[*s] == '0')
+            v = (v << 3) + (v << 1) + (*s++ & 15);
+
+        if (sgn)
+            res *= 1 / power10(v);
         else
-            res *= pow10(power);
+            res *= power10(v);
     }
     
-    return res;
+    return res*sign;
 }
+
+
 //===================================================================
 Exporting BLONG conversionintegerhexa(char* number) {
     while (*number!=0 && *number<=32) ++number;
@@ -6222,41 +6213,39 @@ Exporting BLONG conversionintegerhexa(char* number) {
         }
     
     
-    BLONG v = 0;
-    if (c != '0' || number[1] != 'x') {
+    ++number;
+    BLONG v;
+    if (c == '0' && *number == 'x') {
+        ++number;
+        
+        v = 0;
         while (*number) {
-            c = *number++;
-            if (digitaction[c] == '0')
-                v = (v << 3) + (v << 1) + (c & 15);
-            else
-                break;
-        }
-        return v*sign;
-    }
-    
-    ++number;
-    ++number;
-    
-    while (*number) {
-        v <<= 4;
-        c = *number;
-        switch (digitaction[c]) {
-            case '0':
-                v |= c & 15;
-                ++number;
-                continue;
-            case 'X':
-                v |= c - 55;
-                ++number;
-                continue;
-            case 'x':
-                v |= c - 87;
-                ++number;
-                continue;
-            default:
-                return v*sign;
+            v <<= 4;
+            c = *number;
+            switch (digitaction[c]) {
+                case '0':
+                    v |= c & 15;
+                    ++number;
+                    continue;
+                case 'X':
+                    v |= c - 55;
+                    ++number;
+                    continue;
+                case 'x':
+                    v |= c - 87;
+                    ++number;
+                    continue;
+                default:
+                    return v*sign;
+            }
         }
     }
+    else {
+        v = c & 15;
+        while (digitaction[*number] == '0')
+            v = (v << 3) + (v << 1) + (*number++ & 15);
+    }
+    
     return v*sign;
 }
 
@@ -6312,82 +6301,58 @@ BLONG conversionintegerhexa(wstring& number) {
 
 //===================================================================
 Exporting double conversionfloat(char* s) {
-    BLONG v = 0;
-    BLONG point = 0;
-    BLONG mantissa = 0;
-    BLONG power = 0;
-    uchar flag = 0;
-    char sign = 0;
+    int sign = 1;
+
+    //Sign
+    if (s[0]=='-') {
+        sign = -1;
+        ++s;
+    }
+    else
+        if (s[0]=='+')
+            ++s;
     
-    uchar c;
-    for (long i = 0; s[i] != 0; i++) {
-        c = s[i];
-        if (digitaction[c] == '0') {
-            if (!flag) {
-                v = ( v << 3) + ( v << 1) + (c & 15);
-            }
-            else {
-                if ((flag & 2) == 2) {
-                    power = (power << 3) + (power << 1) + (c & 15);
-                }
-                else {
-                    point = (point << 3) + (point << 1) + (c & 15);
-                    mantissa = (mantissa << 3) + (mantissa << 1);
-                }
-            }
-        }
-        else {
-            if (c == '.') {
-                if (flag)
-                    break;
-                mantissa = 1;
-                flag = 1;
-            }
-            else {
-                if (c == 'e' || c == 'E') {
-                    if ((flag & 2) == 2)
-                        break;
-                    flag |= 2;
-                }
-                else {
-                    if (c == '-') {
-                        if ((flag & 2) == 2)
-                            sign |= 2;
-                        else
-                            break;
-                    }
-                    else {
-                        if (!digitaction[c])
-                            break;
-                    }
-                }
-            }
-        }
+    if (s[0]=='0' && s[1]=='x') {
+        s+=2;
+        return conversiontofloathexa(s, sign);
     }
 
-    if (!flag) {
-        if (sign)
-            v *= -1;
-        return v;
+    BLONG v = *s++ & 15;
+    while (digitaction[*s] == '0') {
+        v = (v << 3) + (v << 1) + (*s++ & 15);
     }
-    
-    double res = 0;
-    if ((flag & 1) == 1)
-        res = (double)point / (double)mantissa;
-    
-    res += v;
-    
-    if ((sign & 1) == 1)
-        res *= -1;
-    
-    if ((flag & 2) == 2) {
-        if ((sign & 2) == 2)
-            res *= 1 / pow10(power);
+
+    double res = v;
+
+    if (*s=='.') {
+        uchar mantissa = 1;
+        ++s;
+        v = *s++ & 15;
+        while (digitaction[*s] == '0') {
+            v = (v << 3) + (v << 1) + (*s++ & 15);
+            ++mantissa;
+        }
+        res += (double)v / power10(mantissa);
+    }
+        
+    if (*s == 'e' || *s == 'E') {
+        ++s;
+        bool sgn = false;
+        if (*s == '-') {
+            sgn = true;
+            ++s;
+        }
+            
+        v = *s++ & 15;
+        while (digitaction[*s] == '0')
+            v = (v << 3) + (v << 1) + (*s++ & 15);
+
+        if (sgn)
+            res *= 1 / power10(v);
         else
-            res *= pow10(power);
+            res *= power10(v);
     }
-
-    return res;
+    return res*sign;
 }
 
 //===================================================================
