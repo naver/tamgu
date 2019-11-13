@@ -6304,15 +6304,15 @@ Exporting double conversionfloat(char* s) {
     int sign = 1;
 
     //Sign
-    if (s[0]=='-') {
+    if (*s=='-') {
         sign = -1;
         ++s;
     }
     else
-        if (s[0]=='+')
+        if (*s=='+')
             ++s;
     
-    if (s[0]=='0' && s[1]=='x') {
+    if (*s=='0' && s[1]=='x') {
         s+=2;
         return conversiontofloathexa(s, sign);
     }
