@@ -131,7 +131,7 @@ static const __m256i checkifbigzero = _mm256_set1_epi8(0xFF);
 #define mcomp_256 _mm256_cmpeq_epi32
 #endif
 
-
+#ifndef WIN32
 static const __m256i keepintegers = _mm256_set1_epi8(0x0F);
 static const __m256i powerof10 = _mm256_set_epi32(0,1000,0,100,0,10,0,1);
 
@@ -175,6 +175,7 @@ BLONG convertfromstring(const char* s) {
         
     return v;
 }
+#endif
 
 bool check_ascii(unsigned char* src, long lensrc, long& i) {
     __m256i current_bytes = _mm256_setzero_si256();
