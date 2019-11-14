@@ -6155,22 +6155,31 @@ double conversionfloathexa(const char* s) {
         return conversiontofloathexa(s, sign);
     }
 
-    BLONG v = *s++ & 15;
-    while (digitaction[*s] == '0') {
-        v = (v << 3) + (v << 1) + (*s++ & 15);
-    }
-
-    double res = v;
-
-    if (*s=='.') {
-        uchar mantissa = 1;
-        ++s;
+    BLONG v;
+    if (digitaction[*s] == '0') {
         v = *s++ & 15;
         while (digitaction[*s] == '0') {
             v = (v << 3) + (v << 1) + (*s++ & 15);
-            ++mantissa;
         }
-        res += (double)v / power10(mantissa);
+    }
+    else
+        return 0;
+    
+    double res = v;
+
+    if (*s=='.') {
+        ++s;
+        if (digitaction[*s] == '0') {
+            uchar mantissa = 1;
+            v = *s++ & 15;
+            while (digitaction[*s] == '0') {
+                v = (v << 3) + (v << 1) + (*s++ & 15);
+                ++mantissa;
+            }
+            res += (double)v / power10(mantissa);
+        }
+        else
+            return res;
     }
         
     if (*s == 'e' || *s == 'E') {
@@ -6181,16 +6190,17 @@ double conversionfloathexa(const char* s) {
             ++s;
         }
             
-        v = *s++ & 15;
-        while (digitaction[*s] == '0')
-            v = (v << 3) + (v << 1) + (*s++ & 15);
-
-        if (sgn)
-            res *= 1 / power10(v);
-        else
-            res *= power10(v);
+        if (digitaction[*s] == '0') {
+            v = *s++ & 15;
+            while (digitaction[*s] == '0')
+                v = (v << 3) + (v << 1) + (*s++ & 15);
+            
+            if (sgn)
+                res *= 1 / power10(v);
+            else
+                res *= power10(v);
+        }
     }
-    
     return res*sign;
 }
 
@@ -6241,9 +6251,13 @@ Exporting BLONG conversionintegerhexa(char* number) {
         }
     }
     else {
-        v = c & 15;
-        while (digitaction[*number] == '0')
-            v = (v << 3) + (v << 1) + (*number++ & 15);
+        if (digitaction[c] == '0') {
+            v = c & 15;
+            while (digitaction[*number] == '0')
+                v = (v << 3) + (v << 1) + (*number++ & 15);
+        }
+        else
+            return 0;
     }
     
     return v*sign;
@@ -6254,7 +6268,7 @@ BLONG conversionintegerhexa(wstring& number) {
     
     while (number[ipos]<=32) ++ipos;
     
-    long i;
+
     int sign = 1;
     if (number[ipos] == '-') {
         ++ipos;
@@ -6264,36 +6278,40 @@ BLONG conversionintegerhexa(wstring& number) {
         if (number[ipos] == '+')
             ++ipos;
     
-    long l = number.size();
     BLONG v = 0;
     
-    uchar c;
-    if (number[ipos] != '0' || number[ipos+1] != 'x') {
-        for (i = ipos; i < l; i++) {
-            c = number[i];
-            if (digitaction[c] == '0')
-                v = (v << 3) + (v << 1) + (c & 15);
-            else
-                break;
+    uchar c = number[ipos++];
+    if (c == '0' || number[ipos] == 'x') {
+        ipos++;
+        c = number[ipos++];
+        while (c) {
+            v <<= 4;
+            switch (digitaction[c]) {
+                case '0':
+                    v |= c & 15;
+                    c = number[ipos++];
+                    continue;
+                case 'X':
+                    v |= c - 55;
+                    c = number[ipos++];
+                    continue;
+                case 'x':
+                    v |= c - 87;
+                    c = number[ipos++];
+                    continue;
+                default:
+                    return v*sign;
+            }
         }
-        return v*sign;
     }
-    
-    for (i = ipos+2; i < l; i++) {
-        v <<= 4;
-        c = number[i];
-        switch (digitaction[c]) {
-            case '0':
-                v |= c & 15;
-                continue;
-            case 'X':
-                v |= c - 55;
-                continue;
-            case 'x':
-                v |= c - 87;
-                continue;
-            default:
-                return v*sign;
+    else {
+        if (digitaction[c] == '0') {
+            v = c & 15;
+            c = number[ipos++];
+            while (digitaction[c] == '0') {
+                v = (v << 3) + (v << 1) + (c & 15);
+                c = number[ipos++];
+            }
         }
     }
     return v*sign;
@@ -6317,22 +6335,31 @@ Exporting double conversionfloat(char* s) {
         return conversiontofloathexa(s, sign);
     }
 
-    BLONG v = *s++ & 15;
-    while (digitaction[*s] == '0') {
-        v = (v << 3) + (v << 1) + (*s++ & 15);
-    }
-
-    double res = v;
-
-    if (*s=='.') {
-        uchar mantissa = 1;
-        ++s;
+    BLONG v;
+    if (digitaction[*s] == '0') {
         v = *s++ & 15;
         while (digitaction[*s] == '0') {
             v = (v << 3) + (v << 1) + (*s++ & 15);
-            ++mantissa;
         }
-        res += (double)v / power10(mantissa);
+    }
+    else
+        return 0;
+    
+    double res = v;
+
+    if (*s=='.') {
+        ++s;
+        if (digitaction[*s] == '0') {
+            uchar mantissa = 1;
+            v = *s++ & 15;
+            while (digitaction[*s] == '0') {
+                v = (v << 3) + (v << 1) + (*s++ & 15);
+                ++mantissa;
+            }
+            res += (double)v / power10(mantissa);
+        }
+        else
+            return res;
     }
         
     if (*s == 'e' || *s == 'E') {
@@ -6343,14 +6370,16 @@ Exporting double conversionfloat(char* s) {
             ++s;
         }
             
-        v = *s++ & 15;
-        while (digitaction[*s] == '0')
-            v = (v << 3) + (v << 1) + (*s++ & 15);
-
-        if (sgn)
-            res *= 1 / power10(v);
-        else
-            res *= power10(v);
+        if (digitaction[*s] == '0') {
+            v = *s++ & 15;
+            while (digitaction[*s] == '0')
+                v = (v << 3) + (v << 1) + (*s++ & 15);
+            
+            if (sgn)
+                res *= 1 / power10(v);
+            else
+                res *= power10(v);
+        }
     }
     return res*sign;
 }
