@@ -219,7 +219,6 @@ double conversionfloathexa(const char* s);
 
 Exporting BLONG conversionintegerhexa(char* number);
 Exporting BLONG conversionintegerhexa(wstring& number);
-Exporting double conversionfloat(char* s);
 Exporting double convertfloat(char* s);
 Exporting double convertfloat(wstring value);
 Exporting long convertinteger(wstring value);

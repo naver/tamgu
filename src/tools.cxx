@@ -214,44 +214,40 @@ bool v_comma_split_string(string& thestr, vector<string>& v) {
     
     for (pos = 1; pos < sz; pos++) {
         c = thestr[pos];
-        switch (c) {
-            case 9:
-            case 10:
-            case 13:
-            case 32:
-                continue;
-            case '"':
-            case '\'':
-                nxt = c;
-                break;
-            case '@':
-                nxt = '"';
-                if (thestr[++pos] != '"') {
-                    v.clear();
-                    return false;
-                }
-                break;
-            case ',':
-                if (comma) {
-                    v.clear();
-                    return false;
-                }
-                comma = true;
-                continue;
-            default:
+        if (c  <= 32)
+            continue;
+        
+        if (c == ',') {
+            if (comma) {
                 v.clear();
                 return false;
-                
+            }
+            comma = true;
+            continue;
         }
-        if (!comma) {
+
+        comma = false;
+
+        if (c != '"' && c != 39 && c != '@') {
             v.clear();
             return false;
         }
-        comma = false;
+        
+        if (c == '@') {
+            nxt = '"';
+            if (thestr[++pos] != '"') {
+                v.clear();
+                return false;
+            }
+        }
+        else
+            nxt = c;
+
         value = "";
         pos++;
         while (pos < sz && thestr[pos] != nxt)
             value += thestr[pos++];
+        
         if (pos == sz) {
             v.clear();
             return false;
@@ -286,44 +282,40 @@ bool v_comma_split_string(wstring& thestr, vector<wstring>& v) {
     
     for (pos = 1; pos < sz; pos++) {
         c = thestr[pos];
-        switch (c) {
-            case 9:
-            case 10:
-            case 13:
-            case 32:
-                continue;
-            case '"':
-            case '\'':
-                nxt = c;
-                break;
-            case '@':
-                nxt = '"';
-                if (thestr[++pos] != '"') {
-                    v.clear();
-                    return false;
-                }
-                break;
-            case ',':
-                if (comma) {
-                    v.clear();
-                    return false;
-                }
-                comma = true;
-                continue;
-            default:
+        if (c  <= 32)
+            continue;
+        
+        if (c == ',') {
+            if (comma) {
                 v.clear();
                 return false;
-                
+            }
+            comma = true;
+            continue;
         }
-        if (!comma) {
+        
+        comma = false;
+
+        if (c != '"' && c != 39 && c != '@') {
             v.clear();
             return false;
         }
-        comma = false;
+        
+        if (c == '@') {
+            nxt = '"';
+            if (thestr[++pos] != '"') {
+                v.clear();
+                return false;
+            }
+        }
+        else
+            nxt = c;
+
         value = L"";
         pos++;
         while (pos < sz && thestr[pos] != nxt)
             value += thestr[pos++];
+
         if (pos == sz) {
             v.clear();
             return false;
@@ -344,6 +336,10 @@ bool v_comma_split_string(wstring& thestr, vector<wstring>& v) {
     return true;
 }
 
+#define isdigit(c) (c >= '0' && c <= '9')
+double conversiontofloathexa(const char* s, int sign, short& l);
+double conversionfloathexa(const char* s, short& l);
+
 bool v_comma_split_decimal(string& thestr, vector<float>& v) {
     size_t sz = thestr.size() - 1;
     if (thestr[0] != '[' || thestr[sz] != ']')
@@ -353,57 +349,39 @@ bool v_comma_split_decimal(string& thestr, vector<float>& v) {
     
     size_t pos;
     bool comma = true;
-    string value;
+    float d;
+    short l;
     uchar c;
     
     for (pos = 1; pos < sz; pos++) {
         c = thestr[pos];
-        switch (c) {
-            case 9:
-            case 10:
-            case 13:
-            case 32:
-                continue;
-            case '-':
-                value += "-";
-                continue;
-            case 'e':
-            case 'E':
-                value += "e";
-                continue;
-            case '0':
-            case '1':
-            case '2':
-            case '3':
-            case '4':
-            case '5':
-            case '6':
-            case '7':
-            case '8':
-            case '9':
-            case '.':
-                comma = false;
-                value += c;
-                break;
-            case ',':
-                if (comma) {
-                    v.clear();
-                    return false;
-                }
-                v.push_back(convertfloat(STR(value)));
-                value = "";
-                comma = true;
-                break;
-            default:
+        if (c  <= 32)
+            continue;
+        
+        if (c == ',') {
+            if (comma) {
                 v.clear();
                 return false;
+            }
+            comma = true;
+            continue;
         }
+        
+        comma = false;
+        if (c == '-' || c == '+' || isdigit(c)) {
+            d = conversionfloathexa(STR(thestr)+pos, l);
+            v.push_back(d);
+            pos += l - 1;
+            continue;
+        }
+        v.clear();
+        return false;
     }
+    
     if (comma) {
         v.clear();
         return false;
     }
-    v.push_back(convertfloat(STR(value)));
     return true;
 }
 
@@ -416,57 +394,41 @@ bool v_comma_split_float(string& thestr, vector<double>& v) {
     
     size_t pos;
     bool comma = true;
-    string value;
+    double d;
+    short l;
     uchar c;
     
     for (pos = 1; pos < sz; pos++) {
         c = thestr[pos];
-        switch (c) {
-            case 9:
-            case 10:
-            case 13:
-            case 32:
-                continue;
-            case '-':
-                value += "-";
-                continue;
-            case 'e':
-            case 'E':
-                value += "e";
-                continue;
-            case '0':
-            case '1':
-            case '2':
-            case '3':
-            case '4':
-            case '5':
-            case '6':
-            case '7':
-            case '8':
-            case '9':
-            case '.':
-                comma = false;
-                value += c;
-                break;
-            case ',':
-                if (comma) {
-                    v.clear();
-                    return false;
-                }
-                v.push_back(convertfloat(STR(value)));
-                value = "";
-                comma = true;
-                break;
-            default:
+        if (c  <= 32)
+            continue;
+        
+        if (c == ',') {
+            if (comma) {
                 v.clear();
                 return false;
+            }
+            comma = true;
+            continue;
         }
+
+        comma = false;
+        
+        if (c == '-' || c == '+' || isdigit(c)) {
+            d = conversionfloathexa(STR(thestr)+pos, l);
+            v.push_back(d);
+            pos += l - 1;
+            continue;
+        }
+
+        v.clear();
+        return false;
     }
+    
     if (comma) {
         v.clear();
         return false;
     }
-    v.push_back(convertfloat(STR(value)));
     return true;
 }
 
@@ -479,62 +441,41 @@ bool v_comma_split_int(string& thestr, vector<long>& v) {
     
     size_t pos;
     bool comma = true;
-    bool point = false;
-    long value = 0;
-    long sign=1;
+    long d;
+    short l;
     uchar c;
     
     for (pos = 1; pos < sz; pos++) {
         c = thestr[pos];
-        switch (c) {
-            case 9:
-            case 10:
-            case 13:
-            case 32:
-                continue;
-            case '-':
-                sign=-1;
-                continue;
-            case '0':
-            case '1':
-            case '2':
-            case '3':
-            case '4':
-            case '5':
-            case '6':
-            case '7':
-            case '8':
-            case '9':
-                if (point)
-                    continue;
-                value = value * 10 + c - 48;
-                comma = false;
-                break;
-            case '.':
-                comma = false;
-                point = true;
-                break;
-            case ',':
-                if (comma) {
-                    v.clear();
-                    return false;
-                }
-                v.push_back(value*sign);
-                sign=1;
-                value = 0;
-                comma = true;
-                point = false;
-                break;
-            default:
+        if (c  <= 32)
+            continue;
+        
+        if (c == ',') {
+            if (comma) {
                 v.clear();
                 return false;
+            }
+            comma = true;
+            continue;
         }
+
+        comma = false;
+        
+        if (c == '-' || c == '+' || isdigit(c)) {
+            d = conversionfloathexa(STR(thestr)+pos, l);
+            v.push_back(d);
+            pos += l - 1;
+            continue;
+        }
+
+        v.clear();
+        return false;
     }
+
     if (comma) {
         v.clear();
         return false;
     }
-    v.push_back(value*sign);
     return true;
 }
 
@@ -547,62 +488,41 @@ bool v_comma_split_long(string& thestr, vector<BLONG>& v) {
     
     size_t pos;
     bool comma = true;
-    bool point = false;
-    BLONG value = 0;
-    BLONG sign = 1;
+    BLONG d;
+    short l;
     uchar c;
     
     for (pos = 1; pos < sz; pos++) {
         c = thestr[pos];
-        switch (c) {
-            case 9:
-            case 10:
-            case 13:
-            case 32:
-                continue;
-            case '-':
-                sign=-1;
-                continue;
-            case '0':
-            case '1':
-            case '2':
-            case '3':
-            case '4':
-            case '5':
-            case '6':
-            case '7':
-            case '8':
-            case '9':
-                if (point)
-                    continue;
-                value = value * 10 + c - 48;
-                comma = false;
-                break;
-            case '.':
-                comma = false;
-                point = true;
-                break;
-            case ',':
-                if (comma) {
-                    v.clear();
-                    return false;
-                }
-                v.push_back(value*sign);
-                sign=1;
-                value = 0;
-                comma = true;
-                point = false;
-                break;
-            default:
+        if (c  <= 32)
+            continue;
+        
+        if (c == ',') {
+            if (comma) {
                 v.clear();
                 return false;
+            }
+            comma = true;
+            continue;
         }
+
+        comma = false;
+        
+        if (c == '-' || c == '+' || isdigit(c)) {
+            d = conversionfloathexa(STR(thestr)+pos, l);
+            v.push_back(d);
+            pos += l - 1;
+            continue;
+        }
+
+        v.clear();
+        return false;
     }
+
     if (comma) {
         v.clear();
         return false;
     }
-    v.push_back(value*sign);
     return true;
 }
 
@@ -615,62 +535,41 @@ bool v_comma_split_byte(string& thestr, vector<uchar>& v) {
     
     size_t pos;
     bool comma = true;
-    bool point = false;
-    long sign = 1;
-    long value = 0;
+    uchar d;
+    short l;
     uchar c;
     
     for (pos = 1; pos < sz; pos++) {
         c = thestr[pos];
-        switch (c) {
-            case 9:
-            case 10:
-            case 13:
-            case 32:
-                continue;
-            case '-':
-                sign=-1;
-                continue;
-            case '0':
-            case '1':
-            case '2':
-            case '3':
-            case '4':
-            case '5':
-            case '6':
-            case '7':
-            case '8':
-            case '9':
-                if (point)
-                    continue;
-                value = value * 10 + c - 48;
-                comma = false;
-                break;
-            case '.':
-                comma = false;
-                point = true;
-                break;
-            case ',':
-                if (comma) {
-                    v.clear();
-                    return false;
-                }
-                v.push_back(value*sign);
-                sign=1;
-                value = 0;
-                comma = true;
-                point = false;
-                break;
-            default:
+        if (c  <= 32)
+            continue;
+        
+        if (c == ',') {
+            if (comma) {
                 v.clear();
                 return false;
+            }
+            comma = true;
+            continue;
         }
+
+        comma = false;
+        
+        if (c == '-' || c == '+' || isdigit(c)) {
+            d = conversionfloathexa(STR(thestr)+pos, l);
+            v.push_back(d);
+            pos += l - 1;
+            continue;
+        }
+
+        v.clear();
+        return false;
     }
+
     if (comma) {
         v.clear();
         return false;
     }
-    v.push_back(value*sign);
     return true;
 }
 
@@ -683,62 +582,42 @@ bool v_comma_split_short(string& thestr, vector<short>& v) {
     
     size_t pos;
     bool comma = true;
-    bool point = false;
-    short value = 0;
-    short sign = 1;
+    short d;
+    short l;
     uchar c;
     
     for (pos = 1; pos < sz; pos++) {
         c = thestr[pos];
-        switch (c) {
-            case 9:
-            case 10:
-            case 13:
-            case 32:
-                continue;
-            case '-':
-                sign=-1;
-                continue;
-            case '0':
-            case '1':
-            case '2':
-            case '3':
-            case '4':
-            case '5':
-            case '6':
-            case '7':
-            case '8':
-            case '9':
-                if (point)
-                    continue;
-                value = value * 10 + c - 48;
-                comma = false;
-                break;
-            case '.':
-                comma = false;
-                point = true;
-                break;
-            case ',':
-                if (comma) {
-                    v.clear();
-                    return false;
-                }
-                v.push_back(value*sign);
-                sign=1;
-                value = 0;
-                comma = true;
-                point = false;
-                break;
-            default:
+        if (c  <= 32)
+            continue;
+        
+        if (c == ',') {
+            if (comma) {
                 v.clear();
                 return false;
+            }
+            comma = true;
+            continue;
         }
+
+        comma = false;
+        
+        if (c == '-' || c == '+' || isdigit(c)) {
+            d = conversionfloathexa(STR(thestr)+pos, l);
+            v.push_back(d);
+            pos += l - 1;
+            continue;
+        }
+
+        v.clear();
+        return false;
     }
+
     if (comma) {
         v.clear();
         return false;
     }
-    v.push_back(value*sign);
+    
     return true;
 }
 //---------------------------------------------------------------------------------------------

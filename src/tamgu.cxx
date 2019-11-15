@@ -40,7 +40,7 @@
 #include "tamgutaskell.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 0.96.4 build 40";
+const char* tamgu_version = "Tamgu 0.96.4 build 43";
 
 Tamgu* booleantamgu[2];
 
@@ -706,7 +706,7 @@ TamguGlobal::~TamguGlobal() {
     if (gAutomatons!=NULL)
         delete gAutomatons;
 
-    FinalTamguConstantCleaning();
+    //FinalTamguConstantCleaning();
     
     #ifdef GARBAGEFORDEBUG
     vector<Tamgu*> issues;

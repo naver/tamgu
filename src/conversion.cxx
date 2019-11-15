@@ -44,7 +44,7 @@ static char digitaction[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 };
 
-
+#define isadigit(c) c >= '0' && c <= '9'
 //------------------------------------------------------------------------
 #ifdef INTELINTRINSICS
 static const __m128i checkifzero = _mm_set1_epi8(0xFF);
@@ -129,52 +129,6 @@ static const __m256i checkifbigzero = _mm256_set1_epi8(0xFF);
 #define stringincrement 8
 #define mset_256 _mm256_set1_epi32
 #define mcomp_256 _mm256_cmpeq_epi32
-#endif
-
-#ifndef WIN32
-static const __m256i keepintegers = _mm256_set1_epi8(0x0F);
-static const __m256i powerof10 = _mm256_set_epi32(0,1000,0,100,0,10,0,1);
-
-BLONG convertfromstring(const char* s) {
-    bint init[]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-    bint* beg = init-1;
-    bint* current = init+3;
-    BLONG v = 0;
-    uchar nb = 0;
-    __m256i value;
-    
-    while (digitaction[*s]=='0') {
-        *current++ = *s++;
-        ++beg;
-        nb++;
-        if (nb == 4) {
-            value = _mm256_set_epi32(0, beg[0], 0, beg[1], 0, beg[2], 0, beg[3]);
-            value = _mm256_and_si256(value, keepintegers);
-            value = _mm256_mul_epi32(value, powerof10);
-            v *= 1000;
-            v += _mm256_extract_epi64(value,0);
-            v += _mm256_extract_epi64(value,1);
-            v += _mm256_extract_epi64(value,2);
-            v += _mm256_extract_epi64(value,3);
-            beg = init - 1;
-            current = init + 3;
-            nb = 0;
-        }
-    }
-    
-    if (nb) {
-        value = _mm256_set_epi32(0, beg[0], 0, beg[1], 0, beg[2], 0, beg[3]);
-        value = _mm256_and_si256(value, keepintegers);
-        value = _mm256_mul_epi32(value, powerof10);
-        v *= 1000;
-        v += _mm256_extract_epi64(value,0);
-        v += _mm256_extract_epi64(value,1);
-        v += _mm256_extract_epi64(value,2);
-        v += _mm256_extract_epi64(value,3);
-    }
-        
-    return v;
-}
 #endif
 
 bool check_ascii(unsigned char* src, long lensrc, long& i) {
@@ -6034,6 +5988,8 @@ Exporting bool valid_latin_table(short tableindex) {
  */
 //===================================================================
 
+
+
 static inline double power10(long n) {
     double r = 1;
     while (n)
@@ -6052,7 +6008,6 @@ static inline double power10(long n) {
 
     return r;
 }
-
 
 extern "C" {
     //Implementation, which replaces strtod, which does not work properly on some platform...
@@ -6082,7 +6037,7 @@ extern "C" {
         double res = v;
 
         if (c == '.') {
-            BLONG mantissa = 1;
+            uchar mantissa = 0;
             v = 0;
             cont = true;
             c = *s++;
@@ -6091,16 +6046,16 @@ extern "C" {
                     case '0':
                         v = (v << 4) | (c & 15);
                         c = *s++;
-                        mantissa <<= 4;
+                        mantissa += 4;
                         continue;
                     case 'X':
                         v = (v << 4) | (c - 55);
-                        mantissa <<= 4;
+                        mantissa += 4;
                         c = *s++;
                         continue;
                     case 'x':
                         v = (v << 4) | (c - 87);
-                        mantissa <<= 4;
+                        mantissa += 4;
                         c = *s++;
                         continue;
                     default:
@@ -6108,7 +6063,7 @@ extern "C" {
                 }
             }
             
-            res += (double)v/(double)mantissa;
+            res += (double)v/(double)(1 << mantissa);
         }
         
 
@@ -6119,7 +6074,7 @@ extern "C" {
                 ++s;
             }
             v = *s++ & 15;
-            while (digitaction[*s] == '0') {
+            while (isadigit(*s)) {
                 v = (v << 3) + (v << 1) + (*s++ & 15);
             }
             v = 1 << v;
@@ -6155,13 +6110,15 @@ double conversionfloathexa(const char* s) {
         s+=2;
         return conversiontofloathexa(s, sign);
     }
-
+    
     BLONG v;
-    if (digitaction[*s] == '0') {
+    if (isadigit(*s)) {
         v = *s++ & 15;
-        while (digitaction[*s] == '0') {
+        while (isadigit(*s)) {
             v = (v << 3) + (v << 1) + (*s++ & 15);
         }
+        if (!*s)
+            return v;
     }
     else
         return 0;
@@ -6170,10 +6127,10 @@ double conversionfloathexa(const char* s) {
 
     if (*s=='.') {
         ++s;
-        if (digitaction[*s] == '0') {
+        if (isadigit(*s)) {
             uchar mantissa = 1;
             v = *s++ & 15;
-            while (digitaction[*s] == '0') {
+            while (isadigit(*s)) {
                 v = (v << 3) + (v << 1) + (*s++ & 15);
                 ++mantissa;
             }
@@ -6183,7 +6140,7 @@ double conversionfloathexa(const char* s) {
             return res;
     }
         
-    if (*s == 'e' || *s == 'E') {
+    if (*s == 'e') {
         ++s;
         bool sgn = false;
         if (*s == '-') {
@@ -6191,9 +6148,9 @@ double conversionfloathexa(const char* s) {
             ++s;
         }
             
-        if (digitaction[*s] == '0') {
+        if (isadigit(*s)) {
             v = *s++ & 15;
-            while (digitaction[*s] == '0')
+            while (isadigit(*s))
                 v = (v << 3) + (v << 1) + (*s++ & 15);
             
             if (sgn)
@@ -6205,6 +6162,183 @@ double conversionfloathexa(const char* s) {
     return res*sign;
 }
 
+//------------------------------------------------------------------------------------
+//Keep length
+//------------------------------------------------------------------------------------
+double conversiontofloathexa(const char* s, int sign, short& l) {
+    BLONG v = 0;
+    bool cont = true;
+    uchar c = *s++;
+    l++;
+    while (cont) {
+        switch (digitaction[c]) {
+            case '0':
+                v = (v << 4) | (c & 15);
+                c = *s++;
+                l++;
+                continue;
+            case 'X':
+                v = (v << 4) | (c - 55);
+                c = *s++;
+                l++;
+                continue;
+            case 'x':
+                v = (v << 4) | (c - 87);
+                c = *s++;
+                l++;
+                continue;
+            default:
+                cont = false;
+        }
+    }
+    
+    double res = v;
+
+    if (c == '.') {
+        uchar mantissa = 0;
+        v = 0;
+        cont = true;
+        c = *s++;
+        l++;
+        while (cont) {
+            switch (digitaction[c]) {
+                case '0':
+                    v = (v << 4) | (c & 15);
+                    c = *s++;
+                    l++;
+                    mantissa += 4;
+                    continue;
+                case 'X':
+                    v = (v << 4) | (c - 55);
+                    mantissa+=4;
+                    c = *s++;
+                    l++;
+                    continue;
+                case 'x':
+                    v = (v << 4) | (c - 87);
+                    mantissa += 4;
+                    c = *s++;
+                    l++;
+                    continue;
+                default:
+                    cont = false;
+            }
+        }
+        
+        res += (double)v/(double)(1 << mantissa);
+    }
+    
+
+    if (c == 'p') {
+        bool sgn = false;
+        if (*s == '-') {
+            sgn = true;
+            ++s;
+            l++;
+        }
+        v = *s++ & 15;
+        l++;
+        while (isadigit(*s)) {
+            v = (v << 3) + (v << 1) + (*s++ & 15);
+            l++;
+        }
+        v = 1 << v;
+        if (sgn)
+            res *= 1 / (double)v;
+        else
+            res *= v;
+
+    }
+    
+    return res*sign;
+}
+
+double conversionfloathexa(const char* s, short& l) {
+    l = 0;
+    //End of string...
+    if (*s ==0 )
+        return 0;
+    
+    int sign = 1;
+
+    //Sign
+    if (*s=='-') {
+        sign = -1;
+        l++;
+        ++s;
+    }
+    else
+        if (*s=='+') {
+            ++s;
+            l++;
+        }
+    
+    if (*s=='0' && s[1]=='x') {
+        s+=2;
+        l++;
+        return conversiontofloathexa(s, sign, l);
+    }
+    
+    BLONG v;
+    if (isadigit(*s)) {
+        v = *s++ & 15;
+        l++;
+        while (isadigit(*s)) {
+            v = (v << 3) + (v << 1) + (*s++ & 15);
+            l++;
+        }
+        if (!*s)
+            return v;
+    }
+    else
+        return 0;
+    
+    double res = v;
+
+    if (*s=='.') {
+        ++s;
+        l++;
+        if (isadigit(*s)) {
+            uchar mantissa = 1;
+            v = *s++ & 15;
+            l++;
+            while (isadigit(*s)) {
+                v = (v << 3) + (v << 1) + (*s++ & 15);
+                l++;
+                ++mantissa;
+            }
+            res += (double)v / power10(mantissa);
+        }
+        else
+            return res;
+    }
+        
+    if (*s == 'e') {
+        ++s;
+        l++;
+        bool sgn = false;
+        if (*s == '-') {
+            sgn = true;
+            ++s;
+            l++;
+        }
+            
+        if (isadigit(*s)) {
+            v = *s++ & 15;
+            l++;
+            while (isadigit(*s)) {
+                v = (v << 3) + (v << 1) + (*s++ & 15);
+                l++;
+            }
+            
+            if (sgn)
+                res *= 1 / power10(v);
+            else
+                res *= power10(v);
+        }
+    }
+    return res*sign;
+}
 
 //===================================================================
 Exporting BLONG conversionintegerhexa(char* number) {
@@ -6252,9 +6386,9 @@ Exporting BLONG conversionintegerhexa(char* number) {
         }
     }
     else {
-        if (digitaction[c] == '0') {
+        if (isadigit(c)) {
             v = c & 15;
-            while (digitaction[*number] == '0')
+            while (isadigit(*number))
                 v = (v << 3) + (v << 1) + (*number++ & 15);
         }
         else
@@ -6306,10 +6440,10 @@ BLONG conversionintegerhexa(wstring& number) {
         }
     }
     else {
-        if (digitaction[c] == '0') {
+        if (isadigit(c)) {
             v = c & 15;
             c = number[ipos++];
-            while (digitaction[c] == '0') {
+            while (isadigit(c)) {
                 v = (v << 3) + (v << 1) + (c & 15);
                 c = number[ipos++];
             }
@@ -6319,71 +6453,6 @@ BLONG conversionintegerhexa(wstring& number) {
 }
 
 //===================================================================
-Exporting double conversionfloat(char* s) {
-    int sign = 1;
-
-    //Sign
-    if (*s=='-') {
-        sign = -1;
-        ++s;
-    }
-    else
-        if (*s=='+')
-            ++s;
-    
-    if (*s=='0' && s[1]=='x') {
-        s+=2;
-        return conversiontofloathexa(s, sign);
-    }
-
-    BLONG v;
-    if (digitaction[*s] == '0') {
-        v = *s++ & 15;
-        while (digitaction[*s] == '0') {
-            v = (v << 3) + (v << 1) + (*s++ & 15);
-        }
-    }
-    else
-        return 0;
-    
-    double res = v;
-
-    if (*s=='.') {
-        ++s;
-        if (digitaction[*s] == '0') {
-            uchar mantissa = 1;
-            v = *s++ & 15;
-            while (digitaction[*s] == '0') {
-                v = (v << 3) + (v << 1) + (*s++ & 15);
-                ++mantissa;
-            }
-            res += (double)v / power10(mantissa);
-        }
-        else
-            return res;
-    }
-        
-    if (*s == 'e' || *s == 'E') {
-        ++s;
-        bool sgn = false;
-        if (*s == '-') {
-            sgn = true;
-            ++s;
-        }
-            
-        if (digitaction[*s] == '0') {
-            v = *s++ & 15;
-            while (digitaction[*s] == '0')
-                v = (v << 3) + (v << 1) + (*s++ & 15);
-            
-            if (sgn)
-                res *= 1 / power10(v);
-            else
-                res *= power10(v);
-        }
-    }
-    return res*sign;
-}
 
 //===================================================================
 //Conversion from string to double...
@@ -10809,15 +10878,13 @@ void v_split(string& thestr, string thesplitter, vector<string>& vs) {
 }
 
 Exporting bool c_is_digit(TAMGUCHAR code) {
-    if (code >= 48 && code <= 57)
-        return true;
-    return false;
+    return isadigit(code);
 }
 
 Exporting bool c_is_hexa(TAMGUCHAR code) {
     static const char hexas[]= {'a','b','c','d','e','f','A','B','C','D','E','F'};
     
-    if (code >= 48 && code <= 57)
+    if (isadigit(code))
         return true;
     
     if (code <= 'f' && strchr(hexas,(char)code))
@@ -10829,9 +10896,10 @@ Exporting bool c_is_hexa(TAMGUCHAR code) {
 Exporting bool s_threedigits(wstring& s, long i) {
     if (i > s.size() - 3)
         return false;
-    if (s[i] >= 48 && s[i] <= 57 && s[i + 1] >= 48 && s[i + 1] <= 57 && s[i + 2] >= 48 && s[i + 2] <= 57) {
+    
+    if (isadigit(s[i]) && isadigit(s[i + 1]) && isadigit(s[i + 2])) {
         if (i < s.size() - 3)
-            if (s[i + 3] >= 48 && s[i + 3] <= 57)
+            if (isadigit(s[i + 3]))
                 return false;
         return true;
     }
@@ -11430,7 +11498,7 @@ Exporting char s_is_number(uchar* str, char decimal, long& l, double& f) {
     l = 0;
     f = 0;
     for (long i = 0; i < sz; i++) {
-        if (str[i] >= 48 && str[i] <= 57 ) {
+        if (isadigit(str[i])) {
             if (!founddecimalpoint)
                 l = l * 10 + (str[i] - 48);
             else {
