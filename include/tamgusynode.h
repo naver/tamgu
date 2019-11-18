@@ -39,7 +39,7 @@ public:
 	static Exchanging Tamgumapss* validfeatures;
 	static Exchanging bool testvalid;
 
-	static short idtype;
+	static Exchanging short idtype;
 
 	//---------------------------------------------------------------------------------------------------------------------
 	//This SECTION is for your specific implementation...
@@ -129,7 +129,7 @@ public:
 
 	
 
-    static void Setidtype(TamguGlobal* global);
+    static Exporting void Setidtype(TamguGlobal* global);
     
     string Typename() {
 		return "synode";

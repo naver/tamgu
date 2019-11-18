@@ -219,24 +219,23 @@ bool v_comma_split_string(string& thestr, vector<string>& v) {
         
         if (c == ',') {
             if (comma) {
-                v.clear();
                 return false;
             }
             comma = true;
             continue;
         }
 
+        if (!comma)
+            return false;
+        
         comma = false;
 
-        if (c != '"' && c != 39 && c != '@') {
-            v.clear();
+        if (c != '"' && c != 39 && c != '@')
             return false;
-        }
         
         if (c == '@') {
             nxt = '"';
             if (thestr[++pos] != '"') {
-                v.clear();
                 return false;
             }
         }
@@ -249,12 +248,10 @@ bool v_comma_split_string(string& thestr, vector<string>& v) {
             value += thestr[pos++];
         
         if (pos == sz) {
-            v.clear();
             return false;
         }
         if (c == '@') {
             if (thestr[++pos] != '@') {
-                v.clear();
                 return false;
             }
         }
@@ -262,7 +259,6 @@ bool v_comma_split_string(string& thestr, vector<string>& v) {
     }
     
     if (comma) {
-        v.clear();
         return false;
     }
     return true;
@@ -287,24 +283,24 @@ bool v_comma_split_string(wstring& thestr, vector<wstring>& v) {
         
         if (c == ',') {
             if (comma) {
-                v.clear();
                 return false;
             }
             comma = true;
             continue;
         }
         
+        if (!comma)
+            return false;
+
         comma = false;
 
         if (c != '"' && c != 39 && c != '@') {
-            v.clear();
             return false;
         }
         
         if (c == '@') {
             nxt = '"';
             if (thestr[++pos] != '"') {
-                v.clear();
                 return false;
             }
         }
@@ -317,12 +313,10 @@ bool v_comma_split_string(wstring& thestr, vector<wstring>& v) {
             value += thestr[pos++];
 
         if (pos == sz) {
-            v.clear();
             return false;
         }
         if (c == '@') {
             if (thestr[++pos] != '@') {
-                v.clear();
                 return false;
             }
         }
@@ -330,7 +324,6 @@ bool v_comma_split_string(wstring& thestr, vector<wstring>& v) {
     }
     
     if (comma) {
-        v.clear();
         return false;
     }
     return true;
@@ -360,26 +353,27 @@ bool v_comma_split_decimal(string& thestr, vector<float>& v) {
         
         if (c == ',') {
             if (comma) {
-                v.clear();
                 return false;
             }
             comma = true;
             continue;
         }
         
+        if (!comma)
+            return false;
+
         comma = false;
+
         if (c == '-' || c == '+' || isdigit(c)) {
             d = conversionfloathexa(STR(thestr)+pos, l);
             v.push_back(d);
             pos += l - 1;
             continue;
         }
-        v.clear();
         return false;
     }
     
     if (comma) {
-        v.clear();
         return false;
     }
     return true;
@@ -405,13 +399,14 @@ bool v_comma_split_float(string& thestr, vector<double>& v) {
         
         if (c == ',') {
             if (comma) {
-                v.clear();
                 return false;
             }
             comma = true;
             continue;
         }
 
+        if (!comma)
+            return false;
         comma = false;
         
         if (c == '-' || c == '+' || isdigit(c)) {
@@ -421,12 +416,10 @@ bool v_comma_split_float(string& thestr, vector<double>& v) {
             continue;
         }
 
-        v.clear();
         return false;
     }
     
     if (comma) {
-        v.clear();
         return false;
     }
     return true;
@@ -452,13 +445,14 @@ bool v_comma_split_int(string& thestr, vector<long>& v) {
         
         if (c == ',') {
             if (comma) {
-                v.clear();
                 return false;
             }
             comma = true;
             continue;
         }
 
+        if (!comma)
+            return false;
         comma = false;
         
         if (c == '-' || c == '+' || isdigit(c)) {
@@ -468,12 +462,10 @@ bool v_comma_split_int(string& thestr, vector<long>& v) {
             continue;
         }
 
-        v.clear();
         return false;
     }
 
     if (comma) {
-        v.clear();
         return false;
     }
     return true;
@@ -499,13 +491,14 @@ bool v_comma_split_long(string& thestr, vector<BLONG>& v) {
         
         if (c == ',') {
             if (comma) {
-                v.clear();
                 return false;
             }
             comma = true;
             continue;
         }
 
+        if (!comma)
+            return false;
         comma = false;
         
         if (c == '-' || c == '+' || isdigit(c)) {
@@ -515,12 +508,10 @@ bool v_comma_split_long(string& thestr, vector<BLONG>& v) {
             continue;
         }
 
-        v.clear();
         return false;
     }
 
     if (comma) {
-        v.clear();
         return false;
     }
     return true;
@@ -546,13 +537,14 @@ bool v_comma_split_byte(string& thestr, vector<uchar>& v) {
         
         if (c == ',') {
             if (comma) {
-                v.clear();
                 return false;
             }
             comma = true;
             continue;
         }
 
+        if (!comma)
+            return false;
         comma = false;
         
         if (c == '-' || c == '+' || isdigit(c)) {
@@ -562,12 +554,10 @@ bool v_comma_split_byte(string& thestr, vector<uchar>& v) {
             continue;
         }
 
-        v.clear();
         return false;
     }
 
     if (comma) {
-        v.clear();
         return false;
     }
     return true;
@@ -593,13 +583,14 @@ bool v_comma_split_short(string& thestr, vector<short>& v) {
         
         if (c == ',') {
             if (comma) {
-                v.clear();
                 return false;
             }
             comma = true;
             continue;
         }
 
+        if (!comma)
+            return false;
         comma = false;
         
         if (c == '-' || c == '+' || isdigit(c)) {
@@ -609,12 +600,10 @@ bool v_comma_split_short(string& thestr, vector<short>& v) {
             continue;
         }
 
-        v.clear();
         return false;
     }
 
     if (comma) {
-        v.clear();
         return false;
     }
     
