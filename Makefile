@@ -87,6 +87,10 @@ clean:
 	rm -f $(LIBOBJPATH)/*.o
 	rm -f $(LIBOBJPATH)/jag/*.o
 
+cleanlib:
+	rm -f $(OBJPATH)/*.o
+
+
 full: install libtamgu tamgu
 	$(libtamgu)
 	$(tamgu)

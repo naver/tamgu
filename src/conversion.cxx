@@ -6067,12 +6067,17 @@ extern "C" {
         }
         
 
-        if (c == 'p') {
+        if ((c &0x4F) == 'P') {
             bool sgn = false;
             if (*s == '-') {
                 sgn = true;
                 ++s;
             }
+            else {
+                if (*s == '+')
+                    ++s;
+            }
+            
             v = *s++ & 15;
             while (isadigit(*s)) {
                 v = (v << 3) + (v << 1) + (*s++ & 15);
@@ -6140,14 +6145,18 @@ double conversionfloathexa(const char* s) {
             return res;
     }
         
-    if (*s == 'e') {
+    if ((*s &0x4F) == 'E') {
         ++s;
         bool sgn = false;
         if (*s == '-') {
             sgn = true;
             ++s;
         }
-            
+        else {
+            if (*s == '+')
+                ++s;
+        }
+        
         if (isadigit(*s)) {
             v = *s++ & 15;
             while (isadigit(*s))
@@ -6229,13 +6238,20 @@ double conversiontofloathexa(const char* s, int sign, short& l) {
     }
     
 
-    if (c == 'p') {
+    if ((c &0x4F) == 'P') {
         bool sgn = false;
         if (*s == '-') {
             sgn = true;
             ++s;
             l++;
         }
+        else {
+            if (*s == '+') {
+                ++s;
+                ++l;
+            }
+        }
+        
         v = *s++ & 15;
         l++;
         while (isadigit(*s)) {
@@ -6313,7 +6329,7 @@ double conversionfloathexa(const char* s, short& l) {
             return res;
     }
         
-    if (*s == 'e') {
+    if ((*s &0x4F) == 'E') {
         ++s;
         l++;
         bool sgn = false;
@@ -6322,7 +6338,13 @@ double conversionfloathexa(const char* s, short& l) {
             ++s;
             l++;
         }
-            
+        else {
+            if (*s == '+') {
+                ++s;
+                ++l;
+            }
+        }
+        
         if (isadigit(*s)) {
             v = *s++ & 15;
             l++;
@@ -11184,13 +11206,13 @@ void getdefaultrules(vector<string>& rules) {
     rules.push_back("\"=0");                                                //24    "
     rules.push_back("'=0");                                                 //23    '
     
-    rules.push_back("+0x%4+(.%4+)(p([- +])%d+)=0");                         //47 hexadecimal
-    rules.push_back("+%d(.%d+)e([- +])%d+=92");                               //25    exponential digits
+    rules.push_back("+0x%4+(.%4+)([p P]([- +])%d+)=0");                         //47 hexadecimal
+    rules.push_back("+%d(.%d+)[e E]([- +])%d+=92");                               //25    exponential digits
     rules.push_back("+%d+(.%d+)=93");                                       //26    digits
     rules.push_back("+=0");                                                 //27    +
     
-    rules.push_back("-0x%4+(.%4+)(p([- +])%d+)=0");                         //47 hexadecimal
-    rules.push_back("-%d(.%d+)e([- +])%d+=92");                               //28    exponential digits
+    rules.push_back("-0x%4+(.%4+)([p P]([- +])%d+)=0");                         //47 hexadecimal
+    rules.push_back("-%d(.%d+)[e E]([- +])%d+=92");                               //28    exponential digits
     rules.push_back("-%d+(.%d+)=93");                                       //29    digits
     rules.push_back("-=0");                                                 //30    -
     
@@ -11212,7 +11234,7 @@ void getdefaultrules(vector<string>& rules) {
     
     rules.push_back("http(s)://%2+(.%2+)+=0");                              //40    http (we use metarule %2 to detect which characters are valid)
     
-    rules.push_back("0x%4+(.%4+)(p([- +])%d+)=0");                         //47 hexadecimal
+    rules.push_back("0x%4+(.%4+)([p P]([- +])%d+)=0");                         //47 hexadecimal
     rules.push_back("%d+,%d%d%d(,%d%d%d)+=88");                             //42    multi-word expression...
     rules.push_back("%d+.%d%d%d(.%d%d%d)+=88");                             //43    multi-word expression...
     

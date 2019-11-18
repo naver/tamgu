@@ -1018,8 +1018,8 @@ public:
         rules.push_back("u@\"%?+\"@=8");             //44    empty string u@""@
         rules.push_back("u@\"%?+\"@=8");             //45    string u@".."@ unicode string
         
-        rules.push_back("0x%1+(.%1+)(p([- +])%d+)=3"); //47 hexadecimal
-        rules.push_back("%d+(.%d+)(e([- +])%d+)=3");         //47    exponential digits
+        rules.push_back("0x%1+(.%1+)([p P]([- +])%d+)=3"); //47 hexadecimal
+        rules.push_back("%d+(.%d+)([e E]([- +])%d+)=3");         //47    exponential digits
         
         // Rules start here        
         rules.push_back("{%a %d %H}+=4");               //48    label a combination of alpha, digits and hangul characters
@@ -1130,8 +1130,8 @@ public:
         rules.push_back("u@\"%?+\"@=3");                //48    empty string u@""@
         rules.push_back("u@\"%?+\"@=3");                //49    string u@".."@ unicode string
         
-        rules.push_back("0x%1+(.%1+)(p([- +])%d+)=0"); //47 hexadecimal
-        rules.push_back("%d+(.%d+)(e([- +])%d+)=0");    //51    exponential digits
+        rules.push_back("0x%1+(.%1+)([p P]([- +])%d+)=0"); //47 hexadecimal
+        rules.push_back("%d+(.%d+)([e E]([- +])%d+)=0");    //51    exponential digits
         
             //Rules start here
         rules.push_back("{%a %d}+(=12");                //52    label(
