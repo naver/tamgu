@@ -1540,8 +1540,10 @@ long jag_editor::handlemultiline() {
             lines.status[pos] = beg_line;
             lines.refactoring(pos);
         }
-        else
+        else {
             lines.status[pos] = solo_line;
+            lines.numbers();
+        }
     }
     
     if (currentline > row_size) {
@@ -2396,7 +2398,7 @@ bool jag_editor::checkaction(string& buff, long& first, long& last) {
                     code += line;
                 
                 displayonlast(code, false);
-                posinstring = line.size();
+                posinstring = line.size()-1;
                 option = x_write;
             }
             return true;

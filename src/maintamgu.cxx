@@ -1875,7 +1875,7 @@ public:
         
         if (ifilenames.size() > 1) {
             currentfileid = 0;
-                thecurrentfilename = ifilenames[0];
+            thecurrentfilename = ifilenames[0];
             lines.setcode(codes[0]);
             TamguSetCode(codes[0]);
         }

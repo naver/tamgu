@@ -47,6 +47,18 @@ const char tmg_else[] = {'e','l','s','e', 0};
 const char tmg_elif[] = {'e','l','i','f', 0};
 long VirtualIndentation(string& codestr, const char* tmgelse, const char* tmgelif, const char* tmgif);
 
+#ifdef PASDECOULEUR
+const char m_current[] = {0,0};
+const char m_red[] = {0,0};
+const char m_redital[] = {0,0};
+const char m_redbold[] = {0,0};
+const char m_green[] = {0,0};
+const char m_dore[] = {0,0};
+const char m_blue[] = {0,0};
+const char m_gray[] = {0,0};
+const char m_lightgray[] = {0,0};
+const char m_selectgray[] = {0,0};
+#else
 const char m_current[] = {27, '[', '0', 'm', 0};
 const char m_red[] = {27, '[', '0', ';', '3','1', ';','4','9','m',0};
 const char m_redital[] = {27, '[', '3', ';', '3','1', ';','4','9','m',0};
@@ -58,6 +70,7 @@ const char m_gray[] = {27, '[', '0', ';', '9','0', ';','4','9','m',0};
 const char m_lightgray[] = {27, '[', '0', ';', '9','0', ';','4','9','m',0};
 
 const char m_selectgray[] = {27, '[', '7', ';', '9','3', ';','4','0','m',0};
+#endif
 
 const string colordenomination[] = {"strings", "methods", "keywords", "functions", "comments"};
 
