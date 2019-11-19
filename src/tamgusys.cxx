@@ -87,7 +87,7 @@ void Tamgusys::AddMethod(TamguGlobal* global, string name, sysMethod func, unsig
     Tamgusys::AddMethod(global, "realpath", &Tamgusys::MethodRealPath, P_ONE, "realpath(path relpath): return the actual path matching 'realpath'");
     Tamgusys::AddMethod(global, "fileinfo", &Tamgusys::MethodFileInfo, P_ONE, "fileinfo(string pathname): returns the info of the file 'pathname'");
     Tamgusys::AddMethod(global, "env", &Tamgusys::MethodEnv, P_ONE | P_TWO, "env(string var)|env(string varstring val): return or set the content of the environment variable 'var'");
-    Tamgusys::AddMethod(global, "popen", &Tamgusys::MethodPopen, P_ONE, "popen(string command): execute a command and store the result in a svector.");
+    Tamgusys::AddMethod(global, "pipe", &Tamgusys::MethodPopen, P_ONE, "pipe(string command): execute a command and store the result in a svector.");
 
     global->newInstance[Tamgusys::idtype] = new Tamgusys(global);
     global->RecordMethods(Tamgusys::idtype,Tamgusys::exported);
