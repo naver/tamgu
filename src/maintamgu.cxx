@@ -300,6 +300,8 @@ public:
         if (!i || i == 5) {
             cerr << "   - " << m_redbold << "5. System:" << m_current << endl;
             cerr << "   \t- " << m_redbold << "!unix:" << m_current << " what follows the " << m_redital << "'!'" << m_current << " will be executed as a Unix command (ex: "<< m_redital << "!ls" << m_current << ")" << endl;
+            cerr << "   \t- " << m_redbold << "!vs=unix:" << m_current << " what follows the " << m_redital << "'='" << m_current << " will be executed as a Unix command (vs must be a svector:"
+                 << m_redital << "!vs=ls" << m_current << ")" << endl;
             cerr << "   \t- " << m_redbold << "clear (idx):" << m_current << " clear the current environment or a specifc file space" << endl;
             cerr << "   \t- " << m_redbold << "reinit:" << m_current << " clear the buffer content and initialize predeclared variables" << endl;
             cerr << "   \t- " << m_redbold << "Ctrl-d:" << m_current << " end the session and exit tamgu" << endl << endl;
@@ -819,16 +821,35 @@ public:
                     
                     //We launch a Unix command...
                     code = line.substr(1, line.size() -1);
-                    if (code.find(L"\"") != -1) {
-                        line = L"_sys.command('";
-                        line += code;
-                        line += L"');";
+                    long iquote = line.find(L"\"");
+                    long iequal = line.find(L"=");
+                    if (iequal != -1 && (iquote == -1 || iequal < iquote)) {
+                        code = line.substr(iequal+1, line.size()-iequal);
+                        line = line.substr(1, iequal);
+                        if (iquote == -1) {
+                            line += L"_sys.pipe(\"";
+                            line += code;
+                            line += L"\");";
+                        }
+                        else {
+                            line += L"_sys.pipe('";
+                            line += code;
+                            line += L"');";
+                        }
                     }
                     else {
-                        line = L"_sys.command(\"";
-                        line += code;
-                        line += L"\");";
+                        if (iquote != -1) {
+                            line = L"_sys.command('";
+                            line += code;
+                            line += L"');";
+                        }
+                        else {
+                            line = L"_sys.command(\"";
+                            line += code;
+                            line += L"\");";
+                        }
                     }
+                    
                     Executesomecode(line);
                     
                     code = TamguUListing();
