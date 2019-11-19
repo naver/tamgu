@@ -139,8 +139,8 @@ class Tamgusys : public TamguObject {
 	Tamgu* MethodRealPath(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 	Tamgu* MethodFileInfo(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 	Tamgu* MethodEnv(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
-
-
+    Tamgu* MethodPopen(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    
     //---------------------------------------------------------------------------------------------------------------------
 
     //ExecuteMethod must be implemented in order to execute our new Tamgu methods. This method is called when a TamguCallMethodMethod object

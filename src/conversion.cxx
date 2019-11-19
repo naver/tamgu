@@ -6067,7 +6067,7 @@ extern "C" {
         }
         
 
-        if ((c &0x4F) == 'P') {
+        if ((c &0xDF) == 'P') {
             bool sgn = false;
             if (*s == '-') {
                 sgn = true;
@@ -6145,7 +6145,7 @@ double conversionfloathexa(const char* s) {
             return res;
     }
         
-    if ((*s &0x4F) == 'E') {
+    if ((*s &0xDF) == 'E') {
         ++s;
         bool sgn = false;
         if (*s == '-') {
@@ -6238,7 +6238,7 @@ double conversiontofloathexa(const char* s, int sign, short& l) {
     }
     
 
-    if ((c &0x4F) == 'P') {
+    if ((c &0xDF) == 'P') {
         bool sgn = false;
         if (*s == '-') {
             sgn = true;
@@ -6329,7 +6329,7 @@ double conversionfloathexa(const char* s, short& l) {
             return res;
     }
         
-    if ((*s &0x4F) == 'E') {
+    if ((*s &0xDF) == 'E') {
         ++s;
         l++;
         bool sgn = false;
