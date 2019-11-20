@@ -249,7 +249,7 @@ bool An_rules::storerule(An_rule* r) {
     wrds.push_back(w);
     for (i=1; i< r->first->arcs.last;i++) {
         w=r->first->arcs[i]->atom->value();
-        switch(ar->atom->type()) {
+        switch(r->first->arcs[i]->atom->type()) {
             case an_token:
             case an_meta:
             case an_automaton:
@@ -1192,7 +1192,7 @@ Tamgu* Tamguannotator::Apply(An_context* context,Tamgu* res, bool computelexicon
             //We have two cases, either no lexicon rules was detected through lexiconrulecheck in gTheAnnotationRules, and it this case, we skip all lexicon rules...
             if (!lexiconrulecheck) {
                 if (currentrule->islexiconrule) //we skip these rules, we already know that they cannot apply
-                continue;
+                    continue;
             }
             else {//Or lexicon rules have been detected and we only keep the ones that have been stored in validrules...
                 if (currentrule->islexiconrule && validrules.find(r) == validrules.end())
