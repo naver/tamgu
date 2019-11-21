@@ -173,6 +173,7 @@ class tamgu_editor : public jag_editor {
     vector<editor_keep> editors_undos;
     vector<editor_keep> editors_redos;
 
+    string historyfilename;
     wstring curlyspace;
 
     long currentfileid;
@@ -213,8 +214,8 @@ public:
         if (!i || i == 1) {
             cerr << "   - " << m_redbold << "1. Programs:" << m_current << endl;
             cerr << "   \t- " << m_redbold << "create filename:" << m_current << " create a file space with a specific file name" << endl;
-            cerr << "   \t- " << m_redbold << "load filename:" << m_current << " load a program (use "<< m_redital << "run" << m_current <<" to execute it)" << endl;
-            cerr << "   \t- " << m_redbold << "load:" << m_current << " reload the program (use "<< m_redital << "run" << m_current <<" to execute it)" << endl;
+            cerr << "   \t- " << m_redbold << "open filename:" << m_current << " load a program (use "<< m_redital << "run" << m_current <<" to execute it)" << endl;
+            cerr << "   \t- " << m_redbold << "open:" << m_current << " reload the program (use "<< m_redital << "run" << m_current <<" to execute it)" << endl;
             cerr << "   \t- " << m_redbold << "save filename:" << m_current << " save the buffer content in a file" << endl;
             cerr << "   \t- " << m_redbold << "save:" << m_current << " save the buffer content with the current filename" << endl;
             cerr << "   \t- " << m_redbold << "run filename:" << m_current << " load and run a program filename" << endl;
@@ -238,9 +239,12 @@ public:
             cerr << "   \t- " << m_redbold << "help:" << m_current << " display the help" << endl;
             cerr << "   \t- " << m_redbold << "help n:" << m_current << " display one of the help sections (from 1 to 5)" << endl;
             cerr << "   \t- " << m_redbold << "history:" << m_current << " display the command history" << endl;
+            cerr << "   \t- " << m_redbold << "load filename:" << m_current << " load the command history from a file" << endl;
+            cerr << "   \t- " << m_redbold << "store filename:" << m_current << " store the command history in a file" << endl;
             cerr << "   \t- " << m_redbold << "filename:" << m_current << " display the current file name" << endl;
-            cerr << "   \t- " << m_redbold << "filespace:" << m_current << " display all the files stored in memory with their file space id" << endl;
-            cerr << "   \t- " << m_redbold << "select idx:" << m_current << " select a file space" << endl;
+            cerr << "   \t- " << m_redbold << "spaces:" << m_current << " display all the files stored in memory with their file space id" << endl;
+            cerr << "   \t- " << m_redbold << "select space:" << m_current << " select a file space" << endl;
+            cerr << "   \t- " << m_redbold << "create filename:" << m_current << " create a new empty file space" << endl;
             cerr << "   \t- " << m_redbold << "metas:" << m_current << " display meta-characters" << endl;
             cerr << "   \t- " << m_redbold << "rm:" << m_current << " clear the buffer content" << endl;
             cerr << "   \t- " << m_redbold << "rm b:e:" << m_current << " remove the lines from b to e (b: or :e is also possible)" << endl;
@@ -254,7 +258,7 @@ public:
         }
         
         if (!i || i == 3) {
-            cerr << "   - " << m_redbold << "3. edit (idx):" << m_current << " edit mode. You can optionally select also a file space" << endl;
+            cerr << "   - " << m_redbold << "3. edit (space):" << m_current << " edit mode. You can optionally select also a file space" << endl;
             cerr << "   \t- " << m_redbold << "Ctrl-b:" << m_current << " toggle breakpoint" << endl;
             cerr << "   \t- " << m_redbold << "Ctrl-k:" << m_current << " delete from cursor up to the end of the line" << endl;
             cerr << "   \t- " << m_redbold << "Ctrl-d:" << m_current << " delete a full line" << endl;
@@ -302,7 +306,7 @@ public:
             cerr << "   \t- " << m_redbold << "!unix:" << m_current << " what follows the " << m_redital << "'!'" << m_current << " will be executed as a Unix command (ex: "<< m_redital << "!ls" << m_current << ")" << endl;
             cerr << "   \t- " << m_redbold << "!vs=unix:" << m_current << " what follows the " << m_redital << "'='" << m_current << " will be executed as a Unix command (vs must be a svector:"
                  << m_redital << "!vs=ls" << m_current << ")" << endl;
-            cerr << "   \t- " << m_redbold << "clear (idx):" << m_current << " clear the current environment or a specifc file space" << endl;
+            cerr << "   \t- " << m_redbold << "clear (space):" << m_current << " clear the current environment or a specifc file space" << endl;
             cerr << "   \t- " << m_redbold << "reinit:" << m_current << " clear the buffer content and initialize predeclared variables" << endl;
             cerr << "   \t- " << m_redbold << "Ctrl-d:" << m_current << " end the session and exit tamgu" << endl << endl;
             cerr << "   \t- " << m_redbold << "exit:" << m_current << " end the session and exit tamgu" << endl << endl;
@@ -753,8 +757,8 @@ public:
     }
 
     long handlingcommands(long pos, bool& dsp, char initvar) {
-        typedef enum {cmd_none, cmd_args, cmd_filename, cmd_filespace, cmd_select, cmd_edit, cmd_run, cmd_cls, cmd_echo, cmd_console, cmd_help, cmd_list,
-            cmd_metas, cmd_rm, cmd_break, cmd_history, cmd_load, cmd_create, cmd_save, cmd_exit, cmd_colors, cmd_color, cmd_clear, cmd_reinit,
+        typedef enum {cmd_none, cmd_args, cmd_filename, cmd_spaces, cmd_select, cmd_edit, cmd_run, cmd_cls, cmd_echo, cmd_console, cmd_help, cmd_list,
+            cmd_metas, cmd_rm, cmd_break, cmd_history, cmd_open, cmd_create, cmd_save, cmd_exit, cmd_load_history, cmd_store_history, cmd_colors, cmd_color, cmd_clear, cmd_reinit,
             cmd_debug, cmd_next, cmd_locals, cmd_all, cmd_stack, cmd_goto, cmd_in, cmd_out, cmd_stop, cmd_short_name, cmd_to_end} thecommands;
 
         static bool init = false;
@@ -765,7 +769,7 @@ public:
             init = true;
             commands[L"args"] = cmd_args;
             commands[L"filename"] = cmd_filename;
-            commands[L"filespace"] = cmd_filespace;
+            commands[L"spaces"] = cmd_spaces;
             commands[L"edit"] = cmd_edit;
             commands[L"select"] = cmd_select;
             commands[L"run"] = cmd_run;
@@ -777,7 +781,9 @@ public:
             commands[L"metas"] = cmd_metas;
             commands[L"rm"] = cmd_rm;
             commands[L"history"] = cmd_history;
-            commands[L"load"] = cmd_load;
+            commands[L"load"] = cmd_load_history;
+            commands[L"store"] = cmd_store_history;
+            commands[L"open"] = cmd_open;
             commands[L"create"] = cmd_create;
             commands[L"save"] = cmd_save;
             commands[L"exit"] = cmd_exit;
@@ -900,7 +906,7 @@ public:
             case cmd_filename:
                 cout << back << m_redbold << "Filename: " << m_red << thecurrentfilename << m_current << endl;
                 return pos;
-            case cmd_filespace:
+            case cmd_spaces:
                 if (v.size() == 1) {
                     cout << back << m_redbold << "File Space:" << endl << endl;
                     for (i = 0; i < ifilenames.size(); i++) {
@@ -1109,7 +1115,7 @@ public:
                 code = TamguUListing();
                 if (isempty(code))
                     return pos;
-
+                
                 if (v.size() >= 2 && v[1].size() > 1) {
                     wstring c = v[1];
                     long ps = c.find(L":");
@@ -1136,7 +1142,7 @@ public:
                         }
                     }
                 }
-            
+                
                 string codeindente;
                 i = 3;
                 string cd = convert(code);
@@ -1155,7 +1161,7 @@ public:
                 if (v.size() >= 2) {
                     md = true;
                     if (v[1] == L":") { //list :20
-                        //we display up to the next element (if it part of it...
+                                        //we display up to the next element (if it part of it...
                         if (v.size() >= 3) {
                             if (v[2] == L"$")
                                 end = lastline;
@@ -1214,9 +1220,9 @@ public:
                         }
                         return pos;
                     }
-
+                    
                     string buffer = Normalizefilename(thecurrentfilename);
-
+                    
                     if (lines.check(pos)) {
                         debuginfo.breakpoints[buffer].erase(lines.numeros[pos]);
                         lines.checks.erase(pos);
@@ -1227,7 +1233,7 @@ public:
                         lines.checks[pos] = true;
                         cout << "breakpoint added: " << beg+1 << endl;
                     }
-
+                    
                     line = L"";
                     posinstring = 0;
                     return pos;
@@ -1250,12 +1256,56 @@ public:
                 return pos;
             case cmd_history:
                 cerr << endl;
+                if (historyfilename != "")
+                    cerr << m_redbold << "History:" << historyfilename << m_current << endl;
+                
                 for (i = 0; i < commandlines.size(); i++)
                     cerr << i+1 << " = " << coloringline(commandlines[i]) << endl;
                 cerr << endl;
                 addcommandline(v[0]);
                 return pos;
-            case cmd_load:
+            case cmd_load_history: {
+                if (v.size() != 2) {
+                    if (historyfilename == "") {
+                        cerr << m_redbold << "Missing file name.." << m_current << endl;
+                        return pos;
+                    }
+                }
+                else
+                    historyfilename = Normalizefilename(convert(v[1]));
+
+                    
+                ifstream ld(historyfilename, openMode);
+                if (ld.fail()) {
+                    cerr << m_redbold << "Cannot load:" << historyfilename << m_current << endl;
+                    return pos;
+                }
+                string s;
+                while (!ld.eof()) {
+                    getline(ld, s);
+                    s=Trim(s);
+                    if (s!="") {
+                        code = wconvert(s);
+                        commandlines.push_back(code);
+                    }
+                }
+                return pos;
+            }
+            case cmd_store_history: {
+                if (v.size() != 2) {
+                    if (historyfilename == "") {
+                        cerr << m_redbold << "Missing file name.." << m_current << endl;
+                        return pos;
+                    }
+                }
+                else
+                    historyfilename = Normalizefilename(convert(v[1]));
+                ofstream st(historyfilename, std::ios::binary);
+                for (i = 0; i < commandlines.size(); i++)
+                    st << convert(commandlines[i]) << endl;
+                return pos;
+            }
+            case cmd_open:
                 addcommandline(line);
                 if (debugmode && debuginfo.running)
                     return pos;
@@ -2307,7 +2357,7 @@ int main(int argc, char *argv[]) {
                     }
                     else {
                         wstring w;
-                        string line = "load ";
+                        string line = "read ";
                         line += names[i];
                         sc_utf8_to_unicode(w, USTR(line), line.size());
                         JAGEDITOR->addcommandline(w);

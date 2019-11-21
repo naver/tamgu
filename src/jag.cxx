@@ -2398,7 +2398,7 @@ bool jag_editor::checkaction(string& buff, long& first, long& last) {
                     code += line;
                 
                 displayonlast(code, false);
-                posinstring = line.size()-1;
+                posinstring = line.size();
                 option = x_write;
             }
             return true;
