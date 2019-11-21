@@ -1830,6 +1830,119 @@ public:
         return false;
     }
     
+    void ls(string path, vector<wstring>& paths) {
+        FILE *fp;
+        int status;
+        
+        char chemin[PATH_MAX];
+        
+        string cmd = "ls -1 -p ";
+        cmd += path;
+                
+        fp = popen(STR(cmd), "r");
+        if (fp == NULL)
+            return;
+        
+        wstring l;
+        while (fgets(chemin, PATH_MAX, fp) != NULL) {
+            cmd = chemin;
+            cmd = Trim(cmd);
+            l = wconvert(cmd);
+            paths.push_back(l);
+        }
+                
+        status = pclose(fp);
+    }
+    
+    bool checkpath() {
+        //The first part should be a command such as open or load...
+        long pos = line.find(' ');
+        if (pos == -1)
+            return false;
+        
+        wstring root = line.substr(0, pos);
+        wstring name;
+        wstring path = line.substr(pos, line.size());
+        path = Trim(path);
+        //Two cases, we have a "/" in it...
+        pos = path.rfind(L"/");
+        if (pos != -1) {
+            name = path.substr(pos+1, path.size()-pos);
+            path = path.substr(0, pos+1);
+        }
+        else {
+            name = path;
+            path = L".";
+        }
+        vector<wstring> paths;
+        vector<wstring> targets;
+        ls(convert(path), paths);
+        //Now we look for continuation
+        long i;
+        for (i = 0; i < paths.size(); i++) {
+            if (paths[i].substr(0, name.size()) == name)
+                targets.push_back(paths[i]);
+        }
+        if (path == L".")
+            path = L"";
+        
+        if (targets.size() == 0)
+            return false;
+        
+        if (targets.size() == 1) {
+            line = root;
+            line += L" ";
+            line += path;
+            line += targets[0];
+            clearline();
+            displaygo(true);
+            posinstring = line.size();
+            movetoposition();
+            return true;
+        }
+        
+        wstring common;;
+        long ln  = name.size();
+        bool end = false;
+        while (!end) {
+            //We add one letter from the targets and see if it is common to all targets
+            for (i = 0; i < targets.size(); i++) {
+                if (ln >= targets[i].size()) {
+                    end = true;
+                    break;
+                }
+            }
+            if (!end) {
+                ++ln;
+                common = targets[0].substr(0, ln);
+                for (i = 1; i < targets.size(); i++) {
+                    if (targets[i].substr(0, ln) != common) {
+                        end = true;
+                        break;
+                    }
+                }
+                if (!end)
+                    name = common;
+            }
+        }
+        
+        
+        cerr << endl << endl << m_redital;
+        for (i = 0; i < targets.size(); i++)
+            cerr << convert(targets[i]) << " ";
+        cerr << m_current << endl << endl;
+        
+        line = root;
+        line += L" ";
+        line += path;
+        line += name;
+        clearline();
+        displaygo(true);
+        posinstring = line.size();
+        movetoposition();
+        return true;
+    }
+    
     bool checkkeyboard(string& buff, long& first, long& last, bool& dsp, char noinit) {
         switch (buff[0]) {
             case 2: //ctrl-b run
@@ -1857,6 +1970,11 @@ public:
                     return true;
                 }
                 terminate();
+            case 9:
+                if (emode())
+                    return false;
+                //We try to interpret the string as a path
+                return checkpath();
             case 10: //this is a carriage return
                 if (option != x_none) {
                     checkaction(buff, first, last);
