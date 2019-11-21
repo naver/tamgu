@@ -1856,7 +1856,7 @@ public:
     
     bool checkpath() {
         //The first part should be a command such as open or load...
-        long pos = line.find(' ');
+        long pos = line.rfind(' ');
         if (pos == -1)
             return false;
         
