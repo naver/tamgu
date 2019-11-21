@@ -28,12 +28,12 @@
 #include "x_tokenize.h"
 #include "jag.h"
 
-static string version = "0.98 build 5";
+static string version = "0.98 build 6";
 
 
 int main(int argc, char *argv[]) {
     JAGEDITOR = new jag_editor;
-    
+
     if (argc == 2) {
         string cmd = argv[1];
         if (cmd == "-h" || cmd == "-help" || cmd == "--help" || cmd == "--h") {
