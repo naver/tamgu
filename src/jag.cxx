@@ -2426,6 +2426,9 @@ bool jag_editor::checkaction(string& buff, long& first, long& last) {
             
             evaluateescape(buff);
             return true;
+#ifndef APPLE
+        case 15:
+#endif
         case 127: //back delete
             if (posinstring > 0) {
                 backwardemoji();
