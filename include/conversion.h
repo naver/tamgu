@@ -217,6 +217,11 @@ extern "C" {
 double conversionfloathexa(const char* s);
 }
 
+double conversiontofloathexa(const char* s, int sign, short& l);
+double conversiontofloathexa(const wchar_t* s, int sign, short& l);
+double conversionfloathexa(const char* s, short& l);
+double conversionfloathexa(const wchar_t* s, short& l);
+
 Exporting BLONG conversionintegerhexa(char* number);
 Exporting BLONG conversionintegerhexa(wstring& number);
 Exporting double convertfloat(char* s);

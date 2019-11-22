@@ -330,8 +330,6 @@ bool v_comma_split_string(wstring& thestr, vector<wstring>& v) {
 }
 
 #define isdigit(c) (c >= '0' && c <= '9')
-double conversiontofloathexa(const char* s, int sign, short& l);
-double conversionfloathexa(const char* s, short& l);
 
 bool v_comma_split_decimal(string& thestr, vector<float>& v) {
     size_t sz = thestr.size() - 1;

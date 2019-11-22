@@ -6362,6 +6362,194 @@ double conversionfloathexa(const char* s, short& l) {
     return res*sign;
 }
 
+//----- WIDE CHAR Versions
+double conversiontofloathexa(const wchar_t* s, int sign, short& l) {
+    BLONG v = 0;
+    bool cont = true;
+    uchar c = *s++;
+    l++;
+    while (cont) {
+        switch (digitaction[c]) {
+            case '0':
+                v = (v << 4) | (c & 15);
+                c = *s++;
+                l++;
+                continue;
+            case 'X':
+                v = (v << 4) | (c - 55);
+                c = *s++;
+                l++;
+                continue;
+            case 'x':
+                v = (v << 4) | (c - 87);
+                c = *s++;
+                l++;
+                continue;
+            default:
+                cont = false;
+        }
+    }
+    
+    double res = v;
+
+    if (c == '.') {
+        uchar mantissa = 0;
+        v = 0;
+        cont = true;
+        c = *s++;
+        l++;
+        while (cont) {
+            switch (digitaction[c]) {
+                case '0':
+                    v = (v << 4) | (c & 15);
+                    c = *s++;
+                    l++;
+                    mantissa += 4;
+                    continue;
+                case 'X':
+                    v = (v << 4) | (c - 55);
+                    mantissa+=4;
+                    c = *s++;
+                    l++;
+                    continue;
+                case 'x':
+                    v = (v << 4) | (c - 87);
+                    mantissa += 4;
+                    c = *s++;
+                    l++;
+                    continue;
+                default:
+                    cont = false;
+            }
+        }
+        
+        res += (double)v/(double)(1 << mantissa);
+    }
+    
+
+    if ((c &0xDF) == 'P') {
+        bool sgn = false;
+        if (*s == '-') {
+            sgn = true;
+            ++s;
+            l++;
+        }
+        else {
+            if (*s == '+') {
+                ++s;
+                ++l;
+            }
+        }
+        
+        v = *s++ & 15;
+        l++;
+        while (isadigit(*s)) {
+            v = (v << 3) + (v << 1) + (*s++ & 15);
+            l++;
+        }
+        v = 1 << v;
+        if (sgn)
+            res *= 1 / (double)v;
+        else
+            res *= v;
+
+    }
+    
+    return res*sign;
+}
+
+double conversionfloathexa(const wchar_t* s, short& l) {
+    l = 0;
+    //End of string...
+    if (*s ==0 )
+        return 0;
+    
+    int sign = 1;
+
+    //Sign
+    if (*s=='-') {
+        sign = -1;
+        l++;
+        ++s;
+    }
+    else
+        if (*s=='+') {
+            ++s;
+            l++;
+        }
+    
+    if (*s=='0' && s[1]=='x') {
+        s+=2;
+        l++;
+        return conversiontofloathexa(s, sign, l);
+    }
+    
+    BLONG v;
+    if (isadigit(*s)) {
+        v = *s++ & 15;
+        l++;
+        while (isadigit(*s)) {
+            v = (v << 3) + (v << 1) + (*s++ & 15);
+            l++;
+        }
+        if (!*s)
+            return v;
+    }
+    else
+        return 0;
+    
+    double res = v;
+
+    if (*s=='.') {
+        ++s;
+        l++;
+        if (isadigit(*s)) {
+            uchar mantissa = 1;
+            v = *s++ & 15;
+            l++;
+            while (isadigit(*s)) {
+                v = (v << 3) + (v << 1) + (*s++ & 15);
+                l++;
+                ++mantissa;
+            }
+            res += (double)v / power10(mantissa);
+        }
+        else
+            return res;
+    }
+        
+    if ((*s &0xDF) == 'E') {
+        ++s;
+        l++;
+        bool sgn = false;
+        if (*s == '-') {
+            sgn = true;
+            ++s;
+            l++;
+        }
+        else {
+            if (*s == '+') {
+                ++s;
+                ++l;
+            }
+        }
+        
+        if (isadigit(*s)) {
+            v = *s++ & 15;
+            l++;
+            while (isadigit(*s)) {
+                v = (v << 3) + (v << 1) + (*s++ & 15);
+                l++;
+            }
+            
+            if (sgn)
+                res *= 1 / power10(v);
+            else
+                res *= power10(v);
+        }
+    }
+    return res*sign;
+}
 //===================================================================
 Exporting BLONG conversionintegerhexa(char* number) {
     while (*number!=0 && *number<=32) ++number;

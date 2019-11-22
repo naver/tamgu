@@ -342,6 +342,7 @@ class Tamguuvector : public TamguLockContainer {
     
     Tamgu* MethodRead(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodWrite(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodConvert(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
     Tamgu* MethodRemove(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         wstring a = callfunc->Evaluate(0, contextualpattern, idthread)->UString();
