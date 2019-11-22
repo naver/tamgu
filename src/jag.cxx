@@ -1950,9 +1950,11 @@ void jag_editor::evaluateescape(string& buff) {
             movetoposition();
         }
         else {//we go down at the beginning of the next line
-            updown(66, pos);
-            posinstring = 0;
-            movetobeginning();
+            if (emode() && pos < poslines.size()-1) {
+                updown(66, pos);
+                posinstring = 0;
+                movetobeginning();
+            }
         }
         
         return;
@@ -1964,9 +1966,11 @@ void jag_editor::evaluateescape(string& buff) {
             movetoposition();
         }
         else {//we go up at the end of the previous line
-            updown(65, pos);
-            posinstring = line.size();
-            movetoend();
+            if (emode() && pos > 0) {
+                updown(65, pos);
+                posinstring = line.size();
+                movetoend();
+            }
         }
         return;
     }
