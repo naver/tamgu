@@ -876,6 +876,7 @@
 					"-DINTELINTRINSICS",
 					"-DAVXSUPPORT",
 					"-DGARBAGEFORDEBUG",
+					"-DPASDECOULEUR",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};

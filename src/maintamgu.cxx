@@ -1597,6 +1597,7 @@ public:
         }
         
         if (debugmode && debuginfo.running) {
+            addcommandline(line);
             string c = convert(v[0]);
             if (c == "") {
                 debuginfo.next();
