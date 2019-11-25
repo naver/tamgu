@@ -634,9 +634,12 @@ Tamgu* Tamgurawstring::MethodScan(Tamgu* contextualpattern, short idthread, Tamg
     
     if (contextualpattern->isString()) {
         long res,end;
-        a->search(reg,res,end);
-        reg = reg.substr(res, end-res);
-        return globalTamgu->Provideustring(reg);
+        if (a->search(reg,res,end)) {
+            reg = reg.substr(res, end-res);
+            return globalTamgu->Provideustring(reg);
+        }
+        else
+            return aEMPTYSTRING;
     }
     
     return booleantamgu[a->match(reg)];
