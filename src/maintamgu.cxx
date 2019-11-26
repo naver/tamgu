@@ -2288,8 +2288,6 @@ static void handle_ctrl_c(int theSignal) {
         JAGEDITOR->clear();
 }
 
-Tamgu* ProcEval(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
-
 Tamgu* debuginfo_callback(vector<Tamgu*>& stack, short idthread, void* data) {
     tamgu_editor* te = (tamgu_editor*)data;
     Tamgu* res = debuginfo.debugger(stack, idthread, data);
