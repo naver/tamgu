@@ -42,6 +42,7 @@
 void RetrieveThroughVariables(string& declaration);
 void RetrieveThroughVariables(wstring& decl);
 bool CheckThroughVariables();
+Tamgu* ProcEval(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
 #ifdef DOSOUTPUT
 static bool dosoutput = true;
@@ -822,9 +823,12 @@ public:
         }
         else {
             if (line[0] == '!' || line[0] == '?') {
+                if (debugmode && debuginfo.running)
+                    return pos;
+
                 if (line[0] == '!') {
                     addcommandline(line);
-                    
+
                     //We launch a Unix command...
                     code = line.substr(1, line.size() -1);
                     long iquote = line.find(L"\"");
@@ -1105,12 +1109,16 @@ public:
                 displaythehelp(i);
                 return pos;
             case cmd_metas:
+                if (debugmode && debuginfo.running)
+                    return pos;
                 cout << m_redbold << _metacharacters << endl;
                 return pos;
             case cmd_list:
             case cmd_rm:
             case cmd_break:
                 addcommandline(line);
+                if (debugmode && debuginfo.running)
+                    return pos;
             {
                 code = TamguUListing();
                 if (isempty(code))
@@ -1255,6 +1263,9 @@ public:
                 posinstring = 0;
                 return pos;
             case cmd_history:
+                if (debugmode && debuginfo.running)
+                    return pos;
+
                 cerr << endl;
                 if (historyfilename != "")
                     cerr << m_redbold << "History:" << historyfilename << m_current << endl;
@@ -1265,6 +1276,9 @@ public:
                 addcommandline(v[0]);
                 return pos;
             case cmd_load_history: {
+                if (debugmode && debuginfo.running)
+                    return pos;
+
                 if (v.size() != 2) {
                     if (historyfilename == "") {
                         cerr << m_redbold << "Missing file name.." << m_current << endl;
@@ -1292,6 +1306,9 @@ public:
                 return pos;
             }
             case cmd_store_history: {
+                if (debugmode && debuginfo.running)
+                    return pos;
+
                 if (v.size() != 2) {
                     if (historyfilename == "") {
                         cerr << m_redbold << "Missing file name.." << m_current << endl;
@@ -1306,9 +1323,9 @@ public:
                 return pos;
             }
             case cmd_open:
-                addcommandline(line);
                 if (debugmode && debuginfo.running)
                     return pos;
+                addcommandline(line);
 
                 if (v.size() == 1) {
                     if (thecurrentfilename == "") {
@@ -1320,9 +1337,10 @@ public:
                     cerr << m_red << "ok." << m_current << endl;
                 return pos;
             case cmd_create:
-                addcommandline(line);
                 if (debugmode && debuginfo.running)
                     return pos;
+                
+                addcommandline(line);
                 if (v.size() == 1) {
                     cerr << m_redbold << "Missing file name.." << m_current << endl;
                     return pos;
@@ -1331,9 +1349,9 @@ public:
                 line = L"";
                 return pos;
             case cmd_save:
-                addcommandline(line);
                 if (debugmode && debuginfo.running)
                     return pos;
+                addcommandline(line);
                 if (v.size() == 1) {
                     if (thecurrentfilename == "") {
                         cerr << m_redbold << "Missing file name.." << m_current << endl;
@@ -1371,8 +1389,10 @@ public:
             case cmd_exit:
                 terminate();
             case cmd_colors:
+                if (debugmode && debuginfo.running)
+                    return pos;
                 addcommandline(line);
-                
+
                 if (v.size() == 1) {
                     int j;
                     cerr << endl << m_redbold << "Denomination\t" << "att\tfg\tbg" <<endl;
@@ -1412,6 +1432,8 @@ public:
                 cerr << m_redbold << "colors takes four parameters: denomination attribute forground background" << m_current << endl;
                 return pos;
             case cmd_color:
+                if (debugmode && debuginfo.running)
+                    return pos;
                 addcommandline(line);
                 
             {
@@ -1437,9 +1459,9 @@ public:
             }
                 return pos;
             case cmd_clear:
-                addcommandline(line);
                 if (debugmode && debuginfo.running)
                     return pos;
+                addcommandline(line);
                 if (v.size() == 2) {
                     i = convertinteger(v[1]);
                     if (i < 0 || i >= ifilenames.size()) {
@@ -1514,9 +1536,9 @@ public:
                 pos = 0;
                 return pos;
             case cmd_reinit:
-                addcommandline(line);
                 if (debugmode && debuginfo.running)
                     return pos;
+                addcommandline(line);
 
                 thecurrentfilename = "";
                 lines.clear();
@@ -1539,9 +1561,9 @@ public:
                 pos = 0;
                 return pos;
             case cmd_debug:
-                addcommandline(line);
                 if (debugmode && debuginfo.running)
                     return pos;
+                addcommandline(line);
                 
                 debugmode = 1 - debugmode;
                 updateline = true;
@@ -1597,23 +1619,29 @@ public:
         }
         
         if (debugmode && debuginfo.running) {
-            addcommandline(line);
-            string c = convert(v[0]);
-            if (c == "") {
-                debuginfo.next();
+            if (line != L"") {
+                addcommandline(line);
+                string avariable = convert(line);
+                avariable=Trim(avariable);
+                
+                if (avariable.back() != ';') {
+                    avariable = "println(";
+                    avariable += convert(line);
+                    avariable += ");";
+                }
+                
+                Tamgustring _arg(avariable);
+                _arg.reference=100;
+                _arg.protect = false;
+                TamguCall func(0);
+                func.arguments.push_back(&_arg);
+                globalTamgu->debugmode = false;
+                ProcEval(aNULL,0,&func);
+                globalTamgu->debugmode = true;
                 return pos;
             }
             
-            c += " = ";
-            vector<string> splt;
-            v_split(debuginfo.allvariables,"\n",splt);
-            for (i = 0; i < splt.size(); i++) {
-                if (splt[i].find(c) == 0) {
-                    cout << splt[i] << endl;
-                    return pos;
-                }
-            }
-            cout << "Unknown variable:" << c << endl;
+            debuginfo.next();
             return pos;
         }
         
@@ -1946,7 +1974,7 @@ public:
     
     bool checkkeyboard(string& buff, long& first, long& last, bool& dsp, char noinit) {
         switch (buff[0]) {
-            case 2: //ctrl-b run
+            case 2: //ctrl-b run/breakpoint
                 if (emode()) {
                     string buffer = Normalizefilename(thecurrentfilename);
                     if (lines.check(pos)) {
@@ -2114,15 +2142,17 @@ public:
                 printline(pos+1);
         }
         
+
         clearst();
         wstring code;
         wstring b;
         string buffer;
-        bool inbuffer = false;
-        
-        bool instring = false;
         string buff;
+
         long first = 0, last;
+
+        bool inbuffer = false;
+        bool instring = false;
         
         while (1) {
             buff = getch();
@@ -2258,6 +2288,7 @@ static void handle_ctrl_c(int theSignal) {
         JAGEDITOR->clear();
 }
 
+Tamgu* ProcEval(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
 Tamgu* debuginfo_callback(vector<Tamgu*>& stack, short idthread, void* data) {
     tamgu_editor* te = (tamgu_editor*)data;
