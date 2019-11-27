@@ -403,10 +403,12 @@ Exporting string TamguIndentation(string& codestr,string blanc) {
 Exporting bool TamguStop() {
 	if (globalTamgu == NULL)
 		return true;
+    
     if (globalTamgu->isRunning()) {
         executionbreak = true;
         globalTamgu->Releasevariables();
     }
+    
 	return true;
 }
 

@@ -1888,7 +1888,11 @@ public:
             printline(pos+1);
         }
         
-        TamguStop();
+        if (debugmode && debuginfo.running)
+            debuginfo.stopexecution();
+        else
+            TamguStop();
+
         fflush(stdout);
         line = L"";
         posinstring = 0;
