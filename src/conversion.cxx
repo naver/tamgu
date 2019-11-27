@@ -5988,26 +5988,53 @@ Exporting bool valid_latin_table(short tableindex) {
  */
 //===================================================================
 
+//Don de Frédéric Roussey
+static const double arConvertExpMinus2[] =
+{
+  1.e-32, 1.e-31, 1.e-30,
+  1.e-29, 1.e-28, 1.e-27, 1.e-26, 1.e-25, 1.e-24, 1.e-23, 1.e-22, 1.e-21, 1.e-20,
+  1.e-19, 1.e-18, 1.e-17, 1.e-16, 1.e-15, 1.e-14, 1.e-13, 1.e-12, 1.e-11, 1.e-10,
+  1.e-09, 1.e-08, 1.e-07, 1.e-06, 1.e-05, 1.e-04, 1.e-03, 1.e-02, 1.e-01, 1.e-00,
+};
+
+static const double arConvertExp[] =
+{
+  1.e00, 1.e01, 1.e02, 1.e03, 1.e04, 1.e05, 1.e06, 1.e07, 1.e08, 1.e09,
+  1.e10, 1.e11, 1.e12, 1.e13, 1.e14, 1.e15, 1.e16, 1.e17, 1.e18, 1.e19,
+  1.e20, 1.e21, 1.e22, 1.e23, 1.e24, 1.e25, 1.e26, 1.e27, 1.e28, 1.e29,
+  1.e30, 1.e31, 1.e32,
+};
 
 
-static inline double power10(long n) {
-    double r = 1;
-    while (n)
-    {
-        if (n & 1)
-        {
-           r *= 10;
-           n--;
-        }
-        else
-        {
-            r *= 100;
-            n -= 2;
-        }
-    }
-
-    return r;
+static inline double power10(BLONG n)
+{
+  if (n > 0)
+  {
+     BLONG n1(n & 0x1f);   //n1 modulo 32
+     BLONG n2(n & (~0x1f));//n2 div 32
+     n2 >>= 5;
+     if (n2 == 0)
+        return arConvertExp[n1];
+     double d = arConvertExp[n1];
+     while (n2--)
+        d *= arConvertExp[32];
+     return d;
+  }
+  else if (n < 0)
+  {
+     BLONG n1(n & 0x1f);   //n1 modulo 32
+     BLONG n2(n & (~0x1f));//n2 div 32
+     n2 >>= 5;
+     if (n2 == -1)
+        return arConvertExpMinus2[n1];
+     double d = arConvertExpMinus2[n1];
+     while (++n2)
+        d *= arConvertExpMinus2[0];
+     return d;
+  }
+  return 1;
 }
+//----------------------------------------------------------------------------------------
 
 extern "C" {
     //Implementation, which replaces strtod, which does not work properly on some platform...
@@ -6147,9 +6174,9 @@ double conversionfloathexa(const char* s) {
         
     if ((*s &0xDF) == 'E') {
         ++s;
-        bool sgn = false;
+        long sgn = 1;
         if (*s == '-') {
-            sgn = true;
+            sgn = -1;
             ++s;
         }
         else {
@@ -6162,10 +6189,7 @@ double conversionfloathexa(const char* s) {
             while (isadigit(*s))
                 v = (v << 3) + (v << 1) + (*s++ & 15);
             
-            if (sgn)
-                res *= 1 / power10(v);
-            else
-                res *= power10(v);
+            res *= power10(v*sgn);
         }
     }
     return res*sign;
@@ -6332,9 +6356,9 @@ double conversionfloathexa(const char* s, short& l) {
     if ((*s &0xDF) == 'E') {
         ++s;
         l++;
-        bool sgn = false;
+        long sgn = 1;
         if (*s == '-') {
-            sgn = true;
+            sgn = -1;
             ++s;
             l++;
         }
@@ -6353,10 +6377,7 @@ double conversionfloathexa(const char* s, short& l) {
                 l++;
             }
             
-            if (sgn)
-                res *= 1 / power10(v);
-            else
-                res *= power10(v);
+            res *= power10(v*sgn);
         }
     }
     return res*sign;
@@ -6521,9 +6542,9 @@ double conversionfloathexa(const wchar_t* s, short& l) {
     if ((*s &0xDF) == 'E') {
         ++s;
         l++;
-        bool sgn = false;
+        long sgn = 1;
         if (*s == '-') {
-            sgn = true;
+            sgn = -1;
             ++s;
             l++;
         }
@@ -6542,10 +6563,7 @@ double conversionfloathexa(const wchar_t* s, short& l) {
                 l++;
             }
             
-            if (sgn)
-                res *= 1 / power10(v);
-            else
-                res *= power10(v);
+            res *= power10(v*sgn);
         }
     }
     return res*sign;
