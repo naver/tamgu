@@ -174,6 +174,8 @@ class tamgu_editor : public jag_editor {
     vector<editor_keep> editors_undos;
     vector<editor_keep> editors_redos;
 
+    vector<string> displaying;
+    
     string historyfilename;
     wstring curlyspace;
 
@@ -350,7 +352,31 @@ public:
     //Cursor movements...
     //------------------------------------------------------------------------------------------------
     void printdebug(long pos) {
+        clearscreen();
         cout << back << m_dore << "▶▶" << m_current << m_lightgray << std::setw(prefixsize) << lines.numeros[pos] << "> " << m_current << coloringline(lines[pos]) << endl;
+        pos++;
+        short nb = 0;
+        while (nb !=  25 && pos < (lines.size() - 1)) {
+            cout << back << m_dore << "▶▶" << m_current << m_lightgray << std::setw(prefixsize) << lines.numeros[pos] << "> " << m_current << coloringline(lines[pos]) << endl;
+            ++pos;
+            ++nb;
+        }
+        
+        if (displaying.size()) {
+            cout << endl;
+            vector<long> errors;
+            long i;
+            for (i = 0; i < displaying.size(); i++) {
+                if (!evallocalcode(displaying[i], true))
+                    errors.push_back(i);
+            }
+            
+            for (i = errors.size()-1; i>= 0; i--) {
+                displaying.erase(displaying.begin()+errors[i]);
+            }
+            cout << endl;
+        }
+        
         cout << back << m_dore << "▶▶" << m_current;
         cout.flush();
     }
@@ -757,10 +783,41 @@ public:
         return true;
     }
 
+    bool evallocalcode(string code, bool disp=false) {
+        Trim(code);
+        string avariable;
+        if (code.back() != ';') {
+            avariable = "println(";
+            avariable += code;
+            avariable += ".json());";
+        }
+        else
+            avariable = code;
+        
+        Tamgustring _arg(avariable);
+        _arg.reference=100;
+        _arg.protect = false;
+        TamguCall func(0);
+        func.arguments.push_back(&_arg);
+        globalTamgu->debugmode = false;
+        if (disp)
+            cout << code << ": ";
+        cout << m_redbold;
+        Tamgu* e = ProcEval(aNULL,0,&func);
+        cout << m_current;
+        globalTamgu->debugmode = true;
+        if (e->isError()) {
+            globalTamgu->Cleanerror(0);
+            return false;
+        }
+        e->Releasenonconst();
+        return true;
+    }
+    
     long handlingcommands(long pos, bool& dsp, char initvar) {
         typedef enum {cmd_none, cmd_args, cmd_filename, cmd_spaces, cmd_select, cmd_edit, cmd_run, cmd_cls, cmd_echo, cmd_console, cmd_help, cmd_list,
             cmd_metas, cmd_rm, cmd_break, cmd_history, cmd_open, cmd_create, cmd_save, cmd_exit, cmd_load_history, cmd_store_history, cmd_colors, cmd_color, cmd_clear, cmd_reinit,
-            cmd_debug, cmd_next, cmd_locals, cmd_all, cmd_stack, cmd_goto, cmd_in, cmd_out, cmd_stop, cmd_short_name, cmd_to_end} thecommands;
+            cmd_debug, cmd_next, cmd_keep, cmd_remove, cmd_locals, cmd_all, cmd_stack, cmd_goto, cmd_in, cmd_out, cmd_stop, cmd_short_name, cmd_to_end} thecommands;
 
         static bool init = false;
         static hmap<wstring, thecommands> commands;
@@ -794,6 +851,8 @@ public:
             commands[L"reinit"] = cmd_reinit;
             commands[L"debug"] = cmd_debug;
             commands[L"n!"] = cmd_next;
+            commands[L"k!"] = cmd_keep;
+            commands[L"r!"] = cmd_remove;
             commands[L"h!"] = cmd_help;
             commands[L"l!"] = cmd_locals;
             commands[L"a!"] = cmd_all;
@@ -1088,15 +1147,19 @@ public:
 
             case cmd_help:
                 if (debugmode) {
-                    cerr << "- " << m_redbold << "n!:" << m_current << " next line" << endl;
-                    cerr << "- " << m_redbold << "l!:" << m_current << " display local variables" << endl;
                     cerr << "- " << m_redbold << "a!:" << m_current << " display all active variables" << endl;
-                    cerr << "- " << m_redbold << "s!:" << m_current << " display the stack" << endl;
-                    cerr << "- " << m_redbold << "g!:" << m_current << " go to next breakpoint" << endl;
                     cerr << "- " << m_redbold << "e!:" << m_current << " execute up to the end" << endl;
+                    cerr << "- " << m_redbold << "g!:" << m_current << " go to next breakpoint" << endl;
+                    cerr << "- " << m_redbold << "h!:" << m_current << " display debug help" << endl;
+                    cerr << "- " << m_redbold << "i!:" << m_current << " get into a function" << endl;
+                    cerr << "- " << m_redbold << "k!: var" << m_current << " display variable at each iteration" << endl;
+                    cerr << "- " << m_redbold << "l!:" << m_current << " display local variables" << endl;
+                    cerr << "- " << m_redbold << "n!:" << m_current << " next line (also carriage return)" << endl;
+                    cerr << "- " << m_redbold << "o!:" << m_current << " get out of a function" << endl;
+                    cerr << "- " << m_redbold << "r!: var|all" << m_current << " delete var from display or all variables kept for display" << endl;
+                    cerr << "- " << m_redbold << "s!:" << m_current << " display the stack" << endl;
                     cerr << "- " << m_redbold << "S!:" << m_current << " stop the execution" << endl;
                     cerr << "- " << m_redbold << "name:" << m_current << " display the content of a variable (just type its name)" << endl;
-                    cerr << "- " << m_redbold << "h!:" << m_current << " display debug help" << endl;
                     return pos;
                 }
                 i = 0;
@@ -1572,6 +1635,31 @@ public:
                 else
                     cout << m_red << "debugger off" << endl;
                 return pos;
+            case cmd_keep:
+                if (debugmode && debuginfo.running) {
+                    string var = convert(v[1]);
+                    for (i = 0; i < displaying.size(); i++) {
+                        if (displaying[i] == var)
+                            return pos;
+                    }
+                    displaying.push_back(var);
+                }
+                return pos;
+            case cmd_remove:
+                if (debugmode && debuginfo.running) {
+                    string var = convert(v[1]);
+                    if (var == "all") {
+                        displaying.clear();
+                        return pos;
+                    }
+                    for (i = 0; i < displaying.size(); i++) {
+                        if (displaying[i] == var) {
+                            displaying.erase(displaying.begin()+i);
+                            return pos;
+                        }
+                    }
+                }
+                return pos;
             case cmd_next:
                 if (debugmode && debuginfo.running)
                     debuginfo.next();
@@ -1621,27 +1709,10 @@ public:
         if (debugmode && debuginfo.running) {
             if (line != L"") {
                 addcommandline(line);
-                string avariable = convert(line);
-                avariable=Trim(avariable);
-                
-                if (avariable.back() != ';') {
-                    avariable = "println(";
-                    avariable += convert(line);
-                    avariable += ");";
-                }
-                
-                Tamgustring _arg(avariable);
-                _arg.reference=100;
-                _arg.protect = false;
-                TamguCall func(0);
-                func.arguments.push_back(&_arg);
-                globalTamgu->debugmode = false;
-                ProcEval(aNULL,0,&func);
-                globalTamgu->debugmode = true;
-                return pos;
+                evallocalcode(convert(line));
             }
-            
-            debuginfo.next();
+            else
+                debuginfo.next();
             return pos;
         }
         
@@ -1842,8 +1913,13 @@ public:
                         posinstring = linesize();
                         pos = 0;
                         editmode = true;
+                        clearscreen();
+                        
                         if (c == 'r')
                             debugmode = false;
+                        else
+                            cout << m_redital << "Debug on" << m_current << endl;
+                        
                         handlingcommands(pos, dsp, false);
                         editmode = false;
                         posinstring = 0;
