@@ -129,13 +129,14 @@ class Debuginfo {
     }
 
     bool stopexecution() {
+        globalTamgu->Setdebugmode(false);
+        globalTamgu->Setdebugfunction(NULL);
+
         if (executionbreak) {
             display("end of process (end)");
             return true;
         }
         clear();
-        globalTamgu->Setdebugmode(false);
-        globalTamgu->Setdebugfunction(NULL);
         executionbreak = true;
         display("end of process (stop)");
         running = false;

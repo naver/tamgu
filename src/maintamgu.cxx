@@ -190,7 +190,7 @@ class tamgu_editor : public jag_editor {
 
     
 public:
-    LockedThread loquet;
+    LockedThread editor_loquet;
     bool debugmode;
 
     tamgu_editor() {
@@ -783,6 +783,11 @@ public:
         return true;
     }
 
+    void cleardebug() {
+        debugmode = false;
+        debuginfo.stopexecution();
+    }
+    
     bool evallocalcode(string code, bool disp=false) {
         Trim(code);
         string avariable;
@@ -1662,19 +1667,23 @@ public:
                 return pos;
             case cmd_next:
                 if (debugmode && debuginfo.running)
-                    debuginfo.next();
+                    if (!debuginfo.next())
+                        cleardebug();
                 return pos;
             case cmd_in:
                 if (debugmode && debuginfo.running)
-                    debuginfo.getin();
+                    if (!debuginfo.getin())
+                        cleardebug();
                 return pos;
             case cmd_out:
                 if (debugmode && debuginfo.running)
-                    debuginfo.getout();
+                    if (debuginfo.getout())
+                        cleardebug();
                 return pos;
             case cmd_goto:
                 if (debugmode && debuginfo.running)
-                    debuginfo.gotonext();
+                    if (debuginfo.gotonext())
+                        cleardebug();
                 return pos;
             case cmd_locals:
                 if (debugmode && debuginfo.running)
@@ -1698,11 +1707,13 @@ public:
                 return pos;
             case cmd_stop:
                 if (debugmode && debuginfo.running)
-                    debuginfo.stopexecution();
+                    if (!debuginfo.stopexecution())
+                        cleardebug();
                 return pos;
             case cmd_to_end:
                 if (debugmode && debuginfo.running)
-                    debuginfo.gotoend();
+                    if (!debuginfo.gotoend())
+                        cleardebug();
                 return pos;
         }
         
@@ -1711,8 +1722,10 @@ public:
                 addcommandline(line);
                 evallocalcode(convert(line));
             }
-            else
-                debuginfo.next();
+            else {
+                if (!debuginfo.next())
+                    cleardebug();
+            }
             return pos;
         }
         
@@ -1889,7 +1902,7 @@ public:
         }
         
         if (debugmode && debuginfo.running)
-            debuginfo.stopexecution();
+            cleardebug();
         else
             TamguStop();
 
@@ -2233,7 +2246,7 @@ public:
 
         bool inbuffer = false;
         bool instring = false;
-        
+
         while (1) {
             buff = getch();
             
@@ -2331,8 +2344,8 @@ public:
         cout << m_current;
         
         if (debugmode) {
-            debuginfo.running = false;
-            loquet.Released();
+            cleardebug();
+            editor_loquet.Released();
             updateline = true;
             prefix = "◀▶";
         }
@@ -2379,7 +2392,7 @@ Tamgu* debuginfo_callback(vector<Tamgu*>& stack, short idthread, void* data) {
             cout << m_redital << "entering:" << m_redbold << debuginfo.filename << m_current << endl;
         }
         te->printdebug(pos);
-        te->loquet.Released();
+        te->editor_loquet.Released();
         debuginfo.loquet.Blocked();
     }
     return res;
@@ -2396,7 +2409,7 @@ void debuggerthread(tamgu_editor* call) {
     call->updateline = false;
     
     while (debuginfo.running) {
-        call->loquet.Blocked();
+        call->editor_loquet.Blocked();
         call->posinstring = 0;
         call->line = L"";
 
