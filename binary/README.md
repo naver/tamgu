@@ -32,3 +32,7 @@ The result of your compilation will be stored in:
 
 * On Mac: **bin/mac**
 * On Linux: **bin/linux**
+
+# binary.tmg
+
+This simple Tamgu program transforms a Tamgu program into the adequate code for C++. Actually, in C++, it is sometimes a little bit complicated to store long lines of characters, this simple program simplifies all that.
