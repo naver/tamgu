@@ -4,7 +4,7 @@ This program shows how to build a binary that compile and execute some tamgu cod
 
 # First
 
-For Mac OS and Linux releases (see https://github.com/naver/tamgu/releases), the library *libtamgu.so* is already provided. You need to get it from the right package for the Release section, if you do not want to compile it yourself.
+For Mac OS and Linux releases (see https://github.com/naver/tamgu/releases), the library *libtamgu.so* is already provided. You need to get it from the right package from the Release section, if you do not want to compile it yourself.
 
 Now, you still need to launch the *install.py* program to extract the specifics of your platform. A *Makefile.in* is then produced, which is needed to compile your binary.
 
