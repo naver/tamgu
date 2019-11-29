@@ -1,6 +1,6 @@
 # BINARY
 
-This program shows how to build a binary that compiles and executes some tamgu code.
+This program shows how to build a binary that compiles and executes some tamgu code, included into the C++ source itself.
 
 # First
 
