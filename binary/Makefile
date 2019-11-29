@@ -22,6 +22,8 @@ all: install $(objectbinary)
 	$(COMPPLUSPLUS) -o $(LBINPATH)/binary $(objectbinary) $(SYSTEMSPATH) $(LIBREGEX) -L$(LBINPATH) -ltamgu
 
 install:
+	mkdir -p ../libobjs
+	mkdir -p $(LOBJPATH)
 	mkdir -p $(LOBJPATH)/binary
 
 clean:
