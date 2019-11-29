@@ -35,7 +35,7 @@ function rand() {
 "@;
 
 svector cd=code.split("\n");
-
+//The method "json" for a string, adds the necessary escape characters when a double quote is found.
 for (string s in cd) {
     s=s.trim();
     if ("//" in s)
