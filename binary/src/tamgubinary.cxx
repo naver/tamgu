@@ -99,10 +99,8 @@ void vrand(TamguCode* tcd, vector<long>& val) {
 
     //params is empty
     Tamgu* rval = TamguExecute(tcd,"rand",params);
-    //Since there is no garbage collector in Tamgu, tval will be naturally destroyed
-    //However this is not the case of rval...
     //First, we get rval value
-    //We know that rval is Tamguivector (see tamguivector.h)
+    //We know that rval is a Tamguivector (see tamguivector.h)
     //whose inner value is a vector of long
     val = ((Tamguivector*)rval)->values;
     //Then we get rid of rval...
