@@ -114,6 +114,8 @@ void vrand(TamguCode* tcd, vector<long>& val) {
 //getustring(idx)
 //getfloat(idx)
 
+//Size() return the vector size
+
 void vrandbis(TamguCode* tcd, vector<long>& val) {
         vector<Tamgu*> params;
 
