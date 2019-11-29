@@ -127,29 +127,29 @@ char x_reading::loop(short i, char* token, char* chr, long& itoken, short& r, lo
                 if (esc_char==2) {
                     settoken(token,chr,itoken);
                     parcours.nextc(chr); //the next character should be copied without further analysis
-                    checkcr;
                 }
-                
-                if (nxt) {
-					if (check(rule[r + 1], element[r + 1], chr)) {
-                        if (nxt == 1)
-                            break;
-                        
-                        char cc[] = {0,0,0,0,0};
-                        bool found = true;
-                        parcours.getpos(bp,cp);
-                        parcours.nextc(cc);
-                        for (short k = r+2; k < ni; k++) {
-                            if (!check(rule[k],element[k],cc)) {
-                                found = false;
+                else {
+                    if (nxt) {
+                        if (check(rule[r + 1], element[r + 1], chr)) {
+                            if (nxt == 1)
                                 break;
-                            }
+                            
+                            char cc[] = {0,0,0,0,0};
+                            bool found = true;
+                            parcours.getpos(bp,cp);
                             parcours.nextc(cc);
+                            for (short k = r+2; k < ni; k++) {
+                                if (!check(rule[k],element[k],cc)) {
+                                    found = false;
+                                    break;
+                                }
+                                parcours.nextc(cc);
+                            }
+                            
+                            parcours.setpos(bp,cp);
+                            if (found)
+                                break;
                         }
-                        
-                        parcours.setpos(bp,cp);
-                        if (found)
-                            break;
                     }
                 }
                 
@@ -162,6 +162,8 @@ char x_reading::loop(short i, char* token, char* chr, long& itoken, short& r, lo
     }
     return true;
 }
+
+void find_quotes(unsigned char* src, long lensrc, vector<long>& pos);
 
 void x_reading::apply(bool keepos, vector<string>* vstack, vector<unsigned char>* vtype) {
     char currentchr[] = {0,0,0,0,0};
@@ -196,7 +198,10 @@ void x_reading::apply(bool keepos, vector<string>* vstack, vector<unsigned char>
     
     parcours.begin();
     parcours.nextc(currentchr, line);
-
+    
+    //vector<long> posquotes;
+    //find_quotes(USTR(parcours), parcours.size(), posquotes);
+    
     while (!parcours.end() || currentchr[0]) {
         parcours.getpos(b,c);
         getit=false;
@@ -370,28 +375,30 @@ char x_wreading::loop(wstring& toparse, short i, wchar_t* token, wchar_t* chr, l
                     settoken(token,chr,itoken);
                     getnext(toparse,chr,posc,l); //the next character should be copied without further analysis
                 }
-                
-                if (nxt) {
-					if (check(rule[r + 1], element[r + 1], chr)) {
-                        if (nxt==1)
-                            break;
-
-                        long cp = posc + 1;
-                        wchar_t cc[] = {0,0,0};
-                        getnext(toparse, cc, cp);
-                        bool found = true;
-                        for (short k = r+2; k < ni; k++) {
-                            if (!check(rule[k],element[k],cc)) {
-                                found = false;
+                else {
+                    if (nxt) {
+                        if (check(rule[r + 1], element[r + 1], chr)) {
+                            if (nxt==1)
                                 break;
-                            }
+                            
+                            long cp = posc + 1;
+                            wchar_t cc[] = {0,0,0};
                             getnext(toparse, cc, cp);
+                            bool found = true;
+                            for (short k = r+2; k < ni; k++) {
+                                if (!check(rule[k],element[k],cc)) {
+                                    found = false;
+                                    break;
+                                }
+                                getnext(toparse, cc, cp);
+                            }
+                            
+                            if (found)
+                                break;
                         }
-                        
-                        if (found)
-                            break;
                     }
                 }
+                
                 wsettoken(token,chr,itoken);
                 getnext(toparse,chr,posc,l);
                 esc_char = check(label,type,chr);

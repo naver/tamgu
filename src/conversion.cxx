@@ -155,6 +155,37 @@ bool check_ascii(unsigned char* src, long lensrc, long& i) {
     return true;
 }
 
+static const __m256i _quotes = _mm256_set1_epi8(39);
+static const __m256i _doublequotes = _mm256_set1_epi8(34);
+
+void find_quotes(unsigned char* src, long lensrc, vector<long>& pos) {
+    __m256i current_bytes = _mm256_setzero_si256();
+    __m256i res;
+    long e, j;
+    
+    for (long i = 0; (i + 31) < lensrc; i += 32) {
+            //we load our section, the length should be larger than 16
+        current_bytes = _mm256_loadu_si256((const __m256i *)(src + i));
+        res=_mm256_cmpeq_epi8(current_bytes, _quotes);
+        current_bytes=_mm256_cmpeq_epi8(current_bytes, _doublequotes);
+        if (_mm256_movemask_epi8(res) || _mm256_movemask_epi8(current_bytes)) {
+            for (j = 0; j < 32; j++) {
+                e = i + j;
+                if (src[e] == '\\') {
+                    j++;
+                    continue;
+                }
+
+                if (src[e] == 34)
+                    pos.push_back(e+1);
+                else
+                    if (src[e] == 39)
+                        pos.push_back(-(e+1));
+            }
+        }
+    }
+}
+
 //This version of find_intel also detects the section in which potential UTF8 characters may occur...
 //The first section is then recorded into ps, ascii is then set to false to indicate the potential presence
 //of a utf8 character in the string...
