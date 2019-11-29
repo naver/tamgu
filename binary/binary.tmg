@@ -1,0 +1,46 @@
+/@
+Date: 29/11/2019
+Author: Claude Roux
+Description: Generating a long C++ line
+@/
+
+
+//Some tamgu in a string
+string code=@"
+
+//Compute 2 time i
+function calculus(int i) {
+    return 2i;
+}
+
+
+//Conc added to a string
+function conc(string s) {
+    s += "_Added";
+    return s;
+}
+
+//Store random values in a vector of float
+//vector<long> in C++
+function rand() {
+    long f;
+    ivector fv;
+    for (int i in <1000>) {
+        f=random(1000.00);
+        fv.push(f);
+    }
+    return fv;
+}
+
+"@;
+
+svector cd=code.split("\n");
+
+for (string s in cd) {
+    s=s.trim();
+    if ("//" in s)
+        println(s);
+    else
+        println("code += "+s.json()+";");
+}
+
