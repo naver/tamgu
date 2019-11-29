@@ -159,6 +159,7 @@ static string _getch(){
             perror("read()");
         buf[nb] = 0;
         res += buf;
+        memset(buf,0, _getbuffsize);
     }
     while (nb == _getbuffsize);
     
