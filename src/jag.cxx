@@ -1521,14 +1521,16 @@ long jag_editor::handlemultiline() {
     //We cut our line at the right position.
     //sub is the right part of the string
     sub = line.substr(posinstring, line.size());
-    
+
     //line keeps the left part...
     line = line.substr(0, posinstring);
 
     lines[pos] = line;
+
     currentline++;
     pos++;
     lines.insert(pos, sub);
+
     undo(sub, pos, u_ins_linked); //insertion on following line
 
     if (stat == solo_line)
@@ -1570,8 +1572,12 @@ long jag_editor::handlingeditorline(bool computespace) {
     long szl = lines[pos].size();
     
     //if we are in the middle of a line...
-    if ((posinstring > 0 && posinstring < line.size()) || lines.status[pos] == concat_line)
-        return handlemultiline();
+    if (pos < sz) {
+        if ((posinstring > 0 && posinstring < line.size()) || lines.status[pos] == concat_line)
+            return handlemultiline();
+    }
+    else
+        pos = sz;
 
     //We keep track of our line before splitting...
     undo(lines[pos],pos, u_modif); //modification
