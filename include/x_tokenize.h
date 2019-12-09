@@ -945,6 +945,9 @@ public:
     
     //We keep all characters...
     void setrules() {
+        
+        lookforquotes = true;
+        
         //Spaces are now all kept
         rules.push_back(" =0");                         //0     space
         rules.push_back("\t=0");                        //1     tab
@@ -1048,6 +1051,7 @@ class x_coloringrule : public x_reading {
 public:
     
     void setrules() {
+        lookforquotes = true;
             //spaces
         rules.push_back(" =#");                         //0     space
         rules.push_back("\t=#");                        //1     tab

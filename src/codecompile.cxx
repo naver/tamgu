@@ -163,7 +163,7 @@ char x_reading::loop(short i, char* token, char* chr, long& itoken, short& r, lo
     return true;
 }
 
-void find_quotes(unsigned char* src, long lensrc, vector<long>& pos);
+void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<string>& strings);
 
 void x_reading::apply(bool keepos, vector<string>* vstack, vector<unsigned char>* vtype) {
     char currentchr[] = {0,0,0,0,0};
@@ -199,8 +199,15 @@ void x_reading::apply(bool keepos, vector<string>* vstack, vector<unsigned char>
     parcours.begin();
     parcours.nextc(currentchr, line);
     
-    //vector<long> posquotes;
-    //find_quotes(USTR(parcours), parcours.size(), posquotes);
+    vector<long> prequotes;
+    vector<string> prestrings;
+    long e = 0;
+    long presz = 0;
+    
+    if (lookforquotes) {
+        find_quotes(USTR(parcours), parcours.size(), prequotes,prestrings);
+        presz = prequotes.size();
+    }
     
     while (!parcours.end() || currentchr[0]) {
         parcours.getpos(b,c);
@@ -233,49 +240,143 @@ void x_reading::apply(bool keepos, vector<string>* vstack, vector<unsigned char>
             }
         }
         
-        bool breaking = false;
-        for (;i<sztokenizer;i++) {
-            if (action[i]==xr_skiprule)
-                continue;
-                        
-            token[0] = 0;
-            l = line;
-            setchar(chr, currentchr);
-            r = 0;
-            itoken = 0;
-            found = loop(i, token, chr, itoken, r, l);
-            if (found != true) {
-                parcours.setpos(b,c);
-                if (found == 2) {
-                    if (breaking) //already done...
-                        break;
-                    i = firstrule - 1;
-                    breaking = true;
-                }
-                
-                continue;
-            }
-
+        if (e < presz && b == prequotes[e] + 1) {
+            int cre = 0;
             ty=action[i];
+            string sub = prestrings[e++];
+            sz = sub.size();
+
+            parcours.bytepos = b + sz -1;
+            parcours.charpos = c + size_c(USTR(sub), sz) -1;
+            parcours.nextc(currentchr, line);
+
+            switch (sub[0]) {
+                case '/':
+                    if (sub[1] == '@') { // /@...@/
+                        while (cre < sz) {
+                            if (sub[cre++] == '\n')
+                                line++;
+                        }
+                    }
+                    else
+                        line++;
+                    break;
+                case '@': //@"..."@
+                    while (cre < sz) {
+                        if (sub[cre++] == '\n')
+                            line++;
+                    }
+                    if (verif(ruleelements[i][0],xr_skip))
+                        sub = sub.substr(1, sz-2);
+                    break;
+                case 'P': //r"..."
+                    if (verif(ruleelements[i][0],xr_skip))
+                        sub = sub.substr(1, sz);
+                    for (;i < sztokenizer; i++) {
+                        if (tokenizer[i][1][0] == '\'') {
+                            ty = action[i];
+                            break;
+                        }
+                    }
+                    break;
+                case 'R':
+                    if (verif(ruleelements[i][0],xr_skip))
+                        sub = sub.substr(1, sz);
+                    for (;i < sztokenizer; i++) {
+                        if (tokenizer[i][1][0] == '\'') {
+                            ty = action[i];
+                            break;
+                        }
+                    }
+                    break;
+                case 'U':
+                    if (verif(ruleelements[i][0],xr_skip))
+                        sub = sub.substr(1, sz);
+                    break;
+                case 'p': //r"..."
+                    if (verif(ruleelements[i][0],xr_skip))
+                        sub = sub.substr(1, sz);
+                    break;
+                case 'r': //r"..."
+                    if (verif(ruleelements[i][0],xr_skip))
+                        sub = sub.substr(1, sz);
+                    break;
+                case 'u': //r"..."
+                    if (sub[1] == '@') {
+                        if (verif(ruleelements[i][0],xr_skip))
+                            sub = sub.substr(2, sz-3);
+                        for (;i < sztokenizer; i++) {
+                            if (tokenizer[i][1][0] == '@') {
+                                ty = action[i];
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                    else {
+                        if (verif(ruleelements[i][0],xr_skip))
+                            sub = sub.substr(1, sz);
+                    }
+            }
+           
             if (ty != -1) {
-                vstack->push_back(token);
+                vstack->push_back(sub);
                 if (!juststack) {
                     stackln.push_back(line);
                     vtype->push_back(ty);
                     if (keepos) {
-                        sz = charsz(currentchr);
-                        bpos.push_back(b - sz);
+                        bpos.push_back(b-1);
                         cpos.push_back(c-1);
                     }
                 }
-                else
-                    if (storetype)
-                        vtype->push_back(ty);
             }
             getit=true;
-            setchar(currentchr,chr);
-            line = l;
-            break;
+        }
+        else {
+            bool breaking = false;
+            for (;i<sztokenizer;i++) {
+                if (action[i]==xr_skiprule)
+                    continue;
+                
+                token[0] = 0;
+                l = line;
+                setchar(chr, currentchr);
+                r = 0;
+                itoken = 0;
+                found = loop(i, token, chr, itoken, r, l);
+                if (found != true) {
+                    parcours.setpos(b,c);
+                    if (found == 2) {
+                        if (breaking) //already done...
+                            break;
+                        i = firstrule - 1;
+                        breaking = true;
+                    }
+                    
+                    continue;
+                }
+                
+                ty=action[i];
+                if (ty != -1) {
+                    vstack->push_back(token);
+                    if (!juststack) {
+                        stackln.push_back(line);
+                        vtype->push_back(ty);
+                        if (keepos) {
+                            sz = charsz(currentchr);
+                            bpos.push_back(b - sz);
+                            cpos.push_back(c-1);
+                        }
+                    }
+                    else
+                        if (storetype)
+                            vtype->push_back(ty);
+                }
+                getit=true;
+                setchar(currentchr,chr);
+                line = l;
+                break;
+            }
         }
         
         if (!getit) { //Character not taken into account by a rule, we suppose it is a simple UTF8 character...

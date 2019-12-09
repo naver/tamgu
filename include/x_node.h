@@ -177,12 +177,14 @@ public:
     long firstrule;
     bool loaded;
     bool juststack;
+    bool lookforquotes;
     unsigned char escape;
 
     x_rules() {
         firstrule=-1;
         juststack=false;
         loaded=false;
+        lookforquotes = false;
 
         for (short i=0; i< 255; i++) {
             table[i]=255;
@@ -231,6 +233,8 @@ public:
     }
     
     virtual void setrules() {
+        lookforquotes = true;
+        
         /*
          a) A metarule is composed of two parts: c:expression, where c is the metacharacter that be accessed through %c and expression is a single body rule.
          

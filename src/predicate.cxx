@@ -24,6 +24,14 @@
 #include "tamgusynode.h"
 #include "tamgumapss.h"
 
+#ifdef INTELINTRINSICS
+#ifdef WIN32
+#include <intrin.h>
+#else
+#include <x86intrin.h>
+#endif
+#endif
+
 static const char* d_eval = "eval";
 static const char* d_kb = "kb";
 static const char* d_rule = "rule";
@@ -272,6 +280,7 @@ inline void ClearInstances(TamguDeclaration* dom, basebin_hash<Tamgu*>& basedoma
     binuint64 filter;
     short idx;
     long j;
+    int qj;
 
     for (long ii = 0; ii < dom->declarations.tsize; ii++) {
         filter = dom->declarations.indexes[ii];
@@ -279,6 +288,17 @@ inline void ClearInstances(TamguDeclaration* dom, basebin_hash<Tamgu*>& basedoma
             tb = dom->declarations.table[ii];
             j = 0;
             while (filter) {
+#ifdef INTELINTRINSICS
+                if (!(filter & 1)) {
+                    if (!(filter & 0x00000000FFFFFFFF)) {
+                        filter >>= 32;
+                        j += 32;
+                    }
+                    qj = _bit_scan_forward((uint32_t)(filter & 0x00000000FFFFFFFF));
+                    filter >>= qj;
+                    j += qj;
+                }
+#else
                 if (!(filter & 1)) {
                     while (!(filter & 65535)) {
                         filter >>= 16;
@@ -297,7 +317,7 @@ inline void ClearInstances(TamguDeclaration* dom, basebin_hash<Tamgu*>& basedoma
                         j++;
                     }
                 }
-
+#endif
                 //we do not delete the instances that were created by the underlying calls to PredicateEvalue
                 //More exactly, when we push a new analysis of a rule into action, we want to clean the variables that were created
                 //within this call, not the current ones.

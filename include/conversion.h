@@ -713,6 +713,12 @@ public:
             line++;
     }
 
+    void nextc(long& line) {
+        charpos++;
+        bytepos +=  1 + c_test_utf8(((unsigned char*)c_str()) + bytepos);
+        if (at(bytepos) == '\n')
+            line++;
+    }
 
 	TAMGUCHAR nextcode() {
 		charpos++;

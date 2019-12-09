@@ -21,6 +21,14 @@
 #include "automaton.h"
 #include "longmap.h"
 
+#ifdef INTELINTRINSICS
+#ifdef WIN32
+#include <intrin.h>
+#else
+#include <x86intrin.h>
+#endif
+#endif
+
 ostream* flot_erreur = &cerr;
 
 #define action_first 1
@@ -634,12 +642,24 @@ bool TamguFst::factorize(TamguDoubleSideAutomaton& a, long first) {
 
 
     binuint64 filter;
+    int qj;
     long j;
     for (i = 0; i < toberemoved.tsize; i++) {
         if (toberemoved.table[i] != NULL) {
             j=0;
             filter = toberemoved.indexes[i];
             while (filter) {
+#ifdef INTELINTRINSICS
+                if (!(filter & 1)) {
+                    if (!(filter & 0x00000000FFFFFFFF)) {
+                        filter >>= 32;
+                        j += 32;
+                    }
+                    qj = _bit_scan_forward((uint32_t)(filter & 0x00000000FFFFFFFF));
+                    filter >>= qj;
+                    j += qj;
+                }
+#else
                 if (!(filter & 1)) {
                     while (!(filter & 65535)) {
                         filter >>= 16;
@@ -658,6 +678,7 @@ bool TamguFst::factorize(TamguDoubleSideAutomaton& a, long first) {
                         j++;
                     }
                 }
+#endif
                 n = toberemoved.table[i][j];
                 a.garbage[n]->status |= xfmark;
 
