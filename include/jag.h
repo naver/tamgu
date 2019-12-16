@@ -258,6 +258,12 @@ public:
             status.erase(status.begin()+pos, status.begin() + end);
         }
     }
+
+    void insert(long pos, wstring& sub, char st) {
+        lines.insert(lines.begin() + pos, sub);
+        status.insert(status.begin()+pos, st);
+        updatesize();
+    }
     
     void insert(long pos, wstring& sub) {
         lines.insert(lines.begin() + pos, sub);

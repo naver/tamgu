@@ -643,8 +643,12 @@ void jag_editor::movetobeginning() {
 
 void jag_editor::movetoend() {
     long sc;
-    if (emode())
-        sc = fullsize(lines[poslines[currentline]]) + prefixe();
+    if (emode()) {
+        long p = poslines[currentline];
+        sc = fullsize(lines[p]) + prefixe();
+        if (lines.Status(p) != solo_line &&  lines.Status(p+1) == concat_line)
+            sc--;
+    }
     else
         sc = fullsize(line) + prefixego();
     
@@ -824,7 +828,7 @@ long jag_editor::deleteachar(wstring& l, bool last, long pins) {
     //emojis are after the current character,
     long nb = 1;
     if (last) {
-        emoji = line.size() - 1;
+        emoji = l.size() - 1;
         if (c_is_emojicomp(l[emoji])) {
             emoji--;
             while (emoji > 0 && c_is_emojicomp(l[emoji])) {
@@ -834,7 +838,7 @@ long jag_editor::deleteachar(wstring& l, bool last, long pins) {
             if (emoji >= 0 && !c_is_emoji(l[emoji]))
                 nb = 1;
         }
-        line.erase(pins, nb);
+        l.erase(pins, nb);
         return pins;
     }
     
@@ -875,7 +879,6 @@ void jag_editor::deletechar() {
             clearline();
         
         posinstring = deleteachar(line, last, posinstring);
-        
         
         if (option != x_none) {
             displaygo(false);
@@ -942,7 +945,7 @@ void jag_editor::deleteline(char moveup) {
     
         //We need to kill the current line, however it can be merged with the previous one if moveup is true...
         //We are at position currentline...
-        //if the line above already belong to the same line, we kill the last character of that libe above
+        //if the line above already belong to the same line, we kill the last character of that line above
     wstring code;
     if (moveup == -1) { // the destruction was done with backspace
         if (!pos && !posinstring && !currentline)
@@ -1952,7 +1955,7 @@ void jag_editor::evaluateescape(string& buff) {
     }
     
     if (buff == right) {
-        if (posinstring < line.size()) {
+        if (posinstring < line.size() - 1) {
             forwardemoji();
             movetoposition();
         }
@@ -1975,8 +1978,8 @@ void jag_editor::evaluateescape(string& buff) {
         else {//we go up at the end of the previous line
             if (emode() && pos > 0) {
                 updown(65, pos);
-                posinstring = line.size();
-                movetoend();
+                posinstring = line.size() - 1;
+                movetoposition();
             }
         }
         return;
@@ -1989,7 +1992,6 @@ void jag_editor::evaluateescape(string& buff) {
                 return;
             }
         }
-        
         deletechar();
     }
 }
@@ -2156,7 +2158,7 @@ bool jag_editor::checkaction(string& buff, long& first, long& last) {
                 deleteline(0);
             return true;
         case 5://ctrl-e, moving to the end of the line...
-            posinstring = line.size();
+            posinstring = line.size() - 1;
             movetoend();
             return true;
         case 6: // ctrl-f find
@@ -2723,16 +2725,17 @@ void editor_lines::refactoring(long pos) {
     
     editor_lines sublines(jag);
     sublines.setcode(baseline);
-
-    
-    for (long i = 0; i < sublines.size(); i++) {
+    //same number of lines
+    long i;
+    for (i = 0; i < sublines.size(); i++) {
         if (first != pos)
             jag->undo(lines[first], first, u_modif_linked);
-        if (first == lines.size())
-            push_back(sublines[i]);
-        else
+        if (first < p) {
             lines[first] = sublines[i];
-        status[first] = sublines.status[i];
+            status[first] = sublines.status[i];
+        }
+        else
+            insert(first, sublines[i], sublines.status[i]);
         first++;
     }
     
@@ -2741,7 +2744,7 @@ void editor_lines::refactoring(long pos) {
         erase(first);
         p--;
     }
-    
+
     numbers();
 }
 
