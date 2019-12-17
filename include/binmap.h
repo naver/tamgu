@@ -317,24 +317,25 @@ template <class Z> class bin_hash {
         indexes[i] &= ~binval64[r];
         table[i][r] = NULL;
     }
-
+    
+#ifdef INTELINTRINSICS
+    size_t size() {
+        bint nb = 0;
+        
+        for (long i = 0; i < tsize; i++) {
+            nb += _mm_popcnt_u64(indexes[i]);
+        }
+        return nb;
+    }
+#else
     size_t size() {
         bint nb = 0;
         binuint64 filter;
-        int qj;
         
         for (long i = 0; i < tsize; i++) {
             if (table[i] != NULL) {
                 filter = indexes[i];
                 while (filter) {
-#ifdef INTELINTRINSICS
-                    if (!(filter & 1)) {
-                        if (!(filter & 0x00000000FFFFFFFF))
-                            filter >>= 32;
-                        qj = _bit_scan_forward((uint32_t)(filter & 0x00000000FFFFFFFF));
-                        filter >>= qj;
-                    }
-#else
                     if (!(filter & 1)) {
                         while (!(filter & 65535))
                             filter >>= 16;
@@ -345,7 +346,6 @@ template <class Z> class bin_hash {
                         while (!(filter & 1))
                             filter >>= 1;
                     }
-#endif
                     nb++;
                     filter >>= 1;
                 }
@@ -354,6 +354,7 @@ template <class Z> class bin_hash {
 
         return nb;
     }
+#endif
 
     void resize(long sz) {
         Z** ntable = new Z*[sz];
@@ -607,23 +608,24 @@ template <class L, class Z> class hash_bin {
         indexes[it.i] &= ~binval64[it.j];
     }
 
+#ifdef INTELINTRINSICS
+    size_t size() {
+        bint nb = 0;
+        
+        for (long i = 0; i < tsize; i++) {
+            nb += _mm_popcnt_u64(indexes[i]);
+        }
+        return nb;
+    }
+#else
     size_t size() {
         size_t nb = 0;
         binuint64 filter;
-        int qj;
 
         for (L i = 0; i < tsize; i++) {
             if (table[i] != NULL) {
                 filter = indexes[i];
                 while (filter) {
-#ifdef INTELINTRINSICS
-                    if (!(filter & 1)) {
-                        if (!(filter & 0x00000000FFFFFFFF))
-                            filter >>= 32;
-                        qj = _bit_scan_forward((uint32_t)(filter & 0x00000000FFFFFFFF));
-                        filter >>= qj;
-                    }
-#else
                     if (!(filter & 1)) {
                         while (!(filter & 65535))
                             filter >>= 16;
@@ -634,7 +636,6 @@ template <class L, class Z> class hash_bin {
                         while (!(filter & 1))
                             filter >>= 1;
                     }
-#endif
                     nb++;
                     filter >>= 1;
                 }
@@ -643,6 +644,7 @@ template <class L, class Z> class hash_bin {
 
         return nb;
     }
+#endif
 
     void resize(L sz) {
         Z** ntable = new Z*[sz];
@@ -920,24 +922,25 @@ template <class Z> class basebin_hash {
 
         indexes[i] &= ~binval64[r];
     }
-
+    
+#ifdef INTELINTRINSICS
     size_t size() {
         bint nb = 0;
-        binuint64 filter;
-        int qj;
-
+        
         for (long i = 0; i < tsize; i++) {
+            nb += _mm_popcnt_u64(indexes[i]);
+        }
+        return nb;
+    }
+#else
+    size_t size() {
+        size_t nb = 0;
+        binuint64 filter;
+        
+        for (L i = 0; i < tsize; i++) {
             if (table[i] != NULL) {
                 filter = indexes[i];
                 while (filter) {
-#ifdef INTELINTRINSICS
-                    if (!(filter & 1)) {
-                        if (!(filter & 0x00000000FFFFFFFF))
-                            filter >>= 32;
-                        qj = _bit_scan_forward((uint32_t)(filter & 0x00000000FFFFFFFF));
-                        filter >>= qj;
-                    }
-#else
                     if (!(filter & 1)) {
                         while (!(filter & 65535))
                             filter >>= 16;
@@ -948,15 +951,15 @@ template <class Z> class basebin_hash {
                         while (!(filter & 1))
                             filter >>= 1;
                     }
-#endif
                     nb++;
                     filter >>= 1;
                 }
             }
         }
-
+        
         return nb;
     }
+#endif
 
     //nettoyage
     void clear() {
@@ -1216,23 +1219,25 @@ public:
         indexes[i] &= ~binval64[r];
     }
     
+    
+#ifdef INTELINTRINSICS
+    size_t size() {
+        bint nb = 0;
+        
+        for (long i = 0; i < tsize; i++) {
+            nb += _mm_popcnt_u64(indexes[i]);
+        }
+        return nb;
+    }
+#else
     size_t size() {
         bint nb = 0;
         binuint64 filter;
-        int qj;
         
         for (long i = 0; i < tsize; i++) {
             if (table[i] != NULL) {
                 filter = indexes[i];
                 while (filter) {
-#ifdef INTELINTRINSICS
-                    if (!(filter & 1)) {
-                        if (!(filter & 0x00000000FFFFFFFF))
-                            filter >>= 32;
-                        qj = _bit_scan_forward((uint32_t)(filter & 0x00000000FFFFFFFF));
-                        filter >>= qj;
-                    }
-#else
                     if (!(filter & 1)) {
                         while (!(filter & 65535))
                             filter >>= 16;
@@ -1243,7 +1248,6 @@ public:
                         while (!(filter & 1))
                             filter >>= 1;
                     }
-#endif
                     nb++;
                     filter >>= 1;
                 }
@@ -1252,6 +1256,7 @@ public:
         
         return nb;
     }
+#endif
     
     //nettoyage
     void clear() {

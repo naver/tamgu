@@ -223,21 +223,18 @@ public:
             n = n->next;
         }
     }
-    
+
+#ifdef INTELINTRINSICS
+    short sizeone() {
+        return _mm_popcnt_u64(indexes);
+    }
+#else
     short sizeone() {
         short nb = 0;
         int qj;
         BULONG filter = indexes;
         
         while (filter) {
-#ifdef INTELINTRINSICS
-            if (!(filter & 1)) {
-                if (!(filter & 0x00000000FFFFFFFF))
-                    filter >>= 32;
-                qj = _bit_scan_forward((uint32_t)(filter & 0x00000000FFFFFFFF));
-                filter >>= qj;
-            }
-#else
             if (!(filter & 1)) {
                 while (!(filter & 65535))
                     filter >>= 16;
@@ -248,13 +245,13 @@ public:
                 while (!(filter & 1))
                     filter >>= 1;
             }
-#endif
             nb++;
             filter >>= 1;
         }
         return nb;
     }
-    
+#endif
+
     long size() {
         if (first)
             return 0;

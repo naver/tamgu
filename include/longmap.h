@@ -153,23 +153,24 @@ public:
         table[i][r] = NULL;
     }
     
+#ifdef INTELINTRINSICS
+    size_t size() {
+        bint nb = 0;
+        
+        for (long i = 0; i < tsize; i++) {
+            nb += _mm_popcnt_u64(indexes[i]);
+        }
+        return nb;
+    }
+#else
     size_t size() {
         bint nb = 0;
         binuint64 filter;
-        int qj;
         
         for (long i = 0; i < tsize; i++) {
             if (table[i] != NULL) {
                 filter = indexes[i];
                 while (filter) {
-#ifdef INTELINTRINSICS
-                    if (!(filter & 1)) {
-                        if (!(filter & 0x00000000FFFFFFFF))
-                            filter >>= 32;
-                        qj = _bit_scan_forward((uint32_t)(filter & 0x00000000FFFFFFFF));
-                        filter >>= qj;
-                    }
-#else
                     if (!(filter & 1)) {
                         while (!(filter & 65535))
                             filter >>= 16;
@@ -180,7 +181,6 @@ public:
                         while (!(filter & 1))
                             filter >>= 1;
                     }
-#endif
                     nb++;
                     filter >>= 1;
                 }
@@ -189,6 +189,8 @@ public:
         
         return nb;
     }
+#endif
+
     
     void resize(long sz) {        
         Z** ntable = new Z*[sz];
