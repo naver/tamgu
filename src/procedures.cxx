@@ -21,6 +21,7 @@
 #include <math.h>
 #endif
 
+#include <random>
 #include "tamgu.h"
 #include "tamgutreemapls.h"
 #include "tamguversion.h"
@@ -57,7 +58,14 @@ Tamgu* ProcThreadid(Tamgu* contextualpattern, short idthread, TamguCall* callfun
     return globalTamgu->Provideint(idthread);
 }
 
+Tamgu* ProcNbthreads(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    return new Tamgushort(globalTamgu->threadcounter);
+}
+
 //---------------------------------------------------------
+// RANDOM FUNCTIONS
+//---------------------------------------------------------
+
 Tamgu* ProcRandom(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     long mx = 100;
     if (callfunc->Size() == 1)
@@ -72,9 +80,518 @@ Tamgu* Proca_Random(Tamgu* contextualpattern, short idthread, TamguCall* callfun
     return globalTamgu->Providefloat(a_localrandom(mx));
 }
 
-Tamgu* ProcNbthreads(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-    return new Tamgushort(globalTamgu->threadcounter);
+Tamgu* Proc_uniform_int(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    static std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+
+    long nb = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+
+    long alpha = 0;
+    long beta = std::numeric_limits<long>::max();
+    
+    if (callfunc->Size() >= 2) {
+        alpha = callfunc->Evaluate(1, aNULL, idthread)->Integer();
+        if (callfunc->Size() == 3)
+            beta = callfunc->Evaluate(2, aNULL, idthread)->Integer();
+    }
+
+    std::uniform_int_distribution<long> dis(alpha, beta);
+
+    Tamguivector* iv = (Tamguivector*)Selectaivector(contextualpattern);
+    
+    for (long i = 0; i < nb; i++) {
+        alpha = dis(gen);
+        iv->storevalue(alpha);
+    }
+    return iv;
 }
+
+Tamgu* Proc_uniform_real(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    static std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    
+    long nb = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+
+    double alpha = 0;
+    double beta = 1;
+    
+    if (callfunc->Size() >= 2) {
+        alpha = callfunc->Evaluate(1, aNULL, idthread)->Float();
+        if (callfunc->Size() == 3)
+            beta = callfunc->Evaluate(2, aNULL, idthread)->Float();
+    }
+
+    std::uniform_real_distribution<double> d(alpha, beta);
+
+    Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
+    
+    for (long i = 0; i < nb; i++) {
+        alpha = d(gen);
+        iv->storevalue(alpha);
+    }
+    return iv;
+}
+
+Tamgu* Proc_binomial_distribution(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    static std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+
+    long nb = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+
+    long alpha = 1;
+    double beta = 0.5;
+    
+    if (callfunc->Size() >= 2) {
+        alpha = callfunc->Evaluate(1, aNULL, idthread)->Integer();
+        if (callfunc->Size() == 3)
+            beta = callfunc->Evaluate(2, aNULL, idthread)->Float();
+    }
+
+    std::binomial_distribution<long> dis(alpha, beta);
+
+    Tamguivector* iv = (Tamguivector*)Selectaivector(contextualpattern);
+    
+    for (long i = 0; i < nb; i++) {
+        alpha = dis(gen);
+        iv->storevalue(alpha);
+    }
+    return iv;
+}
+
+
+Tamgu* Proc_bernoulli_distribution(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    static std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    
+    long nb = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+    double alpha = 0.5;
+    if (callfunc->Size() == 2)
+        alpha = callfunc->Evaluate(1, aNULL, idthread)->Float();
+    
+    std::bernoulli_distribution d(alpha);
+
+    Tamguivector* iv = (Tamguivector*)Selectaivector(contextualpattern);
+    
+    bool v;
+    for (long i = 0; i < nb; i++) {
+        v = d(gen);
+        iv->storevalue((long)v);
+    }
+    return iv;
+}
+
+Tamgu* Proc_normal_distribution(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    static std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    
+    long nb = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+    double alpha = callfunc->Evaluate(1, aNULL, idthread)->Float();
+    double beta = callfunc->Evaluate(2, aNULL, idthread)->Float();
+    
+    std::normal_distribution<double> d(alpha, beta);
+
+    Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
+
+    double v;
+    for (long i = 0; i < nb; i++) {
+        v = d(gen);
+        iv->storevalue(v);
+    }
+    return iv;
+}
+
+Tamgu* Proc_negative_binomial_distribution(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    static std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    
+    long nb = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+    
+    long alpha = 1;
+    double beta = 0.5;
+    
+    if (callfunc->Size() >= 2) {
+        alpha = callfunc->Evaluate(1, aNULL, idthread)->Integer();
+        if (callfunc->Size() == 3)
+            beta = callfunc->Evaluate(2, aNULL, idthread)->Float();
+    }
+
+    std::negative_binomial_distribution<long> d(alpha, beta);
+
+    Tamguivector* iv = (Tamguivector*)Selectaivector(contextualpattern);
+
+    long v;
+    for (long i = 0; i < nb; i++) {
+        v = d(gen);
+        iv->storevalue(v);
+    }
+    return iv;
+}
+
+Tamgu* Proc_discrete_distribution(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    static std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    
+    long nb = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+    Tamgu* tvect = callfunc->Evaluate(1, aNULL, idthread);
+
+    vector<long> vect;
+
+    long i;
+    if (tvect->Type() == a_ivector)
+        vect = ((Tamguivector*)tvect)->values;
+    else {
+        for (i = 0; i < tvect->Size(); i++)
+            vect.push_back(tvect->getinteger(i));
+    }
+    
+    std::discrete_distribution<long> d(vect.begin(), vect.end());
+
+    Tamguivector* iv = (Tamguivector*)Selectaivector(contextualpattern);
+
+    long v;
+    for (i = 0; i < nb; i++) {
+        v = d(gen);
+        iv->storevalue(v);
+    }
+    return iv;
+}
+
+
+Tamgu* Proc_piecewise_constant_distribution(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    static std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    
+    long nb = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+    Tamgu* tvect = callfunc->Evaluate(1, aNULL, idthread);
+    Tamgu* tinter = callfunc->Evaluate(2, aNULL, idthread);
+
+    vector<double> vect;
+    vector<double> inter;
+
+    long i;
+    if (tvect->Type() == a_fvector)
+        vect = ((Tamgufvector*)tvect)->values;
+    else {
+        for (i = 0; i < tvect->Size(); i++)
+            vect.push_back(tvect->getfloat(i));
+    }
+
+    if (tvect->Type() == a_fvector)
+        inter = ((Tamgufvector*)tinter)->values;
+    else {
+        for (i = 0; i < tinter->Size(); i++)
+            inter.push_back(tinter->getfloat(i));
+    }
+
+    std::piecewise_constant_distribution<double> d(vect.begin(), vect.end(), inter.begin());
+
+    Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
+
+    double v;
+    for (i = 0; i < nb; i++) {
+        v = d(gen);
+        iv->storevalue(v);
+    }
+    return iv;
+}
+
+Tamgu* Proc_piecewise_linear_distribution(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    static std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    
+    long nb = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+    Tamgu* tvect = callfunc->Evaluate(1, aNULL, idthread);
+    Tamgu* tinter = callfunc->Evaluate(2, aNULL, idthread);
+
+    vector<double> vect;
+    vector<double> inter;
+
+    long i;
+    if (tvect->Type() == a_fvector)
+        vect = ((Tamgufvector*)tvect)->values;
+    else {
+        for (i = 0; i < tvect->Size(); i++)
+            vect.push_back(tvect->getfloat(i));
+    }
+
+    if (tvect->Type() == a_fvector)
+        inter = ((Tamgufvector*)tinter)->values;
+    else {
+        for (i = 0; i < tinter->Size(); i++)
+            inter.push_back(tinter->getfloat(i));
+    }
+
+    std::piecewise_linear_distribution<double> d(vect.begin(), vect.end(), inter.begin());
+
+    Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
+
+    double v;
+    for (i = 0; i < nb; i++) {
+        v = d(gen);
+        iv->storevalue(v);
+    }
+    return iv;
+}
+
+
+Tamgu* Proc_lognormal_distribution(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    static std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    
+    long nb = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+    double alpha = callfunc->Evaluate(1, aNULL, idthread)->Float();
+    double beta = callfunc->Evaluate(2, aNULL, idthread)->Float();
+    
+    std::lognormal_distribution<double> d(alpha, beta);
+
+    Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
+
+    for (long i = 0; i < nb; i++) {
+        alpha = d(gen);
+        iv->storevalue(alpha);
+    }
+    return iv;
+}
+
+Tamgu* Proc_geometric_distribution(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    static std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    
+    long nb = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+    double alpha = 0.5;
+    if (callfunc->Size()==2)
+        alpha = callfunc->Evaluate(1, aNULL, idthread)->Float();
+    
+    std::geometric_distribution<long> d(alpha);
+
+    Tamguivector* iv = (Tamguivector*)Selectaivector(contextualpattern);
+
+    long v;
+    for (long i = 0; i < nb; i++) {
+        v = d(gen);
+        iv->storevalue(v);
+    }
+    return iv;
+}
+
+Tamgu* Proc_cauchy_distribution(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    static std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    
+    long nb = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+    
+    double alpha = 0;
+    double beta = 1;
+    
+    if (callfunc->Size() >= 2) {
+        alpha = callfunc->Evaluate(1, aNULL, idthread)->Float();
+        if (callfunc->Size() == 3)
+            beta = callfunc->Evaluate(2, aNULL, idthread)->Float();
+    }
+
+    std::cauchy_distribution<double> d(alpha, beta);
+
+    Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
+
+    double v;
+    for (long i = 0; i < nb; i++) {
+        v = d(gen);
+        iv->storevalue(v);
+    }
+    return iv;
+}
+
+Tamgu* Proc_fisher_distribution(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    static std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    
+    long nb = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+
+    double alpha = 1;
+    double beta = 1;
+    
+    if (callfunc->Size() >= 2) {
+        alpha = callfunc->Evaluate(1, aNULL, idthread)->Float();
+        if (callfunc->Size() == 3)
+            beta = callfunc->Evaluate(2, aNULL, idthread)->Float();
+    }
+
+    std::fisher_f_distribution<double> d(alpha, beta);
+
+    Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
+
+    double v;
+    for (long i = 0; i < nb; i++) {
+        v = d(gen);
+        iv->storevalue(v);
+    }
+    return iv;
+}
+
+Tamgu* Proc_student_distribution(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    static std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    
+    long nb = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+
+    double alpha = 1;
+    
+    if (callfunc->Size() == 2)
+        alpha = callfunc->Evaluate(1, aNULL, idthread)->Float();
+
+    std::student_t_distribution<double> d(alpha);
+
+    Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
+
+    double v;
+    for (long i = 0; i < nb; i++) {
+        v = d(gen);
+        iv->storevalue(v);
+    }
+    return iv;
+}
+
+Tamgu* Proc_extreme_value_distribution(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    static std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    
+    long nb = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+    
+    double alpha = 0;
+    double beta = 1;
+    
+    if (callfunc->Size() >= 2) {
+        alpha = callfunc->Evaluate(1, aNULL, idthread)->Float();
+        if (callfunc->Size() == 3)
+            beta = callfunc->Evaluate(2, aNULL, idthread)->Float();
+    }
+
+    std::extreme_value_distribution<double> d(alpha, beta);
+
+    Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
+
+    double v;
+    for (long i = 0; i < nb; i++) {
+        v = d(gen);
+        iv->storevalue(v);
+    }
+    return iv;
+}
+
+
+Tamgu* Proc_poisson_distribution(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    static std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    
+    long nb = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+    double alpha = 1.0;
+    
+    if (callfunc->Size()==2)
+        alpha = callfunc->Evaluate(1, aNULL, idthread)->Float();
+
+    std::poisson_distribution<long> d(alpha);
+
+    Tamguivector* iv = (Tamguivector*)Selectaivector(contextualpattern);
+
+    long v;
+    for (long i = 0; i < nb; i++) {
+        v = d(gen);
+        iv->storevalue(v);
+    }
+    return iv;
+}
+
+Tamgu* Proc_exponential_distribution(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    static std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    
+    long nb = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+    double alpha = callfunc->Evaluate(1, aNULL, idthread)->Float();
+
+    std::exponential_distribution<double> d(alpha);
+
+    Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
+
+    double v;
+    for (long i = 0; i < nb; i++) {
+        v = d(gen);
+        iv->storevalue(v);
+    }
+    return iv;
+}
+
+Tamgu* Proc_gamma_distribution(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    static std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+
+    long nb = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+
+    double alpha = callfunc->Evaluate(1, aNULL, idthread)->Float();
+    double beta = callfunc->Evaluate(2, aNULL, idthread)->Float();
+
+    std::gamma_distribution<double> d(alpha, beta);
+
+    Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
+
+    double v;
+    for (long i = 0; i < nb; i++) {
+        v = d(gen);
+        iv->storevalue(v);
+    }
+    return iv;
+}
+
+Tamgu* Proc_weibull_distribution(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    static std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+
+    long nb = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+
+    double alpha = 1;
+    double beta = 1;
+    
+    if (callfunc->Size() >= 2) {
+        alpha = callfunc->Evaluate(1, aNULL, idthread)->Float();
+        if (callfunc->Size() == 3)
+            beta = callfunc->Evaluate(2, aNULL, idthread)->Float();
+    }
+
+    std::weibull_distribution<double> d(alpha, beta);
+
+    Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
+
+    double v;
+    for (long i = 0; i < nb; i++) {
+        v = d(gen);
+        iv->storevalue(v);
+    }
+    return iv;
+}
+
+
+Tamgu* Proc_chi_squared_distribution(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    static std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+
+    long nb = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+
+    double alpha = 1;
+    
+    if (callfunc->Size() == 2)
+        alpha = callfunc->Evaluate(1, aNULL, idthread)->Float();
+
+    std::chi_squared_distribution<double> d(alpha);
+
+    Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
+
+    double v;
+    for (long i = 0; i < nb; i++) {
+        v = d(gen);
+        iv->storevalue(v);
+    }
+    return iv;
+}
+
 
 //------------------------------------------------------------------------------------------------------------------------
 Tamgu* ProcCreate(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -1886,6 +2403,39 @@ Exporting void TamguGlobal::RecordProcedures() {
     RecordOneProcedure("_setenv", ProcSetEnv, P_TWO);
     RecordOneProcedure("_forcelocks", ProcForceLocks, P_ONE);
 
+    //Randomized distribution
+    //Uniform distributions
+    RecordOneProcedure("uniform_int", Proc_uniform_int, P_ONE | P_TWO | P_THREE);
+    RecordOneProcedure("uniform_real", Proc_uniform_real, P_ONE | P_TWO | P_THREE);
+
+    //Bernoulli distributions
+    RecordOneProcedure("bernoulli_distribution", Proc_bernoulli_distribution, P_ONE | P_TWO);
+    RecordOneProcedure("binomial_distribution", Proc_binomial_distribution, P_ONE|P_TWO|P_THREE);
+    RecordOneProcedure("negative_binomial_distribution", Proc_negative_binomial_distribution, P_ONE|P_TWO|P_THREE);
+    RecordOneProcedure("geometric_distribution", Proc_geometric_distribution, P_ONE | P_TWO);
+
+    //Poisson distributions
+    RecordOneProcedure("poisson_distribution", Proc_poisson_distribution, P_ONE | P_TWO);
+    RecordOneProcedure("exponential_distribution", Proc_exponential_distribution, P_TWO);
+    RecordOneProcedure("gamma_distribution", Proc_gamma_distribution, P_THREE);
+    RecordOneProcedure("weibull_distribution", Proc_weibull_distribution, P_ONE|P_TWO|P_THREE);
+    RecordOneProcedure("extreme_value_distribution", Proc_extreme_value_distribution, P_ONE|P_TWO|P_THREE);
+
+    //Normal distributions
+    RecordOneProcedure("normal_distribution", Proc_normal_distribution, P_THREE);
+    RecordOneProcedure("lognormal_distribution", Proc_lognormal_distribution, P_THREE);
+    RecordOneProcedure("chi_squared_distribution", Proc_chi_squared_distribution, P_ONE | P_TWO);
+    RecordOneProcedure("cauchy_distribution", Proc_cauchy_distribution, P_ONE | P_TWO | P_THREE);
+    RecordOneProcedure("fisher_distribution", Proc_fisher_distribution, P_ONE|P_TWO|P_THREE);
+    RecordOneProcedure("student_distribution", Proc_student_distribution, P_ONE|P_TWO);
+
+    //Sampling distributions
+    RecordOneProcedure("discrete_distribution", Proc_discrete_distribution, P_TWO);
+    RecordOneProcedure("piecewise_constant_distribution", Proc_piecewise_constant_distribution, P_THREE);
+    RecordOneProcedure("piecewise_linear_distribution", Proc_piecewise_linear_distribution, P_THREE);
+
+
+    //-------------------------
     RecordOneProcedure("_nbthreads", ProcNbthreads, P_NONE);
 
     RecordOneProcedure("_setvalidfeatures", ProcSetValidFeatures, P_ONE);
