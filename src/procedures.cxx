@@ -96,6 +96,8 @@ Tamgu* Proc_uniform_int(Tamgu* contextualpattern, short idthread, TamguCall* cal
     }
 
     std::uniform_int_distribution<long> dis(alpha, beta);
+    if (nb == 1)
+        return globalTamgu->Provideint((long)dis(gen));
 
     Tamguivector* iv = (Tamguivector*)Selectaivector(contextualpattern);
     
@@ -122,6 +124,8 @@ Tamgu* Proc_uniform_real(Tamgu* contextualpattern, short idthread, TamguCall* ca
     }
 
     std::uniform_real_distribution<double> d(alpha, beta);
+    if (nb == 1)
+        return globalTamgu->Providefloat((double)d(gen));
 
     Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
     
@@ -148,6 +152,8 @@ Tamgu* Proc_binomial_distribution(Tamgu* contextualpattern, short idthread, Tamg
     }
 
     std::binomial_distribution<long> dis(alpha, beta);
+    if (nb == 1)
+        return globalTamgu->Provideint((long)dis(gen));
 
     Tamguivector* iv = (Tamguivector*)Selectaivector(contextualpattern);
     
@@ -169,6 +175,8 @@ Tamgu* Proc_bernoulli_distribution(Tamgu* contextualpattern, short idthread, Tam
         alpha = callfunc->Evaluate(1, aNULL, idthread)->Float();
     
     std::bernoulli_distribution d(alpha);
+    if (nb == 1)
+        return globalTamgu->Provideint((long)d(gen));
 
     Tamguivector* iv = (Tamguivector*)Selectaivector(contextualpattern);
     
@@ -185,10 +193,19 @@ Tamgu* Proc_normal_distribution(Tamgu* contextualpattern, short idthread, TamguC
     static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
     
     long nb = callfunc->Evaluate(0, aNULL, idthread)->Integer();
-    double alpha = callfunc->Evaluate(1, aNULL, idthread)->Float();
-    double beta = callfunc->Evaluate(2, aNULL, idthread)->Float();
+
+    double alpha = 0;
+    double beta = 1;
     
+    if (callfunc->Size() >= 2) {
+        alpha = callfunc->Evaluate(1, aNULL, idthread)->Float();
+        if (callfunc->Size() == 3)
+            beta = callfunc->Evaluate(2, aNULL, idthread)->Float();
+    }
+
     std::normal_distribution<double> d(alpha, beta);
+    if (nb == 1)
+        return globalTamgu->Providefloat((double)d(gen));
 
     Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
 
@@ -216,6 +233,8 @@ Tamgu* Proc_negative_binomial_distribution(Tamgu* contextualpattern, short idthr
     }
 
     std::negative_binomial_distribution<long> d(alpha, beta);
+    if (nb == 1)
+        return globalTamgu->Provideint((long)d(gen));
 
     Tamguivector* iv = (Tamguivector*)Selectaivector(contextualpattern);
 
@@ -234,17 +253,19 @@ Tamgu* Proc_discrete_distribution(Tamgu* contextualpattern, short idthread, Tamg
     long nb = callfunc->Evaluate(0, aNULL, idthread)->Integer();
     Tamgu* tvect = callfunc->Evaluate(1, aNULL, idthread);
 
-    vector<long> vect;
+    vector<double> vect;
 
     long i;
-    if (tvect->Type() == a_ivector)
-        vect = ((Tamguivector*)tvect)->values;
+    if (tvect->Type() == a_fvector)
+        vect = ((Tamgufvector*)tvect)->values;
     else {
         for (i = 0; i < tvect->Size(); i++)
-            vect.push_back(tvect->getinteger(i));
+            vect.push_back(tvect->getfloat(i));
     }
-    
+
     std::discrete_distribution<long> d(vect.begin(), vect.end());
+    if (nb == 1)
+        return globalTamgu->Provideint((long)d(gen));
 
     Tamguivector* iv = (Tamguivector*)Selectaivector(contextualpattern);
 
@@ -284,6 +305,8 @@ Tamgu* Proc_piecewise_constant_distribution(Tamgu* contextualpattern, short idth
     }
 
     std::piecewise_constant_distribution<double> d(vect.begin(), vect.end(), inter.begin());
+    if (nb == 1)
+        return globalTamgu->Providefloat((double)d(gen));
 
     Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
 
@@ -322,6 +345,8 @@ Tamgu* Proc_piecewise_linear_distribution(Tamgu* contextualpattern, short idthre
     }
 
     std::piecewise_linear_distribution<double> d(vect.begin(), vect.end(), inter.begin());
+    if (nb == 1)
+        return globalTamgu->Providefloat((double)d(gen));
 
     Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
 
@@ -339,12 +364,21 @@ Tamgu* Proc_lognormal_distribution(Tamgu* contextualpattern, short idthread, Tam
     static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
     
     long nb = callfunc->Evaluate(0, aNULL, idthread)->Integer();
-    double alpha = callfunc->Evaluate(1, aNULL, idthread)->Float();
-    double beta = callfunc->Evaluate(2, aNULL, idthread)->Float();
+
+    double alpha = 0;
+    double beta = 1;
     
+    if (callfunc->Size() >= 2) {
+        alpha = callfunc->Evaluate(1, aNULL, idthread)->Float();
+        if (callfunc->Size() == 3)
+            beta = callfunc->Evaluate(2, aNULL, idthread)->Float();
+    }
+
     std::lognormal_distribution<double> d(alpha, beta);
 
     Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
+    if (nb == 1)
+        return globalTamgu->Providefloat((double)d(gen));
 
     for (long i = 0; i < nb; i++) {
         alpha = d(gen);
@@ -363,6 +397,8 @@ Tamgu* Proc_geometric_distribution(Tamgu* contextualpattern, short idthread, Tam
         alpha = callfunc->Evaluate(1, aNULL, idthread)->Float();
     
     std::geometric_distribution<long> d(alpha);
+    if (nb == 1)
+        return globalTamgu->Provideint((long)d(gen));
 
     Tamguivector* iv = (Tamguivector*)Selectaivector(contextualpattern);
 
@@ -392,6 +428,8 @@ Tamgu* Proc_cauchy_distribution(Tamgu* contextualpattern, short idthread, TamguC
     std::cauchy_distribution<double> d(alpha, beta);
 
     Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
+    if (nb == 1)
+        return globalTamgu->Providefloat((double)d(gen));
 
     double v;
     for (long i = 0; i < nb; i++) {
@@ -417,6 +455,8 @@ Tamgu* Proc_fisher_distribution(Tamgu* contextualpattern, short idthread, TamguC
     }
 
     std::fisher_f_distribution<double> d(alpha, beta);
+    if (nb == 1)
+        return globalTamgu->Providefloat((double)d(gen));
 
     Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
 
@@ -440,6 +480,8 @@ Tamgu* Proc_student_distribution(Tamgu* contextualpattern, short idthread, Tamgu
         alpha = callfunc->Evaluate(1, aNULL, idthread)->Float();
 
     std::student_t_distribution<double> d(alpha);
+    if (nb == 1)
+        return globalTamgu->Providefloat((double)d(gen));
 
     Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
 
@@ -467,6 +509,8 @@ Tamgu* Proc_extreme_value_distribution(Tamgu* contextualpattern, short idthread,
     }
 
     std::extreme_value_distribution<double> d(alpha, beta);
+    if (nb == 1)
+        return globalTamgu->Providefloat((double)d(gen));
 
     Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
 
@@ -490,6 +534,8 @@ Tamgu* Proc_poisson_distribution(Tamgu* contextualpattern, short idthread, Tamgu
         alpha = callfunc->Evaluate(1, aNULL, idthread)->Float();
 
     std::poisson_distribution<long> d(alpha);
+    if (nb == 1)
+        return globalTamgu->Provideint((long)d(gen));
 
     Tamguivector* iv = (Tamguivector*)Selectaivector(contextualpattern);
 
@@ -530,6 +576,8 @@ Tamgu* Proc_gamma_distribution(Tamgu* contextualpattern, short idthread, TamguCa
     double beta = callfunc->Evaluate(2, aNULL, idthread)->Float();
 
     std::gamma_distribution<double> d(alpha, beta);
+    if (nb == 1)
+        return globalTamgu->Providefloat((double)d(gen));
 
     Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
 
@@ -557,6 +605,8 @@ Tamgu* Proc_weibull_distribution(Tamgu* contextualpattern, short idthread, Tamgu
     }
 
     std::weibull_distribution<double> d(alpha, beta);
+    if (nb == 1)
+        return globalTamgu->Providefloat((double)d(gen));
 
     Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
 
@@ -581,6 +631,8 @@ Tamgu* Proc_chi_squared_distribution(Tamgu* contextualpattern, short idthread, T
         alpha = callfunc->Evaluate(1, aNULL, idthread)->Float();
 
     std::chi_squared_distribution<double> d(alpha);
+    if (nb == 1)
+        return globalTamgu->Providefloat((double)d(gen));
 
     Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
 
@@ -2422,8 +2474,8 @@ Exporting void TamguGlobal::RecordProcedures() {
     RecordOneProcedure("extreme_value_distribution", Proc_extreme_value_distribution, P_ONE|P_TWO|P_THREE);
 
     //Normal distributions
-    RecordOneProcedure("normal_distribution", Proc_normal_distribution, P_THREE);
-    RecordOneProcedure("lognormal_distribution", Proc_lognormal_distribution, P_THREE);
+    RecordOneProcedure("normal_distribution", Proc_normal_distribution, P_ONE|P_TWO|P_THREE);
+    RecordOneProcedure("lognormal_distribution", Proc_lognormal_distribution, P_ONE|P_TWO|P_THREE);
     RecordOneProcedure("chi_squared_distribution", Proc_chi_squared_distribution, P_ONE | P_TWO);
     RecordOneProcedure("cauchy_distribution", Proc_cauchy_distribution, P_ONE | P_TWO | P_THREE);
     RecordOneProcedure("fisher_distribution", Proc_fisher_distribution, P_ONE|P_TWO|P_THREE);
