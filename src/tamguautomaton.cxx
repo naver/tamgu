@@ -1274,17 +1274,30 @@ bool Au_state::match(wstring& w, long i) {
 
 	_d_current_i
     TAMGUCHAR c = getechar(w, i);
+    Au_arc* a;
 
     for (long j=0;j<arcs.last;j++) {
-        switch(arcs[j]->action->compare(c)) {
+        a = arcs[j];
+        switch(a->action->compare(c)) {
             case 0:
                 break;
             case 1:
-                if (arcs[j]->state->match(w,i+1))
+                if (a->inloop && a->state == this) {
+                    ++i;
+                    if (i==w.size()) {
+                        if (isend())
+                            return true;
+                        return false;
+                    }
+                    c = getechar(w, i);
+                    j = -1;
+                    continue;
+                }
+                if (a->state->match(w,i+1))
                     return true;
                 break;
             case 2:
-                if (arcs[j]->state->match(w,_current_i))
+                if (a->state->match(w,_current_i))
                     return true;
         }
     }
