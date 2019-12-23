@@ -1383,20 +1383,34 @@ long Au_state::loop(wstring& w, long i) {
     
     long l = au_error;
     long j;
+    Au_arc* a;
 	_d_current_i
 
     TAMGUCHAR c = getechar(w, i);
 
     for (j=0;j<arcs.last;j++) {
-        switch(arcs[j]->action->compare(c)) {
+        a = arcs[j];
+        switch(a->action->compare(c)) {
             case 0:
                 l = au_error;
                 continue;
             case 1:
-                l = arcs[j]->state->loop(w,i+1);
+                if (a->inloop && arcs.last > 1) {
+                    ++i;
+                    if (i==w.size()) {
+                        if (isend())
+                            return i;
+                        return au_error;
+                    }
+
+                    c = getechar(w, i);
+                    j = -1;
+                    continue;
+                }
+                l = a->state->loop(w,i+1);
                 break;
             case 2:
-				l = arcs[j]->state->loop(w, _current_i);
+				l = a->state->loop(w, _current_i);
         }
         if (l != au_error) {
             if (l == au_stop)
@@ -2251,6 +2265,7 @@ Au_arc* Au_state::build(Au_automatons* aus, wstring& token, uchar type, Au_state
         case aut_meta_plus: //+
         case aut_reg_plus:
         case aut_any_plus:
+            current->inloop = true;
             current->state->status |= an_mandatory; //we mark that this state as a mandatory one
             current->state->arcs.push_back(current); //the loop
             arcs.push_back(current);
@@ -2258,6 +2273,7 @@ Au_arc* Au_state::build(Au_automatons* aus, wstring& token, uchar type, Au_state
         case aut_meta_star: //*
         case aut_reg_star:
         case aut_any_star:
+            current->inloop = true;
             ar=aus->arc(new Au_epsilon(),current->state);
             arcs.push_back(ar);
             current->state->arcs.push_back(current); //the loop

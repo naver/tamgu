@@ -269,9 +269,11 @@ void x_reading::apply(bool keepos, vector<string>* vstack, vector<unsigned char>
                     if (verif(ruleelements[i][0],xr_skip))
                         sub = sub.substr(1, sz-2);
                     break;
-                case 'P': //r"..."
+                case 'P': //p"..."
                     if (verif(ruleelements[i][0],xr_skip))
                         sub = sub.substr(1, sz);
+                    else
+                        sub[0] = 'p';
                     for (;i < sztokenizer; i++) {
                         if (tokenizer[i][1][0] == '\'') {
                             ty = action[i];
@@ -282,6 +284,8 @@ void x_reading::apply(bool keepos, vector<string>* vstack, vector<unsigned char>
                 case 'R':
                     if (verif(ruleelements[i][0],xr_skip))
                         sub = sub.substr(1, sz);
+                    else
+                        sub[0] = 'r';
                     for (;i < sztokenizer; i++) {
                         if (tokenizer[i][1][0] == '\'') {
                             ty = action[i];
@@ -292,6 +296,8 @@ void x_reading::apply(bool keepos, vector<string>* vstack, vector<unsigned char>
                 case 'U':
                     if (verif(ruleelements[i][0],xr_skip))
                         sub = sub.substr(1, sz);
+                    else
+                        sub[0] = 'u';
                     break;
                 case 'p': //r"..."
                     if (verif(ruleelements[i][0],xr_skip))

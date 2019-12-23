@@ -200,9 +200,11 @@ public:
     Au_any* action;
     Au_state* state;
     unsigned char mark;
+    bool inloop;
     
     Au_arc(Au_any* a) {
         action=a;
+        inloop=false;
         state=NULL;
         mark=false;
     }
