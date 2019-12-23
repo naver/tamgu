@@ -1395,7 +1395,7 @@ long Au_state::loop(wstring& w, long i) {
                 l = au_error;
                 continue;
             case 1:
-                if (a->inloop && arcs.last > 1) {
+                if (a->inloop && a->state == this) {
                     ++i;
                     if (i==w.size()) {
                         if (isend())
@@ -2044,8 +2044,10 @@ Au_state* Au_state::build(Au_automatons* aus, long i,vector<wstring>& toks, vect
             //aut_ccrl_brk_plus: closing curly bracked+
             //aut_ccrl_brk_star: closing curly bracked*
             if (types[i]==aut_ccrl_brk_plus || types[i]==aut_ccrl_brk_star) {//The plus and the star for the disjunction {...}
-                for (j=0;j<locals.size();j++)
+                for (j=0;j<locals.size();j++) {
                     commonend->arcs.push_back(locals[j]);
+                    locals[j]->inloop = true;
+                }
                 if (types[i]==aut_ccrl_brk_star) {
                     ar=aus->arc(new Au_epsilon());
                     arcs.push_back(ar);
