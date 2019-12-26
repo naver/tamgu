@@ -6461,7 +6461,7 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
 
      //if you have a hbloc {...}, then it is added to the "if"
 
-	 <x+1 | x <- toto, {println(x+1);}, x+1>
+	 <x+1 | x <- toto, {println(x+1);}, x!=1>
 
 	 produces:
 	 x <- loop(toto) //this is added to the lambdadom structure, in which the number of elements will later defined which code to call
