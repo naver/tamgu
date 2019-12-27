@@ -246,6 +246,45 @@ Tamgu* Proc_negative_binomial_distribution(Tamgu* contextualpattern, short idthr
     return iv;
 }
 
+Tamgu* Proc_random_choice(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    static std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    
+    long nb = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+    Tamgu* valuevect = callfunc->Evaluate(1, aNULL, idthread);
+
+    if (!valuevect->isVectorContainer())
+        return globalTamgu->Returnerror("Expecting a vector as second parameter", idthread);
+    
+    long i;
+    long sz = valuevect->Size();
+    
+    double val = 100/sz;
+    
+    vector<double> vect;
+    for (i = 0; i < sz; i++)
+        vect.push_back(val);
+
+    std::discrete_distribution<long> d(vect.begin(), vect.end());
+    
+    if (nb == 1) {
+        i = d(gen);
+        return valuevect->getvalue(i)->Atom(true);
+    }
+
+    Tamguvector* iv = (Tamguvector*)Selectavector(contextualpattern);
+
+    long v;
+    Tamgu* vtamgu;
+    for (i = 0; i < nb; i++) {
+        v = d(gen);
+        vtamgu = valuevect->getvalue(v);
+        iv->Push(vtamgu);
+    }
+    return iv;
+}
+
+
 Tamgu* Proc_discrete_distribution(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     static std::random_device rd;  //Will be used to obtain a seed for the random number engine
     static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
@@ -2456,6 +2495,8 @@ Exporting void TamguGlobal::RecordProcedures() {
     RecordOneProcedure("_forcelocks", ProcForceLocks, P_ONE);
 
     //Randomized distribution
+    RecordOneProcedure("random_choice", Proc_random_choice, P_TWO);
+
     //Uniform distributions
     RecordOneProcedure("uniform_int", Proc_uniform_int, P_ONE | P_TWO | P_THREE);
     RecordOneProcedure("uniform_real", Proc_uniform_real, P_ONE | P_TWO | P_THREE);
