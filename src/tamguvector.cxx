@@ -533,9 +533,6 @@ Exporting Tamgu* Tamguvector::plus(Tamgu* b, bool itself) {
         ref = (Tamguvector*)Atom(true);
 
     int it;
-    Tamgu* ke;
-    Tamgu* kv;
-
     
     if (loopmark) {
         if (_lock != NULL)
@@ -548,6 +545,8 @@ Exporting Tamgu* Tamguvector::plus(Tamgu* b, bool itself) {
     long size = values.size();
 
     if (b->isContainer()) {
+        Tamgu* ke;
+        Tamgu* kv;
         TamguIteration* itr = b->Newiteration(false);
         itr->Begin();
         for (it = 0; it < size; it++) {
@@ -555,6 +554,7 @@ Exporting Tamgu* Tamguvector::plus(Tamgu* b, bool itself) {
                 break;
             kv = itr->IteratorValue();
             ke = ref->values[it]->plus(kv, true);
+            ke->Release();
             itr->Next();
         }
         itr->Release();
@@ -583,12 +583,12 @@ Exporting Tamgu* Tamguvector::minus(Tamgu *b, bool itself) {
         ref = (Tamguvector*)Atom(true);
 
     int it;
-    Tamgu* ke;
-    Tamgu* kv;
 
     long size = values.size();
 
     if (b->isContainer()) {
+        Tamgu* ke;
+        Tamgu* kv;
         TamguIteration* itr = b->Newiteration(false);
         itr->Begin();
         for (it = 0; it < size; it++) {
@@ -596,6 +596,7 @@ Exporting Tamgu* Tamguvector::minus(Tamgu *b, bool itself) {
                 break;
             kv = itr->IteratorValue();
             ke = ref->values[it]->minus(kv, true);
+            ke->Release();
             itr->Next();
         }
         itr->Release();
@@ -623,12 +624,12 @@ Exporting Tamgu* Tamguvector::multiply(Tamgu *b, bool itself) {
         ref = (Tamguvector*)Atom(true);
 
     int it;
-    Tamgu* ke;
-    Tamgu* kv;
 
     long size = values.size();
 
     if (b->isContainer()) {
+        Tamgu* ke;
+        Tamgu* kv;
         TamguIteration* itr = b->Newiteration(false);
         itr->Begin();
         for (it = 0; it < size; it++) {
@@ -636,6 +637,7 @@ Exporting Tamgu* Tamguvector::multiply(Tamgu *b, bool itself) {
                 break;
             kv = itr->IteratorValue();
             ke = ref->values[it]->multiply(kv, true);
+            ke->Release();
             itr->Next();
         }
         itr->Release();
@@ -663,12 +665,12 @@ Exporting Tamgu* Tamguvector::divide(Tamgu *b, bool itself) {
         ref = (Tamguvector*)Atom(true);
 
     int it;
-    Tamgu* ke;
-    Tamgu* kv;
 
     long size = values.size();
+    Tamgu* ke;
 
     if (b->isContainer()) {
+        Tamgu* kv;
         TamguIteration* itr = b->Newiteration(false);
         itr->Begin();
         for (it = 0; it < size; it++) {
@@ -683,6 +685,7 @@ Exporting Tamgu* Tamguvector::divide(Tamgu *b, bool itself) {
                 return ke;
             }
 
+            ke->Release();
             itr->Next();
         }
         itr->Release();
@@ -729,6 +732,7 @@ Exporting Tamgu* Tamguvector::power(Tamgu *b, bool itself) {
                 break;
             kv = itr->IteratorValue();
             ke = ref->values[it]->power(kv, true);
+            ke->Release();
             itr->Next();
         }
         itr->Release();
@@ -756,12 +760,12 @@ Exporting Tamgu* Tamguvector::shiftleft(Tamgu *b, bool itself) {
         ref = (Tamguvector*)Atom(true);
 
     int it;
-    Tamgu* ke;
-    Tamgu* kv;
 
     long size = values.size();
 
     if (b->isContainer()) {
+        Tamgu* ke;
+        Tamgu* kv;
         TamguIteration* itr = b->Newiteration(false);
         itr->Begin();
         for (it = 0; it < size; it++) {
@@ -769,6 +773,7 @@ Exporting Tamgu* Tamguvector::shiftleft(Tamgu *b, bool itself) {
                 break;
             kv = itr->IteratorValue();
             ke = ref->values[it]->shiftleft(kv, true);
+            ke->Release();
             itr->Next();
         }
         itr->Release();
@@ -801,13 +806,15 @@ Exporting Tamgu* Tamguvector::shiftright(Tamgu *b, bool itself) {
     long size = values.size();
 
     if (b->isContainer()) {
+        Tamgu* ke;
         TamguIteration* itr = b->Newiteration(false);
         itr->Begin();
         for (it = 0; it < size; it++) {
             if (itr->End() == aTRUE)
                 break;
             kv = itr->IteratorValue();
-            ref->values[it]->shiftright(kv, true);
+            ke = ref->values[it]->shiftright(kv, true);
+            ke->Release();
             itr->Next();
         }
         itr->Release();
@@ -855,6 +862,7 @@ Exporting Tamgu* Tamguvector::mod(Tamgu *b, bool itself) {
                 return ke;
             }
 
+            ke->Release();
             itr->Next();
         }
         itr->Release();

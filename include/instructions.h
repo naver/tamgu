@@ -981,6 +981,45 @@ public:
 		return v;
 	}
 
+    virtual Tamgu* plus(Tamgu* a, bool itself) {
+        Tamgu* value = Eval(aNULL, aNULL, globalTamgu->GetThreadid());
+        return value->plus(a, itself);
+    }
+
+    virtual Tamgu* minus(Tamgu* a, bool itself) {
+        Tamgu* value = Eval(aNULL, aNULL, globalTamgu->GetThreadid());
+        return value->minus(a, itself);
+    }
+
+    virtual Tamgu* multiply(Tamgu* a, bool itself) {
+        Tamgu* value = Eval(aNULL, aNULL, globalTamgu->GetThreadid());
+        return value->multiply(a, itself);
+    }
+
+    virtual Tamgu* divide(Tamgu* a, bool itself) {
+        Tamgu* value = Eval(aNULL, aNULL, globalTamgu->GetThreadid());
+        return value->divide(a, itself);
+    }
+
+    virtual Tamgu* power(Tamgu* a, bool itself) {
+        Tamgu* value = Eval(aNULL, aNULL, globalTamgu->GetThreadid());
+        return value->power(a, itself);
+    }
+
+    virtual Tamgu* shiftleft(Tamgu* a, bool itself) {
+        Tamgu* value = Eval(aNULL, aNULL, globalTamgu->GetThreadid());
+        return value->shiftleft(a, itself);
+    }
+
+    virtual Tamgu* shiftright(Tamgu* a, bool itself) {
+        Tamgu* value = Eval(aNULL, aNULL, globalTamgu->GetThreadid());
+        return value->shiftright(a, itself);
+    }
+
+    virtual Tamgu* mod(Tamgu* a, bool itself) {
+        Tamgu* value = Eval(aNULL, aNULL, globalTamgu->GetThreadid());
+        return value->mod(a, itself);
+    }
 
 };
 //----------------------------------------------------------------------
@@ -1041,6 +1080,46 @@ public:
 	short Action() {
 		return a_none;
 	}
+    
+    Tamgu* plus(Tamgu* a, bool itself) {
+        Tamgu* value = Eval(aNULL, aNULL, globalTamgu->GetThreadid());
+        return value->plus(a, false);
+    }
+
+    Tamgu* minus(Tamgu* a, bool itself) {
+        Tamgu* value = Eval(aNULL, aNULL, globalTamgu->GetThreadid());
+        return value->minus(a, false);
+    }
+
+    Tamgu* multiply(Tamgu* a, bool itself) {
+        Tamgu* value = Eval(aNULL, aNULL, globalTamgu->GetThreadid());
+        return value->multiply(a, false);
+    }
+
+    Tamgu* divide(Tamgu* a, bool itself) {
+        Tamgu* value = Eval(aNULL, aNULL, globalTamgu->GetThreadid());
+        return value->divide(a, false);
+    }
+
+    Tamgu* power(Tamgu* a, bool itself) {
+        Tamgu* value = Eval(aNULL, aNULL, globalTamgu->GetThreadid());
+        return value->power(a, false);
+    }
+
+    Tamgu* shiftleft(Tamgu* a, bool itself) {
+        Tamgu* value = Eval(aNULL, aNULL, globalTamgu->GetThreadid());
+        return value->shiftleft(a, false);
+    }
+
+    Tamgu* shiftright(Tamgu* a, bool itself) {
+        Tamgu* value = Eval(aNULL, aNULL, globalTamgu->GetThreadid());
+        return value->shiftright(a, false);
+    }
+
+    Tamgu* mod(Tamgu* a, bool itself) {
+        Tamgu* value = Eval(aNULL, aNULL, globalTamgu->GetThreadid());
+        return value->mod(a, false);
+    }
 };
 
 class TamguCallThroughVariable : public TamguCallVariable {
