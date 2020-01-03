@@ -103,7 +103,7 @@ vector v = r.parse(sentence);
 __Note__: _Releases_ for Windows, Mac OS and Linux are available at: https://github.com/naver/tamgu/releases
 
 ## Documentation
-The documentation is in : **docs/tamgu.pdf**
+The documentation is in : **[tamgu.pdf](https://github.com/naver/tamgu/blob/master/docs/tamgu.pdf)**
 
 ## Examples
 

@@ -1,70 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Bucket
+   uuid = "A7028758-794C-40BF-83AC-56E538FF714D"
    type = "1"
    version = "2.0">
    <Breakpoints>
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
+            uuid = "E3BFF08D-BE58-4E89-8B33-7A026518C8F8"
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "Tamgu/tamgu/src/tamgumapsi.cxx"
-            timestampString = "571758361.465348"
+            filePath = "../../src/conversion.cxx"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "298"
-            endingLineNumber = "298"
-            landmarkName = "Tamgumapsi::Put(Tamgu* idx, Tamgu* ke, short idthread)"
-            landmarkType = "7">
+            startingLineNumber = "7828"
+            endingLineNumber = "7828"
+            landmarkName = "c_bytetocharposition(contenu, bbpos, ebpos)"
+            landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
+            uuid = "C9AE0531-466B-47BD-A672-6B4B84CC094C"
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "Tamgu/tamgu/src/tamgustring.cxx"
-            timestampString = "573040939.764906"
+            filePath = "../../src/conversion.cxx"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "3737"
-            endingLineNumber = "3737"
-            landmarkName = "Tamgua_string::MethodSplit(Tamgu* contextualpattern, short idthread, TamguCall* callfunc)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "../../src/codeexecute.cxx"
-            timestampString = "581247536.282395"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1096"
-            endingLineNumber = "1096"
-            landmarkName = "TamguCallFromCall::Put(Tamgu* context, Tamgu* object, short idthread)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "../../src/codeexecute.cxx"
-            timestampString = "581247536.282441"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1152"
-            endingLineNumber = "1152"
-            landmarkName = "TamguCallFromCall::Get(Tamgu* context, Tamgu* object, short idthread)"
-            landmarkType = "7">
+            startingLineNumber = "7841"
+            endingLineNumber = "7841"
+            landmarkName = "c_bytetocharposition(contenu, bbpos, ebpos)"
+            landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

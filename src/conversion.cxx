@@ -31,9 +31,32 @@ void concat_char_convert_utf16(wstring& res, TAMGUCHAR code);
 #define concat_char_convert_utf16(res,code) res += code;
 #endif
 
+static char digitaction[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    '+',0,'-','.',0,
+    '0','0','0','0','0','0','0','0','0','0',0,0,0,0,0,0,0,
+    'X','X','X','X','X','X',
+    0,0,0,0,0,0,0,0,0,'p',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    'x','x','x','x','x','x',0,0,0,0,0,0,0,0,0,'p',
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+};
+
+#define isadigit(c) c >= '0' && c <= '9'
 //------------------------------------------------------------------------
 #ifdef INTELINTRINSICS
 static const __m128i checkifzero = _mm_set1_epi8(0xFF);
+
+long _bitcounter(binuint64 x) {
+    long nb = 0;
+    while (x) {
+        if (x & 1) nb++;
+        x >>= 1;
+    }
+    return nb;
+}
 
 //There is a wnscmp method, however there seems to be a problem when used in conjunction with intrinsics instructions...
 //Some explanations: we suppose that the first character of both strings has already been identified as being the same
@@ -51,6 +74,18 @@ static inline bool charcomp(unsigned char* src, unsigned char* search, long lens
             return false;
     }
     return true;
+}
+
+inline char* concatchar(char* str, char ctn, long& i, long& size_str) {
+    if ((i + 1) >= size_str) {
+        size_str <<= 1;
+        char* s = new char[size_str];
+        memcpy(s, str, i);
+        delete[] str;
+        str = s;
+    }
+    str[i++] = ctn;
+    return str;
 }
 
 inline char* concatstrings(char* str, char* ctn, long& i, long& size_str, long size_ctn) {
@@ -117,7 +152,6 @@ static const __m256i checkifbigzero = _mm256_set1_epi8(0xFF);
 #define mcomp_256 _mm256_cmpeq_epi32
 #endif
 
-
 bool check_ascii(unsigned char* src, long lensrc, long& i) {
     __m256i current_bytes = _mm256_setzero_si256();
     
@@ -142,6 +176,168 @@ bool check_ascii(unsigned char* src, long lensrc, long& i) {
     return true;
 }
 
+
+static const __m256i _thequotes = _mm256_set1_epi8(39);
+static const __m256i _thedoublequotes = _mm256_set1_epi8(34);
+static const __m256i _theslash = _mm256_set1_epi8(47);
+
+void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<string>& strings) {
+    __m256i current_bytes = _mm256_setzero_si256();
+    __m256i val;
+    long b,e;
+    bool found, replace=false;
+    uint32_t q, r;
+    
+    for (long i = 0; (i + 31) < lensrc; i += 32) {
+        //we load our section, the length should be larger than 32
+        current_bytes = _mm256_loadu_si256((const __m256i *)(src + i));
+                
+        val=_mm256_cmpeq_epi8(current_bytes, _theslash);
+        q = _mm256_movemask_epi8(val);
+        
+        val=_mm256_cmpeq_epi8(current_bytes, _thequotes);
+        q |= _mm256_movemask_epi8(val);
+        
+        val=_mm256_cmpeq_epi8(current_bytes, _thedoublequotes);
+        q |= _mm256_movemask_epi8(val);
+
+        if (q) {
+            b = i;
+            e = b;
+            while (q) {
+                r = _bit_scan_forward(q);
+                if (r) {
+                    b += r;
+                    q >>= r;
+                }
+
+                e = b+1;
+                q >>= 1;
+                switch (src[b]) {
+                    case '/':
+                        if (src[e] == '/') {
+                            while (e < lensrc && src[e] != '\n') {
+                                e++;
+                                q >>= 1;
+                            }
+                        }
+                        else {
+                            if (src[e] == '@') {
+                                e++;
+                                q >>= 1;
+                                found = false;
+                                while (q) {
+                                    r = _bit_scan_forward(q);
+                                    e += r;
+                                    q >>= r;
+                                    
+                                    if (src[e-1] == '@' && src[e] == '/') {
+                                        found = true;
+                                        break;
+                                    }
+                                    q >>= 1;
+                                    e++;
+                                }
+                                if (!found) {
+                                    while (e < lensrc && (src[e-1] != '@' || src[e] != '/')) e++;
+                                }
+                            }
+                        }
+                        break;
+                    case '"':
+                        if (b > 0 && src[b-1] == '@') {
+                            b--;
+                            if (b > 0 && src[b-1] == 'u')
+                                b--;
+                            found = false;
+                            while (q) {
+                                r = _bit_scan_forward(q);
+                                e += r;
+                                q >>= r;
+                                if (src[e] == '"' && src[e+1] == '@') {
+                                    found = true;
+                                    q >>= 1;
+                                    e++;
+                                    break;
+                                }
+                                q >>= 1;
+                                e++;
+                            }
+                            if (!found) {
+                                while (e < lensrc && (src[e-1] != '"' || src[e] != '@')) e++;
+                            }
+                        }
+                        else {
+                            if (b > 0 && (src[b-1] == 'r' || src[b-1] == 'u' || src[b-1] == 'p'))
+                                b--;
+                            found = false;
+                            while (q) {
+                                r = _bit_scan_forward(q);
+                                e += r;
+                                q >>= r;
+                                if (src[e-1] != '\\' && src[e] == '"') {
+                                    found = true;
+                                    break;
+                                }
+                                q >>= 1;
+                                e++;
+                            }
+                            if (!found) {
+                                while (e < lensrc) {
+                                    if (src[e] == '\\')
+                                        e++;
+                                    else
+                                        if (src[e] == '"')
+                                            break;
+                                    e++;
+                                }
+                            }
+                        }
+                        break;
+                    case '\'':
+                        if (b > 0 && (src[b-1] == 'r' || src[b-1] == 'u' || src[b-1] == 'p')) {
+                            b--;
+                            replace = true;
+                        }
+                        found = false;
+                        while (q) {
+                            r = _bit_scan_forward(q);
+                            e += r;
+                            q >>= r;
+                            if (src[e] == '\'') {
+                                found = true;
+                                break;
+                            }
+                            q >>= 1;
+                            e++;
+                        }
+                        if (!found) {
+                            while (e < lensrc && src[e] != '\'') e++;
+                        }
+                }
+                
+                if (e != b + 1 && e < lensrc) {
+                    pos.push_back(b);
+                    if (e < lensrc)
+                        e++;
+                    q >>= 1;
+                    uchar c = src[e];
+                    src[e] = 0;
+                    strings.push_back((char*)src+b);
+                    if (replace) {
+                        strings.back()[0] -= 32; // we replace r with R, p with P, u with U
+                        replace = false;
+                    }
+                    src[e] = c;
+                    b = e;
+                    i = b - 32;
+                }
+            }
+        }
+    }
+}
+
+
 //This version of find_intel also detects the section in which potential UTF8 characters may occur...
 //The first section is then recorded into ps, ascii is then set to false to indicate the potential presence
 //of a utf8 character in the string...
@@ -154,6 +350,7 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
 
     uchar* s=src;
     long j;
+    uint32_t q = 0;
     uchar c = search[0];
     char shift;
 
@@ -169,14 +366,10 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
                     //we check if we have a the first character of our string somewhere
                     //in this 16 character window...
                 current_bytes = _mm256_cmpeq_epi8(firstchar, current_bytes);
-                if (_mm256_movemask_epi8(current_bytes)) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (j = 0; j<32; j++) {
-                        if (*s == c)
-                            return (i+j);
-                        ++s;
-                    }
+                q = _mm256_movemask_epi8(current_bytes);
+                if (q) {
+                    q = _bit_scan_forward(q);
+                    return (i+q);
                 }
             }
             break;
@@ -201,20 +394,20 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm256_cmpeq_epi16(firstchar, current_bytes);
-                    if (_mm256_movemask_epi8(current_bytes))
-                        break;
-                }
-                
-                if (shift != 2) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (j = 0; j < 31; j++) {
-                        if (*s == c) {
-                            if (charcomp(s,search,lensearch)) {
-                                return (i + j + shift);
+                    q = _mm256_movemask_epi8(current_bytes);
+                    if (q) {
+                        j = _bit_scan_forward(q);
+                        s += j;
+                            //Our character is present, we now try to find where it is...
+                            //we find it in this section...
+                        for (; j < 31; j++) {
+                            if (*s == c) {
+                                if (charcomp(s,search,lensearch)) {
+                                    return (i + j + shift);
+                                }
                             }
+                            ++s;
                         }
-                        ++s;
                     }
                 }
             }
@@ -246,20 +439,20 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm256_cmpeq_epi32(firstchar, current_bytes);
-                    if (_mm256_movemask_epi8(current_bytes))
-                        break;
-                }
-                
-                if (shift != 4) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (j = 0; j < 29; j++) {
-                        if (*s == c) {
-                            if (charcomp(s,search,lensearch)) {
-                                return (i + j + shift);
+                    q = _mm256_movemask_epi8(current_bytes);
+                    if (q) {
+                        j = _bit_scan_forward(q);
+                        s += j;
+                            //Our character is present, we now try to find where it is...
+                            //we find it in this section...
+                        for (; j < 29; j++) {
+                            if (*s == c) {
+                                if (charcomp(s,search,lensearch)) {
+                                    return (i + j + shift);
+                                }
                             }
+                            ++s;
                         }
-                        ++s;
                     }
                 }
             }
@@ -288,20 +481,20 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm256_cmpeq_epi64(firstchar, current_bytes);
-                    if (_mm256_movemask_epi8(current_bytes))
-                        break;
-                }
-                
-                if (shift != 8) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (j = 0; j < 25; j++) {
-                        if (*s == c) {
-                            if (charcomp(s,search,lensearch)) {
-                                return (i + j + shift);
+                    q = _mm256_movemask_epi8(current_bytes);
+                    if (q) {
+                        j = _bit_scan_forward(q);
+                        s += j;
+                            //Our character is present, we now try to find where it is...
+                            //we find it in this section...
+                        for (; j < 25; j++) {
+                            if (*s == c) {
+                                if (charcomp(s,search,lensearch)) {
+                                    return (i + j + shift);
+                                }
                             }
+                            ++s;
                         }
-                        ++s;
                     }
                 }
             }
@@ -328,6 +521,7 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
     
     uchar* s = src;
     long j;
+    uint32_t q = 0;
     uchar c = search[0];
     char shift;
 
@@ -346,13 +540,10 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
                     //we check if we have a the first character of our string somewhere
                     //in this 16 character window...
                 current_bytes = _mm256_cmpeq_epi8(firstchar, current_bytes);
-                if (_mm256_movemask_epi8(current_bytes)) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (j = 31; j >= 0; j--) {
-                        if (s[j] == c)
-                            return (i+j);
-                    }
+                q = _mm256_movemask_epi8(current_bytes);
+                if (q) {
+                    j = _bit_scan_reverse(q);
+                    return (i+j);
                 }
             }
             break;
@@ -377,17 +568,16 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm256_cmpeq_epi16(firstchar, current_bytes);
-                    if (_mm256_movemask_epi8(current_bytes))
-                        break;
-                }
-                
-                if (shift != 2) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (j = 30; j>=0; j--) {
-                        if (s[j] == c) {
-                            if (charcomp(s+j,search,lensearch)) {
-                                return (i + j + shift);
+                    q = _mm256_movemask_epi8(current_bytes);
+                    if (q) {
+                        j = _bit_scan_reverse(q)-1;
+                            //Our character is present, we now try to find where it is...
+                            //we find it in this section...
+                        for (; j>=0; j--) {
+                            if (s[j] == c) {
+                                if (charcomp(s+j,search,lensearch)) {
+                                    return (i + j + shift);
+                                }
                             }
                         }
                     }
@@ -421,17 +611,16 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm256_cmpeq_epi32(firstchar, current_bytes);
-                    if (_mm256_movemask_epi8(current_bytes))
-                        break;
-                }
-                
-                if (shift != 4) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (j = 28; j>=0; j--) {
-                        if (s[j] == c) {
-                            if (charcomp(s+j,search,lensearch)) {
-                                return (i + j + shift);
+                    q = _mm256_movemask_epi8(current_bytes);
+                    if (q) {
+                        j = _bit_scan_reverse(q)-3;
+                            //Our character is present, we now try to find where it is...
+                            //we find it in this section...
+                        for (; j>=0; j--) {
+                            if (s[j] == c) {
+                                if (charcomp(s+j,search,lensearch)) {
+                                    return (i + j + shift);
+                                }
                             }
                         }
                     }
@@ -462,17 +651,16 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm256_cmpeq_epi64(firstchar, current_bytes);
-                    if (_mm256_movemask_epi8(current_bytes))
-                        break;
-                }
-                
-                if (shift != 8) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (j = 24; j>=0; j--) {
-                        if (s[j] == c) {
-                            if (charcomp(s+j,search,lensearch)) {
-                                return (i + j + shift);
+                    q = _mm256_movemask_epi8(current_bytes);
+                    if (q) {
+                        j = _bit_scan_reverse(q)-7;
+                            //Our character is present, we now try to find where it is...
+                            //we find it in this section...
+                        for (; j>=0; j--) {
+                            if (s[j] == c) {
+                                if (charcomp(s+j,search,lensearch)) {
+                                    return (i + j + shift);
+                                }
                             }
                         }
                     }
@@ -505,6 +693,7 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
 
     uchar* s=NULL;
     long j;
+    uint32_t q = 0;
     uchar c = search[0];
     long i = 0;
 
@@ -522,10 +711,13 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
                     //we check if we have a the first character of our string somewhere
                     //in this 16 character window...
                 current_bytes = _mm256_cmpeq_epi8(firstchar, current_bytes);
-                if (_mm256_movemask_epi8(current_bytes)) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (j = 0; j<32; j++) {
+                q = _mm256_movemask_epi8(current_bytes);
+                if (q) {
+                    j =_bit_scan_forward(q);
+                    s += j;
+                    //Our character is present, we now try to find where it is...
+                    //we find it in this section...
+                    for (;j<32; j++) {
                         if (*s == c)
                             pos.push_back(i+j);
                         ++s;
@@ -554,20 +746,21 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm256_cmpeq_epi16(firstchar, current_bytes);
-                    if (_mm256_movemask_epi8(current_bytes))
-                        break;
-                }
-                
-                if (shift != 2) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (j = 0; j < 31; j++) {
-                        if (*s == c) {
-                            if (charcomp(s,USTR(search),lensearch)) {
-                                pos.push_back(i + j + shift);
+                    q = _mm256_movemask_epi8(current_bytes);
+                    if (q) {
+                        j =_bit_scan_forward(q);
+                        s += j;
+                            //Our character is present, we now try to find where it is...
+                            //we find it in this section...
+                        for (; j < 31; j++) {
+                            if (*s == c) {
+                                if (charcomp(s,USTR(search),lensearch)) {
+                                    pos.push_back(i + j + shift);
+                                }
                             }
+                            ++s;
                         }
-                        ++s;
+                        break;
                     }
                 }
             }
@@ -599,20 +792,21 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm256_cmpeq_epi32(firstchar, current_bytes);
-                    if (_mm256_movemask_epi8(current_bytes))
-                        break;
-                }
-                
-                if (shift != 4) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (j = 0; j < 29; j++) {
-                        if (*s == c) {
-                            if (charcomp(s,USTR(search),lensearch)) {
-                                pos.push_back(i + j + shift);
+                    q = _mm256_movemask_epi8(current_bytes);
+                    if (q) {
+                        j =_bit_scan_forward(q);
+                        s += j;
+                            //Our character is present, we now try to find where it is...
+                            //we find it in this section...
+                        for (; j < 29; j++) {
+                            if (*s == c) {
+                                if (charcomp(s,USTR(search),lensearch)) {
+                                    pos.push_back(i + j + shift);
+                                }
                             }
+                            ++s;
                         }
-                        ++s;
+                        break;
                     }
                 }
             }
@@ -641,20 +835,21 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm256_cmpeq_epi64(firstchar, current_bytes);
-                    if (_mm256_movemask_epi8(current_bytes))
-                        break;
-                }
-                
-                if (shift != 8) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (j = 0; j < 25; j++) {
-                        if (*s == c) {
-                            if (charcomp(s,USTR(search),lensearch)) {
-                                pos.push_back(i + j + shift);
+                    q = _mm256_movemask_epi8(current_bytes);
+                    if (q) {
+                        j =_bit_scan_forward(q);
+                        s += j;
+                            //Our character is present, we now try to find where it is...
+                            //we find it in this section...
+                        for (; j < 25; j++) {
+                            if (*s == c) {
+                                if (charcomp(s,USTR(search),lensearch)) {
+                                    pos.push_back(i + j + shift);
+                                }
                             }
+                            ++s;
                         }
-                        ++s;
+                        break;
                     }
                 }
             }
@@ -688,6 +883,7 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
     uchar* s=NULL;
     long j;
     uchar c = search[0];
+    uint32_t q = 0;
     long i = 0;
 
     char shift;
@@ -706,10 +902,13 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
                     //we check if we have a the first character of our string somewhere
                     //in this 16 character window...
                 current_bytes = _mm256_cmpeq_epi8(firstchar, current_bytes);
-                if (_mm256_movemask_epi8(current_bytes)) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (j = 0; j<32; j++) {
+                q = _mm256_movemask_epi8(current_bytes);
+                if (q) {
+                    j =_bit_scan_forward(q);
+                    s += j;
+                    //Our character is present, we now try to find where it is...
+                    //we find it in this section...
+                    for (; j<32; j++) {
                         if (*s == c) {
                             foundHere = i + j;
                             if (from != foundHere)
@@ -743,24 +942,25 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm256_cmpeq_epi16(firstchar, current_bytes);
-                    if (_mm256_movemask_epi8(current_bytes))
-                        break;
-                }
-                
-                if (shift != 2) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (j = 0; j < 31; j++) {
-                        if (*s == c) {
-                            if (charcomp(s,USTR(search),lensearch)) {
-                                foundHere = i + j + shift;
-                                if (from != foundHere)
-                                    neo = concatstrings(neo, STR(src)+from, ineo, lenneo, foundHere-from);
-                                neo = concatstrings(neo, STR(replace), ineo, lenneo, replace.size());
-                                from = foundHere+lensearch;
+                    q = _mm256_movemask_epi8(current_bytes);
+                    if (q) {
+                        j =_bit_scan_forward(q);
+                        s += j;
+                            //Our character is present, we now try to find where it is...
+                            //we find it in this section...
+                        for (; j < 31; j++) {
+                            if (*s == c) {
+                                if (charcomp(s,USTR(search),lensearch)) {
+                                    foundHere = i + j + shift;
+                                    if (from != foundHere)
+                                        neo = concatstrings(neo, STR(src)+from, ineo, lenneo, foundHere-from);
+                                    neo = concatstrings(neo, STR(replace), ineo, lenneo, replace.size());
+                                    from = foundHere+lensearch;
+                                }
                             }
+                            ++s;
                         }
-                        ++s;
+                        break;
                     }
                 }
             }
@@ -792,24 +992,25 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm256_cmpeq_epi32(firstchar, current_bytes);
-                    if (_mm256_movemask_epi8(current_bytes))
-                        break;
-                }
-                
-                if (shift != 4) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (j = 0; j < 29; j++) {
-                        if (*s == c) {
-                            if (charcomp(s,USTR(search),lensearch)) {
-                                foundHere = i + j + shift;
-                                if (from != foundHere)
-                                    neo = concatstrings(neo, STR(src)+from, ineo, lenneo, foundHere-from);
-                                neo = concatstrings(neo, STR(replace), ineo, lenneo, replace.size());
-                                from = foundHere+lensearch;
+                    q = _mm256_movemask_epi8(current_bytes);
+                    if (q) {
+                        j =_bit_scan_forward(q);
+                        s += j;
+                            //Our character is present, we now try to find where it is...
+                            //we find it in this section...
+                        for (; j < 29; j++) {
+                            if (*s == c) {
+                                if (charcomp(s,USTR(search),lensearch)) {
+                                    foundHere = i + j + shift;
+                                    if (from != foundHere)
+                                        neo = concatstrings(neo, STR(src)+from, ineo, lenneo, foundHere-from);
+                                    neo = concatstrings(neo, STR(replace), ineo, lenneo, replace.size());
+                                    from = foundHere+lensearch;
+                                }
                             }
+                            ++s;
                         }
-                        ++s;
+                        break;
                     }
                 }
             }
@@ -838,24 +1039,25 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm256_cmpeq_epi64(firstchar, current_bytes);
-                    if (_mm256_movemask_epi8(current_bytes))
-                        break;
-                }
-                
-                if (shift != 8) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (j = 0; j < 25; j++) {
-                        if (*s == c) {
-                            if (charcomp(s,USTR(search),lensearch)) {
-                                foundHere = i + j + shift;
-                                if (from != foundHere)
-                                    neo = concatstrings(neo, STR(src)+from, ineo, lenneo, foundHere-from);
-                                neo = concatstrings(neo, STR(replace), ineo, lenneo, replace.size());
-                                from = foundHere+lensearch;
+                    q = _mm256_movemask_epi8(current_bytes);
+                    if (q) {
+                        j =_bit_scan_forward(q);
+                        s += j;
+                            //Our character is present, we now try to find where it is...
+                            //we find it in this section...
+                        for (; j < 25; j++) {
+                            if (*s == c) {
+                                if (charcomp(s,USTR(search),lensearch)) {
+                                    foundHere = i + j + shift;
+                                    if (from != foundHere)
+                                        neo = concatstrings(neo, STR(src)+from, ineo, lenneo, foundHere-from);
+                                    neo = concatstrings(neo, STR(replace), ineo, lenneo, replace.size());
+                                    from = foundHere+lensearch;
+                                }
                             }
+                            ++s;
                         }
-                        ++s;
+                        break;
                     }
                 }
             }
@@ -898,6 +1100,7 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
     long j;
     uchar c = search[0];
     long i = 0;
+    uint32_t q = 0;
     long counter = 0;
 
     char shift;
@@ -914,10 +1117,13 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
                     //we check if we have a the first character of our string somewhere
                     //in this 16 character window...
                 current_bytes = _mm256_cmpeq_epi8(firstchar, current_bytes);
-                if (_mm256_movemask_epi8(current_bytes)) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (j = 0; j<32; j++) {
+                q = _mm256_movemask_epi8(current_bytes);
+                if (q) {
+                    j =_bit_scan_forward(q);
+                    s += j;
+                    //Our character is present, we now try to find where it is...
+                    //we find it in this section...
+                    for (; j<32; j++) {
                         if (*s == c)
                             counter++;
                         ++s;
@@ -946,20 +1152,21 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm256_cmpeq_epi16(firstchar, current_bytes);
-                    if (_mm256_movemask_epi8(current_bytes))
-                        break;
-                }
-                
-                if (shift != 2) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (j = 0; j< 31; j++) {
-                        if (*s == c) {
-                            if (charcomp(s,search,lensearch)) {
-                                counter++;
+                    q = _mm256_movemask_epi8(current_bytes);
+                    if (q) {
+                        j =_bit_scan_forward(q);
+                        s += j;
+                            //Our character is present, we now try to find where it is...
+                            //we find it in this section...
+                        for (; j< 31; j++) {
+                            if (*s == c) {
+                                if (charcomp(s,search,lensearch)) {
+                                    counter++;
+                                }
                             }
+                            ++s;
                         }
-                        ++s;
+                        break;
                     }
                 }
             }
@@ -991,20 +1198,22 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm256_cmpeq_epi32(firstchar, current_bytes);
-                    if (_mm256_movemask_epi8(current_bytes))
-                        break;
-                }
-                
-                if (shift != 4) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (j = 0; j < 29; j++) {
-                        if (*s == c) {
-                            if (charcomp(s,search,lensearch)) {
-                                counter++;
+                    q = _mm256_movemask_epi8(current_bytes);
+                    if (q) {
+                        j =_bit_scan_forward(q);
+                        s += j;
+                        
+                            //Our character is present, we now try to find where it is...
+                            //we find it in this section...
+                        for (; j < 29; j++) {
+                            if (*s == c) {
+                                if (charcomp(s,search,lensearch)) {
+                                    counter++;
+                                }
                             }
+                            ++s;
                         }
-                        ++s;
+                        break;
                     }
                 }
             }
@@ -1033,20 +1242,21 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm256_cmpeq_epi64(firstchar, current_bytes);
-                    if (_mm256_movemask_epi8(current_bytes))
-                        break;
-                }
-                
-                if (shift != 8) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (j = 0; j < 25; j++) {
-                        if (*s == c) {
-                            if (charcomp(s,search,lensearch)) {
-                                counter++;
+                    q = _mm256_movemask_epi8(current_bytes);
+                    if (q) {
+                        j =_bit_scan_forward(q);
+                        s += j;
+                            //Our character is present, we now try to find where it is...
+                            //we find it in this section...
+                        for (; j < 25; j++) {
+                            if (*s == c) {
+                                if (charcomp(s,search,lensearch)) {
+                                    counter++;
+                                }
                             }
+                            ++s;
                         }
-                        ++s;
+                        break;
                     }
                 }
             }            
@@ -1728,6 +1938,168 @@ bool check_ascii(unsigned char* src, long len, long& i) {
     
 }
 
+static const __m128i _the_quotes = _mm_set1_epi8(39);
+static const __m128i _the_doublequotes = _mm_set1_epi8(34);
+static const __m128i _the_slash = _mm_set1_epi8(47);
+
+void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<string>& strings) {
+    __m128i current_bytes = _mm_setzero_si128();
+    __m128i val;
+    long b,e;
+    bool found, replace=false;
+    uint16_t q;
+    
+    for (long i = 0; (i + 15) < lensrc; i += 16) {
+            //we load our section, the length should be larger than 16
+        current_bytes = _mm_loadu_si128((const __m128i *)(src + i));
+        
+        val =_mm_cmpeq_epi8(current_bytes, _the_quotes);
+        q = _mm_movemask_epi8(val);
+        
+        val =_mm_cmpeq_epi8(current_bytes, _the_slash);
+        q |= _mm_movemask_epi8(val);
+        
+        val =_mm_cmpeq_epi8(current_bytes, _the_doublequotes);
+        q |= _mm_movemask_epi8(val);
+        
+        if (q) {
+            b = i;
+            e = b;
+            while (q) {
+                while (!(q & 1)) {
+                    q >>= 1;
+                    b++;
+                }
+                
+                e = b+1;
+                q >>= 1;
+                switch (src[b]) {
+                    case '/':
+                        if (src[e] == '/') {
+                            while (e < lensrc && src[e] != '\n') {
+                                q >>= 1;
+                                e++;
+                            }
+                        }
+                        else {
+                            if (src[e] == '@') {
+                                e++;
+                                q >>= 1;
+                                found = false;
+                                while (q) {
+                                    while (!(q & 1)) {
+                                        q >>= 1;
+                                        e++;
+                                    }
+                                    if (src[e-1] == '@' && src[e] == '/') {
+                                        found = true;
+                                        break;
+                                    }
+                                    q >>= 1;
+                                    e++;
+                                }
+                                if (!found) {
+                                    while (e < lensrc && (src[e-1] != '@' || src[e] != '/')) e++;
+                                }
+                            }
+                        }
+                        break;
+                    case '"':
+                        if (b > 0 && src[b-1] == '@') {
+                            b--;
+                            if (b > 0 && src[b-1] == 'u')
+                                b--;
+                            found = false;
+                            while (q) {
+                                while (!(q & 1)) {
+                                    q >>= 1;
+                                    e++;
+                                }
+                                if (src[e] == '"' && src[e+1] == '@') {
+                                    found = true;
+                                    q >>= 1;
+                                    e++;
+                                    break;
+                                }
+                                q >>= 1;
+                                e++;
+                            }
+                            if (!found) {
+                                while (e < lensrc && (src[e-1] != '"' || src[e] != '@')) e++;
+                            }
+                        }
+                        else {
+                            if (b > 0 && (src[b-1] == 'r' || src[b-1] == 'u' || src[b-1] == 'p'))
+                                b--;
+                            found = false;
+                            while (q) {
+                                while (!(q & 1)) {
+                                    q >>= 1;
+                                    e++;
+                                }
+                                if (src[e-1] != '\\' && src[e] == '"') {
+                                    found = true;
+                                    break;
+                                }
+                                q >>= 1;
+                                e++;
+                            }
+                            if (!found) {
+                                while (e < lensrc) {
+                                    if (src[e] == '\\')
+                                        e++;
+                                    else
+                                        if (src[e] == '"')
+                                            break;
+                                    e++;
+                                }
+                            }
+                        }
+                        break;
+                    case '\'':
+                        if (b > 0 && (src[b-1] == 'r' || src[b-1] == 'u' || src[b-1] == 'p')) {
+                            b--;
+                            replace = true;
+                        }
+                        found = false;
+                        while (q) {
+                            while (!(q & 1)) {
+                                q >>= 1;
+                                e++;
+                            }
+                            if (src[e] == '\'') {
+                                found = true;
+                                break;
+                            }
+                            q >>= 1;
+                            e++;
+                        }
+                        if (!found) {
+                            while (e < lensrc && src[e] != '\'') e++;
+                        }
+                }
+                
+                if (e != b + 1) {
+                    pos.push_back(b);
+                    if (e < lensrc)
+                        e++;
+                    q >>= 1;
+                    uchar c = src[e];
+                    src[e] = 0;
+                    strings.push_back((char*)src+b);
+                    if (replace) {
+                        strings.back()[0] -= 32; // we replace r with R, p with P, u with U
+                        replace = false;
+                    }
+                    src[e] = c;
+                    b = e;
+                    i = b - 16;
+                }
+            }
+        }
+    }
+}
+
 long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, long lensearch, long i) {
     if (lensearch > lensrc)
         return -1;
@@ -1739,6 +2111,7 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
     long j;
     uchar c = search[0];
     char shift;
+    int q;
     
     switch (lensearch) {
         case 1:
@@ -1752,14 +2125,12 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
                     //we check if we have a the first character of our string somewhere
                     //in this 16 character window...
                 current_bytes = _mm_cmpeq_epi8(firstchar, current_bytes);
-                if (_mm_movemask_epi8(current_bytes)) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (j = 0; j < 16; j++) {
-                        if (*s == c)
-                            return (i+j);
-                        ++s;
-                    }
+                q = _mm_movemask_epi8(current_bytes);
+                if (q) {
+                    //Our character is present, we now try to find where it is...
+                    //we find it in this section...
+                    j = _bit_scan_forward(q);
+                    return (i+j);
                 }
             }
             break;
@@ -1783,20 +2154,21 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
                         //we check if we have the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm_cmpeq_epi16(firstchar, current_bytes);
-                    if (_mm_movemask_epi8(current_bytes))
-                        break;
-                }
-                
-                if (shift != 2) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (j = 0; j < 15; j++) {
-                        if (*s == c) {
-                            if (charcomp(s,search,lensearch)) {
-                                return (i + j + shift);
+                    q = _mm_movemask_epi8(current_bytes);
+                    if (q) {
+                            //Our character is present, we now try to find where it is...
+                            //we find it in this section...
+                        j = _bit_scan_forward(q);
+                        s += j;
+                        for (; j < 15; j++) {
+                            if (*s == c) {
+                                if (charcomp(s,search,lensearch)) {
+                                    return (i + j + shift);
+                                }
                             }
+                            ++s;
                         }
-                        ++s;
+                        break;
                     }
                 }
             }
@@ -1824,21 +2196,21 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm_cmpeq_epi32(firstchar, current_bytes);
-                    if (_mm_movemask_epi8(current_bytes)) {
-                        break;
-                    }
-                }
-                
-                if (shift != 4) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (j = 0; j < 13; j++) {
-                        if (*s == c) {
-                            if (charcomp(s,search,lensearch)) {
-                                return (i + j + shift);
+                    q = _mm_movemask_epi8(current_bytes);
+                    if (q) {
+                            //Our character is present, we now try to find where it is...
+                            //we find it in this section...
+                        j = _bit_scan_forward(q);
+                        s += j;
+                        for (; j < 13; j++) {
+                            if (*s == c) {
+                                if (charcomp(s,search,lensearch)) {
+                                    return (i + j + shift);
+                                }
                             }
+                            ++s;
                         }
-                        ++s;
+                        break;
                     }
                 }
             }
@@ -1866,6 +2238,7 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
     long j;
     uchar c = search[0];
     char shift;
+    int q;
 
     if (i >= 16)
         i -= 16;
@@ -1882,13 +2255,12 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
                 //we check if we have a the first character of our string somewhere
                 //in this 16 character window...
                 current_bytes = _mm_cmpeq_epi8(firstchar, current_bytes);
-                if (_mm_movemask_epi8(current_bytes)) {
-                        //Our character is present, we now try to find where it is...
+                q = _mm_movemask_epi8(current_bytes);
+                if (q) {
+                    //Our character is present, we now try to find where it is...
                         //we find it in this section...
-                    for (j = 15; j>=0; j--) {
-                        if (s[j] == c)
-                            return (i+j);
-                    }
+                    j = _bit_scan_reverse(q);
+                    return (i+j);
                 }
             }
             break;
@@ -1912,19 +2284,19 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
                         //we check if we have the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm_cmpeq_epi16(firstchar, current_bytes);
-                    if (_mm_movemask_epi8(current_bytes))
-                        break;
-                }
-                
-                if (shift != 2) {
+                    q = _mm_movemask_epi8(current_bytes);
+                    if (q) {
                         //Our character is present, we now try to find where it is...
                         //we find it in this section...
-                    for (j = 14; j>=0; j--) {
-                        if (s[j] == c) {
-                            if (charcomp(s+j,search,lensearch)) {
-                                return (i + j + shift);
+                        j = _bit_scan_reverse(q) - 1;
+                        for (; j>=0; j--) {
+                            if (s[j] == c) {
+                                if (charcomp(s+j,search,lensearch)) {
+                                    return (i + j + shift);
+                                }
                             }
                         }
+                        break;
                     }
                 }
             }
@@ -1952,18 +2324,16 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm_cmpeq_epi32(firstchar, current_bytes);
-                    if (_mm_movemask_epi8(current_bytes)) {
-                        break;
-                    }
-                }
-                
-                if (shift != 4) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (j = 12; j>=0; j--) {
-                        if (s[j] == c) {
-                            if (charcomp(s+j,search,lensearch)) {
-                                return (i + j + shift);
+                    q = _mm_movemask_epi8(current_bytes);
+                    if (q) {
+                            //Our character is present, we now try to find where it is...
+                            //we find it in this section...
+                        j = _bit_scan_reverse(q) - 3;
+                        for (; j>=0; j--) {
+                            if (s[j] == c) {
+                                if (charcomp(s+j,search,lensearch)) {
+                                    return (i + j + shift);
+                                }
                             }
                         }
                     }
@@ -1993,7 +2363,8 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
 
         //First we try to find the section in which the first character might occur
     __m128i current_bytes = _mm_setzero_si128();
-    
+
+    int q;
     uchar* s=NULL;
     long j;
     long i = 0;
@@ -2012,10 +2383,13 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
                     //we check if we have a the first character of our string somewhere
                     //in this 16 character window...
                 current_bytes = _mm_cmpeq_epi8(firstchar, current_bytes);
-                if (_mm_movemask_epi8(current_bytes)) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (j = 0; j < 16; j++) {
+                q = _mm_movemask_epi8(current_bytes);
+                if (q) {
+                    //Our character is present, we now try to find where it is...
+                    //we find it in this section...
+                    j = _bit_scan_forward(q);
+                    s += j;
+                    for (; j < 16; j++) {
                         if (*s == c)
                             pos.push_back(i+j);
                         ++s;
@@ -2043,19 +2417,22 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
                         //we check if we have the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm_cmpeq_epi16(firstchar, current_bytes);
-                    if (_mm_movemask_epi8(current_bytes))
-                        break;
-                }
-                
-                if (shift != 2) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (j = 0; j < 15; j++) {
-                        if (*s == c) {
-                            if (charcomp(s,USTR(search),lensearch))
-                                pos.push_back(i + j + shift);
+                    q = _mm_movemask_epi8(current_bytes);
+                    if (q) {
+                            //Our character is present, we now try to find where it is...
+                            //we find it in this section...
+                        j = _bit_scan_forward(q);
+                        s += j;
+                            //Our character is present, we now try to find where it is...
+                            //we find it in this section...
+                        for (; j < 15; j++) {
+                            if (*s == c) {
+                                if (charcomp(s,USTR(search),lensearch))
+                                    pos.push_back(i + j + shift);
+                            }
+                            ++s;
                         }
-                        ++s;
+                        break;
                     }
                 }
             }
@@ -2083,21 +2460,23 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm_cmpeq_epi32(firstchar, current_bytes);
-                    if (_mm_movemask_epi8(current_bytes)) {
-                        break;
-                    }
-                }
-                
-                if (shift != 4) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (j = 0; j < 13; j++) {
-                        if (*s == c) {
-                            if (charcomp(s,USTR(search),lensearch)) {
-                                pos.push_back(i + j + shift);
+                    q = _mm_movemask_epi8(current_bytes);
+                    if (q) {
+                            //Our character is present, we now try to find where it is...
+                            //we find it in this section...
+                        j = _bit_scan_forward(q);
+                        s += j;
+                            //Our character is present, we now try to find where it is...
+                            //we find it in this section...
+                        for (; j < 13; j++) {
+                            if (*s == c) {
+                                if (charcomp(s,USTR(search),lensearch)) {
+                                    pos.push_back(i + j + shift);
+                                }
                             }
+                            ++s;
                         }
-                        ++s;
+                        break;
                     }
                 }
             }
@@ -2136,6 +2515,7 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
     char shift;
     long from = 0;
     long foundHere;
+    int q;
     
     switch (lensearch) {
         case 1:
@@ -2149,10 +2529,15 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
                     //we check if we have a the first character of our string somewhere
                     //in this 16 character window...
                 current_bytes = _mm_cmpeq_epi8(firstchar, current_bytes);
-                if (_mm_movemask_epi8(current_bytes)) {
+                q = _mm_movemask_epi8(current_bytes);
+                if (q) {
                         //Our character is present, we now try to find where it is...
                         //we find it in this section...
-                    for (j = 0; j<32; j++) {
+                    j = _bit_scan_forward(q);
+                    s += j;
+                        //Our character is present, we now try to find where it is...
+                        //we find it in this section...
+                    for (; j<32; j++) {
                         if (*s == c) {
                             foundHere = i + j;
                             if (from != foundHere)
@@ -2185,24 +2570,27 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
                         //we check if we have the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm_cmpeq_epi16(firstchar, current_bytes);
-                    if (_mm_movemask_epi8(current_bytes))
-                        break;
-                }
-                
-                if (shift != 2) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (j = 0; j < 15; j++) {
-                        if (*s == c) {
-                            if (charcomp(s,USTR(search),lensearch)) {
-                                foundHere = i + j + shift;
-                                if (from != foundHere)
-                                    neo = concatstrings(neo, STR(src)+from, ineo, lenneo, foundHere-from);
-                                neo = concatstrings(neo, STR(replace), ineo, lenneo, replace.size());
-                                from = foundHere+lensearch;
+                    q = _mm_movemask_epi8(current_bytes);
+                    if (q) {
+                            //Our character is present, we now try to find where it is...
+                            //we find it in this section...
+                        j = _bit_scan_forward(q);
+                        s += j;
+                            //Our character is present, we now try to find where it is...
+                            //we find it in this section...
+                        for (; j < 15; j++) {
+                            if (*s == c) {
+                                if (charcomp(s,USTR(search),lensearch)) {
+                                    foundHere = i + j + shift;
+                                    if (from != foundHere)
+                                        neo = concatstrings(neo, STR(src)+from, ineo, lenneo, foundHere-from);
+                                    neo = concatstrings(neo, STR(replace), ineo, lenneo, replace.size());
+                                    from = foundHere+lensearch;
+                                }
                             }
+                            ++s;
                         }
-                        ++s;
+                        break;
                     }
                 }
             }
@@ -2230,25 +2618,27 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm_cmpeq_epi32(firstchar, current_bytes);
-                    if (_mm_movemask_epi8(current_bytes)) {
-                        break;
-                    }
-                }
-                
-                if (shift != 4) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (j = 0; j < 13; j++) {
-                        if (*s == c) {
-                            if (charcomp(s,USTR(search),lensearch)) {
-                                foundHere = i + j + shift;
-                                if (from != foundHere)
-                                    neo = concatstrings(neo, STR(src)+from, ineo, lenneo, foundHere-from);
-                                neo = concatstrings(neo, STR(replace), ineo, lenneo, replace.size());
-                                from = foundHere+lensearch;
+                    q = _mm_movemask_epi8(current_bytes);
+                    if (q) {
+                            //Our character is present, we now try to find where it is...
+                            //we find it in this section...
+                        j = _bit_scan_forward(q);
+                        s += j;
+                            //Our character is present, we now try to find where it is...
+                            //we find it in this section...
+                        for (; j < 13; j++) {
+                            if (*s == c) {
+                                if (charcomp(s,USTR(search),lensearch)) {
+                                    foundHere = i + j + shift;
+                                    if (from != foundHere)
+                                        neo = concatstrings(neo, STR(src)+from, ineo, lenneo, foundHere-from);
+                                    neo = concatstrings(neo, STR(replace), ineo, lenneo, replace.size());
+                                    from = foundHere+lensearch;
+                                }
                             }
+                            ++s;
                         }
-                        ++s;
+                        break;
                     }
                 }
             }
@@ -2291,6 +2681,8 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
     uchar* s=src;
     long j;
     long i = 0;
+    int q;
+    
     uchar c = search[0];
     char shift;
     
@@ -2306,10 +2698,17 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
                     //we check if we have a the first character of our string somewhere
                     //in this 16 character window...
                 current_bytes = _mm_cmpeq_epi8(firstchar, current_bytes);
-                if (_mm_movemask_epi8(current_bytes)) {
+                q = _mm_movemask_epi8(current_bytes);
+                if (q) {
                         //Our character is present, we now try to find where it is...
                         //we find it in this section...
-                    for (j = 0; j < 16; j++) {
+                    j = _bit_scan_forward(q);
+                    s += j;
+                        //Our character is present, we now try to find where it is...
+                        //we find it in this section...
+                        //Our character is present, we now try to find where it is...
+                        //we find it in this section...
+                    for (; j < 16; j++) {
                         if (*s == c)
                             counter++;
                         ++s;
@@ -2337,20 +2736,25 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
                         //we check if we have the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm_cmpeq_epi16(firstchar, current_bytes);
-                    if (_mm_movemask_epi8(current_bytes))
-                        break;
-                }
-                
-                if (shift != 2) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (j = 0; j < 15; j++) {
-                        if (*s == c) {
-                            if (charcomp(s,search,lensearch)) {
-                                counter++;
+                    q = _mm_movemask_epi8(current_bytes);
+                    if (q) {
+                            //Our character is present, we now try to find where it is...
+                            //we find it in this section...
+                        j = _bit_scan_forward(q);
+                        s += j;
+                            //Our character is present, we now try to find where it is...
+                            //we find it in this section...
+                            //Our character is present, we now try to find where it is...
+                            //we find it in this section...
+                        for (; j < 15; j++) {
+                            if (*s == c) {
+                                if (charcomp(s,search,lensearch)) {
+                                    counter++;
+                                }
                             }
+                            ++s;
                         }
-                        ++s;
+                        break;
                     }
                 }
             }
@@ -2378,21 +2782,23 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm_cmpeq_epi32(firstchar, current_bytes);
-                    if (_mm_movemask_epi8(current_bytes)) {
-                        break;
-                    }
-                }
-                
-                if (shift != 4) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (j = 0; j < 13; j++) {
-                        if (*s == c) {
-                            if (charcomp(s,search,lensearch)) {
-                                counter++;
+                    q = _mm_movemask_epi8(current_bytes);
+                    if (q) {
+                            //Our character is present, we now try to find where it is...
+                            //we find it in this section...
+                        j = _bit_scan_forward(q);
+                        s += j;
+                            //Our character is present, we now try to find where it is...
+                            //we find it in this section...
+                        for (; j < 13; j++) {
+                            if (*s == c) {
+                                if (charcomp(s,search,lensearch)) {
+                                    counter++;
+                                }
                             }
+                            ++s;
                         }
-                        ++s;
+                        break;
                     }
                 }
             }
@@ -2881,6 +3287,119 @@ if (lensearch > lensrc)
     return counter;
 }
 #endif
+#else
+void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<string>& strings) {
+    long e = 0;
+    long szmax = 256;
+    char* substr = new char[szmax+1];
+    long ipos = 0;
+    char stop = 0;
+    char stope = 0;
+    uchar c;
+
+    while (e < lensrc) {
+        c = src[e];
+        if (c != 34 && c != 39 && c != 47) {
+            e++;
+            continue;
+        }
+
+        switch(c) {
+            case '/':
+            if (src[e+1] == '@') {
+                stop = '@';
+                stope = '/';
+                substr[ipos++] = '/';
+                substr[ipos++] = '@';
+                pos.push_back(e);
+                e+=2;
+                break;
+            }
+            else {
+                if (src[e+1] == '/') {
+                    stop = '\n';
+                    stope = 0;
+                    substr[ipos++] = '/';
+                    substr[ipos++] = '/';
+                    pos.push_back(e);
+                    e+=2;
+                    break;
+                }
+                else {
+                    e++;
+                    continue;
+                }
+            }
+            case 34:
+                if (e > 0 && (src[e-1] == '@' || src[e-1] == 'r' || src[e-1] == 'u' || src[e-1] == 'p')) {
+                    stop = '"';
+                    if (src[e-1] == '@') {
+                        if (e > 1 &&  src[e-2] == 'u') {
+                            substr[ipos++] = src[e-2];
+                            pos.push_back(e-2);
+                        }
+                        else {
+                            pos.push_back(e-1);
+                        }
+                        stope = '@';
+                    }
+                    else {
+                        pos.push_back(e-1);
+                        stope = 0;
+                    }
+                    
+                    substr[ipos++] = src[e-1];
+                    substr[ipos++] = '"';
+                }
+                else {
+                    pos.push_back(e);
+                    stop = '"';
+                    stope = 0;
+                    substr[ipos++] = '"';
+                }
+                e++;
+                break;
+            case 39:
+                stop = '\'';
+                if (e > 0 && (src[e-1] == 'r' || src[e-1] == 'u' || src[e-1] == 'p')) {
+                    pos.push_back(e-1);
+                    substr[ipos++] = (src[e-1]-32);
+                    substr[ipos++] = '\'';
+                }
+                else {
+                    pos.push_back(e);
+                    substr[ipos++] = '\'';
+                }
+                stope = 0;
+                e++;
+                break;
+        }
+        if (!stope) {
+            while (e < lensrc && src[e] != stop) {
+                if (stop == '"' && src[e] == '\\') {
+                    substr = concatchar(substr, '\\', ipos, szmax);
+                    e++;
+                }
+                substr = concatchar(substr, src[e++], ipos, szmax);
+            }
+            substr = concatchar(substr, stop, ipos, szmax);
+            e++;
+        }
+        else {
+            while (e < lensrc && (src[e] != stop || src[e+1] != stope)) {
+                substr = concatchar(substr, src[e++], ipos, szmax);
+            }
+            substr = concatchar(substr, stop, ipos, szmax);
+            substr = concatchar(substr, stope, ipos, szmax);
+            e+=2;
+        }
+        substr[ipos] = 0;
+        strings.push_back(substr);
+        ipos = 0;
+    }
+    
+    delete[] substr;
+}
 #endif
 //------------------------------------------------------------------------
 void bytepairencoding(wstring& str, long nb, hmap<wstring, long>& dicos) {
@@ -5974,294 +6493,642 @@ Exporting bool valid_latin_table(short tableindex) {
  *----------------------------------------------------------------------
  */
 //===================================================================
+
+//Don de Frédéric Roussey
+static const double arConvertExpMinus2[] =
+{
+  1.e-32, 1.e-31, 1.e-30,
+  1.e-29, 1.e-28, 1.e-27, 1.e-26, 1.e-25, 1.e-24, 1.e-23, 1.e-22, 1.e-21, 1.e-20,
+  1.e-19, 1.e-18, 1.e-17, 1.e-16, 1.e-15, 1.e-14, 1.e-13, 1.e-12, 1.e-11, 1.e-10,
+  1.e-09, 1.e-08, 1.e-07, 1.e-06, 1.e-05, 1.e-04, 1.e-03, 1.e-02, 1.e-01, 1.e-00,
+};
+
+static const double arConvertExp[] =
+{
+  1.e00, 1.e01, 1.e02, 1.e03, 1.e04, 1.e05, 1.e06, 1.e07, 1.e08, 1.e09,
+  1.e10, 1.e11, 1.e12, 1.e13, 1.e14, 1.e15, 1.e16, 1.e17, 1.e18, 1.e19,
+  1.e20, 1.e21, 1.e22, 1.e23, 1.e24, 1.e25, 1.e26, 1.e27, 1.e28, 1.e29,
+  1.e30, 1.e31, 1.e32,
+};
+
+
+static inline double power10(BLONG n)
+{
+  if (n > 0)
+  {
+     BLONG n1(n & 0x1f);   //n1 modulo 32
+     BLONG n2(n & (~0x1f));//n2 div 32
+     n2 >>= 5;
+     if (n2 == 0)
+        return arConvertExp[n1];
+     double d = arConvertExp[n1];
+     while (n2--)
+        d *= arConvertExp[32];
+     return d;
+  }
+  else if (n < 0)
+  {
+     BLONG n1(n & 0x1f);   //n1 modulo 32
+     BLONG n2(n & (~0x1f));//n2 div 32
+     n2 >>= 5;
+     if (n2 == -1)
+        return arConvertExpMinus2[n1];
+     double d = arConvertExpMinus2[n1];
+     while (++n2)
+        d *= arConvertExpMinus2[0];
+     return d;
+  }
+  return 1;
+}
+//----------------------------------------------------------------------------------------
+
 extern "C" {
     //Implementation, which replaces strtod, which does not work properly on some platform...
-    double conversiontofloathexa(const char* s, char sign) {
+    double conversiontofloathexa(const char* s, int sign) {
         BLONG v = 0;
-        BLONG point = 0;
-        BLONG mantissa = 0;
-        BLONG power = 0;
-        
-        bool ppres=false;
-        bool stop = false;
-        
-        for (; *s != 0 && !stop; ++s) {
-            switch (*s) {
-                case '+':
-                    break;
-                case '-': //mantissa sign
-                    if (ppres)
-                        sign |= 2;
-                    else
-                        stop=true;
-                    break;
-                case '.':
-                    if (mantissa)
-                        stop = false;
-                    else
-                        mantissa = 1;
-                    break;
+        bool cont = true;
+        uchar c = *s++;
+        while (cont) {
+            switch (digitaction[c]) {
                 case '0':
-                case '1':
-                case '2':
-                case '3':
-                case '4':
-                case '5':
-                case '6':
-                case '7':
-                case '8':
-                case '9':
-                    if (ppres) { //it is in decimal after the "p"
-                        power *= 10;
-                        power += *s - 48;
-                        break;
-                    }
-                    if (!mantissa) {
-                        v <<= 4;
-                        v |= *s - 48;
-                        break;
-                    }
-                    point <<= 4;
-                    point |= *s - 48;
-                    mantissa <<= 4;
-                    break;
-                case 'A':
-                case 'B':
-                case 'C':
-                case 'D':
-                case 'E':
-                case 'F':
-                    if (!mantissa) {
-                        v <<= 4;
-                        v |= *s - 55;
-                        break;
-                    }
-                    point <<= 4;
-                    point |= *s - 55;
-                    mantissa <<= 4;
-                    break;
-                case 'a':
-                case 'b':
-                case 'c':
-                case 'd':
-                    if (!mantissa) {
-                        v <<= 4;
-                        v |= *s - 87;
-                        break;
-                    }
-                    point <<= 4;
-                    point |= *s - 87;
-                    mantissa <<= 4;
-                    break;
-                case 'e':
-                    if (!mantissa) {
-                        v <<= 4;
-                        v |= *s - 87;
-                        break;
-                    }
-                    point <<= 4;
-                    point |= *s - 87;
-                    mantissa <<= 4;
-                    break;
-                case 'f':
-                    if (!mantissa) {
-                        v <<= 4;
-                        v |= *s - 87;
-                        break;
-                    }
-                    point <<= 4;
-                    point |= *s - 87;
-                    mantissa <<= 4;
-                    break;
-                case 'p':
-                    if (ppres)
-                        stop = true;
-                    ppres = true;
-                    break;
+                    v = (v << 4) | (c & 15);
+                    c = *s++;
+                    continue;
+                case 'X':
+                    v = (v << 4) | (c - 55);
+                    c = *s++;
+                    continue;
+                case 'x':
+                    v = (v << 4) | (c - 87);
+                    c = *s++;
+                    continue;
                 default:
-                    stop = true;
+                    cont = false;
             }
         }
         
         double res = v;
-        if (mantissa)
-            res += (double)point / (double)mantissa;
-        
-        if ((sign & 1) == 1)
-            res *= -1;
-        
-        if (ppres) {
-            if ((sign & 2) == 2)
-                power *= -1;
-            res *= pow(2, power);
+
+        if (c == '.') {
+            uchar mantissa = 0;
+            v = 0;
+            cont = true;
+            c = *s++;
+            while (cont) {
+                switch (digitaction[c]) {
+                    case '0':
+                        v = (v << 4) | (c & 15);
+                        c = *s++;
+                        mantissa += 4;
+                        continue;
+                    case 'X':
+                        v = (v << 4) | (c - 55);
+                        mantissa += 4;
+                        c = *s++;
+                        continue;
+                    case 'x':
+                        v = (v << 4) | (c - 87);
+                        mantissa += 4;
+                        c = *s++;
+                        continue;
+                    default:
+                        cont = false;
+                }
+            }
+            
+            res += (double)v/(double)(1 << mantissa);
         }
         
-        return res;
+
+        if ((c &0xDF) == 'P') {
+            bool sgn = false;
+            if (*s == '-') {
+                sgn = true;
+                ++s;
+            }
+            else {
+                if (*s == '+')
+                    ++s;
+            }
+            
+            v = *s++ & 15;
+            while (isadigit(*s)) {
+                v = (v << 3) + (v << 1) + (*s++ & 15);
+            }
+            v = 1 << v;
+            if (sgn)
+                res *= 1 / (double)v;
+            else
+                res *= v;
+
+        }
+        
+        return res*sign;
     }
-    
 }
 
 double conversionfloathexa(const char* s) {
     while (*s!=0 && *s<=32) ++s;
     //End of string...
-    if (s[0]==0)
+    if (*s ==0 )
         return 0;
     
-    char sign = 0;
+    int sign = 1;
 
     //Sign
-    if (s[0]=='-') {
-        sign=1;
+    if (*s=='-') {
+        sign = -1;
         ++s;
     }
     else
-        if (s[0]=='+')
+        if (*s=='+')
             ++s;
     
-    if (s[0]=='0' && s[1]=='x') {
+    if (*s=='0' && s[1]=='x') {
         s+=2;
         return conversiontofloathexa(s, sign);
     }
+    
+    BLONG v;
+    if (isadigit(*s)) {
+        v = *s++ & 15;
+        while (isadigit(*s)) {
+            v = (v << 3) + (v << 1) + (*s++ & 15);
+        }
+        if (!*s)
+            return v;
+    }
+    else
+        return 0;
+    
+    double res = v;
 
+    if (*s=='.') {
+        ++s;
+        if (isadigit(*s)) {
+            uchar mantissa = 1;
+            v = *s++ & 15;
+            while (isadigit(*s)) {
+                v = (v << 3) + (v << 1) + (*s++ & 15);
+                ++mantissa;
+            }
+            res += (double)v / power10(mantissa);
+        }
+        else
+            return res;
+    }
+        
+    if ((*s &0xDF) == 'E') {
+        ++s;
+        long sgn = 1;
+        if (*s == '-') {
+            sgn = -1;
+            ++s;
+        }
+        else {
+            if (*s == '+')
+                ++s;
+        }
+        
+        if (isadigit(*s)) {
+            v = *s++ & 15;
+            while (isadigit(*s))
+                v = (v << 3) + (v << 1) + (*s++ & 15);
+            
+            res *= power10(v*sgn);
+        }
+    }
+    return res*sign;
+}
+
+//------------------------------------------------------------------------------------
+//Keep length
+//------------------------------------------------------------------------------------
+double conversiontofloathexa(const char* s, int sign, short& l) {
     BLONG v = 0;
-    BLONG point = 0;
-    BLONG mantissa = 0;
-    BLONG power = 0;
-    
-    bool epres = false;
-    bool stop = false;
-    
-
-    for (; *s != 0 && !stop; ++s) {
-        switch (*s) {
-            case '+':
-                break;
-            case '-': //mantissa sign
-                if (epres)
-                    sign |= 2;
-                else
-                    stop=true;
-                break;
-            case '.':
-                if (mantissa)
-                    stop = false;
-                else
-                    mantissa = 1;
-                break;
+    bool cont = true;
+    uchar c = *s++;
+    l++;
+    while (cont) {
+        switch (digitaction[c]) {
             case '0':
-            case '1':
-            case '2':
-            case '3':
-            case '4':
-            case '5':
-            case '6':
-            case '7':
-            case '8':
-            case '9':
-                if (epres) {
-                    power *= 10;
-                    power += *s - 48;
-                    break;
-                }
-                if (!mantissa) {
-                    v *= 10;
-                    v += *s - 48;
-                    break;
-                }
-                point *= 10;
-                point += *s - 48;
-                mantissa *= 10;
-                break;
-            case 'E':
-            case 'e':
-                if (epres)
-                    stop = true;
-                epres = true;
-                break;
+                v = (v << 4) | (c & 15);
+                c = *s++;
+                l++;
+                continue;
+            case 'X':
+                v = (v << 4) | (c - 55);
+                c = *s++;
+                l++;
+                continue;
+            case 'x':
+                v = (v << 4) | (c - 87);
+                c = *s++;
+                l++;
+                continue;
             default:
-                stop = true;
+                cont = false;
         }
     }
     
     double res = v;
-    if (mantissa)
-        res += (double)point / (double)mantissa;
-    
-    if ((sign & 1) == 1)
-        res *= -1;
-    
-    if (epres) {
-        if ((sign & 2) == 2)
-            power *= -1;
-        res *= pow(10, power);
+
+    if (c == '.') {
+        uchar mantissa = 0;
+        v = 0;
+        cont = true;
+        c = *s++;
+        l++;
+        while (cont) {
+            switch (digitaction[c]) {
+                case '0':
+                    v = (v << 4) | (c & 15);
+                    c = *s++;
+                    l++;
+                    mantissa += 4;
+                    continue;
+                case 'X':
+                    v = (v << 4) | (c - 55);
+                    mantissa+=4;
+                    c = *s++;
+                    l++;
+                    continue;
+                case 'x':
+                    v = (v << 4) | (c - 87);
+                    mantissa += 4;
+                    c = *s++;
+                    l++;
+                    continue;
+                default:
+                    cont = false;
+            }
+        }
+        
+        res += (double)v/(double)(1 << mantissa);
     }
     
-    return res;
+
+    if ((c &0xDF) == 'P') {
+        bool sgn = false;
+        if (*s == '-') {
+            sgn = true;
+            ++s;
+            l++;
+        }
+        else {
+            if (*s == '+') {
+                ++s;
+                ++l;
+            }
+        }
+        
+        v = *s++ & 15;
+        l++;
+        while (isadigit(*s)) {
+            v = (v << 3) + (v << 1) + (*s++ & 15);
+            l++;
+        }
+        v = 1 << v;
+        if (sgn)
+            res *= 1 / (double)v;
+        else
+            res *= v;
+
+    }
+    
+    return res*sign;
+}
+
+double conversionfloathexa(const char* s, short& l) {
+    l = 0;
+    //End of string...
+    if (*s ==0 )
+        return 0;
+    
+    int sign = 1;
+
+    //Sign
+    if (*s=='-') {
+        sign = -1;
+        l++;
+        ++s;
+    }
+    else
+        if (*s=='+') {
+            ++s;
+            l++;
+        }
+    
+    if (*s=='0' && s[1]=='x') {
+        s+=2;
+        l++;
+        return conversiontofloathexa(s, sign, l);
+    }
+    
+    BLONG v;
+    if (isadigit(*s)) {
+        v = *s++ & 15;
+        l++;
+        while (isadigit(*s)) {
+            v = (v << 3) + (v << 1) + (*s++ & 15);
+            l++;
+        }
+        if (!*s)
+            return v;
+    }
+    else
+        return 0;
+    
+    double res = v;
+
+    if (*s=='.') {
+        ++s;
+        l++;
+        if (isadigit(*s)) {
+            uchar mantissa = 1;
+            v = *s++ & 15;
+            l++;
+            while (isadigit(*s)) {
+                v = (v << 3) + (v << 1) + (*s++ & 15);
+                l++;
+                ++mantissa;
+            }
+            res += (double)v / power10(mantissa);
+        }
+        else
+            return res;
+    }
+        
+    if ((*s &0xDF) == 'E') {
+        ++s;
+        l++;
+        long sgn = 1;
+        if (*s == '-') {
+            sgn = -1;
+            ++s;
+            l++;
+        }
+        else {
+            if (*s == '+') {
+                ++s;
+                ++l;
+            }
+        }
+        
+        if (isadigit(*s)) {
+            v = *s++ & 15;
+            l++;
+            while (isadigit(*s)) {
+                v = (v << 3) + (v << 1) + (*s++ & 15);
+                l++;
+            }
+            
+            res *= power10(v*sgn);
+        }
+    }
+    return res*sign;
+}
+
+//----- WIDE CHAR Versions
+double conversiontofloathexa(const wchar_t* s, int sign, short& l) {
+    BLONG v = 0;
+    bool cont = true;
+    uchar c = *s++;
+    l++;
+    while (cont) {
+        switch (digitaction[c]) {
+            case '0':
+                v = (v << 4) | (c & 15);
+                c = *s++;
+                l++;
+                continue;
+            case 'X':
+                v = (v << 4) | (c - 55);
+                c = *s++;
+                l++;
+                continue;
+            case 'x':
+                v = (v << 4) | (c - 87);
+                c = *s++;
+                l++;
+                continue;
+            default:
+                cont = false;
+        }
+    }
+    
+    double res = v;
+
+    if (c == '.') {
+        uchar mantissa = 0;
+        v = 0;
+        cont = true;
+        c = *s++;
+        l++;
+        while (cont) {
+            switch (digitaction[c]) {
+                case '0':
+                    v = (v << 4) | (c & 15);
+                    c = *s++;
+                    l++;
+                    mantissa += 4;
+                    continue;
+                case 'X':
+                    v = (v << 4) | (c - 55);
+                    mantissa+=4;
+                    c = *s++;
+                    l++;
+                    continue;
+                case 'x':
+                    v = (v << 4) | (c - 87);
+                    mantissa += 4;
+                    c = *s++;
+                    l++;
+                    continue;
+                default:
+                    cont = false;
+            }
+        }
+        
+        res += (double)v/(double)(1 << mantissa);
+    }
+    
+
+    if ((c &0xDF) == 'P') {
+        bool sgn = false;
+        if (*s == '-') {
+            sgn = true;
+            ++s;
+            l++;
+        }
+        else {
+            if (*s == '+') {
+                ++s;
+                ++l;
+            }
+        }
+        
+        v = *s++ & 15;
+        l++;
+        while (isadigit(*s)) {
+            v = (v << 3) + (v << 1) + (*s++ & 15);
+            l++;
+        }
+        v = 1 << v;
+        if (sgn)
+            res *= 1 / (double)v;
+        else
+            res *= v;
+
+    }
+    
+    return res*sign;
+}
+
+double conversionfloathexa(const wchar_t* s, short& l) {
+    l = 0;
+    //End of string...
+    if (*s ==0 )
+        return 0;
+    
+    int sign = 1;
+
+    //Sign
+    if (*s=='-') {
+        sign = -1;
+        l++;
+        ++s;
+    }
+    else
+        if (*s=='+') {
+            ++s;
+            l++;
+        }
+    
+    if (*s=='0' && s[1]=='x') {
+        s+=2;
+        l++;
+        return conversiontofloathexa(s, sign, l);
+    }
+    
+    BLONG v;
+    if (isadigit(*s)) {
+        v = *s++ & 15;
+        l++;
+        while (isadigit(*s)) {
+            v = (v << 3) + (v << 1) + (*s++ & 15);
+            l++;
+        }
+        if (!*s)
+            return v;
+    }
+    else
+        return 0;
+    
+    double res = v;
+
+    if (*s=='.') {
+        ++s;
+        l++;
+        if (isadigit(*s)) {
+            uchar mantissa = 1;
+            v = *s++ & 15;
+            l++;
+            while (isadigit(*s)) {
+                v = (v << 3) + (v << 1) + (*s++ & 15);
+                l++;
+                ++mantissa;
+            }
+            res += (double)v / power10(mantissa);
+        }
+        else
+            return res;
+    }
+        
+    if ((*s &0xDF) == 'E') {
+        ++s;
+        l++;
+        long sgn = 1;
+        if (*s == '-') {
+            sgn = -1;
+            ++s;
+            l++;
+        }
+        else {
+            if (*s == '+') {
+                ++s;
+                ++l;
+            }
+        }
+        
+        if (isadigit(*s)) {
+            v = *s++ & 15;
+            l++;
+            while (isadigit(*s)) {
+                v = (v << 3) + (v << 1) + (*s++ & 15);
+                l++;
+            }
+            
+            res *= power10(v*sgn);
+        }
+    }
+    return res*sign;
 }
 //===================================================================
 Exporting BLONG conversionintegerhexa(char* number) {
     while (*number!=0 && *number<=32) ++number;
-    if (*number==0)
+    uchar c = *number;
+    if (!c)
         return 0;
     
     int sign = 1;
-    if (number[0] == '-') {
-        ++number;
+    if (c == '-') {
+        c = *++number;
         sign = -1;
     }
     else
-        if (number[0] == '+')
-            ++number;
-    
-    
-    BLONG v = 0;
-    if (number[0] != '0' || number[1] != 'x') {
-        while (*number && (*number >= 48 && *number<=57)) {
-            v = v * 10 + (*number - 48);
-            ++number;
+        if (c == '+') {
+            c = *++number;
         }
-        return v*sign;
-    }
+    
     
     ++number;
-    ++number;
-    
-    while (*number) {
-        v <<= 4;
-        switch (*number) {
-            case '0':
-            case '1':
-            case '2':
-            case '3':
-            case '4':
-            case '5':
-            case '6':
-            case '7':
-            case '8':
-            case '9':
-                v |= *number - 48;
-                break;
-            case 'A':
-            case 'B':
-            case 'C':
-            case 'D':
-            case 'E':
-            case 'F':
-                v |= *number - 55;
-                break;
-            case 'a':
-            case 'b':
-            case 'c':
-            case 'd':
-            case 'e':
-            case 'f':
-                v |= *number - 87;
-                break;
-            default:
-                return v*sign;
-        }
+    BLONG v;
+    if (c == '0' && *number == 'x') {
         ++number;
+        
+        v = 0;
+        while (*number) {
+            v <<= 4;
+            c = *number;
+            switch (digitaction[c]) {
+                case '0':
+                    v |= c & 15;
+                    ++number;
+                    continue;
+                case 'X':
+                    v |= c - 55;
+                    ++number;
+                    continue;
+                case 'x':
+                    v |= c - 87;
+                    ++number;
+                    continue;
+                default:
+                    return v*sign;
+            }
+        }
     }
+    else {
+        if (isadigit(c)) {
+            v = c & 15;
+            while (isadigit(*number))
+                v = (v << 3) + (v << 1) + (*number++ & 15);
+        }
+        else
+            return 0;
+    }
+    
     return v*sign;
 }
 
@@ -6270,7 +7137,7 @@ BLONG conversionintegerhexa(wstring& number) {
     
     while (number[ipos]<=32) ++ipos;
     
-    long i;
+
     int sign = 1;
     if (number[ipos] == '-') {
         ++ipos;
@@ -6280,126 +7147,47 @@ BLONG conversionintegerhexa(wstring& number) {
         if (number[ipos] == '+')
             ++ipos;
     
-    long l = number.size();
     BLONG v = 0;
     
-    if (number[ipos] != '0' || number[ipos+1] != 'x') {
-        for (i = ipos; i < l; i++) {
-            if (number[i]<48 || number[i]>57)
-                return (v*sign);
-            v = v * 10 + (number[i] - 48);
+    uchar c = number[ipos++];
+    if (c == '0' || number[ipos] == 'x') {
+        ipos++;
+        c = number[ipos++];
+        while (c) {
+            v <<= 4;
+            switch (digitaction[c]) {
+                case '0':
+                    v |= c & 15;
+                    c = number[ipos++];
+                    continue;
+                case 'X':
+                    v |= c - 55;
+                    c = number[ipos++];
+                    continue;
+                case 'x':
+                    v |= c - 87;
+                    c = number[ipos++];
+                    continue;
+                default:
+                    return v*sign;
+            }
         }
-        return v*sign;
     }
-    
-    for (i = ipos+2; i < l; i++) {
-        v <<= 4;
-        switch (number[i]) {
-            case '0':
-            case '1':
-            case '2':
-            case '3':
-            case '4':
-            case '5':
-            case '6':
-            case '7':
-            case '8':
-            case '9':
-                v |= number[i] - 48;
-                break;
-            case 'A':
-            case 'B':
-            case 'C':
-            case 'D':
-            case 'E':
-            case 'F':
-                v |= number[i] - 55;
-                break;
-            case 'a':
-            case 'b':
-            case 'c':
-            case 'd':
-            case 'e':
-            case 'f':
-                v |= number[i] - 87;
-                break;
-            default:
-                return v*sign;
+    else {
+        if (isadigit(c)) {
+            v = c & 15;
+            c = number[ipos++];
+            while (isadigit(c)) {
+                v = (v << 3) + (v << 1) + (c & 15);
+                c = number[ipos++];
+            }
         }
     }
     return v*sign;
 }
 
 //===================================================================
-Exporting double conversionfloat(char* s) {
-    double v = 0;
-    double point = 0;
-    double mantissa = 0;
-    double power = 0;
-    bool epres = false;
-    char sign = 0;
-    bool stop = false;
-    
-    for (long i = 0; s[i] != 0 && !stop; i++) {
-        switch (s[i]) {
-            case '-':
-                if (epres)
-                    sign |= 2;
-                else
-                    sign = 1;
-                break;
-            case 'e':
-                if (epres)
-                    stop = true;
-                epres = true;
-                break;
-            case '.':
-                if (mantissa)
-                    stop = false;
-                else
-                    mantissa = 1;
-                break;
-            case '0':
-            case '1':
-            case '2':
-            case '3':
-            case '4':
-            case '5':
-            case '6':
-            case '7':
-            case '8':
-            case '9':
-                if (epres) {
-                    power *= 10;
-                    power += s[i] - 48;
-                    break;
-                }
-                if (!mantissa) {
-                    v *= 10;
-                    v += s[i] - 48;
-                    break;
-                }
-                point *= 10;
-                point += s[i] - 48;
-                mantissa *= 10;
-                break;
-            default:
-                stop = true;
-        }
-    }
-    if (mantissa)
-        v += point / mantissa;
-    
-    if ((sign & 1) == 1)
-        v *= -1;
-    if (epres) {
-        if ((sign & 2) == 2)
-            power *= -1;
-        power = pow(10, power);
-        v *= power;
-    }
-    return v;
-}
+
 //===================================================================
 //Conversion from string to double...
 Exporting double convertfloat(char* s) {
@@ -10824,15 +11612,13 @@ void v_split(string& thestr, string thesplitter, vector<string>& vs) {
 }
 
 Exporting bool c_is_digit(TAMGUCHAR code) {
-    if (code >= 48 && code <= 57)
-        return true;
-    return false;
+    return isadigit(code);
 }
 
 Exporting bool c_is_hexa(TAMGUCHAR code) {
     static const char hexas[]= {'a','b','c','d','e','f','A','B','C','D','E','F'};
     
-    if (code >= 48 && code <= 57)
+    if (isadigit(code))
         return true;
     
     if (code <= 'f' && strchr(hexas,(char)code))
@@ -10844,9 +11630,10 @@ Exporting bool c_is_hexa(TAMGUCHAR code) {
 Exporting bool s_threedigits(wstring& s, long i) {
     if (i > s.size() - 3)
         return false;
-    if (s[i] >= 48 && s[i] <= 57 && s[i + 1] >= 48 && s[i + 1] <= 57 && s[i + 2] >= 48 && s[i + 2] <= 57) {
+    
+    if (isadigit(s[i]) && isadigit(s[i + 1]) && isadigit(s[i + 2])) {
         if (i < s.size() - 3)
-            if (s[i + 3] >= 48 && s[i + 3] <= 57)
+            if (isadigit(s[i + 3]))
                 return false;
         return true;
     }
@@ -11131,13 +11918,13 @@ void getdefaultrules(vector<string>& rules) {
     rules.push_back("\"=0");                                                //24    "
     rules.push_back("'=0");                                                 //23    '
     
-    rules.push_back("+0x%4+(.%4+)(p([- +])%d+)=0");                         //47 hexadecimal
-    rules.push_back("+%d(.%d+)e([- +])%d+=92");                               //25    exponential digits
+    rules.push_back("+0x%4+(.%4+)([p P]([- +])%d+)=0");                         //47 hexadecimal
+    rules.push_back("+%d(.%d+)[e E]([- +])%d+=92");                               //25    exponential digits
     rules.push_back("+%d+(.%d+)=93");                                       //26    digits
     rules.push_back("+=0");                                                 //27    +
     
-    rules.push_back("-0x%4+(.%4+)(p([- +])%d+)=0");                         //47 hexadecimal
-    rules.push_back("-%d(.%d+)e([- +])%d+=92");                               //28    exponential digits
+    rules.push_back("-0x%4+(.%4+)([p P]([- +])%d+)=0");                         //47 hexadecimal
+    rules.push_back("-%d(.%d+)[e E]([- +])%d+=92");                               //28    exponential digits
     rules.push_back("-%d+(.%d+)=93");                                       //29    digits
     rules.push_back("-=0");                                                 //30    -
     
@@ -11159,7 +11946,7 @@ void getdefaultrules(vector<string>& rules) {
     
     rules.push_back("http(s)://%2+(.%2+)+=0");                              //40    http (we use metarule %2 to detect which characters are valid)
     
-    rules.push_back("0x%4+(.%4+)(p([- +])%d+)=0");                         //47 hexadecimal
+    rules.push_back("0x%4+(.%4+)([p P]([- +])%d+)=0");                         //47 hexadecimal
     rules.push_back("%d+,%d%d%d(,%d%d%d)+=88");                             //42    multi-word expression...
     rules.push_back("%d+.%d%d%d(.%d%d%d)+=88");                             //43    multi-word expression...
     
@@ -11445,7 +12232,7 @@ Exporting char s_is_number(uchar* str, char decimal, long& l, double& f) {
     l = 0;
     f = 0;
     for (long i = 0; i < sz; i++) {
-        if (str[i] >= 48 && str[i] <= 57 ) {
+        if (isadigit(str[i])) {
             if (!founddecimalpoint)
                 l = l * 10 + (str[i] - 48);
             else {

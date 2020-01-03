@@ -81,6 +81,7 @@ void Tamguuvector::AddMethod(TamguGlobal* global, string name, uvectorMethod fun
     Tamguuvector::AddMethod(global, "ngrams", &Tamguuvector::MethodNGrams, P_ONE|P_TWO, "ngrams(int nb, int sep): produces a ngrams svector.");
     Tamguuvector::AddMethod(global, "read", &Tamguuvector::MethodRead, P_ONE, "read(string path): Read the content of a file into the container.");
     Tamguuvector::AddMethod(global, "write", &Tamguuvector::MethodWrite, P_ONE, "write(string path): write the string content into a file.");
+    Tamguuvector::AddMethod(global, "convert", &Tamguuvector::MethodConvert, P_NONE, "convert(): detect number values and convert them into actual numbers. Return a vector object.");
 
 
     global->newInstance[Tamguuvector::idtype] = new Tamguuvector(global);
@@ -111,6 +112,23 @@ Tamgu* Tamguuvector::MethodRead(Tamgu* contextualpattern, short idthread, TamguC
     
     return this;
 }
+
+Tamgu* Tamguuvector::MethodConvert(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    Tamguvector* vect = (Tamguvector*)SelectaVector(contextualpattern);
+    Doublelocking _lock(this, vect);
+    
+    short ln;
+    double d;
+    for (long i = 0; i < values.size(); i++) {
+        d = conversionfloathexa(WSTR(values[i]), ln);
+        if (ln == values[i].size())
+            vect->storevalue(d);
+        else
+            vect->storevalue(values[i]);
+    }
+    return vect;
+}
+
 
 Tamgu* Tamguuvector::MethodWrite(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         //The separator between values

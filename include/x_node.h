@@ -177,12 +177,14 @@ public:
     long firstrule;
     bool loaded;
     bool juststack;
+    bool lookforquotes;
     unsigned char escape;
 
     x_rules() {
         firstrule=-1;
         juststack=false;
         loaded=false;
+        lookforquotes = false;
 
         for (short i=0; i< 255; i++) {
             table[i]=255;
@@ -231,6 +233,8 @@ public:
     }
     
     virtual void setrules() {
+        lookforquotes = true;
+        
         /*
          a) A metarule is composed of two parts: c:expression, where c is the metacharacter that be accessed through %c and expression is a single body rule.
          
@@ -389,8 +393,8 @@ public:
         rules.push_back("u-@-\"%?+\"@-=8");             //46    string u@".."@ unicode string
         
         
-        rules.push_back("0x%1+(.%1+)(p([- +])%d+)=3");  //47 hexadecimal: can handle 0x1.16bca4f9165dep-3
-        rules.push_back("%d+(.%d+)(e([- +])%d+)=3");    //48    exponential digits
+        rules.push_back("0x%1+(.%1+)([p P]([- +])%d+)=3");  //47 hexadecimal: can handle 0x1.16bca4f9165dep-3
+        rules.push_back("%d+(.%d+)([e E]([- +])%d+)=3");    //48    exponential digits
         
         // Rules start here
         //This character should be interpreted as one
@@ -1606,8 +1610,8 @@ public:
         rules.push_back("#=0");                         //30    #
         rules.push_back("?=0");                         //31    ?
 
-        rules.push_back("0x%1+(.%1+)(p([- +])%d+)=3"); //32 hexadecimal
-        rules.push_back("%d+(.%d+)(e([- +])%d+)=3");    //33    exponential digits
+        rules.push_back("0x%1+(.%1+)([p P]([- +])%d+)=3"); //32 hexadecimal
+        rules.push_back("%d+(.%d+)([e E]([- +])%d+)=3");    //33    exponential digits
         
         // Rules start here
         rules.push_back("{%a %d %H}+=4");               //34    label a combination of alpha, digits and hangul characters

@@ -42,6 +42,7 @@
 void RetrieveThroughVariables(string& declaration);
 void RetrieveThroughVariables(wstring& decl);
 bool CheckThroughVariables();
+Tamgu* ProcEval(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
 #ifdef DOSOUTPUT
 static bool dosoutput = true;
@@ -173,6 +174,9 @@ class tamgu_editor : public jag_editor {
     vector<editor_keep> editors_undos;
     vector<editor_keep> editors_redos;
 
+    vector<string> displaying;
+    
+    string historyfilename;
     wstring curlyspace;
 
     long currentfileid;
@@ -186,7 +190,7 @@ class tamgu_editor : public jag_editor {
 
     
 public:
-    LockedThread loquet;
+    LockedThread editor_loquet;
     bool debugmode;
 
     tamgu_editor() {
@@ -213,8 +217,8 @@ public:
         if (!i || i == 1) {
             cerr << "   - " << m_redbold << "1. Programs:" << m_current << endl;
             cerr << "   \t- " << m_redbold << "create filename:" << m_current << " create a file space with a specific file name" << endl;
-            cerr << "   \t- " << m_redbold << "load filename:" << m_current << " load a program (use "<< m_redital << "run" << m_current <<" to execute it)" << endl;
-            cerr << "   \t- " << m_redbold << "load:" << m_current << " reload the program (use "<< m_redital << "run" << m_current <<" to execute it)" << endl;
+            cerr << "   \t- " << m_redbold << "open filename:" << m_current << " load a program (use "<< m_redital << "run" << m_current <<" to execute it)" << endl;
+            cerr << "   \t- " << m_redbold << "open:" << m_current << " reload the program (use "<< m_redital << "run" << m_current <<" to execute it)" << endl;
             cerr << "   \t- " << m_redbold << "save filename:" << m_current << " save the buffer content in a file" << endl;
             cerr << "   \t- " << m_redbold << "save:" << m_current << " save the buffer content with the current filename" << endl;
             cerr << "   \t- " << m_redbold << "run filename:" << m_current << " load and run a program filename" << endl;
@@ -238,9 +242,12 @@ public:
             cerr << "   \t- " << m_redbold << "help:" << m_current << " display the help" << endl;
             cerr << "   \t- " << m_redbold << "help n:" << m_current << " display one of the help sections (from 1 to 5)" << endl;
             cerr << "   \t- " << m_redbold << "history:" << m_current << " display the command history" << endl;
+            cerr << "   \t- " << m_redbold << "load filename:" << m_current << " load the command history from a file" << endl;
+            cerr << "   \t- " << m_redbold << "store filename:" << m_current << " store the command history in a file" << endl;
             cerr << "   \t- " << m_redbold << "filename:" << m_current << " display the current file name" << endl;
-            cerr << "   \t- " << m_redbold << "filespace:" << m_current << " display all the files stored in memory with their file space id" << endl;
-            cerr << "   \t- " << m_redbold << "select idx:" << m_current << " select a file space" << endl;
+            cerr << "   \t- " << m_redbold << "spaces:" << m_current << " display all the files stored in memory with their file space id" << endl;
+            cerr << "   \t- " << m_redbold << "select space:" << m_current << " select a file space" << endl;
+            cerr << "   \t- " << m_redbold << "create filename:" << m_current << " create a new empty file space" << endl;
             cerr << "   \t- " << m_redbold << "metas:" << m_current << " display meta-characters" << endl;
             cerr << "   \t- " << m_redbold << "rm:" << m_current << " clear the buffer content" << endl;
             cerr << "   \t- " << m_redbold << "rm b:e:" << m_current << " remove the lines from b to e (b: or :e is also possible)" << endl;
@@ -254,7 +261,7 @@ public:
         }
         
         if (!i || i == 3) {
-            cerr << "   - " << m_redbold << "3. edit (idx):" << m_current << " edit mode. You can optionally select also a file space" << endl;
+            cerr << "   - " << m_redbold << "3. edit (space):" << m_current << " edit mode. You can optionally select also a file space" << endl;
             cerr << "   \t- " << m_redbold << "Ctrl-b:" << m_current << " toggle breakpoint" << endl;
             cerr << "   \t- " << m_redbold << "Ctrl-k:" << m_current << " delete from cursor up to the end of the line" << endl;
             cerr << "   \t- " << m_redbold << "Ctrl-d:" << m_current << " delete a full line" << endl;
@@ -300,7 +307,9 @@ public:
         if (!i || i == 5) {
             cerr << "   - " << m_redbold << "5. System:" << m_current << endl;
             cerr << "   \t- " << m_redbold << "!unix:" << m_current << " what follows the " << m_redital << "'!'" << m_current << " will be executed as a Unix command (ex: "<< m_redital << "!ls" << m_current << ")" << endl;
-            cerr << "   \t- " << m_redbold << "clear (idx):" << m_current << " clear the current environment or a specifc file space" << endl;
+            cerr << "   \t- " << m_redbold << "!vs=unix:" << m_current << " what follows the " << m_redital << "'='" << m_current << " will be executed as a Unix command (vs must be a svector:"
+                 << m_redital << "!vs=ls" << m_current << ")" << endl;
+            cerr << "   \t- " << m_redbold << "clear (space):" << m_current << " clear the current environment or a specifc file space" << endl;
             cerr << "   \t- " << m_redbold << "reinit:" << m_current << " clear the buffer content and initialize predeclared variables" << endl;
             cerr << "   \t- " << m_redbold << "Ctrl-d:" << m_current << " end the session and exit tamgu" << endl << endl;
             cerr << "   \t- " << m_redbold << "exit:" << m_current << " end the session and exit tamgu" << endl << endl;
@@ -343,7 +352,31 @@ public:
     //Cursor movements...
     //------------------------------------------------------------------------------------------------
     void printdebug(long pos) {
+        clearscreen();
         cout << back << m_dore << "▶▶" << m_current << m_lightgray << std::setw(prefixsize) << lines.numeros[pos] << "> " << m_current << coloringline(lines[pos]) << endl;
+        pos++;
+        short nb = 0;
+        while (nb !=  25 && pos < (lines.size() - 1)) {
+            cout << back << m_dore << "▶▶" << m_current << m_lightgray << std::setw(prefixsize) << lines.numeros[pos] << "> " << m_current << coloringline(lines[pos]) << endl;
+            ++pos;
+            ++nb;
+        }
+        
+        if (displaying.size()) {
+            cout << endl;
+            vector<long> errors;
+            long i;
+            for (i = 0; i < displaying.size(); i++) {
+                if (!evallocalcode(displaying[i], true))
+                    errors.push_back(i);
+            }
+            
+            for (i = errors.size()-1; i>= 0; i--) {
+                displaying.erase(displaying.begin()+errors[i]);
+            }
+            cout << endl;
+        }
+        
         cout << back << m_dore << "▶▶" << m_current;
         cout.flush();
     }
@@ -750,10 +783,46 @@ public:
         return true;
     }
 
+    void cleardebug() {
+        debugmode = false;
+        debuginfo.stopexecution();
+    }
+    
+    bool evallocalcode(string code, bool disp=false) {
+        Trim(code);
+        string avariable;
+        if (code.back() != ';') {
+            avariable = "println(";
+            avariable += code;
+            avariable += ".json());";
+        }
+        else
+            avariable = code;
+        
+        Tamgustring _arg(avariable);
+        _arg.reference=100;
+        _arg.protect = false;
+        TamguCall func(0);
+        func.arguments.push_back(&_arg);
+        globalTamgu->debugmode = false;
+        if (disp)
+            cout << code << ": ";
+        cout << m_redbold;
+        Tamgu* e = ProcEval(aNULL,0,&func);
+        cout << m_current;
+        globalTamgu->debugmode = true;
+        if (e->isError()) {
+            globalTamgu->Cleanerror(0);
+            return false;
+        }
+        e->Releasenonconst();
+        return true;
+    }
+    
     long handlingcommands(long pos, bool& dsp, char initvar) {
-        typedef enum {cmd_none, cmd_args, cmd_filename, cmd_filespace, cmd_select, cmd_edit, cmd_run, cmd_cls, cmd_echo, cmd_console, cmd_help, cmd_list,
-            cmd_metas, cmd_rm, cmd_break, cmd_history, cmd_load, cmd_create, cmd_save, cmd_exit, cmd_colors, cmd_color, cmd_clear, cmd_reinit,
-            cmd_debug, cmd_next, cmd_locals, cmd_all, cmd_stack, cmd_goto, cmd_in, cmd_out, cmd_stop, cmd_short_name, cmd_to_end} thecommands;
+        typedef enum {cmd_none, cmd_args, cmd_filename, cmd_spaces, cmd_select, cmd_edit, cmd_run, cmd_cls, cmd_echo, cmd_console, cmd_help, cmd_list,
+            cmd_metas, cmd_rm, cmd_break, cmd_history, cmd_open, cmd_create, cmd_save, cmd_exit, cmd_load_history, cmd_store_history, cmd_colors, cmd_color, cmd_clear, cmd_reinit,
+            cmd_debug, cmd_next, cmd_keep, cmd_remove, cmd_locals, cmd_all, cmd_stack, cmd_goto, cmd_in, cmd_out, cmd_stop, cmd_short_name, cmd_to_end} thecommands;
 
         static bool init = false;
         static hmap<wstring, thecommands> commands;
@@ -763,7 +832,7 @@ public:
             init = true;
             commands[L"args"] = cmd_args;
             commands[L"filename"] = cmd_filename;
-            commands[L"filespace"] = cmd_filespace;
+            commands[L"spaces"] = cmd_spaces;
             commands[L"edit"] = cmd_edit;
             commands[L"select"] = cmd_select;
             commands[L"run"] = cmd_run;
@@ -775,7 +844,9 @@ public:
             commands[L"metas"] = cmd_metas;
             commands[L"rm"] = cmd_rm;
             commands[L"history"] = cmd_history;
-            commands[L"load"] = cmd_load;
+            commands[L"load"] = cmd_load_history;
+            commands[L"store"] = cmd_store_history;
+            commands[L"open"] = cmd_open;
             commands[L"create"] = cmd_create;
             commands[L"save"] = cmd_save;
             commands[L"exit"] = cmd_exit;
@@ -785,6 +856,8 @@ public:
             commands[L"reinit"] = cmd_reinit;
             commands[L"debug"] = cmd_debug;
             commands[L"n!"] = cmd_next;
+            commands[L"k!"] = cmd_keep;
+            commands[L"r!"] = cmd_remove;
             commands[L"h!"] = cmd_help;
             commands[L"l!"] = cmd_locals;
             commands[L"a!"] = cmd_all;
@@ -814,21 +887,43 @@ public:
         }
         else {
             if (line[0] == '!' || line[0] == '?') {
+                if (debugmode && debuginfo.running)
+                    return pos;
+
                 if (line[0] == '!') {
                     addcommandline(line);
-                    
+
                     //We launch a Unix command...
                     code = line.substr(1, line.size() -1);
-                    if (code.find(L"\"") != -1) {
-                        line = L"_sys.command('";
-                        line += code;
-                        line += L"');";
+                    long iquote = line.find(L"\"");
+                    long iequal = line.find(L"=");
+                    if (iequal != -1 && (iquote == -1 || iequal < iquote)) {
+                        code = line.substr(iequal+1, line.size()-iequal);
+                        line = line.substr(1, iequal);
+                        if (iquote == -1) {
+                            line += L"_sys.pipe(\"";
+                            line += code;
+                            line += L"\");";
+                        }
+                        else {
+                            line += L"_sys.pipe('";
+                            line += code;
+                            line += L"');";
+                        }
                     }
                     else {
-                        line = L"_sys.command(\"";
-                        line += code;
-                        line += L"\");";
+                        if (iquote != -1) {
+                            line = L"_sys.command('";
+                            line += code;
+                            line += L"');";
+                        }
+                        else {
+                            line = L"_sys.command(\"";
+                            line += code;
+                            line += L"\");";
+                        }
                     }
+                    
                     Executesomecode(line);
                     
                     code = TamguUListing();
@@ -879,7 +974,7 @@ public:
             case cmd_filename:
                 cout << back << m_redbold << "Filename: " << m_red << thecurrentfilename << m_current << endl;
                 return pos;
-            case cmd_filespace:
+            case cmd_spaces:
                 if (v.size() == 1) {
                     cout << back << m_redbold << "File Space:" << endl << endl;
                     for (i = 0; i < ifilenames.size(); i++) {
@@ -1057,15 +1152,19 @@ public:
 
             case cmd_help:
                 if (debugmode) {
-                    cerr << "- " << m_redbold << "n!:" << m_current << " next line" << endl;
-                    cerr << "- " << m_redbold << "l!:" << m_current << " display local variables" << endl;
                     cerr << "- " << m_redbold << "a!:" << m_current << " display all active variables" << endl;
-                    cerr << "- " << m_redbold << "s!:" << m_current << " display the stack" << endl;
-                    cerr << "- " << m_redbold << "g!:" << m_current << " go to next breakpoint" << endl;
                     cerr << "- " << m_redbold << "e!:" << m_current << " execute up to the end" << endl;
+                    cerr << "- " << m_redbold << "g!:" << m_current << " go to next breakpoint" << endl;
+                    cerr << "- " << m_redbold << "h!:" << m_current << " display debug help" << endl;
+                    cerr << "- " << m_redbold << "i!:" << m_current << " get into a function" << endl;
+                    cerr << "- " << m_redbold << "k!: var" << m_current << " display variable at each iteration" << endl;
+                    cerr << "- " << m_redbold << "l!:" << m_current << " display local variables" << endl;
+                    cerr << "- " << m_redbold << "n!:" << m_current << " next line (also carriage return)" << endl;
+                    cerr << "- " << m_redbold << "o!:" << m_current << " get out of a function" << endl;
+                    cerr << "- " << m_redbold << "r!: var|all" << m_current << " delete var from display or all variables kept for display" << endl;
+                    cerr << "- " << m_redbold << "s!:" << m_current << " display the stack" << endl;
                     cerr << "- " << m_redbold << "S!:" << m_current << " stop the execution" << endl;
                     cerr << "- " << m_redbold << "name:" << m_current << " display the content of a variable (just type its name)" << endl;
-                    cerr << "- " << m_redbold << "h!:" << m_current << " display debug help" << endl;
                     return pos;
                 }
                 i = 0;
@@ -1078,17 +1177,21 @@ public:
                 displaythehelp(i);
                 return pos;
             case cmd_metas:
+                if (debugmode && debuginfo.running)
+                    return pos;
                 cout << m_redbold << _metacharacters << endl;
                 return pos;
             case cmd_list:
             case cmd_rm:
             case cmd_break:
                 addcommandline(line);
+                if (debugmode && debuginfo.running)
+                    return pos;
             {
                 code = TamguUListing();
                 if (isempty(code))
                     return pos;
-
+                
                 if (v.size() >= 2 && v[1].size() > 1) {
                     wstring c = v[1];
                     long ps = c.find(L":");
@@ -1115,7 +1218,7 @@ public:
                         }
                     }
                 }
-            
+                
                 string codeindente;
                 i = 3;
                 string cd = convert(code);
@@ -1134,7 +1237,7 @@ public:
                 if (v.size() >= 2) {
                     md = true;
                     if (v[1] == L":") { //list :20
-                        //we display up to the next element (if it part of it...
+                                        //we display up to the next element (if it part of it...
                         if (v.size() >= 3) {
                             if (v[2] == L"$")
                                 end = lastline;
@@ -1193,9 +1296,9 @@ public:
                         }
                         return pos;
                     }
-
+                    
                     string buffer = Normalizefilename(thecurrentfilename);
-
+                    
                     if (lines.check(pos)) {
                         debuginfo.breakpoints[buffer].erase(lines.numeros[pos]);
                         lines.checks.erase(pos);
@@ -1206,7 +1309,7 @@ public:
                         lines.checks[pos] = true;
                         cout << "breakpoint added: " << beg+1 << endl;
                     }
-
+                    
                     line = L"";
                     posinstring = 0;
                     return pos;
@@ -1228,16 +1331,69 @@ public:
                 posinstring = 0;
                 return pos;
             case cmd_history:
+                if (debugmode && debuginfo.running)
+                    return pos;
+
                 cerr << endl;
+                if (historyfilename != "")
+                    cerr << m_redbold << "History:" << historyfilename << m_current << endl;
+                
                 for (i = 0; i < commandlines.size(); i++)
                     cerr << i+1 << " = " << coloringline(commandlines[i]) << endl;
                 cerr << endl;
                 addcommandline(v[0]);
                 return pos;
-            case cmd_load:
-                addcommandline(line);
+            case cmd_load_history: {
                 if (debugmode && debuginfo.running)
                     return pos;
+
+                if (v.size() != 2) {
+                    if (historyfilename == "") {
+                        cerr << m_redbold << "Missing file name.." << m_current << endl;
+                        return pos;
+                    }
+                }
+                else
+                    historyfilename = Normalizefilename(convert(v[1]));
+
+                    
+                ifstream ld(historyfilename, openMode);
+                if (ld.fail()) {
+                    cerr << m_redbold << "Cannot load:" << historyfilename << m_current << endl;
+                    return pos;
+                }
+                string s;
+                while (!ld.eof()) {
+                    getline(ld, s);
+                    s=Trim(s);
+                    if (s!="") {
+                        code = wconvert(s);
+                        commandlines.push_back(code);
+                    }
+                }
+                return pos;
+            }
+            case cmd_store_history: {
+                if (debugmode && debuginfo.running)
+                    return pos;
+
+                if (v.size() != 2) {
+                    if (historyfilename == "") {
+                        cerr << m_redbold << "Missing file name.." << m_current << endl;
+                        return pos;
+                    }
+                }
+                else
+                    historyfilename = Normalizefilename(convert(v[1]));
+                ofstream st(historyfilename, std::ios::binary);
+                for (i = 0; i < commandlines.size(); i++)
+                    st << convert(commandlines[i]) << endl;
+                return pos;
+            }
+            case cmd_open:
+                if (debugmode && debuginfo.running)
+                    return pos;
+                addcommandline(line);
 
                 if (v.size() == 1) {
                     if (thecurrentfilename == "") {
@@ -1249,9 +1405,10 @@ public:
                     cerr << m_red << "ok." << m_current << endl;
                 return pos;
             case cmd_create:
-                addcommandline(line);
                 if (debugmode && debuginfo.running)
                     return pos;
+                
+                addcommandline(line);
                 if (v.size() == 1) {
                     cerr << m_redbold << "Missing file name.." << m_current << endl;
                     return pos;
@@ -1260,9 +1417,9 @@ public:
                 line = L"";
                 return pos;
             case cmd_save:
-                addcommandline(line);
                 if (debugmode && debuginfo.running)
                     return pos;
+                addcommandline(line);
                 if (v.size() == 1) {
                     if (thecurrentfilename == "") {
                         cerr << m_redbold << "Missing file name.." << m_current << endl;
@@ -1300,8 +1457,10 @@ public:
             case cmd_exit:
                 terminate();
             case cmd_colors:
+                if (debugmode && debuginfo.running)
+                    return pos;
                 addcommandline(line);
-                
+
                 if (v.size() == 1) {
                     int j;
                     cerr << endl << m_redbold << "Denomination\t" << "att\tfg\tbg" <<endl;
@@ -1341,6 +1500,8 @@ public:
                 cerr << m_redbold << "colors takes four parameters: denomination attribute forground background" << m_current << endl;
                 return pos;
             case cmd_color:
+                if (debugmode && debuginfo.running)
+                    return pos;
                 addcommandline(line);
                 
             {
@@ -1366,9 +1527,9 @@ public:
             }
                 return pos;
             case cmd_clear:
-                addcommandline(line);
                 if (debugmode && debuginfo.running)
                     return pos;
+                addcommandline(line);
                 if (v.size() == 2) {
                     i = convertinteger(v[1]);
                     if (i < 0 || i >= ifilenames.size()) {
@@ -1443,9 +1604,9 @@ public:
                 pos = 0;
                 return pos;
             case cmd_reinit:
-                addcommandline(line);
                 if (debugmode && debuginfo.running)
                     return pos;
+                addcommandline(line);
 
                 thecurrentfilename = "";
                 lines.clear();
@@ -1468,9 +1629,9 @@ public:
                 pos = 0;
                 return pos;
             case cmd_debug:
-                addcommandline(line);
                 if (debugmode && debuginfo.running)
                     return pos;
+                addcommandline(line);
                 
                 debugmode = 1 - debugmode;
                 updateline = true;
@@ -1479,21 +1640,50 @@ public:
                 else
                     cout << m_red << "debugger off" << endl;
                 return pos;
+            case cmd_keep:
+                if (debugmode && debuginfo.running) {
+                    string var = convert(v[1]);
+                    for (i = 0; i < displaying.size(); i++) {
+                        if (displaying[i] == var)
+                            return pos;
+                    }
+                    displaying.push_back(var);
+                }
+                return pos;
+            case cmd_remove:
+                if (debugmode && debuginfo.running) {
+                    string var = convert(v[1]);
+                    if (var == "all") {
+                        displaying.clear();
+                        return pos;
+                    }
+                    for (i = 0; i < displaying.size(); i++) {
+                        if (displaying[i] == var) {
+                            displaying.erase(displaying.begin()+i);
+                            return pos;
+                        }
+                    }
+                }
+                return pos;
             case cmd_next:
                 if (debugmode && debuginfo.running)
-                    debuginfo.next();
+                    if (!debuginfo.next())
+                        cleardebug();
                 return pos;
             case cmd_in:
                 if (debugmode && debuginfo.running)
-                    debuginfo.getin();
+                    if (!debuginfo.getin())
+                        cleardebug();
                 return pos;
             case cmd_out:
                 if (debugmode && debuginfo.running)
-                    debuginfo.getout();
+                    if (debuginfo.getout())
+                        cleardebug();
                 return pos;
             case cmd_goto:
                 if (debugmode && debuginfo.running)
-                    debuginfo.gotonext();
+                    if (debuginfo.gotonext())
+                        cleardebug();
                 return pos;
             case cmd_locals:
                 if (debugmode && debuginfo.running)
@@ -1517,31 +1707,25 @@ public:
                 return pos;
             case cmd_stop:
                 if (debugmode && debuginfo.running)
-                    debuginfo.stopexecution();
+                    if (!debuginfo.stopexecution())
+                        cleardebug();
                 return pos;
             case cmd_to_end:
                 if (debugmode && debuginfo.running)
-                    debuginfo.gotoend();
+                    if (!debuginfo.gotoend())
+                        cleardebug();
                 return pos;
         }
         
         if (debugmode && debuginfo.running) {
-            string c = convert(v[0]);
-            if (c == "") {
-                debuginfo.next();
-                return pos;
+            if (line != L"") {
+                addcommandline(line);
+                evallocalcode(convert(line));
             }
-            
-            c += " = ";
-            vector<string> splt;
-            v_split(debuginfo.allvariables,"\n",splt);
-            for (i = 0; i < splt.size(); i++) {
-                if (splt[i].find(c) == 0) {
-                    cout << splt[i] << endl;
-                    return pos;
-                }
+            else {
+                if (!debuginfo.next())
+                    cleardebug();
             }
-            cout << "Unknown variable:" << c << endl;
             return pos;
         }
         
@@ -1717,7 +1901,11 @@ public:
             printline(pos+1);
         }
         
-        TamguStop();
+        if (debugmode && debuginfo.running)
+            cleardebug();
+        else
+            TamguStop();
+
         fflush(stdout);
         line = L"";
         posinstring = 0;
@@ -1742,8 +1930,13 @@ public:
                         posinstring = linesize();
                         pos = 0;
                         editmode = true;
+                        clearscreen();
+                        
                         if (c == 'r')
                             debugmode = false;
+                        else
+                            cout << m_redital << "Debug on" << m_current << endl;
+                        
                         handlingcommands(pos, dsp, false);
                         editmode = false;
                         posinstring = 0;
@@ -1759,9 +1952,122 @@ public:
         return false;
     }
     
+    void ls(string path, vector<wstring>& paths) {
+        FILE *fp;
+        int status;
+        
+        char chemin[PATH_MAX];
+        
+        string cmd = "ls -1 -p ";
+        cmd += path;
+                
+        fp = popen(STR(cmd), "r");
+        if (fp == NULL)
+            return;
+        
+        wstring l;
+        while (fgets(chemin, PATH_MAX, fp) != NULL) {
+            cmd = chemin;
+            cmd = Trim(cmd);
+            l = wconvert(cmd);
+            paths.push_back(l);
+        }
+                
+        status = pclose(fp);
+    }
+    
+    bool checkpath() {
+        //The first part should be a command such as open or load...
+        long pos = line.rfind(' ');
+        if (pos == -1)
+            return false;
+        
+        wstring root = line.substr(0, pos);
+        wstring name;
+        wstring path = line.substr(pos, line.size());
+        path = Trim(path);
+        //Two cases, we have a "/" in it...
+        pos = path.rfind(L"/");
+        if (pos != -1) {
+            name = path.substr(pos+1, path.size()-pos);
+            path = path.substr(0, pos+1);
+        }
+        else {
+            name = path;
+            path = L".";
+        }
+        vector<wstring> paths;
+        vector<wstring> targets;
+        ls(convert(path), paths);
+        //Now we look for continuation
+        long i;
+        for (i = 0; i < paths.size(); i++) {
+            if (paths[i].substr(0, name.size()) == name)
+                targets.push_back(paths[i]);
+        }
+        if (path == L".")
+            path = L"";
+        
+        if (targets.size() == 0)
+            return false;
+        
+        if (targets.size() == 1) {
+            line = root;
+            line += L" ";
+            line += path;
+            line += targets[0];
+            clearline();
+            displaygo(true);
+            posinstring = line.size();
+            movetoposition();
+            return true;
+        }
+        
+        wstring common;;
+        long ln  = name.size();
+        bool end = false;
+        while (!end) {
+            //We add one letter from the targets and see if it is common to all targets
+            for (i = 0; i < targets.size(); i++) {
+                if (ln >= targets[i].size()) {
+                    end = true;
+                    break;
+                }
+            }
+            if (!end) {
+                ++ln;
+                common = targets[0].substr(0, ln);
+                for (i = 1; i < targets.size(); i++) {
+                    if (targets[i].substr(0, ln) != common) {
+                        end = true;
+                        break;
+                    }
+                }
+                if (!end)
+                    name = common;
+            }
+        }
+        
+        
+        cerr << endl << endl << m_redital;
+        for (i = 0; i < targets.size(); i++)
+            cerr << convert(targets[i]) << " ";
+        cerr << m_current << endl << endl;
+        
+        line = root;
+        line += L" ";
+        line += path;
+        line += name;
+        clearline();
+        displaygo(true);
+        posinstring = line.size();
+        movetoposition();
+        return true;
+    }
+    
     bool checkkeyboard(string& buff, long& first, long& last, bool& dsp, char noinit) {
         switch (buff[0]) {
-            case 2: //ctrl-b run
+            case 2: //ctrl-b run/breakpoint
                 if (emode()) {
                     string buffer = Normalizefilename(thecurrentfilename);
                     if (lines.check(pos)) {
@@ -1786,6 +2092,11 @@ public:
                     return true;
                 }
                 terminate();
+            case 9:
+                if (emode())
+                    return false;
+                //We try to interpret the string as a path
+                return checkpath();
             case 10: //this is a carriage return
                 if (option != x_none) {
                     checkaction(buff, first, last);
@@ -1875,7 +2186,7 @@ public:
         
         if (ifilenames.size() > 1) {
             currentfileid = 0;
-                thecurrentfilename = ifilenames[0];
+            thecurrentfilename = ifilenames[0];
             lines.setcode(codes[0]);
             TamguSetCode(codes[0]);
         }
@@ -1924,16 +2235,18 @@ public:
                 printline(pos+1);
         }
         
+
         clearst();
         wstring code;
         wstring b;
         string buffer;
-        bool inbuffer = false;
-        
-        bool instring = false;
         string buff;
+
         long first = 0, last;
-        
+
+        bool inbuffer = false;
+        bool instring = false;
+
         while (1) {
             buff = getch();
             
@@ -2031,8 +2344,8 @@ public:
         cout << m_current;
         
         if (debugmode) {
-            debuginfo.running = false;
-            loquet.Released();
+            cleardebug();
+            editor_loquet.Released();
             updateline = true;
             prefix = "◀▶";
         }
@@ -2068,7 +2381,6 @@ static void handle_ctrl_c(int theSignal) {
         JAGEDITOR->clear();
 }
 
-
 Tamgu* debuginfo_callback(vector<Tamgu*>& stack, short idthread, void* data) {
     tamgu_editor* te = (tamgu_editor*)data;
     Tamgu* res = debuginfo.debugger(stack, idthread, data);
@@ -2080,7 +2392,7 @@ Tamgu* debuginfo_callback(vector<Tamgu*>& stack, short idthread, void* data) {
             cout << m_redital << "entering:" << m_redbold << debuginfo.filename << m_current << endl;
         }
         te->printdebug(pos);
-        te->loquet.Released();
+        te->editor_loquet.Released();
         debuginfo.loquet.Blocked();
     }
     return res;
@@ -2097,7 +2409,7 @@ void debuggerthread(tamgu_editor* call) {
     call->updateline = false;
     
     while (debuginfo.running) {
-        call->loquet.Blocked();
+        call->editor_loquet.Blocked();
         call->posinstring = 0;
         call->line = L"";
 
@@ -2286,7 +2598,7 @@ int main(int argc, char *argv[]) {
                     }
                     else {
                         wstring w;
-                        string line = "load ";
+                        string line = "read ";
                         line += names[i];
                         sc_utf8_to_unicode(w, USTR(line), line.size());
                         JAGEDITOR->addcommandline(w);

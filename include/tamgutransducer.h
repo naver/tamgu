@@ -170,7 +170,10 @@ class Tamgutransducer : public TamguObject {
             return;
         
         t->automaton->clearmarks();
-        automaton->start.merge(&t->automaton->start, *automaton);
+        vector<TamguFst*> marks;
+        automaton->start.mergein(&t->automaton->start, *automaton, marks);
+        for (long i = 0; i < marks.size(); i++)
+            marks[i]->mark = false;
     }
     
     void factorize(long first) {

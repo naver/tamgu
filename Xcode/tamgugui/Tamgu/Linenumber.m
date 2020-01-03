@@ -69,7 +69,7 @@ void clearallbreakpoints(void);
 }
 
 - (void)selectionne:(long)ligne {
-    if (ligne < 0 || ligne >= [lignes count])
+    if (ligne <= 0 || ligne >= [lignes count])
         return;
         
     long debut=[[lignes objectAtIndex:ligne-1] intValue];

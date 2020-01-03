@@ -41,6 +41,8 @@ public:
 
 	void setrules() {
 
+        lookforquotes = true;
+        
 		//Spaces, skipped in the parsing string
 		rules.push_back(" =#");                         //0     space (not kept)
 		rules.push_back("\t=#");                        //1     tab (not kept)

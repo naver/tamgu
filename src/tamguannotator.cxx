@@ -215,8 +215,8 @@ bool An_rules::storerule(An_rule* r) {
         switch(ar->atom->type()) {
             case an_token:
             case an_meta:
-            lexicons[r->category].parse(w);
-            return true;
+                lexicons[r->category].parse(w);
+                return true;
             case an_automaton: {
                 if (w.find(L" ")!=-1) {
                     //In this case, we have a multiword expression, to parse it would not make any sense...
@@ -249,7 +249,7 @@ bool An_rules::storerule(An_rule* r) {
     wrds.push_back(w);
     for (i=1; i< r->first->arcs.last;i++) {
         w=r->first->arcs[i]->atom->value();
-        switch(ar->atom->type()) {
+        switch(r->first->arcs[i]->atom->type()) {
             case an_token:
             case an_meta:
             case an_automaton:
@@ -794,6 +794,7 @@ Tamgu* Tamguannotator::lexiconcompiling() {
             lexicon->modified = true;
         }
         compiledlexicon = true;
+        loadedlexicon = true;
     }
     
     if (globalTamgu->gTheAnnotationRules != rules && rules->multiwords.size()) {
@@ -803,6 +804,7 @@ Tamgu* Tamguannotator::lexiconcompiling() {
         
         rules->multiwords.clear();
         compiledlexicon = true;
+        loadedlexicon = true;
     }
 
     if (!loadedlexicon || lexicon->automaton == NULL)
@@ -868,9 +870,10 @@ Tamgu* Tamguannotator::MethodLexicon(Tamgu* contextualpattern, short idthread, T
         lexicon= (Tamgutransducer*)tlexicon;
         //it can be modified only once
         loadedlexicon = true;
+        return aTRUE;
     }
     
-    return aTRUE;
+    return globalTamgu->Returnerror("Wrong argument. Expecting a 'transducer' object.");
 }
 
 Tamgu* Tamguannotator::MethodCheckLabel(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -1189,7 +1192,7 @@ Tamgu* Tamguannotator::Apply(An_context* context,Tamgu* res, bool computelexicon
             //We have two cases, either no lexicon rules was detected through lexiconrulecheck in gTheAnnotationRules, and it this case, we skip all lexicon rules...
             if (!lexiconrulecheck) {
                 if (currentrule->islexiconrule) //we skip these rules, we already know that they cannot apply
-                continue;
+                    continue;
             }
             else {//Or lexicon rules have been detected and we only keep the ones that have been stored in validrules...
                 if (currentrule->islexiconrule && validrules.find(r) == validrules.end())
@@ -1384,8 +1387,8 @@ Tamgu* Tamguannotator::MethodTokenize(Tamgu* contextualpattern, short idthread, 
 }
 
 Tamgu* Tamguannotator::Execution(Tamgu* res, Tamgu* txt, short idthread, uchar computelexicon) {
-    Tamguuvector uvect;
-    uvect.reference=2;
+    Tamguuvector vectoroftokens;
+    vectoroftokens.reference=2;
     long i,pos,j, idx;
     Tamgu* v;
     Tamguvector* sub;
@@ -1448,10 +1451,10 @@ Tamgu* Tamguannotator::Execution(Tamgu* res, Tamgu* txt, short idthread, uchar c
                 w += L"\t";
                 w += tokvect.values[i]->getustring(e);
             }
-            uvect.values.push_back(w);
+            vectoroftokens.values.push_back(w);
         }
         
-        res=Apply(&uvect,res, computelexicon, idthread);
+        res=Apply(&vectoroftokens,res, computelexicon, idthread);
         
         long sz;
         for (i=0;i<res->Size();i++) {
@@ -1483,8 +1486,8 @@ Tamgu* Tamguannotator::Execution(Tamgu* res, Tamgu* txt, short idthread, uchar c
     
     x_wtokenize xr;
     wstring wrds=txt->UString();
-    xr.tokenize(wrds,true,&uvect.values);
-    res=Apply(&uvect,res, computelexicon, idthread);
+    xr.tokenize(wrds,true,&vectoroftokens.values);
+    res=Apply(&vectoroftokens,res, computelexicon, idthread);
     //res is a vector, which contains vectors in which the first value is the label and the other values the indexes...
     for (i=0;i<res->Size();i++) {
         v=res->getvalue(i);
@@ -1501,7 +1504,7 @@ Tamgu* Tamguannotator::Execution(Tamgu* res, Tamgu* txt, short idthread, uchar c
             idx=v->getinteger(j); //the index of the token in uvect
             pos=xr.cpos[idx]; //its position within the initial string
             ivect->values.push_back(pos);
-            ivect->values.push_back(pos+uvect.values[idx].size());
+            ivect->values.push_back(pos+vectoroftokens.values[idx].size());
             sub->Push(ivect);
         }
         finalres->Push(sub);

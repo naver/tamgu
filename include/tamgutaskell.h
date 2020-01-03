@@ -173,11 +173,16 @@ public:
         
         if (!v->Checktype(typevariable)) {
             a = globalTamgu->newInstance.get(typevariable)->Newinstance(idthread);
+            a->Setreference(1);
             if (!v->isNULL()) {
                 a->Putvalue(v, idthread);
                 v->Releasenonconst();
             }
-            v = a;
+            names.push_back(name);
+            declarations.push_back(a);
+            globalTamgu->Storevariable(idthread, name, a);
+            a->Setaffectation(true);
+            return a;
         }
         
         names.push_back(name);

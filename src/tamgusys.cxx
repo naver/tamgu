@@ -87,8 +87,7 @@ void Tamgusys::AddMethod(TamguGlobal* global, string name, sysMethod func, unsig
     Tamgusys::AddMethod(global, "realpath", &Tamgusys::MethodRealPath, P_ONE, "realpath(path relpath): return the actual path matching 'realpath'");
     Tamgusys::AddMethod(global, "fileinfo", &Tamgusys::MethodFileInfo, P_ONE, "fileinfo(string pathname): returns the info of the file 'pathname'");
     Tamgusys::AddMethod(global, "env", &Tamgusys::MethodEnv, P_ONE | P_TWO, "env(string var)|env(string varstring val): return or set the content of the environment variable 'var'");
-
-
+    Tamgusys::AddMethod(global, "pipe", &Tamgusys::MethodPopen, P_ONE, "pipe(string command): execute a command and store the result in a svector.");
 
     global->newInstance[Tamgusys::idtype] = new Tamgusys(global);
     global->RecordMethods(Tamgusys::idtype,Tamgusys::exported);
@@ -135,6 +134,49 @@ Tamgu* Tamgusys::Eval(Tamgu* context, Tamgu* idx, short idthread) {
     return this;
 }
 
+#ifdef WIN32
+#define PATH_MAX 4096
+#endif
+
+Tamgu* Tamgusys::MethodPopen(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    //0 is the first parameter and so on...
+    Tamgu* kcmd = callfunc->Evaluate(0, aNULL, idthread);
+    contextualpattern =  Selectasvector(contextualpattern);
+    
+    FILE *fp;
+    int status;
+	
+	char path[PATH_MAX];
+
+	string cmd = kcmd->String();
+    
+#ifdef WIN32
+	fp = _popen(STR(cmd), "r");
+#else
+	fp = popen(STR(cmd), "r");
+
+#endif
+    if (fp == NULL)
+        return globalTamgu->Returnerror("Error while opening 'popen' stream");
+        
+	while (fgets(path, PATH_MAX, fp) != NULL) {
+        cmd  = path;
+        contextualpattern->storevalue(cmd);
+    }
+
+
+#ifdef WIN32
+	status = _pclose(fp);
+#else
+	status = pclose(fp);
+#endif
+
+	if (status == -1)
+        return globalTamgu->Returnerror("Error while closing 'popen' stream");
+    
+
+    return contextualpattern;
+}
 
 Tamgu* Tamgusys::MethodCommand(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     //0 is the first parameter and so on...

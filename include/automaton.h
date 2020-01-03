@@ -544,7 +544,7 @@ public:
         return false;
     }
     
-    void merge(TamguFst* start, TamguDoubleSideAutomaton& a);
+    void mergein(TamguFst* start, TamguDoubleSideAutomaton& a, vector<TamguFst*>& marks);
     void merging(TamguFst* start, TamguDoubleSideAutomaton& a);
     
 	void add(unicodestring& w, unicodestring& lf, long posw, long posl, TamguDoubleSideAutomaton& a);
@@ -682,7 +682,7 @@ public:
     }
     
     void clearmarks() {
-        for (long i = 1; i < garbage.size(); i++) {
+        for (long i = 0; i < garbage.size(); i++) {
             if (garbage[i] != NULL) {
                 garbage[i]->mark=false;
                 garbage[i]->status &= ~xfmark;
@@ -698,6 +698,14 @@ public:
         }
     }
     
+    void clearmarksfrom(long d) {
+        if (d == 1)
+            d = 0;
+        for (long i = d; i < garbage.size(); i++) {
+            if (garbage[i] != NULL)
+                garbage[i]->mark=false;
+        }
+    }
     
     void Clear() {
         for (long i = 1; i < garbage.size(); i++) {

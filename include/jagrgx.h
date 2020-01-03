@@ -19,7 +19,8 @@
 
 #include "jagvecte.h"
 
-typedef enum{ an_epsilon=0, an_end=1, an_remove=2, an_meta=3, an_negation=4, an_automaton=5, an_regex=6, an_token=7, an_label=8, an_any=9, an_char=10, an_metaplus=11, an_metastar=12, an_charplus=13, an_charstar=14, an_anyplus=15, an_rule=16, an_lemma=17, an_orlabels=18, an_andlabels=19, an_error = 20, an_final=32, an_beginning=64, an_ending=128} an_type;
+typedef enum{ an_epsilon=0, an_end=1, an_remove=2, an_negation=4, an_mandatory=8, an_error=12, an_rule=16, an_final=32, an_beginning=64, an_ending=128} an_flag;
+typedef enum{an_meta=1, an_automaton, an_regex, an_token, an_any, an_lemma, an_label, an_orlabels, an_andlabels} an_type;
 
 typedef enum{aut_reg=1,aut_reg_plus,aut_reg_star,
     aut_meta, aut_meta_plus, aut_meta_star,
@@ -204,8 +205,6 @@ public:
         return action->Type();
     }
 
-    bool get(wstring& w, long i, hmap<long,bool>& rules);
-
     bool same(Au_arc* a) {
         return action->same(a->action);
     }
@@ -255,8 +254,6 @@ public:
         return false;
     }
     
-    bool get(wstring& w, long i, hmap<long,bool>& rules);
-
     bool match(wstring& w, long i);
     bool find(wstring& w, wstring& sep, long i, vector<long>& res);
 
@@ -294,9 +291,7 @@ public:
     }
 
     Au_automaton(string rgx);
-
     
-    bool get(wstring& w, hmap<long,bool>& rules);
     bool match(string& w);
     bool match(wstring& w);
     bool search(wstring& w);

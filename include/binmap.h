@@ -18,6 +18,15 @@
 #ifndef i_binmap
 #define i_binmap
 
+#include "tamgutypes.h"
+
+#ifdef INTELINTRINSICS
+#ifdef WIN32
+#include <intrin.h>
+#else
+#include <x86intrin.h>
+#endif
+#endif
 
 const bushort binbits = 6;
 const bushort binsize = 1 << binbits;
@@ -106,7 +115,26 @@ template<class S, class Z> class bin_iter : public std::iterator<std::forward_it
                 filter = indexes[i];
 
             if (filter) {
+#ifdef INTELINTRINSICS
                 if (!(filter & 1)) {
+                    if (!(filter & 0x00000000FFFFFFFF)) {
+                        filter >>= 32;
+                        j += 32;
+                    }
+                    int qj = _bit_scan_forward((uint32_t)(filter & 0x00000000FFFFFFFF));
+                    filter >>= qj;
+                    j += qj;
+                }
+#else
+                if (!(filter & 1)) {
+                    while (!(filter & 65535)) {
+                        filter >>= 16;
+                        j += 16;
+                    }
+                    while (!(filter & 255)) {
+                        filter >>= 8;
+                        j += 8;
+                    }
                     while (!(filter & 15)) {
                         filter >>= 4;
                         j = j + 4;
@@ -116,6 +144,7 @@ template<class S, class Z> class bin_iter : public std::iterator<std::forward_it
                         j++;
                     }
                 }
+#endif
                 first = (((i + base) << binbits) + j);
                 second = table[i][j];
                 filter >>= 1;
@@ -290,11 +319,21 @@ template <class Z> class bin_hash {
         indexes[i] &= ~binval64[r];
         table[i][r] = NULL;
     }
-
+    
+#ifdef INTELINTRINSICS
+    size_t size() {
+        bint nb = 0;
+        
+        for (long i = 0; i < tsize; i++) {
+            nb += bitcounter(indexes[i]);
+        }
+        return nb;
+    }
+#else
     size_t size() {
         bint nb = 0;
         binuint64 filter;
-
+        
         for (long i = 0; i < tsize; i++) {
             if (table[i] != NULL) {
                 filter = indexes[i];
@@ -317,6 +356,7 @@ template <class Z> class bin_hash {
 
         return nb;
     }
+#endif
 
     void resize(long sz) {
         Z** ntable = new Z*[sz];
@@ -570,6 +610,16 @@ template <class L, class Z> class hash_bin {
         indexes[it.i] &= ~binval64[it.j];
     }
 
+#ifdef INTELINTRINSICS
+    size_t size() {
+        bint nb = 0;
+        
+        for (long i = 0; i < tsize; i++) {
+            nb += bitcounter(indexes[i]);
+        }
+        return nb;
+    }
+#else
     size_t size() {
         size_t nb = 0;
         binuint64 filter;
@@ -596,6 +646,7 @@ template <class L, class Z> class hash_bin {
 
         return nb;
     }
+#endif
 
     void resize(L sz) {
         Z** ntable = new Z*[sz];
@@ -873,12 +924,22 @@ template <class Z> class basebin_hash {
 
         indexes[i] &= ~binval64[r];
     }
-
+    
+#ifdef INTELINTRINSICS
     size_t size() {
         bint nb = 0;
-        binuint64 filter;
-
+        
         for (long i = 0; i < tsize; i++) {
+            nb += bitcounter(indexes[i]);
+        }
+        return nb;
+    }
+#else
+    size_t size() {
+        size_t nb = 0;
+        binuint64 filter;
+        
+        for (L i = 0; i < tsize; i++) {
             if (table[i] != NULL) {
                 filter = indexes[i];
                 while (filter) {
@@ -897,9 +958,10 @@ template <class Z> class basebin_hash {
                 }
             }
         }
-
+        
         return nb;
     }
+#endif
 
     //nettoyage
     void clear() {
@@ -1159,6 +1221,17 @@ public:
         indexes[i] &= ~binval64[r];
     }
     
+    
+#ifdef INTELINTRINSICS
+    size_t size() {
+        bint nb = 0;
+        
+        for (long i = 0; i < tsize; i++) {
+            nb += bitcounter(indexes[i]);
+        }
+        return nb;
+    }
+#else
     size_t size() {
         bint nb = 0;
         binuint64 filter;
@@ -1185,6 +1258,7 @@ public:
         
         return nb;
     }
+#endif
     
     //nettoyage
     void clear() {

@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Bucket
+   uuid = "161100B1-BD02-4F2C-AA6D-A32B5BE92328"
    type = "1"
    version = "2.0">
    <Breakpoints>
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
+            uuid = "F719C5E3-0029-49B1-8268-D8BC85FA0AB7"
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
@@ -16,6 +18,22 @@
             startingLineNumber = "624"
             endingLineNumber = "624"
             landmarkName = "Tamgueditor::MethodOnMouseClick(Tamgu* contextualpattern, short idthread, TamguCall* callfunc)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "29C09A3C-D210-4B7C-AE8B-CFA76806DF71"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../src/tamgu.cxx"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "716"
+            endingLineNumber = "716"
+            landmarkName = "TamguGlobal::~TamguGlobal()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

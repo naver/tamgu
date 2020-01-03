@@ -28,6 +28,15 @@
 #include "tamguhvector.h"
 #include "tamguframeinstance.h"
 #include "tamgutaskell.h"
+
+#ifdef INTELINTRINSICS
+#ifdef WIN32
+#include <intrin.h>
+#else
+#include <x86intrin.h>
+#endif
+#endif
+
 //--------------------------------------------------------------------
 static hmap<string, Tamgu*> throughvariables;
 static hmap<string, string> throughvariabletype;
@@ -166,34 +175,47 @@ void TamguGlobal::Initarguments(vector<string>& args) {
 
 void TamguDeclaration::Cleaning(short idthread) {
 	short j;
-	binuint64 filter;
+	BULONG filter;
 	if (declarations.base == -1)
 		return;
 
-	for (short ii = 0; ii < declarations.tsize; ii++) {
-		filter = declarations.indexes[ii];
-		if (filter) {
-			j = 0;
-			while (filter) {
-				if (!(filter & 1)) {
-					while (!(filter & 65535)) {
-						filter >>= 16;
-						j = j + 16;
-					}
-					while (!(filter & 255)) {
-						filter >>= 8;
-						j = j + 8;
-					}
-					while (!(filter & 15)) {
-						filter >>= 4;
-						j = j + 4;
-					}
-					while (!(filter & 1)) {
-						filter >>= 1;
-						j++;
-					}
-				}
-
+    int qj;
+    
+    for (short ii = 0; ii < declarations.tsize; ii++) {
+        filter = declarations.indexes[ii];
+        if (filter) {
+            j = 0;
+            while (filter) {
+#ifdef INTELINTRINSICS
+                if (!(filter & 1)) {
+                    if (!(filter & 0x00000000FFFFFFFF)) {
+                        filter >>= 32;
+                        j += 32;
+                    }
+                    qj = _bit_scan_forward((uint32_t)(filter & 0x00000000FFFFFFFF));
+                    filter >>= qj;
+                    j += qj;
+                }
+#else
+                if (!(filter & 1)) {
+                    while (!(filter & 65535)) {
+                        filter >>= 16;
+                        j = j + 16;
+                    }
+                    while (!(filter & 255)) {
+                        filter >>= 8;
+                        j = j + 8;
+                    }
+                    while (!(filter & 15)) {
+                        filter >>= 4;
+                        j = j + 4;
+                    }
+                    while (!(filter & 1)) {
+                        filter >>= 1;
+                        j++;
+                    }
+                }
+#endif
 				declarations.table[ii][j]->Resetreference();
 				declarations.table[ii][j] = NULL;
 				globalTamgu->Removevariable(idthread, ((ii + declarations.base) << binbits) + j);

@@ -27,8 +27,6 @@
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
-      <Testables>
-      </Testables>
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
@@ -38,8 +36,8 @@
             ReferencedContainer = "container:tamgubase.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
-      <AdditionalOptions>
-      </AdditionalOptions>
+      <Testables>
+      </Testables>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
@@ -63,11 +61,15 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "/Users/roux/Documents/opensource/nle-tamgu/examples/miscelleaneous/creebitmap.tmg"
+            argument = "-e /Users/roux/Documents/opensource/nle-tamgu/examples/miscelleaneous/creebitmap.tmg"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "/Users/roux/Documents/opensource/scripts/rings.tmg"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-l /Users/roux/Documents/opensource/programs/testappel.tmg"
+            argument = "/Users/roux/Documents/opensource/nle-tamgu/examples/Predicates/decompte.tmg"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -87,8 +89,6 @@
             isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
-      <AdditionalOptions>
-      </AdditionalOptions>
       <LocationScenarioReference
          identifier = "com.apple.dt.IDEFoundation.CurrentLocationScenarioIdentifier"
          referenceType = "1">

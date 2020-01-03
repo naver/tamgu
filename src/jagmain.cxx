@@ -28,16 +28,17 @@
 #include "x_tokenize.h"
 #include "jag.h"
 
+static string version = "0.98 build 9";
 
 
 int main(int argc, char *argv[]) {
     JAGEDITOR = new jag_editor;
-    
+
     if (argc == 2) {
         string cmd = argv[1];
         if (cmd == "-h" || cmd == "-help" || cmd == "--help" || cmd == "--h") {
             cout << m_clear << m_home;
-            cerr << m_red << "jag(작): micro text processor" << m_current << endl;
+            cerr << m_red << "jag(작): micro text processor (version: " << version << ")" << m_current << endl;
             cerr << m_red << "Copyright 2019-present NAVER Corp." << m_current << endl;
             cerr << m_redital << "Ctrl-xh:" << m_current << " to display this help from within" << endl << endl;
             JAGEDITOR->displaythehelp(true);

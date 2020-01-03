@@ -356,7 +356,8 @@ class Tamgusvector : public TamguLockContainer {
 
     Tamgu* MethodRead(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodWrite(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
-
+    Tamgu* MethodConvert(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    
     Tamgu* MethodPermute(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         return booleantamgu[Permute()];
     }

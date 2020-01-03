@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0B094B5B1FD70F8200726942 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0B094B5A1FD70F8200726942 /* Cocoa.framework */; };
-		0BB2AC4A23707A9E00228E91 /* tamguchrono.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BB2AC4923707A9E00228E91 /* tamguchrono.cxx */; };
+		0BB2AC47237079CD00228E91 /* tamguchrono.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BB2AC46237079CD00228E91 /* tamguchrono.cxx */; };
 		0BC57BDC22C517A400E6CF9C /* tamgutamgu.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B7922C517A000E6CF9C /* tamgutamgu.cxx */; };
 		0BC57BDD22C517A400E6CF9C /* codecompile.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B7A22C517A000E6CF9C /* codecompile.cxx */; };
 		0BC57BDE22C517A400E6CF9C /* tamgumapfi.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0BC57B7B22C517A000E6CF9C /* tamgumapfi.cxx */; };
@@ -121,8 +121,8 @@
 /* Begin PBXFileReference section */
 		0B0949FB1FD70E4700726942 /* tamgu */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = tamgu; sourceTree = BUILT_PRODUCTS_DIR; };
 		0B094B5A1FD70F8200726942 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
-		0BB2AC4923707A9E00228E91 /* tamguchrono.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamguchrono.cxx; path = ../../../src/tamguchrono.cxx; sourceTree = "<group>"; };
-		0BB2AC4E23707AEA00228E91 /* tamguchrono.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamguchrono.h; path = ../../../../include/tamguchrono.h; sourceTree = "<group>"; };
+		0BB2AC46237079CD00228E91 /* tamguchrono.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamguchrono.cxx; path = ../../../src/tamguchrono.cxx; sourceTree = "<group>"; };
+		0BB2AC48237079E000228E91 /* tamguchrono.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = tamguchrono.h; path = ../../../../include/tamguchrono.h; sourceTree = "<group>"; };
 		0BC57B7922C517A000E6CF9C /* tamgutamgu.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgutamgu.cxx; path = ../../../src/tamgutamgu.cxx; sourceTree = "<group>"; };
 		0BC57B7A22C517A000E6CF9C /* codecompile.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = codecompile.cxx; path = ../../../src/codecompile.cxx; sourceTree = "<group>"; };
 		0BC57B7B22C517A000E6CF9C /* tamgumapfi.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgumapfi.cxx; path = ../../../src/tamgumapfi.cxx; sourceTree = "<group>"; };
@@ -401,8 +401,8 @@
 				0BC57BC322C517A300E6CF9C /* tamgubyte.cxx */,
 				0BC57BBF22C517A200E6CF9C /* tamgudate.cxx */,
 				0BC57BB622C517A200E6CF9C /* tamgudecimal.cxx */,
+				0BB2AC46237079CD00228E91 /* tamguchrono.cxx */,
 				0BC57BC222C517A300E6CF9C /* tamgudvector.cxx */,
-				0BB2AC4923707A9E00228E91 /* tamguchrono.cxx */,
 				0BC57BA722C517A100E6CF9C /* tamgufile.cxx */,
 				0BC57BB322C517A200E6CF9C /* tamgufloat.cxx */,
 				0BC57BB722C517A200E6CF9C /* tamgufmatrix.cxx */,
@@ -499,6 +499,7 @@
 				0BC57C6922C517C200E6CF9C /* jag.h */,
 				0BC57C6022C517C200E6CF9C /* matrix.h */,
 				0BC57C9A22C517C500E6CF9C /* parsecode.h */,
+				0BB2AC48237079E000228E91 /* tamguchrono.h */,
 				0BC57C9922C517C500E6CF9C /* predicate.h */,
 				0BC57C5022C517C100E6CF9C /* predicatefunctions.h */,
 				0BC57C5122C517C100E6CF9C /* tamgu.h */,
@@ -510,7 +511,6 @@
 				0BC57CA722C517C600E6CF9C /* tamgubyte.h */,
 				0BC57C5922C517C100E6CF9C /* tamguconstants.h */,
 				0BC57C9222C517C400E6CF9C /* tamgudate.h */,
-				0BB2AC4E23707AEA00228E91 /* tamguchrono.h */,
 				0BC57C6822C517C200E6CF9C /* tamgudebug.h */,
 				0BC57CA522C517C500E6CF9C /* tamgudecimal.h */,
 				0BC57C6722C517C200E6CF9C /* tamgudvector.h */,
@@ -677,7 +677,7 @@
 				0BC57C1122C517A400E6CF9C /* tamgu.cxx in Sources */,
 				0BC57C0122C517A400E6CF9C /* tamgumapff.cxx in Sources */,
 				0BC57BF222C517A400E6CF9C /* tamgutreemapsi.cxx in Sources */,
-				0BB2AC4A23707A9E00228E91 /* tamguchrono.cxx in Sources */,
+				0BB2AC47237079CD00228E91 /* tamguchrono.cxx in Sources */,
 				0BC57C3C22C517A400E6CF9C /* tamgumapui.cxx in Sources */,
 				0BC57C0822C517A400E6CF9C /* tamgulvector.cxx in Sources */,
 				0BC57BEA22C517A400E6CF9C /* tamgulong.cxx in Sources */,
@@ -870,12 +870,13 @@
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-DUNIX",
-					"-DFL_INTERNALS",
 					"-DMAVERICK",
 					"-DAPPLE",
 					"-DTamgu_REGEX",
 					"-DINTELINTRINSICS",
 					"-DAVXSUPPORT",
+					"-DGARBAGEFORDEBUG",
+					"-DPASDECOULEUR",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -893,7 +894,6 @@
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-DUNIX",
-					"-DFL_INTERNALS",
 					"-DMAVERICK",
 					"-DAPPLE",
 					"-DTamgu_REGEX",

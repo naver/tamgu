@@ -25,37 +25,10 @@
 #include <list>
 #include <vector>
 #include <map>
-
+#include "tamgutypes.h"
 #include "tamguboost.h"
 
-#ifdef NOFASTTYPE
-#define bint long
-#define buint unsigned long
-#define bshort short
-#define bushort unsigned short
-#define ushort unsigned short
-#define binuint64 unsigned long long
-#define BULONG unsigned long long
-#define BLONG long long
-#else
-#include <inttypes.h>
-#define bint int_fast32_t
-#define buint uint_fast32_t
-#define bshort int_fast16_t
-#define bushort uint_fast16_t
-#define binuint64 uint_fast64_t
-#define BULONG uint_fast64_t
-#define BLONG int_fast64_t
-#define ushort uint_fast16_t
-#endif
 #include "binmap.h"
-
-#ifdef UNIX
-#include <math.h>
-#define strcpy_s(a,c,b) strncpy(a,b,c)
-#define sprintf_s snprintf
-#define swprintf_s swprintf
-#endif
 
 using std::stringstream;
 using std::string;
@@ -73,45 +46,6 @@ using std::cerr;
 using std::cin;
 using std::endl;
 using std::ostringstream;
-
-#ifdef WIN32
-#define Endl "\r\n"
-#define WSTRING_IS_UTF16 1
-#else
-#define Endl "\n"
-#endif
-
-#define uchar unsigned char
-#define STR(x) (char*)x.c_str()
-#define USTR(x) (uchar*)x.c_str()
-#define WSTR(x) (wchar_t*)x.c_str()
-
-#ifdef WSTRING_IS_UTF16
-#define TAMGUCHAR uint32_t
-#else
-#define TAMGUCHAR wchar_t
-#endif
-
-#ifndef Exporting
-#if defined(WIN32)
-#ifdef TamguSTATIC
-#define Exporting
-#define Exchanging
-#else
-#define Exporting __declspec(dllexport)
-#ifdef TamguDLL //This flag should be USED when LINKING with the tamgu DLL, not within the tamgu DLL
-#define Exchanging __declspec(dllimport)
-#else
-#define Exchanging __declspec(dllexport)
-#endif
-#endif
-#else
-#define Exporting
-#define Exchanging
-#endif
-#endif
-
-
 
 union double64 {
 public:
@@ -212,9 +146,13 @@ extern "C" {
 double conversionfloathexa(const char* s);
 }
 
+double conversiontofloathexa(const char* s, int sign, short& l);
+double conversiontofloathexa(const wchar_t* s, int sign, short& l);
+double conversionfloathexa(const char* s, short& l);
+double conversionfloathexa(const wchar_t* s, short& l);
+
 Exporting BLONG conversionintegerhexa(char* number);
 Exporting BLONG conversionintegerhexa(wstring& number);
-Exporting double conversionfloat(char* s);
 Exporting double convertfloat(char* s);
 Exporting double convertfloat(wstring value);
 Exporting long convertinteger(wstring value);
@@ -229,11 +167,13 @@ Exporting long convertlong(string value);
 void DoubleMetaphone(const string &str, vector<string>& codes);
 //===================================================================
 Exporting string convertfromnumber(BLONG l);
-Exporting string convertfromnumber(long l);
-Exporting string convertfromnumber(short l);
 Exporting wstring wconvertfromnumber(BLONG l);
+
+Exporting string convertfromnumber(long l);
 Exporting wstring wconvertfromnumber(long l);
+
 Exporting wstring wconvertfromnumber(short l);
+Exporting string convertfromnumber(short l);
 
 
 Exporting string convertfromnumber(double l);
@@ -702,6 +642,12 @@ public:
             line++;
     }
 
+    void nextc(long& line) {
+        charpos++;
+        bytepos +=  1 + c_test_utf8(((unsigned char*)c_str()) + bytepos);
+        if (at(bytepos) == '\n')
+            line++;
+    }
 
 	TAMGUCHAR nextcode() {
 		charpos++;

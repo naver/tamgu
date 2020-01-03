@@ -20,6 +20,14 @@
 #include <locale>
 static std::locale atomicloc;                 // the "C" locale
 
+#ifdef INTELINTRINSICS
+#ifdef WIN32
+#include <intrin.h>
+#else
+#include <x86intrin.h>
+#endif
+#endif
+
 //We will use an array of basearraysize elements
 //The mask will correspond to the number of bits used to find a slot in the array.
 //For instance, 256 is 8 bits, which corresponds to a mask of 0xFF
@@ -215,10 +223,17 @@ public:
             n = n->next;
         }
     }
-    
+
+#ifdef INTELINTRINSICS
+    short sizeone() {
+        return bitcounter(indexes);
+    }
+#else
     short sizeone() {
         short nb = 0;
+        int qj;
         BULONG filter = indexes;
+        
         while (filter) {
             if (!(filter & 1)) {
                 while (!(filter & 65535))
@@ -235,7 +250,8 @@ public:
         }
         return nb;
     }
-    
+#endif
+
     long size() {
         if (first)
             return 0;
@@ -606,6 +622,7 @@ public:
     
     bool iterate(atomic_element<K,Z>** ele, K& key, Z& val, short& indexarray, uchar& idx, BULONG& filter) {
         atomic_element<K,Z>* e = *ele;
+        int qj;
         
         while (indexarray < basearraysize) {
             while (e) {
@@ -614,6 +631,17 @@ public:
                     idx = 0;
                 }
                 while (filter) {
+#ifdef INTELINTRINSICS
+                    if (!(filter & 1)) {
+                        if (!(filter & 0x00000000FFFFFFFF)) {
+                            filter >>= 32;
+                            idx += 32;
+                        }
+                        qj = _bit_scan_forward((uint32_t)(filter & 0x00000000FFFFFFFF));
+                        filter >>= qj;
+                        idx += qj;
+                    }
+#else
                     if (!(filter & 1)) {
                         while (!(filter & 65535)) {
                             filter >>= 16;
@@ -632,7 +660,7 @@ public:
                             ++idx;
                         }
                     }
-                    
+#endif
                     key = e->keys[idx];
                     filter >>= 1;
                     val = e->values[idx++];
@@ -659,6 +687,7 @@ public:
 
     Z iteratepointer(atomic_element<K,Z>** ele, K& key, short& indexarray, uchar& idx, BULONG& filter, bool& end) {
         atomic_element<K,Z>* e = *ele;
+        int qj;
         
         while (indexarray < basearraysize) {
             while (e) {
@@ -667,6 +696,17 @@ public:
                     idx = 0;
                 }
                 while (filter) {
+#ifdef INTELINTRINSICS
+                    if (!(filter & 1)) {
+                        if (!(filter & 0x00000000FFFFFFFF)) {
+                            filter >>= 32;
+                            idx += 32;
+                        }
+                        qj = _bit_scan_forward((uint32_t)(filter & 0x00000000FFFFFFFF));
+                        filter >>= qj;
+                        idx += qj;
+                    }
+#else
                     if (!(filter & 1)) {
                         while (!(filter & 65535)) {
                             filter >>= 16;
@@ -685,7 +725,7 @@ public:
                             ++idx;
                         }
                     }
-                    
+#endif
                     key = e->keys[idx];
                     filter >>= 1;
                     end = false;

@@ -21,8 +21,25 @@ public class JTamgu {
      * Constructor for the JTamgu object
      */
     public JTamgu() {
-		DynLoaderFromJar.loadLibFromJar();
+        try {
+            DynLoaderFromJar.loadLibFromJar();
+        }
+        catch(Throwable ex) {
+            System.out.println("Exception during loading 'jtamgu'");
+        }
     }
+
+    public JTamgu(boolean withOutLoading) {
+        if (withOutLoading == false) {
+            try {
+                DynLoaderFromJar.loadLibFromJar();
+            }
+            catch(Throwable ex) {
+                System.out.println("Exception during loading 'jtamgu'");
+            }
+        }
+    }
+
     //------------------------------------------------------------------------
 
     private native int LoadProgramImplementation(String filename,String args) throws Exception;

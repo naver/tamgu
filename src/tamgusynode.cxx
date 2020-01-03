@@ -39,9 +39,9 @@ Exporting void Tamgusynode::AddMethod(TamguGlobal* global, string name, synodeMe
 
 Exporting 
 
-    void Tamgusynode::Setidtype(TamguGlobal* global) {
-        Tamgusynode::idtype = global->Getid("synode");
-    }
+ Exporting void Tamgusynode::Setidtype(TamguGlobal* global) {
+      Tamgusynode::idtype = global->Getid("synode");
+ }
 
    bool Tamgusynode::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();

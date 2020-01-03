@@ -18,6 +18,14 @@
 #ifndef i_longmap
 #define i_longmap
 
+#ifdef INTELINTRINSICS
+#ifdef WIN32
+#include <intrin.h>
+#else
+#include <x86intrin.h>
+#endif
+#endif
+
 const unsigned long binlongbits = 6;
 const unsigned long binlongsize = 1 << binlongbits;
 const binuint64 binlongONE = 1;
@@ -145,6 +153,16 @@ public:
         table[i][r] = NULL;
     }
     
+#ifdef INTELINTRINSICS
+    size_t size() {
+        bint nb = 0;
+        
+        for (long i = 0; i < tsize; i++) {
+            nb += bitcounter(indexes[i]);
+        }
+        return nb;
+    }
+#else
     size_t size() {
         bint nb = 0;
         binuint64 filter;
@@ -171,6 +189,8 @@ public:
         
         return nb;
     }
+#endif
+
     
     void resize(long sz) {        
         Z** ntable = new Z*[sz];

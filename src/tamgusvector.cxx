@@ -81,6 +81,7 @@ void Tamgusvector::AddMethod(TamguGlobal* global, string name, svectorMethod fun
     Tamgusvector::AddMethod(global, "insert", &Tamgusvector::MethodInsert, P_TWO, "insert(i,v): Insert v at position i.");
     Tamgusvector::AddMethod(global, "ngrams", &Tamgusvector::MethodNGrams, P_ONE|P_TWO, "ngrams(int nb, int sep): produces a ngrams svector.");
     Tamgusvector::AddMethod(global, "permute", &Tamgusvector::MethodPermute, P_NONE, "permute(): permute the values in the vector after each call.");
+    Tamgusvector::AddMethod(global, "convert", &Tamgusvector::MethodConvert, P_NONE, "convert(): detect number values and convert them into actual numbers. Return a vector object.");
     Tamgusvector::AddMethod(global, "read", &Tamgusvector::MethodRead, P_ONE, "read(string path): Read the content of a file into the container.");
     Tamgusvector::AddMethod(global, "write", &Tamgusvector::MethodWrite, P_ONE, "write(string path): write the string content into a file.");
 
@@ -98,6 +99,23 @@ void Tamgusvector::AddMethod(TamguGlobal* global, string name, svectorMethod fun
 Exporting TamguIteration* Tamgusvector::Newiteration(bool direction) {
     return new TamguIterationsvector(this, direction);
 }
+
+Tamgu* Tamgusvector::MethodConvert(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    Tamguvector* vect = (Tamguvector*)SelectaVector(contextualpattern);
+    Doublelocking _lock(this, vect);
+    
+    short ln;
+    double d;
+    for (long i = 0; i < values.size(); i++) {
+        d = conversionfloathexa(STR(values[i]), ln);
+        if (ln == values[i].size())
+            vect->storevalue(d);
+        else
+            vect->storevalue(values[i]);
+    }
+    return vect;
+}
+
 
 Tamgu* Tamgusvector::MethodRead(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         //The separator between values
