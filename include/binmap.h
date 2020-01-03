@@ -18,6 +18,8 @@
 #ifndef i_binmap
 #define i_binmap
 
+#include "tamgutypes.h"
+
 #ifdef INTELINTRINSICS
 #ifdef WIN32
 #include <intrin.h>
@@ -323,7 +325,7 @@ template <class Z> class bin_hash {
         bint nb = 0;
         
         for (long i = 0; i < tsize; i++) {
-            nb += _mm_popcnt_u64(indexes[i]);
+            nb += bitcounter(indexes[i]);
         }
         return nb;
     }
@@ -613,7 +615,7 @@ template <class L, class Z> class hash_bin {
         bint nb = 0;
         
         for (long i = 0; i < tsize; i++) {
-            nb += _mm_popcnt_u64(indexes[i]);
+            nb += bitcounter(indexes[i]);
         }
         return nb;
     }
@@ -928,7 +930,7 @@ template <class Z> class basebin_hash {
         bint nb = 0;
         
         for (long i = 0; i < tsize; i++) {
-            nb += _mm_popcnt_u64(indexes[i]);
+            nb += bitcounter(indexes[i]);
         }
         return nb;
     }
@@ -1225,7 +1227,7 @@ public:
         bint nb = 0;
         
         for (long i = 0; i < tsize; i++) {
-            nb += _mm_popcnt_u64(indexes[i]);
+            nb += bitcounter(indexes[i]);
         }
         return nb;
     }

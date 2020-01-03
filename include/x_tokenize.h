@@ -1108,7 +1108,8 @@ public:
             //Double quotes
         rules.push_back("\"\"=1");                      //38    empty string ""
         rules.push_back("\"%?~%r+\"=1");                //39    string ""
-                                                        //Single quote
+                                                        
+            //Single quote
         rules.push_back("''=2");                        //40    empty string ''
         rules.push_back("'%.~%r+'=2");                  //41    string ''
         

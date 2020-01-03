@@ -158,7 +158,7 @@ public:
         bint nb = 0;
         
         for (long i = 0; i < tsize; i++) {
-            nb += _mm_popcnt_u64(indexes[i]);
+            nb += bitcounter(indexes[i]);
         }
         return nb;
     }

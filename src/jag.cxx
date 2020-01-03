@@ -646,7 +646,7 @@ void jag_editor::movetoend() {
     if (emode()) {
         long p = poslines[currentline];
         sc = fullsize(lines[p]) + prefixe();
-        if (lines.Status(p) != solo_line &&  lines.Status(p+1) == concat_line)
+        if (lines.eol(p))
             sc--;
     }
     else
@@ -1978,7 +1978,9 @@ void jag_editor::evaluateescape(string& buff) {
         else {//we go up at the end of the previous line
             if (emode() && pos > 0) {
                 updown(65, pos);
-                posinstring = line.size() - 1;
+                posinstring = line.size();
+                if (posinstring && !lines.eol(pos))
+                    posinstring--;
                 movetoposition();
             }
         }
@@ -2158,8 +2160,10 @@ bool jag_editor::checkaction(string& buff, long& first, long& last) {
                 deleteline(0);
             return true;
         case 5://ctrl-e, moving to the end of the line...
-            posinstring = line.size() - 1;
-            movetoend();
+            posinstring = line.size();
+            if (posinstring && !lines.eol(pos))
+                posinstring--;
+            movetoposition();
             return true;
         case 6: // ctrl-f find
             if (emode()) {

@@ -236,6 +236,12 @@ public:
         return 0;
     }
     
+    //Check if we can go up to the end of the line
+    bool eol(long p) {
+        if (Status(p) != solo_line &&  Status(p+1) == concat_line)
+            return false;
+        return true;
+    }
         //the line is cut after pos (either for destruction of copy)
         //the line is cut after pos (either for destruction of copy)
     char updatestatus(long pos);

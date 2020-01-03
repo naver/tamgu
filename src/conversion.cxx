@@ -49,6 +49,15 @@ static char digitaction[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 #ifdef INTELINTRINSICS
 static const __m128i checkifzero = _mm_set1_epi8(0xFF);
 
+long _bitcounter(binuint64 x) {
+    long nb = 0;
+    while (x) {
+        if (x & 1) nb++;
+        x >>= 1;
+    }
+    return nb;
+}
+
 //There is a wnscmp method, however there seems to be a problem when used in conjunction with intrinsics instructions...
 //Some explanations: we suppose that the first character of both strings has already been identified as being the same
 static inline bool wcharcomp(wchar_t* src, wchar_t* search, long lensearch) {
@@ -307,7 +316,7 @@ void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<stri
                         }
                 }
                 
-                if (e != b + 1) {
+                if (e != b + 1 && e < lensrc) {
                     pos.push_back(b);
                     if (e < lensrc)
                         e++;

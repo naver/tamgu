@@ -226,7 +226,7 @@ public:
 
 #ifdef INTELINTRINSICS
     short sizeone() {
-        return _mm_popcnt_u64(indexes);
+        return bitcounter(indexes);
     }
 #else
     short sizeone() {

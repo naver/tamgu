@@ -25,12 +25,6 @@
 #include <atomic>
 #include <condition_variable>
 
-#ifdef UNIX
-#define sprintf_s snprintf
-#define strcat_s(a,c,b) strncat(a,b,c)
-#define strcpy_s(a,c,b) strncpy(a,b,c)
-#include <math.h>
-#endif
 
 #include "conversion.h"
 #include "vecte.h"
