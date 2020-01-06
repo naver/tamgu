@@ -122,7 +122,7 @@ Tamgu also provides different libraries:
 
 Compiling libraries: https://github.com/naver/tamgu/wiki/1.4-Compiling-libraries-(Linux-&-Mac-OS)
 
-#### libsound, libwapti requirements for Windows
+#### Windows requirements for: libsound and libwapti
 
 These two libraries need the following DLL on Windows, which you can obtained from: _http://www.mingw.org_
 
