@@ -16,6 +16,7 @@
 
 //Definition of procedures
 #ifdef WIN32
+#define NOMINMAX
 #include "Windows.h"
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -87,6 +88,7 @@ Tamgu* Proc_uniform_int(Tamgu* contextualpattern, short idthread, TamguCall* cal
     long nb = callfunc->Evaluate(0, aNULL, idthread)->Integer();
 
     long alpha = 0;
+
     long beta = std::numeric_limits<long>::max();
     
     if (callfunc->Size() >= 2) {
@@ -246,6 +248,12 @@ Tamgu* Proc_negative_binomial_distribution(Tamgu* contextualpattern, short idthr
     return iv;
 }
 
+#ifdef WIN32
+long unaryfunc(double v) {
+	return v;
+}
+#endif
+
 Tamgu* Proc_random_choice(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     static std::random_device rd;  //Will be used to obtain a seed for the random number engine
     static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
@@ -257,16 +265,20 @@ Tamgu* Proc_random_choice(Tamgu* contextualpattern, short idthread, TamguCall* c
         return globalTamgu->Returnerror("Expecting a vector as second parameter", idthread);
     
     long i;
-    long sz = valuevect->Size();
+    size_t sz = valuevect->Size();
     
-    double val = 100/sz;
-    
-    vector<double> vect;
-    for (i = 0; i < sz; i++)
-        vect.push_back(val);
 
-    std::discrete_distribution<long> d(vect.begin(), vect.end());
-    
+#ifdef WIN32
+	std::discrete_distribution<long> d(sz, 0, 100, unaryfunc);
+#else
+	double val = 100 / sz;
+	vector<double> vect;
+	for (i = 0; i < sz; i++)
+		vect.push_back(val);
+
+	std::discrete_distribution<long> d(vect.begin(), vect.end());
+#endif
+
     if (nb == 1) {
         i = d(gen);
         return valuevect->getvalue(i)->Atom(true);
@@ -302,7 +314,13 @@ Tamgu* Proc_discrete_distribution(Tamgu* contextualpattern, short idthread, Tamg
             vect.push_back(tvect->getfloat(i));
     }
 
+#ifdef WIN32
+	std::discrete_distribution<long> d;
+	d._Par._Pvec = vect;
+	d._Par._Init();
+#else
     std::discrete_distribution<long> d(vect.begin(), vect.end());
+#endif
     if (nb == 1)
         return globalTamgu->Provideint((long)d(gen));
 

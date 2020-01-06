@@ -280,7 +280,7 @@ inline void ClearInstances(TamguDeclaration* dom, basebin_hash<Tamgu*>& basedoma
     binuint64 filter;
     short idx;
     long j;
-    int qj;
+    unsigned long qj;
 
     for (long ii = 0; ii < dom->declarations.tsize; ii++) {
         filter = dom->declarations.indexes[ii];
@@ -294,7 +294,7 @@ inline void ClearInstances(TamguDeclaration* dom, basebin_hash<Tamgu*>& basedoma
                         filter >>= 32;
                         j += 32;
                     }
-                    qj = _bit_scan_forward((uint32_t)(filter & 0x00000000FFFFFFFF));
+					bitscanforward(qj, (uint32_t)(filter & 0x00000000FFFFFFFF));
                     filter >>= qj;
                     j += qj;
                 }

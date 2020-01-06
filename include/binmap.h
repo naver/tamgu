@@ -121,7 +121,8 @@ template<class S, class Z> class bin_iter : public std::iterator<std::forward_it
                         filter >>= 32;
                         j += 32;
                     }
-                    int qj = _bit_scan_forward((uint32_t)(filter & 0x00000000FFFFFFFF));
+					unsigned long qj = 0;
+					bitscanforward(qj, (uint32_t)(filter & 0x00000000FFFFFFFF));
                     filter >>= qj;
                     j += qj;
                 }
@@ -939,7 +940,7 @@ template <class Z> class basebin_hash {
         size_t nb = 0;
         binuint64 filter;
         
-        for (L i = 0; i < tsize; i++) {
+        for (long i = 0; i < tsize; i++) {
             if (table[i] != NULL) {
                 filter = indexes[i];
                 while (filter) {

@@ -179,7 +179,7 @@ void TamguDeclaration::Cleaning(short idthread) {
 	if (declarations.base == -1)
 		return;
 
-    int qj;
+    unsigned long qj;
     
     for (short ii = 0; ii < declarations.tsize; ii++) {
         filter = declarations.indexes[ii];
@@ -192,7 +192,7 @@ void TamguDeclaration::Cleaning(short idthread) {
                         filter >>= 32;
                         j += 32;
                     }
-                    qj = _bit_scan_forward((uint32_t)(filter & 0x00000000FFFFFFFF));
+					bitscanforward(qj, (uint32_t)(filter & 0x00000000FFFFFFFF));
                     filter >>= qj;
                     j += qj;
                 }

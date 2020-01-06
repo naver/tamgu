@@ -488,7 +488,7 @@ char x_wreading::loop(wstring& toparse, short i, wchar_t* token, wchar_t* chr, l
                             if (nxt==1)
                                 break;
                             
-                            long cp = posc + 1;
+                            long cp = posc;
                             wchar_t cc[] = {0,0,0};
                             getnext(toparse, cc, cp);
                             bool found = true;

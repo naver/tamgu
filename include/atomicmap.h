@@ -231,7 +231,6 @@ public:
 #else
     short sizeone() {
         short nb = 0;
-        int qj;
         BULONG filter = indexes;
         
         while (filter) {
@@ -622,7 +621,7 @@ public:
     
     bool iterate(atomic_element<K,Z>** ele, K& key, Z& val, short& indexarray, uchar& idx, BULONG& filter) {
         atomic_element<K,Z>* e = *ele;
-        int qj;
+        unsigned long qj;
         
         while (indexarray < basearraysize) {
             while (e) {
@@ -637,7 +636,7 @@ public:
                             filter >>= 32;
                             idx += 32;
                         }
-                        qj = _bit_scan_forward((uint32_t)(filter & 0x00000000FFFFFFFF));
+						bitscanforward(qj, (uint32_t)(filter & 0x00000000FFFFFFFF));
                         filter >>= qj;
                         idx += qj;
                     }
@@ -687,7 +686,7 @@ public:
 
     Z iteratepointer(atomic_element<K,Z>** ele, K& key, short& indexarray, uchar& idx, BULONG& filter, bool& end) {
         atomic_element<K,Z>* e = *ele;
-        int qj;
+        unsigned long qj;
         
         while (indexarray < basearraysize) {
             while (e) {
@@ -702,7 +701,7 @@ public:
                             filter >>= 32;
                             idx += 32;
                         }
-                        qj = _bit_scan_forward((uint32_t)(filter & 0x00000000FFFFFFFF));
+						bitscanforward(qj,(uint32_t)(filter & 0x00000000FFFFFFFF));
                         filter >>= qj;
                         idx += qj;
                     }
