@@ -122,6 +122,17 @@ Tamgu also provides different libraries:
 
 Compiling libraries: https://github.com/naver/tamgu/wiki/1.4-Compiling-libraries-(Linux-&-Mac-OS)
 
+#### libsound, libwapti requirements for Windows
+
+These two libraries need the following DLL on Windows, which you can obtained from: _http://www.mingw.org_
+
+```
+libgcc_s_sjlj-1.dll
+libltdl-7.dll
+libstdc++-6.dll
+libwinpthread-1.dll
+```
+
 ### Python
 Furthermore, Tamgu provides a bi-directional library, which can be used to execute Tamgu code from Python (and conversely, Python code in Tamgu)
 
