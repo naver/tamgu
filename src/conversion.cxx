@@ -186,8 +186,12 @@ void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<stri
     __m256i val;
     long b,e;
     bool found, replace=false;
+#ifdef WIN32
+	unsigned long q, r;
+#else
     uint32_t q, r;
-    
+#endif
+
     for (long i = 0; (i + 31) < lensrc; i += 32) {
         //we load our section, the length should be larger than 32
         current_bytes = _mm256_loadu_si256((const __m256i *)(src + i));
@@ -205,7 +209,7 @@ void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<stri
             b = i;
             e = b;
             while (q) {
-                r = _bit_scan_forward(q);
+				bitscanforward(r, q);
                 if (r) {
                     b += r;
                     q >>= r;
@@ -227,7 +231,7 @@ void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<stri
                                 q >>= 1;
                                 found = false;
                                 while (q) {
-                                    r = _bit_scan_forward(q);
+									bitscanforward(r, q);
                                     e += r;
                                     q >>= r;
                                     
@@ -251,7 +255,7 @@ void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<stri
                                 b--;
                             found = false;
                             while (q) {
-                                r = _bit_scan_forward(q);
+								bitscanforward(r, q);
                                 e += r;
                                 q >>= r;
                                 if (src[e] == '"' && src[e+1] == '@') {
@@ -272,7 +276,7 @@ void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<stri
                                 b--;
                             found = false;
                             while (q) {
-                                r = _bit_scan_forward(q);
+								bitscanforward(r, q);
                                 e += r;
                                 q >>= r;
                                 if (src[e-1] != '\\' && src[e] == '"') {
@@ -301,7 +305,7 @@ void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<stri
                         }
                         found = false;
                         while (q) {
-                            r = _bit_scan_forward(q);
+							bitscanforward(r, q);
                             e += r;
                             q >>= r;
                             if (src[e] == '\'') {
@@ -349,8 +353,12 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
     __m256i current_bytes = _mm256_setzero_si256();
 
     uchar* s=src;
-    long j;
+    unsigned long j;
+#ifdef WIN32
+	unsigned long q = 0;
+#else
     uint32_t q = 0;
+#endif
     uchar c = search[0];
     char shift;
 
@@ -368,7 +376,7 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
                 current_bytes = _mm256_cmpeq_epi8(firstchar, current_bytes);
                 q = _mm256_movemask_epi8(current_bytes);
                 if (q) {
-                    q = _bit_scan_forward(q);
+					bitscanforward(q, q);
                     return (i+q);
                 }
             }
@@ -396,7 +404,7 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
                     current_bytes = _mm256_cmpeq_epi16(firstchar, current_bytes);
                     q = _mm256_movemask_epi8(current_bytes);
                     if (q) {
-                        j = _bit_scan_forward(q);
+						bitscanforward(j, q);
                         s += j;
                             //Our character is present, we now try to find where it is...
                             //we find it in this section...
@@ -441,7 +449,7 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
                     current_bytes = _mm256_cmpeq_epi32(firstchar, current_bytes);
                     q = _mm256_movemask_epi8(current_bytes);
                     if (q) {
-                        j = _bit_scan_forward(q);
+						bitscanforward(j, q);
                         s += j;
                             //Our character is present, we now try to find where it is...
                             //we find it in this section...
@@ -483,8 +491,8 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
                     current_bytes = _mm256_cmpeq_epi64(firstchar, current_bytes);
                     q = _mm256_movemask_epi8(current_bytes);
                     if (q) {
-                        j = _bit_scan_forward(q);
-                        s += j;
+						bitscanforward(j, q);
+						s += j;
                             //Our character is present, we now try to find where it is...
                             //we find it in this section...
                         for (; j < 25; j++) {
@@ -520,8 +528,13 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
     __m256i current_bytes = _mm256_setzero_si256();
     
     uchar* s = src;
-    long j;
+    unsigned long j;
+#ifdef WIN32
+	unsigned long q = 0;
+#else
     uint32_t q = 0;
+#endif
+
     uchar c = search[0];
     char shift;
 
@@ -542,7 +555,7 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
                 current_bytes = _mm256_cmpeq_epi8(firstchar, current_bytes);
                 q = _mm256_movemask_epi8(current_bytes);
                 if (q) {
-                    j = _bit_scan_reverse(q);
+					bitscanreverse(j, q);
                     return (i+j);
                 }
             }
@@ -570,7 +583,7 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
                     current_bytes = _mm256_cmpeq_epi16(firstchar, current_bytes);
                     q = _mm256_movemask_epi8(current_bytes);
                     if (q) {
-                        j = _bit_scan_reverse(q)-1;
+						bitscanreverse(j, q);
                             //Our character is present, we now try to find where it is...
                             //we find it in this section...
                         for (; j>=0; j--) {
@@ -613,7 +626,7 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
                     current_bytes = _mm256_cmpeq_epi32(firstchar, current_bytes);
                     q = _mm256_movemask_epi8(current_bytes);
                     if (q) {
-                        j = _bit_scan_reverse(q)-3;
+						bitscanreverse(j, q);
                             //Our character is present, we now try to find where it is...
                             //we find it in this section...
                         for (; j>=0; j--) {
@@ -653,7 +666,7 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
                     current_bytes = _mm256_cmpeq_epi64(firstchar, current_bytes);
                     q = _mm256_movemask_epi8(current_bytes);
                     if (q) {
-                        j = _bit_scan_reverse(q)-7;
+						bitscanreverse(j, q);
                             //Our character is present, we now try to find where it is...
                             //we find it in this section...
                         for (; j>=0; j--) {
@@ -692,8 +705,12 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
     __m256i current_bytes = _mm256_setzero_si256();
 
     uchar* s=NULL;
-    long j;
+    unsigned long j;
+#ifdef WIN32
+	unsigned long q = 0;
+#else
     uint32_t q = 0;
+#endif
     uchar c = search[0];
     long i = 0;
 
@@ -713,7 +730,7 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
                 current_bytes = _mm256_cmpeq_epi8(firstchar, current_bytes);
                 q = _mm256_movemask_epi8(current_bytes);
                 if (q) {
-                    j =_bit_scan_forward(q);
+					bitscanforward(j, q);
                     s += j;
                     //Our character is present, we now try to find where it is...
                     //we find it in this section...
@@ -748,7 +765,7 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
                     current_bytes = _mm256_cmpeq_epi16(firstchar, current_bytes);
                     q = _mm256_movemask_epi8(current_bytes);
                     if (q) {
-                        j =_bit_scan_forward(q);
+						bitscanforward(j, q);
                         s += j;
                             //Our character is present, we now try to find where it is...
                             //we find it in this section...
@@ -794,7 +811,7 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
                     current_bytes = _mm256_cmpeq_epi32(firstchar, current_bytes);
                     q = _mm256_movemask_epi8(current_bytes);
                     if (q) {
-                        j =_bit_scan_forward(q);
+						bitscanforward(j, q);
                         s += j;
                             //Our character is present, we now try to find where it is...
                             //we find it in this section...
@@ -837,7 +854,7 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
                     current_bytes = _mm256_cmpeq_epi64(firstchar, current_bytes);
                     q = _mm256_movemask_epi8(current_bytes);
                     if (q) {
-                        j =_bit_scan_forward(q);
+						bitscanforward(j, q);
                         s += j;
                             //Our character is present, we now try to find where it is...
                             //we find it in this section...
@@ -881,9 +898,13 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
     __m256i current_bytes = _mm256_setzero_si256();
 
     uchar* s=NULL;
-    long j;
+    unsigned long j;
     uchar c = search[0];
+#ifdef WIN32
+	unsigned long q = 0;
+#else
     uint32_t q = 0;
+#endif
     long i = 0;
 
     char shift;
@@ -904,7 +925,7 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
                 current_bytes = _mm256_cmpeq_epi8(firstchar, current_bytes);
                 q = _mm256_movemask_epi8(current_bytes);
                 if (q) {
-                    j =_bit_scan_forward(q);
+					bitscanforward(j, q);
                     s += j;
                     //Our character is present, we now try to find where it is...
                     //we find it in this section...
@@ -944,7 +965,7 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
                     current_bytes = _mm256_cmpeq_epi16(firstchar, current_bytes);
                     q = _mm256_movemask_epi8(current_bytes);
                     if (q) {
-                        j =_bit_scan_forward(q);
+						bitscanforward(j, q);
                         s += j;
                             //Our character is present, we now try to find where it is...
                             //we find it in this section...
@@ -994,7 +1015,7 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
                     current_bytes = _mm256_cmpeq_epi32(firstchar, current_bytes);
                     q = _mm256_movemask_epi8(current_bytes);
                     if (q) {
-                        j =_bit_scan_forward(q);
+						bitscanforward(j, q);
                         s += j;
                             //Our character is present, we now try to find where it is...
                             //we find it in this section...
@@ -1041,7 +1062,7 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
                     current_bytes = _mm256_cmpeq_epi64(firstchar, current_bytes);
                     q = _mm256_movemask_epi8(current_bytes);
                     if (q) {
-                        j =_bit_scan_forward(q);
+						bitscanforward(j, q);
                         s += j;
                             //Our character is present, we now try to find where it is...
                             //we find it in this section...
@@ -1097,10 +1118,15 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
     __m256i current_bytes = _mm256_setzero_si256();
 
     uchar* s=src;
-    long j;
+    unsigned long j;
     uchar c = search[0];
     long i = 0;
+
+#ifdef WIN32
+	unsigned long q = 0;
+#else
     uint32_t q = 0;
+#endif
     long counter = 0;
 
     char shift;
@@ -1119,7 +1145,7 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
                 current_bytes = _mm256_cmpeq_epi8(firstchar, current_bytes);
                 q = _mm256_movemask_epi8(current_bytes);
                 if (q) {
-                    j =_bit_scan_forward(q);
+					bitscanforward(j, q);
                     s += j;
                     //Our character is present, we now try to find where it is...
                     //we find it in this section...
@@ -1154,7 +1180,7 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
                     current_bytes = _mm256_cmpeq_epi16(firstchar, current_bytes);
                     q = _mm256_movemask_epi8(current_bytes);
                     if (q) {
-                        j =_bit_scan_forward(q);
+						bitscanforward(j, q);
                         s += j;
                             //Our character is present, we now try to find where it is...
                             //we find it in this section...
@@ -1200,7 +1226,7 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
                     current_bytes = _mm256_cmpeq_epi32(firstchar, current_bytes);
                     q = _mm256_movemask_epi8(current_bytes);
                     if (q) {
-                        j =_bit_scan_forward(q);
+						bitscanforward(j, q);
                         s += j;
                         
                             //Our character is present, we now try to find where it is...
@@ -1244,7 +1270,7 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
                     current_bytes = _mm256_cmpeq_epi64(firstchar, current_bytes);
                     q = _mm256_movemask_epi8(current_bytes);
                     if (q) {
-                        j =_bit_scan_forward(q);
+						bitscanforward(j, q);
                         s += j;
                             //Our character is present, we now try to find where it is...
                             //we find it in this section...
@@ -7150,6 +7176,9 @@ BLONG conversionintegerhexa(wstring& number) {
     BLONG v = 0;
     
     uchar c = number[ipos++];
+	if (number.size() == ipos)
+		return (c - 48);
+
     if (c == '0' || number[ipos] == 'x') {
         ipos++;
         c = number[ipos++];

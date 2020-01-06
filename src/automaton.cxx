@@ -642,7 +642,7 @@ bool TamguFst::factorize(TamguDoubleSideAutomaton& a, long first) {
 
 
     binuint64 filter;
-    int qj;
+    unsigned long qj;
     long j;
     for (i = 0; i < toberemoved.tsize; i++) {
         if (toberemoved.table[i] != NULL) {
@@ -655,7 +655,7 @@ bool TamguFst::factorize(TamguDoubleSideAutomaton& a, long first) {
                         filter >>= 32;
                         j += 32;
                     }
-                    qj = _bit_scan_forward((uint32_t)(filter & 0x00000000FFFFFFFF));
+					bitscanforward(qj, (uint32_t)(filter & 0x00000000FFFFFFFF));
                     filter >>= qj;
                     j += qj;
                 }

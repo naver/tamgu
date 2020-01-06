@@ -43,6 +43,15 @@
 long _bitcounter(binuint64 x);
 #define bitcounter _bitcounter
 #endif
+
+#ifdef WIN32
+#define bitscanforward(r,x) if (!_BitScanForward(&r,x)) r = 0
+#define bitscanreverse(r,x) if (!_BitScanReverse(&r,x)) r = 0
+#else
+#define bitscanforward(r,x) r = _bit_scan_forward(x)
+#define bitscanreverse(r,x) r = _bit_scan_reverse(x)
+#endif
+
 #endif
 
 #ifdef UNIX
