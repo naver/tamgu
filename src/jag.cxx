@@ -1955,7 +1955,10 @@ void jag_editor::evaluateescape(string& buff) {
     }
     
     if (buff == right) {
-        if (posinstring < line.size() - 1) {
+        long mx = line.size();
+        if (!lines.eol(pos))
+            mx--;
+        if (posinstring < mx) {
             forwardemoji();
             movetoposition();
         }
