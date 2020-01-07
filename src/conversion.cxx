@@ -136,10 +136,13 @@ inline wchar_t* concatstrings(wchar_t* str, wchar_t* ctn, long& i, long& size_st
 static const __m256i checkutf8byte = _mm256_set1_epi8(0x80);
 static const __m256i checkifbigzero = _mm256_set1_epi8(0xFF);
 
+#define thestringincrement 32
+
 #ifdef WIN32
 #define large_char 0x8000
 #define szwchar 1
 #define doublestringincrement 32
+#define thewstringincrement 16
 #define stringincrement 16
 #define mset_256 _mm256_set1_epi16
 #define mcomp_256 _mm256_cmpeq_epi16
@@ -148,9 +151,11 @@ static const __m256i checkifbigzero = _mm256_set1_epi8(0xFF);
 #define large_char 0x10000
 #define doublestringincrement 16
 #define stringincrement 8
+#define thewstringincrement 8
 #define mset_256 _mm256_set1_epi32
 #define mcomp_256 _mm256_cmpeq_epi32
 #endif
+
 
 bool check_ascii(unsigned char* src, long lensrc, long& i) {
     __m256i current_bytes = _mm256_setzero_si256();
@@ -1938,11 +1943,14 @@ void invertkeystr2(doublechar cc, wstring& w) {
 
 static const __m128i checkutf8byte = _mm_set1_epi8(0x80);
 
+#define thestringincrement 16
+#define thewstringincrement 4
+
 bool check_ascii(unsigned char* src, long len, long& i) {
     __m128i current_bytes = _mm_setzero_si128();
     
     i = 0;
-    for (; (i + 31) < len; i += 32) {
+    for (; (i + 15) < len; i += 16) {
             //we load our section, the length should be larger than 16
         current_bytes = _mm_loadu_si128((const __m128i *)(src + i));
         current_bytes = _mm_or_si128(current_bytes, _mm_loadu_si128((const __m128i *)(src + i + 16)));
@@ -11343,39 +11351,46 @@ Exporting wchar_t* wcsrstr(wchar_t* str, wchar_t* sub, long sz, long szsub) {
 //we are looking for the substring substr in s
 Exporting long s_findbyte(string& s, string& substr, long i) {
 #ifdef INTELINTRINSICS
-    return find_intel_byte(USTR(s), USTR(substr), s.size(), substr.size(), i);
-#else
-    return s.find(substr,i);
+    long sz = s.size();
+    if (sz >= thestringincrement)
+        return find_intel_byte(USTR(s), USTR(substr), sz, substr.size(), i);
 #endif
+    return s.find(substr,i);
+
 }
 
 
 //we are looking for the substring substr in s
 Exporting long s_rfindbyte(string& s, string& substr, long i) {
 #ifdef INTELINTRINSICS
-    return rfind_intel(USTR(s), USTR(substr), s.size(), substr.size(), i);
-#else
-    return s.rfind(substr,i);
+    long sz = s.size();
+    if (sz >= thestringincrement)
+        return rfind_intel(USTR(s), USTR(substr), sz, substr.size(), i);
 #endif
+    return s.rfind(substr,i);
 }
 
 //we are looking for the substring substr in s
 Exporting long s_find(string& s, string& substr, long i) {
 #ifdef INTELINTRINSICS
-    long firstutf8 = 0;
-    if (check_ascii(USTR(s), s.size(), firstutf8))
-        return find_intel_byte(USTR(s), USTR(substr), s.size(), substr.size(), i);
-
+    long sz = s.size();
+    if (sz >= thestringincrement) {
+        long firstutf8 = 0;
+        if (check_ascii(USTR(s), s.size(), firstutf8))
+            return find_intel_byte(USTR(s), USTR(substr), sz, substr.size(), i);
         
-    if (i > firstutf8)
-        i = firstutf8 + c_chartobyteposition(USTR(s)+firstutf8, i - firstutf8);
+        
+        if (i > firstutf8)
+            i = firstutf8 + c_chartobyteposition(USTR(s)+firstutf8, i - firstutf8);
+        
+        i = find_intel_byte(USTR(s), USTR(substr), sz, substr.size(), i);
+        
+        if (i > firstutf8)
+            i = firstutf8 + c_bytetocharposition(USTR(s)+firstutf8, i-firstutf8);
+        return i;
+    }
+#endif
 
-    i = find_intel_byte(USTR(s), USTR(substr), s.size(), substr.size(), i);
-
-    if (i > firstutf8)
-        i = firstutf8 + c_bytetocharposition(USTR(s)+firstutf8, i-firstutf8);
-    return i;
-#else
     if (i)
         i = c_chartobyteposition(USTR(s), i);
 
@@ -11383,7 +11398,6 @@ Exporting long s_find(string& s, string& substr, long i) {
 
     if (i != -1)
         return c_bytetocharposition(USTR(s), i);
-#endif
 
     return -1;
 }
@@ -11404,7 +11418,7 @@ Exporting long s_count(string& str, string& sub, long i) {
 
 Exporting long s_count(wstring& str, wstring& sub, long i) {
 #ifdef INTELINTRINSICS
-    return count_strings_intel(USTR(str)+i, USTR(sub), str.size()-i, sub.size());
+    return count_strings_intel(WSTR(str)+i, WSTR(sub), str.size()-i, sub.size());
 #else
     long nb = 0;
     i = str.find(sub, i);
@@ -11421,16 +11435,19 @@ Exporting long s_count(wstring& str, wstring& sub, long i) {
 //it returns the position in character...
 Exporting long s_rfind(string& s, string& substr, long i) {
 #ifdef INTELINTRINSICS
-    long firstutf8 = 0;
-    if (check_ascii(USTR(s), s.size(), firstutf8))
-        return rfind_intel(USTR(s), USTR(substr), s.size(), substr.size(), i);
+    long sz = s.size();
+    if (sz >= thestringincrement) {
+        long firstutf8 = 0;
+        if (check_ascii(USTR(s), s.size(), firstutf8))
+            return rfind_intel(USTR(s), USTR(substr), sz, substr.size(), i);
         
-    i = rfind_intel(USTR(s), USTR(substr), s.size(), substr.size(), i);
-    
-    if (i > firstutf8)
-        i = firstutf8 + c_bytetocharposition(USTR(s)+firstutf8, i-firstutf8);
-    return i;
-#else
+        i = rfind_intel(USTR(s), USTR(substr), sz, substr.size(), i);
+        
+        if (i > firstutf8)
+            i = firstutf8 + c_bytetocharposition(USTR(s)+firstutf8, i-firstutf8);
+        return i;
+    }
+#endif
     if (i)
         i = c_chartobyteposition(USTR(s), i);
 
@@ -11438,8 +11455,7 @@ Exporting long s_rfind(string& s, string& substr, long i) {
 
     if (i != -1)
         return c_bytetocharposition(USTR(s), i);
-#endif
-    
+
     return -1;
 }
 
@@ -11450,26 +11466,29 @@ long convertpostocharraw(wstring& w, long first, long spos);
 Exporting long s_find(wstring& s, wstring& substr, long i) {
 #ifdef INTELINTRINSICS
         //we check if we have any large characters between 0 and i
-    long first = 0;
     long sz = s.size();
-    if (!check_large_char(WSTR(s), sz, first))
-        return find_intel(WSTR(s), WSTR(substr), sz, substr.size(), i);
-    
-    i = find_intel(WSTR(s), WSTR(substr), sz, substr.size(), i);
-
-    if (i != -1) {
-        if (i > first)
-            return convertpostocharraw(s,first,i);
-        return i;
+    if (sz >= thewstringincrement) {
+        long first = 0;
+        if (!check_large_char(WSTR(s), sz, first))
+            return find_intel(WSTR(s), WSTR(substr), sz, substr.size(), i);
+        
+        i = find_intel(WSTR(s), WSTR(substr), sz, substr.size(), i);
+        
+        if (i != -1) {
+            if (i > first)
+                return convertpostocharraw(s,first,i);
+            return i;
+        }
+        return -1;
     }
-#else
+#endif
+    
     if (i)
         i = convertchartopos(s, 0, i);
     i = s.find(substr, i);
     if (i != -1)
         return convertpostochar(s,0,i);
-#endif
-    
+
     return -1;
 }
 
@@ -11479,18 +11498,20 @@ Exporting long s_rfind(wstring& s, wstring& substr, long i) {
 #ifdef INTELINTRINSICS
         //we check if we have any large characters between 0 and i
     long sz = s.size();
-
-    i = rfind_intel(WSTR(s), WSTR(substr), sz, substr.size(), i);
-
-    if (i != -1)
-        return convertpostochar(s,0,i);
-#else
+    if (sz >= thewstringincrement) {
+        i = rfind_intel(WSTR(s), WSTR(substr), sz, substr.size(), i);
+        
+        if (i != -1)
+            return convertpostochar(s,0,i);
+        
+        return -1;
+    }
+#endif
     if (i)
         i = convertchartopos(s, 0, i);
     i = s.rfind(substr, i);
     if (i != -1)
         return convertpostochar(s,0,i);
-#endif
     
     return -1;
 }
