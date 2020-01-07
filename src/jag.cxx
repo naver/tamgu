@@ -1963,7 +1963,7 @@ void jag_editor::evaluateescape(string& buff) {
             movetoposition();
         }
         else {//we go down at the beginning of the next line
-            if (emode() && pos < poslines.size()-1) {
+            if (emode()) {
                 updown(66, pos);
                 posinstring = 0;
                 movetobeginning();
