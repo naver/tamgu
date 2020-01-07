@@ -102,7 +102,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WAPITIPARSE;ATAN_EXPORTS;WIN32;_DEBUG;_WINDOWS;_USRDLL;LIBwapiti_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>AVXSUPPORT;INTELINTRINSICS;WAPITIPARSE;ATAN_EXPORTS;WIN32;_DEBUG;_WINDOWS;_USRDLL;LIBwapiti_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>C:\Program Files (x86)\Visual Leak Detector\include;$(SolutionDir)\include;$(SolutionDir)\libwapiti/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
@@ -141,7 +141,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WAPITIPARSE;ATAN_EXPORTS;WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBwapiti_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>AVXSUPPORT;INTELINTRINSICS;WAPITIPARSE;ATAN_EXPORTS;WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBwapiti_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>C:\Program Files (x86)\Visual Leak Detector\include;$(SolutionDir)\include;$(SolutionDir)\libwapiti/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
