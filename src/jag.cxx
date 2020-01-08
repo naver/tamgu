@@ -66,6 +66,7 @@ void jag_editor::displaythehelp(long noclear) {
     cerr << "   \t\t- " << m_redital << "f:" << m_current << " find with a RGX" << endl;
     cerr << "   \t\t- " << m_redital << "H:" << m_current << " convert HTML entities to Unicode characters" << endl;
     cerr << "   \t\t- " << m_redital << "D:" << m_current << " delete a bloc of lines" << endl;
+    cerr << "   \t\t- " << m_redital << "n:" << m_current << " hide/display line numbers" << endl;
     cerr << "   \t\t- " << m_redital << "c:" << m_current << " copy a bloc of lines" << endl;
     cerr << "   \t\t- " << m_redital << "x:" << m_current << " cut a bloc of lines" << endl;
     cerr << "   \t\t- " << m_redital << "v:" << m_current << " paste a bloc of lines" << endl;
@@ -386,7 +387,10 @@ jag_editor::jag_editor() : lines(this) {
     theterm.c_cc[VSUSP] = NULL;
     tcsetattr(0, TCSADRAIN, &theterm);
 
+    margin = 10;
+    spacemargin = 9;
 
+    noprefix = false;
     tooglehelp = false;
     regularexpressionfind = false;
     findrgx = NULL;
@@ -603,14 +607,16 @@ void jag_editor::selectfound(long l, long r) {
         return;
     }
     line.replace(l, 5, inter);
-    
-    if (lines.status[pos] == concat_line) {
-        string space(prefixe(), ' ');
-        cout << back << space << line;
-    }
-    else
+    if (noprefix)
         printline(lines.numeros[pos], line);
-    
+    else {
+        if (lines.status[pos] == concat_line) {
+            string space(prefixe(), ' ');
+            cout << back << space << line;
+        }
+        else
+            printline(lines.numeros[pos], line);
+    }
     movetoposition();
 }
 
@@ -1267,6 +1273,9 @@ void jag_editor::displaylist(long beg) {
     for (long i = beg; i < lines.size(); i++) {
         poslines.push_back(i);
         string space(prefixe(), ' ');
+        if (noprefix)
+            blk << coloringline(lines[i], i) << endl;
+        else
         if (lines.status[i] == concat_line)
             blk << space << coloringline(lines[i], i) << endl;
         else
@@ -2101,6 +2110,12 @@ bool jag_editor::checkcommand(char cmd) {
             }
             else
                 displayonlast("Error while writing file", true);
+            return true;
+        case 'n':
+            setnoprefix();
+            displaylist(poslines[0]);
+            movetoline(currentline);
+            movetoposition();
             return true;
         case 'h':
             displaythehelp();

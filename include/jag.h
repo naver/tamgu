@@ -114,9 +114,6 @@ const char back = 13;
 
 const char cursor_position[] = {27, 91, '6', 'n', 0};
 
-const long margin = 10;
-const long spacemargin = 9;
-
 class editor_lines {
 public:
     jag_editor* jag;
@@ -512,7 +509,10 @@ public:
     long currentposinstring;
     long currentfindpos;
     long currentline;
-    
+
+    long margin;
+    long spacemargin;
+
     int xcursor, ycursor;
     string thecurrentfilename;
     string prefix;
@@ -529,13 +529,14 @@ public:
     bool tooglehelp;
     bool updateline;
     bool regularexpressionfind;
+    bool noprefix;
     
     vector<long> longstrings;
     x_option option;
     vector<string> colors;
 
     struct termios oldterm;
-    
+
     jag_editor();
     ~jag_editor();
 
@@ -587,6 +588,25 @@ public:
     //------------------------------------------------------------------------------------------------
     //Undo/Redo
     //------------------------------------------------------------------------------------------------
+    
+    void setnoprefix() {
+        noprefix = 1-noprefix;
+        if (noprefix) {
+            prefix = "";
+            wprefix = L"";
+            prefixsize = 0;
+            margin = 2;
+            spacemargin = 1;
+        }
+        else {
+            margin = 10;
+            spacemargin = 9;
+            prefix = "작";
+            wprefix = L"작";
+            setprefixesize(lines.size());
+        }
+        resetscreen();
+    }
     
     bool isc() {
         if (thecurrentfilename != "") {
@@ -677,14 +697,22 @@ public:
         //Since there is always a prefix at the beginning of the line, we compute it here...
     
     long prefixesize(long sz) {
+        if (noprefix)
+            return 0;
         return (sz > 9999 ? 5 : sz > 999 ? 4: sz > 99 ? 3 : sz > 9 ? 2 : 1);
     }
     
     void setprefixesize(long sz) {
+        if (noprefix) {
+            prefixsize = 0;
+            return;
+        }
         prefixsize = sz > 9999 ? 5 : sz > 999 ? 4: sz > 99 ? 3 : sz > 9 ? 2 : 1 ;
     }
 
     long prefixe() {
+        if (noprefix)
+            return 0;
         return (4+prefixsize);
     }
     
@@ -831,18 +859,25 @@ public:
     void displaylist(long beg);
 
     virtual void printline(long n, string l) {
-        cout << back << m_dore << prefix << m_current << m_lightgray << std::setw(prefixsize) << n << "> " << m_current << l;
+        if (noprefix)
+            cout << back << l;
+        else
+            cout << back << m_dore << prefix << m_current << m_lightgray << std::setw(prefixsize) << n << "> " << m_current << l;
     }
     
     virtual void printline(long n) {
-        cout << back << m_dore << prefix << m_current << m_lightgray << std::setw(prefixsize) << n << "> " << m_current;
+        if (noprefix)
+            cout << back;
+        else
+            cout << back << m_dore << prefix << m_current << m_lightgray << std::setw(prefixsize) << n << "> " << m_current;
     }
 
     virtual void printline(long n, wstring& l, long i = -1) {
-        cout << back << m_dore << prefix << m_current << m_lightgray << std::setw(prefixsize) << n << "> " << m_current << coloringline(l, i);
+        if (noprefix)
+            cout << back << coloringline(l, i);
+        else
+            cout << back << m_dore << prefix << m_current << m_lightgray << std::setw(prefixsize) << n << "> " << m_current << coloringline(l, i);
     }
-
-    
 
         //------------------------------------------------------------------------------------------------
         //Deletion methods...

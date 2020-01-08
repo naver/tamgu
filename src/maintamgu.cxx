@@ -279,6 +279,7 @@ public:
             cerr << "   \t\t- " << m_redital << "C:" << m_current << " count a pattern" << endl;
             cerr << "   \t\t- " << m_redital << "H:" << m_current << " convert HTML entities to Unicode characters" << endl;
             cerr << "   \t\t- " << m_redital << "D:" << m_current << " delete a bloc of lines" << endl;
+            cerr << "   \t\t- " << m_redital << "n:" << m_current << " hide/display line numbers" << endl;
             cerr << "   \t\t- " << m_redital << "c:" << m_current << " copy a bloc of lines" << endl;
             cerr << "   \t\t- " << m_redital << "x:" << m_current << " cut a bloc of lines" << endl;
             cerr << "   \t\t- " << m_redital << "v:" << m_current << " paste a bloc of lines" << endl;
@@ -389,7 +390,10 @@ public:
                 if (prefixesize(n) > prefixsize)
                     setprefixesize(n);
             }
-            cout << back << m_dore << prefix << m_current << m_lightgray << std::setw(prefixsize) << n << "> " << m_current << l;
+            if (noprefix)
+                cout << back << l;
+            else
+                cout << back << m_dore << prefix << m_current << m_lightgray << std::setw(prefixsize) << n << "> " << m_current << l;
         }
     }
     
@@ -401,15 +405,22 @@ public:
                 if (prefixesize(n) > prefixsize)
                     setprefixesize(n);
             }
-            cout << back << m_dore << prefix << m_current << m_lightgray << std::setw(prefixsize) << n << "> " << m_current;
+            if (noprefix)
+                cout << back;
+            else
+                cout << back << m_dore << prefix << m_current << m_lightgray << std::setw(prefixsize) << n << "> " << m_current;
         }
     }
 
     void printline(long n, wstring& l, long i = -1) {
         if (debugmode && debuginfo.running)
             cout << back << m_dore << prefix << m_current << convert(l);
-        else
-            cout << back << m_dore << prefix << m_current << m_lightgray << std::setw(prefixsize) << n << "> " << m_current << coloringline(l, i);
+        else {
+            if (noprefix)
+                cout << back << coloringline(l, i);
+            else
+                cout << back << m_dore << prefix << m_current << m_lightgray << std::setw(prefixsize) << n << "> " << m_current << coloringline(l, i);
+        }
     }
 
     //this is the method to handle up and down key strokes
@@ -477,11 +488,15 @@ public:
         if (full) {
             if (editmode) {
                 if (lines.status[pos] == concat_line) {
-                    string space(prefixe(), ' ');
-                    cout << back << space << coloringline(line, pos);
+                    if (noprefix)
+                        cout << back << coloringline(line, pos);
+                    else {
+                        string space(prefixe(), ' ');
+                        cout << back << space << coloringline(line, pos);
+                    }
                 }
                 else {
-                    if (!lines.check(pos))
+                    if (!lines.check(pos) || noprefix)
                         printline(lines.numeros[pos], line, pos);
                     else {
                         string prf = prefix;
