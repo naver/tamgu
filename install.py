@@ -43,6 +43,7 @@ def displayhelp(s):
     print(" -version name: Directory names for intermediate and final files depend on name (do not use with gccversion)")
     print(" -pathlib path: provides a system path to check for system libraries")
     print(" -static: favor static libraries over dynamic libraries when ambiguity. The default behaviour is to select dynamic libraries.")
+    print(" -forcejpeg: force the compiling with jpeg")
     print(" -help: display this help")
     print('')
     exit(-1)
@@ -64,11 +65,12 @@ libpath="/usr"
 i=1
 avx=False
 avx2=False
+forcejpeg = False
 
 compilelibs="""
 amaps: install
 	$(MAKE) -C allmaps all
-	
+
 libs: install
 	$(MAKE) -C allmaps all
 	$(MAKE) -C liblinear linear
@@ -87,7 +89,9 @@ cleanlibs:
 """
 
 while i < len(sys.argv):
-    if sys.argv[i]=="-java":
+    if sys.argv[i]=="-forcejpeg":
+        forcejpeg = True
+    elif sys.argv[i]=="-java":
         compilejava=True
     elif sys.argv[i]=="-withsound":
         withsound=True
@@ -491,7 +495,7 @@ includepath="INCLUDEPATH = -Iinclude/linux"
 jpegflag="#JPEGFLAG = -DFLTKNOJPEG"
 jpeglib="#JPEGLIB = -lfltk_jpeg"
 
-if "libfltk_jpeg" not in v:
+if "libfltk_jpeg" not in v or forcejpeg:
     jpeglib=jpeglib.replace("#","")
 else:
     jpegflag=jpegflag.replace("#","")

@@ -407,10 +407,14 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm256_cmpeq_epi16(firstchar, current_bytes);
-                    if (_mm256_movemask_epi8(current_bytes)) {
+                    q = _mm256_movemask_epi8(current_bytes);
+                    if (q) {
                             //Our character is present, we now try to find where it is...
                             //we find it in this section...
-                        for (j=0; j < 31; j++) {
+                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
+                        //otherwise, we might loose a substring present before but with a different alignement with shift
+                        if (shift == 1) bitscanforward(j,q); else j = 0;
+                        for (; j < 31; j++) {
                             if (*s == c) {
                                 if (charcomp(s,search,lensearch)) {
                                     return (i + j + shift);
@@ -449,10 +453,14 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm256_cmpeq_epi32(firstchar, current_bytes);
-                    if (_mm256_movemask_epi8(current_bytes)) {
+                    q = _mm256_movemask_epi8(current_bytes);
+                    if (q) {
                         //Our character is present, we now try to find where it is...
                         //we find it in this section...
-                        for (j = 0; j < 29; j++) {
+                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
+                        //otherwise, we might loose a substring present before but with a different alignement with shift
+                        if (shift == 3) bitscanforward(j,q); else j = 0;
+                        for (; j < 29; j++) {
                             if (*s == c) {
                                 if (charcomp(s,search,lensearch)) {
                                     return (i + j + shift);
@@ -488,10 +496,14 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm256_cmpeq_epi64(firstchar, current_bytes);
-                    if (_mm256_movemask_epi8(current_bytes)) {
+                    q = _mm256_movemask_epi8(current_bytes);
+                    if (q) {
                             //Our character is present, we now try to find where it is...
                             //we find it in this section...
-                        for (j = 0; j < 25; j++) {
+                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
+                        //otherwise, we might loose a substring present before but with a different alignement with shift
+                        if (shift == 7) bitscanforward(j,q); else j = 0;
+                        for (; j < 25; j++) {
                             if (*s == c) {
                                 if (charcomp(s,search,lensearch)) {
                                     return (i + j + shift);
@@ -534,7 +546,8 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
     uchar c = search[0];
     char shift;
 
-    if (i > 32)
+    //We move the post way before
+    if (i >= 32)
         i-=32;
 
     switch (lensearch) {
@@ -542,7 +555,7 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
         {
             __m256i firstchar = _mm256_set1_epi8(c);
                 //We then scan our string for this first character...
-            for (; i > 31; i -= 32) {
+            for (; i >= 0; i -= 32) {
                     //we load our section, the length should be larger than 16
                 s=src+i;
                 current_bytes = _mm256_loadu_si256((const __m256i *)s);
@@ -566,7 +579,7 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
             __m256i firstchar = _mm256_set1_epi16(cc);
             
                 //We then scan our string for the first two characters...
-            for (; i > 31; i -= 32) {
+            for (; i >= 0; i -= 32) {
 
                 for (shift = 0; shift < 2; shift++) {
                         //we load our section, the length should be larger than 16
@@ -577,10 +590,12 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm256_cmpeq_epi16(firstchar, current_bytes);
-                    if (_mm256_movemask_epi8(current_bytes)) {
+                    q = _mm256_movemask_epi8(current_bytes);
+                    if (q) {
                             //Our character is present, we now try to find where it is...
                             //we find it in this section...
-                        for (j = 30; j>=0; j--) {
+                        if (shift == 1) bitscanreverse(j, q); else j = 30;
+                        for (; j>=0; j--) {
                             if (s[j] == c) {
                                 if (charcomp(s+j,search,lensearch)) {
                                     return (i + j + shift);
@@ -607,7 +622,7 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
             __m256i firstchar = _mm256_set1_epi32(cc);
             
                 //We then scan our string for the first two characters...
-            for (; i > 31; i -= 32) {
+            for (; i >= 0; i -= 32) {
                 shift = 0;
                     //we load our section, the length should be larger than 16
                 for (shift = 0; shift < 4; shift++) {
@@ -618,10 +633,12 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm256_cmpeq_epi32(firstchar, current_bytes);
-                    if (_mm256_movemask_epi8(current_bytes)) {
+                    q = _mm256_movemask_epi8(current_bytes);
+                    if (q) {
                             //Our character is present, we now try to find where it is...
                             //we find it in this section...
-                        for (j = 28; j>=0; j--) {
+                        if (shift == 3) bitscanreverse(j, q); else j = 28;
+                        for (; j>=0; j--) {
                             if (s[j] == c) {
                                 if (charcomp(s+j,search,lensearch)) {
                                     return (i + j + shift);
@@ -645,7 +662,7 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
             __m256i firstchar = _mm256_set1_epi64x(cc);
             
                 //We then scan our string for the first two characters...
-            for (; i > 31; i -= 32) {
+            for (; i >=0; i -= 32) {
                 shift = 0;
                     //we load our section, the length should be larger than 16
                 for (shift = 0; shift < 8; shift++) {
@@ -656,10 +673,12 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm256_cmpeq_epi64(firstchar, current_bytes);
-                    if (_mm256_movemask_epi8(current_bytes)) {
+                    q = _mm256_movemask_epi8(current_bytes);
+                    if (q) {
                             //Our character is present, we now try to find where it is...
                             //we find it in this section...
-                        for (j = 24; j>=0; j--) {
+                        if (shift == 7) bitscanreverse(j, q); else j = 24;
+                        for (; j>=0; j--) {
                             if (s[j] == c) {
                                 if (charcomp(s+j,search,lensearch)) {
                                     return (i + j + shift);
@@ -672,11 +691,15 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
         }
     }
     
+    //We did not find anything in a string, which was a multiple of 32
+    if (i == -32)
+        return -1;
+    
     if (lensearch <= 32) {
-        for (j = 32-lensearch; j>=0; j--) {
-            if (src[j] == c) {
-                if (lensearch==1 || charcomp(src+j, search, lensearch))
-                    return j;
+        for (i = 32-lensearch; i>=0; i--) {
+            if (src[i] == c) {
+                if (lensearch==1 || charcomp(src+i, search, lensearch))
+                    return i;
             }
         }
     }
@@ -753,10 +776,14 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm256_cmpeq_epi16(firstchar, current_bytes);
-                    if (_mm256_movemask_epi8(current_bytes)) {
+                    q = _mm256_movemask_epi8(current_bytes);
+                    if (q) {
                             //Our character is present, we now try to find where it is...
                             //we find it in this section...
-                        for (j = 0; j < 31; j++) {
+                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
+                        //otherwise, we might loose a substring present before but with a different alignement with shift
+                        if (shift == 1) bitscanforward(j,q); else j = 0;
+                        for (; j < 31; j++) {
                             if (*s == c) {
                                 if (charcomp(s,USTR(search),lensearch)) {
                                     pos.push_back(i + j + shift);
@@ -796,10 +823,14 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm256_cmpeq_epi32(firstchar, current_bytes);
-                    if (_mm256_movemask_epi8(current_bytes)) {
+                    q = _mm256_movemask_epi8(current_bytes);
+                    if (q) {
                             //Our character is present, we now try to find where it is...
                             //we find it in this section...
-                        for (j = 0; j < 29; j++) {
+                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
+                        //otherwise, we might loose a substring present before but with a different alignement with shift
+                        if (shift == 3) bitscanforward(j,q); else j = 0;
+                        for (; j < 29; j++) {
                             if (*s == c) {
                                 if (charcomp(s,USTR(search),lensearch)) {
                                     pos.push_back(i + j + shift);
@@ -836,10 +867,14 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm256_cmpeq_epi64(firstchar, current_bytes);
-                    if (_mm256_movemask_epi8(current_bytes)) {
+                    q = _mm256_movemask_epi8(current_bytes);
+                    if (q) {
                             //Our character is present, we now try to find where it is...
                             //we find it in this section...
-                        for (j = 0; j < 25; j++) {
+                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
+                        //otherwise, we might loose a substring present before but with a different alignement with shift
+                        if (shift == 7) bitscanforward(j,q); else j = 0;
+                        for (; j < 25; j++) {
                             if (*s == c) {
                                 if (charcomp(s,USTR(search),lensearch)) {
                                     pos.push_back(i + j + shift);
@@ -944,10 +979,14 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm256_cmpeq_epi16(firstchar, current_bytes);
-                    if (_mm256_movemask_epi8(current_bytes)) {
-                            //Our character is present, we now try to find where it is...
-                            //we find it in this section...
-                        for (j = 0; j < 31; j++) {
+                    q = _mm256_movemask_epi8(current_bytes);
+                    if (q) {
+                        //Our character is present, we now try to find where it is...
+                        //we find it in this section...
+                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
+                        //otherwise, we might loose a substring present before but with a different alignement with shift
+                        if (shift == 1) bitscanforward(j,q); else j = 0;
+                        for (; j < 31; j++) {
                             if (*s == c) {
                                 if (charcomp(s,USTR(search),lensearch)) {
                                     foundHere = i + j + shift;
@@ -991,10 +1030,14 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm256_cmpeq_epi32(firstchar, current_bytes);
-                    if (_mm256_movemask_epi8(current_bytes)) {
+                    q = _mm256_movemask_epi8(current_bytes);
+                    if (q) {
                             //Our character is present, we now try to find where it is...
                             //we find it in this section...
-                        for (j = 0; j < 29; j++) {
+                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
+                        //otherwise, we might loose a substring present before but with a different alignement with shift
+                        if (shift == 3) bitscanforward(j,q); else j = 0;
+                        for (; j < 29; j++) {
                             if (*s == c) {
                                 if (charcomp(s,USTR(search),lensearch)) {
                                     foundHere = i + j + shift;
@@ -1035,10 +1078,14 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm256_cmpeq_epi64(firstchar, current_bytes);
-                    if (_mm256_movemask_epi8(current_bytes)) {
+                    q = _mm256_movemask_epi8(current_bytes);
+                    if (q) {
                             //Our character is present, we now try to find where it is...
                             //we find it in this section...
-                        for (j = 0; j < 25; j++) {
+                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
+                        //otherwise, we might loose a substring present before but with a different alignement with shift
+                        if (shift == 7) bitscanforward(j,q); else j = 0;
+                        for (; j < 25; j++) {
                             if (*s == c) {
                                 if (charcomp(s,USTR(search),lensearch)) {
                                     foundHere = i + j + shift;
@@ -1150,10 +1197,14 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm256_cmpeq_epi16(firstchar, current_bytes);
-                    if (_mm256_movemask_epi8(current_bytes)) {
+                    q = _mm256_movemask_epi8(current_bytes);
+                    if (q) {
                             //Our character is present, we now try to find where it is...
                             //we find it in this section...
-                        for (j = 0; j< 31; j++) {
+                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
+                        //otherwise, we might loose a substring present before but with a different alignement with shift
+                        if (shift == 1) bitscanforward(j,q); else j = 0;
+                        for (; j< 31; j++) {
                             if (*s == c) {
                                 if (charcomp(s,search,lensearch)) {
                                     counter++;
@@ -1193,10 +1244,14 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm256_cmpeq_epi32(firstchar, current_bytes);
-                    if (_mm256_movemask_epi8(current_bytes)) {
+                    q = _mm256_movemask_epi8(current_bytes);
+                    if (q) {
                             //Our character is present, we now try to find where it is...
                             //we find it in this section...
-                        for (j = 0; j < 29; j++) {
+                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
+                        //otherwise, we might loose a substring present before but with a different alignement with shift
+                        if (shift == 3) bitscanforward(j,q); else j = 0;
+                        for (; j < 29; j++) {
                             if (*s == c) {
                                 if (charcomp(s,search,lensearch)) {
                                     counter++;
@@ -1233,10 +1288,14 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm256_cmpeq_epi64(firstchar, current_bytes);
-                    if (_mm256_movemask_epi8(current_bytes)) {
+                    q = _mm256_movemask_epi8(current_bytes);
+                    if (q) {
                             //Our character is present, we now try to find where it is...
                             //we find it in this section...
-                        for (j = 0; j < 25; j++) {
+                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
+                        //otherwise, we might loose a substring present before but with a different alignement with shift
+                        if (shift == 7) bitscanforward(j,q); else j = 0;
+                        for (; j < 25; j++) {
                             if (*s == c) {
                                 if (charcomp(s,search,lensearch)) {
                                     counter++;
@@ -1365,18 +1424,17 @@ long find_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, long
                         //we check if we have the first character of our string somewhere
                         //in this 8 character window...
                     current_bytes = doublecomp(firstchar, current_bytes);
-                    if (_mm256_movemask_epi8(current_bytes))
-                        break;
-                }
-                if (shift != 2) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (j=0; j < stringincrement-1; j++) {
-                        if (*s == c) {
-                            if (wcharcomp(s, search, lensearch))
-                                return (i+j+shift);
+                    if (_mm256_movemask_epi8(current_bytes)) {
+                            //we find it in this section...
+                            //Our character is present, we now try to find where it is...
+                            //we find it in this section...
+                        for (j=0; j < stringincrement-1; j++) {
+                            if (*s == c) {
+                                if (wcharcomp(s, search, lensearch))
+                                    return (i+j+shift);
+                            }
+                            ++s;
                         }
-                        ++s;
                     }
                 }
             }
@@ -1401,24 +1459,23 @@ long find_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, long
                         //we check if we have the first character of our string somewhere
                         //in this 8 character window...
                     current_bytes = _mm256_cmpeq_epi64(firstchar, current_bytes);
-                    if (_mm256_movemask_epi8(current_bytes))
-                        break;
-                }
-                
-                if (shift != 4) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (j=0; j < 13; j++) {
-                        if (*s == c) {
-                            if (wcharcomp(s, search, lensearch))
-                                return (i+j+shift);
+                    if (_mm256_movemask_epi8(current_bytes)) {
+                            //we find it in this section...
+                            //Our character is present, we now try to find where it is...
+                            //we find it in this section...
+                        for (j=0; j < 13; j++) {
+                            if (*s == c) {
+                                if (wcharcomp(s, search, lensearch))
+                                    return (i+j+shift);
+                            }
+                            ++s;
                         }
-                        ++s;
                     }
                 }
             }
         }
 #endif
+            
     }
     
     lensrc-=lensearch;
@@ -1446,12 +1503,12 @@ long rfind_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, lon
 
     if (i >= stringincrement)
         i -= stringincrement;
-    
+
     switch (lensearch) {
         case 1: {
             __m256i firstchar = mset_256(c);
                 //We then scan our string for this last character...
-            while (i>=stringincrement) {
+            for (;i>=0; i -= stringincrement) {
                     //we load our section, the length should be larger than 8
                 s=src+i;
                 current_bytes = _mm256_loadu_si256((const __m256i *)s);
@@ -1465,7 +1522,6 @@ long rfind_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, lon
                         }
                     }
                 }
-                i -= stringincrement;
             }
             break;
         }
@@ -1482,7 +1538,7 @@ long rfind_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, lon
             char shift;
             __m256i firstchar = doubleset(cc);
             
-            while (i>=stringincrement) {
+            for (;i>=0; i -= stringincrement) {
                     //we load our section, the length should be larger than 8
                 for (shift = 0; shift < 2; shift++) {
                     s=src+i+shift;
@@ -1490,19 +1546,16 @@ long rfind_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, lon
                         //we check if we have the first character of our string somewhere
                         //in this 8 character window...
                     current_bytes = doublecomp(firstchar, current_bytes);
-                    if (_mm256_movemask_epi8(current_bytes))
-                        break;
-                }
-                if (shift != 2) {
-                        //we find it in this section...
-                    for (j=stringincrement-2; j>=0; j--) {
-                        if (s[j] == c) {
-                            if (wcharcomp(s+j, search, lensearch))
-                                return(i+j+shift);
+                    if (_mm256_movemask_epi8(current_bytes)) {
+                            //we find it in this section...
+                        for (j=stringincrement-2; j>=0; j--) {
+                            if (s[j] == c) {
+                                if (wcharcomp(s+j, search, lensearch))
+                                    return(i+j+shift);
+                            }
                         }
                     }
                 }
-                i -= stringincrement;
             }
             break;
         }
@@ -1516,7 +1569,7 @@ long rfind_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, lon
                 cc |= search[shift];
             }
             __m256i firstchar = _mm256_set1_epi64x(cc);
-            while (i>=stringincrement) {
+            for (;i>=0; i -= stringincrement) {
                     //we load our section, the length should be larger than stringincrement
                 for (shift = 0; shift < 4; shift++) {
                     s=src+i+shift;
@@ -1524,25 +1577,26 @@ long rfind_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, lon
                         //we check if we have the first character of our string somewhere
                         //in this 8 character window...
                     current_bytes = _mm256_cmpeq_epi64(firstchar, current_bytes);
-                    if (_mm256_movemask_epi8(current_bytes))
-                        break;
-                }
-                if (shift != 4) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (j=14; j >= 0; j++) {
-                        if (*s == c) {
-                            if (wcharcomp(s, search, lensearch))
-                                return (i+j+shift);
+                    if (_mm256_movemask_epi8(current_bytes)) {
+                            //we find it in this section...
+                            //Our character is present, we now try to find where it is...
+                            //we find it in this section...
+                        for (j=14; j >= 0; j++) {
+                            if (*s == c) {
+                                if (wcharcomp(s, search, lensearch))
+                                    return (i+j+shift);
+                            }
+                            ++s;
                         }
-                        ++s;
                     }
                 }
-                i -= 16;
             }
         }
 #endif
     }
+    
+    if ((i*-1) == stringincrement)
+        return -1;
     
     if (lensearch <= stringincrement) {
         for (j=stringincrement-lensearch; j>=0; j--) {
@@ -1621,18 +1675,17 @@ void find_intel_all(wchar_t* src, wchar_t* search, long lensrc, long lensearch, 
                         //we check if we have the first character of our string somewhere
                         //in this 8 character window...
                     current_bytes = doublecomp(firstchar, current_bytes);
-                    if (_mm256_movemask_epi8(current_bytes))
-                        break;
-                }
-                if (shift != 2) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (j=0; j < stringincrement-1; j++) {
-                        if (*s == c) {
-                            if (wcharcomp(s, search, lensearch))
-                                pos.push_back(i+j+shift);
+                    if (_mm256_movemask_epi8(current_bytes)) {
+                            //we find it in this section...
+                            //Our character is present, we now try to find where it is...
+                            //we find it in this section...
+                        for (j=0; j < stringincrement-1; j++) {
+                            if (*s == c) {
+                                if (wcharcomp(s, search, lensearch))
+                                    pos.push_back(i+j+shift);
+                            }
+                            ++s;
                         }
-                        ++s;
                     }
                 }
             }
@@ -1656,19 +1709,17 @@ void find_intel_all(wchar_t* src, wchar_t* search, long lensrc, long lensearch, 
                         //we check if we have the first character of our string somewhere
                         //in this 8 character window...
                     current_bytes = _mm256_cmpeq_epi64(firstchar, current_bytes);
-                    if (_mm256_movemask_epi8(current_bytes))
-                        break;
-                }
-                
-                if (shift != 4) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (j=0; j < 13; j++) {
-                        if (*s == c) {
-                            if (wcharcomp(s, search, lensearch))
-                                pos.push_back(i+j+shift);
+                    if (_mm256_movemask_epi8(current_bytes)) {
+                            //we find it in this section...
+                            //Our character is present, we now try to find where it is...
+                            //we find it in this section...
+                        for (j=0; j < 13; j++) {
+                            if (*s == c) {
+                                if (wcharcomp(s, search, lensearch))
+                                    pos.push_back(i+j+shift);
+                            }
+                            ++s;
                         }
-                        ++s;
                     }
                 }
             }
@@ -1750,23 +1801,22 @@ void replace_intel_all(wstring& noe, wstring& src, wstring& search, wstring& rep
                     //we check if we have the first character of our string somewhere
                     //in this 8 character window...
                 current_bytes = doublecomp(firstchar, current_bytes);
-                if (_mm256_movemask_epi8(current_bytes))
-                    break;
-            }
-            if (shift != 2) {
-                    //Our character is present, we now try to find where it is...
-                    //we find it in this section...
-                for (j=0; j < stringincrement-1; j++) {
-                    if (*s == c) {
-                        if (wcharcomp(s,WSTR(search),lensearch)) {
-                            foundHere = i + j + shift;
-                            if (from != foundHere)
-                                neo = concatstrings(neo, WSTR(src)+from, ineo, lenneo, foundHere-from);
-                            neo = concatstrings(neo, WSTR(replace), ineo, lenneo, replace.size());
-                            from = foundHere+lensearch;
+                if (_mm256_movemask_epi8(current_bytes)) {
+                        //we find it in this section...
+                        //Our character is present, we now try to find where it is...
+                        //we find it in this section...
+                    for (j=0; j < stringincrement-1; j++) {
+                        if (*s == c) {
+                            if (wcharcomp(s,WSTR(search),lensearch)) {
+                                foundHere = i + j + shift;
+                                if (from != foundHere)
+                                    neo = concatstrings(neo, WSTR(src)+from, ineo, lenneo, foundHere-from);
+                                neo = concatstrings(neo, WSTR(replace), ineo, lenneo, replace.size());
+                                from = foundHere+lensearch;
+                            }
                         }
+                        ++s;
                     }
-                    ++s;
                 }
             }
         }
@@ -1848,18 +1898,17 @@ long count_strings_intel(wchar_t* src, wchar_t* search, long lensrc, long lensea
                     //we check if we have the first character of our string somewhere
                     //in this 8 character window...
                 current_bytes = doublecomp(firstchar, current_bytes);
-                if (_mm256_movemask_epi8(current_bytes))
-                    break;
-            }
-            if (shift != 2) {
-                    //Our character is present, we now try to find where it is...
-                    //we find it in this section...
-                for (j=0; j < stringincrement-1; j++) {
-                    if (*s == c) {
-                        if (wcharcomp(s, search, lensearch))
-                            counter++;
+                if (_mm256_movemask_epi8(current_bytes)) {
+                        //we find it in this section...
+                        //Our character is present, we now try to find where it is...
+                        //we find it in this section...
+                    for (j=0; j < stringincrement-1; j++) {
+                        if (*s == c) {
+                            if (wcharcomp(s, search, lensearch))
+                                counter++;
+                        }
+                        ++s;
                     }
-                    ++s;
                 }
             }
         }
@@ -2120,7 +2169,7 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
                 if (q) {
                     //Our character is present, we now try to find where it is...
                     //we find it in this section...
-                    j = _bit_scan_forward(q);
+                    bitscanforward(j,q);
                     return (i+j);
                 }
             }
@@ -2145,8 +2194,12 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
                         //we check if we have the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm_cmpeq_epi16(firstchar, current_bytes);
-                    if (_mm_movemask_epi8(current_bytes)) {
-                        for (j = 0; j < 15; j++) {
+                    q = _mm_movemask_epi8(current_bytes);
+                    if (q) {
+                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
+                        //otherwise, we might loose a substring present before but with a different alignement with shift
+                        if (shift == 1) bitscanforward(j,q); else j = 0;
+                        for (; j < 15; j++) {
                             if (*s == c) {
                                 if (charcomp(s,search,lensearch)) {
                                     return (i + j + shift);
@@ -2182,8 +2235,12 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm_cmpeq_epi32(firstchar, current_bytes);
-                    if (_mm_movemask_epi8(current_bytes)) {
-                        for (j = 0; j < 13; j++) {
+                    q = _mm_movemask_epi8(current_bytes);
+                    if (q) {
+                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
+                        //otherwise, we might loose a substring present before but with a different alignement with shift
+                        if (shift == 3) bitscanforward(j,q); else j = 0;
+                        for (; j < 13; j++) {
                             if (*s == c) {
                                 if (charcomp(s,search,lensearch)) {
                                     return (i + j + shift);
@@ -2229,7 +2286,7 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
         {
             __m128i firstchar = _mm_set1_epi8(c);
                 //We then scan our string for this first character...
-            for (; i > 15; i -= 16) {
+            for (; i >= 0; i -= 16) {
                     //we load our section, the length should be larger than 16
                 s=src+i;
                 current_bytes = _mm_loadu_si128((const __m128i *)s);
@@ -2240,7 +2297,7 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
                 if (q) {
                     //Our character is present, we now try to find where it is...
                         //we find it in this section...
-                    j = _bit_scan_reverse(q);
+                    bitscanreverse(j,q);
                     return (i+j);
                 }
             }
@@ -2255,7 +2312,7 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
             __m128i firstchar = _mm_set1_epi16(cc);
             
                 //We then scan our string for the first two characters...
-            for (; i > 15; i -= 16) {
+            for (; i >= 0; i -= 16) {
                 for (shift = 0; shift < 2; shift++) {
                         //we load our section, the length should be larger than 16
                     s=src + i + shift;
@@ -2265,8 +2322,10 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
                         //we check if we have the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm_cmpeq_epi16(firstchar, current_bytes);
-                    if (_mm_movemask_epi8(current_bytes)) {
-                        for (j = 14; j>=0; j--) {
+                    q = _mm_movemask_epi8(current_bytes);
+                    if (q) {
+                        if (shift == 1) bitscanreverse(j,q); else j = 14;
+                        for (; j>=0; j--) {
                             if (s[j] == c) {
                                 if (charcomp(s+j,search,lensearch)) {
                                     return (i + j + shift);
@@ -2290,7 +2349,7 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
             __m128i firstchar = _mm_set1_epi32(cc);
             
                 //We then scan our string for the first two characters...
-            for (; i > 15; i -= 16) {
+            for (; i >= 0; i -= 16) {
                 shift = 0;
                     //we load our section, the length should be larger than 16
                 for (shift = 0; shift < 4; shift++) {
@@ -2301,8 +2360,10 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm_cmpeq_epi32(firstchar, current_bytes);
-                    if (_mm_movemask_epi8(current_bytes)) {
-                        for (j = 12; j>=0; j--) {
+                    q = _mm_movemask_epi8(current_bytes);
+                    if (q) {
+                        if (shift == 1) bitscanreverse(j,q); else j = 12;
+                        for (; j>=0; j--) {
                             if (s[j] == c) {
                                 if (charcomp(s+j,search,lensearch)) {
                                     return (i + j + shift);
@@ -2314,6 +2375,9 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
             }
         }
     }
+    
+    if (i == -16)
+        return -1;
     
     if (lensearch <= 16) {
         for (j = 16-lensearch; j>=0; j--) {
@@ -2360,7 +2424,7 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
                 if (q) {
                     //Our character is present, we now try to find where it is...
                     //we find it in this section...
-                    j = _bit_scan_forward(q);
+                    bitscanforward(j,q);
                     s += j;
                     for (; j < 16; j++) {
                         if (*s == c)
@@ -2390,8 +2454,12 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
                         //we check if we have the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm_cmpeq_epi16(firstchar, current_bytes);
-                    if (_mm_movemask_epi8(current_bytes)) {
-                        for (j = 0; j < 15; j++) {
+                    q = _mm_movemask_epi8(current_bytes);
+                    if (q) {
+                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
+                        //otherwise, we might loose a substring present before but with a different alignement with shift
+                        if (shift == 1) bitscanforward(j,q); else j = 0;
+                        for (; j < 15; j++) {
                             if (*s == c) {
                                 if (charcomp(s,USTR(search),lensearch))
                                     pos.push_back(i + j + shift);
@@ -2426,8 +2494,12 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm_cmpeq_epi32(firstchar, current_bytes);
-                    if (_mm_movemask_epi8(current_bytes)) {
-                        for (j = 0; j < 13; j++) {
+                    q = _mm_movemask_epi8(current_bytes);
+                    if (q) {
+                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
+                        //otherwise, we might loose a substring present before but with a different alignement with shift
+                        if (shift == 3) bitscanforward(j,q); else j = 0;
+                        for (; j < 13; j++) {
                             if (*s == c) {
                                 if (charcomp(s,USTR(search),lensearch)) {
                                     pos.push_back(i + j + shift);
@@ -2492,7 +2564,7 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
                 if (q) {
                         //Our character is present, we now try to find where it is...
                         //we find it in this section...
-                    j = _bit_scan_forward(q);
+                    bitscanforward(j,q);
                     s += j;
                         //Our character is present, we now try to find where it is...
                         //we find it in this section...
@@ -2529,8 +2601,12 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
                         //we check if we have the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm_cmpeq_epi16(firstchar, current_bytes);
-                    if (_mm_movemask_epi8(current_bytes)) {
-                        for (j = 0; j < 15; j++) {
+                    q = _mm_movemask_epi8(current_bytes);
+                    if (q) {
+                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
+                        //otherwise, we might loose a substring present before but with a different alignement with shift
+                        if (shift == 1) bitscanforward(j,q); else j = 0;
+                        for (; j < 15; j++) {
                             if (*s == c) {
                                 if (charcomp(s,USTR(search),lensearch)) {
                                     foundHere = i + j + shift;
@@ -2570,8 +2646,12 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm_cmpeq_epi32(firstchar, current_bytes);
-                    if (_mm_movemask_epi8(current_bytes)) {
-                        for (j = 0; j < 13; j++) {
+                    q = _mm_movemask_epi8(current_bytes);
+                    if (q) {
+                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
+                        //otherwise, we might loose a substring present before but with a different alignement with shift
+                        if (shift == 3) bitscanforward(j,q); else j = 0;
+                        for (; j < 13; j++) {
                             if (*s == c) {
                                 if (charcomp(s,USTR(search),lensearch)) {
                                     foundHere = i + j + shift;
@@ -2647,7 +2727,7 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
                 if (q) {
                         //Our character is present, we now try to find where it is...
                         //we find it in this section...
-                    j = _bit_scan_forward(q);
+                    bitscanforward(j,q);
                     s += j;
                         //Our character is present, we now try to find where it is...
                         //we find it in this section...
@@ -2681,8 +2761,12 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
                         //we check if we have the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm_cmpeq_epi16(firstchar, current_bytes);
-                    if (_mm_movemask_epi8(current_bytes)) {
-                        for (j = 0; j < 15; j++) {
+                    q = _mm_movemask_epi8(current_bytes);
+                    if (q) {
+                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
+                        //otherwise, we might loose a substring present before but with a different alignement with shift
+                        if (shift == 1) bitscanforward(j,q); else j = 0;
+                        for (; j < 15; j++) {
                             if (*s == c) {
                                 if (charcomp(s,search,lensearch)) {
                                     counter++;
@@ -2718,8 +2802,12 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
                     current_bytes = _mm_cmpeq_epi32(firstchar, current_bytes);
-                    if (_mm_movemask_epi8(current_bytes)) {
-                        for (j = 0; j < 13; j++) {
+                    q = _mm_movemask_epi8(current_bytes);
+                    if (q) {
+                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
+                        //otherwise, we might loose a substring present before but with a different alignement with shift
+                        if (shift == 3) bitscanforward(j,q); else j = 0;
+                        for (; j < 13; j++) {
                             if (*s == c) {
                                 if (charcomp(s,search,lensearch)) {
                                     counter++;
@@ -2831,18 +2919,17 @@ long find_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, long
                     //we check if we have a the first character of our string somewhere
                     //in this 16 character window...
                 current_bytes = _mm_cmpeq_epi64(firstchar, current_bytes);
-                if (_mm_movemask_epi8(current_bytes))
-                    break;
-            }
-            if (shift != 2) {
-                    //Our character is present, we now try to find where it is...
-                    //we find it in this section...
-                for (j=0; j < stringincrement-1; j++) {
-                    if (*s == c) {
-                        if (wcharcomp(s, search, lensearch))
-                            return (i+j+shift);
+                if (_mm_movemask_epi8(current_bytes)) {
+                        //we find it in this section...
+                        //Our character is present, we now try to find where it is...
+                        //we find it in this section...
+                    for (j=0; j < stringincrement-1; j++) {
+                        if (*s == c) {
+                            if (wcharcomp(s, search, lensearch))
+                                return (i+j+shift);
+                        }
+                        ++s;
                     }
-                    ++s;
                 }
             }
         }
@@ -2877,7 +2964,7 @@ long rfind_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, lon
     if (lensearch == 1) {
         __m128i firstchar = mset_128(c);
         //We then scan our string for this first character...
-        while (i >= stringincrement) {
+        for (;i>=0; i -= stringincrement) {
                 //we load our section, the length should be larger than 16
             s=src+i;
             
@@ -2894,7 +2981,6 @@ long rfind_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, lon
                     }
                 }
             }
-            i -= stringincrement;
         }
     }
     else {
@@ -2904,7 +2990,7 @@ long rfind_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, lon
         __m128i firstchar = _mm_set1_epi64x(cc);
         char shift;
         
-        while (i >= stringincrement) {
+        for (;i>=0; i -= stringincrement) {
             
             for (shift = 0; shift < 2; shift++) {
                 s=src+i+shift;
@@ -2913,23 +2999,23 @@ long rfind_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, lon
                     //we check if we have a the first character of our string somewhere
                     //in this 16 character window...
                 current_bytes = _mm_cmpeq_epi64(firstchar, current_bytes);
-                if (_mm_movemask_epi8(current_bytes))
-                    break;
-            }
-            
-            if (shift != 2) {
-                    //we find it in this section...
-                for (j = stringincrement - 2; j>=0; j--) {
-                    if (s[j] == c) {
-                        if (wcharcomp(s+j, search, lensearch))
-                            return(i+j+shift);
+                if (_mm_movemask_epi8(current_bytes)) {
+                        //we find it in this section...
+                        //we find it in this section...
+                    for (j = stringincrement - 2; j>=0; j--) {
+                        if (s[j] == c) {
+                            if (wcharcomp(s+j, search, lensearch))
+                                return(i+j+shift);
+                        }
                     }
                 }
             }
-            i -= stringincrement;
         }
     }
 
+    if ((i*-1) == stringincrement)
+        return -1;
+    
     if (lensearch <= stringincrement) {
         for (j = stringincrement-lensearch; j>=0; j--) {
             if (src[j] == c) {
@@ -2992,18 +3078,17 @@ void find_intel_all(wchar_t* src, wchar_t* search, long lensrc, long lensearch, 
                     //we check if we have a the first character of our string somewhere
                     //in this 16 character window...
                 current_bytes = _mm_cmpeq_epi64(firstchar, current_bytes);
-                if (_mm_movemask_epi8(current_bytes))
-                    break;
-            }
-            if (shift != 2) {
-                    //Our character is present, we now try to find where it is...
-                    //we find it in this section...
-                for (j=0; j < stringincrement-1; j++) {
-                    if (*s == c) {
-                        if (wcharcomp(s, search, lensearch))
-                            pos.push_back(i+j+shift);
+                if (_mm_movemask_epi8(current_bytes)) {
+                        //we find it in this section...
+                        //Our character is present, we now try to find where it is...
+                        //we find it in this section...
+                    for (j=0; j < stringincrement-1; j++) {
+                        if (*s == c) {
+                            if (wcharcomp(s, search, lensearch))
+                                pos.push_back(i+j+shift);
+                        }
+                        ++s;
                     }
-                    ++s;
                 }
             }
         }
@@ -3085,24 +3170,22 @@ void replace_intel_all(wstring& noe, wstring& src, wstring& search, wstring& rep
                     //we check if we have a the first character of our string somewhere
                     //in this 16 character window...
                 current_bytes = _mm_cmpeq_epi64(firstchar, current_bytes);
-                if (_mm_movemask_epi8(current_bytes))
-                    break;
-            }
-            
-            if (shift != 2) {
-                    //Our character is present, we now try to find where it is...
-                    //we find it in this section...
-                for (j=0; j < stringincrement-1; j++) {
-                    if (*s == c) {
-                        if (wcharcomp(s,WSTR(search),lensearch)) {
-                            foundHere = i + j + shift;
-                            if (from != foundHere)
-                                neo = concatstrings(neo, WSTR(src)+from, ineo, lenneo, foundHere-from);
-                            neo = concatstrings(neo, WSTR(replace), ineo, lenneo, replace.size());
-                            from = foundHere+lensearch;
+                if (_mm_movemask_epi8(current_bytes)) {
+                        //we find it in this section...
+                        //Our character is present, we now try to find where it is...
+                        //we find it in this section...
+                    for (j=0; j < stringincrement-1; j++) {
+                        if (*s == c) {
+                            if (wcharcomp(s,WSTR(search),lensearch)) {
+                                foundHere = i + j + shift;
+                                if (from != foundHere)
+                                    neo = concatstrings(neo, WSTR(src)+from, ineo, lenneo, foundHere-from);
+                                neo = concatstrings(neo, WSTR(replace), ineo, lenneo, replace.size());
+                                from = foundHere+lensearch;
+                            }
                         }
+                        ++s;
                     }
-                    ++s;
                 }
             }
         }
@@ -3188,18 +3271,17 @@ if (lensearch > lensrc)
                     //we check if we have a the first character of our string somewhere
                     //in this 16 character window...
                 current_bytes = _mm_cmpeq_epi64(firstchar, current_bytes);
-                if (_mm_movemask_epi8(current_bytes))
-                    break;
-            }
-            if (shift != 2) {
-                    //Our character is present, we now try to find where it is...
-                    //we find it in this section...
-                for (j=0; j < stringincrement-1; j++) {
-                    if (*s == c) {
-                        if (wcharcomp(s, search, lensearch))
-                            counter++;
+                if (_mm_movemask_epi8(current_bytes)) {
+                        //we find it in this section...
+                        //Our character is present, we now try to find where it is...
+                        //we find it in this section...
+                    for (j=0; j < stringincrement-1; j++) {
+                        if (*s == c) {
+                            if (wcharcomp(s, search, lensearch))
+                                counter++;
+                        }
+                        ++s;
                     }
-                    ++s;
                 }
             }
         }
