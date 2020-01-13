@@ -595,7 +595,7 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
                             //Our character is present, we now try to find where it is...
                             //we find it in this section...
                         if (shift == 1) bitscanreverse(j, q); else j = 30;
-                        for (; j>=0; j--) {
+                        for (; j != -1; j--) {
                             if (s[j] == c) {
                                 if (charcomp(s+j,search,lensearch)) {
                                     return (i + j + shift);
@@ -638,7 +638,7 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
                             //Our character is present, we now try to find where it is...
                             //we find it in this section...
                         if (shift == 3) bitscanreverse(j, q); else j = 28;
-                        for (; j>=0; j--) {
+                        for (; j != -1; j--) {
                             if (s[j] == c) {
                                 if (charcomp(s+j,search,lensearch)) {
                                     return (i + j + shift);
@@ -678,7 +678,7 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
                             //Our character is present, we now try to find where it is...
                             //we find it in this section...
                         if (shift == 7) bitscanreverse(j, q); else j = 24;
-                        for (; j>=0; j--) {
+                        for (; j != -1; j--) {
                             if (s[j] == c) {
                                 if (charcomp(s+j,search,lensearch)) {
                                     return (i + j + shift);
