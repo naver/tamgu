@@ -161,10 +161,10 @@ public:
         uint32_t v;
         for (++i; i < nb; i++) {
             v = indexes[i] & 0xFFFF;
-            if (v > r)
-                return false;
             if (v <= 1 || v == r)
                 return true;
+            if (v > r)
+                return false;
         }
         return false;
     }
@@ -521,22 +521,22 @@ class TamguDoubleSideAutomaton;
 class FstCompanion;
 bool compileAutomaton(TamguDoubleSideAutomaton& a, string intrans, string outtrans, short latintable, bool norm);
 
-class TamguFst {
+class TamguState {
 public:
     unsigned char status;
-    arc_map<TamguFst*> arcs;
+    arc_map<TamguState*> arcs;
     uint32_t id;
     bool mark;
     
-    TamguFst() {
+    TamguState() {
         id = 0;
         status = 0;
         mark=false;
     }
     
-    TamguFst(TamguDoubleSideAutomaton& a);
+    TamguState(TamguDoubleSideAutomaton& a);
     
-	TamguFst(unicodestring& w, unicodestring& lf, long posw, long posl, TamguDoubleSideAutomaton& a);
+	TamguState(unicodestring& w, unicodestring& lf, long posw, long posl, TamguDoubleSideAutomaton& a);
     
     bool isend() {
         if ((status&xfarcend)==xfarcend)
@@ -544,14 +544,14 @@ public:
         return false;
     }
     
-    void mergein(TamguFst* start, TamguDoubleSideAutomaton& a, vector<TamguFst*>& marks);
-    void merging(TamguFst* start, TamguDoubleSideAutomaton& a);
+    void mergein(TamguState* start, TamguDoubleSideAutomaton& a, vector<TamguState*>& marks);
+    void merging(TamguState* start, TamguDoubleSideAutomaton& a);
     
 	void add(unicodestring& w, unicodestring& lf, long posw, long posl, TamguDoubleSideAutomaton& a);
     void regulars(TamguDoubleSideAutomaton& a);
     bool rgx(TamguDoubleSideAutomaton& a, vector<wstring>& vs, long& i, vector<uint32_t>& indexes);
     bool parsergx(TamguDoubleSideAutomaton& a, agnostring& e, vector<uint32_t>& indexes);
-    TamguFst* parse(TamguDoubleSideAutomaton& a, vector<wstring>& vs, vector<uchar>& types, long i, vector<uint32_t>& indexes, TamguFst* common);
+    TamguState* parse(TamguDoubleSideAutomaton& a, vector<wstring>& vs, vector<uchar>& types, long i, vector<uint32_t>& indexes, TamguState* common);
     bool parse(TamguDoubleSideAutomaton& a, agnostring& e, vector<uint32_t>& indexes);
     bool parse(TamguDoubleSideAutomaton& a, wstring& e, vector<uint32_t>& indexes);
     bool loadtext(string name, TamguDoubleSideAutomaton& a);
@@ -570,12 +570,12 @@ public:
     void sorting();
 };
 
-class TamguFst_Vectorized : public TamguFst {
+class TamguState_Vectorized : public TamguState {
 public:
     
     binlong_hash<vector<long> > arcsv;
     
-    TamguFst_Vectorized(TamguDoubleSideAutomaton& a) : arcsv(false), TamguFst(a) {}
+    TamguState_Vectorized(TamguDoubleSideAutomaton& a) : arcsv(false), TamguState(a) {}
     
     void shuffle() {
         uint32_t u;
@@ -639,9 +639,9 @@ public:
 class TamguDoubleSideAutomaton {
 public:
     
-    vector<TamguFst*> garbage;
+    vector<TamguState*> garbage;
     hmap<string, unsigned short> alphabet;
-	hmap<TAMGUCHAR, TamguFst*> features;
+	hmap<TAMGUCHAR, TamguState*> features;
     hmap<wstring, TAMGUCHAR> multis;
     vector<wstring> sortedmultis;
     
@@ -650,7 +650,7 @@ public:
     basebin_hash<unsigned short> decoding;
     basebin_hash<unsigned short> featurecode;
 
-    TamguFst_Vectorized start;
+    TamguState_Vectorized start;
     Gates* gates;
     long encoding_table;
     bool finalize;
@@ -722,10 +722,10 @@ public:
     
     void fillencoding(bool add);
     
-    TamguFst* addfeature(uint32_t p, TamguFst* a = NULL) {
+    TamguState* addfeature(uint32_t p, TamguState* a = NULL) {
         if (features.find(p) == features.end()) {
             if (a == NULL)
-                features[p] = new TamguFst(*this);
+                features[p] = new TamguState(*this);
             else
                 features[p] = a;
             
@@ -834,7 +834,7 @@ public:
             gate = true;
     }
     
-    void displayarcs(TamguFst* tf, long beg=0) {
+    void displayarcs(TamguState* tf, long beg=0) {
         uint32_t prev;
         for (long ii = beg; ii < tf->arcs.nb; ii++) {
             prev = tf->arcs.code(ii);
@@ -852,7 +852,7 @@ public:
         cerr<<endl<<"---------------"<<endl;
     }
     
-    void displayarc(TamguFst* tf, long ii) {
+    void displayarc(TamguState* tf, long ii) {
         uint32_t prev = tf->arcs.code(ii);
         if (!prev) {
             prev = tf->arcs.character(ii);

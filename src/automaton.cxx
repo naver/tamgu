@@ -84,14 +84,14 @@ bool compileAutomaton(TamguDoubleSideAutomaton& a, string intrans, string outtra
 	return a.compile(intrans, outtrans);
 }
 
-TamguFst::TamguFst(TamguDoubleSideAutomaton& a) {
+TamguState::TamguState(TamguDoubleSideAutomaton& a) {
 	id = a.garbage.size();
 	a.garbage.push_back(this);
 	status = 0;
     mark=false;
 }
 
-TamguFst::TamguFst(unicodestring& w, unicodestring& lf, long posw, long posl, TamguDoubleSideAutomaton& a) {
+TamguState::TamguState(unicodestring& w, unicodestring& lf, long posw, long posl, TamguDoubleSideAutomaton& a) {
     mark=false;
 	id = a.garbage.size();
 	a.garbage.push_back(this);
@@ -99,7 +99,7 @@ TamguFst::TamguFst(unicodestring& w, unicodestring& lf, long posw, long posl, Ta
 	add(w, lf, posw, posl, a);
 }
 
-void TamguFst::loadarcs(ifstream& dump, hmap<uint32_t, uint32_t>& allarcs, TamguDoubleSideAutomaton& a) {
+void TamguState::loadarcs(ifstream& dump, hmap<uint32_t, uint32_t>& allarcs, TamguDoubleSideAutomaton& a) {
 	char buff[2];
 	dump.read(buff, 1);
 	status = buff[0];
@@ -154,7 +154,7 @@ void TamguFst::loadarcs(ifstream& dump, hmap<uint32_t, uint32_t>& allarcs, Tamgu
 	}
 }
 
-bool TamguFst::load(string name, TamguDoubleSideAutomaton& a) {
+bool TamguState::load(string name, TamguDoubleSideAutomaton& a) {
 	ifstream dump(STR(name), openMode);
 	if (dump.fail())
 		return false;
@@ -200,11 +200,11 @@ bool TamguFst::load(string name, TamguDoubleSideAutomaton& a) {
 	octet4 vv;
 	dump.read(vv.b, 4);
 	//We read the number of elements...
-	TamguFst* trans;
+	TamguState* trans;
 
 	long nbarcs = vv.v;
 	for (i = 1; i < nbarcs; i++)
-		trans = new TamguFst(a);
+		trans = new TamguState(a);
 
 	//Nb arc labels
 	dump.read(v.b, 2);
@@ -222,7 +222,7 @@ bool TamguFst::load(string name, TamguDoubleSideAutomaton& a) {
 
 	*flot_erreur << endl;
     if (a.gates != NULL) {
-        TamguFst* ar;
+        TamguState* ar;
         uint32_t code;
         uint32_t chr;
         for (i = 0; i < nbarcs; i++) {
@@ -242,7 +242,7 @@ bool TamguFst::load(string name, TamguDoubleSideAutomaton& a) {
 	return true;
 }
 
-void TamguFst::savearc(ofstream& dump, hmap<uint32_t, uint32_t>& allarcs) {
+void TamguState::savearc(ofstream& dump, hmap<uint32_t, uint32_t>& allarcs) {
 	//we check first if all indexes are identities
 	char buff[] = { 0, 0, 0 };
 
@@ -296,7 +296,7 @@ void TamguFst::savearc(ofstream& dump, hmap<uint32_t, uint32_t>& allarcs) {
 }
 
 //we suppose our automaton without any loops... A pure lexicon
-bool TamguFst::compile(string name, TamguDoubleSideAutomaton& a) {
+bool TamguState::compile(string name, TamguDoubleSideAutomaton& a) {
 	map<unsigned short, string> sorted;
 
 	hash_bin<unsigned short, string>::iterator it;
@@ -375,7 +375,7 @@ bool TamguFst::compile(string name, TamguDoubleSideAutomaton& a) {
 //-----------------------------------------------------------
 //We add a pair of characters to the automaton...
 //We conflate the character code of the lower and upper sides on one single 32 bits value...
-void TamguFst::add(unicodestring& w, unicodestring& lf, long posw, long posl, TamguDoubleSideAutomaton& a) {
+void TamguState::add(unicodestring& w, unicodestring& lf, long posw, long posl, TamguDoubleSideAutomaton& a) {
 	TAMGUCHAR cw;
     short last;
 
@@ -395,7 +395,7 @@ void TamguFst::add(unicodestring& w, unicodestring& lf, long posw, long posl, Ta
 			status |= xfepsilonupper;
 
 		if (!arcs.find(cw,last))
-			arcs[cw] = new TamguFst(w, lf, posw, posl, a);
+			arcs[cw] = new TamguState(w, lf, posw, posl, a);
 		else
 			arcs.get(cw,last)->add(w, lf, posw, posl, a);
 		return;
@@ -412,7 +412,7 @@ void TamguFst::add(unicodestring& w, unicodestring& lf, long posw, long posl, Ta
 			if (a.features.find(cw) != a.features.end())
 				arcs[cw] = a.features[cw];
 			else
-				arcs[cw] = new TamguFst(w, lf, posw, posl, a);
+				arcs[cw] = new TamguState(w, lf, posw, posl, a);
 		}
 		else
 			arcs.get(cw,last)->add(w, lf, posw, posl, a);
@@ -422,7 +422,7 @@ void TamguFst::add(unicodestring& w, unicodestring& lf, long posw, long posl, Ta
         status |= xfarcend;
 }
 
-bool TamguFst::loadtext(string name, TamguDoubleSideAutomaton& a) {
+bool TamguState::loadtext(string name, TamguDoubleSideAutomaton& a) {
 	ifstream f(name.c_str(), ios::in | ios::binary);
 	if (f.fail())
 		return false;
@@ -478,7 +478,7 @@ bool TamguFst::loadtext(string name, TamguDoubleSideAutomaton& a) {
 
 
 
-bool TamguFst::addmap(hmap<string, string>& lexicon, TamguDoubleSideAutomaton& a) {
+bool TamguState::addmap(hmap<string, string>& lexicon, TamguDoubleSideAutomaton& a) {
 
 	agnostring w;
 	agnostring l;
@@ -526,7 +526,7 @@ bool TamguFst::addmap(hmap<string, string>& lexicon, TamguDoubleSideAutomaton& a
 	return factorize(a);
 }
 //----------------------------------------------------------------------------------------
-static bool comparenodes(TamguFst* x1, TamguFst* x2) {
+static bool comparenodes(TamguState* x1, TamguState* x2) {
     //All arcs should be in both elements
     if (x1 == NULL || x2 == NULL)
         return false;
@@ -556,7 +556,7 @@ static bool comparenodes(TamguFst* x1, TamguFst* x2) {
     return true;
 }
 
-static void fstsize(long& idx, TamguFst* xf) {
+static void fstsize(long& idx, TamguState* xf) {
     if (xf == NULL)
         return;
     
@@ -573,10 +573,10 @@ static void fstsize(long& idx, TamguFst* xf) {
 }
 
 //simplify compares lists of arcs gathered according to their size or the ids of the next arcs.
-static void simplify(map<long, hmap<long, vector<TamguFst*> > >& pile, binlong_hash<long>& toberemoved, bool top) {
+static void simplify(map<long, hmap<long, vector<TamguState*> > >& pile, binlong_hash<long>& toberemoved, bool top) {
     long i, n;
-    TamguFst* xe;
-    TamguFst* xf;
+    TamguState* xe;
+    TamguState* xf;
     long sz;
     long I=0;
 
@@ -590,7 +590,7 @@ static void simplify(map<long, hmap<long, vector<TamguFst*> > >& pile, binlong_h
         
         for (auto& it : its.second) {
             
-            vector<TamguFst*>& v = it.second;
+            vector<TamguState*>& v = it.second;
             sz = v.size();
             
             if (sz > 1) {
@@ -615,12 +615,12 @@ static void simplify(map<long, hmap<long, vector<TamguFst*> > >& pile, binlong_h
     }
 }
 
-bool TamguFst::factorize(TamguDoubleSideAutomaton& a, long first) {
+bool TamguState::factorize(TamguDoubleSideAutomaton& a, long first) {
     a.clearmarks();
 	*flot_erreur << endl << a.garbage.size() << " arcs" << endl;
 	long i, n, nb;
-	TamguFst* xf;
-	map<long, hmap<long, vector<TamguFst*> > > pile;
+	TamguState* xf;
+	map<long, hmap<long, vector<TamguState*> > > pile;
     for (i = first; i < a.garbage.size(); i++) {
 		xf = a.garbage[i];
 		if (xf == NULL)
@@ -690,7 +690,7 @@ bool TamguFst::factorize(TamguDoubleSideAutomaton& a, long first) {
     
 	a.start.status |= xfmark;
 
-	TamguFst* xe;
+	TamguState* xe;
 	//We have identified with simplify the arcs, which are similar. For each of these arcs, we have kept one as
 	//the replacement. This procedure replaces each of these arcs with their replacement.
 	//The arcs that we want to keep are marked
@@ -810,8 +810,8 @@ static bool comp(uint32_t s1, uint32_t s2) {
 //we sort arcs according to their index
 void TamguDoubleSideAutomaton::sorting() {
     vector<uint32_t> ids;
-    hmap<uint32_t, TamguFst*> table;
-    TamguFst* a;
+    hmap<uint32_t, TamguState*> table;
+    TamguState* a;
     long j;
     for (long i = 0; i < garbage.size(); i++) {
         a = garbage[i];
@@ -832,12 +832,12 @@ void TamguDoubleSideAutomaton::sorting() {
     }
 }
 
-void TamguFst::sorting() {
+void TamguState::sorting() {
     if (arcs.nb <= 1)
         return;
     
     vector<uint32_t> ids;
-    hmap<uint32_t, TamguFst*> table;
+    hmap<uint32_t, TamguState*> table;
     long j;
     
     for (j = 0; j < arcs.nb; j++) {
@@ -854,16 +854,16 @@ void TamguFst::sorting() {
 }
 
 //-----------------------------------------------------------
-TamguFst* addcommon(TamguDoubleSideAutomaton& a,long sz, long i, TamguFst** common) {
+TamguState* addcommon(TamguDoubleSideAutomaton& a,long sz, long i, TamguState** common) {
     if (*common==NULL || (i+1)<sz)
-        return new TamguFst(a);
+        return new TamguState(a);
 
-    TamguFst* c=*common;
+    TamguState* c=*common;
     *common=NULL;
     return c;
 }
 
-TamguFst* TamguFst::parse(TamguDoubleSideAutomaton& a, vector<wstring>& vs, vector<uchar>& types, long I, vector<uint32_t>& indexes,TamguFst* common) {
+TamguState* TamguState::parse(TamguDoubleSideAutomaton& a, vector<wstring>& vs, vector<uchar>& types, long I, vector<uint32_t>& indexes,TamguState* common) {
     if (I == vs.size())
         return this;
     
@@ -873,9 +873,9 @@ TamguFst* TamguFst::parse(TamguDoubleSideAutomaton& a, vector<wstring>& vs, vect
     vector<wstring> vlocal;
     vector<uchar> tlocal;
     uint32_t cw;
-    TamguFst* sub = NULL;
-    TamguFst* next = NULL;
-    TamguFst* theend;
+    TamguState* sub = NULL;
+    TamguState* next = NULL;
+    TamguState* theend;
     long subpos=-1;
     uchar localtype=types[I];
     
@@ -889,7 +889,7 @@ TamguFst* TamguFst::parse(TamguDoubleSideAutomaton& a, vector<wstring>& vs, vect
             //If we are dealing with the last character, we can use it... However, since for a "*", we need a
             //last state to jump over, we cannot use common in this case (a "*")
             if (types[i]==2)
-                sub=new TamguFst(a); //we cannot use common here, we will create a new state later
+                sub=new TamguState(a); //we cannot use common here, we will create a new state later
             else
                 sub = addcommon(a,vs.size(),i,&common);
             arcs.add(cw, sub);
@@ -916,7 +916,7 @@ TamguFst* TamguFst::parse(TamguDoubleSideAutomaton& a, vector<wstring>& vs, vect
             //If we are dealing with the last character, we can use it... However, since for a "*", we need a
             //last state to jump over, we cannot use common in this case (a "*")
             if (types[i]==5)
-                sub=new TamguFst(a); //we cannot use common here, we will create a new state later
+                sub=new TamguState(a); //we cannot use common here, we will create a new state later
             else
                 sub = addcommon(a,vs.size(),i,&common);
             arcs.add(cw, sub);
@@ -941,7 +941,7 @@ TamguFst* TamguFst::parse(TamguDoubleSideAutomaton& a, vector<wstring>& vs, vect
             bool stop=false;
             uchar thetype, mint, maxt;
             //This the common end
-            TamguFst* commonend=new TamguFst(a);
+            TamguState* commonend=new TamguState(a);
             
             while (i < vs.size() && !stop) {
                 switch (types[i]) {
@@ -983,7 +983,7 @@ TamguFst* TamguFst::parse(TamguDoubleSideAutomaton& a, vector<wstring>& vs, vect
                             return NULL;
                         
                         subpos = a.garbage.size();
-                        sub = new TamguFst(a);
+                        sub = new TamguState(a);
                         theend=sub->parse(a,vlocal,tlocal,0,indexes, commonend);
                         if (theend==NULL)
                             return NULL;
@@ -1002,7 +1002,7 @@ TamguFst* TamguFst::parse(TamguDoubleSideAutomaton& a, vector<wstring>& vs, vect
                         vlocal.push_back(vs[i]);
                         tlocal.push_back(types[i]);
                         subpos = a.garbage.size();
-                        sub = new TamguFst(a);
+                        sub = new TamguState(a);
                         theend=sub->parse(a,vlocal,tlocal,0,indexes,commonend);
                         if (theend==NULL)
                             return NULL;
@@ -1059,7 +1059,7 @@ TamguFst* TamguFst::parse(TamguDoubleSideAutomaton& a, vector<wstring>& vs, vect
                 return NULL;
             
             subpos = a.garbage.size();
-            sub = new TamguFst(a);
+            sub = new TamguState(a);
             if (types[i]==13) //we cannot use common here...
                 theend=sub->parse(a,vlocal,tlocal,0,indexes, NULL);
             else
@@ -1117,7 +1117,7 @@ TamguFst* TamguFst::parse(TamguDoubleSideAutomaton& a, vector<wstring>& vs, vect
                 return NULL;
             
             subpos = a.garbage.size();
-            sub = new TamguFst(a);
+            sub = new TamguState(a);
             theend=sub->parse(a,vlocal,tlocal,0,indexes, NULL);
             if (theend==NULL)
                 return NULL;
@@ -1150,7 +1150,7 @@ TamguFst* TamguFst::parse(TamguDoubleSideAutomaton& a, vector<wstring>& vs, vect
             //If we are dealing with the last character, we can use it... However, since for a "*", we need a
             //last state to jump over, we cannot use common in this case (a "*")
             if (types[i]==21)
-                sub=new TamguFst(a);
+                sub=new TamguState(a);
             else
                 sub = addcommon(a,vs.size(),i,&common);
             
@@ -1187,7 +1187,7 @@ TamguFst* TamguFst::parse(TamguDoubleSideAutomaton& a, vector<wstring>& vs, vect
                 if ((j+1)==sz && types[i]!=26) //then we can use the common
                     next = addcommon(a,vs.size(),i,&common);
                 else
-                    next=new TamguFst(a);
+                    next=new TamguState(a);
                 
                 cw = a.index((uint32_t)vs[i][j]);
                 cw |= cw << 16;
@@ -1231,7 +1231,7 @@ TamguFst* TamguFst::parse(TamguDoubleSideAutomaton& a, vector<wstring>& vs, vect
             //If we are dealing with the last character, we can use it... However, since for a "*", we need a
             //last state to jump over, we cannot use common in this case (a "*")
             if (types[i]==2)
-                sub=new TamguFst(a); //we cannot use common here, we will create a new state later
+                sub=new TamguState(a); //we cannot use common here, we will create a new state later
             else
                 sub = addcommon(a,vs.size(),i,&common);
             arcs.add(cw, sub);
@@ -1254,7 +1254,7 @@ TamguFst* TamguFst::parse(TamguDoubleSideAutomaton& a, vector<wstring>& vs, vect
 }
 
 
-bool TamguFst::parse(TamguDoubleSideAutomaton& a, agnostring& expression, vector<uint32_t>& indexes) {
+bool TamguState::parse(TamguDoubleSideAutomaton& a, agnostring& expression, vector<uint32_t>& indexes) {
     static x_wdoubleautomaton xr;
     vector<wstring> vs;
     vector<uchar> types;
@@ -1264,13 +1264,13 @@ bool TamguFst::parse(TamguDoubleSideAutomaton& a, agnostring& expression, vector
     
 	long i = 0;
     
-    TamguFst* xf = new TamguFst(a);
+    TamguState* xf = new TamguState(a);
 	if (xf->parse(a, vs, types, i, indexes, NULL)==NULL)
 		return false;
 
 	status |= xf->status;
 
-    vector<TamguFst*> marked;
+    vector<TamguState*> marked;
     mergein(xf,a,marked);
     a.finalize = false;
 
@@ -1281,7 +1281,7 @@ bool TamguFst::parse(TamguDoubleSideAutomaton& a, agnostring& expression, vector
 	return true;
 }
 
-bool TamguFst::parse(TamguDoubleSideAutomaton& a, wstring& w, vector<uint32_t>& indexes) {
+bool TamguState::parse(TamguDoubleSideAutomaton& a, wstring& w, vector<uint32_t>& indexes) {
     static x_wdoubleautomaton xr;
     vector<wstring> vs;
     vector<uchar> types;
@@ -1290,11 +1290,11 @@ bool TamguFst::parse(TamguDoubleSideAutomaton& a, wstring& w, vector<uint32_t>& 
     
     long i = 0;
     
-    TamguFst* xf = new TamguFst(a);
+    TamguState* xf = new TamguState(a);
     if (xf->parse(a, vs, types, i, indexes, NULL)==NULL)
         return false;
         
-    vector<TamguFst*> marked;
+    vector<TamguState*> marked;
     mergein(xf,a,marked);
     a.finalize = false;
     
@@ -1304,7 +1304,7 @@ bool TamguFst::parse(TamguDoubleSideAutomaton& a, wstring& w, vector<uint32_t>& 
     return true;
 }
 
-void TamguFst::mergein(TamguFst* xf, TamguDoubleSideAutomaton& a, vector<TamguFst*>& marked) {
+void TamguState::mergein(TamguState* xf, TamguDoubleSideAutomaton& a, vector<TamguState*>& marked) {
     if (mark)
         return;
 
@@ -1340,7 +1340,7 @@ void TamguFst::mergein(TamguFst* xf, TamguDoubleSideAutomaton& a, vector<TamguFs
     }    
 }
 
-void TamguFst::merging(TamguFst* xf, TamguDoubleSideAutomaton& a) {
+void TamguState::merging(TamguState* xf, TamguDoubleSideAutomaton& a) {
     if (xf->mark)
         return;
     xf->mark=true;
@@ -1361,7 +1361,7 @@ void TamguFst::merging(TamguFst* xf, TamguDoubleSideAutomaton& a) {
     
     //we are at the limit where the indexes are no longer common...
     if (!found) {
-        TamguFst* xe;
+        TamguState* xe;
         //We then copy them...
         long u;
         for (i=0; i< absents.size(); i++) {
@@ -1413,7 +1413,7 @@ void TamguDoubleSideAutomaton::merge(TamguDoubleSideAutomaton* a) {
         uint32_t lower;
         uint32_t upper;
         //We need know to adapt the arcs in a to this new alphabet..
-        TamguFst* x;
+        TamguState* x;
         for (long i=0; i<a->garbage.size(); i++) {
             x = a->garbage[i];
             for (long j=0; j< x->arcs.sz; j++) {
@@ -1446,7 +1446,7 @@ void TamguDoubleSideAutomaton::merge(TamguDoubleSideAutomaton* a) {
     a->clearmarks();
 
     start.merging(&a->start, *this);
-    TamguFst* xe;
+    TamguState* xe;
     for (long i = 1; i < a->garbage.size(); i++) {
         xe = a->garbage[i];
         if (xe != NULL) {
@@ -1457,7 +1457,7 @@ void TamguDoubleSideAutomaton::merge(TamguDoubleSideAutomaton* a) {
     }
 }
 
-void TamguFst::regulars(TamguDoubleSideAutomaton& a) {
+void TamguState::regulars(TamguDoubleSideAutomaton& a) {
 	//Our features
 	vector<uint32_t> indexes;
 
@@ -1642,7 +1642,7 @@ bool TamguDoubleSideAutomaton::process(charRead& w, vector<string>& readings, bo
     return true;
 }
 
-bool TamguFst::editdistance(charRead& w, bool punct, FstCompanion* f,long threshold, short flags) {
+bool TamguState::editdistance(charRead& w, bool punct, FstCompanion* f,long threshold, short flags) {
     long cw=0, u, bpos=0, cpos=0, ubpos=0, ucpos=0, i, prev;
 	TAMGUCHAR cr = 0;
     bool found = false;
@@ -1846,7 +1846,7 @@ bool TamguFst::editdistance(charRead& w, bool punct, FstCompanion* f,long thresh
 
 //This method is called from vprocess...
 //Basically, vprocess detects the beginning of a token and process tries to detect its full range within the string.
-bool TamguFst::process(charRead& w, bool punct, FstCompanion* f,long threshold, short flags) {
+bool TamguState::process(charRead& w, bool punct, FstCompanion* f,long threshold, short flags) {
     long cw=0, u, bpos=0, cpos=0, ubpos=0, ucpos=0, i, prev = 0;
 	TAMGUCHAR cr = 0;
     bool endtoken = false, found = false;
@@ -1982,7 +1982,7 @@ bool TamguFst::process(charRead& w, bool punct, FstCompanion* f,long threshold, 
 
         if (!found && isaction(action_longest_match) && f->pos) {
             i = -1;
-            TamguFst* ac;
+            TamguState* ac;
             while (arcs.checkup(cw, i)) {
                 if (!(arcs.indexes[i] & 0xFFFF))
                     continue;
@@ -2099,7 +2099,7 @@ bool TamguFst::process(charRead& w, bool punct, FstCompanion* f,long threshold, 
 }
 
 //vprocess is used to detect the beginning of a sequence of characters and to apply "process" to analyse this sequence up to the max against the transducer
-bool TamguFst_Vectorized::vprocess(charRead& w, FstCompanion* f, long threshold, short flags) {
+bool TamguState_Vectorized::vprocess(charRead& w, FstCompanion* f, long threshold, short flags) {
 	long cw=0, u, ubpos=0, ucpos=0, bpos=0, cpos=0;
 	TAMGUCHAR cr = 0;
     bool endtoken = false, found = false, punct = false;
@@ -2288,7 +2288,7 @@ bool TamguFst_Vectorized::vprocess(charRead& w, FstCompanion* f, long threshold,
 }
 
 
-bool TamguFst::finals(FstCompanion* f, long threshold) {
+bool TamguState::finals(FstCompanion* f, long threshold) {
     
     long prev;
     bool found = false;
@@ -2340,7 +2340,7 @@ bool TamguDoubleSideAutomaton::up(wstring& w, vector<string>& res, long threshol
     return start.up(f, 0, threshold, flags);
 }
 
-bool TamguFst::up(FstCompanion* f, long pos, long threshold, short flags) {
+bool TamguState::up(FstCompanion* f, long pos, long threshold, short flags) {
 
     long i = -1;
     long prev;
@@ -2585,7 +2585,7 @@ bool TamguFst::up(FstCompanion* f, long pos, long threshold, short flags) {
 	return found;
 }
 
-bool TamguFst::down(vector<unsigned short>& w, long pos, FstCompanion* f, char lemma) {
+bool TamguState::down(vector<unsigned short>& w, long pos, FstCompanion* f, char lemma) {
     long nxt, car, code, prev;
     bool found = false;
 

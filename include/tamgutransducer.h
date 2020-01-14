@@ -170,7 +170,7 @@ class Tamgutransducer : public TamguObject {
             return;
         
         t->automaton->clearmarks();
-        vector<TamguFst*> marks;
+        vector<TamguState*> marks;
         automaton->start.mergein(&t->automaton->start, *automaton, marks);
         for (long i = 0; i < marks.size(); i++)
             marks[i]->mark = false;
