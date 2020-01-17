@@ -257,6 +257,8 @@ class Tamgumap : public TamguObjectLockContainer {
     //This SECTION is for your specific implementation...
     //This is an example of a function that could be implemented for your needs.
 
+    Tamgu* MethodRead(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    
     Tamgu* MethodClear(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         Clear();
         return aTRUE;

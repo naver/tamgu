@@ -18,6 +18,7 @@
 #include "tamgumap.h"
 #include "tamgulist.h"
 #include "tamguivector.h"
+#include "tamgufile.h"
 #include <memory>
 
 //We need to declare once again our local definitions.
@@ -466,6 +467,7 @@ void Tamgumap::AddMethod(TamguGlobal* global, string name, mapMethod func, unsig
     Tamgumap::idtype = global->Getid("map");
 
     Tamgumap::AddMethod(global, "clear", &Tamgumap::MethodClear, P_NONE, "clear(): clear the container.");
+    Tamgumap::AddMethod(global, "read", &Tamgumap::MethodRead, P_ONE, "read(string path): Read the content of a file into the container.");
 
     Tamgumap::AddMethod(global, "items", &Tamgumap::MethodItems, P_NONE, "items(): Return a vector of {key:value} pairs.");
     
@@ -513,6 +515,51 @@ Exporting TamguIteration* Tamgumap::Newiteration(bool direction) {
 }
 
 
+Tamgu* Tamgumap::MethodRead(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        //The separator between values
+    string filename = callfunc->Evaluate(0, contextualpattern, idthread)->String();
+    Clear();
+    Tamgufile file;
+    
+#ifdef WIN32
+    fopen_s(&file.thefile, STR(filename), "rb");
+#else
+    file.thefile=fopen(STR(filename), "rb");
+#endif
+    
+    if (file.thefile == NULL) {
+        string msg="Cannot open the file:";
+        msg += filename;
+        return globalTamgu->Returnerror(msg, idthread);
+    }
+    
+    string s = file.read(-1);
+    Trim(s);
+    
+    Tamgu* m = globalTamgu->EvaluateMap(s, idthread);
+
+    if (!m->isMapContainer())
+        return globalTamgu->Returnerror("File does not contain a map", idthread);
+
+    long sz = m->Size();
+
+    Clear();
+    if (sz) {
+        Locking _lock(this);
+        TamguIteration* itr = m->Newiteration(false);
+        Tamgu* a;
+        for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
+            a=itr->IteratorValue();
+            a=a->Atom();
+            values[itr->Keystring()] = a;
+            a->Addreference(reference+1);
+        }
+        itr->Release();
+    }
+    m->Releasenonconst();
+    
+    return this;
+}
 
 Exporting Tamgu* Tamgumap::in(Tamgu* context, Tamgu* a, short idthread) {
     //Three cases along the container type...

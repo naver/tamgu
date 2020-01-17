@@ -18,6 +18,7 @@
 #include "tamgutreemap.h"
 #include "tamgulist.h"
 #include "tamguivector.h"
+#include "tamgufile.h"
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<treemapMethod>  Tamgutreemap::methods;
@@ -51,7 +52,8 @@ void Tamgutreemap::AddMethod(TamguGlobal* global, string name, treemapMethod fun
     Tamgutreemap::idtype = global->Getid("treemap");
 
     Tamgutreemap::AddMethod(global, "items", &Tamgutreemap::MethodItems, P_NONE, "items(): Return a vector of {key:value} pairs.");
-    
+    Tamgutreemap::AddMethod(global, "read", &Tamgutreemap::MethodRead, P_ONE, "read(string path): Read the content of a file into the container.");
+       
     Tamgutreemap::AddMethod(global, "invert", &Tamgutreemap::MethodInvert, P_NONE, "invert(): return a map with key/value inverted.");
     Tamgutreemap::AddMethod(global, "find", &Tamgutreemap::MethodFind, P_ONE, "find(value): test if a value belongs to the map and return 'true' or the corresponding keys.");
 
@@ -116,6 +118,51 @@ Exporting Tamgu* Tamgutreemap::MethodFind(Tamgu* context, short idthread, TamguC
     return aNULL;
 }
 
+Tamgu* Tamgutreemap::MethodRead(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        //The separator between values
+    string filename = callfunc->Evaluate(0, contextualpattern, idthread)->String();
+    Clear();
+    Tamgufile file;
+    
+#ifdef WIN32
+    fopen_s(&file.thefile, STR(filename), "rb");
+#else
+    file.thefile=fopen(STR(filename), "rb");
+#endif
+    
+    if (file.thefile == NULL) {
+        string msg="Cannot open the file:";
+        msg += filename;
+        return globalTamgu->Returnerror(msg, idthread);
+    }
+    
+    string s = file.read(-1);
+    Trim(s);
+    
+    Tamgu* m = globalTamgu->EvaluateMap(s, idthread);
+
+    if (!m->isMapContainer())
+        return globalTamgu->Returnerror("File does not contain a map", idthread);
+
+    long sz = m->Size();
+
+    Clear();
+    if (sz) {
+        Locking _lock(this);
+        TamguIteration* itr = m->Newiteration(false);
+        Tamgu* a;
+        for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
+            a=itr->IteratorValue();
+            a=a->Atom();
+            values[itr->Keystring()] = a;
+            a->Addreference(reference+1);
+        }
+        itr->Release();
+    }
+    m->Releasenonconst();
+    
+    return this;
+}
 Exporting Tamgu* Tamgutreemap::in(Tamgu* context, Tamgu* a, short idthread) {
     //Three cases along the container type...
     //It is a Boolean, we expect false or true

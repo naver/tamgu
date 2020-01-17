@@ -902,17 +902,31 @@ Tamgu* Tamguvector::MethodRead(Tamgu* contextualpattern, short idthread, TamguCa
         return globalTamgu->Returnerror(msg, idthread);
     }
     
-    vector<string> v;
-    file.readall(v);
-    Tamgu* a;
+    string s = file.read(-1);
+    Trim(s);
     
-    Locking _lock(this);
-    for (long i = 0; i < v.size(); i++) {
-        a = globalTamgu->Providestring(v[i]);
-        a->Addreference(reference+1);
-        values.push_back(a);
-    }
+    Tamgu* v = globalTamgu->EvaluateVector(s, idthread);
 
+    if (!v->isVectorContainer())
+        return globalTamgu->Returnerror("File does not contain a vector", idthread);
+
+    long sz = v->Size();
+
+    Clear();
+    if (sz) {
+        Locking _lock(this);
+        Tamgu* a;
+        Reserve(sz);
+        //We copy all values from ke to this
+        for (long it = 0; it < sz; ++it) {
+            a = ((Tamguvector*)v)->values[it];
+            a = a->Atom();
+            a->Addreference(reference+1);
+            values.push_back(a);
+        }
+    }
+    
+    v->Releasenonconst();
     return this;
 }
 
@@ -1182,10 +1196,11 @@ Exporting Tamgu*  Tamguvector::Put(Tamgu* idx, Tamgu* value, short idthread) {
             //We copy all values from value to this
             Clear();
             Reserve(value->Size());
-            {
-
-                for (auto& it : kvect->values)
-                    Push(it);
+            for (auto& it : kvect->values) {
+                idx = it;
+                idx = idx->Atom();
+                idx->Addreference(reference+1);
+                values.push_back(idx);
             }
             return aTRUE;
         }
@@ -1196,8 +1211,12 @@ Exporting Tamgu*  Tamguvector::Put(Tamgu* idx, Tamgu* value, short idthread) {
             Clear();
             if (sz) {
                 Reserve(sz);
-                for (int it = 0; it < sz; it++)
-                    Push(value->getvalue(it));
+                for (int it = 0; it < sz; it++) {
+                    idx = value->getvalue(it);
+                    idx = idx->Atom();
+                    idx->Addreference(reference+1);
+                    values.push_back(idx);
+                }
             }
             return aTRUE;
         }
@@ -1207,8 +1226,12 @@ Exporting Tamgu*  Tamguvector::Put(Tamgu* idx, Tamgu* value, short idthread) {
             if (sz) {
                 Reserve(sz);
                 TamguIteration* itr = value->Newiteration(false);
-                for (itr->Begin(); itr->End() == aFALSE; itr->Next())
-                    Push(itr->Key());
+                for (itr->Begin(); itr->End() == aFALSE; itr->Next()) {
+                    idx = itr->Key();
+                    idx = idx->Atom();
+                    idx->Addreference(reference+1);
+                    values.push_back(idx);
+                }
                 itr->Release();
             }
             return aTRUE;
@@ -1220,16 +1243,18 @@ Exporting Tamgu*  Tamguvector::Put(Tamgu* idx, Tamgu* value, short idthread) {
 
         sz = value->Size();
         
-        if (value != this) {
-            Clear();
-            if (sz) {
-                Reserve(sz);
-                //We copy all values from ke to this
-                for (long it = 0; it < value->Size(); ++it)
-                    Push(value->getvalue(it));
+        Clear();
+
+        if (sz) {
+            //We copy all values from ke to this
+            for (long it = 0; it < sz; ++it) {
+                idx = value->getvalue(it);
+                idx = idx->Atom();
+                idx->Addreference(reference+1);
+                values.push_back(idx);
             }
-            value->Releasenonconst();
         }
+        value->Releasenonconst();
         return aTRUE;
     }
     //In this specific case, we try to replace a bloc of values with a new bloc
@@ -3522,11 +3547,8 @@ Exporting Tamgu*  Tamgua_vector::Put(Tamgu* idx, Tamgu* value, short idthread) {
             Tamgulist* kvect = (Tamgulist*)value;
                 //We copy all values from value to this
             Clear();
-            {
-                
-                for (auto& it : kvect->values)
-                    Push(it);
-            }
+            for (auto& it : kvect->values)
+                Push(it);
             
             _cleanlockif(_lock);
             return aTRUE;
@@ -3565,15 +3587,13 @@ Exporting Tamgu*  Tamgua_vector::Put(Tamgu* idx, Tamgu* value, short idthread) {
         
         sz = value->Size();
         
-        if (value != this) {
-            Clear();
-            if (sz) {
-                //We copy all values from ke to this
-                for (long it = 0; it < value->Size(); ++it)
-                    Push(value->getvalue(it));
-            }
-            value->Releasenonconst();
+        Clear();
+        if (sz) {
+            //We copy all values from ke to this
+            for (long it = 0; it < sz; ++it)
+                Push(value->getvalue(it));
         }
+        value->Releasenonconst();
         return aTRUE;
     }
 

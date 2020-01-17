@@ -549,24 +549,35 @@ Exporting Tamgu*  Tamgulist::Put(Tamgu* idx, Tamgu* ke, short idthread) {
             //We copy all values from ke to this
             Clear();
 
-            for (auto& it : kvect->values)
-                Push(it);
+            for (auto& it : kvect->values) {
+                idx = it->Atom();
+                idx->Addreference(reference+1);
+                values.push_back(idx);
+            }
             return aTRUE;
         }
 
         if (ke->isVectorContainer()) {
             //We copy all values from ke to this
             Clear();
-            for (int it = 0; it < ke->Size(); ++it)
-                Push(ke->getvalue(it));
+            for (int it = 0; it < ke->Size(); ++it) {
+                idx  = ke->getvalue(it);
+                idx = idx->Atom();
+                idx->Addreference(reference+1);
+                values.push_back(idx);
+            }
             return aTRUE;
         }
         //We gather all the keys from the MAP
         if (ke->isMapContainer()) {
             Clear();
             TamguIteration* itr = ke->Newiteration(false);
-            for (itr->Begin(); itr->End() == aFALSE; itr->Next())
-                Push(itr->Key());
+            for (itr->Begin(); itr->End() == aFALSE; itr->Next()) {
+                idx = itr->Key();
+                idx = idx->Atom();
+                idx->Addreference(reference+1);
+                values.push_back(idx);
+            }
             itr->Release();
             return aTRUE;
         }
@@ -576,8 +587,12 @@ Exporting Tamgu*  Tamgulist::Put(Tamgu* idx, Tamgu* ke, short idthread) {
 
         Clear();
         //We copy all values from ke to this
-        for (long it = 0; it < ke->Size(); ++it)
-            Push(ke->getvalue(it));
+        for (long it = 0; it < ke->Size(); ++it) {
+            idx  = ke->getvalue(it);
+            idx = idx->Atom();
+            idx->Addreference(reference+1);
+            values.push_back(idx);
+        }
         ke->Release();
         return aTRUE;
     }
@@ -2261,8 +2276,15 @@ Exporting Tamgu*  Tamguring::Put(Tamgu* idx, Tamgu* value, short idthread) {
                 //We copy all values from value to this
             Clear();
             if (sz) {
-                for (int it = 0; it < sz; it++)
-                    Push(value->getvalue(it));
+                Tamgu* val;
+                for (int it = 0; it < sz; it++) {
+                    idx  = value->getvalue(it);
+                    idx = idx->Atom();
+                    idx->Addreference(reference+1);
+                    val = values.push_back(idx);
+                    if (!val->isConst())
+                        val->Removereference(reference + 1);
+                }
             }
             
             _cleanlockif(_lock);
@@ -2272,9 +2294,16 @@ Exporting Tamgu*  Tamguring::Put(Tamgu* idx, Tamgu* value, short idthread) {
         if (value->isMapContainer()) {
             Clear();
             if (sz) {
+                Tamgu* val;
                 TamguIteration* itr = value->Newiteration(false);
-                for (itr->Begin(); itr->End() == aFALSE; itr->Next())
-                    Push(itr->Key());
+                for (itr->Begin(); itr->End() == aFALSE; itr->Next()) {
+                    idx  = itr->Key();
+                    idx = idx->Atom();
+                    idx->Addreference(reference+1);
+                    val = values.push_back(idx);
+                    if (!val->isConst())
+                        val->Removereference(reference + 1);
+                }
                 itr->Release();
             }
             return aTRUE;
@@ -2286,15 +2315,20 @@ Exporting Tamgu*  Tamguring::Put(Tamgu* idx, Tamgu* value, short idthread) {
         
         sz = value->Size();
         
-        if (value != this) {
-            Clear();
-            if (sz) {
-                    //We copy all values from ke to this
-                for (long it = 0; it < value->Size(); ++it)
-                    Push(value->getvalue(it));
+        Clear();
+        if (sz) {
+            Tamgu* val;
+            //We copy all values from ke to this
+            for (long it = 0; it < sz; ++it) {
+                idx = ((Tamguvector*)value)->values[it];
+                idx = idx->Atom();
+                idx->Addreference(reference+1);
+                val = values.push_back(idx);
+                if (!val->isConst())
+                    val->Removereference(reference + 1);
             }
-            value->Releasenonconst();
         }
+        value->Releasenonconst();
         return aTRUE;
     }
     

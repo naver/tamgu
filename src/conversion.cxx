@@ -348,10 +348,11 @@ void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<stri
                             }
                         }
                 }
-                
+
+                q >>= 1;
+
                 if (e != b + 1 && e < lensrc) {
                     e++;
-                    q >>= 1;
                     uchar c = src[e];
                     src[e] = 0;
                     pos.push_back(b);
@@ -436,7 +437,7 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
                             //we find it in this section...
                         //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
                         //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 1) bitscanforward(j,q); else j = 0;
+                        if (shift == 1) {bitscanforward(j,q);s+=j;} else j = 0;
                         for (; j < 31; j++) {
                             if (*s == c) {
                                 if (charcomp(s,search,lensearch)) {
@@ -482,7 +483,7 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
                         //we find it in this section...
                         //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
                         //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 3) bitscanforward(j,q); else j = 0;
+                        if (shift == 3) {bitscanforward(j,q);s+=j;} else j = 0;
                         for (; j < 29; j++) {
                             if (*s == c) {
                                 if (charcomp(s,search,lensearch)) {
@@ -525,7 +526,7 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
                             //we find it in this section...
                         //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
                         //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 7) bitscanforward(j,q); else j = 0;
+                        if (shift == 7) {bitscanforward(j,q);s+=j;} else j = 0;
                         for (; j < 25; j++) {
                             if (*s == c) {
                                 if (charcomp(s,search,lensearch)) {
@@ -805,7 +806,7 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
                             //we find it in this section...
                         //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
                         //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 1) bitscanforward(j,q); else j = 0;
+                        if (shift == 1) {bitscanforward(j,q);s+=j;} else j = 0;
                         for (; j < 31; j++) {
                             if (*s == c) {
                                 if (charcomp(s,USTR(search),lensearch)) {
@@ -852,7 +853,7 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
                             //we find it in this section...
                         //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
                         //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 3) bitscanforward(j,q); else j = 0;
+                        if (shift == 3) {bitscanforward(j,q);s+=j;} else j = 0;
                         for (; j < 29; j++) {
                             if (*s == c) {
                                 if (charcomp(s,USTR(search),lensearch)) {
@@ -896,7 +897,7 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
                             //we find it in this section...
                         //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
                         //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 7) bitscanforward(j,q); else j = 0;
+                        if (shift == 7) {bitscanforward(j,q);s+=j;} else j = 0;
                         for (; j < 25; j++) {
                             if (*s == c) {
                                 if (charcomp(s,USTR(search),lensearch)) {
@@ -1008,7 +1009,7 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
                         //we find it in this section...
                         //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
                         //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 1) bitscanforward(j,q); else j = 0;
+                        if (shift == 1) {bitscanforward(j,q);s+=j;} else j = 0;
                         for (; j < 31; j++) {
                             if (*s == c) {
                                 if (charcomp(s,USTR(search),lensearch)) {
@@ -1059,7 +1060,7 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
                             //we find it in this section...
                         //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
                         //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 3) bitscanforward(j,q); else j = 0;
+                        if (shift == 3) {bitscanforward(j,q);s+=j;} else j = 0;
                         for (; j < 29; j++) {
                             if (*s == c) {
                                 if (charcomp(s,USTR(search),lensearch)) {
@@ -1107,7 +1108,7 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
                             //we find it in this section...
                         //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
                         //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 7) bitscanforward(j,q); else j = 0;
+                        if (shift == 7) {bitscanforward(j,q);s+=j;} else j = 0;
                         for (; j < 25; j++) {
                             if (*s == c) {
                                 if (charcomp(s,USTR(search),lensearch)) {
@@ -1226,7 +1227,7 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
                             //we find it in this section...
                         //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
                         //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 1) bitscanforward(j,q); else j = 0;
+                        if (shift == 1) {bitscanforward(j,q);s+=j;} else j = 0;
                         for (; j< 31; j++) {
                             if (*s == c) {
                                 if (charcomp(s,search,lensearch)) {
@@ -1273,7 +1274,7 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
                             //we find it in this section...
                         //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
                         //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 3) bitscanforward(j,q); else j = 0;
+                        if (shift == 3) {bitscanforward(j,q);s+=j;} else j = 0;
                         for (; j < 29; j++) {
                             if (*s == c) {
                                 if (charcomp(s,search,lensearch)) {
@@ -1317,7 +1318,7 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
                             //we find it in this section...
                         //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
                         //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 7) bitscanforward(j,q); else j = 0;
+                        if (shift == 7) {bitscanforward(j,q);s+=j;} else j = 0;
                         for (; j < 25; j++) {
                             if (*s == c) {
                                 if (charcomp(s,search,lensearch)) {
@@ -2169,9 +2170,10 @@ void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<stri
                         }
                 }
                 
+                q >>= 1;
+
                 if (e != b + 1 && e < lensrc) {
                     e++;
-                    q >>= 1;
                     uchar c = src[e];
                     src[e] = 0;
                     if (checkrc) {
@@ -2253,7 +2255,7 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
                     if (q) {
                         //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
                         //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 1) bitscanforward(j,q); else j = 0;
+                        if (shift == 1) {bitscanforward(j,q);s+=j;} else j = 0;
                         for (; j < 15; j++) {
                             if (*s == c) {
                                 if (charcomp(s,search,lensearch)) {
@@ -2294,7 +2296,7 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
                     if (q) {
                         //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
                         //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 3) bitscanforward(j,q); else j = 0;
+                        if (shift == 3) {bitscanforward(j,q);s+=j;} else j = 0;
                         for (; j < 13; j++) {
                             if (*s == c) {
                                 if (charcomp(s,search,lensearch)) {
@@ -2513,7 +2515,7 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
                     if (q) {
                         //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
                         //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 1) bitscanforward(j,q); else j = 0;
+                        if (shift == 1) {bitscanforward(j,q);s+=j;} else j = 0;
                         for (; j < 15; j++) {
                             if (*s == c) {
                                 if (charcomp(s,USTR(search),lensearch))
@@ -2553,7 +2555,7 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
                     if (q) {
                         //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
                         //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 3) bitscanforward(j,q); else j = 0;
+                        if (shift == 3) {bitscanforward(j,q);s+=j;} else j = 0;
                         for (; j < 13; j++) {
                             if (*s == c) {
                                 if (charcomp(s,USTR(search),lensearch)) {
@@ -2660,7 +2662,7 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
                     if (q) {
                         //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
                         //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 1) bitscanforward(j,q); else j = 0;
+                        if (shift == 1) {bitscanforward(j,q);s+=j;} else j = 0;
                         for (; j < 15; j++) {
                             if (*s == c) {
                                 if (charcomp(s,USTR(search),lensearch)) {
@@ -2705,7 +2707,7 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
                     if (q) {
                         //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
                         //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 3) bitscanforward(j,q); else j = 0;
+                        if (shift == 3) {bitscanforward(j,q);s+=j;} else j = 0;
                         for (; j < 13; j++) {
                             if (*s == c) {
                                 if (charcomp(s,USTR(search),lensearch)) {
@@ -2820,7 +2822,7 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
                     if (q) {
                         //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
                         //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 1) bitscanforward(j,q); else j = 0;
+                        if (shift == 1) {bitscanforward(j,q);s+=j;} else j = 0;
                         for (; j < 15; j++) {
                             if (*s == c) {
                                 if (charcomp(s,search,lensearch)) {
@@ -2861,7 +2863,7 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
                     if (q) {
                         //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
                         //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 3) bitscanforward(j,q); else j = 0;
+                        if (shift == 3) {bitscanforward(j,q);s+=j;} else j = 0;
                         for (; j < 13; j++) {
                             if (*s == c) {
                                 if (charcomp(s,search,lensearch)) {

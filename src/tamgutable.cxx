@@ -906,10 +906,11 @@ Exporting Tamgu*  Tamgutable::Put(Tamgu* idx, Tamgu* value, short idthread) {
         if (!value->isVectorContainer())
             return globalTamgu->Returnerror("Cannot set this value", idthread);
 
+        long sz = value->Size();
         Clear();
-        Resize(value->Size());
+        Resize(sz);
         //We copy all values from ke to this
-        for (long it = 0; it < value->Size(); ++it) {
+        for (long it = 0; it < sz; ++it) {
             if (!Pushing(value->getvalue(it), it)) {
                 value->Releasenonconst();
                 return globalTamgu->Returnerror("Maximum size of table reached", idthread);
