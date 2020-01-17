@@ -190,7 +190,7 @@ void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<stri
     __m256i current_bytes = _mm256_setzero_si256();
     __m256i val;
     long b,e, u;
-    bool found, replace=false;
+    bool found, replace=false, success;
 #ifdef WIN32
 	unsigned long q, r;
 #else
@@ -214,6 +214,8 @@ void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<stri
             b = i;
             e = b;
             while (q) {
+                success = false;
+                
 				bitscanforward(r, q);
                 if (r) {
                     b += r;
@@ -229,6 +231,8 @@ void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<stri
                                 e++;
                                 q >>= 1;
                             }
+                            if (e < lensrc)
+                                success = true;
                         }
                         else {
                             if (src[e] == '@') {
@@ -242,6 +246,7 @@ void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<stri
                                     
                                     if (src[e-1] == '@' && src[e] == '/') {
                                         found = true;
+                                        success = true;
                                         break;
                                     }
                                     q >>= 1;
@@ -249,6 +254,8 @@ void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<stri
                                 }
                                 if (!found) {
                                     while (e < lensrc && (src[e-1] != '@' || src[e] != '/')) e++;
+                                    if (e < lensrc)
+                                        success = true;
                                 }
                             }
                         }
@@ -265,6 +272,7 @@ void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<stri
                                 q >>= r;
                                 if (src[e] == '"' && src[e+1] == '@') {
                                     found = true;
+                                    success = true;
                                     q >>= 1;
                                     e++;
                                     break;
@@ -274,6 +282,8 @@ void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<stri
                             }
                             if (!found) {
                                 while (e < lensrc && (src[e-1] != '"' || src[e] != '@')) e++;
+                                if (e < lensrc)
+                                    success = true;
                             }
                         }
                         else {
@@ -286,9 +296,11 @@ void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<stri
                                 q >>= r;
                                 if (src[e-1] != '\\' && src[e] == '"') {
                                     found = true;
+                                    success = true;
+
                                     for (u = b; u < e; u++) {
                                         if (src[u] == 10 || src[u] == 13) {
-                                            e = b + 1;
+                                            success = false;
                                             break;
                                         }
                                     }
@@ -300,7 +312,7 @@ void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<stri
                             if (!found) {
                                 while (e < lensrc) {
                                     if (src[e] == 10 || src[e] == 13) {
-                                        e = b + 1;
+                                        found = true;
                                         break;
                                     }
                                     if (src[e] == '\\')
@@ -310,6 +322,8 @@ void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<stri
                                             break;
                                     e++;
                                 }
+                                if (e < lensrc && !found)
+                                    success = true;
                             }
                         }
                         break;
@@ -325,9 +339,10 @@ void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<stri
                             q >>= r;
                             if (src[e] == '\'') {
                                 found = true;
+                                success = true;
                                 for (u = b; u < e; u++) {
                                     if (src[u] == 10 || src[u] == 13) {
-                                        e = b + 1;
+                                        success = false;
                                         break;
                                     }
                                 }
@@ -339,19 +354,21 @@ void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<stri
                         if (!found) {
                             while (e < lensrc) {
                                 if (src[e] == 10 || src[e] == 13) {
-                                    e = b + 1;
+                                    found = true;
                                     break;
                                 }
                                 if (src[e] == '\'')
                                     break;
                                 e++;
                             }
+                            if (e < lensrc && !found)
+                                success = true;
                         }
                 }
 
                 q >>= 1;
 
-                if (e != b + 1 && e < lensrc) {
+                if (success) {
                     e++;
                     uchar c = src[e];
                     src[e] = 0;
@@ -2010,8 +2027,8 @@ void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<stri
     __m128i current_bytes = _mm_setzero_si128();
     __m128i val;
     long b,e,u;
-    bool found, replace=false, checkrc;
-    uint16_t q;
+    bool found, replace=false, success;
+    uint16_t q,r;
     
     for (long i = 0; (i + 15) < lensrc; i += 16) {
             //we load our section, the length should be larger than 16
@@ -2027,13 +2044,15 @@ void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<stri
         q |= _mm_movemask_epi8(val);
         
         if (q) {
-            checkrc = false;
             b = i;
             e = b;
             while (q) {
-                while (!(q & 1)) {
-                    q >>= 1;
-                    b++;
+                success = false;
+                
+                bitscanforward(r, q);
+                if (r) {
+                    b += r;
+                    q >>= r;
                 }
                 
                 e = b+1;
@@ -2042,9 +2061,11 @@ void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<stri
                     case '/':
                         if (src[e] == '/') {
                             while (e < lensrc && src[e] != '\n') {
-                                q >>= 1;
                                 e++;
+                                q >>= 1;
                             }
+                            if (e < lensrc)
+                                success = true;
                         }
                         else {
                             if (src[e] == '@') {
@@ -2052,12 +2073,13 @@ void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<stri
                                 q >>= 1;
                                 found = false;
                                 while (q) {
-                                    while (!(q & 1)) {
-                                        q >>= 1;
-                                        e++;
-                                    }
+                                    bitscanforward(r, q);
+                                    e += r;
+                                    q >>= r;
+                                    
                                     if (src[e-1] == '@' && src[e] == '/') {
                                         found = true;
+                                        success = true;
                                         break;
                                     }
                                     q >>= 1;
@@ -2065,6 +2087,8 @@ void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<stri
                                 }
                                 if (!found) {
                                     while (e < lensrc && (src[e-1] != '@' || src[e] != '/')) e++;
+                                    if (e < lensrc)
+                                        success = true;
                                 }
                             }
                         }
@@ -2076,12 +2100,12 @@ void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<stri
                                 b--;
                             found = false;
                             while (q) {
-                                while (!(q & 1)) {
-                                    q >>= 1;
-                                    e++;
-                                }
+                                bitscanforward(r, q);
+                                e += r;
+                                q >>= r;
                                 if (src[e] == '"' && src[e+1] == '@') {
                                     found = true;
+                                    success = true;
                                     q >>= 1;
                                     e++;
                                     break;
@@ -2091,23 +2115,25 @@ void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<stri
                             }
                             if (!found) {
                                 while (e < lensrc && (src[e-1] != '"' || src[e] != '@')) e++;
+                                if (e < lensrc)
+                                    success = true;
                             }
                         }
                         else {
-                            checkrc = true;
                             if (b > 0 && (src[b-1] == 'r' || src[b-1] == 'u' || src[b-1] == 'p'))
                                 b--;
                             found = false;
                             while (q) {
-                                while (!(q & 1)) {
-                                    q >>= 1;
-                                    e++;
-                                }
+                                bitscanforward(r, q);
+                                e += r;
+                                q >>= r;
                                 if (src[e-1] != '\\' && src[e] == '"') {
                                     found = true;
+                                    success = true;
+                                    
                                     for (u = b; u < e; u++) {
                                         if (src[u] == 10 || src[u] == 13) {
-                                            e = b + 1;
+                                            success = false;
                                             break;
                                         }
                                     }
@@ -2119,7 +2145,7 @@ void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<stri
                             if (!found) {
                                 while (e < lensrc) {
                                     if (src[e] == 10 || src[e] == 13) {
-                                        e = b + 1;
+                                        found = true;
                                         break;
                                     }
                                     if (src[e] == '\\')
@@ -2129,26 +2155,27 @@ void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<stri
                                             break;
                                     e++;
                                 }
+                                if (e < lensrc && !found)
+                                    success = true;
                             }
                         }
                         break;
                     case '\'':
-                        checkrc = true;
                         if (b > 0 && (src[b-1] == 'r' || src[b-1] == 'u' || src[b-1] == 'p')) {
                             b--;
                             replace = true;
                         }
                         found = false;
                         while (q) {
-                            while (!(q & 1)) {
-                                q >>= 1;
-                                e++;
-                            }
+                            bitscanforward(r, q);
+                            e += r;
+                            q >>= r;
                             if (src[e] == '\'') {
                                 found = true;
+                                success = true;
                                 for (u = b; u < e; u++) {
                                     if (src[u] == 10 || src[u] == 13) {
-                                        e = b + 1;
+                                        success = false;
                                         break;
                                     }
                                 }
@@ -2160,28 +2187,24 @@ void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<stri
                         if (!found) {
                             while (e < lensrc) {
                                 if (src[e] == 10 || src[e] == 13) {
-                                    e = b + 1;
+                                    found = true;
                                     break;
                                 }
                                 if (src[e] == '\'')
                                     break;
                                 e++;
                             }
+                            if (e < lensrc && !found)
+                                success = true;
                         }
                 }
                 
                 q >>= 1;
-
-                if (e != b + 1 && e < lensrc) {
+                
+                if (success) {
                     e++;
                     uchar c = src[e];
                     src[e] = 0;
-                    if (checkrc) {
-                        if (strchr((char*)src,10) != NULL || strchr((char*)src,13) != NULL) {
-                            src[e] = c;
-                            continue;
-                        }
-                    }
                     pos.push_back(b);
                     strings.push_back((char*)src+b);
                     if (replace) {
