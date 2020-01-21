@@ -647,12 +647,12 @@ void jag_editor::movetobeginning() {
     }
 }
 
-void jag_editor::movetoend() {
+void jag_editor::movetoend(bool remove) {
     long sc;
     if (emode()) {
         long p = poslines[currentline];
         sc = fullsize(lines[p]) + prefixe();
-        if (lines.eol(p))
+        if (remove && lines.eol(p))
             sc--;
     }
     else
@@ -1679,9 +1679,9 @@ long jag_editor::handlingeditorline(bool computespace) {
         displaylist(poslines[0] + 1);
     
     movetoline(currentline);
-    if (action == u_ins) {
+    if (action == u_ins && sp) {
         posinstring = space.size();
-        movetoend();
+        movetoend(false);
     }
     else {
         posinstring = 0;

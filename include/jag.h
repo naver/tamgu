@@ -666,7 +666,7 @@ public:
     void selectfound(long l, long r);
     void movetoposition();
     void movetobeginning();
-    void movetoend();
+    void movetoend(bool remove = true);
     void movetolastline();
     void movetoline(long e);
     void gotoline(long p);

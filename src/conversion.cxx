@@ -187,204 +187,204 @@ static const __m256i _thedoublequotes = _mm256_set1_epi8(34);
 static const __m256i _theslash = _mm256_set1_epi8(47);
 
 void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<string>& strings) {
-    __m256i current_bytes = _mm256_setzero_si256();
-    __m256i val;
-    long b,e, u;
-    bool found, replace=false, success;
+	__m256i current_bytes = _mm256_setzero_si256();
+	__m256i val;
+	long b, e, u;
+	bool found, replace = false, success;
 #ifdef WIN32
 	unsigned long q, r;
 #else
-    uint32_t q, r;
+	uint32_t q, r;
 #endif
 
-    for (long i = 0; (i + 31) < lensrc; i += 32) {
-        //we load our section, the length should be larger than 32
-        current_bytes = _mm256_loadu_si256((const __m256i *)(src + i));
-                
-        val=_mm256_cmpeq_epi8(current_bytes, _theslash);
-        q = _mm256_movemask_epi8(val);
-        
-        val=_mm256_cmpeq_epi8(current_bytes, _thequotes);
-        q |= _mm256_movemask_epi8(val);
-        
-        val=_mm256_cmpeq_epi8(current_bytes, _thedoublequotes);
-        q |= _mm256_movemask_epi8(val);
+	for (long i = 0; (i + 31) < lensrc; i += 32) {
+		//we load our section, the length should be larger than 32
+		current_bytes = _mm256_loadu_si256((const __m256i *)(src + i));
 
-        if (q) {
-            b = i;
-            e = b;
-            while (q) {
-                success = false;
-                
+		val = _mm256_cmpeq_epi8(current_bytes, _theslash);
+		q = _mm256_movemask_epi8(val);
+
+		val = _mm256_cmpeq_epi8(current_bytes, _thequotes);
+		q |= _mm256_movemask_epi8(val);
+
+		val = _mm256_cmpeq_epi8(current_bytes, _thedoublequotes);
+		q |= _mm256_movemask_epi8(val);
+
+		if (q) {
+			b = i;
+			e = b;
+			while (q) {
+				success = false;
+
 				bitscanforward(r, q);
-                if (r) {
-                    b += r;
-                    q >>= r;
-                }
+				if (r) {
+					b += r;
+					q >>= r;
+				}
 
-                e = b+1;
-                q >>= 1;
-                switch (src[b]) {
-                    case '/':
-                        if (src[e] == '/') {
-                            while (e < lensrc && src[e] != '\n') {
-                                e++;
-                                q >>= 1;
-                            }
-                            if (e < lensrc)
-                                success = true;
-                        }
-                        else {
-                            if (src[e] == '@') {
-                                e++;
-                                q >>= 1;
-                                found = false;
-                                while (q) {
-									bitscanforward(r, q);
-                                    e += r;
-                                    q >>= r;
-                                    
-                                    if (src[e-1] == '@' && src[e] == '/') {
-                                        found = true;
-                                        success = true;
-                                        break;
-                                    }
-                                    q >>= 1;
-                                    e++;
-                                }
-                                if (!found) {
-                                    while (e < lensrc && (src[e-1] != '@' || src[e] != '/')) e++;
-                                    if (e < lensrc)
-                                        success = true;
-                                }
-                            }
-                        }
-                        break;
-                    case '"':
-                        if (b > 0 && src[b-1] == '@') {
-                            b--;
-                            if (b > 0 && src[b-1] == 'u')
-                                b--;
-                            found = false;
-                            while (q) {
+				e = b + 1;
+				q >>= 1;
+				switch (src[b]) {
+				case '/':
+					if (src[e] == '/') {
+						while (e < lensrc && src[e] != '\n') {
+							e++;
+							q >>= 1;
+						}
+						if (e < lensrc)
+							success = true;
+					}
+					else {
+						if (src[e] == '@') {
+							e++;
+							q >>= 1;
+							found = false;
+							while (q) {
 								bitscanforward(r, q);
-                                e += r;
-                                q >>= r;
-                                if (src[e] == '"' && src[e+1] == '@') {
-                                    found = true;
-                                    success = true;
-                                    q >>= 1;
-                                    e++;
-                                    break;
-                                }
-                                q >>= 1;
-                                e++;
-                            }
-                            if (!found) {
-                                while (e < lensrc && (src[e-1] != '"' || src[e] != '@')) e++;
-                                if (e < lensrc)
-                                    success = true;
-                            }
-                        }
-                        else {
-                            if (b > 0 && (src[b-1] == 'r' || src[b-1] == 'u' || src[b-1] == 'p'))
-                                b--;
-                            found = false;
-                            while (q) {
-								bitscanforward(r, q);
-                                e += r;
-                                q >>= r;
-                                if (src[e-1] != '\\' && src[e] == '"') {
-                                    found = true;
-                                    success = true;
+								e += r;
+								q >>= r;
 
-                                    for (u = b; u < e; u++) {
-                                        if (src[u] == 10 || src[u] == 13) {
-                                            success = false;
-                                            break;
-                                        }
-                                    }
-                                    break;
-                                }
-                                q >>= 1;
-                                e++;
-                            }
-                            if (!found) {
-                                while (e < lensrc) {
-                                    if (src[e] == 10 || src[e] == 13) {
-                                        found = true;
-                                        break;
-                                    }
-                                    if (src[e] == '\\')
-                                        e++;
-                                    else
-                                        if (src[e] == '"')
-                                            break;
-                                    e++;
-                                }
-                                if (e < lensrc && !found)
-                                    success = true;
-                            }
-                        }
-                        break;
-                    case '\'':
-                        if (b > 0 && (src[b-1] == 'r' || src[b-1] == 'u' || src[b-1] == 'p')) {
-                            b--;
-                            replace = true;
-                        }
-                        found = false;
-                        while (q) {
+								if (src[e - 1] == '@' && src[e] == '/') {
+									found = true;
+									success = true;
+									break;
+								}
+								q >>= 1;
+								e++;
+							}
+							if (!found) {
+								while (e < lensrc && (src[e - 1] != '@' || src[e] != '/')) e++;
+								if (e < lensrc)
+									success = true;
+							}
+						}
+					}
+					break;
+				case '"':
+					if (b > 0 && src[b - 1] == '@') {
+						b--;
+						if (b > 0 && src[b - 1] == 'u')
+							b--;
+						found = false;
+						while (q) {
 							bitscanforward(r, q);
-                            e += r;
-                            q >>= r;
-                            if (src[e] == '\'') {
-                                found = true;
-                                success = true;
-                                for (u = b; u < e; u++) {
-                                    if (src[u] == 10 || src[u] == 13) {
-                                        success = false;
-                                        break;
-                                    }
-                                }
-                                break;
-                            }
-                            q >>= 1;
-                            e++;
-                        }
-                        if (!found) {
-                            while (e < lensrc) {
-                                if (src[e] == 10 || src[e] == 13) {
-                                    found = true;
-                                    break;
-                                }
-                                if (src[e] == '\'')
-                                    break;
-                                e++;
-                            }
-                            if (e < lensrc && !found)
-                                success = true;
-                        }
-                }
+							e += r;
+							q >>= r;
+							if (src[e] == '"' && src[e + 1] == '@') {
+								found = true;
+								success = true;
+								q >>= 1;
+								e++;
+								break;
+							}
+							q >>= 1;
+							e++;
+						}
+						if (!found) {
+							while (e < lensrc && (src[e - 1] != '"' || src[e] != '@')) e++;
+							if (e < lensrc)
+								success = true;
+						}
+					}
+					else {
+						if (b > 0 && (src[b - 1] == 'r' || src[b - 1] == 'u' || src[b - 1] == 'p'))
+							b--;
+						found = false;
+						while (q) {
+							bitscanforward(r, q);
+							e += r;
+							q >>= r;
+							if (src[e - 1] != '\\' && src[e] == '"') {
+								found = true;
+								success = true;
 
-                q >>= 1;
+								for (u = b; u < e; u++) {
+									if (src[u] == 10 || src[u] == 13) {
+										success = false;
+										break;
+									}
+								}
+								break;
+							}
+							q >>= 1;
+							e++;
+						}
+						if (!found) {
+							while (e < lensrc) {
+								if (src[e] == 10 || src[e] == 13) {
+									found = true;
+									break;
+								}
+								if (src[e] == '\\')
+									e++;
+								else
+									if (src[e] == '"')
+										break;
+								e++;
+							}
+							if (e < lensrc && !found)
+								success = true;
+						}
+					}
+					break;
+				case '\'':
+					if (b > 0 && (src[b - 1] == 'r' || src[b - 1] == 'u' || src[b - 1] == 'p')) {
+						b--;
+						replace = true;
+					}
+					found = false;
+					while (q) {
+						bitscanforward(r, q);
+						e += r;
+						q >>= r;
+						if (src[e] == '\'') {
+							found = true;
+							success = true;
+							for (u = b; u < e; u++) {
+								if (src[u] == 10 || src[u] == 13) {
+									success = false;
+									break;
+								}
+							}
+							break;
+						}
+						q >>= 1;
+						e++;
+					}
+					if (!found) {
+						while (e < lensrc) {
+							if (src[e] == 10 || src[e] == 13) {
+								found = true;
+								break;
+							}
+							if (src[e] == '\'')
+								break;
+							e++;
+						}
+						if (e < lensrc && !found)
+							success = true;
+					}
+				}
 
-                if (success) {
-                    e++;
-                    uchar c = src[e];
-                    src[e] = 0;
-                    pos.push_back(b);
-                    strings.push_back((char*)src+b);
-                    if (replace) {
-                        strings.back()[0] -= 32; // we replace r with R, p with P, u with U
-                        replace = false;
-                    }
-                    src[e] = c;
-                    b = e;
-                    i = b - 32;
-                }
-            }
-        }
-    }
+				q >>= 1;
+
+				if (success) {
+					e++;
+					uchar c = src[e];
+					src[e] = 0;
+					pos.push_back(b);
+					strings.push_back((char*)src + b);
+					if (replace) {
+						strings.back()[0] -= 32; // we replace r with R, p with P, u with U
+						replace = false;
+					}
+					src[e] = c;
+					b = e;
+					i = b - 32;
+				}
+			}
+		}
+	}
 }
 
 
@@ -828,11 +828,18 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
                             if (*s == c) {
                                 if (charcomp(s,USTR(search),lensearch)) {
                                     pos.push_back(i + j + shift);
+									s += lensearch;
+									j += lensearch - 1;
+									continue;
                                 }
                             }
                             ++s;
                         }
-                        break;
+						//We need to re-align our string, if the last character is c...
+						if (!shift && j < 32  && *s == c) {
+							--i;
+						}
+						break;
                     }
                 }
             }
@@ -875,11 +882,21 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
                             if (*s == c) {
                                 if (charcomp(s,USTR(search),lensearch)) {
                                     pos.push_back(i + j + shift);
-                                }
+									s += lensearch;
+									j += lensearch - 1;
+									continue;
+								}
                             }
                             ++s;
                         }
-                        break;
+						for (; j < 32; j++) {
+							if (*s == c) {
+								i -= 32 - j - shift;
+								break;
+							}
+							++s;
+						}
+						break;
                     }
                 }
             }
@@ -919,11 +936,21 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
                             if (*s == c) {
                                 if (charcomp(s,USTR(search),lensearch)) {
                                     pos.push_back(i + j + shift);
-                                }
+									s += lensearch;
+									j += lensearch - 1;
+									continue;
+								}
                             }
                             ++s;
                         }
-                        break;
+						for (; j < 32; j++) {
+							if (*s == c) {
+								i -= 32 - j - shift;
+								break;
+							}
+							++s;
+						}
+						break;
                     }
                 }
             }
@@ -1035,11 +1062,17 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
                                         neo = concatstrings(neo, STR(src)+from, ineo, lenneo, foundHere-from);
                                     neo = concatstrings(neo, STR(replace), ineo, lenneo, replace.size());
                                     from = foundHere+lensearch;
+									s += lensearch;
+									j += lensearch - 1;
+									continue;
                                 }
                             }
                             ++s;
                         }
-                        break;
+						if (!shift && j < 32 && *s == c) {
+							--i;
+						}
+						break;
                     }
                 }
             }
@@ -1086,11 +1119,21 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
                                         neo = concatstrings(neo, STR(src)+from, ineo, lenneo, foundHere-from);
                                     neo = concatstrings(neo, STR(replace), ineo, lenneo, replace.size());
                                     from = foundHere+lensearch;
+									s += lensearch;
+									j += lensearch - 1;
+									continue;
                                 }
                             }
                             ++s;
                         }
-                        break;
+						for (; j < 32; j++) {
+							if (*s == c) {
+								i -= 32 - j - shift;
+								break;
+							}
+							++s;
+						}
+						break;
                     }
                 }
             }
@@ -1134,11 +1177,21 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
                                         neo = concatstrings(neo, STR(src)+from, ineo, lenneo, foundHere-from);
                                     neo = concatstrings(neo, STR(replace), ineo, lenneo, replace.size());
                                     from = foundHere+lensearch;
-                                }
+									s += lensearch;
+									j += lensearch - 1;
+									continue;
+								}
                             }
                             ++s;
                         }
-                        break;
+						for (; j < 32; j++) {
+							if (*s == c) {
+								i -= 32 - j - shift;
+								break;
+							}
+							++s;
+						}
+						break;
                     }
                 }
             }
@@ -1249,10 +1302,14 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
                             if (*s == c) {
                                 if (charcomp(s,search,lensearch)) {
                                     counter++;
+                                    s += lensearch;
+                                    j += lensearch - 1;
                                 }
                             }
                             ++s;
                         }
+                        if (!shift && j < 32 && *s == c)
+                            --i;
                         break;
                     }
                 }
@@ -1296,7 +1353,16 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
                             if (*s == c) {
                                 if (charcomp(s,search,lensearch)) {
                                     counter++;
-                                }
+                                    s += lensearch;
+                                    j += lensearch - 1;
+}
+                            }
+                            ++s;
+                        }
+                        for (; j < 32; j++) {
+                            if (*s == c) {
+                                i -= 32 - j - shift;
+                                break;
                             }
                             ++s;
                         }
@@ -1340,7 +1406,16 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
                             if (*s == c) {
                                 if (charcomp(s,search,lensearch)) {
                                     counter++;
+                                    s += lensearch;
+                                    j += lensearch - 1;
                                 }
+                            }
+                            ++s;
+                        }
+                        for (; j < 32; j++) {
+                            if (*s == c) {
+                                i -= 32 - j - shift;
+                                break;
                             }
                             ++s;
                         }
@@ -1722,11 +1797,19 @@ void find_intel_all(wchar_t* src, wchar_t* search, long lensrc, long lensearch, 
                             //we find it in this section...
                         for (j=0; j < stringincrement-1; j++) {
                             if (*s == c) {
-                                if (wcharcomp(s, search, lensearch))
-                                    pos.push_back(i+j+shift);
+								if (wcharcomp(s, search, lensearch)) {
+									pos.push_back(i + j + shift);
+									s += lensearch;
+									j += lensearch - 1;
+									continue;
+								}
                             }
                             ++s;
                         }
+						if (!shift && j < stringincrement  && *s == c) {
+							--i;
+						}
+						break;
                     }
                 }
             }
@@ -1756,11 +1839,23 @@ void find_intel_all(wchar_t* src, wchar_t* search, long lensrc, long lensearch, 
                             //we find it in this section...
                         for (j=0; j < 13; j++) {
                             if (*s == c) {
-                                if (wcharcomp(s, search, lensearch))
-                                    pos.push_back(i+j+shift);
+								if (wcharcomp(s, search, lensearch)) {
+									pos.push_back(i + j + shift);
+									s += lensearch;
+									j += lensearch - 1;
+									continue;
+								}
                             }
                             ++s;
                         }
+						for (; j < stringincrement; j++) {
+							if (*s == c) {
+								i -= stringincrement - j - shift;
+								break;
+							}
+							++s;
+						}
+						break;
                     }
                 }
             }
@@ -1825,6 +1920,7 @@ void replace_intel_all(wstring& noe, wstring& src, wstring& search, wstring& rep
                     }
                     ++s;
                 }
+				break;
             }
         }
     }
@@ -1853,11 +1949,18 @@ void replace_intel_all(wstring& noe, wstring& src, wstring& search, wstring& rep
                                 if (from != foundHere)
                                     neo = concatstrings(neo, WSTR(src)+from, ineo, lenneo, foundHere-from);
                                 neo = concatstrings(neo, WSTR(replace), ineo, lenneo, replace.size());
-                                from = foundHere+lensearch;
+								from = foundHere + lensearch;
+								s += lensearch;
+								j += lensearch - 1;
+								continue;
                             }
                         }
                         ++s;
                     }
+					if (!shift && j < stringincrement  && *s == c) {
+						--i;
+					}
+					break;
                 }
             }
         }
@@ -1945,11 +2048,19 @@ long count_strings_intel(wchar_t* src, wchar_t* search, long lensrc, long lensea
                         //we find it in this section...
                     for (j=0; j < stringincrement-1; j++) {
                         if (*s == c) {
-                            if (wcharcomp(s, search, lensearch))
-                                counter++;
+							if (wcharcomp(s, search, lensearch)) {
+								counter++;
+								s += lensearch;
+								j += lensearch - 1;
+								continue;
+							}
                         }
                         ++s;
                     }
+					if (!shift && j < stringincrement  && *s == c) {
+						--i;
+					}
+					break;
                 }
             }
         }
@@ -2024,200 +2135,200 @@ static const __m128i _the_doublequotes = _mm_set1_epi8(34);
 static const __m128i _the_slash = _mm_set1_epi8(47);
 
 void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<string>& strings) {
-    __m128i current_bytes = _mm_setzero_si128();
-    __m128i val;
-    long b,e,u;
-    bool found, replace=false, success;
-    uint16_t q,r;
-    
-    for (long i = 0; (i + 15) < lensrc; i += 16) {
-            //we load our section, the length should be larger than 16
-        current_bytes = _mm_loadu_si128((const __m128i *)(src + i));
-        
-        val =_mm_cmpeq_epi8(current_bytes, _the_quotes);
-        q = _mm_movemask_epi8(val);
-        
-        val =_mm_cmpeq_epi8(current_bytes, _the_slash);
-        q |= _mm_movemask_epi8(val);
-        
-        val =_mm_cmpeq_epi8(current_bytes, _the_doublequotes);
-        q |= _mm_movemask_epi8(val);
-        
-        if (q) {
-            b = i;
-            e = b;
-            while (q) {
-                success = false;
-                
-                bitscanforward(r, q);
-                if (r) {
-                    b += r;
-                    q >>= r;
-                }
-                
-                e = b+1;
-                q >>= 1;
-                switch (src[b]) {
-                    case '/':
-                        if (src[e] == '/') {
-                            while (e < lensrc && src[e] != '\n') {
-                                e++;
-                                q >>= 1;
-                            }
-                            if (e < lensrc)
-                                success = true;
-                        }
-                        else {
-                            if (src[e] == '@') {
-                                e++;
-                                q >>= 1;
-                                found = false;
-                                while (q) {
-                                    bitscanforward(r, q);
-                                    e += r;
-                                    q >>= r;
-                                    
-                                    if (src[e-1] == '@' && src[e] == '/') {
-                                        found = true;
-                                        success = true;
-                                        break;
-                                    }
-                                    q >>= 1;
-                                    e++;
-                                }
-                                if (!found) {
-                                    while (e < lensrc && (src[e-1] != '@' || src[e] != '/')) e++;
-                                    if (e < lensrc)
-                                        success = true;
-                                }
-                            }
-                        }
-                        break;
-                    case '"':
-                        if (b > 0 && src[b-1] == '@') {
-                            b--;
-                            if (b > 0 && src[b-1] == 'u')
-                                b--;
-                            found = false;
-                            while (q) {
-                                bitscanforward(r, q);
-                                e += r;
-                                q >>= r;
-                                if (src[e] == '"' && src[e+1] == '@') {
-                                    found = true;
-                                    success = true;
-                                    q >>= 1;
-                                    e++;
-                                    break;
-                                }
-                                q >>= 1;
-                                e++;
-                            }
-                            if (!found) {
-                                while (e < lensrc && (src[e-1] != '"' || src[e] != '@')) e++;
-                                if (e < lensrc)
-                                    success = true;
-                            }
-                        }
-                        else {
-                            if (b > 0 && (src[b-1] == 'r' || src[b-1] == 'u' || src[b-1] == 'p'))
-                                b--;
-                            found = false;
-                            while (q) {
-                                bitscanforward(r, q);
-                                e += r;
-                                q >>= r;
-                                if (src[e-1] != '\\' && src[e] == '"') {
-                                    found = true;
-                                    success = true;
-                                    
-                                    for (u = b; u < e; u++) {
-                                        if (src[u] == 10 || src[u] == 13) {
-                                            success = false;
-                                            break;
-                                        }
-                                    }
-                                    break;
-                                }
-                                q >>= 1;
-                                e++;
-                            }
-                            if (!found) {
-                                while (e < lensrc) {
-                                    if (src[e] == 10 || src[e] == 13) {
-                                        found = true;
-                                        break;
-                                    }
-                                    if (src[e] == '\\')
-                                        e++;
-                                    else
-                                        if (src[e] == '"')
-                                            break;
-                                    e++;
-                                }
-                                if (e < lensrc && !found)
-                                    success = true;
-                            }
-                        }
-                        break;
-                    case '\'':
-                        if (b > 0 && (src[b-1] == 'r' || src[b-1] == 'u' || src[b-1] == 'p')) {
-                            b--;
-                            replace = true;
-                        }
-                        found = false;
-                        while (q) {
-                            bitscanforward(r, q);
-                            e += r;
-                            q >>= r;
-                            if (src[e] == '\'') {
-                                found = true;
-                                success = true;
-                                for (u = b; u < e; u++) {
-                                    if (src[u] == 10 || src[u] == 13) {
-                                        success = false;
-                                        break;
-                                    }
-                                }
-                                break;
-                            }
-                            q >>= 1;
-                            e++;
-                        }
-                        if (!found) {
-                            while (e < lensrc) {
-                                if (src[e] == 10 || src[e] == 13) {
-                                    found = true;
-                                    break;
-                                }
-                                if (src[e] == '\'')
-                                    break;
-                                e++;
-                            }
-                            if (e < lensrc && !found)
-                                success = true;
-                        }
-                }
-                
-                q >>= 1;
-                
-                if (success) {
-                    e++;
-                    uchar c = src[e];
-                    src[e] = 0;
-                    pos.push_back(b);
-                    strings.push_back((char*)src+b);
-                    if (replace) {
-                        strings.back()[0] -= 32; // we replace r with R, p with P, u with U
-                        replace = false;
-                    }
-                    src[e] = c;
-                    b = e;
-                    i = b - 16;
-                }
-            }
-        }
-    }
+	__m128i current_bytes = _mm_setzero_si128();
+	__m128i val;
+	long b,e,u;
+	bool found, replace=false, success;
+	uint16_t q,r;
+
+	for (long i = 0; (i + 15) < lensrc; i += 16) {
+		//we load our section, the length should be larger than 16
+		current_bytes = _mm_loadu_si128((const __m128i *)(src + i));
+
+		val =_mm_cmpeq_epi8(current_bytes, _the_quotes);
+		q = _mm_movemask_epi8(val);
+
+		val =_mm_cmpeq_epi8(current_bytes, _the_slash);
+		q |= _mm_movemask_epi8(val);
+
+		val =_mm_cmpeq_epi8(current_bytes, _the_doublequotes);
+		q |= _mm_movemask_epi8(val);
+
+		if (q) {
+			b = i;
+			e = b;
+			while (q) {
+				success = false;
+
+				bitscanforward(r, q);
+				if (r) {
+					b += r;
+					q >>= r;
+				}
+
+				e = b+1;
+				q >>= 1;
+				switch (src[b]) {
+				case '/':
+					if (src[e] == '/') {
+						while (e < lensrc && src[e] != '\n') {
+							e++;
+							q >>= 1;
+						}
+						if (e < lensrc)
+							success = true;
+					}
+					else {
+						if (src[e] == '@') {
+							e++;
+							q >>= 1;
+							found = false;
+							while (q) {
+								bitscanforward(r, q);
+								e += r;
+								q >>= r;
+
+								if (src[e-1] == '@' && src[e] == '/') {
+									found = true;
+									success = true;
+									break;
+								}
+								q >>= 1;
+								e++;
+							}
+							if (!found) {
+								while (e < lensrc && (src[e-1] != '@' || src[e] != '/')) e++;
+								if (e < lensrc)
+									success = true;
+							}
+						}
+					}
+					break;
+				case '"':
+					if (b > 0 && src[b-1] == '@') {
+						b--;
+						if (b > 0 && src[b-1] == 'u')
+							b--;
+						found = false;
+						while (q) {
+							bitscanforward(r, q);
+							e += r;
+							q >>= r;
+							if (src[e] == '"' && src[e+1] == '@') {
+								found = true;
+								success = true;
+								q >>= 1;
+								e++;
+								break;
+							}
+							q >>= 1;
+							e++;
+						}
+						if (!found) {
+							while (e < lensrc && (src[e-1] != '"' || src[e] != '@')) e++;
+							if (e < lensrc)
+								success = true;
+						}
+					}
+					else {
+						if (b > 0 && (src[b-1] == 'r' || src[b-1] == 'u' || src[b-1] == 'p'))
+							b--;
+						found = false;
+						while (q) {
+							bitscanforward(r, q);
+							e += r;
+							q >>= r;
+							if (src[e-1] != '\\' && src[e] == '"') {
+								found = true;
+								success = true;
+
+								for (u = b; u < e; u++) {
+									if (src[u] == 10 || src[u] == 13) {
+										success = false;
+										break;
+									}
+								}
+								break;
+							}
+							q >>= 1;
+							e++;
+						}
+						if (!found) {
+							while (e < lensrc) {
+								if (src[e] == 10 || src[e] == 13) {
+									found = true;
+									break;
+								}
+								if (src[e] == '\\')
+									e++;
+								else
+									if (src[e] == '"')
+										break;
+								e++;
+							}
+							if (e < lensrc && !found)
+								success = true;
+						}
+					}
+					break;
+				case '\'':
+					if (b > 0 && (src[b-1] == 'r' || src[b-1] == 'u' || src[b-1] == 'p')) {
+						b--;
+						replace = true;
+					}
+					found = false;
+					while (q) {
+						bitscanforward(r, q);
+						e += r;
+						q >>= r;
+						if (src[e] == '\'') {
+							found = true;
+							success = true;
+							for (u = b; u < e; u++) {
+								if (src[u] == 10 || src[u] == 13) {
+									success = false;
+									break;
+								}
+							}
+							break;
+						}
+						q >>= 1;
+						e++;
+					}
+					if (!found) {
+						while (e < lensrc) {
+							if (src[e] == 10 || src[e] == 13) {
+								found = true;
+								break;
+							}
+							if (src[e] == '\'')
+								break;
+							e++;
+						}
+						if (e < lensrc && !found)
+							success = true;
+					}
+				}
+
+				q >>= 1;
+
+				if (success) {
+					e++;
+					uchar c = src[e];
+					src[e] = 0;
+					pos.push_back(b);
+					strings.push_back((char*)src+b);
+					if (replace) {
+						strings.back()[0] -= 32; // we replace r with R, p with P, u with U
+						replace = false;
+					}
+					src[e] = c;
+					b = e;
+					i = b - 16;
+				}
+			}
+		}
+	}
 }
 
 long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, long lensearch, long i) {
@@ -2541,12 +2652,19 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
                         if (shift == 1) {bitscanforward(j,q);s+=j;} else j = 0;
                         for (; j < 15; j++) {
                             if (*s == c) {
-                                if (charcomp(s,USTR(search),lensearch))
-                                    pos.push_back(i + j + shift);
+								if (charcomp(s,USTR(search),lensearch)) {
+									pos.push_back(i + j + shift);
+									s += lensearch;
+									j += lensearch - 1;
+									continue;
+								}
                             }
                             ++s;
                         }
-                        break;
+						if (!shift && j < 16  && *s == c) {
+							--i;
+						}
+						break;
                     }
                 }
             }
@@ -2583,11 +2701,21 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
                             if (*s == c) {
                                 if (charcomp(s,USTR(search),lensearch)) {
                                     pos.push_back(i + j + shift);
+									s += lensearch;
+									j += lensearch - 1;
+									continue;
                                 }
                             }
                             ++s;
                         }
-                        break;
+						for (; j < 16; j++) {
+							if (*s == c) {
+								i -= 16 - j - shift;
+								break;
+							}
+							++s;
+						}
+						break;
                     }
                 }
             }
@@ -2694,11 +2822,17 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
                                         neo = concatstrings(neo, STR(src)+from, ineo, lenneo, foundHere-from);
                                     neo = concatstrings(neo, STR(replace), ineo, lenneo, replace.size());
                                     from = foundHere+lensearch;
+									s += lensearch;
+									j += lensearch - 1;
+									continue;
                                 }
                             }
                             ++s;
                         }
-                        break;
+						if (!shift && j < 16  && *s == c) {
+							--i;
+						}
+						break;
                     }
                 }
             }
@@ -2739,11 +2873,21 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
                                         neo = concatstrings(neo, STR(src)+from, ineo, lenneo, foundHere-from);
                                     neo = concatstrings(neo, STR(replace), ineo, lenneo, replace.size());
                                     from = foundHere+lensearch;
+									s += lensearch;
+									j += lensearch - 1;
+									continue;
                                 }
                             }
                             ++s;
                         }
-                        break;
+						for (; j < 16; j++) {
+							if (*s == c) {
+								i -= 16 - j - shift;
+								break;
+							}
+							++s;
+						}
+						break;
                     }
                 }
             }
@@ -2850,11 +2994,17 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
                             if (*s == c) {
                                 if (charcomp(s,search,lensearch)) {
                                     counter++;
+									s += lensearch;
+									j += lensearch - 1;
+									continue;
                                 }
                             }
                             ++s;
                         }
-                        break;
+						if (!shift && j < 16  && *s == c) {
+							--i;
+						}
+						break;
                     }
                 }
             }
@@ -2891,11 +3041,21 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
                             if (*s == c) {
                                 if (charcomp(s,search,lensearch)) {
                                     counter++;
+									s += lensearch;
+									j += lensearch - 1;
+									continue;
                                 }
                             }
                             ++s;
                         }
-                        break;
+						for (; j < 16; j++) {
+							if (*s == c) {
+								i -= 16 - j - shift;
+								break;
+							}
+							++s;
+						}
+						break;
                     }
                 }
             }
@@ -3164,11 +3324,17 @@ void find_intel_all(wchar_t* src, wchar_t* search, long lensrc, long lensearch, 
                         //we find it in this section...
                     for (j=0; j < stringincrement-1; j++) {
                         if (*s == c) {
-                            if (wcharcomp(s, search, lensearch))
+                            if (wcharcomp(s, search, lensearch)) {
                                 pos.push_back(i+j+shift);
+                                s += lensearch;
+                                j += lensearch - 1;
+                            }
                         }
                         ++s;
                     }
+                    if (!shift && j < stringincrement && *s == c)
+                        --i;
+                    break;
                 }
             }
         }
@@ -3231,6 +3397,7 @@ void replace_intel_all(wstring& noe, wstring& src, wstring& search, wstring& rep
                     }
                     ++s;
                 }
+                break;
             }
         }
     }
@@ -3262,10 +3429,15 @@ void replace_intel_all(wstring& noe, wstring& src, wstring& search, wstring& rep
                                     neo = concatstrings(neo, WSTR(src)+from, ineo, lenneo, foundHere-from);
                                 neo = concatstrings(neo, WSTR(replace), ineo, lenneo, replace.size());
                                 from = foundHere+lensearch;
+                                s += lensearch;
+                                j += lensearch - 1;
                             }
                         }
                         ++s;
                     }
+                    if (!shift && j < stringincrement && *s == c)
+                        --i;
+                    break;
                 }
             }
         }
@@ -3357,11 +3529,17 @@ if (lensearch > lensrc)
                         //we find it in this section...
                     for (j=0; j < stringincrement-1; j++) {
                         if (*s == c) {
-                            if (wcharcomp(s, search, lensearch))
+                            if (wcharcomp(s, search, lensearch)) {
                                 counter++;
+                                s += lensearch;
+                                j += lensearch - 1;
+                            }
                         }
                         ++s;
                     }
+                    if (!shift && j < stringincrement && *s == c)
+                        --i;
+                    break;
                 }
             }
         }
