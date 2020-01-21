@@ -44,20 +44,9 @@ static char digitaction[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 };
 
+//------------------------------------------------------------------------
 #define isadigit(c) c >= '0' && c <= '9'
 //------------------------------------------------------------------------
-#ifdef INTELINTRINSICS
-static const __m128i checkifzero = _mm_set1_epi8(0xFF);
-
-long _bitcounter(binuint64 x) {
-    long nb = 0;
-    while (x) {
-        if (x & 1) nb++;
-        x >>= 1;
-    }
-    return nb;
-}
-
 //There is a wnscmp method, however there seems to be a problem when used in conjunction with intrinsics instructions...
 //Some explanations: we suppose that the first character of both strings has already been identified as being the same
 static inline bool wcharcomp(wchar_t* src, wchar_t* search, long lensearch) {
@@ -76,7 +65,7 @@ static inline bool charcomp(unsigned char* src, unsigned char* search, long lens
     return true;
 }
 
-inline char* concatchar(char* str, char ctn, long& i, long& size_str) {
+static inline char* concatchar(char* str, char ctn, long& i, long& size_str) {
     if ((i + 1) >= size_str) {
         size_str <<= 1;
         char* s = new char[size_str];
@@ -88,7 +77,7 @@ inline char* concatchar(char* str, char ctn, long& i, long& size_str) {
     return str;
 }
 
-inline char* concatstrings(char* str, char* ctn, long& i, long& size_str, long size_ctn) {
+static inline char* concatstrings(char* str, char* ctn, long& i, long& size_str, long size_ctn) {
     if ((i + size_ctn) >= size_str) {
         size_str <<= 1;
         char* s = new char[size_str];
@@ -102,7 +91,7 @@ inline char* concatstrings(char* str, char* ctn, long& i, long& size_str, long s
     return str;
 }
 
-inline wchar_t* concatstrings(wchar_t* str, wchar_t* ctn, long& i, long& size_str, long size_ctn) {
+static inline wchar_t* concatstrings(wchar_t* str, wchar_t* ctn, long& i, long& size_str, long size_ctn) {
     long j;
     if ((i + size_ctn) >= size_str) {
         size_str <<= 1;
@@ -118,6 +107,18 @@ inline wchar_t* concatstrings(wchar_t* str, wchar_t* ctn, long& i, long& size_st
     
     str[i] = 0;
     return str;
+}
+//------------------------------------------------------------------------
+#ifdef INTELINTRINSICS
+static const __m128i checkifzero = _mm_set1_epi8(0xFF);
+
+long _bitcounter(binuint64 x) {
+    long nb = 0;
+    while (x) {
+        if (x & 1) nb++;
+        x >>= 1;
+    }
+    return nb;
 }
 
 #ifdef AVXSUPPORT
