@@ -2450,7 +2450,7 @@ long CTAMGUIView::FirstChar(long d, long f, CString& commande) {
 
 	lines.push_back("@;");
 	string codeindente;
-	IndentationCode(codeindente, lines, blancs, 0, false, "else", "elif", "if");
+	IndentationCode(codeindente, lines, blancs, 0, false);
 	return blancs.back();
 }
 

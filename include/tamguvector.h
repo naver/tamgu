@@ -697,8 +697,8 @@ class Tamguvector : public TamguObjectLockContainer {
     Exporting void Clear();
     
 
-    string JSonString();
-    virtual string String();
+    Exporting string JSonString();
+	Exporting virtual string String();
 
     Exporting long Integer();
     Exporting double Float();
