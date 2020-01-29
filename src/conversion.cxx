@@ -12762,7 +12762,7 @@ Exporting void IndentationCode(string& codeindente, vector<string>& code, vector
                     curly--;
                     break;
                 case ':':
-                    if ((x+1) < sztok && xr.stack[x+1][0] == '-') {
+                    if ((x+2) == sztok && xr.stack[x+1][0] == '-') {
                         inprolog = true;
                         inelse = false;
                     }
