@@ -94,7 +94,7 @@ void Tamgustring::AddMethod(TamguGlobal* global, string name, stringMethod func,
     Tamgustring::AddMethod(global, "base", &Tamgustring::MethodBase, P_ONE | P_TWO, "base(int b, bool bool toconvert=true): Return the value corresponding to the string in base b", a_null);
     Tamgustring::AddMethod(global, "parse", &Tamgustring::MethodParse, P_NONE | P_TWO, "parse(): Parse a string as a piece of code and returns the evaluation as a vector.", a_vector);
     Tamgustring::AddMethod(global, "sizeb", &Tamgustring::MethodSizeb, P_NONE, "sizeb(): Return the size in bytes of the string", a_int);
-    Tamgustring::AddMethod(global, "lisp", &Tamgustring::MethodLisp, P_NONE | P_TWO | P_THREE | P_FOUR | P_FIVE | P_SIX, "lisp(): lisp(string o,string c,bool comma,bool separator,bool concatenate): Parse a string as a parenthetic expressions, o is '(' and c is ')' by default. If 'comma' is true, then the decimal character is ',' otherwise it is '.'. If 'separator' is true then '1,000' is accepted as a number. If 'concatenate' is true then '3a' is a valid token", a_null);
+    Tamgustring::AddMethod(global, "parenthetics", &Tamgustring::MethodParenthetic, P_NONE | P_TWO | P_THREE | P_FOUR | P_FIVE | P_SIX, "lisp(): lisp(string o,string c,bool comma,bool separator,bool concatenate): Parse a string as a parenthetic expressions, o is '(' and c is ')' by default. If 'comma' is true, then the decimal character is ',' otherwise it is '.'. If 'separator' is true then '1,000' is accepted as a number. If 'concatenate' is true then '3a' is a valid token", a_null);
     Tamgustring::AddMethod(global, "tags", &Tamgustring::MethodTags, P_TWO | P_THREE | P_FOUR | P_FIVE | P_SIX, "tags(string o,string c,bool comma,bool separator,bool concatenate, svector rules): Parse a string as a parenthetic expressions, where o and c are string (not characters). If 'comma' is true, then the decimal character is ',' otherwise it is '.'. If 'separator' is true then '1,000' is accepted as a number. If 'concatenate' is true then '3a' is a valid token", a_null);
     Tamgustring::AddMethod(global, "scan", &Tamgustring::MethodScan, P_ONE | P_TWO | P_THREE | P_FOUR, "scan(sub, string sep, bool immediate,string remaining): Find the substrings matching sub, with TRE. 'sep' is a separator between strings. 'immediate' always combines with separator, it means that the matching should start at the first character of the string, default is false. 'remaining' also combines with 'separator', it returns the rest of the string after the section that matched.", a_null);
     Tamgustring::AddMethod(global, "getstd", &Tamgustring::MethodGetstd, P_ONE, "getstd(bool): catch or release the standard output", a_null);
@@ -216,24 +216,28 @@ Tamgu* Tamgustring::Loopin(TamguInstruction* ins, Tamgu* context, short idthread
     Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
     var = var->Eval(context, aNULL, idthread);
     Tamgustring v("");
-    Tamgu* a;
+    Tamgu* a = aNULL;
+    bool testcond = false;
+    
     val.begin();
-    while (!val.end()) {
+    while (!val.end() && !testcond) {
+        a->Releasenonconst();
         v.value =  val.nextemoji();
         var->Putvalue(&v, idthread);
         
         a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
         
-            //Continue does not trigger needInvestigate
-        if (a->needInvestigate()) {
-            if (a == aBREAK)
-                break;
-            return a;
-        }
-        
-        a->Release();
+        //Continue does not trigger needInvestigate
+        testcond = a->needInvestigate();
     }
     
+    if (testcond) {
+        if (a == aBREAK)
+            return this;
+        return a;
+    }
+
+    a->Releasenonconst();
     return this;
 }
 
@@ -540,7 +544,7 @@ Tamgu* Tamgustring::MethodParse(Tamgu* contextualpattern, short idthread, TamguC
     return kvect;
 }
 
-Tamgu* Tamgustring::MethodLisp(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+Tamgu* Tamgustring::MethodParenthetic(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     locking();
     string str = value;
     unlocking();
@@ -551,7 +555,7 @@ Tamgu* Tamgustring::MethodLisp(Tamgu* contextualpattern, short idthread, TamguCa
     vector<string> rules;
     
     if (nbparams == 0)
-        return globalTamgu->EvaluateLisp(str, copen, cclose, false, false, false, rules, idthread);
+        return globalTamgu->EvaluateParenthetic(str, copen, cclose, false, false, false, rules, idthread);
     
     copen = callfunc->Evaluate(0, contextualpattern, idthread)->String();
     cclose = callfunc->Evaluate(1, contextualpattern, idthread)->String();
@@ -577,7 +581,7 @@ Tamgu* Tamgustring::MethodLisp(Tamgu* contextualpattern, short idthread, TamguCa
         }
     }
     
-    return globalTamgu->EvaluateLisp(str, copen, cclose, comma, separator, keeprc, rules, idthread);
+    return globalTamgu->EvaluateParenthetic(str, copen, cclose, comma, separator, keeprc, rules, idthread);
 }
 
 Tamgu* Tamgustring::MethodTags(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -2614,24 +2618,27 @@ Tamgu* Tamgua_string::Loopin(TamguInstruction* ins, Tamgu* context, short idthre
     Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
     var = var->Eval(context, aNULL, idthread);
     Tamgustring v("");
-    Tamgu* a;
+    Tamgu* a = aNULL;
+    bool testcond = false;
     val.begin();
-    while (!val.end()) {
+    while (!val.end() && !testcond) {
+        a->Releasenonconst();
         v.value =  val.nextemoji();
         var->Putvalue(&v, idthread);
         
         a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
         
             //Continue does not trigger needInvestigate
-        if (a->needInvestigate()) {
-            if (a == aBREAK)
-                break;
-            return a;
-        }
-        
-        a->Release();
+        testcond = a->needInvestigate();
     }
     
+    if (testcond) {
+        if (a == aBREAK)
+            return this;
+        return a;
+    }
+
+    a->Releasenonconst();
     return this;
 }
 

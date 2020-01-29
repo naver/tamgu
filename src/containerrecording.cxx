@@ -75,10 +75,13 @@
 #include "tamguprimemapss.h"
 #include "tamguprimemapsl.h"
 
+#include "tamgulisp.h"
 
 void TamguGlobal::RecordContainers() {
 
-	Tamguvector::InitialisationModule(this, TamguVersion());
+    Tamgulisp::InitialisationModule(this, TamguVersion());
+
+    Tamguvector::InitialisationModule(this, TamguVersion());
 	Tamguivector::InitialisationModule(this, TamguVersion());
 	Tamgubvector::InitialisationModule(this, TamguVersion());
 	Tamgufvector::InitialisationModule(this, TamguVersion());
@@ -169,7 +172,7 @@ void TamguGlobal::RecordContainers() {
 }
 
 void TamguGlobal::RecordContainersId() {
-    
+
     Tamguvector::Setidtype(this);
     Tamguivector::Setidtype(this);
     Tamgubvector::Setidtype(this);

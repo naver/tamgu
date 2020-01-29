@@ -1,19 +1,3 @@
-/*
- *  Tamgu (탐구)
- *
- * Copyright 2019-present NAVER Corp.
- * under BSD 3-clause
- */
-/* --- CONTENTS ---
- Project    : Tamgu (탐구)
- Version    : See tamgu.cxx for the version number
- filename   : codeparse.h
- Date       : 2017/09/01
- Purpose    : This file parses a Tamgu program... 
- Programmer : Claude ROUX (claude.roux@naverlabs.com)
- Reviewer   :
- */
-
 #ifndef bnf_tamgu_h
 #define bnf_tamgu_h
 #include "x_node.h"
@@ -878,16 +862,27 @@ class bnf_tamgu {
     char m_testswitch(string& lreturn,x_node** tree);
     char m_testswitch_0_1(string& lreturn,x_node** tree);
     char m_default(string& lreturn,x_node** tree);
-    char m_lispexpression(string& lreturn,x_node** tree);
-    char m_lispexpressions(string& lreturn,x_node** tree);
-    char m_onelisp(string& lreturn,x_node** tree);
-    char m_onelisp_0_1(string& lreturn,x_node** tree);
-    char m_lisp(string& lreturn,x_node** tree);
+    char m_parentheticexpression(string& lreturn,x_node** tree);
+    char m_parentheticexpressions(string& lreturn,x_node** tree);
+    char m_oneparenthetic(string& lreturn,x_node** tree);
+    char m_oneparenthetic_0_1(string& lreturn,x_node** tree);
+    char m_parenthetique(string& lreturn,x_node** tree);
     char m_tagexpression(string& lreturn,x_node** tree);
     char m_tagexpressions(string& lreturn,x_node** tree);
     char m_onetag(string& lreturn,x_node** tree);
     char m_onetag_0_1(string& lreturn,x_node** tree);
     char m_tag(string& lreturn,x_node** tree);
+    char m_tlcomparator(string& lreturn,x_node** tree);
+    char m_tloperator(string& lreturn,x_node** tree);
+    char m_tlatom(string& lreturn,x_node** tree);
+    char m_tlquote(string& lreturn,x_node** tree);
+    char m_opcomp(string& lreturn,x_node** tree);
+    char m_tlist(string& lreturn,x_node** tree);
+    char m_tlist_0_1(string& lreturn,x_node** tree);
+    char m_tlist_0_2(string& lreturn,x_node** tree);
+    char m_tlexp(string& lreturn,x_node** tree);
+    char m_tamgulisp(string& lreturn,x_node** tree);
+    char m_tamgupurelisp(string& lreturn,x_node** tree);
     char m_ameta(string& lreturn,x_node** tree);
     char m_ameta_0_1(string& lreturn,x_node** tree);
     char m_ameta_0_1_2(string& lreturn,x_node** tree);

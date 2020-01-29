@@ -1727,7 +1727,7 @@ Exporting Tamgu* Selectabvector(Tamgu* context) {
     return new Tamgubvector;
 }
 //--------------------------------------------------------------------
-Exporting Tamgu* TamguGlobal::EvaluateLisp(string& s, string& o, string& c, bool comma, bool separator, bool keeprc, vector<string>& rules, short idthread) {
+Exporting Tamgu* TamguGlobal::EvaluateParenthetic(string& s, string& o, string& c, bool comma, bool separator, bool keeprc, vector<string>& rules, short idthread) {
     x_tokenize xr;
     bnf_tamgu bnf;
     
@@ -1772,7 +1772,7 @@ Exporting Tamgu* TamguGlobal::EvaluateLisp(string& s, string& o, string& c, bool
     bnf.Y_var_0 = o[0];
     bnf.Y_var_1 = c[0];
     
-    if (bnf.m_lisp(lret, &xn) != 1)
+    if (bnf.m_parenthetique(lret, &xn) != 1)
         return Returnerror("Unknown expression", idthread);
     
     Tamgu* kret = globalTamgu->Providevector();
@@ -1923,6 +1923,53 @@ Exporting An_rules* TamguGlobal::EvaluateRules(string& body, short idthread) {
     
     return globalTamgu->gTheAnnotationRules;
 }
+
+Exporting Tamgu* TamguGlobal::EvaluateLisp(Tamgu* contextualpattern, string& s, short idthread) {
+    x_reading xr;
+    bnf_tamgu bnf;
+    
+    xr.tokenize(s);
+    
+    bnf.baseline = linereference;
+    bnf.initialize(&xr);
+    
+    bnf_tamgu* previous = currentbnf;
+    currentbnf = &bnf;
+    string lret;
+    x_node* xn = new x_node;
+    
+    
+    if (bnf.m_tamgupurelisp(lret, &xn) != 1)
+        return Returnerror("Unknown expression", idthread);
+    
+    Tamgu* kret = aNULL;
+    TamguCode* code = spaces[0];
+    code->compilemode = false;
+    
+    Tamguvector* lst = globalTamgu->Providevector();
+
+    try {
+        kret = code->Traverse(xn, lst);
+    }
+    catch (TamguRaiseError* m) {
+        code->global = this;
+        kret->Release();
+        kret = Returnerror(m->message, idthread);
+        lst->Release();
+        delete m;
+    }
+        
+    for (long i = 0; i < lst->Size(); i++) {
+        if (i)
+            kret->Release();
+        kret = lst->values[i]->Eval(contextualpattern, aNULL, idthread);
+    }
+    lst->Release();
+    currentbnf = previous;
+    delete xn;
+    return kret;
+}
+
 
 Exporting Tamgu* TamguGlobal::EvaluateVector(string& s, short idthread) {
     x_reading xr;

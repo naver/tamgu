@@ -775,7 +775,7 @@ public:
 	Tamgu* MethodPadding(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 	Tamgu* MethodParse(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 	Tamgu* MethodPop(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
-	Tamgu* MethodLisp(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+	Tamgu* MethodParenthetic(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 	Tamgu* MethodTags(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 	Tamgu* MethodScan(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 	Tamgu* MethodEvaluate(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
@@ -1762,7 +1762,7 @@ public:
     Tamgu* MethodPadding(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodParse(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodPop(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
-    Tamgu* MethodLisp(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodParenthetic(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodTags(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodScan(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodEvaluate(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);

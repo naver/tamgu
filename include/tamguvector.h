@@ -100,7 +100,7 @@ class Tamguvector : public TamguObjectLockContainer {
 
     static void Setidtype(TamguGlobal* global);
     
-    string Typename() {
+    virtual string Typename() {
         return "vector";
     }
 
@@ -352,6 +352,7 @@ class Tamguvector : public TamguObjectLockContainer {
     //---------------------------------------------------------------------------------------------------------------------
     //This SECTION is for your specific implementation...
     //This is an example of a function that could be implemented for your needs.
+
     Tamgu* MethodClear(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         Clear();
         return aTRUE;
@@ -696,10 +697,8 @@ class Tamguvector : public TamguObjectLockContainer {
     Exporting void Clear();
     
 
-    Exporting string JSonString();
-    Exporting string String();
-
-    //wstring UString() {}
+    string JSonString();
+    virtual string String();
 
     Exporting long Integer();
     Exporting double Float();
@@ -715,6 +714,15 @@ class Tamguvector : public TamguObjectLockContainer {
     }
 
     Exporting long Size();
+
+    Tamgu* car(short idthread) {
+        Locking _lock(this);
+        if (!values.size())
+            return aNOELEMENT;
+        return values[0]->Atom();
+    }
+    
+    Tamgu* cdr(short idthread);
 
     Exporting Tamgu* in(Tamgu* context, Tamgu* a, short idthread);
 

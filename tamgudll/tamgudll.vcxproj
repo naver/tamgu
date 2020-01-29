@@ -160,6 +160,7 @@
     <ClCompile Include="..\src\tamguframeinstance.cxx" />
     <ClCompile Include="..\src\tamgufvector.cxx" />
     <ClCompile Include="..\src\tamgugrammar.cxx" />
+    <ClCompile Include="..\src\tamgulisp.cxx" />
     <ClCompile Include="..\src\tamgutaskell.cxx" />
     <ClCompile Include="..\src\tamguhvector.cxx" />
     <ClCompile Include="..\src\tamguimatrix.cxx" />
@@ -242,3 +243,4 @@
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
 </Project>
+

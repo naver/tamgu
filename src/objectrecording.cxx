@@ -104,7 +104,7 @@ void TamguGlobal::RecordObjects() {
     Tamgufloat::InitialisationModule(this, TamguVersion());
     Tamgubyte::InitialisationModule(this, TamguVersion());
     Tamguustring::InitialisationModule(this, TamguVersion());
-    Tamgubool::InitialisationModule(this, TamguVersion());
+    Tamguboolean::InitialisationModule(this, TamguVersion());
 
     Tamguframeseeder::InitialisationModule(this, TamguVersion());
 
@@ -135,7 +135,9 @@ void TamguGlobal::RecordObjects() {
 
     Tamguannotator::InitialisationModule(this, TamguVersion());
     Tamguregularexpression::InitialisationModule(this, TamguVersion());
+#ifdef Tamgu_REGEX
     Tamguposixregularexpression::InitialisationModule(this, TamguVersion());
+#endif
 }
 
 
@@ -152,7 +154,7 @@ void TamguGlobal::RecordObjectsId() {
     Tamgufloat::Setidtype(this);
     Tamgubyte::Setidtype(this);
     Tamguustring::Setidtype(this);
-    Tamgubool::Setidtype(this);
+    Tamguboolean::Setidtype(this);
     
     Tamguframeseeder::Setidtype(this);
     

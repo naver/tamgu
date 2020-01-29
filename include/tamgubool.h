@@ -14,18 +14,18 @@
  Reviewer   :
 */
 
-#ifndef tamgubool_h
-#define tamgubool_h
+#ifndef tamguboolean_h
+#define tamguboolean_h
 
 //We create a map between our methods, which have been declared in our class below. See MethodInitialization for an example
 //of how to declare a new method.
-class Tamgubool;
+class Tamguboolean;
 //This typedef defines a type "boolMethod", which expose the typical parameters of a new Tamgu method implementation
-typedef Tamgu* (Tamgubool::*boolMethod)(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+typedef Tamgu* (Tamguboolean::*boolMethod)(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
 //---------------------------------------------------------------------------------------------------------------------
 
-class Tamgubool : public TamguReference {
+class Tamguboolean : public TamguReference {
 public:
 	//We export the methods that will be exposed for our new object
 	//this is a static object, which is common to everyone
@@ -42,12 +42,12 @@ public:
 	bool value;
 
 	//---------------------------------------------------------------------------------------------------------------------
-	Tamgubool(bool v, TamguGlobal* g, Tamgu* parent = NULL) : TamguReference(g, parent) {
+	Tamguboolean(bool v, TamguGlobal* g, Tamgu* parent = NULL) : TamguReference(g, parent) {
 		//Do not forget your variable initialisation
 		value = v;
 	}
 
-	Tamgubool(bool v) {
+	Tamguboolean(bool v) {
 		//Do not forget your variable initialisation
 		value = v;
 	}
@@ -70,7 +70,7 @@ public:
 
 
 	short Type() {
-		return Tamgubool::idtype;
+		return Tamguboolean::idtype;
 	}
 
 	
@@ -103,7 +103,7 @@ public:
 
 	Tamgu* Atom(bool forced = false) {
 		if (forced || !protect || reference)
-			return new  Tamgubool(value);
+			return new  Tamguboolean(value);
 		return this;
 	}
 
@@ -130,11 +130,11 @@ public:
 	}
 
 	Tamgu* Newinstance(short, Tamgu* f = NULL) {
-		return new Tamgubool(0);
+		return new Tamguboolean(0);
 	}
 
 	Tamgu* Newvalue(Tamgu* a, short idthread) {
-		return new Tamgubool(a->Boolean());
+		return new Tamguboolean(a->Boolean());
 	}
 
 
@@ -303,7 +303,7 @@ public:
     
     
     short Type() {
-        return Tamgubool::idtype;
+        return Tamguboolean::idtype;
     }
     
     string Typename() {
@@ -358,11 +358,11 @@ public:
     }
     
     Tamgu* Newinstance(short, Tamgu* f = NULL) {
-        return new Tamgubool(0);
+        return new Tamguboolean(0);
     }
     
     Tamgu* Newvalue(Tamgu* a, short idthread) {
-        return new Tamgubool(a->Boolean());
+        return new Tamguboolean(a->Boolean());
     }
     
     
@@ -481,10 +481,10 @@ public:
 };
 
 
-class TamguLoopBoolean : public Tamgubool {
+class TamguLoopBoolean : public Tamguboolean {
 public:
 
-	TamguLoopBoolean() : Tamgubool(true) {}
+	TamguLoopBoolean() : Tamguboolean(true) {}
 
     Tamgu* Put(Tamgu* context, Tamgu* ke, short) {
         value = ke->Boolean();

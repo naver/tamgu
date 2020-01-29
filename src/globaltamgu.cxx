@@ -391,7 +391,7 @@ Exporting string TamguIndentation(string& codestr,string blanc) {
 	cr_normalise(codestr);
 	v_split_indent(codestr, vargs);
 	string codeindente = "";
-	IndentationCode(codeindente, vargs, iblancs, (int)blanc.size(), true, "else", "elif", "if");
+	IndentationCode(codeindente, vargs, iblancs, (int)blanc.size(), true);
 	Trimright(codeindente);
 	codeindente += "\n";
 	if (codeindente.find("/@") != string::npos || codeindente.find("@\"") != string::npos)

@@ -18,15 +18,15 @@
 #include "tamgubool.h"
 
 //We need to declare once again our local definitions.
-Exporting basebin_hash<boolMethod>  Tamgubool::methods;
-Exporting hmap<string, string> Tamgubool::infomethods;
-Exporting bin_hash<unsigned long> Tamgubool::exported;
+Exporting basebin_hash<boolMethod>  Tamguboolean::methods;
+Exporting hmap<string, string> Tamguboolean::infomethods;
+Exporting bin_hash<unsigned long> Tamguboolean::exported;
 
-Exporting short Tamgubool::idtype = 0;
+Exporting short Tamguboolean::idtype = 0;
 
 
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
-void Tamgubool::AddMethod(TamguGlobal* global, string name, boolMethod func, unsigned long arity, string infos) {
+void Tamguboolean::AddMethod(TamguGlobal* global, string name, boolMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
     infomethods[name] = infos;
@@ -35,23 +35,23 @@ void Tamgubool::AddMethod(TamguGlobal* global, string name, boolMethod func, uns
 
 
 
-    void Tamgubool::Setidtype(TamguGlobal* global) {
-        Tamgubool::idtype = global->Getid("bool");
+    void Tamguboolean::Setidtype(TamguGlobal* global) {
+        Tamguboolean::idtype = global->Getid("bool");
     }
 
-   bool Tamgubool::InitialisationModule(TamguGlobal* global, string version) {
+   bool Tamguboolean::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
     infomethods.clear();
     exported.clear();
 
-    Tamgubool::idtype = global->Getid("bool");
+    Tamguboolean::idtype = global->Getid("bool");
 
-    Tamgubool::AddMethod(global, "invert", &Tamgubool::MethodInvert, P_NONE, "invert(): Invert ");
-    Tamgubool::AddMethod(global, "succ", &Tamgubool::MethodInvert, P_NONE, "succ(): successor of a Boolean.");
+    Tamguboolean::AddMethod(global, "invert", &Tamguboolean::MethodInvert, P_NONE, "invert(): Invert ");
+    Tamguboolean::AddMethod(global, "succ", &Tamguboolean::MethodInvert, P_NONE, "succ(): successor of a Boolean.");
 
-    global->newInstance[Tamgubool::idtype] = new Tamgubool(0, global);
-    global->RecordMethods(Tamgubool::idtype,Tamgubool::exported);
-    global->RecordMethods(a_bloop,Tamgubool::exported);
+    global->newInstance[Tamguboolean::idtype] = new Tamguboolean(0, global);
+    global->RecordMethods(Tamguboolean::idtype,Tamguboolean::exported);
+    global->RecordMethods(a_bloop,Tamguboolean::exported);
 
     return Tamguatomicbool::InitialisationModule(global, version);
 }

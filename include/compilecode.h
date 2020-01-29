@@ -89,7 +89,7 @@ public:
 		return currentfileid;
 	}
 
-	Tamgu* Mainframe() {
+	inline Tamgu* Mainframe() {
 		return &mainframe;
 	}
 
@@ -198,6 +198,8 @@ public:
 	Tamgu* C_createfunction(x_node* xn, Tamgu* kf);
 	Tamgu* C_blocs(x_node* xn, Tamgu* kf);
 	bool CheckUse(x_node* xn, Tamgu* kf);
+
+    Tamgu* C_tamgulisp(x_node* xn, Tamgu* kf);
 
 	Tamgu* C_ifcondition(x_node* xn, Tamgu* kf);
 

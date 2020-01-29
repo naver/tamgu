@@ -36,8 +36,8 @@ Exporting short Tamguvector::idtype = 0;
 
 #ifndef max
 #define max(a,b)            (((a) > (b)) ? (a) : (b))
-    #define min(a,b)            (((a) < (b)) ? (a) : (b))
-        #endif
+#define min(a,b)            (((a) < (b)) ? (a) : (b))
+#endif
 
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamguvector::AddMethod(TamguGlobal* global, string name, vectorMethod func, unsigned long arity, string infos) {
@@ -47,13 +47,11 @@ void Tamguvector::AddMethod(TamguGlobal* global, string name, vectorMethod func,
     exported[idname] = arity;
 }
 
+void Tamguvector::Setidtype(TamguGlobal* global) {
+    Tamguvector::idtype = global->Getid("vector");
+}
 
-
-    void Tamguvector::Setidtype(TamguGlobal* global) {
-        Tamguvector::idtype = global->Getid("vector");
-    }
-
-   bool Tamguvector::InitialisationModule(TamguGlobal* global, string version) {
+bool Tamguvector::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
     infomethods.clear();
     exported.clear();

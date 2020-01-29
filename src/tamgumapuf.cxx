@@ -824,22 +824,26 @@ Exporting Tamgu* Tamgumapuf::Loopin(TamguInstruction* ins, Tamgu* context, short
     for (it=values.begin(); it != values.end(); it++)
         keys.push_back(it->first);
 
-    for (long i = 0; i < keys.size(); i++) {
-
+    long sz = keys.size();
+    a = aNULL;
+    bool testcond = false;
+    for (long i = 0; i < sz && !testcond; i++) {
+        a->Releasenonconst();
         var->storevalue(keys[i]);
 
         a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
         //Continue does not trigger needInvestigate
-        if (a->needInvestigate()) {
-            if (a == aBREAK)
-                break;
-            return a;
-        }
-
-        a->Release();
+        testcond = a->needInvestigate();
+    }
+    
+    if (testcond) {
+        if (a == aBREAK)
+            return this;
+        return a;
     }
 
+    a->Releasenonconst();
     return this;
 
 }

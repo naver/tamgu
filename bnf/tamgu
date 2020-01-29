@@ -173,6 +173,7 @@
 *64 = Wrong 'ontology' expression
 *65 = Wrong 'range' definition
 *66 = Wrong annotation rule
+*67 = Wrong lisp expression
 ####################################################################################################################################################
 ####################################################################################################################################################
 ### This is the entry point of our parser: analyse, hence the "+" ######
@@ -298,7 +299,7 @@ sep := %:
 ########### THE PARSER ##############################################
 %blocs := [extension^frame^complexbloc^function^bloc]+
 %bloc :=  annotationrule^predicatefact^[dcg ;45 %.]^[[dependencyrule^predicatedefinition] ;46 %.]^sousbloc
-%sousbloc := [[hdata^hontology^telque] (%;)]^[[conceptfunction^multideclaration^increment^affectation^call^variable]  ;30 %;]
+%sousbloc := [[tamgulisp^hdata^hontology^telque] (%;)]^[[conceptfunction^multideclaration^increment^affectation^call^variable]  ;30 %;]
 %complexbloc := switch^trycatch^loop^doloop^iftest^forin^for
 
 ### Our entry point ####
@@ -566,7 +567,7 @@ hrange := range [hoperator range]* (%, whereexpression^[hbooleanexpression (%, w
 ########### EXPRESSION DEFINITIONS ##############################################
 
 %parenthetic := %( ;4 wnexpressions %)
-expression := (negation) [taskellcase^localif^abool^astringdouble^afullstring^astringsimple^apreg^aspreg^atreg^astreg^anumber^call^valtuple^parenthetic^increment^allvariable^telque^intentionvect^valvector^valmap]
+expression := (negation) [tamgulisp^taskellcase^localif^abool^astringdouble^afullstring^astringsimple^apreg^aspreg^atreg^astreg^anumber^call^valtuple^parenthetic^increment^allvariable^telque^intentionvect^valvector^valmap]
 %expressions := expression (power) (fulloperation^comparison^operationin^multiply)
 
 %comparing := expression [comparison^operationin]
@@ -608,18 +609,28 @@ declarationfor := [variable $in]^[type variable $in]
 %testswitch := [default^astringdouble^afullstring^astringsimple^anumber^abool] %: ;17 [instruction^complexbloc^bloc]
 default := $default
 
-
 ########### PATTERNS FOR CERTAIN SPECIALIZED OBJECTS CALLED FROM WITHIN TAMGUI INSTRUCTIONS ##############################################
-lispexpression := astringdouble^afullstring^astringsimple^anumber^astring^punct
-lispexpressions := onelisp^lispexpression 
-onelisp := @( lispexpressions* @)
-lisp := onelisp+
+parentheticexpression := astringdouble^afullstring^astringsimple^anumber^astring^punct
+%parentheticexpressions := oneparenthetic^parentheticexpression
+%oneparenthetic := @( parentheticexpressions* @)
+%parenthetique := oneparenthetic+
 
-tagexpression := astringdouble^afullstring^astringsimple^anumber^astring^punct
-tagexpressions := onetag^tagexpression 
-onetag := :OPEN tagexpressions* :CLOSE
-tag := onetag+
+%tagexpression := astringdouble^afullstring^astringsimple^anumber^astring^punct
+%tagexpressions := onetag^tagexpression
+%onetag := :OPEN tagexpressions* :CLOSE
+%tag := onetag+
 
+########### TAMGULISP (different from above. This is the real stuff) It starts with \(...) #######################################
+tlcomparator := [%< %>]^[%~ %=]^[%! %=]^$≠^[%= %=]^[%< %=]^[%> %=]^%<^%>
+tloperator := $×^$÷^[%< %<]^[%> %>]^[%^ %^]^[%* %*]^%&^%|^%+^%-^%*^%/^%%^%^
+
+tlatom := anumber^word^astringdouble
+%tlquote := %' %' tlexp
+opcomp := tloperator^tlcomparator
+%tlist := %( ;67 (opcomp) tlexp* %)
+%tlexp := tlist^tlquote^tlatom
+%tamgulisp := %\ tlexp
+%tamgupurelisp := tlexp+
 ########## Grammar pattern: tk :=  ... ############################
 ameta := [%?^[%% ;59 [%d^%p^%c^%C^%H^%a^%r^%s^%S^%?^%%]]] (%_)
 amulti := %$ word

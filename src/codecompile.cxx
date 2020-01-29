@@ -39,6 +39,7 @@
 #include "tamguannotator.h"
 #include "equationtemplate.h"
 #include "comparetemplate.h"
+#include "tamgulisp.h"
 
 #include <memory>
 
@@ -1130,6 +1131,14 @@ void TamguGlobal::RecordCompileFunctions() {
     parseFunctions["optionaltokens"] = &TamguCode::C_optionaltokens;
     parseFunctions["removetokens"] = &TamguCode::C_removetokens;
     parseFunctions["token"] = &TamguCode::C_token;
+    
+    //LISP implementation
+    parseFunctions["tloperator"] = &TamguCode::C_operator;
+    parseFunctions["tlcomparator"] = &TamguCode::C_operator;
+    parseFunctions["tlatom"] = &TamguCode::C_tamgulisp;
+    parseFunctions["tlquote"] = &TamguCode::C_tamgulisp;
+    parseFunctions["opcomp"] = &TamguCode::C_tamgulisp;
+    parseFunctions["tlist"] = &TamguCode::C_tamgulisp;
 }
 
 
@@ -2046,7 +2055,6 @@ Tamgu* TamguCode::C_expression(x_node* xn, Tamgu* parent) {
     
     return res;
 }
-
 
 Tamgu* TamguCode::C_parameterdeclaration(x_node* xn, Tamgu* parent) {
 	Tamgu* top = global->Topstack();
@@ -3237,9 +3245,11 @@ Tamgu* TamguCode::C_pstring(x_node* xn, Tamgu* parent) {
     message << "Posix regular expressions not available";
     throw new TamguRaiseError(message, filename, current_start, current_end);
     return aNULL;
+}
 #else
 wregex* wgetposixregex(string& s);
 regex* getposixregex(string& s);
+
 Tamgu* TamguCode::C_pstring(x_node* xn, Tamgu* parent) {
     string thestr = xn->value.substr(1, xn->value.size() - 2);
     
@@ -4588,13 +4598,13 @@ Tamgu* TamguCode::C_createfunction(x_node* xn, Tamgu* kf) {
 	if (kprevious == NULL || xn->nodes[last]->token == "declarationending") {
 
         if (typefunction == "thread") {
-			kfunc = new TamguThread(idname, global, joinfunction, protection, kf);
+			kfunc = new TamguThread(idname, global, joinfunction, protection);
         }
 		else {
 			if (protection != 0)
-				kfunc = new TamguProtectedFunction(idname, global, protection, kf);
+				kfunc = new TamguProtectedFunction(idname, global, protection);
 			else
-				kfunc = new TamguFunction(idname, global, kf);
+				kfunc = new TamguFunction(idname, global);
 			if (typefunction == "autorun")
 				autorun = true;
 		}
@@ -9318,6 +9328,58 @@ Tamgu* TamguCode::C_token(x_node* xn, Tamgu* kf) {
 }
 
 
+Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
+    //We have four cases: tlatom, tlquote opcomp, tlist
+    Tamgu* a;
+    if (xn->token == "tlatom") {
+        if (xn->nodes[0]->token == "word") {
+            //We check if it is a variation on car/cdr
+            string word = xn->nodes[0]->value;
+            if (word[0] == 'c' and word.back() == 'r') {
+                bool found = true;
+                for (long i = 1; i < word.size()-1; i++) {
+                    if (word[i] != 'a' && word[i] != 'd') {
+                        found = false;
+                        break;
+                    }
+                }
+                if (found) {
+                    word = word.substr(1, word.size()-2);
+                    a = new Tamgucadr(word, global, parent);
+                }
+                else
+                    a = global->Providelispsymbols(word, parent);
+            }
+            else
+                a = global->Providelispsymbols(word, parent);
+        }
+        else
+            Traverse(xn->nodes[0], parent);
+        return parent;
+    }
+
+    Tamgu* kf = parent;
+
+    if (xn->token == "tlquote") {
+        kf = new Tamgulisp(global, parent);
+        kf->Setaction(a_quote);
+    }
+    else {
+        if (xn->token == "tlist") {
+            if (global->lelisp == NULL) {
+                globalTamgu->lelisp = new Tamgulisp(global, parent);
+                kf = globalTamgu->lelisp;
+            }
+            else
+                kf = new Tamgulisp(global, parent);
+        }
+    }
+    
+    for (long i = 0; i < xn->nodes.size(); i++)
+            Traverse(xn->nodes[i], kf);
+    
+    return kf;
+}
 //------------------------------------------------------------------------
 
 bool TamguCode::Load(x_reading& xr) {

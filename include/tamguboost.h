@@ -47,7 +47,6 @@ using boost::wsregex_iterator;
 #include <unordered_map>
 #define hmap std::unordered_map
 #else
-using namespace boost;
 #include <tr1/unordered_map>
 #define hmap std::tr1::unordered_map
 #endif

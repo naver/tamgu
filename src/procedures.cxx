@@ -1680,34 +1680,44 @@ Tamgu* ProcPrintJoinErrLN(Tamgu* contextualpattern, short idthread, TamguCall* c
 
 Tamgu* ProcRange(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 
-    Tamgu* first = callfunc->Evaluate(0, contextualpattern, idthread);
-    //whenever a aNOELEMENT is returned, we can assume that a variable is missing to fullfil the range...
-    if (first == aNOELEMENT)
-        return aNOELEMENT;
-
-    Tamgu* second = callfunc->Evaluate(1, contextualpattern, idthread);
-    if (second == aNOELEMENT)
-        return aNOELEMENT;
-
+    Tamgu* initial = aZERO;
+    Tamgu* increment = aONE;
+    Tamgu* boundary;
+    
+    if (callfunc->Size() == 1) {
+        boundary = callfunc->Evaluate(0, contextualpattern, idthread);
+        if (boundary == aNOELEMENT)
+            return aNOELEMENT;
+    }
+    else {
+        initial = callfunc->Evaluate(0, contextualpattern, idthread);
+            //whenever a aNOELEMENT is returned, we can assume that a variable is missing to fullfil the range...
+        if (initial == aNOELEMENT)
+            return aNOELEMENT;
+        
+        boundary = callfunc->Evaluate(1, contextualpattern, idthread);
+        if (boundary == aNOELEMENT)
+            return aNOELEMENT;
+    }
+    
     Tamgu* kvect;
-    Tamgu* incr = aONE;
 
     if (callfunc->Size() == 3) {
-        incr = callfunc->Evaluate(2, contextualpattern, idthread);
-        if (incr == aNOELEMENT)
+        increment = callfunc->Evaluate(2, contextualpattern, idthread);
+        if (increment == aNOELEMENT)
             return aNOELEMENT;
     }
 
-    if (first->isInteger() && incr->isInteger()) {
+    if (initial->isInteger() && increment->isInteger()) {
         if (contextualpattern == aNULL)
             kvect = globalTamgu->Provideivector();
         else
             kvect = Selectavector(contextualpattern);
 
         if (kvect->Type() == a_lvector) {
-            BLONG l = first->Long();
-            BLONG r = second->Long();
-            BLONG inc = incr->Long();
+            BLONG l = initial->Long();
+            BLONG r = boundary->Long();
+            BLONG inc = increment->Long();
 
             BLONG d = (r - l) / inc;
             if (d<0)
@@ -1736,10 +1746,10 @@ Tamgu* ProcRange(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) 
             return globalTamgu->Returnerror("RANGE over actual capacity", idthread);
         }
 
-        long l = first->Integer();
-        long r = second->Integer();
+        long l = initial->Integer();
+        long r = boundary->Integer();
         long d = r - l + 1;
-        long inc = incr->Integer();
+        long inc = increment->Integer();
 
         if (d<0)
             d *= -1;
@@ -1767,16 +1777,16 @@ Tamgu* ProcRange(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) 
         return globalTamgu->Returnerror("RANGE over actual capacity", idthread);
     }
 
-    if (first->isFloat() || incr->isFloat()) {
+    if (initial->isFloat() || increment->isFloat()) {
         if (contextualpattern == aNULL)
             kvect = globalTamgu->Providefvector();
         else
             kvect = Selectavector(contextualpattern);
 
         if (kvect->Type() == a_dvector) {
-            float l = first->Decimal();
-            float r = second->Decimal();
-            float inc = incr->Decimal();
+            float l = initial->Decimal();
+            float r = boundary->Decimal();
+            float inc = increment->Decimal();
 
             float d = (r - l) / inc;
             if (d<0)
@@ -1805,9 +1815,9 @@ Tamgu* ProcRange(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) 
             return globalTamgu->Returnerror("RANGE over actual capacity", idthread);
         }
 
-        double l = first->Float();
-        double r = second->Float();
-        double inc = incr->Float();
+        double l = initial->Float();
+        double r = boundary->Float();
+        double inc = increment->Float();
 
         double d = (r - l) / inc;
         if (d<0)
@@ -1834,12 +1844,12 @@ Tamgu* ProcRange(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) 
         return globalTamgu->Returnerror("RANGE over actual capacity", idthread);
     }
 
-    if (first->Typevariable() == a_ustring) {
-        wstring l = first->UString();
-        wstring r = second->UString();
+    if (initial->Typevariable() == a_ustring) {
+        wstring l = initial->UString();
+        wstring r = boundary->UString();
         if (l.size() != 1 || r.size() != 1)
             return globalTamgu->Returnerror("String should be one character long in RANGE", idthread);
-        long inc = incr->Integer();
+        long inc = increment->Integer();
 
         char cl = l[0];
         char cr = r[0];
@@ -1870,11 +1880,11 @@ Tamgu* ProcRange(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) 
         return kvect;
     }
 
-    string l = first->String();
-    string r = second->String();
+    string l = initial->String();
+    string r = boundary->String();
     if (l.size() != 1 || r.size() != 1)
         return globalTamgu->Returnerror("String should be one character long in RANGE", idthread);
-    long inc = incr->Integer();
+    long inc = increment->Integer();
 
     char cl = l[0];
     char cr = r[0];

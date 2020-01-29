@@ -25,7 +25,7 @@ extern AppDelegate* currentdelegate;
 const char* Getkeywords(void);
 const char* lindentation(char* basecode, int blancs);
 long indentationVirtuel(char* cr, char* acc);
-long* colorparser(const char* txt);
+long* colorparser(const char* txt, long, long);
 void deletion(long* c);
 
 const char* crgx=NULL;
@@ -240,10 +240,7 @@ extern BOOL nouveau;
 }
     
 -(void)colorie {
-    unsigned long longueur;
-    
-    
-    longueur=[[self string] length];
+    unsigned long longueur = [[self string] length];
     if (longueur<=3)
         return;
     
@@ -255,21 +252,21 @@ extern BOOL nouveau;
     if (currentrange.length != 0) {
         suivant=currentrange;
         limite=currentrange.location+currentrange.length;
-        letexte=[[self string] substringWithRange:suivant];
     }
     else {
         suivant.location=0;
         suivant.length = longueur;
-        letexte=[self string];
     }
     
+    letexte=[self string];
+    
     [self setTextColor: [NSColor blackColor] range:suivant];
-    long* tobecolored=colorparser([letexte UTF8String]);
+    long* tobecolored=colorparser([letexte UTF8String], suivant.location, limite);
+
     for (long i=0; tobecolored[i]!=-1;i+=3) {
-        trouve.location=suivant.location+tobecolored[i+1];
+        trouve.location=tobecolored[i+1];
         trouve.length=tobecolored[i+2];
-        if ((trouve.location+trouve.length)>limite)
-            continue;
+
         switch (tobecolored[i]) {
             case 1: //string ""
                 [self setTextColor: [NSColor redColor] range:trouve];
@@ -322,7 +319,7 @@ extern BOOL nouveau;
 }
 
 -(BOOL)localcolor:(char)key {
-    static const char cc[]={')','"','\'',';',']','=',' ','/', 0};
+    static const char cc[]={')','"','\'',';',']','=','/', 0};
     
     modified=YES;
     

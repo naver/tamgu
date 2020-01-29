@@ -82,6 +82,7 @@ class FstCompanion;
 class TamguDoubleSideAutomaton;
 class TamguCallFibre;
 class TamguPredicateVariableInstance;
+class Tamgulisp;
 
 //--------------------------------------------------------------------
 typedef bool(*TamguExternalModule)(TamguGlobal*, string);
@@ -150,6 +151,7 @@ typedef Tamgu* (TamguCode::*ParseElement)(x_node*, Tamgu*);
 class ThreadStruct {
 public:
 	VECTE<Tamgu*> stack;
+    VECTE<Tamgu*> stacklisp;
 	vector<Tamgu*> debugstack;
     
     VECTE<TamguCallFibre*> fibres;
@@ -181,7 +183,7 @@ public:
     FstCompanion* Companion();
     
 	inline long Size() {
-		return (prologstack + stack.size());
+		return (prologstack + stack.size() + stacklisp.size());
 	}
 
 	void Update(short idthread);
@@ -382,7 +384,14 @@ public:
 	bin_hash<string> idSymbols;
 	
     hmap<string, short> symbolIds;
-
+    bin_hash<bool> lispactions;
+    bin_hash<Tamgu*> lispsymbols;
+    bin_hash<Tamgu*> lispoperators;
+    
+    Tamgu* Providelispsymbols(string& n, Tamgu* parent = NULL);
+    Tamgu* Providelispsymbols(short n);
+    Tamgu* Providelispoperators(short n);
+    
     hmap<string, short> string_operators;
 	bin_hash<string> operator_strings;
 	bin_hash<bool> atanOperatorMath;
@@ -655,7 +664,9 @@ public:
 	bool predicateTrace(short n);
 
 
-	//--------------------------------
+	//--------------------------------LISP
+    Tamgulisp* lelisp;
+    //--------------------------------
 	
 	TamguGlobal(long nb, bool setglobal=false);
 
@@ -780,10 +791,32 @@ public:
     void Cleardebug(short idthread) {
         threads[idthread].previousinstruction=NULL;
     }
+
+    inline bool Checkstack(short idthread) {
+        return (threads[idthread].Size() >= maxstack);
+    }
     
 	//Push on stack a function or a domain
-    void Pushstack(Tamgu* a, short idthread = 0);
+    inline bool Pushstacklisp(Tamgu* a, short idthread) {
+        if (threads[idthread].Size() >= maxstack)
+            return false;
+        
+        threads[idthread].stacklisp.push_back(a);
+        return true;
+    }
     
+    inline void Popstacklisp(short idthread) {
+        threads[idthread].stacklisp.pop_back();
+    }
+
+    inline Tamgu* Topstacklisp(short idthread) {
+        if (threads[idthread].stacklisp.size() == 0)
+            return NULL;
+        return threads[idthread].stacklisp.back();
+    }
+    
+    void Pushstack(Tamgu* a, short idthread = 0);
+
 	inline void Popstack(short idthread = 0) {
 		threads[idthread].stack.pop_back();
 	}
@@ -896,7 +929,8 @@ public:
 	Exporting bool RecordExternalLibrary(string name, TamguExternalModule);
 	//--------------------------------Evaluate Function------------------------------------
 
-    Exporting Tamgu* EvaluateLisp(string& s, string& o, string& c, bool comma, bool dgt, bool concat, vector<string>& rules, short idthread);
+    Exporting Tamgu* EvaluateParenthetic(string& s, string& o, string& c, bool comma, bool dgt, bool concat, vector<string>& rules, short idthread);
+    Exporting Tamgu* EvaluateLisp(Tamgu* contextualpattern, string& s, short idthread);
     Exporting Tamgu* EvaluateTags(string& s, string& o, string& c, bool comma, bool dgt, bool concat, vector<string>& rules, short idthread);
 	Exporting Tamgu* EvaluateVector(string& s, short idthread);
 	Exporting Tamgu* EvaluateMap(string& s, short idthread);
@@ -1004,7 +1038,15 @@ public:
 	}
 
 	Tamgu* Getmainframe(size_t idcode);
+    
+    void DeclareInMainframe(size_t idcode, short n, Tamgu* a);
+    Tamgu* DeclarationInMainframe(size_t idcode, short n);
 
+    void DeclareTopstack(short idthread, short n, Tamgu* a);
+    Tamgu* DeclarationTopstack(short idthread, short n);
+
+    bool TopstackisMainframe();
+    
 	long Getcurrentline();
 	string Getcurrentfile();
 	short Getfileid(short& idc, string f);

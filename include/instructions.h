@@ -65,6 +65,10 @@ public:
 		return false;
 	}
 
+    bool Declarelocal(short idthread, short n, Tamgu* a) {
+        Declare(n, a);
+        return true;
+    }
 
 	void Variables(vector<short>& vars) {
 		for (i = 0; i < names.last; i++)
@@ -721,6 +725,65 @@ public:
 	Tamgu* value;
 	Exporting TamguSystemVariable(TamguGlobal* g, Tamgu* v, short n, short t);
 
+    Tamgu* Atom(bool forced = false) {
+        return value->Newvalue(value, 0);
+    }
+
+    Tamgu* plus(Tamgu* a, bool itself) {
+        return value->plus(a, false);
+    }
+    
+    Tamgu* minus(Tamgu* a, bool itself) {
+        return value->minus(a, false);
+    }
+    
+    Tamgu* multiply(Tamgu* a, bool itself) {
+        return value->multiply(a, true);
+    }
+
+    Tamgu* divide(Tamgu* a, bool itself) {
+        return value->divide(a, true);
+    }
+
+    Tamgu* power(Tamgu* a, bool itself) {
+        return value->power(a, true);
+    }
+
+    Tamgu* shiftleft(Tamgu* a, bool itself) {
+        return value->shiftleft(a, true);
+    }
+
+    Tamgu* shiftright(Tamgu* a, bool itself) {
+        return value->shiftright(a, true);
+    }
+
+    Tamgu* mod(Tamgu* a, bool itself) {
+        return value->mod(a, true);
+    }
+
+    Tamgu* less(Tamgu* a) {
+        return value->less(a);
+    }
+
+    Tamgu* more(Tamgu* a) {
+        return value->more(a);
+    }
+
+    Tamgu* same(Tamgu* a) {
+        return value->same(a);
+    }
+
+    Tamgu* different(Tamgu* a) {
+        return value->different(a);
+    }
+
+    Tamgu* lessequal(Tamgu* a) {
+        return value->lessequal(a);
+    }
+
+    Tamgu* moreequal(Tamgu* a) {
+        return value->moreequal(a);
+    }
 };
 
 class TamguSelfVariableDeclaration : public TamguVariableDeclaration {

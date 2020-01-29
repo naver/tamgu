@@ -42,10 +42,7 @@ class jag_editor;
 
 extern jag_editor* JAGEDITOR;
 
-const char tmg_if[] = {'i','f', 0};
-const char tmg_else[] = {'e','l','s','e', 0};
-const char tmg_elif[] = {'e','l','i','f', 0};
-long VirtualIndentation(string& codestr, const char* tmgelse, const char* tmgelif, const char* tmgif);
+long VirtualIndentation(string& codestr);
 
 #ifdef PASDECOULEUR
 const char m_current[] = {0,0};
@@ -222,7 +219,7 @@ public:
         wstring cd = code(i, p + 1);
         string ccd;
         s_unicode_to_utf8(ccd, cd);
-        return VirtualIndentation(ccd, tmg_else, tmg_elif, tmg_if);
+        return VirtualIndentation(ccd);
     }
     
     long splitline(wstring& l, long linenumber, vector<wstring>& subs);

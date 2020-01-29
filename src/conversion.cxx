@@ -12586,7 +12586,7 @@ char laccolade(string& ligne) {
                 trouve = ',';
                 break;
             case ':':
-                if (i + 1 < mx && ligne[i + 1] == '-') { //inference rules
+                if ((i + 1) < mx && ligne[i + 1] == '-') { //inference rules
                     i++;
                     trouve = '-';
                     break;
@@ -12652,166 +12652,198 @@ Exporting long GetBlankSize() {
     return blanksize;
 }
 
-Exporting void IndentationCode(string& codeindente, vector<string>& code, vector <long>& blancs, long mxbase, bool construit, const char* tamguelse, const char* tamguelif, const char* tamguif) {
+#define maxx(a,b) (((a) > (b)) ? (a) : (b))
+#define setblanc(i) if (blancs[i] < 0) blancs[i] = blancs[i + blancs[i]]
+
+Exporting void IndentationCode(string& codeindente, vector<string>& code, vector <long>& blancs, long mxbase, bool construit) {
     
     static x_forindent xr;
     
     long x, i;
     long mx = mxbase;
     long sz = code.size();
-    bool firstcomma = true;
     blancs.reserve(sz);
     for (i = 0; i < sz; i++)
         blancs.push_back(-1);
     
     long curly = 0;
-    
-    vector<long> decalages;
-    vector<char> types;
-    vector<long> curlies;
+    long paren = 0;
+    long last = 0;
+    long local;
+    long sztok;
     
     blancs[0] = 0;
+    bool inlisp = false;
+    bool inelse = false;
+    bool inprolog = false;
+    bool comma = false;
+    
     for (i = 0; i < sz; i++) {
         
+
         if (code[i] == "") {
-            if (blancs[i] == -1)
-                blancs[i] = blancs[i - 1];
+            if (blancs[i] < 0)
+                blancs[i] = blancs[i + blancs[i]];
             continue;
         }
         
         xr.tokenize(code[i]);
         
-        bool toadd = false;
-        char lookforif = 0;
-        if (xr.stack.size()) {
-            if (xr.stack[0] == tamguif || xr.stack[0] == tamguelif) {
-                types.push_back('i');
-                toadd = true;
+        //if we are currently in a lisp section, we need to compute the parentheses only
+        if (inlisp) {
+            local = paren;
+            for (x = 0; x < xr.stack.size(); x++) {
+                if (xr.stack[x] == "(")
+                    paren++;
+                else
+                    if (xr.stack[x] == ")")
+                        paren--;
+            }
+            if (!paren)
+                inlisp = false;
+            
+            if ((paren-local) != 0) {
+                if ((paren-local) > 0) {
+                    setblanc(i);
+                    if ((i + 1) < sz) {
+                        blancs[i + 1] = blancs[i] + blanksize;
+                        mx = maxx(blancs[i+1], mx);
+                    }
+                }
+                
+                else {
+                    if ((i + 1) < sz) {
+                        blancs[i] = blancs[i-1] - blanksize;
+                        if (blancs[i] < 0)
+                            blancs[i] = 0;
+                    }
+                }
             }
             else {
-                if (xr.stack[0] == tamguelse) {
-                    types.push_back('e');
-                    lookforif = 1;
-                    toadd = true;
-                }
+                setblanc(i);
+                if ((i + 1) < sz)
+                    blancs[i+1] = blancs[i];
             }
-            
-            if (xr.stack.back() == ")") {
-                if (!toadd)
-                    types.push_back(')');
-                lookforif = 2;
-                toadd = true;
-            }
-        }
-        
-        //If the next element has been predicted and it is not an if or an else
-        if (blancs[i] == -1) {
-            x = decalages.size() - 1;
-            long cpt = 0;
-            long shift = blanksize;
-            while (x >= 0) {
-                if (lookforif == 1 && types[x] == 'i') {
-                    if (!cpt) {
-                        shift = 0;
-                        break;
-                    }
-                }
-                if (types[x] == '}')
-                    cpt++;
-                else {
-                    if (types[x] == '{') {
-                        if (!cpt)
-                            break;
-                        cpt--;
-                    }
-                }
-                x--;
-            }
-            if (x >= 0)
-                blancs[i] = decalages[x] + shift;
-            else
-                blancs[i] = 0;
-        }
-        
-        if (toadd)
-            decalages.push_back(blancs[i]);
-        
-        if (!xr.stack.size())
             continue;
-        
-        curly = 0;
-        for (x = 0; x<xr.stack.size(); x++) {
-            if (xr.stack[x] == "{")
-                curly++;
-            
-            if (xr.stack[x] == "}")
-                curly--;
         }
         
-        if (curly >= 1) {
-            lookforif = 0;
-            while (curly>0) {
-                decalages.push_back(blancs[i]);
-                types.push_back('{');
-                if (i + 1 < sz) {
-                    curlies.push_back(blancs[i]);
-                    blancs[i + 1] = blancs[i] + blanksize;
-                    if (blancs[i + 1] > mx)
-                        mx = blancs[i + 1];
-                }
-                curly--;
-            }
-        }
-        
-        if (curly <= -1) {
-            while (curly<0) {
-                decalages.push_back(-blancs[i]);
-                types.push_back('}');
-                if (curlies.size()>0) {
-                    blancs[i] = curlies.back();
-                    curlies.pop_back();
-                }
-                curly++;
-            }
-            
-            if (blancs[i] == 0) {
-                decalages.clear();
-                types.clear();
-                curlies.clear();
-            }
-        }
-        
-        if (xr.stack.back() == "," || xr.stack.back() == "|" || xr.stack.back() == "&") {
-            if (i + 1 < sz) {
-                if (firstcomma) {
-                    blancs[i + 1] = blancs[i] + blanksize;
-                    if (blancs[i + 1] > mx)
-                        mx = blancs[i + 1];
-                }
-                else
+        char c = xr.stack.back()[0];
+        if (comma) {
+            if (c == ',' || c == '|' || c == '&') {
+                if ((i + 1) < sz)
                     blancs[i + 1] = blancs[i];
+                continue;
             }
-            firstcomma = false;
-            continue;
+            
+            if ((i + 1) < sz) {
+                blancs[i+1] = blancs[i] - blanksize;
+                mx = maxx(blancs[i+1], mx);
+            }
         }
         
-        if (xr.stack.size() > 1 && xr.stack.back() == "-" && xr.stack[xr.stack.size() - 2] == ":") {
-            if (i + 1 < sz) {
-                blancs[i + 1] = blancs[i] + blanksize;
-                if (blancs[i + 1] > mx)
-                    mx = blancs[i + 1];
+        comma = false;
+        inelse = false;
+        inprolog = false;
+        inlisp = false;
+        local = curly;
+
+        sztok = xr.stack.size();
+        for (x = 0; x < sztok; x++) {
+            if (xr.stack[x] == "else") {
+                inelse = true;
+                continue;
             }
-            firstcomma = false;
+            switch (xr.stack[x][0]) {
+                case '{':
+                    curly++;
+                    inelse = false; //we do not need to add one single indent after
+                    break;
+                case '}':
+                    curly--;
+                    break;
+                case ':':
+                    if ((x+1) < sztok && xr.stack[x+1][0] == '-') {
+                        inprolog = true;
+                        inelse = false;
+                    }
+                    break;
+                case '(':
+                    paren++;
+                    break;
+                case ')':
+                    paren--;
+                    break;
+                case '\\':
+                    if ((x+1) < sztok && xr.stack[x+1][0] == '(') {
+                        inlisp = true;
+                        inelse = false;
+                    }
+                    break;
+            }
+            if (inprolog)
+                break;
+        }
+
+        if (inlisp) {
+            if (paren <= 0) {
+                inlisp = false;
+                setblanc(i);
+            }
+            else {
+                setblanc(i);
+                if ((i + 1) < sz) {
+                    blancs[i + 1] = blancs[i] + blanksize;
+                    mx = maxx(blancs[i+1], mx);
+                }
+            }
             continue;
         }
+
+        //We compute the number of curly bracket found, local keeps track of the previous value
+        if ((curly - local) != 0) {
+            last = 0;
+            //we have added a curly bracket (at least one)
+            if ((curly-local) > 0) {
+                setblanc(i);
+                if ((i + 1) < sz) {
+                    blancs[i + 1] = blancs[i] + blanksize;
+                    mx = maxx(blancs[i+1], mx);
+                }
+            }
+            else {
+                //We need to remove some space
+                if (i > 0) {
+                    blancs[i] = blancs[i+blancs[i]] - blanksize*(local-curly);
+                    if (blancs[i] < 0)
+                        blancs[i] = 0;
+                }
+            }
+            continue;
+        }
+
+        //We keep track of all previous shift of one to the right...
+        if ((i+1) < sz &&  blancs[i + 1] <= -2)
+            last++;
+
+        setblanc(i);
         
-        firstcomma = true;
-        if (i + 1 < sz && lookforif) {
-            blancs[i + 1] = blancs[i] + blanksize;
-            if (blancs[i + 1] > mx)
-                mx = blancs[i + 1];
-            continue;
+        if (inelse || inprolog || c  == ')' || c == ',' || c == '|' || c == '&') {
+            //We only indent one black to the right for the next line
+            if ((i + 1) < sz) {
+                blancs[i+1] = blancs[i] + blanksize;
+                mx = maxx(blancs[i+1], mx);
+                
+                //We prepare the next line to be aligned with current line...
+                if ((i + 2) < sz)
+                    blancs[i+2] = -2-last;
+            }
+            //We need to keep a track of the last character found in this cas
+            //to align everything
+             if (inprolog || c == ',' || c == '|' || c == '&')
+                 comma = true;
         }
+        else
+            last = 0;
     }
     
     if (construit) {
@@ -12865,13 +12897,13 @@ Exporting void v_split_indent(string& thestr, vector<string>& v) {
         v.push_back("\n");
 }
 
-void IndentCode(string& codestr, string& codeindente, long blancs, const char* tamguelse, const char* tamguelif, const char* tamguif) {
+void IndentCode(string& codestr, string& codeindente, long blancs) {
     vector<string> vargs;
     vector <long> iblancs;
     cr_normalise(codestr);
     v_split_indent(codestr, vargs);
     codeindente = "";
-    IndentationCode(codeindente, vargs, iblancs, blancs, true, tamguelse, tamguelif, tamguif);
+    IndentationCode(codeindente, vargs, iblancs, blancs, true);
     if (codeindente.find("/@") != string::npos || codeindente.find("@\"") != string::npos)
         cr_normalise(codeindente);
     
@@ -12879,12 +12911,12 @@ void IndentCode(string& codestr, string& codeindente, long blancs, const char* t
     codeindente += "\n";
 }
 
-long VirtualIndentation(string& codestr, const char* tamguelse, const char* tamguelif, const char* tamguif) {
+long VirtualIndentation(string& codestr) {
     vector <long> iblancs;
     vector<string> vargs;
     v_split_indent(codestr, vargs);
     codestr.clear();
-    IndentationCode(codestr, vargs, iblancs, 0, false, tamguelse, tamguelif, tamguif);
+    IndentationCode(codestr, vargs, iblancs, 0, false);
     if (iblancs.size() == 0)
         return 0;
     return iblancs.back();

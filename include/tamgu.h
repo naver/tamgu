@@ -172,6 +172,8 @@ public:
 	virtual void InstructionRemove(size_t i) {}
 	virtual size_t InstructionSize() { return 0; }
 	virtual Tamgu* Instruction(size_t i) { return aNULL; }
+    
+    virtual Tamgu* Lispbody() {return this;}
 
 	virtual void ScanVariables(vector<short>& vars) {}
 	virtual void CheckTaskellComposition() {}
@@ -197,6 +199,18 @@ public:
 		return -1;
 	}
         
+    virtual Tamgu* car(short idthread) {
+        return aNOELEMENT;
+    }
+    
+    virtual Tamgu* cdr(short idthread) {
+        return aNOELEMENT;
+    }
+
+    virtual bool Declarelocal(short idthread, short n, Tamgu* a) {
+        return globalTamgu->Topstack()->Declarelocal(idthread, n, a);
+    }
+    
 	//------------------------------------------------------------------
 	//Reference operations
     virtual uchar checkmark() {
@@ -644,6 +658,10 @@ public:
         return 0;
     }
     
+    virtual bool isLisp() {
+        return false;
+    }
+    
 	virtual bool isString() {
 		return false;
 	}
@@ -748,7 +766,11 @@ public:
 		return false;
 	}
 
-	virtual bool isInfinite() {
+    virtual bool isMainFrame() {
+        return false;
+    }
+
+    virtual bool isInfinite() {
 		return false;
 	}
 
@@ -1754,6 +1776,9 @@ public:
         return false;
     }
     
+    virtual Tamgu* car(short idthread);    
+    virtual Tamgu* cdr(short idthread);
+
 };
 
 class TamguObjectLockContainer : public TamguLockContainer {
@@ -2044,6 +2069,11 @@ public:
 		return true;
 	}
 
+    bool Declarelocal(short idthread, short n, Tamgu* a) {
+        Declare(n, a);
+        return true;
+    }
+
 	bool isEmpty() {
 		if (declarations.base == -1)
 			return true;
@@ -2233,6 +2263,10 @@ public:
 		action = a_bloc;
 	}
 
+    bool Declarelocal(short idthread, short n, Tamgu* a) {
+        Declare(n, a);
+        return true;
+    }
 
 	bool hasDeclaration() {
 		return true;
@@ -2301,7 +2335,7 @@ public:
 	bool nonlimited;
 	bool adding;
 
-	TamguFunction(short n, TamguGlobal* global, Tamgu* parent = NULL) : returntype(a_null), TamguDeclaration(n, a_function, global) {
+	TamguFunction(short n, TamguGlobal* global) : returntype(a_null), TamguDeclaration(n, a_function, global) {
 		adding = true;
 		idtype = a_function;
 		autorun = false;
@@ -2317,6 +2351,14 @@ public:
 	size_t InstructionSize() { 
 		return instructions.last; 
 	}
+
+    Tamgu* Lispbody() {
+        if (instructions.last == 1) {
+            if (instructions.vecteur[0]->isReturned())
+                return instructions.vecteur[0]->Argument(0);
+        }
+        return aNULL;
+    }
 
 	short Returntype() {
 		if (returntype == a_null)
@@ -2400,13 +2442,107 @@ public:
     }
 };
 
+class TamguLispFunction : public TamguFunction {
+public:
+    
+    std::atomic<short> reference;
+    std::atomic<bool> protect;
+
+    TamguLispFunction(short n, TamguGlobal* g) : TamguFunction(n, g) {
+        protect = true;
+        reference = 0;
+        if (g != NULL)
+            g->RecordInTrackerProtected(this);
+    }
+
+    bool Checktype(short ty) {
+        if (!reference && Type() == ty)
+            return true;
+        
+        return false;
+    }
+    
+    short Reference() {
+        return reference;
+    }
+    
+    void Setprotect(bool n) {
+        protect = n;
+    }
+    
+    void Popping() {
+        protect = false;
+        if (reference <= 0)
+            protect = true;
+    }
+    
+    bool isProtected() {
+        return protect;
+    }
+    
+    void Resetreferencenoprotect(short r = 1) {
+        Setprotect(false);
+        Resetreference(r);
+    }
+    
+    
+    void Setreference(short r) {
+        reference += r;
+        protect = false;
+        
+    }
+    
+    void Setreference() {
+        ++reference;
+        protect = false;
+        
+    }
+
+    void Resetreference(short r = 1) {
+        reference -= r;
+        if (reference <= 0) {
+            if (!protect) {
+                if (idtracker != -1)
+                    globalTamgu->RemoveFromTracker(idtracker);
+                delete this;
+            }
+        }
+    }
+
+    void Release() {
+        if (reference == 0) {
+            protect = false;
+            Resetreference(0);
+        }
+    }
+    
+    void Protect() {
+            //We suppose there have been a Setreference before...
+        if (reference >= 2) { //No problem, we simply remove one increment
+            Resetreference();
+            Setprotect(false); //Should not be any protect left in that case...
+            return;
+        }
+        
+            //Else, we decrease our reference, but we protect it with a protect
+        Setprotect(true);
+        Resetreference();
+        Popping(); //and protection only if necessary...
+    }
+
+    bool isObject() {
+        return true;
+    }
+
+};
+
 class TamguThread : public TamguFunction {
 public:
 	ThreadLock* _locker;
 	bool exclusive;
 	bool joined;
 
-	TamguThread(short n, TamguGlobal* global, bool j, char p, Tamgu* parent = NULL) : joined(j), TamguFunction(n, global, parent) {
+	TamguThread(short n, TamguGlobal* global, bool j, char p) : joined(j), TamguFunction(n, global) {
 		exclusive = false;
 		_locker = NULL;
 		if (p == 1)
@@ -2434,7 +2570,7 @@ public:
 class TamguProtectedFunction : public TamguThread {
 public:
 
-	TamguProtectedFunction(short n, TamguGlobal* global, char protect, Tamgu* parent = NULL) : TamguThread(n, global, false, protect, parent) {}
+	TamguProtectedFunction(short n, TamguGlobal* global, char protect) : TamguThread(n, global, false, protect) {}
 };
 
 
@@ -2658,6 +2794,15 @@ public:
             it->second->Deletion();
         }
 	}
+    
+    bool Declarelocal(short idthread, short n, Tamgu* a) {
+        return false;
+    }
+
+
+    bool isMainFrame() {
+        return true;
+    }
 
 	bool isFrame() {
 		return false;

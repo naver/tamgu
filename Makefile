@@ -3,7 +3,7 @@ include Makefile.in
 ################ To compile Tamgu#################################
 SOURCETamgu = tamgu.cxx conversion.cxx tamgutamgu.cxx tamgubool.cxx tamgubvector.cxx tamgubyte.cxx tamgudate.cxx tamgudecimal.cxx\
 tamgufile.cxx tamguufile.cxx tamgufloat.cxx tamgufmatrix.cxx tamgufraction.cxx tamguframeinstance.cxx tamgufvector.cxx tamgudvector.cxx\
-tamgusynode.cxx tamgutable.cxx tamguchrono.cxx\
+tamgusynode.cxx tamgutable.cxx tamguchrono.cxx tamgulisp.cxx\
 tamgugrammar.cxx tamgutaskell.cxx tamguimatrix.cxx tamguint.cxx tamguiterator.cxx tamguivector.cxx tamgulist.cxx tamgulvector.cxx\
 tamgulong.cxx tamgumap.cxx tamgumapf.cxx tamgumapff.cxx tamgumapfi.cxx tamgumapfs.cxx tamgumapfu.cxx tamgumapi.cxx tamgutreemapi.cxx tamgutreemapif.cxx\
 tamgumapif.cxx tamgumapii.cxx tamgumapis.cxx tamgumapiu.cxx tamgumapsf.cxx tamgumapsi.cxx tamgumapss.cxx tamgumapu.cxx\

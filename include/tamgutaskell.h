@@ -82,6 +82,11 @@ public:
 		return true;
 	}
 
+    bool Declarelocal(short idthread, short n, Tamgu* a) {
+        Declare(n, a);
+        return true;
+    }
+
 	void Cleaning() {
 		for (i = 0; i < names.last; i++) {
 			declarations.vecteur[i]->Resetreference();
@@ -470,7 +475,7 @@ public:
 	bool hdeclared, store, maybe;
     bool storage;
 
-    TamguFunctionLambda(short n, TamguGlobal* g = NULL, Tamgu* parent = NULL) : instructionreturn(NULL),returnonly(0), maybe(false), hdeclared(false), store(false), TamguFunction(n, g, parent) {
+    TamguFunctionLambda(short n, TamguGlobal* g = NULL) : instructionreturn(NULL),returnonly(0), maybe(false), hdeclared(false), store(false), TamguFunction(n, g) {
 		idtype = a_lambda;
         constantparameters = 0;
         firstconstant = -1;
@@ -810,6 +815,11 @@ public:
 			return false;
 		return body->lambdadomain.isDeclared(idname);
 	}
+
+    bool Declarelocal(short idthread, short n, Tamgu* a) {
+        Declare(n, a);
+        return true;
+    }
 
 	void Declare(short idname, Tamgu* a) {
 		if (body == NULL)

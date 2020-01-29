@@ -364,6 +364,7 @@ Tamgu* TamguFunctionLambda::DirectEval(Tamgu* environment, Tamgu* a, short idthr
     if (!returnonly)
         Checkreturnonly();
     
+    bool testcond = false;
     switch(returnonly) {
         case 1:
             a = instructionreturn->DirectEval(environment, aNULL, idthread);
@@ -375,22 +376,29 @@ Tamgu* TamguFunctionLambda::DirectEval(Tamgu* environment, Tamgu* a, short idthr
             a = instructions.vecteur[0]->Eval(environment, aNULL, idthread);
             break;
         case 4:
-            for (short i = 0; i < instructions.last; i++) {
-                a = instructions.vecteur[i]->Eval(environment, aNULL, idthread);
-                if (a->isError())
-                    return a;
+            a = aNULL;
+            for (short i = 0; i < instructions.last && !testcond; i++) {
                 a->Releasenonconst();
+                a = instructions.vecteur[i]->Eval(environment, aNULL, idthread);
+                testcond = a->isError();
             }
-            a = instructionreturn->DirectEval(environment, aNULL, idthread);
+            
+            if (testcond)
+                return a;
+            else {
+                a->Releasenonconst();
+                a = instructionreturn->DirectEval(environment, aNULL, idthread);
+            }
             break;
         default:
-            for (short i = 0; i < instructions.last; i++) {
-                
+            a = aNULL;
+            for (short i = 0; i < instructions.last && !testcond; i++) {
+                a->Releasenonconst();
                 a = instructions.vecteur[i]->Eval(environment, aNULL, idthread);
-                
-                if (a->needFullInvestigate())
-                    break;
-                
+                testcond = a->needFullInvestigate();
+            }
+            
+            if (!testcond) {
                 a->Releasenonconst();
                 a = aNULL;
             }
@@ -446,6 +454,8 @@ Tamgu* TamguFunctionLambda::Eval(Tamgu* environment, Tamgu* a, short idthread) {
     if (!returnonly)
         Checkreturnonly();
 
+    bool testcond = false;
+    
     switch(returnonly) {
         case 1:
             a = instructionreturn->DirectEval(environment, aNULL, idthread);
@@ -457,22 +467,29 @@ Tamgu* TamguFunctionLambda::Eval(Tamgu* environment, Tamgu* a, short idthread) {
             a = instructions.vecteur[0]->Eval(environment, aNULL, idthread);
             break;
         case 4:
-            for (short i = 0; i < instructions.last; i++) {
-                a = instructions.vecteur[i]->Eval(environment, aNULL, idthread);
-                if (a->isError())
-                    return a;
+            a = aNULL;
+            for (short i = 0; i < instructions.last && !testcond; i++) {
                 a->Releasenonconst();
+                a = instructions.vecteur[i]->Eval(environment, aNULL, idthread);
+                testcond = a->isError();
             }
-            a = instructionreturn->DirectEval(environment, aNULL, idthread);
+            if (testcond)
+                return a;
+            else {
+                a->Releasenonconst();
+                a = instructionreturn->DirectEval(environment, aNULL, idthread);
+            }
             break;
         default:
-            for (short i = 0; i < instructions.last; i++) {
-                
+            a = aNULL;
+            for (short i = 0; i < instructions.last && !testcond; i++) {
+                a->Releasenonconst();
                 a = instructions.vecteur[i]->Eval(environment, aNULL, idthread);
                 
-                if (a->needFullInvestigate())
-                    break;
-                
+                testcond = a->needFullInvestigate();
+            }
+            
+            if (!testcond) {
                 a->Releasenonconst();
                 a = aNULL;
             }
@@ -546,13 +563,18 @@ Tamgu* TamguInstructionHASKELLCASE::Eval(Tamgu* var, Tamgu* context, short idthr
 
 
 Tamgu* TamguInstructionTaskellMainCASE::Eval(Tamgu* context, Tamgu* value, short idthread) {
-    for (long i = 0; i < instructions.last - other; i += 2) {
+    bool testcond = false;
+    long i = 0;
+    for (; i < (instructions.last - other) && !testcond; i += 2) {
         value = instructions.vecteur[i]->Eval(aTRUE, context, idthread);
+        testcond = value->needInvestigate() || value->Boolean();
+    }
+    
+    if (testcond) {
         if (value->needInvestigate())
             return value;
-
-        if (value->Boolean())
-            return instructions.vecteur[i + 1]->Eval(context, aNULL, idthread);
+        else
+            return instructions.vecteur[i - 1]->Eval(context, aNULL, idthread);
     }
 
     if (other)
@@ -620,34 +642,38 @@ Tamgu* TamguHBloc::Eval(Tamgu* context, Tamgu* a, short idthread) {
     if (variablesWillBeCreated)
         environment = globalTamgu->Providedeclaration(this, idthread, true);
 
-    for (short i = 0; i < size; i++) {
+    a = aNULL;
+    bool testcond = false;
+    for (short i = 0; i < size && !testcond; i++) {
+        a->Releasenonconst();
         a = instructions[i];
 
         a = a->Eval(environment, aNULL, idthread);
 
-        if (a->needFullInvestigate()) {
-            if (!variablesWillBeCreated)
-                return a->Returned(idthread);
-
-            if (environment->isEmpty()) {
-                environment->Release();
-                return a->Returned(idthread);
-            }
-
-            context = a->Returned(idthread);
-            if (!context->Reference())
-                environment->Release();
-            else {
-                context->Setreference();
-                environment->Release();
-                context->Protect();
-            }
-            return context;
+        testcond = a->needFullInvestigate();
+    }
+    
+    if (testcond) {
+        if (!variablesWillBeCreated)
+            return a->Returned(idthread);
+        
+        if (environment->isEmpty()) {
+            environment->Release();
+            return a->Returned(idthread);
         }
-
-        a->Releasenonconst();
+        
+        context = a->Returned(idthread);
+        if (!context->Reference())
+            environment->Release();
+        else {
+            context->Setreference();
+            environment->Release();
+            context->Protect();
+        }
+        return context;
     }
 
+    a->Releasenonconst();
     if (variablesWillBeCreated)
         environment->Release();
 

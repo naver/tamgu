@@ -17,6 +17,11 @@
 #ifndef conversion_h
 #define conversion_h
 
+//On certain platforms, memset is unknown
+#ifndef Tamgu_REGEX
+#include <string.h>
+#endif
+
 #include <ostream>
 #include <iostream>
 #include <fstream>
@@ -85,10 +90,10 @@ union bulongchar {
 	unsigned char ustr[8];
 	char str[8];
 	bulongchar() {
-		memset(str, 0, 8);
+		memset(str, '\0', 8);
 	}
 	void clear() {
-		memset(str, 0, 8);
+		memset(str, '\0', 8);
 	}
 };
 
@@ -125,9 +130,9 @@ union w_u_char {
 Exporting void inittableutf8();
 
 //--------------------- Code Indention
-void IndentCode(string& codestr, string& codeindente, long blancs, const char* tamguelse = "else", const char* tamguelif = "elif", const char* tamguif = "if");
-Exporting void IndentationCode(string& codeindente, vector<string>& code, vector<long>& blancs, long mxbase, bool construit, const char* tamguelse = "else", const char* tamguelif = "elif", const char* tamguif = "if");
-long VirtualIndentation(string& codestr, const char* tamguelse, const char* tamguelif, const char* tamguif);
+void IndentCode(string& codestr, string& codeindente, long blancs);
+Exporting void IndentationCode(string& codeindente, vector<string>& code, vector<long>& blancs, long mxbase, bool construit);
+long VirtualIndentation(string& codestr);
 
 //--------------------- Carriage Return normalisation
 void cr_normalise(string& code);

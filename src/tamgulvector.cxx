@@ -1149,21 +1149,24 @@ Exporting Tamgu* Tamgulvector::Loopin(TamguInstruction* ins, Tamgu* context, sho
     var = var->Eval(context, aNULL, idthread);
 
     
-    Tamgu* a;
-    for (long i = 0; i < values.size(); i++) {
+    long sz = Size();
+    Tamgu* a = aNULL;
+    bool testcond = false;
+    for (long i = 0; i < sz && !testcond; i++) {
+        a->Releasenonconst();
         var->storevalue(values[i]);
-
         a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
         //Continue does not trigger needInvestigate
-        if (a->needInvestigate()) {
-            if (a == aBREAK)
-                break;
-            return a;
-        }
-
-        a->Release();
+        testcond = a->needInvestigate();
+    }
+    
+    if (testcond) {
+        if (a == aBREAK)
+            return this;
+        return a;
     }
 
+    a->Releasenonconst();
     return this;
 }

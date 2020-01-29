@@ -1119,22 +1119,25 @@ Exporting Tamgu* Tamgusvector::Loopin(TamguInstruction* ins, Tamgu* context, sho
     var = var->Eval(context, aNULL, idthread);
 
     
-    Tamgu* a;
-    for (long i = 0; i < values.size(); i++) {
+    long sz = Size();
+    Tamgu* a = aNULL;
+    bool testcond = false;
+    for (long i = 0; i < sz && !testcond; i++) {
+        a->Releasenonconst();
         var->storevalue(values[i]);
-
         a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
         //Continue does not trigger needInvestigate
-        if (a->needInvestigate()) {
-            if (a == aBREAK)
-                break;
-            return a;
-        }
-
-        a->Release();
+        testcond = a->needInvestigate();
+    }
+    
+    if (testcond) {
+        if (a == aBREAK)
+            return this;
+        return a;
     }
 
+    a->Releasenonconst();
     return this;
 }
 
@@ -2041,22 +2044,25 @@ Exporting Tamgu* Tamgua_svector::Filter(short idthread, Tamgu* env, TamguFunctio
 Exporting Tamgu* Tamgua_svector::Loopin(TamguInstruction* ins, Tamgu* context, short idthread) {
     Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
     var = var->Eval(context, aNULL, idthread);
-    Tamgu* a;
+    Tamgu* a = aNULL;
+    bool testcond = false;
     atomic_value_vector_iterator<atomic_string> itx(values);
-    for (; !itx.end();itx.next()) {
+    for (; !itx.end() && !testcond;itx.next()) {
+        a->Releasenonconst();
         var->storevalue(itx.second.value());
         
         a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
         
             //Continue does not trigger needInvestigate
-        if (a->needInvestigate()) {
-            if (a == aBREAK)
-                break;
-            return a;
-        }
-        
-        a->Release();
+        testcond = a->needInvestigate();
     }
     
+    if (testcond) {
+        if (a == aBREAK)
+            return this;
+        return a;
+    }
+    
+    a->Releasenonconst();
     return this;
 }

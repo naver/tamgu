@@ -26,8 +26,6 @@
 #include "tamgudebug.h"
 
 const char* tmgelse ="else";
-const char* tmgif="if";
-const char* tmgelif="elif";
 
 extern "C" {
     void Rappel(char threading, const char* txt);
@@ -386,7 +384,7 @@ extern "C" {
                 *acc = 1;
         }
         string codeindente = "";
-        IndentationCode(codeindente, vargs, iblancs, 0, false, tmgelse, tmgelif, tmgif);
+        IndentationCode(codeindente, vargs, iblancs, 0, false);
         if (iblancs.size() == 0)
             return 0;
         return iblancs.back();
@@ -404,7 +402,7 @@ extern "C" {
         cr_normalise(codestr);
         v_split_indent(codestr, vargs);
         codeindente = "";
-        IndentationCode(codeindente, vargs, iblancs, blancs, true, tmgelse, tmgelif, tmgif);
+        IndentationCode(codeindente, vargs, iblancs, blancs, true);
         if (codeindente.find("/@") != string::npos || codeindente.find("@\"") != string::npos)
             cr_normalise(codeindente);
         codeindente += "\n";
@@ -449,7 +447,7 @@ extern "C" {
             names[vs[i]]=true;
     }
     
-    long* colorparser(const char* txt) {
+    long* colorparser(const char* txt, long from, long upto) {
         static hmap<string,bool> keys;
         static x_coloringrule xr;
         static bool init=false;
@@ -462,14 +460,28 @@ extern "C" {
         xr.tokenize(txt, true);
         vector<long> limits;
         char type;
-        long gauche,droite,i, droiteutf16;
+        long gauche = 0,droite = 0,i, droiteutf16 = 0;
         long sz=xr.stack.size();
         string sub;
         long offsetdrift = 0;
         
         for (i=0;i<sz;i++) {
             type=xr.stacktype[i];
+            if (!type)
+                continue;
             gauche=xr.cpos[i] + offsetdrift;
+            
+            if (type == 5) {
+                if (xr.stack[i][1] == '/') {
+                    if (gauche < from || gauche > upto)
+                        continue;
+                }
+            }
+            else {
+                if (type != 3 && (gauche < from || gauche > upto))
+                    continue;
+            }
+            
             //The strings in the mac GUI are encoded in UTF16
             droiteutf16 = size_utf16(USTR(xr.stack[i]), xr.stack[i].size(), droite);
             if (droiteutf16 > droite) {
@@ -478,6 +490,7 @@ extern "C" {
                 offsetdrift += droiteutf16 - droite;
                 droite = droiteutf16;
             }
+                        
             switch(type) {
                 case 1:
                 case 2:

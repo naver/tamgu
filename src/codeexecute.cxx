@@ -398,25 +398,27 @@ Tamgu* TamguCode::Run(bool glock) {
 
 	Tamgu* a = aNULL;
 	short sz = mainframe.instructions.size();
+    
+    bool testcond = false;
 
-	for (short i = firstinstruction; i < sz; i++) {
-
+	for (short i = firstinstruction; i < sz && !testcond; i++) {
+        a->Releasenonconst();
         a = mainframe.instructions.vecteur[i];
         
 		_debugpush(a);
 		a = a->Eval(&mainframe, aNULL, 0);
 		_debugpop();
 
+        testcond = global->Error(0) || executionbreak;
+    }
+     
+    a->Releasenonconst();
+    a = aNULL;
+    if (testcond) {
 		if (global->Error(0)) {
-			a->Releasenonconst();
 			a = global->Errorobject(0);
-			break;
 		}
-
-		a->Releasenonconst();
-		a = aNULL;
 	}
-
 
 	_cleandebugmin;
 	global->Popstack(0);
@@ -2036,13 +2038,22 @@ Tamgu* TamguInstruction::Eval(Tamgu* context, Tamgu* a, short idthread) {
 	if (variablesWillBeCreated)
 		environment = globalTamgu->Providedeclaration(this, idthread, true);
 
-	for (long i = 0; i < size; i++) {
+    bool testcond = false;
+    a = aNULL;
+    
+	for (long i = 0; i < size && !testcond; i++) {
+        a->Releasenonconst();
+
 		a = instructions.vecteur[i];
 		
 		_debugpush(a);
 		a = a->Eval(environment, aNULL, idthread);
 		_debugpop();
 
+        testcond = globalTamgu->Error(idthread) || a->needFullInvestigate();
+    }
+    
+    if (testcond) {
 		if (globalTamgu->Error(idthread)) {
 			if (!a->isError()) {
 				a->Releasenonconst();
@@ -2075,9 +2086,9 @@ Tamgu* TamguInstruction::Eval(Tamgu* context, Tamgu* a, short idthread) {
             environment->Release();
 			return a;
 		}
-
-		a->Releasenonconst();
 	}
+
+    a->Releasenonconst();
 
 	_cleandebugmin;
 	if (variablesWillBeCreated)
@@ -2091,9 +2102,12 @@ Tamgu* TamguFunction::Eval(Tamgu* environment, Tamgu* obj, short idthread) {
 
 	_setdebugfull(idthread, this);
 
-	Tamgu* a;
+	Tamgu* a = aNULL;
+    bool testcond = false;
 
-	for (long i = 0; i < size; i++) {
+	for (long i = 0; i < size && !testcond; i++) {
+
+        a->Releasenonconst();
 
         a = instructions.vecteur[i];
         
@@ -2101,7 +2115,11 @@ Tamgu* TamguFunction::Eval(Tamgu* environment, Tamgu* obj, short idthread) {
 		a = a->Eval(environment, obj, idthread);
 		_debugpop();
 
-		if (globalTamgu->Error(idthread)) {			
+        testcond = globalTamgu->Error(idthread) || a->needFullInvestigate();
+    }
+    
+    if (testcond) {
+		if (globalTamgu->Error(idthread)) {
 			if (!a->isError()) {
 				a->Releasenonconst();
 				a = globalTamgu->Errorobject(idthread);
@@ -2126,9 +2144,9 @@ Tamgu* TamguFunction::Eval(Tamgu* environment, Tamgu* obj, short idthread) {
 			}
 			return a;
 		}
-
-		a->Releasenonconst();
 	}
+
+    a->Releasenonconst();
 
 	_cleandebugfull;
 	if (returntype && name != a_initial)
@@ -2298,13 +2316,22 @@ Tamgu* TamguThread::Eval(Tamgu* environment, Tamgu* a, short idthread) {
 
 	_setdebugfull(idthread, this);
 	long size = instructions.size();
-	for (long i = 0; i < size; i++) {
+    a = aNULL;
+    bool testcond = false;
+    
+	for (long i = 0; i < size && !testcond; i++) {
+        a->Releasenonconst();
+
 		a = instructions.vecteur[i];
 
 		_debugpush(a);
 		a = a->Eval(environment, aNULL, idthread);
 		_debugpop();
 
+        testcond = a->isReturned() || globalTamgu->Error(idthread);
+    }
+     
+    if (testcond) {
 		if (a->isReturned()) {
 			if (_lock != NULL)
 				delete _lock;
@@ -2329,9 +2356,9 @@ Tamgu* TamguThread::Eval(Tamgu* environment, Tamgu* a, short idthread) {
 			_cleandebugfull;
 			return globalTamgu->Errorobject(idthread);
 		}
-
-		a->Releasenonconst();
 	}
+
+    a->Releasenonconst();
 
 	if (_lock != NULL)
 		delete _lock;
@@ -2828,95 +2855,77 @@ Tamgu* TamguInstructionAND::Eval(Tamgu* context, Tamgu* result, short idthread) 
 }
 
 Tamgu* TamguInstructionWHILE::Eval(Tamgu* context, Tamgu* result, short idthread) {
-
-	result = instructions.vecteur[0]->Eval(aTRUE, aNULL, idthread);
-
-    negation = instructions.vecteur[0]->isNegation();
-    
-	if (result->Boolean() == negation) {
-		result->Releasenonconst();
-		return aNULL;
-	}
-
 	Tamgu* ktest = instructions.vecteur[0];
 	Tamgu* bloc = instructions.vecteur[1];
 
+    result = aNULL;
+    negation = ktest->isNegation();
+
 	_setdebugfull(idthread, this);
 
-
-	while (result->Boolean() != negation) {
-
+    bool testcond = false;
+	while (!testcond && ktest->Eval(aTRUE, aNULL, idthread)->Boolean() != negation) {
 		result->Releasenonconst();
 
 		_debugpush(bloc);
 		result = bloc->Eval(context, aNULL, idthread);
 		_debugpop();
 
-		if (result->isReturned()) {
-			_cleandebugfull;
-			return result;
-		}
+        testcond = result->needInvestigate() || globalTamgu->Error(idthread);
+    }
+    
+    _cleandebugfull;
 
-		if (result->needInvestigate() || globalTamgu->Error(idthread)) {
-			_cleandebugfull;
+    if (testcond) {
+        if (result->isReturned())
+            return result;
+        
+        if (result == aBREAK)
+            return aTRUE;
+        return globalTamgu->Errorobject(idthread);
+    }
 
-			if (result == aBREAK)
-				return aTRUE;
-			return globalTamgu->Errorobject(idthread);
-		}
-
-		result->Releasenonconst();
-		result = ktest->Eval(aTRUE, aNULL, idthread);
-	}
-
-	result->Releasenonconst();
-	_cleandebugfull;
+    result->Releasenonconst();
 	return aTRUE;
 }
 
 
 Tamgu* TamguInstructionUNTIL::Eval(Tamgu* context, Tamgu* result, short idthread) {
 
-	result = instructions.vecteur[0]->Eval(aTRUE, aNULL, idthread);
 
     negation = instructions.vecteur[0]->isNegation();
     
-    if (result->Boolean() == negation) {
-        result->Releasenonconst();
-        return aNULL;
-    }
-
 	Tamgu* ktest = instructions.vecteur[0];
 	Tamgu* bloc = instructions.vecteur[1];
-
+    result = aNULL;
+    bool testcond = false;
+    
 	_setdebugmin(idthread);
 
 	do {
-
 		result->Releasenonconst();
 
 		_debugpush(bloc);
 		result = bloc->Eval(context, aNULL, idthread);
 		_debugpop();
 
-		if (result->isReturned()) {
-			_cleandebugmin;
-			return result;
-		}
+        testcond = result->needInvestigate() || globalTamgu->Error(idthread);
+	}
+    while (!testcond && ktest->Eval(aTRUE, aNULL, idthread)->Boolean() != negation);
 
-		if (result->needInvestigate() || globalTamgu->Error(idthread)) {
-			_cleandebugmin;
-			if (result == aBREAK)
-				return aTRUE;
-			return globalTamgu->Errorobject(idthread);
-		}
+    _cleandebugmin;
+    
+    if (testcond) {
+        if (result->isReturned())
+            return result;
 
-		result->Releasenonconst();
-		result = ktest->Eval(aTRUE, aNULL, idthread);
-	} while (result->Boolean() != negation);
+        if (result == aBREAK)
+            return aTRUE;
+        
+        return globalTamgu->Errorobject(idthread);
+    }
 
 	result->Releasenonconst();
-	_cleandebugmin;
 	return aTRUE;
 }
 
@@ -2945,24 +2954,27 @@ Tamgu* Tamgu::Loopin(TamguInstruction* ins, Tamgu* context, short idthread) {
     Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
     var = var->Eval(context, aNULL, idthread);
     
-    Tamgu* a;
-    for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
+    Tamgu* a = aNULL;
+    bool testcond = false;
+    for (itr->Begin(); itr->End() != aTRUE && !testcond; itr->Next()) {
+        a->Releasenonconst();
         var->Putvalue(itr->IteratorKey(), idthread);
         
         a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
         
             //Continue does not trigger needInvestigate
-        if (a->needInvestigate()) {
-            if (a == aBREAK)
-                break;
-            itr->Release();
-            return a;
-        }
-        
-        a->Release();
+        testcond = a->needInvestigate();
+    }
+
+    itr->Release();
+    if (testcond) {
+        if (a == aBREAK)
+            return this;
+        return a;
     }
     
-    itr->Release();
+    a->Releasenonconst();
+    
     return this;
 }
     
@@ -2982,29 +2994,33 @@ Tamgu* TamguInstructionFORINVECTOR::Eval(Tamgu* context, Tamgu* loop, short idth
 
 	loop = loop->Instruction(1)->Eval(context, aNULL, idthread);
 	
-	Tamgu* a;	
+	Tamgu* a = aNULL;
+    bool testcond = false;
 	Tamgu* v;
 
-	for (long i = 0; i < loop->Size(); i++) {
+	for (long i = 0; i < loop->Size() && !testcond; i++) {
+        a->Releasenonconst();
+        
 		v = loop->getvalue(i);
 		var->Putvalue(v, idthread);
 
 		a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
+        testcond = a->needInvestigate() || executionbreak;
+    }
+
+    loop->Release();
+
+    if (testcond) {
 		//Continue does not trigger needInvestigate
 		if (a->needInvestigate()) {
 			if (a == aBREAK)
-				break;		
-			loop->Release();
+                return this;
 			return a;
 		}
-
-		a->Releasenonconst();
-        if (executionbreak)
-            break;
 	}
-
-	loop->Release();
+    
+    a->Releasenonconst();
 	return this;
 }
 
@@ -3029,16 +3045,17 @@ Tamgu* TamguInstructionFORIN::Eval(Tamgu* context, Tamgu* loop, short idthread) 
 	if (loop->isValueContainer() || !var->isLetSelf())
 		cleanup = false;
 
-	Tamgu* v;
-	Tamgu* a;
-
+	Tamgu* v = aNULL;
+	Tamgu* a = aNULL;
+    bool testcond = false;
 	if (loop->isVectorContainer()) {
-		for (long i = 0; i < loop->Size(); i++) {
-			v = loop->getvalue(i);
+		for (long i = 0; i < loop->Size() && !testcond; i++) {
+            a->Releasenonconst();
+
+            v = loop->getvalue(i);
 
 			if (dom != NULL) {
 				if (!globalTamgu->Compatible(v->Type(), typevar)) {
-					v->Releasenonconst();
 					dom->Declare(idname, var);
 					loop->Release();
 					return globalTamgu->Returnerror("Incompatible type in loop", idthread);
@@ -3052,48 +3069,44 @@ Tamgu* TamguInstructionFORIN::Eval(Tamgu* context, Tamgu* loop, short idthread) 
 			}
 
 			a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
+            testcond = a->needInvestigate() || executionbreak;
+        }
+        
+        if (!a->isError() && dom != NULL)
+            dom->Declare(idname, var);
 
-			//Continue does not trigger needInvestigate
-			if (a->needInvestigate()) {
-				if (a == aBREAK)
-					break;
+        loop->Release();
 
-				if (dom != NULL)
-					dom->Declare(idname, var);
-				v->Releasenonconst();
-				loop->Release();
-				return a;
-			}
-
-			a->Releasenonconst();
-            if (executionbreak)
-                break;
-		}
-
-		if (dom != NULL)
-			dom->Declare(idname, var);
-
-		loop->Release();
+        if (testcond) {
+            //Continue does not trigger needInvestigate
+            if (a->needInvestigate()) {
+                if (a == aBREAK)
+                    return this;
+                return a;
+            }
+        }
+    
+        a->Releasenonconst();
 		return this;
 	}
+
+    //--------------------------------------------- Non Vector Iteration ----
+    
+    TamguIteration* it = loop->Newiteration(false);
+    if (it == aITERNULL) {
+        if (globalTamgu->erroronkey)
+            return globalTamgu->Returnerror("Cannot loop on a this value", idthread);
+        return this;
+    }
 
 	bool getval = true;
 	if (loop->isMapContainer())
 		getval = false;
 
+	for (it->Begin(); !testcond && it->End() != aTRUE; it->Next()) {
+        a->Releasenonconst();
 
-	TamguIteration* it = loop->Newiteration(false);
-	if (it == aITERNULL) {
-		if (globalTamgu->erroronkey)
-			return globalTamgu->Returnerror("Cannot loop on a this value", idthread);
-		return this;
-	}
-
-	for (it->Begin(); it->End() != aTRUE; it->Next()) {
-		if (getval)
-			v = it->IteratorValue();
-		else
-			v = it->IteratorKey();
+        v = getval ? it->IteratorValue() : v = it->IteratorKey();
 
 		if (dom != NULL) {
 			if (!globalTamgu->Compatible(v->Type(), typevar)) {
@@ -3111,29 +3124,25 @@ Tamgu* TamguInstructionFORIN::Eval(Tamgu* context, Tamgu* loop, short idthread) 
 		}
 
 		a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
+        testcond = a->needInvestigate() || executionbreak;
+    }
 
+    if (!a->isError() && dom != NULL)
+        dom->Declare(idname, var);
+    
+    delete it;
+    loop->Release();
+
+    if (testcond) {
 		//Continue does not trigger needInvestigate
 		if (a->needInvestigate()) {
 			if (a == aBREAK)
-				break;
-
-			if (dom != NULL)
-				dom->Declare(idname, var);
-			loop->Release();
-			delete it;
+                return this;
 			return a;
 		}
-
-		a->Releasenonconst();
-        if (executionbreak)
-            break;
 	}
 
-	if (dom != NULL)
-		dom->Declare(idname, var);
-
-	delete it;
-	loop->Release();
+    a->Releasenonconst();
 	return this;
 }
 
@@ -3146,29 +3155,30 @@ Tamgu* TamguInstructionFORVECTORIN::Eval(Tamgu* context, Tamgu* loop, short idth
 
 	TamguIteration* it = loop->Newiteration(false);
 
-	Tamgu* a;
-	for (it->Begin(); it->End() != aTRUE; it->Next()) {
+    Tamgu* a = aNULL;
+    bool testcond = false;
+    
+	for (it->Begin(); it->End() != aTRUE && !testcond; it->Next()) {
+        a->Releasenonconst();
 		var->Setvalue(aNULL, it->IteratorValue(), idthread);
 
 		a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
+        testcond = executionbreak || a->needInvestigate();
+    }
+
+    loop->Release();
+    it->Release();
+
+    if (testcond) {
 		if (a->needInvestigate()) {
 			if (a == aBREAK)
-				break;
-			loop->Release();
-			it->Release();
+                return this;
 			return a;
 		}
-
-		a->Releasenonconst();
-        if (executionbreak)
-            break;
-	}
-
-
-	loop->Release();
-	it->Release();
-
+    }
+    
+    a->Releasenonconst();
 	return this;
 }
 
@@ -3180,52 +3190,56 @@ Tamgu* TamguInstructionFORMAPIN::Eval(Tamgu* context, Tamgu* loop, short idthrea
 
 	TamguIteration* it = loop->Newiteration(false);
 
-	Tamgu* a;
-	for (it->Begin(); it->End() != aTRUE; it->Next()) {
+	Tamgu* a = aNULL;
+    bool testcond = false;
+	for (it->Begin(); it->End() != aTRUE && !testcond; it->Next()) {
+        a->Releasenonconst();
+        
 		var->Setvalue(it, aNULL, idthread);
 
 		a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
+        testcond = a->needInvestigate() || executionbreak;
+    }
+    
+    loop->Release();
+    it->Release();
+
+    if (testcond) {
 		if (a->needInvestigate()) {
 			if (a == aBREAK)
-				break;
-			loop->Release();
-			it->Release();
+				return this;
 			return a;
 		}
+    }
+    
+    a->Releasenonconst();
 
-		a->Releasenonconst();
-        if (executionbreak)
-            break;
-	}
-
-	loop->Release();
-	it->Release();
-
-	return aNULL;
+    return aNULL;
 }
 
 Tamgu* TamguInstructionFILEIN::Eval(Tamgu* context, Tamgu* loop, short idthread) {
 	Tamgu* var = instructions.vecteur[0]->Instruction(0)->Eval(context, aNULL, idthread);
 	loop = instructions.vecteur[0]->Instruction(1)->Eval(context, aNULL, idthread);
 
-	Tamgu* a;
+	Tamgu* a = aNULL;
+    bool testcond = false;
 
-	while (loop->Eval(var, aNULL, idthread)->Boolean()) {
+	while (!testcond && loop->Eval(var, aNULL, idthread)->Boolean()) {
+        a->Releasenonconst();
 		a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
-
+        testcond = a->needInvestigate() || executionbreak;
+    }
+        
+    if (testcond) {
 		if (a->needInvestigate()) {
 			if (a == aBREAK)
-				break;
-
+                return aNULL;
 			return a;
 		}
-
-		a->Releasenonconst();
-        if (executionbreak)
-            break;
-	}
-
+    }
+    
+    a->Releasenonconst();
 	return aNULL;
 }
 
@@ -3234,25 +3248,27 @@ Tamgu* TamguInstructionFOR::Eval(Tamgu* context, Tamgu* stop, short idthread) {
 	if (a->isError())
 		return a;
 
-	stop = instructions.vecteur[1];
+    a = aNULL;
+    bool testcond = false;
+    for (stop = instructions.vecteur[1];
+         !testcond && stop->Eval(context, aNULL, idthread)->Boolean() != stop->isNegation();
+         instructions.vecteur[2]->Eval(context, aNULL, idthread)) {
+		
+        a->Releasenonconst();
+        a = instructions.vecteur[3]->Eval(context, aNULL, idthread);
 
-	while (stop->Eval(context, aNULL, idthread)->Boolean() != stop->isNegation()) {
-		a = instructions.vecteur[3]->Eval(context, aNULL, idthread);
-
-
-		if (a->needInvestigate()) {
-			if (a == aBREAK)
-				break;
-
-			return a;
-		}
-
-		a->Releasenonconst();
-        if (executionbreak)
-            break;
-
-		instructions.vecteur[2]->Eval(context, aNULL, idthread);
-	}
+        testcond = a->needInvestigate() || executionbreak;
+    }
+    
+    if (testcond) {
+        if (a->needInvestigate()) {
+            if (a == aBREAK)
+                return this;
+            return a;
+        }
+    }
+    
+    a->Releasenonconst();
 	return aNULL;
 }
 
@@ -3285,50 +3301,48 @@ Tamgu* TamguInstructionFORINRANGE::ExecuteInteger(Tamguint* value, Tamgu* contex
 	t = instructions.vecteur[0]->Instruction(2)->Getinteger(context, aNULL, idthread);
 	i = instructions.vecteur[0]->Instruction(3)->Getinteger(context, aNULL, idthread);
 
-	Tamgu* a;
+	Tamgu* a = aNULL;
+    bool testcond = false;
 	if (i < 0) {
-		for (; v > t; v += i) {
+		for (; v > t && !testcond; v += i) {
+            a->Releasenonconst();
 			value->value = v;
 			a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
+            testcond = a->needInvestigate() || executionbreak;
+        }
 
-
+        value->Resetreference();
+        if (testcond) {
 			if (a->needInvestigate()) {
-				value->Resetreference();
 				if (a == aBREAK)
 					return aNULL;
 
 				return a;
 			}
-
-			a->Releasenonconst();
-            if (executionbreak)
-                break;
-		}
-
-		value->Resetreference();
+        }
+        a->Releasenonconst();
 		return aNULL;
 	}
 
-	for (; v < t; v += i) {
-		value->value = v;
-		a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
-
-
-		if (a->needInvestigate()) {
-			value->Resetreference();
-			if (a == aBREAK)
-				return aNULL;
-
-			return a;
-		}
-
-		a->Releasenonconst();
-        if (executionbreak)
-            break;
-	}
-
-	value->Resetreference();
-	return aNULL;
+    for (; v < t && !testcond; v += i) {
+        a->Releasenonconst();
+        value->value = v;
+        a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
+        testcond = a->needInvestigate() || executionbreak;
+    }
+    
+    value->Resetreference();
+    if (testcond) {
+        if (a->needInvestigate()) {
+            if (a == aBREAK)
+                return aNULL;
+            
+            return a;
+        }
+    }
+    
+    a->Releasenonconst();
+    return aNULL;
 }
 
 Tamgu* TamguInstructionFORINRANGE::ExecuteDecimal(Tamgudecimal* value, Tamgu* context, short idthread) {
@@ -3339,50 +3353,47 @@ Tamgu* TamguInstructionFORINRANGE::ExecuteDecimal(Tamgudecimal* value, Tamgu* co
 	t = instructions.vecteur[0]->Instruction(2)->Getdecimal(context, aNULL, idthread);
 	i = instructions.vecteur[0]->Instruction(3)->Getdecimal(context, aNULL, idthread);
 
-	Tamgu* a;
+	Tamgu* a = aNULL;
+    bool testcond = false;
 	if (i < 0) {
-		for (; v > t; v += i) {
-			value->value = v;
-			a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
+        for (; v > t && !testcond; v += i) {
+            a->Releasenonconst();
+            value->value = v;
+            a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
+            testcond = a->needInvestigate() || executionbreak;
+        }
+        
+        value->Resetreference();
+        if (testcond) {
+            if (a->needInvestigate()) {
+                if (a == aBREAK)
+                    return aNULL;
+                
+                return a;
+            }
+        }
+        a->Releasenonconst();
+        return aNULL;
+    }
 
-			if (a->needInvestigate()) {
-				value->Resetreference();
-				if (a == aBREAK)
-					return aNULL;
-
-				return a;
-			}
-
-			a->Releasenonconst();
-            if (executionbreak)
-                break;
-		}
-
-		value->Resetreference();
-		return aNULL;
-	}
-
-	for (; v < t; v += i) {
-		value->value = v;
-		a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
-
-
-		if (a->needInvestigate()) {
-			value->Resetreference();
-			if (a == aBREAK)
-				return aNULL;
-
-			return a;
-		}
-
-
-		a->Releasenonconst();
-        if (executionbreak)
-            break;
-	}
-
-	value->Resetreference();
-	return aNULL;
+    for (; v < t && !testcond; v += i) {
+        a->Releasenonconst();
+        value->value = v;
+        a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
+        testcond = a->needInvestigate() || executionbreak;
+    }
+    
+    value->Resetreference();
+    if (testcond) {
+        if (a->needInvestigate()) {
+            if (a == aBREAK)
+                return aNULL;
+            
+            return a;
+        }
+    }
+    a->Releasenonconst();
+    return aNULL;
 }
 
 Tamgu* TamguInstructionFORINRANGE::ExecuteFloat(Tamgufloat* value, Tamgu* context, short idthread) {
@@ -3394,48 +3405,47 @@ Tamgu* TamguInstructionFORINRANGE::ExecuteFloat(Tamgufloat* value, Tamgu* contex
 	t = instructions.vecteur[0]->Instruction(2)->Getfloat(context, aNULL, idthread);
 	i = instructions.vecteur[0]->Instruction(3)->Getfloat(context, aNULL, idthread);
 
-	Tamgu* a;
-	if (i < 0) {
-		for (; v > t; v += i) {
-			value->value = v;
-			a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
+	Tamgu* a = aNULL;
+    bool testcond = false;
+    if (i < 0) {
+        for (; v > t && !testcond; v += i) {
+            a->Releasenonconst();
+            value->value = v;
+            a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
+            testcond = a->needInvestigate() || executionbreak;
+        }
+        
+        value->Resetreference();
+        if (testcond) {
+            if (a->needInvestigate()) {
+                if (a == aBREAK)
+                    return aNULL;
+                
+                return a;
+            }
+        }
+        a->Releasenonconst();
+        return aNULL;
+    }
 
-			if (a->needInvestigate()) {
-				value->Resetreference();
-				if (a == aBREAK)
-					return aNULL;
-
-				return a;
-			}
-
-			a->Releasenonconst();
-            if (executionbreak)
-                break;
-		}
-
-		value->Resetreference();
-		return aNULL;
-	}
-
-	for (; v < t; v += i) {
-		value->value = v;
-		a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
-
-		if (a->needInvestigate()) {
-			value->Resetreference();
-			if (a == aBREAK)
-				return aNULL;
-
-			return a;
-		}
-
-		a->Releasenonconst();
-        if (executionbreak)
-            break;
-	}
-
-	value->Resetreference();
-	return aNULL;
+    for (; v < t && !testcond; v += i) {
+        a->Releasenonconst();
+        value->value = v;
+        a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
+        testcond = a->needInvestigate() || executionbreak;
+    }
+    
+    value->Resetreference();
+    if (testcond) {
+        if (a->needInvestigate()) {
+            if (a == aBREAK)
+                return aNULL;
+            
+            return a;
+        }
+    }
+    a->Releasenonconst();
+    return aNULL;
 }
 
 Tamgu* TamguInstructionFORINRANGE::ExecuteLong(Tamgulong* value, Tamgu* context, short idthread) {
@@ -3447,50 +3457,47 @@ Tamgu* TamguInstructionFORINRANGE::ExecuteLong(Tamgulong* value, Tamgu* context,
 	t = instructions.vecteur[0]->Instruction(2)->Getlong(context, aNULL, idthread);
 	i = instructions.vecteur[0]->Instruction(3)->Getlong(context, aNULL, idthread);
 
-	Tamgu* a;
-	if (i < 0) {
-		for (; v > t; v += i) {
-			value->value = v;
-			a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
-
-
-			if (a->needInvestigate()) {
-				value->Resetreference();
-				if (a == aBREAK)
-					return aNULL;
-
-				return a;
-			}
-
-			a->Releasenonconst();
-            if (executionbreak)
-                break;
-		}
-
-		value->Resetreference();
-		return aNULL;
-	}
-
-	for (; v < t; v += i) {
-		value->value = v;
-		a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
-
-
-		if (a->needInvestigate()) {
-			value->Resetreference();
-			if (a == aBREAK)
-				return aNULL;
-
-			return a;
-		}
-
-		a->Releasenonconst();
-        if (executionbreak)
-            break;
-	}
-
-	value->Resetreference();
-	return aNULL;
+	Tamgu* a = aNULL;
+    bool testcond = false;
+    if (i < 0) {
+        for (; v > t && !testcond; v += i) {
+            a->Releasenonconst();
+            value->value = v;
+            a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
+            testcond = a->needInvestigate() || executionbreak;
+        }
+        
+        value->Resetreference();
+        if (testcond) {
+            if (a->needInvestigate()) {
+                if (a == aBREAK)
+                    return aNULL;
+                
+                return a;
+            }
+        }
+        a->Releasenonconst();
+        return aNULL;
+    }
+    
+    for (; v < t && !testcond; v += i) {
+        a->Releasenonconst();
+        value->value = v;
+        a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
+        testcond = a->needInvestigate() || executionbreak;
+    }
+    
+    value->Resetreference();
+    if (testcond) {
+        if (a->needInvestigate()) {
+            if (a == aBREAK)
+                return aNULL;
+            
+            return a;
+        }
+    }
+    a->Releasenonconst();
+    return aNULL;
 }
 
 Tamgu* TamguInstructionFORINRANGE::ExecuteShort(Tamgushort* value, Tamgu* context, short idthread) {
@@ -3502,49 +3509,47 @@ Tamgu* TamguInstructionFORINRANGE::ExecuteShort(Tamgushort* value, Tamgu* contex
 	t = instructions.vecteur[0]->Instruction(2)->Getshort(context, aNULL, idthread);
 	i = instructions.vecteur[0]->Instruction(3)->Getshort(context, aNULL, idthread);
 
-	Tamgu* a;
-	if (i < 0) {
-		for (; v > t; v += i) {
-			value->value = v;
-			a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
-
-
-			if (a->needInvestigate()) {
-				value->Resetreference();
-				if (a == aBREAK)
-					return aNULL;
-
-				return a;
-			}
-
-			a->Releasenonconst();
-            if (executionbreak)
-                break;
-		}
-
-		value->Resetreference();
-		return aNULL;
-	}
-
-	for (; v < t; v += i) {
-		value->value = v;
-		a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
-
-		if (a->needInvestigate()) {
-			value->Resetreference();
-			if (a == aBREAK)
-				return aNULL;
-
-			return a;
-		}
-
-		a->Releasenonconst();
-        if (executionbreak)
-            break;
-	}
-
-	value->Resetreference();
-	return aNULL;
+	Tamgu* a = aNULL;
+    bool testcond = false;
+    if (i < 0) {
+        for (; v > t && !testcond; v += i) {
+            a->Releasenonconst();
+            value->value = v;
+            a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
+            testcond = a->needInvestigate() || executionbreak;
+        }
+        
+        value->Resetreference();
+        if (testcond) {
+            if (a->needInvestigate()) {
+                if (a == aBREAK)
+                    return aNULL;
+                
+                return a;
+            }
+        }
+        a->Releasenonconst();
+        return aNULL;
+    }
+    
+    for (; v < t && !testcond; v += i) {
+        a->Releasenonconst();
+        value->value = v;
+        a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
+        testcond = a->needInvestigate() || executionbreak;
+    }
+    
+    value->Resetreference();
+    if (testcond) {
+        if (a->needInvestigate()) {
+            if (a == aBREAK)
+                return aNULL;
+            
+            return a;
+        }
+    }
+    a->Releasenonconst();
+    return aNULL;
 }
 
 Tamgu* TamguInstructionFORINRANGEINTEGER::Eval(Tamgu* context, Tamgu* a, short idthread) {
@@ -3556,45 +3561,47 @@ Tamgu* TamguInstructionFORINRANGEINTEGER::Eval(Tamgu* context, Tamgu* a, short i
 
 	Tamguint* value = (Tamguint*)recipient->Eval(context, aNULL, idthread);
 
-	if (i < 0) {
-		for (; v > t; v += i) {
-			value->value = v;
-			a = instruction->Eval(aNULL, aNULL, idthread);
+    a = aNULL;
+    bool testcond = false;
+    if (i < 0) {
+        for (; v > t && !testcond; v += i) {
+            a->Releasenonconst();
+            value->value = v;
+            a = instruction->Eval(aNULL, aNULL, idthread);
+            testcond = a->needInvestigate() || executionbreak;
+        }
+        
+        value->Release();
+        if (testcond) {
+            if (a->needInvestigate()) {
+                if (a == aBREAK)
+                    return aNULL;
+                
+                return a;
+            }
+        }
+        a->Releasenonconst();
+        return aNULL;
+    }
 
-
-			if (a->needInvestigate()) {
-				if (a == aBREAK)
-					break;
-
-				return a;
-			}
-
-			a->Releasenonconst();
-            if (executionbreak)
-                break;
-		}
-
-		return aNULL;
-	}
-
-	for (; v < t; v += i) {
-		value->value = v;
-		a = instruction->Eval(aNULL, aNULL, idthread);
-
-
-		if (a->needInvestigate()) {
-			if (a == aBREAK)
-				break;
-
-			return a;
-		}
-
-		a->Releasenonconst();
-        if (executionbreak)
-            break;
-	}
-
-	return aNULL;
+    for (; v < t && !testcond; v += i) {
+        a->Releasenonconst();
+        value->value = v;
+        a = instruction->Eval(aNULL, aNULL, idthread);
+        testcond = a->needInvestigate() || executionbreak;
+    }
+    
+    value->Release();
+    if (testcond) {
+        if (a->needInvestigate()) {
+            if (a == aBREAK)
+                return aNULL;
+            
+            return a;
+        }
+    }
+    a->Releasenonconst();
+    return aNULL;
 }
 
 Tamgu* TamguInstructionFORINRANGEDECIMAL::Eval(Tamgu* context, Tamgu* a, short idthread) {
@@ -3606,45 +3613,47 @@ Tamgu* TamguInstructionFORINRANGEDECIMAL::Eval(Tamgu* context, Tamgu* a, short i
 
 	Tamgudecimal* value = (Tamgudecimal*)recipient->Eval(context, aNULL, idthread);
 
-	if (i < 0) {
-		for (; v > t; v += i) {
-			value->value = v;
-			a = instruction->Eval(aNULL, aNULL, idthread);
+    a = aNULL;
+    bool testcond = false;
+    if (i < 0) {
+        for (; v > t && !testcond; v += i) {
+            a->Releasenonconst();
+            value->value = v;
+            a = instruction->Eval(aNULL, aNULL, idthread);
+            testcond = a->needInvestigate() || executionbreak;
+        }
+        
+        value->Release();
+        if (testcond) {
+            if (a->needInvestigate()) {
+                if (a == aBREAK)
+                    return aNULL;
+                
+                return a;
+            }
+        }
+        a->Releasenonconst();
+        return aNULL;
+    }
 
-			if (a->needInvestigate()) {
-				if (a == aBREAK)
-					break;
-
-				return a;
-			}
-
-			a->Releasenonconst();
-            if (executionbreak)
-                break;
-		}
-
-		return aNULL;
-	}
-
-	for (; v < t; v += i) {
-		value->value = v;
-		a = instruction->Eval(aNULL, aNULL, idthread);
-
-
-		if (a->needInvestigate()) {
-			if (a == aBREAK)
-				break;
-
-			return a;
-		}
-
-
-		a->Releasenonconst();
-        if (executionbreak)
-            break;
-	}
-
-	return aNULL;
+    for (; v < t && !testcond; v += i) {
+        a->Releasenonconst();
+        value->value = v;
+        a = instruction->Eval(aNULL, aNULL, idthread);
+        testcond = a->needInvestigate() || executionbreak;
+    }
+    
+    value->Release();
+    if (testcond) {
+        if (a->needInvestigate()) {
+            if (a == aBREAK)
+                return aNULL;
+            
+            return a;
+        }
+    }
+    a->Releasenonconst();
+    return aNULL;
 }
 
 Tamgu* TamguInstructionFORINRANGEFLOAT::Eval(Tamgu* context, Tamgu* a, short idthread) {
@@ -3655,43 +3664,48 @@ Tamgu* TamguInstructionFORINRANGEFLOAT::Eval(Tamgu* context, Tamgu* a, short idt
 	i = increment->Getfloat(idthread);
 
 	Tamgufloat* value = (Tamgufloat*)recipient->Eval(context, aNULL, idthread);
-	if (i < 0) {
-		for (; v > t; v += i) {
-			value->value = v;
-			a = instruction->Eval(aNULL, aNULL, idthread);
+    
+    a = aNULL;
+    bool testcond = false;
+    if (i < 0) {
+        for (; v > t && !testcond; v += i) {
+            a->Releasenonconst();
+            value->value = v;
+            a = instruction->Eval(aNULL, aNULL, idthread);
+            testcond = a->needInvestigate() || executionbreak;
+        }
+        
+        value->Release();
+        if (testcond) {
+            if (a->needInvestigate()) {
+                if (a == aBREAK)
+                    return aNULL;
+                
+                return a;
+            }
+        }
+        a->Releasenonconst();
+        return aNULL;
+    }
 
-			if (a->needInvestigate()) {
-				if (a == aBREAK)
-					break;
-
-				return a;
-			}
-
-			a->Releasenonconst();
-            if (executionbreak)
-                break;
-		}
-
-		return aNULL;
-	}
-
-	for (; v < t; v += i) {
-		value->value = v;
-		a = instruction->Eval(aNULL, aNULL, idthread);
-
-		if (a->needInvestigate()) {
-			if (a == aBREAK)
-				break;
-
-			return a;
-		}
-
-		a->Releasenonconst();
-        if (executionbreak)
-            break;
-	}
-
-	return aNULL;
+    for (; v < t && !testcond; v += i) {
+        a->Releasenonconst();
+        value->value = v;
+        a = instruction->Eval(aNULL, aNULL, idthread);
+        testcond = a->needInvestigate() || executionbreak;
+    }
+    
+    value->Release();
+    if (testcond) {
+        if (a->needInvestigate()) {
+            if (a == aBREAK)
+                return aNULL;
+            
+            return a;
+        }
+    }
+    a->Releasenonconst();
+    return aNULL;
 }
 
 Tamgu* TamguInstructionFORINRANGELONG::Eval(Tamgu* context, Tamgu* a, short idthread) {
@@ -3702,45 +3716,48 @@ Tamgu* TamguInstructionFORINRANGELONG::Eval(Tamgu* context, Tamgu* a, short idth
 	i = increment->Getlong(idthread);
 
 	Tamgulong* value = (Tamgulong*)recipient->Eval(context, aNULL, idthread);
-	if (i < 0) {
-		for (; v > t; v += i) {
-			value->value = v;
-			a = instruction->Eval(aNULL, aNULL, idthread);
+    
+    a = aNULL;
+    bool testcond = false;
+    if (i < 0) {
+        for (; v > t && !testcond; v += i) {
+            a->Releasenonconst();
+            value->value = v;
+            a = instruction->Eval(aNULL, aNULL, idthread);
+            testcond = a->needInvestigate() || executionbreak;
+        }
+        
+        value->Release();
+        if (testcond) {
+            if (a->needInvestigate()) {
+                if (a == aBREAK)
+                    return aNULL;
+                
+                return a;
+            }
+        }
+        a->Releasenonconst();
+        return aNULL;
+    }
 
-
-			if (a->needInvestigate()) {
-				if (a == aBREAK)
-					break;
-
-				return a;
-			}
-
-			a->Releasenonconst();
-            if (executionbreak)
-                break;
-		}
-
-		return aNULL;
-	}
-
-	for (; v < t; v += i) {
-		value->value = v;
-		a = instruction->Eval(aNULL, aNULL, idthread);
-
-
-		if (a->needInvestigate()) {
-			if (a == aBREAK)
-				break;
-
-			return a;
-		}
-
-		a->Releasenonconst();
-        if (executionbreak)
-            break;
-	}
-
-	return aNULL;
+    for (; v < t && !testcond; v += i) {
+        a->Releasenonconst();
+        value->value = v;
+        a = instruction->Eval(aNULL, aNULL, idthread);
+        testcond = a->needInvestigate() || executionbreak;
+    }
+    
+    value->Release();
+    if (testcond) {
+        if (a->needInvestigate()) {
+            if (a == aBREAK)
+                return aNULL;
+            
+            return a;
+        }
+    }
+    a->Releasenonconst();
+    return aNULL;
 }
 
 Tamgu* TamguInstructionFORINRANGESHORT::Eval(Tamgu* context, Tamgu* a, short idthread) {
@@ -3751,44 +3768,48 @@ Tamgu* TamguInstructionFORINRANGESHORT::Eval(Tamgu* context, Tamgu* a, short idt
 	i = increment->Getshort(idthread);
 
 	Tamgushort* value = (Tamgushort*)recipient->Eval(context, aNULL, idthread);
-	if (i < 0) {
-		for (; v > t; v += i) {
-			value->value = v;
-			a = instruction->Eval(aNULL, aNULL, idthread);
+    
+    a = aNULL;
+    bool testcond = false;
+    if (i < 0) {
+        for (; v > t && !testcond; v += i) {
+            a->Releasenonconst();
+            value->value = v;
+            a = instruction->Eval(aNULL, aNULL, idthread);
+            testcond = a->needInvestigate() || executionbreak;
+        }
+        
+        value->Release();
+        if (testcond) {
+            if (a->needInvestigate()) {
+                if (a == aBREAK)
+                    return aNULL;
+                
+                return a;
+            }
+        }
+        a->Releasenonconst();
+        return aNULL;
+    }
 
-
-			if (a->needInvestigate()) {
-				if (a == aBREAK)
-					break;
-
-				return a;
-			}
-
-			a->Releasenonconst();
-            if (executionbreak)
-                break;
-		}
-
-		return aNULL;
-	}
-
-	for (; v < t; v += i) {
-		value->value = v;
-		a = instruction->Eval(aNULL, aNULL, idthread);
-
-		if (a->needInvestigate()) {
-			if (a == aBREAK)
-				break;
-
-			return a;
-		}
-
-		a->Releasenonconst();
-        if (executionbreak)
-            break;
-	}
-
-	return aNULL;
+    for (; v < t && !testcond; v += i) {
+        a->Releasenonconst();
+        value->value = v;
+        a = instruction->Eval(aNULL, aNULL, idthread);
+        testcond = a->needInvestigate() || executionbreak;
+    }
+    
+    value->Release();
+    if (testcond) {
+        if (a->needInvestigate()) {
+            if (a == aBREAK)
+                return aNULL;
+            
+            return a;
+        }
+    }
+    a->Releasenonconst();
+    return aNULL;
 }
 
 //------------------------------------------------------------------------------
@@ -3797,46 +3818,46 @@ Tamgu* TamguInstructionFORINRANGECONSTINTEGER::Eval(Tamgu* context, Tamgu* a, sh
     Tamguint* value = (Tamguint*)recipient->Eval(context, aNULL, idthread);
     long v = V;
     
+    a = aNULL;
+    bool testcond = false;
     if (i < 0) {
-        while (v > t) {
+        while (v > t && !testcond) {
             value->value = v;
             a = instruction->Eval(aNULL, aNULL, idthread);
-            
-            
-            if (a->needInvestigate()) {
-                if (a == aBREAK)
-                    break;
-                
-                return a;
-            }
-            
-            a->Releasenonconst();
-            if (executionbreak)
-                break;
+            testcond = a->needInvestigate() || executionbreak;
             v+=i;
         }
         
+        value->Releasenonconst();
+        if (testcond) {
+            if (a->needInvestigate()) {
+                if (a == aBREAK)
+                    return this;
+                
+                return a;
+            }
+        }
+        a->Releasenonconst();
         return aNULL;
     }
     
-    while (v < t) {
+    while (v < t && !testcond) {
         value->value = v;
         a = instruction->Eval(aNULL, aNULL, idthread);
-        
-        
-        if (a->needInvestigate()) {
-            if (a == aBREAK)
-                break;
-            
-            return a;
-        }
-        
-        a->Releasenonconst();
-        if (executionbreak)
-            break;
+        testcond = a->needInvestigate() || executionbreak;
         v+=i;
     }
     
+    value->Releasenonconst();
+    
+    if (testcond) {
+        if (a->needInvestigate()) {
+            if (a == aBREAK)
+                return this;
+            return a;
+        }
+    }
+    a->Releasenonconst();
     return aNULL;
 }
     
@@ -3845,181 +3866,187 @@ Tamgu* TamguInstructionFORINRANGECONSTDECIMAL::Eval(Tamgu* context, Tamgu* a, sh
     float v = V;
     
     
+    a = aNULL;
+    bool testcond = false;
     if (i < 0) {
-        while (v > t) {
+        while (v > t && !testcond) {
             value->value = v;
             a = instruction->Eval(aNULL, aNULL, idthread);
-            
-            if (a->needInvestigate()) {
-                if (a == aBREAK)
-                    break;
-                
-                return a;
-            }
-            
-            a->Releasenonconst();
-            if (executionbreak)
-                break;
+            testcond = a->needInvestigate() || executionbreak;
             v+=i;
         }
         
+        value->Releasenonconst();
+        if (testcond) {
+            if (a->needInvestigate()) {
+                if (a == aBREAK)
+                    return this;
+                
+                return a;
+            }
+        }
+        a->Releasenonconst();
         return aNULL;
     }
     
-    while (v < t) {
+    while (v < t && !testcond) {
         value->value = v;
         a = instruction->Eval(aNULL, aNULL, idthread);
-        
-        
-        if (a->needInvestigate()) {
-            if (a == aBREAK)
-                break;
-            
-            return a;
-        }
-        
-        
-        a->Releasenonconst();
-        if (executionbreak)
-            break;
+        testcond = a->needInvestigate() || executionbreak;
         v+=i;
     }
     
+    value->Releasenonconst();
+    
+    if (testcond) {
+        if (a->needInvestigate()) {
+            if (a == aBREAK)
+                return this;
+            return a;
+        }
+    }
+    a->Releasenonconst();
     return aNULL;
 }
     
 Tamgu* TamguInstructionFORINRANGECONSTFLOAT::Eval(Tamgu* context, Tamgu* a, short idthread) {
     double v=V;
     Tamgufloat* value = (Tamgufloat*)recipient->Eval(context, aNULL, idthread);
+    
+    a = aNULL;
+    bool testcond = false;
     if (i < 0) {
-        while (v > t) {
+        while (v > t && !testcond) {
             value->value = v;
             a = instruction->Eval(aNULL, aNULL, idthread);
-            
-            if (a->needInvestigate()) {
-                if (a == aBREAK)
-                    break;
-                
-                return a;
-            }
-            
-            a->Releasenonconst();
-            if (executionbreak)
-                break;
+            testcond = a->needInvestigate() || executionbreak;
             v+=i;
         }
         
+        value->Releasenonconst();
+        if (testcond) {
+            if (a->needInvestigate()) {
+                if (a == aBREAK)
+                    return this;
+                
+                return a;
+            }
+        }
+        a->Releasenonconst();
         return aNULL;
     }
     
-    while (v < t) {
+    while (v < t && !testcond) {
         value->value = v;
         a = instruction->Eval(aNULL, aNULL, idthread);
-        
-        if (a->needInvestigate()) {
-            if (a == aBREAK)
-                break;
-            
-            return a;
-        }
-        
-        a->Releasenonconst();
-        if (executionbreak)
-            break;
+        testcond = a->needInvestigate() || executionbreak;
         v+=i;
     }
     
+    value->Releasenonconst();
+    
+    if (testcond) {
+        if (a->needInvestigate()) {
+            if (a == aBREAK)
+                return this;
+            return a;
+        }
+    }
+    a->Releasenonconst();
     return aNULL;
 }
     
 Tamgu* TamguInstructionFORINRANGECONSTLONG::Eval(Tamgu* context, Tamgu* a, short idthread) {
     BLONG v=V;
     Tamgulong* value = (Tamgulong*)recipient->Eval(context, aNULL, idthread);
+
+    a = aNULL;
+    bool testcond = false;
     if (i < 0) {
-        while (v > t) {
+        while (v > t && !testcond) {
             value->value = v;
             a = instruction->Eval(aNULL, aNULL, idthread);
-            
-            
-            if (a->needInvestigate()) {
-                if (a == aBREAK)
-                    break;
-                
-                return a;
-            }
-            
-            a->Releasenonconst();
-            if (executionbreak)
-                break;
+            testcond = a->needInvestigate() || executionbreak;
             v+=i;
         }
         
+        value->Releasenonconst();
+        if (testcond) {
+            if (a->needInvestigate()) {
+                if (a == aBREAK)
+                    return this;
+                
+                return a;
+            }
+        }
+        a->Releasenonconst();
         return aNULL;
     }
     
-    while (v < t) {
+    while (v < t && !testcond) {
         value->value = v;
         a = instruction->Eval(aNULL, aNULL, idthread);
-        
-        
-        if (a->needInvestigate()) {
-            if (a == aBREAK)
-                break;
-            
-            return a;
-        }
-        
-        a->Releasenonconst();
-        if (executionbreak)
-            break;
+        testcond = a->needInvestigate() || executionbreak;
         v+=i;
     }
     
+    value->Releasenonconst();
+    
+    if (testcond) {
+        if (a->needInvestigate()) {
+            if (a == aBREAK)
+                return this;
+            return a;
+        }
+    }
+    a->Releasenonconst();
     return aNULL;
 }
     
 Tamgu* TamguInstructionFORINRANGECONSTSHORT::Eval(Tamgu* context, Tamgu* a, short idthread) {
     short v = V;
     Tamgushort* value = (Tamgushort*)recipient->Eval(context, aNULL, idthread);
+
+    a = aNULL;
+    bool testcond = false;
     if (i < 0) {
-        while (v > t) {
+        while (v > t && !testcond) {
             value->value = v;
             a = instruction->Eval(aNULL, aNULL, idthread);
-            
-            
-            if (a->needInvestigate()) {
-                if (a == aBREAK)
-                    break;
-                
-                return a;
-            }
-            
-            a->Releasenonconst();
-            if (executionbreak)
-                break;
+            testcond = a->needInvestigate() || executionbreak;
             v+=i;
         }
         
+        value->Releasenonconst();
+        if (testcond) {
+            if (a->needInvestigate()) {
+                if (a == aBREAK)
+                    return this;
+                
+                return a;
+            }
+        }
+        a->Releasenonconst();
         return aNULL;
     }
     
-    while (v < t) {
+    while (v < t && !testcond) {
         value->value = v;
         a = instruction->Eval(aNULL, aNULL, idthread);
-        
-        if (a->needInvestigate()) {
-            if (a == aBREAK)
-                break;
-            
-            return a;
-        }
-        
-        a->Releasenonconst();
-        if (executionbreak)
-            break;
+        testcond = a->needInvestigate() || executionbreak;
         v+=i;
     }
     
+    value->Releasenonconst();
+    
+    if (testcond) {
+        if (a->needInvestigate()) {
+            if (a == aBREAK)
+                return this;
+            return a;
+        }
+    }
+    a->Releasenonconst();
     return aNULL;
 }
 //------------------------------------------------------------------------------
@@ -4032,40 +4059,39 @@ Tamgu* TamguInstructionTRY::Eval(Tamgu* res, Tamgu* ins, short idthread) {
 		catchbloc = true;
 	}
 
+    res = aNULL;
+    bool testcond = false;
     _setdebugmin(idthread);
-	for (short i = 0; i < last; i++) {
+	for (short i = 0; i < last && !testcond; i++) {
+        res->Releasenonconst();
         res = instructions.vecteur[i];
         
         _debugpush(res);
 		res = res->Eval(aNULL, aNULL, idthread);
         _debugpop();
         
-		if (res->needFullInvestigate() || globalTamgu->Error(idthread)) {
-            _cleandebugmin;
-			if (res == aBREAK || res == aCONTINUE)
-				return res;
-			
-            if (executionbreak) {
-                _cleandebugmin;
-                res->Releasenonconst();
-                return aNULL;
-            }
-            
-			instructions.vecteur[last]->Eval(aNULL, aNULL, idthread);
-			res = aFALSE;
-			if (catchbloc)
-				res = instructions.vecteur[last + 1]->Eval(aNULL, aNULL, idthread);
-			return res;
-		}
+        testcond = res->needFullInvestigate() || globalTamgu->Error(idthread);
+    }
 
-        if (res->isReturned()) {
-            _cleandebugmin;
-			return res;
+    _cleandebugmin;
+    if (testcond) {
+        if (globalTamgu->Error(idthread)) {
+            instructions.vecteur[last]->Eval(aNULL, aNULL, idthread);
+            res = aFALSE;
+            if (catchbloc)
+                res = instructions.vecteur[last + 1]->Eval(aNULL, aNULL, idthread);
+            return res;
         }
         
-		res->Releasenonconst();
-	}
-    _cleandebugmin;
+        if (executionbreak) {
+            res->Releasenonconst();
+            return aNULL;
+        }
+    
+        return res;
+    }
+    
+    res->Releasenonconst();
 	return aNULL;
 }
 
@@ -4084,22 +4110,28 @@ Tamgu* TamguInstructionCATCH::Eval(Tamgu* context, Tamgu* a, short idthread) {
 
     _setdebugmin(idthread);
 
-	for (long i = 0; i < size; i++) {
-		a = instructions.vecteur[i];
+    a = aNULL;
+    bool testcond = false;
+	for (long i = 0; i < size && !testcond; i++) {
+        a->Releasenonconst();
+
+        a = instructions.vecteur[i];
 
 		_debugpush(a);
 		a = a->Eval(aNULL, aNULL, idthread);
 		_debugpop();
 
+        testcond = executionbreak || a->needFullInvestigate();
+    }
+    
+    if (testcond) {
 		if (a->needFullInvestigate()) {
 			_cleandebugmin;
 			return a;
 		}
-
-		a->Releasenonconst();
-        if (executionbreak)
-            break;
 	}
+
+    a->Releasenonconst();
 
 	_cleandebugmin;
 	return aNULL;

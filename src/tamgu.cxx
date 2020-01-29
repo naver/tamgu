@@ -40,7 +40,7 @@
 #include "tamgutaskell.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2020.01.20";
+const char* tamgu_version = "Tamgu 1.2020.01.29";
 
 Tamgu* booleantamgu[2];
 
@@ -439,6 +439,8 @@ idSymbols(false), methods(false), compatibilities(false), strictcompatibilities(
         garbage.clear();
 #endif
 
+        lelisp = NULL;
+        
         threadcounter = 0;
         trackerslotfilled = 0;
 
@@ -681,6 +683,7 @@ TamguGlobal::~TamguGlobal() {
     waitstrings.clear();
     idSymbols.clear();
     symbolIds.clear();
+    lispactions.clear();
     string_operators.clear();
     operator_strings.clear();
     atanOperatorMath.clear();
@@ -1824,8 +1827,10 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("p_parameterpredicate"); //116 --> a_parameterpredicate
     Createid("p_predicateevaluate"); //117 --> a_predicateevaluate
     Createid("dependency"); //118 --> a_dependency
+    
     Createid("tam_stream"); //119 --> a_stream
     Createid("tam_affectation"); //120 --> a_affectation
+   
     Createid("tam_plusequ"); //121 --> a_plusequ
     Createid("tam_minusequ"); //122 --> a_minusequ
     Createid("tam_multiplyequ"); //123 --> a_multiplyequ
@@ -1877,11 +1882,11 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("tam_filein"); //164
     Createid("tam_blocboolean"); //165
     Createid("tam_parameter"); //166
-    Createid("tam_if"); //167
+    Createid("if"); //167
     Createid("tam_try"); //168
     Createid("tam_switch"); //169
-    Createid("tam_while"); //170
-    Createid("tam_for"); //171
+    Createid("while"); //170
+    Createid("for"); //171
     Createid("tam_catchbloc"); //172
     Createid("tam_booleanand"); //173
     Createid("tam_booleanor"); //174
@@ -1934,13 +1939,38 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("fibre"); //199
     Createid("tam_booleanxor"); //200
     Createid("push"); //201
+    
+    Createid("quote"); //202 a_quote
+    Createid("cons"); //203 a_cons
+    Createid("cond"); //204 a_cond
+    Createid("atom"); //205 a_atom
+    Createid("eq"); //206 a_eq
+    Createid("cadr"); //207 a_cadr
+    Createid("defun"); //208 a_defun
+    Createid("label"); //209 a_label
+    Createid("atomp"); //210 a_atomp
+    Createid("numberp"); //211 a_numberp
+    Createid("consp"); //212 a_consp
+    Createid("zerop"); //213 a_zerop,
+    Createid("nullp"); //214 a_nullp,
+    Createid("block"); //215 a_block,
+    Createid("setq"); //216 a_setq,
+    Createid("append"); //217 a_append,
+    Createid("lisp"); //218 a_lisp
 
     //This is a simple hack to handle "length" a typical Haskell operator as "size"...
     //Note that there will be a useless index
-    Createid("length");
+
+    Createid("length"); //219
     symbolIds["length"] = a_size;
 
+    Createid("not"); //217
+    symbolIds["not"] = a_negation;
 
+    symbolIds["and"] = a_booleanand;
+    symbolIds["or"] = a_booleanor;
+    symbolIds["xor"] = a_booleanxor;
+    
     dependenciesvariable[a_modifydependency] = a_modifydependency;
 
 
@@ -2112,6 +2142,27 @@ short TamguGlobal::InitThreadid(short id) {
 Tamgu* TamguGlobal::Getmainframe(size_t idcode) {
     return spaces[idcode]->Mainframe();
 }
+
+void TamguGlobal::DeclareInMainframe(size_t idcode, short n, Tamgu* a) {
+    spaces[idcode]->Mainframe()->Declare(n ,a);
+}
+
+Tamgu* TamguGlobal::DeclarationInMainframe(size_t idcode, short n) {
+    return spaces[idcode]->Mainframe()->Declaration(n);
+}
+
+void TamguGlobal::DeclareTopstack(short idthread, short n, Tamgu* a) {
+    threads[idthread].stack.back()->Declare(n, a);
+}
+
+Tamgu* TamguGlobal::DeclarationTopstack(short idthread, short n) {
+    return threads[idthread].stack.back()->Declaration(n);
+}
+
+bool TamguGlobal::TopstackisMainframe() {
+    return threads[0].stack.back()->isMainFrame();
+}
+
 
 short TamguGlobal::SelectThreadid() {
     short i;
@@ -2285,10 +2336,12 @@ void TamguGlobal::TamguAllObjects(vector<string>& vs) {
     vs.push_back("all");
     vs.push_back("and");
     vs.push_back("any");
+    vs.push_back("append");
     vs.push_back("assert");
     vs.push_back("asserta");
     vs.push_back("assertz");
     vs.push_back("autorun");
+    vs.push_back("block");
     vs.push_back("break");
     vs.push_back("case");
     vs.push_back("catch");
@@ -2300,6 +2353,7 @@ void TamguGlobal::TamguAllObjects(vector<string>& vs) {
     vs.push_back("cycle");
     vs.push_back("data");
     vs.push_back("default");
+    vs.push_back("defun");
     vs.push_back("deriving");
     vs.push_back("do");
     vs.push_back("drop");
@@ -2347,6 +2401,11 @@ void TamguGlobal::TamguAllObjects(vector<string>& vs) {
     vs.push_back("is");
     vs.push_back("iterator");
     vs.push_back("joined");
+    vs.push_back("label");
+    vs.push_back("lambda");
+    vs.push_back("cons");
+    vs.push_back("cond");
+    vs.push_back("eq");
     vs.push_back("let");
     vs.push_back("length");
     vs.push_back("map");
@@ -2371,6 +2430,7 @@ void TamguGlobal::TamguAllObjects(vector<string>& vs) {
     vs.push_back("return");
     vs.push_back("scanl");
     vs.push_back("scanr");
+    vs.push_back("setq");
     vs.push_back("static");
     vs.push_back("stop");
     vs.push_back("store");

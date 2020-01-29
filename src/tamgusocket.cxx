@@ -601,7 +601,7 @@ Tamgu* Tamgusocket::CreateSocket(short idthread) {
     if (sock == SOCKET_ERROR)
         return globalTamgu->Returnerror("SOCKET(856): Socket error", idthread);
     #ifdef WIN32
-    memset((char *)&servAddr, 0, sizeof(servAddr));
+    memset((char *)&servAddr, '\0', sizeof(servAddr));
     #else
     bzero((char *)&servAddr, sizeof(servAddr));
     #endif
@@ -689,7 +689,7 @@ Tamgu* Tamgusocket::Write(string act, Tamgu* contextualpattern, short idthread, 
     int first = 0;
     char padding[POSSIGNATURE + 1];
 
-    memset(padding, 0, POSSIGNATURE + 1);
+    memset(padding, '\0', POSSIGNATURE + 1);
 
     SOCKET currentsock = sock;
 
