@@ -9335,7 +9335,7 @@ Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
         if (xn->nodes[0]->token == "word") {
             //We check if it is a variation on car/cdr
             string word = xn->nodes[0]->value;
-            if (word[0] == 'c' and word.back() == 'r') {
+            if (word[0] == 'c' && word.back() == 'r') {
                 bool found = true;
                 for (long i = 1; i < word.size()-1; i++) {
                     if (word[i] != 'a' && word[i] != 'd') {
