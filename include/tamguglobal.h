@@ -214,6 +214,7 @@ public:
 	void Setknowledgebase();
 
 	Tamgu* Getdefinition(short id);
+    Tamgu* Declaration(short id);
 	Tamgu* Declarator(short id);
 	bool isDeclared(short id);
 	Tamgu* GetTopFrame();
@@ -848,6 +849,8 @@ public:
 
     Tamgu* Getframedefinition(short frname, short name, short idthread);
 
+    Tamgu* Declaration(short id, short idthread);
+
 	Tamgu* Getdefinition(short id, short idthread, Tamgu* current = aNULL);
 	bool isDeclared(short id, short idthread);
 	Tamgu* Declarator(short id, short idthread);
@@ -1044,6 +1047,7 @@ public:
 
     void DeclareTopstack(short idthread, short n, Tamgu* a);
     Tamgu* DeclarationTopstack(short idthread, short n);
+    bool isDeclaredTopstack(short idthread, short n);
 
     bool TopstackisMainframe();
     

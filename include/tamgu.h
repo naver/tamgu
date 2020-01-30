@@ -207,10 +207,14 @@ public:
         return aNOELEMENT;
     }
 
-    virtual bool Declarelocal(short idthread, short n, Tamgu* a) {
+    virtual char Declarelocal(short idthread, short n, Tamgu* a) {
         return globalTamgu->Topstack()->Declarelocal(idthread, n, a);
     }
     
+    virtual void Replacedeclaration(short idthread, short n, Tamgu* a) {
+        globalTamgu->Topstack()->Replacedeclaration(idthread, n, a);
+        globalTamgu->Replacevariable(idthread, n, a);
+    }
 	//------------------------------------------------------------------
 	//Reference operations
     virtual uchar checkmark() {
@@ -2052,11 +2056,11 @@ public:
 	basebin_hash<Tamgu*> declarations;
 	short name;
 
-    TamguDeclaration(TamguGlobal* g) : name(-1), TamguTracked(a_declarations) {
+    TamguDeclaration(TamguGlobal* g) : name(-1), TamguTracked(a_declaration) {
         investigate = is_declaration;
     }
 
-	TamguDeclaration(short t = a_declarations, TamguGlobal* g = NULL, Tamgu* parent = NULL) : name(-1), TamguTracked(t, g, parent) {
+	TamguDeclaration(short t = a_declaration, TamguGlobal* g = NULL, Tamgu* parent = NULL) : name(-1), TamguTracked(t, g, parent) {
         investigate = is_declaration;
     }
     
@@ -2069,7 +2073,15 @@ public:
 		return true;
 	}
 
-    bool Declarelocal(short idthread, short n, Tamgu* a) {
+    void Replacedeclaration(short idthread, short id, Tamgu* a) {
+        declarations[id] = a;
+        globalTamgu->Replacevariable(idthread, id, a);
+    }
+    
+    char Declarelocal(short idthread, short n, Tamgu* a) {
+        if (isDeclared(n))
+            return a_declaration;
+
         Declare(n, a);
         return true;
     }
@@ -2263,7 +2275,15 @@ public:
 		action = a_bloc;
 	}
 
-    bool Declarelocal(short idthread, short n, Tamgu* a) {
+    void Replacedeclaration(short idthread, short id, Tamgu* a) {
+        declarations[id] = a;
+        globalTamgu->Replacevariable(idthread, id, a);
+    }
+
+    char Declarelocal(short idthread, short n, Tamgu* a) {
+        if (isDeclared(n))
+            return a_declaration;
+
         Declare(n, a);
         return true;
     }
@@ -2440,100 +2460,6 @@ public:
     bool isaFunction() {
         return true;
     }
-};
-
-class TamguLispFunction : public TamguFunction {
-public:
-    
-    std::atomic<short> reference;
-    std::atomic<bool> protect;
-
-    TamguLispFunction(short n, TamguGlobal* g) : TamguFunction(n, g) {
-        protect = true;
-        reference = 0;
-        if (g != NULL)
-            g->RecordInTrackerProtected(this);
-    }
-
-    bool Checktype(short ty) {
-        if (!reference && Type() == ty)
-            return true;
-        
-        return false;
-    }
-    
-    short Reference() {
-        return reference;
-    }
-    
-    void Setprotect(bool n) {
-        protect = n;
-    }
-    
-    void Popping() {
-        protect = false;
-        if (reference <= 0)
-            protect = true;
-    }
-    
-    bool isProtected() {
-        return protect;
-    }
-    
-    void Resetreferencenoprotect(short r = 1) {
-        Setprotect(false);
-        Resetreference(r);
-    }
-    
-    
-    void Setreference(short r) {
-        reference += r;
-        protect = false;
-        
-    }
-    
-    void Setreference() {
-        ++reference;
-        protect = false;
-        
-    }
-
-    void Resetreference(short r = 1) {
-        reference -= r;
-        if (reference <= 0) {
-            if (!protect) {
-                if (idtracker != -1)
-                    globalTamgu->RemoveFromTracker(idtracker);
-                delete this;
-            }
-        }
-    }
-
-    void Release() {
-        if (reference == 0) {
-            protect = false;
-            Resetreference(0);
-        }
-    }
-    
-    void Protect() {
-            //We suppose there have been a Setreference before...
-        if (reference >= 2) { //No problem, we simply remove one increment
-            Resetreference();
-            Setprotect(false); //Should not be any protect left in that case...
-            return;
-        }
-        
-            //Else, we decrease our reference, but we protect it with a protect
-        Setprotect(true);
-        Resetreference();
-        Popping(); //and protection only if necessary...
-    }
-
-    bool isObject() {
-        return true;
-    }
-
 };
 
 class TamguThread : public TamguFunction {
@@ -2795,7 +2721,9 @@ public:
         }
 	}
     
-    bool Declarelocal(short idthread, short n, Tamgu* a) {
+    char Declarelocal(short idthread, short n, Tamgu* a) {
+        if (isDeclared(n))
+            return a_mainframe;
         return false;
     }
 

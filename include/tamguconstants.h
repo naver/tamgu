@@ -321,7 +321,7 @@ typedef enum{
 	a_break, a_continue, a_return,
 	a_empty, a_mainframe,
 	a_call, a_callfunction, a_callthread, a_callmethod, a_callprocedure, a_callindex, a_calltaskell, a_lambda,
-	a_variable,	a_declarations, a_instructions, a_function, a_frame, a_frameinstance, a_extension, 
+	a_variable,	a_declaration, a_instructions, a_function, a_frame, a_frameinstance, a_extension, 
 	a_initial, a_iteration, a_default,
 	a_forinrange, a_sequence, a_self, 
 	a_idreturnvariable, a_breaktrue, a_breakfalse, a_vectormerge, 

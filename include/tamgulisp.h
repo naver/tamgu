@@ -123,11 +123,11 @@ class Tamgulisp : public Tamguvector {
     //---------------------------------------------------------------------------------------------------------------------
     //This SECTION is for your specific implementation...
     //Your personal variables here...
-    long idinfo;
     
     //---------------------------------------------------------------------------------------------------------------------
-    Tamgulisp(TamguGlobal* g, Tamgu* parent = NULL);
-    Tamgulisp() : idinfo(-1), Tamguvector() {}
+    Tamgulisp(TamguGlobal* g, Tamgu* parent) : Tamguvector(g, parent) {}
+
+    Tamgulisp() : Tamguvector() {}
 
     //----------------------------------------------------------------------------------------------------------------------
     Tamgu* Eval(Tamgu* context, Tamgu* v, short idthread);
@@ -186,6 +186,21 @@ class Tamgulisp : public Tamguvector {
 
     string String();
 
+};
+
+
+class Tamgulispcode : public Tamgulisp {
+public:
+    long idinfo;
+
+    Tamgulispcode(TamguGlobal* g, Tamgu* parent = NULL);
+    
+    void Cleanreference(short inc) {}
+    
+    void Setreference(short r) {}
+    void Setreference() {}
+    void Resetreference(short r = 1) {}
+
     long Currentinfo() {
         return idinfo;
     }
@@ -218,6 +233,6 @@ class Tamgulisp : public Tamguvector {
     void Getinfo(Tamgu* ins) {
         idinfo = ins->Currentinfo();
     }
-
 };
+
 #endif

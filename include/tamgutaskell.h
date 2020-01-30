@@ -82,9 +82,18 @@ public:
 		return true;
 	}
 
-    bool Declarelocal(short idthread, short n, Tamgu* a) {
+    char Declarelocal(short idthread, short n, Tamgu* a) {
+        if (isDeclared(n))
+            return a_declaration;
+
         Declare(n, a);
         return true;
+    }
+
+    void Replacedeclaration(short idthread, short id, Tamgu* a) {
+        i = names.search(id);
+        declarations.vecteur[i] = a;
+        globalTamgu->Replacevariable(idthread, id, a);
     }
 
 	void Cleaning() {
@@ -816,7 +825,10 @@ public:
 		return body->lambdadomain.isDeclared(idname);
 	}
 
-    bool Declarelocal(short idthread, short n, Tamgu* a) {
+    char Declarelocal(short idthread, short n, Tamgu* a) {
+        if (isDeclared(n))
+            return a_declaration;
+
         Declare(n, a);
         return true;
     }

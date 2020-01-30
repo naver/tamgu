@@ -46,7 +46,7 @@ bool Tamgulisp::InitialisationModule(TamguGlobal* global, string version) {
 
     Tamgulisp::AddMethod(global, "eval", &Tamgulisp::MethodEval, P_ONE, "eval(e): 'e' is a lisp expression provided as a string.");
 
-    global->newInstance[a_lisp] = new Tamgulisp(global);
+    global->newInstance[a_lisp] = new Tamgulispcode(global);
     global->RecordMethods(a_lisp, Tamgulisp::exported);
 
     global->lispactions[a_block] = true;
@@ -105,7 +105,7 @@ bool Tamgulisp::InitialisationModule(TamguGlobal* global, string version) {
     return true;
 }
 
-Tamgulisp::Tamgulisp(TamguGlobal* g, Tamgu* parent) : Tamguvector(g, parent) {
+Tamgulispcode::Tamgulispcode(TamguGlobal* g, Tamgu* parent) : Tamgulisp(g, parent) {
     if (g != NULL) {
         long line = g->Getcurrentline();
         short idcode = (short)g->spaceid;
@@ -114,7 +114,6 @@ Tamgulisp::Tamgulisp(TamguGlobal* g, Tamgu* parent) : Tamguvector(g, parent) {
             idfile = g->spaces[idcode]->currentfileid;
         idinfo = g->Addinfo(idcode, idfile, line);
     }
-
 }
 
 Tamgu* TamguGlobal::Providelispsymbols(string& n, Tamgu* parent) {
@@ -221,6 +220,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
     Tamgu* a = values[0];
     long i, n;
     Tamgu* v1;
+    char ret;
     
     switch (a->Action()) {
         case a_break:
@@ -246,8 +246,16 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             return v0;
         case a_for: //(for x v (block...))
         {
-            if (sz >= 2 && values[1]->isInstruction())
-                return values[1]->Eval(contextualpattern, aNULL, idthread)->Returned(idthread);
+            n = values[1]->Name();
+
+            if (sz >= 2 && values[2]->isInstruction()) {
+                if (globalTamgu->isDeclared(n, idthread)) {
+                    v0 = globalTamgu->Getdeclaration(n, idthread);
+                    values[2]->Instruction(0)->Putinstruction(0,v0);
+                }
+
+                return values[2]->Eval(contextualpattern, aNULL, idthread)->Returned(idthread);
+            }
             
             if (sz < 3)
                 return globalTamgu->Returnerror("Wrong number of arguments in 'for'", idthread);
@@ -255,7 +263,6 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             TamguInstructionFORINVECTOR* forin = new TamguInstructionFORINVECTOR(globalTamgu);
             forin->variablesWillBeCreated = true;
 
-            n = values[1]->Name();
             if (globalTamgu->isDeclared(n, idthread)) {
                 v0 = globalTamgu->Getdeclaration(n, idthread);
                 n = 0;
@@ -271,14 +278,14 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             if (sz == 4)
                 forin->instructions.push_back(values[3]);
             else {
-                Tamgulisp* block = new Tamgulisp(globalTamgu);
+                Tamgulisp* block = new Tamgulispcode(globalTamgu);
                 block->values.push_back(globalTamgu->Providelispsymbols(a_block));
                 forin->instructions.push_back(block);
                 for (i = 3; i < sz; i++)
                     block->values.push_back(values[i]);
             }
             
-            values[1] = forin;
+            values[2] = forin;
             return forin->Eval(contextualpattern,aNULL, idthread)->Returned(idthread);
         }
         case a_while: //while condition block)
@@ -294,7 +301,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             if (sz == 3)
                 awhile->instructions.push_back(values[2]);
             else {
-                Tamgulisp* block = new Tamgulisp(globalTamgu);
+                Tamgulisp* block = new Tamgulispcode(globalTamgu);
                 block->values.push_back(globalTamgu->Providelispsymbols(a_block));
                 awhile->instructions.push_back(block);
                 for (i = 2; i < sz; i++)
@@ -365,7 +372,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 return aTRUE;
         case a_list:
         {
-            Tamgulisp* tl = new Tamgulisp(globalTamgu);
+            Tamgulisp* tl = new Tamgulisp;
             if (sz == 1)
                 return tl;
             v1 = aNULL;
@@ -615,7 +622,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             if (!v1->isLisp() && !v1->isVectorContainer())
                 return aNULL;
             
-            Tamgulisp* tl = new Tamgulisp(globalTamgu);
+            Tamgulisp* tl = new Tamgulisp;
             tl->Push(v0);
             for (i = 0; i < v1->Size(); i++)
                 tl->Push(v1->getvalue(i));
@@ -654,6 +661,8 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             v0 = NULL;
             if (globalTamgu->isDeclared(n, idthread))
                 v0 = globalTamgu->Getdeclaration(n, idthread);
+            else
+                v0 = globalTamgu->Declaration(n, idthread);
 
             if (v0 != NULL) {
                 if (v0->isFunction()) {
@@ -808,7 +817,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             if (sz == 3)
                 v1->AddInstruction(values[2]);
             else {
-                Tamgulisp* block = new Tamgulisp(globalTamgu);
+                Tamgulisp* block = new Tamgulispcode(globalTamgu);
                 block->Setreference();
                 block->Push(globalTamgu->Providelispsymbols(a_block));
                 for (i = 2; i < sz; i++)
@@ -857,6 +866,13 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 return globalTamgu->Returnerror("Missing parameters",idthread);
             
             a = new TamguFunction(n, globalTamgu);
+
+            ret = contextualpattern->Declarelocal(idthread, n, a);
+            if (ret == a_mainframe || ret == a_declaration) {
+                a->Remove();
+                return globalTamgu->Returnerror("Already declared",idthread);
+            }
+
             for (i = 0; i < v1->Size(); i++) {
                 n = v1->getvalue(i)->Name();
                 if (!n)
@@ -869,7 +885,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             if (sz == 4)
                 v1->AddInstruction(values[3]);
             else {
-                Tamgulisp* block = new Tamgulisp(globalTamgu);
+                Tamgulisp* block = new Tamgulispcode(globalTamgu);
                 block->Setreference();
                 block->Push(globalTamgu->Providelispsymbols(a_block));
                 for (i = 3; i < sz; i++)
@@ -881,7 +897,6 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             globalTamgu->Storevariable(idthread, n, a);
             //Declarelocal only declare a function or a variable in a local domain (a function for instance)
             //If the context is the main frame, then nothing happens
-            contextualpattern->Declarelocal(idthread, n, a);
             values[1] = a;
             return a;
         }
@@ -893,16 +908,22 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             n = v0->Name();
             if (!n)
                 return globalTamgu->Returnerror("Wrong name", idthread);
-            if (globalTamgu->isDeclared(n, idthread))
-                return globalTamgu->Returnerror("Already declared", idthread);
-
+            
             a = values[2]->Eval(contextualpattern, aNULL, idthread);
             checkerror(a);
+            
+            ret = contextualpattern->Declarelocal(idthread, n, a);
+            if (globalTamgu->isDeclared(n, idthread)) {
+                if (ret == a_mainframe || ret == a_declaration) {
+                    a->Remove();
+                    return globalTamgu->Returnerror("Already declared",idthread);
+                }
+            }
+
             a->Setreference();
             globalTamgu->Storevariable(idthread, n, a);
             //Declarelocal only declare a function or a variable in a local domain (a function for instance)
             //If the context is the main frame, then nothing happens
-            contextualpattern->Declarelocal(idthread, n, a);
             return a;
         case a_atomp:
             if (sz != 2)
@@ -971,15 +992,19 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             
             if (globalTamgu->isDeclared(n, idthread)) {
                 v1 = globalTamgu->Getdeclaration(n, idthread);
-                v1->Put(contextualpattern, a, idthread);
-                a->Releasenonconst();
-                return v1;
-            }
-            else {
+                if (v1->isAtom()) {
+                    v1->Putvalue(a, idthread);
+                    a->Releasenonconst();
+                    return v1;
+                }
+                v1->Resetreference();
                 a->Setreference();
-                globalTamgu->Storevariable(idthread, n, a);
-                contextualpattern->Declarelocal(idthread, n, a);
+                contextualpattern->Replacedeclaration(idthread, n, a);
+                return a;
             }
+            
+            globalTamgu->Storevariable(idthread, n, a);
+            contextualpattern->Declarelocal(idthread, n, a);
             return a;
         case a_append:
         {

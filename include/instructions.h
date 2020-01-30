@@ -65,7 +65,19 @@ public:
 		return false;
 	}
 
-    bool Declarelocal(short idthread, short n, Tamgu* a) {
+    void Replacedeclaration(short idthread, short id, Tamgu* a) {
+        for (i = 0; i < names.last; i++) {
+            if (names.vecteur[i] == id) {
+                declarations.vecteur[i] = a;
+                break;
+            }
+        }
+        globalTamgu->Replacevariable(idthread, id, a);
+    }
+
+    char Declarelocal(short idthread, short n, Tamgu* a) {
+        if (isDeclared(n))
+            return a_declaration;
         Declare(n, a);
         return true;
     }

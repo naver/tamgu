@@ -40,7 +40,7 @@
 #include "tamgutaskell.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2020.01.29";
+const char* tamgu_version = "Tamgu 1.2020.01.30";
 
 Tamgu* booleantamgu[2];
 
@@ -1747,7 +1747,7 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("lambda");//64 --> a_lambda
 
     Createid("variable"); //65 --> a_variable
-    Createid("declarations"); //66 --> a_declarations
+    Createid("declarations"); //66 --> a_declaration
     Createid("instructions"); //67 --> a_instructions
     Createid("function"); //68 --> a_function
     Createid("frame"); //69 --> a_frame
@@ -2158,6 +2158,11 @@ void TamguGlobal::DeclareTopstack(short idthread, short n, Tamgu* a) {
 Tamgu* TamguGlobal::DeclarationTopstack(short idthread, short n) {
     return threads[idthread].stack.back()->Declaration(n);
 }
+
+bool TamguGlobal::isDeclaredTopstack(short idthread, short n) {
+    return threads[idthread].stack.back()->isDeclared(n);
+}
+
 
 bool TamguGlobal::TopstackisMainframe() {
     return threads[0].stack.back()->isMainFrame();

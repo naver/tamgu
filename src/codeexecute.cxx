@@ -581,7 +581,7 @@ Tamgu* TamguIndex::Put(Tamgu* recipient, Tamgu* value, short idthread) {
 
 //----------------------------------------------------------------------------------
 //This is actually a line of code, which when it is executed records a new variable into the declaration space...
-TamguVariableDeclaration::TamguVariableDeclaration(TamguGlobal* g, short n, short t, bool p, bool c, Tamgu* parent) : TamguTracked(a_declarations, g, parent) {
+TamguVariableDeclaration::TamguVariableDeclaration(TamguGlobal* g, short n, short t, bool p, bool c, Tamgu* parent) : TamguTracked(a_declaration, g, parent) {
 	if (parent != NULL)
 		parent->SetVariablesWillBeCreated();
 	
@@ -599,7 +599,7 @@ TamguVariableDeclaration::TamguVariableDeclaration(TamguGlobal* g, short n, shor
     investigate = is_variable;
 }
 
-TamguVariableDeclaration::TamguVariableDeclaration(TamguGlobal* g, short n, short t, Tamgu* parent) : TamguTracked(a_declarations, g, parent) {
+TamguVariableDeclaration::TamguVariableDeclaration(TamguGlobal* g, short n, short t, Tamgu* parent) : TamguTracked(a_declaration, g, parent) {
 	if (parent != NULL)
 		parent->SetVariablesWillBeCreated();
 
@@ -2054,39 +2054,36 @@ Tamgu* TamguInstruction::Eval(Tamgu* context, Tamgu* a, short idthread) {
     }
     
     if (testcond) {
-		if (globalTamgu->Error(idthread)) {
-			if (!a->isError()) {
-				a->Releasenonconst();
-				a = globalTamgu->Errorobject(idthread);
-			}
-		}
+        if (globalTamgu->Error(idthread)) {
+            _cleandebugmin;
+            if (!a->isError())
+                a->Releasenonconst();
+            return globalTamgu->Errorobject(idthread);
+        }
 
-		if (a->needFullInvestigate()) {
-			_cleandebugmin;
-			if (!variablesWillBeCreated)
-				return a;
-
-			if (a->isReturned()) {
-				if (environment->isEmpty()) {
-                    environment->Release();
-					return a;
-				}
-
-				context = a->Returned(idthread);
-				if (!context->Reference())
-                    environment->Release();
-				else {
-					context->Setreference();
-                    environment->Release();
-					context->Protect();
-				}
-				return a;
-			}
-
-            environment->Release();
-			return a;
-		}
-	}
+        if (!variablesWillBeCreated)
+            return a;
+        
+        if (a->isReturned()) {
+            if (environment->isEmpty()) {
+                environment->Release();
+                return a;
+            }
+            
+            context = a->Returned(idthread);
+            if (!context->Reference())
+                environment->Release();
+            else {
+                context->Setreference();
+                environment->Release();
+                context->Protect();
+            }
+            return a;
+        }
+        
+        environment->Release();
+        return a;
+    }
 
     a->Releasenonconst();
 
@@ -2119,31 +2116,25 @@ Tamgu* TamguFunction::Eval(Tamgu* environment, Tamgu* obj, short idthread) {
     }
     
     if (testcond) {
+        _cleandebugfull;
 		if (globalTamgu->Error(idthread)) {
-			if (!a->isError()) {
+			if (!a->isError())
 				a->Releasenonconst();
-				a = globalTamgu->Errorobject(idthread);
-			}
+            return globalTamgu->Errorobject(idthread);
 		}
 
-		if (a->needFullInvestigate()) {
-			_cleandebugfull;
-			if (a->isError())
-				return a;
-
-			a = a->Returned(idthread);
-			if (returntype) {
-				if (a->Type() != returntype && !globalTamgu->Compatiblestrict(returntype, a->Type())) {
-					a->Releasenonconst();
-					stringstream msg;
-					msg << "Mismatch between return value and function declaration. Expecting: '"
-						<< globalTamgu->Getsymbol(returntype)
-						<< "' Got: '" << globalTamgu->Getsymbol(a->Type()) << "'";
-					return globalTamgu->Returnerror(msg.str(), idthread);
-				}
-			}
-			return a;
-		}
+        a = a->Returned(idthread);
+        if (returntype) {
+            if (a->Type() != returntype && !globalTamgu->Compatiblestrict(returntype, a->Type())) {
+                a->Releasenonconst();
+                stringstream msg;
+                msg << "Mismatch between return value and function declaration. Expecting: '"
+                << globalTamgu->Getsymbol(returntype)
+                << "' Got: '" << globalTamgu->Getsymbol(a->Type()) << "'";
+                return globalTamgu->Returnerror(msg.str(), idthread);
+            }
+        }
+        return a;
 	}
 
     a->Releasenonconst();

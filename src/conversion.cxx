@@ -12748,79 +12748,75 @@ Exporting void IndentationCode(string& codeindente, vector<string>& code, vector
         local = curly;
 
         sztok = xr.stack.size();
-        for (x = 0; x < sztok; x++) {
-            if (xr.stack[x] == "else") {
-                inelse = true;
+        if (sztok > 2 && c == '-' && xr.stack[sztok-2][0] == ':') // :-
+            inprolog = true;
+        else {
+            for (x = 0; x < sztok; x++) {
+                if (xr.stack[x] == "else") {
+                    inelse = true;
+                    continue;
+                }
+                switch (xr.stack[x][0]) {
+                    case '{':
+                        curly++;
+                        inelse = false; //we do not need to add one single indent after
+                        break;
+                    case '}':
+                        curly--;
+                        break;
+                    case '(':
+                        paren++;
+                        break;
+                    case ')':
+                        paren--;
+                        break;
+                    case '\\':
+                        if ((x+1) < sztok && xr.stack[x+1][0] == '(') {
+                            inlisp = true;
+                            inelse = false;
+                        }
+                        break;
+                }
+            }
+            
+            if (inlisp) {
+                if (paren <= 0) {
+                    inlisp = false;
+                    setblanc(i);
+                }
+                else {
+                    setblanc(i);
+                    if ((i + 1) < sz) {
+                        blancs[i + 1] = blancs[i] + blanksize;
+                        mx = maxx(blancs[i+1], mx);
+                    }
+                }
                 continue;
             }
-            switch (xr.stack[x][0]) {
-                case '{':
-                    curly++;
-                    inelse = false; //we do not need to add one single indent after
-                    break;
-                case '}':
-                    curly--;
-                    break;
-                case ':':
-                    if ((x+2) == sztok && xr.stack[x+1][0] == '-') {
-                        inprolog = true;
-                        inelse = false;
+            
+                //We compute the number of curly bracket found, local keeps track of the previous value
+            if ((curly - local) != 0) {
+                last = 0;
+                    //we have added a curly bracket (at least one)
+                if ((curly-local) > 0) {
+                    setblanc(i);
+                    if ((i + 1) < sz) {
+                        blancs[i + 1] = blancs[i] + blanksize;
+                        mx = maxx(blancs[i+1], mx);
                     }
-                    break;
-                case '(':
-                    paren++;
-                    break;
-                case ')':
-                    paren--;
-                    break;
-                case '\\':
-                    if ((x+1) < sztok && xr.stack[x+1][0] == '(') {
-                        inlisp = true;
-                        inelse = false;
+                }
+                else {
+                        //We need to remove some space
+                    if (i > 0) {
+                        blancs[i] = blancs[i+blancs[i]] - blanksize*(local-curly);
+                        if (blancs[i] < 0)
+                            blancs[i] = 0;
                     }
-                    break;
-            }
-            if (inprolog)
-                break;
-        }
-
-        if (inlisp) {
-            if (paren <= 0) {
-                inlisp = false;
-                setblanc(i);
-            }
-            else {
-                setblanc(i);
-                if ((i + 1) < sz) {
-                    blancs[i + 1] = blancs[i] + blanksize;
-                    mx = maxx(blancs[i+1], mx);
                 }
+                continue;
             }
-            continue;
         }
-
-        //We compute the number of curly bracket found, local keeps track of the previous value
-        if ((curly - local) != 0) {
-            last = 0;
-            //we have added a curly bracket (at least one)
-            if ((curly-local) > 0) {
-                setblanc(i);
-                if ((i + 1) < sz) {
-                    blancs[i + 1] = blancs[i] + blanksize;
-                    mx = maxx(blancs[i+1], mx);
-                }
-            }
-            else {
-                //We need to remove some space
-                if (i > 0) {
-                    blancs[i] = blancs[i+blancs[i]] - blanksize*(local-curly);
-                    if (blancs[i] < 0)
-                        blancs[i] = 0;
-                }
-            }
-            continue;
-        }
-
+        
         //We keep track of all previous shift of one to the right...
         if ((i+1) < sz &&  blancs[i + 1] <= -2)
             last++;

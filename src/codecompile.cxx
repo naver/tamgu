@@ -2008,6 +2008,21 @@ inline Tamgu* ThreadStruct::Getdefinition(short id) {
 	return aNULL;
 }
 
+inline Tamgu* ThreadStruct::Declaration(short id) {
+    Tamgu* value;
+    for (long i = stack.last - 1; i >= 0; i--) {
+        value = stack.vecteur[i]->Declaration(id);
+        if (value != NULL)
+            return value;
+    }
+    return NULL;
+}
+
+
+Tamgu* TamguGlobal::Declaration(short id, short idthread) {
+    return threads[idthread].Declaration(id);
+}
+
 Tamgu* TamguGlobal::Getframedefinition(short frname, short idname, short idthread) {
     return threads[idthread].variables.get(frname).back()->Declaration(idname);
 }
@@ -9361,17 +9376,17 @@ Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
     Tamgu* kf = parent;
 
     if (xn->token == "tlquote") {
-        kf = new Tamgulisp(global, parent);
+        kf = new Tamgulispcode(global, parent);
         kf->Setaction(a_quote);
     }
     else {
         if (xn->token == "tlist") {
             if (global->lelisp == NULL) {
-                globalTamgu->lelisp = new Tamgulisp(global, parent);
+                globalTamgu->lelisp = new Tamgulispcode(global, parent);
                 kf = globalTamgu->lelisp;
             }
             else
-                kf = new Tamgulisp(global, parent);
+                kf = new Tamgulispcode(global, parent);
         }
     }
     
