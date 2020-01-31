@@ -1756,12 +1756,14 @@ public:
                         cleardebug();
                 return pos;
             case cmd_lispmode:
-                lispmode = 1 - lispmode;
-                if (lispmode)
-                    cout << "Lisp mode activated" << endl;
-                else
-                    cout << "Lisp mode deactivated" << endl;
-                return pos;
+                if (v.size() == 1) {
+                    lispmode = 1 - lispmode;
+                    if (lispmode)
+                        cout << "Lisp mode activated" << endl;
+                    else
+                        cout << "Lisp mode deactivated" << endl;
+                    return pos;
+                }
         }
         
         if (debugmode && debuginfo.running) {
@@ -2355,6 +2357,9 @@ public:
         string code = convert(c);
         
         if (lispmode) {
+            if (!editmode)
+                addcommandline(c);
+
             if (thecurrentfilename == "")
                 TamguSpaceInit(THEMAIN);
             else
@@ -2371,7 +2376,8 @@ public:
             if (a->isError())
                 return false;
             
-            a->Resetreference();
+            a->Releasenonconst();
+
             return true;
         }
 
@@ -2799,6 +2805,7 @@ int main(int argc, char *argv[]) {
         }
 
         name = Normalizefilename(name);
+#ifndef WIN32
         if (lispmode) {
             ifstream rd(name, openMode);
             if (rd.fail()) {
@@ -2824,7 +2831,7 @@ int main(int argc, char *argv[]) {
             cout << m_red << a->String() << m_current << endl;
             exit(0);
         }
-        
+#endif
         try {
             idcode = TamguLoad(name);
         }

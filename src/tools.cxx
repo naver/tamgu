@@ -1967,7 +1967,6 @@ Exporting Tamgu* TamguGlobal::EvaluateLisp(Tamgu* contextualpattern, string& s, 
         kret = lst->values[i]->Eval(contextualpattern, aNULL, idthread);
     }
     
-    kret->Protect();
     lst->Resetreference();
     
     currentbnf = previous;
