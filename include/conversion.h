@@ -130,8 +130,8 @@ union w_u_char {
 Exporting void inittableutf8();
 
 //--------------------- Code Indention
-void IndentCode(string& codestr, string& codeindente, long blancs);
-Exporting void IndentationCode(string& codeindente, vector<string>& code, vector<long>& blancs, long mxbase, bool construit);
+void IndentCode(string& codestr, string& codeindente, long blancs, bool lisp = false);
+Exporting void IndentationCode(string& codeindente, vector<string>& code, vector<long>& blancs, long mxbase, bool construit, bool lisp = false);
 long VirtualIndentation(string& codestr);
 
 //--------------------- Carriage Return normalisation

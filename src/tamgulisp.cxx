@@ -198,6 +198,7 @@ Tamgu* Tamguvector::cdr(short idthread) {
 }
 
 Tamgu* Tamgulisp::MethodEval(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    Locking _lock(this);
     Tamgu* a =  callfunc->Evaluate(0, contextualpattern, idthread);
     if (a->isLisp())
         return a->Eval(contextualpattern, aNULL, idthread);
@@ -855,11 +856,6 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             if (n == 0)
                 return globalTamgu->Returnerror("Wrong function name",idthread);
 
-                //the second element is the name...
-                //Then the body
-            if (!contextualpattern->hasDeclaration())
-                return globalTamgu->Returnerror("Wrong declaration: out of scope",idthread);
-            
             if (sz < 4)
                 return globalTamgu->Returnerror("Missing body",idthread);
             

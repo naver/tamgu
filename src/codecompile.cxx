@@ -164,7 +164,7 @@ char x_reading::loop(short i, char* token, char* chr, long& itoken, short& r, lo
     return true;
 }
 
-void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<string>& strings);
+void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<string>& strings, bool lisp);
 
 void x_reading::apply(bool keepos, vector<string>* vstack, vector<unsigned char>* vtype) {
     char currentchr[] = {0,0,0,0,0};
@@ -206,7 +206,7 @@ void x_reading::apply(bool keepos, vector<string>* vstack, vector<unsigned char>
     long presz = 0;
     
     if (lookforquotes) {
-        find_quotes(USTR(parcours), parcours.size(), prequotes,prestrings);
+        find_quotes(USTR(parcours), parcours.size(), prequotes,prestrings, lispmode);
         presz = prequotes.size();
     }
     
@@ -217,9 +217,13 @@ void x_reading::apply(bool keepos, vector<string>* vstack, vector<unsigned char>
         if (i==255) //this is not a character, which a rule is indexed for, we jump to the first non character rules...
             i=firstrule;
         else {
-            if (verif(ruleelements[i][0],xr_singlebody)) {
+            if (verif(ruleelements[i][0],xr_singlebody) || (lispmode && currentchr[0] == 39)) {
                 //if the rule only checks one character, and it is a direct check, we can stop there
-                ty = action[i];
+                if (currentchr[0] == 39)
+                    ty = 0;
+                else
+                    ty = action[i];
+                
                 if (ty != -1) {
                     vstack->push_back(currentchr);
                     
@@ -240,7 +244,7 @@ void x_reading::apply(bool keepos, vector<string>* vstack, vector<unsigned char>
                 continue;
             }
         }
-        
+
         if (e < presz && b == prequotes[e] + 1) {
             int cre = 0;
             ty=action[i];

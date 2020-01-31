@@ -66,5 +66,8 @@ Exporting string TamguListing();
 Exporting wstring TamguUListing();
 Exporting void TamguSetCode(string& code);
 Exporting void TamguSetCode(wstring& code);
+Exporting void TamguAddCode(string& code);
+Exporting void TamguAddCode(wstring& code);
+Exporting void TamguSpaceInit(string filename);
 #endif
 

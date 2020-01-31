@@ -263,6 +263,19 @@ Exporting void TamguSetCode(string& code) {
     _fullcode = code;
 }
 
+Exporting void TamguAddCode(wstring& code) {
+    string cde;
+    sc_unicode_to_utf8(cde, code);
+    _fullcode += cde;
+    _fullcode += Endl;
+}
+
+Exporting void TamguAddCode(string& code) {
+    _fullcode += code;
+    _fullcode += Endl;
+}
+
+
 Exporting size_t TamguCompile(string& code, short idcode) {
 	TamguCode* a = globalTamgu->Getcode(idcode);
 	if (a == NULL || !a->Compile(code))
@@ -383,6 +396,17 @@ Exporting bool TamguRunning() {
 
 Exporting short TamguCurrentThreadId() {
 	return globalTamgu->GetThreadid();
+}
+
+Exporting void TamguSpaceInit(string filename) {
+    TamguCode* a = globalTamgu->Getcode(0);
+    if (a == NULL)
+        a = globalTamgu->GetNewCodeSpace(filename);
+    
+        //The system variables...
+    globalTamgu->SystemInitialization(filename);
+    globalTamgu->Cleanerror(0);
+    globalTamgu->Pushstack(&a->mainframe);
 }
 
 Exporting string TamguIndentation(string& codestr,string blanc) {	

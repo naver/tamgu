@@ -19,6 +19,8 @@
 #include "globaltamgu.h"
 #include "tamgustring.h"
 #include "tamgudebug.h"
+#include "instructions.h"
+#include "tamgulisp.h"
 
 #ifdef WIN32
 #include <conio.h>
@@ -38,6 +40,9 @@
 #define max(a,b)            (((a) > (b)) ? (a) : (b))
 #define min(a,b)            (((a) < (b)) ? (a) : (b))
 #endif
+
+static bool lispmode = false;
+static Tamgulisp mylisp;
 
 void RetrieveThroughVariables(string& declaration);
 void RetrieveThroughVariables(wstring& decl);
@@ -78,6 +83,7 @@ static void displayhelp(string wh) {
 #ifndef WIN32
     cout << conversiontodos("-e 'filename' load filename into the terminal console in edit mode") << endl << endl;
     cout << conversiontodos("-l 'filename' load filename into the terminal console") << endl << endl;
+    cout << conversiontodos("-lisp activate lisp mode") << endl << endl;
 #endif
     cout << conversiontodos("-a 'stdin data' available in tamgu via _args") << endl;
     cout << conversiontodos("-a 'source code' with _args fully piped") << endl  << endl;
@@ -223,6 +229,7 @@ public:
             cerr << "   \t- " << m_redbold << "save:" << m_current << " save the buffer content with the current filename" << endl;
             cerr << "   \t- " << m_redbold << "run filename:" << m_current << " load and run a program filename" << endl;
             cerr << "   \t- " << m_redbold << "run:" << m_current << " execute the buffer content" << endl;
+            cerr << "   \t- " << m_redbold << "lisp:" << m_current << " (de)activate the lisp mode" << endl;
             cerr << "   \t- " << m_redbold << "debug:" << m_current << " debug mode" << endl;
             cerr << "   \t\t- " << m_redbold << "n!:" << m_current << " next line" << endl;
             cerr << "   \t\t- " << m_redbold << "l!:" << m_current << " display local variables" << endl;
@@ -837,7 +844,7 @@ public:
     long handlingcommands(long pos, bool& dsp, char initvar) {
         typedef enum {cmd_none, cmd_args, cmd_filename, cmd_spaces, cmd_select, cmd_edit, cmd_run, cmd_cls, cmd_echo, cmd_console, cmd_help, cmd_list,
             cmd_metas, cmd_rm, cmd_break, cmd_history, cmd_open, cmd_create, cmd_save, cmd_exit, cmd_load_history, cmd_store_history, cmd_colors, cmd_color, cmd_clear, cmd_reinit,
-            cmd_debug, cmd_next, cmd_keep, cmd_remove, cmd_locals, cmd_all, cmd_stack, cmd_goto, cmd_in, cmd_out, cmd_stop, cmd_short_name, cmd_to_end} thecommands;
+            cmd_debug, cmd_next, cmd_keep, cmd_remove, cmd_locals, cmd_all, cmd_stack, cmd_goto, cmd_in, cmd_out, cmd_stop, cmd_short_name, cmd_to_end, cmd_lispmode} thecommands;
 
         static bool init = false;
         static hmap<wstring, thecommands> commands;
@@ -884,6 +891,7 @@ public:
             commands[L"e!"] = cmd_to_end;
             commands[L"break"] = cmd_break;
             commands[L"short"] = cmd_short_name;
+            commands[L"lisp"] = cmd_lispmode;
         }
         
         cout << "\n";
@@ -1099,6 +1107,23 @@ public:
                     line = L"";
                     editmode = false;
 
+                    if (lispmode) {
+                        if (thecurrentfilename == "")
+                            TamguSpaceInit(THEMAIN);
+                        else
+                            TamguSpaceInit(thecurrentfilename);
+                        Tamgustring str(cd);
+                        str.reference = 1;
+                        TamguCall call(a_lisp);
+                        call.arguments.push_back(&str);
+                        Tamgu* a = mylisp.MethodEval(aNULL, 0, &call);
+                        globalTamgu->Popstack(0);
+                        
+                        cout << m_red << a->String() << m_current << endl;
+                        a->Resetreference();
+                        return pos;
+                    }
+                    
                     if (debugmode) {
                         globalTamgu->Setdebugmode(true);
                         globalTamgu->Setdebugfunction(debuginfo_callback, this);
@@ -1238,7 +1263,7 @@ public:
                 i = 3;
                 string cd = convert(code);
                 codeindente = "";
-                IndentCode(cd, codeindente, i);
+                IndentCode(cd, codeindente, i, lispmode);
                 code = wconvert(codeindente);
                 lines.setcode(code);
                 
@@ -1450,7 +1475,7 @@ public:
                 string codeindente;
                 string cd = TamguListing();
                 i = 3;
-                IndentCode(cd, codeindente, i);
+                IndentCode(cd, codeindente, i, lispmode);
                 ofstream wd(thecurrentfilename, ios::binary);
                 wd << codeindente;
                 wd.close();
@@ -1729,6 +1754,13 @@ public:
                 if (debugmode && debuginfo.running)
                     if (!debuginfo.gotoend())
                         cleardebug();
+                return pos;
+            case cmd_lispmode:
+                lispmode = 1 - lispmode;
+                if (lispmode)
+                    cout << "Lisp mode activated" << endl;
+                else
+                    cout << "Lisp mode deactivated" << endl;
                 return pos;
         }
         
@@ -2114,7 +2146,7 @@ public:
                 return checkpath();
             case 10: //this is a carriage return
                 if (option != x_none) {
-                    checkaction(buff, first, last);
+                    checkaction(buff, first, last, lispmode);
                     return true;
                 }
                 if (editmode) {
@@ -2155,7 +2187,7 @@ public:
                     clear();
                     return true;
                 }
-                return checkaction(buff, first, last);
+                return checkaction(buff, first, last, lispmode);
             case 27: //Escape...
                      //we clear the current line if it is the only character...
                 if (buff.size() == 1) {
@@ -2180,7 +2212,7 @@ public:
                 evaluateescape(buff);
                 return true;
             default:
-                return checkaction(buff, first, last);
+                return checkaction(buff, first, last, lispmode);
         }
         return false;
     }
@@ -2322,6 +2354,27 @@ public:
         long idcode;
         string code = convert(c);
         
+        if (lispmode) {
+            if (thecurrentfilename == "")
+                TamguSpaceInit(THEMAIN);
+            else
+                TamguSpaceInit(thecurrentfilename);
+            TamguAddCode(code);
+            Tamgustring str(code);
+            str.reference = 1;
+            TamguCall call(a_lisp);
+            call.arguments.push_back(&str);
+            Tamgu* a = mylisp.MethodEval(aNULL, 0, &call);
+            globalTamgu->Popstack(0);
+            
+            cout << m_red << a->String() << m_current << endl;
+            if (a->isError())
+                return false;
+            
+            a->Resetreference();
+            return true;
+        }
+
         if (thecurrentfilename == "")
             idcode = TamguCompile(code, THEMAIN, true);
         else
@@ -2555,6 +2608,13 @@ int main(int argc, char *argv[]) {
         }
 
 #ifndef WIN32
+        if (args == "-lisp") {
+            if (i < argc - 1)
+                name = argv[i+1];
+            lispmode = true;
+            continue;
+        }
+        
         if (args == "-l" || args == "-e") {
             vector<string> names;
             if (JAGEDITOR == NULL)
@@ -2738,7 +2798,33 @@ int main(int argc, char *argv[]) {
 #endif
         }
 
-        name = Normalizefilename(argv[1]);
+        name = Normalizefilename(name);
+        if (lispmode) {
+            ifstream rd(name, openMode);
+            if (rd.fail()) {
+                cerr << m_redbold << "Cannot load: " << name << m_current << endl;
+                exit(0);
+            }
+            string ln;
+            string cde;
+            while (!rd.eof()) {
+                getline(rd, ln);
+                ln = Trimright(ln);
+                cde += ln + "\n";
+            }
+            
+            TamguSpaceInit(name);
+            Tamgustring str(cde);
+            str.reference = 1;
+            TamguCall call(a_lisp);
+            call.arguments.push_back(&str);
+            Tamgu* a = mylisp.MethodEval(aNULL, 0, &call);
+            globalTamgu->Popstack(0);
+            
+            cout << m_red << a->String() << m_current << endl;
+            exit(0);
+        }
+        
         try {
             idcode = TamguLoad(name);
         }

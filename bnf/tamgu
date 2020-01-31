@@ -625,7 +625,7 @@ tlcomparator := [%< %>]^[%~ %=]^[%! %=]^$≠^[%= %=]^[%< %=]^[%> %=]^%<^%>
 tloperator := $×^$÷^[%< %<]^[%> %>]^[%^ %^]^[%* %*]^%&^%|^%+^%-^%*^%/^%%^%^
 
 tlatom := anumber^word^astringdouble
-%tlquote := %' %' tlexp
+%tlquote := %' (%') tlexp
 opcomp := tloperator^tlcomparator
 %tlist := %( ;67 (opcomp) tlexp* %)
 %tlexp := tlist^tlquote^tlatom

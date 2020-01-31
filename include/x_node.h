@@ -178,6 +178,7 @@ public:
     bool loaded;
     bool juststack;
     bool lookforquotes;
+    bool lispmode;
     unsigned char escape;
 
     x_rules() {
@@ -185,6 +186,7 @@ public:
         juststack=false;
         loaded=false;
         lookforquotes = false;
+        lispmode = false;
 
         for (short i=0; i< 255; i++) {
             table[i]=255;

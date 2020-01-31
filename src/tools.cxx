@@ -1928,6 +1928,7 @@ Exporting Tamgu* TamguGlobal::EvaluateLisp(Tamgu* contextualpattern, string& s, 
     x_reading xr;
     bnf_tamgu bnf;
     
+    xr.lispmode = true;
     xr.tokenize(s);
     
     bnf.baseline = linereference;

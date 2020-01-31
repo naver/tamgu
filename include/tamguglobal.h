@@ -665,7 +665,7 @@ public:
 	bool predicateTrace(short n);
 
 
-	//--------------------------------
+    //--------------------------------
 	
 	TamguGlobal(long nb, bool setglobal=false);
 

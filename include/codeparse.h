@@ -876,6 +876,7 @@ class bnf_tamgu {
     char m_tloperator(string& lreturn,x_node** tree);
     char m_tlatom(string& lreturn,x_node** tree);
     char m_tlquote(string& lreturn,x_node** tree);
+    char m_tlquote_0_1(string& lreturn,x_node** tree);
     char m_opcomp(string& lreturn,x_node** tree);
     char m_tlist(string& lreturn,x_node** tree);
     char m_tlist_0_1(string& lreturn,x_node** tree);

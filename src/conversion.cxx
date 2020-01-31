@@ -187,7 +187,7 @@ static const __m256i _thequotes = _mm256_set1_epi8(39);
 static const __m256i _thedoublequotes = _mm256_set1_epi8(34);
 static const __m256i _theslash = _mm256_set1_epi8(47);
 
-void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<string>& strings) {
+void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<string>& strings, bool lisp) {
 	__m256i current_bytes = _mm256_setzero_si256();
 	__m256i val;
 	long b, e, u;
@@ -329,6 +329,8 @@ void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<stri
 					}
 					break;
 				case '\'':
+                    if (lisp)
+                        break;
 					if (b > 0 && (src[b - 1] == 'r' || src[b - 1] == 'u' || src[b - 1] == 'p')) {
 						b--;
 						replace = true;
@@ -2135,7 +2137,7 @@ static const __m128i _the_quotes = _mm_set1_epi8(39);
 static const __m128i _the_doublequotes = _mm_set1_epi8(34);
 static const __m128i _the_slash = _mm_set1_epi8(47);
 
-void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<string>& strings) {
+void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<string>& strings, bool lisp) {
 	__m128i current_bytes = _mm_setzero_si128();
 	__m128i val;
 	long b,e,u;
@@ -2273,7 +2275,10 @@ void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<stri
 					}
 					break;
 				case '\'':
-					if (b > 0 && (src[b-1] == 'r' || src[b-1] == 'u' || src[b-1] == 'p')) {
+                    if (lisp)
+                        break;
+
+                    if (b > 0 && (src[b-1] == 'r' || src[b-1] == 'u' || src[b-1] == 'p')) {
 						b--;
 						replace = true;
 					}
@@ -3558,7 +3563,7 @@ if (lensearch > lensrc)
 }
 #endif
 #else
-void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<string>& strings) {
+void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<string>& strings, bool lisp) {
     long e = 0;
     long b, checkrc;
     long szmax = 256;
@@ -3634,6 +3639,9 @@ void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<stri
                 e++;
                 break;
             case 39:
+                if (lisp)
+                    break;
+
                 stop = '\'';
                 if (e > 0 && (src[e-1] == 'r' || src[e-1] == 'u' || src[e-1] == 'p')) {
                     checkrc = e-1;
@@ -12655,7 +12663,7 @@ Exporting long GetBlankSize() {
 #define maxx(a,b) (((a) > (b)) ? (a) : (b))
 #define setblanc(i) if (blancs[i] < 0) blancs[i] = blancs[i + blancs[i]]
 
-Exporting void IndentationCode(string& codeindente, vector<string>& code, vector <long>& blancs, long mxbase, bool construit) {
+Exporting void IndentationCode(string& codeindente, vector<string>& code, vector <long>& blancs, long mxbase, bool construit, bool lisp) {
     
     static x_forindent xr;
     
@@ -12673,7 +12681,7 @@ Exporting void IndentationCode(string& codeindente, vector<string>& code, vector
     long sztok;
     
     blancs[0] = 0;
-    bool inlisp = false;
+    bool inlisp = lisp;
     bool inelse = false;
     bool inprolog = false;
     bool comma = false;
@@ -12700,7 +12708,7 @@ Exporting void IndentationCode(string& codeindente, vector<string>& code, vector
                         paren--;
             }
             if (!paren)
-                inlisp = false;
+                inlisp = lisp;
             
             if ((paren-local) != 0) {
                 if ((paren-local) > 0) {
@@ -12744,7 +12752,7 @@ Exporting void IndentationCode(string& codeindente, vector<string>& code, vector
         comma = false;
         inelse = false;
         inprolog = false;
-        inlisp = false;
+        inlisp = lisp;
         local = curly;
 
         sztok = xr.stack.size();
@@ -12781,7 +12789,7 @@ Exporting void IndentationCode(string& codeindente, vector<string>& code, vector
             
             if (inlisp) {
                 if (paren <= 0) {
-                    inlisp = false;
+                    inlisp = lisp;
                     setblanc(i);
                 }
                 else {
@@ -12893,13 +12901,13 @@ Exporting void v_split_indent(string& thestr, vector<string>& v) {
         v.push_back("\n");
 }
 
-void IndentCode(string& codestr, string& codeindente, long blancs) {
+void IndentCode(string& codestr, string& codeindente, long blancs, bool lisp) {
     vector<string> vargs;
     vector <long> iblancs;
     cr_normalise(codestr);
     v_split_indent(codestr, vargs);
     codeindente = "";
-    IndentationCode(codeindente, vargs, iblancs, blancs, true);
+    IndentationCode(codeindente, vargs, iblancs, blancs, true, lisp);
     if (codeindente.find("/@") != string::npos || codeindente.find("@\"") != string::npos)
         cr_normalise(codeindente);
     
@@ -12912,7 +12920,7 @@ long VirtualIndentation(string& codestr) {
     vector<string> vargs;
     v_split_indent(codestr, vargs);
     codestr.clear();
-    IndentationCode(codestr, vargs, iblancs, 0, false);
+    IndentationCode(codestr, vargs, iblancs, 0, false, false);
     if (iblancs.size() == 0)
         return 0;
     return iblancs.back();

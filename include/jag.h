@@ -905,7 +905,7 @@ public:
         //formating method...
         //------------------------------------------------------------------------------------------------
     
-    void indentcode(long ps) {
+    void indentcode(long ps, bool lisp) {
         if (!lines.size())
             return;
         
@@ -914,7 +914,7 @@ public:
         string codeindente;
         string cd = convert(code);
         long nbspaces = 3;
-        IndentCode(cd, codeindente, nbspaces);
+        IndentCode(cd, codeindente, nbspaces, lisp);
         lines.clear();
         code = wconvert(codeindente);
         code += L"\n\n";
@@ -1055,7 +1055,7 @@ public:
     void cleanheaders(wstring& w);
     //This is the main method that launches the terminal
     virtual void launchterminal(char loadedcode);
-    bool checkaction(string&, long& first, long& last);
+    bool checkaction(string&, long& first, long& last, bool lsp = false);
     
     virtual void addcommandline(wstring& w) {}
     
