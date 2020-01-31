@@ -169,8 +169,6 @@ class Tamguvector : public TamguObjectLockContainer {
         values.push_back(a);
     }
 
-
-
     Exporting TamguIteration* Newiteration(bool direction);
 
 

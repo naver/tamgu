@@ -814,15 +814,17 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             a->Setchoice(1);
             
             v1 = new TamguCallReturn(globalTamgu, a);
-            if (sz == 3)
+            if (sz == 3) {
                 v1->AddInstruction(values[2]);
+                values[2]->Setreference();
+            }
             else {
                 Tamgulisp* block = new Tamgulispcode(globalTamgu);
                 block->Setreference();
                 block->Push(globalTamgu->Providelispsymbols(a_block));
                 for (i = 2; i < sz; i++)
                     block->values.push_back(values[i]);
-                v1->AddInstruction(block);
+                v1->AddInstruction(block);                
             }
             a->Setchoice(a_lambda);
             n = a->Name();
@@ -882,8 +884,10 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             }
             a->Setchoice(1);
             v1 = new TamguCallReturn(globalTamgu, a);
-            if (sz == 4)
+            if (sz == 4) {
                 v1->AddInstruction(values[3]);
+                values[3]->Setreference();
+            }
             else {
                 Tamgulisp* block = new Tamgulispcode(globalTamgu);
                 block->Setreference();

@@ -40,7 +40,7 @@
 #include "tamgutaskell.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2020.01.30";
+const char* tamgu_version = "Tamgu 1.2020.01.31";
 
 Tamgu* booleantamgu[2];
 
@@ -438,8 +438,6 @@ idSymbols(false), methods(false), compatibilities(false), strictcompatibilities(
 #ifdef GARBAGEFORDEBUG
         garbage.clear();
 #endif
-
-        lelisp = NULL;
         
         threadcounter = 0;
         trackerslotfilled = 0;

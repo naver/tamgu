@@ -9375,18 +9375,27 @@ Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
 
     Tamgu* kf = parent;
 
-    if (xn->token == "tlquote") {
-        kf = new Tamgulispcode(global, parent);
-        kf->Setaction(a_quote);
+    if (compilemode) {
+        if (xn->token == "tlquote") {
+            kf = new Tamgulispcode(global, parent);
+            kf->Setaction(a_quote);
+        }
+        else {
+            if (xn->token == "tlist")
+                kf = new Tamgulispcode(global, parent);
+        }
     }
     else {
-        if (xn->token == "tlist") {
-            if (global->lelisp == NULL) {
-                globalTamgu->lelisp = new Tamgulispcode(global, parent);
-                kf = globalTamgu->lelisp;
+        if (xn->token == "tlquote") {
+            kf = new Tamgulisp;
+            kf->Setaction(a_quote);
+            parent->Push(kf);
+        }
+        else {
+            if (xn->token == "tlist") {
+                kf = new Tamgulisp;
+                parent->Push(kf);
             }
-            else
-                kf = new Tamgulispcode(global, parent);
         }
     }
     

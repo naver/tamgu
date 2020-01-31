@@ -1947,7 +1947,8 @@ Exporting Tamgu* TamguGlobal::EvaluateLisp(Tamgu* contextualpattern, string& s, 
     code->compilemode = false;
     
     Tamguvector* lst = globalTamgu->Providevector();
-
+    lst->Setreference();
+    
     try {
         kret = code->Traverse(xn, lst);
     }
@@ -1964,7 +1965,10 @@ Exporting Tamgu* TamguGlobal::EvaluateLisp(Tamgu* contextualpattern, string& s, 
             kret->Release();
         kret = lst->values[i]->Eval(contextualpattern, aNULL, idthread);
     }
-    lst->Release();
+    
+    kret->Protect();
+    lst->Resetreference();
+    
     currentbnf = previous;
     delete xn;
     return kret;

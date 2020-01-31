@@ -665,9 +665,7 @@ public:
 	bool predicateTrace(short n);
 
 
-	//--------------------------------LISP
-    Tamgulisp* lelisp;
-    //--------------------------------
+	//--------------------------------
 	
 	TamguGlobal(long nb, bool setglobal=false);
 
