@@ -1783,11 +1783,13 @@ Exporting Tamgu* TamguGlobal::EvaluateParenthetic(string& s, string& o, string& 
         code->Traverse(xn, kret);
     }
     catch (TamguRaiseError* m) {
+        code->compilemode = true;
         code->global = this;
         kret->Release();
         kret = Returnerror(m->message, idthread);
         delete m;
     }
+    code->compilemode = true;
     
     currentbnf = previous;
     delete xn;
@@ -1851,12 +1853,13 @@ Exporting Tamgu* TamguGlobal::EvaluateTags(string& s, string& o, string& c, bool
         code->Traverse(xn, kret);
     }
     catch (TamguRaiseError* m) {
+        code->compilemode = true;
         code->global = this;
         kret->Release();
         kret = Returnerror(m->message, idthread);
         delete m;
     }
-    
+    code->compilemode = true;
     currentbnf = previous;
     delete xn;
     return kret;
@@ -1909,6 +1912,7 @@ Exporting An_rules* TamguGlobal::EvaluateRules(string& body, short idthread) {
         kret = code->Traverse(xn, aNULL);
     }
     catch (TamguRaiseError* m) {
+        code->compilemode = true;
         code->global = this;
         kret->Release();
         kret = Returnerror(m->message, idthread);
@@ -1917,6 +1921,7 @@ Exporting An_rules* TamguGlobal::EvaluateRules(string& body, short idthread) {
         delete xn;
         return NULL;
     }
+    code->compilemode = true;
     
     currentbnf = previous;
     delete xn;
@@ -1954,6 +1959,7 @@ Exporting Tamgu* TamguGlobal::EvaluateLisp(Tamgu* contextualpattern, string& s, 
         kret = code->Traverse(xn, lst);
     }
     catch (TamguRaiseError* m) {
+        code->compilemode = true;
         code->global = this;
         kret->Release();
         kret = Returnerror(m->message, idthread);
@@ -1961,6 +1967,8 @@ Exporting Tamgu* TamguGlobal::EvaluateLisp(Tamgu* contextualpattern, string& s, 
         delete m;
     }
         
+    code->compilemode = true;
+
     for (long i = 0; i < lst->Size(); i++) {
         if (i)
             kret->Release();
@@ -2001,12 +2009,13 @@ Exporting Tamgu* TamguGlobal::EvaluateVector(string& s, short idthread) {
         kret = code->Traverse(xn, NULL);
     }
     catch (TamguRaiseError* m) {
+        code->compilemode = true;
         code->global = this;
         kret->Release();
         kret = Returnerror(m->message, idthread);
         delete m;
     }
-    
+    code->compilemode = true;
     currentbnf = previous;
     delete xn;
     return kret;
@@ -2038,12 +2047,13 @@ Exporting Tamgu* TamguGlobal::EvaluateMap(string& s, short idthread) {
         kret = code->Traverse(xn, NULL);
     }
     catch (TamguRaiseError* m) {
+        code->compilemode = true;
         code->global = this;
         kret->Release();
         kret = Returnerror(m->message, idthread);
         delete m;
     }
-    
+    code->compilemode = true;
     delete xn;
     currentbnf = previous;
     return kret;
@@ -2074,12 +2084,13 @@ Exporting Tamgu* TamguGlobal::EvaluateJSON(string& s, short idthread) {
         kret = code->Traverse(xn, NULL);
     }
     catch (TamguRaiseError* m) {
+        code->compilemode = true;
         code->global = this;
         kret->Release();
         kret = Returnerror(m->message, idthread);
         delete m;
     }
-    
+    code->compilemode = true;
     currentbnf = previous;
     delete xn;
     return kret;

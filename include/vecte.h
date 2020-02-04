@@ -85,10 +85,7 @@ public:
 		tfs = (Z*)malloc(sizeof(Z)*t);
 
         for (bint i = 0; i< t; i++) {
-            if (i < last)
-                tfs[i] = vecteur[i];
-            else
-                tfs[i] = NULL;
+            tfs[i] = (i < last) ? vecteur[i] : NULL;
         }
         
         free(vecteur);
@@ -104,10 +101,7 @@ public:
         //on realloue par bloc de t
         tfs = (Z*)malloc(sizeof(Z)*t);
         for (bint i = 0; i< t; i++) {
-            if (i < last)
-                tfs[i] = vecteur[i];
-            else
-                tfs[i] = NULL;
+            tfs[i] = (i < last) ? vecteur[i] : NULL;
         }
         
         free(vecteur);
@@ -123,10 +117,7 @@ public:
         //on realloue par bloc de t
         tfs = (Z*)malloc(sizeof(Z)*t);
         for (bint i = 0; i< t; i++) {
-            if (i < last)
-                tfs[i] = vecteur[i];
-            else
-                tfs[i] = NULL;
+            tfs[i] = (i < last) ? vecteur[i] : NULL;
         }
         
         free(vecteur);
@@ -142,10 +133,7 @@ public:
         //on realloue par bloc de t
         tfs = (Z*)malloc(sizeof(Z)*t);
         for (bint i = 0; i< t; i++) {
-            if (i < last)
-            tfs[i] = vecteur[i];
-            else
-            tfs[i] = init;
+            tfs[i] = (i < last) ? vecteur[i] : init;
         }
         
         free(vecteur);
@@ -314,19 +302,17 @@ public:
 	}
 
 	inline long search(Z v) {
-        for (bint i = 0; i< last; i++) {
-            if (vecteur[i] == v)
-                return i;
-        }
-		return -1;
+        bint i;
+        for (i = 0; i< last && vecteur[i] != v; i++) {}
+        if (i != last)
+            return i;
+        return -1;
 	}
 
     inline bool check(Z v) {
-        for (bint i = 0; i< last; i++) {
-            if (vecteur[i] == v)
-                return true;
-        }
-        return false;
+        bint i;
+        for (i = 0; i< last && vecteur[i] != v; i++) {}
+        return (i != last);
     }
 
 };

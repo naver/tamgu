@@ -172,6 +172,7 @@ class Tamgulisp : public Tamguvector {
     //Declaration
     //All our methods must have been declared in tamguexportedmethods... See MethodInitialization below
     Tamgu* MethodEval(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodLoad(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     //---------------------------------------------------------------------------------------------------------------------
     Tamgu* CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         //This call is a bit cryptic. It takes the method (function) pointer that has been associated in our map with "name"

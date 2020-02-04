@@ -57,21 +57,13 @@ public:
 	}
 
 	bool isDeclared(short id) {
-		for (i = 0; i < names.last; i++) {
-			if (names.vecteur[i] == id)
-				return true;
-		}
-
-		return false;
+        return (names.search(id) != -1);
 	}
 
     void Replacedeclaration(short idthread, short id, Tamgu* a) {
-        for (i = 0; i < names.last; i++) {
-            if (names.vecteur[i] == id) {
-                declarations.vecteur[i] = a;
-                break;
-            }
-        }
+        i = names.search(id);
+        if (i != -1)
+            declarations.vecteur[i] = a;
         globalTamgu->Replacevariable(idthread, id, a);
     }
 
@@ -93,10 +85,9 @@ public:
 	}
 
 	Tamgu* Declaration(short id) {
-		for (i = 0; i < names.last; i++) {
-			if (names.vecteur[i] == id)
-				return declarations[i];
-		}
+        i = names.search(id);
+        if (i != -1)
+            return declarations[i];
 		return NULL;
 	}
 

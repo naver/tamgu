@@ -1895,70 +1895,68 @@ Exporting string TamguGlobal::Getfilename(short fileid) {
 // On the current domain (which a frame that is being declared)
 // In the global space...
 Tamgu* TamguCode::Declaror(short id) {
-	Tamgu* a;
-	for (BLONG i = global->Stacksize() - 1; i >= 0; i--) {
-		a = global->Stack(i);
-		if (a->isDeclared(id))
-			return a;
-	}
-	return NULL;
+    long i = global->Stacksize() - 1;
+    
+    for (; i >= 0 && !global->DStack(i)->isDeclared(id); i--) {}
+    
+    if (i >= 0)
+        return global->DStack(i);
+    return NULL;
 }
 
 Tamgu* TamguCode::Declaror(short id, Tamgu* parent) {
 	if (parent->isDeclared(id))
 		return parent;
 
-	Tamgu* a;
-	for (BLONG i = global->Stacksize() - 1; i >= 0; i--) {
-		a = global->Stack(i);
-		if (a->isDeclared(id))
-			return a;
-	}
-	return NULL;
+    long i = global->Stacksize() - 1;
+    
+    for (; i >= 0 && !global->DStack(i)->isDeclared(id); i--) {}
+    
+    if (i >= 0)
+        return global->DStack(i);
+    return NULL;
 }
-
+    
 Tamgu* TamguCode::Frame() {
-	Tamgu* a;
-	for (BLONG i = global->Stacksize() - 1; i >= 1; i--) {
-		a = global->Stack(i);
-		if (a->isFrame())
-			return a;
-	}
-	return NULL;
-}
+    long i = global->Stacksize() - 1;
+    
+    for (; i >= 0 && !global->DStack(i)->isFrame(); i--) {}
+    
+    if (i >= 0)
+        return global->DStack(i);
+    return NULL;
 
+}
 
 Tamgu* TamguCode::Declaration(short id) {
-	Tamgu* a;
-	for (BLONG i = global->Stacksize() - 1; i >= 0; i--) {
-		a = global->Stack(i);
-		if (a->isDeclared(id))
-			return a->Declaration(id);
-	}
-	return NULL;
+    long i = global->Stacksize() - 1;
+    
+    for (; i >= 0 && !global->DStack(i)->isDeclared(id); i--) {}
+    
+    if (i >= 0)
+        return global->DStack(i)->Declaration(id);
+    return NULL;
 }
 
 Tamgu* TamguCode::Declaration(short id, Tamgu* parent) {
 	if (parent->isDeclared(id))
 		return parent->Declaration(id);
 
-	Tamgu* a;
-	for (BLONG i = global->Stacksize() - 1; i >= 0; i--) {
-		a = global->Stack(i);
-		if (a->isDeclared(id))
-			return a->Declaration(id);
-	}
-	return NULL;
+    long i = global->Stacksize() - 1;
+    
+    for (; i >= 0 && !global->DStack(i)->isDeclared(id); i--) {}
+    
+    if (i >= 0)
+        return global->DStack(i)->Declaration(id);
+    return NULL;
 }
 
 bool TamguCode::isDeclared(short id) {
-	Tamgu* a;
-	for (BLONG i = global->Stacksize() - 1; i >= 0; i--) {
-		a = global->Stack(i);
-		if (a->isDeclared(id))
-			return true;
-	}
-	return false;
+    long i = global->Stacksize() - 1;
+    
+    for (; i >= 0 && !global->DStack(i)->isDeclared(id); i--) {}
+    
+    return (i >= 0);
 }
 
 Tamgu* TamguMainFrame::Declaration(short id) {
@@ -1978,10 +1976,11 @@ bool TamguMainFrame::isDeclared(short id) {
 }
 
 inline Tamgu* ThreadStruct::GetTopFrame() {
-	for (long i = stack.last - 1; i >= 0; i--) {
-		if (stack[i]->isFrame())
-			return stack[i];
-	}
+    long i = stack.last - 1;
+    for (; i >= 0 && !stack.vecteur[i]->isFrame(); i--) {}
+    if (i >= 0)
+        return stack.vecteur[i];
+    
 	return NULL;
 }
 
@@ -1990,10 +1989,12 @@ Tamgu* TamguGlobal::GetTopFrame(short idthread) {
 }
 
 inline Tamgu* ThreadStruct::Declarator(short id) {
-	for (long i = stack.last - 1; i >= 0; i--) {
-		if (stack.vecteur[i]->isDeclared(id))
-			return stack.vecteur[i];
-	}
+    long i = stack.last - 1;
+
+    for (; i >= 0 && !stack.vecteur[i]->isDeclared(id); i--) {}
+
+    if (i >= 0)
+        return stack.vecteur[i];
 	return aNULL;
 }
 
@@ -2003,22 +2004,18 @@ Tamgu* TamguGlobal::Declarator(short id, short idthread) {
 }
 
 inline Tamgu* ThreadStruct::Getdefinition(short id) {
-	Tamgu* value;
-	for (long i = stack.last - 1; i >= 0; i--) {
-		value = stack.vecteur[i]->Declaration(id);
-		if (value != NULL)
-			return value;
-	}
+    long i = stack.last - 1;
+    for (; i >= 0 && !stack.vecteur[i]->Declaration(id); i--) {}
+    if (i >= 0)
+        return stack.vecteur[i]->Declaration(id);
 	return aNULL;
 }
 
 inline Tamgu* ThreadStruct::Declaration(short id) {
-    Tamgu* value;
-    for (long i = stack.last - 1; i >= 0; i--) {
-        value = stack.vecteur[i]->Declaration(id);
-        if (value != NULL)
-            return value;
-    }
+    long i = stack.last - 1;
+    for (; i >= 0 && !stack.vecteur[i]->Declaration(id); i--) {}
+    if (i >= 0)
+        return stack.vecteur[i]->Declaration(id);
     return NULL;
 }
 
@@ -2042,11 +2039,9 @@ Tamgu* TamguGlobal::Getdefinition(short id, short idthread, Tamgu* current) {
 }
 
 inline bool ThreadStruct::isDeclared(short id) {
-	for (long i = stack.last - 1; i >= 0; i--) {
-		if (stack.vecteur[i]->isDeclared(id))
-			return true;
-	}
-	return false;
+    long i = stack.last - 1;
+    for (; i >= 0 && !stack.vecteur[i]->isDeclared(id); i--) {}
+    return (i >= 0);
 }
 
 bool TamguGlobal::isDeclared(short id, short idthread) {
@@ -9385,8 +9380,14 @@ Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
             kf->Setaction(a_quote);
         }
         else {
-            if (xn->token == "tlist")
-                kf = new Tamgulispcode(global, parent);
+            if (xn->token == "tlist") {
+                if (!xn->nodes.size()) {
+                    kf = aEMPTYLISP;
+                    parent->AddInstruction(kf);
+                }
+                else
+                    kf = new Tamgulispcode(global, parent);
+            }
         }
     }
     else {
@@ -9397,7 +9398,10 @@ Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
         }
         else {
             if (xn->token == "tlist") {
-                kf = new Tamgulisp;
+                if (!xn->nodes.size())
+                    kf = aEMPTYLISP;
+                else
+                    kf = new Tamgulisp;
                 parent->Push(kf);
             }
         }

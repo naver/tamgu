@@ -218,33 +218,57 @@ class Tamgutime : public TamguObject {
 
 
 	Tamgu* less(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aFALSE;
+#endif
 		double mt = (((unsigned long)value.tv_sec) * 1000 + ((unsigned long)value.tv_usec) / 1000.0) + 0.5;
 		if (mt<a->Float())
 			return aTRUE;
 		return aFALSE;
 	}
 	Tamgu* more(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aFALSE;
+#endif
 		if (Float()>a->Float())
 			return aTRUE;
 		return aFALSE;
 	}
 	Tamgu* same(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aFALSE;
+#endif
 		if (Float() == a->Float())
 			return aTRUE;
 		return aFALSE;
 	}
 	Tamgu* different(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aTRUE;
+#endif
 		if (Float() != a->Float())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* lessequal(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aFALSE;
+#endif
 		if (Float() <= a->Float())
 			return aTRUE;
 		return aFALSE;
 	}
 	Tamgu* moreequal(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aFALSE;
+#endif
 		if (Float() >= a->Float())
 			return aTRUE;
 		return aFALSE;

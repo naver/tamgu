@@ -96,10 +96,10 @@ for (s in f) {
         s=s.replace('#include "tamgun.h"','#include "codeparse.h"');
         sauve.write(regle);
     }
-    
+
     if ("static const char* varstring" in s)
         varstrings[s["varstring":"="][:-1]]=s['"':'"'][1:-1];
-        
+
     if ("bnf_tamgu::" in s) {
         if (premier)
             sauve.write(regle);
@@ -117,7 +117,7 @@ for (s in f) {
                     regle["bool exitonfail=false;"]="//bool exitonfail=false;";
                 }
             }
-            
+
             string lenomcomplet=sx;
             if ("_" in sx[3:])
                 sx=sx["m_":"_"][:-1];
@@ -132,9 +132,9 @@ for (s in f) {
                 reg+="for (long ix=currentpos+1;ix<fx->stack.size();ix++) {\n";
                 reg+="c=fx->stack[ix][0];\n";
                 reg+="if (c=='[' || c==']')\nreturn 0;\n";
-                reg+="if (c==',')\n{\n";
-                reg+="if (nbcomma)\nreturn 0;\nnbcomma=true;}\n";
-                reg+='if (fx->stack[ix] == "..")'+"\n{fnd=true;\nbreak;}\n}\n";
+                reg+="if (c==',') {\n";
+                reg+="if (nbcomma)\nreturn 0;\nnbcomma=true;\n}\n";
+                reg+='if (fx->stack[ix] == "..")'+" {\nfnd=true;\nbreak;\n}\n}\n";
                 reg+="if (!fnd)\nreturn 0;\n";
                 v.insert(ipos,reg);
                 reg=v.join("\n");
@@ -154,7 +154,7 @@ for (s in f) {
                         indexes[sx]=k;
                 }
             }
-            
+
             if ( "::m_wrong" in regle || "::m_notafunction" in regle || "::m_notapredicate" in regle || "::m_functionsort" in regle || "::m_filterkeyword" in regle) {
                 v=< <trim x> | x <- regle.trim().split(cr) >;
                 vx=<x | x <- v," || " in x>;
@@ -189,7 +189,7 @@ for (s in f) {
                         }
                     }
                 }
-                
+
                 if (vdefault.size()) {
                     reg+="default:\n";
                     svector vdef;
@@ -197,18 +197,18 @@ for (s in f) {
                         vdef&&&=vo[e];
                     reg+="if ("+vdef.join(" || ")+")\nfound=true;\n";
                 }
-                
-                
+
+
                 reg+="}\n";
                 reg+="if (found)";
                 vx=<if (" || " in x) reg else x | x <- v>;
-                reg=vx.join("\n");
+                    reg=vx.join("\n");
                 reg+="\n\n";
                 sauve.write(reg);
                 regle=s;
                 continue;
             }
-            
+
             if ("::m_hmetafunctions" in regle or "::m_hcompose" in regle) {
                 v=< <trim x> | x <- regle.trim().split(cr) >;
                 vx=<x | x <- v," || " in x>;
@@ -227,7 +227,7 @@ for (s in f) {
                     }
                     reg+="}\nif (found)";
                     vx=<if (" || " in x) reg else x | x <- v>;
-                    reg=vx.join("\n");
+                        reg=vx.join("\n");
                     reg+="\n\n";
                     sauve.write(reg);
                     regle=s;
@@ -252,12 +252,12 @@ for (s in f) {
                                 idx=indexes[sxx][0];
                                 if (sxx=="predicatevariable")
                                     ors["#"]=[sx];
-                                    
+
                                 if (ors.test(idx))
                                     ors[idx].push(sx);
                                 else
                                     ors[idx]=[sx];
-                                if (indexes[sxx]!=idx) {
+                                if (string(indexes[sxx])!=idx) {
                                     ors[indexes[sxx]]=[sx];
                                 }
                             }
@@ -273,7 +273,7 @@ for (s in f) {
                                 }
                                 break;
                             }
-                            
+
                             if ("x_test_in" in sx) {
                                 string k=sx["tab":1];
                                 for (idx in lestabs[k]) {
@@ -298,7 +298,7 @@ for (s in f) {
                             }
                         }
                     }
-                    
+
                     if (ors.size()==1) {
                         sauve.write(regle);
                     }
@@ -369,7 +369,7 @@ for (s in f) {
                                     if (lettre>1)
                                         reg+="\nif ("+ors[sx][0]+defaut+") \nfound=true;\nbreak;\n";
                                     else
-                                        reg+="\nif ("+ors[sx][0]+") \n{found=true;\nbreak;\n}\n";
+                                        reg+="\nif ("+ors[sx][0]+") {\nfound=true;\nbreak;\n}\n";
                                 }
                             }
                         }
@@ -388,7 +388,7 @@ for (s in f) {
 
                         reg+="}\nif (found)";
                         vx=<if (" || " in x) reg else x | x <- v>;
-                        reg=vx.join("\n");
+                            reg=vx.join("\n");
                         reg+="\n\n";
                         sauve.write(reg);
                     }
@@ -436,20 +436,5 @@ txt=txt.indent();
 sa.openwrite(_current+'tamgun.h');
 sa.write(txt);
 sa.close();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

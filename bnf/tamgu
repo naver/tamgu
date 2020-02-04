@@ -624,7 +624,7 @@ parentheticexpression := astringdouble^afullstring^astringsimple^anumber^astring
 tlcomparator := [%< %>]^[%~ %=]^[%! %=]^$≠^[%= %=]^[%< %=]^[%> %=]^%<^%>
 tloperator := $×^$÷^[%< %<]^[%> %>]^[%^ %^]^[%* %*]^%&^%|^%+^%-^%*^%/^%%^%^
 
-tlatom := anumber^word^astringdouble
+tlatom := anumber^word^astringdouble^apreg^aspreg^atreg^astreg
 %tlquote := %' (%') tlexp
 opcomp := tloperator^tlcomparator
 %tlist := %( ;67 (opcomp) tlexp* %)

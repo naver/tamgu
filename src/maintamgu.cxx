@@ -177,8 +177,10 @@ class tamgu_editor : public jag_editor {
     hmap<string, short> filenames;
     vector<string> ifilenames;
     vector<wstring> codes;
+    
     vector<editor_keep> editors_undos;
     vector<editor_keep> editors_redos;
+    vector<long> lastlines;
 
     vector<string> displaying;
     
@@ -190,6 +192,7 @@ class tamgu_editor : public jag_editor {
     long nbcurly;
     long pcursor;
     long idCode;
+    long lastline;
     
     bool editmode;
     
@@ -208,6 +211,7 @@ public:
         curlyspace = L"";
         debugmode = false;
         idCode = -1;
+        lastline = 0;
     }
     
     bool emode() {
@@ -713,6 +717,7 @@ public:
         editor_keep kp;
         editors_undos.push_back(kp);
         editors_redos.push_back(kp);
+        lastlines.push_back(0);
         filenames[thecurrentfilename] = currentfileid;
         if (!fromwrite) {
             //We create a local undos/redos section..
@@ -827,12 +832,15 @@ public:
         TamguCall func(0);
         func.arguments.push_back(&_arg);
         globalTamgu->debugmode = false;
+        bool gL = globalTamgu->globalLOCK;
+        globalTamgu->globalLOCK = false;
         if (disp)
             cout << code << ": ";
         cout << m_redbold;
         Tamgu* e = ProcEval(aNULL,0,&func);
         cout << m_current;
         globalTamgu->debugmode = true;
+        globalTamgu->globalLOCK = gL;
         if (e->isError()) {
             globalTamgu->Cleanerror(0);
             return false;
@@ -1055,10 +1063,12 @@ public:
                         //We backup our current undo/redo section
                         undos.storein(editors_undos[currentfileid]);
                         redos.storein(editors_redos[currentfileid]);
+                        lastlines[currentfileid] = lastline;
                         
                         currentfileid = i;
                         code = codes[i];
                         thecurrentfilename = ifilenames[i];
+                        lastline = lastlines[i];
                         
                         //we now reactivate the current undo/redo section
                         editors_undos[i].storein(undos);
@@ -1084,11 +1094,11 @@ public:
                 currentline = 0;
                 dsp = false;
                 
-                pos = 0;
+                pos = lastline;
                 option = x_none;
-                line = lines[0];
                 posinstring = 0;
-                displaylist(0, row_size);
+                line = lines[lastline];
+                displaylist(lastline, row_size);
                 movetoline(currentline);
                 movetobeginning();
                 return pos;
@@ -1722,7 +1732,7 @@ public:
                 return pos;
             case cmd_goto:
                 if (debugmode && debuginfo.running)
-                    if (debuginfo.gotonext())
+                    if (!debuginfo.gotonext())
                         cleardebug();
                 return pos;
             case cmd_locals:
@@ -1931,6 +1941,7 @@ public:
             printline(pos+1);
         }
         else {
+            lastline = poslines[0];
             editmode = false;
             currentline = 0;
             
@@ -1972,6 +1983,7 @@ public:
                 debugmode = true;
             case 'r':
                 if (emode()) {
+                    lastline = poslines[0];
                     if (lines.size()) {
                         bool dsp = true;
                         handle_ctrl_c(0);

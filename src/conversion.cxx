@@ -12816,11 +12816,19 @@ Exporting void IndentationCode(string& codeindente, vector<string>& code, vector
                 else {
                         //We need to remove some space
                     if (i > 0) {
-                        blancs[i] = blancs[i+blancs[i]] - blanksize*(local-curly);
+                        if (blancs[i] < 0)
+                            blancs[i] = blancs[i+blancs[i]] - blanksize*(local-curly);
+                        else
+                            blancs[i] -=  blanksize*(local-curly);
+
                         if (blancs[i] < 0)
                             blancs[i] = 0;
                     }
                 }
+                
+                if (c == ',' || c == '|' || c == '&')
+                    comma = true;
+
                 continue;
             }
         }
@@ -12880,8 +12888,6 @@ Exporting void v_split_indent(string& thestr, vector<string>& v) {
     xr.tokenize(thestr);
     
     string value;
-    
-    
     for (long i = 0; i < xr.stack.size(); i++) {
         if (xr.stack[i] == "\n") {
             if (value == "")
@@ -12890,8 +12896,15 @@ Exporting void v_split_indent(string& thestr, vector<string>& v) {
                 v.push_back(Trim(value));
             value = "";
         }
-        else
-            value += xr.stack[i];
+        else {
+            if (xr.stack[i].back() == '\n') {
+                if (Trim(value) != "")
+                    v.push_back(value);
+                v.push_back(Trim(xr.stack[i]));
+            }
+            else
+                value += xr.stack[i];
+        }
     }
     
     Trim(value);

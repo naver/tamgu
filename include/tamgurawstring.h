@@ -554,6 +554,10 @@ public:
 
 
 	Tamgu* less(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isString())
+            return aFALSE;
+#endif
 		if (value == NULL)
 			return aTRUE;
 
@@ -564,6 +568,10 @@ public:
 	}
 
 	Tamgu* more(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isString())
+            return aFALSE;
+#endif
 		if (value == NULL)
 			return aFALSE;
 		string v = a->String();
@@ -573,6 +581,10 @@ public:
 	}
 
 	Tamgu* same(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isString())
+            return aFALSE;
+#endif
 		if (value == NULL) {
 			if (a->Size() == 0)
 				return aTRUE;
@@ -586,6 +598,10 @@ public:
 	}
 
 	Tamgu* different(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isString())
+            return aTRUE;
+#endif
 		if (value == NULL) {
 			if (a->Size() != 0)
 				return aTRUE;
@@ -598,6 +614,10 @@ public:
 	}
 
 	Tamgu* lessequal(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isString())
+            return aFALSE;
+#endif
 		if (value == NULL) {
 			if (a->Size() == 0)
 				return aTRUE;
@@ -610,6 +630,10 @@ public:
 	}
 
 	Tamgu* moreequal(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isString())
+            return aFALSE;
+#endif
 		if (value == NULL) {
 			if (a->Size() == 0)
 				return aTRUE;

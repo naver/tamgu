@@ -385,7 +385,7 @@ public:
 	bin_hash<string> idSymbols;
 	
     hmap<string, short> symbolIds;
-    bin_hash<bool> lispactions;
+    bin_hash<unsigned long> lispactions;
     bin_hash<Tamgu*> lispsymbols;
     bin_hash<Tamgu*> lispoperators;
     
@@ -525,6 +525,7 @@ public:
     Tamgu* gTHIRTYTWO;
     Tamgu* gSIXTYFOUR;
     
+    Tamgu* gEMPTYLISP;
     Tamgu* gEMPTYSTRING;
     Tamgu* gEMPTYUSTRING;
 	Tamgu* gBREAK;
@@ -833,8 +834,13 @@ public:
 	inline Tamgu* Stack(size_t i, short idthread = 0) {
 		if (i >= threads[idthread].stack.size())
 			return NULL;
-		return threads[idthread].stack[i];
+		return threads[idthread].stack.vecteur[i];
 	}
+
+    inline Tamgu* DStack(size_t i) {
+        return threads[0].stack.vecteur[i];
+    }
+
 
 	Tamgu* GetTopFrame(short idthread);
     inline Tamgu* Getdeclaration(short id, short idthread) {

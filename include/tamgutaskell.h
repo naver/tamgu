@@ -82,11 +82,12 @@ public:
 		return true;
 	}
 
-    char Declarelocal(short idthread, short n, Tamgu* a) {
-        if (isDeclared(n))
+    char Declarelocal(short idthread, short id, Tamgu* a) {
+        if (names.search(id) != -1)
             return a_declaration;
 
-        Declare(n, a);
+        names.push_back(id);
+        declarations.push_back(a);
         return true;
     }
 

@@ -38,9 +38,10 @@
 #include <memory>
 #include "vecte.h"
 #include "tamgutaskell.h"
+#include "tamgulisp.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2020.01.31";
+const char* tamgu_version = "Tamgu 1.2020.02.04";
 
 Tamgu* booleantamgu[2];
 
@@ -108,6 +109,7 @@ Exchanging Tamgu* aTWENTY  = NULL;
 Exchanging Tamgu* aTHIRTYTWO  = NULL;
 Exchanging Tamgu* aSIXTYFOUR  = NULL;
 
+Exchanging Tamgu* aEMPTYLISP  = NULL;
 Exchanging Tamgu* aEMPTYSTRING  = NULL;
 Exchanging Tamgu* aEMPTYUSTRING  = NULL;
 Exchanging Tamgu* aBREAK  = NULL;
@@ -180,6 +182,7 @@ void FinalTamguConstantCleaning(void) {
         delete aSIXTYFOUR;
 
 
+        delete aEMPTYLISP;
         delete  aEMPTYSTRING ;
         delete  aEMPTYUSTRING ;
         delete  aBREAK ;
@@ -243,6 +246,7 @@ void FinalTamguConstantCleaning(void) {
         aTHIRTYTWO  = NULL;
         aSIXTYFOUR  = NULL;
 
+        aEMPTYLISP = NULL;
         aEMPTYSTRING  = NULL;
         aEMPTYUSTRING  = NULL;
         aBREAK  = NULL;
@@ -1244,8 +1248,12 @@ Exporting void TamguGlobal::RecordCompatibilities() {
             compatibilities[numbers[i]][numbers[j]] = true;
             strictcompatibilities[numbers[i]][numbers[j]] = true;
         }
+        //We enable a loose compatibilities between strings and numbers
+        //When this flag is set to one, a function with a string parameter can be called with a number argument
+#ifdef TAMGULOOSECOMPATIBILITIES
         for (j = 0; j < strings.size(); j++)
             compatibilities[numbers[i]][strings[j]] = true;
+#endif
         compatibilities[numbers[i]][a_const] = true;
         strictcompatibilities[numbers[i]][a_const] = true;
     }
@@ -1255,8 +1263,12 @@ Exporting void TamguGlobal::RecordCompatibilities() {
             compatibilities[strings[i]][strings[j]] = true;
             strictcompatibilities[strings[i]][strings[j]] = true;
         }
+        //We enable a loose compatibilities between strings and numbers
+        //When this flag is set to one, a function with a number parameter can be called with a string argument
+#ifdef TAMGULOOSECOMPATIBILITIES
         for (j = 0; j < numbers.size(); j++)
             compatibilities[strings[i]][numbers[j]] = true;
+#endif
         compatibilities[strings[i]][a_const] = true;
         strictcompatibilities[strings[i]][a_const] = true;
     }
@@ -1385,6 +1397,7 @@ Exporting void TamguGlobal::Update() {
 
 
 
+        aEMPTYLISP = gEMPTYLISP;
         aEMPTYSTRING = gEMPTYSTRING;
         aEMPTYUSTRING = gEMPTYUSTRING;
         aBREAK = gBREAK;
@@ -1634,8 +1647,10 @@ Exporting void TamguGlobal::RecordConstantNames() {
         aTHIRTYTWO->Protectfromtracker();
         aSIXTYFOUR->Protectfromtracker();
 
+        aEMPTYLISP = new Tamgulispcode(NULL);
         aEMPTYSTRING = new TamguConstString("", NULL);
         aEMPTYUSTRING = new TamguConstUString(L"", NULL);
+        aEMPTYLISP->Protectfromtracker();
         aEMPTYSTRING->Protectfromtracker();
         aEMPTYUSTRING->Protectfromtracker();
 
@@ -1954,15 +1969,18 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("block"); //215 a_block,
     Createid("setq"); //216 a_setq,
     Createid("append"); //217 a_append,
-    Createid("lisp"); //218 a_lisp
+    Createid("eval"); //218 a_eval,
+    Createid("key"); //219 a_key,
+    Createid("keys"); //219 a_keys,
+    Createid("lisp"); //220 a_lisp
 
     //This is a simple hack to handle "length" a typical Haskell operator as "size"...
     //Note that there will be a useless index
 
-    Createid("length"); //219
+    Createid("length"); //221
     symbolIds["length"] = a_size;
 
-    Createid("not"); //217
+    Createid("not"); //222
     symbolIds["not"] = a_negation;
 
     symbolIds["and"] = a_booleanand;
@@ -2046,6 +2064,7 @@ Exporting void TamguGlobal::RecordConstantNames() {
     gSIXTYFOUR  = aSIXTYFOUR;
 
 
+    gEMPTYLISP = aEMPTYLISP;
     gEMPTYSTRING = aEMPTYSTRING;
     gEMPTYUSTRING = aEMPTYUSTRING;
     gBREAK = aBREAK;

@@ -15,11 +15,12 @@
  */
 
 #include "tamgu.h"
+#include "tamgufile.h"
 #include "tamguglobal.h"
+#include "instructions.h"
 #include "compilecode.h"
 #include "tamguversion.h"
 #include "tamgulisp.h"
-#include "instructions.h"
 
 //We need to declare once again our local definitions.
 #define checkerror(a) if (a->isError()) return a
@@ -45,62 +46,67 @@ bool Tamgulisp::InitialisationModule(TamguGlobal* global, string version) {
     Tamgulisp::idtype = a_lisp;
 
     Tamgulisp::AddMethod(global, "eval", &Tamgulisp::MethodEval, P_ONE, "eval(e): 'e' is a lisp expression provided as a string.");
+    Tamgulisp::AddMethod(global, "load", &Tamgulisp::MethodLoad, P_ONE, "load(path): load a lisp from the file path.");
 
     global->newInstance[a_lisp] = new Tamgulispcode(global);
     global->RecordMethods(a_lisp, Tamgulisp::exported);
 
-    global->lispactions[a_block] = true;
+    global->lispactions[a_block] = P_ATLEASTTWO;
 
-    global->lispactions[a_if] = true;
-    global->lispactions[a_booleanxor] = true;
-    global->lispactions[a_booleanor] = true;
-    global->lispactions[a_booleanand] = true;
-    global->lispactions[a_negation] = true;
+    global->lispactions[a_in] = P_THREE;
+    global->lispactions[a_if] = P_THREE | P_FOUR;
+    global->lispactions[a_booleanxor] = P_THREE;
+    global->lispactions[a_booleanor] = P_ATLEASTTHREE;
+    global->lispactions[a_booleanand] = P_ATLEASTTHREE;
+    global->lispactions[a_negation] = P_TWO;
     
-    global->lispactions[a_for] = true;
-    global->lispactions[a_return] = true;
-    global->lispactions[a_lambda] = true;
-    global->lispactions[a_defun] = true;
-    global->lispactions[a_while] = true;
-    global->lispactions[a_break] = true;
+    global->lispactions[a_eval] = P_TWO;
+    global->lispactions[a_for] = P_ATLEASTFOUR;
+    global->lispactions[a_return] = P_TWO | P_THREE;
+    global->lispactions[a_lambda] = P_ATLEASTTHREE;
+    global->lispactions[a_defun] = P_ATLEASTFOUR;
+    global->lispactions[a_while] = P_ATLEASTTHREE;
+    global->lispactions[a_break] = P_ONE;
 
     
-    global->lispactions[a_list] = true;
-    global->lispactions[a_append] = true;
-    global->lispactions[a_same] = true;
-    global->lispactions[a_different] = true;
-    global->lispactions[a_less] = true;
-    global->lispactions[a_more] = true;
-    global->lispactions[a_lessequal] = true;
-    global->lispactions[a_moreequal] = true;
+    global->lispactions[a_key] = P_THREE|P_FOUR;
+    global->lispactions[a_keys] = P_FOUR|P_THREE;
+    global->lispactions[a_list] = P_ATLEASTTHREE;
+    global->lispactions[a_append] = P_ATLEASTTHREE;
+    global->lispactions[a_same] = P_THREE;
+    global->lispactions[a_different] = P_THREE;
+    global->lispactions[a_less] = P_THREE;
+    global->lispactions[a_more] = P_THREE;
+    global->lispactions[a_lessequal] = P_THREE;
+    global->lispactions[a_moreequal] = P_THREE;
     
-    global->lispactions[a_or] = true;
-    global->lispactions[a_xor] = true;
-    global->lispactions[a_and] = true;
-    global->lispactions[a_plus] = true;
-    global->lispactions[a_minus] = true;
-    global->lispactions[a_multiply] = true;
-    global->lispactions[a_divide] = true;
-    global->lispactions[a_power] = true;
-    global->lispactions[a_mod] = true;
-    global->lispactions[a_shiftleft] = true;
-    global->lispactions[a_shiftright] = true;
+    global->lispactions[a_or] = P_ATLEASTTHREE;
+    global->lispactions[a_xor] = P_ATLEASTTHREE;
+    global->lispactions[a_and] = P_ATLEASTTHREE;
+    global->lispactions[a_plus] = P_ATLEASTTHREE;
+    global->lispactions[a_minus] = P_ATLEASTTHREE;
+    global->lispactions[a_multiply] = P_ATLEASTTHREE;
+    global->lispactions[a_divide] = P_THREE;
+    global->lispactions[a_power] = P_THREE;
+    global->lispactions[a_mod] = P_THREE;
+    global->lispactions[a_shiftleft] = P_THREE;
+    global->lispactions[a_shiftright] = P_THREE;
     
-    global->lispactions[a_setq] = true;
-    global->lispactions[a_quote] = true;
-    global->lispactions[a_cons] = true;
-    global->lispactions[a_cond] = true;
-    global->lispactions[a_self] = true;
-    global->lispactions[a_atom] = true;
-    global->lispactions[a_eq] = true;
-    global->lispactions[a_cadr] = true;
-    global->lispactions[a_label] = true;
-    global->lispactions[a_atomp] = true;
-    global->lispactions[a_numberp] = true;
-    global->lispactions[a_consp] = true;
-    global->lispactions[a_zerop] = true;
-    global->lispactions[a_nullp] = true;
-    global->lispactions[a_lisp] = true;
+    global->lispactions[a_setq] = P_THREE;
+    global->lispactions[a_quote] = P_TWO;
+    global->lispactions[a_cons] = P_THREE;
+    global->lispactions[a_cond] = P_ATLEASTTWO;
+    global->lispactions[a_self] = P_ATLEASTTWO;
+    global->lispactions[a_atom] = P_FULL;
+    global->lispactions[a_eq] = P_THREE;
+    global->lispactions[a_cadr] = P_TWO;
+    global->lispactions[a_label] = P_THREE;
+    global->lispactions[a_atomp] = P_TWO;
+    global->lispactions[a_numberp] = P_TWO;
+    global->lispactions[a_consp] = P_TWO;
+    global->lispactions[a_zerop] = P_TWO;
+    global->lispactions[a_nullp] = P_TWO;
+    global->lispactions[a_lisp] = P_ATLEASTONE;
 
     return true;
 }
@@ -206,6 +212,28 @@ Tamgu* Tamgulisp::MethodEval(Tamgu* contextualpattern, short idthread, TamguCall
     string s = a->String();
     return globalTamgu->EvaluateLisp(contextualpattern, s, idthread);
 }
+
+Tamgu* Tamgulisp::MethodLoad(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    Locking _lock(this);
+    string filename =  callfunc->Evaluate(0, contextualpattern, idthread)->String();
+    
+    Tamgufile file;
+    
+#ifdef WIN32
+    fopen_s(&file.thefile, STR(filename), "rb");
+#else
+    file.thefile=fopen(STR(filename), "rb");
+#endif
+    
+    if (file.thefile == NULL) {
+        string msg="Cannot open the file:";
+        msg += filename;
+        return globalTamgu->Returnerror(msg, idthread);
+    }
+    filename = file.read(-1);
+    return globalTamgu->EvaluateLisp(contextualpattern, filename, idthread);
+}
+
     //For once it is the original historical Eval...
 Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
         //We need to take into account the different case...
@@ -223,7 +251,15 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
     Tamgu* v1;
     char ret;
     
-    switch (a->Action()) {
+    n = a->Action();
+    if (!Arity(globalTamgu->lispactions.get(n), sz)) {
+        string msg = "Wrong number of arguments in '";
+        msg += globalTamgu->Getsymbol(n);
+        msg += "'";
+        return globalTamgu->Returnerror(msg,idthread);
+    }
+    
+    switch (n) {
         case a_break:
             return aBREAK;
         case a_return:
@@ -233,12 +269,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                     values[2]->Put(contextualpattern, v1, idthread);
                     return values[2];
                 }
-                else
-                    return globalTamgu->Returnerror("Wrong number of arguments in 'return'", idthread);
             }
-            
-            if (sz != 2)
-                return globalTamgu->Returnerror("Wrong number of arguments in 'return'", idthread);
             
             v1 = values[1]->Eval(contextualpattern, aNULL, idthread);
             v0 = new TamguCallReturn(globalTamgu);
@@ -249,7 +280,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
         {
             n = values[1]->Name();
 
-            if (sz >= 2 && values[2]->isInstruction()) {
+            if (values[2]->isInstruction()) {
                 if (globalTamgu->isDeclared(n, idthread)) {
                     v0 = globalTamgu->Getdeclaration(n, idthread);
                     values[2]->Instruction(0)->Putinstruction(0,v0);
@@ -258,10 +289,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 return values[2]->Eval(contextualpattern, aNULL, idthread)->Returned(idthread);
             }
             
-            if (sz < 3)
-                return globalTamgu->Returnerror("Wrong number of arguments in 'for'", idthread);
-
-            TamguInstructionFORINVECTOR* forin = new TamguInstructionFORINVECTOR(globalTamgu);
+            TamguInstructionFORIN* forin = new TamguInstructionFORIN(globalTamgu);
             forin->variablesWillBeCreated = true;
 
             if (globalTamgu->isDeclared(n, idthread)) {
@@ -291,12 +319,9 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
         }
         case a_while: //while condition block)
         {
-            if (sz >= 2 && values[1]->isInstruction())
+            if (values[1]->isInstruction())
                 return values[1]->Eval(contextualpattern, aNULL, idthread)->Returned(idthread);
             
-            if (sz < 3)
-                return globalTamgu->Returnerror("Wrong number of arguments in 'while'", idthread);
-
             TamguInstructionWHILE* awhile = new TamguInstructionWHILE(globalTamgu);
             awhile->instructions.push_back(values[1]); // the condition
             if (sz == 3)
@@ -346,9 +371,6 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             return aTRUE;
         }
         case a_booleanxor:
-            if (sz != 3)
-                return globalTamgu->Returnerror("Wrong number of arguments in 'xor'", idthread);
-            
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             //checkerror(v0);
             v1 = values[2]->Eval(contextualpattern, aNULL, idthread);
@@ -363,8 +385,6 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             v1->Releasenonconst();
             return a;
         case a_negation:
-            if (sz != 2)
-                return globalTamgu->Returnerror("Wrong number of arguments in 'not'", idthread);
             v1 = values[1]->Eval(contextualpattern, aNULL, idthread);
             //checkerror(v1);
             if (v1 == aTRUE)
@@ -389,8 +409,6 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             return tl;
         }
         case a_same:
-            if (sz != 3)
-                return globalTamgu->Returnerror("Wrong number of arguments in '=='", idthread);
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v0);
             v1 = values[2]->Eval(contextualpattern, aNULL, idthread);
@@ -400,8 +418,6 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             v1->Releasenonconst();
             return a;
         case a_different:
-            if (sz != 3)
-                return globalTamgu->Returnerror("Wrong number of arguments in '!='", idthread);
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v0);
             v1 = values[2]->Eval(contextualpattern, aNULL, idthread);
@@ -411,8 +427,6 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             v1->Releasenonconst();
             return a;
         case a_less:
-            if (sz != 3)
-                return globalTamgu->Returnerror("Wrong number of arguments in '<'", idthread);
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v0);
             v1 = values[2]->Eval(contextualpattern, aNULL, idthread);
@@ -422,8 +436,6 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             v1->Releasenonconst();
             return a;
         case a_more:
-            if (sz != 3)
-                return globalTamgu->Returnerror("Wrong number of arguments in '>'", idthread);
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v0);
             v1 = values[2]->Eval(contextualpattern, aNULL, idthread);
@@ -433,8 +445,6 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             v1->Releasenonconst();
             return a;
         case a_lessequal:
-            if (sz != 3)
-                return globalTamgu->Returnerror("Wrong number of arguments in '<='", idthread);
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v0);
             v1 = values[2]->Eval(contextualpattern, aNULL, idthread);
@@ -444,8 +454,6 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             v1->Releasenonconst();
             return a;
         case a_moreequal:
-            if (sz != 3)
-                return globalTamgu->Returnerror("Wrong number of arguments in '>='", idthread);
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v0);
             v1 = values[2]->Eval(contextualpattern, aNULL, idthread);
@@ -455,8 +463,6 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             v1->Releasenonconst();
             return a;
         case a_plus:
-            if (sz < 3)
-                return globalTamgu->Returnerror("Wrong number of arguments in '+'", idthread);
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v0);
             v0 = v0->Atom();
@@ -468,8 +474,6 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             }
             return v0;
         case a_minus:
-            if (sz < 3)
-                return globalTamgu->Returnerror("Wrong number of arguments in '-'", idthread);
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v0);
             v0 = v0->Atom();
@@ -481,8 +485,6 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             }
             return v0;
         case a_multiply:
-            if (sz < 3)
-                return globalTamgu->Returnerror("Wrong number of arguments in '*'", idthread);
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v0);
             v0 = v0->Atom();
@@ -494,8 +496,6 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             }
             return v0;
         case a_divide:
-            if (sz != 3)
-                return globalTamgu->Returnerror("Wrong number of arguments in '/'", idthread);
             a = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(a);
             v1 = values[2]->Eval(contextualpattern, aNULL, idthread);
@@ -507,8 +507,6 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 a->Releasenonconst();
             return v0;
         case a_power:
-            if (sz != 3)
-                return globalTamgu->Returnerror("Wrong number of argument", idthread);
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v0);
             v1 = values[2]->Eval(contextualpattern, aNULL, idthread);
@@ -518,8 +516,6 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             v1->Releasenonconst();
             return v0;
         case a_mod:
-            if (sz != 3)
-                return globalTamgu->Returnerror("Wrong number of arguments in '%'", idthread);
             a = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(a);
             v1 = values[2]->Eval(contextualpattern, aNULL, idthread);
@@ -531,8 +527,6 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 a->Releasenonconst();
             return v0;
         case a_shiftleft:
-            if (sz != 3)
-                return globalTamgu->Returnerror("Wrong number of arguments in '<<'", idthread);
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v0);
             v1 = values[2]->Eval(contextualpattern, aNULL, idthread);
@@ -542,8 +536,6 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             v1->Releasenonconst();
             return v0;
         case a_shiftright:
-            if (sz != 3)
-                return globalTamgu->Returnerror("Wrong number of arguments in '>>'", idthread);
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v0);
             v1 = values[2]->Eval(contextualpattern, aNULL, idthread);
@@ -553,8 +545,6 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             v1->Releasenonconst();
             return v0;
         case a_and:
-            if (sz < 3)
-                return globalTamgu->Returnerror("Wrong number of arguments in '&'", idthread);
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v0);
             v0 = v0->Atom();
@@ -566,8 +556,6 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             }
             return v0;
         case a_xor:
-            if (sz < 3)
-                return globalTamgu->Returnerror("Wrong number of arguments in '^'", idthread);
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v0);
             v0 = v0->Atom();
@@ -579,8 +567,6 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             }
             return v0;
         case a_or:
-            if (sz < 3)
-                return globalTamgu->Returnerror("Wrong number of arguments in '|'", idthread);
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v0);
             v0 = v0->Atom();
@@ -591,11 +577,19 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 v1->Releasenonconst();
             }
             return v0;
+        case a_in:
+            v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
+            v1 = values[2]->Eval(contextualpattern, aNULL, idthread);
+            if (v0->isRegular())
+                a = v0->in(contextualpattern, v1, idthread);
+            else
+                a = v1->in(contextualpattern, v0, idthread);
+            v0->Releasenonconst();
+            v1->Releasenonconst();
+            return a;
         case a_if:
-            if (sz != 3 && sz != 4)
-                return globalTamgu->Returnerror("Wrong number of arguments in 'if'", idthread);
                 //Comparison first element
-            a = values[1]->Eval(contextualpattern, aNULL, idthread);
+            a = values[1]->Eval(aTRUE, aNULL, idthread);
             checkerror(a);
             if (a == aTRUE)
                 return values[2]->Eval(contextualpattern, aNULL, idthread);
@@ -609,8 +603,6 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
         case a_cons:
         {
             //merging an element into the next list
-            if (sz != 3)
-                return globalTamgu->Returnerror("Wrong number of arguments in 'cons'", idthread);
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v0);
             v1 = values[2]->Eval(contextualpattern, aNULL, idthread);
@@ -632,8 +624,6 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             return tl;
         }
         case a_cond:
-            if (sz == 1)
-                return aNULL;
             for (i = 1; i < sz; i++) {
                 v1 = values[i];
                 if (!v1->isLisp() || v1->Size() != 2)
@@ -725,8 +715,6 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             return globalTamgu->Returnerror(s, idthread);
         }
         case a_eq:
-            if (sz != 3)
-                return globalTamgu->Returnerror("Wrong number of arguments in 'eq'", idthread);
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v0);
             v1 = values[2]->Eval(contextualpattern, aNULL, idthread);
@@ -760,8 +748,6 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             return a;
         case a_cadr:
         {
-            if (sz != 2)
-                return globalTamgu->Returnerror("Expecting a list", idthread);
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v0);
             for (i = 0; i < a->Size(); i++) {
@@ -781,8 +767,6 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
         case a_lambda:
         {
                 //The first elements is the parameters
-            if (sz < 3)
-                return globalTamgu->Returnerror("Missing body",idthread);
             v1 = values[1];
             
             if (v1->isFunction()) {
@@ -901,8 +885,6 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             return a;
         }
         case a_label:
-            if (sz != 3)
-                return globalTamgu->Returnerror("Wrong number of arguments in 'label'", idthread);
             //first is the name of the future variable
             v0 = values[1];
             n = v0->Name();
@@ -926,8 +908,6 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             //If the context is the main frame, then nothing happens
             return a;
         case a_atomp:
-            if (sz != 2)
-                return globalTamgu->Returnerror("Wrong number of arguments in 'atomp'", idthread);
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             if (v0->Type() == a_atom) {
                 v0->Releasenonconst();
@@ -936,8 +916,6 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             v0->Releasenonconst();
             return aFALSE;
         case a_numberp:
-            if (sz != 2)
-                return globalTamgu->Returnerror("Wrong number of arguments in 'numberp'", idthread);
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             if (v0->isNumber())  {
                 v0->Releasenonconst();
@@ -946,8 +924,6 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             v0->Releasenonconst();
             return aFALSE;
         case a_consp:
-            if (sz != 2)
-                return globalTamgu->Returnerror("Wrong number of arguments in 'consp'", idthread);
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             if (v0->isVectorContainer()) {
                 v0->Releasenonconst();
@@ -956,8 +932,6 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             v0->Releasenonconst();
             return aFALSE;
         case a_zerop:
-            if (sz != 2)
-                return globalTamgu->Returnerror("Wrong number of arguments in 'zerop'", idthread);
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             n = v0->Integer();
             v0->Releasenonconst();
@@ -965,16 +939,12 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 return aTRUE;
             return aFALSE;
         case a_nullp:
-            if (sz != 2)
-                return globalTamgu->Returnerror("Wrong number of arguments in 'nullp'", idthread);
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             if (v0 == aNULL)
                 return aTRUE;
             v0->Releasenonconst();
             return aFALSE;
         case a_block:
-            if (sz < 2)
-                return globalTamgu->Returnerror("Wrong number of arguments in 'block'", idthread);
             v1 = aNULL;
             for (i = 1; i < sz && !v1->needInvestigate(); i++) {
                 v1->Releasenonconst();
@@ -982,8 +952,6 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             }
             return v1;
         case a_setq:
-            if (sz != 3)
-                return globalTamgu->Returnerror("Wrong number of arguments in 'setq'", idthread);
             n = values[1]->Name();
             if (!n)
                 return globalTamgu->Returnerror("Wrong name", idthread);
@@ -1008,8 +976,6 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             return a;
         case a_append:
         {
-            if (sz < 3)
-                return globalTamgu->Returnerror("Wrong number of arguments in 'setq'", idthread);
             Tamgulisp* tl = new Tamgulisp;
             long j;
             for (i = 1; i < sz; i++) {
@@ -1024,6 +990,76 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 v1->Releasenonconst();
             }
             return tl;
+        }
+        case a_eval:
+        {
+            v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
+            TamguCall call(a_eval);
+            call.arguments.push_back(v0);
+            a = MethodEval(contextualpattern, idthread, &call);
+            v0->Releasenonconst();
+            return a;
+        }
+        case a_key: //We handle vectors and maps... (key m k v), v is optional
+        {
+            if (sz >= 3) {
+                v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
+                //We return the value according to the key
+                v1 = values[2]->Eval(contextualpattern, aNULL, idthread);
+                TamguIndex idx(false);
+                idx.left = v1;
+
+                if (sz == 3) {
+                    //We simply return the value...
+                    a = v0->Eval(contextualpattern, &idx, idthread);
+                    v0->Releasenonconst();
+                    v1->Releasenonconst();
+                    return a;
+                }
+                if (sz == 4) {
+                    a = values[3]->Eval(contextualpattern, aNULL, idthread);
+                    if (v0->isConst())
+                        v0 = v0->Newvalue(v0, idthread);
+                    v0->Put(&idx, a, idthread);
+                    a->Releasenonconst();
+                    v1->Releasenonconst();
+                    return v0; //We return the map...
+                }
+            }
+            return globalTamgu->Returnerror("Wrong number of arguments in 'key'", idthread);
+            
+        }
+        case a_keys: //We handle vectors and maps... (keys m kleft kright v), v is optional
+        {
+            if (sz >= 4) {
+                v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
+                //We return the value according to the key
+                v1 = values[2]->Eval(contextualpattern, aNULL, idthread);
+                Tamgu* v2 = values[3]->Eval(contextualpattern, aNULL, idthread);
+                TamguIndex idx(true);
+                idx.left = v1;
+                idx.right = v2;
+
+                if (sz == 4) {
+                    //We simply return the value...
+                    a = v0->Eval(contextualpattern,&idx, idthread);
+                    v0->Releasenonconst();
+                    v1->Releasenonconst();
+                    v2->Releasenonconst();
+                    return a;
+                }
+                if (sz == 5) {
+                    a = values[4]->Eval(contextualpattern, aNULL, idthread);
+                    if (v0->isConst())
+                        v0 = v0->Newvalue(v0, idthread);
+                    v0->Put(&idx, a, idthread);
+                    a->Releasenonconst();
+                    v1->Releasenonconst();
+                    v2->Releasenonconst();
+                    return v0; //We return the map...
+                }
+            }
+            return globalTamgu->Returnerror("Wrong number of arguments in 'keys'", idthread);
         }
         case a_lisp:
         {

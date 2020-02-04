@@ -216,32 +216,56 @@ public:
 	//Basic operations
 
 	Tamgu* less(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aFALSE;
+#endif
 		if (value<a->Integer())
 			return aTRUE;
 		return aFALSE;
 	}
 	Tamgu* more(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aFALSE;
+#endif
 		if (value>a->Integer())
 			return aTRUE;
 		return aFALSE;
 	}
 	Tamgu* same(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aFALSE;
+#endif
 		if (value == a->Integer())
 			return aTRUE;
 		return aFALSE;
 	}
 	Tamgu* different(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aTRUE;
+#endif
 		if (value != a->Integer())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* lessequal(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aFALSE;
+#endif
 		if (value <= a->Integer())
 			return aTRUE;
 		return aFALSE;
 	}
 	Tamgu* moreequal(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aFALSE;
+#endif
 		if (value >= a->Integer())
 			return aTRUE;
 		return aFALSE;

@@ -214,8 +214,29 @@ public:
 		return a_string;
 	}
 
+    Tamgu* Eval(Tamgu* context, Tamgu* idx, short idthread) {
+        if (!idx->isIndex() || context == idx)
+            return this;
+        
+        long ileft, iright;
+        char res = StringIndexes(value, idx, ileft, iright, idthread);
+        
+        if (res == 0) {
+            if (globalTamgu->erroronkey)
+                globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);
+            return aNOELEMENT;
+        }
+        
+        if (res == 1)
+            idx = globalTamgu->Providestring(c_char_get(USTR(value), ileft));
+        else
+            idx = globalTamgu->Providestring(value.substr(ileft, iright - ileft));
+        return idx;
+    }
+
+
 	Tamgu* Newinstance(short, Tamgu* f = NULL) {
-		return globalTamgu->Providestring("");
+		return globalTamgu->Providestring(value);
 	}
 
 	Tamgu* Newvalue(Tamgu* a, short idthread) {
@@ -331,38 +352,61 @@ public:
 		return globalTamgu->Providestring(v);
 	}
 
-
 	Tamgu* less(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isString())
+            return aFALSE;
+#endif
 		if (value < a->String())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* more(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isString())
+            return aFALSE;
+#endif
 		if (value > a->String())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* same(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isString())
+            return aFALSE;
+#endif
 		if (value == a->String())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* different(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isString())
+            return aTRUE;
+#endif
 		if (value != a->String())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* lessequal(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isString())
+            return aFALSE;
+#endif
 		if (value <= a->String())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* moreequal(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isString())
+            return aFALSE;
+#endif
 		if (value >= a->String())
 			return aTRUE;
 		return aFALSE;
@@ -396,9 +440,38 @@ public:
 		return a_ustring;
 	}
 
-
+    Tamgu* Eval(Tamgu* context, Tamgu* idx, short idthread) {
+        if (!idx->isIndex() || context == idx)
+            return this;
+        
+        long ileft, iright;
+        char res = StringIndexes(value, idx, ileft, iright, idthread);
+        
+        if (res == 0) {
+            if (globalTamgu->erroronkey)
+                globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);
+            return aNOELEMENT;
+        }
+        
+        if (res == 1) {
+            Tamguustring* s = globalTamgu->Provideustring(L"");
+#ifdef WSTRING_IS_UTF16
+            uint32_t c = value[ileft];
+            s->value = c;
+            if (checklargeutf16(c))
+                s->value += value[ileft + 1];
+#else
+            s->value = value[ileft];
+#endif
+            return s;
+        }
+        
+        idx = globalTamgu->Provideustring(value.substr(ileft, iright - ileft));
+        return idx;
+    }
+    
 	Tamgu* Newinstance(short, Tamgu* f = NULL) {
-		return globalTamgu->Provideustring(L"");
+		return globalTamgu->Provideustring(value);
 	}
 
 	Tamgu* Newvalue(Tamgu* a, short idthread) {
@@ -529,36 +602,60 @@ public:
 
 
 	Tamgu* less(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isString())
+            return aFALSE;
+#endif
 		if (value < a->UString())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* more(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isString())
+            return aFALSE;
+#endif
 		if (value > a->UString())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* same(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isString())
+            return aFALSE;
+#endif
 		if (value == a->UString())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* different(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isString())
+            return aTRUE;
+#endif
 		if (value != a->UString())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* lessequal(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isString())
+            return aFALSE;
+#endif
 		if (value <= a->UString())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* moreequal(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isString())
+            return aFALSE;
+#endif
 		if (value >= a->UString())
 			return aTRUE;
 		return aFALSE;
@@ -596,7 +693,7 @@ public:
 	}
 
 	Tamgu* Newinstance(short, Tamgu* f = NULL) {
-		return globalTamgu->Provideint(0);
+		return globalTamgu->Provideint(value);
 	}
 
 	Tamgu* Newvalue(Tamgu* a, short idthread) {
@@ -751,37 +848,67 @@ public:
 	}
 
 	Tamgu* less(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aFALSE;
+#endif
+        
 		if (value < a->Integer())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* more(Tamgu* a) {
-		if (value > a->Integer())
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aFALSE;
+#endif
+
+        if (value > a->Integer())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* same(Tamgu* a) {
-		if (value == a->Integer())
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aFALSE;
+#endif
+
+        if (value == a->Integer())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* different(Tamgu* a) {
-		if (value != a->Integer())
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aTRUE;
+#endif
+
+        if (value != a->Integer())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* lessequal(Tamgu* a) {
-		if (value <= a->Integer())
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aFALSE;
+#endif
+
+        if (value <= a->Integer())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* moreequal(Tamgu* a) {
-		if (value >= a->Integer())
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aFALSE;
+#endif
+
+        if (value >= a->Integer())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -805,7 +932,7 @@ public:
 	Exporting Tamgu* CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
 	Tamgu* Newinstance(short, Tamgu* f = NULL) {
-        return globalTamgu->Provideint(0);
+        return globalTamgu->Provideint(value);
 	}
 
 	short Typeinfered() {
@@ -998,36 +1125,65 @@ public:
 	}
 
 	Tamgu* less(Tamgu* a) {
-		if (value < a->Short())
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aFALSE;
+#endif
+
+        if (value < a->Short())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* more(Tamgu* a) {
-		if (value > a->Short())
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aFALSE;
+#endif
+
+        if (value > a->Short())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* same(Tamgu* a) {
-		if (value == a->Short())
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aFALSE;
+#endif
+
+        if (value == a->Short())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* different(Tamgu* a) {
-		if (value != a->Short())
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aTRUE;
+#endif
+
+        if (value != a->Short())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* lessequal(Tamgu* a) {
-		if (value <= a->Short())
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aFALSE;
+#endif
+
+        if (value <= a->Short())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* moreequal(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aFALSE;
+#endif
 		if (value >= a->Short())
 			return aTRUE;
 		return aFALSE;
@@ -1056,7 +1212,7 @@ public:
 		return true;
 	}
 	Tamgu* Newinstance(short, Tamgu* f = NULL) {
-		return new Tamgudecimal(0);
+		return new Tamgudecimal(value);
 	}
 
 	short Typeinfered() {
@@ -1217,36 +1373,65 @@ public:
 	}
 
 	Tamgu* less(Tamgu* a) {
-		if (value < a->Decimal())
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aFALSE;
+#endif
+
+        if (value < a->Decimal())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* more(Tamgu* a) {
-		if (value > a->Decimal())
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aFALSE;
+#endif
+
+        if (value > a->Decimal())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* same(Tamgu* a) {
-		if (value == a->Decimal())
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aFALSE;
+#endif
+
+        if (value == a->Decimal())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* different(Tamgu* a) {
-		if (value != a->Decimal())
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aTRUE;
+#endif
+
+        if (value != a->Decimal())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* lessequal(Tamgu* a) {
-		if (value <= a->Decimal())
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aFALSE;
+#endif
+
+        if (value <= a->Decimal())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* moreequal(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aFALSE;
+#endif
 		if (value >= a->Decimal())
 			return aTRUE;
 		return aFALSE;
@@ -1271,7 +1456,7 @@ public:
 	Exporting Tamgu* CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
 	Tamgu* Newinstance(short, Tamgu* f = NULL) {
-		return globalTamgu->Providefloat(0);
+		return globalTamgu->Providefloat(value);
 	}
 
 	Tamgu* Newvalue(Tamgu* a, short idthread) {
@@ -1431,37 +1616,66 @@ public:
 	}
 
 	Tamgu* less(Tamgu* a) {
-		if (value < a->Float())
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aFALSE;
+#endif
+
+        if (value < a->Float())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* more(Tamgu* a) {
-		if (value > a->Float())
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aFALSE;
+#endif
+
+        if (value > a->Float())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* same(Tamgu* a) {
-		if (value == a->Float())
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aFALSE;
+#endif
+
+        if (value == a->Float())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* different(Tamgu* a) {
-		if (value != a->Float())
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aTRUE;
+#endif
+
+        if (value != a->Float())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* lessequal(Tamgu* a) {
-		if (value <= a->Float())
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aFALSE;
+#endif
+
+        if (value <= a->Float())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* moreequal(Tamgu* a) {
-		if (value >= a->Float())
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aFALSE;
+#endif
+        if (value >= a->Float())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -1485,7 +1699,7 @@ public:
 	Exporting Tamgu* CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
 	Tamgu* Newinstance(short, Tamgu* f = NULL) {
-		return new Tamgulong(0);
+		return new Tamgulong(value);
 	}
 
 	Tamgu* Newvalue(Tamgu* a, short idthread) {
@@ -1655,36 +1869,60 @@ public:
 	}
 
 	Tamgu* less(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aFALSE;
+#endif
 		if (value < a->Long())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* more(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aFALSE;
+#endif
 		if (value > a->Long())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* same(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aFALSE;
+#endif
 		if (value == a->Long())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* different(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aTRUE;
+#endif
 		if (value != a->Long())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* lessequal(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aFALSE;
+#endif
 		if (value <= a->Long())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* moreequal(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isNumber())
+            return aFALSE;
+#endif
 		if (value >= a->Long())
 			return aTRUE;
 		return aFALSE;

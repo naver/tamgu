@@ -717,7 +717,7 @@ class Tamguframeinstance : public TamguframeBaseInstance {
             MethodFinal();
             
             for (short i = 0; i < declarations.last; i++)
-            declarations[i]->Resetreference(r);
+                declarations[i]->Resetreference(r);
             
             reference -= r;
             if (reference <= 0) {

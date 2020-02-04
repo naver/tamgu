@@ -1133,6 +1133,11 @@ public:
 	}
 
     Tamgu* less(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isString())
+            return aFALSE;
+#endif
+
         wstring v = a->UString();
 
         if (!globalTamgu->globalLOCK) {
@@ -1147,6 +1152,10 @@ public:
     }
     
     Tamgu* more(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isString())
+            return aFALSE;
+#endif
         wstring v = a->UString();
         if (!globalTamgu->globalLOCK) {
             if (value > v)
@@ -1160,6 +1169,10 @@ public:
     }
     
     Tamgu* same(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isString())
+            return aFALSE;
+#endif
         wstring v = a->UString();
         if (!globalTamgu->globalLOCK) {
             if (value == v)
@@ -1173,6 +1186,10 @@ public:
     }
     
     Tamgu* different(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isString())
+            return aTRUE;
+#endif
         wstring v = a->UString();
         if (!globalTamgu->globalLOCK) {
             if (value != v)
@@ -1186,6 +1203,10 @@ public:
     }
     
     Tamgu* lessequal(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isString())
+            return aFALSE;
+#endif
         wstring v = a->UString();
         if (!globalTamgu->globalLOCK) {
             if (value <= v)
@@ -1199,6 +1220,10 @@ public:
     }
     
     Tamgu* moreequal(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isString())
+            return aFALSE;
+#endif
         wstring v = a->UString();
         if (!globalTamgu->globalLOCK) {
             if (value >= v)
@@ -2034,36 +2059,60 @@ public:
     }
     
     Tamgu* less(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isString())
+            return aFALSE;
+#endif
         if (value < a->UString())
             return aTRUE;
         return aFALSE;
     }
     
     Tamgu* more(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isString())
+            return aFALSE;
+#endif
         if (value > a->UString())
             return aTRUE;
         return aFALSE;
     }
     
     Tamgu* same(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isString())
+            return aFALSE;
+#endif
         if (value == a->UString())
             return aTRUE;
         return aFALSE;
     }
     
     Tamgu* different(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isString())
+            return aTRUE;
+#endif
         if (value == a->UString())
             return aFALSE;
         return aTRUE;
     }
     
     Tamgu* lessequal(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isString())
+            return aFALSE;
+#endif
         if (value <= a->UString())
             return aTRUE;
         return aFALSE;
     }
     
     Tamgu* moreequal(Tamgu* a) {
+#ifndef TAMGULOOSECOMPATIBILITIES
+        if (!a->isString())
+            return aFALSE;
+#endif
         if (value >= a->UString())
             return aTRUE;
         return aFALSE;
