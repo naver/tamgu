@@ -202,6 +202,10 @@ public:
     void Setreference() {}
     void Resetreference(short r = 1) {}
 
+    void Setinstruction(short idthread) {
+        globalTamgu->Current(this, idthread);
+    }
+
     long Currentinfo() {
         return idinfo;
     }

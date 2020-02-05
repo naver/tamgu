@@ -400,7 +400,7 @@ Tamgu* TamguCode::Run(bool glock) {
 	short sz = mainframe.instructions.size();
     
     bool testcond = false;
-
+    
 	for (short i = firstinstruction; i < sz && !testcond; i++) {
         a->Releasenonconst();
         a = mainframe.instructions.vecteur[i];

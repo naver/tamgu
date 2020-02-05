@@ -206,8 +206,8 @@ Tamgu* Tamguvector::cdr(short idthread) {
 Tamgu* Tamgulisp::MethodEval(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     Locking _lock(this);
     Tamgu* a =  callfunc->Evaluate(0, contextualpattern, idthread);
-    if (a->isLisp())
-        return a->Eval(contextualpattern, aNULL, idthread);
+    if (a->isLisp() || a->isError())
+        return a;
     
     string s = a->String();
     return globalTamgu->EvaluateLisp(contextualpattern, "buffer", s, idthread);
@@ -244,7 +244,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
     if (globalTamgu->Error(idthread))
         return globalTamgu->Errorobject(idthread);
     
-    globalTamgu->Current(this, idthread);
+    Setinstruction(idthread);
     
     Tamgu* a = values[0];
     long i, n;

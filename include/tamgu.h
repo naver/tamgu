@@ -178,6 +178,8 @@ public:
 	virtual void ScanVariables(vector<short>& vars) {}
 	virtual void CheckTaskellComposition() {}
 
+    virtual void Setinstruction(short) {}
+
 	virtual void Setinfo(Tamgu* a) {}
 	virtual void Getinfo(Tamgu* a) {}
 	virtual Tamgu* Initialisation() { 
@@ -1889,7 +1891,7 @@ public:
 	virtual short Typeinfered() {
 		return a_none;
 	}
-
+    
 	void Setinfo(Tamgu* ins) {
 		if (globalTamgu->debugmode) {
 			idinfo = ins->Currentinfo();

@@ -2447,10 +2447,13 @@ long CTAMGUIView::FirstChar(long d, long f, CString& commande) {
 
 	if (lines.size() == 0)
 		return 0;
+	bool lisp = false;
+	if (lines[0].size() >= 2 && lines[0][0] == '(' && lines[0][1] == ')')
+		lisp = true;
 
 	lines.push_back("@;");
 	string codeindente;
-	IndentationCode(codeindente, lines, blancs, 0, false);
+	IndentationCode(codeindente, lines, blancs, 0, false, lisp);
 	return blancs.back();
 }
 
