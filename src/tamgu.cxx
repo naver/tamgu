@@ -41,7 +41,7 @@
 #include "tamgulisp.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2020.02.04";
+const char* tamgu_version = "Tamgu 1.2020.02.05";
 
 Tamgu* booleantamgu[2];
 
@@ -442,7 +442,7 @@ idSymbols(false), methods(false), compatibilities(false), strictcompatibilities(
 #ifdef GARBAGEFORDEBUG
         garbage.clear();
 #endif
-        
+
         threadcounter = 0;
         trackerslotfilled = 0;
 
@@ -712,7 +712,7 @@ TamguGlobal::~TamguGlobal() {
         delete gAutomatons;
 
     //FinalTamguConstantCleaning();
-    
+
     #ifdef GARBAGEFORDEBUG
     vector<Tamgu*> issues;
     vector<long> idissues;
@@ -1840,10 +1840,10 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("p_parameterpredicate"); //116 --> a_parameterpredicate
     Createid("p_predicateevaluate"); //117 --> a_predicateevaluate
     Createid("dependency"); //118 --> a_dependency
-    
+
     Createid("tam_stream"); //119 --> a_stream
     Createid("tam_affectation"); //120 --> a_affectation
-   
+
     Createid("tam_plusequ"); //121 --> a_plusequ
     Createid("tam_minusequ"); //122 --> a_minusequ
     Createid("tam_multiplyequ"); //123 --> a_multiplyequ
@@ -1952,7 +1952,7 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("fibre"); //199
     Createid("tam_booleanxor"); //200
     Createid("push"); //201
-    
+
     Createid("quote"); //202 a_quote
     Createid("cons"); //203 a_cons
     Createid("cond"); //204 a_cond
@@ -1986,7 +1986,7 @@ Exporting void TamguGlobal::RecordConstantNames() {
     symbolIds["and"] = a_booleanand;
     symbolIds["or"] = a_booleanor;
     symbolIds["xor"] = a_booleanxor;
-    
+
     dependenciesvariable[a_modifydependency] = a_modifydependency;
 
 

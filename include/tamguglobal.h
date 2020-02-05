@@ -937,7 +937,7 @@ public:
 	//--------------------------------Evaluate Function------------------------------------
 
     Exporting Tamgu* EvaluateParenthetic(string& s, string& o, string& c, bool comma, bool dgt, bool concat, vector<string>& rules, short idthread);
-    Exporting Tamgu* EvaluateLisp(Tamgu* contextualpattern, string& s, short idthread);
+    Exporting Tamgu* EvaluateLisp(Tamgu* contextualpattern, string filename, string& body, short idthread);
     Exporting Tamgu* EvaluateTags(string& s, string& o, string& c, bool comma, bool dgt, bool concat, vector<string>& rules, short idthread);
 	Exporting Tamgu* EvaluateVector(string& s, short idthread);
 	Exporting Tamgu* EvaluateMap(string& s, short idthread);

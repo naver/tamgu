@@ -210,7 +210,7 @@ Tamgu* Tamgulisp::MethodEval(Tamgu* contextualpattern, short idthread, TamguCall
         return a->Eval(contextualpattern, aNULL, idthread);
     
     string s = a->String();
-    return globalTamgu->EvaluateLisp(contextualpattern, s, idthread);
+    return globalTamgu->EvaluateLisp(contextualpattern, "buffer", s, idthread);
 }
 
 Tamgu* Tamgulisp::MethodLoad(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -230,8 +230,8 @@ Tamgu* Tamgulisp::MethodLoad(Tamgu* contextualpattern, short idthread, TamguCall
         msg += filename;
         return globalTamgu->Returnerror(msg, idthread);
     }
-    filename = file.read(-1);
-    return globalTamgu->EvaluateLisp(contextualpattern, filename, idthread);
+    string body = file.read(-1);
+    return globalTamgu->EvaluateLisp(contextualpattern, filename, body, idthread);
 }
 
     //For once it is the original historical Eval...

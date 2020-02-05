@@ -12915,6 +12915,12 @@ Exporting void v_split_indent(string& thestr, vector<string>& v) {
 }
 
 void IndentCode(string& codestr, string& codeindente, long blancs, bool lisp) {
+    if (!lisp) {
+        if (codestr[0] == '(' && codestr[1] == ')') {
+            lisp = true;
+        }
+    }
+    
     vector<string> vargs;
     vector <long> iblancs;
     cr_normalise(codestr);
@@ -12929,11 +12935,15 @@ void IndentCode(string& codestr, string& codeindente, long blancs, bool lisp) {
 }
 
 long VirtualIndentation(string& codestr) {
+    bool lisp = false;
+    if (codestr[0] == '(' && codestr[1] == ')') {
+        lisp = true;
+    }
     vector <long> iblancs;
     vector<string> vargs;
     v_split_indent(codestr, vargs);
     codestr.clear();
-    IndentationCode(codestr, vargs, iblancs, 0, false, false);
+    IndentationCode(codestr, vargs, iblancs, 0, false, lisp);
     if (iblancs.size() == 0)
         return 0;
     return iblancs.back();

@@ -377,6 +377,10 @@ extern "C" {
         vector<string> vargs;
         string codestr(cr);
         cr_normalise(codestr);
+        bool lisp = false;
+        if (codestr[0] == '(' && codestr[1] == ')')
+            lisp = true;
+        
         v_split_indent(codestr, vargs);
         if (vargs.size()>2) {
             codestr = vargs[vargs.size() - 2];
@@ -384,7 +388,7 @@ extern "C" {
                 *acc = 1;
         }
         string codeindente = "";
-        IndentationCode(codeindente, vargs, iblancs, 0, false);
+        IndentationCode(codeindente, vargs, iblancs, 0, false, lisp);
         if (iblancs.size() == 0)
             return 0;
         return iblancs.back();
@@ -396,13 +400,16 @@ extern "C" {
         string codestr = basecode;
         Trimright(codestr);
         codestr+="\n";
-        
+        bool lisp = false;
+        if (codestr[0] == '(' && codestr[1] == ')')
+            lisp = true;
+
         vector<string> vargs;
         vector <long> iblancs;
         cr_normalise(codestr);
         v_split_indent(codestr, vargs);
         codeindente = "";
-        IndentationCode(codeindente, vargs, iblancs, blancs, true);
+        IndentationCode(codeindente, vargs, iblancs, blancs, true, lisp);
         if (codeindente.find("/@") != string::npos || codeindente.find("@\"") != string::npos)
             cr_normalise(codeindente);
         codeindente += "\n";

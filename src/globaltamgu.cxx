@@ -410,12 +410,17 @@ Exporting void TamguSpaceInit(string filename) {
 }
 
 Exporting string TamguIndentation(string& codestr,string blanc) {	
+	bool lisp = false;
+	if (codestr[0] == '(' && codestr[1] == ')') {
+		lisp = true;
+	}
+
 	vector <long> iblancs;
 	vector<string> vargs;
 	cr_normalise(codestr);
 	v_split_indent(codestr, vargs);
 	string codeindente = "";
-	IndentationCode(codeindente, vargs, iblancs, (int)blanc.size(), true);
+	IndentationCode(codeindente, vargs, iblancs, (int)blanc.size(), true, lisp);
 	Trimright(codeindente);
 	codeindente += "\n";
 	if (codeindente.find("/@") != string::npos || codeindente.find("@\"") != string::npos)

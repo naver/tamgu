@@ -1758,11 +1758,10 @@ Exporting Tamgu* TamguGlobal::EvaluateParenthetic(string& s, string& o, string& 
         xr.separator(false);
 
     xr.tokenize(s);
-    
-    bnf.baseline = linereference;
-    
+        
     bnf.initialize(&xr);
-    
+    bnf.baseline = linereference;
+
     bnf_tamgu* previous = currentbnf;
     currentbnf = &bnf;
     
@@ -1772,8 +1771,12 @@ Exporting Tamgu* TamguGlobal::EvaluateParenthetic(string& s, string& o, string& 
     bnf.Y_var_0 = o[0];
     bnf.Y_var_1 = c[0];
     
-    if (bnf.m_parenthetique(lret, &xn) != 1)
-        return Returnerror("Unknown expression", idthread);
+    if (bnf.m_parenthetique(lret, &xn) != 1 || bnf.currentpos != xr.stack.size()) {
+        delete xn;
+        stringstream& message = globalTamgu->threads[0].message;
+        message << "Error while parsing a parenthetic expression at line: " << bnf.lineerror;
+        return globalTamgu->Returnerror(message.str(), idthread);
+    }
     
     Tamgu* kret = globalTamgu->Providevector();
     TamguCode* code = spaces[0];
@@ -1828,9 +1831,9 @@ Exporting Tamgu* TamguGlobal::EvaluateTags(string& s, string& o, string& c, bool
 
     xr.tokenize(s);
     
-    bnf.baseline = linereference;
     bnf.initialize(&xr);
-    
+    bnf.baseline = linereference;
+
     bnf_tamgu* previous = currentbnf;
     currentbnf = &bnf;
     
@@ -1841,8 +1844,12 @@ Exporting Tamgu* TamguGlobal::EvaluateTags(string& s, string& o, string& c, bool
     bnf.VS_var_2 = o;
     bnf.VS_var_3 = c;
     
-    if (bnf.m_tag(lret, &xn) != 1)
-        return Returnerror("Unknown expression", idthread);
+    if (bnf.m_tag(lret, &xn) != 1 || bnf.currentpos != xr.stack.size()) {
+        delete xn;
+        stringstream& message = globalTamgu->threads[0].message;
+        message << "Error while parsing a TAG expression at line: " << bnf.lineerror;
+        return globalTamgu->Returnerror(message.str(), idthread);
+    }
     
     Tamgu* kret = globalTamgu->Providevector();
     
@@ -1869,9 +1876,9 @@ Exporting An_rules* TamguGlobal::EvaluateRules(string& body, short idthread) {
     x_reading xr;
     bnf_tamgu bnf;
     
-    bnf.baseline = linereference;
     bnf.initialize(&xr);
-    
+    bnf.baseline = linereference;
+
     bnf_tamgu* previous = currentbnf;
     
     xr.tokenize(body);
@@ -1929,24 +1936,33 @@ Exporting An_rules* TamguGlobal::EvaluateRules(string& body, short idthread) {
     return globalTamgu->gTheAnnotationRules;
 }
 
-Exporting Tamgu* TamguGlobal::EvaluateLisp(Tamgu* contextualpattern, string& s, short idthread) {
+Exporting Tamgu* TamguGlobal::EvaluateLisp(Tamgu* contextualpattern, string filename, string& body, short idthread) {
     x_reading xr;
     bnf_tamgu bnf;
     
+    if (body[0] == '(' && body[1] == ')') {
+        body[0]='/';
+        body[1]='/';
+    }
+    
     xr.lispmode = true;
-    xr.tokenize(s);
+    xr.tokenize(body);
     
-    bnf.baseline = linereference;
     bnf.initialize(&xr);
-    
+    bnf.baseline = linereference;
+
     bnf_tamgu* previous = currentbnf;
     currentbnf = &bnf;
     string lret;
     x_node* xn = new x_node;
     
     
-    if (bnf.m_tamgupurelisp(lret, &xn) != 1)
-        return Returnerror("Unknown expression", idthread);
+    if (bnf.m_tamgupurelisp(lret, &xn) != 1 || bnf.currentpos != xr.stack.size()) {
+        delete xn;
+        stringstream& message = globalTamgu->threads[0].message;
+        message << "Error while parsing Lisp '"<< filename << "'  at line: " << bnf.lineerror;
+        return globalTamgu->Returnerror(message.str(), idthread);
+    }
     
     Tamgu* kret = aNULL;
     TamguCode* code = spaces[0];
@@ -1989,17 +2005,21 @@ Exporting Tamgu* TamguGlobal::EvaluateVector(string& s, short idthread) {
     
     xr.tokenize(s);
     
-    bnf.baseline = linereference;
     bnf.initialize(&xr);
-    
+    bnf.baseline = linereference;
+
     bnf_tamgu* previous = currentbnf;
     currentbnf = &bnf;
     string lret;
     x_node* xn = new x_node;
     
     
-    if (bnf.m_jvector(lret, &xn) != 1)
-        return Returnerror("Unknown expression", idthread);
+    if (bnf.m_jvector(lret, &xn) != 1 || bnf.currentpos != xr.stack.size()) {
+        delete xn;
+        stringstream& message = globalTamgu->threads[0].message;
+        message << "Error while parsing a vector at line: " << bnf.lineerror;
+        return globalTamgu->Returnerror(message.str(), idthread);
+    }
     
     Tamgu* kret = aNULL;
     TamguCode* code = spaces[0];
@@ -2027,17 +2047,21 @@ Exporting Tamgu* TamguGlobal::EvaluateMap(string& s, short idthread) {
     
     xr.tokenize(s);
     
-    bnf.baseline = linereference;
     bnf.initialize(&xr);
-    
+    bnf.baseline = linereference;
+
     bnf_tamgu* previous = currentbnf;
     currentbnf = &bnf;
     string lret;
     x_node* xn = new x_node;
     
     
-    if (bnf.m_jmap(lret, &xn) != 1)
-        return Returnerror("Unknown expression", idthread);
+    if (bnf.m_jmap(lret, &xn) != 1 || bnf.currentpos != xr.stack.size()) {
+        delete xn;
+        stringstream& message = globalTamgu->threads[0].message;
+        message << "Error while parsing a map at line: " << bnf.lineerror;
+        return globalTamgu->Returnerror(message.str(), idthread);
+    }
     
     Tamgu* kret = aNULL;
     TamguCode* code = spaces[0];
@@ -2065,16 +2089,21 @@ Exporting Tamgu* TamguGlobal::EvaluateJSON(string& s, short idthread) {
     
     xr.tokenize(s);
     
-    bnf.baseline = linereference;
     bnf.initialize(&xr);
-    
+    bnf.baseline = linereference;
+
     bnf_tamgu* previous = currentbnf;
     currentbnf = &bnf;
     string lret;
     x_node* xn = new x_node;
     
-    if (bnf.m_jexpression(lret, &xn) != 1)
-        return Returnerror("Unknown expression", idthread);
+    if (bnf.m_jexpression(lret, &xn) != 1 || bnf.currentpos != xr.stack.size()) {
+        delete xn;
+        stringstream& message = globalTamgu->threads[0].message;
+        globalTamgu->lineerror = bnf.lineerror;
+        message << "Error while parsing a JSON expression: ";
+        return globalTamgu->Returnerror(message.str(), idthread);
+    }
     
     Tamgu* kret = aNULL;
     TamguCode* code = spaces[0];

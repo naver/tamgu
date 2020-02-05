@@ -9475,16 +9475,48 @@ bool TamguCode::Compile(string& body) {
 
 	global->spaceid = idcode;
 
-	bnf.baseline = global->linereference;
-
+    
+    if (body[0] == '(' && body[1] == ')') {
+        xr.lispmode = true;
+        body[0] = '/';
+        body[1] = '/';
+    }
+    
 	xr.tokenize(body);
+        
     if (!xr.size())
         return false;
     
 	global->lineerror = -1;
 
 
-	x_node* xn = bnf.x_parsing(&xr, FULL);
+    x_node* xn;
+    if (xr.lispmode) {
+        bnf.initialize(&xr);
+        bnf.baseline = global->linereference;
+        string lret;
+        xn = new x_node;
+        if (bnf.m_tamgupurelisp(lret, &xn) != 1) {
+            delete xn;
+            cerr << " in " << filename << endl;
+            stringstream& message = global->threads[0].message;
+            global->lineerror = bnf.lineerror;
+            currentline = global->lineerror;
+            message << "Error while parsing program file: ";
+            if (bnf.errornumber != -1)
+                message << bnf.x_errormsg(bnf.errornumber);
+            else
+                message << bnf.labelerror;
+
+            global->Returnerror(message.str(), global->GetThreadid());
+            return false;
+        }
+    }
+    else {
+        bnf.baseline = global->linereference;
+        xn = bnf.x_parsing(&xr, FULL);
+    }
+    
 	if (xn == NULL) {
 		cerr << " in " << filename << endl;
 		stringstream& message = global->threads[0].message;
