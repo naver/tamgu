@@ -307,7 +307,8 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             if (sz == 4)
                 forin->instructions.push_back(values[3]);
             else {
-                Tamgulisp* block = new Tamgulispcode(globalTamgu);
+                Tamgulispcode* block = new Tamgulispcode(globalTamgu);
+                block->idinfo = Currentinfo();
                 block->values.push_back(globalTamgu->Providelispsymbols(a_block));
                 forin->instructions.push_back(block);
                 for (i = 3; i < sz; i++)
@@ -327,7 +328,8 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             if (sz == 3)
                 awhile->instructions.push_back(values[2]);
             else {
-                Tamgulisp* block = new Tamgulispcode(globalTamgu);
+                Tamgulispcode* block = new Tamgulispcode(globalTamgu);
+                block->idinfo = Currentinfo();
                 block->values.push_back(globalTamgu->Providelispsymbols(a_block));
                 awhile->instructions.push_back(block);
                 for (i = 2; i < sz; i++)
@@ -804,7 +806,8 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 values[2]->Setreference();
             }
             else {
-                Tamgulisp* block = new Tamgulispcode(globalTamgu);
+                Tamgulispcode* block = new Tamgulispcode(globalTamgu);
+                block->idinfo = Currentinfo();
                 block->Setreference();
                 block->Push(globalTamgu->Providelispsymbols(a_block));
                 for (i = 2; i < sz; i++)
@@ -869,7 +872,8 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 values[3]->Setreference();
             }
             else {
-                Tamgulisp* block = new Tamgulispcode(globalTamgu);
+                Tamgulispcode* block = new Tamgulispcode(globalTamgu);
+                block->idinfo = Currentinfo();
                 block->Setreference();
                 block->Push(globalTamgu->Providelispsymbols(a_block));
                 for (i = 3; i < sz; i++)
