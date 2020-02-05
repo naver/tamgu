@@ -2,7 +2,7 @@
 ###	Tamgu BNF grammar ####
 ####################################################################################################################################################
 ####################################################################################################################################################
-### BNF grammar formalism 
+### BNF grammar formalism
 ####################################################################################################################################################
 #
 # To compile the Tamgu BNF grammar, you need the following files:
@@ -16,13 +16,13 @@
 # which generates: tamgun.h, tamgun.cxx and x_nodes.h
 #
 # You can also call: 'optimise.tmg', without any parameters, it will load the last generated 'tamgun.cxx' as input.
-# You can skip this step if you do not have access to Tamgu at this stage. 
-# It provides some additional performance improvment. 
+# You can skip this step if you do not have access to Tamgu at this stage.
+# It provides some additional performance improvment.
 # It then generates: codeparse.cxx, which can replace tamgun.cxx in your code.
 #
 ####################################################################################################################################################
 ### Left-hand-side of the rules ###
-# The system pre-tokenizes the code beforehand, thanks to loadtoken in x_nodes.h. 
+# The system pre-tokenizes the code beforehand, thanks to loadtoken in x_nodes.h.
 # It automatically tokenizes along the following elements:
 #	- Double quotes strings (type=1): "..."
 #	- Single quotes strings (type=2): '...'
@@ -35,10 +35,10 @@
 #	- Punctuations (type=0)
 #
 # You need to use some specific meta-characters to tell the system to use these pre-defined tokens instead of their rule description.
-# You still need to declare these rules, even though their description won't be taken into account. 
+# You still need to declare these rules, even though their description won't be taken into account.
 # The BNF compiler will associate these rules with specific C++ methods, which will be based on the internal code chosen within loadtoken
 #
-# These meta-characters should be placed as the first character in the rule. 
+# These meta-characters should be placed as the first character in the rule.
 # Their interpretation is the following: the ^x denotes a pre-tokenization according to loadtoken
 #       ^0 : punctuation                (type in loadtoken is: 0)
 #		^1 : double quote string		(type in loadtoken is: 1)
@@ -87,12 +87,12 @@
 #	;d		:	Introduces a 'point of no return' associated with a message (see above), it is the last point beyond which you cannot backtrack.
 #				When a "point of no return" is reached, then if there is an error later on in the code, the system will stop and returns the last error message
 #				of index 'd'.
-#			
 #
-# It is also possible to generate some BNF rules, whose contents can be modified on the fly programmatically. 
+#
+# It is also possible to generate some BNF rules, whose contents can be modified on the fly programmatically.
 # Basically, the system generates some C++ code out of the BNF rules, which is based on some variable content instead of characters or strings.
 #
-#	@x		:	'@' creates a "character" variable in the C++ code, whose initial value will be the character 'x'. 
+#	@x		:	'@' creates a "character" variable in the C++ code, whose initial value will be the character 'x'.
 #				A Y_val_d (char) will be then created in the C++ class, 'd' is a digit corresponding to the order in which these variables were created.
 #
 #	:VARI	:	':' creates a "string" variable in the C++ code, whose initial value is the string VARI.
@@ -104,7 +104,7 @@
 ####################################################################################################################################################
 ####################################################################################################################################################
 ####################################################################################################################################################
-### Error message strings, each message is introduced with '*' followed with its number index. 
+### Error message strings, each message is introduced with '*' followed with its number index.
 ### Last error message beyond which you cannot backtrack, it is declared in a rule with ';' followed by the corresponding index number.
 ####################################################################################################################################################
 *1 = Wrong index format
@@ -148,7 +148,7 @@
 *39 = Wrong ASSERT definition
 *40 = Wrong PREDICATE VARIABLE
 *41 = Wrong RANGE definition
-*42 = Wrong LISP expression
+*42 = Wrong PARENTHETIC expression
 *43 = Wrong TAG expression
 *44 = Wrong DCG declaration
 *45 = Wrong DCG or Missing '.'
@@ -232,8 +232,8 @@ comparator := [%< %>]^[%~ %=]^[%! %=]^$≠^[%= %=]^[%< %=]^[%> %=]^%<^%>
 
 ########### CURRENT DECLARATIONS ##############################################
 ### Some feature definitions for functions and variables ###
-private := $private 
-common := $common 
+private := $private
+common := $common
 const := $const
 
 feature := [private (common)]^[common^const]
@@ -251,7 +251,7 @@ depend := $with ;19 word
 
 declarationending := %;
 
-%frame := (private) $frame ;5 typename (depend) [declarationending^instruction] 
+%frame := (private) $frame ;5 typename (depend) [declarationending^instruction]
 %extension := $extension ;58 typename instruction
 
 ########### FUNCTIONS ##############################################
@@ -261,7 +261,7 @@ nonlimited := $...
 
 arguments := declaration (%, ;6 [nonlimited^arguments])
 
-strict := $strict 
+strict := $strict
 join := $joined
 
 protecclusive := $protected^$exclusive
@@ -273,7 +273,7 @@ typefunction := (join) (protecclusive) (private) (strict) functionlabel
 indexname := %[ %]
 intervalname := %[ %: %]
 returntype := %: %: word
-%function := typefunction ;7 [word^plusplus^operator^comparator^indexname^intervalname] %( (arguments) %) (returntype) [declarationending^instruction] 
+%function := typefunction ;7 [word^plusplus^operator^comparator^indexname^intervalname] %( (arguments) %) (returntype) [declarationending^instruction]
 
 %subfunc := %. ;27 regularcall
 %subfuncbis := %. regularcall
@@ -292,7 +292,7 @@ continuecall := $continue
 
 %call := breakcall^continuecall^regularcall^returncall
 
-sep := %: 
+sep := %:
 
 %parameters := nocomparisonexpressions [%, ;3 nocomparisonexpressions]*
 
@@ -598,13 +598,13 @@ declarationfor := [variable $in]^[type variable $in]
 
 %arange := %< ;41 wnexpressions (%, wnexpressions (%, wnexpressions)) %>
 
-%iftest := $if %( ;10 booleanexpression %) [instruction^complexbloc^bloc] (testelif) ($else ;24 [instruction^complexbloc^bloc]) 
-%testelif := $elif %( ;10 booleanexpression %) [instruction^complexbloc^bloc] (testelif) ($else ;24 [instruction^complexbloc^bloc]) 
-%loop := $while %( ;11 booleanexpression %) [instruction^complexbloc^bloc] 
+%iftest := $if %( ;10 booleanexpression %) [instruction^complexbloc^bloc] (testelif) ($else ;24 [instruction^complexbloc^bloc])
+%testelif := $elif %( ;10 booleanexpression %) [instruction^complexbloc^bloc] (testelif) ($else ;24 [instruction^complexbloc^bloc])
+%loop := $while %( ;11 booleanexpression %) [instruction^complexbloc^bloc]
 %doloop := $do [instruction^complexbloc^bloc] $while %( ;11 booleanexpression %) declarationending
-%for := $for %( ;12 [multideclaration^blocfor] %; booleanexpression %; blocfor %) [instruction^complexbloc^bloc] 
+%for := $for %( ;12 [multideclaration^blocfor] %; booleanexpression %; blocfor %) [instruction^complexbloc^bloc]
 %forin := $for %( [[[valmaptail^valvectortail] $in]^declarationfor] ;33 [arange^expressions] %) [instruction^complexbloc^bloc]
-%switch := $switch %( ;16 expression %) (depend) %{ ;31 testswitch+ %} 
+%switch := $switch %( ;16 expression %) (depend) %{ ;31 testswitch+ %}
 %trycatch := $try %{ ;22 blocs %} $catch ;22 (%( (word) %)) [%;^[%{ ;22 blocs %}]]
 %testswitch := [default^astringdouble^afullstring^astringsimple^anumber^abool] %: ;17 [instruction^complexbloc^bloc]
 default := $default
@@ -625,12 +625,16 @@ tlcomparator := [%< %>]^[%~ %=]^[%! %=]^$≠^[%= %=]^[%< %=]^[%> %=]^%<^%>
 tloperator := $×^$÷^[%< %<]^[%> %>]^[%^ %^]^[%* %*]^%&^%|^%+^%-^%*^%/^%%^%^
 
 tlatom := anumber^word^astringdouble^apreg^aspreg^atreg^astreg
-%tlquote := %' (%') tlexp
+%tlquote := %' %' tlexp
 opcomp := tloperator^tlcomparator
 %tlist := %( ;67 (opcomp) tlexp* %)
 %tlexp := tlist^tlquote^tlatom
 %tamgulisp := %\ tlexp
-%tamgupurelisp := tlexp+
+
+%tlquotepure := %' tlexpure
+%tlistpure := %( ;67 (opcomp) tlexpure* %)
+%tlexpure := tlistpure^tlquotepure^tlatom
+%tamgupurelisp := tlexpure+
 ########## Grammar pattern: tk :=  ... ############################
 ameta := [%?^[%% ;59 [%d^%p^%c^%C^%H^%a^%r^%s^%S^%?^%%]]] (%_)
 amulti := %$ word

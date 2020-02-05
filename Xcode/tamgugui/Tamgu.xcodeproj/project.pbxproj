@@ -98,7 +98,6 @@
 		0B1597A92294315F0049E562 /* tamgufloat.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0B15970A2294315E0049E562 /* tamgufloat.cxx */; };
 		0B1597AB2294315F0049E562 /* tamguprimemapsl.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0B15970C2294315E0049E562 /* tamguprimemapsl.cxx */; };
 		0B1597AC2294315F0049E562 /* tamguuvector.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0B15970D2294315E0049E562 /* tamguuvector.cxx */; };
-		0B1FECFD23D8B59500B4699D /* tamgulisp.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 0B1FECFC23D8B59400B4699D /* tamgulisp.cxx */; };
 		0B4EC62D1FC5C27200082CA6 /* Linenumber.m in Sources */ = {isa = PBXBuildFile; fileRef = 0B4EC62C1FC5C27200082CA6 /* Linenumber.m */; };
 		0B4EC6341FC8150400082CA6 /* tamgudebugger.m in Sources */ = {isa = PBXBuildFile; fileRef = 0B4EC6331FC8150400082CA6 /* tamgudebugger.m */; };
 		0B55A5151FC3140F005339A9 /* Lecode.m in Sources */ = {isa = PBXBuildFile; fileRef = 0B55A5141FC3140F005339A9 /* Lecode.m */; };
@@ -118,6 +117,7 @@
 		0BF4E58B1FC2D4B4004C0821 /* Console.m in Sources */ = {isa = PBXBuildFile; fileRef = 0BF4E58A1FC2D4B4004C0821 /* Console.m */; };
 		0BF4E58D1FC2FCEB004C0821 /* interface.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0BF4E58C1FC2FCEB004C0821 /* interface.cpp */; };
 		0BFFCCBA1FCDD5860043CAF3 /* animationSegue.m in Sources */ = {isa = PBXBuildFile; fileRef = 0BFFCCB91FCDD5860043CAF3 /* animationSegue.m */; };
+		1EA52E0123EB27960027EED8 /* tamgulisp.cxx in Sources */ = {isa = PBXBuildFile; fileRef = 1EA52E0023EB27960027EED8 /* tamgulisp.cxx */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -342,7 +342,6 @@
 		0B15970A2294315E0049E562 /* tamgufloat.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgufloat.cxx; path = ../../../src/tamgufloat.cxx; sourceTree = "<group>"; };
 		0B15970C2294315E0049E562 /* tamguprimemapsl.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamguprimemapsl.cxx; path = ../../../src/tamguprimemapsl.cxx; sourceTree = "<group>"; };
 		0B15970D2294315E0049E562 /* tamguuvector.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamguuvector.cxx; path = ../../../src/tamguuvector.cxx; sourceTree = "<group>"; };
-		0B1FECFC23D8B59400B4699D /* tamgulisp.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgulisp.cxx; path = "../../../../nle-tamgu/src/tamgulisp.cxx"; sourceTree = "<group>"; };
 		0B428E0A22C36CB5006628B3 /* directorylisting.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = directorylisting.h; path = ../../../include/directorylisting.h; sourceTree = "<group>"; };
 		0B46A89620DD397200DD338E /* Tamgu.profdata */ = {isa = PBXFileReference; lastKnownFileType = file; path = Tamgu.profdata; sourceTree = "<group>"; };
 		0B4EC62B1FC5C27200082CA6 /* Linenumber.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Linenumber.h; sourceTree = "<group>"; };
@@ -380,6 +379,7 @@
 		0BF4E58C1FC2FCEB004C0821 /* interface.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = interface.cpp; sourceTree = "<group>"; };
 		0BFFCCB81FCDD5860043CAF3 /* animationSegue.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = animationSegue.h; sourceTree = "<group>"; };
 		0BFFCCB91FCDD5860043CAF3 /* animationSegue.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = animationSegue.m; sourceTree = "<group>"; };
+		1EA52E0023EB27960027EED8 /* tamgulisp.cxx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tamgulisp.cxx; path = ../../../src/tamgulisp.cxx; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -683,7 +683,7 @@
 			children = (
 				0B1596CD2294315A0049E562 /* codecompile.cxx */,
 				0B159678229431550049E562 /* codeexecute.cxx */,
-				0B1FECFC23D8B59400B4699D /* tamgulisp.cxx */,
+				1EA52E0023EB27960027EED8 /* tamgulisp.cxx */,
 				0B1597012294315E0049E562 /* codeoperations.cxx */,
 				0B1596FA2294315D0049E562 /* containerrecording.cxx */,
 				0B1596D92294315B0049E562 /* objectrecording.cxx */,
@@ -1036,7 +1036,7 @@
 				0B15978D2294315F0049E562 /* tamgudecimal.cxx in Sources */,
 				0B1597AC2294315F0049E562 /* tamguuvector.cxx in Sources */,
 				0B15979E2294315F0049E562 /* tamguprimemapsi.cxx in Sources */,
-				0B1FECFD23D8B59500B4699D /* tamgulisp.cxx in Sources */,
+				1EA52E0123EB27960027EED8 /* tamgulisp.cxx in Sources */,
 				0B55A5181FC316B4005339A9 /* CodeViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -1,6 +1,8 @@
 ()
 //This is an example of pure lisp
 
+(println (eval (list 'cons (quote (quote a))  ''(e b c))))
+
 //A function that sums two elements
 (defun somme (x y)
     (+ x y)
@@ -27,7 +29,8 @@
 
 (println (cconc 'a))
 
-(println (eval (list 'cons (quote (quote a)) (quote (quote (e b c))))))
+
+
 
 
 

@@ -958,7 +958,7 @@ void TamguGlobal::RecordCompileFunctions() {
 
 	parseFunctions["valvector"] = &TamguCode::C_valvector;
 	parseFunctions["valvectortail"] = &TamguCode::C_valvector;
-	parseFunctions["onelisp"] = &TamguCode::C_valvector;
+	parseFunctions["oneparenthetic"] = &TamguCode::C_valvector;
 	parseFunctions["onetag"] = &TamguCode::C_valvector;
 	parseFunctions["valpredicatevector"] = &TamguCode::C_valvector;
 
@@ -1140,9 +1140,11 @@ void TamguGlobal::RecordCompileFunctions() {
     parseFunctions["tloperator"] = &TamguCode::C_operator;
     parseFunctions["tlcomparator"] = &TamguCode::C_operator;
     parseFunctions["tlatom"] = &TamguCode::C_tamgulisp;
-    parseFunctions["tlquote"] = &TamguCode::C_tamgulisp;
     parseFunctions["opcomp"] = &TamguCode::C_tamgulisp;
+    parseFunctions["tlquote"] = &TamguCode::C_tamgulisp;
     parseFunctions["tlist"] = &TamguCode::C_tamgulisp;
+    parseFunctions["tlquotepure"] = &TamguCode::C_tamgulisp;
+    parseFunctions["tlistpure"] = &TamguCode::C_tamgulisp;
 }
 
 
@@ -9375,12 +9377,12 @@ Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
     Tamgu* kf = parent;
 
     if (compilemode) {
-        if (xn->token == "tlquote") {
+        if (xn->token == "tlquote" || xn->token == "tlquotepure") {
             kf = new Tamgulispcode(global, parent);
             kf->Setaction(a_quote);
         }
         else {
-            if (xn->token == "tlist") {
+            if (xn->token == "tlist" || xn->token == "tlistpure") {
                 if (!xn->nodes.size()) {
                     kf = aEMPTYLISP;
                     parent->AddInstruction(kf);
@@ -9391,13 +9393,13 @@ Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
         }
     }
     else {
-        if (xn->token == "tlquote") {
+        if (xn->token == "tlquotepure") {
             kf = new Tamgulisp;
             kf->Setaction(a_quote);
             parent->Push(kf);
         }
         else {
-            if (xn->token == "tlist") {
+            if (xn->token == "tlistpure") {
                 if (!xn->nodes.size())
                     kf = aEMPTYLISP;
                 else

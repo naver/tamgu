@@ -876,13 +876,16 @@ class bnf_tamgu {
     char m_tloperator(string& lreturn,x_node** tree);
     char m_tlatom(string& lreturn,x_node** tree);
     char m_tlquote(string& lreturn,x_node** tree);
-    char m_tlquote_0_1(string& lreturn,x_node** tree);
     char m_opcomp(string& lreturn,x_node** tree);
     char m_tlist(string& lreturn,x_node** tree);
     char m_tlist_0_1(string& lreturn,x_node** tree);
     char m_tlist_0_2(string& lreturn,x_node** tree);
     char m_tlexp(string& lreturn,x_node** tree);
     char m_tamgulisp(string& lreturn,x_node** tree);
+    char m_tlquotepure(string& lreturn,x_node** tree);
+    char m_tlistpure(string& lreturn,x_node** tree);
+    char m_tlistpure_0_2(string& lreturn,x_node** tree);
+    char m_tlexpure(string& lreturn,x_node** tree);
     char m_tamgupurelisp(string& lreturn,x_node** tree);
     char m_ameta(string& lreturn,x_node** tree);
     char m_ameta_0_1(string& lreturn,x_node** tree);

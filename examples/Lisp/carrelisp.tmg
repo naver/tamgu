@@ -4,7 +4,8 @@ Author: Claude Roux
 Description: Carré Lisp
 @/
 
-
+\(cons ''u ''(e f c))
+    
 function carré(int x) {
     return x^^2;
 }
@@ -41,6 +42,7 @@ lisp l;
 println(l.eval(code));
 
 println(l.load(_current+"testlisp.tmg"));
+
 
 
 
