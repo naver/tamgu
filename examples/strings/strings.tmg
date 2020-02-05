@@ -1,0 +1,38 @@
+/@
+Date: 30/08/2018
+Author: Claude Roux
+Description: Chaines
+@/
+
+
+
+
+string u=@"Signe de la réconciliation en cours entre l'Erythrée et l'Ethiopie, le premier vol commercial depuis vingt ans reliant les deux anciens ennemis de la Corne de l'Afrique a décollé mercredi d'Addis Abeba."@;
+
+println(u[12:26]); //réconciliation
+
+println(u["en ":"entre"]); //en cours entre
+
+ivector iv = "ré" in u; //[12,49]
+
+u["en ":"entre"]="OH"; //Replacement with the string
+
+ustring res=r"%C%a+" in u; //Signe
+
+svector vs = r"%C%a+" in u; //['Signe','OH','Erythrée','Ethiopie','Corne','Afrique','Addis','Abeba']
+
+
+println(u[r"%Cb%c+":]);
+
+//Difference between "Corne de l'Afrique" and "Addis Abeba"
+transducer tr(_current+"french.tra");
+
+vector v;
+
+v = tr.parse(u);
+println(v);
+
+println();
+
+v = u.tokenize();
+println(v);
