@@ -1,0 +1,251 @@
+/@
+Date: 22/01/2020
+Author: Claude Roux
+Description: Lisp
+@/
+
+\(label vide ())
+
+tamgu app(_current+"carrelisp.tmg");
+
+println("Appel:",app.appelcarré(20));
+
+int je;
+
+function lalambda(int i) {
+    int je;
+    return
+    \(
+        (lambda (x)
+            (* x 2)
+        )
+        i
+    );
+}
+
+println("LA:",je,lalambda(20));
+println("LA:",je,lalambda(230));
+
+function testage(int x) {
+    return x^^2;
+}
+
+function defin(int e) {
+    \(defun testage (x) (setq y 20) (+x y));
+    return \(testage e);
+}
+
+println("D:",defin(10));
+println("D:",defin(20));
+
+je = \(if (not (or (== 10 20) (eq 20 21) (== 30 45))) 221 13);
+println("not:", je);
+
+\(defun retour (x)
+    (while (< x 100)
+        (if (== x 25)
+            (return x)
+            (setq x (+ x 1))
+        )
+    )
+)
+
+println("Retour", \(retour 20));
+println("Retour", \(retour 10));
+
+for (je in <3>) {
+    int kee;
+    \(for kee  (list 1 2 je) (println kee));
+    kee = 0;
+    \(while (< kee 10)
+        (if (== kee 8)
+            (break)
+            (block
+                (setq kee (+ kee 1))
+                (println "ici" kee)
+            )
+        )
+    )
+}
+
+je = \( (lambda (x)  (setq x (+ x 1)) (setq y 200) (* x y)) 10);
+println("Somme:", je);
+
+je = \(if (xor (== 10 20) (eq 20 21)) 18 40);
+println("xor:", je);
+
+\(defun glup (x y)
+    (* x (+ 100 y))
+)
+
+println(\(glup 20 100));
+println(\(glup 50 200));
+
+lisp l = \(cons glup ());
+println(l);
+
+function rappel() {
+    \(label monrappel (lambda (x) (* 2 x)));
+    println(\(monrappel 3));
+}
+
+
+rappel();
+
+println(\(+ _current "centos.sh"));
+
+string code=@"
+
+(defun lire (txt chemin) (read txt chemin))
+(defun affiche (chemin) (println chemin))
+    
+"@;
+
+\(label calc
+    (lambda (x)
+        (+ x 20)
+    )
+)
+
+je = \(calc 12);
+println(je);
+
+je = \(calc 21);
+println(je);
+
+je =
+\(
+    (lambda (x)
+        (if (or (eq x 0) (eq x 1))
+            x
+            (+
+                (self (- x 1))
+                (self (- x 2))
+            )
+        )
+    )
+    20
+);
+
+println("Fibo:", je);
+
+\(println ''a ''b ''(a b c d e))
+
+\(label teste 10)
+
+println(\(list ''a je teste ''c));
+
+je = \(+ 1 teste);
+println(je);
+
+je = \(if
+    (or
+        (== 10 20)
+        (eq 20 20)
+        (== 30 45)
+    )
+    221
+    0
+);
+
+println(je);
+
+je = \(if (and (== 10 20) (== 20 20) (== 30 45)) 100 0);
+println(je);
+
+
+float val = \(ln 10);
+println(val);
+
+ivector vv = [1..10];
+
+l = \(cons ''o ''(1 23 c d e f));
+println("L=",l);
+
+vector v = \(cons ''ahSHqsj  ''(a b c d e f));
+println(v);
+
+int u = \(if (== 10 11) 100 200);
+
+\(defun mafonc (x y) (* x y))
+
+int p = \(mafonc 10 20);
+
+int j = \((lambda (x) (+ 1 x)) 2);
+
+int i = \(+ 10 (* 30 50));
+
+int e = \(caar ''((98) 2 3));
+
+
+int k = \(cond (true 100) ((< 10 9) 200) ((< 19 199) 300));
+
+println(j,i,p,e,k);
+
+\(if (zerop 0)
+    (println ''ok)
+    (println ''faux)
+)
+
+
+p = \(
+    (lambda (x)
+        (if (< x 20)
+            (self (+ x x))
+            x
+        )
+    )
+    1
+);
+
+println("Somme:", p);
+
+string us="test";
+
+println(\(cons us ()));
+
+v = [[1,2,3], [4,5,6]];
+
+println(\(cadr v));
+
+
+println(\(size ''(a b c d e f)));
+println(\(size v));
+l = \''(a);
+println(l);
+
+println("Eval mult:", l.eval("(* 10 100)"));
+
+println("Eval:", l.eval("(label mult (lambda (x y) (*x y))) (mult 10 100)"));
+println(\(mult 10 100));
+
+l.eval(code);
+//println(\(affiche (+ _current "centos.sh")));
+
+
+function appel() {
+    \(label toto 213);
+    println(\(+ toto 100));
+}
+
+appel();
+
+println(\(key "abcde12sqjd" r"%d+"));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

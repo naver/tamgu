@@ -1,0 +1,48 @@
+/@
+Date: 30/01/2020
+Author: Claude Roux
+Description: Carré Lisp
+@/
+
+
+function carré(int x) {
+    return x^^2;
+}
+
+
+function appelcarré(int x) {
+    return \(+ x (carré x));
+}
+
+\(label tst ())
+
+\(defun testfor (x y)
+    (for x y
+        (setq tst (cons x tst))
+    )
+    tst
+)
+
+
+ivector iv = [1..10];
+
+println(\(testfor 0 iv));
+println(\(testfor 0 iv));
+
+
+
+string code=@"
+
+(cons 'a '(e f))
+
+ "@;
+
+lisp l;
+println(l.eval(code));
+
+println(l.load(_current+"testlisp.tmg"));
+
+
+
+
+

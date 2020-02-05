@@ -1,0 +1,33 @@
+()
+//This is an example of pure lisp
+
+//A function that sums two elements
+(defun somme (x y)
+    (+ x y)
+)
+
+(println (somme 10 20))
+(println (somme "a" "b"))
+    
+
+(defun multi (x y)
+    (* x  y)
+)
+
+(println (multi 10 20))
+
+(defun cconc (x)
+    (cons
+        'R
+        (cons x '(b c))
+    )
+)
+
+(println (cconc '(e f)))
+
+(println (cconc 'a))
+
+(println (eval (list 'cons (quote (quote a)) (quote (quote (e b c))))))
+
+
+
