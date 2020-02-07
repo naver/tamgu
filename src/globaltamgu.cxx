@@ -221,11 +221,18 @@ Exporting short TamguCompile(string& codeinit, string filename, bool dsp) {
 			}
 
 			if (dsp) {
-				add = false;
-				code = "println";
-				code += "(";
-				code += codeinit;
-				code += ");";
+                add = false;
+                if (isLispmode()) {
+                    code = "(println ";
+                    code += codeinit;
+                    code += ")";
+                }
+                else {
+                    code = "println";
+                    code += "(";
+                    code += codeinit;
+                    code += ");";
+                }
 			}
 		}
 	}

@@ -910,6 +910,17 @@ Tamgu* ProcForceLocks(Tamgu* contextualpattern, short idthread, TamguCall* callf
     globalTamgu->globalLOCK = callfunc->Evaluate(0, contextualpattern, idthread)->Boolean();
     return aTRUE;
 }
+
+Tamgu* ProcLispmode(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    if (callfunc->Size() == 1) {
+        bool v = callfunc->Evaluate(0, contextualpattern, idthread)->Boolean();
+        Setlispmode(v);
+        return booleantamgu[v];
+    }
+        
+    return booleantamgu[ToggleLispMode()];
+}
+
 //------------------------------------------------------------------------------------------------------------------------
 void SetEnvironmentVariable(string command, string val);
 Tamgu* ProcSetEnv(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -2521,6 +2532,7 @@ Exporting void TamguGlobal::RecordProcedures() {
     RecordOneProcedure("_erroronkey", ProcErrorOnKey, P_ONE);
     RecordOneProcedure("_setenv", ProcSetEnv, P_TWO);
     RecordOneProcedure("_forcelocks", ProcForceLocks, P_ONE);
+    RecordOneProcedure("_lispmode", ProcLispmode, P_NONE | P_ONE);
 
     //Randomized distribution
     RecordOneProcedure("random_choice", Proc_random_choice, P_TWO);

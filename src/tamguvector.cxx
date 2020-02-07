@@ -26,6 +26,7 @@
 #include "tamgufvector.h"
 #include "tamgubyte.h"
 #include "tamgufile.h"
+#include "tamgulisp.h"
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<vectorMethod>  Tamguvector::methods;
@@ -188,6 +189,22 @@ Exporting void Tamguvector::Resetreference(short inc) {
     }
 }
 
+void Tamgulisp::Resetreference(short inc) {
+    if ((reference + containerreference - inc) > 0)
+        resetVector(this, inc);
+    else {
+        resetVector(this, inc + 1 - protect);
+        if (!protect) {
+            reference = 0;
+            protect = true;
+
+            values.clear();
+            used = false;
+            if (!globalTamgu->globalLOCK && idinfo != -1)
+                globalTamgu->lempties.push_back(idinfo);
+        }
+    }
+}
 
 Exporting void Tamguvectorbuff::Resetreference(short inc) {
     if ((reference + containerreference - inc) > 0)

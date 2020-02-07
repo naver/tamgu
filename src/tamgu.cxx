@@ -41,7 +41,7 @@
 #include "tamgulisp.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2020.02.06";
+const char* tamgu_version = "Tamgu 1.2020.02.07";
 
 Tamgu* booleantamgu[2];
 
@@ -535,6 +535,7 @@ idSymbols(false), methods(false), compatibilities(false), strictcompatibilities(
         long mx = 1000;
         //---------------------------------
         for (i = 0; i < mx; i++) {
+            lispreservoire.push_back(new Tamgulisp(i));
             intreservoire.push_back(new Tamguintbuff(i));
             floatreservoire.push_back(new Tamgufloatbuff(i));
             stringreservoire.push_back(new Tamgustringbuff(i));
@@ -543,6 +544,7 @@ idSymbols(false), methods(false), compatibilities(false), strictcompatibilities(
             declarationcleanreservoire.push_back(new TamguDeclarationAutoClean(i));
         }
 
+        lispidx = 0;
         intidx = 0;
         slfidx = 0;
         floatidx = 0;
@@ -645,12 +647,18 @@ TamguGlobal::~TamguGlobal() {
 
     for (i = 0; i < intreservoire.size(); i++)
         delete intreservoire[i];
+    
     for (i = 0; i < floatreservoire.size(); i++)
         delete floatreservoire[i];
+    
     for (i = 0; i < stringreservoire.size(); i++)
         delete stringreservoire[i];
+    
     for (i = 0; i < ustringreservoire.size(); i++)
         delete ustringreservoire[i];
+    
+    for (i = 0; i < lispreservoire.size(); i++)
+        delete lispreservoire[i];
 
     for (i = 0; i < declarationreservoire.size(); i++)
         delete declarationreservoire[i];
@@ -1554,6 +1562,7 @@ Exporting void TamguGlobal::RecordConstantNames() {
     operator_strings[a_mergeequ] = "&&&=";
     operator_strings[a_combineequ] = "|||=";
     operator_strings[a_addequ] = "::=";
+    operator_strings[a_quote] = "quote";
 
     atanOperatorMath[a_plus] = true;
     atanOperatorMath[a_minus] = true;
@@ -1664,6 +1673,9 @@ Exporting void TamguGlobal::RecordConstantNames() {
 
     booleantamgu[0] = aFALSE;
     booleantamgu[1] = aTRUE;
+
+    Setlispmode(false);
+
 
     Createid("true"); //1 --> a_true
     Createid("false"); //2 --> a_false
@@ -1972,12 +1984,13 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("eval"); //218 a_eval,
     Createid("key"); //219 a_key,
     Createid("keys"); //219 a_keys,
-    Createid("lisp"); //220 a_lisp
+    Createid("load"); //220 a_load,
+    Createid("lisp"); //221 a_lisp
 
     //This is a simple hack to handle "length" a typical Haskell operator as "size"...
     //Note that there will be a useless index
 
-    Createid("length"); //221
+    Createid("length"); //222
     symbolIds["length"] = a_size;
 
     Createid("not"); //222
@@ -3512,6 +3525,40 @@ Exporting TamguDeclarationLocal* TamguGlobal::Providedeclaration(Tamgu* ins, sho
     if (debugmode && ins->isTracked()) {
         ke->idinfo = ins->Currentinfo();
     }
+    return ke;
+}
+
+Exporting Tamgulisp* TamguGlobal::Providelisp() {
+    if (globalLOCK)
+        return new Tamgulisp(-1);
+
+    Tamgulisp* ke;
+    if (lempties.last > 0) {
+        ke = lispreservoire[lempties.backpop()];
+        ke->used = true;
+        return ke;
+    }
+
+    long mx = lispreservoire.size();
+
+    while (lispidx < mx) {
+        if (!lispreservoire[lispidx]->used) {
+            lispreservoire[lispidx]->used = true;
+            ke = lispreservoire[lispidx++];
+            return ke;
+        }
+        lispidx++;
+    }
+
+    long sz = mx >> 2;
+    lispreservoire.resize(mx + sz);
+    lispidx = mx + sz;
+    for (long i = mx; i < lispidx; i++)
+        lispreservoire[i] = new Tamgulisp(i);
+
+    lispidx = mx;
+    lispreservoire[lispidx]->used = true;
+    ke = lispreservoire[lispidx++];
     return ke;
 }
 

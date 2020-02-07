@@ -467,6 +467,11 @@ public:
 	long ustringidx;
 	Exporting Tamguustring* Provideustring(wstring v = L"");
 
+    vector<Tamgulisp*> lispreservoire;
+    VECTE<long> lempties;
+    long lispidx;
+    Exporting Tamgulisp* Providelisp();
+
     vector<TamguDeclarationLocal*> declarationreservoire;
     Tamgulonglist declempties;
     long declarationidx;

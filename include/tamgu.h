@@ -64,6 +64,10 @@ class An_any;
 #endif
 
 //-----------------------------------------------------------------------
+bool ToggleLispMode();
+bool isLispmode();
+void Setlispmode(bool v);
+//-----------------------------------------------------------------------
 //The main variable, which controls the world...
 #ifdef MULTIGLOBALTAMGU
 extern localthread TamguGlobal* globalTamgu;

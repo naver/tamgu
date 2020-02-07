@@ -1,7 +1,11 @@
 ()
 //This is an example of pure lisp
 
-(println (eval (list 'cons (quote (quote a))  ''(e b c))))
+(println
+    (eval
+        (list 'cons ''a  ''(e b c))
+    )
+)
 
 //A function that sums two elements
 (defun somme (x y)
@@ -10,7 +14,7 @@
 
 (println (somme 10 20))
 (println (somme "a" "b"))
-    
+
 
 (defun multi (x y)
     (* x  y)
@@ -28,8 +32,6 @@
 (println (cconc '(e f)))
 
 (println (cconc 'a))
-
-
 
 
 

@@ -60,6 +60,7 @@ bool Tamgulisp::InitialisationModule(TamguGlobal* global, string version) {
     global->lispactions[a_booleanand] = P_ATLEASTTHREE;
     global->lispactions[a_negation] = P_TWO;
     
+    global->lispactions[a_load] = P_TWO;
     global->lispactions[a_eval] = P_TWO;
     global->lispactions[a_for] = P_ATLEASTFOUR;
     global->lispactions[a_return] = P_TWO | P_THREE;
@@ -183,7 +184,7 @@ Tamgu* TamguLockContainer::cdr(short idthread) {
         if (sz == 0)
             return aNOELEMENT;
         
-        Tamgulisp* lp = new Tamgulisp;
+        Tamgulisp* lp = globalTamgu->Providelisp();
         for (long i = 1; i < sz; i++)
             lp->Push(getvalue(i));
         return lp;
@@ -197,7 +198,7 @@ Tamgu* Tamguvector::cdr(short idthread) {
     if (sz == 0)
         return aNOELEMENT;
     
-    Tamgulisp* lp = new Tamgulisp;
+    Tamgulisp* lp = globalTamgu->Providelisp();
     for (long i = 1; i < sz; i++)
         lp->Push(values[i]);
     return lp;
@@ -395,7 +396,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 return aTRUE;
         case a_list:
         {
-            Tamgulisp* tl = new Tamgulisp;
+            Tamgulisp* tl = globalTamgu->Providelisp();
             if (sz == 1)
                 return tl;
             v1 = aNULL;
@@ -614,10 +615,10 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             v0 = v0->Lispbody();
             v1 = v1->Lispbody();
             
-            if (!v1->isLisp() && !v1->isVectorContainer())
+            if (!v1->isVectorContainer())
                 return aNULL;
             
-            Tamgulisp* tl = new Tamgulisp;
+            Tamgulisp* tl = globalTamgu->Providelisp();
             tl->Push(v0);
             for (i = 0; i < v1->Size(); i++)
                 tl->Push(v1->getvalue(i));
@@ -712,7 +713,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 return a;
             }
             
-            string s("Unknown symbol: ");
+            string s("Unknown function: ");
             s += globalTamgu->Getsymbol(n);
             return globalTamgu->Returnerror(s, idthread);
         }
@@ -980,7 +981,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             return a;
         case a_append:
         {
-            Tamgulisp* tl = new Tamgulisp;
+            Tamgulisp* tl = globalTamgu->Providelisp();
             long j;
             for (i = 1; i < sz; i++) {
                 v1 = values[i]->Eval(contextualpattern, aNULL, idthread);
@@ -1003,6 +1004,12 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             a = MethodEval(contextualpattern, idthread, &call);
             v0->Releasenonconst();
             return a;
+        }
+        case a_load:
+        {
+            TamguCall call(a_load);
+            call.arguments.push_back(values[1]);
+            return MethodLoad(contextualpattern, idthread, &call);
         }
         case a_key: //We handle vectors and maps... (key m k v), v is optional
         {
@@ -1087,7 +1094,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             if (sz == 1)
                 return a->Eval(contextualpattern, aNULL, idthread);
             
-            Tamgulisp tl;
+            Tamgulisp tl(-1);
             tl.Push(v0);
             for (i = 1; i < sz; i++)
                 tl.Push(values[i]);

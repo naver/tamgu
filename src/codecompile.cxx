@@ -9394,7 +9394,7 @@ Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
     }
     else {
         if (xn->token == "tlquotepure") {
-            kf = new Tamgulisp;
+            kf = globalTamgu->Providelisp();
             kf->Setaction(a_quote);
             parent->Push(kf);
         }
@@ -9403,7 +9403,7 @@ Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
                 if (!xn->nodes.size())
                     kf = aEMPTYLISP;
                 else
-                    kf = new Tamgulisp;
+                    kf = globalTamgu->Providelisp();
                 parent->Push(kf);
             }
         }
@@ -9466,6 +9466,19 @@ bool TamguCode::Load(x_reading& xr) {
 //------------------------------------------------------------------------
 void InitWindowMode();
 
+static bool lispmode = false;
+bool ToggleLispMode() {
+    lispmode = 1 - lispmode;
+    return lispmode;
+}
+bool isLispmode() {
+    return lispmode;
+}
+
+void Setlispmode(bool v) {
+    lispmode = v;
+}
+
 bool TamguCode::Compile(string& body) {
     x_reading xr;
     bnf_tamgu bnf;
@@ -9477,7 +9490,8 @@ bool TamguCode::Compile(string& body) {
 
 	global->spaceid = idcode;
 
-    
+    xr.lispmode = lispmode;
+
     if (body[0] == '(' && body[1] == ')') {
         xr.lispmode = true;
         body[0] = '/';

@@ -60,6 +60,65 @@ public:
     string String() {
         return globalTamgu->Getsymbol(name);
     }
+    
+    Tamgu* andset(Tamgu* a, bool itself) {
+        return globalTamgu->Returnerror("Cannot compute with symbols");
+    }
+    Tamgu* orset(Tamgu* a, bool itself) {
+        return globalTamgu->Returnerror("Cannot compute with symbols");
+    }
+    Tamgu* xorset(Tamgu* a, bool itself) {
+        return globalTamgu->Returnerror("Cannot compute with symbols");
+    }
+    Tamgu* plus(Tamgu* a, bool itself) {
+        return globalTamgu->Returnerror("Cannot compute with symbols");
+    }
+    Tamgu* minus(Tamgu* a, bool itself) {
+        return globalTamgu->Returnerror("Cannot compute with symbols");
+    }
+    Tamgu* multiply(Tamgu* a, bool itself) {
+        return globalTamgu->Returnerror("Cannot compute with symbols");
+    }
+    Tamgu* divide(Tamgu* a, bool itself) {
+        return globalTamgu->Returnerror("Cannot compute with symbols");
+    }
+    Tamgu* power(Tamgu* a, bool itself) {
+        return globalTamgu->Returnerror("Cannot compute with symbols");
+    }
+    Tamgu* shiftleft(Tamgu* a, bool itself) {
+        return globalTamgu->Returnerror("Cannot compute with symbols");
+    }
+    Tamgu* shiftright(Tamgu* a, bool itself) {
+        return globalTamgu->Returnerror("Cannot compute with symbols");
+    }
+    Tamgu* mod(Tamgu* a, bool itself) {
+        return globalTamgu->Returnerror("Cannot compute with symbols");
+    }
+
+    Tamgu* same(Tamgu* a) {
+        return booleantamgu[name == a->Name()];
+    }
+
+    Tamgu* different(Tamgu* a) {
+        return booleantamgu[name != a->Name()];
+    }
+
+    Tamgu* less(Tamgu* a) {
+        return globalTamgu->Returnerror("Meaningless comparison with symbols");
+    }
+
+    Tamgu* more(Tamgu* a) {
+        return globalTamgu->Returnerror("Meaningless comparison with symbols");
+    }
+
+    Tamgu* lessequal(Tamgu* a) {
+        return globalTamgu->Returnerror("Meaningless comparison with symbols");
+    }
+
+    Tamgu* moreequal(Tamgu* a) {
+        return globalTamgu->Returnerror("Meaningless comparison with symbols");
+    }
+
 };
 
 class Tamgucadr : public Tamgu {
@@ -123,11 +182,13 @@ class Tamgulisp : public Tamguvector {
     //---------------------------------------------------------------------------------------------------------------------
     //This SECTION is for your specific implementation...
     //Your personal variables here...
-    
-    //---------------------------------------------------------------------------------------------------------------------
-    Tamgulisp(TamguGlobal* g, Tamgu* parent) : Tamguvector(g, parent) {}
+    bool used;
+    long idinfo;
 
-    Tamgulisp() : Tamguvector() {}
+    //---------------------------------------------------------------------------------------------------------------------
+    Tamgulisp(TamguGlobal* g, Tamgu* parent) : used(false), Tamguvector(g, parent) {}
+
+    Tamgulisp(long i) : used(false), idinfo(i), Tamguvector() {}
 
     //----------------------------------------------------------------------------------------------------------------------
     Tamgu* Eval(Tamgu* context, Tamgu* v, short idthread);
@@ -136,6 +197,12 @@ class Tamgulisp : public Tamguvector {
         return true;
     }
     
+    bool Candelete() {
+        return false;
+    }
+
+    virtual void Resetreference(short r);
+
     short Type() {
         return a_lisp;
     }
@@ -182,7 +249,7 @@ class Tamgulisp : public Tamguvector {
 
     
     Tamgu* Newinstance(short, Tamgu* f = NULL) {
-        return new Tamgulisp;
+        return globalTamgu->Providelisp();
     }
 
     string String();
@@ -192,7 +259,6 @@ class Tamgulisp : public Tamguvector {
 
 class Tamgulispcode : public Tamgulisp {
 public:
-    long idinfo;
 
     Tamgulispcode(TamguGlobal* g, Tamgu* parent = NULL);
     
