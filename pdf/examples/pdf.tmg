@@ -1,0 +1,28 @@
+use("tamgupdf");
+
+pdf pd;
+
+string txt=@"
+Un symbole de la lutte contre la propagation du nouveau coronavirus s'est éteint. L'hôpital central de Wuhan a annoncé ce jeudi, sur le réseau social Weibo, la mort de Li Wenliang. Fin décembre, ce médecin de Wuhan avait été arrêté avec sept autres de ses collègues pour avoir alerté sur la dangerosité de ce nouveau virus proche du Sras. «Nous sommes profondément attristés par la mort du docteur Li Wenliang. Nous devons tous rendre hommage à son travail sur le 2019n-CoV», a déclaré Michael Ryan, directeur des programmes d’urgence de l’OMS. Sa disparition incarne les errements des autorités chinoises dans les premières semaines de la nouvelle épidémie. Selon la BBC, les journalistes et les médecins avaient reçu peu après l'ordre de réfuter la nouvelle et d'annoncer qu'il était dans un état critique. 
+Ce jeune ophtalmologue de 34 ans a été diagnostiqué positif au coronavirus le 30 janvier. Un mois plus tôt, il expliquait dans un groupe de conversation privée sur WeChat, l’application de messagerie instantanée utilisé en Chine et contrôlée par le gouvernement, que plusieurs patients étaient atteints d’une infection pulmonaire qui présentait des caractéristiques semblables à celles du syndrome respiratoire aigu sévère (Sras), ancré dans la mémoire collective des Chinois – en 2003, Pékin avait été vivement critiqué pour son manque de transparence face à l’épidémie.
+Les captures d’écran de son message deviennent virales. «Quand je les ai vues circuler en ligne, j’ai compris que ça devenait hors de contrôle et que j’allais probablement être puni», racontait Li Wenliang à CNN il y a quelques jours. Dans la nuit du 30 au 31 décembre, il reçoit un premier avertissement : les autorités sanitaires de Wuhan le convoquent et lui demandent de rendre des comptes. Parallèlement, le pouvoir central chinois avertit l’OMS de plusieurs cas déclarés d’une pneumonie d’origine inconnue.
+
+L’ophtalmologue n’est pas retenu très longtemps au poste de police et retourne travailler à l’hôpital central de Wuhan. Le 10 janvier, il commence à tousser. La fièvre le gagne le lendemain. Le 28 janvier, il est officiellement réhabilité par la Cour suprême de Pékin. Deux jours après, il est diagnostiqué comme malade du coronavirus, et son état ne cesse de se dégrader. L’annonce de son décès supposé a suscité en quelques heures des millions d’hommages sur le réseau social chinois Weibo.
+
+
+"@;
+
+pd.setfont("HELVETICA", 12);
+svector vs = pd.wraptext(txt, 500, true);
+
+int i;
+for (i = 0; i < vs.size(); i ++)  {
+    pd.showtextxy(vs[i].latin(), 20, 745 - (20 * i));
+}
+
+
+pd.save(_current+"test.pdf");
+
+println("Fin");
+
+

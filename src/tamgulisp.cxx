@@ -1094,7 +1094,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             if (sz == 1)
                 return a->Eval(contextualpattern, aNULL, idthread);
             
-            Tamgulisp tl(-1);
+            Tamgulispcode tl(NULL);
             tl.Push(v0);
             for (i = 1; i < sz; i++)
                 tl.Push(values[i]);

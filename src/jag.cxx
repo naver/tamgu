@@ -1385,7 +1385,6 @@ bool jag_editor::processfind() {
     cout << back << "Not found";
     movetoline(currentline);
     movetoend();
-    currentfind = L"";
     return false;
 }
 
@@ -2044,20 +2043,18 @@ bool jag_editor::checkcommand(char cmd) {
     switch (cmd) {
         case 'C': // we count pattern
             displayonlast("Count:", false);
-            line = L"";
-            currentfind = L"";
+            line = currentfind;
             currentreplace = L"";
-            posinstring = 0;
+            posinstring = currentfind.size();
             option = x_count;
             return true;
         case 'l':
             clearst();
             st << "load:";
             displayonlast(false);
-            line = L"";
-            currentfind = L"";
+            line = currentfind;
             currentreplace = L"";
-            posinstring = 0;
+            posinstring = currentfind.size();
             option = x_load;
             return true;
         case 'H': //we convert HMTL entities to characters
@@ -2074,8 +2071,8 @@ bool jag_editor::checkcommand(char cmd) {
             if (emode()) {
                 regularexpressionfind = true;
                 displayonlast("Find(rgx):", false);
-                line = L"";
-                currentfind = L"";
+                line = currentfind;
+                posinstring = currentfind.size();
                 currentreplace = L"";
                 option = x_find;
             }
@@ -2186,9 +2183,11 @@ bool jag_editor::checkaction(string& buff, long& first, long& last, bool lisp) {
         case 6: // ctrl-f find
             if (emode()) {
                 regularexpressionfind = false;
-                displayonlast("Find:", false);
-                line = L"";
-                currentfind = L"";
+                string sub = "Find:";
+                sub += convert(currentfind);
+                displayonlast(sub, false);
+                line = currentfind;
+                posinstring = currentfind.size();
                 currentreplace = L"";
                 option = x_find;
             }

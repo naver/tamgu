@@ -200,8 +200,12 @@ void Tamgulisp::Resetreference(short inc) {
 
             values.clear();
             used = false;
-            if (!globalTamgu->globalLOCK && idinfo != -1)
-                globalTamgu->lempties.push_back(idinfo);
+            if (idinfo == -1)
+                delete this;
+            else {
+                if (!globalTamgu->globalLOCK)
+                    globalTamgu->lempties.push_back(idinfo);
+            }
         }
     }
 }

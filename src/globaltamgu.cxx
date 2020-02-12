@@ -223,6 +223,8 @@ Exporting short TamguCompile(string& codeinit, string filename, bool dsp) {
 			if (dsp) {
                 add = false;
                 if (isLispmode()) {
+                    _fullcode += codeinit;
+                    _fullcode += Endl;
                     code = "(println ";
                     code += codeinit;
                     code += ")";
