@@ -435,6 +435,17 @@ jag_editor::~jag_editor() {
 
 ///------------------------------------------------------------------------------------
 
+void jag_editor::reset() {
+    tcsetattr(0, TCSADRAIN, &oldterm);
+    
+    termios theterm;
+    tcgetattr(0, &theterm);
+    theterm.c_iflag &= ~IXON;
+    theterm.c_iflag |= IXOFF;
+    theterm.c_cc[VSUSP] = NULL;
+    tcsetattr(0, TCSADRAIN, &theterm);
+}
+
 void jag_editor::setscrolling() {
     getcursor();
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &wns);
@@ -2095,9 +2106,7 @@ bool jag_editor::checkcommand(char cmd) {
             option = x_delete;
             return true;
         case 'q':
-            currentposinstring = -1;
-            terminate();
-            return false;
+            return !terminate();
         case 'w': //write and quit
             if (thecurrentfilename == "")
                 return true;
@@ -2136,7 +2145,12 @@ void jag_editor::handlecommands() {
     displayonlast("", true);
 }
 
-void jag_editor::terminate() {
+bool jag_editor::terminate() {
+    if (modified) {
+        modified = false;
+        return false;
+    }
+
     movetolastline();
     string space(colsize(), ' ');
     cout << back << space << back << m_redbold << "Salut!!!" << m_current << endl;
@@ -2146,6 +2160,7 @@ void jag_editor::terminate() {
     tcsetattr(0, TCSADRAIN, &oldterm);
     
     exit(0);
+    return true;
 }
 
 void jag_editor::cleanheaders(wstring& w) {
@@ -2401,8 +2416,7 @@ bool jag_editor::checkaction(string& buff, long& first, long& last, bool lisp) {
             movetobeginning();
             return true;
         case 17: //ctrl-q terminate
-            currentposinstring = -1;
-            terminate();
+            return !terminate();
         case 18: //ctrl-r: redo...
             if (option == x_find) { //replace mode called after a ctrl-f
                 currentfind = line;

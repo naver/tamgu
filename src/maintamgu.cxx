@@ -806,6 +806,7 @@ public:
             addspace(thecurrentfilename, true);
             codes[0] = code;
         }
+        modified = false;
         return true;
     }
 
@@ -1487,7 +1488,7 @@ public:
             }
                 return pos;
             case cmd_exit:
-                terminate();
+                return !terminate();
             case cmd_colors:
                 if (debugmode && debuginfo.running)
                     return pos;
@@ -1904,7 +1905,12 @@ public:
         printline(1);
     }
 
-    void terminate() {
+    bool terminate() {
+        if (modified) {
+            modified = false;
+            return false;
+        }
+        
         movetolastline();
         clearline();
         cout << back << m_redbold << "bye!!!" << m_current << endl;
@@ -1914,6 +1920,7 @@ public:
         
         fflush(stdout);
         exit(0);
+        return true;
     }
     
     void clear() {
@@ -2135,7 +2142,7 @@ public:
                     prefix = "◀▶";
                     return true;
                 }
-                terminate();
+                return !terminate();
             case 9:
                 if (emode())
                     return false;

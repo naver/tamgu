@@ -564,6 +564,7 @@ public:
     }
     
     void setscrolling();
+    void reset();
     
     void resetscrolling();
     
@@ -964,6 +965,7 @@ public:
             return false;
         wd << convert(code);
         wd.close();
+        modified = false;
         return true;
     }
     
@@ -1059,7 +1061,7 @@ public:
     
     virtual void addcommandline(wstring& w) {}
     
-    virtual void terminate();
+    virtual bool terminate();
     
     virtual void resetscreen() {
         modified = true;

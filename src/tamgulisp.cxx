@@ -627,16 +627,30 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             return tl;
         }
         case a_cond:
+        {
+            long szv;
             for (i = 1; i < sz; i++) {
                 v1 = values[i];
-                if (!v1->isLisp() || v1->Size() != 2)
+                szv = v1->Size();
+                
+                if (!v1->isLisp() || szv <= 1)
                     return globalTamgu->Returnerror("Wrong cond element", idthread);
-                a = v1->getvalue(0)->Eval(contextualpattern, aNULL, idthread);
+                
+                Tamgulisp* code = (Tamgulisp*)v1;
+
+                a = code->values[0]->Eval(contextualpattern, aNULL, idthread);
                 checkerror(a);
-                if (a == aTRUE)
-                    return v1->getvalue(1)->Eval(contextualpattern, aNULL, idthread);
+                if (a == aTRUE) {
+                    v0 = aNULL;
+                    for (int j = 1; j < szv && !v0->isError(); j++) {
+                        v0->Release();
+                        v0 = code->values[j]->Eval(contextualpattern, aNULL, idthread);
+                    }
+                    return v0;
+                }
             }
             return aNULL;
+        }
         case a_self:
             //We recall our top function
             v0 = globalTamgu->Topstacklisp(idthread);
