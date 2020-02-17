@@ -83,7 +83,7 @@ libs: install
 cleanlibs="""
 cleanlibs:
 	$(MAKE) -C allmaps clean
- $(MAKE) -C pdf clean	
+	$(MAKE) -C pdf clean
 	$(MAKE) -C libpython clean
 	$(MAKE) -C liblinear clean
 	$(MAKE) -C libword2vec clean
