@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{737869BE-F707-41FC-97FC-CC3A26F394D8}</ProjectGuid>
+    <ProjectGuid>{61719C51-48C7-47C4-AE4E-0AE0618005E7}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>libpdf</RootNamespace>
   </PropertyGroup>
@@ -104,7 +104,8 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>AVXSUPPORT;INTELINTRINSICS;TAMGU_EXPORTS;WIN32;_DEBUG;_WINDOWS;_USRDLL;LIBpdf_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)pdf\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>    </ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)pdf\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -141,7 +142,8 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>AVXSUPPORT;INTELINTRINSICS;TAMGU_EXPORTS;WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBpdf_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)pdf\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>    </ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)pdf\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -154,10 +156,11 @@
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\metrics.cxx" />
+    <ClCompile Include="src\pdf.cxx" />
     <ClCompile Include="src\tamgupdf.cxx" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
 </Project>
-
