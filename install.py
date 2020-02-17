@@ -73,6 +73,7 @@ amaps: install
 
 libs: install
 	$(MAKE) -C allmaps all
+	$(MAKE) -C pdf all
 	$(MAKE) -C liblinear linear
 	$(MAKE) -C libword2vec word2vec
 	$(MAKE) -C libwapiti wapiti
@@ -82,6 +83,7 @@ libs: install
 cleanlibs="""
 cleanlibs:
 	$(MAKE) -C allmaps clean
+ $(MAKE) -C pdf clean	
 	$(MAKE) -C libpython clean
 	$(MAKE) -C liblinear clean
 	$(MAKE) -C libword2vec clean
@@ -180,6 +182,7 @@ libs: install
 	$(MAKE) -C liblinear linear
 	$(MAKE) -C libword2vec word2vec
 	$(MAKE) -C libwapiti wapiti
+	$(MAKE) -C pdf all
 """
 
     cleanlibs = """
@@ -192,6 +195,7 @@ cleanlibs:
 	$(MAKE) -C liblinear clean
 	$(MAKE) -C libword2vec clean
 	$(MAKE) -C libwapiti clean
+	$(MAKE) -C pdf clean
 """
     incpath = "INCLUDEPATH=-I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/libxml2"
     if withsound:
