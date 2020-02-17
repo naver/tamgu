@@ -210,6 +210,9 @@ public:
 		return true;
 	}
 	
+    string Info(string n);
+    void Methods(Tamgu* vs);
+    
 	short Typeinfered() {
 		return a_string;
 	}
@@ -436,6 +439,8 @@ public:
 		return true;
 	}
 
+    string Info(string n);
+    void Methods(Tamgu* vs);
 	short Typeinfered() {
 		return a_ustring;
 	}
@@ -688,6 +693,9 @@ public:
 		return true;
 	}
 
+    string Info(string n);
+    void Methods(Tamgu* vs);
+
 	short Typeinfered() {
 		return a_int;
 	}
@@ -934,6 +942,9 @@ public:
 	Tamgu* Newinstance(short, Tamgu* f = NULL) {
         return globalTamgu->Provideint(value);
 	}
+
+    string Info(string n);
+    void Methods(Tamgu* vs);
 
 	short Typeinfered() {
 		return a_short;
@@ -1215,6 +1226,9 @@ public:
 		return new Tamgudecimal(value);
 	}
 
+    string Info(string n);
+    void Methods(Tamgu* vs);
+
 	short Typeinfered() {
 		return a_decimal;
 	}
@@ -1463,6 +1477,9 @@ public:
 		return globalTamgu->Providefloat(a->Float());
 	}
 
+    string Info(string n);
+    void Methods(Tamgu* vs);
+
 	short Typeinfered() {
 		return a_float;
 	}
@@ -1705,6 +1722,9 @@ public:
 	Tamgu* Newvalue(Tamgu* a, short idthread) {
 		return new Tamgulong(a->Long());
 	}
+
+    string Info(string n);
+    void Methods(Tamgu* vs);
 
 	short Typeinfered() {
 		return a_long;
@@ -1953,6 +1973,9 @@ public:
 	long Getinteger(short idthread) {
 		return value;
 	}
+
+    string Info(string n);
+    void Methods(Tamgu* vs);
 
 	short Typeinfered() {
 		return a_boolean;

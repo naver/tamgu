@@ -41,7 +41,7 @@
 #include "tamgulisp.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2020.02.10";
+const char* tamgu_version = "Tamgu 1.2020.02.17";
 
 Tamgu* booleantamgu[2];
 
@@ -3041,6 +3041,85 @@ Exporting Tamgu* TamguConstLong::CallMethod(short idname, Tamgu* contextualpatte
     return contextualpattern;
 }
 
+void TamguConstString::Methods(Tamgu* vs) {
+    Tamgustring v("");
+    v.Methods(vs);
+}
+
+void TamguConstUString::Methods(Tamgu* vs) {
+    Tamguustring v(L"");
+    v.Methods(vs);
+}
+
+void TamguConstInt::Methods(Tamgu* vs)  {
+    Tamguint v(0);
+    v.Methods(vs);
+}
+
+void TamguConstShort::Methods(Tamgu* vs)  {
+    Tamgushort v(0);
+    v.Methods(vs);
+}
+
+void TamguConstDecimal::Methods(Tamgu* vs)  {
+    Tamgudecimal v(0);
+    v.Methods(vs);
+}
+
+void TamguConstFloat::Methods(Tamgu* vs)  {
+    Tamgufloat v(0);
+    v.Methods(vs);
+}
+
+void TamguConstLong::Methods(Tamgu* vs) {
+    Tamgulong v(0);
+    v.Methods(vs);
+}
+
+void TamguConstBool::Methods(Tamgu* vs) {
+    Tamguboolean v(true);
+    v.Methods(vs);
+}
+
+string TamguConstString::Info(string s) {
+    Tamgustring v("");
+    return v.Info(s);
+}
+
+string TamguConstUString::Info(string s) {
+    Tamguustring v(L"");
+    return v.Info(s);
+}
+
+string TamguConstInt::Info(string s)  {
+    Tamguint v(0);
+    return v.Info(s);
+}
+
+string TamguConstShort::Info(string s)  {
+    Tamgushort v(0);
+    return v.Info(s);
+}
+
+string TamguConstDecimal::Info(string s)  {
+    Tamgudecimal v(0);
+    return v.Info(s);
+}
+
+string TamguConstFloat::Info(string s)  {
+    Tamgufloat v(0);
+    return v.Info(s);
+}
+
+string TamguConstLong::Info(string s) {
+    Tamgulong v(0);
+    return v.Info(s);
+}
+
+string TamguConstBool::Info(string s) {
+    Tamguboolean v(true);
+    return v.Info(s);
+}
 //------------------------------------------------------------------------------------------------------------------------
 Exporting Tamgumap* TamguGlobal::Providemap() {
     if (globalLOCK)
