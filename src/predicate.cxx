@@ -3220,7 +3220,7 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
     }
 
     //--------------------------------------------------------------------------------
-    // Functions that have constructed on the basis of existing methods...
+    // Functions that have been constructed on the basis of existing methods...
     if (headpredicate->isPredicateFunction()) {
         std::unique_ptr<localpredict> Oo(new localpredict(threadowner));
 

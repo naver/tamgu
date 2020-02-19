@@ -124,7 +124,11 @@ Tamgulispcode::Tamgulispcode(TamguGlobal* g, Tamgu* parent) : Tamgulisp(g, paren
 }
 
 Tamgu* TamguGlobal::Providelispsymbols(string& n, Tamgu* parent) {
-    short symb = Getid(n);
+    short symb;
+    if (n == "t")
+        symb  = a_true;
+    else
+        symb = Getid(n);
     
     if (!lispsymbols.check(symb))
         lispsymbols[symb] = new Tamgusymbol(symb, this);
