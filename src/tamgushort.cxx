@@ -52,7 +52,7 @@ void Tamgushort::AddMethod(TamguGlobal* global, string name, shortMethod func, u
     Tamgushort::AddMethod(global, "pred", &Tamgushort::MethodPred, P_NONE, "pred(): Return the predecessor of a byte.");
 
     Tamgushort::AddMethod(global, "chr", &Tamgushort::Methodchr, P_NONE, "chr(): return the character matching the unicode code");
-    Tamgushort::AddMethod(global, "format", &Tamgushort::MethodFormat, P_ONE, "format(pattern): Return a string matching the C pattern.");
+    Tamgushort::AddMethod(global, "format", &Tamgushort::MethodFormat, P_ONE, "format(string pattern): Return a string matching the C pattern.");
     Tamgushort::AddMethod(global, "isprime", &Tamgushort::MethodPrime, P_NONE, "prime(): return true is the number is a prime");
     Tamgushort::AddMethod(global, "factors", &Tamgushort::MethodPrimefactors, P_NONE, "factors(): return the list of prime factors");
 

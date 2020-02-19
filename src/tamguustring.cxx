@@ -106,7 +106,7 @@ void Tamguustring::AddMethod(TamguGlobal* global, string name, ustringMethod fun
     Tamguustring::AddMethod(global, "toxml", &Tamguustring::MethodToxml, P_NONE, "toxml(): Return the string into an XML compatible string or as a vector of strings");
     Tamguustring::AddMethod(global, "levenshtein", &Tamguustring::MethodEditdistance, P_ONE | P_TWO, "levenshtein(string s,bool byte): Return the edit distance with 's' according to Levenshtein algorithm. If byte is true, force a byte level comparison. byte is optionnal.");
     Tamguustring::AddMethod(global, "editdistance", &Tamguustring::MethodEditdistance, P_ONE | P_TWO | P_THREE, "editdistance(string s,bool byte): Return the edit distance with 's'. If byte is true, force a byte level comparison. byte is optionnal.");
-    Tamguustring::AddMethod(global, "replace", &Tamguustring::MethodReplace, P_TWO, "replace(sub,str): Replace the substrings matching sub with str");
+    Tamguustring::AddMethod(global, "replace", &Tamguustring::MethodReplace, P_TWO, "replace(string sub,string str): Replace the substrings matching sub with str");
     Tamguustring::AddMethod(global, "multisplit", &Tamguustring::MethodMultiSplit, P_ATLEASTONE, "multisplit(string splitter1,string splitter2..): split a string along different splitters. Return a uvector");
     Tamguustring::AddMethod(global, "split", &Tamguustring::MethodSplit, P_ONE | P_NONE, "split(string splitter): split a string along splitter and store the results  in a vector. If splitter=='', then the string is split into a vector of characters");
     Tamguustring::AddMethod(global, "splite", &Tamguustring::MethodSplite, P_ONE | P_NONE, "splite(string splitter): split a string along splitter and store the results  in a vector. If splitter=='', then the string is split into a vector of characters. Empty strings are kept in the result.");
@@ -145,7 +145,7 @@ void Tamguustring::AddMethod(TamguGlobal* global, string name, ustringMethod fun
     Tamguustring::AddMethod(global, "trimleft", &Tamguustring::MethodTrimleft, P_NONE, "trimleft(): remove the trailing characters on the left");
     Tamguustring::AddMethod(global, "trimright", &Tamguustring::MethodTrimright, P_NONE, "trimright(): remove the trailing characters on the right");
     Tamguustring::AddMethod(global, "last", &Tamguustring::MethodLast, P_NONE, "last(): return last character");
-    Tamguustring::AddMethod(global, "insert", &Tamguustring::MethodInsert, P_ONE | P_TWO, "insert(i,s): insert the string s at i. If i is -1, then insert s between each character in the input string");
+    Tamguustring::AddMethod(global, "insert", &Tamguustring::MethodInsert, P_ONE | P_TWO, "insert(int i,string s): insert the string s at i. If i is -1, then insert s between each character in the input string");
     Tamguustring::AddMethod(global, "clear", &Tamguustring::MethodClear, P_NONE, "clear(): Clean the content of a string.");
     
     Tamguustring::AddMethod(global, "jamo", &Tamguustring::MethodJamo, P_NONE | P_ONE, "jamo(bool combine): if 'combine' is false split a Korean jamo into its main components, else combine contents into a jamo.");
@@ -2461,7 +2461,7 @@ bool Tamgua_ustring::InitialisationModule(TamguGlobal* global, string version) {
     Tamgua_ustring::AddMethod(global, "evaluate", &Tamgua_ustring::MethodEvaluate, P_NONE, "evaluate(): evaluate the meta-characters within a string and return the evaluated string.");
     Tamgua_ustring::AddMethod(global, "levenshtein", &Tamgua_ustring::MethodEditdistance, P_ONE | P_TWO, "levenshtein(string s,bool byte): Return the edit distance with 's' according to Levenshtein algorithm. If byte is true, force a byte level comparison. byte is optionnal.");
     Tamgua_ustring::AddMethod(global, "editdistance", &Tamgua_ustring::MethodEditdistance, P_ONE | P_TWO | P_THREE, "editdistance(string s,bool byte): Return the edit distance with 's'. If byte is true, force a byte level comparison. byte is optionnal.");
-    Tamgua_ustring::AddMethod(global, "replace", &Tamgua_ustring::MethodReplace, P_TWO, "replace(sub,str): Replace the substrings matching sub with str");
+    Tamgua_ustring::AddMethod(global, "replace", &Tamgua_ustring::MethodReplace, P_TWO, "replace(string sub,string str): Replace the substrings matching sub with str");
     Tamgua_ustring::AddMethod(global, "multisplit", &Tamgua_ustring::MethodMultiSplit, P_ATLEASTONE, "multisplit(string splitter1,string splitter2..): split a string along different splitters. Return a uvector");
     Tamgua_ustring::AddMethod(global, "split", &Tamgua_ustring::MethodSplit, P_ONE | P_NONE, "split(string splitter): split a string along splitter and store the results  in a vector. If splitter=='', then the string is split into a vector of characters");
     Tamgua_ustring::AddMethod(global, "splite", &Tamgua_ustring::MethodSplite, P_ONE | P_NONE, "splite(string splitter): split a string along splitter and store the results  in a vector. If splitter=='', then the string is split into a vector of characters. Empty strings are kept in the result.");
@@ -2498,7 +2498,7 @@ bool Tamgua_ustring::InitialisationModule(TamguGlobal* global, string version) {
     Tamgua_ustring::AddMethod(global, "trimleft", &Tamgua_ustring::MethodTrimleft, P_NONE, "trimleft(): remove the trailing characters on the left");
     Tamgua_ustring::AddMethod(global, "trimright", &Tamgua_ustring::MethodTrimright, P_NONE, "trimright(): remove the trailing characters on the right");
     Tamgua_ustring::AddMethod(global, "last", &Tamgua_ustring::MethodLast, P_NONE, "last(): return last character");
-    Tamgua_ustring::AddMethod(global, "insert", &Tamgua_ustring::MethodInsert, P_ONE | P_TWO, "insert(i,s): insert the string s at i. If i is -1, then insert s between each character in the input string");
+    Tamgua_ustring::AddMethod(global, "insert", &Tamgua_ustring::MethodInsert, P_ONE | P_TWO, "insert(int i,string s): insert the string s at i. If i is -1, then insert s between each character in the input string");
     Tamgua_ustring::AddMethod(global, "clear", &Tamgua_ustring::MethodClear, P_NONE, "clear(): Clean the content of a string.");
     
     Tamgua_ustring::AddMethod(global, "jamo", &Tamgua_ustring::MethodJamo, P_NONE | P_ONE, "jamo(bool combine): if 'combine' is false split a Korean jamo into its main components, else combine contents into a jamo.");

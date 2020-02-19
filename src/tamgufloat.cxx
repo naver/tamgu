@@ -74,13 +74,13 @@ static const double M_GOLDEN = 1.61803398874989484820458683436563811772030917980
     Tamgufloat::idtype = global->Getid("float");
 
     Tamgufloat::AddMethod(global, "chr", &Tamgufloat::Methodchr, P_NONE, "chr(): return the character matching the unicode code");
-    Tamgufloat::AddMethod(global, "invert", &Tamgufloat::MethodInvert, P_NONE, "");
+    Tamgufloat::AddMethod(global, "invert", &Tamgufloat::MethodInvert, P_NONE, "invert(): value inversion as a fraction");
     Tamgufloat::AddMethod(global, "succ", &Tamgufloat::MethodSucc, P_NONE, "succ(): Return a successor of the current value");
     Tamgufloat::AddMethod(global, "pred", &Tamgufloat::MethodPred, P_NONE, "pred(): Return the predecessor of a byte.");
 
-    Tamgufloat::AddMethod(global, "format", &Tamgufloat::MethodFormat, P_ONE, "format(pattern): Return a string matching the C pattern.");
-    Tamgufloat::AddMethod(global, "radian", &Tamgufloat::MethodRadian, P_NONE, "abs(): call fabs on the value");
-    Tamgufloat::AddMethod(global, "degree", &Tamgufloat::MethodDegree, P_NONE, "abs(): call fabs on the value");
+    Tamgufloat::AddMethod(global, "format", &Tamgufloat::MethodFormat, P_ONE, "format(string pattern): Return a string matching the C pattern.");
+    Tamgufloat::AddMethod(global, "radian", &Tamgufloat::MethodRadian, P_NONE, "radian(): return the radian value out of a degree value");
+    Tamgufloat::AddMethod(global, "degree", &Tamgufloat::MethodDegree, P_NONE, "degree(): return the degree value out of a radian value");
 
     Tamgufloat::AddMethod(global, "bits", &Tamgufloat::MethodBits, P_NONE|P_ONE, "bits(): return the bit representation or initialize a float number with a bit representation (bits(long v))");
     Tamgufloat::AddMethod(global, "mantissa", &Tamgufloat::MethodMantissa, P_NONE, "mantissa(): return the mantissa value as a float");
@@ -160,13 +160,13 @@ bool Tamguatomicfloat::InitialisationModule(TamguGlobal* global, string version)
     Tamguatomicfloat::idtype = global->Getid("a_float");
     
     Tamguatomicfloat::AddMethod(global, "chr", &Tamguatomicfloat::Methodchr, P_NONE, "chr(): return the character matching the unicode code");
-    Tamguatomicfloat::AddMethod(global, "invert", &Tamguatomicfloat::MethodInvert, P_NONE, "");
+    Tamguatomicfloat::AddMethod(global, "invert", &Tamguatomicfloat::MethodInvert, P_NONE, "invert(): value inversion as a fraction");
     Tamguatomicfloat::AddMethod(global, "succ", &Tamguatomicfloat::MethodSucc, P_NONE, "succ(): Return a successor of the current value");
     Tamguatomicfloat::AddMethod(global, "pred", &Tamguatomicfloat::MethodPred, P_NONE, "pred(): Return the predecessor of a byte.");
     
-    Tamguatomicfloat::AddMethod(global, "format", &Tamguatomicfloat::MethodFormat, P_ONE, "format(pattern): Return a string matching the C pattern.");
-    Tamguatomicfloat::AddMethod(global, "radian", &Tamguatomicfloat::MethodRadian, P_NONE, "abs(): call fabs on the value");
-    Tamguatomicfloat::AddMethod(global, "degree", &Tamguatomicfloat::MethodDegree, P_NONE, "abs(): call fabs on the value");
+    Tamguatomicfloat::AddMethod(global, "format", &Tamguatomicfloat::MethodFormat, P_ONE, "format(string pattern): Return a string matching the C pattern.");
+    Tamguatomicfloat::AddMethod(global, "radian", &Tamguatomicfloat::MethodRadian, P_NONE, "radian(): return the radian value out of a degree value");
+    Tamguatomicfloat::AddMethod(global, "degree", &Tamguatomicfloat::MethodDegree, P_NONE, "degree(): return the degree value out of a radian value");
     
     Tamguatomicfloat::AddMethod(global, "bits", &Tamguatomicfloat::MethodBits, P_NONE|P_ONE, "bits(): return the bit representation or initialize a float number with a bit representation (bits(long v))");
     Tamguatomicfloat::AddMethod(global, "mantissa", &Tamguatomicfloat::MethodMantissa, P_NONE, "mantissa(): return the mantissa value as a float");

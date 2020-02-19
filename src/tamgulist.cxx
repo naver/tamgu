@@ -76,7 +76,7 @@ void Tamgulist::AddMethod(TamguGlobal* global, string name, listMethod func, uns
     Tamgulist::AddMethod(global, "popfirst", &Tamgulist::MethodPopfirst, P_NONE, "popfirst(): remove and return the first element.");
     Tamgulist::AddMethod(global, "poplast", &Tamgulist::MethodPoplast, P_NONE, "poplast(): remove and return the last element.");
     Tamgulist::AddMethod(global, "merge", &Tamgulist::MethodMerge, P_ONE, "merge(v): Merge v into the list.");
-    Tamgulist::AddMethod(global, "insert", &Tamgulist::MethodInsert, P_TWO, "insert(i,v): Insert v at position i.");
+    Tamgulist::AddMethod(global, "insert", &Tamgulist::MethodInsert, P_TWO, "insert(int i,v): Insert v at position i.");
 
 
     global->newInstance[Tamgulist::idtype] = new Tamgulist(global);
@@ -1471,11 +1471,11 @@ bool Tamguring::InitialisationModule(TamguGlobal* global, string version) {
     Tamguring::AddMethod(global, "push", &Tamguring::MethodPush, P_ATLEASTONE, "push(v): Push a value into the vector.");
     Tamguring::AddMethod(global, "pushlast", &Tamguring::MethodPush, P_ATLEASTONE, "pushlast(v): Push a value at the end the vector.");
     Tamguring::AddMethod(global, "pushfirst", &Tamguring::MethodPushfirst, P_ATLEASTONE, "pushfirst(v): Push a value into the vector at the beginning.");
-    Tamguring::AddMethod(global, "pop", &Tamguring::MethodPop, P_NONE | P_ONE, "pop(i): Erase an element from the vector");
+    Tamguring::AddMethod(global, "pop", &Tamguring::MethodPop, P_NONE | P_ONE, "pop(int i): Erase an element from the vector");
     Tamguring::AddMethod(global, "poplast", &Tamguring::MethodPoplast, P_NONE, "poplast(): Remove and return the last element of the ring");
     Tamguring::AddMethod(global, "popfirst", &Tamguring::MethodPopfirst, P_NONE, "popfirst(): Remove and return the first element of the ring");
     Tamguring::AddMethod(global, "merge", &Tamguring::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
-    Tamguring::AddMethod(global, "insert", &Tamguring::MethodInsert, P_TWO, "insert(i,v): Insert v at position i.");
+    Tamguring::AddMethod(global, "insert", &Tamguring::MethodInsert, P_TWO, "insert(int i,v): Insert v at position i.");
     
     global->newInstance[Tamguring::idtype] = new Tamguring(global);
     global->RecordMethods(Tamguring::idtype, Tamguring::exported);

@@ -81,7 +81,7 @@ void Tamgutable::AddMethod(TamguGlobal* global, string name, tableMethod func, u
     Tamgutable::AddMethod(global, "poplast", &Tamgutable::MethodPoplast, P_NONE, "poplast(): remove and return the last element from the vector");
     Tamgutable::AddMethod(global, "merge", &Tamgutable::MethodMerge, P_ONE, "merge(v): Merge v into the table.");
     Tamgutable::AddMethod(global, "editdistance", &Tamgutable::MethodEditDistance, P_ONE, "editdistance(v): Compute the edit distance with table 'v'.");
-    Tamgutable::AddMethod(global, "insert", &Tamgutable::MethodInsert, P_TWO, "insert(i,v): Insert v at position i.");
+    Tamgutable::AddMethod(global, "insert", &Tamgutable::MethodInsert, P_TWO, "insert(int i,v): Insert v at position i.");
 
     global->newInstance[Tamgutable::idtype] = new Tamgutable(global);
     global->RecordMethods(Tamgutable::idtype, Tamgutable::exported);

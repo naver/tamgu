@@ -63,7 +63,7 @@ void Tamgufvector::AddMethod(TamguGlobal* global, string name, fvectorMethod fun
     Tamgufvector::AddMethod(global, "reserve", &Tamgufvector::MethodReserve, P_ONE, "reserve(int sz): Reserve a size of 'sz' potential element in the vector.");
     Tamgufvector::AddMethod(global, "unique", &Tamgufvector::MethodUnique, P_NONE, "unique(): remove duplicate elements.");
 
-    Tamgufvector::AddMethod(global, "remove", &Tamgufvector::MethodRemove, P_ONE, "remove(e): remove 'e' from the vector.");
+    Tamgufvector::AddMethod(global, "remove", &Tamgufvector::MethodRemove, P_ONE, "remove(float e): remove 'e' from the vector.");
 
     Tamgufvector::AddMethod(global, "last", &Tamgufvector::MethodLast, P_NONE, "last(): return the last element.");
     Tamgufvector::AddMethod(global, "join", &Tamgufvector::MethodJoin, P_ONE, "join(string sep): Produce a string representation for the container.");
@@ -74,10 +74,10 @@ void Tamgufvector::AddMethod(TamguGlobal* global, string name, fvectorMethod fun
 
     Tamgufvector::AddMethod(global, "product", &Tamgufvector::MethodProduct, P_NONE, "product(): return the product of elements.");
     Tamgufvector::AddMethod(global, "push", &Tamgufvector::MethodPush, P_ATLEASTONE, "push(v): Push a value into the vector.");
-    Tamgufvector::AddMethod(global, "pop", &Tamgufvector::MethodPop, P_NONE | P_ONE, "pop(i): Erase an element from the vector");
+    Tamgufvector::AddMethod(global, "pop", &Tamgufvector::MethodPop, P_NONE | P_ONE, "pop(int i): Erase an element from the vector");
     Tamgufvector::AddMethod(global, "merge", &Tamgufvector::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
     Tamgufvector::AddMethod(global, "editdistance", &Tamgufvector::MethodEditDistance, P_ONE, "editdistance(v): Compute the edit distance with vector 'v'.");
-    Tamgufvector::AddMethod(global, "insert", &Tamgufvector::MethodInsert, P_TWO, "insert(i,v): Insert v at position i.");
+    Tamgufvector::AddMethod(global, "insert", &Tamgufvector::MethodInsert, P_TWO, "insert(int i,v): Insert v at position i.");
 
     Tamgufvector::AddMethod(global, "permute", &Tamgufvector::MethodPermute, P_NONE, "permute(): permute the values in the vector after each call.");
 
@@ -1193,7 +1193,7 @@ bool Tamgua_fvector::InitialisationModule(TamguGlobal* global, string version) {
     
     Tamgua_fvector::AddMethod(global, "clear", &Tamgua_fvector::MethodClear, P_NONE, "clear(): clear the container.");
     
-    Tamgua_fvector::AddMethod(global, "remove", &Tamgua_fvector::MethodRemove, P_ONE, "remove(e): remove 'e' from the vector.");
+    Tamgua_fvector::AddMethod(global, "remove", &Tamgua_fvector::MethodRemove, P_ONE, "remove(float e): remove 'e' from the vector.");
     
     Tamgua_fvector::AddMethod(global, "reverse", &Tamgua_fvector::MethodReverse, P_NONE, "reverse(): reverse a vector.");
     Tamgua_fvector::AddMethod(global, "unique", &Tamgua_fvector::MethodUnique, P_NONE, "unique(): remove duplicate elements.");
@@ -1204,11 +1204,11 @@ bool Tamgua_fvector::InitialisationModule(TamguGlobal* global, string version) {
     
     Tamgua_fvector::AddMethod(global, "product", &Tamgua_fvector::MethodProduct, P_NONE, "product(): return the product of elements.");
     Tamgua_fvector::AddMethod(global, "push", &Tamgua_fvector::MethodPush, P_ATLEASTONE, "push(v): Push a value into the vector.");
-    Tamgua_fvector::AddMethod(global, "pop", &Tamgua_fvector::MethodPop, P_NONE | P_ONE, "pop(i): Erase an element from the vector");
+    Tamgua_fvector::AddMethod(global, "pop", &Tamgua_fvector::MethodPop, P_NONE | P_ONE, "pop(int i): Erase an element from the vector");
     Tamgua_fvector::AddMethod(global, "poplast", &Tamgua_fvector::MethodPoplast, P_NONE, "poplast(): remove and return the last element from the vector");
     Tamgua_fvector::AddMethod(global, "merge", &Tamgua_fvector::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
     Tamgua_fvector::AddMethod(global, "editdistance", &Tamgua_fvector::MethodEditDistance, P_ONE, "editdistance(v): Compute the edit distance with vector 'v'.");
-    Tamgua_fvector::AddMethod(global, "insert", &Tamgua_fvector::MethodInsert, P_TWO, "insert(i,v): Insert v at position i.");
+    Tamgua_fvector::AddMethod(global, "insert", &Tamgua_fvector::MethodInsert, P_TWO, "insert(int i,v): Insert v at position i.");
     
     global->newInstance[Tamgua_fvector::idtype] = new Tamgua_fvector(global);
     global->RecordMethods(Tamgua_fvector::idtype, Tamgua_fvector::exported);

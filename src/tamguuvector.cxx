@@ -61,7 +61,7 @@ void Tamguuvector::AddMethod(TamguGlobal* global, string name, uvectorMethod fun
 
     Tamguuvector::idtype = global->Getid("uvector");
 
-    Tamguuvector::AddMethod(global, "remove", &Tamguuvector::MethodRemove, P_ONE, "remove(e): remove 'e' from the vector.");
+    Tamguuvector::AddMethod(global, "remove", &Tamguuvector::MethodRemove, P_ONE, "remove(ustring e): remove 'e' from the vector.");
 
     Tamguuvector::AddMethod(global, "sum", &Tamguuvector::MethodSum, P_NONE, "sum(): concatenate the strings in the vector.");
     Tamguuvector::AddMethod(global, "reverse", &Tamguuvector::MethodReverse, P_NONE, "reverse(): reverse a vector.");
@@ -73,11 +73,11 @@ void Tamguuvector::AddMethod(TamguGlobal* global, string name, uvectorMethod fun
     Tamguuvector::AddMethod(global, "permute", &Tamguuvector::MethodPermute, P_NONE, "permute(): permute the values in the vector after each call.");
     Tamguuvector::AddMethod(global, "sort", &Tamguuvector::MethodSort, P_ONE, "sort(bool reverse): sort the elements within.");
     Tamguuvector::AddMethod(global, "push", &Tamguuvector::MethodPush, P_ATLEASTONE, "push(v): Push a value into the vector.");
-    Tamguuvector::AddMethod(global, "pop", &Tamguuvector::MethodPop, P_NONE | P_ONE, "pop(i): Erase an element from the vector");
+    Tamguuvector::AddMethod(global, "pop", &Tamguuvector::MethodPop, P_NONE | P_ONE, "pop(int i): Erase an element from the vector");
     Tamguuvector::AddMethod(global, "poplast", &Tamguuvector::MethodPoplast, P_NONE, "poplast(): remove and return the last element from the vector");
     Tamguuvector::AddMethod(global, "merge", &Tamguuvector::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
     Tamguuvector::AddMethod(global, "editdistance", &Tamguuvector::MethodEditDistance, P_ONE, "editdistance(v): Compute the edit distance with vector 'v'.");
-    Tamguuvector::AddMethod(global, "insert", &Tamguuvector::MethodInsert, P_TWO, "insert(i,v): Insert v at position i.");
+    Tamguuvector::AddMethod(global, "insert", &Tamguuvector::MethodInsert, P_TWO, "insert(int i,v): Insert v at position i.");
     Tamguuvector::AddMethod(global, "ngrams", &Tamguuvector::MethodNGrams, P_ONE|P_TWO, "ngrams(int nb, int sep): produces a ngrams svector.");
     Tamguuvector::AddMethod(global, "read", &Tamguuvector::MethodRead, P_ONE, "read(string path): Read the content of a file into the container.");
     Tamguuvector::AddMethod(global, "write", &Tamguuvector::MethodWrite, P_ONE, "write(string path): write the string content into a file.");
@@ -1176,7 +1176,7 @@ bool Tamgua_uvector::InitialisationModule(TamguGlobal* global, string version) {
     
     Tamgua_uvector::AddMethod(global, "clear", &Tamgua_uvector::MethodClear, P_NONE, "clear(): clear the container.");
     
-    Tamgua_uvector::AddMethod(global, "remove", &Tamgua_uvector::MethodRemove, P_ONE, "remove(e): remove 'e' from the vector.");
+    Tamgua_uvector::AddMethod(global, "remove", &Tamgua_uvector::MethodRemove, P_ONE, "remove(ustring e): remove 'e' from the vector.");
     
     Tamgua_uvector::AddMethod(global, "sum", &Tamgua_uvector::MethodSum, P_NONE, "sum(): concatenate the strings in the vector.");
     Tamgua_uvector::AddMethod(global, "reverse", &Tamgua_uvector::MethodReverse, P_NONE, "reverse(): reverse a vector.");
@@ -1185,10 +1185,10 @@ bool Tamgua_uvector::InitialisationModule(TamguGlobal* global, string version) {
     Tamgua_uvector::AddMethod(global, "last", &Tamgua_uvector::MethodLast, P_NONE, "last(): return the last element.");
     Tamgua_uvector::AddMethod(global, "join", &Tamgua_uvector::MethodJoin, P_ONE, "join(string sep): Produce a string representation for the container.");
     Tamgua_uvector::AddMethod(global, "push", &Tamgua_uvector::MethodPush, P_ATLEASTONE, "push(v): Push a value into the vector.");
-    Tamgua_uvector::AddMethod(global, "pop", &Tamgua_uvector::MethodPop, P_NONE | P_ONE, "pop(i): Erase an element from the vector");
+    Tamgua_uvector::AddMethod(global, "pop", &Tamgua_uvector::MethodPop, P_NONE | P_ONE, "pop(int i): Erase an element from the vector");
     Tamgua_uvector::AddMethod(global, "poplast", &Tamgua_uvector::MethodPoplast, P_NONE, "poplast(): remove and return the last element from the vector");
     Tamgua_uvector::AddMethod(global, "merge", &Tamgua_uvector::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
-    Tamgua_uvector::AddMethod(global, "insert", &Tamgua_uvector::MethodInsert, P_TWO, "insert(i,v): Insert v at position i.");
+    Tamgua_uvector::AddMethod(global, "insert", &Tamgua_uvector::MethodInsert, P_TWO, "insert(int i,v): Insert v at position i.");
     Tamgua_uvector::AddMethod(global, "ngrams", &Tamgua_uvector::MethodNGrams, P_ONE|P_TWO, "ngrams(int nb, int sep): produces a ngrams a_uvector.");
 
     global->newInstance[Tamgua_uvector::idtype] = new Tamgua_uvector(global);

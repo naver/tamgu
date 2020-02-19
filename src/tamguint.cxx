@@ -75,10 +75,10 @@ void Tamguatomicint::AddMethod(TamguGlobal* global, string name, atomicintMethod
     Tamguint::AddMethod(global, "isprime", &Tamguint::MethodPrime, P_NONE, "prime(): return true is the number is a prime");
     Tamguint::AddMethod(global, "factors", &Tamguint::MethodPrimefactors, P_NONE, "factors(): return the list of prime factors");
     global->returntypes[global->Getid("factors")] = a_ivector;
-    Tamguint::AddMethod(global, "bit", &Tamguint::MethodBit, P_ONE, "bit(i): check if the ith bit is 0 or 1");
-    Tamguint::AddMethod(global, "invert", &Tamguint::MethodInvert, P_NONE, "");
+    Tamguint::AddMethod(global, "bit", &Tamguint::MethodBit, P_ONE, "bit(int i): check if the ith bit is 0 or 1");
+    Tamguint::AddMethod(global, "invert", &Tamguint::MethodInvert, P_NONE, "invert(): value inversion as a fraction");
 
-    Tamguint::AddMethod(global, "format", &Tamguint::MethodFormat, P_ONE, "format(pattern): Return a string matching the C pattern.");
+    Tamguint::AddMethod(global, "format", &Tamguint::MethodFormat, P_ONE, "format(string pattern): Return a string matching the C pattern.");
 
     Tamguint::AddMethod(global, "abs", &Tamguint::Methodabs, P_NONE, "abs(): call fabs on the value");
     Tamguint::AddMethod(global, "acos", &Tamguint::Methodacos, P_NONE, "acos(): call acos on the value");
@@ -146,10 +146,10 @@ bool Tamguatomicint::InitialisationModule(TamguGlobal* global, string version) {
     Tamguatomicint::AddMethod(global, "isprime", &Tamguatomicint::MethodPrime, P_NONE, "prime(): return true is the number is a prime");
     Tamguatomicint::AddMethod(global, "factors", &Tamguatomicint::MethodPrimefactors, P_NONE, "factors(): return the list of prime factors");
     global->returntypes[global->Getid("factors")] = a_ivector;
-    Tamguatomicint::AddMethod(global, "bit", &Tamguatomicint::MethodBit, P_ONE, "bit(i): check if the ith bit is 0 or 1");
-    Tamguatomicint::AddMethod(global, "invert", &Tamguatomicint::MethodInvert, P_NONE, "");
+    Tamguatomicint::AddMethod(global, "bit", &Tamguatomicint::MethodBit, P_ONE, "bit(int i): check if the ith bit is 0 or 1");
+    Tamguatomicint::AddMethod(global, "invert", &Tamguatomicint::MethodInvert, P_NONE, "invert(): value inversion as a fraction");
     
-    Tamguatomicint::AddMethod(global, "format", &Tamguatomicint::MethodFormat, P_ONE, "format(pattern): Return a string matching the C pattern.");
+    Tamguatomicint::AddMethod(global, "format", &Tamguatomicint::MethodFormat, P_ONE, "format(string pattern): Return a string matching the C pattern.");
     
     Tamguatomicint::AddMethod(global, "abs", &Tamguatomicint::Methodabs, P_NONE, "abs(): call fabs on the value");
     Tamguatomicint::AddMethod(global, "acos", &Tamguatomicint::Methodacos, P_NONE, "acos(): call acos on the value");

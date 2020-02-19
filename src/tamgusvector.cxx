@@ -63,7 +63,7 @@ void Tamgusvector::AddMethod(TamguGlobal* global, string name, svectorMethod fun
 
     Tamgusvector::AddMethod(global, "clear", &Tamgusvector::MethodClear, P_NONE, "clear(): clear the container.");
 
-    Tamgusvector::AddMethod(global, "remove", &Tamgusvector::MethodRemove, P_ONE, "remove(e): remove 'e' from the vector.");
+    Tamgusvector::AddMethod(global, "remove", &Tamgusvector::MethodRemove, P_ONE, "remove(string e): remove 'e' from the vector.");
 
     Tamgusvector::AddMethod(global, "sum", &Tamgusvector::MethodSum, P_NONE, "sum(): concatenate the strings in the vector.");
     Tamgusvector::AddMethod(global, "reverse", &Tamgusvector::MethodReverse, P_NONE, "reverse(): reverse a vector.");
@@ -74,11 +74,11 @@ void Tamgusvector::AddMethod(TamguGlobal* global, string name, svectorMethod fun
     Tamgusvector::AddMethod(global, "shuffle", &Tamgusvector::MethodShuffle, P_NONE, "shuffle(): shuffle the values in the vector.");
     Tamgusvector::AddMethod(global, "sort", &Tamgusvector::MethodSort, P_ONE, "sort(bool reverse): sort the elements within.");
     Tamgusvector::AddMethod(global, "push", &Tamgusvector::MethodPush, P_ATLEASTONE, "push(v): Push a value into the vector.");
-    Tamgusvector::AddMethod(global, "pop", &Tamgusvector::MethodPop, P_NONE | P_ONE, "pop(i): Erase an element from the vector");
+    Tamgusvector::AddMethod(global, "pop", &Tamgusvector::MethodPop, P_NONE | P_ONE, "pop(int i): Erase an element from the vector");
     Tamgusvector::AddMethod(global, "poplast", &Tamgusvector::MethodPoplast, P_NONE, "poplast(): remove and return the last element from the vector");
     Tamgusvector::AddMethod(global, "merge", &Tamgusvector::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
     Tamgusvector::AddMethod(global, "editdistance", &Tamgusvector::MethodEditDistance, P_ONE, "editdistance(v): Compute the edit distance with vector 'v'.");
-    Tamgusvector::AddMethod(global, "insert", &Tamgusvector::MethodInsert, P_TWO, "insert(i,v): Insert v at position i.");
+    Tamgusvector::AddMethod(global, "insert", &Tamgusvector::MethodInsert, P_TWO, "insert(int i,v): Insert v at position i.");
     Tamgusvector::AddMethod(global, "ngrams", &Tamgusvector::MethodNGrams, P_ONE|P_TWO, "ngrams(int nb, int sep): produces a ngrams svector.");
     Tamgusvector::AddMethod(global, "permute", &Tamgusvector::MethodPermute, P_NONE, "permute(): permute the values in the vector after each call.");
     Tamgusvector::AddMethod(global, "convert", &Tamgusvector::MethodConvert, P_NONE, "convert(): detect number values and convert them into actual numbers. Return a vector object.");
@@ -1167,7 +1167,7 @@ bool Tamgua_svector::InitialisationModule(TamguGlobal* global, string version) {
     
     Tamgua_svector::AddMethod(global, "clear", &Tamgua_svector::MethodClear, P_NONE, "clear(): clear the container.");
     
-    Tamgua_svector::AddMethod(global, "remove", &Tamgua_svector::MethodRemove, P_ONE, "remove(e): remove 'e' from the vector.");
+    Tamgua_svector::AddMethod(global, "remove", &Tamgua_svector::MethodRemove, P_ONE, "remove(string e): remove 'e' from the vector.");
     
     Tamgua_svector::AddMethod(global, "sum", &Tamgua_svector::MethodSum, P_NONE, "sum(): concatenate the strings in the vector.");
     Tamgua_svector::AddMethod(global, "reverse", &Tamgua_svector::MethodReverse, P_NONE, "reverse(): reverse a vector.");
@@ -1176,10 +1176,10 @@ bool Tamgua_svector::InitialisationModule(TamguGlobal* global, string version) {
     Tamgua_svector::AddMethod(global, "last", &Tamgua_svector::MethodLast, P_NONE, "last(): return the last element.");
     Tamgua_svector::AddMethod(global, "join", &Tamgua_svector::MethodJoin, P_ONE, "join(string sep): Produce a string representation for the container.");
     Tamgua_svector::AddMethod(global, "push", &Tamgua_svector::MethodPush, P_ATLEASTONE, "push(v): Push a value into the vector.");
-    Tamgua_svector::AddMethod(global, "pop", &Tamgua_svector::MethodPop, P_NONE | P_ONE, "pop(i): Erase an element from the vector");
+    Tamgua_svector::AddMethod(global, "pop", &Tamgua_svector::MethodPop, P_NONE | P_ONE, "pop(int i): Erase an element from the vector");
     Tamgua_svector::AddMethod(global, "poplast", &Tamgua_svector::MethodPoplast, P_NONE, "poplast(): remove and return the last element from the vector");
     Tamgua_svector::AddMethod(global, "merge", &Tamgua_svector::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
-    Tamgua_svector::AddMethod(global, "insert", &Tamgua_svector::MethodInsert, P_TWO, "insert(i,v): Insert v at position i.");
+    Tamgua_svector::AddMethod(global, "insert", &Tamgua_svector::MethodInsert, P_TWO, "insert(int i,v): Insert v at position i.");
     Tamgua_svector::AddMethod(global, "ngrams", &Tamgua_svector::MethodNGrams, P_ONE|P_TWO, "ngrams(int nb, int sep): produces a ngrams a_svector.");
     
     

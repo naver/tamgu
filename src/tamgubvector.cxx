@@ -70,11 +70,11 @@ void Tamgubvector::AddMethod(TamguGlobal* global, string name, bvectorMethod fun
     Tamgubvector::AddMethod(global, "sum", &Tamgubvector::MethodSum, P_NONE, "sum(): return the sum of elements.");
     Tamgubvector::AddMethod(global, "product", &Tamgubvector::MethodProduct, P_NONE, "product(): return the product of elements.");
     Tamgubvector::AddMethod(global, "push", &Tamgubvector::MethodPush, P_ATLEASTONE, "push(v): Push a value into the vector.");
-    Tamgubvector::AddMethod(global, "pop", &Tamgubvector::MethodPop, P_NONE | P_ONE, "pop(i): Erase an element from the vector");
+    Tamgubvector::AddMethod(global, "pop", &Tamgubvector::MethodPop, P_NONE | P_ONE, "pop(int i): Erase an element from the vector");
     Tamgubvector::AddMethod(global, "poplast", &Tamgubvector::MethodPoplast, P_NONE, "poplast(): remove and return the last element from the vector");
     Tamgubvector::AddMethod(global, "merge", &Tamgubvector::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
     Tamgubvector::AddMethod(global, "editdistance", &Tamgubvector::MethodEditDistance, P_ONE, "editdistance(v): Compute the edit distance with vector 'v'.");
-    Tamgubvector::AddMethod(global, "insert", &Tamgubvector::MethodInsert, P_TWO, "insert(i,v): Insert v at position i.");
+    Tamgubvector::AddMethod(global, "insert", &Tamgubvector::MethodInsert, P_TWO, "insert(int i,v): Insert v at position i.");
     Tamgubvector::AddMethod(global, "permute", &Tamgubvector::MethodPermute, P_NONE, "permute(): permute the values in the vector after each call.");
 
 

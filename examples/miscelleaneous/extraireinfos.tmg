@@ -1,0 +1,66 @@
+/@
+Date: 19/02/2020
+Author: Claude Roux
+Description: Extraire infos
+@/
+
+
+string s;
+vector v;
+map m;
+int i;
+float f;
+
+map fin;
+
+mapsi lestypes={'bool':true, 'int':true, 'float':true, 'vector':true,'map':true};
+
+function extraire(self e) {
+    svector res = e.methods();
+    string u, m , infos, param;
+    string letype = e.type();
+    vector local;
+    for (m in res) {
+        map subs;
+        infos = e.info(m);
+        
+        subs["name"] = m;
+        subs["info"] = infos;
+        
+        subs["return"] = infos[:":"][:-1].trim();
+        param = infos['(':')'][1:-1];
+        svector vs = param.split(',');
+        svector types;
+        if (vs != []) {
+            for (u in vs) {
+                if (' ' in u) {
+                    types.push(u.trim()[:' '][:-1]);
+                }
+                else {
+                    if (lestypes.test(u))
+                        types.push(u);
+                    else {
+                        types.push('any');
+                        println(infos, u);
+                    }
+                }
+            }
+        }
+        subs["params"] = types;
+        local.push(subs);
+    }
+    fin[letype] = local;
+}
+
+
+extraire(s);
+extraire(m);
+extraire(v);
+extraire(i);
+extraire(f);
+
+file fl(_current+"tamgutypes.json","w");
+fl.write(fin.json());
+fl.close();
+
+

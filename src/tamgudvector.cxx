@@ -65,7 +65,7 @@ void Tamgudvector::AddMethod(TamguGlobal* global, string name, dvectorMethod fun
     Tamgudvector::AddMethod(global, "reserve", &Tamgudvector::MethodReserve, P_ONE, "reserve(int sz): Reserve a size of 'sz' potential element in the vector.");
     Tamgudvector::AddMethod(global, "unique", &Tamgudvector::MethodUnique, P_NONE, "unique(): remove duplicate elements.");
 
-    Tamgudvector::AddMethod(global, "remove", &Tamgudvector::MethodRemove, P_ONE, "remove(e): remove 'e' from the vector.");
+    Tamgudvector::AddMethod(global, "remove", &Tamgudvector::MethodRemove, P_ONE, "remove(decimal e): remove 'e' from the vector.");
 
     Tamgudvector::AddMethod(global, "last", &Tamgudvector::MethodLast, P_NONE, "last(): return the last element.");
     Tamgudvector::AddMethod(global, "join", &Tamgudvector::MethodJoin, P_ONE, "join(string sep): Produce a string representation for the container.");
@@ -76,11 +76,11 @@ void Tamgudvector::AddMethod(TamguGlobal* global, string name, dvectorMethod fun
 
     Tamgudvector::AddMethod(global, "product", &Tamgudvector::MethodProduct, P_NONE, "product(): return the product of elements.");
     Tamgudvector::AddMethod(global, "push", &Tamgudvector::MethodPush, P_ATLEASTONE, "push(v): Push a value into the vector.");
-    Tamgudvector::AddMethod(global, "pop", &Tamgudvector::MethodPop, P_NONE | P_ONE, "pop(i): Erase an element from the vector");
+    Tamgudvector::AddMethod(global, "pop", &Tamgudvector::MethodPop, P_NONE | P_ONE, "pop(int i): Erase an element from the vector");
     Tamgudvector::AddMethod(global, "poplast", &Tamgudvector::MethodPoplast, P_NONE, "poplast(): remove and return the last element from the vector");
     Tamgudvector::AddMethod(global, "merge", &Tamgudvector::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
     Tamgudvector::AddMethod(global, "editdistance", &Tamgudvector::MethodEditDistance, P_ONE, "editdistance(v): Compute the edit distance with vector 'v'.");
-    Tamgudvector::AddMethod(global, "insert", &Tamgudvector::MethodInsert, P_TWO, "insert(i,v): Insert v at position i.");
+    Tamgudvector::AddMethod(global, "insert", &Tamgudvector::MethodInsert, P_TWO, "insert(int i,v): Insert v at position i.");
     Tamgudvector::AddMethod(global, "permute", &Tamgudvector::MethodPermute, P_NONE, "permute(): permute the values in the vector after each call.");
 
 

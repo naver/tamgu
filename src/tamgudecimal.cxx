@@ -62,9 +62,9 @@ void Tamgudecimal::AddMethod(TamguGlobal* global, string name, decimalMethod fun
     Tamgudecimal::AddMethod(global, "succ", &Tamgudecimal::MethodSucc, P_NONE, "succ(): Return a successor of the current value", a_float);
     Tamgudecimal::AddMethod(global, "pred", &Tamgudecimal::MethodPred, P_NONE, "pred(): Return the predecessor of a byte.", a_float);
 
-    Tamgudecimal::AddMethod(global, "format", &Tamgudecimal::MethodFormat, P_ONE, "format(pattern): Return a string matching the C pattern.", a_string);
-    Tamgudecimal::AddMethod(global, "radian", &Tamgudecimal::MethodRadian, P_NONE, "abs(): call fabs on the value", a_float);
-    Tamgudecimal::AddMethod(global, "degree", &Tamgudecimal::MethodDegree, P_NONE, "abs(): call fabs on the value", a_float);
+    Tamgudecimal::AddMethod(global, "format", &Tamgudecimal::MethodFormat, P_ONE, "format(string pattern): Return a string matching the C pattern.", a_string);
+    Tamgudecimal::AddMethod(global, "radian", &Tamgudecimal::MethodRadian, P_NONE, "abs(): radian(): return the radian value out of a degree value", a_float);
+    Tamgudecimal::AddMethod(global, "degree", &Tamgudecimal::MethodDegree, P_NONE, "degree(): return the degree value out of a radian value", a_float);
 
     Tamgudecimal::AddMethod(global, "bits", &Tamgudecimal::MethodBits, P_NONE|P_ONE, "bits(): return the bit representation or initialize a float number with a bit representation (bits(int v))", a_none);
     Tamgudecimal::AddMethod(global, "mantissa", &Tamgudecimal::MethodMantissa, P_NONE, "mantissa(): return the mantissa value as a float", a_float);

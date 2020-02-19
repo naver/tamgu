@@ -50,7 +50,7 @@ void Tamgulong::AddMethod(TamguGlobal* global, string name, longMethod func, uns
     Tamgulong::idtype = global->Getid("long");
 
     Tamgulong::AddMethod(global, "chr", &Tamgulong::Methodchr, P_NONE, "chr(): return the character matching the unicode code");
-    Tamgulong::AddMethod(global, "format", &Tamgulong::MethodFormat, P_ONE, "format(pattern): Return a string matching the C pattern.");
+    Tamgulong::AddMethod(global, "format", &Tamgulong::MethodFormat, P_ONE, "format(string pattern): Return a string matching the C pattern.");
     Tamgulong::AddMethod(global, "isprime", &Tamgulong::MethodPrime, P_NONE, "prime(): return true is the number is a prime");
     Tamgulong::AddMethod(global, "factors", &Tamgulong::MethodPrimefactors, P_NONE, "factors(): return the list of prime factors");
 

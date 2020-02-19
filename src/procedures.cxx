@@ -2372,11 +2372,31 @@ Tamgu* CommonIsmap(Tamgu* object, short idthread, TamguCall* callfunc) {
 
 
 Tamgu* CommonInfo(Tamgu* object, short idthread, TamguCall* callfunc) {
-    string s = callfunc->Evaluate(0, aNULL, idthread)->String();
+    Tamgu* methodname = callfunc->Evaluate(0, aNULL, idthread);
+    string s = methodname->String();
     if (globalTamgu->commoninfos.find(s) != globalTamgu->commoninfos.end())
         return globalTamgu->Providestring(globalTamgu->commoninfos[s]);
-    
+
+    if (globalTamgu->symbolIds.find(s) == globalTamgu->symbolIds.end())
+        return globalTamgu->Providestring("Unknown method");
+
+    short idmethod = globalTamgu->Getid(s);
+
     s = object->Info(s);
+    
+    if (s == "Unknown method")
+        return globalTamgu->Providestring(s);
+
+
+    string val;
+    if (globalTamgu->returntypes.check(idmethod)) {
+        val = globalTamgu->idSymbols[globalTamgu->returntypes[idmethod]];
+        val += " : ";
+    }
+    else
+        val = "any : ";
+    s = val + s;
+    
     return globalTamgu->Providestring(s);
 }
 

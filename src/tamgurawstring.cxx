@@ -246,7 +246,7 @@ void Tamgurawstring::AddMethod(TamguGlobal* global, string name, rawstringMethod
     Tamgurawstring::AddMethod(global, "toxml", &Tamgurawstring::MethodToxml, P_NONE, "toxml(): Return the string into an XML compatible string or as a vector of strings");
     Tamgurawstring::AddMethod(global, "levenshtein", &Tamgurawstring::MethodEditdistance, P_ONE | P_TWO, "levenshtein(string s,bool byte): Return the edit distance with 's' according to Levenshtein algorithm. If byte is true, force a byte level comparison. byte is optionnal.");
     Tamgurawstring::AddMethod(global, "editdistance", &Tamgurawstring::MethodEditdistance, P_ONE | P_TWO | P_THREE, "editdistance(string s,bool byte): Return the edit distance with 's'. If byte is true, force a byte level comparison. byte is optionnal.");
-    Tamgurawstring::AddMethod(global, "replace", &Tamgurawstring::MethodReplace, P_TWO, "replace(sub,str): Replace the substrings matching sub with str");
+    Tamgurawstring::AddMethod(global, "replace", &Tamgurawstring::MethodReplace, P_TWO, "replace(string sub,string str): Replace the substrings matching sub with str");
     Tamgurawstring::AddMethod(global, "getstd", &Tamgurawstring::MethodGetstd, P_ONE, "getstd(bool): catch or release the standard output");
     Tamgurawstring::AddMethod(global, "geterr", &Tamgurawstring::MethodGeterr, P_ONE, "geterr(bool): catch or release the error output");
     Tamgurawstring::AddMethod(global, "split", &Tamgurawstring::MethodSplit, P_ONE | P_NONE, "split(string splitter): split a string along splitter and store the results  in a vector. If splitter=='', then the string is split into a vector of characters");
@@ -285,7 +285,7 @@ void Tamgurawstring::AddMethod(TamguGlobal* global, string name, rawstringMethod
     Tamgurawstring::AddMethod(global, "trimleft", &Tamgurawstring::MethodTrimleft, P_NONE, "trimleft(): remove the trailing characters on the left");
     Tamgurawstring::AddMethod(global, "trimright", &Tamgurawstring::MethodTrimright, P_NONE, "trimright(): remove the trailing characters on the right");
     Tamgurawstring::AddMethod(global, "last", &Tamgurawstring::MethodLast, P_NONE, "last(): return last character");
-    Tamgurawstring::AddMethod(global, "insert", &Tamgurawstring::MethodInsert, P_ONE | P_TWO, "insert(i,s): insert the string s at i. If i is -1, then insert s between each character in the input string");
+    Tamgurawstring::AddMethod(global, "insert", &Tamgurawstring::MethodInsert, P_ONE | P_TWO, "insert(int i,string s): insert the string s at i. If i is -1, then insert s between each character in the input string");
     Tamgurawstring::AddMethod(global, "clear", &Tamgurawstring::MethodClear, P_NONE, "clear(): Clean the content of a string.");
 
     Tamgurawstring::AddMethod(global, "read", &Tamgurawstring::MethodRead, P_ONE, "read(string path): read the file content into the current variable.");

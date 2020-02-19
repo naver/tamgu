@@ -91,7 +91,7 @@ void Tamgustring::AddMethod(TamguGlobal* global, string name, stringMethod func,
     Tamgustring::AddMethod(global, "hash", &Tamgustring::MethodHash, P_NONE, "hash(): Return the hash value of a string.", a_int);
     Tamgustring::AddMethod(global, "ord", &Tamgustring::MethodOrd, P_NONE, "ord(): return the ASCII code of the first character, or a list of all ASCII code if the recipient is a vector", a_null);
     Tamgustring::AddMethod(global, "bytes", &Tamgustring::MethodBytes, P_NONE, "bytes(): Return the string as a vector of bytes", a_ivector);
-    Tamgustring::AddMethod(global, "base", &Tamgustring::MethodBase, P_ONE | P_TWO, "base(int b, bool bool toconvert=true): Return the value corresponding to the string in base b", a_null);
+    Tamgustring::AddMethod(global, "base", &Tamgustring::MethodBase, P_ONE | P_TWO, "base(int b, bool toconvert=true): Return the value corresponding to the string in base b", a_null);
     Tamgustring::AddMethod(global, "parse", &Tamgustring::MethodParse, P_NONE | P_TWO, "parse(): Parse a string as a piece of code and returns the evaluation as a vector.", a_vector);
     Tamgustring::AddMethod(global, "sizeb", &Tamgustring::MethodSizeb, P_NONE, "sizeb(): Return the size in bytes of the string", a_int);
     Tamgustring::AddMethod(global, "parenthetics", &Tamgustring::MethodParenthetic, P_NONE | P_TWO | P_THREE | P_FOUR | P_FIVE | P_SIX, "lisp(): lisp(string o,string c,bool comma,bool separator,bool concatenate): Parse a string as a parenthetic expressions, o is '(' and c is ')' by default. If 'comma' is true, then the decimal character is ',' otherwise it is '.'. If 'separator' is true then '1,000' is accepted as a number. If 'concatenate' is true then '3a' is a valid token", a_null);
@@ -141,7 +141,7 @@ void Tamgustring::AddMethod(TamguGlobal* global, string name, stringMethod func,
     Tamgustring::AddMethod(global, "html", &Tamgustring::MethodTohtml, P_NONE, "html(): Return the string into an HTML compatible string or as a vector of strings", a_string);
     Tamgustring::AddMethod(global, "tohtml", &Tamgustring::MethodTohtml, P_NONE, "tohtml(): Return the string into an HTML compatible string or as a vector of strings", a_string);
     Tamgustring::AddMethod(global, "toxml", &Tamgustring::MethodToxml, P_NONE, "toxml(): Return the string into an XML compatible string or as a vector of strings", a_string);
-    Tamgustring::AddMethod(global, "replace", &Tamgustring::MethodReplace, P_TWO, "replace(sub,str): Replace the substrings matching sub with str", a_string);
+    Tamgustring::AddMethod(global, "replace", &Tamgustring::MethodReplace, P_TWO, "replace(string sub,string str): Replace the substrings matching sub with str", a_string);
     Tamgustring::AddMethod(global, "removefirst", &Tamgustring::MethodRemovefirst, P_ONE, "removefirst(int nb): remove the first nb characters of a string", a_string);
     Tamgustring::AddMethod(global, "removelast", &Tamgustring::MethodRemovelast, P_ONE, "removelast(int nb): remove the last nb characters of a string", a_string);
     Tamgustring::AddMethod(global, "utf8", &Tamgustring::MethodUtf8, P_NONE | P_ONE, "utf8(int table): convert a LATIN string into UTF8. table is optional, by default it is ISO/IEC 8859 part 1.", a_string);
@@ -160,7 +160,7 @@ void Tamgustring::AddMethod(TamguGlobal* global, string name, stringMethod func,
     Tamgustring::AddMethod(global, "trimleft", &Tamgustring::MethodTrimleft, P_NONE, "trimleft(): remove the trailing characters on the left", a_string);
     Tamgustring::AddMethod(global, "trimright", &Tamgustring::MethodTrimright, P_NONE, "trimright(): remove the trailing characters on the right", a_string);
     Tamgustring::AddMethod(global, "last", &Tamgustring::MethodLast, P_NONE, "last(): return last character", a_string);
-    Tamgustring::AddMethod(global, "insert", &Tamgustring::MethodInsert, P_ONE | P_TWO, "insert(i,s): insert the string s at i. If i is -1, then insert s between each character in the input string", a_string);
+    Tamgustring::AddMethod(global, "insert", &Tamgustring::MethodInsert, P_ONE | P_TWO, "insert(int i,string s): insert the string s at i. If i is -1, then insert s between each character in the input string", a_string);
     Tamgustring::AddMethod(global, "clear", &Tamgustring::MethodClear, P_NONE, "clear(): Clean the content of a string.", a_null);
 
     Tamgustring::AddMethod(global, "jamo", &Tamgustring::MethodJamo, P_NONE | P_ONE, "jamo(bool combine): if 'combine' is false split a Korean jamo into its main components, else combine contents into a jamo.", a_null);
@@ -2571,7 +2571,7 @@ bool Tamgua_string::InitialisationModule(TamguGlobal* global, string version) {
     Tamgua_string::AddMethod(global, "fill", &Tamgua_string::MethodFill, P_TWO, "fill(int nb,string c): create a string of nb characters c", a_string);
     Tamgua_string::AddMethod(global, "padding", &Tamgua_string::MethodPadding, P_TWO | P_THREE, "padding(int nb,string c,bool paddattheend): add nb characters c to the current string. Last parameter is optional", a_string);
     Tamgua_string::AddMethod(global, "pop", &Tamgua_string::MethodPop, P_NONE | P_ONE | P_TWO, "pop(): remove last character", a_string);
-    Tamgua_string::AddMethod(global, "replace", &Tamgua_string::MethodReplace, P_TWO, "replace(sub,str): Replace the substrings matching sub with str", a_string);
+    Tamgua_string::AddMethod(global, "replace", &Tamgua_string::MethodReplace, P_TWO, "replace(string sub,string str): Replace the substrings matching sub with str", a_string);
     Tamgua_string::AddMethod(global, "removefirst", &Tamgua_string::MethodRemovefirst, P_ONE, "removefirst(int nb): remove the first nb characters of a string", a_string);
     Tamgua_string::AddMethod(global, "removelast", &Tamgua_string::MethodRemovelast, P_ONE, "removelast(int nb): remove the last nb characters of a string", a_string);
     Tamgua_string::AddMethod(global, "utf8", &Tamgua_string::MethodUtf8, P_NONE | P_ONE, "utf8(int table): convert a LATIN string into UTF8. table is optional, by default it is ISO/IEC 8859 part 1.", a_string);
@@ -2590,7 +2590,7 @@ bool Tamgua_string::InitialisationModule(TamguGlobal* global, string version) {
     Tamgua_string::AddMethod(global, "trimleft", &Tamgua_string::MethodTrimleft, P_NONE, "trimleft(): remove the trailing characters on the left", a_string);
     Tamgua_string::AddMethod(global, "trimright", &Tamgua_string::MethodTrimright, P_NONE, "trimright(): remove the trailing characters on the right", a_string);
     Tamgua_string::AddMethod(global, "last", &Tamgua_string::MethodLast, P_NONE, "last(): return last character", a_string);
-    Tamgua_string::AddMethod(global, "insert", &Tamgua_string::MethodInsert, P_ONE | P_TWO, "insert(i,s): insert the string s at i. If i is -1, then insert s between each character in the input string", a_string);
+    Tamgua_string::AddMethod(global, "insert", &Tamgua_string::MethodInsert, P_ONE | P_TWO, "insert(int i,string s): insert the string s at i. If i is -1, then insert s between each character in the input string", a_string);
     Tamgua_string::AddMethod(global, "clear", &Tamgua_string::MethodClear, P_NONE, "clear(): Clean the content of a string.", a_null);
 
     Tamgua_string::AddMethod(global, "jamo", &Tamgua_string::MethodJamo, P_NONE | P_ONE, "jamo(bool combine): if 'combine' is false split a Korean jamo into its main components, else combine contents into a jamo.", a_null);

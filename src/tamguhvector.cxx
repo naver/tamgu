@@ -63,7 +63,7 @@ void Tamguhvector::AddMethod(TamguGlobal* global, string name, hvectorMethod fun
     Tamguhvector::AddMethod(global, "reserve", &Tamguhvector::MethodReserve, P_ONE, "reserve(int sz): Reserve a size of 'sz' potential element in the vector.");
     Tamguhvector::AddMethod(global, "unique", &Tamguhvector::MethodUnique, P_NONE, "unique(): remove duplicate elements.");
 
-    Tamguhvector::AddMethod(global, "remove", &Tamguhvector::MethodRemove, P_ONE, "remove(e): remove 'e' from the vector.");
+    Tamguhvector::AddMethod(global, "remove", &Tamguhvector::MethodRemove, P_ONE, "remove(short e): remove 'e' from the vector.");
 
     Tamguhvector::AddMethod(global, "last", &Tamguhvector::MethodLast, P_NONE, "last(): return the last element.");
     Tamguhvector::AddMethod(global, "join", &Tamguhvector::MethodJoin, P_ONE, "join(string sep): Produce a string representation for the container.");
@@ -74,11 +74,11 @@ void Tamguhvector::AddMethod(TamguGlobal* global, string name, hvectorMethod fun
 
     Tamguhvector::AddMethod(global, "product", &Tamguhvector::MethodProduct, P_NONE, "product(): return the product of elements.");
     Tamguhvector::AddMethod(global, "push", &Tamguhvector::MethodPush, P_ATLEASTONE, "push(v): Push a value into the vector.");
-    Tamguhvector::AddMethod(global, "pop", &Tamguhvector::MethodPop, P_NONE | P_ONE, "pop(i): Erase an element from the vector");
+    Tamguhvector::AddMethod(global, "pop", &Tamguhvector::MethodPop, P_NONE | P_ONE, "pop(int i): Erase an element from the vector");
     Tamguhvector::AddMethod(global, "poplast", &Tamguhvector::MethodPoplast, P_NONE, "poplast(): remove and return the last element from the vector");
     Tamguhvector::AddMethod(global, "merge", &Tamguhvector::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
     Tamguhvector::AddMethod(global, "editdistance", &Tamguhvector::MethodEditDistance, P_ONE, "editdistance(v): Compute the edit distance with vector 'v'.");
-    Tamguhvector::AddMethod(global, "insert", &Tamguhvector::MethodInsert, P_TWO, "insert(i,v): Insert v at position i.");
+    Tamguhvector::AddMethod(global, "insert", &Tamguhvector::MethodInsert, P_TWO, "insert(int i,v): Insert v at position i.");
 
     Tamguhvector::AddMethod(global, "permute", &Tamguhvector::MethodPermute, P_NONE, "permute(): permute the values in the vector after each call.");
 

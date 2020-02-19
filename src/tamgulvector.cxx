@@ -60,7 +60,7 @@ void Tamgulvector::AddMethod(TamguGlobal* global, string name, lvectorMethod fun
 
     Tamgulvector::AddMethod(global, "clear", &Tamgulvector::MethodClear, P_NONE, "clear(): clear the container.");
 
-    Tamgulvector::AddMethod(global, "remove", &Tamgulvector::MethodRemove, P_ONE, "remove(e): remove 'e' from the vector.");
+    Tamgulvector::AddMethod(global, "remove", &Tamgulvector::MethodRemove, P_ONE, "remove(long e): remove 'e' from the vector.");
 
     Tamgulvector::AddMethod(global, "reverse", &Tamgulvector::MethodReverse, P_NONE, "reverse(): reverse a vector.");
     Tamgulvector::AddMethod(global, "reserve", &Tamgulvector::MethodReserve, P_ONE, "reserve(int sz): Reserve a size of 'sz' potential element in the vector.");
@@ -76,11 +76,11 @@ void Tamgulvector::AddMethod(TamguGlobal* global, string name, lvectorMethod fun
 
     Tamgulvector::AddMethod(global, "product", &Tamgulvector::MethodProduct, P_NONE, "product(): return the product of elements.");
     Tamgulvector::AddMethod(global, "push", &Tamgulvector::MethodPush, P_ATLEASTONE, "push(v): Push a value into the vector.");
-    Tamgulvector::AddMethod(global, "pop", &Tamgulvector::MethodPop, P_NONE | P_ONE, "pop(i): Erase an element from the vector");
+    Tamgulvector::AddMethod(global, "pop", &Tamgulvector::MethodPop, P_NONE | P_ONE, "pop(int i): Erase an element from the vector");
     Tamgulvector::AddMethod(global, "poplast", &Tamgulvector::MethodPoplast, P_NONE, "poplast(): remove and return the last element from the vector");
     Tamgulvector::AddMethod(global, "merge", &Tamgulvector::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
     Tamgulvector::AddMethod(global, "editdistance", &Tamgulvector::MethodEditDistance, P_ONE, "editdistance(v): Compute the edit distance with vector 'v'.");
-    Tamgulvector::AddMethod(global, "insert", &Tamgulvector::MethodInsert, P_TWO, "insert(i,v): Insert v at position i.");
+    Tamgulvector::AddMethod(global, "insert", &Tamgulvector::MethodInsert, P_TWO, "insert(int i,v): Insert v at position i.");
 
     global->newInstance[Tamgulvector::idtype] = new Tamgulvector(global);
     global->RecordMethods(Tamgulvector::idtype, Tamgulvector::exported);
