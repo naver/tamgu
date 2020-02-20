@@ -81,8 +81,8 @@ println("xor:", je);
 println(\(glup 20 100));
 println(\(glup 50 200));
 
-lisp l = \(cons glup ());
-println(l);
+lisp l = \(body glup);
+println("Body:",l);
 
 function rappel() {
     \(label monrappel (lambda (x) (* 2 x)));
@@ -98,7 +98,7 @@ string code=@"
 
 (defun lire (txt chemin) (read txt chemin))
 (defun affiche (chemin) (println chemin))
-    
+
 "@;
 
 \(label calc
@@ -231,6 +231,7 @@ function appel() {
 appel();
 
 println(\(key "abcde12sqjd" r"%d+"));
+
 
 
 

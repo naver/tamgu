@@ -2378,13 +2378,7 @@ public:
 		return instructions.last; 
 	}
 
-    Tamgu* Lispbody() {
-        if (instructions.last == 1) {
-            if (instructions.vecteur[0]->isReturned())
-                return instructions.vecteur[0]->Argument(0);
-        }
-        return aNULL;
-    }
+    Tamgu* Lispbody();
 
 	short Returntype() {
 		if (returntype == a_null)

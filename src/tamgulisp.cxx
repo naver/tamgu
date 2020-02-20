@@ -98,6 +98,7 @@ bool Tamgulisp::InitialisationModule(TamguGlobal* global, string version) {
     global->lispactions[a_cons] = P_THREE;
     global->lispactions[a_cond] = P_ATLEASTTWO;
     global->lispactions[a_self] = P_ATLEASTTWO;
+    global->lispactions[a_body] = P_TWO;
     global->lispactions[a_atom] = P_FULL;
     global->lispactions[a_eq] = P_THREE;
     global->lispactions[a_cadr] = P_TWO;
@@ -150,6 +151,27 @@ Tamgu* TamguGlobal::Providelispoperators(short op) {
         lispoperators[op] = new Tamguoperator(op, this);
     return lispoperators[op];
 }
+
+Tamgu* TamguFunction::Lispbody() {
+    if (instructions.last == 1) {
+        if (instructions.vecteur[0]->isReturned()) {
+            Tamgu* l = globalTamgu->Providelisp();
+            l->Push(globalTamgu->Providelispsymbols(a_lambda));
+            Tamgu* args = globalTamgu->Providelisp();
+            short a;
+            for (long i = 0; i < parameters.last; i++) {
+                a = parameters[i]->Name();
+                args->Push(globalTamgu->Providelispsymbols(a));
+            }
+            l->Push(args);
+            args = instructions.vecteur[0]->Argument(0);
+            l->Push(args);
+            return l;
+        }
+    }
+    return aNULL;
+}
+
 
 Tamgu* Tamgusymbol::Eval(Tamgu* a, Tamgu* v, short idthread) {
     if (globalTamgu->isDeclared(name, idthread))
@@ -614,11 +636,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             checkerror(v0);
             v1 = values[2]->Eval(contextualpattern, aNULL, idthread);
             checkerrorwithrelease(v1, v0);
-            
-            //For functions, Lispbody will return their body, otherwise it does nothing
-            v0 = v0->Lispbody();
-            v1 = v1->Lispbody();
-            
+                        
             if (!v1->isVectorContainer())
                 return aNULL;
             
@@ -1090,6 +1108,10 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             }
             return globalTamgu->Returnerror("Wrong number of arguments in 'keys'", idthread);
         }
+        case a_body:
+            v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
+            checkerror(v0);
+            return v0->Lispbody();
         case a_lisp:
         {
             v0 = a->Eval(contextualpattern, aNULL, idthread);
