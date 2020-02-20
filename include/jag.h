@@ -523,6 +523,7 @@ public:
     bool echochar;
     bool replaceall;
     bool modified;
+    bool tobesaved;
     bool tooglehelp;
     bool updateline;
     bool regularexpressionfind;
@@ -965,7 +966,7 @@ public:
             return false;
         wd << convert(code);
         wd.close();
-        modified = false;
+        tobesaved = false;
         return true;
     }
     

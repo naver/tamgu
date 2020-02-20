@@ -806,7 +806,7 @@ public:
             addspace(thecurrentfilename, true);
             codes[0] = code;
         }
-        modified = false;
+        tobesaved = false;
         return true;
     }
 
@@ -1906,8 +1906,12 @@ public:
     }
 
     bool terminate() {
-        if (modified) {
-            modified = false;
+        if (tobesaved) {
+            tobesaved = false;
+            if (emode())
+                displayonlast("File not saved... same command again to quit", true);
+            else
+                printline(pos+1, "File not saved... ctrl-d again to quit");
             return false;
         }
         

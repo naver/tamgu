@@ -28,7 +28,7 @@
 #include "x_tokenize.h"
 #include "jag.h"
 
-static string version = "0.98 build 13";
+static string version = "0.98 build 14";
 
 
 int main(int argc, char *argv[]) {

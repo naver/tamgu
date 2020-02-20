@@ -419,6 +419,7 @@ jag_editor::jag_editor() : lines(this) {
     wprefix = L"작";
     replaceall = false;
     modified = true;
+    tobesaved = false;
     inittableutf8();
     screensizes();
     localhelp << m_red<< "^xh" << m_current << ":help " << m_red<< "^k" << m_current << ":del after " << m_red<< "^p" << m_current << ":k-buffer " <<  m_red<< "^d" << m_current << ":del line " << m_red<< "^uz/^r" << m_current << ":un/redo " << m_red<< "^f" << m_current << ":find " << m_red<< "^n" << m_current << ":next " << m_red<< "^g" << m_current << ":go " << m_red<< "^l" << m_current << ":top/bottom " << m_red<< "^t" << m_current << ":indent " << m_red<< "^s/w" << m_current << ":write " << m_red<< "^x" << m_current << ":commands ";
@@ -904,6 +905,7 @@ void jag_editor::deletechar() {
         
         //We update our line
         if (emode()) {
+            tobesaved = true;
             clearline();
             lines[pos] = line;
             
@@ -930,7 +932,7 @@ void jag_editor::deleteline(char moveup) {
         return;
     }
     
-    
+    tobesaved = true;
     if (!moveup) {
         //we delete the full line
         undo(lines[pos],pos, u_del); //deletion
@@ -1735,6 +1737,9 @@ void jag_editor::processredos() {
     long posfirst = redos.l_keeptop.back();
     
     modified = true;
+    if (emode())
+        tobesaved = true;
+    
     bool refact = false;
 
     wstring l;
@@ -1794,6 +1799,8 @@ void jag_editor::processundos() {
     long posfirst = undos.l_keeptop.back();
     
     modified = true;
+    if (emode())
+        tobesaved = true;
     bool refact = false;
     wstring l;
 
@@ -2146,8 +2153,9 @@ void jag_editor::handlecommands() {
 }
 
 bool jag_editor::terminate() {
-    if (modified) {
-        modified = false;
+    if (tobesaved) {
+        tobesaved = false;
+        displayonlast("File not saved... ctrl-c again to quit", true);
         return false;
     }
 
@@ -2400,6 +2408,8 @@ bool jag_editor::checkaction(string& buff, long& first, long& last, bool lisp) {
             return true;
         case 16: //ctrl-p insert kbuffer
             modified = true;
+            if (emode())
+                tobesaved = true;
             if (kbuffer.find(10) == -1) {
                 undo(lines[pos],pos, u_modif);
                 addabuffer(kbuffer, false);
@@ -2498,6 +2508,8 @@ void jag_editor::addabuffer(wstring& b, bool instring) {
             b[i] = 32;
     }
     
+    if (emode())
+        tobesaved = true;
     modified = true;
     //We are in the middle of a line... Insertion mode...
     if (line.size() && posinstring < line.size()) {
