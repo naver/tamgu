@@ -23385,7 +23385,7 @@ char bnf_tamgu::m_tlatom(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYOR
     subtree=NULL;
-    if (m_anumber(lret,&subtree) || m_word(lret,&subtree) || m_astringdouble(lret,&subtree) || m_apreg(lret,&subtree) || m_aspreg(lret,&subtree) || m_atreg(lret,&subtree) || m_astreg(lret,&subtree))
+    if (m_predicatevariable(lret,&subtree) || m_anumber(lret,&subtree) || m_word(lret,&subtree) || m_astringdouble(lret,&subtree) || m_apreg(lret,&subtree) || m_aspreg(lret,&subtree) || m_atreg(lret,&subtree) || m_astreg(lret,&subtree))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);

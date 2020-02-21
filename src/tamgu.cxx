@@ -41,7 +41,7 @@
 #include "tamgulisp.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2020.02.20";
+const char* tamgu_version = "Tamgu 1.2020.02.21";
 
 Tamgu* booleantamgu[2];
 
@@ -2987,6 +2987,13 @@ Exporting Tamgu* Tamgu::Invert(bool autoself) {
 //--------------------------------------------------------------
 
 Exporting Tamgu* TamguConstString::CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    if (!globalTamgu->methods.check(idname) || Arity(globalTamgu->methods.get(a_string)[idname], callfunc->Size()) == false) {
+        string mess("'");
+        mess += globalTamgu->Getsymbol(idname);
+        mess += "' : Unknown method or Wrong number of arguments for type: 'string'";
+        return globalTamgu->Returnerror(mess, idthread);
+    }
+
     Tamgustring v(value);
     contextualpattern = v.CallMethod(idname, contextualpattern, idthread, callfunc);
     if (contextualpattern == &v)
@@ -2995,6 +3002,13 @@ Exporting Tamgu* TamguConstString::CallMethod(short idname, Tamgu* contextualpat
 }
 
 Exporting Tamgu* TamguConstUString::CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    if (!globalTamgu->methods.check(idname) || Arity(globalTamgu->methods.get(a_ustring)[idname], callfunc->Size()) == false) {
+        string mess("'");
+        mess += globalTamgu->Getsymbol(idname);
+        mess += "' : Unknown method or Wrong number of arguments for type: 'ustring'";
+        return globalTamgu->Returnerror(mess, idthread);
+    }
+    
     Tamguustring v(value);
     contextualpattern = v.CallMethod(idname, contextualpattern, idthread, callfunc);
     if (contextualpattern == &v)
@@ -3003,6 +3017,12 @@ Exporting Tamgu* TamguConstUString::CallMethod(short idname, Tamgu* contextualpa
 }
 
 Exporting Tamgu* TamguConstInt::CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc)  {
+    if (!globalTamgu->methods.check(idname) || Arity(globalTamgu->methods.get(a_int)[idname], callfunc->Size()) == false) {
+        string mess("'");
+        mess += globalTamgu->Getsymbol(idname);
+        mess += "' : Unknown method or Wrong number of arguments for type: 'int'";
+        return globalTamgu->Returnerror(mess, idthread);
+    }
     Tamguint v(value);
     contextualpattern = v.CallMethod(idname, contextualpattern, idthread, callfunc);
     if (contextualpattern == &v)
@@ -3011,6 +3031,13 @@ Exporting Tamgu* TamguConstInt::CallMethod(short idname, Tamgu* contextualpatter
 }
 
 Exporting Tamgu* TamguConstShort::CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc)  {
+    if (!globalTamgu->methods.check(idname) || Arity(globalTamgu->methods.get(a_short)[idname], callfunc->Size()) == false) {
+        string mess("'");
+        mess += globalTamgu->Getsymbol(idname);
+        mess += "' : Unknown method or Wrong number of arguments for type: 'short'";
+        return globalTamgu->Returnerror(mess, idthread);
+    }
+
     Tamgushort v(value);
     contextualpattern = v.CallMethod(idname, contextualpattern, idthread, callfunc);
     if (contextualpattern == &v)
@@ -3019,6 +3046,12 @@ Exporting Tamgu* TamguConstShort::CallMethod(short idname, Tamgu* contextualpatt
 }
 
 Exporting Tamgu* TamguConstDecimal::CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc)  {
+    if (!globalTamgu->methods.check(idname) || Arity(globalTamgu->methods.get(a_decimal)[idname], callfunc->Size()) == false) {
+        string mess("'");
+        mess += globalTamgu->Getsymbol(idname);
+        mess += "' : Unknown method or Wrong number of arguments for type: 'decimal'";
+        return globalTamgu->Returnerror(mess, idthread);
+    }
     Tamgudecimal v(value);
     contextualpattern = v.CallMethod(idname, contextualpattern, idthread, callfunc);
     if (contextualpattern == &v)
@@ -3027,6 +3060,12 @@ Exporting Tamgu* TamguConstDecimal::CallMethod(short idname, Tamgu* contextualpa
 }
 
 Exporting Tamgu* TamguConstFloat::CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc)  {
+    if (!globalTamgu->methods.check(idname) || Arity(globalTamgu->methods.get(a_float)[idname], callfunc->Size()) == false) {
+        string mess("'");
+        mess += globalTamgu->Getsymbol(idname);
+        mess += "' : Unknown method or Wrong number of arguments for type: 'float'";
+        return globalTamgu->Returnerror(mess, idthread);
+    }
     Tamgufloat v(value);
     contextualpattern = v.CallMethod(idname, contextualpattern, idthread, callfunc);
     if (contextualpattern == &v)
@@ -3035,6 +3074,12 @@ Exporting Tamgu* TamguConstFloat::CallMethod(short idname, Tamgu* contextualpatt
 }
 
 Exporting Tamgu* TamguConstLong::CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    if (!globalTamgu->methods.check(idname) || Arity(globalTamgu->methods.get(a_long)[idname], callfunc->Size()) == false) {
+        string mess("'");
+        mess += globalTamgu->Getsymbol(idname);
+        mess += "' : Unknown method or Wrong number of arguments for type: 'long'";
+        return globalTamgu->Returnerror(mess, idthread);
+    }
     Tamgulong v(value);
     contextualpattern = v.CallMethod(idname, contextualpattern, idthread, callfunc);
     if (contextualpattern == &v)

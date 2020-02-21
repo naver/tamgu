@@ -21,6 +21,7 @@
 #include "compilecode.h"
 #include "tamguversion.h"
 #include "tamgulisp.h"
+#include "predicate.h"
 
 //We need to declare once again our local definitions.
 #define checkerror(a) if (a->isError()) return a
@@ -709,6 +710,14 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                     return a;
                 }
                 return aNULL;
+            }
+            
+            if (globalTamgu->predicates.check(n)) {
+                TamguInstructionLaunch launch(NULL,NULL);
+                TamguPredicate kx(n, NULL, a_predicate, &launch);
+                for (i = 1; i < sz; i++)
+                    kx.parameters.push_back(values[i]);
+                return launch.Eval(contextualpattern, aNULL, idthread);
             }
             
             if (globalTamgu->procedures.check(n)) {
