@@ -63,7 +63,7 @@ bool Tamgulisp::InitialisationModule(TamguGlobal* global, string version) {
     
     global->lispactions[a_load] = P_TWO;
     global->lispactions[a_eval] = P_TWO;
-    global->lispactions[a_apply] = P_ATLEASTTHREE;
+    global->lispactions[a_apply] = P_THREE;
     global->lispactions[a_for] = P_ATLEASTFOUR;
     global->lispactions[a_return] = P_TWO | P_THREE;
     global->lispactions[a_lambda] = P_ATLEASTTHREE;
@@ -1185,15 +1185,21 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
         case a_apply: //(apply func a1..an)
         {
             a = values[1]->Eval(contextualpattern, aNULL, idthread);
-            Tamgulisp lsp(-1);
             n = a->Name();
             if (!n)
                 return globalTamgu->Returnerror("Cannot evaluate this expression", idthread);
-                
+
+            v1 = values[2]->Eval(contextualpattern, aNULL, idthread);
+            if (!v1->isVectorContainer())
+                return globalTamgu->Returnerror("Wrong list of arguments for 'apply'", idthread);
+
+            Tamgulisp lsp(-1);
             lsp.values.push_back(globalTamgu->Providelispsymbols(a->Name()));
-            for (i = 2; i < sz; i++)
-                lsp.values.push_back(values[i]);
-            return lsp.Eval(contextualpattern, aNULL, idthread);
+            for (i = 0; i < v1->Size(); i++)
+                lsp.values.push_back(v1->getvalue(i));
+            a = lsp.Eval(contextualpattern, aNULL, idthread);
+            v1->Releasenonconst();
+            return a;
         }
         case a_lisp:
         {
