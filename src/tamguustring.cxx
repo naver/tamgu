@@ -436,7 +436,7 @@ Tamgu* Tamguustring::Put(Tamgu* idx, Tamgu* v, short idthread) {
     if (res == 0) {
         _cleanlock(_lock);
         if (globalTamgu->erroronkey)
-            globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);
+            return globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);
         return aFALSE;
     }
 
@@ -465,7 +465,7 @@ Tamgu* Tamguustring::Eval(Tamgu* context, Tamgu* idx, short idthread) {
     if (res == 0) {
         _cleanlock(_lock);
        if (globalTamgu->erroronkey)
-            globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);
+            return globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);
         return aNOELEMENT;
     }
 
@@ -2747,7 +2747,7 @@ Tamgu* Tamgua_ustring::Put(Tamgu* idx, Tamgu* v, short idthread) {
     
     if (res == 0) {
         if (globalTamgu->erroronkey)
-            globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);
+            return globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);
         return aFALSE;
     }
     
@@ -2777,7 +2777,7 @@ Tamgu* Tamgua_ustring::Eval(Tamgu* context, Tamgu* idx, short idthread) {
     
     if (res == 0) {
         if (globalTamgu->erroronkey)
-            globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);
+            return globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);
         return aNOELEMENT;
     }
     

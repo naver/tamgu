@@ -164,6 +164,10 @@ public:
         return action;
     }
     
+    short Name() {
+        return action;
+    }
+    
     string String() {
         return globalTamgu->operator_strings[action];
     }
@@ -192,6 +196,8 @@ class Tamgulisp : public Tamguvector {
 
     //----------------------------------------------------------------------------------------------------------------------
     Tamgu* Eval(Tamgu* context, Tamgu* v, short idthread);
+    Tamgu* Put(Tamgu* c, Tamgu* v, short idthread);
+    Tamgu* Convert(Tamgu* c, short idthread);
 
     bool isLisp() {
         return true;

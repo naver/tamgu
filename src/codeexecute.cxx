@@ -489,7 +489,7 @@ Tamgu* TamguIndex::Eval(Tamgu* localidx, Tamgu* obj, short idthread) {
 	while (kidx != NULL && kidx->isIndex()) {
 		if (object == aNOELEMENT) {
 			if (globalTamgu->erroronkey)
-				globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);
+				return globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);
 			return aNOELEMENT;
 		}
 
@@ -515,7 +515,7 @@ Tamgu* TamguIndex::Eval(Tamgu* localidx, Tamgu* obj, short idthread) {
 			}
 			else {
 				if (globalTamgu->erroronkey)
-					globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);
+					return globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);
 				return aNOELEMENT;
 			}
 		}

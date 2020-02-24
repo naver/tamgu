@@ -343,7 +343,7 @@ typedef enum{
 	a_modifydependency, a_actionvariable, a_taskelldeclaration, a_drop,  a_concept, a_negation, a_taskellinstruction, a_methods,
     a_treg, a_table, a_ifnot, a_Nothing, a_preg, a_rules, a_iftaskell, a_casetaskell, a_size, a_post, a_fibre, a_booleanxor, a_push,
     a_quote, a_cons, a_cond, a_atom, a_eq, a_cadr, a_defun, a_label, a_atomp, a_numberp, a_consp, a_zerop, a_nullp, a_block,
-    a_setq, a_append, a_eval, a_key, a_keys, a_load, a_body, a_lisp
+    a_setq, a_append, a_eval, a_key, a_keys, a_load, a_body, a_apply, a_lisp
 } tamgubasictypes;
 
 inline bool Isnumber(short a) {

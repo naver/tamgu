@@ -63,6 +63,7 @@ bool Tamgulisp::InitialisationModule(TamguGlobal* global, string version) {
     
     global->lispactions[a_load] = P_TWO;
     global->lispactions[a_eval] = P_TWO;
+    global->lispactions[a_apply] = P_ATLEASTTHREE;
     global->lispactions[a_for] = P_ATLEASTFOUR;
     global->lispactions[a_return] = P_TWO | P_THREE;
     global->lispactions[a_lambda] = P_ATLEASTTHREE;
@@ -88,7 +89,7 @@ bool Tamgulisp::InitialisationModule(TamguGlobal* global, string version) {
     global->lispactions[a_plus] = P_ATLEASTTHREE;
     global->lispactions[a_minus] = P_ATLEASTTHREE;
     global->lispactions[a_multiply] = P_ATLEASTTHREE;
-    global->lispactions[a_divide] = P_THREE;
+    global->lispactions[a_divide] = P_ATLEASTTHREE;
     global->lispactions[a_power] = P_THREE;
     global->lispactions[a_mod] = P_THREE;
     global->lispactions[a_shiftleft] = P_THREE;
@@ -112,6 +113,52 @@ bool Tamgulisp::InitialisationModule(TamguGlobal* global, string version) {
     global->lispactions[a_lisp] = P_ATLEASTONE;
 
     return true;
+}
+
+Tamgu* Tamgulisp::Convert(Tamgu* v, short idthread) {
+    if (!v->Size())
+        return aTRUE;
+    
+    Tamgu* val;
+    Tamgulisp* lsp;
+    string s;
+    
+    
+    for (long i = 0; i < v->Size(); i++) {
+        val = v->getvalue(i);
+        if (val->isString()) {
+            s =  val->String();
+            Push(globalTamgu->Providelispsymbols(s));
+        }
+        else {
+            if (val->isVectorContainer()) {
+                if (!val->Size())
+                    Push(aEMPTYLISP);
+                else {
+                    lsp = globalTamgu->Providelisp();
+                    lsp->Convert(val, idthread);
+                    Push(lsp);
+                }
+            }
+            else
+                Push(val);
+        }
+    }
+    return aTRUE;
+}
+
+Tamgu* Tamgulisp::Put(Tamgu* c, Tamgu* v, short idthread) {
+    if (!v->isVectorContainer())
+        return globalTamgu->Returnerror("Expecting a vector as input", idthread);
+    
+    //We then consider strings to be atoms...
+    Clear();
+
+    c = Convert(v, idthread);
+
+    if (c->isError())
+        return c;
+    return aTRUE;
 }
 
 Tamgulispcode::Tamgulispcode(TamguGlobal* g, Tamgu* parent) : Tamgulisp(g, parent) {
@@ -526,15 +573,20 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             }
             return v0;
         case a_divide:
-            a = values[1]->Eval(contextualpattern, aNULL, idthread);
-            checkerror(a);
-            v1 = values[2]->Eval(contextualpattern, aNULL, idthread);
-            checkerrorwithrelease(v1, a);
-            v0 = a->Atom();
-            v0 = v0->divide(v1,true);
-            v1->Releasenonconst();
-            if (v0->isError())
-                a->Releasenonconst();
+            v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
+            checkerror(v0);
+            v0 = v0->Atom();
+            for (i = 2; i < sz; i++) {
+                v1 = values[i]->Eval(contextualpattern, aNULL, idthread);
+                checkerrorwithrelease(v1, v0);
+                a = v0->divide(v1,true);
+                v1->Releasenonconst();
+                checkerrorwithrelease(a, v0);
+                if (a != v0) {
+                    v0->Releasenonconst();
+                    v0 = a;
+                }
+            }
             return v0;
         case a_power:
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
@@ -708,6 +760,15 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                     a = call.Eval(contextualpattern, aNULL, idthread);
                     globalTamgu->Popstacklisp(idthread);
                     return a;
+                }
+                //It might be an operator
+                n = v0->Name();
+                if (globalTamgu->lispactions.check(n)) {
+                    Tamgulisp lsp(-1);
+                    lsp.values.push_back(globalTamgu->Providelispsymbols(n));
+                    for (i =  1; i < sz; i++)
+                        lsp.values.push_back(values[i]);
+                    return lsp.Eval(contextualpattern, aNULL, idthread);
                 }
                 return aNULL;
             }
@@ -1121,6 +1182,19 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v0);
             return v0->Lispbody();
+        case a_apply: //(apply func a1..an)
+        {
+            a = values[1]->Eval(contextualpattern, aNULL, idthread);
+            Tamgulisp lsp(-1);
+            n = a->Name();
+            if (!n)
+                return globalTamgu->Returnerror("Cannot evaluate this expression", idthread);
+                
+            lsp.values.push_back(globalTamgu->Providelispsymbols(a->Name()));
+            for (i = 2; i < sz; i++)
+                lsp.values.push_back(values[i]);
+            return lsp.Eval(contextualpattern, aNULL, idthread);
+        }
         case a_lisp:
         {
             v0 = a->Eval(contextualpattern, aNULL, idthread);

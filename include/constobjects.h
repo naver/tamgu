@@ -226,7 +226,7 @@ public:
         
         if (res == 0) {
             if (globalTamgu->erroronkey)
-                globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);
+                return globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);
             return aNOELEMENT;
         }
         
@@ -454,7 +454,7 @@ public:
         
         if (res == 0) {
             if (globalTamgu->erroronkey)
-                globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);
+               return globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);
             return aNOELEMENT;
         }
         

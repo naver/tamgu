@@ -23399,6 +23399,29 @@ char bnf_tamgu::m_tlatom(string& lreturn,x_node** tree) {
 }
 
 
+char bnf_tamgu::m_tlquote_0_1(string& lreturn,x_node** tree) {
+    if (gFail==1) return(0);
+    string lret;
+    long pos=currentpos;
+    int itok=intoken;
+    x_node* subtree=NULL;
+    int addsubtree=0;
+    bool exitonfail=false;
+    //BODYOR
+    subtree=NULL;
+    if (m_tlexp(lret,&subtree) || m_opcomp(lret,&subtree))
+        x_init_tree(tree,subtree,addsubtree);
+    else {
+        x_pop_node(tree,addsubtree);
+        currentpos=pos;
+        intoken=itok;
+        setfail(exitonfail);
+        return 0;
+    }
+    return(1);
+}
+
+
 char bnf_tamgu::m_tlquote(string& lreturn,x_node** tree) {
     if (gFail==1) return(0);
     static const char* label="tlquote";
@@ -23432,7 +23455,7 @@ char bnf_tamgu::m_tlquote(string& lreturn,x_node** tree) {
     }
     //BODYSEQUENCE
     subtree=NULL;
-    if (m_tlexp(lret,&subtree))
+    if (m_tlquote_0_1(lret,&subtree))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -23634,6 +23657,29 @@ char bnf_tamgu::m_tamgulisp(string& lreturn,x_node** tree) {
 }
 
 
+char bnf_tamgu::m_tlquotepure_0_1(string& lreturn,x_node** tree) {
+    if (gFail==1) return(0);
+    string lret;
+    long pos=currentpos;
+    int itok=intoken;
+    x_node* subtree=NULL;
+    int addsubtree=0;
+    bool exitonfail=false;
+    //BODYOR
+    subtree=NULL;
+    if (m_tlexpure(lret,&subtree) || m_opcomp(lret,&subtree))
+        x_init_tree(tree,subtree,addsubtree);
+    else {
+        x_pop_node(tree,addsubtree);
+        currentpos=pos;
+        intoken=itok;
+        setfail(exitonfail);
+        return 0;
+    }
+    return(1);
+}
+
+
 char bnf_tamgu::m_tlquotepure(string& lreturn,x_node** tree) {
     if (gFail==1) return(0);
     static const char* label="tlquotepure";
@@ -23656,7 +23702,7 @@ char bnf_tamgu::m_tlquotepure(string& lreturn,x_node** tree) {
     }
     //BODYSEQUENCE
     subtree=NULL;
-    if (m_tlexpure(lret,&subtree))
+    if (m_tlquotepure_0_1(lret,&subtree))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
