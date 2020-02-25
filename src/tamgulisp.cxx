@@ -95,7 +95,7 @@ bool Tamgulisp::InitialisationModule(TamguGlobal* global, string version) {
     global->lispactions[a_shiftleft] = P_THREE;
     global->lispactions[a_shiftright] = P_THREE;
     
-    global->lispactions[a_setq] = P_THREE;
+    global->lispactions[a_affectation] = P_THREE;
     global->lispactions[a_quote] = P_TWO;
     global->lispactions[a_cons] = P_THREE;
     global->lispactions[a_cond] = P_ATLEASTTWO;
@@ -1062,7 +1062,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 v1 = values[i]->Eval(contextualpattern, aNULL, idthread);
             }
             return v1;
-        case a_setq:
+        case a_affectation:
             n = values[1]->Name();
             if (!n)
                 return globalTamgu->Returnerror("Wrong name", idthread);
@@ -1077,11 +1077,14 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                     return v1;
                 }
                 v1->Resetreference();
+                a = a->Atom();
                 a->Setreference();
                 contextualpattern->Replacedeclaration(idthread, n, a);
                 return a;
             }
             
+            a = a->Atom();
+            a->Setreference();
             globalTamgu->Storevariable(idthread, n, a);
             contextualpattern->Declarelocal(idthread, n, a);
             return a;

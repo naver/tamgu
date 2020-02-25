@@ -621,7 +621,7 @@ parentheticexpression := astringdouble^afullstring^astringsimple^anumber^astring
 %tag := onetag+
 
 ########### TAMGULISP (different from above. This is the real stuff) It starts with \(...) #######################################
-tlcomparator := [%< %>]^[%~ %=]^[%! %=]^$≠^[%= %=]^[%< %=]^[%> %=]^%<^%>
+tlcomparator := [%< %>]^[%~ %=]^[%! %=]^$≠^[%= %=]^[%< %=]^[%> %=]^%<^%>^%=
 tloperator := $×^$÷^[%< %<]^[%> %>]^[%^ %^]^[%* %*]^%&^%|^%+^%-^%*^%/^%%^%^
 
 tlatom := predicatevariable^anumber^word^astringdouble^apreg^aspreg^atreg^astreg

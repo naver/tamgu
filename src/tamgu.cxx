@@ -41,7 +41,7 @@
 #include "tamgulisp.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2020.02.24";
+const char* tamgu_version = "Tamgu 1.2020.02.25";
 
 Tamgu* booleantamgu[2];
 
@@ -1854,7 +1854,7 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("dependency"); //118 --> a_dependency
 
     Createid("tam_stream"); //119 --> a_stream
-    Createid("tam_affectation"); //120 --> a_affectation
+    Createid("setq"); //120 --> a_affectation
 
     Createid("tam_plusequ"); //121 --> a_plusequ
     Createid("tam_minusequ"); //122 --> a_minusequ
@@ -1979,10 +1979,9 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("zerop"); //213 a_zerop,
     Createid("nullp"); //214 a_nullp,
     Createid("block"); //215 a_block,
-    Createid("setq"); //216 a_setq,
-    Createid("append"); //217 a_append,
-    Createid("eval"); //218 a_eval,
-    Createid("key"); //219 a_key,
+    Createid("append"); //216 a_append,
+    Createid("eval"); //217 a_eval,
+    Createid("key"); //218 a_key,
     Createid("keys"); //219 a_keys,
     Createid("load"); //220 a_load,
     Createid("body"); //221 a_body,

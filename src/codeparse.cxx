@@ -81,7 +81,7 @@ static char tab8[]={',',';',0};
 static char tab9[]={'&','+','-','*','/','%','^',0};
 static char tab10[]={',',';',0};
 static char tab11[]={',',';',0};
-static char tab12[]={'<','>',0};
+static char tab12[]={'<','>','=',0};
 static char tab13[]={'&','|','+','-','*','/','%','^',0};
 static char tab14[]={'d','p','c','C','H','a','r','s','S','?','%',0};
 static char tab15[]={'*','+',0};
