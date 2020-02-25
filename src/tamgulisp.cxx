@@ -1071,7 +1071,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             
             if (globalTamgu->isDeclared(n, idthread)) {
                 v1 = globalTamgu->Getdeclaration(n, idthread);
-                if (v1->isAtom()) {
+                if (v1->isAtom() && v1->Type() == a->Type()) {
                     v1->Putvalue(a, idthread);
                     a->Releasenonconst();
                     return v1;
