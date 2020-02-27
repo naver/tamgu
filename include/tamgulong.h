@@ -102,6 +102,10 @@ public:
 		return true;
 	}
 
+    bool checkAtomType(short ty) {
+        return (ty == a_long);
+    }
+
 	short Typenumber() {
 		return a_long;
 	}
@@ -116,9 +120,20 @@ public:
 
 	Tamgu* Atom(bool forced = false) {
 		if (forced || !protect || reference)
-			return new  Tamgulong(value);
+			return new Tamgulong(value);
 		return this;
 	}
+
+    Tamgu* Atomref() {
+        TamguReference* r;
+        if (!protect || reference)
+            r = new Tamgulong(value);
+        else
+            r = this;
+        r->reference++;
+        r->protect = false;
+        return r;
+    }
 
 	string Bytes() {
 		u_tamgulong x(value);

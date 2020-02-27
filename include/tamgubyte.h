@@ -93,6 +93,17 @@ class Tamgubyte : public TamguReference {
         return this;
     }
 
+    Tamgu* Atomref() {
+        TamguReference* r;
+        if (!protect || reference)
+            r = new  Tamgubyte(value);
+        else
+            r = this;
+        r->reference++;
+        r->protect = false;
+        return r;
+    }
+
 	string Bytes() {
 		char buff[] = { (char)value, 0 };
 		return buff;
@@ -136,6 +147,11 @@ class Tamgubyte : public TamguReference {
 	bool isAtom() {
 		return true;
 	}
+    
+    bool checkAtomType(short ty) {
+        return (ty == a_byte);
+    }
+
 	bool isNumber() {
 		return true;
 	}

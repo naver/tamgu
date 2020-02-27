@@ -541,6 +541,10 @@ public:
 		return true;
 	}
 
+    bool checkAtomType(short ty) {
+        return (ty == a_string);
+    }
+
 	bool isValueContainer() {
 		return true;
 	}
@@ -557,6 +561,14 @@ public:
             return globalTamgu->Providestring(value);
         return this;
 	}
+
+    Tamgu* Atomref() {
+        TamguReference* r = (TamguReference*)Atom();
+        r->reference++;
+        r->protect = false;
+        return r;
+    }
+
 
 	void storevalue(float u) {
 		string s = convertfromnumber(u);
@@ -1462,6 +1474,10 @@ public:
         return true;
     }
     
+    bool checkAtomType(short ty) {
+        return (ty == a_string);
+    }
+
     bool isValueContainer() {
         return true;
     }
@@ -1472,6 +1488,18 @@ public:
         return this;
     }
     
+    Tamgu* Atomref() {
+        TamguReference* r;
+        if (!protect || reference)
+            r = new Tamgua_string(value);
+        else
+            r = this;
+        r->reference++;
+        r->protect = false;
+        return r;
+    }
+
+
     void storevalue(float u) {
         value = convertfromnumber(u);
     }

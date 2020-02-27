@@ -75,7 +75,7 @@ bool Tamgulisp::InitialisationModule(TamguGlobal* global, string version) {
     global->lispactions[a_key] = P_THREE|P_FOUR;
     global->lispactions[a_keys] = P_FOUR|P_THREE;
     global->lispactions[a_list] = P_ATLEASTTHREE;
-    global->lispactions[a_append] = P_ATLEASTTHREE;
+    global->lispactions[a_merge] = P_ATLEASTTHREE;
     global->lispactions[a_same] = P_THREE;
     global->lispactions[a_different] = P_THREE;
     global->lispactions[a_less] = P_THREE;
@@ -128,20 +128,20 @@ Tamgu* Tamgulisp::Convert(Tamgu* v, short idthread) {
         val = v->getvalue(i);
         if (val->isString()) {
             s =  val->String();
-            Push(globalTamgu->Providelispsymbols(s));
+            push(globalTamgu->Providelispsymbols(s));
         }
         else {
             if (val->isVectorContainer()) {
                 if (!val->Size())
-                    Push(aEMPTYLISP);
+                    push(aEMPTYLISP);
                 else {
                     lsp = globalTamgu->Providelisp();
                     lsp->Convert(val, idthread);
-                    Push(lsp);
+                    push(lsp);
                 }
             }
             else
-                Push(val);
+                push(val);
         }
     }
     return aTRUE;
@@ -150,10 +150,11 @@ Tamgu* Tamgulisp::Convert(Tamgu* v, short idthread) {
 Tamgu* Tamgulisp::Put(Tamgu* c, Tamgu* v, short idthread) {
     if (!v->isVectorContainer())
         return globalTamgu->Returnerror("Expecting a vector as input", idthread);
-    
+        
     //We then consider strings to be atoms...
     Clear();
 
+    Locking _lock(this);
     c = Convert(v, idthread);
 
     if (c->isError())
@@ -204,16 +205,16 @@ Tamgu* TamguFunction::Lispbody() {
     if (instructions.last == 1) {
         if (instructions.vecteur[0]->isReturned()) {
             Tamgu* l = globalTamgu->Providelisp();
-            l->Push(globalTamgu->Providelispsymbols(a_lambda));
+            l->push(globalTamgu->Providelispsymbols(a_lambda));
             Tamgu* args = globalTamgu->Providelisp();
             short a;
             for (long i = 0; i < parameters.last; i++) {
                 a = parameters[i]->Name();
-                args->Push(globalTamgu->Providelispsymbols(a));
+                args->push(globalTamgu->Providelispsymbols(a));
             }
-            l->Push(args);
+            l->push(args);
             args = instructions.vecteur[0]->Argument(0);
-            l->Push(args);
+            l->push(args);
             return l;
         }
     }
@@ -260,7 +261,7 @@ Tamgu* TamguLockContainer::cdr(short idthread) {
         
         Tamgulisp* lp = globalTamgu->Providelisp();
         for (long i = 1; i < sz; i++)
-            lp->Push(getvalue(i));
+            lp->push(getvalue(i));
         return lp;
     }
     return aNOELEMENT;
@@ -274,7 +275,7 @@ Tamgu* Tamguvector::cdr(short idthread) {
     
     Tamgulisp* lp = globalTamgu->Providelisp();
     for (long i = 1; i < sz; i++)
-        lp->Push(values[i]);
+        lp->push(values[i]);
     return lp;
 }
 
@@ -476,7 +477,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             v1 = aNULL;
             for (i = 1; i < sz && !v1->isError(); i++) {
                 v1 = values[i]->Eval(contextualpattern, aNULL, idthread);
-                tl->Push(v1);
+                tl->push(v1);
             }
             
             if (v1->isError()) {
@@ -694,9 +695,9 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 return aNULL;
             
             Tamgulisp* tl = globalTamgu->Providelisp();
-            tl->Push(v0);
+            tl->push(v0);
             for (i = 0; i < v1->Size(); i++)
-                tl->Push(v1->getvalue(i));
+                tl->push(v1->getvalue(i));
             v0->Releasenonconst();
             v1->Releasenonconst();
             return tl;
@@ -916,7 +917,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 Tamgulispcode* block = new Tamgulispcode(globalTamgu);
                 block->idinfo = Currentinfo();
                 block->Setreference();
-                block->Push(globalTamgu->Providelispsymbols(a_block));
+                block->push(globalTamgu->Providelispsymbols(a_block));
                 for (i = 2; i < sz; i++)
                     block->values.push_back(values[i]);
                 v1->AddInstruction(block);                
@@ -982,7 +983,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 Tamgulispcode* block = new Tamgulispcode(globalTamgu);
                 block->idinfo = Currentinfo();
                 block->Setreference();
-                block->Push(globalTamgu->Providelispsymbols(a_block));
+                block->push(globalTamgu->Providelispsymbols(a_block));
                 for (i = 3; i < sz; i++)
                     block->values.push_back(values[i]);
                 v1->AddInstruction(block);
@@ -1088,19 +1089,26 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             globalTamgu->Storevariable(idthread, n, a);
             contextualpattern->Declarelocal(idthread, n, a);
             return a;
-        case a_append:
+        case a_merge:
         {
             Tamgulisp* tl = globalTamgu->Providelisp();
+            v1 = values[1]->Eval(contextualpattern, aNULL, idthread);
+            checkerrorwithrelease(v1, tl);
+            if (!v1->isVectorContainer())
+                return globalTamgu->Returnerror("Can only 'append' to a list", idthread);
             long j;
-            for (i = 1; i < sz; i++) {
+            for (j = 0; j < v1->Size(); j++)
+                tl->push(v1->getvalue(j));
+
+            for (i = 2; i < sz; i++) {
                 v1 = values[i]->Eval(contextualpattern, aNULL, idthread);
                 checkerrorwithrelease(v1, tl);
                 if (v1->isVectorContainer()) {
                     for (j = 0; j < v1->Size(); j++)
-                        tl->Push(v1->getvalue(j));
+                        tl->push(v1->getvalue(j));
                 }
                 else
-                    tl->Push(v1);
+                    tl->push(v1);
                 v1->Releasenonconst();
             }
             return tl;
@@ -1227,9 +1235,9 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 return a->Eval(contextualpattern, aNULL, idthread);
             
             Tamgulispcode tl(NULL);
-            tl.Push(v0);
+            tl.push(v0);
             for (i = 1; i < sz; i++)
-                tl.Push(values[i]);
+                tl.push(values[i]);
             a = tl.Eval(contextualpattern, aNULL, idthread);
             v0->Releasenonconst();
             return a;

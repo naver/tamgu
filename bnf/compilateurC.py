@@ -17,7 +17,7 @@ def tl(x):
     return (type(x)==type([]))
 def td(x):
     return (type(x)==type({}))
-        
+
 
 def applyrule(r,tree):
     lreturn=[]
@@ -47,8 +47,8 @@ def insertion(struct,sub,operator):
     if coupe!=None:
         x=coupe["$"][1:]
         struct.insert(1,{"$":x})
-        
-        
+
+
 def sequencedesymboles(subsub):
     if tl(subsub) and len(subsub)>2:
         if subsub[0]=='&':
@@ -59,7 +59,7 @@ def sequencedesymboles(subsub):
                         subsub[0]='?'
                         subsub.pop(-1)
                         subsub.extend(x[1:])
-                        return                        
+                        return
                 if td(x)==False or len(x)!=1 or x.keys()[0]!='symbole':
                     return
             subsub[0]='?'
@@ -131,7 +131,7 @@ def treeanalysis(tree,nb,struct):
             explore(tree,nb+1,struct)
     else:
         explore(tree,nb+1,struct)
-    
+
 
 stringrule="""
 #include <stdio.h>
@@ -191,7 +191,7 @@ public:
 		init=1;
 	}
 
-	
+
 	char append(x_node* n) {
 		if (n!=NULL && (n->init==1 || n->nodes.size()>0)) {
 			if (n->init==1)
@@ -234,7 +234,7 @@ class x_couple {
       lret=values;
     }
 };
-     
+
 
 class x_reading {
 public:
@@ -282,7 +282,7 @@ public:
         virtual char get() {
             return -1;
         }
-        
+
 	virtual string read(int sz) { return "";}
 	virtual void close() {}
 	virtual char error() {
@@ -297,12 +297,12 @@ public:
             static char tabs[]={'0','1','2','3','4','5','6','7','8','9','.',0};
             if (thestr[i]=='-')
 		i++;
-  	    for (;i<thestr.size();i++) 
+  	    for (;i<thestr.size();i++)
 		if (strchr(tabs,thestr[i])==NULL)
-			return false;		
+			return false;
 	    return true;
         }
-        
+
     virtual long Length() {
 		return -1;
 	}
@@ -326,7 +326,7 @@ public:
 		char decimal=0;
 		bool digit=false;
 		bool exposant=false;
-		
+
 		long line=0;
 		char lastc=0;
 		char consumed=1;
@@ -349,7 +349,7 @@ public:
 					line++;
 					lastc=s;
 					s=get();
-					locpos=tell();					
+					locpos=tell();
 					continue;
 				}
 				if (s == '@') {
@@ -371,7 +371,7 @@ public:
 						if (s == 10 || s == 13) {
 							lastc = s;
 							line++;
-						}							
+						}
 					}
 
 					token.clear();
@@ -379,9 +379,9 @@ public:
 					locpos = tell();
 					continue;
 				}
-				
+
 				seek(locpos);
-				s='/';	
+				s='/';
 			}
 
 			c=s;
@@ -390,14 +390,14 @@ public:
 				if (c=='@') {
 					s=get();
 					if (s=='"') {
-						cd = 5; 
+						cd = 5;
 						if (token == "u") {
 							cd = 8;
 							token="";
 						}
 						lastc=0;
 						token+=s;
-						c=get();				
+						c=get();
 						while (!eof()) {
 							if (c==10 && lastc==13)
 								lastc=0;
@@ -405,7 +405,7 @@ public:
 								if (c==10 || c==13) {
 									lastc=c;
 									line++;
-								}					
+								}
 							}
 							token+=c;
 							bool fd=false;
@@ -420,22 +420,22 @@ public:
 						stacktype.push_back(cd);
 						token.clear();
 						s=get();
-						locpos=tell();				
+						locpos=tell();
 						continue;
 					}
 					seek(locpos);
 				}
-				else {				
+				else {
 				if (c=='"') {
 						cd = 1;
 						if (token == "u") {
 							cd = 6;
 							token="";
 						}
-				
+
 					lastc=0;
 					token+=c;
-					c=get();				
+					c=get();
 					while (c!='"' && !eof()) {
 						if (c==10 && lastc==13)
 							lastc=0;
@@ -443,11 +443,11 @@ public:
 							if (c==10 || c==13) {
 								lastc=c;
 								line++;
-							}						
+							}
 						if (c=='\\\\') {
 							token+=c;
 							c=get();
-						}						
+						}
 						token+=c;
 						c=get();
 					}
@@ -457,7 +457,7 @@ public:
 					stacktype.push_back(cd);
 					token.clear();
 					s=get();
-					locpos=tell();				
+					locpos=tell();
 					continue;
 				}
 				if (c=='\\'') {
@@ -475,17 +475,17 @@ public:
 							if (c==10 || c==13) {
 								lastc=c;
 								line++;
-							}						
+							}
 						token+=c;
 						c=get();
 					}
 					token+="'";
-					stack.push_back(token);				
+					stack.push_back(token);
 					stackln.push_back(line);
 					stacktype.push_back(cd);
 					token.clear();
 					s=get();
-					locpos=tell();				
+					locpos=tell();
 					continue;
 				}
 			     }
@@ -493,7 +493,7 @@ public:
 
 			if (c != '.')
 				concatdot = false;
-		        
+
 			if (strchr((char*)table, c) && (!digit || (decimal && c == 'e'))) {
 				token += c;
 				if (c == 'e' && decimal)
@@ -608,7 +608,7 @@ public:
 							}
 						}
 					}
-					
+
 					if (c==10 && lastc==13)
 						lastc=0;
 					else
@@ -622,7 +622,7 @@ public:
 			s=get();
 			locpos=tell();
 		}
-		
+
 		if (!consumed && s > 32 && s < 128) {
 			ch[0] = s;
 			stack.push_back(ch);
@@ -640,7 +640,7 @@ public:
                     }
 		}
 	}
-};    
+};
 
 class x_readstring: public x_reading {
 public:
@@ -651,7 +651,7 @@ public:
 	x_readstring(string s) {
                 concatenatedots = true;
         	readstrings = true;
-		name="%%STRING"; 
+		name="%%STRING";
 		pos=0;
 		parcours=s;
 		length=s.size();
@@ -694,7 +694,7 @@ public:
 		pos+=borne;
 		return currentbuffer;
 	}
-	
+
 	void reset(long p) {
 		pos=p;
 	}
@@ -819,7 +819,7 @@ public:
 			return "";
 		fichier->read(buf,sz);
 		long lz=fichier->gcount();
-		buf[lz]=0;    
+		buf[lz]=0;
 		pos+=sz;
 		currentbuffer= buf;
 		return buf;
@@ -827,7 +827,7 @@ public:
 
 	void close() {
 		fichier->close();
-	}        
+	}
 
 	void reset(long p) {
 		if (fichier==NULL)
@@ -932,7 +932,7 @@ inline void x_init_node(string& lreturn,string& lret,x_node** tree,string name,l
         (*tree)->start=d;
         (*tree)->end=d;
         (*tree)->token=name;
-        (*tree)->init=1;        
+        (*tree)->init=1;
         if (conc) {
             (*tree)->value=lret;
             lreturn+=lret;
@@ -1105,7 +1105,7 @@ x_node* *****::x_parsing(x_reading* xr,x_parsing_mode mode,bool display) {
 
 	if (currentpos!=fx->stack.size() && mode==FULL) {
             if (display) {
-		if (errornumber!=-1) 
+		if (errornumber!=-1)
 			cerr<<endl<<"Error line:"<<lineerror<<" => "<<errorlabels[errornumber];
 		else
 			cerr<<endl<<"Error line:"<<lineerror;
@@ -1142,14 +1142,14 @@ def returnbasename(name):
         basename=name
     else:
         basename=name[:pssubfunc]
-    return basename    
+    return basename
 
 keepvariables=[]
 
 def createrule(name,s,nb,trace,basedeclaration):
     global classname
     basename=returnbasename(name)
-    
+
     newname=name
     if nb!=None:
         newname+="_"+str(nb[0])
@@ -1163,7 +1163,7 @@ def createrule(name,s,nb,trace,basedeclaration):
     s.append(" long pos=currentpos;\n\tint itok=intoken;")
     s.append(" x_node* subtree=NULL;")
     s.append(" int addsubtree=0;")
-    s.append(" bool exitonfail=false;")    
+    s.append(" bool exitonfail=false;")
     return newname
 
 def concatenaterule(elements,nb,values,nbtab):
@@ -1210,7 +1210,7 @@ def concatenaterule(elements,nb,values,nbtab):
             ngarde='x_test_in(lret,'+var+")"
         values.append(ngarde)
         rule.append(nr)
-    return rule    
+    return rule
 
 
 def bodysequence(rule,subdef):
@@ -1222,7 +1222,7 @@ def bodysequence(rule,subdef):
             subdef.append(rule[1:])
             return
         tagname=rule[2:]
-        if "_" not in tagname:            
+        if "_" not in tagname:
             ps=tagname.find("(")
             tagname=tagname[:ps]
             if tagname in fails:
@@ -1235,7 +1235,7 @@ def bodysequence(rule,subdef):
                 subdef.append("    return(0);")
                 subdef.append(" }")
                 return
-                
+
         subdef.append("//BODYSEQUENCE")
         subdef.append(" subtree=NULL;")
         subdef.append(" if ("+rule+") ")
@@ -1261,8 +1261,8 @@ def bodysymboles(rule,subdef):
     subdef.append("    setfail(exitonfail);")
     subdef.append("    return(0);")
     subdef.append(" }")
-    
-        
+
+
 
 
 def bodyoptional(rule,subdef):
@@ -1301,13 +1301,13 @@ def bodycontextual(rule,subdef):
             subdef.append("    if (subtreebis!=NULL)")
             subdef.append("        delete subtreebis;")
         subdef.append("    currentpos=poscontext;\n\tintoken=itokcontext;")
-        subdef.append(" }")        
+        subdef.append(" }")
         subdef.append(" else {")
         subdef.append("    currentpos=pos;\n\tintoken=itok;")
         subdef.append("    setfail(exitonfail);")
         subdef.append("    return(0);")
         subdef.append(" }")
-        
+
 def bodynegation(rule,subdef):
     if tl(rule):
         for r in rule:
@@ -1340,7 +1340,7 @@ def bodynegation(rule,subdef):
         subdef.append("   setfail(exitonfail);")
         subdef.append("   return(0);")
         subdef.append(" }")
-        
+
 def bodyor_old(rule,s,init,subdef,first):
     if tl(rule):
         for r in rule:
@@ -1349,7 +1349,7 @@ def bodyor_old(rule,s,init,subdef,first):
         if rule[0]=="!":
             init.append(rule[1:])
         elif s[0]=="":
-            s[0]+=" if ("+rule            
+            s[0]+=" if ("+rule
         else:
             s[0]+=" || "+rule
     if first:
@@ -1364,7 +1364,7 @@ def bodyor_old(rule,s,init,subdef,first):
         subdef.append("   return 0;")
         subdef.append(" }")
 
-                    
+
 def bodyorrec(rule,subdef):
     if tl(rule):
         for r in rule:
@@ -1381,12 +1381,12 @@ def bodyorrec(rule,subdef):
             subdef.append("   results.push_back(new x_couple(currentpos,intoken,subtree,lret));")
             subdef.append("    if (max<currentpos) {")
             subdef.append("        max=currentpos;")
-            subdef.append("    }")                
+            subdef.append("    }")
             subdef.append(" }")
             subdef.append(" gFail=0;")
 
-        
-def bodyevaluate(rule):    
+
+def bodyevaluate(rule):
     for r in rule:
         if tl(r):
             rs=bodyevaluate(r)
@@ -1396,7 +1396,7 @@ def bodyevaluate(rule):
             if r[0:2]!='x_':
                 return False
     return True
-        
+
 def bodyor(rule,subdef,init,firstloop):
     subdef.append("//BODYOR")
     res=bodyevaluate(rule)
@@ -1434,7 +1434,7 @@ def bodywhile(rule,subdef,operator):
         subdef.append(rule[1:])
         return
     subdef.append("//BODYWHILE")
-    if operator=="+":        
+    if operator=="+":
         subdef.append(" subtree=NULL;")
         subdef.append(" if ("+rule+")")
         subdef.append("     x_init_tree(tree,subtree,addsubtree);")
@@ -1443,8 +1443,8 @@ def bodywhile(rule,subdef,operator):
         subdef.append("    currentpos=pos;\n\tintoken=itok;")
         subdef.append("    setfail(exitonfail);")
         subdef.append("    return(0);")
-        subdef.append(" }")   
-        
+        subdef.append(" }")
+
     subdef.append(" while (currentpos<fx->stack.size()) {")
     subdef.append("   subtree=NULL;")
     subdef.append("   if ("+rule+")")
@@ -1476,7 +1476,7 @@ def bodyconstraint(const,subdef,operator):
         subdef.append("    currentpos=pos;\n\tintoken=itok;")
         subdef.append("    setfail(exitonfail);")
         subdef.append("    return(0);")
-        subdef.append(" }")        
+        subdef.append(" }")
     subdef.append(" int foundsolution=0;")
     subdef.append(" while (currentpos<fx->stack.size()) {")
     subdef.append("   subtree=NULL;")
@@ -1490,14 +1490,14 @@ def bodyconstraint(const,subdef,operator):
     subdef.append("         x_init_tree(tree,subtree,addsubtree);")
     subdef.append("   else")
     subdef.append("      break;")
-    subdef.append("   }")                  
+    subdef.append("   }")
     subdef.append(" if (foundsolution==0) {")
     subdef.append("    x_pop_node(tree,addsubtree);")
     subdef.append("    currentpos=pos;\n\tintoken=itok;")
     subdef.append("    setfail(exitonfail);")
     subdef.append("    return(0);")
     subdef.append(" }")
-                      
+
 def replacerule(elements,rule):
     for r in elements:
         if tl(r):
@@ -1518,24 +1518,24 @@ def replacerule(elements,rule):
                 nr='x_test_char(lret,'+subname+')'
                 if r not in keepvariables:
                     keepvariables.append(r)
-                rule.append(nr)                
+                rule.append(nr)
             elif r[0:3]=="VS_":
                 ps=r.find('=')
                 subname=r[:ps]
                 nr='x_test_string(lret,'+subname+')'
                 if r not in keepvariables:
                     keepvariables.append(r)
-                rule.append(nr)                
+                rule.append(nr)
             else:
                 rule.append(r)
-        
+
 lasterror=None
 def generate(name,ruletree,result,functions,nb,current,initialisations,firstloop,trace,nbtab,dicorules):
     global lasterror
     global donotconcatenate
     global idstringtocompare
     global stringtocompare
-    
+
     if tl(ruletree):
         operator=ruletree[0]
         if operator in ["?","&","|","()","{}","+","*","~","^"]:
@@ -1552,7 +1552,7 @@ def generate(name,ruletree,result,functions,nb,current,initialisations,firstloop
                 result.append("# initfail(label,currentpos,"+lasterror+");")
                 result.append("# &&&&_pop(this);");
                 lasterror=None
-            
+
             #Concatenation of element
             if operator=="@":
                 #The first element is a test on POINT
@@ -1565,7 +1565,7 @@ def generate(name,ruletree,result,functions,nb,current,initialisations,firstloop
                 newdef=[]
                 generate(newname,r,newdef,functions,nb,operator,initialisations,firstloop,trace,nbtab,dicorules)
                 baselst.append(newdef)
-                
+
             lst=[]
             if operator=="~":
                 replacerule(baselst,lst)
@@ -1579,14 +1579,14 @@ def generate(name,ruletree,result,functions,nb,current,initialisations,firstloop
                 bodysymboles(lst,subdef)
             elif operator=="|":
                 values=[]
-                lst=concatenaterule(baselst,nb,values,nbtab)                    
+                lst=concatenaterule(baselst,nb,values,nbtab)
                 ftest=[True]
-                bodyor(lst,subdef,initialisations,firstloop)       
+                bodyor(lst,subdef,initialisations,firstloop)
             elif operator=="^":
                 values=[]
                 lst=concatenaterule(baselst,nb,values,nbtab)
                 ftest=[True]
-                bodyor(lst,subdef,initialisations,True)       
+                bodyor(lst,subdef,initialisations,True)
             elif operator=="()":
                 replacerule(baselst,lst)
                 bodyoptional(lst,subdef)
@@ -1604,7 +1604,7 @@ def generate(name,ruletree,result,functions,nb,current,initialisations,firstloop
                 subdef.append(" lreturn+=lret;")
 #            subdef.append(" lreturn+=lret;")
             subdef.append(" return(1);")
-            subdef.append(" }")            
+            subdef.append(" }")
             keyfunc="".join(subdef[9:])
             lasterror=None
             #We remove the functions that share the same body
@@ -1625,12 +1625,12 @@ def generate(name,ruletree,result,functions,nb,current,initialisations,firstloop
                         if discover in t:
                             trace.remove(t)
                             break
-            except:                
+            except:
                 dicorules[keyfunc]=newname
                 functions.append(subdef)
         else:
             for rule in ruletree:
-                generate(name,rule,result,functions,nb,current,initialisations,firstloop,trace,nbtab,dicorules)               
+                generate(name,rule,result,functions,nb,current,initialisations,firstloop,trace,nbtab,dicorules)
     else:
         if td(ruletree):
             if "$" in ruletree:
@@ -1646,7 +1646,7 @@ def generate(name,ruletree,result,functions,nb,current,initialisations,firstloop
                 elif sym=="'":
                     result.append("X_39")
                 else:
-                   result.append("X_'"+sym+"'")                
+                   result.append("X_'"+sym+"'")
             elif "unevariable" in ruletree:
                 sym=ruletree["unevariable"]
                 result.append("Y_var_"+sym[0]+"='"+sym[1:]+"'")
@@ -1670,7 +1670,7 @@ def generate(name,ruletree,result,functions,nb,current,initialisations,firstloop
                         varstring="varstring"+str(idstringtocompare)
                         idstringtocompare+=1
                         stringtocompare[sb]=varstring
-                    result.append('x_test_string(lret,'+varstring+')')                    
+                    result.append('x_test_string(lret,'+varstring+')')
             elif "point" in ruletree:
                 result.append("x_test_any(lret)")
             elif "digits" in ruletree:
@@ -1679,7 +1679,7 @@ def generate(name,ruletree,result,functions,nb,current,initialisations,firstloop
                 result.append("m_"+ruletree["mot"]+"(lret,&subtree)")
             elif "interval" in ruletree:
                 s=ruletree["interval"].split("-")
-                result.append("x_test_ord(lret,'"+s[0]+"','"+s[1]+"')")               
+                result.append("x_test_ord(lret,'"+s[0]+"','"+s[1]+"')")
             if lasterror!=None:
                 result.append("# exitonfail=true;")
                 result.append("# initfail(label,currentpos,"+lasterror+");")
@@ -1689,8 +1689,8 @@ def generate(name,ruletree,result,functions,nb,current,initialisations,firstloop
             print
             print "Erreur",ruletree
             print
-                
-                              
+
+
 def simplify(r,bodies):
     if tl(r):
         if r[0] in ["|","()","{}","&","?","+","*","^"]:
@@ -1705,7 +1705,7 @@ def simplify(r,bodies):
                 bodies.append(r)
     else:
         bodies.append(r)
-            
+
 
 def cleanrules(rules,simple):
     for r in rules:
@@ -1771,13 +1771,13 @@ char &&&&::m_%%%%(string& lreturn,x_node** tree) {
 """
 
 
-            
+
 def parsenotrule(name,classname,token,tokrule):
     sy=tokrule.replace("&&&&",classname)
     sy=sy.replace("****",token)
     sy=sy.replace("%%%%",name)
     return sy
-        
+
 def parsenotrulestring(name,classname,token1,token2,tokrule):
     sy=tokrule.replace("&&&&",classname)
     sy=sy.replace("****",token1)
@@ -1785,14 +1785,14 @@ def parsenotrulestring(name,classname,token1,token2,tokrule):
     sy=sy.replace("%%%%",name)
     sy=sy.replace("@@@@","u"+name[1:])
     return sy
-        
+
 def compiling(filename):
     global stringrule
     global classname
     global donotconcatenate
     global spop
     global fails
-    
+
     f=open(filename,"r")
     erreur=[]
     rules=[]
@@ -1814,7 +1814,7 @@ def compiling(filename):
     usestrestring=[]
     usesprestring=[]
     useprestring=[]
-    
+
     for e in f:
         l=e.strip()
         if l=="":
@@ -1824,7 +1824,7 @@ def compiling(filename):
             l=l[1:]
             ps=l.find(":")
             ct=l[:ps].strip()
-            fails.append(ct)            
+            fails.append(ct)
         if l[0]=='^':
             rulecode=l[1]
             l=l[2:]
@@ -1861,7 +1861,7 @@ def compiling(filename):
             elif rulecode=='c': #tamgu regular expression
                 usesprestring.append(ct)
                 parsenot.append(ct)
-                
+
         #we do store the sub-strings in the x_node structure
         if l[0]=='%':
             l=l[1:]
@@ -1873,7 +1873,7 @@ def compiling(filename):
             ps=l.find(":")
             ct=l[:ps].strip()
             removed.append(ct)
-            
+
         if l[0]=='#':
             comments.append(l)
         elif l[0]=="+":
@@ -1911,37 +1911,37 @@ def compiling(filename):
     nameHfile="x_node.h"
 
     fileh=sep.join(xf[:-1])+sep+nameHfile
-    
+
     foutput=open(fileh,"w")
     for c in comments:
         foutput.write("//"+c[1:]+"\n")
     foutput.write("\n\n")
     foutput.write("#ifndef x_node_h\n")
     foutput.write("#define x_node_h\n")
-    
+
     foutput.write(stringrule)
     foutput.write("\n\n#endif\n")
     foutput.close()
 
     #then the .cxx
     if ".txt" in filename:
-        filenewh=filename.replace(".txt","n.h")        
-        filenewcxx=filename.replace(".txt","n.cxx")        
+        filenewh=filename.replace(".txt","n.h")
+        filenewcxx=filename.replace(".txt","n.cxx")
     else:
         filenewh=filename+"n.h"
         filenewcxx=filename+"n.cxx"
 
     ips=filename.rfind(sep)
     if ips==-1:
-        ips=0        
+        ips=0
     pip=filename.rfind(".")
     if pip==-1 or ips > pip:
         pip=len(filename)
-        
+
     classname="bnf_"+filename[ips+1:pip]
     print classname
     foutput=open(filenewh,"w")
-        
+
     bodies=[]
     cleanrules(rules,bodies)
 
@@ -1955,7 +1955,7 @@ def compiling(filename):
     foutput.write("#define "+classname+"_h\n")
     foutput.write('#include "'+nameHfile+'"\n\n')
 
-    
+
     for r in bodies:
         #The first element is the rule name
         functions=[]
@@ -1973,13 +1973,13 @@ def compiling(filename):
     for u in keepvariables:
         initlesvars+=u+";\n"
     sother=sother.replace("%%variables%%",initlesvars);
-        
+
     foutput.write(sother+"\n\n")
 
     for t in trace:
         if "_0(" in t:
             continue
-        st=t.replace(classname+"::","")        
+        st=t.replace(classname+"::","")
         foutput.write(st+"\n")
 
     for u in parsenot:
@@ -2001,7 +2001,7 @@ def compiling(filename):
     foutput.write(spop);
     foutput.write("\n#endif\n")
     foutput.close()
-    
+
     ##### CXX Section############################################
     foutput=open(filenewcxx,"w")
 
@@ -2013,7 +2013,7 @@ def compiling(filename):
     foutput.write("static const char* errorlabels[]={")
     if len(errormessages)==0:
         foutput.write('""');
-        
+
     cpterr=0
     first=True
     for errmsg in errormessages:
@@ -2027,15 +2027,15 @@ def compiling(filename):
                 cpterr+=1;
         foutput.write('"'+errmsg[1].strip()+'"');
         cpterr+=1
-    foutput.write("};\n\n")
+    foutput.write("\n};\n\n")
 
     for i in initialisations:
         foutput.write(i+";\n")
 
     for stcp in stringtocompare:
         foutput.write("static const char* "+stringtocompare[stcp]+'="'+stcp+'";\n')
-    
-    foutput.write("\n\n");                      
+
+    foutput.write("\n\n");
     initialisations=[]
     trace=[]
     nbtab=[0]
@@ -2051,7 +2051,7 @@ def compiling(filename):
         #We first create the base function
         createrule(name,s,None,trace,False)
         #then we create the derived functions
-        generate(name,r[2:],s,functions,nb,None,initialisations,False,trace,nbtab,dicorules)        
+        generate(name,r[2:],s,functions,nb,None,initialisations,False,trace,nbtab,dicorules)
         xxs=s[-1]
         s=s[:-1]
         xbase=[]
@@ -2061,7 +2061,7 @@ def compiling(filename):
         positioninfunc=0
         #The basic function which always starts with name_0( becomes our main function
         base=name+"_0("
-        if base in xs:            
+        if base in xs:
             for func in functions:
                 if base in func[0]:
                     #we remove the last two lines, which are return 1,} since we need to add some stuff to our function
@@ -2083,25 +2083,25 @@ def compiling(filename):
             s.append("    setfail(exitonfail);")
             s.append("    return(0);")
             s.append(" }")
-            
+
         if name not in removed:
             #These lines are important, since this is where the storage of the analysis into a tree takes place...
             if name in donotconcatenate:
                 s.append(" x_init_node(lreturn,lret,tree,label,pos,false);")
             else:
-                s.append(" x_init_node(lreturn,lret,tree,label,pos,true);")            
+                s.append(" x_init_node(lreturn,lret,tree,label,pos,true);")
         else:
             s.append(" x_pop_node(tree,addsubtree);")
-            
+
         #s.append(' x_decompte("'+name+'");');
         s.append(" return(1);")
         s.append("}")
-        
+
         if functiontoadd:
             functions.append(s)
         else:
-            functions[positioninfunc]=s            
-        
+            functions[positioninfunc]=s
+
         for fc in functions:
             skipconst=True
             popvar=0
@@ -2117,7 +2117,7 @@ def compiling(filename):
                 if "&&&&_pop" in fct:
                     fct=fct.replace("&&&&_pop",classname+"_pop pop"+str(popvar))
                     popvar+=1
-                
+
                 foutput.write(fct+"\n")
             foutput.write("\n\n")
 
@@ -2153,17 +2153,17 @@ def compiling(filename):
         foutput.write(sy)
     for u in usetrestring:
         sy=parsenotrule(u,classname,"9",tokenrule)
-        foutput.write(sy)        
+        foutput.write(sy)
     for u in usestrestring:
         sy=parsenotrule(u,classname,"10",tokenrule)
         foutput.write(sy)
     for u in useprestring:
         sy=parsenotrule(u,classname,"11",tokenrule)
-        foutput.write(sy)        
+        foutput.write(sy)
     for u in usesprestring:
         sy=parsenotrule(u,classname,"12",tokenrule)
         foutput.write(sy)
-        
+
     foutput.close()
     f.close()
 
@@ -2171,5 +2171,6 @@ try:
     chemin=sys.argv[1]
 except:
     chemin=r"C:\XIP\Tamgu\TamguUI\bnf\tamgu"
-    
+
 compiling(chemin)
+

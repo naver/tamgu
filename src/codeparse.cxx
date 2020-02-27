@@ -67,7 +67,8 @@ static const char* errorlabels[]={"","Wrong index format",
     "Wrong 'ontology' expression",
     "Wrong 'range' definition",
     "Wrong annotation rule",
-"Wrong lisp expression"};
+    "Wrong lisp expression"
+};
 
 static char tab0[]={'&','|','+','-','*','/','%','^',0};
 static char tab1[]={'<','>',0};
@@ -23360,7 +23361,7 @@ char bnf_tamgu::m_tloperator(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYOR
     subtree=NULL;
-    if (x_test_string(lret,varstring3) || x_test_string(lret,varstring4) || m_operator_0_4(lret,&subtree) || m_operator_0_5(lret,&subtree) || m_operator_0_6(lret,&subtree) || m_operator_0_7(lret,&subtree) || x_test_in(lret,tab13))
+    if (x_test_string(lret,varstring3) || x_test_string(lret,varstring4) || m_operator_0_1(lret,&subtree) || m_operator_0_4(lret,&subtree) || m_operator_0_5(lret,&subtree) || m_operator_0_6(lret,&subtree) || m_operator_0_7(lret,&subtree) || x_test_in(lret,tab13))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);

@@ -670,6 +670,9 @@ void jag_editor::movetoend(bool remove) {
     else
         sc = fullsize(line) + prefixego();
     
+    if (sc <= 0)
+        return;
+    
     cout << back;
     while (sc != 0) {
         cout << m_right;

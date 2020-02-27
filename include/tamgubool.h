@@ -93,6 +93,10 @@ public:
 		return true;
 	}
 
+    bool checkAtomType(short ty) {
+        return (ty == a_boolean);
+    }
+
 	bool isBoolean() {
 		return false;
 	}
@@ -106,6 +110,17 @@ public:
 			return new  Tamguboolean(value);
 		return this;
 	}
+
+    Tamgu* Atomref() {
+        TamguReference* r;
+        if (!protect || reference)
+            r = new  Tamguboolean(value);
+        else
+            r = this;
+        r->reference++;
+        r->protect = false;
+        return r;
+    }
 
 	Tamgu* Succ() {
         return booleantamgu[!value];
@@ -322,6 +337,10 @@ public:
         return true;
     }
     
+    bool checkAtomType(short ty) {
+        return (ty == a_boolean);
+    }
+
     bool isBoolean() {
         return false;
     }
@@ -336,6 +355,17 @@ public:
         return this;
     }
     
+    Tamgu* Atomref() {
+        TamguReference* r;
+        if (!protect || reference)
+            r = new  Tamguatomicbool(value);
+        else
+            r = this;
+        r->reference++;
+        r->protect = false;
+        return r;
+    }
+
     Tamgu* Succ() {
         return booleantamgu[!value];
     }

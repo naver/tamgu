@@ -794,20 +794,30 @@ Tamgu* TamguVariableDeclaration::Put(Tamgu* domain, Tamgu* value, short idthread
 bool TamguVariableDeclaration::Setvalue(Tamgu* domain, Tamgu* value, short idthread, bool strict) {
 	//we create a new variable, whose type is the one from the function declaration...
 	//We need to check some cases
+
     if (value->isError())
         return false;
+
     
-	//This is a case when creating a duplicate variable is needless or too dangerous...
-	//Exemple: vector, map, primemap etc...
-    if (typevariable == a_self || typevariable == a_let) {
-        if (value->isConst())
-            value = value->Atom();
-        value->Setreference();
+    if (value->checkAtomType(typevariable)) {
+        value = value->Atomref();
         domain->Declare(name, value);
         globalTamgu->Storevariable(idthread, name, value);
         return true;
     }
-    
+
+	//This is a case when creating a duplicate variable is needless or too dangerous...
+	//Exemple: vector, map, primemap etc...
+    if (typevariable == a_self || typevariable == a_let) {
+        if (value->isConst())
+            value = value->Atomref();
+        else
+            value->Setreference();
+        domain->Declare(name, value);
+        globalTamgu->Storevariable(idthread, name, value);
+        return true;
+    }
+
     if (!value->duplicateForCall()) {
         if (value->Type() == typevariable || value->isLetSelf()) {
             value->Setreference();
@@ -1517,6 +1527,7 @@ Tamgu* TamguCallFunction0::Eval(Tamgu* domain, Tamgu* a, short idthread) {
     globalTamgu->Popstack(idthread);
     
     //if a has no reference, then it means that it was recorded into the environment
+    
     if (!a->Reference())
         environment->Release();
     else {

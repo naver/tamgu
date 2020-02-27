@@ -103,6 +103,10 @@ public:
         return true;
     }
     
+    bool checkAtomType(short ty) {
+        return (ty == a_int);
+    }
+
     short Typenumber() {
         return a_int;
     }
@@ -117,6 +121,17 @@ public:
         return this;
     }
     
+    Tamgu* Atomref() {
+        TamguReference* r;
+        if (!protect || reference)
+            r = globalTamgu->Provideint(value);
+        else
+            r = this;
+        r->reference++;
+        r->protect = false;
+        return r;
+    }
+
     string Bytes() {
         u_tamguinteger x(value);
         unsigned char buff[u_tamguintsz + 1];
@@ -983,6 +998,10 @@ public:
         return true;
     }
     
+    bool checkAtomType(short ty) {
+        return (ty == a_int);
+    }
+
     short Typenumber() {
         return a_int;
     }
@@ -997,6 +1016,17 @@ public:
         return this;
     }
     
+    Tamgu* Atomref() {
+        TamguReference* r;
+        if (!protect || reference)
+            r = new Tamguatomicint(value);
+        else
+            r = this;
+        r->reference++;
+        r->protect = false;
+        return r;
+    }
+
     string Bytes() {
         u_tamguinteger x(value);
         unsigned char buff[u_tamguintsz + 1];

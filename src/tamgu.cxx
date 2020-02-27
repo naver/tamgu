@@ -41,7 +41,7 @@
 #include "tamgulisp.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2020.02.25";
+const char* tamgu_version = "Tamgu 1.2020.02.27";
 
 Tamgu* booleantamgu[2];
 
@@ -682,7 +682,7 @@ TamguGlobal::~TamguGlobal() {
         delete itwaitstrings.second;
         itwaitstrings.next();
     }
-
+    
     while (!itthreadvariables.end()) {
         delete itthreadvariables.second;
         itthreadvariables.next();
@@ -1979,27 +1979,27 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("zerop"); //213 a_zerop,
     Createid("nullp"); //214 a_nullp,
     Createid("block"); //215 a_block,
-    Createid("append"); //216 a_append,
-    Createid("eval"); //217 a_eval,
-    Createid("key"); //218 a_key,
-    Createid("keys"); //219 a_keys,
-    Createid("load"); //220 a_load,
-    Createid("body"); //221 a_body,
-    Createid("apply"); //222 a_apply,
-    Createid("lisp"); //223 a_lisp
+    Createid("eval"); //216 a_eval,
+    Createid("key"); //217 a_key,
+    Createid("keys"); //218 a_keys,
+    Createid("load"); //219 a_load,
+    Createid("body"); //220 a_body,
+    Createid("apply"); //221 a_apply,
+    Createid("lisp"); //222 a_lisp
 
     //This is a simple hack to handle "length" a typical Haskell operator as "size"...
     //Note that there will be a useless index
 
-    Createid("length"); //224
+    Createid("length"); //223
     symbolIds["length"] = a_size;
 
-    Createid("not"); //225
+    Createid("not"); //224
     symbolIds["not"] = a_negation;
 
     symbolIds["and"] = a_booleanand;
     symbolIds["or"] = a_booleanor;
     symbolIds["xor"] = a_booleanxor;
+    symbolIds["append"] = a_merge;
 
     dependenciesvariable[a_modifydependency] = a_modifydependency;
 
@@ -2237,7 +2237,7 @@ TamguCode* TamguGlobal::GetNewCodeSpace(string filename) {
 //----------------------------------------------------------------------------------
 Exporting void TamguGlobal::RecordInTracker(Tamgu* a) {
     if (trackerslotfilled) {
-        long idx = trackerslots.frontpop();
+        long idx = trackerslots.backpop();
         --trackerslotfilled;
         a->Setid(tracked.put(a, idx));
     }
@@ -2254,7 +2254,7 @@ Exporting long TamguGlobal::RecordInTrackerProtected(Tamgu* a) {
         if (trackerslotfilled) {
             _trackerlock.Locking();
             if (trackerslotfilled) {
-                idx = trackerslots.frontpop();
+                idx = trackerslots.backpop();
                 --trackerslotfilled;
             }
             _trackerlock.Unlocking();
@@ -2267,7 +2267,7 @@ Exporting long TamguGlobal::RecordInTrackerProtected(Tamgu* a) {
     }
 
     if (trackerslotfilled) {
-        long idx = trackerslots.frontpop();
+        long idx = trackerslots.backpop();
         --trackerslotfilled;
 
         return a->Setidreturn(tracked.put(a, idx));
@@ -3592,9 +3592,9 @@ Exporting TamguDeclarationLocal* TamguGlobal::Providedeclaration(Tamgu* ins, sho
         return ke;
     }
 
-    if (declempties.size()) {
+    if (declempties.last > 0) {
 
-        ke = declarationreservoire[declempties.frontpop()];
+        ke = declarationreservoire[declempties.backpop()];
         ke->used = true;
         ke->idthread = idt;
 

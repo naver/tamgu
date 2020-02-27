@@ -60,6 +60,10 @@ public:
 		return true;
 	}
 
+    bool checkAtomType(short ty) {
+        return (idtype == ty);
+    }
+    
 	virtual bool baseValue() {
 		return true;
 	}
@@ -210,6 +214,13 @@ public:
 		return true;
 	}
 	
+    Tamgu* Atomref() {
+        TamguReference* r = globalTamgu->Providestring(value);
+        r->reference++;
+        r->protect = false;
+        return r;
+    }
+    
     string Info(string n);
     void Methods(Tamgu* vs);
     
@@ -438,6 +449,13 @@ public:
 	bool isString() {
 		return true;
 	}
+
+    Tamgu* Atomref() {
+        TamguReference* r = globalTamgu->Provideustring(value);
+        r->reference++;
+        r->protect = false;
+        return r;
+    }
 
     string Info(string n);
     void Methods(Tamgu* vs);
@@ -693,6 +711,13 @@ public:
 		return true;
 	}
 
+    Tamgu* Atomref() {
+        TamguReference* r = globalTamgu->Provideint(value);
+        r->reference++;
+        r->protect = false;
+        return r;
+    }
+
     string Info(string n);
     void Methods(Tamgu* vs);
 
@@ -943,6 +968,13 @@ public:
         return globalTamgu->Provideint(value);
 	}
 
+    Tamgu* Atomref() {
+        TamguReference* r = new Tamgushort(value);
+        r->reference++;
+        r->protect = false;
+        return r;
+    }
+
     string Info(string n);
     void Methods(Tamgu* vs);
 
@@ -951,7 +983,7 @@ public:
 	}
 
 	Tamgu* Newvalue(Tamgu* a, short idthread) {
-        return globalTamgu->Provideint(a->Integer());
+        return new Tamgushort(a->Integer());
 	}
 
 	bool Checkprecision(Tamgu* r) {
@@ -1226,6 +1258,13 @@ public:
 		return new Tamgudecimal(value);
 	}
 
+    Tamgu* Atomref() {
+        TamguReference* r = new Tamgudecimal(value);
+        r->reference++;
+        r->protect = false;
+        return r;
+    }
+
     string Info(string n);
     void Methods(Tamgu* vs);
 
@@ -1477,6 +1516,13 @@ public:
 		return globalTamgu->Providefloat(a->Float());
 	}
 
+    Tamgu* Atomref() {
+        TamguReference* r = globalTamgu->Providefloat(value);
+        r->reference++;
+        r->protect = false;
+        return r;
+    }
+
     string Info(string n);
     void Methods(Tamgu* vs);
 
@@ -1722,6 +1768,13 @@ public:
 	Tamgu* Newvalue(Tamgu* a, short idthread) {
 		return new Tamgulong(a->Long());
 	}
+
+    Tamgu* Atomref() {
+        TamguReference* r = new Tamgulong(value);
+        r->reference++;
+        r->protect = false;
+        return r;
+    }
 
     string Info(string n);
     void Methods(Tamgu* vs);
@@ -1973,6 +2026,13 @@ public:
 	long Getinteger(short idthread) {
 		return value;
 	}
+
+    Tamgu* Atomref() {
+        TamguReference* r = new Tamguboolean(value);
+        r->reference++;
+        r->protect = false;
+        return r;
+    }
 
     string Info(string n);
     void Methods(Tamgu* vs);

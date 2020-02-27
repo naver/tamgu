@@ -720,6 +720,14 @@ public:
 		return false;
 	}
 
+    virtual bool checkAtomType(short ty) {
+        return false;
+    }
+
+    virtual Tamgu* Atomref() {
+        return this;
+    }
+
     virtual bool isTime() {
         return false;
     }

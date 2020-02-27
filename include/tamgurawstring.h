@@ -172,6 +172,10 @@ public:
 		return true;
 	}
 
+    bool checkAtomType(short ty) {
+        return (ty == Tamgurawstring::idtype);
+    }
+
 	bool isValueContainer() {
 		return true;
 	}
@@ -190,6 +194,14 @@ public:
 
 		return this;
 	}
+
+    Tamgu* Atomref() {
+        TamguReference* r = (TamguReference*)Atom();
+        r->reference++;
+        r->protect = false;
+        return r;
+    }
+
 
 	void Storevalue(string& s) {
 		if (value == NULL) {

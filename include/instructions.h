@@ -34,7 +34,6 @@ class TamguDeclarationLocal : public TamguTracked {
 public:
 
 	VECTE<short> names;
-	VECTE<Tamgu*> declarations;
 
     short idx;
     short idthread;
@@ -51,7 +50,7 @@ public:
 	}
 
 	bool isEmpty() {
-		if (!declarations.last)
+		if (!names.last)
 			return true;
 		return false;
 	}
@@ -61,9 +60,6 @@ public:
 	}
 
     void Replacedeclaration(short idthread, short id, Tamgu* a) {
-        i = names.search(id);
-        if (i != -1)
-            declarations.vecteur[i] = a;
         globalTamgu->Replacevariable(idthread, id, a);
     }
 
@@ -81,37 +77,23 @@ public:
 
 	void Declare(short id, Tamgu* a) {
 		names.push_back(id);
-		declarations.push_back(a);
 	}
-
-	Tamgu* Declaration(short id) {
-        i = names.search(id);
-        if (i != -1)
-            return declarations[i];
-		return NULL;
-	}
-
 
 	void Cleaning() {
-		for (i = 0; i < names.last; i++) {
-			declarations.vecteur[i]->Resetreference();
-			globalTamgu->Removevariable(idthread, names.vecteur[i]);
-		}
-
+		for (i = 0; i < names.last; i++)
+            globalTamgu->Removetopvariable(idthread, names.vecteur[i])->Resetreference();
 		names.last = 0;
-		declarations.last = 0;
 	}
 
     void Release() {
         Cleaning();
         if (pushed)
             globalTamgu->Popstack(idthread);
-        pushed = false;
-        idthread = -1;
         if (used) {
             used = false;
-            if (!globalTamgu->globalLOCK)
-                globalTamgu->declempties.push_back(idx);
+            idthread = -1;
+            pushed = false;
+            globalTamgu->declempties.push_back(idx);
             return;
         }
         delete this;
@@ -121,12 +103,11 @@ public:
         Cleaning();
         if (pushed)
             globalTamgu->Popstack(idthread);
-        pushed = false;
-        idthread = -1;
         if (used) {
             used = false;
-            if (!globalTamgu->globalLOCK)
-                globalTamgu->declempties.push_back(idx);
+            idthread = -1;
+            pushed = false;
+            globalTamgu->declempties.push_back(idx);
             return;
         }
         delete this;

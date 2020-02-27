@@ -97,6 +97,10 @@ public:
 		return true;
 	}
 
+    bool checkAtomType(short ty) {
+        return (ty == a_decimal);
+    }
+
 	short Typenumber() {
 		return a_decimal;
 	}

@@ -104,6 +104,10 @@ class Tamgushort : public TamguReference {
 		return true;
 	}
 
+    bool checkAtomType(short ty) {
+        return (ty == a_short);
+    }
+
 	short Typenumber() {
 		return a_short;
 	}
@@ -121,6 +125,18 @@ class Tamgushort : public TamguReference {
             return new  Tamgushort(value);
         return this;
     }
+
+    Tamgu* Atomref() {
+        TamguReference* r;
+        if (!protect || reference)
+            r = new Tamgushort(value);
+        else
+            r = this;
+        r->reference++;
+        r->protect = false;
+        return r;
+    }
+
 
 	void storevalue(short u) {
 		value = u;

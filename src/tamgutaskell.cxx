@@ -84,8 +84,8 @@ Exporting TamguDeclarationAutoClean* TamguGlobal::Providedeclarationclean(short 
     }
 
 
-    if (declarationcleanempties.size()) {
-        ke = declarationcleanreservoire[declarationcleanempties.frontpop()];
+    if (declarationcleanempties.last > 0) {
+        ke = declarationcleanreservoire[declarationcleanempties.backpop()];
         ke->used = true;
         ke->idthread = idthread;
         return ke;

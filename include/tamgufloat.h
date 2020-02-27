@@ -89,6 +89,10 @@ public:
 		return true;
 	}
 
+    bool checkAtomType(short ty) {
+        return (ty == a_float);
+    }
+
 	short Typenumber() {
 		return a_float;
 	}
@@ -107,6 +111,17 @@ public:
 		return this;
 	}
 
+    Tamgu* Atomref() {
+        TamguReference* r;
+        if (!protect || reference)
+            r = globalTamgu->Providefloat(value);
+        else
+            r = this;
+        r->reference++;
+        r->protect = false;
+        return r;
+    }
+    
 	void storevalue(short u) {
 		value = (short)u;
 	}
@@ -868,6 +883,10 @@ public:
         return true;
     }
     
+    bool checkAtomType(short ty) {
+        return (ty == a_float);
+    }
+
     short Typenumber() {
         return a_float;
     }
@@ -886,6 +905,17 @@ public:
         return this;
     }
     
+    Tamgu* Atomref() {
+        TamguReference* r;
+        if (!protect || reference)
+            r = new Tamguatomicfloat(value);
+        else
+            r = this;
+        r->reference++;
+        r->protect = false;
+        return r;
+    }
+
     void storevalue(short u) {
         value = (short)u;
     }

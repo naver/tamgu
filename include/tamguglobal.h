@@ -473,12 +473,12 @@ public:
     Exporting Tamgulisp* Providelisp();
 
     vector<TamguDeclarationLocal*> declarationreservoire;
-    Tamgulonglist declempties;
+    VECTE<long> declempties;
     long declarationidx;
     Exporting TamguDeclarationLocal* Providedeclaration(Tamgu* ins, short idt, bool p);
 
     vector<TamguDeclarationAutoClean*> declarationcleanreservoire;
-    Tamgulonglist declarationcleanempties;
+    VECTE<long> declarationcleanempties;
     long declarationcleanidx;
     Exporting TamguDeclarationAutoClean* Providedeclarationclean(short);
 
@@ -735,7 +735,7 @@ public:
 	}
 
     //--------------------------------
-    Tamgulonglist trackerslots;
+    VECTE<long> trackerslots;
     std::atomic<long> trackerslotfilled;
     
     Exporting void RecordInTracker(Tamgu* a);
@@ -879,6 +879,11 @@ public:
 	inline void Removevariable(short idthread, short name) {
 		threads[idthread].Removevariable(name);
 	}
+
+    inline Tamgu* Removetopvariable(short idthread, short name) {
+        return threads[idthread].variables[name].backpop();
+    }
+
 
 	inline void Replacevariable(short idthread, short name, Tamgu* var) {
 		 threads[idthread].Replacevariable(name, var);

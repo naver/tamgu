@@ -31,11 +31,11 @@ function displaying(window w,self o) {
     vector right=columns['right'];
     int i;
 
-    for (i=0;i<left;i++)
+    for (i=0;i<left.size();i++)
         disk(w,140,740,left[i],i+1);
-    for (i=0;i<centre;i++)
+    for (i=0;i<centre.size();i++)
         disk(w,440,740,centre[i],i+1);
-    for (i=0;i<right;i++)
+    for (i=0;i<right.size();i++)
         disk(w,740,740,right[i],i+1);
 
 }
@@ -89,5 +89,6 @@ b.create(20,20,60,30,FL_Regular,FL_NORMAL_BUTTON ,"Launch");
 
 w.end();
 w.run();
+
 
 
