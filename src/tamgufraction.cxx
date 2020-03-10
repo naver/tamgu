@@ -36,8 +36,9 @@ void Tamgufraction::AddMethod(TamguGlobal* global, string name, fractionMethod f
 
 
     void Tamgufraction::Setidtype(TamguGlobal* global) {
-        Tamgufraction::idtype = global->Getid("fraction");
-    }
+    Tamgufraction::InitialisationModule(global,"");
+}
+
 
    bool Tamgufraction::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -50,8 +51,10 @@ void Tamgufraction::AddMethod(TamguGlobal* global, string name, fractionMethod f
     Tamgufraction::AddMethod(global, "nd", &Tamgufraction::MethodInitial, P_ONE | P_TWO, "nd(n,d): initialize a fraction");
     Tamgufraction::AddMethod(global, "simplify", &Tamgufraction::MethodSimplify, P_NONE, "simplify(): simplify a fraction");
 
-    global->newInstance[Tamgufraction::idtype] = new Tamgufraction(global);
-    global->RecordMethods(Tamgufraction::idtype,Tamgufraction::exported);
+    if (version != "") {
+        global->newInstance[Tamgufraction::idtype] = new Tamgufraction(global);
+        global->RecordMethods(Tamgufraction::idtype,Tamgufraction::exported);
+    }
 
     return true;
 }

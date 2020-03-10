@@ -111,7 +111,7 @@ class Tamgu%1 : public TamguObject {
         return Tamgu%1::idtype;
     }
 
-    static void Setidtype(TamguGlobal* global);
+    void Setidtype(TamguGlobal* global);
 
     string Typename() {
         return "%1";

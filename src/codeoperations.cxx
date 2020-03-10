@@ -15,6 +15,7 @@
  */
 
 #include "tamgu.h"
+#include "tamgubool.h"
 #include "instructions.h"
 #include "tamguustring.h"
 #include "tamgudecimal.h"
@@ -188,6 +189,304 @@ Tamgu* TamguInstructionAPPLYOPERATIONEQU::Eval(Tamgu* context, Tamgu* value, sho
     if (globalTamgu->Error(idthread))
         return globalTamgu->Errorobject(idthread);
     
+    return aTRUE;
+}
+
+Tamgu* TamguInstructionAPPLYEQUSHORT::Eval(Tamgu* context, Tamgu* value, short idthread) {
+    value = recipient->Eval(context, aNULL, idthread);
+    
+    short v = value->Short();
+    short res = instruction->Getshort(idthread);
+    if (globalTamgu->Error(idthread))
+        return globalTamgu->Errorobject(idthread);
+
+    switch (action) {
+        case a_plus:
+            v += res;
+            break;
+        case a_minus:
+            v -= res;
+            break;
+        case a_multiply:
+            v *= res;
+            break;
+        case a_divide:
+            if (res == 0)
+                return globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            v /= res;
+            break;
+        case a_power:
+            v = pow((double)v, (double)res);
+            break;
+        case a_shiftleft:
+            v <<= res;
+            break;
+        case a_shiftright:
+            v >>= res;
+            break;
+        case a_mod:
+            if (res == 0)
+                return globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            v %= res;
+            break;
+        case a_or:
+            v |= res;
+            break;
+        case a_xor:
+            v ^= res;
+            break;
+        case a_and:
+            v &= res;
+            break;
+    }
+    value->storevalue(v);
+    return aTRUE;
+}
+
+
+Tamgu* TamguInstructionAPPLYEQUINT::Eval(Tamgu* context, Tamgu* value, short idthread) {
+    value = recipient->Eval(context, aNULL, idthread);
+    
+    long v = value->Integer();
+    long res = instruction->Getinteger(idthread);
+    if (globalTamgu->Error(idthread))
+        return globalTamgu->Errorobject(idthread);
+
+    switch (action) {
+        case a_plus:
+            v += res;
+            break;
+        case a_minus:
+            v -= res;
+            break;
+        case a_multiply:
+            v *= res;
+            break;
+        case a_divide:
+            if (res == 0)
+                return globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            v /= res;
+            break;
+        case a_power:
+            v = pow((double)v, (double)res);
+            break;
+        case a_shiftleft:
+            v <<= res;
+            break;
+        case a_shiftright:
+            v >>= res;
+            break;
+        case a_mod:
+            if (res == 0)
+                return globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            v %= res;
+            break;
+        case a_or:
+            v |= res;
+            break;
+        case a_xor:
+            v ^= res;
+            break;
+        case a_and:
+            v &= res;
+            break;
+    }
+    value->storevalue(v);
+    return aTRUE;
+}
+
+Tamgu* TamguInstructionAPPLYEQULONG::Eval(Tamgu* context, Tamgu* value, short idthread) {
+    value = recipient->Eval(context, aNULL, idthread);
+    
+    BLONG v = value->Long();
+    BLONG res = instruction->Getlong(idthread);
+    if (globalTamgu->Error(idthread))
+        return globalTamgu->Errorobject(idthread);
+
+    switch (action) {
+        case a_plus:
+            v += res;
+            break;
+        case a_minus:
+            v -= res;
+            break;
+        case a_multiply:
+            v *= res;
+            break;
+        case a_divide:
+            if (res == 0)
+                return globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            v /= res;
+            break;
+        case a_power:
+            v = pow((double)v, (double)res);
+            break;
+        case a_shiftleft:
+            v <<= res;
+            break;
+        case a_shiftright:
+            v >>= res;
+            break;
+        case a_mod:
+            if (res == 0)
+                return globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            v %= res;
+            break;
+        case a_or:
+            v |= res;
+            break;
+        case a_xor:
+            v ^= res;
+            break;
+        case a_and:
+            v &= res;
+            break;
+    }
+    value->storevalue(v);
+    return aTRUE;
+}
+
+
+Tamgu* TamguInstructionAPPLYEQUDECIMAL::Eval(Tamgu* context, Tamgu* value, short idthread) {
+    value = recipient->Eval(context, aNULL, idthread);
+    
+    float v = value->Decimal();
+    float res = instruction->Getdecimal(idthread);
+    if (globalTamgu->Error(idthread))
+        return globalTamgu->Errorobject(idthread);
+
+    switch (action) {
+        case a_plus:
+            v += res;
+            break;
+        case a_minus:
+            v -= res;
+            break;
+        case a_multiply:
+            v *= res;
+            break;
+        case a_divide:
+            if (res == 0)
+                return globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            v /= res;
+            break;
+        case a_power:
+            v = pow(v, res);
+            break;
+        case a_shiftleft:
+            v = FloatShiftleft(v, res);
+            break;
+        case a_shiftright:
+            v = FloatShiftright(v, res);
+            break;
+        case a_mod:
+            if (res == 0)
+                return globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            v = (int)v % (int)res;
+            break;
+        case a_or:
+            v = FloatOr(v,res);
+            break;
+        case a_xor:
+            v = FloatXor(v,res);
+            break;
+        case a_and:
+            v = FloatAnd(v,res);
+            break;
+    }
+    value->storevalue(v);
+    return aTRUE;
+}
+
+Tamgu* TamguInstructionAPPLYEQUFLOAT::Eval(Tamgu* context, Tamgu* value, short idthread) {
+    value = recipient->Eval(context, aNULL, idthread);
+    
+    double v = value->Float();
+    double res = instruction->Getfloat(idthread);
+    if (globalTamgu->Error(idthread))
+        return globalTamgu->Errorobject(idthread);
+    
+    switch (action) {
+        case a_plus:
+            v += res;
+            break;
+        case a_minus:
+            v -= res;
+            break;
+        case a_multiply:
+            v *= res;
+            break;
+        case a_divide:
+            if (res == 0)
+                return globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            v /= res;
+            break;
+        case a_power:
+            v = pow(v,res);
+            break;
+        case a_shiftleft:
+            v = DoubleShiftleft(v, res);
+            break;
+        case a_shiftright:
+            v = DoubleShiftright(v, res);
+            break;
+        case a_mod:
+            if (res == 0)
+                return globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            v = (int)v % (int)res;
+            break;
+        case a_or:
+            v = DoubleOr(v,res);
+            break;
+        case a_xor:
+            v = DoubleXor(v,res);
+            break;
+        case a_and:
+            v = DoubleAnd(v,res);
+            break;
+    }
+    
+    value->storevalue(v);
+    return aTRUE;
+}
+
+Tamgu* TamguInstructionAPPLYEQUSTRING::Eval(Tamgu* context, Tamgu* value, short idthread) {
+    value = recipient->Eval(context, aNULL, idthread);
+
+    string v = value->String();
+    string res = instruction->Getstring(idthread);
+    if (globalTamgu->Error(idthread))
+        return globalTamgu->Errorobject(idthread);
+
+    switch (action) {
+    case a_plus:
+        v += res;
+        break;
+    case a_minus:
+            v = StringMinus(v, res);
+        break;
+    }
+    value->Storevalue(v);
+    return aTRUE;
+}
+
+Tamgu* TamguInstructionAPPLYEQUUSTRING::Eval(Tamgu* context, Tamgu* value, short idthread) {
+    value = recipient->Eval(context, aNULL, idthread);
+
+    wstring v = value->UString();
+    wstring res = instruction->Getustring(idthread);
+    if (globalTamgu->Error(idthread))
+        return globalTamgu->Errorobject(idthread);
+
+    switch (action) {
+    case a_plus:
+        v += res;
+        break;
+    case a_minus:
+            v = StringMinus(v, res);
+        break;
+    }
+    value->Storevalue(v);
     return aTRUE;
 }
 
@@ -805,6 +1104,8 @@ Tamgu* TamguInstructionFRACTION::cfraction(short idthread, short& d) {
     return r;
 }
 
+//--------------------------------------------------------------------------------
+
 Tamgu* TamguInstructionAPPLYOPERATION::Eval(Tamgu* res, Tamgu* inter, short idthread) {
     //This is an expression that escaped the compiler...
     if (root == NULL)
@@ -813,6 +1114,65 @@ Tamgu* TamguInstructionAPPLYOPERATION::Eval(Tamgu* res, Tamgu* inter, short idth
     
     return root->Eval(res, inter, idthread);
 }
+
+
+long TamguInstructionAPPLYOPERATION::Getinteger(short idthread) {
+    if (root == NULL)
+        //we create it on the fly...
+        root = Compile(NULL);
+    
+    return root->Getinteger(idthread);
+}
+
+BLONG TamguInstructionAPPLYOPERATION::Getlong(short idthread) {
+    if (root == NULL)
+        //we create it on the fly...
+        root = Compile(NULL);
+    
+    return root->Getlong(idthread);
+}
+
+short TamguInstructionAPPLYOPERATION::Getshort(short idthread) {
+    if (root == NULL)
+        //we create it on the fly...
+        root = Compile(NULL);
+    
+    return root->Getshort(idthread);
+}
+
+float TamguInstructionAPPLYOPERATION::Getdecimal(short idthread)  {
+    if (root == NULL)
+        //we create it on the fly...
+        root = Compile(NULL);
+    
+    return root->Getdecimal(idthread);
+}
+
+double TamguInstructionAPPLYOPERATION::Getfloat(short idthread) {
+    if (root == NULL)
+        //we create it on the fly...
+        root = Compile(NULL);
+    
+    return root->Getfloat(idthread);
+}
+
+string TamguInstructionAPPLYOPERATION::Getstring(short idthread)  {
+    if (root == NULL)
+        //we create it on the fly...
+        root = Compile(NULL);
+    
+    return root->Getstring(idthread);
+}
+
+wstring TamguInstructionAPPLYOPERATION::Getustring(short idthread) {
+    if (root == NULL)
+        //we create it on the fly...
+        root = Compile(NULL);
+    
+    return root->Getustring(idthread);
+}
+
+//--------------------------------------------------------------------------------
 
 Tamgu* TamguInstructionCOMPARE::Eval(Tamgu* right, Tamgu* res, short idthread) {
     

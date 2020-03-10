@@ -852,6 +852,17 @@ bool TamguVariableDeclaration::Setvalue(Tamgu* domain, Tamgu* value, short idthr
 	return false;
 }
 
+bool TamguAtomicVariableDeclaration::Setvalue(Tamgu* domain, Tamgu* value, short idthread, bool strict) {
+    //we create a new variable, whose type is the one from the function declaration...
+    //We need to check some cases
+    
+    
+    value = value->Atomref();
+    domain->Declare(name, value);
+    globalTamgu->Storevariable(idthread, name, value);
+    return true;
+}
+
 Tamgu* TamguGlobalVariableDeclaration::Eval(Tamgu* domain, Tamgu* value, short idthread) {
 	//we create our instance...
 	if (alreadydeclared)
@@ -1076,6 +1087,9 @@ Exporting Tamgu* TamguCallMethod::Put(Tamgu* context, Tamgu* object, short idthr
 		call->arguments = arguments;
 	}
 
+	if (!object->Type())
+		object->Setidtype(globalTamgu);
+
 	object = object->CallMethod(name, context, idthread, call);
 
 	if (function != NULL) {
@@ -1121,6 +1135,9 @@ Exporting Tamgu* TamguCallMethod::Eval(Tamgu* context, Tamgu* object, short idth
 		call->arguments = arguments;
 	}
 
+	if (!object->Type())
+		object->Setidtype(globalTamgu);
+
 	object = object->CallMethod(name, context, idthread, call);
 
 	if (function != NULL) {
@@ -1153,7 +1170,12 @@ Exporting Tamgu* TamguCallMethod::Eval(Tamgu* context, Tamgu* object, short idth
 Exporting Tamgu* TamguCallFromCall::Put(Tamgu* context, Tamgu* object, short idthread) {
         //We execute the method associated to an object...
     short t = object->Type();
-    if (!globalTamgu->methods.check(t) || Arity(globalTamgu->methods.get(t)[name], arguments.size()) == false) {
+	if (!t) {
+		object->Setidtype(globalTamgu);
+		t = object->Type();
+	}
+
+	if (!globalTamgu->methods.check(t) || Arity(globalTamgu->methods.get(t)[name], arguments.size()) == false) {
         if (!globalTamgu->frames.check(t)) {
             string mess("'");
             mess += globalTamgu->Getsymbol(name);
@@ -1208,7 +1230,11 @@ Exporting Tamgu* TamguCallFromCall::Put(Tamgu* context, Tamgu* object, short idt
 
 Exporting Tamgu* TamguCallFromCall::Eval(Tamgu* context, Tamgu* object, short idthread) {
         //We execute the method associated to an object...
-    short t = object->Type();
+    short t = object->Type();    
+	if (!t) {
+		object->Setidtype(globalTamgu);
+		t = object->Type();
+	}
     if (!globalTamgu->methods.check(t) || Arity(globalTamgu->methods.get(t)[name], arguments.size()) == false) {
         if (!globalTamgu->frames.check(t)) {
             string mess("'");
@@ -1227,7 +1253,7 @@ Exporting Tamgu* TamguCallFromCall::Eval(Tamgu* context, Tamgu* object, short id
         call = new TamguCallMethod(name);
         call->arguments = arguments;
     }
-    
+
     object = object->CallMethod(name, context, idthread, call);
     
     if (function != NULL) {
@@ -2765,25 +2791,15 @@ Tamgu* TamguInstructionSWITCH::Eval(Tamgu* context, Tamgu* ke, short idthread) {
 }
 
 Tamgu* TamguInstructionIF::Eval(Tamgu* context, Tamgu* value, short idthread) {
-
-	Tamgu* result = instructions.vecteur[0]->Eval(aTRUE, aNULL, idthread);
-
-	if (result->isError())
-		return result;
-
-	bool truevalue = result->Boolean();
-	result->Releasenonconst();
-
-	if (truevalue != negation)
-		result = instructions.vecteur[1];
-	else
-	if (instructions.size() == 3)
-		result = instructions.vecteur[2];
-	else {
-		return aNULL;
-	}
-
-    return result->Eval(context, value, idthread);
+    
+    value = instructions.vecteur[0]->Eval(aTRUE, aNULL, idthread);
+    
+    if (value->isError())
+        return value;
+    
+    uchar i = (value->Boolean() == negation) + 1;
+    value->Releasenonconst();
+    return instructions.vecteur[i]->Eval(context, aNULL, idthread);
 }
 
 Tamgu* TamguInstructionOperationIfnot::Eval(Tamgu* context, Tamgu* result, short idthread) {

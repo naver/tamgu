@@ -49,8 +49,9 @@ void Tamguivector::AddMethod(TamguGlobal* global, string name, ivectorMethod fun
 
 
     void Tamguivector::Setidtype(TamguGlobal* global) {
-        Tamguivector::idtype = global->Getid("ivector");
-    }
+    Tamguivector::InitialisationModule(global,"");
+}
+
 
    bool Tamguivector::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -84,8 +85,10 @@ void Tamguivector::AddMethod(TamguGlobal* global, string name, ivectorMethod fun
     Tamguivector::AddMethod(global, "editdistance", &Tamguivector::MethodEditDistance, P_ONE, "editdistance(v): Compute the edit distance with vector 'v'.");
     Tamguivector::AddMethod(global, "insert", &Tamguivector::MethodInsert, P_TWO, "insert(int i,v): Insert v at position i.");
 
-    global->newInstance[Tamguivector::idtype] = new Tamguivector(global);
-    global->RecordMethods(Tamguivector::idtype, Tamguivector::exported);
+    if (version != "") {
+        global->newInstance[Tamguivector::idtype] = new Tamguivector(global);
+        global->RecordMethods(Tamguivector::idtype, Tamguivector::exported);
+    }
 
     Tamgua_ivector::InitialisationModule(global, version);
     
@@ -1300,8 +1303,10 @@ bool Tamgua_ivector::InitialisationModule(TamguGlobal* global, string version) {
     Tamgua_ivector::AddMethod(global, "editdistance", &Tamgua_ivector::MethodEditDistance, P_ONE, "editdistance(v): Compute the edit distance with vector 'v'.");
     Tamgua_ivector::AddMethod(global, "insert", &Tamgua_ivector::MethodInsert, P_TWO, "insert(int i,v): Insert v at position i.");
     
-    global->newInstance[Tamgua_ivector::idtype] = new Tamgua_ivector(global);
-    global->RecordMethods(Tamgua_ivector::idtype, Tamgua_ivector::exported);
+    if (version != "") {
+        global->newInstance[Tamgua_ivector::idtype] = new Tamgua_ivector(global);
+        global->RecordMethods(Tamgua_ivector::idtype, Tamgua_ivector::exported);
+    }
     
     return true;
 }

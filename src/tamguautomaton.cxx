@@ -22,11 +22,11 @@
 #include "tamguivector.h"
 
 //We need to declare once again our local definitions.
-basebin_hash<TamguregularexpressionMethod>  Tamguregularexpression::methods;
-hmap<string, string> Tamguregularexpression::infomethods;
-bin_hash<unsigned long> Tamguregularexpression::exported;
+Exporting basebin_hash<regularexpressionMethod>  Tamguregularexpression::methods;
+Exporting hmap<string, string> Tamguregularexpression::infomethods;
+Exporting bin_hash<unsigned long> Tamguregularexpression::exported;
 
-short Tamguregularexpression::idtype = 0;
+Exporting short Tamguregularexpression::idtype = 0;
 
 //We only return the emoji head, when a head is present
 TAMGUCHAR getechar(wstring& s, long& i);
@@ -43,7 +43,7 @@ void c_bytetocharposition(unsigned char* contenu, long& bbpos, long& ebpos);
 #define au_ok 0
 //------------------------------------------------------------------------------------------------------------------
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
-void Tamguregularexpression::AddMethod(TamguGlobal* global, string name, TamguregularexpressionMethod func, unsigned long arity, string infos) {
+void Tamguregularexpression::AddMethod(TamguGlobal* global, string name, regularexpressionMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
     infomethods[name] = infos;
@@ -51,8 +51,9 @@ void Tamguregularexpression::AddMethod(TamguGlobal* global, string name, Tamgure
 }
 
 void Tamguregularexpression::Setidtype(TamguGlobal* global) {
-    Tamguregularexpression::idtype = global->Getid("treg");
+    Tamguregularexpression::InitialisationModule(global,"");
 }
+
 
 bool Tamguregularexpression::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -74,8 +75,10 @@ bool Tamguregularexpression::InitialisationModule(TamguGlobal* global, string ve
     Tamguregularexpression::AddMethod(global, "match", &Tamguregularexpression::MethodMatch, P_ONE, "match(string str): check if the string matches the tamgu regular expression.");
     
         //We need this code, in order to create new instances of our Tamguregularexpression object... DO NOT ALTER
-    global->newInstance[Tamguregularexpression::idtype] = new Tamguregularexpression(global);
-    global->RecordMethods(Tamguregularexpression::idtype,Tamguregularexpression::exported);
+    if (version != "") {
+        global->newInstance[Tamguregularexpression::idtype] = new Tamguregularexpression(global);
+        global->RecordMethods(Tamguregularexpression::idtype,Tamguregularexpression::exported);
+    }
     
     return true;
 }
@@ -340,7 +343,7 @@ bool Tamguregularexpression::searchlast(string& w, long& b, long& e, long init) 
 
 #ifdef Tamgu_REGEX
 //We need to declare once again our local definitions.
-basebin_hash<TamguposixregularexpressionMethod>  Tamguposixregularexpression::methods;
+basebin_hash<posixregularexpressionMethod>  Tamguposixregularexpression::methods;
 hmap<string, string> Tamguposixregularexpression::infomethods;
 bin_hash<unsigned long> Tamguposixregularexpression::exported;
 
@@ -348,7 +351,7 @@ short Tamguposixregularexpression::idtype = 0;
 
 //------------------------------------------------------------------------------------------------------------------
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
-void Tamguposixregularexpression::AddMethod(TamguGlobal* global, string name, TamguposixregularexpressionMethod func, unsigned long arity, string infos) {
+void Tamguposixregularexpression::AddMethod(TamguGlobal* global, string name, posixregularexpressionMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
     infomethods[name] = infos;
@@ -375,8 +378,10 @@ bool Tamguposixregularexpression::InitialisationModule(TamguGlobal* global, stri
     Tamguposixregularexpression::AddMethod(global, "match", &Tamguposixregularexpression::MethodMatch, P_ONE, "match(string str): check if the string matches the tamgu regular expression.");
     
     //We need this code, in order to create new instances of our Tamguposixregularexpression object... DO NOT ALTER
-    global->newInstance[Tamguposixregularexpression::idtype] = new Tamguposixregularexpression(global);
-    global->RecordMethods(Tamguposixregularexpression::idtype,Tamguposixregularexpression::exported);
+    if (version != "") {
+        global->newInstance[Tamguposixregularexpression::idtype] = new Tamguposixregularexpression(global);
+        global->RecordMethods(Tamguposixregularexpression::idtype,Tamguposixregularexpression::exported);
+    }
     
     return true;
 }

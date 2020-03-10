@@ -47,8 +47,9 @@ void Tamgufvector::AddMethod(TamguGlobal* global, string name, fvectorMethod fun
 
 
     void Tamgufvector::Setidtype(TamguGlobal* global) {
-        Tamgufvector::idtype = global->Getid("fvector");
-    }
+    Tamgufvector::InitialisationModule(global,"");
+}
+
 
    bool Tamgufvector::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -81,8 +82,10 @@ void Tamgufvector::AddMethod(TamguGlobal* global, string name, fvectorMethod fun
 
     Tamgufvector::AddMethod(global, "permute", &Tamgufvector::MethodPermute, P_NONE, "permute(): permute the values in the vector after each call.");
 
-    global->newInstance[Tamgufvector::idtype] = new Tamgufvector(global);
-    global->RecordMethods(Tamgufvector::idtype,Tamgufvector::exported);
+    if (version != "") {
+        global->newInstance[Tamgufvector::idtype] = new Tamgufvector(global);
+        global->RecordMethods(Tamgufvector::idtype,Tamgufvector::exported);
+    }
 
     Tamgua_fvector::InitialisationModule(global, version);
     
@@ -1210,8 +1213,10 @@ bool Tamgua_fvector::InitialisationModule(TamguGlobal* global, string version) {
     Tamgua_fvector::AddMethod(global, "editdistance", &Tamgua_fvector::MethodEditDistance, P_ONE, "editdistance(v): Compute the edit distance with vector 'v'.");
     Tamgua_fvector::AddMethod(global, "insert", &Tamgua_fvector::MethodInsert, P_TWO, "insert(int i,v): Insert v at position i.");
     
-    global->newInstance[Tamgua_fvector::idtype] = new Tamgua_fvector(global);
-    global->RecordMethods(Tamgua_fvector::idtype, Tamgua_fvector::exported);
+    if (version != "") {
+        global->newInstance[Tamgua_fvector::idtype] = new Tamgua_fvector(global);
+        global->RecordMethods(Tamgua_fvector::idtype, Tamgua_fvector::exported);
+    }
     
     return true;
 }

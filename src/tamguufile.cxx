@@ -42,8 +42,9 @@ void Tamguufile::AddMethod(TamguGlobal* global, string name, ufileMethod func, u
 
 
     void Tamguufile::Setidtype(TamguGlobal* global) {
-        Tamguufile::idtype = global->Getid("ufile");
-    }
+    Tamguufile::InitialisationModule(global,"");
+}
+
 
    bool Tamguufile::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -74,13 +75,17 @@ void Tamguufile::AddMethod(TamguGlobal* global, string name, ufileMethod func, u
     Tamguufile::AddMethod(global, "scan", &Tamguufile::MethodScan, P_ONE | P_TWO, "scan(string rgx, string sep): scan file with rgx, sep is optional and is by default a space. Return a list of strings");
     Tamguufile::AddMethod(global, "endian", &Tamguufile::MethodEndian, P_NONE | P_ONE, "endian(bool): set endian to bigendian (true) or littleendian(false). With no parameters, return the current setting");
 
-    global->newInstance[Tamguufile::idtype] = new Tamguufile(global);
-    global->RecordMethods(Tamguufile::idtype,Tamguufile::exported);
+    if (version != "") {
+        global->newInstance[Tamguufile::idtype] = new Tamguufile(global);
+        global->RecordMethods(Tamguufile::idtype,Tamguufile::exported);
+    }
     
     short idother;
     idother = global->Getid("wfile");
-    global->newInstance[idother] = new Tamguufile(global);
-    global->RecordMethods(idother, Tamguufile::exported);
+    if (version != "") {
+        global->newInstance[idother] = new Tamguufile(global);
+        global->RecordMethods(idother, Tamguufile::exported);
+    }
 
     return true;
 }

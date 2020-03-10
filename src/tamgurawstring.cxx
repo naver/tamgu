@@ -213,8 +213,9 @@ void Tamgurawstring::AddMethod(TamguGlobal* global, string name, rawstringMethod
 
 
     void Tamgurawstring::Setidtype(TamguGlobal* global) {
-        Tamgurawstring::idtype = global->Getid("rawstring");
-    }
+    Tamgurawstring::InitialisationModule(global,"");
+}
+
 
    bool Tamgurawstring::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -292,8 +293,10 @@ void Tamgurawstring::AddMethod(TamguGlobal* global, string name, rawstringMethod
     Tamgurawstring::AddMethod(global, "write", &Tamgurawstring::MethodWrite, P_ONE, "write(string path): write the string content into a file.");
 
 
-    global->newInstance[Tamgurawstring::idtype] = new Tamgurawstring(global);
-    global->RecordMethods(Tamgurawstring::idtype,Tamgurawstring::exported);
+    if (version != "") {
+        global->newInstance[Tamgurawstring::idtype] = new Tamgurawstring(global);
+        global->RecordMethods(Tamgurawstring::idtype,Tamgurawstring::exported);
+    }
 
     return true;
 }

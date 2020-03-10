@@ -34,9 +34,10 @@ void Tamguframeseeder::AddMethod(TamguGlobal* global, string name, frameinstance
 
 
 
-    void Tamguframeseeder::Setidtype(TamguGlobal* global) {
-        Tamguframeseeder::idtype = global->Getid("frameinstance");
-    }
+void Tamguframeseeder::Setidtype(TamguGlobal* global) {
+    Tamguframeseeder::InitialisationModule(global,"");
+}
+
 
    bool Tamguframeseeder::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -48,7 +49,7 @@ void Tamguframeseeder::AddMethod(TamguGlobal* global, string name, frameinstance
     Tamguframeseeder::AddMethod(global, "type", &Tamguframeinstance::MethodType, P_NONE, "type(): Return the frame's type.");
 
 
-    global->newInstance[Tamguframeseeder::idtype] = new Tamguframeseeder(NULL, global);
+    if (version != "") global->newInstance[Tamguframeseeder::idtype] = new Tamguframeseeder(NULL, global);
 
     return true;
 }

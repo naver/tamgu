@@ -1012,7 +1012,7 @@ public:
         reset = false;
     }
 
-    static void Setidtype(TamguGlobal*);
+    void Setidtype(TamguGlobal*);
     
     short Type() {
         return a_fibre;

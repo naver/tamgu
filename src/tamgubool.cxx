@@ -36,8 +36,9 @@ void Tamguboolean::AddMethod(TamguGlobal* global, string name, boolMethod func, 
 
 
     void Tamguboolean::Setidtype(TamguGlobal* global) {
-        Tamguboolean::idtype = global->Getid("bool");
-    }
+    Tamguboolean::InitialisationModule(global,"");
+}
+
 
    bool Tamguboolean::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -49,9 +50,11 @@ void Tamguboolean::AddMethod(TamguGlobal* global, string name, boolMethod func, 
     Tamguboolean::AddMethod(global, "invert", &Tamguboolean::MethodInvert, P_NONE, "invert(): Invert ");
     Tamguboolean::AddMethod(global, "succ", &Tamguboolean::MethodInvert, P_NONE, "succ(): successor of a Boolean.");
 
-    global->newInstance[Tamguboolean::idtype] = new Tamguboolean(0, global);
-    global->RecordMethods(Tamguboolean::idtype,Tamguboolean::exported);
-    global->RecordMethods(a_bloop,Tamguboolean::exported);
+    if (version != "") {
+        global->newInstance[Tamguboolean::idtype] = new Tamguboolean(0, global);
+        global->RecordMethods(Tamguboolean::idtype,Tamguboolean::exported);
+        global->RecordMethods(a_bloop,Tamguboolean::exported);
+    }
 
     return Tamguatomicbool::InitialisationModule(global, version);
 }
@@ -81,8 +84,10 @@ bool Tamguatomicbool::InitialisationModule(TamguGlobal* global, string version) 
     Tamguatomicbool::AddMethod(global, "invert", &Tamguatomicbool::MethodInvert, P_NONE, "invert(): Invert ");
     Tamguatomicbool::AddMethod(global, "succ", &Tamguatomicbool::MethodInvert, P_NONE, "succ(): successor of a Boolean.");
     
-    global->newInstance[Tamguatomicbool::idtype] = new Tamguatomicbool(0, global);
-    global->RecordMethods(Tamguatomicbool::idtype,Tamguatomicbool::exported);
+    if (version != "") {
+        global->newInstance[Tamguatomicbool::idtype] = new Tamguatomicbool(0, global);
+        global->RecordMethods(Tamguatomicbool::idtype,Tamguatomicbool::exported);
+    }
     
     return true;
 }

@@ -79,7 +79,7 @@ public:
 
 	
 
-    static void Setidtype(TamguGlobal* global);
+    void Setidtype(TamguGlobal* global);
     
     string Typename() {
 		return "float";
@@ -117,7 +117,7 @@ public:
             r = globalTamgu->Providefloat(value);
         else
             r = this;
-        r->reference++;
+        r->reference = 1;
         r->protect = false;
         return r;
     }
@@ -678,10 +678,9 @@ public:
     }
     
 	void Resetreference(short r) {
-        reference -= r;
-        if (reference <= 0) {
+        if ((reference-=r) <= 0) {
+            reference = 0;
             if (!protect) {
-                reference = 0;
                 protect = true;
    
                 used = false;
@@ -692,128 +691,6 @@ public:
         }
 	}
 };
-
-class TamguLoopFloat : public Tamgufloat {
-public:
-	
-	vector<double> interval;
-	long position;
-	Tamgu* function;
-
-	TamguLoopFloat(TamguGlobal* g) : Tamgufloat(0) {
-		
-		position = 0;
-		function = NULL;
-	}
-
-    bool isLoop() {
-        return true;
-    }
-    
-
-	void Addfunction(Tamgu* f) {
-		function = f;
-	}
-
-	void Callfunction();
-
-	short Type() {
-		return a_floop;
-	}
-
-    unsigned long CallBackArity() {
-        return P_TWO;
-    }
-
-	Tamgu* Put(Tamgu*, Tamgu*, short);
-	Tamgu* Vector(short idthread);
-    Tamgu* Putvalue(Tamgu* ke, short idthread) {
-        return Put(aNULL, ke, idthread);
-    }
-
-	long Size() {
-		return interval.size();
-	}
-
-	void Next() {
-		if (interval.size() == 0)
-			return;
-
-		position++;
-		if (position >= interval.size()) {
-			if (function != NULL)
-				Callfunction();
-			position = 0;
-		}
-		value = interval[position];
-	}
-
-	Tamgu* plusplus() {
-		if (interval.size() == 0)
-			return this;
-		position++;
-		if (position >= interval.size()) {
-			if (function != NULL)
-				Callfunction();
-			position = 0;
-		}
-		value = interval[position];
-		return this;
-	}
-
-	Tamgu* minusminus() {
-		if (interval.size() == 0)
-			return this;
-		position--;
-		if (position < 0) {
-			if (function != NULL)
-				Callfunction();
-			position = interval.size() - 1;
-		}
-		value = interval[position];
-		return this;
-	}
-
-
-	Tamgu* Newinstance(short idthread, Tamgu* f = NULL) {
-		TamguLoopFloat* a = new TamguLoopFloat(globalTamgu);
-		a->function = f;
-		return a;
-	}
-
-	Tamgu* plus(Tamgu* b, bool autoself) {
-		if (interval.size() == 0)
-			return this;
-
-		if (autoself) {
-			position += b->Integer();
-
-			position = abs(position) % interval.size();
-
-			value = interval[position];
-			return this;
-		}
-
-		return Tamgufloat::plus(b, autoself);
-	}
-
-	Tamgu* minus(Tamgu* b, bool autoself) {
-		if (interval.size() == 0)
-			return this;
-
-		if (autoself) {
-			position -= b->Integer();
-
-			position = (interval.size() - abs(position)) % interval.size();
-
-			value = interval[position];
-			return this;
-		}
-
-		return Tamgufloat::minus(b, autoself);
-	}
-};
-
 
 //We create a map between our methods, which have been declared in our class below. See MethodInitialization for an example
 //of how to declare a new method.
@@ -872,9 +749,13 @@ public:
     
     
     short Type() {
-        return Tamgufloat::idtype;
+        return Tamguatomicfloat::idtype;
     }
     
+	void Setidtype(TamguGlobal* global) {
+		Tamguatomicfloat::InitialisationModule(global, "");
+	}
+
     string Typename() {
         return "a_float";
     }
@@ -911,7 +792,7 @@ public:
             r = new Tamguatomicfloat(value);
         else
             r = this;
-        r->reference++;
+        r->reference = 1;
         r->protect = false;
         return r;
     }
@@ -1457,6 +1338,129 @@ public:
         return aFALSE;
     }
 };
+
+
+class TamguLoopFloat : public Tamgufloat {
+public:
+    
+    vector<double> interval;
+    long position;
+    Tamgu* function;
+
+    TamguLoopFloat(TamguGlobal* g) : Tamgufloat(0) {
+        
+        position = 0;
+        function = NULL;
+    }
+
+    bool isLoop() {
+        return true;
+    }
+    
+
+    void Addfunction(Tamgu* f) {
+        function = f;
+    }
+
+    void Callfunction();
+
+    short Type() {
+        return a_floop;
+    }
+
+    unsigned long CallBackArity() {
+        return P_TWO;
+    }
+
+    Tamgu* Put(Tamgu*, Tamgu*, short);
+    Tamgu* Vector(short idthread);
+    Tamgu* Putvalue(Tamgu* ke, short idthread) {
+        return Put(aNULL, ke, idthread);
+    }
+
+    long Size() {
+        return interval.size();
+    }
+
+    void Next() {
+        if (interval.size() == 0)
+            return;
+
+        position++;
+        if (position >= interval.size()) {
+            if (function != NULL)
+                Callfunction();
+            position = 0;
+        }
+        value = interval[position];
+    }
+
+    Tamgu* plusplus() {
+        if (interval.size() == 0)
+            return this;
+        position++;
+        if (position >= interval.size()) {
+            if (function != NULL)
+                Callfunction();
+            position = 0;
+        }
+        value = interval[position];
+        return this;
+    }
+
+    Tamgu* minusminus() {
+        if (interval.size() == 0)
+            return this;
+        position--;
+        if (position < 0) {
+            if (function != NULL)
+                Callfunction();
+            position = interval.size() - 1;
+        }
+        value = interval[position];
+        return this;
+    }
+
+
+    Tamgu* Newinstance(short idthread, Tamgu* f = NULL) {
+        TamguLoopFloat* a = new TamguLoopFloat(globalTamgu);
+        a->function = f;
+        return a;
+    }
+
+    Tamgu* plus(Tamgu* b, bool autoself) {
+        if (interval.size() == 0)
+            return this;
+
+        if (autoself) {
+            position += b->Integer();
+
+            position = abs(position) % interval.size();
+
+            value = interval[position];
+            return this;
+        }
+
+        return Tamgufloat::plus(b, autoself);
+    }
+
+    Tamgu* minus(Tamgu* b, bool autoself) {
+        if (interval.size() == 0)
+            return this;
+
+        if (autoself) {
+            position -= b->Integer();
+
+            position = (interval.size() - abs(position)) % interval.size();
+
+            value = interval[position];
+            return this;
+        }
+
+        return Tamgufloat::minus(b, autoself);
+    }
+};
+
 
 #endif
 

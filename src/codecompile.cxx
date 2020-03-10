@@ -4101,8 +4101,44 @@ Tamgu* TamguCode::C_affectation(x_node* xn, Tamgu* kf) {
                         ki = (TamguInstruction*)kloc;
                     }
                 }
+                if (ki == kequ) {
+                    short localtype = kequ->recipient->Typevariable();
+                    if (global->atomics.check(localtype)) {
+                        switch (localtype) {
+                            case a_short:
+                                ki = new TamguInstructionAPPLYEQUSHORT(kequ, global);
+                                kequ->Remove();
+                                break;
+                            case a_int:
+                                ki = new TamguInstructionAPPLYEQUINT(kequ, global);
+                                kequ->Remove();
+                                break;
+                            case a_decimal:
+                                ki = new TamguInstructionAPPLYEQUDECIMAL(kequ, global);
+                                kequ->Remove();
+                                break;
+                            case a_float:
+                                ki = new TamguInstructionAPPLYEQUFLOAT(kequ, global);
+                                kequ->Remove();
+                                break;
+                            case a_long:
+                                ki = new TamguInstructionAPPLYEQULONG(kequ, global);
+                                kequ->Remove();
+                                break;
+                            case a_string:
+                                ki = new TamguInstructionAPPLYEQUSTRING(kequ, global);
+                                kequ->Remove();
+                                break;
+                            case a_ustring:
+                                ki = new TamguInstructionAPPLYEQUUSTRING(kequ, global);
+                                kequ->Remove();
+                                break;
+                        }
+                    }
+                }
             }
         }
+        
         kf->AddInstruction(ki);
 	}
 	else {
@@ -5137,6 +5173,8 @@ Tamgu* TamguCode::C_ifcondition(x_node* xn, Tamgu* kf) {
 			kfalse->Remove();
 		}
 	}
+    else
+        ktest->instructions.push_back(aNULL);
 
 	return ktest;
 }

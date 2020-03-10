@@ -39,8 +39,9 @@ void Tamgulong::AddMethod(TamguGlobal* global, string name, longMethod func, uns
 
 
     void Tamgulong::Setidtype(TamguGlobal* global) {
-        Tamgulong::idtype = global->Getid("long");
-    }
+    Tamgulong::InitialisationModule(global,"");
+}
+
 
    bool Tamgulong::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -95,11 +96,13 @@ void Tamgulong::AddMethod(TamguGlobal* global, string name, longMethod func, uns
 
 
 
-    global->newInstance[Tamgulong::idtype] = new Tamgulong(0, global);
-    global->newInstance[a_longthrough] = global->newInstance[Tamgulong::idtype];
-    global->RecordMethods(Tamgulong::idtype,Tamgulong::exported);
-    global->RecordMethods(a_longthrough, Tamgulong::exported);
-    global->RecordMethods(a_lloop, Tamgulong::exported);
+    if (version != "") {
+        global->newInstance[Tamgulong::idtype] = new Tamgulong(0, global);
+        global->newInstance[a_longthrough] = global->newInstance[Tamgulong::idtype];
+        global->RecordMethods(Tamgulong::idtype,Tamgulong::exported);
+        global->RecordMethods(a_longthrough, Tamgulong::exported);
+        global->RecordMethods(a_lloop, Tamgulong::exported);
+    }
     
     return true;
 }

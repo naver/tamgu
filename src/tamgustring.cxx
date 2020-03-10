@@ -73,8 +73,9 @@ void Tamgustring::AddMethod(TamguGlobal* global, string name, stringMethod func,
 
 
     void Tamgustring::Setidtype(TamguGlobal* global) {
-        Tamgustring::idtype = global->Getid("string");
-    }
+    Tamgustring::InitialisationModule(global,"");
+}
+
 
    bool Tamgustring::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -172,31 +173,34 @@ void Tamgustring::AddMethod(TamguGlobal* global, string name, stringMethod func,
     Tamgustring::AddMethod(global, "read", &Tamgustring::MethodRead, P_ONE, "read(string path): read the file content into the current variable.", a_boolean);
     Tamgustring::AddMethod(global, "write", &Tamgustring::MethodWrite, P_ONE, "write(string path): write the string content into a file.", a_boolean);
 
-    global->newInstance[Tamgustring::idtype] = new Tamgustring("", global);
-    global->newInstance[a_stringthrough] = global->newInstance[Tamgustring::idtype];
-    global->RecordMethods(Tamgustring::idtype, Tamgustring::exported);
-    global->RecordMethods(a_stringthrough, Tamgustring::exported);
-    global->RecordMethods(a_sloop, Tamgustring::exported);
 
-    
-    //Encoding table name...
-    Tamgu* a = new TamguSystemVariable(global, aONE, global->Createid("e_latin_we"), a_short);
-    a = new TamguSystemVariable(global, aTWO, global->Createid("e_latin_ce"), a_short);
-    a = new TamguSystemVariable(global, aTHREE, global->Createid("e_latin_se"), a_short);
-    a = new TamguSystemVariable(global, aFOUR, global->Createid("e_latin_ne"), a_short);
-    a = new TamguSystemVariable(global, aFIVE, global->Createid("e_cyrillic"), a_short);
-    a = new TamguSystemVariable(global, aSIX, global->Createid("e_arabic"), a_short);
-    a = new TamguSystemVariable(global, aSEVEN, global->Createid("e_greek"), a_short);
-    a = new TamguSystemVariable(global, aEIGHT, global->Createid("e_hebrew"), a_short);
-    a = new TamguSystemVariable(global, aNINE, global->Createid("e_turkish"), a_short);
-    a = new TamguSystemVariable(global, aTEN, global->Createid("e_nordic"), a_short);
-    a = new TamguSystemVariable(global, aELEVEN, global->Createid("e_thai"), a_short);
-    a = new TamguSystemVariable(global, aTHIRTEEN, global->Createid("e_baltic"), a_short);
-    a = new TamguSystemVariable(global, aFOURTEEN, global->Createid("e_celtic"), a_short);
-    a = new TamguSystemVariable(global, aFIFTEEN, global->Createid("e_latin_ffe"), a_short);
-    a = new TamguSystemVariable(global, aSIXTEEN, global->Createid("e_latin_see"), a_short);
-    a = new TamguSystemVariable(global, aSEVENTEEN, global->Createid("e_windows"), a_short);
-    a = new TamguSystemVariable(global, aSEVENTEEN, global->Createid("e_cp1252"), a_short);
+	if (version != "") {
+		global->newInstance[Tamgustring::idtype] = new Tamgustring("", global);
+		global->newInstance[a_stringthrough] = global->newInstance[Tamgustring::idtype];
+		global->RecordMethods(Tamgustring::idtype, Tamgustring::exported);
+		global->RecordMethods(a_stringthrough, Tamgustring::exported);
+		global->RecordMethods(a_sloop, Tamgustring::exported);
+
+
+		//Encoding table name...
+		Tamgu* a = new TamguSystemVariable(global, aONE, global->Createid("e_latin_we"), a_short);
+		a = new TamguSystemVariable(global, aTWO, global->Createid("e_latin_ce"), a_short);
+		a = new TamguSystemVariable(global, aTHREE, global->Createid("e_latin_se"), a_short);
+		a = new TamguSystemVariable(global, aFOUR, global->Createid("e_latin_ne"), a_short);
+		a = new TamguSystemVariable(global, aFIVE, global->Createid("e_cyrillic"), a_short);
+		a = new TamguSystemVariable(global, aSIX, global->Createid("e_arabic"), a_short);
+		a = new TamguSystemVariable(global, aSEVEN, global->Createid("e_greek"), a_short);
+		a = new TamguSystemVariable(global, aEIGHT, global->Createid("e_hebrew"), a_short);
+		a = new TamguSystemVariable(global, aNINE, global->Createid("e_turkish"), a_short);
+		a = new TamguSystemVariable(global, aTEN, global->Createid("e_nordic"), a_short);
+		a = new TamguSystemVariable(global, aELEVEN, global->Createid("e_thai"), a_short);
+		a = new TamguSystemVariable(global, aTHIRTEEN, global->Createid("e_baltic"), a_short);
+		a = new TamguSystemVariable(global, aFOURTEEN, global->Createid("e_celtic"), a_short);
+		a = new TamguSystemVariable(global, aFIFTEEN, global->Createid("e_latin_ffe"), a_short);
+		a = new TamguSystemVariable(global, aSIXTEEN, global->Createid("e_latin_see"), a_short);
+		a = new TamguSystemVariable(global, aSEVENTEEN, global->Createid("e_windows"), a_short);
+		a = new TamguSystemVariable(global, aSEVENTEEN, global->Createid("e_cp1252"), a_short);
+	}
 
     Tamgua_string::InitialisationModule(global, version);
     
@@ -2600,8 +2604,10 @@ bool Tamgua_string::InitialisationModule(TamguGlobal* global, string version) {
     Tamgua_string::AddMethod(global, "romanization", &Tamgua_string::MethodTransliteration, P_NONE, "romanization(): romanization of Hangul characters.", a_null);
 
 
-    global->newInstance[Tamgua_string::idtype] = new Tamgua_string("", global);
-    global->RecordMethods(Tamgua_string::idtype, Tamgua_string::exported);
+    if (version != "") {
+        global->newInstance[Tamgua_string::idtype] = new Tamgua_string("", global);
+        global->RecordMethods(Tamgua_string::idtype, Tamgua_string::exported);
+    }
 
     return true;
 }

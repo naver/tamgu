@@ -88,7 +88,7 @@ public:
 
 	
 
-    static void Setidtype(TamguGlobal* global);
+    void Setidtype(TamguGlobal* global);
     
     string Typename() {
 		return "long";
@@ -130,7 +130,7 @@ public:
             r = new Tamgulong(value);
         else
             r = this;
-        r->reference++;
+        r->reference = 1;
         r->protect = false;
         return r;
     }

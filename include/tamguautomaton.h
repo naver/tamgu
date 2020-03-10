@@ -488,8 +488,8 @@ public:
 //We create a map between our methods, which have been declared in our class below. See MethodInitialization for an example
 //of how to declare a new method.
 class Tamguregularexpression;
-//This typedef defines a type "TamguregularexpressionMethod", which expose the typical parameters of a new Tamgu method implementation
-typedef Tamgu* (Tamguregularexpression::*TamguregularexpressionMethod)(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+//This typedef defines a type "regularexpressionMethod", which expose the typical parameters of a new Tamgu method implementation
+typedef Tamgu* (Tamguregularexpression::*regularexpressionMethod)(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 //---------------------------------------------------------------------------------------------------------------------
 
 class Tamguregular : public TamguObject {
@@ -524,9 +524,9 @@ public:
     //We export the methods that will be exposed for our new object
     //this is a static object, which is common to everyone
     //We associate the method pointers with their names in the linkedmethods map
-    static basebin_hash<TamguregularexpressionMethod> methods;
-    static hmap<string, string> infomethods;
-    static bin_hash<unsigned long> exported;
+    static Exchanging basebin_hash<regularexpressionMethod> methods;
+    static Exchanging hmap<string, string> infomethods;
+    static Exchanging bin_hash<unsigned long> exported;
     
     static short idtype;
     
@@ -553,7 +553,7 @@ public:
     
     
 
-    static void Setidtype(TamguGlobal* global);
+    void Setidtype(TamguGlobal* global);
     
     string Typename() {
         return "Tamguregularexpression";
@@ -588,7 +588,7 @@ public:
         return new Tamguregularexpression;
     }
     
-    static void AddMethod(TamguGlobal* g, string name, TamguregularexpressionMethod func, unsigned long arity, string infos);
+    static void AddMethod(TamguGlobal* g, string name, regularexpressionMethod func, unsigned long arity, string infos);
     static bool InitialisationModule(TamguGlobal* g, string version);
     
     void Methods(Tamgu* v) {
@@ -661,8 +661,8 @@ public:
 //We create a map between our methods, which have been declared in our class below. See MethodInitialization for an example
 //of how to declare a new method.
 class Tamguposixregularexpression;
-//This typedef defines a type "TamguregularexpressionMethod", which expose the typical parameters of a new Tamgu method implementation
-typedef Tamgu* (Tamguposixregularexpression::*TamguposixregularexpressionMethod)(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+//This typedef defines a type "regularexpressionMethod", which expose the typical parameters of a new Tamgu method implementation
+typedef Tamgu* (Tamguposixregularexpression::*posixregularexpressionMethod)(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 //---------------------------------------------------------------------------------------------------------------------
 
 class Tamguposixregularexpression : public Tamguregular {
@@ -670,9 +670,9 @@ public:
     //We export the methods that will be exposed for our new object
     //this is a static object, which is common to everyone
     //We associate the method pointers with their names in the linkedmethods map
-    static basebin_hash<TamguposixregularexpressionMethod> methods;
-    static hmap<string, string> infomethods;
-    static bin_hash<unsigned long> exported;
+    static Exchanging basebin_hash<posixregularexpressionMethod> methods;
+    static Exchanging hmap<string, string> infomethods;
+    static Exchanging bin_hash<unsigned long> exported;
     
     static short idtype;
     
@@ -756,7 +756,7 @@ public:
         return new Tamguposixregularexpression;
     }
     
-    static void AddMethod(TamguGlobal* g, string name, TamguposixregularexpressionMethod func, unsigned long arity, string infos);
+    static void AddMethod(TamguGlobal* g, string name, posixregularexpressionMethod func, unsigned long arity, string infos);
     static bool InitialisationModule(TamguGlobal* g, string version);
     
     void Methods(Tamgu* v) {

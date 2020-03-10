@@ -259,7 +259,7 @@ Tamgu* TamguLockContainer::cdr(short idthread) {
         if (sz == 0)
             return aNOELEMENT;
         
-        Tamgulisp* lp = globalTamgu->Providelisp();
+        Tamguvector* lp = globalTamgu->Providevector();
         for (long i = 1; i < sz; i++)
             lp->push(getvalue(i));
         return lp;
@@ -273,10 +273,35 @@ Tamgu* Tamguvector::cdr(short idthread) {
     if (sz == 0)
         return aNOELEMENT;
     
+    Tamguvector* lp = globalTamgu->Providevector();
+    for (long i = 1; i < sz; i++)
+        lp->push(values[i]);
+    return lp;
+}
+
+Tamgu* Tamgulisp::cdr(short idthread) {
+    long sz = values.size();
+    if (sz == 0)
+        return aNOELEMENT;
+    
     Tamgulisp* lp = globalTamgu->Providelisp();
     for (long i = 1; i < sz; i++)
         lp->push(values[i]);
     return lp;
+}
+
+Tamgu* Tamgulispair::cdr(short idthread) {
+    long sz = values.size();
+    if (!sz)
+        return aNOELEMENT;
+    if (sz == 2)
+        return values.back()->Atom();
+    
+    Tamgulispair* lp = new Tamgulispair;
+    for (long i = 1; i < sz; i++)
+        lp->push(values[i]);
+    return lp;
+
 }
 
 Tamgu* Tamgulisp::MethodEval(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -690,17 +715,42 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             checkerror(v0);
             v1 = values[2]->Eval(contextualpattern, aNULL, idthread);
             checkerrorwithrelease(v1, v0);
-                        
-            if (!v1->isVectorContainer())
-                return aNULL;
+
+
+            if (v1->Type() == a_atom || v1->isNumber() || v1->isString()) {
+                a = new Tamgulispair();
+                a->push(v0);
+                a->push(v1);
+                v0->Releasenonconst();
+                v1->Releasenonconst();
+                return a;
+            }
             
-            Tamgulisp* tl = globalTamgu->Providelisp();
-            tl->push(v0);
-            for (i = 0; i < v1->Size(); i++)
-                tl->push(v1->getvalue(i));
+            Tamgulisp* tl;
+
+            if (v1->isVectorContainer()) {
+                if (v1->Type() == a_pair)
+                    tl = new Tamgulispair();
+                else
+                    tl = globalTamgu->Providelisp();
+                tl->push(v0);
+                for (i = 0; i < v1->Size(); i++)
+                    tl->push(v1->getvalue(i));
+                v1->Releasenonconst();
+                v0->Releasenonconst();
+                return tl;
+            }
+
+            if (v1->isNULL()) {
+                tl = globalTamgu->Providelisp();
+                tl->push(v0);
+                v0->Releasenonconst();
+                return tl;
+            }
+
             v0->Releasenonconst();
             v1->Releasenonconst();
-            return tl;
+            return globalTamgu->Returnerror("Cannot apply 'cons' to these elements", idthread);
         }
         case a_cond:
         {
@@ -1248,12 +1298,8 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
 }
 
 string Tamgulisp::String() {
-    Locking _lock(this);
-    if (loopmark)
-        return("(...)");
-    TamguCircular _c(this);
     string res;
-    int it;
+    long it;
     res = "(";
     bool beg = true;
     string sx;
@@ -1264,10 +1310,41 @@ string Tamgulisp::String() {
         if (!element->isString() || element->isContainer()) {
             if (sx == "")
                 sx = "''";
-            if (beg == false) {
-                if (sx[0] != '|')
-                    res += " ";
-            }
+            if (beg == false)
+                res += " ";
+            res += sx;
+        }
+        else {
+            if (beg == false)
+                res += " ";
+            stringing(res, sx);
+        }
+        beg = false;
+
+    }
+    res += ")";
+    return res;
+}
+
+
+string Tamgulispair::String() {
+    string res;
+    long it;
+    res = "(";
+    bool beg = true;
+    string sx;
+    Tamgu* element;
+    long sz = values.size() - 1;
+    for (it = 0; it <= sz; it++) {
+        if (it == sz)
+            res += " .";
+        element = values[it];
+        sx = element->StringToDisplay();
+        if (!element->isString() || element->isContainer()) {
+            if (sx == "")
+                sx = "''";
+            if (beg == false)
+                res += " ";
             res += sx;
         }
         else {

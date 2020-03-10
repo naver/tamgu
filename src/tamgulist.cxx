@@ -43,8 +43,9 @@ void Tamgulist::AddMethod(TamguGlobal* global, string name, listMethod func, uns
 
 
     void Tamgulist::Setidtype(TamguGlobal* global) {
-        Tamgulist::idtype = global->Getid("list");
-    }
+    Tamgulist::InitialisationModule(global,"");
+}
+
 
    bool Tamgulist::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -79,8 +80,10 @@ void Tamgulist::AddMethod(TamguGlobal* global, string name, listMethod func, uns
     Tamgulist::AddMethod(global, "insert", &Tamgulist::MethodInsert, P_TWO, "insert(int i,v): Insert v at position i.");
 
 
-    global->newInstance[Tamgulist::idtype] = new Tamgulist(global);
-    global->RecordMethods(Tamgulist::idtype, Tamgulist::exported);
+    if (version != "") {
+        global->newInstance[Tamgulist::idtype] = new Tamgulist(global);
+        global->RecordMethods(Tamgulist::idtype, Tamgulist::exported);
+    }
 
     Tamguring::InitialisationModule(global, version);
     return true;
@@ -1477,10 +1480,12 @@ bool Tamguring::InitialisationModule(TamguGlobal* global, string version) {
     Tamguring::AddMethod(global, "merge", &Tamguring::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
     Tamguring::AddMethod(global, "insert", &Tamguring::MethodInsert, P_TWO, "insert(int i,v): Insert v at position i.");
     
-    global->newInstance[Tamguring::idtype] = new Tamguring(global);
-    global->RecordMethods(Tamguring::idtype, Tamguring::exported);
-    global->newInstance[a_constvector] = new TamguConstvector(global);
-    global->RecordMethods(a_constvector, Tamguring::exported);
+    if (version != "") {
+        global->newInstance[Tamguring::idtype] = new Tamguring(global);
+        global->RecordMethods(Tamguring::idtype, Tamguring::exported);
+        global->newInstance[a_constvector] = new TamguConstvector(global);
+        global->RecordMethods(a_constvector, Tamguring::exported);
+    }
     
     return true;
 }

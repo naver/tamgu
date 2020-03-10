@@ -36,8 +36,9 @@ void Tamguimatrix::AddMethod(TamguGlobal* global, string name, imatrixMethod fun
 
 
     void Tamguimatrix::Setidtype(TamguGlobal* global) {
-        Tamguimatrix::idtype = global->Getid("imatrix");
-    }
+    Tamguimatrix::InitialisationModule(global,"");
+}
+
 
    bool Tamguimatrix::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -57,8 +58,10 @@ void Tamguimatrix::AddMethod(TamguGlobal* global, string name, imatrixMethod fun
 
 
 
-    global->newInstance[Tamguimatrix::idtype] = new Tamguimatrix(global);
-    global->RecordMethods(Tamguimatrix::idtype,Tamguimatrix::exported);
+    if (version != "") {
+        global->newInstance[Tamguimatrix::idtype] = new Tamguimatrix(global);
+        global->RecordMethods(Tamguimatrix::idtype,Tamguimatrix::exported);
+    }
 
     return true;
 }

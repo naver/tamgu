@@ -393,6 +393,11 @@ public:
     Tamgu* Providelispsymbols(short n);
     Tamgu* Providelispoperators(short n);
     
+    Tamgu* Provideinstance(short type, short idthread);
+    Tamgu* Provideinstance(string type, short idthread);
+
+    short Typeinstance(string s);
+    
     hmap<string, short> string_operators;
 	bin_hash<string> operator_strings;
 	bin_hash<bool> atanOperatorMath;
@@ -869,7 +874,7 @@ public:
 	}
 
 	inline Tamgu* Getvariable(short idthread, short name) {
-		return threads[idthread].variables[name].back();
+		return threads[idthread].variables.get(name).back();
 	}
 
 	inline void Storevariable(short idthread, short name, Tamgu* var) {
@@ -881,7 +886,7 @@ public:
 	}
 
     inline Tamgu* Removetopvariable(short idthread, short name) {
-        return threads[idthread].variables[name].backpop();
+        return threads[idthread].variables.get(name).backpop();
     }
 
 
@@ -922,8 +927,6 @@ public:
 	Exporting void SetCompatibilities(short ty);
 	Exporting void RecordObjects();
 	Exporting void RecordContainers();
-    Exporting void RecordObjectsId();
-    Exporting void RecordContainersId();
 	Exporting void RecordConstantNames();
 	Exporting void RecordProcedures();
 	Exporting void RecordOneProcedure(string, TamguProcedure, unsigned long arity, short rettype = a_null);

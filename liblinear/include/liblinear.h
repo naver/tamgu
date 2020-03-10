@@ -732,7 +732,7 @@ class Tamguliblinear : public TamguObject {
 			INT64 base = 0;
 			Tamguvector* kvi = globalTamgu->Providevector();
 			kvi->values.push_back(globalTamgu->Providefloat(svmproblems[0].prob.y[j]));
-			Tamgumapif* kval = new Tamgumapif;
+			Tamgumapif* kval = (Tamgumapif*)globalTamgu->Provideinstance("mapif", 0);
 			kvi->Push(kval);
 			kvect->Push(kvi);
 			for (i = 0; i < num_srcs; i++)
@@ -757,7 +757,7 @@ class Tamguliblinear : public TamguObject {
 
 		Tamgutreemap* kinfo = NULL;
 		if (infos) {
-			kinfo = new Tamgutreemap;
+			kinfo = (Tamgutreemap*)globalTamgu->Provideinstance("treemap", 0);
 			kinfo->Setreference(output->reference + 1);
 			output->values.push_back(kinfo);
 		}
@@ -868,7 +868,7 @@ class Tamguliblinear : public TamguObject {
 			if (flag_predict_probability)
 			{
 				INT64 j;
-				Tamgutreemapi* mp = new Tamgutreemapi;
+				Tamgutreemapi* mp = (Tamgutreemapi*)globalTamgu->Provideinstance("treemapi", 0);
 				mp->Setreference(output->reference + 1);
 				output->values.push_back(mp);
 				predict_label = predict_probability(model_, x, prob_estimates);
@@ -881,7 +881,7 @@ class Tamguliblinear : public TamguObject {
 				}
 				else {
 					if (infos == 2) {
-						Tamgutreemapif* kmlabelfloat = new Tamgutreemapif;
+						Tamgutreemapif* kmlabelfloat = (Tamgutreemapif*)globalTamgu->Provideinstance("treemapif", 0);
 						kmlabelfloat->Setreference(mp->reference + 1);
 						mp->values[predict_label] = kmlabelfloat;
 						int ilab;
@@ -934,7 +934,7 @@ class Tamguliblinear : public TamguObject {
 	Tamgu* do_predict(Tamgufvector* klabels, Tamguvector* input, Tamguvector* output) {
 		Tamgutreemap* kinfo = NULL;
 		if (infos) {
-			kinfo = new Tamgutreemap;
+			kinfo = (Tamgutreemap*)globalTamgu->Provideinstance("treemap",0);
 			kinfo->Setreference(output->reference + 1);
 			output->values.push_back(kinfo);
 		}
@@ -1035,7 +1035,7 @@ class Tamguliblinear : public TamguObject {
 			if (flag_predict_probability)
 			{
 				INT64 j;
-				Tamgutreemapi* mp = new Tamgutreemapi;
+				Tamgutreemapi* mp = (Tamgutreemapi*)globalTamgu->Provideinstance("treemapi", 0);
 				mp->Setreference(output->reference + 1);
 				output->values.push_back(mp);
 				predict_label = predict_probability(model_, x, prob_estimates);
@@ -1048,7 +1048,7 @@ class Tamguliblinear : public TamguObject {
 				}
 				else {
 					if (infos == 2) {
-						Tamgutreemapif* kmlabelfloat = new Tamgutreemapif;
+						Tamgutreemapif* kmlabelfloat = (Tamgutreemapif*)globalTamgu->Provideinstance("treemapif", 0);
 						kmlabelfloat->Setreference(mp->reference + 1);
 						mp->values[predict_label] = kmlabelfloat;
 						int ilab;
@@ -1105,7 +1105,7 @@ class Tamguliblinear : public TamguObject {
 		double sumv = 0, sumy = 0, sumvv = 0, sumyy = 0, sumvy = 0;
 		double *target = Malloc(double, prob.l);
 
-		Tamgumapsf* kres = new Tamgumapsf;
+		Tamgumapsf* kres = (Tamgumapsf*)globalTamgu->Provideinstance("mapsf", 0);
 
 		cross_validation(&prob, &param, nr_fold, target);
 		if (param.solver_type == L2R_L2LOSS_SVR ||

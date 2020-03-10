@@ -41,7 +41,7 @@
 #include "tamgulisp.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2020.02.27";
+const char* tamgu_version = "Tamgu 1.2020.03.10";
 
 Tamgu* booleantamgu[2];
 
@@ -1359,8 +1359,24 @@ long TamguGlobal::Getinstructionline(short idthread) {
     return threads[idthread].currentinstruction->Currentline();
 }
 
+//--------------------------------------------------------------------------------------------
+//These three methods are the way to go to create new objets in an external library, which are declared internally within Tamgu
+Tamgu* TamguGlobal::Provideinstance(short type, short idthread) {
+    return globalTamgu->newInstance.get(type)->Newinstance(idthread);
+}
+
+Tamgu* TamguGlobal::Provideinstance(string thetypename, short idthread) {
+    return globalTamgu->newInstance.get(globalTamgu->Getid(thetypename))->Newinstance(idthread);
+}
+
+short TamguGlobal::Typeinstance(string thetypename) {
+    return globalTamgu->Getid(thetypename);
+}
+//--------------------------------------------------------------------------------------------
+
 //This function is hack which is necessary to get these variables a value in a DLL
 Exporting void TamguGlobal::Update() {
+    inittableutf8();
     globalTamgu = this;
 
     if (aNULL == NULL) {
@@ -1432,12 +1448,6 @@ Exporting void TamguGlobal::Update() {
 
         booleantamgu[0] = aFALSE;
         booleantamgu[1] = aTRUE;
-    }
-
-    //We need to set the idtype back for tamgu internal objects
-    if (!Tamguint::idtype) {
-        RecordObjectsId();
-        RecordContainersId();
     }
 }
 
@@ -1683,9 +1693,9 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("zero"); //3 --> a_zero
     Createid("one"); //4 --> a_one
 
-    Createid("bool");//5 --> a_boolean
-    Createid("minusone"); //6 --> a_minusone
-
+    Createid("minusone"); //5 --> a_minusone
+    
+    Createid("bool");//6 -->a_boolean
     Createid("byte"); //7 --> a_byte
     Createid("short"); //8 --> a_short
     Createid("int"); //9 --> a_int
@@ -1985,15 +1995,16 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("load"); //219 a_load,
     Createid("body"); //220 a_body,
     Createid("apply"); //221 a_apply,
-    Createid("lisp"); //222 a_lisp
+    Createid("pair"); //222 a_pair,
+    Createid("lisp"); //223 a_lisp
 
     //This is a simple hack to handle "length" a typical Haskell operator as "size"...
     //Note that there will be a useless index
 
-    Createid("length"); //223
+    Createid("length"); //224
     symbolIds["length"] = a_size;
 
-    Createid("not"); //224
+    Createid("not"); //225
     symbolIds["not"] = a_negation;
 
     symbolIds["and"] = a_booleanand;
@@ -2003,7 +2014,7 @@ Exporting void TamguGlobal::RecordConstantNames() {
 
     dependenciesvariable[a_modifydependency] = a_modifydependency;
 
-
+    atomics[a_boolean] = a_boolean;
     atomics[a_short] = a_short;
     atomics[a_int] = a_int;
     atomics[a_long] = a_long;
@@ -3760,4 +3771,3 @@ Exporting Tamguustring* TamguGlobal::Provideustring(wstring v) {
     ke = ustringreservoire[ustringidx++];
     return ke;
 }
-

@@ -158,7 +158,7 @@ public:
 
 	
 
-    static void Setidtype(TamguGlobal* global);
+    void Setidtype(TamguGlobal* global);
     
     string Typename() {
 		return "rawstring";
@@ -197,7 +197,7 @@ public:
 
     Tamgu* Atomref() {
         TamguReference* r = (TamguReference*)Atom();
-        r->reference++;
+        r->reference = 1;
         r->protect = false;
         return r;
     }

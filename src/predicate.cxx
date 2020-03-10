@@ -128,8 +128,9 @@ void TamguPredicate::AddMethod(TamguGlobal* global, string name, predicateMethod
 
 
     void TamguPredicate::Setidtype(TamguGlobal* global) {
-        TamguPredicate::idtype = global->Getid("predicate");
-    }
+    TamguPredicate::InitialisationModule(global,"");
+}
+
 
    bool TamguPredicate::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -145,13 +146,15 @@ void TamguPredicate::AddMethod(TamguGlobal* global, string name, predicateMethod
     TamguPredicate::AddMethod(global, "trace", &TamguPredicate::MethodTrace, P_ONE, "trace(bool v): Set trace mode.");
     TamguPredicate::AddMethod(global, "rule", &TamguPredicate::MethodRuleid, P_NONE, "rule(): Return the rule id.");
 
-    global->newInstance[TamguPredicate::idtype] = new TamguPredicate(a_predicate, global);
-    global->RecordMethods(TamguPredicate::idtype, TamguPredicate::exported);
+    if (version != "") {
+        global->newInstance[TamguPredicate::idtype] = new TamguPredicate(a_predicate, global);
+        global->RecordMethods(TamguPredicate::idtype, TamguPredicate::exported);
 
-    global->newInstance[a_predicatevar] = new TamguPredicateVar(global, a_predicatevar);
-    global->RecordMethods(a_predicatevar, TamguPredicate::exported);
+        global->newInstance[a_predicatevar] = new TamguPredicateVar(global, a_predicatevar);
+        global->RecordMethods(a_predicatevar, TamguPredicate::exported);
 
-    global->newInstance[a_dependency] = new TamguDependency(global, aNULL, a_dependency, 0);
+        global->newInstance[a_dependency] = new TamguDependency(global, aNULL, a_dependency, 0);
+    }
     short id = global->Getid("name");
     global->methods[a_dependency][id] = global->methods[a_predicate][id];
     

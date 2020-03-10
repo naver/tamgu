@@ -68,8 +68,9 @@ void Tamgusys::AddMethod(TamguGlobal* global, string name, sysMethod func, unsig
 
 
     void Tamgusys::Setidtype(TamguGlobal* global) {
-        Tamgusys::idtype = global->Getid("sys");
-    }
+    Tamgusys::InitialisationModule(global,"");
+}
+
 
    bool Tamgusys::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -89,11 +90,12 @@ void Tamgusys::AddMethod(TamguGlobal* global, string name, sysMethod func, unsig
     Tamgusys::AddMethod(global, "env", &Tamgusys::MethodEnv, P_ONE | P_TWO, "env(string var)|env(string varstring val): return or set the content of the environment variable 'var'");
     Tamgusys::AddMethod(global, "pipe", &Tamgusys::MethodPopen, P_ONE, "pipe(string command): execute a command and store the result in a svector.");
 
-    global->newInstance[Tamgusys::idtype] = new Tamgusys(global);
-    global->RecordMethods(Tamgusys::idtype,Tamgusys::exported);
+	if (version != "") {
+		global->newInstance[Tamgusys::idtype] = new Tamgusys(global);
+		global->RecordMethods(Tamgusys::idtype, Tamgusys::exported);
 
-    Tamgu* a = new TamguSystemVariable(global, new TamguConstsys(global), global->Createid("_sys"), Tamgusys::idtype);
-    
+		Tamgu* a = new TamguSystemVariable(global, new TamguConstsys(global), global->Createid("_sys"), Tamgusys::idtype);
+	}
     return true;
 }
 

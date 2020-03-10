@@ -37,8 +37,9 @@ void Tamgudate::AddMethod(TamguGlobal* global, string name, dateMethod func, uns
 
 
     void Tamgudate::Setidtype(TamguGlobal* global) {
-        Tamgudate::idtype = global->Getid("date");
-    }
+    Tamgudate::InitialisationModule(global,"");
+}
+
 
    bool Tamgudate::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -61,8 +62,10 @@ void Tamgudate::AddMethod(TamguGlobal* global, string name, dateMethod func, uns
     Tamgudate::AddMethod(global, "second", &Tamgudate::MethodSecond, P_NONE | P_ONE, "second(int d): return the second or defines the second");
 
 
-    global->newInstance[Tamgudate::idtype] = new Tamgudate(global);
-    global->RecordMethods(Tamgudate::idtype,Tamgudate::exported);
+    if (version != "") {
+        global->newInstance[Tamgudate::idtype] = new Tamgudate(global);
+        global->RecordMethods(Tamgudate::idtype,Tamgudate::exported);
+    }
 
     return true;
 }

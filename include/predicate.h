@@ -562,7 +562,7 @@ public:
 		return false;
 	}
     
-    static void Setidtype(TamguGlobal* global);
+    void Setidtype(TamguGlobal* global);
 
 	void Setnegation(bool v) {
 		negation = v;

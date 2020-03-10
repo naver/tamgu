@@ -216,7 +216,7 @@ public:
 	
     Tamgu* Atomref() {
         TamguReference* r = globalTamgu->Providestring(value);
-        r->reference++;
+        r->reference = 1;
         r->protect = false;
         return r;
     }
@@ -452,7 +452,7 @@ public:
 
     Tamgu* Atomref() {
         TamguReference* r = globalTamgu->Provideustring(value);
-        r->reference++;
+        r->reference = 1;
         r->protect = false;
         return r;
     }
@@ -713,7 +713,7 @@ public:
 
     Tamgu* Atomref() {
         TamguReference* r = globalTamgu->Provideint(value);
-        r->reference++;
+        r->reference = 1;
         r->protect = false;
         return r;
     }
@@ -970,7 +970,7 @@ public:
 
     Tamgu* Atomref() {
         TamguReference* r = new Tamgushort(value);
-        r->reference++;
+        r->reference = 1;
         r->protect = false;
         return r;
     }
@@ -1260,7 +1260,7 @@ public:
 
     Tamgu* Atomref() {
         TamguReference* r = new Tamgudecimal(value);
-        r->reference++;
+        r->reference = 1;
         r->protect = false;
         return r;
     }
@@ -1518,7 +1518,7 @@ public:
 
     Tamgu* Atomref() {
         TamguReference* r = globalTamgu->Providefloat(value);
-        r->reference++;
+        r->reference = 1;
         r->protect = false;
         return r;
     }
@@ -1771,7 +1771,7 @@ public:
 
     Tamgu* Atomref() {
         TamguReference* r = new Tamgulong(value);
-        r->reference++;
+        r->reference = 1;
         r->protect = false;
         return r;
     }
@@ -2029,7 +2029,7 @@ public:
 
     Tamgu* Atomref() {
         TamguReference* r = new Tamguboolean(value);
-        r->reference++;
+        r->reference = 1;
         r->protect = false;
         return r;
     }

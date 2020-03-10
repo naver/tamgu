@@ -38,8 +38,9 @@ void Tamgushort::AddMethod(TamguGlobal* global, string name, shortMethod func, u
 
 
     void Tamgushort::Setidtype(TamguGlobal* global) {
-        Tamgushort::idtype = global->Getid("short");
-    }
+    Tamgushort::InitialisationModule(global,"");
+}
+
 
    bool Tamgushort::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -94,8 +95,10 @@ void Tamgushort::AddMethod(TamguGlobal* global, string name, shortMethod func, u
 
 
 
-    global->newInstance[Tamgushort::idtype] = new Tamgushort(0, global);
-    global->RecordMethods(Tamgushort::idtype,Tamgushort::exported);
+    if (version != "") {
+        global->newInstance[Tamgushort::idtype] = new Tamgushort(0, global);
+        global->RecordMethods(Tamgushort::idtype,Tamgushort::exported);
+    }
 
     return true;
 }

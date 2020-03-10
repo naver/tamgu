@@ -89,7 +89,7 @@ public:
     
     
 
-    static void Setidtype(TamguGlobal* global);
+    void Setidtype(TamguGlobal* global);
     
     string Typename() {
         return "int";
@@ -127,7 +127,7 @@ public:
             r = globalTamgu->Provideint(value);
         else
             r = this;
-        r->reference++;
+        r->reference = 1;
         r->protect = false;
         return r;
     }
@@ -734,10 +734,9 @@ public:
     }
     
     void Resetreference(short r) {
-        reference -= r;
-        if (reference <= 0) {
+        if ((reference-=r) <= 0) {
+            reference = 0;
             if (!protect) {
-                reference = 0;
                 protect = true;
                 
                 used = false;
@@ -750,176 +749,6 @@ public:
     
 };
     //---------------------------------------------------------------------------------------------------------------------
-class TamguLoopInteger : public Tamguint {
-public:
-    
-    vector<long> interval;
-    long position;
-    Tamgu* function;
-    
-    TamguLoopInteger(TamguGlobal* g) : Tamguint(0) {
-        
-        position = 0;
-        function = NULL;
-    }
-
-    bool isLoop() {
-        return true;
-    }
-    
-
-    short Type() {
-        return a_iloop;
-    }
-    
-    
-    void Addfunction(Tamgu* f) {
-        function = f;
-    }
-    
-    void Callfunction();
-    
-    unsigned long CallBackArity() {
-        return P_TWO;
-    }
-    
-    Tamgu* Put(Tamgu*, Tamgu*, short);
-    Tamgu* Putvalue(Tamgu* v, short idthread) {
-        return Put(aNULL, v, idthread);
-    }
-    
-    Tamgu* Vector(short idthread);
-    
-    long Size() {
-        return interval.size();
-    }
-    
-    void Next() {
-        if (interval.size() == 0)
-            return;
-        
-        position++;
-        if (position >= interval.size()) {
-            if (function != NULL)
-                Callfunction();
-            position = 0;
-        }
-        value = interval[position];
-    }
-    
-    Tamgu* plusplus() {
-        if (interval.size() == 0)
-            return this;
-        position++;
-        if (position >= interval.size()) {
-            if (function != NULL)
-                Callfunction();
-            position = 0;
-        }
-        value = interval[position];
-        return this;
-    }
-    
-    Tamgu* minusminus() {
-        if (interval.size() == 0)
-            return this;
-        position--;
-        if (position < 0) {
-            if (function != NULL)
-                Callfunction();
-            position = interval.size() - 1;
-        }
-        value = interval[position];
-        return this;
-    }
-    
-    
-    Tamgu* Newinstance(short idthread, Tamgu* f = NULL) {
-        TamguLoopInteger* a = new TamguLoopInteger(globalTamgu);
-        a->function = f;
-        return a;
-    }
-    
-    Tamgu* plus(Tamgu* b, bool autoself) {
-        if (interval.size() == 0)
-            return this;
-        
-        if (autoself) {
-            position += b->Integer();
-            
-            position = abs(position) % interval.size();
-            
-            value = interval[position];
-            return this;
-        }
-        
-        return Tamguint::plus(b, autoself);
-    }
-    
-    Tamgu* minus(Tamgu* b, bool autoself) {
-        if (interval.size() == 0)
-            return this;
-        
-        if (autoself) {
-            position -= b->Integer();
-            
-            position = (interval.size() - abs(position)) % interval.size();
-            
-            value = interval[position];
-            return this;
-        }
-        
-        return Tamguint::minus(b, autoself);
-    }
-};
-
-class TamguTaskellCounter : public Tamguint {
-public:
-    
-    TamguTaskellCounter(long v = 0) : Tamguint(v) {
-        investigate = is_container;
-    }
-    
-    Tamgu* Newinstance(short, Tamgu* f = NULL) {
-        return this;
-    }
-    
-    Tamgu* Push(Tamgu* v) {
-        value++;
-        return this;
-    }
-    
-    Tamgu* Pushinmap(Tamgu* v, short idthread) {
-        value++;
-        return this;
-    }
-    
-    short Type() {
-        return a_counter;
-    }
-    
-    short Typevariable() {
-        return a_counter;
-    }
-    
-    void Insert(long idx, Tamgu* ke) {
-        value++;
-    }
-    
-    long Size() {
-        return 0;
-    }
-    
-    bool isAffectation() {
-        return true;
-    }
-    
-    bool checkAffectation() {
-        return true;
-    }
-    
-};
-
 
 class Tamguatomicint;
     //This typedef defines a type "intMethod", which expose the typical parameters of a new Tamgu method implementation
@@ -983,9 +812,13 @@ public:
     }
     
     short Type() {
-        return Tamguint::idtype;
+        return Tamguatomicint::idtype;
     }
     
+	void Setidtype(TamguGlobal* global) {
+		Tamguatomicint::InitialisationModule(global, "");
+	}
+
     string Typename() {
         return "a_int";
     }
@@ -1022,7 +855,7 @@ public:
             r = new Tamguatomicint(value);
         else
             r = this;
-        r->reference++;
+        r->reference = 1;
         r->protect = false;
         return r;
     }
@@ -1620,6 +1453,177 @@ public:
         return aFALSE;
     }
 };
+
+class TamguTaskellCounter : public Tamguint {
+public:
+    
+    TamguTaskellCounter(long v = 0) : Tamguint(v) {
+        investigate = is_container;
+    }
+    
+    Tamgu* Newinstance(short, Tamgu* f = NULL) {
+        return this;
+    }
+    
+    Tamgu* Push(Tamgu* v) {
+        value++;
+        return this;
+    }
+    
+    Tamgu* Pushinmap(Tamgu* v, short idthread) {
+        value++;
+        return this;
+    }
+    
+    short Type() {
+        return a_counter;
+    }
+    
+    short Typevariable() {
+        return a_counter;
+    }
+    
+    void Insert(long idx, Tamgu* ke) {
+        value++;
+    }
+    
+    long Size() {
+        return 0;
+    }
+    
+    bool isAffectation() {
+        return true;
+    }
+    
+    bool checkAffectation() {
+        return true;
+    }
+    
+};
+
+class TamguLoopInteger : public Tamguint {
+public:
+    
+    vector<long> interval;
+    long position;
+    Tamgu* function;
+    
+    TamguLoopInteger(TamguGlobal* g) : Tamguint(0) {
+        
+        position = 0;
+        function = NULL;
+    }
+
+    bool isLoop() {
+        return true;
+    }
+    
+
+    short Type() {
+        return a_iloop;
+    }
+    
+    
+    void Addfunction(Tamgu* f) {
+        function = f;
+    }
+    
+    void Callfunction();
+    
+    unsigned long CallBackArity() {
+        return P_TWO;
+    }
+    
+    Tamgu* Put(Tamgu*, Tamgu*, short);
+    Tamgu* Putvalue(Tamgu* v, short idthread) {
+        return Put(aNULL, v, idthread);
+    }
+    
+    Tamgu* Vector(short idthread);
+    
+    long Size() {
+        return interval.size();
+    }
+    
+    void Next() {
+        if (interval.size() == 0)
+            return;
+        
+        position++;
+        if (position >= interval.size()) {
+            if (function != NULL)
+                Callfunction();
+            position = 0;
+        }
+        value = interval[position];
+    }
+    
+    Tamgu* plusplus() {
+        if (interval.size() == 0)
+            return this;
+        position++;
+        if (position >= interval.size()) {
+            if (function != NULL)
+                Callfunction();
+            position = 0;
+        }
+        value = interval[position];
+        return this;
+    }
+    
+    Tamgu* minusminus() {
+        if (interval.size() == 0)
+            return this;
+        position--;
+        if (position < 0) {
+            if (function != NULL)
+                Callfunction();
+            position = interval.size() - 1;
+        }
+        value = interval[position];
+        return this;
+    }
+    
+    
+    Tamgu* Newinstance(short idthread, Tamgu* f = NULL) {
+        TamguLoopInteger* a = new TamguLoopInteger(globalTamgu);
+        a->function = f;
+        return a;
+    }
+    
+    Tamgu* plus(Tamgu* b, bool autoself) {
+        if (interval.size() == 0)
+            return this;
+        
+        if (autoself) {
+            position += b->Integer();
+            
+            position = abs(position) % interval.size();
+            
+            value = interval[position];
+            return this;
+        }
+        
+        return Tamguint::plus(b, autoself);
+    }
+    
+    Tamgu* minus(Tamgu* b, bool autoself) {
+        if (interval.size() == 0)
+            return this;
+        
+        if (autoself) {
+            position -= b->Integer();
+            
+            position = (interval.size() - abs(position)) % interval.size();
+            
+            value = interval[position];
+            return this;
+        }
+        
+        return Tamguint::minus(b, autoself);
+    }
+};
+
 
 #endif
 

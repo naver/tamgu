@@ -47,8 +47,9 @@ void Tamgulvector::AddMethod(TamguGlobal* global, string name, lvectorMethod fun
 
 
     void Tamgulvector::Setidtype(TamguGlobal* global) {
-        Tamgulvector::idtype = global->Getid("lvector");
-    }
+    Tamgulvector::InitialisationModule(global,"");
+}
+
 
    bool Tamgulvector::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -82,8 +83,10 @@ void Tamgulvector::AddMethod(TamguGlobal* global, string name, lvectorMethod fun
     Tamgulvector::AddMethod(global, "editdistance", &Tamgulvector::MethodEditDistance, P_ONE, "editdistance(v): Compute the edit distance with vector 'v'.");
     Tamgulvector::AddMethod(global, "insert", &Tamgulvector::MethodInsert, P_TWO, "insert(int i,v): Insert v at position i.");
 
-    global->newInstance[Tamgulvector::idtype] = new Tamgulvector(global);
-    global->RecordMethods(Tamgulvector::idtype, Tamgulvector::exported);
+    if (version != "") {
+        global->newInstance[Tamgulvector::idtype] = new Tamgulvector(global);
+        global->RecordMethods(Tamgulvector::idtype, Tamgulvector::exported);
+    }
 
     return true;
 }

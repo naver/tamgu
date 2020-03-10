@@ -58,7 +58,7 @@ public:
     
     
 
-    static void Setidtype(TamguGlobal* global);
+    void Setidtype(TamguGlobal* global);
     
     string Typename() {
         return "frameinstance";
@@ -593,13 +593,13 @@ class Tamguframemininstance : public TamguframeBaseInstance {
                 declarations.table[i]->Resetreference(r);
         }
         
-        reference -= r;
-        if (reference <= 0) {
+        if ((reference-=r) <= 0) {
+            reference = 0;
             if (protect)
-            protect = false;
+                protect = false;
             else {
                 if (idtracker != -1)
-                globalTamgu->RemoveFromTracker(idtracker);
+                    globalTamgu->RemoveFromTracker(idtracker);
                 deleted = true;
                 declarations.clear();
             }
@@ -719,13 +719,13 @@ class Tamguframeinstance : public TamguframeBaseInstance {
             for (short i = 0; i < declarations.last; i++)
                 declarations[i]->Resetreference(r);
             
-            reference -= r;
-            if (reference <= 0) {
+            if ((reference-=r) <= 0) {
+                reference = 0;
                 if (protect)
-                protect = false;
+                    protect = false;
                 else {
                     if (idtracker != -1)
-                    globalTamgu->RemoveFromTracker(idtracker);
+                        globalTamgu->RemoveFromTracker(idtracker);
                     deleted = true;
                     declarations.clear();
                 }

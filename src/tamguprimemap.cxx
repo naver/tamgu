@@ -40,8 +40,9 @@ void Tamguprimemap::AddMethod(TamguGlobal* global, string name, primemapMethod f
 
 
     void Tamguprimemap::Setidtype(TamguGlobal* global) {
-        Tamguprimemap::idtype = global->Getid("primemap");
-    }
+    Tamguprimemap::InitialisationModule(global,"");
+}
+
 
    bool Tamguprimemap::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -69,15 +70,11 @@ void Tamguprimemap::AddMethod(TamguGlobal* global, string name, primemapMethod f
     Tamguprimemap::AddMethod(global, "pop", &Tamguprimemap::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamguprimemap::AddMethod(global, "merge", &Tamguprimemap::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
 
-    global->newInstance[Tamguprimemap::idtype] = new Tamguprimemap(global);
-    #ifdef OLDBACKCOMP
-    global->newInstance[global->Getid("sprimemap")] = new Tamguprimemap(global);
-    global->newInstance[global->Getid("primemaps")] = new Tamguprimemap(global);
-
-    global->RecordMethods(global->Getid("primemaps"), Tamguprimemap::exported);
-    global->RecordMethods(global->Getid("sprimemap"), Tamguprimemap::exported);
-    #endif
-    global->RecordMethods(Tamguprimemap::idtype, Tamguprimemap::exported);
+    if (version != "") {
+        global->newInstance[Tamguprimemap::idtype] = new Tamguprimemap(global);
+        
+        global->RecordMethods(Tamguprimemap::idtype, Tamguprimemap::exported);
+    }
 
     return true;
 }

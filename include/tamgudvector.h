@@ -70,7 +70,7 @@ class Tamgudvector : public TamguLockContainer {
 
     
 
-    static void Setidtype(TamguGlobal* global);
+    void Setidtype(TamguGlobal* global);
     
     string Typename() {
         return "dvector";

@@ -40,17 +40,17 @@
 Exporting basebin_hash<ustringMethod>  Tamguustring::methods;
 Exporting hmap<string, string> Tamguustring::infomethods;
 Exporting bin_hash<unsigned long> Tamguustring::exported;
+Exporting short Tamguustring::idtype = 0;
 
 #ifndef max
 #define max(a,b)            (((a) > (b)) ? (a) : (b))
-    #define min(a,b)            (((a) < (b)) ? (a) : (b))
-        #endif
+#define min(a,b)            (((a) < (b)) ? (a) : (b))
+#endif
 
 #ifdef UNIX
 #define swprintf_s swprintf
 #endif
 
-Exporting short Tamguustring::idtype = 0;
 
 #ifdef DOSOUTPUT
 static bool dosoutput = true;
@@ -70,8 +70,9 @@ void Tamguustring::AddMethod(TamguGlobal* global, string name, ustringMethod fun
 
 
     void Tamguustring::Setidtype(TamguGlobal* global) {
-        Tamguustring::idtype = global->Getid("ustring");
-    }
+    Tamguustring::InitialisationModule(global,"");
+}
+
 
    bool Tamguustring::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -157,11 +158,13 @@ void Tamguustring::AddMethod(TamguGlobal* global, string name, ustringMethod fun
     Tamguustring::AddMethod(global, "read", &Tamguustring::MethodRead, P_ONE, "read(string path): read the file content into the current variable. File shoud be encoded in UTF16 characters");
     Tamguustring::AddMethod(global, "write", &Tamguustring::MethodWrite, P_ONE, "write(string path): write the string content into a file.");
 
-    global->newInstance[Tamguustring::idtype] = new Tamguustring(L"", global);
-    global->newInstance[a_ustringthrough] = global->newInstance[Tamguustring::idtype];
-    global->RecordMethods(Tamguustring::idtype, Tamguustring::exported);
-    global->RecordMethods(a_ustringthrough, Tamguustring::exported);
-    global->RecordMethods(a_uloop, Tamguustring::exported);
+    if (version != "") {
+        global->newInstance[Tamguustring::idtype] = new Tamguustring(L"", global);
+        global->newInstance[a_ustringthrough] = global->newInstance[Tamguustring::idtype];
+        global->RecordMethods(Tamguustring::idtype, Tamguustring::exported);
+        global->RecordMethods(a_ustringthrough, Tamguustring::exported);
+        global->RecordMethods(a_uloop, Tamguustring::exported);
+    }
 
     Tamgua_ustring::InitialisationModule(global, version);
     
@@ -2508,8 +2511,10 @@ bool Tamgua_ustring::InitialisationModule(TamguGlobal* global, string version) {
     Tamgua_ustring::AddMethod(global, "romanization", &Tamgua_ustring::MethodTransliteration, P_NONE, "romanization(): romanization of Hangul characters.");
 
 
-    global->newInstance[Tamgua_ustring::idtype] = new Tamgua_ustring(L"", global);
-    global->RecordMethods(Tamgua_ustring::idtype, Tamgua_ustring::exported);
+    if (version != "") {
+        global->newInstance[Tamgua_ustring::idtype] = new Tamgua_ustring(L"", global);
+        global->RecordMethods(Tamgua_ustring::idtype, Tamgua_ustring::exported);
+    }
     
     return true;
 }

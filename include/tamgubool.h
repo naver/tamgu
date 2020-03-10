@@ -63,6 +63,9 @@ public:
 		return this;
 	}
 
+    void Putatomicvalue(Tamgu* v) {
+        value = v->Boolean();
+    }
 
 	Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread) {
 		return this;
@@ -73,9 +76,7 @@ public:
 		return Tamguboolean::idtype;
 	}
 
-	
-
-    static void Setidtype(TamguGlobal* global);
+    void Setidtype(TamguGlobal* global);
     
     string Typename() {
 		return "bool";
@@ -117,7 +118,7 @@ public:
             r = new  Tamguboolean(value);
         else
             r = this;
-        r->reference++;
+        r->reference = 1;
         r->protect = false;
         return r;
     }
@@ -300,6 +301,10 @@ public:
         value = v;
     }
     
+	void Setidtype(TamguGlobal* global) {
+		Tamguatomicbool::InitialisationModule(global, "");
+	}
+	
         //----------------------------------------------------------------------------------------------------------------------
     Tamgu* Put(Tamgu* index, Tamgu* v, short idthread) {
         value = v->Boolean();
@@ -311,7 +316,10 @@ public:
         return this;
     }
     
-    
+    void Putatomicvalue(Tamgu* v) {
+        value = v->Boolean();
+    }
+
     Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread) {
         return this;
     }
@@ -361,7 +369,7 @@ public:
             r = new  Tamguatomicbool(value);
         else
             r = this;
-        r->reference++;
+        r->reference = 1;
         r->protect = false;
         return r;
     }

@@ -103,7 +103,7 @@ bool Tamguliblinear::InitialisationModule(TamguGlobal* global, string version) {
 	Tamguliblinear::AddMethod(global, "options", &Tamguliblinear::MethodOptions, P_ONE, "options(smap actions): Set the training options");
 	Tamguliblinear::AddMethod(global, "crossvalidation", &Tamguliblinear::MethodCrossvalidation, P_NONE, "crossvalidation(): Relaunch the cross validation with new parameters");
 	Tamguliblinear::AddMethod(global, "cleandata", &Tamguliblinear::MethodClean, P_NONE, "cleandata(): clean internal data");
-	Tamguliblinear::AddMethod(global, "trainingset", &Tamguliblinear::MethodTrainingSet, P_TWO, "trainingset(fvector labels,vector data): create your training set out of a iftreemap vector");
+	Tamguliblinear::AddMethod(global, "trainingset", &Tamguliblinear::MethodTrainingSet, P_TWO, "trainingset(fvector labels,vector data): create your training set out of a treemapif vector");
 	Tamguliblinear::AddMethod(global, "loadmodel", &Tamguliblinear::MethodLoadModel, P_ONE, "loadmodel(string filename): Load your model");
 	Tamguliblinear::AddMethod(global, "predictfromfile", &Tamguliblinear::MethodDoPredictFromFile, P_THREE, "predictfromfile(string input,bool flag_predict_probability,int infos): Predict from a file");
 	Tamguliblinear::AddMethod(global, "predict", &Tamguliblinear::MethodDoPredict, P_THREE | P_FOUR, "predict(fvector labels,vector data,bool flag_predict_probability,int infos): Predict from a vector of iftreemap. labels is optional.");

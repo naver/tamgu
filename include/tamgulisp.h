@@ -192,7 +192,7 @@ class Tamgulisp : public Tamguvector {
     //---------------------------------------------------------------------------------------------------------------------
     Tamgulisp(TamguGlobal* g, Tamgu* parent) : used(false), Tamguvector(g, parent) {}
 
-    Tamgulisp(long i) : used(false), idinfo(i), Tamguvector() {}
+    Tamgulisp(long i) : used(false), idinfo(i) {}
 
     //----------------------------------------------------------------------------------------------------------------------
     Tamgu* Eval(Tamgu* context, Tamgu* v, short idthread);
@@ -209,11 +209,11 @@ class Tamgulisp : public Tamguvector {
 
     virtual void Resetreference(short r);
 
-    short Type() {
+    virtual short Type() {
         return a_lisp;
     }
 
-    string Typename() {
+    virtual string Typename() {
         return "lisp";
     }
 
@@ -224,9 +224,6 @@ class Tamgulisp : public Tamguvector {
     // In that case: duplicateForCall should return true...
     //However if your object is complex and probably unique through out the code
     //Then duplicateForCall should return false, and Atom should always reduce to a "return this;" only...
-    Tamgu* Atom(bool forced=false) {
-        return this;
-    }
     
     void Setaction(short a) {
         Tamgu* op = globalTamgu->Providelispoperators(a);
@@ -237,6 +234,21 @@ class Tamgulisp : public Tamguvector {
         return a_lisp;
     }
 
+    Tamgu* car(short idthread) {
+        if (!values.size())
+            return aNOELEMENT;
+        return values[0]->Atom();
+    }
+
+    virtual Tamgu* Atom(bool forced = false) {
+        Tamgulisp* v = globalTamgu->Providelisp();
+        for (size_t i = 0; i < values.size(); i++)
+            v->push(values[i]);
+        return v;
+    }
+
+    virtual Tamgu* cdr(short idthread);
+    
         //---------------------------------------------------------------------------------------------------------------------
     static void AddMethod(TamguGlobal* g, string name, lispMethod func, unsigned long arity, string infos);
     static bool InitialisationModule(TamguGlobal* g, string version);
@@ -278,6 +290,10 @@ public:
         globalTamgu->Current(this, idthread);
     }
 
+    Tamgu* Atom(bool forced=false) {
+        return this;
+    }
+
     long Currentinfo() {
         return idinfo;
     }
@@ -311,5 +327,30 @@ public:
         idinfo = ins->Currentinfo();
     }
 };
+
+class Tamgulispair : public Tamgulisp {
+public:
+    
+    Tamgulispair() : Tamgulisp(-1) {}
+    
+    short Type() {
+        return a_pair;
+    }
+
+    string Typename() {
+        return "pair";
+    }
+
+    virtual Tamgu* Atom(bool forced = false) {
+        Tamgulispair* v = new Tamgulispair();
+        for (size_t i = 0; i < values.size(); i++)
+            v->push(values[i]);
+        return v;
+    }
+
+    Tamgu* cdr(short idthread);
+    string String();
+};
+
 
 #endif

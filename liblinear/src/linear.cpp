@@ -2672,10 +2672,18 @@ struct model *load_model(const char *model_file_name)
 	char cmd[81];
 	while(1)
 	{
-		fscanf_s(fp,"%80s",cmd);
-		if(strcmp(cmd,"solver_type")==0)
+#ifdef WIN32
+		fscanf_s(fp, "%80s", cmd, sizeof(cmd));
+#else
+		fscanf_s(fp, "%80s", cmd);
+#endif
+		if (strcmp(cmd, "solver_type") == 0)
 		{
-			fscanf_s(fp,"%80s",cmd);
+#ifdef WIN32
+			fscanf_s(fp, "%80s", cmd, sizeof(cmd));
+#else
+			fscanf_s(fp, "%80s", cmd);
+#endif
 			INT64 i;
 			for(i=0;solver_type_table[i];i++)
 			{

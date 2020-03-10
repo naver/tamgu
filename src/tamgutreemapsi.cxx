@@ -42,8 +42,9 @@ void Tamgutreemapsi::AddMethod(TamguGlobal* global, string name,treemapsiMethod 
 
 
     void Tamgutreemapsi::Setidtype(TamguGlobal* global) {
-        Tamgutreemapsi::idtype = global->Getid("treemapsi");
-    }
+    Tamgutreemapsi::InitialisationModule(global,"");
+}
+
 
    bool Tamgutreemapsi::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -71,13 +72,11 @@ void Tamgutreemapsi::AddMethod(TamguGlobal* global, string name,treemapsiMethod 
     Tamgutreemapsi::AddMethod(global, "pop", &Tamgutreemapsi::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamgutreemapsi::AddMethod(global, "merge", &Tamgutreemapsi::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
 
-    global->newInstance[Tamgutreemapsi::idtype] = new Tamgutreemapsi(global);
-    #ifdef OLDBACKCOMP
-    global->newInstance[global->Getid("sitreemap")] = new Tamgutreemapsi(global);
-
-    global->RecordMethods(global->Getid("sitreemap"), Tamgutreemapsi::exported);
-    #endif
-    global->RecordMethods(Tamgutreemapsi::idtype, Tamgutreemapsi::exported);
+    if (version != "") {
+        global->newInstance[Tamgutreemapsi::idtype] = new Tamgutreemapsi(global);
+        
+        global->RecordMethods(Tamgutreemapsi::idtype, Tamgutreemapsi::exported);
+    }
 
     return true;
 }

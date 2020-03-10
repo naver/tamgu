@@ -26,11 +26,11 @@
 #include "tamgumapuu.h"
 
 //We need to declare once again our local definitions.
-basebin_hash<annotatorMethod>  Tamguannotator::methods;
-hmap<string, string> Tamguannotator::infomethods;
-bin_hash<unsigned long> Tamguannotator::exported;
+Exporting basebin_hash<annotatorMethod>  Tamguannotator::methods;
+Exporting hmap<string, string> Tamguannotator::infomethods;
+Exporting bin_hash<unsigned long> Tamguannotator::exported;
 
-short Tamguannotator::idtype = 0;
+Exporting short Tamguannotator::idtype = 0;
 
 #ifdef UNIX
 #define swprintf_s swprintf
@@ -48,11 +48,12 @@ void Tamguannotator::AddMethod(TamguGlobal* global, string name, annotatorMethod
 
 
 
-    void Tamguannotator::Setidtype(TamguGlobal* global) {
-        Tamguannotator::idtype = global->Getid("annotator");
-    }
+void Tamguannotator::Setidtype(TamguGlobal* global) {
+    Tamguannotator::InitialisationModule(global,"");
+}
 
-   bool Tamguannotator::InitialisationModule(TamguGlobal* global, string version) {
+
+bool Tamguannotator::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
     infomethods.clear();
     exported.clear();
@@ -89,8 +90,10 @@ void Tamguannotator::AddMethod(TamguGlobal* global, string name, annotatorMethod
 
     
     //We need this code, in order to create new instances of our annotator object... DO NOT ALTER
-    global->newInstance[Tamguannotator::idtype] = new Tamguannotator(global);
-    global->RecordMethods(Tamguannotator::idtype,Tamguannotator::exported);
+    if (version != "") {
+        global->newInstance[Tamguannotator::idtype] = new Tamguannotator(global);
+        global->RecordMethods(Tamguannotator::idtype,Tamguannotator::exported);
+    }
     
     return true;
 }
@@ -1173,7 +1176,7 @@ Tamgu* Tamguannotator::Apply(An_context* context,Tamgu* res, bool computelexicon
     hmap<long,bool> validrules;
     long catrule=-1;
     vector<wstring>& tokens = context->thewords;
-    vector<long> vinter;;
+    vector<long> vinter;
 
     while (i<tokens.size()) {
         found=false;

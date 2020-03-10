@@ -43,8 +43,9 @@ void Tamguchrono::AddMethod(TamguGlobal* global, string name, chronoMethod func,
 
 
     void Tamguchrono::Setidtype(TamguGlobal* global) {
-        Tamguchrono::idtype = global->Getid("chrono");
-    }
+    Tamguchrono::InitialisationModule(global,"");
+}
+
 
    bool Tamguchrono::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -57,15 +58,17 @@ void Tamguchrono::AddMethod(TamguGlobal* global, string name, chronoMethod func,
     Tamguchrono::AddMethod(global, "reset", &Tamguchrono::MethodReset, P_NONE, "reset(): reset the chrono");
     Tamguchrono::AddMethod(global, "unit", &Tamguchrono::MethodUnit, P_ONE, "unit(int i): 1 is second. 2 is milliseconds. 3 is microsecond. 4 is nanosecond.");
 
-    global->newInstance[Tamguchrono::idtype] = new Tamguchrono(global);
-    global->RecordMethods(Tamguchrono::idtype,Tamguchrono::exported);
-    
-    Tamgu* a = new TamguSystemVariable(global, new TamguConstInt(1), global->Createid("c_second"), a_float);
-    a = new TamguSystemVariable(global, new TamguConstInt(2), global->Createid("c_millisecond"), a_float);
-    a = new TamguSystemVariable(global, new TamguConstInt(3), global->Createid("c_microsecond"), a_float);
-    a = new TamguSystemVariable(global, new TamguConstInt(4), global->Createid("c_nanosecond"), a_float);
+	if (version != "") {
+		global->newInstance[Tamguchrono::idtype] = new Tamguchrono(global);
+		global->RecordMethods(Tamguchrono::idtype, Tamguchrono::exported);
 
-    return true;
+		Tamgu* a = new TamguSystemVariable(global, new TamguConstInt(1), global->Createid("c_second"), a_float);
+		a = new TamguSystemVariable(global, new TamguConstInt(2), global->Createid("c_millisecond"), a_float);
+		a = new TamguSystemVariable(global, new TamguConstInt(3), global->Createid("c_microsecond"), a_float);
+		a = new TamguSystemVariable(global, new TamguConstInt(4), global->Createid("c_nanosecond"), a_float);
+	}
+
+	return true;
 }
 
 Tamgu* Tamguchrono::Put(Tamgu* index, Tamgu* val, short idthread) {

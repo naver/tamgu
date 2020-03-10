@@ -49,8 +49,9 @@ void Tamguvector::AddMethod(TamguGlobal* global, string name, vectorMethod func,
 }
 
 void Tamguvector::Setidtype(TamguGlobal* global) {
-    Tamguvector::idtype = global->Getid("vector");
+    Tamguvector::InitialisationModule(global,"");
 }
+
 
 bool Tamguvector::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -89,10 +90,12 @@ bool Tamguvector::InitialisationModule(TamguGlobal* global, string version) {
     Tamguvector::AddMethod(global, "read", &Tamguvector::MethodRead, P_ONE, "read(string path): Read the content of a file into the container.");
     Tamguvector::AddMethod(global, "write", &Tamguvector::MethodWrite, P_ONE, "write(string path): write the string content into a file.");
 
-    global->newInstance[Tamguvector::idtype] = new Tamguvector(global);
-    global->RecordMethods(Tamguvector::idtype, Tamguvector::exported);
-    global->newInstance[a_constvector] = new TamguConstvector(global);
-    global->RecordMethods(a_constvector, Tamguvector::exported);
+    if (version != "") {
+        global->newInstance[Tamguvector::idtype] = new Tamguvector(global);
+        global->RecordMethods(Tamguvector::idtype, Tamguvector::exported);
+        global->newInstance[a_constvector] = new TamguConstvector(global);
+        global->RecordMethods(a_constvector, Tamguvector::exported);
+    }
 
     Tamgua_vector::InitialisationModule(global, version);
     
@@ -2800,10 +2803,12 @@ bool Tamgua_vector::InitialisationModule(TamguGlobal* global, string version) {
     Tamgua_vector::AddMethod(global, "merge", &Tamgua_vector::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
     Tamgua_vector::AddMethod(global, "insert", &Tamgua_vector::MethodInsert, P_TWO, "insert(int i,v): Insert v at position i.");
 
-    global->newInstance[Tamgua_vector::idtype] = new Tamgua_vector(global);
-    global->RecordMethods(Tamgua_vector::idtype, Tamgua_vector::exported);
-    global->newInstance[a_constvector] = new TamguConstvector(global);
-    global->RecordMethods(a_constvector, Tamgua_vector::exported);
+    if (version != "") {
+        global->newInstance[Tamgua_vector::idtype] = new Tamgua_vector(global);
+        global->RecordMethods(Tamgua_vector::idtype, Tamgua_vector::exported);
+        global->newInstance[a_constvector] = new TamguConstvector(global);
+        global->RecordMethods(a_constvector, Tamgua_vector::exported);
+    }
     
     return true;
 }

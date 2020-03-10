@@ -44,8 +44,9 @@ void Tamgugrammar::AddMethod(TamguGlobal* global, string name, grammarMethod fun
 
 
     void Tamgugrammar::Setidtype(TamguGlobal* global) {
-        Tamgugrammar::idtype = global->Getid("grammar");
-    }
+    Tamgugrammar::InitialisationModule(global,"");
+}
+
 
    bool Tamgugrammar::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -60,8 +61,10 @@ void Tamgugrammar::AddMethod(TamguGlobal* global, string name, grammarMethod fun
     
     
     
-    global->newInstance[Tamgugrammar::idtype] = new Tamgugrammar(global);
-    global->RecordMethods(Tamgugrammar::idtype,Tamgugrammar::exported);
+    if (version != "") {
+        global->newInstance[Tamgugrammar::idtype] = new Tamgugrammar(global);
+        global->RecordMethods(Tamgugrammar::idtype,Tamgugrammar::exported);
+    }
     
     return true;
 }

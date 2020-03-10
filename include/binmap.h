@@ -30,6 +30,7 @@
 
 const bushort binbits = 6;
 const bushort binsize = 1 << binbits;
+const bushort binmin = 0x3F;
 const binuint64 binONE = 1;
  
 const binuint64 binval64[] = { 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768,
@@ -187,8 +188,8 @@ template<class S, class Z> class bin_iter : public std::iterator<std::forward_it
 template <class Z> class bin_hash {
     public:
     long tsize;
-    Z** table;
-    binuint64* indexes;
+    Z* table[1024];
+    binuint64 indexes[1024];
     bool initialization;
 
     typedef bin_iter<short, Z> iterator;
@@ -200,24 +201,16 @@ template <class Z> class bin_hash {
 
     bin_hash(bool init = true)  {
         initialization = init;
-        tsize = 4;
-        table = new Z*[tsize];
-        indexes = new binuint64[tsize];
-
-        table[0] = NULL;
-        table[1] = NULL;
-        table[2] = NULL;
-        table[3] = NULL;
-        indexes[0] = 0;
-        indexes[1] = 0;
-        indexes[2] = 0;
-        indexes[3] = 0;
+        tsize = 0;
+        while (tsize < 1024) {
+            table[tsize] = NULL;
+            indexes[tsize] = 0;
+            tsize++;
+        }
     }
 
     bin_hash(bin_hash<Z>& t) {
         tsize = t.tsize;
-        table = new Z*[tsize];
-        indexes = new binuint64[tsize];
         initialization = t.initialization;
 
         for (long i = 0; i < t.tsize; i++) {
@@ -239,57 +232,40 @@ template <class Z> class bin_hash {
             if (table[i] != NULL)
                 delete[] table[i];
         }
-        delete[] table;
-        delete[] indexes;
     }
 
     //pour trouver une valeur...
     iterator find(unsigned short r) {
         bushort i = r >> binbits;
-        if (i >= tsize || !indexes[i])
-            return iterator();
+        r &= binmin;
 
-        r -=  (i << binbits);
-        if (!(indexes[i] & binval64[r]))
-            return iterator();
-
-        return iterator(table, indexes, tsize, i, r);
+        if (indexes[i] & binval64[r])
+            return iterator(table, indexes, tsize, i, r);
+        
+        return iterator();
     }
 
     Z&  get(unsigned short r) {
-        bushort i = r >> binbits;
-        return table[i][r-(i << binbits)];
+        return table[(r >> binbits)][r & binmin];
     }
 
     bool get(unsigned short p, unsigned short& i, unsigned short& r) {
         i = p >> binbits;
-        if (i >= tsize || !indexes[i])
-            return false;
-        r = p - (i << binbits);
-        if (!(indexes[i] & binval64[r]))
-            return false;
-
-        return true;
+        r = p & binmin;
+        return (indexes[i] & binval64[r]);
     }
 
     bool check(unsigned short r) {
         bushort i = r >> binbits;
-        if (i >= tsize || !indexes[i])
-            return false;
-        r -=  (i << binbits);
-        if (!(indexes[i] & binval64[r]))
-            return false;
-
-        return true;
+        return (indexes[i] & binval64[r & binmin]);
     }
 
     Z search(unsigned short r) {
         bushort i = r >> binbits;
-        if (i >= tsize || !indexes[i])
-            return NULL;
-
-        r -=  (i << binbits);
-        return table[i][r];
+        r &= binmin;
+        if (indexes[i] & binval64[r])
+            return table[i][r];
+        return NULL;
     }
 
     //nettoyage
@@ -316,7 +292,7 @@ template <class Z> class bin_hash {
         if (table[i] == NULL)
             return;
 
-        r -=  (i << binbits);
+        r &= binmin;
         indexes[i] &= ~binval64[r];
         table[i][r] = NULL;
     }
@@ -326,6 +302,8 @@ template <class Z> class bin_hash {
         bint nb = 0;
         
         for (long i = 0; i < tsize; i++) {
+            if (!indexes[i])
+                continue;
             nb += bitcounter(indexes[i]);
         }
         return nb;
@@ -359,54 +337,27 @@ template <class Z> class bin_hash {
     }
 #endif
 
-    void resize(long sz) {
-        Z** ntable = new Z*[sz];
-        binuint64* nindexes = new binuint64[sz];
-
-        long i;
-        for (i = 0; i < tsize; i++) {
-            ntable[i] = table[i];
-            nindexes[i] = indexes[i];
-        }
-
-        tsize = sz;
-        for (; i < tsize; i++)  {
-            ntable[i] = NULL;
-            nindexes[i] = 0;
-        }
-        delete[] table;
-        delete[] indexes;
-        table = ntable;
-        indexes = nindexes;
-    }
-
     Z& operator [](unsigned short r) {
         bushort i = r >> binbits;
-        r -=  (i << binbits);
-        if (i >= tsize)
-            resize(i + 2);
+        r &= binmin;
         if (table[i] == NULL) {
             table[i] = new Z[binsize];
             if (initialization)
                 memset(table[i], NULL, sizeof(Z) << binbits);
         }
         indexes[i] |= binval64[r];
-        //indexes[i] |= (1 << r);
         return table[i][r];
     }
 
     void put(unsigned short r, Z v) {
         bushort i = r >> binbits;
-        r -=  (i << binbits);
-        if (i >= tsize)
-            resize(i + 2);
+        r &= binmin;
         if (table[i] == NULL) {
             table[i] = new Z[binsize];
             if (initialization)
                 memset(table[i], NULL, sizeof(Z) << binbits);
         }
         indexes[i] |= binval64[r];
-        //indexes[i] |= (1 << r);
         table[i][r] = v;
     }
 
@@ -420,15 +371,6 @@ template <class Z> class bin_hash {
                 indexes[i] = 0;
                 table[i] = NULL;
             }
-        }
-
-        if (tsize != t.tsize) {
-            delete[] table;
-            delete[] indexes;
-
-            tsize = t.tsize;
-            table = new Z*[tsize];
-            indexes = new binuint64[tsize];
         }
 
         initialization = t.initialization;
@@ -535,45 +477,31 @@ template <class L, class Z> class hash_bin {
     //pour trouver une valeur...
     iterator find(L r) {
         L i = r >> binbits;
-        if (i >= tsize || !indexes[i])
-            return iterator();
+        r &= binmin;
 
-        r -=  (i << binbits);
-        if (!(indexes[i] & binval64[r]))
-            return iterator();
+        if (i < tsize && (indexes[i] & binval64[r]))
+            return iterator(table, indexes, tsize, i, r);
 
-        return iterator(table, indexes, tsize, i, r);
+        return iterator();
     }
 
     bool get(L p, L& i, L& r) {
         i = p >> binbits;
-        if (i >= tsize || !indexes[i])
-            return false;
-        r = p - (i << binbits);
-        if (!(indexes[i] & binval64[r]))
-            return false;
-
-        return true;
+        r = p & binmin;
+        return (i < tsize && (indexes[i] & binval64[r]));
     }
 
     bool check(L r) {
         L i = r >> binbits;
-        if (i >= tsize || !indexes[i])
-            return false;
-        r -=  (i << binbits);
-        if (!(indexes[i] & binval64[r]))
-            return false;
-
-        return true;
+        return (i < tsize && (indexes[i] & binval64[r & binmin]));
     }
 
     Z search(L r) {
         L i = r >> binbits;
-        if (i >= tsize || !indexes[i])
-            return NULL;
-
-        r -=  (i << binbits);
-        return table[i][r];
+        r &= binmin;
+        if (i < tsize && (indexes[i] & binval64[r]))
+            return table[i][r];
+        return NULL;
     }
 
     //nettoyage
@@ -600,7 +528,7 @@ template <class L, class Z> class hash_bin {
         if (table[i] == NULL)
             return;
 
-        r -=  (i << binbits);
+        r &= binmin;
         indexes[i] &= ~binval64[r];
     }
 
@@ -672,7 +600,7 @@ template <class L, class Z> class hash_bin {
 
     Z& operator [](L r) {
         L i = r >> binbits;
-        r -=  (i << binbits);
+        r &= binmin;
         if (i >= tsize)
             resize(i + 2);
         if (table[i] == NULL) {
@@ -836,37 +764,24 @@ template <class Z> class basebin_hash {
     }
 
     bool check(unsigned short r) {
-        bshort i = r >> binbits;
-        r -=  (i << binbits);
-        i -= base;
-        if (i < 0 || i >= tsize || !indexes[i])
-            return false;
-        if (!(indexes[i] & binval64[r]))
-            return false;
-
-        return true;
+        bshort i = (r >> binbits) - base;
+        return (i >= 0 && i < tsize && (indexes[i] & binval64[r & binmin]));
     }
 
     void put(unsigned short r, Z a) {
         bshort i = r >> binbits;
-        table[i-base][r -(i << binbits)] = a;
+        table[i-base][r & binmin] = a;
     }
     
 
     //Only if you are sure that the element exists...
     Z&  get(unsigned short r) {
-        bshort i = r >> binbits;
-        return table[i-base][r -(i << binbits)];
+        return table[(r >> binbits)-base][r & binmin];
     }
     
     bool check(short i, short r) {
         i -= base;
-        if (i < 0 || i >= tsize || !indexes[i])
-            return false;
-        if (!(indexes[i] & binval64[r]))
-            return false;
-
-        return true;
+        return (i >= 0 && i < tsize && (indexes[i] & binval64[r]));
     }
 
     bool empty() {
@@ -878,52 +793,40 @@ template <class Z> class basebin_hash {
     }
 
     Z search(unsigned short r) {
-        bshort i = r >> binbits;
-        r -=  (i << binbits);
-        i -= base;
-        if (i < 0 || i >= tsize || !indexes[i])
+        if (base == -1)
             return NULL;
-
-        return table[i][r];
+        
+        bshort i = (r >> binbits) - base;
+        r &= binmin;
+        if (i >= 0 && i < tsize && (indexes[i] & binval64[r]))
+            return table[i][r];
+        
+        return NULL;
     }
 
     iterator find(unsigned short r) {
         if (base == -1)
             return iterator();
 
-        bshort i = r >> binbits;
-        r -=  (i << binbits);
-        i -= base;
-        if (i < 0 || i >= tsize || !indexes[i])
-            return iterator();
-
-        if (!(indexes[i] & binval64[r]))
-            return iterator();
-
-        return iterator(table, indexes, tsize, i, r);
+        bshort i = (r >> binbits) - base;
+        r &= binmin;
+        if (i >= 0 && i < tsize && (indexes[i] & binval64[r]))
+            return iterator(table, indexes, tsize, i, r);
+        
+        return iterator();
     }
 
     bool get(unsigned short p, short& i, unsigned short& r) {
-        i = p >> binbits;
-        r = p - (i << binbits);
-        i -= base;
-        if (i < 0 || i >= tsize || !indexes[i])
-            return false;
-
-        if (!(indexes[i] & binval64[r]))
-            return false;
-
-        return true;
+        i = (p >> binbits) - base;
+        r = p & binmin;
+        return (i >= 0 && i < tsize && (indexes[i] & binval64[r]));
     }
 
     void erase(unsigned short r) {
-        bshort i = r >> binbits;
-        r -=  (i << binbits);
-        i -= base;
-        if (i < 0 || i >= tsize || !indexes[i])
-            return;
-
-        indexes[i] &= ~binval64[r];
+        bshort i = (r >> binbits) - base;
+        r &= binmin;
+        if (i >= 0 && i < tsize && indexes[i])
+            indexes[i] &= ~binval64[r];
     }
     
 #ifdef INTELINTRINSICS
@@ -931,6 +834,8 @@ template <class Z> class basebin_hash {
         bint nb = 0;
         
         for (long i = 0; i < tsize; i++) {
+            if (!indexes[i])
+                continue;
             nb += bitcounter(indexes[i]);
         }
         return nb;
@@ -1027,7 +932,7 @@ template <class Z> class basebin_hash {
 
     Z& operator [](unsigned short r) {
         unsigned short i = r >> binbits;
-        r -=  (i << binbits);
+        r &= binmin;
         if (base == -1) {
             base = i;
             i = 0;
@@ -1144,25 +1049,13 @@ public:
     }
     
     bool check(unsigned short r) {
-        bshort i = r >> binbits;
-        r -=  (i << binbits);
-        i -= base;
-        if (i < 0 || i >= tsize || !indexes[i])
-            return false;
-        if (!(indexes[i] & binval64[r]))
-            return false;
-        
-        return true;
+        bshort i = (r >> binbits) - base;
+        return (i >= 0 && i < tsize && (indexes[i] & binval64[r & binmin]));
     }
     
     bool check(short i, short r) {
         i -= base;
-        if (i < 0 || i >= tsize || !indexes[i])
-            return false;
-        if (!(indexes[i] & binval64[r]))
-            return false;
-        
-        return true;
+        return (i >= 0 && i < tsize && (indexes[i] & binval64[r]));
     }
     
     bool empty() {
@@ -1174,52 +1067,39 @@ public:
     }
     
     Z search(unsigned short r) {
-        bshort i = r >> binbits;
-        r -=  (i << binbits);
-        i -= base;
-        if (i < 0 || i >= tsize || !indexes[i])
+        if (base == -1)
             return NULL;
         
-        return table[i][r];
+        bshort i = (r >> binbits) - base;
+        r &= binmin;
+        if (i >= 0 && i < tsize && (indexes[i] & binval64[r]))
+            return table[i][r];
+        return NULL;
     }
     
     iterator find(unsigned short r) {
         if (base == -1)
             return iterator();
         
-        bshort i = r >> binbits;
-        r -=  (i << binbits);
-        i -= base;
-        if (i < 0 || i >= tsize || !indexes[i])
-            return iterator();
+        bshort i = (r >> binbits) - base;
+        r &= binmin;
+        if (i >= 0 && i < tsize && (indexes[i] & binval64[r]))
+            return iterator(table, indexes, tsize, i, r);
         
-        if (!(indexes[i] & binval64[r]))
-            return iterator();
-        
-        return iterator(table, indexes, tsize, i, r);
+        return iterator();
     }
     
     bool get(unsigned short p, short& i, unsigned short& r) {
-        i = p >> binbits;
-        r = p - (i << binbits);
-        i -= base;
-        if (i < 0 || i >= tsize || !indexes[i])
-            return false;
-        
-        if (!(indexes[i] & binval64[r]))
-            return false;
-        
-        return true;
+        i = (p >> binbits) - base;
+        r = p & binmin;
+        return (i >= 0 && i < tsize && (indexes[i] & binval64[r]));
     }
     
     void erase(unsigned short r) {
-        bshort i = r >> binbits;
-        r -=  (i << binbits);
-        i -= base;
-        if (i < 0 || i >= tsize || !indexes[i])
-            return;
-        
-        indexes[i] &= ~binval64[r];
+        bshort i = (r >> binbits) - base;
+        r &= binmin;
+        if (i >= 0 && i < tsize && indexes[i])
+            indexes[i] &= ~binval64[r];
     }
     
     
@@ -1323,13 +1203,12 @@ public:
     
     //Only if you are sure that the element exists...
     Z&  get(unsigned short r) {
-        bshort i = r >> binbits;
-        return table[i-base][r -(i << binbits)];
+        return table[(r >> binbits)-base][r & binmin];
     }
     
     Z& operator [](unsigned short r) {
         unsigned short i = r >> binbits;
-        r -=  (i << binbits);
+        r &= binmin;
         if (base == -1) {
             base = i;
             i = 0;
@@ -1426,9 +1305,7 @@ public:
     }
     
     bool check(unsigned short r) {
-        if (r >= base && r-base < sz && table[r-base] != NULL)
-            return true;
-        return false;
+        return (r >= base && (r-base) < sz && table[r-base] != NULL);
     }
     
     //Only if you are sure that the element exists...

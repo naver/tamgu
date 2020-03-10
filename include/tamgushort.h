@@ -90,7 +90,7 @@ class Tamgushort : public TamguReference {
 
     
 
-    static void Setidtype(TamguGlobal* global);
+    void Setidtype(TamguGlobal* global);
     
     string Typename() {
         return "short";
@@ -132,7 +132,7 @@ class Tamgushort : public TamguReference {
             r = new Tamgushort(value);
         else
             r = this;
-        r->reference++;
+        r->reference = 1;
         r->protect = false;
         return r;
     }

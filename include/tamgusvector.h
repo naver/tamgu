@@ -71,7 +71,7 @@ class Tamgusvector : public TamguLockContainer {
 
     
 
-    static void Setidtype(TamguGlobal* global);
+    void Setidtype(TamguGlobal* global);
     
     string Typename() {
         return "svector";
@@ -323,14 +323,10 @@ class Tamgusvector : public TamguLockContainer {
 
     
     void Methods(Tamgu* v) {
-        string s;
-        
-        for (auto& it : infomethods) {
-            s=it.first;
-            v->storevalue(s);
-        }
+        for (auto& it : infomethods)
+            v->storevalue(it.first);
     }
-    
+
     string Info(string n) {
         if (infomethods.find(n) != infomethods.end())
             return infomethods[n];
@@ -703,10 +699,9 @@ class Tamgusvectorbuff : public Tamgusvector {
     }
 
     void Resetreference(short r) {
-        reference -= r;
-        if (reference <= 0) {
+        if ((reference-=r) <= 0) {
+            reference = 0;
             if (!protect) {
-                reference = 0;
                 protect = true;
                 
                 values.clear();
@@ -772,6 +767,10 @@ public:
         return Tamgua_svector::idtype;
     }
     
+	void Setidtype(TamguGlobal* global) {
+		Tamgua_svector::InitialisationModule(global, "");
+	}
+
     string Typename() {
         return "a_svector";
     }
@@ -967,14 +966,10 @@ public:
     
     
     void Methods(Tamgu* v) {
-        string s;
-        
-        for (auto& it : infomethods) {
-            s=it.first;
-            v->storevalue(s);
-        }
+        for (auto& it : infomethods)
+            v->storevalue(it.first);
     }
-    
+
     string Info(string n) {
         if (infomethods.find(n) != infomethods.end())
             return infomethods[n];

@@ -36,8 +36,9 @@ void Tamgutime::AddMethod(TamguGlobal* global, string name, timeMethod func, uns
 
 
     void Tamgutime::Setidtype(TamguGlobal* global) {
-        Tamgutime::idtype = global->Getid("time");
-    }
+    Tamgutime::InitialisationModule(global,"");
+}
+
 
    bool Tamgutime::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -48,8 +49,10 @@ void Tamgutime::AddMethod(TamguGlobal* global, string name, timeMethod func, uns
 
     Tamgutime::AddMethod(global, "reset", &Tamgutime::MethodReset, P_NONE, "reset(): reset the time");
 
-    global->newInstance[Tamgutime::idtype] = new Tamgutime(global);
-    global->RecordMethods(Tamgutime::idtype,Tamgutime::exported);
+    if (version != "") {
+        global->newInstance[Tamgutime::idtype] = new Tamgutime(global);
+        global->RecordMethods(Tamgutime::idtype,Tamgutime::exported);
+    }
 
     return true;
 }

@@ -128,6 +128,8 @@ public:
 	virtual Tamgu* Execute(Tamgu* environment, Tamgu* value, short idthread) {
 		return Eval(environment, value, idthread);
 	}
+    
+	virtual void Setidtype(TamguGlobal* global) {}
 
     virtual Tamgu* CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         return this;
@@ -1516,7 +1518,7 @@ class TamguReference : public Tamgu {
 public:
 
     std::atomic<short> reference;
-    std::atomic<bool> protect;
+    bool protect;
 
     TamguReference(TamguGlobal* g, Tamgu* parent = NULL)  {
         protect = true;
@@ -1576,8 +1578,8 @@ public:
     }
 
     virtual void Resetreference(short r = 1) {
-        reference -= r;
-        if (reference <= 0) {
+        if ((reference-=r) <= 0) {
+            reference = 0;
             if (!protect) {
                 if (idtracker != -1)
                     globalTamgu->RemoveFromTracker(idtracker);
@@ -1709,8 +1711,8 @@ class TamguObjectContainer : public TamguContainer {
 public:
     
     std::atomic<short> containerreference;
-    std::atomic<bool> loopmark;
-    std::atomic<unsigned char> usermark;
+    bool loopmark;
+    unsigned char usermark;
     
     TamguObjectContainer(TamguGlobal* g, Tamgu* parent = NULL) : TamguContainer(g, parent) {
         loopmark=false;
@@ -4114,10 +4116,9 @@ public:
     
     void Resetreference(short r) {
         value->Resetreference(r);
-        reference -= r;
-        if (reference <= 0) {
+        if ((reference-=r) <= 0) {
+            reference = 0;
             if (!protect) {
-                reference = 0;
                 protect = true;
 
                 used = false;

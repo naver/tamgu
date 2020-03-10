@@ -49,8 +49,9 @@ void Tamguhvector::AddMethod(TamguGlobal* global, string name, hvectorMethod fun
 
 
     void Tamguhvector::Setidtype(TamguGlobal* global) {
-        Tamguhvector::idtype = global->Getid("hvector");
-    }
+    Tamguhvector::InitialisationModule(global,"");
+}
+
 
    bool Tamguhvector::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -82,8 +83,10 @@ void Tamguhvector::AddMethod(TamguGlobal* global, string name, hvectorMethod fun
 
     Tamguhvector::AddMethod(global, "permute", &Tamguhvector::MethodPermute, P_NONE, "permute(): permute the values in the vector after each call.");
 
-    global->newInstance[Tamguhvector::idtype] = new Tamguhvector(global);
-    global->RecordMethods(Tamguhvector::idtype,Tamguhvector::exported);
+    if (version != "") {
+        global->newInstance[Tamguhvector::idtype] = new Tamguhvector(global);
+        global->RecordMethods(Tamguhvector::idtype,Tamguhvector::exported);
+    }
 
     return true;
 }

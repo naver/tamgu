@@ -455,8 +455,9 @@ void Tamgumap::AddMethod(TamguGlobal* global, string name, mapMethod func, unsig
 
 
     void Tamgumap::Setidtype(TamguGlobal* global) {
-        Tamgumap::idtype = global->Getid("map");
-    }
+    Tamgumap::InitialisationModule(global,"");
+}
+
 
    bool Tamgumap::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -493,18 +494,14 @@ void Tamgumap::AddMethod(TamguGlobal* global, string name, mapMethod func, unsig
     Tamgumap::AddMethod(global, "pop", &Tamgumap::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamgumap::AddMethod(global, "merge", &Tamgumap::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
 
-    global->newInstance[Tamgumap::idtype] = new Tamgumap(global);
-    #ifdef OLDBACKCOMP
-    global->newInstance[global->Getid("smap")] = new Tamgumap(global);
-    global->newInstance[global->Getid("maps")] = new Tamgumap(global);
+    if (version != "") {
+        global->newInstance[Tamgumap::idtype] = new Tamgumap(global);
+        
+        global->RecordMethods(Tamgumap::idtype, Tamgumap::exported);
 
-    global->RecordMethods(global->Getid("maps"), Tamgumap::exported);
-    global->RecordMethods(global->Getid("smap"), Tamgumap::exported);
-    #endif
-    global->RecordMethods(Tamgumap::idtype, Tamgumap::exported);
-
-    global->newInstance[a_constmap] = new TamguConstmap(global);
-    global->RecordMethods(a_constmap, Tamgumap::exported);
+        global->newInstance[a_constmap] = new TamguConstmap(global);
+        global->RecordMethods(a_constmap, Tamgumap::exported);
+    }
     
     return true;
 }

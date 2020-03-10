@@ -36,8 +36,9 @@ void Tamgufmatrix::AddMethod(TamguGlobal* global, string name, fmatrixMethod fun
 
 
     void Tamgufmatrix::Setidtype(TamguGlobal* global) {
-        Tamgufmatrix::idtype = global->Getid("fmatrix");
-    }
+    Tamgufmatrix::InitialisationModule(global,"");
+}
+
 
    bool Tamgufmatrix::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -57,8 +58,10 @@ void Tamgufmatrix::AddMethod(TamguGlobal* global, string name, fmatrixMethod fun
 
 
 
-    global->newInstance[Tamgufmatrix::idtype] = new Tamgufmatrix(global);
-    global->RecordMethods(Tamgufmatrix::idtype, Tamgufmatrix::exported);
+    if (version != "") {
+        global->newInstance[Tamgufmatrix::idtype] = new Tamgufmatrix(global);
+        global->RecordMethods(Tamgufmatrix::idtype, Tamgufmatrix::exported);
+    }
 
     return true;
 }

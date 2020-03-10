@@ -42,8 +42,9 @@ void Tamgumapff::AddMethod(TamguGlobal* global, string name, mapffMethod func, u
 
 
     void Tamgumapff::Setidtype(TamguGlobal* global) {
-        Tamgumapff::idtype = global->Getid("mapff");
-    }
+    Tamgumapff::InitialisationModule(global,"");
+}
+
 
    bool Tamgumapff::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -71,13 +72,11 @@ void Tamgumapff::AddMethod(TamguGlobal* global, string name, mapffMethod func, u
     Tamgumapff::AddMethod(global, "pop", &Tamgumapff::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamgumapff::AddMethod(global, "merge", &Tamgumapff::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
 
-    global->newInstance[Tamgumapff::idtype] = new Tamgumapff(global);
-    #ifdef OLDBACKCOMP
-    global->newInstance[global->Getid("ffmap")] = new Tamgumapff(global);
-
-    global->RecordMethods(global->Getid("ffmap"), Tamgumapff::exported);
-    #endif
-    global->RecordMethods(Tamgumapff::idtype, Tamgumapff::exported);
+    if (version != "") {
+        global->newInstance[Tamgumapff::idtype] = new Tamgumapff(global);
+        
+        global->RecordMethods(Tamgumapff::idtype, Tamgumapff::exported);
+    }
 
     return true;
 }

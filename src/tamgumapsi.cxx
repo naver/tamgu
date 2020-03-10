@@ -42,8 +42,9 @@ void Tamgumapsi::AddMethod(TamguGlobal* global, string name,mapsiMethod func, un
 
 
     void Tamgumapsi::Setidtype(TamguGlobal* global) {
-        Tamgumapsi::idtype = global->Getid("mapsi");
-    }
+    Tamgumapsi::InitialisationModule(global,"");
+}
+
 
    bool Tamgumapsi::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -71,13 +72,11 @@ void Tamgumapsi::AddMethod(TamguGlobal* global, string name,mapsiMethod func, un
     Tamgumapsi::AddMethod(global, "pop", &Tamgumapsi::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamgumapsi::AddMethod(global, "merge", &Tamgumapsi::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
 
-    global->newInstance[Tamgumapsi::idtype] = new Tamgumapsi(global);
-    #ifdef OLDBACKCOMP
-    global->newInstance[global->Getid("simap")] = new Tamgumapsi(global);
-
-    global->RecordMethods(global->Getid("simap"), Tamgumapsi::exported);
-    #endif
-    global->RecordMethods(Tamgumapsi::idtype, Tamgumapsi::exported);
+    if (version != "") {
+        global->newInstance[Tamgumapsi::idtype] = new Tamgumapsi(global);
+        
+        global->RecordMethods(Tamgumapsi::idtype, Tamgumapsi::exported);
+    }
 
     return true;
 }

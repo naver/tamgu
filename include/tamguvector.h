@@ -98,7 +98,7 @@ class Tamguvector : public TamguObjectLockContainer {
 
     
 
-    static void Setidtype(TamguGlobal* global);
+    void Setidtype(TamguGlobal* global);
     
     virtual string Typename() {
         return "vector";
@@ -178,14 +178,10 @@ class Tamguvector : public TamguObjectLockContainer {
 
     
     void Methods(Tamgu* v) {
-        string s;
-        
-        for (auto& it : infomethods) {
-            s=it.first;
-            v->storevalue(s);
-        }
+        for (auto& it : infomethods)
+            v->storevalue(it.first);
     }
-    
+
     string Info(string n) {
         if (infomethods.find(n) != infomethods.end())
             return infomethods[n];
@@ -713,14 +709,14 @@ class Tamguvector : public TamguObjectLockContainer {
 
     Exporting long Size();
 
-    Tamgu* car(short idthread) {
+    virtual Tamgu* car(short idthread) {
         Locking _lock(this);
         if (!values.size())
             return aNOELEMENT;
         return values[0]->Atom();
     }
     
-    Tamgu* cdr(short idthread);
+    virtual Tamgu* cdr(short idthread);
 
     Exporting Tamgu* in(Tamgu* context, Tamgu* a, short idthread);
 
@@ -818,498 +814,6 @@ class TamguIterationvector : public TamguIteration {
 
 };
 
-//---------------------------------------------------------------------------------
-class TamguConstvector : public Tamguvector {
-    public:
-    bool evaluate;
-
-    TamguConstvector(TamguGlobal* g, Tamgu* parent = NULL) : Tamguvector(g, parent) {
-        //Do not forget your variable initialisation
-        evaluate = false;
-        investigate |= is_constcontainer;
-    }
-
-    TamguConstvector() : Tamguvector() {
-        //Do not forget your variable initialisation
-        evaluate = false;
-        investigate |= is_constcontainer;
-    }
-
-    bool isAssignable() {
-        return true;
-    }
-
-    Exporting void Prepare(Tamgu* env, short idthread);
-
-    bool baseValue() {
-        if (evaluate)
-            return false;
-        return true;
-    }
-
-    short Type() {
-        return a_constvector;
-    }
-
-    virtual Tamgu* Atom(bool forced = false) {
-        Tamguvector* v = globalTamgu->Providevector();
-        Locking _lock(this);
-        for (size_t i = 0; i < values.size(); i++)
-            v->Push(values[i]);
-        return v;
-    }
-
-    bool duplicateForCall() {
-        return true;
-    }
-
-    Exporting bool Checkvariable();
-    Exporting bool Setvalue(Tamgu* index, Tamgu* value, short idthread, bool strict = false);
-
-    Exporting Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);
-    Exporting Tamgu* Eval(Tamgu* index, Tamgu* value, short idthread);
-    Tamgu* Newinstance(short idthread, Tamgu* f = NULL) {
-        return this;
-    }
-
-
-    bool isEvaluate() {
-        return evaluate;
-    }
-
-    void Setevaluate(bool v) {
-        evaluate = v;
-    }
-
-    Exporting Tamgu* same(Tamgu* a);
-    void Resetreference(short inc) {}
-    void Release() {}
-};
-
-class TamguConstvectormerge : public TamguConstvector {
-    public:
-
-    Exporting Tamgu* ExtractPredicateVariables(Tamgu* contextualpattern, TamguDeclaration* dom, Tamgu* c, Tamgu* e, short idthread, bool root);	TamguConstvectormerge(TamguGlobal* g, Tamgu* parent = NULL) : TamguConstvector(g, parent) {}
-
-    short Type() {
-        return a_vectormerge;
-    }
-
-    Exporting string String();
-    Tamgu* Atom(bool forced = false) {
-        Tamguvector* v = globalTamgu->Providevector();
-        v->merge = true;
-        Locking _lock(this);
-        for (size_t i = 0; i < values.size(); i++)
-            v->Push(values[i]);
-        return v;
-    }
-
-    bool isMerge() {
-        return true;
-    }
-
-};
-
-
-//---------------------------------------------------------------------------------
-class TamguIterationInfinitevector : public TamguIteration {
-    public:
-    long itx;
-    long inc;
-
-    TamguIterationInfinitevector(bool d, TamguGlobal* g = NULL) : TamguIteration(d, g) {}
-
-
-    Tamgu* Key() {
-        return globalTamgu->Provideint(itx);
-    }
-
-    Tamgu* Value() {
-        return globalTamgu->Provideint(itx);
-    }
-
-    long Keyinteger() {
-        return itx;
-    }
-
-    long Valueinteger() {
-        return itx;
-    }
-
-    double Keyfloat() {
-        return itx;
-    }
-
-    double Valuefloat() {
-        return itx;
-    }
-
-    void Next() {
-        itx += inc;
-    }
-
-    long IteratorKeyInteger() {
-        return itx;
-    }
-
-    double IteratorKeyFloat() {
-        return itx;
-    }
-
-    Tamgu* End() {
-        return aFALSE;
-    }
-
-    Tamgu* Begin() {
-        return aTRUE;
-    }
-
-};
-
-//---------------------------------------------------------------------------------
-class TamguIterationInfinitefloatvector : public TamguIteration {
-    public:
-    double itx;
-    double inc;
-
-    TamguIterationInfinitefloatvector(bool d, TamguGlobal* g = NULL) : TamguIteration(d, g) {}
-
-
-    Tamgu* Key() {
-        return globalTamgu->Providefloat(itx);
-    }
-
-    Tamgu* Value() {
-        return globalTamgu->Providefloat(itx);
-    }
-
-    long Keyinteger() {
-        return (long)itx;
-    }
-
-    long Valueinteger() {
-        return (long)itx;
-    }
-
-    double Keyfloat() {
-        return itx;
-    }
-
-    double Valuefloat() {
-        return itx;
-    }
-
-    void Next() {
-        itx += inc;
-    }
-
-    long IteratorKeyInteger() {
-        return (long)itx;
-    }
-
-    double IteratorKeyFloat() {
-        return itx;
-    }
-
-    Tamgu* End() {
-        return aFALSE;
-    }
-
-    Tamgu* Begin() {
-        return aTRUE;
-    }
-
-};
-
-//---------------------------------------------------------------------------------
-class TamguInfinitevector : public TamguTracked {
-    public:
-
-    Tamgu* seed;
-    Tamgu* step;
-    int direction;
-    bool clean;
-    bool compute;
-
-    TamguInfinitevector(int d, TamguGlobal* global, Tamgu* parent = NULL) : TamguTracked(a_infinitive, global, parent) {
-        clean = false;
-        seed = aNULL;
-        compute = false;
-        if (d == 1)
-            step = aONE;
-        else
-            step = aMINUSONE;
-        direction = d;
-    }
-
-    bool isContainerClass() {
-        return true;
-    }
-
-    Tamgu* Newinstance(short idthread, Tamgu* f = NULL) {
-        return globalTamgu->Providevector();
-    }
-
-    Exporting Tamgu* Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* env, TamguFunctionLambda* bd, short idthread);
-    Exporting Tamgu* Filter(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* kcont, Tamgu* accu, Tamgu* init, bool direct);
-
-    Exporting TamguIteration* Newiteration(bool direction);
-    void AddInstruction(Tamgu* s) {
-        if (seed == aNULL)
-            seed = s;
-        else {
-            step = s->Atom();
-            step->Setreference();
-            clean = true;
-        }
-    }
-
-    Tamgu* Put(Tamgu* index, Tamgu* value, short idthread) {
-        return this;
-    }
-
-    Exporting string String();
-    long Size() {
-        return 0;
-    }
-
-    bool isInfinite() {
-        return true;
-    }
-
-    void Resetreference(short inc) {}
-    void Release() {}
-
-};
-
-class TamguCycleVector : public TamguTracked {
-    public:
-
-    Tamgu* base;
-    Tamgu* value;
-    bool repeat;
-
-    TamguCycleVector(Tamgu* v, bool r, TamguGlobal* g, Tamgu* parent = NULL) : TamguTracked(a_cycle, g, parent) {
-        base = v;
-        value = aNULL;
-        repeat = r;
-    }
-
-    Exporting Tamgu* Newinstance(short idthread, Tamgu* f = NULL);
-    Exporting TamguIteration* Newiteration(bool direction);
-    Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
-    bool isInfinite() {
-        return true;
-    }
-
-    void Resetreference(short inc) {}
-    void Release() {}
-
-};
-
-class TamguReplicateVector : public TamguTracked {
-    public:
-
-    Tamgu* base;
-    Tamgu* nbbase;
-    Tamgu* value;
-    Tamgu* nb;
-
-    TamguReplicateVector(Tamgu* v, TamguGlobal* g, Tamgu* parent = NULL) : TamguTracked(a_replicate, g, parent) {
-        base = v;
-        nbbase = aNULL;
-        value = aNULL;
-        nb = aNULL;
-    }
-
-    Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);Exporting Tamgu* Newiterator(bool);
-    Exporting Tamgu* Newinstance(short idthread, Tamgu* f = NULL);
-    Exporting TamguIteration* Newiteration(bool direction);
-    void AddInstruction(Tamgu* v) {
-        nbbase = v;
-    }
-
-    bool isInfinite() {
-        return true;
-    }
-
-    void Clear() {
-        value->Resetreference();
-        value = aNULL;
-        nb->Resetreference();
-        nb = aNULL;
-    }
-
-    void Resetreference(short inc) {}
-    void Release() {}
-
-};
-
-class TamguIteratorCycleElement : public TamguIteration {
-    public:
-    TamguCycleVector* cycle;
-    int itx;
-    TamguGlobal* global;
-
-    TamguIteratorCycleElement(TamguCycleVector* k, TamguGlobal* g = NULL) : TamguIteration(false, g) {
-        cycle = k;
-        itx = 0;
-        global = g;
-    }
-
-    ~TamguIteratorCycleElement() {
-        cycle->value->Resetreference();
-        cycle->value = aNULL;
-    }
-
-    Tamgu* Key() {
-        return globalTamgu->Provideint(itx);
-    }
-
-    long Keyinteger() {
-        return itx;
-    }
-
-    double Keyfloat() {
-        return itx;
-    }
-
-    Tamgu* Value() {
-        return cycle->value;
-    }
-
-    void Next() {
-        itx++;
-    }
-
-    Tamgu* End() {
-        return aFALSE;
-    }
-
-    Tamgu* Begin() {
-        itx = 0;
-        return aTRUE;
-    }
-};
-
-class TamguIteratorCycleVector : public TamguIteration {
-    public:
-    TamguCycleVector* cycle;
-    TamguIteration* iter;
-    TamguGlobal* global;
-
-    TamguIteratorCycleVector(TamguCycleVector* k, TamguGlobal* g = NULL) : TamguIteration(false, g) {
-        cycle = k;
-        global = g;
-        iter = (TamguIteration*)cycle->value->Newiteration(false);
-    }
-
-    ~TamguIteratorCycleVector() {
-        iter->Release();
-        cycle->value->Resetreference();
-        cycle->value = aNULL;
-    }
-
-    Tamgu* Key() {
-        return iter->Key();
-    }
-
-    Tamgu* Value() {
-        return iter->Value();
-    }
-
-    string Keystring() {
-        return iter->Keystring();
-    }
-
-    string Valuestring() {
-        return iter->Valuestring();
-    }
-
-    long Keyinteger() {
-        return iter->Keyinteger();
-    }
-
-    long Valueinteger() {
-        return iter->Valueinteger();
-    }
-
-    double Keyfloat() {
-        return iter->Keyfloat();
-    }
-
-    double Valuefloat() {
-        return iter->Valuefloat();
-    }
-
-    void Next() {
-        return iter->Next();
-    }
-
-    Tamgu* End() {
-        return iter->End();
-    }
-
-    Tamgu* Begin() {
-        return iter->Begin();
-    }
-};
-
-class TamguIteratorReplicate : public TamguIteration {
-    public:
-    TamguReplicateVector* replicate;
-    long itx;
-    long mx;
-    TamguGlobal* global;
-
-    TamguIteratorReplicate(TamguReplicateVector* k, TamguGlobal* g = NULL) : TamguIteration(false, g) {
-        global = g;
-        replicate = k;
-        itx = 0;
-        mx = k->nb->Integer();
-    }
-
-    ~TamguIteratorReplicate() {
-        replicate->Clear();
-    }
-
-    Tamgu* Key() {
-        return globalTamgu->Provideint(itx);
-    }
-
-    long Keyinteger() {
-        return itx;
-    }
-
-    BLONG Keylong() {
-        return itx;
-    }
-
-    double Keyfloat() {
-        return itx;
-    }
-
-    Tamgu* Value() {
-        return replicate->value;
-    }
-
-    void Next() {
-        itx++;
-    }
-
-    Tamgu* End() {
-        if (itx >= mx)
-            return aTRUE;
-        return aFALSE;
-    }
-
-    Tamgu* Begin() {
-        itx = 0;
-        return aTRUE;
-    }
-};
-
 //---------------------------------------------------------------------------------------------------------------------
 class Tamguvectorbuff : public Tamguvector {
     public:
@@ -1383,6 +887,10 @@ public:
         return Tamgua_vector::idtype;
     }
     
+	void Setidtype(TamguGlobal* global) {
+		Tamgua_vector::InitialisationModule(global, "");
+	}
+
     string Typename() {
         return "a_vector";
     }
@@ -1463,14 +971,10 @@ public:
     
     
     void Methods(Tamgu* v) {
-        string s;
-        
-        for (auto& it : infomethods) {
-            s=it.first;
-            v->storevalue(s);
-        }
+        for (auto& it : infomethods)
+            v->storevalue(it.first);
     }
-    
+
     string Info(string n) {
         if (infomethods.find(n) != infomethods.end())
             return infomethods[n];
@@ -2031,6 +1535,497 @@ public:
     
 };
 
-    //---------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------
+class TamguConstvector : public Tamguvector {
+    public:
+    bool evaluate;
+
+    TamguConstvector(TamguGlobal* g, Tamgu* parent = NULL) : Tamguvector(g, parent) {
+        //Do not forget your variable initialisation
+        evaluate = false;
+        investigate |= is_constcontainer;
+    }
+
+    TamguConstvector() : Tamguvector() {
+        //Do not forget your variable initialisation
+        evaluate = false;
+        investigate |= is_constcontainer;
+    }
+
+    bool isAssignable() {
+        return true;
+    }
+
+    Exporting void Prepare(Tamgu* env, short idthread);
+
+    bool baseValue() {
+        if (evaluate)
+            return false;
+        return true;
+    }
+
+    short Type() {
+        return a_constvector;
+    }
+
+    virtual Tamgu* Atom(bool forced = false) {
+        Tamguvector* v = globalTamgu->Providevector();
+        Locking _lock(this);
+        for (size_t i = 0; i < values.size(); i++)
+            v->Push(values[i]);
+        return v;
+    }
+
+    bool duplicateForCall() {
+        return true;
+    }
+
+    Exporting bool Checkvariable();
+    Exporting bool Setvalue(Tamgu* index, Tamgu* value, short idthread, bool strict = false);
+
+    Exporting Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);
+    Exporting Tamgu* Eval(Tamgu* index, Tamgu* value, short idthread);
+    Tamgu* Newinstance(short idthread, Tamgu* f = NULL) {
+        return this;
+    }
+
+
+    bool isEvaluate() {
+        return evaluate;
+    }
+
+    void Setevaluate(bool v) {
+        evaluate = v;
+    }
+
+    Exporting Tamgu* same(Tamgu* a);
+    void Resetreference(short inc) {}
+    void Release() {}
+};
+
+class TamguConstvectormerge : public TamguConstvector {
+    public:
+
+    Exporting Tamgu* ExtractPredicateVariables(Tamgu* contextualpattern, TamguDeclaration* dom, Tamgu* c, Tamgu* e, short idthread, bool root);    TamguConstvectormerge(TamguGlobal* g, Tamgu* parent = NULL) : TamguConstvector(g, parent) {}
+
+    short Type() {
+        return a_vectormerge;
+    }
+
+    Exporting string String();
+    Tamgu* Atom(bool forced = false) {
+        Tamguvector* v = globalTamgu->Providevector();
+        v->merge = true;
+        Locking _lock(this);
+        for (size_t i = 0; i < values.size(); i++)
+            v->Push(values[i]);
+        return v;
+    }
+
+    bool isMerge() {
+        return true;
+    }
+
+};
+
+
+//---------------------------------------------------------------------------------
+class TamguIterationInfinitevector : public TamguIteration {
+    public:
+    long itx;
+    long inc;
+
+    TamguIterationInfinitevector(bool d, TamguGlobal* g = NULL) : TamguIteration(d, g) {}
+
+
+    Tamgu* Key() {
+        return globalTamgu->Provideint(itx);
+    }
+
+    Tamgu* Value() {
+        return globalTamgu->Provideint(itx);
+    }
+
+    long Keyinteger() {
+        return itx;
+    }
+
+    long Valueinteger() {
+        return itx;
+    }
+
+    double Keyfloat() {
+        return itx;
+    }
+
+    double Valuefloat() {
+        return itx;
+    }
+
+    void Next() {
+        itx += inc;
+    }
+
+    long IteratorKeyInteger() {
+        return itx;
+    }
+
+    double IteratorKeyFloat() {
+        return itx;
+    }
+
+    Tamgu* End() {
+        return aFALSE;
+    }
+
+    Tamgu* Begin() {
+        return aTRUE;
+    }
+
+};
+
+//---------------------------------------------------------------------------------
+class TamguIterationInfinitefloatvector : public TamguIteration {
+    public:
+    double itx;
+    double inc;
+
+    TamguIterationInfinitefloatvector(bool d, TamguGlobal* g = NULL) : TamguIteration(d, g) {}
+
+
+    Tamgu* Key() {
+        return globalTamgu->Providefloat(itx);
+    }
+
+    Tamgu* Value() {
+        return globalTamgu->Providefloat(itx);
+    }
+
+    long Keyinteger() {
+        return (long)itx;
+    }
+
+    long Valueinteger() {
+        return (long)itx;
+    }
+
+    double Keyfloat() {
+        return itx;
+    }
+
+    double Valuefloat() {
+        return itx;
+    }
+
+    void Next() {
+        itx += inc;
+    }
+
+    long IteratorKeyInteger() {
+        return (long)itx;
+    }
+
+    double IteratorKeyFloat() {
+        return itx;
+    }
+
+    Tamgu* End() {
+        return aFALSE;
+    }
+
+    Tamgu* Begin() {
+        return aTRUE;
+    }
+
+};
+
+//---------------------------------------------------------------------------------
+class TamguInfinitevector : public TamguTracked {
+    public:
+
+    Tamgu* seed;
+    Tamgu* step;
+    int direction;
+    bool clean;
+    bool compute;
+
+    TamguInfinitevector(int d, TamguGlobal* global, Tamgu* parent = NULL) : TamguTracked(a_infinitive, global, parent) {
+        clean = false;
+        seed = aNULL;
+        compute = false;
+        if (d == 1)
+            step = aONE;
+        else
+            step = aMINUSONE;
+        direction = d;
+    }
+
+    bool isContainerClass() {
+        return true;
+    }
+
+    Tamgu* Newinstance(short idthread, Tamgu* f = NULL) {
+        return globalTamgu->Providevector();
+    }
+
+    Exporting Tamgu* Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* env, TamguFunctionLambda* bd, short idthread);
+    Exporting Tamgu* Filter(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* kcont, Tamgu* accu, Tamgu* init, bool direct);
+
+    Exporting TamguIteration* Newiteration(bool direction);
+    void AddInstruction(Tamgu* s) {
+        if (seed == aNULL)
+            seed = s;
+        else {
+            step = s->Atom();
+            step->Setreference();
+            clean = true;
+        }
+    }
+
+    Tamgu* Put(Tamgu* index, Tamgu* value, short idthread) {
+        return this;
+    }
+
+    Exporting string String();
+    long Size() {
+        return 0;
+    }
+
+    bool isInfinite() {
+        return true;
+    }
+
+    void Resetreference(short inc) {}
+    void Release() {}
+
+};
+
+class TamguCycleVector : public TamguTracked {
+    public:
+
+    Tamgu* base;
+    Tamgu* value;
+    bool repeat;
+
+    TamguCycleVector(Tamgu* v, bool r, TamguGlobal* g, Tamgu* parent = NULL) : TamguTracked(a_cycle, g, parent) {
+        base = v;
+        value = aNULL;
+        repeat = r;
+    }
+
+    Exporting Tamgu* Newinstance(short idthread, Tamgu* f = NULL);
+    Exporting TamguIteration* Newiteration(bool direction);
+    Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
+    bool isInfinite() {
+        return true;
+    }
+
+    void Resetreference(short inc) {}
+    void Release() {}
+
+};
+
+class TamguReplicateVector : public TamguTracked {
+    public:
+
+    Tamgu* base;
+    Tamgu* nbbase;
+    Tamgu* value;
+    Tamgu* nb;
+
+    TamguReplicateVector(Tamgu* v, TamguGlobal* g, Tamgu* parent = NULL) : TamguTracked(a_replicate, g, parent) {
+        base = v;
+        nbbase = aNULL;
+        value = aNULL;
+        nb = aNULL;
+    }
+
+    Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);Exporting Tamgu* Newiterator(bool);
+    Exporting Tamgu* Newinstance(short idthread, Tamgu* f = NULL);
+    Exporting TamguIteration* Newiteration(bool direction);
+    void AddInstruction(Tamgu* v) {
+        nbbase = v;
+    }
+
+    bool isInfinite() {
+        return true;
+    }
+
+    void Clear() {
+        value->Resetreference();
+        value = aNULL;
+        nb->Resetreference();
+        nb = aNULL;
+    }
+
+    void Resetreference(short inc) {}
+    void Release() {}
+
+};
+
+class TamguIteratorCycleElement : public TamguIteration {
+    public:
+    TamguCycleVector* cycle;
+    int itx;
+    TamguGlobal* global;
+
+    TamguIteratorCycleElement(TamguCycleVector* k, TamguGlobal* g = NULL) : TamguIteration(false, g) {
+        cycle = k;
+        itx = 0;
+        global = g;
+    }
+
+    ~TamguIteratorCycleElement() {
+        cycle->value->Resetreference();
+        cycle->value = aNULL;
+    }
+
+    Tamgu* Key() {
+        return globalTamgu->Provideint(itx);
+    }
+
+    long Keyinteger() {
+        return itx;
+    }
+
+    double Keyfloat() {
+        return itx;
+    }
+
+    Tamgu* Value() {
+        return cycle->value;
+    }
+
+    void Next() {
+        itx++;
+    }
+
+    Tamgu* End() {
+        return aFALSE;
+    }
+
+    Tamgu* Begin() {
+        itx = 0;
+        return aTRUE;
+    }
+};
+
+class TamguIteratorCycleVector : public TamguIteration {
+    public:
+    TamguCycleVector* cycle;
+    TamguIteration* iter;
+    TamguGlobal* global;
+
+    TamguIteratorCycleVector(TamguCycleVector* k, TamguGlobal* g = NULL) : TamguIteration(false, g) {
+        cycle = k;
+        global = g;
+        iter = (TamguIteration*)cycle->value->Newiteration(false);
+    }
+
+    ~TamguIteratorCycleVector() {
+        iter->Release();
+        cycle->value->Resetreference();
+        cycle->value = aNULL;
+    }
+
+    Tamgu* Key() {
+        return iter->Key();
+    }
+
+    Tamgu* Value() {
+        return iter->Value();
+    }
+
+    string Keystring() {
+        return iter->Keystring();
+    }
+
+    string Valuestring() {
+        return iter->Valuestring();
+    }
+
+    long Keyinteger() {
+        return iter->Keyinteger();
+    }
+
+    long Valueinteger() {
+        return iter->Valueinteger();
+    }
+
+    double Keyfloat() {
+        return iter->Keyfloat();
+    }
+
+    double Valuefloat() {
+        return iter->Valuefloat();
+    }
+
+    void Next() {
+        return iter->Next();
+    }
+
+    Tamgu* End() {
+        return iter->End();
+    }
+
+    Tamgu* Begin() {
+        return iter->Begin();
+    }
+};
+
+class TamguIteratorReplicate : public TamguIteration {
+    public:
+    TamguReplicateVector* replicate;
+    long itx;
+    long mx;
+    TamguGlobal* global;
+
+    TamguIteratorReplicate(TamguReplicateVector* k, TamguGlobal* g = NULL) : TamguIteration(false, g) {
+        global = g;
+        replicate = k;
+        itx = 0;
+        mx = k->nb->Integer();
+    }
+
+    ~TamguIteratorReplicate() {
+        replicate->Clear();
+    }
+
+    Tamgu* Key() {
+        return globalTamgu->Provideint(itx);
+    }
+
+    long Keyinteger() {
+        return itx;
+    }
+
+    BLONG Keylong() {
+        return itx;
+    }
+
+    double Keyfloat() {
+        return itx;
+    }
+
+    Tamgu* Value() {
+        return replicate->value;
+    }
+
+    void Next() {
+        itx++;
+    }
+
+    Tamgu* End() {
+        if (itx >= mx)
+            return aTRUE;
+        return aFALSE;
+    }
+
+    Tamgu* Begin() {
+        itx = 0;
+        return aTRUE;
+    }
+};
 
 #endif

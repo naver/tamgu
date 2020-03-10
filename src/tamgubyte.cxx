@@ -36,8 +36,9 @@ void Tamgubyte::AddMethod(TamguGlobal* global, string name, byteMethod func, uns
 
 
     void Tamgubyte::Setidtype(TamguGlobal* global) {
-        Tamgubyte::idtype = global->Getid("byte");
-    }
+    Tamgubyte::InitialisationModule(global,"");
+}
+
 
    bool Tamgubyte::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -50,8 +51,10 @@ void Tamgubyte::AddMethod(TamguGlobal* global, string name, byteMethod func, uns
     Tamgubyte::AddMethod(global, "pred", &Tamgubyte::MethodPred, P_NONE, "pred(): Return the predecessor of a byte.");
     
 
-    global->newInstance[Tamgubyte::idtype] = new Tamgubyte(0, global);
-    global->RecordMethods(Tamgubyte::idtype,Tamgubyte::exported);
+    if (version != "") {
+        global->newInstance[Tamgubyte::idtype] = new Tamgubyte(0, global);
+        global->RecordMethods(Tamgubyte::idtype,Tamgubyte::exported);
+    }
 
     return true;
 }

@@ -42,31 +42,15 @@ void Tamgufloat::AddMethod(TamguGlobal* global, string name, floatMethod func, u
     exported[idname] = arity;
 }
 
-Exporting basebin_hash<atomicfloatMethod>  Tamguatomicfloat::methods;
-Exporting hmap<string, string> Tamguatomicfloat::infomethods;
-Exporting bin_hash<unsigned long> Tamguatomicfloat::exported;
-
-Exporting short Tamguatomicfloat::idtype = 0;
-
-
-    //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
-void Tamguatomicfloat::AddMethod(TamguGlobal* global, string name, atomicfloatMethod func, unsigned long arity, string infos) {
-    short idname = global->Getid(name);
-    methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
-}
-
 
 static const double M_GOLDEN = 1.61803398874989484820458683436563811772030917980576286213544862270526046281890244970720720418939113748475;
 
+void Tamgufloat::Setidtype(TamguGlobal* global) {
+    Tamgufloat::InitialisationModule(global,"");
+}
 
 
-    void Tamgufloat::Setidtype(TamguGlobal* global) {
-        Tamgufloat::idtype = global->Getid("float");
-    }
-
-   bool Tamgufloat::InitialisationModule(TamguGlobal* global, string version) {
+bool Tamgufloat::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
     infomethods.clear();
     exported.clear();
@@ -123,34 +107,49 @@ static const double M_GOLDEN = 1.61803398874989484820458683436563811772030917980
 
     short idreal = global->Getid("real");
 
-    global->newInstance[Tamgufloat::idtype] = new Tamgufloat(0, global);
-    global->newInstance[idreal] = new Tamgufloat(0, global);
-    global->newInstance[a_floatthrough] = global->newInstance[Tamgufloat::idtype];
+	if (version != "") {
+		global->newInstance[Tamgufloat::idtype] = new Tamgufloat(0, global);
+		global->newInstance[idreal] = new Tamgufloat(0, global);
+		global->newInstance[a_floatthrough] = global->newInstance[Tamgufloat::idtype];
 
-    global->RecordMethods(Tamgufloat::idtype, Tamgufloat::exported);
-    global->RecordMethods(idreal, Tamgufloat::exported);
-    global->RecordMethods(a_floatthrough, Tamgufloat::exported);
+		global->RecordMethods(Tamgufloat::idtype, Tamgufloat::exported);
+		global->RecordMethods(idreal, Tamgufloat::exported);
+		global->RecordMethods(a_floatthrough, Tamgufloat::exported);
 
-    global->RecordMethods(a_floop, Tamgufloat::exported);
+		global->RecordMethods(a_floop, Tamgufloat::exported);
 
-    Tamgu* a = new TamguSystemVariable(global, new TamguConstFloat(M_PI), global->Createid("_pi"), a_float);
+		Tamgu* a = new TamguSystemVariable(global, new TamguConstFloat(M_PI), global->Createid("_pi"), a_float);
 
-    a = new TamguSystemVariable(global, new TamguConstFloat(M_PI), global->Createid("π"), a_float);
-    
-    a = new TamguSystemVariable(global, new TamguConstFloat(2*M_PI), global->Createid("_tau"), a_float);
-    a = new TamguSystemVariable(global, new TamguConstFloat(2*M_PI), global->Createid("τ"), a_float);
-    
-    a = new TamguSystemVariable(global, new TamguConstFloat(M_E), global->Createid("_e"), a_float);
-    a = new TamguSystemVariable(global, new TamguConstFloat(M_E), global->Createid("ℯ"), a_float);
+		a = new TamguSystemVariable(global, new TamguConstFloat(M_PI), global->Createid("π"), a_float);
 
-    a = new TamguSystemVariable(global, new TamguConstFloat(M_GOLDEN), global->Createid("_phi"), a_float);
-    a = new TamguSystemVariable(global, new TamguConstFloat(M_GOLDEN), global->Createid("φ"), a_float);
-    
+		a = new TamguSystemVariable(global, new TamguConstFloat(2 * M_PI), global->Createid("_tau"), a_float);
+		a = new TamguSystemVariable(global, new TamguConstFloat(2 * M_PI), global->Createid("τ"), a_float);
+
+		a = new TamguSystemVariable(global, new TamguConstFloat(M_E), global->Createid("_e"), a_float);
+		a = new TamguSystemVariable(global, new TamguConstFloat(M_E), global->Createid("ℯ"), a_float);
+
+		a = new TamguSystemVariable(global, new TamguConstFloat(M_GOLDEN), global->Createid("_phi"), a_float);
+		a = new TamguSystemVariable(global, new TamguConstFloat(M_GOLDEN), global->Createid("φ"), a_float);
+	}
+
     Tamguatomicfloat::InitialisationModule(global, version);
     
     return true;
 }
 
+Exporting basebin_hash<atomicfloatMethod>  Tamguatomicfloat::methods;
+Exporting hmap<string, string> Tamguatomicfloat::infomethods;
+Exporting bin_hash<unsigned long> Tamguatomicfloat::exported;
+
+Exporting short Tamguatomicfloat::idtype = 0;
+
+//MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
+void Tamguatomicfloat::AddMethod(TamguGlobal* global, string name, atomicfloatMethod func, unsigned long arity, string infos) {
+    short idname = global->Getid(name);
+    methods[idname] = func;
+    infomethods[name] = infos;
+    exported[idname] = arity;
+}
 
 bool Tamguatomicfloat::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -207,8 +206,10 @@ bool Tamguatomicfloat::InitialisationModule(TamguGlobal* global, string version)
     Tamguatomicfloat::AddMethod(global, "even", &Tamguatomicfloat::Methodeven, P_NONE, "even(): return true is the value is even");
     Tamguatomicfloat::AddMethod(global, "odd", &Tamguatomicfloat::Methododd, P_NONE, "odd(): return true is the value is odd");
     
-    global->newInstance[Tamguatomicfloat::idtype] = new Tamguatomicfloat(0, global);
-    global->RecordMethods(Tamguatomicfloat::idtype, Tamguatomicfloat::exported);
+    if (version != "") {
+        global->newInstance[Tamguatomicfloat::idtype] = new Tamguatomicfloat(0, global);
+        global->RecordMethods(Tamguatomicfloat::idtype, Tamguatomicfloat::exported);
+    }
     
     return true;
 }

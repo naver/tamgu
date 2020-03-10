@@ -49,8 +49,9 @@ void Tamgudvector::AddMethod(TamguGlobal* global, string name, dvectorMethod fun
 
 
     void Tamgudvector::Setidtype(TamguGlobal* global) {
-        Tamgudvector::idtype = global->Getid("dvector");
-    }
+    Tamgudvector::InitialisationModule(global,"");
+}
+
 
    bool Tamgudvector::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -84,8 +85,10 @@ void Tamgudvector::AddMethod(TamguGlobal* global, string name, dvectorMethod fun
     Tamgudvector::AddMethod(global, "permute", &Tamgudvector::MethodPermute, P_NONE, "permute(): permute the values in the vector after each call.");
 
 
-    global->newInstance[Tamgudvector::idtype] = new Tamgudvector(global);
-    global->RecordMethods(Tamgudvector::idtype,Tamgudvector::exported);
+    if (version != "") {
+        global->newInstance[Tamgudvector::idtype] = new Tamgudvector(global);
+        global->RecordMethods(Tamgudvector::idtype,Tamgudvector::exported);
+    }
 
     return true;
 }

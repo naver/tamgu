@@ -507,7 +507,7 @@ public:
 	//When we call this function, we actually will create an element of type value
 	virtual Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 	virtual Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);
-	bool Setvalue(Tamgu* index, Tamgu* value, short idthread, bool strict = false);
+	virtual bool Setvalue(Tamgu* index, Tamgu* value, short idthread, bool strict = false);
 
     bool Checkarity();
     
@@ -592,6 +592,9 @@ public:
         reference = globalTamgu->newInstance.get(typevariable);
         constant = aNULL;
         switch (typevariable) {
+            case a_boolean:
+                constant = aTRUE;
+                break;
             case a_string:
                 constant = aEMPTYSTRING;
                 break;
@@ -615,6 +618,8 @@ public:
         directcall=false;
     }
     
+    bool Setvalue(Tamgu* index, Tamgu* value, short idthread, bool strict = false);
+
     Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
     Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);
 
@@ -2142,23 +2147,23 @@ public:
     }
     
     long Getinteger(short idthread) {
-        return ((Tamguint*)globalTamgu->threads[idthread].variables.get(name).back())->value;
+        return (globalTamgu->threads[idthread].variables.get(name).back())->Integer();
     }
     
     BLONG Getlong(short idthread) {
-        return ((Tamguint*)globalTamgu->threads[idthread].variables.get(name).back())->value;
+        return (globalTamgu->threads[idthread].variables.get(name).back())->Integer();
     }
     
     short Getshort(short idthread) {
-        return ((Tamguint*)globalTamgu->threads[idthread].variables.get(name).back())->value;
+        return (globalTamgu->threads[idthread].variables.get(name).back())->Integer();
     }
     
     float Getdecimal(short idthread) {
-        return ((Tamguint*)globalTamgu->threads[idthread].variables.get(name).back())->value;
+        return (globalTamgu->threads[idthread].variables.get(name).back())->Integer();
     }
     
     double Getfloat(short idthread) {
-        return ((Tamguint*)globalTamgu->threads[idthread].variables.get(name).back())->value;
+        return (globalTamgu->threads[idthread].variables.get(name).back())->Integer();
     }
     
     string Getstring(short idthread) {
@@ -2259,23 +2264,23 @@ public:
     }
     
     long Getinteger(short idthread) {
-        return ((Tamgufloat*)globalTamgu->threads[idthread].variables.get(name).back())->value;
+        return (globalTamgu->threads[idthread].variables.get(name).back())->Float();
     }
     
     BLONG Getlong(short idthread) {
-        return ((Tamgufloat*)globalTamgu->threads[idthread].variables.get(name).back())->value;
+        return (globalTamgu->threads[idthread].variables.get(name).back())->Float();
     }
     
     short Getshort(short idthread) {
-        return ((Tamgufloat*)globalTamgu->threads[idthread].variables.get(name).back())->value;
+        return (globalTamgu->threads[idthread].variables.get(name).back())->Float();
     }
     
     float Getdecimal(short idthread) {
-        return ((Tamgufloat*)globalTamgu->threads[idthread].variables.get(name).back())->value;
+        return (globalTamgu->threads[idthread].variables.get(name).back())->Float();
     }
     
     double Getfloat(short idthread) {
-        return ((Tamgufloat*)globalTamgu->threads[idthread].variables.get(name).back())->value;
+        return (globalTamgu->threads[idthread].variables.get(name).back())->Float();
     }
     
     string Getstring(short idthread) {
@@ -3671,6 +3676,7 @@ public:
 	}
 
 };
+//------------------------------------------------------------------------------------------
 
 class TamguInstructionAPPLYOPERATIONEQU : public TamguInstructionAPPLYOPERATIONROOT {
 public:
@@ -3687,6 +3693,100 @@ public:
 		return true;
 	}
 };
+
+class TamguInstructionAPPLYEQUSHORT : public TamguInstructionAPPLYOPERATIONEQU {
+public:
+    
+    TamguInstructionAPPLYEQUSHORT(TamguInstructionAPPLYOPERATIONEQU* equ, TamguGlobal* g, Tamgu* parent = NULL) : TamguInstructionAPPLYOPERATIONEQU(g, parent) {
+        recipient = equ->recipient;
+        instruction = equ->instruction;
+        thetype = equ->thetype;
+        action = equ->action;
+    }
+    Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
+    
+};
+
+class TamguInstructionAPPLYEQUINT : public TamguInstructionAPPLYOPERATIONEQU {
+public:
+    
+    TamguInstructionAPPLYEQUINT(TamguInstructionAPPLYOPERATIONEQU* equ, TamguGlobal* g, Tamgu* parent = NULL) : TamguInstructionAPPLYOPERATIONEQU(g, parent) {
+        recipient = equ->recipient;
+        instruction = equ->instruction;
+        thetype = equ->thetype;
+        action = equ->action;
+    }
+    Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
+    
+};
+
+class TamguInstructionAPPLYEQUDECIMAL : public TamguInstructionAPPLYOPERATIONEQU {
+public:
+    
+    TamguInstructionAPPLYEQUDECIMAL(TamguInstructionAPPLYOPERATIONEQU* equ, TamguGlobal* g, Tamgu* parent = NULL) : TamguInstructionAPPLYOPERATIONEQU(g, parent) {
+        recipient = equ->recipient;
+        instruction = equ->instruction;
+        thetype = equ->thetype;
+        action = equ->action;
+    }
+    Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
+    
+};
+
+class TamguInstructionAPPLYEQUFLOAT : public TamguInstructionAPPLYOPERATIONEQU {
+public:
+    
+    TamguInstructionAPPLYEQUFLOAT(TamguInstructionAPPLYOPERATIONEQU* equ, TamguGlobal* g, Tamgu* parent = NULL) : TamguInstructionAPPLYOPERATIONEQU(g, parent) {
+        recipient = equ->recipient;
+        instruction = equ->instruction;
+        thetype = equ->thetype;
+        action = equ->action;
+    }
+    Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
+    
+};
+
+class TamguInstructionAPPLYEQULONG : public TamguInstructionAPPLYOPERATIONEQU {
+public:
+    
+    TamguInstructionAPPLYEQULONG(TamguInstructionAPPLYOPERATIONEQU* equ, TamguGlobal* g, Tamgu* parent = NULL) : TamguInstructionAPPLYOPERATIONEQU(g, parent) {
+        recipient = equ->recipient;
+        instruction = equ->instruction;
+        thetype = equ->thetype;
+        action = equ->action;
+    }
+    Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
+    
+};
+
+class TamguInstructionAPPLYEQUSTRING : public TamguInstructionAPPLYOPERATIONEQU {
+public:
+    
+    TamguInstructionAPPLYEQUSTRING(TamguInstructionAPPLYOPERATIONEQU* equ, TamguGlobal* g, Tamgu* parent = NULL) : TamguInstructionAPPLYOPERATIONEQU(g, parent) {
+        recipient = equ->recipient;
+        instruction = equ->instruction;
+        thetype = equ->thetype;
+        action = equ->action;
+    }
+    Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
+    
+};
+
+class TamguInstructionAPPLYEQUUSTRING : public TamguInstructionAPPLYOPERATIONEQU {
+public:
+    
+    TamguInstructionAPPLYEQUUSTRING(TamguInstructionAPPLYOPERATIONEQU* equ, TamguGlobal* g, Tamgu* parent = NULL) : TamguInstructionAPPLYOPERATIONEQU(g, parent) {
+        recipient = equ->recipient;
+        instruction = equ->instruction;
+        thetype = equ->thetype;
+        action = equ->action;
+    }
+    
+    Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
+    
+};
+
+//------------------------------------------------------------------------------------------
 
 class TamguInstructionAPPLYOPERATION : public TamguInstruction {
 public:
@@ -3709,6 +3809,14 @@ public:
 
 	virtual Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 	virtual Tamgu* Compile(Tamgu* parent);
+    
+    long Getinteger(short idthread);
+    BLONG Getlong(short idthread);
+    short Getshort(short idthread);
+    float Getdecimal(short idthread);
+    double Getfloat(short idthread);
+    string Getstring(short idthread);
+    wstring Getustring(short idthread);
 };
 
 class TamguInstructionOperationIfnot : public TamguInstruction {

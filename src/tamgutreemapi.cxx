@@ -40,8 +40,9 @@ void Tamgutreemapi::AddMethod(TamguGlobal* global, string name, treemapiMethod f
 
 
     void Tamgutreemapi::Setidtype(TamguGlobal* global) {
-        Tamgutreemapi::idtype = global->Getid("treemapi");
-    }
+    Tamgutreemapi::InitialisationModule(global,"");
+}
+
 
    bool Tamgutreemapi::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -69,13 +70,11 @@ void Tamgutreemapi::AddMethod(TamguGlobal* global, string name, treemapiMethod f
     Tamgutreemapi::AddMethod(global, "pop", &Tamgutreemapi::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamgutreemapi::AddMethod(global, "merge", &Tamgutreemapi::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
 
-    global->newInstance[Tamgutreemapi::idtype] = new Tamgutreemapi(global);
-    #ifdef OLDBACKCOMP
-    global->newInstance[global->Getid("itreemap")] = new Tamgutreemapi(global);
-
-    global->RecordMethods(global->Getid("itreemap"), Tamgutreemapi::exported);
-    #endif
-    global->RecordMethods(Tamgutreemapi::idtype, Tamgutreemapi::exported);
+    if (version != "") {
+        global->newInstance[Tamgutreemapi::idtype] = new Tamgutreemapi(global);
+        
+        global->RecordMethods(Tamgutreemapi::idtype, Tamgutreemapi::exported);
+    }
 
     return true;
 }

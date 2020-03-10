@@ -36,8 +36,9 @@ void Tamguiterator::AddMethod(TamguGlobal* global, string name, iteratorMethod f
 
 
     void Tamguiterator::Setidtype(TamguGlobal* global) {
-        Tamguiterator::idtype = global->Getid("iterator");
-    }
+    Tamguiterator::InitialisationModule(global,"");
+}
+
 
    bool Tamguiterator::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -52,8 +53,10 @@ void Tamguiterator::AddMethod(TamguGlobal* global, string name, iteratorMethod f
     Tamguiterator::AddMethod(global, "next", &Tamguiterator::MethodNext, P_NONE, "next(): next iteration.");
     Tamguiterator::AddMethod(global, "end", &Tamguiterator::MethodEnd, P_NONE, "end(): return true when the iteration is over.");
     
-    global->newInstance[Tamguiterator::idtype] = new Tamguiterator(global);
-    global->RecordMethods(Tamguiterator::idtype,Tamguiterator::exported);
+    if (version != "") {
+        global->newInstance[Tamguiterator::idtype] = new Tamguiterator(global);
+        global->RecordMethods(Tamguiterator::idtype,Tamguiterator::exported);
+    }
 
     return true;
 }

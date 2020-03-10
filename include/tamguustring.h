@@ -531,9 +531,7 @@ public:
 		return Tamguustring::idtype;
 	}
 
-	
-
-    static void Setidtype(TamguGlobal* global);
+    void Setidtype(TamguGlobal* global);
     
     string Typename() {
 		return "ustring";
@@ -583,7 +581,7 @@ public:
 
         Tamgu* Atomref() {
             TamguReference* r = (TamguReference*)Atom();
-            r->reference++;
+            r->reference = 1;
             r->protect = false;
             return r;
         }
@@ -723,14 +721,10 @@ public:
     
 	
     void Methods(Tamgu* v) {
-        string s;
-        
-        for (auto& it : infomethods) {
-            s=it.first;
-            v->storevalue(s);
-        }
+        for (auto& it : infomethods)
+            v->storevalue(it.first);
     }
-    
+
 	string Info(string n) {
 		if (infomethods.find(n) != infomethods.end())
 			return infomethods[n];
@@ -1266,10 +1260,9 @@ public:
     }
 
 	void Resetreference(short r) {
-        reference -= r;
-        if (reference <= 0) {
+        if ((reference-=r) <= 0) {
+            reference = 0;
             if (!protect) {
-                reference = 0;
                 protect = true;
                 
                 used = false;
@@ -1381,142 +1374,6 @@ public:
 
 };
 
-class TamguLoopUString : public Tamguustring {
-public:
-	
-	vector<wstring> interval;
-	long position;
-	Tamgu* function;
-
-	TamguLoopUString(TamguGlobal* g) : Tamguustring(L"") {
-		
-		position = 0;
-		function = NULL;
-	}
-
-    bool isLoop() {
-        return true;
-    }
-    
-    
-	void Callfunction();
-
-    unsigned long CallBackArity() {
-        return P_TWO;
-    }
-
-	void Addfunction(Tamgu* f) {
-		function = f;
-	}
-
-	short Type() {
-		return a_uloop;
-	}
-
-	Tamgu* Put(Tamgu*, Tamgu*, short);
-	Tamgu* Vector(short idthread);
-    Tamgu* Putvalue(Tamgu* ke, short idthread) {
-        return Put(aNULL, ke, idthread);
-    }
-
-	long Size() {
-		return interval.size();
-	}
-
-    long CommonSize() {
-        return interval.size();
-    }
-    
-	void Next() {
-		if (interval.size() == 0)
-			return;
-
-		position++;
-		if (position >= interval.size()) {
-			if (function != NULL)
-				Callfunction();
-			position = 0;
-		}
-		value = interval[position];
-	}
-
-	Tamgu* plusplus() {
-		if (interval.size() == 0)
-			return this;
-		position++;
-		if (position >= interval.size()) {
-			if (function != NULL)
-				Callfunction();
-			position = 0;
-		}
-		value = interval[position];
-		return this;
-	}
-
-	Tamgu* minusminus() {
-		if (interval.size() == 0)
-			return this;
-		position--;
-		if (position < 0) {
-			if (function != NULL)
-				Callfunction();
-			position = interval.size() - 1;
-		}
-		value = interval[position];
-		return this;
-	}
-
-	Tamgu* Atom(bool forced) {
-		return this;
-	}
-
-	bool duplicateForCall() {
-		return false;
-	}
-
-	Tamgu* Newinstance(short, Tamgu* f = NULL) {
-		TamguLoopUString* a = new TamguLoopUString(globalTamgu);
-		a->function = f;
-		return a;
-	}
-
-	Tamgu* andset(Tamgu* a, bool autoself);
-	Tamgu* xorset(Tamgu* a, bool autoself);
-
-	Tamgu* plus(Tamgu* b, bool autoself) {
-		if (interval.size() == 0)
-			return this;
-
-		if (autoself) {
-			position += b->Integer();
-
-			position = abs(position) % interval.size();
-
-			value = interval[position];
-			return this;
-		}
-
-		return Tamguustring::plus(b, autoself);
-	}
-
-	Tamgu* minus(Tamgu* b, bool autoself) {
-		if (interval.size() == 0)
-			return this;
-
-		if (autoself) {
-			position -= b->Integer();
-
-			position = (interval.size() - abs(position)) % interval.size();
-
-			value = interval[position];
-			return this;
-		}
-
-		return Tamguustring::minus(b, autoself);
-	}
-};
-
-
     //---------------------------------------------------------------------------------------------------------------------
 
     //We create a map between our methods, which have been declared in our class below. See MethodInitialization for an example
@@ -1603,9 +1460,14 @@ public:
     }
     
     short Type() {
-        return a_ustring;
+		return Tamgua_ustring::idtype;
     }
     
+	void Setidtype(TamguGlobal* global) {
+		Tamgua_ustring::InitialisationModule(global, "");
+	}
+
+
     string Typename() {
         return "a_ustring";
     }
@@ -1651,7 +1513,7 @@ public:
             r = new Tamgua_ustring(value);
         else
             r = this;
-        r->reference++;
+        r->reference = 1;
         r->protect = false;
         return r;
     }    
@@ -1752,14 +1614,10 @@ public:
     
     
     void Methods(Tamgu* v) {
-        string s;
-        
-        for (auto& it : infomethods) {
-            s=it.first;
-            v->storevalue(s);
-        }
+        for (auto& it : infomethods)
+            v->storevalue(it.first);
     }
-    
+
     string Info(string n) {
         if (infomethods.find(n) != infomethods.end())
             return infomethods[n];
@@ -2145,6 +2003,143 @@ public:
         return aFALSE;
     }
 };
+
+
+class TamguLoopUString : public Tamguustring {
+public:
+    
+    vector<wstring> interval;
+    long position;
+    Tamgu* function;
+
+    TamguLoopUString(TamguGlobal* g) : Tamguustring(L"") {
+        
+        position = 0;
+        function = NULL;
+    }
+
+    bool isLoop() {
+        return true;
+    }
+    
+    
+    void Callfunction();
+
+    unsigned long CallBackArity() {
+        return P_TWO;
+    }
+
+    void Addfunction(Tamgu* f) {
+        function = f;
+    }
+
+    short Type() {
+        return a_uloop;
+    }
+
+    Tamgu* Put(Tamgu*, Tamgu*, short);
+    Tamgu* Vector(short idthread);
+    Tamgu* Putvalue(Tamgu* ke, short idthread) {
+        return Put(aNULL, ke, idthread);
+    }
+
+    long Size() {
+        return interval.size();
+    }
+
+    long CommonSize() {
+        return interval.size();
+    }
+    
+    void Next() {
+        if (interval.size() == 0)
+            return;
+
+        position++;
+        if (position >= interval.size()) {
+            if (function != NULL)
+                Callfunction();
+            position = 0;
+        }
+        value = interval[position];
+    }
+
+    Tamgu* plusplus() {
+        if (interval.size() == 0)
+            return this;
+        position++;
+        if (position >= interval.size()) {
+            if (function != NULL)
+                Callfunction();
+            position = 0;
+        }
+        value = interval[position];
+        return this;
+    }
+
+    Tamgu* minusminus() {
+        if (interval.size() == 0)
+            return this;
+        position--;
+        if (position < 0) {
+            if (function != NULL)
+                Callfunction();
+            position = interval.size() - 1;
+        }
+        value = interval[position];
+        return this;
+    }
+
+    Tamgu* Atom(bool forced) {
+        return this;
+    }
+
+    bool duplicateForCall() {
+        return false;
+    }
+
+    Tamgu* Newinstance(short, Tamgu* f = NULL) {
+        TamguLoopUString* a = new TamguLoopUString(globalTamgu);
+        a->function = f;
+        return a;
+    }
+
+    Tamgu* andset(Tamgu* a, bool autoself);
+    Tamgu* xorset(Tamgu* a, bool autoself);
+
+    Tamgu* plus(Tamgu* b, bool autoself) {
+        if (interval.size() == 0)
+            return this;
+
+        if (autoself) {
+            position += b->Integer();
+
+            position = abs(position) % interval.size();
+
+            value = interval[position];
+            return this;
+        }
+
+        return Tamguustring::plus(b, autoself);
+    }
+
+    Tamgu* minus(Tamgu* b, bool autoself) {
+        if (interval.size() == 0)
+            return this;
+
+        if (autoself) {
+            position -= b->Integer();
+
+            position = (interval.size() - abs(position)) % interval.size();
+
+            value = interval[position];
+            return this;
+        }
+
+        return Tamguustring::minus(b, autoself);
+    }
+};
+
 
 #endif
 

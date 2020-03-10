@@ -50,8 +50,9 @@ void Tamgusvector::AddMethod(TamguGlobal* global, string name, svectorMethod fun
 
 
     void Tamgusvector::Setidtype(TamguGlobal* global) {
-        Tamgusvector::idtype = global->Getid("svector");
-    }
+    Tamgusvector::InitialisationModule(global,"");
+}
+
 
    bool Tamgusvector::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -86,10 +87,12 @@ void Tamgusvector::AddMethod(TamguGlobal* global, string name, svectorMethod fun
     Tamgusvector::AddMethod(global, "write", &Tamgusvector::MethodWrite, P_ONE, "write(string path): write the string content into a file.");
 
 
-    global->newInstance[Tamgusvector::idtype] = new Tamgusvector(global);
-    global->newInstance[a_vectorthrough] = global->newInstance[Tamgusvector::idtype];
-    global->RecordMethods(Tamgusvector::idtype, Tamgusvector::exported);
-    global->RecordMethods(a_vectorthrough, Tamgusvector::exported);
+    if (version != "") {
+        global->newInstance[Tamgusvector::idtype] = new Tamgusvector(global);
+        global->newInstance[a_vectorthrough] = global->newInstance[Tamgusvector::idtype];
+        global->RecordMethods(Tamgusvector::idtype, Tamgusvector::exported);
+        global->RecordMethods(a_vectorthrough, Tamgusvector::exported);
+    }
 
     Tamgua_svector::InitialisationModule(global, version);
     
@@ -1185,8 +1188,10 @@ bool Tamgua_svector::InitialisationModule(TamguGlobal* global, string version) {
     
     
     
-    global->newInstance[Tamgua_svector::idtype] = new Tamgua_svector(global);
-    global->RecordMethods(Tamgua_svector::idtype, Tamgua_svector::exported);
+    if (version != "") {
+        global->newInstance[Tamgua_svector::idtype] = new Tamgua_svector(global);
+        global->RecordMethods(Tamgua_svector::idtype, Tamgua_svector::exported);
+    }
     
     return true;
 }

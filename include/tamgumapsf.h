@@ -72,9 +72,7 @@ class Tamgumapsf : public TamguLockContainer {
         return Tamgumapsf::idtype;
     }
 
-    
-
-    static void Setidtype(TamguGlobal* global);
+    void Setidtype(TamguGlobal* global);
     
     string Typename() {
         return "mapsf";

@@ -171,66 +171,6 @@ void TamguGlobal::RecordContainers() {
 
 }
 
-void TamguGlobal::RecordContainersId() {
-
-    Tamguvector::Setidtype(this);
-    Tamguivector::Setidtype(this);
-    Tamgubvector::Setidtype(this);
-    Tamgufvector::Setidtype(this);
-    Tamgudvector::Setidtype(this);
-    Tamguhvector::Setidtype(this);
-    Tamgulvector::Setidtype(this);
-    Tamguuvector::Setidtype(this);
-    Tamgusvector::Setidtype(this);
-    
-    Tamgulist::Setidtype(this);
-    Tamgutable::Setidtype(this);
-    
-    Tamgumap::Setidtype(this);
-    
-    Tamgumapsf::Setidtype(this);
-    Tamgumapsi::Setidtype(this);
-    Tamgumapss::Setidtype(this);
-    Tamgumapsl::Setidtype(this);
-    Tamgumapf::Setidtype(this);
-    Tamgumapff::Setidtype(this);
-    Tamgumapfi::Setidtype(this);
-    Tamgumapfl::Setidtype(this);
-    Tamgumapfs::Setidtype(this);
-    Tamgumapfu::Setidtype(this);
-    Tamgumapi::Setidtype(this);
-    Tamgumapif::Setidtype(this);
-    Tamgumapii::Setidtype(this);
-    Tamgumapis::Setidtype(this);
-    Tamgumapiu::Setidtype(this);
-    Tamgumapl::Setidtype(this);
-    Tamgumaplf::Setidtype(this);
-    Tamgumapll::Setidtype(this);
-    Tamgumapls::Setidtype(this);
-    Tamgumaplu::Setidtype(this);
-    Tamgumapu::Setidtype(this);
-    Tamgumapuf::Setidtype(this);
-    Tamgumapui::Setidtype(this);
-    Tamgumapul::Setidtype(this);
-    Tamgumapuu::Setidtype(this);
-    
-    Tamgutreemap::Setidtype(this);
-    Tamgutreemapi::Setidtype(this);
-    Tamgutreemapls::Setidtype(this);
-    Tamgutreemapif::Setidtype(this);
-    
-    Tamgutreemapsf::Setidtype(this);
-    Tamgutreemapsi::Setidtype(this);
-    Tamgutreemapss::Setidtype(this);
-    Tamgutreemapsl::Setidtype(this);
-    
-    Tamguprimemap::Setidtype(this);
-    Tamguprimemapsf::Setidtype(this);
-    Tamguprimemapsi::Setidtype(this);
-    Tamguprimemapss::Setidtype(this);
-    Tamguprimemapsl::Setidtype(this);
-}
-
 
 
 

@@ -29,12 +29,6 @@ Exporting bin_hash<unsigned long> Tamguint::exported;
 
 Exporting short Tamguint::idtype = 0;
 
-Exporting basebin_hash<atomicintMethod>  Tamguatomicint::methods;
-Exporting hmap<string, string> Tamguatomicint::infomethods;
-Exporting bin_hash<unsigned long> Tamguatomicint::exported;
-
-Exporting short Tamguatomicint::idtype = 0;
-
 
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamguint::AddMethod(TamguGlobal* global, string name, intMethod func, unsigned long arity, string infos) {
@@ -44,20 +38,13 @@ void Tamguint::AddMethod(TamguGlobal* global, string name, intMethod func, unsig
     exported[idname] = arity;
 }
 
-void Tamguatomicint::AddMethod(TamguGlobal* global, string name, atomicintMethod func, unsigned long arity, string infos) {
-    short idname = global->Getid(name);
-    methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+
+void Tamguint::Setidtype(TamguGlobal* global) {
+    Tamguint::InitialisationModule(global,"");
 }
 
 
-
-    void Tamguint::Setidtype(TamguGlobal* global) {
-        Tamguint::idtype = global->Getid("int");
-    }
-
-   bool Tamguint::InitialisationModule(TamguGlobal* global, string version) {
+bool Tamguint::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
     infomethods.clear();
     exported.clear();
@@ -116,15 +103,31 @@ void Tamguatomicint::AddMethod(TamguGlobal* global, string name, atomicintMethod
     Tamguint::AddMethod(global, "odd", &Tamguint::Methododd, P_NONE, "odd(): return true is the value is odd");
 
 
-    global->newInstance[Tamguint::idtype] = new Tamguint(0, global);
-    global->newInstance[a_intthrough] = global->newInstance[Tamguint::idtype];
-    global->RecordMethods(Tamguint::idtype, Tamguint::exported);
-    global->RecordMethods(a_intthrough, Tamguint::exported);
-    global->RecordMethods(a_iloop, Tamguint::exported);
+    if (version != "") {
+        global->newInstance[Tamguint::idtype] = new Tamguint(0, global);
+        global->newInstance[a_intthrough] = global->newInstance[Tamguint::idtype];
+        global->RecordMethods(Tamguint::idtype, Tamguint::exported);
+        global->RecordMethods(a_intthrough, Tamguint::exported);
+        global->RecordMethods(a_iloop, Tamguint::exported);
+    }
 
     Tamguatomicint::InitialisationModule(global, version);
     
     return true;
+}
+
+Exporting basebin_hash<atomicintMethod>  Tamguatomicint::methods;
+Exporting hmap<string, string> Tamguatomicint::infomethods;
+Exporting bin_hash<unsigned long> Tamguatomicint::exported;
+
+Exporting short Tamguatomicint::idtype = 0;
+
+
+void Tamguatomicint::AddMethod(TamguGlobal* global, string name, atomicintMethod func, unsigned long arity, string infos) {
+    short idname = global->Getid(name);
+    methods[idname] = func;
+    infomethods[name] = infos;
+    exported[idname] = arity;
 }
 
 bool Tamguatomicint::InitialisationModule(TamguGlobal* global, string version) {
@@ -187,9 +190,11 @@ bool Tamguatomicint::InitialisationModule(TamguGlobal* global, string version) {
     Tamguatomicint::AddMethod(global, "odd", &Tamguatomicint::Methododd, P_NONE, "odd(): return true is the value is odd");
     
     
-    global->newInstance[Tamguatomicint::idtype] = new Tamguatomicint(0, global);
-    
-    global->RecordMethods(Tamguatomicint::idtype, Tamguatomicint::exported);
+    if (version != "") {
+        global->newInstance[Tamguatomicint::idtype] = new Tamguatomicint(0, global);
+        
+        global->RecordMethods(Tamguatomicint::idtype, Tamguatomicint::exported);
+    }
 
     return true;
 }

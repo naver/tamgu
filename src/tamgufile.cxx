@@ -38,8 +38,9 @@ void Tamgufile::AddMethod(TamguGlobal* global, string name, fileMethod func, uns
 
 
     void Tamgufile::Setidtype(TamguGlobal* global) {
-        Tamgufile::idtype = global->Getid("file");
-    }
+    Tamgufile::InitialisationModule(global,"");
+}
+
 
    bool Tamgufile::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -71,8 +72,10 @@ void Tamgufile::AddMethod(TamguGlobal* global, string name, fileMethod func, uns
     Tamgufile::AddMethod(global, "scan", &Tamgufile::MethodScan, P_ONE | P_TWO, "scan(string rgx, string sep): scan file with rgx, sep is optional and is by default a space. Return a list of strings");
     Tamgufile::AddMethod(global, "flush", &Tamgufile::MethodFlush, P_NONE, "flush(): flush the buffer to disk.");
 
-    global->newInstance[Tamgufile::idtype] = new Tamgufile("", global);
-    global->RecordMethods(Tamgufile::idtype,Tamgufile::exported);
+    if (version != "") {
+        global->newInstance[Tamgufile::idtype] = new Tamgufile("", global);
+        global->RecordMethods(Tamgufile::idtype,Tamgufile::exported);
+    }
 
     return true;
 }

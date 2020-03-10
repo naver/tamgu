@@ -126,8 +126,9 @@ static bool wsainit = true;
 
 
     void Tamgusocket::Setidtype(TamguGlobal* global) {
-        Tamgusocket::idtype = global->Getid("socket");
-    }
+    Tamgusocket::InitialisationModule(global,"");
+}
+
 
    bool Tamgusocket::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -155,8 +156,10 @@ static bool wsainit = true;
 
     Tamgusocket* s = new Tamgusocket(global);
     s->root = true;
-    global->newInstance[Tamgusocket::idtype] = s;
-    global->RecordMethods(Tamgusocket::idtype,Tamgusocket::exported);
+    if (version != "") {
+        global->newInstance[Tamgusocket::idtype] = s;
+        global->RecordMethods(Tamgusocket::idtype,Tamgusocket::exported);
+    }
 
     #ifdef WIN32
     if (wsainit) {

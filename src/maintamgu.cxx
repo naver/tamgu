@@ -2078,7 +2078,7 @@ public:
             return true;
         }
         
-        wstring common;;
+        wstring common;
         long ln  = name.size();
         bool end = false;
         while (!end) {
@@ -2188,7 +2188,10 @@ public:
                 line = line.substr(0, posinstring);
                 if (pos < lines.size())
                     lines[pos] = line;
-                printline(pos+1, line);
+                if (option != x_none)
+                    displaygo(true);
+                else
+                    printline(pos+1, line);
                 return true;
             case 17:
                 if (emode()) {

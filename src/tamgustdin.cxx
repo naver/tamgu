@@ -39,8 +39,9 @@ void Tamgustdin::AddMethod(TamguGlobal* global, string name, stdinMethod func, u
 
 
     void Tamgustdin::Setidtype(TamguGlobal* global) {
-        Tamgustdin::idtype = global->Getid("_stdin");
-    }
+    Tamgustdin::InitialisationModule(global,"");
+}
+
 
    bool Tamgustdin::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -54,11 +55,12 @@ void Tamgustdin::AddMethod(TamguGlobal* global, string name, stdinMethod func, u
     Tamgustdin::AddMethod(global, "readline", &Tamgustdin::MethodReadLine, P_NONE, "readline(): read up to a CR.");
     Tamgustdin::AddMethod(global, "eof", &Tamgustdin::MethodEof, P_NONE, "eof(): return true, if the end has been reached.");
 
-    global->newInstance[Tamgustdin::idtype] = new Tamgustdin(global);
-    global->RecordMethods(Tamgustdin::idtype,Tamgustdin::exported);
-    
-    Tamgu* a = new TamguSystemVariable(global, new Tamgustdin(global), global->Createid("stdin"), Tamgustdin::idtype);
+	if (version != "") {
+		global->newInstance[Tamgustdin::idtype] = new Tamgustdin(global);
+		global->RecordMethods(Tamgustdin::idtype, Tamgustdin::exported);
 
+		Tamgu* a = new TamguSystemVariable(global, new Tamgustdin(global), global->Createid("stdin"), Tamgustdin::idtype);
+	}
     return true;
 }
 

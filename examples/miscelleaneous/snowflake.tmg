@@ -62,9 +62,10 @@ function flakeback(window w,self o) {
 
 f.begin(50,50,maxx,maxy,"Koch Snowflake");
 //The callback function will be called now every 0.01s
-f.redrawing(0.01);
+f.redrawing(0.005);
 f.end();
 f.run();
+
 
 
 

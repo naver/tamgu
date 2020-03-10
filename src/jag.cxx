@@ -2397,7 +2397,7 @@ bool jag_editor::checkaction(string& buff, long& first, long& last, bool lisp) {
             clearline();
             kbuffer = line.substr(posinstring, line.size());
             line = line.substr(0, posinstring);
-            cout << back << coloringline(line);
+            displaygo(true);
             return true;
         case 12: //ctrl-l: display one line down in the command history or toggle between top/bottom in edit mode
             if (emode())

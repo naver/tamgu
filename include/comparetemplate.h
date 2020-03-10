@@ -184,9 +184,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getdecimal(idthread) >= right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getdecimal(idthread) >= right) ? aTRUE : aFALSE;
     }
 };
 
@@ -201,9 +199,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getlong(idthread) >= right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getlong(idthread) >= right) ? aTRUE : aFALSE;
     }
 };
 
@@ -218,9 +214,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getustring(idthread) >= right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getustring(idthread) >= right) ? aTRUE : aFALSE;
     }
 };
 
@@ -235,9 +229,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getshort(idthread) >= right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getshort(idthread) >= right) ? aTRUE : aFALSE;
     }
 };
 
@@ -252,9 +244,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getinteger(idthread) >= right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getinteger(idthread) >= right) ? aTRUE : aFALSE;
     }
 };
 
@@ -269,9 +259,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getstring(idthread) >= right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getstring(idthread) >= right) ? aTRUE : aFALSE;
     }
 };
 
@@ -286,9 +274,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getfloat(idthread) >= right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getfloat(idthread) >= right) ? aTRUE : aFALSE;
     }
 };
 
@@ -303,9 +289,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getdecimal(idthread) < right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getdecimal(idthread) < right) ? aTRUE : aFALSE;
     }
 };
 
@@ -320,9 +304,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getlong(idthread) < right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getlong(idthread) < right) ? aTRUE : aFALSE;
     }
 };
 
@@ -337,9 +319,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getustring(idthread) < right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getustring(idthread) < right) ? aTRUE : aFALSE;
     }
 };
 
@@ -354,9 +334,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getshort(idthread) < right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getshort(idthread) < right) ? aTRUE : aFALSE;
     }
 };
 
@@ -371,9 +349,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getinteger(idthread) < right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getinteger(idthread) < right) ? aTRUE : aFALSE;
     }
 };
 
@@ -388,9 +364,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getstring(idthread) < right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getstring(idthread) < right) ? aTRUE : aFALSE;
     }
 };
 
@@ -405,9 +379,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getfloat(idthread) < right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getfloat(idthread) < right) ? aTRUE : aFALSE;
     }
 };
 
@@ -422,9 +394,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getdecimal(idthread) > right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getdecimal(idthread) > right) ? aTRUE : aFALSE;
     }
 };
 
@@ -439,9 +409,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getlong(idthread) > right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getlong(idthread) > right) ? aTRUE : aFALSE;
     }
 };
 
@@ -456,9 +424,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getustring(idthread) > right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getustring(idthread) > right) ? aTRUE : aFALSE;
     }
 };
 
@@ -473,9 +439,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getshort(idthread) > right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getshort(idthread) > right) ? aTRUE : aFALSE;
     }
 };
 
@@ -490,9 +454,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getinteger(idthread) > right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getinteger(idthread) > right) ? aTRUE : aFALSE;
     }
 };
 
@@ -507,9 +469,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getstring(idthread) > right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getstring(idthread) > right) ? aTRUE : aFALSE;
     }
 };
 
@@ -524,9 +484,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getfloat(idthread) > right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getfloat(idthread) > right) ? aTRUE : aFALSE;
     }
 };
 
@@ -541,9 +499,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getdecimal(idthread) <= right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getdecimal(idthread) <= right) ? aTRUE : aFALSE;
     }
 };
 
@@ -558,9 +514,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getlong(idthread) <= right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getlong(idthread) <= right) ? aTRUE : aFALSE;
     }
 };
 
@@ -575,9 +529,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getustring(idthread) <= right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getustring(idthread) <= right) ? aTRUE : aFALSE;
     }
 };
 
@@ -592,9 +544,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getshort(idthread) <= right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getshort(idthread) <= right) ? aTRUE : aFALSE;
     }
 };
 
@@ -609,9 +559,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getinteger(idthread) <= right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getinteger(idthread) <= right) ? aTRUE : aFALSE;
     }
 };
 
@@ -626,9 +574,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getstring(idthread) <= right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getstring(idthread) <= right) ? aTRUE : aFALSE;
     }
 };
 
@@ -643,9 +589,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getfloat(idthread) <= right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getfloat(idthread) <= right) ? aTRUE : aFALSE;
     }
 };
 
@@ -660,9 +604,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getdecimal(idthread) != right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getdecimal(idthread) != right) ? aTRUE : aFALSE;
     }
 };
 
@@ -677,9 +619,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getlong(idthread) != right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getlong(idthread) != right) ? aTRUE : aFALSE;
     }
 };
 
@@ -694,9 +634,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getustring(idthread) != right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getustring(idthread) != right) ? aTRUE : aFALSE;
     }
 };
 
@@ -711,9 +649,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getshort(idthread) != right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getshort(idthread) != right) ? aTRUE : aFALSE;
     }
 };
 
@@ -728,9 +664,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getinteger(idthread) != right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getinteger(idthread) != right) ? aTRUE : aFALSE;
     }
 };
 
@@ -745,9 +679,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getstring(idthread) != right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getstring(idthread) != right) ? aTRUE : aFALSE;
     }
 };
 
@@ -762,9 +694,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getfloat(idthread) != right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getfloat(idthread) != right) ? aTRUE : aFALSE;
     }
 };
 
@@ -779,9 +709,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getdecimal(idthread) == right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getdecimal(idthread) == right) ? aTRUE : aFALSE;
     }
 };
 
@@ -796,9 +724,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getlong(idthread) == right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getlong(idthread) == right) ? aTRUE : aFALSE;
     }
 };
 
@@ -813,9 +739,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getustring(idthread) == right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getustring(idthread) == right) ? aTRUE : aFALSE;
     }
 };
 
@@ -830,9 +754,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getshort(idthread) == right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getshort(idthread) == right) ? aTRUE : aFALSE;
     }
 };
 
@@ -847,9 +769,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getinteger(idthread) == right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getinteger(idthread) == right) ? aTRUE : aFALSE;
     }
 };
 
@@ -864,9 +784,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getstring(idthread) == right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getstring(idthread) == right) ? aTRUE : aFALSE;
     }
 };
 
@@ -881,9 +799,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* c, Tamgu* a, short idthread) {
-        if (left->Getfloat(idthread) == right)
-            return aTRUE;
-        return aFALSE;
+        return (left->Getfloat(idthread) == right) ? aTRUE : aFALSE;
     }
 };
 

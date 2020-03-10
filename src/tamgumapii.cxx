@@ -42,8 +42,9 @@ void Tamgumapii::AddMethod(TamguGlobal* global, string name,mapiiMethod func, un
 
 
     void Tamgumapii::Setidtype(TamguGlobal* global) {
-        Tamgumapii::idtype = global->Getid("mapii");
-    }
+    Tamgumapii::InitialisationModule(global,"");
+}
+
 
    bool Tamgumapii::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -71,13 +72,11 @@ void Tamgumapii::AddMethod(TamguGlobal* global, string name,mapiiMethod func, un
     Tamgumapii::AddMethod(global, "pop", &Tamgumapii::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamgumapii::AddMethod(global, "merge", &Tamgumapii::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
 
-    global->newInstance[Tamgumapii::idtype] = new Tamgumapii(global);
-    #ifdef OLDBACKCOMP
-    global->newInstance[global->Getid("iimap")] = new Tamgumapii(global);
-
-    global->RecordMethods(global->Getid("iimap"), Tamgumapii::exported);
-    #endif
-    global->RecordMethods(Tamgumapii::idtype, Tamgumapii::exported);
+    if (version != "") {
+        global->newInstance[Tamgumapii::idtype] = new Tamgumapii(global);
+        
+        global->RecordMethods(Tamgumapii::idtype, Tamgumapii::exported);
+    }
 
     return true;
 }

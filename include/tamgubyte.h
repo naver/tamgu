@@ -81,7 +81,7 @@ class Tamgubyte : public TamguReference {
 
     
 
-    static void Setidtype(TamguGlobal* global);
+    void Setidtype(TamguGlobal* global);
     
     string Typename() {
         return "byte";
@@ -99,7 +99,7 @@ class Tamgubyte : public TamguReference {
             r = new  Tamgubyte(value);
         else
             r = this;
-        r->reference++;
+        r->reference = 1;
         r->protect = false;
         return r;
     }

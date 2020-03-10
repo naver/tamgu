@@ -42,8 +42,9 @@ void Tamguprimemapsl::AddMethod(TamguGlobal* global, string name,primemapslMetho
 
 
     void Tamguprimemapsl::Setidtype(TamguGlobal* global) {
-        Tamguprimemapsl::idtype = global->Getid("primemapsl");
-    }
+    Tamguprimemapsl::InitialisationModule(global,"");
+}
+
 
    bool Tamguprimemapsl::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -71,9 +72,11 @@ void Tamguprimemapsl::AddMethod(TamguGlobal* global, string name,primemapslMetho
     Tamguprimemapsl::AddMethod(global, "pop", &Tamguprimemapsl::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamguprimemapsl::AddMethod(global, "merge", &Tamguprimemapsl::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
 
-    global->newInstance[Tamguprimemapsl::idtype] = new Tamguprimemapsl(global);
-    
-    global->RecordMethods(Tamguprimemapsl::idtype, Tamguprimemapsl::exported);
+    if (version != "") {
+        global->newInstance[Tamguprimemapsl::idtype] = new Tamguprimemapsl(global);
+        
+        global->RecordMethods(Tamguprimemapsl::idtype, Tamguprimemapsl::exported);
+    }
 
     return true;
 }

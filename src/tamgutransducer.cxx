@@ -39,8 +39,9 @@ void Tamgutransducer::AddMethod(TamguGlobal* global, string name, transducerMeth
 
 
     void Tamgutransducer::Setidtype(TamguGlobal* global) {
-        Tamgutransducer::idtype = global->Getid("transducer");
-    }
+    Tamgutransducer::InitialisationModule(global,"");
+}
+
 
    bool Tamgutransducer::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -62,22 +63,24 @@ void Tamgutransducer::AddMethod(TamguGlobal* global, string name, transducerMeth
     Tamgutransducer::AddMethod(global, "factorize", &Tamgutransducer::MethodFactorize, P_NONE, "factorize(): factorize the arcs and states of the automaton.");
 
 
-    global->newInstance[Tamgutransducer::idtype] = new Tamgutransducer(global);
-    global->RecordMethods(Tamgutransducer::idtype,Tamgutransducer::exported);
+	if (version != "") {
+		global->newInstance[Tamgutransducer::idtype] = new Tamgutransducer(global);
+		global->RecordMethods(Tamgutransducer::idtype, Tamgutransducer::exported);
 
-    Tamgu* a = new TamguSystemVariable(global, aONE, global->Createid("a_first"), a_short);
-    a = new TamguSystemVariable(global, aTWO, global->Createid("a_change"),   a_short);
-    a = new TamguSystemVariable(global, aFOUR, global->Createid("a_delete"),   a_short);
-    a = new TamguSystemVariable(global, aEIGHT, global->Createid("a_insert"),   a_short);
-    a = new TamguSystemVariable(global, aSIXTEEN, global->Createid("a_switch"),  a_short);
-    a = new TamguSystemVariable(global, aTHIRTYTWO, global->Createid("a_nocase"),  a_short);
-    a = new TamguSystemVariable(global, aSIXTYFOUR, global->Createid("a_repetition"),  a_short);
-    a = new TamguSystemVariable(global, new TamguConstShort(128, global), global->Createid("a_vowel"),  a_short);
-    a = new TamguSystemVariable(global, new TamguConstShort(256, global), global->Createid("a_surface"),  a_short);
-    a = new TamguSystemVariable(global, new TamguConstShort(512, global), global->Createid("a_longest"),  a_short);
-    a = new TamguSystemVariable(global, aONE, global->Createid("a_offsets"),  a_short);
-    a = new TamguSystemVariable(global, aTWO, global->Createid("a_features"), a_short);
-    
+		Tamgu* a = new TamguSystemVariable(global, aONE, global->Createid("a_first"), a_short);
+		a = new TamguSystemVariable(global, aTWO, global->Createid("a_change"), a_short);
+		a = new TamguSystemVariable(global, aFOUR, global->Createid("a_delete"), a_short);
+		a = new TamguSystemVariable(global, aEIGHT, global->Createid("a_insert"), a_short);
+		a = new TamguSystemVariable(global, aSIXTEEN, global->Createid("a_switch"), a_short);
+		a = new TamguSystemVariable(global, aTHIRTYTWO, global->Createid("a_nocase"), a_short);
+		a = new TamguSystemVariable(global, aSIXTYFOUR, global->Createid("a_repetition"), a_short);
+		a = new TamguSystemVariable(global, new TamguConstShort(128, global), global->Createid("a_vowel"), a_short);
+		a = new TamguSystemVariable(global, new TamguConstShort(256, global), global->Createid("a_surface"), a_short);
+		a = new TamguSystemVariable(global, new TamguConstShort(512, global), global->Createid("a_longest"), a_short);
+		a = new TamguSystemVariable(global, aONE, global->Createid("a_offsets"), a_short);
+		a = new TamguSystemVariable(global, aTWO, global->Createid("a_features"), a_short);
+	}
+
     return true;
 }
 

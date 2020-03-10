@@ -4036,6 +4036,30 @@ public:
         return r;
     }
 
+    long Getinteger(short idthread) {
+        return op->Getinteger(idthread);
+    }
+    
+    BLONG Getlong(short idthread) {
+        return op->Getlong(idthread);
+    }
+    short Getshort(short idthread) {
+        return op->Getshort(idthread);
+    }
+    float Getdecimal(short idthread) {
+        return op->Getdecimal(idthread);
+    }
+    double Getfloat(short idthread) {
+        return op->Getfloat(idthread);
+    }
+    string Getstring(short idthread) {
+        return op->Getstring(idthread);
+    }
+    wstring Getustring(short idthread) {
+        return op->Getustring(idthread);
+    }
+
+    
 };
 
 class TamguInstructionSHORT : public TamguComputeValue {
@@ -4046,6 +4070,31 @@ public:
     
     short Getshort(short idthread) {
         return op->Getshort(idthread);
+    }
+    
+    long Getinteger(short idthread) {
+        return op->Getshort(idthread);
+    }
+    
+    BLONG Getlong(short idthread) {
+        return op->Getshort(idthread);
+    }
+    
+    float Getdecimal(short idthread) {
+        return op->Getshort(idthread);
+    }
+    double Getfloat(short idthread) {
+        return op->Getshort(idthread);
+    }
+
+    string Getstring(short idthread) {
+        short r = op->Getshort(idthread);
+        return convertfromnumber(r);
+    }
+    
+    wstring Getustring(short idthread) {
+        short r = op->Getshort(idthread);
+        return wconvertfromnumber(r);
     }
     
     Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
@@ -4071,10 +4120,37 @@ public:
         b_type = b_int;
     }
     
+    short Getshort(short idthread) {
+        return op->Getinteger(idthread);
+    }
+    
     long Getinteger(short idthread) {
         return op->Getinteger(idthread);
     }
     
+    BLONG Getlong(short idthread) {
+        return op->Getinteger(idthread);
+    }
+    
+    float Getdecimal(short idthread) {
+        return op->Getinteger(idthread);
+    }
+    
+    double Getfloat(short idthread) {
+        return op->Getinteger(idthread);
+    }
+
+    string Getstring(short idthread) {
+        long r = op->Getinteger(idthread);
+        return convertfromnumber(r);
+    }
+    
+    wstring Getustring(short idthread) {
+        long r = op->Getinteger(idthread);
+        return wconvertfromnumber(r);
+    }
+    
+
     Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
         long r = op->Getinteger(idthread);
         
@@ -4101,10 +4177,37 @@ public:
     }
     
     
-    float Getdecimal(short idthread) {
-            return op->Getdecimal(idthread);
+    short Getshort(short idthread) {
+        return op->Getdecimal(idthread);
     }
     
+    long Getinteger(short idthread) {
+        return op->Getdecimal(idthread);
+    }
+    
+    BLONG Getlong(short idthread) {
+        return op->Getdecimal(idthread);
+    }
+    
+    float Getdecimal(short idthread) {
+        return op->Getdecimal(idthread);
+    }
+    
+    double Getfloat(short idthread) {
+        return op->Getdecimal(idthread);
+    }
+
+    string Getstring(short idthread) {
+        float r = op->Getdecimal(idthread);
+        return convertfromnumber(r);
+    }
+    
+    wstring Getustring(short idthread) {
+        float r = op->Getdecimal(idthread);
+        return wconvertfromnumber(r);
+    }
+    
+
     Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
         float r = op->Getdecimal(idthread);
 
@@ -4129,8 +4232,34 @@ public:
         b_type = b_float;
     }
 
+    short Getshort(short idthread) {
+        return op->Getfloat(idthread);
+    }
+    
+    long Getinteger(short idthread) {
+        return op->Getfloat(idthread);
+    }
+    
+    BLONG Getlong(short idthread) {
+        return op->Getfloat(idthread);
+    }
+    
+    float Getdecimal(short idthread) {
+        return op->Getfloat(idthread);
+    }
+    
     double Getfloat(short idthread) {
         return op->Getfloat(idthread);
+    }
+
+    string Getstring(short idthread) {
+        double r = op->Getfloat(idthread);
+        return convertfromnumber(r);
+    }
+    
+    wstring Getustring(short idthread) {
+        double r = op->Getfloat(idthread);
+        return wconvertfromnumber(r);
     }
     
     Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
@@ -4156,10 +4285,37 @@ public:
         b_type = b_long;
     }
     
+    short Getshort(short idthread) {
+        return op->Getlong(idthread);
+    }
+    
+    long Getinteger(short idthread) {
+        return op->Getlong(idthread);
+    }
+    
     BLONG Getlong(short idthread) {
         return op->Getlong(idthread);
     }
     
+    float Getdecimal(short idthread) {
+        return op->Getlong(idthread);
+    }
+    
+    double Getfloat(short idthread) {
+        return op->Getlong(idthread);
+    }
+
+    string Getstring(short idthread) {
+        BLONG r = op->Getlong(idthread);
+        return convertfromnumber(r);
+    }
+    
+    wstring Getustring(short idthread) {
+        BLONG r = op->Getlong(idthread);
+        return wconvertfromnumber(r);
+    }
+    
+
     Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
         BLONG r = op->Getlong(idthread);
 
@@ -4187,7 +4343,39 @@ public:
     string Getstring(short idthread) {
         return op->Getstring(idthread);
     }
+
+    wstring Getustring(short idthread) {
+        string r = op->Getstring(idthread);
+        wstring s;
+        s_utf8_to_unicode(s,USTR(r), r.size());
+        return s;
+    }
+
+    short Getshort(short idthread) {
+        string s = op->Getstring(idthread);
+        return convertinteger(s);
+    }
     
+    long Getinteger(short idthread) {
+        string s = op->Getstring(idthread);
+        return convertinteger(s);
+    }
+    
+    BLONG Getlong(short idthread) {
+        string s = op->Getstring(idthread);
+        return convertinteger(s);
+    }
+    
+    float Getdecimal(short idthread) {
+        string s = op->Getstring(idthread);
+        return convertfloat(s);
+    }
+    
+    double Getfloat(short idthread) {
+        string s = op->Getstring(idthread);
+        return convertfloat(s);
+    }
+
     Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
         string r = op->Getstring(idthread);
         if (inter == aAFFECTATION) {
@@ -4209,11 +4397,42 @@ public:
         b_type = b_ustring;
     }
 
-    
+    string Getstring(short idthread) {
+        wstring r = op->Getustring(idthread);
+        string s;
+        s_unicode_to_utf8(s,r);
+        return s;
+    }
+
     wstring Getustring(short idthread) {
         return op->Getustring(idthread);
     }
     
+    short Getshort(short idthread) {
+        wstring s = op->Getustring(idthread);
+        return convertinteger(s);
+    }
+    
+    long Getinteger(short idthread) {
+        wstring s = op->Getustring(idthread);
+        return convertinteger(s);
+    }
+    
+    BLONG Getlong(short idthread) {
+        wstring s = op->Getustring(idthread);
+        return convertinteger(s);
+    }
+    
+    float Getdecimal(short idthread) {
+        wstring s = op->Getustring(idthread);
+        return convertfloat(s);
+    }
+    
+    double Getfloat(short idthread) {
+        wstring s = op->Getustring(idthread);
+        return convertfloat(s);
+    }
+
     Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
         wstring r = op->Getustring(idthread);
 

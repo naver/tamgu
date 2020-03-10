@@ -684,11 +684,11 @@ public:
     //We export the methods that will be exposed for our new object
     //this is a static object, which is common to everyone
     //We associate the method pointers with their names in the linkedmethods map
-    static basebin_hash<annotatorMethod> methods;
-    static hmap<string, string> infomethods;
-    static bin_hash<unsigned long> exported;
+    static Exchanging basebin_hash<annotatorMethod> methods;
+    static Exchanging hmap<string, string> infomethods;
+    static Exchanging bin_hash<unsigned long> exported;
     
-    static short idtype;
+	static Exchanging short idtype;
     
     //---------------------------------------------------------------------------------------------------------------------
     //This SECTION is for your specific implementation...
@@ -752,7 +752,7 @@ public:
     
     
 
-    static void Setidtype(TamguGlobal* global);
+    void Setidtype(TamguGlobal* global);
     
     string Typename() {
         return "annotator";

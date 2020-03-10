@@ -49,8 +49,9 @@ void Tamguuvector::AddMethod(TamguGlobal* global, string name, uvectorMethod fun
 
 
     void Tamguuvector::Setidtype(TamguGlobal* global) {
-        Tamguuvector::idtype = global->Getid("uvector");
-    }
+    Tamguuvector::InitialisationModule(global,"");
+}
+
 
    bool Tamguuvector::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -84,8 +85,10 @@ void Tamguuvector::AddMethod(TamguGlobal* global, string name, uvectorMethod fun
     Tamguuvector::AddMethod(global, "convert", &Tamguuvector::MethodConvert, P_NONE, "convert(): detect number values and convert them into actual numbers. Return a vector object.");
 
 
-    global->newInstance[Tamguuvector::idtype] = new Tamguuvector(global);
-    global->RecordMethods(Tamguuvector::idtype, Tamguuvector::exported);
+    if (version != "") {
+        global->newInstance[Tamguuvector::idtype] = new Tamguuvector(global);
+        global->RecordMethods(Tamguuvector::idtype, Tamguuvector::exported);
+    }
 
     Tamgua_uvector::InitialisationModule(global, version);
     return true;
@@ -1191,8 +1194,10 @@ bool Tamgua_uvector::InitialisationModule(TamguGlobal* global, string version) {
     Tamgua_uvector::AddMethod(global, "insert", &Tamgua_uvector::MethodInsert, P_TWO, "insert(int i,v): Insert v at position i.");
     Tamgua_uvector::AddMethod(global, "ngrams", &Tamgua_uvector::MethodNGrams, P_ONE|P_TWO, "ngrams(int nb, int sep): produces a ngrams a_uvector.");
 
-    global->newInstance[Tamgua_uvector::idtype] = new Tamgua_uvector(global);
-    global->RecordMethods(Tamgua_uvector::idtype, Tamgua_uvector::exported);
+    if (version != "") {
+        global->newInstance[Tamgua_uvector::idtype] = new Tamgua_uvector(global);
+        global->RecordMethods(Tamgua_uvector::idtype, Tamgua_uvector::exported);
+    }
     
     return true;
 }

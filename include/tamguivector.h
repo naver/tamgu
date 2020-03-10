@@ -73,7 +73,7 @@ class Tamguivector : public TamguLockContainer {
 
     
 
-    static void Setidtype(TamguGlobal* global);
+    void Setidtype(TamguGlobal* global);
     
     string Typename() {
         return "ivector";
@@ -687,10 +687,9 @@ class Tamguivectorbuff : public Tamguivector {
     }
 
     void Resetreference(short r) {
-        reference -= r;
-        if (reference <= 0) {
+        if ((reference-=r) <= 0) {
+            reference = 0;
             if (!protect) {
-                reference = 0;
                 protect = true;
 
                 values.clear();

@@ -12682,7 +12682,7 @@ Exporting void IndentationCode(string& codeindente, vector<string>& code, vector
     
     blancs[0] = 0;
     bool inlisp = lisp;
-    bool inelse = false;
+    char inelse = false;
     bool inprolog = false;
     bool comma = false;
     
@@ -12760,10 +12760,19 @@ Exporting void IndentationCode(string& codeindente, vector<string>& code, vector
             inprolog = true;
         else {
             for (x = 0; x < sztok; x++) {
-                if (xr.stack[x] == "else") {
-                    inelse = true;
+                if (xr.stack[x] == "if") {
+                    inelse = 2;
                     continue;
                 }
+                
+                if (xr.stack[x] == "else") {
+                    if (inelse == 2)
+                        inelse = false;
+                    else
+                        inelse = true;
+                    continue;
+                }
+                
                 switch (xr.stack[x][0]) {
                     case '{':
                         curly++;
@@ -12839,7 +12848,7 @@ Exporting void IndentationCode(string& codeindente, vector<string>& code, vector
 
         setblanc(i);
         
-        if (inelse || inprolog || c  == ')' || c == ',' || c == '|' || c == '&') {
+        if (inelse == true || inprolog || c  == ')' || c == ',' || c == '|' || c == '&') {
             //We only indent one black to the right for the next line
             if ((i + 1) < sz) {
                 blancs[i+1] = blancs[i] + blanksize;

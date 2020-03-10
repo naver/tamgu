@@ -52,8 +52,9 @@ void TamguCallFibre::AddMethod(TamguGlobal* global, string name, tamguCallFibre 
 
 
     void TamguCallFibre::Setidtype(TamguGlobal* global) {
-        TamguCallFibre::idtype = global->Getid("fibre");
-    }
+    TamguCallFibre::InitialisationModule(global,"");
+}
+
 
    bool TamguCallFibre::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -67,8 +68,10 @@ void TamguCallFibre::AddMethod(TamguGlobal* global, string name, tamguCallFibre 
     TamguCallFibre::AddMethod(global, "block", &TamguCallFibre::MethodBlock, P_NONE, "block(): execute fibres up to the current tail.");
     TamguCallFibre::AddMethod(global, "unblock", &TamguCallFibre::MethodUnblock, P_NONE, "unblock(): remove the current limit on execution.");
 
-    global->newInstance[TamguCallFibre::idtype] = new TamguCallFibre(global);
-    global->RecordMethods(TamguCallFibre::idtype, TamguCallFibre::exported);
+    if (version != "") {
+        global->newInstance[TamguCallFibre::idtype] = new TamguCallFibre(global);
+        global->RecordMethods(TamguCallFibre::idtype, TamguCallFibre::exported);
+    }
     
     return true;
 }

@@ -251,8 +251,14 @@ cleanlibs:
         f.write("PYTHONLIB = /System/Library/Frameworks/Python.framework/Versions/Current/Python\n\n")
     else:
         pversion=pythonversion[6:]
-        f.write("INCLUDEPYTHON = -I/Library/Frameworks/Python.framework/Versions/"+pversion+"/Headers\n")
-        f.write("PYTHONLIB = /Library/Frameworks/Python.framework/Versions/"+pversion+"/Python\n")
+        if pythoninclude==None:
+           f.write("INCLUDEPYTHON = -I/Library/Frameworks/Python.framework/Versions/"+pversion+"/Headers\n")
+        else:
+           f.write("INCLUDEPYTHON = "+pythoninclude+"\n")
+        if pythonpath==None:
+           f.write("PYTHONLIB = /Library/Frameworks/Python.framework/Versions/"+pversion+"/Python\n")
+        else:
+           f.write("PYTHONLIB = "+pythonpath+"\n")   
 
     f.write("C++11Flag = -std=c++11 -DTamgu_REGEX -DMAVERICK -DAPPLE\n")
     f.write("INTELINT = -DINTELINTRINSICS -mavx2 -DAVXSUPPORT\n")

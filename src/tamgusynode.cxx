@@ -20,12 +20,14 @@
 #include "tamguautomaton.h"
 
 //We need to declare once again our local definitions.
-basebin_hash<synodeMethod>  Tamgusynode::methods;
-hmap<string, string> Tamgusynode::infomethods;
-bin_hash<unsigned long> Tamgusynode::exported;
+Exporting basebin_hash<synodeMethod>  Tamgusynode::methods;
+Exporting hmap<string, string> Tamgusynode::infomethods;
+Exporting bin_hash<unsigned long> Tamgusynode::exported;
+
+short Tamgusynode::idtype = 0;
+
 Tamgumapss* Tamgusynode::validfeatures = NULL;
 bool Tamgusynode::testvalid = false;
-short Tamgusynode::idtype = 0;
 
 //------------------------------------------------------------------------------------------------------------------
 
@@ -40,8 +42,9 @@ Exporting void Tamgusynode::AddMethod(TamguGlobal* global, string name, synodeMe
 Exporting 
 
  Exporting void Tamgusynode::Setidtype(TamguGlobal* global) {
-      Tamgusynode::idtype = global->Getid("synode");
- }
+    Tamgusynode::InitialisationModule(global,"");
+}
+
 
    bool Tamgusynode::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -76,8 +79,10 @@ Exporting
 
     Tamgusynode::AddMethod(global, "definitions", &Tamgusynode::MethodDefinitions, P_ONE, "definitions(mapss): Set the valid feature definitions for all 'synodes'.");
 
-    global->newInstance[Tamgusynode::idtype] = new Tamgusynode(-1,global);
-    global->RecordMethods(Tamgusynode::idtype,Tamgusynode::exported);
+    if (version != "") {
+        global->newInstance[Tamgusynode::idtype] = new Tamgusynode(-1,global);
+        global->RecordMethods(Tamgusynode::idtype,Tamgusynode::exported);
+    }
     
     return true;
 }

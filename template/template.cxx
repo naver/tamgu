@@ -1,18 +1,18 @@
 /*
- *  Tamgu (탐구)
- *
- * Copyright 2019-present NAVER Corp.
- * under BSD 3-clause
- */
+*  Tamgu (탐구)
+    *
+* Copyright 2019-present NAVER Corp.
+* under BSD 3-clause
+*/
 /* --- CONTENTS ---
- Project    : Tamgu (탐구)
- Version    : See tamgu.cxx for the version number
- filename   : %1.cxx
- Date       :
- Purpose    :
- Programmer : Claude ROUX (claude.roux@naverlabs.com)
- Reviewer   :
- */
+Project    : Tamgu (탐구)
+    Version    : See tamgu.cxx for the version number
+filename   : %1ccxx
+Date       :
+Purpose    :
+Programmer : Claude ROUX (claude.roux@naverlabs.com)
+    Reviewer   :
+*/
 
 #include "tamgu.h"
 #include "tamguversion.h"
@@ -49,7 +49,7 @@ void Tamgu%1::AddMethod(TamguGlobal* global, string name, %1Method func, unsigne
 }
 
 void Tamgu%1::Setidtype(TamguGlobal* global) {
-    Tamgu%1::idtype = global->Getid("%1");
+    Tamgu%1::InitialisationModule(global, "");
 }
 
 

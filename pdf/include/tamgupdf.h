@@ -56,7 +56,7 @@ class Tamgupdf : public TamguObject {
         return Tamgupdf::idtype;
     }
 
-    static void Setidtype(TamguGlobal* global);
+    void Setidtype(TamguGlobal* global);
 
     string Typename() {
         return "pdf";
@@ -121,22 +121,22 @@ class Tamgupdf : public TamguObject {
     Tamgu* MethodshowTextHexaXY(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodrightJustifyTextXY(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodwrapText(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
-    
+
     Tamgu* MethodsetLineWidth(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethoddrawLine(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
-    
+
     Tamgu* MethoddrawRect(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodfillRect(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
-    
+
     Tamgu* MethoddrawPolygon(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodfillPolygon(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
-    
+
     Tamgu* MethoddrawEllipse(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodfillEllipse(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
-    
+
     Tamgu* MethoddrawCircle(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodfillCircle(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
-    
+
     Tamgu* MethodsetLineColor(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodsetFillColor(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
@@ -166,3 +166,4 @@ class Tamgupdf : public TamguObject {
 
 };
 #endif
+

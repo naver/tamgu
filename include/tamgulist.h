@@ -66,7 +66,7 @@ class Tamgulist : public TamguObjectLockContainer {
 
     
 
-    static void Setidtype(TamguGlobal* global);
+    void Setidtype(TamguGlobal* global);
     
     string Typename() {
         return "list";
@@ -148,12 +148,8 @@ class Tamgulist : public TamguObjectLockContainer {
 
     
     void Methods(Tamgu* v) {
-        string s;
-        
-        for (auto& it : infomethods) {
-            s=it.first;
-            v->storevalue(s);
-        }
+        for (auto& it : infomethods)
+            v->storevalue(it.first);
     }
     
 
@@ -749,9 +745,13 @@ public:
     }
     
     string Typename() {
-        return "a_list";
+        return "a_ring";
     }
     
+	void Setidtype(TamguGlobal* global) {
+		Tamguring::InitialisationModule(global, "");
+	}
+
     bool isObjectContainer() {
         return true;
     }
@@ -828,14 +828,10 @@ public:
     
     
     void Methods(Tamgu* v) {
-        string s;
-        
-        for (auto& it : infomethods) {
-            s=it.first;
-            v->storevalue(s);
-        }
+        for (auto& it : infomethods)
+            v->storevalue(it.first);
     }
-    
+
     string Info(string n) {
         if (infomethods.find(n) != infomethods.end())
             return infomethods[n];

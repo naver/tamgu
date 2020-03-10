@@ -42,8 +42,9 @@ void Tamgumaplu::AddMethod(TamguGlobal* global, string name,mapluMethod func, un
 
 
     void Tamgumaplu::Setidtype(TamguGlobal* global) {
-        Tamgumaplu::idtype = global->Getid("maplu");
-    }
+    Tamgumaplu::InitialisationModule(global,"");
+}
+
 
    bool Tamgumaplu::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -69,9 +70,11 @@ void Tamgumaplu::AddMethod(TamguGlobal* global, string name,mapluMethod func, un
     Tamgumaplu::AddMethod(global, "pop", &Tamgumaplu::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamgumaplu::AddMethod(global, "merge", &Tamgumaplu::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
 
-    global->newInstance[Tamgumaplu::idtype] = new Tamgumaplu(global);
-    
-    global->RecordMethods(Tamgumaplu::idtype, Tamgumaplu::exported);
+    if (version != "") {
+        global->newInstance[Tamgumaplu::idtype] = new Tamgumaplu(global);
+        
+        global->RecordMethods(Tamgumaplu::idtype, Tamgumaplu::exported);
+    }
 
     return true;
 }

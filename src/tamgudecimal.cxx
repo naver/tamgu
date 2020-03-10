@@ -47,8 +47,9 @@ void Tamgudecimal::AddMethod(TamguGlobal* global, string name, decimalMethod fun
 
 
     void Tamgudecimal::Setidtype(TamguGlobal* global) {
-        Tamgudecimal::idtype = global->Getid("decimal");
-    }
+    Tamgudecimal::InitialisationModule(global,"");
+}
+
 
    bool Tamgudecimal::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -107,11 +108,13 @@ void Tamgudecimal::AddMethod(TamguGlobal* global, string name, decimalMethod fun
 
 
 
-    global->newInstance[Tamgudecimal::idtype] = new Tamgudecimal(0, global);
-    global->newInstance[a_decimalthrough] = global->newInstance[Tamgudecimal::idtype];
-    global->RecordMethods(Tamgudecimal::idtype, Tamgudecimal::exported);
-    global->RecordMethods(a_decimalthrough, Tamgudecimal::exported);
-    global->RecordMethods(a_dloop, Tamgudecimal::exported);
+    if (version != "") {
+        global->newInstance[Tamgudecimal::idtype] = new Tamgudecimal(0, global);
+        global->newInstance[a_decimalthrough] = global->newInstance[Tamgudecimal::idtype];
+        global->RecordMethods(Tamgudecimal::idtype, Tamgudecimal::exported);
+        global->RecordMethods(a_decimalthrough, Tamgudecimal::exported);
+        global->RecordMethods(a_dloop, Tamgudecimal::exported);
+    }
     
     return true;
 }

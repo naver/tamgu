@@ -41,8 +41,9 @@ void Tamgumapss::AddMethod(TamguGlobal* global, string name,mapssMethod func, un
 
 
     void Tamgumapss::Setidtype(TamguGlobal* global) {
-        Tamgumapss::idtype = global->Getid("mapss");
-    }
+    Tamgumapss::InitialisationModule(global,"");
+}
+
 
    bool Tamgumapss::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
@@ -68,16 +69,16 @@ void Tamgumapss::AddMethod(TamguGlobal* global, string name,mapssMethod func, un
     Tamgumapss::AddMethod(global, "pop", &Tamgumapss::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamgumapss::AddMethod(global, "merge", &Tamgumapss::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
 
-    global->newInstance[Tamgumapss::idtype] = new Tamgumapss(global);
-    global->newInstance[a_mapthrough] = global->newInstance[Tamgumapss::idtype];
+    if (version != "") {
+        global->newInstance[Tamgumapss::idtype] = new Tamgumapss(global);
+        global->newInstance[a_mapthrough] = global->newInstance[Tamgumapss::idtype];
+    }
 
-    #ifdef OLDBACKCOMP
-    global->newInstance[global->Getid("ssmap")] = new Tamgumapss(global);
-
-    global->RecordMethods(global->Getid("ssmap"), Tamgumapss::exported);
-    #endif
-    global->RecordMethods(Tamgumapss::idtype, Tamgumapss::exported);
-    global->RecordMethods(a_mapthrough, Tamgumapss::exported);
+    
+    if (version != "") {
+        global->RecordMethods(Tamgumapss::idtype, Tamgumapss::exported);
+        global->RecordMethods(a_mapthrough, Tamgumapss::exported);
+    }
 
     return true;
 }

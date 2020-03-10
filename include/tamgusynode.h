@@ -127,9 +127,7 @@ public:
 		return Tamgusynode::idtype;
 	}
 
-	
-
-    static Exporting void Setidtype(TamguGlobal* global);
+    void Setidtype(TamguGlobal* global);
     
     string Typename() {
 		return "synode";
