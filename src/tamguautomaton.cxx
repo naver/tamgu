@@ -26,7 +26,7 @@ Exporting basebin_hash<regularexpressionMethod>  Tamguregularexpression::methods
 Exporting hmap<string, string> Tamguregularexpression::infomethods;
 Exporting bin_hash<unsigned long> Tamguregularexpression::exported;
 
-Exporting short Tamguregularexpression::idtype = 0;
+short Tamguregularexpression::idtype = 0;
 
 //We only return the emoji head, when a head is present
 TAMGUCHAR getechar(wstring& s, long& i);

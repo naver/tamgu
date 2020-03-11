@@ -39,9 +39,7 @@ Exporting void Tamgusynode::AddMethod(TamguGlobal* global, string name, synodeMe
     exported[idname] = arity;
 }
 
-Exporting 
-
- Exporting void Tamgusynode::Setidtype(TamguGlobal* global) {
+void Tamgusynode::Setidtype(TamguGlobal* global) {
     Tamgusynode::InitialisationModule(global,"");
 }
 
