@@ -98,19 +98,25 @@ Exporting Tamgu* Tamgubinmap::in(Tamgu* context, Tamgu* a, short idthread) {
     }
     
     if (context->isNumber()) {
-        Locking _lock(this);
-        if (values.check(val))
+        locking();
+        if (values.check(val)) {
+            unlocking();
             return globalTamgu->Provideint(val);
-        return aNOELEMENT;
+        }
+        unlocking();
+        return aNOELEMENT;;
     }
     
-    Locking _lock(this);
-    if (values.check(val))
+    locking();
+    if (values.check(val)) {
+        unlocking();
         return aTRUE;
-
+    }
+    unlocking();
     return aFALSE;
 
 }
+
 
 Exporting Tamgu* Tamgubinmap::MethodFind(Tamgu* context, short idthread, TamguCall* callfunc) {
     //Three cases along the container type...
@@ -153,11 +159,11 @@ Exporting Tamgu* Tamgubinmap::MethodFind(Tamgu* context, short idthread, TamguCa
 }
 
 Exporting void Tamgubinmap::Cleanreference(short inc) {
-    Locking* _lock = _getlock(this);
+    locking();
     basebin_hash<Tamgu*>::iterator it;
     for (it=values.begin();it!=values.end();it++)
         it->second->Removecontainerreference(inc);
-    _cleanlock(_lock);
+    unlocking();
 }
 
 Exporting void Tamgubinmap::Setreference(short inc) {
@@ -168,12 +174,12 @@ Exporting void Tamgubinmap::Setreference(short inc) {
     loopmark = true;
     protect = false;
     
-    Locking* _lock = _getlock(this);
+    locking();
     basebin_hash<Tamgu*>::iterator itx;
     for (itx = values.begin(); itx != values.end(); itx++)
         itx->second->Addreference(inc);
 
-        _cleanlock(_lock);
+        unlocking();
     
     loopmark=false;
 }
@@ -186,12 +192,12 @@ Exporting void Tamgubinmap::Setreference() {
     loopmark = true;
     protect = false;
     
-    Locking* _lock = _getlock(this);
+    locking();
     basebin_hash<Tamgu*>::iterator itx;
     for (itx = values.begin(); itx != values.end(); itx++)
         itx->second->Addreference(1);
     
-    _cleanlock(_lock);
+    unlocking();
     
     loopmark=false;
 }
@@ -200,11 +206,10 @@ Exporting void Tamgubinmap::Setreference() {
 static void resetMap(Tamgubinmap* kmap, short inc) {
     kmap->reference -= inc;
 
-    Locking* _lock = _getlock(kmap);
-
+    kmap->locking();
     basebin_hash<Tamgu*>& values = kmap->values;
     if (values.size() == 0) {
-        _cleanlock(_lock);
+        kmap->unlocking();
         return;
     }
 
@@ -212,7 +217,7 @@ static void resetMap(Tamgubinmap* kmap, short inc) {
     for (itx = values.begin(); itx != values.end(); itx++)
         itx->second->Removereference(inc);
     
-    _cleanlock(_lock);
+    kmap->unlocking();
 }
 
 Exporting void Tamgubinmap::Resetreference(short inc) {
@@ -230,7 +235,7 @@ Exporting void Tamgubinmap::Resetreference(short inc) {
 
 
 Exporting Tamgu* Tamgubinmap::Push(Tamgu* k, Tamgu* v) {
-    Locking _lock(this);
+    locking();
     ushort s = k->Short();
     if (values.check(s)) {
         Tamgu* kval = values.get(s);
@@ -241,8 +246,10 @@ Exporting Tamgu* Tamgubinmap::Push(Tamgu* k, Tamgu* v) {
     v = v->Atom();
     values[s] = v;
     v->Addreference(reference+1);
+    unlocking();
     return aTRUE;
 }
+
 
 Exporting Tamgu* Tamgubinmap::Pop(Tamgu* kkey) {
     ushort k = kkey->Short();
@@ -257,12 +264,12 @@ Exporting Tamgu* Tamgubinmap::Pop(Tamgu* kkey) {
 }
 
 Exporting void Tamgubinmap::Clear() {
-    Locking* _lock = _getlock(this);
+    locking();
     basebin_hash<Tamgu*>::iterator itx;
     for (itx = values.begin(); itx != values.end(); itx++)
         itx->second->Removereference(reference + 1);
     values.clear();
-    _cleanlock(_lock);
+    unlocking();
 }
 
 
@@ -314,29 +321,44 @@ Exporting string Tamgubinmap::JSonString() {
 
 
 Exporting long Tamgubinmap::Integer() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
+
 
 short Tamgubinmap::Short() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
+
 
 float Tamgubinmap::Decimal() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
+
 
 Exporting double Tamgubinmap::Float() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
 
+
 Exporting BLONG Tamgubinmap::Long() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
+
 
 Exporting bool Tamgubinmap::Boolean() {
     Locking _lock(this);
@@ -348,9 +370,12 @@ Exporting bool Tamgubinmap::Boolean() {
 
 //Basic operations
 Exporting long Tamgubinmap::Size() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
+
 
 
 Exporting Tamgu*  Tamgubinmap::Put(Tamgu* idx, Tamgu* ke, short idthread) {
@@ -405,7 +430,7 @@ Exporting Tamgu*  Tamgubinmap::Put(Tamgu* idx, Tamgu* ke, short idthread) {
 
         Clear();
         
-        Locking* _lock = _getlock(this);
+        locking();
         if (ke->Type() == Tamgubinmap::idtype) {
             Tamgubinmap* kmap = (Tamgubinmap*)ke;
             //We copy all values from ke to this
@@ -424,32 +449,33 @@ Exporting Tamgu*  Tamgubinmap::Put(Tamgu* idx, Tamgu* ke, short idthread) {
             }
             itr->Release();
         }
-        _cleanlock(_lock);
+        unlocking();
         ke->Release();
         return aTRUE;
     }
 
-    Push(idx->Short(), ke);
+    Push(idx->Getshort(idthread), ke);
     return aTRUE;
 }
 
 Exporting Tamgu* Tamgubinmap::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
 
-    Locking _lock(this);
 
     if (!idx->isIndex()) {
         //particular case, the contextualpattern is a vector, which means that we expect a set of keys
         //as a result
-                if (contextualpattern->isMapContainer())
+        if (contextualpattern->isMapContainer())
             return this;
         
-       //particular case, the contextualpattern is a vector, which means that we expect a set of keys
+        //particular case, the contextualpattern is a vector, which means that we expect a set of keys
         //as a result
         if (contextualpattern->isVectorContainer() || contextualpattern->Type() == a_list) {
             Tamgu* vect = contextualpattern->Newinstance(idthread);
+            locking();
             basebin_hash<Tamgu*>::iterator it;
             for (it = values.begin(); it != values.end(); it++)
                 vect->Push(globalTamgu->Provideint(it->first));
+            unlocking();
             return vect;
         }
 
@@ -461,10 +487,10 @@ Exporting Tamgu* Tamgubinmap::Eval(Tamgu* contextualpattern, Tamgu* idx, short i
         return this;
     }
 
-    Tamgu* key;
     if (idx->isInterval()) {
+        Locking _lock(this);
         Tamgubinmap* kmap = new Tamgubinmap;
-        key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
+        Tamgu* key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
         Tamgu* keyright = ((TamguIndex*)idx)->right->Eval(aNULL, aNULL, idthread);
         ushort vleft = key->Short();
         ushort vright = keyright->Short();
@@ -497,24 +523,19 @@ Exporting Tamgu* Tamgubinmap::Eval(Tamgu* contextualpattern, Tamgu* idx, short i
 
     }
 
-    key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
-    
-    if (key == aNULL) {
-        if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong index", idthread);
-        return aNOELEMENT;
-    }
-
-    short skey = key->Short();
-    key->Release();
-    
+    short skey = idx->Getshort(idthread);
+    locking();
     if (!values.check(skey)) {
+        unlocking();
         if (globalTamgu->erroronkey)
             return globalTamgu->Returnerror("Wrong index", idthread);
         return aNOELEMENT;
+
     }
     
-    return values.get(skey);
+    contextualpattern = values.get(skey);
+    unlocking();
+    return contextualpattern;
 }
 
 Exporting Tamgu* Tamgubinmap::same(Tamgu* a) {
@@ -953,7 +974,7 @@ Exporting Tamgu* Tamgubinmap::Loopin(TamguInstruction* ins, Tamgu* context, shor
     Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
     var = var->Eval(context, aNULL, idthread);
 
-    Locking* _lock = _getlock(this);
+    locking();
     basebin_hash<Tamgu*>::iterator it;
     vector<short> keys;
     for (it=values.begin(); it != values.end(); it++)
@@ -970,13 +991,13 @@ Exporting Tamgu* Tamgubinmap::Loopin(TamguInstruction* ins, Tamgu* context, shor
         if (a->needInvestigate()) {
             if (a == aBREAK)
                 break;
-            _cleanlock(_lock);
+            unlocking();
             return a;
         }
 
         a->Release();
     }
 
-    _cleanlock(_lock);
+    unlocking();
     return this;
 }

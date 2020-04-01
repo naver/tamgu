@@ -1172,6 +1172,23 @@ wstring TamguInstructionAPPLYOPERATION::Getustring(short idthread) {
     return root->Getustring(idthread);
 }
 
+void TamguInstructionAPPLYOPERATION::Setstring(string& v, short idthread)  {
+    if (root == NULL)
+        //we create it on the fly...
+        root = Compile(NULL);
+    
+    root->Setstring(v, idthread);
+}
+
+void TamguInstructionAPPLYOPERATION::Setstring(wstring& v, short idthread)  {
+    if (root == NULL)
+        //we create it on the fly...
+        root = Compile(NULL);
+    
+    root->Setstring(v, idthread);
+}
+
+
 //--------------------------------------------------------------------------------
 
 Tamgu* TamguInstructionCOMPARE::Eval(Tamgu* right, Tamgu* res, short idthread) {

@@ -95,13 +95,9 @@ class Tamguiterator : public TamguObject {
         return "iterator";
     }
 
-    bool isString() {
-        return false;
-    }
+    
 
-    bool isNumber() {
-        return false;
-    }
+    
 
     bool isBoolean() {
         return false;
@@ -289,15 +285,21 @@ class Tamguiterator : public TamguObject {
     
 
     string String() {
-        
         return "";
     }
 
-    //wstring UString() {
-    //   
-    //  return L"";
-    //	}
+    wstring UString() {
+        return L"";
+    }
 
+    void Setstring(string& v, short idthread) {
+        v = "";
+    }
+    
+    void Setstring(wstring& v, short idthread) {
+        v = L"";
+    }
+    
     long Integer() {
         
         return 0;

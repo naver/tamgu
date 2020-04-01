@@ -64,6 +64,24 @@ public:
         return s;
     }
     
+    virtual void Setstring(string& res, short idthread) {
+        values[0]->Setstring(res, idthread);
+        string u;
+        for (long i=1;i<size; i++) {
+            values[i]->Setstring(u, idthread);
+            res += u;
+        }
+    }
+    
+    virtual void Setstring(wstring& res, short idthread) {
+        values[0]->Setstring(res, idthread);
+        wstring u;
+        for (long i=1;i<size; i++) {
+            values[i]->Setstring(u, idthread);
+            res += u;
+        }
+    }
+    
     virtual string Getstring(short idthread) {
         string res=values[0]->Getstring(idthread);
         for (long i=1;i<size; i++)
@@ -104,6 +122,14 @@ public:
     
     string String() {
         return val->String();
+    }
+    
+    void Setstring(string& v, short idthread) {
+        val->Setstring(v, idthread);
+    }
+    
+    void Setstring(wstring& v, short idthread) {
+        val->Setstring(v, idthread);
     }
     
     string Bytes() {
@@ -182,6 +208,14 @@ public:
     
     string String() {
         return val->String();
+    }
+  
+    void Setstring(string& v, short idthread) {
+        val->Setstring(v, idthread);
+    }
+    
+    void Setstring(wstring& v, short idthread) {
+        val->Setstring(v, idthread);
     }
     
     string Bytes() {
@@ -353,7 +387,7 @@ public:
             return res;
         }
         res->Release();
-        return globalTamgu->Providestring(r);
+        return globalTamgu->Providewithstring(r);
     }
 
     short Action() {
@@ -366,6 +400,16 @@ public:
     
     wstring Getustring(short idthread) {
         return (val->Getustring(idthread)+w);
+    }
+    
+    void Setstring(string& s, short idthread) {
+        val->Setstring(s, idthread);
+        s += v;
+    }
+    
+    void Setstring(wstring& s, short idthread) {
+        val->Setstring(s, idthread);
+        s += w;
     }
     
 };
@@ -395,7 +439,7 @@ public:
             return res;
         }
         res->Release();
-        return globalTamgu->Providestring(r);
+        return globalTamgu->Providewithstring(r);
     }
 
     string Getstring(short idthread) {
@@ -406,6 +450,17 @@ public:
         return (w+val->Getustring(idthread));
     }
     
+    void Setstring(string& s, short idthread) {
+        val->Setstring(s, idthread);
+        s = v + s;
+    }
+    
+    void Setstring(wstring& s, short idthread) {
+        val->Setstring(s, idthread);
+        s = w + s;
+    }
+    
+
 };
 
 class e_plus_wstring2 : public e_operation  {
@@ -432,7 +487,7 @@ public:
             return res;
         }
         res->Release();
-        return globalTamgu->Provideustring(r);
+        return globalTamgu->Providewithustring(r);
     }
 
     string Getstring(short idthread) {
@@ -441,6 +496,16 @@ public:
     
     wstring Getustring(short idthread) {
         return (val->Getustring(idthread)+w);
+    }
+    
+    void Setstring(string& s, short idthread) {
+        val->Setstring(s, idthread);
+        s += v;
+    }
+    
+    void Setstring(wstring& s, short idthread) {
+        val->Setstring(s, idthread);
+        s += w;
     }
     
 };
@@ -469,7 +534,7 @@ public:
             return res;
         }
         res->Release();
-        return globalTamgu->Provideustring(r);
+        return globalTamgu->Providewithustring(r);
     }
 
     string Getstring(short idthread) {
@@ -480,6 +545,16 @@ public:
         return (w+val->Getustring(idthread));
     }
     
+    void Setstring(string& s, short idthread) {
+        val->Setstring(s, idthread);
+        s = v + s;
+    }
+    
+    void Setstring(wstring& s, short idthread) {
+        val->Setstring(s, idthread);
+        s = w + s;
+    }
+
 };
 
 class e_plus2 : public e_operation  {
@@ -582,6 +657,20 @@ public:
     
     wstring Getustring(short idthread) {
         return (values[0]->Getustring(idthread)+values[1]->Getustring(idthread));
+    }
+    
+    void Setstring(string& v, short idthread) {
+        values[0]->Setstring(v, idthread);
+        string s;
+        values[1]->Setstring(s, idthread);
+        v += s;
+    }
+    
+    void Setstring(wstring& v, short idthread) {
+        values[0]->Setstring(v, idthread);
+        wstring s;
+        values[1]->Setstring(s, idthread);
+        v += s;
     }
     
 };
@@ -998,7 +1087,22 @@ public:
     wstring Getustring(short idthread) {
         return StringMinus(values[0]->Getustring(idthread),values[1]->Getustring(idthread));
     }
+
+    void Setstring(string& v, short idthread) {
+        values[0]->Setstring(v, idthread);
+        string s;
+        values[1]->Setstring(s, idthread);
+        v = StringMinus(v ,s);
+    }
     
+    void Setstring(wstring& v, short idthread) {
+        values[0]->Setstring(v, idthread);
+        wstring s;
+        values[1]->Setstring(s, idthread);
+        v = StringMinus(v ,s);
+    }
+    
+
 };
 
 class e_multiply2 : public e_operation  {
@@ -2505,6 +2609,25 @@ public:
         return res;
     }
 
+    void Setstring(string& res, short idthread) {
+        values[0]->Setstring(res, idthread);
+        string u;
+        for (long i=1;i<size; i++) {
+            values[i]->Setstring(u, idthread);
+            res.append(u);
+        }
+    }
+
+    void Setstring(wstring& res, short idthread) {
+        values[0]->Setstring(res, idthread);
+        wstring u;
+        for (long i=1;i<size; i++) {
+            values[i]->Setstring(u, idthread);
+            res.append(u);
+        }
+    }
+
+
 };
 
 class e_minus_long : public e_operation  {
@@ -2842,6 +2965,24 @@ public:
         for (long i=1;i<size; i++)
             res = StringMinus(res, values[i]->Getustring(idthread));
         return res;
+    }
+
+    void Setstring(string& res, short idthread) {
+        values[0]->Setstring(res, idthread);
+        string u;
+        for (long i=1;i<size; i++) {
+            values[i]->Setstring(u, idthread);
+            res = StringMinus(res, u);
+        }
+    }
+
+    void Setstring(wstring& res, short idthread) {
+        values[0]->Setstring(res, idthread);
+        wstring u;
+        for (long i=1;i<size; i++) {
+            values[i]->Setstring(u, idthread);
+            res = StringMinus(res, u);
+        }
     }
 
 };
@@ -3458,6 +3599,24 @@ public:
         return res;
     }
 
+    void Setstring(string& res, short idthread) {
+        values[0]->Setstring(res, idthread);
+        string u;
+        for (long i=1;i<size; i++) {
+            values[i]->Setstring(u, idthread);
+            res += u;
+        }
+    }
+    
+    void Setstring(wstring& res, short idthread) {
+        values[0]->Setstring(res, idthread);
+        wstring u;
+        for (long i=1;i<size; i++) {
+            values[i]->Setstring(u, idthread);
+            res += u;
+        }
+    }
+    
     float Getdecimal(short idthread) {
         float res = values[0]->Getdecimal(idthread);
         for (long i=1;i<size; i++)
@@ -3555,6 +3714,38 @@ public:
             res = u;
         }
         return res;
+    }
+
+    void Setstring(string& res, short idthread) {
+        values[0]->Setstring(res, idthread);
+        string v;
+        string u;
+        short m;
+        for (long j=1;j<size; j++) {
+            values[j]->Setstring(v, idthread);
+            m = min(res.size(), v.size());
+            for (short i = 0; i < m; i++) {
+                if (res[i] != v[i])
+                    u += res[i];
+            }
+            res = u;
+        }
+    }
+    
+    void Setstring(wstring& res, short idthread) {
+        values[0]->Setstring(res, idthread);
+        wstring v;
+        wstring u;
+        short m;
+        for (long j=1;j<size; j++) {
+            values[j]->Setstring(v, idthread);
+            m = min(res.size(), v.size());
+            for (short i = 0; i < m; i++) {
+                if (res[i] != v[i])
+                    u += res[i];
+            }
+            res = u;
+        }
     }
 
     float Getdecimal(short idthread) {
@@ -3655,6 +3846,39 @@ public:
         return res;
     }
     
+    void Setstring(string& res, short idthread) {
+        values[0]->Setstring(res, idthread);
+        string v;
+        string u;
+        short m;
+        for (long j=1;j<size; j++) {
+            values[j]->Setstring(v, idthread);
+            m = min(res.size(), v.size());
+            for (short i = 0; i < m; i++) {
+                if (res[i] == v[i])
+                    u += res[i];
+            }
+            res = u;
+        }
+    }
+    
+    void Setstring(wstring& res, short idthread) {
+        values[0]->Setstring(res, idthread);
+        wstring v;
+        wstring u;
+        short m;
+        for (long j=1;j<size; j++) {
+            values[j]->Setstring(v, idthread);
+            m = min(res.size(), v.size());
+            for (short i = 0; i < m; i++) {
+                if (res[i] == v[i])
+                    u += res[i];
+            }
+            res = u;
+        }
+    }
+    
+
     float Getdecimal(short idthread) {
         float res = values[0]->Getdecimal(idthread);
         for (long i=1;i<size; i++)
@@ -4016,6 +4240,16 @@ public:
     string String() {
         return op->String();
     }
+    
+    void Setstring(string& v, short idthread) {
+        op->Setstring(v, idthread);
+    }
+    
+    void Setstring(wstring& v, short idthread) {
+        op->Setstring(v, idthread);
+    }
+    
+
 };
 
 
@@ -4052,14 +4286,33 @@ public:
     double Getfloat(short idthread) {
         return op->Getfloat(idthread);
     }
+    
     string Getstring(short idthread) {
-        return op->Getstring(idthread);
+        Tamgu* v = op->Eval(aNULL, aNULL, idthread);
+        string r = v->String();
+        v->Release();
+        return r;
     }
+    
     wstring Getustring(short idthread) {
-        return op->Getustring(idthread);
+        Tamgu* v = op->Eval(aNULL, aNULL, idthread);
+        wstring r = v->UString();
+        v->Release();
+        return r;
+    }
+    
+    void Setstring(string& r, short idthread) {
+        Tamgu* v = op->Eval(aNULL, aNULL, idthread);
+        v->Setstring(r, idthread);
+        v->Release();
     }
 
-    
+    void Setstring(wstring& r, short idthread) {
+        Tamgu* v = op->Eval(aNULL, aNULL, idthread);
+        v->Setstring(r, idthread);
+        v->Release();
+    }
+
 };
 
 class TamguInstructionSHORT : public TamguComputeValue {
@@ -4096,7 +4349,18 @@ public:
         short r = op->Getshort(idthread);
         return wconvertfromnumber(r);
     }
+
+    void Setstring(string& s, short idthread) {
+        short r = op->Getshort(idthread);
+        s = convertfromnumber(r);
+    }
     
+    void Setstring(wstring& s, short idthread) {
+        short r = op->Getshort(idthread);
+        s = wconvertfromnumber(r);
+    }
+    
+
     Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
         short r = op->Getshort(idthread);
         
@@ -4150,6 +4414,15 @@ public:
         return wconvertfromnumber(r);
     }
     
+    void Setstring(string& s, short idthread) {
+        long r = op->Getinteger(idthread);
+        convertnumber(r, s);
+    }
+    
+    void Setstring(wstring& s, short idthread) {
+        long r = op->Getinteger(idthread);
+        convertnumber(r, s);
+    }
 
     Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
         long r = op->Getinteger(idthread);
@@ -4207,6 +4480,16 @@ public:
         return wconvertfromnumber(r);
     }
     
+    void Setstring(string& s, short idthread) {
+        long r = op->Getinteger(idthread);
+        s = convertfromnumber(r);
+    }
+    
+    void Setstring(wstring& s, short idthread) {
+        long r = op->Getinteger(idthread);
+        s = wconvertfromnumber(r);
+    }
+
 
     Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
         float r = op->Getdecimal(idthread);
@@ -4262,6 +4545,16 @@ public:
         return wconvertfromnumber(r);
     }
     
+    void Setstring(string& s, short idthread) {
+        long r = op->Getinteger(idthread);
+        convertnumber(r, s);
+    }
+    
+    void Setstring(wstring& s, short idthread) {
+        long r = op->Getinteger(idthread);
+        convertnumber(r, s);
+    }
+
     Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
         double r = op->Getfloat(idthread);
 
@@ -4315,6 +4608,15 @@ public:
         return wconvertfromnumber(r);
     }
     
+    void Setstring(string& s, short idthread) {
+        long r = op->Getinteger(idthread);
+        s = convertfromnumber(r);
+    }
+    
+    void Setstring(wstring& s, short idthread) {
+        long r = op->Getinteger(idthread);
+        s = wconvertfromnumber(r);
+    }
 
     Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
         BLONG r = op->Getlong(idthread);
@@ -4351,38 +4653,42 @@ public:
         return s;
     }
 
+    void Setstring(string& s, short idthread) {
+        op->Setstring(s,idthread);
+    }
+
+    void Setstring(wstring& s, short idthread) {
+        op->Setstring(s,idthread);
+    }
+
     short Getshort(short idthread) {
-        string s = op->Getstring(idthread);
-        return convertinteger(s);
+        return convertinteger(op->Getstring(idthread));
     }
     
     long Getinteger(short idthread) {
-        string s = op->Getstring(idthread);
-        return convertinteger(s);
+        return convertinteger(op->Getstring(idthread));
     }
     
     BLONG Getlong(short idthread) {
-        string s = op->Getstring(idthread);
-        return convertinteger(s);
+        return convertinteger(op->Getstring(idthread));
     }
     
     float Getdecimal(short idthread) {
-        string s = op->Getstring(idthread);
-        return convertfloat(s);
+        return convertfloat(op->Getstring(idthread));
     }
     
     double Getfloat(short idthread) {
-        string s = op->Getstring(idthread);
-        return convertfloat(s);
+        return convertfloat(op->Getstring(idthread));
     }
 
     Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
-        string r = op->Getstring(idthread);
+        string r;
+        op->Setstring(r, idthread);
         if (inter == aAFFECTATION) {
-            res->Storevalue(r);
+            res->storevalue(r);
             return res;
         }
-        return globalTamgu->Providestring(r);
+        return globalTamgu->Providewithstring(r);
     }
     
     short Typevariable() {
@@ -4408,40 +4714,42 @@ public:
         return op->Getustring(idthread);
     }
     
+    void Setstring(string& s, short idthread) {
+        op->Setstring(s,idthread);
+    }
+
+    void Setstring(wstring& s, short idthread) {
+        op->Setstring(s,idthread);
+    }
+
     short Getshort(short idthread) {
-        wstring s = op->Getustring(idthread);
-        return convertinteger(s);
+        return convertinteger(op->Getustring(idthread));
     }
     
     long Getinteger(short idthread) {
-        wstring s = op->Getustring(idthread);
-        return convertinteger(s);
+        return convertinteger(op->Getustring(idthread));
     }
     
     BLONG Getlong(short idthread) {
-        wstring s = op->Getustring(idthread);
-        return convertinteger(s);
+        return convertinteger(op->Getustring(idthread));
     }
     
     float Getdecimal(short idthread) {
-        wstring s = op->Getustring(idthread);
-        return convertfloat(s);
+        return convertfloat(op->Getustring(idthread));
     }
     
     double Getfloat(short idthread) {
-        wstring s = op->Getustring(idthread);
-        return convertfloat(s);
+        return convertfloat(op->Getustring(idthread));
     }
 
     Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
-        wstring r = op->Getustring(idthread);
-
+        wstring r;
+        op->Setstring(r, idthread);
         if (inter == aAFFECTATION) {
-            res->Storevalue(r);
+            res->storevalue(r);
             return res;
         }
-        
-        return globalTamgu->Provideustring(r);
+        return globalTamgu->Providewithustring(r);
     }
     
     short Typevariable() {

@@ -101,6 +101,14 @@ public:
 		return(v);
 	}
 
+    void Setstring(string& v, short idthread) {
+        v = "";
+    }
+    
+    void Setstring(wstring& v, short idthread) {
+        v = L"";
+    }
+    
     string Typestring() {
         return name;
     }
@@ -205,17 +213,20 @@ public:
 class TamguConstString : public TamguBaseConst {
 public:
 	string value;
+    long sz, szc;
 
-	TamguConstString(string v, TamguGlobal* g = NULL, Tamgu* parent = NULL) : value(v), TamguBaseConst(a_string, g, parent) {}
+	TamguConstString(string v, TamguGlobal* g = NULL, Tamgu* parent = NULL) : value(v), TamguBaseConst(a_string, g, parent) {
+        investigate |= is_pure_string;
+        sz = v.size();
+        szc = size_c(v);
+    }
 
 	Exporting Tamgu* CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
-	bool isString() {
-		return true;
-	}
+	
 	
     Tamgu* Atomref() {
-        TamguReference* r = globalTamgu->Providestring(value);
+        TamguReference* r = globalTamgu->Providewithstring(value);
         r->reference = 1;
         r->protect = false;
         return r;
@@ -250,7 +261,7 @@ public:
 
 
 	Tamgu* Newinstance(short, Tamgu* f = NULL) {
-		return globalTamgu->Providestring(value);
+		return globalTamgu->Providewithstring(value);
 	}
 
 	Tamgu* Newvalue(Tamgu* a, short idthread) {
@@ -287,6 +298,14 @@ public:
 
 	string String() { return value; }
 
+    void Setstring(string& v, short idthread) {
+        v = value;
+    }
+    
+    void Setstring(wstring& v, short idthread) {
+        sc_utf8_to_unicode(v, USTR(value), value.size());
+    }
+    
 	string Getstring(short idthread) {
 		return value;
 	}
@@ -302,11 +321,11 @@ public:
 	}
 
     long CommonSize() {
-        return size_c(value);
+        return szc;
     }
 
 	long Size() {
-		return (long)value.size();
+		return sz;
 	}
 
 	float Decimal() {
@@ -332,7 +351,7 @@ public:
 	}
 
 	Tamgu* Atom(bool forced = false) {
-		return globalTamgu->Providestring(value);
+		return globalTamgu->Providewithstring(value);
 	}
 
 	Tamgu* Vector(short idthread) {
@@ -346,7 +365,7 @@ public:
 	//we add the current value with a
 	Tamgu* plus(Tamgu* a, bool itself) {
 		string s = value + a->String();
-		return globalTamgu->Providestring(s);
+		return globalTamgu->Providewithstring(s);
 	}
 
 	//we remove a from the current value
@@ -363,7 +382,7 @@ public:
 		pos += nb;
 		//then we concatenate with the rest of the string
 		v += value.substr(pos, value.size() - pos);
-		return globalTamgu->Providestring(v);
+		return globalTamgu->Providewithstring(v);
 	}
 
 	Tamgu* less(Tamgu* a) {
@@ -442,16 +461,24 @@ public:
 class TamguConstUString : public TamguBaseConst {
 public:
 	wstring value;
+    long sz, szc;
 
-	TamguConstUString(wstring v, TamguGlobal* g = NULL, Tamgu* parent = NULL) : value(v), TamguBaseConst(a_ustring, g, parent) {}
+    TamguConstUString(wstring v, TamguGlobal* g = NULL, Tamgu* parent = NULL) : value(v), TamguBaseConst(a_ustring, g, parent) {
+        investigate |= is_pure_string;
+        sz = value.size();
+#ifdef WSTRING_IS_UTF16
+        szc = size_w(value);
+#else
+        szc = sz;
+#endif
+    }
+    
 	Exporting Tamgu* CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
-	bool isString() {
-		return true;
-	}
+	
 
     Tamgu* Atomref() {
-        TamguReference* r = globalTamgu->Provideustring(value);
+        TamguReference* r = globalTamgu->Providewithustring(value);
         r->reference = 1;
         r->protect = false;
         return r;
@@ -494,7 +521,7 @@ public:
     }
     
 	Tamgu* Newinstance(short, Tamgu* f = NULL) {
-		return globalTamgu->Provideustring(value);
+		return globalTamgu->Providewithustring(value);
 	}
 
 	Tamgu* Newvalue(Tamgu* a, short idthread) {
@@ -534,15 +561,17 @@ public:
 		return res;
 	}
 
-#ifdef WSTRING_IS_UTF16
-    long CommonSize() {
-        return size_w(value);
+    void Setstring(string& v, short idthread) {
+        sc_unicode_to_utf8(v, value);
     }
-#else
-    long CommonSize() {
-        return value.size();
+    
+    void Setstring(wstring& v, short idthread) {
+        v = value;
     }
-#endif
+    
+    long CommonSize() {
+        return szc;
+    }
     
 	string Getstring(short idthread) {
 		string res;
@@ -559,7 +588,7 @@ public:
 	}
 
 	long Size() {
-		return (long)value.size();
+		return sz;
 	}
 
 	float Decimal() {
@@ -585,7 +614,7 @@ public:
 	}
 
 	Tamgu* Atom(bool forced = false) {
-		return globalTamgu->Provideustring(value);
+		return globalTamgu->Providewithustring(value);
 	}
 
 	Tamgu* Vector(short idthread) {
@@ -603,7 +632,7 @@ public:
 	//we add the current value with a
 	Tamgu* plus(Tamgu* a, bool itself) {
 		wstring s = value + a->UString();
-		return globalTamgu->Provideustring(s);
+		return globalTamgu->Providewithustring(s);
 	}
 
 	//we remove a from the current value
@@ -620,7 +649,7 @@ public:
 		pos += nb;
 		//then we concatenate with the rest of the string
 		v += value.substr(pos, value.size() - pos);
-		return globalTamgu->Provideustring(v);
+		return globalTamgu->Providewithustring(v);
 	}
 
 
@@ -701,7 +730,8 @@ class TamguConstInt : public TamguBaseConst {
 public:
 	long value;
 
-	TamguConstInt(long v, TamguGlobal* g = NULL, Tamgu* parent = NULL) : value(v), TamguBaseConst(a_int, g, parent) {}
+	TamguConstInt(long v, TamguGlobal* g = NULL, Tamgu* parent = NULL) : value(v), TamguBaseConst(a_int, g, parent) {
+     investigate |= is_number;}
 	Exporting Tamgu* CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
 	bool Checkprecision(Tamgu* r) {
@@ -737,9 +767,7 @@ public:
 		return a_int;
 	}
 
-	bool isNumber() {
-		return true;
-	}
+	
 
 	bool isInteger() {
 		return true;
@@ -755,11 +783,17 @@ public:
 		
 	}
 
-	string String() {
-		
-		return convertfromnumber(value);
-		
-	}
+    string String() {
+        return convertfromnumber(value);
+    }
+
+    void Setstring(string& v, short idthread) {
+        convertnumber(value,v);
+    }
+
+    void Setstring(wstring& v, short idthread) {
+        convertnumber(value,v);
+    }
 
 	long Getinteger(short idthread) {
 		return value;
@@ -961,7 +995,8 @@ class TamguConstShort : public TamguBaseConst {
 public:
 	short value;
 
-	TamguConstShort(short v, TamguGlobal* g = NULL, Tamgu* parent = NULL) : value(v), TamguBaseConst(a_short, g, parent) {}
+	TamguConstShort(short v, TamguGlobal* g = NULL, Tamgu* parent = NULL) : value(v), TamguBaseConst(a_short, g, parent) {
+     investigate |= is_number;}
 	Exporting Tamgu* CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
 	Tamgu* Newinstance(short, Tamgu* f = NULL) {
@@ -1002,9 +1037,7 @@ public:
 		return a_short;
 	}
 
-	bool isNumber() {
-		return true;
-	}
+	
 
 	bool isInteger() {
 		return true;
@@ -1017,6 +1050,14 @@ public:
 	string String() {
 		return convertfromnumber(value);
 	}
+
+    void Setstring(string& v, short idthread) {
+        v = convertfromnumber(value);
+    }
+
+    void Setstring(wstring& v, short idthread) {
+        v = wconvertfromnumber(value);
+    }
 
 	wstring UString() {
 		return wconvertfromnumber(value);
@@ -1246,7 +1287,8 @@ class TamguConstDecimal : public TamguBaseConst {
 public:
 	float value;
 
-	TamguConstDecimal(double v, TamguGlobal* g = NULL, Tamgu* parent = NULL) : value(v), TamguBaseConst(a_decimal, g, parent) {}
+	TamguConstDecimal(double v, TamguGlobal* g = NULL, Tamgu* parent = NULL) : value(v), TamguBaseConst(a_decimal, g, parent) {
+     investigate |= is_number;}
 	Exporting Tamgu* CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
 	bool Checkprecision(Tamgu* r) {
@@ -1280,9 +1322,7 @@ public:
 		return a_decimal;
 	}
 
-	bool isNumber() {
-		return true;
-	}
+	
 
 	bool isFloat() {
 		return true;
@@ -1299,6 +1339,15 @@ public:
 		return wconvertfromnumber(value);
 		
 	}
+
+    void Setstring(string& v, short idthread) {
+        v = convertfromnumber(value);
+    }
+
+    void Setstring(wstring& v, short idthread) {
+        v = wconvertfromnumber(value);
+    }
+
 
 	long Getinteger(short idthread) {
 		return (long)value;
@@ -1505,7 +1554,8 @@ class TamguConstFloat : public TamguBaseConst {
 public:
 	double value;
 
-	TamguConstFloat(double v, TamguGlobal* g = NULL, Tamgu* parent = NULL) : value(v), TamguBaseConst(a_float, g, parent) {}
+	TamguConstFloat(double v, TamguGlobal* g = NULL, Tamgu* parent = NULL) : value(v), TamguBaseConst(a_float, g, parent) {
+     investigate |= is_number;}
 	Exporting Tamgu* CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
 	Tamgu* Newinstance(short, Tamgu* f = NULL) {
@@ -1534,9 +1584,7 @@ public:
 		return a_float;
 	}
 
-	bool isNumber() {
-		return true;
-	}
+	
 
 	bool isFloat() {
 		return true;
@@ -1553,6 +1601,15 @@ public:
 		return wconvertfromnumber(value);
 		
 	}
+ 
+    void Setstring(string& v, short idthread) {
+        convertnumber(value,v);
+    }
+
+    void Setstring(wstring& v, short idthread) {
+        convertnumber(value,v);
+    }
+
 
 	long Getinteger(short idthread) {
 		return (long)value;
@@ -1758,7 +1815,8 @@ class TamguConstLong : public TamguBaseConst {
 public:
 	BLONG value;
 
-	TamguConstLong(BLONG v, TamguGlobal* g = NULL, Tamgu* parent = NULL) : value(v), TamguBaseConst(a_long, g, parent) {}
+	TamguConstLong(BLONG v, TamguGlobal* g = NULL, Tamgu* parent = NULL) : value(v), TamguBaseConst(a_long, g, parent) {
+     investigate |= is_number;}
 	Exporting Tamgu* CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
 	Tamgu* Newinstance(short, Tamgu* f = NULL) {
@@ -1793,9 +1851,7 @@ public:
 		return a_long;
 	}
 
-	bool isNumber() {
-		return true;
-	}
+	
 
 	bool isInteger() {
 		return true;
@@ -1806,16 +1862,21 @@ public:
 	}
 
 	string String() {
-		
 		return convertfromnumber(value);
-		
 	}
 
 	wstring UString() {
-		
 		return wconvertfromnumber(value);
-		
 	}
+ 
+    void Setstring(string& v, short idthread) {
+        v = convertfromnumber(value);
+    }
+
+    void Setstring(wstring& v, short idthread) {
+        v = wconvertfromnumber(value);
+    }
+
 
 	long Getinteger(short idthread) {
 		return (long)value;
@@ -2080,6 +2141,21 @@ public:
 			return L"true";
 		return L"false";
 	}
+
+    void Setstring(string& v, short idthread) {
+        if (value)
+            v = "true";
+        else
+            v = "false";
+    }
+
+    void Setstring(wstring& v, short idthread) {
+        if (value)
+            v = L"true";
+        else
+            v = L"false";
+    }
+
 
 	long Integer() {
 		return (long)value;

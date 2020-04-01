@@ -50,12 +50,14 @@ class Tamgumapfs : public TamguLockContainer {
 
     //---------------------------------------------------------------------------------------------------------------------
     Tamgumapfs(TamguGlobal* g, Tamgu* parent = NULL) : TamguLockContainer(g, parent) {
+     investigate |= is_string;
         //Do not forget your variable initialisation
         isconst = false; 
 
     }
 
     Tamgumapfs() {
+     investigate |= is_string;
         //Do not forget your variable initialisation
         isconst = false; 
 
@@ -80,9 +82,7 @@ class Tamgumapfs : public TamguLockContainer {
         return "mapfs";
     }
 
-    bool isString() {
-        return true;
-    }
+    
 
     bool isContainerClass() {
         return true;
@@ -99,9 +99,10 @@ class Tamgumapfs : public TamguLockContainer {
 
     Tamgu* Atom(bool forced) {
         if (forced || !protect || reference) {
-            Locking _lock(this);
+            locking();
             Tamgumapfs * m = new Tamgumapfs;
             m->values = values;
+            unlocking();
             return m;
         }
         return this;
@@ -220,39 +221,46 @@ class Tamgumapfs : public TamguLockContainer {
     }
 
     Tamgu* MethodKeys(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
+        locking();
         Tamgufvector* vstr = (Tamgufvector*)Selectafvector(contextualpattern);
         hmap<double, string>::iterator it;
         for (it = values.begin(); it != values.end(); it++)
             vstr->values.push_back(it->first);
+        unlocking();
         return vstr;
     }
 
     Tamgu* MethodValues(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
+        locking();
         Tamgusvector * vstr = (Tamgusvector*)Selectasvector(contextualpattern);
         hmap<double, string>::iterator it;
         for (it = values.begin(); it != values.end(); it++)
             vstr->values.push_back(it->second);
+        unlocking();
         return vstr;
     }
 
     Tamgu* MethodTest(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
+        locking();
         double  v = callfunc->Evaluate(0, contextualpattern, idthread)->Float();
-        if (values.find(v) == values.end())
+        try {
+            values.at(v);
+            unlocking();
+            return aTRUE;
+        }
+        catch(const std::out_of_range& oor) {
+            unlocking();
             return aFALSE;
-        return aTRUE;
+        }
     }
 
     Tamgu* MethodPop(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
         Tamgu* pos = callfunc->Evaluate(0, contextualpattern, idthread);
         return Pop(pos);
     }
 
     Tamgu* MethodJoin(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
+        locking();
         //The separator between keys
         string keysep = callfunc->Evaluate(0, contextualpattern, idthread)->String();
         //The separator between values
@@ -267,6 +275,7 @@ class Tamgumapfs : public TamguLockContainer {
             res << it.first << keysep << it.second;
         }
 
+        unlocking();
         return globalTamgu->Providestring(res.str());
     }
 
@@ -276,8 +285,9 @@ class Tamgumapfs : public TamguLockContainer {
     Exporting Tamgu* Pop(Tamgu* kkey);
 
     Tamgu* Push(double k, Tamgu* a) {
-        Locking _lock(this);
+        locking();
         values[k] = a->String();
+        unlocking();
         return this;
     }
 
@@ -333,35 +343,58 @@ class Tamgumapfs : public TamguLockContainer {
     Exporting string String();
     Exporting string JSonString();
 
-    Tamgu* Value(string n) {
+    Tamgu* Value(string& n) {
         double v = convertdouble(n);
-        Locking _lock(this);
-        if (values.find(v) == values.end())
+        locking();
+        try {
+            Tamgu* res = globalTamgu->Providestring(values.at(v));
+            unlocking();
+            return res;
+        }
+        catch(const std::out_of_range& oor) {
+            unlocking();
             return aNOELEMENT;
-        return globalTamgu->Providestring(values[v]);
+        }
     }
 
-    Tamgu* Value(long n) {
-        Locking _lock(this);
-        if (values.find((double)n) == values.end())
+    Tamgu* Value(long v) {
+        locking();
+        try {
+            Tamgu* res = globalTamgu->Providestring(values.at(v));
+            unlocking();
+            return res;
+        }
+        catch(const std::out_of_range& oor) {
+            unlocking();
             return aNOELEMENT;
-        return globalTamgu->Providestring(values[(double)n]);
+        }
     }
 
     Tamgu* Value(Tamgu* a) {
-        double n =  a->Float();
-
-        Locking _lock(this);
-        if (values.find((double)n) == values.end())
+        double v =  a->Float();
+        locking();
+        try {
+            Tamgu* res = globalTamgu->Providestring(values.at(v));
+            unlocking();
+            return res;
+        }
+        catch(const std::out_of_range& oor) {
+            unlocking();
             return aNOELEMENT;
-        return globalTamgu->Providestring(values[(double)n]);
+        }
     }
 
-    Tamgu* Value(double n) {
-        Locking _lock(this);
-        if (values.find((double)n) == values.end())
+    Tamgu* Value(double v) {
+        locking();
+        try {
+            Tamgu* res = globalTamgu->Providestring(values.at(v));
+            unlocking();
+            return res;
+        }
+        catch(const std::out_of_range& oor) {
+            unlocking();
             return aNOELEMENT;
-        return globalTamgu->Providestring(values[(double)n]);
+        }
     }
 
     Exporting long Integer();

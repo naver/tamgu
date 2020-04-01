@@ -100,11 +100,14 @@ Exporting Tamgu* Tamgulist::in(Tamgu* context, Tamgu* a, short idthread) {
     //It is a container, we are looking for all positions...
 
     if (context->isBoolean()) {
-        Locking _lock(this);
+        locking();
         for (auto& it : values) {
-            if (it->same(a) == aTRUE)
+            if (it->same(a) == aTRUE) {
+                unlocking();
                 return aTRUE;
+            }
         }
+        unlocking();
         return aFALSE;
     }
 
@@ -120,37 +123,44 @@ Exporting Tamgu* Tamgulist::in(Tamgu* context, Tamgu* a, short idthread) {
         return v;
     }
 
-    Locking _lock(this);
+    locking();
     for (auto& it : values) {
-        if (it->same(a) == aTRUE)
+        if (it->same(a) == aTRUE) {
+            unlocking();
             return globalTamgu->Provideint(i);
+        }
         i++;
     }
-
+    unlocking();
     return aNOELEMENT;
 }
 
 
 Exporting Tamgu* Tamgulist::getvalue(BLONG i) {
-    Locking _lock(this);
-    if (i < 0 || i >= values.size())
+    locking();
+    if (i < 0 || i >= values.size()) {
+        unlocking();
         return aNOELEMENT;
+    }
 
 
     for (auto& it : values) {
-        if (!i)
+        if (!i) {
+            unlocking();
             return (it);
+        }
         i--;
     }
+    unlocking();
     return aNOELEMENT;
 }
 
 
 Exporting void Tamgulist::Cleanreference(short inc) {
-    Locking* _lock = _getlock(this);
+    locking();
     for (auto& a : values)
         a->Removecontainerreference(inc);
-    _cleanlock(_lock);
+    unlocking();
 }
 
 Exporting void Tamgulist::Setreference(short inc) {
@@ -161,10 +171,10 @@ Exporting void Tamgulist::Setreference(short inc) {
     protect=false;
     loopmark=true;
     
-    Locking* _lock = _getlock(this);
+    locking();
     for (auto& it : values)
         it->Addreference(inc);
-    _cleanlock(_lock);
+    unlocking();
     
     loopmark=false;
 }
@@ -177,10 +187,10 @@ Exporting void Tamgulist::Setreference() {
     protect=false;
     loopmark=true;
     
-    Locking* _lock = _getlock(this);
+    locking();
     for (auto& it : values)
         it->Addreference(1);
-    _cleanlock(_lock);
+    unlocking();
     
     loopmark=false;
 }
@@ -189,17 +199,17 @@ Exporting void Tamgulist::Setreference() {
 static void resetList(Tamgulist* klist, short inc) {
     klist->reference -= inc;
 
-    Locking* _lock = _getlock(klist);
+    klist->locking();
     list<Tamgu*>& values = klist->values;
     if (values.size() == 0) {
-        _cleanlock(_lock);
+        klist->unlocking();
         return;
     }
     
     for (auto& itx : values)
         itx->Removereference(inc);
 
-    _cleanlock(_lock);
+    klist->unlocking();
 }
 
 Exporting void Tamgulist::Resetreference(short inc) {
@@ -216,54 +226,61 @@ Exporting void Tamgulist::Resetreference(short inc) {
 }
 
 Exporting Tamgu* Tamgulist::Pushfirst(Tamgu* a) {
-    Locking _lock(this);
+    locking();
     a = a->Atom();
     values.push_front(a);
     a->Addreference(reference+1);
+    unlocking();
     return this;
 }
 
 Exporting Tamgu* Tamgulist::Push(Tamgu* a) {
-    Locking _lock(this);
+    locking();
     a = a->Atom();
     values.push_back(a);
+    unlocking();
     a->Addreference(reference+1);
     return this;
 }
 
 Exporting Tamgu* Tamgulist::Pop(Tamgu* v) {
-    Locking _lock(this);
-    if (!values.size())
+    locking();
+    if (!values.size()) {
+        unlocking();
         return aFALSE;
+    }
 
     list<Tamgu*>::iterator it;
     for (it = values.begin(); it != values.end(); ++it) {
         if ((*it)->same(v)) {
             v = *it;
             values.erase(it);
+            unlocking();
             v->Removereference(reference + 1);
             return aTRUE;
         }
     }
+    unlocking();
     return aFALSE;
 }
 
 Exporting void Tamgulist::Clear() {
     //To set a variable back to empty
-    Locking _lock(this);
+    locking();
 
     for (auto& it : values) {
         it->Removereference(reference + 1);
     }
     values.clear();
+    unlocking();
 }
 
-
-
 Exporting string Tamgulist::String() {
-    Locking _lock(this);
-    if (loopmark)
+    locking();
+    if (loopmark) {
+        unlocking();
         return("[...]");
+    }
     TamguCircular _c(this);
     string res;
 
@@ -280,14 +297,44 @@ Exporting string Tamgulist::String() {
         else
             stringing(res, sx);
     }
+    unlocking();
     res += "]";
     return res;
 }
 
+Exporting void Tamgulist::Setstring(string& res, short idthread) {
+    locking();
+    if (loopmark) {
+        unlocking();
+        res = "[...]";
+        return;
+    }
+    
+    TamguCircular _c(this);
+
+    res = "[";
+    bool beg = true;
+    string sx;
+    for (auto& it : values) {
+        if (beg == false)
+            res += ",";
+        beg = false;
+        sx = it->StringToDisplay();
+        if (!it->isString() || it->isContainer())
+            res += sx;
+        else
+            stringing(res, sx);
+    }
+    unlocking();
+    res += "]";
+}
+
 Exporting string Tamgulist::JSonString() {
-    Locking _lock(this);
-    if (loopmark)
+    locking();
+    if (loopmark) {
+        unlocking();
         return("");
+    }
     TamguCircular _c(this);
     string res;
 
@@ -304,6 +351,7 @@ Exporting string Tamgulist::JSonString() {
         else
             jstringing(res, sx);
     }
+    unlocking();
     res += "]";
     return res;
 }
@@ -311,32 +359,40 @@ Exporting string Tamgulist::JSonString() {
 
 
 Exporting long Tamgulist::Integer() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
 
 Exporting double Tamgulist::Float() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
 
 Exporting BLONG Tamgulist::Long() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
 
 Exporting bool Tamgulist::Boolean() {
-    Locking _lock(this);
-    if (values.size() == 0)
-        return false;
-    return true;
+    locking();
+    bool b = values.empty();
+    unlocking();
+    return !b;
 }
 
 
 //Basic operations
 Exporting long Tamgulist::Size() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
 
 
@@ -344,7 +400,7 @@ Exporting void Tamgulist::Insert(long idx, Tamgu* ke) {
     ke = ke->Atom();
     if (idx<0)
         idx=0;
-    Locking _lock(this);
+    locking();
     if (idx>=values.size())
         values.push_back(ke);
     else {
@@ -354,15 +410,18 @@ Exporting void Tamgulist::Insert(long idx, Tamgu* ke) {
         values.insert(itl, ke);
     }
     ke->Addreference(reference+1);
+    unlocking();
 }
 
 Exporting bool Tamgulist::Permute() {
-    Locking _lock(this);
-    return next_permutation(values.begin(), values.end());
+    locking();
+    bool v  = next_permutation(values.begin(), values.end());
+    unlocking();
+    return v;
 }
 
 Exporting void Tamgulist::Shuffle() {
-    Locking _lock(this);
+    locking();
 
     vector<Tamgu*> vb;
     for (auto& it : values)
@@ -383,10 +442,11 @@ Exporting void Tamgulist::Shuffle() {
     values.clear();
     for (i = 0; i < sz; i++)
         values.push_back(vb[i]);
+    unlocking();
 }
 
 Exporting Tamgu* Tamgulist::Unique() {
-    Locking _lock(this);
+    locking();
     Tamgulist* klist = new Tamgulist;
 
     map<string, Tamgu*> inter;
@@ -402,26 +462,33 @@ Exporting Tamgu* Tamgulist::Unique() {
             klist->Push(it);
         }
     }
+    unlocking();
     return klist;
 }
 
 Exporting Tamgu* Tamgulist::Popfirst() {
-    Locking _lock(this);
-    if (values.size() == 0)
+    locking();
+    if (values.size() == 0) {
+        unlocking();
         return aNOELEMENT;
+    }
     Tamgu* kres = values.front();
     values.pop_front();
+    unlocking();
     kres->Resetreference(reference);
     kres->Protect();
     return kres;
 }
 
 Exporting Tamgu* Tamgulist::Poplast() {
-    Locking _lock(this);
-    if (values.size() == 0)
+    locking();
+    if (values.size() == 0) {
+        unlocking();
         return aNOELEMENT;
+    }
     Tamgu* kres = values.back();
     values.pop_back();
+    unlocking();
     kres->Resetreference(reference);
     kres->Protect();
     return kres;
@@ -462,13 +529,14 @@ Exporting Tamgu* Tamgulist::Combine(Tamgu* ke) {
     Tamgu* val;
     
     if (!ke->isContainer()) {
-        Locking _lock(this);
+        locking();
         for (auto& a: values) {
             val=new Tamgulist;
             val->Push(a);
             val->Push(ke);
             vect->Push(val);
         }
+        unlocking();
         return vect;
     }
     
@@ -504,9 +572,11 @@ Exporting Tamgu* Tamgulist::Combine(Tamgu* ke) {
 }
 
 Exporting Tamgu* Tamgulist::Map(short idthread) {
-    Locking _lock(this);
-    if (loopmark)
+    locking();
+    if (loopmark) {
+        unlocking();
         return aNULL;
+    }
         
     loopmark=true;
     Tamgumap* kmap = globalTamgu->Providemap();
@@ -520,17 +590,19 @@ Exporting Tamgu* Tamgulist::Map(short idthread) {
     }
     
     loopmark=false;
+    unlocking();
     return kmap;
 }
 
 Exporting Tamgu* Tamgulist::Vector(short idthread) {
-    Locking _lock(this);
+    locking();
     Tamguvector* kvect = globalTamgu->Providevector();
     //We copy all values from ke to this
     kvect->values.reserve(values.size());
 
     for (auto& it : values)
         kvect->Push(it);
+    unlocking();
     return kvect;
 }
 
@@ -607,7 +679,7 @@ Exporting Tamgu*  Tamgulist::Put(Tamgu* idx, Tamgu* ke, short idthread) {
         if (lkey < 0)
             lkey = values.size() + lkey;
 
-        long rkey = ((TamguIndex*)idx)->right->Integer();
+        long rkey = ((TamguIndex*)idx)->right->Getinteger(idthread);
         if (rkey < 0)
             rkey = values.size() + rkey;
 
@@ -671,7 +743,7 @@ Exporting Tamgu*  Tamgulist::Put(Tamgu* idx, Tamgu* ke, short idthread) {
         return aTRUE;
     }
 
-    long ikey = idx->Integer();
+    long ikey = idx->Getinteger(idthread);
     list<Tamgu*>::iterator it;
     long mx = values.size();
 
@@ -703,8 +775,6 @@ Exporting Tamgu*  Tamgulist::Put(Tamgu* idx, Tamgu* ke, short idthread) {
 
 Exporting Tamgu* Tamgulist::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
 
-    Locking _lock(this);
-
     if (!idx->isIndex()) {
 
         Tamgu* ke;
@@ -714,12 +784,14 @@ Exporting Tamgu* Tamgulist::Eval(Tamgu* contextualpattern, Tamgu* idx, short idt
             size_t i = 0;
 
             char ch[20];
+            locking();
             for (auto& it : values) {
                 sprintf_s(ch, 20, "%zd", i);
                 ke = it;
                 map->Push(ch, ke);
                 i++;
             }
+            unlocking();
             return map;
         }
 
@@ -732,6 +804,7 @@ Exporting Tamgu* Tamgulist::Eval(Tamgu* contextualpattern, Tamgu* idx, short idt
         if (evaluate == true) {
             Tamgulist* kvect = new Tamgulist;
 
+            locking();
             for (auto& it : values) {
                 ke = it->Eval(aNULL, aNULL, idthread);
                 if (ke == aRAISEERROR) {
@@ -740,6 +813,7 @@ Exporting Tamgu* Tamgulist::Eval(Tamgu* contextualpattern, Tamgu* idx, short idt
                 }
                 kvect->Push(ke);
             }
+            unlocking();
             return kvect;
         }
 
@@ -757,8 +831,11 @@ Exporting Tamgu* Tamgulist::Eval(Tamgu* contextualpattern, Tamgu* idx, short idt
     Tamgulist* kvect;
     if (ikey < 0)
         ikey = values.size() + ikey;
+    
+    locking();
     if (ikey < 0 || ikey >= values.size()) {
         if (ikey != values.size() || keyright == NULL) {
+            unlocking();
             if (globalTamgu->erroronkey)
                 return globalTamgu->Returnerror("Wrong index", idthread);
             return aNOELEMENT;
@@ -768,8 +845,11 @@ Exporting Tamgu* Tamgulist::Eval(Tamgu* contextualpattern, Tamgu* idx, short idt
     for (i = 0; i < ikey; i++) ++it;
 
 
-    if (keyright == NULL)
-        return *it;
+    if (keyright == NULL) {
+        keyright = *it;
+        unlocking();
+        return keyright;
+    }
 
     long iright = keyright->Integer();
     keyright->Release();
@@ -777,6 +857,7 @@ Exporting Tamgu* Tamgulist::Eval(Tamgu* contextualpattern, Tamgu* idx, short idt
     if (iright < 0 || keyright == aNULL) {
         iright = values.size() + iright;
         if (iright<ikey) {
+            unlocking();
             if (globalTamgu->erroronkey)
                 return globalTamgu->Returnerror("Wrong index", idthread);
             return aNOELEMENT;
@@ -784,6 +865,7 @@ Exporting Tamgu* Tamgulist::Eval(Tamgu* contextualpattern, Tamgu* idx, short idt
     }
     else {
         if (iright>values.size()) {
+            unlocking();
             if (globalTamgu->erroronkey)
                 return globalTamgu->Returnerror("Wrong index", idthread);
             return aNOELEMENT;
@@ -794,6 +876,7 @@ Exporting Tamgu* Tamgulist::Eval(Tamgu* contextualpattern, Tamgu* idx, short idt
     for (; i < iright; i++, ++it)
         kvect->Push(*it);
 
+    unlocking();
     return kvect;
 }
 
@@ -808,14 +891,16 @@ Exporting Tamgu* Tamgulist::andset(Tamgu* b, bool itself) {
             ref = this;
         else
             ref = (Tamgulist*)Atom(true);
-        Locking _lock(this);
+        locking();
         for (auto& itl : ref->values) {
             ke = itl->andset(b, true);
             if (ke->isError()) {
+                unlocking();
                 ref->Release();
                 return ke;
             }
         }
+        unlocking();
         return ref;
     }
 
@@ -847,14 +932,16 @@ Exporting Tamgu* Tamgulist::orset(Tamgu* b, bool itself) {
     else
         ref = (Tamgulist*)Atom(true);
     if (!b->isContainer()) {
-        Locking _lock(this);
+        locking();
         for (auto& itl : ref->values) {
             ke = itl->orset(b, true);
             if (ke->isError()) {
+                unlocking();
                 ref->Release();
                 return ke;
             }
         }
+        unlocking();
         return ref;
     }
     
@@ -872,16 +959,18 @@ Exporting Tamgu* Tamgulist::xorset(Tamgu* b, bool itself) {
         else
             ref = (Tamgulist*)Atom(true);
             
-        Locking _lock(this);
+        locking();
         
         Tamgu* ke;
         for (auto& itl : ref->values) {
             ke = itl->xorset(b, true);
             if (ke->isError()) {
+                unlocking();
                 ref->Release();
                 return ke;
             }
         }
+        unlocking();
         return ref;
     }
 
@@ -1338,93 +1427,93 @@ Exporting Tamgu* Tamgulist::same(Tamgu* a) {
 }
 //----------------------------------------------------------------------------------
 Exporting void Tamgulist::Storevalue(string& u) {
-    Tamgu* a = globalTamgu->Providestring(u);
+    Tamgu* a = globalTamgu->Providewithstring(u);
     a->Addreference(reference+1);
-    Locking* _lock = _getlock(this);
+    locking();
     values.push_back(a);
-    _cleanlock(_lock);
+    unlocking();
 }
 
 Exporting void Tamgulist::Storevalue(wstring& u) {
-    Tamgu* a = globalTamgu->Provideustring(u);
+    Tamgu* a = globalTamgu->Providewithustring(u);
     a->Addreference(reference+1);
-    Locking* _lock = _getlock(this);
+    locking();
     values.push_back(a);
-    _cleanlock(_lock);
+    unlocking();
 }
 
 Exporting void Tamgulist::storevalue(string u) {
-    Tamgu* a = globalTamgu->Providestring(u);
+    Tamgu* a = globalTamgu->Providewithstring(u);
     a->Addreference(reference+1);
-    Locking* _lock = _getlock(this);
+    locking();
     values.push_back(a);
-    _cleanlock(_lock);
+    unlocking();
 }
 
 Exporting void Tamgulist::storevalue(wstring u) {
-    Tamgu* a = globalTamgu->Provideustring(u);
+    Tamgu* a = globalTamgu->Providewithustring(u);
     a->Addreference(reference+1);
-    Locking* _lock = _getlock(this);
+    locking();
     values.push_back(a);
-    _cleanlock(_lock);
+    unlocking();
 }
 
 Exporting void Tamgulist::storevalue(long u) {
     Tamgu* a = globalTamgu->Provideint(u);
     a->Addreference(reference+1);
-    Locking* _lock = _getlock(this);
+    locking();
     values.push_back(a);
-    _cleanlock(_lock);
+    unlocking();
 }
 
 Exporting void Tamgulist::storevalue(short u) {
     Tamgu* a = new Tamgushort(u);
     a->Addreference(reference+1);
-    Locking* _lock = _getlock(this);
+    locking();
     values.push_back(a);
-    _cleanlock(_lock);
+    unlocking();
 }
 
 Exporting void Tamgulist::storevalue(BLONG u) {
     Tamgu* a = new Tamgulong(u);
     a->Addreference(reference+1);
-    Locking* _lock = _getlock(this);
+    locking();
     values.push_back(a);
-    _cleanlock(_lock);
+    unlocking();
 }
 
 Exporting void Tamgulist::storevalue(float u) {
     Tamgu* a = new Tamgudecimal(u);
     a->Addreference(reference+1);
-    Locking* _lock = _getlock(this);
+    locking();
     values.push_back(a);
-    _cleanlock(_lock);
+    unlocking();
 }
 
 Exporting void Tamgulist::storevalue(double u) {
     Tamgu* a = globalTamgu->Providefloat(u);
     a->Addreference(reference+1);
-    Locking* _lock = _getlock(this);
+    locking();
     values.push_back(a);
-    _cleanlock(_lock);
+    unlocking();
 }
 
 Exporting void Tamgulist::storevalue(unsigned char u) {
     Tamgu* a = new Tamgubyte(u);
     a->Addreference(reference+1);
-    Locking* _lock = _getlock(this);
+    locking();
     values.push_back(a);
-    _cleanlock(_lock);
+    unlocking();
 }
 
 Exporting void Tamgulist::storevalue(wchar_t u) {
     wstring w;
     w = u;
-    Tamgu* a = globalTamgu->Provideustring(w);
+    Tamgu* a = globalTamgu->Providewithustring(w);
     a->Addreference(reference+1);
-    Locking* _lock = _getlock(this);
+    locking();
     values.push_back(a);
-    _cleanlock(_lock);
+    unlocking();
 }
 
 
@@ -1676,6 +1765,41 @@ Exporting string Tamguring::String() {
     }
     res += "]";
     return res;
+}
+
+Exporting void Tamguring::Setstring(string& res, short idthread) {
+    if (loopmark) {
+        res = "[...]";
+        return;
+    }
+    TamguCircular _c(this);
+
+    res = "[";
+    bool beg = true;
+    string sx;
+    Tamgu* element;
+    atomic_ring_iterator<Tamgu*> it(values);
+    while (!it.end()) {
+        element = it.second;
+        sx = element->StringToDisplay();
+        if (!element->isString() || element->isContainer()) {
+            if (sx == "")
+                sx = "''";
+            if (beg == false) {
+                if (sx[0] != '|')
+                    res += ",";
+            }
+            res += sx;
+        }
+        else {
+            if (beg == false)
+                res += ",";
+            stringing(res, sx);
+        }
+        beg = false;
+        it.next();
+    }
+    res += "]";
 }
 
 Exporting Tamgu* Tamguring::Map(short idthread) {
@@ -2337,7 +2461,7 @@ Exporting Tamgu*  Tamguring::Put(Tamgu* idx, Tamgu* value, short idthread) {
         return aTRUE;
     }
     
-    long ikey = idx->Integer();
+    long ikey = idx->Getinteger(idthread);
     long mx = values.size();
     if (ikey < 0) {
         ikey = mx + ikey;
@@ -2458,7 +2582,7 @@ Exporting void Tamguring::Clear() {
 
 
 Exporting void Tamguring::Storevalue(string& u) {
-    Tamgu* a = globalTamgu->Providestring(u);
+    Tamgu* a = globalTamgu->Providewithstring(u);
     a->Addreference(reference+1);
     a = values.push_back(a);
     if (a != NULL)
@@ -2466,7 +2590,7 @@ Exporting void Tamguring::Storevalue(string& u) {
 }
 
 Exporting void Tamguring::Storevalue(wstring& u) {
-    Tamgu* a = globalTamgu->Provideustring(u);
+    Tamgu* a = globalTamgu->Providewithustring(u);
     a->Addreference(reference+1);
     a = values.push_back(a);
     if (a != NULL)
@@ -2474,7 +2598,7 @@ Exporting void Tamguring::Storevalue(wstring& u) {
 }
 
 Exporting void Tamguring::storevalue(string u) {
-    Tamgu* a = globalTamgu->Providestring(u);
+    Tamgu* a = globalTamgu->Providewithstring(u);
     a->Addreference(reference+1);
     a = values.push_back(a);
     if (a != NULL)
@@ -2482,7 +2606,7 @@ Exporting void Tamguring::storevalue(string u) {
 }
 
 Exporting void Tamguring::storevalue(wstring u) {
-    Tamgu* a = globalTamgu->Provideustring(u);
+    Tamgu* a = globalTamgu->Providewithustring(u);
     a->Addreference(reference+1);
     a = values.push_back(a);
     if (a != NULL)
@@ -2540,7 +2664,7 @@ Exporting void Tamguring::storevalue(unsigned char u) {
 Exporting void Tamguring::storevalue(wchar_t u) {
     wstring w;
     w = u;
-    Tamgu* a = globalTamgu->Provideustring(w);
+    Tamgu* a = globalTamgu->Providewithustring(w);
     a->Addreference(reference+1);
     a = values.push_back(a);
     if (a != NULL)
@@ -2600,7 +2724,7 @@ Exporting Tamgu* Tamguring::Thesum(long i, long j) {
         v += it.second->String();
         it.next();
     }
-    return globalTamgu->Providestring(v);
+    return globalTamgu->Providewithstring(v);
 }
 
 Exporting Tamgu* Tamguring::Theproduct(long i, long j) {

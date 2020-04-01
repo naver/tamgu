@@ -85,13 +85,9 @@ class Tamgutime : public TamguObject {
         return "time";
     }
 
-    bool isString() {
-        return false;
-    }
+    
 
-    bool isNumber() {
-        return false;
-    }
+    
 
     bool isBoolean() {
         return false;
@@ -175,7 +171,10 @@ class Tamgutime : public TamguObject {
     
 
 	string String();
-
+    
+    void Setstring(string& v, short idthread);
+    void Setstring(wstring&, short idthread);
+    
 	double Float() {
 		double mt = (((unsigned long)value.tv_sec) * 1000 + ((unsigned long)value.tv_usec) / 1000.0) + 0.5;
 		return mt;

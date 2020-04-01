@@ -500,6 +500,7 @@ public:
 
     Tamguregular(TamguGlobal* g = NULL, Tamgu* parent = NULL) : TamguObject(g, parent) {
         //Do not forget your variable initialisation
+        investigate |= is_regular;
     }
   
     string String() {
@@ -511,11 +512,15 @@ public:
     wstring UString() {
         return reg;
     }
-    
 
-    bool isRegular() {
-        return true;
+    void Setstring(string& v, short idthread) {
+        sc_unicode_to_utf8(v, reg);
     }
+    
+    void Setstring(wstring& v, short idthread) {
+        v = reg;
+    }
+    
 
 };
 

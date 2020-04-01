@@ -700,7 +700,7 @@ public:
                             }
                             sx=sub.substr(d,e-d);
                             vsub.push_back(sx);
-                            sub = convertfromnumber((long)disjunctions.size());
+                            convertnumber((long)disjunctions.size(), sub);
                             disjunctions.push_back(vsub);
                         }
                         if (neg) {

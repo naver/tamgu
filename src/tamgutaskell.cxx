@@ -1974,6 +1974,14 @@ string TamguParameterFunction::String() {
     return nm;
 }
 
+void TamguParameterFunction::Setstring(string& nm, short idthread) {
+    nm = globalTamgu->Getsymbol(idtype);
+    if (nm.find("call") != string::npos)
+        nm = nm.substr(4, nm.size() - 4);
+    nm += ":";
+    nm += globalTamgu->Getsymbol(name);
+}
+
 Tamgu* TamguFunctionParameter::Execute(Tamgu* context, Tamgu* callfunction, short idthread) {
     Tamgu* body = globalTamgu->Getdefinition(name, idthread, context);
 

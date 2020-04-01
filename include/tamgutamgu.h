@@ -86,13 +86,9 @@ class Tamgutamgu : public TamguObject {
         return "tamgu";
     }
 
-    bool isString() {
-        return false;
-    }
+    
 
-    bool isNumber() {
-        return false;
-    }
+    
 
     bool isBoolean() {
         return false;
@@ -192,6 +188,10 @@ class Tamgutamgu : public TamguObject {
 
     string String() {        
 		return filename;
+    }
+
+    void Setstring(string& v, short idthread) {
+        v = filename;
     }
 
 };

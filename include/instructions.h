@@ -215,6 +215,35 @@ public:
 	}
 };
 
+class TamguCallLispFunction : public TamguCall {
+public:
+    Tamgu* body;
+
+    bool Checkarity() {
+        if (body->Size() != arguments.size())
+            return false;
+        return true;
+    }
+
+    TamguCallLispFunction(Tamgu* b, TamguGlobal* global, Tamgu* parent) : body(b), TamguCall(a_calllisp, global, parent) {
+        name = b->Name();
+    }
+
+    TamguCallLispFunction(Tamgu* b) : body(b), TamguCall(a_calllisp) {
+        name = b->Name();
+    }
+
+    Tamgu* Eval(Tamgu* context, Tamgu* domain, short idthread);
+
+    short Name() {
+        return name;
+    }
+
+    Tamgu* Body(short idthread) {
+        return body->Body(idthread);
+    }
+};
+
 class TamguCallFunction0 : public TamguCallFunction {
 public:
     TamguCallFunction0(Tamgu* b, TamguGlobal* global = NULL, Tamgu* parent = NULL) : TamguCallFunction(b, global, parent) {}
@@ -847,13 +876,13 @@ public:
 		return false;
 	}
 
-	bool isString() {
+	bool isCallString() {
 		if (typevariable == a_string || typevariable == a_ustring)
 			return true;
 		return false;
 	}
 
-	bool isNumber() {
+	bool isCallNumber() {
 		switch (typevariable) {
 		case a_int:
 		case a_long:
@@ -1013,25 +1042,47 @@ public:
 		return v;
 	}
 
-	virtual string Getstring(short idthread) {
-		if (call == NULL)
-			return globalTamgu->threads[idthread].variables.get(name).back()->String();
+    virtual string Getstring(short idthread) {
+        if (call == NULL)
+            return globalTamgu->threads[idthread].variables.get(name).back()->String();
 
-		Tamgu* a = Eval(aNULL, aNULL, idthread);
-		string v = a->String();
-		a->Release();
-		return v;
-	}
+        Tamgu* a = Eval(aNULL, aNULL, idthread);
+        string v = a->String();
+        a->Release();
+        return v;
+    }
 
-	virtual wstring Getustring(short idthread) {
-		if (call == NULL)
-			return globalTamgu->threads[idthread].variables.get(name).back()->UString();
+    virtual wstring Getustring(short idthread) {
+        if (call == NULL)
+            return globalTamgu->threads[idthread].variables.get(name).back()->UString();
 
-		Tamgu* a = Eval(aNULL, aNULL, idthread);
-		wstring v = a->UString();
-		a->Release();
-		return v;
-	}
+        Tamgu* a = Eval(aNULL, aNULL, idthread);
+        wstring v = a->UString();
+        a->Release();
+        return v;
+    }
+
+    virtual void Setstring(string& s, short idthread) {
+        if (call == NULL) {
+            globalTamgu->threads[idthread].variables.get(name).back()->Setstring(s, idthread);
+            return;
+        }
+
+        Tamgu* a = Eval(aNULL, aNULL, idthread);
+        a->Setstring(s, idthread);
+        a->Release();
+    }
+
+    virtual void Setstring(wstring& s, short idthread) {
+        if (call == NULL) {
+            globalTamgu->threads[idthread].variables.get(name).back()->Setstring(s, idthread);
+            return;
+        }
+
+        Tamgu* a = Eval(aNULL, aNULL, idthread);
+        a->Setstring(s, idthread);
+        a->Release();
+    }
 
     virtual Tamgu* plus(Tamgu* a, bool itself) {
         Tamgu* value = Eval(aNULL, aNULL, globalTamgu->GetThreadid());
@@ -1129,6 +1180,14 @@ public:
 		return Eval(aNULL, aNULL, idthread)->UString();
 	}
 
+    void Setstring(string& v, short idthread) {
+        Eval(aNULL, aNULL, idthread)->Setstring(v, idthread);
+    }
+
+    void Setstring(wstring& v, short idthread) {
+        Eval(aNULL, aNULL, idthread)->Setstring(v, idthread);
+    }
+
 	short Action() {
 		return a_none;
 	}
@@ -1209,6 +1268,14 @@ public:
 	wstring Getustring(short idthread) {
 		return Eval(aNULL, aNULL, idthread)->UString();
 	}
+
+    void Setstring(string& v, short idthread) {
+        Eval(aNULL, aNULL, idthread)->Setstring(v, idthread);
+    }
+
+    void Setstring(wstring& v, short idthread) {
+        Eval(aNULL, aNULL, idthread)->Setstring(v, idthread);
+    }
 
 	short Action() {
 		return a_none;
@@ -1300,6 +1367,30 @@ public:
         value->Release();
         return v;
 	}
+
+    void Setstring(string& v, short idthread) {
+        if (call == NULL) {
+            globalTamgu->threads[idthread].variables.get(typevariable).back()->Setstring(v, idthread);
+            return;
+        }
+        
+        Tamgu* value = globalTamgu->threads[idthread].variables.get(typevariable).back();
+        value = call->Eval(aNULL, value, idthread);
+        value->Setstring(v, idthread);
+        value->Release();
+    }
+
+    void Setstring(wstring& v, short idthread) {
+        if (call == NULL) {
+            globalTamgu->threads[idthread].variables.get(typevariable).back()->Setstring(v, idthread);
+            return;
+        }
+        
+        Tamgu* value = globalTamgu->threads[idthread].variables.get(typevariable).back();
+        value = call->Eval(aNULL, value, idthread);
+        value->Setstring(v, idthread);
+        value->Release();
+    }
 
 	short Action() {
 		return a_none;
@@ -1655,6 +1746,111 @@ public:
 		return v;
 	}
 
+    void Setstring(string& v, short idthread) {
+        switch (nocall) {
+            case 1:
+                globalTamgu->Getframedefinition(frame_name, name, idthread)->Setstring(v, idthread);
+                return;
+            case 2:
+                globalTamgu->Getframedefinition(frame_name, name, idthread)->Declaration(call_name)->Setstring(v, idthread);
+                return;
+            case 3: {
+                Tamgu* a = globalTamgu->Getdeclaration(frame_name, idthread);
+                a = call->Eval(aNULL, a, idthread);
+                a->Setstring(v, idthread);
+                a->Release();
+                return;
+            }
+            case 4:
+                globalTamgu->Getdeclaration(frame_name, idthread)->Setstring(v, idthread);
+                return;
+            case 10:
+                if (call == NULL) {
+                    if (frame_name ==  name) {
+                        nocall = 4;
+                        globalTamgu->Getdeclaration(frame_name, idthread)->Setstring(v, idthread);
+                        return;
+                    }
+                    globalTamgu->Getframedefinition(frame_name, name, idthread)->Setstring(v, idthread);
+                    return;
+                }
+                else
+                    if (call->Function() == NULL && call->isCallVariable()) {
+                        nocall = 2; call_name = call->Name();
+                        globalTamgu->Getframedefinition(frame_name, name, idthread)->Declaration(call_name)->Setstring(v, idthread);
+                        return;
+                    }
+                    else
+                        if (frame_name ==  name) {
+                            nocall = 3;
+                            Tamgu* a = globalTamgu->Getdeclaration(frame_name, idthread);
+                            a = call->Eval(aNULL, a, idthread);
+                            a->Setstring(v, idthread);
+                            a->Release();
+                            return;
+                        }
+                nocall=0;
+        }
+
+        Tamgu* a = globalTamgu->Getframedefinition(frame_name, name, idthread);
+        a = call->Eval(aNULL, a, idthread);
+        a->Setstring(v, idthread);
+        a->Release();
+    }
+
+    void Setstring(wstring& v, short idthread) {
+        switch (nocall) {
+            case 1:
+                globalTamgu->Getframedefinition(frame_name, name, idthread)->Setstring(v, idthread);
+                return;
+            case 2:
+                globalTamgu->Getframedefinition(frame_name, name, idthread)->Declaration(call_name)->Setstring(v, idthread);
+                return;
+            case 3: {
+                Tamgu* a = globalTamgu->Getdeclaration(frame_name, idthread);
+                a = call->Eval(aNULL, a, idthread);
+                a->Setstring(v, idthread);
+                a->Release();
+                return;
+            }
+            case 4:
+                globalTamgu->Getdeclaration(frame_name, idthread)->Setstring(v, idthread);
+                return;
+            case 10:
+                if (call == NULL) {
+                    if (frame_name ==  name) {
+                        nocall = 4;
+                        globalTamgu->Getdeclaration(frame_name, idthread)->Setstring(v, idthread);
+                        return;
+                    }
+                    globalTamgu->Getframedefinition(frame_name, name, idthread)->Setstring(v, idthread);
+                    return;
+                }
+                else
+                    if (call->Function() == NULL && call->isCallVariable()) {
+                        nocall = 2; call_name = call->Name();
+                        globalTamgu->Getframedefinition(frame_name, name, idthread)->Declaration(call_name)->Setstring(v, idthread);
+                        return;
+                    }
+                    else
+                        if (frame_name ==  name) {
+                            nocall = 3;
+                            Tamgu* a = globalTamgu->Getdeclaration(frame_name, idthread);
+                            a = call->Eval(aNULL, a, idthread);
+                            a->Setstring(v, idthread);
+                            a->Release();
+                            return;
+                        }
+                nocall=0;
+        }
+
+        Tamgu* a = globalTamgu->Getframedefinition(frame_name, name, idthread);
+        a = call->Eval(aNULL, a, idthread);
+        a->Setstring(v, idthread);
+        a->Release();
+    }
+
+
 };
 
 class TamguCallFromFrameVariable : public TamguCallVariable {
@@ -1713,7 +1909,21 @@ public:
 		a->Release();
 		return v;
 	}
-	short Action() {
+
+    void Setstring(string& v, short idthread) {
+        Tamgu* a = Eval(aNULL, aNULL, idthread);
+        a->Setstring(v, idthread);
+        a->Release();
+    }
+
+    void Setstring(wstring& v, short idthread) {
+        Tamgu* a = Eval(aNULL, aNULL, idthread);
+        a->Setstring(v, idthread);
+        a->Release();
+    }
+
+
+    short Action() {
 		return a_none;
 	}
 
@@ -1806,6 +2016,19 @@ public:
 		return v;
 	}
 
+    void Setstring(string& v, short idthread) {
+        Tamgu* a = Eval(aNULL, aNULL, idthread);
+        a->Setstring(v, idthread);
+        a->Release();
+    }
+
+    void Setstring(wstring& v, short idthread) {
+        Tamgu* a = Eval(aNULL, aNULL, idthread);
+        a->Setstring(v, idthread);
+        a->Release();
+    }
+
+
 };
 
 class TamguCallSystemVariable : public TamguCallVariable {
@@ -1885,6 +2108,24 @@ public:
 		return value->UString();
 	}
 
+    void Setstring(string& v, short idthread) {
+        Tamgu* value = globalTamgu->systems[name]->value;
+
+        if (call != NULL)
+            value = call->Eval(aNULL, value, idthread);
+
+        value->Setstring(v, idthread);
+    }
+
+    void Setstring(wstring& v, short idthread) {
+        Tamgu* value = globalTamgu->systems[name]->value;
+
+        if (call != NULL)
+            value = call->Eval(aNULL, value, idthread);
+
+        value->Setstring(v, idthread);
+    }
+
 	short Action() {
 		return a_none;
 	}
@@ -1930,6 +2171,12 @@ public:
 		v += instructions[1]->String();
 		return v;
 	}
+
+    void Setstring(string& v, short idthread) {
+        instructions[0]->Setstring(v, idthread);
+        v += "=";
+        v += instructions[1]->String();
+    }
 };
 
 class TamguInstructionSTREAM : public TamguInstructionAFFECTATION {
@@ -1961,6 +2208,13 @@ public:
         v += instructions[1]->String();
         return v;
     }
+    
+    void Setstring(string& v, short idthread) {
+        instructions[0]->Setstring(v, idthread);
+        v += "=";
+        v += instructions[1]->String();
+    }
+
 };
 
 class TamguInstructionGlobalVariableAFFECTATION : public TamguInstruction {
@@ -1993,6 +2247,13 @@ public:
         v += instructions[1]->String();
         return v;
     }
+    
+    void Setstring(string& v, short idthread) {
+        instructions[0]->Setstring(v, idthread);
+        v += "=";
+        v += instructions[1]->String();
+    }
+
 };
 
 class TamguInstructionFunctionVariableAFFECTATION : public TamguInstruction {
@@ -2011,6 +2272,13 @@ public:
         v += instructions[1]->String();
         return v;
     }
+    
+    void Setstring(string& v, short idthread) {
+        instructions[0]->Setstring(v, idthread);
+        v += "=";
+        v += instructions[1]->String();
+    }
+
 };
 
 
@@ -2038,6 +2306,14 @@ public:
 	string String() {
 		return globalTamgu->Getsymbol(action);
 	}
+
+    void Setstring(string& v, short idthread) {
+        v = globalTamgu->Getsymbol(action);
+    }
+
+    void Setstring(wstring& v, short idthread) {
+        v = globalTamgu->Getwsymbol(action);
+    }
 
 };
 
@@ -2097,6 +2373,14 @@ public:
     
     virtual wstring UString() {
         return Getustring(globalTamgu->GetThreadid());
+    }
+
+    virtual void Setstring(string& v, short idthread) {
+        globalTamgu->threads[idthread].variables.get(name).back()->Setstring(v, idthread);
+    }
+    
+    virtual void Setstring(wstring& v, short idthread) {
+        globalTamgu->threads[idthread].variables.get(name).back()->Setstring(v, idthread);
     }
 
 	virtual long Getinteger(short idthread) {
@@ -2173,6 +2457,15 @@ public:
     wstring Getustring(short idthread) {
         return globalTamgu->threads[idthread].variables.get(name).back()->UString();
     }
+    
+    void Setstring(string& v, short idthread) {
+        globalTamgu->threads[idthread].variables.get(name).back()->Setstring(v, idthread);
+    }
+    
+    void Setstring(wstring& v, short idthread) {
+        globalTamgu->threads[idthread].variables.get(name).back()->Setstring(v, idthread);
+    }
+
 };
 
 class TamguActionVariableShort : public TamguActionVariable {
@@ -2212,6 +2505,16 @@ public:
     wstring Getustring(short idthread) {
         return globalTamgu->threads[idthread].variables.get(name).back()->UString();
     }
+    
+    void Setstring(string& v, short idthread) {
+        globalTamgu->threads[idthread].variables.get(name).back()->Setstring(v, idthread);
+    }
+    
+    void Setstring(wstring& v, short idthread) {
+        globalTamgu->threads[idthread].variables.get(name).back()->Setstring(v, idthread);
+    }
+
+
 };
 
 class TamguActionVariableDecimal : public TamguActionVariable {
@@ -2251,6 +2554,16 @@ public:
     wstring Getustring(short idthread) {
         return globalTamgu->threads[idthread].variables.get(name).back()->UString();
     }
+    
+    void Setstring(string& v, short idthread) {
+        globalTamgu->threads[idthread].variables.get(name).back()->Setstring(v, idthread);
+    }
+    
+    void Setstring(wstring& v, short idthread) {
+        globalTamgu->threads[idthread].variables.get(name).back()->Setstring(v, idthread);
+    }
+
+
 };
 
 class TamguActionVariableFloat : public TamguActionVariable {
@@ -2290,6 +2603,16 @@ public:
     wstring Getustring(short idthread) {
         return globalTamgu->threads[idthread].variables.get(name).back()->UString();
     }
+    
+    void Setstring(string& v, short idthread) {
+        globalTamgu->threads[idthread].variables.get(name).back()->Setstring(v, idthread);
+    }
+    
+    void Setstring(wstring& v, short idthread) {
+        globalTamgu->threads[idthread].variables.get(name).back()->Setstring(v, idthread);
+    }
+
+
 };
 
 class TamguActionVariableString : public TamguActionVariable {
@@ -2329,6 +2652,15 @@ public:
     wstring Getustring(short idthread) {
         return globalTamgu->threads[idthread].variables.get(name).back()->UString();
     }
+    
+    void Setstring(string& v, short idthread) {
+        globalTamgu->threads[idthread].variables.get(name).back()->Setstring(v, idthread);
+    }
+    
+    void Setstring(wstring& v, short idthread) {
+        globalTamgu->threads[idthread].variables.get(name).back()->Setstring(v, idthread);
+    }
+
 };
 
 class TamguActionVariableUString : public TamguActionVariable {
@@ -2368,6 +2700,16 @@ public:
     string Getstring(short idthread) {
         return globalTamgu->threads[idthread].variables.get(name).back()->String();
     }
+    
+    void Setstring(string& v, short idthread) {
+        globalTamgu->threads[idthread].variables.get(name).back()->Setstring(v, idthread);
+    }
+    
+    void Setstring(wstring& v, short idthread) {
+        globalTamgu->threads[idthread].variables.get(name).back()->Setstring(v, idthread);
+    }
+
+
 };
 
 class TamguActionVariableLong : public TamguActionVariable {
@@ -2407,6 +2749,16 @@ public:
     wstring Getustring(short idthread) {
         return globalTamgu->threads[idthread].variables.get(name).back()->UString();
     }
+    
+    void Setstring(string& v, short idthread) {
+        globalTamgu->threads[idthread].variables.get(name).back()->Setstring(v, idthread);
+    }
+    
+    void Setstring(wstring& v, short idthread) {
+        globalTamgu->threads[idthread].variables.get(name).back()->Setstring(v, idthread);
+    }
+
+
 };
 
 class TamguActionLetVariable : public TamguActionVariable {
@@ -2445,6 +2797,15 @@ public:
 	wstring Getustring(short idthread) {
 		return globalTamgu->threads[idthread].variables.get(name).back()->Value()->UString();
 	}
+
+    void Setstring(string& v, short idthread) {
+        globalTamgu->threads[idthread].variables.get(name).back()->Setstring(v, idthread);
+    }
+    
+    void Setstring(wstring& v, short idthread) {
+        globalTamgu->threads[idthread].variables.get(name).back()->Setstring(v, idthread);
+    }
+
 
 };
 
@@ -2512,6 +2873,22 @@ public:
             first = false;
         }
         return wconvertfromnumber(val->value);
+    }
+
+    void Setstring(string& v, short idthread) {
+        if (first) {
+            val = (Tamguint*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            first = false;
+        }
+        convertnumber(val->value, v);
+    }
+    
+    void Setstring(wstring& v, short idthread) {
+        if (first) {
+            val = (Tamguint*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            first = false;
+        }
+        convertnumber(val->value, v);
     }
 
     Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread) {
@@ -2641,6 +3018,22 @@ public:
             first = false;
         }
         return wconvertfromnumber(val->value);
+    }
+
+    void Setstring(string& v, short idthread) {
+        if (first) {
+            val = (Tamgushort*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            first = false;
+        }
+        v = convertfromnumber(val->value);
+    }
+    
+    void Setstring(wstring& v, short idthread) {
+        if (first) {
+            val = (Tamgushort*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            first = false;
+        }
+        v = wconvertfromnumber(val->value);
     }
 
     Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread) {
@@ -2773,6 +3166,23 @@ public:
         return wconvertfromnumber(val->value);
     }
     
+    void Setstring(string& v, short idthread) {
+        if (first) {
+            val = (Tamgudecimal*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            first = false;
+        }
+        v = convertfromnumber(val->value);
+    }
+    
+    void Setstring(wstring& v, short idthread) {
+        if (first) {
+            val = (Tamgudecimal*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            first = false;
+        }
+        v = wconvertfromnumber(val->value);
+    }
+
+
     Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread) {
         if (first) {
             val = (Tamgudecimal*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
@@ -2903,6 +3313,22 @@ public:
         return wconvertfromnumber(val->value);
     }
     
+    void Setstring(string& v, short idthread) {
+        if (first) {
+            val = (Tamgufloat*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            first = false;
+        }
+        convertnumber(val->value, v);
+    }
+    
+    void Setstring(wstring& v, short idthread) {
+        if (first) {
+            val = (Tamgufloat*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            first = false;
+        }
+        convertnumber(val->value, v);
+    }
+
     Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread) {
         if (first) {
             val = (Tamgufloat*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
@@ -3033,6 +3459,22 @@ public:
         return wconvertfromnumber(val->value);
     }
     
+    void Setstring(string& v, short idthread) {
+        if (first) {
+            val = (Tamgulong*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            first = false;
+        }
+        v = convertfromnumber(val->value);
+    }
+    
+    void Setstring(wstring& v, short idthread) {
+        if (first) {
+            val = (Tamgulong*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            first = false;
+        }
+        v = wconvertfromnumber(val->value);
+    }
+
     Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread) {
         if (first) {
             val = (Tamgulong*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
@@ -3162,6 +3604,22 @@ public:
         return val->UString();
     }
     
+    void Setstring(string& v, short idthread) {
+        if (first) {
+            val = (Tamgustring*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            first = false;
+        }
+        val->Setstring(v, idthread);
+    }
+    
+    void Setstring(wstring& v, short idthread) {
+        if (first) {
+            val = (Tamgustring*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            first = false;
+        }
+        val->Setstring(v, idthread);
+    }
+
     Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread) {
         if (first) {
             val = (Tamgustring*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
@@ -3223,8 +3681,7 @@ public:
             val = (Tamgustring*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
             first = false;
         }
-        Locking _lock(val);
-        return val->value;
+        return val->String();
     }
 };
 
@@ -3300,6 +3757,22 @@ public:
         return val->value;
     }
     
+    void Setstring(string& v, short idthread) {
+        if (first) {
+            val = (Tamguustring*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            first = false;
+        }
+        val->Setstring(v, idthread);
+    }
+    
+    void Setstring(wstring& v, short idthread) {
+        if (first) {
+            val = (Tamguustring*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            first = false;
+        }
+        val->Setstring(v, idthread);
+    }
+
     long Getinteger(short idthread) {
         if (first) {
             val = (Tamguustring*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
@@ -3396,6 +3869,14 @@ public:
         return globalTamgu->threads[idthread].variables.get(name).vecteur[1]->UString();
     }
     
+    void Setstring(string& v, short idthread) {
+        globalTamgu->threads[idthread].variables.get(name).vecteur[1]->Setstring(v, idthread);
+    }
+    
+    void Setstring(wstring& v, short idthread) {
+        globalTamgu->threads[idthread].variables.get(name).vecteur[1]->Setstring(v, idthread);
+    }
+
     Tamgu* update(short idthread) {
         switch(typevar) {
             case a_short:
@@ -3454,6 +3935,16 @@ public:
     wstring Getustring(short idthread) {
         return globalTamgu->threads[idthread].variables.get(name).vecteur[1]->Value()->UString();
     }
+    
+    void Setstring(string& v, short idthread) {
+        globalTamgu->threads[idthread].variables.get(name).vecteur[1]->Value()->Setstring(v, idthread);
+    }
+    
+    void Setstring(wstring& v, short idthread) {
+        globalTamgu->threads[idthread].variables.get(name).vecteur[1]->Value()->Setstring(v, idthread);
+    }
+
+
 };
 
 
@@ -3510,6 +4001,44 @@ public:
 		}
 		return v;
 	}
+
+    void Setstring(string& v, short idthread) {
+        v = "";
+        for (long i = size - 1; i >= 0; i--) {
+            if (i < size - 1)
+                v += " ";
+            if (instructions[i] == this)
+                v += globalTamgu->Getsymbol(action);
+            else
+                v += instructions[i]->String();
+        }
+    }
+
+    wstring UString() {
+        wstring v;
+        for (long i = size - 1; i >= 0; i--) {
+            if (i < size - 1)
+                v += L" ";
+            if (instructions[i] == this)
+                v += globalTamgu->Getwsymbol(action);
+            else
+                v += instructions[i]->UString();
+        }
+        return v;
+    }
+
+    void Setstring(wstring& v, short idthread) {
+        v = L"";
+        for (long i = size - 1; i >= 0; i--) {
+            if (i < size - 1)
+                v += L" ";
+            if (instructions[i] == this)
+                v += globalTamgu->Getwsymbol(action);
+            else
+                v += instructions[i]->UString();
+        }
+    }
+
 
 	long Getinteger(short idthread) {
         Tamgu* r;
@@ -3817,6 +4346,8 @@ public:
     double Getfloat(short idthread);
     string Getstring(short idthread);
     wstring Getustring(short idthread);
+    void Setstring(string& v, short idthread);
+    void Setstring(wstring& v, short idthread);
 };
 
 class TamguInstructionOperationIfnot : public TamguInstruction {
@@ -3842,6 +4373,14 @@ public:
 	string String() {
 		return "++";
 	}
+    
+    void Setstring(string& v, short idthread) {
+        v = "++";
+    }
+
+    void Setstring(wstring& v, short idthread) {
+        v = L"++";
+    }
 };
 
 class TamguMINUSMINUS : public TamguTracked {
@@ -3857,6 +4396,13 @@ public:
 		return "--";
 	}
 
+    void Setstring(string& v, short idthread) {
+        v = "--";
+    }
+
+    void Setstring(wstring& v, short idthread) {
+        v = L"--";
+    }
 };
 
 class TamguSQUARE : public TamguTracked {

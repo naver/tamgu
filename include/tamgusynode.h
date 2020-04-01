@@ -974,18 +974,32 @@ public:
 		return features->JSonString();
 	}
 
-	string String() {
-		string s;
-		if (features->isMapContainer()) {
-			s = features->String();
-			s[0] = '[';
-			s[s.size() - 1] = ']';
-		}
+    string String() {
+        string s = "#";
+        
+        s += convertfromnumber(id);
+        
+        if (features->isMapContainer()) {
+            short e = s.size();
+            s += features->String();
+            s[e] = '[';
+            s[s.size() - 1] = ']';
+        }
+        return s;
+    }
 
-		stringstream r;
-		r << "#" << id << s;
-		return r.str();
-	}
+    void Setstring(string& s, short idthread) {
+        s = "#";
+        
+        s += convertfromnumber(id);
+        
+        if (features->isMapContainer()) {
+            short e = s.size();
+            s += features->String();
+            s[e] = '[';
+            s[s.size() - 1] = ']';
+        }
+    }
 
 	long Integer() { return id; }
 	short Short() { return id; }

@@ -148,7 +148,7 @@ class Tamgustdin : public TamguObject {
             return globalTamgu->Provideint(c);
         string s;
         s = c;
-        return globalTamgu->Providestring(s);
+        return globalTamgu->Providewithstring(s);
     }
 
     Tamgu* MethodRead(Tamgu* context, short idthread, TamguCall* callfunc) {
@@ -168,7 +168,7 @@ class Tamgustdin : public TamguObject {
                 }
 
                 readnb(bf, nb);
-                return globalTamgu->Providestring(bf);
+                return globalTamgu->Providewithstring(bf);
             }
         }
 
@@ -183,7 +183,7 @@ class Tamgustdin : public TamguObject {
         }
 
         readall(bf);
-        return globalTamgu->Providestring(bf);
+        return globalTamgu->Providewithstring(bf);
 
     }
 
@@ -201,7 +201,7 @@ class Tamgustdin : public TamguObject {
         
         string bf;
         readline(bf);
-        return globalTamgu->Providestring(bf);
+        return globalTamgu->Providewithstring(bf);
         
     }
 

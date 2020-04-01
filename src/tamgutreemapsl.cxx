@@ -95,29 +95,45 @@ Exporting Tamgu* Tamgutreemapsl::in(Tamgu* context, Tamgu* a, short idthread) {
     
     string val = a->String();
 
-     if (context->isVectorContainer()) {
+    if (context->isVectorContainer()) {
         Tamgusvector* v = (Tamgusvector*)Selectasvector(context);
         Doublelocking _lock(this, v);
-        if (values.find(val)!=values.end())
+        try {
+            values.at(val);
             v->values.push_back(val);
+        }
+        catch(const std::out_of_range& oor) {}
 
         return v;
     }
 
-   if (context->isString()) {
-        Locking _lock(this);
-        if (values.find(val)!=values.end())
-            return globalTamgu->Providestring(val);
-        return aNOELEMENT;
+    if (context->isString()) {
+        locking();
+        try {
+            values.at(val);
+            unlocking();
+            return globalTamgu->Providewithstring(val);
+        }
+        catch(const std::out_of_range& oor) {
+            unlocking();
+            return aNOELEMENT;
+        }
     }
     
-    Locking _lock(this);
-    if (values.find(val)!=values.end())
+    locking();
+    try {
+        values.at(val);
+        unlocking();
         return aTRUE;
-
-    return aFALSE;
+    }
+    catch(const std::out_of_range& oor) {
+        unlocking();
+        return aFALSE;
+    }
 
 }
+
+
 
 Exporting Tamgu* Tamgutreemapsl::MethodFind(Tamgu* context, short idthread, TamguCall* callfunc) {
     //Three cases along the container type...
@@ -157,31 +173,34 @@ Exporting Tamgu* Tamgutreemapsl::MethodFind(Tamgu* context, short idthread, Tamg
 
 
 Exporting Tamgu* Tamgutreemapsl::Push(Tamgu* k, Tamgu* v) {
-    Locking _lock(this);
+    locking();
     string s = k->String();
     values[s] = v->Long();
+    unlocking();
     return aTRUE;
 }
 
 Exporting Tamgu* Tamgutreemapsl::Pop(Tamgu* kkey) {
     string k = kkey->String();
-    Locking _lock(this);
-    if (values.find(k) != values.end()) {
-        values.erase(k);
+    locking();
+    if (values.erase(k)) {
+        unlocking();
         return aTRUE;
     }
+    unlocking();
     return aFALSE;
 }
 
 Exporting void Tamgutreemapsl::Clear() {
-    Locking _lock(this);
+    locking();
     values.clear();
+    unlocking();
 }
 
 
 
 Exporting string Tamgutreemapsl::String() {
-    Locking _lock(this);
+    locking();
     stringstream res;
 
     res << "{";
@@ -195,12 +214,13 @@ Exporting string Tamgutreemapsl::String() {
         stringing(res, sx);
         res << ":" << it.second;
     }
+    unlocking();
     res << "}";
     return res.str();
 }
 
 Exporting string Tamgutreemapsl::JSonString() {
-    Locking _lock(this);
+    locking();
     stringstream res;
 
     res << "{";
@@ -214,38 +234,47 @@ Exporting string Tamgutreemapsl::JSonString() {
         jstringing(res, sx);
         res << ":" << it.second;
     }
+    unlocking();
     res << "}";
     return res.str();
 }
 
 
 Exporting long Tamgutreemapsl::Integer() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
 
 Exporting double Tamgutreemapsl::Float() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
 
 Exporting BLONG Tamgutreemapsl::Long() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
 
 Exporting bool Tamgutreemapsl::Boolean() {
-    Locking _lock(this);
-    if (values.size() == 0)
-        return false;
-    return true;
+    locking();
+    bool b = values.empty();
+    unlocking();
+    return !b;
 }
 
 
 //Basic operations
 Exporting long Tamgutreemapsl::Size() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
 
 
@@ -302,7 +331,7 @@ Exporting Tamgu*  Tamgutreemapsl::Put(Tamgu* idx, Tamgu* ke, short idthread) {
         ke = ke->Map(idthread);
         if (!ke->isMapContainer())
             return globalTamgu->Returnerror("Wrong map initialization", idthread);
-        Locking* _lock = _getlock(this);
+        locking();
         values.clear();
         if (ke->Type() == Tamgutreemapsl::idtype)
             values = ((Tamgutreemapsl*)ke)->values;
@@ -313,33 +342,37 @@ Exporting Tamgu*  Tamgutreemapsl::Put(Tamgu* idx, Tamgu* ke, short idthread) {
             itr->Release();
         }
         ke->Release();
-        _cleanlock(_lock);
+        unlocking();
         return aTRUE;
     }
-    Locking* _lock = _getlock(this);
-    values[idx->String()] = ke->Long();
-    _cleanlock(_lock);
+    string skey;
+    ((TamguIndex*)idx)->left->Setstring(skey, idthread);
+
+    locking();
+    values[skey] = ke->Long();
+    unlocking();
     return aTRUE;
 }
 
 
 Exporting Tamgu* Tamgutreemapsl::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
 
-    Locking _lock(this);
 
     if (!idx->isIndex()) {
         //particular case, the contextualpattern is a vector, which means that we expect a set of keys
         //as a result
-                if (contextualpattern->isMapContainer())
+        if (contextualpattern->isMapContainer())
             return this;
         
-       //particular case, the contextualpattern is a vector, which means that we expect a set of keys
+        //particular case, the contextualpattern is a vector, which means that we expect a set of keys
         //as a result
         if (contextualpattern->isVectorContainer() || contextualpattern->Type() == a_list) {
             Tamgu* vect = contextualpattern->Newinstance(idthread);
+            locking();
             map<string,BLONG>::iterator it;
             for (it = values.begin(); it != values.end(); it++)
                 vect->Push(globalTamgu->Providestring(it->first));
+            unlocking();
             return vect;
         }
 
@@ -351,10 +384,10 @@ Exporting Tamgu* Tamgutreemapsl::Eval(Tamgu* contextualpattern, Tamgu* idx, shor
         return this;
     }
 
-    Tamgu* key;
     if (idx->isInterval()) {
+        Locking _lock(this);
         Tamgutreemapsl* kmap = new Tamgutreemapsl;
-        key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
+        Tamgu* key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
         Tamgu* keyright = ((TamguIndex*)idx)->right->Eval(aNULL, aNULL, idthread);
         string vleft = key->String();
         string vright = keyright->String();
@@ -387,22 +420,15 @@ Exporting Tamgu* Tamgutreemapsl::Eval(Tamgu* contextualpattern, Tamgu* idx, shor
 
     }
 
-    key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
-    
-    if (key == aNULL) {
-        if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong index", idthread);
-        return aNOELEMENT;
-    }
-
-    string skey = key->String();
-    key->Release();
+    string skey;
+    ((TamguIndex*)idx)->left->Setstring(skey, idthread);
 
     Tamgu* kval = Value(skey);
     if (kval == aNOELEMENT) {
         if (globalTamgu->erroronkey)
             return globalTamgu->Returnerror("Wrong index", idthread);
         return aNOELEMENT;
+
     }
     return kval;
 }
@@ -522,22 +548,22 @@ Exporting Tamgu* Tamgutreemapsl::plus(Tamgu* b, bool itself) {
 
     Tamgutreemapsl* res;
     if (b->isMapContainer()) {
-        map<string,BLONG>::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgutreemapsl;
-        BLONG v;
+        string k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
-            v = itr->Valuelong();
-            it = values.find(itr->Keystring());
-            if (it != values.end()) {
-                res->values[it->first] = it->second + v;
+            k = itr->Keystring();
+            try {
+                res->values[k] = values.at(k) + itr->Valuelong();
+            }
+            catch (const std::out_of_range& oor) {
             }
         }
         itr->Release();
         return res;
     }
+
 
     if (itself)
         res = this;
@@ -555,22 +581,22 @@ Exporting Tamgu* Tamgutreemapsl::minus(Tamgu* b, bool itself) {
 
     Tamgutreemapsl * res;
     if (b->isMapContainer()) {
-        map<string,BLONG>::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgutreemapsl;
-        BLONG v;
+        string k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
-            v = itr->Valuelong();
-            it = values.find(itr->Keystring());
-            if (it != values.end()) {
-                res->values[it->first] = it->second - v;
+            k = itr->Keystring();
+            try {
+                res->values[k] = values.at(k) - itr->Valuelong();
+            }
+            catch (const std::out_of_range& oor) {
             }
         }
         itr->Release();
         return res;
     }
+
 
     if (itself)
         res = this;
@@ -588,22 +614,22 @@ Exporting Tamgu* Tamgutreemapsl::multiply(Tamgu* b, bool itself) {
 
     Tamgutreemapsl * res;
     if (b->isMapContainer()) {
-        map<string,BLONG>::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgutreemapsl;
-        BLONG v;
+        string k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
-            v = itr->Valuelong();
-            it = values.find(itr->Keystring());
-            if (it != values.end()) {
-                res->values[it->first] = it->second * v;
+            k = itr->Keystring();
+            try {
+                res->values[k] = values.at(k) * itr->Valuelong();
+            }
+            catch (const std::out_of_range& oor) {
             }
         }
         itr->Release();
         return res;
     }
+
 
     if (itself)
         res = this;
@@ -622,27 +648,22 @@ Exporting Tamgu* Tamgutreemapsl::divide(Tamgu* b, bool itself) {
 
     Tamgutreemapsl * res;
     if (b->isMapContainer()) {
-        map<string,BLONG>::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgutreemapsl;
-        BLONG v;
+        string k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
-            v = itr->Valuelong();
-            if (v == 0) {
-                res->Release();
-                return globalTamgu->Returnerror("Error: Divided by 0");
+            k = itr->Keystring();
+            try {
+                res->values[k] = values.at(k) / itr->Valuelong();
             }
-
-            it = values.find(itr->Keystring());
-            if (it != values.end()) {
-                res->values[it->first] = it->second / v;
+            catch (const std::out_of_range& oor) {
             }
         }
         itr->Release();
         return res;
     }
+
 
     if (itself)
         res = this;
@@ -665,27 +686,22 @@ Exporting Tamgu* Tamgutreemapsl::mod(Tamgu* b, bool itself) {
 
     Tamgutreemapsl * res;
     if (b->isMapContainer()) {
-        map<string,BLONG>::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgutreemapsl;
-        long v;
+        string k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
-            v = itr->Valueinteger();
-            if (v == 0) {
-                res->Release();
-                return globalTamgu->Returnerror("Error: Divided by 0");
+            k = itr->Keystring();
+            try {
+                res->values[k] = values.at(k) % itr->Valueinteger();
             }
-
-            it = values.find(itr->Keystring());
-            if (it != values.end()) {
-                res->values[it->first] = it->second % v;
+            catch (const std::out_of_range& oor) {
             }
         }
         itr->Release();
         return res;
     }
+
 
     if (itself)
         res = this;
@@ -707,22 +723,22 @@ Exporting Tamgu* Tamgutreemapsl::shiftright(Tamgu* b, bool itself) {
 
     Tamgutreemapsl * res;
     if (b->isMapContainer()) {
-        map<string,BLONG>::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgutreemapsl;
-        long v;
+        string k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
-            v = itr->Valueinteger();
-            it = values.find(itr->Keystring());
-            if (it != values.end()) {
-                res->values[it->first] = it->second >> v;
+            k = itr->Keystring();
+            try {
+                res->values[k] = values.at(k) >> itr->Valueinteger();
+            }
+            catch (const std::out_of_range& oor) {
             }
         }
         itr->Release();
         return res;
     }
+
 
     if (itself)
         res = this;
@@ -740,22 +756,22 @@ Exporting Tamgu* Tamgutreemapsl::shiftleft(Tamgu* b, bool itself) {
 
     Tamgutreemapsl * res;
     if (b->isMapContainer()) {
-        map<string,BLONG>::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgutreemapsl;
-        long v;
+        string k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
-            v = itr->Valueinteger();
-            it = values.find(itr->Keystring());
-            if (it != values.end()) {
-                res->values[it->first] = it->second << v;
+            k = itr->Keystring();
+            try {
+                res->values[k] = values.at(k) << itr->Valueinteger();
+            }
+            catch (const std::out_of_range& oor) {
             }
         }
         itr->Release();
         return res;
     }
+
 
     if (itself)
         res = this;
@@ -773,22 +789,22 @@ Exporting Tamgu* Tamgutreemapsl::power(Tamgu* b, bool itself) {
 
     Tamgutreemapsl * res;
     if (b->isMapContainer()) {
-        map<string,BLONG>::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgutreemapsl;
-        double v;
+        string k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
-            v = itr->Valuefloat();
-            it = values.find(itr->Keystring());
-            if (it != values.end()) {
-                res->values[it->first] = pow(it->second, v);
+            k = itr->Keystring();
+            try {
+                res->values[k] = pow(values.at(k), itr->Valuefloat());
+            }
+            catch (const std::out_of_range& oor) {
             }
         }
         itr->Release();
         return res;
     }
+
 
     if (itself)
         res = this;
@@ -802,7 +818,7 @@ Exporting Tamgu* Tamgutreemapsl::power(Tamgu* b, bool itself) {
 }
 
 Exporting Tamgu* Tamgutreemapsl::Loopin(TamguInstruction* ins, Tamgu* context, short idthread) {
-    Locking _lock(this);
+    locking();
     Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
     var = var->Eval(context, aNULL, idthread);
 
@@ -827,6 +843,8 @@ Exporting Tamgu* Tamgutreemapsl::Loopin(TamguInstruction* ins, Tamgu* context, s
         //Continue does not trigger needInvestigate
         testcond = a->needInvestigate();
     }
+
+    unlocking();
     
     if (testcond) {
         if (a == aBREAK)
@@ -838,3 +856,4 @@ Exporting Tamgu* Tamgutreemapsl::Loopin(TamguInstruction* ins, Tamgu* context, s
     return this;
 
 }
+

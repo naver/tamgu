@@ -723,15 +723,16 @@ public:
     void fillencoding(bool add);
     
     TamguState* addfeature(uint32_t p, TamguState* a = NULL) {
-        if (features.find(p) == features.end()) {
-            if (a == NULL)
-                features[p] = new TamguState(*this);
-            else
-                features[p] = a;
-            
-            features[p]->status |= xfarcend;
+        try {
+            return features.at(p);
         }
-        return features[p];
+        catch(const std::out_of_range& oor) {
+            if (a == NULL)
+                a = new TamguState(*this);
+            features[p] = a;
+            a->status |= xfarcend;
+            return a;
+        }
     }
     
     void regulars() {
@@ -743,14 +744,15 @@ public:
     bool down(wstring& w, vector<string>& res, short, char);
     
     long index(string s) {
-        if (alphabet.find(s) == alphabet.end()) {
+        try {
+            return alphabet.at(s);
+        }
+        catch(const std::out_of_range& oor) {
             unsigned short fpos = 1 + alphabet.size();
             alphabet[s] = fpos;
             ialphabet[fpos] = s;
             return fpos;
         }
-        
-        return alphabet[s];
     }
     
     long index(TAMGUCHAR c) {

@@ -12,7 +12,7 @@
  Purpose    : map implementation
  Programmer : Claude ROUX (claude.roux@naverlabs.com)
  Reviewer   :
-*/
+ */
 
 #include "tamgu.h"
 #include "tamgumapu.h"
@@ -38,28 +38,28 @@ void Tamgumapu::AddMethod(TamguGlobal* global, string name, mapuMethod func, uns
 
 
 
-    void Tamgumapu::Setidtype(TamguGlobal* global) {
+void Tamgumapu::Setidtype(TamguGlobal* global) {
     Tamgumapu::InitialisationModule(global,"");
 }
 
 
-   bool Tamgumapu::InitialisationModule(TamguGlobal* global, string version) {
+bool Tamgumapu::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
     infomethods.clear();
     exported.clear();
-
-
+    
+    
     Tamgumapu::idtype = global->Getid("mapu");
-
+    
     Tamgumapu::AddMethod(global, "clear", &Tamgumapu::MethodClear, P_NONE, "clear(): clear the container.");
     
     Tamgumapu::AddMethod(global, "invert", &Tamgumapu::MethodInvert, P_NONE, "invert(): return a map with key/value inverted.");
     Tamgumapu::AddMethod(global, "find", &Tamgumapu::MethodFind, P_ONE, "find(value): test if a value belongs to the map and return 'true' or the corresponding keys.");
-
-
+    
+    
     Tamgumapu::AddMethod(global, "items", &Tamgumapu::MethodItems, P_NONE, "items(): Return a vector of {key:value} pairs.");
-
-
+    
+    
     Tamgumapu::AddMethod(global, "join", &Tamgumapu::MethodJoin, P_TWO, "join(string sepkey,string sepvalue): Produce a string representation for the container.");
     Tamgumapu::AddMethod(global, "test", &Tamgumapu::MethodTest, P_ONE, "test(key): Test if key belongs to the map container.");
     Tamgumapu::AddMethod(global, "keys", &Tamgumapu::MethodKeys, P_NONE, "keys(): Return the map container keys as a vector.");
@@ -68,13 +68,13 @@ void Tamgumapu::AddMethod(TamguGlobal* global, string name, mapuMethod func, uns
     Tamgumapu::AddMethod(global, "product", &Tamgumapu::MethodProduct, P_NONE, "product(): return the product of elements.");
     Tamgumapu::AddMethod(global, "pop", &Tamgumapu::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamgumapu::AddMethod(global, "merge", &Tamgumapu::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
-
+    
     if (version != "") {
         global->newInstance[Tamgumapu::idtype] = new Tamgumapu(global);
         
         global->RecordMethods(Tamgumapu::idtype, Tamgumapu::exported);
     }
-
+    
     return true;
 }
 
@@ -89,39 +89,55 @@ Exporting Tamgu* Tamgumapu::in(Tamgu* context, Tamgu* a, short idthread) {
     //It is a Boolean, we expect false or true
     //It is an integer, we expect a position in v
     //It is a container, we are looking for all positions...
-
+    
     wstring val = a->UString();
-
-     if (context->isVectorContainer()) {
+    
+    if (context->isVectorContainer()) {
         Tamguuvector* v = (Tamguuvector*)Selectauvector(context);
         Doublelocking _lock(this, v);
-        if (values.find(val) != values.end())
+        try {
+            values.at(val);
             v->values.push_back(val);
-
+        }
+        catch(const std::out_of_range& oor) {}
+        
         return v;
     }
-
-   if (context->isString()) {
-        Locking _lock(this);
-        if (values.find(val)!=values.end())
-            return globalTamgu->Provideustring(val);
-        return aNOELEMENT;
+    
+    if (context->isString()) {
+        locking();
+        try {
+            values.at(val);
+            unlocking();
+            return globalTamgu->Providewithustring(val);
+        }
+        catch(const std::out_of_range& oor) {
+            unlocking();
+            return aNOELEMENT;
+        }
     }
     
-    Locking _lock(this);
-    if (values.find(val)!=values.end())
+    locking();
+    try {
+        values.at(val);
+        unlocking();
         return aTRUE;
-
-    return aFALSE;
-
+    }
+    catch(const std::out_of_range& oor) {
+        unlocking();
+        return aFALSE;
+    }
+    
 }
+
+
 
 Exporting Tamgu* Tamgumapu::MethodFind(Tamgu* context, short idthread, TamguCall* callfunc) {
     //Three cases along the container type...
     //It is a Boolean, we expect false or true
     //It is an integer, we expect a position in v
     //It is a container, we are looking for all positions...
-
+    
     
     Tamgu* a = callfunc->Evaluate(0,context,idthread);
     if (context->isBoolean()) {
@@ -152,11 +168,11 @@ Exporting Tamgu* Tamgumapu::MethodFind(Tamgu* context, short idthread, TamguCall
 
 
 Exporting void Tamgumapu::Cleanreference(short inc) {
-    Locking* _lock = _getlock(this);
+    locking();
     for (auto& a : values)
         a.second->Removecontainerreference(inc);
     
-    _cleanlock(_lock);
+    unlocking();
 }
 
 Exporting void Tamgumapu::Setreference(short inc) {
@@ -167,10 +183,10 @@ Exporting void Tamgumapu::Setreference(short inc) {
     protect = false;
     loopmark=true;
     
-    Locking* _lock = _getlock(this);
+    locking();
     for (auto& it : values)
         it.second->Addreference(inc);
-    _cleanlock(_lock);
+    unlocking();
     
     loopmark=false;
 }
@@ -183,10 +199,10 @@ Exporting void Tamgumapu::Setreference() {
     protect = false;
     loopmark=true;
     
-    Locking* _lock = _getlock(this);
+    locking();
     for (auto& it : values)
         it.second->Addreference(1);
-    _cleanlock(_lock);
+    unlocking();
     
     loopmark=false;
 }
@@ -194,17 +210,17 @@ Exporting void Tamgumapu::Setreference() {
 static void resetMap(Tamgumapu* kmap, short inc) {
     kmap->reference -= inc;
     
-    Locking* _lock = _getlock(kmap);
+    kmap->locking();
     
     hmap<wstring, Tamgu*>& values = kmap->values;
     if (values.size() == 0) {
-        _cleanlock(_lock);
+        kmap->unlocking();
         return;
     }
     
     for (auto& itx : values)
         itx.second->Removereference(inc);
-    _cleanlock(_lock);
+    kmap->unlocking();
 }
 
 
@@ -223,49 +239,55 @@ Exporting void Tamgumapu::Resetreference(short inc) {
 
 
 Exporting Tamgu* Tamgumapu::Push(Tamgu* k, Tamgu* v) {
-    Locking _lock(this);
+    locking();
     wstring s = k->UString();
-    if (values.find(s) != values.end()) {
-        Tamgu* kval = values[s];
-        values.erase(s);
-        kval->Removereference(reference + 1);
-    }
+    
+    k = values[s];
+    if (k != NULL)
+        k->Removereference(reference + 1);
 
     v = v->Atom();
     values[s] = v;
     v->Addreference(reference+1);
+    unlocking();
     return aTRUE;
 }
 
 Exporting Tamgu* Tamgumapu::Pop(Tamgu* kkey) {
     wstring k = kkey->UString();
-    Locking _lk(this);
-    if (values.find(k) != values.end()) {
-        kkey = values[k];
+    locking();
+    try {
+        kkey = values.at(k);
         values.erase(k);
+        unlocking();
         kkey->Removereference(reference + 1);
         return aTRUE;
     }
-    return aFALSE;
+    catch (const std::out_of_range& oor) {
+        unlocking();
+        return aFALSE;
+    }
 }
 
 Exporting void Tamgumapu::Clear() {
-    Locking _lock(this);
-
+    locking();
     for (auto& itx : values)
         itx.second->Removereference(reference + 1);
     values.clear();
+    unlocking();
 }
 
 
 
 Exporting string Tamgumapu::String() {
-    Locking _lock(this);
-    if (loopmark)
+    locking();
+    if (loopmark) {
+        unlocking();
         return("{...}");
+    }
     TamguCircular _c(this);
     stringstream res;
-
+    
     res << "{";
     bool beg = true;
     string sx;
@@ -284,17 +306,20 @@ Exporting string Tamgumapu::String() {
         else
             stringing(res, sx);
     }
+    unlocking();
     res << "}";
     return res.str();
 }
 
 Exporting string Tamgumapu::JSonString() {
-    Locking _lock(this);
-    if (loopmark)
+    locking();
+    if (loopmark) {
+        unlocking();
         return("");
+    }
     TamguCircular _c(this);
     stringstream res;
-
+    
     res << "{";
     bool beg = true;
     string sx;
@@ -308,50 +333,59 @@ Exporting string Tamgumapu::JSonString() {
         stringing(res, sx);
         res << sx << ":" << it.second->JSonString();
     }
+    unlocking();
     res << "}";
     return res.str();
 }
 
 
 Exporting long Tamgumapu::Integer() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
 
 Exporting double Tamgumapu::Float() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
 
 Exporting BLONG Tamgumapu::Long() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
 
 Exporting bool Tamgumapu::Boolean() {
-    Locking _lock(this);
-    if (values.size() == 0)
-        return false;
-    return true;
+    locking();
+    bool b = values.empty();
+    unlocking();
+    return !b;
 }
 
 
 //Basic operations
 Exporting long Tamgumapu::Size() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
 
 #ifndef swprintf_s
 #define swprintf_s(a,b,c,d) swprintf(a,b,c,d)
-    #endif
+#endif
 
 
 Exporting Tamgu*  Tamgumapu::Put(Tamgu* idx, Tamgu* ke, short idthread) {
     if (!idx->isIndex()) {
         if (ke == this)
             return aTRUE;
-
+        
         if (ke->isNULL()) {
             Clear();
             return aTRUE;
@@ -382,7 +416,7 @@ Exporting Tamgu*  Tamgumapu::Put(Tamgu* idx, Tamgu* ke, short idthread) {
             Tamgulist* kvect = (Tamgulist*)ke;
             Clear();
             long nb = 0;
-
+            
             for (auto& it : kvect->values) {
                 swprintf_s(buff, 20, L"%d", nb);
                 Push(buff, it);
@@ -393,12 +427,12 @@ Exporting Tamgu*  Tamgumapu::Put(Tamgu* idx, Tamgu* ke, short idthread) {
         ke = ke->Map(idthread);
         if (!ke->isMapContainer())
             return globalTamgu->Returnerror("Wrong map initialization", idthread);
-        Locking* _lock = _getlock(this);
+        locking();
         Clear();
         if (ke->Type() == Tamgumapu::idtype) {
             Tamgumapu * kmap = (Tamgumapu *)ke;
             //We copy all values from ke to this
-
+            
             for (auto& it : kmap->values)
                 Push(it.first, it.second);
         }
@@ -414,46 +448,49 @@ Exporting Tamgu*  Tamgumapu::Put(Tamgu* idx, Tamgu* ke, short idthread) {
             itr->Release();
         }
         ke->Release();
-        _cleanlock(_lock);
+        unlocking();
         return aTRUE;
     }
-    Push(idx->UString(), ke);
+    wstring skey;
+    ((TamguIndex*)idx)->left->Setstring(skey, idthread);
+    pushing(skey, ke);
     return aTRUE;
 }
 
 
 Exporting Tamgu* Tamgumapu::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
-
-    Locking _lock(this);
-
+    
+    
     if (!idx->isIndex()) {
         //particular case, the contextualpattern is a vector, which means that we expect a set of keys
         //as a result
-                if (contextualpattern->isMapContainer())
+        if (contextualpattern->isMapContainer())
             return this;
         
-       //particular case, the contextualpattern is a vector, which means that we expect a set of keys
+        //particular case, the contextualpattern is a vector, which means that we expect a set of keys
         //as a result
         if (contextualpattern->isVectorContainer() || contextualpattern->Type() == a_list) {
             Tamgu* vect = contextualpattern->Newinstance(idthread);
+            locking();
             hmap<wstring, Tamgu* > ::iterator it;
             for (it = values.begin(); it != values.end(); it++)
                 vect->Push(globalTamgu->Provideustring(it->first));
+            unlocking();
             return vect;
         }
-
+        
         if (contextualpattern->isNumber()) {
             long v = Size();
             return globalTamgu->Provideint(v);
         }
-
+        
         return this;
     }
-
-    Tamgu* key;
+    
     if (idx->isInterval()) {
+        Locking _lock(this);
         Tamgumapu * kmap = new Tamgumapu;
-        key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
+        Tamgu* key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
         Tamgu* keyright = ((TamguIndex*)idx)->right->Eval(aNULL, aNULL, idthread);
         wstring vleft = key->UString();
         wstring vright = keyright->UString();
@@ -476,40 +513,33 @@ Exporting Tamgu* Tamgumapu::Eval(Tamgu* contextualpattern, Tamgu* idx, short idt
             if (it == itr)
                 return kmap;
         }
-
+        
         if (itr != values.end())
             kmap->Clear();
         return kmap;
-
+        
     }
-
-    key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
     
-    if (key == aNULL) {
-        if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong index", idthread);
-        return aNOELEMENT;
-    }
-
-    wstring skey = key->UString();
-    key->Release();
-
+    wstring skey;
+    ((TamguIndex*)idx)->left->Setstring(skey, idthread);
+    
     Tamgu* kval = Value(skey);
     if (kval == aNOELEMENT) {
         if (globalTamgu->erroronkey)
             return globalTamgu->Returnerror("Wrong index", idthread);
         return aNOELEMENT;
+
     }
     return kval;
 }
 
 Exporting Tamgu* Tamgumapu::same(Tamgu* a) {
-
+    
     if (a->Type() != idtype)
         return Mapcompare(this, a, NULL);
-
+    
     Tamgumapu * m = (Tamgumapu *)a;
-
+    
     Doublelocking _lock(this, m);
     if (m->values.size() != values.size())
         return aFALSE;
@@ -531,13 +561,13 @@ Exporting Tamgu* Tamgumapu::xorset(Tamgu* b, bool itself) {
     
     if (b->isMapContainer()) {
         TamguIteration* itr = b->Newiteration(false);
-
+        
         res = new Tamgumapu;
         hmap<wstring, Tamgu*> keys;
-
+        
         for (auto& it : values)
             keys[it.first] = it.second;
-            
+        
         wstring v;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
             v = itr->Keyustring();
@@ -549,19 +579,19 @@ Exporting Tamgu* Tamgumapu::xorset(Tamgu* b, bool itself) {
             }
         }
         itr->Release();
-
+        
         for (auto& a : keys)
             res->Push(a.first,a.second);
-
+        
         return res;
-
-
+        
+        
     }
     if (itself)
         res = this;
     else
         res = (Tamgumapu *)Atom(true);
-
+    
     for (auto& it : values)
         it.second->xorset(b, true);
     return res;
@@ -569,7 +599,7 @@ Exporting Tamgu* Tamgumapu::xorset(Tamgu* b, bool itself) {
 
 Exporting Tamgu* Tamgumapu::orset(Tamgu* b, bool itself) {
     Doublelocking _lock(this, b);
-
+    
     Tamgumapu * res;
     if (itself)
         res = this;
@@ -586,7 +616,7 @@ Exporting Tamgu* Tamgumapu::orset(Tamgu* b, bool itself) {
 
 Exporting Tamgu* Tamgumapu::andset(Tamgu* b, bool itself) {
     Doublelocking _lock(this, b);
-
+    
     Tamgumapu * res;
     if (b->isMapContainer()) {
         TamguIteration* itr = b->Newiteration(false);
@@ -612,20 +642,23 @@ Exporting Tamgu* Tamgumapu::andset(Tamgu* b, bool itself) {
 Exporting Tamgu* Tamgumapu::plus(Tamgu* b, bool itself) {
     Doublelocking _lock(this, b);
 
-    Tamgumapu * res;
+    Tamgumapu* res;
     if (b->isMapContainer()) {
-        hmap<wstring, Tamgu* > ::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgumapu;
         Tamgu* v;
+        Tamgu* r;
+        wstring k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
+            k = itr->Keyustring();
             v = itr->IteratorValue();
-            it = values.find(itr->Keyustring());
-            if (it != values.end()) {
-                res->Push(it->first, it->second);
-                res->values[it->first]->plus(v, true);
+            try {
+                r = values.at(k);
+                res->Push(k, r);
+                res->values[k]->plus(v, true);
+            }
+            catch (const std::out_of_range& oor) {
             }
         }
         
@@ -636,7 +669,7 @@ Exporting Tamgu* Tamgumapu::plus(Tamgu* b, bool itself) {
     if (itself)
         res = this;
     else
-        res = (Tamgumapu *)Atom(true);
+        res = (Tamgumapu*)Atom(true);
 
     for (auto& it : res->values)
         it.second->plus(b, true);
@@ -646,20 +679,23 @@ Exporting Tamgu* Tamgumapu::plus(Tamgu* b, bool itself) {
 Exporting Tamgu* Tamgumapu::minus(Tamgu* b, bool itself) {
     Doublelocking _lock(this, b);
 
-    Tamgumapu * res;
+    Tamgumapu* res;
     if (b->isMapContainer()) {
-        hmap<wstring, Tamgu* > ::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgumapu;
         Tamgu* v;
+        Tamgu* r;
+        wstring k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
+            k = itr->Keyustring();
             v = itr->IteratorValue();
-            it = values.find(itr->Keyustring());
-            if (it != values.end()) {
-                res->Push(it->first, it->second);
-                res->values[it->first]->minus(v, true);
+            try {
+                r = values.at(k);
+                res->Push(k, r);
+                res->values[k]->minus(v, true);
+            }
+            catch (const std::out_of_range& oor) {
             }
         }
         
@@ -670,7 +706,7 @@ Exporting Tamgu* Tamgumapu::minus(Tamgu* b, bool itself) {
     if (itself)
         res = this;
     else
-        res = (Tamgumapu *)Atom(true);
+        res = (Tamgumapu*)Atom(true);
 
     for (auto& it : res->values)
         it.second->minus(b, true);
@@ -680,23 +716,26 @@ Exporting Tamgu* Tamgumapu::minus(Tamgu* b, bool itself) {
 Exporting Tamgu* Tamgumapu::multiply(Tamgu* b, bool itself) {
     Doublelocking _lock(this, b);
 
-    Tamgumapu * res;
+    Tamgumapu* res;
     if (b->isMapContainer()) {
-        hmap<wstring, Tamgu* > ::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgumapu;
         Tamgu* v;
+        Tamgu* r;
+        wstring k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
+            k = itr->Keyustring();
             v = itr->IteratorValue();
-            it = values.find(itr->Keyustring());
-            if (it != values.end()) {
-                res->Push(it->first, it->second);
-                res->values[it->first]->multiply(v, true);
+            try {
+                r = values.at(k);
+                res->Push(k, r);
+                res->values[k]->multiply(v, true);
+            }
+            catch (const std::out_of_range& oor) {
             }
         }
-        
+
         itr->Release();
         return res;
     }
@@ -704,7 +743,7 @@ Exporting Tamgu* Tamgumapu::multiply(Tamgu* b, bool itself) {
     if (itself)
         res = this;
     else
-        res = (Tamgumapu *)Atom(true);
+        res = (Tamgumapu*)Atom(true);
 
     for (auto& it : res->values)
         it.second->multiply(b, true);
@@ -714,29 +753,34 @@ Exporting Tamgu* Tamgumapu::multiply(Tamgu* b, bool itself) {
 Exporting Tamgu* Tamgumapu::divide(Tamgu* b, bool itself) {
     Doublelocking _lock(this, b);
 
-    Tamgumapu * res;
+    Tamgumapu* res;
     Tamgu* v;
     Tamgu* r;
 
     if (b->isMapContainer()) {
-        hmap<wstring, Tamgu* > ::iterator it;
 
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgumapu;
+        wstring k;
+        Tamgu* inter;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
+            k = itr->Keyustring();
             v = itr->IteratorValue();
-            it = values.find(itr->Keyustring());
-            if (it != values.end()) {
-                r = res->values[it->first]->divide(v, true);
-                if (r->isError()) {
+            try {
+                r = values.at(k);
+                res->Push(k, r);
+                inter = res->values[k]->divide(v, true);
+                if (inter->isError()) {
                     res->Release();
                     itr->Release();
-                    return r;
+                    return inter;
                 }
             }
+            catch (const std::out_of_range& oor) {
+            }
         }
-        
+
         itr->Release();
         return res;
     }
@@ -744,7 +788,7 @@ Exporting Tamgu* Tamgumapu::divide(Tamgu* b, bool itself) {
     if (itself)
         res = this;
     else
-        res = (Tamgumapu *)Atom(true);
+        res = (Tamgumapu*)Atom(true);
 
     for (auto& it : res->values) {
         r = it.second->divide(b, true);
@@ -760,29 +804,33 @@ Exporting Tamgu* Tamgumapu::divide(Tamgu* b, bool itself) {
 Exporting Tamgu* Tamgumapu::mod(Tamgu* b, bool itself) {
     Doublelocking _lock(this, b);
 
-    Tamgumapu * res;
+    Tamgumapu* res;
     Tamgu* v;
     Tamgu* r;
 
     if (b->isMapContainer()) {
-        hmap<wstring, Tamgu* > ::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgumapu;
+        wstring k;
+        Tamgu* inter;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
+            k = itr->Keyustring();
             v = itr->IteratorValue();
-            it = values.find(itr->Keyustring());
-            if (it != values.end()) {
-                r = res->values[it->first]->mod(v, true);
-                if (r->isError()) {
+            try {
+                r = values.at(k);
+                res->Push(k, r);
+                inter = res->values[k]->mod(v, true);
+                if (inter->isError()) {
                     res->Release();
                     itr->Release();
-                    return r;
+                    return inter;
                 }
             }
+            catch (const std::out_of_range& oor) {
+            }
         }
-        
+
         itr->Release();
         return res;
     }
@@ -790,7 +838,7 @@ Exporting Tamgu* Tamgumapu::mod(Tamgu* b, bool itself) {
     if (itself)
         res = this;
     else
-        res = (Tamgumapu *)Atom(true);
+        res = (Tamgumapu*)Atom(true);
 
     for (auto& it : res->values) {
         r = it.second->mod(b, true);
@@ -806,23 +854,27 @@ Exporting Tamgu* Tamgumapu::mod(Tamgu* b, bool itself) {
 Exporting Tamgu* Tamgumapu::shiftright(Tamgu* b, bool itself) {
     Doublelocking _lock(this, b);
 
-    Tamgumapu * res;
+    Tamgumapu* res;
     if (b->isMapContainer()) {
-        hmap<wstring, Tamgu* > ::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgumapu;
         Tamgu* v;
+        Tamgu* r;
+        wstring k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
+            k = itr->Keyustring();
             v = itr->IteratorValue();
-            it = values.find(itr->Keyustring());
-            if (it != values.end()) {
-                res->Push(it->first, it->second);
-                res->values[it->first]->shiftright(v, true);
+            try {
+                r = values.at(k);
+                res->Push(k, r);
+                res->values[k]->shiftright(v, true);
+            }
+            catch (const std::out_of_range& oor) {
+                r = NULL;
             }
         }
-        
+
         itr->Release();
         return res;
     }
@@ -830,7 +882,7 @@ Exporting Tamgu* Tamgumapu::shiftright(Tamgu* b, bool itself) {
     if (itself)
         res = this;
     else
-        res = (Tamgumapu *)Atom(true);
+        res = (Tamgumapu*)Atom(true);
 
     for (auto& it : res->values)
         it.second->shiftright(b, true);
@@ -840,23 +892,26 @@ Exporting Tamgu* Tamgumapu::shiftright(Tamgu* b, bool itself) {
 Exporting Tamgu* Tamgumapu::shiftleft(Tamgu* b, bool itself) {
     Doublelocking _lock(this, b);
 
-    Tamgumapu * res;
+    Tamgumapu* res;
     if (b->isMapContainer()) {
-        hmap<wstring, Tamgu* > ::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgumapu;
         Tamgu* v;
+        Tamgu* r;
+        wstring k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
+            k = itr->Keyustring();
             v = itr->IteratorValue();
-            it = values.find(itr->Keyustring());
-            if (it != values.end()) {
-                res->Push(it->first, it->second);
-                res->values[it->first]->shiftleft(v, true);
+            try {
+                r = values.at(k);
+                res->Push(k, r);
+                res->values[k]->shiftleft(v, true);
+            }
+            catch (const std::out_of_range& oor) {
             }
         }
-        
+
         itr->Release();
         return res;
     }
@@ -864,7 +919,7 @@ Exporting Tamgu* Tamgumapu::shiftleft(Tamgu* b, bool itself) {
     if (itself)
         res = this;
     else
-        res = (Tamgumapu *)Atom(true);
+        res = (Tamgumapu*)Atom(true);
 
     for (auto& it : res->values)
         it.second->shiftleft(b, true);
@@ -874,23 +929,26 @@ Exporting Tamgu* Tamgumapu::shiftleft(Tamgu* b, bool itself) {
 Exporting Tamgu* Tamgumapu::power(Tamgu* b, bool itself) {
     Doublelocking _lock(this, b);
 
-    Tamgumapu * res;
+    Tamgumapu* res;
     if (b->isMapContainer()) {
-        hmap<wstring, Tamgu* > ::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgumapu;
         Tamgu* v;
+        Tamgu* r;
+        wstring k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
+            k = itr->Keyustring();
             v = itr->IteratorValue();
-            it = values.find(itr->Keyustring());
-            if (it != values.end()) {
-                res->Push(it->first, it->second);
-                res->values[it->first]->power(v, true);
+            try {
+                r = values.at(k);
+                res->Push(k, r);
+                res->values[k]->power(v, true);
+            }
+            catch (const std::out_of_range& oor) {
             }
         }
-        
+
         itr->Release();
         return res;
     }
@@ -898,49 +956,49 @@ Exporting Tamgu* Tamgumapu::power(Tamgu* b, bool itself) {
     if (itself)
         res = this;
     else
-        res = (Tamgumapu *)Atom(true);
+        res = (Tamgumapu*)Atom(true);
 
     for (auto& it : res->values)
         it.second->power(b, true);
     return res;
 }
 
-
-
-
 Exporting Tamgu* Tamgumapu::Loopin(TamguInstruction* ins, Tamgu* context, short idthread) {
-    Locking _lock(this);
+    locking();
     Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
     var = var->Eval(context, aNULL, idthread);
-
+    
     hmap<wstring, Tamgu*>::iterator it;
     
     Tamgu* a;
     vector<wstring> keys;
-
+    
     for (it=values.begin(); it != values.end(); it++)
         keys.push_back(it->first);
-
+    
     long sz = keys.size();
     a = aNULL;
     bool testcond = false;
     for (long i = 0; i < sz && !testcond; i++) {
         a->Releasenonconst();
         var->storevalue(keys[i]);
-
+        
         a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
-
+        
         //Continue does not trigger needInvestigate
         testcond = a->needInvestigate();
     }
+
+    unlocking();
     
     if (testcond) {
         if (a == aBREAK)
             return this;
         return a;
     }
-
+    
     a->Releasenonconst();
     return this;
-
+    
 }
+

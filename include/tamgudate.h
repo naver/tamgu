@@ -74,13 +74,9 @@ public:
 		return "date";
 	}
 
-	bool isString() {
-		return false;
-	}
+	
 
-	bool isNumber() {
-		return false;
-	}
+	
 
 	bool isBoolean() {
 		return false;
@@ -169,7 +165,9 @@ public:
 	
 
 	string String();
-
+    void Setstring(string& s, short idthread);
+    void Setstring(wstring& s, short idthread);
+    
 	//wstring UString() {
 	//   
 	//  return L"";

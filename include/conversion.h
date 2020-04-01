@@ -117,6 +117,8 @@ union w_u_char {
 };
 
 
+//--------------------------------------------------------------------------------------------------------
+
 //Types for fast search on wstring
 #ifdef WIN32
 #define doublechar int32_t
@@ -171,6 +173,11 @@ Exporting long convertlong(string value);
 //===================================================================
 void DoubleMetaphone(const string &str, vector<string>& codes);
 //===================================================================
+Exporting void convertnumber(long v, string& s);
+Exporting void convertnumber(double v, string& s);
+Exporting void convertnumber(long v, wstring& s);
+Exporting void convertnumber(double v, wstring& s);
+
 Exporting string convertfromnumber(BLONG l);
 Exporting wstring wconvertfromnumber(BLONG l);
 
@@ -329,6 +336,9 @@ Exporting char* strrstr(char* str, char* sub, long sz, long szsub);
 Exporting wchar_t* wcsrstr(wchar_t* str, wchar_t* sub, long sz, long szsub);
 Exporting void s_findall(string& s, string& substr, vector<long>& v);
 Exporting void s_findall(wstring& s, wstring& substr, vector<long>& v, long init=0);
+
+Exporting long s_findbyte(uchar* s, long sz, string& substr, long i);
+Exporting long s_rfindbyte(uchar* s, long sz, string& substr, long i);
 
 Exporting long s_findbyte(string& s, string& substr, long i);
 Exporting long s_rfindbyte(string& s, string& substr, long i);
@@ -1073,6 +1083,223 @@ inline long getChar(wstring& s, long i, TAMGUCHAR& c) {
 
 //return both a wstring, which may contain an emoji
 wstring getfullchar(wstring& s, long& i);
+
+//--------------------------------------------------------------------------------------------------------
+class Fast_String {
+    uchar buff[33];
+    long lenneo;
+    long ineo;
+
+    public:
+    
+    uchar* neo;
+    
+    Fast_String(long l) : lenneo(l), ineo(0), neo(new uchar[l]) {}
+    
+    ~Fast_String() {
+        delete[] neo;
+    }
+
+    inline void substr(long from, long to) {
+        ineo = to-from;
+        memcpy(neo, neo+from, ineo);
+        neo[ineo] = 0;
+    }
+    
+    inline void substr(uchar* val, long from, long to) {
+        ineo = to-from;
+        if (ineo >= lenneo) {
+            lenneo += ineo;
+            lenneo <<= 1;
+            delete[] neo;
+            neo = new uchar[lenneo];
+        }
+        memcpy(neo, val+from, ineo);
+        neo[ineo] = 0;
+    }
+    
+    inline void set(string ctn) {
+        ineo = ctn.size();
+        if (ineo >= lenneo) {
+            lenneo += ineo;
+            lenneo <<= 1;
+            delete[] neo;
+            neo = new uchar[lenneo];
+        }
+        memcpy(neo,STR(ctn), ineo);
+        neo[ineo] = 0;
+    }
+
+    inline void add(uchar* ctn, long size_ctn) {
+        if ((ineo + size_ctn) >= lenneo) {
+            lenneo += size_ctn;
+            lenneo <<= 1;
+            uchar* s = new uchar[lenneo];
+            memcpy(s, neo, ineo);
+            delete[] neo;
+            neo = s;
+        }
+        memcpy(neo+ineo,ctn, size_ctn);
+        ineo += size_ctn;
+        neo[ineo] = 0;
+    }
+    
+    inline void add(uchar c) {
+        if ((ineo + 1) >= lenneo) {
+            lenneo <<= 1;
+            uchar* s = new uchar[lenneo];
+            memcpy(s, neo, ineo);
+            delete[] neo;
+            neo = s;
+        }
+        neo[ineo++] = c;
+    }
+    
+    void addonechar(unsigned char* m, long i) {
+        long nb = c_test_utf8(m + i);
+        if (!nb) {
+            neo[0] = m[i];
+            neo[1] = 0;
+            ineo = 1;
+            return;
+        }
+
+        ineo = 0;
+        neo[ineo++] = m[i];
+        long j = i;
+        if (nb == 3 && c_is_emoji(m, j)) {
+            neo[ineo++] = (char)m[i+1];
+            neo[ineo++] = (char)m[i+2];
+            neo[ineo++] = (char)m[i+3];
+            i = ++j;
+            while (c_is_emojicomp(m, j)) {
+                nb = c_test_utf8(m+i);
+                neo[ineo++] = (char)m[i];
+                switch (nb) {
+                    case 1:
+                        neo[ineo++] = (char)m[i+1];
+                        break;
+                    case 2:
+                        neo[ineo++] = (char)m[i+1];
+                        neo[ineo++] = (char)m[i+2];
+                        break;
+                    case 3:
+                        neo[ineo++] = (char)m[i+1];
+                        neo[ineo++] = (char)m[i+2];
+                        neo[ineo++] = (char)m[i+3];
+                }
+                i = ++j;
+            }
+        }
+        else {
+            switch (nb) {
+                case 1:
+                    neo[ineo++] = (char)m[i+1];
+                    break;
+                case 2:
+                    neo[ineo++] = (char)m[i+1];
+                    neo[ineo++] = (char)m[i+2];
+                    break;
+                case 3:
+                    neo[ineo++] = (char)m[i+1];
+                    neo[ineo++] = (char)m[i+2];
+                    neo[ineo++] = (char)m[i+3];
+            }
+        }
+        neo[ineo] = 0;
+    }
+
+    void addonechar(long i) {
+        long nb = c_test_utf8(neo + i);
+        if (!nb) {
+            neo[0] = neo[i];
+            neo[1] = 0;
+            ineo = 1;
+            return;
+        }
+
+        buff[0] = neo[i];
+        ineo = 1;
+        long j = i;
+        if (nb == 3 && c_is_emoji(neo, j)) {
+            buff[ineo++] = neo[i+1];
+            buff[ineo++] = neo[i+2];
+            buff[ineo++] = neo[i+3];
+            i = ++j;
+            while (c_is_emojicomp(neo, j)) {
+                nb = c_test_utf8(neo+i);
+                buff[ineo++] = neo[i];
+                switch (nb) {
+                    case 1:
+                        buff[ineo++] = neo[i+1];
+                        break;
+                    case 2:
+                        buff[ineo++] = neo[i+1];
+                        buff[ineo++] = neo[i+2];
+                        break;
+                    case 3:
+                        buff[ineo++] = neo[i+1];
+                        buff[ineo++] = neo[i+2];
+                        buff[ineo++] = neo[i+3];
+                }
+                i = ++j;
+            }
+        }
+        else {
+            switch (nb) {
+                case 1:
+                    buff[ineo++] = neo[i+1];
+                    break;
+                case 2:
+                    buff[ineo++] = neo[i+1];
+                    buff[ineo++] = neo[i+2];
+                    break;
+                case 3:
+                    buff[ineo++] = neo[i+1];
+                    buff[ineo++] = neo[i+2];
+                    buff[ineo++] = neo[i+3];
+            }
+        }
+        memcpy(neo,buff,ineo);
+        neo[ineo] = 0;
+    }
+
+    inline long size() {
+        return ineo;
+    }
+    
+    inline char* str() {
+        return (char*)neo;
+    }
+    
+    inline void downsize(long sz) {
+        if (sz < lenneo) {
+            delete[] neo;
+            lenneo = sz;
+            neo = new uchar[lenneo];
+        }
+        memset(neo, '\0', lenneo);
+        ineo = 0;
+    }
+
+    inline void clear() {
+        ineo = 0;
+        neo[0]=0;
+    }
+    
+    inline void signature() {
+        if (neo[0] == 239 && neo[1] == 187 && neo[2] == 191) {
+            ineo -= 3;
+            memcpy(neo, neo + 3, ineo);
+        }
+    }
+    
+    inline wstring& latintounicode(wstring& ws) {
+        sc_utf8_to_unicode(ws, neo, ineo);
+        return ws;
+    }
+};
+
 #endif
 
 

@@ -65,20 +65,9 @@ static inline bool charcomp(unsigned char* src, unsigned char* search, long lens
     return true;
 }
 
-static inline char* concatchar(char* str, char ctn, long& i, long& size_str) {
-    if ((i + 1) >= size_str) {
-        size_str <<= 1;
-        char* s = new char[size_str];
-        memcpy(s, str, i);
-        delete[] str;
-        str = s;
-    }
-    str[i++] = ctn;
-    return str;
-}
-
 static inline char* concatstrings(char* str, char* ctn, long& i, long& size_str, long size_ctn) {
     if ((i + size_ctn) >= size_str) {
+        size_str += size_ctn;
         size_str <<= 1;
         char* s = new char[size_str];
         memcpy(s, str, i);
@@ -94,6 +83,7 @@ static inline char* concatstrings(char* str, char* ctn, long& i, long& size_str,
 static inline wchar_t* concatstrings(wchar_t* str, wchar_t* ctn, long& i, long& size_str, long size_ctn) {
     long j;
     if ((i + size_ctn) >= size_str) {
+        size_str += size_ctn;
         size_str <<= 1;
         wchar_t* s = new wchar_t[size_str];
         for (j = 0; j < i; j++)
@@ -410,6 +400,7 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
 #endif
     uchar c = search[0];
     char shift;
+    bool small = false;
 
     switch (lensearch) {
         case 1:
@@ -432,6 +423,7 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
             break;
         }
         case 2:
+            small = true;
         case 3:
         {
             int16_t cc = search[1];
@@ -459,10 +451,8 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
                         //otherwise, we might loose a substring present before but with a different alignement with shift
                         if (shift == 1) {bitscanforward(j,q);s+=j;} else j = 0;
                         for (; j < 31; j++) {
-                            if (*s == c) {
-                                if (charcomp(s,search,lensearch)) {
-                                    return (i + j + shift);
-                                }
+                            if (*s == c && s[1] == search[1] && (small || s[2] == search[2])) {
+                                return (i + j + shift);
                             }
                             ++s;
                         }
@@ -572,7 +562,7 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
     return -1;
 }
 
-long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long lensearch, long i) {
+long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long lensearch, long from) {
     if (lensearch > lensrc)
         return -1;
 
@@ -587,6 +577,7 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
     uint32_t q = 0;
 #endif
 
+    long i = from;
     uchar c = search[0];
     char shift;
 
@@ -609,7 +600,8 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
                 q = _mm256_movemask_epi8(current_bytes);
                 if (q) {
 					bitscanreverse(j, q);
-                    return (i+j);
+                    if ((i+j) <= from)
+                        return (i+j);
                 }
             }
             break;
@@ -640,7 +632,7 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
                             //we find it in this section...
                         if (shift == 1) bitscanreverse(j, q); else j = 30;
                         for (; j != -1; j--) {
-                            if (s[j] == c) {
+                            if (s[j] == c && (i+j+shift) <= from) {
                                 if (charcomp(s+j,search,lensearch)) {
                                     return (i + j + shift);
                                 }
@@ -683,7 +675,7 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
                             //we find it in this section...
                         if (shift == 3) bitscanreverse(j, q); else j = 28;
                         for (; j != -1; j--) {
-                            if (s[j] == c) {
+                            if (s[j] == c  && (i+j+shift) <= from) {
                                 if (charcomp(s+j,search,lensearch)) {
                                     return (i + j + shift);
                                 }
@@ -723,7 +715,7 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
                             //we find it in this section...
                         if (shift == 7) bitscanreverse(j, q); else j = 24;
                         for (; j != -1; j--) {
-                            if (s[j] == c) {
+                            if (s[j] == c  && (i+j+shift) <= from) {
                                 if (charcomp(s+j,search,lensearch)) {
                                     return (i + j + shift);
                                 }
@@ -741,7 +733,7 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
     
     if (lensearch <= 32) {
         for (i = 32-lensearch; i>=0; i--) {
-            if (src[i] == c) {
+            if (src[i] == c  && i <= from) {
                 if (lensearch==1 || charcomp(src+i, search, lensearch))
                     return i;
             }
@@ -1608,7 +1600,7 @@ long find_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, long
     return -1;
 }
 
-long rfind_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, long i) {
+long rfind_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, long from) {
     if (lensearch > lensrc)
         return -1;
     
@@ -1620,6 +1612,8 @@ long rfind_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, lon
     wchar_t* s=src;
     long j;
 
+    long i = from;
+    
     if (i >= stringincrement)
         i -= stringincrement;
 
@@ -1636,7 +1630,7 @@ long rfind_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, lon
                 if (_mm256_movemask_epi8(current_bytes)) {
                         //we find it in this section...
                     for (j=stringincrement-1; j>=0; j--) {
-                        if (s[j] == c) {
+                        if (s[j] == c && (i+j) <= from) {
                             return(i+j);
                         }
                     }
@@ -1668,7 +1662,7 @@ long rfind_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, lon
                     if (_mm256_movemask_epi8(current_bytes)) {
                             //we find it in this section...
                         for (j=stringincrement-2; j>=0; j--) {
-                            if (s[j] == c) {
+                            if (s[j] == c  && (i+j+shift) <= from) {
                                 if (wcharcomp(s+j, search, lensearch))
                                     return(i+j+shift);
                             }
@@ -1701,7 +1695,7 @@ long rfind_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, lon
                             //Our character is present, we now try to find where it is...
                             //we find it in this section...
                         for (j=14; j >= 0; j++) {
-                            if (*s == c) {
+                            if (*s == c  && (i+j+shift) <= from) {
                                 if (wcharcomp(s, search, lensearch))
                                     return (i+j+shift);
                             }
@@ -1719,7 +1713,7 @@ long rfind_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, lon
     
     if (lensearch <= stringincrement) {
         for (j=stringincrement-lensearch; j>=0; j--) {
-            if (src[j] == c) {
+            if (src[j] == c && j <= from) {
                 if (lensearch==1 || wcharcomp(src+j, search, lensearch))
                     return j;
             }
@@ -2463,7 +2457,7 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
     return -1;
 }
 
-long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long lensearch, long i) {
+long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long lensearch, long from) {
     if (lensearch > lensrc)
         return -1;
         //First we try to find the section in which the first character might occur
@@ -2475,6 +2469,7 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
     char shift;
     int q;
 
+    long i = from;
     if (i >= 16)
         i -= 16;
     
@@ -2495,7 +2490,8 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
                     //Our character is present, we now try to find where it is...
                         //we find it in this section...
                     bitscanreverse(j,q);
-                    return (i+j);
+                    if ((i+j) <= from)
+                        return (i+j);
                 }
             }
             break;
@@ -2523,7 +2519,7 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
                     if (q) {
                         if (shift == 1) bitscanreverse(j,q); else j = 14;
                         for (; j>=0; j--) {
-                            if (s[j] == c) {
+                            if (s[j] == c && (i+j+shift) <= from) {
                                 if (charcomp(s+j,search,lensearch)) {
                                     return (i + j + shift);
                                 }
@@ -2561,7 +2557,7 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
                     if (q) {
                         if (shift == 1) bitscanreverse(j,q); else j = 12;
                         for (; j>=0; j--) {
-                            if (s[j] == c) {
+                            if (s[j] == c && (i+j+shift) <= from) {
                                 if (charcomp(s+j,search,lensearch)) {
                                     return (i + j + shift);
                                 }
@@ -2578,7 +2574,7 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
     
     if (lensearch <= 16) {
         for (j = 16-lensearch; j>=0; j--) {
-            if (src[j] == c) {
+            if (src[j] == c && j <= from) {
                 if (lensearch==1 || charcomp(src+j, search, lensearch))
                     return j;
             }
@@ -3192,7 +3188,7 @@ long find_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, long
     return -1;
 }
 
-long rfind_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, long i) {
+long rfind_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, long from) {
     if (lensearch > lensrc)
         return -1;
 
@@ -3204,6 +3200,7 @@ long rfind_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, lon
     wchar_t* s=src;
     long j;
     
+    long i = from;
     if (i >= stringincrement)
         i -= stringincrement;
 
@@ -3222,7 +3219,7 @@ long rfind_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, lon
             if (_mm_movemask_epi8(current_bytes)) {
                     //we find it in this section...
                 for (j = stringincrement - 1; j>=0; j--) {
-                    if (s[j] == c) {
+                    if (s[j] == c  && (i+j) <= from) {
                         return(i+j);
                     }
                 }
@@ -3249,7 +3246,7 @@ long rfind_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, lon
                         //we find it in this section...
                         //we find it in this section...
                     for (j = stringincrement - 2; j>=0; j--) {
-                        if (s[j] == c) {
+                        if (s[j] == c && (i+j+shift) <= from) {
                             if (wcharcomp(s+j, search, lensearch))
                                 return(i+j+shift);
                         }
@@ -3264,7 +3261,7 @@ long rfind_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch, lon
     
     if (lensearch <= stringincrement) {
         for (j = stringincrement-lensearch; j>=0; j--) {
-            if (src[j] == c) {
+            if (src[j] == c && j <= from) {
                 if (lensearch==1 || wcharcomp(src+j, search, lensearch))
                     return j;
             }
@@ -7531,6 +7528,442 @@ Exporting long convertlong(string v) {
 }
 
 //===================================================================
+static wstring convertdigits(string& v, wstring w) {
+    for (short i=0;i<v.size();i++)
+        w+=(wchar_t)v[i];
+    return w;
+}
+
+static wstring convertdigits(string& v) {
+    wstring w;
+    for (short i=0;i<v.size();i++)
+        w+=(wchar_t)v[i];
+    return w;
+}
+
+static void convertingdigits(string& v, wstring& w) {
+    for (short i=0;i<v.size();i++)
+        w+=(wchar_t)v[i];
+}
+
+
+const short nbits =  11;
+
+class doubledecimal {
+    public :
+    long n;
+    double v;
+    
+    doubledecimal(double d) {
+        v = d;
+        n=0;
+    }
+    
+    bool check() {
+        v=(v-n)*10;
+        n=v;
+        if (!n && v <= 1e-9)
+            return false;
+        return true;
+    }
+};
+
+//----------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
+
+Exporting void convertnumber(long v, string& s) {
+    if (v>=0 && v <= 9999 && numbers.check(v)) {
+        s = numbers.get(v);
+        return;
+    }
+    
+    bool sgn=false;
+    if (v<0) {
+        v=-v;
+        if (v>=0 && v <= 9999 && numbers.check(v)) {
+            s = "-";
+            s+=numbers.get(v);
+            return;
+        }
+        sgn=true;
+    }
+    
+    char buff[20];
+    char* num = buff+19;
+    *num-- = 0;
+    
+    const char* nb;
+    long inter=v;
+    long rest=0;
+    while (v) {
+        inter = v/1000;
+        rest = v-inter*1000;
+        v = inter;
+        nb=invertnumbers[rest];
+        while (*nb) *num--=*nb++;
+    }
+    
+    if (rest<10)
+        num+=2;
+    else
+        if (rest<100)
+            num++;
+
+    if (sgn)
+        *num='-';
+    else
+        ++num;
+    s = num;
+}
+
+Exporting void convertnumber(long v, wstring& s) {
+    if (v>=0 && v <= 9999 && numbers.check(v)) {
+        s=L"";
+        convertingdigits(numbers.get(v),s);
+        return;
+    }
+    
+    bool sgn=false;
+    if (v<0) {
+        v=-v;
+        if (v>=0 && v <= 9999 && numbers.check(v)) {
+            s = L"-";
+            convertingdigits(numbers.get(v),s);
+            return;
+        }
+        sgn=true;
+    }
+    
+    wchar_t buff[50];
+    
+    wchar_t* num = buff+49;
+    *num-- = 0;
+
+    char* nb;
+    long inter=v;
+    long rest=0;
+    while (v) {
+        inter = v/1000;
+        rest = v-inter*1000;
+        v = inter;
+        nb=invertnumbers[rest];
+        while (*nb) *num--=(wchar_t)*nb++;
+    }
+
+    if (rest<10)
+        num+=2;
+    else
+        if (rest<100)
+            num++;
+
+    if (sgn)
+        *num='-';
+    else
+        ++num;
+    
+    s = num;
+}
+
+Exporting void convertnumber(double val, string& s) {
+    if (!val) {
+        s =  "0";
+        return;
+    }
+    
+    char buff[100];
+    
+    bool sgn=false;
+    
+    double v=val;
+    if (v<0) {
+        v=-v;
+        sgn=true;
+    }
+    
+    if (v <= 1e-7) {
+        sprintf_s(buff,100,"%g",val);
+        s = buff;
+        return;
+    }
+
+    char* num = buff+50;
+    
+    *num-- = 0;
+    
+    //First the main digit
+    BLONG vv=v;
+    val=v-vv;
+    const char* nbb;
+    
+    char nb=0;
+    
+    if (vv <= 9999 && numbers.check(vv)) {
+        if (!val) {
+            if (!sgn) {
+                s = numbers[vv];
+                return;
+            }
+            s = "-";
+            s+=numbers[vv];
+            return;
+        }
+        nb = numbers[vv].size();
+        num-=nb-1;
+        strcpy(num, STR(numbers[vv]));
+        if (sgn)
+            *--num='-';
+    }
+    else {
+        BLONG inter=vv;
+        BLONG rest = 0;
+        while (vv) {
+            inter = vv/1000;
+            rest = vv-inter*1000;
+            vv = inter;
+            nbb=invertnumbers[rest];
+            while (*nbb) {
+                ++nb;
+                *num--=*nbb++;
+            }
+        }
+
+        if (rest<10) {
+            num+=2;
+            nb-=2;
+        }
+        else
+            if (rest<100) {
+                num++;
+                --nb;
+            }
+
+        //98192819928999
+        if (nb>8) {
+            *num=num[1];
+            num[1]='.';
+            num[7]='e';
+            num[8]='+';
+            --nb;
+            short sz;
+            if (nb<10) {
+                num[9]='0';
+                num[10]=0x30|nb;
+                sz=11;
+            }
+            else {
+                nbb=invertnumbers[nb];
+                nb = 8+nbb[4]; //the size of the string is stored on position 4
+                sz = nb+1;
+                while (*nbb) num[nb--]=*nbb++;
+            }
+            if (sgn) {
+                *--num='-';
+                ++sz;
+            }
+            num[sz]=0;
+            s = num;
+            return;
+        }
+        if (sgn)
+            *num='-';
+        else
+            num++;
+    }
+    
+    if (val) {
+        nbb=num;
+        //now, we now that we can start writing at buff+50;
+        num=buff+50;
+        *num++='.';
+        nb = nbits;
+        doubledecimal d(val);
+        
+        while (nb) {
+            if (!d.check())
+                break;
+            *num++=0x30|d.n;
+            nb--;
+        }
+        
+        *num=0;
+        if (!nb) { //arrondi
+            if (num[-1] == '9' && num[-2] == '9' && buff[51] != '9') {
+                num--;
+                while (*num=='9') --num;
+                num+=2;
+            }
+            
+            if (num[-1]>='6' && num[-2] != '9')
+                num[-2]++;
+            num[-1] = 0;
+            --num;
+            s = nbb;
+            return;
+        }
+        if (nb==nbits  || num[-1]==48) {
+            //we remove the '.'
+            num[-1]=0;
+            --num;
+        }
+        s = nbb;
+        return;
+    }
+    
+    s = num;
+}
+
+Exporting void convertnumber(double val, wstring& s) {
+    if (!val) {
+        s = L"0";
+        return;
+    }
+    
+    wchar_t buff[100];
+    bool sgn=false;
+
+    double v=val;
+    if (v<0) {
+        v=-v;
+        sgn=true;
+    }
+
+    if (v <= 1e-7) {
+        swprintf_s(buff,100,L"%g",val);
+        s = buff;
+        return;
+    }
+    
+    wchar_t* num = buff+50;
+    *num-- = 0;
+    
+    //First the main digit
+    BLONG vv=v;
+    val=v-vv;
+    
+    char nb=0;
+    
+    if (vv <= 9999 && numbers.check(vv)) {
+        if (!val) {
+            if (!sgn) {
+                s=L"";
+                convertingdigits(numbers[vv],s);
+                return;
+            }
+            s = L"-";
+            convertingdigits(numbers[vv],s);
+            return;
+        }
+        nb = numbers[vv].size();
+        num-=nb-1;
+        for (short i=0;i<nb;i++)
+            num[i]= (wchar_t)(numbers[vv][i]);
+        if (sgn)
+            *--num='-';
+    }
+    else {
+        BLONG inter=vv;
+        BLONG rest=0;
+        while (vv) {
+            inter = vv/1000;
+            rest = vv-inter*1000;
+            vv = inter;
+            char* nbb;
+            nbb=invertnumbers[rest];
+            while (*nbb) {
+                ++nb;
+                *num--=(wchar_t)*nbb++;
+            }
+        }
+
+        if (rest<10) {
+            num+=2;
+            nb-=2;
+        }
+        else
+            if (rest<100) {
+                num++;
+                --nb;
+            }
+
+        if (nb>8) {
+            *num=num[1];
+            num[1]='.';
+            num[7]='e';
+            num[8]='+';
+            --nb;
+            short sz;
+            if (nb<10) {
+                num[9]='0';
+                num[10]=(wchar_t)(0x30|nb);
+                sz=11;
+            }
+            else {
+                const char* nbb=invertnumbers[nb];
+                nb = 8+nbb[4]; //the size of the string is stored on position 4
+                sz = nb+1;
+                while (*nbb) num[nb--]=(wchar_t)*nbb++;
+            }
+
+            if (sgn) {
+                *--num='-';
+                ++sz;
+            }
+            num[sz]=0;
+            s = num;
+            return;
+        }
+
+        if (sgn)
+            *num='-';
+        else
+            num++;
+    }
+    
+    if (val) {
+        wchar_t* beg=num;
+        //now, we now that we can start writing at buff+50;
+        num=buff+50;
+        *num++='.';
+        nb = nbits;
+        doubledecimal d(val);
+        
+        while (nb) {
+            if (!d.check())
+                break;
+            *num++= (wchar_t)(0x30|d.n);
+            nb--;
+        }
+        
+        *num=0;
+        if (!nb) { //arrondi
+            if (num[-1] == '9' && num[-2] == '9' && buff[51] != '9') {
+                num--;
+                while (*num=='9') --num;
+                num+=2;
+            }
+            
+            if (num[-1]>='6' && num[-2] != '9')
+                num[-2]++;
+            num[-1] = 0;
+            --num;
+            s= beg;
+            return;
+        }
+        if (nb==nbits  || num[-1]==48) {
+            //we remove the '.'
+            num[-1]=0;
+            --num;
+        }
+        s = beg;
+        return;
+    }
+    s = num;
+}
+
+//----------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 
 Exporting string convertfromnumber(BLONG v) {
     if (v>=0 && v <= 9999 && numbers.check(v))
@@ -7662,19 +8095,6 @@ Exporting string convertfromnumber(short v) {
     return string(num,(buff+5-num));
 }
 
-static wstring convertdigits(string& v, wstring w) {
-    for (short i=0;i<v.size();i++)
-        w+=(wchar_t)v[i];
-    return w;
-}
-
-static wstring convertdigits(string& v) {
-    wstring w;
-    for (short i=0;i<v.size();i++)
-        w+=(wchar_t)v[i];
-    return w;
-}
-
 Exporting wstring wconvertfromnumber(BLONG v) {
     if (v>=0 && v <= 9999 && numbers.check(v))
         return convertdigits(numbers.get(v));
@@ -7801,28 +8221,7 @@ Exporting wstring wconvertfromnumber(short v) {
     return wstring(num,buff-num+5);
 }
 
-
-const short nbits =  11;
 const short nbbitsfloat = 7;
-
-class doubledecimal {
-    public :
-    long n;
-    double v;
-    
-    doubledecimal(double d) {
-        v = d;
-        n=0;
-    }
-    
-    bool check() {
-        v=(v-n)*10;
-        n=v;
-        if (!n && v <= 1e-9)
-            return false;
-        return true;
-    }
-};
 
 class floatdecimal {
     public :
@@ -11609,6 +12008,27 @@ Exporting wchar_t* wcsrstr(wchar_t* str, wchar_t* sub, long sz, long szsub) {
 }
 
 //we are looking for the substring substr in s
+Exporting long s_findbyte(uchar* s, long sz, string& substr, long i) {
+#ifdef INTELINTRINSICS
+    if (sz >= thestringincrement)
+        return find_intel_byte(s, USTR(substr), sz, substr.size(), i);
+#endif
+    uchar* res = (uchar*)strstr((char*)s+i, STR(substr));
+    return (res-s);
+}
+
+//we are looking for the substring substr in s
+Exporting long s_rfindbyte(uchar* s, long sz, string& substr, long i) {
+#ifdef INTELINTRINSICS
+    if (sz >= thestringincrement)
+        return rfind_intel(s, USTR(substr), sz, substr.size(), i);
+#endif
+    string sb((char*)s, sz);
+    return sb.rfind(substr,i);
+}
+
+
+//we are looking for the substring substr in s
 Exporting long s_findbyte(string& s, string& substr, long i) {
 #ifdef INTELINTRINSICS
     long sz = s.size();
@@ -12765,7 +13185,7 @@ Exporting void IndentationCode(string& codeindente, vector<string>& code, vector
                     continue;
                 }
                 
-                if (xr.stack[x] == "else") {
+                if (xr.stack[x] == "else" || xr.stack[x] == "elif") {
                     if (inelse == 2)
                         inelse = false;
                     else

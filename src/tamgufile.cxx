@@ -167,7 +167,7 @@ Tamgu* Tamgufile::MethodRead(Tamgu* context, short idthread, TamguCall* callfunc
             }
 
             bf = read(nb);
-            return globalTamgu->Providestring(bf);
+            return globalTamgu->Providewithstring(bf);
         }
     }
 
@@ -202,7 +202,7 @@ Tamgu* Tamgufile::MethodRead(Tamgu* context, short idthread, TamguCall* callfunc
         return globalTamgu->Provideint(get());
 
     bf = read(-1);
-    return globalTamgu->Providestring(bf);
+    return globalTamgu->Providewithstring(bf);
 }
 
 Tamgu* Tamgufile::Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* environment, TamguFunctionLambda* bd, short idthread) {

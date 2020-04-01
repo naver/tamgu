@@ -206,7 +206,7 @@ Tamgu* Tamguint::MethodIsemoji(Tamgu* contextualpattern, short idthread, TamguCa
 
 Tamgu* Tamguint::MethodEmoji(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     string s = Emoji((BLONG)value);
-    return globalTamgu->Providestring(s);
+    return globalTamgu->Providewithstring(s);
 }
 
 
@@ -259,7 +259,7 @@ Tamgu* Tamguatomicint::MethodIsemoji(Tamgu* contextualpattern, short idthread, T
 
 Tamgu* Tamguatomicint::MethodEmoji(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     string s = Emoji((BLONG)value);
-    return globalTamgu->Providestring(s);
+    return globalTamgu->Providewithstring(s);
 }
 
 

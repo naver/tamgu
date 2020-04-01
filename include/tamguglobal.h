@@ -68,7 +68,6 @@ class Tamgumapbuff;
 class Tamgumapss;
 class Tamgumapssbuff;
 class TamguIndex;
-class TamguIndexbuff;
 class bnf_tamgu;
 class An_rules;
 class Au_automatons;
@@ -391,6 +390,7 @@ public:
     
     Tamgu* Providelispsymbols(string& n, Tamgu* parent = NULL);
     Tamgu* Providelispsymbols(short n);
+    Tamgu* Providelispsymbols(short n, short a);
     Tamgu* Providelispoperators(short n);
     
     Tamgu* Provideinstance(short type, short idthread);
@@ -407,11 +407,6 @@ public:
 
 	//--------------------------------
 	//Buffers...
-	vector<TamguIndexbuff*> indexreservoire;
-	VECTE<long> indexempties;
-	long indexidx;
-	Exporting TamguIndex* Provideindex(TamguIndex*, short);
-
     vector<TamguPredicateVariableInstance*> pvireservoire;
     VECTE<long> pviempties;
     long pviidx;
@@ -465,12 +460,14 @@ public:
 	vector<Tamgustringbuff*> stringreservoire;
 	VECTE<long> sempties;
 	long stringidx;
-	Exporting Tamgustring* Providestring(string v = "");
+    Exporting Tamgustring* Providestring(string v = "");
+    Exporting Tamgustring* Providewithstring(string& v);
 
 	vector<Tamguustringbuff*> ustringreservoire;
 	VECTE<long> uempties;
 	long ustringidx;
-	Exporting Tamguustring* Provideustring(wstring v = L"");
+    Exporting Tamguustring* Provideustring(wstring v = L"");
+    Exporting Tamguustring* Providewithustring(wstring& v);
 
     vector<Tamgulisp*> lispreservoire;
     VECTE<long> lempties;
@@ -1000,11 +997,21 @@ public:
 	}
 
 	//--------------------------------
-	string Getsymbol(short s) {
-		if (idSymbols.check(s))
+    string Getsymbol(short s) {
+        if (idSymbols.check(s))
             return idSymbols.get(s);
-		return "";
-	}
+        return "";
+    }
+
+    wstring Getwsymbol(short s) {
+        if (idSymbols.check(s)) {
+            wstring w;
+            string e = idSymbols.get(s);
+            s_utf8_to_unicode(w, USTR(e) , e.size());
+            return w;
+        }
+        return L"";
+    }
 
     short Checkid(string s) {
         if (symbolIds.find(s) == symbolIds.end())

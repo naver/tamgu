@@ -51,11 +51,13 @@ class Tamgua_mapui : public TamguContainer {
 
     //---------------------------------------------------------------------------------------------------------------------
     Tamgua_mapui(TamguGlobal* g, Tamgu* parent = NULL) : TamguContainer(g, parent) {
+     investigate |= is_number;
         //Do not forget your variable initialisation
         isconst = false;
     }
 
     Tamgua_mapui() {
+     investigate |= is_number;
         //Do not forget your variable initialisation
         isconst = false; 
     }
@@ -75,9 +77,7 @@ class Tamgua_mapui : public TamguContainer {
         return "a_mapui";
     }
 
-    bool isNumber() {
-        return true;
-    }
+    
 
     bool isContainerClass() {
         return true;
@@ -357,7 +357,7 @@ class Tamgua_mapui : public TamguContainer {
     Exporting wstring UString();
     Exporting string JSonString();
 
-    Tamgu* Value(wstring n) {
+    Tamgu* Value(wstring& n) {
         if (!values.check(n))
             return aNOELEMENT;
         long vl;

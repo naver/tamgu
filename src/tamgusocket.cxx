@@ -356,7 +356,7 @@ Tamgu* Tamgusocket::MethodRead(Tamgu* contextualpattern, short idthread, TamguCa
         ssz -= nbcharread;
         res += inputstr;
     }
-    return globalTamgu->Providestring(res);
+    return globalTamgu->Providewithstring(res);
 }
 
 Tamgu* Tamgusocket::MethodWrite(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -429,7 +429,7 @@ Tamgu* Tamgusocket::MethodReadRaw(Tamgu* contextualpattern, short idthread, Tamg
             return globalTamgu->Returnerror(errmessage, idthread);
         }
     }
-    return globalTamgu->Providestring(res);
+    return globalTamgu->Providewithstring(res);
 }
 
 Tamgu* Tamgusocket::MethodGet(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -591,7 +591,7 @@ Tamgu* Tamgusocket::MethodGetpeername(Tamgu* contextualpattern, short idthread, 
         kmap->Push(key1, globalTamgu->Provideint(client->sin_port));
         string key2 = "address";
         string nms = nm;
-        kmap->Push(key2, globalTamgu->Providestring(nms));
+        kmap->Push(key2, globalTamgu->Providewithstring(nms));
         return kmap;
     }
     return globalTamgu->Returnerror("SOCKET(852): You cannot use GETPEERNAME on the client side", idthread);

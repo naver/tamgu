@@ -86,7 +86,7 @@ Exporting Tamgu* Tamguprimemaplf::in(Tamgu* context, Tamgu* a, short idthread) {
     
     BLONG val = a->Long();
 
-     if (context->isVectorContainer()) {
+    if (context->isVectorContainer()) {
         Tamgulvector* v = (Tamgulvector*)Selectalvector(context);
         Doublelocking _lock(this, v);
         if (values.find(val)!=values.end())
@@ -95,20 +95,26 @@ Exporting Tamgu* Tamguprimemaplf::in(Tamgu* context, Tamgu* a, short idthread) {
         return v;
     }
 
-   if (context->isNumber()) {
-        Locking _lock(this);
-        if (values.find(val)!=values.end())
+    if (context->isNumber()) {
+        locking();
+        if (values.find(val)!=values.end()) {
+            unlocking();
             return new Tamgulong(val);
-        return aNOELEMENT;
+        }
+        unlocking();
+        return aNOELEMENT;;
     }
     
-    Locking _lock(this);
-    if (values.find(val)!=values.end())
+    locking();
+    if (values.find(val)!=values.end()) {
+        unlocking();
         return aTRUE;
-
+    }
+    unlocking();
     return aFALSE;
 
 }
+
 
 Exporting Tamgu* Tamguprimemaplf::MethodFind(Tamgu* context, short idthread, TamguCall* callfunc) {
     //Three cases along the container type...
@@ -152,11 +158,13 @@ Exporting Tamgu* Tamguprimemaplf::MethodFind(Tamgu* context, short idthread, Tam
 
 
 Exporting Tamgu* Tamguprimemaplf::Push(Tamgu* k, Tamgu* v) {
-    Locking _lock(this);
+    locking();
     BLONG s = k->Long();
     values[s] = v->Float();
+    unlocking();
     return aTRUE;
 }
+
 
 Exporting Tamgu* Tamguprimemaplf::Pop(Tamgu* kkey) {
     BLONG k = kkey->Long();
@@ -209,19 +217,28 @@ Exporting string Tamguprimemaplf::JSonString() {
 
 
 Exporting long Tamguprimemaplf::Integer() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
+
 
 Exporting double Tamguprimemaplf::Float() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
 
+
 Exporting BLONG Tamguprimemaplf::Long() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
+
 
 Exporting bool Tamguprimemaplf::Boolean() {
     Locking _lock(this);
@@ -233,9 +250,12 @@ Exporting bool Tamguprimemaplf::Boolean() {
 
 //Basic operations
 Exporting long Tamguprimemaplf::Size() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
+
 
 
 Exporting Tamgu*  Tamguprimemaplf::Put(Tamgu* idx, Tamgu* ke, short idthread) {
@@ -295,7 +315,7 @@ Exporting Tamgu*  Tamguprimemaplf::Put(Tamgu* idx, Tamgu* ke, short idthread) {
         if (!ke->isMapContainer())
             return globalTamgu->Returnerror("Wrong map initialization", idthread);
 
-        Locking* _lock = _getlock(this);
+        locking();
         values.clear();
         if (ke->Type() == Tamguprimemaplf::idtype) {
             Tamguprimemaplf* kmap = (Tamguprimemaplf*)ke;
@@ -311,34 +331,35 @@ Exporting Tamgu*  Tamguprimemaplf::Put(Tamgu* idx, Tamgu* ke, short idthread) {
             itr->Release();
         }
         ke->Release();
-        _cleanlock(_lock);
+        unlocking();
         return aTRUE;
     }
 
-    Locking* _lock = _getlock(this);
-    values[idx->Long()] = ke->Float();
-    _cleanlock(_lock);
+    locking();
+    values[idx->Getlong(idthread)] = ke->Float();
+    unlocking();
     return aTRUE;
 }
 
 
 Exporting Tamgu* Tamguprimemaplf::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
 
-    Locking _lock(this);
 
     if (!idx->isIndex()) {
         //particular case, the contextualpattern is a vector, which means that we expect a set of keys
         //as a result
-                if (contextualpattern->isMapContainer())
+        if (contextualpattern->isMapContainer())
             return this;
         
-       //particular case, the contextualpattern is a vector, which means that we expect a set of keys
+        //particular case, the contextualpattern is a vector, which means that we expect a set of keys
         //as a result
         if (contextualpattern->isVectorContainer() || contextualpattern->Type() == a_list) {
             Tamgu* vect = contextualpattern->Newinstance(idthread);
+            locking();
             prime_hash<BLONG,double>::iterator it;
             for (it = values.begin(); it != values.end(); it++)
                 vect->Push(new Tamgulong(it->first));
+            unlocking();
             return vect;
         }
 
@@ -350,10 +371,10 @@ Exporting Tamgu* Tamguprimemaplf::Eval(Tamgu* contextualpattern, Tamgu* idx, sho
         return this;
     }
 
-    Tamgu* key;
     if (idx->isInterval()) {
+        Locking _lock(this);
         Tamguprimemaplf* kmap = new Tamguprimemaplf;
-        key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
+        Tamgu* key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
         Tamgu* keyright = ((TamguIndex*)idx)->right->Eval(aNULL, aNULL, idthread);
         BLONG vleft = key->Long();
         BLONG vright = keyright->Long();
@@ -386,22 +407,14 @@ Exporting Tamgu* Tamguprimemaplf::Eval(Tamgu* contextualpattern, Tamgu* idx, sho
 
     }
 
-    key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
-    
-    if (key == aNULL) {
-        if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong index", idthread);
-        return aNOELEMENT;
-    }
-
-    BLONG skey = key->Long();
-    key->Release();
+    BLONG skey = idx->Getlong(idthread);
 
     Tamgu* kval = Value(skey);
     if (kval == aNOELEMENT) {
         if (globalTamgu->erroronkey)
             return globalTamgu->Returnerror("Wrong index", idthread);
         return aNOELEMENT;
+
     }
     return kval;
 }
@@ -807,7 +820,7 @@ Exporting Tamgu* Tamguprimemaplf::power(Tamgu* b, bool itself) {
 }
 
 Exporting Tamgu* Tamguprimemaplf::Loopin(TamguInstruction* ins, Tamgu* context, short idthread) {
-    Locking _lock(this);
+    locking();
     Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
     var = var->Eval(context, aNULL, idthread);
 
@@ -820,22 +833,30 @@ Exporting Tamgu* Tamguprimemaplf::Loopin(TamguInstruction* ins, Tamgu* context, 
     for (it=values.begin(); it != values.end(); it++)
         keys.push_back(it->first);
 
-    for (long i = 0; i < keys.size(); i++) {
+    a = aNULL;
+    bool testcond = false;
 
+    long sz = keys.size();
+    for (long i = 0; i < sz && !testcond; i++) {
+        a->Releasenonconst();
         var->storevalue(keys[i]);
 
         a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
         //Continue does not trigger needInvestigate
-        if (a->needInvestigate()) {
-            if (a == aBREAK)
-                break;
-            return a;
-        }
-
-        a->Release();
+        testcond = a->needInvestigate();
     }
 
+    unlocking();
+    
+    if (testcond) {
+        if (a == aBREAK)
+            return this;
+        return a;
+    }
+
+    a->Releasenonconst();
     return this;
 
 }
+

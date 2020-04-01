@@ -100,10 +100,10 @@ class Tamgumapl : public TamguObjectLockContainer {
         protect = n;
         hmap<BLONG, Tamgu*>::iterator it;
 
-        Locking* _lock = _getlock(this);
+        locking();
         for (it = values.begin(); it != values.end(); it++)
             it->second->Setprotect(n);
-        _cleanlock(_lock);
+        unlocking();
 
         loopmark=false;
     }
@@ -117,10 +117,10 @@ class Tamgumapl : public TamguObjectLockContainer {
             protect = true;
         hmap<BLONG, Tamgu*>::iterator it;
 
-        Locking* _lock = _getlock(this);
+        locking();
         for (it = values.begin(); it != values.end(); it++)
             it->second->Popping();
-        _cleanlock(_lock);
+        unlocking();
 
         loopmark=false;
     }
@@ -132,10 +132,10 @@ class Tamgumapl : public TamguObjectLockContainer {
         protect = true;
         hmap<BLONG, Tamgu*>::iterator it;
         
-        Locking* _lock = _getlock(this);
+        locking();
         for (it = values.begin(); it != values.end(); it++)
             it->second->Setprotect(true);
-        _cleanlock(_lock);
+        unlocking();
         
         loopmark=false;
     }
@@ -144,7 +144,7 @@ class Tamgumapl : public TamguObjectLockContainer {
     Tamgu* Atom(bool forced) {
         if (forced) {
             Tamgumapl* m = new Tamgumapl;
-            Locking _lock(this);
+            locking();
             Tamgu* v;
 
             for (auto& it : values) {
@@ -152,28 +152,35 @@ class Tamgumapl : public TamguObjectLockContainer {
                 m->values[it.first] = v;
                 v->Setreference();
             }
-            return m;
+            unlocking();
+        return m;
         }
         return this;
     }
 
     double Sum() {
-        Locking* _lock = _getlock(this);
+        locking();
         double v = 0;
         hmap<BLONG, Tamgu*>::iterator itx;
         for (itx = values.begin(); itx != values.end(); itx++)
             v += itx->second->Sum();
-        _cleanlock(_lock);
+        unlocking();
         return v;
     }
 
     double Product() {
-        Locking* _lock = _getlock(this);
-        double v = 1;
+        locking();
+        
+        if (values.size() == 0) {
+            unlocking();
+            return 0;
+         }
+
+         double v = 1;
 
         for (auto& itx : values)
             v *= itx.second->Product();
-        _cleanlock(_lock);
+        unlocking();
         return v;
     }
     
@@ -232,16 +239,20 @@ class Tamgumapl : public TamguObjectLockContainer {
     //---------------------------------------------------------------------------------------------------------------------
     
     void unmark() {
-        Locking _lock(this);
-        if (loopmark)
+        locking();
+        if (loopmark) {
+            unlocking();
             return;
-            
+        }
+        
         loopmark=true;
         usermark=false;
-
+        
         for (auto& it : values)
             it.second->unmark();
+        
         loopmark=false;
+        unlocking();
     }
 
     Exporting void Cleanreference(short inc);
@@ -302,51 +313,56 @@ class Tamgumapl : public TamguObjectLockContainer {
     }
 
     Tamgu* MethodSum(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
         double v = Sum();
         return globalTamgu->Providefloat(v);
     }
 
     Tamgu* MethodKeys(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
+        locking();
         Tamgulvector* vstr = (Tamgulvector*)Selectalvector(contextualpattern);
         hmap<BLONG, Tamgu*>::iterator it;
         for (it = values.begin(); it != values.end(); it++)
             vstr->values.push_back(it->first);
+        unlocking();
         return vstr;
     }
 
     Tamgu* MethodValues(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
+        locking();
         Tamguvector* v = (Tamguvector*)Selectavector(contextualpattern);
         hmap<BLONG, Tamgu*>::iterator it;
         for (it = values.begin(); it != values.end(); it++)
             v->Push(it->second);
+        unlocking();
         return v;
     }
 
     Tamgu* MethodTest(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
+        locking();
         BLONG  v = callfunc->Evaluate(0, contextualpattern, idthread)->Long();
-        if (values.find(v) == values.end())
+        try {
+            values.at(v);
+            unlocking();
+            return aTRUE;
+        }
+        catch(const std::out_of_range& oor) {
+            unlocking();
             return aFALSE;
-        return aTRUE;
+        }
     }
 
     Tamgu* MethodProduct(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
         double v = Product();
         return globalTamgu->Providefloat(v);
     }
 
     Tamgu* MethodPop(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
         Tamgu* pos = callfunc->Evaluate(0, contextualpattern, idthread);
         return Pop(pos);
     }
 
     Tamgu* MethodJoin(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
+        locking();
         //The separator between keys
         string keysep = callfunc->Evaluate(0, contextualpattern, idthread)->String();
         //The separator between values
@@ -361,6 +377,7 @@ class Tamgumapl : public TamguObjectLockContainer {
             res << it.first << keysep << it.second->String();
         }
 
+        unlocking();
         return globalTamgu->Providestring(res.str());
     }
 
@@ -372,14 +389,14 @@ class Tamgumapl : public TamguObjectLockContainer {
     Exporting Tamgu* Pop(Tamgu* k);
     Tamgu* Push(BLONG k, Tamgu* a) {
 
-        Locking _lock(this);
-        if (values.find(k) != values.end()) {
-            Tamgu* v = values[k];
+        locking();
+        Tamgu* v = values[k];
+        if (v != NULL)
             v->Removereference(reference + 1);
-        }
         a = a->Atom();
         values[k] = a;
         a->Addreference(reference + 1);
+        unlocking();
         return this;
     }
 
@@ -387,13 +404,15 @@ class Tamgumapl : public TamguObjectLockContainer {
         //Three cases:
         if (!ke->isContainer())
             return this;
-        Doublelocking(this, ke);
+        
+        ((TamguObject*)ke)->locking();
         Tamguvector* v;
 
 
+        BLONG n;
         TamguIteration* itr = ke->Newiteration(false);
         for (itr->Begin(); itr->End() == aFALSE; itr->Next()) {
-            BLONG n = itr->Keylong();
+            n = itr->Keylong();
             if (values.find(n) == values.end())
                 Push(n, itr->Value());
             else {
@@ -404,6 +423,7 @@ class Tamgumapl : public TamguObjectLockContainer {
             }
         }
         itr->Release();
+        ((TamguObject*)ke)->unlocking();
         return this;
     }
 
@@ -411,16 +431,19 @@ class Tamgumapl : public TamguObjectLockContainer {
         //Three cases:
         if (!ke->isContainer())
             return this;
-        Doublelocking(this, ke);
+        
+        ((TamguObject*)ke)->locking();
 
 
+        BLONG n;
         TamguIteration* itr = ke->Newiteration(false);
         for (itr->Begin(); itr->End() == aFALSE; itr->Next()) {
-            BLONG n = itr->Keylong();
+            n = itr->Keylong();
             if (values.find(n) == values.end())
                 Push(n, itr->Value());
         }
         itr->Release();
+        ((TamguObject*)ke)->unlocking();
         return this;
     }
 
@@ -440,42 +463,74 @@ class Tamgumapl : public TamguObjectLockContainer {
     Exporting string String();
     Exporting string JSonString();
 
-    Tamgu* Value(string n) {
-        long v = convertlong(n);
-        Locking _lock(this);
-        if (values.find(v) == values.end())
+    Tamgu* Value(string& v) {
+        BLONG n = convertlong(v);
+        
+        locking();
+        try {
+            Tamgu* res = values.at(n);
+            unlocking();
+            return res;
+        }
+        catch (const std::out_of_range& oor) {
+            unlocking();
             return aNOELEMENT;
-        return values[v];
+        }
     }
-
+    
     Tamgu* Value(Tamgu* a) {
         BLONG n =  a->Long();
-
-        Locking _lock(this);
-        if (values.find(n) == values.end())
+        
+        locking();
+        try {
+            Tamgu* res = values.at(n);
+            unlocking();
+            return res;
+        }
+        catch (const std::out_of_range& oor) {
+            unlocking();
             return aNOELEMENT;
-        return values[(BLONG)n];
+        }
     }
 
     Tamgu* Value(BLONG n) {
-        Locking _lock(this);
-        if (values.find(n) == values.end())
+        locking();
+        try {
+            Tamgu* res = values.at(n);
+            unlocking();
+            return res;
+        }
+        catch (const std::out_of_range& oor) {
+            unlocking();
             return aNOELEMENT;
-        return values[(BLONG)n];
+        }
     }
+    
 
     Tamgu* Value(long n) {
-        Locking _lock(this);
-        if (values.find(n) == values.end())
+        locking();
+        try {
+            Tamgu* res = values.at(n);
+            unlocking();
+            return res;
+        }
+        catch (const std::out_of_range& oor) {
+            unlocking();
             return aNOELEMENT;
-        return values[(BLONG)n];
+        }
     }
-
+    
     Tamgu* Value(double n) {
-        Locking _lock(this);
-        if (values.find(n) == values.end())
+        locking();
+        try {
+            Tamgu* res = values.at(n);
+            unlocking();
+            return res;
+        }
+        catch (const std::out_of_range& oor) {
+            unlocking();
             return aNOELEMENT;
-        return values[(BLONG)n];
+        }
     }
 
     Exporting long Integer();

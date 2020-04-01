@@ -36,6 +36,7 @@
 #include "tamgulvector.h"
 #include "tamguhvector.h"
 #include "tamguautomaton.h"
+#include "tamgulisp.h"
 #include "x_tokenize.h"
 
 #ifdef UNIX
@@ -677,6 +678,7 @@ long checkemoji(wstring& svalue, long i) {
 
 Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& iright, short idthread) {
     
+    wstring sub;
     Tamgu* left = index;
     Tamgu* right = NULL;
     long sz = svalue.size();
@@ -697,14 +699,20 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
         TamguIndex* kind = (TamguIndex*)index;
         sleft = kind->signleft;
         sright = kind->signright;
-        left = kind->left->Eval(aNULL, aNULL, idthread);
-        if (left != kind->left)
-            releft = true;
-        
-        if (kind->interval == true) {
-            right = kind->right->Eval(aNULL, aNULL, idthread);
-            if (right != kind->right)
-                reright = true;
+        if (kind->isConst()) {
+            left = kind->left;
+            right = kind->right;
+        }
+        else {
+            left = kind->left->Eval(aNULL, aNULL, idthread);
+            if (left != kind->left)
+                releft = true;
+            
+            if (kind->interval == true) {
+                right = kind->right->Eval(aNULL, aNULL, idthread);
+                if (right != kind->right)
+                    reright = true;
+            }
         }
     }
     
@@ -723,7 +731,7 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
     }
     else {
         if (left->isString()) {
-            wstring sub = left->UString();
+            left->Setstring(sub, idthread);
             if (releft)
                 left->Release();
             
@@ -794,26 +802,26 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
     }
     
     if (right->isString()) {
-        wstring wr = right->UString();
+        right->Setstring(sub, idthread);
         if (reright)
             right->Release();
         
         if (sright) {
-            iright = s_rfind(svalue, wr, sz);
+            iright = s_rfind(svalue, sub, sz);
             if (iright <= ileft)
                 return 0;
         }
         else {
             if (iright != -1)
-                iright = s_find(svalue, wr, iright);
+                iright = s_find(svalue, sub, iright);
             else
-                iright = s_find(svalue, wr, ileft);
+                iright = s_find(svalue, sub, ileft);
         }
         
         if (iright == -1)
             return 0;
         
-        iright += wr.size();
+        iright += sub.size();
         return 2;
     }
     
@@ -869,6 +877,11 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
     return 2;
 }
 #else
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+// UTF32 version
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 long char_to_pos_emoji(wstring& w, long& ileft, long emoji) {
     //emoji is the position of the first emoji in the string
@@ -897,6 +910,7 @@ long char_to_pos_emoji(wstring& w, long& ileft, long emoji) {
 
 Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& iright, short idthread) {
 
+    wstring sub;
 	Tamgu* left = index;
 	Tamgu* right = NULL;
     long emoji = -1;
@@ -913,15 +927,21 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
 		TamguIndex* kind = (TamguIndex*)index;
 		sleft = kind->signleft;
 		sright = kind->signright;
-		left = kind->left->Eval(aNULL, aNULL, idthread);
-		if (left != kind->left)
-			releft = true;
-
-		if (kind->interval == true) {
-			right = kind->right->Eval(aNULL, aNULL, idthread);
-			if (right != kind->right)
-				reright = true;
-		}
+        if (kind->isConst()) {
+            left = kind->left;
+            right = kind->right;
+        }
+        else {
+            left = kind->left->Eval(aNULL, aNULL, idthread);
+            if (left != kind->left)
+                releft = true;
+            
+            if (kind->interval == true) {
+                right = kind->right->Eval(aNULL, aNULL, idthread);
+                if (right != kind->right)
+                    reright = true;
+            }
+        }
 	}
 
 
@@ -939,7 +959,7 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
 	}
 	else {
 		if (left->isString()) {
-			wstring sub = left->UString();
+			left->Setstring(sub, idthread);
 			if (releft)
 				left->Release();
 
@@ -998,26 +1018,26 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
 	}
 
 	if (right->isString()) {
-		wstring wr = right->UString();
+		right->Setstring(sub, idthread);
 		if (reright)
 			right->Release();
 
 		if (sright) {
-			iright = s_rfind(svalue, wr, sz);
+			iright = s_rfind(svalue, sub, sz);
 			if (iright <= ileft)
 				return 0;
 		}
 		else {
 			if (iright != -1)
-				iright = s_find(svalue, wr, iright);
+				iright = s_find(svalue, sub, iright);
 			else
-				iright = s_find(svalue, wr, ileft);
+				iright = s_find(svalue, sub, ileft);
 		}
 
 		if (iright == -1)
 			return 0;
 
-		iright += wr.size();
+		iright += sub.size();
 		return 2;
 	}
 
@@ -1114,15 +1134,19 @@ long char_to_byteposition(unsigned char* contenu, long sz, long i, long charpos,
 
 Exporting char StringIndexes(string& svalue, Tamgu* index, long& ileft, long& iright, short idthread) {
     
-    
+    string sub;
+
     Tamgu* left = index;
     Tamgu* right = NULL;
     
     
+    long sz = -1, szc = -1, pivot = -1, emoji = -1;
+    
+    char utf8 = 0;
+    char clean = 0;
     bool sleft = false;
     bool sright = false;
-    bool releft = false;
-    bool reright = false;
+    
     
     iright = -1;
     
@@ -1130,20 +1154,23 @@ Exporting char StringIndexes(string& svalue, Tamgu* index, long& ileft, long& ir
         TamguIndex* kind = (TamguIndex*)index;
         sleft = kind->signleft;
         sright = kind->signright;
-        left = kind->left->Eval(aNULL, aNULL, idthread);
-        if (left != kind->left)
-            releft = true;
-        
-        if (kind->interval == true) {
-            right = kind->right->Eval(aNULL, aNULL, idthread);
-            if (right != kind->right)
-                reright = true;
+        if (kind->isConst()) {
+            left = kind->left;
+            right = kind->right;
+        }
+        else {
+            left = kind->left->Eval(aNULL, aNULL, idthread);
+            if (left != kind->left)
+                clean = 1;
+            
+            if (kind->interval == true) {
+                right = kind->right->Eval(aNULL, aNULL, idthread);
+                if (right != kind->right)
+                    clean |= 2;
+            }
         }
     }
     
-    
-    long sz = -1, szc = -1, pivot = -1, emoji = -1;
-    char utf8 = 0;
     
     if (left->isRegular()) {
         //this is a regular expression...
@@ -1160,8 +1187,8 @@ Exporting char StringIndexes(string& svalue, Tamgu* index, long& ileft, long& ir
     else {
         sz = svalue.size();
         if (left->isString()) {
-            string sub = left->String();
-            if (releft)
+            left->Setstring(sub, idthread);
+            if ((clean & 1)==1)
                 left->Release();
             
             //then we are looking for a substring
@@ -1177,7 +1204,7 @@ Exporting char StringIndexes(string& svalue, Tamgu* index, long& ileft, long& ir
         }
         else {
             ileft = left->Integer();
-            if (releft)
+            if ((clean & 1)==1)
                 left->Release();
             
             //This is a tricky case... ileft is in character position not bytes
@@ -1251,8 +1278,8 @@ Exporting char StringIndexes(string& svalue, Tamgu* index, long& ileft, long& ir
         sz = svalue.size();
     
     if (right->isString()) {
-        string sub = right->String();
-        if (reright)
+        right->Setstring(sub, idthread);
+        if ((clean & 2)==2)
             right->Release();
         
         if (sright) {
@@ -1285,7 +1312,7 @@ Exporting char StringIndexes(string& svalue, Tamgu* index, long& ileft, long& ir
     //First, this is a pure integer interval, in that case, iright is the absolute position
     if (iright == -1) {
         iright = right->Integer();
-        if (reright)
+        if ((clean & 2)==2)
             right->Release();
         
         if (iright < 0 || right == aNULL) {
@@ -1317,7 +1344,7 @@ Exporting char StringIndexes(string& svalue, Tamgu* index, long& ileft, long& ir
     }
     
     long shift = right->Integer();
-    if (reright)
+    if ((clean & 2)==2)
         right->Release();
     if (shift < 0)
         return 0;
@@ -1335,6 +1362,249 @@ Exporting char StringIndexes(string& svalue, Tamgu* index, long& ileft, long& ir
                 //This is position compared to the end of the string
                 //First we need to transform shift in bytes
                 iright = char_to_byteposition(USTR(svalue), sz, pivot, iright);
+            }
+        }
+        else
+            iright += shift;
+    }
+    
+    if (iright > sz)
+        iright = sz;
+    else
+        if (iright <= ileft)
+            return 0;
+    return 2;
+}
+
+Exporting char StringIndexes(uchar* svalue, long sz, Tamgu* index, long& ileft, long& iright, short idthread) {
+    
+    string sub;
+
+    Tamgu* left = index;
+    Tamgu* right = NULL;
+    
+    
+    long szc = -1, pivot = -1, emoji = -1;
+    
+    char utf8 = 0;
+    char clean = 0;
+    bool sleft = false;
+    bool sright = false;
+    
+    
+    iright = -1;
+    
+    if (index->isIndex()) {
+        TamguIndex* kind = (TamguIndex*)index;
+        sleft = kind->signleft;
+        sright = kind->signright;
+        if (kind->isConst()) {
+            left = kind->left;
+            right = kind->right;
+        }
+        else {
+            left = kind->left->Eval(aNULL, aNULL, idthread);
+            if (left != kind->left)
+                clean = 1;
+            
+            if (kind->interval == true) {
+                right = kind->right->Eval(aNULL, aNULL, idthread);
+                if (right != kind->right)
+                    clean |= 2;
+            }
+        }
+    }
+    
+    
+    if (left->isRegular()) {
+        //this is a regular expression...
+        sub = (char*)svalue;
+        
+        if (sleft) {
+            //we need the last one...
+            if (!left->searchlast(sub, ileft, iright))
+                return 0;
+        }
+        else {
+            if (!left->search(sub, ileft, iright))
+                return 0;
+        }
+    }
+    else {
+        if (left->isString()) {
+            left->Setstring(sub, idthread);
+            if ((clean & 1)==1)
+                left->Release();
+            
+            //then we are looking for a substring
+            if (sleft)
+                ileft = s_rfindbyte(svalue, sz, sub, sz);
+            else
+                ileft = s_findbyte(svalue, sz, sub, 0);
+            
+            if (ileft == -1)
+                return 0;
+            
+            iright = ileft + sub.size();
+        }
+        else {
+            ileft = left->Integer();
+            if ((clean & 1)==1)
+                left->Release();
+            
+            //This is a tricky case... ileft is in character position not bytes
+            szc = size_c(svalue, sz, pivot);
+            if (pivot == -1)
+                utf8 = 1;
+            else
+                utf8 = 2; //to mark that we have computed it...
+
+            if (ileft <0) {
+                //This a position from the end...
+                //We need to compute the size in characters to the size in bytes...
+                if (utf8 == 2) {
+                    ileft += szc;
+                    if (ileft < 0)
+                        ileft = 0;
+                    else {
+                        if (ileft >= pivot) // the pivot is the first UTF8 element slot in characters
+                            ileft = char_to_byteposition(svalue, sz, pivot, ileft, emoji);
+                    }
+                }
+                else {
+                    ileft += sz;
+                    if (ileft < 0)
+                        ileft = 0;
+                }
+            }
+            else {
+                if (ileft > szc)
+                    ileft = sz;
+                else {
+                    if (utf8 == 2 && ileft >= pivot)
+                        ileft = char_to_byteposition(svalue, sz, pivot, ileft, emoji);
+                }
+            }
+        }
+    }
+    
+    
+    //We return as a non interval
+    if (right == NULL) {
+        if (iright == -1) {
+            if (ileft < emoji) {
+                iright = emoji;
+                return 2;
+            }
+            return 1;
+        }
+        return 2;
+    }
+    
+    if (right->isRegular()) {
+        //this is a regular expression...
+        long r = iright;
+        sub = (char*)svalue;
+        
+        if (sright) {
+            //we need the last one...
+            if (!right->searchlast(sub, r, iright, r))
+                return 0;
+        }
+        else {
+            if (!right->search(sub, r, iright, ileft))
+                return 0;
+        }
+        if (iright <= ileft)
+            return 0;
+        return 2;
+    }
+        
+    if (right->isString()) {
+        right->Setstring(sub, idthread);
+        if ((clean & 2)==2)
+            right->Release();
+        
+        if (sright) {
+            iright = s_rfindbyte(svalue, sz, sub, sz);
+            if (iright <= ileft)
+                return 0;
+        }
+        else {
+            if (iright == -1)
+                iright = s_findbyte(svalue, sz, sub, ileft);
+            else
+                iright = s_findbyte(svalue, sz, sub, iright);
+        }
+        if (iright == -1)
+            return 0;
+        
+        iright += sub.size();
+        return 2;
+    }
+    
+    if (!utf8) { //we need to compute them
+        szc = size_c(svalue, sz, pivot);
+        if (pivot == -1)
+            utf8 = 1;
+        else
+            utf8 = 2;
+    }
+    
+    //Now we have two cases...
+    //First, this is a pure integer interval, in that case, iright is the absolute position
+    if (iright == -1) {
+        iright = right->Integer();
+        if ((clean & 2)==2)
+            right->Release();
+        
+        if (iright < 0 || right == aNULL) {
+            if (utf8 == 2) {
+                //This is position compared to the end of the string
+                iright += szc;
+                if (iright <= 0)
+                    return 0;
+                if (iright > pivot) {
+                    iright = char_to_byteposition(svalue, sz, pivot, iright);
+                }
+            }
+            else
+                iright += sz;
+        }
+        else {
+            if (iright > szc)
+                iright = sz;
+            else {
+                if (utf8 == 2 && iright > pivot) {
+                    iright = char_to_byteposition(svalue, sz, pivot, iright);
+                }
+            }
+        }
+        
+        if (iright <= ileft)
+            return 0;
+        return 2;
+    }
+    
+    long shift = right->Integer();
+    if ((clean & 2)==2)
+        right->Release();
+    if (shift < 0)
+        return 0;
+    
+    if (right == aNULL)
+        iright = sz;
+    else {
+        if (utf8 == 2) {
+            if (iright > pivot)
+                iright = c_bytetocharposition(svalue, iright)+shift;
+            else
+                iright += shift;
+            
+            if (iright > pivot) {
+                //This is position compared to the end of the string
+                //First we need to transform shift in bytes
+                iright = char_to_byteposition(svalue, sz, pivot, iright);
             }
         }
         else
@@ -1968,7 +2238,7 @@ Exporting Tamgu* TamguGlobal::EvaluateLisp(Tamgu* contextualpattern, string file
     TamguCode* code = spaces[0];
     code->compilemode = false;
     
-    Tamguvector* lst = globalTamgu->Providevector();
+    Tamgulisp* lst = globalTamgu->Providelisp();
     lst->Setreference();
     
     try {
@@ -1985,13 +2255,13 @@ Exporting Tamgu* TamguGlobal::EvaluateLisp(Tamgu* contextualpattern, string file
         
     code->compilemode = true;
 
-    for (long i = 0; i < lst->Size(); i++) {
+    for (long i = 0; i < lst->values.size(); i++) {
         if (i)
             kret->Release();
         kret = lst->values[i]->Eval(contextualpattern, aNULL, idthread);
     }
     
-    lst->Resetreference();
+    lst->Resetreference(1);
     
     currentbnf = previous;
     delete xn;

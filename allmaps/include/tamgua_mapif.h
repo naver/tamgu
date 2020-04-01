@@ -51,11 +51,13 @@ class Tamgua_mapif : public TamguContainer {
 
     //---------------------------------------------------------------------------------------------------------------------
     Tamgua_mapif(TamguGlobal* g, Tamgu* parent = NULL) : TamguContainer(g, parent) {
+     investigate |= is_number;
         //Do not forget your variable initialisation
         isconst = false;
     }
 
     Tamgua_mapif() {
+     investigate |= is_number;
         //Do not forget your variable initialisation
         isconst = false; 
     }
@@ -75,9 +77,7 @@ class Tamgua_mapif : public TamguContainer {
         return "a_mapif";
     }
 
-    bool isNumber() {
-        return true;
-    }
+    
 
     bool isFloat() {
         return true;

@@ -82,13 +82,9 @@ public:
 		return "bool";
 	}
 
-	bool isString() {
-		return false;
-	}
+	
 
-	bool isNumber() {
-		return false;
-	}
+	
 
 	bool isAtom() {
 		return true;
@@ -208,6 +204,20 @@ public:
 			return "true";
 		return "false";
 	}
+
+    void Setstring(string& v, short idthread) {
+        if (value)
+            v = "true";
+        else
+            v = "false";
+    }
+
+    void Setstring(wstring& v, short idthread) {
+        if (value)
+            v = L"true";
+        else
+            v = L"false";
+    }
 
 	long Integer() {
 		return (long)value;
@@ -333,13 +343,9 @@ public:
         return "bool";
     }
     
-    bool isString() {
-        return false;
-    }
     
-    bool isNumber() {
-        return false;
-    }
+    
+    
     
     bool isAtom() {
         return true;
@@ -459,6 +465,20 @@ public:
         return "false";
     }
     
+    void Setstring(string& v, short idthread) {
+        if (value)
+            v = "true";
+        else
+            v = "false";
+    }
+
+    void Setstring(wstring& v, short idthread) {
+        if (value)
+            v = L"true";
+        else
+            v = L"false";
+    }
+
     long Integer() {
         return (long)value;
     }

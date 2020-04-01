@@ -460,11 +460,13 @@ public:
 
 	//---------------------------------------------------------------------------------------------------------------------
 	Tamgustring(string v, TamguGlobal* g, Tamgu* parent = NULL) : TamguObject(g, parent) {
+        investigate |= is_pure_string;
 		//Do not forget your variable initialisation
 		value = v;
 	}
 
 	Tamgustring(string v) {
+        investigate |= is_pure_string;
 		//Do not forget your variable initialisation
 		value = v;
 	}
@@ -472,7 +474,19 @@ public:
 	//----------------------------------------------------------------------------------------------------------------------
     void Putatomicvalue(Tamgu* v) {
         locking();
-        value = v->String();
+        v->Setstring(value, 0);
+        unlocking();
+    }
+
+    void Setstring(string& v, short idthread) {
+        locking();
+        v = value;
+        unlocking();
+    }
+    
+    void Setstring(wstring& v, short idthread) {
+        locking();
+        s_utf8_to_unicode(v, USTR(value), value.size());
         unlocking();
     }
 
@@ -480,25 +494,30 @@ public:
 
 	Tamgu* Putvalue(Tamgu* v, short idthread) {
         locking();
-		value = v->String();
+		v->Setstring(value, idthread);
         unlocking();
 		return this;
 	}
 
 
+    Tamgu* EvalIndex(Tamgu* context, TamguIndex* idx, short idthread);
 	Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 
 	Exporting Tamgu* Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* env, TamguFunctionLambda* bd, short idthread);
 	Exporting Tamgu* Filter(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* kcont, Tamgu* accu, Tamgu* init, bool direct);
 
 	Tamgu* Vector(short idthread) {
-		Locking _lock(this);
-		return globalTamgu->EvaluateVector(value, idthread);
+        locking();
+		Tamgu* r = globalTamgu->EvaluateVector(value, idthread);
+        unlocking();
+        return r;
 	}
 
 	Tamgu* Map(short idthread) {
-		Locking _lock(this);
-		return globalTamgu->EvaluateMap(value, idthread);
+        locking();
+        Tamgu* r = globalTamgu->EvaluateMap(value, idthread);
+        unlocking();
+        return r;
 	}
 
 	Tamgu* Push(Tamgu* a) {
@@ -509,16 +528,21 @@ public:
 	}
 
 	void Pop(long i) {
-		Locking _lock(this);
+        locking();
         long sz = size_c(value);
-		if (!sz)
+        if (!sz) {
+            unlocking();
 			return;
+        }
 		if (i == -1)
 			i = sz - 1;
 		else
-		if (i >= sz || i < 0)
-			return;
+            if (i >= sz || i < 0) {
+                unlocking();
+                return;
+            }
 		c_char_index_remove(value, i);
+        unlocking();
 	}
 
 	virtual short Type() {
@@ -533,9 +557,7 @@ public:
 		return "string";
 	}
 
-	bool isString() {
-		return true;
-	}
+	
 
 	bool isAtom() {
 		return true;
@@ -552,13 +574,13 @@ public:
 	Tamgu* Atom(bool forced = false) {
         if (!globalTamgu->globalLOCK) {
             if (forced || !protect || reference)
-                return globalTamgu->Providestring(value);
+                return globalTamgu->Providewithstring(value);
             return this;
         }
         
         Locking _lock(this);
         if (forced || !protect || reference)
-            return globalTamgu->Providestring(value);
+            return globalTamgu->Providewithstring(value);
         return this;
 	}
 
@@ -708,8 +730,10 @@ public:
 	//This SECTION is for your specific implementation...
 	//This is an example of a function that could be implemented for your needs.
 	Tamgu* MethodSizeb(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-		Locking _lock(this);
-		return globalTamgu->Provideint((long)value.size());
+        locking();
+        Tamgu* r = globalTamgu->Provideint((long)value.size());
+        unlocking();
+        return r;
 	}
 
 	Tamgu* MethodSucc(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -805,8 +829,9 @@ public:
 
 	//---------------------------------------------------------------------------------------------------------------------
 	void Clear() {
-		Locking _lock(this);
+        locking();
 		value = "";
+        unlocking();
 	}
 
 	Exporting unsigned long EditDistance(Tamgu* e);
@@ -821,8 +846,9 @@ public:
             return res;
         }
 
-        Locking _lock(this);
+        locking();
 		jstringing(res, value);
+        unlocking();
 		return res;
 	}
 
@@ -843,13 +869,9 @@ public:
 
 	wstring UString() {
         wstring res;
-        if (!globalTamgu->globalLOCK) {
-            s_utf8_to_unicode(res, USTR(value), value.size());
-            return res;
-        }
-        
-		Locking _lock(this);
+        locking();
 		s_utf8_to_unicode(res, USTR(value), value.size());
+        unlocking();
 		return res;
 
 	}
@@ -863,12 +885,9 @@ public:
 
 	wstring Getustring(short idthread) {
 		wstring res;
-        if (!globalTamgu->globalLOCK) {
-            s_utf8_to_unicode(res, USTR(value), value.size());
-            return res;
-        }
-		Locking _lock(this);
+        locking();
 		s_utf8_to_unicode(res, USTR(value), value.size());
+        unlocking();
 		return res;
 	}
 
@@ -1020,7 +1039,7 @@ public:
 			return this;
 		}
         unlocking();
-		return globalTamgu->Providestring(v);
+		return globalTamgu->Providewithstring(v);
 	}
 
 
@@ -1246,21 +1265,25 @@ public:
     
     //---------------------------------------------------------------------------------------------------------------------
     Tamgua_string(string v, TamguGlobal* g, Tamgu* parent = NULL) : TamguReference(g, parent) {
+     investigate |= is_string;
         //Do not forget your variable initialisation
         value = v;
     }
 
     Tamgua_string(char c) {
+     investigate |= is_string;
         value.head->buffer[0] = c;
         value.head->buffer[1] = 0;
     }
 
     Tamgua_string(string v) {
+     investigate |= is_string;
             //Do not forget your variable initialisation
         value = v;
     }
     
     Tamgua_string(atomic_string& v) {
+     investigate |= is_string;
             //Do not forget your variable initialisation
         value = v;
     }
@@ -1326,9 +1349,7 @@ public:
         return "a_string";
     }
     
-    bool isString() {
-        return true;
-    }
+    
     
     bool isAtom() {
         return true;
@@ -1582,6 +1603,16 @@ public:
         string v = value.value();
         s_utf8_to_unicode(res, USTR(v), v.size());
         return res;
+        
+    }
+    
+    void Setstring(string& v, short idthread) {
+        v = value.value();
+    }
+    
+    void Setstring(wstring& res, short idthread) {
+        string v = value.value();
+        s_utf8_to_unicode(res, USTR(v), v.size());
         
     }
     

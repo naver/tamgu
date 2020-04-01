@@ -78,6 +78,19 @@ string Tamgutime::String() {
     return buffer;
 }
 
+void Tamgutime::Setstring(string& v, short idthread) {
+    char buffer[100];
+    double timeval = Float() / 1000000UL;
+    sprintf_s(buffer, 100, "%fs", timeval);
+    v =  buffer;
+}
+
+void Tamgutime::Setstring(wstring& v, short idthread) {
+    wchar_t buffer[100];
+    double timeval = Float() / 1000000UL;
+    swprintf_s(buffer, 100, L"%fs", timeval);
+    v = buffer;
+}
 
 Tamgu* Tamgutime::MethodReset(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     //First parameter is a time

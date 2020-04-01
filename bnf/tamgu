@@ -625,16 +625,13 @@ tlcomparator := [%< %>]^[%~ %=]^[%! %=]^$≠^[%= %=]^[%< %=]^[%> %=]^%<^%>^%=
 tloperator := $×^$÷^[%& %& %&]^[%< %<]^[%> %>]^[%^ %^]^[%* %*]^%&^%|^%+^%-^%*^%/^%%^%^
 
 tlatom := predicatevariable^anumber^word^astringdouble^apreg^aspreg^atreg^astreg
-%tlquote := %' %' [tlexp^opcomp]
-opcomp := tloperator^tlcomparator
-%tlist := %( ;67 (opcomp) tlexp* %)
-%tlexp := tlist^tlquote^tlatom
-%tamgulisp := %\ tlexp
+%tlquote := %' %' [tloperator^tlcomparator^tlquote^tlatom^tlist]
+%tlist := %( ;67 %)^[[tloperator^tlcomparator] [tlquote^tlatom^tlist]+ %)]^[[tlquote^tlatom^tlist]+ %)]
+%tamgulisp := %\ [tlquote^tlatom^tlist]
 
-%tlquotepure := %' [tlexpure^opcomp]
-%tlistpure := %( ;67 (opcomp) tlexpure* %)
-%tlexpure := tlistpure^tlquotepure^tlatom
-%tamgupurelisp := tlexpure+
+%tlpurequote := %' [tloperator^tlcomparator^tlatom^tlpurequote^tpurelist]
+%tpurelist := %( ;67 %)^[[tloperator^tlcomparator] [tlpurequote^tlatom^tpurelist]+ %)]^[[tlpurequote^tlatom^tpurelist]+ %)]
+%tamgupurelisp := [tlpurequote^tlatom^tpurelist]+
 ########## Grammar pattern: tk :=  ... ############################
 ameta := [%?^[%% ;59 [%d^%p^%c^%C^%H^%a^%r^%s^%S^%?^%%]]] (%_)
 amulti := %$ word

@@ -451,11 +451,149 @@ Tamgu* TamguCode::Run(bool glock) {
 }
 
 //--------------------------------------------------------------------
-Tamgu* TamguIndex::Eval(Tamgu* localidx, Tamgu* obj, short idthread) {
-	Tamgu* klocal = obj->Eval(localidx, this, idthread);
+Tamgu* Tamgustring::EvalIndex(Tamgu* kidx, TamguIndex* idx, short idthread) {
+    static Fast_String basestr(1024);
+    
+    long ileft, iright;
+    
+    locking();
+    char res = StringIndexes(value, idx, ileft, iright, idthread);
+    if (!res) {
+        if (globalTamgu->erroronkey)
+            return globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);
+        return aNOELEMENT;
+    }
 
-	if (function == NULL)
-		return klocal;
+    kidx = idx->function;
+    if (kidx == NULL) {
+        Tamgustring* inter = globalTamgu->Providestring();
+        if (res == 1)
+            inter->value = c_char_get(USTR(value), ileft);
+        else
+            inter->value = value.substr(ileft, iright - ileft);
+        unlocking();
+        return inter;
+    }
+    Fast_String* str = &basestr;
+    if (globalTamgu->globalLOCK)
+        str = new Fast_String(value.size());
+    
+    if (res == 1)
+        str->addonechar(USTR(value), ileft);
+    else
+        str->substr(USTR(value), ileft, iright);
+    unlocking();
+
+    while (kidx != NULL && kidx->isIndex()) {
+        res = StringIndexes(str->neo, str->size(), kidx, ileft, iright, idthread);
+        if (!res) {
+            if (globalTamgu->globalLOCK)
+                delete str;
+            if (globalTamgu->erroronkey)
+                return globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);
+            return aNOELEMENT;
+        }
+        if (res == 1)
+            str->addonechar(ileft);
+        else
+            str->substr(ileft, iright);
+        
+        kidx = kidx->Function();
+    }
+    
+    Tamgustring* inter = globalTamgu->Providestring();
+    inter->value = str->str();
+    if (globalTamgu->globalLOCK)
+        delete str;
+
+    if (kidx != NULL) {
+        kidx = kidx->Eval(aNULL, inter, idthread);
+        if (kidx != inter)
+            inter->Release();
+        return kidx;
+    }
+    
+    return inter;
+}
+
+Tamgu* Tamguustring::EvalIndex(Tamgu* kidx, TamguIndex* idx, short idthread) {
+    long ileft, iright;
+    
+#ifdef WSTRING_IS_UTF16
+    uint32_t c;
+#endif
+
+    locking();
+    char res = StringIndexes(value, idx, ileft, iright, idthread);
+    if (!res) {
+        if (globalTamgu->erroronkey)
+            return globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);
+        return aNOELEMENT;
+    }
+
+    Tamguustring* inter = globalTamgu->Provideustring();
+
+    if (res == 1) {
+#ifdef WSTRING_IS_UTF16
+        c = value[ileft];
+        if (checklargeutf16(c))
+            inter->value = c + value[ileft + 1];
+        else
+            inter->value = c;
+#else
+        inter->value = value[ileft];
+#endif
+    }
+    else
+        inter->value = value.substr(ileft, iright - ileft);
+    unlocking();
+    
+    kidx = idx->function;
+    if (kidx == NULL)
+        return inter;
+
+    while (kidx != NULL && kidx->isIndex()) {
+        res = StringIndexes(inter->value, kidx, ileft, iright, idthread);
+        if (!res) {
+            inter->Release();
+            if (globalTamgu->erroronkey)
+                return globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);
+            return aNOELEMENT;
+        }
+        if (res == 1) {
+#ifdef WSTRING_IS_UTF16
+            c = inter->value[ileft];
+            if (checklargeutf16(c))
+                inter->value = c + inter->value[ileft + 1];
+            else
+                inter->value = c;
+#else
+            inter->value = inter->value[ileft];
+#endif
+        }
+        else
+            inter->value = inter->value.substr(ileft, iright - ileft);
+        kidx = kidx->Function();
+    }
+    
+    if (kidx != NULL) {
+        kidx = kidx->Eval(aNULL, inter, idthread);
+        if (kidx != inter)
+            inter->Release();
+        return kidx;
+    }
+    
+    return inter;
+}
+ 
+Tamgu* TamguIndex::Eval(Tamgu* localidx, Tamgu* obj, short idthread) {
+    if (obj->isPureString())
+        return obj->EvalIndex(localidx, this, idthread);
+    
+    if (function == NULL)
+        return obj->Eval(localidx, this, idthread);
+
+    Tamgu* klocal = obj->Eval(localidx, this, idthread);
 
 	if (function->isIncrement()) {
 		if (klocal == aNOELEMENT && obj->isValueContainer()) {
@@ -482,7 +620,6 @@ Tamgu* TamguIndex::Eval(Tamgu* localidx, Tamgu* obj, short idthread) {
 		return klocal;
 	}
 
-	localidx = this;
 	Tamgu* kidx = function;
 	Tamgu* object = klocal;
 
@@ -494,7 +631,6 @@ Tamgu* TamguIndex::Eval(Tamgu* localidx, Tamgu* obj, short idthread) {
 		}
 
 		obj = object;
-		localidx = kidx;
 		klocal = object->Eval(aNULL, kidx, idthread);
 		if (klocal != object) {
 			object->Releasenonconst();
@@ -543,9 +679,7 @@ Tamgu* TamguIndex::Put(Tamgu* recipient, Tamgu* value, short idthread) {
 	TamguIndex* idx;
 
 	if (function == NULL) {
-		idx = Evaluate(idthread);
-		recipient = recipient->Put(idx, value, idthread);
-		idx->Rollback();
+        recipient = recipient->Put(this, value, idthread);
 		return aTRUE;
 	}
 
@@ -562,17 +696,13 @@ Tamgu* TamguIndex::Put(Tamgu* recipient, Tamgu* value, short idthread) {
 			idx = (TamguIndex*)idx->function;
 		}
 
-		idx = idx->Evaluate(idthread);
 		intermediate->Put(idx, value, idthread);
-		idx->Rollback();
 
 		for (long i = stack.size() - 1; i >= 0; i -= 3) {
 			intermediate = stack[i];
 			if (!intermediate->isProtected() || intermediate->Reference())
 				break;
-			idx = stack[i - 2]->Evaluate(idthread);
-			stack[i - 1]->Put(idx, intermediate, idthread);
-			idx->Rollback();
+			stack[i-1]->Put(stack[i-2], intermediate, idthread);
 		}
 	}
 
@@ -1896,6 +2026,9 @@ Tamgu* TamguCallThroughVariable::Eval(Tamgu* context, Tamgu* value, short idthre
 }
 
 Tamgu* TamguCallVariable::Eval(Tamgu* context, Tamgu* value, short idthread) {
+    if (directcall)
+        return globalTamgu->Getdeclaration(name, idthread);
+
     if (call == NULL) {
         if (!forced) {
             directcall = true;
@@ -2057,11 +2190,10 @@ Tamgu* TamguCallSelfVariable::Put(Tamgu* domain, Tamgu* value, short idthread) {
 
 //------------------------------------------------------------------------------------
 Tamgu* TamguInstruction::Eval(Tamgu* context, Tamgu* a, short idthread) {
-	long size = instructions.last;
-    if (!size)
-        return aNULL;
+	if (instructions.last <= 1) {
+        if (!instructions.last)
+            return aNULL;
 
-	if (size == 1) {
         a = instructions.vecteur[0];
         _setdebugfull(idthread,a);
 		a = a->Eval(context, aNULL, idthread);
@@ -2071,20 +2203,19 @@ Tamgu* TamguInstruction::Eval(Tamgu* context, Tamgu* a, short idthread) {
 
     _setdebugmin(idthread);
 
-	Tamgu* environment = context;
 	if (variablesWillBeCreated)
-		environment = globalTamgu->Providedeclaration(this, idthread, true);
+		context = globalTamgu->Providedeclaration(this, idthread, true);
 
     bool testcond = false;
     a = aNULL;
     
-	for (long i = 0; i < size && !testcond; i++) {
+	for (long i = 0; i < instructions.last && !testcond; i++) {
         a->Releasenonconst();
 
 		a = instructions.vecteur[i];
 		
 		_debugpush(a);
-		a = a->Eval(environment, aNULL, idthread);
+		a = a->Eval(context, aNULL, idthread);
 		_debugpop();
 
         testcond = globalTamgu->Error(idthread) || a->needFullInvestigate();
@@ -2102,23 +2233,23 @@ Tamgu* TamguInstruction::Eval(Tamgu* context, Tamgu* a, short idthread) {
             return a;
         
         if (a->isReturned()) {
-            if (environment->isEmpty()) {
-                environment->Release();
+            if (context->isEmpty()) {
+                context->Release();
                 return a;
             }
             
-            context = a->Returned(idthread);
-            if (!context->Reference())
-                environment->Release();
+            Tamgu* r = a->Returned(idthread);
+            if (!r->Reference())
+                context->Release();
             else {
-                context->Setreference();
-                environment->Release();
-                context->Protect();
+                r->Setreference();
+                context->Release();
+                r->Protect();
             }
             return a;
         }
         
-        environment->Release();
+        context->Release();
         return a;
     }
 
@@ -2126,7 +2257,7 @@ Tamgu* TamguInstruction::Eval(Tamgu* context, Tamgu* a, short idthread) {
 
 	_cleandebugmin;
 	if (variablesWillBeCreated)
-		environment->Release();
+		context->Release();
 
 	return aNULL;
 }
@@ -3315,9 +3446,9 @@ Tamgu* TamguInstructionFORINRANGE::ExecuteInteger(Tamguint* value, Tamgu* contex
 
 	value->Setreference();
 
-	v = instructions.vecteur[0]->Instruction(1)->Getinteger(context, aNULL, idthread);
-	t = instructions.vecteur[0]->Instruction(2)->Getinteger(context, aNULL, idthread);
-	i = instructions.vecteur[0]->Instruction(3)->Getinteger(context, aNULL, idthread);
+	v = instructions.vecteur[0]->Instruction(1)->Getinteger(idthread);
+	t = instructions.vecteur[0]->Instruction(2)->Getinteger(idthread);
+	i = instructions.vecteur[0]->Instruction(3)->Getinteger(idthread);
 
 	Tamgu* a = aNULL;
     bool testcond = false;
@@ -3367,9 +3498,9 @@ Tamgu* TamguInstructionFORINRANGE::ExecuteDecimal(Tamgudecimal* value, Tamgu* co
 	float v, t, i;
 	value->Setreference();
 
-	v = instructions.vecteur[0]->Instruction(1)->Getdecimal(context, aNULL, idthread);
-	t = instructions.vecteur[0]->Instruction(2)->Getdecimal(context, aNULL, idthread);
-	i = instructions.vecteur[0]->Instruction(3)->Getdecimal(context, aNULL, idthread);
+	v = instructions.vecteur[0]->Instruction(1)->Getdecimal(idthread);
+	t = instructions.vecteur[0]->Instruction(2)->Getdecimal(idthread);
+	i = instructions.vecteur[0]->Instruction(3)->Getdecimal(idthread);
 
 	Tamgu* a = aNULL;
     bool testcond = false;
@@ -3419,9 +3550,9 @@ Tamgu* TamguInstructionFORINRANGE::ExecuteFloat(Tamgufloat* value, Tamgu* contex
 
 	value->Setreference();
 
-	v = instructions.vecteur[0]->Instruction(1)->Getfloat(context, aNULL, idthread);
-	t = instructions.vecteur[0]->Instruction(2)->Getfloat(context, aNULL, idthread);
-	i = instructions.vecteur[0]->Instruction(3)->Getfloat(context, aNULL, idthread);
+	v = instructions.vecteur[0]->Instruction(1)->Getfloat(idthread);
+	t = instructions.vecteur[0]->Instruction(2)->Getfloat(idthread);
+	i = instructions.vecteur[0]->Instruction(3)->Getfloat(idthread);
 
 	Tamgu* a = aNULL;
     bool testcond = false;
@@ -3471,9 +3602,9 @@ Tamgu* TamguInstructionFORINRANGE::ExecuteLong(Tamgulong* value, Tamgu* context,
 
 	value->Setreference();
 
-	v = instructions.vecteur[0]->Instruction(1)->Getlong(context, aNULL, idthread);
-	t = instructions.vecteur[0]->Instruction(2)->Getlong(context, aNULL, idthread);
-	i = instructions.vecteur[0]->Instruction(3)->Getlong(context, aNULL, idthread);
+	v = instructions.vecteur[0]->Instruction(1)->Getlong(idthread);
+	t = instructions.vecteur[0]->Instruction(2)->Getlong(idthread);
+	i = instructions.vecteur[0]->Instruction(3)->Getlong(idthread);
 
 	Tamgu* a = aNULL;
     bool testcond = false;
@@ -3523,9 +3654,9 @@ Tamgu* TamguInstructionFORINRANGE::ExecuteShort(Tamgushort* value, Tamgu* contex
 
 	value->Setreference();
 
-	v = instructions.vecteur[0]->Instruction(1)->Getshort(context, aNULL, idthread);
-	t = instructions.vecteur[0]->Instruction(2)->Getshort(context, aNULL, idthread);
-	i = instructions.vecteur[0]->Instruction(3)->Getshort(context, aNULL, idthread);
+	v = instructions.vecteur[0]->Instruction(1)->Getshort(idthread);
+	t = instructions.vecteur[0]->Instruction(2)->Getshort(idthread);
+	i = instructions.vecteur[0]->Instruction(3)->Getshort(idthread);
 
 	Tamgu* a = aNULL;
     bool testcond = false;

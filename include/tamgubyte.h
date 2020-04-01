@@ -43,11 +43,13 @@ class Tamgubyte : public TamguReference {
 
     //---------------------------------------------------------------------------------------------------------------------
     Tamgubyte(unsigned char v, TamguGlobal* g, Tamgu* parent = NULL) : TamguReference(g, parent) {
+     investigate |= is_number;
         //Do not forget your variable initialisation
         value=v;
     }
 
     Tamgubyte(unsigned char v) {
+     investigate |= is_number;
         //Do not forget your variable initialisation
         value=v;
     }
@@ -141,9 +143,7 @@ class Tamgubyte : public TamguReference {
 			return infomethods[n];
 		return "Unknown method";
 	}
-	bool isString() {
-		return false;
-	}
+	
 	bool isAtom() {
 		return true;
 	}
@@ -152,9 +152,7 @@ class Tamgubyte : public TamguReference {
         return (ty == a_byte);
     }
 
-	bool isNumber() {
-		return true;
-	}
+	
 
 	Tamgu* Succ() {
 		return new Tamgubyte(value + 1);
@@ -251,7 +249,18 @@ class Tamgubyte : public TamguReference {
 		s[0] = value;
 		return s;
 	}
-	void storevalue(short u) {
+
+    void Setstring(string& s, short idthread) {
+        s = " ";
+        s[0] = value;
+    }
+
+    void Setstring(wstring& s, short idthread) {
+        s = L" ";
+        s[0] = (wchar_t)value;
+    }
+
+    void storevalue(short u) {
 		value = u;
 	}
 	void storevalue(long u) {

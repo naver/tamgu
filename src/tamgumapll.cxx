@@ -95,29 +95,44 @@ Exporting Tamgu* Tamgumapll::in(Tamgu* context, Tamgu* a, short idthread) {
     
     BLONG val = a->Long();
 
-     if (context->isVectorContainer()) {
+    if (context->isVectorContainer()) {
         Tamgulvector* v = (Tamgulvector*)Selectalvector(context);
         Doublelocking _lock(this, v);
-        if (values.find(val)!=values.end())
+        try {
+            values.at(val);
             v->values.push_back(val);
+        }
+        catch(const std::out_of_range& oor) {}
 
         return v;
     }
 
-   if (context->isNumber()) {
-        Locking _lock(this);
-        if (values.find(val)!=values.end())
+    if (context->isNumber()) {
+        locking();
+        try {
+            values.at(val);
+            unlocking();
             return new Tamgulong(val);
-        return aNOELEMENT;
+        }
+        catch(const std::out_of_range& oor) {
+            unlocking();
+            return aNOELEMENT;
+        }
     }
     
-    Locking _lock(this);
-    if (values.find(val)!=values.end())
+    locking();
+    try {
+        values.at(val);
+        unlocking();
         return aTRUE;
-
-    return aFALSE;
+    }
+    catch(const std::out_of_range& oor) {
+        unlocking();
+        return aFALSE;
+    }
 
 }
+
 
 Exporting Tamgu* Tamgumapll::MethodFind(Tamgu* context, short idthread, TamguCall* callfunc) {
     //Three cases along the container type...
@@ -157,31 +172,34 @@ Exporting Tamgu* Tamgumapll::MethodFind(Tamgu* context, short idthread, TamguCal
 
 
 Exporting Tamgu* Tamgumapll::Push(Tamgu* k, Tamgu* v) {
-    Locking _lock(this);
+    locking();
     BLONG s = k->Long();
     values[s] = v->Long();
+    unlocking();
     return aTRUE;
 }
 
 Exporting Tamgu* Tamgumapll::Pop(Tamgu* kkey) {
     BLONG k = kkey->Long();
-    Locking _lock(this);
-    if (values.find(k) != values.end()) {
-        values.erase(k);
+    locking();
+    if (values.erase(k)) {
+        unlocking();
         return aTRUE;
     }
+    unlocking();
     return aFALSE;
 }
 
 Exporting void Tamgumapll::Clear() {
-    Locking _lock(this);
+    locking();
     values.clear();
+    unlocking();
 }
 
 
 
 Exporting string Tamgumapll::String() {
-    Locking _lock(this);
+    locking();
     stringstream res;
 
     res << "{";
@@ -192,12 +210,13 @@ Exporting string Tamgumapll::String() {
         beg = false;
         res << it.first << ":" << it.second;
     }
+    unlocking();
     res << "}";
     return res.str();
 }
 
 Exporting string Tamgumapll::JSonString() {
-    Locking _lock(this);
+    locking();
     stringstream res;
 
     res << "{";
@@ -208,38 +227,47 @@ Exporting string Tamgumapll::JSonString() {
         beg = false;
         res << '"' << it.first << '"' << ":" << it.second;
     }
+    unlocking();
     res << "}";
     return res.str();
 }
 
 
 Exporting long Tamgumapll::Integer() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
 
 Exporting double Tamgumapll::Float() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
 
 Exporting BLONG Tamgumapll::Long() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
 
 Exporting bool Tamgumapll::Boolean() {
-    Locking _lock(this);
-    if (values.size() == 0)
-        return false;
-    return true;
+    locking();
+    bool b = values.empty();
+    unlocking();
+    return !b;
 }
 
 
 //Basic operations
 Exporting long Tamgumapll::Size() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
 
 
@@ -293,7 +321,7 @@ Exporting Tamgu*  Tamgumapll::Put(Tamgu* idx, Tamgu* ke, short idthread) {
         ke = ke->Map(idthread);
         if (!ke->isMapContainer())
             return globalTamgu->Returnerror("Wrong map initialization", idthread);
-        Locking* _lock = _getlock(this);
+        locking();
         values.clear();
         if (ke->Type() == Tamgumapll::idtype)
             values = ((Tamgumapll*)ke)->values;
@@ -304,33 +332,34 @@ Exporting Tamgu*  Tamgumapll::Put(Tamgu* idx, Tamgu* ke, short idthread) {
             itr->Release();
         }
         ke->Release();
-        _cleanlock(_lock);
+        unlocking();
         return aTRUE;
     }
-    Locking* _lock = _getlock(this);
-    values[idx->Long()] = ke->Long();
-    _cleanlock(_lock);
+    locking();
+    values[idx->Getlong(idthread)] = ke->Long();
+    unlocking();
     return aTRUE;
 }
 
 
 Exporting Tamgu* Tamgumapll::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
 
-    Locking _lock(this);
 
     if (!idx->isIndex()) {
         //particular case, the contextualpattern is a vector, which means that we expect a set of keys
         //as a result
-                if (contextualpattern->isMapContainer())
+        if (contextualpattern->isMapContainer())
             return this;
         
-       //particular case, the contextualpattern is a vector, which means that we expect a set of keys
+        //particular case, the contextualpattern is a vector, which means that we expect a set of keys
         //as a result
         if (contextualpattern->isVectorContainer() || contextualpattern->Type() == a_list) {
             Tamgu* vect = contextualpattern->Newinstance(idthread);
+            locking();
             hmap<BLONG,BLONG>::iterator it;
             for (it = values.begin(); it != values.end(); it++)
                 vect->Push(new Tamgulong(it->first));
+            unlocking();
             return vect;
         }
 
@@ -342,10 +371,10 @@ Exporting Tamgu* Tamgumapll::Eval(Tamgu* contextualpattern, Tamgu* idx, short id
         return this;
     }
 
-    Tamgu* key;
     if (idx->isInterval()) {
+        Locking _lock(this);
         Tamgumapll* kmap = new Tamgumapll;
-        key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
+        Tamgu* key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
         Tamgu* keyright = ((TamguIndex*)idx)->right->Eval(aNULL, aNULL, idthread);
         BLONG vleft = key->Long();
         BLONG vright = keyright->Long();
@@ -378,22 +407,14 @@ Exporting Tamgu* Tamgumapll::Eval(Tamgu* contextualpattern, Tamgu* idx, short id
 
     }
 
-    key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
-    
-    if (key == aNULL) {
-        if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong index", idthread);
-        return aNOELEMENT;
-    }
-
-    BLONG skey = key->Long();
-    key->Release();
+    BLONG skey = idx->Getlong(idthread);
 
     Tamgu* kval = Value(skey);
     if (kval == aNOELEMENT) {
         if (globalTamgu->erroronkey)
             return globalTamgu->Returnerror("Wrong index", idthread);
         return aNOELEMENT;
+
     }
     return kval;
 }
@@ -513,22 +534,22 @@ Exporting Tamgu* Tamgumapll::plus(Tamgu* b, bool itself) {
 
     Tamgumapll* res;
     if (b->isMapContainer()) {
-        hmap<BLONG,BLONG>::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgumapll;
-        BLONG v;
+        BLONG k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
-            v = itr->Valuelong();
-            it = values.find(itr->Keylong());
-            if (it != values.end()) {
-                res->values[it->first] = it->second + v;
+            k = itr->Keylong();
+            try {
+                res->values[k] = values.at(k) + itr->Valuelong();
+            }
+            catch (const std::out_of_range& oor) {
             }
         }
         itr->Release();
         return res;
     }
+
 
     if (itself)
         res = this;
@@ -546,22 +567,22 @@ Exporting Tamgu* Tamgumapll::minus(Tamgu* b, bool itself) {
 
     Tamgumapll * res;
     if (b->isMapContainer()) {
-        hmap<BLONG,BLONG>::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgumapll;
-        BLONG v;
+        BLONG k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
-            v = itr->Valuelong();
-            it = values.find(itr->Keylong());
-            if (it != values.end()) {
-                res->values[it->first] = it->second - v;
+            k = itr->Keylong();
+            try {
+                res->values[k] = values.at(k) - itr->Valuelong();
+            }
+            catch (const std::out_of_range& oor) {
             }
         }
         itr->Release();
         return res;
     }
+
 
     if (itself)
         res = this;
@@ -579,22 +600,22 @@ Exporting Tamgu* Tamgumapll::multiply(Tamgu* b, bool itself) {
 
     Tamgumapll * res;
     if (b->isMapContainer()) {
-        hmap<BLONG,BLONG>::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgumapll;
-        BLONG v;
+        BLONG k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
-            v = itr->Valuelong();
-            it = values.find(itr->Keylong());
-            if (it != values.end()) {
-                res->values[it->first] = it->second * v;
+            k = itr->Keylong();
+            try {
+                res->values[k] = values.at(k) * itr->Valuelong();
+            }
+            catch (const std::out_of_range& oor) {
             }
         }
         itr->Release();
         return res;
     }
+
 
     if (itself)
         res = this;
@@ -613,27 +634,22 @@ Exporting Tamgu* Tamgumapll::divide(Tamgu* b, bool itself) {
 
     Tamgumapll * res;
     if (b->isMapContainer()) {
-        hmap<BLONG,BLONG>::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgumapll;
-        BLONG v;
+        BLONG k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
-            v = itr->Valuelong();
-            if (v == 0) {
-                res->Release();
-                return globalTamgu->Returnerror("Error: Divided by 0");
+            k = itr->Keylong();
+            try {
+                res->values[k] = values.at(k) / itr->Valuelong();
             }
-
-            it = values.find(itr->Keylong());
-            if (it != values.end()) {
-                res->values[it->first] = it->second / v;
+            catch (const std::out_of_range& oor) {
             }
         }
         itr->Release();
         return res;
     }
+
 
     if (itself)
         res = this;
@@ -656,27 +672,22 @@ Exporting Tamgu* Tamgumapll::mod(Tamgu* b, bool itself) {
 
     Tamgumapll * res;
     if (b->isMapContainer()) {
-        hmap<BLONG,BLONG>::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgumapll;
-        long v;
+        BLONG k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
-            v = itr->Valueinteger();
-            if (v == 0) {
-                res->Release();
-                return globalTamgu->Returnerror("Error: Divided by 0");
+            k = itr->Keylong();
+            try {
+                res->values[k] = values.at(k) % itr->Valueinteger();
             }
-
-            it = values.find(itr->Keylong());
-            if (it != values.end()) {
-                res->values[it->first] = it->second % v;
+            catch (const std::out_of_range& oor) {
             }
         }
         itr->Release();
         return res;
     }
+
 
     if (itself)
         res = this;
@@ -698,22 +709,22 @@ Exporting Tamgu* Tamgumapll::shiftright(Tamgu* b, bool itself) {
 
     Tamgumapll * res;
     if (b->isMapContainer()) {
-        hmap<BLONG,BLONG>::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgumapll;
-        long v;
+        BLONG k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
-            v = itr->Valueinteger();
-            it = values.find(itr->Keylong());
-            if (it != values.end()) {
-                res->values[it->first] = (BLONG)it->second>> v;
+            k = itr->Keylong();
+            try {
+                res->values[k] = (BLONG)values.at(k)>> itr->Valueinteger();
+            }
+            catch (const std::out_of_range& oor) {
             }
         }
         itr->Release();
         return res;
     }
+
 
     if (itself)
         res = this;
@@ -731,22 +742,22 @@ Exporting Tamgu* Tamgumapll::shiftleft(Tamgu* b, bool itself) {
 
     Tamgumapll * res;
     if (b->isMapContainer()) {
-        hmap<BLONG,BLONG>::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgumapll;
-        long v;
+        BLONG k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
-            v = itr->Valueinteger();
-            it = values.find(itr->Keylong());
-            if (it != values.end()) {
-                res->values[it->first] = it->second << v;
+            k = itr->Keylong();
+            try {
+                res->values[k] = values.at(k) << itr->Valueinteger();
+            }
+            catch (const std::out_of_range& oor) {
             }
         }
         itr->Release();
         return res;
     }
+
 
     if (itself)
         res = this;
@@ -764,22 +775,22 @@ Exporting Tamgu* Tamgumapll::power(Tamgu* b, bool itself) {
 
     Tamgumapll * res;
     if (b->isMapContainer()) {
-        hmap<BLONG,BLONG>::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgumapll;
-        double v;
+        BLONG k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
-            v = itr->Valuefloat();
-            it = values.find(itr->Keylong());
-            if (it != values.end()) {
-                res->values[it->first] = pow(it->second, v);
+            k = itr->Keylong();
+            try {
+                res->values[k] = pow(values.at(k), itr->Valuefloat());
+            }
+            catch (const std::out_of_range& oor) {
             }
         }
         itr->Release();
         return res;
     }
+
 
     if (itself)
         res = this;
@@ -793,7 +804,7 @@ Exporting Tamgu* Tamgumapll::power(Tamgu* b, bool itself) {
 }
 
 Exporting Tamgu* Tamgumapll::Loopin(TamguInstruction* ins, Tamgu* context, short idthread) {
-    Locking _lock(this);
+    locking();
     Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
     var = var->Eval(context, aNULL, idthread);
 
@@ -818,6 +829,8 @@ Exporting Tamgu* Tamgumapll::Loopin(TamguInstruction* ins, Tamgu* context, short
         //Continue does not trigger needInvestigate
         testcond = a->needInvestigate();
     }
+
+    unlocking();
     
     if (testcond) {
         if (a == aBREAK)
@@ -829,3 +842,4 @@ Exporting Tamgu* Tamgumapll::Loopin(TamguInstruction* ins, Tamgu* context, short
     return this;
 
 }
+

@@ -90,31 +90,38 @@ class Tamgubinmapl : public TamguLockContainer {
 
     Tamgu* Atom(bool forced) {
         if (forced) {
-            Locking _lock(this);
+            locking();
             Tamgubinmapl * m = new Tamgubinmapl;
             m->values = values;
+            unlocking();
             return m;
         }
         return this;
     }
 
     double Sum() {
-        Locking* _lock = _getlock(this);
+        locking();
         double v = 0;
         basebin_hash<BLONG>::iterator itx;
         for (itx = values.begin(); itx != values.end(); itx++)
             v += itx->second;
-        _cleanlock(_lock);
+        unlocking();
         return v;
     }
 
     double Product() {
-        Locking* _lock = _getlock(this);
-        double v = 1;
+        locking();
+        
+        if (values.size() == 0) {
+            unlocking();
+            return 0;
+         }
+
+         double v = 1;
         basebin_hash<BLONG>::iterator itx;
         for (itx = values.begin(); itx != values.end(); itx++)
             v *= itx->second;
-        _cleanlock(_lock);
+        unlocking();
        return v;
     }
 
@@ -232,51 +239,53 @@ class Tamgubinmapl : public TamguLockContainer {
     }
 
     Tamgu* MethodSum(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
         double v = Sum();
         return globalTamgu->Providefloat(v);
     }
 
     Tamgu* MethodKeys(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
+        locking();
         Tamgulvector* vstr = (Tamgulvector*)Selectalvector(contextualpattern);
         basebin_hash<BLONG>::iterator it;
         for (it = values.begin(); it != values.end(); it++)
             vstr->values.push_back(it->first);
+        unlocking();
         return vstr;
     }
 
     Tamgu* MethodValues(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
+        locking();
         Tamgulvector * vstr = (Tamgulvector*)Selectalvector(contextualpattern);
         basebin_hash<BLONG>::iterator it;
         for (it = values.begin(); it != values.end(); it++)
             vstr->values.push_back(it->second);
+        unlocking();
         return vstr;
     }
 
     Tamgu* MethodTest(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
-        long  v = callfunc->Evaluate(0, contextualpattern, idthread)->Integer();
-        if (!values.check(v))
+        locking();
+        short  v = callfunc->Evaluate(0, contextualpattern, idthread)->Short();
+        if (!values.check(v)) {
+            unlocking();
             return aFALSE;
+        }
+        unlocking();
         return aTRUE;
     }
 
     Tamgu* MethodProduct(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
         double v = Product();
         return globalTamgu->Providefloat(v);
     }
 
     Tamgu* MethodPop(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
         Tamgu* pos = callfunc->Evaluate(0, contextualpattern, idthread);
         return Pop(pos);
     }
 
     Tamgu* MethodJoin(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
+        locking();
         //The separator between keys
         string keysep = callfunc->Evaluate(0, contextualpattern, idthread)->String();
         //The separator between values
@@ -291,6 +300,7 @@ class Tamgubinmapl : public TamguLockContainer {
             res << it->first << keysep << it->second;
         }
 
+        unlocking();
         return globalTamgu->Providestring(res.str());
     }
 
@@ -300,8 +310,9 @@ class Tamgubinmapl : public TamguLockContainer {
     Exporting Tamgu* Pop(Tamgu* kkey);
 
     Tamgu* Push(ushort k, Tamgu* a) {
-        Locking _lock(this);
+        locking();
         values[k] = a->Long();
+        unlocking();
         return this;
     }
 
@@ -357,42 +368,53 @@ class Tamgubinmapl : public TamguLockContainer {
     Exporting string String();
     Exporting string JSonString();
 
-    Tamgu* Value(string n) {
-        ushort v = convertlong(n);
-        Locking _lock(this);
-        if (!values.check(v))
+    
+    Tamgu* Value(string& n) {
+        long s = convertlong(n);
+        locking();
+        if (!values.check(s)) {
+            unlocking();
             return aNOELEMENT;
-        return new Tamgulong(values[v]);
+        }
+        BLONG v = values.get(s);
+        unlocking();
+        return new Tamgulong(v);
+    }
+
+    Tamgu* Value(long s) {
+        locking();
+        if (!values.check((ushort)s)) {
+            unlocking();
+            return aNOELEMENT;
+        }
+        BLONG v = values.get((ushort)s);
+        unlocking();
+        return new Tamgulong(v);
     }
 
     Tamgu* Value(Tamgu* a) {
-        short v =  a->Short();
-        Locking _lock(this);
-        if (!values.check(v))
+        ushort s =  a->Short();
+        locking();
+        if (!values.check(s)) {
+            unlocking();
             return aNOELEMENT;
-        return new Tamgulong(values.get(v));
+        }
+        BLONG v = values.get(s);
+        unlocking();
+        return new Tamgulong(v);
     }
 
-    Tamgu* Value(BLONG v) {
-        Locking _lock(this);
-        if (!values.check((ushort)v))
+    Tamgu* Value(double s) {
+        locking();
+        if (!values.check((ushort)s)) {
+            unlocking();
             return aNOELEMENT;
-        return new Tamgulong(values.get((ushort)v));
+        }
+        BLONG v = values.get((ushort)s);
+        unlocking();
+        return new Tamgulong(v);
     }
-
-    Tamgu* Value(long v) {
-        Locking _lock(this);
-        if (!values.check((ushort)v))
-            return aNOELEMENT;
-        return new Tamgulong(values.get((ushort)v));
-    }
-
-    Tamgu* Value(double v) {
-        Locking _lock(this);
-        if (!values.check((ushort)v))
-            return aNOELEMENT;
-        return new Tamgulong(values.get((ushort)v));
-    }
+    
 
     Exporting long Integer();
     Exporting double Float();

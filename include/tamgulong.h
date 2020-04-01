@@ -46,11 +46,13 @@ public:
 
 	//---------------------------------------------------------------------------------------------------------------------
 	Tamgulong(BLONG v, TamguGlobal* g, Tamgu* parent = NULL) : TamguReference(g, parent) {
+     investigate |= is_number;
 		//Do not forget your variable initialisation
 		value = v;
 	}
 
 	Tamgulong(BLONG v) {
+     investigate |= is_number;
 		//Do not forget your variable initialisation
 		value = v;
 	}
@@ -110,9 +112,7 @@ public:
 		return a_long;
 	}
 
-	bool isNumber() {
-		return true;
-	}
+	
 
 	bool isLong() {
 		return true;
@@ -482,11 +482,21 @@ public:
 	
 
 
-	string String() {
-		
-		return convertfromnumber(value);
-		
-	}
+    string String() {
+        return convertfromnumber(value);
+    }
+
+    wstring UString() {
+        return wconvertfromnumber(value);
+    }
+
+    void Setstring(string& v, short idthread) {
+        v = convertfromnumber(value);
+    }
+
+    void Setstring(wstring& v, short idthread) {
+        v = wconvertfromnumber(value);
+    }
 
 	long Integer() {
 		return (long)value;
@@ -532,12 +542,6 @@ public:
 
 	BLONG Getlong(short idthread) {
 		return (BLONG)value;
-	}
-
-	wstring UString() {
-		
-		return wconvertfromnumber(value);
-		
 	}
 
 	float Decimal() {

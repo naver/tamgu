@@ -253,7 +253,7 @@ Tamgu* Tamgustring::Succ() {
     wstring v;
     s_utf8_to_unicode(v, USTR(value), value.size());
     v[v.size() - 1] = v.back() + 1;
-    return globalTamgu->Provideustring(v);
+    return globalTamgu->Providewithustring(v);
 }
 
 Tamgu* Tamgustring::Pred() {
@@ -266,10 +266,10 @@ Tamgu* Tamgustring::Pred() {
 
     wchar_t c = v.back();
     if (c <= 1)
-        return globalTamgu->Provideustring(v);
+        return globalTamgu->Providewithustring(v);
 
     v[v.size() - 1] = c - 1;
-    return globalTamgu->Provideustring(v);
+    return globalTamgu->Providewithustring(v);
 }
 
 
@@ -298,7 +298,7 @@ Exporting Tamgu* Tamgustring::in(Tamgu* context, Tamgu* a, short idthread) {
     if (context->isString()) {
         if (r==-1)
             return aEMPTYSTRING;
-        return globalTamgu->Providestring(val);
+        return globalTamgu->Providewithstring(val);
     }
 
     if (context->isNumber())
@@ -332,7 +332,7 @@ Tamgu* TamguConstString::in(Tamgu* context, Tamgu* a, short idthread) {
     if (context->isString()) {
         if (r==-1)
             return aEMPTYSTRING;
-        return globalTamgu->Providestring(val);
+        return globalTamgu->Providewithstring(val);
     }
     
     if (context->isNumber())
@@ -370,20 +370,14 @@ Exporting unsigned long Tamgustring::EditDistance(Tamgu* e) {
 Exporting Tamgu* Tamgustring::Put(Tamgu* idx, Tamgu* v, short idthread) {
 
     if (!idx->isIndex()) {
-        locking();
-        if (v == this) {
-            unlocking();
+        if (v == this)
             return aFALSE;
-        }
 
-        value = v->String();
+        locking();
+        v->Setstring(value, idthread);
         unlocking();
         return aTRUE;
     }
-
-    string s;
-    if (v != aNULL)
-        s = v->String();
 
     long ileft, iright;
     
@@ -404,6 +398,11 @@ Exporting Tamgu* Tamgustring::Put(Tamgu* idx, Tamgu* v, short idthread) {
     else
         iright = iright - ileft;
     value.erase(ileft, iright);
+
+    string s;
+    if (v != aNULL)
+        s = v->String();
+
     if (s != "")
         value.insert(ileft, s);
     
@@ -504,13 +503,13 @@ Tamgu* Tamgustring::MethodIsutf8(Tamgu* contextualpattern, short idthread, Tamgu
 }
 
 Tamgu* Tamgustring::MethodEvaluate(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-    string thestr;
+    Tamgustring* thestr = globalTamgu->Providestring();
     
     locking();
-    EvaluateMetaInString(thestr,value);
+    EvaluateMetaInString(thestr->value,value);
     unlocking();
 
-    return globalTamgu->Providestring(thestr);
+    return thestr;
 }
 
 
@@ -729,7 +728,7 @@ Tamgu* Tamgustring::MethodScan(Tamgu* contextualpattern, short idthread, TamguCa
         long res,end;
         if (a->search(reg,res,end)) {
             reg = reg.substr(res, end-res);
-            return globalTamgu->Provideustring(reg);
+            return globalTamgu->Providewithustring(reg);
         }
         else
             return aEMPTYSTRING;
@@ -756,12 +755,23 @@ Tamgu* Tamgustring::MethodCount(Tamgu* contextualpattern, short idthread, TamguC
         return globalTamgu->Provideint(values.size()>>1);
     }
 
-    agnostring str(String());
-    if (str == "")
-        return aZERO;
-    
     string sub = substr->String();
-    return globalTamgu->Provideint(s_count(str, sub, i));
+
+    if (globalTamgu->globalLOCK) {
+        locking();
+        if (value == "")
+            i = 0;
+        else
+            i = s_count(value, sub, i);
+        unlocking();
+    }
+    else {
+        if (value == "")
+            i = 0;
+        else
+            i = s_count(value, sub, i);
+    }
+    return globalTamgu->Provideint(i);
 }
 
 Tamgu* Tamgustring::MethodFind(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -837,12 +847,10 @@ Tamgu* Tamgustring::MethodFind(Tamgu* contextualpattern, short idthread, TamguCa
         return globalTamgu->Provideint(i);
     }
 
-    locking();
-    string str = value;
-    unlocking();
-
     string sub = ksub->String();
-    i = s_find(str, sub, i);
+    locking();
+    i = s_find(value, sub, i);
+    unlocking();
     
     if (i == -1)
         return aMINUSONE;
@@ -851,18 +859,26 @@ Tamgu* Tamgustring::MethodFind(Tamgu* contextualpattern, short idthread, TamguCa
 }
 
 Tamgu* Tamgustring::MethodRfind(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    if (globalTamgu->globalLOCK) {
+        if (!Size()) {
+            if (contextualpattern->isVectorContainer())
+                return Selectavector(contextualpattern);
+            return aMINUSONE;
+        }
+    }
+    else {
+        if (!value.size()) {
+            if (contextualpattern->isVectorContainer())
+                return Selectavector(contextualpattern);
+            return aMINUSONE;
+        }
+    }
+    
     Tamgu* ksub = callfunc->Evaluate(0, contextualpattern, idthread);
     
     //we search for a substring starting at position idx
-    long i = Size();
+    long i = -1;
 
-    if (!i) {
-        if (contextualpattern->isVectorContainer())
-            return Selectavector(contextualpattern);
-        return aMINUSONE;
-    }
-    
-    i = -1;
     if (callfunc->Size() == 2)
         i = callfunc->Evaluate(1, contextualpattern, idthread)->Integer();
     
@@ -938,15 +954,17 @@ Tamgu* Tamgustring::MethodRfind(Tamgu* contextualpattern, short idthread, TamguC
         return globalTamgu->Provideint(i);
     }
     
-    string str=String();
-    if (i == -1)
-        i = str.size();
-    else
-        i = c_chartobyteposition(USTR(str),i);
-
     string sub = ksub->String();
-    i = s_rfind(str, sub, i);
-
+    
+    locking();
+    if (i == -1)
+        i = value.size();
+    else
+        i = c_chartobyteposition(USTR(value),i);
+    
+    i = s_rfind(value, sub, i);
+    unlocking();
+    
     if (i == -1)
         return aMINUSONE;
 
@@ -1716,7 +1734,7 @@ Tamgu* Tamgustring::MethodBase(Tamgu* contextualpattern, short idthread, TamguCa
             v /=b;
             res = caracs[rest]+res;
         }
-        return globalTamgu->Provideustring(res);
+        return globalTamgu->Providewithustring(res);
     }
 
     w = UString();
@@ -1959,7 +1977,7 @@ Tamgu* Tamgustring::MethodInsert(Tamgu* contextualpattern, short idthread, Tamgu
         if (ret.insert(val, idx) == false)
             return aNULL;
     }
-    return globalTamgu->Providestring(ret);
+    return globalTamgu->Providewithstring(ret);
 }
 
 Tamgu* Tamgustring::MethodClear(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -2050,7 +2068,7 @@ Tamgu* Tamgustring::MethodFormat(Tamgu* contextualpattern, short idthread, Tamgu
         sprintf_s(buffer + 1, 100, "%ld", i + 1);
         sformat = s_replacestrings(sformat, buffer, e);
     }
-    return globalTamgu->Providestring(sformat);
+    return globalTamgu->Providewithstring(sformat);
 }
 
 Tamgu* Tamgustring::MethodReplace(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -2066,7 +2084,7 @@ Tamgu* Tamgustring::MethodReplace(Tamgu* contextualpattern, short idthread, Tamg
             
             for (long i=values.size()-2; i>=0; i-=2)
                 w=w.substr(0,values[i])+rep+w.substr(values[i+1],w.size()-values[i+1]);
-            return globalTamgu->Provideustring(w);
+            return globalTamgu->Providewithustring(w);
         }
 #ifdef Tamgu_REGEX
         string rep = callfunc->Evaluate(1, contextualpattern, idthread)->String();
@@ -2075,7 +2093,7 @@ Tamgu* Tamgustring::MethodReplace(Tamgu* contextualpattern, short idthread, Tamg
         unlocking();
         
         w = treg->replace(w, rep);
-        return globalTamgu->Providestring(w);
+        return globalTamgu->Providewithstring(w);
 #endif
     }
 
@@ -2085,12 +2103,12 @@ Tamgu* Tamgustring::MethodReplace(Tamgu* contextualpattern, short idthread, Tamg
     
     string reg = treg->String();
     if (reg == "")
-        return globalTamgu->Providestring(str);
+        return globalTamgu->Providewithstring(str);
 
     string rep = callfunc->Evaluate(1, contextualpattern, idthread)->String();
 
     str = s_replacestring(str, reg, rep);
-    return globalTamgu->Providestring(str);
+    return globalTamgu->Providewithstring(str);
 }
 
 Tamgu* Tamgustring::MethodEditdistance(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -2135,7 +2153,7 @@ Tamgu* Tamgustring::MethodLast(Tamgu* contextualpattern, short idthread, TamguCa
     if (res.size() == 0)
         return aNULL;
     res = c_char_index(res, size_c(res) - 1);
-    return globalTamgu->Providestring(res);
+    return globalTamgu->Providewithstring(res);
 }
 
 Tamgu* Tamgustring::MethodIndent(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -2145,7 +2163,7 @@ Tamgu* Tamgustring::MethodIndent(Tamgu* contextualpattern, short idthread, Tamgu
     string codeindente;
     string code=String();
     IndentCode(code, codeindente, blanks);
-    return globalTamgu->Providestring(codeindente);
+    return globalTamgu->Providewithstring(codeindente);
 }
 
 Exporting Tamgu* Tamgustring::Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* environment, TamguFunctionLambda* bd, short idthread) {
@@ -2342,13 +2360,13 @@ Tamgu* Tamgustring::MethodJamo(Tamgu* contextualpattern, short idthread, TamguCa
             return vs;
         }
 
-        return globalTamgu->Provideustring(w);
+        return globalTamgu->Providewithustring(w);
     }
 
     //Else combine...
     w = UString();
     w = s_combine_jamo(w);
-    return globalTamgu->Provideustring(w);
+    return globalTamgu->Providewithustring(w);
 }
 
 Tamgu* Tamgustring::MethodIsJamo(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -2376,7 +2394,7 @@ Tamgu* Tamgustring::andset(Tamgu* a, bool autoself) {
         return this;
     }
 
-    return globalTamgu->Providestring(u);
+    return globalTamgu->Providewithstring(u);
 }
 
 Tamgu* Tamgustring::xorset(Tamgu* a, bool autoself) {
@@ -2394,7 +2412,7 @@ Tamgu* Tamgustring::xorset(Tamgu* a, bool autoself) {
         return this;
     }
 
-    return globalTamgu->Providestring(u);
+    return globalTamgu->Providewithstring(u);
 }
 
 Tamgu* Tamgustring::MethodNormalizeHangul(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -2423,7 +2441,7 @@ Tamgu* Tamgustring::MethodTransliteration(Tamgu* contextualpattern, short idthre
     if (str.size())
         c = c_translate(USTR(str), i);
 
-    return globalTamgu->Providestring(c);
+    return globalTamgu->Providewithstring(c);
 }
 
 Tamgu* Tamgustring::MethodRead(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -2487,7 +2505,7 @@ Tamgu* TamguLoopString::andset(Tamgu* a, bool autoself) {
         return this;
     }
 
-    return globalTamgu->Providestring(u);
+    return globalTamgu->Providewithstring(u);
 }
 
 Tamgu* TamguLoopString::xorset(Tamgu* a, bool autoself) {
@@ -2504,7 +2522,7 @@ Tamgu* TamguLoopString::xorset(Tamgu* a, bool autoself) {
         return this;
     }
 
-    return globalTamgu->Providestring(u);
+    return globalTamgu->Providewithstring(u);
 }
 
 
@@ -2656,7 +2674,7 @@ Tamgu* Tamgua_string::Succ() {
     string v = value.value();
     s_utf8_to_unicode(w, USTR(v), v.size());
     w[w.size() - 1] = w.back() + 1;
-    return globalTamgu->Provideustring(w);
+    return globalTamgu->Providewithustring(w);
 }
 
 Tamgu* Tamgua_string::Pred() {
@@ -2669,10 +2687,10 @@ Tamgu* Tamgua_string::Pred() {
     
     wchar_t c = w.back();
     if (c <= 1)
-        return globalTamgu->Provideustring(w);
+        return globalTamgu->Providewithustring(w);
     
     w[w.size() - 1] = c - 1;
-    return globalTamgu->Provideustring(w);
+    return globalTamgu->Providewithustring(w);
 }
 
 
@@ -3312,7 +3330,7 @@ Tamgu* Tamgua_string::MethodReplace(Tamgu* contextualpattern, short idthread, Ta
             
             for (long i=values.size()-2; i>=0; i-=2)
                 w=w.substr(0,values[i])+rep+w.substr(values[i+1],w.size()-values[i+1]);
-            return globalTamgu->Provideustring(w);
+            return globalTamgu->Providewithustring(w);
         }
 #ifdef Tamgu_REGEX
         string rep = callfunc->Evaluate(1, contextualpattern, idthread)->String();
@@ -3607,13 +3625,13 @@ Tamgu* Tamgua_string::MethodJamo(Tamgu* contextualpattern, short idthread, Tamgu
             return vs;
         }
         
-        return globalTamgu->Provideustring(w);
+        return globalTamgu->Providewithustring(w);
     }
     
         //Else combine...
     w = UString();
     w = s_combine_jamo(w);
-    return globalTamgu->Provideustring(w);
+    return globalTamgu->Providewithustring(w);
 }
 
 Tamgu* Tamgua_string::MethodIsJamo(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {

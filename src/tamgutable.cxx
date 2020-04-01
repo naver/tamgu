@@ -293,6 +293,41 @@ Exporting string Tamgutable::String() {
     return res;
 }
 
+void Tamgutable::Setstring(string& res, short idthread) {
+    int it;
+    res = "[";
+    bool beg = true;
+    string sx;
+    Tamgu* element;
+    for (it = 0; it < size; it++) {
+        element = values[it];
+        sx = element->StringToDisplay();
+        if (loopmark) {
+            res = "[...]";
+            return;
+        }
+        
+        TamguCircular _c(this);
+        if (!element->isString() || element->isContainer()) {
+            if (sx == "")
+                sx = "''";
+            if (beg == false) {
+                if (sx[0] != '|')
+                    res += ",";
+            }
+            res += sx;
+        }
+        else {
+            if (beg == false)
+                res += ",";
+            stringing(res, sx);
+        }
+        beg = false;
+
+    }
+    res += "]";
+}
+
 Exporting Tamgu* Tamgutable::Map(short idthread) {
     if (loopmark)
         return aNULL;
@@ -926,10 +961,10 @@ Exporting Tamgu*  Tamgutable::Put(Tamgu* idx, Tamgu* value, short idthread) {
     //In this specific case, we try to replace a bloc of values with a new bloc
     if (idx->isInterval()) {
         //First we remove the values...
-        long lkey = idx->Integer();
+        long lkey = idx->Getinteger(idthread);
         if (lkey < 0)
             lkey = size + lkey;
-        long rkey = ((TamguIndex*)idx)->right->Integer();
+        long rkey = ((TamguIndex*)idx)->right->Getinteger(idthread);
         if (rkey < 0)
             rkey = size + rkey;
         if (rkey < lkey || rkey >= size || lkey >= size) {
@@ -966,7 +1001,7 @@ Exporting Tamgu*  Tamgutable::Put(Tamgu* idx, Tamgu* value, short idthread) {
         Insert(lkey, krkey);
         return aTRUE;
     }
-    long ikey = idx->Integer();
+    long ikey = idx->Getinteger(idthread);
     if (ikey >= size)
         return globalTamgu->Returnerror("Table is full", idthread);
 
@@ -1020,7 +1055,7 @@ Exporting Tamgu* Tamgutable::Eval(Tamgu* contextualpattern, Tamgu* idx, short id
 
     long ikey;
     bool stringkey = false;
-    if (key->Type() == a_string) {
+    if (key->isString()) {
         string sf = key->String();
         stringkey = true;
         bool found = false;
@@ -1068,7 +1103,7 @@ Exporting Tamgu* Tamgutable::Eval(Tamgu* contextualpattern, Tamgu* idx, short id
 
     Tamgutable* kvect;
     long iright;
-    if (keyright->Type() == a_string) {
+    if (keyright->isString()) {
         string sf = keyright->String();
         bool found = false;
         if (kind->signright) {
@@ -1154,11 +1189,11 @@ Exporting Tamgu* Tamgutable::Unique() {
     string k;
     for (int i = 0; i < size; i++) {
         k = values[i]->String();
-        if (inter.find(k) != inter.end()) {
-            if (inter[k]->same(values[i])->Boolean() == false)
+        try {
+            if (inter.at(k)->same(values[i])->Boolean() == false)
                 kvect->Push(values[i]);
         }
-        else {
+        catch(const std::out_of_range& oor) {
             inter[k] = values[i];
             kvect->Push(values[i]);
         }
@@ -1433,28 +1468,28 @@ Exporting Tamgu* Tamgutable::Filter(short idthread, Tamgu* env, TamguFunctionLam
 
 //----------------------------------------------------------------------------------
 Exporting void Tamgutable::Storevalue(string& u) {
-    Tamgu* a = globalTamgu->Providestring(u);
+    Tamgu* a = globalTamgu->Providewithstring(u);
     
     
     push(a);
 }
 
 Exporting void Tamgutable::Storevalue(wstring& u) {
-    Tamgu* a = globalTamgu->Provideustring(u);
+    Tamgu* a = globalTamgu->Providewithustring(u);
     
     
     push(a);
 }
 
 Exporting void Tamgutable::storevalue(string u) {
-    Tamgu* a = globalTamgu->Providestring(u);
+    Tamgu* a = globalTamgu->Providewithstring(u);
 
     
     push(a);
 }
 
 Exporting void Tamgutable::storevalue(wstring u) {
-    Tamgu* a = globalTamgu->Provideustring(u);
+    Tamgu* a = globalTamgu->Providewithustring(u);
 
     
     push(a);
@@ -1503,7 +1538,7 @@ Exporting void Tamgutable::storevalue(unsigned char u) {
 Exporting void Tamgutable::storevalue(wchar_t u) {
     wstring w;
     w = u;
-    Tamgu* a = globalTamgu->Provideustring(w);
+    Tamgu* a = globalTamgu->Providewithustring(w);
     
     push(a);
 }

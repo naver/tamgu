@@ -163,10 +163,11 @@ class Tamgulist : public TamguObjectLockContainer {
     Tamgu* Atom(bool forced = false) {
         if (forced) {
             Tamgulist* v = new Tamgulist;
-            Locking _lock(this);
+            locking();
 
             for (auto& it : values)
                 v->Push(it);
+            unlocking();
             return v;
         }
         return this;
@@ -176,9 +177,11 @@ class Tamgulist : public TamguObjectLockContainer {
     //---------------------------------------------------------------------------------------------------------------------
     
     void unmark() {
-        Locking _lock(this);
-        if (loopmark)
+        locking();
+        if (loopmark) {
+            unlocking();
             return;
+        }
         
         loopmark=true;
         usermark=false;
@@ -186,6 +189,7 @@ class Tamgulist : public TamguObjectLockContainer {
         for (auto& it : values)
             it->unmark();
         loopmark=false;
+        unlocking();
     }
 
     Exporting void Cleanreference(short inc);
@@ -200,10 +204,10 @@ class Tamgulist : public TamguObjectLockContainer {
         protect = n;
 
 
-        Locking* _lock = _getlock(this);
+        locking();
         for (auto& it : values)
             it->Setprotect(n);
-        _cleanlock(_lock);
+        unlocking();
         
         loopmark=false;
     }
@@ -214,10 +218,10 @@ class Tamgulist : public TamguObjectLockContainer {
         loopmark=true;
         protect = true;
 
-        Locking* _lock = _getlock(this);
+        locking();
         for (auto& it : values)
             it->Setprotect(true);
-        _cleanlock(_lock);
+        unlocking();
         
         loopmark=false;
     }
@@ -230,23 +234,26 @@ class Tamgulist : public TamguObjectLockContainer {
         if (Reference() <= 0)
             protect = true;
 
-        Locking* _lock = _getlock(this);
+        locking();
         for (auto& it : values)
             it->Popping();
-        _cleanlock(_lock);
+        unlocking();
         
         loopmark=false;
     }
 
     bool listValue(list<Tamgu*>::iterator& it, long itx) {
-        Locking _lock(this);
-        if (itx >= values.size())
+        locking();
+        if (itx >= values.size()) {
+            unlocking();
             return false;
+        }
         it = values.begin();
         while (itx > 0) {
             it++;
             itx--;
         }
+        unlocking();
         return true;
     }
     //---------------------------------------------------------------------------------------------------------------------
@@ -291,23 +298,33 @@ class Tamgulist : public TamguObjectLockContainer {
     }
 
     Tamgu* MethodLast(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
-        if (values.size() == 0)
+        locking();
+        if (values.size() == 0) {
+            unlocking();
             return aNOELEMENT;
-        return values.back();
+        }
+        locking();
+        contextualpattern = values.back();
+        unlocking();
+        return contextualpattern;
     }
 
     Tamgu* MethodFirst(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
-        if (values.size() == 0)
+        locking();
+        if (values.size() == 0) {
+            unlocking();
             return aNOELEMENT;
-        return values.front();
+        }
+        locking();
+        contextualpattern = values.front();
+        unlocking();
+        return contextualpattern;
     }
 
     Tamgu* MethodJoin(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         //The separator between values
         string sep = callfunc->Evaluate(0, contextualpattern, idthread)->String();
-        Locking _lock(this);
+        locking();
         bool beg = true;
         string res;
 
@@ -317,8 +334,8 @@ class Tamgulist : public TamguObjectLockContainer {
             beg = false;
             res += it->String();
         }
-
-        return globalTamgu->Providestring(res);
+        unlocking();
+        return globalTamgu->Providewithstring(res);
     }
 
     Tamgu* MethodMerge(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -392,17 +409,25 @@ class Tamgulist : public TamguObjectLockContainer {
     Exporting Tamgu* Popfirst();
     Exporting Tamgu* Poplast();
     Tamgu* Last() {
-        Locking _lock(this);
-        if (values.size() == 0)
+        locking();
+        if (values.size() == 0) {
+            unlocking();
             return aNOELEMENT;
-        return values.back();
+        }
+        Tamgu* r = values.back();
+        unlocking();
+        return r;
     }
 
     Tamgu* First() {
-        Locking _lock(this);
-        if (values.size() == 0)
+        locking();
+        if (values.size() == 0) {
+            unlocking();
             return aNOELEMENT;
-        return values.front();
+        }
+        Tamgu* r = values.front();
+        unlocking();
+        return r;
     }
 
     Exporting Tamgu* Unique();
@@ -412,20 +437,24 @@ class Tamgulist : public TamguObjectLockContainer {
     Exporting bool Permute();
     Exporting void Insert(long idx, Tamgu* ke);
     Tamgu* Inverse() {
-        Locking _lock(this);
+        locking();
         Tamgulist* vect = new Tamgulist;
         list<Tamgu*>::reverse_iterator it;
         for (it = values.rbegin(); it != values.rend(); it++)
             vect->Push(*it);
+        unlocking();
         return vect;
     }
 
     Exporting Tamgu* Map(short idthread);Exporting Tamgu* Vector(short idthread);
     
     Tamgu* Thesum(long i, long j) {
+        locking();
         long sz = values.size();
-        if (!sz)
+        if (!sz) {
+            unlocking();
             return aZERO;
+        }
 
         if (i < 0)
             i += sz;
@@ -445,6 +474,7 @@ class Tamgulist : public TamguObjectLockContainer {
         if (j>sz)
             j = sz;
 
+        locking();
         long n = 0;
         list<Tamgu*>::iterator it = values.begin();
         if ((*it)->isContainer()) {
@@ -460,7 +490,7 @@ class Tamgulist : public TamguObjectLockContainer {
                 }
                 n++;
             }
-
+            unlocking();
             return sub;
         }
         
@@ -473,7 +503,7 @@ class Tamgulist : public TamguObjectLockContainer {
                     v += (*it)->Float();
                 n++;
             }
-
+            unlocking();
             return globalTamgu->Providefloat(v);
         }
 
@@ -485,14 +515,17 @@ class Tamgulist : public TamguObjectLockContainer {
                 v += (*it)->String();
             n++;
         }
-
-        return globalTamgu->Providestring(v);
+        unlocking();
+        return globalTamgu->Providewithstring(v);
     }
 
     Tamgu* Theproduct(long i, long j) {
+        locking();
         long sz = values.size();
-        if (!sz)
+        if (!sz) {
+            unlocking();
             return aZERO;
+        }
 
         if (i < 0)
             i += sz;
@@ -528,7 +561,7 @@ class Tamgulist : public TamguObjectLockContainer {
                 }
                 n++;
             }
-
+            unlocking();
             return sub;
         }
         
@@ -542,30 +575,33 @@ class Tamgulist : public TamguObjectLockContainer {
             n++;
         }
 
+        unlocking();
         return globalTamgu->Providefloat(v);
     }
 
     double Sum() {
-        Locking* _lock = _getlock(this);
+        locking();
         if (values.size() == 0)
             return 0;
         double v = 0;
 
         for (auto& it : values)
             v += it->Float();
-        _cleanlock(_lock);
+        unlocking();
        return v;
     }
 
     double Product() {
-        Locking* _lock = _getlock(this);
-        if (values.size() == 0)
+        locking();
+        if (values.size() == 0) {
+            unlocking();
             return 0;
+        }
         double v = 1;
 
         for (auto& it : values)
             v += it->Float();
-        _cleanlock(_lock);
+        unlocking();
         return v;
     }
     //---------------------------------------------------------------------------------------------------------------------
@@ -579,8 +615,10 @@ class Tamgulist : public TamguObjectLockContainer {
     }
 
     Exporting void Clear();
-    Exporting string JSonString();Exporting string String();
-    //wstring UString() {}
+    Exporting string JSonString();
+    Exporting string String();
+    Exporting void Setstring(string& v, short idthread);
+
 
     Exporting long Integer();Exporting double Float();Exporting BLONG Long();Exporting bool Boolean();
 
@@ -1147,7 +1185,7 @@ public:
             res += values[it]->String();
         }
         
-        return globalTamgu->Providestring(res);
+        return globalTamgu->Providewithstring(res);
     }
     
     Tamgu* MethodUnique(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -1335,6 +1373,7 @@ public:
     
     Exporting string JSonString();
     Exporting string String();
+    Exporting void Setstring(string& v, short idthread);
     
         //wstring UString() {}
     

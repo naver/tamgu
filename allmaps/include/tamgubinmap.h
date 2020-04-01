@@ -100,10 +100,10 @@ class Tamgubinmap : public TamguObjectLockContainer {
         
         basebin_hash<Tamgu*>::iterator it;
 
-        Locking* _lock = _getlock(this);
+        locking();
         for (it = values.begin(); it != values.end(); it++)
             it->second->Setprotect(n);
-        _cleanlock(_lock);
+        unlocking();
         
         loopmark=false;
     }
@@ -119,10 +119,10 @@ class Tamgubinmap : public TamguObjectLockContainer {
         
         basebin_hash<Tamgu*>::iterator it;
         
-        Locking* _lock = _getlock(this);
+        locking();
         for (it = values.begin(); it != values.end(); it++)
             it->second->Popping();
-        _cleanlock(_lock);
+        unlocking();
         
         loopmark=false;
     }
@@ -134,10 +134,10 @@ class Tamgubinmap : public TamguObjectLockContainer {
         protect = true;
         basebin_hash<Tamgu*>::iterator it;
         
-        Locking* _lock = _getlock(this);
+        locking();
         for (it = values.begin(); it != values.end(); it++)
             it->second->Setprotect(true);
-        _cleanlock(_lock);
+        unlocking();
         
         loopmark=false;
     }
@@ -145,7 +145,7 @@ class Tamgubinmap : public TamguObjectLockContainer {
     Tamgu* Atom(bool forced) {
         if (forced) {
             Tamgubinmap* m = new Tamgubinmap;
-            Locking _lock(this);
+            locking();
             Tamgu* v;
             basebin_hash<Tamgu*>::iterator it;
             for (it = values.begin(); it != values.end(); it++) {
@@ -153,28 +153,35 @@ class Tamgubinmap : public TamguObjectLockContainer {
                 m->values[it->first] = v;
                 v->Setreference();
             }
-            return m;
+            unlocking();
+        return m;
         }
         return this;
     }
 
     double Sum() {
-        Locking* _lock = _getlock(this);
+        locking();
         double v = 0;
         basebin_hash<Tamgu*>::iterator itx;
         for (itx = values.begin(); itx != values.end(); itx++)
             v += itx->second->Sum();
-        _cleanlock(_lock);
+        unlocking();
         return v;
     }
 
     double Product() {
-        Locking* _lock = _getlock(this);
-        double v = 1;
+        locking();
+        
+        if (values.size() == 0) {
+            unlocking();
+            return 0;
+         }
+
+         double v = 1;
         basebin_hash<Tamgu*>::iterator itx;
         for (itx = values.begin(); itx != values.end(); itx++)
             v *= itx->second->Product();
-        _cleanlock(_lock);
+        unlocking();
         return v;
     }
 
@@ -234,9 +241,11 @@ class Tamgubinmap : public TamguObjectLockContainer {
     //---------------------------------------------------------------------------------------------------------------------
     
     void unmark() {
-        Locking _lock(this);
-        if (loopmark)
+        locking();
+        if (loopmark) {
+            unlocking();
             return;
+        }
             
         loopmark=true;
         usermark=false;
@@ -244,6 +253,7 @@ class Tamgubinmap : public TamguObjectLockContainer {
         for (it=values.begin();it!=values.end();it++)
             it->second->unmark();
         loopmark=false;
+        unlocking();
     }
 
     Exporting void Cleanreference(short inc);
@@ -304,51 +314,53 @@ class Tamgubinmap : public TamguObjectLockContainer {
     }
 
     Tamgu* MethodSum(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
         double v = Sum();
         return globalTamgu->Providefloat(v);
     }
 
     Tamgu* MethodKeys(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
+        locking();
         Tamguivector* vstr = (Tamguivector*)Selectaivector(contextualpattern);
         basebin_hash<Tamgu*>::iterator it;
         for (it = values.begin(); it != values.end(); it++)
             vstr->values.push_back(it->first);
+        unlocking();
         return vstr;
     }
 
     Tamgu* MethodValues(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
+        locking();
         Tamguvector* v = (Tamguvector*)Selectavector(contextualpattern);
         basebin_hash<Tamgu*>::iterator it;
         for (it = values.begin(); it != values.end(); it++)
             v->Push(it->second);
+        unlocking();
         return v;
     }
 
     Tamgu* MethodTest(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
-        long  v = callfunc->Evaluate(0, contextualpattern, idthread)->Integer();
-        if (!values.check(v))
+        locking();
+        short  v = callfunc->Evaluate(0, contextualpattern, idthread)->Short();
+        if (!values.check(v)) {
+            unlocking();
             return aFALSE;
+        }
+        unlocking();
         return aTRUE;
     }
 
     Tamgu* MethodProduct(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
         double v = Product();
         return globalTamgu->Providefloat(v);
     }
 
     Tamgu* MethodPop(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
         Tamgu* pos = callfunc->Evaluate(0, contextualpattern, idthread);
         return Pop(pos);
     }
 
     Tamgu* MethodJoin(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
+        locking();
         //The separator between keys
         string keysep = callfunc->Evaluate(0, contextualpattern, idthread)->String();
         //The separator between values
@@ -363,6 +375,7 @@ class Tamgubinmap : public TamguObjectLockContainer {
             res << it->first << keysep << it->second->String();
         }
 
+        unlocking();
         return globalTamgu->Providestring(res.str());
     }
 
@@ -373,16 +386,17 @@ class Tamgubinmap : public TamguObjectLockContainer {
 
     Exporting Tamgu* Pop(Tamgu* k);
     Tamgu* Push(ushort k, Tamgu* a) {
-        Locking* _lock = _getlock(this);
+        locking();
         a = a->Atom();
         a->Addreference(reference + 1);
         if (values.check(k)) {
             values.get(k)->Removereference(reference + 1);
             values.put(k,a);
+            unlocking();
             return this;
         }
         values[k] = a;
-        _cleanlock(_lock);
+        unlocking();
         return this;
     }
 
@@ -444,41 +458,61 @@ class Tamgubinmap : public TamguObjectLockContainer {
     Exporting string JSonString();
 
     Tamgu* Value(Tamgu* a) {
-        string n =  a->String();
-        short v = convertlong(n);
-        Locking _lock(this);
-        if (!values.check(v))
+        ushort s =  a->Short();
+        
+        locking();
+        if (!values.check(s)) {
+            unlocking();
             return aNOELEMENT;
-        return values.get(v);
+        }
+        Tamgu* v = values.get(s);
+        unlocking();
+        return v;
     }
 
-    Tamgu* Value(string n) {
-        short v = convertlong(n);
-        Locking _lock(this);
-        if (!values.check(v))
+    Tamgu* Value(string& n) {
+        ushort s = convertlong(n);
+        locking();
+        if (!values.check(s)) {
+            unlocking();
             return aNOELEMENT;
-        return values.get(v);
+        }
+        Tamgu* v = values.get(s);
+        unlocking();
+        return v;
     }
 
-    Tamgu* Value(long n) {
-        Locking _lock(this);
-        if (!values.check((ushort)n))
+    Tamgu* Value(long s) {
+        locking();
+        if (!values.check((ushort)s)) {
+            unlocking();
             return aNOELEMENT;
-        return values.get((ushort)n);
+        }
+        Tamgu* v = values.get((ushort)s);
+        unlocking();
+        return v;
     }
 
-    Tamgu* Value(short n) {
-        Locking _lock(this);
-        if (!values.check(n))
+    Tamgu* Value(short s) {
+        locking();
+        if (!values.check((ushort)s)) {
+            unlocking();
             return aNOELEMENT;
-        return values.get(n);
+        }
+        Tamgu* v = values.get((ushort)s);
+        unlocking();
+        return v;
     }
 
-    Tamgu* Value(double n) {
-        Locking _lock(this);
-        if (!values.check((ushort)n))
+    Tamgu* Value(double s) {
+        locking();
+        if (!values.check((ushort)s)) {
+            unlocking();
             return aNOELEMENT;
-        return values.get((ushort)n);
+        }
+        Tamgu* v = values.get((ushort)s);
+        unlocking();
+        return v;
     }
 
     Exporting long Integer();

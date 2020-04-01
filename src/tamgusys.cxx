@@ -208,7 +208,7 @@ Tamgu* Tamgusys::MethodCommand(Tamgu* contextualpattern, short idthread, TamguCa
                 content += buffer;
             }
             fclose(stream);
-            return globalTamgu->Providestring(content);
+            return globalTamgu->Providewithstring(content);
         }
         else {
             int res = system(lastcommand.c_str());
@@ -270,7 +270,7 @@ Tamgu* Tamgusys::MethodListDirectory(Tamgu* contextualpattern, short idthread, T
         if (kvect->Type() == a_svector)
             ((Tamgusvector*)kvect)->values.push_back(name);
         else
-            kvect->Push(globalTamgu->Providestring(name));
+            kvect->Push(globalTamgu->Providewithstring(name));
     }
     return kvect;
 }
@@ -302,7 +302,7 @@ Tamgu* Tamgusys::MethodFileInfo(Tamgu* contextualpattern, short idthread, TamguC
         Tamgu* change = new Tamgudate(scible.st_mtime);
         Tamgu* adate = new Tamgudate(scible.st_atime);
         Tamgu* cdate = new Tamgudate(scible.st_ctime);
-        kpath = globalTamgu->Providestring(filename);
+        kpath = globalTamgu->Providewithstring(filename);
         Tamgumap* mp = (Tamgumap*)Selectamap(contextualpattern);
         mp->Push("size", size);
         mp->Push("date", change);

@@ -92,10 +92,10 @@ class Tamgutreemapu : public TamguObjectLockContainer {
         protect = n;
         map<wstring, Tamgu*>::iterator it;
 
-        Locking* _lock = _getlock(this);
+        locking();
         for (it = values.begin(); it != values.end(); it++)
             it->second->Setprotect(n);
-        _cleanlock(_lock);
+        unlocking();
         
         loopmark=false;
     }
@@ -109,10 +109,10 @@ class Tamgutreemapu : public TamguObjectLockContainer {
             protect = true;
         map<wstring, Tamgu*>::iterator it;
 
-        Locking* _lock = _getlock(this);
+        locking();
         for (it = values.begin(); it != values.end(); it++)
             it->second->Popping();
-        _cleanlock(_lock);
+        unlocking();
         
         loopmark=false;
     }
@@ -124,10 +124,10 @@ class Tamgutreemapu : public TamguObjectLockContainer {
         protect = true;
         map<wstring, Tamgu*>::iterator it;
         
-        Locking* _lock = _getlock(this);
+        locking();
         for (it = values.begin(); it != values.end(); it++)
             it->second->Setprotect(true);
-        _cleanlock(_lock);
+        unlocking();
         
         loopmark=false;
     }
@@ -136,7 +136,7 @@ class Tamgutreemapu : public TamguObjectLockContainer {
     Tamgu* Atom(bool forced) {
         if (forced) {
             Tamgutreemapu* m = new Tamgutreemapu;
-            Locking _lock(this);
+            locking();
             Tamgu* v;
 
             for (auto& it : values) {
@@ -144,7 +144,8 @@ class Tamgutreemapu : public TamguObjectLockContainer {
                 m->values[it.first] = v;
                 v->Setreference();
             }
-            return m;
+            unlocking();
+        return m;
         }
         return this;
     }
@@ -154,22 +155,28 @@ class Tamgutreemapu : public TamguObjectLockContainer {
     }
 
     double Sum() {
-        Locking* _lock = _getlock(this);
+        locking();
         double v = 0;
         map<wstring, Tamgu*>::iterator itx;
         for (itx = values.begin(); itx != values.end(); itx++)
             v += itx->second->Sum();
-        _cleanlock(_lock);
+        unlocking();
         return v;
     }
 
     double Product() {
-        Locking* _lock = _getlock(this);
-        double v = 1;
+        locking();
+        
+        if (values.size() == 0) {
+            unlocking();
+            return 0;
+         }
+
+         double v = 1;
 
         for (auto& itx : values)
             v *= itx.second->Product();
-        _cleanlock(_lock);
+        unlocking();
         return v;
     }
     
@@ -227,16 +234,20 @@ class Tamgutreemapu : public TamguObjectLockContainer {
     //---------------------------------------------------------------------------------------------------------------------
     
     void unmark() {
-        Locking _lock(this);
-        if (loopmark)
+        locking();
+        if (loopmark) {
+            unlocking();
             return;
+        }
             
         loopmark=true;
         usermark=false;
 
         for (auto& it : values)
             it.second->unmark();
+            
         loopmark=false;
+        unlocking();
     }
 
     Exporting void Cleanreference(short inc);
@@ -297,51 +308,56 @@ class Tamgutreemapu : public TamguObjectLockContainer {
     }
 
     Tamgu* MethodSum(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
         double v = Sum();
         return globalTamgu->Providefloat(v);
     }
 
     Tamgu* MethodKeys(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
+        locking();
         Tamguuvector* vstr = (Tamguuvector*)Selectauvector(contextualpattern);
         map<wstring, Tamgu*>::iterator it;
         for (it = values.begin(); it != values.end(); it++)
             vstr->values.push_back(it->first);
+        unlocking();
         return vstr;
     }
 
     Tamgu* MethodValues(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
+        locking();
         Tamguvector* v = (Tamguvector*)Selectavector(contextualpattern);
         map<wstring, Tamgu*>::iterator it;
         for (it = values.begin(); it != values.end(); it++)
             v->Push(it->second);
+        unlocking();
         return v;
     }
 
     Tamgu* MethodTest(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
+        locking();
         wstring  v = callfunc->Evaluate(0, contextualpattern, idthread)->UString();
-        if (values.find(v) == values.end())
+        try {
+            values.at(v);
+            unlocking();
+            return aTRUE;
+        }
+        catch(const std::out_of_range& oor) {
+            unlocking();
             return aFALSE;
-        return aTRUE;
+        }
     }
 
     Tamgu* MethodProduct(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
         double v = Product();
         return globalTamgu->Providefloat(v);
     }
 
     Tamgu* MethodPop(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
         Tamgu* pos = callfunc->Evaluate(0, contextualpattern, idthread);
         return Pop(pos);
     }
 
     Tamgu* MethodJoin(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
+        locking();
         //The separator between keys
         wstring keysep = callfunc->Evaluate(0, contextualpattern, idthread)->UString();
         //The separator between values
@@ -356,6 +372,7 @@ class Tamgutreemapu : public TamguObjectLockContainer {
             res << it.first << keysep << it.second->UString();
         }
 
+        unlocking();
         return globalTamgu->Provideustring(res.str());
     }
 
@@ -366,7 +383,7 @@ class Tamgutreemapu : public TamguObjectLockContainer {
 
     Tamgu* Push(wstring k, Tamgu* a) {
 
-        Locking _lock(this);
+        locking();
         if (values.find(k) != values.end()) {
             Tamgu* v = values[k];
             v->Removereference(reference + 1);
@@ -374,6 +391,7 @@ class Tamgutreemapu : public TamguObjectLockContainer {
         a = a->Atom();
         values[k] = a;
         a->Addreference(reference + 1);
+        unlocking();
         return this;
     }
 
@@ -435,48 +453,77 @@ class Tamgutreemapu : public TamguObjectLockContainer {
     Exporting string JSonString();
 
     Tamgu* Value(Tamgu* a) {
-        wstring n =  a->UString();
+        wstring s =  a->UString();
 
-        Locking _lock(this);
-        if (values.find(n) == values.end())
+        locking();
+        try {
+            Tamgu* res = values.at(s);
+            unlocking();
+            return res;
+        }
+        catch (const std::out_of_range& oor) {
+            unlocking();
             return aNOELEMENT;
-        return values[n];
+        }
     }
 
-    Tamgu* Value(wstring n) {
-        Locking _lock(this);
-        if (values.find(n) == values.end())
+    Tamgu* Value(wstring& s) {
+        locking();
+        try {
+            Tamgu* res = values.at(s);
+            unlocking();
+            return res;
+        }
+        catch (const std::out_of_range& oor) {
+            unlocking();
             return aNOELEMENT;
-        return values[n];
+        }
     }
 
-    Tamgu* Value(string s) {
-        wstring n;
-        s_utf8_to_unicode(n, USTR(s), s.size());
-        Locking _lock(this);
-        if (values.find(n) == values.end())
+    Tamgu* Value(string& n) {
+        wstring s;
+        s_utf8_to_unicode(s, USTR(n), n.size());
+        locking();
+        try {
+            Tamgu* res = values.at(s);
+            unlocking();
+            return res;
+        }
+        catch (const std::out_of_range& oor) {
+            unlocking();
             return aNOELEMENT;
-        return values[n];
+        }
     }
 
     Tamgu* Value(long n) {
         
         wstring s = wconvertfromnumber(n);
-        Locking _lock(this);
-        if (values.find(s) == values.end())
+        locking();
+        try {
+            Tamgu* res = values.at(s);
+            unlocking();
+            return res;
+        }
+        catch (const std::out_of_range& oor) {
+            unlocking();
             return aNOELEMENT;
-        return values[s];
+        }
     }
 
     Tamgu* Value(double n) {
         
         wstring s = wconvertfromnumber(n);
-        Locking _lock(this);
-        if (values.find(s) == values.end())
+        locking();
+        try {
+            Tamgu* res = values.at(s);
+            unlocking();
+            return res;
+        }
+        catch (const std::out_of_range& oor) {
+            unlocking();
             return aNOELEMENT;
-        return values[s];
+        }
     }
-
 
     Exporting long Integer();
     Exporting double Float();

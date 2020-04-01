@@ -51,11 +51,13 @@ class Tamgua_mapiu : public TamguContainer {
 
     //---------------------------------------------------------------------------------------------------------------------
     Tamgua_mapiu(TamguGlobal* g, Tamgu* parent = NULL) : TamguContainer(g, parent) {
+     investigate |= is_string;
         //Do not forget your variable initialisation
         isconst = false;
     }
 
     Tamgua_mapiu() {
+     investigate |= is_string;
         //Do not forget your variable initialisation
         isconst = false; 
     }
@@ -75,9 +77,7 @@ class Tamgua_mapiu : public TamguContainer {
         return "a_mapiu";
     }
 
-    bool isString() {
-        return true;
-    }
+    
 
     bool isContainerClass() {
         return true;

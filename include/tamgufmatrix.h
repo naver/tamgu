@@ -73,10 +73,12 @@ public:
 
 	//---------------------------------------------------------------------------------------------------------------------
 	Tamgufmatrix(TamguGlobal* g, Tamgu* parent = NULL) : TamguObject(g, parent) {
+     investigate |= is_number;
 		//Do not forget your variable initialisation
 	}
 
 	Tamgufmatrix() {
+     investigate |= is_number;
 		//Do not forget your variable initialisation
 	}
 
@@ -104,13 +106,9 @@ public:
 		return "fmatrix";
 	}
 
-	bool isString() {
-		return false;
-	}
+	
 
-	bool isNumber() {
-		return true;
-	}
+	
 
 	bool isBoolean() {
 		return false;
@@ -165,14 +163,14 @@ public:
 	Tamgu* MethodInversion(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
     Tamgu* MethodFormat(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
+        
         
         string sep=callfunc->Evaluate(0,contextualpattern,idthread)->String();
         string nxt=callfunc->Evaluate(1,contextualpattern,idthread)->String();
         string zro=callfunc->Evaluate(2,contextualpattern,idthread)->String();
 
         stringstream buff;
-        
+        locking();
         for (long r = 0; r < rowsize; r++) {
             for (long c = 0; c < columnsize; c++) {
                 if (c)
@@ -184,7 +182,7 @@ public:
             }
             buff << nxt;
         }
-        
+        unlocking();
         return globalTamgu->Providestring(buff.str());
     }
 
@@ -194,8 +192,10 @@ public:
 	Tamgu* CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		//This call is a bit cryptic. It takes the method (function) pointer that has been associated in our map with "name"
 		//and run it with the proper parameters. This is the right call which should be invoked from within a class definition
-		Locking _lock(this);
-		return (this->*methods.get(idname))(contextualpattern, idthread, callfunc);
+		locking();
+		contextualpattern = (this->*methods.get(idname))(contextualpattern, idthread, callfunc);
+        unlocking();
+        return contextualpattern;
 	}
 	void cleaning() {
 		values.clear();
@@ -427,24 +427,44 @@ public:
 		return ke;
 	}
 
-	string String() {
-		Locking _lock(this);
-		stringstream buff;
+    string String() {
+        locking();
+        stringstream buff;
 
-		for (long r = 0; r < rowsize; r++) {
-			for (long c = 0; c < columnsize; c++) {
-				if (c)
-					buff << ",";
-				if (values.check(r) && values[r].check(c))
-					buff << values[r][c];
-				else
-					buff << "0";
-			}
-			buff << endl;
-		}
+        for (long r = 0; r < rowsize; r++) {
+            for (long c = 0; c < columnsize; c++) {
+                if (c)
+                    buff << ",";
+                if (values.check(r) && values[r].check(c))
+                    buff << values[r][c];
+                else
+                    buff << "0";
+            }
+            buff << endl;
+        }
+        unlocking();
 
-		return buff.str();
-	}
+        return buff.str();
+    }
+
+    void Setstring(string& v, short idthread) {
+        locking();
+        stringstream buff;
+
+        for (long r = 0; r < rowsize; r++) {
+            for (long c = 0; c < columnsize; c++) {
+                if (c)
+                    buff << ",";
+                if (values.check(r) && values[r].check(c))
+                    buff << values[r][c];
+                else
+                    buff << "0";
+            }
+            buff << endl;
+        }
+        unlocking();
+        v = buff.str();
+    }
 
 	long Size() {
 		return (rowsize*columnsize);
@@ -493,7 +513,7 @@ public:
 		if (b->Type() != idtype)
 			return this;
 
-		Locking _lock(this);
+		locking();
 		Tamgufmatrix* ma = this;
 		Tamgufmatrix* mb = (Tamgufmatrix*)b;
 		Tamgufmatrix* res = new Tamgufmatrix;
@@ -510,6 +530,7 @@ public:
 			}
 		}
 
+        unlocking();
 		return res;
 	}
 
@@ -518,7 +539,7 @@ public:
 		if (b->Type() != idtype)
 			return this;
 
-		Locking _lock(this);
+		locking();
 		Tamgufmatrix* ma = this;
 		Tamgufmatrix* mb = (Tamgufmatrix*)b;
 		Tamgufmatrix* res = new Tamgufmatrix;
@@ -534,6 +555,7 @@ public:
 				}
 			}
 		}
+        unlocking();
 		return res;
 	}
 
@@ -541,7 +563,7 @@ public:
 		if (b->Type() != idtype)
 			return this;
 
-		Locking _lock(this);
+		locking();
 		Tamgufmatrix* ma = this;
 		Tamgufmatrix* mb = (Tamgufmatrix*)b;
 		Tamgufmatrix* res = new Tamgufmatrix;
@@ -557,7 +579,7 @@ public:
 				}
 			}
 		}
-
+        unlocking();
 		return res;
 	}
 
@@ -568,7 +590,7 @@ public:
 		if (b->Type() != idtype)
 			return this;
 
-		Locking _lock(this);
+		locking();
 		Tamgufmatrix* ma = this;
 		Tamgufmatrix* mb = (Tamgufmatrix*)b;
 		Tamgufmatrix* res = new Tamgufmatrix;
@@ -585,6 +607,7 @@ public:
 					}
 				}
 			}
+            unlocking();
 			return res;
 		}
 
@@ -598,7 +621,7 @@ public:
 				}
 			}
 		}
-
+        unlocking();
 		return res;
 	}
 
@@ -607,7 +630,7 @@ public:
 		if (b->Type() != idtype)
 			return this;
 
-		Locking _lock(this);
+		locking();
 		Tamgufmatrix* ma = this;
 		Tamgufmatrix* mb = (Tamgufmatrix*)b;
 		Tamgufmatrix* res = new Tamgufmatrix;
@@ -625,6 +648,7 @@ public:
 					}
 				}
 			}
+            unlocking();
 			return res;
 		}
 
@@ -639,6 +663,7 @@ public:
 				}
 			}
 		}
+        unlocking();
 		return res;
 	}
 
@@ -646,7 +671,7 @@ public:
 		if (b->Type() != idtype)
 			return this;
 
-		Locking _lock(this);
+		locking();
 		Tamgufmatrix* ma = this;
 		Tamgufmatrix* res = new Tamgufmatrix;
 
@@ -665,12 +690,15 @@ public:
 					}
 				}
 			}
+            unlocking();
 			return res;
 		}
 
 		Tamgufmatrix* mb = (Tamgufmatrix*)b;
-		if (ma->columnsize != mb->rowsize)
+        if (ma->columnsize != mb->rowsize) {
+            unlocking();
 			return globalTamgu->Returnerror("MAT(209): Matrix size mismatch");
+        }
 
 		res->init(ma->rowsize, mb->columnsize);
 		for (r = 0; r < ma->rowsize; r++) {
@@ -686,6 +714,7 @@ public:
 			}
 		}
 
+        unlocking();
 		return res;
 	}
 
@@ -695,7 +724,7 @@ public:
 		if (b->Type() != idtype)
 			return this;
 
-		Locking _lock(this);
+		locking();
 		Tamgufmatrix* ma = this;
 		Tamgufmatrix* res = new Tamgufmatrix;
 
@@ -705,8 +734,10 @@ public:
 
 		if (b->Type() != idtype) {
 			double vb = b->Float();
-			if (vb == 0)
+            if (vb == 0) {
+                unlocking();
 				return globalTamgu->Returnerror("MAT(203): Cannot divide by 0", globalTamgu->GetThreadid());
+            }
 
 			for (r = 0; r < ma->rowsize; r++) {
 				if (ma->values.check(r)) {
@@ -718,6 +749,7 @@ public:
 					}
 				}
 			}
+            unlocking();
 			return res;
 		}
 
@@ -725,11 +757,14 @@ public:
 
 		Tamgufmatrix inverted(NULL, NULL);
 
-		if (!mb->inversion(inverted))
+        if (!mb->inversion(inverted)) {
+            unlocking();
             return globalTamgu->Returnerror("MAT(202): Cannot divide with this matrix", globalTamgu->GetThreadid());
-
-		if (ma->columnsize != inverted.rowsize)
+        }
+        if (ma->columnsize != inverted.rowsize) {
+            unlocking();
             return globalTamgu->Returnerror("MAT(202): Cannot divide with this matrix", globalTamgu->GetThreadid());
+        }
 
 		long k;
 		for (r = 0; r < ma->rowsize; r++) {
@@ -747,6 +782,7 @@ public:
 
 		res->rowsize = ma->rowsize;
 		res->columnsize = inverted.columnsize;
+        unlocking();
 		return res;
 
 	}

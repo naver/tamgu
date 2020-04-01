@@ -301,7 +301,7 @@ Exporting Tamgu*  Tamgua_mapif::Put(Tamgu* idx, Tamgu* ke, short idthread) {
         return aTRUE;
     }
     
-    values.set(idx->Integer(),  ke->Float());
+    values.set(idx->Getinteger(idthread),  ke->Float());
     return aTRUE;
 }
 

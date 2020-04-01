@@ -465,7 +465,7 @@ public:
 
 		wstring s;
 		readoneline(s);
-		return globalTamgu->Provideustring(s);
+		return globalTamgu->Providewithustring(s);
 	}
 
 	Tamgu* MethodRead(Tamgu* context, short idthread, TamguCall* callfunc);

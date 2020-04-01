@@ -93,29 +93,44 @@ Exporting Tamgu* Tamgutreemapi::in(Tamgu* context, Tamgu* a, short idthread) {
 
     long val = a->Integer();
 
-     if (context->isVectorContainer()) {
+    if (context->isVectorContainer()) {
         Tamguivector* v = (Tamguivector*)Selectaivector(context);
         Doublelocking _lock(this, v);
-        if (values.find(val) != values.end())
+        try {
+            values.at(val);
             v->values.push_back(val);
+        }
+        catch(const std::out_of_range& oor) {}
 
         return v;
     }
 
-   if (context->isNumber()) {
-        Locking _lock(this);
-        if (values.find(val)!=values.end())
+    if (context->isNumber()) {
+        locking();
+        try {
+            values.at(val);
+            unlocking();
             return globalTamgu->Provideint(val);
-        return aNOELEMENT;
+        }
+        catch(const std::out_of_range& oor) {
+            unlocking();
+            return aNOELEMENT;
+        }
     }
     
-    Locking _lock(this);
-    if (values.find(val)!=values.end())
+    locking();
+    try {
+        values.at(val);
+        unlocking();
         return aTRUE;
-
-    return aFALSE;
+    }
+    catch(const std::out_of_range& oor) {
+        unlocking();
+        return aFALSE;
+    }
 
 }
+
 
 Exporting Tamgu* Tamgutreemapi::MethodFind(Tamgu* context, short idthread, TamguCall* callfunc) {
     //Three cases along the container type...
@@ -153,11 +168,11 @@ Exporting Tamgu* Tamgutreemapi::MethodFind(Tamgu* context, short idthread, Tamgu
 
 
 Exporting void Tamgutreemapi::Cleanreference(short inc) {
-    Locking* _lock = _getlock(this);
+    locking();
     for (auto& a : values)
         a.second->Removecontainerreference(inc);
     
-    _cleanlock(_lock);
+    unlocking();
 }
 
 Exporting void Tamgutreemapi::Setreference(short inc) {
@@ -168,10 +183,10 @@ Exporting void Tamgutreemapi::Setreference(short inc) {
     protect = false;
     loopmark=true;
     
-    Locking* _lock = _getlock(this);
+    locking();
     for (auto& it : values)
         it.second->Addreference(inc);
-    _cleanlock(_lock);
+    unlocking();
     
     loopmark=false;
 }
@@ -184,10 +199,10 @@ Exporting void Tamgutreemapi::Setreference() {
     protect = false;
     loopmark=true;
     
-    Locking* _lock = _getlock(this);
+    locking();
     for (auto& it : values)
         it.second->Addreference(1);
-    _cleanlock(_lock);
+    unlocking();
     
     loopmark=false;
 }
@@ -195,17 +210,17 @@ Exporting void Tamgutreemapi::Setreference() {
 static void resetMap(Tamgutreemapi* kmap, short inc) {
     kmap->reference -= inc;
     
-    Locking* _lock = _getlock(kmap);
+    kmap->locking();
     
     map<long, Tamgu*>& values = kmap->values;
     if (values.size() == 0) {
-        _cleanlock(_lock);
+        kmap->unlocking();
         return;
     }
     
     for (auto& itx : values)
         itx.second->Removereference(inc);
-    _cleanlock(_lock);
+    kmap->unlocking();
 }
 
 Exporting void Tamgutreemapi::Resetreference(short inc) {
@@ -223,46 +238,50 @@ Exporting void Tamgutreemapi::Resetreference(short inc) {
 
 
 Exporting Tamgu* Tamgutreemapi::Push(Tamgu* k, Tamgu* v) {
-    Locking _lock(this);
+    locking();
     long s = k->Integer();
-    if (values.find(s) != values.end()) {
-        Tamgu* kval = values[s];
-        values.erase(s);
-        kval->Removereference(reference + 1);
-    }
+
+    k = values[s];
+    if (k != NULL)
+        k->Removereference(reference + 1);
 
     v = v->Atom();
     values[s] = v;
+    unlocking();
     v->Addreference(reference+1);
     return aTRUE;
 }
 
 Exporting Tamgu* Tamgutreemapi::Pop(Tamgu* kkey) {
     long k = kkey->Integer();
-    Locking _lk(this);
-    if (values.find(k) != values.end()) {
-        kkey = values[k];
+    locking();
+    try {
+        kkey = values.at(k);
         values.erase(k);
+        unlocking();
         kkey->Removereference(reference + 1);
         return aTRUE;
     }
-    return aFALSE;
+    catch (const std::out_of_range& oor) {
+        unlocking();
+        return aFALSE;
+    }
 }
 
 Exporting void Tamgutreemapi::Clear() {
-    Locking _lock(this);
-
+    locking();
     for (auto& itx : values)
         itx.second->Removereference(reference + 1);
     values.clear();
+    unlocking();
 }
 
-
-
 Exporting string Tamgutreemapi::String() {
-    Locking _lock(this);
-    if (loopmark)
+    locking();
+    if (loopmark) {
+        unlocking();
         return("{...}");
+    }
     TamguCircular _c(this);
     stringstream res;
 
@@ -280,14 +299,17 @@ Exporting string Tamgutreemapi::String() {
         else
             stringing(res, sx);
     }
+    unlocking();
     res << "}";
     return res.str();
 }
 
 Exporting string Tamgutreemapi::JSonString() {
-    Locking _lock(this);
-    if (loopmark)
+    locking();
+    if (loopmark) {
+        unlocking();
         return("");
+    }
     TamguCircular _c(this);
     stringstream res;
 
@@ -299,38 +321,47 @@ Exporting string Tamgutreemapi::JSonString() {
         beg = false;
         res << '"' << it.first << '"' << ":" << it.second->JSonString();
     }
+    unlocking();
     res << "}";
     return res.str();
 }
 
 
 Exporting long Tamgutreemapi::Integer() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
 
 Exporting double Tamgutreemapi::Float() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
 
 Exporting BLONG Tamgutreemapi::Long() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
 
 Exporting bool Tamgutreemapi::Boolean() {
-    Locking _lock(this);
-    if (values.size() == 0)
-        return false;
-    return true;
+    locking();
+    bool b = values.empty();
+    unlocking();
+    return !b;
 }
 
 
 //Basic operations
 Exporting long Tamgutreemapi::Size() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
 
 
@@ -377,7 +408,7 @@ Exporting Tamgu*  Tamgutreemapi::Put(Tamgu* idx, Tamgu* ke, short idthread) {
         ke = ke->Map(idthread);
         if (!ke->isMapContainer())
             return globalTamgu->Returnerror("Wrong map initialization", idthread);
-        Locking* _lock = _getlock(this);
+        locking();
         Clear();
         if (ke->Type() == Tamgutreemapi::idtype) {
             Tamgutreemapi* kmap = (Tamgutreemapi*)ke;
@@ -398,17 +429,16 @@ Exporting Tamgu*  Tamgutreemapi::Put(Tamgu* idx, Tamgu* ke, short idthread) {
             itr->Release();
         }
         ke->Release();
-        _cleanlock(_lock);
+        unlocking();
         return aTRUE;
     }
-    Push(idx->Integer(), ke);
+    Push(idx->Getinteger(idthread), ke);
     return aTRUE;
 }
 
 
 Exporting Tamgu* Tamgutreemapi::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
 
-    Locking _lock(this);
 
     if (!idx->isIndex()) {
         //particular case, the contextualpattern is a vector, which means that we expect a set of keys
@@ -416,13 +446,15 @@ Exporting Tamgu* Tamgutreemapi::Eval(Tamgu* contextualpattern, Tamgu* idx, short
         if (contextualpattern->isMapContainer())
             return this;
         
-       //particular case, the contextualpattern is a vector, which means that we expect a set of keys
+        //particular case, the contextualpattern is a vector, which means that we expect a set of keys
         //as a result
         if (contextualpattern->isVectorContainer() || contextualpattern->Type() == a_list) {
             Tamgu* vect = contextualpattern->Newinstance(idthread);
+            locking();
             map<long, Tamgu*>::iterator it;
             for (it = values.begin(); it != values.end(); it++)
                 vect->Push(globalTamgu->Provideint(it->first));
+            unlocking();
             return vect;
         }
 
@@ -434,10 +466,10 @@ Exporting Tamgu* Tamgutreemapi::Eval(Tamgu* contextualpattern, Tamgu* idx, short
         return this;
     }
 
-    Tamgu* key;
     if (idx->isInterval()) {
+        Locking _lock(this);
         Tamgutreemapi* kmap = new Tamgutreemapi;
-        key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
+        Tamgu* key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
         Tamgu* keyright = ((TamguIndex*)idx)->right->Eval(aNULL, aNULL, idthread);
         long vleft = key->Integer();
         long vright = keyright->Integer();
@@ -470,22 +502,14 @@ Exporting Tamgu* Tamgutreemapi::Eval(Tamgu* contextualpattern, Tamgu* idx, short
 
     }
 
-    key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
-    
-    if (key == aNULL) {
-        if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong index", idthread);
-        return aNOELEMENT;
-    }
-
-    long skey = key->Integer();
-    key->Release();
+    long skey = idx->Getinteger(idthread);
 
     Tamgu* kval = Value(skey);
     if (kval == aNOELEMENT) {
         if (globalTamgu->erroronkey)
             return globalTamgu->Returnerror("Wrong index", idthread);
         return aNOELEMENT;
+
     }
     return kval;
 }
@@ -601,20 +625,22 @@ Exporting Tamgu* Tamgutreemapi::plus(Tamgu* b, bool itself) {
 
     Tamgutreemapi* res;
     if (b->isMapContainer()) {
-        map<long, Tamgu*>::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgutreemapi;
         Tamgu* v;
+        Tamgu* r;
+        long k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
-            v = itr->IteratorValue();
-            it = values.find(itr->Keyinteger());
-            if (it != values.end()) {
-                res->Push(it->first, it->second);
-                res->values[it->first]->plus(v, true);
+            k = itr->Keyinteger();
+            try {
+                r = values.at(k);
+                v = itr->IteratorValue();
+                res->Push(k, r);
+                res->values[k]->plus(v, true);
             }
-
+            catch (const std::out_of_range& oor) {
+            }
         }
         
         itr->Release();
@@ -636,20 +662,22 @@ Exporting Tamgu* Tamgutreemapi::minus(Tamgu* b, bool itself) {
 
     Tamgutreemapi* res;
     if (b->isMapContainer()) {
-        map<long, Tamgu*>::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgutreemapi;
         Tamgu* v;
+        Tamgu* r;
+        long k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
-            v = itr->IteratorValue();
-            it = values.find(itr->Keyinteger());
-            if (it != values.end()) {
-                res->Push(it->first, it->second);
-                res->values[it->first]->minus(v, true);
+            k = itr->Keyinteger();
+            try {
+                r = values.at(k);
+                v = itr->IteratorValue();
+                res->Push(k, r);
+                res->values[k]->minus(v, true);
             }
-
+            catch (const std::out_of_range& oor) {
+            }
         }
         
         itr->Release();
@@ -671,22 +699,24 @@ Exporting Tamgu* Tamgutreemapi::multiply(Tamgu* b, bool itself) {
 
     Tamgutreemapi* res;
     if (b->isMapContainer()) {
-        map<long, Tamgu*>::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgutreemapi;
         Tamgu* v;
+        Tamgu* r;
+        long k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
-            v = itr->IteratorValue();
-            it = values.find(itr->Keyinteger());
-            if (it != values.end()) {
-                res->Push(it->first, it->second);
-                res->values[it->first]->multiply(v, true);
+            k = itr->Keyinteger();
+            try {
+                r = values.at(k);
+                v = itr->IteratorValue();
+                res->Push(k, r);
+                res->values[k]->multiply(v, true);
             }
-
+            catch (const std::out_of_range& oor) {
+            }
         }
-        
+
         itr->Release();
         return res;
     }
@@ -709,26 +739,29 @@ Exporting Tamgu* Tamgutreemapi::divide(Tamgu* b, bool itself) {
     Tamgu* r;
 
     if (b->isMapContainer()) {
-        map<long, Tamgu*>::iterator it;
 
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgutreemapi;
+        long k;
+        Tamgu* inter;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
-            v = itr->IteratorValue();
-            it = values.find(itr->Keyinteger());
-            if (it != values.end()) {
-                r = res->values[it->first]->divide(v, true);
-                if (r->isError()) {
+            k = itr->Keyinteger();
+            try {
+                r = values.at(k);
+                v = itr->IteratorValue();
+                res->Push(k, r);
+                inter = res->values[k]->divide(v, true);
+                if (inter->isError()) {
                     res->Release();
-
                     itr->Release();
-                    return r;
+                    return inter;
                 }
             }
-
+            catch (const std::out_of_range& oor) {
+            }
         }
-        
+
         itr->Release();
         return res;
     }
@@ -757,26 +790,28 @@ Exporting Tamgu* Tamgutreemapi::mod(Tamgu* b, bool itself) {
     Tamgu* r;
 
     if (b->isMapContainer()) {
-        map<long, Tamgu*>::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgutreemapi;
+        long k;
+        Tamgu* inter;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
-            v = itr->IteratorValue();
-            it = values.find(itr->Keyinteger());
-            if (it != values.end()) {
-                r = res->values[it->first]->mod(v, true);
-                if (r->isError()) {
+            k = itr->Keyinteger();
+            try {
+                r = values.at(k);
+                v = itr->IteratorValue();
+                res->Push(k, r);
+                inter = res->values[k]->mod(v, true);
+                if (inter->isError()) {
                     res->Release();
-
                     itr->Release();
-                    return r;
+                    return inter;
                 }
             }
-
+            catch (const std::out_of_range& oor) {
+            }
         }
-        
+
         itr->Release();
         return res;
     }
@@ -802,22 +837,24 @@ Exporting Tamgu* Tamgutreemapi::shiftright(Tamgu* b, bool itself) {
 
     Tamgutreemapi* res;
     if (b->isMapContainer()) {
-        map<long, Tamgu*>::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgutreemapi;
         Tamgu* v;
+        Tamgu* r;
+        long k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
-            v = itr->IteratorValue();
-            it = values.find(itr->Keyinteger());
-            if (it != values.end()) {
-                res->Push(it->first, it->second);
-                res->values[it->first]->shiftright(v, true);
+            k = itr->Keyinteger();
+            try {
+                r = values.at(k);
+                v = itr->IteratorValue();
+                res->Push(k, r);
+                res->values[k]->shiftright(v, true);
             }
-
+            catch (const std::out_of_range& oor) {
+            }
         }
-        
+
         itr->Release();
         return res;
     }
@@ -837,22 +874,24 @@ Exporting Tamgu* Tamgutreemapi::shiftleft(Tamgu* b, bool itself) {
 
     Tamgutreemapi* res;
     if (b->isMapContainer()) {
-        map<long, Tamgu*>::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgutreemapi;
         Tamgu* v;
+        Tamgu* r;
+        long k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
-            v = itr->IteratorValue();
-            it = values.find(itr->Keyinteger());
-            if (it != values.end()) {
-                res->Push(it->first, it->second);
-                res->values[it->first]->shiftleft(v, true);
+            k = itr->Keyinteger();
+            try {
+                r = values.at(k);
+                v = itr->IteratorValue();
+                res->Push(k, r);
+                res->values[k]->shiftleft(v, true);
             }
-
+            catch (const std::out_of_range& oor) {
+            }
         }
-        
+
         itr->Release();
         return res;
     }
@@ -872,22 +911,24 @@ Exporting Tamgu* Tamgutreemapi::power(Tamgu* b, bool itself) {
 
     Tamgutreemapi* res;
     if (b->isMapContainer()) {
-        map<long, Tamgu*>::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgutreemapi;
         Tamgu* v;
+        Tamgu* r;
+        long k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
-            v = itr->IteratorValue();
-            it = values.find(itr->Keyinteger());
-            if (it != values.end()) {
-                res->Push(it->first, it->second);
-                res->values[it->first]->power(v, true);
+            k = itr->Keyinteger();
+            try {
+                r = values.at(k);
+                v = itr->IteratorValue();
+                res->Push(k, r);
+                res->values[k]->power(v, true);
             }
-
+            catch (const std::out_of_range& oor) {
+            }
         }
-        
+
         itr->Release();
         return res;
     }
@@ -906,7 +947,7 @@ Exporting Tamgu* Tamgutreemapi::power(Tamgu* b, bool itself) {
 
 
 Exporting Tamgu* Tamgutreemapi::Loopin(TamguInstruction* ins, Tamgu* context, short idthread) {
-    Locking _lock(this);
+    locking();
     Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
     var = var->Eval(context, aNULL, idthread);
 
@@ -930,6 +971,8 @@ Exporting Tamgu* Tamgutreemapi::Loopin(TamguInstruction* ins, Tamgu* context, sh
         //Continue does not trigger needInvestigate
         testcond = a->needInvestigate();
     }
+
+    unlocking();
     
     if (testcond) {
         if (a == aBREAK)
@@ -941,3 +984,4 @@ Exporting Tamgu* Tamgutreemapi::Loopin(TamguInstruction* ins, Tamgu* context, sh
     return this;
 
 }
+

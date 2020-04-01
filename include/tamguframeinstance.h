@@ -559,30 +559,30 @@ class Tamguframemininstance : public TamguframeBaseInstance {
     //All our methods must have been declared in tamguexportedmethods... See MethodInitialization below
     //---------------------------------------------------------------------------------------------------------------------
     void Setreference(short r) {
-        Locking* _lock = _getlock(this);
+        locking();
         reference += r;
         protect = false;
         for (short i = 0; i < declarations.sz; i++) {
             if (declarations.table[i] != NULL)
                 declarations.table[i]->Setreference(r);
         }
-        _cleanlock(_lock);
+        unlocking();
     }
     
     void Setreference() {
-        Locking* _lock = _getlock(this);
+        locking();
         ++reference;
         protect = false;
         for (short i = 0; i < declarations.sz; i++) {
             if (declarations.table[i] != NULL)
                 declarations.table[i]->Setreference();
         }
-        _cleanlock(_lock);
+        unlocking();
     }
     
     void Resetreference(short r = 1) {
         bool deleted = false;
-        Locking* _lock = _getlock(this);
+        locking();
         
         if ((reference - r) <= 0)
         //We are about to delete our object... We call our final function then...
@@ -605,7 +605,7 @@ class Tamguframemininstance : public TamguframeBaseInstance {
             }
         }
         
-        _cleanlock(_lock);
+        unlocking();
         
         if (deleted)
             delete this;
@@ -613,12 +613,12 @@ class Tamguframemininstance : public TamguframeBaseInstance {
     
     void Setprotect(bool n) {
         protect = n;
-        Locking* _lock = _getlock(this);
+        locking();
         for (short i = 0; i < declarations.sz; i++) {
             if (declarations.table[i] != NULL)
                 declarations.table[i]->Setprotect(n);
         }
-        _cleanlock(_lock);
+        unlocking();
     }
     
     void Popping() {
@@ -626,13 +626,13 @@ class Tamguframemininstance : public TamguframeBaseInstance {
         if (reference <= 0)
             protect = true;
 
-        Locking* _lock = _getlock(this);
+        locking();
 
         for (short i = 0; i < declarations.sz; i++) {
             if (declarations.table[i] != NULL)
                 declarations.table[i]->Popping();
         }
-        _cleanlock(_lock);
+        unlocking();
     }
     
 };
@@ -692,25 +692,25 @@ class Tamguframeinstance : public TamguframeBaseInstance {
     void Setreference(short r) {
         reference += r;
         protect = false;
-        Locking* _lock = _getlock(this);
+        locking();
         for (short i = 0; i < declarations.last; i++)
             declarations[i]->Setreference(r);
-        _cleanlock(_lock);
+        unlocking();
     }
     
     void Setreference() {
         ++reference;
         protect = false;
-        Locking* _lock = _getlock(this);
+        locking();
         for (short i = 0; i < declarations.last; i++)
             declarations[i]->Setreference();
-        _cleanlock(_lock);
+        unlocking();
     }
     
     void Resetreference(short r = 1) {
         bool deleted = false;
         {
-            Locking* _lock = _getlock(this);
+            locking();
             
             if ((reference - r) <= 0)
             //We are about to delete our object... We call our final function then...
@@ -731,7 +731,7 @@ class Tamguframeinstance : public TamguframeBaseInstance {
                 }
             }
             
-            _cleanlock(_lock);
+            unlocking();
         }
         
         if (deleted)
@@ -740,10 +740,10 @@ class Tamguframeinstance : public TamguframeBaseInstance {
     
     void Setprotect(bool n) {
         protect = n;
-        Locking* _lock = _getlock(this);
+        locking();
         for (short i = 0; i < declarations.last; i++)
             declarations.vecteur[i]->Setprotect(n);
-        _cleanlock(_lock);
+        unlocking();
     }
     
     void Popping() {
@@ -751,10 +751,10 @@ class Tamguframeinstance : public TamguframeBaseInstance {
         if (reference <= 0)
             protect = true;
 
-        Locking* _lock = _getlock(this);
+        locking();
         for (short i = 0; i < declarations.last; i++)
             declarations.vecteur[i]->Popping();
-        _cleanlock(_lock);
+        unlocking();
     }
     
 };

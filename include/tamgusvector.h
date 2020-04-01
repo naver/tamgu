@@ -46,11 +46,13 @@ class Tamgusvector : public TamguLockContainer {
     bool isconst;
     //---------------------------------------------------------------------------------------------------------------------
     Tamgusvector(TamguGlobal* g, Tamgu* parent = NULL) : TamguLockContainer(g, parent) {
+     investigate |= is_string;
         //Do not forget your variable initialisation
         isconst = false; 
     }
 
     Tamgusvector()  {
+     investigate |= is_string;
         //Do not forget your variable initialisation
         isconst = false; 
     }
@@ -77,9 +79,7 @@ class Tamgusvector : public TamguLockContainer {
         return "svector";
     }
 
-    bool isString() {
-        return true;
-    }
+    
 
     bool isContainerClass() {
         return true;
@@ -103,81 +103,87 @@ class Tamgusvector : public TamguLockContainer {
 
 
     void Reserve(long d) {
-        Locking _lock(this);
+        locking();
         if (d>values.size())
             values.reserve(d);
+        unlocking();
     }
 
     void storevalue(long l) {
         
         string s = convertfromnumber(l);
-        Locking _lock(this);
+        locking();
         values.push_back(s);
+        unlocking();
     }
     
     void storevalue(double l) {
         
         string s = convertfromnumber(l);
-        Locking _lock(this);
+        locking();
         values.push_back(s);
+        unlocking();
     }
     
     void storevalue(float l) {
         
         string s = convertfromnumber(l);
-        Locking _lock(this);
+        locking();
         values.push_back(s);
+        unlocking();
     }
     
     void storevalue(short l) {
         
         string s = convertfromnumber(l);
-        Locking _lock(this);
+        locking();
         values.push_back(s);
+        unlocking();
     }
     
     void storevalue(BLONG l) {
         
         string s = convertfromnumber(l);
-        Locking* _lock = _getlock(this);
+        locking();
         values.push_back(s);
-        _cleanlock(_lock);
+        unlocking();
     }
     
     void Storevalue(string& v) {
-        Locking* _lock = _getlock(this);
+        locking();
         values.push_back(v);
-        _cleanlock(_lock);
+        unlocking();
     }
     
     void Storevalue(wstring& v) {
         string s;
         sc_unicode_to_utf8(s,v);
-        Locking* _lock = _getlock(this);
+        locking();
         values.push_back(s);
-        _cleanlock(_lock);
+        unlocking();
     }
 
     void storevalue(string v) {
-        Locking* _lock = _getlock(this);
+        locking();
         values.push_back(v);
-        _cleanlock(_lock);
+        unlocking();
     }
     
     void storevalue(wstring v) {
         string s;
         sc_unicode_to_utf8(s,v);
-        Locking* _lock = _getlock(this);
+        locking();
         values.push_back(s);
-        _cleanlock(_lock);
+        unlocking();
     }
     
 
     Tamgu* Atom(bool forced = false) {
         if (forced || !protect || reference) {
             Tamgusvector* v = globalTamgu->Providesvector();
-            Locking _lock(this);
+            locking();
             v->values = values;
+            unlocking();
             return v;
         }
         return this;
@@ -186,23 +192,26 @@ class Tamgusvector : public TamguLockContainer {
     Exporting Tamgu* getvalue(BLONG i);
 
     wstring getustring(long i) {
-        Locking* _lock = _getlock(this);
+        locking();
         if (i < 0 || i >= values.size()) {
-            _cleanlock(_lock);
+            unlocking();
             return L"";
         }
         wstring v;
         s_utf8_to_unicode(v, USTR(values[i]), values[i].size());
-        _cleanlock(_lock);
+        unlocking();
         return v;
     }
     
     string getstring(long i) {
-        Locking _lock(this);
+        locking();
         if (i < 0 || i >= values.size()) {
+            unlocking();
             return "";
         }
-        return values[i];
+        string s = values[i];
+        unlocking();
+        return s;
     }
     
     
@@ -212,68 +221,68 @@ class Tamgusvector : public TamguLockContainer {
     
     
     double getfloat(long i) {
-        Locking* _lock = _getlock(this);
+        locking();
         if (i < 0 || i >= values.size()) {
-            _cleanlock(_lock);
+            unlocking();
             return 0;
         }
         double v = convertfloat(values[i]);
-        _cleanlock(_lock);
+        unlocking();
         return v;
     }
     
     long getinteger(long i) {
-        Locking* _lock = _getlock(this);
+        locking();
         if (i < 0 || i >= values.size()) {
-            _cleanlock(_lock);
+            unlocking();
             return 0;
         }
         long v = convertlong(values[i]);
-        _cleanlock(_lock);
+        unlocking();
         return v;
     }
     
     float getdecimal(long i) {
-        Locking* _lock = _getlock(this);
+        locking();
         if (i < 0 || i >= values.size()) {
-            _cleanlock(_lock);
+            unlocking();
             return 0;
         }
         float v = convertfloat(values[i]);
-        _cleanlock(_lock);
+        unlocking();
         return v;
     }
     
     BLONG getlong(long i) {
-        Locking* _lock = _getlock(this);
+        locking();
         if (i < 0 || i >= values.size()) {
-            _cleanlock(_lock);
+            unlocking();
             return 0;
         }
         BLONG v = convertlong(values[i]);
-        _cleanlock(_lock);
+        unlocking();
         return v;
     }
     
     uchar getbyte(long i) {
-        Locking* _lock = _getlock(this);
+        locking();
         if (i < 0 || i >= values.size()) {
-            _cleanlock(_lock);
+            unlocking();
             return 0;
         }
         uchar vv = values[i][0];
-        _cleanlock(_lock);
+        unlocking();
         return vv;
     }
 
     short getshort(long i) {
-        Locking* _lock = _getlock(this);
+        locking();
         if (i < 0 || i >= values.size()) {
-            _cleanlock(_lock);
+            unlocking();
             return 0;
         }
         short vv = convertlong(values[i]);
-        _cleanlock(_lock);
+        unlocking();
         return vv;
     }
 
@@ -359,9 +368,10 @@ class Tamgusvector : public TamguLockContainer {
     }
 
     Tamgu* MethodPush(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
+        locking();
         for (size_t i = 0; i < callfunc->Size(); i++)
             values.push_back(callfunc->Evaluate(i, contextualpattern, idthread)->String());
+        unlocking();
         return aTRUE;
     }
 
@@ -388,10 +398,14 @@ class Tamgusvector : public TamguLockContainer {
     }
 
     Tamgu* MethodLast(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
-        if (values.size() == 0)
+        locking();
+        if (values.size() == 0) {
+            unlocking();
             return aNOELEMENT;
-        return globalTamgu->Providestring(values.back());
+        }
+        contextualpattern = globalTamgu->Providestring(values.back());
+        unlocking();
+        return contextualpattern;
     }
 
     Tamgu* MethodPoplast(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -420,7 +434,7 @@ class Tamgusvector : public TamguLockContainer {
     Tamgu* MethodJoin(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         //The separator between values
         string sep = callfunc->Evaluate(0, contextualpattern, idthread)->String();
-        Locking _lock(this);
+        locking();
         bool beg = true;
         string res;
         for (size_t it = 0; it < values.size(); it++) {
@@ -429,8 +443,9 @@ class Tamgusvector : public TamguLockContainer {
             beg = false;
             res += values[it];
         }
+        unlocking();
 
-        return globalTamgu->Providestring(res);
+        return globalTamgu->Providewithstring(res);
     }
 
     Tamgu* MethodMerge(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -440,8 +455,9 @@ class Tamgusvector : public TamguLockContainer {
 
     Tamgu* MethodEditDistance(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         Tamgu* v = callfunc->Evaluate(0, contextualpattern, idthread);
-        Locking _lock(this);
+        locking();
         unsigned long dst = EditDistance(v);
+        unlocking();
         return globalTamgu->Provideint(dst);
     }
 
@@ -473,18 +489,22 @@ class Tamgusvector : public TamguLockContainer {
     Exporting void addustringto(wstring ws, int i);
 
     Exporting Tamgu* Push(Tamgu*);	Tamgu* Push(TamguGlobal* g, Tamgu* a, short idhtread) {
-        Locking _lock(this);
+        locking();
         values.push_back(a->String());
+        unlocking();
         return this;
     }
 
     Tamgu* Poplast() {
-        Locking _lock(this);
-        if (values.size() == 0)
+        locking();
+        if (values.size() == 0) {
+            unlocking();
             return aNOELEMENT;
+        }
         string c = values.back();
         values.pop_back();
-        return globalTamgu->Providestring(c);
+        unlocking();
+        return globalTamgu->Providewithstring(c);
     }
     
 
@@ -499,24 +519,28 @@ class Tamgusvector : public TamguLockContainer {
     Exporting unsigned long EditDistance(Tamgu* e);
     
     void Insert(long idx, Tamgu* ke) {
-        Locking _lock(this);
+        locking();
         if (idx<0)
             idx=0;
         if (idx>=values.size())
             values.push_back(ke->String());
         else
             values.insert(values.begin() + idx, ke->String());
+        unlocking();
     }
 
     Tamgu* Inverse() {
         Tamgusvector* vect = globalTamgu->Providesvector();
+        locking();
         for (long i = values.size() - 1; i >= 0; i--) {
             vect->values.push_back(values[i]);
         }
+        unlocking();
         return vect;
     }
 
-    Exporting Tamgu* Map(short idthread);Exporting Tamgu* Vector(short idthread);
+    Exporting Tamgu* Map(short idthread);
+    Exporting Tamgu* Vector(short idthread);
     //---------------------------------------------------------------------------------------------------------------------
 
     //ExecuteMethod must be implemented in order to execute our new Tamgu methods. This method is called when a TamguCallMethodMethod object
@@ -551,15 +575,18 @@ class Tamgusvector : public TamguLockContainer {
             j = sz;
 
         string v;
+        locking();
         for (; i < j; i++)
             v += values[i];
+        unlocking();
 
-        return globalTamgu->Providestring(v);
+        return globalTamgu->Providewithstring(v);
     }
 
     Exporting void Clear();
-    Exporting string String();Exporting string JSonString();
-    //wstring UString() {}
+    Exporting string String();
+    Exporting string JSonString();
+    Exporting void Setstring(string& v, short idthread);
 
     Exporting long Integer();Exporting double Float();Exporting BLONG Long();Exporting bool Boolean();
     
@@ -668,6 +695,7 @@ class TamguConstSVector : public Tamgusvector {
     public:
 
     TamguConstSVector() : Tamgusvector() {
+     investigate |= is_string;
         //Do not forget your variable initialisation
         investigate |= is_const;
     }
@@ -740,11 +768,13 @@ public:
     bool isconst;
         //---------------------------------------------------------------------------------------------------------------------
     Tamgua_svector(TamguGlobal* g, Tamgu* parent = NULL) : values(zero), TamguContainer(g, parent) {
+     investigate |= is_string;
             //Do not forget your variable initialisation
         isconst = false;
     }
     
     Tamgua_svector() : values(zero) {
+     investigate |= is_string;
             //Do not forget your variable initialisation
         isconst = false;
     }
@@ -775,9 +805,7 @@ public:
         return "a_svector";
     }
     
-    bool isString() {
-        return true;
-    }
+    
     
     bool isContainerClass() {
         return true;
@@ -1067,7 +1095,7 @@ public:
             res += it.second.value();
         }
         
-        return globalTamgu->Providestring(res);
+        return globalTamgu->Providewithstring(res);
     }
     
     Tamgu* MethodMerge(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -1169,12 +1197,13 @@ public:
         for (; i < j; i++)
             v += values[i].value();
         
-        return globalTamgu->Providestring(v);
+        return globalTamgu->Providewithstring(v);
     }
     
     Exporting void Clear();
-    Exporting string String();Exporting string JSonString();
-        //wstring UString() {}
+    Exporting string String();
+    Exporting string JSonString();
+    Exporting void Setstring(string& v, short idthread);
     
     Exporting long Integer();Exporting double Float();Exporting BLONG Long();Exporting bool Boolean();
     

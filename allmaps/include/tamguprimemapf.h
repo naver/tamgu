@@ -97,10 +97,10 @@ class Tamguprimemapf : public TamguObjectLockContainer {
         protect = n;
         prime_hash<double, Tamgu*>::iterator it;
 
-        Locking* _lock = _getlock(this);
+        locking();
         for (it = values.begin(); it != values.end(); it++)
             it->second->Setprotect(n);
-        _cleanlock(_lock);
+        unlocking();
         
         loopmark=false;
     }
@@ -114,10 +114,10 @@ class Tamguprimemapf : public TamguObjectLockContainer {
             protect = true;
         prime_hash<double, Tamgu*>::iterator it;
 
-        Locking* _lock = _getlock(this);
+        locking();
         for (it = values.begin(); it != values.end(); it++)
             it->second->Popping();
-        _cleanlock(_lock);
+        unlocking();
         
         loopmark=false;
     }
@@ -129,10 +129,10 @@ class Tamguprimemapf : public TamguObjectLockContainer {
         protect = true;
         prime_hash<double, Tamgu*>::iterator it;
         
-        Locking* _lock = _getlock(this);
+        locking();
         for (it = values.begin(); it != values.end(); it++)
             it->second->Setprotect(true);
-        _cleanlock(_lock);
+        unlocking();
         
         loopmark=false;
     }
@@ -141,7 +141,7 @@ class Tamguprimemapf : public TamguObjectLockContainer {
     Tamgu* Atom(bool forced) {
         if (forced) {
             Tamguprimemapf* m = new Tamguprimemapf;
-            Locking _lock(this);
+            locking();
             Tamgu* v;
             prime_hash<double, Tamgu*>::iterator it;
             for (it = values.begin(); it != values.end(); it++) {
@@ -149,28 +149,35 @@ class Tamguprimemapf : public TamguObjectLockContainer {
                 m->values[it->first] = v;
                 v->Setreference();
             }
-            return m;
+            unlocking();
+        return m;
         }
         return this;
     }
 
     double Sum() {
-        Locking* _lock = _getlock(this);
+        locking();
         double v = 0;
         prime_hash<double, Tamgu*>::iterator itx;
         for (itx = values.begin(); itx != values.end(); itx++)
             v += itx->second->Sum();
-        _cleanlock(_lock);
+        unlocking();
         return v;
     }
 
     double Product() {
-        Locking* _lock = _getlock(this);
-        double v = 1;
+        locking();
+        
+        if (values.size() == 0) {
+            unlocking();
+            return 0;
+         }
+
+         double v = 1;
         prime_hash<double, Tamgu*>::iterator itx;
         for (itx = values.begin(); itx != values.end(); itx++)
             v *= itx->second->Product();
-        _cleanlock(_lock);
+        unlocking();
         return v;
     }
 
@@ -229,17 +236,21 @@ class Tamguprimemapf : public TamguObjectLockContainer {
     //---------------------------------------------------------------------------------------------------------------------
     
     void unmark() {
-        Locking _lock(this);
-        if (loopmark)
+        locking();
+        if (loopmark) {
+            unlocking();
             return;
-            
+        }
+        
         loopmark=true;
         usermark=false;
-
+        
         prime_hash<double,Tamgu*>::iterator it;
         for (it=values.begin();it!=values.end();it++)
             it->second->unmark();
+        
         loopmark=false;
+        unlocking();
     }
 
     Exporting void Cleanreference(short inc);
@@ -300,51 +311,53 @@ class Tamguprimemapf : public TamguObjectLockContainer {
     }
 
     Tamgu* MethodSum(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
         double v = Sum();
         return globalTamgu->Providefloat(v);
     }
 
     Tamgu* MethodKeys(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
+        locking();
         Tamgufvector* vstr = (Tamgufvector*)Selectafvector(contextualpattern);
         prime_hash<double, Tamgu*>::iterator it;
         for (it = values.begin(); it != values.end(); it++)
             vstr->values.push_back(it->first);
+        unlocking();
         return vstr;
     }
 
     Tamgu* MethodValues(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
+        locking();
         Tamguvector* v = (Tamguvector*)Selectavector(contextualpattern);
         prime_hash<double, Tamgu*>::iterator it;
         for (it = values.begin(); it != values.end(); it++)
             v->Push(it->second);
+        unlocking();
         return v;
     }
 
     Tamgu* MethodTest(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
+        locking();
         double  v = callfunc->Evaluate(0, contextualpattern, idthread)->Float();
-        if (values.find(v) == values.end())
+        if (values.find(v) == values.end()) {
+            unlocking();
             return aFALSE;
+        }
+        unlocking();
         return aTRUE;
     }
 
     Tamgu* MethodProduct(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
         double v = Product();
         return globalTamgu->Providefloat(v);
     }
 
     Tamgu* MethodPop(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
         Tamgu* pos = callfunc->Evaluate(0, contextualpattern, idthread);
         return Pop(pos);
     }
 
     Tamgu* MethodJoin(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
+        locking();
         //The separator between keys
         string keysep = callfunc->Evaluate(0, contextualpattern, idthread)->String();
         //The separator between values
@@ -359,6 +372,7 @@ class Tamguprimemapf : public TamguObjectLockContainer {
             res << it->first << keysep << it->second->String();
         }
 
+        unlocking();
         return globalTamgu->Providestring(res.str());
     }
 
@@ -370,7 +384,7 @@ class Tamguprimemapf : public TamguObjectLockContainer {
     Exporting Tamgu* Pop(Tamgu* k);
     Tamgu* Push(double k, Tamgu* a) {
 
-        Locking _lock(this);
+        locking();
         if (values.find(k) != values.end()) {
             Tamgu* v = values[k];
             v->Removereference(reference + 1);
@@ -378,6 +392,7 @@ class Tamguprimemapf : public TamguObjectLockContainer {
         a = a->Atom();
         values[k] = a;
         a->Addreference(reference + 1);
+        unlocking();
         return this;
     }
 
@@ -438,35 +453,51 @@ class Tamguprimemapf : public TamguObjectLockContainer {
     Exporting string String();
     Exporting string JSonString();
 
-    Tamgu* Value(string n) {
-        double v = convertdouble(n);
-        Locking _lock(this);
-        if (values.find(v) == values.end())
+    Tamgu* Value(string& n) {
+        double s = convertdouble(n);
+        locking();
+        if (values.find(s) == values.end()) {
+            unlocking();
             return aNOELEMENT;
-        return values[v];
+        }
+        Tamgu* v = values[s];
+        unlocking();
+        return v;
     }
 
-    Tamgu* Value(long n) {
-        Locking _lock(this);
-        if (values.find(n) == values.end())
+    Tamgu* Value(long s) {
+        locking();
+        if (values.find(s) == values.end()) {
+            unlocking();
             return aNOELEMENT;
-        return values[(double)n];
+        }
+        Tamgu* v = values[(double)s];
+        unlocking();
+        return v;
     }
 
     Tamgu* Value(Tamgu* a) {
-        double n =  a->Float();
+        double s =  a->Float();
 
-        Locking _lock(this);
-        if (values.find(n) == values.end())
+        locking();
+        if (values.find(s) == values.end()) {
+            unlocking();
             return aNOELEMENT;
-        return values[(double)n];
+        }
+        Tamgu* v = values[s];
+        unlocking();
+        return v;
     }
 
-    Tamgu* Value(double n) {
-        Locking _lock(this);
-        if (values.find(n) == values.end())
+    Tamgu* Value(double s) {
+        locking();
+        if (values.find(s) == values.end()) {
+            unlocking();
             return aNOELEMENT;
-        return values[(double)n];
+        }
+        Tamgu* v = values[s];
+        unlocking();
+        return v;
     }
 
     Exporting long Integer();

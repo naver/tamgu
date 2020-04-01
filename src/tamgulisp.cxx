@@ -94,7 +94,13 @@ bool Tamgulisp::InitialisationModule(TamguGlobal* global, string version) {
     global->lispactions[a_mod] = P_THREE;
     global->lispactions[a_shiftleft] = P_THREE;
     global->lispactions[a_shiftright] = P_THREE;
-    
+
+    global->lispactions[a_callfunction] = P_ATLEASTTWO;
+    global->lispactions[a_calllisp] = P_ATLEASTTWO;
+    global->lispactions[a_callprocedure] = P_ATLEASTTWO;
+    global->lispactions[a_callcommon] = P_ATLEASTTHREE;
+    global->lispactions[a_callmethod] = P_ATLEASTTHREE;
+
     global->lispactions[a_affectation] = P_THREE;
     global->lispactions[a_quote] = P_TWO;
     global->lispactions[a_cons] = P_THREE;
@@ -141,7 +147,7 @@ Tamgu* Tamgulisp::Convert(Tamgu* v, short idthread) {
                 }
             }
             else
-                push(val);
+                pushatom(val);
         }
     }
     return aTRUE;
@@ -154,9 +160,10 @@ Tamgu* Tamgulisp::Put(Tamgu* c, Tamgu* v, short idthread) {
     //We then consider strings to be atoms...
     Clear();
 
-    Locking _lock(this);
+    locking();
     c = Convert(v, idthread);
-
+    unlocking();
+    
     if (c->isError())
         return c;
     return aTRUE;
@@ -186,6 +193,12 @@ Tamgu* TamguGlobal::Providelispsymbols(string& n, Tamgu* parent) {
     if (parent != NULL)
         parent->AddInstruction(lispsymbols[symb]);
     
+    return lispsymbols[symb];
+}
+
+Tamgu* TamguGlobal::Providelispsymbols(short symb, short a) {
+    if (!lispsymbols.check(symb))
+        lispsymbols[symb] = new Tamgusymbol(symb, a, this);    
     return lispsymbols[symb];
 }
 
@@ -246,10 +259,8 @@ Tamgu* Tamgusymbol::Eval(Tamgu* a, Tamgu* v, short idthread) {
 }
 
 Tamgu* TamguLockContainer::car(short idthread) {
-    if (isVectorContainer()) {
-        Locking _lock(this);
+    if (isVectorContainer())
         return getvalue(0)->Atom();
-    }
     return aNOELEMENT;
 }
 
@@ -268,14 +279,16 @@ Tamgu* TamguLockContainer::cdr(short idthread) {
 }
 
 Tamgu* Tamguvector::cdr(short idthread) {
-    Locking _lock(this);
+    locking();
     long sz = values.size();
-    if (sz == 0)
+    if (!sz) {
+        unlocking();
         return aNOELEMENT;
-    
+    }
     Tamguvector* lp = globalTamgu->Providevector();
     for (long i = 1; i < sz; i++)
         lp->push(values[i]);
+    unlocking();
     return lp;
 }
 
@@ -305,17 +318,19 @@ Tamgu* Tamgulispair::cdr(short idthread) {
 }
 
 Tamgu* Tamgulisp::MethodEval(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-    Locking _lock(this);
     Tamgu* a =  callfunc->Evaluate(0, contextualpattern, idthread);
-    if (a->isLisp() || a->isError())
+    if (a->isLisp() || a->isError()) {
         return a;
+    }
     
     string s = a->String();
-    return globalTamgu->EvaluateLisp(contextualpattern, "buffer", s, idthread);
+    locking();
+    contextualpattern = globalTamgu->EvaluateLisp(contextualpattern, "buffer", s, idthread);
+    unlocking();
+    return contextualpattern;
 }
 
 Tamgu* Tamgulisp::MethodLoad(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-    Locking _lock(this);
     string filename =  callfunc->Evaluate(0, contextualpattern, idthread)->String();
     
     Tamgufile file;
@@ -337,6 +352,9 @@ Tamgu* Tamgulisp::MethodLoad(Tamgu* contextualpattern, short idthread, TamguCall
 
     //For once it is the original historical Eval...
 Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
+    if (v0->isIndex())
+        return Tamguvector::Eval(contextualpattern, v0, idthread);
+    
         //We need to take into account the different case...
     long sz = values.size();
     if (sz == 0)
@@ -502,7 +520,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             v1 = aNULL;
             for (i = 1; i < sz && !v1->isError(); i++) {
                 v1 = values[i]->Eval(contextualpattern, aNULL, idthread);
-                tl->push(v1);
+                tl->pushatom(v1);
             }
             
             if (v1->isError()) {
@@ -719,8 +737,8 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
 
             if (v1->Type() == a_atom || v1->isNumber() || v1->isString()) {
                 a = new Tamgulispair();
-                a->push(v0);
-                a->push(v1);
+                a->pushatom(v0);
+                a->pushatom(v1);
                 v0->Releasenonconst();
                 v1->Releasenonconst();
                 return a;
@@ -733,9 +751,9 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                     tl = new Tamgulispair();
                 else
                     tl = globalTamgu->Providelisp();
-                tl->push(v0);
+                tl->pushatom(v0);
                 for (i = 0; i < v1->Size(); i++)
-                    tl->push(v1->getvalue(i));
+                    tl->pushatom(v1->getvalue(i));
                 v1->Releasenonconst();
                 v0->Releasenonconst();
                 return tl;
@@ -743,7 +761,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
 
             if (v1->isNULL()) {
                 tl = globalTamgu->Providelisp();
-                tl->push(v0);
+                tl->pushatom(v0);
                 v0->Releasenonconst();
                 return tl;
             }
@@ -800,18 +818,24 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
 
             if (v0 != NULL) {
                 if (v0->isFunction()) {
-                    if (!globalTamgu->Pushstacklisp(v0, idthread))
-                        return globalTamgu->Returnerror("Stack overflow", idthread);
-                    
-                    TamguCallFunction call(v0);
-                    
-                    for (i = 1; i < sz; i++)
-                        call.arguments.push_back(values[i]);
-                    
-                    a = call.Eval(contextualpattern, aNULL, idthread);
-                    globalTamgu->Popstacklisp(idthread);
-                    return a;
+                    if (v0->Type() == a_lisp) {
+                        TamguCallLispFunction call(v0);
+                        
+                        for (i = 1; i < sz; i++)
+                            call.arguments.push_back(values[i]);
+                        
+                        return call.Eval(contextualpattern, aNULL, idthread);
+                    }
+                    else {
+                        TamguCallFunction call(v0);
+                        
+                        for (i = 1; i < sz; i++)
+                            call.arguments.push_back(values[i]);
+                        
+                        return call.Eval(contextualpattern, aNULL, idthread);
+                    }
                 }
+                
                 //It might be an operator
                 n = v0->Name();
                 if (globalTamgu->lispactions.check(n)) {
@@ -873,6 +897,90 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             string s("Unknown function: ");
             s += globalTamgu->Getsymbol(n);
             return globalTamgu->Returnerror(s, idthread);
+        }
+        case a_callfunction:
+        {
+            //it has to ba a function call
+            n = a->Name();
+            
+            if (globalTamgu->isDeclared(n, idthread))
+                v0 = globalTamgu->Getdeclaration(n, idthread);
+            else
+                v0 = globalTamgu->Declaration(n, idthread);
+
+            if (v0->Type() == a_lisp) {
+                TamguCallLispFunction call(v0);
+                
+                for (i = 1; i < sz; i++)
+                    call.arguments.push_back(values[i]);
+                
+                return call.Eval(contextualpattern, aNULL, idthread);
+            }
+            
+            TamguCallFunction call(v0);
+            
+            for (i = 1; i < sz; i++)
+                call.arguments.push_back(values[i]);
+            
+            return call.Eval(contextualpattern, aNULL, idthread);
+        }
+        case a_calllisp:
+        {
+            n = a->Name();
+            
+            if (globalTamgu->isDeclared(n, idthread))
+                v0 = globalTamgu->Getdeclaration(n, idthread);
+            else
+                v0 = globalTamgu->Declaration(n, idthread);
+            
+            TamguCallLispFunction call(v0);
+            
+            for (i = 1; i < sz; i++)
+                call.arguments.push_back(values[i]);
+            
+            return call.Eval(contextualpattern, aNULL, idthread);
+        }
+        case a_callprocedure:
+        {
+            n = a->Name();
+
+            TamguCallProcedure call(n);
+            for (i = 1; i < sz; i++)
+                call.arguments.push_back(values[i]);
+            
+            return call.Eval(contextualpattern, aNULL, idthread);
+        }
+        case a_callcommon:
+        {
+            
+            n = a->Name();
+
+            TamguCallCommonMethod call(n);
+            for (i = 2; i < sz; i++)
+                call.arguments.push_back(values[i]);
+            
+            v1 = values[1]->Eval(contextualpattern, aNULL, idthread);
+            a = call.Eval(contextualpattern, v1, idthread);
+            if (v1 != values[1])
+                v1->Releasenonconst();
+            
+            return a;
+        }
+        case a_callmethod:
+        {
+            n = a->Name();
+
+            TamguCallMethod call(n);
+            
+            for (i = 2; i < sz; i++)
+                call.arguments.push_back(values[i]);
+            
+            v1 = values[1]->Eval(contextualpattern, aNULL, idthread);
+            a = call.Eval(contextualpattern, v1, idthread);
+            if (v1 != values[1])
+                v1->Releasenonconst();
+            
+            return a;
         }
         case a_eq:
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
@@ -947,6 +1055,8 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             n = globalTamgu->Getid(name);
             
             a = new TamguFunction(n, globalTamgu);
+            ((TamguFunction*)a)->idtype = a_lisp;
+            
             for (i = 0; i < v1->Size(); i++) {
                 n = v1->getvalue(i)->Name();
                 if (!n) {
@@ -1009,7 +1119,8 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 return globalTamgu->Returnerror("Missing parameters",idthread);
             
             a = new TamguFunction(n, globalTamgu);
-
+            ((TamguFunction*)a)->idtype = a_lisp;
+            
             ret = contextualpattern->Declarelocal(idthread, n, a);
             if (ret == a_mainframe || ret == a_declaration) {
                 a->Remove();
@@ -1041,6 +1152,8 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             
             n = a->Name();
             globalTamgu->Storevariable(idthread, n, a);
+            if (contextualpattern->isMainFrame())
+                contextualpattern->Declare(n, a);
             //Declarelocal only declare a function or a variable in a local domain (a function for instance)
             //If the context is the main frame, then nothing happens
             values[1] = a;
@@ -1148,17 +1261,17 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 return globalTamgu->Returnerror("Can only 'append' to a list", idthread);
             long j;
             for (j = 0; j < v1->Size(); j++)
-                tl->push(v1->getvalue(j));
+                tl->pushatom(v1->getvalue(j));
 
             for (i = 2; i < sz; i++) {
                 v1 = values[i]->Eval(contextualpattern, aNULL, idthread);
                 checkerrorwithrelease(v1, tl);
                 if (v1->isVectorContainer()) {
                     for (j = 0; j < v1->Size(); j++)
-                        tl->push(v1->getvalue(j));
+                        tl->pushatom(v1->getvalue(j));
                 }
                 else
-                    tl->push(v1);
+                    tl->pushatom(v1);
                 v1->Releasenonconst();
             }
             return tl;
@@ -1267,17 +1380,22 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             v0 = a->Eval(contextualpattern, aNULL, idthread);
             checkerror(v0);
             if (v0->isFunction()) {
-                if (!globalTamgu->Pushstacklisp(v0, idthread))
-                    return globalTamgu->Returnerror("Stack overflow", idthread);
-                
-                TamguCallFunction call(v0);
-                
-                for (i = 1; i < sz; i++)
-                    call.arguments.push_back(values[i]);
-                
-                a = call.Eval(contextualpattern, aNULL, idthread);
-                globalTamgu->Popstacklisp(idthread);
-                return a;
+                if (v0->Type() == a_lisp) {
+                    TamguCallLispFunction call(v0);
+                    
+                    for (i = 1; i < sz; i++)
+                        call.arguments.push_back(values[i]);
+                    
+                    return call.Eval(contextualpattern, aNULL, idthread);
+                }
+                else {
+                    TamguCallFunction call(v0);
+                    
+                    for (i = 1; i < sz; i++)
+                        call.arguments.push_back(values[i]);
+                    
+                    return call.Eval(contextualpattern, aNULL, idthread);
+                }
             }
 
             
@@ -1285,9 +1403,9 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 return a->Eval(contextualpattern, aNULL, idthread);
             
             Tamgulispcode tl(NULL);
-            tl.push(v0);
+            tl.pushatom(v0);
             for (i = 1; i < sz; i++)
-                tl.push(values[i]);
+                tl.pushatom(values[i]);
             a = tl.Eval(contextualpattern, aNULL, idthread);
             v0->Releasenonconst();
             return a;
@@ -1358,3 +1476,115 @@ string Tamgulispair::String() {
     res += ")";
     return res;
 }
+
+void Tamgulisp::Setstring(string& res, short idthread) {
+    long it;
+    res = "(";
+    bool beg = true;
+    string sx;
+    Tamgu* element;
+    for (it = 0; it < values.size(); it++) {
+        element = values[it];
+        sx = element->StringToDisplay();
+        if (!element->isString() || element->isContainer()) {
+            if (sx == "")
+                sx = "''";
+            if (beg == false)
+                res += " ";
+            res += sx;
+        }
+        else {
+            if (beg == false)
+                res += " ";
+            stringing(res, sx);
+        }
+        beg = false;
+
+    }
+    res += ")";
+}
+
+
+void Tamgulispair::Setstring(string& res, short idthread) {
+    long it;
+    res = "(";
+    bool beg = true;
+    string sx;
+    Tamgu* element;
+    long sz = values.size() - 1;
+    for (it = 0; it <= sz; it++) {
+        if (it == sz)
+            res += " .";
+        element = values[it];
+        sx = element->StringToDisplay();
+        if (!element->isString() || element->isContainer()) {
+            if (sx == "")
+                sx = "''";
+            if (beg == false)
+                res += " ";
+            res += sx;
+        }
+        else {
+            if (beg == false)
+                res += " ";
+            stringing(res, sx);
+        }
+        beg = false;
+
+    }
+    res += ")";
+}
+
+
+
+Tamgu* TamguCallLispFunction::Eval(Tamgu* domain, Tamgu* a, short idthread) {
+    TamguFunction* bd = (TamguFunction*)body;
+    short sz = bd->parameters.size();
+
+    if (arguments.size() != sz) {
+        string msg = "Wrong number of arguments in call to: '";
+        msg +=  globalTamgu->Getsymbol(name);
+        msg += "'";
+        return globalTamgu->Returnerror(msg, idthread);
+    }
+
+    TamguDeclarationLocal* environment = globalTamgu->Providedeclaration(this, idthread, false);
+
+    Tamgu* p;
+
+    for (short i = 0; i < sz; i++) {
+        p = bd->parameters[i];
+        a = arguments[i]->Eval(domain, aNULL, idthread);
+        if (!p->Setvalue(environment, a, idthread, false)) {
+            a->Releasenonconst();
+            environment->Release();
+            string err = "Check the arguments of: ";
+            err += globalTamgu->Getsymbol(Name());
+            return globalTamgu->Returnerror(err, idthread);
+        }
+        
+        a->Releasenonconst();
+    }
+    
+    if (!globalTamgu->Pushstacklisp(this, idthread))
+        return globalTamgu->Returnerror("Stack overflow", idthread);
+
+    globalTamgu->Pushstack(environment, idthread);
+    //We then apply our function within this environment
+    a = bd->Eval(environment, aNULL, idthread);
+    globalTamgu->Popstack(idthread);
+    globalTamgu->Popstacklisp(idthread);
+
+    //if a has no reference, then it means that it was recorded into the environment
+    if (!a->Reference())
+        environment->Release();
+    else {
+        a->Setreference();
+        //we clean our structure...
+        environment->Release();
+        a->Protect();
+    }
+
+    return a;
+}
+

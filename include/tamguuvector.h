@@ -46,11 +46,13 @@ class Tamguuvector : public TamguLockContainer {
 
     //---------------------------------------------------------------------------------------------------------------------
     Tamguuvector(TamguGlobal* g, Tamgu* parent = NULL) : TamguLockContainer(g, parent) {
+     investigate |= is_string;
         //Do not forget your variable initialisation
         isconst = false; 
     }
 
     Tamguuvector() {
+     investigate |= is_string;
         //Do not forget your variable initialisation
         isconst = false; 
     }
@@ -76,9 +78,7 @@ class Tamguuvector : public TamguLockContainer {
         return "uvector";
     }
 
-    bool isString() {
-        return true;
-    }
+    
 
     bool isContainerClass() {
         return true;
@@ -447,7 +447,7 @@ class Tamguuvector : public TamguLockContainer {
             res += values[it];
         }
 
-        return globalTamgu->Provideustring(res);
+        return globalTamgu->Providewithustring(res);
     }
 
     Tamgu* MethodShuffle(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -482,7 +482,7 @@ class Tamguuvector : public TamguLockContainer {
             return aNOELEMENT;
         wstring c = values.back();
         values.pop_back();
-        return globalTamgu->Provideustring(c);
+        return globalTamgu->Providewithustring(c);
     }
 
     Exporting Tamgu* Unique();
@@ -550,12 +550,21 @@ class Tamguuvector : public TamguLockContainer {
         for (; i < j; i++)
             v += values[i];
 
-        return globalTamgu->Provideustring(v);
+        return globalTamgu->Providewithustring(v);
     }
 
     Exporting void Clear();
-    Exporting string JSonString();Exporting string String();Exporting wstring UString();
-    Exporting long Integer();Exporting double Float();Exporting BLONG Long();Exporting bool Boolean();
+    Exporting string JSonString();
+    
+    Exporting string String();
+    Exporting wstring UString();
+    Exporting void Setstring(string& v, short idthread);
+    Exporting void Setstring(wstring&, short idthread);
+    
+    Exporting long Integer();
+    Exporting double Float();
+    Exporting BLONG Long();
+    Exporting bool Boolean();
 
     //Basic operations
     Exporting long Size();
@@ -733,11 +742,13 @@ public:
     bool isconst;
         //---------------------------------------------------------------------------------------------------------------------
     Tamgua_uvector(TamguGlobal* g, Tamgu* parent = NULL) : values(zero), TamguContainer(g, parent) {
+     investigate |= is_string;
             //Do not forget your variable initialisation
         isconst = false;
     }
     
     Tamgua_uvector() : values(zero) {
+     investigate |= is_string;
             //Do not forget your variable initialisation
         isconst = false;
     }
@@ -768,9 +779,7 @@ public:
         return "a_uvector";
     }
     
-    bool isString() {
-        return true;
-    }
+    
     
     bool isContainerClass() {
         return true;
@@ -1058,7 +1067,7 @@ public:
             res += it.second.value();
         }
         
-        return globalTamgu->Provideustring(res);
+        return globalTamgu->Providewithustring(res);
     }
     
     Tamgu* MethodMerge(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -1161,7 +1170,7 @@ public:
         for (; i < j; i++)
             v += values[i].value();
         
-        return globalTamgu->Provideustring(v);
+        return globalTamgu->Providewithustring(v);
     }
     
     Exporting void Clear();

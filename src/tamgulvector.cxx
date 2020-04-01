@@ -113,43 +113,54 @@ Exporting Tamgu* Tamgulvector::in(Tamgu* context, Tamgu* a, short idthread) {
         return  v;
     }
 
+   locking();
    if (context->isNumber()) {
-        Locking _lock(this);
-        for (size_t i = 0; i < values.size(); i++) {
-            if (values[i] == val)
-                return globalTamgu->Provideint(i);
-        }
-        return aMINUSONE;
-    }
+       for (size_t i = 0; i < values.size(); i++) {
+           if (values[i] == val) {
+               unlocking();
+               return globalTamgu->Provideint(i);
+           }
+       }
+       unlocking();
+       return aMINUSONE;
+   }
 
-    Locking _lock(this);
-    for (size_t i = 0; i < values.size(); i++) {
-        if (values[i] == val)
-            return aTRUE;
-    }
-
-    return aFALSE;
+   for (size_t i = 0; i < values.size(); i++) {
+       if (values[i] == val) {
+           unlocking();
+           return aTRUE;
+       }
+   }
+   unlocking();
+   return aFALSE;
 }
 
 
 Exporting Tamgu* Tamgulvector::getvalue(BLONG i) {
-    Locking _lock(this);
-    if (i < 0 || i >= values.size())
+    locking();
+    if (i < 0 || i >= values.size()) {
+        unlocking();
         return aNOELEMENT;
-    return globalTamgu->Provideint(values[i]);
+    }
+    Tamgu* r = new Tamgulong(values[i]);
+    unlocking();
+    return r;
 }
 
 
 Exporting Tamgu* Tamgulvector::Push(Tamgu* a) {
-    Locking _lock(this);
+    locking();
     values.push_back(a->Long());
+    unlocking();
     return aTRUE;
 }
 
 Exporting Tamgu* Tamgulvector::Pop(Tamgu* idx) {
-    Locking _lock(this);
-    if (!values.size())
+    locking();
+    if (!values.size()) {
+        unlocking();
         return aFALSE;
+    }
 
     BLONG v = idx->Long();
     if (v == -1) {
@@ -157,23 +168,27 @@ Exporting Tamgu* Tamgulvector::Pop(Tamgu* idx) {
         values.pop_back();
     }
     else {
-        if (v < 0 || v >= (BLONG)values.size())
+        if (v < 0 || v >= (BLONG)values.size()) {
+            unlocking();
             return aFALSE;
+        }
         values.erase(values.begin() + v);
     }
+    unlocking();
     return aTRUE;
 }
 
 Exporting void Tamgulvector::Clear() {
     //To set a variable back to empty
-    Locking _lock(this);
+    locking();
     values.clear();
+    unlocking();
 }
 
 
 
 Exporting string Tamgulvector::String() {
-    Locking _lock(this);
+    locking();
     size_t i;
     stringstream r;
     r << "[";
@@ -185,38 +200,47 @@ Exporting string Tamgulvector::String() {
             r << ",";
         r << values[i];
     }
+    unlocking();
     r << "]";
     return r.str();
 }
 
 
 Exporting long Tamgulvector::Integer() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
 
 Exporting double Tamgulvector::Float() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
 
 Exporting BLONG Tamgulvector::Long() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
 
 Exporting bool Tamgulvector::Boolean() {
-    Locking _lock(this);
-    if (values.size() == 0)
-        return false;
-    return true;
+    locking();
+    bool b = values.empty();
+    unlocking();
+    return !b;
 }
 
 
 //Basic operations
 Exporting long Tamgulvector::Size() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
 
 Exporting Tamgu* Tamgulvector::andset(Tamgu* b, bool itself) {
@@ -291,7 +315,6 @@ Exporting Tamgu* Tamgulvector::xorset(Tamgu* b, bool itself) {
         long size = Size();
 
         Tamgulvector* ref = new Tamgulvector;
-        Locking _lock(this);
         hmap<BLONG, bool> store;
         for (it = 0; it < b->Size(); it++)
             store[b->getlong(it)] = true;
@@ -615,7 +638,7 @@ Exporting unsigned long Tamgulvector::EditDistance(Tamgu* e) {
 }
 
 Exporting void Tamgulvector::Shuffle() {
-    Locking _lock(this);
+    locking();
 
     size_t sz = values.size();
     size_t i, f;
@@ -629,25 +652,32 @@ Exporting void Tamgulvector::Shuffle() {
             values[f] = v;
         }
     }
+    unlocking();
 }
 
 Exporting Tamgu* Tamgulvector::Unique() {
-    Locking _lock(this);
+    locking();
     Tamgulvector* kvect = new Tamgulvector;
     hmap<long, bool> inter;
     for (int i = 0; i < values.size(); i++) {
-        if (inter.find(values[i]) == inter.end()) {
+        try {
+            inter.at(values[i]);
+        }
+        catch(const std::out_of_range& oor) {
             inter[values[i]] = true;
             kvect->values.push_back(values[i]);
         }
     }
+    unlocking();
     return kvect;
 }
 
 Exporting bool Tamgulvector::Permute() {
-    Locking _lock(this);
+    locking();
 
-    return next_permutation(values.begin(), values.end());
+    bool v = next_permutation(values.begin(), values.end());
+    unlocking();
+    return v;
 }
 
 
@@ -682,7 +712,7 @@ Exporting Tamgu* Tamgulvector::same(Tamgu* a) {
 }
 
 Exporting Tamgu* Tamgulvector::Map(short idthread) {
-    Locking _lock(this);
+    locking();
     Tamgumap* kmap = globalTamgu->Providemap();
 
     char buff[100];
@@ -690,21 +720,21 @@ Exporting Tamgu* Tamgulvector::Map(short idthread) {
         sprintf_s(buff, 100, "%d", it);
         kmap->Push(buff, globalTamgu->Provideint(values[it]));
     }
+    unlocking();
     return kmap;
 }
 
 Exporting Tamgu* Tamgulvector::Vector(short idthread) {
-    Locking _lock(this);
+    locking();
     Tamguvector* kvect = globalTamgu->Providevector();
     kvect->values.reserve(values.size());
     for (int i = 0; i < values.size(); i++)
         kvect->Push(globalTamgu->Provideint(values[i]));
+    unlocking();
     return kvect;
 }
 
 Exporting Tamgu* Tamgulvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
-    Locking _lock(this);
-
     if (!idx->isIndex()) {
         if (contextualpattern->isLoop())
             return this;
@@ -713,11 +743,13 @@ Exporting Tamgu* Tamgulvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
         //as a result
         if (contextualpattern->isVectorContainer()) {
             Tamgu* kv = Selectalvector(contextualpattern);
+            locking();
             if (kv->Type() == a_lvector)
                 ((Tamgulvector*)kv)->values = values;
             else
                 for (int i = 0; i < values.size(); i++)
                     kv->Push(globalTamgu->Provideint(values[i]));
+            unlocking();
             return kv;
         }
 
@@ -739,16 +771,22 @@ Exporting Tamgu* Tamgulvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
     if (ikey < 0)
         ikey = values.size() + ikey;
 
+    locking();
+    
     if (ikey < 0 || ikey >= values.size()) {
         if (ikey != values.size() || keyright == NULL) {
+            unlocking();
             if (globalTamgu->erroronkey)
                 return globalTamgu->Returnerror("Wrong index", idthread);
             return aNOELEMENT;
         }
     }
 
-    if (keyright == NULL)
-        return globalTamgu->Provideint(values[ikey]);
+    if (keyright == NULL) {
+        keyright = globalTamgu->Provideint(values[ikey]);
+        unlocking();
+        return keyright;
+    }
 
     long iright = keyright->Integer();
 
@@ -756,6 +794,7 @@ Exporting Tamgu* Tamgulvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
     if (iright < 0 || keyright == aNULL) {
         iright = values.size() + iright;
         if (iright<ikey) {
+            unlocking();
             if (globalTamgu->erroronkey)
                 return globalTamgu->Returnerror("Wrong index", idthread);
             return aNOELEMENT;
@@ -763,6 +802,7 @@ Exporting Tamgu* Tamgulvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
     }
     else {
         if (iright>values.size()) {
+            unlocking();
             if (globalTamgu->erroronkey)
                 return globalTamgu->Returnerror("Wrong index", idthread);
             return aNOELEMENT;
@@ -772,6 +812,7 @@ Exporting Tamgu* Tamgulvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
     kvect = new Tamgulvector;
     for (long i = ikey; i < iright; i++)
         kvect->values.push_back(values[i]);
+    unlocking();
     return kvect;
 }
 
@@ -846,11 +887,11 @@ Exporting Tamgu* Tamgulvector::Put(Tamgu* idx, Tamgu* ke, short idthread) {
         //In this specific case, we try to replace a bloc of values with a new bloc
         if (idx->isInterval()) {
             //First we remove the values...
-            long lkey = idx->Integer();
+            long lkey = idx->Getinteger(idthread);
             if (lkey < 0)
                 lkey = values.size() + lkey;
 
-            long rkey = ((TamguIndex*)idx)->right->Integer();
+            long rkey = ((TamguIndex*)idx)->right->Getinteger(idthread);
             if (rkey < 0)
                 rkey = values.size() + rkey;
 
@@ -885,7 +926,7 @@ Exporting Tamgu* Tamgulvector::Put(Tamgu* idx, Tamgu* ke, short idthread) {
             values.insert(values.begin() + lkey, ke->Long());
         }
         else {
-            long ikey = idx->Integer();
+            long ikey = idx->Getinteger(idthread);
             long sz = values.size();
             long nb;
             BLONG n = ke->Long();
@@ -920,17 +961,19 @@ static bool icompInteger(BLONG s1, BLONG s2) {
 }
 
 Exporting void Tamgulvector::Sort(bool direction) {
-    Locking _lock(this);
+    locking();
     if (direction == false)
         sort(values.begin(), values.end(), compInteger);
     else
         sort(values.begin(), values.end(), icompInteger);
+    unlocking();
 }
 
 Exporting Tamgu* Tamgulvector::Merging(Tamgu* ke) {
     if (!ke->isContainer()) {
-        Locking _lock(this);
+        locking();
         values.push_back(ke->Long());
+        unlocking();
         return this;
     }
 
@@ -972,9 +1015,10 @@ Exporting Tamgu* Tamgulvector::Combine(Tamgu* ke) {
     
     if (!ke->isContainer()) {
         BLONG v=ke->Long();
-        Locking _lock(this);
+        locking();
         for (i=0; i< values.size();i++)
             values[i]+=v;
+        unlocking();
         return this;
     }
     
@@ -1147,7 +1191,6 @@ Tamgu* Tamgulvector::MethodSort(Tamgu* contextualpattern, short idthread, TamguC
 
 
 Exporting Tamgu* Tamgulvector::Loopin(TamguInstruction* ins, Tamgu* context, short idthread) {
-    Locking _lock(this);
     Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
     var = var->Eval(context, aNULL, idthread);
 
@@ -1155,6 +1198,7 @@ Exporting Tamgu* Tamgulvector::Loopin(TamguInstruction* ins, Tamgu* context, sho
     long sz = Size();
     Tamgu* a = aNULL;
     bool testcond = false;
+    locking();
     for (long i = 0; i < sz && !testcond; i++) {
         a->Releasenonconst();
         var->storevalue(values[i]);
@@ -1163,6 +1207,7 @@ Exporting Tamgu* Tamgulvector::Loopin(TamguInstruction* ins, Tamgu* context, sho
         //Continue does not trigger needInvestigate
         testcond = a->needInvestigate();
     }
+    unlocking();
     
     if (testcond) {
         if (a == aBREAK)

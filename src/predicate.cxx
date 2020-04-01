@@ -185,7 +185,7 @@ Tamgu* TamguPredicate::MethodRuleid(Tamgu* contextualpattern, short idthread, Ta
             string filename = globalTamgu->Getfilename(object->Currentfile());
             kmap->Push("id", globalTamgu->Provideint(id));
             kmap->Push("line", globalTamgu->Provideint(ln));
-            kmap->Push("filename", globalTamgu->Providestring(filename));
+            kmap->Push("filename", globalTamgu->Providewithstring(filename));
         }
     }
     return kmap;
@@ -1274,6 +1274,36 @@ string TamguPredicateKnowledgeBaseFunction::String() {
     return(s);
 }
 
+void TamguPredicateKnowledgeBaseFunction::Setstring(string& s, short idthread) {
+    switch (name) {
+        case a_asserta:
+            s = "asserta";
+            break;
+        case a_assertz:
+            s = "assertz";
+            break;
+        case a_retract:
+            s = "retract";
+            break;
+        default:
+            s = "";
+            return;
+    }
+
+    s += "(";
+    if (parameters.size()) {
+        for (long i = 0; i < parameters.size(); i++) {
+            if (i)
+                s += ",";
+            if (parameters[i]->isString())
+                s += parameters[i]->String();
+            else
+                s += parameters[i]->String();
+        }
+    }
+    s += ")";
+}
+
 string TamguBasePredicateVariable::String() {
     Tamgu* dom = globalTamgu->Declarator(predicatedico, globalTamgu->GetThreadid());
     if (dom == aNULL)
@@ -1377,6 +1407,51 @@ string TamguPredicate::String() {
     return v;
 }
 
+void TamguPredicateTerm::Setstring(string& v, short idthread) {
+    if (name == a_universal)
+        v = "";
+    else
+        v = globalTamgu->Getsymbol(name);
+    v += "(";
+    for (long i = 0; i < parameters.size(); i++) {
+        if (i)
+            v += ",";
+        v += parameters[i]->JSonString();
+    }
+    v += ")";
+}
+
+void TamguPredicateConcept::Setstring(string& v, short idthread) {
+    if (name == a_universal)
+        v = "";
+    else
+        v = globalTamgu->Getsymbol(name);
+    v += "(";
+    for (long i = 0; i < parameters.size(); i++) {
+        if (i)
+            v += ",";
+        v += parameters[i]->JSonString();
+    }
+    v += ")";
+}
+
+
+void TamguPredicate::Setstring(string& v, short idthread) {
+    v = globalTamgu->Getsymbol(name);
+    long sz = parameters.size();
+
+    if (sz) {
+        v += "(";
+        for (long i = 0; i < sz; i++) {
+            if (i)
+                v += ",";
+            v += parameters[i]->JSonString();
+        }
+        v += ")";
+    }
+}
+
+
 string TamguPredicate::JSonString() {
     stringstream res;
 
@@ -1409,6 +1484,27 @@ string TamguDependency::String() {
         v += ")";
     }
     return v;
+}
+
+void TamguDependency::Setstring(string& v, short idthread) {
+    v = globalTamgu->Getsymbol(name);
+    if (features != aNULL) {
+        string x = features->String();
+        x[0] = '[';
+        x[x.size() - 1] = ']';
+        v += x;
+    }
+
+    long sz = parameters.size();
+    if (sz) {
+        v += "(";
+        for (long i = 0; i < sz; i++) {
+            if (i)
+                v += ",";
+            v += parameters[i]->JSonString();
+        }
+        v += ")";
+    }
 }
 
 string TamguDependency::JSonString() {
@@ -3731,8 +3827,9 @@ Tamgu* TamguPredicateVariableInstance::Eval(Tamgu* contextualpattern, Tamgu* dom
 }
 
 Tamgu* TamguPredicateTerm::Eval(Tamgu* contextualpattern, Tamgu* ke, short idthread) {
-    if (ke == NULL || ke->isConst())
+    if (!ke->isIndex() || ke->isNULL())
         return this;
+    
     char ty = 1;
     long left = -1, right = -1;
     ty = ke->Indexes(idthread, parameters.size(), left, right);
@@ -3761,7 +3858,7 @@ Tamgu* TamguPredicateTerm::Eval(Tamgu* contextualpattern, Tamgu* ke, short idthr
 }
 
 Tamgu* TamguPredicateConcept::Eval(Tamgu* contextualpattern, Tamgu* ke, short idthread) {
-    if (ke == NULL || ke->isConst())
+    if (!ke->isIndex() || ke->isNULL())
         return this;
 
     char ty = 1;
@@ -3841,9 +3938,9 @@ Tamgu* TamguInstructionPredicate::Eval(Tamgu* contextualpattern, Tamgu* dom, sho
 //We test our value here...
 Tamgu* TamguPredicate::Eval(Tamgu* contextualpattern, Tamgu* ke, short idthread) {
     //In this case, we have our variables in contextualpattern
-
-    if (ke == NULL || ke->isConst())
+    if (!ke->isIndex() || ke->isNULL())
         return this;
+    
     char ty = 1;
     long left = -1, right = -1;
 
@@ -4044,7 +4141,7 @@ Tamgu* TamguInstructionEvaluate::Eval(Tamgu* contextualpattern, Tamgu* domcall, 
     if (contextualpattern->isString() && !contextualpattern->isConst()) {
         string v = results[0]->String();
         results[0]->Resetreference();
-        return globalTamgu->Providestring(v);
+        return globalTamgu->Providewithstring(v);
     }
 
     if (contextualpattern->isNumber()) {

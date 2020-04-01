@@ -51,11 +51,13 @@ class Tamgua_mapff : public TamguContainer {
 
     //---------------------------------------------------------------------------------------------------------------------
     Tamgua_mapff(TamguGlobal* g, Tamgu* parent = NULL) : TamguContainer(g, parent) {
+     investigate |= is_number;
         //Do not forget your variable initialisation
         isconst = false;
     }
 
     Tamgua_mapff() {
+     investigate |= is_number;
         //Do not forget your variable initialisation
         isconst = false; 
     }
@@ -75,9 +77,7 @@ class Tamgua_mapff : public TamguContainer {
         return "a_mapff";
     }
 
-    bool isNumber() {
-        return true;
-    }
+    
 
     bool isFloat() {
         return true;

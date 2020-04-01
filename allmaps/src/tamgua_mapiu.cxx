@@ -330,7 +330,7 @@ Exporting Tamgu*  Tamgua_mapiu::Put(Tamgu* idx, Tamgu* ke, short idthread) {
     }
 
     wstring vl = ke->UString();
-    values.set(idx->Integer(),  vl);
+    values.set(idx->Getinteger(idthread),  vl);
     return aTRUE;
 }
 
@@ -401,16 +401,7 @@ Exporting Tamgu* Tamgua_mapiu::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
 
     }
 
-    key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
-    
-    if (key == aNULL) {
-        if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong index", idthread);
-        return aNOELEMENT;
-    }
-
-    long skey = key->Integer();
-    key->Release();
+    long skey = idx->Getinteger(idthread);
 
     if (!values.check(skey)) {
         if (globalTamgu->erroronkey)

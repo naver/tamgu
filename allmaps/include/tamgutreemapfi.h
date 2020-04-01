@@ -37,7 +37,7 @@ class Tamgutreemapfi : public TamguLockContainer {
     //this is a static object, which is common to everyone
     //We associate the method pointers with their names in the linkedmethods map
     static Exchanging basebin_hash<treemapfiMethod> methods;
-    static Exchanging hmap<string, string> infomethods;
+    static Exchanging map<string, string> infomethods;
     static Exchanging bin_hash<unsigned long> exported;
 
     static Exchanging short idtype;
@@ -50,12 +50,14 @@ class Tamgutreemapfi : public TamguLockContainer {
 
     //---------------------------------------------------------------------------------------------------------------------
     Tamgutreemapfi(TamguGlobal* g, Tamgu* parent = NULL) : TamguLockContainer(g, parent) {
+     investigate |= is_number;
         //Do not forget your variable initialisation
         isconst = false; 
 
     }
 
     Tamgutreemapfi() {
+     investigate |= is_number;
         //Do not forget your variable initialisation
         isconst = false; 
 
@@ -72,13 +74,15 @@ class Tamgutreemapfi : public TamguLockContainer {
         return Tamgutreemapfi::idtype;
     }
 
+    
+
+    void Setidtype(TamguGlobal* global);
+    
     string Typename() {
         return "treemapfi";
     }
 
-    bool isNumber() {
-        return true;
-    }
+    
 
     bool isContainerClass() {
         return true;
@@ -94,34 +98,39 @@ class Tamgutreemapfi : public TamguLockContainer {
 
     Tamgu* Atom(bool forced) {
         if (forced || !protect || reference) {
-            Locking _lock(this);
+            locking();
             Tamgutreemapfi * m = new Tamgutreemapfi;
             m->values = values;
+            unlocking();
             return m;
         }
         return this;
     }
 
     double Sum() {
-        Locking* _lock = _getlock(this);
+        locking();
         double v = 0;
         map<double, long>::iterator itx;
         for (itx = values.begin(); itx != values.end(); itx++)
             v += itx->second;
-        _cleanlock(_lock);
+        unlocking();
         return v;
     }
 
     double Product() {
-        Locking* _lock = _getlock(this);
+        locking();
+        if (values.size() == 0) {
+            unlocking();
+            return 0;
+        }
+
         double v = 1;
 
         for (auto& itx : values)
             v *= itx.second;
-        _cleanlock(_lock);
-        return v;
+        unlocking();
+       return v;
     }
-    
     //---------------------------------------------------------------------------------------------------------------------
     //Declaration
     //All our methods must have been declared in tamguexportedmethods... See MethodInitialization below
@@ -166,7 +175,7 @@ class Tamgutreemapfi : public TamguLockContainer {
     static bool InitialisationModule(TamguGlobal* global, string version);
 
     void Methods(Tamgu* v) {
-        hmap<string, string>::iterator it;
+        map<string, string>::iterator it;
         for (it = infomethods.begin(); it != infomethods.end(); it++)
             v->storevalue(it->first);
     }
@@ -212,19 +221,19 @@ class Tamgutreemapfi : public TamguLockContainer {
     }
 
 
-    
+
     Tamgu* MethodItems(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 
         Tamgutreemapfi* item;
         Tamgu* vect = Selectavector(contextualpattern);
         for (auto& itr : values) {
-            item=new Tamgutreemapfi;
+            item = new Tamgutreemapfi;
             item->values[itr.first] = itr.second;
             vect->Push(item);
         }
         return vect;
     }
-    
+
     Tamgu* MethodMerge(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 
         
@@ -234,51 +243,56 @@ class Tamgutreemapfi : public TamguLockContainer {
     }
 
     Tamgu* MethodSum(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
         double v = Sum();
         return globalTamgu->Providefloat(v);
     }
 
     Tamgu* MethodKeys(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
+        locking();
         Tamgufvector* vstr = (Tamgufvector*)Selectafvector(contextualpattern);
         map<double, long>::iterator it;
         for (it = values.begin(); it != values.end(); it++)
             vstr->values.push_back(it->first);
+        unlocking();
         return vstr;
     }
 
     Tamgu* MethodValues(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
+        locking();
         Tamguivector * vstr = (Tamguivector*)Selectaivector(contextualpattern);
         map<double, long>::iterator it;
         for (it = values.begin(); it != values.end(); it++)
             vstr->values.push_back(it->second);
+        unlocking();
         return vstr;
     }
 
     Tamgu* MethodTest(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
+        locking();
         double  v = callfunc->Evaluate(0, contextualpattern, idthread)->Float();
-        if (values.find(v) == values.end())
+        try {
+            values.at(v);
+            unlocking();
+            return aTRUE;
+        }
+        catch(const std::out_of_range& oor) {
+            unlocking();
             return aFALSE;
-        return aTRUE;
+        }
     }
 
     Tamgu* MethodProduct(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
         double v = Product();
         return globalTamgu->Providefloat(v);
     }
 
     Tamgu* MethodPop(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
         Tamgu* pos = callfunc->Evaluate(0, contextualpattern, idthread);
         return Pop(pos);
     }
 
     Tamgu* MethodJoin(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
+        locking();
         //The separator between keys
         string keysep = callfunc->Evaluate(0, contextualpattern, idthread)->String();
         //The separator between values
@@ -293,6 +307,7 @@ class Tamgutreemapfi : public TamguLockContainer {
             res << it.first << keysep << it.second;
         }
 
+        unlocking();
         return globalTamgu->Providestring(res.str());
     }
 
@@ -302,8 +317,9 @@ class Tamgutreemapfi : public TamguLockContainer {
     Exporting Tamgu* Pop(Tamgu* kkey);
 
     Tamgu* Push(double k, Tamgu* a) {
-        Locking _lock(this);
+        locking();
         values[k] = a->Integer();
+        unlocking();
         return this;
     }
 
@@ -359,35 +375,59 @@ class Tamgutreemapfi : public TamguLockContainer {
     Exporting string String();
     Exporting string JSonString();
 
-    Tamgu* Value(string n) {
+    Tamgu* Value(string& n) {
         double v = convertdouble(n);
-        Locking _lock(this);
-        if (values.find(v) == values.end())
+        locking();
+        try {
+            Tamgu* res = globalTamgu->Provideint(values.at(v));
+            unlocking();
+            return res;
+        }
+        catch(const std::out_of_range& oor) {
+            unlocking();
             return aNOELEMENT;
-        return globalTamgu->Provideint(values[v]);
+        }
     }
 
     Tamgu* Value(long n) {
-        Locking _lock(this);
-        if (values.find((double)n) == values.end())
+        locking();
+        try {
+            Tamgu* res = globalTamgu->Provideint(values.at(n));
+            unlocking();
+            return res;
+        }
+        catch(const std::out_of_range& oor) {
+            unlocking();
             return aNOELEMENT;
-        return globalTamgu->Provideint(values[(double)n]);
+        }
     }
 
     Tamgu* Value(Tamgu* a) {
         double n =  a->Float();
 
-        Locking _lock(this);
-        if (values.find((double)n) == values.end())
+        locking();
+        try {
+            Tamgu* res = globalTamgu->Provideint(values.at(n));
+            unlocking();
+            return res;
+        }
+        catch(const std::out_of_range& oor) {
+            unlocking();
             return aNOELEMENT;
-        return globalTamgu->Provideint(values[(double)n]);
+        }
     }
 
     Tamgu* Value(double n) {
-        Locking _lock(this);
-        if (values.find((double)n) == values.end())
+        locking();
+        try {
+            Tamgu* res = globalTamgu->Provideint(values.at(n));
+            unlocking();
+            return res;
+        }
+        catch(const std::out_of_range& oor) {
+            unlocking();
             return aNOELEMENT;
-        return globalTamgu->Provideint(values[(double)n]);
+        }
     }
 
     Exporting long Integer();
@@ -398,7 +438,7 @@ class Tamgutreemapfi : public TamguLockContainer {
 
     //Basic operations
     Exporting long Size();
-    
+
     Exporting Tamgu* in(Tamgu* context, Tamgu* a, short idthread);
 
     Exporting Tamgu* andset(Tamgu* a, bool itself);

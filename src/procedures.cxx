@@ -802,7 +802,6 @@ Tamgu* ProcPoolStats(Tamgu* context, short idthread, TamguCall* callfunc) {
     stats->values["garbage"] = idissues.size();
 #endif
 
-    stats->values["index"] = globalTamgu->indexreservoire.size();
     stats->values["mapss"] = globalTamgu->mapssreservoire.size();
     stats->values["map"] = globalTamgu->mapreservoire.size();
     stats->values["vector"] = globalTamgu->vectorreservoire.size();
@@ -817,7 +816,6 @@ Tamgu* ProcPoolStats(Tamgu* context, short idthread, TamguCall* callfunc) {
     stats->values["declaration"] = globalTamgu->declarationreservoire.size();
     stats->values["declarationclean"] = globalTamgu->declarationcleanreservoire.size();
     stats->values["self"] = globalTamgu->slfreservoire.size();
-    stats->values["index_idx"] = globalTamgu->indexidx;
     stats->values["mapss_idx"] = globalTamgu->mapssidx;
     stats->values["map_idx"] = globalTamgu->mapidx;
     stats->values["vector_idx"] = globalTamgu->vectoridx;
@@ -1291,7 +1289,7 @@ Tamgu* ProcCatch(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) 
     }
     string resstr = globalTamgu->Errorstring(idthread);
     globalTamgu->Cleanerror(idthread);
-    Tamgu* val = globalTamgu->Providestring(resstr);
+    Tamgu* val = globalTamgu->Providewithstring(resstr);
     Tamgu* res = callfunc->Evaluate(0, contextualpattern, idthread);
 
     res->Put(aNULL, val, idthread);
@@ -2094,7 +2092,7 @@ Tamgu* ProcKeyboardGet(Tamgu* contextualpattern, short idthread, TamguCall* call
 
     string s;
     getline(cin, s);
-    return globalTamgu->Providestring(s);
+    return globalTamgu->Providewithstring(s);
 }
 //----------------------------------------------------------------------------------------------------------
 Tamgu* ProcRaise(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -2187,7 +2185,7 @@ Tamgu* ProcBase(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         n /= b;
     }
 
-    return globalTamgu->Provideustring(w);
+    return globalTamgu->Providewithustring(w);
 }
 
 //----------------------------------------------------------------------------------------------------------
@@ -2385,7 +2383,7 @@ Tamgu* CommonInfo(Tamgu* object, short idthread, TamguCall* callfunc) {
     s = object->Info(s);
     
     if (s == "Unknown method")
-        return globalTamgu->Providestring(s);
+        return globalTamgu->Providewithstring(s);
 
 
     string val;
@@ -2397,7 +2395,7 @@ Tamgu* CommonInfo(Tamgu* object, short idthread, TamguCall* callfunc) {
         val = "any : ";
     s = val + s;
     
-    return globalTamgu->Providestring(s);
+    return globalTamgu->Providewithstring(s);
 }
 
 Tamgu* CommonMethods(Tamgu* object, short idthread, TamguCall* callfunc) {

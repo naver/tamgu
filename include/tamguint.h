@@ -45,11 +45,13 @@ public:
     
         //---------------------------------------------------------------------------------------------------------------------
     Tamguint(long v, TamguGlobal* g, Tamgu* parent = NULL) : TamguReference(g, parent) {
+     investigate |= is_number;
             //Do not forget your variable initialisation
         value = v;
     }
     
     Tamguint(long v) {
+     investigate |= is_number;
             //Do not forget your variable initialisation
         value = v;
     }
@@ -111,9 +113,7 @@ public:
         return a_int;
     }
     
-    bool isNumber() {
-        return true;
-    }
+    
     
     Tamgu* Atom(bool forced = false) {
         if (forced || !protect || reference)
@@ -495,6 +495,14 @@ public:
         
     }
     
+    void Setstring(string& v, short idthread) {
+        convertnumber(value,v);
+    }
+
+    void Setstring(wstring& v, short idthread) {
+        convertnumber(value,v);
+    }
+
     long Integer() {
         return value;
     }
@@ -774,11 +782,13 @@ public:
     
         //---------------------------------------------------------------------------------------------------------------------
     Tamguatomicint(long v, TamguGlobal* g) : TamguReference(g) {
+     investigate |= is_number;
         value = v;
     }
 
 
     Tamguatomicint(long v) {
+     investigate |= is_number;
         value = v;
     }
     
@@ -839,9 +849,7 @@ public:
         return a_int;
     }
     
-    bool isNumber() {
-        return true;
-    }
+    
     
     Tamgu* Atom(bool forced = false) {
         if (forced || !protect || reference)
@@ -1218,6 +1226,14 @@ public:
         
     }
     
+    void Setstring(string& v, short idthread) {
+        convertnumber(value,v);
+    }
+
+    void Setstring(wstring& v, short idthread) {
+        convertnumber(value,v);
+    }
+
     long Integer() {
         return value;
     }
@@ -1458,6 +1474,7 @@ class TamguTaskellCounter : public Tamguint {
 public:
     
     TamguTaskellCounter(long v = 0) : Tamguint(v) {
+     investigate |= is_number;
         investigate = is_container;
     }
     

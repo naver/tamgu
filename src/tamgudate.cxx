@@ -112,6 +112,36 @@ string Tamgudate::String() {
     return buffer;
 }
 
+void Tamgudate::Setstring(string& s, short idthread) {
+    char buffer[100];
+    #ifdef WIN32
+    struct tm temps;
+    localtime_s(&temps, &value);
+    strftime(buffer, 100, "%Y/%m/%d %H:%M:%S", &temps);
+    #else
+    struct tm* temps = localtime(&value);
+    strftime(buffer, 100, "%Y/%m/%d %H:%M:%S", temps);
+    #endif
+    s = buffer;
+}
+
+void Tamgudate::Setstring(wstring& s, short idthread) {
+    char buffer[100];
+    long sz;
+    #ifdef WIN32
+    struct tm temps;
+    localtime_s(&temps, &value);
+    sz = strftime(buffer, 100, "%Y/%m/%d %H:%M:%S", &temps);
+    #else
+    struct tm* temps = localtime(&value);
+    sz = strftime(buffer, 100, "%Y/%m/%d %H:%M:%S", temps);
+    #endif
+    
+    s=L"";
+    for (long i = 0; i < sz; i++)
+        s+= (wchar_t)buffer[i];
+}
+
 #ifdef WIN32
 Tamgu* Tamgudate::MethodInitial(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 
@@ -291,7 +321,7 @@ Tamgu* Tamgudate::MethodInitial(Tamgu* contextualpattern, short idthread, TamguC
 
 Tamgu* Tamgudate::MethodDate(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     string d = String();
-    return globalTamgu->Providestring(d);
+    return globalTamgu->Providewithstring(d);
 }
 
 #ifdef WIN32

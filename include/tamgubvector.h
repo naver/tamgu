@@ -98,51 +98,60 @@ class Tamgubvector : public TamguLockContainer {
 
 
     void Reserve(long d) {
-        Locking _lock(this);
+        locking();
         if (d>values.size())
             values.reserve(d);
+        unlocking();
     }
 
     void storevalue(long v) {
-        Locking _lock(this);
+        locking();
         values.push_back((unsigned char)v);
+        unlocking();
     }
 
     void storevalue(short v) {
-        Locking _lock(this);
+        locking();
         values.push_back((unsigned char)v);
+        unlocking();
     }
 
     void storevalue(wchar_t v) {
-        Locking _lock(this);
+        locking();
         values.push_back((unsigned char)v);
+        unlocking();
     }
 
     void storevalue(BLONG v) {
-        Locking _lock(this);
+        locking();
         values.push_back((unsigned char)v);
+        unlocking();
     }
 
     void storevalue(unsigned char v) {
-        Locking _lock(this);
+        locking();
         values.push_back(v);
+        unlocking();
     }
 
     void storevalue(float v) {
-        Locking _lock(this);
+        locking();
         values.push_back((unsigned char)v);
+        unlocking();
     }
 
     void storevalue(double v) {
-        Locking _lock(this);
+        locking();
         values.push_back((unsigned char)v);
+        unlocking();
     }
 
     Tamgu* Atom(bool forced = false) {
         if (forced || !protect || reference) {
             Tamgubvector* v = new Tamgubvector;
-            Locking _lock(this);
+            locking();
             v->values = values;
+            unlocking();
             return v;
         }
         return this;
@@ -155,62 +164,92 @@ class Tamgubvector : public TamguLockContainer {
     }
 
     double getfloat(long i) {
-        Locking _lock(this);
-        if (i < 0 || i >= values.size())
+        locking();
+        if (i < 0 || i >= values.size()) {
+            unlocking();
             return 0;
-        return values[i];
+        }
+        uchar c = values[i];
+        unlocking();
+        return c;
     }
 
     long getinteger(long i) {
-        Locking _lock(this);
-        if (i < 0 || i >= values.size())
+        locking();
+        if (i < 0 || i >= values.size()) {
+            unlocking();
             return 0;
-        return values[i];
+        }
+        uchar c = values[i];
+        unlocking();
+        return c;
     }
 
     float getdecimal(long i) {
-        Locking _lock(this);
-        if (i < 0 || i >= values.size())
+        locking();
+        if (i < 0 || i >= values.size()) {
+            unlocking();
             return 0;
-        return values[i];
+        }
+        uchar c = values[i];
+        unlocking();
+        return c;
     }
 
     BLONG getlong(long i) {
-        Locking _lock(this);
-        if (i < 0 || i >= values.size())
+        locking();
+        if (i < 0 || i >= values.size()) {
+            unlocking();
             return 0;
-        return values[i];
+        }
+        uchar c = values[i];
+        unlocking();
+        return c;
     }
 
     uchar getbyte(long i) {
-        Locking _lock(this);
-        if (i < 0 || i >= values.size())
+        locking();
+        if (i < 0 || i >= values.size()) {
+            unlocking();
             return 0;
-        return values[i];
+        }
+        uchar c = values[i];
+        unlocking();
+        return c;
     }
     
     short getshort(long i) {
-        Locking _lock(this);
-        if (i < 0 || i >= values.size())
+        locking();
+        if (i < 0 || i >= values.size()) {
+            unlocking();
             return 0;
-        return values[i];
+        }
+        uchar c = values[i];
+        unlocking();
+        return c;
     }
 
     string getstring(long i) {
-        Locking _lock(this);
-        if (i < 0 || i >= values.size())
+        locking();
+        if (i < 0 || i >= values.size()) {
+            unlocking();
             return "";
+        }
         string v;
         v=(char)values[i];
+        unlocking();
         return v;
     }
     
     wstring getustring(long i) {
-        Locking _lock(this);
-        if (i < 0 || i >= values.size())
+        locking();
+        if (i < 0 || i >= values.size()) {
+            unlocking();
             return L"";
+        }
         wstring w;
         w=(wchar_t)values[i];
+        unlocking();
         return w;
     }
     //---------------------------------------------------------------------------------------------------------------------
@@ -274,9 +313,11 @@ class Tamgubvector : public TamguLockContainer {
         return aTRUE;
     }
     Tamgu* MethodPush(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
+        locking();
         for (size_t i = 0; i < callfunc->Size(); i++)
             values.push_back(callfunc->Evaluate(i, contextualpattern, idthread)->Byte());
+        
+        unlocking();
         return aTRUE;
     }
     
@@ -300,7 +341,7 @@ class Tamgubvector : public TamguLockContainer {
     Tamgu* MethodJoin(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         //The separator between values
         string sep = callfunc->Evaluate(0, contextualpattern, idthread)->String();
-        Locking _lock(this);
+        locking();
         bool beg = true;
         stringstream v;
         for (size_t it = 0; it < values.size(); it++) {
@@ -309,27 +350,31 @@ class Tamgubvector : public TamguLockContainer {
             beg = false;
             v << values[it];
         }
-
+        unlocking();
         return globalTamgu->Providestring(v.str());
     }
 
     Tamgu* MethodLast(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
-        if (values.size() == 0)
+        locking();
+        if (values.size() == 0) {
+            unlocking();
             return aNOELEMENT;
-        return new Tamgubyte(values.back());
+        }
+        contextualpattern = new Tamgubyte(values.back());
+        unlocking();
+        return contextualpattern;
     }
 
     Tamgu* MethodMerge(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         Tamgu* v = callfunc->Evaluate(0, contextualpattern, idthread);
-        Locking _lock(this);
         return Merging(v);
     }
 
     Tamgu* MethodEditDistance(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         Tamgu* v = callfunc->Evaluate(0, contextualpattern, idthread);
-        Locking _lock(this);
+        locking();
         unsigned long dst = EditDistance(v);
+        unlocking();
         return globalTamgu->Provideint(dst);
     }
 
@@ -345,7 +390,6 @@ class Tamgubvector : public TamguLockContainer {
 
     Tamgu* MethodInsert(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         long i = callfunc->Evaluate(0, contextualpattern, idthread)->Integer();
-        Locking _lock(this);
         Tamgu* v = callfunc->Evaluate(1, contextualpattern, idthread);
         Insert(i, v);
         return aTRUE;
@@ -377,11 +421,14 @@ class Tamgubvector : public TamguLockContainer {
     Exporting Tamgu* Pop(Tamgu*);
     
     Tamgu* Poplast() {
-        Locking _lock(this);
-        if (values.size() == 0)
+        locking();
+        if (values.size() == 0) {
+            unlocking();
             return aNOELEMENT;
+        }
         char c = values.back();
         values.pop_back();
+        unlocking();
         return new Tamgubyte(c);
     }
     
@@ -416,9 +463,10 @@ class Tamgubvector : public TamguLockContainer {
             j = sz;
 
         BLONG v = 0;
+        locking();
         for (; i < j; i++)
             v += values[i];
-
+        unlocking();
         return new Tamgulong(v);
     }
 
@@ -445,53 +493,60 @@ class Tamgubvector : public TamguLockContainer {
             j = sz;
 
         BLONG v = 1;
+        locking();
         for (; i < j; i++)
             v *= values[i];
-
+        unlocking();
         return new Tamgulong(v);
     }
 
 
     double Sum() {
-        Locking* _lock = _getlock(this);
+        locking();
         double v = 0;
         for (int i = 0; i < values.size(); i++)
             v += values[i];
-        _cleanlock(_lock);
+        unlocking();
         return v;
     }
 
     double Product() {
-        Locking* _lock = _getlock(this);
-        if (values.size() == 0)
+        locking();
+        if (values.size() == 0) {
+            unlocking();
             return 0;
+        }
         double v = values[0];
         for (int i = 1; i < values.size(); i++)
             v *= values[i];
-        _cleanlock(_lock);
+        unlocking();
         return v;
     }
 
     void Insert(long idx, Tamgu* ke) {
-        Locking _lock(this);
+        locking();
         if (idx<0)
             idx=0;
         if (idx>=values.size())
             values.push_back(ke->Byte());
         else
             values.insert(values.begin() + idx, ke->Byte());
+        unlocking();
     }
 
     Tamgu* Inverse() {
-        Locking _lock(this);
+        locking();
         Tamgubvector* vect = new Tamgubvector;
         for (long i = values.size() - 1; i >= 0; i--) {
             vect->values.push_back(values[i]);
         }
+        unlocking();
         return vect;
     }
 
-    Exporting Tamgu* Map(short idthread);Exporting Tamgu* Vector(short idthread);	//---------------------------------------------------------------------------------------------------------------------
+    Exporting Tamgu* Map(short idthread);Exporting Tamgu* Vector(short idthread);
+    
+    //---------------------------------------------------------------------------------------------------------------------
 
     //ExecuteMethod must be implemented in order to execute our new Tamgu methods. This method is called when a TamguCallMethodMethod object
     //is returned by the Declaration method.
@@ -503,13 +558,24 @@ class Tamgubvector : public TamguLockContainer {
 
     Exporting void Clear();
     Exporting string String();
-    //wstring UString() {}
+    Exporting void Setstring(string& e, short idthread);
 
     Exporting long Integer();Exporting double Float();Exporting BLONG Long();Exporting bool Boolean();
 
     //Basic operations
     Exporting long Size();
-    Exporting Tamgu* in(Tamgu* context, Tamgu* a, short idthread);Exporting Tamgu* andset(Tamgu* a, bool itself);Exporting Tamgu* orset(Tamgu* a, bool itself);Exporting Tamgu* xorset(Tamgu* a, bool itself);Exporting Tamgu* plus(Tamgu* a, bool itself);Exporting Tamgu* minus(Tamgu* a, bool itself);Exporting Tamgu* multiply(Tamgu* a, bool itself);Exporting Tamgu* divide(Tamgu* a, bool itself);Exporting Tamgu* power(Tamgu* a, bool itself);Exporting Tamgu* shiftleft(Tamgu* a, bool itself);Exporting Tamgu* shiftright(Tamgu* a, bool itself);Exporting Tamgu* mod(Tamgu* a, bool itself);
+    Exporting Tamgu* in(Tamgu* context, Tamgu* a, short idthread);
+    Exporting Tamgu* andset(Tamgu* a, bool itself);
+    Exporting Tamgu* orset(Tamgu* a, bool itself);
+    Exporting Tamgu* xorset(Tamgu* a, bool itself);
+    Exporting Tamgu* plus(Tamgu* a, bool itself);
+    Exporting Tamgu* minus(Tamgu* a, bool itself);
+     Exporting Tamgu* multiply(Tamgu* a, bool itself);
+    Exporting Tamgu* divide(Tamgu* a, bool itself);
+    Exporting Tamgu* power(Tamgu* a, bool itself);
+    Exporting Tamgu* shiftleft(Tamgu* a, bool itself);
+    Exporting Tamgu* shiftright(Tamgu* a, bool itself);
+    Exporting Tamgu* mod(Tamgu* a, bool itself);
     Exporting Tamgu* same(Tamgu* a);
 };
 

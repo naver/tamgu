@@ -70,13 +70,9 @@ class Tamgusys : public TamguObject {
         return "sys";
     }
 
-    bool isString() {
-        return false;
-    }
+    
 
-    bool isNumber() {
-        return false;
-    }
+    
 
     bool isBoolean() {
         return false;
@@ -159,6 +155,10 @@ class Tamgusys : public TamguObject {
 
     string String() {       
         return lastcommand;
+    }
+
+    void Setstring(string& v, short idthread) {
+        v = lastcommand;
     }
 
 };

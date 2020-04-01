@@ -17,8 +17,8 @@ class bnf_tamgu {
     x_reading* fx;
 
     vector<string> labelerrors;
-    vector<int> lineerrors;
-    vector<int> errornumbers;
+    vector<long> lineerrors;
+    vector<long> errornumbers;
 
     bnf_tamgu(int l=0) {
         baseline=l;
@@ -877,17 +877,20 @@ class bnf_tamgu {
     char m_tlatom(string& lreturn,x_node** tree);
     char m_tlquote(string& lreturn,x_node** tree);
     char m_tlquote_0_1(string& lreturn,x_node** tree);
-    char m_opcomp(string& lreturn,x_node** tree);
     char m_tlist(string& lreturn,x_node** tree);
     char m_tlist_0_1(string& lreturn,x_node** tree);
-    char m_tlist_0_2(string& lreturn,x_node** tree);
-    char m_tlexp(string& lreturn,x_node** tree);
+    char m_tlist_0_1_2(string& lreturn,x_node** tree);
+    char m_tlist_0_1_2_3(string& lreturn,x_node** tree);
+    char m_tlist_0_1_2_4(string& lreturn,x_node** tree);
+    char m_tlist_0_1_2_4_5(string& lreturn,x_node** tree);
     char m_tamgulisp(string& lreturn,x_node** tree);
-    char m_tlquotepure(string& lreturn,x_node** tree);
-    char m_tlquotepure_0_1(string& lreturn,x_node** tree);
-    char m_tlistpure(string& lreturn,x_node** tree);
-    char m_tlistpure_0_2(string& lreturn,x_node** tree);
-    char m_tlexpure(string& lreturn,x_node** tree);
+    char m_tlpurequote(string& lreturn,x_node** tree);
+    char m_tlpurequote_0_1(string& lreturn,x_node** tree);
+    char m_tpurelist(string& lreturn,x_node** tree);
+    char m_tpurelist_0_1(string& lreturn,x_node** tree);
+    char m_tpurelist_0_1_2(string& lreturn,x_node** tree);
+    char m_tpurelist_0_1_2_4(string& lreturn,x_node** tree);
+    char m_tpurelist_0_1_2_4_5(string& lreturn,x_node** tree);
     char m_tamgupurelisp(string& lreturn,x_node** tree);
     char m_ameta(string& lreturn,x_node** tree);
     char m_ameta_0_1(string& lreturn,x_node** tree);

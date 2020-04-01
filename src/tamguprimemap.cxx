@@ -12,7 +12,7 @@
  Purpose    : map implementation
  Programmer : Claude ROUX (claude.roux@naverlabs.com)
  Reviewer   :
-*/
+ */
 
 #include "tamgu.h"
 //#prime
@@ -39,28 +39,28 @@ void Tamguprimemap::AddMethod(TamguGlobal* global, string name, primemapMethod f
 
 
 
-    void Tamguprimemap::Setidtype(TamguGlobal* global) {
+void Tamguprimemap::Setidtype(TamguGlobal* global) {
     Tamguprimemap::InitialisationModule(global,"");
 }
 
 
-   bool Tamguprimemap::InitialisationModule(TamguGlobal* global, string version) {
+bool Tamguprimemap::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
     infomethods.clear();
     exported.clear();
-
-
+    
+    
     Tamguprimemap::idtype = global->Getid("primemap");
-
+    
     Tamguprimemap::AddMethod(global, "clear", &Tamguprimemap::MethodClear, P_NONE, "clear(): clear the container.");
-
+    
     Tamguprimemap::AddMethod(global, "items", &Tamguprimemap::MethodItems, P_NONE, "items(): Return a vector of {key:value} pairs.");
     
     Tamguprimemap::AddMethod(global, "invert", &Tamguprimemap::MethodInvert, P_NONE, "invert(): return a map with key/value inverted.");
     Tamguprimemap::AddMethod(global, "find", &Tamguprimemap::MethodFind, P_ONE, "find(value): test if a value belongs to the map and return 'true' or the corresponding keys.");
-
-
-
+    
+    
+    
     Tamguprimemap::AddMethod(global, "join", &Tamguprimemap::MethodJoin, P_TWO, "join(string sepkey,string sepvalue): Produce a string representation for the container.");
     Tamguprimemap::AddMethod(global, "test", &Tamguprimemap::MethodTest, P_ONE, "test(key): Test if key belongs to the map container.");
     Tamguprimemap::AddMethod(global, "keys", &Tamguprimemap::MethodKeys, P_NONE, "keys(): Return the map container keys as a vector.");
@@ -69,13 +69,13 @@ void Tamguprimemap::AddMethod(TamguGlobal* global, string name, primemapMethod f
     Tamguprimemap::AddMethod(global, "product", &Tamguprimemap::MethodProduct, P_NONE, "product(): return the product of elements.");
     Tamguprimemap::AddMethod(global, "pop", &Tamguprimemap::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamguprimemap::AddMethod(global, "merge", &Tamguprimemap::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
-
+    
     if (version != "") {
         global->newInstance[Tamguprimemap::idtype] = new Tamguprimemap(global);
         
         global->RecordMethods(Tamguprimemap::idtype, Tamguprimemap::exported);
     }
-
+    
     return true;
 }
 
@@ -89,11 +89,11 @@ Exporting Tamgu* Tamguprimemap::MethodFind(Tamgu* context, short idthread, Tamgu
     //It is a Boolean, we expect false or true
     //It is an integer, we expect a position in v
     //It is a container, we are looking for all positions...
-
+    
     prime_hash<string, Tamgu*>::iterator it;
-
+    
     Tamgu* a = callfunc->Evaluate(0, context, idthread);
-
+    
     if (context->isBoolean()) {
         Locking _lock(this);
         for (it = values.begin(); it != values.end(); it++) {
@@ -102,26 +102,26 @@ Exporting Tamgu* Tamguprimemap::MethodFind(Tamgu* context, short idthread, Tamgu
         }
         return aFALSE;
     }
-
+    
     if (context->isVectorContainer()) {
         Tamgusvector* v = (Tamgusvector*)Selectasvector(context);
         Doublelocking _lock(this, v);
-
+        
         for (it = values.begin(); it != values.end(); it++) {
             if (it->second->same(a) == aTRUE)
                 v->values.push_back(it->first);
         }
         return v;
     }
-
+    
     Locking _lock(this);
     for (it = values.begin(); it != values.end(); it++) {
         if (it->second->same(a) == aTRUE)
             return globalTamgu->Providestring(it->first);
     }
-
+    
     return aNULL;
-
+    
 }
 
 Exporting Tamgu* Tamguprimemap::in(Tamgu* context, Tamgu* a, short idthread) {
@@ -129,39 +129,46 @@ Exporting Tamgu* Tamguprimemap::in(Tamgu* context, Tamgu* a, short idthread) {
     //It is a Boolean, we expect false or true
     //It is an integer, we expect a position in v
     //It is a container, we are looking for all positions...
-
+    
     string val = a->String();
-
-     if (context->isVectorContainer()) {
+    
+    if (context->isVectorContainer()) {
         Tamgusvector* v = (Tamgusvector*)Selectasvector(context);
         Doublelocking _lock(this, v);
         if (values.find(val) != values.end())
             v->values.push_back(val);
-
+        
         return v;
     }
-
-   if (context->isString()) {
-        Locking _lock(this);
-        if (values.find(val) != values.end())
-            return globalTamgu->Providestring(val);
+    
+    if (context->isString()) {
+        locking();
+        if (values.find(val) != values.end()) {
+            unlocking();
+            return globalTamgu->Providewithstring(val);
+        }
+        unlocking();
         return aNOELEMENT;
     }
-
-    Locking _lock(this);
-    if (values.find(val) != values.end())
+    
+    locking();
+    if (values.find(val)!=values.end()) {
+        unlocking();
         return aTRUE;
-
+    }
+    unlocking();
     return aFALSE;
-
+    
 }
 
+
+
 Exporting void Tamguprimemap::Cleanreference(short inc) {
-    Locking* _lock = _getlock(this);
+    locking();
     prime_hash<string, Tamgu*>::iterator it;
     for (it=values.begin();it!=values.end();it++)
         it->second->Removecontainerreference( inc);
-    _cleanlock(_lock);
+    unlocking();
 }
 
 Exporting void Tamguprimemap::Setreference(short inc) {
@@ -172,11 +179,11 @@ Exporting void Tamguprimemap::Setreference(short inc) {
     protect = false;
     loopmark=true;
     
-    Locking* _lock = _getlock(this);
+    locking();
     prime_hash<string, Tamgu*>::iterator itx;
     for (itx = values.begin(); itx != values.end(); itx++)
         itx->second->Addreference(inc);
-    _cleanlock(_lock);
+    unlocking();
     
     loopmark=false;
 }
@@ -189,27 +196,27 @@ Exporting void Tamguprimemap::Setreference() {
     protect = false;
     loopmark=true;
     
-    Locking* _lock = _getlock(this);
+    locking();
     prime_hash<string, Tamgu*>::iterator itx;
     for (itx = values.begin(); itx != values.end(); itx++)
         itx->second->Addreference(1);
-    _cleanlock(_lock);
+    unlocking();
     
     loopmark=false;
 }
 
 static void resetMap(Tamguprimemap* kmap, short inc) {
     kmap->reference -= inc;
-
-    Locking* _lock = _getlock(kmap);
+    
+    kmap->locking();
     prime_hash<string, Tamgu*>& values = kmap->values;
     if (values.size() == 0)
         return;
-
+    
     prime_hash<string, Tamgu*>::iterator itx;
     for (itx = values.begin(); itx != values.end(); itx++)
         itx->second->Removereference(inc);
-    _cleanlock(_lock);
+    kmap->unlocking();
 }
 
 Exporting void Tamguprimemap::Resetreference(short inc) {
@@ -227,46 +234,52 @@ Exporting void Tamguprimemap::Resetreference(short inc) {
 
 
 Exporting Tamgu* Tamguprimemap::Push(Tamgu* k, Tamgu* v) {
-    Locking _lock(this);
+    locking();
     string s = k->String();
     if (values.find(s) != values.end()) {
         Tamgu* kval = values[s];
         values.erase(s);
         kval->Removereference(reference + 1);
     }
-
+    
     v = v->Atom();
     values[s] = v;
     v->Addreference(reference+1);
+    unlocking();
     return aTRUE;
 }
 
 Exporting Tamgu* Tamguprimemap::Pop(Tamgu* kkey) {
     string k = kkey->String();
-    Locking _lk(this);
+    locking();
     if (values.find(k) != values.end()) {
         kkey = values[k];
         values.erase(k);
+        unlocking();
         kkey->Removereference(reference + 1);
         return aTRUE;
     }
+    unlocking();
     return aFALSE;
 }
 
 Exporting void Tamguprimemap::Clear() {
-    Locking _lock(this);
+    locking();
     prime_hash<string, Tamgu*>::iterator itx;
     for (itx = values.begin(); itx != values.end(); itx++)
         itx->second->Removereference(reference + 1);
     values.clear();
+    unlocking();
 }
 
 
 
 Exporting string Tamguprimemap::String() {
-    Locking _lock(this);
-    if (loopmark)
+    locking();
+    if (loopmark) {
+        unlocking();
         return("{...}");
+    }
     TamguCircular _c(this);
     stringstream res;
     prime_hash<string, Tamgu*>::iterator it;
@@ -286,14 +299,17 @@ Exporting string Tamguprimemap::String() {
         else
             stringing(res, sx);
     }
+    unlocking();
     res << "}";
     return res.str();
 }
 
 Exporting string Tamguprimemap::JSonString() {
-    Locking _lock(this);
-    if (loopmark)
+    locking();
+    if (loopmark) {
+        unlocking();
         return("");
+    }
     TamguCircular _c(this);
     stringstream res;
     prime_hash<string, Tamgu*>::iterator it;
@@ -308,48 +324,57 @@ Exporting string Tamguprimemap::JSonString() {
         jstringing(res, sx);
         res << ":" << it->second->JSonString();
     }
+    unlocking();
     res << "}";
     return res.str();
 }
 
 
 Exporting long Tamguprimemap::Integer() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
 
 Exporting double Tamguprimemap::Float() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
 
 Exporting BLONG Tamguprimemap::Long() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
 
 Exporting bool Tamguprimemap::Boolean() {
-    Locking _lock(this);
-    if (values.size() == 0)
-        return false;
-    return true;
+    locking();
+    bool b = values.empty();
+    unlocking();
+    return !b;
 }
 
 
 //Basic operations
 Exporting long Tamguprimemap::Size() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
 
 
 Exporting Tamgu*  Tamguprimemap::Put(Tamgu* idx, Tamgu* ke, short idthread) {
-
+    
     
     if (!idx->isIndex()) {
         if (ke == this)
             return aTRUE;
-
+        
         if (ke->isNULL()) {
             Clear();
             return aTRUE;
@@ -364,7 +389,7 @@ Exporting Tamgu*  Tamguprimemap::Put(Tamgu* idx, Tamgu* ke, short idthread) {
             itr->Release();
             return aTRUE;
         }
-
+        
         char ch[20];
         if (ke->isVectorContainer()) {
             Doublelocking _lock(this, ke);
@@ -377,7 +402,7 @@ Exporting Tamgu*  Tamguprimemap::Put(Tamgu* idx, Tamgu* ke, short idthread) {
             }
             return aTRUE;
         }
-
+        
         if (ke->Type() == a_list) {
             Doublelocking _lock(this, ke);
             Tamgulist* kvect = (Tamgulist*)ke;
@@ -391,12 +416,12 @@ Exporting Tamgu*  Tamguprimemap::Put(Tamgu* idx, Tamgu* ke, short idthread) {
             }
             return aTRUE;
         }
-
+        
         ke = ke->Map(idthread);
         if (!ke->isMapContainer())
             return globalTamgu->Returnerror("Wrong map initialization", idthread);
-
-        Locking* _lock = _getlock(this);
+        
+        locking();
         Clear();
         if (ke->Type() == Tamguprimemap::idtype) {
             Tamguprimemap* kmap = (Tamguprimemap*)ke;
@@ -417,47 +442,50 @@ Exporting Tamgu*  Tamguprimemap::Put(Tamgu* idx, Tamgu* ke, short idthread) {
             itr->Release();
         }
         ke->Release();
-        _cleanlock(_lock);
+        unlocking();
         return aTRUE;
     }
-
-    Push(idx->String(), ke);
+    
+    string skey;
+    ((TamguIndex*)idx)->left->Setstring(skey, idthread);
+    pushing(skey, ke);
     return aTRUE;
 }
 
 
 Exporting Tamgu* Tamguprimemap::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
-
-    Locking _lock(this);
-
+    
+    
     if (!idx->isIndex()) {
         //particular case, the contextualpattern is a vector, which means that we expect a set of keys
         //as a result
-                if (contextualpattern->isMapContainer())
+        if (contextualpattern->isMapContainer())
             return this;
         
-       //particular case, the contextualpattern is a vector, which means that we expect a set of keys
+        //particular case, the contextualpattern is a vector, which means that we expect a set of keys
         //as a result
         if (contextualpattern->isVectorContainer() || contextualpattern->Type() == a_list) {
             Tamgu* vect = contextualpattern->Newinstance(idthread);
+            locking();
             prime_hash<string, Tamgu*>::iterator it;
             for (it = values.begin(); it != values.end(); it++)
                 vect->Push(globalTamgu->Providestring(it->first));
+            unlocking();
             return vect;
         }
-
+        
         if (contextualpattern->isNumber()) {
             long v = Size();
             return globalTamgu->Provideint(v);
         }
-
+        
         return this;
     }
-
-    Tamgu* key;
+    
     if (idx->isInterval()) {
+        Locking _lock(this);
         Tamguprimemap* kmap = new Tamguprimemap;
-        key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
+        Tamgu* key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
         Tamgu* keyright = ((TamguIndex*)idx)->right->Eval(aNULL, aNULL, idthread);
         string vleft = key->String();
         string vright = keyright->String();
@@ -483,39 +511,32 @@ Exporting Tamgu* Tamguprimemap::Eval(Tamgu* contextualpattern, Tamgu* idx, short
             if (it == itr)
                 return kmap;
         }
-
+        
         if (itr != values.end())
             kmap->Clear();
         return kmap;
     }
-
-    key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
     
-    if (key == aNULL) {
-        if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong index", idthread);
-        return aNOELEMENT;
-    }
-
-    string skey = key->String();
-    key->Release();
-
+    string skey;
+    ((TamguIndex*)idx)->left->Setstring(skey, idthread);
+    
     Tamgu* kval = Value(skey);
     if (kval == aNOELEMENT) {
         if (globalTamgu->erroronkey)
             return globalTamgu->Returnerror("Wrong index", idthread);
         return aNOELEMENT;
+
     }
     return kval;
 }
 
 Exporting Tamgu* Tamguprimemap::same(Tamgu* a) {
-
+    
     if (a->Type() != idtype)
         return Mapcompare(this, a, NULL);
-
+    
     Tamguprimemap* m = (Tamguprimemap*)a;
-
+    
     Doublelocking _lock(this, m);
     if (m->values.size() != values.size())
         return aFALSE;
@@ -531,23 +552,23 @@ Exporting Tamgu* Tamguprimemap::same(Tamgu* a) {
 }
 
 Exporting Tamgu* Tamguprimemap::xorset(Tamgu* b, bool itself) {
-
+    
     Doublelocking _lock(this, b);
-
-
+    
+    
     Tamguprimemap* res;
     
     
     if (b->isMapContainer()) {
         TamguIteration* itr = b->Newiteration(false);
-
+        
         res = new Tamguprimemap;
         hmap<string, Tamgu*> keys;
-
+        
         prime_hash<string, Tamgu*>::iterator it;
         for (it = values.begin(); it != values.end(); it++)
             keys[it->first] = it->second;
-            
+        
         string v;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
             v = itr->Keystring();
@@ -559,21 +580,21 @@ Exporting Tamgu* Tamguprimemap::xorset(Tamgu* b, bool itself) {
             }
         }
         itr->Release();
-
+        
         for (auto& a : keys)
             res->Push(a.first,a.second);
-
+        
         return res;
-
-
+        
+        
     }
-
-
+    
+    
     if (itself)
         res = this;
     else
         res = (Tamguprimemap*)Atom(true);
-
+    
     prime_hash<string, Tamgu*>::iterator it;
     for (it = values.begin(); it != values.end(); it++)
         it->second->xorset(b, true);
@@ -582,33 +603,33 @@ Exporting Tamgu* Tamguprimemap::xorset(Tamgu* b, bool itself) {
 
 Exporting Tamgu* Tamguprimemap::orset(Tamgu* b, bool itself) {
     Doublelocking _lock(this, b);
-
+    
     prime_hash<string, Tamgu*>::iterator it;
     Tamguprimemap* res;
     if (itself)
         res = this;
     else
         res = (Tamguprimemap*)Atom(true);
-
+    
     if (b->isMapContainer()) {
         res->Merging(b);
         return res;
     }
-
+    
     for (it = values.begin(); it != values.end(); it++)
         it->second->orset(b, true);
     return res;
-
+    
 }
 
 Exporting Tamgu* Tamguprimemap::andset(Tamgu* b, bool itself) {
     Doublelocking _lock(this, b);
-
+    
     prime_hash<string, Tamgu*>::iterator it;
     Tamguprimemap* res;
     if (b->isMapContainer()) {
         TamguIteration* itr = b->Newiteration(false);
-
+        
         res = new Tamguprimemap;
         Tamgu* v;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
@@ -619,12 +640,12 @@ Exporting Tamgu* Tamguprimemap::andset(Tamgu* b, bool itself) {
         itr->Release();
         return res;
     }
-
+    
     if (itself)
         res = this;
     else
         res = (Tamguprimemap*)Atom(true);
-
+    
     for (it = values.begin(); it != values.end(); it++)
         it->second->andset(b, true);
     return res;
@@ -632,12 +653,12 @@ Exporting Tamgu* Tamguprimemap::andset(Tamgu* b, bool itself) {
 
 Exporting Tamgu* Tamguprimemap::plus(Tamgu* b, bool itself) {
     Doublelocking _lock(this, b);
-
+    
     prime_hash<string, Tamgu*>::iterator it;
     Tamguprimemap* res;
     if (b->isMapContainer()) {
         TamguIteration* itr = b->Newiteration(false);
-
+        
         res = new Tamguprimemap;
         Tamgu* v;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
@@ -647,18 +668,18 @@ Exporting Tamgu* Tamguprimemap::plus(Tamgu* b, bool itself) {
                 res->Push(it->first, it->second);
                 res->values[it->first]->plus(v, true);
             }
-
+            
         }
         
         itr->Release();
         return res;
     }
-
+    
     if (itself)
         res = this;
     else
         res = (Tamguprimemap*)Atom(true);
-
+    
     for (it = values.begin(); it != values.end(); it++)
         it->second->plus(b, true);
     return res;
@@ -666,12 +687,12 @@ Exporting Tamgu* Tamguprimemap::plus(Tamgu* b, bool itself) {
 
 Exporting Tamgu* Tamguprimemap::minus(Tamgu* b, bool itself) {
     Doublelocking _lock(this, b);
-
+    
     prime_hash<string, Tamgu*>::iterator it;
     Tamguprimemap* res;
     if (b->isMapContainer()) {
         TamguIteration* itr = b->Newiteration(false);
-
+        
         res = new Tamguprimemap;
         Tamgu* v;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
@@ -681,18 +702,18 @@ Exporting Tamgu* Tamguprimemap::minus(Tamgu* b, bool itself) {
                 res->Push(it->first, it->second);
                 res->values[it->first]->minus(v, true);
             }
-
+            
         }
         
         itr->Release();
         return res;
     }
-
+    
     if (itself)
         res = this;
     else
         res = (Tamguprimemap*)Atom(true);
-
+    
     for (it = values.begin(); it != values.end(); it++)
         it->second->minus(b, true);
     return res;
@@ -700,12 +721,12 @@ Exporting Tamgu* Tamguprimemap::minus(Tamgu* b, bool itself) {
 
 Exporting Tamgu* Tamguprimemap::multiply(Tamgu* b, bool itself) {
     Doublelocking _lock(this, b);
-
+    
     prime_hash<string, Tamgu*>::iterator it;
     Tamguprimemap* res;
     if (b->isMapContainer()) {
         TamguIteration* itr = b->Newiteration(false);
-
+        
         res = new Tamguprimemap;
         Tamgu* v;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
@@ -715,18 +736,18 @@ Exporting Tamgu* Tamguprimemap::multiply(Tamgu* b, bool itself) {
                 res->Push(it->first, it->second);
                 res->values[it->first]->multiply(v, true);
             }
-
+            
         }
         
         itr->Release();
         return res;
     }
-
+    
     if (itself)
         res = this;
     else
         res = (Tamguprimemap*)Atom(true);
-
+    
     for (it = values.begin(); it != values.end(); it++)
         it->second->multiply(b, true);
     return res;
@@ -734,15 +755,15 @@ Exporting Tamgu* Tamguprimemap::multiply(Tamgu* b, bool itself) {
 
 Exporting Tamgu* Tamguprimemap::divide(Tamgu* b, bool itself) {
     Doublelocking _lock(this, b);
-
+    
     prime_hash<string, Tamgu*>::iterator it;
     Tamguprimemap* res;
     Tamgu* v;
     Tamgu* r;
-
+    
     if (b->isMapContainer()) {
         TamguIteration* itr = b->Newiteration(false);
-
+        
         res = new Tamguprimemap;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
             v = itr->IteratorValue();
@@ -751,23 +772,23 @@ Exporting Tamgu* Tamguprimemap::divide(Tamgu* b, bool itself) {
                 r = res->values[it->first]->divide(v, true);
                 if (r->isError()) {
                     res->Release();
-
+                    
                     itr->Release();
                     return r;
                 }
             }
-
+            
         }
         
         itr->Release();
         return res;
     }
-
+    
     if (itself)
         res = this;
     else
         res = (Tamguprimemap*)Atom(true);
-
+    
     for (it = values.begin(); it != values.end(); it++) {
         r = it->second->divide(b, true);
         if (r->isError()) {
@@ -775,21 +796,21 @@ Exporting Tamgu* Tamguprimemap::divide(Tamgu* b, bool itself) {
             return r;
         }
     }
-
+    
     return res;
 }
 
 Exporting Tamgu* Tamguprimemap::mod(Tamgu* b, bool itself) {
     Doublelocking _lock(this, b);
-
+    
     prime_hash<string, Tamgu*>::iterator it;
     Tamguprimemap* res;
     Tamgu* v;
     Tamgu* r;
-
+    
     if (b->isMapContainer()) {
         TamguIteration* itr = b->Newiteration(false);
-
+        
         res = new Tamguprimemap;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
             v = itr->IteratorValue();
@@ -798,23 +819,23 @@ Exporting Tamgu* Tamguprimemap::mod(Tamgu* b, bool itself) {
                 r = res->values[it->first]->mod(v, true);
                 if (r->isError()) {
                     res->Release();
-
+                    
                     itr->Release();
                     return r;
                 }
             }
-
+            
         }
         
         itr->Release();
         return res;
     }
-
+    
     if (itself)
         res = this;
     else
         res = (Tamguprimemap*)Atom(true);
-
+    
     for (it = values.begin(); it != values.end(); it++) {
         r = it->second->mod(b, true);
         if (r->isError()) {
@@ -822,18 +843,18 @@ Exporting Tamgu* Tamguprimemap::mod(Tamgu* b, bool itself) {
             return r;
         }
     }
-
+    
     return res;
 }
 
 Exporting Tamgu* Tamguprimemap::shiftright(Tamgu* b, bool itself) {
     Doublelocking _lock(this, b);
-
+    
     prime_hash<string, Tamgu*>::iterator it;
     Tamguprimemap* res;
     if (b->isMapContainer()) {
         TamguIteration* itr = b->Newiteration(false);
-
+        
         res = new Tamguprimemap;
         Tamgu* v;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
@@ -843,18 +864,18 @@ Exporting Tamgu* Tamguprimemap::shiftright(Tamgu* b, bool itself) {
                 res->Push(it->first, it->second);
                 res->values[it->first]->shiftright(v, true);
             }
-
+            
         }
         
         itr->Release();
         return res;
     }
-
+    
     if (itself)
         res = this;
     else
         res = (Tamguprimemap*)Atom(true);
-
+    
     for (it = values.begin(); it != values.end(); it++)
         it->second->shiftright(b, true);
     return res;
@@ -862,12 +883,12 @@ Exporting Tamgu* Tamguprimemap::shiftright(Tamgu* b, bool itself) {
 
 Exporting Tamgu* Tamguprimemap::shiftleft(Tamgu* b, bool itself) {
     Doublelocking _lock(this, b);
-
+    
     prime_hash<string, Tamgu*>::iterator it;
     Tamguprimemap* res;
     if (b->isMapContainer()) {
         TamguIteration* itr = b->Newiteration(false);
-
+        
         res = new Tamguprimemap;
         Tamgu* v;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
@@ -877,18 +898,18 @@ Exporting Tamgu* Tamguprimemap::shiftleft(Tamgu* b, bool itself) {
                 res->Push(it->first, it->second);
                 res->values[it->first]->shiftleft(v, true);
             }
-
+            
         }
         
         itr->Release();
         return res;
     }
-
+    
     if (itself)
         res = this;
     else
         res = (Tamguprimemap*)Atom(true);
-
+    
     for (it = values.begin(); it != values.end(); it++)
         it->second->shiftleft(b, true);
     return res;
@@ -896,12 +917,12 @@ Exporting Tamgu* Tamguprimemap::shiftleft(Tamgu* b, bool itself) {
 
 Exporting Tamgu* Tamguprimemap::power(Tamgu* b, bool itself) {
     Doublelocking _lock(this, b);
-
+    
     prime_hash<string, Tamgu*>::iterator it;
     Tamguprimemap* res;
     if (b->isMapContainer()) {
         TamguIteration* itr = b->Newiteration(false);
-
+        
         res = new Tamguprimemap;
         Tamgu* v;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
@@ -911,18 +932,18 @@ Exporting Tamgu* Tamguprimemap::power(Tamgu* b, bool itself) {
                 res->Push(it->first, it->second);
                 res->values[it->first]->power(v, true);
             }
-
+            
         }
         
         itr->Release();
         return res;
     }
-
+    
     if (itself)
         res = this;
     else
         res = (Tamguprimemap*)Atom(true);
-
+    
     for (it = values.begin(); it != values.end(); it++)
         it->second->power(b, true);
     return res;
@@ -932,38 +953,41 @@ Exporting Tamgu* Tamguprimemap::power(Tamgu* b, bool itself) {
 
 
 Exporting Tamgu* Tamguprimemap::Loopin(TamguInstruction* ins, Tamgu* context, short idthread) {
-    Locking _lock(this);
+    locking();
     Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
     var = var->Eval(context, aNULL, idthread);
-
+    
     prime_hash<string, Tamgu*>::iterator it;
     
     Tamgu* a;
     vector<string> keys;
-
+    
     for (it=values.begin(); it != values.end(); it++)
         keys.push_back(it->first);
-
+    
     long sz = keys.size();
     a = aNULL;
     bool testcond = false;
     for (long i = 0; i < sz && !testcond; i++) {
         a->Releasenonconst();
         var->storevalue(keys[i]);
-
+        
         a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
-
+        
         //Continue does not trigger needInvestigate
         testcond = a->needInvestigate();
     }
+
+    unlocking();
     
     if (testcond) {
         if (a == aBREAK)
             return this;
         return a;
     }
-
+    
     a->Releasenonconst();
     return this;
-
+    
 }
+

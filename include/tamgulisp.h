@@ -34,7 +34,14 @@ public:
             action = a_atom;
         g->RecordInTracker(this);
     }
+
+    Tamgusymbol(short symb, short act, TamguGlobal* g) {
+        name = symb;
+        action = act;
+        g->RecordInTracker(this);
+    }
     
+
     Tamgu* Eval(Tamgu* context, Tamgu* v, short idthread);
 
     short Action() {
@@ -61,6 +68,18 @@ public:
         return globalTamgu->Getsymbol(name);
     }
     
+    wstring UString() {
+        return globalTamgu->Getwsymbol(name);
+    }
+    
+    void Setstring(string& v, short idthread) {
+        v = globalTamgu->Getsymbol(name);
+    }
+
+    void Setstring(wstring& v, short idthread) {
+        v = globalTamgu->Getwsymbol(name);
+    }
+
     Tamgu* andset(Tamgu* a, bool itself) {
         return globalTamgu->Returnerror("Cannot compute with symbols");
     }
@@ -150,6 +169,19 @@ public:
         return s;
     }
 
+    void Setstring(string& s, short idthread) {
+        s = "c";
+        s += action;
+        s += "r";
+    }
+
+    void Setstring(wstring& s, short idthread) {
+        s = L"c";
+        for (uchar i = 0; i < action.size(); i++)
+            s += (wchar_t)action[i];
+        s += L"r";
+    }
+
 };
 
 class Tamguoperator : public Tamgu {
@@ -170,6 +202,10 @@ public:
     
     string String() {
         return globalTamgu->operator_strings[action];
+    }
+
+    void Setstring(string& v, short idthread) {
+        v = globalTamgu->operator_strings[action];
     }
 };
 
@@ -271,7 +307,7 @@ class Tamgulisp : public Tamguvector {
     }
 
     string String();
-
+    void Setstring(string& v, short idthread);
 };
 
 
@@ -341,7 +377,7 @@ public:
         return "pair";
     }
 
-    virtual Tamgu* Atom(bool forced = false) {
+    Tamgu* Atom(bool forced = false) {
         Tamgulispair* v = new Tamgulispair();
         for (size_t i = 0; i < values.size(); i++)
             v->push(values[i]);
@@ -350,6 +386,7 @@ public:
 
     Tamgu* cdr(short idthread);
     string String();
+    void Setstring(string& v, short idthread);
 };
 
 

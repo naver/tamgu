@@ -470,27 +470,32 @@ public:
 
 	//---------------------------------------------------------------------------------------------------------------------
 	Tamguustring(wstring v, TamguGlobal* g, Tamgu* parent = NULL) : TamguObject(g, parent) {
+        investigate |= is_pure_string;
 		//Do not forget your variable initialisation
 		value = v;
 	}
 
 	Tamguustring(wstring v) {
+        investigate |= is_pure_string;
 		//Do not forget your variable initialisation
 		value = v;
 	}
 
 	Tamguustring(string v) {
+     investigate |= is_string;
 		//Do not forget your variable initialisation
 		s_utf8_to_unicode(value, USTR(v), v.size());
 	}
 
 	Tamguustring(wchar_t c) {
+     investigate |= is_string;
 		//Do not forget your variable initialisation
 		value = c;
 	}
     
 #ifdef WSTRING_IS_UTF16
     Tamguustring(uint32_t c) {
+     investigate |= is_string;
         concat_char_check_utf16(value, c);
     }
 #endif
@@ -498,20 +503,32 @@ public:
 	//----------------------------------------------------------------------------------------------------------------------
     void Putatomicvalue(Tamgu* v) {
         locking();
-        value = v->UString();
+        v->Setstring(value, 0);
         unlocking();
     }
     
+    void Setstring(wstring& v, short idthread) {
+        locking();
+        v = value;
+        unlocking();
+    }
+
+    void Setstring(string& v, short idthread) {
+        locking();
+        sc_unicode_to_utf8(v, value);
+        unlocking();
+    }
 
 	Tamgu* Put(Tamgu* index, Tamgu* v, short idthread);
 
 	Tamgu* Putvalue(Tamgu* v, short idthread) {
         locking();
-		value = v->UString();
+        v->Setstring(value, idthread);
         unlocking();
 		return this;
 	}
 
+    Tamgu* EvalIndex(Tamgu* context, TamguIndex* idx, short idthread);
 	Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 
 	Tamgu* Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* env, TamguFunctionLambda* bd, short idthread);
@@ -537,9 +554,7 @@ public:
 		return "ustring";
 	}
 
-	bool isString() {
-		return true;
-	}
+	
 
 	bool isValueContainer() {
 		return true;
@@ -553,9 +568,7 @@ public:
         return (ty == a_ustring);
     }
 
-	bool isNumber() {
-		return false;
-	}
+	
 
 	bool isBoolean() {
 		return false;
@@ -568,13 +581,13 @@ public:
 	Tamgu* Atom(bool forced = false) {
         if (!globalTamgu->globalLOCK) {
             if (forced || !protect || reference)
-                return globalTamgu->Provideustring(value);
+                return globalTamgu->Providewithustring(value);
             return this;
         }
 
         Locking _lock(this);
         if (forced || !protect || reference)
-            return globalTamgu->Provideustring(value);
+            return globalTamgu->Providewithustring(value);
         
         return this;
 	}
@@ -738,7 +751,7 @@ public:
 
 		wstring v = value;
 		v[v.size() - 1] = v[v.size() - 1] + 1;
-		return globalTamgu->Provideustring(v);
+		return globalTamgu->Providewithustring(v);
 	}
 
 	Tamgu* Pred() {
@@ -749,10 +762,10 @@ public:
 		wstring v = value;
 		wchar_t c = v[v.size() - 1];
 		if (c <= 1)
-			return globalTamgu->Provideustring(value);
+			return globalTamgu->Providewithustring(value);
 
 		v[v.size() - 1] = c - 1;
-		return globalTamgu->Provideustring(v);
+		return globalTamgu->Providewithustring(v);
 	}
 
 	//---------------------------------------------------------------------------------------------------------------------
@@ -1135,7 +1148,7 @@ public:
 			return this;
 		}
         unlocking();
-		return globalTamgu->Provideustring(v);
+		return globalTamgu->Providewithustring(v);
 	}
 
     Tamgu* less(Tamgu* a) {
@@ -1304,7 +1317,7 @@ public:
 	}
 
 	Tamgu* Value() {
-		return globalTamgu->Provideustring(current);
+		return globalTamgu->Providewithustring(current);
 	}
 
 	string Keystring() {
@@ -1403,21 +1416,25 @@ public:
     
         //---------------------------------------------------------------------------------------------------------------------
     Tamgua_ustring(wstring v, TamguGlobal* g, Tamgu* parent = NULL) : TamguReference(g, parent) {
+     investigate |= is_string;
             //Do not forget your variable initialisation
         value = v;
     }
     
     Tamgua_ustring(wstring v) {
+     investigate |= is_string;
             //Do not forget your variable initialisation
         value = v;
     }
     
     Tamgua_ustring(atomic_wstring& v) {
+     investigate |= is_string;
             //Do not forget your variable initialisation
         value = v;
     }
     
     Tamgua_ustring(string v) {
+     investigate |= is_string;
             //Do not forget your variable initialisation
         wstring w;
         s_utf8_to_unicode(w, USTR(v), v.size());
@@ -1425,6 +1442,7 @@ public:
     }
     
     Tamgua_ustring(wchar_t v) {
+     investigate |= is_string;
         //Do not forget your variable initialisation
         value.head->buffer[0] = v;
         value.head->buffer[1] = 0;
@@ -1472,9 +1490,7 @@ public:
         return "a_ustring";
     }
     
-    bool isString() {
-        return true;
-    }
+    
     
     bool isValueContainer() {
         return true;
@@ -1488,9 +1504,7 @@ public:
         return (ty == a_ustring);
     }
 
-    bool isNumber() {
-        return false;
-    }
+    
     
     bool isBoolean() {
         return false;

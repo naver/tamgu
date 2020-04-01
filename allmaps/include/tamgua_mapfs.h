@@ -51,11 +51,13 @@ class Tamgua_mapfs : public TamguContainer {
 
     //---------------------------------------------------------------------------------------------------------------------
     Tamgua_mapfs(TamguGlobal* g, Tamgu* parent = NULL) : TamguContainer(g, parent) {
+     investigate |= is_string;
         //Do not forget your variable initialisation
         isconst = false;
     }
 
     Tamgua_mapfs() {
+     investigate |= is_string;
         //Do not forget your variable initialisation
         isconst = false; 
     }
@@ -75,9 +77,7 @@ class Tamgua_mapfs : public TamguContainer {
         return "a_mapfs";
     }
 
-    bool isString() {
-        return true;
-    }
+    
 
     bool isContainerClass() {
         return true;

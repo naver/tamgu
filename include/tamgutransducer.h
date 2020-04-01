@@ -96,13 +96,9 @@ class Tamgutransducer : public TamguObject {
         return "transducer";
     }
 
-    bool isString() {
-        return false;
-    }
+    
 
-    bool isNumber() {
-        return false;
-    }
+    
 
     bool isBoolean() {
         return false;

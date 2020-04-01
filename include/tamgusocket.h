@@ -128,13 +128,9 @@ class Tamgusocket : public TamguObject {
         return "socket";
     }
 
-    bool isString() {
-        return false;
-    }
+    
 
-    bool isNumber() {
-        return false;
-    }
+    
 
     bool isBoolean() {
         return false;
@@ -232,124 +228,15 @@ class Tamgusocket : public TamguObject {
 
     
 
-    string String() {
-        Locking _lock(this);
-        return "";
-    }
-
-    //wstring UString() {
-    //   Locking _lock(this);
-    //  return L"";
-    //	}
-
-    long Integer() {
-        Locking _lock(this);
-        return 0;
-    }
-    double Float() {
-        Locking _lock(this);
-        return 0;
-    }
-    BLONG Long() {
-        Locking _lock(this);
-        return 0;
-    }
-
-    bool Boolean() {
-        Locking _lock(this);
-        return false;
-    }
-
-    
-    //Basic operations
-    long Size() {
-        Locking _lock(this);
-        return 0;
-    }
-    
-    Tamgu* andset(Tamgu* a, bool itself) {
-        Locking _lock(this);
-        return this;
-    }
-
-    Tamgu* orset(Tamgu* a, bool itself) {
-        Locking _lock(this);
-        return this;
-    }
-
-    Tamgu* xorset(Tamgu* a, bool itself) {
-        Locking _lock(this);
-        return this;
-    }
-
-    
-    Tamgu* plus(Tamgu* a, bool itself) {
-        Locking _lock(this);
-        return this;
-    }
-
-    Tamgu* minus(Tamgu* a, bool itself) {
-        Locking _lock(this);
-        return this;
-    }
-
-    Tamgu* multiply(Tamgu* a, bool itself) {
-        Locking _lock(this);
-        return this;
-    }
-
-    Tamgu* divide(Tamgu* a, bool itself) {
-        Locking _lock(this);
-        return this;
-    }
-    Tamgu* power(Tamgu* a, bool itself) {
-        Locking _lock(this);
-        return this;
-    }
-    Tamgu* shiftleft(Tamgu* a, bool itself) {
-        Locking _lock(this);
-        return this;
-    }
-    Tamgu* shiftright(Tamgu* a, bool itself) {
-        Locking _lock(this);
-        return this;
-    }
-    Tamgu* mod(Tamgu* a, bool itself) {
-        Locking _lock(this);
-        return this;
-    }
-    
-    Tamgu* less(Tamgu* a) {
-        Locking _lock(this);
-        return aFALSE;
-    }
-    
-    Tamgu* more(Tamgu* a) {
-        Locking _lock(this);
-        return aFALSE;
-    }
-
     Tamgu* same(Tamgu* a) {
-        Locking _lock(this);
         if (a == this)
             return aTRUE;
         return aFALSE;
     }
 
     Tamgu* different(Tamgu* a) {
-        Locking _lock(this);
-        if (same(a) == aFALSE)
+        if (a != this)
             return aTRUE;
-        return aFALSE;
-    }
-
-    Tamgu* lessequal(Tamgu* a) {
-        Locking _lock(this);
-        return aFALSE;
-    }
-    
-    Tamgu* moreequal(Tamgu* a) {
-        Locking _lock(this);
         return aFALSE;
     }
 

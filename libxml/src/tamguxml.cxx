@@ -14,6 +14,10 @@
  Reviewer   :
 */
 
+#if (_MSC_VER >= 1900)
+#pragma comment(lib, "legacy_stdio_definitions.lib")
+#endif
+
 #include "tamgu.h"
 #include "tamguxml.h"
 #include "atoms.h"

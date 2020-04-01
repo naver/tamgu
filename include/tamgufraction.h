@@ -45,18 +45,21 @@ public:
 
 	//---------------------------------------------------------------------------------------------------------------------
 	Tamgufraction(TamguGlobal* g, Tamgu* parent = NULL) : TamguObject(g, parent) {
+     investigate |= is_number;
 		//Do not forget your variable initialisation
 		numerator = 0;
 		denominator = 1;
 	}
 
 	Tamgufraction(BLONG n, BLONG d) {
+     investigate |= is_number;
 		//Do not forget your variable initialisation
 		numerator = n;
 		denominator = d;
 	}
 
 	Tamgufraction(double n) {
+     investigate |= is_number;
 		Evaluatefraction(n);
 	}
 
@@ -116,9 +119,7 @@ public:
 		return a_float;
 	}
 
-	bool isNumber() {
-		return true;
-	}
+	
 
 	bool isFloat() {
 		return true;
@@ -354,17 +355,29 @@ public:
 
 	
 
-	string String() {
-		stringstream res;
-		res << numerator << "/" << denominator;
-		return res.str();
-	}
+    string String() {
+        stringstream res;
+        res << numerator << "/" << denominator;
+        return res.str();
+    }
 
-	wstring UString() {
-		std::wstringstream res;
-		res << numerator << L"/" << denominator;
-		return res.str();
-	}
+    wstring UString() {
+        std::wstringstream res;
+        res << numerator << L"/" << denominator;
+        return res.str();
+    }
+
+    void Setstring(string& v, short idthread) {
+        v = convertfromnumber(numerator);
+        v += "/";
+        v += convertfromnumber(denominator);
+    }
+
+    void Setstring(wstring& v, short idthread) {
+        v = wconvertfromnumber(numerator);
+        v += L"/";
+        v += wconvertfromnumber(denominator);
+    }
 
 	long Integer() {
 		double v = numerator / denominator;

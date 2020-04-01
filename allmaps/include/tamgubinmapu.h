@@ -51,12 +51,14 @@ class Tamgubinmapu : public TamguLockContainer {
 
     //---------------------------------------------------------------------------------------------------------------------
     Tamgubinmapu(TamguGlobal* g, Tamgu* parent = NULL) : TamguLockContainer(g, parent) {
+     investigate |= is_string;
         //Do not forget your variable initialisation
         isconst = false; 
 
     }
 
     Tamgubinmapu() {
+     investigate |= is_string;
         //Do not forget your variable initialisation
         isconst = false; 
 
@@ -77,9 +79,7 @@ class Tamgubinmapu : public TamguLockContainer {
         return "binmapu";
     }
 
-    bool isString() {
-        return true;
-    }
+    
 
     bool isContainerClass() {
         return true;
@@ -96,9 +96,10 @@ class Tamgubinmapu : public TamguLockContainer {
 
     Tamgu* Atom(bool forced) {
         if (forced || !protect || reference) {
-            Locking _lock(this);
+            locking();
             Tamgubinmapu * m = new Tamgubinmapu;
             m->values = values;
+            unlocking();
             return m;
         }
         return this;
@@ -218,39 +219,43 @@ class Tamgubinmapu : public TamguLockContainer {
     }
 
     Tamgu* MethodKeys(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
+        locking();
         Tamguivector* vstr = (Tamguivector*)Selectaivector(contextualpattern);
         basebinn_hash<wstring>::iterator it;
         for (it = values.begin(); it != values.end(); it++)
             vstr->values.push_back(it->first);
+        unlocking();
         return vstr;
     }
 
     Tamgu* MethodValues(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
+        locking();
         Tamguuvector * vstr = (Tamguuvector*)Selectauvector(contextualpattern);
         basebinn_hash<wstring>::iterator it;
         for (it = values.begin(); it != values.end(); it++)
             vstr->values.push_back(it->second);
+        unlocking();
         return vstr;
     }
 
     Tamgu* MethodTest(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
-        long  v = callfunc->Evaluate(0, contextualpattern, idthread)->Integer();
-        if (!values.check(v))
+        locking();
+        short  v = callfunc->Evaluate(0, contextualpattern, idthread)->Short();
+        if (!values.check(v)) {
+            unlocking();
             return aFALSE;
+        }
+        unlocking();
         return aTRUE;
     }
 
     Tamgu* MethodPop(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
         Tamgu* pos = callfunc->Evaluate(0, contextualpattern, idthread);
         return Pop(pos);
     }
 
     Tamgu* MethodJoin(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
+        locking();
         //The separator between keys
         wstring keysep = callfunc->Evaluate(0, contextualpattern, idthread)->UString();
         //The separator between values
@@ -265,6 +270,7 @@ class Tamgubinmapu : public TamguLockContainer {
             res << it->first << keysep << it->second;
         }
 
+        unlocking();
         return globalTamgu->Provideustring(res.str());
     }
 
@@ -274,8 +280,9 @@ class Tamgubinmapu : public TamguLockContainer {
     Exporting Tamgu* Pop(Tamgu* kkey);
 
     Tamgu* Push(ushort k, Tamgu* a) {
-        Locking _lock(this);
+        locking();
         values[k] = a->UString();
+        unlocking();
         return this;
     }
 
@@ -331,47 +338,64 @@ class Tamgubinmapu : public TamguLockContainer {
     Exporting string String();
     Exporting string JSonString();
 
-    Tamgu* Value(string n) {
-        short v = convertlong(n);
-        Locking _lock(this);
-        if (!values.check(v))
+    Tamgu* Value(string& n) {
+        ushort s = convertlong(n);
+        locking();
+        if (!values.check(s)) {
+            unlocking();
             return aNOELEMENT;
-        return globalTamgu->Provideustring(values.get(v));
+        }
+        wstring v = values.get(s);
+        unlocking();
+        return globalTamgu->Provideustring(v);
+    }
+
+    Tamgu* Value(wstring& n) {
+        short s = convertlong(n);
+        locking();
+        if (!values.check(s)) {
+            unlocking();
+            return aNOELEMENT;
+        }
+        wstring v = values.get(s);
+        unlocking();
+        return globalTamgu->Provideustring(v);
+    }
+
+    Tamgu* Value(long s) {
+        locking();
+        if (!values.check((ushort)s)) {
+            unlocking();
+            return aNOELEMENT;
+        }
+        wstring v = values.get((ushort)s);
+        unlocking();
+        return globalTamgu->Provideustring(v);
     }
 
     Tamgu* Value(Tamgu* a) {
-        wstring n =  a->UString();
-
-        long v = convertlong(n);
-        Locking _lock(this);
-        if (!values.check(v))
+        ushort s =  a->Short();
+        locking();
+        if (!values.check(s)) {
+            unlocking();
             return aNOELEMENT;
-        return globalTamgu->Provideustring(values.get(v));
+        }
+        wstring v = values.get(s);
+        unlocking();
+        return globalTamgu->Provideustring(v);
     }
 
-    Tamgu* Value(wstring n) {
-        long v = convertlong(n);
-        Locking _lock(this);
-        if (!values.check(v))
+    Tamgu* Value(double s) {
+        locking();
+        if (!values.check((ushort)s)) {
+            unlocking();
             return aNOELEMENT;
-        return globalTamgu->Provideustring(values.get(v));
+        }
+        wstring v = values.get((ushort)s);
+        unlocking();
+        return globalTamgu->Provideustring(v);
     }
-
-
-    Tamgu* Value(long v) {
-        Locking _lock(this);
-        if (!values.check((ushort)v))
-            return aNOELEMENT;
-        return globalTamgu->Provideustring(values.get((ushort)v));
-    }
-
-    Tamgu* Value(double v) {
-        Locking _lock(this);
-        if (!values.check((ushort)v))
-            return aNOELEMENT;
-        return globalTamgu->Provideustring(values.get((ushort)v));
-    }
-
+    
     Exporting long Integer();
     Exporting double Float();
     Exporting BLONG Long();

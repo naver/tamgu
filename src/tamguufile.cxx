@@ -176,7 +176,7 @@ Tamgu* Tamguufile::MethodRead(Tamgu* context, short idthread, TamguCall* callfun
             }
 
             readnb(bf, nb);
-            return globalTamgu->Provideustring(bf);
+            return globalTamgu->Providewithustring(bf);
         }
     }
 
@@ -191,7 +191,7 @@ Tamgu* Tamguufile::MethodRead(Tamgu* context, short idthread, TamguCall* callfun
 
 
     readall(bf);
-    return globalTamgu->Provideustring(bf);
+    return globalTamgu->Providewithustring(bf);
 
 }
 

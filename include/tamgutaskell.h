@@ -239,6 +239,7 @@ public:
 	}
 
 	string String();
+    void Setstring(string& v, short idthread);
 
 	bool isFunctionParameter() {
 		return true;

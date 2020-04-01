@@ -41,7 +41,7 @@
 #include "tamgulisp.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2020.03.10";
+const char* tamgu_version = "Tamgu 1.2020.04.01";
 
 Tamgu* booleantamgu[2];
 
@@ -553,7 +553,6 @@ idSymbols(false), methods(false), compatibilities(false), strictcompatibilities(
         declarationidx = 0;
         declarationcleanidx = 0;
 
-        indexidx = 0;
         mapidx = 0;
         mapssidx = 0;
         vectoridx = 0;
@@ -565,7 +564,6 @@ idSymbols(false), methods(false), compatibilities(false), strictcompatibilities(
         //---------------------------------
         mx >>= 3;
         for (long i = 0; i < mx; i++) {
-            indexreservoire.push_back(new TamguIndexbuff(i));
             slfreservoire.push_back(new Tamguselfbuff(i));
             vectorreservoire.push_back(new Tamguvectorbuff(i));
             mapreservoire.push_back(new Tamgumapbuff(i));
@@ -620,9 +618,6 @@ TamguGlobal::~TamguGlobal() {
     }
     spaces.clear();
     tracked.clean();
-
-    for (i = 0; i < indexreservoire.size(); i++)
-        delete indexreservoire[i];
 
     for (i = 0; i < mapreservoire.size(); i++)
         delete mapreservoire[i];
@@ -1996,12 +1991,14 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("body"); //220 a_body,
     Createid("apply"); //221 a_apply,
     Createid("pair"); //222 a_pair,
-    Createid("lisp"); //223 a_lisp
+    Createid("calllisp"); //223 a_calllisp
+    Createid("callcommon"); //224 a_callcommon
+    Createid("lisp"); //225 a_lisp
 
     //This is a simple hack to handle "length" a typical Haskell operator as "size"...
     //Note that there will be a useless index
 
-    Createid("length"); //224
+    Createid("length"); //226
     symbolIds["length"] = a_size;
 
     Createid("not"); //225
@@ -2235,14 +2232,16 @@ void TamguGlobal::EraseThreadid(short id) {
 
 TamguCode* TamguGlobal::GetNewCodeSpace(string filename) {
     filename = NormalizeFileName(filename);
-
-    if (codes.find(filename) != codes.end())
-        return codes[filename];
-
-    TamguCode* a = new TamguCode((short)spaces.size(), filename, this);
-    spaces.push_back(a);
-    codes[filename] = a;
-    return a;
+    
+    try {
+        return codes.at(filename);
+    }
+    catch(const std::out_of_range& oor) {
+        TamguCode* a = new TamguCode((short)spaces.size(), filename, this);
+        spaces.push_back(a);
+        codes[filename] = a;
+        return a;
+    }
 }
 
 //----------------------------------------------------------------------------------
@@ -2511,13 +2510,13 @@ Exporting Tamgu* Tamgu::Pred() {
 }
 
 Exporting void Tamgu::addustringto(wstring ws) {
-    Tamgu* a = globalTamgu->Provideustring(ws);
+    Tamgu* a = globalTamgu->Providewithustring(ws);
     Push(a);
     a->Release();
 }
 
 Exporting void Tamgu::addstringto(string s) {
-    Tamgu* a = globalTamgu->Providestring(s);
+    Tamgu* a = globalTamgu->Providewithstring(s);
     Push(a);
     a->Release();
 }
@@ -2525,7 +2524,7 @@ Exporting void Tamgu::addstringto(string s) {
 Exporting void Tamgu::addstringto(wchar_t s) {
     wstring w;
     w = s;
-    Tamgu* a = globalTamgu->Provideustring(w);
+    Tamgu* a = globalTamgu->Providewithustring(w);
     Push(a);
     a->Release();
 
@@ -2580,13 +2579,13 @@ Exporting void Tamgu::addstringto(wchar_t s, int i) {
 }
 
 Exporting void Tamgu::storevalue(string u) {
-    Tamgu* a = globalTamgu->Providestring(u);
+    Tamgu* a = globalTamgu->Providewithstring(u);
     Push(a);
     a->Release();
 }
 
 Exporting void Tamgu::storevalue(wstring u) {
-    Tamgu* a = globalTamgu->Provideustring(u);
+    Tamgu* a = globalTamgu->Providewithustring(u);
     Push(a);
     a->Release();
 }
@@ -2630,7 +2629,7 @@ Exporting void Tamgu::storevalue(unsigned char u) {
 Exporting void Tamgu::storevalue(wchar_t u) {
     wstring w;
     w = u;
-    Tamgu* a = globalTamgu->Provideustring(w);
+    Tamgu* a = globalTamgu->Providewithustring(w);
     Push(a);
     a->Release();
 }
@@ -2682,7 +2681,7 @@ void TamguLet::Storevalue(string& u) {
     if (value != aNOELEMENT)
         value->Storevalue(u);
     else {
-        value = globalTamgu->Providestring(u);
+        value = globalTamgu->Providewithstring(u);
         value->Setreference(reference);
     }
 }
@@ -2691,7 +2690,7 @@ void TamguLet::Storevalue(wstring& u) {
     if (value != aNOELEMENT)
         value->Storevalue(u);
     else {
-        value = globalTamgu->Provideustring(u);
+        value = globalTamgu->Providewithustring(u);
         value->Setreference(reference);
     }
 }
@@ -2700,7 +2699,7 @@ void TamguLet::storevalue(string u) {
     if (value != aNOELEMENT)
         value->storevalue(u);
     else {
-        value = globalTamgu->Providestring(u);
+        value = globalTamgu->Providewithstring(u);
         value->Setreference(reference);
     }
 }
@@ -2727,7 +2726,7 @@ void TamguLet::storevalue(wstring u) {
     if (value != aNOELEMENT)
         value->storevalue(u);
     else {
-        value = globalTamgu->Provideustring(u);
+        value = globalTamgu->Providewithustring(u);
         value->Setreference(reference);
     }
 }
@@ -2774,53 +2773,53 @@ void TamguLet::storevalue(wchar_t u) {
     else {
         wstring w;
         w = u;
-        value = globalTamgu->Provideustring(w);
+        value = globalTamgu->Providewithustring(w);
         value->Setreference(reference);
     }
 }
 
 //-------------------------------------------------------------------
 void TamguSelf::Storevalue(string& u) {
-    Locking* _lock = _getlock(this);
+    locking();
     if (typevalue == a_string)
         value->Storevalue(u);
     else {
-        value = globalTamgu->Providestring(u);
+        value = globalTamgu->Providewithstring(u);
         value->Setreference(reference);
         typevalue = a_string;
     }
-    _cleanlock(_lock);
+    unlocking();
 }
 
 void TamguSelf::Storevalue(wstring& u) {
-    Locking* _lock = _getlock(this);
+    locking();
     if (typevalue == a_ustring)
         ((Tamguustring*)value)->value = u;
     else {
         value->Resetreference(reference);
-        value = globalTamgu->Provideustring(u);
+        value = globalTamgu->Providewithustring(u);
         value->Setreference(reference);
         typevalue = a_ustring;
     }
-    _cleanlock(_lock);
+    unlocking();
 }
 
 
 void TamguSelf::storevalue(string u) {
-    Locking* _lock = _getlock(this);
+    locking();
     if (typevalue == a_string)
         ((Tamgustring*)value)->value = u;
     else {
         value->Resetreference(reference);
-        value = globalTamgu->Providestring(u);
+        value = globalTamgu->Providewithstring(u);
         value->Setreference(reference);
         typevalue = a_string;
     }
-    _cleanlock(_lock);
+    unlocking();
 }
 
 void TamguSelf::storevalue(float u) {
-    Locking* _lock = _getlock(this);
+    locking();
     if (typevalue == a_decimal)
         ((Tamgudecimal*)value)->value = u;
     else {
@@ -2829,11 +2828,11 @@ void TamguSelf::storevalue(float u) {
         value->Setreference(reference);
         typevalue = a_decimal;
     }
-    _cleanlock(_lock);
+    unlocking();
 }
 
 void TamguSelf::storevalue(short u) {
-    Locking* _lock = _getlock(this);
+    locking();
     if (typevalue == a_short)
         ((Tamgushort*)value)->value = u;
     else {
@@ -2842,24 +2841,24 @@ void TamguSelf::storevalue(short u) {
         value->Setreference(reference);
         typevalue = a_short;
     }
-    _cleanlock(_lock);
+    unlocking();
 }
 
 void TamguSelf::storevalue(wstring u) {
-    Locking* _lock = _getlock(this);
+    locking();
     if (typevalue == a_ustring)
         ((Tamguustring*)value)->value = u;
     else {
         value->Resetreference(reference);
-        value = globalTamgu->Provideustring(u);
+        value = globalTamgu->Providewithustring(u);
         value->Setreference(reference);
         typevalue = a_ustring;
     }
-    _cleanlock(_lock);
+    unlocking();
 }
 
 void TamguSelf::storevalue(long u) {
-    Locking* _lock = _getlock(this);
+    locking();
     if (typevalue == a_int)
         ((Tamguint*)value)->value = u;
     else {
@@ -2868,11 +2867,11 @@ void TamguSelf::storevalue(long u) {
         value->Setreference(reference);
         typevalue = a_int;
     }
-    _cleanlock(_lock);
+    unlocking();
 }
 
 void TamguSelf::storevalue(BLONG u) {
-    Locking* _lock = _getlock(this);
+    locking();
     if (typevalue == a_long)
         ((Tamgulong*)value)->value = u;
     else {
@@ -2881,11 +2880,11 @@ void TamguSelf::storevalue(BLONG u) {
         value->Setreference(reference);
         typevalue = a_long;
     }
-    _cleanlock(_lock);
+    unlocking();
 }
 
 void TamguSelf::storevalue(double u) {
-    Locking* _lock = _getlock(this);
+    locking();
     if (typevalue == a_float)
         ((Tamgufloat*)value)->value = u;
     else {
@@ -2894,11 +2893,11 @@ void TamguSelf::storevalue(double u) {
         value->Setreference(reference);
         typevalue = a_float;
     }
-    _cleanlock(_lock);
+    unlocking();
 }
 
 void TamguSelf::storevalue(unsigned char u) {
-    Locking* _lock = _getlock(this);
+    locking();
     if (typevalue == a_byte)
         ((Tamgubyte*)value)->value = u;
     else {
@@ -2907,22 +2906,22 @@ void TamguSelf::storevalue(unsigned char u) {
         value->Setreference(reference);
         typevalue = a_byte;
     }
-    _cleanlock(_lock);
+    unlocking();
 }
 
 void TamguSelf::storevalue(wchar_t u) {
-    Locking* _lock = _getlock(this);
+    locking();
     if (typevalue == a_ustring)
         ((Tamguustring*)value)->value = u;
     else {
         value->Resetreference(reference);
         wstring w;
         w = u;
-        value = globalTamgu->Provideustring(w);
+        value = globalTamgu->Providewithustring(w);
         value->Setreference(reference);
         typevalue = a_ustring;
     }
-    _cleanlock(_lock);
+    unlocking();
 }
 //---------------------------------------------------------------------------------------------
 Exporting Tamgu* Tamgu::Push(BLONG k, Tamgu* v) {
@@ -2954,14 +2953,14 @@ Exporting Tamgu* Tamgu::Push(double k, Tamgu* v) {
 }
 
 Exporting Tamgu* Tamgu::Push(string k, Tamgu* v) {
-    Tamgu* a = globalTamgu->Providestring(k);
+    Tamgu* a = globalTamgu->Providewithstring(k);
     v = Push(a, v);
     a->Release();
     return v;
 }
 
 Exporting Tamgu* Tamgu::Push(wstring k, Tamgu* v) {
-    Tamgu* a = globalTamgu->Provideustring(k);
+    Tamgu* a = globalTamgu->Providewithustring(k);
     v = Push(a, v);
     a->Release();
     return v;
@@ -3210,55 +3209,6 @@ Exporting Tamgumap* TamguGlobal::Providemap() {
     mapidx = mx;
     mapreservoire[mapidx]->used = true;
     ke = mapreservoire[mapidx++];
-    return ke;
-}
-
-
-Exporting void TamguIndexbuff::Rollback() {
-    left->Release();
-    if (right != NULL)
-        right->Release();
-
-    used = false;
-    if (!globalTamgu->globalLOCK)
-        globalTamgu->indexempties.push_back(idx);
-}
-
-Exporting TamguIndex* TamguGlobal::Provideindex(TamguIndex* init, short idthread) {
-    if (globalLOCK)
-        return new TamguIndexthread(init, idthread);
-
-    TamguIndexbuff* ke;
-
-    if (indexempties.last > 0) {
-        ke = indexreservoire[indexempties.backpop()];
-        ke->used = true;
-        ke->Set(init, idthread);
-        return ke;
-    }
-
-    long mx = indexreservoire.size();
-
-    while (indexidx < mx) {
-        if (!indexreservoire[indexidx]->used) {
-            indexreservoire[indexidx]->used = true;
-            indexreservoire[indexidx]->Set(init, idthread);
-            ke = indexreservoire[indexidx++];
-            return ke;
-        }
-        indexidx++;
-    }
-
-    long sz = mx >> 2;
-    indexreservoire.resize(mx + sz);
-    indexidx = mx + sz;
-    for (long i = mx; i < indexidx; i++)
-        indexreservoire[i] = new TamguIndexbuff(i);
-
-    indexidx = mx;
-    indexreservoire[indexidx]->used = true;
-    indexreservoire[indexidx]->Set(init, idthread);
-    ke = indexreservoire[indexidx++];
     return ke;
 }
 
@@ -3736,6 +3686,80 @@ Exporting Tamgustring* TamguGlobal::Providestring(string v) {
 }
 
 Exporting Tamguustring* TamguGlobal::Provideustring(wstring v) {
+    if (globalLOCK)
+        return new Tamguustring(v);
+
+    Tamguustringbuff* ke;
+    if (uempties.last > 0) {
+        ke = ustringreservoire[uempties.backpop()];
+        ke->used = true;
+        ke->value = v;
+        return ke;
+    }
+
+    long mx = ustringreservoire.size();
+
+    while (ustringidx < mx) {
+        if (!ustringreservoire[ustringidx]->used) {
+            ustringreservoire[ustringidx]->value = v;
+            ustringreservoire[ustringidx]->used = true;
+            ke = ustringreservoire[ustringidx++];
+            return ke;
+        }
+        ustringidx++;
+    }
+
+    long sz = mx >> 2;
+    ustringreservoire.resize(mx + sz);
+    ustringidx = mx + sz;
+    for (long i = mx; i < ustringidx; i++)
+        ustringreservoire[i] = new Tamguustringbuff(i);
+
+    ustringidx = mx;
+    ustringreservoire[ustringidx]->used = true;
+    ustringreservoire[ustringidx]->value = v;
+    ke = ustringreservoire[ustringidx++];
+    return ke;
+}
+
+Exporting Tamgustring* TamguGlobal::Providewithstring(string& v) {
+    if (globalLOCK)
+        return new Tamgustring(v);
+
+    Tamgustringbuff* ke;
+    if (sempties.last > 0) {
+        ke = stringreservoire[sempties.backpop()];
+        ke->used = true;
+        ke->value = v;
+        return ke;
+    }
+
+    long mx = stringreservoire.size();
+
+    while (stringidx < mx) {
+        if (!stringreservoire[stringidx]->used) {
+            stringreservoire[stringidx]->used = true;
+            stringreservoire[stringidx]->value = v;
+            ke = stringreservoire[stringidx++];
+            return ke;
+        }
+        stringidx++;
+    }
+
+    long sz = mx >> 2;
+    stringreservoire.resize(mx + sz);
+    stringidx = mx + sz;
+    for (long i = mx; i < stringidx; i++)
+        stringreservoire[i] = new Tamgustringbuff(i);
+
+    stringidx = mx;
+    stringreservoire[stringidx]->used = true;
+    stringreservoire[stringidx]->value = v;
+    ke = stringreservoire[stringidx++];
+    return ke;
+}
+
+Exporting Tamguustring* TamguGlobal::Providewithustring(wstring& v) {
     if (globalLOCK)
         return new Tamguustring(v);
 

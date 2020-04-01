@@ -85,8 +85,12 @@ extern Exchanging TamguGlobal* globalTamgu;
 
 #include "tamguglobal.h"
 
-typedef enum {is_none = 0, is_container = 1, is_declaration = 2, is_const = 4, is_constcontainer = 5, is_tracked = 8, is_null = 12, is_variable = 16, is_callvariable = 24,
-    is_index = 32, is_continue = 64, is_error = 68, is_break = 128, is_return = 132} is_investigations;
+typedef enum {is_none = 0, is_container = 1, is_const = 2, is_constcontainer = 3, is_declaration = 4,
+    is_tracked = 8, is_null = 0x0A, is_variable = 0x10, is_callvariable = 0x18,
+    is_index = 0x1C, is_string = 0x20, is_pure_string = 0x24, is_number =  0x40, is_regular = 0x80,
+    is_continue = 0x82, is_error = 0x86, is_break = 0x8E, is_return = 0x9E,
+    is_noconst = 0xFD
+} is_investigations;
 
 
 //Tamgu is the class from which every element descends
@@ -121,6 +125,10 @@ public:
 		return this;
 	}
 
+    virtual Tamgu* EvalIndex(Tamgu* context, TamguIndex* value, short idthread) {
+        return this;
+    }
+    
 	virtual Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread) {
 		return this;
 	}
@@ -285,7 +293,7 @@ public:
 		return this;
 	}
 
-	virtual Tamgu* Value(wstring w) {
+	virtual Tamgu* Value(wstring& w) {
 		string res;
 		s_unicode_to_utf8(res, w);
 		return Value(res);
@@ -396,10 +404,6 @@ public:
 
 	virtual void Postinstantiation(short idthread, bool setreference) {}
 
-    virtual bool isRegular() {
-        return false;
-    }
-    
 	virtual bool isObject() {
 		return false;
 	}
@@ -674,10 +678,6 @@ public:
         return false;
     }
     
-	virtual bool isString() {
-		return false;
-	}
-
 	virtual bool isFile() {
 		return false;
 	}
@@ -734,10 +734,6 @@ public:
         return false;
     }
     
-	virtual bool isNumber() {
-		return false;
-	}
-
     virtual bool isLoop() {
         return false;
     }
@@ -895,7 +891,7 @@ public:
     }
     
     inline bool isConst() {
-        return ((investigate & is_const) == is_const);
+        return ( is_const == (investigate & is_const));
     }
 
     inline bool isNULL() {
@@ -908,7 +904,31 @@ public:
     }
 
     inline bool isIndex() {
-        return (investigate == is_index);
+        return (is_index == (investigate & is_noconst));
+    }
+    
+    inline bool isPureString() {
+        return (is_pure_string == (investigate & is_pure_string));
+    }
+    
+    inline bool isString() {
+        return ((is_string == (investigate & is_string)) ? true : (investigate == is_callvariable) ? isCallString() : false);
+    }
+
+    inline bool isNumber() {
+        return ((is_number == (investigate & is_number)) ? true : (investigate == is_callvariable) ? isCallNumber() : false);
+    }
+
+    inline bool isRegular() {
+        return (investigate == is_regular);
+    }
+    
+    virtual bool isCallString() {
+        return false;
+    }
+    
+    virtual bool isCallNumber() {
+        return false;
     }
     
     inline bool needFullInvestigate() {
@@ -920,7 +940,7 @@ public:
     }
     
     inline bool isContainer() {
-        return ((investigate & is_container) == is_container);
+        return ( is_container == (investigate & is_container));
     }
 
 	inline bool isError() {
@@ -932,7 +952,7 @@ public:
     }
     
     inline void Releasenonconst() {
-        if (investigate <= is_declaration)
+        if (!(investigate & is_const))
             Release();
     }
 
@@ -1014,6 +1034,8 @@ public:
 	virtual Tamgu* push(Tamgu*) {
 		return this;
 	}
+    
+    virtual void pushatom(Tamgu*) {}
 
 	Exporting virtual Tamgu* Pushinmap(Tamgu* a, short idhtread);
 
@@ -1158,83 +1180,6 @@ public:
 	}
 
 	//----------------------------------------------------------------------
-	virtual long Getinteger(Tamgu* context, Tamgu* value, short idthread) {
-		if (isAtom())
-			return Integer();
-
-		value = Eval(context, aNULL, idthread);
-		long v = value->Integer();
-		if (value != this)
-			value->Releasenonconst();
-		return v;
-	}
-
-	virtual BLONG Getlong(Tamgu* context, Tamgu* value, short idthread) {
-		if (isAtom())
-			return Long();
-
-		value = Eval(context, aNULL, idthread);
-		BLONG v = value->Long();
-		if (value != this)
-			value->Releasenonconst();
-		return v;
-	}
-
-	virtual short Getshort(Tamgu* context, Tamgu* value, short idthread) {
-		if (isAtom())
-			return Short();
-
-		value = Eval(context, aNULL, idthread);
-		short v = value->Short();
-		if (value != this)
-			value->Releasenonconst();
-		return v;
-	}
-
-	virtual float Getdecimal(Tamgu* context, Tamgu* value, short idthread) {
-		if (isAtom())
-			return Decimal();
-
-		value = Eval(context, aNULL, idthread);
-		float v = value->Decimal();
-		if (value != this)
-			value->Releasenonconst();
-		return v;
-	}
-
-	virtual double Getfloat(Tamgu* context, Tamgu* value, short idthread) {
-		if (isAtom())
-			return Float();
-
-		value = Eval(context, aNULL, idthread);
-		double v = value->Float();
-		if (value != this)
-			value->Releasenonconst();
-		return v;
-	}
-
-	virtual string Getstring(Tamgu* context, Tamgu* value, short idthread) {
-		if (isAtom())
-			return String();
-
-		value = Eval(context, aNULL, idthread);
-		string v = value->String();
-		if (value != this)
-			value->Releasenonconst();
-		return v;
-	}
-
-	virtual wstring Getustring(Tamgu* context, Tamgu* value, short idthread) {
-		if (isAtom())
-			return UString();
-
-		value = Eval(context, aNULL, idthread);
-		wstring v = value->UString();
-		if (value != this)
-			value->Releasenonconst();
-		return v;
-	}
-	//----------------------------------------------------------------------
 
 	virtual long getinteger(long i) {
 		Tamgu* a = getvalue(i);
@@ -1296,6 +1241,7 @@ public:
 
 	//--- Some important conversion methods...
 	virtual string String() { return ""; }
+    virtual void Setstring(string& v, short idthread) { v = Getstring(idthread); }
 
 	virtual string Bytes() {
 		return String();
@@ -1308,6 +1254,8 @@ public:
 		return res;
 	}
 
+    virtual void Setstring(wstring& v, short idthread) { v = Getustring(idthread); }
+    
 	virtual string StringToDisplay() {
 		return String();
 	}
@@ -1377,7 +1325,7 @@ public:
 	}
 
 	virtual double Product() {
-		return 1;
+		return 0;
 	}
 
 	virtual Tamgu* plusplus() {
@@ -2852,6 +2800,18 @@ public:
         return v;
     }
     
+    void Setstring(string& v, short idthread) {
+        v = "<";
+        v += globalTamgu->Getsymbol(name);
+        v+="(";
+        for (long i = 0; i < arguments.size(); i++) {
+            if (i)
+                v+=",";
+            v+=arguments[i]->String();
+        }
+        v+=")>";
+    }
+    
     virtual void AddInstruction(Tamgu* a) {
 		if (addarg)
 			arguments.push_back(a);
@@ -2990,6 +2950,11 @@ public:
             right = NULL;
     }
 
+    void Checkconst() {
+        if (left->isConst() && (right == NULL || right->isConst()))
+            investigate |= is_const;
+    }
+    
     void ScanVariables(vector<short>& vars) {
         if (left != NULL && left != aNULL)
             left->ScanVariables(vars);
@@ -2998,12 +2963,6 @@ public:
         if (function != NULL)
             function->ScanVariables(vars);
     }
-
-	TamguIndex* Evaluate(short idthread) {
-		if (left->isConst() && (right == NULL || right->isConst()))
-			return this;
-		return globalTamgu->Provideindex(this, idthread);
-	}
 
 	short Type() {
 		return a_callindex;
@@ -3048,6 +3007,8 @@ public:
 	}
 
     virtual void Rollback() {
+        if (isConst())
+            return;
         left->Release();
         if (right != NULL)
             right->Release();
@@ -3112,13 +3073,21 @@ public:
 		return true;
 	}
 
-	string String() {
-		return left->String();
-	}
+    string String() {
+        return left->String();
+    }
 
-	wstring UString() {
-		return left->UString();
-	}
+    wstring UString() {
+        return left->UString();
+    }
+
+    void Setstring(string& v, short idthread) {
+        left->Setstring(v, idthread);
+    }
+
+    void Setstring(wstring& v, short idthread) {
+        left->Setstring(v, idthread);
+    }
 
 	virtual string Bytes() {
 		return left->Bytes();
@@ -3132,60 +3101,31 @@ public:
 		return left->JSonString();
 	}
 
-	virtual long Getinteger(Tamgu* context, Tamgu* value, short idthread) {
-		return left->Getinteger(context, value, idthread);
-	}
-
-	virtual float Getdecimal(Tamgu* context, Tamgu* value, short idthread) {
-		return left->Getdecimal(context, value, idthread);
-	}
-
-	virtual short Getshort(Tamgu* context, Tamgu* value, short idthread) {
-		return left->Getshort(context, value, idthread);
-	}
-
-	virtual double Getfloat(Tamgu* context, Tamgu* value, short idthread) {
-		return left->Getfloat(context, value, idthread);
-	}
-
-	virtual BLONG Getlong(Tamgu* context, Tamgu* value, short idthread) {
-		return left->Getlong(context, value, idthread);
-	}
-
-	virtual string Getstring(Tamgu* context, Tamgu* value, short idthread) {
-		return left->Getstring(context, value, idthread);
-	}
-
-	virtual wstring Getustring(Tamgu* context, Tamgu* value, short idthread) {
-		return left->Getustring(context, value, idthread);
-	}
-
-
-	virtual long Getinteger(short idthread) {
+	long Getinteger(short idthread) {
 		return left->Getinteger(idthread);
 	}
 
-	virtual float Getdecimal(short idthread) {
+	float Getdecimal(short idthread) {
 		return left->Getdecimal(idthread);
 	}
 
-	virtual short Getshort(short idthread) {
+	short Getshort(short idthread) {
 		return left->Getshort(idthread);
 	}
 
-	virtual double Getfloat(short idthread) {
+	double Getfloat(short idthread) {
 		return left->Getfloat(idthread);
 	}
 
-	virtual BLONG Getlong(short idthread) {
+	BLONG Getlong(short idthread) {
 		return left->Getlong(idthread);
 	}
 
-	virtual string Getstring(short idthread) {
+	string Getstring(short idthread) {
 		return left->Getstring(idthread);
 	}
 
-	virtual wstring Getustring(short idthread) {
+	wstring Getustring(short idthread) {
 		return left->Getustring(idthread);
 	}
 
@@ -3215,89 +3155,7 @@ public:
 
 };
 
-class TamguIndexthread : public TamguIndex {
-public:
-    
-    TamguIndexthread(TamguIndex* idx, short idthread) : TamguIndex(idx, idthread) {}
 
-    void Rollback() {
-        left->Release();
-        if (right != NULL)
-            right->Release();
-        delete this;
-    }
-
-};
-
-class TamguIndexbuff : public TamguIndex {
-public:
-	long idx;
-	bool used;
-
-	TamguIndexbuff(long i) : TamguIndex(false) {
-		used = false;
-		idx = i;
-	}
-
-	Exporting void Rollback();
-	void Resetreference(short inc = 1) {}
-
-	long Getinteger(Tamgu* context, Tamgu* value, short idthread) {
-		return left->Integer();
-	}
-
-	float Getdecimal(Tamgu* context, Tamgu* value, short idthread) {
-		return left->Decimal();
-	}
-
-	short Getshort(Tamgu* context, Tamgu* value, short idthread) {
-		return left->Short();
-	}
-
-	double Getfloat(Tamgu* context, Tamgu* value, short idthread) {
-		return left->Float();
-	}
-
-	BLONG Getlong(Tamgu* context, Tamgu* value, short idthread) {
-		return left->Long();
-	}
-
-	string Getstring(Tamgu* context, Tamgu* value, short idthread) {
-		return left->String();
-	}
-
-	wstring Getustring(Tamgu* context, Tamgu* value, short idthread) {
-		return left->UString();
-	}
-
-	long Getinteger(short idthread) {
-		return left->Integer();
-	}
-
-	float Getdecimal(short idthread) {
-		return left->Decimal();
-	}
-
-	short Getshort(short idthread) {
-		return left->Short();
-	}
-
-	double Getfloat(short idthread) {
-		return left->Float();
-	}
-
-	BLONG Getlong(short idthread) {
-		return left->Long();
-	}
-
-	string Getstring(short idthread) {
-		return left->String();
-	}
-
-	wstring Getustring(short idthread) {
-		return left->UString();
-	}
-};
 //------------------------------------------------------------------------
 class Locking {
 private:
@@ -3428,8 +3286,9 @@ public:
 
 	void Popping() {
 		{
-			Locking _lock(this);
+			locking();
 			value->Popping();
+            unlocking();
 		}
 
 		protect = false;
@@ -3446,8 +3305,9 @@ public:
 	void Release() {
 		if (protect == true && reference == 0) {
 			{
-				Locking _lock(this);
+				locking();
 				value->Setprotect(false);
+                unlocking();
 				protect = false;
 			}
 			Resetreference(1);
@@ -3456,8 +3316,9 @@ public:
 
 	void Resetreference(short r = 1) {
 		{
-			Locking _lock(this);
+			locking();
 			value->Resetreference(r);
+            unlocking();
 		}
 		TamguObject::Resetreference(r);
 	}
@@ -3483,99 +3344,50 @@ public:
 	virtual void storevalue(wchar_t u);
 	//----------------------------------------------------------------------------------------------------------------------
 	virtual Tamgu* Put(Tamgu* idx, Tamgu* v, short idthread) {
-        if (!globalTamgu->globalLOCK) {
-            if (value == v)
-                return aTRUE;
-            
-            if (value != aNOELEMENT) {
-                if (value == v)
-                    return aTRUE;
-                
-                value->Put(idx, v, idthread);
-                return aTRUE;
-            }
-            else
-                if (idx->isIndex())
-                    return globalTamgu->Returnerror("LET(001): Undefined assignment", idthread);
-            
-            if (v->isConst()) {
-                if (v == aNOELEMENT) {
-                    value = aNOELEMENT;
-                    return aTRUE;
-                }
-                value = v->Atom();
-                value->Setreference(reference);
-                return aTRUE;
-            }
-            
-            value = v;
-            value->Setreference(reference);
-            return aTRUE;
-        }
-        
-		Locking _lock(this);
-		if (value == v)
+		locking();
+        if (value == v) {
+            unlocking();
 			return aTRUE;
+        }
 
         if (value != aNOELEMENT) {
-            if (value == v)
-                return aTRUE;
-            
             value->Put(idx, v, idthread);
+            unlocking();
             return aTRUE;
         }
         else
-            if (idx->isIndex())
+            if (idx->isIndex()) {
+                unlocking();
                 return globalTamgu->Returnerror("LET(001): Undefined assignment", idthread);
+            }
 
         if (v->isConst()) {
             if (v == aNOELEMENT) {
                 value = aNOELEMENT;
+                unlocking();
                 return aTRUE;
             }
 			value = v->Atom();
             value->Setreference(reference);
+            unlocking();
             return aTRUE;
         }
         
 		value = v;
 		value->Setreference(reference);
+        unlocking();
 		return aTRUE;
 	}
 
 	virtual bool Setvalue(Tamgu* index, Tamgu* v, short idthread, bool strict = false) {
-        if (!globalTamgu->globalLOCK) {
-            if (value == v)
-                return true;
-            
-            if (index->isIndex()) {
-                globalTamgu->Returnerror("LET(001): Undefined assignment", idthread);
-                return false;
-            }
-            
-            if (value != aNOELEMENT)
-                value->Resetreference(reference);
-            
-            if (v->isConst()) {
-                if (v == aNOELEMENT) {
-                    value = aNOELEMENT;
-                    return aTRUE;
-                }
-                value = v->Atom();
-                value->Setreference(reference);
-                return aTRUE;
-            }
-            
-            value = v;
-            value->Setreference(reference);
-            return true;
+        locking();
+        if (value == v) {
+            unlocking();
+			return true;
         }
 
-        Locking _lock(this);
-		if (value == v)
-			return true;
-
 		if (index->isIndex()) {
+            unlocking();
 			globalTamgu->Returnerror("LET(001): Undefined assignment", idthread);
 			return false;
 		}
@@ -3586,18 +3398,22 @@ public:
         if (v != aNOELEMENT && v->isConst()) {
             value = v->Atom();
             value->Setreference(reference);
+            unlocking();
             return aTRUE;
         }
         
 		value = v;
 		value->Setreference(reference);
+        unlocking();
 		return true;
 	}
 
 	virtual Tamgu* Putvalue(Tamgu* v, short idthread) {
-		Locking _lock(this);
-		if (value == v)
-			return value;
+		locking();
+        if (value == v) {
+            unlocking();
+			return v;
+        }
 
 		if (value != aNOELEMENT)
 			value->Resetreference(reference);
@@ -3607,6 +3423,7 @@ public:
 
 		value = v;
 		value->Setreference(reference);
+        unlocking();
 		return value;
 	}
 
@@ -3615,14 +3432,17 @@ public:
     }
     
 	virtual void Forcedclean() {
-		Locking _lock(this);
+        locking();
 		value->Resetreference(reference);
 		value = aNOELEMENT;
+        unlocking();
 	}
 
 	Tamgu* Eval(Tamgu* context, Tamgu* v, short idthread) {
-		Locking _lock(this);
-		return value->Eval(context, v, idthread);
+		locking();
+		v = value->Eval(context, v, idthread);
+        unlocking();
+        return v;
 	}
 
 	virtual short Typevariable() {
@@ -3690,174 +3510,266 @@ public:
 
 
 	string String() {
-		Locking _lock(this);
-		return value->String();
+        locking();
+        string s = value->String();
+        unlocking();
+		return s;
 	}
 
 	wstring UString() {
-		Locking _lock(this);
-		return value->UString();
+        locking();
+        wstring s = value->UString();
+        unlocking();
+        return s;
 	}
 
+    void Setstring(string& v, short idthread) {
+        locking();
+        value->Setstring(v, idthread);
+        unlocking();
+    }
+
+    void Setstring(wstring& v, short idthread) {
+        locking();
+        value->Setstring(v, idthread);
+        unlocking();
+    }
+
 	long Integer() {
-		Locking _lock(this);
-		return value->Integer();
+		locking();
+		long v = value->Integer();
+        unlocking();
+        return v;
 	}
 	double Float() {
-		Locking _lock(this);
-		return value->Float();
+        locking();
+        double v = value->Float();
+        unlocking();
+        return v;
 	}
 	BLONG Long() {
-		Locking _lock(this);
-		return value->Long();
+        locking();
+        BLONG v = value->Long();
+        unlocking();
+        return v;
 	}
 
 	bool Boolean() {
-		Locking _lock(this);
-		return value->Boolean();
+        locking();
+        bool v = value->Boolean();
+        unlocking();
+        return v;
 	}
 
-	string StringToDisplay() {
-		Locking _lock(this);
-		return value->StringToDisplay();
-	}
+    string StringToDisplay() {
+        locking();
+        string v = value->StringToDisplay();
+        unlocking();
+        return v;
+    }
 
 	string JSonString() {
-		Locking _lock(this);
-		return value->JSonString();
+        locking();
+        string v = value->JSonString();
+        unlocking();
+        return v;
 	}
 
 	string Bytes() {
-		Locking _lock(this);
-		return value->Bytes();
+        locking();
+        string v = value->Bytes();
+        unlocking();
+        return v;
 	}
 
 
 	//Basic operations
 	long Size() {
-		Locking _lock(this);
-		return value->Size();
+        locking();
+        long v = value->Size();
+        unlocking();
+        return v;
 	}
 
     Tamgu* Merging(Tamgu* a) {
-        Locking _lock(this);
-        if (value == aNOELEMENT)
+        locking();
+        if (value == aNOELEMENT) {
+            unlocking();
             return globalTamgu->Returnerror("Uninitialized 'self' variable");
-        
-        return value->Merging(a);
+        }
+        a = value->Merging(a);
+        unlocking();
+        return a;
     }
     
     Tamgu* Combine(Tamgu* a) {
-        Locking _lock(this);
-        if (value == aNOELEMENT)
+        locking();
+        if (value == aNOELEMENT) {
+            unlocking();
             return globalTamgu->Returnerror("Uninitialized 'self' variable");
-        
-        return value->Combine(a);
+        }
+        a = value->Combine(a);
+        unlocking();
+        return a;
     }
     
 	Tamgu* andset(Tamgu* a, bool itself) {
-		Locking _lock(this);
-		if (value == aNOELEMENT)
-			return globalTamgu->Returnerror("Uninitialized 'self' variable");
-
-		return value->andset(a, itself);
+        locking();
+        if (value == aNOELEMENT) {
+            unlocking();
+            return globalTamgu->Returnerror("Uninitialized 'self' variable");
+        }
+        a = value->andset(a, itself);
+        unlocking();
+        return a;
 	}
 
 	Tamgu* orset(Tamgu* a, bool itself) {
-		Locking _lock(this);
-		if (value == aNOELEMENT)
-			return globalTamgu->Returnerror("Uninitialized 'self' variable");
-
-		return value->orset(a, itself);
+        locking();
+        if (value == aNOELEMENT) {
+            unlocking();
+            return globalTamgu->Returnerror("Uninitialized 'self' variable");
+        }
+        a = value->orset(a, itself);
+        unlocking();
+        return a;
 	}
 
 	Tamgu* xorset(Tamgu* a, bool itself) {
-		Locking _lock(this);
-		if (value == aNOELEMENT)
-			return globalTamgu->Returnerror("Uninitialized 'self' variable");
-		return value->xorset(a, itself);
+        locking();
+        if (value == aNOELEMENT) {
+            unlocking();
+            return globalTamgu->Returnerror("Uninitialized 'self' variable");
+        }
+        a = value->xorset(a, itself);
+        unlocking();
+        return a;
 	}
 
 	Tamgu* plus(Tamgu* a, bool itself) {
-		Locking _lock(this);
-		if (value == aNOELEMENT)
-			return globalTamgu->Returnerror("Uninitialized 'self' variable");
-		return value->plus(a, itself);
+        locking();
+        if (value == aNOELEMENT) {
+            unlocking();
+            return globalTamgu->Returnerror("Uninitialized 'self' variable");
+        }
+        a = value->plus(a, itself);
+        unlocking();
+        return a;
 	}
 
 	Tamgu* minus(Tamgu* a, bool itself) {
-		Locking _lock(this);
-		if (value == aNOELEMENT)
-			return globalTamgu->Returnerror("Uninitialized 'self' variable");
-		return value->minus(a, itself);
+        locking();
+        if (value == aNOELEMENT) {
+            unlocking();
+            return globalTamgu->Returnerror("Uninitialized 'self' variable");
+        }
+        a = value->minus(a, itself);
+        unlocking();
+        return a;
 	}
 
 	Tamgu* multiply(Tamgu* a, bool itself) {
-		Locking _lock(this);
-		if (value == aNOELEMENT)
-			return globalTamgu->Returnerror("Uninitialized 'self' variable");
-		return value->multiply(a, itself);
+        locking();
+        if (value == aNOELEMENT) {
+            unlocking();
+            return globalTamgu->Returnerror("Uninitialized 'self' variable");
+        }
+        a = value->multiply(a, itself);
+        unlocking();
+        return a;
 	}
 
 	Tamgu* divide(Tamgu* a, bool itself) {
-		Locking _lock(this);
-		if (value == aNOELEMENT)
-			return globalTamgu->Returnerror("Uninitialized 'self' variable");
-		return value->divide(a, itself);
+        locking();
+        if (value == aNOELEMENT) {
+            unlocking();
+            return globalTamgu->Returnerror("Uninitialized 'self' variable");
+        }
+        a = value->divide(a, itself);
+        unlocking();
+        return a;
 	}
 	Tamgu* power(Tamgu* a, bool itself) {
-		Locking _lock(this);
-		if (value == aNOELEMENT)
-			return globalTamgu->Returnerror("Uninitialized 'self' variable");
-		return value->power(a, itself);
+        locking();
+        if (value == aNOELEMENT) {
+            unlocking();
+            return globalTamgu->Returnerror("Uninitialized 'self' variable");
+        }
+        a = value->power(a, itself);
+        unlocking();
+        return a;
 	}
 	Tamgu* shiftleft(Tamgu* a, bool itself) {
-		Locking _lock(this);
-		if (value == aNOELEMENT)
-			return globalTamgu->Returnerror("Uninitialized 'self' variable");
-		return value->shiftleft(a, itself);
+        locking();
+        if (value == aNOELEMENT) {
+            unlocking();
+            return globalTamgu->Returnerror("Uninitialized 'self' variable");
+        }
+        a = value->shiftleft(a, itself);
+        unlocking();
+        return a;
 	}
 	Tamgu* shiftright(Tamgu* a, bool itself) {
-		Locking _lock(this);
-		if (value == aNOELEMENT)
-			return globalTamgu->Returnerror("Uninitialized 'self' variable");
-		return value->shiftright(a, itself);
+        locking();
+        if (value == aNOELEMENT) {
+            unlocking();
+            return globalTamgu->Returnerror("Uninitialized 'self' variable");
+        }
+        a = value->shiftright(a, itself);
+        unlocking();
+        return a;
 	}
 	Tamgu* mod(Tamgu* a, bool itself) {
-		Locking _lock(this);
-		if (value == aNOELEMENT)
-			return globalTamgu->Returnerror("Uninitialized 'self' variable");
-		return value->mod(a, itself);
+        locking();
+        if (value == aNOELEMENT) {
+            unlocking();
+            return globalTamgu->Returnerror("Uninitialized 'self' variable");
+        }
+        a = value->mod(a, itself);
+        unlocking();
+        return a;
 	}
 
 	Tamgu* less(Tamgu* a) {
-		Locking _lock(this);
-		return value->less(a);
+        locking();
+        a = value->less(a);
+        unlocking();
+        return a;
 	}
 
 	Tamgu* more(Tamgu* a) {
-		Locking _lock(this);
-		return value->more(a);
+        locking();
+        a = value->more(a);
+        unlocking();
+        return a;
 	}
 
 	Tamgu* same(Tamgu* a) {
-		Locking _lock(this);
-		return value->same(a);
+        locking();
+        a = value->same(a);
+        unlocking();
+        return a;
 	}
 
 	Tamgu* different(Tamgu* a) {
-		Locking _lock(this);
-		return value->different(a);
+        locking();
+        a = value->different(a);
+        unlocking();
+        return a;
 	}
 
 	Tamgu* lessequal(Tamgu* a) {
-		Locking _lock(this);
-		return value->lessequal(a);
+        locking();
+        a = value->lessequal(a);
+        unlocking();
+        return a;
 	}
 
 	Tamgu* moreequal(Tamgu* a) {
-		Locking _lock(this);
-		return value->moreequal(a);
+        locking();
+        a = value->moreequal(a);
+        unlocking();
+        return a;
 	}
 
 };
@@ -3896,117 +3808,63 @@ public:
 	void storevalue(wchar_t u);
 	//----------------------------------------------------------------------------------------------------------------------
 	Tamgu* Put(Tamgu* idx, Tamgu* v, short idthread) {
-        if (!globalTamgu->globalLOCK) {
-            if (value == v)
-                return aTRUE;
-            
-            if (value != aNOELEMENT) {
-                if (idx->isIndex())
-                    return value->Put(idx, v, idthread);
-                
-                if (typevalue == v->Type() && v->duplicateForCall()) {
-                    value->Put(idx, v, idthread);
-                    return aTRUE;
-                }
-                
-                value->Resetreference(reference);
-            }
-            else
-                if (idx->isIndex())
-                    return globalTamgu->Returnerror("LET(001): Undefined assignment", idthread);
-            
-            if (v->isConst()) {
-                if (v == aNOELEMENT) {
-                    value = aNOELEMENT;
-                    typevalue = a_const;
-                    return aTRUE;
-                }
-                value = v->Atom();
-                value->Setreference(reference);
-                typevalue = value->Type();
-                return aTRUE;
-            }
-            
-            value = v;
-            value->Setreference(reference);
-            typevalue = value->Type();
-            return aTRUE;
-        }
-        
-		Locking _lock(this);
-	
-		if (value == v)
+        locking();
+        if (value == v) {
+            unlocking();
 			return aTRUE;
+        }
 
 		if (value != aNOELEMENT) {
-			if (idx->isIndex())
+            if (idx->isIndex()) {
+                unlocking();
 				return value->Put(idx, v, idthread);
+            }
 
 			if (typevalue == v->Type() && v->duplicateForCall()) {
 				value->Put(idx, v, idthread);
+                unlocking();
 				return aTRUE;
 			}
 
 			value->Resetreference(reference);
 		}
         else
-            if (idx->isIndex())
+            if (idx->isIndex()) {
+                unlocking();
                 return globalTamgu->Returnerror("LET(001): Undefined assignment", idthread);
+            }
 
         if (v->isConst()) {
             if (v == aNOELEMENT) {
                 value = aNOELEMENT;
                 typevalue = a_const;
+                unlocking();
                 return aTRUE;
             }
             value = v->Atom();
             value->Setreference(reference);
             typevalue = value->Type();
+            unlocking();
             return aTRUE;
         }
 
 		value = v;
 		value->Setreference(reference);
         typevalue = value->Type();
+        unlocking();
 		return aTRUE;
 	}
 
     bool Setvalue(Tamgu* index, Tamgu* v, short idthread, bool strict = false) {
-        if (!globalTamgu->globalLOCK) {
-            if (value == v)
-                return true;
-            
-            if (index->isIndex()) {
-                globalTamgu->Returnerror("LET(001): Undefined assignment", idthread);
-                return false;
-            }
-            
-            if (value != aNOELEMENT)
-                value->Resetreference(reference);
-            
-            if (v->isConst()) {
-                if (v == aNOELEMENT) {
-                    value = aNOELEMENT;
-                    return aTRUE;
-                }
-                value = v->Atom();
-                value->Setreference(reference);
-                typevalue = value->Type();
-                return aTRUE;
-            }
-            
-            value = v;
-            value->Setreference(reference);
-            typevalue = value->Type();
+        locking();
+        if (value == v) {
+            unlocking();
             return true;
         }
         
-        Locking _lock(this);
-        if (value == v)
-            return true;
-        
         if (index->isIndex()) {
             globalTamgu->Returnerror("LET(001): Undefined assignment", idthread);
+            unlocking();
             return false;
         }
         
@@ -4017,35 +3875,23 @@ public:
             value = v->Atom();
             value->Setreference(reference);
             typevalue = value->Type();
+            unlocking();
             return aTRUE;
         }
         
         value = v;
         value->Setreference(reference);
         typevalue = value->Type();
+        unlocking();
         return true;
     }
     
     Tamgu* Putvalue(Tamgu* v, short idthread) {
-        if (!globalTamgu->globalLOCK) {
-            if (value == v)
-                return value;
-            
-            if (value != aNOELEMENT)
-                value->Resetreference(reference);
-            
-            if (v->isConst())
-                v = v->Atom();
-            
-            value = v;
-            value->Setreference(reference);
-            typevalue = value->Type();
+        locking();
+        if (value == v) {
+            unlocking();
             return value;
         }
-        
-        Locking _lock(this);
-        if (value == v)
-            return value;
         
         if (value != aNOELEMENT)
             value->Resetreference(reference);
@@ -4056,15 +3902,16 @@ public:
         value = v;
         value->Setreference(reference);
         typevalue = value->Type();
-        
+        unlocking();
         return value;
     }
 
     void Forcedclean() {
-        Locking _lock(this);
+        locking();
         value->Resetreference(reference);
         value = aNOELEMENT;
         typevalue = a_const;
+        unlocking();
     }
 
     void Postinstantiation(short idthread, bool setreference) {

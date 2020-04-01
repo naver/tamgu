@@ -84,13 +84,9 @@ class Tamguchrono : public TamguObject {
         return "chrono";
     }
 
-    bool isString() {
-        return false;
-    }
+    
 
-    bool isNumber() {
-        return false;
-    }
+    
 
     bool isBoolean() {
         return false;

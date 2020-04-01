@@ -47,11 +47,13 @@ class Tamgushort : public TamguReference {
 
     //---------------------------------------------------------------------------------------------------------------------
     Tamgushort(short v, TamguGlobal* g, Tamgu* parent = NULL) : TamguReference(g, parent) {
+     investigate |= is_number;
         //Do not forget your variable initialisation
         value=v;
     }
 
     Tamgushort(short v) {
+     investigate |= is_number;
         //Do not forget your variable initialisation
         value=v;
     }
@@ -112,9 +114,7 @@ class Tamgushort : public TamguReference {
 		return a_short;
 	}
 
-    bool isNumber() {
-        return true;
-    }
+    
 
 	bool isShort() {
 		return true;
@@ -481,10 +481,21 @@ class Tamgushort : public TamguReference {
     
 
 	string String() {
-		
-		return convertfromnumber(value);
-		
+		return convertfromnumber(value);		
 	}
+
+    wstring UString() {
+        return wconvertfromnumber(value);        
+    }
+
+    void Setstring(string& v, short idthread) {
+        v = convertfromnumber(value);
+    }
+
+    void Setstring(wstring& v, short idthread) {
+        v = wconvertfromnumber(value);
+    }
+
 
 	short Short() {
 		return value;
@@ -534,12 +545,6 @@ class Tamgushort : public TamguReference {
 
 	BLONG Getlong(short idthread) {
 		return (BLONG)value;
-	}
-
-	wstring UString() {
-		
-		return wconvertfromnumber(value);
-		
 	}
 
 	float Decimal() {

@@ -51,6 +51,7 @@ public:
 
 	//---------------------------------------------------------------------------------------------------------------------
 	Tamgurawstring(TamguGlobal* g, Tamgu* parent = NULL) : TamguReference(g, parent) {
+     investigate |= is_string;
 		//Do not forget your variable initialisation
 		value = NULL;
 		buffersize = 0;
@@ -58,6 +59,8 @@ public:
 	}
 
 	Tamgurawstring() {
+     investigate |= is_string;
+     investigate |= is_string;
 		//Do not forget your variable initialisation
 		value = NULL;
 		buffersize = 0;
@@ -66,6 +69,7 @@ public:
 	}
 
 	Tamgurawstring(string v) {
+     investigate |= is_string;
 		//Do not forget your variable initialisation
 		value = NULL;
 		buffersize = 0;
@@ -164,9 +168,7 @@ public:
 		return "rawstring";
 	}
 
-	bool isString() {
-		return true;
-	}
+	
 
 	bool isAtom() {
 		return true;
@@ -451,7 +453,7 @@ public:
 	string String() {
 		if (value == NULL)
 			return "";
-		return string((char*)value,stringsize);
+		return (char*)value;
 	}
 
 	wstring UString() {
@@ -463,6 +465,19 @@ public:
 		return res;
 
 	}
+    
+    void Setstring(string& v, short idthread) {
+        if (value == NULL)
+            v = "";
+        v = (char*)value;
+    }
+
+    void Setstring(wstring& res, short idthread) {
+        if (value == NULL)
+            res = L"";
+        else
+            s_utf8_to_unicode(res, value, buffersize);
+    }
 
 	long Integer() {
 		if (value == NULL)
@@ -522,7 +537,7 @@ public:
 		}
 
 		string add = String() + b->String();
-		return globalTamgu->Providestring(add);
+		return globalTamgu->Providewithstring(add);
 	}
 
 
@@ -552,16 +567,16 @@ public:
         string v((char*)value,stringsize);
 
 		if (nb > stringsize)
-			return globalTamgu->Providestring(v);
+			return globalTamgu->Providewithstring(v);
 
 		long pos = v.rfind(add);
 		if (pos == string::npos)
-			return globalTamgu->Providestring(v);
+			return globalTamgu->Providewithstring(v);
 		add = v.substr(0, pos);
 		pos += nb;
 		add += v.substr(pos, v.size() - pos);
 
-		return globalTamgu->Providestring(add);
+		return globalTamgu->Providewithstring(add);
 	}
 
 

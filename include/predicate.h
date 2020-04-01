@@ -384,7 +384,8 @@ public:
 	}
 
 	string String();
-
+    void Setstring(string& v, short idthread);
+    
 	BLONG Long() {
 		return parameters.size();
 	}
@@ -503,7 +504,8 @@ public:
 	}
 
 	string String();
-
+    void Setstring(string& v, short idthread);
+    
 	BLONG Long() {
 		return parameters.size();
 	}
@@ -692,6 +694,7 @@ public:
 
 	virtual string String();
 	virtual string JSonString();
+    virtual void Setstring(string& v, short idthread);
 
 	bool Boolean();
 
@@ -760,6 +763,16 @@ public:
 	string String() {
 		return globalTamgu->Getsymbol(name);
 	}
+    
+    void Setstring(string& v, short idthread) {
+        v = globalTamgu->Getsymbol(name);
+    }
+
+    void Setstring(wstring& v, short idthread) {
+        v = globalTamgu->Getwsymbol(name);
+    }
+
+
 	Tamgu* Newinstance(short idthread, Tamgu* f = NULL) {
 		return new TamguPredicateFunction(globalTamgu, function, name);
 	}
@@ -780,6 +793,16 @@ public:
 	string String() {
 		return globalTamgu->Getsymbol(name);
 	}
+    
+    void Setstring(string& v, short idthread) {
+        v = globalTamgu->Getsymbol(name);
+    }
+
+    void Setstring(wstring& v, short idthread) {
+        v = globalTamgu->Getwsymbol(name);
+    }
+
+
 	Tamgu* Newinstance(short idthread, Tamgu* f = NULL) {
 		return this;
 	}
@@ -857,6 +880,7 @@ public:
 	}
 
 	string String();
+    void Setstring(string& v, short idthread);
 	string JSonString();
 
 	Tamgu* Vector(short idthread) {
@@ -937,6 +961,7 @@ public:
 	}
 
 	string String();
+    void Setstring(string& v, short idthread);
 
 	void AddInstruction(Tamgu* e) {
 		TamguPredicate* p = (TamguPredicate*)e;

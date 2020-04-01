@@ -557,7 +557,7 @@ char An_call::check(An_context* context) {
 
 char An_call::compare(wstring& chr,An_context* context) {
     TamguCallFunction localcall(call);
-    Tamguustring* ustr=globalTamgu->Provideustring(chr);
+    Tamguustring* ustr=globalTamgu->Providewithustring(chr);
     ustr->Setreference();
     localcall.arguments.vecteur[0]=ustr;
     localcall.arguments.vecteur[1]=context->annotator;

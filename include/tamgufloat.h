@@ -43,11 +43,13 @@ public:
 
 	//---------------------------------------------------------------------------------------------------------------------
 	Tamgufloat(double v, TamguGlobal* g, Tamgu* parent = NULL) : TamguReference(g, parent) {
+     investigate |= is_number;
 		//Do not forget your variable initialisation
 		value = v;
 	}
 
 	Tamgufloat(double v) {
+     investigate |= is_number;
 		//Do not forget your variable initialisation
 		value = v;
 	}
@@ -97,9 +99,7 @@ public:
 		return a_float;
 	}
 
-	bool isNumber() {
-		return true;
-	}
+	
 
 	bool isFloat() {
 		return true;
@@ -442,6 +442,15 @@ public:
 		
 	}
 
+    void Setstring(string& v, short idthread) {
+        convertnumber(value,v);
+    }
+
+    void Setstring(wstring& v, short idthread) {
+        convertnumber(value,v);
+    }
+
+
 	long Integer() {
 
 		return (long)value;
@@ -718,11 +727,13 @@ public:
     
         //---------------------------------------------------------------------------------------------------------------------
     Tamguatomicfloat(double v, TamguGlobal* g, Tamgu* parent = NULL) : TamguReference(g, parent) {
+     investigate |= is_number;
             //Do not forget your variable initialisation
         value = v;
     }
     
     Tamguatomicfloat(double v) {
+     investigate |= is_number;
             //Do not forget your variable initialisation
         value = v;
     }
@@ -772,9 +783,7 @@ public:
         return a_float;
     }
     
-    bool isNumber() {
-        return true;
-    }
+    
     
     bool isFloat() {
         return true;
@@ -1112,6 +1121,15 @@ public:
         
     }
     
+    void Setstring(string& v, short idthread) {
+        convertnumber(value,v);
+    }
+
+    void Setstring(wstring& v, short idthread) {
+        convertnumber(value,v);
+    }
+
+
     long Integer() {
         
         return (long)value;

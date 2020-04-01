@@ -44,11 +44,13 @@ public:
 
 	//---------------------------------------------------------------------------------------------------------------------
 	Tamgudecimal(float v, TamguGlobal* g, Tamgu* parent = NULL) : TamguReference(g, parent) {
+     investigate |= is_number;
 		//Do not forget your variable initialisation
 		value = v;
 	}
 
 	Tamgudecimal(float v) {
+     investigate |= is_number;
 		//Do not forget your variable initialisation
 		value = v;
 	}
@@ -105,9 +107,7 @@ public:
 		return a_decimal;
 	}
 
-	bool isNumber() {
-		return true;
-	}
+	
 
 	bool isDecimal() {
 		return true;
@@ -414,16 +414,20 @@ public:
 	
 
 	wstring UString() {
-		
 		return wconvertfromnumber(value);
-		
 	}
 
 	string String() {
-		
 		return convertfromnumber(value);
-		
 	}
+
+    void Setstring(string& v, short idthread) {
+        v = convertfromnumber(value);
+    }
+
+    void Setstring(wstring& v, short idthread) {
+        v = wconvertfromnumber(value);
+    }
 
 	long Integer() {
 		return (long)value;

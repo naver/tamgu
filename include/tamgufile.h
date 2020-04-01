@@ -85,22 +85,27 @@ public:
 	}
 
 	Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread) {
-		Locking _lock(this);
-		if (thefile == NULL || feof(thefile) || op != "rb")
+        locking();
+        if (thefile == NULL || feof(thefile) || op != "rb") {
+            unlocking();
 			return aFALSE;
+        }
 
 		if (context->isNumber()) {
 			unsigned char c = fgetc(thefile);
 			context->storevalue(c);
+            unlocking();
 			return aTRUE;
 		}
 
 		string line = readoneline();
-        if (!line.size())
+        if (!line.size()) {
+            unlocking();
             return aFALSE;
+        }
         
 		context->storevalue(line);
-
+        unlocking();
 		return aTRUE;
 	}
 
@@ -175,16 +180,18 @@ public:
 	//This is an example of a function that could be implemented for your needs.
 	//Tamgu* MethodSize(TamguGlobal* global,Tamgu* context, short idthread, TamguCall* callfunc) {return aZERO;}
 	Tamgu* MethodInitial(Tamgu* context, short idthread, TamguCall* callfunc) {
-		Locking _lock(this);
 		if (callfunc->Size() == 0)
 			return aTRUE;
+        locking();
 		filename = callfunc->Evaluate(0, aNULL, idthread)->String();
 		op = "r";
 		first = false;
 		if (callfunc->Size() == 2) {
 			op = callfunc->Evaluate(1, aNULL, idthread)->String();
-			if (op != "r" && op != "a" && op != "w")
+            if (op != "r" && op != "a" && op != "w") {
+                unlocking();
 				return globalTamgu->Returnerror("Unknown operation for this file", idthread);
+            }
 			if (op == "w")
 				first = true;
 		}
@@ -197,29 +204,34 @@ public:
 #else
 		thefile=fopen(STR(filename),STR(op));
 #endif
-
-		if (thefile == NULL)
+        if (thefile == NULL) {
+            unlocking();
 			return globalTamgu->Returnerror("Cannot open this file", idthread);
+        }
 
 		if (op[0] == 'r')
 			consume_header();
-
+        unlocking();
 		return aTRUE;
 	}
 
     Tamgu* MethodFlush(Tamgu* context, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
-        if (thefile == NULL || feof(thefile) || op != "wb")
+        locking();
+        if (thefile == NULL || feof(thefile) || op != "wb") {
+            unlocking();
             return globalTamgu->Returnerror("Wrong access to the file", idthread);
-        
+        }
         fflush(thefile);
+        unlocking();
         return aTRUE;
     }
 
 	Tamgu* MethodOpenRead(Tamgu* context, short idthread, TamguCall* callfunc) {
-		Locking _lock(this);
-		if (thefile != NULL)
+		locking();
+        if (thefile != NULL) {
+            unlocking();
 			return globalTamgu->Returnerror("File already open", idthread);
+        }
 		filename = callfunc->Evaluate(0, aNULL, idthread)->String();
 		op = "rb";
 #ifdef WIN32
@@ -227,17 +239,22 @@ public:
 #else
 		thefile = fopen(STR(filename), STR(op));
 #endif
-		if (thefile == NULL)
+        if (thefile == NULL) {
+            unlocking();
 			return globalTamgu->Returnerror("Cannot open this file", idthread);
+        }
 
 		consume_header();
+        unlocking();
 		return aTRUE;
 	}
 
 	Tamgu* MethodOpenWrite(Tamgu* context, short idthread, TamguCall* callfunc) {
-		Locking _lock(this);
-		if (thefile != NULL)
-			return globalTamgu->Returnerror("File already open", idthread);
+        locking();
+        if (thefile != NULL) {
+            unlocking();
+            return globalTamgu->Returnerror("File already open", idthread);
+        }
 		filename = callfunc->Evaluate(0, aNULL, idthread)->String();
 		op = "wb";
 		first = true;
@@ -246,15 +263,21 @@ public:
 #else
 		thefile = fopen(STR(filename), STR(op));
 #endif
-		if (thefile == NULL)
-			return globalTamgu->Returnerror("Cannot open this file", idthread);
+        if (thefile == NULL) {
+            unlocking();
+            return globalTamgu->Returnerror("Cannot open this file", idthread);
+        }
+
+        unlocking();
 		return aTRUE;
 	}
 
 	Tamgu* MethodOpenAppend(Tamgu* context, short idthread, TamguCall* callfunc) {
-		Locking _lock(this);
-		if (thefile != NULL)
-			return globalTamgu->Returnerror("File already open", idthread);
+        locking();
+        if (thefile != NULL) {
+            unlocking();
+            return globalTamgu->Returnerror("File already open", idthread);
+        }
 		filename = callfunc->Evaluate(0, aNULL, idthread)->String();
 		op = "ab";
 #ifdef WIN32
@@ -262,27 +285,33 @@ public:
 #else
 		thefile = fopen(STR(filename), STR(op));
 #endif
-		if (thefile == NULL)
+        if (thefile == NULL) {
+            unlocking();
 			return globalTamgu->Returnerror("Cannot open this file", idthread);
+        }
+        unlocking();
 		return aTRUE;
 	}
 
 
 	Tamgu* MethodClose(Tamgu* context, short idthread, TamguCall* callfunc) {
-		Locking _lock(this);
+		locking();
 		if (thefile != NULL) {
 			fclose(thefile);
 			thefile = NULL;
+            unlocking();
 			return aTRUE;
 		}
+        unlocking();
 		return aFALSE;
 	}
 
 	Tamgu* MethodSignature(Tamgu* context, short idthread, TamguCall* callfunc) {
-		Locking _lock(this);
+		locking();
 
 		if (callfunc->Size() == 1) {
 			signature = callfunc->Evaluate(0, context, idthread)->Boolean();
+            unlocking();
 			return aTRUE;
 		}
 
@@ -293,6 +322,7 @@ public:
             if ((c == 254 && cc == 255) || (c == 255 && cc == 254)) {
                 ungetc(cc, thefile);
 				ungetc(c, thefile);
+                unlocking();
 				return globalTamgu->Provideint(16);
 			}
 
@@ -304,62 +334,84 @@ public:
 
 			if (c == 239 && cc == 187 && ccc == 191) {
 				signature = true;
+                unlocking();
 				return aEIGHT;
 			}
 		}
-
+        unlocking();
 		return aZERO;
 	}
 
 
 	Tamgu* MethodGet(Tamgu* context, short idthread, TamguCall* callfunc) {
-		if (thefile == NULL || feof(thefile) || op != "rb")
-			return globalTamgu->Returnerror("Wrong access to the file", idthread);
+        locking();
+        if (thefile == NULL || feof(thefile) || op != "wb") {
+            unlocking();
+            return globalTamgu->Returnerror("Wrong access to the file", idthread);
+        }
 
 		if (context->isString()) {
 			wchar_t c = getc(true);
+            unlocking();
 			if (context->Type() == a_ustring)
 				return new Tamguustring(c);
 
 			agnostring s(c);
-			return globalTamgu->Providestring(s);
+			return globalTamgu->Providewithstring(s);
 		}
 
 		uchar c = get();
+        unlocking();
 		return new Tamgubyte(c);
 	}
 
 	Tamgu* MethodTell(Tamgu* context, short idthread, TamguCall* callfunc) {
-		Locking _lock(this);
-		if (thefile == NULL || feof(thefile) || op != "rb")
-			return globalTamgu->Returnerror("Wrong access to the file", idthread);
+        locking();
+        if (thefile == NULL || feof(thefile) || op != "wb") {
+            unlocking();
+            return globalTamgu->Returnerror("Wrong access to the file", idthread);
+        }
 
-		return globalTamgu->Provideint(tell());
+        long e = tell();
+        unlocking();
+		return globalTamgu->Provideint(e);
 	}
 
 	Tamgu* MethodSeek(Tamgu* context, short idthread, TamguCall* callfunc) {
-		Locking _lock(this);
-		if (thefile == NULL || feof(thefile) || op != "rb")
-			return globalTamgu->Returnerror("Wrong access to the file", idthread);
-		long i = callfunc->Evaluate(0, context, idthread)->Integer();
+        locking();
+        if (thefile == NULL || feof(thefile) || op != "wb") {
+            unlocking();
+            return globalTamgu->Returnerror("Wrong access to the file", idthread);
+        }
+		
+        long i = callfunc->Evaluate(0, context, idthread)->Integer();
+        i = seek(i);
+        unlocking();
         //--------------------------------------------------------------------
-        return booleantamgu[seek(i)];
+        return booleantamgu[i];
 	}
 
 	Tamgu* MethodUnget(Tamgu* context, short idthread, TamguCall* callfunc) {
-		Locking _lock(this);
-		if (thefile == NULL || feof(thefile) || op != "rb")
-			return globalTamgu->Returnerror("Wrong access to the file", idthread);
+        locking();
+        if (thefile == NULL || feof(thefile) || op != "wb") {
+            unlocking();
+            return globalTamgu->Returnerror("Wrong access to the file", idthread);
+        }
+
 
 		char c = callfunc->Evaluate(0, aNULL, idthread)->Byte();
 		ungetc(c, thefile);
+        unlocking();
 		return aTRUE;
 	}
 
 	Tamgu* MethodWrite(Tamgu* context, short idthread, TamguCall* callfunc) {
-		Locking _lock(this);
-		if (thefile == NULL || feof(thefile) || op == "rb")
-			return globalTamgu->Returnerror("Wrong access to the file", idthread);
+        locking();
+        if (thefile == NULL || feof(thefile) || op != "wb") {
+            unlocking();
+            return globalTamgu->Returnerror("Wrong access to the file", idthread);
+        }
+
 
 		if (first) {
 			if (signature) {
@@ -372,13 +424,17 @@ public:
 
 		string s = callfunc->Evaluate(0, aNULL, idthread)->String();
 		fwrite(STR(s), 1, s.size(), thefile);
+        unlocking();
 		return aTRUE;
 	}
 
 	Tamgu* MethodWriteln(Tamgu* context, short idthread, TamguCall* callfunc) {
-		Locking _lock(this);
-		if (thefile == NULL || feof(thefile) || op == "rb")
-			return globalTamgu->Returnerror("Wrong access to the file", idthread);
+        locking();
+        if (thefile == NULL || feof(thefile) || op != "wb") {
+            unlocking();
+            return globalTamgu->Returnerror("Wrong access to the file", idthread);
+        }
+
 
 		if (first) {
 			if (signature) {
@@ -392,14 +448,18 @@ public:
 		string s = callfunc->Evaluate(0, aNULL, idthread)->String();
 		s += Endl;
 		fwrite(STR(s), 1, s.size(), thefile);
+        unlocking();
 		return aTRUE;
 	}
 
     Tamgu* MethodWriteutf16(Tamgu* context, short idthread, TamguCall* callfunc) {
-        Locking _lock(this);
-        if (thefile == NULL || feof(thefile) || op == "rb")
+        locking();
+        if (thefile == NULL || feof(thefile) || op != "wb") {
+            unlocking();
             return globalTamgu->Returnerror("Wrong access to the file", idthread);
-        
+        }
+
+
         wstring s = callfunc->Evaluate(0, aNULL, idthread)->UString();
         
         if (callfunc->Size() == 2) {
@@ -432,15 +492,18 @@ public:
             fputc(wuc.cc[0], thefile);
             fputc(wuc.cc[1], thefile);
         }
-        
+        unlocking();
         return aTRUE;
     }
     
 
 	Tamgu* MethodWritebin(Tamgu* context, short idthread, TamguCall* callfunc) {
-		Locking _lock(this);
-		if (thefile == NULL || feof(thefile) || op == "rb")
-			return globalTamgu->Returnerror("Wrong access to the file", idthread);
+        locking();
+        if (thefile == NULL || feof(thefile) || op != "wb") {
+            unlocking();
+            return globalTamgu->Returnerror("Wrong access to the file", idthread);
+        }
+
 
 		if (first) {
 			if (signature) {
@@ -464,24 +527,32 @@ public:
 
 		c = value->Byte();
 		fputc(c, thefile);
+        unlocking();
 		return aTRUE;
 	}
 
 	Tamgu* MethodReadoneline(Tamgu* context, short idthread, TamguCall* callfunc) {
-		Locking _lock(this);
-		if (thefile == NULL || feof(thefile) || op != "rb")
-			return globalTamgu->Returnerror("Wrong access to the file", idthread);
+        locking();
+        if (thefile == NULL || feof(thefile) || op != "wb") {
+            unlocking();
+            return globalTamgu->Returnerror("Wrong access to the file", idthread);
+        }
+
 
 		string s = readoneline();
-		return globalTamgu->Providestring(s);
+        unlocking();
+		return globalTamgu->Providewithstring(s);
 	}
 
 	Tamgu* MethodRead(Tamgu* context, short idthread, TamguCall* callfunc);
 
 	Tamgu* MethodEof(Tamgu* context, short idthread, TamguCall* callfunc) {
-		Locking _lock(this);
-		if (thefile == NULL || feof(thefile))
+        locking();
+        if (thefile == NULL || feof(thefile)) {
+            unlocking();
 			return aTRUE;
+        }
+        unlocking();
 		return aFALSE;
 	}
 
@@ -975,7 +1046,7 @@ public:
 
 	//------------------------------------------------------------------------------------
 	long Size() {
-		Locking _lock(this);
+        locking();
 		struct stat scible;
 		int stcible = -1;
 		long size = -1;
@@ -993,14 +1064,17 @@ public:
 			if (stcible >= 0)
 				size = scible.st_size;
 		}
+        unlocking();
 		return size;
 	}
 
 	void Clear() {
 		//To set a variable back to empty
+        locking();
 		if (thefile != NULL)
 			fclose(thefile);
 		thefile = NULL;
+        unlocking();
 	}
 
 	

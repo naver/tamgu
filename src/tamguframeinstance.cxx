@@ -271,7 +271,7 @@ Tamgu* TamguframeBaseInstance::Execute(Tamgu* body, VECTE<Tamgu*>& arguments, sh
             continue;
         }
 
-        Locking* _lock = _getlock(this);
+        locking();
         error = false;
         for (size_t i = 0; i < arguments.size(); i++) {
             p = bd->Parameter(i);
@@ -280,7 +280,7 @@ Tamgu* TamguframeBaseInstance::Execute(Tamgu* body, VECTE<Tamgu*>& arguments, sh
                 break;
             }
         }
-        _cleanlock(_lock);
+        unlocking();
 
         if (!error)
             break;
@@ -407,7 +407,7 @@ Tamgu* Tamguframemininstance::Put(Tamgu* idx, Tamgu* value, short idthread) {
     if (globalTamgu->Compatible(frame->Name(), value->Type()) == false)
         return globalTamgu->Returnerror("Wrong frame assignment", idthread);
     
-    Locking* _lock = _getlock(this);
+    locking();
     TamguframeBaseInstance* instance = (TamguframeBaseInstance*)value;
     
     short nm;
@@ -415,7 +415,7 @@ Tamgu* Tamguframemininstance::Put(Tamgu* idx, Tamgu* value, short idthread) {
         nm = frame->vnames[ii];
         declarations[nm]->Put(aNULL, instance->Declaration(nm), idthread);
     }
-    _cleanlock(_lock);
+    unlocking();
     
     return aTRUE;
 }
@@ -424,7 +424,7 @@ Tamgu* Tamguframemininstance::Putvalue(Tamgu* value, short idthread) {
     if (globalTamgu->Compatible(frame->Name(), value->Type()) == false)
         return globalTamgu->Returnerror("Wrong frame assignment", idthread);
     
-    Locking* _lock = _getlock(this);
+    locking();
     TamguframeBaseInstance* instance = (TamguframeBaseInstance*)value;
     
     short nm;
@@ -433,7 +433,7 @@ Tamgu* Tamguframemininstance::Putvalue(Tamgu* value, short idthread) {
         declarations[nm]->Putvalue(instance->Declaration(nm), idthread);
     }
 
-    _cleanlock(_lock);
+    unlocking();
     
     return aTRUE;
 }
@@ -489,12 +489,12 @@ Tamgu* Tamguframeinstance::Put(Tamgu* idx, Tamgu* value, short idthread) {
     if (globalTamgu->Compatible(frame->Name(), value->Type()) == false)
         return globalTamgu->Returnerror("Wrong frame assignment", idthread);
     
-    Locking* _lock = _getlock(this);
+    locking();
     TamguframeBaseInstance* instance = (TamguframeBaseInstance*)value;
     
     for (short ii = 0; ii < declarations.last; ii++)
         declarations[ii]->Put(aNULL, instance->Declaration(frame->vnames[ii]), idthread);
-    _cleanlock(_lock);
+    unlocking();
     
     return aTRUE;
 }
@@ -503,13 +503,13 @@ Tamgu* Tamguframeinstance::Putvalue(Tamgu* value, short idthread) {
     if (globalTamgu->Compatible(frame->Name(), value->Type()) == false)
         return globalTamgu->Returnerror("Wrong frame assignment", idthread);
     
-    Locking* _lock = _getlock(this);
+    locking();
     TamguframeBaseInstance* instance = (TamguframeBaseInstance*)value;
     
     for (short ii = 0; ii < declarations.last; ii++)
         declarations[ii]->Putvalue(instance->Declaration(frame->vnames[ii]), idthread);
     
-    _cleanlock(_lock);
+    unlocking();
     
     return aTRUE;
 }

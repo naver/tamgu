@@ -25,7 +25,7 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<treemapllMethod>  Tamgutreemapll::methods;
-Exporting hmap<string, string> Tamgutreemapll::infomethods;
+Exporting map<string, string> Tamgutreemapll::infomethods;
 Exporting bin_hash<unsigned long> Tamgutreemapll::exported;
 
 Exporting short Tamgutreemapll::idtype = 0;
@@ -39,7 +39,14 @@ void Tamgutreemapll::AddMethod(TamguGlobal* global, string name,treemapllMethod 
     exported[idname] = arity;
 }
 
-bool Tamgutreemapll::InitialisationModule(TamguGlobal* global, string version) {
+
+
+    void Tamgutreemapll::Setidtype(TamguGlobal* global) {
+    Tamgutreemapll::InitialisationModule(global,"");
+}
+
+
+   bool Tamgutreemapll::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
     infomethods.clear();
     exported.clear();
@@ -65,9 +72,11 @@ bool Tamgutreemapll::InitialisationModule(TamguGlobal* global, string version) {
     Tamgutreemapll::AddMethod(global, "pop", &Tamgutreemapll::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamgutreemapll::AddMethod(global, "merge", &Tamgutreemapll::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
 
-    global->newInstance[Tamgutreemapll::idtype] = new Tamgutreemapll(global);
-    
-    global->RecordMethods(Tamgutreemapll::idtype, Tamgutreemapll::exported);
+    if (version != "") {
+        global->newInstance[Tamgutreemapll::idtype] = new Tamgutreemapll(global);
+        
+        global->RecordMethods(Tamgutreemapll::idtype, Tamgutreemapll::exported);
+    }
 
     return true;
 }
@@ -86,29 +95,44 @@ Exporting Tamgu* Tamgutreemapll::in(Tamgu* context, Tamgu* a, short idthread) {
     
     BLONG val = a->Long();
 
-     if (context->isVectorContainer()) {
+    if (context->isVectorContainer()) {
         Tamgulvector* v = (Tamgulvector*)Selectalvector(context);
         Doublelocking _lock(this, v);
-        if (values.find(val)!=values.end())
+        try {
+            values.at(val);
             v->values.push_back(val);
+        }
+        catch(const std::out_of_range& oor) {}
 
         return v;
     }
 
-   if (context->isNumber()) {
-        Locking _lock(this);
-        if (values.find(val)!=values.end())
+    if (context->isNumber()) {
+        locking();
+        try {
+            values.at(val);
+            unlocking();
             return new Tamgulong(val);
-        return aNOELEMENT;
+        }
+        catch(const std::out_of_range& oor) {
+            unlocking();
+            return aNOELEMENT;
+        }
     }
     
-    Locking _lock(this);
-    if (values.find(val)!=values.end())
+    locking();
+    try {
+        values.at(val);
+        unlocking();
         return aTRUE;
-
-    return aFALSE;
+    }
+    catch(const std::out_of_range& oor) {
+        unlocking();
+        return aFALSE;
+    }
 
 }
+
 
 Exporting Tamgu* Tamgutreemapll::MethodFind(Tamgu* context, short idthread, TamguCall* callfunc) {
     //Three cases along the container type...
@@ -148,31 +172,34 @@ Exporting Tamgu* Tamgutreemapll::MethodFind(Tamgu* context, short idthread, Tamg
 
 
 Exporting Tamgu* Tamgutreemapll::Push(Tamgu* k, Tamgu* v) {
-    Locking _lock(this);
+    locking();
     BLONG s = k->Long();
     values[s] = v->Long();
+    unlocking();
     return aTRUE;
 }
 
 Exporting Tamgu* Tamgutreemapll::Pop(Tamgu* kkey) {
     BLONG k = kkey->Long();
-    Locking _lock(this);
-    if (values.find(k) != values.end()) {
-        values.erase(k);
+    locking();
+    if (values.erase(k)) {
+        unlocking();
         return aTRUE;
     }
+    unlocking();
     return aFALSE;
 }
 
 Exporting void Tamgutreemapll::Clear() {
-    Locking _lock(this);
+    locking();
     values.clear();
+    unlocking();
 }
 
 
 
 Exporting string Tamgutreemapll::String() {
-    Locking _lock(this);
+    locking();
     stringstream res;
 
     res << "{";
@@ -183,12 +210,13 @@ Exporting string Tamgutreemapll::String() {
         beg = false;
         res << it.first << ":" << it.second;
     }
+    unlocking();
     res << "}";
     return res.str();
 }
 
 Exporting string Tamgutreemapll::JSonString() {
-    Locking _lock(this);
+    locking();
     stringstream res;
 
     res << "{";
@@ -199,38 +227,47 @@ Exporting string Tamgutreemapll::JSonString() {
         beg = false;
         res << '"' << it.first << '"' << ":" << it.second;
     }
+    unlocking();
     res << "}";
     return res.str();
 }
 
 
 Exporting long Tamgutreemapll::Integer() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
 
 Exporting double Tamgutreemapll::Float() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
 
 Exporting BLONG Tamgutreemapll::Long() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
 
 Exporting bool Tamgutreemapll::Boolean() {
-    Locking _lock(this);
-    if (values.size() == 0)
-        return false;
-    return true;
+    locking();
+    bool b = values.empty();
+    unlocking();
+    return !b;
 }
 
 
 //Basic operations
 Exporting long Tamgutreemapll::Size() {
-    Locking _lock(this);
-    return values.size();
+    locking();
+    long sz = values.size();
+    unlocking();
+    return sz;
 }
 
 
@@ -284,7 +321,7 @@ Exporting Tamgu*  Tamgutreemapll::Put(Tamgu* idx, Tamgu* ke, short idthread) {
         ke = ke->Map(idthread);
         if (!ke->isMapContainer())
             return globalTamgu->Returnerror("Wrong map initialization", idthread);
-        Locking* _lock = _getlock(this);
+        locking();
         values.clear();
         if (ke->Type() == Tamgutreemapll::idtype)
             values = ((Tamgutreemapll*)ke)->values;
@@ -295,33 +332,34 @@ Exporting Tamgu*  Tamgutreemapll::Put(Tamgu* idx, Tamgu* ke, short idthread) {
             itr->Release();
         }
         ke->Release();
-        _cleanlock(_lock);
+        unlocking();
         return aTRUE;
     }
-    Locking* _lock = _getlock(this);
-    values[idx->Long()] = ke->Long();
-    _cleanlock(_lock);
+    locking();
+    values[idx->Getlong(idthread)] = ke->Long();
+    unlocking();
     return aTRUE;
 }
 
 
 Exporting Tamgu* Tamgutreemapll::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
 
-    Locking _lock(this);
 
     if (!idx->isIndex()) {
         //particular case, the contextualpattern is a vector, which means that we expect a set of keys
         //as a result
-                if (contextualpattern->isMapContainer())
+        if (contextualpattern->isMapContainer())
             return this;
         
-       //particular case, the contextualpattern is a vector, which means that we expect a set of keys
+        //particular case, the contextualpattern is a vector, which means that we expect a set of keys
         //as a result
         if (contextualpattern->isVectorContainer() || contextualpattern->Type() == a_list) {
             Tamgu* vect = contextualpattern->Newinstance(idthread);
+            locking();
             map<BLONG,BLONG>::iterator it;
             for (it = values.begin(); it != values.end(); it++)
                 vect->Push(new Tamgulong(it->first));
+            unlocking();
             return vect;
         }
 
@@ -333,10 +371,10 @@ Exporting Tamgu* Tamgutreemapll::Eval(Tamgu* contextualpattern, Tamgu* idx, shor
         return this;
     }
 
-    Tamgu* key;
     if (idx->isInterval()) {
+        Locking _lock(this);
         Tamgutreemapll* kmap = new Tamgutreemapll;
-        key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
+        Tamgu* key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
         Tamgu* keyright = ((TamguIndex*)idx)->right->Eval(aNULL, aNULL, idthread);
         BLONG vleft = key->Long();
         BLONG vright = keyright->Long();
@@ -369,22 +407,14 @@ Exporting Tamgu* Tamgutreemapll::Eval(Tamgu* contextualpattern, Tamgu* idx, shor
 
     }
 
-    key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
-    
-    if (key == aNULL) {
-        if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong index", idthread);
-        return aNOELEMENT;
-    }
-
-    BLONG skey = key->Long();
-    key->Release();
+    BLONG skey = idx->Getlong(idthread);
 
     Tamgu* kval = Value(skey);
     if (kval == aNOELEMENT) {
         if (globalTamgu->erroronkey)
             return globalTamgu->Returnerror("Wrong index", idthread);
         return aNOELEMENT;
+
     }
     return kval;
 }
@@ -420,7 +450,7 @@ Exporting Tamgu* Tamgutreemapll::xorset(Tamgu* b, bool itself) {
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgutreemapll;
-        hmap<BLONG, BLONG> keys;
+        map<BLONG, BLONG> keys;
 
         for (auto& it : values)
             keys[it.first] = it.second;
@@ -504,22 +534,22 @@ Exporting Tamgu* Tamgutreemapll::plus(Tamgu* b, bool itself) {
 
     Tamgutreemapll* res;
     if (b->isMapContainer()) {
-        map<BLONG,BLONG>::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgutreemapll;
-        BLONG v;
+        BLONG k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
-            v = itr->Valuelong();
-            it = values.find(itr->Keylong());
-            if (it != values.end()) {
-                res->values[it->first] = it->second + v;
+            k = itr->Keylong();
+            try {
+                res->values[k] = values.at(k) + itr->Valuelong();
+            }
+            catch (const std::out_of_range& oor) {
             }
         }
         itr->Release();
         return res;
     }
+
 
     if (itself)
         res = this;
@@ -537,22 +567,22 @@ Exporting Tamgu* Tamgutreemapll::minus(Tamgu* b, bool itself) {
 
     Tamgutreemapll * res;
     if (b->isMapContainer()) {
-        map<BLONG,BLONG>::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgutreemapll;
-        BLONG v;
+        BLONG k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
-            v = itr->Valuelong();
-            it = values.find(itr->Keylong());
-            if (it != values.end()) {
-                res->values[it->first] = it->second - v;
+            k = itr->Keylong();
+            try {
+                res->values[k] = values.at(k) - itr->Valuelong();
+            }
+            catch (const std::out_of_range& oor) {
             }
         }
         itr->Release();
         return res;
     }
+
 
     if (itself)
         res = this;
@@ -570,22 +600,22 @@ Exporting Tamgu* Tamgutreemapll::multiply(Tamgu* b, bool itself) {
 
     Tamgutreemapll * res;
     if (b->isMapContainer()) {
-        map<BLONG,BLONG>::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgutreemapll;
-        BLONG v;
+        BLONG k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
-            v = itr->Valuelong();
-            it = values.find(itr->Keylong());
-            if (it != values.end()) {
-                res->values[it->first] = it->second * v;
+            k = itr->Keylong();
+            try {
+                res->values[k] = values.at(k) * itr->Valuelong();
+            }
+            catch (const std::out_of_range& oor) {
             }
         }
         itr->Release();
         return res;
     }
+
 
     if (itself)
         res = this;
@@ -604,27 +634,22 @@ Exporting Tamgu* Tamgutreemapll::divide(Tamgu* b, bool itself) {
 
     Tamgutreemapll * res;
     if (b->isMapContainer()) {
-        map<BLONG,BLONG>::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgutreemapll;
-        BLONG v;
+        BLONG k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
-            v = itr->Valuelong();
-            if (v == 0) {
-                res->Release();
-                return globalTamgu->Returnerror("Error: Divided by 0");
+            k = itr->Keylong();
+            try {
+                res->values[k] = values.at(k) / itr->Valuelong();
             }
-
-            it = values.find(itr->Keylong());
-            if (it != values.end()) {
-                res->values[it->first] = it->second / v;
+            catch (const std::out_of_range& oor) {
             }
         }
         itr->Release();
         return res;
     }
+
 
     if (itself)
         res = this;
@@ -647,27 +672,22 @@ Exporting Tamgu* Tamgutreemapll::mod(Tamgu* b, bool itself) {
 
     Tamgutreemapll * res;
     if (b->isMapContainer()) {
-        map<BLONG,BLONG>::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgutreemapll;
-        long v;
+        BLONG k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
-            v = itr->Valueinteger();
-            if (v == 0) {
-                res->Release();
-                return globalTamgu->Returnerror("Error: Divided by 0");
+            k = itr->Keylong();
+            try {
+                res->values[k] = values.at(k) % itr->Valueinteger();
             }
-
-            it = values.find(itr->Keylong());
-            if (it != values.end()) {
-                res->values[it->first] = it->second % v;
+            catch (const std::out_of_range& oor) {
             }
         }
         itr->Release();
         return res;
     }
+
 
     if (itself)
         res = this;
@@ -689,22 +709,22 @@ Exporting Tamgu* Tamgutreemapll::shiftright(Tamgu* b, bool itself) {
 
     Tamgutreemapll * res;
     if (b->isMapContainer()) {
-        map<BLONG,BLONG>::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgutreemapll;
-        long v;
+        BLONG k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
-            v = itr->Valueinteger();
-            it = values.find(itr->Keylong());
-            if (it != values.end()) {
-                res->values[it->first] = it->second>> v;
+            k = itr->Keylong();
+            try {
+                res->values[k] = (BLONG)values.at(k)>> itr->Valueinteger();
+            }
+            catch (const std::out_of_range& oor) {
             }
         }
         itr->Release();
         return res;
     }
+
 
     if (itself)
         res = this;
@@ -722,22 +742,22 @@ Exporting Tamgu* Tamgutreemapll::shiftleft(Tamgu* b, bool itself) {
 
     Tamgutreemapll * res;
     if (b->isMapContainer()) {
-        map<BLONG,BLONG>::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgutreemapll;
-        long v;
+        BLONG k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
-            v = itr->Valueinteger();
-            it = values.find(itr->Keylong());
-            if (it != values.end()) {
-                res->values[it->first] = it->second << v;
+            k = itr->Keylong();
+            try {
+                res->values[k] = values.at(k) << itr->Valueinteger();
+            }
+            catch (const std::out_of_range& oor) {
             }
         }
         itr->Release();
         return res;
     }
+
 
     if (itself)
         res = this;
@@ -755,22 +775,22 @@ Exporting Tamgu* Tamgutreemapll::power(Tamgu* b, bool itself) {
 
     Tamgutreemapll * res;
     if (b->isMapContainer()) {
-        map<BLONG,BLONG>::iterator it;
-
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgutreemapll;
-        double v;
+        BLONG k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
-            v = itr->Valuefloat();
-            it = values.find(itr->Keylong());
-            if (it != values.end()) {
-                res->values[it->first] = pow(it->second, v);
+            k = itr->Keylong();
+            try {
+                res->values[k] = pow(values.at(k), itr->Valuefloat());
+            }
+            catch (const std::out_of_range& oor) {
             }
         }
         itr->Release();
         return res;
     }
+
 
     if (itself)
         res = this;
@@ -784,7 +804,7 @@ Exporting Tamgu* Tamgutreemapll::power(Tamgu* b, bool itself) {
 }
 
 Exporting Tamgu* Tamgutreemapll::Loopin(TamguInstruction* ins, Tamgu* context, short idthread) {
-    Locking _lock(this);
+    locking();
     Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
     var = var->Eval(context, aNULL, idthread);
 
@@ -797,22 +817,29 @@ Exporting Tamgu* Tamgutreemapll::Loopin(TamguInstruction* ins, Tamgu* context, s
     for (it=values.begin(); it != values.end(); it++)
         keys.push_back(it->first);
 
-    for (long i = 0; i < keys.size(); i++) {
-
+    long sz = keys.size();
+    a = aNULL;
+    bool testcond = false;
+    for (long i = 0; i < sz && !testcond; i++) {
+        a->Releasenonconst();
         var->storevalue(keys[i]);
 
         a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
         //Continue does not trigger needInvestigate
-        if (a->needInvestigate()) {
-            if (a == aBREAK)
-                break;
-            return a;
-        }
-
-        a->Release();
+        testcond = a->needInvestigate();
     }
 
+    unlocking();
+    
+    if (testcond) {
+        if (a == aBREAK)
+            return this;
+        return a;
+    }
+
+    a->Releasenonconst();
     return this;
 
 }
+

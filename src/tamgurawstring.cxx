@@ -372,7 +372,7 @@ Tamgu* Tamgurawstring::in(Tamgu* context, Tamgu* a, short idthread) {
     if (context->isString()) {
         if (r==-1)
             return aEMPTYSTRING;
-        return globalTamgu->Providestring(val);
+        return globalTamgu->Providewithstring(val);
     }
 
     if (context->isNumber())
@@ -540,7 +540,7 @@ Tamgu* Tamgurawstring::MethodEvaluate(Tamgu* contextualpattern, short idthread, 
     string thestr;
     EvaluateMetaInString(thestr,(char*)value);
     
-    return globalTamgu->Providestring(thestr);
+    return globalTamgu->Providewithstring(thestr);
 }
 
 Tamgu* Tamgurawstring::MethodScan(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -643,7 +643,7 @@ Tamgu* Tamgurawstring::MethodScan(Tamgu* contextualpattern, short idthread, Tamg
         long res,end;
         if (a->search(reg,res,end)) {
             reg = reg.substr(res, end-res);
-            return globalTamgu->Provideustring(reg);
+            return globalTamgu->Providewithustring(reg);
         }
         else
             return aEMPTYSTRING;
@@ -1513,7 +1513,7 @@ Tamgu* Tamgurawstring::MethodBase(Tamgu* contextualpattern, short idthread, Tamg
             v /=b;
             res = caracs[rest]+res;
         }
-        return globalTamgu->Provideustring(res);
+        return globalTamgu->Providewithustring(res);
     }
     
     w = UString();
@@ -1747,7 +1747,7 @@ Tamgu* Tamgurawstring::MethodInsert(Tamgu* contextualpattern, short idthread, Ta
         if (ret.insert(val, idx) == false)
             return aNULL;
     }
-    return globalTamgu->Providestring(ret);
+    return globalTamgu->Providewithstring(ret);
 }
 
 Tamgu* Tamgurawstring::MethodClear(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -1805,7 +1805,7 @@ Tamgu* Tamgurawstring::MethodRemovefirst(Tamgu* contextualpattern, short idthrea
         return aEMPTYSTRING;
 
     s = s.right(iv - id);
-    return globalTamgu->Providestring(s);
+    return globalTamgu->Providewithstring(s);
 }
 
 Tamgu* Tamgurawstring::MethodRemovelast(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -1833,7 +1833,7 @@ Tamgu* Tamgurawstring::MethodFormat(Tamgu* contextualpattern, short idthread, Ta
         sprintf_s(buffer + 1, 100, "%ld", i + 1);
         sformat = s_replacestrings(sformat, buffer, e);
     }
-    return globalTamgu->Providestring(sformat);
+    return globalTamgu->Providewithstring(sformat);
 }
 
 Tamgu* Tamgurawstring::MethodReplace(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -1852,7 +1852,7 @@ Tamgu* Tamgurawstring::MethodReplace(Tamgu* contextualpattern, short idthread, T
             
             for (long i=values.size()-2; i>=0; i-=2)
                 w=w.substr(0,values[i])+rep+w.substr(values[i+1],w.size()-values[i+1]);
-            return globalTamgu->Provideustring(w);
+            return globalTamgu->Providewithustring(w);
         }
 
 #ifdef Tamgu_REGEX
@@ -1861,19 +1861,19 @@ Tamgu* Tamgurawstring::MethodReplace(Tamgu* contextualpattern, short idthread, T
         string w = String();
         
         w = treg->replace(w, rep);
-        return globalTamgu->Providestring(w);
+        return globalTamgu->Providewithstring(w);
 #endif
     }
 
     string str = String();
     string reg = treg->String();
     if (reg == "")
-        return globalTamgu->Providestring(str);
+        return globalTamgu->Providewithstring(str);
 
     string rep = callfunc->Evaluate(1, contextualpattern, idthread)->String();
 
     str = s_replacestring(str, reg, rep);
-    return globalTamgu->Providestring(str);
+    return globalTamgu->Providewithstring(str);
 }
 
 Tamgu* Tamgurawstring::MethodEditdistance(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -1921,7 +1921,7 @@ Tamgu* Tamgurawstring::MethodLast(Tamgu* contextualpattern, short idthread, Tamg
     if (res.size() == 0)
         return aNULL;
     res = c_char_index(res, res.size() - 1);
-    return globalTamgu->Providestring(res);
+    return globalTamgu->Providewithstring(res);
 }
 
 Tamgu* Tamgurawstring::MethodRead(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {

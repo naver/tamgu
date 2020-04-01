@@ -305,7 +305,7 @@ Exporting Tamgu*  Tamgua_mapsf::Put(Tamgu* idx, Tamgu* ke, short idthread) {
         return aTRUE;
     }
 
-    values.set(idx->String(),  ke->Float());
+    values.set(idx->Getstring(idthread),  ke->Float());
     return aTRUE;
 }
 
@@ -376,16 +376,7 @@ Exporting Tamgu* Tamgua_mapsf::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
 
     }
 
-    key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
-    
-    if (key == aNULL) {
-        if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong index", idthread);
-        return aNOELEMENT;
-    }
-
-    string skey = key->String();
-    key->Release();
+    string skey = idx->Getstring(idthread);
 
     if (!values.check(skey)) {
         if (globalTamgu->erroronkey)

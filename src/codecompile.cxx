@@ -1140,11 +1140,10 @@ void TamguGlobal::RecordCompileFunctions() {
     parseFunctions["tloperator"] = &TamguCode::C_operator;
     parseFunctions["tlcomparator"] = &TamguCode::C_operator;
     parseFunctions["tlatom"] = &TamguCode::C_tamgulisp;
-    parseFunctions["opcomp"] = &TamguCode::C_tamgulisp;
     parseFunctions["tlquote"] = &TamguCode::C_tamgulisp;
     parseFunctions["tlist"] = &TamguCode::C_tamgulisp;
-    parseFunctions["tlquotepure"] = &TamguCode::C_tamgulisp;
-    parseFunctions["tlistpure"] = &TamguCode::C_tamgulisp;
+    parseFunctions["tlpurequote"] = &TamguCode::C_tamgulisp;
+    parseFunctions["tpurelist"] = &TamguCode::C_tamgulisp;
 }
 
 
@@ -2742,8 +2741,12 @@ Tamgu* TamguCode::C_regularcall(x_node* xn, Tamgu* parent) {
                                 else {
                                     if (call->isVariable())
                                         call = new TamguFunctionDeclarationCall(call->Name(), global, parent);
-                                    else
-                                        call = CreateCallFunction(call, parent);
+                                    else {
+                                        if (call->Type() == a_lisp)
+                                            call = new TamguCallLispFunction(call, global, parent);
+                                        else
+                                            call = CreateCallFunction(call, parent);
+                                    }
                                 }
                             }
                             else
@@ -3182,6 +3185,7 @@ Tamgu* TamguCode::C_indexes(x_node* xn, Tamgu* parent) {
 	if (xn->nodes.size() == 2)
 		Traverse(xn->nodes[1], idx);
 
+    idx->Checkconst();
 	return idx;
 }
 
@@ -3233,6 +3237,7 @@ Tamgu* TamguCode::C_interval(x_node* xn, Tamgu* parent) {
 		idx->interval = true;
 	}
 
+    idx->Checkconst();
 	return idx;
 }
 
@@ -4856,18 +4861,50 @@ Tamgu* TamguCode::C_blocs(x_node* xn, Tamgu* kf) {
 							global->predicates[id] = new TamguPredicateFunction(global, NULL, id);
 					}
 				}
-                if (nsub->nodes.size() && nsub->nodes[0]->token == "hdata") {//Taskell data declaration
-                    try {
-                        Traverse(nsub->nodes[0], kf);
+                else {
+                    if (nsub->nodes.size() && nsub->nodes[0]->token == "hdata") {//Taskell data declaration
+                        try {
+                            Traverse(nsub->nodes[0], kf);
+                        }
+                        catch (TamguRaiseError* m) {
+                            throw m;
+                        }
+                        
+                        //We then mark the structure as having been consummed already
+                        nsub->nodes[0]->value = "$";
                     }
-                    catch (TamguRaiseError* m) {
-                        throw m;
+                    else {
+                        if (nsub->nodes.size() && nsub->token == "sousbloc") {
+                            //We want lisp "defun" function to be pre-declared as a main function
+                            nsub = nsub->nodes[0];
+                            if (nsub->token == "tamgulisp") {
+                                x_node* root = nsub;
+                                nsub = nsub->nodes[0];
+                                //We check if we have a defun
+                                if (nsub->token == "tlist") {
+                                    if (nsub->nodes[0]->value == "defun") {
+                                        Tamgulispcode lsp(NULL, NULL);
+                                        //Then we precompiled our structure...
+                                        Traverse(nsub, &lsp);
+                                        Tamgu* l = aNULL;
+                                        if (lsp.Size() == 1)
+                                            l = lsp.values[0]->Eval(kf, aNULL, 0);
+                                        
+                                        if (!l->isFunction()) {
+                                            stringstream message;
+                                            message << "Wrong definition of a lisp 'defun' function";
+                                            throw new TamguRaiseError(message, filename, current_start, current_end);
+                                        }
+                                        //and we remove it from future analysis
+                                        delete nsub;
+                                        root->nodes.clear();
+                                    }
+                                }
+                            }
+                        }
                     }
-                    
-                    //We then mark the structure as having been consummed already
-                    nsub->nodes[0]->value = "$";
                 }
-				continue;
+                continue;
 			}
 
 			if (xn->nodes[i]->token == "function" || xn->nodes[i]->token == "frame") {
@@ -9383,7 +9420,7 @@ Tamgu* TamguCode::C_token(x_node* xn, Tamgu* kf) {
 
 
 Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
-    //We have four cases: tlatom, tlquote opcomp, tlist
+    //We have four cases: tlatom, tlquote tlcomparator, tloperator, tlist
     Tamgu* a;
     if (xn->token == "tlatom") {
         if (xn->nodes[0]->token == "word") {
@@ -9415,12 +9452,12 @@ Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
     Tamgu* kf = parent;
 
     if (compilemode) {
-        if (xn->token == "tlquote" || xn->token == "tlquotepure") {
+        if (xn->token == "tlquote" || xn->token == "tlpurequote") {
             kf = new Tamgulispcode(global, parent);
             kf->Setaction(a_quote);
         }
         else {
-            if (xn->token == "tlist" || xn->token == "tlistpure") {
+            if (xn->token == "tlist" || xn->token == "tpurelist") {
                 if (!xn->nodes.size()) {
                     kf = aEMPTYLISP;
                     parent->AddInstruction(kf);
@@ -9431,24 +9468,73 @@ Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
         }
     }
     else {
-        if (xn->token == "tlquotepure") {
+        if (xn->token == "tlpurequote") {
             kf = globalTamgu->Providelisp();
             kf->Setaction(a_quote);
-            parent->Push(kf);
+            parent->push(kf);
         }
         else {
-            if (xn->token == "tlistpure") {
+            if (xn->token == "tpurelist") {
                 if (!xn->nodes.size())
                     kf = aEMPTYLISP;
                 else
                     kf = globalTamgu->Providelisp();
-                parent->Push(kf);
+                parent->push(kf);
             }
         }
     }
     
-    for (long i = 0; i < xn->nodes.size(); i++)
-            Traverse(xn->nodes[i], kf);
+    long i;
+    for (i = 0; i < xn->nodes.size(); i++)
+        Traverse(xn->nodes[i], kf);
+    
+    //The next section deals with idea of precompiling some function calls
+    //there are three cases, when we do not want to evaluate a specific list
+    //defun: if the list is 3, then kf is the list of parameters, no evaluation
+    //lambda: if the list is 2, then kf is the list of parameters, no evaluation
+    //quote: The next element is of course not evaluated
+    i = parent->Size();
+    short n;
+    if (i > 1 && parent->isLisp() && parent != kf) {
+        a = parent->getvalue(0);
+        n = a->Action();
+        if ((n == a_lambda || n == a_quote) && i == 2)
+            return kf;
+        if (n == a_defun && i == 3)
+            return kf;
+    }
+    
+    if (kf->Size()) {
+        a = kf->getvalue(0);
+        n = a->Name();
+        if (n > a_lisp && a->Type() == a_atom) {
+            //This is a call to a function
+            if (isDeclared(n)) {
+                a = Declaration(n);
+                if (a->isFunction()) {
+                    if (a->Type() == a_lisp)
+                        ((Tamgulisp*)kf)->values[0] = global->Providelispsymbols(n, a_calllisp);
+                    else
+                        ((Tamgulisp*)kf)->values[0] = global->Providelispsymbols(n, a_callfunction);
+                }
+            }
+            else {
+                if (globalTamgu->procedures.check(n)) {
+                    ((Tamgulisp*)kf)->values[0] = global->Providelispsymbols(n, a_callprocedure);
+                }
+                else {
+                    if (globalTamgu->commons.check(n)) {
+                        ((Tamgulisp*)kf)->values[0] = global->Providelispsymbols(n, a_callcommon);
+                    }
+                    else {
+                        if (globalTamgu->allmethods.check(n)) {
+                            ((Tamgulisp*)kf)->values[0] = global->Providelispsymbols(n, a_callmethod);
+                        }
+                    }
+                }
+            }
+        }
+    }
     
     return kf;
 }

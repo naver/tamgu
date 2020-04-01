@@ -429,7 +429,7 @@ class Tamgutable : public TamguObjectContainer {
             res += values[it]->String();
         }
 
-        return globalTamgu->Providestring(res);
+        return globalTamgu->Providewithstring(res);
     }
 
     Tamgu* MethodUnique(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -635,6 +635,7 @@ class Tamgutable : public TamguObjectContainer {
 
     Exporting string JSonString();
     Exporting string String();
+    void Setstring(string& v, short idthread);
 
     //wstring UString() {}
 
