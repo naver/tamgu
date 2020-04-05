@@ -5065,13 +5065,13 @@ Tamgu* TamguCode::C_frame(x_node* xn, Tamgu* kf) {
 
 	global->Pushstack(kframe);
 
-	bool replace = false;
+	bool inherit = false;
 	//If it is a sub-frame definition
 	if (kf->isFrame()) {
 		//We copy all our declarations in it
 		//These declarations, will be replaced by local ones if necessary
 		kf->Sharedeclaration(kframe, false);
-		replace = true;
+		inherit = true;
 	}
 
 	//We then record this new Frame in our instructions list
@@ -5110,7 +5110,7 @@ Tamgu* TamguCode::C_frame(x_node* xn, Tamgu* kf) {
 
 	global->Popstack();
 
-	if (replace)
+	if (inherit)
 		kf->Sharedeclaration(kframe, true);
 
 	//The initial function returns the frame itself in the case of a frame...
