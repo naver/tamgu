@@ -280,6 +280,9 @@ public:
         return func;
     }
     
+    //A bit of explanation. If we try to execute a method belonging to a frame, from which the current
+    //frame derives, then the reference to variables is local to the frame, in which the method was declared.
+    //We then declare each potential target as a local variable for each top frames.
     void Pushframe(short idthread) {
         if (!frame->topframe)
             globalTamgu->Storevariable(idthread, frame->name, this);

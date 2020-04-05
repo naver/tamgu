@@ -2553,6 +2553,23 @@ public:
         
     }
 
+    bool Pushdeclaration(TamguFrame* k) {
+        if (k->topframe != NULL)
+            return false;
+        
+        basebin_hash<Tamgu*>::iterator it;
+        for (it = declarations.begin(); it != declarations.end(); it++) {
+            if (it->second->isFunction()) {
+                if (!k->declarations.check(it->first))
+                    k->declarations[it->first] = it->second;
+            }
+            else
+                k->Declare(it->first, it->second);
+        }
+        k->topframe = this;
+        return true;
+    }
+    
     void Sharedeclaration(TamguFrame* k, bool final) {
         basebin_hash<Tamgu*>::iterator it;
         //The first time, we copy the functions...

@@ -449,6 +449,8 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
                             //we find it in this section...
                         //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
                         //otherwise, we might loose a substring present before but with a different alignement with shift
+                        //More exactly, there might be a solution for shift=0 and shift=1, but the solution to shift=0 is AFTER the one
+                        //for shift=1, which means that we will return the second string instead of the first.
                         if (shift == 1) {bitscanforward(j,q);s+=j;} else j = 0;
                         for (; j < 31; j++) {
                             if (*s == c && s[1] == search[1] && (small || s[2] == search[2])) {

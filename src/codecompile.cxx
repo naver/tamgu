@@ -5821,42 +5821,50 @@ Tamgu* TamguCode::C_taskellbasic(x_node* xn, Tamgu* kf) {
 Tamgu* TamguCode::C_hdata(x_node* xn, Tamgu* kf) {
 	//we create a frame, whose name is the value of that data structure...
     //The structure has already been analyzed...
-    if (xn->value == "$")
-        return kf;
     
-	string name = xn->nodes[0]->value;
-	short idname = global->Getid(name);
+    string name = xn->nodes[0]->value;
+    short idname = global->Getid(name);
+    TamguFrame* kframe;
 
-	TamguFrame* kframe;
-
-	if (global->frames.check(idname))
-		kframe = global->frames[idname];
-	else {
-		kframe = new TamguFrame(idname, false, global, kf);
-		Tamguframeseeder::RecordFrame(idname, kframe, global);
-		//We consider each frame as a potential procedure that will create a frame of the same type.
-		global->RecordOneProcedure(name, ProcCreateFrame, P_FULL);
-		global->returntypes[idname] = idname;
-		//We then record this new Frame in our instructions list
-		//We also store it at the TOP level, so that others can have access to it...
-		mainframe.Declare(kframe->name, kframe);
-
-		global->SetCompatibilities(idname);
-	}
-
-	global->Pushstack(kframe);
-
-	bool deriving = false;
-	long maxnodes = xn->nodes.size();
+    bool deriving = false;
+    long maxnodes = xn->nodes.size();
     x_node* x_deriving=NULL;
-	if (xn->nodes.back()->token == "deriving") {
-		deriving = true;
-		maxnodes--;
+    if (xn->nodes.back()->token == "deriving") {
+        deriving = true;
+        maxnodes--;
         x_deriving=xn->nodes.back();
         xn->nodes.pop_back();
-	}
+    }
 
-	for (int i = 1; i < maxnodes; i++) {
+    //The structure is pre-analysed in blocs. When we reach this "$", it means that the
+    //structure has already been successfully created. However, if there is a derivation from an existing frame,
+    //we need to copy the function into it...
+    if (xn->value == "$") {
+        if (!deriving)
+            return kf;
+        kframe = global->frames[idname];
+        x_deriving->token = "*deriving";
+    }
+    else {
+        if (global->frames.check(idname))
+            kframe = global->frames[idname];
+        else {
+            kframe = new TamguFrame(idname, false, global, kf);
+            Tamguframeseeder::RecordFrame(idname, kframe, global);
+            //We consider each frame as a potential procedure that will create a frame of the same type.
+            global->RecordOneProcedure(name, ProcCreateFrame, P_FULL);
+            global->returntypes[idname] = idname;
+            //We then record this new Frame in our instructions list
+            //We also store it at the TOP level, so that others can have access to it...
+            mainframe.Declare(kframe->name, kframe);
+            
+            global->SetCompatibilities(idname);
+        }
+    }
+
+    global->Pushstack(kframe);
+
+    for (int i = 1; i < maxnodes; i++) {
 		if (deriving)
 			xn->nodes[i]->nodes.push_back(x_deriving);
 		Traverse(xn->nodes[i], kframe);
@@ -5874,9 +5882,35 @@ Tamgu* TamguCode::C_hdatadeclaration(x_node* xn, Tamgu* kf) {
     static x_reading xr;
     static bnf_tamgu bnf;
 
+    string name = xn->nodes[0]->value;
+    short idname = global->Getid(name);
+    long maxnodes = xn->nodes.size();
+    
+    if (xn->nodes.back()->token == "*deriving") {
+        maxnodes--;
+        TamguFrame* localframe = NULL;
+        int ii;
+        if (global->frames.check(idname))
+            localframe = global->frames[idname];
+        
+        string classname;
+        for (ii = 0; ii < xn->nodes[maxnodes]->nodes.size(); ii++) {
+            classname = xn->nodes[maxnodes]->nodes[ii]->value;
+            if (classname == "Show" || classname == "Eq" || classname == "Ord")
+                continue;
+            
+            short idframe = global->Getid(classname);
+            localframe = global->frames[idname];
+            if (!global->frames[idframe]->Pushdeclaration(localframe)) {
+                stringstream message;
+                message << "Derivation is limited to one frame. You cannot derive from '" << classname << "'";
+                throw new TamguRaiseError(message, filename, current_start, current_end);
+            }
+        }
+        return kf;
+    }
+    
 	//we create a frame, whose name is the value of a subframe to the data structure...
-	string name = xn->nodes[0]->value;
-	short idname = global->Getid(name);
 
 	//We map a Taskell data structure into a frame...
 	stringstream framecode;
@@ -5885,7 +5919,7 @@ Tamgu* TamguCode::C_hdatadeclaration(x_node* xn, Tamgu* kf) {
 
 	vector<string> variables;
 	vector<string> types;
-    long maxnodes = xn->nodes.size();
+    
 	string nm("d");
     if (maxnodes > 9)
         nm += "00_";
@@ -6065,7 +6099,6 @@ Tamgu* TamguCode::C_hdatadeclaration(x_node* xn, Tamgu* kf) {
 					global->strictcompatibilities[idname][kf->Name()] = true;
 				}
 			}
-			global->frames[idframe]->Sharedeclaration(localframe, false);
 		}
 	}
 	
@@ -6099,22 +6132,6 @@ Tamgu* TamguCode::C_hdatadeclaration(x_node* xn, Tamgu* kf) {
 	else {//otherwise, we add a strictcompatibilities between the mother and the daughter frames...
 		global->compatibilities[kf->Name()][idname] = true;
 		global->strictcompatibilities[kf->Name()][idname] = true;
-	}
-
-	if (deriving && localframe != NULL) {
-		int ii;
-		if (global->frames.check(idname))
-			localframe = global->frames[idname];
-
-		string classname;
-		for (ii = 0; ii < xn->nodes[maxnodes]->nodes.size(); ii++) {
-			classname = xn->nodes[maxnodes]->nodes[ii]->value;
-			if (classname == "Show" || classname=="Eq" || classname=="Ord")
-				continue;
-
-			short idframe = global->Getid(classname);
-			global->frames[idframe]->Sharedeclaration(localframe, true);
-		}
 	}
 
 	return kf;
