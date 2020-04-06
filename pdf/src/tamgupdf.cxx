@@ -126,7 +126,7 @@ Tamgu* Tamgupdf::MethodSave(Tamgu* contextualpattern, short idthread, TamguCall*
     string filename = callfunc->Evaluate(0, contextualpattern, idthread)->String();
     string errMsg;
     
-    if(!pdf.writeToFile(filename, errMsg))
+    if(!writeToFile(filename, errMsg))
         return globalTamgu->Returnerror(errMsg, idthread);
     
     return aTRUE;
@@ -136,18 +136,18 @@ Tamgu* Tamgupdf::MethodWidth(Tamgu* contextualpattern, short idthread, TamguCall
     if (!ready)
         return globalTamgu->Returnerror("Select a font first", idthread);
     
-    return globalTamgu->Provideint(pdf.getWidth());
+    return globalTamgu->Provideint(getWidth());
 }
 
 Tamgu* Tamgupdf::MethodHeight(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     if (!ready)
         return globalTamgu->Returnerror("Select a font first", idthread);
     
-    return globalTamgu->Provideint(pdf.getHeight());
+    return globalTamgu->Provideint(getHeight());
 }
 
 Tamgu* Tamgupdf::MethodNewPage(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-    pdf.newPage();
+    newPage();
     return aTRUE;
 }
 
@@ -162,87 +162,78 @@ Tamgu* Tamgupdf::MethodSetfont(Tamgu* contextualpattern, short idthread, TamguCa
     name = s_to_lower(name);
     
     if (name == "courier") {
-        pdf.setFont(PDF::COURIER, sz);
+        setFont(PDF::COURIER, sz);
         return aTRUE;
     }
     
     if (name == "courier_bold") {
-        pdf.setFont(PDF::COURIER_BOLD, sz);
+        setFont(PDF::COURIER_BOLD, sz);
         return aTRUE;
     }
     
     if (name == "courier_oblique") {
-        pdf.setFont(PDF::COURIER_OBLIQUE, sz);
+        setFont(PDF::COURIER_OBLIQUE, sz);
         return aTRUE;
     }
     
     if (name == "courier_bold_oblique") {
-        pdf.setFont(PDF::COURIER_BOLD_OBLIQUE, sz);
+        setFont(PDF::COURIER_BOLD_OBLIQUE, sz);
         return aTRUE;
     }
     
     if (name == "helvetica") {
-        pdf.setFont(PDF::HELVETICA, sz);
+        setFont(PDF::HELVETICA, sz);
         return aTRUE;
     }
     
     if (name == "helvetica_bold") {
-        pdf.setFont(PDF::HELVETICA_BOLD, sz);
+        setFont(PDF::HELVETICA_BOLD, sz);
         return aTRUE;
     }
     
     if (name == "helvetica_oblique") {
-        pdf.setFont(PDF::HELVETICA_OBLIQUE, sz);
+        setFont(PDF::HELVETICA_OBLIQUE, sz);
         return aTRUE;
     }
     
     if (name == "helvetica_bold_oblique") {
-        pdf.setFont(PDF::HELVETICA_BOLD_OBLIQUE, sz);
+        setFont(PDF::HELVETICA_BOLD_OBLIQUE, sz);
         return aTRUE;
     }
     
     if (name == "symbol") {
-        pdf.setFont(PDF::SYMBOL, sz);
+        setFont(PDF::SYMBOL, sz);
         return aTRUE;
     }
     
     if (name == "times") {
-        pdf.setFont(PDF::TIMES, sz);
+        setFont(PDF::TIMES, sz);
         return aTRUE;
     }
     
     if (name == "times_bold") {
-        pdf.setFont(PDF::TIMES_BOLD, sz);
+        setFont(PDF::TIMES_BOLD, sz);
         return aTRUE;
     }
     
     if (name == "times_italic") {
-        pdf.setFont(PDF::TIMES_ITALIC, sz);
+        setFont(PDF::TIMES_ITALIC, sz);
         return aTRUE;
     }
     
     if (name == "tiles_bold_italic") {
-        pdf.setFont(PDF::TIMES_BOLD_ITALIC, sz);
+        setFont(PDF::TIMES_BOLD_ITALIC, sz);
         return aTRUE;
     }
     
     if (name == "zapf_dingbats") {
-        pdf.setFont(PDF::ZAPF_DINGBATS, sz);
+        setFont(PDF::ZAPF_DINGBATS, sz);
         return aTRUE;
     }
     
     ready = false;
     return globalTamgu->Returnerror("Unknown font name", idthread);
 }
-
-union utf16char {
-    uint32_t c;
-    uchar b[4];
-    
-    utf16char(wchar_t e) {
-        c = e;
-    }
-};
 
 Tamgu* Tamgupdf::MethodshowTextXY(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     wstring text = callfunc->Evaluate(0, contextualpattern, idthread)->UString();
@@ -262,13 +253,13 @@ Tamgu* Tamgupdf::MethodshowTextXY(Tamgu* contextualpattern, short idthread, Tamg
         else
             res += c;
     }
-    pdf.showTextXY(res,x,y);
+    showTextXY(res,x,y);
     return aTRUE;
 }
 
 Tamgu* Tamgupdf::MethodSetencoding(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     string text = callfunc->Evaluate(0, contextualpattern, idthread)->String();
-    pdf.setEncoding(text);
+    setEncoding(text);
     return aTRUE;
 }
 
@@ -286,7 +277,7 @@ Tamgu* Tamgupdf::MethodshowTextHexaXY(Tamgu* contextualpattern, short idthread, 
         sprintf_s(buffer,10,"%X",c);
         res += buffer;
     }
-    pdf.showTextHexaXY(res,x,y);
+    showTextHexaXY(res,x,y);
     return aTRUE;
 }
 
@@ -297,7 +288,7 @@ Tamgu* Tamgupdf::MethodrightJustifyTextXY(Tamgu* contextualpattern, short idthre
     string text = callfunc->Evaluate(0, contextualpattern, idthread)->String();
     int x = callfunc->Evaluate(1, contextualpattern, idthread)->Integer();
     int y = callfunc->Evaluate(2, contextualpattern, idthread)->Integer();
-    pdf.rightJustifyTextXY(text,x,y);
+    rightJustifyTextXY(text,x,y);
     return aTRUE;
 }
 
@@ -309,13 +300,13 @@ Tamgu* Tamgupdf::MethodwrapText(Tamgu* contextualpattern, short idthread, TamguC
     int maxwidth = callfunc->Evaluate(1, contextualpattern, idthread)->Integer();
     bool rightjustify = callfunc->Evaluate(2, contextualpattern, idthread)->Boolean();
     Tamgusvector* vs = (Tamgusvector*)Selectasvector(contextualpattern);
-    vs->values = pdf.wrapText(text,maxwidth,rightjustify);
+    vs->values = wrapText(text,maxwidth,rightjustify);
     return vs;
 }
 
 Tamgu* Tamgupdf::MethodsetLineWidth(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     int value = callfunc->Evaluate(0, contextualpattern, idthread)->Integer();
-    pdf.setLineWidth(value);
+    setLineWidth(value);
     return aTRUE;
 }
 
@@ -324,7 +315,7 @@ Tamgu* Tamgupdf::MethoddrawLine(Tamgu* contextualpattern, short idthread, TamguC
     int y0 = callfunc->Evaluate(1, contextualpattern, idthread)->Integer();
     int x1 = callfunc->Evaluate(2, contextualpattern, idthread)->Integer();
     int y1 = callfunc->Evaluate(3, contextualpattern, idthread)->Integer();
-    pdf.drawLine(x0,y0,x1,y1);
+    drawLine(x0,y0,x1,y1);
     return aTRUE;
 }
 
@@ -333,7 +324,7 @@ Tamgu* Tamgupdf::MethoddrawRect(Tamgu* contextualpattern, short idthread, TamguC
     int y = callfunc->Evaluate(1, contextualpattern, idthread)->Integer();
     int width = callfunc->Evaluate(2, contextualpattern, idthread)->Integer();
     int height = callfunc->Evaluate(3, contextualpattern, idthread)->Integer();
-    pdf.drawRect(x,y,width,height);
+    drawRect(x,y,width,height);
     return aTRUE;
 }
 
@@ -342,7 +333,7 @@ Tamgu* Tamgupdf::MethodfillRect(Tamgu* contextualpattern, short idthread, TamguC
     int y = callfunc->Evaluate(1, contextualpattern, idthread)->Integer();
     int width = callfunc->Evaluate(2, contextualpattern, idthread)->Integer();
     int height = callfunc->Evaluate(3, contextualpattern, idthread)->Integer();
-    pdf.fillRect(x,y,width,height);
+    fillRect(x,y,width,height);
     return aTRUE;
 }
 
@@ -356,7 +347,7 @@ Tamgu* Tamgupdf::MethoddrawPolygon(Tamgu* contextualpattern, short idthread, Tam
         XY v(tamgupoints->getinteger(i),tamgupoints->getinteger(i+1));
         points.push_back(v);
     }
-    pdf.drawPolygon(points);
+    drawPolygon(points);
     return aTRUE;
 }
 
@@ -370,7 +361,7 @@ Tamgu* Tamgupdf::MethodfillPolygon(Tamgu* contextualpattern, short idthread, Tam
         XY v(tamgupoints->getinteger(i),tamgupoints->getinteger(i+1));
         points.push_back(v);
     }
-    pdf.fillPolygon(points);
+    fillPolygon(points);
     return aTRUE;
 }
 
@@ -379,7 +370,7 @@ Tamgu* Tamgupdf::MethoddrawEllipse(Tamgu* contextualpattern, short idthread, Tam
     int ycenter = callfunc->Evaluate(1, contextualpattern, idthread)->Integer();
     int xradius = callfunc->Evaluate(2, contextualpattern, idthread)->Integer();
     int yradius = callfunc->Evaluate(3, contextualpattern, idthread)->Integer();
-    pdf.drawEllipse(xcenter,ycenter,xradius,yradius);
+    drawEllipse(xcenter,ycenter,xradius,yradius);
     return aTRUE;
 }
 
@@ -388,7 +379,7 @@ Tamgu* Tamgupdf::MethodfillEllipse(Tamgu* contextualpattern, short idthread, Tam
     int ycenter = callfunc->Evaluate(1, contextualpattern, idthread)->Integer();
     int xradius = callfunc->Evaluate(2, contextualpattern, idthread)->Integer();
     int yradius = callfunc->Evaluate(3, contextualpattern, idthread)->Integer();
-    pdf.fillEllipse(xcenter,ycenter,xradius,yradius);
+    fillEllipse(xcenter,ycenter,xradius,yradius);
     return aTRUE;
 }
 
@@ -396,7 +387,7 @@ Tamgu* Tamgupdf::MethoddrawCircle(Tamgu* contextualpattern, short idthread, Tamg
     int xcenter = callfunc->Evaluate(0, contextualpattern, idthread)->Integer();
     int ycenter = callfunc->Evaluate(1, contextualpattern, idthread)->Integer();
     int radius = callfunc->Evaluate(2, contextualpattern, idthread)->Integer();
-    pdf.drawCircle(xcenter,ycenter,radius);
+    drawCircle(xcenter,ycenter,radius);
     return aTRUE;
 }
 
@@ -404,7 +395,7 @@ Tamgu* Tamgupdf::MethodfillCircle(Tamgu* contextualpattern, short idthread, Tamg
     int xcenter = callfunc->Evaluate(0, contextualpattern, idthread)->Integer();
     int ycenter = callfunc->Evaluate(1, contextualpattern, idthread)->Integer();
     int radius = callfunc->Evaluate(2, contextualpattern, idthread)->Integer();
-    pdf.fillCircle(xcenter,ycenter,radius);
+    fillCircle(xcenter,ycenter,radius);
     return aTRUE;
 }
 
@@ -412,7 +403,7 @@ Tamgu* Tamgupdf::MethodsetLineColor(Tamgu* contextualpattern, short idthread, Ta
     uchar red = callfunc->Evaluate(0, contextualpattern, idthread)->Byte();
     uchar green = callfunc->Evaluate(1, contextualpattern, idthread)->Byte();
     uchar blue = callfunc->Evaluate(2, contextualpattern, idthread)->Byte();
-    pdf.setLineColor(red,green,blue);
+    setLineColor(red,green,blue);
     return aTRUE;
 }
 
@@ -420,7 +411,7 @@ Tamgu* Tamgupdf::MethodsetFillColor(Tamgu* contextualpattern, short idthread, Ta
     uchar red = callfunc->Evaluate(0, contextualpattern, idthread)->Byte();
     uchar green = callfunc->Evaluate(1, contextualpattern, idthread)->Byte();
     uchar blue = callfunc->Evaluate(2, contextualpattern, idthread)->Byte();
-    pdf.setFillColor(red,green,blue);
+    setFillColor(red,green,blue);
     return aTRUE;
 }
 

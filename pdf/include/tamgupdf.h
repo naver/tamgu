@@ -24,7 +24,7 @@ class Tamgupdf;
 typedef Tamgu* (Tamgupdf::*pdfMethod)(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 //---------------------------------------------------------------------------------------------------------------------
 
-class Tamgupdf : public TamguObject {
+class Tamgupdf : public TamguObject, PDF {
     public:
     //We export the methods that will be exposed for our new object
     //this is a static object, which is common to everyone
@@ -39,7 +39,6 @@ class Tamgupdf : public TamguObject {
     //This SECTION is for your specific implementation...
     //Your personal variables here...
     bool ready;
-    PDF pdf;
     //---------------------------------------------------------------------------------------------------------------------
     Tamgupdf(TamguGlobal* g = NULL, Tamgu* parent = NULL) : TamguObject(g, parent) {
         //Do not forget your variable initialisation

@@ -999,7 +999,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             }
             
             if (v1->isLisp() && v0->isVectorContainer() && !v1->Size()) {
-                if (v1->Size())
+                if (v0->Size())
                     a = aFALSE;
                 else
                     a = aTRUE;
