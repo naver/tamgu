@@ -231,11 +231,8 @@ Exporting void Tamguprimemapl::Resetreference(short inc) {
 Exporting Tamgu* Tamguprimemapl::Push(Tamgu* k, Tamgu* v) {
     locking();
     BLONG s = k->Long();
-    if (values.find(s) != values.end()) {
-        Tamgu* kval = values[s];
-        values.erase(s);
-        kval->Removereference(reference + 1);
-    }
+    if (values.find(s) != values.end())
+        values[s]->Removereference(reference + 1);
 
     v = v->Atom();
     values[s] = v;

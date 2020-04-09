@@ -235,11 +235,8 @@ Exporting void Tamguprimemapi::Resetreference(short inc) {
 Exporting Tamgu* Tamguprimemapi::Push(Tamgu* k, Tamgu* v) {
     locking();
     long s = k->Integer();
-    if (values.find(s) != values.end()) {
-        Tamgu* kval = values[s];
-        values.erase(s);
-        kval->Removereference(reference + 1);
-    }
+    if (values.find(s) != values.end())
+        values[s]->Removereference(reference + 1);
 
     v = v->Atom();
     values[s] = v;

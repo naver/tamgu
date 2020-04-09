@@ -1118,7 +1118,7 @@ class Fast_String {
         neo[ineo] = 0;
     }
     
-    inline void set(string ctn) {
+    inline void set(string& ctn) {
         ineo = ctn.size();
         if (ineo >= lenneo) {
             lenneo += ineo;
@@ -1130,6 +1130,18 @@ class Fast_String {
         neo[ineo] = 0;
     }
 
+    inline void set(uchar* ctn, long size_ctn) {
+        ineo = size_ctn;
+        if (ineo >= lenneo) {
+            lenneo += ineo;
+            lenneo <<= 1;
+            delete[] neo;
+            neo = new uchar[lenneo];
+        }
+        memcpy(neo,ctn, ineo);
+        neo[ineo] = 0;
+    }
+    
     inline void add(uchar* ctn, long size_ctn) {
         if ((ineo + size_ctn) >= lenneo) {
             lenneo += size_ctn;
@@ -1270,6 +1282,14 @@ class Fast_String {
     
     inline char* str() {
         return (char*)neo;
+    }
+    
+    inline uchar operator[](long i) {
+        return neo[i];
+    }
+    
+    inline uchar get(long i) {
+        return neo[i];
     }
     
     inline void downsize(long sz) {

@@ -745,8 +745,7 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
     return -1;
 }
 
-void find_intel_all(string& src, string& search, vector<long>& pos) {
-    long lensrc = src.size();
+void find_intel_all(unsigned char* src, long lensrc, string& search, vector<long>& pos) {
     long lensearch = search.size();
     
     if (lensearch > lensrc)
@@ -774,7 +773,7 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
                 //We then scan our string for this first character...
             for (; (i + 31) < lensrc; i += 32) {
                     //we load our section, the length should be larger than 16
-                s=USTR(src)+i;
+                s=src+i;
                 current_bytes = _mm256_loadu_si256((const __m256i *)s);
                     //we check if we have a the first character of our string somewhere
                     //in this 16 character window...
@@ -807,7 +806,7 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
                 
                 for (shift = 0; shift < 2; shift++) {
                         //we load our section, the length should be larger than 16
-                    s=USTR(src) + i + shift;
+                    s=src + i + shift;
                         //we read 16 characters at a time, but with a sliding widow
                         //of 15 characters (since we are looking for a double character)
                     current_bytes = _mm256_loadu_si256((const __m256i *)s);
@@ -861,7 +860,7 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
                 shift = 0;
                     //we load our section, the length should be larger than 16
                 for (shift = 0; shift < 4; shift++) {
-                    s=USTR(src) + i + shift;
+                    s=src + i + shift;
                         //we read 16 characters at a time, but with a sliding widow
                         //of 15 characters (since we are looking for a double character)
                     current_bytes = _mm256_loadu_si256((const __m256i *)s);
@@ -915,7 +914,7 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
                 shift = 0;
                     //we load our section, the length should be larger than 16
                 for (shift = 0; shift < 8; shift++) {
-                    s=USTR(src) + i + shift;
+                    s=src + i + shift;
                         //we read 16 characters at a time, but with a sliding widow
                         //of 15 characters (since we are looking for a double character)
                     current_bytes = _mm256_loadu_si256((const __m256i *)s);
@@ -957,7 +956,7 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
     lensrc-=lensearch;
     for (;i<=lensrc;i++) {
         if (src[i] == c) {
-            if (lensearch == 1 || charcomp(USTR(src)+i,USTR(search),lensearch))
+            if (lensearch == 1 || charcomp(src+i,USTR(search),lensearch))
                 pos.push_back(i);
         }
     }
@@ -2586,8 +2585,7 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
     return -1;
 }
 
-void find_intel_all(string& src, string& search, vector<long>& pos) {
-    long lensrc = src.size();
+void find_intel_all(uchar* src, long lensrc,  string& search, vector<long>& pos) {
     long lensearch = search.size();
     
     if (lensearch > lensrc)
@@ -2610,7 +2608,7 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
                 //We then scan our string for this first character...
             for (; (i + 15) < lensrc; i += 16) {
                     //we load our section, the length should be larger than 16
-                s=USTR(src)+i;
+                s=src+i;
                 current_bytes = _mm_loadu_si128((const __m128i *)s);
                     //we check if we have a the first character of our string somewhere
                     //in this 16 character window...
@@ -2642,7 +2640,7 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
             for (; (i + 15) < lensrc; i += 16) {
                 for (shift = 0; shift < 2; shift++) {
                         //we load our section, the length should be larger than 16
-                    s=USTR(src) + i + shift;
+                    s=src + i + shift;
                         //we read 16 characters at a time, but with a sliding widow
                         //of 15 characters (since we are looking for a double character)
                     current_bytes = _mm_loadu_si128((const __m128i *)s);
@@ -2689,7 +2687,7 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
                 shift = 0;
                     //we load our section, the length should be larger than 16
                 for (shift = 0; shift < 4; shift++) {
-                    s=USTR(src)+i+shift;
+                    s=src+i+shift;
                         //we read 16 characters at a time, but with a sliding widow
                         //of 15 characters (since we are looking for a double character)
                     current_bytes = _mm_loadu_si128((const __m128i *)s);
@@ -2729,7 +2727,7 @@ void find_intel_all(string& src, string& search, vector<long>& pos) {
     lensrc-=lensearch;
     for (;i<=lensrc;i++) {
         if (src[i] == c) {
-            if (lensearch == 1 || charcomp(USTR(src)+i,USTR(search),lensearch))
+            if (lensearch == 1 || charcomp(src+i,USTR(search),lensearch))
                 pos.push_back(i);
         }
     }
@@ -12201,7 +12199,7 @@ Exporting long s_rfind(wstring& s, wstring& substr, long i) {
 //we are looking for the substring substr in s
 Exporting void s_findall(string& s, string& substr, vector<long>& v) {
 #ifdef INTELINTRINSICS
-    find_intel_all(s, substr, v);
+    find_intel_all(USTR(s), s.size(), substr, v);
 #else
     long sz = substr.size();
     long pos = s.find(substr, 0);

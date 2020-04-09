@@ -384,10 +384,8 @@ class Tamguprimemapi : public TamguObjectLockContainer {
     Tamgu* Push(long k, Tamgu* a) {
 
         locking();
-        if (values.find(k) != values.end()) {
-            Tamgu* v = values[k];
-            v->Removereference(reference + 1);
-        }
+        if (values.find(k) !=  values.end())
+            values[k]->Removereference(reference + 1);
         a = a->Atom();
         values[k] = a;
         a->Addreference(reference + 1);

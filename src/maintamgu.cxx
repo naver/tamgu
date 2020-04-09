@@ -2391,6 +2391,8 @@ public:
         }
         cout << m_current;
         
+        lispmode=isLispmode();
+        
         return true;
     }
 

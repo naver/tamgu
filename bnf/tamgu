@@ -624,13 +624,13 @@ parentheticexpression := astringdouble^afullstring^astringsimple^anumber^astring
 tlcomparator := [%< %>]^[%~ %=]^[%! %=]^$≠^[%= %=]^[%< %=]^[%> %=]^%<^%>^%=
 tloperator := $×^$÷^[%& %& %&]^[%< %<]^[%> %>]^[%^ %^]^[%* %*]^%&^%|^%+^%-^%*^%/^%%^%^
 
-tlatom := predicatevariable^anumber^word^astringdouble^apreg^aspreg^atreg^astreg
-%tlquote := %' %' [tloperator^tlcomparator^tlquote^tlatom^tlist]
-%tlist := %( ;67 %)^[[tloperator^tlcomparator] [tlquote^tlatom^tlist]+ %)]^[[tlquote^tlatom^tlist]+ %)]
+tlatom := tloperator^tlcomparator^predicatevariable^anumber^word^astringdouble^apreg^aspreg^atreg^astreg
+%tlquote := %' %' [tlquote^tlatom^tlist]
+%tlist := %( ;67 %)^[[tlquote^tlatom^tlist]+ %)]
 %tamgulisp := %\ [tlquote^tlatom^tlist]
 
-%tlpurequote := %' [tloperator^tlcomparator^tlatom^tlpurequote^tpurelist]
-%tpurelist := %( ;67 %)^[[tloperator^tlcomparator] [tlpurequote^tlatom^tpurelist]+ %)]^[[tlpurequote^tlatom^tpurelist]+ %)]
+%tlpurequote := %' [tlatom^tlpurequote^tpurelist]
+%tpurelist := %( ;67 %)^[[tlpurequote^tlatom^tpurelist]+ %)]
 %tamgupurelisp := [tlpurequote^tlatom^tpurelist]+
 ########## Grammar pattern: tk :=  ... ############################
 ameta := [%?^[%% ;59 [%d^%p^%c^%C^%H^%a^%r^%s^%S^%?^%%]]] (%_)

@@ -475,7 +475,8 @@ Tamgu* Tamgustring::EvalIndex(Tamgu* kidx, TamguIndex* idx, short idthread) {
         return inter;
     }
     Fast_String* str = &basestr;
-    if (globalTamgu->globalLOCK)
+    
+    if (idthread)
         str = new Fast_String(value.size());
     
     if (res == 1)
@@ -503,7 +504,7 @@ Tamgu* Tamgustring::EvalIndex(Tamgu* kidx, TamguIndex* idx, short idthread) {
     
     Tamgustring* inter = globalTamgu->Providestring();
     inter->value = str->str();
-    if (globalTamgu->globalLOCK)
+    if (idthread)
         delete str;
 
     if (kidx != NULL) {
@@ -1679,7 +1680,7 @@ Tamgu* TamguCallFunction0::Eval(Tamgu* domain, Tamgu* a, short idthread) {
     
     globalTamgu->Pushstack(environment, idthread);
     //We then apply our function within this environment
-    a = body->Eval(environment, aNULL, idthread);
+    a = ((TamguFunction*)body)->Eval(environment, aNULL, idthread);
     globalTamgu->Popstack(idthread);
     
     //if a has no reference, then it means that it was recorded into the environment
@@ -2262,12 +2263,12 @@ Tamgu* TamguInstruction::Eval(Tamgu* context, Tamgu* a, short idthread) {
 	return aNULL;
 }
 
-Tamgu* TamguFunction::Eval(Tamgu* environment, Tamgu* obj, short idthread) {
+Tamgu* TamguFunction::Eval(Tamgu* environment, Tamgu* a, short idthread) {
 	long size = instructions.size();
 
 	_setdebugfull(idthread, this);
 
-	Tamgu* a = aNULL;
+	a = aNULL;
     bool testcond = false;
 
 	for (long i = 0; i < size && !testcond; i++) {
@@ -2277,7 +2278,7 @@ Tamgu* TamguFunction::Eval(Tamgu* environment, Tamgu* obj, short idthread) {
         a = instructions.vecteur[i];
         
 		_debugpush(a);
-		a = a->Eval(environment, obj, idthread);
+		a = a->Eval(environment, aNULL, idthread);
 		_debugpop();
 
         testcond = globalTamgu->Error(idthread) || a->needFullInvestigate();

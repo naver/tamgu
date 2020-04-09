@@ -83,6 +83,8 @@ bool Tamgulisp::InitialisationModule(TamguGlobal* global, string version) {
     global->lispactions[a_lessequal] = P_THREE;
     global->lispactions[a_moreequal] = P_THREE;
     
+    global->lispactions[a__map] = P_THREE;
+    global->lispactions[a__filter] = P_THREE;
     global->lispactions[a_or] = P_ATLEASTTHREE;
     global->lispactions[a_xor] = P_ATLEASTTHREE;
     global->lispactions[a_and] = P_ATLEASTTHREE;
@@ -1374,6 +1376,152 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             a = lsp.Eval(contextualpattern, aNULL, idthread);
             v1->Releasenonconst();
             return a;
+        }
+        case a__map:
+        {
+            //First element is the operation, second element the list
+            v0 = values[1]->Eval(aNULL, aNULL, idthread);
+            checkerror(v0);
+            if (v0->isFunction()) // in this case it is a lambda, we can simply keep it
+                v0 = values[1];
+            else {
+                if (!v0->isLisp() && !globalTamgu->checkoperator(v0->Action()))
+                    return globalTamgu->Returnerror("Wrong list of operations for '_map'", idthread);
+            }
+            v1 = values[2]->Eval(contextualpattern, aNULL, idthread);
+            checkerror(v1);
+            if (!v1->isVectorContainer())
+                return globalTamgu->Returnerror("Wrong list of arguments for '_map'", idthread);
+            //We prepare our solution... Either the content of v0 is one or two
+            
+            Tamgulisp lsp(-1);
+            if (v0->isLisp()) {
+                sz = v0->Size();
+                if (sz == 2) {
+                    a = ((Tamgulisp*)v0)->values[1];
+                    if (globalTamgu->checkoperator(a->Action())) {
+                        lsp.pushatom(a);
+                        lsp.values.push_back(aNULL);
+                        a = ((Tamgulisp*)v0)->values[0];
+                        if (!a->isConst())
+                            a = a->Eval(aNULL, aNULL, idthread);
+                        lsp.push(a);
+                        a->Release();
+                        sz = 1;
+                    }
+                    else {
+                        lsp.pushatom(((Tamgulisp*)v0)->values[0]);
+                        a = ((Tamgulisp*)v0)->values[1];
+                        if (!a->isConst())
+                            a = a->Eval(aNULL, aNULL, idthread);
+                        lsp.push(a);
+                        a->Release();
+                        lsp.values.push_back(aNULL);
+                    }
+                }
+                else {//lambda
+                    if (sz == 1)
+                        lsp.pushatom(((Tamgulisp*)v0)->values[0]);
+                    else
+                        lsp.pushatom(v0);
+                    lsp.values.push_back(aNULL);
+                    sz = 1;
+                }
+            }
+            else {
+                sz = 0;
+                lsp.values.push_back(v0);
+                lsp.values.push_back(aNULL);
+                lsp.values.push_back(aNULL);
+            }
+            
+            Tamgulisp* l = globalTamgu->Providelisp();
+            Tamgu* e;
+            for (i = 0; i < v1->Size(); i++) {
+                e = ((Tamguvector*)v1)->values[i]->Eval(aNULL, aNULL, idthread);
+                
+                if (!sz) {
+                    lsp.values[1] = e;
+                    lsp.values[2] = e;
+                }
+                else
+                    lsp.values[sz] = e;
+                
+                e->Setreference();
+                a = lsp.Eval(aNULL, aNULL, idthread);
+                e->Resetreference();
+
+                l->push(a);
+                a->Release();
+            }
+
+            if (lsp.values.size()==3) {
+                if (sz == 2)
+                    lsp.values[1]->Resetreference();
+                else
+                    if (sz == 1)
+                        lsp.values[2]->Resetreference();
+            }
+            v1->Release();
+            v0->Release();
+            return l;
+        }
+        case a__filter:
+        {
+            //First element is the operation, second element the list
+            v0 = values[1]->Eval(aNULL, aNULL, idthread);
+            checkerror(v0);
+            if (v0->isFunction())
+                v0 = values[1];
+            else {
+                if (!v0->isLisp() && !globalTamgu->checkoperator(v0->Action()))
+                    return globalTamgu->Returnerror("Wrong list of operations for '_map'", idthread);
+            }
+
+            v1 = values[2]->Eval(contextualpattern, aNULL, idthread);
+            checkerror(v1);
+            if (!v1->isVectorContainer())
+                return globalTamgu->Returnerror("Wrong list of arguments for '_filter'", idthread);
+            //We prepare our solution... Either the content of v0 is one or two
+            
+            Tamgulisp lsp(-1);
+            sz = v0->Size();
+            if (sz > 2) {
+                lsp.push(v0);
+                lsp.values.push_back(aNULL);
+            }
+            else {
+                lsp.pushatom(((Tamgulisp*)v0)->values[0]);
+                if (sz == 2) {
+                    lsp.values.push_back(aNULL);
+                    a = ((Tamgulisp*)v0)->values[1];
+                    if (!a->isConst())
+                        a = a->Eval(aNULL, aNULL, idthread);
+                    lsp.push(a);
+                    a->Release();
+                }
+                else
+                    lsp.values.push_back(aNULL);
+            }
+            
+            Tamgulisp* l = globalTamgu->Providelisp();
+            Tamgu* e;
+            for (i = 0; i < v1->Size(); i++) {
+                e = ((Tamguvector*)v1)->values[i]->Eval(aNULL, aNULL, idthread);
+                lsp.values[1] = e;
+                
+                e->Setreference();
+                a = lsp.Eval(aNULL, aNULL, idthread);
+                if (a->Boolean() == true)
+                    l->push(e);
+                e->Resetreference();
+                a->Release();
+            }
+            if (lsp.values.size()==3)
+                lsp.values[2]->Resetreference();
+            v1->Release();
+            v0->Release();
+            return l;
         }
         case a_lisp:
         {

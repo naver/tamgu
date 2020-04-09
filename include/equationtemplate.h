@@ -4341,25 +4341,21 @@ public:
     }
 
     string Getstring(short idthread) {
-        short r = op->Getshort(idthread);
-        return convertfromnumber(r);
+        return convertfromnumber((short)op->Getshort(idthread));
     }
     
     wstring Getustring(short idthread) {
-        short r = op->Getshort(idthread);
-        return wconvertfromnumber(r);
+        return wconvertfromnumber((short)op->Getshort(idthread));
     }
-
+    
     void Setstring(string& s, short idthread) {
-        short r = op->Getshort(idthread);
-        s = convertfromnumber(r);
+        s = convertfromnumber((short)op->Getshort(idthread));
     }
     
     void Setstring(wstring& s, short idthread) {
-        short r = op->Getshort(idthread);
-        s = wconvertfromnumber(r);
+        s = wconvertfromnumber((short)op->Getshort(idthread));
     }
-    
+
 
     Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
         short r = op->Getshort(idthread);
@@ -4405,23 +4401,19 @@ public:
     }
 
     string Getstring(short idthread) {
-        long r = op->Getinteger(idthread);
-        return convertfromnumber(r);
+        return convertfromnumber((long)op->Getinteger(idthread));
     }
     
     wstring Getustring(short idthread) {
-        long r = op->Getinteger(idthread);
-        return wconvertfromnumber(r);
+        return wconvertfromnumber((long)op->Getinteger(idthread));
     }
     
     void Setstring(string& s, short idthread) {
-        long r = op->Getinteger(idthread);
-        convertnumber(r, s);
+        s = convertfromnumber((long)op->Getinteger(idthread));
     }
     
     void Setstring(wstring& s, short idthread) {
-        long r = op->Getinteger(idthread);
-        convertnumber(r, s);
+        s = wconvertfromnumber((long)op->Getinteger(idthread));
     }
 
     Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
@@ -4471,25 +4463,20 @@ public:
     }
 
     string Getstring(short idthread) {
-        float r = op->Getdecimal(idthread);
-        return convertfromnumber(r);
+        return convertfromnumber((float)op->Getdecimal(idthread));
     }
     
     wstring Getustring(short idthread) {
-        float r = op->Getdecimal(idthread);
-        return wconvertfromnumber(r);
+        return wconvertfromnumber((float)op->Getdecimal(idthread));
     }
     
     void Setstring(string& s, short idthread) {
-        long r = op->Getinteger(idthread);
-        s = convertfromnumber(r);
+        s = convertfromnumber((float)op->Getdecimal(idthread));
     }
     
     void Setstring(wstring& s, short idthread) {
-        long r = op->Getinteger(idthread);
-        s = wconvertfromnumber(r);
+        s = wconvertfromnumber((float)op->Getdecimal(idthread));
     }
-
 
     Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
         float r = op->Getdecimal(idthread);
@@ -4536,23 +4523,19 @@ public:
     }
 
     string Getstring(short idthread) {
-        double r = op->Getfloat(idthread);
-        return convertfromnumber(r);
+        return convertfromnumber((double)op->Getfloat(idthread));
     }
     
     wstring Getustring(short idthread) {
-        double r = op->Getfloat(idthread);
-        return wconvertfromnumber(r);
+        return wconvertfromnumber((double)op->Getfloat(idthread));
     }
     
     void Setstring(string& s, short idthread) {
-        long r = op->Getinteger(idthread);
-        convertnumber(r, s);
+        s = convertfromnumber((double)op->Getfloat(idthread));
     }
     
     void Setstring(wstring& s, short idthread) {
-        long r = op->Getinteger(idthread);
-        convertnumber(r, s);
+        s = wconvertfromnumber((double)op->Getfloat(idthread));
     }
 
     Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
@@ -4599,23 +4582,19 @@ public:
     }
 
     string Getstring(short idthread) {
-        BLONG r = op->Getlong(idthread);
-        return convertfromnumber(r);
+        return convertfromnumber((BLONG)op->Getlong(idthread));
     }
     
     wstring Getustring(short idthread) {
-        BLONG r = op->Getlong(idthread);
-        return wconvertfromnumber(r);
+        return wconvertfromnumber((BLONG)op->Getlong(idthread));
     }
     
     void Setstring(string& s, short idthread) {
-        long r = op->Getinteger(idthread);
-        s = convertfromnumber(r);
+        s = convertfromnumber((BLONG)op->Getlong(idthread));
     }
     
     void Setstring(wstring& s, short idthread) {
-        long r = op->Getinteger(idthread);
-        s = wconvertfromnumber(r);
+        s = wconvertfromnumber((BLONG)op->Getlong(idthread));
     }
 
     Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {

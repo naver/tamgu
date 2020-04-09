@@ -379,16 +379,12 @@ class Tamguprimemapf : public TamguObjectLockContainer {
 
     //------------------------------------------------------------------------------------------
     Exporting Tamgu* Push(Tamgu* k, Tamgu* v);
-    
-    
     Exporting Tamgu* Pop(Tamgu* k);
     Tamgu* Push(double k, Tamgu* a) {
 
         locking();
-        if (values.find(k) != values.end()) {
-            Tamgu* v = values[k];
-            v->Removereference(reference + 1);
-        }
+        if (values.find(k) !=  values.end())
+            values[k]->Removereference(reference + 1);
         a = a->Atom();
         values[k] = a;
         a->Addreference(reference + 1);

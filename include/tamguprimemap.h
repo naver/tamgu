@@ -385,9 +385,8 @@ class Tamguprimemap : public TamguObjectLockContainer {
     Exporting Tamgu* Pop(Tamgu* kkey);
 
     Tamgu* push(string k, Tamgu* a) {
-        Tamgu* v = values[k];
-        if (v != NULL)
-            v->Removereference(reference + 1);
+        if (values.find(k) !=  values.end())
+            values[k]->Removereference(reference + 1);
         values[k] = a;
         a->Setreference();
         return this;
@@ -395,9 +394,8 @@ class Tamguprimemap : public TamguObjectLockContainer {
 
     Tamgu* Push(string k, Tamgu* a) {
         locking();
-        Tamgu* v = values[k];
-        if (v != NULL)
-            v->Removereference(reference + 1);
+        if (values.find(k) !=  values.end())
+            values[k]->Removereference(reference + 1);
         a = a->Atom();
         values[k] = a;
         a->Addreference(reference + 1);
@@ -407,9 +405,8 @@ class Tamguprimemap : public TamguObjectLockContainer {
 
     inline void pushing(string& k, Tamgu* a) {
         locking();
-        Tamgu* v = values[k];
-        if (v != NULL)
-            v->Removereference(reference + 1);
+        if (values.find(k) !=  values.end())
+            values[k]->Removereference(reference + 1);
         a = a->Atom();
         values[k] = a;
         a->Addreference(reference + 1);

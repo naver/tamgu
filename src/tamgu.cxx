@@ -41,7 +41,7 @@
 #include "tamgulisp.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2020.04.06";
+const char* tamgu_version = "Tamgu 1.2020.04.09";
 
 Tamgu* booleantamgu[2];
 
@@ -1993,12 +1993,14 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("pair"); //222 a_pair,
     Createid("calllisp"); //223 a_calllisp
     Createid("callcommon"); //224 a_callcommon
-    Createid("lisp"); //225 a_lisp
+    Createid("_map"); //225 _map
+    Createid("_filter"); //226 _filter
+    Createid("lisp"); //227 a_lisp
 
     //This is a simple hack to handle "length" a typical Haskell operator as "size"...
     //Note that there will be a useless index
 
-    Createid("length"); //226
+    Createid("length"); //228
     symbolIds["length"] = a_size;
 
     Createid("not"); //225

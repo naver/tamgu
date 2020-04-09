@@ -405,6 +405,10 @@ public:
 
 	bin_hash<short> returntypes;
 
+    bool checkoperator(short a) {
+        return operator_strings.check(a);
+    }
+    
 	//--------------------------------
 	//Buffers...
     vector<TamguPredicateVariableInstance*> pvireservoire;

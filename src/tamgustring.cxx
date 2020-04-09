@@ -1216,30 +1216,38 @@ Tamgu* Tamgustring::MethodMultiSplit(Tamgu* contextualpattern, short idthread, T
 
 
 Tamgu* Tamgustring::MethodSplit(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-
     //Third parameter can be a vector
+    static Fast_String base(256);
+    static vector<long> basevalues;
 
+    
     Tamgu* kvect = NULL;
 
-    string localvalue;
-    locking();
-    string thestr = value;
-    unlocking();
     string thesplitter;
 
+    long sz = Size();
+    
+    bool issvector = true;
+    
     if (contextualpattern->Type() == a_svector || !contextualpattern->isVectorContainer())
         kvect = Selectasvector(contextualpattern);
-    else
+    else {
         kvect = Selectacontainer(contextualpattern, idthread);
+        issvector = false;
+    }
 
     if (callfunc->Size() == 0) {
+        locking();
         unsigned char c;
         //we split along space characters...
-        for (long i = 0; i < thestr.size(); i++) {
-            c = thestr[i];
+        for (long i = 0; i < sz; i++) {
+            c = value[i];
             if (c <= 32) {
                 if (thesplitter.size()) {
-                    kvect->storevalue(thesplitter);
+                    if (issvector)
+                        ((Tamgusvector*)kvect)->values.push_back(thesplitter);
+                    else
+                        kvect->storevalue(thesplitter);
                     thesplitter = "";
                 }
             }
@@ -1248,8 +1256,14 @@ Tamgu* Tamgustring::MethodSplit(Tamgu* contextualpattern, short idthread, TamguC
             }
         }
         
-        if (thesplitter.size())
-            kvect->storevalue(thesplitter);
+        if (thesplitter.size()) {
+            if (issvector)
+                ((Tamgusvector*)kvect)->values.push_back(thesplitter);
+            else
+                kvect->storevalue(thesplitter);
+        }
+        
+        unlocking();
         return kvect;
     }
 
@@ -1257,32 +1271,40 @@ Tamgu* Tamgustring::MethodSplit(Tamgu* contextualpattern, short idthread, TamguC
     if (tamgusplitter->isRegular()) {
         
         if (tamgusplitter->Type() == a_preg) {
-            tamgusplitter->splitting(kvect, thestr);
+            locking();
+            tamgusplitter->splitting(kvect, value);
+            unlocking();
             return kvect;
         }
 
         wstring w = UString();
 
-        vector<long> values;
+        vector<long>* values = &basevalues;
+        if (idthread)
+            values = new vector<long>;
+        else
+            values->clear();
 
-        tamgusplitter->searchall(w,values);
-        if (!values.size())
+        tamgusplitter->searchall(w,*values);
+        if (!values->size())
             return kvect;
         
         //Now we extract the strings in between
         long pos = 0;
         wstring sub;
-        for (long i = 0; i < values.size(); i += 2) {
-            sub = w.substr(pos, values[i]-pos);
-            if (sub != L"")
-                kvect->storevalue(sub);
-            pos=values[i+1];
+        for (long i = 0; i < values->size(); i += 2) {
+            sub = w.substr(pos, values->at(i)-pos);
+            kvect->storevalue(sub);
+            pos=values->at(i+1);
         }
         
         if (pos < w.size()) {
             sub = w.substr(pos,w.size()-pos);
             kvect->storevalue(sub);
         }
+        
+        if (idthread)
+            delete values;
         
         return kvect;
     }
@@ -1291,13 +1313,17 @@ Tamgu* Tamgustring::MethodSplit(Tamgu* contextualpattern, short idthread, TamguC
     
     //Second parameter is the splitter string
     if (thesplitter == "") {
+        locking();
         if (kvect->Type() == Tamgubvector::idtype) {
-            for (long i = 0; i < thestr.size(); i++)
-                kvect->storevalue((unsigned char)thestr[i]);
+            for (long i = 0; i < sz; i++)
+                kvect->storevalue((unsigned char)value[i]);
+            unlocking();
             return kvect;
         }
 
-        agnostring athestr(thestr);
+        agnostring athestr(value);
+        unlocking();
+        
         athestr.begin();
         if (kvect->Type() == Tamguivector::idtype) {
             while (!athestr.end())
@@ -1310,53 +1336,86 @@ Tamgu* Tamgustring::MethodSplit(Tamgu* contextualpattern, short idthread, TamguC
         return kvect;
     }
 
-    size_t pos = 0;
-    size_t found = 0;
-    while (pos != string::npos) {
-        found = s_findbyte(thestr, thesplitter, pos);
-        if (found != string::npos) {
-            localvalue = thestr.substr(pos, found - pos);
-            if (localvalue != "")
-                kvect->storevalue(localvalue);
-            pos = found + thesplitter.size();
-        }
-        else
-            break;
+    long szsplit = thesplitter.size();
+    vector<long>* values = &basevalues;
+    Fast_String* sub = &base;
+    
+    if (idthread) {
+        sub = new Fast_String(szsplit);
+        values = new vector<long>;
     }
+    else
+        values->clear();
 
-    localvalue = thestr.substr(pos, thestr.size() - pos);
-    if (localvalue != "")
-        kvect->storevalue(localvalue);
+    locking();
+    s_findall(value, thesplitter, *values);
 
+    
+    long previous = 0;
+    long szcpy;
+    for (long i = 0; i< values->size(); i++) {
+        if (previous < values->at(i)) {
+            szcpy = values->at(i)-previous;
+            sub->set(USTR(value)+previous, szcpy);
+            if (issvector)
+                ((Tamgusvector*)kvect)->values.push_back(sub->str());
+            else
+                kvect->storevalue(sub->str());
+        }
+        previous = values->at(i) + szsplit;
+    }
+   
+    if (previous < sz) {
+        szcpy = sz-previous;
+        sub->set(USTR(value)+previous, szcpy);
+        if (issvector)
+            ((Tamgusvector*)kvect)->values.push_back(sub->str());
+        else
+            kvect->storevalue(sub->str());
+    }
+    unlocking();
+    
+    if (idthread) {
+        delete sub;
+        delete values;
+    }
+    
     return kvect;
 }
 
 Tamgu* Tamgustring::MethodSplite(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    static Fast_String base(256);
+    static vector<long> basevalues;
 
     //Third parameter can be a vector
-
+    
     Tamgu* kvect = NULL;
-
-    string localvalue;
-    locking();
-    string thestr = value;
-    unlocking();
     
     string thesplitter;
     
+    long sz = Size();
+    
+    bool issvector = true;
+    
     if (contextualpattern->Type() == a_svector || !contextualpattern->isVectorContainer())
         kvect = Selectasvector(contextualpattern);
-    else
+    else {
         kvect = Selectacontainer(contextualpattern, idthread);
-    
+        issvector = false;
+    }
+
     if (callfunc->Size() == 0) {
+        locking();
         unsigned char c;
         //we split along space characters...
-        for (long i = 0; i < thestr.size(); i++) {
-            c = thestr[i];
+        for (long i = 0; i < sz; i++) {
+            c = value[i];
             if (c <= 32) {
                 if (thesplitter.size()) {
-                    kvect->storevalue(thesplitter);
+                    if (issvector)
+                        ((Tamgusvector*)kvect)->values.push_back(thesplitter);
+                    else
+                        kvect->storevalue(thesplitter);
                     thesplitter = "";
                 }
             }
@@ -1365,85 +1424,137 @@ Tamgu* Tamgustring::MethodSplite(Tamgu* contextualpattern, short idthread, Tamgu
             }
         }
         
-        if (thesplitter.size())
-            kvect->storevalue(thesplitter);
+        if (thesplitter.size()) {
+            if (issvector)
+                ((Tamgusvector*)kvect)->values.push_back(thesplitter);
+            else
+                kvect->storevalue(thesplitter);
+        }
+        
+        unlocking();
         return kvect;
     }
-    
+
     Tamgu* tamgusplitter = callfunc->Evaluate(0, contextualpattern, idthread);
     if (tamgusplitter->isRegular()) {
-
         if (tamgusplitter->Type() == a_preg) {
-            tamgusplitter->splitting(kvect, thestr);
+            locking();
+            tamgusplitter->splitting(kvect, value);
+            unlocking();
             return kvect;
         }
         
         wstring w = UString();
+        
+        vector<long>* values = &basevalues;
+        if (idthread)
+            values = new vector<long>;
+        else
+            values->clear();
 
-        vector<long> values;
-
-        tamgusplitter->searchall(w,values);
-        if (!values.size())
+        tamgusplitter->searchall(w,*values);
+        if (!values->size())
             return kvect;
         
         //Now we extract the strings in between
         long pos = 0;
         wstring sub;
-        for (long i = 0; i < values.size(); i += 2) {
-            sub = w.substr(pos, values[i]-pos);
+        for (long i = 0; i < values->size(); i += 2) {
+            sub = w.substr(pos, values->at(i)-pos);
             kvect->storevalue(sub);
-            pos=values[i+1];
+            pos=values->at(i+1);
         }
         
         if (pos < w.size()) {
             sub = w.substr(pos,w.size()-pos);
             kvect->storevalue(sub);
         }
-
+        
+        if (idthread)
+            delete values;
+        
         return kvect;
     }
     
     thesplitter=tamgusplitter->String();
-
+    
     //Second parameter is the splitter string
     if (thesplitter == "") {
+        locking();
         if (kvect->Type() == Tamgubvector::idtype) {
-            for (long i = 0; i < thestr.size(); i++)
-                kvect->storevalue((unsigned char)thestr[i]);
+            for (long i = 0; i < sz; i++)
+                kvect->storevalue((unsigned char)value[i]);
+            unlocking();
             return kvect;
         }
-
-        agnostring athestr(thestr);
+        
+        agnostring athestr(value);
+        unlocking();
+        
         athestr.begin();
         if (kvect->Type() == Tamguivector::idtype) {
             while (!athestr.end())
                 kvect->storevalue((long)athestr.nextcode());
             return kvect;
         }
-
+        
         while (!athestr.end())
             kvect->storevalue(athestr.nextemoji());
         return kvect;
     }
+    
+     long szsplit = thesplitter.size();
+     vector<long>* values = &basevalues;
+     Fast_String* sub = &base;
+     
+     if (idthread) {
+         sub = new Fast_String(szsplit);
+         values = new vector<long>;
+     }
+     else
+         values->clear();
 
-    size_t pos = 0;
-    size_t found = 0;
-    while (pos != string::npos) {
-        found = s_findbyte(thestr, thesplitter, pos);
-        if (found != string::npos) {
-            localvalue = thestr.substr(pos, found - pos);
-            kvect->storevalue(localvalue);
-            pos = found + thesplitter.size();
-        }
-        else
-            break;
-    }
+     locking();
+     s_findall(value, thesplitter, *values);
 
-    localvalue = thestr.substr(pos, thestr.size() - pos);
-    if (localvalue != "")
-        kvect->storevalue(localvalue);
+     
+     long previous = 0;
+     long szcpy;
+     for (long i = 0; i< values->size(); i++) {
+         if (previous < values->at(i)) {
+             szcpy = values->at(i)-previous;
+             sub->set(USTR(value)+previous, szcpy);
+             if (issvector)
+                 ((Tamgusvector*)kvect)->values.push_back(sub->str());
+             else
+                 kvect->storevalue(sub->str());
+         }
+         else {
+             if (issvector)
+                 ((Tamgusvector*)kvect)->values.push_back("");
+             else
+                 kvect->storevalue("");
+         }
 
-    return kvect;
+         previous = values->at(i) + szsplit;
+     }
+    
+     if (previous < sz) {
+         szcpy = sz-previous;
+         sub->set(USTR(value)+previous, szcpy);
+         if (issvector)
+             ((Tamgusvector*)kvect)->values.push_back(sub->str());
+         else
+             kvect->storevalue(sub->str());
+     }
+     unlocking();
+     
+     if (idthread) {
+         delete sub;
+         delete values;
+     }
+     
+     return kvect;
 }
 
 Tamgu* Tamgustring::MethodSlice(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
