@@ -1398,25 +1398,25 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             if (v0->isLisp()) {
                 sz = v0->Size();
                 if (sz == 2) {
-                    a = ((Tamgulisp*)v0)->values[1];
+                    a = ((Tamgulisp*)v0)->values[1]; // (_map '(1 -) '(1 2 3 4))
                     if (globalTamgu->checkoperator(a->Action())) {
                         lsp.pushatom(a);
-                        lsp.values.push_back(aNULL);
                         a = ((Tamgulisp*)v0)->values[0];
                         if (!a->isConst())
                             a = a->Eval(aNULL, aNULL, idthread);
                         lsp.push(a);
                         a->Release();
-                        sz = 1;
+                        lsp.values.push_back(aNULL);
                     }
-                    else {
+                    else { // (_map '(- 1) '(1 2 3 4))
                         lsp.pushatom(((Tamgulisp*)v0)->values[0]);
+                        lsp.values.push_back(aNULL);
                         a = ((Tamgulisp*)v0)->values[1];
                         if (!a->isConst())
                             a = a->Eval(aNULL, aNULL, idthread);
                         lsp.push(a);
                         a->Release();
-                        lsp.values.push_back(aNULL);
+                        sz = 1;
                     }
                 }
                 else {//lambda
@@ -1438,7 +1438,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             Tamgulisp* l = globalTamgu->Providelisp();
             Tamgu* e;
             for (i = 0; i < v1->Size(); i++) {
-                e = ((Tamguvector*)v1)->values[i]->Eval(aNULL, aNULL, idthread);
+                e = v1->getvalue(i);
                 
                 if (!sz) {
                     lsp.values[1] = e;
@@ -1507,7 +1507,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             Tamgulisp* l = globalTamgu->Providelisp();
             Tamgu* e;
             for (i = 0; i < v1->Size(); i++) {
-                e = ((Tamguvector*)v1)->values[i]->Eval(aNULL, aNULL, idthread);
+                e = v1->getvalue(i);
                 lsp.values[1] = e;
                 
                 e->Setreference();

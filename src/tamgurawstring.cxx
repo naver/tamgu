@@ -371,7 +371,7 @@ Tamgu* Tamgurawstring::in(Tamgu* context, Tamgu* a, short idthread) {
 
     string val = a->String();
     string kvalue((char*)value,stringsize);
-    long r = s_find(kvalue, val, 0);
+    long r = s_findbyte(kvalue, val, 0);
 
     if (context->isString()) {
         if (r==-1)
@@ -865,7 +865,7 @@ Tamgu* Tamgurawstring::MethodFind(Tamgu* contextualpattern, short idthread, Tamg
     string str((char*)value,stringsize);
 
     string sub = ksub->String();
-    i = s_find(str, sub, i);
+    i = s_findbyte(str, sub, i);
     
     if (i == -1)
         return aMINUSONE;
@@ -958,7 +958,7 @@ Tamgu* Tamgurawstring::MethodRfind(Tamgu* contextualpattern, short idthread, Tam
     
     string str((char*)value, stringsize);
     string sub = ksub->String();
-    i = s_rfind(str, sub, i);
+    i = s_rfindbyte(str, sub, i);
     
     if (i == string::npos)
         return aMINUSONE;

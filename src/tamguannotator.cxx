@@ -1166,23 +1166,39 @@ Tamgu* Tamguannotator::Apply(Tamguuvector* uvect, Tamgu* res, bool computelexico
 }
     
 Tamgu* Tamguannotator::Apply(An_context* context,Tamgu* res, bool computelexicon, short idthread) {
+    static vector<long> basevinter;
+    static vector<long> basekept;
+    static hmap<long,bool> basevalidrules;
+
+    vector<long>* vinter = &basevinter;
+    vector<long>* kept = &basekept;
+    hmap<long,bool>* validrules = &basevalidrules;
+
+    if (idthread) {
+        vinter = new vector<long>;
+        kept = new vector<long>;
+        validrules = new hmap<long,bool>;
+    }
+    else {
+        vinter->clear();
+        kept->clear();
+        validrules->clear();
+    }
+    
     vector<An_rule*>& vrules= rules->starts;
     long i=0;
     long current, r;
     bool found;
     bool lexiconrulecheck;
-    vector<long> kept;
     An_rule* currentrule;
-    hmap<long,bool> validrules;
     long catrule=-1;
     vector<wstring>& tokens = context->thewords;
-    vector<long> vinter;
 
     while (i<tokens.size()) {
         found=false;
         //We check first if a lexicon rule (a rule starting with a lexical item) is available
         //If it is available, then validrules will contain the rule indexes of the rules that start with an element that is compatible with the current word...
-        lexiconrulecheck=rules->lexiconrulecheck.get(tokens[i],validrules);
+        lexiconrulecheck=rules->lexiconrulecheck.get(tokens[i],*validrules);
         
         for (r=0; r<vrules.size();r++) {
             currentrule = vrules[r];
@@ -1198,7 +1214,7 @@ Tamgu* Tamguannotator::Apply(An_context* context,Tamgu* res, bool computelexicon
                     continue;
             }
             else {//Or lexicon rules have been detected and we only keep the ones that have been stored in validrules...
-                if (currentrule->islexiconrule && validrules.find(r) == validrules.end())
+                if (currentrule->islexiconrule && validrules->find(r) == validrules->end())
                     continue;
             }
             
@@ -1211,31 +1227,31 @@ Tamgu* Tamguannotator::Apply(An_context* context,Tamgu* res, bool computelexicon
             if (!currentrule->hasremove) {
                 current=currentrule->apply(tokens,i,context);
                 if (current!=-1) {
-                    vinter.clear();
+                    vinter->clear();
                     if (!spans) {
                         res->storevalue(currentrule->category);
                         found = true;
                         for (;i<current;i++) {
                             if (computelexicon)
                                 context->labels[currentrule->category][tokens[i]] = true;
-                            vinter.push_back(i);
+                            vinter->push_back(i);
                         }
                         
                         context->classes.push_back(currentrule->category);
-                        context->wordlabels.push_back(vinter);
+                        context->wordlabels.push_back(*vinter);
                         break;
                     }
 
                     Tamguvector* sub=globalTamgu->Providevector();
                     sub->storevalue(currentrule->category);
                     for (;i<current;i++) {
-                        vinter.push_back(i);
+                        vinter->push_back(i);
                         sub->storevalue(i);
                         if (computelexicon)
                             context->labels[currentrule->category][tokens[i]] = true;
                     }
                     context->classes.push_back(currentrule->category);
-                    context->wordlabels.push_back(vinter);
+                    context->wordlabels.push_back(*vinter);
                     res->Push(sub);
                     found=true;
                     break;
@@ -1244,22 +1260,22 @@ Tamgu* Tamguannotator::Apply(An_context* context,Tamgu* res, bool computelexicon
             }
             
             //Else we need to take into account which elements are kept...
-            kept.clear();
-            current=currentrule->apply(tokens,i, kept,context);
+            kept->clear();
+            current=currentrule->apply(tokens,i, *kept,context);
             if (current!=-1) {
-                vinter.clear();
+                vinter->clear();
                 if (!spans) {
                     res->storevalue(currentrule->category);
                     found = true;
                     
-                    for (i=kept.size()-1;i>=0; i--) {
+                    for (i=kept->size()-1;i>=0; i--) {
                         if (computelexicon)
-                            context->labels[currentrule->category][tokens[kept[i]]] = true;
-                        vinter.push_back(i);
+                            context->labels[currentrule->category][tokens[kept->at(i)]] = true;
+                        vinter->push_back(i);
                     }
                     
                     context->classes.push_back(currentrule->category);
-                    context->wordlabels.push_back(vinter);
+                    context->wordlabels.push_back(*vinter);
 
                     i=current;
                     break;
@@ -1267,15 +1283,15 @@ Tamgu* Tamguannotator::Apply(An_context* context,Tamgu* res, bool computelexicon
                 
                 Tamguvector* sub=globalTamgu->Providevector();
                 sub->storevalue(currentrule->category);
-                for (i=kept.size()-1;i>=0; i--) {
-                    vinter.push_back(i);
-                    sub->storevalue(kept[i]);
+                for (i=kept->size()-1;i>=0; i--) {
+                    vinter->push_back(i);
+                    sub->storevalue(kept->at(i));
                     if (computelexicon)
-                        context->labels[currentrule->category][tokens[kept[i]]] = true;
+                        context->labels[currentrule->category][tokens[kept->at(i)]] = true;
                 }
                 
                 context->classes.push_back(currentrule->category);
-                context->wordlabels.push_back(vinter);
+                context->wordlabels.push_back(*vinter);
 
                 res->Push(sub);
                 i=current;
@@ -1289,6 +1305,11 @@ Tamgu* Tamguannotator::Apply(An_context* context,Tamgu* res, bool computelexicon
             i++;
 
         if (globalTamgu->Error(idthread)) {
+            if (idthread) {
+                delete vinter;
+                delete kept;
+                delete validrules;
+            }
             context->thewords.clear();
             return globalTamgu->Errorobject(idthread);
         }
@@ -1351,7 +1372,13 @@ Tamgu* Tamguannotator::Apply(An_context* context,Tamgu* res, bool computelexicon
             }
         }
     }
-    
+
+    if (idthread) {
+        delete vinter;
+        delete kept;
+        delete validrules;
+    }
+
     return res;
 }
 

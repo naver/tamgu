@@ -167,6 +167,9 @@ char x_reading::loop(short i, char* token, char* chr, long& itoken, short& r, lo
 void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<string>& strings, bool lisp);
 
 void x_reading::apply(bool keepos, vector<string>* vstack, vector<unsigned char>* vtype) {
+    static vector<long> prequotes;
+    static vector<string> prestrings;
+    
     char currentchr[] = {0,0,0,0,0};
     char chr[] = {0,0,0,0,0};
 
@@ -200,12 +203,12 @@ void x_reading::apply(bool keepos, vector<string>* vstack, vector<unsigned char>
     parcours.begin();
     parcours.nextc(currentchr, line);
     
-    vector<long> prequotes;
-    vector<string> prestrings;
     long e = 0;
     long presz = 0;
     
     if (lookforquotes) {
+        prequotes.clear();
+        prestrings.clear();
         find_quotes(USTR(parcours), parcours.size(), prequotes,prestrings, lispmode);
         presz = prequotes.size();
     }
