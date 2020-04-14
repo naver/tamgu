@@ -3029,7 +3029,7 @@ Exporting Tamgu* TamguConstUString::CallMethod(short idname, Tamgu* contextualpa
 }
 
 Exporting Tamgu* TamguConstInt::CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc)  {
-    if (!globalTamgu->methods.check(idname) || Arity(globalTamgu->methods.get(a_int)[idname], callfunc->Size()) == false) {
+    if (!globalTamgu->methods.get(a_int).check(idname) || Arity(globalTamgu->methods.get(a_int)[idname], callfunc->Size()) == false) {
         string mess("'");
         mess += globalTamgu->Getsymbol(idname);
         mess += "' : Unknown method or Wrong number of arguments for type: 'int'";
@@ -3043,7 +3043,7 @@ Exporting Tamgu* TamguConstInt::CallMethod(short idname, Tamgu* contextualpatter
 }
 
 Exporting Tamgu* TamguConstShort::CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc)  {
-    if (!globalTamgu->methods.check(idname) || Arity(globalTamgu->methods.get(a_short)[idname], callfunc->Size()) == false) {
+    if (!globalTamgu->methods.get(a_short).check(idname) || Arity(globalTamgu->methods.get(a_short)[idname], callfunc->Size()) == false) {
         string mess("'");
         mess += globalTamgu->Getsymbol(idname);
         mess += "' : Unknown method or Wrong number of arguments for type: 'short'";
@@ -3058,7 +3058,7 @@ Exporting Tamgu* TamguConstShort::CallMethod(short idname, Tamgu* contextualpatt
 }
 
 Exporting Tamgu* TamguConstDecimal::CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc)  {
-    if (!globalTamgu->methods.check(idname) || Arity(globalTamgu->methods.get(a_decimal)[idname], callfunc->Size()) == false) {
+    if (!globalTamgu->methods.get(a_decimal).check(idname) || Arity(globalTamgu->methods.get(a_decimal)[idname], callfunc->Size()) == false) {
         string mess("'");
         mess += globalTamgu->Getsymbol(idname);
         mess += "' : Unknown method or Wrong number of arguments for type: 'decimal'";
@@ -3072,7 +3072,7 @@ Exporting Tamgu* TamguConstDecimal::CallMethod(short idname, Tamgu* contextualpa
 }
 
 Exporting Tamgu* TamguConstFloat::CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc)  {
-    if (!globalTamgu->methods.check(idname) || Arity(globalTamgu->methods.get(a_float)[idname], callfunc->Size()) == false) {
+    if (!globalTamgu->methods.get(a_float).check(idname) || Arity(globalTamgu->methods.get(a_float)[idname], callfunc->Size()) == false) {
         string mess("'");
         mess += globalTamgu->Getsymbol(idname);
         mess += "' : Unknown method or Wrong number of arguments for type: 'float'";
@@ -3086,7 +3086,7 @@ Exporting Tamgu* TamguConstFloat::CallMethod(short idname, Tamgu* contextualpatt
 }
 
 Exporting Tamgu* TamguConstLong::CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-    if (!globalTamgu->methods.check(idname) || Arity(globalTamgu->methods.get(a_long)[idname], callfunc->Size()) == false) {
+    if (!globalTamgu->methods.get(a_long).check(idname) || Arity(globalTamgu->methods.get(a_long)[idname], callfunc->Size()) == false) {
         string mess("'");
         mess += globalTamgu->Getsymbol(idname);
         mess += "' : Unknown method or Wrong number of arguments for type: 'long'";
