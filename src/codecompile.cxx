@@ -9482,8 +9482,27 @@ Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
                     kf = aEMPTYLISP;
                     parent->AddInstruction(kf);
                 }
-                else
+                else {
+                    if (xn->nodes.size() > 1 && xn->token == "tpurelist" && global->systemfunctions.find(xn->nodes[0]->value) != global->systemfunctions.end()) {
+                        x_node nx("parameters");
+                        for (short i = 1; i < xn->nodes.size(); i++)
+                            nx.nodes.push_back(xn->nodes[i]);
+                        try {
+                            Callingprocedure(&nx, global->Getid(xn->nodes[0]->value));
+                            nx.nodes.clear();
+                        }
+                        catch (TamguRaiseError* a) {
+                            nx.nodes.clear();
+                            throw a;
+                        }
+                        
+                        //if the value stored in systemfunctions is true, then it means that we have
+                        //a local call otherwise, it means that the function should be called twice.
+                        //At compile time and at run time
+                        return parent;
+                    }
                     kf = new Tamgulispcode(global, parent);
+                }
             }
         }
     }
