@@ -2999,7 +2999,7 @@ Exporting Tamgu* Tamgu::Invert(bool autoself) {
 //--------------------------------------------------------------
 
 Exporting Tamgu* TamguConstString::CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-    if (!globalTamgu->methods.check(idname) || Arity(globalTamgu->methods.get(a_string)[idname], callfunc->Size()) == false) {
+    if (!globalTamgu->methods.get(a_string).check(idname) || Arity(globalTamgu->methods.get(a_string)[idname], callfunc->Size()) == false) {
         string mess("'");
         mess += globalTamgu->Getsymbol(idname);
         mess += "' : Unknown method or Wrong number of arguments for type: 'string'";
@@ -3014,7 +3014,7 @@ Exporting Tamgu* TamguConstString::CallMethod(short idname, Tamgu* contextualpat
 }
 
 Exporting Tamgu* TamguConstUString::CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-    if (!globalTamgu->methods.check(idname) || Arity(globalTamgu->methods.get(a_ustring)[idname], callfunc->Size()) == false) {
+    if (!globalTamgu->methods.get(a_ustring).check(idname) || Arity(globalTamgu->methods.get(a_ustring)[idname], callfunc->Size()) == false) {
         string mess("'");
         mess += globalTamgu->Getsymbol(idname);
         mess += "' : Unknown method or Wrong number of arguments for type: 'ustring'";
