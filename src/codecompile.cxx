@@ -3003,7 +3003,7 @@ Tamgu* TamguCode::C_taskellcall(x_node* xn, Tamgu* parent) {
 			return call;
 		}
 
-		if (tyvar == a_function) {
+		if (tyvar == a_function || tyvar == a_lisp) {
             if (parent->Type() == a_taskellinstruction && insidecall)
                 call = new TamguCallFunction(call, global, parent);
             else
