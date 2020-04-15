@@ -287,6 +287,7 @@ extern "C" {
         int idcode=-1;
         string code=cde;
         try {
+            globalTamgu->threads[0].currentinstruction = NULL;
             idcode = TamguCompile(code, filename, console);
             if (idcode==-1)
                 displaybuffer=TamguErrorMessage();
