@@ -19,7 +19,7 @@
 
 #include "tamgu.h"
 #include "compilecode.h"
-#include "codeparse.h"
+#include "x_node.h"
 #include "globaltamgu.h"
 #include "tamgustring.h"
 #include "x_tokenize.h"

@@ -1165,7 +1165,6 @@ void TamguGlobal::RecordCompileFunctions() {
     parseFunctions["tlatom"] = &TamguCode::C_tamgulisp;
     parseFunctions["tlquote"] = &TamguCode::C_tamgulisp;
     parseFunctions["tlist"] = &TamguCode::C_tamgulisp;
-    parseFunctions["tpurelist"] = &TamguCode::C_tamgulisp;
 }
 
 
@@ -9496,13 +9495,13 @@ Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
             kf->Setaction(a_quote);
         }
         else {
-            if (xn->token == "tlist" || xn->token == "tpurelist") {
+            if (xn->token == "tlist") {
                 if (!xn->nodes.size()) {
                     kf = aEMPTYLISP;
                     parent->AddInstruction(kf);
                 }
                 else {
-                    if (xn->nodes.size() > 1 && xn->token == "tpurelist" && global->systemfunctions.find(xn->nodes[0]->value) != global->systemfunctions.end()) {
+                    if (xn->nodes.size() > 1 && parent->isMainFrame() && global->systemfunctions.find(xn->nodes[0]->value) != global->systemfunctions.end()) {
                         x_node nx("parameters");
                         for (short i = 1; i < xn->nodes.size(); i++)
                             nx.nodes.push_back(xn->nodes[i]);
@@ -9532,7 +9531,7 @@ Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
             parent->push(kf);
         }
         else {
-            if (xn->token == "tpurelist") {
+            if (xn->token == "tlist") {
                 if (!xn->nodes.size())
                     kf = aEMPTYLISP;
                 else
@@ -9567,7 +9566,7 @@ Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
         n = a->Name();
         if (n == a_defun) {
             a = kf->getvalue(1);
-            if (parent == &mainframe && !isDeclared(a->Name())) {
+            if (parent->isMainFrame() && !isDeclared(a->Name())) {
                 Tamgu* l = kf->Eval(parent, aNULL, 0);
                 if (!l->isFunction()) {
                     stringstream message;

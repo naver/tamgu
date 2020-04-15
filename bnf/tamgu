@@ -628,9 +628,7 @@ tlatom := tloperator^tlcomparator^predicatevariable^anumber^word^astringdouble^a
 %tlquote := %' [tlquote^tlatom^tlist]
 %tlist := %( ;67 %)^[[tlquote^tlatom^tlist]+ %)]
 %tamgulisp := %\ [tlquote^tlatom^tlist]
-
-%tpurelist := %( ;67 %)^[[tlquote^tlatom^tpurelist]+ %)]
-%tamgupurelisp := [tlquote^tlatom^tpurelist]+
+%tamgupurelisp := [tlquote^tlatom^tlist]+
 ########## Grammar pattern: tk :=  ... ############################
 ameta := [%?^[%% ;59 [%d^%p^%c^%C^%H^%a^%r^%s^%S^%?^%%]]] (%_)
 amulti := %$ word

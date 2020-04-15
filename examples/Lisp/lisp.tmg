@@ -129,11 +129,11 @@ je =
 
 println("Fibo:", je);
 
-\(println ''a ''b ''(a b c d e))
+\(println 'a 'b '(a b c d e))
 
 \(label teste 10)
 
-println(\(list ''a je teste ''c));
+println(\(list 'a je teste 'c));
 
 je = \(+ 1 teste);
 println(je);
@@ -159,10 +159,10 @@ println(val);
 
 ivector vv = [1..10];
 
-l = \(cons ''o ''(1 23 c d e f));
+l = \(cons 'o '(1 23 c d e f));
 println("L=",l);
 
-vector v = \(cons ''ahSHqsj  ''(a b c d e f));
+vector v = \(cons 'ahSHqsj  '(a b c d e f));
 println(v);
 
 int u = \(if (== 10 11) 100 200);
@@ -175,7 +175,7 @@ int j = \((lambda (x) (+ 1 x)) 2);
 
 int i = \(+ 10 (* 30 50));
 
-int e = \(caar ''((98) 2 3));
+int e = \(caar '((98) 2 3));
 
 
 int k = \(cond (true 100) ((< 10 9) 200) ((< 19 199) 300));
@@ -183,8 +183,8 @@ int k = \(cond (true 100) ((< 10 9) 200) ((< 19 199) 300));
 println(j,i,p,e,k);
 
 \(if (zerop 0)
-    (println ''ok)
-    (println ''faux)
+    (println 'ok)
+    (println 'faux)
 )
 
 
@@ -209,9 +209,9 @@ v = [[1,2,3], [4,5,6]];
 println(\(cadr v));
 
 
-println(\(size ''(a b c d e f)));
+println(\(size '(a b c d e f)));
 println(\(size v));
-l = \''(a);
+l = \'(a);
 println(l);
 
 println("Eval mult:", l.eval("(* 10 100)"));
@@ -231,6 +231,7 @@ function appel() {
 appel();
 
 println(\(key "abcde12sqjd" r"%d+"));
+
 
 
 

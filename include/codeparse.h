@@ -881,10 +881,6 @@ class bnf_tamgu {
     char m_tlist_0_1(string& lreturn,x_node** tree);
     char m_tlist_0_1_2(string& lreturn,x_node** tree);
     char m_tamgulisp(string& lreturn,x_node** tree);
-    char m_tpurelist(string& lreturn,x_node** tree);
-    char m_tpurelist_0_1(string& lreturn,x_node** tree);
-    char m_tpurelist_0_1_2(string& lreturn,x_node** tree);
-    char m_tpurelist_0_1_2_3(string& lreturn,x_node** tree);
     char m_tamgupurelisp(string& lreturn,x_node** tree);
     char m_ameta(string& lreturn,x_node** tree);
     char m_ameta_0_1(string& lreturn,x_node** tree);
