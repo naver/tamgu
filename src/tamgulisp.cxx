@@ -1113,9 +1113,6 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             if (n == 0)
                 return globalTamgu->Returnerror("Wrong function name",idthread);
 
-            if (sz < 4)
-                return globalTamgu->Returnerror("Missing body",idthread);
-            
             v1 = values[2];
             if (!v1->isLisp())
                 return globalTamgu->Returnerror("Missing parameters",idthread);

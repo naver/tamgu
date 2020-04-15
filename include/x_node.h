@@ -363,6 +363,10 @@ public:
         rules.push_back("/@@/=#");                      //33    empty long comment starting with /@ and finishing with @/
         rules.push_back("/=0");                         //34    /
         
+        //Lisp
+        rules.push_back("\\(=0");                       //29    ?
+        rules.push_back("\\=0");                         //29    ?
+
         //Strings
         //Double quote
         rules.push_back("\"\"=1");                      //35    empty string ""
@@ -1607,6 +1611,7 @@ public:
         rules.push_back(":=0");                         //25    :
         rules.push_back("/=0");                         //26    /
         rules.push_back("\"=0");                        //27    "
+        rules.push_back("\\=0");                        //27    \
         rules.push_back("'=0");                         //28    '
         rules.push_back("$=0");                         //29    $
         rules.push_back("#=0");                         //30    #

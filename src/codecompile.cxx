@@ -202,6 +202,8 @@ void x_reading::apply(bool keepos, vector<string>* vstack, vector<unsigned char>
     
     parcours.begin();
     parcours.nextc(currentchr, line);
+    long countparenthesis = 0;
+    bool locallispmode = false;
     
     long e = 0;
     long presz = 0;
@@ -217,6 +219,19 @@ void x_reading::apply(bool keepos, vector<string>* vstack, vector<unsigned char>
         parcours.getpos(b,c);
         getit=false;
         i=table[(uchar)currentchr[0]];
+        if (locallispmode) {
+            if (currentchr[0] == '(')
+                countparenthesis++;
+            else
+                if (currentchr[0] == ')')
+                    countparenthesis--;
+        
+            if (!countparenthesis) {
+                locallispmode = false;
+                lispmode = false;
+            }
+        }
+        
         if (i==255) //this is not a character, which a rule is indexed for, we jump to the first non character rules...
             i=firstrule;
         else {
@@ -373,6 +388,11 @@ void x_reading::apply(bool keepos, vector<string>* vstack, vector<unsigned char>
                 ty=action[i];
                 if (ty != -1) {
                     vstack->push_back(token);
+                    if (!lispmode && vstack->back() == "\\(") {
+                        lispmode = true;
+                        locallispmode = true;
+                        countparenthesis = 1;
+                    }
                     if (!juststack) {
                         stackln.push_back(line);
                         vtype->push_back(ty);
@@ -1145,7 +1165,6 @@ void TamguGlobal::RecordCompileFunctions() {
     parseFunctions["tlatom"] = &TamguCode::C_tamgulisp;
     parseFunctions["tlquote"] = &TamguCode::C_tamgulisp;
     parseFunctions["tlist"] = &TamguCode::C_tamgulisp;
-    parseFunctions["tlpurequote"] = &TamguCode::C_tamgulisp;
     parseFunctions["tpurelist"] = &TamguCode::C_tamgulisp;
 }
 
@@ -9472,7 +9491,7 @@ Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
     Tamgu* kf = parent;
 
     if (compilemode) {
-        if (xn->token == "tlquote" || xn->token == "tlpurequote") {
+        if (xn->token == "tlquote") {
             kf = new Tamgulispcode(global, parent);
             kf->Setaction(a_quote);
         }
@@ -9507,7 +9526,7 @@ Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
         }
     }
     else {
-        if (xn->token == "tlpurequote") {
+        if (xn->token == "tlquote") {
             kf = globalTamgu->Providelisp();
             kf->Setaction(a_quote);
             parent->push(kf);
@@ -9546,6 +9565,19 @@ Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
     if (kf->Size()) {
         a = kf->getvalue(0);
         n = a->Name();
+        if (n == a_defun) {
+            a = kf->getvalue(1);
+            if (parent == &mainframe && !isDeclared(a->Name())) {
+                Tamgu* l = kf->Eval(parent, aNULL, 0);
+                if (!l->isFunction()) {
+                    stringstream message;
+                    message << "Wrong definition of a lisp 'defun' function";
+                    throw new TamguRaiseError(message, filename, current_start, current_end);
+                }
+            }
+            return kf;
+        }
+        
         if (n > a_lisp && a->Type() == a_atom) {
             //This is a call to a function
             if (isDeclared(n)) {

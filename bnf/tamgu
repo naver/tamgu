@@ -625,13 +625,12 @@ tlcomparator := [%< %>]^[%~ %=]^[%! %=]^$≠^[%= %=]^[%< %=]^[%> %=]^%<^%>^%=
 tloperator := $×^$÷^[%& %& %&]^[%< %<]^[%> %>]^[%^ %^]^[%* %*]^%&^%|^%+^%-^%*^%/^%%^%^
 
 tlatom := tloperator^tlcomparator^predicatevariable^anumber^word^astringdouble^apreg^aspreg^atreg^astreg
-%tlquote := %' %' [tlquote^tlatom^tlist]
+%tlquote := %' [tlquote^tlatom^tlist]
 %tlist := %( ;67 %)^[[tlquote^tlatom^tlist]+ %)]
 %tamgulisp := %\ [tlquote^tlatom^tlist]
 
-%tlpurequote := %' [tlatom^tlpurequote^tpurelist]
-%tpurelist := %( ;67 %)^[[tlpurequote^tlatom^tpurelist]+ %)]
-%tamgupurelisp := [tlpurequote^tlatom^tpurelist]+
+%tpurelist := %( ;67 %)^[[tlquote^tlatom^tpurelist]+ %)]
+%tamgupurelisp := [tlquote^tlatom^tpurelist]+
 ########## Grammar pattern: tk :=  ... ############################
 ameta := [%?^[%% ;59 [%d^%p^%c^%C^%H^%a^%r^%s^%S^%?^%%]]] (%_)
 amulti := %$ word

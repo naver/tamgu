@@ -973,6 +973,7 @@ public:
         rules.push_back("+=0");                         //17    +
         rules.push_back("-=0");                         //18    -
         rules.push_back("*=0");                         //19    *
+        rules.push_back("\\=0");                        //19    \
         rules.push_back("%=0");                         //20    %
         rules.push_back("<=0");                         //21    <
         rules.push_back(">=0");                         //22    >
@@ -1080,6 +1081,7 @@ public:
         rules.push_back("|=#");                         //21    |
         rules.push_back("&=#");                         //22    &
         rules.push_back(":=#");                         //23    :
+        rules.push_back("\\=#");                        //19    \
         
         rules.push_back("${%d %a %H}+=10");             //24    $%d+
         rules.push_back("$=#");                         //25    $
