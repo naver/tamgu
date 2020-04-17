@@ -189,10 +189,12 @@ Exporting short TamguCompile(string& codeinit, string filename, bool dsp) {
             puredisplay = false;
         }
         else {
-            for (long pcode=0; pcode<xr.stack.size(); pcode++) {
-                if (xr.stack[pcode] == "{") {
-                    puredisplay = false;
-                    break;
+            if (xr.stack[0] != "\\(") {
+                for (long pcode=0; pcode<xr.stack.size(); pcode++) {
+                    if (xr.stack[pcode] == "{") {
+                        puredisplay = false;
+                        break;
+                    }
                 }
             }
         }

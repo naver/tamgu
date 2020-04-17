@@ -1160,11 +1160,12 @@ void TamguGlobal::RecordCompileFunctions() {
     parseFunctions["token"] = &TamguCode::C_token;
     
     //LISP implementation
-    parseFunctions["tloperator"] = &TamguCode::C_operator;
-    parseFunctions["tlcomparator"] = &TamguCode::C_operator;
+    parseFunctions["tlvariable"] = &TamguCode::C_variable;
     parseFunctions["tlatom"] = &TamguCode::C_tamgulisp;
     parseFunctions["tlquote"] = &TamguCode::C_tamgulisp;
     parseFunctions["tlist"] = &TamguCode::C_tamgulisp;
+    parseFunctions["tlkeys"] = &TamguCode::C_valmap;
+    parseFunctions["tlkey"] = &TamguCode::C_dico;
 }
 
 
@@ -4056,14 +4057,14 @@ Tamgu* TamguCode::C_dico(x_node* xn, Tamgu* kf) {
 
 
 Tamgu* TamguCode::C_jsonmap(x_node* xn, Tamgu* kf) {
-	Tamgumap* kmap = new Tamgumap(NULL, kf);
+	Tamgumap* kmap = new Tamgumap(global, kf);
 	for (int i = 0; i < xn->nodes.size(); i++)
 		Traverse(xn->nodes[i], kmap);
 	return kmap;
 }
 
 Tamgu* TamguCode::C_jsonvector(x_node* xn, Tamgu* kf) {
-	Tamguvector* kvect = new Tamguvector(NULL, kf);
+	Tamguvector* kvect = new Tamguvector(global, kf);
 	for (int i = 0; i < xn->nodes.size(); i++)
 		Traverse(xn->nodes[i], kvect);
 	return kvect;
@@ -9458,8 +9459,9 @@ Tamgu* TamguCode::C_token(x_node* xn, Tamgu* kf) {
 
 
 Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
-    //We have four cases: tlatom, tlquote tlcomparator, tloperator, tlist
+    //We have four cases: tlatom, tlquote, tlist
     Tamgu* a;
+    
     if (xn->token == "tlatom") {
         if (xn->nodes[0]->token == "word") {
             //We check if it is a variation on car/cdr
@@ -9678,6 +9680,10 @@ bool TamguCode::Compile(string& body) {
     bnf_tamgu bnf;
 
     InitWindowMode();
+    
+    global->threads[0].message.str("");
+    global->threads[0].message.clear();
+    
 	//we store our TamguCode also as an Tamgutamgu...
 	filename = NormalizeFileName(filename);
     TamguRecordFile(filename, this, global);
@@ -9753,6 +9759,7 @@ bool TamguCode::Compile(string& body) {
 		global->threads[0].currentinstruction = NULL;
 		global->lineerror = a->left;
 		global->threads[0].message.str("");
+        global->threads[0].message.clear();
 		global->threads[0].message << a->message;
 		if (a->message.find(a->filename) == string::npos)
 			global->threads[0].message << " in " << a->filename;
@@ -9783,6 +9790,9 @@ Tamgu* TamguCode::Compilefunction(string& body) {
 	//we store our TamguCode also as an Tamgutamgu...
 	static bnf_tamgu bnf;
     static x_reading xr;
+    
+    global->threads[0].message.str("");
+    global->threads[0].message.clear();
     
     Locking _lock(global->_parselock);
     
@@ -9821,7 +9831,8 @@ Tamgu* TamguCode::Compilefunction(string& body) {
 		compiled = Traverse(xn, &mainframe);
 	}
 	catch (TamguRaiseError* a) {
-		global->threads[0].message.str("");
+        global->threads[0].message.str("");
+        global->threads[0].message.clear();
 		global->threads[0].message << a->message;
 		if (a->message.find(a->filename) == string::npos)
 			global->threads[0].message << " in " << a->filename;

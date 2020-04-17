@@ -621,14 +621,14 @@ parentheticexpression := astringdouble^afullstring^astringsimple^anumber^astring
 %tag := onetag+
 
 ########### TAMGULISP (different from above. This is the real stuff) It starts with \(...) #######################################
-tlcomparator := [%< %>]^[%~ %=]^[%! %=]^$≠^[%= %=]^[%< %=]^[%> %=]^%<^%>^%=
-tloperator := $×^$÷^[%& %& %&]^[%< %<]^[%> %>]^[%^ %^]^[%* %*]^%&^%|^%+^%-^%*^%/^%%^%^
-
-tlatom := tloperator^tlcomparator^predicatevariable^anumber^word^astringdouble^apreg^aspreg^atreg^astreg
-%tlquote := %' [tlquote^tlatom^tlist]
-%tlist := %( ;67 %)^[[tlquote^tlatom^tlist]+ %)]
-%tamgulisp := %\ [tlquote^tlatom^tlist]
-%tamgupurelisp := [tlquote^tlatom^tlist]+
+tlvariable := wrong word [interval^indexes]
+tlatom := predicatevariable^anumber^astringdouble^apreg^aspreg^atreg^astreg^tlvariable^word
+%tlquote := %' [tlquote^tlatom^comparator^operator^tlkeys^tlist]
+%tlkey := tlatom %: [tlquote^tlatom^tlkeys^tlist]
+%tlkeys := %{ ;26 tlkey+ %}
+%tlist := %( ;67 %)^[(operator^comparator) [tlquote^tlatom^tlkeys^tlist]+ (operator) %)]
+%tamgulisp := %\ [tlquote^tlatom^tlkeys^tlist]
+%tamgupurelisp := [tlquote^tlatom^tlkeys^tlist]+
 ########## Grammar pattern: tk :=  ... ############################
 ameta := [%?^[%% ;59 [%d^%p^%c^%C^%H^%a^%r^%s^%S^%?^%%]]] (%_)
 amulti := %$ word

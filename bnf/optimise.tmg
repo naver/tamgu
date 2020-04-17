@@ -36,13 +36,13 @@ string cr="\n";
 map indexes={"atreg":34,"astreg":39,"apreg":34,"aspreg":39,"astringdouble":34,"afullstring":34,"astringsimple":39,"anumber":'0123456789-',"valtail":"|","maptail":"|","valmaptail":"{","valvectortail":"[",
     "jvector":"[","jmap":"{","telque":"<","intentionvect":"[","pintentionvect":"[","valmap":"{","parenthetic":"(","optional":"(","taskellvector":"[","taskellmap":"{","taskellmaptail":"|",
     "valvector":"[","valmap":"{","term":"?","tuple":"(","predicatevariable":"?","valpredicatevector":"[","valmappredicate":"{","valtuple":"(",
-    "taskellcase":"c!","abool":lg,"localif":"i!"
+    "taskellcase":"c!","abool":lg,"localif":"i!", "tlquote":39, "tlist":"(","tlkeys":"{","tamgulisp":'\'
 };
 
 
 svector methodes=["m_expression","m_jexpression","m_pexpression","m_jdico",
     "m_taskellexpression","m_taskellkeymap","m_forin","m_finaltoken","m_taskell","m_testswitch","m_hexpression",
-    "m_operator","m_hoper","m_operatoraffectation","m_comparator"
+    "m_operator","m_hoper","m_operatoraffectation","m_comparator", "m_tlist","m_tlatom", "m_tlkeys","m_tlquote","m_tlkey"
 ];
 
 
@@ -202,7 +202,7 @@ for (s in f) {
                 reg+="}\n";
                 reg+="if (found)";
                 vx=<if (" || " in x) reg else x | x <- v>;
-                    reg=vx.join("\n");
+                reg=vx.join("\n");
                 reg+="\n\n";
                 sauve.write(reg);
                 regle=s;
@@ -227,7 +227,7 @@ for (s in f) {
                     }
                     reg+="}\nif (found)";
                     vx=<if (" || " in x) reg else x | x <- v>;
-                        reg=vx.join("\n");
+                    reg=vx.join("\n");
                     reg+="\n\n";
                     sauve.write(reg);
                     regle=s;
@@ -235,6 +235,7 @@ for (s in f) {
                 }
             }
 
+            //Methodes
             if (sx in methodes) {
                 v=< <trim x> | x <- regle.trim().split(cr) >;
                 vx=<x | x <- v," || " in x>;
@@ -275,7 +276,7 @@ for (s in f) {
                             }
 
                             if ("x_test_in" in sx) {
-                                string k=sx["tab":1];
+                                string k=sx[r"tab%d+"];
                                 for (idx in lestabs[k]) {
                                     if (ors.test(idx))
                                         ors[idx].push(sx);
@@ -294,7 +295,7 @@ for (s in f) {
                                 if (ors.test("default"))
                                     ors["default"].push(sx);
                                 else
-                                    ors["default"]=[sx];
+                                    ors["default"]=[sx];                                
                             }
                         }
                     }
@@ -317,8 +318,12 @@ for (s in f) {
                                 else {
                                     if (sx.isdigit() and sx!="0")
                                         reg+="case "+sx+":\nif (";
-                                    else
-                                        reg+="case '"+sx+"':\nif (";
+                                    else {
+                                        if (sx == '\')
+                                            reg+="case '\\\\':\nif (";
+                                        else
+                                            reg+="case '"+sx+"':\nif (";
+                                    }
                                     bool p=true;
                                     for (string e in ors[sx]) {
                                         if (not p)
@@ -388,7 +393,7 @@ for (s in f) {
 
                         reg+="}\nif (found)";
                         vx=<if (" || " in x) reg else x | x <- v>;
-                            reg=vx.join("\n");
+                        reg=vx.join("\n");
                         reg+="\n\n";
                         sauve.write(reg);
                     }
@@ -436,5 +441,8 @@ txt=txt.indent();
 sa.openwrite(_current+'tamgun.h');
 sa.write(txt);
 sa.close();
+
+
+
 
 
