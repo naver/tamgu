@@ -587,14 +587,14 @@ Tamgu* Tamguustring::EvalIndex(Tamgu* kidx, TamguIndex* idx, short idthread) {
     return inter;
 }
  
-Tamgu* TamguIndex::Eval(Tamgu* localidx, Tamgu* obj, short idthread) {
+Tamgu* TamguIndex::Eval(Tamgu* klocal, Tamgu* obj, short idthread) {
     if (obj->isPureString())
-        return obj->EvalIndex(localidx, this, idthread);
+        return obj->EvalIndex(klocal, this, idthread);
     
     if (function == NULL)
-        return obj->Eval(localidx, this, idthread);
+        return obj->Eval(klocal, this, idthread);
 
-    Tamgu* klocal = obj->Eval(localidx, this, idthread);
+    klocal = obj->Eval(klocal, this, idthread);
 
 	if (function->isIncrement()) {
 		if (klocal == aNOELEMENT && obj->isValueContainer()) {
