@@ -1302,6 +1302,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 if (sz == 3) {
                     //We simply return the value...
                     a = v0->Eval(contextualpattern, &idx, idthread);
+                    a->Protect();
                     v0->Releasenonconst();
                     v1->Releasenonconst();
                     return a;
@@ -1333,6 +1334,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 if (sz == 4) {
                     //We simply return the value...
                     a = v0->Eval(contextualpattern,&idx, idthread);
+                    a->Protect();
                     v0->Releasenonconst();
                     v1->Releasenonconst();
                     v2->Releasenonconst();

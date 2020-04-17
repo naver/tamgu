@@ -162,9 +162,6 @@ public:
 
     virtual Tamgu* Loopin(TamguInstruction*, Tamgu* context, short idthread);
 
-	virtual TamguIndex* Evaluate(short idthread) { return NULL; }
-	virtual void Rollback() {}
-
 	virtual void Insert(long idx, Tamgu* ke) {}
 
 	//Some building operations...
@@ -2959,12 +2956,14 @@ public:
         interval = idx->interval;
         signleft = idx->signleft;
         signright = idx->signright;
+        left = idx->left;
+        right = idx->right;
         
-        left = idx->left->Eval(aNULL, aNULL, idthread);
-        if (idx->right != NULL)
-            right = idx->right->Eval(aNULL, aNULL, idthread);
-        else
-            right = NULL;
+        if (!left->isConst())
+            left = left->Eval(aNULL, aNULL, idthread);
+        
+        if (right != NULL && !right->isConst())
+            right = right->Eval(aNULL, aNULL, idthread);
     }
 
     void Checkconst() {
@@ -2973,9 +2972,9 @@ public:
     }
     
     void ScanVariables(vector<short>& vars) {
-        if (left != NULL && left != aNULL)
+        if (!left->isConst())
             left->ScanVariables(vars);
-        if (right != NULL && right != aNULL)
+        if (right != NULL && !right->isConst())
             right->ScanVariables(vars);
         if (function != NULL)
             function->ScanVariables(vars);
@@ -3023,24 +3022,35 @@ public:
 		return 2;
 	}
 
-    virtual void Rollback() {
+    TamguIndex* Evaluate(short idthread) {
+        if (isConst())
+            return this;
+        
+        return new TamguIndex(this, idthread);
+    }
+    
+    void Rollback() {
         if (isConst())
             return;
-        left->Release();
+        
+        left->Releasenonconst();
         if (right != NULL)
-            right->Release();
+            right->Releasenonconst();
+        delete this;
     }
 
     void Set(TamguIndex* idx, short idthread)  {
         interval = idx->interval;
         signleft = idx->signleft;
         signright = idx->signright;
+        left = idx->left;
+        right = idx->right;
         
-        left = idx->left->Eval(aNULL, aNULL, idthread);
-        if (idx->right != NULL)
-            right = idx->right->Eval(aNULL, aNULL, idthread);
-        else
-            right = NULL;
+        if (!left->isConst())
+            left = left->Eval(aNULL, aNULL, idthread);
+        
+        if (right != NULL && !right->isConst())
+            right = right->Eval(aNULL, aNULL, idthread);
     }
 
 	void AddInstruction(Tamgu* a) {

@@ -613,9 +613,7 @@ Tamgu* TamguIndex::Eval(Tamgu* localidx, Tamgu* obj, short idthread) {
 		if (obj->isValueContainer()) {
 			//we store the value back into place
 			//we reevaluate our indexes...
-			localidx = Evaluate(idthread);
-			obj->Put(localidx, klocal, idthread);
-			localidx->Rollback();
+			obj->Put(this, klocal, idthread);
 		}
 
 		return klocal;
@@ -646,9 +644,7 @@ Tamgu* TamguIndex::Eval(Tamgu* localidx, Tamgu* obj, short idthread) {
 			if (!obj->isValueContainer() && kidx->Name() == a_push) {
 				//if it is not a value container, then it can contain a vector...
 				klocal = globalTamgu->Providevector();
-				localidx = Evaluate(idthread);
-				obj->Put(localidx, klocal, idthread);
-				localidx->Rollback();
+				obj->Put(this, klocal, idthread);
 			}
 			else {
 				if (globalTamgu->erroronkey)
@@ -660,9 +656,7 @@ Tamgu* TamguIndex::Eval(Tamgu* localidx, Tamgu* obj, short idthread) {
 		if (kidx->isIncrement()) {
 			kidx->Eval(aNULL, klocal, idthread);
 			if (obj->isValueContainer()) {
-				localidx = Evaluate(idthread);
-				obj->Put(localidx, klocal, idthread);
-				localidx->Rollback();
+				obj->Put(this, klocal, idthread);
 			}
 			return klocal;
 		}
@@ -2809,7 +2803,7 @@ Tamgu* TamguInstructionSTREAM::Eval(Tamgu* environment, Tamgu* value, short idth
 				}
 				else {
 					//We create a Self variable...
-					value = new TamguContent(idx->Evaluate(idthread), variable);
+					value = new TamguContent(((TamguIndex*)idx)->Evaluate(idthread), variable);
 				}
 			}
 		}
@@ -2825,7 +2819,7 @@ Tamgu* TamguInstructionSTREAM::Eval(Tamgu* environment, Tamgu* value, short idth
         if (idx != NULL && idx->isIndex()) {
             value = variable->Eval(environment, idx, idthread);
             if (value->isNULL())
-                value = new TamguContent(idx->Evaluate(idthread), variable);
+                value = new TamguContent(((TamguIndex*)idx)->Evaluate(idthread), variable);
         }
         else
             value = variable;
