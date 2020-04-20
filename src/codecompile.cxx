@@ -1160,9 +1160,9 @@ void TamguGlobal::RecordCompileFunctions() {
     parseFunctions["token"] = &TamguCode::C_token;
     
     //LISP implementation
-    parseFunctions["tlvariable"] = &TamguCode::C_variable;
-    parseFunctions["tlatom"] = &TamguCode::C_tamgulisp;
-    parseFunctions["tlquote"] = &TamguCode::C_tamgulisp;
+    parseFunctions["tlvariable"] = &TamguCode::C_tamgulispvariable;
+    parseFunctions["tlatom"] = &TamguCode::C_tamgulispatom;
+    parseFunctions["tlquote"] = &TamguCode::C_tamgulispquote;
     parseFunctions["tlist"] = &TamguCode::C_tamgulisp;
     parseFunctions["tlkeys"] = &TamguCode::C_valmap;
     parseFunctions["tlkey"] = &TamguCode::C_dico;
@@ -9457,90 +9457,101 @@ Tamgu* TamguCode::C_token(x_node* xn, Tamgu* kf) {
     return krule;
 }
 
+//------------------------------------------------------------------------------------------------------
+//--------------------------- Lisp Section
+//------------------------------------------------------------------------------------------------------
 
-Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
-    //We have four cases: tlatom, tlquote, tlist
-    Tamgu* a;
+Tamgu* TamguCode::C_tamgulispquote(x_node* xn, Tamgu* parent) {
+    Tamgu* kf = parent;
+    if (compilemode) {
+        kf = new Tamgulispcode(global, parent);
+        kf->Setaction(a_quote);
+    }
+    else {
+        kf = globalTamgu->Providelisp();
+        kf->Setaction(a_quote);
+        parent->push(kf);
+    }
     
-    if (xn->token == "tlatom") {
-        if (xn->nodes[0]->token == "word") {
-            //We check if it is a variation on car/cdr
-            string word = xn->nodes[0]->value;
-            if (word[0] == 'c' && word.back() == 'r') {
-                bool found = true;
-                for (long i = 1; i < word.size()-1; i++) {
-                    if (word[i] != 'a' && word[i] != 'd') {
-                        found = false;
-                        break;
-                    }
+    for (long i = 0; i < xn->nodes.size(); i++)
+        Traverse(xn->nodes[i], kf);
+    
+    return kf;
+}
+
+Tamgu* TamguCode::C_tamgulispvariable(x_node* xn, Tamgu* parent) {
+    string name = xn->nodes[0]->value;
+    Tamgu* a = new Tamgulispvariable(name, global, parent);
+    Traverse(xn->nodes[1], a);
+    return a;
+}
+
+Tamgu* TamguCode::C_tamgulispatom(x_node* xn, Tamgu* parent) {
+    Tamgu* a;
+    if (xn->nodes[0]->token == "word") {
+        //We check if it is a variation on car/cdr
+        string word = xn->nodes[0]->value;
+        if (word[0] == 'c' && word.back() == 'r') {
+            bool found = true;
+            for (long i = 1; i < word.size()-1; i++) {
+                if (word[i] != 'a' && word[i] != 'd') {
+                    found = false;
+                    break;
                 }
-                if (found) {
-                    word = word.substr(1, word.size()-2);
-                    a = new Tamgucadr(word, global, parent);
-                }
-                else
-                    a = global->Providelispsymbols(word, parent);
+            }
+            if (found) {
+                word = word.substr(1, word.size()-2);
+                a = new Tamgucadr(word, global, parent);
             }
             else
                 a = global->Providelispsymbols(word, parent);
         }
         else
-            Traverse(xn->nodes[0], parent);
-        return parent;
+            a = global->Providelispsymbols(word, parent);
     }
+    else
+        Traverse(xn->nodes[0], parent);
+    return parent;
+}
+
+Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
+    //We have four cases: tlatom, tlquote, tlist
 
     Tamgu* kf = parent;
 
     if (compilemode) {
-        if (xn->token == "tlquote") {
-            kf = new Tamgulispcode(global, parent);
-            kf->Setaction(a_quote);
+        if (!xn->nodes.size()) {
+            kf = aEMPTYLISP;
+            parent->AddInstruction(kf);
         }
         else {
-            if (xn->token == "tlist") {
-                if (!xn->nodes.size()) {
-                    kf = aEMPTYLISP;
-                    parent->AddInstruction(kf);
+            if (xn->nodes.size() > 1 && parent->isMainFrame() && global->systemfunctions.find(xn->nodes[0]->value) != global->systemfunctions.end()) {
+                x_node nx("parameters");
+                for (short i = 1; i < xn->nodes.size(); i++)
+                    nx.nodes.push_back(xn->nodes[i]);
+                try {
+                    Callingprocedure(&nx, global->Getid(xn->nodes[0]->value));
+                    nx.nodes.clear();
                 }
-                else {
-                    if (xn->nodes.size() > 1 && parent->isMainFrame() && global->systemfunctions.find(xn->nodes[0]->value) != global->systemfunctions.end()) {
-                        x_node nx("parameters");
-                        for (short i = 1; i < xn->nodes.size(); i++)
-                            nx.nodes.push_back(xn->nodes[i]);
-                        try {
-                            Callingprocedure(&nx, global->Getid(xn->nodes[0]->value));
-                            nx.nodes.clear();
-                        }
-                        catch (TamguRaiseError* a) {
-                            nx.nodes.clear();
-                            throw a;
-                        }
-                        
-                        //if the value stored in systemfunctions is true, then it means that we have
-                        //a local call otherwise, it means that the function should be called twice.
-                        //At compile time and at run time
-                        return parent;
-                    }
-                    kf = new Tamgulispcode(global, parent);
+                catch (TamguRaiseError* a) {
+                    nx.nodes.clear();
+                    throw a;
                 }
+                
+                //if the value stored in systemfunctions is true, then it means that we have
+                //a local call otherwise, it means that the function should be called twice.
+                //At compile time and at run time
+                return parent;
             }
+            kf = new Tamgulispcode(global, parent);
         }
     }
     else {
-        if (xn->token == "tlquote") {
+        if (!xn->nodes.size())
+            kf = aEMPTYLISP;
+        else
             kf = globalTamgu->Providelisp();
-            kf->Setaction(a_quote);
-            parent->push(kf);
-        }
-        else {
-            if (xn->token == "tlist") {
-                if (!xn->nodes.size())
-                    kf = aEMPTYLISP;
-                else
-                    kf = globalTamgu->Providelisp();
-                parent->push(kf);
-            }
-        }
+        parent->push(kf);
     }
     
     long i;
@@ -9554,6 +9565,7 @@ Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
     //quote: The next element is of course not evaluated
     i = parent->Size();
     short n;
+    Tamgu* a;
     if (i > 1 && parent->isLisp() && parent != kf) {
         a = parent->getvalue(0);
         n = a->Action();
@@ -9610,7 +9622,9 @@ Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
     
     return kf;
 }
-//------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------
+//--------------------------- Lisp Section End
+//------------------------------------------------------------------------------------------------------
 
 bool TamguCode::Load(x_reading& xr) {
     if (xr.size() == 0)

@@ -200,6 +200,9 @@ public:
 	bool CheckUse(x_node* xn, Tamgu* kf);
 
     Tamgu* C_tamgulisp(x_node* xn, Tamgu* kf);
+    Tamgu* C_tamgulispquote(x_node* xn, Tamgu* kf);
+    Tamgu* C_tamgulispvariable(x_node* xn, Tamgu* kf);
+    Tamgu* C_tamgulispatom(x_node* xn, Tamgu* kf);
 
 	Tamgu* C_ifcondition(x_node* xn, Tamgu* kf);
 

@@ -199,9 +199,9 @@ Tamgu* TamguGlobal::Providelispsymbols(string& n, Tamgu* parent) {
 }
 
 Tamgu* TamguGlobal::Providelispsymbols(short symb, short a) {
-    if (!lispsymbols.check(symb))
-        lispsymbols[symb] = new Tamgusymbol(symb, a, this);    
-    return lispsymbols[symb];
+    Tamgusymbol* symbol = new Tamgusymbol(symb, a, this);
+    RecordInTracker(symbol);
+    return symbol;
 }
 
 Tamgu* TamguGlobal::Providelispsymbols(short symb) {
@@ -252,13 +252,22 @@ Tamgu* Tamgusymbol::Eval(Tamgu* a, Tamgu* v, short idthread) {
             return aNULL;
         default:
             if (globalTamgu->systems.check(name))
-                return globalTamgu->systems[name];
+                return globalTamgu->systems[name]->value;
     }
     
     string s("Unknown symbol: ");
     s += globalTamgu->Getsymbol(name);
     return globalTamgu->Returnerror(s, idthread);
 }
+
+Tamgu* Tamgulispvariable::Eval(Tamgu* a, Tamgu* v, short idthread) {
+    if (globalTamgu->systems.check(name))
+        v = globalTamgu->systems[name]->value;
+    else
+        v =  globalTamgu->Getdeclaration(name, idthread);
+    return call->Eval(a, v, idthread);
+}
+
 
 Tamgu* TamguLockContainer::car(short idthread) {
     if (isVectorContainer())
@@ -1248,8 +1257,17 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             
             a = a->Atom();
             a->Setreference();
+            if (!idthread && contextualpattern->isMainFrame()) {
+                //The variable needs to be declare fully
+                contextualpattern->Declare(n, a);
+                //This is a hack, actually, the first position for a variable is a TamguGlobalVariableDeclaration
+                //Which is not needed here, but since a main variable is always in position 1, we need to add a dummy value here...
+                globalTamgu->Storevariable(idthread, n, aNOELEMENT);
+            }
+            else
+                contextualpattern->Declarelocal(idthread, n, a);
+            
             globalTamgu->Storevariable(idthread, n, a);
-            contextualpattern->Declarelocal(idthread, n, a);
             return a;
         case a_merge:
         {

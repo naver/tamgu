@@ -23619,24 +23619,6 @@ char bnf_tamgu::m_tlkeys_0_1(string& lreturn,x_node** tree) {
     int addsubtree=0;
     bool exitonfail=false;
     //CONSTRAINT
-    subtree=NULL;
-    if (x_test_char(lret,'}')) {
-        x_pop_node(tree,addsubtree);
-        currentpos=pos;
-        intoken=itok;
-        setfail(exitonfail);
-        return(0);
-    }
-    subtree=NULL;
-    if (m_tlkey(lret,&subtree))
-        x_init_tree(tree,subtree,addsubtree);
-    else {
-        x_pop_node(tree,addsubtree);
-        currentpos=pos;
-        intoken=itok;
-        setfail(exitonfail);
-        return(0);
-    }
     int foundsolution=0;
     while (currentpos<fx->stack.size()) {
         subtree=NULL;

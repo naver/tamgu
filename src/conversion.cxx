@@ -12280,32 +12280,36 @@ Exporting void v_convertchartobyteposition(unsigned char* contenu, vector<long>&
 }
 
 Exporting void s_split(string& s, string& splitter, vector<string>& vs, bool keepblanks) {
-    size_t pos = 0;
-    size_t found = 0;
-    string sub;
-    long sz = splitter.size();
-    while (pos != -1) {
-        found = s_findbyte(s, splitter, pos);
-        if (found != -1) {
-            sub = s.substr(pos, found - pos);
-            if (keepblanks)
-                vs.push_back(sub);
-            else
-                if (sub != "")
-                    vs.push_back(sub);
-            pos = found + sz;
-        }
-        else
-            break;
-    }
+    vector<long> values;
+    Fast_String sub(s.size());
+
+    long szsplit = splitter.size();
+    long sz = s.size();
     
-    sub = s.substr(pos, s.size() - pos);
-    if (keepblanks)
-        vs.push_back(sub);
-    else
-        if (sub != "")
-            vs.push_back(sub);
+    s_findall(s, splitter, values);
+    
+    long previous = 0;
+    long szcpy;
+    for (long i = 0; i< values.size(); i++) {
+        if (previous < values[i]) {
+            szcpy = values[i]-previous;
+            sub.set(USTR(s)+previous, szcpy);
+            vs.push_back(sub.str());
+        }
+        else {
+            if (keepblanks)
+                vs.push_back("");
+        }
+        previous = values[i] + szsplit;
+    }
+        
+    if (previous < sz) {
+        szcpy = sz-previous;
+        sub.set(USTR(s)+previous, szcpy);
+        vs.push_back(sub.str());
+    }
 }
+
 
 Exporting void s_split(wstring& s, wstring& splitter, vector<wstring>& vs, bool keepblanks) {
     size_t pos = 0;

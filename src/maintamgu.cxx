@@ -86,10 +86,18 @@ static void displayhelp(string wh) {
 #endif
     cout << conversiontodos("-a 'stdin data' available in tamgu via _args") << endl;
     cout << conversiontodos("-a 'source code' with _args fully piped") << endl  << endl;
+    cout << conversiontodos("-c 'source code' without piped data") << endl << endl;
     cout << conversiontodos("-p 'source code' with _args piped one string at a time") << endl;
+    cout << conversiontodos("   for code without a ';' such as -p 'l[:\".\"]', a 'println' is automatically inserted.") << endl;
+    cout << conversiontodos("   Hence: -p '\"touch\", l[:\".\"]' is a valid expression.") << endl;
+    cout << conversiontodos("   It is rewritten: println(\"touch\", l[:\".\"]);") << endl;
     cout << conversiontodos("-pb 'source code' inserted before the code with -p") << endl;
     cout << conversiontodos("-pe 'source code' added after the code with -p") << endl;
-    cout << conversiontodos("-c 'source code' without piped data") << endl << endl;
+    cout << conversiontodos("-p: Pre-declared variables:") << endl;
+    cout << conversiontodos("\tl: current line from stdin") << endl;
+    cout << conversiontodos("\t_args: split the current line along spaces and store each field separatly. _args[0] is the full line") << endl;
+    cout << conversiontodos("\t_size: number of fields (_args size) in a line from stdin") << endl;
+    cout << conversiontodos("\tl1-l99: each variable matches a field in a line from stdin (ln == _args[n])") << endl << endl;
     cout << conversiontodos("-i Predeclared variables:") << endl << endl;
     cout << "\t";
     cout << conversiontodos("_args: argument vector") << endl;
@@ -109,8 +117,6 @@ static void displayhelp(string wh) {
     cout << conversiontodos("v: vector") << endl;
     cout << "\t";
     cout << conversiontodos("x,y,z: self") << endl;
-    cout << "\t";
-    cout << conversiontodos("l: string (current line from stdin for -p)") << endl;
     cout << endl << endl;
     exit(-1);
 }
@@ -2816,27 +2822,95 @@ int main(int argc, char *argv[]) {
         exit(0);
     }
 
-    predeclarations = "bool a,b,c; int i,j,k; float f,g,h; string s,t,u; map m; vector v; self x,y,z;";
-    
-    if (piped == 2) {
+    if (lispmode) {
+        predeclarations="(setq a true)\n\
+(setq _size 0)\n\
+(setq b true)\n\
+(setq c true)\n\
+(setq i 0)\n\
+(setq j 0)\n\
+(setq k 0)\n\
+(setq f 0.0)\n\
+(setq g 0.0)\n\
+(setq h 0.0)\n\
+(setq s \"\")\n\
+(setq t \"\")\n\
+(setq u \"\")\n\
+(setq m {})\n\
+(setq v ())\n";
+        
+        predeclarations += "(setq l1 \"\") (setq l2 \"\") (setq l3 \"\") (setq l4 \"\") (setq l5 \"\") (setq l6 \"\") (setq l7 \"\") \
+        (setq l8 \"\") (setq l9 \"\") (setq l10 \"\") (setq l11 \"\") (setq l12 \"\") (setq l13 \"\") (setq l14 \"\")\
+        (setq l15 \"\") (setq l16 \"\") (setq l17 \"\") (setq l18 \"\") (setq l19 \"\") (setq l20 \"\") (setq l21 \"\") \
+        (setq l22 \"\") (setq l23 \"\") (setq l24 \"\") (setq l25 \"\") (setq l26 \"\") (setq l27 \"\") (setq l28 \"\") \
+        (setq l29 \"\") (setq l30 \"\") (setq l31 \"\") (setq l32 \"\") (setq l33 \"\") (setq l34 \"\") (setq l35 \"\") \
+        (setq l36 \"\") (setq l37 \"\") (setq l38 \"\") (setq l39 \"\") (setq l40 \"\") (setq l41 \"\") (setq l42 \"\") \
+        (setq l43 \"\") (setq l44 \"\") (setq l45 \"\") (setq l46 \"\") (setq l47 \"\") (setq l48 \"\") (setq l49 \"\") \
+        (setq l50 \"\") (setq l51 \"\") (setq l52 \"\") (setq l53 \"\") (setq l54 \"\") (setq l55 \"\") (setq l56 \"\") \
+        (setq l57 \"\") (setq l58 \"\") (setq l59 \"\") (setq l60 \"\") (setq l61 \"\") (setq l62 \"\") (setq l63 \"\") \
+        (setq l64 \"\") (setq l65 \"\") (setq l66 \"\") (setq l67 \"\") (setq l68 \"\") (setq l69 \"\") (setq l70 \"\") \
+        (setq l71 \"\") (setq l72 \"\") (setq l73 \"\") (setq l74 \"\") (setq l75 \"\") (setq l76 \"\") (setq l77 \"\") \
+        (setq l78 \"\") (setq l79 \"\") (setq l80 \"\") (setq l81 \"\") (setq l82 \"\") (setq l83 \"\") (setq l84 \"\") \
+        (setq l85 \"\") (setq l86 \"\") (setq l87 \"\") (setq l88 \"\") (setq l89 \"\") (setq l90 \"\") (setq l91 \"\") \
+        (setq l92 \"\") (setq l93 \"\") (setq l94 \"\") (setq l95 \"\") (setq l96 \"\") (setq l97 \"\") (setq l98 \"\") (setq l99 \"\")";
+        
         if (codebefore != "") {
             predeclarations += "\n";
             predeclarations += codebefore;
             predeclarations += "\n";
         }
-        predeclarations += "function _Internal_Function(string l) {\n";
+        predeclarations += "\n(defun _Internal_Function(l) \n";
+        Trim(codepipe);
+        if (codepipe.back() != ';' && codepipe.find("{") == string::npos && codepipe.find("print") == string::npos) {
+            codepipe="(println "+codepipe+")";
+        }
         predeclarations += codepipe;
-        predeclarations += "\n}";
+        predeclarations += "\n)\n";
         if (codeafter != "") {
-            predeclarations += "\n\nfunction _Ending_Internal_Function() {\n";
+            predeclarations += "\n\n(defun _Ending_Internal_Function()\n";
             predeclarations += codeafter;
-            predeclarations += "\n}";
+            predeclarations += "\n)\n";
         }
         code = predeclarations;
+        Setlispmode(true);
     }
-    else
-        code = predeclarations + code;
+    else {
+        predeclarations = "bool a,b,c; int i,j,k; float f,g,h; string s,t,u; map m; vector v; self x,y,z;int _size;";
+        predeclarations += "string l1; string l2; string l3; string l4; string l5; string l6; string l7; string l8;\
+        string l9; string l10; string l11; string l12; string l13; string l14; string l15; string l16; string l17; \
+        string l18; string l19; string l20; string l21; string l22; string l23; string l24; string l25; string l26; \
+        string l27; string l28; string l29; string l30; string l31; string l32; string l33; string l34; string l35; \
+        string l36; string l37; string l38; string l39; string l40; string l41; string l42; string l43; string l44; \
+        string l45; string l46; string l47; string l48; string l49; string l50; string l51; string l52; string l53; \
+        string l54; string l55; string l56; string l57; string l58; string l59; string l60; string l61; string l62; \
+        string l63; string l64; string l65; string l66; string l67; string l68; string l69; string l70; string l71; \
+        string l72; string l73; string l74; string l75; string l76; string l77; string l78; string l79; string l80; \
+        string l81; string l82; string l83; string l84; string l85; string l86; string l87; string l88; string l89; \
+        string l90; string l91; string l92; string l93; string l94; string l95; string l96; string l97; string l98; string l99;";
 
+        if (piped == 2) {
+            if (codebefore != "") {
+                predeclarations += "\n";
+                predeclarations += codebefore;
+                predeclarations += "\n";
+            }
+            predeclarations += "function _Internal_Function(string l) {\n";
+            Trim(codepipe);
+            if (codepipe.back() != ';' && codepipe.find("{") == string::npos && codepipe.find("print") == string::npos) {
+                codepipe="println("+codepipe+");";
+            }
+            predeclarations += codepipe;
+            predeclarations += "\n}";
+            if (codeafter != "") {
+                predeclarations += "\n\nfunction _Ending_Internal_Function() {\n";
+                predeclarations += codeafter;
+                predeclarations += "\n}";
+            }
+            code = predeclarations;
+        }
+        else
+            code = predeclarations + code;
+    }
     try {
         idcode = TamguCompile(code, THEMAIN);
     }
@@ -2858,18 +2932,52 @@ int main(int argc, char *argv[]) {
     if (piped == 2) {
         TamguCode* tcode = TamguCodeSpace(idcode);
         
-        arguments.clear();
-        arguments.push_back("");
+        Setlispmode(false);
+        
+        //We need to the variable pointers...
+        Tamgu* ret;
+        short idname;
+
+        vector<Tamgu*> vars;
+        ret = globalTamgu->Provideint();
+        ret->Setreference();
+        vars.push_back(ret);
+        idname = globalTamgu->Getid("_size");
+        globalTamgu->Replacevariable(0, idname, ret);
+        
+        for (i = 1; i < 100; i++) {
+            predeclarations = "l"+convertfromnumber(i);
+            idname = globalTamgu->Getid(predeclarations);
+            ret = globalTamgu->Providestring();
+            ret->Setreference();
+            vars.push_back(ret);
+            globalTamgu->Replacevariable(0, idname, ret);
+        }
+        
+        vector<string> splitted;
         vector<Tamgu*> params;
         Tamgustring ts("");
         ts.reference = 100;
         params.push_back(&ts);
-        Tamgu* ret;
         lnstr = "";
+        string cut=" ";
+        long sz;
         while (!cin.eof()) {
             getline(cin, lnstr);
             if (lnstr.size()) {
-                arguments[0] =  lnstr;
+                splitted.clear();
+                arguments.clear();
+                arguments.push_back(lnstr);
+                s_split(lnstr,cut,splitted, false);
+                sz = splitted.size();
+                vars[0]->storevalue(sz);
+                for (i = 1; i < sz && i < 100; i++) {
+                    vars[i]->storevalue(splitted[i]);
+                    arguments.push_back(splitted[i]);
+                }
+                for (; i < 100; i++)
+                    vars[i]->storevalue("");
+                            
                 ts.value =  lnstr;
                 executionbreak = false;
                 globalTamgu->running = true;

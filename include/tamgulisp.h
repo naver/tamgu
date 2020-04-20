@@ -140,6 +140,141 @@ public:
 
 };
 
+class Tamgulispvariable : public Tamgu {
+public:
+    Tamgu* call;
+    short name;
+    
+    Tamgulispvariable(string& symb, TamguGlobal* g, Tamgu* parent) {
+        name = g->Getid(symb);
+        parent->AddInstruction(this);
+        g->RecordInTracker(this);
+    }
+
+    void AddInstruction(Tamgu* e) {
+        call = e;
+    }
+    
+    Tamgu* Function() {
+        return call;
+    }
+
+    bool isStop() {
+        return call->isStop();
+    }
+    
+    Tamgu* Getindex() {
+        return call->Getindex();
+    }
+    
+    bool Setstopindex() {
+        return call->Setstopindex();
+    }
+    
+    bool isCall() {
+        return true;
+    }
+
+    Tamgu* Eval(Tamgu* context, Tamgu* v, short idthread);
+
+    short Action() {
+        return a_atom;
+    }
+    
+    short Name() {
+        return name;
+    }
+    
+    short Type() {
+        return a_variable;
+    }
+    
+    string JSonString() {
+        string v;
+        v = '"';
+        v += globalTamgu->Getsymbol(name);
+        v += call->String();
+        v += '"';
+        return(v);
+    }
+
+    string String() {
+        string v = globalTamgu->Getsymbol(name);
+        v += call->String();
+        return v;
+    }
+    
+    wstring UString() {
+        return globalTamgu->Getwsymbol(name);
+    }
+    
+    void Setstring(string& v, short idthread) {
+        v = globalTamgu->Getsymbol(name);
+    }
+
+    void Setstring(wstring& v, short idthread) {
+        v = globalTamgu->Getwsymbol(name);
+    }
+
+    Tamgu* andset(Tamgu* a, bool itself) {
+        return globalTamgu->Returnerror("Cannot compute with symbols");
+    }
+    Tamgu* orset(Tamgu* a, bool itself) {
+        return globalTamgu->Returnerror("Cannot compute with symbols");
+    }
+    Tamgu* xorset(Tamgu* a, bool itself) {
+        return globalTamgu->Returnerror("Cannot compute with symbols");
+    }
+    Tamgu* plus(Tamgu* a, bool itself) {
+        return globalTamgu->Returnerror("Cannot compute with symbols");
+    }
+    Tamgu* minus(Tamgu* a, bool itself) {
+        return globalTamgu->Returnerror("Cannot compute with symbols");
+    }
+    Tamgu* multiply(Tamgu* a, bool itself) {
+        return globalTamgu->Returnerror("Cannot compute with symbols");
+    }
+    Tamgu* divide(Tamgu* a, bool itself) {
+        return globalTamgu->Returnerror("Cannot compute with symbols");
+    }
+    Tamgu* power(Tamgu* a, bool itself) {
+        return globalTamgu->Returnerror("Cannot compute with symbols");
+    }
+    Tamgu* shiftleft(Tamgu* a, bool itself) {
+        return globalTamgu->Returnerror("Cannot compute with symbols");
+    }
+    Tamgu* shiftright(Tamgu* a, bool itself) {
+        return globalTamgu->Returnerror("Cannot compute with symbols");
+    }
+    Tamgu* mod(Tamgu* a, bool itself) {
+        return globalTamgu->Returnerror("Cannot compute with symbols");
+    }
+
+    Tamgu* same(Tamgu* a) {
+        return booleantamgu[name == a->Name()];
+    }
+
+    Tamgu* different(Tamgu* a) {
+        return booleantamgu[name != a->Name()];
+    }
+
+    Tamgu* less(Tamgu* a) {
+        return globalTamgu->Returnerror("Meaningless comparison with symbols");
+    }
+
+    Tamgu* more(Tamgu* a) {
+        return globalTamgu->Returnerror("Meaningless comparison with symbols");
+    }
+
+    Tamgu* lessequal(Tamgu* a) {
+        return globalTamgu->Returnerror("Meaningless comparison with symbols");
+    }
+
+    Tamgu* moreequal(Tamgu* a) {
+        return globalTamgu->Returnerror("Meaningless comparison with symbols");
+    }
+
+};
 class Tamgucadr : public Tamgu {
 public:
     string action;
