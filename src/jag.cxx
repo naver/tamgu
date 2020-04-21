@@ -1091,7 +1091,7 @@ void jag_editor::displayonlast(wstring w, bool bck) {
         currentposinstring = -1;
         if (posinstring > lines[poslines[currentline]].size()) {
             posinstring = lines[poslines[currentline]].size();
-            movetoend();
+            movetoend(false);
         }
         else
             movetoposition();
