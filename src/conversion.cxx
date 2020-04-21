@@ -8825,7 +8825,7 @@ Exporting void c_XMLcode(string& s, TAMGUCHAR code) {
 void s_EvaluateMetaCharacters(string& s) {
     InitHtmlCodes();
     
-	TAMGUCHAR cd = 0;
+	TAMGUCHAR cd = s[0];
     
     switch (s[0]) {
         case '\\':
@@ -8884,7 +8884,7 @@ void s_EvaluateMetaCharacters(string& s) {
 void s_EvaluateMetaCharacters(wstring& s) {
     InitHtmlCodes();
     
-	TAMGUCHAR cd = 0;
+	TAMGUCHAR cd = s[0];
     
     switch (s[0]) {
         case '\\':
