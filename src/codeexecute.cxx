@@ -1591,7 +1591,7 @@ Exporting Tamgu* TamguCallFunction::Eval(Tamgu* domain, Tamgu* a, short idthread
     }
     
 	TamguDeclarationLocal* environment = globalTamgu->Providedeclaration(this, idthread, false);
-
+    
 	Tamgu* p;
 
 	short i, sz = 0;
@@ -1599,7 +1599,14 @@ Exporting Tamgu* TamguCallFunction::Eval(Tamgu* domain, Tamgu* a, short idthread
     if (bd != NULL)
         strict = bd->strict;
 
+    vector<Tamgu*> values;
+    for (i=0; i < arguments.size(); i++) {
+        a = arguments[i]->Eval(domain, aNULL, idthread);
+        values.push_back(a);
+    }
+    
 	bool error = true;
+    bool release;
 	while (bd != NULL) {
 		if (arguments.size() != bd->Size()) {
 			if (!nonlimited) {
@@ -1612,23 +1619,26 @@ Exporting Tamgu* TamguCallFunction::Eval(Tamgu* domain, Tamgu* a, short idthread
 		if (arguments.size() || nonlimited) {
 			for (i = 0; i < sz; i++) {
 				p = bd->parameters[i];
+                release=false;
 				if (!nonlimited || i < arguments.size())
-					a = arguments[i]->Eval(domain, aNULL, idthread);
+                    a = values[i];
 				else {
 					a = p->Initialisation();
 					if (a == NULL) {
 						error = true;
 						break;
 					}
+                    release=true;
 				}
 
 				if (!p->Setvalue(environment, a, idthread, strict)) {
-					a->Releasenonconst();
+                    if (release)
+                        a->Releasenonconst();
 					error = true;
 					break;
 				}
-
-				a->Releasenonconst();
+                if (release)
+                    a->Releasenonconst();
 			}
 
 			if (!error)
@@ -1642,6 +1652,9 @@ Exporting Tamgu* TamguCallFunction::Eval(Tamgu* domain, Tamgu* a, short idthread
 			break;
 	}
 
+    for (i = 0; i < values.size(); i++)
+        values[i]->Releasenonconst();
+    
 	if (error) {
         environment->Release();
 		string err = "Check the arguments of: ";
