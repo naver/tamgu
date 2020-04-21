@@ -973,7 +973,6 @@ bool TamguVariableDeclaration::Setvalue(Tamgu* domain, Tamgu* value, short idthr
 		return true;
 	}
 
-    cerr << value->Typename() << ":" << value->Type() << endl;
 	return false;
 }
 
