@@ -75,6 +75,10 @@ public:
 			vars.push_back(names[i]);
 	}
 
+    Tamgu* Declaration(short id) {
+        return globalTamgu->Getdeclaration(id, globalTamgu->GetThreadid());
+    }
+    
 	void Declare(short id, Tamgu* a) {
 		names.push_back(id);
 	}
