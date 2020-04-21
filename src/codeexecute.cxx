@@ -979,7 +979,8 @@ bool TamguVariableDeclaration::Setvalue(Tamgu* domain, Tamgu* value, short idthr
 bool TamguAtomicVariableDeclaration::Setvalue(Tamgu* domain, Tamgu* value, short idthread, bool strict) {
     //we create a new variable, whose type is the one from the function declaration...
     //We need to check some cases
-    if (!globalTamgu->Testcompatibility(typevariable, value->Type(), strict))
+    short ty = value->Type();
+    if (ty != typevariable && value != aNULL && !globalTamgu->Testcompatibility(typevariable, ty, strict))
         return false;
     
     value = value->Atomref();
