@@ -742,6 +742,7 @@ bool jag_editor::updown(char drt, long& pos) {
                 cout << m_scrolldown;
                 line = lines[pos];
                 displaygo(true);
+                displayonlast("",true);
                 if (posinstring > linesize())
                     posinstring = linesize();
                 movetoposition();
