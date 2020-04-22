@@ -2340,8 +2340,8 @@ void replaceescapedcharacters(string& thestr, string sub) {
 }
 
 void EvaluateMetaInString(wstring& w, wstring& wsub) {
-    static Au_automate a("{[%%%x%x][&%c+;][&#%d+;][u%x%x%x%x][\\u%x%x%x%x][\\%d%d%d][\\?]}");
-    
+    static Au_automate a("{[%%%x%x][&%c+;][&#%d+;][u%x%x%x%x][\\\\u%x%x%x%x][\\\\%d%d%d][\\\\?]}");
+
     vector<long> vectr;
     a.searchall(wsub,vectr);
     if (vectr.size()==0) {
@@ -2359,7 +2359,7 @@ void EvaluateMetaInString(wstring& w, wstring& wsub) {
 }
 
 void EvaluateMetaInString(string& thestr, string sub) {
-    static Au_automate a("{[%%%x%x][&%c+;][&#%d+;][u%x%x%x%x][\\u%x%x%x%x][\\%d%d%d][\\?]}");
+    static Au_automate a("{[%%%x%x][&%c+;][&#%d+;][u%x%x%x%x][\\\\u%x%x%x%x][\\\\%d%d%d][\\\\?]}");
     
     wstring wsub;
     s_utf8_to_unicode(wsub, USTR(sub), sub.size());
