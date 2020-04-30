@@ -388,7 +388,7 @@ class Tamguprimemap : public TamguObjectLockContainer {
         if (values.find(k) !=  values.end())
             values[k]->Removereference(reference + 1);
         values[k] = a;
-        a->Setreference();
+        a->Addreference();
         return this;
     }
 

@@ -2971,9 +2971,9 @@ int main(int argc, char *argv[]) {
                 s_split(lnstr,cut,splitted, false);
                 sz = splitted.size();
                 vars[0]->storevalue(sz);
-                for (i = 1; i < sz && i < 100; i++) {
-                    vars[i]->storevalue(splitted[i]);
-                    arguments.push_back(splitted[i]);
+                for (i = 1; i <= sz && i < 100; i++) {
+                    vars[i]->storevalue(splitted[i-1]);
+                    arguments.push_back(splitted[i-1]);
                 }
                 for (; i < 100; i++)
                     vars[i]->storevalue("");

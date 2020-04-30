@@ -41,7 +41,7 @@
 #include "tamgulisp.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2020.04.22";
+const char* tamgu_version = "Tamgu 1.2020.04.30.14";
 
 Tamgu* booleantamgu[2];
 
@@ -783,7 +783,6 @@ Exporting void TamguGlobal::Getdebuginfo(string& localvariables, string& allvari
 
         for (size_t j = 0; j < vars.size(); j++) {
             a = Getdefinition(vars[j], idthread, aNULL);
-
             var << Getsymbol(vars[j]) << " = ";
             if (!shortname)
                 var << a->String();
@@ -833,7 +832,6 @@ Exporting void TamguGlobal::Getdebuginfo(string& localvariables, string& allvari
         stackline->Variables(vars);
         for (size_t j = 0; j < vars.size(); j++) {
             a = stackline->Declaration(vars[j]);
-
             var << Getsymbol(vars[j]) << " = ";
             if (!shortname)
                 var << a->String();

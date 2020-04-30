@@ -2268,131 +2268,409 @@ Exporting Tamgu* TamguGlobal::EvaluateLisp(Tamgu* contextualpattern, string file
     return kret;
 }
 
+//------------ Container evaluation -------------------------------------
+void split_container(unsigned char* src, long lensrc, vector<long>&);
+char buildexpression(Tamgu* kf, unsigned char* src, long lensrc, vector<long>&  pos, long& line, long& i, long& r);
 
 Exporting Tamgu* TamguGlobal::EvaluateVector(string& s, short idthread) {
-    x_reading xr;
-    bnf_tamgu bnf;
-    
-    xr.tokenize(s);
-    
-    bnf.initialize(&xr);
-    bnf.baseline = linereference;
+    if (s[0] != '[') {
+        stringstream msg;
+        msg << "Wrong map definition. Expecting a vector definition";
+        return globalTamgu->Returnerror(msg.str(), idthread);
+    }
 
-    bnf_tamgu* previous = currentbnf;
-    currentbnf = &bnf;
-    string lret;
-    x_node* xn = new x_node;
+    long sz = s.size();
+    vector<long> pos;
+    split_container(USTR(s), sz, pos);
+    Tamgu* kf = globalTamgu->Providevector();
     
-    
-    if (bnf.m_jvector(lret, &xn) != 1 || bnf.currentpos != xr.stack.size()) {
-        delete xn;
-        stringstream& message = globalTamgu->threads[0].message;
-        message << "Error while parsing a vector at line: " << bnf.lineerror;
-        return globalTamgu->Returnerror(message.str(), idthread);
+    long r = 1;
+    long i = 1;
+    long line = 0;
+    if (!buildexpression(kf, USTR(s), sz, pos, line, i, r)) {
+        kf->Release();
+        stringstream msg;
+        msg << "Wrong vector definition. Internal line error: " << line;
+        return globalTamgu->Returnerror(msg.str(), idthread);
+    }
+        
+    if (r != pos.size()) {
+        kf->Release();
+        stringstream msg;
+        msg << "Wrong map definition. Internal line error: " << line;
+        return globalTamgu->Returnerror(msg.str(), idthread);
     }
     
-    Tamgu* kret = aNULL;
-    TamguCode* code = spaces[0];
-    code->compilemode = false;
-    
-    try {
-        kret = code->Traverse(xn, NULL);
-    }
-    catch (TamguRaiseError* m) {
-        code->compilemode = true;
-        code->global = this;
-        kret->Release();
-        kret = Returnerror(m->message, idthread);
-        delete m;
-    }
-    code->compilemode = true;
-    currentbnf = previous;
-    delete xn;
-    return kret;
+    return kf;
 }
 
 Exporting Tamgu* TamguGlobal::EvaluateMap(string& s, short idthread) {
-    x_reading xr;
-    bnf_tamgu bnf;
-    
-    xr.tokenize(s);
-    
-    bnf.initialize(&xr);
-    bnf.baseline = linereference;
+    if (s[0] != '{') {
+        stringstream msg;
+        msg << "Wrong map definition. Expecting a map definition";
+        return globalTamgu->Returnerror(msg.str(), idthread);
+    }
 
-    bnf_tamgu* previous = currentbnf;
-    currentbnf = &bnf;
-    string lret;
-    x_node* xn = new x_node;
+    long sz = s.size();
+    vector<long> pos;
+    split_container(USTR(s), sz, pos);
+    Tamgu* kf = globalTamgu->Providemap();
     
-    
-    if (bnf.m_jmap(lret, &xn) != 1 || bnf.currentpos != xr.stack.size()) {
-        delete xn;
-        stringstream& message = globalTamgu->threads[0].message;
-        message << "Error while parsing a map at line: " << bnf.lineerror;
-        return globalTamgu->Returnerror(message.str(), idthread);
+    long r = 1;
+    long i = 1;
+    long line = 0;
+    if (!buildexpression(kf, USTR(s), sz, pos, line, i, r)) {
+        kf->Release();
+        stringstream msg;
+        msg << "Wrong map definition. Internal line error: " << line;
+        return globalTamgu->Returnerror(msg.str(), idthread);
+    }
+        
+    if (r != pos.size()) {
+        kf->Release();
+        stringstream msg;
+        msg << "Wrong map definition. Internal line error: " << line;
+        return globalTamgu->Returnerror(msg.str(), idthread);
     }
     
-    Tamgu* kret = aNULL;
-    TamguCode* code = spaces[0];
-    code->compilemode = false;
-    
-    try {
-        kret = code->Traverse(xn, NULL);
-    }
-    catch (TamguRaiseError* m) {
-        code->compilemode = true;
-        code->global = this;
-        kret->Release();
-        kret = Returnerror(m->message, idthread);
-        delete m;
-    }
-    code->compilemode = true;
-    delete xn;
-    currentbnf = previous;
-    return kret;
+    return kf;
 }
 
 Exporting Tamgu* TamguGlobal::EvaluateJSON(string& s, short idthread) {
-    x_reading xr;
-    bnf_tamgu bnf;
-    
-    xr.tokenize(s);
-    
-    bnf.initialize(&xr);
-    bnf.baseline = linereference;
+    Tamgu* kf;
+    if (s[0] == '[')
+        kf = globalTamgu->Providevector();
+    else
+        if (s[0] == '{')
+            kf = globalTamgu->Providemap();
+    else {
+        stringstream msg;
+        msg << "Wrong JSON definition. Expecting a map or a vector definition";
+        return globalTamgu->Returnerror(msg.str(), idthread);
+    }
 
-    bnf_tamgu* previous = currentbnf;
-    currentbnf = &bnf;
-    string lret;
-    x_node* xn = new x_node;
+    long sz = s.size();
+    vector<long> pos;
+    split_container(USTR(s), sz, pos);
     
-    if (bnf.m_jexpression(lret, &xn) != 1 || bnf.currentpos != xr.stack.size()) {
-        delete xn;
-        stringstream& message = globalTamgu->threads[0].message;
-        globalTamgu->lineerror = bnf.lineerror;
-        message << "Error while parsing a JSON expression: ";
-        return globalTamgu->Returnerror(message.str(), idthread);
+    long r = 1;
+    long i = 1;
+    long line = 0;
+    if (!buildexpression(kf, USTR(s), sz, pos, line, i, r)) {
+        kf->Release();
+        stringstream msg;
+        msg << "Wrong JSON definition. Internal line error: " << line;
+        return globalTamgu->Returnerror(msg.str(), idthread);
+    }
+        
+    if (r != pos.size()) {
+        kf->Release();
+        stringstream msg;
+        msg << "Wrong JSON definition. Internal line error: " << line;
+        return globalTamgu->Returnerror(msg.str(), idthread);
     }
     
-    Tamgu* kret = aNULL;
-    TamguCode* code = spaces[0];
-    code->compilemode = false;
+    return kf;
+
+}
+
+bool replacemetas(string& thestr, string& sub) {
+    static string search("\\");
     
-    try {
-        kret = code->Traverse(xn, NULL);
+    if (s_findbyte(sub, search ,0) == -1)
+        return false;
+    
+    long sz = sub.size();
+    for (long i=0;i<sz;i++) {
+        if (sub[i]=='\\') {
+            switch(sub[++i]) {
+                case 'n':
+                    thestr+="\n";
+                    break;
+                case 'r':
+                    thestr+="\r";
+                    break;
+                case 't':
+                    thestr+="\t";
+                    break;
+                default:
+                    thestr+=sub[i];
+                    
+            }
+        }
+        else
+            thestr+=sub[i];
     }
-    catch (TamguRaiseError* m) {
-        code->compilemode = true;
-        code->global = this;
-        kret->Release();
-        kret = Returnerror(m->message, idthread);
-        delete m;
+    return true;
+}
+
+char buildexpression(Tamgu* kf, unsigned char* src, long lensrc, vector<long>&  pos, long& line, long& i, long& r) {
+    long sz = pos.size();
+    uchar c;
+    string token;
+    string sub;
+    string key;
+    long from, to;
+    Tamgu* local;
+    char expecting = false;
+    if (kf->isMapContainer())
+        expecting = 1;
+    
+    bool fl, checknext = false;
+    short l;
+    double v;
+    
+    while (r < pos.size()) {
+        from = i;
+        c = src[i++];
+        if (c <= 32) {
+            if (c == '\n')
+                line++;
+            continue;
+        }
+        
+        if (from == pos[r]) {
+            r++;
+            if (c == '@' && src[i] != '"') {
+                token += c;
+                continue;
+            }
+            
+            if (token != "" && expecting != 1) {
+                if (checknext)
+                    return false;
+                if (token == "false")
+                    local = aFALSE;
+                else
+                    if (token == "true")
+                        local = aTRUE;
+                else
+                    if (token == "null")
+                        local = aNULL;
+                else
+                    local = globalTamgu->Providewithstring(token);
+                                
+                if (expecting) {
+                    kf->push(key, local);
+                    key="";
+                    expecting = 1;
+                }
+                else
+                    kf->push(local);
+                checknext=true;
+                token = "";
+            }
+            
+            to = 0;
+            switch (c) {
+                case '@':
+                    if (checknext)
+                        return false;
+                    
+                    r++; // the " has already been detected above...
+                    while (r < sz) {
+                        to  = pos[r++];
+                        if (src[to-1] != '\\' && src[to] == '"' && src[to+1] == '@') {
+                            to = pos[r++];
+                            break;
+                        }
+                    }
+                    c= src[to-1];
+                    src[to-1] = 0;
+                    if (expecting == 1)
+                        key = (char*)src+i+1;
+                    else {
+                        token = (char*)src+i;
+                        if (replacemetas(sub, token))
+                            local = globalTamgu->Providewithstring(sub);
+                        else
+                            local = globalTamgu->Providewithstring(token);
+                        if (expecting) {
+                            kf->push(key, local);
+                            key = "";
+                            expecting = 1;
+                        }
+                        else
+                            kf->push(local);
+                        checknext=true;
+                        token = "";
+                    }
+                    src[to-1] = c;
+                    i = to + 1;
+                    break;
+                case 34:
+                    if (checknext)
+                        return false;
+
+                    while (r < sz) {
+                        to  = pos[r++];
+                        if (src[to-1] != '\\' && src[to] == '"')
+                            break;
+                    }
+                    c= src[to];
+                    src[to] = 0;
+                    if (expecting == 1)
+                        key = (char*)src+i;
+                    else {
+                        token = (char*)src+i;
+                        if (replacemetas(sub, token))
+                            local = globalTamgu->Providewithstring(sub);
+                        else
+                            local = globalTamgu->Providewithstring(token);
+                        if (expecting) {
+                            kf->push(key, local);
+                            key = "";
+                            expecting = 1;
+                        }
+                        else
+                            kf->push(local);
+                        checknext=true;
+                        token = "";
+                    }
+                    src[to] = c;
+                    i = to + 1;
+                    break;
+                case 39:
+                    if (checknext)
+                        return false;
+
+                    while (r < sz) {
+                        to  = pos[r++];
+                        if (src[to] == '\'')
+                            break;
+                    }
+                    c= src[to];
+                    src[to] = 0;
+                    if (expecting == 1)
+                        key = (char*)src+i;
+                    else {
+                        local = globalTamgu->Providestring((char*)src+i);
+                        if (expecting) {
+                            kf->push(key, local);
+                            key="";
+                            expecting = 1;
+                        }
+                        else
+                            kf->push(local);
+                        checknext=true;
+                    }
+                    src[to] = c;
+                    i = to + 1;
+                    break;
+                case '+':
+                case '-':
+                case '0':
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                case '8':
+                case '9':
+                    if (checknext)
+                        return false;
+
+                    v = conversionfloathexa((const char*)src+from, l);
+                    l--;
+                    to = from + l;
+                    while (pos[r] <= to) r++;
+                    c= src[to+1];
+                    src[to+1] = 0;
+                    fl = false;
+                    if (strchr((char*)src+i, '.'))
+                        fl = true;
+                    
+                    if (expecting == 1)
+                        key = (char*)src+i;
+                    else {
+                        if (fl)
+                            local = globalTamgu->Providefloat(v);
+                        else
+                            local = globalTamgu->Provideint(v);
+
+                        if (expecting) {
+                            kf->push(key, local);
+                            key="";
+                            expecting = 1;
+                        }
+                        else
+                            kf->push(local);
+                        checknext=true;
+                    }
+                    src[to+1] = c;
+                    i = to + 1;
+                    break;
+                case '{':
+                    if (expecting == 1 || checknext)
+                        return false;
+                    local = globalTamgu->Providemap();
+                    if (src[i] == '}') {
+                        r++;
+                        i++;
+                    }
+                    else {
+                        if (!buildexpression(local, src, lensrc, pos, line, i, r)) {
+                            local->Release();
+                            return false;
+                        }
+                    }
+                    if (expecting) {
+                        kf->push(key, local);
+                        key="";
+                        expecting = 1;
+                    }
+                    else
+                        kf->push(local);
+                    checknext=true;
+                    break;
+                case '[':
+                    if (expecting == 1 || checknext)
+                        return false;
+                    local = globalTamgu->Providevector();
+                    if (src[i] == ']') {
+                        r++;
+                        i++;
+                    }
+                    else {
+                        if (!buildexpression(local, src, lensrc, pos, line, i, r)) {
+                            local->Release();
+                            return false;
+                        }
+                    }
+                    if (expecting) {
+                        kf->push(key, local);
+                        key="";
+                        expecting = 1;
+                    }
+                    else
+                        kf->push(local);
+                    checknext=true;
+                    break;
+                case '}':
+                    return (expecting == 1);
+                case ']':
+                    return (!expecting);
+                case ':':
+                    if (expecting != 1)
+                        return false;
+                    expecting = 2;
+                    if (token != "") {
+                        key = token;
+                        token = "";
+                    }
+                    break;
+                case ',':
+                    if (!checknext)
+                        return false;
+                    checknext = false;
+            }
+        }
+        else
+            token += c;
     }
-    code->compilemode = true;
-    currentbnf = previous;
-    delete xn;
-    return kret;
+    return false;
 }
 
 //--------------------------------------------------------------------

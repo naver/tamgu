@@ -368,7 +368,7 @@ class Tamgutreemap : public TamguObjectLockContainer {
         if (v != NULL)
             v->Removereference(reference + 1);
         values[k] = a;
-        a->Setreference();
+        a->Addreference();
         return this;
     }
 

@@ -34,10 +34,10 @@ class TamguDeclarationLocal : public TamguTracked {
 public:
 
 	VECTE<short> names;
+    VECTE<Tamgu*> declarations;
 
     short idx;
     short idthread;
-    short i;
     bool pushed;
     bool used;
 
@@ -56,11 +56,12 @@ public:
 	}
 
 	bool isDeclared(short id) {
-        return (names.search(id) != -1);
+        return (names.check(id));
 	}
 
     void Replacedeclaration(short idthread, short id, Tamgu* a) {
         globalTamgu->Replacevariable(idthread, id, a);
+        declarations.vecteur[names.search(id)] = a;
     }
 
     char Declarelocal(short idthread, short n, Tamgu* a) {
@@ -71,22 +72,27 @@ public:
     }
 
 	void Variables(vector<short>& vars) {
-		for (i = 0; i < names.last; i++)
+		for (short i = 0; i < names.last; i++)
 			vars.push_back(names[i]);
 	}
 
-    Tamgu* Declaration(short id) {
-        return globalTamgu->Getdeclaration(id, globalTamgu->GetThreadid());
-    }
-    
 	void Declare(short id, Tamgu* a) {
 		names.push_back(id);
+        declarations.push_back(a);
 	}
 
+    Tamgu* Declaration(short idname) {
+        idname = names.search(idname);
+        if (idname == -1)
+            return NULL;
+        return declarations[idname];
+    }
+
 	void Cleaning() {
-		for (i = 0; i < names.last; i++)
+		for (short i = 0; i < names.last; i++)
             globalTamgu->Removetopvariable(idthread, names.vecteur[i])->Resetreference();
 		names.last = 0;
+        declarations.last = 0;
 	}
 
     void Release() {

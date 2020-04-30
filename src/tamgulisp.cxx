@@ -199,9 +199,7 @@ Tamgu* TamguGlobal::Providelispsymbols(string& n, Tamgu* parent) {
 }
 
 Tamgu* TamguGlobal::Providelispsymbols(short symb, short a) {
-    Tamgusymbol* symbol = new Tamgusymbol(symb, a, this);
-    RecordInTracker(symbol);
-    return symbol;
+    return new Tamgusymbol(symb, a, this);
 }
 
 Tamgu* TamguGlobal::Providelispsymbols(short symb) {
@@ -1600,7 +1598,7 @@ string Tamgulisp::String() {
         else {
             if (beg == false)
                 res += " ";
-            stringing(res, sx);
+            jstringing(res, sx);
         }
         beg = false;
 
@@ -1633,7 +1631,7 @@ string Tamgulispair::String() {
         else {
             if (beg == false)
                 res += " ";
-            stringing(res, sx);
+            jstringing(res, sx);
         }
         beg = false;
 
@@ -1661,7 +1659,7 @@ void Tamgulisp::Setstring(string& res, short idthread) {
         else {
             if (beg == false)
                 res += " ";
-            stringing(res, sx);
+            jstringing(res, sx);
         }
         beg = false;
 
@@ -1692,7 +1690,7 @@ void Tamgulispair::Setstring(string& res, short idthread) {
         else {
             if (beg == false)
                 res += " ";
-            stringing(res, sx);
+            jstringing(res, sx);
         }
         beg = false;
 

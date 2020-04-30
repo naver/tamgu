@@ -172,214 +172,163 @@ bool check_ascii(unsigned char* src, long lensrc, long& i) {
     return true;
 }
 
+static const __m256i _thecr = _mm256_set1_epi8('\n');
+static const __m256i _thedoublequotes = _mm256_set1_epi8('"');
+static const __m256i _thequotes = _mm256_set1_epi8('\'');
+static const __m256i _theslash = _mm256_set1_epi8('/');
 
-static const __m256i _thequotes = _mm256_set1_epi8(39);
-static const __m256i _thedoublequotes = _mm256_set1_epi8(34);
-static const __m256i _theslash = _mm256_set1_epi8(47);
 
-void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<string>& strings, bool lisp) {
-	__m256i current_bytes = _mm256_setzero_si256();
-	__m256i val;
-	long b, e, u;
-	bool found, replace = false, success;
+static const __m256i _tocheck[] = {_mm256_set1_epi8('"'), _mm256_set1_epi8('\''), _mm256_set1_epi8('@'), _mm256_set1_epi8(':'), _mm256_set1_epi8(','),
+    _mm256_set1_epi8('-'), _mm256_set1_epi8('+'),
+    _mm256_set1_epi8('0'),_mm256_set1_epi8('1'),_mm256_set1_epi8('2'),_mm256_set1_epi8('3'),_mm256_set1_epi8('4'),_mm256_set1_epi8('5'), _mm256_set1_epi8('6'),_mm256_set1_epi8('7'),
+    _mm256_set1_epi8('8'), _mm256_set1_epi8('9'),
+    _mm256_set1_epi8('['),_mm256_set1_epi8(']'),_mm256_set1_epi8('{'), _mm256_set1_epi8('}')};
+
+
+void split_container(unsigned char* src, long lensrc, vector<long>& pos) {
+    __m256i current_bytes = _mm256_setzero_si256();
+    __m256i val;
+    long b;
 #ifdef WIN32
-	unsigned long q, r;
+    unsigned long q, r;
 #else
-	uint32_t q, r;
+    uint32_t q, r;
 #endif
+    long i = 0;
+    long sz = sizeof(_tocheck)/sizeof(__m256);
 
-	for (long i = 0; (i + 31) < lensrc; i += 32) {
-		//we load our section, the length should be larger than 32
-		current_bytes = _mm256_loadu_si256((const __m256i *)(src + i));
-
-		val = _mm256_cmpeq_epi8(current_bytes, _theslash);
-		q = _mm256_movemask_epi8(val);
-
-		val = _mm256_cmpeq_epi8(current_bytes, _thequotes);
-		q |= _mm256_movemask_epi8(val);
-
-		val = _mm256_cmpeq_epi8(current_bytes, _thedoublequotes);
-		q |= _mm256_movemask_epi8(val);
-
-		if (q) {
-			b = i;
-			e = b;
-			while (q) {
-				success = false;
-
-				bitscanforward(r, q);
-				if (r) {
-					b += r;
-					q >>= r;
-				}
-
-				e = b + 1;
-				q >>= 1;
-				switch (src[b]) {
-				case '/':
-					if (src[e] == '/') {
-						while (e < lensrc && src[e] != '\n') {
-							e++;
-							q >>= 1;
-						}
-						if (e < lensrc)
-							success = true;
-					}
-					else {
-						if (src[e] == '@') {
-							e++;
-							q >>= 1;
-							found = false;
-							while (q) {
-								bitscanforward(r, q);
-								e += r;
-								q >>= r;
-
-								if (src[e - 1] == '@' && src[e] == '/') {
-									found = true;
-									success = true;
-									break;
-								}
-								q >>= 1;
-								e++;
-							}
-							if (!found) {
-								while (e < lensrc && (src[e - 1] != '@' || src[e] != '/')) e++;
-								if (e < lensrc)
-									success = true;
-							}
-						}
-					}
-					break;
-				case '"':
-					if (b > 0 && src[b - 1] == '@') {
-						b--;
-						if (b > 0 && src[b - 1] == 'u')
-							b--;
-						found = false;
-						while (q) {
-							bitscanforward(r, q);
-							e += r;
-							q >>= r;
-							if (src[e] == '"' && src[e + 1] == '@') {
-								found = true;
-								success = true;
-								q >>= 1;
-								e++;
-								break;
-							}
-							q >>= 1;
-							e++;
-						}
-						if (!found) {
-							while (e < lensrc && (src[e - 1] != '"' || src[e] != '@')) e++;
-							if (e < lensrc)
-								success = true;
-						}
-					}
-					else {
-						if (b > 0 && (src[b - 1] == 'r' || src[b - 1] == 'u' || src[b - 1] == 'p'))
-							b--;
-						found = false;
-						while (q) {
-							bitscanforward(r, q);
-							e += r;
-							q >>= r;
-							if (src[e - 1] != '\\' && src[e] == '"') {
-								found = true;
-								success = true;
-
-								for (u = b; u < e; u++) {
-									if (src[u] == 10 || src[u] == 13) {
-										success = false;
-										break;
-									}
-								}
-								break;
-							}
-							q >>= 1;
-							e++;
-						}
-						if (!found) {
-							while (e < lensrc) {
-								if (src[e] == 10 || src[e] == 13) {
-									found = true;
-									break;
-								}
-								if (src[e] == '\\')
-									e++;
-								else
-									if (src[e] == '"')
-										break;
-								e++;
-							}
-							if (e < lensrc && !found)
-								success = true;
-						}
-					}
-					break;
-				case '\'':
-                    if (lisp)
-                        break;
-					if (b > 0 && (src[b - 1] == 'r' || src[b - 1] == 'u' || src[b - 1] == 'p')) {
-						b--;
-						replace = true;
-					}
-					found = false;
-					while (q) {
-						bitscanforward(r, q);
-						e += r;
-						q >>= r;
-						if (src[e] == '\'') {
-							found = true;
-							success = true;
-							for (u = b; u < e; u++) {
-								if (src[u] == 10 || src[u] == 13) {
-									success = false;
-									break;
-								}
-							}
-							break;
-						}
-						q >>= 1;
-						e++;
-					}
-					if (!found) {
-						while (e < lensrc) {
-							if (src[e] == 10 || src[e] == 13) {
-								found = true;
-								break;
-							}
-							if (src[e] == '\'')
-								break;
-							e++;
-						}
-						if (e < lensrc && !found)
-							success = true;
-					}
-				}
-
-				q >>= 1;
-
-				if (success) {
-					e++;
-					uchar c = src[e];
-					src[e] = 0;
-					pos.push_back(b);
-					strings.push_back((char*)src + b);
-					if (replace) {
-						strings.back()[0] -= 32; // we replace r with R, p with P, u with U
-						replace = false;
-					}
-					src[e] = c;
-					b = e;
-					i = b - 32;
-				}
-			}
-		}
-	}
+    for (; (i + 31) < lensrc; i += 32) {
+        //we load our section, the length should be larger than 32
+        current_bytes = _mm256_loadu_si256((const __m256i *)(src + i));
+        q = 0;
+        for (r = 0; r < sz; r++) {
+            val = _mm256_cmpeq_epi8(current_bytes, _tocheck[r]);
+            q |= _mm256_movemask_epi8(val);
+        }
+             
+        if (q) {
+            b = i;
+            while (q) {
+                bitscanforward(r, q);
+                if (r) {
+                    b += r;
+                    q >>= r;
+                }
+                pos.push_back(b);
+                q >>= 1;
+                b++;
+            }
+        }
+    }
+    
+    if (i < lensrc) {
+        uchar str[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+        for (b = i; b < lensrc; b++)
+            str[b-i] = src[b];
+        current_bytes = _mm256_loadu_si256((const __m256i *)str);
+        
+        q = 0;
+        for (r = 0; r < sz; r++) {
+            val = _mm256_cmpeq_epi8(current_bytes, _tocheck[r]);
+            q |= _mm256_movemask_epi8(val);
+        }
+        
+        if (q) {
+            b = i;
+            while (q) {
+                bitscanforward(r, q);
+                if (r) {
+                    b += r;
+                    q >>= r;
+                }
+                pos.push_back(b);
+                q >>= 1;
+                b++;
+            }
+        }
+    }
 }
 
+
+void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, bool lispmode) {
+    __m256i current_bytes = _mm256_setzero_si256();
+    __m256i val;
+    long b;
+#ifdef WIN32
+    unsigned long q, r;
+#else
+    uint32_t q, r;
+#endif
+    long i = 0;
+    
+    for (; (i + 31) < lensrc; i += 32) {
+        //we load our section, the length should be larger than 32
+        current_bytes = _mm256_loadu_si256((const __m256i *)(src + i));
+
+        val = _mm256_cmpeq_epi8(current_bytes, _theslash);
+        q = _mm256_movemask_epi8(val);
+
+        if (!lispmode) {
+            val = _mm256_cmpeq_epi8(current_bytes, _thequotes);
+            q |= _mm256_movemask_epi8(val);
+        }
+        
+        val = _mm256_cmpeq_epi8(current_bytes, _thecr);
+        q |= _mm256_movemask_epi8(val);
+
+        val = _mm256_cmpeq_epi8(current_bytes, _thedoublequotes);
+        q |= _mm256_movemask_epi8(val);
+
+        if (q) {
+            b = i;
+            while (q) {
+                bitscanforward(r, q);
+                if (r) {
+                    b += r;
+                    q >>= r;
+                }
+                pos.push_back(b);
+                q >>= 1;
+                b++;
+            }
+        }
+    }
+    
+    if (i < lensrc) {
+        uchar str[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+        for (b = i; b < lensrc; b++)
+            str[b-i] = src[b];
+        current_bytes = _mm256_loadu_si256((const __m256i *)str);
+        
+        val = _mm256_cmpeq_epi8(current_bytes, _theslash);
+        q = _mm256_movemask_epi8(val);
+
+        if (!lispmode) {
+            val = _mm256_cmpeq_epi8(current_bytes, _thequotes);
+            q |= _mm256_movemask_epi8(val);
+        }
+
+        val = _mm256_cmpeq_epi8(current_bytes, _thecr);
+        q |= _mm256_movemask_epi8(val);
+
+        val = _mm256_cmpeq_epi8(current_bytes, _thedoublequotes);
+        q |= _mm256_movemask_epi8(val);
+
+        if (q) {
+            b = i;
+            while (q) {
+                bitscanforward(r, q);
+                if (r) {
+                    b += r;
+                    q >>= r;
+                }
+                pos.push_back(b);
+                q >>= 1;
+                b++;
+            }
+        }
+    }
+}
 
 //This version of find_intel also detects the section in which potential UTF8 characters may occur...
 //The first section is then recorded into ps, ascii is then set to false to indicate the potential presence
@@ -1870,6 +1819,52 @@ void find_intel_all(wchar_t* src, wchar_t* search, long lensrc, long lensearch, 
     }
 }
 
+void find_intel_all_characters(wchar_t* src, wchar_t* search, long lensrc, long lensearch, vector<long>& pos, long i) {
+    if (lensearch > lensrc)
+        return;
+    
+    //First we try to find the section in which the first character might occur
+    wchar_t c;
+    wchar_t* s=src;
+    long j,e;
+    __m256i current_bytes = _mm256_setzero_si256();
+    
+    __m256i firstchar;
+    
+    //We then scan our string for this first character...
+    for (; (i + stringincrement - 1) < lensrc; i += stringincrement) {
+        //we load our section, the length should be larger than stringincrement
+        s=src+i;
+        current_bytes = _mm256_loadu_si256((const __m256i *)s);
+        
+        //we check if we have the first character of our string somewhere
+        //in this 8 character window...
+        for (e = 0; e < lensearch; e++) {
+            c = search[e];
+            firstchar = mset_256(c);
+            current_bytes = mcomp_256(firstchar, current_bytes);
+            if (_mm256_movemask_epi8(current_bytes)) {
+                //Our character is present, we now try to find where it is...
+                //we find it in this section...
+                for (j=0; j < stringincrement; j++) {
+                    if (*s == c) {
+                        pos.push_back(i+j);
+                    }
+                    ++s;
+                }
+            }
+        }
+    }
+    
+    lensrc-=lensearch;
+    for (j = i;j<=lensrc;j++) {
+        for (e = 0; e < lensearch; e++) {
+            if (src[j] == search[e])
+                pos.push_back(j);
+        }
+    }
+}
+
 void replace_intel_all(wstring& noe, wstring& src, wstring& search, wstring& replace) {
     long lensrc = src.size();
     long lensearch = search.size();
@@ -2128,208 +2123,162 @@ bool check_ascii(unsigned char* src, long len, long& i) {
     
 }
 
+static const __m128i _tocheck[] = {_mm_set1_epi8('"'), _mm_set1_epi8('\''), _mm_set1_epi8('@'), _mm_set1_epi8(':'), _mm_set1_epi8(','),
+    _mm_set1_epi8('-'), _mm_set1_epi8('+'),
+    _mm_set1_epi8('0'),_mm_set1_epi8('1'),_mm_set1_epi8('2'),_mm_set1_epi8('3'),_mm_set1_epi8('4'),_mm_set1_epi8('5'), _mm_set1_epi8('6'),_mm_set1_epi8('7'),
+    _mm_set1_epi8('8'), _mm_set1_epi8('9'),
+    _mm_set1_epi8('['),_mm_set1_epi8(']'),_mm_set1_epi8('{'), _mm_set1_epi8('}')};
+
+
+void split_container(unsigned char* src, long lensrc, vector<long>& pos) {
+    __m128i current_bytes = _mm_setzero_si128();
+    __m128i val;
+    long b;
+#ifdef WIN32
+    unsigned long q, r;
+#else
+    uint32_t q, r;
+#endif
+    long i = 0;
+    long sz = sizeof(_tocheck)/sizeof(__m128i);
+
+    for (; (i + 15) < lensrc; i += 16) {
+        //we load our section, the length should be larger than 32
+        current_bytes = _mm_loadu_si128((const __m128i *)(src + i));
+        q = 0;
+        for (r = 0; r < sz; r++) {
+            val =_mm_cmpeq_epi8(current_bytes, _tocheck[r]);
+            q |= _mm_movemask_epi8(val);
+        }
+             
+        if (q) {
+            b = i;
+            while (q) {
+                bitscanforward(r, q);
+                if (r) {
+                    b += r;
+                    q >>= r;
+                }
+                pos.push_back(b);
+                q >>= 1;
+                b++;
+            }
+        }
+    }
+    
+    if (i < lensrc) {
+        uchar str[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+        for (b = i; b < lensrc; b++)
+            str[b-i] = src[b];
+        
+        current_bytes = _mm_loadu_si128((const __m128i *)str);
+
+        q = 0;
+        for (r = 0; r < sz; r++) {
+            val =_mm_cmpeq_epi8(current_bytes, _tocheck[r]);
+            q |= _mm_movemask_epi8(val);
+        }
+        
+        if (q) {
+            b = i;
+            while (q) {
+                bitscanforward(r, q);
+                if (r) {
+                    b += r;
+                    q >>= r;
+                }
+                pos.push_back(b);
+                q >>= 1;
+                b++;
+            }
+        }
+    }
+}
+
+static const __m128i _the_cr = _mm_set1_epi8('\n');
 static const __m128i _the_quotes = _mm_set1_epi8(39);
 static const __m128i _the_doublequotes = _mm_set1_epi8(34);
 static const __m128i _the_slash = _mm_set1_epi8(47);
 
-void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<string>& strings, bool lisp) {
-	__m128i current_bytes = _mm_setzero_si128();
-	__m128i val;
-	long b,e,u;
-	bool found, replace=false, success;
-	uint16_t q,r;
+void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, bool lisp) {
+    __m128i current_bytes = _mm_setzero_si128();
+    __m128i val;
+    long b;
+#ifdef WIN32
+    unsigned long q, r;
+#else
+    uint32_t q, r;
+#endif
+    long i = 0;
+    
+    for (; (i + 15) < lensrc; i += 16) {
+        //we load our section, the length should be larger than 32
+        current_bytes = _mm_loadu_si128((const __m128i *)(src + i));
 
-	for (long i = 0; (i + 15) < lensrc; i += 16) {
-		//we load our section, the length should be larger than 16
-		current_bytes = _mm_loadu_si128((const __m128i *)(src + i));
+        val =_mm_cmpeq_epi8(current_bytes, _the_slash);
+        q = _mm_movemask_epi8(val);
 
-		val =_mm_cmpeq_epi8(current_bytes, _the_quotes);
-		q = _mm_movemask_epi8(val);
+        if (!lisp) {
+            val =_mm_cmpeq_epi8(current_bytes, _the_quotes);
+            q |= _mm_movemask_epi8(val);
+        }
+        
+        val =_mm_cmpeq_epi8(current_bytes, _the_cr);
+        q |= _mm_movemask_epi8(val);
 
-		val =_mm_cmpeq_epi8(current_bytes, _the_slash);
-		q |= _mm_movemask_epi8(val);
+        val =_mm_cmpeq_epi8(current_bytes, _the_doublequotes);
+        q |= _mm_movemask_epi8(val);
 
-		val =_mm_cmpeq_epi8(current_bytes, _the_doublequotes);
-		q |= _mm_movemask_epi8(val);
+        if (q) {
+            b = i;
+            while (q) {
+                bitscanforward(r, q);
+                if (r) {
+                    b += r;
+                    q >>= r;
+                }
+                pos.push_back(b);
+                q >>= 1;
+                b++;
+            }
+        }
+    }
+    
+    if (i < lensrc) {
+        uchar str[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+        for (b = i; b < lensrc; b++)
+            str[b-i] = src[b];
+        
+        current_bytes = _mm_loadu_si128((const __m128i *)str);
+        
+        val =_mm_cmpeq_epi8(current_bytes, _the_slash);
+        q = _mm_movemask_epi8(val);
 
-		if (q) {
-			b = i;
-			e = b;
-			while (q) {
-				success = false;
+        if (!lisp) {
+            val =_mm_cmpeq_epi8(current_bytes, _the_quotes);
+            q |= _mm_movemask_epi8(val);
+        }
+        
+        val =_mm_cmpeq_epi8(current_bytes, _the_cr);
+        q |= _mm_movemask_epi8(val);
 
-				bitscanforward(r, q);
-				if (r) {
-					b += r;
-					q >>= r;
-				}
+        val =_mm_cmpeq_epi8(current_bytes, _the_doublequotes);
+        q |= _mm_movemask_epi8(val);
 
-				e = b+1;
-				q >>= 1;
-				switch (src[b]) {
-				case '/':
-					if (src[e] == '/') {
-						while (e < lensrc && src[e] != '\n') {
-							e++;
-							q >>= 1;
-						}
-						if (e < lensrc)
-							success = true;
-					}
-					else {
-						if (src[e] == '@') {
-							e++;
-							q >>= 1;
-							found = false;
-							while (q) {
-								bitscanforward(r, q);
-								e += r;
-								q >>= r;
-
-								if (src[e-1] == '@' && src[e] == '/') {
-									found = true;
-									success = true;
-									break;
-								}
-								q >>= 1;
-								e++;
-							}
-							if (!found) {
-								while (e < lensrc && (src[e-1] != '@' || src[e] != '/')) e++;
-								if (e < lensrc)
-									success = true;
-							}
-						}
-					}
-					break;
-				case '"':
-					if (b > 0 && src[b-1] == '@') {
-						b--;
-						if (b > 0 && src[b-1] == 'u')
-							b--;
-						found = false;
-						while (q) {
-							bitscanforward(r, q);
-							e += r;
-							q >>= r;
-							if (src[e] == '"' && src[e+1] == '@') {
-								found = true;
-								success = true;
-								q >>= 1;
-								e++;
-								break;
-							}
-							q >>= 1;
-							e++;
-						}
-						if (!found) {
-							while (e < lensrc && (src[e-1] != '"' || src[e] != '@')) e++;
-							if (e < lensrc)
-								success = true;
-						}
-					}
-					else {
-						if (b > 0 && (src[b-1] == 'r' || src[b-1] == 'u' || src[b-1] == 'p'))
-							b--;
-						found = false;
-						while (q) {
-							bitscanforward(r, q);
-							e += r;
-							q >>= r;
-							if (src[e-1] != '\\' && src[e] == '"') {
-								found = true;
-								success = true;
-
-								for (u = b; u < e; u++) {
-									if (src[u] == 10 || src[u] == 13) {
-										success = false;
-										break;
-									}
-								}
-								break;
-							}
-							q >>= 1;
-							e++;
-						}
-						if (!found) {
-							while (e < lensrc) {
-								if (src[e] == 10 || src[e] == 13) {
-									found = true;
-									break;
-								}
-								if (src[e] == '\\')
-									e++;
-								else
-									if (src[e] == '"')
-										break;
-								e++;
-							}
-							if (e < lensrc && !found)
-								success = true;
-						}
-					}
-					break;
-				case '\'':
-                    if (lisp)
-                        break;
-
-                    if (b > 0 && (src[b-1] == 'r' || src[b-1] == 'u' || src[b-1] == 'p')) {
-						b--;
-						replace = true;
-					}
-					found = false;
-					while (q) {
-						bitscanforward(r, q);
-						e += r;
-						q >>= r;
-						if (src[e] == '\'') {
-							found = true;
-							success = true;
-							for (u = b; u < e; u++) {
-								if (src[u] == 10 || src[u] == 13) {
-									success = false;
-									break;
-								}
-							}
-							break;
-						}
-						q >>= 1;
-						e++;
-					}
-					if (!found) {
-						while (e < lensrc) {
-							if (src[e] == 10 || src[e] == 13) {
-								found = true;
-								break;
-							}
-							if (src[e] == '\'')
-								break;
-							e++;
-						}
-						if (e < lensrc && !found)
-							success = true;
-					}
-				}
-
-				q >>= 1;
-
-				if (success) {
-					e++;
-					uchar c = src[e];
-					src[e] = 0;
-					pos.push_back(b);
-					strings.push_back((char*)src+b);
-					if (replace) {
-						strings.back()[0] -= 32; // we replace r with R, p with P, u with U
-						replace = false;
-					}
-					src[e] = c;
-					b = e;
-					i = b - 16;
-				}
-			}
-		}
-	}
+        if (q) {
+            b = i;
+            while (q) {
+                bitscanforward(r, q);
+                if (r) {
+                    b += r;
+                    q >>= r;
+                }
+                pos.push_back(b);
+                q >>= 1;
+                b++;
+            }
+        }
+    }
 }
 
 long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, long lensearch, long i) {
@@ -3352,6 +3301,52 @@ void find_intel_all(wchar_t* src, wchar_t* search, long lensrc, long lensearch, 
     }
 }
 
+void find_intel_all_characters(wchar_t* src, wchar_t* search, long lensrc, long lensearch, vector<long>& pos, long i) {
+    if (lensearch > lensrc)
+        return;
+    
+    //First we try to find the section in which the first character might occur
+    wchar_t c;
+    wchar_t* s=src;
+    long j,e;
+    __m128i current_bytes = _mm_setzero_si128();
+
+    __m128i firstchar;
+
+    //We then scan our string for this first character...
+    for (; (i + stringincrement - 1) < lensrc; i += stringincrement) {
+        //we load our section, the length should be larger than stringincrement
+        s=src+i;
+        current_bytes = _mm_loadu_si128((const __m128i *)s);
+        
+        //we check if we have the first character of our string somewhere
+        //in this 8 character window...
+        for (e = 0; e < lensearch; e++) {
+            c = search[e];
+            firstchar = _mm_set1_epi8(c);
+            current_bytes = _mm_cmpeq_epi8(firstchar, current_bytes);
+            if (_mm_movemask_epi8(current_bytes)) {
+                //Our character is present, we now try to find where it is...
+                //we find it in this section...
+                for (j=0; j < stringincrement; j++) {
+                    if (*s == c) {
+                        pos.push_back(i+j);
+                    }
+                    ++s;
+                }
+            }
+        }
+    }
+    
+    lensrc-=lensearch;
+    for (j = i;j<=lensrc;j++) {
+        for (e = 0; e < lensearch; e++) {
+            if (src[j] == search[e])
+                pos.push_back(j);
+        }
+    }
+}
+
 void replace_intel_all(wstring& noe, wstring& src, wstring& search, wstring& replace) {
     long lensrc = src.size();
     long lensearch = search.size();
@@ -3560,135 +3555,31 @@ if (lensearch > lensrc)
 }
 #endif
 #else
-void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<string>& strings, bool lisp) {
-    long e = 0;
-    long b, checkrc;
-    long szmax = 256;
-    char* substr = new char[szmax+1];
-    long ipos = 0;
-    char stop = 0;
-    char stope = 0;
+static const char _tocheck[] = {'"', '\'', '@', ':', ',','-', '+','0','1','2','3','4','5', '6','7','8', '9','[',']','{', '}', 0};
+
+
+void split_container(unsigned char* src, long lensrc, vector<long>& pos) {
     uchar c;
 
-    while (e < lensrc) {
+    for (long e = 0; e < lensrc; e++) {
         c = src[e];
-        if (c != 34 && c != 39 && c != 47) {
-            e++;
-            continue;
-        }
-        
-        checkrc = -1;
-        b = e;
-        
-        switch(c) {
-            case '/':
-            if (src[e+1] == '@') {
-                stop = '@';
-                stope = '/';
-                substr[ipos++] = '/';
-                substr[ipos++] = '@';
-                pos.push_back(e);
-                e+=2;
-                break;
-            }
-            else {
-                if (src[e+1] == '/') {
-                    stop = '\n';
-                    stope = 0;
-                    substr[ipos++] = '/';
-                    substr[ipos++] = '/';
-                    pos.push_back(e);
-                    e+=2;
-                    break;
-                }
-                else {
-                    e++;
-                    continue;
-                }
-            }
-            case 34:
-                if (e > 0 && (src[e-1] == '@' || src[e-1] == 'r' || src[e-1] == 'u' || src[e-1] == 'p')) {
-                    stop = '"';
-                    if (src[e-1] == '@') {
-                        if (e > 1 &&  src[e-2] == 'u') {
-                            substr[ipos++] = src[e-2];
-                            pos.push_back(e-2);
-                        }
-                        else {
-                            pos.push_back(e-1);
-                        }
-                        stope = '@';
-                    }
-                    else {
-                        checkrc = e-1;
-                        stope = 0;
-                    }
-                    
-                    substr[ipos++] = src[e-1];
-                    substr[ipos++] = '"';
-                }
-                else {
-                    checkrc = e;
-                    stop = '"';
-                    stope = 0;
-                    substr[ipos++] = '"';
-                }
-                e++;
-                break;
-            case 39:
-                if (lisp)
-                    break;
-
-                stop = '\'';
-                if (e > 0 && (src[e-1] == 'r' || src[e-1] == 'u' || src[e-1] == 'p')) {
-                    checkrc = e-1;
-                    substr[ipos++] = (src[e-1]-32);
-                    substr[ipos++] = '\'';
-                }
-                else {
-                    checkrc = e;
-                    substr[ipos++] = '\'';
-                }
-                stope = 0;
-                e++;
-                break;
-        }
-        if (!stope) {
-            while (e < lensrc && src[e] != stop) {
-                if (checkrc != -1 && (src[e] == 10 || src[e] == 13)) {
-                    stope = 1;
-                    break;
-                }
-                if (stop == '"' && src[e] == '\\') {
-                    substr = concatchar(substr, '\\', ipos, szmax);
-                    e++;
-                }
-                substr = concatchar(substr, src[e++], ipos, szmax);
-            }
-            if (stope) {
-                e = b + 1;
-                continue;
-            }
-            if (checkrc != -1)
-                pos.push_back(checkrc);
-
-            substr = concatchar(substr, stop, ipos, szmax);
-            e++;
-        }
-        else {
-            while (e < lensrc && (src[e] != stop || src[e+1] != stope)) {
-                substr = concatchar(substr, src[e++], ipos, szmax);
-            }
-            substr = concatchar(substr, stop, ipos, szmax);
-            substr = concatchar(substr, stope, ipos, szmax);
-            e+=2;
-        }
-        substr[ipos] = 0;
-        strings.push_back(substr);
-        ipos = 0;
+        if (strchr(_tocheck, c))
+            pos.push_back(e);
     }
-    
-    delete[] substr;
+}
+
+void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, bool lisp) {
+    uchar c;
+
+    for (long e = 0; e < lensrc; e++) {
+        c = src[e];
+        
+        if (lisp && c == '\'')
+            continue;
+        
+        if (c == '/' || c == '"' || c == '\'' || c == '\n')
+            pos.push_back(e);
+    }
 }
 #endif
 
@@ -12038,11 +11929,10 @@ Exporting long s_rfindbyte(uchar* s, long sz, string& substr, long i) {
 Exporting long s_findbyte(string& s, string& substr, long i) {
 #ifdef INTELINTRINSICS
     long sz = s.size();
-    if (sz >= thestringincrement)
+    if ((sz-i) >= thestringincrement)
         return find_intel_byte(USTR(s), USTR(substr), sz, substr.size(), i);
 #endif
     return s.find(substr,i);
-
 }
 
 
@@ -12060,7 +11950,7 @@ Exporting long s_rfindbyte(string& s, string& substr, long i) {
 Exporting long s_find(string& s, string& substr, long i) {
 #ifdef INTELINTRINSICS
     long sz = s.size();
-    if (sz >= thestringincrement) {
+    if ((sz-i) >= thestringincrement) {
         long firstutf8 = 0;
         if (check_ascii(USTR(s), s.size(), firstutf8))
             return find_intel_byte(USTR(s), USTR(substr), sz, substr.size(), i);

@@ -1164,14 +1164,16 @@ public:
 
 	virtual string Getstring(short idthread) {
 		Tamgu* value = Eval(aNULL, aNULL, idthread);
-		string v = value->String();
+        string v;
+        value->Setstring(v, idthread);
 		value->Releasenonconst();
 		return v;
 	}
 
 	virtual wstring Getustring(short idthread) {
 		Tamgu* value = Eval(aNULL, aNULL, idthread);
-		wstring v = value->UString();
+        wstring v;
+        value->Setstring(v, idthread);
 		value->Releasenonconst();
 		return v;
 	}
@@ -1420,10 +1422,61 @@ public:
 		return a_error;
 	}
 
-	string String() {
-		return error;
-	}
+    string String() {
+        return error;
+    }
 
+    wstring UString() {
+        wstring err;
+        s_utf8_to_unicode(err, USTR(error), error.size());
+        return err;
+    }
+
+    void Setstring(string& v, short idthread) {
+        v = error;
+    }
+    
+    void Setstring(wstring& v, short idthread) {
+        sc_utf8_to_unicode(v, USTR(error), error.size());
+    }
+    
+    string Getstring(short idthread) {
+        return error;
+    }
+
+    wstring Getustring(short idthread) {
+        wstring err;
+        s_utf8_to_unicode(err, USTR(error), error.size());
+        return err;
+    }
+    
+    Tamgu* Getvector(Tamgu* value, short idthread, bool skip = false) {
+        return this;
+    }
+
+    Tamgu* Getmap(Tamgu* value, short idthread, bool skip = false) {
+        return this;
+    }
+
+    long Getinteger(short idthread) {
+        return -1;
+    }
+
+    BLONG Getlong(short idthread) {
+        return -1;
+    }
+
+    short Getshort(short idthread) {
+        return -1;
+    }
+
+    float Getdecimal(short idthread) {
+        return -1;
+    }
+
+    double Getfloat(short idthread) {
+        return -1;
+    }
 	void Resetreference(short inc) {}
 	void Release() {}
 

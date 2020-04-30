@@ -2311,8 +2311,9 @@ Au_arc* Au_state::build(Au_automatons* aus, wstring& token, uchar type, Au_state
 //---------------------------------------------------------------------------------------------------------
 // Detecting meta-characters in strings...
 void replaceescapedcharacters(string& thestr, string sub) {
+    static string search("\\");
     
-    if (sub.find("\\")==-1) {
+    if (s_findbyte(sub, search ,0) == -1) {
         thestr=sub;
         return;
     }

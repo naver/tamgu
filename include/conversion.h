@@ -1142,6 +1142,11 @@ class Fast_String {
         neo[ineo] = 0;
     }
     
+    inline void reset(long i) {
+        ineo = i;
+        neo[ineo] = 0;
+    }
+    
     inline void add(uchar* ctn, long size_ctn) {
         if ((ineo + size_ctn) >= lenneo) {
             lenneo += size_ctn;

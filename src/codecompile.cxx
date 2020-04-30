@@ -46,10 +46,10 @@
 //--------------------------------------------------------------------
 #define setchar(x,y) x[0] = y[0]; x[1] = y[1]; x[2] = y[2]; x[3] = y[3]
 #define charsz(c) c[1] ? c[2] ? c[3] ? 4 : 3 : 2 : 1
-#define settoken(tok,c,itok) tok[itok++] = c[0]; if (c[1]) {tok[itok++]=c[1]; if (c[2]) {tok[itok++]=c[2]; if (c[3]) tok[itok++]=c[3];}} tok[itok] = 0
+#define addtoken(tok,c) tok.add((uchar*)c,charsz(c))
 #define checkcr if (chr[0] == '\n') l++
 //--------------------------------------------------------------------
-char x_reading::loop(short i, char* token, char* chr, long& itoken, short& r, long& l) {
+char x_reading::loop(short i, Fast_String& token, char* chr, short& r, long& l) {
     size_t bp, cp;
     short type;
 
@@ -67,20 +67,19 @@ char x_reading::loop(short i, char* token, char* chr, long& itoken, short& r, lo
             
             if (verif(type,xr_optional)) {
                 parcours.getpos(bp,cp);
-                long itok =  itoken;
+                long itok =  token.size();
                 short rr = r + 1;
-                if (loop(i, token, chr, itok, rr, l)) {
+                if (loop(i, token, chr, rr, l)) {
                     if (verif(element[rr],xr_plus))//if we can loop, we try...
                         r--;
                     else
                         r = rr;
-                    itoken = itok;
                     continue;
                 }
+                else
+                    token.reset(itok);
                 
                 parcours.setpos(bp, cp);
-                token[itoken] = 0;
-         
                 //we need to find the closing parenthesis
                 r = closed[r];
                 continue;
@@ -94,13 +93,13 @@ char x_reading::loop(short i, char* token, char* chr, long& itoken, short& r, lo
                     return 2;
                 return false;
             case 2:
-                settoken(token,chr,itoken);
+                addtoken(token,chr);
                 parcours.nextc(chr);
                 checkcr;
         }
         
         if (!verif(type,xr_skip)) //check if we can store this character
-            settoken(token,chr,itoken);
+            addtoken(token,chr);
         
         parcours.nextc(chr);
         checkcr;
@@ -126,7 +125,7 @@ char x_reading::loop(short i, char* token, char* chr, long& itoken, short& r, lo
 
             while (esc_char) {
                 if (esc_char==2) {
-                    settoken(token,chr,itoken);
+                    addtoken(token,chr);
                     parcours.nextc(chr); //the next character should be copied without further analysis
                 }
                 else {
@@ -154,7 +153,7 @@ char x_reading::loop(short i, char* token, char* chr, long& itoken, short& r, lo
                     }
                 }
                 
-                settoken(token,chr,itoken);
+                addtoken(token,chr);
                 parcours.nextc(chr);
                 checkcr;
                 esc_char=check(label,type,chr);
@@ -164,16 +163,16 @@ char x_reading::loop(short i, char* token, char* chr, long& itoken, short& r, lo
     return true;
 }
 
-void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, vector<string>& strings, bool lisp);
+void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, bool lisp);
 
 void x_reading::apply(bool keepos, vector<string>* vstack, vector<unsigned char>* vtype) {
-    static vector<long> prequotes;
-    static vector<string> prestrings;
+    vector<long> prequotes;
+    Fast_String token(32);
     
     char currentchr[] = {0,0,0,0,0};
     char chr[] = {0,0,0,0,0};
 
-    char* token = new char[parcours.size()+1];
+    
 
     long sztokenizer;
     bool getit=false;
@@ -182,7 +181,7 @@ void x_reading::apply(bool keepos, vector<string>* vstack, vector<unsigned char>
 
     short ty,r;
     size_t b, c;
-    long line=0,i,l, itoken, sz;
+    long line=0,i,l, sz;
 
     if (!loaded) {
         setrules();
@@ -207,11 +206,13 @@ void x_reading::apply(bool keepos, vector<string>* vstack, vector<unsigned char>
     
     long e = 0;
     long presz = 0;
+    long ps, pis;
     
+    string& str = parcours;
+    string sub;
+    uchar previous = 0;
     if (lookforquotes) {
-        prequotes.clear();
-        prestrings.clear();
-        find_quotes(USTR(parcours), parcours.size(), prequotes,prestrings, lispmode);
+        find_quotes(USTR(parcours), parcours.size(), prequotes, lispmode);
         presz = prequotes.size();
     }
     
@@ -232,15 +233,73 @@ void x_reading::apply(bool keepos, vector<string>* vstack, vector<unsigned char>
             }
         }
         
+        //this section is specific to handle r"", u"", p"", @""@
+        if (e < presz && b == prequotes[e] && str[b] != '/' && strchr("pru@", currentchr[0])) {
+            previous = currentchr[0];
+            parcours.nextc(currentchr, line);
+            continue;
+        }
+        
+        //Lisp expressions are introduced with \( or \'(
+        if (!lispmode && e < presz && currentchr[0] == '\\') {
+            int nb = 0;
+            if (str[b] == '(')
+                nb = 2;
+            else {
+                if (str[b] == '\'' && str[b+1] == '(') {
+                    nb = 3;
+                    if (e < presz && b == prequotes[e])
+                        e++;
+                }
+            }
+            if (nb) {
+                lispmode = true;
+                locallispmode = true;
+                countparenthesis = 1;
+                while (nb) {
+                    ty = action[table[(uchar)currentchr[0]]];
+                    if (ty != -1) {
+                        vstack->push_back(currentchr);
+                        
+                        if (!juststack) {
+                            stackln.push_back(line);
+                            vtype->push_back(ty);
+                            if (keepos) {
+                                bpos.push_back(b-1);
+                                cpos.push_back(c-1);
+                            }
+                        }
+                        else
+                            if (storetype)
+                                vtype->push_back(ty);
+                            
+                    }
+                    parcours.nextc(currentchr, line);
+                    parcours.getpos(b,c);
+                    nb--;
+                }
+                continue;
+            }
+        }
+        
         if (i==255) //this is not a character, which a rule is indexed for, we jump to the first non character rules...
             i=firstrule;
         else {
             if (verif(ruleelements[i][0],xr_singlebody) || (lispmode && currentchr[0] == 39)) {
+                previous = 0;
                 //if the rule only checks one character, and it is a direct check, we can stop there
-                if (currentchr[0] == 39)
+                if (currentchr[0] == 39) {
                     ty = 0;
-                else
+                    if (locallispmode && e < presz && b == prequotes[e] + 1)
+                        e++;
+                }
+                else {
+                    if (currentchr[0] == '\n') {
+                        if (e < presz && b == prequotes[e] + 1)
+                            e++;
+                    }
                     ty = action[i];
+                }
                 
                 if (ty != -1) {
                     vstack->push_back(currentchr);
@@ -264,90 +323,126 @@ void x_reading::apply(bool keepos, vector<string>* vstack, vector<unsigned char>
         }
 
         if (e < presz && b == prequotes[e] + 1) {
-            int cre = 0;
+            if (previous)
+                i = table[previous];
+            
             ty=action[i];
-            string sub = prestrings[e++];
-            sz = sub.size();
 
-            parcours.bytepos = b + sz -1;
-            parcours.charpos = c + size_c(USTR(sub), sz) -1;
-            parcours.nextc(currentchr, line);
-
-            switch (sub[0]) {
+            ps = prequotes[e++];
+            bool skip = false;
+            switch (currentchr[0]) {
                 case '/':
-                    if (sub[1] == '@') { // /@...@/
-                        while (cre < sz) {
-                            if (sub[cre++] == '\n')
+                    if (str[ps+1] == '@') { // /@...@/
+                        pis = ps;
+                        while (e < presz) {
+                            pis = prequotes[e++];
+                            if (str[pis] == '\n')
                                 line++;
+                            if (str[pis-1] == '@' && str[pis] == '/')
+                                break;
                         }
+                        sub = str.substr(ps, pis-ps+1);
                     }
                     else
-                        line++;
+                        if (prequotes[e] == ps+1) {
+                            pis = prequotes[e++];
+                            while (e < presz) {
+                                pis = prequotes[e++];
+                                if (str[pis] == '\n')
+                                    break;
+                            }
+                            sub = str.substr(ps, pis-ps);
+                        }
+                        else {
+                            //It is not a comment
+                            for (;i < sztokenizer; i++) {
+                                if (verif(ruleelements[i][0],xr_singlebody)) {
+                                    ty = action[i];
+                                    sub = "/";
+                                    break;
+                                }
+                            }
+                        }
                     break;
-                case '@': //@"..."@
-                    while (cre < sz) {
-                        if (sub[cre++] == '\n')
+                case 34:
+                    pis = ps;
+                    while (e < presz) {
+                        pis = prequotes[e++];
+                        if (str[pis] == '\n') {
+                            if (previous != '@')
+                                break;
                             line++;
-                    }
-                    if (verif(ruleelements[i][0],xr_skip))
-                        sub = sub.substr(1, sz-2);
-                    break;
-                case 'P': //p"..."
-                    if (verif(ruleelements[i][0],xr_skip))
-                        sub = sub.substr(1, sz);
-                    else
-                        sub[0] = 'p';
-                    for (;i < sztokenizer; i++) {
-                        if (tokenizer[i][1][0] == '\'') {
-                            ty = action[i];
-                            break;
+                            continue;
+                        }
+                        if (str[pis-1] != '\\' && str[pis] == '"') {
+                            if (previous != '@' || str[pis+1] == '@')
+                                break;
                         }
                     }
-                    break;
-                case 'R':
-                    if (verif(ruleelements[i][0],xr_skip))
-                        sub = sub.substr(1, sz);
-                    else
-                        sub[0] = 'r';
-                    for (;i < sztokenizer; i++) {
-                        if (tokenizer[i][1][0] == '\'') {
-                            ty = action[i];
-                            break;
+
+                    if (previous) {
+                        if (verif(ruleelements[i][0],xr_skip)) {
+                            sub=str.substr(ps, pis-ps+1);
+                            if (previous == '@')
+                                skip = true;
                         }
-                    }
-                    break;
-                case 'U':
-                    if (verif(ruleelements[i][0],xr_skip))
-                        sub = sub.substr(1, sz);
-                    else
-                        sub[0] = 'u';
-                    break;
-                case 'p': //r"..."
-                    if (verif(ruleelements[i][0],xr_skip))
-                        sub = sub.substr(1, sz);
-                    break;
-                case 'r': //r"..."
-                    if (verif(ruleelements[i][0],xr_skip))
-                        sub = sub.substr(1, sz);
-                    break;
-                case 'u': //r"..."
-                    if (sub[1] == '@') {
-                        if (verif(ruleelements[i][0],xr_skip))
-                            sub = sub.substr(2, sz-3);
+                        else {
+                            if (previous == '@')
+                                sub = str.substr(ps-1,pis-ps+3);
+                            else
+                                sub=str.substr(ps-1, pis-ps+2);
+                            b--;
+                            c--;
+                        }
                         for (;i < sztokenizer; i++) {
-                            if (tokenizer[i][1][0] == '@') {
+                            if (tokenizer[i][1][0] == '"') {
                                 ty = action[i];
                                 break;
                             }
                         }
-                        break;
                     }
-                    else {
+                    else
+                        sub=str.substr(ps, pis-ps+1);
+
+                    break;
+                case 39:
+                    pis = ps;
+                    while (e < presz) {
+                        pis = prequotes[e++];
+                        if (str[pis] == 39 || str[pis] == '\n')
+                            break;
+                    }
+                    
+                    if (previous) {
                         if (verif(ruleelements[i][0],xr_skip))
-                            sub = sub.substr(1, sz);
+                            sub=str.substr(ps, pis-ps+1);
+                        else {
+                            sub=str.substr(ps-1, pis-ps+2);
+                            b--;
+                            c--;
+                        }
+
+                        for (;i < sztokenizer; i++) {
+                            if (tokenizer[i][1][0] == '\'') {
+                                ty = action[i];
+                                break;
+                            }
+                        }
                     }
+                    else
+                        sub=str.substr(ps, pis-ps+1);
+
+                    break;
             }
-           
+            
+            sz = sub.size();
+             
+             parcours.bytepos = b + sz -1;
+             parcours.charpos = c + size_c(USTR(sub), sz) -1;
+             parcours.nextc(currentchr, line);
+             if (skip) //When the last character of the string has been detected but not consummed
+                 parcours.nextc(currentchr, line);
+            
             if (ty != -1) {
                 vstack->push_back(sub);
                 if (!juststack) {
@@ -359,20 +454,21 @@ void x_reading::apply(bool keepos, vector<string>* vstack, vector<unsigned char>
                     }
                 }
             }
+            previous = 0;
             getit=true;
         }
         else {
             bool breaking = false;
+            previous = 0;
             for (;i<sztokenizer;i++) {
                 if (action[i]==xr_skiprule)
                     continue;
                 
-                token[0] = 0;
+                token.clear();
                 l = line;
                 setchar(chr, currentchr);
                 r = 0;
-                itoken = 0;
-                found = loop(i, token, chr, itoken, r, l);
+                found = loop(i, token, chr, r, l);
                 if (found != true) {
                     parcours.setpos(b,c);
                     if (found == 2) {
@@ -387,12 +483,7 @@ void x_reading::apply(bool keepos, vector<string>* vstack, vector<unsigned char>
                 
                 ty=action[i];
                 if (ty != -1) {
-                    vstack->push_back(token);
-                    if (!lispmode && vstack->back() == "\\(") {
-                        lispmode = true;
-                        locallispmode = true;
-                        countparenthesis = 1;
-                    }
+                    vstack->push_back(token.str());
                     if (!juststack) {
                         stackln.push_back(line);
                         vtype->push_back(ty);
@@ -420,15 +511,14 @@ void x_reading::apply(bool keepos, vector<string>* vstack, vector<unsigned char>
             parcours.nextc(currentchr);
         }
     }
-    delete[] token;
 }
 
 #ifdef WIN32
 #define wset(x, y) x[0] = y[0]; x[1] = y[1];
-#define wsettoken(tok, c, itok) tok[itok++] = c[0]; if (c[1]) tok[itok++] =  c[1]; tok[itok] = 0
+#define waddtoken(tok, c, itok) tok[itok++] = c[0]; if (c[1]) tok[itok++] =  c[1]; tok[itok] = 0
 #else
 #define wset(x, y) x[0] = y[0]
-#define wsettoken(tok, c, itok) tok[itok++] = c[0]; tok[itok] = 0
+#define waddtoken(tok, c, itok) tok[itok++] = c[0]; tok[itok] = 0
 #endif
 
 char x_wreading::loop(wstring& toparse, short i, wchar_t* token, wchar_t* chr, long& itoken, short& r, long& l, long& posc) {
@@ -477,12 +567,12 @@ char x_wreading::loop(wstring& toparse, short i, wchar_t* token, wchar_t* chr, l
                     return 2;
                 return false;
             case 2:
-                wsettoken(token,chr,itoken);
+                waddtoken(token,chr,itoken);
                 getnext(toparse,chr,posc,l);
         }
 
         if (!verif(type,xr_skip)) //do not store this character
-            wsettoken(token,chr,itoken);
+            waddtoken(token,chr,itoken);
         
         getnext(toparse,chr,posc,l);
 
@@ -507,7 +597,7 @@ char x_wreading::loop(wstring& toparse, short i, wchar_t* token, wchar_t* chr, l
             
             while (esc_char) {
                 if (esc_char==2) {
-                    settoken(token,chr,itoken);
+                    waddtoken(token,chr,itoken);
                     getnext(toparse,chr,posc,l); //the next character should be copied without further analysis
                 }
                 else {
@@ -534,7 +624,7 @@ char x_wreading::loop(wstring& toparse, short i, wchar_t* token, wchar_t* chr, l
                     }
                 }
                 
-                wsettoken(token,chr,itoken);
+                waddtoken(token,chr,itoken);
                 getnext(toparse,chr,posc,l);
                 esc_char = check(label,type,chr);
             }
@@ -3863,24 +3953,6 @@ Tamgu* TamguCode::C_valmap(x_node* xn, Tamgu* kf) {
 }
 
 
-Tamgu* TamguCode::C_jsondico(x_node* xn, Tamgu* kf) {
-	TamguInstruction kbloc;
-
-	//First the key
-	Traverse(xn->nodes[0], &kbloc);
-	string key = kbloc.instructions[0]->String();
-
-	kbloc.instructions[0]->Remove();
-	kbloc.instructions.clear();
-
-	//then the value
-	Traverse(xn->nodes[1], &kbloc);
-	Tamgu* val = kbloc.instructions[0];
-
-	kf->push(key, val);
-	return kf;
-}
-
 Tamgu* TamguCode::C_features(x_node* xn, Tamgu* kf) {
 	TamguInstruction kbloc;
 
@@ -4055,17 +4127,50 @@ Tamgu* TamguCode::C_dico(x_node* xn, Tamgu* kf) {
 	return kf;
 }
 
+Tamgu* TamguCode::C_jsondico(x_node* xn, Tamgu* kf) {
+    TamguInstruction kbloc;
+
+    //First the key
+    Traverse(xn->nodes[0], &kbloc);
+    string key = kbloc.instructions[0]->String();
+
+    kbloc.instructions[0]->Remove();
+    kbloc.instructions.clear();
+
+    //then the value
+    Traverse(xn->nodes[1], &kbloc);
+    Tamgu* val = kbloc.instructions[0];
+
+    kf->push(key, val);
+    return kf;
+}
 
 Tamgu* TamguCode::C_jsonmap(x_node* xn, Tamgu* kf) {
-	Tamgumap* kmap = new Tamgumap(global, kf);
-	for (int i = 0; i < xn->nodes.size(); i++)
-		Traverse(xn->nodes[i], kmap);
+    Tamgumap* kmap = globalTamgu->Providemap();
+    if (kf != NULL)
+        kf->AddInstruction(kmap);
+    
+    TamguInstruction kbloc;
+    string key;
+    long sz = xn->nodes.size();
+    for (long i = 0; i < sz; i++) {
+        key = xn->nodes[i]->nodes[0]->value;
+        if (key != "" && (key[0] == '"' || key[0] == '\''))
+            key = key.substr(1,key.size()-2);
+        Traverse(xn->nodes[i]->nodes[1], &kbloc);
+        kbloc.instructions[0]->Addreference();
+        kmap->values[key] = kbloc.instructions[0];
+        kbloc.instructions.clear();
+    }
 	return kmap;
 }
 
 Tamgu* TamguCode::C_jsonvector(x_node* xn, Tamgu* kf) {
-	Tamguvector* kvect = new Tamguvector(global, kf);
-	for (int i = 0; i < xn->nodes.size(); i++)
+    Tamguvector* kvect = globalTamgu->Providevector();
+    if (kf != NULL)
+        kf->AddInstruction(kvect);
+    long sz = xn->nodes.size();
+    for (long i = 0; i < sz; i++)
 		Traverse(xn->nodes[i], kvect);
 	return kvect;
 }
@@ -9574,6 +9679,7 @@ Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
         if (n == a_defun && i == 3)
             return kf;
     }
+    
     
     if (kf->Size()) {
         a = kf->getvalue(0);

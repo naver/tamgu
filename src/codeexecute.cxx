@@ -1577,6 +1577,8 @@ Tamgu* TamguCallProcedure::Eval(Tamgu* context, Tamgu* object, short idthread) {
 //------------------------------------------------------------------------------------
 
 Exporting Tamgu* TamguCallFunction::Eval(Tamgu* domain, Tamgu* a, short idthread) {
+    static vector<Tamgu*> bvalues;
+    
     TamguFunction* bd = (TamguFunction*)body->Body(idthread);
 
     if (curryfied) {
@@ -1601,10 +1603,13 @@ Exporting Tamgu* TamguCallFunction::Eval(Tamgu* domain, Tamgu* a, short idthread
     if (bd != NULL)
         strict = bd->strict;
 
-    vector<Tamgu*> values;
+    vector<Tamgu*>* values = &bvalues;
+    if (idthread)
+        values = new vector<Tamgu*>;
+    
     for (i=0; i < arguments.size(); i++) {
         a = arguments[i]->Eval(domain, aNULL, idthread);
-        values.push_back(a);
+        values->push_back(a);
     }
     
 	bool error = true;
@@ -1623,7 +1628,7 @@ Exporting Tamgu* TamguCallFunction::Eval(Tamgu* domain, Tamgu* a, short idthread
 				p = bd->parameters[i];
                 release=false;
 				if (!nonlimited || i < arguments.size())
-                    a = values[i];
+                    a = values->at(i);
 				else {
 					a = p->Initialisation();
 					if (a == NULL) {
@@ -1654,8 +1659,13 @@ Exporting Tamgu* TamguCallFunction::Eval(Tamgu* domain, Tamgu* a, short idthread
 			break;
 	}
 
-    for (i = 0; i < values.size(); i++)
-        values[i]->Releasenonconst();
+    for (i = 0; i < values->size(); i++)
+        values->at(i)->Releasenonconst();
+    
+    if (idthread)
+        delete values;
+    else
+        values->clear();
     
 	if (error) {
         environment->Release();

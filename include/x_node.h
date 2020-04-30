@@ -355,7 +355,8 @@ public:
         rules.push_back("$=0");                         //27    $
         rules.push_back("#=0");                         //28    #
         rules.push_back("?=0");                         //29    ?
-        
+        rules.push_back("\\=0");                        //29    ?
+
         //Comments
         rules.push_back("//%.~%r+=#");                  //30    comments starting with // with no carriage return (CR) inside (not kept)
         rules.push_back("//=#");                        //31    empty comment starting with // with no carriage return (CR) inside (not kept)
@@ -363,10 +364,6 @@ public:
         rules.push_back("/@@/=#");                      //33    empty long comment starting with /@ and finishing with @/
         rules.push_back("/=0");                         //34    /
         
-        //Lisp
-        rules.push_back("\\(=0");                       //29    ?
-        rules.push_back("\\=0");                         //29    ?
-
         //Strings
         //Double quote
         rules.push_back("\"\"=1");                      //35    empty string ""
@@ -946,7 +943,7 @@ public:
     }
     
     void apply(bool keeppos, vector<string>* vstack, vector<unsigned char>* vtype);
-    char loop(short i, char* token, char* chr, long& itoken, short& r, long& line);
+    char loop(short i, Fast_String& token, char* chr, short& r, long& line);
     
     //We tokenize our string...
     virtual void tokenize(string& thestr, bool keeppos=false, vector<string>* vstack=NULL, vector<unsigned char>* vtype=NULL) {

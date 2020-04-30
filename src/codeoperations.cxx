@@ -746,37 +746,32 @@ Tamgu* TamguInstructionEQUFloat::Eval(Tamgu* context, Tamgu* value, short idthre
 }
 
 Tamgu* TamguInstructionEQUString::Eval(Tamgu* context, Tamgu* value, short idthread) {
+    string val;
+
     value = recipient->Eval(context, aNULL, idthread);
-    string val = value->String();
+    value->Setstring(val, idthread);
     
-    switch (action) {
-        case a_plus:
-            val +=  instruction->Getstring(idthread);
-            break;
-        case a_minus:
-            val = StringMinus(val, instruction->Getstring(idthread));
-            break;
-    }
-    
+    //The position in the expression of our variable is the second from the bottom...
+    if (action == a_plus)
+        val += instruction->Getstring(idthread);
+    else
+        val = StringMinus(val, instruction->Getstring(idthread));
+
     value->storevalue(val);
     return aTRUE;
 }
 
 Tamgu* TamguInstructionEQUUString::Eval(Tamgu* context, Tamgu* value, short idthread) {
+    wstring val;
     value = recipient->Eval(context, aNULL, idthread);
-    wstring val = value->UString();
-    
-    //The position in the expression of our variable is the second from the bottom...
+    value->Setstring(val, idthread);
 
-    switch (action) {
-        case a_plus:
-            val += instruction->Getustring(idthread);
-            break;
-        case a_minus:
-            val = StringMinus(val, instruction->Getustring(idthread));
-            break;
-    }
-    
+    //The position in the expression of our variable is the second from the bottom...
+    if (action == a_plus)
+        val += instruction->Getustring(idthread);
+    else
+        val = StringMinus(val, instruction->Getustring(idthread));
+
     value->storevalue(val);
     return aTRUE;
 }
