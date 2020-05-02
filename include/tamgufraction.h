@@ -104,7 +104,7 @@ public:
 
 
 	short Type() {
-		return Tamgufraction::idtype;
+        return a_fraction;
 	}
 
 	

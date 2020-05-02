@@ -84,7 +84,7 @@ public:
 
 
 	short Type() {
-		return Tamgudecimal::idtype;
+        return a_decimal;
 	}
 
 	

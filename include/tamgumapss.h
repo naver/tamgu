@@ -71,7 +71,7 @@ class Tamgumapss : public TamguLockContainer {
     void SetConst() { isconst = true;}
 
     short Type() {
-        return Tamgumapss::idtype;
+        return a_mapss;
     }
 
     

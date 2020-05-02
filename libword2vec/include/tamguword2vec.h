@@ -1240,7 +1240,7 @@ public:
 			resmap->Clear();
 		}
 		else
-			resmap = new Tamgumapsf;
+			resmap = (Tamgumapsf*)globalTamgu->Provideinstance("mapsf", idthread);
 
 		if (w2vec->analogy(kvect, resmap) == -1)
 			return aNULL;
@@ -1259,7 +1259,7 @@ public:
 			resmap->Clear();
 		}
 		else
-			resmap = new Tamgumapsf;
+			resmap = (Tamgumapsf*)globalTamgu->Provideinstance("mapsf", idthread);
 
 		long long threshold = 30000;
 		if (callfunc->Size() == 2)
@@ -1278,7 +1278,7 @@ public:
 			kmap->Clear();
 		}
 		else
-			kmap = new Tamgumap;
+			kmap = globalTamgu->Providemap();
 
 		size_t a, b;
 		string key;
@@ -1288,7 +1288,7 @@ public:
 
 		for (b = 0; b < wrds; b++) {
 			key = &w2vec->a_vocab[b * max_w];
-			kvect = new Tamgufvector;
+            kvect = globalTamgu->Providefvector();
 			kmap->Push(key, kvect);
 			kvect->values.reserve(sz);
 			for (a = 0; a < sz; a++)
@@ -1312,7 +1312,7 @@ public:
 			resmap->Clear();
 		}
 		else
-			resmap = new Tamgumapsf;
+			resmap = (Tamgumapsf*)globalTamgu->Provideinstance("mapsf", idthread);
 
 		if (kvect->isVectorContainer() == false) {
 			if (w2vec->distance(kvect->String(), resmap) == -1) {
@@ -1913,7 +1913,7 @@ public:
 
 
 	Tamgu* Vector(short idthread) {
-		Tamgufvector* kvect = new Tamgufvector;
+        Tamgufvector* kvect = globalTamgu->Providefvector();
 
 		kvect->Reserve(w2vreference->w2vec->a_size);
 		for (long long a = 0; a < w2vreference->w2vec->a_size; a++)

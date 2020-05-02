@@ -90,7 +90,7 @@ static int callback(void *asql, int argc, char **argv, char **azColName){
 	int i;
 	//We use our first parameter as the place where to store our stuff
 	Tamguvector* vresults = (Tamguvector*)asql;
-	Tamgumapss* kmap = new Tamgumapss;
+    Tamgumapss* kmap = globalTamgu->Providemapss();
 	for (i = 0; i < argc; i++) {
 		if (argv[i] == NULL)
 			kmap->values[azColName[i]] = "";

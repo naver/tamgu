@@ -68,7 +68,7 @@ class Tamgufvector : public TamguLockContainer {
     Exporting Tamgu* Filter(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* kcont, Tamgu* accu, Tamgu* init, bool direct);
 
     short Type() {
-        return Tamgufvector::idtype;
+        return a_fvector;
     }
 
     

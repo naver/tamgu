@@ -73,7 +73,7 @@ public:
 
 
 	short Type() {
-		return Tamguboolean::idtype;
+        return a_boolean;
 	}
 
     void Setidtype(TamguGlobal* global);

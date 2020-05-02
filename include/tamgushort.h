@@ -87,7 +87,7 @@ class Tamgushort : public TamguReference {
 	}
 
     short Type() {
-        return Tamgushort::idtype;
+        return a_short;
     }
 
     

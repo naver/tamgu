@@ -546,7 +546,7 @@ public:
 	}
 
 	virtual short Type() {
-		return Tamgustring::idtype;
+        return a_string;
 	}
 
 	

@@ -76,7 +76,7 @@ public:
 
 
 	short Type() {
-		return Tamgufloat::idtype;
+        return a_float;
 	}
 
 	

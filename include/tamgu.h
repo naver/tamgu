@@ -1164,16 +1164,14 @@ public:
 
 	virtual string Getstring(short idthread) {
 		Tamgu* value = Eval(aNULL, aNULL, idthread);
-        string v;
-        value->Setstring(v, idthread);
+        string v = value->String();
 		value->Releasenonconst();
 		return v;
 	}
 
 	virtual wstring Getustring(short idthread) {
 		Tamgu* value = Eval(aNULL, aNULL, idthread);
-        wstring v;
-        value->Setstring(v, idthread);
+        wstring v = value->UString();
 		value->Releasenonconst();
 		return v;
 	}
@@ -1240,7 +1238,7 @@ public:
 
 	//--- Some important conversion methods...
 	virtual string String() { return ""; }
-    virtual void Setstring(string& v, short idthread) { v = Getstring(idthread); }
+    virtual void Setstring(string& v, short idthread) { v = String(); }
 
 	virtual string Bytes() {
 		return String();

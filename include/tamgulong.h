@@ -85,7 +85,7 @@ public:
 	}
 
 	short Type() {
-		return Tamgulong::idtype;
+        return a_long;
 	}
 
 	

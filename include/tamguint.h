@@ -86,7 +86,7 @@ public:
     }
     
     short Type() {
-        return Tamguint::idtype;
+        return a_int;
     }
     
     

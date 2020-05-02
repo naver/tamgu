@@ -78,7 +78,7 @@ class Tamgubyte : public TamguReference {
 	}
 
     short Type() {
-        return Tamgubyte::idtype;
+        return a_byte;
     }
 
     

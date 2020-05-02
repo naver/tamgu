@@ -93,7 +93,7 @@ class Tamguvector : public TamguObjectLockContainer {
     Exporting Tamgu* Filter(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* kcont, Tamgu* accu, Tamgu* init, bool direct);
 
     virtual short Type() {
-        return Tamguvector::idtype;
+        return a_vector;
     }
 
     

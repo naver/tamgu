@@ -46,7 +46,7 @@ public:
 	TamguIterationsqlite(Tamgusqlite* v, TamguGlobal* g);
 
 	Tamgu* Key() {
-		return new Tamguint(nb);
+		return globalTamgu->Provideint(nb);
 	}
 
 	Tamgu* Value();

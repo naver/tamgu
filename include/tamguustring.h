@@ -545,7 +545,7 @@ public:
 	}
 
 	short Type() {
-		return Tamguustring::idtype;
+        return a_ustring;
 	}
 
     void Setidtype(TamguGlobal* global);

@@ -66,7 +66,7 @@ class Tamgutreemap : public TamguObjectLockContainer {
     void SetConst() { isconst = true;}
 
     short Type() {
-        return Tamgutreemap::idtype;
+        return a_treemap;
     }
 
     

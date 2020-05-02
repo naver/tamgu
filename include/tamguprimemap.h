@@ -66,7 +66,7 @@ class Tamguprimemap : public TamguObjectLockContainer {
     void SetConst() { isconst = true;}
 
     short Type() {
-        return Tamguprimemap::idtype;
+        return a_primemap;
     }
 
     

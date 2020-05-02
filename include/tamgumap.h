@@ -67,7 +67,7 @@ class Tamgumap : public TamguObjectLockContainer {
 
 
     short Type() {
-        return Tamgumap::idtype;
+        return a_map;
     }
 
     

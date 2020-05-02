@@ -65,7 +65,7 @@ class Tamgubvector : public TamguLockContainer {
     Exporting Tamgu* Put(Tamgu* context, Tamgu* value, short idthread);
     Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
     short Type() {
-        return Tamgubvector::idtype;
+        return a_bvector;
     }
 
     

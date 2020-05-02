@@ -61,7 +61,7 @@ class Tamgulist : public TamguObjectLockContainer {
     //----------------------------------------------------------------------------------------------------------------------
     Exporting Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
     short Type() {
-        return Tamgulist::idtype;
+        return a_list;
     }
 
     
