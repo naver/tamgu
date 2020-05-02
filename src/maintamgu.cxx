@@ -2512,6 +2512,7 @@ void debuggerthread(tamgu_editor* call) {
 
 #endif
 
+#ifndef WIN32
 void purejagmode(int argc, char *argv[]) {
     JAGEDITOR = new jag_editor;
 
@@ -2536,6 +2537,7 @@ void purejagmode(int argc, char *argv[]) {
         JAGEDITOR->launchterminal(false);
 
 }
+#endif
 
 int main(int argc, char *argv[]) {
     string lnstr;
