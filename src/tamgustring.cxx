@@ -757,7 +757,7 @@ Tamgu* Tamgustring::MethodCount(Tamgu* contextualpattern, short idthread, TamguC
 
     string sub = substr->String();
 
-    if (globalTamgu->globalLOCK) {
+    if (globalTamgu->threadMODE) {
         locking();
         if (value == "")
             i = 0;
@@ -859,7 +859,7 @@ Tamgu* Tamgustring::MethodFind(Tamgu* contextualpattern, short idthread, TamguCa
 }
 
 Tamgu* Tamgustring::MethodRfind(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-    if (globalTamgu->globalLOCK) {
+    if (globalTamgu->threadMODE) {
         if (!Size()) {
             if (contextualpattern->isVectorContainer())
                 return Selectavector(contextualpattern);
@@ -1030,7 +1030,7 @@ Tamgu* Tamgustring::MethodTokenize(Tamgu* contextualpattern, short idthread, Tam
     }
 
     Tamgu* kvect = Selectasvector(contextualpattern);
-    if (!globalTamgu->globalLOCK) {
+    if (!globalTamgu->threadMODE) {
         if (comma)
             xr.selectcomma(true);
         else

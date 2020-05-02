@@ -246,7 +246,7 @@ Tamgu* TamguGlobal::EvaluateMainVariable() {
 //--------------------------------------------------------------------
 Exporting Tamgu* TamguExecute(TamguCode* code, string name, vector<Tamgu*>& params) {
 
-	globalTamgu->globalLOCK = true;
+	globalTamgu->threadMODE = true;
 
 	short idthread = globalTamgu->GetThreadid();
     globalTamgu->Cleanerror(0);
@@ -278,7 +278,7 @@ Exporting Tamgu* TamguExecute(TamguCode* code, string name, vector<Tamgu*>& para
 Exporting Tamgu* TamguExecute(TamguCode* code, string name, vector<Tamgu*>& params, short idthread) {
 	Tamgu* main = code->Mainframe();
 
-	globalTamgu->globalLOCK = true;
+	globalTamgu->threadMODE = true;
     globalTamgu->Cleanerror(idthread);
 
 
@@ -341,7 +341,7 @@ Tamgu* TamguCode::Execute(long begininstruction, short idthread) {
 Tamgu* TamguCode::Loading() {
     
     //These are atomic values that need to be set before all
-    globalTamgu->globalLOCK = false;
+    globalTamgu->threadMODE = false;
 
 
 	short idthread = 0;
@@ -384,7 +384,7 @@ Tamgu* TamguCode::Run(bool glock) {
     //These are atomic values that need to be set before all
     global->running = true;
     global->waitingonfalse = false;
-    global->globalLOCK = glock;
+    global->threadMODE = glock;
     global->isthreading = glock;
     global->threadcounter = 0;
 
@@ -488,7 +488,7 @@ Tamgu* Tamgustring::EvalIndex(Tamgu* kidx, TamguIndex* idx, short idthread) {
     while (kidx != NULL && kidx->isIndex()) {
         res = StringIndexes(str->neo, str->size(), kidx, ileft, iright, idthread);
         if (!res) {
-            if (globalTamgu->globalLOCK)
+            if (globalTamgu->threadMODE)
                 delete str;
             if (globalTamgu->erroronkey)
                 return globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);

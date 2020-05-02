@@ -579,7 +579,7 @@ public:
 	}
 
 	Tamgu* Atom(bool forced = false) {
-        if (!globalTamgu->globalLOCK) {
+        if (!globalTamgu->threadMODE) {
             if (forced || !protect || reference)
                 return globalTamgu->Providewithustring(value);
             return this;
@@ -602,7 +602,7 @@ public:
 
 	string Bytes() {
 		string buffer;
-        if (!globalTamgu->globalLOCK) {
+        if (!globalTamgu->threadMODE) {
             s_unicode_to_utf8(buffer, value);
             return buffer;
         }
@@ -879,7 +879,7 @@ public:
     
 	string String() {
 		string s;
-        if (!globalTamgu->globalLOCK) {
+        if (!globalTamgu->threadMODE) {
             s_unicode_to_utf8(s, value);
             return s;
         }
@@ -889,14 +889,14 @@ public:
 		return s;
 	}
 	wstring UString() {
-        if (!globalTamgu->globalLOCK)
+        if (!globalTamgu->threadMODE)
             return value;
 		Locking _lock(this);
 		return value;
 	}
 
 	wstring Getustring(short idthread) {
-        if (!globalTamgu->globalLOCK)
+        if (!globalTamgu->threadMODE)
             return value;
         
 		Locking _lock(this);
@@ -905,7 +905,7 @@ public:
 
 	string Getstring(short idthread) {
 		string s;
-        if (!globalTamgu->globalLOCK) {
+        if (!globalTamgu->threadMODE) {
             s_unicode_to_utf8(s, value);
             return s;
         }
@@ -932,7 +932,7 @@ public:
 	}
 
 	long Integer() {
-        if (!globalTamgu->globalLOCK) {
+        if (!globalTamgu->threadMODE) {
             if (value == L"")
                 return 0;
             string v;
@@ -948,7 +948,7 @@ public:
 		return conversionintegerhexa(STR(v));
 	}
 	float Decimal() {
-        if (!globalTamgu->globalLOCK) {
+        if (!globalTamgu->threadMODE) {
             if (value == L"")
                 return 0;
             string v;
@@ -964,7 +964,7 @@ public:
 		return convertfloat(STR(v));
 	}
 	double Float() {
-        if (!globalTamgu->globalLOCK) {
+        if (!globalTamgu->threadMODE) {
             if (value == L"")
                 return 0;
             string v;
@@ -992,7 +992,7 @@ public:
 	}
 	unsigned char Byte() {		
 		string buffer;
-        if (!globalTamgu->globalLOCK) {
+        if (!globalTamgu->threadMODE) {
             s_unicode_to_utf8(buffer, value);
             return buffer[0];
         }
@@ -1003,7 +1003,7 @@ public:
 	}
     
 	Tamgu* Push(Tamgu* a) {
-        if (!globalTamgu->globalLOCK) {
+        if (!globalTamgu->threadMODE) {
             value += a->UString();
             return this;
         }
@@ -1051,7 +1051,7 @@ public:
 #endif
     
     virtual long Size() {
-        if (!globalTamgu->globalLOCK)
+        if (!globalTamgu->threadMODE)
             return value.size();
         
         Locking _lock(this);
@@ -1062,14 +1062,14 @@ public:
 #ifdef WSTRING_IS_UTF16
 	//Basic operations
     virtual long CommonSize() {
-        if (!globalTamgu->globalLOCK)
+        if (!globalTamgu->threadMODE)
             return size_w(value);
         Locking _lock(this);
         return size_w(value);
     }
 #else
 	virtual long CommonSize() {
-		if (!globalTamgu->globalLOCK)
+		if (!globalTamgu->threadMODE)
 			return size_c(value);
 
 		Locking _lock(this);
@@ -1083,7 +1083,7 @@ public:
 	Tamgu* xorset(Tamgu* a, bool autoself);
 
 	Tamgu* Merging(Tamgu* a) {
-        if (!globalTamgu->globalLOCK) {
+        if (!globalTamgu->threadMODE) {
             value += a->UString();
             return this;
         }
@@ -1159,7 +1159,7 @@ public:
 
         wstring v = a->UString();
 
-        if (!globalTamgu->globalLOCK) {
+        if (!globalTamgu->threadMODE) {
             if (value < v)
                 return aTRUE;
             return aFALSE;
@@ -1176,7 +1176,7 @@ public:
             return aFALSE;
 #endif
         wstring v = a->UString();
-        if (!globalTamgu->globalLOCK) {
+        if (!globalTamgu->threadMODE) {
             if (value > v)
                 return aTRUE;
             return aFALSE;
@@ -1193,7 +1193,7 @@ public:
             return aFALSE;
 #endif
         wstring v = a->UString();
-        if (!globalTamgu->globalLOCK) {
+        if (!globalTamgu->threadMODE) {
             if (value == v)
                 return aTRUE;
             return aFALSE;
@@ -1210,7 +1210,7 @@ public:
             return aTRUE;
 #endif
         wstring v = a->UString();
-        if (!globalTamgu->globalLOCK) {
+        if (!globalTamgu->threadMODE) {
             if (value != v)
                 return aTRUE;
             return aFALSE;
@@ -1227,7 +1227,7 @@ public:
             return aFALSE;
 #endif
         wstring v = a->UString();
-        if (!globalTamgu->globalLOCK) {
+        if (!globalTamgu->threadMODE) {
             if (value <= v)
                 return aTRUE;
             return aFALSE;
@@ -1244,7 +1244,7 @@ public:
             return aFALSE;
 #endif
         wstring v = a->UString();
-        if (!globalTamgu->globalLOCK) {
+        if (!globalTamgu->threadMODE) {
             if (value >= v)
                 return aTRUE;
             return aFALSE;
@@ -1280,7 +1280,7 @@ public:
                 
                 used = false;
                 value = L"";
-                if (!globalTamgu->globalLOCK)
+                if (!globalTamgu->threadMODE)
                     globalTamgu->uempties.push_back(idx);
             }
         }

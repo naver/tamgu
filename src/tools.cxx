@@ -2270,73 +2270,148 @@ Exporting Tamgu* TamguGlobal::EvaluateLisp(Tamgu* contextualpattern, string file
 
 //------------ Container evaluation -------------------------------------
 void split_container(unsigned char* src, long lensrc, vector<long>&);
-char buildexpression(Tamgu* kf, unsigned char* src, long lensrc, vector<long>&  pos, long& line, long& i, long& r);
+
+class TamguJsonCompiler {
+public:
+    vector<long> pos;
+    string token;
+
+    unsigned char* src;
+
+    double v;
+    long line;
+    long i;
+    long r;
+    long sz;
+    long to;
+    short l;
+    uchar c;
+    
+    bool compile(Tamgu* kf, string& s) {
+        pos.clear();
+        src = USTR(s);
+        split_container(src, s.size(), pos);
+        r = 1;
+        i = 1;
+        line = 0;
+        sz = pos.size();
+        
+        if (!buildexpression(kf) || r != pos.size())
+            return false;
+        return true;
+    }
+    
+    char buildexpression(Tamgu* kf);
+};
 
 Exporting Tamgu* TamguGlobal::EvaluateVector(string& s, short idthread) {
+    static TamguJsonCompiler jcomp_base;
     if (s[0] != '[') {
         stringstream msg;
         msg << "Wrong map definition. Expecting a vector definition";
         return globalTamgu->Returnerror(msg.str(), idthread);
     }
 
-    long sz = s.size();
-    vector<long> pos;
-    split_container(USTR(s), sz, pos);
     Tamgu* kf = globalTamgu->Providevector();
-    
-    long r = 1;
-    long i = 1;
-    long line = 0;
-    if (!buildexpression(kf, USTR(s), sz, pos, line, i, r)) {
-        kf->Release();
-        stringstream msg;
-        msg << "Wrong vector definition. Internal line error: " << line;
-        return globalTamgu->Returnerror(msg.str(), idthread);
-    }
+    TamguJsonCompiler* jcomp = &jcomp_base;
+    if (idthread)
+        jcomp = new TamguJsonCompiler;
+
+    if (!jcomp->compile(kf, s)) {
+        if (idthread)
+            delete jcomp;
         
-    if (r != pos.size()) {
         kf->Release();
         stringstream msg;
-        msg << "Wrong map definition. Internal line error: " << line;
+        msg << "Wrong vector definition. Internal line error: " << jcomp->line;
         return globalTamgu->Returnerror(msg.str(), idthread);
     }
     
+    if (idthread)
+        delete jcomp;
     return kf;
 }
 
-Exporting Tamgu* TamguGlobal::EvaluateMap(string& s, short idthread) {
+
+Exporting Tamgu* TamguGlobal::EvaluateVector(Tamgu* kf, string& s, short idthread) {
+    static TamguJsonCompiler jcomp_base;
+    if (s[0] != '[') {
+        stringstream msg;
+        msg << "Wrong map definition. Expecting a vector definition";
+        return globalTamgu->Returnerror(msg.str(), idthread);
+    }
+
+    TamguJsonCompiler* jcomp = &jcomp_base;
+    if (idthread)
+        jcomp = new TamguJsonCompiler;
+
+    if (!jcomp->compile(kf, s)) {
+        if (idthread)
+            delete jcomp;
+        stringstream msg;
+        msg << "Wrong vector definition. Internal line error: " << jcomp->line;
+        return globalTamgu->Returnerror(msg.str(), idthread);
+    }
+
+    if (idthread)
+        delete jcomp;
+    return kf;
+}
+
+Exporting Tamgu* TamguGlobal::EvaluateMap(Tamgu* kf, string& s, short idthread) {
+    static TamguJsonCompiler jcomp_base;
     if (s[0] != '{') {
         stringstream msg;
         msg << "Wrong map definition. Expecting a map definition";
         return globalTamgu->Returnerror(msg.str(), idthread);
     }
 
-    long sz = s.size();
-    vector<long> pos;
-    split_container(USTR(s), sz, pos);
+    TamguJsonCompiler* jcomp = &jcomp_base;
+    if (idthread)
+        jcomp = new TamguJsonCompiler;
+
+    if (!jcomp->compile(kf, s)) {
+        if (idthread)
+            delete jcomp;
+        stringstream msg;
+        msg << "Wrong map definition. Internal line error: " << jcomp->line;
+        return globalTamgu->Returnerror(msg.str(), idthread);
+    }
+
+    if (idthread)
+        delete jcomp;
+    return kf;
+}
+
+Exporting Tamgu* TamguGlobal::EvaluateMap(string& s, short idthread) {
+    static TamguJsonCompiler jcomp_base;
+    if (s[0] != '{') {
+        stringstream msg;
+        msg << "Wrong map definition. Expecting a map definition";
+        return globalTamgu->Returnerror(msg.str(), idthread);
+    }
+
     Tamgu* kf = globalTamgu->Providemap();
-    
-    long r = 1;
-    long i = 1;
-    long line = 0;
-    if (!buildexpression(kf, USTR(s), sz, pos, line, i, r)) {
+    TamguJsonCompiler* jcomp = &jcomp_base;
+    if (idthread)
+        jcomp = new TamguJsonCompiler;
+
+    if (!jcomp->compile(kf, s)) {
+        if (idthread)
+            delete jcomp;
         kf->Release();
         stringstream msg;
-        msg << "Wrong map definition. Internal line error: " << line;
+        msg << "Wrong map definition. Internal line error: " << jcomp->line;
         return globalTamgu->Returnerror(msg.str(), idthread);
     }
-        
-    if (r != pos.size()) {
-        kf->Release();
-        stringstream msg;
-        msg << "Wrong map definition. Internal line error: " << line;
-        return globalTamgu->Returnerror(msg.str(), idthread);
-    }
-    
+
+    if (idthread)
+        delete jcomp;
     return kf;
 }
 
 Exporting Tamgu* TamguGlobal::EvaluateJSON(string& s, short idthread) {
+    static TamguJsonCompiler jcomp_base;
     Tamgu* kf;
     if (s[0] == '[')
         kf = globalTamgu->Providevector();
@@ -2349,37 +2424,31 @@ Exporting Tamgu* TamguGlobal::EvaluateJSON(string& s, short idthread) {
         return globalTamgu->Returnerror(msg.str(), idthread);
     }
 
-    long sz = s.size();
-    vector<long> pos;
-    split_container(USTR(s), sz, pos);
-    
-    long r = 1;
-    long i = 1;
-    long line = 0;
-    if (!buildexpression(kf, USTR(s), sz, pos, line, i, r)) {
-        kf->Release();
-        stringstream msg;
-        msg << "Wrong JSON definition. Internal line error: " << line;
-        return globalTamgu->Returnerror(msg.str(), idthread);
-    }
-        
-    if (r != pos.size()) {
-        kf->Release();
-        stringstream msg;
-        msg << "Wrong JSON definition. Internal line error: " << line;
-        return globalTamgu->Returnerror(msg.str(), idthread);
-    }
-    
-    return kf;
+    TamguJsonCompiler* jcomp = &jcomp_base;
+    if (idthread)
+        jcomp = new TamguJsonCompiler;
 
+    if (!jcomp->compile(kf, s)) {
+        if (idthread)
+            delete jcomp;
+        kf->Release();
+        stringstream msg;
+        msg << "Wrong JSON definition. Internal line error: " << jcomp->line;
+        return globalTamgu->Returnerror(msg.str(), idthread);
+    }
+
+    if (idthread)
+        delete jcomp;
+    return kf;
 }
 
-bool replacemetas(string& thestr, string& sub) {
+void replacemetas(string& sub) {
     static string search("\\");
     
     if (s_findbyte(sub, search ,0) == -1)
-        return false;
+        return;
     
+    string thestr;
     long sz = sub.size();
     for (long i=0;i<sz;i++) {
         if (sub[i]=='\\') {
@@ -2401,27 +2470,20 @@ bool replacemetas(string& thestr, string& sub) {
         else
             thestr+=sub[i];
     }
-    return true;
+    sub = thestr;
 }
 
-char buildexpression(Tamgu* kf, unsigned char* src, long lensrc, vector<long>&  pos, long& line, long& i, long& r) {
-    long sz = pos.size();
-    uchar c;
-    string token;
-    string sub;
+char TamguJsonCompiler::buildexpression(Tamgu* kf) {
     string key;
-    long from, to;
+
     Tamgu* local;
-    char expecting = false;
-    if (kf->isMapContainer())
-        expecting = 1;
-    
-    bool fl, checknext = false;
-    short l;
-    double v;
-    
+
+    long ref = ((TamguObject*)kf)->reference + 1;
+
+    bool checknext = false;
+    char expecting = kf->isMapContainer();
+
     while (r < pos.size()) {
-        from = i;
         c = src[i++];
         if (c <= 32) {
             if (c == '\n')
@@ -2429,7 +2491,7 @@ char buildexpression(Tamgu* kf, unsigned char* src, long lensrc, vector<long>&  
             continue;
         }
         
-        if (from == pos[r]) {
+        if (i == pos[r] + 1) {
             r++;
             if (c == '@' && src[i] != '"') {
                 token += c;
@@ -2439,24 +2501,27 @@ char buildexpression(Tamgu* kf, unsigned char* src, long lensrc, vector<long>&  
             if (token != "" && expecting != 1) {
                 if (checknext)
                     return false;
+                
                 if (token == "false")
                     local = aFALSE;
                 else
                     if (token == "true")
                         local = aTRUE;
-                else
-                    if (token == "null")
-                        local = aNULL;
-                else
-                    local = globalTamgu->Providewithstring(token);
+                    else
+                        if (token == "null")
+                            local = aNULL;
+                        else {
+                            local = globalTamgu->Providewithstring(token);
+                            local->Setreference(ref);
+                        }
                                 
                 if (expecting) {
-                    kf->push(key, local);
+                    ((Tamgumap*)kf)->values[key] = local;
                     key="";
                     expecting = 1;
                 }
                 else
-                    kf->push(local);
+                    ((Tamguvector*)kf)->values.push_back(local);
                 checknext=true;
                 token = "";
             }
@@ -2481,17 +2546,18 @@ char buildexpression(Tamgu* kf, unsigned char* src, long lensrc, vector<long>&  
                         key = (char*)src+i+1;
                     else {
                         token = (char*)src+i;
-                        if (replacemetas(sub, token))
-                            local = globalTamgu->Providewithstring(sub);
-                        else
-                            local = globalTamgu->Providewithstring(token);
+                        replacemetas(token);
+                        local = globalTamgu->Providewithstring(token);
+
+                        local->Setreference(ref);
                         if (expecting) {
-                            kf->push(key, local);
-                            key = "";
+                            ((Tamgumap*)kf)->values[key] = local;
+                            key="";
                             expecting = 1;
                         }
                         else
-                            kf->push(local);
+                            ((Tamguvector*)kf)->values.push_back(local);
+
                         checknext=true;
                         token = "";
                     }
@@ -2513,17 +2579,18 @@ char buildexpression(Tamgu* kf, unsigned char* src, long lensrc, vector<long>&  
                         key = (char*)src+i;
                     else {
                         token = (char*)src+i;
-                        if (replacemetas(sub, token))
-                            local = globalTamgu->Providewithstring(sub);
-                        else
-                            local = globalTamgu->Providewithstring(token);
+                        replacemetas(token);
+                        local = globalTamgu->Providewithstring(token);
+
+                        local->Setreference(ref);
                         if (expecting) {
-                            kf->push(key, local);
-                            key = "";
+                            ((Tamgumap*)kf)->values[key] = local;
+                            key="";
                             expecting = 1;
                         }
                         else
-                            kf->push(local);
+                            ((Tamguvector*)kf)->values.push_back(local);
+
                         checknext=true;
                         token = "";
                     }
@@ -2545,13 +2612,16 @@ char buildexpression(Tamgu* kf, unsigned char* src, long lensrc, vector<long>&  
                         key = (char*)src+i;
                     else {
                         local = globalTamgu->Providestring((char*)src+i);
+
+                        local->Setreference(ref);
                         if (expecting) {
-                            kf->push(key, local);
+                            ((Tamgumap*)kf)->values[key] = local;
                             key="";
                             expecting = 1;
                         }
                         else
-                            kf->push(local);
+                            ((Tamguvector*)kf)->values.push_back(local);
+
                         checknext=true;
                     }
                     src[to] = c;
@@ -2572,31 +2642,29 @@ char buildexpression(Tamgu* kf, unsigned char* src, long lensrc, vector<long>&  
                     if (checknext)
                         return false;
 
-                    v = conversionfloathexa((const char*)src+from, l);
-                    l--;
-                    to = from + l;
+                    v = conversionfloathexa((const char*)src+i-1, l);
+                    to =  i + l - 2;
                     while (pos[r] <= to) r++;
                     c= src[to+1];
                     src[to+1] = 0;
-                    fl = false;
-                    if (strchr((char*)src+i, '.'))
-                        fl = true;
                     
                     if (expecting == 1)
                         key = (char*)src+i;
                     else {
-                        if (fl)
+                        if (strchr((char*)src+i, '.'))
                             local = globalTamgu->Providefloat(v);
                         else
                             local = globalTamgu->Provideint(v);
 
+                        local->Setreference(ref);
                         if (expecting) {
-                            kf->push(key, local);
+                            ((Tamgumap*)kf)->values[key] = local;
                             key="";
                             expecting = 1;
                         }
                         else
-                            kf->push(local);
+                            ((Tamguvector*)kf)->values.push_back(local);
+                        
                         checknext=true;
                     }
                     src[to+1] = c;
@@ -2611,18 +2679,20 @@ char buildexpression(Tamgu* kf, unsigned char* src, long lensrc, vector<long>&  
                         i++;
                     }
                     else {
-                        if (!buildexpression(local, src, lensrc, pos, line, i, r)) {
+                        if (!buildexpression(local)) {
                             local->Release();
                             return false;
                         }
                     }
+                    local->Addreference(ref);
                     if (expecting) {
-                        kf->push(key, local);
+                        ((Tamgumap*)kf)->values[key] = local;
                         key="";
                         expecting = 1;
                     }
                     else
-                        kf->push(local);
+                        ((Tamguvector*)kf)->values.push_back(local);
+                    
                     checknext=true;
                     break;
                 case '[':
@@ -2634,18 +2704,21 @@ char buildexpression(Tamgu* kf, unsigned char* src, long lensrc, vector<long>&  
                         i++;
                     }
                     else {
-                        if (!buildexpression(local, src, lensrc, pos, line, i, r)) {
+                        if (!buildexpression(local)) {
                             local->Release();
                             return false;
                         }
                     }
+                    
+                    local->Addreference(ref);
                     if (expecting) {
-                        kf->push(key, local);
+                        ((Tamgumap*)kf)->values[key] = local;
                         key="";
                         expecting = 1;
                     }
                     else
-                        kf->push(local);
+                        ((Tamguvector*)kf)->values.push_back(local);
+                    
                     checknext=true;
                     break;
                 case '}':
@@ -2858,8 +2931,8 @@ void FileNameNomalization(char* fileName, char* buffer, long buffersz) {
             *pt = 0;
         
         //On recopie la partie qui precede la variable
-        int lvar = vari - buffer;
-        int lnom = strlen(fileName);
+        long lvar = vari - buffer;
+        long lnom = strlen(fileName);
         memcpy(fileName + lnom, buffer, lvar);
         fileName[lvar + lnom] = 0;
         

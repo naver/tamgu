@@ -838,15 +838,15 @@ public:
         TamguCall func(0);
         func.arguments.push_back(&_arg);
         globalTamgu->debugmode = false;
-        bool gL = globalTamgu->globalLOCK;
-        globalTamgu->globalLOCK = false;
+        bool gL = globalTamgu->threadMODE;
+        globalTamgu->threadMODE = false;
         if (disp)
             cout << code << ": ";
         cout << m_redbold;
         Tamgu* e = ProcEval(aNULL,0,&func);
         cout << m_current;
         globalTamgu->debugmode = true;
-        globalTamgu->globalLOCK = gL;
+        globalTamgu->threadMODE = gL;
         if (e->isError()) {
             globalTamgu->Cleanerror(0);
             return false;
@@ -2512,6 +2512,31 @@ void debuggerthread(tamgu_editor* call) {
 
 #endif
 
+void purejagmode(int argc, char *argv[]) {
+    JAGEDITOR = new jag_editor;
+
+    if (argc == 2) {
+        string cmd = argv[1];
+        if (cmd == "-h" || cmd == "-help" || cmd == "--help" || cmd == "--h") {
+            cout << m_clear << m_home;
+            cerr << m_red << "jag(작): micro text processor (version: experimental)" << m_current << endl;
+            cerr << m_red << "Copyright 2019-present NAVER Corp." << m_current << endl;
+            cerr << m_redital << "Ctrl-xh:" << m_current << " to display this help from within" << endl << endl;
+            JAGEDITOR->displaythehelp(true);
+            cerr << endl;
+            exit(0);
+        }
+
+        if (JAGEDITOR->loadfile(cmd))
+            JAGEDITOR->launchterminal(true);
+        else
+            JAGEDITOR->launchterminal(false);
+    }
+    else
+        JAGEDITOR->launchterminal(false);
+
+}
+
 int main(int argc, char *argv[]) {
     string lnstr;
     
@@ -2981,7 +3006,7 @@ int main(int argc, char *argv[]) {
                 ts.value =  lnstr;
                 executionbreak = false;
                 globalTamgu->running = true;
-                globalTamgu->globalLOCK = false;
+                globalTamgu->threadMODE = false;
                 globalTamgu->isthreading = false;
                 globalTamgu->threadcounter = 0;
                 globalTamgu->Initarguments(arguments);

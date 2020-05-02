@@ -743,7 +743,7 @@ class Tamguivectorbuff : public Tamguivector {
 
                 values.clear();
                 used = false;
-                if (!globalTamgu->globalLOCK)
+                if (!globalTamgu->threadMODE)
                     globalTamgu->ivectorempties.push_back(idx);
             }
         }

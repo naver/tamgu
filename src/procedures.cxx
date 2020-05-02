@@ -905,7 +905,7 @@ Tamgu* ProcSetValidFeatures(Tamgu* contextualpattern, short idthread, TamguCall*
 }
 //------------------------------------------------------------------------------------------------------------------------
 Tamgu* ProcForceLocks(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-    globalTamgu->globalLOCK = callfunc->Evaluate(0, contextualpattern, idthread)->Boolean();
+    globalTamgu->threadMODE = callfunc->Evaluate(0, contextualpattern, idthread)->Boolean();
     return aTRUE;
 }
 

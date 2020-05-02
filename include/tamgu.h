@@ -75,12 +75,12 @@ extern localthread TamguGlobal* globalTamgu;
 extern Exchanging TamguGlobal* globalTamgu;
 #endif
 
-#define _getlockif(x) globalTamgu->globalLOCK ? (x->hasLock() ? new Locking((TamguObject*)x) : NULL) : NULL
+#define _getlockif(x) globalTamgu->threadMODE ? (x->hasLock() ? new Locking((TamguObject*)x) : NULL) : NULL
 #define _cleanlockif(x) if (x != NULL) delete x
 
-#define _getlock(x) globalTamgu->globalLOCK ? new Locking(x) : NULL
-#define _getlocks(x,y)  globalTamgu->globalLOCK ? new Doublelocking(x,y) : NULL
-#define _cleanlock(x) if (globalTamgu->globalLOCK) delete x
+#define _getlock(x) globalTamgu->threadMODE ? new Locking(x) : NULL
+#define _getlocks(x,y)  globalTamgu->threadMODE ? new Doublelocking(x,y) : NULL
+#define _cleanlock(x) if (globalTamgu->threadMODE) delete x
 //-----------------------------------------------------------------------
 
 #include "tamguglobal.h"
@@ -1644,13 +1644,13 @@ public:
 	}
     
     inline void locking() {
-        if (!globalTamgu->globalLOCK)
+        if (!globalTamgu->threadMODE)
             return;
         _locker->Locking();
     }
 
     inline void unlocking() {
-        if (!globalTamgu->globalLOCK)
+        if (!globalTamgu->threadMODE)
             return;
         _locker->Unlocking();
     }
@@ -3243,7 +3243,7 @@ private:
 
 public:
 	Locking(TamguGlobal* global) {
-        if (global->globalLOCK) {
+        if (global->threadMODE) {
 			g = globalTamgu->_trackerlock.lock;
             g->lock();
         }
@@ -3252,7 +3252,7 @@ public:
 	}
 
 	Locking(Tamgu* d) {
-		if (globalTamgu->globalLOCK) {
+		if (globalTamgu->threadMODE) {
             if (d->hasLock()) {
                 g = ((TamguObject*)d)->Initlock();
                 g->lock();
@@ -3263,7 +3263,7 @@ public:
 	}
 
 	Locking(ThreadLock& d) {
-        if (globalTamgu->globalLOCK) {
+        if (globalTamgu->threadMODE) {
 			g = d.lock;
             g->lock();
         }
@@ -3284,7 +3284,7 @@ public:
 	std::recursive_mutex* glast;
 
 	Doublelocking(TamguObject* d, Tamgu* o) {
-		if (globalTamgu->globalLOCK) {
+		if (globalTamgu->threadMODE) {
 			if (o->hasLock()) {
 				TamguObject* dd = (TamguObject*)o;
 				if (d->Lockid() < dd->Lockid()) {
@@ -4051,7 +4051,7 @@ public:
                 used = false;
                 typevalue = a_const;
                 value = aNOELEMENT;
-                if (!globalTamgu->globalLOCK)
+                if (!globalTamgu->threadMODE)
                     globalTamgu->slfempties.push_back(idx);
             }
         }

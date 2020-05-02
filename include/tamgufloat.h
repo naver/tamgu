@@ -694,7 +694,7 @@ public:
    
                 used = false;
                 value = 0;
-                if (!globalTamgu->globalLOCK)
+                if (!globalTamgu->threadMODE)
                     globalTamgu->fempties.push_back(idx);
             }
         }

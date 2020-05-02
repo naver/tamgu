@@ -1465,7 +1465,7 @@ void debuggage(void* arg) {
 	deb.oldos = globalTamgu->os;
 	globalTamgu->os = new stringstream;
 
-	globalTamgu->globalLOCK = true;
+	globalTamgu->threadMODE = true;
 	globalTamgu->Setdebugmode(true);
 	globalTamgu->Setdebugfunction(Debug_callback, &deb);
 	if (loquet != NULL)

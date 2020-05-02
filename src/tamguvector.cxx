@@ -206,7 +206,7 @@ void Tamgulisp::Resetreference(short inc) {
             if (idinfo == -1)
                 delete this;
             else {
-                if (!globalTamgu->globalLOCK)
+                if (!globalTamgu->threadMODE)
                     globalTamgu->lempties.push_back(idinfo);
             }
         }
@@ -224,7 +224,7 @@ Exporting void Tamguvectorbuff::Resetreference(short inc) {
 
             values.clear();
             used = false;
-            if (!globalTamgu->globalLOCK)
+            if (!globalTamgu->threadMODE)
                 globalTamgu->vectorempties.push_back(idx);
         }
     }
@@ -1014,30 +1014,11 @@ Tamgu* Tamguvector::MethodRead(Tamgu* contextualpattern, short idthread, TamguCa
     string s = file.read(-1);
     Trim(s);
     
-    Tamgu* v = globalTamgu->EvaluateVector(s, idthread);
-
-    if (!v->isVectorContainer())
-        return globalTamgu->Returnerror("File does not contain a vector", idthread);
-
-    long sz = v->Size();
-
     Clear();
-    if (sz) {
-        Tamgu* a;
-        Reserve(sz);
-        locking();
-        //We copy all values from ke to this
-        for (long it = 0; it < sz; ++it) {
-            a = ((Tamguvector*)v)->values[it];
-            a = a->Atom();
-            a->Addreference(reference+1);
-            values.push_back(a);
-        }
-        unlocking();
-    }
-    
-    v->Releasenonconst();
-    return this;
+    locking();
+    contextualpattern = globalTamgu->EvaluateVector(this, s, idthread);
+    unlocking();
+    return contextualpattern;
 }
 
 Tamgu* Tamguvector::MethodWrite(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -1344,6 +1325,18 @@ Exporting Tamgu*  Tamguvector::Put(Tamgu* idx, Tamgu* value, short idthread) {
                 }
                 itr->Release();
             }
+            return aTRUE;
+        }
+
+        if (value->isString()) {
+            Clear();
+            string s;
+            value->Setstring(s,idthread);
+            locking();
+            value = globalTamgu->EvaluateVector(this, s, idthread);
+            unlocking();
+            if (value->isError())
+                return value;
             return aTRUE;
         }
 

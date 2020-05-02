@@ -298,7 +298,7 @@ public:
 
 
 	//This variable is set to TRUE in thread mode... It allows then for the actual creation of locks...
-    bool globalLOCK;
+    bool threadMODE;
     bool isthreading;
     
     std::atomic<bool> waitingonfalse;
@@ -714,7 +714,7 @@ public:
 	short SelectThreadid();
 
 	void Sethreading() {
-		globalLOCK = true;
+		threadMODE = true;
         isthreading = true;
 	}
 
@@ -754,7 +754,7 @@ public:
         
         tracked.erase(idx);
         
-        if (globalLOCK) {
+        if (threadMODE) {
             _trackerlock.Locking();
             trackerslots.push_back(idx);
             ++trackerslotfilled;
@@ -955,6 +955,8 @@ public:
     Exporting Tamgu* EvaluateTags(string& s, string& o, string& c, bool comma, bool dgt, bool concat, vector<string>& rules, short idthread);
 	Exporting Tamgu* EvaluateVector(string& s, short idthread);
 	Exporting Tamgu* EvaluateMap(string& s, short idthread);
+    Exporting Tamgu* EvaluateVector(Tamgu* avect, string& s, short idthread);
+    Exporting Tamgu* EvaluateMap(Tamgu* amap,string& s, short idthread);
 	Exporting Tamgu* EvaluateJSON(string& s, short idthread);
     Exporting An_rules* EvaluateRules(string& s, short idthread);
 

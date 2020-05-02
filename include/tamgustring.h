@@ -572,7 +572,7 @@ public:
 	}
 
 	Tamgu* Atom(bool forced = false) {
-        if (!globalTamgu->globalLOCK) {
+        if (!globalTamgu->threadMODE) {
             if (forced || !protect || reference)
                 return globalTamgu->Providewithstring(value);
             return this;
@@ -841,7 +841,7 @@ public:
 	string JSonString() {
 		string res;
         
-        if (!globalTamgu->globalLOCK) {
+        if (!globalTamgu->threadMODE) {
             jstringing(res, value);
             return res;
         }
@@ -853,14 +853,14 @@ public:
 	}
 
 	string Bytes() {
-        if (!globalTamgu->globalLOCK)
+        if (!globalTamgu->threadMODE)
             return value;
 		Locking _lock(this);
 		return value;
 	}
 
 	string String() {
-        if (!globalTamgu->globalLOCK)
+        if (!globalTamgu->threadMODE)
             return value;
         
 		Locking _lock(this);
@@ -877,7 +877,7 @@ public:
 	}
 
 	long Integer() {
-        if (!globalTamgu->globalLOCK)
+        if (!globalTamgu->threadMODE)
             return (long)conversionintegerhexa(STR(value));
 		Locking _lock(this);
 		return (long)conversionintegerhexa(STR(value));
@@ -892,7 +892,7 @@ public:
 	}
 
 	string Getstring(short idthread) {
-        if (!globalTamgu->globalLOCK)
+        if (!globalTamgu->threadMODE)
             return value;
         
 		Locking _lock(this);
@@ -916,7 +916,7 @@ public:
 	}
 
     long CommonSize() {
-        if (!globalTamgu->globalLOCK)
+        if (!globalTamgu->threadMODE)
             return size_c(value);
         Locking _lock(this);
         return size_c(value);
@@ -924,28 +924,28 @@ public:
     
 
 	virtual long Size() {
-        if (!globalTamgu->globalLOCK)
+        if (!globalTamgu->threadMODE)
             return (long)value.size();
 		Locking _lock(this);
 		return (long)value.size();
 	}
 
 	float Decimal() {
-        if (!globalTamgu->globalLOCK)
+        if (!globalTamgu->threadMODE)
             return convertfloat(STR(value));
 		Locking _lock(this);
 		return convertfloat(STR(value));
 	}
 
 	double Float() {
-        if (!globalTamgu->globalLOCK)
+        if (!globalTamgu->threadMODE)
             return convertfloat(STR(value));
 		Locking _lock(this);
 		return convertfloat(STR(value));
 	}
 
 	bool Boolean() {
-        if (!globalTamgu->globalLOCK) {
+        if (!globalTamgu->threadMODE) {
             if (value == "")
                 return false;
             return true;
@@ -958,7 +958,7 @@ public:
 	}
 
 	BLONG Long() {
-        if (!globalTamgu->globalLOCK)
+        if (!globalTamgu->threadMODE)
             return conversionintegerhexa(STR(value));
 
         Locking _lock(this);
@@ -968,7 +968,7 @@ public:
 	Exporting Tamgu* in(Tamgu* context, Tamgu* a, short idthread);
 
     Tamgu* Merging(Tamgu* a) {
-        if (!globalTamgu->globalLOCK) {
+        if (!globalTamgu->threadMODE) {
             value += a->String();
             return this;
         }
@@ -1048,7 +1048,7 @@ public:
         if (!a->isString())
             return aFALSE;
 #endif
-        if (!globalTamgu->globalLOCK) {
+        if (!globalTamgu->threadMODE) {
             if (value < a->String())
                 return aTRUE;
             return aFALSE;
@@ -1064,7 +1064,7 @@ public:
         if (!a->isString())
             return aFALSE;
 #endif
-        if (!globalTamgu->globalLOCK) {
+        if (!globalTamgu->threadMODE) {
             if (value > a->String())
                 return aTRUE;
             return aFALSE;
@@ -1080,7 +1080,7 @@ public:
         if (!a->isString())
             return aFALSE;
 #endif
-        if (!globalTamgu->globalLOCK) {
+        if (!globalTamgu->threadMODE) {
             if (value == a->String())
                 return aTRUE;
             return aFALSE;
@@ -1096,7 +1096,7 @@ public:
         if (!a->isString())
             return aTRUE;
 #endif
-        if (!globalTamgu->globalLOCK) {
+        if (!globalTamgu->threadMODE) {
             if (value != a->String())
                 return aTRUE;
             return aFALSE;
@@ -1112,7 +1112,7 @@ public:
         if (!a->isString())
             return aFALSE;
 #endif
-        if (!globalTamgu->globalLOCK) {
+        if (!globalTamgu->threadMODE) {
             if (value <= a->String())
                 return aTRUE;
             return aFALSE;
@@ -1128,7 +1128,7 @@ public:
         if (!a->isString())
             return aFALSE;
 #endif
-        if (!globalTamgu->globalLOCK) {
+        if (!globalTamgu->threadMODE) {
             if (value >= a->String())
                 return aTRUE;
             return aFALSE;
@@ -1164,7 +1164,7 @@ public:
                 
                 value = "";
                 used = false;
-                if (!globalTamgu->globalLOCK)
+                if (!globalTamgu->threadMODE)
                     globalTamgu->sempties.push_back(idx);
             }
         }

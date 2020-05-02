@@ -80,7 +80,7 @@ void TamguCallFibre::AddMethod(TamguGlobal* global, string name, tamguCallFibre 
 
 Exporting TamguDeclarationAutoClean* TamguGlobal::Providedeclarationclean(short idthread) {
     TamguDeclarationAutoClean* ke;
-    if (globalLOCK) {
+    if (threadMODE) {
         ke = new TamguDeclarationAutoClean(-1);
         ke->idthread = idthread;
         return ke;

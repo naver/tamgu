@@ -20,7 +20,7 @@
 
 //----------------------------------------------------------------------------------------------------
 Exporting TamguPredicateVariableInstance* TamguGlobal::Providepvi(short n) {
-    if (globalLOCK)
+    if (threadMODE)
         return new TamguPredicateVariableInstance(predicatename++, n);
     
     TamguPredicateVariableInstance* kvi;

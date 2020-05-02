@@ -41,7 +41,7 @@
 #include "tamgulisp.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2020.04.30.14";
+const char* tamgu_version = "Tamgu 1.2020.05.02.11";
 
 Tamgu* booleantamgu[2];
 
@@ -287,7 +287,7 @@ Exporting Tamgu::Tamgu() {
     idtracker = -1;
     investigate = is_none;
 
-    if (globalTamgu != NULL && globalTamgu->globalLOCK) {
+    if (globalTamgu != NULL && globalTamgu->threadMODE) {
         Locking _lock(_garbaging);
         iddebug = garbage.size();
         garbage.push_back(this);
@@ -465,7 +465,7 @@ idSymbols(false), methods(false), compatibilities(false), strictcompatibilities(
         rolefunction = NULL;
         propertyfunction = NULL;
 
-        globalLOCK = false;
+        threadMODE = false;
         isthreading = false;
 
         ThreadLock::ids = 0;
@@ -2259,7 +2259,7 @@ Exporting long TamguGlobal::RecordInTrackerProtected(Tamgu* a) {
     if (a->idtracker != -1)
         return a->idtracker;
 
-    if (globalLOCK) {
+    if (threadMODE) {
         long idx = -1;
         if (trackerslotfilled) {
             _trackerlock.Locking();
@@ -3178,7 +3178,7 @@ string TamguConstBool::Info(string s) {
 }
 //------------------------------------------------------------------------------------------------------------------------
 Exporting Tamgumap* TamguGlobal::Providemap() {
-    if (globalLOCK)
+    if (threadMODE)
         return new Tamgumap;
 
     Tamgumapbuff* ke;
@@ -3213,7 +3213,7 @@ Exporting Tamgumap* TamguGlobal::Providemap() {
 }
 
 Exporting Tamgumapss* TamguGlobal::Providemapss() {
-    if (globalLOCK)
+    if (threadMODE)
         return new Tamgumapss;
 
     Tamgumapssbuff* ke;
@@ -3248,7 +3248,7 @@ Exporting Tamgumapss* TamguGlobal::Providemapss() {
 }
 
 Exporting Tamguvector* TamguGlobal::Providevector() {
-    if (globalLOCK)
+    if (threadMODE)
         return new Tamguvector;
 
     Tamguvectorbuff* ke;
@@ -3284,7 +3284,7 @@ Exporting Tamguvector* TamguGlobal::Providevector() {
 
 
 Exporting Tamguivector* TamguGlobal::Provideivector() {
-    if (globalLOCK)
+    if (threadMODE)
         return new Tamguivector;
 
     Tamguivectorbuff* ke;
@@ -3319,7 +3319,7 @@ Exporting Tamguivector* TamguGlobal::Provideivector() {
 }
 
 Exporting Tamgufvector* TamguGlobal::Providefvector() {
-    if (globalLOCK)
+    if (threadMODE)
         return new Tamgufvector;
 
     Tamgufvectorbuff* ke;
@@ -3353,7 +3353,7 @@ Exporting Tamgufvector* TamguGlobal::Providefvector() {
 }
 
 Exporting Tamgusvector* TamguGlobal::Providesvector() {
-    if (globalLOCK)
+    if (threadMODE)
         return new Tamgusvector;
 
     Tamgusvectorbuff* ke;
@@ -3387,7 +3387,7 @@ Exporting Tamgusvector* TamguGlobal::Providesvector() {
 }
 
 Exporting Tamguuvector* TamguGlobal::Provideuvector() {
-    if (globalLOCK)
+    if (threadMODE)
         return new Tamguuvector;
 
     Tamguuvectorbuff* ke;
@@ -3421,7 +3421,7 @@ Exporting Tamguuvector* TamguGlobal::Provideuvector() {
 }
 
 Exporting TamguSelf* TamguGlobal::Provideself() {
-    if (globalLOCK)
+    if (threadMODE)
         return new TamguSelf;
 
     Tamguselfbuff* ke;
@@ -3460,7 +3460,7 @@ Exporting TamguSelf* TamguGlobal::Provideself() {
 }
 
 Exporting Tamguint* TamguGlobal::Provideint(long v) {
-    if (globalLOCK)
+    if (threadMODE)
         return new Tamguint(v);
 
     Tamguintbuff* ke;
@@ -3498,7 +3498,7 @@ Exporting Tamguint* TamguGlobal::Provideint(long v) {
 }
 
 Exporting Tamgufloat* TamguGlobal::Providefloat(double v) {
-    if (globalLOCK)
+    if (threadMODE)
         return new Tamgufloat(v);
 
     Tamgufloatbuff* ke;
@@ -3537,7 +3537,7 @@ Exporting Tamgufloat* TamguGlobal::Providefloat(double v) {
 Exporting TamguDeclarationLocal* TamguGlobal::Providedeclaration(Tamgu* ins, short idt, bool p) {
     TamguDeclarationLocal* ke;
 
-    if (globalLOCK) {
+    if (threadMODE) {
         ke = new TamguDeclarationLocal(-1);
         ke->idthread = idt;
 
@@ -3615,7 +3615,7 @@ Exporting TamguDeclarationLocal* TamguGlobal::Providedeclaration(Tamgu* ins, sho
 }
 
 Exporting Tamgulisp* TamguGlobal::Providelisp() {
-    if (globalLOCK)
+    if (threadMODE)
         return new Tamgulisp(-1);
 
     Tamgulisp* ke;
@@ -3649,7 +3649,7 @@ Exporting Tamgulisp* TamguGlobal::Providelisp() {
 }
 
 Exporting Tamgustring* TamguGlobal::Providestring(string v) {
-    if (globalLOCK)
+    if (threadMODE)
         return new Tamgustring(v);
 
     Tamgustringbuff* ke;
@@ -3686,7 +3686,7 @@ Exporting Tamgustring* TamguGlobal::Providestring(string v) {
 }
 
 Exporting Tamguustring* TamguGlobal::Provideustring(wstring v) {
-    if (globalLOCK)
+    if (threadMODE)
         return new Tamguustring(v);
 
     Tamguustringbuff* ke;
@@ -3723,7 +3723,7 @@ Exporting Tamguustring* TamguGlobal::Provideustring(wstring v) {
 }
 
 Exporting Tamgustring* TamguGlobal::Providewithstring(string& v) {
-    if (globalLOCK)
+    if (threadMODE)
         return new Tamgustring(v);
 
     Tamgustringbuff* ke;
@@ -3760,7 +3760,7 @@ Exporting Tamgustring* TamguGlobal::Providewithstring(string& v) {
 }
 
 Exporting Tamguustring* TamguGlobal::Providewithustring(wstring& v) {
-    if (globalLOCK)
+    if (threadMODE)
         return new Tamguustring(v);
 
     Tamguustringbuff* ke;

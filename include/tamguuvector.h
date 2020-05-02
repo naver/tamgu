@@ -705,7 +705,7 @@ class Tamguuvectorbuff : public Tamguuvector {
 
                 values.clear();
                 used = false;
-                if (!globalTamgu->globalLOCK)
+                if (!globalTamgu->threadMODE)
                     globalTamgu->uvectorempties.push_back(idx);
             }
         }

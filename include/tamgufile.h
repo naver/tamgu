@@ -801,6 +801,43 @@ public:
 		return total;
 	}
 
+    void read(Fast_String& str, long nb) {
+        long nbread;
+
+        while (nb) {
+            if (feof(thefile))
+                return;
+
+            fbuffer[0] = 0;
+            nbread = fread(fbuffer, 1, 4095, thefile);
+
+            if (nbread == 0)
+                return;
+
+            if (nb != -1) {
+                if (nbread >= nb) {
+                    nbread = nb;
+                    nb = 0;
+                }
+                else
+                    nb -= nbread;
+            }
+
+            fbuffer[nbread] = 0;
+            if (first) {
+                first = false;
+                if (signature) {
+                    if (fbuffer[0] == 239 && fbuffer[1] == 187 && fbuffer[2] == 191) {
+                        str.add(fbuffer+3, nbread-3);
+                        continue;
+                    }
+                }
+            }
+
+            str.add(fbuffer, nbread);
+        }
+    }
+    
 	string read(long nb) {
 
         string str;

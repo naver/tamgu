@@ -514,50 +514,31 @@ Exporting TamguIteration* Tamgumap::Newiteration(bool direction) {
 
 Tamgu* Tamgumap::MethodRead(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         //The separator between values
-    string filename = callfunc->Evaluate(0, contextualpattern, idthread)->String();
-    Clear();
+    string s = callfunc->Evaluate(0, contextualpattern, idthread)->String();
     Tamgufile file;
     
 #ifdef WIN32
-    fopen_s(&file.thefile, STR(filename), "rb");
+    fopen_s(&file.thefile, STR(s), "rb");
 #else
-    file.thefile=fopen(STR(filename), "rb");
+    file.thefile=fopen(STR(s), "rb");
 #endif
     
     if (file.thefile == NULL) {
         string msg="Cannot open the file:";
-        msg += filename;
+        msg += s;
         return globalTamgu->Returnerror(msg, idthread);
     }
     
-    string s = file.read(-1);
+    s = file.read(-1);
     Trim(s);
     
-    Tamgu* m = globalTamgu->EvaluateMap(s, idthread);
-
-    if (!m->isMapContainer())
-        return globalTamgu->Returnerror("File does not contain a map", idthread);
-
-    long sz = m->Size();
-
     Clear();
-    if (sz) {
-        Locking _lock(this);
-        TamguIteration* itr = m->Newiteration(false);
-        Tamgu* a;
-        for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
-            a=itr->IteratorValue();
-            a=a->Atom();
-            values[itr->Keystring()] = a;
-            a->Addreference(reference+1);
-        }
-        itr->Release();
-    }
-    m->Releasenonconst();
-    
-    return this;
+    locking();
+    contextualpattern = globalTamgu->EvaluateMap(this, s, idthread);
+    unlocking();
+    return contextualpattern;
 }
-
+ 
 Exporting Tamgu* Tamgumap::in(Tamgu* context, Tamgu* a, short idthread) {
     //Three cases along the container type...
     //It is a Boolean, we expect false or true
@@ -724,7 +705,7 @@ Exporting void Tamgumapbuff::Resetreference(short inc) {
 
             values.clear();
             used = false;
-            if (!globalTamgu->globalLOCK)
+            if (!globalTamgu->threadMODE)
                 globalTamgu->mapempties.push_back(idx);
         }
     }
@@ -909,11 +890,24 @@ Tamgu*  Tamgumap::Put(Tamgu* idx, Tamgu* ke, short idthread) {
             }
             return aTRUE;
         }
+        
+        if (ke->isString()) {
+            Clear();
+            string s;
+            ke->Setstring(s,idthread);
+            locking();
+            ke = globalTamgu->EvaluateMap(this, s, idthread);
+            unlocking();
+            if (ke->isError())
+                return ke;
+            return aTRUE;
+        }
+        
         ke = ke->Map(idthread);
         if (!ke->isMapContainer())
             return globalTamgu->Returnerror("Wrong map initialization", idthread);
-        locking();
         Clear();
+        locking();
         if (ke->Type() == a_map) {
             Tamgumap* kmap = (Tamgumap*)ke;
             //We copy all values from ke to this

@@ -160,11 +160,11 @@ bool Tamguword2vec::InitialisationModule(TamguGlobal* global, string version) {
 	Tamguword2vec::AddMethod(global, "vocabulary", &Tamguword2vec::MethodVocabulary, P_NONE, "vocabulary(): Return a itreemap of the vocabulary covered by the training.");
 	Tamguword2vec::AddMethod(global, "features", &Tamguword2vec::MethodFeatures, P_NONE, "features(): Return a map of the vocabulary with their feature values.");
 
-	
+
     //We need this code, in order to create new instances of our word2vec object... DO NOT ALTER
     global->newInstance[Tamguword2vec::idtype] = new Tamguword2vec(global);
     global->RecordMethods(Tamguword2vec::idtype,Tamguword2vec::exported);
-    
+
     return true;
 }
 
@@ -241,9 +241,9 @@ void tamguword2vec::LaunchTrainModel() {
 
 	if (negative > 0) InitUnigramTable();
 	start = clock();
-	
+
 	localcallthread* lcall;
-	globalTamgu->globalLOCK = true;
+	globalTamgu->threadMODE = true;
 
 #ifdef WIN32
 	DWORD tid;
@@ -771,7 +771,7 @@ void *TrainModelThreadVector(void *id) {
 	long long a, b, d, cw, word, last_word, sentence_length = 0, sentence_position = 0;
 	long long word_count = 0, last_word_count = 0, sen[W2VEC_MAX_SENTENCE_LENGTH + 1];
 	long long l1, l2, c, target, label, local_iter = current->iter;
-	
+
 	real f, g;
 	clock_t now;
 	real *neu1 = (real *)calloc(current->layer1_size, sizeof(real));
@@ -970,5 +970,4 @@ void *TrainModelThreadVector(void *id) {
 	pthread_exit(NULL);
 #endif
 }
-
 

@@ -118,7 +118,7 @@ public:
 
         if (used) {
             used = false;
-            if (!globalTamgu->globalLOCK)
+            if (!globalTamgu->threadMODE)
                 globalTamgu->declarationcleanempties.push_back(idx);
             return;
         }
@@ -135,7 +135,7 @@ public:
 
         if (used) {
             used = false;
-            if (!globalTamgu->globalLOCK)
+            if (!globalTamgu->threadMODE)
                 globalTamgu->declarationcleanempties.push_back(idx);
             return;
         }

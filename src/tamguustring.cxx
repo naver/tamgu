@@ -861,7 +861,7 @@ Tamgu* Tamguustring::MethodTokenize(Tamgu* contextualpattern, short idthread, Ta
 
     Tamgu* kvect = Selectauvector(contextualpattern);
 
-    if (!globalTamgu->globalLOCK) {
+    if (!globalTamgu->threadMODE) {
         if (comma)
             xr.selectcomma(true);
         else

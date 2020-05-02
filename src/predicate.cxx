@@ -405,7 +405,7 @@ void TamguPredicateVariableInstance::Resetreference(short inc) {
             else {
                 protect = true;
                 used = false;
-                if (!globalTamgu->globalLOCK)
+                if (!globalTamgu->threadMODE)
                     globalTamgu->pviempties.push_back(idx);
             }
         }
@@ -424,7 +424,7 @@ void TamguPredicateVariableInstance::Resetreferencenoprotect(short inc) {
             protect = true;
             reference = 0;
             used = false;
-            if (!globalTamgu->globalLOCK)
+            if (!globalTamgu->threadMODE)
                 globalTamgu->pviempties.push_back(idx);
         }
     }

@@ -96,11 +96,11 @@ class Tamgumap : public TamguObjectLockContainer {
         loopmark=true;
         protect = n;
         
-        hmap<string, Tamgu*>::iterator it;
+        
 
         locking();
-        for (it = values.begin(); it != values.end(); it++)
-            it->second->Setprotect(n);
+        for (auto& it : values)
+            it.second->Setprotect(n);
         unlocking();
         
         loopmark=false;
@@ -115,11 +115,9 @@ class Tamgumap : public TamguObjectLockContainer {
         if (Reference() <= 0)
             protect = true;
         
-        hmap<string, Tamgu*>::iterator it;
-
         locking();
-        for (it = values.begin(); it != values.end(); it++)
-            it->second->Popping();
+        for (auto& it : values)
+            it.second->Popping();
         unlocking();
         
         loopmark=false;
@@ -131,11 +129,10 @@ class Tamgumap : public TamguObjectLockContainer {
             return;
         loopmark=true;
         protect = true;
-        hmap<string, Tamgu*>::iterator it;
-        
+                    
         locking();
-        for (it = values.begin(); it != values.end(); it++)
-            it->second->Setprotect(true);
+        for (auto& it : values)
+            it.second->Setprotect(true);
         unlocking();
         
         loopmark=false;
@@ -166,9 +163,8 @@ class Tamgumap : public TamguObjectLockContainer {
     double Sum() {
         locking();
         double v = 0;
-        hmap<string, Tamgu*>::iterator itx;
-        for (itx = values.begin(); itx != values.end(); itx++)
-            v += itx->second->Sum();
+        for (auto& it : values)
+            v += it.second->Sum();
         unlocking();
         return v;
     }
