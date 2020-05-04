@@ -2482,7 +2482,7 @@ char TamguJsonCompiler::buildexpression(Tamgu* kf) {
 
     bool checknext = false;
     char expecting = kf->isMapContainer();
-
+    to = 0;
     while (r < pos.size()) {
         c = src[i++];
         if (c <= 32) {
@@ -2491,257 +2491,248 @@ char TamguJsonCompiler::buildexpression(Tamgu* kf) {
             continue;
         }
         
-        if (i == pos[r] + 1) {
+        if (c == '@' && src[i] != '"')
             r++;
-            if (c == '@' && src[i] != '"') {
-                token += c;
-                continue;
-            }
+        
+        if (i != pos[r] + 1) {
+            if (checknext)
+                return false;
             
-            if (token != "" && expecting != 1) {
-                if (checknext)
-                    return false;
-                
+            to = i;
+            while (src[to] > 32 && to < pos[r]) to++;
+            c = src[to];
+            src[to] = 0;
+            if (expecting == 1)
+                key = (char*)src+i-1;
+            else {
+                token = (char*)src+i-1;
                 if (token == "false")
                     local = aFALSE;
                 else
                     if (token == "true")
                         local = aTRUE;
                     else
-                        if (token == "null")
+                        if (token == "null" || token == "nil")
                             local = aNULL;
                         else {
                             local = globalTamgu->Providewithstring(token);
                             local->Setreference(ref);
                         }
-                                
+                
                 if (expecting) {
                     ((Tamgumap*)kf)->values[key] = local;
-                    key="";
                     expecting = 1;
                 }
                 else
                     ((Tamguvector*)kf)->values.push_back(local);
                 checknext=true;
-                token = "";
             }
-            
-            to = 0;
-            switch (c) {
-                case '@':
-                    if (checknext)
-                        return false;
-                    
-                    r++; // the " has already been detected above...
-                    while (r < sz) {
-                        to  = pos[r++];
-                        if (src[to-1] != '\\' && src[to] == '"' && src[to+1] == '@') {
-                            to = pos[r++];
-                            break;
-                        }
-                    }
-                    c= src[to-1];
-                    src[to-1] = 0;
-                    if (expecting == 1)
-                        key = (char*)src+i+1;
-                    else {
-                        token = (char*)src+i;
-                        replacemetas(token);
-                        local = globalTamgu->Providewithstring(token);
-
-                        local->Setreference(ref);
-                        if (expecting) {
-                            ((Tamgumap*)kf)->values[key] = local;
-                            key="";
-                            expecting = 1;
-                        }
-                        else
-                            ((Tamguvector*)kf)->values.push_back(local);
-
-                        checknext=true;
-                        token = "";
-                    }
-                    src[to-1] = c;
-                    i = to + 1;
-                    break;
-                case 34:
-                    if (checknext)
-                        return false;
-
-                    while (r < sz) {
-                        to  = pos[r++];
-                        if (src[to-1] != '\\' && src[to] == '"')
-                            break;
-                    }
-                    c= src[to];
-                    src[to] = 0;
-                    if (expecting == 1)
-                        key = (char*)src+i;
-                    else {
-                        token = (char*)src+i;
-                        replacemetas(token);
-                        local = globalTamgu->Providewithstring(token);
-
-                        local->Setreference(ref);
-                        if (expecting) {
-                            ((Tamgumap*)kf)->values[key] = local;
-                            key="";
-                            expecting = 1;
-                        }
-                        else
-                            ((Tamguvector*)kf)->values.push_back(local);
-
-                        checknext=true;
-                        token = "";
-                    }
-                    src[to] = c;
-                    i = to + 1;
-                    break;
-                case 39:
-                    if (checknext)
-                        return false;
-
-                    while (r < sz) {
-                        to  = pos[r++];
-                        if (src[to] == '\'')
-                            break;
-                    }
-                    c= src[to];
-                    src[to] = 0;
-                    if (expecting == 1)
-                        key = (char*)src+i;
-                    else {
-                        local = globalTamgu->Providestring((char*)src+i);
-
-                        local->Setreference(ref);
-                        if (expecting) {
-                            ((Tamgumap*)kf)->values[key] = local;
-                            key="";
-                            expecting = 1;
-                        }
-                        else
-                            ((Tamguvector*)kf)->values.push_back(local);
-
-                        checknext=true;
-                    }
-                    src[to] = c;
-                    i = to + 1;
-                    break;
-                case '+':
-                case '-':
-                case '0':
-                case '1':
-                case '2':
-                case '3':
-                case '4':
-                case '5':
-                case '6':
-                case '7':
-                case '8':
-                case '9':
-                    if (checknext)
-                        return false;
-
-                    v = conversionfloathexa((const char*)src+i-1, l);
-                    to =  i + l - 2;
-                    while (pos[r] <= to) r++;
-                    c= src[to+1];
-                    src[to+1] = 0;
-                    
-                    if (expecting == 1)
-                        key = (char*)src+i;
-                    else {
-                        if (strchr((char*)src+i, '.'))
-                            local = globalTamgu->Providefloat(v);
-                        else
-                            local = globalTamgu->Provideint(v);
-
-                        local->Setreference(ref);
-                        if (expecting) {
-                            ((Tamgumap*)kf)->values[key] = local;
-                            key="";
-                            expecting = 1;
-                        }
-                        else
-                            ((Tamguvector*)kf)->values.push_back(local);
-                        
-                        checknext=true;
-                    }
-                    src[to+1] = c;
-                    i = to + 1;
-                    break;
-                case '{':
-                    if (expecting == 1 || checknext)
-                        return false;
-                    local = globalTamgu->Providemap();
-                    if (src[i] == '}') {
-                        r++;
-                        i++;
-                    }
-                    else {
-                        if (!buildexpression(local)) {
-                            local->Release();
-                            return false;
-                        }
-                    }
-                    local->Addreference(ref);
-                    if (expecting) {
-                        ((Tamgumap*)kf)->values[key] = local;
-                        key="";
-                        expecting = 1;
-                    }
-                    else
-                        ((Tamguvector*)kf)->values.push_back(local);
-                    
-                    checknext=true;
-                    break;
-                case '[':
-                    if (expecting == 1 || checknext)
-                        return false;
-                    local = globalTamgu->Providevector();
-                    if (src[i] == ']') {
-                        r++;
-                        i++;
-                    }
-                    else {
-                        if (!buildexpression(local)) {
-                            local->Release();
-                            return false;
-                        }
-                    }
-                    
-                    local->Addreference(ref);
-                    if (expecting) {
-                        ((Tamgumap*)kf)->values[key] = local;
-                        key="";
-                        expecting = 1;
-                    }
-                    else
-                        ((Tamguvector*)kf)->values.push_back(local);
-                    
-                    checknext=true;
-                    break;
-                case '}':
-                    return (expecting == 1);
-                case ']':
-                    return (!expecting);
-                case ':':
-                    if (expecting != 1)
-                        return false;
-                    expecting = 2;
-                    if (token != "") {
-                        key = token;
-                        token = "";
-                    }
-                    break;
-                case ',':
-                    if (!checknext)
-                        return false;
-                    checknext = false;
-            }
+            src[to] = c;
+            i = to;
+            continue;
         }
-        else
-            token += c;
+        
+        r++;
+        switch (c) {
+            case '@':
+                if (checknext)
+                    return false;
+                
+                r++; // the " has already been detected above...
+                while (r < sz) {
+                    to  = pos[r++];
+                    if (src[to-1] != '\\' && src[to] == '"' && src[to+1] == '@') {
+                        to = pos[r++];
+                        break;
+                    }
+                }
+                c= src[to-1];
+                src[to-1] = 0;
+                if (expecting == 1)
+                    key = (char*)src+i+1;
+                else {
+                    token = (char*)src+i;
+                    replacemetas(token);
+                    local = globalTamgu->Providewithstring(token);
+                    
+                    local->Setreference(ref);
+                    if (expecting) {
+                        ((Tamgumap*)kf)->values[key] = local;
+                        expecting = 1;
+                    }
+                    else
+                        ((Tamguvector*)kf)->values.push_back(local);
+                    
+                    checknext=true;
+                }
+                src[to-1] = c;
+                i = to + 1;
+                break;
+            case 34:
+                if (checknext)
+                    return false;
+                
+                while (r < sz) {
+                    to  = pos[r++];
+                    if (src[to-1] != '\\' && src[to] == '"')
+                        break;
+                }
+                c= src[to];
+                src[to] = 0;
+                if (expecting == 1)
+                    key = (char*)src+i;
+                else {
+                    token = (char*)src+i;
+                    replacemetas(token);
+                    local = globalTamgu->Providewithstring(token);
+                    
+                    local->Setreference(ref);
+                    if (expecting) {
+                        ((Tamgumap*)kf)->values[key] = local;
+                        expecting = 1;
+                    }
+                    else
+                        ((Tamguvector*)kf)->values.push_back(local);
+                    
+                    checknext=true;
+                }
+                src[to] = c;
+                i = to + 1;
+                break;
+            case 39:
+                if (checknext)
+                    return false;
+                
+                while (r < sz) {
+                    to  = pos[r++];
+                    if (src[to] == '\'')
+                        break;
+                }
+                c= src[to];
+                src[to] = 0;
+                if (expecting == 1)
+                    key = (char*)src+i;
+                else {
+                    local = globalTamgu->Providestring((char*)src+i);
+                    
+                    local->Setreference(ref);
+                    if (expecting) {
+                        ((Tamgumap*)kf)->values[key] = local;
+                        expecting = 1;
+                    }
+                    else
+                        ((Tamguvector*)kf)->values.push_back(local);
+                    
+                    checknext=true;
+                }
+                src[to] = c;
+                i = to + 1;
+                break;
+            case '+':
+            case '-':
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9':
+                if (checknext)
+                    return false;
+                
+                v = conversionfloathexa((const char*)src+i-1, l);
+                to =  i + l - 2;
+                while (pos[r] <= to) r++;
+                c= src[to+1];
+                src[to+1] = 0;
+                
+                if (expecting == 1)
+                    key = (char*)src+i;
+                else {
+                    if (strchr((char*)src+i, '.'))
+                        local = globalTamgu->Providefloat(v);
+                    else
+                        local = globalTamgu->Provideint(v);
+                    
+                    local->Setreference(ref);
+                    if (expecting) {
+                        ((Tamgumap*)kf)->values[key] = local;
+                        expecting = 1;
+                    }
+                    else
+                        ((Tamguvector*)kf)->values.push_back(local);
+                    
+                    checknext=true;
+                }
+                src[to+1] = c;
+                i = to + 1;
+                break;
+            case '{':
+                if (expecting == 1 || checknext)
+                    return false;
+                local = globalTamgu->Providemap();
+                if (src[i] == '}') {
+                    r++;
+                    i++;
+                }
+                else {
+                    if (!buildexpression(local)) {
+                        local->Release();
+                        return false;
+                    }
+                }
+                local->Addreference(ref);
+                if (expecting) {
+                    ((Tamgumap*)kf)->values[key] = local;
+                    expecting = 1;
+                }
+                else
+                    ((Tamguvector*)kf)->values.push_back(local);
+                
+                checknext=true;
+                break;
+            case '[':
+                if (expecting == 1 || checknext)
+                    return false;
+                local = globalTamgu->Providevector();
+                if (src[i] == ']') {
+                    r++;
+                    i++;
+                }
+                else {
+                    if (!buildexpression(local)) {
+                        local->Release();
+                        return false;
+                    }
+                }
+                
+                local->Addreference(ref);
+                if (expecting) {
+                    ((Tamgumap*)kf)->values[key] = local;
+                    expecting = 1;
+                }
+                else
+                    ((Tamguvector*)kf)->values.push_back(local);
+                
+                checknext=true;
+                break;
+            case '}':
+                return (expecting == 1);
+            case ']':
+                return (!expecting);
+            case ':':
+                if (expecting != 1)
+                    return false;
+                expecting = 2;
+                break;
+            case ',':
+                if (!checknext)
+                    return false;
+                checknext = false;
+        }
     }
     return false;
 }

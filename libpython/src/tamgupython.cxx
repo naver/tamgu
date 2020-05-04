@@ -104,8 +104,9 @@ static Tamgu* toTamgu(PyObject* po) {
     }
 
     if (PyLong_Check(po) == 1) {
-        BLONG l = PyLong_AsLong(po);
-        return new Tamgulong(l);
+        Tamgulong* l = (Tamgulong*)globalTamgu->Provideinstance(a_long, 0);
+        l->value = PyLong_AsLong(po);
+        return l;
     }
 
     if (PyFloat_Check(po) == 1) {
