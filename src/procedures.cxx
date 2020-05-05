@@ -1305,7 +1305,12 @@ Tamgu* ProcEmojis(Tamgu* contextualpattern, short idthread, TamguCall* callfunc)
 }
 
 //___________________________________________________________________________________________________
-
+Tamgu* ProcJSon(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    string json = callfunc->Evaluate(0, contextualpattern, idthread)->String();
+    Trim(json);
+    return globalTamgu->EvaluateJSON(json, idthread);
+}
+//___________________________________________________________________________________________________
 Tamgu* ProcPrint(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     Tamgu* res = aNULL;
     Tamgustring* kval = (Tamgustring*)globalTamgu->stringbuffer;
@@ -2610,6 +2615,8 @@ Exporting void TamguGlobal::RecordProcedures() {
     RecordOneProcedure("_mirrordisplay", ProcMirrorDisplay, P_NONE);
 
     RecordOneProcedure("emojis", ProcEmojis, P_NONE);
+    
+    RecordOneProcedure("evaljson", ProcJSon, P_ONE);
 
     RecordOneProcedure("print", ProcPrint, P_FULL);
     RecordOneProcedure("println", ProcPrintLN, P_FULL);
