@@ -757,7 +757,7 @@ Tamgu* TamguInstructionEQUString::Eval(Tamgu* context, Tamgu* value, short idthr
     else
         val = StringMinus(val, instruction->Getstring(idthread));
 
-    value->storevalue(val);
+    value->Storevalue(val);
     return aTRUE;
 }
 
@@ -772,7 +772,7 @@ Tamgu* TamguInstructionEQUUString::Eval(Tamgu* context, Tamgu* value, short idth
     else
         val = StringMinus(val, instruction->Getustring(idthread));
 
-    value->storevalue(val);
+    value->Storevalue(val);
     return aTRUE;
 }
 

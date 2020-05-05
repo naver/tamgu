@@ -383,7 +383,7 @@ public:
         res = val->Eval(aNULL, aNULL, idthread);
         string r = res->String() + v;
         if (res->isProtected()) {
-            res->storevalue(r);
+            res->Storevalue(r);
             return res;
         }
         res->Release();
@@ -435,7 +435,7 @@ public:
         string r = v;
         r += res->String();
         if (res->isProtected()) {
-            res->storevalue(r);
+            res->Storevalue(r);
             return res;
         }
         res->Release();
@@ -483,7 +483,7 @@ public:
         res = val->Eval(aNULL, aNULL, idthread);
         wstring r = res->UString() + w;
         if (res->isProtected()) {
-            res->storevalue(r);
+            res->Storevalue(r);
             return res;
         }
         res->Release();
@@ -530,7 +530,7 @@ public:
         res = val->Eval(aNULL, aNULL, idthread);
         wstring r = w + res->UString();
         if (res->isProtected()) {
-            res->storevalue(r);
+            res->Storevalue(r);
             return res;
         }
         res->Release();
@@ -4664,7 +4664,7 @@ public:
         string r;
         op->Setstring(r, idthread);
         if (inter == aAFFECTATION) {
-            res->storevalue(r);
+            res->Storevalue(r);
             return res;
         }
         return globalTamgu->Providewithstring(r);
@@ -4725,7 +4725,7 @@ public:
         wstring r;
         op->Setstring(r, idthread);
         if (inter == aAFFECTATION) {
-            res->storevalue(r);
+            res->Storevalue(r);
             return res;
         }
         return globalTamgu->Providewithustring(r);
