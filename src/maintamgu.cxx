@@ -2903,17 +2903,17 @@ int main(int argc, char *argv[]) {
     }
     else {
         predeclarations = "bool a,b,c; int i,j,k; float f,g,h; string s,t,u; map m; vector v; self x,y,z;int _size;";
-        predeclarations += "string l1; string l2; string l3; string l4; string l5; string l6; string l7; string l8;\
-        string l9; string l10; string l11; string l12; string l13; string l14; string l15; string l16; string l17; \
-        string l18; string l19; string l20; string l21; string l22; string l23; string l24; string l25; string l26; \
-        string l27; string l28; string l29; string l30; string l31; string l32; string l33; string l34; string l35; \
-        string l36; string l37; string l38; string l39; string l40; string l41; string l42; string l43; string l44; \
-        string l45; string l46; string l47; string l48; string l49; string l50; string l51; string l52; string l53; \
-        string l54; string l55; string l56; string l57; string l58; string l59; string l60; string l61; string l62; \
-        string l63; string l64; string l65; string l66; string l67; string l68; string l69; string l70; string l71; \
-        string l72; string l73; string l74; string l75; string l76; string l77; string l78; string l79; string l80; \
-        string l81; string l82; string l83; string l84; string l85; string l86; string l87; string l88; string l89; \
-        string l90; string l91; string l92; string l93; string l94; string l95; string l96; string l97; string l98; string l99;";
+        predeclarations += "self l1; self l2; self l3; self l4; self l5; self l6; self l7; self l8;\
+        self l9; self l10; self l11; self l12; self l13; self l14; self l15; self l16; self l17; \
+        self l18; self l19; self l20; self l21; self l22; self l23; self l24; self l25; self l26; \
+        self l27; self l28; self l29; self l30; self l31; self l32; self l33; self l34; self l35; \
+        self l36; self l37; self l38; self l39; self l40; self l41; self l42; self l43; self l44; \
+        self l45; self l46; self l47; self l48; self l49; self l50; self l51; self l52; self l53; \
+        self l54; self l55; self l56; self l57; self l58; self l59; self l60; self l61; self l62; \
+        self l63; self l64; self l65; self l66; self l67; self l68; self l69; self l70; self l71; \
+        self l72; self l73; self l74; self l75; self l76; self l77; self l78; self l79; self l80; \
+        self l81; self l82; self l83; self l84; self l85; self l86; self l87; self l88; self l89; \
+        self l90; self l91; self l92; self l93; self l94; self l95; self l96; self l97; self l98; self l99;";
 
         if (piped == 2) {
             if (codebefore != "") {
@@ -2975,7 +2975,8 @@ int main(int argc, char *argv[]) {
         for (i = 1; i < 100; i++) {
             predeclarations = "l"+convertfromnumber(i);
             idname = globalTamgu->Getid(predeclarations);
-            ret = globalTamgu->Providestring();
+            ret = globalTamgu->Provideself();
+            ret->Putvalue(globalTamgu->Providestring(), 0);
             ret->Setreference();
             vars.push_back(ret);
             globalTamgu->Replacevariable(0, idname, ret);
@@ -2989,23 +2990,64 @@ int main(int argc, char *argv[]) {
         lnstr = "";
         string cut=" ";
         long sz;
+        double v;
+        short l;
+        short type;
+        
         while (!cin.eof()) {
             getline(cin, lnstr);
             if (lnstr.size()) {
-                splitted.clear();
+                ts.value =  lnstr;
                 arguments.clear();
                 arguments.push_back(lnstr);
+
+                splitted.clear();
                 s_split(lnstr,cut,splitted, false);
                 sz = splitted.size();
                 vars[0]->storevalue(sz);
+
                 for (i = 1; i <= sz && i < 100; i++) {
-                    vars[i]->storevalue(splitted[i-1]);
-                    arguments.push_back(splitted[i-1]);
+                    lnstr = splitted[i-1];
+                    arguments.push_back(lnstr);
+                    
+                    v = conversionfloathexa(STR(lnstr), l);
+                    if (l == lnstr.size()) {
+                        if (lnstr.find('.') != -1)
+                            type = a_float;
+                        else
+                            type = a_int;
+                    }
+                    else
+                        type = a_string;
+                                        
+                    if (type == vars[i]->Type()) {
+                        switch (type) {
+                            case a_string:
+                                vars[i]->storevalue(lnstr);
+                                break;
+                            case a_float:
+                                vars[i]->storevalue(v);
+                                break;
+                            case a_int:
+                                vars[i]->storevalue((long)v);
+                                break;
+                        }
+                    }
+                    else {
+                        switch (type) {
+                            case a_string:
+                                vars[i]->Putvalue(globalTamgu->Providewithstring(lnstr), 0);
+                                break;
+                            case a_float:
+                                vars[i]->Putvalue(globalTamgu->Providefloat(v), 0);
+                                break;
+                            case a_int:
+                                vars[i]->Putvalue(globalTamgu->Provideint(v), 0);
+                                break;
+                        }
+                    }
                 }
-                for (; i < 100; i++)
-                    vars[i]->storevalue("");
-                            
-                ts.value =  lnstr;
+                                            
                 executionbreak = false;
                 globalTamgu->running = true;
                 globalTamgu->threadMODE = false;

@@ -109,40 +109,52 @@ Exporting void Tamgutable::Insert(long idx, Tamgu* ke) {
         return;
     }
 
-    for (long i = size - 1; i >= idx; i++)
-        values[i] = values[i - 1];
+    for (long i = size - 1; i >= idx; i++) {
+        values[i].exchange(values[i - 1]);
+    }
 
     values[idx] = ke;
+    if (idx >= position)
+        position = idx+1;
 }
 
 
 Exporting void Tamgutable::Cleanreference(short inc) {
-    for (long i=0;i<size;i++)
-        values[i]->Removecontainerreference(inc);
+    Tamgu* e;
+    for (long i=0;i<size;i++) {
+        e = values[i];
+        e->Removecontainerreference(inc);
+    }
 }
 
 Exporting void Tamgutable::Setreference(short inc) {
-    if (loopmark)
-        return;
-    
+    locking();
+
     reference += inc;
     protect=false;
-    loopmark=true;
-    for (long i = 0; i< size; i++)
-        values[i]->Addreference(inc);
-    loopmark=false;
+
+    Tamgu* e;
+    for (long i = 0; i< size; i++) {
+        e = values[i];
+        e->Addreference(inc);
+    }
+    
+    unlocking();
 }
 
 Exporting void Tamgutable::Setreference() {
-    if (loopmark)
-        return;
-    
+    locking();
+
     ++reference;
     protect=false;
-    loopmark=true;
-    for (long i = 0; i< size; i++)
-        values[i]->Addreference(1);
-    loopmark=false;
+
+    Tamgu* e;
+    for (long i = 0; i< size; i++) {
+        e = values[i];
+        e->Addreference(1);
+    }
+    
+    unlocking();
 }
 
 
@@ -151,8 +163,11 @@ static void resetTable(Tamgutable* kvect, short inc) {
     if (kvect->size == 0)
         return;
 
-    for (int itx = 0; itx < kvect->size; itx++)
-        kvect->values[itx]->Removereference(inc);
+    Tamgu* e;
+    for (int itx = 0; itx < kvect->size; itx++) {
+        e = kvect->values[itx];
+        e->Removereference(inc);
+    }
 }
 
 Exporting void Tamgutable::Resetreference(short inc) {
@@ -222,19 +237,23 @@ Exporting Tamgu* Tamgutable::Pop(Tamgu* idx) {
 
     BLONG v = idx->Integer();
 
-    long i;
     if (v == -1) {
-        idx = Last(i);
-        if (idx != aNOELEMENT)
-            values[i] = aNOELEMENT;
-        else
+        if (!position)
             return aFALSE;
+        while (position > 0) {
+            idx = values[--position];
+            if (idx != aNOELEMENT) {
+                idx = values[position].exchange(aNOELEMENT);
+                break;
+            }
+        }
     }
     else {
         if (v < 0 || v >= (BLONG)size)
             return aFALSE;
-        idx = values[v];
-        values[v] = aNOELEMENT;
+        idx = values[v].exchange(aNOELEMENT);
+        if (v == position - 1)
+            position--;
     }
 
     idx->Removereference(reference + 1);
@@ -245,21 +264,24 @@ Exporting Tamgu* Tamgutable::Poplast() {
     
     if (!size)
         return aFALSE;
-    
-    long i;
-    Tamgu* idx = Last(i);
-    if (idx != aNOELEMENT) {
-        values[i] = aNOELEMENT;
-        idx->Removereference(reference);
-        idx->Protect();
-    }
+
+    Tamgu* idx;
+    if (position > 0)
+        idx = values[--position].exchange(aNOELEMENT);
+    else
+        return aFALSE;
+
+    idx->Removereference(reference);
+    idx->Protect();
     return idx;
 }
-
+ 
 
 
 Exporting string Tamgutable::String() {
-    
+    if (!lockingmark())
+        return("[...]");
+
     string res;
     int it;
     res = "[";
@@ -269,9 +291,7 @@ Exporting string Tamgutable::String() {
     for (it = 0; it < size; it++) {
         element = values[it];
         sx = element->StringToDisplay();
-        if (loopmark)
-            return("[...]");
-        TamguCircular _c(this);
+
         if (!element->isString() || element->isContainer()) {
             if (sx == "")
                 sx = "''";
@@ -290,10 +310,16 @@ Exporting string Tamgutable::String() {
 
     }
     res += "]";
+    unlockingmark();
     return res;
 }
 
 void Tamgutable::Setstring(string& res, short idthread) {
+    if (!lockingmark()) {
+        res = "[...]";
+        return;
+    }
+    
     int it;
     res = "[";
     bool beg = true;
@@ -302,12 +328,6 @@ void Tamgutable::Setstring(string& res, short idthread) {
     for (it = 0; it < size; it++) {
         element = values[it];
         sx = element->StringToDisplay();
-        if (loopmark) {
-            res = "[...]";
-            return;
-        }
-        
-        TamguCircular _c(this);
         if (!element->isString() || element->isContainer()) {
             if (sx == "")
                 sx = "''";
@@ -326,23 +346,26 @@ void Tamgutable::Setstring(string& res, short idthread) {
 
     }
     res += "]";
+    unlockingmark();
 }
 
 Exporting Tamgu* Tamgutable::Map(short idthread) {
-    if (loopmark)
+    if (!lockingmark())
         return aNULL;
-    loopmark=true;
+    
     Tamgumap* kmap = globalTamgu->Providemap();
     char ch[20];
     for (int it = 0; it < size; it++) {
         sprintf_s(ch, 20, "%d", it);
         kmap->Push(ch, values[it]);
     }
-    loopmark=false;
+    unlockingmark();
     return kmap;
 }
 
 Exporting string Tamgutable::JSonString() {
+    if (!lockingmark())
+        return "";
     
     string res;
     int it;
@@ -353,9 +376,6 @@ Exporting string Tamgutable::JSonString() {
     for (it = 0; it < size; it++) {
         element = values[it];
         sx = element->JSonString();
-        if (loopmark)
-            return("");
-        TamguCircular _c(this);
         if (!element->isString() || element->isContainer()) {
             if (beg == false) {
                 if (sx[0] != '|')
@@ -370,6 +390,7 @@ Exporting string Tamgutable::JSonString() {
         beg = false;
     }
     res += "]";
+    unlockingmark();
     return res;
 }
 
@@ -407,16 +428,16 @@ Exporting Tamgu* Tamgutable::andset(Tamgu *b, bool itself) {
     long size = Size();
     size_t it;
     Tamgu* ke;
+    Tamgu* e;
     if (!b->isContainer()) {
         if (itself)
             ref = this;
         else
             ref = (Tamgutable*)Atom(true);
 
-        
-
         for (it = 0; it < size; it++) {
-            ke = ref->values[it]->andset(b, true);
+            e = ref->values[it];
+            ke = e->andset(b, true);
             if (ke->isError()) {
                 ref->Release();
                 return ke;
@@ -432,7 +453,8 @@ Exporting Tamgu* Tamgutable::andset(Tamgu *b, bool itself) {
     for (itr->Begin(); itr->End() == aFALSE; itr->Next()) {
         for (it = 0; it < size; it++) {
             ke = itr->IteratorValue();
-            if (values[it]->same(ke) == aTRUE) {
+            e = values[it];
+            if (e->same(ke) == aTRUE) {
                 ref->Push(ke);
                 break;
             }
@@ -454,11 +476,11 @@ Exporting Tamgu* Tamgutable::orset(Tamgu *b, bool itself) {
     else
         ref = (Tamgutable*)Atom(true);
 
+    Tamgu* e;
     if (!b->isContainer()) {
-        
-
         for (it = 0; it < size; it++) {
-            ke = ref->values[it]->orset(b, true);
+            e = ref->values[it];
+            ke = e->orset(b, true);
             if (ke->isError()) {
                 ref->Release();
                 return ke;
@@ -477,6 +499,7 @@ Exporting Tamgu* Tamgutable::xorset(Tamgu *b, bool itself) {
     long size = Size();
     size_t it;
     Tamgu* ke;
+    Tamgu* e;
     if (!b->isContainer()) {
         if (itself)
             ref = this;
@@ -484,7 +507,8 @@ Exporting Tamgu* Tamgutable::xorset(Tamgu *b, bool itself) {
             ref = (Tamgutable*)Atom(true);
 
         for (it = 0; it < size; it++) {
-            ke = ref->values[it]->xorset(b, true);
+            e = ref->values[it];
+            ke = e->xorset(b, true);
             if (ke->isError()) {
                 ref->Release();
                 return ke;
@@ -502,7 +526,8 @@ Exporting Tamgu* Tamgutable::xorset(Tamgu *b, bool itself) {
         found = false;
         for (it = 0; it < size; it++) {
             ke = itr->IteratorValue();
-            if (values[it]->same(ke) == aTRUE) {
+            e = values[it];
+            if (e->same(ke) == aTRUE) {
                 found = true;
                 break;
             }
@@ -528,12 +553,10 @@ Exporting Tamgu* Tamgutable::plus(Tamgu* b, bool itself) {
     int it;
     Tamgu* ke;
     Tamgu* kv;
-    if (loopmark)
+    if (!lockingmark())
         return aNULL;
 
-    TamguCircular _c(this);
-
-    
+    Tamgu* e;
     if (b->isContainer()) {
         Locking _lock(b);
         TamguIteration* itr = b->Newiteration(false);
@@ -542,28 +565,34 @@ Exporting Tamgu* Tamgutable::plus(Tamgu* b, bool itself) {
             if (itr->End() == aTRUE)
                 break;
             kv = itr->IteratorValue();
-            ke = ref->values[it]->plus(kv, true);
+            e = ref->values[it];
+            ke = e->plus(kv, true);
             if (ke->isError()) {
                 itr->Release();
                 ref->Release();
+                unlockingmark();
                 return ke;
             }
 
             itr->Next();
         }
         itr->Release();
+        unlockingmark();
         return ref;
     }
 
 
     for (it = 0; it < size; it++) {
-        ke = ref->values[it]->plus(b, true);
+        e = ref->values[it];
+        ke = e->plus(b, true);
         if (ke->isError()) {
             ref->Release();
+            unlockingmark();
            return ke;
         }
     }
 
+    unlockingmark();
     return ref;
 }
 
@@ -578,9 +607,10 @@ Exporting Tamgu* Tamgutable::minus(Tamgu *b, bool itself) {
     Tamgu* ke;
     Tamgu* kv;
 
-    
-    
+    if (!lockingmark())
+        return aNULL;
 
+    Tamgu* e;
     if (b->isContainer()) {
         Locking _lock(b);
         TamguIteration* itr = b->Newiteration(false);
@@ -589,28 +619,34 @@ Exporting Tamgu* Tamgutable::minus(Tamgu *b, bool itself) {
             if (itr->End() == aTRUE)
                 break;
             kv = itr->IteratorValue();
-            ke = ref->values[it]->minus(kv, true);
+            e = ref->values[it];
+            ke = e->minus(kv, true);
             if (ke->isError()) {
                 itr->Release();
                 ref->Release();
+                unlockingmark();
                 return ke;
             }
 
             itr->Next();
         }
         itr->Release();
+        unlockingmark();
         return ref;
     }
 
 
     for (it = 0; it < size; it++) {
-        ke = ref->values[it]->minus(b, true);
+        e = ref->values[it];
+        ke = e->minus(b, true);
         if (ke->isError()) {
             ref->Release();
+            unlockingmark();
             return ke;
         }
     }
 
+    unlockingmark();
     return ref;
 }
 
@@ -625,9 +661,10 @@ Exporting Tamgu* Tamgutable::multiply(Tamgu *b, bool itself) {
     Tamgu* ke;
     Tamgu* kv;
 
-    
-    
+    if (!lockingmark())
+        return aNULL;
 
+    Tamgu* e;
     if (b->isContainer()) {
         Locking _lock(b);
         TamguIteration* itr = b->Newiteration(false);
@@ -636,28 +673,34 @@ Exporting Tamgu* Tamgutable::multiply(Tamgu *b, bool itself) {
             if (itr->End() == aTRUE)
                 break;
             kv = itr->IteratorValue();
-            ke = ref->values[it]->multiply(kv, true);
+            e = ref->values[it];
+            ke = e->multiply(kv, true);
             if (ke->isError()) {
                 ref->Release();
                 itr->Release();
+                unlockingmark();
                 return ke;
             }
 
             itr->Next();
         }
         itr->Release();
+        unlockingmark();
         return ref;
     }
 
 
     for (it = 0; it < size; it++) {
-        ke = ref->values[it]->multiply(b, true);
+        e = ref->values[it];
+        ke = e->multiply(b, true);
         if (ke->isError()) {
             ref->Release();
+            unlockingmark();
             return ke;
         }
     }
 
+    unlockingmark();
     return ref;
 }
 
@@ -672,9 +715,10 @@ Exporting Tamgu* Tamgutable::divide(Tamgu *b, bool itself) {
     Tamgu* ke;
     Tamgu* kv;
 
+    if (!lockingmark())
+        return aNULL;
     
-    
-
+    Tamgu* e;
     if (b->isContainer()) {
         Locking _lock(b);
         TamguIteration* itr = b->Newiteration(false);
@@ -683,28 +727,34 @@ Exporting Tamgu* Tamgutable::divide(Tamgu *b, bool itself) {
             if (itr->End() == aTRUE)
                 break;
             kv = itr->IteratorValue();
-            ke = ref->values[it]->divide(kv, true);
+            e = ref->values[it];
+            ke = e->divide(kv, true);
             if (ke->isError()) {
                 ref->Release();
                 itr->Release();
+                unlockingmark();
                 return ke;
             }
 
             itr->Next();
         }
         itr->Release();
+        unlockingmark();
         return ref;
     }
 
 
     for (it = 0; it < size; it++) {
-        ke = ref->values[it]->divide(b, true);
+        e = ref->values[it];
+        ke = e->divide(b, true);
         if (ke->isError()) {
             ref->Release();
+            unlockingmark();
             return ke;
         }
     }
 
+    unlockingmark();
     return ref;
 }
 
@@ -720,8 +770,11 @@ Exporting Tamgu* Tamgutable::power(Tamgu *b, bool itself) {
     Tamgu* kv;
 
     
-    
+    if (!lockingmark())
+        return aNULL;
 
+
+    Tamgu* e;
     if (b->isContainer()) {
         Locking _lock(b);
         TamguIteration* itr = b->Newiteration(false);
@@ -730,28 +783,34 @@ Exporting Tamgu* Tamgutable::power(Tamgu *b, bool itself) {
             if (itr->End() == aTRUE)
                 break;
             kv = itr->IteratorValue();
-            ke = ref->values[it]->power(kv, true);
+            e = ref->values[it];
+            ke = e->power(kv, true);
             if (ke->isError()) {
                 ref->Release();
                 itr->Release();
+                unlockingmark();
                 return ke;
             }
 
             itr->Next();
         }
         itr->Release();
+        unlockingmark();
         return ref;
     }
 
 
     for (it = 0; it < size; it++) {
-        ke = ref->values[it]->power(b, true);
+        e = ref->values[it];
+        ke = e->power(b, true);
         if (ke->isError()) {
             ref->Release();
+            unlockingmark();
             return ke;
         }
     }
 
+    unlockingmark();
     return ref;
 }
 
@@ -766,8 +825,10 @@ Exporting Tamgu* Tamgutable::shiftleft(Tamgu *b, bool itself) {
     Tamgu* ke;
     Tamgu* kv;
 
-    
-    
+    if (!lockingmark())
+        return aNULL;
+
+    Tamgu* e;
 
     if (b->isContainer()) {
         Locking _lock(b);
@@ -777,28 +838,34 @@ Exporting Tamgu* Tamgutable::shiftleft(Tamgu *b, bool itself) {
             if (itr->End() == aTRUE)
                 break;
             kv = itr->IteratorValue();
-            ke = ref->values[it]->shiftleft(kv, true);
+            e = ref->values[it];
+            ke = e->shiftleft(kv, true);
             if (ke->isError()) {
                 itr->Release();
                 ref->Release();
+                unlockingmark();
                 return ke;
             }
 
             itr->Next();
         }
         itr->Release();
+        unlockingmark();
         return ref;
     }
 
 
     for (it = 0; it < size; it++) {
-        ke = ref->values[it]->shiftleft(b, true);
+        e = ref->values[it];
+        ke = e->shiftleft(b, true);
         if (ke->isError()) {
             ref->Release();
+            unlockingmark();
             return ke;
         }
     }
 
+    unlockingmark();
     return ref;
 }
 
@@ -814,8 +881,11 @@ Exporting Tamgu* Tamgutable::shiftright(Tamgu *b, bool itself) {
 
     Tamgu* ke;
     
-    
+    if (!lockingmark())
+        return aNULL;
 
+
+    Tamgu* e;
     if (b->isContainer()) {
         Locking _lock(b);
         TamguIteration* itr = b->Newiteration(false);
@@ -824,28 +894,34 @@ Exporting Tamgu* Tamgutable::shiftright(Tamgu *b, bool itself) {
             if (itr->End() == aTRUE)
                 break;
             kv = itr->IteratorValue();
-            ke = ref->values[it]->shiftright(kv, true);
+            e = ref->values[it];
+            ke = e->shiftright(kv, true);
             if (ke->isError()) {
                 itr->Release();
                 ref->Release();
+                unlockingmark();
                 return ke;
             }
 
             itr->Next();
         }
         itr->Release();
+        unlockingmark();
         return ref;
     }
 
 
     for (it = 0; it < size; it++) {
-        ke = ref->values[it]->shiftright(b, true);
+        e = ref->values[it];
+        ke = e->shiftright(b, true);
         if (ke->isError()) {
             ref->Release();
+            unlockingmark();
             return ke;
         }
     }
 
+    unlockingmark();
     return ref;
 }
 
@@ -860,6 +936,10 @@ Exporting Tamgu* Tamgutable::mod(Tamgu *b, bool itself) {
     Tamgu* ke;
     Tamgu* kv;
 
+    if (!lockingmark())
+        return aNULL;
+
+    Tamgu* e;
     if (b->isContainer()) {
         Locking _lock(b);
         TamguIteration* itr = b->Newiteration(false);
@@ -868,28 +948,34 @@ Exporting Tamgu* Tamgutable::mod(Tamgu *b, bool itself) {
             if (itr->End() == aTRUE)
                 break;
             kv = itr->IteratorValue();
-            ke = ref->values[it]->mod(kv, true);
+            e = ref->values[it];
+            ke = e->mod(kv, true);
             if (ke->isError()) {
                 ref->Release();
                 itr->Release();
+                unlockingmark();
                 return ke;
             }
 
             itr->Next();
         }
+        unlockingmark();
         itr->Release();
         return ref;
     }
 
 
     for (it = 0; it < size; it++) {
-        ke = ref->values[it]->mod(b, true);
+        e = ref->values[it];
+        ke = e->mod(b, true);
         if (ke->isError()) {
             ref->Release();
+            unlockingmark();
             return ke;
         }
     }
 
+    unlockingmark();
     return ref;
 }
 
@@ -910,9 +996,8 @@ Exporting Tamgu*  Tamgutable::Put(Tamgu* idx, Tamgu* value, short idthread) {
             Clear();
             Resize(value->Size());
             {
-                long i = 0;
                 for (auto& it : kvect->values)
-                    Pushing(it, i++);
+                    Pushing(it);
             }
             return aTRUE;
         }
@@ -922,7 +1007,7 @@ Exporting Tamgu*  Tamgutable::Put(Tamgu* idx, Tamgu* value, short idthread) {
             long sz = value->Size();
             Resize(sz);
             for (long it = 0; it < sz; it++)
-                Pushing(value->getvalue(it), it);
+                Pushing(value->getvalue(it));
             return aTRUE;
         }
         //We gather all the keys from the MAP
@@ -930,10 +1015,9 @@ Exporting Tamgu*  Tamgutable::Put(Tamgu* idx, Tamgu* value, short idthread) {
             Locking _lock(value);
             Clear();
             Resize(value->Size());
-            long i = 0;
             TamguIteration* itr = value->Newiteration(false);
             for (itr->Begin(); itr->End() == aFALSE; itr->Next()) {
-                if (!Pushing(itr->Key(), i++))
+                if (!Pushing(itr->Key()))
                     break;
             }
             itr->Release();
@@ -949,7 +1033,7 @@ Exporting Tamgu*  Tamgutable::Put(Tamgu* idx, Tamgu* value, short idthread) {
         Resize(sz);
         //We copy all values from ke to this
         for (long it = 0; it < sz; ++it) {
-            if (!Pushing(value->getvalue(it), it)) {
+            if (!Pushing(value->getvalue(it))) {
                 value->Releasenonconst();
                 return globalTamgu->Returnerror("Maximum size of table reached", idthread);
             }
@@ -976,8 +1060,7 @@ Exporting Tamgu*  Tamgutable::Put(Tamgu* idx, Tamgu* value, short idthread) {
             rkey--;
         Tamgu* krkey = aZERO;
         while (rkey >= lkey) {
-            krkey = values[rkey];
-            values[rkey] = aNOELEMENT;
+            krkey = values[rkey].exchange(aNOELEMENT);
             krkey->Removereference(reference + 1);
             rkey--;
         }
@@ -1011,18 +1094,16 @@ Exporting Tamgu*  Tamgutable::Put(Tamgu* idx, Tamgu* value, short idthread) {
             return globalTamgu->Returnerror("Cannot set this value", idthread);
     }
     value = value->Atom();
-    if (values[ikey] != aNOELEMENT)
-        values[ikey]->Removereference(reference + 1);
-    values[ikey] = value;
     value->Addreference(reference+1);
-
+    Tamgu* e = values[ikey].exchange(value);
+    e->Removereference(reference + 1);
+    if (ikey >= position)
+        position = ikey+1;
     return aTRUE;
 }
 
 
 Exporting Tamgu* Tamgutable::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
-    
-
     if (!idx->isIndex()) {
 
         Tamgu* ke;
@@ -1054,6 +1135,7 @@ Exporting Tamgu* Tamgutable::Eval(Tamgu* contextualpattern, Tamgu* idx, short id
         keyright = kind->right->Eval(aNULL, aNULL, idthread);
 
     long ikey;
+    Tamgu* e;
     bool stringkey = false;
     if (key->isString()) {
         string sf = key->String();
@@ -1061,7 +1143,8 @@ Exporting Tamgu* Tamgutable::Eval(Tamgu* contextualpattern, Tamgu* idx, short id
         bool found = false;
         if (kind->signleft) {
             for (ikey = size - 1; ikey >= 0; ikey--) {
-                if (sf == values[ikey]->String()) {
+                e = values[ikey];
+                if (sf == e->String()) {
                     found = true;
                     break;
                 }
@@ -1070,7 +1153,8 @@ Exporting Tamgu* Tamgutable::Eval(Tamgu* contextualpattern, Tamgu* idx, short id
         }
         else {
             for (ikey = 0; ikey < size; ikey++) {
-                if (sf == values[ikey]->String()) {
+                e = values[ikey];
+                if (sf == e->String()) {
                     found = true;
                     break;
                 }
@@ -1108,7 +1192,8 @@ Exporting Tamgu* Tamgutable::Eval(Tamgu* contextualpattern, Tamgu* idx, short id
         bool found = false;
         if (kind->signright) {
             for (iright = size - 1; iright >= 0; iright--) {
-                if (sf == values[iright]->String()) {
+                e = values[iright];
+                if (sf == e->String()) {
                     found = true;
                     iright++;
                     break;
@@ -1117,7 +1202,8 @@ Exporting Tamgu* Tamgutable::Eval(Tamgu* contextualpattern, Tamgu* idx, short id
         }
         else {
             for (iright = 0; iright < size; iright++) {
-                if (sf == values[iright]->String()) {
+                e = values[iright];
+                if (sf == e->String()) {
                     found = true;
                     iright++;
                     break;
@@ -1160,8 +1246,10 @@ Exporting Tamgu* Tamgutable::Eval(Tamgu* contextualpattern, Tamgu* idx, short id
 
     //In this case, we must create a new vector
     kvect = new Tamgutable(size);
-    for (long i = ikey; i < iright; i++)
-        kvect->values[i] = values[i];
+    for (long i = ikey; i < iright; i++) {
+        e = values[i];
+        kvect->values[i] = e;
+    }
 
     return kvect;
 }
@@ -1174,8 +1262,7 @@ Exporting void Tamgutable::Shuffle() {
     for (i = 0; i < sz; i++) {
         f = localrandom(mx--);
         if (mx != f) {
-            v = values[mx];
-            values[mx] = values[f];
+            v = values[mx].exchange(values[f]);
             values[f] = v;
         }
     }
@@ -1187,8 +1274,10 @@ Exporting Tamgu* Tamgutable::Unique() {
     Tamgutable* kvect = new Tamgutable(size);
     map<string, Tamgu*> inter;
     string k;
+    Tamgu* e;
     for (int i = 0; i < size; i++) {
-        k = values[i]->String();
+        e = values[i];
+        k = e->String();
         try {
             if (inter.at(k)->same(values[i])->Boolean() == false)
                 kvect->Push(values[i]);
@@ -1203,11 +1292,12 @@ Exporting Tamgu* Tamgutable::Unique() {
 
 
 Exporting void Tamgutable::Clear() {
-    
+    Tamgu* e;
     for (int itx = 0; itx < size; itx++) {
-        values[itx]->Removereference(reference + 1);
-        values[itx] = aNOELEMENT;
+        e = values[itx].exchange(aNOELEMENT);
+        e->Removereference(reference + 1);
     }
+    position = 0;
 }
 
 Exporting Tamgu* Tamgutable::Merging(Tamgu* ke) {
@@ -1308,8 +1398,10 @@ Exporting Tamgu* Tamgutable::same(Tamgu* a) {
     if (size != v->size)
         return aFALSE;
 
+    Tamgu* e;
     for (int i = 0; i < size; i++) {
-        if (values[i]->same(v->values[i]) == aFALSE)
+        e = values[i];
+        if (e->same(v->values[i]) == aFALSE)
             return aFALSE;
     }
     return aTRUE;

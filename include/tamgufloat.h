@@ -610,7 +610,7 @@ public:
 	}
 
 	Tamgu* less(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aFALSE;
 #endif
@@ -620,7 +620,7 @@ public:
 	}
 
 	Tamgu* more(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aFALSE;
 #endif
@@ -630,7 +630,7 @@ public:
 	}
 
 	Tamgu* same(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aFALSE;
 #endif
@@ -640,7 +640,7 @@ public:
 	}
 
 	Tamgu* different(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aTRUE;
 #endif
@@ -650,7 +650,7 @@ public:
 	}
 
 	Tamgu* lessequal(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aFALSE;
 #endif
@@ -660,7 +660,7 @@ public:
 	}
 
 	Tamgu* moreequal(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aFALSE;
 #endif
@@ -727,13 +727,13 @@ public:
     
         //---------------------------------------------------------------------------------------------------------------------
     Tamguatomicfloat(double v, TamguGlobal* g, Tamgu* parent = NULL) : TamguReference(g, parent) {
-     investigate |= is_number;
+        investigate |= is_number;
             //Do not forget your variable initialisation
         value = v;
     }
     
     Tamguatomicfloat(double v) {
-     investigate |= is_number;
+        investigate |= is_number;
             //Do not forget your variable initialisation
         value = v;
     }
@@ -1297,7 +1297,7 @@ public:
     }
     
     Tamgu* less(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aFALSE;
 #endif
@@ -1307,7 +1307,7 @@ public:
     }
     
     Tamgu* more(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aFALSE;
 #endif
@@ -1317,7 +1317,7 @@ public:
     }
     
     Tamgu* same(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aFALSE;
 #endif
@@ -1327,7 +1327,7 @@ public:
     }
     
     Tamgu* different(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aTRUE;
 #endif
@@ -1337,7 +1337,7 @@ public:
     }
     
     Tamgu* lessequal(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aFALSE;
 #endif
@@ -1347,7 +1347,7 @@ public:
     }
     
     Tamgu* moreequal(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aFALSE;
 #endif

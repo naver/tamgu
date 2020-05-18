@@ -51,7 +51,7 @@ public:
 
 	//---------------------------------------------------------------------------------------------------------------------
 	Tamgurawstring(TamguGlobal* g, Tamgu* parent = NULL) : TamguReference(g, parent) {
-     investigate |= is_string;
+        investigate |= is_string;
 		//Do not forget your variable initialisation
 		value = NULL;
 		buffersize = 0;
@@ -59,8 +59,7 @@ public:
 	}
 
 	Tamgurawstring() {
-     investigate |= is_string;
-     investigate |= is_string;
+        investigate |= is_string;
 		//Do not forget your variable initialisation
 		value = NULL;
 		buffersize = 0;
@@ -69,7 +68,7 @@ public:
 	}
 
 	Tamgurawstring(string v) {
-     investigate |= is_string;
+        investigate |= is_string;
 		//Do not forget your variable initialisation
 		value = NULL;
 		buffersize = 0;
@@ -581,7 +580,7 @@ public:
 
 
 	Tamgu* less(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isString())
             return aFALSE;
 #endif
@@ -595,7 +594,7 @@ public:
 	}
 
 	Tamgu* more(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isString())
             return aFALSE;
 #endif
@@ -608,7 +607,7 @@ public:
 	}
 
 	Tamgu* same(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isString())
             return aFALSE;
 #endif
@@ -625,7 +624,7 @@ public:
 	}
 
 	Tamgu* different(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isString())
             return aTRUE;
 #endif
@@ -641,7 +640,7 @@ public:
 	}
 
 	Tamgu* lessequal(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isString())
             return aFALSE;
 #endif
@@ -657,7 +656,7 @@ public:
 	}
 
 	Tamgu* moreequal(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isString())
             return aFALSE;
 #endif

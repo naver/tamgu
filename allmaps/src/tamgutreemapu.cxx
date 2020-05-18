@@ -170,35 +170,27 @@ Exporting void Tamgutreemapu::Cleanreference(short inc) {
 }
 
 Exporting void Tamgutreemapu::Setreference(short inc) {
-    if (loopmark)
-        return;
-    
+    locking();
+
     reference += inc;
     protect = false;
-    loopmark=true;
     
-    locking();
     for (auto& it : values)
         it.second->Addreference(inc);
+
     unlocking();
-    
-    loopmark=false;
 }
 
 Exporting void Tamgutreemapu::Setreference() {
-    if (loopmark)
-        return;
-    
+    locking();
+
     ++reference;
     protect = false;
-    loopmark=true;
     
-    locking();
     for (auto& it : values)
         it.second->Addreference(1);
+
     unlocking();
-    
-    loopmark=false;
 }
 
 static void resetMap(Tamgutreemapu* kmap, short inc) {
@@ -273,10 +265,9 @@ Exporting void Tamgutreemapu::Clear() {
 
 
 Exporting string Tamgutreemapu::String() {
-    Locking _lock(this);
-    if (loopmark)
+    if (!lockingmark())
         return("{...}");
-    TamguCircular _c(this);
+
     stringstream res;
 
     res << "{";
@@ -298,14 +289,14 @@ Exporting string Tamgutreemapu::String() {
             stringing(res, sx);
     }
     res << "}";
+    unlockingmark();
     return res.str();
 }
 
 Exporting string Tamgutreemapu::JSonString() {
-    Locking _lock(this);
-    if (loopmark)
+    if (!lockingmark())
         return("");
-    TamguCircular _c(this);
+
     stringstream res;
 
     res << "{";
@@ -322,6 +313,7 @@ Exporting string Tamgutreemapu::JSonString() {
         res << sx << ":" << it.second->JSonString();
     }
     res << "}";
+    unlockingmark();
     return res.str();
 }
 

@@ -96,7 +96,7 @@ Tamgu* Tamguframeseeder::Newinstance(short idthread, Tamgu* a) {
             a->Declare(o->Name(), new TamguLet);
             continue;
         }
-        o->Eval(a, aNULL, idthread);
+        o = o->Eval(a, aNULL, idthread);
     }
 
     return a;
@@ -140,10 +140,10 @@ void Tamguframeinstance::Postinstantiation(short idthread, bool setreference) {
                 declarations.vecteur[ipos] = v;
             }
             else //we rollback to the default initialization...
-            o->Eval(this, aNULL, idthread);
+                o->Eval(this, aNULL, idthread);
             
             if (setreference)
-            declarations[ipos]->Setreference(reference);
+                declarations[ipos]->Setreference(reference);
         }
     }
     Popframe(idthread);
@@ -363,9 +363,9 @@ Tamgu* Tamguframemininstance::Put(Tamgu* idx, Tamgu* value, short idthread) {
         Tamgu* func;
         
         if (aid->interval)
-        func = frame->Declaration(a_interval);
+            func = frame->Declaration(a_interval);
         else
-        func = frame->Declaration(a_index);
+            func = frame->Declaration(a_index);
         
         if (func == NULL)
             return globalTamgu->Returnerror("Cannot process indexes", idthread);

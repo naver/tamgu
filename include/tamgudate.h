@@ -214,7 +214,7 @@ public:
 	//Basic operations
 
 	Tamgu* less(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aFALSE;
 #endif
@@ -223,7 +223,7 @@ public:
 		return aFALSE;
 	}
 	Tamgu* more(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aFALSE;
 #endif
@@ -232,7 +232,7 @@ public:
 		return aFALSE;
 	}
 	Tamgu* same(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aFALSE;
 #endif
@@ -241,7 +241,7 @@ public:
 		return aFALSE;
 	}
 	Tamgu* different(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aTRUE;
 #endif
@@ -251,7 +251,7 @@ public:
 	}
 
 	Tamgu* lessequal(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aFALSE;
 #endif
@@ -260,7 +260,7 @@ public:
 		return aFALSE;
 	}
 	Tamgu* moreequal(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aFALSE;
 #endif

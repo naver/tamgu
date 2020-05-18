@@ -196,7 +196,7 @@ class Tamguchrono : public TamguObject {
 
 
 	Tamgu* less(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aFALSE;
 #endif
@@ -205,7 +205,7 @@ class Tamguchrono : public TamguObject {
 		return aFALSE;
 	}
 	Tamgu* more(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aFALSE;
 #endif
@@ -214,7 +214,7 @@ class Tamguchrono : public TamguObject {
 		return aFALSE;
 	}
 	Tamgu* same(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aFALSE;
 #endif
@@ -223,7 +223,7 @@ class Tamguchrono : public TamguObject {
 		return aFALSE;
 	}
 	Tamgu* different(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aTRUE;
 #endif
@@ -233,7 +233,7 @@ class Tamguchrono : public TamguObject {
 	}
 
 	Tamgu* lessequal(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aFALSE;
 #endif
@@ -242,7 +242,7 @@ class Tamguchrono : public TamguObject {
 		return aFALSE;
 	}
 	Tamgu* moreequal(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aFALSE;
 #endif

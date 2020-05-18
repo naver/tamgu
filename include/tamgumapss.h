@@ -504,7 +504,7 @@ class Tamgumapssbuff : public Tamgumapss {
 
     Tamgumapssbuff(long i)  {
         //Do not forget your variable initialisation
-        isconst = false; investigate = is_container;
+        isconst = false;
 
         idx = i;
         used = false;

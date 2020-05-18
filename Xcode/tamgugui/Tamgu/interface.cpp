@@ -374,25 +374,9 @@ extern "C" {
     long indentationVirtuel(char* cr, char* acc) {
         if (cr == NULL)
             return 0;
-        vector <long> iblancs;
-        vector<string> vargs;
+
         string codestr(cr);
-        cr_normalise(codestr);
-        bool lisp = false;
-        if (codestr[0] == '(' && codestr[1] == ')')
-            lisp = true;
-        
-        v_split_indent(codestr, vargs);
-        if (vargs.size()>2) {
-            codestr = vargs[vargs.size() - 2];
-            if (codestr.find('}', 0) != string::npos || codestr.find(tmgelse) != string::npos)
-                *acc = 1;
-        }
-        string codeindente = "";
-        IndentationCode(codeindente, vargs, iblancs, 0, false, lisp);
-        if (iblancs.size() == 0)
-            return 0;
-        return iblancs.back();
+        return VirtualIndentation(codestr);
     }
     
     const char* lindentation(char* basecode, int blancs) {
@@ -405,12 +389,9 @@ extern "C" {
         if (codestr[0] == '(' && codestr[1] == ')')
             lisp = true;
 
-        vector<string> vargs;
-        vector <long> iblancs;
         cr_normalise(codestr);
-        v_split_indent(codestr, vargs);
         codeindente = "";
-        IndentationCode(codeindente, vargs, iblancs, blancs, true, lisp);
+        IndentationCode(codestr, codeindente, lisp);
         if (codeindente.find("/@") != string::npos || codeindente.find("@\"") != string::npos)
             cr_normalise(codeindente);
         codeindente += "\n";
@@ -457,6 +438,7 @@ extern "C" {
     
     long* colorparser(const char* txt, long from, long upto) {
         static hmap<string,bool> keys;
+        static vector<long> limits;
         static x_coloringrule xr;
         static bool init=false;
         
@@ -466,12 +448,13 @@ extern "C" {
         }
         
         xr.tokenize(txt, true);
-        vector<long> limits;
+        
         char type;
         long gauche = 0,droite = 0,i, droiteutf16 = 0;
         long sz=xr.stack.size();
         string sub;
         long offsetdrift = 0;
+        limits.clear();
         
         for (i=0;i<sz;i++) {
             type=xr.stacktype[i];

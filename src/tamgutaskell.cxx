@@ -425,7 +425,7 @@ Tamgu* TamguFunctionLambda::DirectEval(Tamgu* environment, Tamgu* a, short idthr
         if (returntype != a_null && returntype != atype) {
             if (globalTamgu->Compatiblestrict(returntype, atype)) {
                 //The test atype < returntype is a simple way to tackle number definition order: short < int < long < decimal < float
-                if (returntype == a_call || (Isnumber(returntype) && atype < returntype) || Istring(returntype) || a->isFrame())
+                if (returntype == a_call || (Isnumber(returntype) && atype < returntype) || Istring(returntype) || a->isFrameinstance())
                     return a;
                 
                 //In the case when the types are compatible but different, we force the result to be of returntype
@@ -517,7 +517,7 @@ Tamgu* TamguFunctionLambda::Eval(Tamgu* environment, Tamgu* a, short idthread) {
         if (returntype != a_null && returntype != atype) {
             if (globalTamgu->Compatiblestrict(returntype, atype)) {
                 //The test atype < returntype is a simple way to tackle number definition order: short < int < long < decimal < float
-                if (returntype == a_call || (Isnumber(returntype) && atype < returntype) || Istring(returntype) || a->isFrame())
+                if (returntype == a_call || (Isnumber(returntype) && atype < returntype) || Istring(returntype) || a->isFrameinstance())
                     return a;
                 
                 //In the case when the types are compatible but different, we force the result to be of returntype
@@ -2226,7 +2226,7 @@ Tamgu* TamguGetCommon::Eval(Tamgu* context, Tamgu* callfunction, short idthread)
 }
 
 Tamgu* TamguFrameParameter::Compare(Tamgu* env, Tamgu* a, short idthread) {
-    if (!a->isFrame() || a->Frame()->Name() != framename)
+    if (!a->isFrameinstance() || a->Frame()->Name() != framename)
         return aFALSE;
 
     Tamguframeinstance* af = (Tamguframeinstance*)a->Value();
@@ -2254,7 +2254,7 @@ Tamgu* TamguCallFrameMethod::Eval(Tamgu* context, Tamgu* value, short idthread) 
         return globalTamgu->Returnerror("Missing object", idthread);
 
     value = arguments[0]->Eval(context, aNULL, idthread);
-    if (!value->isFrame())
+    if (!value->isFrameinstance())
         return globalTamgu->Returnerror("Expecting object", idthread);
 
     TamguCallFrameFunction callfunc((TamguFrame*)value->Frame(), name);

@@ -169,37 +169,29 @@ Exporting void Tamguprimemapi::Cleanreference(short inc) {
 }
 
 Exporting void Tamguprimemapi::Setreference(short inc) {
-    if (loopmark)
-        return;
-    
+    locking();
+
     reference += inc;
     protect = false;
-    loopmark=true;
     
-    locking();
     prime_hash<long, Tamgu*>::iterator itx;
     for (itx = values.begin(); itx != values.end(); itx++)
         itx->second->Addreference(inc);
+
     unlocking();
-    
-    loopmark=false;
 }
 
 Exporting void Tamguprimemapi::Setreference() {
-    if (loopmark)
-        return;
-    
+    locking();
+
     ++reference;
     protect = false;
-    loopmark=true;
     
-    locking();
     prime_hash<long, Tamgu*>::iterator itx;
     for (itx = values.begin(); itx != values.end(); itx++)
         itx->second->Addreference(1);
+
     unlocking();
-    
-    loopmark=false;
 }
 
 static void resetMap(Tamguprimemapi* kmap, short inc) {
@@ -269,10 +261,9 @@ Exporting void Tamguprimemapi::Clear() {
 
 
 Exporting string Tamguprimemapi::String() {
-    Locking _lock(this);
-    if (loopmark)
+    if (!lockingmark())
         return("{...}");
-    TamguCircular _c(this);
+
     stringstream res;
     prime_hash<long, Tamgu*>::iterator it;
     res << "{";
@@ -289,15 +280,15 @@ Exporting string Tamguprimemapi::String() {
         else
             stringing(res, sx);
     }
+    unlockingmark();
     res << "}";
     return res.str();
 }
 
 Exporting string Tamguprimemapi::JSonString() {
-    Locking _lock(this);
-    if (loopmark)
+    if (!lockingmark())
         return("");
-    TamguCircular _c(this);
+    
     stringstream res;
     prime_hash<long, Tamgu*>::iterator it;
     res << "{";
@@ -310,6 +301,7 @@ Exporting string Tamguprimemapi::JSonString() {
         res << '"' << it->first << '"' << ":" << it->second->JSonString();
     }
     res << "}";
+    unlockingmark();
     return res.str();
 }
 

@@ -344,7 +344,7 @@ void x_reading::apply(bool keepos, vector<string>* vstack, vector<unsigned char>
                         sub = str.substr(ps, pis-ps+1);
                     }
                     else
-                        if (prequotes[e] == ps+1) {
+                        if (str[ps+1] == '/') {
                             pis = prequotes[e++];
                             while (e < presz) {
                                 pis = prequotes[e++];
@@ -2719,7 +2719,7 @@ Tamgu* TamguCode::C_regularcall(x_node* xn, Tamgu* parent) {
 		}
 
 		TamguPredicate* kx = global->predicates[id];
-		if (kx->isPredicateFunction()) {
+		if (kx->isPredicateMethod()) {
 			kx = (TamguPredicate*)kx->Newinstance(0, parent);
 			parent->AddInstruction(kx);
 		}
@@ -4150,6 +4150,7 @@ Tamgu* TamguCode::C_jsonmap(x_node* xn, Tamgu* kf) {
     if (kf != NULL)
         kf->AddInstruction(kmap);
     
+    short idthread = globalTamgu->GetThreadid();
     TamguInstruction kbloc;
     string key;
     long sz = xn->nodes.size();
@@ -4158,7 +4159,7 @@ Tamgu* TamguCode::C_jsonmap(x_node* xn, Tamgu* kf) {
         if (key != "" && (key[0] == '"' || key[0] == '\''))
             key = key.substr(1,key.size()-2);
         Traverse(xn->nodes[i]->nodes[1], &kbloc);
-        kbloc.instructions[0]->Addreference();
+        kbloc.instructions[0]->Addreference(idthread);
         kmap->values[key] = kbloc.instructions[0];
         kbloc.instructions.clear();
     }
@@ -8842,7 +8843,7 @@ Tamgu* TamguCode::C_dependency(x_node* xn, Tamgu* kf) {
 
 		if (global->predicates.check(idname)) {
 			TamguPredicate* kx = global->predicates[idname];
-			if (kx->isPredicateFunction()) {
+			if (kx->isPredicateMethod()) {
 				kx = (TamguPredicate*)kx->Newinstance(0, kf);
 				kf->AddInstruction(kx);
 

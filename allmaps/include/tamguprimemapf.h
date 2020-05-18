@@ -91,50 +91,44 @@ class Tamguprimemapf : public TamguObjectLockContainer {
 
 
     void Setprotect(bool n) {
-        if (loopmark)
+        if (!lockingmark())
             return;
-        loopmark=true;
+
         protect = n;
         prime_hash<double, Tamgu*>::iterator it;
 
-        locking();
         for (it = values.begin(); it != values.end(); it++)
             it->second->Setprotect(n);
-        unlocking();
-        
-        loopmark=false;
+
+        unlockingmark();
     }
 
     void Popping() {
-        if (loopmark)
+        if (!lockingmark())
             return;
-        loopmark=true;
+
         protect = false;
         if (Reference() <= 0)
             protect = true;
         prime_hash<double, Tamgu*>::iterator it;
 
-        locking();
         for (it = values.begin(); it != values.end(); it++)
             it->second->Popping();
-        unlocking();
-        
-        loopmark=false;
+
+        unlockingmark();
     }
 
     void Protectcontainervalues() {
-        if (loopmark)
+        if (!lockingmark())
             return;
-        loopmark=true;
+
         protect = true;
         prime_hash<double, Tamgu*>::iterator it;
         
-        locking();
         for (it = values.begin(); it != values.end(); it++)
             it->second->Setprotect(true);
-        unlocking();
         
-        loopmark=false;
+        unlockingmark();
     }
 
 
@@ -236,21 +230,15 @@ class Tamguprimemapf : public TamguObjectLockContainer {
     //---------------------------------------------------------------------------------------------------------------------
     
     void unmark() {
-        locking();
-        if (loopmark) {
-            unlocking();
+        if (!lockingmark())
             return;
-        }
-        
-        loopmark=true;
+
         usermark=false;
         
         prime_hash<double,Tamgu*>::iterator it;
         for (it=values.begin();it!=values.end();it++)
             it->second->unmark();
-        
-        loopmark=false;
-        unlocking();
+        unlockingmark();
     }
 
     Exporting void Cleanreference(short inc);

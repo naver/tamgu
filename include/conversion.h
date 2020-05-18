@@ -132,9 +132,10 @@ union w_u_char {
 Exporting void inittableutf8();
 
 //--------------------- Code Indention
-void IndentCode(string& codestr, string& codeindente, long blancs, bool lisp = false);
-Exporting void IndentationCode(string& codeindente, vector<string>& code, vector<long>& blancs, long mxbase, bool construit, bool lisp = false);
-long VirtualIndentation(string& codestr);
+Exporting void IndentCode(string& codestr, string& codeindente, long blancs, bool lisp = false, bool taskel = true);
+Exporting void IndentationCode(string& codestr, string& codeindente, bool lisp, bool taskel = true);
+Exporting long IndentationCode(string& codestr, bool lisp);
+Exporting long VirtualIndentation(string& codestr);
 
 //--------------------- Carriage Return normalisation
 void cr_normalise(string& code);

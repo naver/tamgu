@@ -2427,34 +2427,34 @@ long CTAMGUIView::FirstChar(long d, long f, CString& commande) {
 	TCHAR sx[1024];
 	int l, ln;
 	l = e.LineFromChar(f);
+	int last = l;
 	int fin = -1;
 	l--;
-	vector<string> lines;
-	vector<long> blancs;
+
 	CString s;
 
-	while (l != -1) {
-		ln = e.GetLine(l, sx, 512);
-		sx[ln] = 0;
-		s = sx;
-		s = s.Trim();
-		lines.insert(lines.begin(), "");
-		s_unicode_to_utf8(lines.front(), WCSTR(s), s.GetLength());
-		if (sx[0] > 32)
+	while (l >= 0) {
+		ln = e.GetLine(l, sx, 1023);
+		if (sx[0] > 32 || !l)
 			break;
 		l--;
 	}
 
-	if (lines.size() == 0)
-		return 0;
-	bool lisp = false;
-	if (lines[0].size() >= 2 && lines[0][0] == '(' && lines[0][1] == ')')
-		lisp = true;
+	while (l <= last) {
+		ln = e.GetLine(l, sx, 1023);
+		sx[ln] = 0;
+		s += sx;
+		l++;
+	}
 
-	lines.push_back("@;");
+	s.Replace(L"\r\n", L"\n");
+	s.Replace(L"\r", L"\n");
 	string codeindente;
-	IndentationCode(codeindente, lines, blancs, 0, false, lisp);
-	return blancs.back();
+	s_unicode_to_utf8(codeindente, WCSTR(s), s.GetLength());
+	bool lisp = false;
+	if (!l && codeindente[0] == '(' && codeindente[1] == ')')
+		lisp = true;
+	return IndentationCode(codeindente, lisp);
 }
 
 

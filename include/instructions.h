@@ -89,8 +89,10 @@ public:
     }
 
 	void Cleaning() {
-		for (short i = 0; i < names.last; i++)
-            globalTamgu->Removetopvariable(idthread, names.vecteur[i])->Resetreference();
+        for (short i = 0; i < names.last; i++) {
+            globalTamgu->Removevariable(idthread, names.vecteur[i]);
+            declarations.vecteur[i]->Resetreference();
+        }
 		names.last = 0;
         declarations.last = 0;
 	}
@@ -601,9 +603,9 @@ public:
 	}
 
 	Tamgu* Frame() {
-		if (!globalTamgu->newInstance.check(typevariable))
-			return NULL;
-		return globalTamgu->newInstance[typevariable]->Frame();
+		if (globalTamgu->newInstance.check(typevariable))
+            return globalTamgu->newInstance[typevariable]->Frame();
+        return NULL;
 	}
 
 	Tamgu* Function() {
@@ -3828,8 +3830,7 @@ public:
             val = (Tamguustring*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
             first = false;
         }
-        Locking _lock(val);
-        return val->value;
+        return val->UString();
     }
     
     string Getstring(short idthread) {

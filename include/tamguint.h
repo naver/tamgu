@@ -45,13 +45,13 @@ public:
     
         //---------------------------------------------------------------------------------------------------------------------
     Tamguint(long v, TamguGlobal* g, Tamgu* parent = NULL) : TamguReference(g, parent) {
-     investigate |= is_number;
+        investigate |= is_number;
             //Do not forget your variable initialisation
         value = v;
     }
     
     Tamguint(long v) {
-     investigate |= is_number;
+        investigate |= is_number;
             //Do not forget your variable initialisation
         value = v;
     }
@@ -663,7 +663,7 @@ public:
     
     //Comparison
     Tamgu* less(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aFALSE;
 #endif
@@ -673,7 +673,7 @@ public:
     }
     
     Tamgu* more(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aFALSE;
 #endif
@@ -683,7 +683,7 @@ public:
     }
     
     Tamgu* same(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aFALSE;
 #endif
@@ -693,7 +693,7 @@ public:
     }
     
     Tamgu* different(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aTRUE;
 #endif
@@ -703,7 +703,7 @@ public:
     }
     
     Tamgu* lessequal(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aFALSE;
 #endif
@@ -714,7 +714,7 @@ public:
     }
     
     Tamgu* moreequal(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aFALSE;
 #endif
@@ -782,13 +782,13 @@ public:
     
         //---------------------------------------------------------------------------------------------------------------------
     Tamguatomicint(long v, TamguGlobal* g) : TamguReference(g) {
-     investigate |= is_number;
+        investigate |= is_number;
         value = v;
     }
 
 
     Tamguatomicint(long v) {
-     investigate |= is_number;
+        investigate |= is_number;
         value = v;
     }
     
@@ -1404,7 +1404,7 @@ public:
     }
     
     Tamgu* less(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aFALSE;
 #endif
@@ -1415,7 +1415,7 @@ public:
     }
     
     Tamgu* more(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aFALSE;
 #endif
@@ -1426,7 +1426,7 @@ public:
     }
     
     Tamgu* same(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aFALSE;
 #endif
@@ -1437,7 +1437,7 @@ public:
     }
     
     Tamgu* different(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aTRUE;
 #endif
@@ -1448,7 +1448,7 @@ public:
     }
     
     Tamgu* lessequal(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aFALSE;
 #endif
@@ -1459,7 +1459,7 @@ public:
     }
     
     Tamgu* moreequal(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aFALSE;
 #endif
@@ -1474,8 +1474,7 @@ class TamguTaskellCounter : public Tamguint {
 public:
     
     TamguTaskellCounter(long v = 0) : Tamguint(v) {
-     investigate |= is_number;
-        investigate = is_container;
+        investigate |= is_number | is_container;
     }
     
     Tamgu* Newinstance(short, Tamgu* f = NULL) {

@@ -1812,6 +1812,7 @@ TamguPredicate::TamguPredicate(short n, TamguGlobal* g, short t, Tamgu* parent) 
     ptype = t;
     disjunction = false;
     negation = false;
+    investigate |= is_predicate;
 }
 
 //This is a hack (quite ugly) which is used to avoid recording into the tracker temporary elements...
@@ -1819,6 +1820,7 @@ TamguPredicate::TamguPredicate(TamguGlobal* g, short n) : name(n) {
     ptype = a_predicate;
     disjunction = false;
     negation = false;
+    investigate |= is_predicate;
 }
 
 TamguPredicateConcept::TamguPredicateConcept(TamguGlobal* g, short n, Tamgu* parent) : TamguBasePredicateVariable(g, n, parent) {
@@ -3320,7 +3322,7 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
 
     //--------------------------------------------------------------------------------
     // Functions that have been constructed on the basis of existing methods...
-    if (headpredicate->isPredicateFunction()) {
+    if (headpredicate->isPredicateMethod()) {
         std::unique_ptr<localpredict> Oo(new localpredict(threadowner));
 
         if (headpredicate->negation) {

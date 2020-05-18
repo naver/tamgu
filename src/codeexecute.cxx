@@ -591,21 +591,30 @@ Tamgu* TamguIndex::Eval(Tamgu* klocal, Tamgu* obj, short idthread) {
     if (obj->isPureString())
         return obj->EvalIndex(klocal, this, idthread);
     
-    if (function == NULL)
-        return obj->Eval(klocal, this, idthread);
+    unsigned short istobelocked = obj->isToBelocked();
+    
+    if (function == NULL) {
+        obj = obj->Eval(klocal, this, idthread);
+        obj->Enablelock(istobelocked);
+        return obj;
+    }
 
     klocal = obj->Eval(klocal, this, idthread);
-
+    
 	if (function->isIncrement()) {
 		if (klocal == aNOELEMENT && obj->isValueContainer()) {
-			if (obj->isString())
-				klocal = globalTamgu->Providestring("");
+            if (obj->isString()) {
+				klocal = globalTamgu->Providestring();
+                klocal->Enablelock(istobelocked);
+            }
 			else
 			if (obj->isFloat())
 				klocal = globalTamgu->Providefloat(0);
 			else
 				klocal = globalTamgu->Provideint(0);
 		}
+        else
+            klocal->Enablelock(istobelocked);
 
 		//we increment
 		function->Eval(aNULL, klocal, idthread);
@@ -619,8 +628,11 @@ Tamgu* TamguIndex::Eval(Tamgu* klocal, Tamgu* obj, short idthread) {
 		return klocal;
 	}
 
+    klocal->Enablelock(istobelocked);
+    
 	Tamgu* kidx = function;
 	Tamgu* object = klocal;
+
 
 	while (kidx != NULL && kidx->isIndex()) {
 		if (object == aNOELEMENT) {
@@ -631,6 +643,8 @@ Tamgu* TamguIndex::Eval(Tamgu* klocal, Tamgu* obj, short idthread) {
 
 		obj = object;
 		klocal = object->Eval(aNULL, kidx, idthread);
+        klocal->Enablelock(istobelocked);
+        
 		if (klocal != object) {
 			object->Releasenonconst();
 			object = klocal;
@@ -658,12 +672,14 @@ Tamgu* TamguIndex::Eval(Tamgu* klocal, Tamgu* obj, short idthread) {
 			if (obj->isValueContainer()) {
 				obj->Put(this, klocal, idthread);
 			}
+            klocal->Enablelock(istobelocked);
 			return klocal;
 		}
 
 		object = kidx->Eval(aNULL, klocal, idthread);
 		if (object != klocal)
 			klocal->Releasenonconst();
+        object->Enablelock(istobelocked);
 		return object;
 	}
 
@@ -672,11 +688,13 @@ Tamgu* TamguIndex::Eval(Tamgu* klocal, Tamgu* obj, short idthread) {
 
 Tamgu* TamguIndex::Put(Tamgu* recipient, Tamgu* value, short idthread) {
 	TamguIndex* idx;
-
+    
 	if (function == NULL) {
         recipient = recipient->Put(this, value, idthread);
 		return aTRUE;
 	}
+
+    unsigned short istobelocked = recipient->isToBelocked();
 
 	if (function->isIndex()) {
 		idx = this;
@@ -687,6 +705,7 @@ Tamgu* TamguIndex::Put(Tamgu* recipient, Tamgu* value, short idthread) {
 			stack.push_back(idx);
 			stack.push_back(intermediate);
 			intermediate = intermediate->Eval(aNULL, idx, idthread);
+            intermediate->Enablelock(istobelocked);
 			stack.push_back(intermediate);
 			idx = (TamguIndex*)idx->function;
 		}
@@ -829,6 +848,7 @@ Tamgu* TamguFrameVariableDeclaration::Eval(Tamgu* domain, Tamgu* value, short id
 		a = domain->Frame()->Declaration(name);
 		if (a == this)
 			a = TamguVariableDeclaration::Eval(domain->Frame(), aNULL, idthread);
+        
 		domain->Declare(name, a);
 		return a;
 	}
@@ -874,6 +894,7 @@ Tamgu* TamguFrameVariableDeclaration::Eval(Tamgu* domain, Tamgu* value, short id
 
 Tamgu* TamguFrameAtomicVariableDeclaration::Eval(Tamgu* domain, Tamgu* value, short idthread) {
     //we create our instance...
+    
     if (common) {
         value = domain->Frame()->Declaration(name);
         if (value == this)
@@ -915,6 +936,7 @@ Tamgu* TamguVariableDeclaration::Put(Tamgu* domain, Tamgu* value, short idthread
 	a->Setreference();
 	return a->Put(aNULL, value, idthread);
 }
+
 
 bool TamguVariableDeclaration::Setvalue(Tamgu* domain, Tamgu* value, short idthread, bool strict) {
 	//we create a new variable, whose type is the one from the function declaration...
@@ -996,6 +1018,7 @@ Tamgu* TamguGlobalVariableDeclaration::Eval(Tamgu* domain, Tamgu* value, short i
 
 	alreadydeclared = true;
 	Tamgu* a = globalTamgu->newInstance.get(typevariable)->Newinstance(idthread, function);
+    //Global Variables should always be protected with a lock
 	a->Setname(name);
 	domain->Declare(name, a);
 	globalTamgu->Storevariable(idthread, name, a);
@@ -2009,9 +2032,9 @@ Tamgu* TamguCallFrameVariable::Eval(Tamgu* context, Tamgu* value, short idthread
 Tamgu* TamguCallFromFrameVariable::Eval(Tamgu* context, Tamgu* value, short idthread) {
     //In this case, the value is the calling variable...
     if (call == NULL)
-        return value->Declaration(name);
+        return ((TamguframeBaseInstance*)value)->Getvariable(name);
     
-    value = value->Declaration(name);
+    value = ((TamguframeBaseInstance*)value)->Getvariable(name);
     
     if (affectation && call->isStop())
         return value;
@@ -2021,10 +2044,10 @@ Tamgu* TamguCallFromFrameVariable::Eval(Tamgu* context, Tamgu* value, short idth
 Tamgu* TamguCallFromFrameVariable::Put(Tamgu* context, Tamgu* value, short idthread) {
     //In this case, the value is the calling variable...
     if (call == NULL)
-        return value->Declaration(name);
-
-    value = value->Declaration(name);
+        return ((TamguframeBaseInstance*)value)->Getvariable(name);
     
+    value = ((TamguframeBaseInstance*)value)->Getvariable(name);
+
     if (call->isStop())
         return value;
     return call->Put(context, value, idthread);
@@ -2424,6 +2447,8 @@ Tamgu* TamguThreadCall::Eval(Tamgu* domain, Tamgu* value, short idthread) {
 	if (!strict && bd->next)
 		strict = true;
 
+    Tamgu* a;
+
 	bool error = true;
 	while (bd != NULL) {
 		if (arguments.size() != bd->Size()) {
@@ -2434,7 +2459,6 @@ Tamgu* TamguThreadCall::Eval(Tamgu* domain, Tamgu* value, short idthread) {
 		}
 
 		error = false;
-		Tamgu* a;
 		for (short i = 0; i < bd->parameters.size(); i++) {
 			p = bd->Parameter(i);
 
@@ -2470,21 +2494,21 @@ Tamgu* TamguThreadCall::Eval(Tamgu* domain, Tamgu* value, short idthread) {
 
 	globalTamgu->Pushstack(environment, idthread);
 	//We then apply our function within this environment
-	Tamgu* ret = bd->Eval(environment, aNULL, idthread);
+	a = bd->Eval(environment, aNULL, idthread);
 	globalTamgu->Popstack(idthread);
 
-	if (!ret->Reference())
+	if (!a->Reference())
 		environment->Release();
 	else {
-		ret->Setreference();
+		a->Setreference();
 		//we clean our structure...
         environment->Release();
-		ret->Protect();
+		a->Protect();
 	}
     
 	globalTamgu->threads[idthread].variables.clear();
 
-	return ret;
+	return a;
 }
 
 Tamgu* TamguThread::Eval(Tamgu* environment, Tamgu* a, short idthread) {
@@ -2564,7 +2588,9 @@ Tamgu* TamguCallThread::Eval(Tamgu* environment, Tamgu* value, short idthread) {
     for (i = 0; i < vars.size(); i++) {
         //this is a hack, which help maintain compatibility with the main thread, where global variables are stored at position 1
         globalTamgu->threads[id].variables[vars[i]].push_back(aNULL);
-		globalTamgu->threads[id].variables[vars[i]].push_back(main->Declaration(vars[i]));
+        value = main->Declaration(vars[i]);
+        value->Enablelock(is_tobelocked);
+		globalTamgu->threads[id].variables[vars[i]].push_back(value);
     }
     
 	//Then we copy the current knowledge base into the new thread own knowledge base as they must share it...
@@ -2573,9 +2599,11 @@ Tamgu* TamguCallThread::Eval(Tamgu* environment, Tamgu* value, short idthread) {
 	bool cleandom = false;
 	Tamgu* dom = main;
 	if (environment != main) {
-		if (environment->isFrame()) {
+		if (environment->isFrameinstance()) {
 			//We are in a frame...
-			//We protect it
+			//We protect it and its content, which much be pretected within their
+            //access within a thread...
+            environment->Enablelock(is_tobelocked);
 			environment->Setreference();
 			cleandom = true;
 			dom = environment;
@@ -2593,10 +2621,13 @@ Tamgu* TamguCallThread::Eval(Tamgu* environment, Tamgu* value, short idthread) {
 	//we need to evaluate our arguments beforehand
 	Tamgu* a;
 	for (i = 0; i < arguments.size(); i++) {
-		a = arguments[i]->Eval(environment, aNULL, idthread)->Atom();
+        a = arguments[i]->Eval(environment, aNULL, idthread)->GetvalueforThread();
+        if (!a->isProtected())
+            a->Enablelock(is_tobelocked);
 		a->Setreference();
 		threadcall->arguments.push_back(a);
 	}
+    
     {
         threadcall->thid = new std::thread(AThread, threadcall);
         if (threadcall->thid == NULL) {
@@ -3157,7 +3188,7 @@ Tamgu* TamguInstructionFORINVALUECONTAINER::Eval(Tamgu* context, Tamgu* loop, sh
 Tamgu* TamguInstructionFORINVECTOR::Eval(Tamgu* context, Tamgu* loop, short idthread) {
 	loop = instructions.vecteur[0];
 	Tamgu* var = loop->Instruction(0)->Eval(context, aNULL, idthread);
-	if (var->isFrame())
+	if (var->isFrameinstance())
 		return TamguInstructionFORIN::Eval(context, loop, idthread);
 
 	loop = loop->Instruction(1)->Eval(context, aNULL, idthread);
@@ -3202,7 +3233,7 @@ Tamgu* TamguInstructionFORIN::Eval(Tamgu* context, Tamgu* loop, short idthread) 
 	//In some cases, we cannot duplicate the value...
 	Tamgu* dom = NULL;
 
-	if (var->isFrame()) {
+	if (var->isFrameinstance()) {
 		idname = loop->Name();
 		dom = globalTamgu->Declarator(idname, idthread);
 	}

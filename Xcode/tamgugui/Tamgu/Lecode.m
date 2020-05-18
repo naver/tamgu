@@ -302,7 +302,7 @@ extern BOOL nouveau;
     const char* code=[localstring UTF8String];
     int ln=0;
     while (code[ln]!=0 && code[ln]<=32) ln++;
-    if (code[ln] != '}')
+    if (code[ln] != '}' && code[ln] != ')')
         return NO;
     return YES;
 }
@@ -319,7 +319,7 @@ extern BOOL nouveau;
 }
 
 -(BOOL)localcolor:(char)key {
-    static const char cc[]={')','"','\'',';',']','=','/', 0};
+    static const char cc[]={'"','\'',';',']','=','/', 0};
     
     modified=YES;
     
@@ -363,7 +363,7 @@ extern BOOL nouveau;
     
     [self clearallbreakpoints];
     
-    if (key == '}') {
+    if (key == '}' || key == ')') {
         //We are looking for the last previous '{' above
 
 
@@ -403,7 +403,7 @@ extern BOOL nouveau;
     //we found it...
     //we need to count the number of spaces...
     line=[line stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-    if (ln) {
+    if (ln > 0) {
         truc=[@"" stringByPaddingToLength:ln withString:@" " startingAtIndex:0];
         truc=[truc stringByAppendingString: line];
         
@@ -428,18 +428,43 @@ extern BOOL nouveau;
 
 -(void)indentation {
     NSRange localposition=[self selectedRange];
+    long diff = localposition.location;
+    localposition = [[self string] paragraphRangeForRange: localposition];
+    diff -= localposition.location;
+    long line = [ruleur getline: localposition.location];
+
+    long top = [ruleur gettopline];
+    long bottom = [ruleur getlastline];
+
     currentrange=NSMakeRange(0,0);
     const char* code= [[self string] UTF8String];
     code=lindentation((char*)code,0);
     NSString* indentedcode = [NSString stringWithUTF8String:code];
     modified=YES;
     NSRange all= NSMakeRange(0, [[self string] length]);
+    
+    //to speed up the process, we set the colors in the background
+    //We hide the window temporaly
+    [self setHidden:true];
     if ([self shouldChangeTextInRange:all replacementString:indentedcode]) {
         [self setString:indentedcode];
         [self colorie];
+        [self majruleur: indentedcode];
     }
+    [self setHidden:false];
+    //We need then to put it back as the current input window
+    [[self window] selectNextKeyView:nil];
+
+    [self scrollToBeginningOfDocument:nil];
+    top = [ruleur getpos:top];
+    bottom = [ruleur getpos:bottom];
+    localposition.location = top;
+    localposition.length = bottom-top;
+    [self scrollRangeToVisible: localposition];
+
+    localposition.location = [ruleur getpos:line] + diff;
+    localposition.length = 0;
     [self setSelectedRange:localposition];
-    [self  scrollRangeToVisible: localposition];
 }
 
 -(void)insere:(NSString*)car {

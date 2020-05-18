@@ -22,14 +22,12 @@
 class TamguPredicateBetween : public TamguPredicateFunction {
 public:
 
-	TamguPredicateBetween(TamguGlobal* g, short n) : TamguPredicateFunction(g, NULL, n) {}
+	TamguPredicateBetween(TamguGlobal* g, short n) : TamguPredicateFunction(g, NULL, n) {
+        investigate |= is_predicatemethod;
+    }
 
 	Tamgu* Newinstance(short idthread, Tamgu* f = NULL) {
 		return new TamguPredicateBetween(NULL, name);
-	}
-
-	bool isPredicateFunction() {
-		return true;
 	}
 
 	bool Checkarity() {
@@ -59,18 +57,15 @@ public:
 class TamguPredicateSucc : public TamguPredicateFunction {
 public:
 
-	TamguPredicateSucc(TamguGlobal* g, short n) : TamguPredicateFunction(g, NULL, n) {}
+	TamguPredicateSucc(TamguGlobal* g, short n) : TamguPredicateFunction(g, NULL, n) {
+        investigate |= is_predicatemethod;
+    }
 
 	Tamgu* Newinstance(short idthread, Tamgu* parent) {
 		if (parent != NULL && parent->Type() == a_parameterpredicate)
 			return new TamguPredicateTermSucc(NULL, name);
 
 		return new TamguPredicateSucc(NULL, name);
-	}
-
-
-	bool isPredicateFunction() {
-		return true;
 	}
 
 	bool Checkarity() {
@@ -107,7 +102,9 @@ public:
 class TamguPredicatePred : public TamguPredicateFunction {
 public:
 
-	TamguPredicatePred(TamguGlobal* g, short n) : TamguPredicateFunction(g, NULL, n) {}
+	TamguPredicatePred(TamguGlobal* g, short n) : TamguPredicateFunction(g, NULL, n) {
+        investigate |= is_predicatemethod;
+    }
 
 	Tamgu* Newinstance(short idthread, Tamgu* parent) {
 		if (parent != NULL && parent->Type() == a_parameterpredicate)
@@ -116,10 +113,6 @@ public:
 		return new TamguPredicatePred(NULL, name);
 	}
 
-
-	bool isPredicateFunction() {
-		return true;
-	}
 
 	bool Checkarity() {
 		if (parameters.size() == 2)
@@ -162,7 +155,8 @@ class TamguPredicateMethod : public TamguPredicateFunction {
 public:
 	unsigned long size;
 
-	TamguPredicateMethod(TamguGlobal* g, short n, unsigned long sz) : TamguPredicateFunction(g, NULL, n) { 
+	TamguPredicateMethod(TamguGlobal* g, short n, unsigned long sz) : TamguPredicateFunction(g, NULL, n) {
+        investigate |= is_predicatemethod;
 		size = sz; 
 	}
 
@@ -171,10 +165,6 @@ public:
 			return new TamguPredicateTermMethod(globalTamgu, name, size);
 
 		return new TamguPredicateMethod(globalTamgu, name, size);
-	}
-
-	bool isPredicateFunction() {
-		return true;
 	}
 
 	bool Checkarity() {

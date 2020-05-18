@@ -2269,7 +2269,7 @@ Exporting Tamgu* TamguGlobal::EvaluateLisp(Tamgu* contextualpattern, string file
 }
 
 //------------ Container evaluation -------------------------------------
-void split_container(unsigned char* src, long lensrc, vector<long>&);
+void split_container(unsigned char* src, long lensrc, vector<long>&, bool forindent);
 
 class TamguJsonCompiler {
 public:
@@ -2290,7 +2290,7 @@ public:
     bool compile(Tamgu* kf, string& s) {
         pos.clear();
         src = USTR(s);
-        split_container(src, s.size(), pos);
+        split_container(src, s.size(), pos, false);
         r = 1;
         i = 1;
         line = 0;
@@ -2516,7 +2516,7 @@ char TamguJsonCompiler::buildexpression(Tamgu* kf) {
                             local = aNULL;
                         else {
                             local = globalTamgu->Providewithstring(token);
-                            local->Setreference(ref);
+                            local->Addreference( ref);
                         }
                 
                 if (expecting) {
@@ -2644,10 +2644,10 @@ char TamguJsonCompiler::buildexpression(Tamgu* kf) {
                     return false;
                 
                 v = conversionfloathexa((const char*)src+i-1, l);
-                to =  i + l - 2;
-                while (pos[r] <= to) r++;
-                c= src[to+1];
-                src[to+1] = 0;
+                to =  i + l - 1;
+                while (pos[r] < to) r++;
+                c= src[to];
+                src[to] = 0;
                 
                 if (expecting == 1)
                     key = (char*)src+i;
@@ -2667,8 +2667,8 @@ char TamguJsonCompiler::buildexpression(Tamgu* kf) {
                     
                     checknext=true;
                 }
-                src[to+1] = c;
-                i = to + 1;
+                src[to] = c;
+                i = to;
                 break;
             case '{':
                 if (expecting == 1 || checknext)

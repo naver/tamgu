@@ -578,10 +578,12 @@ public:
             return this;
         }
         
-        Locking _lock(this);
+        locking();
+        Tamgu* r = this;
         if (forced || !protect || reference)
-            return globalTamgu->Providewithstring(value);
-        return this;
+            r = globalTamgu->Providewithstring(value);
+        unlocking();
+        return r;
 	}
 
     Tamgu* Atomref() {
@@ -1044,7 +1046,7 @@ public:
 
 
 	Tamgu* less(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isString())
             return aFALSE;
 #endif
@@ -1060,7 +1062,7 @@ public:
 	}
 
 	Tamgu* more(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isString())
             return aFALSE;
 #endif
@@ -1076,7 +1078,7 @@ public:
 	}
 
 	Tamgu* same(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isString())
             return aFALSE;
 #endif
@@ -1092,7 +1094,7 @@ public:
 	}
 
 	Tamgu* different(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isString())
             return aTRUE;
 #endif
@@ -1108,7 +1110,7 @@ public:
 	}
 
 	Tamgu* lessequal(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isString())
             return aFALSE;
 #endif
@@ -1124,7 +1126,7 @@ public:
 	}
 
 	Tamgu* moreequal(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isString())
             return aFALSE;
 #endif
@@ -1265,25 +1267,25 @@ public:
     
     //---------------------------------------------------------------------------------------------------------------------
     Tamgua_string(string v, TamguGlobal* g, Tamgu* parent = NULL) : TamguReference(g, parent) {
-     investigate |= is_string;
+        investigate |= is_string;
         //Do not forget your variable initialisation
         value = v;
     }
 
     Tamgua_string(char c) {
-     investigate |= is_string;
+        investigate |= is_string;
         value.head->buffer[0] = c;
         value.head->buffer[1] = 0;
     }
 
     Tamgua_string(string v) {
-     investigate |= is_string;
+        investigate |= is_string;
             //Do not forget your variable initialisation
         value = v;
     }
     
     Tamgua_string(atomic_string& v) {
-     investigate |= is_string;
+        investigate |= is_string;
             //Do not forget your variable initialisation
         value = v;
     }
@@ -1742,7 +1744,7 @@ public:
     
     
     Tamgu* less(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isString())
             return aFALSE;
 #endif
@@ -1752,7 +1754,7 @@ public:
     }
     
     Tamgu* more(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isString())
             return aFALSE;
 #endif
@@ -1762,7 +1764,7 @@ public:
     }
     
     Tamgu* same(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isString())
             return aFALSE;
 #endif
@@ -1772,7 +1774,7 @@ public:
     }
     
     Tamgu* different(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isString())
             return aTRUE;
 #endif
@@ -1782,7 +1784,7 @@ public:
     }
     
     Tamgu* lessequal(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isString())
             return aFALSE;
 #endif
@@ -1792,7 +1794,7 @@ public:
     }
     
     Tamgu* moreequal(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isString())
             return aFALSE;
 #endif

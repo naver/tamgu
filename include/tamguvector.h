@@ -314,19 +314,15 @@ class Tamguvector : public TamguObjectLockContainer {
     //---------------------------------------------------------------------------------------------------------------------
     
     void unmark() {
-        locking();
-        if (loopmark) {
-            unlocking();
+        if (!lockingmark())
             return;
-        }
-        loopmark=true;
+        
         usermark=false;
 
         for (long i = 0; i< values.size(); i++)
             values[i]->unmark();
        
-        loopmark=false;
-        unlocking();
+        unlockingmark();
     }
 
     Exporting void Cleanreference(short inc);
@@ -335,55 +331,42 @@ class Tamguvector : public TamguObjectLockContainer {
     Exporting void Setreference();
     Exporting void Resetreference(short r = 1);
     void Setprotect(bool n) {
-        locking();
-        if (loopmark) {
-            unlocking();
+        if (!lockingmark())
             return;
-        }
-        loopmark=true;
+
         protect = n;
         
         for (size_t i = 0; i<values.size(); i++)
             values[i]->Setprotect(n);
         
-        loopmark=false;
-        unlocking();
+        unlockingmark();
     }
 
     void Protectcontainervalues() {
-        locking();
-        if (loopmark) {
-            unlocking();
+        if (!lockingmark())
             return;
-        }
-        loopmark=true;
+        
         protect = true;
         
         for (size_t i = 0; i<values.size(); i++)
             values[i]->Setprotect(true);
         
-        loopmark=false;
-        unlocking();
+        unlockingmark();
     }
 
 
     void Popping() {
-        locking();
-        if (loopmark) {
-            unlocking();
+        if (!lockingmark())
             return;
-        }
-        loopmark=true;
+        
         protect = false;
         if (Reference() <= 0)
             protect = true;
         
-        locking();
         for (size_t i = 0; i < values.size(); i++)
             values[i]->Popping();
         
-        loopmark=false;
-        unlocking();
+        unlockingmark();
     }
     //---------------------------------------------------------------------------------------------------------------------
     //This SECTION is for your specific implementation...
@@ -949,6 +932,23 @@ public:
         isconst = false;
     }
     
+    bool lockingmark() {
+        if (hasalsoLock())
+            values._lock.lock();
+        if (loopmark) {
+            if (hasLock())
+                values._lock.unlock();
+            return false;
+        }
+        loopmark = true;
+        return true;
+    }
+    
+    void unlockingmark() {
+        loopmark = false;
+        if (hasalsoLock())
+            values._lock.unlock();
+    }
         //----------------------------------------------------------------------------------------------------------------------
     Exporting Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);
     Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
@@ -1177,10 +1177,9 @@ public:
         //---------------------------------------------------------------------------------------------------------------------
     
     void unmark() {
-        if (loopmark)
+        if (!lockingmark())
             return;
         
-        loopmark=true;
         usermark=false;
 
         atomic_vector_iterator<Tamgu*> it(values);
@@ -1190,7 +1189,7 @@ public:
             it.next();
         }
         
-        loopmark=false;
+        unlockingmark();
     }
     
     Exporting void Cleanreference(short inc);
@@ -1199,9 +1198,9 @@ public:
     Exporting void Setreference();
     Exporting void Resetreference(short r = 1);
     void Setprotect(bool n) {
-        if (loopmark)
+        if (!lockingmark())
             return;
-        loopmark=true;
+        
         protect = n;
         
         atomic_vector_iterator<Tamgu*> it(values);
@@ -1210,13 +1209,13 @@ public:
             it.next();
         }
         
-        loopmark=false;
+        unlockingmark();
     }
     
     void Protectcontainervalues() {
-        if (loopmark)
+        if (!lockingmark())
             return;
-        loopmark=true;
+
         protect = true;
         
         atomic_vector_iterator<Tamgu*> it(values);
@@ -1224,15 +1223,14 @@ public:
             it.second->Setprotect(true);
             it.next();
         }
-        
-        loopmark=false;
+        unlockingmark();
     }
     
     
     void Popping() {
-        if (loopmark)
+        if (!lockingmark())
             return;
-        loopmark=true;
+                
         protect = false;
         if (Reference() <= 0)
             protect = true;
@@ -1243,7 +1241,7 @@ public:
             it.next();
         }
         
-        loopmark=false;
+        unlockingmark();
     }
         //---------------------------------------------------------------------------------------------------------------------
         //This SECTION is for your specific implementation...

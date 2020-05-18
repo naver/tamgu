@@ -167,39 +167,29 @@ Exporting void Tamgubinmap::Cleanreference(short inc) {
 }
 
 Exporting void Tamgubinmap::Setreference(short inc) {
-    if (loopmark)
-        return;
-    
+    locking();
+
     reference += inc;
-    loopmark = true;
     protect = false;
     
-    locking();
     basebin_hash<Tamgu*>::iterator itx;
     for (itx = values.begin(); itx != values.end(); itx++)
         itx->second->Addreference(inc);
 
-        unlocking();
-    
-    loopmark=false;
+    unlocking();
 }
 
 Exporting void Tamgubinmap::Setreference() {
-    if (loopmark)
-        return;
-    
+    locking();
+
     ++reference;
-    loopmark = true;
     protect = false;
     
-    locking();
     basebin_hash<Tamgu*>::iterator itx;
     for (itx = values.begin(); itx != values.end(); itx++)
         itx->second->Addreference(1);
     
     unlocking();
-    
-    loopmark=false;
 }
 
 
@@ -275,10 +265,9 @@ Exporting void Tamgubinmap::Clear() {
 
 
 Exporting string Tamgubinmap::String() {
-    Locking _lock(this);
-    if (loopmark)
+    if (!lockingmark())
         return("{...}");
-    TamguCircular _c(this);
+
     stringstream res;
     basebin_hash<Tamgu*>::iterator it;
     res << "{";
@@ -296,14 +285,14 @@ Exporting string Tamgubinmap::String() {
             stringing(res, sx);
     }
     res << "}";
+    unlockingmark();
     return res.str();
 }
 
 Exporting string Tamgubinmap::JSonString() {
-    Locking _lock(this);
-    if (loopmark)
+    if (!lockingmark())
         return("");
-    TamguCircular _c(this);
+
     stringstream res;
     basebin_hash<Tamgu*>::iterator it;
     res << "{";
@@ -316,6 +305,7 @@ Exporting string Tamgubinmap::JSonString() {
         res << '"' << it->first << '"' << ":" << it->second->JSonString();
     }
     res << "}";
+    unlockingmark();
     return res.str();
 }
 

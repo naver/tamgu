@@ -633,10 +633,6 @@ public:
 		return disjunction;
 	}
 
-	bool isPredicate() {
-		return true;
-	}
-
 	bool Unify(TamguDeclaration* dom, Tamgu* a);
 	bool isUnified(TamguDeclaration* dom);
 
@@ -757,6 +753,7 @@ public:
 		object = aNULL;
 		trace = false;
 	}
+    
 	Tamgu* Function() {
 		return function;
 	}
@@ -787,7 +784,7 @@ public:
 class TamguConstPredicate : public TamguPredicate {
 public:
 	TamguConstPredicate(TamguGlobal* g, short n) : TamguPredicate(n, g, a_predicate) {
-        investigate = is_const;
+        investigate |= is_const;
     }
     
 	string String() {
@@ -1275,7 +1272,6 @@ public:
 
 
 	TamguPredicateLocalInstruction(TamguGlobal* g, basebin_hash<TamguPredicateVariableInstance*>* context, Tamgu* e, bool n, bool d)  {
-
 		dico = context;
 		negation = n;
 		disjunction = d;

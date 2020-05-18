@@ -41,7 +41,7 @@
 #include "tamgulisp.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2020.05.05.14";
+const char* tamgu_version = "Tamgu 1.2020.05.16.20";
 
 Tamgu* booleantamgu[2];
 
@@ -321,6 +321,7 @@ void Garbaging(vector<Tamgu*>& issues, vector<long>& idissues) {
 
 
 #endif
+
 
 //----------------------------------------------------------------------------------
 Exporting long ThreadLock::ids = 0;
@@ -1175,7 +1176,8 @@ Exporting void TamguGlobal::RecordCompatibilities() {
     short ty;
     for (it = newInstance.begin(); it != newInstance.end(); it++) {
         if (it->second->isFrame()) //this type is only used to produce frames...
-        continue;
+            continue;
+        
         ty = it->second->Type();
 
         //we record each object as being its own procedure... These procedures (actually calling ProcCreate)
@@ -1249,9 +1251,13 @@ Exporting void TamguGlobal::RecordCompatibilities() {
             compatibilities[numbers[i]][numbers[j]] = true;
             strictcompatibilities[numbers[i]][numbers[j]] = true;
         }
-        //We enable a loose compatibilities between strings and numbers
+        //We enable a loose compatibility for function arguments between strings and numbers
         //When this flag is set to one, a function with a string parameter can be called with a number argument
-#ifdef TAMGULOOSECOMPATIBILITIES
+        //By default, this flag is set to 0
+        //Note that there is another flag: TAMGUSTRICTCOMPARISON, which deals with strict or loose comparisons between elements
+        //When TAMGUSTRICTCOMPARISON is set to 1, a comparison between a string and a number returns false.
+        //Else, the second element of the comparison is converted into the type of the first element.
+#ifdef TAMGULOOSEARGUMENTCOMPATIBILITIES
         for (j = 0; j < strings.size(); j++)
             compatibilities[numbers[i]][strings[j]] = true;
 #endif
@@ -1264,9 +1270,10 @@ Exporting void TamguGlobal::RecordCompatibilities() {
             compatibilities[strings[i]][strings[j]] = true;
             strictcompatibilities[strings[i]][strings[j]] = true;
         }
-        //We enable a loose compatibilities between strings and numbers
-        //When this flag is set to one, a function with a number parameter can be called with a string argument
-#ifdef TAMGULOOSECOMPATIBILITIES
+        //We enable a loose compatibility for function arguments between strings and numbers
+        //When this flag is set to one, a function with a string parameter can be called with a number argument
+        //Note that there is another flag: TAMGUSTRICTCOMPARISON, which deals with strict or loose comparisons between elements
+#ifdef TAMGULOOSEARGUMENTCOMPATIBILITIES
         for (j = 0; j < numbers.size(); j++)
             compatibilities[strings[i]][numbers[j]] = true;
 #endif
@@ -3186,6 +3193,7 @@ Exporting Tamgumap* TamguGlobal::Providemap() {
     if (mapempties.last > 0) {
         ke = mapreservoire[mapempties.backpop()];
         ke->used = true;
+        ke->Enablelock(0);
         return ke;
     }
 
@@ -3195,6 +3203,7 @@ Exporting Tamgumap* TamguGlobal::Providemap() {
         if (!mapreservoire[mapidx]->used) {
             mapreservoire[mapidx]->used = true;
             ke = mapreservoire[mapidx++];
+            ke->Enablelock(0);
             return ke;
         }
         mapidx++;
@@ -3209,6 +3218,7 @@ Exporting Tamgumap* TamguGlobal::Providemap() {
     mapidx = mx;
     mapreservoire[mapidx]->used = true;
     ke = mapreservoire[mapidx++];
+    ke->Enablelock(0);
     return ke;
 }
 
@@ -3221,6 +3231,7 @@ Exporting Tamgumapss* TamguGlobal::Providemapss() {
     if (mapssempties.last > 0) {
         ke = mapssreservoire[mapssempties.backpop()];
         ke->used = true;
+        ke->Enablelock(0);
         return ke;
     }
 
@@ -3230,6 +3241,7 @@ Exporting Tamgumapss* TamguGlobal::Providemapss() {
         if (!mapssreservoire[mapssidx]->used) {
             mapssreservoire[mapssidx]->used = true;
             ke = mapssreservoire[mapssidx++];
+            ke->Enablelock(0);
             return ke;
         }
         mapssidx++;
@@ -3244,6 +3256,7 @@ Exporting Tamgumapss* TamguGlobal::Providemapss() {
     mapssidx = mx;
     mapssreservoire[mapssidx]->used = true;
     ke = mapssreservoire[mapssidx++];
+    ke->Enablelock(0);
     return ke;
 }
 
@@ -3256,6 +3269,7 @@ Exporting Tamguvector* TamguGlobal::Providevector() {
     if (vectorempties.last > 0) {
         ke = vectorreservoire[vectorempties.backpop()];
         ke->used = true;
+        ke->Enablelock(0);
         return ke;
     }
 
@@ -3265,6 +3279,7 @@ Exporting Tamguvector* TamguGlobal::Providevector() {
         if (!vectorreservoire[vectoridx]->used) {
             vectorreservoire[vectoridx]->used = true;
             ke = vectorreservoire[vectoridx++];
+            ke->Enablelock(0);
             return ke;
         }
         vectoridx++;
@@ -3279,6 +3294,7 @@ Exporting Tamguvector* TamguGlobal::Providevector() {
     vectoridx = mx;
     vectorreservoire[vectoridx]->used = true;
     ke = vectorreservoire[vectoridx++];
+    ke->Enablelock(0);
     return ke;
 }
 
@@ -3292,6 +3308,7 @@ Exporting Tamguivector* TamguGlobal::Provideivector() {
     if (ivectorempties.last > 0) {
         ke = ivectorreservoire[ivectorempties.backpop()];
         ke->used = true;
+        ke->Enablelock(0);
         return ke;
     }
 
@@ -3301,6 +3318,7 @@ Exporting Tamguivector* TamguGlobal::Provideivector() {
         if (!ivectorreservoire[ivectoridx]->used) {
             ivectorreservoire[ivectoridx]->used = true;
             ke = ivectorreservoire[ivectoridx++];
+            ke->Enablelock(0);
             return ke;
         }
         ivectoridx++;
@@ -3315,6 +3333,7 @@ Exporting Tamguivector* TamguGlobal::Provideivector() {
     ivectoridx = mx;
     ivectorreservoire[ivectoridx]->used = true;
     ke = ivectorreservoire[ivectoridx++];
+    ke->Enablelock(0);
     return ke;
 }
 
@@ -3326,6 +3345,7 @@ Exporting Tamgufvector* TamguGlobal::Providefvector() {
     if (fvectorempties.last > 0) {
         ke = fvectorreservoire[fvectorempties.backpop()];
         ke->used = true;
+        ke->Enablelock(0);
         return ke;
     }
 
@@ -3335,6 +3355,7 @@ Exporting Tamgufvector* TamguGlobal::Providefvector() {
         if (!fvectorreservoire[fvectoridx]->used) {
             fvectorreservoire[fvectoridx]->used = true;
             ke = fvectorreservoire[fvectoridx++];
+            ke->Enablelock(0);
             return ke;
         }
         fvectoridx++;
@@ -3349,6 +3370,7 @@ Exporting Tamgufvector* TamguGlobal::Providefvector() {
     fvectoridx = mx;
     fvectorreservoire[fvectoridx]->used = true;
     ke = fvectorreservoire[fvectoridx++];
+    ke->Enablelock(0);
     return ke;
 }
 
@@ -3360,6 +3382,7 @@ Exporting Tamgusvector* TamguGlobal::Providesvector() {
     if (svectorempties.last > 0) {
         ke = svectorreservoire[svectorempties.backpop()];
         ke->used = true;
+        ke->Enablelock(0);
         return ke;
     }
 
@@ -3369,6 +3392,7 @@ Exporting Tamgusvector* TamguGlobal::Providesvector() {
         if (!svectorreservoire[svectoridx]->used) {
             svectorreservoire[svectoridx]->used = true;
             ke = svectorreservoire[svectoridx++];
+            ke->Enablelock(0);
             return ke;
         }
         svectoridx++;
@@ -3383,6 +3407,7 @@ Exporting Tamgusvector* TamguGlobal::Providesvector() {
     svectoridx = mx;
     svectorreservoire[svectoridx]->used = true;
     ke = svectorreservoire[svectoridx++];
+    ke->Enablelock(0);
     return ke;
 }
 
@@ -3394,6 +3419,7 @@ Exporting Tamguuvector* TamguGlobal::Provideuvector() {
     if (uvectorempties.last > 0) {
         ke = uvectorreservoire[uvectorempties.backpop()];
         ke->used = true;
+        ke->Enablelock(0);
         return ke;
     }
 
@@ -3403,6 +3429,7 @@ Exporting Tamguuvector* TamguGlobal::Provideuvector() {
         if (!uvectorreservoire[uvectoridx]->used) {
             uvectorreservoire[uvectoridx]->used = true;
             ke = uvectorreservoire[uvectoridx++];
+            ke->Enablelock(0);
             return ke;
         }
         uvectoridx++;
@@ -3417,6 +3444,7 @@ Exporting Tamguuvector* TamguGlobal::Provideuvector() {
     uvectoridx = mx;
     uvectorreservoire[uvectoridx]->used = true;
     ke = uvectorreservoire[uvectoridx++];
+    ke->Enablelock(0);
     return ke;
 }
 
@@ -3431,6 +3459,7 @@ Exporting TamguSelf* TamguGlobal::Provideself() {
         ke->used = true;
         ke->value = aNOELEMENT;
         ke->typevalue = a_const;
+        ke->Enablelock(0);
         return ke;
     }
 
@@ -3442,6 +3471,7 @@ Exporting TamguSelf* TamguGlobal::Provideself() {
             ke->used = true;
             ke->value = aNOELEMENT;
             ke->typevalue = a_const;
+            ke->Enablelock(0);
             return ke;
         }
         slfidx++;
@@ -3456,6 +3486,7 @@ Exporting TamguSelf* TamguGlobal::Provideself() {
     slfidx = mx;
     slfreservoire[slfidx]->used = true;
     ke = slfreservoire[slfidx++];
+    ke->Enablelock(0);
     return ke;
 }
 
@@ -3622,6 +3653,7 @@ Exporting Tamgulisp* TamguGlobal::Providelisp() {
     if (lempties.last > 0) {
         ke = lispreservoire[lempties.backpop()];
         ke->used = true;
+        ke->Enablelock(0);
         return ke;
     }
 
@@ -3631,6 +3663,7 @@ Exporting Tamgulisp* TamguGlobal::Providelisp() {
         if (!lispreservoire[lispidx]->used) {
             lispreservoire[lispidx]->used = true;
             ke = lispreservoire[lispidx++];
+            ke->Enablelock(0);
             return ke;
         }
         lispidx++;
@@ -3645,6 +3678,7 @@ Exporting Tamgulisp* TamguGlobal::Providelisp() {
     lispidx = mx;
     lispreservoire[lispidx]->used = true;
     ke = lispreservoire[lispidx++];
+    ke->Enablelock(0);
     return ke;
 }
 
@@ -3657,6 +3691,7 @@ Exporting Tamgustring* TamguGlobal::Providestring(string v) {
         ke = stringreservoire[sempties.backpop()];
         ke->used = true;
         ke->value = v;
+        ke->Enablelock(0);
         return ke;
     }
 
@@ -3667,6 +3702,7 @@ Exporting Tamgustring* TamguGlobal::Providestring(string v) {
             stringreservoire[stringidx]->used = true;
             stringreservoire[stringidx]->value = v;
             ke = stringreservoire[stringidx++];
+            ke->Enablelock(0);
             return ke;
         }
         stringidx++;
@@ -3682,6 +3718,7 @@ Exporting Tamgustring* TamguGlobal::Providestring(string v) {
     stringreservoire[stringidx]->used = true;
     stringreservoire[stringidx]->value = v;
     ke = stringreservoire[stringidx++];
+    ke->Enablelock(0);
     return ke;
 }
 
@@ -3694,6 +3731,7 @@ Exporting Tamguustring* TamguGlobal::Provideustring(wstring v) {
         ke = ustringreservoire[uempties.backpop()];
         ke->used = true;
         ke->value = v;
+        ke->Enablelock(0);
         return ke;
     }
 
@@ -3704,6 +3742,7 @@ Exporting Tamguustring* TamguGlobal::Provideustring(wstring v) {
             ustringreservoire[ustringidx]->value = v;
             ustringreservoire[ustringidx]->used = true;
             ke = ustringreservoire[ustringidx++];
+            ke->Enablelock(0);
             return ke;
         }
         ustringidx++;
@@ -3719,6 +3758,7 @@ Exporting Tamguustring* TamguGlobal::Provideustring(wstring v) {
     ustringreservoire[ustringidx]->used = true;
     ustringreservoire[ustringidx]->value = v;
     ke = ustringreservoire[ustringidx++];
+    ke->Enablelock(0);
     return ke;
 }
 
@@ -3731,6 +3771,7 @@ Exporting Tamgustring* TamguGlobal::Providewithstring(string& v) {
         ke = stringreservoire[sempties.backpop()];
         ke->used = true;
         ke->value = v;
+        ke->Enablelock(0);
         return ke;
     }
 
@@ -3741,6 +3782,7 @@ Exporting Tamgustring* TamguGlobal::Providewithstring(string& v) {
             stringreservoire[stringidx]->used = true;
             stringreservoire[stringidx]->value = v;
             ke = stringreservoire[stringidx++];
+            ke->Enablelock(0);
             return ke;
         }
         stringidx++;
@@ -3756,6 +3798,7 @@ Exporting Tamgustring* TamguGlobal::Providewithstring(string& v) {
     stringreservoire[stringidx]->used = true;
     stringreservoire[stringidx]->value = v;
     ke = stringreservoire[stringidx++];
+    ke->Enablelock(0);
     return ke;
 }
 
@@ -3768,6 +3811,7 @@ Exporting Tamguustring* TamguGlobal::Providewithustring(wstring& v) {
         ke = ustringreservoire[uempties.backpop()];
         ke->used = true;
         ke->value = v;
+        ke->Enablelock(0);
         return ke;
     }
 
@@ -3778,6 +3822,7 @@ Exporting Tamguustring* TamguGlobal::Providewithustring(wstring& v) {
             ustringreservoire[ustringidx]->value = v;
             ustringreservoire[ustringidx]->used = true;
             ke = ustringreservoire[ustringidx++];
+            ke->Enablelock(0);
             return ke;
         }
         ustringidx++;
@@ -3793,5 +3838,6 @@ Exporting Tamguustring* TamguGlobal::Providewithustring(wstring& v) {
     ustringreservoire[ustringidx]->used = true;
     ustringreservoire[ustringidx]->value = v;
     ke = ustringreservoire[ustringidx++];
+    ke->Enablelock(0);
     return ke;
 }

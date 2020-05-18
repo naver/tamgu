@@ -31,6 +31,10 @@
 -(void)nettoiel;
 -(void)numerolignes;
 -(void)selectionne:(long)ligne;
+-(long)getline:(long)pos;
+-(long)getpos:(long)line;
+-(long)gettopline;
+-(long)getlastline;
 -(NSWindow*)fenetre;
 -(void)Ligne:(NSMutableArray*)l;
 -(void)clearbreaks;

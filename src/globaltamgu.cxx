@@ -426,12 +426,9 @@ Exporting string TamguIndentation(string& codestr,string blanc) {
 		lisp = true;
 	}
 
-	vector <long> iblancs;
-	vector<string> vargs;
 	cr_normalise(codestr);
-	v_split_indent(codestr, vargs);
-	string codeindente = "";
-	IndentationCode(codeindente, vargs, iblancs, (int)blanc.size(), true, lisp);
+	string codeindente;
+	IndentationCode(codestr, codeindente, lisp, true);
 	Trimright(codeindente);
 	codeindente += "\n";
 	if (codeindente.find("/@") != string::npos || codeindente.find("@\"") != string::npos)

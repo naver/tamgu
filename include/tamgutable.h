@@ -35,7 +35,7 @@ class TamguIterationtable;
 
 //---------------------------------------------------------------------------------------------------------------------
 
-class Tamgutable : public TamguObjectContainer {
+class Tamgutable : public TamguObjectLockContainer {
     public:
     //We export the methods that will be exposed for our new object
     //this is a static object, which is common to everyone
@@ -49,20 +49,23 @@ class Tamgutable : public TamguObjectContainer {
     //---------------------------------------------------------------------------------------------------------------------
     //This SECTION is for your specific implementation...
     //Your personal variables here...
-    Tamgu** values;
+    std::atomic<Tamgu*>* values;
+    std::atomic<long> position;
     long size;
 
     //---------------------------------------------------------------------------------------------------------------------
-    Tamgutable(TamguGlobal* g, Tamgu* parent = NULL) : TamguObjectContainer(g, parent) {
+    Tamgutable(TamguGlobal* g, Tamgu* parent = NULL) : TamguObjectLockContainer(g, parent) {
         //Do not forget your variable initialisation
         values = NULL;
         size = 0;
+        position = 0;
     }
 
     Tamgutable(long sz = 0) {
         //Do not forget your variable initialisation
         values = NULL;
         size = 0;
+        position = 0;
         if (sz)
             Resize(sz);
     }
@@ -107,20 +110,24 @@ class Tamgutable : public TamguObjectContainer {
         long i;
 
         if (values == NULL) {
-            values = new Tamgu*[sz];
+            values = new std::atomic<Tamgu*>[sz];
             for (i = 0; i < sz; i++)
                 values[i] = aNOELEMENT;
             size = sz;
             return true;
         }
 
-        if (globalTamgu->isthreading)
+        //if it is in a thread, we cannot resize it...
+        if (hasalsoLock())
             return false;
 
-        Tamgu** v = new Tamgu*[sz];
+        std::atomic<Tamgu*>* v = new std::atomic<Tamgu*>[sz];
+        Tamgu* e;
         for (i = 0; i < sz; i++) {
-            if (i < size)
-                v[i] = values[i];
+            if (i < size) {
+                e = values[i];
+                v[i] = e;
+            }
             else
                 v[i] = aNOELEMENT;
         }
@@ -138,7 +145,8 @@ class Tamgutable : public TamguObjectContainer {
                 v->Resize(size);
                 Tamgu* a;
                 for (size_t i = 0; i < size; i++) {
-                    a = values[i]->Atom(true);
+                    a = values[i];
+                    a = a->Atom(true);
                     a->Setreference();
                     v->values[i] = a;
                 }
@@ -211,57 +219,59 @@ class Tamgutable : public TamguObjectContainer {
     long getinteger(long i) {
         if (i < 0 || i >= size)
             return 0;
-        
-        return values[i]->Integer();
+        Tamgu* e = values[i];
+        return e->Integer();
     }
     
     BLONG getlong(long i) {
         if (i < 0 || i >= size)
             return 0;
         
-        return values[i]->Long();
+        Tamgu* e = values[i];
+        return e->Long();
     }
     
     short getshort(long i) {
         if (i < 0 || i >= size)
             return 0;
         
-        return values[i]->Short();
+        Tamgu* e = values[i];
+        return e->Short();
     }
     
     uchar getbyte(long i) {
         if (i < 0 || i >= size)
             return 0;
-        
-        return values[i]->Byte();
+        Tamgu* e = values[i];
+        return e->Byte();
     }
     
     float getdecimal(long i) {
         if (i < 0 || i >= size)
             return 0;
-        
-        return values[i]->Decimal();
+        Tamgu* e = values[i];
+        return e->Decimal();
     }
     
     double getfloat(long i) {
         if (i < 0 || i >= size)
             return 0;
-        
-        return values[i]->Float();
+        Tamgu* e = values[i];
+        return e->Float();
     }
     
     string getstring(long i) {
         if (i < 0 || i >= size)
             return "";
-        
-        return values[i]->String();
+        Tamgu* e = values[i];
+        return e->String();
     }
     
     wstring getustring(long i) {
         if (i < 0 || i >= size)
             return L"";
-        
-        return values[i]->UString();
+        Tamgu* e = values[i];
+        return e->UString();
     }
     
     Exporting void Storevalue(string& u);
@@ -281,17 +291,18 @@ class Tamgutable : public TamguObjectContainer {
 
     
     void unmark() {
-
-        if (loopmark)
+        if (!lockingmark())
             return;
         
-        loopmark=true;
         usermark=false;
 
-        for (long i = 0; i< size; i++)
-            values[i]->unmark();
+        Tamgu* e;
+        for (long i = 0; i< size; i++) {
+            e = values[i];
+            return e->unmark();
+        }
         
-        loopmark=false;
+        unlockingmark();
     }
 
     Exporting void Cleanreference(short inc);
@@ -301,37 +312,46 @@ class Tamgutable : public TamguObjectContainer {
     Exporting void Resetreference(short r = 1);
 
     void Setprotect(bool n) {
-        if (loopmark)
+        if (!lockingmark())
             return;
-        loopmark=true;
+
         protect = n;
         
-        for (size_t i = 0; i < size; i++)
-            values[i]->Setprotect(n);
+        Tamgu* e;
+        for (size_t i = 0; i < size; i++) {
+            e = values[i];
+            return e->Setprotect(n);
+        }
         
-        loopmark=false;
+        unlockingmark();
     }
 
     void Protectcontainervalues() {
-        if (loopmark)
+        if (!lockingmark())
             return;
-        loopmark=true;
+        
         protect = true;
-        for (size_t i = 0; i < size; i++)
-            values[i]->Setprotect(true);
-        loopmark=false;
+        Tamgu* e;
+        for (size_t i = 0; i < size; i++) {
+            e = values[i];
+            return e->Setprotect(true);
+        }
+        unlockingmark();
     }
     
     void Popping() {
-        if (loopmark)
+        if (!lockingmark())
             return;
-        loopmark=true;
+        
         protect = false;
         if (Reference() <= 0)
             protect = true;
-        for (size_t i = 0; i < size; i++)
-            values[i]->Popping();
-        loopmark=false;
+        Tamgu* e;
+        for (size_t i = 0; i < size; i++) {
+            e = values[i];
+            return e->Popping();
+        }
+        unlockingmark();
     }
 
     //---------------------------------------------------------------------------------------------------------------------
@@ -422,11 +442,13 @@ class Tamgutable : public TamguObjectContainer {
         
         bool beg = true;
         string res;
+        Tamgu* e;
         for (size_t it = 0; it<size;it++) {
             if (beg == false)
                 res += sep;
             beg = false;
-            res += values[it]->String();
+            e = values[it];
+            res += e->String();
         }
 
         return globalTamgu->Providewithstring(res);
@@ -445,18 +467,20 @@ class Tamgutable : public TamguObjectContainer {
         return Inverse();
     }
 
-    Tamgu* MethodRemove(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        Tamgu* a = callfunc->Evaluate(0, contextualpattern, idthread);
+    Tamgu* MethodRemove(Tamgu* e, short idthread, TamguCall* callfunc) {
+        Tamgu* a = callfunc->Evaluate(0, e, idthread);
         size_t found = -1;
+        
         for (size_t i = 0; i < size; i++) {
-            if (values[i]->same(a)->Boolean()) {
+            e = values[i];
+            if (e->same(a)->Boolean()) {
                 found = i;
                 break;
             }
         }
         if (found != -1) {
-            values[found]->Removereference(reference + 1);
-            values[found] = aNOELEMENT;
+            e = values[found].exchange(aNOELEMENT);
+            e->Removereference(reference + 1);
             return aTRUE;
         }
         return aFALSE;
@@ -470,10 +494,12 @@ class Tamgutable : public TamguObjectContainer {
         if (size == 0)
             return aNOELEMENT;
 
-        for (long i = size - 1; i >= 0; i++) {
-            if (values[i] != aNOELEMENT) {
+        Tamgu* e;
+        for (long i = size - 1; i >= 0; i--) {
+            e = values[i];
+            if (e != aNOELEMENT) {
                 idx = i;
-                return values[i];
+                return e;
             }
         }
 
@@ -484,25 +510,31 @@ class Tamgutable : public TamguObjectContainer {
         if (size == 0)
             return aNOELEMENT;
 
-        for (long i = size - 1; i >= 0; i++) {
-            if (values[i] == aNOELEMENT) {
+        Tamgu* e;
+        for (; position < size; position++) {
+            e = values[position];
+            if (e == aNOELEMENT) {
                 v = v->Atom();
-                values[i] = v;
                 v->Addreference(reference + 1);
+                e = values[position++].exchange(v);
+                //In the case we are in a thread and a value has been pushed into it...
+                e->Removereference(reference + 1);
                 return this;
             }
         }
 
+        position = 0;
         return aNOELEMENT;
     }
 
-    bool Pushing(Tamgu* a, long i) {
-        if (i < 0 || i >= size)
+    bool Pushing(Tamgu* a) {
+        if (position >= size)
             return false;
             
         a = a->Atom();
-        values[i] = a;
         a->Addreference(reference + 1);
+        a = values[position++].exchange(a);
+        a->Removereference(reference + 1);
         return true;
     }
 
@@ -568,17 +600,22 @@ class Tamgutable : public TamguObjectContainer {
             if (j>sz)
                 j = sz;
 
-        if (values[0]->isNumber()) {
+        Tamgu* e = values[0];
+        if (e->isNumber()) {
             double v = 0;
-            for (; i < j; i++)
-                v += values[i]->Float();
+            for (; i < j; i++) {
+                e = values[i];
+                v += e->Float();
+            }
 
             return new Tamgufloat(v);
         }
 
         string v;
-        for (; i < j; i++)
-            v += values[i]->String();
+        for (; i < j; i++) {
+            e = values[i];
+            v += e->String();
+        }
         return new Tamgustring(v);
     }
 
@@ -605,8 +642,11 @@ class Tamgutable : public TamguObjectContainer {
                 j = sz;
 
         double v = 1;
-        for (; i < j; i++)
-            v *= values[i]->Float();
+        Tamgu* e;
+        for (; i < j; i++) {
+            e = values[i];
+            v *= e->Float();
+        }
 
         return new Tamgufloat(v);
     }
@@ -614,18 +654,23 @@ class Tamgutable : public TamguObjectContainer {
     double Sum() {
         
         double v = 0;
-        for (int i = 0; i < size; i++)
-            v += values[i]->Float();
+        Tamgu* e;
+        for (int i = 0; i < size; i++) {
+            e = values[i];
+            v += e->Float();
+        }
         return v;
     }
 
     double Product() {
-        
         if (size == 0)
             return 0;
-        double v = values[0]->Float();
-        for (int i = 1; i < size; i++)
-            v *= values[i]->Float();
+        Tamgu* e = values[0];
+        double v = e->Float();
+        for (int i = 1; i < size; i++) {
+            e = values[i];
+            v *= e->Float();
+        }
         return v;
     }
 
@@ -690,7 +735,8 @@ class TamguIterationtable : public TamguIteration {
     }
 
     string Valuestring() {
-        return ref->values[itx]->String();
+        Tamgu* e = ref->values[itx];
+        return e->String();
     }
 
     long Keyinteger() {
@@ -698,7 +744,8 @@ class TamguIterationtable : public TamguIteration {
     }
 
     long Valueinteger() {
-        return ref->values[itx]->Integer();
+        Tamgu* e = ref->values[itx];
+        return e->Integer();
     }
 
     double Keyfloat() {
@@ -706,11 +753,13 @@ class TamguIterationtable : public TamguIteration {
     }
 
     float Valuedecimal() {
-        return ref->values[itx]->Decimal();
+        Tamgu* e = ref->values[itx];
+        return e->Decimal();
     }
 
     double Valuefloat() {
-        return ref->values[itx]->Float();
+        Tamgu* e = ref->values[itx];
+        return e->Float();
     }
 
     void Next() {

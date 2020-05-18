@@ -103,7 +103,7 @@ for (s in f) {
     if ("bnf_tamgu::" in s) {
         if (premier)
             sauve.write(regle);
-        else{
+        else {
             sx=regle["::":"("][2:-1];
             if ("BODYSYMBOL" in regle or "BODYCONTEXTUAL" in regle) {
                 regle["x_node* subtree=NULL;"]="//x_node* subtree=NULL;";
@@ -426,7 +426,7 @@ file relire(_current+'codeparse.cxx');
 string txt=relire.read();
 relire.close();
 
-txt=txt.indent();
+txt=txt.indent(4, false);
 
 file sa(_current+'codeparse.cxx','w');
 sa.write(txt);
@@ -436,13 +436,9 @@ relire.openread(_current+'tamgun.h');
 txt=relire.read();
 relire.close();
 
-txt=txt.indent();
+txt=txt.indent(4, false);
 
 sa.openwrite(_current+'tamgun.h');
 sa.write(txt);
 sa.close();
-
-
-
-
 

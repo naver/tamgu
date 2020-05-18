@@ -167,35 +167,26 @@ Exporting void Tamgutreemapl::Cleanreference(short inc) {
 }
 
 Exporting void Tamgutreemapl::Setreference(short inc) {
-    if (loopmark)
-        return;
-    
+    locking();
+
     reference += inc;
     protect = false;
-    loopmark=true;
     
-    locking();
     for (auto& it : values)
         it.second->Addreference(inc);
+
     unlocking();
-    
-    loopmark=false;
 }
 
 Exporting void Tamgutreemapl::Setreference() {
-    if (loopmark)
-        return;
-    
+    locking();
+
     ++reference;
     protect = false;
-    loopmark=true;
     
-    locking();
     for (auto& it : values)
         it.second->Addreference(1);
     unlocking();
-    
-    loopmark=false;
 }
 
 static void resetMap(Tamgutreemapl* kmap, short inc) {
@@ -270,10 +261,9 @@ Exporting void Tamgutreemapl::Clear() {
 
 
 Exporting string Tamgutreemapl::String() {
-    Locking _lock(this);
-    if (loopmark)
+    if (!lockingmark())
         return("{...}");
-    TamguCircular _c(this);
+
     stringstream res;
 
     res << "{";
@@ -290,15 +280,15 @@ Exporting string Tamgutreemapl::String() {
         else
             stringing(res, sx);
     }
+    unlockingmark();
     res << "}";
     return res.str();
 }
 
 Exporting string Tamgutreemapl::JSonString() {
-    Locking _lock(this);
-    if (loopmark)
+    if (!lockingmark())
         return("");
-    TamguCircular _c(this);
+
     stringstream res;
 
     res << "{";
@@ -309,6 +299,8 @@ Exporting string Tamgutreemapl::JSonString() {
         beg = false;
         res << '"' << it.first << '"' << ":" << it.second->JSonString();
     }
+
+    unlockingmark();
     res << "}";
     return res.str();
 }

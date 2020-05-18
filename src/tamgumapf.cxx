@@ -175,35 +175,28 @@ Exporting void Tamgumapf::Cleanreference(short inc) {
 }
 
 Exporting void Tamgumapf::Setreference(short inc) {
-    if (loopmark)
-        return;
-    
+    locking();
+
     reference += inc;
     protect = false;
-    loopmark=true;
     
-    locking();
     for (auto& it : values)
         it.second->Addreference(inc);
+
     unlocking();
-    
-    loopmark=false;
 }
 
 Exporting void Tamgumapf::Setreference() {
-    if (loopmark)
-        return;
-    
+    locking();
+
     ++reference;
     protect = false;
-    loopmark=true;
+
     
-    locking();
     for (auto& it : values)
         it.second->Addreference(1);
+
     unlocking();
-    
-    loopmark=false;
 }
 
 static void resetMap(Tamgumapf* kmap, short inc) {
@@ -279,12 +272,9 @@ Exporting void Tamgumapf::Clear() {
 
 
 Exporting string Tamgumapf::String() {
-    locking();
-    if (loopmark) {
-        unlocking();
+    if (!lockingmark())
         return("{...}");
-    }
-    TamguCircular _c(this);
+
     stringstream res;
 
     res << "{";
@@ -301,18 +291,16 @@ Exporting string Tamgumapf::String() {
         else
             stringing(res, sx);
     }
-    unlocking();
+
+    unlockingmark();
     res << "}";
     return res.str();
 }
 
 Exporting string Tamgumapf::JSonString() {
-    locking();
-    if (loopmark) {
-        unlocking();
-        return("");
-    }
-    TamguCircular _c(this);
+    if (!lockingmark())
+        return "";
+
     stringstream res;
 
     res << "{";
@@ -323,7 +311,8 @@ Exporting string Tamgumapf::JSonString() {
         beg = false;
         res << '"' << it.first << '"' << ":" << it.second->JSonString();
     }
-    unlocking();
+
+    unlockingmark();
     res << "}";
     return res.str();
 }

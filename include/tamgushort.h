@@ -47,13 +47,13 @@ class Tamgushort : public TamguReference {
 
     //---------------------------------------------------------------------------------------------------------------------
     Tamgushort(short v, TamguGlobal* g, Tamgu* parent = NULL) : TamguReference(g, parent) {
-     investigate |= is_number;
+        investigate |= is_number;
         //Do not forget your variable initialisation
         value=v;
     }
 
     Tamgushort(short v) {
-     investigate |= is_number;
+        investigate |= is_number;
         //Do not forget your variable initialisation
         value=v;
     }
@@ -654,7 +654,7 @@ class Tamgushort : public TamguReference {
 	}
 
 	Tamgu* less(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aFALSE;
 #endif
@@ -664,7 +664,7 @@ class Tamgushort : public TamguReference {
 	}
 
 	Tamgu* more(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aFALSE;
 #endif
@@ -674,7 +674,7 @@ class Tamgushort : public TamguReference {
 	}
 
 	Tamgu* same(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aFALSE;
 #endif
@@ -684,7 +684,7 @@ class Tamgushort : public TamguReference {
 	}
 
 	Tamgu* different(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aTRUE;
 #endif
@@ -694,7 +694,7 @@ class Tamgushort : public TamguReference {
 	}
 
 	Tamgu* lessequal(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aFALSE;
 #endif
@@ -704,7 +704,7 @@ class Tamgushort : public TamguReference {
 	}
 
 	Tamgu* moreequal(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aFALSE;
 #endif

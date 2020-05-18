@@ -58,6 +58,7 @@ static void setdosoutput(bool d) { dosoutput = d; }
 #define conversion2Dos(x) dosoutput?s_utf8_to_dos(USTR(x)):x
 #endif
 
+Exporting long GetBlankSize();
 
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamgustring::AddMethod(TamguGlobal* global, string name, stringMethod func, unsigned long arity, string infos, short returntype) {
@@ -155,7 +156,7 @@ void Tamgustring::AddMethod(TamguGlobal* global, string name, stringMethod func,
     Tamgustring::AddMethod(global, "emoji", &Tamgustring::MethodEmoji, P_NONE, "emoji(): Return the textual description of an emoji", a_string);
     Tamgustring::AddMethod(global, "upper", &Tamgustring::MethodUpper, P_NONE, "upper(): Return the string in upper characters", a_string);
     Tamgustring::AddMethod(global, "deaccentuate", &Tamgustring::MethodDeaccentuate, P_NONE, "deaccentuate(): Remove the accents from accented characters", a_string);
-    Tamgustring::AddMethod(global, "indent", &Tamgustring::MethodIndent, P_NONE | P_ONE, "indent(int nbblanks): Format a piece of code.", a_string);
+    Tamgustring::AddMethod(global, "indent", &Tamgustring::MethodIndent, P_NONE | P_ONE | P_TWO, "indent(int nbblanks, bool taskel): Format a piece of code.", a_string);
     Tamgustring::AddMethod(global, "lower", &Tamgustring::MethodLower, P_NONE, "lower(): Return the string in lower characters", a_string);
     Tamgustring::AddMethod(global, "trim", &Tamgustring::MethodTrim, P_NONE, "trim(): remove the trailing characters", a_string);
     Tamgustring::AddMethod(global, "trimleft", &Tamgustring::MethodTrimleft, P_NONE, "trimleft(): remove the trailing characters on the left", a_string);
@@ -2268,12 +2269,16 @@ Tamgu* Tamgustring::MethodLast(Tamgu* contextualpattern, short idthread, TamguCa
 }
 
 Tamgu* Tamgustring::MethodIndent(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-    long blanks = 5;
-    if (callfunc->Size() == 1)
+    long blanks = GetBlankSize();
+    bool taskel = true;
+    if (callfunc->Size() >= 1) {
         blanks = callfunc->Evaluate(0, contextualpattern, idthread)->Integer();
+        if (callfunc->Size() == 2)
+            taskel = callfunc->Evaluate(1, contextualpattern, idthread)->Boolean();
+    }
     string codeindente;
     string code=String();
-    IndentCode(code, codeindente, blanks);
+    IndentCode(code, codeindente, blanks, false, taskel);
     return globalTamgu->Providewithstring(codeindente);
 }
 

@@ -128,12 +128,16 @@ public:
 
     TamguframeBaseInstance(TamguFrame* f)  {
         frame = f;
+        investigate |= is_frameinstance;
     }
 
 	//----------------------------------------------------------------------------------------------------------------------
 	Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 
-
+    virtual Tamgu* Getvariable(short id) {
+        return aNOELEMENT;
+    }
+    
 	void Variables(vector<short>& vars) {
 		for (int it = 0; it < frame->vnames.last; it++)
 			vars.push_back(frame->vnames[it]);
@@ -149,10 +153,6 @@ public:
     
     string Typename() {
         return "frameinstance";
-    }
-    
-    bool isFrame() {
-        return true;
     }
     
     Tamgu* Frame() {
@@ -546,7 +546,17 @@ class Tamguframemininstance : public TamguframeBaseInstance {
     Tamgu* Declaration(short id) {
         return declarations[id];
     }
+
+    Tamgu* Getvariable(short id) {
+        if (!hasLock())
+            return declarations[id];
+        
+        Tamgu* v = declarations[id];
+        v->Enablelock(is_tobelocked);
+        return v;
+    }
     
+
     inline void Cleaning(short idthread) {
         short nm;
         for (short i = 0; i < frame->vnames.last; i++) {
@@ -680,6 +690,15 @@ class Tamguframeinstance : public TamguframeBaseInstance {
         return declarations.vecteur[frame->names.get(id)];
     }
     
+    Tamgu* Getvariable(short id) {
+        if (!hasLock())
+            return declarations.vecteur[frame->names.get(id)];
+        
+        Tamgu* e = declarations.vecteur[frame->names.get(id)];
+        e->Enablelock(is_tobelocked);
+        return e;
+    }
+        
     inline void Cleaning(short idthread) {
         for (short i = 0; i < declarations.last; i++) {
             declarations.vecteur[i]->Resetreference();

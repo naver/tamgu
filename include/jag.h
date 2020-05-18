@@ -43,6 +43,7 @@ class jag_editor;
 extern jag_editor* JAGEDITOR;
 
 long VirtualIndentation(string& codestr);
+Exporting long GetBlankSize();
 
 #ifdef PASDECOULEUR
 const char m_current[] = {0,0};
@@ -528,6 +529,7 @@ public:
     bool updateline;
     bool regularexpressionfind;
     bool noprefix;
+    bool taskel;
     
     vector<long> longstrings;
     x_option option;
@@ -559,9 +561,9 @@ public:
         row_size = wns.ws_row - 2; //we need to keep a final line on screen for operators
         col_size = wns.ws_col - margin;
         if (row_size < 0)
-            row_size = 100;
+            row_size = 55;
         if (col_size < 0)
-            col_size = 100;
+            col_size = 190;
     }
     
     void setscrolling();
@@ -609,12 +611,18 @@ public:
     
     bool isc() {
         if (thecurrentfilename != "") {
-            if (thecurrentfilename.find(".java") != -1)
+            if (thecurrentfilename.find(".java") != -1) {
+                taskel = false;
                 return true;
-            if (thecurrentfilename.find(".c") != -1)
+            }
+            if (thecurrentfilename.find(".c") != -1) {
+                taskel = false;
                 return true;
-            if (thecurrentfilename.find(".h") != -1)
+            }
+            if (thecurrentfilename.find(".h") != -1) {
+                taskel = false;
                 return true;
+            }
         }
         return false;
     }
@@ -653,7 +661,7 @@ public:
         //Syntactic coloration...
         //------------------------------------------------------------------------------------------------
     
-    void colorring(const char* txt, vector<long>& limits);
+    void colorring(string& l, vector<long>& limits);
     virtual string coloringline(wstring& l, long p = -1, bool select = false);
     void vsplit(wstring& thestr, wstring thesplitter, vector<wstring>& vs);
     
@@ -915,8 +923,7 @@ public:
         
         string codeindente;
         string cd = convert(code);
-        long nbspaces = 3;
-        IndentCode(cd, codeindente, nbspaces, lisp);
+        IndentCode(cd, codeindente, GetBlankSize(), lisp, taskel);
         lines.clear();
         code = wconvert(codeindente);
         code += L"\n\n";

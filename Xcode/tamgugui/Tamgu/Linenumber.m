@@ -68,6 +68,23 @@ void clearallbreakpoints(void);
     return [[self clientView] window];
 }
 
+-(long)getline:(long)pos {
+    long i = 1;
+    for (NSNumber* n in lignes) {
+        if ([n intValue] >= pos)
+            return i;
+        i++;
+    }
+    return i;
+}
+
+-(long)getpos:(long)ligne {
+    if (ligne <= 0 || ligne >= [lignes count])
+        return 0;
+    
+    return [[lignes objectAtIndex:ligne-1] intValue];
+}
+
 - (void)selectionne:(long)ligne {
     if (ligne <= 0 || ligne >= [lignes count])
         return;
@@ -123,6 +140,39 @@ void clearallbreakpoints(void);
     }
     
     return ligne;
+}
+
+- (long)gettopline {
+    NSScrollView* lecode=[self scrollView];
+    NSRect visibleRect;
+    
+    visibleRect = [[lecode contentView] bounds];
+    long base=visibleRect.origin.y;
+    long i = 1;
+    for (NSNumber* n in ypositions)  {
+        if ([n intValue] >= base)
+            break;
+        i++;
+    }
+    
+    return i;
+}
+
+- (long)getlastline {
+    NSScrollView* lecode=[self scrollView];
+    NSRect visibleRect;
+    
+    visibleRect = [[lecode contentView] bounds];
+    long base=visibleRect.origin.y;
+    base += visibleRect.size.height;
+    long i = 1;
+    for (NSNumber* n in ypositions)  {
+        if ([n intValue] >= base)
+            break;
+        i++;
+    }
+    
+    return i;
 }
 
 - (void)numerolignes {

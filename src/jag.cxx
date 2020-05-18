@@ -175,17 +175,25 @@ static string _getch(){
 }
 
 //--------------------------------------------------------
-void jag_editor::colorring(const char* txt, vector<long>& limits) {
+void jag_editor::colorring(string& txt, vector<long>& limits) {
     static hmap<string,bool> keys;
     static x_coloringrule xr;
     static bool init=false;
 
+    if (txt == "")
+        return;
+    
     if (!init) {
         init=true;
         keywords(keys);
     }
 
+    long sztxt = txt.size();
+    
+    txt += "\n";
     xr.tokenize(txt, true);
+    txt.pop_back();
+    
     char type;
     long gauche,droite,i;
     long sz=xr.stack.size();
@@ -195,7 +203,9 @@ void jag_editor::colorring(const char* txt, vector<long>& limits) {
         type=xr.stacktype[i];
         gauche=xr.bpos[i];
         droite = gauche + xr.stack[i].size();
-
+        if (droite > sztxt)
+            droite = sztxt;
+        
         switch(type) {
             case 1:
             case 2:
@@ -425,6 +435,7 @@ jag_editor::jag_editor() : lines(this) {
     localhelp << m_red<< "^xh" << m_current << ":help " << m_red<< "^k" << m_current << ":del after " << m_red<< "^p" << m_current << ":k-buffer " <<  m_red<< "^d" << m_current << ":del line " << m_red<< "^uz/^r" << m_current << ":un/redo " << m_red<< "^f" << m_current << ":find " << m_red<< "^n" << m_current << ":next " << m_red<< "^g" << m_current << ":go " << m_red<< "^l" << m_current << ":top/bottom " << m_red<< "^t" << m_current << ":indent " << m_red<< "^s/w" << m_current << ":write " << m_red<< "^x" << m_current << ":commands ";
     
     updateline = true;
+    taskel = true;
     
     JAGEDITOR = this;
 }
@@ -532,7 +543,7 @@ string jag_editor::coloringline(wstring& l, long p, bool select) {
     }
     
     vector<long> tobecolored;
-    colorring(STR(line), tobecolored);
+    colorring(line, tobecolored);
     
     long i = 0;
     
@@ -1548,7 +1559,11 @@ long jag_editor::handlemultiline() {
     
     //We cut our line at the right position.
     //sub is the right part of the string
-    sub = line.substr(posinstring, line.size());
+    long sz = line.size() - posinstring;
+    //We cut our line at the right position.
+    //sub is the right part of the string
+    if (sz > 0)
+        sub = line.substr(posinstring, sz);
 
     //line keeps the left part...
     line = line.substr(0, posinstring);
@@ -1616,7 +1631,7 @@ long jag_editor::handlingeditorline(bool computespace) {
     //which we will use as a seed to display the following line
     if (ispy()) {
         if (sz && computespace && szl) {
-            long inc = 4;
+            long inc = GetBlankSize();
             if (line[0] == '\t') {
                 spa = '\t';
                 inc = 1;
@@ -1939,10 +1954,11 @@ void jag_editor::evaluateescape(string& buff) {
     
     if (buff == c_right || buff == a_right) {
         long ipos = posinstring;
-        if (ipos < line.size() - 1 && c_is_separator(line[ipos+1]))
+        long sz = line.size();
+        if (ipos < sz-1 && c_is_separator(line[ipos+1]))
             ipos += 2;
         bool fnd = false;
-        while (ipos < line.size()) {
+        while (ipos < sz) {
             if (c_is_separator(line[ipos])) {
                 fnd = true;
                 break;
@@ -2577,13 +2593,16 @@ void jag_editor::addabuffer(wstring& b, bool instring) {
         case '}':
         case '(':
             fndchr = true;
-            if (!instring && emode() && b[0] == '}') {
-                long sp = lines.indent(pos) - 4;
+            if (!instring && emode() && (b[0] == '}' || b[0] == ')')) {
+                long sp = lines.indent(pos) - GetBlankSize();
                 line = Trimleft(line);
                 if (sp > 0) {
                     wstring space(sp, ' ');
                     line = space;
                     line += b;
+                    posinstring -= sp;
+                    if (posinstring < 0)
+                        posinstring = 0;
                 }
                 printline(pos, line);
             }

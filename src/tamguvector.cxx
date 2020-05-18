@@ -116,10 +116,12 @@ Exporting void Tamguvector::Insert(long idx, Tamgu* ke) {
     if (idx<0)
         idx=0;
 
+    locking();
     if (idx>=values.size())
         values.push_back(ke);
     else
         values.insert(values.begin() + idx, ke);
+    unlocking();
 }
 
 
@@ -131,35 +133,29 @@ Exporting void Tamguvector::Cleanreference(short inc) {
 }
 
 Exporting void Tamguvector::Setreference(short inc) {
-    if (loopmark)
-        return;
-    
+    locking();
+
     reference += inc;
     protect=false;
-    loopmark=true;
     
-    locking();
     for (long i = 0; i< values.size(); i++) {
         values[i]->Addreference(inc);
     }
+
     unlocking();
-    loopmark=false;
 }
 
 Exporting void Tamguvector::Setreference() {
-    if (loopmark)
-        return;
-    
+    locking();
+
     ++reference;
     protect=false;
-    loopmark=true;
     
-    locking();
     for (long i = 0; i< values.size(); i++) {
         values[i]->Addreference(1);
     }
+
     unlocking();
-    loopmark=false;
 }
 
 
@@ -315,12 +311,9 @@ Exporting Tamgu* Tamguvector::Pop(Tamgu* idx) {
 
 
 Exporting string Tamguvector::String() {
-    locking();
-    if (loopmark) {
-        unlocking();
+    if (!lockingmark())
         return("[...]");
-    }
-    TamguCircular _c(this);
+
     string res;
     int it;
     res = "[";
@@ -347,20 +340,18 @@ Exporting string Tamguvector::String() {
         beg = false;
 
     }
-    unlocking();
+
+    unlockingmark();
     res += "]";
     return res;
 }
 
 Exporting void Tamguvector::Setstring(string& res, short idthread) {
-    locking();
-    if (loopmark) {
-        unlocking();
+    if (!lockingmark()) {
         res = "[...]";
         return;
     }
     
-    TamguCircular _c(this);
     int it;
     res = "[";
     bool beg = true;
@@ -386,35 +377,31 @@ Exporting void Tamguvector::Setstring(string& res, short idthread) {
         beg = false;
 
     }
-    unlocking();
+
+    unlockingmark();
     res += "]";
 }
 
 Exporting Tamgu* Tamguvector::Map(short idthread) {
-    locking();
-    if (loopmark) {
-        unlocking();
+    if (!lockingmark())
         return aNULL;
-    }
-    loopmark=true;
+
+
     Tamgumap* kmap = globalTamgu->Providemap();
     char ch[20];
     for (int it = 0; it < values.size(); it++) {
         sprintf_s(ch, 20, "%d", it);
         kmap->Push(ch, values[it]);
     }
-    loopmark=false;
-    unlocking();
+    
+    unlockingmark();
     return kmap;
 }
 
 Exporting string Tamguvector::JSonString() {
-    locking();
-    if (loopmark) {
-        unlocking();
-        return("");
-    }
-    TamguCircular _c(this);
+    if (!lockingmark())
+        return ("");
+
     string res;
     int it;
     res = "[";
@@ -437,7 +424,8 @@ Exporting string Tamguvector::JSonString() {
         res += sx;
         beg = false;
     }
-    unlocking();
+    
+    unlockingmark();
     res += "]";
     return res;
 }
@@ -2951,37 +2939,25 @@ Exporting void Tamgua_vector::Cleanreference(short inc) {
 }
 
 Exporting void Tamgua_vector::Setreference(short inc) {
-    if (loopmark)
-        return;
-    
     reference += inc;
     protect=false;
-    loopmark=true;
 
     atomic_vector_iterator<Tamgu*> it(values);
     while (!it.end()) {
         it.second->Addreference(inc);
         it.next();
     }
-
-    loopmark=false;
 }
 
 Exporting void Tamgua_vector::Setreference() {
-    if (loopmark)
-        return;
-    
     ++reference;
     protect=false;
-    loopmark=true;
 
     atomic_vector_iterator<Tamgu*> it(values);
     while (!it.end()) {
         it.second->Addreference(1);
         it.next();
     }
-
-    loopmark=false;
 }
 
 
@@ -3081,9 +3057,9 @@ Exporting Tamgu* Tamgua_vector::Pop(Tamgu* idx) {
 
 
 Exporting string Tamgua_vector::String() {
-    if (loopmark)
+    if (!lockingmark())
         return("[...]");
-    TamguCircular _c(this);
+
     string res;
     res = "[";
     bool beg = true;
@@ -3110,16 +3086,17 @@ Exporting string Tamgua_vector::String() {
         beg = false;
         it.next();
     }
+    unlockingmark();
     res += "]";
     return res;
 }
 
 Exporting void Tamgua_vector::Setstring(string& res, short idthread) {
-    if (loopmark) {
+    if (!lockingmark()) {
         res = "[...]";
         return;
     }
-    TamguCircular _c(this);
+    
     res = "[";
     bool beg = true;
     string sx;
@@ -3145,11 +3122,12 @@ Exporting void Tamgua_vector::Setstring(string& res, short idthread) {
         beg = false;
         it.next();
     }
+    unlockingmark();
     res += "]";
 }
 
 Exporting Tamgu* Tamgua_vector::Map(short idthread) {
-    if (loopmark)
+    if (!lockingmark())
         return aNULL;
     
     loopmark=true;
@@ -3161,14 +3139,14 @@ Exporting Tamgu* Tamgua_vector::Map(short idthread) {
         kmap->Push(ch, it.second);
         it.next();
     }
-    loopmark=false;
+    unlockingmark();
     return kmap;
 }
 
 Exporting string Tamgua_vector::JSonString() {
-    if (loopmark)
+    if (!lockingmark())
         return("");
-    TamguCircular _c(this);
+
     string res;
 
     res = "[";
@@ -3194,6 +3172,7 @@ Exporting string Tamgua_vector::JSonString() {
         it.next();
     }
     res += "]";
+    unlockingmark();
     return res;
 }
 
@@ -3350,11 +3329,9 @@ Exporting Tamgu* Tamgua_vector::plus(Tamgu* b, bool itself) {
         ref = (Tamgua_vector*)Atom(true);
     
     Tamgu* kv;
-    if (loopmark)
+    if (!lockingmark())
         return aNULL;
-    
-    TamguCircular _c(this);
-    
+        
     if (b->isContainer()) {
         TamguIteration* itr = b->Newiteration(false);
         itr->Begin();
@@ -3368,6 +3345,7 @@ Exporting Tamgu* Tamgua_vector::plus(Tamgu* b, bool itself) {
             it.next();
         }
         itr->Release();
+        unlockingmark();
         return ref;
     }
     
@@ -3377,7 +3355,7 @@ Exporting Tamgu* Tamgua_vector::plus(Tamgu* b, bool itself) {
         it.second->plus(b, true);
         it.next();
     }
-    
+    unlockingmark();
     return ref;
 }
 
@@ -3389,10 +3367,9 @@ Exporting Tamgu* Tamgua_vector::minus(Tamgu *b, bool itself) {
         ref = (Tamgua_vector*)Atom(true);
     
     Tamgu* kv;
-    if (loopmark)
+    if (!lockingmark())
         return aNULL;
     
-    TamguCircular _c(this);
     
     if (b->isContainer()) {
         TamguIteration* itr = b->Newiteration(false);
@@ -3407,6 +3384,7 @@ Exporting Tamgu* Tamgua_vector::minus(Tamgu *b, bool itself) {
             it.next();
         }
         itr->Release();
+        unlockingmark();
         return ref;
     }
     
@@ -3416,7 +3394,7 @@ Exporting Tamgu* Tamgua_vector::minus(Tamgu *b, bool itself) {
         it.second->minus(b, true);
         it.next();
     }
-    
+    unlockingmark();
     return ref;
 
 }
@@ -3429,11 +3407,9 @@ Exporting Tamgu* Tamgua_vector::multiply(Tamgu *b, bool itself) {
         ref = (Tamgua_vector*)Atom(true);
     
     Tamgu* kv;
-    if (loopmark)
+    if (!lockingmark())
         return aNULL;
-    
-    TamguCircular _c(this);
-    
+        
     if (b->isContainer()) {
         TamguIteration* itr = b->Newiteration(false);
         itr->Begin();
@@ -3447,6 +3423,7 @@ Exporting Tamgu* Tamgua_vector::multiply(Tamgu *b, bool itself) {
             it.next();
         }
         itr->Release();
+        unlockingmark();
         return ref;
     }
     
@@ -3456,7 +3433,7 @@ Exporting Tamgu* Tamgua_vector::multiply(Tamgu *b, bool itself) {
         it.second->multiply(b, true);
         it.next();
     }
-    
+    unlockingmark();
     return ref;
 }
 
@@ -3469,11 +3446,9 @@ Exporting Tamgu* Tamgua_vector::divide(Tamgu *b, bool itself) {
     
     Tamgu* ke;
     Tamgu* kv;
-    if (loopmark)
+    if (!lockingmark())
         return aNULL;
-    
-    TamguCircular _c(this);
-    
+        
     if (b->isContainer()) {
         TamguIteration* itr = b->Newiteration(false);
         itr->Begin();
@@ -3486,12 +3461,14 @@ Exporting Tamgu* Tamgua_vector::divide(Tamgu *b, bool itself) {
             if (ke->isError()) {
                 itr->Release();
                 ref->Release();
+                unlockingmark();
                 return ke;
             }
             itr->Next();
             it.next();
         }
         itr->Release();
+        unlockingmark();
         return ref;
     }
     
@@ -3505,7 +3482,7 @@ Exporting Tamgu* Tamgua_vector::divide(Tamgu *b, bool itself) {
         }
         it.next();
     }
-    
+    unlockingmark();
     return ref;
 }
 
@@ -3517,11 +3494,9 @@ Exporting Tamgu* Tamgua_vector::power(Tamgu *b, bool itself) {
         ref = (Tamgua_vector*)Atom(true);
     
     Tamgu* kv;
-    if (loopmark)
+    if (!lockingmark())
         return aNULL;
-    
-    TamguCircular _c(this);
-    
+        
     if (b->isContainer()) {
         TamguIteration* itr = b->Newiteration(false);
         itr->Begin();
@@ -3535,6 +3510,7 @@ Exporting Tamgu* Tamgua_vector::power(Tamgu *b, bool itself) {
             it.next();
         }
         itr->Release();
+        unlockingmark();
         return ref;
     }
     
@@ -3544,7 +3520,7 @@ Exporting Tamgu* Tamgua_vector::power(Tamgu *b, bool itself) {
         it.second->power(b, true);
         it.next();
     }
-    
+    unlockingmark();
     return ref;
 }
 
@@ -3556,11 +3532,9 @@ Exporting Tamgu* Tamgua_vector::shiftleft(Tamgu *b, bool itself) {
         ref = (Tamgua_vector*)Atom(true);
     
     Tamgu* kv;
-    if (loopmark)
+    if (!lockingmark())
         return aNULL;
-    
-    TamguCircular _c(this);
-    
+        
     if (b->isContainer()) {
         TamguIteration* itr = b->Newiteration(false);
         itr->Begin();
@@ -3574,6 +3548,7 @@ Exporting Tamgu* Tamgua_vector::shiftleft(Tamgu *b, bool itself) {
             it.next();
         }
         itr->Release();
+        unlockingmark();
         return ref;
     }
     
@@ -3583,7 +3558,7 @@ Exporting Tamgu* Tamgua_vector::shiftleft(Tamgu *b, bool itself) {
         it.second->shiftright(b, true);
         it.next();
     }
-    
+    unlockingmark();
     return ref;
 }
 
@@ -3595,10 +3570,8 @@ Exporting Tamgu* Tamgua_vector::shiftright(Tamgu *b, bool itself) {
         ref = (Tamgua_vector*)Atom(true);
     
     Tamgu* kv;
-    if (loopmark)
+    if (!lockingmark())
         return aNULL;
-    
-    TamguCircular _c(this);
     
     if (b->isContainer()) {
         TamguIteration* itr = b->Newiteration(false);
@@ -3613,6 +3586,7 @@ Exporting Tamgu* Tamgua_vector::shiftright(Tamgu *b, bool itself) {
             it.next();
         }
         itr->Release();
+        unlockingmark();
         return ref;
     }
     
@@ -3622,7 +3596,7 @@ Exporting Tamgu* Tamgua_vector::shiftright(Tamgu *b, bool itself) {
         it.second->shiftright(b, true);
         it.next();
     }
-    
+    unlockingmark();
     return ref;
 }
 
@@ -3635,11 +3609,9 @@ Exporting Tamgu* Tamgua_vector::mod(Tamgu *b, bool itself) {
     
     Tamgu* ke;
     Tamgu* kv;
-    if (loopmark)
+    if (!lockingmark())
         return aNULL;
-    
-    TamguCircular _c(this);
-    
+        
     if (b->isContainer()) {
         TamguIteration* itr = b->Newiteration(false);
         itr->Begin();
@@ -3652,12 +3624,14 @@ Exporting Tamgu* Tamgua_vector::mod(Tamgu *b, bool itself) {
             if (ke->isError()) {
                 itr->Release();
                 ref->Release();
+                unlockingmark();
                 return ke;
             }
             itr->Next();
             it.next();
         }
         itr->Release();
+        unlockingmark();
         return ref;
     }
     
@@ -3671,7 +3645,7 @@ Exporting Tamgu* Tamgua_vector::mod(Tamgu *b, bool itself) {
         }
         it.next();
     }
-    
+    unlockingmark();
     return ref;
 }
 

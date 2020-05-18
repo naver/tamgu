@@ -88,8 +88,9 @@ extern Exchanging TamguGlobal* globalTamgu;
 typedef enum {is_none = 0, is_container = 1, is_const = 2, is_constcontainer = 3, is_declaration = 4,
     is_tracked = 8, is_null = 0x0A, is_variable = 0x10, is_callvariable = 0x18,
     is_index = 0x1C, is_string = 0x20, is_pure_string = 0x24, is_number =  0x40, is_regular = 0x80,
-    is_continue = 0x82, is_error = 0x86, is_break = 0x8E, is_return = 0x9E,
-    is_noconst = 0xFD
+    is_tobelocked = 0x100, is_noneedforlock = 0x200, is_checkforlock = 0x300, is_frameinstance = 0x400, is_predicate = 0x800, is_predicatemethod = 0x1000,
+    is_continue = 0x8002, is_error = 0xC002, is_break = 0xE002, is_return = 0xF002,
+    is_noconst = 0xFFFD
 } is_investigations;
 
 
@@ -97,7 +98,7 @@ typedef enum {is_none = 0, is_container = 1, is_const = 2, is_constcontainer = 3
 class Tamgu {
 public:
 	long idtracker;
-    uchar investigate;
+    unsigned short investigate;
 
 #ifdef GARBAGEFORDEBUG
 	long iddebug;
@@ -159,6 +160,11 @@ public:
         Put(value, aNULL, globalTamgu->GetThreadid());
     }
     
+    inline Tamgu* GetvalueforThread() {
+        if (!duplicateForCall())
+            return this;
+        return Atom();
+    }
 
     virtual Tamgu* Loopin(TamguInstruction*, Tamgu* context, short idthread);
 
@@ -404,11 +410,7 @@ public:
 	virtual bool isObject() {
 		return false;
 	}
-
-	virtual bool hasLock() {
-		return false;
-	}
-
+    
 	virtual long Lockid() {
 		return -1;
 	}
@@ -623,14 +625,6 @@ public:
 
 	//-----------------------------------------------
 	virtual bool isPredicateVariable() {
-		return false;
-	}
-
-	virtual bool isPredicateFunction() {
-		return false;
-	}
-
-	virtual bool isPredicate() {
 		return false;
 	}
 
@@ -895,6 +889,17 @@ public:
         return (investigate == is_null);
     }
     
+    inline bool isPredicate() {
+        return (is_predicate == (investigate & is_predicate));
+    }
+
+    inline bool isPredicateMethod() {
+        return (is_predicatemethod == (investigate & is_predicatemethod));
+    }
+
+    inline bool isFrameinstance() {
+        return (is_frameinstance == (investigate & is_frameinstance));
+    }
 
     inline bool isTracked() {
         return (investigate == is_tracked);
@@ -928,6 +933,25 @@ public:
         return false;
     }
     
+    //We try to minimize the use of locks in threads, as they might be quite detrimental to the speed of the interpreter.
+    //An object might need to be locked when it is passed as an argument to a thread
+    //Global variables are always locked, whenever a threads have been activated
+    inline void Enablelock(unsigned short v) {
+        investigate |= v;
+    }
+    
+    inline unsigned short isToBelocked() {
+        return (investigate & is_tobelocked);
+    }
+
+    inline bool hasLock() {
+        return (is_tobelocked == (investigate & is_checkforlock));
+    }
+
+    inline bool hasalsoLock() {
+        return (is_tobelocked == (investigate & is_tobelocked));
+    }
+
     inline bool needFullInvestigate() {
         return (investigate >= is_continue);
     }
@@ -937,7 +961,7 @@ public:
     }
     
     inline bool isContainer() {
-        return ( is_container == (investigate & is_container));
+        return (is_container == (investigate & is_container));
     }
 
 	inline bool isError() {
@@ -1517,6 +1541,9 @@ public:
     bool protect;
 
     TamguReference(TamguGlobal* g, Tamgu* parent = NULL)  {
+        //is_noneedforlock is a flag that indicates that the classes deriving from it do not need a lock
+        //However, with the exception of TamguObject, which resets this value to zero, since it does introduce a lock
+        investigate = is_noneedforlock;
         protect = true;
         reference = 0;
         if (g != NULL)
@@ -1526,6 +1553,7 @@ public:
     }
 
     TamguReference()  {
+        investigate = is_noneedforlock;
         protect = true;
         reference = 0;
     }
@@ -1617,40 +1645,36 @@ public:
 
     TamguObject(TamguGlobal* g, Tamgu* parent = NULL) : TamguReference(g, parent)  {
         _locker = new ThreadLock;
+        //We need to clear the value for investigate set in TamguReference...
+        investigate = is_none;
 	}
 
 	TamguObject()  {
         _locker = new ThreadLock;
+        //We need to clear the value for investigate set in TamguReference since we now have a lock
+        investigate = is_none;
 	}
 
 	~TamguObject() {
         delete _locker;
 	}
 
-	bool hasLock() {
-		return true;
-	}
-
-	long Lockid() {
+	inline long Lockid() {
 		return _locker->id;
 	}
-
-    void initlock() {}
     
-	std::recursive_mutex* Initlock() {
+	inline std::recursive_mutex* Getlock() {
         return _locker->lock;
 	}
     
     inline void locking() {
-        if (!globalTamgu->threadMODE)
-            return;
-        _locker->Locking();
+        if (globalTamgu->threadMODE && hasLock())
+            _locker->lock->lock();
     }
 
     inline void unlocking() {
-        if (!globalTamgu->threadMODE)
-            return;
-        _locker->Unlocking();
+        if (globalTamgu->threadMODE && hasLock())
+            _locker->lock->unlock();
     }
 
 };
@@ -1677,12 +1701,12 @@ public:
     bool affectation;
     
     TamguContainer(TamguGlobal* g, Tamgu* parent = NULL) : TamguReference(g, parent) {
-        investigate = is_container;
+        investigate |= is_container;
         affectation = false;
     }
     
     TamguContainer() {
-        investigate = is_container;
+        investigate |= is_container;
         affectation = false;
     }
     
@@ -1828,6 +1852,28 @@ public:
         loopmark=m;
     }
     
+    inline bool lockingmark() {
+        if (globalTamgu->threadMODE && hasLock()) {
+            _locker->lock->lock();
+            if (loopmark) {
+                _locker->lock->unlock();
+                return false;
+            }
+            loopmark = true;
+            return true;
+        }
+        if (loopmark)
+            return false;
+        loopmark = true;
+        return true;
+    }
+
+    inline void unlockingmark() {
+        loopmark = false;
+        if (globalTamgu->threadMODE && hasLock())
+            _locker->lock->unlock();
+    }
+
     void Removecontainerreference(short inc) {
         containerreference-=inc;
     }
@@ -1962,7 +2008,7 @@ public:
         
         return v;
     }
-    
+        
     virtual void Setvalue(Tamgu* recipient, short idthread) {
         Tamgu* v = Value();
         recipient->Setvalue(aNULL,v, idthread);
@@ -3250,14 +3296,11 @@ public:
 	}
 
 	Locking(Tamgu* d) {
-		if (globalTamgu->threadMODE) {
-            if (d->hasLock()) {
-                g = ((TamguObject*)d)->Initlock();
-                g->lock();
-            }
-		}
-        else
-            g = NULL;
+        g = NULL;
+        if (globalTamgu->threadMODE && d->hasLock()) {
+            g = ((TamguObject*)d)->Getlock();
+            g->lock();
+        }
 	}
 
 	Locking(ThreadLock& d) {
@@ -3282,31 +3325,30 @@ public:
 	std::recursive_mutex* glast;
 
 	Doublelocking(TamguObject* d, Tamgu* o) {
-		if (globalTamgu->threadMODE) {
-			if (o->hasLock()) {
-				TamguObject* dd = (TamguObject*)o;
-				if (d->Lockid() < dd->Lockid()) {
-					gfirst = d->Initlock();
-					glast = dd->Initlock();
-				}
-				else {
-                    gfirst = dd->Initlock();
-                    glast = d->Initlock();
-				}
-                gfirst->lock();
-                glast->lock();
-			}
-            else {
-                glast = NULL;
-                gfirst = d->Initlock();
-                gfirst->lock();
+        gfirst = NULL;
+        glast = NULL;
+        if (globalTamgu->threadMODE) {
+            if (d->hasLock()) {
+                if (o->hasLock()) {
+                    TamguObject* dd = (TamguObject*)o;
+                    if (d->Lockid() < dd->Lockid()) {
+                        gfirst = d->Getlock();
+                        glast = dd->Getlock();
+                    }
+                    else {
+                        gfirst = dd->Getlock();
+                        glast = d->Getlock();
+                    }
+                    gfirst->lock();
+                    glast->lock();
+                }
+                else {
+                    gfirst = d->Getlock();
+                    gfirst->lock();
+                }
             }
-		}
-        else {
-            gfirst = NULL;
-            glast = NULL;
         }
-	}
+    }
 
 	~Doublelocking() {
 		if (gfirst != NULL)
@@ -3447,12 +3489,14 @@ public:
             }
 			value = v->Atom();
             value->Setreference(reference);
+            value->Enablelock(isToBelocked());
             unlocking();
             return aTRUE;
         }
         
 		value = v;
 		value->Setreference(reference);
+        value->Enablelock(isToBelocked());
         unlocking();
 		return aTRUE;
 	}
@@ -3476,12 +3520,14 @@ public:
         if (v != aNOELEMENT && v->isConst()) {
             value = v->Atom();
             value->Setreference(reference);
+            value->Enablelock(isToBelocked());
             unlocking();
             return aTRUE;
         }
         
 		value = v;
 		value->Setreference(reference);
+        value->Enablelock(isToBelocked());
         unlocking();
 		return true;
 	}
@@ -3501,6 +3547,7 @@ public:
 
 		value = v;
 		value->Setreference(reference);
+        value->Enablelock(isToBelocked());
         unlocking();
 		return value;
 	}
@@ -3611,6 +3658,34 @@ public:
         locking();
         value->Setstring(v, idthread);
         unlocking();
+    }
+
+    long Getinteger(short idthread) {
+        return value->Getinteger(idthread);
+    }
+
+    BLONG Getlong(short idthread) {
+        return value->Getlong(idthread);
+    }
+
+    short Getshort(short idthread) {
+        return value->Getshort(idthread);
+    }
+
+    float Getdecimal(short idthread) {
+        return value->Getdecimal(idthread);
+    }
+
+    double Getfloat(short idthread) {
+        return value->Getfloat(idthread);
+    }
+
+    string Getstring(short idthread) {
+        return value->Getstring(idthread);
+    }
+
+    wstring Getustring(short idthread) {
+        return value->Getustring(idthread);
     }
 
 	long Integer() {
@@ -3921,6 +3996,7 @@ public:
             }
             value = v->Atom();
             value->Setreference(reference);
+            value->Enablelock(isToBelocked());
             typevalue = value->Type();
             unlocking();
             return aTRUE;
@@ -3928,6 +4004,7 @@ public:
 
 		value = v;
 		value->Setreference(reference);
+        value->Enablelock(isToBelocked());
         typevalue = value->Type();
         unlocking();
 		return aTRUE;
@@ -3952,6 +4029,7 @@ public:
         if (v != aNOELEMENT && v->isConst()) {
             value = v->Atom();
             value->Setreference(reference);
+            value->Enablelock(isToBelocked());
             typevalue = value->Type();
             unlocking();
             return aTRUE;
@@ -3959,6 +4037,7 @@ public:
         
         value = v;
         value->Setreference(reference);
+        value->Enablelock(isToBelocked());
         typevalue = value->Type();
         unlocking();
         return true;
@@ -3979,6 +4058,7 @@ public:
         
         value = v;
         value->Setreference(reference);
+        value->Enablelock(isToBelocked());
         typevalue = value->Type();
         unlocking();
         return value;

@@ -585,19 +585,20 @@ public:
             return this;
         }
 
-        Locking _lock(this);
+        locking();
+        Tamgu* r = this;
         if (forced || !protect || reference)
-            return globalTamgu->Providewithustring(value);
-        
-        return this;
+            r = globalTamgu->Providewithustring(value);
+        unlocking();
+        return r;
 	}
-
-        Tamgu* Atomref() {
-            TamguReference* r = (TamguReference*)Atom();
-            r->reference = 1;
-            r->protect = false;
-            return r;
-        }
+    
+    Tamgu* Atomref() {
+        TamguReference* r = (TamguReference*)Atom();
+        r->reference = 1;
+        r->protect = false;
+        return r;
+    }
     
 
 	string Bytes() {
@@ -1152,7 +1153,7 @@ public:
 	}
 
     Tamgu* less(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isString())
             return aFALSE;
 #endif
@@ -1171,7 +1172,7 @@ public:
     }
     
     Tamgu* more(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isString())
             return aFALSE;
 #endif
@@ -1188,7 +1189,7 @@ public:
     }
     
     Tamgu* same(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isString())
             return aFALSE;
 #endif
@@ -1205,7 +1206,7 @@ public:
     }
     
     Tamgu* different(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isString())
             return aTRUE;
 #endif
@@ -1222,7 +1223,7 @@ public:
     }
     
     Tamgu* lessequal(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isString())
             return aFALSE;
 #endif
@@ -1239,7 +1240,7 @@ public:
     }
     
     Tamgu* moreequal(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isString())
             return aFALSE;
 #endif
@@ -1416,25 +1417,25 @@ public:
     
         //---------------------------------------------------------------------------------------------------------------------
     Tamgua_ustring(wstring v, TamguGlobal* g, Tamgu* parent = NULL) : TamguReference(g, parent) {
-     investigate |= is_string;
+        investigate |= is_string;
             //Do not forget your variable initialisation
         value = v;
     }
     
     Tamgua_ustring(wstring v) {
-     investigate |= is_string;
+        investigate |= is_string;
             //Do not forget your variable initialisation
         value = v;
     }
     
     Tamgua_ustring(atomic_wstring& v) {
-     investigate |= is_string;
+        investigate |= is_string;
             //Do not forget your variable initialisation
         value = v;
     }
     
     Tamgua_ustring(string v) {
-     investigate |= is_string;
+        investigate |= is_string;
             //Do not forget your variable initialisation
         wstring w;
         s_utf8_to_unicode(w, USTR(v), v.size());
@@ -1442,7 +1443,7 @@ public:
     }
     
     Tamgua_ustring(wchar_t v) {
-     investigate |= is_string;
+        investigate |= is_string;
         //Do not forget your variable initialisation
         value.head->buffer[0] = v;
         value.head->buffer[1] = 0;
@@ -1958,7 +1959,7 @@ public:
     }
     
     Tamgu* less(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isString())
             return aFALSE;
 #endif
@@ -1968,7 +1969,7 @@ public:
     }
     
     Tamgu* more(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isString())
             return aFALSE;
 #endif
@@ -1978,7 +1979,7 @@ public:
     }
     
     Tamgu* same(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isString())
             return aFALSE;
 #endif
@@ -1988,7 +1989,7 @@ public:
     }
     
     Tamgu* different(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isString())
             return aTRUE;
 #endif
@@ -1998,7 +1999,7 @@ public:
     }
     
     Tamgu* lessequal(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isString())
             return aFALSE;
 #endif
@@ -2008,7 +2009,7 @@ public:
     }
     
     Tamgu* moreequal(Tamgu* a) {
-#ifndef TAMGULOOSECOMPATIBILITIES
+#ifdef TAMGUSTRICTCOMPARISON
         if (!a->isString())
             return aFALSE;
 #endif

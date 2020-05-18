@@ -176,35 +176,28 @@ Exporting void Tamgutreemapi::Cleanreference(short inc) {
 }
 
 Exporting void Tamgutreemapi::Setreference(short inc) {
-    if (loopmark)
-        return;
-    
+    locking();
+
     reference += inc;
     protect = false;
-    loopmark=true;
     
-    locking();
     for (auto& it : values)
         it.second->Addreference(inc);
-    unlocking();
     
-    loopmark=false;
+    unlocking();
 }
 
 Exporting void Tamgutreemapi::Setreference() {
-    if (loopmark)
-        return;
-    
+    locking();
+
     ++reference;
     protect = false;
-    loopmark=true;
     
-    locking();
     for (auto& it : values)
         it.second->Addreference(1);
-    unlocking();
+
     
-    loopmark=false;
+    unlocking();
 }
 
 static void resetMap(Tamgutreemapi* kmap, short inc) {
@@ -277,12 +270,9 @@ Exporting void Tamgutreemapi::Clear() {
 }
 
 Exporting string Tamgutreemapi::String() {
-    locking();
-    if (loopmark) {
-        unlocking();
+    if (!lockingmark())
         return("{...}");
-    }
-    TamguCircular _c(this);
+
     stringstream res;
 
     res << "{";
@@ -299,18 +289,17 @@ Exporting string Tamgutreemapi::String() {
         else
             stringing(res, sx);
     }
-    unlocking();
+    
+    
+    unlockingmark();
     res << "}";
     return res.str();
 }
 
 Exporting string Tamgutreemapi::JSonString() {
-    locking();
-    if (loopmark) {
-        unlocking();
+    if (!lockingmark())
         return("");
-    }
-    TamguCircular _c(this);
+
     stringstream res;
 
     res << "{";
@@ -321,7 +310,8 @@ Exporting string Tamgutreemapi::JSonString() {
         beg = false;
         res << '"' << it.first << '"' << ":" << it.second->JSonString();
     }
-    unlocking();
+
+    unlockingmark();
     res << "}";
     return res.str();
 }

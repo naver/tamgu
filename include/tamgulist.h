@@ -177,19 +177,16 @@ class Tamgulist : public TamguObjectLockContainer {
     //---------------------------------------------------------------------------------------------------------------------
     
     void unmark() {
-        locking();
-        if (loopmark) {
-            unlocking();
+        if (!lockingmark())
             return;
-        }
         
-        loopmark=true;
+        
         usermark=false;
 
         for (auto& it : values)
             it->unmark();
-        loopmark=false;
-        unlocking();
+        
+        unlockingmark();
     }
 
     Exporting void Cleanreference(short inc);
@@ -198,48 +195,42 @@ class Tamgulist : public TamguObjectLockContainer {
     Exporting void Setreference();
     Exporting void Resetreference(short r = 1);
     void Setprotect(bool n) {
-        if (loopmark)
+        if (!lockingmark())
             return;
-        loopmark=true;
+
         protect = n;
 
 
-        locking();
         for (auto& it : values)
             it->Setprotect(n);
-        unlocking();
+
+        unlockingmark();
         
-        loopmark=false;
     }
 
     void Protectcontainervalues() {
-        if (loopmark)
+        if (!lockingmark())
             return;
-        loopmark=true;
+        
         protect = true;
 
-        locking();
         for (auto& it : values)
             it->Setprotect(true);
-        unlocking();
         
-        loopmark=false;
+        unlockingmark();
     }
 
     void Popping() {
-        if (loopmark)
+        if (!lockingmark())
             return;
-        loopmark=true;
+
         protect = false;
         if (Reference() <= 0)
             protect = true;
 
-        locking();
         for (auto& it : values)
             it->Popping();
-        unlocking();
-        
-        loopmark=false;
+        unlockingmark();
     }
 
     bool listValue(list<Tamgu*>::iterator& it, long itx) {
@@ -770,6 +761,23 @@ public:
         isconst = false;
     }
     
+    bool lockingmark() {
+        if (hasalsoLock())
+            values._lock.lock();
+        if (loopmark) {
+            if (hasLock())
+                values._lock.unlock();
+            return false;
+        }
+        loopmark = true;
+        return true;
+    }
+    
+    void unlockingmark() {
+        loopmark = false;
+        if (hasalsoLock())
+            values._lock.unlock();
+    }
         //----------------------------------------------------------------------------------------------------------------------
     Exporting Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);
     Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
@@ -995,10 +1003,9 @@ public:
         //---------------------------------------------------------------------------------------------------------------------
     
     void unmark() {
-        if (loopmark)
+        if (!lockingmark())
             return;
-        
-        loopmark=true;
+                
         usermark=false;
         
         atomic_ring_iterator<Tamgu*> it(values);
@@ -1008,7 +1015,7 @@ public:
             it.next();
         }
         
-        loopmark=false;
+        unlockingmark();
     }
     
     Exporting void Cleanreference(short inc);
@@ -1017,9 +1024,9 @@ public:
     Exporting void Setreference();
     Exporting void Resetreference(short r = 1);
     void Setprotect(bool n) {
-        if (loopmark)
+        if (!lockingmark())
             return;
-        loopmark=true;
+            
         protect = n;
         
         atomic_ring_iterator<Tamgu*> it(values);
@@ -1028,13 +1035,14 @@ public:
             it.next();
         }
         
-        loopmark=false;
+        unlockingmark();
     }
     
     void Protectcontainervalues() {
-        if (loopmark)
+        if (!lockingmark())
             return;
-        loopmark=true;
+        
+        
         protect = true;
         
         atomic_ring_iterator<Tamgu*> it(values);
@@ -1043,14 +1051,14 @@ public:
             it.next();
         }
         
-        loopmark=false;
+        unlockingmark();
     }
     
     
     void Popping() {
-        if (loopmark)
+        if (!lockingmark())
             return;
-        loopmark=true;
+                
         protect = false;
         if (Reference() <= 0)
             protect = true;
@@ -1061,7 +1069,7 @@ public:
             it.next();
         }
         
-        loopmark=false;
+        unlockingmark();
     }
         //---------------------------------------------------------------------------------------------------------------------
         //This SECTION is for your specific implementation...

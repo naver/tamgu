@@ -870,16 +870,21 @@ public:
 	bool isDeclared(short id, short idthread);
 	Tamgu* Declarator(short id, short idthread);
 
+    
 	inline void Update(short idthread, short fromidthread) {
 		threads[idthread].Update(fromidthread);
 	}
 
+    inline void Storevariable(short idthread, short name, Tamgu* var) {
+        threads[idthread].variables[name].push_back(var);
+    }
+
+    inline void Replacevariable(short idthread, short name, Tamgu* var) {
+        threads[idthread].Replacevariable(name, var);
+    }
+
 	inline Tamgu* Getvariable(short idthread, short name) {
 		return threads[idthread].variables.get(name).back();
-	}
-
-	inline void Storevariable(short idthread, short name, Tamgu* var) {
-		threads[idthread].variables[name].push_back(var);
 	}
 
 	inline void Removevariable(short idthread, short name) {
@@ -889,11 +894,6 @@ public:
     inline Tamgu* Removetopvariable(short idthread, short name) {
         return threads[idthread].variables.get(name).backpop();
     }
-
-
-	inline void Replacevariable(short idthread, short name, Tamgu* var) {
-		 threads[idthread].Replacevariable(name, var);
-	}
 
 	inline void Current(Tamgu* g, short idthread) {
 		threads[idthread].currentinstruction = g;

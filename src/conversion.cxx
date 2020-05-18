@@ -176,7 +176,11 @@ static const __m256i _thecr = _mm256_set1_epi8('\n');
 static const __m256i _thedoublequotes = _mm256_set1_epi8('"');
 static const __m256i _thequotes = _mm256_set1_epi8('\'');
 static const __m256i _theslash = _mm256_set1_epi8('/');
+static const __m256i _theopen = _mm256_set1_epi8('(');
+static const __m256i _theclose = _mm256_set1_epi8(')');
 
+
+static const __m256i _checkingmore[] = {_thecr, _theslash, _theopen, _theclose, _mm256_set1_epi8('<'), _mm256_set1_epi8('>'), _mm256_set1_epi8('='), _mm256_set1_epi8(';')};
 
 static const __m256i _tocheck[] = {_mm256_set1_epi8('"'), _mm256_set1_epi8('\''), _mm256_set1_epi8('@'), _mm256_set1_epi8(':'), _mm256_set1_epi8(','),
     _mm256_set1_epi8('-'), _mm256_set1_epi8('+'),
@@ -185,7 +189,7 @@ static const __m256i _tocheck[] = {_mm256_set1_epi8('"'), _mm256_set1_epi8('\'')
     _mm256_set1_epi8('['),_mm256_set1_epi8(']'),_mm256_set1_epi8('{'), _mm256_set1_epi8('}')};
 
 
-void split_container(unsigned char* src, long lensrc, vector<long>& pos) {
+void split_container(unsigned char* src, long lensrc, vector<long>& pos, bool forindent) {
     __m256i current_bytes = _mm256_setzero_si256();
     __m256i val;
     long b;
@@ -196,6 +200,7 @@ void split_container(unsigned char* src, long lensrc, vector<long>& pos) {
 #endif
     long i = 0;
     long sz = sizeof(_tocheck)/sizeof(__m256);
+    long szcheck = sizeof(_checkingmore)/sizeof(__m256);
 
     for (; (i + 31) < lensrc; i += 32) {
         //we load our section, the length should be larger than 32
@@ -206,6 +211,13 @@ void split_container(unsigned char* src, long lensrc, vector<long>& pos) {
             q |= _mm256_movemask_epi8(val);
         }
              
+        if (forindent) {
+            for (r = 0; r < szcheck; r++) {
+                val = _mm256_cmpeq_epi8(current_bytes, _checkingmore[r]);
+                q |= _mm256_movemask_epi8(val);
+            }
+        }
+        
         if (q) {
             b = i;
             while (q) {
@@ -233,6 +245,13 @@ void split_container(unsigned char* src, long lensrc, vector<long>& pos) {
             q |= _mm256_movemask_epi8(val);
         }
         
+        if (forindent) {
+            for (r = 0; r < szcheck; r++) {
+                val = _mm256_cmpeq_epi8(current_bytes, _checkingmore[r]);
+                q |= _mm256_movemask_epi8(val);
+            }
+        }
+
         if (q) {
             b = i;
             while (q) {
@@ -2123,6 +2142,15 @@ bool check_ascii(unsigned char* src, long len, long& i) {
     
 }
 
+static const __m128i _the_quotes = _mm_set1_epi8(39);
+static const __m128i _the_doublequotes = _mm_set1_epi8(34);
+static const __m128i _the_slash = _mm_set1_epi8(47);
+static const __m128i _the_open = _mm_set1_epi8('(');
+static const __m128i _the_close = _mm_set1_epi8(')');
+static const __m128i _the_cr = _mm_set1_epi8('\n');
+
+
+static const __m128i _checkingmore[] = {_the_cr, _the_slash, _the_open, _the_close, _mm_set1_epi8('<'), _mm_set1_epi8('>'), _mm_set1_epi8('='), _mm_set1_epi8(';')};
 static const __m128i _tocheck[] = {_mm_set1_epi8('"'), _mm_set1_epi8('\''), _mm_set1_epi8('@'), _mm_set1_epi8(':'), _mm_set1_epi8(','),
     _mm_set1_epi8('-'), _mm_set1_epi8('+'),
     _mm_set1_epi8('0'),_mm_set1_epi8('1'),_mm_set1_epi8('2'),_mm_set1_epi8('3'),_mm_set1_epi8('4'),_mm_set1_epi8('5'), _mm_set1_epi8('6'),_mm_set1_epi8('7'),
@@ -2130,7 +2158,7 @@ static const __m128i _tocheck[] = {_mm_set1_epi8('"'), _mm_set1_epi8('\''), _mm_
     _mm_set1_epi8('['),_mm_set1_epi8(']'),_mm_set1_epi8('{'), _mm_set1_epi8('}')};
 
 
-void split_container(unsigned char* src, long lensrc, vector<long>& pos) {
+void split_container(unsigned char* src, long lensrc, vector<long>& pos, bool forindent) {
     __m128i current_bytes = _mm_setzero_si128();
     __m128i val;
     long b;
@@ -2141,6 +2169,7 @@ void split_container(unsigned char* src, long lensrc, vector<long>& pos) {
 #endif
     long i = 0;
     long sz = sizeof(_tocheck)/sizeof(__m128i);
+    long szcheck = sizeof(_checkingmore)/sizeof(__m128i);
 
     for (; (i + 15) < lensrc; i += 16) {
         //we load our section, the length should be larger than 32
@@ -2151,6 +2180,13 @@ void split_container(unsigned char* src, long lensrc, vector<long>& pos) {
             q |= _mm_movemask_epi8(val);
         }
              
+        if (forindent) {
+            for (r = 0; r < szcheck; r++) {
+                val =_mm_cmpeq_epi8(current_bytes, _checkingmore[r]);
+                q |= _mm_movemask_epi8(val);
+            }
+        }
+        
         if (q) {
             b = i;
             while (q) {
@@ -2179,6 +2215,13 @@ void split_container(unsigned char* src, long lensrc, vector<long>& pos) {
             q |= _mm_movemask_epi8(val);
         }
         
+        if (forindent) {
+            for (r = 0; r < szcheck; r++) {
+                val =_mm_cmpeq_epi8(current_bytes, _checkingmore[r]);
+                q |= _mm_movemask_epi8(val);
+            }
+        }
+
         if (q) {
             b = i;
             while (q) {
@@ -2194,11 +2237,6 @@ void split_container(unsigned char* src, long lensrc, vector<long>& pos) {
         }
     }
 }
-
-static const __m128i _the_cr = _mm_set1_epi8('\n');
-static const __m128i _the_quotes = _mm_set1_epi8(39);
-static const __m128i _the_doublequotes = _mm_set1_epi8(34);
-static const __m128i _the_slash = _mm_set1_epi8(47);
 
 void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, bool lisp) {
     __m128i current_bytes = _mm_setzero_si128();
@@ -3556,15 +3594,19 @@ if (lensearch > lensrc)
 #endif
 #else
 static const char _tocheck[] = {'"', '\'', '@', ':', ',','-', '+','0','1','2','3','4','5', '6','7','8', '9','[',']','{', '}', 0};
+static const char _checkingmore[] = {'\n', '/', '(', ')', '<', '>','=',';', 0};
 
 
-void split_container(unsigned char* src, long lensrc, vector<long>& pos) {
+void split_container(unsigned char* src, long lensrc, vector<long>& pos, bool forindent) {
     uchar c;
-
+    
     for (long e = 0; e < lensrc; e++) {
         c = src[e];
-        if (strchr(_tocheck, c))
+        if (forindent && strchr(_checkingmore, c))
             pos.push_back(e);
+        else
+            if (strchr(_tocheck, c))
+                pos.push_back(e);
     }
 }
 
@@ -7071,6 +7113,158 @@ double conversionfloathexa(const char* s, short& l) {
     return res*sign;
 }
 
+void noconversiontofloathexa(const char* s, int sign, short& l) {
+    bool cont = true;
+    uchar c = *s++;
+    l++;
+    while (cont) {
+        switch (digitaction[c]) {
+            case '0':
+                c = *s++;
+                l++;
+                continue;
+            case 'X':
+                c = *s++;
+                l++;
+                continue;
+            case 'x':
+                c = *s++;
+                l++;
+                continue;
+            default:
+                cont = false;
+        }
+    }
+    
+    if (c == '.') {
+        cont = true;
+        c = *s++;
+        l++;
+        while (cont) {
+            switch (digitaction[c]) {
+                case '0':
+                    c = *s++;
+                    l++;
+                    continue;
+                case 'X':
+                    c = *s++;
+                    l++;
+                    continue;
+                case 'x':
+                    c = *s++;
+                    l++;
+                    continue;
+                default:
+                    cont = false;
+            }
+        }
+    }
+    
+
+    if ((c &0xDF) == 'P') {
+        bool sgn = false;
+        if (*s == '-') {
+            sgn = true;
+            ++s;
+            l++;
+        }
+        else {
+            if (*s == '+') {
+                ++s;
+                ++l;
+            }
+        }
+        
+        s++;
+        l++;
+        while (isadigit(*s)) {
+            s++;
+            l++;
+        }
+    }
+}
+
+void noconversionfloathexa(const char* s, short& l) {
+    l = 0;
+    //End of string...
+    if (*s ==0 )
+        return;
+    
+    int sign = 1;
+
+    //Sign
+    if (*s=='-') {
+        sign = -1;
+        l++;
+        ++s;
+    }
+    else
+        if (*s=='+') {
+            ++s;
+            l++;
+        }
+    
+    if (*s=='0' && s[1]=='x') {
+        s+=2;
+        l++;
+        noconversiontofloathexa(s, sign, l);
+        return;
+    }
+    
+    if (isadigit(*s)) {
+        s++;
+        l++;
+        while (isadigit(*s)) {
+            s++;
+            l++;
+        }
+        if (!*s)
+            return;
+    }
+    else
+        return;
+    
+    if (*s=='.') {
+        ++s;
+        l++;
+        if (isadigit(*s)) {
+            s++;
+            l++;
+            while (isadigit(*s)) {
+                s++;
+                l++;
+            }
+        }
+        else
+            return;
+    }
+        
+    if ((*s &0xDF) == 'E') {
+        ++s;
+        l++;
+        long sgn = 1;
+        if (*s == '-') {
+            sgn = -1;
+            ++s;
+            l++;
+        }
+        else {
+            if (*s == '+') {
+                ++s;
+                ++l;
+            }
+        }
+        
+        if (isadigit(*s)) {
+            s++;
+            l++;
+            while (isadigit(*s)) {
+                s++;
+                l++;
+            }
+        }
+    }
+}
 //----- WIDE CHAR Versions
 double conversiontofloathexa(const wchar_t* s, int sign, short& l) {
     BLONG v = 0;
@@ -12980,236 +13174,6 @@ Exporting long GetBlankSize() {
     return blanksize;
 }
 
-#define maxx(a,b) (((a) > (b)) ? (a) : (b))
-#define setblanc(i) if (blancs[i] < 0) blancs[i] = blancs[i + blancs[i]]
-
-Exporting void IndentationCode(string& codeindente, vector<string>& code, vector <long>& blancs, long mxbase, bool construit, bool lisp) {
-    
-    static x_forindent xr;
-    
-    long x, i;
-    long mx = mxbase;
-    long sz = code.size();
-    blancs.reserve(sz);
-    for (i = 0; i < sz; i++)
-        blancs.push_back(-1);
-    
-    long curly = 0;
-    long paren = 0;
-    long last = 0;
-    long local;
-    long sztok;
-    
-    blancs[0] = 0;
-    bool inlisp = lisp;
-    char inelse = false;
-    bool inprolog = false;
-    bool comma = false;
-    
-    for (i = 0; i < sz; i++) {
-        
-
-        if (code[i] == "") {
-            if (blancs[i] < 0)
-                blancs[i] = blancs[i + blancs[i]];
-            continue;
-        }
-        
-        xr.tokenize(code[i]);
-        
-        //if we are currently in a lisp section, we need to compute the parentheses only
-        if (inlisp) {
-            local = paren;
-            for (x = 0; x < xr.stack.size(); x++) {
-                if (xr.stack[x] == "(")
-                    paren++;
-                else
-                    if (xr.stack[x] == ")")
-                        paren--;
-            }
-            if (!paren)
-                inlisp = lisp;
-            
-            if ((paren-local) != 0) {
-                if ((paren-local) > 0) {
-                    setblanc(i);
-                    if ((i + 1) < sz) {
-                        blancs[i + 1] = blancs[i] + blanksize;
-                        mx = maxx(blancs[i+1], mx);
-                    }
-                }
-                
-                else {
-                    if ((i + 1) < sz) {
-                        blancs[i] = blancs[i-1] - blanksize;
-                        if (blancs[i] < 0)
-                            blancs[i] = 0;
-                    }
-                }
-            }
-            else {
-                setblanc(i);
-                if ((i + 1) < sz)
-                    blancs[i+1] = blancs[i];
-            }
-            continue;
-        }
-        
-        char c = xr.stack.back()[0];
-        if (comma) {
-            if (c == ',' || c == '|' || c == '&') {
-                if ((i + 1) < sz)
-                    blancs[i + 1] = blancs[i];
-                continue;
-            }
-            
-            if ((i + 1) < sz) {
-                blancs[i+1] = blancs[i] - blanksize;
-                mx = maxx(blancs[i+1], mx);
-            }
-        }
-        
-        comma = false;
-        inelse = false;
-        inprolog = false;
-        inlisp = lisp;
-        local = curly;
-
-        sztok = xr.stack.size();
-        if (sztok > 2 && c == '-' && xr.stack[sztok-2][0] == ':') // :-
-            inprolog = true;
-        else {
-            for (x = 0; x < sztok; x++) {
-                if (xr.stack[x] == "if") {
-                    inelse = 2;
-                    continue;
-                }
-                
-                if (xr.stack[x] == "else" || xr.stack[x] == "elif") {
-                    if (inelse == 2)
-                        inelse = false;
-                    else
-                        inelse = true;
-                    continue;
-                }
-                
-                switch (xr.stack[x][0]) {
-                    case '{':
-                        curly++;
-                        inelse = false; //we do not need to add one single indent after
-                        break;
-                    case '}':
-                        curly--;
-                        break;
-                    case '(':
-                        paren++;
-                        break;
-                    case ')':
-                        paren--;
-                        break;
-                    case '\\':
-                        if ((x+1) < sztok && xr.stack[x+1][0] == '(') {
-                            inlisp = true;
-                            inelse = false;
-                        }
-                        break;
-                }
-            }
-            
-            if (inlisp) {
-                if (paren <= 0) {
-                    inlisp = lisp;
-                    setblanc(i);
-                }
-                else {
-                    setblanc(i);
-                    if ((i + 1) < sz) {
-                        blancs[i + 1] = blancs[i] + blanksize;
-                        mx = maxx(blancs[i+1], mx);
-                    }
-                }
-                continue;
-            }
-            
-                //We compute the number of curly bracket found, local keeps track of the previous value
-            if ((curly - local) != 0) {
-                last = 0;
-                    //we have added a curly bracket (at least one)
-                if ((curly-local) > 0) {
-                    setblanc(i);
-                    if ((i + 1) < sz) {
-                        blancs[i + 1] = blancs[i] + blanksize;
-                        mx = maxx(blancs[i+1], mx);
-                    }
-                }
-                else {
-                        //We need to remove some space
-                    if (i > 0) {
-                        if (blancs[i] < 0)
-                            blancs[i] = blancs[i+blancs[i]] - blanksize*(local-curly);
-                        else
-                            blancs[i] -=  blanksize*(local-curly);
-
-                        if (blancs[i] < 0)
-                            blancs[i] = 0;
-                    }
-                }
-                
-                if (c == ',' || c == '|' || c == '&')
-                    comma = true;
-
-                continue;
-            }
-        }
-        
-        //We keep track of all previous shift of one to the right...
-        if ((i+1) < sz &&  blancs[i + 1] <= -2)
-            last++;
-
-        setblanc(i);
-        
-        if (inelse == true || inprolog || c  == ')' || c == ',' || c == '|' || c == '&') {
-            //We only indent one black to the right for the next line
-            if ((i + 1) < sz) {
-                blancs[i+1] = blancs[i] + blanksize;
-                mx = maxx(blancs[i+1], mx);
-                
-                //We prepare the next line to be aligned with current line...
-                if ((i + 2) < sz)
-                    blancs[i+2] = -2-last;
-            }
-            //We need to keep a track of the last character found in this cas
-            //to align everything
-             if (inprolog || c == ',' || c == '|' || c == '&')
-                 comma = true;
-        }
-        else
-            last = 0;
-    }
-    
-    if (construit) {
-        mx++;
-        char* blanc = new char[mx + 1];
-        memset(blanc, ' ', mx);
-        blanc[mx] = 0;
-        for (i = 0; i < sz; i++) {
-            if (code[i].size() == 1 && code[i][0] == '\n') {
-                codeindente += "\n";
-                continue;
-            }
-            x = blancs[i];
-            if (x == -1)
-                x = 0;
-            blanc[x] = 0;
-            codeindente += blanc;
-            blanc[x] = ' ';
-            codeindente += code[i];
-            codeindente += "\n";
-        }
-        delete[] blanc;
-    }
-}
-
 Exporting void v_split_indent(string& thestr, vector<string>& v) {
     //The variable is static to avoid rebuilding it at each call
     static x_forindent xr;
@@ -13242,44 +13206,771 @@ Exporting void v_split_indent(string& thestr, vector<string>& v) {
     else
         v.push_back("\n");
 }
+    
+Exporting void IndentationCode(string& str, string& codeindente, bool lisp, bool taskel) {
+    string token;
 
-void IndentCode(string& codestr, string& codeindente, long blancs, bool lisp) {
+    uchar* codestr = USTR(str);
+    char* blanks;
+    
+    vector<long> pos;
+    long szstr = str.size();
+    long r = 0;
+    long counterlisp = 0;
+    long sz, i, p = 0;
+    long iblank = 0;
+    long iparenthesis = 0;
+    long ligne = 0;
+        
+    short l, taskelmode = 0;
+    short addspace = 0;
+    short checkspace = 0;
+    
+    bool locallisp = false;
+    bool prologmode = false;
+    bool consumeblanks = true;
+    bool beginning = true;
+    bool equalsign = false;
+    
+    uchar c;
+
+    split_container(codestr, szstr, pos, true);
+    sz = pos.size();
+
+    for (i = 0; i < sz; i++) {
+        c = codestr[pos[i]];
+        if (strchr("({[",c)) {
+            counterlisp++;
+            if (p < counterlisp)
+                p = counterlisp;
+        }
+        else
+            if (strchr(")]}",c))
+                counterlisp--;
+    }
+    
+    p += 10;
+    p *= blanksize;
+    string _blanks(p, ' ');
+    blanks = STR(_blanks);
+
+    counterlisp = 0;
+    i = 0;
+    
+    while (r < sz) {
+        c = codestr[i++];
+        
+        if (c <= 32) {
+            //here we have a CR, the next line should see its white characters being replaced with out indentation pack
+            if (c == '\n') {
+                codeindente += c;
+                consumeblanks = true;
+                r++;
+                ligne++;
+                continue;
+            }
+            //this is a line beginning, we need to remove the blanks first
+            if (consumeblanks)
+                continue;
+            codeindente += c;
+            continue;
+        }
+        
+        beginning = false;
+        if (consumeblanks) {
+            beginning = true;
+            if (!strchr(")]}>", c)) {
+                l = iblank;
+                switch (checkspace) {
+                    case 0:
+                        addspace = 0;
+                        break;
+                    case 1:
+                        if (addspace)
+                            addspace--;
+                        checkspace = 0;
+                        break;
+                    case 2:
+                        checkspace = 1;
+                        break;
+                    case 3:
+                        iblank+=blanksize;
+                        checkspace = 1;
+                        break;
+                    case 4:
+                        checkspace = 5;
+                        break;
+                    case 5:
+                    case 6:
+                        iblank -= blanksize;
+                        break;
+                }
+
+                //we need to insert our blanks before...
+                if (addspace)
+                    iblank += blanksize*addspace;
+                if (iblank) {
+                    blanks[iblank] = 0;
+                    codeindente += blanks;
+                    blanks[iblank] = 32;
+                }
+                iblank = l;
+                consumeblanks = false;
+            }
+        }
+
+        equalsign = (c == '<') ? equalsign : false;
+        
+        if (i != pos[r] + 1) {
+            if (c < 'A') {
+                if (c == '.' && prologmode) {
+                    iblank -= blanksize;
+                    prologmode = false;
+                }
+                codeindente += c;
+                continue;
+            }
+            
+            p = i;
+            while (codestr[p] > 32 && p < pos[r]) p++;
+            c = codestr[p];
+            codestr[p] = 0;
+            token = (char*)codestr+i-1;
+            codestr[p] = c;
+            if (!lisp && !taskelmode) {
+                if (token == "case") {
+                    if (checkspace == 5) {
+                        //we need to remove an extra blank size;
+                        codeindente = codeindente.substr(0, codeindente.size()-blanksize);
+                        checkspace = 6;
+                    }
+                    else {
+                        if (checkspace < 5) {
+                            checkspace = 4;
+                            addspace++;
+                        }
+                    }
+                }
+                else {
+                    if (token == "else") {
+                        checkspace = 3;
+                    }
+                    else {
+                        if (token == "if" || token == "elif" || token == "for" || token == "while" || token == "default") {
+                            if (checkspace == 6) {
+                                //extra space missing
+                                string space(blanksize, ' ');
+                                codeindente += space;
+                            }
+                                
+                            checkspace = 2;
+                            addspace++;
+                        }
+                        else {
+                            if (prologmode && p > 0 && codestr[p-1] == '.') {
+                                iblank -= blanksize;
+                                prologmode = false;
+                            }
+                        }
+                    }
+                }
+            }
+            codeindente += token;
+            i = p;
+            continue;
+        }
+        
+        r++;
+        switch (c) {
+            case ';':
+                if (checkspace == 2) {
+                    addspace--;
+                    checkspace = 0;
+                }
+                else
+                    if (checkspace == 3)
+                        checkspace = 0;
+                codeindente += c;
+                break;
+            case ':':
+                if (!iblank && codestr[i] == '-') {
+                    prologmode = true;
+                    iblank += blanksize;
+                }
+                codeindente += c;
+                break;
+            case '/':
+                switch (codestr[i]) {
+                    case '/':
+                        p = i + 1;
+                        //this is a comment, up to the last CR
+                        r++; //the next element in pos is also a '/'
+                        while (r < sz) {
+                            p = pos[r++];
+                            if (codestr[p] == '\n') {
+                                r--; //it will be consumed later
+                                break;
+                            }
+                        }
+                        c = codestr[p];
+                        codestr[p] = 0;
+                        codeindente += (char*)codestr+i-1;
+                        codestr[p] = c;
+                        i = p;
+                        break;
+                    case '@':
+                        p = i;
+                        //this is a long comment...
+                        while (r < sz) {
+                            p = pos[r++];
+                            if (codestr[p-1] == '@' && codestr[p] == '/')
+                                break;
+                        }
+                        p++;
+                        c = codestr[p];
+                        codestr[p] = 0;
+                        codeindente += (char*)codestr+i-1;
+                        codestr[p] = c;
+                        i = p;
+                        break;
+                    case '*': // /*C comments*/
+                        p = i;
+                        //this is a long comment...
+                        while (r < sz) {
+                            p = pos[r++];
+                            if (codestr[p-1] == '*' && codestr[p] == '/')
+                                break;
+                        }
+                        p++;
+                        c = codestr[p];
+                        codestr[p] = 0;
+                        codeindente += (char*)codestr+i-1;
+                        codestr[p] = c;
+                        i = p;
+                        break;
+                    default:
+                        codeindente += c;
+                }
+                break;
+            case '=':
+                equalsign = true;
+                codeindente += c;
+                break;
+            case '@':
+                if (codestr[i] == '"') {
+                    p = i;
+                    while (r < sz) {
+                        p = pos[r++];
+                        if (codestr[p-1] != '\\' && codestr[p] == '"' && codestr[p+1] == '@') {
+                            r++;
+                            break;
+                        }
+                    }
+                    p+=2;
+                    c = codestr[p];
+                    codestr[p] = 0;
+                    codeindente += (char*)codestr+i-1;
+                    codestr[p] = c;
+                    i = p;
+                }
+                else
+                    codeindente += c;
+                break;
+            case '"':
+                p = i;
+                while (r < sz) {
+                    p = pos[r++];
+                    if ((codestr[p-1] != '\\' && codestr[p] == '"') || codestr[p] == '\n')
+                        break;
+                }
+                p++;
+                c = codestr[p];
+                codestr[p] = 0;
+                codeindente += (char*)codestr+i-1;
+                codestr[p] = c;
+                i = p;
+                break;
+            case '\'':
+                if (lisp) {
+                    codeindente += c;
+                    break;
+                }
+                else {
+                    if (i > 1 && codestr[i-2] == '\\' && codestr[i] == '(') {
+                        locallisp = true;
+                        lisp = true;
+                        codeindente += c;
+                        break;
+                    }
+                }
+                p = i;
+                while (r < sz) {
+                    p = pos[r++];
+                    if (codestr[p] == '\'' || codestr[p] == '\n')
+                        break;
+                }
+                p++;
+                c = codestr[p];
+                codestr[p] = 0;
+                codeindente += (char*)codestr+i-1;
+                codestr[p] = c;
+                i = p;
+                break;
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9':
+                noconversionfloathexa((const char*)codestr+i-1, l);
+                p =  i + l - 1;
+                while (pos[r] < p) r++;
+                c = codestr[p];
+                codestr[p] = 0;
+                codeindente += (char*)codestr+i-1;
+                codestr[p] = c;
+                i = p;
+                break;
+            case '{':
+                if (!iparenthesis) { //a little hack to handle {}
+                    checkspace = 0;
+                    addspace = 0;
+                    iblank += blanksize;
+                }
+                codeindente += c;
+                break;
+            case '<':
+                if (taskel && (beginning || equalsign) && !iparenthesis && codestr[i] != '-') {
+                    taskelmode++;
+                    codeindente += c;
+                    iblank += blanksize;
+                }
+                else
+                    codeindente += c;
+                break;
+            case '(':
+                iparenthesis++;
+                if (locallisp)
+                    counterlisp++;
+                else {
+                    if (!lisp && i > 1 && codestr[i-2] == '\\') {
+                        locallisp = true;
+                        lisp = true;
+                        counterlisp = 1;
+                    }
+                }
+            case '[':
+                codeindente += c;
+                iblank += blanksize;
+                break;
+            case '>':
+                if (taskel && !iparenthesis && taskelmode) {
+                    taskelmode--;
+                    iblank -= blanksize;
+                    if (iblank < 0)
+                        iblank = 0;
+                    if (consumeblanks) {
+                        l = iblank;
+                        //we need to insert our blanks before...
+                        if (addspace)
+                            iblank += blanksize*addspace;
+                        if (iblank) {
+                            blanks[iblank] = 0;
+                            codeindente += blanks;
+                            blanks[iblank] = 32;
+                        }
+                        addspace = 0;
+                        iblank = l;
+                        consumeblanks = false;
+                    }
+                }
+                codeindente += c;
+                break;
+            case ')':
+                iparenthesis--;
+                if (locallisp) {
+                    counterlisp--;
+                    if (!counterlisp) {
+                        locallisp = false;
+                        lisp = false;
+                    }
+                }
+                iblank -= blanksize;
+                if (iblank < 0)
+                    iblank = 0;
+                if (consumeblanks) {
+                    l = iblank;
+                    //we need to insert our blanks before...
+                    if (addspace)
+                        iblank += blanksize*addspace;
+                    if (iblank) {
+                        blanks[iblank] = 0;
+                        codeindente += blanks;
+                        blanks[iblank] = 32;
+                    }
+                    addspace = 0;
+                    iblank = l;
+                    consumeblanks = false;
+                }
+                codeindente += c;
+                break;
+            case '}':
+                if (iparenthesis) {
+                    codeindente += c;
+                    break;
+                }
+                checkspace = 0;
+                addspace = 0;
+            case ']':
+                iblank -= blanksize;
+                if (iblank < 0)
+                    iblank = 0;
+                if (consumeblanks) {
+                    l = iblank;
+                    //we need to insert our blanks before...
+                    if (addspace)
+                        iblank += blanksize*addspace;
+                    if (iblank) {
+                        blanks[iblank] = 0;
+                        codeindente += blanks;
+                        blanks[iblank] = 32;
+                    }
+                    addspace = 0;
+                    iblank = l;
+                    consumeblanks = false;
+                }
+                codeindente += c;
+                break;
+            default:
+                codeindente += c;
+        }
+    }
+    
+    for (;i < szstr; i++)
+        codeindente += codestr[i];
+}
+    
+Exporting long IndentationCode(string& codestr, bool lisp) {
+    static vector<long> pos;
+    pos.clear();
+    string token;
+
+    long szstr = codestr.size();
+    split_container(USTR(codestr), szstr, pos, true);
+
+    long sz = pos.size();
+    long r = 0;
+    long i = 0;
+    long iblank = 0;
+    long counterlisp = 0;
+    long p;
+
+    short addspace = 0;
+    short checkspace = 0;
+    short iparenthesis = 0;
+    short taskelmode = 0;
+    short l;
+
+    bool locallisp = false;
+    bool prologmode = false;
+    bool newline = true;
+    bool beginning = true;
+    bool equalsign = false;
+
+    uchar c;
+
+    while (r < sz) {
+        c = codestr[i++];
+        
+        if (c <= 32) {
+            //here we have a CR, the next line should see its white characters being replaced with out indentation pack
+            if (c == '\n') {
+                r++;
+                newline=true;
+            }
+            continue;
+        }
+        
+        beginning = false;
+        if (newline) {
+            beginning = true;
+            switch (checkspace) {
+                case 1:
+                    checkspace = 0;
+                    break;
+                case 2:
+                    checkspace = 1;
+                    break;
+                case 3:
+                    addspace--;
+                    checkspace = 1;
+                    break;
+            }
+            newline = false;
+        }
+        
+        equalsign = (c == '<') ? equalsign : false;
+        
+        if (i != pos[r] + 1) {
+            if (c < 'A') {
+                if (c == '.' && prologmode) {
+                    iblank -= blanksize;
+                    prologmode = false;
+                }
+                continue;
+            }
+            
+            p = i;
+            while (codestr[p] > 32 && p < pos[r]) p++;
+            c = codestr[p];
+            codestr[p] = 0;
+            token = STR(codestr)+i-1;
+            codestr[p] = c;
+            i = p;
+            if (!lisp && !taskelmode) {
+                if (token=="else")
+                    checkspace = 3;
+                else {
+                    if (token == "if" || token == "elif" || token == "for" || token == "while" || token == "case" || token == "default") {
+                        addspace++;
+                        checkspace = 2;
+                    }
+                    else {
+                        if (prologmode && p > 0 && codestr[p-1] == '.') {
+                            iblank -= blanksize;
+                            prologmode = false;
+                        }
+                    }
+                }
+            }
+            continue;
+        }
+        
+        r++;
+        switch (c) {
+            case ';':
+				if (checkspace == 2) {
+					addspace--;
+					checkspace = 0;
+				}
+				else
+					if (checkspace == 3)
+						checkspace = 0;
+					else
+						if (checkspace == 1) {
+							checkspace = 0;
+							addspace--;
+						}
+                break;
+            case ':':
+                if (!iblank && codestr[i] == '-') {
+                    prologmode = true;
+                    iblank += blanksize;
+                }
+                break;
+            case '/':
+                switch (codestr[i]) {
+                    case '/':
+                        p = i + 1;
+                        //this is a comment, up to the last CR
+                        r++; //the next element in pos is also a '/'
+                        while (r < sz) {
+                            p = pos[r++];
+                            if (codestr[p] == '\n') {
+                                r--;
+                                break;
+                            }
+                        }
+                        i = p;
+                        break;
+                    case '@':
+                        p = i;
+                        //this is a long comment...
+                        while (r < sz) {
+                            p = pos[r++];
+                            if (codestr[p-1] == '@' && codestr[p] == '/')
+                                break;
+                        }
+                        i = p + 1;
+                        break;
+                    case '*':
+                        p = i;
+                        //this is a long comment...
+                        while (r < sz) {
+                            p = pos[r++];
+                            if (codestr[p-1] == '*' && codestr[p] == '/')
+                                break;
+                        }
+                        i = p + 1;
+                        break;
+                }
+                break;
+            case '@':
+                if (codestr[i] == '"') {
+                    p = i;
+                    while (r < sz) {
+                        p = pos[r++];
+                        if (codestr[p-1] != '\\' && codestr[p] == '"' && codestr[p+1] == '@') {
+                            r++;
+                            break;
+                        }
+                    }
+                    i = p + 2;
+                }
+                break;
+            case '=':
+                equalsign = true;
+                break;
+            case '"':
+                p = i;
+                while (r < sz) {
+                    p = pos[r++];
+                    if ((codestr[p-1] != '\\' && codestr[p] == '"') || codestr[p] == '\n')
+                        break;
+                }
+                i = p + 1;
+                break;
+            case '\'':
+                if (lisp)
+                    break;
+                else {
+                    if (i > 1 && codestr[i-2] == '\\' && codestr[i] == '(') {
+                        locallisp = true;
+                        lisp = true;
+                        break;
+                    }
+                }
+                p = i;
+                while (r < sz) {
+                    p = pos[r++];
+                    if (codestr[p] == '\'' || codestr[p] == '\n')
+                        break;
+                }
+                i = p + 1;
+                break;
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9':
+                noconversionfloathexa(STR(codestr)+i-1, l);
+                p =  i + l - 1;
+                while (pos[r] < p) r++;
+                i = p;
+                break;
+            case '{':
+                if (!iparenthesis) {
+                    checkspace = 0;
+                    addspace = 0;
+                    iblank += blanksize;
+                }
+                break;
+            case '<':
+                if (!iparenthesis && codestr[i] != '-' && (beginning || equalsign)) {
+                    taskelmode++;
+                    iblank += blanksize;
+                }
+                break;
+            case '(':
+                iparenthesis++;
+                if (locallisp)
+                    counterlisp++;
+                else {
+                    if (!lisp && i > 1 && codestr[i-2] == '\\') {
+                        locallisp = true;
+                        lisp = true;
+                        counterlisp = 1;
+                    }
+                }
+                iblank += blanksize;
+                break;
+            case '[':
+                iblank += blanksize;
+                break;
+            case '>':
+                if (!iparenthesis && taskelmode) {
+                    taskelmode--;
+                    iblank -= blanksize;
+                    if (iblank < 0)
+                        iblank = 0;
+                }
+                break;
+            case ')':
+                iparenthesis--;
+                if (locallisp) {
+                    counterlisp--;
+                    if (!counterlisp) {
+                        locallisp = false;
+                        lisp = false;
+                    }
+                }
+                iblank -= blanksize;
+                if (iblank < 0)
+                    iblank = 0;
+                break;
+            case '}':
+                if (iparenthesis)
+                    break;
+                
+                checkspace = 0;
+                addspace = 0;
+            case ']':
+                iblank -= blanksize;
+                if (iblank < 0)
+                    iblank = 0;
+                break;
+        }
+    }
+
+    if (checkspace==1)
+        addspace--;
+    else
+        if (checkspace == 3 && !iblank && !addspace)
+            iblank = blanksize;
+        
+    if (addspace)
+        iblank += blanksize*addspace;
+    return iblank;
+}
+
+Exporting void IndentCode(string& codestr, string& codeindente, long blancs, bool lisp, bool taskel) {
     if (!lisp) {
         if (codestr[0] == '(' && codestr[1] == ')') {
             lisp = true;
         }
     }
     
-    vector<string> vargs;
-    vector <long> iblancs;
-    cr_normalise(codestr);
-    v_split_indent(codestr, vargs);
+    long bl = blanksize;
+    if (blancs)
+        blanksize = blancs;
     codeindente = "";
-    IndentationCode(codeindente, vargs, iblancs, blancs, true, lisp);
+    IndentationCode(codestr, codeindente, lisp, taskel);
+    blanksize = bl;
     if (codeindente.find("/@") != string::npos || codeindente.find("@\"") != string::npos)
         cr_normalise(codeindente);
     
     Trimright(codeindente);
     codeindente += "\n";
 }
-
-long VirtualIndentation(string& codestr) {
+    
+Exporting long VirtualIndentation(string& codestr) {
+    Trimright(codestr);
+    codestr += "\n";
+    cr_normalise(codestr);
     bool lisp = false;
-    if (codestr[0] == '(' && codestr[1] == ')') {
+    if (codestr[0] == '(' && codestr[1] == ')')
         lisp = true;
-    }
-    vector <long> iblancs;
-    vector<string> vargs;
-    v_split_indent(codestr, vargs);
-    codestr.clear();
-    IndentationCode(codestr, vargs, iblancs, 0, false, lisp);
-    if (iblancs.size() == 0)
-        return 0;
-    return iblancs.back();
+    return IndentationCode(codestr, lisp);
 }
-
-
-
 
 //----------------------------------------------------------------------------------------------------------------------
 
