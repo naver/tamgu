@@ -103,7 +103,7 @@ Exporting void Tamgutable::Insert(long idx, Tamgu* ke) {
     }
 
     ke = ke->Atom();
-    ke->Addreference(reference+1);
+    ke->Addreference(investigate,reference+1);
     if (values[idx] == aNOELEMENT) {
         values[idx] = ke;
         return;
@@ -136,7 +136,7 @@ Exporting void Tamgutable::Setreference(short inc) {
     Tamgu* e;
     for (long i = 0; i< size; i++) {
         e = values[i];
-        e->Addreference(inc);
+        e->Addreference(investigate,inc);
     }
     
     unlocking();
@@ -151,7 +151,7 @@ Exporting void Tamgutable::Setreference() {
     Tamgu* e;
     for (long i = 0; i< size; i++) {
         e = values[i];
-        e->Addreference(1);
+        e->Addreference(investigate,1);
     }
     
     unlocking();
@@ -1094,7 +1094,7 @@ Exporting Tamgu*  Tamgutable::Put(Tamgu* idx, Tamgu* value, short idthread) {
             return globalTamgu->Returnerror("Cannot set this value", idthread);
     }
     value = value->Atom();
-    value->Addreference(reference+1);
+    value->Addreference(investigate,reference+1);
     Tamgu* e = values[ikey].exchange(value);
     e->Removereference(reference + 1);
     if (ikey >= position)

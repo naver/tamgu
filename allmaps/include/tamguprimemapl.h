@@ -376,7 +376,7 @@ class Tamguprimemapl : public TamguObjectLockContainer {
             values[k]->Removereference(reference + 1);
         a = a->Atom();
         values[k] = a;
-        a->Addreference(reference + 1);
+        a->Addreference(investigate,reference + 1);
         unlocking();
         return this;
     }

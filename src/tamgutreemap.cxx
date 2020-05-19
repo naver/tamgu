@@ -152,7 +152,7 @@ Tamgu* Tamgutreemap::MethodRead(Tamgu* contextualpattern, short idthread, TamguC
             a=itr->IteratorValue();
             a=a->Atom();
             values[itr->Keystring()] = a;
-            a->Addreference(reference+1);
+            a->Addreference(investigate,reference+1);
         }
         itr->Release();
     }
@@ -223,7 +223,7 @@ Exporting void Tamgutreemap::Setreference(short inc) {
     protect = false;
     
     for (auto& it : values)
-        it.second->Addreference(inc);
+        it.second->Addreference(investigate,inc);
     
     unlocking();
 }
@@ -235,7 +235,7 @@ Exporting void Tamgutreemap::Setreference() {
     protect = false;
     
     for (auto& it : values)
-        it.second->Addreference(1);
+        it.second->Addreference(investigate,1);
     unlocking();
 }
 
@@ -279,7 +279,7 @@ Exporting Tamgu* Tamgutreemap::Push(Tamgu* k, Tamgu* v) {
     v = v->Atom();
     values[s] = v;
     unlocking();
-    v->Addreference(reference+1);
+    v->Addreference(investigate,reference+1);
     return aTRUE;
 }
 
@@ -460,7 +460,7 @@ Exporting Tamgu*  Tamgutreemap::Put(Tamgu* idx, Tamgu* ke, short idthread) {
                 a=itr->IteratorValue();
                 a=a->Atom();
                 values[itr->Keystring()] = a;
-                a->Addreference(reference+1);
+                a->Addreference(investigate,reference+1);
             }
             itr->Release();
         }

@@ -123,7 +123,7 @@ class Tamguvector : public TamguObjectLockContainer {
             locking();
             for (size_t i = 0; i < values.size(); i++) {
                 a = values[i]->Atom(true);
-                a->Addreference(1);
+                a->Addreference(investigate,1);
                 v->values.push_back(a);
             }
             unlocking();
@@ -165,7 +165,7 @@ class Tamguvector : public TamguObjectLockContainer {
     }
 
     void AddInstruction(Tamgu* a) {
-        a->Addreference(1);
+        a->Addreference(investigate,1);
         values.push_back(a);
     }
 
@@ -575,14 +575,14 @@ class Tamguvector : public TamguObjectLockContainer {
     //Raw push
     Tamgu* push(Tamgu* v) {
         values.push_back(v);
-        v->Addreference();
+        v->Addreference(investigate);
         return this;
     }
 
     void pushatom(Tamgu* v) {
         v = v->Atom();
         values.push_back(v);
-        v->Addreference();
+        v->Addreference(investigate);
     }
 
     Exporting virtual Tamgu* Push(Tamgu*);
@@ -990,7 +990,7 @@ public:
             Tamgu* a;
             for (size_t i = 0; i < values.size(); i++) {
                 a = values[i]->Atom(true);
-                a->Addreference(1);
+                a->Addreference(investigate,1);
                 v->values.push_back(a);
             }
             
@@ -1033,7 +1033,7 @@ public:
     }
     
     void AddInstruction(Tamgu* a) {
-        a->Addreference(1);
+        a->Addreference(investigate,1);
         values.push_back(a);
     }
     
@@ -1375,7 +1375,7 @@ public:
         //Raw push
     Tamgu* push(Tamgu* v) {
         values.push_back(v);
-        v->Addreference();
+        v->Addreference(investigate);
         return this;
     }
     
@@ -1526,7 +1526,7 @@ public:
     void Insert(long idx, Tamgu* ke) {
         ke = ke->Atom();
         values.insert(idx, ke);
-        ke->Setreference(reference+1);
+        ke->Addreference(investigate,reference+1);
     }
 
     

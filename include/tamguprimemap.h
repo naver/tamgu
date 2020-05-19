@@ -379,7 +379,7 @@ class Tamguprimemap : public TamguObjectLockContainer {
         if (values.find(k) !=  values.end())
             values[k]->Removereference(reference + 1);
         values[k] = a;
-        a->Addreference();
+        a->Addreference(investigate);
         return this;
     }
 
@@ -389,7 +389,7 @@ class Tamguprimemap : public TamguObjectLockContainer {
             values[k]->Removereference(reference + 1);
         a = a->Atom();
         values[k] = a;
-        a->Addreference(reference + 1);
+        a->Addreference(investigate,reference + 1);
         unlocking();
         return this;
     }
@@ -400,7 +400,7 @@ class Tamguprimemap : public TamguObjectLockContainer {
             values[k]->Removereference(reference + 1);
         a = a->Atom();
         values[k] = a;
-        a->Addreference(reference + 1);
+        a->Addreference(investigate,reference + 1);
         unlocking();
     }
 

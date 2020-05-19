@@ -182,7 +182,7 @@ Exporting void Tamgumapi::Setreference(short inc) {
     protect = false;
     
     for (auto& it : values)
-        it.second->Addreference(inc);
+        it.second->Addreference(investigate,inc);
     
     unlocking();
 }
@@ -194,7 +194,7 @@ Exporting void Tamgumapi::Setreference() {
     protect = false;
     
     for (auto& it : values)
-        it.second->Addreference(1);
+        it.second->Addreference(investigate,1);
     unlocking();
 }
 
@@ -239,7 +239,7 @@ Exporting Tamgu* Tamgumapi::Push(Tamgu* k, Tamgu* v) {
     v = v->Atom();
     values[s] = v;
     unlocking();
-    v->Addreference(reference+1);
+    v->Addreference(investigate,reference+1);
     return aTRUE;
 }
 
@@ -414,7 +414,7 @@ Exporting Tamgu*  Tamgumapi::Put(Tamgu* idx, Tamgu* ke, short idthread) {
                 a=itr->IteratorValue();
                 a=a->Atom();
                 values[itr->Keyinteger()] = a;
-                a->Addreference(reference+1);
+                a->Addreference(investigate,reference+1);
             }
             itr->Release();
         }

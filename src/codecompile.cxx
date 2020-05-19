@@ -4159,7 +4159,7 @@ Tamgu* TamguCode::C_jsonmap(x_node* xn, Tamgu* kf) {
         if (key != "" && (key[0] == '"' || key[0] == '\''))
             key = key.substr(1,key.size()-2);
         Traverse(xn->nodes[i]->nodes[1], &kbloc);
-        kbloc.instructions[0]->Addreference(idthread);
+        kbloc.instructions[0]->Addreference(kf->investigate,idthread);
         kmap->values[key] = kbloc.instructions[0];
         kbloc.instructions.clear();
     }

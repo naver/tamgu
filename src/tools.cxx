@@ -2516,7 +2516,7 @@ char TamguJsonCompiler::buildexpression(Tamgu* kf) {
                             local = aNULL;
                         else {
                             local = globalTamgu->Providewithstring(token);
-                            local->Addreference( ref);
+                            local->Addreference(0, ref);
                         }
                 
                 if (expecting) {
@@ -2684,7 +2684,7 @@ char TamguJsonCompiler::buildexpression(Tamgu* kf) {
                         return false;
                     }
                 }
-                local->Addreference(ref);
+                local->Addreference(0,ref);
                 if (expecting) {
                     ((Tamgumap*)kf)->values[key] = local;
                     expecting = 1;
@@ -2709,7 +2709,7 @@ char TamguJsonCompiler::buildexpression(Tamgu* kf) {
                     }
                 }
                 
-                local->Addreference(ref);
+                local->Addreference(0,ref);
                 if (expecting) {
                     ((Tamgumap*)kf)->values[key] = local;
                     expecting = 1;

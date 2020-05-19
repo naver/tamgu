@@ -252,10 +252,7 @@ public:
     
     virtual void Cleanreference(short inc) {}
     
-    virtual void Addreference(short inc=1) {
-        Setreference(inc);
-    }
-
+    virtual void Addreference(unsigned short inv, short inc=1) {}
     virtual void Setreference(short r) {}
     virtual void Setreference() {}
 	virtual void Resetreference(short r = 1) {}
@@ -1588,7 +1585,11 @@ public:
         Resetreference(r);
     }
     
-    
+    virtual void Addreference(unsigned short inv, short inc=1) {
+        investigate |= (inv & is_tobelocked);
+        Setreference(inc);
+    }
+
     virtual void Setreference(short r) {
         reference += r;
         protect = false;
@@ -1773,7 +1774,8 @@ public:
         return reference+containerreference;
     }
     
-    void Addreference(short inc=1) {
+    void Addreference(unsigned short inv, short inc=1) {
+        investigate |= (inv & is_tobelocked);
         protect=false;
         containerreference+=inc;
     }
@@ -1889,7 +1891,8 @@ public:
         return reference+containerreference;
     }
     
-    void Addreference(short inc=1) {
+    void Addreference(unsigned short inv, short inc=1) {
+        investigate |= (inv & is_tobelocked);
         protect=false;
         containerreference+=inc;
     }
@@ -2101,6 +2104,7 @@ public:
             g->RecordInTracker(this);
 	}
 
+    void Addreference(unsigned short inv, short inc=1) {}
     void Setreference(short) {}
     void Setreference() {}
 	void Resetreference(short r = 1) {}
@@ -3387,6 +3391,13 @@ public:
 		return true;
 	}
 
+    void Addreference(unsigned short inv, short r=1) {
+        investigate |= (inv & is_tobelocked);
+        reference += r;
+        protect = false;
+        value->Addreference(investigate, r);
+    }
+    
     void Setreference(short r) {
         value->Setreference(r);
         reference += r;

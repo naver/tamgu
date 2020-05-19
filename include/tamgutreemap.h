@@ -358,7 +358,7 @@ class Tamgutreemap : public TamguObjectLockContainer {
         if (v != NULL)
             v->Removereference(reference + 1);
         values[k] = a;
-        a->Addreference();
+        a->Addreference(investigate);
         return this;
     }
 
@@ -369,7 +369,7 @@ class Tamgutreemap : public TamguObjectLockContainer {
             v->Removereference(reference + 1);
         a = a->Atom();
         values[k] = a;
-        a->Addreference(reference + 1);
+        a->Addreference(investigate,reference + 1);
         unlocking();
     }
 
@@ -380,7 +380,7 @@ class Tamgutreemap : public TamguObjectLockContainer {
             v->Removereference(reference + 1);
         a = a->Atom();
         values[k] = a;
-        a->Addreference(reference + 1);
+        a->Addreference(investigate,reference + 1);
         unlocking();
         return this;
     }

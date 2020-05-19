@@ -453,6 +453,7 @@ public:
     
     void Cleanreference(short inc) {}
     
+    void Addreference(unsigned short inv, short r=1) {}
     void Setreference(short r) {}
     void Setreference() {}
     void Resetreference(short r = 1) {}

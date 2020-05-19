@@ -515,7 +515,7 @@ class Tamgutable : public TamguObjectLockContainer {
             e = values[position];
             if (e == aNOELEMENT) {
                 v = v->Atom();
-                v->Addreference(reference + 1);
+                v->Addreference(investigate,reference + 1);
                 e = values[position++].exchange(v);
                 //In the case we are in a thread and a value has been pushed into it...
                 e->Removereference(reference + 1);
@@ -532,7 +532,7 @@ class Tamgutable : public TamguObjectLockContainer {
             return false;
             
         a = a->Atom();
-        a->Addreference(reference + 1);
+        a->Addreference(investigate,reference + 1);
         a = values[position++].exchange(a);
         a->Removereference(reference + 1);
         return true;

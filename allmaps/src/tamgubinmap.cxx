@@ -174,7 +174,7 @@ Exporting void Tamgubinmap::Setreference(short inc) {
     
     basebin_hash<Tamgu*>::iterator itx;
     for (itx = values.begin(); itx != values.end(); itx++)
-        itx->second->Addreference(inc);
+        itx->second->Addreference(investigate,inc);
 
     unlocking();
 }
@@ -187,7 +187,7 @@ Exporting void Tamgubinmap::Setreference() {
     
     basebin_hash<Tamgu*>::iterator itx;
     for (itx = values.begin(); itx != values.end(); itx++)
-        itx->second->Addreference(1);
+        itx->second->Addreference(investigate,1);
     
     unlocking();
 }
@@ -235,7 +235,7 @@ Exporting Tamgu* Tamgubinmap::Push(Tamgu* k, Tamgu* v) {
 
     v = v->Atom();
     values[s] = v;
-    v->Addreference(reference+1);
+    v->Addreference(investigate,reference+1);
     unlocking();
     return aTRUE;
 }
@@ -435,7 +435,7 @@ Exporting Tamgu*  Tamgubinmap::Put(Tamgu* idx, Tamgu* ke, short idthread) {
                 a=itr->IteratorValue();
                 a=a->Atom();
                 values[itr->Keyshort()] = a;
-                a->Addreference(reference+1);
+                a->Addreference(investigate,reference+1);
             }
             itr->Release();
         }

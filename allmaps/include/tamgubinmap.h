@@ -378,7 +378,7 @@ class Tamgubinmap : public TamguObjectLockContainer {
     Tamgu* Push(ushort k, Tamgu* a) {
         locking();
         a = a->Atom();
-        a->Addreference(reference + 1);
+        a->Addreference(investigate,reference + 1);
         if (values.check(k)) {
             values.get(k)->Removereference(reference + 1);
             values.put(k,a);

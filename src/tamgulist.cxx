@@ -170,7 +170,7 @@ Exporting void Tamgulist::Setreference(short inc) {
     protect=false;
         
     for (auto& it : values)
-        it->Addreference(inc);
+        it->Addreference(investigate,inc);
     
     unlocking();
 }
@@ -183,7 +183,7 @@ Exporting void Tamgulist::Setreference() {
     
     locking();
     for (auto& it : values)
-        it->Addreference(1);
+        it->Addreference(investigate,1);
 
     unlocking();
 }
@@ -222,7 +222,7 @@ Exporting Tamgu* Tamgulist::Pushfirst(Tamgu* a) {
     locking();
     a = a->Atom();
     values.push_front(a);
-    a->Addreference(reference+1);
+    a->Addreference(investigate,reference+1);
     unlocking();
     return this;
 }
@@ -232,7 +232,7 @@ Exporting Tamgu* Tamgulist::Push(Tamgu* a) {
     a = a->Atom();
     values.push_back(a);
     unlocking();
-    a->Addreference(reference+1);
+    a->Addreference(investigate,reference+1);
     return this;
 }
 
@@ -396,7 +396,7 @@ Exporting void Tamgulist::Insert(long idx, Tamgu* ke) {
             itl++;
         values.insert(itl, ke);
     }
-    ke->Addreference(reference+1);
+    ke->Addreference(investigate,reference+1);
     unlocking();
 }
 
@@ -608,7 +608,7 @@ Exporting Tamgu*  Tamgulist::Put(Tamgu* idx, Tamgu* ke, short idthread) {
 
             for (auto& it : kvect->values) {
                 idx = it->Atom();
-                idx->Addreference(reference+1);
+                idx->Addreference(investigate,reference+1);
                 values.push_back(idx);
             }
             return aTRUE;
@@ -620,7 +620,7 @@ Exporting Tamgu*  Tamgulist::Put(Tamgu* idx, Tamgu* ke, short idthread) {
             for (int it = 0; it < ke->Size(); ++it) {
                 idx  = ke->getvalue(it);
                 idx = idx->Atom();
-                idx->Addreference(reference+1);
+                idx->Addreference(investigate,reference+1);
                 values.push_back(idx);
             }
             return aTRUE;
@@ -632,7 +632,7 @@ Exporting Tamgu*  Tamgulist::Put(Tamgu* idx, Tamgu* ke, short idthread) {
             for (itr->Begin(); itr->End() == aFALSE; itr->Next()) {
                 idx = itr->Key();
                 idx = idx->Atom();
-                idx->Addreference(reference+1);
+                idx->Addreference(investigate,reference+1);
                 values.push_back(idx);
             }
             itr->Release();
@@ -647,7 +647,7 @@ Exporting Tamgu*  Tamgulist::Put(Tamgu* idx, Tamgu* ke, short idthread) {
         for (long it = 0; it < ke->Size(); ++it) {
             idx  = ke->getvalue(it);
             idx = idx->Atom();
-            idx->Addreference(reference+1);
+            idx->Addreference(investigate,reference+1);
             values.push_back(idx);
         }
         ke->Release();
@@ -692,7 +692,7 @@ Exporting Tamgu*  Tamgulist::Put(Tamgu* idx, Tamgu* ke, short idthread) {
                 krkey = ke->getvalue(i);
                 krkey = krkey->Atom();
                 values.insert(it, krkey);
-                krkey->Addreference(reference+1);
+                krkey->Addreference(investigate,reference+1);
             }
             return aTRUE;
         }
@@ -702,7 +702,7 @@ Exporting Tamgu*  Tamgulist::Put(Tamgu* idx, Tamgu* ke, short idthread) {
                 krkey = iti;
                 krkey = krkey->Atom();
                 values.insert(it, krkey);
-                krkey->Addreference(reference+1);
+                krkey->Addreference(investigate,reference+1);
             }
             return aTRUE;
         }
@@ -713,7 +713,7 @@ Exporting Tamgu*  Tamgulist::Put(Tamgu* idx, Tamgu* ke, short idthread) {
                 krkey = itr->Value();
                 krkey = krkey->Atom();
                 values.insert(it, krkey);
-                krkey->Addreference(reference+1);
+                krkey->Addreference(investigate,reference+1);
             }
             itr->Release();
             return aTRUE;
@@ -721,7 +721,7 @@ Exporting Tamgu*  Tamgulist::Put(Tamgu* idx, Tamgu* ke, short idthread) {
 
         krkey = ke->Atom();
         values.insert(it, krkey);
-        krkey->Addreference(reference+1);
+        krkey->Addreference(investigate,reference+1);
         return aTRUE;
     }
 
@@ -748,7 +748,7 @@ Exporting Tamgu*  Tamgulist::Put(Tamgu* idx, Tamgu* ke, short idthread) {
             if (*it != NULL)
                 (*it)->Removereference(reference + 1);
             *it = ke;
-            ke->Addreference(reference+1);
+            ke->Addreference(investigate,reference+1);
         }
     }
 
@@ -1410,7 +1410,7 @@ Exporting Tamgu* Tamgulist::same(Tamgu* a) {
 //----------------------------------------------------------------------------------
 Exporting void Tamgulist::Storevalue(string& u) {
     Tamgu* a = globalTamgu->Providewithstring(u);
-    a->Addreference(reference+1);
+    a->Addreference(investigate,reference+1);
     locking();
     values.push_back(a);
     unlocking();
@@ -1418,7 +1418,7 @@ Exporting void Tamgulist::Storevalue(string& u) {
 
 Exporting void Tamgulist::Storevalue(wstring& u) {
     Tamgu* a = globalTamgu->Providewithustring(u);
-    a->Addreference(reference+1);
+    a->Addreference(investigate,reference+1);
     locking();
     values.push_back(a);
     unlocking();
@@ -1426,7 +1426,7 @@ Exporting void Tamgulist::Storevalue(wstring& u) {
 
 Exporting void Tamgulist::storevalue(string u) {
     Tamgu* a = globalTamgu->Providewithstring(u);
-    a->Addreference(reference+1);
+    a->Addreference(investigate,reference+1);
     locking();
     values.push_back(a);
     unlocking();
@@ -1434,7 +1434,7 @@ Exporting void Tamgulist::storevalue(string u) {
 
 Exporting void Tamgulist::storevalue(wstring u) {
     Tamgu* a = globalTamgu->Providewithustring(u);
-    a->Addreference(reference+1);
+    a->Addreference(investigate,reference+1);
     locking();
     values.push_back(a);
     unlocking();
@@ -1442,7 +1442,7 @@ Exporting void Tamgulist::storevalue(wstring u) {
 
 Exporting void Tamgulist::storevalue(long u) {
     Tamgu* a = globalTamgu->Provideint(u);
-    a->Addreference(reference+1);
+    a->Addreference(investigate,reference+1);
     locking();
     values.push_back(a);
     unlocking();
@@ -1450,7 +1450,7 @@ Exporting void Tamgulist::storevalue(long u) {
 
 Exporting void Tamgulist::storevalue(short u) {
     Tamgu* a = new Tamgushort(u);
-    a->Addreference(reference+1);
+    a->Addreference(investigate,reference+1);
     locking();
     values.push_back(a);
     unlocking();
@@ -1458,7 +1458,7 @@ Exporting void Tamgulist::storevalue(short u) {
 
 Exporting void Tamgulist::storevalue(BLONG u) {
     Tamgu* a = new Tamgulong(u);
-    a->Addreference(reference+1);
+    a->Addreference(investigate,reference+1);
     locking();
     values.push_back(a);
     unlocking();
@@ -1466,7 +1466,7 @@ Exporting void Tamgulist::storevalue(BLONG u) {
 
 Exporting void Tamgulist::storevalue(float u) {
     Tamgu* a = new Tamgudecimal(u);
-    a->Addreference(reference+1);
+    a->Addreference(investigate,reference+1);
     locking();
     values.push_back(a);
     unlocking();
@@ -1474,7 +1474,7 @@ Exporting void Tamgulist::storevalue(float u) {
 
 Exporting void Tamgulist::storevalue(double u) {
     Tamgu* a = globalTamgu->Providefloat(u);
-    a->Addreference(reference+1);
+    a->Addreference(investigate,reference+1);
     locking();
     values.push_back(a);
     unlocking();
@@ -1482,7 +1482,7 @@ Exporting void Tamgulist::storevalue(double u) {
 
 Exporting void Tamgulist::storevalue(unsigned char u) {
     Tamgu* a = new Tamgubyte(u);
-    a->Addreference(reference+1);
+    a->Addreference(investigate,reference+1);
     locking();
     values.push_back(a);
     unlocking();
@@ -1492,7 +1492,7 @@ Exporting void Tamgulist::storevalue(wchar_t u) {
     wstring w;
     w = u;
     Tamgu* a = globalTamgu->Providewithustring(w);
-    a->Addreference(reference+1);
+    a->Addreference(investigate,reference+1);
     locking();
     values.push_back(a);
     unlocking();
@@ -1579,7 +1579,7 @@ Exporting void Tamguring::Setreference(short inc) {
     
     atomic_ring_iterator<Tamgu*> it(values);
     while (!it.end()) {
-        it.second->Addreference(inc);
+        it.second->Addreference(investigate,inc);
         it.next();
     }
 }
@@ -1590,7 +1590,7 @@ Exporting void Tamguring::Setreference() {
     
     atomic_ring_iterator<Tamgu*> it(values);
     while (!it.end()) {
-        it.second->Addreference(1);
+        it.second->Addreference(investigate,1);
         it.next();
     }
 }
@@ -1659,7 +1659,7 @@ Exporting Tamgu* Tamguring::in(Tamgu* context, Tamgu* a, short idthread) {
 
 Exporting Tamgu* Tamguring::Pushfirst(Tamgu* a) {
     a = a->Atom();
-    a->Addreference(reference+1);
+    a->Addreference(investigate,reference+1);
     a = values.push_front(a);
     a->Removereference(reference + 1);
     return aTRUE;
@@ -1668,7 +1668,7 @@ Exporting Tamgu* Tamguring::Pushfirst(Tamgu* a) {
 
 Exporting Tamgu* Tamguring::Push(Tamgu* a) {
     a = a->Atom();
-    a->Addreference(reference+1);
+    a->Addreference(investigate,reference+1);
     a = values.push_back(a);
     a->Removereference(reference + 1);
     return aTRUE;
@@ -1676,7 +1676,7 @@ Exporting Tamgu* Tamguring::Push(Tamgu* a) {
 
 Exporting Tamgu* Tamguring::Push(TamguGlobal* g, Tamgu* a, short idhtread) {
     a = a->Atom();
-    a->Addreference(reference+1);
+    a->Addreference(investigate,reference+1);
     a = values.push_back(a);
     a->Removereference(reference + 1);
     return aTRUE;
@@ -2338,7 +2338,7 @@ Exporting Tamgu*  Tamguring::Put(Tamgu* idx, Tamgu* value, short idthread) {
             for (;!it.end();it.next()) {
                 if (!it.second->isConst()) {
                     idx = it.second->Atom();
-                    idx->Addreference(reference+1);
+                    idx->Addreference(investigate,reference+1);
                     value = it.replace(idx);
                     if (value != idx)
                         value->Removereference(reference+1);
@@ -2377,7 +2377,7 @@ Exporting Tamgu*  Tamguring::Put(Tamgu* idx, Tamgu* value, short idthread) {
                 for (int it = 0; it < sz; it++) {
                     idx  = value->getvalue(it);
                     idx = idx->Atom();
-                    idx->Addreference(reference+1);
+                    idx->Addreference(investigate,reference+1);
                     val = values.push_back(idx);
                     if (!val->isConst())
                         val->Removereference(reference + 1);
@@ -2396,7 +2396,7 @@ Exporting Tamgu*  Tamguring::Put(Tamgu* idx, Tamgu* value, short idthread) {
                 for (itr->Begin(); itr->End() == aFALSE; itr->Next()) {
                     idx  = itr->Key();
                     idx = idx->Atom();
-                    idx->Addreference(reference+1);
+                    idx->Addreference(investigate,reference+1);
                     val = values.push_back(idx);
                     if (!val->isConst())
                         val->Removereference(reference + 1);
@@ -2419,7 +2419,7 @@ Exporting Tamgu*  Tamguring::Put(Tamgu* idx, Tamgu* value, short idthread) {
             for (long it = 0; it < sz; ++it) {
                 idx = ((Tamguvector*)value)->values[it];
                 idx = idx->Atom();
-                idx->Addreference(reference+1);
+                idx->Addreference(investigate,reference+1);
                 val = values.push_back(idx);
                 if (!val->isConst())
                     val->Removereference(reference + 1);
@@ -2437,7 +2437,7 @@ Exporting Tamgu*  Tamguring::Put(Tamgu* idx, Tamgu* value, short idthread) {
             return globalTamgu->Returnerror("Cannot set this value", idthread);
     }
     value = value->Atom();
-    value->Addreference(reference+1);
+    value->Addreference(investigate,reference+1);
     value = values.replace(ikey, value);
     value->Removereference(reference + 1);
     return aTRUE;
@@ -2551,7 +2551,7 @@ Exporting void Tamguring::Clear() {
 
 Exporting void Tamguring::Storevalue(string& u) {
     Tamgu* a = globalTamgu->Providewithstring(u);
-    a->Addreference(reference+1);
+    a->Addreference(investigate,reference+1);
     a = values.push_back(a);
     if (a != NULL)
         a->Removereference();
@@ -2559,7 +2559,7 @@ Exporting void Tamguring::Storevalue(string& u) {
 
 Exporting void Tamguring::Storevalue(wstring& u) {
     Tamgu* a = globalTamgu->Providewithustring(u);
-    a->Addreference(reference+1);
+    a->Addreference(investigate,reference+1);
     a = values.push_back(a);
     if (a != NULL)
         a->Removereference();
@@ -2567,7 +2567,7 @@ Exporting void Tamguring::Storevalue(wstring& u) {
 
 Exporting void Tamguring::storevalue(string u) {
     Tamgu* a = globalTamgu->Providewithstring(u);
-    a->Addreference(reference+1);
+    a->Addreference(investigate,reference+1);
     a = values.push_back(a);
     if (a != NULL)
         a->Removereference();
@@ -2575,7 +2575,7 @@ Exporting void Tamguring::storevalue(string u) {
 
 Exporting void Tamguring::storevalue(wstring u) {
     Tamgu* a = globalTamgu->Providewithustring(u);
-    a->Addreference(reference+1);
+    a->Addreference(investigate,reference+1);
     a = values.push_back(a);
     if (a != NULL)
         a->Removereference();
@@ -2583,7 +2583,7 @@ Exporting void Tamguring::storevalue(wstring u) {
 
 Exporting void Tamguring::storevalue(long u) {
     Tamgu* a = globalTamgu->Provideint(u);
-    a->Addreference(reference+1);
+    a->Addreference(investigate,reference+1);
     a = values.push_back(a);
     if (a != NULL)
         a->Removereference();
@@ -2591,7 +2591,7 @@ Exporting void Tamguring::storevalue(long u) {
 
 Exporting void Tamguring::storevalue(short u) {
     Tamgu* a = new Tamgushort(u);
-    a->Addreference(reference+1);
+    a->Addreference(investigate,reference+1);
     a = values.push_back(a);
     if (a != NULL)
         a->Removereference();
@@ -2599,7 +2599,7 @@ Exporting void Tamguring::storevalue(short u) {
 
 Exporting void Tamguring::storevalue(BLONG u) {
     Tamgu* a = new Tamgulong(u);
-    a->Addreference(reference+1);
+    a->Addreference(investigate,reference+1);
     a = values.push_back(a);
     if (a != NULL)
         a->Removereference();
@@ -2607,7 +2607,7 @@ Exporting void Tamguring::storevalue(BLONG u) {
 
 Exporting void Tamguring::storevalue(float u) {
     Tamgu* a = new Tamgudecimal(u);
-    a->Addreference(reference+1);
+    a->Addreference(investigate,reference+1);
     a = values.push_back(a);
     if (a != NULL)
         a->Removereference();
@@ -2615,7 +2615,7 @@ Exporting void Tamguring::storevalue(float u) {
 
 Exporting void Tamguring::storevalue(double u) {
     Tamgu* a = globalTamgu->Providefloat(u);
-    a->Addreference(reference+1);
+    a->Addreference(investigate,reference+1);
     a = values.push_back(a);
     if (a != NULL)
         a->Removereference();
@@ -2623,7 +2623,7 @@ Exporting void Tamguring::storevalue(double u) {
 
 Exporting void Tamguring::storevalue(unsigned char u) {
     Tamgu* a = new Tamgubyte(u);
-    a->Addreference(reference+1);
+    a->Addreference(investigate,reference+1);
     a = values.push_back(a);
     if (a != NULL)
         a->Removereference();
@@ -2633,7 +2633,7 @@ Exporting void Tamguring::storevalue(wchar_t u) {
     wstring w;
     w = u;
     Tamgu* a = globalTamgu->Providewithustring(w);
-    a->Addreference(reference+1);
+    a->Addreference(investigate,reference+1);
     a = values.push_back(a);
     if (a != NULL)
         a->Removereference();
@@ -2789,7 +2789,7 @@ Exporting Tamgu* Tamguring::Merging(Tamgu* ke) {
         Tamgu* k;
         for (long i = 0; i < ke->Size(); i++) {
             k = ke->getvalue(i);
-            k->Addreference(reference+1);
+            k->Addreference(investigate,reference+1);
             values.push_back(k);
         }
         _cleanlockif(_lock);

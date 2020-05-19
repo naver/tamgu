@@ -372,7 +372,7 @@ class Tamgumap : public TamguObjectLockContainer {
         if (v != NULL)
             v->Removereference(reference + 1);
         values[k] = a;
-        a->Addreference();
+        a->Addreference(investigate);
         return this;
     }
 
@@ -383,7 +383,7 @@ class Tamgumap : public TamguObjectLockContainer {
             v->Removereference(reference + 1);
         a = a->Atom();
         values[k] = a;
-        a->Addreference(reference + 1);
+        a->Addreference(investigate,reference + 1);
         unlocking();
     }
     
@@ -394,7 +394,7 @@ class Tamgumap : public TamguObjectLockContainer {
             v->Removereference(reference + 1);
         a = a->Atom();
         values[k] = a;
-        a->Addreference(reference + 1);
+        a->Addreference(investigate,reference + 1);
         unlocking();
         return this;
     }
@@ -722,7 +722,7 @@ class TamguConstmap : public TamguObjectLockContainer {
     void Release() {}
 
     void AddInstruction(Tamgu* a) {
-        a->Addreference(1);
+        a->Addreference(investigate,1);
         values.push_back(a);
     }
 

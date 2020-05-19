@@ -111,13 +111,13 @@ Tamgu* Tamguchrono::minus(Tamgu* bb, bool autoself) {
     
     switch (unit) {
         case 1:
-            return new Tamgufloat(std::chrono::duration_cast<std::chrono::seconds>( value - b->value ).count());
+            return globalTamgu->Providefloat(std::chrono::duration_cast<std::chrono::seconds>( value - b->value ).count());
         case 2:
-            return new Tamgufloat(std::chrono::duration_cast<std::chrono::milliseconds>( value - b->value ).count());
+            return globalTamgu->Providefloat(std::chrono::duration_cast<std::chrono::milliseconds>( value - b->value ).count());
         case 3:
-            return new Tamgufloat(std::chrono::duration_cast<std::chrono::microseconds>( value - b->value ).count());
+            return globalTamgu->Providefloat(std::chrono::duration_cast<std::chrono::microseconds>( value - b->value ).count());
         case 4:
-            return new Tamgufloat(std::chrono::duration_cast<std::chrono::nanoseconds>( value - b->value ).count());
+            return globalTamgu->Providefloat(std::chrono::duration_cast<std::chrono::nanoseconds>( value - b->value ).count());
     }
-    return new Tamgufloat(std::chrono::duration_cast<std::chrono::seconds>( value - b->value ).count());
+    return globalTamgu->Providefloat(std::chrono::duration_cast<std::chrono::seconds>( value - b->value ).count());
 }

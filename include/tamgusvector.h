@@ -702,6 +702,7 @@ class TamguConstSVector : public Tamgusvector {
     
     void Setreference(short) {}
     void Setreference() {}
+    void Addreference(unsigned short inv, short inc=1) {}
     virtual void Resetreference(short r = 1) {}
     virtual void Release() {}
 

@@ -172,7 +172,7 @@ Exporting void Tamguprimemapl::Setreference(short inc) {
     
     prime_hash<BLONG, Tamgu*>::iterator itx;
     for (itx = values.begin(); itx != values.end(); itx++)
-        itx->second->Addreference(inc);
+        itx->second->Addreference(investigate,inc);
     unlocking();
 }
 
@@ -184,7 +184,7 @@ Exporting void Tamguprimemapl::Setreference() {
     
     prime_hash<BLONG, Tamgu*>::iterator itx;
     for (itx = values.begin(); itx != values.end(); itx++)
-        itx->second->Addreference(1);
+        itx->second->Addreference(investigate,1);
 
     unlocking();
 }
@@ -227,7 +227,7 @@ Exporting Tamgu* Tamguprimemapl::Push(Tamgu* k, Tamgu* v) {
 
     v = v->Atom();
     values[s] = v;
-    v->Addreference(reference+1);
+    v->Addreference(investigate,reference+1);
     unlocking();
     return aTRUE;
 }
@@ -409,7 +409,7 @@ Exporting Tamgu*  Tamguprimemapl::Put(Tamgu* idx, Tamgu* ke, short idthread) {
                 a=itr->IteratorValue();
                 a=a->Atom();
                 values[itr->Keylong()] = a;
-                a->Addreference(reference+1);
+                a->Addreference(investigate,reference+1);
             }
             itr->Release();
         }

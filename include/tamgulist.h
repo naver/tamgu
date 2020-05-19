@@ -392,7 +392,7 @@ class Tamgulist : public TamguObjectLockContainer {
     
     Tamgu* push(Tamgu* v) {
         values.push_back(v);
-        v->Addreference();
+        v->Addreference(investigate);
         return this;
     }
 
@@ -816,7 +816,7 @@ public:
             Tamgu* a;
             for (size_t i = 0; i < values.size(); i++) {
                 a = values[i]->Atom(true);
-                a->Addreference(1);
+                a->Addreference(investigate,1);
                 v->values.push_back(a);
             }
             
@@ -859,7 +859,7 @@ public:
     }
     
     void AddInstruction(Tamgu* a) {
-        a->Addreference(1);
+        a->Addreference(investigate,1);
         values.push_back(a);
     }
     
@@ -1224,7 +1224,7 @@ public:
     
         //Raw push
     Tamgu* push(Tamgu* v) {
-        v->Addreference();
+        v->Addreference(investigate);
         v = values.push_back(v);
         v->Removereference();
         return this;

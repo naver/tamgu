@@ -590,17 +590,16 @@ Tamgu* Tamguustring::EvalIndex(Tamgu* kidx, TamguIndex* idx, short idthread) {
 Tamgu* TamguIndex::Eval(Tamgu* klocal, Tamgu* obj, short idthread) {
     if (obj->isPureString())
         return obj->EvalIndex(klocal, this, idthread);
-    
-    unsigned short istobelocked = obj->isToBelocked();
-    
+        
     if (function == NULL) {
         obj = obj->Eval(klocal, this, idthread);
-        obj->Enablelock(istobelocked);
+        obj->Enablelock(obj->isToBelocked());
         return obj;
     }
 
     klocal = obj->Eval(klocal, this, idthread);
-    
+    unsigned short istobelocked = obj->isToBelocked();
+
 	if (function->isIncrement()) {
 		if (klocal == aNOELEMENT && obj->isValueContainer()) {
             if (obj->isString()) {

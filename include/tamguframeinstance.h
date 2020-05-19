@@ -571,6 +571,18 @@ class Tamguframemininstance : public TamguframeBaseInstance {
     //Declaration
     //All our methods must have been declared in tamguexportedmethods... See MethodInitialization below
     //---------------------------------------------------------------------------------------------------------------------
+    void Addreference(unsigned short inv, short r=1) {
+        investigate |= (inv & is_tobelocked);
+        reference += r;
+        locking();
+        protect = false;
+        for (short i = 0; i < declarations.sz; i++) {
+            if (declarations.table[i] != NULL)
+                declarations.table[i]->Addreference(investigate, r);
+        }
+        unlocking();
+    }
+    
     void Setreference(short r) {
         locking();
         reference += r;
@@ -582,6 +594,7 @@ class Tamguframemininstance : public TamguframeBaseInstance {
         unlocking();
     }
     
+
     void Setreference() {
         locking();
         ++reference;
@@ -711,10 +724,20 @@ class Tamguframeinstance : public TamguframeBaseInstance {
     //Declaration
     //All our methods must have been declared in tamguexportedmethods... See MethodInitialization below
     //---------------------------------------------------------------------------------------------------------------------
+    void Addreference(unsigned short inv, short r=1) {
+        investigate |= (inv & is_tobelocked);
+        reference += r;
+        locking();
+        protect = false;
+        for (short i = 0; i < declarations.last; i++)
+            declarations[i]->Addreference(investigate, r);
+        unlocking();
+    }
+
     void Setreference(short r) {
         reference += r;
-        protect = false;
         locking();
+        protect = false;
         for (short i = 0; i < declarations.last; i++)
             declarations[i]->Setreference(r);
         unlocking();
@@ -722,8 +745,8 @@ class Tamguframeinstance : public TamguframeBaseInstance {
     
     void Setreference() {
         ++reference;
-        protect = false;
         locking();
+        protect = false;
         for (short i = 0; i < declarations.last; i++)
             declarations[i]->Setreference();
         unlocking();

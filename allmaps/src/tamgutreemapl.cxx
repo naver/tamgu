@@ -173,7 +173,7 @@ Exporting void Tamgutreemapl::Setreference(short inc) {
     protect = false;
     
     for (auto& it : values)
-        it.second->Addreference(inc);
+        it.second->Addreference(investigate,inc);
 
     unlocking();
 }
@@ -185,7 +185,7 @@ Exporting void Tamgutreemapl::Setreference() {
     protect = false;
     
     for (auto& it : values)
-        it.second->Addreference(1);
+        it.second->Addreference(investigate,1);
     unlocking();
 }
 
@@ -230,7 +230,7 @@ Exporting Tamgu* Tamgutreemapl::Push(Tamgu* k, Tamgu* v) {
     v = v->Atom();
     values[s] = v;
     unlocking();
-    v->Addreference(reference+1);
+    v->Addreference(investigate,reference+1);
     return aTRUE;
 }
 
@@ -407,7 +407,7 @@ Exporting Tamgu*  Tamgutreemapl::Put(Tamgu* idx, Tamgu* ke, short idthread) {
                 a=itr->IteratorValue();
                 a=a->Atom();
                 values[itr->Keylong()] = a;
-                a->Addreference(reference+1);
+                a->Addreference(investigate,reference+1);
             }
             itr->Release();
         }
