@@ -41,6 +41,11 @@
 #define min(a,b)            (((a) < (b)) ? (a) : (b))
 #endif
 
+//------------------------------------------------------------------------
+static string _variable_declaration("bool a,b,c; date d; int i,j,k; float f,g,h; string s,t,u; map m; vector v; self x,y,z;");
+static wstring _wvariable_declaration(L"bool a,b,c; date d; int i,j,k; float f,g,h; string s,t,u; map m; vector v; self x,y,z;");
+//------------------------------------------------------------------------
+
 void RetrieveThroughVariables(string& declaration);
 void RetrieveThroughVariables(wstring& decl);
 bool CheckThroughVariables();
@@ -94,8 +99,9 @@ static void displayhelp(string wh) {
     cout << conversiontodos("-pb 'source code' inserted before the code with -p") << endl;
     cout << conversiontodos("-pe 'source code' added after the code with -p") << endl;
     cout << conversiontodos("-p: Pre-declared variables:") << endl;
-    cout << conversiontodos("\tl: current line from stdin") << endl;
+    cout << conversiontodos("\tl: current line from stdin (also l0)") << endl;
     cout << conversiontodos("\t_args: split the current line along spaces and store each field separatly. _args[0] is the full line") << endl;
+    cout << conversiontodos("\t_line: current line number (starts at 1)") << endl;
     cout << conversiontodos("\t_size: number of fields (_args size) in a line from stdin") << endl;
     cout << conversiontodos("\tl1-l99: each variable matches a field in a line from stdin (ln == _args[n])") << endl << endl;
     cout << conversiontodos("-i Predeclared variables:") << endl << endl;
@@ -105,6 +111,8 @@ static void displayhelp(string wh) {
     cout << conversiontodos("_paths: _paths[0] is the current directory") << endl;
     cout << "\t";
     cout << conversiontodos("a,b,c: bool") << endl;
+    cout << "\t";
+    cout << conversiontodos("d: date") << endl;
     cout << "\t";
     cout << conversiontodos("i,j,k: int") << endl;
     cout << "\t";
@@ -177,7 +185,6 @@ static void displaychar(string& bf) {
 //------------------------------------------------------------------------
 static string _metacharacters = "× ÷ ← → ¬ ≠ ∨ ∧ π τ ℯ φ ∏ ∑ √ ∛ ² ³";
 //------------------------------------------------------------------------
-
 class tamgu_editor : public jag_editor {
     hmap<string, short> filenames;
     vector<string> ifilenames;
@@ -1631,7 +1638,7 @@ public:
                 if (initvar == 1 || CheckThroughVariables()) {
                     string cde;
                     if (initvar == 1)
-                        cde = "bool a,b,c; int i,j,k; float f,g,h; string s,t,u; map m; vector v; self x,y,z;";
+                        cde = _variable_declaration;
                     if (CheckThroughVariables())
                         RetrieveThroughVariables(cde);
                     idcode = TamguCompile(cde, THEMAIN);
@@ -1657,7 +1664,7 @@ public:
                 if (arguments.size())
                     TamguSetArguments(arguments);
             {
-                string cde = "bool a,b,c; int i,j,k; float f,g,h; string s,t,u; map m; vector v; self x,y,z;";
+                string cde = _variable_declaration;
                 if (CheckThroughVariables())
                     RetrieveThroughVariables(cde);
                 idcode = TamguCompile(cde, THEMAIN);
@@ -2259,7 +2266,7 @@ public:
             case 1:
                 prefix = "◀▶";
                 pos = 1;
-                line = L"bool a,b,c; int i,j,k; float f,g,h; string s,t,u; map m; vector v; self x,y,z;";
+                line = _wvariable_declaration;
                 lines.push_back(line);
                 poslines.push_back(0);
                 line = L"";
@@ -2286,7 +2293,7 @@ public:
                 break;
             case 4:
                 pos = 1;
-                line = L"bool a,b,c; int i,j,k; float f,g,h; string s,t,u; map m; vector v; self x,y,z;";
+                line = _wvariable_declaration;
                 lines.push_back(line);
                 poslines.push_back(0);
                 line = L"edit";
@@ -2629,7 +2636,7 @@ int main(int argc, char *argv[]) {
         }
 
         if (args == "-i") {
-            predeclarations = "bool a,b,c; int i,j,k; float f,g,h; string s,t,u; map m; vector v; self x,y,z;";
+            predeclarations = _variable_declaration;
             initconsoleterminal = false;
             continue;
         }
@@ -2759,7 +2766,7 @@ int main(int argc, char *argv[]) {
 
             if (code == "") {
                 if (piped == 1) {
-                    predeclarations = "bool a,b,c; int i,j,k; float f,g,h; string s,t,u; map m; vector v; self x,y,z;";
+                    predeclarations = _variable_declaration;
                     initconsoleterminal = false;
                     continue;
                 }
@@ -2851,9 +2858,9 @@ int main(int argc, char *argv[]) {
 
     if (lispmode) {
         predeclarations="(setq a true)\n\
-(setq _size 0)\n\
 (setq b true)\n\
 (setq c true)\n\
+(setq d (date)))\n\
 (setq i 0)\n\
 (setq j 0)\n\
 (setq k 0)\n\
@@ -2864,9 +2871,11 @@ int main(int argc, char *argv[]) {
 (setq t \"\")\n\
 (setq u \"\")\n\
 (setq m {})\n\
-(setq v ())\n";
-        
-        predeclarations += "(setq l1 \"\") (setq l2 \"\") (setq l3 \"\") (setq l4 \"\") (setq l5 \"\") (setq l6 \"\") (setq l7 \"\") \
+(setq v ())\n\
+(setq _line 0)\n\
+(setq _size 0)\n";
+
+        predeclarations += "(setq l0 \"\") (setq l1 \"\") (setq l2 \"\") (setq l3 \"\") (setq l4 \"\") (setq l5 \"\") (setq l6 \"\") (setq l7 \"\") \
         (setq l8 \"\") (setq l9 \"\") (setq l10 \"\") (setq l11 \"\") (setq l12 \"\") (setq l13 \"\") (setq l14 \"\")\
         (setq l15 \"\") (setq l16 \"\") (setq l17 \"\") (setq l18 \"\") (setq l19 \"\") (setq l20 \"\") (setq l21 \"\") \
         (setq l22 \"\") (setq l23 \"\") (setq l24 \"\") (setq l25 \"\") (setq l26 \"\") (setq l27 \"\") (setq l28 \"\") \
@@ -2902,8 +2911,9 @@ int main(int argc, char *argv[]) {
         Setlispmode(true);
     }
     else {
-        predeclarations = "bool a,b,c; int i,j,k; float f,g,h; string s,t,u; map m; vector v; self x,y,z;int _size;";
-        predeclarations += "self l1; self l2; self l3; self l4; self l5; self l6; self l7; self l8;\
+        predeclarations = _variable_declaration;
+        predeclarations += "int _size; int _line;";
+        predeclarations += "self l0; self l1; self l2; self l3; self l4; self l5; self l6; self l7; self l8;\
         self l9; self l10; self l11; self l12; self l13; self l14; self l15; self l16; self l17; \
         self l18; self l19; self l20; self l21; self l22; self l23; self l24; self l25; self l26; \
         self l27; self l28; self l29; self l30; self l31; self l32; self l33; self l34; self l35; \
@@ -2966,13 +2976,17 @@ int main(int argc, char *argv[]) {
         short idname;
 
         vector<Tamgu*> vars;
-        ret = globalTamgu->Provideint();
-        ret->Setreference();
-        vars.push_back(ret);
+        Tamguint* _size = globalTamgu->Provideint();
+        _size->Setreference();
         idname = globalTamgu->Getid("_size");
-        globalTamgu->Replacevariable(0, idname, ret);
+        globalTamgu->Replacevariable(0, idname, _size);
+
+        Tamguint* _line = globalTamgu->Provideint(1);
+        _line->Setreference();
+        idname = globalTamgu->Getid("_line");
+        globalTamgu->Replacevariable(0, idname, _line);
         
-        for (i = 1; i < 100; i++) {
+        for (i = 0; i < 100; i++) {
             predeclarations = "l"+convertfromnumber(i);
             idname = globalTamgu->Getid(predeclarations);
             ret = globalTamgu->Provideself();
@@ -2982,7 +2996,6 @@ int main(int argc, char *argv[]) {
             globalTamgu->Replacevariable(0, idname, ret);
         }
         
-        vector<string> splitted;
         vector<Tamgu*> params;
         Tamgustring ts("");
         ts.reference = 100;
@@ -2990,9 +3003,9 @@ int main(int argc, char *argv[]) {
         lnstr = "";
         string cut=" ";
         long sz;
+        long maxsize = 0;
         double v;
         short l;
-        short type;
         
         while (!cin.eof()) {
             getline(cin, lnstr);
@@ -3001,53 +3014,31 @@ int main(int argc, char *argv[]) {
                 arguments.clear();
                 arguments.push_back(lnstr);
 
-                splitted.clear();
-                s_split(lnstr,cut,splitted, false);
-                sz = splitted.size();
-                vars[0]->storevalue(sz);
-
-                for (i = 1; i <= sz && i < 100; i++) {
-                    lnstr = splitted[i-1];
-                    arguments.push_back(lnstr);
-                    
+                s_split(lnstr,cut,arguments, false);
+                sz = arguments.size();
+                _size->value = sz-1;
+                
+                sz = min(sz, 100);
+                if (sz > maxsize)
+                    maxsize = sz;
+                
+                                
+                for (i = 0; i < sz; i++) {
+                    lnstr = arguments[i];
                     v = conversionfloathexa(STR(lnstr), l);
                     if (l == lnstr.size()) {
                         if (lnstr.find('.') != -1)
-                            type = a_float;
+                            vars[i]->storevalue(v);
                         else
-                            type = a_int;
+                            vars[i]->storevalue((long)v);
                     }
                     else
-                        type = a_string;
-                                        
-                    if (type == vars[i]->Type()) {
-                        switch (type) {
-                            case a_string:
-                                vars[i]->storevalue(lnstr);
-                                break;
-                            case a_float:
-                                vars[i]->storevalue(v);
-                                break;
-                            case a_int:
-                                vars[i]->storevalue((long)v);
-                                break;
-                        }
-                    }
-                    else {
-                        switch (type) {
-                            case a_string:
-                                vars[i]->Putvalue(globalTamgu->Providewithstring(lnstr), 0);
-                                break;
-                            case a_float:
-                                vars[i]->Putvalue(globalTamgu->Providefloat(v), 0);
-                                break;
-                            case a_int:
-                                vars[i]->Putvalue(globalTamgu->Provideint(v), 0);
-                                break;
-                        }
-                    }
+                        vars[i]->storevalue(lnstr);
                 }
-                                            
+                
+                for (;i < maxsize; i++)
+                    vars[i]->storevalue("");
+                
                 executionbreak = false;
                 globalTamgu->running = true;
                 globalTamgu->threadMODE = false;
@@ -3061,6 +3052,7 @@ int main(int argc, char *argv[]) {
                 }
                 ret->Release();
                 lnstr = "";
+                _line->value++;
             }
         }
         if (codeafter != "") {

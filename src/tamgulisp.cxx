@@ -97,11 +97,11 @@ bool Tamgulisp::InitialisationModule(TamguGlobal* global, string version) {
     global->lispactions[a_shiftleft] = P_THREE;
     global->lispactions[a_shiftright] = P_THREE;
 
-    global->lispactions[a_callfunction] = P_ATLEASTTWO;
-    global->lispactions[a_calllisp] = P_ATLEASTTWO;
-    global->lispactions[a_callprocedure] = P_ATLEASTTWO;
-    global->lispactions[a_callcommon] = P_ATLEASTTHREE;
-    global->lispactions[a_callmethod] = P_ATLEASTTHREE;
+    global->lispactions[a_callfunction] = P_ATLEASTONE;
+    global->lispactions[a_calllisp] = P_ATLEASTONE;
+    global->lispactions[a_callprocedure] = P_ATLEASTONE;
+    global->lispactions[a_callcommon] = P_ATLEASTTWO;
+    global->lispactions[a_callmethod] = P_ATLEASTTWO;
 
     global->lispactions[a_affectation] = P_THREE;
     global->lispactions[a_quote] = P_TWO;
@@ -1238,6 +1238,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 return globalTamgu->Returnerror("Wrong name", idthread);
 
             a = values[2]->Eval(contextualpattern, aNULL, idthread);
+            checkerror(a);
             
             if (globalTamgu->isDeclared(n, idthread)) {
                 v1 = globalTamgu->Getdeclaration(n, idthread);
