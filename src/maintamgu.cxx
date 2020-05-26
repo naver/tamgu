@@ -2860,7 +2860,7 @@ int main(int argc, char *argv[]) {
         predeclarations="(setq a true)\n\
 (setq b true)\n\
 (setq c true)\n\
-(setq d (date)))\n\
+(setq d (date))\n\
 (setq i 0)\n\
 (setq j 0)\n\
 (setq k 0)\n\
@@ -2971,11 +2971,13 @@ int main(int argc, char *argv[]) {
         
         Setlispmode(false);
         
-        //We need to the variable pointers...
+        //We need to store the variable pointers...
         Tamgu* ret;
         short idname;
 
         vector<Tamgu*> vars;
+        vector<short> names;
+        
         Tamguint* _size = globalTamgu->Provideint();
         _size->Setreference();
         idname = globalTamgu->Getid("_size");
@@ -2989,11 +2991,18 @@ int main(int argc, char *argv[]) {
         for (i = 0; i < 100; i++) {
             predeclarations = "l"+convertfromnumber(i);
             idname = globalTamgu->Getid(predeclarations);
-            ret = globalTamgu->Provideself();
-            ret->Putvalue(globalTamgu->Providestring(), 0);
-            ret->Setreference();
-            vars.push_back(ret);
-            globalTamgu->Replacevariable(0, idname, ret);
+            if (lispmode) {
+                names.push_back(idname);
+                ret = globalTamgu->Getvariable(0, idname);
+                vars.push_back(ret);
+            }
+            else {
+                ret = globalTamgu->Provideself();
+                ret->Putvalue(globalTamgu->Providestring(), 0);
+                ret->Setreference();
+                vars.push_back(ret);
+                globalTamgu->Replacevariable(0, idname, ret);
+            }
         }
         
         vector<Tamgu*> params;
@@ -3006,7 +3015,8 @@ int main(int argc, char *argv[]) {
         long maxsize = 0;
         double v;
         short l;
-        
+        short thetype;
+        //lnstr = "drwxr-xr-x    9 roux  1222672855    288  5 mar 10:24 tamguconsole";
         while (!cin.eof()) {
             getline(cin, lnstr);
             if (lnstr.size()) {
@@ -3026,14 +3036,56 @@ int main(int argc, char *argv[]) {
                 for (i = 0; i < sz; i++) {
                     lnstr = arguments[i];
                     v = conversionfloathexa(STR(lnstr), l);
-                    if (l == lnstr.size()) {
-                        if (lnstr.find('.') != -1)
-                            vars[i]->storevalue(v);
+                    if (lispmode) {
+                        if (l == lnstr.size()) {
+                            if (lnstr.find('.') != -1)
+                                thetype = a_float;
+                            else
+                                thetype = a_int;
+                        }
                         else
-                            vars[i]->storevalue((long)v);
+                            thetype = a_string;
+                        
+                        if (thetype != vars[i]->Type()) {
+                            switch (thetype) {
+                                case a_float:
+                                    ret = globalTamgu->Providefloat(v);
+                                    break;
+                                case a_int:
+                                    ret = globalTamgu->Provideint(v);
+                                    break;
+                                default:
+                                    ret = globalTamgu->Providewithstring(lnstr);
+                                    break;
+                            }
+                            globalTamgu->Replacevariable(0, names[i], ret);
+                            vars[i]->Resetreference();
+                            ret->Setreference();
+                            vars[i] = ret;
+                        }
+                        else
+                            switch (thetype) {
+                                case a_float:
+                                    vars[i]->storevalue(v);
+                                    break;
+                                case a_int:
+                                    vars[i]->storevalue((long)v);
+                                    break;
+                                default:
+                                    vars[i]->storevalue(lnstr);
+                                    break;
+                            }
                     }
-                    else
-                        vars[i]->storevalue(lnstr);
+                    else {
+                        if (l == lnstr.size()) {
+                            if (lnstr.find('.') != -1)
+                                vars[i]->storevalue(v);
+                            else
+                                vars[i]->storevalue((long)v);
+                        }
+                        else
+                            vars[i]->storevalue(lnstr);
+                    }
                 }
                 
                 for (;i < maxsize; i++)

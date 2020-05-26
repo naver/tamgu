@@ -201,11 +201,11 @@ bool Tamguatomicint::InitialisationModule(TamguGlobal* global, string version) {
 
 
 Tamgu* Tamguint::MethodIsemoji(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-    return booleantamgu[c_is_emoji((BLONG)value)];
+    return booleantamgu[c_is_emoji((TAMGUCHAR)value)];
 }
 
 Tamgu* Tamguint::MethodEmoji(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-    string s = Emoji((BLONG)value);
+    string s = Emoji((TAMGUCHAR)value);
     return globalTamgu->Providewithstring(s);
 }
 
@@ -254,11 +254,11 @@ Tamgu* Tamguint::MethodBit(Tamgu* contextualpattern, short idthread, TamguCall* 
 //-----------------------------------------
 
 Tamgu* Tamguatomicint::MethodIsemoji(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-    return booleantamgu[c_is_emoji((BLONG)value)];
+    return booleantamgu[c_is_emoji((TAMGUCHAR)value)];
 }
 
 Tamgu* Tamguatomicint::MethodEmoji(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-    string s = Emoji((BLONG)value);
+    string s = Emoji((TAMGUCHAR)value);
     return globalTamgu->Providewithstring(s);
 }
 

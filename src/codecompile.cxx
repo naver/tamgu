@@ -9833,7 +9833,7 @@ bool TamguCode::Compile(string& body) {
         bnf.baseline = global->linereference;
         string lret;
         xn = new x_node;
-        if (bnf.m_tamgupurelisp(lret, &xn) != 1) {
+        if (bnf.m_tamgupurelisp(lret, &xn) != 1 || bnf.currentpos != bnf.fx->stack.size()) {
             delete xn;
             cerr << " in " << filename << endl;
             stringstream& message = global->threads[0].message;
