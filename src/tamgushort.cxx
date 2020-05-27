@@ -22,7 +22,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<shortMethod>  Tamgushort::methods;
 Exporting hmap<string, string> Tamgushort::infomethods;
-Exporting bin_hash<unsigned long> Tamgushort::exported;
+Exporting basebin_hash<unsigned long> Tamgushort::exported;
 
 Exporting short Tamgushort::idtype = 0;
 

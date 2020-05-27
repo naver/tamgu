@@ -24,7 +24,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<regularexpressionMethod>  Tamguregularexpression::methods;
 Exporting hmap<string, string> Tamguregularexpression::infomethods;
-Exporting bin_hash<unsigned long> Tamguregularexpression::exported;
+Exporting basebin_hash<unsigned long> Tamguregularexpression::exported;
 
 short Tamguregularexpression::idtype = 0;
 
@@ -345,7 +345,7 @@ bool Tamguregularexpression::searchlast(string& w, long& b, long& e, long init) 
 //We need to declare once again our local definitions.
 basebin_hash<posixregularexpressionMethod>  Tamguposixregularexpression::methods;
 hmap<string, string> Tamguposixregularexpression::infomethods;
-bin_hash<unsigned long> Tamguposixregularexpression::exported;
+basebin_hash<unsigned long> Tamguposixregularexpression::exported;
 
 short Tamguposixregularexpression::idtype = 0;
 

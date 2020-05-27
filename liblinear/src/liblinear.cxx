@@ -32,7 +32,7 @@ static map<string, int> solvers;
 //We need to declare once again our local definitions.
 hmap<unsigned short, liblinearMethod>  Tamguliblinear::methods;
 hmap<string, string> Tamguliblinear::infomethods;
-bin_hash<unsigned long> Tamguliblinear::exported;
+basebin_hash<unsigned long> Tamguliblinear::exported;
 
 short Tamguliblinear::idtype = 0;
 

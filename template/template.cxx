@@ -21,7 +21,7 @@ Programmer : Claude ROUX (claude.roux@naverlabs.com)
 //We need to declare once again our local definitions.
 basebin_hash<%1Method> Tamgu%1::methods;
 hmap<string, string> Tamgu%1::infomethods;
-bin_hash<unsigned long> Tamgu%1::exported;
+basebin_hash<unsigned long> Tamgu%1::exported;
 
 short Tamgu%1::idtype = 0;
 

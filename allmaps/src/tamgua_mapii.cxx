@@ -25,7 +25,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<a_mapiiMethod>  Tamgua_mapii::methods;
 Exporting hmap<string, string> Tamgua_mapii::infomethods;
-Exporting bin_hash<unsigned long> Tamgua_mapii::exported;
+Exporting basebin_hash<unsigned long> Tamgua_mapii::exported;
 
 Exporting short Tamgua_mapii::idtype = 0;
 

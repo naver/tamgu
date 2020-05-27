@@ -23,7 +23,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<transducerMethod>  Tamgutransducer::methods;
 Exporting hmap<string, string> Tamgutransducer::infomethods;
-Exporting bin_hash<unsigned long> Tamgutransducer::exported;
+Exporting basebin_hash<unsigned long> Tamgutransducer::exported;
 
 Exporting short Tamgutransducer::idtype = 0;
 

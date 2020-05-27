@@ -27,7 +27,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<chronoMethod>  Tamguchrono::methods;
 Exporting hmap<string, string> Tamguchrono::infomethods;
-Exporting bin_hash<unsigned long> Tamguchrono::exported;
+Exporting basebin_hash<unsigned long> Tamguchrono::exported;
 
 Exporting short Tamguchrono::idtype = 0;
 

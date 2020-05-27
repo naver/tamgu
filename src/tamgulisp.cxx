@@ -29,7 +29,7 @@
 //------------------------------------------------------------------------------------------------------------------
 Exporting basebin_hash<lispMethod>  Tamgulisp::methods;
 Exporting hmap<string, string> Tamgulisp::infomethods;
-Exporting bin_hash<unsigned long> Tamgulisp::exported;
+Exporting basebin_hash<unsigned long> Tamgulisp::exported;
 
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamgulisp::AddMethod(TamguGlobal* global, string name, lispMethod func, unsigned long arity, string infos) {

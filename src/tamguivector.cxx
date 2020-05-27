@@ -33,7 +33,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<ivectorMethod>  Tamguivector::methods;
 Exporting hmap<string, string> Tamguivector::infomethods;
-Exporting bin_hash<unsigned long> Tamguivector::exported;
+Exporting basebin_hash<unsigned long> Tamguivector::exported;
 
 Exporting short Tamguivector::idtype = 0;
 
@@ -1296,7 +1296,7 @@ Exporting Tamgu* Tamguivector::Loopin(TamguInstruction* ins, Tamgu* context, sho
     //We need to declare once again our local definitions.
 Exporting basebin_hash<a_ivectorMethod>  Tamgua_ivector::methods;
 Exporting hmap<string, string> Tamgua_ivector::infomethods;
-Exporting bin_hash<unsigned long> Tamgua_ivector::exported;
+Exporting basebin_hash<unsigned long> Tamgua_ivector::exported;
 
 Exporting short Tamgua_ivector::idtype = 0;
 

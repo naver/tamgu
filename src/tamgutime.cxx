@@ -20,7 +20,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<timeMethod>  Tamgutime::methods;
 Exporting hmap<string, string> Tamgutime::infomethods;
-Exporting bin_hash<unsigned long> Tamgutime::exported;
+Exporting basebin_hash<unsigned long> Tamgutime::exported;
 
 Exporting short Tamgutime::idtype = 0;
 

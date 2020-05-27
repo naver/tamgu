@@ -36,7 +36,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<rawstringMethod>  Tamgurawstring::methods;
 Exporting hmap<string, string> Tamgurawstring::infomethods;
-Exporting bin_hash<unsigned long> Tamgurawstring::exported;
+Exporting basebin_hash<unsigned long> Tamgurawstring::exported;
 
 Exporting short Tamgurawstring::idtype = 0;
 

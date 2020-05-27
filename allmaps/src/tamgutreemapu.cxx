@@ -23,7 +23,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<treemapuMethod>  Tamgutreemapu::methods;
 Exporting hmap<string, string> Tamgutreemapu::infomethods;
-Exporting bin_hash<unsigned long> Tamgutreemapu::exported;
+Exporting basebin_hash<unsigned long> Tamgutreemapu::exported;
 
 Exporting short Tamgutreemapu::idtype = 0;
 

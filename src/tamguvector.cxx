@@ -31,7 +31,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<vectorMethod>  Tamguvector::methods;
 Exporting hmap<string, string> Tamguvector::infomethods;
-Exporting bin_hash<unsigned long> Tamguvector::exported;
+Exporting basebin_hash<unsigned long> Tamguvector::exported;
 
 Exporting short Tamguvector::idtype = 0;
 
@@ -2873,7 +2873,7 @@ Exporting Tamgu* Tamguvector::Theproduct(long i, long j) {
     //We need to declare once again our local definitions.
 Exporting basebin_hash<a_vectorMethod>  Tamgua_vector::methods;
 Exporting hmap<string, string> Tamgua_vector::infomethods;
-Exporting bin_hash<unsigned long> Tamgua_vector::exported;
+Exporting basebin_hash<unsigned long> Tamgua_vector::exported;
 
 Exporting short Tamgua_vector::idtype = 0;
 

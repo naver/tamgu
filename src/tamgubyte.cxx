@@ -20,7 +20,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<byteMethod>  Tamgubyte::methods;
 Exporting hmap<string, string> Tamgubyte::infomethods;
-Exporting bin_hash<unsigned long> Tamgubyte::exported;
+Exporting basebin_hash<unsigned long> Tamgubyte::exported;
 
 Exporting short Tamgubyte::idtype = 0;
 

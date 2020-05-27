@@ -27,7 +27,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<grammarMethod>  Tamgugrammar::methods;
 Exporting hmap<string, string> Tamgugrammar::infomethods;
-Exporting bin_hash<unsigned long> Tamgugrammar::exported;
+Exporting basebin_hash<unsigned long> Tamgugrammar::exported;
 
 
 Exporting short Tamgugrammar::idtype = 0;

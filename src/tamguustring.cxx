@@ -39,7 +39,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<ustringMethod>  Tamguustring::methods;
 Exporting hmap<string, string> Tamguustring::infomethods;
-Exporting bin_hash<unsigned long> Tamguustring::exported;
+Exporting basebin_hash<unsigned long> Tamguustring::exported;
 Exporting short Tamguustring::idtype = 0;
 
 #ifndef max
@@ -2498,7 +2498,7 @@ Tamgu* TamguLoopUString::xorset(Tamgu* a, bool autoself) {
 //We need to declare once again our local definitions.
 Exporting basebin_hash<a_ustringMethod>  Tamgua_ustring::methods;
 Exporting hmap<string, string> Tamgua_ustring::infomethods;
-Exporting bin_hash<unsigned long> Tamgua_ustring::exported;
+Exporting basebin_hash<unsigned long> Tamgua_ustring::exported;
 
 
 Exporting short Tamgua_ustring::idtype = 0;

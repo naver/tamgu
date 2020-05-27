@@ -20,7 +20,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<tamguMethod>  Tamgutamgu::methods;
 Exporting hmap<string, string> Tamgutamgu::infomethods;
-Exporting bin_hash<unsigned long> Tamgutamgu::exported;
+Exporting basebin_hash<unsigned long> Tamgutamgu::exported;
 
 Exporting hmap<string, Tamgutamgu*> Tamgutamgu::recorded;
 

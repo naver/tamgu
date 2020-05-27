@@ -25,7 +25,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<ufileMethod>  Tamguufile::methods;
 Exporting hmap<string, string> Tamguufile::infomethods;
-Exporting bin_hash<unsigned long> Tamguufile::exported;
+Exporting basebin_hash<unsigned long> Tamguufile::exported;
 
 Exporting short Tamguufile::idtype = 0;
 

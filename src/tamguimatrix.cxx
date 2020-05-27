@@ -20,7 +20,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<imatrixMethod>  Tamguimatrix::methods;
 Exporting hmap<string, string> Tamguimatrix::infomethods;
-Exporting bin_hash<unsigned long> Tamguimatrix::exported;
+Exporting basebin_hash<unsigned long> Tamguimatrix::exported;
 
 Exporting short Tamguimatrix::idtype = 0;
 

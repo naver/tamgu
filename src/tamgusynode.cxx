@@ -22,7 +22,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<synodeMethod>  Tamgusynode::methods;
 Exporting hmap<string, string> Tamgusynode::infomethods;
-Exporting bin_hash<unsigned long> Tamgusynode::exported;
+Exporting basebin_hash<unsigned long> Tamgusynode::exported;
 
 short Tamgusynode::idtype = 0;
 

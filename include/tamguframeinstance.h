@@ -28,7 +28,7 @@ class Tamguframeseeder : public TamguObject {
 public:
     static Exchanging basebin_hash<frameinstanceMethod> methods;
     static Exchanging hmap<string, string> infomethods;
-    static Exchanging bin_hash<unsigned long> exported;
+    static Exchanging basebin_hash<unsigned long> exported;
     
     static Exchanging short idtype;
 

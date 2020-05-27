@@ -64,7 +64,7 @@ extern "C" {
 //We need to declare once again our local definitions.
 hmap<unsigned short, word2vecItemMethod>  Tamguw2vector::methods;
 hmap<string, string> Tamguw2vector::infomethods;
-bin_hash<unsigned long> Tamguw2vector::exported;
+basebin_hash<unsigned long> Tamguw2vector::exported;
 
 short Tamguw2vector::idtype = 0;
 
@@ -118,7 +118,7 @@ bool Tamguw2vector::InitialisationModule(TamguGlobal* global, string version) {
 //We need to declare once again our local definitions.
 hmap<unsigned short, word2vecMethod>  Tamguword2vec::methods;
 hmap<string, string> Tamguword2vec::infomethods;
-bin_hash<unsigned long> Tamguword2vec::exported;
+basebin_hash<unsigned long> Tamguword2vec::exported;
 
 short Tamguword2vec::idtype = 0;
 

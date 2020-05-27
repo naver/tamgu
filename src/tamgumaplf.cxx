@@ -26,7 +26,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<maplfMethod>  Tamgumaplf::methods;
 Exporting hmap<string, string> Tamgumaplf::infomethods;
-Exporting bin_hash<unsigned long> Tamgumaplf::exported;
+Exporting basebin_hash<unsigned long> Tamgumaplf::exported;
 
 Exporting short Tamgumaplf::idtype = 0;
 

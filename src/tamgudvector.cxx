@@ -29,7 +29,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<dvectorMethod>  Tamgudvector::methods;
 Exporting hmap<string, string> Tamgudvector::infomethods;
-Exporting bin_hash<unsigned long> Tamgudvector::exported;
+Exporting basebin_hash<unsigned long> Tamgudvector::exported;
 
 Exporting short Tamgudvector::idtype = 0;
 

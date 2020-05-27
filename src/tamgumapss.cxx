@@ -25,7 +25,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<mapssMethod>  Tamgumapss::methods;
 Exporting hmap<string, string> Tamgumapss::infomethods;
-Exporting bin_hash<unsigned long> Tamgumapss::exported;
+Exporting basebin_hash<unsigned long> Tamgumapss::exported;
 
 Exporting short Tamgumapss::idtype = 0;
 

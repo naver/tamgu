@@ -26,7 +26,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<treemapllMethod>  Tamgutreemapll::methods;
 Exporting map<string, string> Tamgutreemapll::infomethods;
-Exporting bin_hash<unsigned long> Tamgutreemapll::exported;
+Exporting basebin_hash<unsigned long> Tamgutreemapll::exported;
 
 Exporting short Tamgutreemapll::idtype = 0;
 

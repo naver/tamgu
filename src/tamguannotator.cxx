@@ -28,7 +28,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<annotatorMethod>  Tamguannotator::methods;
 Exporting hmap<string, string> Tamguannotator::infomethods;
-Exporting bin_hash<unsigned long> Tamguannotator::exported;
+Exporting basebin_hash<unsigned long> Tamguannotator::exported;
 
 Exporting short Tamguannotator::idtype = 0;
 

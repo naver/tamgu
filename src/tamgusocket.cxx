@@ -105,7 +105,7 @@ static bool validstream(int nb) {
 //We need to declare once again our local definitions.
 Exporting basebin_hash<socketMethod>  Tamgusocket::methods;
 Exporting hmap<string, string> Tamgusocket::infomethods;
-Exporting bin_hash<unsigned long> Tamgusocket::exported;
+Exporting basebin_hash<unsigned long> Tamgusocket::exported;
 
 Exporting short Tamgusocket::idtype = 0;
 

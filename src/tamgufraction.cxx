@@ -20,7 +20,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<fractionMethod>  Tamgufraction::methods;
 Exporting hmap<string, string> Tamgufraction::infomethods;
-Exporting bin_hash<unsigned long> Tamgufraction::exported;
+Exporting basebin_hash<unsigned long> Tamgufraction::exported;
 
 Exporting short Tamgufraction::idtype = 0;
 

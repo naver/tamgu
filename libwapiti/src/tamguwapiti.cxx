@@ -10,7 +10,7 @@
 //We need to declare once again our local definitions.
 hmap<unsigned short, wapitiMethod>  Tamguwapiti::methods;
 hmap<string, string> Tamguwapiti::infomethods;
-bin_hash<unsigned long> Tamguwapiti::exported;
+basebin_hash<unsigned long> Tamguwapiti::exported;
 
 short Tamguwapiti::idtype = 0;
 

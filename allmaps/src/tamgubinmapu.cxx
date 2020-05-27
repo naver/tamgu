@@ -26,7 +26,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<binmapuMethod>  Tamgubinmapu::methods;
 Exporting hmap<string, string> Tamgubinmapu::infomethods;
-Exporting bin_hash<unsigned long> Tamgubinmapu::exported;
+Exporting basebin_hash<unsigned long> Tamgubinmapu::exported;
 
 Exporting short Tamgubinmapu::idtype = 0;
 

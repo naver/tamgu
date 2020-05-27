@@ -29,7 +29,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<floatMethod>  Tamgufloat::methods;
 Exporting hmap<string, string> Tamgufloat::infomethods;
-Exporting bin_hash<unsigned long> Tamgufloat::exported;
+Exporting basebin_hash<unsigned long> Tamgufloat::exported;
 
 Exporting short Tamgufloat::idtype = 0;
 
@@ -139,7 +139,7 @@ bool Tamgufloat::InitialisationModule(TamguGlobal* global, string version) {
 
 Exporting basebin_hash<atomicfloatMethod>  Tamguatomicfloat::methods;
 Exporting hmap<string, string> Tamguatomicfloat::infomethods;
-Exporting bin_hash<unsigned long> Tamguatomicfloat::exported;
+Exporting basebin_hash<unsigned long> Tamguatomicfloat::exported;
 
 Exporting short Tamguatomicfloat::idtype = 0;
 

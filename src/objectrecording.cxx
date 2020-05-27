@@ -89,8 +89,7 @@ void TamguGlobal::RecordObjects() {
     a = new TamguLoopBoolean;
     newInstance[a_bloop] = a;
     RecordInTracker(a);
-
-
+    
     TamguCallFibre::InitialisationModule(this, TamguVersion());
 
     Tamgutamgu::InitialisationModule(this, TamguVersion());

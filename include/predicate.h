@@ -543,7 +543,7 @@ public:
 
 	static Exchanging basebin_hash<predicateMethod> methods;
 	static Exchanging hmap<string, string> infomethods;
-	static Exchanging bin_hash<unsigned long> exported;
+	static Exchanging basebin_hash<unsigned long> exported;
 	static Exchanging short idtype;
 
 	TamguPredicate(short n, TamguGlobal* g = NULL, short t = a_predicate, Tamgu* parent = NULL);

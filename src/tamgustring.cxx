@@ -48,7 +48,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<stringMethod>  Tamgustring::methods;
 Exporting hmap<string, string> Tamgustring::infomethods;
-Exporting bin_hash<unsigned long> Tamgustring::exported;
+Exporting basebin_hash<unsigned long> Tamgustring::exported;
 
 Exporting short Tamgustring::idtype = 0;
 
@@ -2647,7 +2647,7 @@ Tamgu* TamguLoopString::xorset(Tamgu* a, bool autoself) {
 //We need to declare once again our local definitions.
 Exporting basebin_hash<a_stringMethod>  Tamgua_string::methods;
 Exporting hmap<string, string> Tamgua_string::infomethods;
-Exporting bin_hash<unsigned long> Tamgua_string::exported;
+Exporting basebin_hash<unsigned long> Tamgua_string::exported;
 
 Exporting short Tamgua_string::idtype = 0;
 

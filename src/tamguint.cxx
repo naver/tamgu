@@ -25,7 +25,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<intMethod>  Tamguint::methods;
 Exporting hmap<string, string> Tamguint::infomethods;
-Exporting bin_hash<unsigned long> Tamguint::exported;
+Exporting basebin_hash<unsigned long> Tamguint::exported;
 
 Exporting short Tamguint::idtype = 0;
 
@@ -118,7 +118,7 @@ bool Tamguint::InitialisationModule(TamguGlobal* global, string version) {
 
 Exporting basebin_hash<atomicintMethod>  Tamguatomicint::methods;
 Exporting hmap<string, string> Tamguatomicint::infomethods;
-Exporting bin_hash<unsigned long> Tamguatomicint::exported;
+Exporting basebin_hash<unsigned long> Tamguatomicint::exported;
 
 Exporting short Tamguatomicint::idtype = 0;
 

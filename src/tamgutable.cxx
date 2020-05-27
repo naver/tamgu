@@ -30,7 +30,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<tableMethod>  Tamgutable::methods;
 Exporting hmap<string, string> Tamgutable::infomethods;
-Exporting bin_hash<unsigned long> Tamgutable::exported;
+Exporting basebin_hash<unsigned long> Tamgutable::exported;
 
 Exporting short Tamgutable::idtype = 0;
 

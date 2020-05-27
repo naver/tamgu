@@ -20,7 +20,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<frameinstanceMethod>  Tamguframeseeder::methods;
 Exporting hmap<string, string> Tamguframeseeder::infomethods;
-Exporting bin_hash<unsigned long> Tamguframeseeder::exported;
+Exporting basebin_hash<unsigned long> Tamguframeseeder::exported;
 
 Exporting short Tamguframeseeder::idtype = 0;
 

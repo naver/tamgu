@@ -25,7 +25,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<a_mapffMethod>  Tamgua_mapff::methods;
 Exporting hmap<string, string> Tamgua_mapff::infomethods;
-Exporting bin_hash<unsigned long> Tamgua_mapff::exported;
+Exporting basebin_hash<unsigned long> Tamgua_mapff::exported;
 
 Exporting short Tamgua_mapff::idtype = 0;
 

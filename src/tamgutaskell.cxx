@@ -32,7 +32,7 @@
 
 Exporting basebin_hash<tamguCallFibre>  TamguCallFibre::methods;
 Exporting hmap<string, string> TamguCallFibre::infomethods;
-Exporting bin_hash<unsigned long> TamguCallFibre::exported;
+Exporting basebin_hash<unsigned long> TamguCallFibre::exported;
 
 Exporting short TamguCallFibre::idtype = 0;
 

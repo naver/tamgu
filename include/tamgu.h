@@ -2779,7 +2779,7 @@ public:
 class TamguMainFrame : public TamguFrame {
 public:
 
-    bin_hash<unsigned long> exported;
+    basebin_hash<unsigned long> exported;
 	ThreadLock _locker;
 
 	TamguMainFrame(short n, bool p, TamguGlobal* g = NULL, Tamgu* parent = NULL) : TamguFrame(n, p, g, parent) {}

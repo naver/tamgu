@@ -131,7 +131,7 @@ static void XmlCleaningDoc(xmlDocPtr dx) {
 //We need to declare once again our local definitions.
 basebin_hash<xmldocMethod>  Tamguxmldoc::methods;
 hmap<string, string> Tamguxmldoc::infomethods;
-bin_hash<unsigned long> Tamguxmldoc::exported;
+basebin_hash<unsigned long> Tamguxmldoc::exported;
 
 short Tamguxmldoc::idtype = 0;
 

@@ -38,7 +38,7 @@ class Tamguprimemaplf : public TamguLockContainer {
     //We associate the method pointers with their names in the linkedmethods map
     static Exchanging basebin_hash<primemaplfMethod> methods;
     static Exchanging hmap<string, string> infomethods;
-    static Exchanging bin_hash<unsigned long> exported;
+    static Exchanging  basebin_hash<unsigned long> exported;
 
     static Exchanging short idtype;
 

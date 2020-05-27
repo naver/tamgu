@@ -35,7 +35,7 @@ using std::ios;
     //We need to declare once again our local definitions.
 basebin_hash<pdfMethod> Tamgupdf::methods;
 hmap<string, string> Tamgupdf::infomethods;
-bin_hash<unsigned long> Tamgupdf::exported;
+basebin_hash<unsigned long> Tamgupdf::exported;
 
 short Tamgupdf::idtype = 0;
 

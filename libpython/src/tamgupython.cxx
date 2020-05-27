@@ -73,7 +73,7 @@ static bool init_python = false;
 //We need to declare once again our local definitions.
 basebin_hash<pythonMethod>  Tamgupython::methods;
 hmap<string, string> Tamgupython::infomethods;
-bin_hash<unsigned long> Tamgupython::exported;
+basebin_hash<unsigned long> Tamgupython::exported;
 
 short Tamgupython::idtype = 0;
 

@@ -941,7 +941,7 @@ public:
     void Initarguments(vector<string>& args);
 
 
-	Exporting void RecordMethods(short type, bin_hash<unsigned long>& exported);
+	Exporting void RecordMethods(short type, basebin_hash<unsigned long>& exported);
 
 	Exporting void RecordMethods(short type, short name, unsigned long arity);
 

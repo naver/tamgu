@@ -1113,7 +1113,7 @@ public:
 	//We associate the method pointers with their names in the linkedmethods map
 	static hmap<unsigned short, word2vecMethod> methods;
 	static hmap<string, string> infomethods;
-	static bin_hash<unsigned long> exported;
+	static  basebin_hash<unsigned long> exported;
 
 	static short idtype;
 
@@ -1387,7 +1387,7 @@ public:
 	//We associate the method pointers with their names in the linkedmethods map
 	static hmap<unsigned short, word2vecItemMethod> methods;
 	static hmap<string, string> infomethods;
-	static bin_hash<unsigned long> exported;
+	static  basebin_hash<unsigned long> exported;
 
 	static short idtype;
 

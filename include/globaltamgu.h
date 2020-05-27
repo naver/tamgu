@@ -35,7 +35,7 @@ Exporting TamguGlobal* GlobalTamgu(int idx);
 //These methods are used to create an tamgu engine...
 void FinalTamguConstantCleaning(void);
 
-Exporting TamguGlobal* TamguCreate(long nbthreads = DEFAUTTHREADMAX);
+Exporting TamguGlobal* TamguCreate(long nbthreads = 50);
 Exporting bool TamguExtinguish();
 Exporting short TamguLoad(string filename);
 Exporting short TamguCompile(string& code, string filename, bool display = false);

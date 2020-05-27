@@ -20,7 +20,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<fmatrixMethod>  Tamgufmatrix::methods;
 Exporting hmap<string, string> Tamgufmatrix::infomethods;
-Exporting bin_hash<unsigned long> Tamgufmatrix::exported;
+Exporting basebin_hash<unsigned long> Tamgufmatrix::exported;
 
 Exporting short Tamgufmatrix::idtype = 0;
 

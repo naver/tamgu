@@ -26,7 +26,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<primemapiuMethod>  Tamguprimemapiu::methods;
 Exporting hmap<string, string> Tamguprimemapiu::infomethods;
-Exporting bin_hash<unsigned long> Tamguprimemapiu::exported;
+Exporting basebin_hash<unsigned long> Tamguprimemapiu::exported;
 
 Exporting short Tamguprimemapiu::idtype = 0;
 

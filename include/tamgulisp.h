@@ -352,7 +352,7 @@ class Tamgulisp : public Tamguvector {
     public:
     static Exchanging basebin_hash<lispMethod> methods;
     static Exchanging hmap<string, string> infomethods;
-    static Exchanging bin_hash<unsigned long> exported;
+    static Exchanging basebin_hash<unsigned long> exported;
 
     //---------------------------------------------------------------------------------------------------------------------
     //This SECTION is for your specific implementation...

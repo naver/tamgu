@@ -21,7 +21,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<dateMethod>  Tamgudate::methods;
 Exporting hmap<string, string> Tamgudate::infomethods;
-Exporting bin_hash<unsigned long> Tamgudate::exported;
+Exporting basebin_hash<unsigned long> Tamgudate::exported;
 
 Exporting short Tamgudate::idtype = 0;
 

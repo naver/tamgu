@@ -27,7 +27,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<fvectorMethod>  Tamgufvector::methods;
 Exporting hmap<string, string> Tamgufvector::infomethods;
-Exporting bin_hash<unsigned long> Tamgufvector::exported;
+Exporting basebin_hash<unsigned long> Tamgufvector::exported;
 
 Exporting short Tamgufvector::idtype = 0;
 
@@ -1212,7 +1212,7 @@ Exporting Tamgu* Tamgufvector::Loopin(TamguInstruction* ins, Tamgu* context, sho
 //We need to declare once again our local definitions.
 Exporting basebin_hash<a_fvectorMethod>  Tamgua_fvector::methods;
 Exporting hmap<string, string> Tamgua_fvector::infomethods;
-Exporting bin_hash<unsigned long> Tamgua_fvector::exported;
+Exporting basebin_hash<unsigned long> Tamgua_fvector::exported;
 
 Exporting short Tamgua_fvector::idtype = 0;
 

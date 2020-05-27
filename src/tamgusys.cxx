@@ -46,7 +46,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<sysMethod>  Tamgusys::methods;
 Exporting hmap<string, string> Tamgusys::infomethods;
-Exporting bin_hash<unsigned long> Tamgusys::exported;
+Exporting basebin_hash<unsigned long> Tamgusys::exported;
 
 Exporting short Tamgusys::idtype = 0;
 

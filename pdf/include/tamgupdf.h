@@ -31,7 +31,7 @@ class Tamgupdf : public TamguObject, PDF {
     //We associate the method pointers with their names in the linkedmethods map
     static basebin_hash<pdfMethod> methods;
     static hmap<string, string> infomethods;
-    static bin_hash<unsigned long> exported;
+    static  basebin_hash<unsigned long> exported;
 
     static short idtype;
 

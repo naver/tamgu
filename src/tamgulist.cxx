@@ -27,7 +27,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<listMethod>  Tamgulist::methods;
 Exporting hmap<string, string> Tamgulist::infomethods;
-Exporting bin_hash<unsigned long> Tamgulist::exported;
+Exporting basebin_hash<unsigned long> Tamgulist::exported;
 
 Exporting short Tamgulist::idtype = 0;
 
@@ -1504,7 +1504,7 @@ Exporting void Tamgulist::storevalue(wchar_t u) {
     //We need to declare once again our local definitions.
 Exporting basebin_hash<a_listMethod>  Tamguring::methods;
 Exporting hmap<string, string> Tamguring::infomethods;
-Exporting bin_hash<unsigned long> Tamguring::exported;
+Exporting basebin_hash<unsigned long> Tamguring::exported;
 
 Exporting short Tamguring::idtype = 0;
 

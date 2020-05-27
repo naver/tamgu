@@ -20,7 +20,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<iteratorMethod>  Tamguiterator::methods;
 Exporting hmap<string, string> Tamguiterator::infomethods;
-Exporting bin_hash<unsigned long> Tamguiterator::exported;
+Exporting basebin_hash<unsigned long> Tamguiterator::exported;
 
 Exporting short Tamguiterator::idtype = 0;
 

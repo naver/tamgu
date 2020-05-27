@@ -22,7 +22,7 @@
 //We need to declare once again our local definitions.
 basebin_hash<sqliteMethod>  Tamgusqlite::methods;
 hmap<string, string> Tamgusqlite::infomethods;
-bin_hash<unsigned long> Tamgusqlite::exported;
+basebin_hash<unsigned long> Tamgusqlite::exported;
 
 short Tamgusqlite::idtype = 0;
 

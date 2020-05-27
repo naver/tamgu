@@ -29,7 +29,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<decimalMethod>  Tamgudecimal::methods;
 Exporting hmap<string, string> Tamgudecimal::infomethods;
-Exporting bin_hash<unsigned long> Tamgudecimal::exported;
+Exporting basebin_hash<unsigned long> Tamgudecimal::exported;
 
 Exporting short Tamgudecimal::idtype = 0;
 

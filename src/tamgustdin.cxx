@@ -22,7 +22,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<stdinMethod>  Tamgustdin::methods;
 Exporting hmap<string, string> Tamgustdin::infomethods;
-Exporting bin_hash<unsigned long> Tamgustdin::exported;
+Exporting basebin_hash<unsigned long> Tamgustdin::exported;
 
 Exporting short Tamgustdin::idtype = 0;
 

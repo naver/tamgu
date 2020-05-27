@@ -280,7 +280,7 @@ static size_t call_writing(char *ptr, size_t size, size_t nmemb, Tamgucurl* user
 //We need to declare once again our local definitions.
 basebin_hash<curlMethod>  Tamgucurl::methods;
 hmap<string, string> Tamgucurl::infomethods;
-bin_hash<unsigned long> Tamgucurl::exported;
+basebin_hash<unsigned long> Tamgucurl::exported;
 
 short Tamgucurl::idtype = 0;
 

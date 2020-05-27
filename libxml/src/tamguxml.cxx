@@ -57,7 +57,7 @@ void xmlnodeclear(xmlNodePtr n) {
 //We need to declare once again our local definitions.
 basebin_hash<xmlMethod>  Tamguxml::methods;
 hmap<string, string> Tamguxml::infomethods;
-bin_hash<unsigned long> Tamguxml::exported;
+basebin_hash<unsigned long> Tamguxml::exported;
 
 short Tamguxml::idtype = 0;
 

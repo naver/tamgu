@@ -30,7 +30,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<uvectorMethod>  Tamguuvector::methods;
 Exporting hmap<string, string> Tamguuvector::infomethods;
-Exporting bin_hash<unsigned long> Tamguuvector::exported;
+Exporting basebin_hash<unsigned long> Tamguuvector::exported;
 
 Exporting short Tamguuvector::idtype = 0;
 #ifndef max
@@ -1250,7 +1250,7 @@ Exporting Tamgu* Tamguuvector::Loopin(TamguInstruction* ins, Tamgu* context, sho
     //We need to declare once again our local definitions.
 Exporting basebin_hash<a_uvectorMethod>  Tamgua_uvector::methods;
 Exporting hmap<string, string> Tamgua_uvector::infomethods;
-Exporting bin_hash<unsigned long> Tamgua_uvector::exported;
+Exporting basebin_hash<unsigned long> Tamgua_uvector::exported;
 
 Exporting short Tamgua_uvector::idtype = 0;
 

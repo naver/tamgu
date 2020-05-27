@@ -2488,8 +2488,8 @@ Exporting void TamguGlobal::RecordCommon(string name, string info, TamguProcedur
         returntypes[idname] = retype;
 }
 
-Exporting void TamguGlobal::RecordMethods(short type, bin_hash<unsigned long>& exported) {
-    bin_hash<unsigned long>::iterator it;
+Exporting void TamguGlobal::RecordMethods(short type, basebin_hash<unsigned long>& exported) {
+    basebin_hash<unsigned long>::iterator it;
     for (it = exported.begin(); it != exported.end(); it++) {
         methods[type][it->first] = it->second;
         if (allmethods.check(it->first))

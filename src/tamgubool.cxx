@@ -20,7 +20,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<boolMethod>  Tamguboolean::methods;
 Exporting hmap<string, string> Tamguboolean::infomethods;
-Exporting bin_hash<unsigned long> Tamguboolean::exported;
+Exporting basebin_hash<unsigned long> Tamguboolean::exported;
 
 Exporting short Tamguboolean::idtype = 0;
 
@@ -61,7 +61,7 @@ void Tamguboolean::AddMethod(TamguGlobal* global, string name, boolMethod func, 
 
 Exporting basebin_hash<atomicboolMethod>  Tamguatomicbool::methods;
 Exporting hmap<string, string> Tamguatomicbool::infomethods;
-Exporting bin_hash<unsigned long> Tamguatomicbool::exported;
+Exporting basebin_hash<unsigned long> Tamguatomicbool::exported;
 
 Exporting short Tamguatomicbool::idtype = 0;
 

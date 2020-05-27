@@ -26,7 +26,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<bvectorMethod>  Tamgubvector::methods;
 Exporting hmap<string, string> Tamgubvector::infomethods;
-Exporting bin_hash<unsigned long> Tamgubvector::exported;
+Exporting basebin_hash<unsigned long> Tamgubvector::exported;
 
 Exporting short Tamgubvector::idtype = 0;
 

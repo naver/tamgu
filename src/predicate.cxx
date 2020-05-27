@@ -113,7 +113,7 @@ short TamguDependency::Idvar() {
 //-------------------------------------------------------------------------------------------------
 Exporting basebin_hash<predicateMethod> TamguPredicate::methods;
 Exporting hmap<string, string> TamguPredicate::infomethods;
-Exporting bin_hash<unsigned long> TamguPredicate::exported;
+Exporting basebin_hash<unsigned long> TamguPredicate::exported;
 
 Exporting short TamguPredicate::idtype = 0;
 

@@ -26,7 +26,7 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<treemapfiMethod>  Tamgutreemapfi::methods;
 Exporting map<string, string> Tamgutreemapfi::infomethods;
-Exporting bin_hash<unsigned long> Tamgutreemapfi::exported;
+Exporting basebin_hash<unsigned long> Tamgutreemapfi::exported;
 
 Exporting short Tamgutreemapfi::idtype = 0;
 
