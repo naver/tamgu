@@ -1323,7 +1323,7 @@ Exporting Tamgu* TamguCallFromCall::Put(Tamgu* context, Tamgu* object, short idt
 		t = object->Type();
 	}
 
-	if (!globalTamgu->methods.check(t) || Arity(globalTamgu->methods.get(t)[name], arguments.size()) == false) {
+	if (!globalTamgu->checkarity(t, name, arguments.size())) {
         if (!globalTamgu->frames.check(t)) {
             string mess("'");
             mess += globalTamgu->Getsymbol(name);
@@ -1383,7 +1383,7 @@ Exporting Tamgu* TamguCallFromCall::Eval(Tamgu* context, Tamgu* object, short id
 		object->Setidtype(globalTamgu);
 		t = object->Type();
 	}
-    if (!globalTamgu->methods.check(t) || Arity(globalTamgu->methods.get(t)[name], arguments.size()) == false) {
+    if (!globalTamgu->checkarity(t, name, arguments.size())) {
         if (!globalTamgu->frames.check(t)) {
             string mess("'");
             mess += globalTamgu->Getsymbol(name);

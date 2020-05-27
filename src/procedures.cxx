@@ -2421,7 +2421,7 @@ Tamgu* CommonExtension(Tamgu* object, short idthread, TamguCall* callfunc) {
         //One no extension exists for this type, however, the variable might have been accessed through a self or a let variable
         //we check if the Extension was attributed by error...
         //The "Execute" here has been implemented to call the TamguCallMethod::Get...
-        if (globalTamgu->methods.check(t) && Arity(globalTamgu->methods[t][name], callfunc->Size()))
+        if (globalTamgu->checkarity(t,name, callfunc->Size()))
             return callfunc->Execute(aNULL, object, idthread);
 
         stringstream message;
@@ -2434,7 +2434,7 @@ Tamgu* CommonExtension(Tamgu* object, short idthread, TamguCall* callfunc) {
         //we check if actually there is a method with that name, which is part of the object itself...
         //Again, the CommonExtension could have been attributed by error...
         //The "Execute" here has been implemented to call the TamguCallMethod::Get...
-        if (globalTamgu->methods.check(t) && Arity(globalTamgu->methods[t][name], callfunc->Size()))
+        if (globalTamgu->checkarity(t,name, callfunc->Size()))
             return callfunc->Execute(aNULL, object, idthread);
 
         stringstream message;

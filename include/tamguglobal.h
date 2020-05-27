@@ -594,24 +594,24 @@ public:
 
 	hmap<short, hmap<short, Tamgu*> > mapnewInstances;
 
-	bin_hash<bin_hash<unsigned long> > methods;
+	bin_hash<basebin_hash<unsigned long> > methods;
 	bin_hash<unsigned long> allmethods;
-	bin_hash<unsigned long> framemethods;
-	bin_hash<bool> functions;
-	bin_hash<TamguProcedure> procedures;
-	bin_hash<TamguProcedure> commons;
+	basebin_hash<unsigned long> framemethods;
+	basebin_hash<bool> functions;
+	basebin_hash<TamguProcedure> procedures;
+	basebin_hash<TamguProcedure> commons;
     hmap<string, string> commoninfos;
 
 	bin_hash<unsigned long> arities;
-	bin_hash<TamguFrame*> frames;
+	basebin_hash<TamguFrame*> frames;
 
-	bin_hash<TamguSystemVariable*> systems;
+	basebin_hash<TamguSystemVariable*> systems;
 	
 	bin_hash<basebin_hash<bool> > compatibilities;
 	bin_hash<basebin_hash<bool> > strictcompatibilities;
 	
-	bin_hash<TamguFrame*> extensions;
-	bin_hash<bool> extensionmethods;
+	basebin_hash<TamguFrame*> extensions;
+	basebin_hash<bool> extensionmethods;
 
 	TamguPredicateContainer* predicateContainer;
 
@@ -695,6 +695,15 @@ public:
 	ThreadLock _knowledgelock;
     ThreadLock _parselock;
 
+    inline bool checkmethod(short idtype, short idname) {
+        return (methods.check(idtype) && methods.get(idtype).check(idname));
+    }
+    
+    inline bool checkarity(short idtype, short idname, long sz) {
+        unsigned long a = 1 << sz;
+        return (methods.check(idtype) && methods.get(idtype).check(idname) && a == (methods.get(idtype).get(idname)&a));
+    }
+    
 	bool isRunning() {
 		return running;
 	}

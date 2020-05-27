@@ -2614,7 +2614,7 @@ Tamgu* TamguCode::C_subfunc(x_node* xn, Tamgu* parent) {
 			if (global->extensions.check(tyvar) && global->extensions[tyvar]->isDeclared(id))
 				function = new TamguCallCommonMethod(id, global, parent);
 			else {
-				if (global->methods[tyvar].check(id))
+				if (global->checkmethod(tyvar, id))
 					function = new TamguCallMethod(id, global, parent);
 				else {
 					if (global->allmethods.check(id)) {
