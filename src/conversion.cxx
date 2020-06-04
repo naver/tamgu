@@ -13934,8 +13934,8 @@ Exporting long IndentationCode(string& codestr, bool lisp) {
     if (checkspace==1)
         addspace--;
     else
-        if (checkspace == 3 && !iblank && !addspace)
-            iblank = blanksize;
+        if (checkspace == 3 && !addspace)
+            iblank += blanksize;
         
     if (addspace)
         iblank += blanksize*addspace;

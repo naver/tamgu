@@ -1665,7 +1665,7 @@ unsigned long StringEditDistance(string& value, string& s2) {
 string StringXor(string value, string s) {
     string u;
     
-    long m = min(s.size(), value.size());
+    long m = minlocal(s.size(), value.size());
     for (long i = 0; i < m; i++) {
         if (s[i] != value[i])
             u += value[i];
@@ -1678,7 +1678,7 @@ string StringXor(string value, string s) {
 wstring StringXor(wstring value, wstring s) {
     wstring u;
     
-    long m = min(s.size(), value.size());
+    long m = minlocal(s.size(), value.size());
     for (long i = 0; i < m; i++) {
         if (s[i] != value[i])
             u += value[i];
@@ -1691,7 +1691,7 @@ wstring StringXor(wstring value, wstring s) {
 string StringAnd(string value, string s) {
     string u;
     
-    long m = min(s.size(), value.size());
+    long m = minlocal(s.size(), value.size());
     for (long i = 0; i < m; i++) {
         if (s[i] == value[i])
             u += s[i];
@@ -1702,7 +1702,7 @@ string StringAnd(string value, string s) {
 wstring StringAnd(wstring value, wstring s) {
     wstring u;
     
-    long m = min(s.size(), value.size());
+    long m = minlocal(s.size(), value.size());
     for (long i = 0; i < m; i++) {
         if (s[i] == value[i])
             u += s[i];

@@ -36,11 +36,6 @@ Exporting basebin_hash<unsigned long> TamguCallFibre::exported;
 
 Exporting short TamguCallFibre::idtype = 0;
 
-#ifndef max
-#define max(a,b)            (((a) > (b)) ? (a) : (b))
-#define min(a,b)            (((a) < (b)) ? (a) : (b))
-#endif
-
     //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void TamguCallFibre::AddMethod(TamguGlobal* global, string name, tamguCallFibre func, unsigned long arity, string infos) {
     short idname = global->Getid(name);

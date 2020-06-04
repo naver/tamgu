@@ -68,6 +68,10 @@ bool ToggleLispMode();
 bool isLispmode();
 void Setlispmode(bool v);
 //-----------------------------------------------------------------------
+inline long maxlocal(long x, long y) { return (x > y) ? x : y; }
+inline long minlocal(long x, long y) { return (x < y) ? x : y; }
+//-----------------------------------------------------------------------
+
 //The main variable, which controls the world...
 #ifdef MULTIGLOBALTAMGU
 extern localthread TamguGlobal* globalTamgu;

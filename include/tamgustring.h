@@ -19,10 +19,6 @@
 
 #include "tamguint.h"
 
-#ifndef min
-#define min(a,b)            (((a) < (b)) ? (a) : (b))
-#endif
-
 //---------------------------------------------------------------------------------------------------------------------
 const long base_atomic_string_size = 7;
 const long atomic_string_size = 1 << base_atomic_string_size;
@@ -76,8 +72,8 @@ public:
         }
     }
     
-    long size() {
-        long sz = strlen(buffer);
+    size_t size() {
+        size_t sz = strlen(buffer);
         if (next != NULL)
             sz += next->size();
         return sz;
@@ -427,7 +423,7 @@ public:
         return false;
     }
     
-    long size() {
+    size_t size() {
         return head->size();
     }
     
@@ -985,7 +981,7 @@ public:
         locking();
         string v=a->String();
         string k;
-        long zs=min(value.size(),v.size());
+        long zs= minlocal(value.size(),v.size());
         for (long u=0;u<zs;u++) {
             k+=value[u];
             k+=v[u];
@@ -1690,7 +1686,7 @@ public:
         string vl = value.value();
         string v=a->String();
         string k;
-        long zs=min(vl.size(),v.size());
+        long zs= minlocal(vl.size(),v.size());
         for (long u=0;u<zs;u++) {
             k+=vl[u];
             k+=v[u];

@@ -33,11 +33,6 @@ Exporting basebin_hash<unsigned long> Tamgudvector::exported;
 
 Exporting short Tamgudvector::idtype = 0;
 
-#ifndef max
-#define max(a,b)            (((a) > (b)) ? (a) : (b))
-    #define min(a,b)            (((a) < (b)) ? (a) : (b))
-        #endif
-
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamgudvector::AddMethod(TamguGlobal* global, string name, dvectorMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
@@ -343,7 +338,7 @@ Exporting unsigned long Tamgudvector::EditDistance(Tamgu* e) {
     float* v1 = new float[s1len + 1];
     float* v2 = new float[s2len + 1];
 
-    y = max(s1len, s2len);
+    y =  maxlocal(s1len, s2len);
     for (x = 0; x < y; x++) {
         if (x < s1len)
             v1[x] = values[x];

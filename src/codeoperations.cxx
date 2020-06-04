@@ -25,11 +25,6 @@
 #include "comparetemplate.h"
 
 
-#ifndef max
-#define max(a,b)            (((a) > (b)) ? (a) : (b))
-#define min(a,b)            (((a) < (b)) ? (a) : (b))
-#endif
-
 #ifdef UNIX
 #define swprintf_s swprintf
 #endif

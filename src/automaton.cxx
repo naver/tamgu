@@ -48,11 +48,6 @@ const short action_fullall = action_change | action_insert | action_vowel | acti
 #define isaction(a) (flags & a) == a
 #define isnotaction(a) (flags & a) == 0
 
-#ifndef max
-#define max(a,b)            (((a) > (b)) ? (a) : (b))
-#define min(a,b)            (((a) < (b)) ? (a) : (b))
-#endif
-
 //----------------------------------------------------------------------------------
 static void replaceonechar(wstring& buffer, TAMGUCHAR rep, long pos, long ssz) {
 	long sz = buffer.size();

@@ -14,6 +14,10 @@
  Reviewer   :
 */
 
+#ifdef WIN32
+#include <windows.h>
+#endif
+
 #include "tamgu.h"
 #include "tamguversion.h"
 #include "globaltamgu.h"
@@ -23,6 +27,7 @@
 #include "tamgulisp.h"
 
 #ifdef WIN32
+#define PATH_MAX 4096
 #include <conio.h>
 #endif
 #include <stdio.h>
@@ -36,9 +41,10 @@
 
 #include <iomanip>
 
-#ifndef max
-#define max(a,b)            (((a) > (b)) ? (a) : (b))
-#define min(a,b)            (((a) < (b)) ? (a) : (b))
+#ifdef WIN32
+char* Getenv(char* name);
+#else
+#define Getenv getenv
 #endif
 
 //------------------------------------------------------------------------
@@ -52,18 +58,6 @@ bool CheckThroughVariables();
 Tamgu* ProcEval(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
 static bool lispmode = false;
-
-#ifdef DOSOUTPUT
-static bool dosoutput = true;
-static void Setdosoutput(bool d) { dosoutput = d; }
-string conversiontodos(char* c) {
-    if (dosoutput)
-        return s_utf8_to_dos(c);
-    return c;
-}
-#else
-#define conversiontodos(X) X
-#endif
 
 #ifdef WITHCONSOLE
 extern "C" {
@@ -79,55 +73,6 @@ void TamguLaunching() {
 
 static vector<string> arguments;
 
-static void displayhelp(string wh) {
-    cout << endl << conversiontodos(STR(wh)) << Endl << Endl;
-    #ifdef WITHCONSOLE
-    cout << conversiontodos("-console ('filename'): open the console editor with an optional filename") << endl << endl;
-    #endif
-#ifndef WIN32
-    cout << conversiontodos("-e 'filename' load filename into the terminal console in edit mode") << endl << endl;
-    cout << conversiontodos("-l 'filename' load filename into the terminal console") << endl << endl;
-    cout << conversiontodos("-lisp activate lisp mode") << endl << endl;
-#endif
-    cout << conversiontodos("-a 'stdin data' available in tamgu via _args") << endl;
-    cout << conversiontodos("-a 'source code' with _args fully piped") << endl  << endl;
-    cout << conversiontodos("-c 'source code' without piped data") << endl << endl;
-    cout << conversiontodos("-p 'source code' with _args piped one string at a time") << endl;
-    cout << conversiontodos("   for code without a ';' such as -p 'l[:\".\"]', a 'println' is automatically inserted.") << endl;
-    cout << conversiontodos("   Hence: -p '\"touch\", l[:\".\"]' is a valid expression.") << endl;
-    cout << conversiontodos("   It is rewritten: println(\"touch\", l[:\".\"]);") << endl;
-    cout << conversiontodos("-pb 'source code' inserted before the code with -p") << endl;
-    cout << conversiontodos("-pe 'source code' added after the code with -p") << endl;
-    cout << conversiontodos("-p: Pre-declared variables:") << endl;
-    cout << conversiontodos("\tl: current line from stdin (also l0)") << endl;
-    cout << conversiontodos("\t_args: split the current line along spaces and store each field separatly. _args[0] is the full line") << endl;
-    cout << conversiontodos("\t_line: current line number (starts at 1)") << endl;
-    cout << conversiontodos("\t_size: number of fields (_args size) in a line from stdin") << endl;
-    cout << conversiontodos("\tl1-l99: each variable matches a field in a line from stdin (ln == _args[n])") << endl << endl;
-    cout << conversiontodos("-i Predeclared variables:") << endl << endl;
-    cout << "\t";
-    cout << conversiontodos("_args: argument vector") << endl;
-    cout << "\t";
-    cout << conversiontodos("_paths: _paths[0] is the current directory") << endl;
-    cout << "\t";
-    cout << conversiontodos("a,b,c: bool") << endl;
-    cout << "\t";
-    cout << conversiontodos("d: date") << endl;
-    cout << "\t";
-    cout << conversiontodos("i,j,k: int") << endl;
-    cout << "\t";
-    cout << conversiontodos("f,g,h: float") << endl;
-    cout << "\t";
-    cout << conversiontodos("s,t,u: string") << endl;
-    cout << "\t";
-    cout << conversiontodos("m: map") << endl;
-    cout << "\t";
-    cout << conversiontodos("v: vector") << endl;
-    cout << "\t";
-    cout << conversiontodos("x,y,z: self") << endl;
-    cout << endl << endl;
-    exit(-1);
-}
 
 #ifdef UNIX
 #ifndef APPLE
@@ -162,10 +107,61 @@ static char THEMAIN[] = "/MAIN\0";
 #include <unistd.h>   //_getch
 #include <termios.h>  //_getch
 #include <sys/ioctl.h>
+#endif
+
 #include <signal.h>
 #include <iomanip>
-
 #include "jag.h"
+
+static void displayhelp(string wh) {
+    cout << endl << STR(wh) << Endl << Endl;
+    #ifdef WITHCONSOLE
+    cout << "-console ('filename'): open the console editor with an optional filename" << endl << endl;
+    #endif
+#ifndef WIN321
+    cout << "-e 'filename' load filename into the terminal console in edit mode" << endl << endl;
+    cout << "-l 'filename' load filename into the terminal console" << endl << endl;
+    cout << "-lisp activate lisp mode" << endl << endl;
+#endif
+    cout << "-a 'stdin data' available in tamgu via _args" << endl;
+    cout << "-a 'source code' with _args fully piped" << endl  << endl;
+    cout << "-c 'source code' without piped data" << endl << endl;
+    cout << "-p 'source code' with _args piped one string at a time" << endl;
+    cout << "   for code without a ';' such as -p 'l[:\".\"]', a 'println' is automatically inserted." << endl;
+    cout << "   Hence: -p '\"touch\", l[:\".\"]' is a valid expression." << endl;
+    cout << "   It is rewritten: println(\"touch\", l[:\".\"]);" << endl;
+    cout << "-pb 'source code' inserted before the code with -p" << endl;
+    cout << "-pe 'source code' added after the code with -p" << endl;
+    cout << "-p: Pre-declared variables:" << endl;
+    cout << "\tl: current line from stdin (also l0)" << endl;
+    cout << "\t_args: split the current line along spaces and store each field separatly. _args[0] is the full line" << endl;
+    cout << "\t_line: current line number (starts at 1)" << endl;
+    cout << "\t_size: number of fields (_args size) in a line from stdin" << endl;
+    cout << "\tl1-l99: each variable matches a field in a line from stdin (ln == _args[n])" << endl << endl;
+    cout << "-i Predeclared variables:" << endl << endl;
+    cout << "\t";
+    cout << "_args: argument vector" << endl;
+    cout << "\t";
+    cout << "_paths: _paths[0] is the current directory" << endl;
+    cout << "\t";
+    cout << "a,b,c: bool" << endl;
+    cout << "\t";
+    cout << "d: date" << endl;
+    cout << "\t";
+    cout << "i,j,k: int" << endl;
+    cout << "\t";
+    cout << "f,g,h: float" << endl;
+    cout << "\t";
+    cout << "s,t,u: string" << endl;
+    cout << "\t";
+    cout << "m: map" << endl;
+    cout << "\t";
+    cout << "v: vector" << endl;
+    cout << "\t";
+    cout << "x,y,z: self" << endl;
+    cout << endl << endl;
+    exit(-1);
+}
 
 ///------------------------------------------------------------------------------------
 static Debuginfo debuginfo;
@@ -175,11 +171,16 @@ Tamgu* debuginfo_callback(vector<Tamgu*>& stack, short idthread, void* data);
 void debuggerthread(tamgu_editor* call);
 
 ///------------------------------------------------------------------------------------
+#ifdef WIN32
+BOOL WINAPI handle_ctrl_c(_In_ DWORD dwCtrlType);
+#else
 static void handle_ctrl_c(int theSignal);
+#endif
+
 ///------------------------------------------------------------------------------------
 static void displaychar(string& bf) {
     for (int i=0; i < bf.size(); i++)
-        cout << (int)bf[i] << " ";
+        cout << (int)(uchar)bf[i] << " ";
     cout << endl;
 }
 //------------------------------------------------------------------------
@@ -295,8 +296,12 @@ public:
             cerr << "   \t- " << m_redbold << "Ctrl-g:" << m_current << " move to a specific line, '$' is the end of the code" << endl;
             cerr << "   \t- " << m_redbold << "Ctrl-l:" << m_current << " toggle between top and bottom of the screen" << endl;
             cerr << "   \t- " << m_redbold << "Ctrl-t:" << m_current << " reindent the code" << endl;
-            cerr << "   \t- " << m_redbold << "Ctrl-h:" << m_current << " local help" << endl;
-            cerr << "   \t- " << m_redbold << "Ctrl-w:" << m_current << " write file to disk" << endl;
+#ifdef WIN32
+			cerr << "   \t- " << m_redbold << "Ctrl+Alt-h:" << m_current << " local help" << endl;
+#else
+			cerr << "   \t- " << m_redbold << "Ctrl-h:" << m_current << " local help" << endl;
+#endif
+			cerr << "   \t- " << m_redbold << "Ctrl-w:" << m_current << " write file to disk" << endl;
             cerr << "   \t- " << m_redbold << "Ctrl-c:" << m_current << " exit the editor" << endl << endl;
             cerr << "   \t- " << m_redbold << "Ctrl-x:" << m_redital << " Combined Commands" << m_current << endl;
             cerr << "   \t\t- " << m_redital << "C:" << m_current << " count a pattern" << endl;
@@ -452,7 +457,7 @@ public:
             return jag_editor::updown(drt, pos);
         
         if (curlypos == -1) {
-            if (drt == 65) {
+            if (drt == is_up) {
                 if (poscommand > 0 && poscommand <= commandlines.size()) {
                     clearline();
                     line = commandlines[--poscommand];
@@ -478,7 +483,7 @@ public:
             return false;
         }
 
-        if (drt == 65) { // we are going up
+        if (drt == is_up) { // we are going up
             if (pos > curlypos) {
                 --pos;
                 cout << m_up;
@@ -523,7 +528,11 @@ public:
                         printline(lines.numeros[pos], line, pos);
                     else {
                         string prf = prefix;
-                        prefix = "▶▶";
+#ifdef WIN32
+						prefix = ">>";
+#else
+						prefix = "▶▶";
+#endif
                         printline(lines.numeros[pos], line, pos);
                         prefix = prf;
                     }
@@ -581,6 +590,13 @@ public:
     }
     
     void displaylist(long beg, long end) {
+		if (!lines.size()) {
+			clearline();
+			if (!noprefix)
+				cout << back << m_dore << prefix << m_current << m_lightgray << std::setw(prefixsize) << "1> " << endl;
+			return;
+		}
+
         stringstream blk;
         
         if (beg < 0)
@@ -671,8 +687,12 @@ public:
     void clearcurlybuffer() {
         nbcurly = 0;
         curlypos = -1;
-        prefix = "◀▶";
-        pcursor = -1;
+#ifdef WIN32
+		prefix = "<>";
+#else
+		prefix = "◀▶";
+#endif
+		pcursor = -1;
         curlyspace = L"";
     }
     
@@ -706,14 +726,6 @@ public:
         if (c == "")
             return true;
         return false;
-    }
-    
-    void movetoabsoluteline(long e) {
-        cout << m_home;
-        while (e) {
-            cout << m_down;
-            e--;
-        }
     }
     
     //We create an empty space
@@ -915,7 +927,7 @@ public:
             commands[L"lisp"] = cmd_lispmode;
         }
         
-        cout << "\n";
+        cout << endl;
         wstring code;
         
         long i, idcode;
@@ -1095,7 +1107,11 @@ public:
                 addcommandline(line);
                 if (debugmode && debuginfo.running)
                     return pos;
-                prefix = "작";
+#ifdef WIN32
+				prefix = "<>";
+#else
+				prefix = "작";
+#endif
 
                 if (lines.size() == 0) {
                     lines.push(L"");
@@ -1134,7 +1150,11 @@ public:
                         globalTamgu->Setdebugmode(true);
                         globalTamgu->Setdebugfunction(debuginfo_callback, this);
                         debuginfo.clearall();
-                        prefix = "▶▶";
+#ifdef WIN32
+						prefix = ">>";
+#else
+						prefix = "▶▶";
+#endif
                         tid = new std::thread(debuggerthread, this);
                     }
                     else {
@@ -1919,6 +1939,7 @@ public:
     }
 
     bool terminate() {
+        replaceall = false;
         if (tobesaved) {
             tobesaved = false;
             if (emode())
@@ -1936,6 +1957,7 @@ public:
             debuginfo.stopexecution();
         
         fflush(stdout);
+		resetterminal();
         exit(0);
         return true;
     }
@@ -1961,8 +1983,12 @@ public:
             string l = m_red;
             l += "exit editor";
             l += m_current;
-            prefix = "◀▶";
-            printline(pos+1, l);
+#ifdef WIN32
+			prefix = "<>";
+#else
+			prefix = "◀▶";
+#endif
+			printline(pos+1, l);
             cout << endl;
             clearline();
             printline(pos+1);
@@ -2023,14 +2049,18 @@ public:
     void ls(string path, vector<wstring>& paths) {
         FILE *fp;
         int status;
-        
+
         char chemin[PATH_MAX];
         
         string cmd = "ls -1 -p ";
         cmd += path;
-                
-        fp = popen(STR(cmd), "r");
-        if (fp == NULL)
+
+#ifdef WIN32
+		fp = _popen(STR(cmd), "r");
+#else
+		fp = popen(STR(cmd), "r");
+#endif
+		if (fp == NULL)
             return;
         
         wstring l;
@@ -2041,8 +2071,12 @@ public:
             paths.push_back(l);
         }
                 
-        status = pclose(fp);
-    }
+#ifdef WIN32
+		status = _pclose(fp);
+#else
+		status = pclose(fp);
+#endif
+	}
     
     bool checkpath() {
         //The first part should be a command such as open or load...
@@ -2134,7 +2168,7 @@ public:
     }
     
     bool checkkeyboard(string& buff, long& first, long& last, bool& dsp, char noinit) {
-        switch (buff[0]) {
+        switch ((uchar)buff[0]) {
             case 2: //ctrl-b run/breakpoint
                 if (emode()) {
                     string buffer = Normalizefilename(thecurrentfilename);
@@ -2149,6 +2183,11 @@ public:
                     displaygo(true);
                 }
                 return true;
+#ifdef WIN32
+			case 3: //ctrl-c, only here on Windows
+				clear();
+				return true;
+#endif
             case 4: //ctrl-d exiting
                 if (emode()) { //we delete a line
                     deleteline(0);
@@ -2156,8 +2195,12 @@ public:
                 }
                 if (debugmode && debuginfo.running) {
                     debuginfo.stopexecution();
-                    prefix = "◀▶";
-                    return true;
+#ifdef WIN32
+					prefix = "<>";
+#else
+					prefix = "◀▶";
+#endif
+					return true;
                 }
                 return !terminate();
             case 9:
@@ -2165,7 +2208,11 @@ public:
                     return false;
                 //We try to interpret the string as a path
                 return checkpath();
-            case 10: //this is a carriage return
+#ifdef WIN32
+            case 13: //this is a carriage return
+#else
+			case 10:
+#endif
                 if (option != x_none) {
                     checkaction(buff, first, last, isLispmode());
                     return true;
@@ -2212,7 +2259,11 @@ public:
                     return true;
                 }
                 return checkaction(buff, first, last, isLispmode());
-            case 27: //Escape...
+#ifdef WIN32
+			case 224:
+#else
+			case 27: //Escape...
+#endif
                      //we clear the current line if it is the only character...
                 if (buff.size() == 1) {
                     if (option != x_none || tooglehelp) {
@@ -2246,13 +2297,23 @@ public:
         localhelp << m_red<< "^b" << m_current << ":breakpoint " << m_red<< "^c/q" << m_current << ":cmd line " << m_red << "^xq" << m_current << ":exit";
         
         option = x_none;
-        prefix = "작";
+#ifdef WIN32
+		prefix = "<>";
+		cerr << endl << m_redbold << TamguVersion() << m_current << endl;
+#else
+		prefix = "작";
+		cerr << endl << m_redbold << TamguVersion() << "(탐구)" << m_current << endl;
+#endif
         
-        cerr << endl << m_redbold << TamguVersion() << "(탐구)" << m_current << endl;
         cerr << "Copyright 2019-present NAVER Corp." << endl;
         cerr << "64 bits" << endl;
         
+#ifdef WIN32
+		SetConsoleCtrlHandler(handle_ctrl_c, TRUE);
+#else
         signal(SIGINT,handle_ctrl_c);
+#endif
+
         bool dsp = true;
         
         if (ifilenames.size() > 1) {
@@ -2264,8 +2325,12 @@ public:
 
         switch (noinit) {
             case 1:
-                prefix = "◀▶";
-                pos = 1;
+#ifdef WIN32
+				prefix = "<>";
+#else
+				prefix = "◀▶";
+#endif
+				pos = 1;
                 line = _wvariable_declaration;
                 lines.push_back(line);
                 poslines.push_back(0);
@@ -2274,8 +2339,12 @@ public:
                 printline(pos+1);
                 break;
             case 2:
-                prefix = "◀▶";
-                cerr << endl << m_red << "help: display available commands" << m_current << endl << endl;
+#ifdef WIN32
+				prefix = "<>";
+#else
+				prefix = "◀▶";
+#endif
+				cerr << endl << m_red << "help: display available commands" << m_current << endl << endl;
                 TamguLaunching();
                 if (arguments.size())
                     TamguSetArguments(arguments);
@@ -2301,8 +2370,12 @@ public:
                 pos = handlingcommands(pos, dsp, noinit);
                 break;
             default:
-                prefix = "◀▶";
-                cerr << endl << m_red << "help: display available commands" << m_current << endl << endl;
+#ifdef WIN32
+				prefix = "<>";
+#else
+				prefix = "◀▶";
+#endif
+				cerr << endl << m_red << "help: display available commands" << m_current << endl << endl;
                 printline(pos+1);
         }
         
@@ -2329,7 +2402,23 @@ public:
             dsp = true;
             if (checkkeyboard(buff, first, last, dsp, noinit))
                 continue;
-
+#ifdef WIN32
+			if (!buff[0] && buff[1] == '#') {
+				//Special case for ctrl+alt+h (ctrl-h is backdelete on windows
+				if (emode()) {
+					option = x_none;
+					if (!tooglehelp)
+						displayonlast(localhelp.str(), true);
+					else {
+						jag_editor::displaylist(poslines[0]);
+						movetoline(currentline);
+						movetoposition();
+					}
+					tooglehelp = 1 - tooglehelp;
+				}
+				continue;
+			}
+#endif
 
             if (inbuffer) {
                 buffer += buff;
@@ -2422,8 +2511,12 @@ public:
             cleardebug();
             editor_loquet.Released();
             updateline = true;
-            prefix = "◀▶";
-        }
+#ifdef WIN32
+			prefix = "<>";
+#else
+			prefix = "◀▶";
+#endif
+		}
             
         return true;
     }
@@ -2451,10 +2544,18 @@ public:
 
 ///------------------------------------------------------------------------------------
 
+#ifdef WIN32
+BOOL WINAPI handle_ctrl_c(_In_ DWORD dwCtrlType) {
+	if (JAGEDITOR != NULL)
+		JAGEDITOR->clear();
+	return true;
+}
+#else
 static void handle_ctrl_c(int theSignal) {
     if (JAGEDITOR != NULL)
         JAGEDITOR->clear();
 }
+#endif
 
 Tamgu* debuginfo_callback(vector<Tamgu*>& stack, short idthread, void* data) {
     tamgu_editor* te = (tamgu_editor*)data;
@@ -2517,7 +2618,6 @@ void debuggerthread(tamgu_editor* call) {
     call->updateline = true;
 }
 
-#endif
 
 #ifndef WIN32
 void purejagmode(int argc, char *argv[]) {
@@ -2547,45 +2647,48 @@ void purejagmode(int argc, char *argv[]) {
 #endif
 
 int main(int argc, char *argv[]) {
-    string lnstr;
-    
-#ifdef APPLE
-    char tamgupath[255];
-    strcpy(tamgupath,"/usr/local/lib/tamgu");
-    setenv("TAMGULIBS",tamgupath,1);
-#endif
-    
-    string wh = TamguVersion();
-    
-    if (argc <= 1) {
-#ifdef WIN32
-        cerr << endl;
-        cerr << endl << wh << endl << endl;
-        cerr << "Copyright 2019-present NAVER Corp." << endl;
-        cerr << "64 bits" << endl;
-#endif
+	string lnstr;
 
-#ifdef WIN32
-        displayhelp(wh);
-#else
-        JAGEDITOR =  new tamgu_editor;
-        JAGEDITOR->launchterminal(2);
-#endif
-    }
+	string wh = TamguVersion();
 
+	char* v = Getenv("TAMGULIBS");
+    if (v != NULL)
+        lnstr = v;
+    
+	if (lnstr == "") {
+#ifdef WIN32
+		WCHAR path[MAX_PATH];
+		GetModuleFileNameW(NULL, path, MAX_PATH);
+		wstring wpath = path;
+		long posinpath = wpath.rfind('\\');
+		if (posinpath != -1)
+			wpath = wpath.substr(0, posinpath + 1);
+		string spath;
+		s_unicode_to_utf8(spath, wpath);
+		spath = "TAMGULIBS=" + spath;
+		_putenv(STR(spath));
+#endif
 #ifdef APPLE
-    char path[2048];
-    strcpy(path,"/usr/local/lib/tamgu");
-    setenv("TAMGULIBS",path,1);
+		char path[2048];
+		strcpy(path, "/usr/local/lib/tamgu");
+		setenv("TAMGULIBS", path, 1);
 #else
 #ifdef UNIX
-    if (getenv("TAMGULIBS") == NULL) {
-        string upath=get_exe_path();
-        setenv("TAMGULIBS",STR(upath), 1);
-    }
+		if (getenv("TAMGULIBS") == NULL) {
+			string upath = get_exe_path();
+			setenv("TAMGULIBS", STR(upath), 1);
+	}
 #endif
 #endif
-    
+}
+	//No arguments , we launch the shell now
+	if (argc <= 1) {
+		JAGEDITOR = new tamgu_editor;
+		JAGEDITOR->launchterminal(2);
+	}
+
+	lnstr = "";
+	//Arguments to be analysed
     char piped = -1;
     //argv[1] is the file name
     string name = argv[1];
@@ -2641,7 +2744,6 @@ int main(int argc, char *argv[]) {
             continue;
         }
 
-#ifndef WIN32
         if (args == "-lisp") {
             if (i < argc - 1)
                 name = argv[i+1];
@@ -2725,10 +2827,10 @@ int main(int argc, char *argv[]) {
                 exit(-1);
             }
         }
-#endif
+
         #ifdef DOSOUTPUT
-        if (args == "-nodos") {
-            Setdosoutput(false);
+        if (args == "-dos") {
+            Setdosoutput(true);
             continue;
         }
         #endif
@@ -2771,7 +2873,7 @@ int main(int argc, char *argv[]) {
                     continue;
                 }
                 
-                cerr << conversiontodos("Error: missing code or unknown argument: ") << args << endl;
+                cerr << "Error: missing code or unknown argument: " << args << endl;
                 exit(-1);
             }
             
@@ -2811,10 +2913,6 @@ int main(int argc, char *argv[]) {
     //executing a file
     if (code == "") {
         if (name[0] == '-') {
-#ifdef WIN32
-            cerr << conversiontodos("Missing filename...") << endl;
-            exit(-1);
-#else
             if (JAGEDITOR == NULL)
                 JAGEDITOR =  new tamgu_editor;
             
@@ -2829,7 +2927,6 @@ int main(int argc, char *argv[]) {
             }
             
             JAGEDITOR->launchterminal(initconsoleterminal);
-#endif
         }
 
         name = Normalizefilename(name);
@@ -3028,7 +3125,7 @@ int main(int argc, char *argv[]) {
                 sz = arguments.size();
                 _size->value = sz-1;
                 
-                sz = min(sz, 100);
+                sz = (sz < 100) ? sz : 100;
                 if (sz > maxsize)
                     maxsize = sz;
                 

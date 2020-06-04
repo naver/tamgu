@@ -3689,7 +3689,7 @@ public:
         short m;
         for (long j=1;j<size; j++) {
             v=values[j]->Getstring(idthread);
-            m = min(res.size(), v.size());
+            m = minlocal(res.size(), v.size());
             for (short i = 0; i < m; i++) {
                 if (res[i] != v[i])
                     u += res[i];
@@ -3706,7 +3706,7 @@ public:
         short m;
         for (long j=1;j<size; j++) {
             v=values[j]->Getustring(idthread);
-            m = min(res.size(), v.size());
+            m = minlocal(res.size(), v.size());
             for (short i = 0; i < m; i++) {
                 if (res[i] != v[i])
                     u += res[i];
@@ -3723,7 +3723,7 @@ public:
         short m;
         for (long j=1;j<size; j++) {
             values[j]->Setstring(v, idthread);
-            m = min(res.size(), v.size());
+            m = minlocal(res.size(), v.size());
             for (short i = 0; i < m; i++) {
                 if (res[i] != v[i])
                     u += res[i];
@@ -3739,7 +3739,7 @@ public:
         short m;
         for (long j=1;j<size; j++) {
             values[j]->Setstring(v, idthread);
-            m = min(res.size(), v.size());
+            m = minlocal(res.size(), v.size());
             for (short i = 0; i < m; i++) {
                 if (res[i] != v[i])
                     u += res[i];
@@ -3819,7 +3819,7 @@ public:
         short m;
         for (long j=1;j<size; j++) {
             v=values[j]->Getstring(idthread);
-            m = min(res.size(), v.size());
+            m = minlocal(res.size(), v.size());
             for (short i = 0; i < m; i++) {
                 if (res[i] == v[i])
                     u += res[i];
@@ -3836,7 +3836,7 @@ public:
         short m;
         for (long j=1;j<size; j++) {
             v=values[j]->Getustring(idthread);
-            m = min(res.size(), v.size());
+            m = minlocal(res.size(), v.size());
             for (short i = 0; i < m; i++) {
                 if (res[i] == v[i])
                     u += res[i];
@@ -3853,7 +3853,7 @@ public:
         short m;
         for (long j=1;j<size; j++) {
             values[j]->Setstring(v, idthread);
-            m = min(res.size(), v.size());
+            m = minlocal(res.size(), v.size());
             for (short i = 0; i < m; i++) {
                 if (res[i] == v[i])
                     u += res[i];
@@ -3869,7 +3869,7 @@ public:
         short m;
         for (long j=1;j<size; j++) {
             values[j]->Setstring(v, idthread);
-            m = min(res.size(), v.size());
+            m = minlocal(res.size(), v.size());
             for (short i = 0; i < m; i++) {
                 if (res[i] == v[i])
                     u += res[i];

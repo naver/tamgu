@@ -42,11 +42,6 @@ Exporting hmap<string, string> Tamguustring::infomethods;
 Exporting basebin_hash<unsigned long> Tamguustring::exported;
 Exporting short Tamguustring::idtype = 0;
 
-#ifndef max
-#define max(a,b)            (((a) > (b)) ? (a) : (b))
-#define min(a,b)            (((a) < (b)) ? (a) : (b))
-#endif
-
 #ifdef UNIX
 #define swprintf_s swprintf
 #endif
@@ -2370,7 +2365,7 @@ Tamgu* Tamguustring::andset(Tamgu* a, bool autoself) {
     wstring s = a->UString();
     wstring u;
     Locking _lock(this);
-    long m = min(s.size(), value.size());
+    long m = minlocal(s.size(), value.size());
     for (long i = 0; i < m; i++) {
         if (s[i] == value[i])
             u += s[i];
@@ -2387,7 +2382,7 @@ Tamgu* Tamguustring::xorset(Tamgu* a, bool autoself) {
     wstring s = a->UString();
     wstring u;
     Locking _lock(this);
-    long m = min(s.size(), value.size());
+    long m = minlocal(s.size(), value.size());
     for (long i = 0; i < m; i++) {
         if (s[i] != value[i])
             u += value[i];
@@ -2464,7 +2459,7 @@ Tamgu* TamguLoopUString::andset(Tamgu* a, bool autoself) {
     wstring s = a->UString();
     wstring u;
     Locking _lock(this);
-    long m = min(s.size(), value.size());
+    long m = minlocal(s.size(), value.size());
     for (long i = 0; i < m; i++) {
         if (s[i] == value[i])
             u += s[i];
@@ -2481,7 +2476,7 @@ Tamgu* TamguLoopUString::xorset(Tamgu* a, bool autoself) {
     wstring s = a->UString();
     wstring u;
     Locking _lock(this);
-    long m = min(s.size(), value.size());
+    long m = minlocal(s.size(), value.size());
     for (long i = 0; i < m; i++) {
         if (s[i] != value[i])
             u += value[i];
@@ -4442,7 +4437,7 @@ Tamgu* Tamgua_ustring::andset(Tamgu* a, bool autoself) {
     wstring s = a->UString();
     wstring u;
     wstring w = value.value();
-    long m = min(s.size(), w.size());
+    long m = minlocal(s.size(), w.size());
     for (long i = 0; i < m; i++) {
         if (s[i] == w[i])
             u += s[i];
@@ -4459,7 +4454,7 @@ Tamgu* Tamgua_ustring::xorset(Tamgu* a, bool autoself) {
     wstring s = a->UString();
     wstring u;
     wstring w = value.value();
-    long m = min(s.size(), w.size());
+    long m = minlocal(s.size(), w.size());
     for (long i = 0; i < m; i++) {
         if (s[i] != w[i])
             u += w[i];

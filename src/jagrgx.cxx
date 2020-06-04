@@ -1401,20 +1401,23 @@ Au_automate::Au_automate(string rgx) {
     wstring wrgx;
     s_utf8_to_unicode(wrgx, USTR(rgx), rgx.size());
     first=NULL;
-    parse(wrgx,&garbage);
+    if (!parse(wrgx,&garbage))
+        first = NULL;
 }
 
 
 Au_automate::Au_automate(wstring& wrgx) {
     first=NULL;
-    parse(wrgx,&garbage);
+    if (!parse(wrgx,&garbage))
+        first = NULL;
 }
 
 Au_automaton::Au_automaton(string rgx) {
     wstring wrgx;
     s_utf8_to_unicode(wrgx, USTR(rgx), rgx.size());
     first=NULL;
-    parse(wrgx);
+    if (!parse(wrgx))
+        first = NULL;
 }
 
 bool Au_automaton::parse(wstring& w, Au_automatons* aus) {

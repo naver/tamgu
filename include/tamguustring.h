@@ -20,10 +20,6 @@
 
 #include "tamguint.h"
 
-#ifndef min
-#define min(a,b)            (((a) < (b)) ? (a) : (b))
-#endif
-
 //---------------------------------------------------------------------------------------------------------------------
 const long base_atomic_wstring_size = 7;
 const long atomic_wstring_size = 1 << base_atomic_wstring_size;
@@ -1098,7 +1094,7 @@ public:
         locking();
         wstring v=a->UString();
         wstring k;
-        long zs=min(value.size(),v.size());
+        long zs= minlocal(value.size(),v.size());
         for (long u=0;u<zs;u++) {
             k+=value[u];
             k+=v[u];
@@ -1910,7 +1906,7 @@ public:
         wstring w = value.value();
         wstring v=a->UString();
         wstring k;
-        long zs=min(w.size(),v.size());
+        long zs= minlocal(w.size(),v.size());
         for (long u=0;u<zs;u++) {
             k+=w[u];
             k+=v[u];

@@ -14,11 +14,41 @@
  Reviewer   :
  */
 
+#ifdef WIN32
+#include <windows.h>
+#endif
+
 #include <stdio.h>
 
+#ifdef WIN32
+#include "conversion.h"
+#include <conio.h>
+#include <ctype.h>
+
+//Handling console tune up
+static HANDLE hStdout = 0;
+static DWORD lpMode = 0;
+static UINT codepage = 0;
+
+#ifdef DOSOUTPUT
+static bool dosoutput = false;
+void Setdosoutput(bool d) { dosoutput = d; }
+bool isDosOutput() {
+	return dosoutput;
+}
+
+string conversiontodos(char* c) {
+	if (dosoutput)
+		return s_utf8_to_dos(c);
+	return c;
+}
+#endif
+#else
 #include <unistd.h>   //_getch
 #include <termios.h>  //_getch
 #include <sys/ioctl.h>
+#endif
+
 #include <signal.h>
 #include <iomanip>
 
@@ -38,7 +68,16 @@ bool check_large_char(wchar_t* src, long lensrc, long& i) {
 }
 #endif
     
-static char* _keywords[] = { "GPSdistance","True", "False","None","def","char","import","double","wstring","Maybe","Nothing","_breakpoint","_dependencies","_erroronkey","_eval","_evalfunction","_exit","_forcelocks","_getdefaulttokenizerules","_info","_initial","_mirrordisplay","_nbthreads","_poolstats","_setenv","_setmaxrange","_setmaxthreads","_setstacksize","_setvalidfeatures","_stdin","_symbols","_threadhandle","_threadid","a_bool","a_change","a_delete","a_features","a_first","a_float","a_fvector","a_insert","a_int","a_ivector","a_longest","a_mapff","a_mapfi","a_mapfs","a_mapfu","a_mapif","a_mapii","a_mapis","a_mapiu","a_mapsf","a_mapsi","a_mapss","a_mapuf","a_mapui","a_mapuu","a_nocase","a_offsets","a_random","a_repetition","a_string","a_surface","a_svector","a_switch","a_ustring","a_uvector","a_vector","a_vowel","abs","absent","acos","acosh","activate","add","addchild","addnext","addprevious","addstyle","after","alert","align","all","allobjects","and","annotate","annotator","any","aopen","append","apply","arc","asin","asinh","ask","assert","asserta","assertz","atan","atanh","attributes","autorun","backgroundcolor","barcolor","base","before","begin","begincomplexpolygon","beginline","beginloop","beginpoints","beginpolygon","binmap","binmapf","binmapi","binmapl","binmaps","binmapu","bit","bitmap","bits","block","blocking","bloop","bool","border","boundaries","bounds","box","boxtype","break","browser","buffersize","build","button","bvector","byte","byteposition","bytes","call","case","cast","catch","cbrt","cell","cellalign","cellalignheadercol","cellalignheaderrow","charposition","check","checklabel","checkword","child","children","choice","chr","circle","clear","close","color","colorbg","colorfg","column","columnchar","columnheader","columnheaderwidth","columnwidth","command","commit","common","compact","compile","compilelexicons","compilergx","concept","connect","const","constmap","constvector","content","continue","copy","cos","cosh","count","counter","create","created","createdirectory","createserver","curl","current","cursor","cursorchar","cursorstyle","curve","cut","cycle","data","date","day","deaccentuate","decimal","decode","default","definitions","degree","delete","dependencies","dependency","deriving","deselect","determinant","dimension","dloop","do","document","dos","dostoutf8","doublemetaphone","drawcolor","drawtext","drop","dropWhile","dthrough","dvector","e_arabic","e_baltic","e_celtic","e_cp1252","e_cyrillic","e_greek","e_hebrew","e_latin_ce","e_latin_ffe","e_latin_ne","e_latin_se","e_latin_see","e_latin_we","e_nordic","e_thai","e_turkish","e_windows","editdistance","editor","elif","else","emoji","emojis","empty","encode","end","endcomplexpolygon","endian","endline","endloop","endpoints","endpolygon","env","eof","erf","erfc","evaluate","even","exclusive","execute","exit","exp","exp2","expm1","exponent","extension","extract","factorize","factors","fail","false","features","fibre","file","filebrowser","fileinfo","fill","filter","find","findall","first","flatten","flip","float","floop","floor","flush","fmatrix","focus","foldl","foldr","font","fontnumber","fontsize","for","format","formatchar","fraction","frame","frameinstance","from","fthrough","function","fvector","gap","get","geterr","getfont","getfontsizes","gethostname","getpeername","getstd","getstyle","gotoline","grammar","grammar_macros","group","hash","hide","highlight","hour","html","hvector","id","if","ifnot","iloop","image","imatrix","in","indent","info","initializefonts","insert","insertbind","int","invert","is","isa","isalpha","isconsonant","iscontainer","isdigit","isdirectory","isemoji","ishangul","isjamo","islower","ismap","isnumber","isprime","ispunctuation","isstring","isupper","isutf8","isvector","isvowel","items","iterator","ithrough","ivector","jamo","join","joined","json","key","keys","kget","label","labelcolor","labelfont","labels","labelsize","labeltype","last","latin","leaves","left","length","let","levenshtein","lexicon","lgamma","line","linebounds","linecharbounds","lineshape","lisp","list","listdirectory","lloop","ln","load","loadgif","loadin","loadjpeg","lock","log","log1p","log2","logb","long","lookdown","lookup","loop","lower","ls","lstep","lthrough","lvector","mantissa","map","mapf","mapff","mapfi","mapfl","mapfs","mapfu","mapi","mapif","mapii","mapis","mapiu","mapl","maplf","mapll","mapls","maplu","mapsf","mapsi","mapsl","mapss","mapu","mapuf","mapui","mapul","mapuu","mark","match","max","maximum","memory","menu","merge","method","methods","mid","min","minimum","minute","mkdir","modal","month","mp3","mthrough","multisplit","multmatrix","name","namespace","nbchildren","nd","nearbyint","new","next","ngrams","node","nope","normalizehangul","not","notin","null","odd","of","ok","onclose","onclosing","ondragdrop","onhscroll","onkey","onmouse","ontime","ontology","onvscroll","open","openappend","openread","openwrite","options","or","ord","otherwise","padding","parameters","parent","parse","password","paste","pause","permute","pie","play","plot","plotcoords","point","polygon","polynomial","ponder","pop","popclip","popfirst","poplast","popmatrix","port","position","post","precede","pred","predicate","predicatedump","predicatevar","preg","previous","primemap","primemapf","primemapff","primemapfi","primemapfl","primemapfs","primemapfu","primemapi","primemapif","primemapii","primemapis","primemapiu","primemapl","primemaplf","primemapll","primemapls","primemaplu","primemapsf","primemapsi","primemapsl","primemapss","primemapu","primemapuf","primemapui","primemapul","primemapuu","print","printerr","printj","printjerr","printjln","printjlnerr","println","printlnerr","private","product","progress","properties","property","protected","proxy","push","pushclip","pushfirst","pushlast","pushmatrix","radian","raise","random","range","rawstring","read","readline","real","realpath","receive","rectangle","rectanglefill","redirectoutput","redraw","redrawing","remove","removefirst","removelast","repeat","replace","replaceall","replicate","reserve","reset","resizable","resize","restateoutput","retract","retractall","return","reverse","rfind","rgbcolor","right","ring","rint","role","romanization","root","ropen","rotate","rotation","round","row","rowheader","rowheaderheight","rowheight","rule","run","save","scale","scan","scanl","scanr","scrollbar","second","seek","select","selection","selectioncolor","self","send","serialize","serializestring","setdate","setstyle","settimeout","short","shortcut","show","shuffle","sibling","signature","simplify","sin","sinh","sisters","size","sizeb","sizerange","sleep","slice","slider","sloop","socket","sort","sortfloat","sortint","sortstring","sortustring","sound","spans","split","splite","sqlite","sqrt","static","step","steps","sthrough","stokenize","stop","store","strict","string","succ","succeed","sum","svector","switch","synode","sys","table","tabs","tags","take","takeWhile","tamgu","tan","tanh","tell","term","test","textcolor","textsize","tgamma","this","thread","time","tohtml","token","tokenize","tokens","tooltip","toxml","trace","transducer","transformdx","transformdy","transformedvertex","transformx","transformy","translate","transpose","treemap","treemapf","treemapff","treemapfi","treemapfl","treemapfs","treemapfu","treemapi","treemapif","treemapii","treemapis","treemapiu","treemapl","treemaplf","treemapll","treemapls","treemaplu","treemapsf","treemapsi","treemapsl","treemapss","treemapu","treemapuf","treemapui","treemapul","treemapuu","treg","trim","trimleft","trimright","true","trunc","try","type","ufile","uloop","unblock","unget","unhighlight","unique","unlink","unlock","unmark","upper","url","use","ustring","utf8","uthrough","uvector","value","values","vector","version","vertex","vthrough","wait","waitonfalse","waitonjoined","weekday","wfile","when","where","while","window","winput","with","wopen","word","words","woutput","wrap","write","writebin","writeln","writeutf16","wtable","xml","xmldoc","xmlstring","xmltype","xor","xpath","year","yearday","zip","zipWith","∏","∑","√","∛","define", "ifdef", "endif", "include", "defun", "lambda", "cons", "cond", "eq", "car", "cdr", "list", "append", ""};
+static char m_scrollmargin[] = { 27, 91, '0', '0', '0', ';', '0', '0','0', 'r', 0 };
+static char m_deletechar[] = { 27, 91, '1', 'P', 0 };
+static char m_left[] = { 27, '[', '1', 68, 0 };
+static char m_right[] = {27, '[', '0', '1', 67, 0};
+char m_down[] = {27, '[', '0', '1', 66, 0};
+
+
+static const char* numberstrings[] =                               {"00","01","02","03","04","05","06","07","08","09","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49","50","51","52","53","54","55","56","57","58","59","60","61","62","63","64","65","66","67","68","69","70","71","72","73","74","75","76","77","78","79","80","81","82","83","84","85","86","87","88","89","90","91","92","93","94","95","96","97","98","99"};
+
+static const char* _keywords[] = { "GPSdistance","True", "False","None","def","char","import","double","wstring","Maybe","Nothing","_breakpoint","_dependencies","_erroronkey","_eval","_evalfunction","_exit","_forcelocks","_getdefaulttokenizerules","_info","_initial","_mirrordisplay","_nbthreads","_poolstats","_setenv","_setmaxrange","_setmaxthreads","_setstacksize","_setvalidfeatures","_stdin","_symbols","_threadhandle","_threadid","a_bool","a_change","a_delete","a_features","a_first","a_float","a_fvector","a_insert","a_int","a_ivector","a_longest","a_mapff","a_mapfi","a_mapfs","a_mapfu","a_mapif","a_mapii","a_mapis","a_mapiu","a_mapsf","a_mapsi","a_mapss","a_mapuf","a_mapui","a_mapuu","a_nocase","a_offsets","a_random","a_repetition","a_string","a_surface","a_svector","a_switch","a_ustring","a_uvector","a_vector","a_vowel","abs","absent","acos","acosh","activate","add","addchild","addnext","addprevious","addstyle","after","alert","align","all","allobjects","and","annotate","annotator","any","aopen","append","apply","arc","asin","asinh","ask","assert","asserta","assertz","atan","atanh","attributes","autorun","backgroundcolor","barcolor","base","before","begin","begincomplexpolygon","beginline","beginloop","beginpoints","beginpolygon","binmap","binmapf","binmapi","binmapl","binmaps","binmapu","bit","bitmap","bits","block","blocking","bloop","bool","border","boundaries","bounds","box","boxtype","break","browser","buffersize","build","button","bvector","byte","byteposition","bytes","call","case","cast","catch","cbrt","cell","cellalign","cellalignheadercol","cellalignheaderrow","charposition","check","checklabel","checkword","child","children","choice","chr","circle","clear","close","color","colorbg","colorfg","column","columnchar","columnheader","columnheaderwidth","columnwidth","command","commit","common","compact","compile","compilelexicons","compilergx","concept","connect","const","constmap","constvector","content","continue","copy","cos","cosh","count","counter","create","created","createdirectory","createserver","curl","current","cursor","cursorchar","cursorstyle","curve","cut","cycle","data","date","day","deaccentuate","decimal","decode","default","definitions","degree","delete","dependencies","dependency","deriving","deselect","determinant","dimension","dloop","do","document","dos","dostoutf8","doublemetaphone","drawcolor","drawtext","drop","dropWhile","dthrough","dvector","e_arabic","e_baltic","e_celtic","e_cp1252","e_cyrillic","e_greek","e_hebrew","e_latin_ce","e_latin_ffe","e_latin_ne","e_latin_se","e_latin_see","e_latin_we","e_nordic","e_thai","e_turkish","e_windows","editdistance","editor","elif","else","emoji","emojis","empty","encode","end","endcomplexpolygon","endian","endline","endloop","endpoints","endpolygon","env","eof","erf","erfc","evaluate","even","exclusive","execute","exit","exp","exp2","expm1","exponent","extension","extract","factorize","factors","fail","false","features","fibre","file","filebrowser","fileinfo","fill","filter","find","findall","first","flatten","flip","float","floop","floor","flush","fmatrix","focus","foldl","foldr","font","fontnumber","fontsize","for","format","formatchar","fraction","frame","frameinstance","from","fthrough","function","fvector","gap","get","geterr","getfont","getfontsizes","gethostname","getpeername","getstd","getstyle","gotoline","grammar","grammar_macros","group","hash","hide","highlight","hour","html","hvector","id","if","ifnot","iloop","image","imatrix","in","indent","info","initializefonts","insert","insertbind","int","invert","is","isa","isalpha","isconsonant","iscontainer","isdigit","isdirectory","isemoji","ishangul","isjamo","islower","ismap","isnumber","isprime","ispunctuation","isstring","isupper","isutf8","isvector","isvowel","items","iterator","ithrough","ivector","jamo","join","joined","json","key","keys","kget","label","labelcolor","labelfont","labels","labelsize","labeltype","last","latin","leaves","left","length","let","levenshtein","lexicon","lgamma","line","linebounds","linecharbounds","lineshape","lisp","list","listdirectory","lloop","ln","load","loadgif","loadin","loadjpeg","lock","log","log1p","log2","logb","long","lookdown","lookup","loop","lower","ls","lstep","lthrough","lvector","mantissa","map","mapf","mapff","mapfi","mapfl","mapfs","mapfu","mapi","mapif","mapii","mapis","mapiu","mapl","maplf","mapll","mapls","maplu","mapsf","mapsi","mapsl","mapss","mapu","mapuf","mapui","mapul","mapuu","mark","match","max","maximum","memory","menu","merge","method","methods","mid","min","minimum","minute","mkdir","modal","month","mp3","mthrough","multisplit","multmatrix","name","namespace","nbchildren","nd","nearbyint","new","next","ngrams","node","nope","normalizehangul","not","notin","null","odd","of","ok","onclose","onclosing","ondragdrop","onhscroll","onkey","onmouse","ontime","ontology","onvscroll","open","openappend","openread","openwrite","options","or","ord","otherwise","padding","parameters","parent","parse","password","paste","pause","permute","pie","play","plot","plotcoords","point","polygon","polynomial","ponder","pop","popclip","popfirst","poplast","popmatrix","port","position","post","precede","pred","predicate","predicatedump","predicatevar","preg","previous","primemap","primemapf","primemapff","primemapfi","primemapfl","primemapfs","primemapfu","primemapi","primemapif","primemapii","primemapis","primemapiu","primemapl","primemaplf","primemapll","primemapls","primemaplu","primemapsf","primemapsi","primemapsl","primemapss","primemapu","primemapuf","primemapui","primemapul","primemapuu","print","printerr","printj","printjerr","printjln","printjlnerr","println","printlnerr","private","product","progress","properties","property","protected","proxy","push","pushclip","pushfirst","pushlast","pushmatrix","radian","raise","random","range","rawstring","read","readline","real","realpath","receive","rectangle","rectanglefill","redirectoutput","redraw","redrawing","remove","removefirst","removelast","repeat","replace","replaceall","replicate","reserve","reset","resizable","resize","restateoutput","retract","retractall","return","reverse","rfind","rgbcolor","right","ring","rint","role","romanization","root","ropen","rotate","rotation","round","row","rowheader","rowheaderheight","rowheight","rule","run","save","scale","scan","scanl","scanr","scrollbar","second","seek","select","selection","selectioncolor","self","send","serialize","serializestring","setdate","setstyle","settimeout","short","shortcut","show","shuffle","sibling","signature","simplify","sin","sinh","sisters","size","sizeb","sizerange","sleep","slice","slider","sloop","socket","sort","sortfloat","sortint","sortstring","sortustring","sound","spans","split","splite","sqlite","sqrt","static","step","steps","sthrough","stokenize","stop","store","strict","string","succ","succeed","sum","svector","switch","synode","sys","table","tabs","tags","take","takeWhile","tamgu","tan","tanh","tell","term","test","textcolor","textsize","tgamma","this","thread","time","tohtml","token","tokenize","tokens","tooltip","toxml","trace","transducer","transformdx","transformdy","transformedvertex","transformx","transformy","translate","transpose","treemap","treemapf","treemapff","treemapfi","treemapfl","treemapfs","treemapfu","treemapi","treemapif","treemapii","treemapis","treemapiu","treemapl","treemaplf","treemapll","treemapls","treemaplu","treemapsf","treemapsi","treemapsl","treemapss","treemapu","treemapuf","treemapui","treemapul","treemapuu","treg","trim","trimleft","trimright","true","trunc","try","type","ufile","uloop","unblock","unget","unhighlight","unique","unlink","unlock","unmark","upper","url","use","ustring","utf8","uthrough","uvector","value","values","vector","version","vertex","vthrough","wait","waitonfalse","waitonjoined","weekday","wfile","when","where","while","window","winput","with","wopen","word","words","woutput","wrap","write","writebin","writeln","writeutf16","wtable","xml","xmldoc","xmlstring","xmltype","xor","xpath","year","yearday","zip","zipWith","∏","∑","√","∛","define", "ifdef", "endif", "include", "defun", "lambda", "cons", "cond", "eq", "car", "cdr", "list", "append", ""};
 
 
 void jag_editor::displaythehelp(long noclear) {
@@ -63,7 +102,9 @@ void jag_editor::displaythehelp(long noclear) {
     cerr << "   \t- " << m_redbold << "Ctrl-c:" << m_current << " exit the editor" << endl;
     cerr << "   \t- " << m_redbold << "Ctrl-x:" << m_redital << " Combined Commands" << m_current << endl;
     cerr << "   \t\t- " << m_redital << "C:" << m_current << " count a pattern" << endl;
-    cerr << "   \t\t- " << m_redital << "f:" << m_current << " find with a RGX" << endl;
+    cerr << "   \t\t- " << m_redital << "P:" << m_current << " find with a POSIX Regular Expression" << endl;
+    cerr << "   \t\t- " << m_redital << "R:" << m_current << " find with a Tamgu Regular Expression" << endl;
+    cerr << "   \t\t- " << m_redital << "f:" << m_current << " find with previous find string" << endl;
     cerr << "   \t\t- " << m_redital << "H:" << m_current << " convert HTML entities to Unicode characters" << endl;
     cerr << "   \t\t- " << m_redital << "D:" << m_current << " delete a bloc of lines" << endl;
     cerr << "   \t\t- " << m_redital << "n:" << m_current << " hide/display line numbers" << endl;
@@ -122,7 +163,45 @@ static int getycursor() {
     return ycursor;
 }
 
-static string _getch(){
+#ifdef WIN32
+static char check_size_utf8(int utf) {
+	if ((utf & 0xF0) == 0xF0)
+		return 3;
+
+	if ((utf & 0xE0) == 0xE0)
+		return 2;
+
+	if ((utf & 0xC0) == 0xC0)
+		return 1;
+
+	return 0;
+}
+
+string jag_editor::getch() {
+	checkresize();
+    int i = _getch();
+    string s;
+    s = (uchar)i;
+    if (!i || i == 0xE0 || i == 224) {
+        i = _getch();
+        s += (uchar)i;
+    }
+	else {
+		//We are inputting UTF8 characters, we detect the UTF8 size
+		//At most 3
+		if (i > 127) {
+			char nb = check_size_utf8(i);
+			while (nb) {
+				i = _getch();
+				s += (uchar)i;
+				nb--;
+			}
+		}
+	}
+    return s;
+}
+#else
+string jag_editor::getch(){
     static char buf[_getbuffsize+2];
     memset(buf,0, _getbuffsize);
 
@@ -130,7 +209,8 @@ static string _getch(){
     fflush(stdout);
     if(tcgetattr(0, &old)<0) {
         //we reset the input stream
-        freopen("/dev/tty", "rw", stdin);
+        //freopen("/dev/tty", "rw", stdin);
+        setbuf(stdin, NULL);
         //and we try again...
         if(tcgetattr(0, &old)<0) {
             perror("tcsetattr()");
@@ -150,7 +230,7 @@ static string _getch(){
     //If you need to get the absolute cursor position, you can decomment these lines
     //cout << cursor_position;
     //scanf("\033[%d;%dR", &xcursor, &ycursor);
-
+    
     string res;
     long nb;
     
@@ -173,6 +253,7 @@ static string _getch(){
     
     return res;
 }
+#endif
 
 //--------------------------------------------------------
 void jag_editor::colorring(string& txt, vector<long>& limits) {
@@ -380,13 +461,21 @@ static void resizewindow(int theSignal) {
     JAGEDITOR->resetscreen();
 }
 
+#ifdef WIN32
+static BOOL WINAPI handle_ctrl_c(_In_ DWORD dwCtrlType) {
+	JAGEDITOR->terminate();
+	return true;
+}
+#else
 static void handle_ctrl_c(int theSignal) {
     JAGEDITOR->terminate();
 }
-
+#endif
 ///------------------------------------------------------------------------------------
 
 jag_editor::jag_editor() : lines(this) {
+#ifndef WIN32
+    setbuf(stdin, NULL);
     tcgetattr(0, &oldterm);
 
     //We enable ctrl-s and ctrl-q within the editor
@@ -394,9 +483,13 @@ jag_editor::jag_editor() : lines(this) {
     tcgetattr(0, &theterm);
     theterm.c_iflag &= ~IXON;
     theterm.c_iflag |= IXOFF;
+    theterm.c_cc[VSTART] = NULL;
+    theterm.c_cc[VSTOP] = NULL;
     theterm.c_cc[VSUSP] = NULL;
     tcsetattr(0, TCSADRAIN, &theterm);
+#endif
 
+	insertaline = false;
     margin = 10;
     spacemargin = 9;
 
@@ -405,12 +498,18 @@ jag_editor::jag_editor() : lines(this) {
     regularexpressionfind = false;
     findrgx = NULL;
     
+    #ifdef Tamgu_REGEX
+        wpattern = NULL;
+    #endif
+    
     prefixsize = 1;
     
     xcursor = 0;
     ycursor = 0;
-    
+
+#ifndef WIN32
     signal(SIGWINCH, resizewindow);
+#endif
     colors.push_back(m_red);
     colors.push_back(m_dore);
     colors.push_back(m_blue);
@@ -425,12 +524,19 @@ jag_editor::jag_editor() : lines(this) {
     currentline = 0;
     currentfindpos = 0;
     currentposinstring = -1;
+#ifdef WIN32
+	prefix = "<>";
+	wprefix = L"<>";
+#else
     prefix = "작";
     wprefix = L"작";
+#endif
     replaceall = false;
     modified = true;
     tobesaved = false;
     inittableutf8();
+	row_size = -1;
+	col_size = -1;
     screensizes();
     localhelp << m_red<< "^xh" << m_current << ":help " << m_red<< "^k" << m_current << ":del after " << m_red<< "^p" << m_current << ":k-buffer " <<  m_red<< "^d" << m_current << ":del line " << m_red<< "^uz/^r" << m_current << ":un/redo " << m_red<< "^f" << m_current << ":find " << m_red<< "^n" << m_current << ":next " << m_red<< "^g" << m_current << ":go " << m_red<< "^l" << m_current << ":top/bottom " << m_red<< "^t" << m_current << ":indent " << m_red<< "^s/w" << m_current << ":write " << m_red<< "^x" << m_current << ":commands ";
     
@@ -441,29 +547,107 @@ jag_editor::jag_editor() : lines(this) {
 }
 
 jag_editor::~jag_editor() {
+    #ifdef Tamgu_REGEX
+        if (wpattern != NULL)
+            delete wpattern;
+    #endif
+    
     if (findrgx != NULL)
         delete findrgx;
 }
 
 ///------------------------------------------------------------------------------------
+#ifdef WIN32
+void jag_editor::checkresize() {
+static CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
+
+	GetConsoleScreenBufferInfo(hStdout, &csbiInfo);
+	if (csbiInfo.dwMaximumWindowSize.X != size_row  || csbiInfo.dwMaximumWindowSize.Y != size_col) {		
+		resetscreen();
+		return;
+	}
+}
+#endif
+void jag_editor::screensizes() {
+#ifdef WIN32
+	static CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
+
+	clearscreen();
+	if (row_size == -1 && col_size == -1) {
+		codepage = GetConsoleOutputCP();
+		//UTF8 setting
+		SetConsoleOutputCP(65001);
+		SetConsoleCP(65001);
+
+		// Get the current screen buffer size and window position. 
+		hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+
+		//Selecting a different font to display all Unicode characters
+		CONSOLE_FONT_INFOEX info = { 0 };
+		info.cbSize = sizeof(info);
+		info.dwFontSize.Y = 18; // leave X as zero
+		info.FontWeight = FW_NORMAL;
+		wcscpy(info.FaceName, L"Consolas");
+		SetCurrentConsoleFontEx(hStdout, NULL, &info);
+
+		//We set the specific mode to handle terminal commands
+		GetConsoleMode(hStdout, &lpMode);
+		SetConsoleMode(hStdout, lpMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+	}
+
+	if (!GetConsoleScreenBufferInfo(hStdout, &csbiInfo))
+	{
+		printf("GetConsoleScreenBufferInfo (%d)\n", GetLastError());
+		return;
+	}
+	row_size = csbiInfo.srWindow.Bottom - 1;
+	col_size = csbiInfo.srWindow.Right - margin;
+
+	size_row = csbiInfo.dwMaximumWindowSize.X;
+	size_col = csbiInfo.dwMaximumWindowSize.Y;
+
+#else
+	ioctl(STDOUT_FILENO, TIOCGWINSZ, &wns);
+	row_size = wns.ws_row - 2; //we need to keep a final line on screen for operators
+	col_size = wns.ws_col - margin;
+	if (row_size < 0)
+		row_size = 55;
+	if (col_size < 0)
+		col_size = 190;
+#endif
+	//We set the botton limit for scrolling
+	char buff[] = { 0,0,0,0,0,0 };
+	sprintf_s(buff,4, "%0.3ld", row_size+2);
+	m_scrollmargin[6] = buff[0];
+	m_scrollmargin[7] = buff[1];
+	m_scrollmargin[8] = buff[2];
+}
 
 void jag_editor::reset() {
+#ifndef WIN32
     tcsetattr(0, TCSADRAIN, &oldterm);
     
     termios theterm;
     tcgetattr(0, &theterm);
     theterm.c_iflag &= ~IXON;
     theterm.c_iflag |= IXOFF;
+    //The next modifications allows for the use of ctrl-q and ctrl-s
+    theterm.c_cc[VSTART] = NULL;
+    theterm.c_cc[VSTOP] = NULL;
     theterm.c_cc[VSUSP] = NULL;
     tcsetattr(0, TCSADRAIN, &theterm);
+    setbuf(stdin, NULL);
+#endif
 }
 
 void jag_editor::setscrolling() {
     getcursor();
+#ifndef WIN32
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &wns);
     char buffer[20];
     sprintf(buffer, "\33[%d,%dr", xcursor, wns.ws_row);
     cout << buffer;
+#endif
 }
 
 void jag_editor::resetscrolling() {
@@ -499,7 +683,7 @@ string jag_editor::coloringline(wstring& l, long p, bool select) {
     string substring;
     long ps;
     
-    if (p != -1) {
+    if (p != -1 && p < longstrings.size()) {
         
         switch (longstrings[p]) {
             case l_str:
@@ -587,23 +771,16 @@ string jag_editor::coloringline(wstring& l, long p, bool select) {
         }
         
         if (add) {
-            sub += line.substr(left, right-left);
+            if (right > left)
+                sub += line.substr(left, right-left);
             sub += m_current;
-            sub += line.substr(right, line.size() - right);
+            if (right < line.size())
+                sub += line.substr(right, line.size() - right);
             line = sub;
         }
     }
     line += substring;
     return line;
-}
-
-void jag_editor::backtoline() {
-    long i = row_size + 1;
-    while (i > currentline) {
-        i--;
-        cout << m_up;
-    }
-    movetoend();
 }
 
 void jag_editor::selectfound(long l, long r) {
@@ -655,19 +832,53 @@ void jag_editor::movetoposition() {
     else
         sc = size_upto(line, posinstring) + prefixego();
     cout << back;
-    while (sc != 0) {
-        cout << m_right;
-        sc--;
+    if (sc > 99) {
+        m_right[2] = numberstrings[99][0];
+        m_right[3] = numberstrings[99][1];
+        while (sc > 99) {
+            cout << m_right;
+            sc -= 99;
+        }
+        if (sc) {
+            m_right[2] = numberstrings[sc][0];
+            m_right[3] = numberstrings[sc][1];
+            cout << m_right;
+        }
     }
+    else {
+        m_right[2] = numberstrings[sc][0];
+        m_right[3] = numberstrings[sc][1];
+        cout << m_right;
+    }
+
+    m_right[2] = '0';
+    m_right[3] = '1';
 }
 
 void jag_editor::movetobeginning() {
     long sc = prefixego();
     cout << back;
-    while (sc) {
-        cout << m_right;
-        sc--;
+    if (sc > 99) {
+        m_right[2] = numberstrings[99][0];
+        m_right[3] = numberstrings[99][1];
+        while (sc > 99) {
+            cout << m_right;
+            sc -= 99;
+        }
+        if (sc) {
+            m_right[2] = numberstrings[sc][0];
+            m_right[3] = numberstrings[sc][1];
+            cout << m_right;
+        }
     }
+    else {
+        m_right[2] = numberstrings[sc][0];
+        m_right[3] = numberstrings[sc][1];
+        cout << m_right;
+    }
+
+    m_right[2] = '0';
+    m_right[3] = '1';
 }
 
 void jag_editor::movetoend(bool remove) {
@@ -685,20 +896,54 @@ void jag_editor::movetoend(bool remove) {
         return;
     
     cout << back;
-    while (sc != 0) {
-        cout << m_right;
-        sc--;
+    if (sc > 99) {
+        m_right[2] = numberstrings[99][0];
+        m_right[3] = numberstrings[99][1];
+        while (sc > 99) {
+            cout << m_right;
+            sc -= 99;
+        }
+        if (sc) {
+            m_right[2] = numberstrings[sc][0];
+            m_right[3] = numberstrings[sc][1];
+            cout << m_right;
+        }
     }
+    else {
+        m_right[2] = numberstrings[sc][0];
+        m_right[3] = numberstrings[sc][1];
+        cout << m_right;
+    }
+    
+    m_right[2] = '0';
+    m_right[3] = '1';
 }
 
 void jag_editor::movetolastline() {
     long e = row_size + 2;
     cout << m_home;
-    while (e) {
-        cout << m_down;
-        e--;
+    if (e > 99) {
+        m_down[2] = numberstrings[99][0];
+        m_down[3] = numberstrings[99][1];
+        while (e > 99) {
+            cout << m_down;
+            e-=99;
+        }
+        if (e) {
+            m_down[2] = numberstrings[e][0];
+            m_down[3] = numberstrings[e][1];
+            cout << m_down;
+        }
     }
+    else {
+        m_down[2] = numberstrings[e][0];
+        m_down[3] = numberstrings[e][1];
+        cout << m_down;
+    }
+    
     cout << back;
+    m_down[2] = '0';
+    m_down[3] = '1';
 }
 
 void jag_editor::movetoline(long e) {
@@ -708,10 +953,31 @@ void jag_editor::movetoline(long e) {
     }
 
     cout << m_home;
-    while (e) {
-        cout << m_down;
-        e--;
+    
+    if (e > 99) {
+        m_down[2] = numberstrings[99][0];
+        m_down[3] = numberstrings[99][1];
+        while (e > 99) {
+            cout << m_down;
+            e-=99;
+        }
+        if (e) {
+            m_down[2] = numberstrings[e][0];
+            m_down[3] = numberstrings[e][1];
+            cout << m_down;
+        }
     }
+    else {
+        if (!e)
+            return;
+        
+        m_down[2] = numberstrings[e][0];
+        m_down[3] = numberstrings[e][1];
+        cout << m_down;
+    }
+    
+    m_down[2] = '0';
+    m_down[3] = '1';
 }
 
 void jag_editor::gotoline(long p) {
@@ -740,7 +1006,7 @@ bool jag_editor::updown(char drt, long& pos) {
     moveup = true;
     
     char exec = 0;
-    if (drt == 65) { // we are going up
+    if (drt == is_up) { // we are going up
         currentline--;
         if (currentline < 0) {
                 //we need to scroll down...
@@ -787,7 +1053,7 @@ bool jag_editor::updown(char drt, long& pos) {
     
     if (exec) {
         if (moveup) {
-            if (drt == 65)
+            if (drt == is_up)
                 cout << m_up;
             else
                 cout << m_down;
@@ -803,7 +1069,11 @@ bool jag_editor::updown(char drt, long& pos) {
 }
 
 void jag_editor::clearscreen() {
+#ifdef WIN32
+	system("cls");
+#else
     cout << m_clear << m_home;
+#endif
 }
 
 void jag_editor::clearline() {
@@ -889,7 +1159,7 @@ long jag_editor::deleteachar(wstring& l, bool last, long pins) {
     return pins;
 }
 
-void jag_editor::deletechar() {
+void jag_editor::deletechar(bool left) {
     long sz = line.size();
     bool last = false;
     if (posinstring >= sz - 1) {
@@ -911,7 +1181,7 @@ void jag_editor::deletechar() {
         else
             clearline();
         
-        posinstring = deleteachar(line, last, posinstring);
+        long pins = deleteachar(line, last, posinstring);
         
         if (option != x_none) {
             displaygo(false);
@@ -920,17 +1190,29 @@ void jag_editor::deletechar() {
         
         //We update our line
         if (emode()) {
+			long dif = pins - posinstring;
+			posinstring = pins;
+
             tobesaved = true;
-            clearline();
-            lines[pos] = line;
+			lines[pos] = line;
+			//clearline();
             
             if (lines.Status(pos))
                 lines.refactoring(pos);
             
-            displaylist(poslines[0]);
-            movetoline(currentline);
-        }
+            //displaylist(poslines[0]);
+            //movetoline(currentline);
+			m_deletechar[2] = 48 + dif;
+			m_left[2] = 48 + dif;
+			if (left)
+				cout << m_left << m_deletechar;
+			else
+				cout << m_deletechar;
+			m_deletechar[2] = 49;
+			m_left[2] = 49;
+		}
         else {
+			posinstring = pins;
             printline(pos+1, line);
             if (updateline && pos < lines.size())
                 lines[pos] = line;
@@ -1136,16 +1418,24 @@ void jag_editor::displaygo(bool full) {
             cout << back << "Line:" << convert(line);
             break;
         case x_find:
-            if (regularexpressionfind)
-                cout << back << "Find(rgx):" << convert(line);
-            else
-                cout << back << "Find:" << convert(line);
+            if (regularexpressionfind == 2)
+                cout << back << "Find(pgx):" << convert(line);
+            else {
+                if (regularexpressionfind == true)
+                    cout << back << "Find(rgx):" << convert(line);
+                else
+                    cout << back << "Find:" << convert(line);
+            }
             break;
         case x_replace:
-            if (regularexpressionfind)
-                cout << back << "Find(rgx):" << convert(currentfind) << "  Replace:" << convert(line);
-            else
-                cout << back << "Find:" << convert(currentfind) << "  Replace:" << convert(line);
+            if (regularexpressionfind == 2)
+                cout << back << "Find(pgx):" << convert(currentfind) << "  Replace:" << convert(line);
+            else {
+                if (regularexpressionfind == true)
+                    cout << back << "Find(rgx):" << convert(currentfind) << "  Replace:" << convert(line);
+                else
+                    cout << back << "Find:" << convert(currentfind) << "  Replace:" << convert(line);
+            }
             break;
         case x_write:
             cout << back << "File:" << coloringline(line);
@@ -1190,113 +1480,153 @@ void jag_editor::scanforlonglines() {
             if (r != -1) {
                 r++;
                 if (lines[i].find(L"\"\"\"", r) != -1) {
-                    longstrings.push_back(l_str);
-                    continue;
-                }
-                longstrings.push_back(r*-1);
-                i++;
-                while (i < lines.size() && lines[i].find(L"\"\"\"") == -1) {
-                    longstrings.push_back(l_str);
-                    i++;
-                }
-                longstrings.push_back(l_str);
-                continue;
-            }
-            
-            r = lines[i].find(L"'''");
-            if (r != -1) {
-                r++;
-                if (lines[i].find(L"'''", r) != -1) {
-                    longstrings.push_back(l_str);
-                    continue;
-                }
-                longstrings.push_back(r*-1);
-                i++;
-                while (i < lines.size() && lines[i].find(L"'''") == -1) {
-                    longstrings.push_back(l_str);
-                    i++;
-                }
-                longstrings.push_back(l_str);
-                continue;
-            }
-        }
-        
-        if (isc()) {
-            r = lines[i].find(L"/*");
-            if (r != -1) {
-                longstrings.push_back(l_com);
-                if (lines[i].find(L"*/", r) != -1)
-                    continue;
-                i++;
-                while (i < lines.size() && lines[i].find(L"*/") == -1) {
-                    longstrings.push_back(l_com);
-                    i++;
-                }
-                longstrings.push_back(l_com);
-                continue;
-            }
-        }
-        else {
-            if (lines[i][0] == '#') {
-                longstrings.push_back(l_com);
-                continue;
-            }
-        }
-        
-        if (istamgu()) {
-            r = lines[i].find(L"/@");
-            if (r != -1) {
-                longstrings.push_back(l_com);
-                if (lines[i].find(L"@/", r) != -1)
-                    continue;
-                i++;
-                while (i < lines.size() && lines[i].find(L"@/") == -1) {
-                    longstrings.push_back(l_com);
-                    i++;
-                }
-                longstrings.push_back(l_com);
-                continue;
-            }
-            
-            r = lines[i].find(L"@\"");
-            if (r != -1) {
-                r++;
-                if (lines[i].find(L"\"@", r) != -1) {
-                    longstrings.push_back(l_str);
-                    continue;
-                }
-                
-                longstrings.push_back(r*-1);
-                i++;
-                while (i < lines.size() && lines[i].find(L"\"@") == -1) {
-                    longstrings.push_back(l_str);
-                    i++;
-                }
-                longstrings.push_back(l_str);
-                continue;
-            }
-        }
-        longstrings.push_back(0);
-    }
+longstrings.push_back(l_str);
+continue;
+				}
+				longstrings.push_back(r*-1);
+				i++;
+				while (i < lines.size() && lines[i].find(L"\"\"\"") == -1) {
+					longstrings.push_back(l_str);
+					i++;
+				}
+				longstrings.push_back(l_str);
+				continue;
+			}
+
+			r = lines[i].find(L"'''");
+			if (r != -1) {
+				r++;
+				if (lines[i].find(L"'''", r) != -1) {
+					longstrings.push_back(l_str);
+					continue;
+				}
+				longstrings.push_back(r*-1);
+				i++;
+				while (i < lines.size() && lines[i].find(L"'''") == -1) {
+					longstrings.push_back(l_str);
+					i++;
+				}
+				longstrings.push_back(l_str);
+				continue;
+			}
+		}
+
+		if (isc()) {
+			r = lines[i].find(L"/*");
+			if (r != -1) {
+				longstrings.push_back(l_com);
+				if (lines[i].find(L"*/", r) != -1)
+					continue;
+				i++;
+				while (i < lines.size() && lines[i].find(L"*/") == -1) {
+					longstrings.push_back(l_com);
+					i++;
+				}
+				longstrings.push_back(l_com);
+				continue;
+			}
+		}
+		else {
+			if (lines[i][0] == '#') {
+				longstrings.push_back(l_com);
+				continue;
+			}
+		}
+
+		if (istamgu()) {
+			r = lines[i].find(L"/@");
+			if (r != -1) {
+				longstrings.push_back(l_com);
+				if (lines[i].find(L"@/", r) != -1)
+					continue;
+				i++;
+				while (i < lines.size() && lines[i].find(L"@/") == -1) {
+					longstrings.push_back(l_com);
+					i++;
+				}
+				longstrings.push_back(l_com);
+				continue;
+			}
+
+			r = lines[i].find(L"@\"");
+			if (r != -1) {
+				r++;
+				if (lines[i].find(L"\"@", r) != -1) {
+					longstrings.push_back(l_str);
+					continue;
+				}
+
+				longstrings.push_back(r*-1);
+				i++;
+				while (i < lines.size() && lines[i].find(L"\"@") == -1) {
+					longstrings.push_back(l_str);
+					i++;
+				}
+				longstrings.push_back(l_str);
+				continue;
+			}
+		}
+		longstrings.push_back(0);
+	}
+}
+
+void jag_editor::Scrolldown() {
+	//From currentline down, pos is the new line number...
+	char buff[] = { 0,0,0,0,0,0 };
+	sprintf_s(buff, 4, "%0.3ld", currentline + 1);
+	m_scrollmargin[2] = buff[0];
+	m_scrollmargin[3] = buff[1];
+	m_scrollmargin[4] = buff[2];
+	cout << m_scrollmargin << m_scrolldown;
+	m_scrollmargin[2] = '0';
+	m_scrollmargin[3] = '0';
+	m_scrollmargin[4] = '0';
+	cout << m_scrollmargin;
+	movetoline(currentline - 1);
+	long ps = pos;
+	//We simply change the line numbers
+	long i;
+	if (poslines.size() < row_size)
+		poslines.push_back(poslines.size());
+
+	for (i = currentline - 1; i <= row_size && i < poslines.size(); i++) {
+		printline(ps);
+		cout << m_down;
+		ps++;
+	}
+	clearline();
+	movetoline(currentline);
 }
 
 void jag_editor::displaylist(long beg) {
-    if (beg < 0)
-        beg = 0;
-    
+	if (!lines.size()) {
+		clearline();
+		if (!noprefix)
+			cout << back << m_dore << prefix << m_current << m_lightgray << std::setw(prefixsize) << "1> " << endl;
+		return;
+	}
+
+	if (beg < 0)
+		beg = 0;
+
     long nb = 0;
     x_option g = option;
     option = x_none;
-    
-    poslines.clear();
-    
+        
     if (modified) {
         scanforlonglines();
         modified = false;
     }
     
     lines.updatesize();
-    
+
+	if (poslines.size() && beg == poslines[0] && currentline && insertaline) {
+		Scrolldown();
+		return;
+	}
+
+	poslines.clear();
+
     stringstream blk;
     for (long i = beg; i < lines.size(); i++) {
         poslines.push_back(i);
@@ -1350,8 +1680,28 @@ void jag_editor::processgo() {
     movetoend();
 }
 
-void jag_editor::resetsearch() {
-    if (regularexpressionfind) {
+bool jag_editor::resetsearch() {
+#ifdef Tamgu_REGEX
+    if (regularexpressionfind == 2) {
+        try {
+            if (wpattern == NULL) {
+                wpatternexpression = currentfind;
+                wpattern = new wregex(wpatternexpression);
+            }
+            else
+                if (wpatternexpression != currentfind) {
+                    delete wpattern;
+                    wpatternexpression = currentfind;
+                    wpattern = new wregex(wpatternexpression);
+                }
+        }
+        catch(...) {
+            return false;
+        }
+    }
+    else
+#endif
+    if (regularexpressionfind == true) {
         if (findrgx == NULL)
             findrgx = new Jag_automaton(currentfind);
         else
@@ -1359,12 +1709,30 @@ void jag_editor::resetsearch() {
                 delete findrgx;
                 findrgx = new Jag_automaton(currentfind);
             }
+        if (findrgx->first == NULL) {
+            delete findrgx;
+            findrgx = NULL;
+            return false;
+        }
     }
+    return true;
 }
 
 bool jag_editor::search(wstring& l, long& first, long& last, long ps) {
-    if (regularexpressionfind)
+    if (regularexpressionfind == true)
         return findrgx->search(l, first, last, ps);
+#ifdef Tamgu_REGEX
+    if (regularexpressionfind == 2) {
+        wsmatch result;
+        wstring w = l.substr(ps,l.size()-ps);
+        if (regex_search(w, result, *wpattern)) {
+            first = result.position() + ps;
+            last = first + result.length();
+            return true;
+        }
+        return false;
+    }
+#endif
     first = l.find(currentfind, ps);
     if (first == -1)
         return false;
@@ -1376,11 +1744,14 @@ bool jag_editor::processfind() {
     long i;
         //Search part...
     long first, last, end;
-    long ps = posinstring;
+    long ps = currentposinstring;
     currentfindpos = 0;
     if (currentfind !=  L"") {
         wstring l;
-        resetsearch();
+        if (!resetsearch()) {
+            displayonlast("Wrong expression", true);
+            return false;
+        }
         
         for (i = pos; i < lines.size(); i++) {
             l = lines.getoneline(i, end);
@@ -1423,7 +1794,10 @@ long jag_editor::processcount() {
     wstring code = lines.code();
     
     vector<long> alls;
-    resetsearch();
+    if (!resetsearch()) {
+        displayonlast("Wrong expression");
+        return false;
+    }
     findrgx->searchall(code, alls, 0);
     return (alls.size() >> 1);
 }
@@ -1433,19 +1807,31 @@ void jag_editor::processreplace() {
     option = x_none;
     movetoposition();
     if (!replaceall) {
+        currentposinstring = posinstring;
         displayonlast(L"Replace: Y/N/A", true);
-        resp = _getch();
+        resp = getch();
         if (resp == "A" || resp == "a")
             replaceall = true;
     }
+        
+#ifdef Tamgu_REGEX
+    wstring w;
+#endif
     
     if (replaceall || resp == "Y" || resp == "y") {
         //We know where the word is...
-        resetsearch();
         long first, last, end;
         wstring ws = lines.getoneline(pos, end);
         if (search(ws, first, last, posinstring)) {
-            ws.replace(first, last-first, currentreplace);
+#ifdef Tamgu_REGEX
+            if (regularexpressionfind == 2) {
+                w = ws.substr(first,last-first);
+                w = regex_replace(w, *wpattern, currentreplace);
+                ws.replace(first, last-first, w);
+            }
+            else
+#endif
+                ws.replace(first, last-first, currentreplace);
             lines.replaceline(pos, end+1, ws);
             
             if (first > col_size) {
@@ -1455,15 +1841,16 @@ void jag_editor::processreplace() {
                 first -= ps;
                 last -= ps;
                 resetlist(pos);
+                posinstring = first;
                 gotoline(pos);
             }
-            else
-                gotoline(poslines[0]);
-            
-            if (!findnext()) {
-                replaceall = false;
+            else {
                 posinstring = first;
+                gotoline(poslines[0]);
             }
+                    
+            if (!findnext())
+                replaceall = false;
         }
         return;
     }
@@ -1479,7 +1866,6 @@ void jag_editor::processreplace() {
 
 bool jag_editor::findnext() {
     if (currentfind != L"") {
-        resetsearch();
         long i, ps = currentfindpos;
         long first, last, end;
         wstring l;
@@ -1520,7 +1906,6 @@ bool jag_editor::findnext() {
                         ps *= col_size;
                         first -= ps;
                         last -= ps;
-                        posinstring %= col_size;
                         resetlist(pos);
                     }
                     
@@ -1596,8 +1981,19 @@ long jag_editor::handlemultiline() {
         displaylist(poslines[0] + 1);
         currentline = row_size;
     }
-    else
-        displaylist(poslines[0]);
+	else {
+		if (pos > 0 && stat == solo_line) {
+			clearline();
+			printline(pos, lines[pos - 1]);
+			insertaline = true;
+			displaylist(poslines[0]);
+			printline(pos + 1, lines[pos]);
+			insertaline = false;
+		}
+		else
+			displaylist(poslines[0]);
+	}
+
     
     movetoline(currentline);
     
@@ -1677,7 +2073,10 @@ long jag_editor::handlingeditorline(bool computespace) {
         undo(space, pos, u_ins_linked); //The value is inserted
         lines.numbers();
         if (currentline < row_size) {
-            displaylist(poslines[0]);
+			//We need to insert a line at this position
+			insertaline = true;
+			displaylist(poslines[0]);
+			insertaline = false;
             currentline++;
         }
         else //in this case, we are at the end of the process...
@@ -1720,10 +2119,6 @@ long jag_editor::handlingeditorline(bool computespace) {
     }
     line = space;
     return pos;
-}
-
-string jag_editor::getch() {
-    return _getch();
 }
 
 long jag_editor::getbuffsize() {
@@ -1894,7 +2289,34 @@ void jag_editor::backwardemoji() {
 }
 
 void jag_editor::evaluateescape(string& buff) {
-    
+
+#ifdef WIN32
+	if (buff == c_homekey) {
+        pos = 0;
+        posinstring = 0;
+        currentline = 0;
+        line = lines[pos];
+        displaylist(0);
+        movetoline(0);
+        movetobeginning();
+		return;
+	}
+
+	if (buff == c_endkey) {
+		long ps = lines.size() - row_size;
+		if (ps > 0) {
+            pos = ps;
+            currentline = 0;
+            posinstring = 0;
+            line = lines[pos];
+            displaylist(pos);
+            movetoline(0);
+            movetobeginning();
+			return;
+		}
+		return;
+	}
+
     if (buff == homekey) {
         movetobeginning();
         posinstring = 0;
@@ -1902,11 +2324,40 @@ void jag_editor::evaluateescape(string& buff) {
     }
     
     if (buff == endkey) {
-        posinstring = line.size();
-        movetoend();
+		posinstring = line.size();
+		if (posinstring && !lines.eol(pos))
+			posinstring--;
+		movetoposition();
+		return;
+    }
+#else
+    if (buff == homekey) {
+        pos = 0;
+        posinstring = 0;
+        currentline = 0;
+        line = lines[pos];
+        displaylist(0);
+        movetoline(0);
+        movetobeginning();
         return;
     }
-    
+
+    if (buff == endkey) {
+        long ps = lines.size() - row_size;
+        if (ps > 0) {
+            pos = ps;
+            currentline = 0;
+            posinstring = 0;
+            line = lines[pos];
+            displaylist(pos);
+            movetoline(0);
+            movetobeginning();
+            return;
+        }
+        return;
+    }
+
+#endif
         //ctrl-up, up 10 lines
     if (buff == c_up) {
         if ((pos - row_size) < 0) {
@@ -1915,8 +2366,9 @@ void jag_editor::evaluateescape(string& buff) {
         }
         else
             pos -= row_size;
-        displaylist(pos);
         posinstring = 0;
+        line = lines[pos];
+        displaylist(pos);
         movetoline(currentline);
         movetobeginning();
         return;
@@ -1941,6 +2393,8 @@ void jag_editor::evaluateescape(string& buff) {
         }
         else
             pos += mxline;
+        
+        line = lines[pos];
         displaylist(pos);
         movetoline(currentline);
         movetobeginning();
@@ -1948,8 +2402,12 @@ void jag_editor::evaluateescape(string& buff) {
     }
     
     if (buff == up || buff == down) {
-        updown(buff[2], pos);
-        return;
+#ifdef WIN32
+		updown(buff[1], pos);
+#else
+		updown(buff[2], pos);
+#endif
+		return;
     }
     
     if (buff == c_right || buff == a_right) {
@@ -2010,7 +2468,7 @@ void jag_editor::evaluateescape(string& buff) {
         }
         else {//we go down at the beginning of the next line
             if (emode()) {
-                updown(66, pos);
+                updown(is_down, pos);
                 posinstring = 0;
                 movetobeginning();
             }
@@ -2026,7 +2484,7 @@ void jag_editor::evaluateescape(string& buff) {
         }
         else {//we go up at the end of the previous line
             if (emode() && pos > 0) {
-                updown(65, pos);
+                updown(is_up, pos);
                 posinstring = line.size();
                 if (posinstring && !lines.eol(pos))
                     posinstring--;
@@ -2043,7 +2501,7 @@ void jag_editor::evaluateescape(string& buff) {
                 return;
             }
         }
-        deletechar();
+        deletechar(false);
     }
 }
 
@@ -2107,7 +2565,31 @@ bool jag_editor::checkcommand(char cmd) {
             return true;
         case 'f':
             if (emode()) {
+                regularexpressionfind = false;
+                string sub = "Find:";
+                sub += convert(currentfind);
+                displayonlast(sub, false);
+                line = currentfind;
+                posinstring = currentfind.size();
+                currentreplace = L"";
+                option = x_find;
+            }
+            return true;
+        case 'P':
+            if (emode()) {
+                regularexpressionfind = 2; //posix search
+                currentfind = L"";
+                displayonlast("Find(pgx):", false);
+                line = currentfind;
+                posinstring = currentfind.size();
+                currentreplace = L"";
+                option = x_find;
+            }
+            return true;
+        case 'R':
+            if (emode()) {
                 regularexpressionfind = true;
+                currentfind = L"";
                 displayonlast("Find(rgx):", false);
                 line = currentfind;
                 posinstring = currentfind.size();
@@ -2152,7 +2634,7 @@ bool jag_editor::checkcommand(char cmd) {
             return true;
         case 'h':
             displaythehelp();
-            _getch();
+            getch();
             displaylist(poslines[0]);
             movetoline(currentline);
             movetoposition();
@@ -2164,7 +2646,7 @@ bool jag_editor::checkcommand(char cmd) {
 //This section handles combined commands introduced with Ctrl-x
 void jag_editor::handlecommands() {
     currentposinstring = posinstring;
-    string buff = _getch();
+    string buff = getch();
 
     if (checkcommand(buff[0]))
         return;
@@ -2172,7 +2654,19 @@ void jag_editor::handlecommands() {
     displayonlast("", true);
 }
 
+void jag_editor::resetterminal() {
+#ifdef WIN32    
+	SetConsoleCP(codepage);
+	SetConsoleOutputCP(codepage);
+	SetConsoleMode(hStdout, lpMode);
+#else
+	tcsetattr(0, TCSADRAIN, &oldterm);
+#endif    
+}
+
 bool jag_editor::terminate() {
+    replaceall = false;
+    
     if (tobesaved) {
         tobesaved = false;
         displayonlast("File not saved... ctrl-c again to quit", true);
@@ -2184,9 +2678,7 @@ bool jag_editor::terminate() {
     cout << back << space << back << m_redbold << "Salut!!!" << m_current << endl;
     
     fflush(stdout);
-    
-    tcsetattr(0, TCSADRAIN, &oldterm);
-    
+	resetterminal();
     exit(0);
     return true;
 }
@@ -2213,6 +2705,10 @@ bool jag_editor::checkaction(string& buff, long& first, long& last, bool lisp) {
             movetobeginning();
             posinstring = 0;
             return true;
+#ifdef WIN32
+		case 3:
+			return !terminate();
+#endif
         case 4: //ctrl-d exiting
             if (emode())
                 deleteline(0);
@@ -2225,9 +2721,10 @@ bool jag_editor::checkaction(string& buff, long& first, long& last, bool lisp) {
             return true;
         case 6: // ctrl-f find
             if (emode()) {
+                currentposinstring = posinstring;
                 regularexpressionfind = false;
                 string sub = "Find:";
-                sub += convert(currentfind);
+                currentfind = L"";
                 displayonlast(sub, false);
                 line = currentfind;
                 posinstring = currentfind.size();
@@ -2242,8 +2739,9 @@ bool jag_editor::checkaction(string& buff, long& first, long& last, bool lisp) {
                 option = x_goto;
             }
             return true;
-        case 8: //ctrl-h display help
-            if (emode()) {
+#ifndef WIN32
+		case 8: //ctrl-h display help
+			if (emode()) {
                 option = x_none;
                 if (!tooglehelp)
                     displayonlast(localhelp.str(), true);
@@ -2254,8 +2752,11 @@ bool jag_editor::checkaction(string& buff, long& first, long& last, bool lisp) {
                 }
                 tooglehelp = 1 - tooglehelp;
             }
-            return true;
-        case 10: //this is a carriage return
+            return true;		
+		case 10: //this is a carriage return
+#else
+		case 13:
+#endif
                  //we need to check the different options...
             switch (option) {
                 case x_none:
@@ -2500,22 +3001,38 @@ bool jag_editor::checkaction(string& buff, long& first, long& last, bool lisp) {
             
             evaluateescape(buff);
             return true;
+#ifdef WIN32
+		case 8:
+#else
 #ifndef APPLE
-        case 15:
+		case 15:
 #endif
-        case 127: //back delete
-            if (posinstring > 0) {
+		case 127: //back delete
+#endif
+			if (posinstring > 0) {
                 backwardemoji();
-                deletechar();
+                deletechar(true);
             }
             else {
                 if (emode())
                     deleteline(-1);
             }
             return true;
+        default:
+            if (buff.size() > 1 && emode()) {
+                evaluateescape(buff);
+                return true;
+            }
     }
     
     return false;
+}
+static bool isitempty(wstring& w) {
+    for (long i = 0; i < w.size(); i++) {
+        if (w[i] > 32)
+            return false;
+    }
+    return true;
 }
 
 void jag_editor::addabuffer(wstring& b, bool instring) {
@@ -2593,9 +3110,8 @@ void jag_editor::addabuffer(wstring& b, bool instring) {
         case '}':
         case '(':
             fndchr = true;
-            if (!instring && emode() && (b[0] == '}' || b[0] == ')')) {
+            if (!instring && emode() && (b[0] == '}' || b[0] == ')') && isitempty(line)) {
                 long sp = lines.indent(pos) - GetBlankSize();
-                line = Trimleft(line);
                 if (sp > 0) {
                     wstring space(sp, ' ');
                     line = space;
@@ -2662,9 +3178,13 @@ void jag_editor::launchterminal(char loadedcode) {
     
     wstring bl;
     wstring b;
-    
+
+#ifdef WIN32
+	SetConsoleCtrlHandler(handle_ctrl_c, true);
+#else
     signal(SIGINT,handle_ctrl_c);
-    
+#endif
+
     wstring code;
     string buffer;
     bool inbuffer = false;
@@ -2674,7 +3194,7 @@ void jag_editor::launchterminal(char loadedcode) {
     long first = 0, last;
 
     while (1) {
-        buff = _getch();
+        buff = getch();
         
         if (echochar) {
             displaychar(buff);

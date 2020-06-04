@@ -40,11 +40,6 @@
 
 #include "x_tokenize.h"
 
-#ifndef max
-#define max(a,b)            (((a) > (b)) ? (a) : (b))
-#define min(a,b)            (((a) < (b)) ? (a) : (b))
-#endif
-
 //We need to declare once again our local definitions.
 Exporting basebin_hash<stringMethod>  Tamgustring::methods;
 Exporting hmap<string, string> Tamgustring::infomethods;
@@ -2500,7 +2495,7 @@ Tamgu* Tamgustring::andset(Tamgu* a, bool autoself) {
     string u;
     Locking _lock(this);
 
-    long m = min(s.size(), value.size());
+    long m = minlocal(s.size(), value.size());
     for (long i = 0; i < m; i++) {
         if (s[i] == value[i])
             u += s[i];
@@ -2518,7 +2513,7 @@ Tamgu* Tamgustring::xorset(Tamgu* a, bool autoself) {
     string u;
 
     Locking _lock(this);
-    long m = min(s.size(), value.size());
+    long m = minlocal(s.size(), value.size());
     for (long i = 0; i < m; i++) {
         if (s[i] != value[i])
             u += value[i];
@@ -2611,7 +2606,7 @@ Tamgu* TamguLoopString::andset(Tamgu* a, bool autoself) {
     string s = a->String();
     string u;
     Locking _lock(this);
-    long m = min(s.size(), value.size());
+    long m = minlocal(s.size(), value.size());
     for (long i = 0; i < m; i++) {
         if (s[i] == value[i])
             u += s[i];
@@ -2628,7 +2623,7 @@ Tamgu* TamguLoopString::xorset(Tamgu* a, bool autoself) {
     string s = a->String();
     string u;
     Locking _lock(this);
-    long m = min(s.size(), value.size());
+    long m = minlocal(s.size(), value.size());
     for (long i = 0; i < m; i++) {
         if (s[i] != value[i])
             u += value[i];
@@ -3693,7 +3688,7 @@ Tamgu* Tamgua_string::andset(Tamgu* a, bool autoself) {
 
     string vl = value.value();
     
-    long m = min(s.size(), value.size());
+    long m = minlocal(s.size(), value.size());
     for (long i = 0; i < m; i++) {
         if (s[i] == vl[i])
             u += s[i];
@@ -3711,7 +3706,7 @@ Tamgu* Tamgua_string::xorset(Tamgu* a, bool autoself) {
     string u;
     string vl = value.value();
     
-    long m = min(s.size(), vl.size());
+    long m = minlocal(s.size(), vl.size());
     for (long i = 0; i < m; i++) {
         if (s[i] != vl[i])
             u += vl[i];

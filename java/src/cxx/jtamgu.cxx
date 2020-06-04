@@ -104,11 +104,7 @@ JNIEXPORT jint JNICALL Java_com_naver_jtamgu_JTamgu_LoadProgramImplementation(JN
 
     string nameOfFile = jstringToString(env, filename);
     string theargs = jstringToString(env, args);
-#ifdef WIN32
-	short idglobal = TamguCreateGlobal(1000);
-#else
-    short idglobal = TamguCreateGlobal(500);
-#endif
+    short idglobal = TamguCreateGlobal(10);
     
     stringstream message;
     TamguSetArguments(theargs);
@@ -147,11 +143,11 @@ JNIEXPORT jint JNICALL Java_com_naver_jtamgu_JTamgu_LoadStringProgramImplementat
     string jcode = jstringToString(env, code);
     string theargs = jstringToString(env, args);
 
+    short idglobal = TamguCreateGlobal(10);
+
 #ifdef WIN32
-    short idglobal = TamguCreateGlobal(1000);
     string name = "C:\\JAVA";
 #else
-    short idglobal = TamguCreateGlobal(500);
     string name = "/JAVA";
 #endif
 

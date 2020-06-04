@@ -258,7 +258,7 @@ cleanlibs:
         if pythonpath==None:
            f.write("PYTHONLIB = /Library/Frameworks/Python.framework/Versions/"+pversion+"/Python\n")
         else:
-           f.write("PYTHONLIB = "+pythonpath+"\n")   
+           f.write("PYTHONLIB = "+pythonpath+"\n")
 
     f.write("C++11Flag = -std=c++11 -DTamgu_REGEX -DMAVERICK -DAPPLE\n")
     f.write("INTELINT = -DINTELINTRINSICS -mavx2 -DAVXSUPPORT\n")
@@ -701,6 +701,7 @@ if "libboost_regex" not in v and noregex==False:
         print('')
         print("Using std::regex")
         regexflag=regexflag.replace("%%%","-DREGEXCPP")
+        regexflag=regexflag.replace("-lboost_regex","")
         if compilejava:
             brep1=True
             brep2=True

@@ -56,7 +56,7 @@ tamgu: $(OBJECTTAMGUMAIN) $(OBJECTTamgu)
 	$(COMPPLUSPLUS) -o $(BINPATH)/tamgu $(OBJECTTAMGUMAIN) $(OBJECTTamgu) $(TamguSYSTEMLIBS)
 
 jag: install $(OBJECTJAG)
-	$(COMPPLUSPLUS) -o $(BINPATH)/jag $(OBJECTJAG)
+	$(COMPPLUSPLUS) -o $(BINPATH)/jag $(OBJECTJAG) $(LIBREGEX)
 
 lib: install libtamgu
 	$(libtamgu)

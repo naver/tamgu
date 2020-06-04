@@ -422,7 +422,7 @@ void Tamguposixregularexpression::searchall(string& val, vector<long>& v, long i
         
         string w = val.substr(init,val.size()-init);
         for (sregex_iterator i(w.begin(), w.end(), *pattern); i != end; ++i) {
-            v.push_back(i->position());
+            v.push_back(i->position()+init);
         }
     }
     else {
@@ -443,7 +443,7 @@ void Tamguposixregularexpression::searchall(wstring& val, vector<long>& v, long 
         wstring w = val.substr(init,val.size()-init);
 
         for (wsregex_iterator i(w.begin(), w.end(), *wpattern); i != end; ++i) {
-            v.push_back(i->position());
+            v.push_back(i->position()+init);
         }
     }
     else {
@@ -467,7 +467,7 @@ bool Tamguposixregularexpression::search(wstring& w, long& b, long& e, long init
         wstring val=w.substr(init,w.size()-init);
 
         if (regex_search(val, result, *wpattern)) {
-            b = result.position();
+            b = result.position() + init;
             e = b + result.length();
             return true;
         }
@@ -496,7 +496,7 @@ bool Tamguposixregularexpression::search(string& w, long& b, long& e, long init)
         
         string val=w.substr(init,w.size()-init);
         if (regex_search(val, result, *pattern)) {
-            b = result.position();
+            b = result.position() + init;
             e = b + result.length();
             return true;
         }
@@ -529,7 +529,7 @@ bool Tamguposixregularexpression::searchlast(wstring& w, long& b, long& e, long 
         wstring val=w.substr(init,w.size()-init);
         
         for (wsregex_iterator i(val.begin(), val.end(), *wpattern); i != end; ++i) {
-            b = i->position();
+            b = i->position()+init;
             e = b + i->length();
         }
 
@@ -566,7 +566,7 @@ bool Tamguposixregularexpression::searchlast(string& w, long& b, long& e, long i
         string val=w.substr(init,w.size()-init);
         
         for (sregex_iterator i(val.begin(), val.end(), *pattern); i != end; ++i) {
-            b = i->position();
+            b = i->position() + init;
             e = b + i->length();
         }
         
@@ -1826,14 +1826,16 @@ Au_automate::Au_automate(string rgx) {
 
 Au_automate::Au_automate(wstring& wrgx) {
     first=NULL;
-    parse(wrgx,&garbage);
+    if (!parse(wrgx,&garbage))
+        first = NULL;
 }
 
 Au_automaton::Au_automaton(string rgx) {
     wstring wrgx;
     s_utf8_to_unicode(wrgx, USTR(rgx), rgx.size());
     first=NULL;
-    parse(wrgx);
+    if (!parse(wrgx))
+        first = NULL;
 }
 
 bool Au_automaton::parse(wstring& w, Au_automatons* aus) {

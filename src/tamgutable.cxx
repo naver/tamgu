@@ -34,11 +34,6 @@ Exporting basebin_hash<unsigned long> Tamgutable::exported;
 
 Exporting short Tamgutable::idtype = 0;
 
-#ifndef max
-#define max(a,b)            (((a) > (b)) ? (a) : (b))
-#define min(a,b)            (((a) < (b)) ? (a) : (b))
-#endif
-
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamgutable::AddMethod(TamguGlobal* global, string name, tableMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
@@ -1415,7 +1410,7 @@ Exporting unsigned long Tamgutable::EditDistance(Tamgu* e) {
     Tamgu** v1 = new Tamgu*[s1len + 1];
     Tamgu** v2 = new Tamgu*[s2len + 1];
 
-    y = max(s1len, s2len);
+    y =  maxlocal(s1len, s2len);
     for (x = 0; x < y; x++) {
         if (x < s1len)
             v1[x] = getvalue(x);
@@ -1438,7 +1433,7 @@ Exporting unsigned long Tamgutable::EditDistance(Tamgu* e) {
         }
     }
 
-    y = max(s1len, s2len);
+    y =  maxlocal(s1len, s2len);
     for (x = 0; x < y; x++) {
         if (x < s1len)
             v1[x]->Release();

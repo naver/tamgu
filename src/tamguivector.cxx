@@ -24,12 +24,6 @@
 #include "instructions.h"
 
 
-#ifndef max
-#define max(a,b)            (((a) > (b)) ? (a) : (b))
-#define min(a,b)            (((a) < (b)) ? (a) : (b))
-#endif
-
-
 //We need to declare once again our local definitions.
 Exporting basebin_hash<ivectorMethod>  Tamguivector::methods;
 Exporting hmap<string, string> Tamguivector::infomethods;
@@ -650,7 +644,7 @@ Exporting unsigned long Tamguivector::EditDistance(Tamgu* e) {
     long* v1 = new long[s1len + 1];
     long* v2 = new long[s2len + 1];
 
-    y = max(s1len, s2len);
+    y =  maxlocal(s1len, s2len);
     for (x = 0; x < y; x++) {
         if (x < s1len)
             v1[x] = values[x];
@@ -1822,7 +1816,7 @@ Exporting unsigned long Tamgua_ivector::EditDistance(Tamgu* e) {
     long* v1 = new long[s1len + 1];
     long* v2 = new long[s2len + 1];
     
-    y = max(s1len, s2len);
+    y =  maxlocal(s1len, s2len);
     for (x = 0; x < y; x++) {
         if (x < s1len)
             v1[x] = values[x];

@@ -26,12 +26,6 @@
 #include "instructions.h"
 #include "tamgufile.h"
 
-#ifndef max
-#define max(a,b)            (((a) > (b)) ? (a) : (b))
-#define min(a,b)            (((a) < (b)) ? (a) : (b))
-#endif
-
-
 //We need to declare once again our local definitions.
 Exporting basebin_hash<svectorMethod>  Tamgusvector::methods;
 Exporting hmap<string, string> Tamgusvector::infomethods;
@@ -413,7 +407,7 @@ Exporting unsigned long Tamgusvector::EditDistance(Tamgu* e) {
     string* v1 = new string[s1len + 1];
     string* v2 = new string[s2len + 1];
 
-    y = max(s1len, s2len);
+    y =  maxlocal(s1len, s2len);
     for (x = 0; x < y; x++) {
         if (x < s1len)
             v1[x] = values[x];
