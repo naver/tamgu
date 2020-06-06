@@ -848,10 +848,10 @@ Tamgu* Evaluatetype(uchar thetype, uchar ref, Tamgu* a) {
 				ret = globalTamgu->Provideint(a->Integer());
 				break;
 			case b_long:
-				ret = new Tamgushort(a->Long());
+				ret = new Tamgulong(a->Long());
 				break;
 			case b_decimal:
-				ret = new Tamgushort(a->Decimal());
+				ret = new Tamgudecimal(a->Decimal());
 				break;
 			case b_float:
 				ret = globalTamgu->Providefloat(a->Float());
@@ -868,14 +868,17 @@ Tamgu* Evaluatetype(uchar thetype, uchar ref, Tamgu* a) {
 				return a;
 
 			switch (ref) {
+            case b_short:
+                ret = new Tamgushort(a->Short());
+                break;
 			case b_int:
 				ret = globalTamgu->Provideint(a->Integer());
 				break;
 			case b_long:
-				ret = new Tamgushort(a->Long());
+				ret = new Tamgulong(a->Long());
 				break;
 			case b_decimal:
-				ret = new Tamgushort(a->Decimal());
+				ret = new Tamgudecimal(a->Decimal());
 				break;
 			case b_float:
 				ret = globalTamgu->Providefloat(a->Float());
