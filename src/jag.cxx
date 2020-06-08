@@ -2063,6 +2063,8 @@ long jag_editor::handlingeditorline(bool computespace) {
         //We need to find the first line not starting with a blank...
         sp = lines.indent(pos);
     }
+    if (sp < 0)
+        sp = 0;
     
     wstring space(sp, spa);
     

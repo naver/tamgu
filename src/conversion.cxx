@@ -13668,6 +13668,7 @@ Exporting long IndentationCode(string& codestr, bool lisp) {
     long iblank = 0;
     long counterlisp = 0;
     long p;
+    long finalblank = 0;
 
     short addspace = 0;
     short checkspace = 0;
@@ -13677,42 +13678,74 @@ Exporting long IndentationCode(string& codestr, bool lisp) {
 
     bool locallisp = false;
     bool prologmode = false;
-    bool newline = true;
     bool beginning = true;
     bool equalsign = false;
+    bool consumeblanks = true;
 
-    uchar c;
+    uchar c = 0;
 
+    counterlisp = 0;
+    i = 0;
+    
     while (r < sz) {
         c = codestr[i++];
         
         if (c <= 32) {
             //here we have a CR, the next line should see its white characters being replaced with out indentation pack
             if (c == '\n') {
+                consumeblanks = true;
                 r++;
-                newline=true;
+                continue;
             }
+            //this is a line beginning, we need to remove the blanks first
+            if (consumeblanks)
+                continue;
             continue;
         }
         
         beginning = false;
-        if (newline) {
+        if (consumeblanks) {
             beginning = true;
-            switch (checkspace) {
-                case 1:
-                    checkspace = 0;
-                    break;
-                case 2:
-                    checkspace = 1;
-                    break;
-                case 3:
-                    addspace--;
-                    checkspace = 1;
-                    break;
+            if (!strchr(")]}>", c)) {
+                l = iblank;
+                switch (checkspace) {
+                    case 0:
+                        addspace = 0;
+                        break;
+                    case 1:
+                        if (addspace)
+                            addspace--;
+                        checkspace = 0;
+                        break;
+                    case 2:
+                        checkspace = 1;
+                        break;
+                    case 3:
+                        iblank+=blanksize;
+                        checkspace = 1;
+                        break;
+                    case 4:
+                        checkspace = 5;
+                        break;
+                    case 5:
+                    case 6:
+                        iblank -= blanksize;
+                        break;
+                }
+
+                //we need to insert our blanks before...
+                if (addspace)
+                    iblank += blanksize*addspace;
+                if (iblank) {
+                    finalblank = iblank;
+                }
+                else
+                    finalblank = 0;
+                iblank = l;
+                consumeblanks = false;
             }
-            newline = false;
         }
-        
+
         equalsign = (c == '<') ? equalsign : false;
         
         if (i != pos[r] + 1) {
@@ -13728,43 +13761,58 @@ Exporting long IndentationCode(string& codestr, bool lisp) {
             while (codestr[p] > 32 && p < pos[r]) p++;
             c = codestr[p];
             codestr[p] = 0;
-            token = STR(codestr)+i-1;
+            token = (char*)STR(codestr)+i-1;
             codestr[p] = c;
-            i = p;
             if (!lisp && !taskelmode) {
-                if (token=="else")
-                    checkspace = 3;
-                else {
-                    if (token == "if" || token == "elif" || token == "for" || token == "while" || token == "case" || token == "default") {
-                        addspace++;
-                        checkspace = 2;
+                if (token == "case") {
+                    if (checkspace == 5) {
+                        //we need to remove an extra blank size;
+                        checkspace = 6;
                     }
                     else {
-                        if (prologmode && p > 0 && codestr[p-1] == '.') {
-                            iblank -= blanksize;
-                            prologmode = false;
+                        if (checkspace < 5) {
+                            checkspace = 4;
+                            addspace++;
+                        }
+                    }
+                }
+                else {
+                    if (token == "else") {
+                        checkspace = 3;
+                    }
+                    else {
+                        if (token == "if" || token == "elif" || token == "for" || token == "while" || token == "default") {
+                            if (checkspace == 6) {
+                                //extra space missing
+                                finalblank = blanksize;
+                            }
+                                
+                            checkspace = 2;
+                            addspace++;
+                        }
+                        else {
+                            if (prologmode && p > 0 && codestr[p-1] == '.') {
+                                iblank -= blanksize;
+                                prologmode = false;
+                            }
                         }
                     }
                 }
             }
+            i = p;
             continue;
         }
         
         r++;
         switch (c) {
             case ';':
-				if (checkspace == 2) {
-					addspace--;
-					checkspace = 0;
-				}
-				else
-					if (checkspace == 3)
-						checkspace = 0;
-					else
-						if (checkspace == 1) {
-							checkspace = 0;
-							addspace--;
-						}
+                if (checkspace == 2) {
+                    addspace--;
+                    checkspace = 0;
+                }
+                else
+                    if (checkspace == 3)
+                        checkspace = 0;
                 break;
             case ':':
                 if (!iblank && codestr[i] == '-') {
@@ -13781,7 +13829,7 @@ Exporting long IndentationCode(string& codestr, bool lisp) {
                         while (r < sz) {
                             p = pos[r++];
                             if (codestr[p] == '\n') {
-                                r--;
+                                r--; //it will be consumed later
                                 break;
                             }
                         }
@@ -13795,9 +13843,10 @@ Exporting long IndentationCode(string& codestr, bool lisp) {
                             if (codestr[p-1] == '@' && codestr[p] == '/')
                                 break;
                         }
-                        i = p + 1;
+                        p++;
+                        i = p;
                         break;
-                    case '*':
+                    case '*': // /*C comments*/
                         p = i;
                         //this is a long comment...
                         while (r < sz) {
@@ -13805,9 +13854,13 @@ Exporting long IndentationCode(string& codestr, bool lisp) {
                             if (codestr[p-1] == '*' && codestr[p] == '/')
                                 break;
                         }
-                        i = p + 1;
+                        p++;
+                        i = p;
                         break;
                 }
+                break;
+            case '=':
+                equalsign = true;
                 break;
             case '@':
                 if (codestr[i] == '"') {
@@ -13819,11 +13872,9 @@ Exporting long IndentationCode(string& codestr, bool lisp) {
                             break;
                         }
                     }
-                    i = p + 2;
+                    p+=2;
+                    i = p;
                 }
-                break;
-            case '=':
-                equalsign = true;
                 break;
             case '"':
                 p = i;
@@ -13832,11 +13883,13 @@ Exporting long IndentationCode(string& codestr, bool lisp) {
                     if ((codestr[p-1] != '\\' && codestr[p] == '"') || codestr[p] == '\n')
                         break;
                 }
-                i = p + 1;
+                p++;
+                i = p;
                 break;
             case '\'':
-                if (lisp)
+                if (lisp) {
                     break;
+                }
                 else {
                     if (i > 1 && codestr[i-2] == '\\' && codestr[i] == '(') {
                         locallisp = true;
@@ -13850,7 +13903,8 @@ Exporting long IndentationCode(string& codestr, bool lisp) {
                     if (codestr[p] == '\'' || codestr[p] == '\n')
                         break;
                 }
-                i = p + 1;
+                p++;
+                i = p;
                 break;
             case '0':
             case '1':
@@ -13862,20 +13916,20 @@ Exporting long IndentationCode(string& codestr, bool lisp) {
             case '7':
             case '8':
             case '9':
-                noconversionfloathexa(STR(codestr)+i-1, l);
+                noconversionfloathexa((const char*)STR(codestr)+i-1, l);
                 p =  i + l - 1;
                 while (pos[r] < p) r++;
                 i = p;
                 break;
             case '{':
-                if (!iparenthesis) {
+                if (!iparenthesis) { //a little hack to handle {}
                     checkspace = 0;
                     addspace = 0;
                     iblank += blanksize;
                 }
                 break;
             case '<':
-                if (!iparenthesis && codestr[i] != '-' && (beginning || equalsign)) {
+                if ((beginning || equalsign) && !iparenthesis && codestr[i] != '-') {
                     taskelmode++;
                     iblank += blanksize;
                 }
@@ -13891,8 +13945,6 @@ Exporting long IndentationCode(string& codestr, bool lisp) {
                         counterlisp = 1;
                     }
                 }
-                iblank += blanksize;
-                break;
             case '[':
                 iblank += blanksize;
                 break;
@@ -13902,6 +13954,21 @@ Exporting long IndentationCode(string& codestr, bool lisp) {
                     iblank -= blanksize;
                     if (iblank < 0)
                         iblank = 0;
+                    if (consumeblanks) {
+                        l = iblank;
+                        //we need to insert our blanks before...
+                        if (addspace)
+                            iblank += blanksize*addspace;
+                        if (iblank) {
+                            finalblank = iblank;
+                        }
+                        else
+                            finalblank = 0;
+
+                        addspace = 0;
+                        iblank = l;
+                        consumeblanks = false;
+                    }
                 }
                 break;
             case ')':
@@ -13916,30 +13983,85 @@ Exporting long IndentationCode(string& codestr, bool lisp) {
                 iblank -= blanksize;
                 if (iblank < 0)
                     iblank = 0;
+                if (consumeblanks) {
+                    l = iblank;
+                    //we need to insert our blanks before...
+                    if (addspace)
+                        iblank += blanksize*addspace;
+                    if (iblank) {
+                        finalblank = iblank;
+                    }
+                    else
+                        finalblank = 0;
+                    addspace = 0;
+                    iblank = l;
+                    consumeblanks = false;
+                }
                 break;
             case '}':
-                if (iparenthesis)
+                if (iparenthesis) {
                     break;
-                
+                }
                 checkspace = 0;
                 addspace = 0;
             case ']':
                 iblank -= blanksize;
                 if (iblank < 0)
                     iblank = 0;
+                if (consumeblanks) {
+                    l = iblank;
+                    //we need to insert our blanks before...
+                    if (addspace)
+                        iblank += blanksize*addspace;
+                    if (iblank) {
+                        finalblank = iblank;
+                    }
+                    else
+                        finalblank = 0;
+                    addspace = 0;
+                    iblank = l;
+                    consumeblanks = false;
+                }
                 break;
         }
     }
 
-    if (checkspace==1)
-        addspace--;
-    else
-        if (checkspace == 3 && !addspace)
-            iblank += blanksize;
+    if (consumeblanks) {
+        switch (checkspace) {
+            case 0:
+                addspace = 0;
+                break;
+            case 1:
+                if (addspace)
+                    addspace--;
+                checkspace = 0;
+                break;
+            case 2:
+                checkspace = 1;
+                break;
+            case 3:
+                iblank+=blanksize;
+                checkspace = 1;
+                break;
+            case 4:
+                checkspace = 5;
+                break;
+            case 5:
+            case 6:
+                iblank -= blanksize;
+                break;
+        }
         
-    if (addspace)
-        iblank += blanksize*addspace;
-    return iblank;
+        //we need to insert our blanks before...
+        if (addspace)
+            iblank += blanksize*addspace;
+        if (iblank) {
+            finalblank = iblank;
+        }
+        else
+            finalblank = 0;
+    }
+    return finalblank;
 }
 
 Exporting void IndentCode(string& codestr, string& codeindente, long blancs, bool lisp, bool taskel) {
