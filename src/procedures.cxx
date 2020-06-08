@@ -2539,7 +2539,7 @@ Exporting void TamguGlobal::RecordMethods(short type, short name, unsigned long 
 Exporting void TamguGlobal::RecordProcedures() {
     systemfunctions["_erroronkey"] = true;
     systemfunctions["_setstacksize"] = true;
-    systemfunctions["_setthreadlimit"] = true;
+    systemfunctions["_setmaxthreads"] = true;
     systemfunctions["_setjoinedlimit"] = true;
     systemfunctions["_setenv"] = true;
     systemfunctions["_setmaxrange"] = true;
