@@ -299,7 +299,7 @@ public:
             res->storevalue(r);
             return res;
         }
-        res->Release();
+        res->Releasenonconst();
         return new Tamgulong(r);
     }
 
@@ -342,7 +342,7 @@ public:
             res->storevalue(r);
             return res;
         }
-        res->Release();
+        res->Releasenonconst();
         return globalTamgu->Providefloat(r);
     }
     
@@ -386,7 +386,7 @@ public:
             res->Storevalue(r);
             return res;
         }
-        res->Release();
+        res->Releasenonconst();
         return globalTamgu->Providewithstring(r);
     }
 
@@ -438,7 +438,7 @@ public:
             res->Storevalue(r);
             return res;
         }
-        res->Release();
+        res->Releasenonconst();
         return globalTamgu->Providewithstring(r);
     }
 
@@ -486,7 +486,7 @@ public:
             res->Storevalue(r);
             return res;
         }
-        res->Release();
+        res->Releasenonconst();
         return globalTamgu->Providewithustring(r);
     }
 
@@ -533,7 +533,7 @@ public:
             res->Storevalue(r);
             return res;
         }
-        res->Release();
+        res->Releasenonconst();
         return globalTamgu->Providewithustring(r);
     }
 
@@ -621,12 +621,12 @@ public:
         r2 = values[1]->Eval(aNULL, aNULL, idthread);
         if (r1->isProtected()) {
             r1->plus(r2, true);
-            r2->Release();
+            r2->Releasenonconst();
             return r1;
         }
         Tamgu* v = r1->plus(r2, false);
-        r1->Release();
-        r2->Release();
+        r1->Releasenonconst();
+        r2->Releasenonconst();
         return v;
     }
 
@@ -693,7 +693,7 @@ public:
             res->storevalue(r);
             return res;
         }
-        res->Release();
+        res->Releasenonconst();
         return new Tamgulong(r);
     }
 
@@ -737,7 +737,7 @@ public:
             res->storevalue(r);
             return res;
         }
-        res->Release();
+        res->Releasenonconst();
         return globalTamgu->Providefloat(r);
     }
 
@@ -781,6 +781,7 @@ public:
             res->storevalue(r);
             return res;
         }
+        res->Releasenonconst();
         return new Tamgulong(r);
     }
 
@@ -824,7 +825,7 @@ public:
             res->storevalue(r);
             return res;
         }
-        res->Release();
+        res->Releasenonconst();
         return globalTamgu->Providefloat(r);
     }
 
@@ -867,7 +868,7 @@ public:
             res->storevalue(r);
             return res;
         }
-        res->Release();
+        res->Releasenonconst();
         return new Tamgulong(r);
     }
 
@@ -911,7 +912,7 @@ public:
             res->storevalue(r);
             return res;
         }
-        res->Release();
+        res->Releasenonconst();
         return globalTamgu->Providefloat(r);
     }
 
@@ -989,12 +990,12 @@ public:
         r2 = values[1]->Eval(aNULL, aNULL, idthread);
         if (r1->isProtected()) {
             r1->minus(r2, true);
-            r2->Release();
+            r2->Releasenonconst();
             return r1;
         }
         Tamgu* v = r1->minus(r2, false);
-        r1->Release();
-        r2->Release();
+        r1->Releasenonconst();
+        r2->Releasenonconst();
         return v;
     }
 
@@ -1003,14 +1004,14 @@ public:
         if (r1->isTime()) {
             Tamgu* r2 = values[1]->Eval(aNULL, aNULL, idthread);
             Tamgu* v = r1->minus(r2, false);
-            r1->Release();
-            r2->Release();
+            r1->Releasenonconst();
+            r2->Releasenonconst();
             long vv=  v->Integer();
-            v->Release();
+            v->Releasenonconst();
             return vv;
         }
         long v = r1->Integer();
-        r1->Release();
+        r1->Releasenonconst();
         return (v-values[1]->Getinteger(idthread));
     }
     
@@ -1019,14 +1020,14 @@ public:
         if (r1->isTime()) {
             Tamgu* r2 = values[1]->Eval(aNULL, aNULL, idthread);
             Tamgu* v = r1->minus(r2, false);
-            r1->Release();
-            r2->Release();
+            r1->Releasenonconst();
+            r2->Releasenonconst();
             short vv=  v->Short();
-            v->Release();
+            v->Releasenonconst();
             return vv;
         }
         short v = r1->Short();
-        r1->Release();
+        r1->Releasenonconst();
         return (v-values[1]->Getshort(idthread));
     }
     
@@ -1035,14 +1036,14 @@ public:
         if (r1->isTime()) {
             Tamgu* r2 = values[1]->Eval(aNULL, aNULL, idthread);
             Tamgu* v = r1->minus(r2, false);
-            r1->Release();
-            r2->Release();
+            r1->Releasenonconst();
+            r2->Releasenonconst();
             double vv=  v->Float();
-            v->Release();
+            v->Releasenonconst();
             return vv;
         }
         double v = r1->Float();
-        r1->Release();
+        r1->Releasenonconst();
         return (v-values[1]->Getfloat(idthread));
     }
     
@@ -1051,14 +1052,14 @@ public:
         if (r1->isTime()) {
             Tamgu* r2 = values[1]->Eval(aNULL, aNULL, idthread);
             Tamgu* v = r1->minus(r2, false);
-            r1->Release();
-            r2->Release();
+            r1->Releasenonconst();
+            r2->Releasenonconst();
             float vv=  v->Decimal();
             v->Release();
             return vv;
         }
         float v = r1->Decimal();
-        r1->Release();
+        r1->Releasenonconst();
         return (v-values[1]->Getdecimal(idthread));
     }
         
@@ -1068,15 +1069,15 @@ public:
         if (r1->isTime()) {
             Tamgu* r2 = values[1]->Eval(aNULL, aNULL, idthread);
             Tamgu* v = r1->minus(r2, false);
-            r1->Release();
-            r2->Release();
+            r1->Releasenonconst();
+            r2->Releasenonconst();
             BLONG vv=  v->Long();
             v->Release();
             return vv;
         }
         
         BLONG v = r1->Long();
-        r1->Release();
+        r1->Releasenonconst();
         return (v-values[1]->Getlong(idthread));
     }
     
@@ -1153,12 +1154,12 @@ public:
         r2 = values[1]->Eval(aNULL, aNULL, idthread);
         if (r1->isProtected()) {
             r1->multiply(r2, true);
-            r2->Release();
+            r2->Releasenonconst();
             return r1;
         }
         Tamgu* v = r1->multiply(r2, false);
-        r1->Release();
-        r2->Release();
+        r1->Releasenonconst();
+        r2->Releasenonconst();
         return v;
     }
 
@@ -1203,7 +1204,7 @@ public:
             res->storevalue(r);
             return res;
         }
-        res->Release();
+        res->Releasenonconst();
         return new Tamgulong(r);
     }
 
@@ -1246,7 +1247,7 @@ public:
             res->storevalue(r);
             return res;
         }
-        res->Release();
+        res->Releasenonconst();
         return globalTamgu->Providefloat(r);
     }
     
@@ -1286,8 +1287,10 @@ public:
     Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
         res = val->Eval(aNULL, aNULL, idthread);
         BLONG r = res->Long();
-        if (!r)
+        if (!r) {
+            res->Releasenonconst();
             return globalTamgu->Returnerror("Cannot divide by 0", idthread);
+        }
 
         r = v / r;
         
@@ -1295,7 +1298,7 @@ public:
             res->storevalue(r);
             return res;
         }
-        res->Release();
+        res->Releasenonconst();
         return new Tamgulong(r);
     }
     
@@ -1365,15 +1368,17 @@ public:
     Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
         res = val->Eval(aNULL, aNULL, idthread);
         double r = res->Float();
-        if (!r)
+        if (!r) {
+            res->Releasenonconst();
             return globalTamgu->Returnerror("Cannot divide by 0", idthread);
+        }
         r = v / r;
 
         if (res->isProtected()) {
             res->storevalue(r);
             return res;
         }
-        res->Release();
+        res->Releasenonconst();
        return globalTamgu->Providefloat(r);
     }
     
@@ -1481,15 +1486,15 @@ public:
         Tamgu* v;
         if (r1->isProtected()) {
             v = r1->divide(r2, true);
-            r2->Release();
+            r2->Releasenonconst();
             if (v != r1)
-                r1->Release();
+                r1->Releasenonconst();
             return v;
         }
         
         v = r1->divide(r2, false);
-        r1->Release();
-        r2->Release();
+        r1->Releasenonconst();
+        r2->Releasenonconst();
         return v;
     }
 
@@ -1562,7 +1567,7 @@ public:
             res->storevalue(r);
             return res;
         }
-        res->Release();
+        res->Releasenonconst();
         return new Tamgulong(r);
     }
 
@@ -1602,16 +1607,17 @@ public:
     Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
         res = val->Eval(aNULL, aNULL, idthread);
         BLONG r = res->Long();
-        if (!r)
+        if (!r) {
+            res->Releasenonconst();
             return globalTamgu->Returnerror("Cannot divide by 0", idthread);
-        
+        }
         r = v % r;
         
         if (res->isProtected()) {
             res->storevalue(r);
             return res;
         }
-        res->Release();
+        res->Releasenonconst();
        return new Tamgulong(r);
     }
 
@@ -1703,15 +1709,15 @@ public:
         Tamgu* v;
         if (r1->isProtected()) {
             v = r1->mod(r2, true);
-            r2->Release();
+            r2->Releasenonconst();
             if (v != r1)
-                r1->Release();
+                r1->Releasenonconst();
             return v;
         }
         
         v = r1->mod(r2, false);
-        r1->Release();
-        r2->Release();
+        r1->Releasenonconst();
+        r2->Releasenonconst();
         return v;
     }
     short Getshort(short idthread) {
@@ -1779,8 +1785,8 @@ public:
             res->storevalue(r);
             return res;
         }
-        res->Release();
-       return new Tamgulong(r);
+        res->Releasenonconst();
+        return new Tamgulong(r);
     }
 
     short Getshort(short idthread) {
@@ -1825,8 +1831,8 @@ public:
             res->storevalue(r);
             return res;
         }
-        res->Release();
-       return new Tamgulong(r);
+        res->Releasenonconst();
+        return new Tamgulong(r);
     }
 
     short Getshort(short idthread) {
@@ -1882,12 +1888,12 @@ public:
         r2 = values[1]->Eval(aNULL, aNULL, idthread);
         if (r1->isProtected()) {
             r1->shiftleft(r2, true);
-            r2->Release();
+            r2->Releasenonconst();
             return r1;
         }
         Tamgu* v = r1->shiftleft(r2, false);
-        r1->Release();
-        r2->Release();
+        r1->Releasenonconst();
+        r2->Releasenonconst();
         return v;
     }
 
@@ -1936,7 +1942,7 @@ public:
             res->storevalue(r);
             return res;
         }
-        res->Release();
+        res->Releasenonconst();
         return new Tamgulong(r);
     }
     
@@ -1982,7 +1988,7 @@ public:
             res->storevalue(r);
             return res;
         }
-        res->Release();
+        res->Releasenonconst();
         return new Tamgulong(r);
     }
     
@@ -2040,12 +2046,12 @@ public:
         r2 = values[1]->Eval(aNULL, aNULL, idthread);
         if (r1->isProtected()) {
             r1->shiftright(r2, true);
-            r2->Release();
+            r2->Releasenonconst();
             return r1;
         }
         Tamgu* v = r1->shiftright(r2, false);
-        r1->Release();
-        r2->Release();
+        r1->Releasenonconst();
+        r2->Releasenonconst();
         return v;
     }
 
@@ -2090,12 +2096,12 @@ public:
         r2 = values[1]->Eval(aNULL, aNULL, idthread);
         if (r1->isProtected()) {
             r1->orset(r2, true);
-            r2->Release();
+            r2->Releasenonconst();
             return r1;
         }
         Tamgu* v = r1->orset(r2, false);
-        r1->Release();
-        r2->Release();
+        r1->Releasenonconst();
+        r2->Releasenonconst();
         return v;
     }
 
@@ -2140,12 +2146,12 @@ public:
         r2 = values[1]->Eval(aNULL, aNULL, idthread);
         if (r1->isProtected()) {
             r1->xorset(r2, true);
-            r2->Release();
+            r2->Releasenonconst();
             return r1;
         }
         Tamgu* v = r1->xorset(r2, false);
-        r1->Release();
-        r2->Release();
+        r1->Releasenonconst();
+        r2->Releasenonconst();
         return v;
     }
 
@@ -2190,12 +2196,12 @@ public:
         r2 = values[1]->Eval(aNULL, aNULL, idthread);
         if (r1->isProtected()) {
             r1->andset(r2, true);
-            r2->Release();
+            r2->Releasenonconst();
             return r1;
         }
         Tamgu* v = r1->andset(r2, false);
-        r1->Release();
-        r2->Release();
+        r1->Releasenonconst();
+        r2->Releasenonconst();
         return v;
     }
 
@@ -2245,7 +2251,7 @@ public:
             res->storevalue(r);
             return res;
         }
-        res->Release();
+        res->Releasenonconst();
         return globalTamgu->Providefloat(r);
     }
 
@@ -2289,7 +2295,7 @@ public:
             res->storevalue(r);
             return res;
         }
-        res->Release();
+        res->Releasenonconst();
         return globalTamgu->Providefloat(r);
     }
 
@@ -2346,12 +2352,12 @@ public:
         r2 = values[1]->Eval(aNULL, aNULL, idthread);
         if (r1->isProtected()) {
             r1->power(r2, true);
-            r2->Release();
+            r2->Releasenonconst();
             return r1;
         }
         Tamgu* v = r1->power(r2, false);
-        r1->Release();
-        r2->Release();
+        r1->Releasenonconst();
+        r2->Releasenonconst();
         return v;
     }
 
@@ -2547,6 +2553,7 @@ public:
         for (long i=1;i<size; i++) {
             context = values[i]->Eval(aNULL, aNULL, idthread);
             v =  res->plus(context, autoself);
+            context->Releasenonconst();
             if (v != res) {
                 res->Releasenonconst();
                 res = v;
@@ -2905,6 +2912,7 @@ public:
         for (long i=1;i<size; i++) {
             context = values[i]->Eval(aNULL, aNULL, idthread);
             v =  res->minus(context, autoself);
+            context->Releasenonconst();
             if (v != res) {
                 res->Releasenonconst();
                 res = v;
@@ -3158,6 +3166,7 @@ public:
         for (long i=1;i<size; i++) {
             context = values[i]->Eval(aNULL, aNULL, idthread);
             v =  res->multiply(context, autoself);
+            context->Releasenonconst();
             if (v != res) {
                 res->Releasenonconst();
                 res = v;
@@ -3223,6 +3232,7 @@ public:
         for (long i=1;i<size; i++) {
             context = values[i]->Eval(aNULL, aNULL, idthread);
             v =  res->divide(context, autoself);
+            context->Releasenonconst();
             if (v != res) {
                 res->Releasenonconst();
                 res = v;
@@ -3327,6 +3337,7 @@ public:
         for (long i=1;i<size; i++) {
             context = values[i]->Eval(aNULL, aNULL, idthread);
             v =  res->mod(context, autoself);
+            context->Releasenonconst();
             if (v != res) {
                 res->Releasenonconst();
                 res = v;
@@ -3427,6 +3438,7 @@ public:
         for (long i=1;i<size; i++) {
             context = values[i]->Eval(aNULL, aNULL, idthread);
             v =  res->shiftleft(context, autoself);
+            context->Releasenonconst();
             if (v != res) {
                 res->Releasenonconst();
                 res = v;
@@ -3492,6 +3504,7 @@ public:
         for (long i=1;i<size; i++) {
             context = values[i]->Eval(aNULL, aNULL, idthread);
             v =  res->shiftright(context, autoself);
+            context->Releasenonconst();
             if (v != res) {
                 res->Releasenonconst();
                 res = v;
@@ -3556,6 +3569,7 @@ public:
         for (long i=1;i<size; i++) {
             context = values[i]->Eval(aNULL, aNULL, idthread);
             v =  res->orset(context, autoself);
+            context->Releasenonconst();
             if (v != res) {
                 res->Releasenonconst();
                 res = v;
@@ -3653,6 +3667,7 @@ public:
         for (long i=1;i<size; i++) {
             context = values[i]->Eval(aNULL, aNULL, idthread);
             v =  res->xorset(context, autoself);
+            context->Releasenonconst();
             if (v != res) {
                 res->Releasenonconst();
                 res = v;
@@ -3783,6 +3798,7 @@ public:
         for (long i=1;i<size; i++) {
             context = values[i]->Eval(aNULL, aNULL, idthread);
             v =  res->andset(context, autoself);
+            context->Releasenonconst();
             if (v != res) {
                 res->Releasenonconst();
                 res = v;
@@ -3914,6 +3930,7 @@ public:
         for (long i=1;i<size; i++) {
             context = values[i]->Eval(aNULL, aNULL, idthread);
             v =  res->power(context, autoself);
+            context->Releasenonconst();
             if (v != res) {
                 res->Releasenonconst();
                 res = v;
@@ -3976,6 +3993,7 @@ public:
         for (long i=1;i<size; i++) {
             a = values[i]->Eval(aNULL, aNULL, idthread);
             v = res->Merging(a);
+            a->Releasenonconst();
             if (v != res) {
                 res->Releasenonconst();
                 res = v;
@@ -4004,6 +4022,7 @@ public:
         for (long i=1;i<size; i++) {
             context = values[i]->Eval(aNULL, aNULL, idthread);
             v =  res->Combine(context);
+            context->Releasenonconst();
             if (v != res) {
                 res->Releasenonconst();
                 res = v;
@@ -4030,8 +4049,10 @@ public:
         
         for (long i=1;i<size; i++) {
             a = values[i]->Eval(aNULL, aNULL, idthread);
-            if (r->isVectorContainer())
+            if (r->isVectorContainer()) {
                 v = r->Merging(a);
+                a->Releasenonconst();
+            }
             else {
                 if (a->isVectorContainer()) {
                     a->Insert(0, r);

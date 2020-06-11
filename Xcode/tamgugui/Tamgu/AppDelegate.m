@@ -20,7 +20,7 @@
 #import "ViewController.h"
 
 char StopExecution(void);
-
+void TamguFinalClean();
 BOOL runingmode;
 
 extern ViewController* vue;
@@ -94,6 +94,7 @@ extern NSMutableDictionary* allfiles;
 
 -(void)applicationWillTerminate:(NSNotification *)aNotification {
     // Insert code here to tear down your application
+    TamguFinalClean();
  }
 
 -(void)textDidChange:(NSNotification *)notification {

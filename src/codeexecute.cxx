@@ -2627,13 +2627,11 @@ Tamgu* TamguCallThread::Eval(Tamgu* environment, Tamgu* value, short idthread) {
 		threadcall->arguments.push_back(a);
 	}
     
-    {
-        threadcall->thid = new std::thread(AThread, threadcall);
-        if (threadcall->thid == NULL) {
-            globalTamgu->threads[id].Clear();
-            delete threadcall;
-            return globalTamgu->Returnerror("Could not create a thread", idthread);
-        }
+    threadcall->thid = new std::thread(AThread, threadcall);
+    if (threadcall->thid == NULL) {
+        globalTamgu->threads[id].Clear();
+        delete threadcall;
+        return globalTamgu->Returnerror("Could not create a thread", idthread);
     }
     
 	return aNULL;

@@ -52,7 +52,7 @@
 # The following meta-characters have a different interpretation, they are used to control how the parsing should take place:
 #		+: defines the entry point of the grammar, in other words, which rule to use in order to start parsing the code.
 #		!: you use this meta-character to avoid the matching strings to be part of the final analysis tree
-#		%: you use this meta-characte to avoid storing substrings within the analysis tree (reducing the storage to only salient strings)
+#		%: you use this meta-character to avoid storing substrings within the analysis tree (reducing the storage to only salient strings)
 #       ~ : fail, this operator indicates that if the rule succeeds then its calling rule should fail (it is used to prevent certain tokens to be parsed into a variable name for instance)
 #
 # IMPORTANT, the characters: +,!,%,~ should stick to their rule name...

@@ -371,6 +371,10 @@ extern "C" {
         return liste;
     }
     
+    void TamguFinalClean() {
+        TamguExtinguish();
+    }
+
     long indentationVirtuel(char* cr, char* acc) {
         if (cr == NULL)
             return 0;

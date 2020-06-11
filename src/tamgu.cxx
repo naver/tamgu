@@ -41,7 +41,7 @@
 #include "tamgulisp.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2020.06.08.11";
+const char* tamgu_version = "Tamgu 1.2020.06.10.10";
 
 Tamgu* booleantamgu[2];
 
@@ -376,6 +376,9 @@ void ThreadStruct::Clear() {
     nbjoined = 0;
     prologstack = 0;
     stack.clear();
+    stacklisp.clear();
+    debugstack.clear();
+    fibres.clear();
     message.str("");
     variables.clear();
     returnvalue = aNULL;
@@ -724,6 +727,8 @@ TamguGlobal::~TamguGlobal() {
     garbage.clear();
     if (issues.size())
         cerr << "No fully cleaned:" << issues.size() << endl;
+    else
+        cerr << "No issues" << endl;
     #endif
 }
 
