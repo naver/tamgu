@@ -69,37 +69,27 @@ Tamgu* TamguInstructionAPPLYOPERATIONEQU::Eval(Tamgu* context, Tamgu* value, sho
     
     Tamgu* idx = recipient->Function();
     bool putback = false;
-    bool relvar = false;
     
     if (idx != NULL) {
-        idx = idx->Getindex();
-        if (idx != recipient->Function())
-            relvar = true;
+        if (!idx->isIndex())
+            return globalTamgu->Returnerror("Cannot evaluate this instruction", idthread);
         
-        if (idx != NULL) {
-            value = variable->Eval(context, idx, idthread);
-            if (value == aNOELEMENT) {
-                if (variable->isValueContainer()) {
-                    value = idx->Put(variable, aNULL, idthread);
-                    if (value->isError()) {
-                        if (relvar)
-                            variable->Release();
-                        return value;
-                    }
-                    
-                    value = variable->Eval(context, idx, idthread);
-                    putback = true;
-                }
-                else {
-                    if (relvar)
-                        variable->Release();
-                    return globalTamgu->Returnerror("No value at this position in the container", idthread);
-                }
+        value = idx->Eval(context, variable, idthread);
+        if (value == aNOELEMENT) {
+            if (variable->isValueContainer()) {
+                value = idx->Put(variable, aNULL, idthread);
+                if (value->isError())
+                    return value;
+                
+                value = idx->Eval(context, variable, idthread);
+                putback = true;
             }
             else
-                if (variable->isValueContainer())
-                    putback = true;
+                return globalTamgu->Returnerror("No value at this position in the container", idthread);
         }
+        else
+            if (variable->isValueContainer())
+                putback = true;
     }
     
     //The position in the expression of our variable is the second from the bottom...
@@ -178,9 +168,6 @@ Tamgu* TamguInstructionAPPLYOPERATIONEQU::Eval(Tamgu* context, Tamgu* value, sho
     if (globalTamgu->isthreading)
         globalTamgu->Triggeronfalse(variable);
 
-    if (relvar)
-        variable->Release();
-    
     if (globalTamgu->Error(idthread))
         return globalTamgu->Errorobject(idthread);
     

@@ -258,7 +258,7 @@ void Tamgurawstring::AddMethod(TamguGlobal* global, string name, rawstringMethod
     Tamgurawstring::AddMethod(global, "splite", &Tamgurawstring::MethodSplite, P_ONE | P_NONE, "splite(string splitter): split a string along splitter and store the results  in a vector. If splitter=='', then the string is split into a vector of characters. Empty strings are kept in the result.");
     Tamgurawstring::AddMethod(global, "tokenize", &Tamgurawstring::MethodTokenize, P_NONE | P_ONE | P_TWO | P_THREE, "tokenize(bool comma,bool separator, svector rules): Segment a string into words and punctuations. If 'comma' is true, then the decimal character is ',' otherwise it is '.'. If 'separator' is true then '1,000' is accepted as a number. rules is a set of tokenization rules that can be first initialized then modified with _getdefaulttokenizerules");
     Tamgurawstring::AddMethod(global, "stokenize", &Tamgurawstring::MethodStokenize, P_NONE | P_ONE, "stokenize(map keeps): Segment a string into words and punctuations, with a keep.");
-    Tamgurawstring::AddMethod(global, "count", &Tamgurawstring::MethodCount, P_TWO | P_ONE | P_NONE, "count(string sub,int pos): Count the number of substrings starting at position pos");
+    Tamgurawstring::AddMethod(global, "count", &Tamgurawstring::MethodCount, P_TWO | P_ONE, "count(string sub,int pos): Count the number of substrings starting at position pos");
     Tamgurawstring::AddMethod(global, "find", &Tamgurawstring::MethodFind, P_TWO | P_ONE, "find(string sub,int pos): Return the position of substring sub starting at position pos");
     Tamgurawstring::AddMethod(global, "rfind", &Tamgurawstring::MethodRfind, P_TWO | P_ONE, "rfind(string sub,int pos): Return the position of substring sub backward starting at position pos");
     Tamgurawstring::AddMethod(global, "removefirst", &Tamgurawstring::MethodRemovefirst, P_ONE, "removefirst(int nb): remove the first nb characters of a string");
@@ -1777,27 +1777,18 @@ Tamgu* Tamgurawstring::MethodToxml(Tamgu* contextualpattern, short idthread, Tam
 }
 
 Tamgu* Tamgurawstring::MethodBytes(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-    if (stringsize >= 1) {
-        if (contextualpattern->isVectorContainer() || stringsize > 1) {
-            Tamgu* kvect = SelectContainer(contextualpattern, idthread);
-            if (kvect == NULL)
-                kvect = globalTamgu->Provideivector();
+    if (stringsize > 0) {
+        if (contextualpattern->isNumber())
+            return new Tamgubyte(value[0]);
 
-            Locking _lock((TamguObject*)kvect);
-            for (size_t i = 0; i < stringsize; i++)
-                kvect->storevalue((uchar)value[i]);
-            return kvect;
-        }
-
-        if (contextualpattern->isNumber()) {
-            Tamgu* a = contextualpattern->Newinstance(idthread);
-            a->storevalue((uchar)value[0]);
-            return a;
-        }
-
-        return new Tamgubyte(value[0]);
+        Tamguivector* kvect=(Tamguivector*)Selectaivector(contextualpattern);
+        kvect->locking();
+        for (size_t i = 0; i < stringsize; i++)
+            kvect->storevalue((uchar)value[i]);
+        kvect->unlocking();
+        return kvect;
     }
-
+    
     return aNULL;
 }
 

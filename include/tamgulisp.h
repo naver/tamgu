@@ -325,6 +325,7 @@ public:
     
     Tamguoperator(short id, TamguGlobal* g) {
         action = id;
+        g->RecordInTracker(this);
     }
 
     short Action() {

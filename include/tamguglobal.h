@@ -863,6 +863,13 @@ public:
 
 
 	Tamgu* GetTopFrame(short idthread);
+
+    inline Tamgu* Getdeclarationandcheck(short id, short idthread) {
+        if (threads[idthread].variables.check(id))
+            return threads[idthread].variables.get(id).back();
+        return NULL;
+    }
+
     inline Tamgu* Getdeclaration(short id, short idthread) {
         return threads[idthread].variables.get(id).back();
     }

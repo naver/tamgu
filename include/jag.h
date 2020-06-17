@@ -175,7 +175,7 @@ public:
 
     void setcode(wstring& code);
 
-    void updatesize();
+    bool updatesize();
 
     void numbers() {
         long nb = 0;
@@ -1092,7 +1092,7 @@ public:
     long handlingeditorline(bool computespace = true);
 	void Scrolldown();
 
-    void evaluateescape(string& buff);
+    bool evaluateescape(string& buff);
     virtual void init();
     virtual void clear();
 

@@ -461,16 +461,6 @@ static void resizewindow(int theSignal) {
     JAGEDITOR->resetscreen();
 }
 
-#ifdef WIN32
-static BOOL WINAPI handle_ctrl_c(_In_ DWORD dwCtrlType) {
-	JAGEDITOR->terminate();
-	return true;
-}
-#else
-static void handle_ctrl_c(int theSignal) {
-    JAGEDITOR->terminate();
-}
-#endif
 ///------------------------------------------------------------------------------------
 
 jag_editor::jag_editor() : lines(this) {
@@ -1618,12 +1608,12 @@ void jag_editor::displaylist(long beg) {
         modified = false;
     }
     
-    lines.updatesize();
-
-	if (poslines.size() && beg == poslines[0] && currentline && insertaline) {
-		Scrolldown();
-		return;
-	}
+    if (!lines.updatesize()) {
+        if (poslines.size() && beg == poslines[0] && currentline && insertaline) {
+            Scrolldown();
+            return;
+        }
+    }
 
 	poslines.clear();
 
@@ -2290,7 +2280,7 @@ void jag_editor::backwardemoji() {
     }
 }
 
-void jag_editor::evaluateescape(string& buff) {
+bool jag_editor::evaluateescape(string& buff) {
 
 #ifdef WIN32
 	if (buff == c_homekey) {
@@ -2301,7 +2291,7 @@ void jag_editor::evaluateescape(string& buff) {
         displaylist(0);
         movetoline(0);
         movetobeginning();
-		return;
+		return true;
 	}
 
 	if (buff == c_endkey) {
@@ -2314,15 +2304,15 @@ void jag_editor::evaluateescape(string& buff) {
             displaylist(pos);
             movetoline(0);
             movetobeginning();
-			return;
+			return true;
 		}
-		return;
+		return true;
 	}
 
     if (buff == homekey) {
         movetobeginning();
         posinstring = 0;
-        return;
+        return true;
     }
     
     if (buff == endkey) {
@@ -2330,7 +2320,7 @@ void jag_editor::evaluateescape(string& buff) {
 		if (posinstring && !lines.eol(pos))
 			posinstring--;
 		movetoposition();
-		return;
+		return true;
     }
 #else
     if (buff == homekey) {
@@ -2341,7 +2331,7 @@ void jag_editor::evaluateescape(string& buff) {
         displaylist(0);
         movetoline(0);
         movetobeginning();
-        return;
+        return true;
     }
 
     if (buff == endkey) {
@@ -2354,9 +2344,9 @@ void jag_editor::evaluateescape(string& buff) {
             displaylist(pos);
             movetoline(0);
             movetobeginning();
-            return;
+            return true;
         }
-        return;
+        return true;
     }
 
 #endif
@@ -2373,7 +2363,7 @@ void jag_editor::evaluateescape(string& buff) {
         displaylist(pos);
         movetoline(currentline);
         movetobeginning();
-        return;
+        return true;
     }
     
         //ctrl-down, down 10 lines
@@ -2385,7 +2375,7 @@ void jag_editor::evaluateescape(string& buff) {
             currentline = mxline;
             movetoline(currentline);
             movetobeginning();
-            return;
+            return true;
         }
         
         if ((pos + mxline) > lines.size()) {
@@ -2400,7 +2390,7 @@ void jag_editor::evaluateescape(string& buff) {
         displaylist(pos);
         movetoline(currentline);
         movetobeginning();
-        return;
+        return true;
     }
     
     if (buff == up || buff == down) {
@@ -2409,7 +2399,7 @@ void jag_editor::evaluateescape(string& buff) {
 #else
 		updown(buff[2], pos);
 #endif
-		return;
+		return true;
     }
     
     if (buff == c_right || buff == a_right) {
@@ -2435,7 +2425,7 @@ void jag_editor::evaluateescape(string& buff) {
             movetoposition();
         }
         
-        return;
+        return true;
     }
     
     if (buff == c_left || buff == a_left) {
@@ -2457,7 +2447,7 @@ void jag_editor::evaluateescape(string& buff) {
             posinstring = ipos + 1;
         
         movetoposition();
-        return;
+        return true;
     }
     
     if (buff == right) {
@@ -2476,7 +2466,7 @@ void jag_editor::evaluateescape(string& buff) {
             }
         }
         
-        return;
+        return true;
     }
     
     if (buff == left) {
@@ -2493,18 +2483,20 @@ void jag_editor::evaluateescape(string& buff) {
                 movetoposition();
             }
         }
-        return;
+        return true;
     }
     
     if (buff == del) {
         if (emode() && pos < lines.size()) {
             if (posinstring >= lines[pos].size()) {
                 deleteline(1);
-                return;
+                return true;
             }
         }
         deletechar(false);
+        return true;
     }
+    return false;
 }
 
 void jag_editor::init() {
@@ -2970,7 +2962,16 @@ bool jag_editor::checkaction(string& buff, long& first, long& last, bool lisp) {
                 processundos();
             }
             return true;
-        case 19: //it can be allowed sometimes (ctrl-s)
+        case 19: //ctrl-s
+            if (thecurrentfilename != "") {
+                if (writetofile())
+                    code = L"written to: ";
+                else
+                    code = L"cannot write to: ";
+                code += wconvert(thecurrentfilename);
+                displayonlast(code, true);
+                return true;
+            }
         case 23: //ctrl-w write the content in a file
             if (emode()) {
                 line = wconvert(thecurrentfilename);
@@ -3001,8 +3002,7 @@ bool jag_editor::checkaction(string& buff, long& first, long& last, bool lisp) {
                 return true;
             }
             
-            evaluateescape(buff);
-            return true;
+            return evaluateescape(buff);
 #ifdef WIN32
 		case 8:
 #else
@@ -3021,18 +3021,20 @@ bool jag_editor::checkaction(string& buff, long& first, long& last, bool lisp) {
             }
             return true;
         default:
-            if (buff.size() > 1 && emode()) {
-                evaluateescape(buff);
-                return true;
-            }
+            if (buff.size() > 1 && emode())
+                return evaluateescape(buff);
     }
     
     return false;
 }
-static bool isitempty(wstring& w) {
+static bool isitempty(wstring& w, wchar_t c) {
+    char nb = false;
     for (long i = 0; i < w.size(); i++) {
-        if (w[i] > 32)
-            return false;
+        if (w[i] > 32) {
+            if (w[i] != c || nb)
+                return false;
+            nb = true;
+        }
     }
     return true;
 }
@@ -3112,7 +3114,7 @@ void jag_editor::addabuffer(wstring& b, bool instring) {
         case '}':
         case '(':
             fndchr = true;
-            if (!instring && emode() && (b[0] == '}' || b[0] == ')') && isitempty(line)) {
+            if (!instring && emode() && (b[0] == '}' || b[0] == ')') && isitempty(line, b[0])) {
                 long sp = lines.indent(pos) - GetBlankSize();
                 if (sp > 0) {
                     wstring space(sp, ' ');
@@ -3121,6 +3123,10 @@ void jag_editor::addabuffer(wstring& b, bool instring) {
                     posinstring -= sp;
                     if (posinstring < 0)
                         posinstring = 0;
+                }
+                else {
+                    line = b;
+                    posinstring = 0;
                 }
                 printline(pos, line);
             }
@@ -3180,12 +3186,6 @@ void jag_editor::launchterminal(char loadedcode) {
     
     wstring bl;
     wstring b;
-
-#ifdef WIN32
-	SetConsoleCtrlHandler(handle_ctrl_c, true);
-#else
-    signal(SIGINT,handle_ctrl_c);
-#endif
 
     wstring code;
     string buffer;
@@ -3352,8 +3352,12 @@ char editor_lines::updatestatus(long pos) {
     return -1;
 }
 
-void editor_lines::updatesize() {
+bool editor_lines::updatesize() {
+    long prf = jag->prefixsize;
     jag->setprefixesize(lines.size());
+    if (jag->prefixsize != prf)
+        return true;
+    return false;
 }
 
 ///------------------------------------------------------------------------------------

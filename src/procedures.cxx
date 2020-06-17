@@ -1215,6 +1215,49 @@ Tamgu* ProcPause(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) 
 
 //___________________________________________________________________________________________________
 
+Tamgu* ProcFullSum(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    Tamgu* v;
+    double val = 0;
+    for (long i = 0; i < callfunc->Size(); i++) {
+        v = callfunc->Evaluate(i, contextualpattern, idthread);
+        if (v->isVectorContainer() || v->Type() != a_list) {
+            if (i)
+                val += v->Sum();
+            else
+                val = v->Sum();
+        }
+        else {
+            if (i)
+                val += v->Float();
+            else
+                val = v->Float();
+        }
+    }
+    return globalTamgu->Providefloat(val);
+}
+ 
+Tamgu* ProcFullProduct(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    Tamgu* v;
+    double val = 0;
+    for (long i = 0; i < callfunc->Size(); i++) {
+        v = callfunc->Evaluate(0, contextualpattern, idthread);
+        if (v->isVectorContainer() || v->Type() != a_list) {
+            if (i)
+                val *= v->Product();
+            else
+                val = v->Product();
+        }
+        else {
+            if (i)
+                val *= v->Product();
+            else
+                val = v->Float();
+        }
+    }
+    return globalTamgu->Providefloat(val);
+}
+ 
+
 Tamgu* ProcSum(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     Tamgu* v = callfunc->Evaluate(0, contextualpattern, idthread);
     if (!v->isVectorContainer() && v->Type() != a_list)
@@ -2668,9 +2711,8 @@ Exporting void TamguGlobal::RecordProcedures() {
     RecordOneProcedure("∑", &ProcSum, P_ONE | P_TWO | P_THREE);
     RecordOneProcedure("∏", &ProcProduct, P_ONE | P_TWO | P_THREE);
 
-    RecordOneProcedure("sum", &ProcSum, P_ONE | P_TWO | P_THREE);
-    RecordOneProcedure("product", &ProcProduct, P_ONE | P_TWO | P_THREE);
-
+    RecordOneProcedure("sum", &ProcFullSum, P_ATLEASTONE);
+    RecordOneProcedure("product", &ProcFullProduct, P_ATLEASTONE);
 
     //Error management...
     RecordOneProcedure("catch", ProcCatch, P_ONE);

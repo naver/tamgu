@@ -245,6 +245,21 @@ public:
         name = b->Name();
     }
 
+    ~TamguCallLispFunction() {
+        if (body->Name() == a_lambda) {
+            //We need to delete it... This is a temporary lambda function
+            //created in an eval
+            //first the parameters...
+            TamguFunction* f = (TamguFunction*)body;
+            long i;
+            for (i = 0; i < f->parameters.size(); i++)
+                delete f->parameters[i];
+            for (i = 0; i < f->instructions.size(); i++)
+                delete f->instructions[i];
+            delete f;
+        }
+    }
+    
     Tamgu* Eval(Tamgu* context, Tamgu* domain, short idthread);
 
     short Name() {

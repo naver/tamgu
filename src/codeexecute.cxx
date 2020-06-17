@@ -4255,6 +4255,8 @@ Tamgu* TamguInstructionTRY::Eval(Tamgu* res, Tamgu* ins, short idthread) {
 		catchbloc = true;
 	}
 
+    TamguDeclarationLocal* environment = globalTamgu->Providedeclaration(this, idthread, false);
+    
     res = aNULL;
     bool testcond = false;
     _setdebugmin(idthread);
@@ -4263,7 +4265,7 @@ Tamgu* TamguInstructionTRY::Eval(Tamgu* res, Tamgu* ins, short idthread) {
         res = instructions.vecteur[i];
         
         _debugpush(res);
-		res = res->Eval(aNULL, aNULL, idthread);
+		res = res->Eval(environment, aNULL, idthread);
         _debugpop();
         
         testcond = res->needFullInvestigate() || globalTamgu->Error(idthread);
@@ -4276,18 +4278,38 @@ Tamgu* TamguInstructionTRY::Eval(Tamgu* res, Tamgu* ins, short idthread) {
             res = aFALSE;
             if (catchbloc)
                 res = instructions.vecteur[last + 1]->Eval(aNULL, aNULL, idthread);
+            //if res has no reference, then it means that it was recorded into the environment
+            if (!res->Reference())
+                environment->Release();
+            else {
+                res->Setreference();
+                //we clean our structure...
+                environment->Release();
+                res->Protect();
+            }
+
             return res;
         }
         
         if (executionbreak) {
-            res->Releasenonconst();
+            environment->Release();
             return aNULL;
         }
-    
+        
+        //if res has no reference, then it means that it was recorded into the environment
+        if (!res->Reference())
+            environment->Release();
+        else {
+            res->Setreference();
+            //we clean our structure...
+            environment->Release();
+            res->Protect();
+        }
+        
         return res;
     }
     
-    res->Releasenonconst();
+    environment->Release();
 	return aNULL;
 }
 

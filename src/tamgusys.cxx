@@ -9,10 +9,10 @@
  Version    : See tamgu.cxx for the version number
  filename   : tamgusys.cxx
  Date       : 2017/09/01
- Purpose    : 
+ Purpose    :
  Programmer : Claude ROUX (claude.roux@naverlabs.com)
  Reviewer   :
-*/
+ */
 
 #include "tamgu.h"
 #include "tamgusys.h"
@@ -20,6 +20,7 @@
 #include "tamgumap.h"
 #include "tamgudate.h"
 #include "instructions.h"
+#include "tamguivector.h"
 
 #ifdef WIN32
 #include "Windows.h"
@@ -30,7 +31,26 @@
 #include <sys/stat.h>
 #include <stdlib.h>
 
+#ifdef WIN32
+#include <conio.h>
+#include <ctype.h>
+
+//Handling console tune up
+static HANDLE hStdout = 0;
+static DWORD lpMode = 0;
+static UINT codepage = 0;
+#else
+#include <unistd.h>   //_getch
+#include <termios.h>  //_getch
+#include <sys/ioctl.h>
+#endif
+
+#include <signal.h>
+#include <iomanip>
+
+
 #include "directorylisting.h"
+#include "terminalstrings.h"
 
 #ifdef WIN32
 #define DUP _dup
@@ -57,6 +77,202 @@ char* Getenv(char* name);
 #endif
 
 
+#ifdef WIN32
+static char check_size_utf8(int utf) {
+    if ((utf & 0xF0) == 0xF0)
+        return 3;
+    
+    if ((utf & 0xE0) == 0xE0)
+        return 2;
+    
+    if ((utf & 0xC0) == 0xC0)
+        return 1;
+    
+    return 0;
+}
+
+string getcharacter() {
+    checkresize();
+    int i = _getch();
+    string s;
+    s = (uchar)i;
+    if (!i || i == 0xE0 || i == 224) {
+        i = _getch();
+        s += (uchar)i;
+    }
+    else {
+        //We are inputting UTF8 characters, we detect the UTF8 size
+        //At most 3
+        if (i > 127) {
+            char nb = check_size_utf8(i);
+            while (nb) {
+                i = _getch();
+                s += (uchar)i;
+                nb--;
+            }
+        }
+    }
+    return s;
+}
+#else
+static const short _getbuffsize = 128;
+string getcharacter(){
+    static char buf[_getbuffsize+2];
+    memset(buf,0, _getbuffsize);
+    
+    struct termios old={0};
+    fflush(stdout);
+    if(tcgetattr(0, &old)<0) {
+        //we reset the input stream
+        //freopen("/dev/tty", "rw", stdin);
+        setbuf(stdin, NULL);
+        //and we try again...
+        if(tcgetattr(0, &old)<0) {
+            perror("tcsetattr()");
+            exit(-1);
+        }
+    }
+    
+    old.c_lflag&=~ICANON;
+    old.c_lflag&=~ECHO;
+    old.c_cc[VMIN]=1;
+    old.c_cc[VTIME]=0;
+
+    cc_t vstart = old.c_cc[VSTART];
+    cc_t vstop = old.c_cc[VSTOP];
+    cc_t vsusp = old.c_cc[VSUSP];
+
+    old.c_cc[VSTART] = NULL;
+    old.c_cc[VSTOP] = NULL;
+    old.c_cc[VSUSP] = NULL;
+
+    if(tcsetattr(0, TCSANOW, &old)<0) {
+        perror("tcsetattr ICANON");
+        return "";
+    }
+    
+    //If you need to get the absolute cursor position, you can decomment these lines
+    //cout << cursor_position;
+    //scanf("\033[%d;%dR", &xcursor, &ycursor);
+    
+    string res;
+    long nb;
+    
+    do {
+        nb = read(0,buf,_getbuffsize);
+        if (nb < 0)
+            perror("read()");
+        buf[nb] = 0;
+        res += buf;
+        memset(buf,0, _getbuffsize);
+    }
+    while (nb == _getbuffsize);
+    
+    old.c_lflag|=ICANON;
+    old.c_lflag|=ECHO;
+    old.c_cc[VSTART] = vstart;
+    old.c_cc[VSTOP] = vstop;
+    old.c_cc[VSUSP] = vsusp;
+
+    if(tcsetattr(0, TCSADRAIN, &old)<0) {
+        perror ("tcsetattr ~ICANON");
+        return "";
+    }
+    
+    return res;
+}
+#endif
+
+static long row_size = 0;
+static long col_size = 0;
+
+#ifdef WIN32
+static long size_row = 0;
+static long size_col = 0;
+
+bool checkresize() {
+    static CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
+
+    GetConsoleScreenBufferInfo(hStdout, &csbiInfo);
+    if (csbiInfo.dwMaximumWindowSize.X != size_row  || csbiInfo.dwMaximumWindowSize.Y != size_col) {
+        row_size = csbiInfo.srWindow.Bottom;
+        col_size = csbiInfo.srWindow.Right;
+        
+        size_row = csbiInfo.dwMaximumWindowSize.X;
+        size_col = csbiInfo.dwMaximumWindowSize.Y;
+        return true;
+    }
+    return false;
+}
+#else
+bool checkresize() {
+    struct winsize wns;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &wns);
+    if (row_size != wns.ws_row || col_size != wns.ws_col) {
+        struct winsize wns;
+        ioctl(STDOUT_FILENO, TIOCGWINSZ, &wns);
+        row_size = wns.ws_row; //we need to keep a final line on screen for operators
+        col_size = wns.ws_col;
+        return true;
+    }
+    return false;
+}
+#endif
+
+static void getscreensizes() {
+#ifdef WIN32
+    static CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
+
+    clearscreen();
+    if (row_size == -1 && col_size == -1) {
+        codepage = GetConsoleOutputCP();
+        //UTF8 setting
+        SetConsoleOutputCP(65001);
+        SetConsoleCP(65001);
+
+        // Get the current screen buffer size and window position.
+        hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+
+        //Selecting a different font to display all Unicode characters
+        CONSOLE_FONT_INFOEX info = { 0 };
+        info.cbSize = sizeof(info);
+        info.dwFontSize.Y = 18; // leave X as zero
+        info.FontWeight = FW_NORMAL;
+        wcscpy(info.FaceName, L"Consolas");
+        SetCurrentConsoleFontEx(hStdout, NULL, &info);
+
+        //We set the specific mode to handle terminal commands
+        GetConsoleMode(hStdout, &lpMode);
+        SetConsoleMode(hStdout, lpMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+    }
+
+    if (!GetConsoleScreenBufferInfo(hStdout, &csbiInfo))
+    {
+        printf("GetConsoleScreenBufferInfo (%d)\n", GetLastError());
+        return;
+    }
+    row_size = csbiInfo.srWindow.Bottom;
+    col_size = csbiInfo.srWindow.Right;
+
+    size_row = csbiInfo.dwMaximumWindowSize.X;
+    size_col = csbiInfo.dwMaximumWindowSize.Y;
+
+#else
+    struct winsize wns;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &wns);
+    row_size = wns.ws_row; //we need to keep a final line on screen for operators
+    col_size = wns.ws_col;
+#endif
+}
+
+static void _clearscreen() {
+#ifdef WIN32
+    system("cls");
+#else
+    cout << sys_clear << sys_home;
+#endif
+}
+
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamgusys::AddMethod(TamguGlobal* global, string name, sysMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
@@ -67,18 +283,20 @@ void Tamgusys::AddMethod(TamguGlobal* global, string name, sysMethod func, unsig
 
 
 
-    void Tamgusys::Setidtype(TamguGlobal* global) {
+void Tamgusys::Setidtype(TamguGlobal* global) {
     Tamgusys::InitialisationModule(global,"");
 }
 
 
-   bool Tamgusys::InitialisationModule(TamguGlobal* global, string version) {
+bool Tamgusys::InitialisationModule(TamguGlobal* global, string version) {
+    getscreensizes();
+    
     methods.clear();
     infomethods.clear();
     exported.clear();
-
+    
     Tamgusys::idtype = global->Getid("sys");
-
+    
     Tamgusys::AddMethod(global, "command", &Tamgusys::MethodCommand, P_ONE | P_TWO, "command(string com, string outputfile): execute the command 'com'. outputfile is optional and can be used to redirect output to a file.");
     Tamgusys::AddMethod(global, "isdirectory", &Tamgusys::MethodisDirectory, P_ONE, "isdirectory(string path): return 'true' if path is a directory");
     Tamgusys::AddMethod(global, "createdirectory", &Tamgusys::MethodCreateDirectory, P_ONE, "createdirectory(string path): create the directory of path 'path'");
@@ -89,38 +307,82 @@ void Tamgusys::AddMethod(TamguGlobal* global, string name, sysMethod func, unsig
     Tamgusys::AddMethod(global, "fileinfo", &Tamgusys::MethodFileInfo, P_ONE, "fileinfo(string pathname): returns the info of the file 'pathname'");
     Tamgusys::AddMethod(global, "env", &Tamgusys::MethodEnv, P_ONE | P_TWO, "env(string var)|env(string varstring val): return or set the content of the environment variable 'var'");
     Tamgusys::AddMethod(global, "pipe", &Tamgusys::MethodPopen, P_ONE, "pipe(string command): execute a command and store the result in a svector.");
+    Tamgusys::AddMethod(global, "getchar", &Tamgusys::MethodGETCH, P_NONE, "getchar(): return the last character (or group of characters) keyed in.");
+    Tamgusys::AddMethod(global, "colors", &Tamgusys::MethodCOLORS, P_THREE | P_FOUR, "colors(int style, int code1, int code2, bool disp): set text color or return the color code");
+    Tamgusys::AddMethod(global, "foregroundcolor", &Tamgusys::MethodFGCOLORS, P_ONE, "foregroundcolor(int color): set foreground text color");
+    Tamgusys::AddMethod(global, "backgroundcolor", &Tamgusys::MethodBGCOLORS, P_ONE, "backgroundcolor(int color): set background text color");
+    Tamgusys::AddMethod(global, "rgbforegroundcolor", &Tamgusys::MethodRGBFGCOLORS, P_THREE, "rgbforegroundcolor(int red, int green, int blue): set rgb foreground text color");
+    Tamgusys::AddMethod(global, "rgbbackgroundcolor", &Tamgusys::MethodRGBBGCOLORS, P_THREE, "rgbbackgroundcolor(int red, int green, int blue): set rgb background text color");
 
-	if (version != "") {
-		global->newInstance[Tamgusys::idtype] = new Tamgusys(global);
-		global->RecordMethods(Tamgusys::idtype, Tamgusys::exported);
+    Tamgusys::AddMethod(global, "scrollmargin", &Tamgusys::MethodSCROLLMARGIN, P_TWO, "scrollmargin(int top, int bottom): defines margin area");
+    Tamgusys::AddMethod(global, "deletechar", &Tamgusys::MethodDELETECHAR, P_ONE, "deletechar(int nb): delete nb char");
+    Tamgusys::AddMethod(global, "up", &Tamgusys::MethodUP, P_ONE, "up(int nb): move up nb line");
+    Tamgusys::AddMethod(global, "down", &Tamgusys::MethodDOWN, P_ONE, "down(int nb): move down nb line");
+    Tamgusys::AddMethod(global, "right", &Tamgusys::MethodRIGHT, P_ONE, "right(int nb): move right nb characters");
+    Tamgusys::AddMethod(global, "left", &Tamgusys::MethodLEFT, P_ONE, "left(int nb): move left nb characters");
+    Tamgusys::AddMethod(global, "next_line", &Tamgusys::MethodNEXT_LINE, P_ONE, "next_line(int nb): move to nb next line down");
+    Tamgusys::AddMethod(global, "previous_line", &Tamgusys::MethodPREVIOUS_LINE, P_ONE, "previous_line(int nb): move nb previous line up");
+    Tamgusys::AddMethod(global, "column", &Tamgusys::MethodCOLUMN, P_ONE, "column(int nb): move to column nb");
+    Tamgusys::AddMethod(global, "row_column", &Tamgusys::MethodROW_COLUMN, P_TWO, "row_column(int row, int column): move to row/column");
+    Tamgusys::AddMethod(global, "home", &Tamgusys::MethodHOME, P_NONE, "home(): move cursor to home");
+    Tamgusys::AddMethod(global, "cls", &Tamgusys::MethodCLS, P_NONE, "cls(): clear screen and return to home position");
+    Tamgusys::AddMethod(global, "hor_vert", &Tamgusys::MethodHOR_VERT, P_TWO, "hor_vert(int hor, int vert): move to hor/vert");
+    Tamgusys::AddMethod(global, "clearscreen", &Tamgusys::MethodCLEARSCREEN, P_ONE, "clearscreen(int nb): nb=0, 1, 2, 3 for partial or full screen clearing");
+    Tamgusys::AddMethod(global, "clear", &Tamgusys::MethodCLEAR, P_ONE, "clear(int nb): clear screen ");
+    Tamgusys::AddMethod(global, "eraseline", &Tamgusys::MethodERASE_LINE, P_ONE, "eraseline(int nb): nb =0, 1 or 2 for line erasement");
+    Tamgusys::AddMethod(global, "scroll_up", &Tamgusys::MethodSCROLL_UP, P_ONE, "scroll_up(int nb): scrolling up nb characters");
+    Tamgusys::AddMethod(global, "scroll_down", &Tamgusys::MethodSCROLL_DOWN, P_ONE, "scroll_down(int nb): scrolling down nb characters");
+    
+    Tamgusys::AddMethod(global, "screensize", &Tamgusys::MethodCoordinates, P_NONE, "screensizes(): return the screen size for row and column");
+    Tamgusys::AddMethod(global, "hasresized", &Tamgusys::MethodScreenHasResized, P_NONE, "hasresized(): return 'true', if the screen size has changed");
 
-		Tamgu* a = new TamguSystemVariable(global, new TamguConstsys(global), global->Createid("_sys"), Tamgusys::idtype);
-	}
+    if (version != "") {
+        global->newInstance[Tamgusys::idtype] = new Tamgusys(global);
+        global->RecordMethods(Tamgusys::idtype, Tamgusys::exported);
+        
+        Tamgu* a = new TamguSystemVariable(global, new TamguConstsys(global), global->Createid("_sys"), Tamgusys::idtype);
+        a = new TamguSystemVariable(global, new TamguConstString((char*)sys_keyright), global->Createid("_sys_keyright"), a_string);
+        a = new TamguSystemVariable(global, new TamguConstString((char*)sys_keyleft), global->Createid("_sys_keyleft"), a_string);
+        a = new TamguSystemVariable(global, new TamguConstString((char*)sys_keydown), global->Createid("_sys_keydown"), a_string);
+        a = new TamguSystemVariable(global, new TamguConstString((char*)sys_keyup), global->Createid("_sys_keyup"), a_string);
+        a = new TamguSystemVariable(global, new TamguConstString((char*)sys_keydel), global->Createid("_sys_keydel"), a_string);
+        a = new TamguSystemVariable(global, new TamguConstString((char*)sys_keyhomekey), global->Createid("_sys_keyhomekey"), a_string);
+        a = new TamguSystemVariable(global, new TamguConstString((char*)sys_keyendkey), global->Createid("_sys_keyendkey"), a_string);
+#ifdef WIN32
+        a = new TamguSystemVariable(global, new TamguConstString((char*)sys_keyc_homekey), global->Createid("_sys_keyc_homekey"), a_string);
+        a = new TamguSystemVariable(global, new TamguConstString((char*)sys_keyc_endkey), global->Createid("_sys_keyc_endkey"), a_string);
+#endif
+        a = new TamguSystemVariable(global, new TamguConstString((char*)sys_keyc_up), global->Createid("_sys_keyc_up"), a_string);
+        a = new TamguSystemVariable(global, new TamguConstString((char*)sys_keyc_down), global->Createid("_sys_keyc_down"), a_string);
+        a = new TamguSystemVariable(global, new TamguConstString((char*)sys_keyc_right), global->Createid("_sys_keyc_right"), a_string);
+        a = new TamguSystemVariable(global, new TamguConstString((char*)sys_keyc_left), global->Createid("_sys_keyc_left"), a_string);
+
+    }
     return true;
 }
 
 void SetEnvironmentVariable(string command, string val) {
-    #ifdef WIN32
+#ifdef WIN32
     command += "=";
     command += val;
     _putenv(STR(command));
-    #else
+#else
     setenv(command.c_str(), val.c_str(), 1);
-    #endif
+#endif
 }
 
 Tamgu* Tamgusys::Put(Tamgu* idx, Tamgu* kval, short idthread) {
     if (idx != NULL && !idx->isConst()) {
         lastcommand = idx->String();
         string val = kval->String();
-        #ifdef WIN32
+#ifdef WIN32
         lastcommand += "=";
         lastcommand += val;
         _putenv(STR(lastcommand));
-        #else
+#else
         setenv(lastcommand.c_str(), val.c_str(), 1);
-        #endif
-
+#endif
+        
     }
     return aTRUE;
 }
@@ -147,36 +409,36 @@ Tamgu* Tamgusys::MethodPopen(Tamgu* contextualpattern, short idthread, TamguCall
     
     FILE *fp;
     int status;
-	
-	char path[PATH_MAX];
-
-	string cmd = kcmd->String();
+    
+    char path[PATH_MAX];
+    
+    string cmd = kcmd->String();
     
 #ifdef WIN32
-	fp = _popen(STR(cmd), "r");
+    fp = _popen(STR(cmd), "r");
 #else
-	fp = popen(STR(cmd), "r");
-
+    fp = popen(STR(cmd), "r");
+    
 #endif
     if (fp == NULL)
         return globalTamgu->Returnerror("Error while opening 'popen' stream");
-        
-	while (fgets(path, PATH_MAX, fp) != NULL) {
+    
+    while (fgets(path, PATH_MAX, fp) != NULL) {
         cmd  = path;
         contextualpattern->storevalue(cmd);
     }
-
-
+    
+    
 #ifdef WIN32
-	status = _pclose(fp);
+    status = _pclose(fp);
 #else
-	status = pclose(fp);
+    status = pclose(fp);
 #endif
-
-	if (status == -1)
+    
+    if (status == -1)
         return globalTamgu->Returnerror("Error while closing 'popen' stream");
     
-
+    
     return contextualpattern;
 }
 
@@ -221,18 +483,18 @@ Tamgu* Tamgusys::MethodCommand(Tamgu* contextualpattern, short idthread, TamguCa
 
 Tamgu* Tamgusys::MethodisDirectory(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     string dirName_in = callfunc->Evaluate(0, aNULL, idthread)->String();
-    #ifdef WIN32
+#ifdef WIN32
     DWORD ftyp = GetFileAttributesA(dirName_in.c_str());
     if (ftyp == INVALID_FILE_ATTRIBUTES)
         return aFALSE;  //something is wrong with your path!
     if (ftyp & FILE_ATTRIBUTE_DIRECTORY)
         return aTRUE;   // this is a directory!
-    #else
+#else
     struct stat st;
     if (stat(STR(dirName_in), &st) == 0)
         if ((st.st_mode & S_IFMT) == S_IFDIR)
             return aTRUE;
-    #endif
+#endif
     return aFALSE;    // this is not a directory!
 }
 
@@ -249,7 +511,7 @@ Tamgu* Tamgusys::MethodListDirectory(Tamgu* contextualpattern, short idthread, T
     string path = kpath->String();
     directorylisting dir(path);
     bool go = dir.initial();
-
+    
     if (contextualpattern->isNumber()) {
         long i = 0;
         if (go) {
@@ -261,7 +523,7 @@ Tamgu* Tamgusys::MethodListDirectory(Tamgu* contextualpattern, short idthread, T
     }
     
     Tamgu* kvect = Selectasvector(contextualpattern);
-
+    
     if (!go)
         return kvect;
     
@@ -279,24 +541,24 @@ Tamgu* Tamgusys::MethodRealPath(Tamgu* contextualpattern, short idthread, TamguC
     Tamgu* kpath = callfunc->Evaluate(0, aNULL, idthread);
     char localpath[4096];
     string path = kpath->String();
-    #ifdef WIN32
+#ifdef WIN32
     _fullpath(localpath, STR(path), 4096);
-    #else
+#else
     realpath(STR(path), localpath);
-    #endif
+#endif
     return globalTamgu->Providestring(localpath);
 }
 
 Tamgu* Tamgusys::MethodFileInfo(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     Tamgu* kpath = callfunc->Evaluate(0, aNULL, idthread);
     string filename = kpath->String();
-    #ifdef WIN32
+#ifdef WIN32
     struct _stat scible;
     int stcible = _stat(STR(filename), &scible);
-    #else
+#else
     struct stat scible;
     int stcible = stat(STR(filename), &scible);
-    #endif
+#endif
     if (stcible >= 0) {
         Tamgu* size = globalTamgu->Provideint(scible.st_size);
         Tamgu* change = new Tamgudate(scible.st_mtime);
@@ -336,16 +598,391 @@ Tamgu* Tamgusys::MethodEnv(Tamgu* contextualpattern, short idthread, TamguCall* 
         Tamgu* kvalue = callfunc->Evaluate(1, aNULL, idthread);
         if (lastcommand != "") {
             string val = kvalue->String();
-            #ifdef WIN32
+#ifdef WIN32
             lastcommand += "=";
             lastcommand += val;
             _putenv(STR(lastcommand));
-            #else
+#else
             setenv(lastcommand.c_str(), val.c_str(), 1);
-            #endif
+#endif
             return aTRUE;
         }
     }
     //you may return any value of course...
+    return aFALSE;
+}
+
+
+Tamgu* Tamgusys::MethodGETCH(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    return globalTamgu->Providestring(getcharacter());
+}
+
+Tamgu* Tamgusys::MethodCOLORS(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    char buff[16] ;
+    long v;
+    memcpy(buff, sys_colors,15);
+    v = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+    v = maxlocal(v,0);
+    v = minlocal(v,999);
+    buff[2] = n999[v][0];
+    buff[3] = n999[v][1];
+    buff[4] = n999[v][2];
+    v = callfunc->Evaluate(1, aNULL, idthread)->Integer();
+    v = maxlocal(v,0);
+    v = minlocal(v,999);
+    buff[6] = n999[v][0];
+    buff[7] = n999[v][1];
+    buff[8] = n999[v][2];
+    v = callfunc->Evaluate(2, aNULL, idthread)->Integer();
+    v = maxlocal(v,0);
+    v = minlocal(v,999);
+    buff[10] = n999[v][0];
+    buff[11] = n999[v][1];
+    buff[12] = n999[v][2];
+    bool disp = true;
+    if (callfunc->Size()==4)
+        disp = callfunc->Evaluate(3, aNULL, idthread)->Boolean();
+    if (disp)
+        cout << buff;
+    return globalTamgu->Providestring(buff);
+}
+
+Tamgu* Tamgusys::MethodFGCOLORS(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    char buff[13];
+    memcpy(buff, sys_foreground_colors, 11);
+    long v = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+    v = maxlocal(v,0);
+    v = minlocal(v,999);
+    buff[7] = n999[v][0];
+    buff[8] = n999[v][1];
+    buff[9] = n999[v][2];
+    cout << buff;
+    return aTRUE;
+}
+
+Tamgu* Tamgusys::MethodBGCOLORS(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    char buff[13];
+    memcpy(buff, sys_background_colors, 11);
+    long v = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+    v = maxlocal(v,0);
+    v = minlocal(v,999);
+    buff[7] = n999[v][0];
+    buff[8] = n999[v][1];
+    buff[9] = n999[v][2];
+    cout << buff;
+    return aTRUE;
+}
+
+Tamgu* Tamgusys::MethodRGBFGCOLORS(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    char buff[21] ;
+    long v;
+    memcpy(buff, sys_rgb_foreground_colors,20);
+    v = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+    v = maxlocal(v,0);
+    v = minlocal(v,999);
+    buff[7] = n999[v][0];
+    buff[8] = n999[v][1];
+    buff[9] = n999[v][2];
+    v = callfunc->Evaluate(1, aNULL, idthread)->Integer();
+    v = maxlocal(v,0);
+    v = minlocal(v,999);
+    buff[12] = n999[v][0];
+    buff[13] = n999[v][1];
+    buff[14] = n999[v][2];
+    v = callfunc->Evaluate(2, aNULL, idthread)->Integer();
+    v = maxlocal(v,0);
+    v = minlocal(v,999);
+    buff[16] = n999[v][0];
+    buff[17] = n999[v][1];
+    buff[18] = n999[v][2];
+    cout << buff;
+    return aTRUE;
+}
+
+Tamgu* Tamgusys::MethodRGBBGCOLORS(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    char buff[21] ;
+    long v;
+    memcpy(buff, sys_rgb_background_colors,20);
+    v = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+    v = maxlocal(v,0);
+    v = minlocal(v,999);
+    buff[7] = n999[v][0];
+    buff[8] = n999[v][1];
+    buff[9] = n999[v][2];
+    v = callfunc->Evaluate(1, aNULL, idthread)->Integer();
+    v = maxlocal(v,0);
+    v = minlocal(v,999);
+    buff[12] = n999[v][0];
+    buff[13] = n999[v][1];
+    buff[14] = n999[v][2];
+    v = callfunc->Evaluate(2, aNULL, idthread)->Integer();
+    v = maxlocal(v,0);
+    v = minlocal(v,999);
+    buff[16] = n999[v][0];
+    buff[17] = n999[v][1];
+    buff[18] = n999[v][2];
+    cout << buff;
+    return aTRUE;
+}
+
+
+Tamgu* Tamgusys::MethodSCROLLMARGIN(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    char buff[12] ;
+    long v;
+    memcpy(buff, sys_scrollmargin,11);
+    v = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+    v = maxlocal(v,0);
+    v = minlocal(v,999);
+    buff[2] = n999[v][0];
+    buff[3] = n999[v][1];
+    buff[4] = n999[v][2];
+    v = callfunc->Evaluate(1, aNULL, idthread)->Integer();
+    v = maxlocal(v,0);
+    v = minlocal(v,999);
+    buff[6] = n999[v][0];
+    buff[7] = n999[v][1];
+    buff[8] = n999[v][2];
+    cout << buff;
+    return aTRUE;
+}
+
+Tamgu* Tamgusys::MethodDELETECHAR(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    char buff[8] ;
+    long v;
+    memcpy(buff, sys_deletechar,7);
+    v = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+    v = maxlocal(v,0);
+    v = minlocal(v,999);
+    buff[2] = n999[v][0];
+    buff[3] = n999[v][1];
+    buff[4] = n999[v][2];
+    cout << buff;
+    return aTRUE;
+}
+
+Tamgu* Tamgusys::MethodUP(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    char buff[8] ;
+    long v;
+    memcpy(buff, sys_up,7);
+    v = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+    v = maxlocal(v,0);
+    v = minlocal(v,999);
+    buff[2] = n999[v][0];
+    buff[3] = n999[v][1];
+    buff[4] = n999[v][2];
+    cout << buff;
+    return aTRUE;
+}
+
+Tamgu* Tamgusys::MethodDOWN(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    char buff[8] ;
+    long v;
+    memcpy(buff, sys_down,7);
+    v = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+    v = maxlocal(v,0);
+    v = minlocal(v,999);
+    buff[2] = n999[v][0];
+    buff[3] = n999[v][1];
+    buff[4] = n999[v][2];
+    cout << buff;
+    return aTRUE;
+}
+
+Tamgu* Tamgusys::MethodRIGHT(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    char buff[8] ;
+    long v;
+    memcpy(buff, sys_right,7);
+    v = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+    v = maxlocal(v,0);
+    v = minlocal(v,999);
+    buff[2] = n999[v][0];
+    buff[3] = n999[v][1];
+    buff[4] = n999[v][2];
+    cout << buff;
+    return aTRUE;
+}
+
+Tamgu* Tamgusys::MethodLEFT(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    char buff[8] ;
+    long v;
+    memcpy(buff, sys_left,7);
+    v = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+    v = maxlocal(v,0);
+    v = minlocal(v,999);
+    buff[2] = n999[v][0];
+    buff[3] = n999[v][1];
+    buff[4] = n999[v][2];
+    cout << buff;
+    return aTRUE;
+}
+
+Tamgu* Tamgusys::MethodNEXT_LINE(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    char buff[8] ;
+    long v;
+    memcpy(buff, sys_next_line,7);
+    v = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+    v = maxlocal(v,0);
+    v = minlocal(v,999);
+    buff[2] = n999[v][0];
+    buff[3] = n999[v][1];
+    buff[4] = n999[v][2];
+    cout << buff;
+    return aTRUE;
+}
+
+Tamgu* Tamgusys::MethodPREVIOUS_LINE(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    char buff[8] ;
+    long v;
+    memcpy(buff, sys_previous_line,7);
+    v = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+    v = maxlocal(v,0);
+    v = minlocal(v,999);
+    buff[2] = n999[v][0];
+    buff[3] = n999[v][1];
+    buff[4] = n999[v][2];
+    cout << buff;
+    return aTRUE;
+}
+
+Tamgu* Tamgusys::MethodCOLUMN(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    char buff[8] ;
+    long v;
+    memcpy(buff, sys_column,7);
+    v = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+    v = maxlocal(v,0);
+    v = minlocal(v,999);
+    buff[2] = n999[v][0];
+    buff[3] = n999[v][1];
+    buff[4] = n999[v][2];
+    cout << buff;
+    return aTRUE;
+}
+
+Tamgu* Tamgusys::MethodROW_COLUMN(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    char buff[12] ;
+    long v;
+    memcpy(buff, sys_row_column,11);
+    v = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+    v = maxlocal(v,0);
+    v = minlocal(v,999);
+    buff[2] = n999[v][0];
+    buff[3] = n999[v][1];
+    buff[4] = n999[v][2];
+    v = callfunc->Evaluate(1, aNULL, idthread)->Integer();
+    v = maxlocal(v,0);
+    v = minlocal(v,999);
+    buff[6] = n999[v][0];
+    buff[7] = n999[v][1];
+    buff[8] = n999[v][2];
+    cout << buff;
+    return aTRUE;
+}
+
+Tamgu* Tamgusys::MethodHOME(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    cout << sys_home;
+    return aTRUE;
+}
+
+Tamgu* Tamgusys::MethodCLS(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    _clearscreen();
+    return aTRUE;
+}
+
+Tamgu* Tamgusys::MethodHOR_VERT(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    char buff[12] ;
+    long v;
+    memcpy(buff, sys_hor_vert,11);
+    v = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+    v = maxlocal(v,0);
+    v = minlocal(v,999);
+    buff[2] = n999[v][0];
+    buff[3] = n999[v][1];
+    buff[4] = n999[v][2];
+    v = callfunc->Evaluate(1, aNULL, idthread)->Integer();
+    v = maxlocal(v,0);
+    v = minlocal(v,999);
+    buff[6] = n999[v][0];
+    buff[7] = n999[v][1];
+    buff[8] = n999[v][2];
+    cout << buff;
+    return aTRUE;
+}
+
+Tamgu* Tamgusys::MethodCLEARSCREEN(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    char buff[8] ;
+    long v;
+    memcpy(buff, sys_partial_clear,7);
+    v = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+    if (v > 4 || v  < 0)
+        v = 0;
+    buff[2] = v+48;
+    cout << buff;
+    return aTRUE;
+}
+
+Tamgu* Tamgusys::MethodCLEAR(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    char buff[6] ;
+    long v;
+    memcpy(buff, sys_clear,5);
+    v = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+    v = maxlocal(v,0);
+    v = minlocal(v,999);
+    buff[2] = n999[v][0];
+    buff[3] = n999[v][1];
+    buff[4] = n999[v][2];
+    cout << buff;
+    return aTRUE;
+}
+
+Tamgu* Tamgusys::MethodERASE_LINE(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    char buff[8] ;
+    long v;
+    memcpy(buff, sys_partial_line_clear,7);
+    v = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+    if (v > 3 || v  < 0)
+        v = 0;
+    buff[2] = v+48;
+    cout << buff;
+    return aTRUE;
+}
+
+Tamgu* Tamgusys::MethodSCROLL_UP(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    char buff[8] ;
+    long v;
+    memcpy(buff, sys_scroll_up,7);
+    v = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+    v = maxlocal(v,0);
+    v = minlocal(v,999);
+    buff[2] = n999[v][0];
+    buff[3] = n999[v][1];
+    buff[4] = n999[v][2];
+    cout << buff;
+    return aTRUE;
+}
+
+Tamgu* Tamgusys::MethodSCROLL_DOWN(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    char buff[8] ;
+    long v;
+    memcpy(buff, sys_scroll_down,7);
+    v = callfunc->Evaluate(0, aNULL, idthread)->Integer();
+    v = maxlocal(v,0);
+    v = minlocal(v,999);
+    buff[2] = n999[v][0];
+    buff[3] = n999[v][1];
+    buff[4] = n999[v][2];
+    cout << buff;
+    return aTRUE;
+}
+
+Tamgu* Tamgusys::MethodCoordinates(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    Tamguivector* iv = (Tamguivector*)Selectaivector(contextualpattern);
+    iv->values.push_back(row_size);
+    iv->values.push_back(col_size);
+    return iv;
+}
+
+Tamgu* Tamgusys::MethodScreenHasResized(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    if (checkresize())
+        return aTRUE;
     return aFALSE;
 }

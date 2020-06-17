@@ -261,8 +261,14 @@ Tamgu* Tamgusymbol::Eval(Tamgu* a, Tamgu* v, short idthread) {
 Tamgu* Tamgulispvariable::Eval(Tamgu* a, Tamgu* v, short idthread) {
     if (globalTamgu->systems.check(name))
         v = globalTamgu->systems[name]->value;
-    else
-        v =  globalTamgu->Getdeclaration(name, idthread);
+    else {
+        v =  globalTamgu->Getdeclarationandcheck(name, idthread);
+        if (v == NULL) {
+            string msg = "Unknown variable: ";
+            msg += globalTamgu->Getsymbol(name);
+            return globalTamgu->Returnerror(msg, idthread);
+        }
+    }
     return call->Eval(a, v, idthread);
 }
 
@@ -1058,12 +1064,16 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
 
             if (!v1->isLisp())
                 return globalTamgu->Returnerror("Missing parameters",idthread);
-
-            char name[10];
-            sprintf_s(name, 10, "%%l_%ld", idtracker);
-            n = globalTamgu->Getid(name);
             
-            a = new TamguFunction(n, globalTamgu);
+            if (contextualpattern == aEMPTYLISP)
+                a = new TamguFunction(a_lambda, NULL);
+            else {
+                char name[10];
+                sprintf_s(name, 10, "%%l_%ld", idtracker);
+                n = globalTamgu->Getid(name);
+                a = new TamguFunction(n, globalTamgu);
+            }
+            
             ((TamguFunction*)a)->idtype = a_lisp;
             
             for (i = 0; i < v1->Size(); i++) {
@@ -1072,18 +1082,30 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                     a->Remove();
                     return globalTamgu->Returnerror("Wrong parameter definition",idthread);
                 }
-                v0 = new TamguSelfVariableDeclaration(globalTamgu, n);
+                if (contextualpattern == aEMPTYLISP)
+                    v0 = new TamguSelfVariableDeclaration(NULL, n);
+                else
+                    v0 = new TamguSelfVariableDeclaration(globalTamgu, n);
                 a->AddInstruction(v0);
             }
             a->Setchoice(1);
             
-            v1 = new TamguCallReturn(globalTamgu, a);
+            if (contextualpattern == aEMPTYLISP)
+                v1 = new TamguCallReturn(NULL, a);
+            else
+                v1 = new TamguCallReturn(globalTamgu, a);
+            
             if (sz == 3) {
                 v1->AddInstruction(values[2]);
                 values[2]->Setreference();
             }
             else {
-                Tamgulispcode* block = new Tamgulispcode(globalTamgu);
+                Tamgulispcode* block;
+                if (contextualpattern == aEMPTYLISP)
+                    block = new Tamgulispcode(NULL);
+                else
+                    block = new Tamgulispcode(globalTamgu);
+                
                 block->idinfo = Currentinfo();
                 block->Setreference();
                 block->push(globalTamgu->Providelispsymbols(a_block));
@@ -1092,11 +1114,13 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 v1->AddInstruction(block);                
             }
             a->Setchoice(a_lambda);
-            n = a->Name();
-            globalTamgu->Storevariable(idthread, n, a);
-            //Declarelocal only declare a function or a variable in a local domain (a function for instance)
-            //If the context is the main frame, then nothing is done
-            contextualpattern->Declarelocal(idthread, n, a);
+            if (contextualpattern != aEMPTYLISP) {
+                n = a->Name();
+                globalTamgu->Storevariable(idthread, n, a);
+                //Declarelocal only declare a function or a variable in a local domain (a function for instance)
+                //If the context is the main frame, then nothing is done
+                contextualpattern->Declarelocal(idthread, n, a);
+            }
             values[1] = a;
             return a;
         }

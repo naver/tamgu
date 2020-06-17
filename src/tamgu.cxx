@@ -41,7 +41,7 @@
 #include "tamgulisp.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2020.06.10.10";
+const char* tamgu_version = "Tamgu 1.2020.06.17.14";
 
 Tamgu* booleantamgu[2];
 
@@ -728,7 +728,7 @@ TamguGlobal::~TamguGlobal() {
     if (issues.size())
         cerr << "No fully cleaned:" << issues.size() << endl;
     else
-        cerr << "No issues" << endl;
+        cerr << "No dangling values. All has been cleaned." << endl;
     #endif
 }
 

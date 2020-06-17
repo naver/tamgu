@@ -796,7 +796,7 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
             if (!right->search(svalue, r, iright, r))
                 return 0;
         }
-        if (iright <= ileft)
+        if (iright < ileft)
             return 0;
         return 2;
     }
@@ -808,7 +808,7 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
         
         if (sright) {
             iright = s_rfind(svalue, sub, sz);
-            if (iright <= ileft)
+            if (iright < ileft)
                 return 0;
         }
         else {
@@ -841,7 +841,7 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
 		else {
 			if (pivot != -1 && pivot < iright) {
 				iright = convertchartoposutf16(svalue, pivot, iright);
-				if (iright <= ileft)
+				if (iright < ileft)
 					return 0;
 			}
 		}
@@ -872,7 +872,7 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
 	if (iright >= szchar)
         iright = sz;
     else
-        if (iright <= ileft)
+        if (iright < ileft)
             return 0;
     return 2;
 }
@@ -1012,7 +1012,7 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
 			if (!right->search(svalue, r, iright, r))
 				return 0;
 		}
-		if (iright <= ileft)
+		if (iright < ileft)
 			return 0;
 		return 2;
 	}
@@ -1024,7 +1024,7 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
 
 		if (sright) {
 			iright = s_rfind(svalue, sub, sz);
-			if (iright <= ileft)
+			if (iright < ileft)
 				return 0;
 		}
 		else {
@@ -1067,7 +1067,7 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
         if (iright >= emoji)
             char_to_pos_emoji(svalue, iright, emoji);
 
-        if (iright <= ileft)
+        if (iright < ileft)
             return 0;
         return 2;
     }
@@ -1075,7 +1075,7 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
 	if (iright > sz)
 		iright = sz;
 	else
-		if (iright <= ileft)
+		if (iright < ileft)
 			return 0;
 	return 2;
 }
@@ -1269,7 +1269,7 @@ Exporting char StringIndexes(string& svalue, Tamgu* index, long& ileft, long& ir
             if (!right->search(svalue, r, iright, ileft))
                 return 0;
         }
-        if (iright <= ileft)
+        if (iright < ileft)
             return 0;
         return 2;
     }
@@ -1284,7 +1284,7 @@ Exporting char StringIndexes(string& svalue, Tamgu* index, long& ileft, long& ir
         
         if (sright) {
             iright = s_rfindbyte(svalue, sub, sz);
-            if (iright <= ileft)
+            if (iright < ileft)
                 return 0;
         }
         else {
@@ -1338,7 +1338,7 @@ Exporting char StringIndexes(string& svalue, Tamgu* index, long& ileft, long& ir
             }
         }
         
-        if (iright <= ileft)
+        if (iright < ileft)
             return 0;
         return 2;
     }
@@ -1371,7 +1371,7 @@ Exporting char StringIndexes(string& svalue, Tamgu* index, long& ileft, long& ir
     if (iright > sz)
         iright = sz;
     else
-        if (iright <= ileft)
+        if (iright < ileft)
             return 0;
     return 2;
 }
@@ -1515,7 +1515,7 @@ Exporting char StringIndexes(uchar* svalue, long sz, Tamgu* index, long& ileft, 
             if (!right->search(sub, r, iright, ileft))
                 return 0;
         }
-        if (iright <= ileft)
+        if (iright < ileft)
             return 0;
         return 2;
     }
@@ -1527,7 +1527,7 @@ Exporting char StringIndexes(uchar* svalue, long sz, Tamgu* index, long& ileft, 
         
         if (sright) {
             iright = s_rfindbyte(svalue, sz, sub, sz);
-            if (iright <= ileft)
+            if (iright < ileft)
                 return 0;
         }
         else {
@@ -1581,7 +1581,7 @@ Exporting char StringIndexes(uchar* svalue, long sz, Tamgu* index, long& ileft, 
             }
         }
         
-        if (iright <= ileft)
+        if (iright < ileft)
             return 0;
         return 2;
     }
@@ -1614,7 +1614,7 @@ Exporting char StringIndexes(uchar* svalue, long sz, Tamgu* index, long& ileft, 
     if (iright > sz)
         iright = sz;
     else
-        if (iright <= ileft)
+        if (iright < ileft)
             return 0;
     return 2;
 }
@@ -2258,7 +2258,7 @@ Exporting Tamgu* TamguGlobal::EvaluateLisp(Tamgu* contextualpattern, string file
     for (long i = 0; i < lst->values.size(); i++) {
         if (i)
             kret->Release();
-        kret = lst->values[i]->Eval(contextualpattern, aNULL, idthread);
+        kret = lst->values[i]->Eval(aEMPTYLISP, aNULL, idthread);
     }
     
     lst->Resetreference(1);

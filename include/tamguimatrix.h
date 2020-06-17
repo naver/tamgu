@@ -154,7 +154,12 @@ public:
 	Tamgu* MethodSum(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 	Tamgu* MethodProduct(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 	Tamgu* MethodInversion(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
-    
+
+    Tamgu* MethodClear(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        Clear();
+        return aTRUE;
+    }
+
     Tamgu* MethodFormat(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         locking();
         
@@ -195,6 +200,11 @@ public:
 		rowsize = 0;
 		columnsize = 0;
 	}
+    
+    void Clear() {
+        values.clear();
+    }
+    
 	void init(long rs, long cs) {
 		rowsize = rs;
 		columnsize = cs;

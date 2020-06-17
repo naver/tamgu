@@ -112,7 +112,7 @@ void Tamgustring::AddMethod(TamguGlobal* global, string name, stringMethod func,
     Tamgustring::AddMethod(global, "find", &Tamgustring::MethodFind, P_TWO | P_ONE, "find(string sub,int pos): Return the position of substring sub starting at position pos", a_int);
     Tamgustring::AddMethod(global, "rfind", &Tamgustring::MethodRfind, P_TWO | P_ONE, "rfind(string sub,int pos): Return the position of substring sub backward starting at position pos", a_int);
 
-    Tamgustring::AddMethod(global, "count", &Tamgustring::MethodCount, P_TWO | P_ONE | P_NONE, "count(string sub,int pos): Count the number of substrings starting at position pos", a_int);
+    Tamgustring::AddMethod(global, "count", &Tamgustring::MethodCount, P_TWO | P_ONE, "count(string sub,int pos): Count the number of substrings starting at position pos", a_int);
        
 
     Tamgustring::AddMethod(global, "byteposition", &Tamgustring::MethodByteposition, P_ONE, "byteposition(int pos): Convert a character position into a byte position", a_int);
@@ -2003,25 +2003,16 @@ Tamgu* Tamgustring::MethodToxml(Tamgu* contextualpattern, short idthread, TamguC
 Tamgu* Tamgustring::MethodBytes(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     Locking _lock(this);
     long sz = value.size();
-    if (sz >= 1) {
-        if (contextualpattern->isVectorContainer() || sz > 1) {
-            Tamgu* kvect=SelectContainer(contextualpattern,idthread);
-            if (kvect==NULL)
-                kvect = globalTamgu->Provideivector();
-                
-            Locking _lock((TamguObject*)kvect);
-            for (size_t i = 0; i < value.size(); i++)
-                kvect->storevalue((uchar)value[i]);
-            return kvect;
-        }
-
-        if (contextualpattern->isNumber()) {
-            Tamgu* a = contextualpattern->Newinstance(idthread);
-            a->storevalue((uchar)value[0]);
-            return a;
-        }
-
-        return new Tamgubyte(value[0]);
+    if (sz > 0) {
+        if (contextualpattern->isNumber())
+            return new Tamgubyte(value[0]);
+        
+        Tamguivector* kvect=(Tamguivector*)Selectaivector(contextualpattern);
+        kvect->locking();
+        for (size_t i = 0; i < value.size(); i++)
+            kvect->storevalue((uchar)value[i]);
+        kvect->unlocking();
+        return kvect;
     }
 
     return aNULL;
@@ -2679,7 +2670,7 @@ bool Tamgua_string::InitialisationModule(TamguGlobal* global, string version) {
     Tamgua_string::AddMethod(global, "tokenize", &Tamgua_string::MethodTokenize, P_NONE | P_ONE | P_TWO | P_THREE, "tokenize(bool comma,bool separator, svector rules): Segment a string into words and punctuations. If 'comma' is true, then the decimal character is ',' otherwise it is '.'. If 'separator' is true then '1,000' is accepted as a number. rules is a set of tokenization rules that can be first initialized then modified with _getdefaulttokenizerules", a_null);
     Tamgua_string::AddMethod(global, "stokenize", &Tamgua_string::MethodStokenize, P_NONE | P_ONE, "stokenize(map keeps): Segment a string into words and punctuations, with a keep.", a_null);
 
-    Tamgua_string::AddMethod(global, "count", &Tamgua_string::MethodCount, P_TWO | P_ONE | P_NONE, "count(string sub,int pos): Count the number of substrings starting at position pos", a_int);
+    Tamgua_string::AddMethod(global, "count", &Tamgua_string::MethodCount, P_TWO | P_ONE, "count(string sub,int pos): Count the number of substrings starting at position pos", a_int);
     Tamgua_string::AddMethod(global, "byteposition", &Tamgua_string::MethodByteposition, P_ONE, "byteposition(int pos): Convert a character position into a byte position", a_int);
     Tamgua_string::AddMethod(global, "charposition", &Tamgua_string::MethodCharposition, P_ONE, "charposition(int pos): Convert a byte position into a character position", a_int);
     
@@ -2964,25 +2955,16 @@ Tamgu* Tamgua_string::MethodIsutf8(Tamgu* contextualpattern, short idthread, Tam
 Tamgu* Tamgua_string::MethodBytes(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     string vl = value.value();
     long sz = vl.size();
-    if (sz >= 1) {
-        if (contextualpattern->isVectorContainer() || sz > 1) {
-            Tamgu* kvect=SelectContainer(contextualpattern,idthread);
-            if (kvect==NULL)
-                kvect = globalTamgu->Provideivector();
-            
-            Locking _lock((TamguObject*)kvect);
-            for (size_t i = 0; i < vl.size(); i++)
-                kvect->storevalue((uchar)vl[i]);
-            return kvect;
-        }
+    if (sz > 0) {
+        if (contextualpattern->isNumber())
+            return new Tamgubyte(vl[0]);
         
-        if (contextualpattern->isNumber()) {
-            Tamgu* a = contextualpattern->Newinstance(idthread);
-            a->storevalue((uchar)vl[0]);
-            return a;
-        }
-        
-        return new Tamgubyte(vl[0]);
+        Tamguivector* kvect=(Tamguivector*)Selectaivector(contextualpattern);
+        kvect->locking();
+        for (size_t i = 0; i < vl.size(); i++)
+            kvect->storevalue((uchar)vl[i]);
+        kvect->unlocking();
+        return kvect;
     }
     
     return aNULL;

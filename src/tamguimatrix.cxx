@@ -54,6 +54,7 @@ void Tamguimatrix::AddMethod(TamguGlobal* global, string name, imatrixMethod fun
     Tamguimatrix::AddMethod(global, "sum", &Tamguimatrix::MethodSum, P_NONE, "sum(): return the sum of all elements");
     Tamguimatrix::AddMethod(global, "product", &Tamguimatrix::MethodProduct, P_NONE, "product(): return the product of all elements");
     Tamguimatrix::AddMethod(global, "invert", &Tamguimatrix::MethodInversion, P_NONE, "invert(): Return the inverted matrix.");
+    Tamguimatrix::AddMethod(global, "clear", &Tamguimatrix::MethodClear, P_NONE, "clear(): clean the mextrix.");
     Tamguimatrix::AddMethod(global, "format", &Tamguimatrix::MethodFormat, P_THREE, "format(string sep, string nxtline, string zero): Return the matrix as a string.");
 
 

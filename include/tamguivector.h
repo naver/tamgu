@@ -556,6 +556,14 @@ class Tamguivector : public TamguLockContainer {
         return v;
     }
 
+    double Sum() {
+        return ISum();
+    }
+    
+    double Product() {
+        return IProduct();
+    }
+    
     void Insert(long idx, Tamgu* ke) {
         locking();
         if (idx<0)
@@ -1177,6 +1185,14 @@ public:
         return v;
     }
     
+    double Sum() {
+        return ISum();
+    }
+    
+    double Product() {
+        return IProduct();
+    }
+
     void Insert(long idx, Tamgu* ke) {
         if (idx<0)
             idx=0;

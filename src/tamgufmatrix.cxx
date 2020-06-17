@@ -54,6 +54,7 @@ void Tamgufmatrix::AddMethod(TamguGlobal* global, string name, fmatrixMethod fun
     Tamgufmatrix::AddMethod(global, "sum", &Tamgufmatrix::MethodSum, P_NONE, "sum(): return the sum of all elements");
     Tamgufmatrix::AddMethod(global, "product", &Tamgufmatrix::MethodProduct, P_NONE, "product(): return the product of all elements");
     Tamgufmatrix::AddMethod(global, "invert", &Tamgufmatrix::MethodInversion, P_NONE, "invert(): Return the inverted matrix.");
+    Tamgufmatrix::AddMethod(global, "clear", &Tamgufmatrix::MethodClear, P_NONE, "clean(): clean the matrix.");
     Tamgufmatrix::AddMethod(global, "format", &Tamgufmatrix::MethodFormat, P_THREE, "format(string sep, string nxtline, string zero): Return the matrix as a string.");
 
 

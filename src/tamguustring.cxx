@@ -108,7 +108,7 @@ void Tamguustring::AddMethod(TamguGlobal* global, string name, ustringMethod fun
     Tamguustring::AddMethod(global, "splite", &Tamguustring::MethodSplite, P_ONE | P_NONE, "splite(string splitter): split a string along splitter and store the results  in a vector. If splitter=='', then the string is split into a vector of characters. Empty strings are kept in the result.");
     Tamguustring::AddMethod(global, "tokenize", &Tamguustring::MethodTokenize, P_NONE | P_ONE | P_TWO | P_THREE, "tokenize(bool comma,bool separator, svector rules): Segment a string into words and punctuations. If 'comma' is true, then the decimal character is ',' otherwise it is '.'. If 'separator' is true then '1,000' is accepted as a number. rules is a set of tokenization rules that can be first initialized then modified with _getdefaulttokenizerules");
     Tamguustring::AddMethod(global, "stokenize", &Tamguustring::MethodStokenize, P_NONE | P_ONE, "stokenize(map keeps): Segment a string into words and punctuations, with a keep.");
-    Tamguustring::AddMethod(global, "count", &Tamguustring::MethodCount, P_TWO | P_ONE | P_NONE, "count(string sub,int pos): Count the number of substrings starting at position pos");
+    Tamguustring::AddMethod(global, "count", &Tamguustring::MethodCount, P_TWO | P_ONE, "count(string sub,int pos): Count the number of substrings starting at position pos");
     Tamguustring::AddMethod(global, "bpe", &Tamguustring::MethodBPE, P_THREE | P_TWO, "bpe(long threshold, long nb, mapui): byte pair encoding");
     Tamguustring::AddMethod(global, "bpereplace", &Tamguustring::MethodBPEReplace, P_TWO, "bpereplace(long nb, mapui): byte pair encoding replacement in a string");
     Tamguustring::AddMethod(global, "find", &Tamguustring::MethodFind, P_TWO | P_ONE, "find(string sub,int pos): Return the position of substring sub starting at position pos");
@@ -329,30 +329,22 @@ Tamgu* Tamguustring::MethodOrd(Tamgu* contextualpattern, short idthread, TamguCa
 
 Tamgu* Tamguustring::MethodBytes(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 	wstring s = UString();
-	uint32_t c;
-	if (s.size() >= 1) {
-		if (contextualpattern->isVectorContainer() || s.size()>1) {
-			Tamgu* kvect=SelectContainer(contextualpattern,idthread);
-			if (kvect==NULL)
-				kvect=new Tamgulvector;
-
-			Locking _lock((TamguObject*)kvect);
-			for (size_t i = 0; i < s.size(); i++) {
-				kvect->storevalue((BLONG)s[i]);
-			}
-			return kvect;
-		}
-
-		if (c_utf16_to_unicode(c, s[0], false))
-			c_utf16_to_unicode(c, s[1], true);
-
-		if (contextualpattern->isNumber()) {
-			contextualpattern->storevalue((BLONG)c);
-			return contextualpattern;
-		}
-
-		return new Tamgulong(c);
-	}
+	if (s.size() > 0) {
+        if (contextualpattern->isNumber()) {
+            uint32_t c;
+            if (c_utf16_to_unicode(c, s[0], false))
+                c_utf16_to_unicode(c, s[1], true);
+            
+            return new Tamgulong((BLONG)c);
+        }
+        
+        Tamgulvector* kvect=(Tamgulvector*)Selectalvector(contextualpattern);
+        kvect->locking();
+        for (size_t i = 0; i < s.size(); i++)
+            kvect->storevalue((BLONG)s[i]);
+        kvect->unlocking();
+        return kvect;
+    }
 
 	return aNULL;
 }
@@ -384,26 +376,23 @@ Tamgu* Tamguustring::MethodOrd(Tamgu* contextualpattern, short idthread, TamguCa
 
 Tamgu* Tamguustring::MethodBytes(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 	wstring s = UString();
-	if (s.size() >= 1) {
-		if (contextualpattern->isVectorContainer() || s.size()>1) {
-			Tamgu* kvect = SelectContainer(contextualpattern, idthread);
-			if (kvect == NULL)
-				kvect = new Tamgulvector;
+	if (s.size() > 0) {
+        if (contextualpattern->isNumber()) {
+            uint32_t c;
+            if (c_utf16_to_unicode(c, s[0], false))
+                c_utf16_to_unicode(c, s[1], true);
 
-			Locking _lock((TamguObject*)kvect);
-			for (size_t i = 0; i < s.size(); i++)
-				kvect->storevalue(s[i]);
-			return kvect;
-		}
-
-		if (contextualpattern->isNumber()) {
-			contextualpattern->storevalue((BLONG)s[0]);
-			return contextualpattern;
-		}
-
-		return new Tamgulong(s[0]);
-	}
-
+            return new Tamgulong(c);
+        }
+        
+        Tamgulvector* kvect=(Tamgulvector*)Selectalvector(contextualpattern);
+        kvect->locking();
+        for (size_t i = 0; i < s.size(); i++)
+            kvect->storevalue((BLONG)s[i]);
+        kvect->unlocking();
+        return kvect;
+    }
+    
 	return aNULL;
 }
 
@@ -2719,29 +2708,21 @@ Tamgu* Tamgua_ustring::MethodOrd(Tamgu* contextualpattern, short idthread, Tamgu
 
 Tamgu* Tamgua_ustring::MethodBytes(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 	wstring s = value.value();
-	uint32_t c;
-	if (s.size() >= 1) {
-		if (contextualpattern->isVectorContainer() || s.size() > 1) {
-			Tamgu* kvect = SelectContainer(contextualpattern, idthread);
-			if (kvect == NULL)
-				kvect = new Tamgulvector;
-
-			Locking _lock((TamguObject*)kvect);
-			for (size_t i = 0; i < s.size(); i++) {
-				kvect->storevalue((BLONG)s[i]);
-				return kvect;
-			}
-		}
-
-		if (c_utf16_to_unicode(c, s[0], false))
-			c_utf16_to_unicode(c, s[1], true);
-
-		if (contextualpattern->isNumber()) {
-			contextualpattern->storevalue((BLONG)c);
-			return contextualpattern;
-		}
-
-		return new Tamgulong(c);
+	if (s.size() > 0) {
+        if (contextualpattern->isNumber()) {
+            uint32_t c;
+            if (c_utf16_to_unicode(c, s[0], false))
+                c_utf16_to_unicode(c, s[1], true);
+            
+            return new Tamgulong((BLONG)c);
+        }
+        
+        Tamgulvector* kvect=(Tamgulvector*)Selectalvector(contextualpattern);
+        kvect->locking();
+        for (size_t i = 0; i < s.size(); i++)
+            kvect->storevalue((BLONG)s[i]);
+        kvect->unlocking();
+        return kvect;
 	}
 
 	return aNULL;
@@ -2774,24 +2755,21 @@ Tamgu* Tamgua_ustring::MethodOrd(Tamgu* contextualpattern, short idthread, Tamgu
 
 Tamgu* Tamgua_ustring::MethodBytes(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 	wstring s = value.value();
-	if (s.size() >= 1) {
-		if (contextualpattern->isVectorContainer() || s.size()>1) {
-			Tamgu* kvect = SelectContainer(contextualpattern, idthread);
-			if (kvect == NULL)
-				kvect = new Tamgulvector;
-
-			Locking _lock((TamguObject*)kvect);
-			for (size_t i = 0; i < s.size(); i++)
-				kvect->storevalue(s[i]);
-			return kvect;
-		}
-
-		if (contextualpattern->isNumber()) {
-			contextualpattern->storevalue((BLONG)s[0]);
-			return contextualpattern;
-		}
-
-		return new Tamgulong(s[0]);
+	if (s.size() > 0) {
+        if (contextualpattern->isNumber()) {
+            uint32_t c;
+            if (c_utf16_to_unicode(c, s[0], false))
+                c_utf16_to_unicode(c, s[1], true);
+            
+            return new Tamgulong((BLONG)c);
+        }
+        
+        Tamgulvector* kvect=(Tamgulvector*)Selectalvector(contextualpattern);
+        kvect->locking();
+        for (size_t i = 0; i < s.size(); i++)
+            kvect->storevalue((BLONG)s[i]);
+        kvect->unlocking();
+        return kvect;
 	}
 
 	return aNULL;

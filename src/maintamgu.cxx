@@ -2284,8 +2284,7 @@ public:
                     return true;
                 }
                 
-                evaluateescape(buff);
-                return true;
+                return evaluateescape(buff);
             default:
                 return checkaction(buff, first, last, isLispmode());
         }

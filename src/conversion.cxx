@@ -930,12 +930,12 @@ void find_intel_all(unsigned char* src, long lensrc, string& search, vector<long
     }
 }
 
-void replace_intel_all(string& noe, string& src, string& search, string& replace) {
+bool replace_intel_all(string& noe, string& src, string& search, string& replace) {
     long lensrc = src.size();
     long lensearch = search.size();
     
     if (lensearch > lensrc)
-        return;
+        return false;
 
     long lenneo = 1 + lensrc + (replace.size() << 3);
     long ineo = 0;
@@ -1176,7 +1176,7 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
             if (!from) {
                 noe = src;
                 delete[] neo;
-                return;
+                return true;
             }
             
             neo = concatstrings(neo, STR(src)+from, ineo, lenneo, lensrc-from);
@@ -1184,6 +1184,7 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
     }
     noe = neo;
     delete[] neo;
+    return true;
 }
 
 
@@ -1884,12 +1885,12 @@ void find_intel_all_characters(wchar_t* src, wchar_t* search, long lensrc, long 
     }
 }
 
-void replace_intel_all(wstring& noe, wstring& src, wstring& search, wstring& replace) {
+bool replace_intel_all(wstring& noe, wstring& src, wstring& search, wstring& replace) {
     long lensrc = src.size();
     long lensearch = search.size();
     
     if (lensearch > lensrc)
-        return;
+        return false;
 
         //First we try to find the section in which the first character might occur
     __m256i current_bytes = _mm256_setzero_si256();
@@ -1992,7 +1993,7 @@ void replace_intel_all(wstring& noe, wstring& src, wstring& search, wstring& rep
             if (!from) {
                 noe = src;
                 delete[] neo;
-                return;
+                return true;
             }
             
             neo = concatstrings(neo, WSTR(src)+from, ineo, lenneo, lensrc-from);
@@ -2000,6 +2001,7 @@ void replace_intel_all(wstring& noe, wstring& src, wstring& search, wstring& rep
     }
     noe = neo;
     delete[] neo;
+    return true;
 }
 
 long count_strings_intel(wchar_t* src, wchar_t* search, long lensrc, long lensearch) {
@@ -2720,12 +2722,12 @@ void find_intel_all(uchar* src, long lensrc,  string& search, vector<long>& pos)
     }
 }
 
-void replace_intel_all(string& noe, string& src, string& search, string& replace) {
+bool replace_intel_all(string& noe, string& src, string& search, string& replace) {
     long lensrc = src.size();
     long lensearch = search.size();
     
     if (lensearch > lensrc)
-        return;
+        return false;
 
         //First we try to find the section in which the first character might occur
     __m128i current_bytes = _mm_setzero_si128();
@@ -2897,7 +2899,7 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
             if (!from) {
                 noe = src;
                 delete[] neo;
-                return;
+                return true;
             }
             
             neo = concatstrings(neo, STR(src)+from, ineo, lenneo, lensrc-from);
@@ -2905,6 +2907,7 @@ void replace_intel_all(string& noe, string& src, string& search, string& replace
     }
     noe = neo;
     delete[] neo;
+    return true;
 }
 
 
@@ -3385,12 +3388,12 @@ void find_intel_all_characters(wchar_t* src, wchar_t* search, long lensrc, long 
     }
 }
 
-void replace_intel_all(wstring& noe, wstring& src, wstring& search, wstring& replace) {
+bool replace_intel_all(wstring& noe, wstring& src, wstring& search, wstring& replace) {
     long lensrc = src.size();
     long lensearch = search.size();
     
     if (lensearch > lensrc)
-        return;
+        return false;
 
         //First we try to find the section in which the first character might occur
     __m128i current_bytes = _mm_setzero_si128();
@@ -3493,7 +3496,7 @@ void replace_intel_all(wstring& noe, wstring& src, wstring& search, wstring& rep
             if (!from) {
                 noe = src;
                 delete[] neo;
-                return;
+                return true;
             }
             
             neo = concatstrings(neo, WSTR(src)+from, ineo, lenneo, lensrc-from);
@@ -3501,6 +3504,7 @@ void replace_intel_all(wstring& noe, wstring& src, wstring& search, wstring& rep
     }
     noe = neo;
     delete[] neo;
+    return true;
 }
 
 
@@ -6880,7 +6884,7 @@ double conversionfloathexa(const char* s) {
             v = (v << 3) + (v << 1) + (*s++ & 15);
         }
         if (!*s)
-            return v;
+            return v*sign;
     }
     else
         return 0;
@@ -6899,7 +6903,7 @@ double conversionfloathexa(const char* s) {
             res += (double)v / power10(mantissa);
         }
         else
-            return res;
+            return res*sign;
     }
         
     if ((*s &0xDF) == 'E') {
@@ -7058,7 +7062,7 @@ double conversionfloathexa(const char* s, short& l) {
             l++;
         }
         if (!*s)
-            return v;
+            return v*sign;
     }
     else
         return 0;
@@ -7080,7 +7084,7 @@ double conversionfloathexa(const char* s, short& l) {
             res += (double)v / power10(mantissa);
         }
         else
-            return res;
+            return res*sign;
     }
         
     if ((*s &0xDF) == 'E') {
@@ -10946,7 +10950,8 @@ Exporting string s_replacestring(string& s, string& reg, string& rep) {
     string neo;
 
 #ifdef INTELINTRINSICS
-    replace_intel_all(neo, s, reg, rep);
+    if (!replace_intel_all(neo, s, reg, rep))
+        return s;
 #else
     long gsz = reg.size();
     if (!gsz)
@@ -10972,7 +10977,8 @@ Exporting string s_replacestrings(string& s, string reg, string rep) {
     string neo;
     
 #ifdef INTELINTRINSICS
-    replace_intel_all(neo, s, reg, rep);
+    if (!replace_intel_all(neo, s, reg, rep))
+        return s;
 #else
     long gsz = reg.size();
     if (!gsz)
@@ -10998,7 +11004,8 @@ Exporting wstring s_replacestring(wstring& s, wstring reg, wstring rep) {
     wstring neo;
     
 #ifdef INTELINTRINSICS
-    replace_intel_all(neo, s, reg, rep);
+    if (!replace_intel_all(neo, s, reg, rep))
+        return s;
 #else
     long gsz = reg.size();
     if (!gsz)
@@ -12105,6 +12112,8 @@ Exporting long s_findbyte(uchar* s, long sz, string& substr, long i) {
         return find_intel_byte(s, USTR(substr), sz, substr.size(), i);
 #endif
     uchar* res = (uchar*)strstr((char*)s+i, STR(substr));
+    if (res == NULL)
+        return -1;
     return (res-s);
 }
 

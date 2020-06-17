@@ -136,7 +136,34 @@ class Tamgusys : public TamguObject {
 	Tamgu* MethodFileInfo(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 	Tamgu* MethodEnv(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodPopen(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodGETCH(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodCOLORS(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodSCROLLMARGIN(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodDELETECHAR(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodUP(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodDOWN(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodRIGHT(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodLEFT(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodNEXT_LINE(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodPREVIOUS_LINE(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodCOLUMN(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodROW_COLUMN(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodHOME(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodHOR_VERT(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodCLEARSCREEN(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodCLEAR(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodERASE_LINE(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodSCROLL_UP(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodSCROLL_DOWN(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodCLS(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+
+    Tamgu* MethodFGCOLORS(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodBGCOLORS(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodRGBFGCOLORS(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodRGBBGCOLORS(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     
+    Tamgu* MethodCoordinates(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodScreenHasResized(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     //---------------------------------------------------------------------------------------------------------------------
 
     //ExecuteMethod must be implemented in order to execute our new Tamgu methods. This method is called when a TamguCallMethodMethod object
