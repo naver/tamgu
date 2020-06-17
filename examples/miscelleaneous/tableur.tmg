@@ -1,10 +1,12 @@
 //Spreadsheet in character mode
 
+lisp l;
+string msgerr;
 string colorred = _sys.colors(7,30,33, false);
 string colornrm = _sys.colors(0,0,0,false);
 
 ivector coords = _sys.screensize();
-int columnsize = 8;
+int columnsize = 10;
 ivector sz=[coords[0]-6, coords[1]/columnsize];
 int codeline = sz[0]+6;
 
@@ -176,14 +178,31 @@ function evaluation() {
         displayall();
         return;
     }
-    lisp l;
+    msgerr="";
+    string msg;
     float val;
     int o;
     bool stop=false;
+    for (ky in formulas) {
+        i = ky[:"_"][:-1];
+        j = ky["_":][1:];
+        if ("defun " in formulas[ky]) {
+            try {
+                l.eval(formulas[ky]);
+                v[i][j] = formulas[ky][" ":"("][:-1].trim()+"!";
+            }
+            catch(msg) {
+                msgerr=msg;     
+            }
+        }
+    }
+
     //Not very efficient, we apply until nothing is modified again
     for (o in <formulas.size()>) {
         stop=true;
         for (ky in formulas) {
+            if ("defun " in formulas[ky])
+                continue;
             i = ky[:"_"][:-1];
             j = ky["_":][1:];
             try {
@@ -194,7 +213,8 @@ function evaluation() {
                 v[i][j] = string(val);
                 v[i][j]+="!";
             }
-            catch {
+            catch(msg) {
+                msgerr=msg;
                 v[i][j] = "#ERR";
             }
         }
@@ -202,12 +222,20 @@ function evaluation() {
             break;
     }
     displayall();
+    displayerr(msgerr);
 }
 
 //Display methods
+function dispelement(int i,int j) {
+    string u = v[i][j];
+    if (u.size() >= columnsize)
+        u=u[:columnsize-1]+"_";
+    print(u);
+}
 
 function displayall() {
     int i,j;
+    string u;
     _sys.cls();
     _sys.colors(0,0,0);
     for (i in <sz[0]>) {
@@ -215,11 +243,20 @@ function displayall() {
             _sys.row_column(i+1,columnsize*j);
             if (!i or !j)
                 _sys.colors(7,96,40);
-            print(v[i][j]);
+            u = v[i][j];
+            if (u.size() >= columnsize)
+                u=u[:columnsize]+"_";
+            print(u);
             if (!i or !j)
                 _sys.colors(0,0,0);
         }
     }
+}
+
+function displayerr(string s) {
+    _sys.row_column(codeline-4,0);
+    _sys.eraseline(0);
+    print(s);
 }
 
 function displaymessage(string s) {
@@ -244,8 +281,9 @@ function showelement(int i, int j) {
             v[i][j]="0";
         if (v[i][j] == '0')
             dsp = i+","+j+": ";
-        else
+        else {
             dsp = i+","+j+": "+v[i][j];
+        }
     }
 
     //we use spaces to clean the cell first
@@ -257,7 +295,7 @@ function showelement(int i, int j) {
     _sys.row_column(i+1,columnsize*j);
     //We use a specific color to show that it has been selected
     _sys.colors(7,31,49);
-    print(v[i][j]);
+    dispelement(i,j);
     //Colors are reset, we then display on the last line the current value
     _sys.colors(0,0,0);
     _sys.row_column(codeline-1,0);
@@ -299,7 +337,7 @@ while (true) {
     //Using arrows
     if (s[0].ord() == 27) {
         _sys.row_column(i+1,columnsize*j);
-        print(v[i][j]);
+        dispelement(i,j);
         if (s == _sys_keydel) {
             v[i][j] = "0";
             if (formulas.test(ky))
@@ -349,8 +387,10 @@ while (true) {
                     cj =-1;
                     _sys.row_column(i+1,columnsize*j);
                     //We display the "0" instead
-                    print(v[i][j]);
+                    dispelement(i,j);
                 }
+                else
+                    selection=true;
             }
             else {
                 if (v[i][j].size() > 1)
@@ -414,6 +454,7 @@ while (true) {
                     }
                     else { //a square
                         n = lasti;
+                        frm = "(&&& ";
                         //we will add several lines together
                         while (n <= i) {
                             if (!beg)
@@ -423,6 +464,7 @@ while (true) {
                             frm += "mat["+n+":]["+lastj+":"+(j+1)+"]";
                             n++;
                         }
+                        frm += ")";
                         formulas[ky][-"mat":] = frm;
                     }
                 }
@@ -440,7 +482,7 @@ while (true) {
                 _sys.row_column(i+1,columnsize*j);
                 //You can add new values with the CR key
                 //We showelement it to remove the selection color
-                print(v[i][j]);
+                dispelement(i,j);
                 //We move to the next cell below
                 i++;
                 i = max(i,1);
@@ -548,7 +590,5 @@ while (true) {
     s=_sys.getchar();
     continue;
 }
-
-
 
 
