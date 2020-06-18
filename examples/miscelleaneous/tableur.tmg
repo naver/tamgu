@@ -565,11 +565,11 @@ while (s[0].ord() != 17) {
                 formulas[ky] = formulas[ky][:e]+colorred+formulas[ky][e]+colornrm+formulas[ky][e+1:];
             }
             selection = true;
-            displaymessage('expression');
+            displaymessage("Use the arrows to select a cell and hit 'enter' to record it. Type '..' and select again to define a range.");
         }
         else {
             selection=false;
-            displaymessage('closed');
+            displaymessage('Ready to compute!!!');
         }
         showelement(i,j);
         s=_sys.getchar();
@@ -641,6 +641,8 @@ while (s[0].ord() != 17) {
 
 s="";
 s=s[:-1];
+
+
 
 
 
