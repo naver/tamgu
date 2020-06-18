@@ -28,6 +28,8 @@
 #include "tamguhvector.h"
 #include "tamguframeinstance.h"
 #include "tamgutaskell.h"
+#include "tamgufraction.h"
+#include "tamgubyte.h"
 
 #ifdef INTELINTRINSICS
 #ifdef WIN32
@@ -975,7 +977,7 @@ bool TamguVariableDeclaration::Setvalue(Tamgu* domain, Tamgu* value, short idthr
 
 
 	//we accept "null" as a default value...
-	if (value->Type() == typevariable || value == aNULL || globalTamgu->Testcompatibility(typevariable, value->Type(), strict)) {
+	if (value->Type() == typevariable || value->isNULL() || globalTamgu->Testcompatibility(typevariable, value->Type(), strict)) {
         
         if (value->isProtected()) {
             value->Setreference();
@@ -1003,8 +1005,55 @@ bool TamguAtomicVariableDeclaration::Setvalue(Tamgu* domain, Tamgu* value, short
     short ty = value->Type();
     if (ty != typevariable && value != aNULL && !globalTamgu->Testcompatibility(typevariable, ty, strict))
         return false;
+    if (value->isNULL()) {
+        switch (typevariable) {
+            case a_boolean:
+                value = new Tamguboolean(true);
+                value->Setreference();
+                break;
+            case a_byte:
+                value = new Tamgubyte(0);
+                value->Setreference();
+                break;
+            case a_short:
+                value = new Tamgushort(0);
+                value->Setreference();
+                break;
+            case a_int:
+                value = globalTamgu->Provideint();
+                value->Setreference();
+                break;
+            case a_long:
+                value = new Tamgulong(0);
+                value->Setreference();
+                break;
+            case a_decimal:
+                value = new Tamgudecimal(0);
+                value->Setreference();
+                break;
+            case a_fraction:
+                value = new Tamgufraction(0,1);
+                value->Setreference();
+                break;
+            case a_float:
+                value = globalTamgu->Providefloat(0);
+                value->Setreference();
+                break;
+            case a_string:
+                value = globalTamgu->Providestring();
+                value->Setreference();
+                break;
+            case a_ustring:
+                value = globalTamgu->Provideustring();
+                value->Setreference();
+                break;
+            default:
+                value = aNULL;
+        }
+    }
+    else
+        value = value->Atomref();
     
-    value = value->Atomref();
     domain->Declare(name, value);
     globalTamgu->Storevariable(idthread, name, value);
     return true;

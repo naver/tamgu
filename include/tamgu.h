@@ -3071,6 +3071,12 @@ public:
             right = right->Eval(aNULL, aNULL, idthread);
     }
 
+    bool Checklegit() {
+        if (left->isFunctionParameter() || left->isFunction() || (right != NULL && (right->isFunctionParameter() || right->isFunction())))
+            return false;
+        return true;
+    }
+    
     void Checkconst() {
         if (left->isConst() && (right == NULL || right->isConst()))
             investigate |= is_const;

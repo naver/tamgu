@@ -1127,7 +1127,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
         case a_defun:
         {
             if (contextualpattern == aEMPTYLISP)
-                contextualpattern = aNULL;
+                contextualpattern = globalTamgu->Getmainframe(0);
 
             v0 = values[1];
 
@@ -1193,7 +1193,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
         }
         case a_label:
             if (contextualpattern == aEMPTYLISP)
-                contextualpattern = aNULL;
+                contextualpattern = globalTamgu->Getmainframe(0);
             
             //first is the name of the future variable
             v0 = values[1];

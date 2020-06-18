@@ -362,9 +362,16 @@ while (s[0].ord() != 17) {
         _sys.row_column(i+1,columnsize*j);
         dispelement(i,j);
         if (s == _sys_keydel) {
-            v[i][j] = "0";
-            if (formulas.test(ky))
+            if (not selection) {
+                v[i][j] = "0";
+                if (formulas.test(ky))
+                    formulas.pop(ky);
+            }
+            elif (i == ci and j == cj) {
+                v[i][j] = "0";
                 formulas.pop(ky);
+                selection = false;
+            }
             showelement(i,j);
             s = _sys.getchar();
             continue;
@@ -390,32 +397,35 @@ while (s[0].ord() != 17) {
     //character deletion with the delete key
     if (s.ord() == 127) {
         if (inputkey!="") {
-            if (inputs[inputkey] != "")
-                inputs[inputkey]=inputs[inputkey][:-1];
+            inputs[inputkey]=inputs[inputkey][:-1];
         }
         else {
             //We are either modifying a formula or a cell
             if (formulas.test(ky)) {
-                formulas[ky] = formulas[ky][:-1];
-                if (formulas[ky] == "") {
-                    //The formula has been deleted
-                    formulas.pop(ky);
-                    v[i][j] = "0";
-                    selection=false;
-                    ci =-1;
-                    cj =-1;
-                    _sys.row_column(i+1,columnsize*j);
-                    //We display the "0" instead
-                    dispelement(i,j);
+                if (not selection or (ci == i and cj ==j)) {
+                    formulas[ky] = formulas[ky][:-1];
+                    if (formulas[ky] == "") {
+                        //The formula has been deleted
+                        formulas.pop(ky);
+                        v[i][j] = "0";
+                        selection=false;
+                        ci =-1;
+                        cj =-1;
+                        _sys.row_column(i+1,columnsize*j);
+                        //We display the "0" instead
+                        dispelement(i,j);
+                    }
+                    else
+                        selection=true;
                 }
-                else
-                    selection=true;
             }
             else {
-                if (v[i][j].size() > 1)
-                    v[i][j] = v[i][j][:-1];
-                else
-                    v[i][j] = "0";
+                if (!selection) {
+                    if (v[i][j].size() > 1)
+                        v[i][j] = v[i][j][:-1];
+                    else
+                        v[i][j] = "0";
+                }
             }
         }
         showelement(i,j);
@@ -477,6 +487,7 @@ while (s[0].ord() != 17) {
                     }
                     else { //a square
                         n = lasti;
+                        //&&& is the merge operator 
                         frm = "(&&& ";
                         //we will add several lines together
                         while (n <= i) {
@@ -541,7 +552,7 @@ while (s[0].ord() != 17) {
         continue;
     }
 
-    if (inputkey == "" and formulas.test(ky)) {
+    if (inputkey == "" and formulas.test(ky) and ci == i and cj == j) {
         formulas[ky]+=s;
         formulas[ky] = formulas[ky].replace(colorred,"");
         formulas[ky] = formulas[ky].replace(colornrm,"");
@@ -608,10 +619,12 @@ while (s[0].ord() != 17) {
     if (inputkey != "")
         inputs[inputkey] += s;
     else {
-        if (v[i][j] == '0')
-            v[i][j]=s;
-        else
-            v[i][j]+=s;
+        if (not selection) {
+            if (v[i][j] == '0')
+                v[i][j]=s;
+            else
+                v[i][j]+=s;
+        }
     }
     showelement(i,j);
     s=_sys.getchar();
@@ -619,5 +632,13 @@ while (s[0].ord() != 17) {
 }
 
 
+
+
+
+
+
+
+s="";
+s=s[:-1];
 
 

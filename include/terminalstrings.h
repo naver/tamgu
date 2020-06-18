@@ -40,6 +40,7 @@ const char sys_home[] = { 27, 91, 'H', 0 };
 const char sys_hor_vert[] = { 27, 91, '0', '0', '0', ';', '0', '0','0', 'f', 0 };
 const char sys_partial_clear[] = { 27, '[', '0', 'J', 0 };
 const char sys_clear[] = {27, 91, '2', 'J', 0};
+const char sys_clear_scrolling[] = {27, 91, '3', 'J', 0};
 const char sys_partial_line_clear[] = { 27, '[','0', 'K', 0 };
 const char sys_scroll_up[] = { 27, '[', '0','0','0', 'S', 0 };
 const char sys_scroll_down[] = { 27, '[', '0','0','0', 'T', 0 };

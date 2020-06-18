@@ -106,6 +106,7 @@ const char a_right[] = {27, 102, 0};
 const char a_left[] = {27, 98, 0};
 
 const char m_clear[] = {27, 91, '2', 'J', 0};
+const char m_clear_scrolling[] = {27, 91, '3', 'J', 0};
 const char m_scrollup[] = {27, 91, '1', 'S', 0};
 const char m_scrollup3[] = { 27, 91, '3', 'S', 0 };
 const char m_scrolldown[] = { 27, 91, '1', 'T', 0 };

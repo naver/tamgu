@@ -269,7 +269,7 @@ static void _clearscreen() {
 #ifdef WIN32
     system("cls");
 #else
-    cout << sys_clear << sys_home;
+    cout << sys_clear << sys_clear_scrolling << sys_home;
 #endif
 }
 
@@ -328,7 +328,7 @@ bool Tamgusys::InitialisationModule(TamguGlobal* global, string version) {
     Tamgusys::AddMethod(global, "cls", &Tamgusys::MethodCLS, P_NONE, "cls(): clear screen and return to home position");
     Tamgusys::AddMethod(global, "hor_vert", &Tamgusys::MethodHOR_VERT, P_TWO, "hor_vert(int hor, int vert): move to hor/vert");
     Tamgusys::AddMethod(global, "clearscreen", &Tamgusys::MethodCLEARSCREEN, P_ONE, "clearscreen(int nb): nb=0, 1, 2, 3 for partial or full screen clearing");
-    Tamgusys::AddMethod(global, "clear", &Tamgusys::MethodCLEAR, P_ONE, "clear(int nb): clear screen ");
+    Tamgusys::AddMethod(global, "clear", &Tamgusys::MethodCLEAR, P_NONE, "clear(): clear screen ");
     Tamgusys::AddMethod(global, "eraseline", &Tamgusys::MethodERASE_LINE, P_ONE, "eraseline(int nb): nb =0, 1 or 2 for line erasement");
     Tamgusys::AddMethod(global, "scroll_up", &Tamgusys::MethodSCROLL_UP, P_ONE, "scroll_up(int nb): scrolling up nb characters");
     Tamgusys::AddMethod(global, "scroll_down", &Tamgusys::MethodSCROLL_DOWN, P_ONE, "scroll_down(int nb): scrolling down nb characters");
@@ -921,16 +921,7 @@ Tamgu* Tamgusys::MethodCLEARSCREEN(Tamgu* contextualpattern, short idthread, Tam
 }
 
 Tamgu* Tamgusys::MethodCLEAR(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-    char buff[6] ;
-    long v;
-    memcpy(buff, sys_clear,5);
-    v = callfunc->Evaluate(0, aNULL, idthread)->Integer();
-    v = maxlocal(v,0);
-    v = minlocal(v,999);
-    buff[2] = n999[v][0];
-    buff[3] = n999[v][1];
-    buff[4] = n999[v][2];
-    cout << buff;
+    cout << sys_clear << sys_clear_scrolling << sys_home;
     return aTRUE;
 }
 

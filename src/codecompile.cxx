@@ -3300,6 +3300,13 @@ Tamgu* TamguCode::C_indexes(x_node* xn, Tamgu* parent) {
 	if (xn->nodes.size() == 2)
 		Traverse(xn->nodes[1], idx);
 
+    if (!idx->Checklegit()) {
+        stringstream message;
+        message << "Wrong Index Value";
+        throw new TamguRaiseError(message, filename, current_start, current_end);
+        return aNULL;
+    }
+    
     idx->Checkconst();
 	return idx;
 }
@@ -3351,6 +3358,13 @@ Tamgu* TamguCode::C_interval(x_node* xn, Tamgu* parent) {
 		Traverse(xn->nodes[xsz], idx);
 		idx->interval = true;
 	}
+
+    if (!idx->Checklegit()) {
+        stringstream message;
+        message << "Wrong Index Value";
+        throw new TamguRaiseError(message, filename, current_start, current_end);
+        return aNULL;
+    }
 
     idx->Checkconst();
 	return idx;

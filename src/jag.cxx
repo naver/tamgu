@@ -82,7 +82,7 @@ static const char* _keywords[] = { "GPSdistance","True", "False","None","def","c
 
 void jag_editor::displaythehelp(long noclear) {
     if (!noclear) {
-        cout << m_clear << m_home;
+        cout << m_clear << m_clear_scrolling << m_home;
         cerr << m_redital << "jag editor help" << m_current << endl << endl;
     }
     
@@ -1062,7 +1062,7 @@ void jag_editor::clearscreen() {
 #ifdef WIN32
 	system("cls");
 #else
-    cout << m_clear << m_home;
+    cout << m_clear << m_clear_scrolling << m_home;
 #endif
 }
 
