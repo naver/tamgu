@@ -12,10 +12,16 @@ int codeline = sz[0]+6;
 
 vector v;
 mapss formulas;
-string filename = _args[0];
-bool readingfilename = false;
-bool resizing = false;
-string thesize = sz[0]+":"+sz[1];
+
+mapss inputs;
+string inputkey;
+inputs["Size"] = sz[0]+":"+sz[1];
+inputs["File"] = _args[0];
+
+if (_args[0] != "")
+    inputs["Data(raw csv)"] = _args[0]+".csv";
+else
+    inputs["Data(raw csv)"] = "";
 
 fmatrix mat(sz[0],sz[1]);
 
@@ -95,7 +101,7 @@ function readtable(string f) {
                 sz[0] = cut[0];
                 sz[1] = cut[1];
                 columnsize = cut[2];
-                thesize = sz[0]+":"+sz[1];
+                inputs["Size"] = sz[0]+":"+sz[1];
                 codeline = sz[0]+6;
                 mat.dimension(sz[0],sz[1]);
                 beg=false;
@@ -156,6 +162,31 @@ function writetable(string f) {
     v[0][2] = "2";
 }
 
+function writecsv(string f) {
+    if (f=="") {
+        displaymessage("Abort");
+        return;
+    }
+    if ('.csv' not in f)
+        f+=".csv";
+    displaymessage("Writting (csv): "+f);
+    file sv(f,"w");
+    int i,j;
+    string k;
+    for (i in <1,sz[0]>) {
+        for (j in <1,sz[1]>) {
+            if (j)
+                sv.write("\t");
+            if (v[i][j][-1] == '!')
+                sv.write(v[i][j][:-1].trim());
+            else
+                sv.write(v[i][j].trim());
+        }
+        sv.write("\n");
+    }
+}
+
+
 //------------------- The Code ---------
 //Formulas evaluation
 
@@ -191,9 +222,7 @@ function evaluation() {
                 l.eval(formulas[ky]);
                 v[i][j] = formulas[ky][" ":"("][:-1].trim()+"!";
             }
-            catch(msg) {
-                msgerr=msg;     
-            }
+            catch;
         }
     }
 
@@ -269,10 +298,8 @@ function showelement(int i, int j) {
     string dsp;
     string ky = i+"_"+j;
     //We check if we are in a formula mode
-    if (resizing)
-        dsp = "size: "+thesize;
-    elif (readingfilename)
-        dsp = "File: "+filename;
+    if (inputkey != "")
+        dsp = inputkey+": "+inputs[inputkey];
     elif (formulas.test(ky)) {
         dsp = i+","+j+": "+formulas[ky];
     }
@@ -310,14 +337,14 @@ function showelement(int i, int j) {
 int i = 1;
 int j = 1;
 
-if (filename=="") {
+if (inputs["File"]=="") {
     initialisation();
     displayall();
 }
 else
-    readtable(filename);
+    readtable(inputs["File"]);
 
-displaymessage("Type '(' to start a formula. Ctrl-s/w to save your table. Ctrl-r to resize");
+displaymessage("'(': Formula. Ctrl-s: Save. Ctrl-w: Save As. Ctrl-d: Save Raw Data. Ctrl-r Resize"); 
 
 showelement(i,j);
 
@@ -328,10 +355,10 @@ string forme, ky;
 int ci=-1,cj=-1;
 int lasti, lastj;
 
-while (true) {
+while (s[0].ord() != 17) {
 
     //We use this position to display displaymessages
-    displaymessage("Type '(' to start a formula. Ctrl-s/w to save your table. Ctrl-r to resize");
+    displaymessage("'(': Formula. Ctrl-s: Save. Ctrl-w: Save As. Ctrl-d: Save Raw Data. Ctrl-r Resize");
     ky = i+"_"+j;
 
     //Using arrows
@@ -366,13 +393,9 @@ while (true) {
 
     //character deletion with the delete key
     if (s.ord() == 127) {
-        if (resizing) {
-            if (thesize != "")
-                thesize=thesize[:-1];
-        }
-        elif (readingfilename) {
-            if (filename != "")
-                filename=filename[:-1];
+        if (inputkey!="") {
+            if (inputs[inputkey] != "")
+                inputs[inputkey]=inputs[inputkey][:-1];
         }
         else {
             //We are either modifying a formula or a cell
@@ -412,9 +435,9 @@ while (true) {
 
     //When hitting the Carriage Return key
     if (s == "\n") {
-        if (resizing) {
-            resizing=false;
-            ivector iv = thesize.split(":");
+        if (inputkey=="Size") {
+            ivector iv = inputs["Size"].split(":");
+            inputkey="";
             if (iv[0] > sz[0])
                 redx(iv[0],iv[1]);
             if (iv[1] > sz[1])
@@ -423,9 +446,13 @@ while (true) {
             codeline = sz[0]+6;
             displayall();
         }
-        elif (readingfilename) {
-            writetable(filename);
-            readingfilename=false;
+        elif (inputkey == "Data(raw csv)") {
+            writecsv(inputs["Data(raw csv)"]);
+            inputkey="";
+        }
+        elif (inputkey=="File") {
+            writetable(inputs["File"]);
+            inputkey="";
         }
         else {
             //If we are in selection mode (formula) then we enable the cell selection with the arrows
@@ -495,17 +522,23 @@ while (true) {
     }
 
     if (s[0].ord() < 27) {
-        if (s[0].ord() == 19 and filename != "") //ctrl-s
-            writetable(filename);
+        if (s[0].ord() == 4) {
+            //ctrl-d            
+            inputkey="Data(raw csv)";
+            _sys.row_column(codeline-1,0);
+            print("Data(raw csv): ",inputs["Data"]);
+        }
+        elif (s[0].ord() == 19 and inputs["File"] != "") //ctrl-s
+            writetable(inputs["File"]);
         elif (s[0].ord() == 19 or s[0].ord() == 23) { //ctrl-w/s
             _sys.row_column(codeline-1,0);
-            print("File: ",filename);
-            readingfilename = true;
+            print("File: ",inputs["File"]);
+            inputkey="File";
         }
         elif (s[0].ord() == 18) { //ctrl-r
             _sys.row_column(codeline-1,0);
-            print("size: ",thesize);
-            resizing = true;
+            print("Size: ",inputs["Size"]);
+            inputkey="Size";
         }
         showelement(i,j);
         s=_sys.getchar();
@@ -576,10 +609,8 @@ while (true) {
         }
     }
 
-    if (resizing)
-        thesize += s;
-    elif (readingfilename)
-        filename += s;
+    if (inputkey != "")
+        inputs[inputkey] += s;
     else {
         if (v[i][j] == '0')
             v[i][j]=s;
@@ -590,5 +621,4 @@ while (true) {
     s=_sys.getchar();
     continue;
 }
-
 
