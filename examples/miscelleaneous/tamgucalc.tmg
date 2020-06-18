@@ -2,7 +2,7 @@
  Project    : Spreadsheet
  filename   : tamgucalc.tmg
  Date       : 2020/06/15
- Purpose    : spreadsheet for terminals with Lisp expressions 
+ Purpose    : spreadsheet for terminals with Lisp expressions
  Programmer : Claude ROUX (claude.roux@naverlabs.com)
 @/
 
@@ -638,14 +638,5 @@ while (s[0].ord() != 17) {
     continue;
 }
 
-
-
-
-
-
-
-
-s="";
-s=s[:-1];
 
 
