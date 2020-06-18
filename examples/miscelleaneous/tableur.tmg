@@ -257,14 +257,13 @@ function evaluation() {
 //Display methods
 function dispelement(int i,int j) {
     string u = v[i][j];
-    if (u.size() >= columnsize)
-        u=u[:columnsize-1]+"_";
+    if (u.size() >= columnsize-1)
+        u=u[:columnsize-2]+"_";
     print(u);
 }
 
 function displayall() {
     int i,j;
-    string u;
     _sys.cls();
     _sys.colors(0,0,0);
     for (i in <sz[0]>) {
@@ -272,10 +271,7 @@ function displayall() {
             _sys.row_column(i+1,columnsize*j);
             if (!i or !j)
                 _sys.colors(7,96,40);
-            u = v[i][j];
-            if (u.size() >= columnsize)
-                u=u[:columnsize]+"_";
-            print(u);
+            dispelement(i,j);
             if (!i or !j)
                 _sys.colors(0,0,0);
         }
@@ -344,7 +340,7 @@ if (inputs["File"]=="") {
 else
     readtable(inputs["File"]);
 
-displaymessage("'(': Formula. Ctrl-s: Save. Ctrl-w: Save As. Ctrl-d: Save Raw Data. Ctrl-r Resize"); 
+displaymessage("'(': Formula. Ctrl-s: Save. Ctrl-w: Save As. Ctrl-d: Save Raw Data. Ctrl-r Resize");
 
 showelement(i,j);
 
@@ -523,7 +519,7 @@ while (s[0].ord() != 17) {
 
     if (s[0].ord() < 27) {
         if (s[0].ord() == 4) {
-            //ctrl-d            
+            //ctrl-d
             inputkey="Data(raw csv)";
             _sys.row_column(codeline-1,0);
             print("Data(raw csv): ",inputs["Data"]);
@@ -545,7 +541,7 @@ while (s[0].ord() != 17) {
         continue;
     }
 
-    if (formulas.test(ky)) {
+    if (inputkey == "" and formulas.test(ky)) {
         formulas[ky]+=s;
         formulas[ky] = formulas[ky].replace(colorred,"");
         formulas[ky] = formulas[ky].replace(colornrm,"");
@@ -621,4 +617,7 @@ while (s[0].ord() != 17) {
     s=_sys.getchar();
     continue;
 }
+
+
+
 
