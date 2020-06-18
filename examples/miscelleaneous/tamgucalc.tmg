@@ -346,7 +346,7 @@ if (inputs["File"]=="") {
 else
     readtable(inputs["File"]);
 
-displaymessage("'(': Formula. Ctrl-s: Save. Ctrl-w: Save As. Ctrl-d: Save Raw Data. Ctrl-r Resize");
+displaymessage("'(': Formula. Ctrl-s: Save. Ctrl-w: Save As. Ctrl-d: Save Raw Data. Ctrl-r Resize. Ctrl-q Quit.");
 
 showelement(i,j);
 
@@ -360,7 +360,7 @@ int lasti, lastj;
 while (s[0].ord() != 17) {
 
     //We use this position to display displaymessages
-    displaymessage("'(': Formula. Ctrl-s: Save. Ctrl-w: Save As. Ctrl-d: Save Raw Data. Ctrl-r Resize");
+    displaymessage("'(': Formula. Ctrl-s: Save. Ctrl-w: Save As. Ctrl-d: Save Raw Data. Ctrl-r Resize. Ctrl-q Quit.");
     ky = i+"_"+j;
 
     //Using arrows
@@ -637,6 +637,7 @@ while (s[0].ord() != 17) {
     s=_sys.getchar();
     continue;
 }
+
 
 
 
