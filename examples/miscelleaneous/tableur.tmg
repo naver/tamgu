@@ -402,21 +402,22 @@ while (s[0].ord() != 17) {
         else {
             //We are either modifying a formula or a cell
             if (formulas.test(ky)) {
-                if (not selection or (ci == i and cj ==j)) {
-                    formulas[ky] = formulas[ky][:-1];
-                    if (formulas[ky] == "") {
-                        //The formula has been deleted
-                        formulas.pop(ky);
-                        v[i][j] = "0";
-                        selection=false;
-                        ci =-1;
-                        cj =-1;
-                        _sys.row_column(i+1,columnsize*j);
-                        //We display the "0" instead
-                        dispelement(i,j);
-                    }
-                    else
-                        selection=true;
+                formulas[ky] = formulas[ky][:-1];
+                if (formulas[ky] == "") {
+                    //The formula has been deleted
+                    formulas.pop(ky);
+                    v[i][j] = "0";
+                    selection=false;
+                    ci =-1;
+                    cj =-1;
+                    _sys.row_column(i+1,columnsize*j);
+                    //We display the "0" instead
+                    dispelement(i,j);
+                }
+                else {
+                    selection=true;
+                    ci = i;
+                    cj = j;
                 }
             }
             else {
@@ -487,7 +488,7 @@ while (s[0].ord() != 17) {
                     }
                     else { //a square
                         n = lasti;
-                        //&&& is the merge operator 
+                        //&&& is the merge operator
                         frm = "(&&& ";
                         //we will add several lines together
                         while (n <= i) {
@@ -576,7 +577,7 @@ while (s[0].ord() != 17) {
     }
 
     //We detect a '(', we enter the formula mode
-    if (s=='(') {
+    if (s=='(' and !selection) {
         ci = i;
         cj = j;
         lasti=-1;
@@ -640,5 +641,6 @@ while (s[0].ord() != 17) {
 
 s="";
 s=s[:-1];
+
 
 
