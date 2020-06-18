@@ -17,7 +17,7 @@ string colornrm = _sys.colors(0,0,0,false);
 
 //Initialisation: coords contains your terminal dimensions
 ivector coords = _sys.screensize();
-//columnsize is the size of columns. You can modify this value 
+//columnsize is the size of columns. You can modify this value
 int columnsize = 10;
 //We initialise the number of lines and columns according to your terminal size and columnsize
 ivector matrixsize=[coords[0]-6, coords[1]/columnsize];
@@ -25,9 +25,9 @@ ivector matrixsize=[coords[0]-6, coords[1]/columnsize];
 //6 lines down after the last line of the matrix
 int codeline = matrixsize[0]+6;
 
-//v_matrix is the visualisation matrix 
+//v_matrix is the visualisation matrix
 vector v_matrix;
-//formulas records the different Lisp expressions 
+//formulas records the different Lisp expressions
 mapss formulas;
 
 //inputs is used to handle modifications on: filenames and size.
@@ -107,7 +107,7 @@ function redimension_y(int x, int y) {
     }
 }
 
-
+//Loading a file
 function readtable(string f) {
     v_matrix.clear();
     try {
@@ -156,6 +156,7 @@ function readtable(string f) {
     }
 }
 
+//Writing the visual matrix content to a file 
 function writetable(string f) {
     if (f=="") {
         displaymessage("Abort");
@@ -185,6 +186,7 @@ function writetable(string f) {
     v_matrix[0][2] = "2";
 }
 
+//Writing only data to a CSV file. The result of formulas is stored
 function writecsv(string f) {
     if (f=="") {
         displaymessage("Abort");
@@ -237,6 +239,8 @@ function evaluation() {
     float val;
     int o;
     bool stop=false;
+    
+    //We record function beforehand
     for (ky in formulas) {
         i = ky[:"_"][:-1];
         j = ky["_":][1:];
@@ -253,6 +257,7 @@ function evaluation() {
     for (o in <formulas.size()>) {
         stop=true;
         for (ky in formulas) {
+            //functions are skipped 
             if ("defun " in formulas[ky])
                 continue;
             i = ky[:"_"][:-1];
@@ -278,6 +283,7 @@ function evaluation() {
 }
 
 //Display methods
+//Display one element, we check its size
 function dispelement(int i,int j) {
     string u = v_matrix[i][j];
     if (u.size() >= columnsize-1)
@@ -285,6 +291,7 @@ function dispelement(int i,int j) {
     print(u);
 }
 
+//Displaying all elements on screen
 function displayall() {
     int i,j;
     _sys.cls();
@@ -301,18 +308,21 @@ function displayall() {
     }
 }
 
+//Error message is displayed on line 4
 function displayerr(string s) {
     _sys.row_column(codeline-4,0);
     _sys.eraseline(0);
     print(s);
 }
 
+//Messages are displayed on line 3
 function displaymessage(string s) {
     _sys.row_column(codeline-3,0);
     _sys.eraseline(0);
     print(s);
 }
 
+//Highlight the current element 
 function showelement(int i, int j) {
     string dsp;
     string ky = i+"_"+j;
@@ -351,11 +361,12 @@ function showelement(int i, int j) {
 
 //----------------------------------------------------------------------------------------------------
 //MAIN LOOP
-//If a filename is provided, we try to read the file, otherwise we initialise our structure
 
+//the line 0 and the column 0 are used to display coordinates... 
 int i = 1;
 int j = 1;
 
+//If a filename is provided, we try to read the file, otherwise we initialise our structure
 if (inputs["File"]=="") {
     initialisation();
     displayall();
@@ -654,6 +665,7 @@ while (s[0].ord() != 17) {
     s=_sys.getchar();
     continue;
 }
+
 
 
 
