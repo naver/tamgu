@@ -1220,7 +1220,7 @@ Tamgu* ProcFullSum(Tamgu* contextualpattern, short idthread, TamguCall* callfunc
     double val = 0;
     for (long i = 0; i < callfunc->Size(); i++) {
         v = callfunc->Evaluate(i, contextualpattern, idthread);
-        if (v->isVectorContainer() || v->Type() != a_list) {
+        if (v->isVectorContainer() || v->Type() == a_list) {
             if (i)
                 val += v->Sum();
             else
@@ -1241,7 +1241,7 @@ Tamgu* ProcFullProduct(Tamgu* contextualpattern, short idthread, TamguCall* call
     double val = 0;
     for (long i = 0; i < callfunc->Size(); i++) {
         v = callfunc->Evaluate(0, contextualpattern, idthread);
-        if (v->isVectorContainer() || v->Type() != a_list) {
+        if (v->isVectorContainer() || v->Type() == a_list) {
             if (i)
                 val *= v->Product();
             else

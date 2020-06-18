@@ -6,22 +6,35 @@
  Programmer : Claude ROUX (claude.roux@naverlabs.com)
 @/
 
-lisp l;
+//The Lisp interpreter
+lisp lisp_interpreter;
+
 string msgerr;
+
+//Color definition to highlight parenthesis balancing
 string colorred = _sys.colors(7,30,33, false);
 string colornrm = _sys.colors(0,0,0,false);
 
+//Initialisation: coords contains your terminal dimensions
 ivector coords = _sys.screensize();
+//columnsize is the size of columns. You can modify this value 
 int columnsize = 10;
-ivector sz=[coords[0]-6, coords[1]/columnsize];
-int codeline = sz[0]+6;
+//We initialise the number of lines and columns according to your terminal size and columnsize
+ivector matrixsize=[coords[0]-6, coords[1]/columnsize];
+//codeline is used to position messages
+//6 lines down after the last line of the matrix
+int codeline = matrixsize[0]+6;
 
-vector v;
+//v_matrix is the visualisation matrix 
+vector v_matrix;
+//formulas records the different Lisp expressions 
 mapss formulas;
 
+//inputs is used to handle modifications on: filenames and size.
+//If you want to enrich tamgucalc, you might add a new key
 mapss inputs;
 string inputkey;
-inputs["Size"] = sz[0]+":"+sz[1];
+inputs["Size"] = matrixsize[0]+":"+matrixsize[1];
 inputs["File"] = _args[0];
 
 if (_args[0] != "")
@@ -29,70 +42,74 @@ if (_args[0] != "")
 else
     inputs["Data(raw csv)"] = "";
 
-fmatrix mat(sz[0],sz[1]);
+//mat is the actual matrix in which computing is done
+fmatrix mat(matrixsize[0],matrixsize[1]);
 
+//initialisation of v_matrix
 function initialisation() {
     int i,j;
     string sc;
-    for (i in <sz[0]>) {
-        v[i] = [];
-        for (j in <sz[1]>) {
+    for (i in <matrixsize[0]>) {
+        v_matrix[i] = [];
+        for (j in <matrixsize[1]>) {
             if (!i) {
                 sc = j;
-                v[i].push(sc);
+                v_matrix[i].push(sc);
             }
             elif (!j) {
                 sc = i;
-                v[i].push(sc);
+                v_matrix[i].push(sc);
             }
             else
-                v[i].push("0");
+                v_matrix[i].push("0");
         }
     }
 }
 
-function redx(int x, int y) {
+//redimension of the x axis
+function redimension_x(int x, int y) {
     int i,j;
     string sc;
-    for (i in <sz[0],x,1>) {
-        v[i] = [];
+    for (i in <matrixsize[0],x,1>) {
+        v_matrix[i] = [];
         for (j in <y>) {
             if (!i) {
                 sc = j;
-                v[i].push(sc);
+                v_matrix[i].push(sc);
             }
             elif (!j) {
                 sc = i;
-                v[i].push(sc);
+                v_matrix[i].push(sc);
             }
             else
-                v[i].push("0");
+                v_matrix[i].push("0");
         }
     }
 }
 
-function redy(int x, int y) {
+//redimension of the y axis
+function redimension_y(int x, int y) {
     int i,j;
     string sc;
-    for (j in <sz[1],y,1>) {
+    for (j in <matrixsize[1],y,1>) {
         for (i in <x>) {
             if (!i) {
                 sc = j;
-                v[i].push(sc);
+                v_matrix[i].push(sc);
             }
             elif (!j) {
                 sc = i;
-                v[i].push(sc);
+                v_matrix[i].push(sc);
             }
             else
-                v[i].push("0");
+                v_matrix[i].push("0");
         }
     }
 }
 
 
 function readtable(string f) {
-    v.clear();
+    v_matrix.clear();
     try {
         svector sv;
         svector cut;
@@ -104,12 +121,12 @@ function readtable(string f) {
             cut=s.split("\t");
             if (beg == true) {
                 //we have stored some parameters in the three first cells
-                sz[0] = cut[0];
-                sz[1] = cut[1];
+                matrixsize[0] = cut[0];
+                matrixsize[1] = cut[1];
                 columnsize = cut[2];
-                inputs["Size"] = sz[0]+":"+sz[1];
-                codeline = sz[0]+6;
-                mat.dimension(sz[0],sz[1]);
+                inputs["Size"] = matrixsize[0]+":"+matrixsize[1];
+                codeline = matrixsize[0]+6;
+                mat.dimension(matrixsize[0],matrixsize[1]);
                 beg=false;
                 //we need to reset them
                 cut[0] = '0';
@@ -117,16 +134,16 @@ function readtable(string f) {
                 cut[2] = '2';
             }
             j = 0;
-            v[i]=[];
+            v_matrix[i]=[];
             for (e in cut) {
                 e=e.trim();
                 if (e[0] == "(") {
                     k = i+"_"+j;
                     formulas[k] = e;
-                    v[i].push("0");
+                    v_matrix[i].push("0");
                 }
                 else
-                    v[i].push(e);
+                    v_matrix[i].push(e);
                 j++;
             }
             i++;
@@ -148,24 +165,24 @@ function writetable(string f) {
     file sv(f,"w");
     int i,j;
     string k;
-    v[0][0] = string(sz[0]);
-    v[0][1] = string(sz[1]);
-    v[0][2] = string(columnsize);
-    for (i in <sz[0]>) {
-        for (j in <sz[1]>) {
+    v_matrix[0][0] = string(matrixsize[0]);
+    v_matrix[0][1] = string(matrixsize[1]);
+    v_matrix[0][2] = string(columnsize);
+    for (i in <matrixsize[0]>) {
+        for (j in <matrixsize[1]>) {
             if (j)
                 sv.write("\t");
             k = i+"_"+j;
             if (formulas.test(k))
                 sv.write(formulas[k]);
             else
-                sv.write(v[i][j].trim());
+                sv.write(v_matrix[i][j].trim());
         }
         sv.write("\n");
     }
-    v[0][0] = "0";
-    v[0][1] = "1";
-    v[0][2] = "2";
+    v_matrix[0][0] = "0";
+    v_matrix[0][1] = "1";
+    v_matrix[0][2] = "2";
 }
 
 function writecsv(string f) {
@@ -179,14 +196,14 @@ function writecsv(string f) {
     file sv(f,"w");
     int i,j;
     string k;
-    for (i in <1,sz[0]>) {
-        for (j in <1,sz[1]>) {
+    for (i in <1,matrixsize[0]>) {
+        for (j in <1,matrixsize[1]>) {
             if (j)
                 sv.write("\t");
-            if (v[i][j][-1] == '!')
-                sv.write(v[i][j][:-1].trim());
+            if (v_matrix[i][j][-1] == '!')
+                sv.write(v_matrix[i][j][:-1].trim());
             else
-                sv.write(v[i][j].trim());
+                sv.write(v_matrix[i][j].trim());
         }
         sv.write("\n");
     }
@@ -200,14 +217,14 @@ function evaluation() {
     mat.clear();
     string ky;
     int i,j;
-    for (i in <1,sz[0]>) {
-        for (j in <1,sz[1]>) {
+    for (i in <1,matrixsize[0]>) {
+        for (j in <1,matrixsize[1]>) {
             ky = i+"_"+j;
             if (formulas.test(ky)) {
                 mat[i:j] = 0;
             }
             else {
-                mat[i:j] = float(v[i][j]);
+                mat[i:j] = float(v_matrix[i][j]);
             }
         }
     }
@@ -225,8 +242,8 @@ function evaluation() {
         j = ky["_":][1:];
         if ("defun " in formulas[ky]) {
             try {
-                l.eval(formulas[ky]);
-                v[i][j] = formulas[ky][" ":"("][:-1].trim()+"!";
+                lisp_interpreter.eval(formulas[ky]);
+                v_matrix[i][j] = formulas[ky][" ":"("][:-1].trim()+"!";
             }
             catch;
         }
@@ -241,16 +258,16 @@ function evaluation() {
             i = ky[:"_"][:-1];
             j = ky["_":][1:];
             try {
-                val = l.eval(formulas[ky]);
+                val = lisp_interpreter.eval(formulas[ky]);
                 if (val != mat[i:j])
                     stop=false;
                 mat[i:j] = val;
-                v[i][j] = string(val);
-                v[i][j]+="!";
+                v_matrix[i][j] = string(val);
+                v_matrix[i][j]+="!";
             }
             catch(msg) {
                 msgerr=msg;
-                v[i][j] = "#ERR";
+                v_matrix[i][j] = "#ERR";
             }
         }
         if (stop)
@@ -262,7 +279,7 @@ function evaluation() {
 
 //Display methods
 function dispelement(int i,int j) {
-    string u = v[i][j];
+    string u = v_matrix[i][j];
     if (u.size() >= columnsize-1)
         u=u[:columnsize-2]+"_";
     print(u);
@@ -272,8 +289,8 @@ function displayall() {
     int i,j;
     _sys.cls();
     _sys.colors(0,0,0);
-    for (i in <sz[0]>) {
-        for (j in <sz[1]>) {
+    for (i in <matrixsize[0]>) {
+        for (j in <matrixsize[1]>) {
             _sys.row_column(i+1,columnsize*j);
             if (!i or !j)
                 _sys.colors(7,96,40);
@@ -306,12 +323,12 @@ function showelement(int i, int j) {
         dsp = i+","+j+": "+formulas[ky];
     }
     else {//When we have a 0, we do not display it
-        if (v[i][j].trim()=="")
-            v[i][j]="0";
-        if (v[i][j] == '0')
+        if (v_matrix[i][j].trim()=="")
+            v_matrix[i][j]="0";
+        if (v_matrix[i][j] == '0')
             dsp = i+","+j+": ";
         else {
-            dsp = i+","+j+": "+v[i][j];
+            dsp = i+","+j+": "+v_matrix[i][j];
         }
     }
 
@@ -369,12 +386,12 @@ while (s[0].ord() != 17) {
         dispelement(i,j);
         if (s == _sys_keydel) {
             if (not selection) {
-                v[i][j] = "0";
+                v_matrix[i][j] = "0";
                 if (formulas.test(ky))
                     formulas.pop(ky);
             }
             elif (i == ci and j == cj) {
-                v[i][j] = "0";
+                v_matrix[i][j] = "0";
                 formulas.pop(ky);
                 selection = false;
             }
@@ -392,9 +409,9 @@ while (s[0].ord() != 17) {
             i++;
 
         i = max(i,1);
-        i = min(i,sz[0]-1);
+        i = min(i,matrixsize[0]-1);
         j = max(j,1);
-        j = min(j,sz[1]-1);
+        j = min(j,matrixsize[1]-1);
         showelement(i,j);
         s = _sys.getchar();
         continue;
@@ -412,7 +429,7 @@ while (s[0].ord() != 17) {
                 if (formulas[ky] == "") {
                     //The formula has been deleted
                     formulas.pop(ky);
-                    v[i][j] = "0";
+                    v_matrix[i][j] = "0";
                     selection=false;
                     ci =-1;
                     cj =-1;
@@ -428,10 +445,10 @@ while (s[0].ord() != 17) {
             }
             else {
                 if (!selection) {
-                    if (v[i][j].size() > 1)
-                        v[i][j] = v[i][j][:-1];
+                    if (v_matrix[i][j].size() > 1)
+                        v_matrix[i][j] = v_matrix[i][j][:-1];
                     else
-                        v[i][j] = "0";
+                        v_matrix[i][j] = "0";
                 }
             }
         }
@@ -451,12 +468,12 @@ while (s[0].ord() != 17) {
         if (inputkey=="Size") {
             ivector iv = inputs["Size"].split(":");
             inputkey="";
-            if (iv[0] > sz[0])
-                redx(iv[0],iv[1]);
-            if (iv[1] > sz[1])
-                redy(iv[0],iv[1]);
-            sz = iv;
-            codeline = sz[0]+6;
+            if (iv[0] > matrixsize[0])
+                redimension_x(iv[0],iv[1]);
+            if (iv[1] > matrixsize[1])
+                redimension_y(iv[0],iv[1]);
+            matrixsize = iv;
+            codeline = matrixsize[0]+6;
             displayall();
         }
         elif (inputkey == "Data(raw csv)") {
@@ -527,7 +544,7 @@ while (s[0].ord() != 17) {
                 //We move to the next cell below
                 i++;
                 i = max(i,1);
-                i = min(i,sz[0]-1);
+                i = min(i,matrixsize[0]-1);
             }
         }
         showelement(i,j);
@@ -590,7 +607,7 @@ while (s[0].ord() != 17) {
         lastj=-1;
         formulas[ky] = s;
         selection = true;
-        v[i][j] += "!";
+        v_matrix[i][j] += "!";
         displaymessage("Use the arrows to select a cell and hit 'enter' to record it. Type '..' and select again to define a range.");
         showelement(i,j);
         s=_sys.getchar();
@@ -627,16 +644,18 @@ while (s[0].ord() != 17) {
         inputs[inputkey] += s;
     else {
         if (not selection) {
-            if (v[i][j] == '0')
-                v[i][j]=s;
+            if (v_matrix[i][j] == '0')
+                v_matrix[i][j]=s;
             else
-                v[i][j]+=s;
+                v_matrix[i][j]+=s;
         }
     }
     showelement(i,j);
     s=_sys.getchar();
     continue;
 }
+
+
 
 
 
