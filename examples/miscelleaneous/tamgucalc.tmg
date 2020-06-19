@@ -13,6 +13,7 @@ string msgerr;
 
 //Color definition to highlight parenthesis balancing
 string colorred = _sys.colors(7,30,33, false);
+string colorsel = _sys.colors(1, 31, 49, false);
 string colornrm = _sys.colors(0,0,0,false);
 
 int inputsection = 6;
@@ -424,7 +425,11 @@ if (inputs["File"]=="")
 else
     readtable(inputs["File"]);
 
-displaymessage("'(': Formula. Ctrl-s: Save. Ctrl-w: Save As. Ctrl-d: Save Raw Data. Ctrl-r Resize. Ctrl-q Quit.");
+string msgform="Select cell. 'Enter' to record. '..' to define a range.";
+string helpmsg=colorsel+"'('"+colornrm+": Formula. "+colorsel+"Ctrl-s"+colornrm+": Save.";
+helpmsg += colorsel+"Ctrl-w"+colornrm+": Save As. "+colorsel+"Ctrl-d"+colornrm;
+helpmsg += ": Save Raw Data. "+colorsel+"Ctrl-r"+colornrm+": Resize. "+colorsel+"Ctrl-q"+colornrm+": Quit.";
+displaymessage("ctrl-b: Help");
 
 showelement(i,j, off_x, off_y);
 
@@ -435,13 +440,19 @@ string forme, ky;
 int ci=-1,cj=-1;
 int lasti, lastj;
 
+//17 is ctrl-q
 while (s[0].ord() != 17) {
     I = i+off_x;
     J = j+off_y;
     //We use this position to display displaymessages
-    displaymessage("'(': Formula. Ctrl-s: Save. Ctrl-w: Save As. Ctrl-d: Save Raw Data. Ctrl-r Resize. Ctrl-q Quit.");
+    displaymessage("ctrl-b: Help");
     ky = I+"_"+J;
-
+    if (s[0].ord() == 2) {
+        displaymessage(helpmsg);
+        showelement(i,j, off_x, off_y);
+        s=_sys.getchar();
+        continue;
+    }
     
     //Using arrows
     if (s[0].ord() == 27) {
@@ -529,7 +540,7 @@ while (s[0].ord() != 17) {
 
     //When introducing a formula, selection is true and the key is the formula position
     if (selection) {
-        displaymessage("Use the arrows to select a cell and hit 'enter' to record it. Type '..' and select again to define a range.");
+        displaymessage(msgform);
         ky = ci+"_"+cj;
     }
 
@@ -541,21 +552,30 @@ while (s[0].ord() != 17) {
                 int x = iv[0];
                 int y = iv[1];
                 
-                if (x > x_maxview)
+                if (x > x_maxview) {
                     x = x_maxview;
-                else
-                    if (x <= 1)
+                }
+                else {
+                    if (x <= 1) {
                         x = 2;
-                if (y > y_maxview)
+                    }
+                }
+                if (y > y_maxview) {
                     y = y_maxview;
-                else
-                    if (y <= 1)
+                }
+                else {
+                    if (y <= 1) {
                         y = 2;
-                        
+                    }
+                }
                 x_viewsize = x;
                 y_viewsize = y;
                 inputs[inputkey] = ""+x_viewsize+":"+y_viewsize;
                 codeline = x_viewsize+inputsection;
+                i = 1;
+                I = off_x+1;
+                j = 1;
+                J = off_y+1;
                 displayall(off_x, off_y);
             }
         }
@@ -673,7 +693,7 @@ while (s[0].ord() != 17) {
                 formulas[ky] = formulas[ky][:e]+colorred+formulas[ky][e]+colornrm+formulas[ky][e+1:];
             }
             selection = true;
-            displaymessage("Use the arrows to select a cell and hit 'enter' to record it. Type '..' and select again to define a range.");
+            displaymessage(msgform);
         }
         else {
             selection=false;
@@ -694,7 +714,7 @@ while (s[0].ord() != 17) {
         x_bound = max(I+1,x_bound);
         y_bound = max(J+1,y_bound);
         selection = true;
-        displaymessage("Use the arrows to select a cell and hit 'enter' to record it. Type '..' and select again to define a range.");
+        displaymessage(msgform);
         showelement(i,j, off_x, off_y);
         s=_sys.getchar();
         continue;
