@@ -57,6 +57,7 @@ string inputkey;
 string inputvalue;
 inputs["Size"] = ""+x_viewsize+":"+y_viewsize;
 inputs["File"] = _args[0];
+inputs["Go(r,c)"] = "1,1";
 
 if (_args[0] != "")
     inputs["Data(raw csv)"] = _args[0]+".csv";
@@ -428,7 +429,8 @@ else
 string msgform="Select cell. 'Enter' to record. '..' to define a range.";
 string helpmsg=colorsel+"'('"+colornrm+": Formula. "+colorsel+"Ctrl-s"+colornrm+": Save.";
 helpmsg += colorsel+"Ctrl-w"+colornrm+": Save As. "+colorsel+"Ctrl-d"+colornrm;
-helpmsg += ": Save Raw Data. "+colorsel+"Ctrl-r"+colornrm+": Resize. "+colorsel+"Ctrl-q"+colornrm+": Quit.";
+helpmsg += ": Save Raw Data. "+colorsel+"Ctrl-r"+colornrm+": Resize. "+colorsel+"Ctrl-g"+colornrm+": Go. ";
+helpmsg += colorsel+"Ctrl-q"+colornrm+": Quit.";
 displaymessage("ctrl-b: Help");
 
 showelement(i,j, off_x, off_y);
@@ -546,7 +548,24 @@ while (s[0].ord() != 17) {
 
     //When hitting the Carriage Return key
     if (s == "\n") {
-        if (inputkey=="Size") {
+        if (inputkey=="Go(r,c)") {
+            int pi = inputvalue[:","][:-1];
+            int pj = inputvalue[",":][1:];
+            pi = max(1,pi);
+            pj = max(1,pj);
+            pi = min(x_max-1,pi);
+            pj = min(y_max-1,pj);
+            inputkey="";
+            inputvalue="";
+            off_x = max(off_x+pi-I,0);
+            off_y = max(off_y+pj-J,0);
+            I = pi;
+            J = pj;
+            i = I-off_x;
+            j = J-off_y;
+            displayall(off_x,off_y);
+        }
+        elif (inputkey=="Size") {
             ivector iv = inputvalue.split(":");
             if (iv == 2) {
                 int x = iv[0];
@@ -646,7 +665,8 @@ while (s[0].ord() != 17) {
                 dispelement(i,j, off_x, off_y);
                 //We move to the next cell below
                 i++;
-                handlingmovement();            }
+                handlingmovement();
+            }
         }
         
         inputkey="";
@@ -661,6 +681,11 @@ while (s[0].ord() != 17) {
             //ctrl-d
             inputkey="Data(raw csv)";
             inputvalue=inputs[inputkey];
+            print(inputkey+": ",inputvalue);
+        }
+        elif (s[0].ord() == 7) {
+            inputkey = "Go(r,c)";
+            inputvalue = "";
             print(inputkey+": ",inputvalue);
         }
         elif (s[0].ord() == 19 and inputs["File"] != "") //ctrl-s
