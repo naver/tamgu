@@ -12,7 +12,7 @@ lisp lisp_interpreter;
 string msgerr;
 
 //Color definition to highlight parenthesis balancing
-string colorred = _sys.colors(7,30,33, false);
+string colorparenth = _sys.colors(7,31,49, false);
 string colorsel = _sys.colors(1, 31, 49, false);
 string colornrm = _sys.colors(0,0,0,false);
 
@@ -708,14 +708,14 @@ while (s[0].ord() != 17) {
 
     if (inputkey == "" and formulas.test(ky) and ci == I and cj == J) {
         formulas[ky]+=s;
-        formulas[ky] = formulas[ky].replace(colorred,"");
+        formulas[ky] = formulas[ky].replace(colorparenth,"");
         formulas[ky] = formulas[ky].replace(colornrm,"");
         //When the "(...)" balances, we exit the selection mode
         if (formulas[ky].count('(') > formulas[ky].count(")")) {
             if (s == ')') {
                 int e = formulas[ky].size()-2;
                 while (e>0 and formulas[ky][e:].count("(") != formulas[ky][e:].count(")")) e--;
-                formulas[ky] = formulas[ky][:e]+colorred+formulas[ky][e]+colornrm+formulas[ky][e+1:];
+                formulas[ky] = formulas[ky][:e]+colorparenth+formulas[ky][e]+colornrm+formulas[ky][e+1:];
             }
             selection = true;
             displaymessage(msgform);
