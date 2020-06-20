@@ -16,9 +16,11 @@ string colorparenth = _sys.colors(7,31,49, false);
 string colorsel = _sys.colors(1, 31, 49, false);
 string colornrm = _sys.colors(0,0,0,false);
 
+
 int inputsection = 6;
 //Initialisation: coords contains your terminal dimensions
 ivector coords = _sys.screensize();
+
 //columnsize is the size of columns. You can modify this value
 int columnsize = 10;
 //We initialise the number of lines and columns according to your terminal size and columnsize
@@ -47,6 +49,10 @@ vector v_matrix;
 //formulas records the different Lisp expressions
 mapss formulas;
 
+//A few predefined methods
+\(defun put (i j k) (key (key v_matrix i) j (string k)))
+\(defun average (x) (/ (sum x) (size x)))
+
 //mat is the actual matrix in which computing is done...
 fmatrix mat(x_max,y_max);
 
@@ -55,7 +61,7 @@ fmatrix mat(x_max,y_max);
 mapss inputs;
 string inputkey;
 string inputvalue;
-inputs["Size"] = ""+x_viewsize+":"+y_viewsize;
+inputs["Size"] = ""+(x_viewsize-1)+":"+(y_viewsize-1);
 inputs["File"] = _args[0];
 inputs["Go(r,c)"] = "1,1";
 
@@ -111,7 +117,7 @@ function readtable(string f) {
                 y_max = cut[4];
                 x_bound = cut[5];
                 y_bound = cut[6];
-                inputs["Size"] = ""+x_viewsize+":"+y_viewsize;
+                inputs["Size"] = ""+(x_viewsize-1)+":"+(y_viewsize-1);
                 codeline = x_viewsize+inputsection;
                 mat.dimension(x_max,y_max);
                 beg=false;
@@ -158,6 +164,7 @@ function writetable(string f) {
     displaymessage("Writting: "+f);
     file sv(f,"w");
     int i,j;
+    string w;
     v_matrix[0][0] = string(x_viewsize);
     v_matrix[0][1] = string(y_viewsize);
     v_matrix[0][2] = string(columnsize);
@@ -173,8 +180,10 @@ function writetable(string f) {
             k = i+"_"+j;
             if (formulas.test(k))
                 sv.write(formulas[k]);
-            else
-                sv.write(v_matrix[i][j].trim());
+            else {
+                w = v_matrix[i][j];
+                sv.write(w.trim());
+            }
         }
         sv.write("\n");
     }
@@ -204,7 +213,8 @@ function writecsv(string f) {
         for (j in <1,y_bound>) {
             if (j!=1)
                 sv.write("\t");
-            dsp = v_matrix[i][j].trim();
+            dsp = v_matrix[i][j];
+            dsp = dsp.trim();
             if (dsp[-1] == '!')
                 dsp=dsp[:-1];
             if (!dsp[0].isdigit())
@@ -346,7 +356,8 @@ function showelement(int i, int j, int off_x, int off_y) {
         dsp = I+","+J+": "+formulas[ky];
     }
     else {//When we have a 0, we do not display it
-        if (v_matrix[I][J].trim()=="")
+        dsp = v_matrix[I][J];
+        if (dsp.trim()=="")
             v_matrix[I][J]="0";
         if (v_matrix[I][J] == '0')
             dsp = I+","+J+": ";
@@ -426,12 +437,13 @@ if (inputs["File"]=="")
 else
     readtable(inputs["File"]);
 
-string msgform="Select cell. 'Enter' to record. '..' to define a range.";
-string helpmsg=colorsel+"'('"+colornrm+": Formula. "+colorsel+"Ctrl-s"+colornrm+": Save.";
-helpmsg += colorsel+"Ctrl-w"+colornrm+": Save As. "+colorsel+"Ctrl-d"+colornrm;
-helpmsg += ": Save Raw Data. "+colorsel+"Ctrl-r"+colornrm+": Resize. "+colorsel+"Ctrl-g"+colornrm+": Go. ";
-helpmsg += colorsel+"Ctrl-q"+colornrm+": Quit.";
-displaymessage("ctrl-b: Help");
+string msgform="%1Arrows%2 to select cell. %1Enter%2 to record. %1..%2 to define a range.";
+msgform=msgform.format(colorsel,colornrm);
+string helpmsg = "%1'('%2:Formula %1Ctrl-s%2:Save %1Ctrl-w%2:Save as %1Crld-d%2:Save Data %1Ctrl-r%2:Resize %1Ctrl-g%2:Goto %1Ctrl-q%2:Quit";
+helpmsg = helpmsg.format(colorsel,colornrm);
+string msgbase = "%1Ctrl-b%2: Help";
+msgbase =  msgbase.format(colorsel,colornrm);
+displaymessage(msgbase);
 
 showelement(i,j, off_x, off_y);
 
@@ -447,7 +459,7 @@ while (s[0].ord() != 17) {
     I = i+off_x;
     J = j+off_y;
     //We use this position to display displaymessages
-    displaymessage("ctrl-b: Help");
+    displaymessage(msgbase);
     ky = I+"_"+J;
     if (s[0].ord() == 2) {
         displaymessage(helpmsg);
@@ -570,7 +582,8 @@ while (s[0].ord() != 17) {
             if (iv == 2) {
                 int x = iv[0];
                 int y = iv[1];
-                
+                x++;
+                y++;
                 if (x > x_maxview) {
                     x = x_maxview;
                 }
@@ -589,7 +602,7 @@ while (s[0].ord() != 17) {
                 }
                 x_viewsize = x;
                 y_viewsize = y;
-                inputs[inputkey] = ""+x_viewsize+":"+y_viewsize;
+                inputs[inputkey] = ""+(x_viewsize-1)+":"+(y_viewsize-1);
                 codeline = x_viewsize+inputsection;
                 i = 1;
                 I = off_x+1;
