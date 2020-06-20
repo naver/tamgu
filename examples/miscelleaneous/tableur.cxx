@@ -48,6 +48,7 @@ int y_bound=0;
 vector v_matrix;
 //formulas records the different Lisp expressions
 mapss formulas;
+mapss referencedefuns;
 
 //A few predefined methods
 \(defun put (i j k) (key (key v_matrix i) j (string k)))
@@ -260,8 +261,12 @@ function evaluation(int off_x, int off_y) {
         j = ky["_":][1:];
         if ("defun " in formulas[ky]) {
             try {
-                lisp_interpreter.eval(formulas[ky]);
-                v_matrix[i][j] = "#"+formulas[ky][" ":"("][:-1].trim();
+                if (referencedefuns[ky] != formulas[ky]) {
+                    //We only reaevaluate a function, if it has been modified
+                    referencedefuns[ky] = formulas[ky];
+                    lisp_interpreter.eval(formulas[ky]);
+                    v_matrix[i][j] = "#"+formulas[ky][" ":"("][:-1].trim();
+                }
             }
             catch(msg) {
                 msgerr=msg;
