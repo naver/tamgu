@@ -26,6 +26,9 @@
 //We need to declare once again our local definitions.
 #define checkerror(a) if (a->isError()) return a
 #define checkerrorwithrelease(a,v) if (a->isError()) {v->Releasenonconst(); return a;}
+#define lockparse() if (globalTamgu->threadMODE) globalTamgu->_parselock.Locking()
+#define unlockparse() if (globalTamgu->threadMODE) globalTamgu->_parselock.Unlocking()
+
 //------------------------------------------------------------------------------------------------------------------
 Exporting basebin_hash<lispMethod>  Tamgulisp::methods;
 Exporting hmap<string, string> Tamgulisp::infomethods;
@@ -1126,8 +1129,12 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
         }
         case a_defun:
         {
-            if (contextualpattern == aEMPTYLISP)
+                
+            bool resetenable = false;
+            if (contextualpattern == aEMPTYLISP) {
+                resetenable = true;
                 contextualpattern = globalTamgu->Getmainframe(0);
+            }
 
             v0 = values[1];
 
@@ -1142,38 +1149,83 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 return v0;
             }
 
-            n = v0->Name();
-            if (n == 0)
-                return globalTamgu->Returnerror("Wrong function name",idthread);
-
             v1 = values[2];
-            if (!v1->isLisp())
+            if (!v1->isLisp()) {
                 return globalTamgu->Returnerror("Missing parameters",idthread);
+            }
             
-            a = new TamguFunction(n, globalTamgu);
+            lockparse();
+            n = v0->Name();
+            if (n == 0) {
+                return globalTamgu->Returnerror("Wrong function name",idthread);
+            }
+
+            if (resetenable)
+                a = new TamguFunction(n, NULL);
+            else
+                a = new TamguFunction(n, globalTamgu);
+            
             ((TamguFunction*)a)->idtype = a_lisp;
             
             ret = contextualpattern->Declarelocal(idthread, n, a);
             if (ret == a_mainframe || ret == a_declaration) {
-                a->Remove();
-                return globalTamgu->Returnerror("Already declared",idthread);
+                if (resetenable) {
+                    v0 = contextualpattern->Declaration(n);
+                    TamguFunction* f = (TamguFunction*)v0;
+                    if (f->idtracker != -1) {
+                        unlockparse();
+                        delete a;
+                        return globalTamgu->Returnerror("Already declared",idthread);
+                    }
+                    
+                    long i;
+                    for (i = 0; i < f->parameters.size(); i++)
+                        delete f->parameters[i];
+                    v0 = f->instructions[0]->Argument(0);
+                    v0->Removereference();
+                    v0->Resetreference();
+                    delete f->instructions[0];
+                    delete f;
+                }
+                else {
+                    a->Remove();
+                    unlockparse();
+                    return globalTamgu->Returnerror("Already declared",idthread);
+                }
             }
 
             for (i = 0; i < v1->Size(); i++) {
                 n = v1->getvalue(i)->Name();
-                if (!n)
+                if (!n) {
+                    if (resetenable) {
+                        for (long e = 0; e < i; e++)
+                            delete ((TamguFunction*)a)->parameters[e];
+                        delete a;
+                    }
+                    unlockparse();
                     return globalTamgu->Returnerror("Wrong parameter definition",idthread);
-                v0 = new TamguSelfVariableDeclaration(globalTamgu, n);
+                }
+                if (resetenable)
+                    v0 = new TamguSelfVariableDeclaration(NULL, n);
+                else
+                    v0 = new TamguSelfVariableDeclaration(globalTamgu, n);
                 a->AddInstruction(v0);
             }
             a->Setchoice(1);
-            v1 = new TamguCallReturn(globalTamgu, a);
+            if (resetenable)
+                v1 = new TamguCallReturn(NULL, a);
+            else
+                v1 = new TamguCallReturn(globalTamgu, a);
             if (sz == 4) {
                 v1->AddInstruction(values[3]);
                 values[3]->Setreference();
             }
             else {
-                Tamgulispcode* block = new Tamgulispcode(globalTamgu);
+                Tamgulispcode* block;
+                if (resetenable)
+                    block = new Tamgulispcode(NULL);
+                else
+                    block = new Tamgulispcode(globalTamgu);
                 block->idinfo = Currentinfo();
                 block->Setreference();
                 block->push(globalTamgu->Providelispsymbols(a_block));
@@ -1189,6 +1241,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             //Declarelocal only declare a function or a variable in a local domain (a function for instance)
             //If the context is the main frame, then nothing happens
             values[1] = a;
+            unlockparse();
             return a;
         }
         case a_label:

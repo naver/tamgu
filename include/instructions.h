@@ -251,11 +251,12 @@ public:
             //created in an eval
             //first the parameters...
             TamguFunction* f = (TamguFunction*)body;
-            long i;
-            for (i = 0; i < f->parameters.size(); i++)
+            for (long i = 0; i < f->parameters.size(); i++)
                 delete f->parameters[i];
-            for (i = 0; i < f->instructions.size(); i++)
-                delete f->instructions[i];
+            Tamgu* a = f->instructions[0]->Argument(0);
+            a->Removereference();
+            a->Resetreference();
+            delete f->instructions[0];
             delete f;
         }
     }
