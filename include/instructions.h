@@ -250,14 +250,7 @@ public:
             //We need to delete it... This is a temporary lambda function
             //created in an eval
             //first the parameters...
-            TamguFunction* f = (TamguFunction*)body;
-            for (long i = 0; i < f->parameters.size(); i++)
-                delete f->parameters[i];
-            Tamgu* a = f->instructions[0]->Argument(0);
-            a->Removereference();
-            a->Resetreference();
-            delete f->instructions[0];
-            delete f;
+            delete body;
         }
     }
     

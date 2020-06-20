@@ -165,7 +165,7 @@ class Tamguvector : public TamguObjectLockContainer {
     }
 
     void AddInstruction(Tamgu* a) {
-        a->Addreference(investigate,1);
+        a->Addreference(investigate,reference + 1);
         values.push_back(a);
     }
 
@@ -575,14 +575,14 @@ class Tamguvector : public TamguObjectLockContainer {
     //Raw push
     Tamgu* push(Tamgu* v) {
         values.push_back(v);
-        v->Addreference(investigate);
+        v->Addreference(investigate, reference + 1);
         return this;
     }
 
     void pushatom(Tamgu* v) {
         v = v->Atom();
         values.push_back(v);
-        v->Addreference(investigate);
+        v->Addreference(investigate, reference + 1);
     }
 
     Exporting virtual Tamgu* Push(Tamgu*);
@@ -1033,7 +1033,7 @@ public:
     }
     
     void AddInstruction(Tamgu* a) {
-        a->Addreference(investigate,1);
+        a->Addreference(investigate,reference + 1);
         values.push_back(a);
     }
     

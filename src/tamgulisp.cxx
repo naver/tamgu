@@ -446,10 +446,10 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             else {
                 Tamgulispcode* block = new Tamgulispcode(globalTamgu);
                 block->idinfo = Currentinfo();
-                block->values.push_back(globalTamgu->Providelispsymbols(a_block));
+                block->push(globalTamgu->Providelispsymbols(a_block));
                 forin->instructions.push_back(block);
                 for (i = 3; i < sz; i++)
-                    block->values.push_back(values[i]);
+                    block->push(values[i]);
             }
             
             values[2] = forin;
@@ -467,10 +467,10 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             else {
                 Tamgulispcode* block = new Tamgulispcode(globalTamgu);
                 block->idinfo = Currentinfo();
-                block->values.push_back(globalTamgu->Providelispsymbols(a_block));
+                block->push(globalTamgu->Providelispsymbols(a_block));
                 awhile->instructions.push_back(block);
                 for (i = 2; i < sz; i++)
-                    block->values.push_back(values[i]);
+                    block->push(values[i]);
             }
             values[1] = awhile;
             return awhile->Eval(contextualpattern, aNULL, idthread)->Returned(idthread);
@@ -1068,8 +1068,10 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             if (!v1->isLisp())
                 return globalTamgu->Returnerror("Missing parameters",idthread);
             
-            if (contextualpattern == aEMPTYLISP)
+            if (contextualpattern == aEMPTYLISP) {
                 a = new TamguFunction(a_lambda, NULL);
+                ((TamguFunction*)a)->reset=true;
+            }
             else {
                 char name[10];
                 sprintf_s(name, 10, "%%l_%ld", idtracker);
@@ -1103,17 +1105,18 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 values[2]->Setreference();
             }
             else {
-                Tamgulispcode* block;
-                if (contextualpattern == aEMPTYLISP)
-                    block = new Tamgulispcode(NULL);
-                else
+                Tamgulisp* block;
+                if (contextualpattern == aEMPTYLISP) {
+                    block = globalTamgu->Providelisp();
+                    block->Setreference();
+                }
+                else {
                     block = new Tamgulispcode(globalTamgu);
-                
-                block->idinfo = Currentinfo();
-                block->Setreference();
+                    block->idinfo = Currentinfo();
+                }
                 block->push(globalTamgu->Providelispsymbols(a_block));
                 for (i = 2; i < sz; i++)
-                    block->values.push_back(values[i]);
+                    block->push(values[i]);
                 v1->AddInstruction(block);                
             }
             a->Setchoice(a_lambda);
@@ -1123,8 +1126,8 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 //Declarelocal only declare a function or a variable in a local domain (a function for instance)
                 //If the context is the main frame, then nothing is done
                 contextualpattern->Declarelocal(idthread, n, a);
+                values[1] = a;
             }
-            values[1] = a;
             return a;
         }
         case a_defun:
@@ -1160,8 +1163,10 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 return globalTamgu->Returnerror("Wrong function name",idthread);
             }
 
-            if (resetenable)
+            if (resetenable) {
                 a = new TamguFunction(n, NULL);
+                ((TamguFunction*)a)->reset=true;
+            }
             else
                 a = new TamguFunction(n, globalTamgu);
             
@@ -1171,21 +1176,12 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             if (ret == a_mainframe || ret == a_declaration) {
                 if (resetenable) {
                     v0 = contextualpattern->Declaration(n);
-                    TamguFunction* f = (TamguFunction*)v0;
-                    if (f->idtracker != -1) {
+                    if (v0->idtracker != -1) {
                         unlockparse();
                         delete a;
                         return globalTamgu->Returnerror("Already declared",idthread);
                     }
-                    
-                    long i;
-                    for (i = 0; i < f->parameters.size(); i++)
-                        delete f->parameters[i];
-                    v0 = f->instructions[0]->Argument(0);
-                    v0->Removereference();
-                    v0->Resetreference();
-                    delete f->instructions[0];
-                    delete f;
+                    delete v0;
                 }
                 else {
                     a->Remove();
@@ -1197,11 +1193,8 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             for (i = 0; i < v1->Size(); i++) {
                 n = v1->getvalue(i)->Name();
                 if (!n) {
-                    if (resetenable) {
-                        for (long e = 0; e < i; e++)
-                            delete ((TamguFunction*)a)->parameters[e];
+                    if (resetenable)
                         delete a;
-                    }
                     unlockparse();
                     return globalTamgu->Returnerror("Wrong parameter definition",idthread);
                 }
@@ -1221,16 +1214,18 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 values[3]->Setreference();
             }
             else {
-                Tamgulispcode* block;
-                if (resetenable)
-                    block = new Tamgulispcode(NULL);
-                else
+                Tamgulisp* block;
+                if (resetenable) {
+                    block = globalTamgu->Providelisp();
+                    block->Setreference();
+                }
+                else {
                     block = new Tamgulispcode(globalTamgu);
-                block->idinfo = Currentinfo();
-                block->Setreference();
+                    block->idinfo = Currentinfo();
+                }
                 block->push(globalTamgu->Providelispsymbols(a_block));
                 for (i = 3; i < sz; i++)
-                    block->values.push_back(values[i]);
+                    block->push(values[i]);
                 v1->AddInstruction(block);
             }
             

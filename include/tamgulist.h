@@ -859,7 +859,7 @@ public:
     }
     
     void AddInstruction(Tamgu* a) {
-        a->Addreference(investigate,1);
+        a->Addreference(investigate,reference + 1);
         values.push_back(a);
     }
     
