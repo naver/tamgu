@@ -86,12 +86,12 @@ function fillrow(vector v, int r, int c) {
 }
 
 //Return all values up to a certain value: (from m[:1] 0)
-function from(fvector v, float val) {
+function upto(fvector v, float val) {
     long vi = 0;
     for (long i in <1,v.size()>) {
         //When we found our value, we stop
         if (v[i] == val) {
-            vi = i+1;
+            vi = i;
             break;
         }
     }
