@@ -72,7 +72,7 @@ function fillcolumn(vector v, int r, int c) {
         v_matrix[i][c] = v[vi];
         vi++;
     }
-    return ("C"+r+"_"+c);
+    return ("C"+r+","+c);
 }
 
 //fill a column with values, row r is fixed, it defines the starting point
@@ -82,7 +82,7 @@ function fillrow(vector v, int r, int c) {
         v_matrix[r][i] = v[vi];
         vi++;
     }
-    return ("R"+r+"_"+c);
+    return ("R"+r+","+c);
 }
 
 //mat is the actual matrix in which computing is done...
