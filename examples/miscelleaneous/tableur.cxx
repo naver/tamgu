@@ -6,6 +6,11 @@
  Programmer : Claude ROUX (claude.roux@naverlabs.com)
 @/
 
+if (version() < "Tamgu 1.2020.06.21.09") {
+    println("Please, accept all our apologies, but your version of Tamgu is too old to run 'tamgucalc' and need to be updated");
+    _exit();
+}
+
 //The Lisp interpreter
 lisp lisp_interpreter;
 
