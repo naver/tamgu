@@ -7,8 +7,17 @@
 @/
 
 if (version() < "Tamgu 1.2020.06.21.09") {
-    println("Please, accept all our apologies, but your version of Tamgu is too old to run 'tamgucalc' and need to be updated");
-    _exit();
+    _sys.cls();
+    println();
+    println("Please, accept all our apologies...");
+    println("Alas, your version of Tamgu is too old to run 'tamgucalc'...");
+    println("We needed to adjust tamgu to run some of the new stuff in tamgucalc...");
+    print("Please update it at: ");
+    _sys.colors(7,31,107);
+    print("https://github.com/naver/tamgu/releases");
+    _sys.colors(0,0,0);
+    println("\n");
+   _exit();
 }
 
 //The Lisp interpreter
