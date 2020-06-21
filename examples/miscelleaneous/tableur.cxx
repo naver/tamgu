@@ -318,11 +318,11 @@ function evaluation(int off_x, int off_y) {
             j = short(ky["_":][1:]);
             try {
                 val = lisp_interpreter.eval(formulas[ky]);
-                value = float(val);
+                value = val.float();
                 if (value != mat[i:j])
                     stop=false;
                 mat[i:j] = value;
-                v_matrix[i][j] = string(val);
+                v_matrix[i][j] = val.string();
                 v_matrix[i][j]+="!";
             }
             catch(msg) {
