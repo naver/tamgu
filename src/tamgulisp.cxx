@@ -966,6 +966,14 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             for (i = 1; i < sz; i++)
                 call.arguments.push_back(values[i]);
             
+            if (!call.Checkarity()) {
+                globalTamgu->threads[idthread].currentinstruction = this;
+                string mess("'");
+                mess += globalTamgu->Getsymbol(n);
+                mess += "' : Wrong number of arguments...";
+                return globalTamgu->Returnerror(mess, idthread);
+            }
+
             return call.Eval(contextualpattern, aNULL, idthread);
         }
         case a_callcommon:
@@ -976,10 +984,19 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             TamguCallCommonMethod call(n);
             for (i = 2; i < sz; i++)
                 call.arguments.push_back(values[i]);
-            
+
+            if (!call.Checkarity()) {
+                globalTamgu->threads[idthread].currentinstruction = this;
+                string mess("'");
+                mess += globalTamgu->Getsymbol(n);
+                mess += "' : Wrong number of arguments...";
+                return globalTamgu->Returnerror(mess, idthread);
+            }
+
             v1 = values[1]->Eval(contextualpattern, aNULL, idthread);
+
             a = call.Eval(contextualpattern, v1, idthread);
-            if (v1 != values[1])
+            if (v1 != values[1] && v1 != a)
                 v1->Releasenonconst();
             
             return a;
@@ -992,10 +1009,21 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             
             for (i = 2; i < sz; i++)
                 call.arguments.push_back(values[i]);
-            
             v1 = values[1]->Eval(contextualpattern, aNULL, idthread);
+            if (!globalTamgu->checkarity(v1->Type(), n, sz-2)) {
+                if (!globalTamgu->frames.check(v1->Type())) {
+                    globalTamgu->threads[idthread].currentinstruction = this;
+                    v1->Releasenonconst();
+                    string mess("'");
+                    mess += globalTamgu->Getsymbol(n);
+                    mess += "' : Unknown method or Wrong number of arguments for type: '";
+                    mess += v1->Typestring();
+                    mess += "'";
+                    return globalTamgu->Returnerror(mess, idthread);
+                }
+            }
             a = call.Eval(contextualpattern, v1, idthread);
-            if (v1 != values[1])
+            if (v1 != values[1] && v1 != a)
                 v1->Releasenonconst();
             
             return a;

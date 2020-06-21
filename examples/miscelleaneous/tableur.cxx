@@ -54,6 +54,7 @@ mapss referencedefuns;
 \(defun put (i j k) (key (key v_matrix i) j (string k)))
 \(defun average (x) (/ (sum x) (size x)))
 
+//You can call a regular function from a Lisp formula: (fillcol mat[:2]
 //fill a row with values, column c is fixed, it defines the starting point
 function fillcol(vector v, int r, int c) {
     int vi = 0;
