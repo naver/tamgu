@@ -50,18 +50,29 @@ vector v_matrix;
 mapss formulas;
 mapss referencedefuns;
 
+//the line 0 and the column 0 are used to display coordinates...
+int i = 1;
+int j = 1;
+int I, J;
+//Since, the matrix might be larger than the viewport,
+//we need to record the offsets to position 0,0
+int off_x = 0;
+int off_y = 0;
+
 //A few predefined methods
 \(defun put (i j k) (key (key v_matrix i) j (string k)))
 \(defun average (x) (/ (sum x) (size x)))
 
-//You can call a regular function from a Lisp formula: (fillcol mat[:2]
+//You can call a regular function from a Lisp formula:
+// (fillcolumn mat[:2][1:6] 1 10): fill column 10, starting at row 1 with values from mat[:2][1:6]
 //fill a row with values, column c is fixed, it defines the starting point
-function fillcol(vector v, int r, int c) {
+function fillcolumn(vector v, int r, int c) {
     int vi = 0;
     for (int i in <r, v.size()+1>) {
         v_matrix[i][c] = v[vi];
         vi++;
     }
+    return ("C"+r+"_"+c);
 }
 
 //fill a column with values, row r is fixed, it defines the starting point
@@ -71,6 +82,7 @@ function fillrow(vector v, int r, int c) {
         v_matrix[r][i] = v[vi];
         vi++;
     }
+    return ("R"+r+"_"+c);
 }
 
 //mat is the actual matrix in which computing is done...
@@ -117,7 +129,7 @@ function readtable(string f) {
             v_matrix[i][j] = "0";
         }
     }
-    
+
     try {
         svector sv;
         svector cut;
@@ -172,7 +184,7 @@ function readtable(string f) {
     }
 }
 
-//Writing the visual matrix content to a file 
+//Writing the visual matrix content to a file
 function writetable(string f) {
     if (f=="") {
         displaymessage("Abort");
@@ -192,7 +204,7 @@ function writetable(string f) {
     v_matrix[0][4] = string(y_max);
     v_matrix[0][5] = string(x_bound);
     v_matrix[0][6] = string(y_bound);
-    
+
     for (i in <x_bound>) {
         for (j in <y_bound>) {
             if (j)
@@ -270,10 +282,11 @@ function evaluation(int off_x, int off_y) {
     }
     msgerr="";
     string msg;
-    float val;
+    self val;
+    float value;
     int o;
     bool stop=false;
-    
+
     //We record function beforehand
     for (ky in formulas) {
         i = ky[:"_"][:-1];
@@ -298,16 +311,17 @@ function evaluation(int off_x, int off_y) {
     for (o in <formulas.size()>) {
         stop=true;
         for (ky in formulas) {
-            //functions are skipped 
+            //functions are skipped
             if ("defun " in formulas[ky])
                 continue;
             i = ky[:"_"][:-1];
             j = short(ky["_":][1:]);
             try {
                 val = lisp_interpreter.eval(formulas[ky]);
-                if (val != mat[i:j])
+                value = float(val);
+                if (value != mat[i:j])
                     stop=false;
-                mat[i:j] = val;
+                mat[i:j] = value;
                 v_matrix[i][j] = string(val);
                 v_matrix[i][j]+="!";
             }
@@ -370,7 +384,7 @@ function displaymessage(string s) {
     print(s);
 }
 
-//Highlight the current element 
+//Highlight the current element
 function showelement(int i, int j, int off_x, int off_y) {
     string dsp;
     int I = i+off_x;
@@ -412,13 +426,6 @@ function showelement(int i, int j, int off_x, int off_y) {
 
 //----------------------------------------------------------------------------------------------------
 //MAIN LOOP
-
-//the line 0 and the column 0 are used to display coordinates... 
-int i = 1;
-int j = 1;
-int I, J;
-int off_x = 0;
-int off_y = 0;
 
 function handlingmovement() {
     bool redisplay=false;
@@ -494,7 +501,7 @@ while (s[0].ord() != 17) {
         s=_sys.getchar();
         continue;
     }
-    
+
     //Using arrows
     if (s[0].ord() == 27) {
         if (s.size() == 1) {
@@ -507,7 +514,7 @@ while (s[0].ord() != 17) {
             s=_sys.getchar();
             continue;
         }
-        
+
         _sys.row_column(i+1,columnsize*j);
         dispelement(i,j, off_x, off_y);
         if (s == _sys_keydel) {
@@ -538,7 +545,7 @@ while (s[0].ord() != 17) {
         s = _sys.getchar();
         continue;
     }
-    
+
     //character deletion with the delete key
     if (s.ord() == 127) {
         if (inputkey!="") {
@@ -708,14 +715,14 @@ while (s[0].ord() != 17) {
                 handlingmovement();
             }
         }
-        
+
         inputkey="";
         inputvalue="";
         showelement(i,j, off_x, off_y);
         s=_sys.getchar();
         continue;
     }
-    
+
     if (s[0].ord() < 27) {
         if (s[0].ord() == 4) {
             //ctrl-d
@@ -827,5 +834,7 @@ while (s[0].ord() != 17) {
     s=_sys.getchar();
     continue;
 }
+
+
 
 
