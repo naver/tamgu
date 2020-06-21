@@ -68,7 +68,7 @@ int off_y = 0;
 //fill a row with values, column c is fixed, it defines the starting point
 function fillcolumn(vector v, int r, int c) {
     int vi = 0;
-    for (int i in <r, v.size()+1>) {
+    for (int i in <r, r+v.size()>) {
         v_matrix[i][c] = v[vi];
         vi++;
     }
@@ -78,13 +78,24 @@ function fillcolumn(vector v, int r, int c) {
 //fill a column with values, row r is fixed, it defines the starting point
 function fillrow(vector v, int r, int c) {
     int vi = 0;
-    for (int i in <c, v.size()+1>) {
+    for (int i in <c, c+v.size()>) {
         v_matrix[r][i] = v[vi];
         vi++;
     }
     return ("R"+r+","+c);
 }
 
+//Return all values up to a certain value: (from m[:1] 0)
+function from(fvector v, float val) {
+    long vi = 0;
+    for (long i in <1,v.size()>) {
+        if (v[i] == val) {
+            vi = i+1;
+            break;
+        }
+    }
+    return (v[:vi]);
+}
 //mat is the actual matrix in which computing is done...
 fmatrix mat(x_max,y_max);
 
