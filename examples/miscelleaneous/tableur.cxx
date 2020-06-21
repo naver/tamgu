@@ -54,6 +54,24 @@ mapss referencedefuns;
 \(defun put (i j k) (key (key v_matrix i) j (string k)))
 \(defun average (x) (/ (sum x) (size x)))
 
+//fill a row with values, column c is fixed, it defines the starting point
+function fillcol(vector v, int r, int c) {
+    int vi = 0;
+    for (int i in <r, v.size()+1>) {
+        v_matrix[i][c] = v[vi];
+        vi++;
+    }
+}
+
+//fill a column with values, row r is fixed, it defines the starting point
+function fillrow(vector v, int r, int c) {
+    int vi = 0;
+    for (int i in <c, v.size()+1>) {
+        v_matrix[r][i] = v[vi];
+        vi++;
+    }
+}
+
 //mat is the actual matrix in which computing is done...
 fmatrix mat(x_max,y_max);
 
