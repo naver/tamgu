@@ -89,11 +89,13 @@ function fillrow(vector v, int r, int c) {
 function from(fvector v, float val) {
     long vi = 0;
     for (long i in <1,v.size()>) {
+        //When we found our value, we stop
         if (v[i] == val) {
             vi = i+1;
             break;
         }
     }
+    //If the value is not found, the list is empty...
     return (v[:vi]);
 }
 //mat is the actual matrix in which computing is done...
