@@ -960,7 +960,7 @@ while (s[0].ord() != 17) {
     else {
         if (not selection) {
             if (v_matrix[I][J] == '0') {
-                //We check if we adding a "."
+                //We check if we are adding a "."
                 if (s == '.')
                     v_matrix[I][J]+=s;
                 else
