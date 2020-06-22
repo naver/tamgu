@@ -368,11 +368,21 @@ function evaluation(int off_x, int off_y) {
 
 //Display methods
 //Display one element, we check its size
-function dispelement(int i,int j, int off_x, int off_y) {
+function dispelementraw(int i,int j, int off_x, int off_y) {
     string u = v_matrix[i+off_x][j+off_y];
     if (u.size() >= columnsize-1)
         u=u[:columnsize-2]+"_";
     print(u);
+}
+
+function dispelement(int i,int j, int off_x, int off_y) {
+    string u = v_matrix[i+off_x][j+off_y];
+    if (u[-1] == "!")
+        _sys.colors(0,39,102);
+    if (u.size() >= columnsize-1)
+        u=u[:columnsize-2]+"_";
+    print(u);
+    _sys.colors(0,0,0);
 }
 
 //Displaying all elements on screen
@@ -445,7 +455,7 @@ function showelement(int i, int j, int off_x, int off_y) {
     _sys.row_column(i+1,columnsize*j);
     //We use a specific color to show that it has been selected
     _sys.colors(7,31,49);
-    dispelement(i,j, off_x, off_y);
+    dispelementraw(i,j, off_x, off_y);
     //Colors are reset, we then display on the last line the current value
     _sys.colors(0,0,0);
     _sys.row_column(codeline-1,0);
