@@ -4682,8 +4682,7 @@ public:
     }
 
     Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
-        string r;
-        op->Setstring(r, idthread);
+        string r = op->Getstring(idthread);
         if (inter == aAFFECTATION) {
             res->Storevalue(r);
             return res;
@@ -4743,8 +4742,7 @@ public:
     }
 
     Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
-        wstring r;
-        op->Setstring(r, idthread);
+        wstring r = op->Getustring(idthread);
         if (inter == aAFFECTATION) {
             res->Storevalue(r);
             return res;

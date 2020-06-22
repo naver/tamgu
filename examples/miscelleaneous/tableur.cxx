@@ -540,6 +540,7 @@ function handlingmovement() {
     if (redisplay)
         displayall(off_x, off_y);
     if (scroll) {
+        //We do not want to scroll the top line...
         _sys.scrollmargin(2, codeline-inputsection);
         if (scroll==1) {
             _sys.scroll_up(1);
@@ -547,10 +548,12 @@ function handlingmovement() {
         else
             _sys.scroll_down(1);
 
-        //We need to display the first line
-        _sys.scrollmargin(0,coords[1]);
-        _sys.clearscreen(3);
+        //First we reset the scrolling area
+        _sys.scrollmargin(1,coords[1]);
+        //We need to display the missing line
         displayline(off_x, off_y, i);
+        //We then clean the scrolling buffer
+        _sys.clearscreen(3);
     }
     showelement(i,j, off_x, off_y);
 }
