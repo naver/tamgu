@@ -2000,7 +2000,10 @@ Exporting Tamgu* Selectabvector(Tamgu* context) {
 Exporting Tamgu* TamguGlobal::EvaluateParenthetic(string& s, string& o, string& c, bool comma, bool separator, bool keeprc, vector<string>& rules, short idthread) {
     x_tokenize xr;
     bnf_tamgu bnf;
-    
+
+    threads[idthread].message.str("");
+    threads[idthread].message.clear();
+
     if (rules.size()==0)
         xr.load();
     else {
@@ -2073,6 +2076,9 @@ Exporting Tamgu* TamguGlobal::EvaluateTags(string& s, string& o, string& c, bool
     x_tokenize xr;
     bnf_tamgu bnf;
     
+    threads[idthread].message.str("");
+    threads[idthread].message.clear();
+
     if (rules.size()==0)
         xr.load();
     else {
@@ -2146,6 +2152,9 @@ Exporting An_rules* TamguGlobal::EvaluateRules(string& body, short idthread) {
     x_reading xr;
     bnf_tamgu bnf;
     
+    threads[idthread].message.str("");
+    threads[idthread].message.clear();
+
     bnf.initialize(&xr);
     bnf.baseline = linereference;
 
@@ -2210,6 +2219,9 @@ Exporting Tamgu* TamguGlobal::EvaluateLisp(Tamgu* contextualpattern, string file
     x_reading xr;
     bnf_tamgu bnf;
     
+    threads[idthread].message.str("");
+    threads[idthread].message.clear();
+
     if (body[0] == '(' && body[1] == ')') {
         body[0]='/';
         body[1]='/';
@@ -2306,6 +2318,10 @@ public:
 
 Exporting Tamgu* TamguGlobal::EvaluateVector(string& s, short idthread) {
     static TamguJsonCompiler jcomp_base;
+
+    threads[idthread].message.str("");
+    threads[idthread].message.clear();
+
     if (s[0] != '[') {
         stringstream msg;
         msg << "Wrong map definition. Expecting a vector definition";
@@ -2335,6 +2351,10 @@ Exporting Tamgu* TamguGlobal::EvaluateVector(string& s, short idthread) {
 
 Exporting Tamgu* TamguGlobal::EvaluateVector(Tamgu* kf, string& s, short idthread) {
     static TamguJsonCompiler jcomp_base;
+
+    threads[idthread].message.str("");
+    threads[idthread].message.clear();
+
     if (s[0] != '[') {
         stringstream msg;
         msg << "Wrong map definition. Expecting a vector definition";
@@ -2360,6 +2380,10 @@ Exporting Tamgu* TamguGlobal::EvaluateVector(Tamgu* kf, string& s, short idthrea
 
 Exporting Tamgu* TamguGlobal::EvaluateMap(Tamgu* kf, string& s, short idthread) {
     static TamguJsonCompiler jcomp_base;
+
+    threads[idthread].message.str("");
+    threads[idthread].message.clear();
+
     if (s[0] != '{') {
         stringstream msg;
         msg << "Wrong map definition. Expecting a map definition";
@@ -2385,6 +2409,10 @@ Exporting Tamgu* TamguGlobal::EvaluateMap(Tamgu* kf, string& s, short idthread) 
 
 Exporting Tamgu* TamguGlobal::EvaluateMap(string& s, short idthread) {
     static TamguJsonCompiler jcomp_base;
+    
+    threads[idthread].message.str("");
+    threads[idthread].message.clear();
+
     if (s[0] != '{') {
         stringstream msg;
         msg << "Wrong map definition. Expecting a map definition";
@@ -2412,6 +2440,10 @@ Exporting Tamgu* TamguGlobal::EvaluateMap(string& s, short idthread) {
 
 Exporting Tamgu* TamguGlobal::EvaluateJSON(string& s, short idthread) {
     static TamguJsonCompiler jcomp_base;
+    
+    threads[idthread].message.str("");
+    threads[idthread].message.clear();
+    
     Tamgu* kf;
     if (s[0] == '[')
         kf = globalTamgu->Providevector();

@@ -331,6 +331,11 @@ function evaluation(int off_x, int off_y) {
             }
             catch(msg) {
                 msgerr=msg;
+                ky["_"] = ",";
+                if ("at line" in msgerr)
+                    msgerr[" at line":] = "at cell: "+ky;
+                else
+                    msgerr += " at cell: "+ky;
                 v_matrix[i][j] = "#FCERR";
             }
         }
@@ -356,6 +361,11 @@ function evaluation(int off_x, int off_y) {
             }
             catch(msg) {
                 msgerr=msg;
+                ky["_"] = ",";
+                if ("at line" in msgerr)
+                    msgerr[" at line":] = "at cell: "+ky;
+                else
+                    msgerr += " at cell: "+ky;
                 v_matrix[i][j] = "#ERR";
             }
         }
@@ -570,6 +580,7 @@ while (s[0].ord() != 17) {
             modedit=false;
             formulas[ky] = inputvalue;
             posinstring = inputvalue.size()+1;
+            //We check the parentheses balance, to switch to selection mode
             if (inputvalue.count("(") != inputvalue.count(')')) {
                 selection=true;
                 ci = I;
