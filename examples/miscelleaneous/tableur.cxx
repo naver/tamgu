@@ -78,6 +78,7 @@ bool modedit = false;
 //A few predefined methods
 \(defun put (i j k) (key (key v_matrix i) j (string k)))
 \(defun average (x) (/ (sum x) (size x)))
+\(defun standard_deviation(x) (setq avg (average x)) (sqrt (/ (sum (_map (lambda (x) (* (- x avg) (- x avg))) x)) (size x))))
 
 //You can call a regular function from a Lisp formula:
 // (fillcolumn mat[:2][1:6] 1 10): fill column 10, starting at row 1 with values from mat[:2][1:6]
@@ -103,14 +104,9 @@ function fillrow(vector v, int r, int c) {
 
 //Return all values up to a certain value: (from m[:1] 0)
 function upto(fvector v, float val) {
-    long vi = 0;
-    for (long i in <1,v.size()>) {
-        //When we found our value, we stop
-        if (v[i] == val) {
-            vi = i;
-            break;
-        }
-    }
+    int vi = val in v;
+    if (vi == -1)
+        return [];
     //If the value is not found, the list is empty...
     return (v[:vi]);
 }
