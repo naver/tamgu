@@ -28,6 +28,7 @@ string msgerr;
 //Color definition to highlight parenthesis balancing
 string colorparenth = _sys.colors(7,31,49, false);
 string colorsel = _sys.colors(1, 31, 49, false);
+string colorform = _sys.colors(1,30,103, false);
 string colornrm = _sys.colors(0,0,0,false);
 
 
@@ -507,7 +508,7 @@ string msgbase = "%1Ctrl-b%2: Help %1Ctrl-e%2: Edit %1Ctrl-q%2: Quit";
 msgbase =  msgbase.format(colorsel,colornrm);
 displaymessage(msgbase);
 
-string msgedit = "%1Edit Mode%2 %1Esc%2=abort %1Enter%2=record";
+string msgedit = "%1Edit Mode%2... %1Esc%2=abort %1Enter%2=record";
 msgedit =  msgedit.format(colorsel,colornrm);
 
 showelement(i,j, off_x, off_y);
@@ -543,6 +544,10 @@ while (s[0].ord() != 17) {
         if (s.ord() == 27) {
             modedit=false;
             inputvalue = formulas[ky];
+            posinstring = inputvalue.size()+1;
+            selection=true;
+            ci = I;
+            cj = J;
             displaymessage(msgbase);
             showelement(i,j, off_x, off_y);
         }
@@ -555,7 +560,13 @@ while (s[0].ord() != 17) {
             modedit=false;
             formulas[ky] = inputvalue;
             posinstring = inputvalue.size()+1;
-            evaluation(off_x, off_y);
+            if (inputvalue.count("(") != inputvalue.count(')')) {
+                selection=true;
+                ci = I;
+                cj = J;
+            }
+            else
+                evaluation(off_x,off_y);
             displaymessage(msgbase);
             showelement(i,j, off_x, off_y);
         }
