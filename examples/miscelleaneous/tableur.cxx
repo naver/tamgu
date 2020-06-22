@@ -72,6 +72,7 @@ int I, J;
 //we need to record the offsets to position 0,0
 int off_x = 0;
 int off_y = 0;
+bool modedit = false;
 
 //A few predefined methods
 \(defun put (i j k) (key (key v_matrix i) j (string k)))
@@ -502,9 +503,12 @@ string msgform="%1Arrows%2 to select cell. %1Enter%2 to record. %1..%2 to define
 msgform=msgform.format(colorsel,colornrm);
 string helpmsg = "%1'('%2:Formula %1Ctrl-s%2:Save %1Ctrl-w%2:Save as %1Crld-d%2:Save Data %1Ctrl-r%2:Resize %1Ctrl-g%2:Goto %1Ctrl-q%2:Quit";
 helpmsg = helpmsg.format(colorsel,colornrm);
-string msgbase = "%1Ctrl-b%2: Help";
+string msgbase = "%1Ctrl-b%2: Help %1Ctrl-e%2: Edit %1Ctrl-q%2: Quit";
 msgbase =  msgbase.format(colorsel,colornrm);
 displaymessage(msgbase);
+
+string msgedit = "%1Edit Mode%2 %1Esc%2=abort %1Enter%2=record";
+msgedit =  msgedit.format(colorsel,colornrm);
 
 showelement(i,j, off_x, off_y);
 
@@ -514,13 +518,17 @@ bool selection = false;
 string forme, ky;
 int ci=-1,cj=-1;
 int lasti, lastj;
+int posinstring;
 
 //17 is ctrl-q
 while (s[0].ord() != 17) {
     I = i+off_x;
     J = j+off_y;
     //We use this position to display displaymessages
-    displaymessage(msgbase);
+    if (modedit)
+        displaymessage(msgedit);
+    else
+        displaymessage(msgbase);
     ky = I+"_"+J;
     if (s[0].ord() == 2) {
         displaymessage(helpmsg);
@@ -528,6 +536,71 @@ while (s[0].ord() != 17) {
         s=_sys.getchar();
         continue;
     }
+    
+    //Modification of a formula
+    if (modedit) {
+        string dsp = I+","+J+": ";
+        if (s.ord() == 27) {
+            modedit=false;
+            inputvalue = formulas[ky];
+            displaymessage(msgbase);
+        }
+        elif (s.ord() == 11) {
+            //ctrl-k
+            inputvalue =inputvalue[:posinstring-1];
+            posinstring = inputvalue.size()+1;
+        }
+        elif (s == "\n") {
+            modedit=false;
+            formulas[ky] = inputvalue;
+            displaymessage(msgbase);
+            evaluation(off_x, off_y);
+        }
+        elif (s.ord() == 127) {
+            if (posinstring > 1) {
+                inputvalue = inputvalue[:posinstring-2]+inputvalue[posinstring-1:];
+                posinstring--;
+            }
+        }
+        elif (s == _sys_keydel) {
+            //We delete the left character
+            if (posinstring <= inputvalue.size())
+                inputvalue = inputvalue[:posinstring-1]+inputvalue[posinstring:];
+        }
+        elif (s == _sys_keyright)
+            posinstring++;
+        elif (s == _sys_keyleft)
+            posinstring--;
+        else {
+            inputvalue = inputvalue[:posinstring-1]+s+inputvalue[posinstring-1:];
+            posinstring++;
+        }
+            
+        if (posinstring > inputvalue.size()+1)
+            posinstring = inputvalue.size()+1;
+        if (posinstring <= 0)
+            posinstring = 1;
+        _sys.row_column(codeline-1,0);
+        _sys.eraseline(2);
+        _sys.row_column(codeline-1,0);
+        print(dsp+inputvalue);
+        _sys.row_column(codeline-1,dsp.size()+posinstring);
+        s=_sys.getchar();
+        continue;
+    }
+
+    //ctrl-e: edit mode
+    if (s[0].ord() == 5 && formulas.test(ky)) {
+        modedit = true;
+        string dsp = I+","+J+": ";
+        inputvalue = formulas[ky];
+        posinstring = inputvalue.size()+1;
+        displaymessage(msgedit);
+        _sys.row_column(codeline-1,dsp.size()+posinstring);
+        s=_sys.getchar();
+        continue;
+    }
+
 
     //Using arrows
     if (s[0].ord() == 27) {
@@ -541,7 +614,6 @@ while (s[0].ord() != 17) {
             s=_sys.getchar();
             continue;
         }
-
         _sys.row_column(i+1,columnsize*j);
         dispelement(i,j, off_x, off_y);
         if (s == _sys_keydel) {
@@ -621,7 +693,10 @@ while (s[0].ord() != 17) {
 
     //When hitting the Carriage Return key
     if (s == "\n") {
-        if (inputkey=="Go(r,c)") {
+        if (modedit) {
+            modedit = false;
+        }
+        elif (inputkey=="Go(r,c)") {
             int pi = inputvalue[:","][:-1];
             int pj = inputvalue[",":][1:];
             pi = max(1,pi);
