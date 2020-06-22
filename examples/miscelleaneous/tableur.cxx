@@ -36,7 +36,7 @@ int inputsection = 6;
 //Initialisation: coords contains your terminal dimensions
 ivector coords = _sys.screensize();
 
-//columnsize is the size of columns. You can modify this value
+//columnsize is the size of a column in character. You can modify this value
 int columnsize = 10;
 //We initialise the number of lines and columns according to your terminal size and columnsize
 //We keep 'inputsection' lines below the last line to display messages
@@ -78,7 +78,18 @@ bool modedit = false;
 //A few predefined methods
 \(defun put (i j k) (key (key v_matrix i) j (string k)))
 \(defun average (x) (/ (sum x) (size x)))
-\(defun standard_deviation(x) (setq avg (average x)) (sqrt (/ (sum (_map (lambda (x) (* (- x avg) (- x avg))) x)) (size x))))
+\(defun standard_deviation(x)
+  (setq avg (average x))
+  (sqrt (/
+         (sum
+          (_map (lambda (x)
+                 (* (- x avg) (- x avg)))
+           x)
+          )
+         (size x)
+         )
+   )
+  )
 
 //You can call a regular function from a Lisp formula:
 // (fillcolumn mat[:2][1:6] 1 10): fill column 10, starting at row 1 with values from mat[:2][1:6]
