@@ -401,16 +401,19 @@ function displayall(int off_x, int off_y) {
     _sys.cls();
     _sys.colors(7,96,40);
     for (i in <x_viewsize>) {
-        _sys.row_column(i+1,0);
-        dispelement(i,0, off_x, 0);
+        _sys.row_column(i+1,1);
+        dispelementraw(i,0, off_x, 0);
     }
 
     for (j in <y_viewsize>) {
-        _sys.row_column(0,columnsize*j);
-        dispelement(0,j, 0, off_y);
+        _sys.row_column(1,columnsize*j);
+        dispelementraw(0,j, 0, off_y);
     }
 
+    _sys.row_column(1,1);
+    print("T");
     _sys.colors(0,0,0);
+    print("  ");
     for (i in <1,x_viewsize>) {
         for (j in <1,y_viewsize>) {
             _sys.row_column(i+1,columnsize*j);
