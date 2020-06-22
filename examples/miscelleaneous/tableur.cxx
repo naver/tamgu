@@ -500,7 +500,7 @@ if (inputs["File"]=="")
 else
     readtable(inputs["File"]);
 
-string msgform="%1Arrows%2 to select cell. %1Enter%2 to record. %1..%2 to define a range.";
+string msgform="%1Arrows%2 select. %1Enter%2 to add cell. %1..%2 define range. %1Balance parentheses%2 to exit;";
 msgform=msgform.format(colorsel,colornrm);
 string helpmsg = "%1'('%2:Formula %1Ctrl-s%2:Save %1Ctrl-w%2:Save as %1Crld-d%2:Save Data %1Ctrl-r%2:Resize %1Ctrl-g%2:Goto %1Ctrl-q%2:Quit";
 helpmsg = helpmsg.format(colorsel,colornrm);
