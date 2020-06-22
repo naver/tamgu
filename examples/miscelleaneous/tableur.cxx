@@ -544,6 +544,7 @@ while (s[0].ord() != 17) {
             modedit=false;
             inputvalue = formulas[ky];
             displaymessage(msgbase);
+            showelement(i,j, off_x, off_y);
         }
         elif (s.ord() == 11) {
             //ctrl-k
@@ -553,8 +554,10 @@ while (s[0].ord() != 17) {
         elif (s == "\n") {
             modedit=false;
             formulas[ky] = inputvalue;
-            displaymessage(msgbase);
+            posinstring = inputvalue.size()+1;
             evaluation(off_x, off_y);
+            displaymessage(msgbase);
+            showelement(i,j, off_x, off_y);
         }
         elif (s.ord() == 127) {
             if (posinstring > 1) {
