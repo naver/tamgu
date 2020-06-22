@@ -90,6 +90,11 @@ bool modedit = false;
          )
    )
   )
+//Same with taskell syntax...
+function std_var(fvector v) {
+    float avg = v.sum()/v.size();
+    return <sqrt </ <sum . map (\x->(x-avg)*(x-avg)) v> <size v>>>;
+}
 
 //You can call a regular function from a Lisp formula:
 // (fillcolumn mat[:2][1:6] 1 10): fill column 10, starting at row 1 with values from mat[:2][1:6]
@@ -402,16 +407,29 @@ function dispelement(int i,int j, int off_x, int off_y) {
     _sys.colors(0,0,0);
 }
 
+function displayline(int off_x, int off_y, int row) {
+    _sys.row_column(row+1,1);
+    _sys.colors(7,96,40);
+    dispelementraw(row,0, off_x, 0);
+    _sys.colors(0,0,0);
+    for (int jcol in <1,y_viewsize>) {
+        _sys.row_column(row+1,columnsize*jcol);
+        dispelement(row,jcol, off_x, off_y);
+    }
+}
+
 //Displaying all elements on screen
 function displayall(int off_x, int off_y) {
     int i,j;
     _sys.cls();
     _sys.colors(7,96,40);
+    //display column numbers
     for (i in <x_viewsize>) {
         _sys.row_column(i+1,1);
         dispelementraw(i,0, off_x, 0);
     }
 
+    //display line numbers
     for (j in <y_viewsize>) {
         _sys.row_column(1,columnsize*j);
         dispelementraw(0,j, 0, off_y);
@@ -488,11 +506,12 @@ function showelement(int i, int j, int off_x, int off_y) {
 
 function handlingmovement() {
     bool redisplay=false;
+    int scroll=0;
     if (i < 1) {
         i=1;
         if (off_x > 0) {
             off_x--;
-            redisplay=true;
+            scroll=-1;
         }
     }
     else
@@ -500,7 +519,7 @@ function handlingmovement() {
             i = x_viewsize-1;
             if ((off_x+i) < x_max-1) {
                 off_x++;
-                redisplay=true;
+                scroll=1;
             }
         }
     if (j < 1) {
@@ -520,6 +539,19 @@ function handlingmovement() {
         }
     if (redisplay)
         displayall(off_x, off_y);
+    if (scroll) {
+        _sys.scrollmargin(2, codeline-inputsection);
+        if (scroll==1) {
+            _sys.scroll_up(1);
+        }
+        else
+            _sys.scroll_down(1);
+
+        //We need to display the first line
+        _sys.scrollmargin(0,coords[1]);
+        _sys.clearscreen(3);
+        displayline(off_x, off_y, i);
+    }
     showelement(i,j, off_x, off_y);
 }
 
@@ -567,7 +599,7 @@ while (s[0].ord() != 17) {
         s=_sys.getchar();
         continue;
     }
-    
+
     //Modification of a formula
     if (modedit) {
         string dsp = I+","+J+": ";
@@ -620,7 +652,7 @@ while (s[0].ord() != 17) {
             inputvalue = inputvalue[:posinstring-1]+s+inputvalue[posinstring-1:];
             posinstring++;
         }
-            
+
         if (posinstring > inputvalue.size()+1)
             posinstring = inputvalue.size()+1;
         if (posinstring <= 0)
@@ -986,6 +1018,7 @@ while (s[0].ord() != 17) {
     s=_sys.getchar();
     continue;
 }
+
 
 
 
