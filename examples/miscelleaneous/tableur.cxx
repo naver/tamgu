@@ -294,7 +294,7 @@ function writecsv(string f) {
             dsp = dsp.trim();
             if (dsp[-1] == '!')
                 dsp=dsp[:-1];
-            if (!dsp[0].isdigit()) {
+            if (!dsp[0].isdigit() and dsp[0] != '-') {
                 if (dsp[0] == "'")
                     dsp=dsp[1:];
                 sv.write(dsp.json());
