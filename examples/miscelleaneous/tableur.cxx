@@ -74,7 +74,26 @@ int I, J;
 int off_x = 0;
 int off_y = 0;
 bool modedit = false;
+//----------------------------------------------------------------------
+//mat is the actual matrix in which computing is done...
+fmatrix mat(x_max,y_max);
 
+//inputs is used to handle modifications on: filenames and size.
+//If you want to enrich tamgucalc, you might add a new key
+mapss inputs;
+string inputkey;
+string inputvalue;
+inputs["Size"] = ""+(x_viewsize-1)+":"+(y_viewsize-1);
+inputs["File"] = _args[0];
+inputs["Go(r,c)"] = "1,1";
+inputs["Column"] = columnsize;
+
+if (_args[0] != "")
+    inputs["Data(raw csv)"] = _args[0]+".csv";
+else
+    inputs["Data(raw csv)"] = "";
+
+//----------------------------------------------------------------------
 //A few predefined methods
 \(defun put (i j k) (key (key v_matrix i) j (string k)))
 \(defun average (x) (/ (sum x) (size x)))
@@ -126,22 +145,6 @@ function upto(fvector v, float val) {
     //If the value is not found, the list is empty...
     return (v[:vi]);
 }
-//mat is the actual matrix in which computing is done...
-fmatrix mat(x_max,y_max);
-
-//inputs is used to handle modifications on: filenames and size.
-//If you want to enrich tamgucalc, you might add a new key
-mapss inputs;
-string inputkey;
-string inputvalue;
-inputs["Size"] = ""+(x_viewsize-1)+":"+(y_viewsize-1);
-inputs["File"] = _args[0];
-inputs["Go(r,c)"] = "1,1";
-
-if (_args[0] != "")
-    inputs["Data(raw csv)"] = _args[0]+".csv";
-else
-    inputs["Data(raw csv)"] = "";
 
 
 //initialisation of v_matrix
@@ -191,6 +194,7 @@ function readtable(string f) {
                 x_bound = cut[5];
                 y_bound = cut[6];
                 inputs["Size"] = ""+(x_viewsize-1)+":"+(y_viewsize-1);
+                inputs["Column"] = columnsize;
                 codeline = x_viewsize+inputsection;
                 mat.dimension(x_max,y_max);
                 beg=false;
@@ -290,8 +294,11 @@ function writecsv(string f) {
             dsp = dsp.trim();
             if (dsp[-1] == '!')
                 dsp=dsp[:-1];
-            if (!dsp[0].isdigit())
+            if (!dsp[0].isdigit()) {
+                if (dsp[0] == "'")
+                    dsp=dsp[1:];
                 sv.write(dsp.json());
+            }
             else
                 sv.write(dsp);
         }
@@ -362,8 +369,10 @@ function evaluation(int off_x, int off_y) {
                 continue;
             i = ky[:"_"][:-1];
             j = short(ky["_":][1:]);
+            inputvalue = formulas[ky];
+            inputvalue=inputvalue.replace("λ","lambda");
             try {
-                val = lisp_interpreter.eval(formulas[ky]);
+                val = lisp_interpreter.eval(inputvalue);
                 value = val.float();
                 if (value != mat[i:j])
                     stop=false;
@@ -392,6 +401,10 @@ function evaluation(int off_x, int off_y) {
 //Display one element, we check its size
 function dispelementraw(int i,int j, int off_x, int off_y) {
     string u = v_matrix[i+off_x][j+off_y];
+    if (u[0] == "'") {
+        print(u);
+        return;
+    }
     if (u.size() >= columnsize-1)
         u=u[:columnsize-2]+"_";
     print(u);
@@ -399,6 +412,10 @@ function dispelementraw(int i,int j, int off_x, int off_y) {
 
 function dispelement(int i,int j, int off_x, int off_y) {
     string u = v_matrix[i+off_x][j+off_y];
+    if (u[0] == "'") {
+        print(u);
+        return;
+    }
     if (u[-1] == "!")
         _sys.colors(0,39,102);
     if (u.size() >= columnsize-1)
@@ -456,6 +473,8 @@ function displayerr(string s) {
 
 //Messages are displayed on line 3
 function displaymessage(string s) {
+    _sys.row_column(codeline-2,0);
+    _sys.eraseline(2);
     _sys.row_column(codeline-3,0);
     _sys.eraseline(2);
     print(s);
@@ -565,15 +584,15 @@ if (inputs["File"]=="")
 else
     readtable(inputs["File"]);
 
-string msgform="%1Arrows%2 select. %1Enter%2 to add cell. %1..%2 define range. %1Balance parentheses%2 to exit;";
+string msgform="%1Arrows%2 select / %1Enter%2 to add cell / %1..%2 or %1:%2 define range / %1Balance parentheses%2 to exit;";
 msgform=msgform.format(colorsel,colornrm);
-string helpmsg = "%1'('%2:Formula %1Ctrl-s%2:Save %1Ctrl-w%2:Save as %1Crld-d%2:Save Data %1Ctrl-r%2:Resize %1Ctrl-g%2:Goto %1Ctrl-q%2:Quit";
+string helpmsg = "%1Ctrl-s%2:Save         / %1Ctrl-w%2:Save as     / %1Crld-d%2:Save Data\n%1Ctrl-r%2:Display Size / %1Ctrl-t%2:Column Size / %1Ctrl-g%2:Goto";
 helpmsg = helpmsg.format(colorsel,colornrm);
-string msgbase = "%1Ctrl-b%2: Help %1Ctrl-e%2: Edit %1Ctrl-q%2: Quit";
+string msgbase = "%1Ctrl-b%2: Help / %1Ctrl-e%2: Edit / %1Ctrl-q%2: Quit";
 msgbase =  msgbase.format(colorsel,colornrm);
 displaymessage(msgbase);
 
-string msgedit = "%1Edit Mode%2... %1Esc%2=abort %1Enter%2=record";
+string msgedit = "%1Edit Mode%2... %1Esc%2=abort / %1Enter%2=record";
 msgedit =  msgedit.format(colorsel,colornrm);
 
 showelement(i,j, off_x, off_y);
@@ -605,8 +624,20 @@ while (s[0].ord() != 17) {
 
     //Modification of a formula
     if (modedit) {
+        inputvalue = inputvalue.replace(colorparenth,"");
+        inputvalue = inputvalue.replace(colornrm,"");
+
         string dsp = I+","+J+": ";
-        if (s.ord() == 27) {
+        if (s[0].ord() == 1) {
+            //ctrl-a: jumping to beginning of line
+            posinstring = 1;
+        }
+        elif (s[0].ord() == 5) {
+            //ctrl-e: jumping to end of the line
+            posinstring = inputvalue.size()+1;
+        }
+        elif (s.ord() == 27) {
+            //ESC: aborting edition
             modedit=false;
             inputvalue = formulas[ky];
             posinstring = inputvalue.size()+1;
@@ -617,33 +648,46 @@ while (s[0].ord() != 17) {
             showelement(i,j, off_x, off_y);
         }
         elif (s.ord() == 11) {
-            //ctrl-k
+            //ctrl-k: erasing to the end of the line
             inputvalue =inputvalue[:posinstring-1];
             posinstring = inputvalue.size()+1;
         }
         elif (s == "\n") {
+            //ENTER: recording the edition
             modedit=false;
-            formulas[ky] = inputvalue;
-            posinstring = inputvalue.size()+1;
-            //We check the parentheses balance, to switch to selection mode
-            if (inputvalue.count("(") != inputvalue.count(')')) {
-                selection=true;
-                ci = I;
-                cj = J;
-            }
+            if (formulas.test(ky))
+                formulas[ky] = inputvalue;
             else
-                evaluation(off_x,off_y);
+                v_matrix[I][J] = inputvalue;
+            posinstring = inputvalue.size()+1;
+            //There is not character left, we kill the formula
+            if (inputvalue=="") {
+                if (formulas.test(ky))
+                    formulas.pop(ky);
+                v_matrix[I][J] = "0";
+            }
+            else {
+                //We check the parentheses balance, to switch to selection mode
+                if (inputvalue.count("(") != inputvalue.count(')')) {
+                    selection=true;
+                    ci = I;
+                    cj = J;
+                }
+                else
+                    evaluation(off_x,off_y);
+            }
             displaymessage(msgbase);
             showelement(i,j, off_x, off_y);
         }
         elif (s.ord() == 127) {
+            //We delete the character on the left
             if (posinstring > 1) {
                 inputvalue = inputvalue[:posinstring-2]+inputvalue[posinstring-1:];
                 posinstring--;
             }
         }
         elif (s == _sys_keydel) {
-            //We delete the left character
+            //We delete the right character
             if (posinstring <= inputvalue.size())
                 inputvalue = inputvalue[:posinstring-1]+inputvalue[posinstring:];
         }
@@ -653,6 +697,18 @@ while (s[0].ord() != 17) {
             posinstring--;
         else {
             inputvalue = inputvalue[:posinstring-1]+s+inputvalue[posinstring-1:];
+            if (s == ')') {
+                //highlighting matching parentheses
+                int e = posinstring-1;
+                while (e>0 and inputvalue[e:posinstring].count("(") != inputvalue[e:posinstring].count(")")) e--;
+                inputvalue = inputvalue[:e]+colorparenth+inputvalue[e]+colornrm+inputvalue[e+1:];
+            }
+            else {
+                if (posinstring >= 6 and inputvalue[posinstring-6:posinstring] == "lambda") {
+                    inputvalue[posinstring-6:posinstring] = "λ";
+                    posinstring-=5;
+                }
+            }
             posinstring++;
         }
 
@@ -663,6 +719,7 @@ while (s[0].ord() != 17) {
         _sys.row_column(codeline-1,0);
         _sys.eraseline(2);
         _sys.row_column(codeline-1,0);
+
         print(dsp+inputvalue);
         _sys.row_column(codeline-1,dsp.size()+posinstring);
         s=_sys.getchar();
@@ -670,10 +727,13 @@ while (s[0].ord() != 17) {
     }
 
     //ctrl-e: edit mode
-    if (s[0].ord() == 5 && formulas.test(ky)) {
+    if (s[0].ord() == 5) {
         modedit = true;
         string dsp = I+","+J+": ";
-        inputvalue = formulas[ky];
+        if (formulas.test(ky))
+            inputvalue = formulas[ky];
+        else
+            inputvalue = v_matrix[I][J];
         posinstring = inputvalue.size()+1;
         displaymessage(msgedit);
         _sys.row_column(codeline-1,dsp.size()+posinstring);
@@ -793,6 +853,13 @@ while (s[0].ord() != 17) {
             j = J-off_y;
             displayall(off_x,off_y);
         }
+        elif (inputkey == "Column") {
+            columnsize = inputvalue;
+            if (columnsize < 4 or columnsize >= 20)
+                columnsize = 8;
+            inputs[inputkey] = inputvalue;
+            displayall(off_x, off_y);
+        }
         elif (inputkey=="Size") {
             ivector iv = inputvalue.split(":");
             if (iv == 2) {
@@ -840,7 +907,7 @@ while (s[0].ord() != 17) {
             if (selection) {
                 string subkey;
                 //We test if a ".." has been introduced, in that case, we compute the interval between the structures
-                if (lasti != -1 && formulas[ky][-2:] == '..') {
+                if (lasti != -1 && (formulas[ky][-2:] == '..' or formulas[ky][-1] == ":")) {
                     if (lasti > I)
                         [lasti,I] = [I,lasti];
                     if (lastj > J)
@@ -930,18 +997,26 @@ while (s[0].ord() != 17) {
             inputvalue=inputs[inputkey];
             print(inputkey+": ",inputvalue);
         }
+        elif (s[0].ord() == 20) { //ctrl-t
+            inputkey = "Column";
+            inputvalue=inputs[inputkey];
+            print(inputkey+": ",inputvalue);
+        }
         showelement(i,j, off_x, off_y);
         s=_sys.getchar();
         continue;
     }
 
-    if (inputkey == "" and formulas.test(ky) and ci == I and cj == J) {
+    if (inputkey == "" and formulas.test(ky)) {
         formulas[ky]+=s;
+        if (formulas[ky][-6:] == "lambda")
+            formulas[ky][-6:] = "λ";
         formulas[ky] = formulas[ky].replace(colorparenth,"");
         formulas[ky] = formulas[ky].replace(colornrm,"");
         //When the "(...)" balances, we exit the selection mode
         if (formulas[ky].count('(') > formulas[ky].count(")")) {
             if (s == ')') {
+                //highlighting matching parentheses
                 int e = formulas[ky].size()-2;
                 while (e>0 and formulas[ky][e:].count("(") != formulas[ky][e:].count(")")) e--;
                 formulas[ky] = formulas[ky][:e]+colorparenth+formulas[ky][e]+colornrm+formulas[ky][e+1:];
@@ -950,6 +1025,10 @@ while (s[0].ord() != 17) {
             displaymessage(msgform);
         }
         else {
+            //We do not add anymore characters
+            if (s != ')')
+                formulas[ky]=formulas[ky][:-1];
+                
             selection=false;
             displaymessage('Ready to compute!!!');
         }
