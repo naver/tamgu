@@ -1728,7 +1728,16 @@ Tamgu* TamguInstructionAPPLYOPERATIONROOT::Returnlocal(TamguGlobal* g, Tamgu* pa
 		}
 	}
 
-	return new TamguInstructionCompute(this, g);
+    try {
+        return new TamguInstructionCompute(this, g);
+    }
+    catch(TamguRaiseError* msg) {
+        TamguCode* code = globalTamgu->Getcurrentcode();
+        msg->filename = code->filename;
+        msg->left = code->current_start;
+        msg->right = code->current_end;
+        throw msg;
+    }
 }
 
 //Composition returns a potential ROOT instruction that could be merged within a ROOT...

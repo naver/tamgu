@@ -4211,6 +4211,12 @@ public:
             case a_add:
                 e = new e_add(g);
                 break;
+            default: {
+                stringstream msg;
+                msg << "Invalid operation: '" << g->Getsymbol(act) << "'";
+                throw new TamguRaiseError(msg);
+            }
+                
         }
         
         if (global) {
@@ -4280,7 +4286,7 @@ public:
     TamguInstructionCompute(TamguInstructionAPPLYOPERATIONROOT* r, TamguGlobal* g, Tamgu* parent = NULL) : TamguComputeValue(r, true,  a_short, g, parent) {}
     
     Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
-        Tamgu* r = op->Eval(aNULL, aNULL, idthread);
+        Tamgu* r = op->Eval(res, aNULL, idthread);
         
         if (inter == aAFFECTATION) {
             res->Put(aNULL, r, idthread);

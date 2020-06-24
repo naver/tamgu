@@ -1977,11 +1977,12 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                     i = 1;
                 case a__foldl:
                     for (; i < szl; i++) {
+                        a->Setreference();
                         lsp.values[1] = a;
                         lsp.values[2] = v1->getvalue(i);
                         a = lsp.Eval(aNULL, aNULL, idthread);
                         if (a != lsp.values[1])
-                            lsp.values[1]->Release();
+                            lsp.values[1]->Resetreference();
                     }
                     v1->Release();
                     return a;
@@ -1991,11 +1992,12 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                     if (!i)
                         i = szl-1;
                     for (;i >= 0; i--) {
+                        a->Setreference();
                         lsp.values[1] = a;
                         lsp.values[2] = v1->getvalue(i);
                         a = lsp.Eval(aNULL, aNULL, idthread);
                         if (a != lsp.values[1])
-                            lsp.values[1]->Release();
+                            lsp.values[1]->Resetreference();
                     }
                     v1->Release();
                     return a;
@@ -2005,12 +2007,13 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                     l = globalTamgu->Providelisp();
                     l->push(a);
                     for (; i < szl; i++) {
+                        a->Setreference();
                         lsp.values[1] = a;
                         lsp.values[2] = v1->getvalue(i);
                         a = lsp.Eval(aNULL, aNULL, idthread);
                         l->push(a);
                         if (a != lsp.values[1])
-                            lsp.values[1]->Release();
+                            lsp.values[1]->Resetreference();
                     }
                     a->Release();
                     v1->Release();
@@ -2023,12 +2026,13 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                     l = globalTamgu->Providelisp();
                     l->push(a);
                     for (;i >= 0; i--) {
+                        a->Setreference();
                         lsp.values[1] = a;
                         lsp.values[2] = v1->getvalue(i);
                         a = lsp.Eval(aNULL, aNULL, idthread);
                         l->push(a);
                         if (a != lsp.values[1])
-                            lsp.values[1]->Release();
+                            lsp.values[1]->Resetreference();
                     }
                     a->Release();
                     v1->Release();
