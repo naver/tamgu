@@ -3,8 +3,8 @@ echo ------------------------------------------------------------------
 echo
 echo Compiling tamgu
 echo
-echo To compile the Python library (example):
-echo 	-pythoninclude /usr/include/python3.7m -pythonversion 3.7m
+echo To compile the Python library on Linux: -pythoninclude /usr/include/python3.7m -pythonversion 3.7m
+echo
 echo ------------------------------------------------------------------
 
 if [ "-h" = "$1" ]; then

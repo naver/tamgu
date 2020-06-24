@@ -263,7 +263,7 @@ cleanlibs:
     f.write("C++11Flag = -std=c++11 -DTamgu_REGEX -DMAVERICK -DAPPLE\n")
     f.write("INTELINT = -DINTELINTRINSICS -mavx2 -DAVXSUPPORT\n")
     f.close();
-    print("You can launch 'make all' now")
+    print("You can launch 'make all libs' now")
     sys.exit(0)
 ##############################################
 sourcegui = ""
