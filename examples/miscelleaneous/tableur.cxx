@@ -203,6 +203,7 @@ function upto(fvector v, float val) {
     return (v[:vi]);
 }
 
+//------------------------------------------------------------------
 
 //initialisation of v_matrix
 function initialisation() {
@@ -366,87 +367,79 @@ function writecsv(string f) {
 
 //------------------- The Code ---------
 //Formulas evaluation
-mapsi dependencies;
-bool firstevaluation=true;
-int maxdependency;
+map dependencies;
 
 function checkdependencies() {
-    string ky,u,k;
+    string yk,u,k;
     svector cells;
     int col,row;
     int beg,end;
     vector v;
     string msg;
     dependencies.clear();
-    maxdependency = 0;
     
-    for (ky in formulas) {
-        dependencies[ky] = 0;
-        if ("defun " in formulas[ky])
+    for (yk in formulas) {
+        dependencies[yk] = [];
+        if ("defun " in formulas[yk])
             continue;
-        cells = r"mat%[%d+:%d+%]" in formulas[ky];
+        cells = r"mat%[%d+:%d+%]" in formulas[yk];
         for (u in cells) {
             k = u["[":"]"][1:-1];
             k[":"]="_";
-            if (formulas.test[k]) {
-                dependencies[ky]++;
-                maxdependency = max(dependencies[ky], maxdependency);
+            if (formulas.test(k)) {
+                dependencies[yk].push(k);
             }
         }
-        cells = r"mat%[%d+:%]%[%d+:%d+%]" in formulas[ky];
+        cells = r"mat%[%d+:%]%[%d+:%d+%]" in formulas[yk];
         for (u in cells) {
             row = u["[":":"][1:-1];
             beg = u["][":":"][2:-1];
             end = u["][":][":":][1:-1];
             for (col=beg; col < end; col++) {
                 k = row+"_"+col;
-                if (formulas.test[k]) {
-                    dependencies[ky]++;
-                    maxdependency = max(dependencies[ky], maxdependency);
+                if (formulas.test(k)) {
+                    dependencies[yk].push(k);
                 }
             }
         }
-        cells = r"mat%[%d+:%]%[%d+:%]" in formulas[ky];
+        cells = r"mat%[%d+:%]%[%d+:%]" in formulas[yk];
         for (u in cells) {
             row = u["[":":"][1:-1];
             beg = u["][":":"][2:-1];
             end = y_max;
             for (col=beg; col < end; col++) {
                 k = row+"_"+col;
-                if (formulas.test[k]) {
-                    dependencies[ky]++;
-                    maxdependency = max(dependencies[ky], maxdependency);
+                if (formulas.test(k)) {
+                    dependencies[yk].push(k);
                 }
             }
         }
-        cells = r"mat%[:%d+%]%[%d+:%d+%]" in formulas[ky];
+        cells = r"mat%[:%d+%]%[%d+:%d+%]" in formulas[yk];
         for (u in cells) {
             col = u[":":"]"][1:-1];
             beg = u["][":":"][2:-1];
             end = u["][":][":":][1:-1];
             for (row = beg; row < end; row++) {
                 k = row+"_"+col;
-                if (formulas.test[k]) {
-                    dependencies[ky]++;
-                    maxdependency = max(dependencies[ky], maxdependency);
+                if (formulas.test(k)) {
+                    dependencies[yk].push(k);
                 }
             }
         }
-        cells = r"mat%[:%d+%]%[%d+:%]" in formulas[ky];
+        cells = r"mat%[:%d+%]%[%d+:%]" in formulas[yk];
         for (u in cells) {
             col = u[":":"]"][1:-1];
             beg = u["][":":"][2:-1];
             end = x_max;
             for (row = beg; row < end; row++) {
                 k = row+"_"+col;
-                if (formulas.test[k]) {
-                    dependencies[ky]++;
-                    maxdependency = max(dependencies[ky], maxdependency);
+                if (formulas.test(k)) {
+                    dependencies[yk].push(k);
                 }
             }
         }
+        dependencies[yk] = dependencies[yk].unique();
     }
-    maxdependency++;
 }
 
 function evaluation(int off_x, int off_y) {
@@ -501,23 +494,49 @@ function evaluation(int off_x, int off_y) {
         }
     }
 
+    checkdependencies();
+    mapsi compiled;
+    string yk;
+    string lastk;
+    bool cont;
+    int loop;
     //Not very efficient, we apply until nothing is modified again
-    for (o in <formulas.size()>) {
+    while (!stop) {
+        if (loop > formulas.size()) {
+            i = lastk[:"_"][:-1];
+            j = short(lastk["_":][1:]);
+            v_matrix[i][j] = "#LOOPERR";
+            msg = "Error: Two formulas expect their results from each other";
+            break;
+        }
+        stop=true;
+        loop++;
         for (ky in formulas) {
             //functions are skipped
-            if ("defun " in formulas[ky])
+            if ("defun " in formulas[ky] or compiled.test(ky))
                 continue;
-            
+            cont = false;
+            for (yk in dependencies[ky]) {
+                if (!compiled.test(yk)) {
+                    lastk = ky;
+                    cont=true;
+                    stop=false;
+                    break;
+                }
+            }
+            //Missing computation
+            if (cont)
+                continue;
+
+            compiled[ky] = true;
+
             i = ky[:"_"][:-1];
             j = short(ky["_":][1:]);
             inputvalue = formulas[ky];
             inputvalue=inputvalue.replace("λ","lambda");
             try {
                 val = lisp_interpreter.eval(inputvalue);
-                value = val.float();
-                if (value != mat[i:j])
-                    stop=false;
-                mat[i:j] = value;
+                mat[i:j] = val.float();
                 v_matrix[i][j] = val.string();
                 v_matrix[i][j]+="!";
             }
@@ -531,8 +550,6 @@ function evaluation(int off_x, int off_y) {
                 v_matrix[i][j] = "#ERR";
             }
         }
-        if (stop)
-            break;
     }
     displayall(off_x, off_y);
     displayerr(msgerr);
@@ -847,20 +864,22 @@ while (s[0].ord() != 17) {
         elif (s == _sys_keyleft)
             posinstring--;
         else {
-            inputvalue = inputvalue[:posinstring-1]+s+inputvalue[posinstring-1:];
-            if (s == ')') {
-                //highlighting matching parentheses
-                int e = posinstring-1;
-                while (e>0 and inputvalue[e:posinstring].count("(") != inputvalue[e:posinstring].count(")")) e--;
-                inputvalue = inputvalue[:e]+colorparenth+inputvalue[e]+colornrm+inputvalue[e+1:];
-            }
-            else {
-                if (posinstring >= 6 and inputvalue[posinstring-6:posinstring] == "lambda") {
-                    inputvalue[posinstring-6:posinstring] = "λ";
-                    posinstring-=5;
+            if (s != _sys_keyup && s != _sys_keydown) {
+                inputvalue = inputvalue[:posinstring-1]+s+inputvalue[posinstring-1:];
+                if (s == ')') {
+                    //highlighting matching parentheses
+                    int e = posinstring-1;
+                    while (e>0 and inputvalue[e:posinstring].count("(") != inputvalue[e:posinstring].count(")")) e--;
+                    inputvalue = inputvalue[:e]+colorparenth+inputvalue[e]+colornrm+inputvalue[e+1:];
                 }
+                else {
+                    if (posinstring >= 6 and inputvalue[posinstring-6:posinstring] == "lambda") {
+                        inputvalue[posinstring-6:posinstring] = "λ";
+                        posinstring-=5;
+                    }
+                }
+                posinstring++;
             }
-            posinstring++;
         }
 
         if (posinstring > inputvalue.size()+1)
