@@ -1943,7 +1943,6 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                     a = v1->getvalue(0);
             }
             
-        
             long szl = v1->Size();
             
             v0 = values[1]->Eval(aNULL, aNULL, idthread);
@@ -1972,19 +1971,23 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             
             Tamgulisp* l;
             i = 0;
+            a->Setreference();
+            lsp.values[1] = a;
             switch (n) {
                 case a__foldl1:
                     i = 1;
                 case a__foldl:
                     for (; i < szl; i++) {
-                        a->Setreference();
-                        lsp.values[1] = a;
                         lsp.values[2] = v1->getvalue(i);
                         a = lsp.Eval(aNULL, aNULL, idthread);
-                        if (a != lsp.values[1])
+                        if (a != lsp.values[1]) {
                             lsp.values[1]->Resetreference();
+                            a->Setreference();
+                            lsp.values[1] = a;
+                        }
                     }
                     v1->Release();
+                    a->Protect();
                     return a;
                 case a__foldr1:
                     i = szl-2;
@@ -1992,14 +1995,16 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                     if (!i)
                         i = szl-1;
                     for (;i >= 0; i--) {
-                        a->Setreference();
-                        lsp.values[1] = a;
                         lsp.values[2] = v1->getvalue(i);
                         a = lsp.Eval(aNULL, aNULL, idthread);
-                        if (a != lsp.values[1])
+                        if (a != lsp.values[1]) {
                             lsp.values[1]->Resetreference();
+                            a->Setreference();
+                            lsp.values[1] = a;
+                        }
                     }
                     v1->Release();
+                    a->Protect();
                     return a;
                 case a__scanl1:
                     i = 1;
@@ -2007,15 +2012,16 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                     l = globalTamgu->Providelisp();
                     l->push(a);
                     for (; i < szl; i++) {
-                        a->Setreference();
-                        lsp.values[1] = a;
                         lsp.values[2] = v1->getvalue(i);
                         a = lsp.Eval(aNULL, aNULL, idthread);
                         l->push(a);
-                        if (a != lsp.values[1])
+                        if (a != lsp.values[1]) {
                             lsp.values[1]->Resetreference();
+                            a->Setreference();
+                            lsp.values[1] = a;
+                        }
                     }
-                    a->Release();
+                    a->Resetreference();
                     v1->Release();
                     return l;
                 case a__scanr1:
@@ -2026,15 +2032,16 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                     l = globalTamgu->Providelisp();
                     l->push(a);
                     for (;i >= 0; i--) {
-                        a->Setreference();
-                        lsp.values[1] = a;
                         lsp.values[2] = v1->getvalue(i);
                         a = lsp.Eval(aNULL, aNULL, idthread);
                         l->push(a);
-                        if (a != lsp.values[1])
+                        if (a != lsp.values[1]) {
                             lsp.values[1]->Resetreference();
+                            a->Setreference();
+                            lsp.values[1] = a;
+                        }
                     }
-                    a->Release();
+                    a->Resetreference();
                     v1->Release();
                     return l;
 
