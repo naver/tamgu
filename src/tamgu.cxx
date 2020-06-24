@@ -837,7 +837,8 @@ Exporting void TamguGlobal::Getdebuginfo(string& localvariables, string& allvari
 
         stackline->Variables(vars);
         for (size_t j = 0; j < vars.size(); j++) {
-            a = stackline->Declaration(vars[j]);
+            //a = stackline->Declaration(vars[j]);
+            a = globalTamgu->Getvariable(idthread, vars[j]);
             var << Getsymbol(vars[j]) << " = ";
             if (!shortname)
                 var << a->String();
