@@ -10,6 +10,11 @@ if [ "-h" = "$1" ]; then
    exit
 fi
 
+if [ "-help" = "$1" ]; then
+   python install.py -help
+   exit
+fi
+
 if [ "--help" = "$1" ]; then
    python install.py -help
    exit
