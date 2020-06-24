@@ -1312,7 +1312,13 @@ Tamgu* TamguCallFunctionTaskell::GetTaskell5(Tamgu* context, Tamgu* environment,
         return aNULL;
 
     if (klist->Size() == 0 && !klist->isInfinite()) {
-        kcont = init;
+        key = bd->lambdadomain.instructions[4];
+        if (key == aZERO || key == aONE) {// this is a scan
+            kcont = klist->Newinstance(idthread);
+            kcont->Push(init);
+        }
+        else
+            kcont = init;
         init = NULL;
         return kcont;
     }
@@ -1327,7 +1333,7 @@ Tamgu* TamguCallFunctionTaskell::GetTaskell5(Tamgu* context, Tamgu* environment,
     bool direct = key->Boolean();
 
     if (key == aZERO || key == aONE) // this is a scan
-    kcont = klist->Newinstance(idthread);
+        kcont = klist->Newinstance(idthread);
 
 
     if (kcont != NULL) {

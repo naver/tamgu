@@ -41,7 +41,7 @@
 #include "tamgulisp.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2020.06.22.19";
+const char* tamgu_version = "Tamgu 1.2020.06.24.10";
 
 Tamgu* booleantamgu[2];
 
@@ -2005,15 +2005,27 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("callcommon"); //224 a_callcommon
     Createid("_map"); //225 _map
     Createid("_filter"); //226 _filter
-    Createid("lisp"); //227 a_lisp
+    Createid("_takewhile"); //227 _takewhile
+    Createid("_dropwhile"); //228 _dropwhile
+    Createid("_zip"); //229 _zip
+    Createid("_zipwith"); //230 _zipwith
+    Createid("_foldl"); //231 folding and scaning operations in Lisp
+    Createid("_scanl"); //232
+    Createid("_foldr"); //233
+    Createid("_scanr"); //234
+    Createid("_foldl1"); //235
+    Createid("_scanl1"); //236
+    Createid("_foldr1"); //237
+    Createid("_scanr1"); //238
+    Createid("lisp"); //238 a_lisp
 
     //This is a simple hack to handle "length" a typical Haskell operator as "size"...
     //Note that there will be a useless index
 
-    Createid("length"); //228
+    Createid("length"); //239
     symbolIds["length"] = a_size;
 
-    Createid("not"); //225
+    Createid("not"); //240
     symbolIds["not"] = a_negation;
 
     symbolIds["and"] = a_booleanand;

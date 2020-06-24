@@ -751,6 +751,8 @@ f.close()
 
 print('')
 print('')
-print("All is ok... You can launch 'make all' now")
+print("All is ok... You can compile now")
+print(" 'make all'  to compile main lib and executable")
+print(" 'make libs' to compile the libs")
 print('')
 

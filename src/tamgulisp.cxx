@@ -88,6 +88,19 @@ bool Tamgulisp::InitialisationModule(TamguGlobal* global, string version) {
     
     global->lispactions[a__map] = P_THREE;
     global->lispactions[a__filter] = P_THREE;
+    global->lispactions[a__takewhile] = P_THREE;
+    global->lispactions[a__dropwhile] = P_THREE;
+    global->lispactions[a__zip] = P_ATLEASTTHREE;
+    global->lispactions[a__zipwith] = P_ATLEASTFOUR;
+    global->lispactions[a__foldl] = P_FOUR;
+    global->lispactions[a__foldr] = P_FOUR;
+    global->lispactions[a__foldl1] = P_THREE;
+    global->lispactions[a__foldr1] = P_THREE;
+    global->lispactions[a__scanl] = P_FOUR;
+    global->lispactions[a__scanr] = P_FOUR;
+    global->lispactions[a__scanl1] = P_THREE;
+    global->lispactions[a__scanr1] = P_THREE;
+
     global->lispactions[a_or] = P_ATLEASTTHREE;
     global->lispactions[a_xor] = P_ATLEASTTHREE;
     global->lispactions[a_and] = P_ATLEASTTHREE;
@@ -106,7 +119,7 @@ bool Tamgulisp::InitialisationModule(TamguGlobal* global, string version) {
     global->lispactions[a_callcommon] = P_ATLEASTTWO;
     global->lispactions[a_callmethod] = P_ATLEASTTWO;
 
-    global->lispactions[a_affectation] = P_THREE;
+    global->lispactions[a_affectation] = P_THREE; //setq
     global->lispactions[a_quote] = P_TWO;
     global->lispactions[a_cons] = P_THREE;
     global->lispactions[a_cond] = P_ATLEASTTWO;
@@ -385,7 +398,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
     
     Tamgu* a = values[0];
     long i, n;
-    Tamgu* v1;
+    Tamgu* v1 = NULL;
     char ret;
     
     n = a->Action();
@@ -828,7 +841,6 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 //it has to ba a function call
             n = a->Name();
             
-            v0 = NULL;
             if (globalTamgu->isDeclared(n, idthread))
                 v0 = globalTamgu->Getdeclaration(n, idthread);
             else
@@ -921,10 +933,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             //it has to ba a function call
             n = a->Name();
             
-            if (globalTamgu->isDeclared(n, idthread))
-                v0 = globalTamgu->Getdeclaration(n, idthread);
-            else
-                v0 = globalTamgu->Declaration(n, idthread);
+            v0 = globalTamgu->Declaration(n, idthread);
 
             if (v0->Type() == a_lisp) {
                 TamguCallLispFunction call(v0);
@@ -946,10 +955,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
         {
             n = a->Name();
             
-            if (globalTamgu->isDeclared(n, idthread))
-                v0 = globalTamgu->Getdeclaration(n, idthread);
-            else
-                v0 = globalTamgu->Declaration(n, idthread);
+            v0 = globalTamgu->Declaration(n, idthread);
             
             TamguCallLispFunction call(v0);
             
@@ -1345,7 +1351,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             a = values[2]->Eval(contextualpattern, aNULL, idthread);
             checkerror(a);
             
-            if (globalTamgu->isDeclared(n, idthread)) {
+            if (contextualpattern->isDeclared(n)) {
                 v1 = globalTamgu->Getdeclaration(n, idthread);
                 if (v1->isAtom() && v1->Type() == a->Type()) {
                     v1->Putvalue(a, idthread);
@@ -1378,8 +1384,10 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             Tamgulisp* tl = globalTamgu->Providelisp();
             v1 = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerrorwithrelease(v1, tl);
-            if (!v1->isVectorContainer())
+            if (!v1->isVectorContainer()) {
+                v1->Release();
                 return globalTamgu->Returnerror("Can only 'append' to a list", idthread);
+            }
             long j;
             for (j = 0; j < v1->Size(); j++)
                 tl->pushatom(v1->getvalue(j));
@@ -1485,9 +1493,11 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 return globalTamgu->Returnerror("Cannot evaluate this expression", idthread);
 
             v1 = values[2]->Eval(contextualpattern, aNULL, idthread);
-            if (!v1->isVectorContainer())
+            if (!v1->isVectorContainer()) {
+                v1->Release();
                 return globalTamgu->Returnerror("Wrong list of arguments for 'apply'", idthread);
-
+            }
+            
             Tamgulisp lsp(-1);
             lsp.values.push_back(globalTamgu->Providelispsymbols(a->Name()));
             for (i = 0; i < v1->Size(); i++)
@@ -1509,8 +1519,10 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             }
             v1 = values[2]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v1);
-            if (!v1->isVectorContainer())
+            if (!v1->isVectorContainer()) {
+                v1->Release();
                 return globalTamgu->Returnerror("Wrong list of arguments for '_map'", idthread);
+            }
             //We prepare our solution... Either the content of v0 is one or two
             
             Tamgulisp lsp(-1);
@@ -1594,13 +1606,15 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 v0 = values[1];
             else {
                 if (!v0->isLisp() && !globalTamgu->checkoperator(v0->Action()))
-                    return globalTamgu->Returnerror("Wrong list of operations for '_map'", idthread);
+                    return globalTamgu->Returnerror("Wrong list of operations for '_filter'", idthread);
             }
 
             v1 = values[2]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v1);
-            if (!v1->isVectorContainer())
+            if (!v1->isVectorContainer()) {
+                v1->Release();
                 return globalTamgu->Returnerror("Wrong list of arguments for '_filter'", idthread);
+            }
             //We prepare our solution... Either the content of v0 is one or two
             
             Tamgulisp lsp(-1);
@@ -1641,6 +1655,387 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             v1->Release();
             v0->Release();
             return l;
+        }
+        case a__takewhile:
+        {
+            //First element is the operation, second element the list
+            v0 = values[1]->Eval(aNULL, aNULL, idthread);
+            checkerror(v0);
+            if (v0->isFunction())
+                v0 = values[1];
+            else {
+                if (!v0->isLisp() && !globalTamgu->checkoperator(v0->Action()))
+                    return globalTamgu->Returnerror("Wrong list of operations for '_takewhile'", idthread);
+            }
+
+            v1 = values[2]->Eval(contextualpattern, aNULL, idthread);
+            checkerror(v1);
+            if (!v1->isVectorContainer()) {
+                v1->Release();
+                return globalTamgu->Returnerror("Wrong list of arguments for '_takewhile'", idthread);
+            }
+            //We prepare our solution... Either the content of v0 is one or two
+            
+            Tamgulisp lsp(-1);
+            sz = v0->Size();
+            if (sz > 2) {
+                lsp.push(v0);
+                lsp.values.push_back(aNULL);
+            }
+            else {
+                lsp.pushatom(((Tamgulisp*)v0)->values[0]);
+                if (sz == 2) {
+                    lsp.values.push_back(aNULL);
+                    a = ((Tamgulisp*)v0)->values[1];
+                    if (!a->isConst())
+                        a = a->Eval(aNULL, aNULL, idthread);
+                    lsp.push(a);
+                    a->Release();
+                }
+                else
+                    lsp.values.push_back(aNULL);
+            }
+            
+            Tamgulisp* l = globalTamgu->Providelisp();
+            Tamgu* e;
+            for (i = 0; i < v1->Size(); i++) {
+                e = v1->getvalue(i);
+                lsp.values[1] = e;
+                
+                e->Setreference();
+                a = lsp.Eval(aNULL, aNULL, idthread);
+                if (a->Boolean() == true) {
+                    l->push(e);
+                    e->Resetreference();
+                    a->Release();
+                }
+                else {
+                    e->Resetreference();
+                    a->Release();
+                    break;
+                }
+            }
+            if (lsp.values.size()==3)
+                lsp.values[2]->Resetreference();
+            v1->Release();
+            v0->Release();
+            return l;
+        }
+        case a__dropwhile:
+        {
+            //First element is the operation, second element the list
+            v0 = values[1]->Eval(aNULL, aNULL, idthread);
+            checkerror(v0);
+            if (v0->isFunction())
+                v0 = values[1];
+            else {
+                if (!v0->isLisp() && !globalTamgu->checkoperator(v0->Action()))
+                    return globalTamgu->Returnerror("Wrong list of operations for '_dropwhile'", idthread);
+            }
+
+            v1 = values[2]->Eval(contextualpattern, aNULL, idthread);
+            checkerror(v1);
+            if (!v1->isVectorContainer()) {
+                v1->Release();
+                return globalTamgu->Returnerror("Wrong list of arguments for '_dropwhile'", idthread);
+            }
+            //We prepare our solution... Either the content of v0 is one or two
+            
+            Tamgulisp lsp(-1);
+            sz = v0->Size();
+            if (sz > 2) {
+                lsp.push(v0);
+                lsp.values.push_back(aNULL);
+            }
+            else {
+                lsp.pushatom(((Tamgulisp*)v0)->values[0]);
+                if (sz == 2) {
+                    lsp.values.push_back(aNULL);
+                    a = ((Tamgulisp*)v0)->values[1];
+                    if (!a->isConst())
+                        a = a->Eval(aNULL, aNULL, idthread);
+                    lsp.push(a);
+                    a->Release();
+                }
+                else
+                    lsp.values.push_back(aNULL);
+            }
+            
+            Tamgulisp* l = globalTamgu->Providelisp();
+            Tamgu* e;
+            bool accept=false;
+            for (i = 0; i < v1->Size(); i++) {
+                e = v1->getvalue(i);
+                lsp.values[1] = e;
+                
+                e->Setreference();
+                a = lsp.Eval(aNULL, aNULL, idthread);
+
+                if (!accept && a->Boolean() == true) {
+                    a->Releasenonconst();
+                    e->Resetreference();
+                    continue;
+                }
+                accept=true;
+                l->push(e);
+                e->Resetreference();
+                a->Release();
+            }
+            if (lsp.values.size()==3)
+                lsp.values[2]->Resetreference();
+            v1->Release();
+            v0->Release();
+            return l;
+        }
+        case a__zip:
+        {
+            //We combine different lists together...
+            vector<Tamgu*> listes;
+            long szl = -1;
+            for (i = 1; i < sz; i++) {
+                v1 = values[i]->Eval(contextualpattern, aNULL, idthread);
+                if (v1->isError() || !v1->isVectorContainer()) {
+                    for (i = 0; i < listes.size(); i++)
+                        listes[i]->Releasenonconst();
+                    if (!v1->isError()) {
+                        v1->Release();
+                        return globalTamgu->Returnerror("'_zip' accepts only lists as arguments", idthread);
+                    }
+                    return v1;
+                }
+                if (i == 1)
+                    szl = v1->Size();
+                else {
+                    if (szl != v1->Size()) {
+                        for (i = 0; i < listes.size(); i++)
+                            listes[i]->Releasenonconst();
+                        return globalTamgu->Returnerror("Lists should all have the same size in '_zip'", idthread);
+                    }
+                }
+                listes.push_back(v1);
+            }
+            Tamgulisp* l = globalTamgu->Providelisp();
+            Tamgulisp* sub;
+            for (long j = 0; j < szl; j++) {
+                sub = globalTamgu->Providelisp();
+                l->push(sub);
+                for (i = 0; i <listes.size(); i++)
+                    sub->push(listes[i]->getvalue(j));
+            }
+            for (i = 0; i < listes.size(); i++)
+                listes[i]->Releasenonconst();
+            return l;
+        }
+        case a__zipwith:
+        {
+            //We combine different lists together with an operator
+            //First element is the operation
+            v0 = values[1]->Eval(aNULL, aNULL, idthread);
+            checkerror(v0);
+            if (v0->isFunction())
+                v0 = values[1];
+            else {
+                if (!v0->isLisp() && !globalTamgu->checkoperator(v0->Action()))
+                    return globalTamgu->Returnerror("Wrong list of operations for '_zipWith'", idthread);
+            }
+
+            vector<Tamgu*> listes;
+            long szl = -1;
+            for (i = 2; i < sz; i++) {
+                v1 = values[i]->Eval(contextualpattern, aNULL, idthread);
+                if (v1->isError() || !v1->isVectorContainer()) {
+                    for (i = 0; i < listes.size(); i++)
+                        listes[i]->Releasenonconst();
+                    if (!v1->isError()) {
+                        v1->Release();
+                        return globalTamgu->Returnerror("'_zipwith' accepts only lists as arguments", idthread);
+                    }
+                    return v1;
+                }
+                if (i == 2)
+                    szl = v1->Size();
+                else {
+                    if (szl != v1->Size()) {
+                        for (i = 0; i < listes.size(); i++)
+                            listes[i]->Releasenonconst();
+                        return globalTamgu->Returnerror("Lists should all have the same size in '_zipwith'", idthread);
+                    }
+                }
+                listes.push_back(v1);
+            }
+
+            //First element is the operation, second element the list
+            v0 = values[1]->Eval(aNULL, aNULL, idthread);
+            checkerror(v0);
+            if (v0->isFunction()) // in this case it is a lambda, we can simply keep it
+                v0 = values[1];
+            else {
+                if (!v0->isLisp() && !globalTamgu->checkoperator(v0->Action()))
+                    return globalTamgu->Returnerror("Wrong list of operations for '_map'", idthread);
+            }
+
+            long j;
+            Tamgulisp lsp(-1);
+            if (v0->isLisp()) {
+                sz = v0->Size();
+                //lambda or function
+                if (sz == 1)
+                    lsp.pushatom(((Tamgulisp*)v0)->values[0]);
+                else
+                    lsp.pushatom(v0);
+                for (j = 0; j < listes.size(); j++)
+                    lsp.values.push_back(aNULL);
+            }
+            else {
+                lsp.values.push_back(v0);
+                for (j = 0; j < listes.size(); j++)
+                    lsp.values.push_back(aNULL);
+            }
+
+            Tamgulisp* l = globalTamgu->Providelisp();
+            for (j = 0; j < szl; j++) {
+                for (i = 0; i <listes.size(); i++) {
+                    lsp.values[i+1] = listes[i]->getvalue(j);
+                    lsp.values[i+1]->Setreference();
+                }
+                a = lsp.Eval(aNULL, aNULL, idthread);
+                l->push(a);
+                a->Releasenonconst();
+                for (i = 0; i <listes.size(); i++)
+                    lsp.values[i+1]->Resetreference();
+            }
+            
+            for (i = 0; i < listes.size(); i++)
+                listes[i]->Releasenonconst();
+            return l;
+        }
+        case a__foldl:
+        case a__scanl:
+        case a__foldr:
+        case a__scanr:
+            v1 = values[3]->Eval(contextualpattern,aNULL, idthread);
+            if (!v1->isVectorContainer()) {
+                v1->Release();
+                return globalTamgu->Returnerror("Expecting a list as argument for folding", idthread);
+            }
+            a = values[2]->Eval(contextualpattern,aNULL, idthread);
+            //a will be our first value
+        case a__foldl1:
+        case a__scanl1:
+        case a__foldr1:
+        case a__scanr1:
+        {
+            if (v1 == NULL) {
+                //The first value will be the first element of the list
+                v1 = values[2]->Eval(contextualpattern,aNULL, idthread);
+                if (!v1->isVectorContainer()) {
+                    v1->Release();
+                    return globalTamgu->Returnerror("Expecting a list as argument for folding", idthread);
+                }
+                if (v1->Size() == 0) {
+                    if (n == a__scanl1 || n == a__scanr1)
+                        return aEMPTYLISP;
+                    return aNULL;
+                }
+                if (n >= a__foldr1)
+                    a = v1->getvalue(v1->Size()-1); //we take the last one
+                else
+                    a = v1->getvalue(0);
+            }
+            
+        
+            long szl = v1->Size();
+            
+            v0 = values[1]->Eval(aNULL, aNULL, idthread);
+            checkerror(v0);
+            if (v0->isFunction())
+                v0 = values[1];
+            else {
+                if (!v0->isLisp() && !globalTamgu->checkoperator(v0->Action()))
+                    return globalTamgu->Returnerror("Wrong list of operations for folding", idthread);
+            }
+        
+            Tamgulisp lsp(-1);
+            if (v0->isLisp()) {
+                sz = v0->Size();
+                //lambda or function
+                if (sz == 1)
+                    lsp.pushatom(((Tamgulisp*)v0)->values[0]);
+                else
+                    lsp.pushatom(v0);
+            }
+            else
+                lsp.values.push_back(v0);
+            
+            lsp.push(aNULL);
+            lsp.push(aNULL);
+            
+            Tamgulisp* l;
+            i = 0;
+            switch (n) {
+                case a__foldl1:
+                    i = 1;
+                case a__foldl:
+                    for (; i < szl; i++) {
+                        lsp.values[1] = a;
+                        lsp.values[2] = v1->getvalue(i);
+                        a = lsp.Eval(aNULL, aNULL, idthread);
+                        if (a != lsp.values[1])
+                            lsp.values[1]->Release();
+                    }
+                    v1->Release();
+                    return a;
+                case a__foldr1:
+                    i = szl-2;
+                case a__foldr:
+                    if (!i)
+                        i = szl-1;
+                    for (;i >= 0; i--) {
+                        lsp.values[1] = a;
+                        lsp.values[2] = v1->getvalue(i);
+                        a = lsp.Eval(aNULL, aNULL, idthread);
+                        if (a != lsp.values[1])
+                            lsp.values[1]->Release();
+                    }
+                    v1->Release();
+                    return a;
+                case a__scanl1:
+                    i = 1;
+                case a__scanl:
+                    l = globalTamgu->Providelisp();
+                    l->push(a);
+                    for (; i < szl; i++) {
+                        lsp.values[1] = a;
+                        lsp.values[2] = v1->getvalue(i);
+                        a = lsp.Eval(aNULL, aNULL, idthread);
+                        l->push(a);
+                        if (a != lsp.values[1])
+                            lsp.values[1]->Release();
+                    }
+                    a->Release();
+                    v1->Release();
+                    return l;
+                case a__scanr1:
+                    i = szl-2;
+                case a__scanr:
+                    if (!i)
+                        i = szl-1;
+                    l = globalTamgu->Providelisp();
+                    l->push(a);
+                    for (;i >= 0; i--) {
+                        lsp.values[1] = a;
+                        lsp.values[2] = v1->getvalue(i);
+                        a = lsp.Eval(aNULL, aNULL, idthread);
+                        l->push(a);
+                        if (a != lsp.values[1])
+                            lsp.values[1]->Release();
+                    }
+                    a->Release();
+                    v1->Release();
+                    return l;
+
+            }
+            return aNULL;
         }
         case a_lisp:
         {

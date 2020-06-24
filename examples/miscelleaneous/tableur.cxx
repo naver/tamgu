@@ -6,6 +6,17 @@
  Programmer : Claude ROUX (claude.roux@naverlabs.com)
 @/
 
+//USE -b to switch to black mode
+bool choseblack = false;
+
+string option;
+for (string e in _args) {
+    if (_args[e] == "-b")
+        choseblack = true;
+    else
+        option = e;
+}
+
 if (version() < "Tamgu 1.2020.06.21.09") {
     _sys.cls();
     println();
@@ -26,11 +37,55 @@ lisp lisp_interpreter;
 string msgerr;
 
 //Color definition to highlight parenthesis balancing
-string colorparenth = _sys.colors(7,31,49, false);
-string colorsel = _sys.colors(1, 31, 49, false);
-string colorform = _sys.colors(1,30,103, false);
-string colornrm = _sys.colors(0,0,0,false);
+string colorparenth;
+string colorsel;
+string colorform;
+string colornrm;
 
+if (choseblack) {
+    colorparenth = _sys.colors(7,31,49, false);
+    colorsel = _sys.colors(1, 31, 49, false);
+    colorform = _sys.colors(1,30,103, false);
+    colornrm = _sys.colors(0,0,0,false);
+}
+else {
+    colorparenth = _sys.colors(7,31,49, false);
+    colorsel = _sys.colors(1, 31, 49, false);
+    colorform = _sys.colors(1,30,103, false);
+    colornrm = _sys.colors(0,0,0,false);
+}
+
+function formcolor() {
+    if (choseblack)
+        _sys.colors(1,33,40);
+    else
+        _sys.colors(0,39,102);
+}
+
+function indexcolor() {
+    if (choseblack)
+        _sys.colors(1,36,40);
+    else
+        _sys.colors(7,96,40);
+}
+
+function selectioncolor() {
+    if (choseblack)
+        _sys.colors(1,31,40);
+    else
+        _sys.colors(7,31,49);
+}
+
+function defuncolor() {
+    if (choseblack)
+        _sys.colors(1,92,49);
+    else
+        _sys.colors(7,94,107);
+}
+
+function normalcolor() {
+    _sys.colors(0,0,0);
+}
 
 int inputsection = 6;
 //Initialisation: coords contains your terminal dimensions
@@ -84,12 +139,12 @@ mapss inputs;
 string inputkey;
 string inputvalue;
 inputs["Size"] = ""+(x_viewsize-1)+":"+(y_viewsize-1);
-inputs["File"] = _args[0];
+inputs["File"] = option;
 inputs["Go(r,c)"] = "1,1";
 inputs["Column"] = columnsize;
 
-if (_args[0] != "")
-    inputs["Data(raw csv)"] = _args[0]+".csv";
+if (option != "")
+    inputs["Data(raw csv)"] = option+".csv";
 else
     inputs["Data(raw csv)"] = "";
 
@@ -122,6 +177,7 @@ function fillcolumn(vector v, int r, int c) {
     int vi = 0;
     for (int i in <r, r+v.size()>) {
         v_matrix[i][c] = v[vi];
+        mat[i][c] = v[vi];
         vi++;
     }
     return ("C"+r+","+c);
@@ -132,6 +188,7 @@ function fillrow(vector v, int r, int c) {
     int vi = 0;
     for (int i in <c, c+v.size()>) {
         v_matrix[r][i] = v[vi];
+        mat[r][i] = v[vi];
         vi++;
     }
     return ("R"+r+","+c);
@@ -309,6 +366,89 @@ function writecsv(string f) {
 
 //------------------- The Code ---------
 //Formulas evaluation
+mapsi dependencies;
+bool firstevaluation=true;
+int maxdependency;
+
+function checkdependencies() {
+    string ky,u,k;
+    svector cells;
+    int col,row;
+    int beg,end;
+    vector v;
+    string msg;
+    dependencies.clear();
+    maxdependency = 0;
+    
+    for (ky in formulas) {
+        dependencies[ky] = 0;
+        if ("defun " in formulas[ky])
+            continue;
+        cells = r"mat%[%d+:%d+%]" in formulas[ky];
+        for (u in cells) {
+            k = u["[":"]"][1:-1];
+            k[":"]="_";
+            if (formulas.test[k]) {
+                dependencies[ky]++;
+                maxdependency = max(dependencies[ky], maxdependency);
+            }
+        }
+        cells = r"mat%[%d+:%]%[%d+:%d+%]" in formulas[ky];
+        for (u in cells) {
+            row = u["[":":"][1:-1];
+            beg = u["][":":"][2:-1];
+            end = u["][":][":":][1:-1];
+            for (col=beg; col < end; col++) {
+                k = row+"_"+col;
+                if (formulas.test[k]) {
+                    dependencies[ky]++;
+                    maxdependency = max(dependencies[ky], maxdependency);
+                }
+            }
+        }
+        cells = r"mat%[%d+:%]%[%d+:%]" in formulas[ky];
+        for (u in cells) {
+            row = u["[":":"][1:-1];
+            beg = u["][":":"][2:-1];
+            end = y_max;
+            for (col=beg; col < end; col++) {
+                k = row+"_"+col;
+                if (formulas.test[k]) {
+                    dependencies[ky]++;
+                    maxdependency = max(dependencies[ky], maxdependency);
+                }
+            }
+        }
+        cells = r"mat%[:%d+%]%[%d+:%d+%]" in formulas[ky];
+        for (u in cells) {
+            col = u[":":"]"][1:-1];
+            beg = u["][":":"][2:-1];
+            end = u["][":][":":][1:-1];
+            for (row = beg; row < end; row++) {
+                k = row+"_"+col;
+                if (formulas.test[k]) {
+                    dependencies[ky]++;
+                    maxdependency = max(dependencies[ky], maxdependency);
+                }
+            }
+        }
+        cells = r"mat%[:%d+%]%[%d+:%]" in formulas[ky];
+        for (u in cells) {
+            col = u[":":"]"][1:-1];
+            beg = u["][":":"][2:-1];
+            end = x_max;
+            for (row = beg; row < end; row++) {
+                k = row+"_"+col;
+                if (formulas.test[k]) {
+                    dependencies[ky]++;
+                    maxdependency = max(dependencies[ky], maxdependency);
+                }
+            }
+        }
+    }
+    maxdependency++;
+}
+
 function evaluation(int off_x, int off_y) {
     mat.clear();
     string ky;
@@ -328,6 +468,7 @@ function evaluation(int off_x, int off_y) {
         displayall(off_x,off_y);
         return;
     }
+
     msgerr="";
     string msg;
     self val;
@@ -362,11 +503,11 @@ function evaluation(int off_x, int off_y) {
 
     //Not very efficient, we apply until nothing is modified again
     for (o in <formulas.size()>) {
-        stop=true;
         for (ky in formulas) {
             //functions are skipped
             if ("defun " in formulas[ky])
                 continue;
+            
             i = ky[:"_"][:-1];
             j = short(ky["_":][1:]);
             inputvalue = formulas[ky];
@@ -417,18 +558,21 @@ function dispelement(int i,int j, int off_x, int off_y) {
         return;
     }
     if (u[-1] == "!")
-        _sys.colors(0,39,102);
+        formcolor();
+    else
+        if (u[0] == "#")
+            defuncolor();
     if (u.size() >= columnsize-1)
         u=u[:columnsize-2]+"_";
     print(u);
-    _sys.colors(0,0,0);
+    normalcolor();
 }
 
 function displayline(int off_x, int off_y, int row) {
     _sys.row_column(row+1,1);
-    _sys.colors(7,96,40);
+    indexcolor();
     dispelementraw(row,0, off_x, 0);
-    _sys.colors(0,0,0);
+    normalcolor();
     for (int jcol in <1,y_viewsize>) {
         _sys.row_column(row+1,columnsize*jcol);
         dispelement(row,jcol, off_x, off_y);
@@ -439,7 +583,7 @@ function displayline(int off_x, int off_y, int row) {
 function displayall(int off_x, int off_y) {
     int i,j;
     _sys.cls();
-    _sys.colors(7,96,40);
+    indexcolor();
     //display column numbers
     for (i in <x_viewsize>) {
         _sys.row_column(i+1,1);
@@ -454,7 +598,7 @@ function displayall(int off_x, int off_y) {
 
     _sys.row_column(1,1);
     print("T");
-    _sys.colors(0,0,0);
+    normalcolor();
     print("  ");
     for (i in <1,x_viewsize>) {
         for (j in <1,y_viewsize>) {
@@ -511,10 +655,10 @@ function showelement(int i, int j, int off_x, int off_y) {
     //Then we position our cursor again to display our value
     _sys.row_column(i+1,columnsize*j);
     //We use a specific color to show that it has been selected
-    _sys.colors(7,31,49);
+    selectioncolor();
     dispelementraw(i,j, off_x, off_y);
     //Colors are reset, we then display on the last line the current value
-    _sys.colors(0,0,0);
+    normalcolor();
     _sys.row_column(codeline-1,0);
     _sys.eraseline(2);
     print(dsp);
@@ -588,7 +732,7 @@ string msgform="%1Arrows%2 select / %1Enter%2 to add cell / %1..%2 or %1:%2 defi
 msgform=msgform.format(colorsel,colornrm);
 string helpmsg = "%1Ctrl-s%2:Save         / %1Ctrl-w%2:Save as     / %1Crld-d%2:Save Data\n%1Ctrl-r%2:Display Size / %1Ctrl-t%2:Column Size / %1Ctrl-g%2:Goto";
 helpmsg = helpmsg.format(colorsel,colornrm);
-string msgbase = "%1Ctrl-b%2: Help / %1Ctrl-e%2: Edit / %1Ctrl-q%2: Quit";
+string msgbase = "%1Ctrl-u%2: Help / %1Ctrl-e%2: Edit / %1Ctrl-b%2: Black Mode / %1Ctrl-q%2: Quit";
 msgbase =  msgbase.format(colorsel,colornrm);
 displaymessage(msgbase);
 
@@ -616,6 +760,13 @@ while (s[0].ord() != 17) {
         displaymessage(msgbase);
     ky = I+"_"+J;
     if (s[0].ord() == 2) {
+        choseblack = choseblack.invert();
+        displayall(off_x, off_y);
+        showelement(i,j, off_x, off_y);
+        s=_sys.getchar();
+        continue;
+    }
+    if (s[0].ord() == 21) {
         displaymessage(helpmsg);
         showelement(i,j, off_x, off_y);
         s=_sys.getchar();
@@ -907,7 +1058,7 @@ while (s[0].ord() != 17) {
             if (selection) {
                 string subkey;
                 //We test if a ".." has been introduced, in that case, we compute the interval between the structures
-                if (lasti != -1 && (formulas[ky][-2:] == '..' or formulas[ky][-1] == ":")) {
+                if (lasti != -1 && (formulas[ky].trim()[-2:] == '..' or formulas[ky].trim()[-1] == ":")) {
                     if (lasti > I)
                         [lasti,I] = [I,lasti];
                     if (lastj > J)
@@ -1028,7 +1179,7 @@ while (s[0].ord() != 17) {
             //We do not add anymore characters
             if (s != ')')
                 formulas[ky]=formulas[ky][:-1];
-                
+
             selection=false;
             displaymessage('Ready to compute!!!');
         }
@@ -1100,6 +1251,8 @@ while (s[0].ord() != 17) {
     s=_sys.getchar();
     continue;
 }
+
+
 
 
 
