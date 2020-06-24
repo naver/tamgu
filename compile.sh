@@ -1,7 +1,7 @@
 #!/usr/bin/sh
 echo ------------------------------------------------------------------
 echo
-echo Compiling tamgu
+echo Compiling tamgu: -help for help
 echo
 echo To compile the Python library on Linux: -pythoninclude /usr/include/python3.7m -pythonversion 3.7m
 echo
