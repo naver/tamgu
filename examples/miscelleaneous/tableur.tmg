@@ -544,10 +544,10 @@ function evaluation(int off_x, int off_y) {
         if (loop > formulas.size()) {
             ky = lastk[":":][1:];
             i = ky[:"_"][:-1];
-            j = short(ky["_":][1:]);
+            j = ky["_":][1:];
             v_matrix[i][j] = "#LOOPERR";
             i = lastk[:"_"][:-1];
-            j = short(lastk["_":":"][1:-1]);
+            j = lastk["_":":"][1:-1];
             v_matrix[i][j] = "#ERRLOOP";
             msgerr = "Error: Cross dependencies!!!";
             break;
@@ -577,7 +577,7 @@ function evaluation(int off_x, int off_y) {
             compiled[ky] = true;
 
             i = ky[:"_"][:-1];
-            j = short(ky["_":][1:]);
+            j = ky["_":][1:];
             inputvalue = formulas[ky];
             inputvalue=inputvalue.replace("λ","lambda");
             try {
