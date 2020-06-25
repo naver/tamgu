@@ -119,6 +119,8 @@ vector v_matrix;
 //formulas records the different Lisp expressions
 mapss formulas;
 mapss referencedefuns;
+mapi keyrc;
+mapi keycr;
 
 //the line 0 and the column 0 are used to display coordinates...
 int i = 1;
@@ -223,6 +225,24 @@ function initialisation() {
     }
 }
 
+function popkeys(string ky) {
+    int i = ky[:"_"][:-1];
+    int j = ky["_":][1:];
+    keyrc[i].pop(j);
+    keycr[j].pop(i);
+}
+
+function setkeys(int i, int j) {
+    if (keyrc.test(i))
+        keyrc[i][j]=true;
+    else
+        keyrc[i] = {j:true};
+    if (keycr.test(j))
+        keycr[j][i]=true;
+    else
+        keycr[j] = {i:true};
+}
+
 //Loading a file
 function readtable(string f) {
     int i,j;
@@ -270,6 +290,7 @@ function readtable(string f) {
                 e=e.trim();
                 if (e[0] == "(") {
                     k = i+"_"+j;
+                    setkeys(i,j);
                     formulas[k] = e;
                     v_matrix[i][j] = "0";
                 }
@@ -369,15 +390,18 @@ function writecsv(string f) {
 //Formulas evaluation
 map dependencies;
 
+//We detect, the cells that are interdependent, in order to run the calculus in
+//the right order... We collect all the matrix references and check if a formula
+//can occur in the selections.
 function checkdependencies() {
     string yk,u,k;
     svector cells;
-    int col,row;
+    int col,row, c, r;
     int beg,end;
     vector v;
     string msg;
     dependencies.clear();
-    
+
     for (yk in formulas) {
         dependencies[yk] = [];
         if ("defun " in formulas[yk])
@@ -395,10 +419,12 @@ function checkdependencies() {
             row = u["[":":"][1:-1];
             beg = u["][":":"][2:-1];
             end = u["][":][":":][1:-1];
-            for (col=beg; col < end; col++) {
-                k = row+"_"+col;
-                if (formulas.test(k)) {
-                    dependencies[yk].push(k);
+            if (keyrc.test(row)) {
+                for (c in keyrc[row]) {
+                    if (c >= beg and c < end) {
+                        k = row+"_"+c;
+                        dependencies[yk].push(k);
+                    }
                 }
             }
         }
@@ -407,10 +433,12 @@ function checkdependencies() {
             row = u["[":":"][1:-1];
             beg = u["][":":"][2:-1];
             end = y_max;
-            for (col=beg; col < end; col++) {
-                k = row+"_"+col;
-                if (formulas.test(k)) {
-                    dependencies[yk].push(k);
+            if (keyrc.test(row)) {
+                for (c in keyrc[row]) {
+                    if (c >= beg and c < end) {
+                        k = row+"_"+c;
+                        dependencies[yk].push(k);
+                    }
                 }
             }
         }
@@ -419,13 +447,16 @@ function checkdependencies() {
             col = u[":":"]"][1:-1];
             beg = u["][":":"][2:-1];
             end = u["][":][":":][1:-1];
-            for (row = beg; row < end; row++) {
-                k = row+"_"+col;
-                if (formulas.test(k)) {
-                    dependencies[yk].push(k);
+            if (keycr.test(col)) {
+                for (r in keycr[col]) {
+                    if (r >= beg and r < end) {
+                        k = r+"_"+col;
+                        dependencies[yk].push(k);
+                    }
                 }
             }
         }
+        
         cells = r"mat%[:%d+%]%[%d+:%]" in formulas[yk];
         for (u in cells) {
             col = u[":":"]"][1:-1];
@@ -433,8 +464,13 @@ function checkdependencies() {
             end = x_max;
             for (row = beg; row < end; row++) {
                 k = row+"_"+col;
-                if (formulas.test(k)) {
-                    dependencies[yk].push(k);
+                if (keycr.test(col)) {
+                    for (r in keycr[col]) {
+                        if (r >= beg and r < end) {
+                            k = r+"_"+col;
+                            dependencies[yk].push(k);
+                        }
+                    }
                 }
             }
         }
@@ -500,23 +536,28 @@ function evaluation(int off_x, int off_y) {
     string lastk;
     bool cont;
     int loop;
-    //Not very efficient, we apply until nothing is modified again
+    //The top loop is due to the interdependencies between the formulas
     while (!stop) {
+        //If we cannot get out of the main loop, it means trouble...
+        //One of the formulas is in cross-dependency with another...
+        //F1 needs F2 to compute and F2 needs also F1... stalemate...
         if (loop > formulas.size()) {
             i = lastk[:"_"][:-1];
             j = short(lastk["_":][1:]);
             v_matrix[i][j] = "#LOOPERR";
-            msg = "Error: Two formulas expect their results from each other";
+            msgerr = "Error: Cross dependencies!!!";
             break;
         }
         stop=true;
         loop++;
         for (ky in formulas) {
-            //functions are skipped
+            //functions are skipped, formulas that have already been computed as well
             if ("defun " in formulas[ky] or compiled.test(ky))
                 continue;
             cont = false;
             for (yk in dependencies[ky]) {
+                //if one of the formulas is still not computed
+                //we skip this one for the moment
                 if (!compiled.test(yk)) {
                     lastk = ky;
                     cont=true;
@@ -528,6 +569,7 @@ function evaluation(int off_x, int off_y) {
             if (cont)
                 continue;
 
+            //We keep track of which formula was computed
             compiled[ky] = true;
 
             i = ky[:"_"][:-1];
@@ -830,8 +872,10 @@ while (s[0].ord() != 17) {
             posinstring = inputvalue.size()+1;
             //There is not character left, we kill the formula
             if (inputvalue=="") {
-                if (formulas.test(ky))
+                if (formulas.test(ky)) {
                     formulas.pop(ky);
+                    popkeys(ky);
+                }
                 v_matrix[I][J] = "0";
             }
             else {
@@ -929,12 +973,15 @@ while (s[0].ord() != 17) {
         if (s == _sys_keydel) {
             if (not selection) {
                 v_matrix[I][J] = "0";
-                if (formulas.test(ky))
+                if (formulas.test(ky)) {
                     formulas.pop(ky);
+                    popkeys(ky);
+                }
             }
             elif (I == ci and J == cj) {
                 v_matrix[I][J] = "0";
                 formulas.pop(ky);
+                popkeys(ky);
                 selection = false;
             }
             showelement(i,j, off_x, off_y);
@@ -967,6 +1014,7 @@ while (s[0].ord() != 17) {
                 if (formulas[ky] == "") {
                     //The formula has been deleted
                     formulas.pop(ky);
+                    popkeys(ky);
                     v_matrix[I][J] = "0";
                     selection=false;
                     ci =-1;
@@ -1214,6 +1262,7 @@ while (s[0].ord() != 17) {
         lasti=-1;
         lastj=-1;
         formulas[ky] = s;
+        setkeys(I,J);
         x_bound = max(I+1,x_bound);
         y_bound = max(J+1,y_bound);
         selection = true;
@@ -1243,6 +1292,7 @@ while (s[0].ord() != 17) {
             s=s.replace(l,rl);
             s=s.replace(c,rc);
             formulas[ky]=s;
+            setkeys(I,J);
             showelement(i,j, off_x, off_y);
             s=_sys.getchar();
             continue;
