@@ -542,9 +542,13 @@ function evaluation(int off_x, int off_y) {
         //One of the formulas is in cross-dependency with another...
         //F1 needs F2 to compute and F2 needs also F1... stalemate...
         if (loop > formulas.size()) {
-            i = lastk[:"_"][:-1];
-            j = short(lastk["_":][1:]);
+            ky = lastk[":":][1:];
+            i = ky[:"_"][:-1];
+            j = short(ky["_":][1:]);
             v_matrix[i][j] = "#LOOPERR";
+            i = lastk[:"_"][:-1];
+            j = short(lastk["_":":"][1:-1]);
+            v_matrix[i][j] = "#ERRLOOP";
             msgerr = "Error: Cross dependencies!!!";
             break;
         }
@@ -559,7 +563,7 @@ function evaluation(int off_x, int off_y) {
                 //if one of the formulas is still not computed
                 //we skip this one for the moment
                 if (!compiled.test(yk)) {
-                    lastk = ky;
+                    lastk = ky+":"+yk;
                     cont=true;
                     stop=false;
                     break;
