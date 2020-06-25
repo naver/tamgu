@@ -7,12 +7,12 @@
 @/
 
 //USE -b to switch to black mode
-bool choseblack = false;
+bool chooseblack = false;
 
 string option;
 for (string e in _args) {
     if (_args[e] == "-b")
-        choseblack = true;
+        chooseblack = true;
     else
         option = e;
 }
@@ -42,7 +42,7 @@ string colorsel;
 string colorform;
 string colornrm;
 
-if (choseblack) {
+if (chooseblack) {
     colorparenth = _sys.colors(7,31,49, false);
     colorsel = _sys.colors(1, 31, 49, false);
     colorform = _sys.colors(1,30,103, false);
@@ -56,28 +56,28 @@ else {
 }
 
 function formcolor() {
-    if (choseblack)
+    if (chooseblack)
         _sys.colors(1,33,40);
     else
         _sys.colors(0,39,102);
 }
 
 function indexcolor() {
-    if (choseblack)
+    if (chooseblack)
         _sys.colors(1,36,40);
     else
         _sys.colors(7,96,40);
 }
 
 function selectioncolor() {
-    if (choseblack)
+    if (chooseblack)
         _sys.colors(1,31,40);
     else
         _sys.colors(7,31,49);
 }
 
 function defuncolor() {
-    if (choseblack)
+    if (chooseblack)
         _sys.colors(1,92,49);
     else
         _sys.colors(7,94,107);
@@ -819,7 +819,7 @@ while (s[0].ord() != 17) {
         displaymessage(msgbase);
     ky = I+"_"+J;
     if (s[0].ord() == 2) {
-        choseblack = choseblack.invert();
+        chooseblack = chooseblack.invert();
         displayall(off_x, off_y);
         showelement(i,j, off_x, off_y);
         s=_sys.getchar();
