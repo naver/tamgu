@@ -6,6 +6,7 @@
  Programmer : Claude ROUX (claude.roux@naverlabs.com)
 @/
 
+
 //USE -b to switch to black mode
 bool chooseblack = false;
 
@@ -118,9 +119,7 @@ int y_bound=0;
 vector v_matrix;
 //formulas records the different Lisp expressions
 mapss formulas;
-mapss referencedefuns;
-mapi keyrc;
-mapi keycr;
+mapss referenceformulas;
 
 //the line 0 and the column 0 are used to display coordinates...
 int i = 1;
@@ -225,24 +224,6 @@ function initialisation() {
     }
 }
 
-function popkeys(string ky) {
-    int i = ky[:"_"][:-1];
-    int j = ky["_":][1:];
-    keyrc[i].pop(j);
-    keycr[j].pop(i);
-}
-
-function setkeys(int i, int j) {
-    if (keyrc.test(i))
-        keyrc[i][j]=true;
-    else
-        keyrc[i] = {j:true};
-    if (keycr.test(j))
-        keycr[j][i]=true;
-    else
-        keycr[j] = {i:true};
-}
-
 //Loading a file
 function readtable(string f) {
     int i,j;
@@ -290,7 +271,6 @@ function readtable(string f) {
                 e=e.trim();
                 if (e[0] == "(") {
                     k = i+"_"+j;
-                    setkeys(i,j);
                     formulas[k] = e;
                     v_matrix[i][j] = "0";
                 }
@@ -387,97 +367,6 @@ function writecsv(string f) {
 
 
 //------------------- The Code ---------
-//Formulas evaluation
-map dependencies;
-
-//We detect, the cells that are interdependent, in order to run the calculus in
-//the right order... We collect all the matrix references and check if a formula
-//can occur in the selections.
-function checkdependencies() {
-    string yk,u,k;
-    svector cells;
-    int col,row, c, r;
-    int beg,end;
-    vector v;
-    string msg;
-    dependencies.clear();
-
-    for (yk in formulas) {
-        dependencies[yk] = [];
-        if ("defun " in formulas[yk])
-            continue;
-        cells = r"mat%[%d+:%d+%]" in formulas[yk];
-        for (u in cells) {
-            k = u["[":"]"][1:-1];
-            k[":"]="_";
-            if (formulas.test(k)) {
-                dependencies[yk].push(k);
-            }
-        }
-        cells = r"mat%[%d+:%]%[%d+:%d+%]" in formulas[yk];
-        for (u in cells) {
-            row = u["[":":"][1:-1];
-            beg = u["][":":"][2:-1];
-            end = u["][":][":":][1:-1];
-            if (keyrc.test(row)) {
-                for (c in keyrc[row]) {
-                    if (c >= beg and c < end) {
-                        k = row+"_"+c;
-                        dependencies[yk].push(k);
-                    }
-                }
-            }
-        }
-        cells = r"mat%[%d+:%]%[%d+:%]" in formulas[yk];
-        for (u in cells) {
-            row = u["[":":"][1:-1];
-            beg = u["][":":"][2:-1];
-            end = y_max;
-            if (keyrc.test(row)) {
-                for (c in keyrc[row]) {
-                    if (c >= beg and c < end) {
-                        k = row+"_"+c;
-                        dependencies[yk].push(k);
-                    }
-                }
-            }
-        }
-        cells = r"mat%[:%d+%]%[%d+:%d+%]" in formulas[yk];
-        for (u in cells) {
-            col = u[":":"]"][1:-1];
-            beg = u["][":":"][2:-1];
-            end = u["][":][":":][1:-1];
-            if (keycr.test(col)) {
-                for (r in keycr[col]) {
-                    if (r >= beg and r < end) {
-                        k = r+"_"+col;
-                        dependencies[yk].push(k);
-                    }
-                }
-            }
-        }
-        
-        cells = r"mat%[:%d+%]%[%d+:%]" in formulas[yk];
-        for (u in cells) {
-            col = u[":":"]"][1:-1];
-            beg = u["][":":"][2:-1];
-            end = x_max;
-            for (row = beg; row < end; row++) {
-                k = row+"_"+col;
-                if (keycr.test(col)) {
-                    for (r in keycr[col]) {
-                        if (r >= beg and r < end) {
-                            k = r+"_"+col;
-                            dependencies[yk].push(k);
-                        }
-                    }
-                }
-            }
-        }
-        dependencies[yk] = dependencies[yk].unique();
-    }
-}
-
 function evaluation(int off_x, int off_y) {
     mat.clear();
     string ky;
@@ -502,86 +391,73 @@ function evaluation(int off_x, int off_y) {
     string msg;
     self val;
     float value;
-    int o;
     bool stop=false;
+    bool recompiled=false;
 
-    //We record function beforehand
+    //We record functions beforehand
     for (ky in formulas) {
-        i = ky[:"_"][:-1];
-        j = ky["_":][1:];
-        if ("defun " in formulas[ky]) {
-            try {
-                if (referencedefuns[ky] != formulas[ky]) {
-                    //We only reaevaluate a function, if it has been modified
-                    referencedefuns[ky] = formulas[ky];
-                    lisp_interpreter.eval(formulas[ky]);
-                    v_matrix[i][j] = "#"+formulas[ky][" ":"("][:-1].trim();
+        inputvalue = formulas[ky];
+        try {
+            if (referenceformulas[ky] != inputvalue) {
+                recompiled = true;
+                referenceformulas[ky] = inputvalue;
+                //We only reaevaluate a function, if it has been modified
+                if ("defun " in inputvalue) {
+                    i = ky[:"_"][:-1];
+                    j = ky["_":][1:];
+                    v_matrix[i][j] = "#"+inputvalue[" ":"("][:-1].trim();
                 }
-            }
-            catch(msg) {
-                msgerr=msg;
-                ky["_"] = ",";
-                if ("at line" in msgerr)
-                    msgerr[" at line":] = "at cell: "+ky;
-                else
-                    msgerr += " at cell: "+ky;
-                v_matrix[i][j] = "#FCERR";
+                else {
+                    //We create a function on the fly, to avoid recompiling again and again
+                    //the code...
+                    //We have replaced lambda with λ for compactness reason, we need to
+                    //replace it back to compile it...
+                    inputvalue = inputvalue.replace("λ","lambda");
+                    inputvalue = "(defun F_"+ky+"() " + inputvalue+")";
+                }
+                
+                lisp_interpreter.eval(inputvalue);
             }
         }
+        catch(msg) {
+            msgerr=msg;
+            ky["_"] = ",";
+            if ("at line" in msgerr)
+                msgerr[" at line":] = "at cell: "+ky;
+            else
+                msgerr += " at cell: "+ky;
+            v_matrix[i][j] = "#FCERR";
+        }
     }
-
-    checkdependencies();
-    mapsi compiled;
-    string yk;
-    string lastk;
-    bool cont;
+    
     int loop;
+    string fnct;
     //The top loop is due to the interdependencies between the formulas
     while (!stop) {
         //If we cannot get out of the main loop, it means trouble...
         //One of the formulas is in cross-dependency with another...
         //F1 needs F2 to compute and F2 needs also F1... stalemate...
-        if (loop > formulas.size()) {
-            ky = lastk[":":][1:];
-            i = ky[:"_"][:-1];
-            j = ky["_":][1:];
-            v_matrix[i][j] = "#LOOPERR";
-            i = lastk[:"_"][:-1];
-            j = lastk["_":":"][1:-1];
-            v_matrix[i][j] = "#ERRLOOP";
-            msgerr = "Error: Cross dependencies!!!";
+        if (loop > formulas.size())
             break;
-        }
+        
         stop=true;
         loop++;
         for (ky in formulas) {
-            //functions are skipped, formulas that have already been computed as well
-            if ("defun " in formulas[ky] or compiled.test(ky))
-                continue;
-            cont = false;
-            for (yk in dependencies[ky]) {
-                //if one of the formulas is still not computed
-                //we skip this one for the moment
-                if (!compiled.test(yk)) {
-                    lastk = ky+":"+yk;
-                    cont=true;
-                    stop=false;
-                    break;
-                }
-            }
-            //Missing computation
-            if (cont)
+            //functions are skipped
+            if ("defun " in formulas[ky])
                 continue;
 
-            //We keep track of which formula was computed
-            compiled[ky] = true;
-
+            //We have recorded formulas as function: F_row_col
+            inputvalue="(F_"+ky+")";
+            
+            //We extract the cell position, where the formula is stored
             i = ky[:"_"][:-1];
             j = ky["_":][1:];
-            inputvalue = formulas[ky];
-            inputvalue=inputvalue.replace("λ","lambda");
+            
             try {
                 val = lisp_interpreter.eval(inputvalue);
+                if (val.float() != mat[i:j])
+                    stop = false;
                 mat[i:j] = val.float();
                 v_matrix[i][j] = val.string();
                 v_matrix[i][j]+="!";
@@ -597,8 +473,11 @@ function evaluation(int off_x, int off_y) {
             }
         }
     }
+    inputvalue="";
     displayall(off_x, off_y);
     displayerr(msgerr);
+    if (recompiled)
+        displaymessage("Recompiled");
 }
 
 //Display methods
@@ -878,7 +757,6 @@ while (s[0].ord() != 17) {
             if (inputvalue=="") {
                 if (formulas.test(ky)) {
                     formulas.pop(ky);
-                    popkeys(ky);
                 }
                 v_matrix[I][J] = "0";
             }
@@ -979,13 +857,11 @@ while (s[0].ord() != 17) {
                 v_matrix[I][J] = "0";
                 if (formulas.test(ky)) {
                     formulas.pop(ky);
-                    popkeys(ky);
                 }
             }
             elif (I == ci and J == cj) {
                 v_matrix[I][J] = "0";
                 formulas.pop(ky);
-                popkeys(ky);
                 selection = false;
             }
             showelement(i,j, off_x, off_y);
@@ -1018,7 +894,6 @@ while (s[0].ord() != 17) {
                 if (formulas[ky] == "") {
                     //The formula has been deleted
                     formulas.pop(ky);
-                    popkeys(ky);
                     v_matrix[I][J] = "0";
                     selection=false;
                     ci =-1;
@@ -1266,7 +1141,6 @@ while (s[0].ord() != 17) {
         lasti=-1;
         lastj=-1;
         formulas[ky] = s;
-        setkeys(I,J);
         x_bound = max(I+1,x_bound);
         y_bound = max(J+1,y_bound);
         selection = true;
@@ -1296,7 +1170,6 @@ while (s[0].ord() != 17) {
             s=s.replace(l,rl);
             s=s.replace(c,rc);
             formulas[ky]=s;
-            setkeys(I,J);
             showelement(i,j, off_x, off_y);
             s=_sys.getchar();
             continue;
