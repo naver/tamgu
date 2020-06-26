@@ -51,19 +51,16 @@ class Tamguvector : public TamguObjectLockContainer {
     //Your personal variables here...
     vector<Tamgu*> values;
     bool merge;
-    bool isconst;
 
     //---------------------------------------------------------------------------------------------------------------------
     Tamguvector(TamguGlobal* g, Tamgu* parent = NULL) : TamguObjectLockContainer(g, parent) {
         //Do not forget your variable initialisation
         merge = false;
-        isconst = false;
     }
 
     Tamguvector() {
         //Do not forget your variable initialisation
         merge = false;
-        isconst = false;
     }
 
     //----------------------------------------------------------------------------------------------------------------------
@@ -71,7 +68,7 @@ class Tamguvector : public TamguObjectLockContainer {
     Exporting virtual Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 
     void SetConst() {
-        isconst = true;
+        investigate |= is_const;
     }
 
     void Setmerge() {
@@ -133,7 +130,7 @@ class Tamguvector : public TamguObjectLockContainer {
     }
 
     virtual bool duplicateForCall() {
-        return isconst;
+        return isConst();
     }
 
     //---------------------------------------------------------------------------------------------------------------------
@@ -919,17 +916,14 @@ public:
         //This SECTION is for your specific implementation...
         //Your personal variables here...
     atomic_vector<Tamgu*> values;
-    bool isconst;
     
         //---------------------------------------------------------------------------------------------------------------------
     Tamgua_vector(TamguGlobal* g, Tamgu* parent = NULL) : values(NULL, true), TamguObjectContainer(g, parent) {
             //Do not forget your variable initialisation
-        isconst = false;
     }
     
     Tamgua_vector() : values(NULL, true)  {
             //Do not forget your variable initialisation
-        isconst = false;
     }
     
     bool lockingmark() {
@@ -954,7 +948,7 @@ public:
     Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
     
     void SetConst() {
-        isconst = true;
+        investigate |= is_const;
     }
     
     Exporting Tamgu* Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* env, TamguFunctionLambda* bd, short idthread);
@@ -1000,7 +994,7 @@ public:
     }
     
     bool duplicateForCall() {
-        return isconst;
+        return isConst();
     }
     
         //---------------------------------------------------------------------------------------------------------------------

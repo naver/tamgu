@@ -188,6 +188,7 @@ Tamgu* Tamgulisp::Put(Tamgu* c, Tamgu* v, short idthread) {
 }
 
 Tamgulispcode::Tamgulispcode(TamguGlobal* g, Tamgu* parent) : Tamgulisp(g, parent) {
+    investigate |= is_const;
     if (g != NULL) {
         long line = g->Getcurrentline();
         short idcode = (short)g->spaceid;
@@ -1086,25 +1087,27 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
         }
         case a_lambda:
         {
-                //The first elements is the parameters
             v1 = values[1];
             
-            if (v1->isFunction()) {
-                n = v1->Name();
-                //Declarelocal only declare a function or a variable in a local domain (a function for instance)
-                //If the context is the main frame, then nothing happens (it has been installed already), the method returns false
-                //otherwise, we store it as a variable. When the local domain is cleaned, the variable is also removed from the variable stack
-                if (contextualpattern->Declarelocal(idthread, n, v1))
-                    globalTamgu->Storevariable(idthread, n, v1);
+            if (v1->isFunction())
                 return v1;
-            }
 
             if (!v1->isLisp())
                 return globalTamgu->Returnerror("Missing parameters",idthread);
             
-            if (contextualpattern == aEMPTYLISP) {
-                a = new TamguFunction(a_lambda, NULL);
-                ((TamguFunction*)a)->reset=true;
+            //The first elements is the parameters
+            bool fromEval = !isConst();
+            if (fromEval) {
+                //A bit of explanation...
+                //if contextalpattern is aEMPTYLISP, this is an eval of a lambda expression
+                //if contextalpattern is not aEMPTYLISP, it means that this lambda is part of a larger
+                //expression, that should not be deleted when back Evaluatelisp, which releases these structures...
+                //TamguLispFunction exposes two methods: Popping which put reset to true and Resetreference, which delete this
+                //object when reset is true...
+                if (contextualpattern == aEMPTYLISP)
+                    a = new TamguLispFunction(a_lambda, true); //here, the object can be released in Evaluatelisp
+                else
+                    a = new TamguLispFunction(a_lambda, false); //here it cannot...
             }
             else {
                 char name[10];
@@ -1121,7 +1124,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                     a->Remove();
                     return globalTamgu->Returnerror("Wrong parameter definition",idthread);
                 }
-                if (contextualpattern == aEMPTYLISP)
+                if (fromEval)
                     v0 = new TamguSelfVariableDeclaration(NULL, n);
                 else
                     v0 = new TamguSelfVariableDeclaration(globalTamgu, n);
@@ -1129,7 +1132,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             }
             a->Setchoice(1);
             
-            if (contextualpattern == aEMPTYLISP)
+            if (fromEval)
                 v1 = new TamguCallReturn(NULL, a);
             else
                 v1 = new TamguCallReturn(globalTamgu, a);
@@ -1140,7 +1143,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             }
             else {
                 Tamgulisp* block;
-                if (contextualpattern == aEMPTYLISP) {
+                if (fromEval) {
                     block = globalTamgu->Providelisp();
                     block->Setreference();
                 }
@@ -1154,37 +1157,31 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 v1->AddInstruction(block);                
             }
             a->Setchoice(a_lambda);
-            if (contextualpattern != aEMPTYLISP) {
-                n = a->Name();
-                globalTamgu->Storevariable(idthread, n, a);
-                //Declarelocal only declare a function or a variable in a local domain (a function for instance)
-                //If the context is the main frame, then nothing is done
-                contextualpattern->Declarelocal(idthread, n, a);
-                values[1] = a;
-            }
+            values[1] = a;
             return a;
         }
         case a_defun:
         {
                 
-            bool resetenable = false;
-            if (contextualpattern == aEMPTYLISP) {
-                resetenable = true;
-                contextualpattern = globalTamgu->Getmainframe(0);
-            }
-
             v0 = values[1];
 
             if (v0->isFunction()) {
                 n = v0->Name();
+                 
+                 //Declarelocal only declare a function or a variable in a local domain (a function for instance)
+                 //If the context is the main frame, then nothing happens (it has been installed already), the method returns false
+                 //otherwise, we store it as a variable. When the local domain is cleaned, the variable is also removed from the variable stack
+                //We do this operation to allow for a body access from code...
+                 if (contextualpattern->Declarelocal(idthread, n, v0))
+                     globalTamgu->Storevariable(idthread, n, v0);
                 
-                //Declarelocal only declare a function or a variable in a local domain (a function for instance)
-                //If the context is the main frame, then nothing happens (it has been installed already), the method returns false
-                //otherwise, we store it as a variable. When the local domain is cleaned, the variable is also removed from the variable stack
-                if (contextualpattern->Declarelocal(idthread, n, v0))
-                    globalTamgu->Storevariable(idthread, n, v0);
                 return v0;
             }
+
+            bool fromEval = !isConst();
+            if (contextualpattern == aEMPTYLISP)
+                contextualpattern = globalTamgu->Getmainframe(0);
+
 
             v1 = values[2];
             if (!v1->isLisp()) {
@@ -1197,18 +1194,19 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 return globalTamgu->Returnerror("Wrong function name",idthread);
             }
 
-            if (resetenable) {
-                a = new TamguFunction(n, NULL);
-                ((TamguFunction*)a)->reset=true;
+            if (fromEval) {
+                a = new TamguLispFunction(n, false);
             }
             else
                 a = new TamguFunction(n, globalTamgu);
             
             ((TamguFunction*)a)->idtype = a_lisp;
             
+            //If contextualpattern is a local declaration, then 'a' will also be recorded
+            //if it is a MainFrame, it won't
             ret = contextualpattern->Declarelocal(idthread, n, a);
             if (ret == a_mainframe || ret == a_declaration) {
-                if (resetenable) {
+                if (fromEval) {
                     v0 = contextualpattern->Declaration(n);
                     if (v0->idtracker != -1) {
                         unlockparse();
@@ -1227,19 +1225,19 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             for (i = 0; i < v1->Size(); i++) {
                 n = v1->getvalue(i)->Name();
                 if (!n) {
-                    if (resetenable)
+                    if (fromEval)
                         delete a;
                     unlockparse();
                     return globalTamgu->Returnerror("Wrong parameter definition",idthread);
                 }
-                if (resetenable)
+                if (fromEval)
                     v0 = new TamguSelfVariableDeclaration(NULL, n);
                 else
                     v0 = new TamguSelfVariableDeclaration(globalTamgu, n);
                 a->AddInstruction(v0);
             }
             a->Setchoice(1);
-            if (resetenable)
+            if (fromEval)
                 v1 = new TamguCallReturn(NULL, a);
             else
                 v1 = new TamguCallReturn(globalTamgu, a);
@@ -1249,7 +1247,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             }
             else {
                 Tamgulisp* block;
-                if (resetenable) {
+                if (fromEval) {
                     block = globalTamgu->Providelisp();
                     block->Setreference();
                 }
@@ -1264,9 +1262,14 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             }
             
             n = a->Name();
-            globalTamgu->Storevariable(idthread, n, a);
+            //Declarelocal does not record an element in the case of a MainFrame...
+            //We need to force it...
             if (contextualpattern->isMainFrame())
                 contextualpattern->Declare(n, a);
+            
+            //This is a weird way to enable the access to the function body from Lisp
+            //We record a as a variable as well...
+            globalTamgu->Storevariable(idthread, n, a);
             //Declarelocal only declare a function or a variable in a local domain (a function for instance)
             //If the context is the main frame, then nothing happens
             values[1] = a;
@@ -1274,27 +1277,37 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             return a;
         }
         case a_label:
-            if (contextualpattern == aEMPTYLISP)
-                contextualpattern = globalTamgu->Getmainframe(0);
-            
             //first is the name of the future variable
             v0 = values[1];
             n = v0->Name();
             if (!n)
                 return globalTamgu->Returnerror("Wrong name", idthread);
             
+            if (contextualpattern == aEMPTYLISP)
+                contextualpattern = globalTamgu->Getmainframe(0);
+
             a = values[2]->Eval(contextualpattern, aNULL, idthread);
             checkerror(a);
             
             ret = contextualpattern->Declarelocal(idthread, n, a);
             if (globalTamgu->isDeclared(n, idthread)) {
                 if (ret == a_mainframe || ret == a_declaration) {
-                    a->Remove();
+                    if (!isConst()) {
+                        a->Popping();
+                        a->Resetreference();
+                    }
+                    else
+                        a->Remove();
                     return globalTamgu->Returnerror("Already declared",idthread);
                 }
             }
 
             a->Setreference();
+            if (contextualpattern->isMainFrame())
+                contextualpattern->Declare(n, a);
+            
+            //This is a weird way to enable the access to the function body from Lisp
+            //We record a as a variable as well...
             globalTamgu->Storevariable(idthread, n, a);
             //Declarelocal only declare a function or a variable in a local domain (a function for instance)
             //If the context is the main frame, then nothing happens
@@ -1509,7 +1522,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
         case a__map:
         {
             //First element is the operation, second element the list
-            v0 = values[1]->Eval(aNULL, aNULL, idthread);
+            v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v0);
             if (v0->isFunction()) // in this case it is a lambda, we can simply keep it
                 v0 = values[1];
@@ -1600,7 +1613,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
         case a__filter:
         {
             //First element is the operation, second element the list
-            v0 = values[1]->Eval(aNULL, aNULL, idthread);
+            v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v0);
             if (v0->isFunction())
                 v0 = values[1];
@@ -1659,7 +1672,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
         case a__takewhile:
         {
             //First element is the operation, second element the list
-            v0 = values[1]->Eval(aNULL, aNULL, idthread);
+            v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v0);
             if (v0->isFunction())
                 v0 = values[1];
@@ -1724,7 +1737,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
         case a__dropwhile:
         {
             //First element is the operation, second element the list
-            v0 = values[1]->Eval(aNULL, aNULL, idthread);
+            v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v0);
             if (v0->isFunction())
                 v0 = values[1];
@@ -1865,7 +1878,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             }
 
             //First element is the operation, second element the list
-            v0 = values[1]->Eval(aNULL, aNULL, idthread);
+            v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v0);
             if (v0->isFunction()) // in this case it is a lambda, we can simply keep it
                 v0 = values[1];
@@ -1945,7 +1958,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             
             long szl = v1->Size();
             
-            v0 = values[1]->Eval(aNULL, aNULL, idthread);
+            v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v0);
             if (v0->isFunction())
                 v0 = values[1];

@@ -245,15 +245,6 @@ public:
         name = b->Name();
     }
 
-    ~TamguCallLispFunction() {
-        if (body->Name() == a_lambda) {
-            //We need to delete it... This is a temporary lambda function
-            //created in an eval
-            //first the parameters...
-            delete body;
-        }
-    }
-    
     Tamgu* Eval(Tamgu* context, Tamgu* domain, short idthread);
 
     short Name() {

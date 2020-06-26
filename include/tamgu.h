@@ -2420,7 +2420,6 @@ public:
 	bool used;
 	bool nonlimited;
 	bool adding;
-    bool reset;
 
 	TamguFunction(short n, TamguGlobal* global) : returntype(a_null), TamguDeclaration(n, a_function, global) {
 		adding = true;
@@ -2433,22 +2432,8 @@ public:
 		choice = 0;
 		next = NULL;
         investigate = is_tracked;
-        reset = false;
 	}
 
-    ~TamguFunction() {
-        if (reset && idtracker == -1) {
-            //This is a case that occurs when creating lambdas and functions in Lisp with eval
-            long i;
-            for (i = 0; i < parameters.size(); i++)
-                delete parameters[i];
-            if (instructions.size() == 1) {
-                Tamgu* v = instructions[0]->Argument(0);
-                v->Resetreference();
-                delete instructions[0];
-            }
-        }
-    }
 	size_t InstructionSize() { 
 		return instructions.last; 
 	}

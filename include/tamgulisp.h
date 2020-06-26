@@ -527,4 +527,43 @@ public:
 };
 
 
+class TamguLispFunction : public TamguFunction {
+public:
+    bool reset;
+    TamguLispFunction(short n, bool r) : TamguFunction(n, NULL) {
+        reset = r;
+    }
+
+    TamguLispFunction(short n, TamguGlobal* g) : TamguFunction(n, g) {
+        reset = false;
+    }
+
+    ~TamguLispFunction() {
+        //This is a case that occurs when creating lambdas and functions in Lisp with eval
+        long i;
+        for (i = 0; i < parameters.size(); i++)
+            delete parameters[i];
+        if (instructions.size() == 1) {
+            Tamgu* v = instructions[0]->Argument(0);
+            v->Popping();
+            v->Resetreference();
+            delete instructions[0];
+        }
+    }
+    
+    void Popping() {
+        reset = true;
+    }
+    
+    void Removereference(short r) {
+        if (reset)
+            delete this;
+    }
+    
+    void Resetreference(short r) {
+        if (reset)
+            delete this;
+    }
+};
+
 #endif
