@@ -6,6 +6,16 @@
  Programmer : Claude ROUX (claude.roux@naverlabs.com)
 @/
 
+/@
+Help:
+
+This spreadsheet accepts different sorts of input:
+
+a) Lisp expressions, which should start with a '('
+b) Raw formulas, which should start with a '=' and ends with a ';'
+c) Long strings, which are introduced with "'"
+d) Float numbers, which you input directly
+@/
 
 //USE -b to switch to black mode
 bool chooseblack = false;
@@ -18,7 +28,7 @@ for (string e in _args) {
         option = e;
 }
 
-if (version() < "Tamgu 1.2020.06.21.09") {
+if (version() < "Tamgu 1.2020.06.30.09") {
     _sys.cls();
     println();
     println("Please, accept all our apologies...");
@@ -32,9 +42,43 @@ if (version() < "Tamgu 1.2020.06.21.09") {
    _exit();
 }
 
+
 //The Lisp interpreter
 lisp lisp_interpreter;
 
+mapsf definedvalues = {"_pi ":_pi, "_tau ":_tau, "_phi ":_phi, "_e ":_e };
+
+function compactstring(string s, int p) {
+    if (s[p-7:p] == "lambda ")
+        s[p-7:p] = "λ ";
+    elif (s[p-5:p] == "sqrt ")
+        s[p-5:p] = "√ ";
+    elif (s[p-5:p] == "cbrt ")
+        s[p-5:p] = "∛ ";
+    elif (s[p-4:p] == "_pi ")
+        s[p-4:p] = "π ";
+    elif (s[p-5:p] == "_tau ")
+        s[p-5:p] = "τ ";
+    elif (s[p-5:p] == "_phi ")
+        s[p-5:p] = "φ ";
+    elif (s[p-3:p] == "_e ")
+        s[p-3:p] = "ℯ ";
+    elif (s[p-2:p] == "/ ")
+        s[p-2:p] = "÷ ";
+    elif (s[p-4:p] == "**2 ")
+        s[p-4:p] = "²";
+    elif (s[p-4:p] == "**3 ")
+        s[p-4:p] = "³";
+    elif (s[p-3:p] == "** ")
+        s[p-3:p] = "**";
+    elif (s[p-2:p] == "* ")
+        s[p-2:p] = "× ";
+    elif (s[p-4:p] =="^^2 ")
+        s[p-4:p] = "²";
+    elif (s[p-4:p] =="^^3 ")
+        s[p-4:p] = "³";
+    return s;
+}
 string msgerr;
 
 //Color definition to highlight parenthesis balancing
@@ -42,6 +86,7 @@ string colorparenth;
 string colorsel;
 string colorform;
 string colornrm;
+string defaultvalue = ".";
 
 if (chooseblack) {
     colorparenth = _sys.colors(7,31,49, false);
@@ -56,11 +101,11 @@ else {
     colornrm = _sys.colors(0,0,0,false);
 }
 
-function formcolor() {
+function formulacolor() {
     if (chooseblack)
         _sys.colors(1,33,40);
     else
-        _sys.colors(0,39,102);
+        _sys.colors(0,39,47);
 }
 
 function indexcolor() {
@@ -84,6 +129,12 @@ function defuncolor() {
         _sys.colors(7,94,107);
 }
 
+function stringcolor() {
+    if (chooseblack)
+        _sys.colors(1,92,49);
+    else
+        _sys.colors(0,94,49);
+}
 function normalcolor() {
     _sys.colors(0,0,0);
 }
@@ -119,7 +170,9 @@ int y_bound=0;
 vector v_matrix;
 //formulas records the different Lisp expressions
 mapss formulas;
+mapss rawformulas;
 mapss referenceformulas;
+map functions;
 
 //the line 0 and the column 0 are used to display coordinates...
 int i = 1;
@@ -219,7 +272,7 @@ function initialisation() {
                 v_matrix[i].push(string(i));
             }
             else
-                v_matrix[i].push("0");
+                v_matrix[i].push(defaultvalue);
         }
     }
 }
@@ -229,7 +282,7 @@ function readtable(string f) {
     int i,j;
     for (i in <1,x_max>) {
         for (j in <1,y_max>) {
-            v_matrix[i][j] = "0";
+            v_matrix[i][j] = defaultvalue;
         }
     }
 
@@ -272,7 +325,12 @@ function readtable(string f) {
                 if (e[0] == "(") {
                     k = i+"_"+j;
                     formulas[k] = e;
-                    v_matrix[i][j] = "0";
+                    v_matrix[i][j] = defaultvalue;
+                }
+                elif (e[0] == '=' and e[-1] == ";") {
+                    k = i+"_"+j;
+                    rawformulas[k] = e;
+                    v_matrix[i][j] = defaultvalue;
                 }
                 else
                     v_matrix[i][j] = e;
@@ -297,7 +355,7 @@ function writetable(string f) {
     string k;
     int x_bound = x_bound;
     int y_bound=max(y_bound,7);
-    displaymessage("Writting: "+f);
+    displaymessage("Writing: "+f);
     file sv(f,"w");
     int i,j;
     string w;
@@ -316,6 +374,8 @@ function writetable(string f) {
             k = i+"_"+j;
             if (formulas.test(k))
                 sv.write(formulas[k]);
+            elif (rawformulas.test(k))
+                sv.write(rawformulas[k]);
             else {
                 w = v_matrix[i][j];
                 sv.write(w.trim());
@@ -340,7 +400,7 @@ function writecsv(string f) {
     }
     if ('.csv' not in f)
         f+=".csv";
-    displaymessage("Writting (csv): "+f);
+    displaymessage("Writing (csv): "+f);
     file sv(f,"w");
     int i,j;
     string k;
@@ -392,20 +452,21 @@ function evaluation(int off_x, int off_y) {
     self val;
     float value;
     bool stop=false;
-    bool recompiled=false;
+    string recompiled;
 
     //We record functions beforehand
     for (ky in formulas) {
         inputvalue = formulas[ky];
         try {
+            i = ky[:"_"][:-1];
+            j = ky["_":][1:];
             if (referenceformulas[ky] != inputvalue) {
-                recompiled = true;
+                recompiled = "Recompiled: "+ky;
                 referenceformulas[ky] = inputvalue;
                 //We only reaevaluate a function, if it has been modified
                 if ("defun " in inputvalue) {
-                    i = ky[:"_"][:-1];
-                    j = ky["_":][1:];
                     v_matrix[i][j] = "#"+inputvalue[" ":"("][:-1].trim();
+                    lisp_interpreter.eval(inputvalue);
                 }
                 else {
                     //We create a function on the fly, to avoid recompiling again and again
@@ -414,24 +475,28 @@ function evaluation(int off_x, int off_y) {
                     //replace it back to compile it...
                     inputvalue = inputvalue.replace("λ","lambda");
                     inputvalue = "(defun F_"+ky+"() " + inputvalue+")";
+                    //functions[ky] = lisp_interpreter.eval(inputvalue);
+                    lisp_interpreter.eval(inputvalue);
                 }
-                
-                lisp_interpreter.eval(inputvalue);
             }
         }
         catch(msg) {
             msgerr=msg;
+            //We do not engage then in computing
+            stop = true;
             ky["_"] = ",";
             if ("at line" in msgerr)
                 msgerr[" at line":] = "at cell: "+ky;
             else
                 msgerr += " at cell: "+ky;
             v_matrix[i][j] = "#FCERR";
+            break;
         }
     }
     
     int loop;
     string fnct;
+    //call Fnct;
     //The top loop is due to the interdependencies between the formulas
     while (!stop) {
         //If we cannot get out of the main loop, it means trouble...
@@ -442,6 +507,41 @@ function evaluation(int off_x, int off_y) {
         
         stop=true;
         loop++;
+        for (ky in rawformulas) {
+            try {
+                //We remove the "=" and the ";"
+                inputvalue=rawformulas[ky].trim();
+                i = ky[:"_"][:-1];
+                j = ky["_":][1:];
+                if (inputvalue[0] == '=' and inputvalue[-1] == ';') {
+                    inputvalue=inputvalue[1:-1];
+                    val = _eval(inputvalue);
+                    if (val.float() != mat[i:j])
+                        stop = false;
+                    mat[i:j] = val.float();
+                    v_matrix[i][j] = val.string();
+                    v_matrix[i][j]+=";";
+                }
+                else {
+                    msgerr=msg;
+                    ky["_"] = ",";
+                    msgerr += "Incomplete formula at cell: "+ky;
+                    v_matrix[i][j] = "#ERR;";
+                    break;
+                }
+            }
+            catch(msg) {
+                msgerr=msg;
+                ky["_"] = ",";
+                if ("at line" in msgerr)
+                    msgerr[" at line":] = "at cell: "+ky;
+                else
+                    msgerr += " at cell: "+ky;
+                v_matrix[i][j] = "#ERR;";
+                break;
+            }
+        }
+        
         for (ky in formulas) {
             //functions are skipped
             if ("defun " in formulas[ky])
@@ -449,12 +549,13 @@ function evaluation(int off_x, int off_y) {
 
             //We have recorded formulas as function: F_row_col
             inputvalue="(F_"+ky+")";
-            
             //We extract the cell position, where the formula is stored
             i = ky[:"_"][:-1];
             j = ky["_":][1:];
             
             try {
+                //Fnct = functions[ky];
+                //val = Fnct();
                 val = lisp_interpreter.eval(inputvalue);
                 if (val.float() != mat[i:j])
                     stop = false;
@@ -470,14 +571,19 @@ function evaluation(int off_x, int off_y) {
                 else
                     msgerr += " at cell: "+ky;
                 v_matrix[i][j] = "#ERR";
+                break;
             }
         }
     }
     inputvalue="";
     displayall(off_x, off_y);
+    if (recompiled != "") {
+        if (msgerr != "")
+            msgerr += " "+recompiled;
+        else
+            msgerr = recompiled;
+    }
     displayerr(msgerr);
-    if (recompiled)
-        displaymessage("Recompiled");
 }
 
 //Display methods
@@ -499,11 +605,13 @@ function dispelement(int i,int j, int off_x, int off_y) {
         print(u);
         return;
     }
-    if (u[-1] == "!")
-        formcolor();
-    else
-        if (u[0] == "#")
-            defuncolor();
+    if (u[-1] == "!" or u[-1] == ';')
+        formulacolor();
+    elif (u[0] == "#")
+        defuncolor();
+    elif (!u[0].isdigit() && u[0] != "-" && u != defaultvalue)
+        stringcolor();
+    
     if (u.size() >= columnsize-1)
         u=u[:columnsize-2]+"_";
     print(u);
@@ -550,18 +658,39 @@ function displayall(int off_x, int off_y) {
     }
 }
 
-//Error message is displayed on line 4
-function displayerr(string s) {
+function clearzonemessage() {
+    _sys.row_column(codeline-5,0);
+    _sys.eraseline(2);
     _sys.row_column(codeline-4,0);
     _sys.eraseline(2);
+    _sys.row_column(codeline-3,0);
+    _sys.eraseline(2);
+    _sys.row_column(codeline-2,0);
+    _sys.eraseline(2);
+}
+
+//Error message is displayed on line 4
+function displayerr(string s) {
+    clearzonemessage();
+    _sys.row_column(codeline-4,0);
     print(s);
 }
 
 //Messages are displayed on line 3
 function displaymessage(string s) {
-    _sys.row_column(codeline-2,0);
-    _sys.eraseline(2);
+    clearzonemessage();
     _sys.row_column(codeline-3,0);
+    print(s);
+}
+
+function displayhelp(string s) {
+    clearzonemessage();
+    _sys.row_column(codeline-4,0);
+    print(s);
+}
+
+function displayprompt(string s) {
+    _sys.row_column(codeline-1,0);
     _sys.eraseline(2);
     print(s);
 }
@@ -578,11 +707,14 @@ function showelement(int i, int j, int off_x, int off_y) {
     elif (formulas.test(ky)) {
         dsp = I+","+J+": "+formulas[ky];
     }
+    elif (rawformulas.test(ky)) {
+        dsp = I+","+J+": "+rawformulas[ky];
+    }
     else {//When we have a 0, we do not display it
         dsp = v_matrix[I][J];
         if (dsp.trim()=="")
-            v_matrix[I][J]="0";
-        if (v_matrix[I][J] == '0')
+            v_matrix[I][J]=defaultvalue;
+        if (v_matrix[I][J] == defaultvalue)
             dsp = I+","+J+": ";
         else {
             dsp = I+","+J+": "+v_matrix[I][J];
@@ -601,9 +733,7 @@ function showelement(int i, int j, int off_x, int off_y) {
     dispelementraw(i,j, off_x, off_y);
     //Colors are reset, we then display on the last line the current value
     normalcolor();
-    _sys.row_column(codeline-1,0);
-    _sys.eraseline(2);
-    print(dsp);
+    displayprompt(dsp);
 }
 
 //----------------------------------------------------------------------------------------------------
@@ -672,7 +802,7 @@ else
 
 string msgform="%1Arrows%2 select / %1Enter%2 to add cell / %1..%2 or %1:%2 define range / %1Balance parentheses%2 to exit;";
 msgform=msgform.format(colorsel,colornrm);
-string helpmsg = "%1Ctrl-s%2:Save         / %1Ctrl-w%2:Save as     / %1Crld-d%2:Save Data\n%1Ctrl-r%2:Display Size / %1Ctrl-t%2:Column Size / %1Ctrl-g%2:Goto";
+string helpmsg = "%1Ctrl-s%2:Save         / %1Ctrl-w%2:Save as     / %1Crld-f%2:Save Data\n%1Ctrl-r%2:Display Size / %1Ctrl-t%2:Column Size / %1Ctrl-g%2:Goto / %1Ctrl-d%2:Delete / %1Ctrl-x%2:Copy\n%1_pi%2:pi / %1_tau%2:tau / %1_phi%2:phi / %1_e%2:e";
 helpmsg = helpmsg.format(colorsel,colornrm);
 string msgbase = "%1Ctrl-u%2: Help / %1Ctrl-e%2: Edit / %1Ctrl-b%2: Black Mode / %1Ctrl-q%2: Quit";
 msgbase =  msgbase.format(colorsel,colornrm);
@@ -683,24 +813,90 @@ msgedit =  msgedit.format(colorsel,colornrm);
 
 showelement(i,j, off_x, off_y);
 
+ivector xymouse;
+_sys.inmouse();
 string s=_sys.getchar();
 
 bool selection = false;
 string forme, ky;
-int ci=-1,cj=-1;
+int ci=-1,cj=-1, sz;
 int lasti, lastj;
 int posinstring;
 
+//We enable mouse tracking
 //17 is ctrl-q
 while (s[0].ord() != 17) {
+    //We use this position to display displaymessages
     I = i+off_x;
     J = j+off_y;
-    //We use this position to display displaymessages
+
+    ky = I+"_"+J;
+
+    //Mouse Section
+    if (s[-1] == 'M' && s.count(";") == 2) {
+        xymouse = _sys.mouseup(s);
+        if (xymouse != []) {
+            _sys.row_column(i+1,columnsize*j);
+            dispelement(i,j, off_x, off_y);
+            //We check if we are editing a formula or a value
+            if (xymouse[0] == codeline-1) {
+                string dsp = I+","+J+": ";
+                if (!modedit) {
+                    //We switch to edit mode
+                    modedit = true;
+                    if (formulas.test(ky))
+                        inputvalue = formulas[ky];
+                    elif (rawformulas.test(ky))
+                        inputvalue = rawformulas[ky];
+                    else
+                        inputvalue = v_matrix[I][J];
+                }
+                posinstring = xymouse[1]-dsp.size();
+                displaymessage(msgedit);
+                _sys.row_column(codeline-1,dsp.size()+posinstring);
+                s=_sys.getchar();
+                continue;
+            }
+            else {
+                //We do not want to modiffy the index line and column
+                if (xymouse[0] > 1 && xymouse[1] > columnsize) {
+                    modedit = false;
+                    i = xymouse[0]-1;
+                    j = xymouse[1]/columnsize;
+                    displaymessage(msgbase);
+                    showelement(i,j, off_x, off_y);
+                }
+            }
+        }
+        else {
+            //Scrolling section... We can only scroll up or down
+            xymouse = _sys.mousescrollup(s);
+            if (xymouse != []) {
+                _sys.row_column(i+1,columnsize*j);
+                dispelement(i,j, off_x, off_y);
+                i--;
+                handlingmovement();
+            }
+            else {
+                xymouse = _sys.mousescrolldown(s);
+                if (xymouse != []) {
+                    _sys.row_column(i+1,columnsize*j);
+                    dispelement(i,j, off_x, off_y);
+                    i++;
+                    handlingmovement();
+                }
+            }
+        }
+        s=_sys.getchar();
+        continue;
+    }
+
     if (modedit)
         displaymessage(msgedit);
     else
         displaymessage(msgbase);
-    ky = I+"_"+J;
+
+        
     if (s[0].ord() == 2) {
         chooseblack = chooseblack.invert();
         displayall(off_x, off_y);
@@ -709,7 +905,7 @@ while (s[0].ord() != 17) {
         continue;
     }
     if (s[0].ord() == 21) {
-        displaymessage(helpmsg);
+        displayhelp(helpmsg);
         showelement(i,j, off_x, off_y);
         s=_sys.getchar();
         continue;
@@ -748,30 +944,41 @@ while (s[0].ord() != 17) {
         elif (s == "\n") {
             //ENTER: recording the edition
             modedit=false;
-            if (formulas.test(ky))
+            if (formulas.test(ky)) {
                 formulas[ky] = inputvalue;
-            else
-                v_matrix[I][J] = inputvalue;
-            posinstring = inputvalue.size()+1;
-            //There is not character left, we kill the formula
-            if (inputvalue=="") {
-                if (formulas.test(ky)) {
-                    formulas.pop(ky);
+                posinstring = inputvalue.size()+1;
+                //There is not character left, we kill the formula
+                if (inputvalue=="") {
+                    if (formulas.test(ky))
+                        formulas.pop(ky);
+                    v_matrix[I][J] = defaultvalue;
                 }
-                v_matrix[I][J] = "0";
+                else {
+                    //We check the parentheses balance, to switch to selection mode
+                    if (inputvalue.count("(") != inputvalue.count(')')) {
+                        selection=true;
+                        ci = I;
+                        cj = J;
+                        displaymessage(msgbase);
+                        showelement(i,j, off_x, off_y);
+                    }
+                    else {
+                        evaluation(off_x,off_y);
+                        showelement(i,j, off_x, off_y);
+                    }
+                }
             }
             else {
-                //We check the parentheses balance, to switch to selection mode
-                if (inputvalue.count("(") != inputvalue.count(')')) {
-                    selection=true;
-                    ci = I;
-                    cj = J;
-                }
-                else
+                v_matrix[I][J] = inputvalue;
+                if (inputvalue[0] == "=" && inputvalue[-1] == ';') {
+                    rawformulas[ky] = inputvalue;
                     evaluation(off_x,off_y);
+                    showelement(i,j, off_x, off_y);
+                    s=_sys.getchar();
+                    continue;
+                }
+                showelement(i,j, off_x, off_y);
             }
-            displaymessage(msgbase);
-            showelement(i,j, off_x, off_y);
         }
         elif (s.ord() == 127) {
             //We delete the character on the left
@@ -799,10 +1006,9 @@ while (s[0].ord() != 17) {
                     inputvalue = inputvalue[:e]+colorparenth+inputvalue[e]+colornrm+inputvalue[e+1:];
                 }
                 else {
-                    if (posinstring >= 6 and inputvalue[posinstring-6:posinstring] == "lambda") {
-                        inputvalue[posinstring-6:posinstring] = "λ";
-                        posinstring-=5;
-                    }
+                    sz = inputvalue.size();
+                    inputvalue = compactstring(inputvalue, posinstring);
+                    posinstring -= sz-inputvalue.size();
                 }
                 posinstring++;
             }
@@ -812,11 +1018,8 @@ while (s[0].ord() != 17) {
             posinstring = inputvalue.size()+1;
         if (posinstring <= 0)
             posinstring = 1;
-        _sys.row_column(codeline-1,0);
-        _sys.eraseline(2);
-        _sys.row_column(codeline-1,0);
-
-        print(dsp+inputvalue);
+            
+        displayprompt(dsp+inputvalue);
         _sys.row_column(codeline-1,dsp.size()+posinstring);
         s=_sys.getchar();
         continue;
@@ -828,6 +1031,8 @@ while (s[0].ord() != 17) {
         string dsp = I+","+J+": ";
         if (formulas.test(ky))
             inputvalue = formulas[ky];
+        elif (rawformulas.test(ky))
+            inputvalue = rawformulas[ky];
         else
             inputvalue = v_matrix[I][J];
         posinstring = inputvalue.size()+1;
@@ -846,6 +1051,12 @@ while (s[0].ord() != 17) {
                 inputkey="";
                 inputvalue="";
             }
+            elif (selection) {
+                ky = ci+"_"+cj;
+                formulas.pop(ky);
+                v_matrix[ci][cj] = defaultvalue;
+                selection = false;
+            }
             showelement(i,j, off_x, off_y);
             s=_sys.getchar();
             continue;
@@ -853,14 +1064,18 @@ while (s[0].ord() != 17) {
         _sys.row_column(i+1,columnsize*j);
         dispelement(i,j, off_x, off_y);
         if (s == _sys_keydel) {
+            //We delete a full cell in one shot
             if (not selection) {
-                v_matrix[I][J] = "0";
+                v_matrix[I][J] = defaultvalue;
                 if (formulas.test(ky)) {
                     formulas.pop(ky);
                 }
+                elif (rawformulas.test(ky)) {
+                    rawformulas.pop(ky);
+                }
             }
             elif (I == ci and J == cj) {
-                v_matrix[I][J] = "0";
+                v_matrix[I][J] = defaultvalue;
                 formulas.pop(ky);
                 selection = false;
             }
@@ -887,41 +1102,41 @@ while (s[0].ord() != 17) {
         if (inputkey!="") {
             inputvalue=inputvalue[:-1];
         }
-        else {
-            //We are either modifying a formula or a cell
-            if (formulas.test(ky)) {
-                formulas[ky] = formulas[ky][:-1];
-                if (formulas[ky] == "") {
-                    //The formula has been deleted
-                    formulas.pop(ky);
-                    v_matrix[I][J] = "0";
-                    selection=false;
-                    ci =-1;
-                    cj =-1;
-                    _sys.row_column(i+1,columnsize*j);
-                    //We display the "0" instead
-                    dispelement(i,j, off_x, off_y);
-                }
-                else {
-                    selection=true;
-                    ci = I;
-                    cj = J;
-                }
+        elif (rawformulas.test(ky)) {
+            rawformulas[ky] = rawformulas[ky][:-1];
+            if (rawformulas[ky] == "") {
+                //The formula has been deleted
+                rawformulas.pop(ky);
+                v_matrix[I][J] = defaultvalue;
+            }
+        }
+        elif (formulas.test(ky)) {
+            formulas[ky] = formulas[ky][:-1];
+            if (formulas[ky] == "") {
+                //The formula has been deleted
+                formulas.pop(ky);
+                v_matrix[I][J] = defaultvalue;
+                selection=false;
+                ci =-1;
+                cj =-1;
             }
             else {
-                if (!selection) {
-                    if (v_matrix[I][J].size() > 1)
-                        v_matrix[I][J] = v_matrix[I][J][:-1];
-                    else
-                        v_matrix[I][J] = "0";
-                }
+                selection=true;
+                ci = I;
+                cj = J;
             }
+        }
+        elif (!selection) {
+            if (v_matrix[I][J].size() > 1)
+                v_matrix[I][J] = v_matrix[I][J][:-1];
+            else
+                v_matrix[I][J] = defaultvalue;
         }
         showelement(i,j, off_x, off_y);
         s=_sys.getchar();
         continue;
     }
-
+    
     //When introducing a formula, selection is true and the key is the formula position
     if (selection) {
         displaymessage(msgform);
@@ -932,6 +1147,105 @@ while (s[0].ord() != 17) {
     if (s == "\n") {
         if (modedit) {
             modedit = false;
+        }
+        elif (inputkey == "raw(end with ';')") {
+            if (inputvalue[-1] == ";") {
+                ky = ci+"_"+cj;
+                rawformulas[ky] = inputvalue;
+                inputkey = "";
+                ci = -1;
+                cj = -1;
+                evaluation(off_x,off_y);
+            }
+            else {
+                ky["_"] = ":";
+                inputvalue += "mat["+ky+"]";
+                showelement(i,j, off_x, off_y);
+                s=_sys.getchar();
+                continue;
+            }
+        }
+        elif (inputkey == "paste") {
+            int e;
+            int di = I;
+            int dj = J;
+            string k, l, c, rl, rc, u;
+            while (ci <= lasti) {
+                e = cj;
+                dj = J;
+                while (e  <= lastj) {
+                    k = ci+"_"+e;
+                    if (formulas.test(k) or rawformulas.test(k)) {
+                        bool raw = false;
+                        if (rawformulas.test(k))
+                            raw = true;
+                        s = formulas[k];
+                        k["_"] = ":";
+                        l= k[:":"];
+                        c= k[":":];
+                        rl = di+":";
+                        rc = ":"+dj;
+                        s=s.replace(l,rl);
+                        s=s.replace(c,rc);
+                        k = di+"_"+dj;
+                        if (raw)
+                            rawformulas[k] = s;
+                        else
+                            formulas[k]=s;
+                    }
+                    else
+                        v_matrix[di][dj] = v_matrix[ci][e];
+                    dj++;
+                    e++;
+                }
+                di++;
+                ci++;
+            }
+            ci = -1;
+            cj = -1;
+            inputkey="";
+            inputvalue="";
+            evaluation(off_x,off_y);
+        }
+        elif (inputkey == "copy") {
+            lasti = I;
+            lastj = J;
+            if (ci > lasti)
+                [ci,lasti] = [lasti,ci];
+            if (cj > lastj)
+                [cj,lastj] = [lastj,cj];
+            inputvalue = "Copy from: "+ci+","+cj+" upto "+lasti+","+lastj;
+            inputvalue += ". Select now the cell from which to copy";
+            inputkey = "paste";
+            showelement(i,j, off_x, off_y);
+            s=_sys.getchar();
+            continue;
+        }
+        elif (inputkey == "delete") {
+            if (ci > I)
+                [ci,I] = [I,ci];
+            if (cj > J)
+                [cj,J] = [J,cj];
+            int e;
+            string k;
+            while (ci <= I) {
+                e = cj;
+                while (e <= J) {
+                    k = ci+"_"+e;
+                    if (formulas.test(k))
+                        formulas.pop(k);
+                    elif (rawformulas.test(k))
+                        rawformulas.pop(k);
+                    v_matrix[ci][e] = defaultvalue;
+                    e++;
+                }
+                ci++;
+            }
+            ci = -1;
+            cj = -1;
+            inputkey="";
+            inputvalue="";
+            evaluation(off_x,off_y);
         }
         elif (inputkey=="Go(r,c)") {
             int pi = inputvalue[:","][:-1];
@@ -1070,7 +1384,21 @@ while (s[0].ord() != 17) {
     }
 
     if (s[0].ord() < 27) {
+        //delete selection
         if (s[0].ord() == 4) {
+            inputkey="delete";
+            inputvalue = "from "+ky.replace("_",",") + ' upto... select end';
+            ci = I;
+            cj = J;
+        }
+        //Copy a selection to a new place
+        elif (s[0].ord() == 24) {
+            inputkey="copy";
+            inputvalue = "from "+ky.replace("_",",") + ' upto... select end';
+            ci = I;
+            cj = J;
+        }
+        elif (s[0].ord() == 6) {
             //ctrl-d
             inputkey="Data(raw csv)";
             inputvalue=inputs[inputkey];
@@ -1084,10 +1412,9 @@ while (s[0].ord() != 17) {
         elif (s[0].ord() == 19 and inputs["File"] != "") //ctrl-s
             writetable(inputs["File"]);
         elif (s[0].ord() == 19 or s[0].ord() == 23) { //ctrl-w/s
-            _sys.row_column(codeline-1,0);
             inputkey="File";
             inputvalue=inputs[inputkey];
-            print(inputkey+": ",inputvalue);
+            displayprompt(inputkey+": "+inputvalue);
         }
         elif (s[0].ord() == 18) { //ctrl-r
             inputkey="Size";
@@ -1106,8 +1433,8 @@ while (s[0].ord() != 17) {
 
     if (inputkey == "" and formulas.test(ky)) {
         formulas[ky]+=s;
-        if (formulas[ky][-6:] == "lambda")
-            formulas[ky][-6:] = "λ";
+        formulas[ky] = compactstring(formulas[ky], formulas[ky].size());
+
         formulas[ky] = formulas[ky].replace(colorparenth,"");
         formulas[ky] = formulas[ky].replace(colornrm,"");
         //When the "(...)" balances, we exit the selection mode
@@ -1135,7 +1462,7 @@ while (s[0].ord() != 17) {
     }
 
     //We detect a '(', we enter the formula mode
-    if (s=='(' and !selection) {
+    if (s=='(' and !selection and inputkey=="") {
         ci = I;
         cj = J;
         lasti=-1;
@@ -1149,18 +1476,50 @@ while (s[0].ord() != 17) {
         s=_sys.getchar();
         continue;
     }
+    
+    if (s == "=" and !selection and inputkey=="") {
+        ci = I;
+        cj = J;
+        inputkey = "raw(end with ';')";
+        inputvalue = s;
+        showelement(i,j, off_x, off_y);
+        s=_sys.getchar();
+        continue;
+    }
 
+    if (inputkey=="" and rawformulas.test(ky)) {
+        ci = I;
+        cj = J;
+        inputkey = "raw(end with ';')";
+        inputvalue = rawformulas[ky];
+        inputvalue += s;
+        showelement(i,j, off_x, off_y);
+        s=_sys.getchar();
+        continue;
+    }
+    
     //In case of pasting code
-    if (s.size() > 2 and s[0] == '(') {
+    if (s.size() > 2 and (s[0] == '(' or (s[0] == '=' and s[-1] == ';'))) {
         s=s.trim();
         string u,k;
         //We try to detect from which place it was copied
-        for (k in formulas) {
-            if (formulas[k].trim() == s) {
-                u=k;
-                break;
+        if (s[0] == '(') {
+            for (k in formulas) {
+                if (formulas[k].trim() == s) {
+                    u=k;
+                    break;
+                }
             }
         }
+        else {
+            for (k in rawformulas) {
+                if (rawformulas[k].trim() == s) {
+                    u=k;
+                    break;
+                }
+            }
+        }
+        
         if (u != "") {
             u["_"]=":";
             string l= u[:":"];
@@ -1169,26 +1528,32 @@ while (s[0].ord() != 17) {
             string rc = ":"+J;
             s=s.replace(l,rl);
             s=s.replace(c,rc);
-            formulas[ky]=s;
+            if (s[0] == '(')
+                formulas[ky]=s;
+            else
+                rawformulas[ky]=s;
             showelement(i,j, off_x, off_y);
             s=_sys.getchar();
             continue;
         }
     }
 
-    if (inputkey != "")
+    if (inputkey != "") {
         inputvalue += s;
+        if (inputkey == "raw(end with ';')") {
+            inputvalue = compactstring(inputvalue, inputvalue.size());
+        }
+    }
     else {
         if (not selection) {
-            if (v_matrix[I][J] == '0') {
-                //We check if we are adding a "."
-                if (s == '.')
-                    v_matrix[I][J]+=s;
-                else
-                    v_matrix[I][J]=s;
-            }
+            if (v_matrix[I][J] == defaultvalue)
+                v_matrix[I][J]=s;
             else
                 v_matrix[I][J]+=s;
+                
+            if (v_matrix[I][J] in ["_pi ","_phi ","_tau ","_e "])
+                v_matrix[I][J] = definedvalues[v_matrix[I][J]];
+                
             x_bound = max(I+1,x_bound);
             y_bound = max(J+1,y_bound);
         }
@@ -1198,7 +1563,7 @@ while (s[0].ord() != 17) {
     continue;
 }
 
-
+_sys.outmouse();
 
 
 
