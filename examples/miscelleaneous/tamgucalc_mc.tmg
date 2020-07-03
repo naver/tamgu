@@ -1900,6 +1900,7 @@ while (s[0].ord() != 17) {
         s=s.trim();
         if (s[0] == '(') {
             inputkey = "formula";
+            currentkey = inputkey;
             currentvalue += s;
             formi = I;
             formj = J;
@@ -1908,6 +1909,7 @@ while (s[0].ord() != 17) {
         }
         elif (s[0] == '=') {
             inputkey = "regular";
+            currentkey = inputkey;
             currentvalue += s;
             formi = I;
             formj = J;
