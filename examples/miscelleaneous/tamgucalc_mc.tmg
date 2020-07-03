@@ -797,7 +797,7 @@ string msgform="%1Arrows%2 select / %1Enter%2 to add cell / %1..%2 or %1: %2 def
 msgform=msgform.format(colorsel,colornrm);
 string helpmsg = @"%1Ctrl-s%2: Save / %1Ctrl-w%2: Save as / %1Ctrl-f%2: Save Data / %1Ctrl-g%2: Goto
 %1Ctrl-r%2: View Screen Size / %1Ctrl-t%2: Column Size / %1Ctrl-d%2: Delete / %1Ctrl-k%2: Copy / %1Ctrl-x%2: Move
-%1Ctrl-i%2: Hide Indexes / %1Ctrl-n%2: Hide Messsage
+%1Ctrl-i%2: Hide Indexes / %1Ctrl-n%2: Hide Message
 
 %1_pi%2: pi / %1_tau%2: tau / %1_phi%2: phi / %1_e%2: e / %1sum%2 / %1product%2 / %1(..)%2: Lisp formula / %1=..;%2: regular formula"@;
 
