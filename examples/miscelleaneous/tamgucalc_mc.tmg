@@ -1075,6 +1075,26 @@ function updatevalue() {
     }
 }
 
+function checkformula() {
+    if (colorparenth in inputvalue) {
+        inputvalue = inputvalue.replace(colorparenth,"");
+        inputvalue = inputvalue.replace(colornrm,"");
+    }
+
+    x_bound = max(x_bound,I+1);
+    y_bound = max(y_bound,J+1);
+    currentvalue = inputvalue.trim();
+    if (currentvalue[0] == "(" and currentvalue.count("(") == currentvalue.count(")")) {
+        //We reinstate it as a formula
+        formulas[ky] = currentvalue;
+        evaluation(off_x,off_y);
+    }
+    elif (currentvalue[0] == "=" and currentvalue[-1]==";") {
+        regularformulas[ky] = currentvalue;
+        evaluation(off_x,off_y);
+    }
+}
+
 function makerange(int lasti, int lastj, int I, int J) {
     if (lasti > I)
         [lasti,I] = [I,lasti];
@@ -1305,7 +1325,7 @@ function pasting() {
     evaluation(off_x,off_y);
 }
 
-function frompaste() {
+function frompaste(string s) {
     s=s.trim();
     string u,k;
     //We try to detect from which place it was copied
@@ -1341,6 +1361,30 @@ function frompaste() {
         evaluation(off_x,off_y);
         return true;
     }
+    
+    if (s[0] == '(') {
+        inputkey = "formula";
+        currentkey = inputkey;
+        currentvalue += s;
+        inputvalue += s;
+        formi = I;
+        formj = J;
+        if (currentvalue.count("(") != currentvalue.count(")"))
+            buildingformula = true;
+        return true;
+    }
+    elif (s[0] == '=') {
+        inputkey = "regular";
+        currentkey = inputkey;
+        currentvalue += s;
+        inputvalue += s;
+        formi = I;
+        formj = J;
+        if (currentvalue[-1] != ";")
+            buildingformula = true;
+        return true;
+    }
+
     return false;
 }
 
@@ -1475,10 +1519,18 @@ while (s[0].ord() != 17) {
     }
 
     //if a ctrl-character has been pressed, it might corresponds to an action
-    if (s.ord() >= 2 and s.ord() <= 24) {
+    if (s.ord() >= 1 and s.ord() <= 24) {
         kar = s[0].ord();
         bool used=false;
         switch (kar) {
+                1: {
+                    if (modifying) {
+                        posinstring = 1;
+                        used = true;
+                        displayprompt(dsp+inputvalue);
+                        _sys.row_column(codeline-1,dsp.size()+posinstring);
+                    }
+                }
                 2: {
                     used = true;
                     chooseblack = chooseblack.invert();
@@ -1825,6 +1877,7 @@ while (s[0].ord() != 17) {
         continue;
     }
     
+    //recording our values after a CR
     if (s == "\n") {
         if (field) {
             if (checkfield()) {
@@ -1837,8 +1890,26 @@ while (s[0].ord() != 17) {
         }
         
         if (modifying) {
-            if (!buildingformula)
+            if (!buildingformula) {
                 modifying = false;
+                if (inputkey == "formula") {
+                    //We are demoding a formula
+                    if (inputvalue != "(") {
+                        formulas.pop(ky);
+                        inputkey = "value";
+                    }
+                }
+                elif (inputkey == "regular") {
+                    if (inputvalue != "=") {
+                        inputkey = "value";
+                        regularformulas.pop(ky);
+                    }
+                }
+                elif (inputkey == "value") {
+                    //We are potentially reinstating a formula
+                    checkformula();
+                }
+            }
             else {
                 displayprompt(dsp+inputvalue);
                 displaymessage("Cannot evaluate");
@@ -1893,34 +1964,15 @@ while (s[0].ord() != 17) {
         continue;
     }
         
-    if (s.size() > 2 and (s.trim()[0] == '(' or (s.trim()[0] == '=' and s[-1] == ';'))) {
-        if (frompaste()) {
+    if (s.size() > 2) {
+        if (frompaste(s)) {
             showelement(i,j, off_x, off_y);
             s=_sys.getchar();
             continue;
         }
-        s=s.trim();
-        if (s[0] == '(') {
-            inputkey = "formula";
-            currentkey = inputkey;
-            currentvalue += s;
-            formi = I;
-            formj = J;
-            if (currentvalue.count("(") != currentvalue.count(")"))
-                buildingformula = true;
-        }
-        elif (s[0] == '=') {
-            inputkey = "regular";
-            currentkey = inputkey;
-            currentvalue += s;
-            formi = I;
-            formj = J;
-            if (currentvalue[-1] != ";")
-                buildingformula = true;
-        }
     }
     
-    if (_sys.isescapesequence(s)) {
+    if (_sys.isescapesequence(s) or s[0] < 32) {
         initvalue();
         showelement(i,j, off_x, off_y);
         s=_sys.getchar();
