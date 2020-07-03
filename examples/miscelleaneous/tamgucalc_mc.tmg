@@ -1282,14 +1282,18 @@ function pasting() {
                 rc = ":"+dj;
                 s=s.replace(l,rl);
                 s=s.replace(c,rc);
-                k = di+"_"+dj;
-                if (regular)
-                    regularformulas[k] = s;
-                else
-                    formulas[k]=s;
+                if (di >= 1 and dj >= 1) {
+                    k = di+"_"+dj;
+                    if (regular)
+                        regularformulas[k] = s;
+                    else
+                        formulas[k]=s;
+                }
             }
-            else
-                v_matrix[di][dj] = v_matrix[ci][e];
+            else {
+                if (di >= 1 and dj >= 1)
+                    v_matrix[di][dj] = v_matrix[ci][e];
+            }
             dj++;
             e++;
         }
@@ -1362,7 +1366,7 @@ function checkfield() {
 
     if (inputkey == "Copy") {
         //We display then we will delete
-        inputkey = "Destination";
+        inputkey = "Copying";
         inputvalue = currentvalue + I+","+J+" at ";
         currentvalue = inputvalue;
         selection(formi, formj, true);
@@ -1375,7 +1379,7 @@ function checkfield() {
         pasting();
         deletefrominputvalue();
     }
-    elif (inputkey == "Destination") {
+    elif (inputkey == "Copying") {
         //We display then we will delete
         pasting();
     }
@@ -1533,7 +1537,7 @@ while (s[0].ord() != 17) {
                 11: { //ctrl-k
                     //Copying a group of cells
                     if (tracking) {
-                        inputkey = "Destination";
+                        inputkey = "Copying";
                         inputvalue="from: "+firstclickx+","+firstclicky+" up to "+lastselx+","+lastsely+" at ";
                         formi = firstclickx;
                         formj = firstclicky;
@@ -1880,20 +1884,38 @@ while (s[0].ord() != 17) {
             posinstring -= sz-inputvalue.size();
         }
         
-        posinstring++;
+        posinstring+ = s.size();
         displayprompt(dsp+inputvalue);
         _sys.row_column(codeline-1,dsp.size()+posinstring);
         s=_sys.getchar();
         continue;
     }
         
-    if (s.size() > 2 and (s[0] == '(' or (s[0] == '=' and s[-1] == ';'))) {
+    if (s.size() > 2 and (s.trim()[0] == '(' or (s.trim()[0] == '=' and s[-1] == ';'))) {
         if (frompaste()) {
             showelement(i,j, off_x, off_y);
             s=_sys.getchar();
             continue;
         }
+        s=s.trim();
+        if (s[0] == '(') {
+            inputkey = "formula";
+            currentvalue += s;
+            formi = I;
+            formj = J;
+            if (currentvalue.count("(") != currentvalue.count(")"))
+                buildingformula = true;
+        }
+        elif (s[0] == '=') {
+            inputkey = "regular";
+            currentvalue += s;
+            formi = I;
+            formj = J;
+            if (currentvalue[-1] != ";")
+                buildingformula = true;
+        }
     }
+    
     if (_sys.isescapesequence(s)) {
         initvalue();
         showelement(i,j, off_x, off_y);
@@ -1942,10 +1964,12 @@ while (s[0].ord() != 17) {
     }
     elif (inputvalue in ["_pi ","_phi ","_tau ","_e "])
         inputvalue = definedvalues[inputvalue];
-    else
+    else {
         inputvalue = compactstring(inputvalue, inputvalue.size());
-
-    v_matrix[I][J] = inputvalue;
+    }
+    if (!field) {
+        v_matrix[I][J] = inputvalue;
+    }
     showelement(i,j, off_x, off_y);
     s=_sys.getchar();
     continue;
