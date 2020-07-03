@@ -113,6 +113,7 @@ void jag_editor::displaythehelp(long noclear) {
     cerr << "   \t\t- " << m_redital << "v:" << m_current << " paste a bloc of lines" << endl;
     cerr << "   \t\t- " << m_redital << "w:" << m_current << " write and quit" << endl;
     cerr << "   \t\t- " << m_redital << "l:" << m_current << " load a file" << endl;
+    cerr << "   \t\t- " << m_redital << "b:" << m_current << " black mode (better suited for black background)" << endl;
     cerr << "   \t\t- " << m_redital << "h:" << m_current << " full help" << endl;
     cerr << "   \t\t- " << m_redital << "q:" << m_current << " quit" << endl << endl;
 
@@ -622,9 +623,9 @@ void jag_editor::reset() {
     theterm.c_iflag &= ~IXON;
     theterm.c_iflag |= IXOFF;
     //The next modifications allows for the use of ctrl-q and ctrl-s
-    theterm.c_cc[VSTART] = NULL;
-    theterm.c_cc[VSTOP] = NULL;
-    theterm.c_cc[VSUSP] = NULL;
+    theterm.c_cc[VSTART] = 0;
+    theterm.c_cc[VSTOP] = 0;
+    theterm.c_cc[VSUSP] = 0;
     tcsetattr(0, TCSADRAIN, &theterm);
     setbuf(stdin, NULL);
 #endif
@@ -2531,6 +2532,15 @@ void jag_editor::convertmetas() {
 
 bool jag_editor::checkcommand(char cmd) {
     switch (cmd) {
+        case 'b': //black mode
+            if (colors[2] == m_blue)
+                colors[2] = m_blueblack;
+            else
+                colors[2] = m_blue;
+            displaylist(poslines[0]);
+            movetoline(currentline);
+            movetoposition();
+            return true;
         case 'C': // we count pattern
             displayonlast("Count:", false);
             line = currentfind;

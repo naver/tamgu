@@ -1024,6 +1024,9 @@ Tamgu* ProcLoadin(Tamgu* domain, short idthread, TamguCall* callfunc) {
 }
 //------------------------------------------------------------------------------------------------------------------------
 Tamgu* ProcEvalFunction(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    if (globalTamgu->threadMODE)
+        return globalTamgu->Returnerror("Cannot launch '_eval' in threads", idthread);
+
     string code = callfunc->Evaluate(0, contextualpattern, idthread)->String();
 
     Locking _lock(globalTamgu);
@@ -1049,22 +1052,32 @@ Tamgu* ProcEvalFunction(Tamgu* contextualpattern, short idthread, TamguCall* cal
 }
 
 Tamgu* ProcEval(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    if (globalTamgu->threadMODE)
+        return globalTamgu->Returnerror("Cannot launch '_eval' in threads", idthread);
+    
     if (contextualpattern->Action() == a_call)
         return ProcEvalFunction(contextualpattern, idthread, callfunc);
 
     string code = callfunc->Evaluate(0, contextualpattern, idthread)->String();
 
     Locking _lock(globalTamgu);
+    //Return the current position in the garbage and set the condition to record
+    //new elements...
+    //We switch to threadMODE so that Provide will create elements and not store them
+    long position = last_garbage_position();
     TamguCode* acode = globalTamgu->Getcurrentcode();
     long lastinstruction = acode->InstructionSize();
     Tamgu* ci = globalTamgu->threads[idthread].currentinstruction;
-    long lastrecorded;
     
-    lastrecorded = globalTamgu->Trackedsize();
+    if (code.find(";") == -1 && code.find("{") == -1)
+        code = "return ("+code+");";
+
+    long lastrecorded = globalTamgu->Trackedsize();
+
     Tamgu* compiled = acode->Compilefunction(code);
     if (compiled == NULL || compiled->isError() || globalTamgu->Error(idthread)) {
-        globalTamgu->threads[idthread].currentinstruction = callfunc;
-
+        clean_from_garbage_position(position, compiled, lastrecorded);
+        globalTamgu->threads[idthread].currentinstruction = ci;
         if (compiled != NULL && compiled->isError())
             return compiled;
         if (globalTamgu->Error(idthread))
@@ -1072,20 +1085,21 @@ Tamgu* ProcEval(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         return globalTamgu->Returnerror("Cannot compile this code", idthread);
     }
 
-    if (compiled->isFunction() || compiled->Type() == a_calltaskell)
+    if (compiled->isFunction() || compiled->Type() == a_calltaskell) {
+        set_garbage_mode(false);
         return compiled;
+    }
 
     acode->compilemode = true;
-    Tamgu* a = acode->Execute(lastinstruction, idthread);
-
-    globalTamgu->Cleanfrom(lastrecorded);
     globalTamgu->threads[idthread].currentinstruction = ci;
-    
-    if (a->investigate == is_return)
-        return a->Returned(idthread);
+    Tamgu* a = acode->Execute(lastinstruction, idthread);
+    globalTamgu->threads[idthread].currentinstruction = ci;
 
+    clean_from_garbage_position(position, a, lastrecorded);
     return a;
 }
+
+
 
 //------------------------------------------------------------------------------------------------------------------------
 Tamgu* ProcRedictectOutput(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {

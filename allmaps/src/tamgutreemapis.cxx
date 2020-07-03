@@ -391,11 +391,13 @@ Exporting Tamgu* Tamgutreemapis::Eval(Tamgu* contextualpattern, Tamgu* idx, shor
         if (keyright != aNULL) {
             itr = values.find(vright);
             if (itr == values.end()) {
-                keyright->Release();
+                if (keyright != ((TamguIndex*)idx)->right)
+                    keyright->Release();
                 return kmap;
             }
         }
-        keyright->Release();
+        if (keyright != ((TamguIndex*)idx)->right)
+            keyright->Release();
         for (; it != values.end(); it++) {
             kmap->values[it->first] = it->second;
             if (it == itr)

@@ -211,14 +211,21 @@ public:
 		values.init(rs);
 	}
 	void populate(long r, long c, long val) {
-		values[r][c] = val;
+        if (r >= 0 && c >= 0)
+            values[r][c] = val;
+        else
+            globalTamgu->Returnerror("Wrong indexes in a 'imatrix'");
 	}
 	void populate(Tamgu* krow, Tamgu* kcol, Tamgu* value) {
 		long r = krow->Integer();
 		long c = kcol->Integer();
 		long val = value->Integer();
-		values[r][c] = val;
+        if (r >= 0 && c >= 0)
+            values[r][c] = val;
+        else
+            globalTamgu->Returnerror("Wrong indexes in a 'imatrix'");
 	}
+    
 	void populate(Tamguimatrix* ke) {
 		ke->cleaning();
 		ke->init(rowsize, columnsize);

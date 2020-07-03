@@ -1742,7 +1742,7 @@ Tamgu* TamguInstructionAPPLYOPERATIONROOT::Returnlocal(TamguGlobal* g, Tamgu* pa
 
 //Composition returns a potential ROOT instruction that could be merged within a ROOT...
 Tamgu* TamguCallFunctionTaskell::Composition() {
-	if (body->lambdadomain.instructions.size() == 0 && body->instructions.size() == 1)
+	if (body->lambdadomain->instructions.size() == 0 && body->instructions.size() == 1)
 		return body->instructions.back()->Argument(0);
 
 	return aNOELEMENT;
@@ -2084,20 +2084,20 @@ bool TamguCode::isDeclared(short id) {
     return (i >= 0);
 }
 
-Tamgu* TamguMainFrame::Declaration(short id) {
-    if (declarations.check(id))
-        return declarations.get(id);
+Tamgu* TamguMainFrame::Declaration(short idname) {
+    if (declarations.check(idname))
+        return declarations.get(idname);
     return NULL;
 }
 
-void TamguMainFrame::Declare(short id, Tamgu* a) {
-	declarations[id] = a;
+void TamguMainFrame::Declare(short idname, Tamgu* a) {
+	declarations[idname] = a;
 	if (a->isFunction())
-		exported[id] = true;
+		exported[idname] = true;
 }
 
-bool TamguMainFrame::isDeclared(short id) {
-    return declarations.check(id);
+bool TamguMainFrame::isDeclared(short idname) {
+    return declarations.check(idname);
 }
 
 inline Tamgu* ThreadStruct::GetTopFrame() {
@@ -6697,7 +6697,7 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
         kint->Init(NULL);
     }
 	TamguFunctionLambda* kfunc = kint->body;
-	TamguLambdaDomain* lambdadom = &kfunc->lambdadomain;
+	TamguLambdaDomain* lambdadom = kfunc->lambdadomain;
 
 	//If we have a hdeclared, then we have a return_type...
 	if (return_type != -1 && kfunc->returntype == a_null) {		
@@ -7123,7 +7123,7 @@ Tamgu* TamguCode::C_hfunctioncall(x_node* xn, Tamgu* kf) {
 		Tamgu* calllocal = ai.instructions[0];
 		
 		TamguFunctionLambda* kfunc = ((TamguCallFunctionTaskell*)calllocal)->body;
-		TamguLambdaDomain* lambdadom = &kfunc->lambdadomain;
+		TamguLambdaDomain* lambdadom = kfunc->lambdadomain;
 
 		//We are dealing with a simple return function
 		//The value is stored in a variable, which is one step before the return statement
@@ -7268,7 +7268,7 @@ Tamgu* TamguCode::C_mapping(x_node* xn, Tamgu* kbase) {
 		kf->Init(NULL);
 	}
 	TamguFunctionLambda* kfunc = kf->body;
-	TamguLambdaDomain* lambdadom = &kfunc->lambdadomain;
+	TamguLambdaDomain* lambdadom = kfunc->lambdadomain;
 
 	x_node nvar("variable", "&common;", xn);
 	x_node* nname = creationxnode("word", nvar.value, &nvar);
@@ -7292,7 +7292,7 @@ Tamgu* TamguCode::C_mapping(x_node* xn, Tamgu* kbase) {
 			kf = (TamguCallFunctionTaskell*)kret;
 			kfunc = kf->body;
 			kfunc->choice = 1;
-			lambdadom = &kfunc->lambdadomain;
+			lambdadom = kfunc->lambdadomain;
 			global->Pushstack(kfunc);
 			global->Pushstack(lambdadom);
 		}
@@ -7305,15 +7305,15 @@ Tamgu* TamguCode::C_mapping(x_node* xn, Tamgu* kbase) {
 		if (kret->Initialisation()->Instruction(0)->Type() == a_calltaskell) {
 			kinit = (TamguCallFunctionTaskell*)kret->Initialisation()->Instruction(0);
 			//we look for the most embedded call...
-			if (kinit->body->lambdadomain.instructions.size() == 0 && kinit->body->Instruction(0)->Argument(0)->Type() == a_calltaskell)
+			if (kinit->body->lambdadomain->instructions.size() == 0 && kinit->body->Instruction(0)->Argument(0)->Type() == a_calltaskell)
 				kinit = (TamguCallFunctionTaskell*)kinit->body->Instruction(0)->Argument(0);
 		}
 
-		if (kinit != NULL && kinit->body->lambdadomain.instructions.size() != 0) {
+		if (kinit != NULL && kinit->body->lambdadomain->instructions.size() != 0) {
 			//First we copy all our substructures into our main structure...
-			kf->body->lambdadomain.instructions = kinit->body->lambdadomain.instructions;
-			kf->body->lambdadomain.declarations = kinit->body->lambdadomain.declarations;
-			kf->body->lambdadomain.local = kinit->body->lambdadomain.local;
+			kf->body->lambdadomain->instructions = kinit->body->lambdadomain->instructions;
+			kf->body->lambdadomain->declarations = kinit->body->lambdadomain->declarations;
+			kf->body->lambdadomain->local = kinit->body->lambdadomain->local;
 			kf->body->parameters = kinit->body->parameters;
 			kf->body->declarations = kinit->body->declarations;
 			kf->body->instructions = kinit->body->instructions;
@@ -7351,9 +7351,9 @@ Tamgu* TamguCode::C_mapping(x_node* xn, Tamgu* kbase) {
 			//We create a new TamguCallFunctionTaskell, in which we copy all that was computed with xn->nodes[1]
 			TamguCallFunctionTaskell* kcf = new TamguCallFunctionTaskell(global);
 			kcf->Init(NULL);
-			kcf->body->lambdadomain.instructions = lambdadom->instructions;
-			kcf->body->lambdadomain.declarations = lambdadom->declarations;
-			kcf->body->lambdadomain.local = lambdadom->local;
+			kcf->body->lambdadomain->instructions = lambdadom->instructions;
+			kcf->body->lambdadomain->declarations = lambdadom->declarations;
+			kcf->body->lambdadomain->local = lambdadom->local;
 			kcf->body->declarations = kfunc->declarations;
 			kcf->body->instructions = kfunc->instructions;
 
@@ -7471,7 +7471,7 @@ Tamgu* TamguCode::C_taskellalltrue(x_node* xn, Tamgu* kbase) {
 		kf->Init(NULL);
 	}
 	TamguFunctionLambda* kfunc = kf->body;
-	TamguLambdaDomain* lambdadom = &kfunc->lambdadomain;
+	TamguLambdaDomain* lambdadom = kfunc->lambdadomain;
 	global->Pushstack(kfunc);
 	global->Pushstack(lambdadom);
 
@@ -7554,7 +7554,7 @@ Tamgu* TamguCode::C_taskellboolchecking(x_node* xn, Tamgu* kbase) {
         kf->Init(NULL);
     }
     TamguFunctionLambda* kfunc = kf->body;
-    TamguLambdaDomain* lambdadom = &kfunc->lambdadomain;
+    TamguLambdaDomain* lambdadom = kfunc->lambdadomain;
     global->Pushstack(kfunc);
     global->Pushstack(lambdadom);
     
@@ -7604,7 +7604,7 @@ Tamgu* TamguCode::C_folding(x_node* xn, Tamgu* kbase) {
 		kf->Init(NULL);
 	}
 	TamguFunctionLambda* kfunc = kf->body;
-	TamguLambdaDomain* lambdadom = &kfunc->lambdadomain;
+	TamguLambdaDomain* lambdadom = kfunc->lambdadomain;
 	global->Pushstack(kfunc);
 	global->Pushstack(lambdadom);
 
@@ -7726,7 +7726,7 @@ Tamgu* TamguCode::C_zipping(x_node* xn, Tamgu* kbase) {
 		kf->Init(NULL);
 	}
 	TamguFunctionLambda* kfunc = kf->body;
-	TamguLambdaDomain* lambdadom = &kfunc->lambdadomain;
+	TamguLambdaDomain* lambdadom = kfunc->lambdadomain;
 	global->Pushstack(kfunc);
 	global->Pushstack(lambdadom);
 
@@ -7834,7 +7834,7 @@ Tamgu* TamguCode::C_filtering(x_node* xn, Tamgu* kbase) {
 	Tamgu* kret = NULL;
 	kfunc = kf->body;
 	kfunc->choice = 1;
-	lambdadom = &kfunc->lambdadomain;
+	lambdadom = kfunc->lambdadomain;
 
 	x_node nvar("variable", "&common;", xn);
 	x_node* nname = creationxnode("word", nvar.value, &nvar);
@@ -7852,7 +7852,7 @@ Tamgu* TamguCode::C_filtering(x_node* xn, Tamgu* kbase) {
 			kf = (TamguCallFunctionTaskell*)kret;
 			kfunc = kf->body;
 			kfunc->choice = 1;
-			lambdadom = &kfunc->lambdadomain;
+			lambdadom = kfunc->lambdadomain;
 			global->Pushstack(kfunc);
 			global->Pushstack(lambdadom);
 		}
@@ -7864,15 +7864,15 @@ Tamgu* TamguCode::C_filtering(x_node* xn, Tamgu* kbase) {
 		if (kret->Initialisation()->Instruction(0)->Type() == a_calltaskell) {
 			kinit = (TamguCallFunctionTaskell*)kret->Initialisation()->Instruction(0);
 			//we look for the most embedded call...
-			if (kinit->body->lambdadomain.instructions.size() == 0 && kinit->body->Instruction(0)->Argument(0)->Type() == a_calltaskell)
+			if (kinit->body->lambdadomain->instructions.size() == 0 && kinit->body->Instruction(0)->Argument(0)->Type() == a_calltaskell)
 				kinit = (TamguCallFunctionTaskell*)kinit->body->Instruction(0)->Argument(0);
 		}
 
-		if (kinit != NULL && kinit->body->lambdadomain.instructions.size() != 0) {
+		if (kinit != NULL && kinit->body->lambdadomain->instructions.size() != 0) {
 			//First we copy all our substructures into our main structure...
-			kf->body->lambdadomain.instructions = kinit->body->lambdadomain.instructions;
-			kf->body->lambdadomain.declarations = kinit->body->lambdadomain.declarations;
-			kf->body->lambdadomain.local = kinit->body->lambdadomain.local;
+			kf->body->lambdadomain->instructions = kinit->body->lambdadomain->instructions;
+			kf->body->lambdadomain->declarations = kinit->body->lambdadomain->declarations;
+			kf->body->lambdadomain->local = kinit->body->lambdadomain->local;
 			kf->body->parameters = kinit->body->parameters;
 			kf->body->declarations = kinit->body->declarations;
 			kf->body->instructions = kinit->body->instructions;
@@ -8034,7 +8034,7 @@ Tamgu* TamguCode::C_flipping(x_node* xn, Tamgu* kbase) {
 		kf->Init(NULL);
 	}
 	TamguFunctionLambda* kfunc = kf->body;
-	TamguLambdaDomain* lambdadom = &kfunc->lambdadomain;
+	TamguLambdaDomain* lambdadom = kfunc->lambdadomain;
 	global->Pushstack(kfunc);
 	global->Pushstack(lambdadom);
 
@@ -8103,7 +8103,7 @@ Tamgu* TamguCode::C_cycling(x_node* xn, Tamgu* kbase) {//Cycling in a list...
 		kf->Init(NULL);
 	}
 	TamguFunctionLambda* kfunc = kf->body;
-	TamguLambdaDomain* lambdadom = &kfunc->lambdadomain;
+	TamguLambdaDomain* lambdadom = kfunc->lambdadomain;
 
 	x_node nvar("variable", "&common;", xn);
 	x_node* nname = creationxnode("word", nvar.value, &nvar);
@@ -8127,7 +8127,7 @@ Tamgu* TamguCode::C_cycling(x_node* xn, Tamgu* kbase) {//Cycling in a list...
 			kf = (TamguCallFunctionTaskell*)kret;
 			kfunc = kf->body;
 			kfunc->choice = 1;
-			lambdadom = &kfunc->lambdadomain;
+			lambdadom = kfunc->lambdadomain;
 			global->Pushstack(kfunc);
 			global->Pushstack(lambdadom);
 		}
@@ -8140,15 +8140,15 @@ Tamgu* TamguCode::C_cycling(x_node* xn, Tamgu* kbase) {//Cycling in a list...
 		if (kret->Initialisation()->Instruction(0)->Type() == a_calltaskell) {
 			kinit = (TamguCallFunctionTaskell*)kret->Initialisation()->Instruction(0);
 			//we look for the most embedded call...
-			if (kinit->body->lambdadomain.instructions.size() == 0 && kinit->body->Instruction(0)->Argument(0)->Type() == a_calltaskell)
+			if (kinit->body->lambdadomain->instructions.size() == 0 && kinit->body->Instruction(0)->Argument(0)->Type() == a_calltaskell)
 				kinit = (TamguCallFunctionTaskell*)kinit->body->Instruction(0)->Argument(0);
 		}
 
-		if (kinit != NULL && kinit->body->lambdadomain.instructions.size() != 0) {
+		if (kinit != NULL && kinit->body->lambdadomain->instructions.size() != 0) {
 			//First we copy all our substructures into our main structure...
-			kf->body->lambdadomain.instructions = kinit->body->lambdadomain.instructions;
-			kf->body->lambdadomain.declarations = kinit->body->lambdadomain.declarations;
-			kf->body->lambdadomain.local = kinit->body->lambdadomain.local;
+			kf->body->lambdadomain->instructions = kinit->body->lambdadomain->instructions;
+			kf->body->lambdadomain->declarations = kinit->body->lambdadomain->declarations;
+			kf->body->lambdadomain->local = kinit->body->lambdadomain->local;
 			kf->body->parameters = kinit->body->parameters;
 			kf->body->declarations = kinit->body->declarations;
 			kf->body->instructions = kinit->body->instructions;
@@ -8186,9 +8186,9 @@ Tamgu* TamguCode::C_cycling(x_node* xn, Tamgu* kbase) {//Cycling in a list...
 			//We create a new TamguCallFunctionTaskell, in which we copy all that was computed with xn->nodes[1]
 			TamguCallFunctionTaskell* kcf = new TamguCallFunctionTaskell(global);
 			kcf->Init(NULL);
-			kcf->body->lambdadomain.instructions = lambdadom->instructions;
-			kcf->body->lambdadomain.declarations = lambdadom->declarations;
-			kcf->body->lambdadomain.local = lambdadom->local;
+			kcf->body->lambdadomain->instructions = lambdadom->instructions;
+			kcf->body->lambdadomain->declarations = lambdadom->declarations;
+			kcf->body->lambdadomain->local = lambdadom->local;
 			kcf->body->declarations = kfunc->declarations;
 			kcf->body->instructions = kfunc->instructions;
 
@@ -8326,18 +8326,18 @@ Tamgu* TamguCode::C_whereexpression(x_node* xn, Tamgu* kf) {
 	TamguVariableDeclaration* var;
 	int idname;
 	TamguCallFunctionTaskell* kint = (TamguCallFunctionTaskell*)kf;
-	kint->body->lambdadomain.local = true;
+	kint->body->lambdadomain->local = true;
 	for (int i = 0; i < xn->nodes.size(); i++) {
 		if (xn->nodes[i]->token == "word") {
 			idname = global->Getid(xn->nodes[i]->value);
-			if (kint->body->lambdadomain.declarations.check(idname)) {
+			if (kint->body->lambdadomain->declarations.check(idname)) {
 				stringstream message;
 				message << "Variable: '" << xn->nodes[i]->value << "' already declared";
 				throw new TamguRaiseError(message, filename, current_start, current_end);
 			}
 
 			var = new TamguTaskellSelfVariableDeclaration(global, idname);
-			kint->body->lambdadomain.Declare(idname, var);
+			kint->body->lambdadomain->Declare(idname, var);
 			kint->body->instructions.push_back(var);
             kint->body->wherevariables.push_back(var);
 			TamguInstruction kres;

@@ -670,7 +670,9 @@ Exporting Tamgu* Tamgubvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
 
     long iright = keyright->Getinteger(idthread);
     Tamgubvector* kvect;
-    keyright->Release();
+    if (keyright != ((TamguIndex*)idx)->right)
+        keyright->Release();
+    
     if (iright < 0 || keyright == aNULL) {
         iright = values.size() + iright;
         if (iright<ikey) {

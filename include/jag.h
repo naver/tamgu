@@ -65,6 +65,7 @@ const char m_redbold[] = {0,0};
 const char m_green[] = {0,0};
 const char m_dore[] = {0,0};
 const char m_blue[] = {0,0};
+const char m_blueblack[] = {0,0};
 const char m_gray[] = {0,0};
 const char m_lightgray[] = {0,0};
 const char m_selectgray[] = {0,0};
@@ -79,6 +80,7 @@ const char m_dore[] = {27, '[', '0', ';', '3','3', ';','4','9','m',0};
 const char m_blue[] = { 27, '[', '0', ';', '3','6','m',0 };
 #else
 const char m_blue[] = {27, '[', '0', ';', '3','4', ';','4','9','m',0};
+const char m_blueblack[] = {27, '[', '0', ';', '3','6', ';','4','9','m',0};
 #endif
 const char m_gray[] = {27, '[', '0', ';', '9','0', ';','4','9','m',0};
 const char m_lightgray[] = {27, '[', '0', ';', '9','0', ';','4','9','m',0};

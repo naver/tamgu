@@ -44,8 +44,12 @@ const char sys_clear_scrolling[] = {27, 91, '3', 'J', 0};
 const char sys_partial_line_clear[] = { 27, '[','0', 'K', 0 };
 const char sys_scroll_up[] = { 27, '[', '0','0','0', 'S', 0 };
 const char sys_scroll_down[] = { 27, '[', '0','0','0', 'T', 0 };
-
-
+const char sys_backspacekey[] = {127,0};
+const char sys_escapekey[] = {27,0};
+const char enablemouse[] = {27,91,'?','1','0','0','3','h',27,91,'?','1','0','1','5','h',27,91,'?','1','0','1','6','h',0};
+const char disablemouse[] = {27,91,'?','1','0','0','0','l',0};
+const char showcursor[] = {27,91,'?','2','5','h',0};
+const char hidecursor[] = {27,91,'?','2','5','l',0};
 
 #ifdef WIN32
 const char sys_keyright[] = { 224, 77, 0 };
@@ -62,6 +66,7 @@ const char sys_keyc_down[] = { 224,81, 0 };
 const char sys_keyc_right[] = { 224,116, 0 };
 const char sys_keyc_left[] = { 224,115, 0 };
 #else
+const char cursor_position[] = {27, 91, '6', 'n', 0};
 const char sys_keyc_right[] = { 27, 91, 49, 59, 53, 67, 0 };
 const char sys_keyc_left[] = { 27, 91, 49, 59, 53, 68, 0 };
 #ifdef APPLE

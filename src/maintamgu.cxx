@@ -2284,7 +2284,8 @@ public:
                     return true;
                 }
                 
-                return evaluateescape(buff);
+                evaluateescape(buff);
+                return true;
             default:
                 return checkaction(buff, first, last, isLispmode());
         }
@@ -2418,7 +2419,6 @@ public:
 				continue;
 			}
 #endif
-
             if (inbuffer) {
                 buffer += buff;
                 buff = buffer;

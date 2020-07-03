@@ -114,47 +114,37 @@ string getcharacter() {
     }
     return s;
 }
+
+void sendstring(string s) {
+    cout << s;
+}
+
+void getcursor(int& xcursor, int& ycursor) {
+    //If you need to get the absolute cursor position, you can decomment these lines
+    cout << cursor_position;
+    scanf("\033[%d;%dR", &xcursor, &ycursor);
+}
 #else
 static const short _getbuffsize = 128;
+
+void sendstring(string s) {
+    fflush(stdout);
+    //If you need to get the absolute cursor position, you can decomment these lines
+    cout << s;
+}
+
+void getcursor(int& xcursor, int& ycursor) {
+    fflush(stdout);
+    //If you need to get the absolute cursor position, you can decomment these lines
+    cout << cursor_position;
+    scanf("\033[%d;%dR", &xcursor, &ycursor);
+}
+
 string getcharacter(){
     static char buf[_getbuffsize+2];
     memset(buf,0, _getbuffsize);
-    
-    struct termios old={0};
     fflush(stdout);
-    if(tcgetattr(0, &old)<0) {
-        //we reset the input stream
-        //freopen("/dev/tty", "rw", stdin);
-        setbuf(stdin, NULL);
-        //and we try again...
-        if(tcgetattr(0, &old)<0) {
-            perror("tcsetattr()");
-            exit(-1);
-        }
-    }
-    
-    old.c_lflag&=~ICANON;
-    old.c_lflag&=~ECHO;
-    old.c_cc[VMIN]=1;
-    old.c_cc[VTIME]=0;
-
-    cc_t vstart = old.c_cc[VSTART];
-    cc_t vstop = old.c_cc[VSTOP];
-    cc_t vsusp = old.c_cc[VSUSP];
-
-    old.c_cc[VSTART] = NULL;
-    old.c_cc[VSTOP] = NULL;
-    old.c_cc[VSUSP] = NULL;
-
-    if(tcsetattr(0, TCSANOW, &old)<0) {
-        perror("tcsetattr ICANON");
-        return "";
-    }
-    
-    //If you need to get the absolute cursor position, you can decomment these lines
-    //cout << cursor_position;
-    //scanf("\033[%d;%dR", &xcursor, &ycursor);
-    
+        
     string res;
     long nb;
     
@@ -168,18 +158,12 @@ string getcharacter(){
     }
     while (nb == _getbuffsize);
     
-    old.c_lflag|=ICANON;
-    old.c_lflag|=ECHO;
-    old.c_cc[VSTART] = vstart;
-    old.c_cc[VSTOP] = vstop;
-    old.c_cc[VSUSP] = vsusp;
-
-    if(tcsetattr(0, TCSADRAIN, &old)<0) {
-        perror ("tcsetattr ~ICANON");
-        return "";
-    }
     
     return res;
+}
+
+Tamgusys::~Tamgusys() {
+    Reset();
 }
 #endif
 
@@ -308,6 +292,7 @@ bool Tamgusys::InitialisationModule(TamguGlobal* global, string version) {
     Tamgusys::AddMethod(global, "env", &Tamgusys::MethodEnv, P_ONE | P_TWO, "env(string var)|env(string varstring val): return or set the content of the environment variable 'var'");
     Tamgusys::AddMethod(global, "pipe", &Tamgusys::MethodPopen, P_ONE, "pipe(string command): execute a command and store the result in a svector.");
     Tamgusys::AddMethod(global, "getchar", &Tamgusys::MethodGETCH, P_NONE, "getchar(): return the last character (or group of characters) keyed in.");
+    Tamgusys::AddMethod(global, "reset", &Tamgusys::MethodReset, P_NONE, "reset(): reset the getchar context (Unix only).");
     Tamgusys::AddMethod(global, "colors", &Tamgusys::MethodCOLORS, P_THREE | P_FOUR, "colors(int style, int code1, int code2, bool disp): set text color or return the color code");
     Tamgusys::AddMethod(global, "foregroundcolor", &Tamgusys::MethodFGCOLORS, P_ONE, "foregroundcolor(int color): set foreground text color");
     Tamgusys::AddMethod(global, "backgroundcolor", &Tamgusys::MethodBGCOLORS, P_ONE, "backgroundcolor(int color): set background text color");
@@ -335,7 +320,22 @@ bool Tamgusys::InitialisationModule(TamguGlobal* global, string version) {
     
     Tamgusys::AddMethod(global, "screensize", &Tamgusys::MethodCoordinates, P_NONE, "screensizes(): return the screen size for row and column");
     Tamgusys::AddMethod(global, "hasresized", &Tamgusys::MethodScreenHasResized, P_NONE, "hasresized(): return 'true', if the screen size has changed");
+    Tamgusys::AddMethod(global, "cursor", &Tamgusys::MethodCursorPosition, P_NONE, "cursor(): return the cursor position");
+    Tamgusys::AddMethod(global, "inmouse", &Tamgusys::MethodInitMouse, P_NONE, "inmouse(): enable mouse tracking");
+    Tamgusys::AddMethod(global, "outmouse", &Tamgusys::MethodCloseMouse, P_NONE, "outmouse(): disable mouse tracking");
 
+    Tamgusys::AddMethod(global, "mousexy", &Tamgusys::MethodPositionMouse, P_ONE, "mousexy(string key): return mouse position");
+    Tamgusys::AddMethod(global, "mousescrollup", &Tamgusys::MethodPositionScrollingUp, P_ONE, "mousescrollup(string key): return mouse position when scrolling up");
+    Tamgusys::AddMethod(global, "mousescrolldown", &Tamgusys::MethodPositionScrollingDown, P_ONE, "mousescrolldown(string key): return mouse position when scrolling down");
+    Tamgusys::AddMethod(global, "mousedown1", &Tamgusys::MethodClickFirstMouseDown, P_ONE, "mousedown1(string key): return mouse position when primary click");
+    Tamgusys::AddMethod(global, "mousedown2", &Tamgusys::MethodClickSecondMouseDown, P_ONE, "mousedown2(string key): return mouse position when secondary click");
+    Tamgusys::AddMethod(global, "mouseup", &Tamgusys::MethodClickMouseUp, P_ONE, "mouseup(string key): return mouse position when button up");
+    Tamgusys::AddMethod(global, "mousetrack", &Tamgusys::MethodMouseTrack, P_ONE, "mousetrack(string key): return mouse position when mouse is moving while pressed");
+    Tamgusys::AddMethod(global, "ismouseaction", &Tamgusys::MethodIsActionMouse, P_ONE, "ismouseaction(string key): return true if it is a mouse action");    
+    Tamgusys::AddMethod(global, "isescapesequence", &Tamgusys::MethodisEscapeSequence, P_ONE, "isescapesequence(string key): return true if it is an escape sequence");
+    
+    Tamgusys::AddMethod(global, "showcursor", &Tamgusys::MethodShowCursor, P_ONE, "showcursor(bool show): show or hide the cursor");
+    
     if (version != "") {
         global->newInstance[Tamgusys::idtype] = new Tamgusys(global);
         global->RecordMethods(Tamgusys::idtype, Tamgusys::exported);
@@ -356,7 +356,9 @@ bool Tamgusys::InitialisationModule(TamguGlobal* global, string version) {
         a = new TamguSystemVariable(global, new TamguConstString((char*)sys_keyc_down), global->Createid("_sys_keyc_down"), a_string);
         a = new TamguSystemVariable(global, new TamguConstString((char*)sys_keyc_right), global->Createid("_sys_keyc_right"), a_string);
         a = new TamguSystemVariable(global, new TamguConstString((char*)sys_keyc_left), global->Createid("_sys_keyc_left"), a_string);
-
+        
+        a = new TamguSystemVariable(global, new TamguConstString((char*)sys_backspacekey), global->Createid("_sys_keybackspace"), a_string);
+        a = new TamguSystemVariable(global, new TamguConstString((char*)sys_escapekey), global->Createid("_sys_keyescape"), a_string);
     }
     return true;
 }
@@ -396,6 +398,38 @@ Tamgu* Tamgusys::Eval(Tamgu* context, Tamgu* idx, short idthread) {
         return globalTamgu->Providestring(rep);
     }
     return this;
+}
+
+void Tamgusys::Reset() {
+#ifndef WIN32
+    sendstring(showcursor);
+    if (mouseenabled) {
+        sendstring(disablemouse);
+        mouseenabled = false;
+    }
+    
+    if (getcharhasbeenused) {
+        struct termios old={0};
+        if(tcgetattr(0, &old)<0) {
+            //we reset the input stream
+            //freopen("/dev/tty", "rw", stdin);
+            setbuf(stdin, NULL);
+            //and we try again...
+            if(tcgetattr(0, &old)<0) {
+                perror("tcsetattr()");
+            }
+        }
+        old.c_lflag|=ICANON;
+        old.c_lflag|=ECHO;
+        old.c_cc[VSTART] = vstart;
+        old.c_cc[VSTOP] = vstop;
+        old.c_cc[VSUSP] = vsusp;
+        
+        tcsetattr(0, TCSADRAIN, &old);
+        getcharhasbeenused = false;
+    }
+#endif
+    lastcommand="";
 }
 
 #ifdef WIN32
@@ -612,10 +646,48 @@ Tamgu* Tamgusys::MethodEnv(Tamgu* contextualpattern, short idthread, TamguCall* 
     return aFALSE;
 }
 
-
+#ifdef WIN32
 Tamgu* Tamgusys::MethodGETCH(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     return globalTamgu->Providestring(getcharacter());
 }
+#else
+Tamgu* Tamgusys::MethodGETCH(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    if (!getcharhasbeenused) {
+        struct termios old={0};
+        if(tcgetattr(0, &old)<0) {
+            //we reset the input stream
+            //freopen("/dev/tty", "rw", stdin);
+            setbuf(stdin, NULL);
+            //and we try again...
+            if(tcgetattr(0, &old)<0) {
+                perror("tcsetattr()");
+                return globalTamgu->Returnerror("tcsetattr ICANON", idthread);
+            }
+        }
+        
+        old.c_lflag&=~ICANON;
+        old.c_lflag&=~ECHO;
+        old.c_cc[VMIN]=1;
+        old.c_cc[VTIME]=0;
+        
+        vstart = old.c_cc[VSTART];
+        vstop = old.c_cc[VSTOP];
+        vsusp = old.c_cc[VSUSP];
+        
+        old.c_cc[VSTART] = 0;
+        old.c_cc[VSTOP] = 0;
+        old.c_cc[VSUSP] = 0;
+        
+        if(tcsetattr(0, TCSANOW, &old)<0) {
+            perror("tcsetattr ICANON");
+            return globalTamgu->Returnerror("tcsetattr ICANON", idthread);
+        }
+        getcharhasbeenused = true;
+    }
+    
+    return globalTamgu->Providestring(getcharacter());
+}
+#endif
 
 Tamgu* Tamgusys::MethodCOLORS(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     char buff[16] ;
@@ -976,4 +1048,166 @@ Tamgu* Tamgusys::MethodScreenHasResized(Tamgu* contextualpattern, short idthread
     if (checkresize())
         return aTRUE;
     return aFALSE;
+}
+
+Tamgu* Tamgusys::MethodCursorPosition(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    //If you need to get the absolute cursor position, you can decomment these lines
+    int xcursor = 0;
+    int ycursor = 0;
+    getcursor(xcursor,ycursor);
+    Tamgu* vect = Selectaivector(contextualpattern);
+    vect->storevalue((long)xcursor);
+    vect->storevalue((long)ycursor);
+    return vect;
+}
+
+Tamgu* Tamgusys::MethodReset(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    Reset();
+    return aTRUE;
+}
+
+Tamgu* Tamgusys::MethodInitMouse(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    if (mouseenabled)
+        return aFALSE;
+    sendstring(enablemouse);
+    mouseenabled = true;
+    return aTRUE;
+}
+
+Tamgu* Tamgusys::MethodCloseMouse(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    if (!mouseenabled)
+        return aFALSE;
+    sendstring(disablemouse);
+    mouseenabled = false;
+    return aTRUE;
+}
+
+Tamgu* Tamgusys::MethodPositionMouse(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    string mousectrl = callfunc->Evaluate(0, aNULL, idthread)->String();
+    int action, mxcursor, mycursor;
+    Tamgu* vect = Selectaivector(contextualpattern);
+    if (mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[') {
+        //This a move
+        sscanf(STR(mousectrl), "\033[%d;%d;%dM", &action, &mycursor, &mxcursor);
+        if (action == 67) {
+            vect->storevalue((long)mxcursor);
+            vect->storevalue((long)mycursor);
+        }
+    }
+    return vect;
+}
+
+Tamgu* Tamgusys::MethodPositionScrollingUp(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    string mousectrl = callfunc->Evaluate(0, aNULL, idthread)->String();
+    int action, mxcursor, mycursor;
+    Tamgu* vect = Selectaivector(contextualpattern);
+    if (mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[') {
+        //This a move
+        sscanf(STR(mousectrl), "\033[%d;%d;%dM", &action, &mycursor, &mxcursor);
+        if (action == 96) {
+            vect->storevalue((long)mxcursor);
+            vect->storevalue((long)mycursor);
+        }
+    }
+    return vect;
+}
+
+Tamgu* Tamgusys::MethodPositionScrollingDown(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    string mousectrl = callfunc->Evaluate(0, aNULL, idthread)->String();
+    int action, mxcursor, mycursor;
+    Tamgu* vect = Selectaivector(contextualpattern);
+    if (mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[') {
+        //This a move
+        sscanf(STR(mousectrl), "\033[%d;%d;%dM", &action, &mycursor, &mxcursor);
+        if (action == 97) {
+            vect->storevalue((long)mxcursor);
+            vect->storevalue((long)mycursor);
+        }
+    }
+    return vect;
+}
+
+Tamgu* Tamgusys::MethodClickFirstMouseDown(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    string mousectrl = callfunc->Evaluate(0, aNULL, idthread)->String();
+    int action, mxcursor, mycursor;
+    Tamgu* vect = Selectaivector(contextualpattern);
+    if (mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[') {
+        //This a move
+        sscanf(STR(mousectrl), "\033[%d;%d;%dM", &action, &mycursor, &mxcursor);
+        if (action == 32) {
+            vect->storevalue((long)mxcursor);
+            vect->storevalue((long)mycursor);
+        }
+    }
+    return vect;
+}
+
+Tamgu* Tamgusys::MethodClickSecondMouseDown(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    string mousectrl = callfunc->Evaluate(0, aNULL, idthread)->String();
+    int action, mxcursor, mycursor;
+    Tamgu* vect = Selectaivector(contextualpattern);
+    if (mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[') {
+        //This a move
+        sscanf(STR(mousectrl), "\033[%d;%d;%dM", &action, &mycursor, &mxcursor);
+        if (action == 34) {
+            vect->storevalue((long)mxcursor);
+            vect->storevalue((long)mycursor);
+        }
+    }
+    return vect;
+}
+
+Tamgu* Tamgusys::MethodClickMouseUp(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    string mousectrl = callfunc->Evaluate(0, aNULL, idthread)->String();
+    int action, mxcursor, mycursor;
+    Tamgu* vect = Selectaivector(contextualpattern);
+    if (mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[') {
+        //This a move
+        sscanf(STR(mousectrl), "\033[%d;%d;%dM", &action, &mycursor, &mxcursor);
+        if (action == 35) {
+            vect->storevalue((long)mxcursor);
+            vect->storevalue((long)mycursor);
+        }
+    }
+    return vect;
+}
+
+Tamgu* Tamgusys::MethodMouseTrack(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    string mousectrl = callfunc->Evaluate(0, aNULL, idthread)->String();
+    int action, mxcursor, mycursor;
+    Tamgu* vect = Selectaivector(contextualpattern);
+    if (mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[') {
+        //This a move
+        sscanf(STR(mousectrl), "\033[%d;%d;%dM", &action, &mycursor, &mxcursor);
+        if (action == 64) {
+            vect->storevalue((long)mxcursor);
+            vect->storevalue((long)mycursor);
+        }
+    }
+    return vect;
+}
+
+Tamgu* Tamgusys::MethodIsActionMouse(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    string mousectrl = callfunc->Evaluate(0, aNULL, idthread)->String();
+    if (mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[')
+        return aTRUE;
+    return aFALSE;
+}
+
+
+Tamgu* Tamgusys::MethodisEscapeSequence(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    string mousectrl = callfunc->Evaluate(0, aNULL, idthread)->String();
+    if (mousectrl[0] == 27 && mousectrl[1] == '[')
+        return aTRUE;
+    return aFALSE;
+}
+
+Tamgu* Tamgusys::MethodShowCursor(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    bool cursor = callfunc->Evaluate(0, aNULL, idthread)->Boolean();
+    if (cursor)
+        sendstring(showcursor);
+    else
+        sendstring(hidecursor);
+
+    return aTRUE;
 }

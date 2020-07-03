@@ -2273,7 +2273,12 @@ Exporting Tamgu* TamguGlobal::EvaluateLisp(Tamgu* contextualpattern, string file
         kret = lst->values[i]->Eval(aEMPTYLISP, aNULL, idthread);
     }
     
+    //Specific case for lambdas, we need to protect them...
+    kret->Setreference();
+    
     lst->Resetreference(1);
+    
+    kret->Protect();
     
     currentbnf = previous;
     delete xn;

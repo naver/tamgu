@@ -20,7 +20,7 @@
 
 //----------------------------------------------------------------------------------------------------
 Exporting TamguPredicateVariableInstance* TamguGlobal::Providepvi(short n) {
-    if (threadMODE)
+    if (threadMODE || add_to_tamgu_garbage)
         return new TamguPredicateVariableInstance(predicatename++, n);
     
     TamguPredicateVariableInstance* kvi;

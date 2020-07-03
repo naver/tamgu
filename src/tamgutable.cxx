@@ -1221,7 +1221,8 @@ Exporting Tamgu* Tamgutable::Eval(Tamgu* contextualpattern, Tamgu* idx, short id
         }
     }
 
-    keyright->Release();
+    if (keyright != kind->right)
+        keyright->Release();
 
     if (iright < 0 || keyright == aNULL) {
         iright = size + iright;

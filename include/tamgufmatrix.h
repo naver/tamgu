@@ -218,12 +218,18 @@ public:
 		values.init(rs);
 	}
 	void populate(long r, long c, double val) {
-		values[r][c] = val;
+        if (r >= 0 && c >= 0)
+            values[r][c] = val;
+        else
+            globalTamgu->Returnerror("Wrong indexes in a 'fmatrix'");
 	}
 	void populate(Tamgu* krow, Tamgu* kcol, Tamgu* value) {
 		long r = krow->Integer();
 		long c = kcol->Integer();
-		values[r][c] = value->Float();
+        if (r >= 0 && c >= 0)
+            values[r][c] = value->Float();
+        else
+            globalTamgu->Returnerror("Wrong indexes in a 'fmatrix'");
 	}
 	void populate(Tamgufmatrix* ke) {
 		ke->cleaning();

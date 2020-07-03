@@ -834,7 +834,8 @@ Exporting Tamgu* Tamgulist::Eval(Tamgu* contextualpattern, Tamgu* idx, short idt
     }
 
     long iright = keyright->Integer();
-    keyright->Release();
+    if (keyright != ((TamguIndex*)idx)->right)
+        keyright->Release();
 
     if (iright < 0 || keyright == aNULL) {
         iright = values.size() + iright;
@@ -2503,8 +2504,9 @@ Exporting Tamgu* Tamguring::Eval(Tamgu* contextualpattern, Tamgu* idx, short idt
     else
         iright = keyright->Integer();
     
-    keyright->Release();
-    
+    if (keyright != kind->right)
+        keyright->Release();
+
     if (iright < 0 || keyright == aNULL) {
         iright = mx + iright;
         if (iright<ikey) {

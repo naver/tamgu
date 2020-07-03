@@ -475,9 +475,9 @@ public:
     VECTE<Tamgu*> localvariables;
     VECTE<Tamgu*> wherevariables;
     VECTE<short> names;
-    
-	TamguLambdaDomain lambdadomain;	
-	vector<Taskelldeclaration*> taskelldeclarations;
+    vector<Taskelldeclaration*> taskelldeclarations;
+
+	TamguLambdaDomain* lambdadomain;
     TamguCallReturn* instructionreturn;
     TamguInstructionTaskellIF* instructionif;
     unsigned long constantparameters;
@@ -487,6 +487,7 @@ public:
     bool storage;
 
     TamguFunctionLambda(short n, TamguGlobal* g = NULL) : instructionreturn(NULL),returnonly(0), maybe(false), hdeclared(false), store(false), TamguFunction(n, g) {
+        lambdadomain = new TamguLambdaDomain(g);
 		idtype = a_lambda;
         constantparameters = 0;
         firstconstant = -1;
@@ -542,7 +543,7 @@ public:
 	}
 
 	TamguLambdaDomain* Thedomain() {
-		return &lambdadomain;
+		return lambdadomain;
 	}
 
 	TamguFunctionLambda* Following() {
@@ -727,7 +728,7 @@ public:
 	char taskellchoice;
 
 	TamguLambdaDomain*  Thedomain() {
-		return &body->lambdadomain;
+		return body->lambdadomain;
 	}
 
 	TamguFunction* Body(short idthread) {
@@ -813,7 +814,7 @@ public:
 			function = (TamguCall*)ke;
 			break;
 		case 3:
-			body->lambdadomain.AddInstruction(ke);
+			body->lambdadomain->AddInstruction(ke);
 			break;
 		case 4:
 			body->AddInstruction(ke);
@@ -824,7 +825,7 @@ public:
 	bool isDeclared(short idname) {
 		if (body == NULL)
 			return false;
-		return body->lambdadomain.isDeclared(idname);
+		return body->lambdadomain->isDeclared(idname);
 	}
 
     char Declarelocal(short idthread, short n, Tamgu* a) {
@@ -838,13 +839,13 @@ public:
 	void Declare(short idname, Tamgu* a) {
 		if (body == NULL)
 			return;
-		body->lambdadomain.Declare(idname, a);
+		body->lambdadomain->Declare(idname, a);
 	}
 
 	Tamgu* Declaration(short idname) {
 		if (body == NULL)
 			return NULL;
-		return body->lambdadomain.Declaration(idname);
+		return body->lambdadomain->Declaration(idname);
 	}
 
 };

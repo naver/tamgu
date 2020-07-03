@@ -140,17 +140,36 @@ public:
 
 };
 
-class Tamgulispvariable : public Tamgu {
+class Tamgulispvariable : public TamguReference {
 public:
     Tamgu* call;
     short name;
     
-    Tamgulispvariable(string& symb, TamguGlobal* g, Tamgu* parent) {
+    Tamgulispvariable(string& symb, TamguGlobal* g, Tamgu* parent) : call(NULL), TamguReference(g, parent) {
         name = g->Getid(symb);
-        parent->AddInstruction(this);
-        g->RecordInTracker(this);
     }
 
+    void Setreference() {
+        if (call != NULL)
+            call->Setreference();
+        TamguReference::Setreference();
+    }    
+
+    void Setreference(short inc) {
+        if (call != NULL)
+            call->Setreference(inc);
+        TamguReference::Setreference(inc);
+    }
+    
+    void Resetreference(short inc = 1) {
+        if ((reference - inc) <= 0 && call != NULL) {
+            if (call->isIndex())
+                call->Clear();
+            call = NULL;
+        }
+        TamguReference::Resetreference(inc);
+    }
+    
     void AddInstruction(Tamgu* e) {
         call = e;
     }
@@ -275,6 +294,7 @@ public:
     }
 
 };
+
 class Tamgucadr : public Tamgu {
 public:
     string action;
@@ -529,40 +549,100 @@ public:
 
 class TamguLispFunction : public TamguFunction {
 public:
-    bool reset;
-    TamguLispFunction(short n, bool r) : TamguFunction(n, NULL) {
-        reset = r;
-    }
+    std::atomic<short> reference;
+    bool protect;
 
-    TamguLispFunction(short n, TamguGlobal* g) : TamguFunction(n, g) {
-        reset = false;
+    TamguLispFunction(short n, TamguGlobal* g = NULL) : TamguFunction(n, g) {
+        protect = true;
+        reference = 0;
     }
 
     ~TamguLispFunction() {
+        if (idtracker != -1)
+            globalTamgu->RemoveFromTracker(idtracker);
+
+        Tamgu* tmg = globalTamgu->Getmainframe(0);
+        if (tmg->isDeclared(name))
+            tmg->Declare(name, aNULL);
+
         //This is a case that occurs when creating lambdas and functions in Lisp with eval
-        long i;
-        for (i = 0; i < parameters.size(); i++)
+        for (long i = 0; i < parameters.size(); i++)
             delete parameters[i];
         if (instructions.size() == 1) {
             Tamgu* v = instructions[0]->Argument(0);
-            v->Popping();
             v->Resetreference();
             delete instructions[0];
         }
     }
     
+    short Reference() {
+        return reference;
+    }
+    
+    void Setprotect(bool n) {
+        protect = n;
+    }
+    
     void Popping() {
-        reset = true;
+        protect = false;
+        if (reference <= 0)
+            protect = true;
     }
     
-    void Removereference(short r) {
-        if (reset)
-            delete this;
+    bool isProtected() {
+        return protect;
     }
     
-    void Resetreference(short r) {
-        if (reset)
-            delete this;
+    void Resetreferencenoprotect(short r = 1) {
+        Setprotect(false);
+        Resetreference(r);
+    }
+    
+    void Addreference(unsigned short inv, short inc=1) {
+        investigate |= (inv & is_tobelocked);
+        Setreference(inc);
+    }
+
+    void Setreference(short r) {
+        reference += r;
+        protect = false;
+        
+    }
+    
+    void Setreference() {
+        ++reference;
+        protect = false;
+        
+    }
+
+    void Resetreference(short r = 1) {
+        if ((reference-=r) <= 0) {
+            reference = 0;
+            if (!protect) {
+                delete this;
+            }
+        }
+    }
+
+    void Release() {
+        if (reference == 0) {
+            protect = false;
+            Resetreference(0);
+        }
+    }
+    
+    void Protect() {
+            //We suppose there have been a Setreference before...
+        if (reference >= 2) { //No problem, we simply remove one increment
+            Resetreference();
+            Setprotect(false); //Should not be any protect left in that case...
+            return;
+        }
+        
+            //Else, we decrease our reference, but we protect it with a protect
+        Setprotect(true);
+        Resetreference();
+        Popping(); //and protection only if necessary...
     }
 };
 

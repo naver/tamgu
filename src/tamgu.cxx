@@ -41,7 +41,7 @@
 #include "tamgulisp.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2020.06.26.09";
+const char* tamgu_version = "Tamgu 1.2020.07.03.10";
 
 Tamgu* booleantamgu[2];
 
@@ -278,9 +278,11 @@ void FinalTamguConstantCleaning(void) {
 //----------------------------------------------------------------------------------
 
 // Debug area, to detect potential memory leaks...
+vector<Tamgu*> _tamgu_garbage;
+bool add_to_tamgu_garbage = false;
+
 #ifdef GARBAGEFORDEBUG
 
-static vector<Tamgu*> garbage;
 ThreadLock _garbaging;
 
 Exporting Tamgu::Tamgu() {
@@ -289,18 +291,21 @@ Exporting Tamgu::Tamgu() {
 
     if (globalTamgu != NULL && globalTamgu->threadMODE) {
         Locking _lock(_garbaging);
-        iddebug = garbage.size();
-        garbage.push_back(this);
+        iddebug = _tamgu_garbage.size();
+        _tamgu_garbage.push_back(this);
     }
     else {
-        iddebug = garbage.size();
-        garbage.push_back(this);
+        iddebug = _tamgu_garbage.size();
+        _tamgu_garbage.push_back(this);
     }
 }
 
 Exporting Tamgu::~Tamgu() {
     Locking _lock(_garbaging);
-    garbage[iddebug] = NULL;
+    if (idtracker != -1)
+        globalTamgu->RemoveFromTracker(idtracker);
+    if (iddebug < _tamgu_garbage.size())
+        _tamgu_garbage[iddebug] = NULL;
 }
 
 void Garbaging(vector<Tamgu*>& issues, vector<long>& idissues) {
@@ -308,8 +313,8 @@ void Garbaging(vector<Tamgu*>& issues, vector<long>& idissues) {
     idissues.clear();
     Tamgu* g;
     Locking _lock(_garbaging);
-    for (size_t i = 0; i < garbage.size(); i++) {
-        g = garbage[i];
+    for (size_t i = 0; i < _tamgu_garbage.size(); i++) {
+        g = _tamgu_garbage[i];
         if (g != NULL) {
             if (g->idtracker == -1 && g->Reference() == 0) {
                 issues.push_back(g);
@@ -318,10 +323,36 @@ void Garbaging(vector<Tamgu*>& issues, vector<long>& idissues) {
         }
     }
 }
-
-
+void set_garbage_mode(bool v) {}
+#else
+//This is a mode taht is only activated when _eval is called...
+void set_garbage_mode(bool v) {
+    add_to_tamgu_garbage = v;
+}
 #endif
 
+long last_garbage_position() {
+    set_garbage_mode(true);
+    return _tamgu_garbage.size();
+}
+
+void clean_from_garbage_position(long p, Tamgu* keep, long lastrecorded) {
+    Tamgu* e;
+    long i;
+    for (i = p; i < _tamgu_garbage.size(); i++) {
+        e = _tamgu_garbage[i];
+        if (e == keep || e == NULL || e->isConst() || (e->idtracker != -1 && e->idtracker < lastrecorded))
+            continue;
+        delete e;
+    }
+    
+    if (p)
+        _tamgu_garbage.erase(_tamgu_garbage.begin()+p, _tamgu_garbage.end());
+    else
+        _tamgu_garbage.clear();
+    
+    set_garbage_mode(false);
+}
 
 //----------------------------------------------------------------------------------
 Exporting long ThreadLock::ids = 0;
@@ -443,9 +474,8 @@ TamguGlobal::TamguGlobal(long nb, bool setglobal) :
 idSymbols(false), methods(false), compatibilities(false), strictcompatibilities(false),
     operator_strings(false), terms(false), booleanlocks(true), tracked(NULL, true) {
 
-#ifdef GARBAGEFORDEBUG
-        garbage.clear();
-#endif
+        _tamgu_garbage.clear();
+        add_to_tamgu_garbage = false;
 
         threadcounter = 0;
         trackerslotfilled = 0;
@@ -724,7 +754,7 @@ TamguGlobal::~TamguGlobal() {
     vector<Tamgu*> issues;
     vector<long> idissues;
     Garbaging(issues, idissues);
-    garbage.clear();
+    _tamgu_garbage.clear();
     if (issues.size())
         cerr << "No fully cleaned:" << issues.size() << endl;
     else
@@ -3203,7 +3233,7 @@ string TamguConstBool::Info(string s) {
 }
 //------------------------------------------------------------------------------------------------------------------------
 Exporting Tamgumap* TamguGlobal::Providemap() {
-    if (threadMODE)
+    if (threadMODE || add_to_tamgu_garbage)
         return new Tamgumap;
 
     Tamgumapbuff* ke;
@@ -3241,7 +3271,7 @@ Exporting Tamgumap* TamguGlobal::Providemap() {
 }
 
 Exporting Tamgumapss* TamguGlobal::Providemapss() {
-    if (threadMODE)
+    if (threadMODE || add_to_tamgu_garbage)
         return new Tamgumapss;
 
     Tamgumapssbuff* ke;
@@ -3279,7 +3309,7 @@ Exporting Tamgumapss* TamguGlobal::Providemapss() {
 }
 
 Exporting Tamguvector* TamguGlobal::Providevector() {
-    if (threadMODE)
+    if (threadMODE || add_to_tamgu_garbage)
         return new Tamguvector;
 
     Tamguvectorbuff* ke;
@@ -3318,7 +3348,7 @@ Exporting Tamguvector* TamguGlobal::Providevector() {
 
 
 Exporting Tamguivector* TamguGlobal::Provideivector() {
-    if (threadMODE)
+    if (threadMODE || add_to_tamgu_garbage)
         return new Tamguivector;
 
     Tamguivectorbuff* ke;
@@ -3356,7 +3386,7 @@ Exporting Tamguivector* TamguGlobal::Provideivector() {
 }
 
 Exporting Tamgufvector* TamguGlobal::Providefvector() {
-    if (threadMODE)
+    if (threadMODE || add_to_tamgu_garbage)
         return new Tamgufvector;
 
     Tamgufvectorbuff* ke;
@@ -3393,7 +3423,7 @@ Exporting Tamgufvector* TamguGlobal::Providefvector() {
 }
 
 Exporting Tamgusvector* TamguGlobal::Providesvector() {
-    if (threadMODE)
+    if (threadMODE || add_to_tamgu_garbage)
         return new Tamgusvector;
 
     Tamgusvectorbuff* ke;
@@ -3430,7 +3460,7 @@ Exporting Tamgusvector* TamguGlobal::Providesvector() {
 }
 
 Exporting Tamguuvector* TamguGlobal::Provideuvector() {
-    if (threadMODE)
+    if (threadMODE || add_to_tamgu_garbage)
         return new Tamguuvector;
 
     Tamguuvectorbuff* ke;
@@ -3467,7 +3497,7 @@ Exporting Tamguuvector* TamguGlobal::Provideuvector() {
 }
 
 Exporting TamguSelf* TamguGlobal::Provideself() {
-    if (threadMODE)
+    if (threadMODE || add_to_tamgu_garbage)
         return new TamguSelf;
 
     Tamguselfbuff* ke;
@@ -3509,7 +3539,7 @@ Exporting TamguSelf* TamguGlobal::Provideself() {
 }
 
 Exporting Tamguint* TamguGlobal::Provideint(long v) {
-    if (threadMODE)
+    if (threadMODE || add_to_tamgu_garbage)
         return new Tamguint(v);
 
     Tamguintbuff* ke;
@@ -3547,7 +3577,7 @@ Exporting Tamguint* TamguGlobal::Provideint(long v) {
 }
 
 Exporting Tamgufloat* TamguGlobal::Providefloat(double v) {
-    if (threadMODE)
+    if (threadMODE || add_to_tamgu_garbage)
         return new Tamgufloat(v);
 
     Tamgufloatbuff* ke;
@@ -3586,7 +3616,7 @@ Exporting Tamgufloat* TamguGlobal::Providefloat(double v) {
 Exporting TamguDeclarationLocal* TamguGlobal::Providedeclaration(Tamgu* ins, short idt, bool p) {
     TamguDeclarationLocal* ke;
 
-    if (threadMODE) {
+    if (threadMODE || add_to_tamgu_garbage) {
         ke = new TamguDeclarationLocal(-1);
         ke->idthread = idt;
 
@@ -3664,7 +3694,7 @@ Exporting TamguDeclarationLocal* TamguGlobal::Providedeclaration(Tamgu* ins, sho
 }
 
 Exporting Tamgulisp* TamguGlobal::Providelisp() {
-    if (threadMODE)
+    if (threadMODE || add_to_tamgu_garbage)
         return new Tamgulisp(-1);
 
     Tamgulisp* ke;
@@ -3701,7 +3731,7 @@ Exporting Tamgulisp* TamguGlobal::Providelisp() {
 }
 
 Exporting Tamgustring* TamguGlobal::Providestring(string v) {
-    if (threadMODE)
+    if (threadMODE || add_to_tamgu_garbage)
         return new Tamgustring(v);
 
     Tamgustringbuff* ke;
@@ -3741,7 +3771,7 @@ Exporting Tamgustring* TamguGlobal::Providestring(string v) {
 }
 
 Exporting Tamguustring* TamguGlobal::Provideustring(wstring v) {
-    if (threadMODE)
+    if (threadMODE || add_to_tamgu_garbage)
         return new Tamguustring(v);
 
     Tamguustringbuff* ke;
@@ -3781,7 +3811,7 @@ Exporting Tamguustring* TamguGlobal::Provideustring(wstring v) {
 }
 
 Exporting Tamgustring* TamguGlobal::Providewithstring(string& v) {
-    if (threadMODE)
+    if (threadMODE || add_to_tamgu_garbage)
         return new Tamgustring(v);
 
     Tamgustringbuff* ke;
@@ -3821,7 +3851,7 @@ Exporting Tamgustring* TamguGlobal::Providewithstring(string& v) {
 }
 
 Exporting Tamguustring* TamguGlobal::Providewithustring(wstring& v) {
-    if (threadMODE)
+    if (threadMODE || add_to_tamgu_garbage)
         return new Tamguustring(v);
 
     Tamguustringbuff* ke;

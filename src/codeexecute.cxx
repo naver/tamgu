@@ -309,6 +309,8 @@ Exporting Tamgu* TamguExecute(TamguCode* code, string name, vector<Tamgu*>& para
 }
 
 Tamgu* TamguCode::Execute(long begininstruction, short idthread) {
+    Tamgu* ci = globalTamgu->threads[idthread].currentinstruction;
+
 	Tamgu* a = aNULL;
     global->Cleanerror(idthread);
 
@@ -319,8 +321,11 @@ Tamgu* TamguCode::Execute(long begininstruction, short idthread) {
 	for (i = begininstruction; i < sz; i++) {
         a = mainframe.instructions.vecteur[i];
 
+
 		_debugpush(a);
+        globalTamgu->threads[idthread].currentinstruction = ci;
 		a = a->Eval(&mainframe, aNULL, idthread);
+        globalTamgu->threads[idthread].currentinstruction = ci;
 		_debugpop();
 
 		if (global->Error(idthread)) {
@@ -329,6 +334,12 @@ Tamgu* TamguCode::Execute(long begininstruction, short idthread) {
 			a = global->Errorobject(idthread);
 			break;
 		}
+        
+        if (a->isReturned()) {
+            a = a->Returned(idthread);
+            break;
+        }
+            
 
 		a->Releasenonconst();
 		a = aNULL;
@@ -2829,6 +2840,8 @@ Tamgu* TamguInstructionAFFECTATION::Eval(Tamgu* environment, Tamgu* value, short
 
 		if (idx != NULL) {
 			value = instructions.vecteur[1]->Eval(environment, aNULL, idthread);
+            if (value->isError())
+                return value;
 
 			//for instance: v[0]=v[0][1];
 			//we need to prevent a Clear() on "variable" to delete this element...

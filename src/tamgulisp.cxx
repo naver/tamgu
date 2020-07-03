@@ -1104,17 +1104,11 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 //expression, that should not be deleted when back Evaluatelisp, which releases these structures...
                 //TamguLispFunction exposes two methods: Popping which put reset to true and Resetreference, which delete this
                 //object when reset is true...
-                if (contextualpattern == aEMPTYLISP)
-                    a = new TamguLispFunction(a_lambda, true); //here, the object can be released in Evaluatelisp
-                else
-                    a = new TamguLispFunction(a_lambda, false); //here it cannot...
+                a = new TamguLispFunction(a_lambda); //here, the object can be released in Evaluatelisp
+                a->Setreference();
             }
-            else {
-                char name[10];
-                sprintf_s(name, 10, "%%l_%ld", idtracker);
-                n = globalTamgu->Getid(name);
-                a = new TamguFunction(n, globalTamgu);
-            }
+            else
+                a = new TamguFunction(a_lambda, globalTamgu);
             
             ((TamguFunction*)a)->idtype = a_lisp;
             
@@ -1195,7 +1189,8 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             }
 
             if (fromEval) {
-                a = new TamguLispFunction(n, false);
+                a = new TamguLispFunction(n);
+                a->Setreference(2);
             }
             else
                 a = new TamguFunction(n, globalTamgu);
@@ -1208,12 +1203,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             if (ret == a_mainframe || ret == a_declaration) {
                 if (fromEval) {
                     v0 = contextualpattern->Declaration(n);
-                    if (v0->idtracker != -1) {
-                        unlockparse();
-                        delete a;
-                        return globalTamgu->Returnerror("Already declared",idthread);
-                    }
-                    delete v0;
+                    v0->Resetreference();
                 }
                 else {
                     a->Remove();

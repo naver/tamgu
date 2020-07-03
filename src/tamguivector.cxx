@@ -839,7 +839,9 @@ Exporting Tamgu* Tamguivector::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
     }
 
     long iright = keyright->Integer();
-    keyright->Release();
+    if (keyright != kind->right)
+        keyright->Release();
+
     if (iright < 0 || keyright == aNULL) {
         iright = values.size() + iright;
         if (iright<ikey) {
@@ -1970,7 +1972,8 @@ Exporting Tamgu* Tamgua_ivector::Eval(Tamgu* contextualpattern, Tamgu* idx, shor
         return globalTamgu->Provideint(values[ikey]);
     
     long iright = keyright->Integer();
-    keyright->Release();
+    if (keyright != kind->right)
+        keyright->Release();
     if (iright < 0 || keyright == aNULL) {
         iright = values.size() + iright;
         if (iright<ikey) {

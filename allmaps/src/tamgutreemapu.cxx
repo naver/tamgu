@@ -485,10 +485,12 @@ Exporting Tamgu* Tamgutreemapu::Eval(Tamgu* contextualpattern, Tamgu* idx, short
         key->Release();
         map<wstring, Tamgu* > ::iterator itr = values.find(vright);
         if (itr == values.end() && keyright != aNULL) {
-            keyright->Release();
+            if (keyright != ((TamguIndex*)idx)->right)
+                keyright->Release();
             return kmap;
         }
-        keyright->Release();
+        if (keyright != ((TamguIndex*)idx)->right)
+            keyright->Release();
         for (; it != values.end(); it++) {
             kmap->Push(it->first, it->second);
             if (it == itr)

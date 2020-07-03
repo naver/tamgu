@@ -75,7 +75,7 @@ void TamguCallFibre::AddMethod(TamguGlobal* global, string name, tamguCallFibre 
 
 Exporting TamguDeclarationAutoClean* TamguGlobal::Providedeclarationclean(short idthread) {
     TamguDeclarationAutoClean* ke;
-    if (threadMODE) {
+    if (threadMODE || add_to_tamgu_garbage) {
         ke = new TamguDeclarationAutoClean(-1);
         ke->idthread = idthread;
         return ke;
@@ -688,7 +688,7 @@ Tamgu* TamguCallFunctionTaskell::Eval(Tamgu* context, Tamgu* res, short idthread
     for (long i = 0; i < body->names.size(); i++)
         body->localvariables[i]->Eval(environment, aHASKELL, idthread);
 
-    switch (body->lambdadomain.instructions.last) {
+    switch (body->lambdadomain->instructions.last) {
         case 0:
         res = body->DirectEval(environment, aNULL, idthread);
         break;
@@ -918,7 +918,7 @@ Tamgu* TamguCallFunctionArgsTaskell::Eval(Tamgu* context, Tamgu* res, short idth
             for (i = 0; i < bd->names.size(); i++)
                 bd->localvariables[i]->Eval(environment, aHASKELL, idthread);
 
-            switch (bd->lambdadomain.instructions.last) {
+            switch (bd->lambdadomain->instructions.last) {
                 case 0:
                     res = bd->DirectEval(environment, aNULL, idthread);
                     break;
@@ -1082,10 +1082,10 @@ Exporting Tamgu* Tamgu::Filterboolean(short idthread, Tamgu* env, TamguFunctionL
 //The <all...>, <and ...> and the <or ...> <xor ...> operators...
 Tamgu* TamguCallFunctionTaskell::GetTaskell2(Tamgu* context, Tamgu* environment, TamguFunctionLambda* bd, short idthread) {
 
-    Tamgu* var = bd->lambdadomain.instructions[0]->Eval(environment, aNULL, idthread);
-    Tamgu* alist = bd->lambdadomain.instructions[1]->Eval(environment, aNULL, idthread);
+    Tamgu* var = bd->lambdadomain->instructions[0]->Eval(environment, aNULL, idthread);
+    Tamgu* alist = bd->lambdadomain->instructions[1]->Eval(environment, aNULL, idthread);
 
-    switch (bd->lambdadomain.name) {
+    switch (bd->lambdadomain->name) {
         case 1:
         context = alist->Filterboolean(idthread, environment, bd, var, aTRUE);
             break;
@@ -1170,7 +1170,7 @@ Tamgu* TamguCallFunctionTaskell::GetTaskell3(Tamgu* context, Tamgu* environment,
 
     Tamgu* recipient = NULL;
     
-    if (bd->lambdadomain.local) {
+    if (bd->lambdadomain->local) {
             //We might have some variables declared in "where"
         for (short i = 0; i < bd->wherevariables.last; i++) {
             if (bd->wherevariables.vecteur[i]->Computevariablecheck(idthread)) {
@@ -1184,21 +1184,21 @@ Tamgu* TamguCallFunctionTaskell::GetTaskell3(Tamgu* context, Tamgu* environment,
         recipient = NULL;
     }
     
-    if (bd->lambdadomain.declarations.check(a_counter))
-        bd->lambdadomain.Declaration(a_counter)->Eval(environment, aNULL, idthread);
+    if (bd->lambdadomain->declarations.check(a_counter))
+        bd->lambdadomain->Declaration(a_counter)->Eval(environment, aNULL, idthread);
     else
-        if (bd->lambdadomain.declarations.check(a_drop))
-            bd->lambdadomain.Declaration(a_drop)->Eval(environment, aNULL, idthread);
+        if (bd->lambdadomain->declarations.check(a_drop))
+            bd->lambdadomain->Declaration(a_drop)->Eval(environment, aNULL, idthread);
 
-    bd->lambdadomain.instructions[0]->Setaffectation(true);
+    bd->lambdadomain->instructions[0]->Setaffectation(true);
 
     //We put our system in store mode, which means that the returntype SHOULD not be tested in TamguFunctionLambda
     //The reason is that the context variable is the variable that is going to store the data and its type has already been tested
     //against returntype above, or below when context is missing... In that case, we create a context whose type will match returntype.
     bd->store = true;
 
-    recipient = bd->lambdadomain.instructions[0]->Eval(environment, aNULL, idthread);
-    Tamgu* vect = bd->lambdadomain.instructions[1]->Eval(environment, aNULL, idthread);
+    recipient = bd->lambdadomain->instructions[0]->Eval(environment, aNULL, idthread);
+    Tamgu* vect = bd->lambdadomain->instructions[1]->Eval(environment, aNULL, idthread);
 
     //if it is constvector or a constmap, we need to declare the variables in them...
     if (recipient->isConstContainer())
@@ -1305,14 +1305,14 @@ Tamgu* TamguCallFunctionTaskell::GetTaskell5(Tamgu* context, Tamgu* environment,
     Tamgu* key;
 
 
-    Tamgu* init = bd->lambdadomain.instructions[3]->Eval(aNULL, aNULL, idthread);
+    Tamgu* init = bd->lambdadomain->instructions[3]->Eval(aNULL, aNULL, idthread);
 
-    Tamgu* klist = bd->lambdadomain.instructions[1]->Eval(aNULL, aNULL, idthread);
+    Tamgu* klist = bd->lambdadomain->instructions[1]->Eval(aNULL, aNULL, idthread);
     if (executionbreak || globalTamgu->Error(idthread))
         return aNULL;
 
     if (klist->Size() == 0 && !klist->isInfinite()) {
-        key = bd->lambdadomain.instructions[4];
+        key = bd->lambdadomain->instructions[4];
         if (key == aZERO || key == aONE) {// this is a scan
             kcont = klist->Newinstance(idthread);
             kcont->Push(init);
@@ -1323,13 +1323,13 @@ Tamgu* TamguCallFunctionTaskell::GetTaskell5(Tamgu* context, Tamgu* environment,
         return kcont;
     }
 
-    Tamgu* var = bd->lambdadomain.instructions[0]->Eval(environment, aNULL, idthread);
-    Tamgu* accu = bd->lambdadomain.instructions[2]->Eval(environment, aNULL, idthread);
+    Tamgu* var = bd->lambdadomain->instructions[0]->Eval(environment, aNULL, idthread);
+    Tamgu* accu = bd->lambdadomain->instructions[2]->Eval(environment, aNULL, idthread);
 
     if (globalTamgu->Error(idthread))
         return globalTamgu->Errorobject(idthread);
 
-    key = bd->lambdadomain.instructions[4];
+    key = bd->lambdadomain->instructions[4];
     bool direct = key->Boolean();
 
     if (key == aZERO || key == aONE) // this is a scan
@@ -1399,9 +1399,9 @@ Tamgu* TamguCallFunctionTaskell::GetTaskellN(Tamgu* context, Tamgu* environment,
     TaskellLoop* hloop = &loops;
     bool first = true;
     bool forcerenew = false;
-    short sz = bd->lambdadomain.instructions.last;
+    short sz = bd->lambdadomain->instructions.last;
 
-    if (bd->lambdadomain.local) {
+    if (bd->lambdadomain->local) {
         //We might have some variables declared in "where"
         for (short i = 0; i < bd->wherevariables.last; i++) {
             if (bd->wherevariables.vecteur[i]->Computevariablecheck(idthread)) {
@@ -1424,7 +1424,7 @@ Tamgu* TamguCallFunctionTaskell::GetTaskellN(Tamgu* context, Tamgu* environment,
 
     short i;
     for (i = 0; i < sz; i += 3) {
-        if (bd->lambdadomain.instructions[i + 2] == aFALSE)  {
+        if (bd->lambdadomain->instructions[i + 2] == aFALSE)  {
             if (first)
                 first = false;
             else {
@@ -1433,9 +1433,9 @@ Tamgu* TamguCallFunctionTaskell::GetTaskellN(Tamgu* context, Tamgu* environment,
             }
         }
 
-        bd->lambdadomain.instructions[i]->Setaffectation(true);
-        recipient = bd->lambdadomain.instructions[i]->Eval(environment, aNULL, idthread);
-        vect = bd->lambdadomain.instructions[i + 1]->Eval(environment, aNULL, idthread);
+        bd->lambdadomain->instructions[i]->Setaffectation(true);
+        recipient = bd->lambdadomain->instructions[i]->Eval(environment, aNULL, idthread);
+        vect = bd->lambdadomain->instructions[i + 1]->Eval(environment, aNULL, idthread);
         if (recipient->isConstContainer()) {
             recipient->Prepare(environment, idthread);
             hloop->maprecipient = true;
@@ -1445,7 +1445,7 @@ Tamgu* TamguCallFunctionTaskell::GetTaskellN(Tamgu* context, Tamgu* environment,
             //Missing variables to finalize the loop...
             //we need to postpone the evaluation...
             loop = aITERNULL;
-            vect = bd->lambdadomain.instructions[i + 1];
+            vect = bd->lambdadomain->instructions[i + 1];
         }
         else
             loop = vect->Newiteration(false);
@@ -1684,7 +1684,7 @@ Tamgu* TamguCallFibre::Eval(Tamgu* context, Tamgu* res, short idthread) {
             for (i = 0; i < bd->names.size(); i++)
                 bd->localvariables[i]->Eval(environment, aHASKELL, idthread);
             
-            switch (bd->lambdadomain.instructions.last) {
+            switch (bd->lambdadomain->instructions.last) {
                 case 0:
                     res = bd->DirectEval(environment, aNULL, idthread);
                     break;
@@ -1779,14 +1779,14 @@ Tamgu* TamguCallFibre::GetTaskelFibres(Tamgu* context, TamguDeclarationAutoClean
     TamguIteration* loop;
     TaskellLoop* hloop = loops;
     bool first = true;
-    short sz = bd->lambdadomain.instructions.last;
+    short sz = bd->lambdadomain->instructions.last;
     
         //we put our system in store mode, which means that the returntype SHOULD not be tested in TamguFunctionLambda
     bd->store = true;
     
     short i;
     for (i = 0; i < sz; i += 3) {
-        if (bd->lambdadomain.instructions[i + 2] == aFALSE)  {
+        if (bd->lambdadomain->instructions[i + 2] == aFALSE)  {
             if (first)
                 first = false;
             else {
@@ -1795,9 +1795,9 @@ Tamgu* TamguCallFibre::GetTaskelFibres(Tamgu* context, TamguDeclarationAutoClean
             }
         }
         
-        bd->lambdadomain.instructions[i]->Setaffectation(true);
-        recipient = bd->lambdadomain.instructions[i]->Eval(environment, aNULL, idthread);
-        vect = bd->lambdadomain.instructions[i + 1]->Eval(environment, aNULL, idthread);
+        bd->lambdadomain->instructions[i]->Setaffectation(true);
+        recipient = bd->lambdadomain->instructions[i]->Eval(environment, aNULL, idthread);
+        vect = bd->lambdadomain->instructions[i + 1]->Eval(environment, aNULL, idthread);
         if (recipient->isConstContainer()) {
             recipient->Prepare(environment, idthread);
             hloop->maprecipient = true;
@@ -1807,7 +1807,7 @@ Tamgu* TamguCallFibre::GetTaskelFibres(Tamgu* context, TamguDeclarationAutoClean
                 //Missing variables to finalize the loop...
                 //we need to postpone the evaluation...
             loop = aITERNULL;
-            vect = bd->lambdadomain.instructions[i + 1];
+            vect = bd->lambdadomain->instructions[i + 1];
         }
         else
             loop = NULL;

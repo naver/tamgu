@@ -40,18 +40,31 @@ class Tamgusys : public TamguObject {
     //This SECTION is for your specific implementation...
     //Your personal variables here...
 	string lastcommand;
+    bool getcharhasbeenused;
+    bool mouseenabled;
 
+#ifndef WIN32
+    uchar vstart;
+    uchar vstop;
+    uchar vsusp;
+#endif
+    
     //---------------------------------------------------------------------------------------------------------------------
     Tamgusys(TamguGlobal* g, Tamgu* parent = NULL) : TamguObject(g, parent) {
         //Do not forget your variable initialisation
-        
+        getcharhasbeenused = false;
+        mouseenabled = false;
     }
 
     Tamgusys() {
         //Do not forget your variable initialisation
-        
+        getcharhasbeenused = false;
+        mouseenabled = false;
     }
 
+#ifndef WIN32
+    ~Tamgusys();
+#endif
     //----------------------------------------------------------------------------------------------------------------------
 	Tamgu* Put(Tamgu* v, Tamgu* i, short idthread);
     
@@ -61,8 +74,6 @@ class Tamgusys : public TamguObject {
     short Type() {
         return Tamgusys::idtype;
     }
-
-    
 
     void Setidtype(TamguGlobal* global);
     
@@ -122,6 +133,7 @@ class Tamgusys : public TamguObject {
 		return "Unknown method";
 	}
 
+    void Reset();
 
     //---------------------------------------------------------------------------------------------------------------------
     //This SECTION is for your specific implementation...
@@ -164,6 +176,24 @@ class Tamgusys : public TamguObject {
     
     Tamgu* MethodCoordinates(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodScreenHasResized(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodCursorPosition(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+
+    Tamgu* MethodisEscapeSequence(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+
+    Tamgu* MethodInitMouse(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodCloseMouse(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodIsActionMouse(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodPositionMouse(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodPositionScrollingUp(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodPositionScrollingDown(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodClickFirstMouseDown(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodClickSecondMouseDown(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodClickMouseUp(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodMouseTrack(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodShowCursor(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+
+    Tamgu* MethodReset(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+
     //---------------------------------------------------------------------------------------------------------------------
 
     //ExecuteMethod must be implemented in order to execute our new Tamgu methods. This method is called when a TamguCallMethodMethod object

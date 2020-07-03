@@ -355,11 +355,13 @@ Exporting Tamgu* Tamgua_mapii::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
         if (keyright != aNULL) {
             itr.find(vright);
             if (itr.End()) {
-                keyright->Release();
+                if (keyright != ((TamguIndex*)idx)->right)
+                    keyright->Release();
                 return kmap;
             }
         }
-        keyright->Release();
+        if (keyright != ((TamguIndex*)idx)->right)
+            keyright->Release();
         for (; itr.End() == aFALSE; itr.Next()) {
             kmap->values.set(it.first, it.second);
             if (it.compare(itr))

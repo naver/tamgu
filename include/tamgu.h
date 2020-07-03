@@ -97,6 +97,14 @@ typedef enum {is_none = 0, is_container = 1, is_const = 2, is_constcontainer = 3
     is_noconst = 0xFFFD
 } is_investigations;
 
+#ifndef GARBAGEFORDEBUG
+extern vector<Tamgu*> _tamgu_garbage;
+#endif
+
+void set_garbage_mode(bool v);
+extern bool add_to_tamgu_garbage;
+long last_garbage_position();
+void clean_from_garbage_position(long p, Tamgu*, long);
 
 //Tamgu is the class from which every element descends
 class Tamgu {
@@ -112,9 +120,22 @@ public:
 	Tamgu() {
 		idtracker = -1;
         investigate = is_none;
+        if (add_to_tamgu_garbage)
+            _tamgu_garbage.push_back(this);
 	}
 
-	virtual ~Tamgu() {}
+    virtual ~Tamgu() {
+        if (add_to_tamgu_garbage) {
+            if (idtracker != -1)
+                globalTamgu->RemoveFromTracker(idtracker);
+            for (long i = 0; i < _tamgu_garbage.size(); i++) {
+                if (_tamgu_garbage[i] == this) {
+                    _tamgu_garbage[i] = NULL;
+                    break;
+                }
+            }
+        }
+    }
 #endif
 
 	virtual Tamgu* Compile(Tamgu* parent) {
@@ -2563,11 +2584,23 @@ public:
 class TamguFunctionCall : public TamguObject {
 public:
 	TamguFunction* body;
+    bool clean;
 
-	TamguFunctionCall(TamguGlobal* global = NULL) : TamguObject(global) {
+    TamguFunctionCall(TamguGlobal* global = NULL) : TamguObject(global) {
 		body = NULL;
-	}
+        clean = false;
+    }
+    
+    ~TamguFunctionCall() {
+        if (clean)
+            body->Resetreference();
 
+    }
+    
+    Tamgu* Newinstance(short idthread, Tamgu* f = NULL) {
+        return new TamguFunctionCall();
+    }
+    
 	short Action() {
 		return a_call;
 	}
@@ -2580,9 +2613,18 @@ public:
 	}
 
 	Tamgu* Put(Tamgu* context, Tamgu* callfunction, short idthread) {
-		if (callfunction->isFunction()) {
-			body = (TamguFunction*)callfunction->Body(idthread);
-			return aTRUE;
+        if (callfunction->isFunction()) {
+            if (body != NULL)
+                body->Resetreference();
+            
+            body = (TamguFunction*)callfunction->Body(idthread);
+
+            //Lisp functions are handled as object...
+            body->Setreference();
+            //In the case of a lambda, this might be the only place where it is stored...
+            if (body->Name() == a_lambda)
+                clean = true;
+            return aTRUE;
 		}
 
 		return globalTamgu->Returnerror("Expecting a function", idthread);
@@ -3109,7 +3151,8 @@ public:
 		keyleft->Release();
 		if (keyright != NULL) {
 			iright = keyright->Integer();
-			keyright->Release();
+            if (keyright != right)
+                keyright->Release();
 		}
 
 		if (ileft < 0)
@@ -3147,6 +3190,17 @@ public:
         left->Releasenonconst();
         if (right != NULL)
             right->Releasenonconst();
+        delete this;
+    }
+    
+    void Clear() {
+        left->Releasenonconst();
+        if (right != NULL)
+            right->Releasenonconst();
+        if (idtracker != -1)
+            globalTamgu->RemoveFromTracker(idtracker);
+        if (function != NULL && function->isIndex())
+            function->Clear();
         delete this;
     }
 
