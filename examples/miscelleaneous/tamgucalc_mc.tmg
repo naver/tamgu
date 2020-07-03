@@ -12,39 +12,10 @@ Help:
 This spreadsheet accepts different sorts of input:
 
 a) Lisp expressions, which should start with a '('
-b) Raw formulas, which should start with a '=' and ends with a ';'
+b) Regular formulas, which should start with a '=' and ends with a ';'
 c) Long strings, which are introduced with "'"
 d) Float numbers, which you input directly
 @/
-
-//USE -b to switch to black mode
-bool chooseblack = false;
-bool displayindexes = true;
-bool displayingmessage = true;
-
-string option;
-for (string e in _args) {
-    if (_args[e] == "-h") {
-        _sys.showcursor(true);
-        println();
-        println("-i: hide the indexes / -n: hide the messages / -b: black screen mode / file");
-        println();
-        _exit();
-    }
-    if (_args[e] == "-i") {
-        displayindexes = false;
-    }
-    elif (_args[e] == "-n") {
-        displayingmessage  = false;
-        _sys.showcursor(false);
-    }
-    elif (_args[e] == "-b") {
-        chooseblack = true;
-    }
-    else {
-        option = e;
-    }
-}
 
 if (version() < "Tamgu 1.2020.07.03.10") {
     _sys.cls();
@@ -60,107 +31,30 @@ if (version() < "Tamgu 1.2020.07.03.10") {
    _exit();
 }
 
+//USE -b to switch to black mode
+bool chooseblack = false;
+bool displayindexes = true;
+bool displayingmessage = true;
+
+//The default value for cells
+string defaultvalue = ".";
 
 //The Lisp interpreter
 lisp lisp_interpreter;
-
-mapsf definedvalues = {"_pi ":_pi, "_tau ":_tau, "_phi ":_phi, "_e ":_e };
-
-function compactstring(string s, int p) {
-    if (s[p-7:p] == "lambda ")
-        s[p-7:p] = "λ ";
-    elif (s[p-5:p] == "sqrt ")
-        s[p-5:p] = "√ ";
-    elif (s[p-5:p] == "cbrt ")
-        s[p-5:p] = "∛ ";
-    elif (s[p-4:p] == "_pi ")
-        s[p-4:p] = "π ";
-    elif (s[p-5:p] == "_tau ")
-        s[p-5:p] = "τ ";
-    elif (s[p-5:p] == "_phi ")
-        s[p-5:p] = "φ ";
-    elif (s[p-3:p] == "_e ")
-        s[p-3:p] = "ℯ ";
-    elif (s[p-2:p] == "/ ")
-        s[p-2:p] = "÷ ";
-    elif (s[p-4:p] == "**2 ")
-        s[p-4:p] = "²";
-    elif (s[p-4:p] == "**3 ")
-        s[p-4:p] = "³";
-    elif (s[p-3:p] == "** ")
-        s[p-3:p] = "**";
-    elif (s[p-2:p] == "* ")
-        s[p-2:p] = "× ";
-    elif (s[p-4:p] =="^^2 ")
-        s[p-4:p] = "²";
-    elif (s[p-4:p] =="^^3 ")
-        s[p-4:p] = "³";
-    return s;
-}
 string msgerr;
 
 //Color definition to highlight parenthesis balancing
-string colorparenth;
-string colorsel;
-string colorform;
-string colornrm;
-string defaultvalue = ".";
+string colorparenth = _sys.colors(7,31,49, false);
+string colorsel = _sys.colors(1, 31, 49, false);
+string colorform = _sys.colors(1,30,103, false);
+string colornrm = _sys.colors(0,0,0,false);
 
-if (chooseblack) {
-    colorparenth = _sys.colors(7,31,49, false);
-    colorsel = _sys.colors(1, 31, 49, false);
-    colorform = _sys.colors(1,30,103, false);
-    colornrm = _sys.colors(0,0,0,false);
-}
-else {
-    colorparenth = _sys.colors(7,31,49, false);
-    colorsel = _sys.colors(1, 31, 49, false);
-    colorform = _sys.colors(1,30,103, false);
-    colornrm = _sys.colors(0,0,0,false);
-}
+mapsf definedvalues = {"_pi ":_pi, "_tau ":_tau, "_phi ":_phi, "_e ":_e };
 
-function formulacolor() {
-    if (chooseblack)
-        _sys.colors(0,33,40);
-    else
-        _sys.colors(0,39,47);
-}
-
-function indexcolor() {
-    if (chooseblack)
-        _sys.colors(1,36,40);
-    else
-        _sys.colors(7,96,40);
-}
-
-function selectioncolor() {
-    if (chooseblack)
-        _sys.colors(1,31,40);
-    else
-        _sys.colors(7,31,49);
-}
-
-function defuncolor() {
-    if (chooseblack)
-        _sys.colors(1,92,49);
-    else
-        _sys.colors(7,94,107);
-}
-
-function stringcolor() {
-    if (chooseblack)
-        _sys.colors(1,92,49);
-    else
-        _sys.colors(0,94,49);
-}
-function normalcolor() {
-    _sys.colors(0,0,0);
-}
-
+//We keep 6 lines below the grid for input and message display
 int inputsection = 6;
 //Initialisation: coords contains your terminal dimensions
 ivector coords = _sys.screensize();
-
 //columnsize is the size of a column in character. You can modify this value
 int columnsize = 10;
 //We initialise the number of lines and columns according to your terminal size and columnsize
@@ -210,16 +104,46 @@ fmatrix mat(x_max,y_max);
 mapss inputs;
 string inputkey;
 string inputvalue;
+
 inputs["Size"] = ""+(x_viewsize-1)+":"+(y_viewsize-1);
-inputs["File"] = option;
-inputs["Go(r,c)"] = "1,1";
+inputs["Go"] = "1,1";
 inputs["Column"] = columnsize;
 
-if (option != "")
-    inputs["Data(regular csv)"] = option+".csv";
-else
-    inputs["Data(regular csv)"] = "";
+string option;
+//exploring the arguments:
+//possible values are: -i, -n, -b and a filename
+for (string e in _args) {
+    if (_args[e] == "-h") {
+        _sys.showcursor(true);
+        println();
+        println("-i: hide the indexes / -n: hide the messages / -b: black screen mode / file");
+        println();
+        _exit();
+    }
+    if (_args[e] == "-i") {
+        displayindexes = false;
+    }
+    elif (_args[e] == "-n") {
+        displayingmessage  = false;
+        _sys.showcursor(false);
+    }
+    elif (_args[e] == "-b") {
+        chooseblack = true;
+    }
+    else {
+        option = e;
+    }
+}
 
+inputs["File"] = option;
+if (option != "")
+    inputs["Data"] = option+".csv";
+else
+    inputs["Data"] = "";
+
+
+//----------------------------------------------------------------------
+//      PREDEFINED METHODS (You can add your own here)
 //----------------------------------------------------------------------
 //A few predefined methods
 \(defun put (i j k) (key (key v_matrix i) j (string k)))
@@ -247,6 +171,10 @@ function std_var(fvector v) {
 //fill a row with values, column c is fixed, it defines the starting point
 function fillcolumn(vector v, int r, int c) {
     int vi = 0;
+    r = max(1,r);
+    c = max(1,c);
+    r = min(r,x_max);
+    c = min(c,y_max);
     for (int i in <r, r+v.size()>) {
         v_matrix[i][c] = v[vi];
         mat[i][c] = v[vi];
@@ -258,6 +186,10 @@ function fillcolumn(vector v, int r, int c) {
 //fill a column with values, row r is fixed, it defines the starting point
 function fillrow(vector v, int r, int c) {
     int vi = 0;
+    r = max(1,r);
+    c = max(1,c);
+    r = min(r,x_max);
+    c = min(c,y_max);
     for (int i in <c, c+v.size()>) {
         v_matrix[r][i] = v[vi];
         mat[r][i] = v[vi];
@@ -276,6 +208,76 @@ function upto(fvector v, float val) {
 }
 
 //------------------------------------------------------------------
+function compactstring(string s, int p) {
+    if (s[p-7:p] == "lambda ")
+        s[p-7:p] = "λ ";
+    elif (s[p-5:p] == "sqrt ")
+        s[p-5:p] = "√ ";
+    elif (s[p-5:p] == "cbrt ")
+        s[p-5:p] = "∛ ";
+    elif (s[p-4:p] == "_pi ")
+        s[p-4:p] = "π ";
+    elif (s[p-5:p] == "_tau ")
+        s[p-5:p] = "τ ";
+    elif (s[p-5:p] == "_phi ")
+        s[p-5:p] = "φ ";
+    elif (s[p-3:p] == "_e ")
+        s[p-3:p] = "ℯ ";
+    elif (s[p-2:p] == "/ ")
+        s[p-2:p] = "÷ ";
+    elif (s[p-4:p] == "**2 ")
+        s[p-4:p] = "²";
+    elif (s[p-4:p] == "**3 ")
+        s[p-4:p] = "³";
+    elif (s[p-3:p] == "** ")
+        s[p-3:p] = "**";
+    elif (s[p-2:p] == "* ")
+        s[p-2:p] = "× ";
+    elif (s[p-4:p] =="^^2 ")
+        s[p-4:p] = "²";
+    elif (s[p-4:p] =="^^3 ")
+        s[p-4:p] = "³";
+    return s;
+}
+
+
+function formulacolor() {
+    if (chooseblack)
+        _sys.colors(0,33,40);
+    else
+        _sys.colors(0,39,47);
+}
+
+function indexcolor() {
+    if (chooseblack)
+        _sys.colors(1,36,40);
+    else
+        _sys.colors(7,96,40);
+}
+
+function selectioncolor() {
+    if (chooseblack)
+        _sys.colors(1,31,40);
+    else
+        _sys.colors(7,31,49);
+}
+
+function defuncolor() {
+    if (chooseblack)
+        _sys.colors(1,92,49);
+    else
+        _sys.colors(7,94,107);
+}
+
+function stringcolor() {
+    if (chooseblack)
+        _sys.colors(1,92,49);
+    else
+        _sys.colors(0,94,49);
+}
+function normalcolor() {
+    _sys.colors(0,0,0);
+}
 
 //initialisation of v_matrix
 function initialisation() {
