@@ -799,7 +799,7 @@ string helpmsg = @"%1Ctrl-s%2: Save / %1Ctrl-w%2: Save as / %1Ctrl-f%2: Save Dat
 %1Ctrl-r%2: View Screen Size / %1Ctrl-t%2: Column Size / %1Ctrl-d%2: Delete / %1Ctrl-k%2: Copy / %1Ctrl-x%2: Move
 %1Ctrl-i%2: Hide Indexes / %1Ctrl-n%2: Hide Message
 
-%1_pi%2: pi / %1_tau%2: tau / %1_phi%2: phi / %1_e%2: e / %1sum%2 / %1product%2 / %1(..)%2: Lisp formula / %1=..;%2: regular formula"@;
+%1_pi%2: π / %1_tau%2: τ / %1_phi%2: φ / %1_e%2: ℯ / %1sum%2 / %1product%2 / %1(..)%2: Lisp formula / %1=..;%2: regular formula"@;
 
 helpmsg = helpmsg.format(colorsel,colornrm);
 string msgbase = "%1Ctrl-u%2: Help / %1Ctrl-e%2: Edit / %1Ctrl-b%2: Black Mode /  %1Ctrl-q%2: Quit";
