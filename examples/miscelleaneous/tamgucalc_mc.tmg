@@ -1456,14 +1456,17 @@ function checkfield() {
     if (inputkey == "Moving") {
         pasting();
         deletefrominputvalue();
+        resetbuildingformula();
     }
     elif (inputkey == "Copying") {
         //We display then we will delete
         pasting();
+        resetbuildingformula();
     }
     elif (inputkey == "Deletion") {
         //actual deletion
         deletion(formi, formj, I, J);
+        resetbuildingformula();
     }
     elif (inputkey == "Go")
         gotocell();
