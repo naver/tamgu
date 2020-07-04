@@ -1275,6 +1275,51 @@ function deletefrominputvalue() {
     deletion(ci,cj,lasti,lastj);
 }
 
+//We update the internal indexes according to the new position
+function replaceforpaste(string s, string k, int di, int dj) {
+    int ki = k[:"_"][:-1];
+    int kj = k["_":][1:];
+    string u, rl, rc;
+    int i;
+
+    //Updating column
+    string sub = "[:"+kj+"]";
+    ivector coord =  sub in s;
+    for (i in coord) {
+        u = s[i:i+sub.size()];
+        rc = "[:"+dj+"]";
+        s=s.replace(u,rc);
+    }
+    
+    //Updating row
+    sub = "["+ki+":]";
+    coord = sub in s;
+    for (i in coord) {
+        u = s[i:i+sub.size()];
+        rl = "["+di+":]";
+        s=s.replace(u,rl);
+    }
+    
+    //Updating one cell position: [x:y] according to new column
+    treg tr1("%[%d+:"+kj+"%]");
+    coord =  tr1 in s;
+    for (i in <0,coord,2>) {
+        u = s[coord[i]:coord[i+1]];
+        rc = u[:":"]+dj+"]";
+        s=s.replace(u,rc);
+    }
+    
+    //Updating one cell position: [x:y] according to new row
+    treg tr2("%["+ki+":%d+%]");
+    coord =  tr2 in s;
+    for (i in <0,coord,2>) {
+        u = s[coord[i]:coord[i+1]];
+        rl = "["+di+u[":":];
+        s=s.replace(u,rl);
+    }
+    return s;
+}
+
 function pasting() {
     svector v = r"%d+" in inputvalue;
     int ci = v[0];
@@ -1295,14 +1340,7 @@ function pasting() {
                 bool regular = false;
                 if (regularformulas.test(k))
                     regular = true;
-                s = formulas[k];
-                k["_"] = ":";
-                l= k[:":"];
-                c= k[":":];
-                rl = di+":";
-                rc = ":"+dj;
-                s=s.replace(l,rl);
-                s=s.replace(c,rc);
+                s = replaceforpaste(formulas[k],k, di, dj);
                 if (di >= 1 and dj >= 1) {
                     k = di+"_"+dj;
                     if (regular)
@@ -1346,17 +1384,10 @@ function frompaste(string s) {
     }
     
     if (u != "") {
-        u["_"]=":";
-        string l= u[:":"];
-        string c= u[":":];
-        string rl = I+":";
-        string rc = ":"+J;
-        s=s.replace(l,rl);
-        s=s.replace(c,rc);
         if (s[0] == '(')
-            formulas[ky]=s;
+            formulas[ky]=replaceforpaste(formulas[ky],u,I,J);
         else
-            regularformulas[ky]=s;
+            regularformulas[ky]=replaceforpaste(regularformulas[ky],u,I,J);
         evaluation(off_x,off_y);
         return true;
     }
@@ -1562,6 +1593,7 @@ while (s[0].ord() != 17) {
                     used = true;
                     displaymessage("Modifying");
                     posinstring = inputvalue.size()+1;
+                    backup = inputvalue;
                     displayprompt(dsp+inputvalue);
                     _sys.row_column(codeline-1,dsp.size()+posinstring);
                 }
@@ -1856,7 +1888,7 @@ while (s[0].ord() != 17) {
             field = false;
         }
         else {
-            if (buildingformula) {
+            if (buildingformula and !modifying) {
                 inputvalue = "";
             }
             else
@@ -1910,11 +1942,20 @@ while (s[0].ord() != 17) {
                 }
             }
             else {
-                displayprompt(dsp+inputvalue);
-                displaymessage("Cannot evaluate");
-                _sys.row_column(codeline-1,dsp.size()+posinstring);
-                s = _sys.getchar();
-                continue;
+                modifying = false;
+                bool check = false;
+                buildingformula = false;
+                if (inputkey == "formula" and inputvalue[0] == '(' and inputvalue.count('(') == inputvalue.count(')'))
+                    check = true;
+                elif (inputkey == "regular" and inputvalue[0] == '=' and inputvalue[-1] == ";")
+                    check = true;
+                if (not check) {
+                    displaymessage("Cannot evaluate");
+                    displayprompt(dsp+inputvalue);
+                    _sys.row_column(codeline-1,dsp.size()+posinstring);
+                    s = _sys.getchar();
+                    continue;
+                }
             }
         }
         elif (buildingformula) {
@@ -1933,6 +1974,8 @@ while (s[0].ord() != 17) {
             continue;
         }
         
+        formi = 0;
+        formj = 0;
         updatevalue();
         handlingarrows(_sys_keydown);
         initvalue();
@@ -1955,7 +1998,8 @@ while (s[0].ord() != 17) {
             inputvalue = compactstring(inputvalue, posinstring);
             posinstring -= sz-inputvalue.size();
         }
-        
+        if (buildingformula)
+            currentvalue = inputvalue;
         posinstring+ = s.size();
         displayprompt(dsp+inputvalue);
         _sys.row_column(codeline-1,dsp.size()+posinstring);
