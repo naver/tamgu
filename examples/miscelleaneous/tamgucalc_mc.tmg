@@ -1283,25 +1283,25 @@ function replaceforpaste(string s, string k, int di, int dj) {
     int i;
 
     //Updating column
-    string sub = "[:"+kj+"]";
+    string sub = "mat[:"+kj+"]";
     ivector coord =  sub in s;
     for (i in coord) {
         u = s[i:i+sub.size()];
-        rc = "[:"+dj+"]";
+        rc = "mat[:"+dj+"]";
         s=s.replace(u,rc);
     }
     
     //Updating row
-    sub = "["+ki+":]";
+    sub = "mat["+ki+":]";
     coord = sub in s;
     for (i in coord) {
         u = s[i:i+sub.size()];
-        rl = "["+di+":]";
+        rl = "mat["+di+":]";
         s=s.replace(u,rl);
     }
     
     //Updating one cell position: [x:y] according to new column
-    treg tr1("%[%d+:"+kj+"%]");
+    treg tr1("mat%[%d+:"+kj+"%]");
     coord =  tr1 in s;
     for (i in <0,coord,2>) {
         u = s[coord[i]:coord[i+1]];
@@ -1310,11 +1310,11 @@ function replaceforpaste(string s, string k, int di, int dj) {
     }
     
     //Updating one cell position: [x:y] according to new row
-    treg tr2("%["+ki+":%d+%]");
+    treg tr2("mat%["+ki+":%d+%]");
     coord =  tr2 in s;
     for (i in <0,coord,2>) {
         u = s[coord[i]:coord[i+1]];
-        rl = "["+di+u[":":];
+        rl = "mat["+di+u[":":];
         s=s.replace(u,rl);
     }
     return s;
