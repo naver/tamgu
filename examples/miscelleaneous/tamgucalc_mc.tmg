@@ -796,7 +796,7 @@ else
 
 string msgform="%1Arrows%2 select / %1Enter%2 to add cell / %1..%2 or %1: %2 define range / %1Balance parentheses%2 to exit;";
 msgform=msgform.format(colorsel,colornrm);
-string helpmsg = @"%1Ctrl-s%2: Save / %1Ctrl-w%2: Save as / %1Ctrl-f%2: Save Data / %1Ctrl-g%2: Goto
+string helpmsg = @"%1Ctrl-s%2: Save / %1Ctrl-w%2: Save as / %1Ctrl-f%2: Save Data / %1Ctrl-l%2: Load / %1Ctrl-g%2: Goto
 %1Ctrl-r%2: View Screen Size / %1Ctrl-t%2: Column Size / %1Ctrl-d%2: Delete / %1Ctrl-k%2: Copy / %1Ctrl-x%2: Move
 %1Ctrl-i%2: Hide Indexes / %1Ctrl-n%2: Hide Message
 
@@ -1460,13 +1460,12 @@ function checkfield() {
     }
     elif (inputkey == "Copying") {
         //We display then we will delete
-        pasting();
         resetbuildingformula();
+        pasting();
     }
     elif (inputkey == "Deletion") {
         //actual deletion
         deletion(formi, formj, I, J);
-        resetbuildingformula();
     }
     elif (inputkey == "Go")
         gotocell();
@@ -1494,6 +1493,12 @@ function checkfield() {
             writetable(inputvalue);
         }
     }
+    elif (inputkey=="Load") {
+        if (inputvalue != "") {
+            inputs[inputkey] = inputvalue;
+            readtable(inputvalue);
+        }
+    }
     return true;
 }
 
@@ -1501,6 +1506,7 @@ function resetbuildingformula() {
     formi = 0;
     formj = 0;
     buildingformula = false;
+    tracking=false;
 }
 //------------------------------------------------------------
 //------------------------------------------------------------
@@ -1646,6 +1652,12 @@ while (s[0].ord() != 17) {
                     }
                     field = true;
                     used = true;
+                }
+                12: {
+                    used = true;
+                    inputvalue=inputs["File"];
+                    field = true;
+                    inputkey="Load";
                 }
                 14: {//ctrl-n (hide message
                     displayingmessage = displayingmessage.invert();

@@ -41,7 +41,7 @@
 #include "tamgulisp.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2020.07.04.09";
+const char* tamgu_version = "Tamgu 1.2020.07.04.22";
 
 Tamgu* booleantamgu[2];
 

@@ -2700,7 +2700,7 @@ Tamgu* TamguCallThread::Eval(Tamgu* environment, Tamgu* value, short idthread) {
 //____________________________________________________________________________________
 Tamgu* TamguInstructionGlobalVariableAFFECTATION::Eval(Tamgu* context, Tamgu* value, short idthread) {
     if (first) {
-        variable = globalTamgu->threads[idthread].variables.get(varname).back();
+        variable = globalTamgu->Getmaindeclaration(varname, idthread);
         first = false;
     }
 
