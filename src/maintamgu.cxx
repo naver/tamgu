@@ -878,7 +878,7 @@ public:
         if (disp)
             cout << code << ": ";
         cout << m_redbold;
-        Tamgu* e = ProcEval(aNULL,0,&func);
+        Tamgu* e = ProcEval(aNULL,current_thread_id,&func);
         cout << m_current;
         globalTamgu->debugmode = true;
         globalTamgu->threadMODE = gL;
