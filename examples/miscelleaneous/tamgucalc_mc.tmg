@@ -1087,11 +1087,14 @@ function checkformula() {
         //We reinstate it as a formula
         formulas[ky] = currentvalue;
         evaluation(off_x,off_y);
+        return true;
     }
     elif (currentvalue[0] == "=" and currentvalue[-1]==";") {
         regularformulas[ky] = currentvalue;
         evaluation(off_x,off_y);
+        return true;
     }
+    return false;
 }
 
 function makerange(int lasti, int lastj, int I, int J) {
@@ -1217,8 +1220,7 @@ function deletion(int formi, int formj, int I, int J) {
         formi++;
     }
     evaluation(off_x,off_y);
-    formi = 0;
-    formj = 0;
+    resetbuildingformula();
     initvalue();
 }
 
@@ -1492,6 +1494,11 @@ function checkfield() {
     return true;
 }
 
+function resetbuildingformula() {
+    formi = 0;
+    formj = 0;
+    buildingformula = false;
+}
 //------------------------------------------------------------
 //------------------------------------------------------------
 //------------------------------------------------------------
@@ -1888,18 +1895,9 @@ while (s[0].ord() != 17) {
             field = false;
         }
         else {
-            if (buildingformula and !modifying) {
-                inputvalue = "";
-            }
-            else
-                inputvalue = backup;
-
+            inputvalue = backup;
             modifying = false;
-            if (inputvalue[0] == '(')
-                inputkey = "formula";
-            elif (inputvalue[0] == '=')
-                inputkey = "regular";
-            buildingformula=false;
+            resetbuildingformula();
             updatevalue();
         }
         displaymessage(msgbase);
@@ -1923,33 +1921,24 @@ while (s[0].ord() != 17) {
         if (modifying) {
             if (!buildingformula) {
                 modifying = false;
-                if (inputkey == "formula") {
-                    //We are demoding a formula
-                    if (inputvalue != "(") {
+                if (!checkformula()) {
+                    if (inputkey == "formula") {
                         formulas.pop(ky);
-                        inputkey = "value";
                     }
-                }
-                elif (inputkey == "regular") {
-                    if (inputvalue != "=") {
-                        inputkey = "value";
+                    elif (inputkey == "regular") {
                         regularformulas.pop(ky);
                     }
+                    inputkey = "value";
                 }
-                elif (inputkey == "value") {
-                    //We are potentially reinstating a formula
-                    checkformula();
-                }
+                else
+                    resetbuildingformula();
             }
             else {
                 modifying = false;
-                bool check = false;
-                buildingformula = false;
-                if (inputkey == "formula" and inputvalue[0] == '(' and inputvalue.count('(') == inputvalue.count(')'))
-                    check = true;
-                elif (inputkey == "regular" and inputvalue[0] == '=' and inputvalue[-1] == ";")
-                    check = true;
-                if (not check) {
+                if (checkformula()) {
+                    resetbuildingformula();
+                }
+                else {
                     displaymessage("Cannot evaluate");
                     displayprompt(dsp+inputvalue);
                     _sys.row_column(codeline-1,dsp.size()+posinstring);
@@ -1974,8 +1963,6 @@ while (s[0].ord() != 17) {
             continue;
         }
         
-        formi = 0;
-        formj = 0;
         updatevalue();
         handlingarrows(_sys_keydown);
         initvalue();
@@ -2027,9 +2014,7 @@ while (s[0].ord() != 17) {
         i = formi - off_x;
         j = formj - off_y;
         initcoords();
-        formi = 0;
-        formj = 0;
-        buildingformula = false;
+        resetbuildingformula();
         displaymessage("Ready to compute: "+I+","+J);
     }
     elif (s == ")") {
@@ -2044,9 +2029,7 @@ while (s[0].ord() != 17) {
                 i = formi - off_x;
                 j = formj - off_y;
                 initcoords();
-                formi = 0;
-                formj = 0;
-                buildingformula = false;
+                resetbuildingformula();
                 displaymessage("Ready to compute: "+I+","+J);
             }
         }
