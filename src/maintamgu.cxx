@@ -25,6 +25,7 @@
 #include "tamgudebug.h"
 #include "instructions.h"
 #include "tamgulisp.h"
+#include "tamgusys.h"
 
 #ifdef WIN32
 #define PATH_MAX 4096
@@ -51,6 +52,8 @@ char* Getenv(char* name);
 static string _variable_declaration("bool a,b,c; date d; int i,j,k; float f,g,h; string s,t,u; map m; vector v; self x,y,z;");
 static wstring _wvariable_declaration(L"bool a,b,c; date d; int i,j,k; float f,g,h; string s,t,u; map m; vector v; self x,y,z;");
 //------------------------------------------------------------------------
+void Reseting_system_environment_for_getchar();
+static short current_thread_id;
 
 void RetrieveThroughVariables(string& declaration);
 void RetrieveThroughVariables(wstring& decl);
@@ -843,6 +846,19 @@ public:
     bool evallocalcode(string code, bool disp=false) {
         Trim(code);
         string avariable;
+        if (code.find("[") == -1 && code.find("(") == -1) {
+            //Pure variable
+            short idname = globalTamgu->Getid(code);
+            if (idname != -1) {
+                Tamgu* a = globalTamgu->Getvariable(current_thread_id, idname);
+                if (a != NULL) {
+                    if (disp)
+                        cout << code << ": ";
+                    cout << m_redbold << a->String() << m_current << endl;
+                    return true;
+                }
+            }
+        }
         if (code.back() != ';') {
             avariable = "println(";
             avariable += code;
@@ -1147,6 +1163,7 @@ public:
                     editmode = false;
 
                     if (debugmode) {
+                        current_thread_id = 0;
                         globalTamgu->Setdebugmode(true);
                         globalTamgu->Setdebugfunction(debuginfo_callback, this);
                         debuginfo.clearall();
@@ -1732,36 +1749,54 @@ public:
                 }
                 return pos;
             case cmd_next:
-                if (debugmode && debuginfo.running)
+                if (debugmode && debuginfo.running) {
                     if (!debuginfo.next())
                         cleardebug();
+                    else
+                        Reseting_system_environment_for_getchar();
+                }
                 return pos;
             case cmd_in:
-                if (debugmode && debuginfo.running)
+                if (debugmode && debuginfo.running) {
                     if (!debuginfo.getin())
                         cleardebug();
+                    else
+                        Reseting_system_environment_for_getchar();
+                }
                 return pos;
             case cmd_out:
-                if (debugmode && debuginfo.running)
+                if (debugmode && debuginfo.running) {
                     if (debuginfo.getout())
                         cleardebug();
+                    else
+                        Reseting_system_environment_for_getchar();
+                }
                 return pos;
             case cmd_goto:
-                if (debugmode && debuginfo.running)
+                if (debugmode && debuginfo.running) {
                     if (!debuginfo.gotonext())
                         cleardebug();
+                    else
+                        Reseting_system_environment_for_getchar();
+                }
                 return pos;
             case cmd_locals:
                 if (debugmode && debuginfo.running)
                     cout << debuginfo.localvariables;
+                else
+                    Reseting_system_environment_for_getchar();
                 return pos;
             case cmd_all:
                 if (debugmode && debuginfo.running)
                     cout << debuginfo.allvariables;
+                else
+                    Reseting_system_environment_for_getchar();
                 return pos;
             case cmd_stack:
                 if (debugmode && debuginfo.running)
                     cout << debuginfo.sstack;
+                else
+                    Reseting_system_environment_for_getchar();
                 return pos;
             case cmd_short_name:
                 if (debugmode && debuginfo.running) {
@@ -1772,14 +1807,20 @@ public:
                 }
                 return pos;
             case cmd_stop:
-                if (debugmode && debuginfo.running)
+                if (debugmode && debuginfo.running) {
                     if (!debuginfo.stopexecution())
                         cleardebug();
+                    else
+                            Reseting_system_environment_for_getchar();
+                }
                 return pos;
             case cmd_to_end:
-                if (debugmode && debuginfo.running)
+                if (debugmode && debuginfo.running) {
                     if (!debuginfo.gotoend())
                         cleardebug();
+                    else
+                        Reseting_system_environment_for_getchar();
+                }
                 return pos;
             case cmd_lispmode:
                 if (v.size() == 1) {
@@ -2556,7 +2597,10 @@ static void handle_ctrl_c(int theSignal) {
 }
 #endif
 
+//This is a specific case, when the use of _getchar on UNix may interfere with the debuggger
+//We force getchar in Tamgusys to reinitialize itself
 Tamgu* debuginfo_callback(vector<Tamgu*>& stack, short idthread, void* data) {
+    current_thread_id = idthread;
     tamgu_editor* te = (tamgu_editor*)data;
     Tamgu* res = debuginfo.debugger(stack, idthread, data);
     if (res == aTRUE) {
@@ -2648,6 +2692,8 @@ void purejagmode(int argc, char *argv[]) {
 int main(int argc, char *argv[]) {
 	string lnstr;
 
+    current_thread_id = 0;
+    
 	string wh = TamguVersion();
 
 	char* v = Getenv("TAMGULIBS");

@@ -41,7 +41,7 @@
 #include "tamgulisp.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2020.07.03.10";
+const char* tamgu_version = "Tamgu 1.2020.07.04.09";
 
 Tamgu* booleantamgu[2];
 
@@ -798,7 +798,9 @@ Exporting void TamguGlobal::Getdebuginfo(string& localvariables, string& allvari
     sstack << currentline << " in " << filename << "\n";
 
     string funcname;
+    
     Tamgu* a =threads[idthread].currentinstruction;
+    threads[idthread].currentinstruction = NULL;
     if (a!=NULL) {
         vector<short> vars;
         a->ScanVariables(vars);

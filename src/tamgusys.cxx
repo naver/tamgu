@@ -70,12 +70,13 @@ Exporting basebin_hash<unsigned long> Tamgusys::exported;
 
 Exporting short Tamgusys::idtype = 0;
 
+static TamguConstsys* _mysys = NULL;
+
 #ifdef WIN32
 char* Getenv(char* name);
 #else
 #define Getenv getenv
 #endif
-
 
 #ifdef WIN32
 static char check_size_utf8(int utf) {
@@ -340,7 +341,8 @@ bool Tamgusys::InitialisationModule(TamguGlobal* global, string version) {
         global->newInstance[Tamgusys::idtype] = new Tamgusys(global);
         global->RecordMethods(Tamgusys::idtype, Tamgusys::exported);
         
-        Tamgu* a = new TamguSystemVariable(global, new TamguConstsys(global), global->Createid("_sys"), Tamgusys::idtype);
+        _mysys = new TamguConstsys(global);
+        Tamgu* a = new TamguSystemVariable(global, _mysys, global->Createid("_sys"), Tamgusys::idtype);
         a = new TamguSystemVariable(global, new TamguConstString((char*)sys_keyright), global->Createid("_sys_keyright"), a_string);
         a = new TamguSystemVariable(global, new TamguConstString((char*)sys_keyleft), global->Createid("_sys_keyleft"), a_string);
         a = new TamguSystemVariable(global, new TamguConstString((char*)sys_keydown), global->Createid("_sys_keydown"), a_string);
@@ -398,6 +400,32 @@ Tamgu* Tamgusys::Eval(Tamgu* context, Tamgu* idx, short idthread) {
         return globalTamgu->Providestring(rep);
     }
     return this;
+}
+
+void Reseting_system_environment_for_getchar() {
+    _mysys->getcharhasbeenused=false;
+#ifndef WIN32
+    sendstring(showcursor);
+    sendstring(disablemouse);
+
+    struct termios old={0};
+    if(tcgetattr(0, &old)<0) {
+        //we reset the input stream
+        //freopen("/dev/tty", "rw", stdin);
+        setbuf(stdin, NULL);
+        //and we try again...
+        if(tcgetattr(0, &old)<0) {
+            perror("tcsetattr()");
+        }
+    }
+    old.c_lflag|=ICANON;
+    old.c_lflag|=ECHO;
+    old.c_cc[VSTART] = _mysys->vstart;
+    old.c_cc[VSTOP] = _mysys->vstop;
+    old.c_cc[VSUSP] = _mysys->vsusp;
+    
+    tcsetattr(0, TCSADRAIN, &old);
+#endif
 }
 
 void Tamgusys::Reset() {
@@ -683,6 +711,10 @@ Tamgu* Tamgusys::MethodGETCH(Tamgu* contextualpattern, short idthread, TamguCall
             return globalTamgu->Returnerror("tcsetattr ICANON", idthread);
         }
         getcharhasbeenused = true;
+        //We might be after a reset
+        if (mouseenabled) {
+            sendstring(enablemouse);
+        }
     }
     
     return globalTamgu->Providestring(getcharacter());

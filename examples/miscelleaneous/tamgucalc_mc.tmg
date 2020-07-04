@@ -464,7 +464,7 @@ function evaluation(int off_x, int off_y) {
         displayall(off_x,off_y);
         return;
     }
-
+    
     msgerr="";
     string msg;
     self val;
@@ -518,7 +518,6 @@ function evaluation(int off_x, int off_y) {
             v_matrix[i][j] = "#FCERR";
         }
     }
-    
     int loop;
     string fnct;
     call Fnct;
@@ -688,13 +687,13 @@ function displayall(int off_x, int off_y) {
         //display column numbers
         for (i in <x_viewsize>) {
             _sys.row_column(i+1,1);
-            dispelementregular(i,0, off_x, 0);
+            dispelementregular(i,0,off_x,0);
         }
         
         //display line numbers
         for (j in <y_viewsize>) {
             _sys.row_column(1,columnsize*j);
-            dispelementregular(0,j, 0, off_y);
+            dispelementregular(0,j,0,off_y);
         }
         
         _sys.row_column(1,1);
@@ -1972,7 +1971,7 @@ while (s[0].ord() != 17) {
         }
     }
     
-    if (_sys.isescapesequence(s) or s[0] < 32) {
+    if (_sys.isescapesequence(s) or s[0].ord() < 32) {
         initvalue();
         showelement(i,j, off_x, off_y);
         s=_sys.getchar();

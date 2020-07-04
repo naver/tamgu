@@ -1579,6 +1579,7 @@ bool TamguInstructionAPPLYOPERATIONROOT::Stacking(Tamgu* ins, char top) {
                         act = new TamguActionGlobalLetVariable(n, ins->Typeinfered());
                     else
                         act = new TamguActionGlobalVariable(n, ins->Typeinfered());
+                    remove = true;
                     globalTamgu->globalvariables[n] = act;
                     instructions.push_back(act);
                 }
@@ -1588,11 +1589,11 @@ bool TamguInstructionAPPLYOPERATIONROOT::Stacking(Tamgu* ins, char top) {
                     act = new TamguActionLetVariable(n, ins->Typeinfered());
                 else
                     act = new TamguActionVariable(n, ins->Typeinfered());
+                remove = true;
                 variables[n] = act;
                 instructions.push_back(act);
             }
         }
-        remove = true;
     }
 	else
 		instructions.push_back(ins);
