@@ -799,7 +799,7 @@ else
 string msgform="%1Arrows%2 select / %1Enter%2 to add cell / %1..%2 or %1: %2 define range / %1Balance parentheses%2 to exit;";
 msgform=msgform.format(colorsel,colornrm);
 string helpmsg = @"%1Ctrl-s%2: Save / %1Ctrl-w%2: Save as / %1Ctrl-f%2: Save Data / %1Ctrl-l%2: Load / %1Ctrl-g%2: Goto
-%1Ctrl-r%2: View Screen Size / %1Ctrl-t%2: Column Size / %1Ctrl-d%2: Delete / %1Ctrl-k%2: Copy / %1Ctrl-x%2: Move
+%1Ctrl-r%2: Grid Size / %1Ctrl-t%2: Column Size / %1Ctrl-d%2: Delete / %1Ctrl-k%2: Copy / %1Ctrl-x%2: Move
 %1Ctrl-i%2: Hide Indexes / %1Ctrl-n%2: Hide Message
 
 %1_pi%2: π / %1_tau%2: τ / %1_phi%2: φ / %1_e%2: ℯ / %1sum%2 / %1product%2 / %1(..)%2: Lisp formula / %1=..;%2: regular formula"@;
