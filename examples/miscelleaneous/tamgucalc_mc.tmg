@@ -33,7 +33,9 @@ if (version() < "Tamgu 1.2020.07.03.10") {
 
 //USE -b to switch to black mode
 bool chooseblack = false;
+//displaying indexes
 bool displayindexes = true;
+//displaying the message zone
 bool displayingmessage = true;
 
 //The default value for cells
