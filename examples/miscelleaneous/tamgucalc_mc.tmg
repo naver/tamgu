@@ -147,7 +147,7 @@ else
 //----------------------------------------------------------------------
 //      PREDEFINED METHODS (You can add your own here)
 //      You can use loadin as well: loadin(pathname)
-//      To load your own definition from an external file
+//      To load your own functions from an external file
 //----------------------------------------------------------------------
 //A few predefined methods
 //IMPORTANT: When you define Lisp Functions in regular code
