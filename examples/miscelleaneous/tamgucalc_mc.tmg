@@ -208,6 +208,7 @@ function upto(fvector v, float val) {
 }
 
 //------------------------------------------------------------------
+//This function is used to replace specific labels with their UTF8 symbol
 function compactstring(string s, int p) {
     if (s[p-7:p] == "lambda ")
         s[p-7:p] = "λ ";
@@ -239,7 +240,6 @@ function compactstring(string s, int p) {
         s[p-4:p] = "³";
     return s;
 }
-
 
 function formulacolor() {
     if (chooseblack)
@@ -835,6 +835,7 @@ function handlingarrows(string s) {
     int bi = i;
     int bj = j;
     
+    //this is the section for editing values on prompt line
     if (modifying) {
         if (s == _sys_keyright)
             posinstring++;
@@ -850,6 +851,8 @@ function handlingarrows(string s) {
         return true;
     }
 
+    //moving the cursor in the grid
+    //We clear the selection for the current element
     clearelement(i,j, off_x, off_y);
 
     if (s == _sys_keyright)
@@ -945,10 +948,13 @@ function mousecontrol(string s) {
                 xymouse[1] = columnsize;
             i = xymouse[0]-1;
             j = xymouse[1]/columnsize;
+            //this section allows for a tracking preparation
+            //if tracking should occur
             firstclickx = i;
             firstclicky = j;
             lastselx = firstclickx;
             lastsely = firstclicky;
+            //Again we clear the currrent element, while moving the cursor around
             clearelement(i,j, off_x, off_y);
             modifying = false;
             return true;
@@ -956,6 +962,7 @@ function mousecontrol(string s) {
         return false;
     }
 
+    //if the mouse is up, then no tracking has taken place
     xymouse = _sys.mouseup(s);
     if (xymouse != []) {
         if (buildingformula) {
@@ -969,14 +976,17 @@ function mousecontrol(string s) {
         return true;
     }
     
+    //Tracking the mouse position
     xymouse = _sys.mousetrack(s);
     while (xymouse != []) {
         if (xymouse[0] > 1) {
             if (xymouse[1] < columnsize)
                 xymouse[1] = columnsize;
+            //We deselect the previous selection
             fullselection(firstclickx,firstclicky,lastselx,lastsely,false);
             lastselx = xymouse[0]-1;
             lastsely = xymouse[1]/columnsize;
+            //We reselect it
             fullselection(firstclickx,firstclicky,lastselx,lastsely,true);
         }
         s = _sys.getchar();
@@ -1074,6 +1084,8 @@ function updatevalue() {
     }
 }
 
+//We check if the inputvalue is actually a formula, that was modifyied from
+//a non formula
 function checkformula() {
     if (colorparenth in inputvalue) {
         inputvalue = inputvalue.replace(colorparenth,"");
@@ -1097,6 +1109,7 @@ function checkformula() {
     return false;
 }
 
+//We create a cell range matrix access from coordinates in the grid
 function makerange(int lasti, int lastj, int I, int J) {
     if (lasti > I)
         [lasti,I] = [I,lasti];
@@ -1129,6 +1142,8 @@ function makerange(int lasti, int lastj, int I, int J) {
     return frm;
 }
 
+//this is called when the cursor is moved with arrows and the user
+//has typed: .. or :
 function createrange() {
     if (inputvalue.trim()[-1] == ":" or inputvalue.trim()[-2:] == "..") {
         //We are extending a zone of selection
@@ -1147,6 +1162,7 @@ function createrange() {
     return false;
 }
 
+//Jumping to a specific cell in the matrix
 function gotocell() {
     int pi = inputvalue[:","][:-1];
     int pj = inputvalue[",":][1:];
@@ -1164,6 +1180,7 @@ function gotocell() {
     initvalue();
 }
 
+//resizing the grid view port
 function resizing() {
     ivector iv = inputvalue.split(":");
     if (iv == 2) {
@@ -1199,6 +1216,7 @@ function resizing() {
     }
 }
 
+//deletion of a cell selection
 function deletion(int formi, int formj, int I, int J) {
     if (formi > I)
         [formi,I] = [I,formi];
@@ -1245,6 +1263,7 @@ function selection(int ei, int e, bool v) {
     }
 }
 
+//selection on screen of a full range of cells
 function fullselection(int ei, int e, int I, int J, bool v) {
     if (ei > I) {
         [ei,I] = [I,ei];
@@ -1268,6 +1287,7 @@ function fullselection(int ei, int e, int I, int J, bool v) {
     }
 }
 
+//this function is used to clean a group of cells that was moved to another position
 function deletefrominputvalue() {
     svector v = r"%d+" in inputvalue;
     int ci = v[0];
@@ -1364,6 +1384,7 @@ function pasting() {
     evaluation(off_x,off_y);
 }
 
+//This function is called when a value was Copy/Paste from out of tamgucalc
 function frompaste(string s) {
     s=s.trim();
     string u,k;
@@ -1420,6 +1441,9 @@ function frompaste(string s) {
     return false;
 }
 
+//Fields are actually the different values that can be modifyed in tamgucalc
+//such as: pathname, grid size, column size, but also the different actions
+//such as: copy, move or delete
 function checkfield() {
     if (inputkey == "Delete") {
         //We display then we will delete
@@ -1502,6 +1526,7 @@ function checkfield() {
     return true;
 }
 
+//These are the variables that are used when creating a formula
 function resetbuildingformula() {
     formi = 0;
     formj = 0;
