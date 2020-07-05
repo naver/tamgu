@@ -146,10 +146,16 @@ else
 
 //----------------------------------------------------------------------
 //      PREDEFINED METHODS (You can add your own here)
+//      You can use loadin as well: loadin(pathname)
+//      To load your own definition from an external file
 //----------------------------------------------------------------------
 //A few predefined methods
+//IMPORTANT: When you define Lisp Functions in regular code
+//The first "(" must be preceded with a "\"
 \(defun put (i j k) (key (key v_matrix i) j (string k)))
+
 \(defun average (x) (/ (sum x) (size x)))
+
 \(defun standard_deviation(x)
   (setq avg (average x))
   (sqrt (/
