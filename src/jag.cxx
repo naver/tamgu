@@ -26,9 +26,6 @@
 #include <ctype.h>
 
 //Handling console tune up
-static HANDLE hStdout = 0;
-static DWORD lpMode = 0;
-static UINT codepage = 0;
 
 #ifdef DOSOUTPUT
 static bool dosoutput = false;
@@ -67,7 +64,15 @@ bool check_large_char(wchar_t* src, long lensrc, long& i) {
     return true;
 }
 #endif
-    
+ 
+#ifdef WIN32
+//these methods have been implemented in tamgusys.cxx
+void ResetWindowsConsole();
+void Getscreensizes();
+bool checkresize();
+void Returnscreensize(long& rs, long& cs, long& sr, long& sc);
+#endif
+
 static char m_scrollmargin[] = { 27, 91, '0', '0', '0', ';', '0', '0','0', 'r', 0 };
 static char m_deletechar[] = { 27, 91, '1', 'P', 0 };
 static char m_left[] = { 27, '[', '1', 68, 0 };
@@ -162,6 +167,20 @@ static int getxcursor() {
 
 static int getycursor() {
     return ycursor;
+}
+
+static void scrollingdown(long rowsize) {
+	char buff[] = { 0,0,0,0,0,0 };
+	sprintf_s(buff, 4, "%0.3ld", rowsize + 1);
+	m_scrollmargin[6] = buff[0];
+	m_scrollmargin[7] = buff[1];
+	m_scrollmargin[8] = buff[2];
+	cout << m_scrollmargin << m_scrolldown;
+	sprintf_s(buff, 4, "%0.3ld", rowsize + 2);
+	m_scrollmargin[6] = buff[0];
+	m_scrollmargin[7] = buff[1];
+	m_scrollmargin[8] = buff[2];
+	cout << m_scrollmargin;
 }
 
 #ifdef WIN32
@@ -548,55 +567,12 @@ jag_editor::~jag_editor() {
 }
 
 ///------------------------------------------------------------------------------------
-#ifdef WIN32
-void jag_editor::checkresize() {
-static CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
-
-	GetConsoleScreenBufferInfo(hStdout, &csbiInfo);
-	if (csbiInfo.dwMaximumWindowSize.X != size_row  || csbiInfo.dwMaximumWindowSize.Y != size_col) {		
-		resetscreen();
-		return;
-	}
-}
-#endif
 void jag_editor::screensizes() {
 #ifdef WIN32
-	static CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
-
-	clearscreen();
-	if (row_size == -1 && col_size == -1) {
-		codepage = GetConsoleOutputCP();
-		//UTF8 setting
-		SetConsoleOutputCP(65001);
-		SetConsoleCP(65001);
-
-		// Get the current screen buffer size and window position. 
-		hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
-
-		//Selecting a different font to display all Unicode characters
-		CONSOLE_FONT_INFOEX info = { 0 };
-		info.cbSize = sizeof(info);
-		info.dwFontSize.Y = 18; // leave X as zero
-		info.FontWeight = FW_NORMAL;
-		wcscpy(info.FaceName, L"Consolas");
-		SetCurrentConsoleFontEx(hStdout, NULL, &info);
-
-		//We set the specific mode to handle terminal commands
-		GetConsoleMode(hStdout, &lpMode);
-		SetConsoleMode(hStdout, lpMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
-	}
-
-	if (!GetConsoleScreenBufferInfo(hStdout, &csbiInfo))
-	{
-		printf("GetConsoleScreenBufferInfo (%d)\n", GetLastError());
-		return;
-	}
-	row_size = csbiInfo.srWindow.Bottom - 1;
-	col_size = csbiInfo.srWindow.Right - margin;
-
-	size_row = csbiInfo.dwMaximumWindowSize.X;
-	size_col = csbiInfo.dwMaximumWindowSize.Y;
-
+	Getscreensizes();
+	Returnscreensize(row_size, col_size, size_row, size_col);
+	row_size -= 1;
+	col_size -= margin;
 #else
 	ioctl(STDOUT_FILENO, TIOCGWINSZ, &wns);
 	row_size = wns.ws_row - 2; //we need to keep a final line on screen for operators
@@ -911,8 +887,12 @@ void jag_editor::movetoend(bool remove) {
 }
 
 void jag_editor::movetolastline() {
-    long e = row_size + 2;
-    cout << m_home;
+#ifdef WIN32
+	long e = row_size + 1;
+#else
+	long e = row_size + 2;
+#endif
+	cout << m_home;
     if (e > 99) {
         m_down[2] = numberstrings[99][0];
         m_down[3] = numberstrings[99][1];
@@ -1007,13 +987,12 @@ bool jag_editor::updown(char drt, long& pos) {
                 //we check one position up...
                 --pos;
                 resetlist(poslines[0]-1);
-                cout << m_scrolldown;
-                line = lines[pos];
-                displaygo(true);
-                displayonlast("",true);
-                if (posinstring > linesize())
+				scrollingdown(row_size);
+				line = lines[pos];
+				movetoline(0);
+				displaygo(true);
+				if (posinstring > linesize())
                     posinstring = linesize();
-                movetoposition();
                 return true;
             }
             return false;
@@ -1026,15 +1005,15 @@ bool jag_editor::updown(char drt, long& pos) {
     else {
         if ((currentline+1) >= poslines.size()) {
             if (pos < (sz -1)) {
-                resetlist(poslines[0]+1);
+				resetlist(poslines[0] + 1);
                 pos = poslines.back();
-                cout << m_scrollup;
+				cout << m_scrollup;
                 line = lines[pos];
-                displaygo(true);
+				movetoline(currentline);
+				displaygo(true);
                 if (posinstring > linesize())
                     posinstring = linesize();
-                movetoposition();
-                return true;
+				return true;
             }
             return false;
         }
@@ -1068,8 +1047,7 @@ void jag_editor::clearscreen() {
 }
 
 void jag_editor::clearline() {
-    string space(col_size + spacemargin, ' ');
-    cout << back << space;
+	cout << m_clear_line << back;
 }
 
 
@@ -2660,9 +2638,7 @@ void jag_editor::handlecommands() {
 
 void jag_editor::resetterminal() {
 #ifdef WIN32    
-	SetConsoleCP(codepage);
-	SetConsoleOutputCP(codepage);
-	SetConsoleMode(hStdout, lpMode);
+	ResetWindowsConsole();
 #else
 	tcsetattr(0, TCSADRAIN, &oldterm);
 #endif    

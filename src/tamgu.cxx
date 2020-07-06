@@ -278,8 +278,12 @@ void FinalTamguConstantCleaning(void) {
 //----------------------------------------------------------------------------------
 
 // Debug area, to detect potential memory leaks...
-vector<Tamgu*> _tamgu_garbage;
-bool add_to_tamgu_garbage = false;
+static vector<Tamgu*> _tamgu_garbage;
+static bool add_to_tamgu_garbage = false;
+
+bool Addtogarbage() {
+	return add_to_tamgu_garbage;
+}
 
 #ifdef GARBAGEFORDEBUG
 
@@ -329,6 +333,26 @@ void set_garbage_mode(bool v) {}
 void set_garbage_mode(bool v) {
     add_to_tamgu_garbage = v;
 }
+
+Tamgu::Tamgu() {
+	idtracker = -1;
+	investigate = is_none;
+	if (add_to_tamgu_garbage)
+		_tamgu_garbage.push_back(this);
+}
+
+Tamgu::~Tamgu() {
+	if (add_to_tamgu_garbage) {
+		if (idtracker != -1)
+			globalTamgu->RemoveFromTracker(idtracker);
+		for (long i = 0; i < _tamgu_garbage.size(); i++) {
+			if (_tamgu_garbage[i] == this) {
+				_tamgu_garbage[i] = NULL;
+				break;
+			}
+		}
+	}
+}
 #endif
 
 long last_garbage_position() {
@@ -353,7 +377,6 @@ void clean_from_garbage_position(long p, Tamgu* keep, long lastrecorded) {
     
     set_garbage_mode(false);
 }
-
 //----------------------------------------------------------------------------------
 Exporting long ThreadLock::ids = 0;
 //----------------------------------------------------------------------------------
@@ -3696,7 +3719,7 @@ Exporting TamguDeclarationLocal* TamguGlobal::Providedeclaration(Tamgu* ins, sho
 }
 
 Exporting Tamgulisp* TamguGlobal::Providelisp() {
-    if (threadMODE || add_to_tamgu_garbage)
+    if (threadMODE || Addtogarbage())
         return new Tamgulisp(-1);
 
     Tamgulisp* ke;

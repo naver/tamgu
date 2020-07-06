@@ -620,7 +620,6 @@ public:
             lines.updatesize();
             
             for (long i = beg; i < lines.size(); i++) {
-                poslines.push_back(i);
                 string space(prefixe(), ' ');
                 if (lines.status[i] == concat_line)
                     blk << space << coloringline(lines[i], i) << endl;
@@ -630,9 +629,9 @@ public:
                     else
                         blk << m_dore << prefix << m_current << m_lightgray << std::setw(prefixsize) << lines.numeros[i] << "> " << m_current << coloringline(lines[i], i) << endl;
                 }
-                nb++;
-                if (nb > row_size) // we have displayed all lines
-                    break;
+				poslines.push_back(i);
+				if (poslines.size() > row_size)
+					break;
             }
             option = g;
             clearscreen();

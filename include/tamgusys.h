@@ -62,9 +62,7 @@ class Tamgusys : public TamguObject {
         mouseenabled = false;
     }
 
-#ifndef WIN32
     ~Tamgusys();
-#endif
     //----------------------------------------------------------------------------------------------------------------------
 	Tamgu* Put(Tamgu* v, Tamgu* i, short idthread);
     

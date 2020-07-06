@@ -78,7 +78,53 @@ char* Getenv(char* name);
 #define Getenv getenv
 #endif
 
+static void _clearscreen() {
 #ifdef WIN32
+	system("cls");
+#else
+	cout << sys_clear << sys_clear_scrolling << sys_home;
+#endif
+}
+
+static long row_size = -1;
+static long col_size = -1;
+
+#ifdef WIN32
+static long size_row = 0;
+static long size_col = 0;
+
+void Returnscreensize(long& rs, long& cs, long& sr, long& sc) {
+	rs = row_size;
+	cs = col_size;
+	sr = size_row;
+	sc = size_col;
+}
+
+bool checkresize() {
+	static CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
+
+	GetConsoleScreenBufferInfo(hStdout, &csbiInfo);
+	if (csbiInfo.dwMaximumWindowSize.X != size_row || csbiInfo.dwMaximumWindowSize.Y != size_col) {
+		row_size = csbiInfo.srWindow.Bottom;
+		col_size = csbiInfo.srWindow.Right;
+
+		size_row = csbiInfo.dwMaximumWindowSize.X;
+		size_col = csbiInfo.dwMaximumWindowSize.Y;
+		return true;
+	}
+	return false;
+}
+
+void ResetWindowsConsole() {
+	SetConsoleCP(codepage);
+	SetConsoleOutputCP(codepage);
+	SetConsoleMode(hStdout, lpMode);
+}
+
+Tamgusys::~Tamgusys() {
+	ResetWindowsConsole();
+}
+
 static char check_size_utf8(int utf) {
     if ((utf & 0xF0) == 0xF0)
         return 3;
@@ -121,11 +167,25 @@ void sendstring(string s) {
 }
 
 void getcursor(int& xcursor, int& ycursor) {
-    //If you need to get the absolute cursor position, you can decomment these lines
-    cout << cursor_position;
-    scanf("\033[%d;%dR", &xcursor, &ycursor);
+	static CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
+	GetConsoleScreenBufferInfo(hStdout, &csbiInfo);
+	xcursor = csbiInfo.dwCursorPosition.X;
+	ycursor = csbiInfo.dwCursorPosition.Y;
 }
 #else
+bool checkresize() {
+	struct winsize wns;
+	ioctl(STDOUT_FILENO, TIOCGWINSZ, &wns);
+	if (row_size != wns.ws_row || col_size != wns.ws_col) {
+		struct winsize wns;
+		ioctl(STDOUT_FILENO, TIOCGWINSZ, &wns);
+		row_size = wns.ws_row; //we need to keep a final line on screen for operators
+		col_size = wns.ws_col;
+		return true;
+	}
+	return false;
+}
+
 static const short _getbuffsize = 128;
 
 void sendstring(string s) {
@@ -168,47 +228,11 @@ Tamgusys::~Tamgusys() {
 }
 #endif
 
-static long row_size = 0;
-static long col_size = 0;
-
-#ifdef WIN32
-static long size_row = 0;
-static long size_col = 0;
-
-bool checkresize() {
-    static CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
-
-    GetConsoleScreenBufferInfo(hStdout, &csbiInfo);
-    if (csbiInfo.dwMaximumWindowSize.X != size_row  || csbiInfo.dwMaximumWindowSize.Y != size_col) {
-        row_size = csbiInfo.srWindow.Bottom;
-        col_size = csbiInfo.srWindow.Right;
-        
-        size_row = csbiInfo.dwMaximumWindowSize.X;
-        size_col = csbiInfo.dwMaximumWindowSize.Y;
-        return true;
-    }
-    return false;
-}
-#else
-bool checkresize() {
-    struct winsize wns;
-    ioctl(STDOUT_FILENO, TIOCGWINSZ, &wns);
-    if (row_size != wns.ws_row || col_size != wns.ws_col) {
-        struct winsize wns;
-        ioctl(STDOUT_FILENO, TIOCGWINSZ, &wns);
-        row_size = wns.ws_row; //we need to keep a final line on screen for operators
-        col_size = wns.ws_col;
-        return true;
-    }
-    return false;
-}
-#endif
-
-static void getscreensizes() {
+void Getscreensizes() {
 #ifdef WIN32
     static CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
 
-    clearscreen();
+    _clearscreen();
     if (row_size == -1 && col_size == -1) {
         codepage = GetConsoleOutputCP();
         //UTF8 setting
@@ -250,13 +274,6 @@ static void getscreensizes() {
 #endif
 }
 
-static void _clearscreen() {
-#ifdef WIN32
-    system("cls");
-#else
-    cout << sys_clear << sys_clear_scrolling << sys_home;
-#endif
-}
 
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamgusys::AddMethod(TamguGlobal* global, string name, sysMethod func, unsigned long arity, string infos) {
@@ -274,7 +291,7 @@ void Tamgusys::Setidtype(TamguGlobal* global) {
 
 
 bool Tamgusys::InitialisationModule(TamguGlobal* global, string version) {
-    getscreensizes();
+    Getscreensizes();
     
     methods.clear();
     infomethods.clear();

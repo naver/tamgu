@@ -97,14 +97,10 @@ typedef enum {is_none = 0, is_container = 1, is_const = 2, is_constcontainer = 3
     is_noconst = 0xFFFD
 } is_investigations;
 
-#ifndef GARBAGEFORDEBUG
-extern vector<Tamgu*> _tamgu_garbage;
-#endif
-
 void set_garbage_mode(bool v);
-extern bool add_to_tamgu_garbage;
 long last_garbage_position();
 void clean_from_garbage_position(long p, Tamgu*, long);
+bool Addtogarbage();
 
 //Tamgu is the class from which every element descends
 class Tamgu {
@@ -117,25 +113,8 @@ public:
 	Exporting Tamgu();
 	Exporting virtual ~Tamgu();
 #else
-	Tamgu() {
-		idtracker = -1;
-        investigate = is_none;
-        if (add_to_tamgu_garbage)
-            _tamgu_garbage.push_back(this);
-	}
-
-    virtual ~Tamgu() {
-        if (add_to_tamgu_garbage) {
-            if (idtracker != -1)
-                globalTamgu->RemoveFromTracker(idtracker);
-            for (long i = 0; i < _tamgu_garbage.size(); i++) {
-                if (_tamgu_garbage[i] == this) {
-                    _tamgu_garbage[i] = NULL;
-                    break;
-                }
-            }
-        }
-    }
+	Tamgu();
+	virtual ~Tamgu();
 #endif
 
 	virtual Tamgu* Compile(Tamgu* parent) {

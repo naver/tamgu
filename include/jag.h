@@ -78,6 +78,7 @@ const char m_green[] = {27, '[', '0', ';', '3','2', ';','4','9','m',0};
 const char m_dore[] = {27, '[', '0', ';', '3','3', ';','4','9','m',0};
 #ifdef WIN32
 const char m_blue[] = { 27, '[', '0', ';', '3','6','m',0 };
+const char m_blueblack[] = { 27, '[', '0', ';', '3','6', ';','4','9','m',0 };
 #else
 const char m_blue[] = {27, '[', '0', ';', '3','4', ';','4','9','m',0};
 const char m_blueblack[] = {27, '[', '0', ';', '3','6', ';','4','9','m',0};
@@ -107,6 +108,7 @@ const char m_up[] = {27, '[', '1', 65, 0};
 const char a_right[] = {27, 102, 0};
 const char a_left[] = {27, 98, 0};
 
+const char m_clear_line[] = { 27, 91, '0', 'K', 0 };
 const char m_clear[] = {27, 91, '2', 'J', 0};
 const char m_clear_scrolling[] = {27, 91, '3', 'J', 0};
 const char m_scrollup[] = {27, 91, '1', 'S', 0};
@@ -619,9 +621,6 @@ public:
 
 	void resetterminal();
 	void screensizes();
-#ifdef WIN32
-	void checkresize();
-#endif
 
     void setscrolling();
     void reset();
