@@ -665,7 +665,7 @@ function dispelement(int i,int j, int off_x, int off_y) {
 
 //Disply the element if it is on screen
 function dispscreen(int x, int y, int off_x, int off_y) {
-	if (x < off_x or x >= (x_viewsize + off_x) or y < off_y or y >= (y_viewsize + off_y))
+	if (x <= off_x or x >= (x_viewsize + off_x) or y <= off_y or y >= (y_viewsize + off_y))
 		return;
 	//We are in the viewport, we can display...
 	_sys.row_column(x - off_x + 1, (y - off_y)*columnsize);
