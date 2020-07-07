@@ -43,7 +43,9 @@ class Tamgusys : public TamguObject {
     bool getcharhasbeenused;
     bool mouseenabled;
 
-#ifndef WIN32
+#ifdef WIN32
+	bool tracking;
+#else
     uchar vstart;
     uchar vstop;
     uchar vsusp;
@@ -54,12 +56,14 @@ class Tamgusys : public TamguObject {
         //Do not forget your variable initialisation
         getcharhasbeenused = false;
         mouseenabled = false;
+		tracking = false;
     }
 
     Tamgusys() {
         //Do not forget your variable initialisation
         getcharhasbeenused = false;
         mouseenabled = false;
+		tracking = false;
     }
 
     ~Tamgusys();

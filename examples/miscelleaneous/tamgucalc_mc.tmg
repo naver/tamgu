@@ -38,6 +38,8 @@ bool displayindexes = true;
 //displaying the message zone
 bool displayingmessage = true;
 
+if (_OS == "WINDOWS")
+	chooseblack = true;
 //The default value for cells
 string defaultvalue = ".";
 
@@ -185,6 +187,7 @@ function fillcolumn(vector v, int r, int c) {
     c = min(c,y_max);
     for (int i in <r, r+v.size()>) {
         v_matrix[i][c] = v[vi];
+		dispscreen(i, c, off_x, off_y);
         mat[i][c] = v[vi];
         vi++;
     }
@@ -200,6 +203,7 @@ function fillrow(vector v, int r, int c) {
     c = min(c,y_max);
     for (int i in <c, c+v.size()>) {
         v_matrix[r][i] = v[vi];
+		dispscreen(r, i, off_x, off_y);
         mat[r][i] = v[vi];
         vi++;
     }
@@ -468,10 +472,9 @@ function evaluation(int off_x, int off_y) {
             }
         }
     }
-    if (formulas.size()==0) {
-        displayall(off_x,off_y);
+
+    if (formulas.size()==0)        
         return;
-    }
     
     msgerr="";
     string msg;
@@ -524,6 +527,7 @@ function evaluation(int off_x, int off_y) {
             else
                 msgerr += " at cell: "+ky;
             v_matrix[i][j] = "#FCERR";
+			dispscreen(i, j, off_x, off_y);
         }
     }
     int loop;
@@ -560,12 +564,14 @@ function evaluation(int off_x, int off_y) {
                     mat[i:j] = val.float();
                     v_matrix[i][j] = val.string();
                     v_matrix[i][j]+=";";
+					dispscreen(i, j, off_x, off_y);
                 }
                 else {
                     msgerr=msg;
                     ky["_"] = ",";
                     msgerr += "Incomplete formula at cell: "+ky;
                     v_matrix[i][j] = "#ERR;";
+					dispscreen(i, j, off_x, off_y);
                 }
             }
             catch(msg) {
@@ -576,6 +582,7 @@ function evaluation(int off_x, int off_y) {
                 else
                     msgerr += " at cell: "+ky;
                 v_matrix[i][j] = "#ERR;";
+				dispscreen(i, j, off_x, off_y);
             }
         }
         
@@ -598,6 +605,7 @@ function evaluation(int off_x, int off_y) {
                 mat[i:j] = val.float();
                 v_matrix[i][j] = val.string();
                 v_matrix[i][j]+="!";
+				dispscreen(i, j, off_x, off_y);
             }
             catch(msg) {
                 msgerr=msg;
@@ -607,18 +615,20 @@ function evaluation(int off_x, int off_y) {
                 else
                     msgerr += " at cell: "+ky;
                 v_matrix[i][j] = "#ERR";
+				dispscreen(i, j, off_x, off_y);
             }
         }
     }
     cell="";
-    displayall(off_x, off_y);
+    //displayall(off_x, off_y);
     if (recompiled != "") {
         if (msgerr != "")
             msgerr += " "+recompiled;
         else
             msgerr = recompiled;
     }
-    displayerr(msgerr);
+	if (msgerr)
+		displayerr(msgerr);
 }
 
 //Display methods
@@ -651,6 +661,36 @@ function dispelement(int i,int j, int off_x, int off_y) {
         u=u[:columnsize-2]+"_";
     print(u);
     normalcolor();
+}
+
+//Disply the element if it is on screen
+function dispscreen(int x, int y, int off_x, int off_y) {
+	if (x < off_x or x >= (x_viewsize + off_x) or y < off_y or y >= (y_viewsize + off_y))
+		return;
+	//We are in the viewport, we can display...
+	_sys.row_column(x - off_x + 1, (y - off_y)*columnsize);
+	string u = v_matrix[x][y];
+	if (u[0] == "'") {
+		print(u);
+		return;
+	}
+	if (u[-1] == "!" or u[-1] == ';')
+		formulacolor();
+	elif(u[0] == "#")
+		defuncolor();
+	elif(!u[0].isdigit() && u[0] != "-" && u != defaultvalue)
+		stringcolor();
+
+	if (u.size() >= columnsize - 1)
+		u = u[:columnsize - 2] + "_";
+	print(u);
+	normalcolor();
+    int lg = columnsize-u.size()-1;
+    if (lg > 0) {
+        u="";
+        u.padding(lg, " ");
+        print(u);
+    }
 }
 
 function clearelement(int i, int j,int off_x, int off_y) {
@@ -770,18 +810,14 @@ function displayprompt(string s) {
         _sys.row_column(1,1);
 }
 
+
 //Highlight the current element
 function showelement(int i, int j, int off_x, int off_y) {
-    int I = i+off_x;
-    int J = j+off_y;
     //We check if we are in a formula mode
     string display = I+","+J+" "+inputkey+": "+inputvalue;
 
     //we use spaces to clean the cell first
-    string space;
-    space.padding(columnsize," ");
-    _sys.row_column(i+1,columnsize*j);
-    print(space);
+	int lg = columnsize - v_matrix[I][J].size()-1;
     //Then we position our cursor again to display our value
     _sys.row_column(i+1,columnsize*j);
     //We use a specific color to show that it has been selected
@@ -789,6 +825,12 @@ function showelement(int i, int j, int off_x, int off_y) {
     dispelementregular(i,j, off_x, off_y);
     //Colors are reset, we then display on the last line the current value
     normalcolor();
+	if (lg > 0) {
+		string space;
+		space.padding(lg, " ");
+		print(space);
+	}
+
     displayprompt(display);
 }
 
@@ -1241,6 +1283,7 @@ function deletion(int formi, int formj, int I, int J) {
             elif (regularformulas.test(k))
                 regularformulas.pop(k);
             v_matrix[formi][e] = defaultvalue;
+			dispscreen(formi, e, off_x, off_y);
             e++;
         }
         formi++;
@@ -1380,8 +1423,10 @@ function pasting() {
                 }
             }
             else {
-                if (di >= 1 and dj >= 1)
-                    v_matrix[di][dj] = v_matrix[ci][e];
+				if (di >= 1 and dj >= 1) {
+					v_matrix[di][dj] = v_matrix[ci][e];
+					dispscreen(di, dj, off_x, off_y);
+				}
             }
             dj++;
             e++;
@@ -1567,8 +1612,17 @@ function initfield() {
 int kar;
 
 //17 is ctrl-q
+bool disphelp = false;
 while (s[0].ord() != 17) {
-    //We use this position to display displaymessages
+	if (s == "") {
+		s = _sys.getchar();
+		continue;
+	}
+
+	if (disphelp) {
+		displaymessage(msgbase);
+		disphelp = false;
+	}
 
     //We delete a full cell
     if (s == _sys_keydel) {
@@ -1733,6 +1787,7 @@ while (s[0].ord() != 17) {
                 }
                 21: {
                     displayhelp(helpmsg); //ctrl-u
+					disphelp = true;
                     used = true;
                 }
                 23: { //ctrl-w
@@ -1794,9 +1849,7 @@ while (s[0].ord() != 17) {
             displaymessage("Building: "+formi+"_"+formj+": "+currentvalue);
         }
         elif (field)
-        displayprompt(dsp+inputvalue);
-        else
-            displaymessage(msgbase);
+			displayprompt(dsp + inputvalue);
     }
         
     //We clear the parenthesis balance highligthing, if it is present
@@ -1833,7 +1886,7 @@ while (s[0].ord() != 17) {
         s=_sys.getchar();
         continue;
     }
-    
+
     //If it is a MOUSE ACTION
     if (_sys.ismouseaction(s)) {
         if (mousecontrol(s)) {
@@ -1955,7 +2008,7 @@ while (s[0].ord() != 17) {
     }
     
     //recording our values after a CR
-    if (s == "\n") {
+    if (s == "\n" or s == "\r") {
         if (field) {
             if (checkfield()) {
                 field = false;
@@ -2011,6 +2064,9 @@ while (s[0].ord() != 17) {
             continue;
         }
         
+        if (isselected)
+            selection(formi, formj, false);
+
         updatevalue();
         handlingarrows(_sys_keydown);
         initvalue();

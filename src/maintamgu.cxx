@@ -1571,7 +1571,7 @@ public:
                             long att = convertinteger(v[2]);
                             long fg = convertinteger(v[3]);
                             long bg = convertinteger(v[4]);
-                            sprintf(buffer,"\e[%ld;%ld;%ldm", att, fg, bg);
+                            sprintf(buffer,"\033[%ld;%ld;%ldm", att, fg, bg);
                             colors[i] = buffer;
                             cout << buffer << s << " " << att << " " << fg << " " << bg << m_current << endl;
                             return pos;
@@ -1592,14 +1592,14 @@ public:
                     long att = convertinteger(v[1]);
                     long fg = convertinteger(v[2]);
                     long bg = convertinteger(v[3]);
-                    sprintf(buffer,"\e[%ld;%ld;%ldm", att, fg, bg);
+                    sprintf(buffer,"\033[%ld;%ld;%ldm", att, fg, bg);
                     printf("%sdisplaying color%s\n",buffer, m_current);
                 }
                 else {
                     for (int att = 0; m_attr[att] != -1; att++) {
                         for (int fg = 0; m_clfg[fg]; fg++) {
                             for (int bg = 0; m_clbg[bg]; bg++) {
-                                sprintf(buffer,"\e[%d;%d;%dm", m_attr[att], m_clfg[fg], m_clbg[bg]);
+                                sprintf(buffer,"\033[%d;%d;%dm", m_attr[att], m_clfg[fg], m_clbg[bg]);
                                 printf("%s%d,%d,%d:\t%s displaying color%s\n",m_current,m_attr[att], m_clfg[fg], m_clbg[bg], buffer, m_current);
                             }
                         }

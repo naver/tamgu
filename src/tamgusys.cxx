@@ -37,7 +37,9 @@
 
 //Handling console tune up
 static HANDLE hStdout = 0;
+static HANDLE hStdin = 0;
 static DWORD lpMode = 0;
+static DWORD fdwSaveOldMode;
 static UINT codepage = 0;
 #else
 #include <unistd.h>   //_getch
@@ -119,6 +121,7 @@ void ResetWindowsConsole() {
 	SetConsoleCP(codepage);
 	SetConsoleOutputCP(codepage);
 	SetConsoleMode(hStdout, lpMode);
+	SetConsoleMode(hStdin, fdwSaveOldMode);
 }
 
 Tamgusys::~Tamgusys() {
@@ -138,27 +141,173 @@ static char check_size_utf8(int utf) {
     return 0;
 }
 
+void getcursor(int& xcursor, int& ycursor) {
+	static CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
+	GetConsoleScreenBufferInfo(hStdout, &csbiInfo);
+	xcursor = csbiInfo.dwCursorPosition.X;
+	ycursor = csbiInfo.dwCursorPosition.Y;
+}
+
+//We generate the Unix strings in Windows, to keep the whole code constant across platform
+string MouseEventProc(MOUSE_EVENT_RECORD mer) {
+	stringstream stre;
+
+	stre << "\033[";
+	int x = 0, y = 0;
+	COORD mousep = mer.dwMousePosition;
+
+	mousep.X++;
+	mousep.Y++;
+
+	long wheel = mer.dwButtonState;
+
+	switch (mer.dwEventFlags)
+	{
+	case 0:
+		if (!mer.dwButtonState) {
+			stre << 35 << ";" << mousep.X << ";" << mousep.Y << "M";
+			_mysys->tracking = false;
+		}
+		else if (mer.dwButtonState == FROM_LEFT_1ST_BUTTON_PRESSED)
+		{
+			stre << 32 << ";" << mousep.X << ";" << mousep.Y<< "M";
+			_mysys->tracking = true;
+		}
+		else if (mer.dwButtonState == RIGHTMOST_BUTTON_PRESSED)
+		{
+			stre << 34 << ";" << mousep.X << ";" << mousep.Y<< "M";
+			_mysys->tracking = true;
+		}
+		else
+		{
+			stre << 34 << ";" << mousep.X << ";" << mousep.Y<< "M";
+			_mysys->tracking = true;
+		}
+		break;
+	case MOUSE_HWHEELED:
+		if (wheel < 0)
+			stre << 97 << ";" << mousep.X << ";" << mousep.Y << "M";
+		else
+			stre << 96 << ";" << mousep.X << ";" << mousep.Y << "M";
+		break;
+	case MOUSE_MOVED:
+		if (_mysys->tracking)
+			stre << 64 << ";" << mousep.X << ";" << mousep.Y << "M";
+		else
+			stre << 67 << ";" << mousep.X << ";" << mousep.Y << "M";
+		break;
+	case MOUSE_WHEELED:
+		if (wheel < 0)
+			stre << 97 << ";" << mousep.X << ";" << mousep.Y<< "M";
+		else
+			stre << 96 << ";" << mousep.X << ";" << mousep.Y<< "M";
+		break;
+	default:
+		stre << 67 << ";" << mousep.X << ";" << mousep.Y << "M";
+	}
+	return stre.str();
+}
+
 string getcharacter() {
-    checkresize();
-    int i = _getch();
-    string s;
-    s = (uchar)i;
-    if (!i || i == 0xE0 || i == 224) {
-        i = _getch();
-        s += (uchar)i;
-    }
-    else {
-        //We are inputting UTF8 characters, we detect the UTF8 size
-        //At most 3
-        if (i > 127) {
-            char nb = check_size_utf8(i);
-            while (nb) {
-                i = _getch();
-                s += (uchar)i;
-                nb--;
-            }
-        }
-    }
+	string s;
+	if (_mysys == NULL || _mysys->mouseenabled == false) {
+		checkresize();
+		int kar = _getch();
+		s = (uchar)kar;
+		if (!kar || kar == 0xE0 || kar == 224) {
+			kar = _getch();
+			s += (uchar)kar;
+		}
+		else {
+			//We are inputting UTF8 characters, we detect the UTF8 size
+			//At most 3
+			if (kar > 127) {
+				char nb = check_size_utf8(kar);
+				while (nb) {
+					kar = _getch();
+					s += (uchar)kar;
+					nb--;
+				}
+			}
+		}
+		return s;
+	}
+
+	static hmap<int, bool> keys;
+	static bool init = false;
+	if (!init) {
+		//this is the list of control keys that we actually care for
+		keys[77] = true;
+		keys[75] = true;
+		keys[80] = true;
+		keys[72] = true;
+		keys[83] = true;
+		keys[71] = true;
+		keys[79] = true;
+		keys[119] = true;
+		keys[117] = true;
+		keys[73] = true;
+		keys[81] = true;
+		keys[116] = true;
+		keys[115] = true;
+		init = true;
+	}
+
+	DWORD cNumRead;
+	WCHAR kar;
+	wstring w;
+	INPUT_RECORD irInBuf[512];
+	bool stop = false;
+	int i;
+
+	//This is the most important trick here, you need to reset the flags at each call...
+	DWORD fdwMode = ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT | ENABLE_EXTENDED_FLAGS;;
+	SetConsoleMode(hStdin, fdwMode);
+
+	kar = 0;
+	while (w == L"") {
+		ReadConsoleInput(
+			hStdin,      // input buffer handle 
+			irInBuf,     // buffer to read into 
+			512,         // size of read buffer 
+			&cNumRead); // number of records read 
+
+		for (i = 0; i < cNumRead; i++)
+		{
+			switch (irInBuf[i].EventType)
+			{
+			case KEY_EVENT: {// keyboard input 
+				KEY_EVENT_RECORD& key = irInBuf[i].Event.KeyEvent;
+				if (!key.bKeyDown) {
+					kar = key.uChar.UnicodeChar;
+					if (!kar) {
+						if (keys.find(key.wVirtualScanCode) != keys.end()) {
+							s = (uchar)224;
+							s += key.wVirtualScanCode;
+						}
+						return s;
+					}
+					w += kar;
+				}
+			}
+				break;
+			case MOUSE_EVENT: // mouse input 
+				return MouseEventProc(irInBuf[i].Event.MouseEvent);
+			case WINDOW_BUFFER_SIZE_EVENT: // scrn buf. resizing 
+				//ResizeEventProc(irInBuf[i].Event.WindowBufferSizeEvent);
+				checkresize();
+				break;
+
+			case FOCUS_EVENT:  // disregard focus events 
+
+			case MENU_EVENT:   // disregard menu events 
+				break;
+			}
+		}
+	}
+
+	s_unicode_to_utf8(s, w);
+
     return s;
 }
 
@@ -166,12 +315,6 @@ void sendstring(string s) {
     cout << s;
 }
 
-void getcursor(int& xcursor, int& ycursor) {
-	static CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
-	GetConsoleScreenBufferInfo(hStdout, &csbiInfo);
-	xcursor = csbiInfo.dwCursorPosition.X;
-	ycursor = csbiInfo.dwCursorPosition.Y;
-}
 #else
 bool checkresize() {
 	struct winsize wns;
@@ -232,8 +375,27 @@ void Getscreensizes() {
 #ifdef WIN32
     static CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
 
-    _clearscreen();
     if (row_size == -1 && col_size == -1) {
+		_clearscreen();
+		DWORD fdwMode;
+
+		hStdin = GetStdHandle(STD_INPUT_HANDLE);
+
+		// Save the current input mode, to be restored on exit. 
+
+		if (!GetConsoleMode(hStdin, &fdwSaveOldMode)) {
+			printf("GetConsoleMode (%d)\n", GetLastError());
+			return;
+		}
+
+
+		// Enable the window and mouse input events. 
+		fdwMode = ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT | ENABLE_EXTENDED_FLAGS;;
+		if (!SetConsoleMode(hStdin, fdwMode)) {
+			printf("SetConsoleMode (%d)\n", GetLastError());
+			return;
+		}
+
         codepage = GetConsoleOutputCP();
         //UTF8 setting
         SetConsoleOutputCP(65001);
@@ -253,18 +415,20 @@ void Getscreensizes() {
         //We set the specific mode to handle terminal commands
         GetConsoleMode(hStdout, &lpMode);
         SetConsoleMode(hStdout, lpMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
-    }
 
-    if (!GetConsoleScreenBufferInfo(hStdout, &csbiInfo))
-    {
-        printf("GetConsoleScreenBufferInfo (%d)\n", GetLastError());
-        return;
-    }
-    row_size = csbiInfo.srWindow.Bottom;
-    col_size = csbiInfo.srWindow.Right;
+		if (!GetConsoleScreenBufferInfo(hStdout, &csbiInfo))
+		{
+			printf("GetConsoleScreenBufferInfo (%d)\n", GetLastError());
+			return;
+		}
+		row_size = csbiInfo.srWindow.Bottom;
+		col_size = csbiInfo.srWindow.Right;
 
-    size_row = csbiInfo.dwMaximumWindowSize.X;
-    size_col = csbiInfo.dwMaximumWindowSize.Y;
+		size_row = csbiInfo.dwMaximumWindowSize.X;
+		size_col = csbiInfo.dwMaximumWindowSize.Y;
+
+	}
+
 
 #else
     struct winsize wns;
@@ -446,7 +610,12 @@ void Reseting_system_environment_for_getchar() {
 }
 
 void Tamgusys::Reset() {
-#ifndef WIN32
+#ifdef WIN32
+	if (getcharhasbeenused) {
+		ResetWindowsConsole();
+		getcharhasbeenused = false;
+	}
+#else
     sendstring(showcursor);
     if (mouseenabled) {
         sendstring(disablemouse);
@@ -1118,7 +1287,11 @@ Tamgu* Tamgusys::MethodReset(Tamgu* contextualpattern, short idthread, TamguCall
 Tamgu* Tamgusys::MethodInitMouse(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     if (mouseenabled)
         return aFALSE;
-    sendstring(enablemouse);
+#ifdef WIN32
+	tracking = false;
+#else
+	sendstring(enablemouse);
+#endif
     mouseenabled = true;
     return aTRUE;
 }
@@ -1126,7 +1299,12 @@ Tamgu* Tamgusys::MethodInitMouse(Tamgu* contextualpattern, short idthread, Tamgu
 Tamgu* Tamgusys::MethodCloseMouse(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     if (!mouseenabled)
         return aFALSE;
+#ifdef WIN32
+	tracking = false;
+	SetConsoleMode(hStdin, fdwSaveOldMode);
+#else
     sendstring(disablemouse);
+#endif
     mouseenabled = false;
     return aTRUE;
 }
@@ -1135,7 +1313,7 @@ Tamgu* Tamgusys::MethodPositionMouse(Tamgu* contextualpattern, short idthread, T
     string mousectrl = callfunc->Evaluate(0, aNULL, idthread)->String();
     int action, mxcursor, mycursor;
     Tamgu* vect = Selectaivector(contextualpattern);
-    if (mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[') {
+    if (mousectrl.size() >= 8 && mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[') {
         //This a move
         sscanf(STR(mousectrl), "\033[%d;%d;%dM", &action, &mycursor, &mxcursor);
         if (action == 67) {
@@ -1150,7 +1328,7 @@ Tamgu* Tamgusys::MethodPositionScrollingUp(Tamgu* contextualpattern, short idthr
     string mousectrl = callfunc->Evaluate(0, aNULL, idthread)->String();
     int action, mxcursor, mycursor;
     Tamgu* vect = Selectaivector(contextualpattern);
-    if (mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[') {
+    if (mousectrl.size() >= 8 && mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[') {
         //This a move
         sscanf(STR(mousectrl), "\033[%d;%d;%dM", &action, &mycursor, &mxcursor);
         if (action == 96) {
@@ -1165,7 +1343,7 @@ Tamgu* Tamgusys::MethodPositionScrollingDown(Tamgu* contextualpattern, short idt
     string mousectrl = callfunc->Evaluate(0, aNULL, idthread)->String();
     int action, mxcursor, mycursor;
     Tamgu* vect = Selectaivector(contextualpattern);
-    if (mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[') {
+    if (mousectrl.size() >= 8 && mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[') {
         //This a move
         sscanf(STR(mousectrl), "\033[%d;%d;%dM", &action, &mycursor, &mxcursor);
         if (action == 97) {
@@ -1180,7 +1358,7 @@ Tamgu* Tamgusys::MethodClickFirstMouseDown(Tamgu* contextualpattern, short idthr
     string mousectrl = callfunc->Evaluate(0, aNULL, idthread)->String();
     int action, mxcursor, mycursor;
     Tamgu* vect = Selectaivector(contextualpattern);
-    if (mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[') {
+    if (mousectrl.size() >= 8 && mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[') {
         //This a move
         sscanf(STR(mousectrl), "\033[%d;%d;%dM", &action, &mycursor, &mxcursor);
         if (action == 32) {
@@ -1195,7 +1373,7 @@ Tamgu* Tamgusys::MethodClickSecondMouseDown(Tamgu* contextualpattern, short idth
     string mousectrl = callfunc->Evaluate(0, aNULL, idthread)->String();
     int action, mxcursor, mycursor;
     Tamgu* vect = Selectaivector(contextualpattern);
-    if (mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[') {
+    if (mousectrl.size() >= 8 && mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[') {
         //This a move
         sscanf(STR(mousectrl), "\033[%d;%d;%dM", &action, &mycursor, &mxcursor);
         if (action == 34) {
@@ -1210,7 +1388,7 @@ Tamgu* Tamgusys::MethodClickMouseUp(Tamgu* contextualpattern, short idthread, Ta
     string mousectrl = callfunc->Evaluate(0, aNULL, idthread)->String();
     int action, mxcursor, mycursor;
     Tamgu* vect = Selectaivector(contextualpattern);
-    if (mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[') {
+    if (mousectrl.size() >= 8 && mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[') {
         //This a move
         sscanf(STR(mousectrl), "\033[%d;%d;%dM", &action, &mycursor, &mxcursor);
         if (action == 35) {
@@ -1225,7 +1403,7 @@ Tamgu* Tamgusys::MethodMouseTrack(Tamgu* contextualpattern, short idthread, Tamg
     string mousectrl = callfunc->Evaluate(0, aNULL, idthread)->String();
     int action, mxcursor, mycursor;
     Tamgu* vect = Selectaivector(contextualpattern);
-    if (mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[') {
+    if (mousectrl.size() >= 8 && mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[') {
         //This a move
         sscanf(STR(mousectrl), "\033[%d;%d;%dM", &action, &mycursor, &mxcursor);
         if (action == 64) {
@@ -1238,7 +1416,7 @@ Tamgu* Tamgusys::MethodMouseTrack(Tamgu* contextualpattern, short idthread, Tamg
 
 Tamgu* Tamgusys::MethodIsActionMouse(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     string mousectrl = callfunc->Evaluate(0, aNULL, idthread)->String();
-    if (mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[')
+    if (mousectrl.size() >= 8 && mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[')
         return aTRUE;
     return aFALSE;
 }
@@ -1246,7 +1424,7 @@ Tamgu* Tamgusys::MethodIsActionMouse(Tamgu* contextualpattern, short idthread, T
 
 Tamgu* Tamgusys::MethodisEscapeSequence(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     string mousectrl = callfunc->Evaluate(0, aNULL, idthread)->String();
-    if (mousectrl[0] == 27 && mousectrl[1] == '[')
+    if (mousectrl.size() >= 8 && mousectrl[0] == 27 && mousectrl[1] == '[')
         return aTRUE;
     return aFALSE;
 }
