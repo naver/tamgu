@@ -56,14 +56,18 @@ class Tamgusys : public TamguObject {
         //Do not forget your variable initialisation
         getcharhasbeenused = false;
         mouseenabled = false;
-		tracking = false;
+#ifdef WIN32
+        tracking = false;
+#endif
     }
 
     Tamgusys() {
         //Do not forget your variable initialisation
         getcharhasbeenused = false;
         mouseenabled = false;
-		tracking = false;
+        #ifdef WIN32
+                tracking = false;
+        #endif
     }
 
     ~Tamgusys();
