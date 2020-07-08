@@ -370,6 +370,7 @@ function readtable(string f) {
             }
             i++;
         }
+        displayall(0,0);
         evaluation(0,0);
     }
     catch {
