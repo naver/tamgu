@@ -2333,7 +2333,8 @@ public:
     }
     
     void launchterminal(char noinit) {
-        
+		clearscreen();
+
         localhelp << m_red<< "^b" << m_current << ":breakpoint " << m_red<< "^c/q" << m_current << ":cmd line " << m_red << "^xq" << m_current << ":exit";
         
         option = x_none;

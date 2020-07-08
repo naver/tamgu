@@ -149,11 +149,15 @@ typedef Tamgu* (TamguCode::*ParseElement)(x_node*, Tamgu*);
 
 class ThreadStruct {
 public:
+    short idthread;
+    
 	VECTE<Tamgu*> stack;
     VECTE<Tamgu*> stacklisp;
 	vector<Tamgu*> debugstack;
     
     VECTE<TamguCallFibre*> fibres;
+    vector<Tamgu*> localgarbage;
+    bool in_eval;
 
     std::atomic<short> nbjoined;
     
@@ -187,6 +191,28 @@ public:
 
 	void Update(short idthread);
 
+    inline void Storeingarbage(Tamgu* a) {
+        if (in_eval)
+            localgarbage.push_back(a);
+    }
+    
+    inline void Cleaningarbage(Tamgu* a) {
+        if (in_eval) {
+            for (long i = 0; i < localgarbage.size(); i++) {
+                if (localgarbage[i] ==  a) {
+                    localgarbage[i] = NULL;
+                    return;
+                }
+            }
+        }
+    }
+    
+    inline long Garbagesize() {
+        in_eval = true;
+        return localgarbage.size();
+    }
+    
+    void Cleanfromgarbageposition(short idthread, long p, Tamgu* keep, long lastrecorded);
 	inline void Removevariable(short n) {
 		if (variables.check(n)) {
 			VECTE<Tamgu*>& v = variables.get(n);
@@ -581,7 +607,16 @@ public:
 	}
 
 
-
+    void Setineval(short idthread, bool v) {
+        threads[idthread].in_eval = v;
+    }
+    
+    void Storeingarbage(Tamgu* a) {
+        threads[GetThreadid()].Storeingarbage(a);
+    }
+    
+    void Removefromlocalgarbage(short idthread, long i, Tamgu* a);
+    
     Exporting void Clearfibres(short);
 	Exporting void Update();
 	//--------------------------------

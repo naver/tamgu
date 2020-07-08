@@ -98,9 +98,9 @@ typedef enum {is_none = 0, is_container = 1, is_const = 2, is_constcontainer = 3
 } is_investigations;
 
 void set_garbage_mode(bool v);
-long last_garbage_position();
-void clean_from_garbage_position(long p, Tamgu*, long);
-bool Addtogarbage();
+long initialize_local_garbage(short idthread);
+void clean_from_garbage_position(short idthread, long p, Tamgu*, long);
+int Addtogarbage();
 
 //Tamgu is the class from which every element descends
 class Tamgu {

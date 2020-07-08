@@ -76,11 +76,22 @@ void Returnscreensize(long& rs, long& cs, long& sr, long& sc);
 static char m_scrollmargin[] = { 27, 91, '0', '0', '0', ';', '0', '0','0', 'r', 0 };
 static char m_deletechar[] = { 27, 91, '1', 'P', 0 };
 static char m_left[] = { 27, '[', '1', 68, 0 };
-static char m_right[] = {27, '[', '0', '1', 67, 0};
-char m_down[] = {27, '[', '0', '1', 66, 0};
+static char m_right[] = {27, '[', '0', '0', '1', 67, 0};
+char m_down[] = {27, '[', '0', '0', '1', 66, 0};
 
+//Moving to a specific line/column
+char sys_row_column[] = { 27, 91, '0', '0', '0', ';', '0', '0','0', 'H', 0 };
+static const char* localn999[] = { "000","001","002","003","004","005","006","007","008","009","010","011","012","013","014","015","016","017","018","019","020","021","022","023","024","025","026","027","028","029","030","031","032","033","034","035","036","037","038","039","040","041","042","043","044","045","046","047","048","049","050","051","052","053","054","055","056","057","058","059","060","061","062","063","064","065","066","067","068","069","070","071","072","073","074","075","076","077","078","079","080","081","082","083","084","085","086","087","088","089","090","091","092","093","094","095","096","097","098","099","100","101","102","103","104","105","106","107","108","109","110","111","112","113","114","115","116","117","118","119","120","121","122","123","124","125","126","127","128","129","130","131","132","133","134","135","136","137","138","139","140","141","142","143","144","145","146","147","148","149","150","151","152","153","154","155","156","157","158","159","160","161","162","163","164","165","166","167","168","169","170","171","172","173","174","175","176","177","178","179","180","181","182","183","184","185","186","187","188","189","190","191","192","193","194","195","196","197","198","199","200","201","202","203","204","205","206","207","208","209","210","211","212","213","214","215","216","217","218","219","220","221","222","223","224","225","226","227","228","229","230","231","232","233","234","235","236","237","238","239","240","241","242","243","244","245","246","247","248","249","250","251","252","253","254","255","256","257","258","259","260","261","262","263","264","265","266","267","268","269","270","271","272","273","274","275","276","277","278","279","280","281","282","283","284","285","286","287","288","289","290","291","292","293","294","295","296","297","298","299","300","301","302","303","304","305","306","307","308","309","310","311","312","313","314","315","316","317","318","319","320","321","322","323","324","325","326","327","328","329","330","331","332","333","334","335","336","337","338","339","340","341","342","343","344","345","346","347","348","349","350","351","352","353","354","355","356","357","358","359","360","361","362","363","364","365","366","367","368","369","370","371","372","373","374","375","376","377","378","379","380","381","382","383","384","385","386","387","388","389","390","391","392","393","394","395","396","397","398","399","400","401","402","403","404","405","406","407","408","409","410","411","412","413","414","415","416","417","418","419","420","421","422","423","424","425","426","427","428","429","430","431","432","433","434","435","436","437","438","439","440","441","442","443","444","445","446","447","448","449","450","451","452","453","454","455","456","457","458","459","460","461","462","463","464","465","466","467","468","469","470","471","472","473","474","475","476","477","478","479","480","481","482","483","484","485","486","487","488","489","490","491","492","493","494","495","496","497","498","499","500","501","502","503","504","505","506","507","508","509","510","511","512","513","514","515","516","517","518","519","520","521","522","523","524","525","526","527","528","529","530","531","532","533","534","535","536","537","538","539","540","541","542","543","544","545","546","547","548","549","550","551","552","553","554","555","556","557","558","559","560","561","562","563","564","565","566","567","568","569","570","571","572","573","574","575","576","577","578","579","580","581","582","583","584","585","586","587","588","589","590","591","592","593","594","595","596","597","598","599","600","601","602","603","604","605","606","607","608","609","610","611","612","613","614","615","616","617","618","619","620","621","622","623","624","625","626","627","628","629","630","631","632","633","634","635","636","637","638","639","640","641","642","643","644","645","646","647","648","649","650","651","652","653","654","655","656","657","658","659","660","661","662","663","664","665","666","667","668","669","670","671","672","673","674","675","676","677","678","679","680","681","682","683","684","685","686","687","688","689","690","691","692","693","694","695","696","697","698","699","700","701","702","703","704","705","706","707","708","709","710","711","712","713","714","715","716","717","718","719","720","721","722","723","724","725","726","727","728","729","730","731","732","733","734","735","736","737","738","739","740","741","742","743","744","745","746","747","748","749","750","751","752","753","754","755","756","757","758","759","760","761","762","763","764","765","766","767","768","769","770","771","772","773","774","775","776","777","778","779","780","781","782","783","784","785","786","787","788","789","790","791","792","793","794","795","796","797","798","799","800","801","802","803","804","805","806","807","808","809","810","811","812","813","814","815","816","817","818","819","820","821","822","823","824","825","826","827","828","829","830","831","832","833","834","835","836","837","838","839","840","841","842","843","844","845","846","847","848","849","850","851","852","853","854","855","856","857","858","859","860","861","862","863","864","865","866","867","868","869","870","871","872","873","874","875","876","877","878","879","880","881","882","883","884","885","886","887","888","889","890","891","892","893","894","895","896","897","898","899","900","901","902","903","904","905","906","907","908","909","910","911","912","913","914","915","916","917","918","919","920","921","922","923","924","925","926","927","928","929","930","931","932","933","934","935","936","937","938","939","940","941","942","943","944","945","946","947","948","949","950","951","952","953","954","955","956","957","958","959","960","961","962","963","964","965","966","967","968","969","970","971","972","973","974","975","976","977","978","979","980","981","982","983","984","985","986","987","988","989","990","991","992","993","994","995","996","997","998","999" };
+static void moveto_row_column(long r, long c) {
+	sys_row_column[2] = localn999[r][0];
+	sys_row_column[3] = localn999[r][1];
+	sys_row_column[4] = localn999[r][2];
+	sys_row_column[6] = localn999[c][0];
+	sys_row_column[7] = localn999[c][1];
+	sys_row_column[8] = localn999[c][2];
+	cout << sys_row_column;
+}
 
-static const char* numberstrings[] =                               {"00","01","02","03","04","05","06","07","08","09","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49","50","51","52","53","54","55","56","57","58","59","60","61","62","63","64","65","66","67","68","69","70","71","72","73","74","75","76","77","78","79","80","81","82","83","84","85","86","87","88","89","90","91","92","93","94","95","96","97","98","99"};
 
 static const char* _keywords[] = { "GPSdistance","True", "False","None","def","char","import","double","wstring","Maybe","Nothing","_breakpoint","_dependencies","_erroronkey","_eval","_evalfunction","_exit","_forcelocks","_getdefaulttokenizerules","_info","_initial","_mirrordisplay","_nbthreads","_poolstats","_setenv","_setmaxrange","_setmaxthreads","_setstacksize","_setvalidfeatures","_stdin","_symbols","_threadhandle","_threadid","a_bool","a_change","a_delete","a_features","a_first","a_float","a_fvector","a_insert","a_int","a_ivector","a_longest","a_mapff","a_mapfi","a_mapfs","a_mapfu","a_mapif","a_mapii","a_mapis","a_mapiu","a_mapsf","a_mapsi","a_mapss","a_mapuf","a_mapui","a_mapuu","a_nocase","a_offsets","a_random","a_repetition","a_string","a_surface","a_svector","a_switch","a_ustring","a_uvector","a_vector","a_vowel","abs","absent","acos","acosh","activate","add","addchild","addnext","addprevious","addstyle","after","alert","align","all","allobjects","and","annotate","annotator","any","aopen","append","apply","arc","asin","asinh","ask","assert","asserta","assertz","atan","atanh","attributes","autorun","backgroundcolor","barcolor","base","before","begin","begincomplexpolygon","beginline","beginloop","beginpoints","beginpolygon","binmap","binmapf","binmapi","binmapl","binmaps","binmapu","bit","bitmap","bits","block","blocking","bloop","bool","border","boundaries","bounds","box","boxtype","break","browser","buffersize","build","button","bvector","byte","byteposition","bytes","call","case","cast","catch","cbrt","cell","cellalign","cellalignheadercol","cellalignheaderrow","charposition","check","checklabel","checkword","child","children","choice","chr","circle","clear","close","color","colorbg","colorfg","column","columnchar","columnheader","columnheaderwidth","columnwidth","command","commit","common","compact","compile","compilelexicons","compilergx","concept","connect","const","constmap","constvector","content","continue","copy","cos","cosh","count","counter","create","created","createdirectory","createserver","curl","current","cursor","cursorchar","cursorstyle","curve","cut","cycle","data","date","day","deaccentuate","decimal","decode","default","definitions","degree","delete","dependencies","dependency","deriving","deselect","determinant","dimension","dloop","do","document","dos","dostoutf8","doublemetaphone","drawcolor","drawtext","drop","dropWhile","dthrough","dvector","e_arabic","e_baltic","e_celtic","e_cp1252","e_cyrillic","e_greek","e_hebrew","e_latin_ce","e_latin_ffe","e_latin_ne","e_latin_se","e_latin_see","e_latin_we","e_nordic","e_thai","e_turkish","e_windows","editdistance","editor","elif","else","emoji","emojis","empty","encode","end","endcomplexpolygon","endian","endline","endloop","endpoints","endpolygon","env","eof","erf","erfc","evaluate","even","exclusive","execute","exit","exp","exp2","expm1","exponent","extension","extract","factorize","factors","fail","false","features","fibre","file","filebrowser","fileinfo","fill","filter","find","findall","first","flatten","flip","float","floop","floor","flush","fmatrix","focus","foldl","foldr","font","fontnumber","fontsize","for","format","formatchar","fraction","frame","frameinstance","from","fthrough","function","fvector","gap","get","geterr","getfont","getfontsizes","gethostname","getpeername","getstd","getstyle","gotoline","grammar","grammar_macros","group","hash","hide","highlight","hour","html","hvector","id","if","ifnot","iloop","image","imatrix","in","indent","info","initializefonts","insert","insertbind","int","invert","is","isa","isalpha","isconsonant","iscontainer","isdigit","isdirectory","isemoji","ishangul","isjamo","islower","ismap","isnumber","isprime","ispunctuation","isstring","isupper","isutf8","isvector","isvowel","items","iterator","ithrough","ivector","jamo","join","joined","json","key","keys","kget","label","labelcolor","labelfont","labels","labelsize","labeltype","last","latin","leaves","left","length","let","levenshtein","lexicon","lgamma","line","linebounds","linecharbounds","lineshape","lisp","list","listdirectory","lloop","ln","load","loadgif","loadin","loadjpeg","lock","log","log1p","log2","logb","long","lookdown","lookup","loop","lower","ls","lstep","lthrough","lvector","mantissa","map","mapf","mapff","mapfi","mapfl","mapfs","mapfu","mapi","mapif","mapii","mapis","mapiu","mapl","maplf","mapll","mapls","maplu","mapsf","mapsi","mapsl","mapss","mapu","mapuf","mapui","mapul","mapuu","mark","match","max","maximum","memory","menu","merge","method","methods","mid","min","minimum","minute","mkdir","modal","month","mp3","mthrough","multisplit","multmatrix","name","namespace","nbchildren","nd","nearbyint","new","next","ngrams","node","nope","normalizehangul","not","notin","null","odd","of","ok","onclose","onclosing","ondragdrop","onhscroll","onkey","onmouse","ontime","ontology","onvscroll","open","openappend","openread","openwrite","options","or","ord","otherwise","padding","parameters","parent","parse","password","paste","pause","permute","pie","play","plot","plotcoords","point","polygon","polynomial","ponder","pop","popclip","popfirst","poplast","popmatrix","port","position","post","precede","pred","predicate","predicatedump","predicatevar","preg","previous","primemap","primemapf","primemapff","primemapfi","primemapfl","primemapfs","primemapfu","primemapi","primemapif","primemapii","primemapis","primemapiu","primemapl","primemaplf","primemapll","primemapls","primemaplu","primemapsf","primemapsi","primemapsl","primemapss","primemapu","primemapuf","primemapui","primemapul","primemapuu","print","printerr","printj","printjerr","printjln","printjlnerr","println","printlnerr","private","product","progress","properties","property","protected","proxy","push","pushclip","pushfirst","pushlast","pushmatrix","radian","raise","random","range","rawstring","read","readline","real","realpath","receive","rectangle","rectanglefill","redirectoutput","redraw","redrawing","remove","removefirst","removelast","repeat","replace","replaceall","replicate","reserve","reset","resizable","resize","restateoutput","retract","retractall","return","reverse","rfind","rgbcolor","right","ring","rint","role","romanization","root","ropen","rotate","rotation","round","row","rowheader","rowheaderheight","rowheight","rule","run","save","scale","scan","scanl","scanr","scrollbar","second","seek","select","selection","selectioncolor","self","send","serialize","serializestring","setdate","setstyle","settimeout","short","shortcut","show","shuffle","sibling","signature","simplify","sin","sinh","sisters","size","sizeb","sizerange","sleep","slice","slider","sloop","socket","sort","sortfloat","sortint","sortstring","sortustring","sound","spans","split","splite","sqlite","sqrt","static","step","steps","sthrough","stokenize","stop","store","strict","string","succ","succeed","sum","svector","switch","synode","sys","table","tabs","tags","take","takeWhile","tamgu","tan","tanh","tell","term","test","textcolor","textsize","tgamma","this","thread","time","tohtml","token","tokenize","tokens","tooltip","toxml","trace","transducer","transformdx","transformdy","transformedvertex","transformx","transformy","translate","transpose","treemap","treemapf","treemapff","treemapfi","treemapfl","treemapfs","treemapfu","treemapi","treemapif","treemapii","treemapis","treemapiu","treemapl","treemaplf","treemapll","treemapls","treemaplu","treemapsf","treemapsi","treemapsl","treemapss","treemapu","treemapuf","treemapui","treemapul","treemapuu","treg","trim","trimleft","trimright","true","trunc","try","type","ufile","uloop","unblock","unget","unhighlight","unique","unlink","unlock","unmark","upper","url","use","ustring","utf8","uthrough","uvector","value","values","vector","version","vertex","vthrough","wait","waitonfalse","waitonjoined","weekday","wfile","when","where","while","window","winput","with","wopen","word","words","woutput","wrap","write","writebin","writeln","writeutf16","wtable","xml","xmldoc","xmlstring","xmltype","xor","xpath","year","yearday","zip","zipWith","∏","∑","√","∛","define", "ifdef", "endif", "include", "defun", "lambda", "cons", "cond", "eq", "car", "cdr", "list", "append", ""};
 
@@ -799,53 +810,25 @@ void jag_editor::movetoposition() {
     else
         sc = size_upto(line, posinstring) + prefixego();
     cout << back;
-    if (sc > 99) {
-        m_right[2] = numberstrings[99][0];
-        m_right[3] = numberstrings[99][1];
-        while (sc > 99) {
-            cout << m_right;
-            sc -= 99;
-        }
-        if (sc) {
-            m_right[2] = numberstrings[sc][0];
-            m_right[3] = numberstrings[sc][1];
-            cout << m_right;
-        }
-    }
-    else {
-        m_right[2] = numberstrings[sc][0];
-        m_right[3] = numberstrings[sc][1];
-        cout << m_right;
-    }
-
+	m_right[2] = localn999[sc][0];
+	m_right[3] = localn999[sc][1];
+	m_right[4] = localn999[sc][2];
+	cout << m_right;
     m_right[2] = '0';
-    m_right[3] = '1';
+	m_right[3] = '0';
+	m_right[4] = '1';
 }
 
 void jag_editor::movetobeginning() {
     long sc = prefixego();
     cout << back;
-    if (sc > 99) {
-        m_right[2] = numberstrings[99][0];
-        m_right[3] = numberstrings[99][1];
-        while (sc > 99) {
-            cout << m_right;
-            sc -= 99;
-        }
-        if (sc) {
-            m_right[2] = numberstrings[sc][0];
-            m_right[3] = numberstrings[sc][1];
-            cout << m_right;
-        }
-    }
-    else {
-        m_right[2] = numberstrings[sc][0];
-        m_right[3] = numberstrings[sc][1];
-        cout << m_right;
-    }
-
-    m_right[2] = '0';
-    m_right[3] = '1';
+	m_right[2] = localn999[sc][0];
+	m_right[3] = localn999[sc][1];
+	m_right[4] = localn999[sc][2];
+	cout << m_right;
+	m_right[2] = '0';
+	m_right[3] = '0';
+	m_right[4] = '1';
 }
 
 void jag_editor::movetoend(bool remove) {
@@ -863,58 +846,17 @@ void jag_editor::movetoend(bool remove) {
         return;
     
     cout << back;
-    if (sc > 99) {
-        m_right[2] = numberstrings[99][0];
-        m_right[3] = numberstrings[99][1];
-        while (sc > 99) {
-            cout << m_right;
-            sc -= 99;
-        }
-        if (sc) {
-            m_right[2] = numberstrings[sc][0];
-            m_right[3] = numberstrings[sc][1];
-            cout << m_right;
-        }
-    }
-    else {
-        m_right[2] = numberstrings[sc][0];
-        m_right[3] = numberstrings[sc][1];
-        cout << m_right;
-    }
-    
-    m_right[2] = '0';
-    m_right[3] = '1';
+	m_right[2] = localn999[sc][0];
+	m_right[3] = localn999[sc][1];
+	m_right[4] = localn999[sc][2];
+	cout << m_right;
+	m_right[2] = '0';
+	m_right[3] = '0';
+	m_right[4] = '1';
 }
 
 void jag_editor::movetolastline() {
-#ifdef WIN32
-	long e = row_size + 1;
-#else
-	long e = row_size + 2;
-#endif
-	cout << m_home;
-    if (e > 99) {
-        m_down[2] = numberstrings[99][0];
-        m_down[3] = numberstrings[99][1];
-        while (e > 99) {
-            cout << m_down;
-            e-=99;
-        }
-        if (e) {
-            m_down[2] = numberstrings[e][0];
-            m_down[3] = numberstrings[e][1];
-            cout << m_down;
-        }
-    }
-    else {
-        m_down[2] = numberstrings[e][0];
-        m_down[3] = numberstrings[e][1];
-        cout << m_down;
-    }
-    
-    cout << back;
-    m_down[2] = '0';
-    m_down[3] = '1';
+	moveto_row_column(row_size + 2, 1);
 }
 
 void jag_editor::movetoline(long e) {
@@ -922,33 +864,7 @@ void jag_editor::movetoline(long e) {
         currentline = poslines.size()-1;
         e =  currentline;
     }
-
-    cout << m_home;
-    
-    if (e > 99) {
-        m_down[2] = numberstrings[99][0];
-        m_down[3] = numberstrings[99][1];
-        while (e > 99) {
-            cout << m_down;
-            e-=99;
-        }
-        if (e) {
-            m_down[2] = numberstrings[e][0];
-            m_down[3] = numberstrings[e][1];
-            cout << m_down;
-        }
-    }
-    else {
-        if (!e)
-            return;
-        
-        m_down[2] = numberstrings[e][0];
-        m_down[3] = numberstrings[e][1];
-        cout << m_down;
-    }
-    
-    m_down[2] = '0';
-    m_down[3] = '1';
+	moveto_row_column(e, 1);
 }
 
 void jag_editor::gotoline(long p) {
@@ -1007,9 +923,10 @@ bool jag_editor::updown(char drt, long& pos) {
             if (pos < (sz -1)) {
 				resetlist(poslines[0] + 1);
                 pos = poslines.back();
+				clearlastline();
 				cout << m_scrollup;
-                line = lines[pos];
-				movetoline(currentline);
+				line = lines[pos];
+				moveto_row_column(currentline+1, 1);
 				displaygo(true);
                 if (posinstring > linesize())
                     posinstring = linesize();
@@ -1320,11 +1237,15 @@ void jag_editor::deleteline(char moveup) {
     movetoposition();
 }
 
+void jag_editor::clearlastline() {
+	movetolastline();
+	clearline();
+}
+
 void jag_editor::displayonlast(bool bck) {
-    movetolastline();
+    clearlastline();
     wstring w = st.str();
     string s = convert(w);
-    clearline();
     cout << back << s;
     
     if (bck) {
@@ -1342,9 +1263,8 @@ void jag_editor::displayonlast(bool bck) {
 }
 
 void jag_editor::displayonlast(wstring w, bool bck) {
-    movetolastline();
+	clearlastline();
     string s = convert(w);
-    clearline();
     cout << back << s;
     
     if (bck) {
@@ -1362,8 +1282,7 @@ void jag_editor::displayonlast(wstring w, bool bck) {
 }
 
 void jag_editor::displayonlast(string s, bool bck) {
-    movetolastline();
-    clearline();
+    clearlastline();
     cout << back << s;
     
     if (bck) {
@@ -1381,12 +1300,14 @@ void jag_editor::displayonlast(string s, bool bck) {
 }
 
 void jag_editor::displaygo(bool full) {
-    wstring val;
+    wstring val;	
     switch(option) {
         case x_goto:
+			clearline();
             cout << back << "Line:" << convert(line);
             break;
         case x_find:
+			clearline();
             if (regularexpressionfind == 2)
                 cout << back << "Find(pgx):" << convert(line);
             else {
@@ -1397,6 +1318,7 @@ void jag_editor::displaygo(bool full) {
             }
             break;
         case x_replace:
+			clearline();
             if (regularexpressionfind == 2)
                 cout << back << "Find(pgx):" << convert(currentfind) << "  Replace:" << convert(line);
             else {
@@ -1407,9 +1329,11 @@ void jag_editor::displaygo(bool full) {
             }
             break;
         case x_write:
+			clearline();
             cout << back << "File:" << coloringline(line);
             break;
         case x_count:
+			clearline();
             cout << back << "Count:" << convert(line);
             break;
         case x_delete:
@@ -1419,6 +1343,7 @@ void jag_editor::displaygo(bool full) {
         case x_deleting:
         case x_cutting:
         case x_load:
+			clearline();
             val = st.str();
             cout << back << convert(val) << convert(line);
             break;

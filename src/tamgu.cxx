@@ -41,7 +41,7 @@
 #include "tamgulisp.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2020.07.04.22";
+const char* tamgu_version = "Tamgu 1.2020.07.08.09";
 
 Tamgu* booleantamgu[2];
 
@@ -276,18 +276,18 @@ void FinalTamguConstantCleaning(void) {
 }
 
 //----------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------
+// These two variables are used to manage local garbaging when an eval is executed...
+static std::atomic<short> number_of_current_eval;
+static bool add_to_tamgu_garbage = false;
+//----------------------------------------------------------------------------------
+
 
 // Debug area, to detect potential memory leaks...
-static vector<Tamgu*> _tamgu_garbage;
-static bool add_to_tamgu_garbage = false;
-
-bool Addtogarbage() {
-	return add_to_tamgu_garbage;
-}
-
 #ifdef GARBAGEFORDEBUG
 
 ThreadLock _garbaging;
+static vector<Tamgu*> _tamgu_garbage;
 
 Exporting Tamgu::Tamgu() {
     idtracker = -1;
@@ -302,14 +302,18 @@ Exporting Tamgu::Tamgu() {
         iddebug = _tamgu_garbage.size();
         _tamgu_garbage.push_back(this);
     }
+    if (add_to_tamgu_garbage) {
+        globalTamgu->Storeingarbage(this);
+    }
 }
 
 Exporting Tamgu::~Tamgu() {
     Locking _lock(_garbaging);
     if (idtracker != -1)
         globalTamgu->RemoveFromTracker(idtracker);
-    if (iddebug < _tamgu_garbage.size())
-        _tamgu_garbage[iddebug] = NULL;
+    _tamgu_garbage[iddebug] = NULL;
+    if (add_to_tamgu_garbage)
+        globalTamgu->Removefromlocalgarbage(-1,-1,this);
 }
 
 void Garbaging(vector<Tamgu*>& issues, vector<long>& idissues) {
@@ -327,55 +331,86 @@ void Garbaging(vector<Tamgu*>& issues, vector<long>& idissues) {
         }
     }
 }
-void set_garbage_mode(bool v) {}
 #else
-//This is a mode taht is only activated when _eval is called...
-void set_garbage_mode(bool v) {
-    add_to_tamgu_garbage = v;
-}
-
+//This is a mode that is only activated when _eval is called...
 Tamgu::Tamgu() {
-	idtracker = -1;
-	investigate = is_none;
-	if (add_to_tamgu_garbage)
-		_tamgu_garbage.push_back(this);
+    idtracker = -1;
+    investigate = is_none;
+    if (add_to_tamgu_garbage) {
+        globalTamgu->Storeingarbage(this);
+    }
 }
 
 Tamgu::~Tamgu() {
-	if (add_to_tamgu_garbage) {
-		if (idtracker != -1)
-			globalTamgu->RemoveFromTracker(idtracker);
-		for (long i = 0; i < _tamgu_garbage.size(); i++) {
-			if (_tamgu_garbage[i] == this) {
-				_tamgu_garbage[i] = NULL;
-				break;
-			}
-		}
-	}
+    if (add_to_tamgu_garbage)
+        globalTamgu->Removefromlocalgarbage(-1,-1,this);
 }
+
 #endif
 
-long last_garbage_position() {
-    set_garbage_mode(true);
-    return _tamgu_garbage.size();
+void set_garbage_mode(bool v) {
+    if (v)
+        number_of_current_eval++;
+    else
+        number_of_current_eval--;
+    
+    if (!number_of_current_eval)
+        add_to_tamgu_garbage = false;
 }
 
-void clean_from_garbage_position(long p, Tamgu* keep, long lastrecorded) {
+int Addtogarbage() {
+    return add_to_tamgu_garbage;
+}
+
+void TamguGlobal::Removefromlocalgarbage(short idthread, long i, Tamgu* a) {
+    //If has already been cleaned or it was not created in this thread
+    if (a->idtracker == -555)
+        return;
+
+    //if idthread == -1, it comes from ~Tamgu directly
+    if (idthread == -1) {
+        idthread = GetThreadid();
+        //We look for a place to clean it...
+        threads[idthread].Cleaningarbage(a);
+    }
+    else
+        threads[idthread].localgarbage[i] = NULL;
+    
+    if (a->idtracker != -1)
+        RemoveFromTracker(a->idtracker);
+    a->idtracker = -555;
+    
+}
+
+long initialize_local_garbage(short idthread) {
+    number_of_current_eval++;
+    add_to_tamgu_garbage = true;
+    return globalTamgu->threads[idthread].Garbagesize();
+}
+
+void ThreadStruct::Cleanfromgarbageposition(short idthread, long p, Tamgu* keep, long lastrecorded) {
     Tamgu* e;
     long i;
-    for (i = p; i < _tamgu_garbage.size(); i++) {
-        e = _tamgu_garbage[i];
+    for (i = p; i < localgarbage.size(); i++) {
+        e = localgarbage[i];
         if (e == keep || e == NULL || e->isConst() || (e->idtracker != -1 && e->idtracker < lastrecorded))
             continue;
+        globalTamgu->Removefromlocalgarbage(idthread,i,  e);
         delete e;
     }
     
     if (p)
-        _tamgu_garbage.erase(_tamgu_garbage.begin()+p, _tamgu_garbage.end());
+        localgarbage.erase(localgarbage.begin()+p, localgarbage.end());
     else
-        _tamgu_garbage.clear();
+        localgarbage.clear();
+    in_eval = false;
+}
+
+void clean_from_garbage_position(short idthread, long p, Tamgu* keep, long lastrecorded) {
+    globalTamgu->threads[idthread].Cleanfromgarbageposition(idthread, p, keep, lastrecorded);
     
-    set_garbage_mode(false);
+    number_of_current_eval--;
+    add_to_tamgu_garbage = number_of_current_eval;
 }
 //----------------------------------------------------------------------------------
 Exporting long ThreadLock::ids = 0;
@@ -420,6 +455,7 @@ ThreadStruct::ThreadStruct() : stack(1000), variables(false) {
     parentthreads = -1;
     handle = _GETTHREADID();
     nbjoined = 0;
+    in_eval = false;
 }
 
 void ThreadStruct::Update(short idthread) {
@@ -427,6 +463,8 @@ void ThreadStruct::Update(short idthread) {
 }
 
 void ThreadStruct::Clear() {
+    in_eval = false;
+    localgarbage.clear();
     nbjoined = 0;
     prologstack = 0;
     stack.clear();
@@ -497,8 +535,8 @@ TamguGlobal::TamguGlobal(long nb, bool setglobal) :
 idSymbols(false), methods(false), compatibilities(false), strictcompatibilities(false),
     operator_strings(false), terms(false), booleanlocks(true), tracked(NULL, true) {
 
-        _tamgu_garbage.clear();
         add_to_tamgu_garbage = false;
+        number_of_current_eval = 0;
 
         threadcounter = 0;
         trackerslotfilled = 0;
@@ -3719,7 +3757,7 @@ Exporting TamguDeclarationLocal* TamguGlobal::Providedeclaration(Tamgu* ins, sho
 }
 
 Exporting Tamgulisp* TamguGlobal::Providelisp() {
-    if (threadMODE || Addtogarbage())
+    if (threadMODE || add_to_tamgu_garbage)
         return new Tamgulisp(-1);
 
     Tamgulisp* ke;
