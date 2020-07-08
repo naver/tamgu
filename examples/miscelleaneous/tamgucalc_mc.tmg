@@ -811,10 +811,20 @@ function displayprompt(string s) {
         _sys.row_column(1,1);
 }
 
+function pureselection(int i, int j, int off_x, int off_y) {
+    _sys.row_column(i+1,columnsize*j);
+    //We use a specific color to show that it has been selected
+    selectioncolor();
+    dispelementregular(i,j, off_x, off_y);
+    //Colors are reset, we then display on the last line the current value
+    normalcolor();
+}
 
 //Highlight the current element
 function showelement(int i, int j, int off_x, int off_y) {
     //We check if we are in a formula mode
+    int I = i+off_x;
+    int J = j+off_y;
     string display = I+","+J+" "+inputkey+": "+inputvalue;
 
     //we use spaces to clean the cell first
@@ -1330,7 +1340,7 @@ function fullselection(int ei, int e, int I, int J, bool v) {
         ej = e;
         while (ej <= J) {
             if (v)
-                showelement(ei,ej, off_x, off_y);
+                pureselection(ei,ej, off_x, off_y);
             else
                 clearelement(ei,ej,off_x, off_y);
             ej++;
