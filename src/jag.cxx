@@ -964,7 +964,7 @@ void jag_editor::clearscreen() {
 }
 
 void jag_editor::clearline() {
-	cout << m_clear_line << back;
+	cout << back << m_clear_line << back;
 }
 
 

@@ -28,7 +28,7 @@ if (version() < "Tamgu 1.2020.07.03.10") {
     print("https://github.com/naver/tamgu/releases");
     _sys.colors(0,0,0);
     println("\n");
-   _exit();
+    _exit();
 }
 
 //USE -b to switch to black mode
@@ -39,7 +39,7 @@ bool displayindexes = true;
 bool displayingmessage = true;
 
 if (_OS == "WINDOWS")
-	chooseblack = true;
+    chooseblack = true;
 //The default value for cells
 string defaultvalue = ".";
 
@@ -159,17 +159,17 @@ else
 \(defun average (x) (/ (sum x) (size x)))
 
 \(defun standard_deviation(x)
-  (setq avg (average x))
-  (sqrt (/
-         (sum
-          (_map (lambda (x)
-                 (* (- x avg) (- x avg)))
-           x)
-          )
-         (size x)
-         )
-   )
-  )
+    (setq avg (average x))
+    (sqrt (/
+            (sum
+                (_map (lambda (x)
+                        (* (- x avg) (- x avg)))
+                    x)
+            )
+            (size x)
+        )
+    )
+)
 //Same with taskell syntax...
 function std_var(fvector v) {
     float avg = v.sum()/v.size();
@@ -187,7 +187,7 @@ function fillcolumn(vector v, int r, int c) {
     c = min(c,y_max);
     for (int i in <r, r+v.size()>) {
         v_matrix[i][c] = v[vi];
-		dispscreen(i, c, off_x, off_y);
+        dispscreen(i, c, off_x, off_y);
         mat[i][c] = v[vi];
         vi++;
     }
@@ -203,7 +203,7 @@ function fillrow(vector v, int r, int c) {
     c = min(c,y_max);
     for (int i in <c, c+v.size()>) {
         v_matrix[r][i] = v[vi];
-		dispscreen(r, i, off_x, off_y);
+        dispscreen(r, i, off_x, off_y);
         mat[r][i] = v[vi];
         vi++;
     }
@@ -474,9 +474,9 @@ function evaluation(int off_x, int off_y) {
         }
     }
 
-    if (formulas.size()==0)        
+    if (formulas.size()==0)
         return;
-    
+
     msgerr="";
     string msg;
     self val;
@@ -528,7 +528,7 @@ function evaluation(int off_x, int off_y) {
             else
                 msgerr += " at cell: "+ky;
             v_matrix[i][j] = "#FCERR";
-			dispscreen(i, j, off_x, off_y);
+            dispscreen(i, j, off_x, off_y);
         }
     }
     int loop;
@@ -541,7 +541,7 @@ function evaluation(int off_x, int off_y) {
         //F1 needs F2 to compute and F2 needs also F1... stalemate...
         if (loop > formulas.size())
             break;
-        
+
         stop=true;
         loop++;
         for (ky in regularformulas) {
@@ -565,14 +565,14 @@ function evaluation(int off_x, int off_y) {
                     mat[i:j] = val.float();
                     v_matrix[i][j] = val.string();
                     v_matrix[i][j]+=";";
-					dispscreen(i, j, off_x, off_y);
+                    dispscreen(i, j, off_x, off_y);
                 }
                 else {
                     msgerr=msg;
                     ky["_"] = ",";
                     msgerr += "Incomplete formula at cell: "+ky;
                     v_matrix[i][j] = "#ERR;";
-					dispscreen(i, j, off_x, off_y);
+                    dispscreen(i, j, off_x, off_y);
                 }
             }
             catch(msg) {
@@ -583,10 +583,10 @@ function evaluation(int off_x, int off_y) {
                 else
                     msgerr += " at cell: "+ky;
                 v_matrix[i][j] = "#ERR;";
-				dispscreen(i, j, off_x, off_y);
+                dispscreen(i, j, off_x, off_y);
             }
         }
-        
+
         for (ky in formulas) {
             //functions are skipped
             if ("defun " in formulas[ky])
@@ -597,7 +597,7 @@ function evaluation(int off_x, int off_y) {
             //We extract the cell position, where the formula is stored
             i = ky[:"_"][:-1];
             j = ky["_":][1:];
-            
+
             try {
                 Fnct = functions[ky];
                 val = Fnct();
@@ -606,7 +606,7 @@ function evaluation(int off_x, int off_y) {
                 mat[i:j] = val.float();
                 v_matrix[i][j] = val.string();
                 v_matrix[i][j]+="!";
-				dispscreen(i, j, off_x, off_y);
+                dispscreen(i, j, off_x, off_y);
             }
             catch(msg) {
                 msgerr=msg;
@@ -616,7 +616,7 @@ function evaluation(int off_x, int off_y) {
                 else
                     msgerr += " at cell: "+ky;
                 v_matrix[i][j] = "#ERR";
-				dispscreen(i, j, off_x, off_y);
+                dispscreen(i, j, off_x, off_y);
             }
         }
     }
@@ -628,8 +628,8 @@ function evaluation(int off_x, int off_y) {
         else
             msgerr = recompiled;
     }
-	if (msgerr)
-		displayerr(msgerr);
+    if (msgerr)
+        displayerr(msgerr);
 }
 
 //Display methods
@@ -657,7 +657,7 @@ function dispelement(int i,int j, int off_x, int off_y) {
         defuncolor();
     elif (!u[0].isdigit() && u[0] != "-" && u != defaultvalue)
         stringcolor();
-    
+
     if (u.size() >= columnsize-1)
         u=u[:columnsize-2]+"_";
     print(u);
@@ -666,26 +666,26 @@ function dispelement(int i,int j, int off_x, int off_y) {
 
 //Disply the element if it is on screen
 function dispscreen(int x, int y, int off_x, int off_y) {
-	if (x <= off_x or x >= (x_viewsize + off_x) or y <= off_y or y >= (y_viewsize + off_y))
-		return;
-	//We are in the viewport, we can display...
-	_sys.row_column(x - off_x + 1, (y - off_y)*columnsize);
-	string u = v_matrix[x][y];
-	if (u[0] == "'") {
-		print(u);
-		return;
-	}
-	if (u[-1] == "!" or u[-1] == ';')
-		formulacolor();
-	elif(u[0] == "#")
-		defuncolor();
-	elif(!u[0].isdigit() && u[0] != "-" && u != defaultvalue)
-		stringcolor();
+    if (x <= off_x or x >= (x_viewsize + off_x) or y <= off_y or y >= (y_viewsize + off_y))
+        return;
+    //We are in the viewport, we can display...
+    _sys.row_column(x - off_x + 1, (y - off_y)*columnsize);
+    string u = v_matrix[x][y];
+    if (u[0] == "'") {
+        print(u);
+        return;
+    }
+    if (u[-1] == "!" or u[-1] == ';')
+        formulacolor();
+    elif(u[0] == "#")
+        defuncolor();
+    elif(!u[0].isdigit() && u[0] != "-" && u != defaultvalue)
+        stringcolor();
 
-	if (u.size() >= columnsize - 1)
-		u = u[:columnsize - 2] + "_";
-	print(u);
-	normalcolor();
+    if (u.size() >= columnsize - 1)
+        u = u[:columnsize - 2] + "_";
+    print(u);
+    normalcolor();
     int lg = columnsize-u.size()-1;
     if (lg > 0) {
         u="";
@@ -707,7 +707,7 @@ function clearelement(int i, int j,int off_x, int off_y) {
         defuncolor();
     elif (!u[0].isdigit() && u[0] != "-" && u != defaultvalue)
         stringcolor();
-    
+
     if (u.size() >= columnsize-1)
         u=u[:columnsize-2]+"_";
     print(u);
@@ -738,13 +738,13 @@ function displayall(int off_x, int off_y) {
             _sys.row_column(i+1,1);
             dispelementregular(i,0,off_x,0);
         }
-        
+
         //display line numbers
         for (j in <y_viewsize>) {
             _sys.row_column(1,columnsize*j);
             dispelementregular(0,j,0,off_y);
         }
-        
+
         _sys.row_column(1,1);
         print("T");
         normalcolor();
@@ -828,7 +828,7 @@ function showelement(int i, int j, int off_x, int off_y) {
     string display = I+","+J+" "+inputkey+": "+inputvalue;
 
     //we use spaces to clean the cell first
-	int lg = columnsize - v_matrix[I][J].size()-1;
+    int lg = columnsize - v_matrix[I][J].size()-1;
     //Then we position our cursor again to display our value
     _sys.row_column(i+1,columnsize*j);
     //We use a specific color to show that it has been selected
@@ -836,11 +836,11 @@ function showelement(int i, int j, int off_x, int off_y) {
     dispelementregular(i,j, off_x, off_y);
     //Colors are reset, we then display on the last line the current value
     normalcolor();
-	if (lg > 0) {
-		string space;
-		space.padding(lg, " ");
-		print(space);
-	}
+    if (lg > 0) {
+        string space;
+        space.padding(lg, " ");
+        print(space);
+    }
 
     displayprompt(display);
 }
@@ -895,7 +895,7 @@ string s;
 function handlingarrows(string s) {
     int bi = i;
     int bj = j;
-    
+
     //this is the section for editing values on prompt line
     if (modifying) {
         if (s == _sys_keyright)
@@ -904,7 +904,7 @@ function handlingarrows(string s) {
             posinstring--;
         else
             return false;
-        
+
         if (posinstring > inputvalue.size()+1)
             posinstring = inputvalue.size()+1;
         if (posinstring <= 0)
@@ -912,9 +912,8 @@ function handlingarrows(string s) {
         return true;
     }
 
-    //moving the cursor in the grid
-    //We clear the selection for the current element
-    clearelement(i,j, off_x, off_y);
+    int ei = i;
+    int ej = j;
 
     if (s == _sys_keyright)
         j++;
@@ -927,6 +926,10 @@ function handlingarrows(string s) {
     else
         return false;
 
+    //moving the cursor in the grid
+    //We clear the selection for the current element
+    clearelement(ei, ej, off_x, off_y);
+
     bool redisplay=false;
     int scroll=0;
     if (i < 1) {
@@ -938,12 +941,12 @@ function handlingarrows(string s) {
     }
     else
         if (i > x_viewsize-1) {
-            i = x_viewsize-1;
-            if ((off_x+i) < x_max-1) {
-                off_x++;
-                scroll=1;
-            }
+        i = x_viewsize-1;
+        if ((off_x+i) < x_max-1) {
+            off_x++;
+            scroll=1;
         }
+    }
     if (j < 1) {
         j = 1;
         if (off_y > 0) {
@@ -953,12 +956,12 @@ function handlingarrows(string s) {
     }
     else
         if (j > y_viewsize-1) {
-            j = y_viewsize-1;
-            if ((off_y+j) < y_max-1) {
-                off_y++;
-                redisplay=true;
-            }
+        j = y_viewsize-1;
+        if ((off_y+j) < y_max-1) {
+            off_y++;
+            redisplay=true;
         }
+    }
     if (redisplay)
         displayall(off_x, off_y);
     if (scroll) {
@@ -1028,6 +1031,7 @@ function mousecontrol(string s) {
     if (xymouse != []) {
         if (buildingformula) {
             initcoords();
+            clearelement(i, j, off_x, off_y);
             inputvalue = inputvalue.trim()+" mat["+I+":"+J+"] ";
             currentvalue = inputvalue;
             i = formi - off_x;
@@ -1036,7 +1040,7 @@ function mousecontrol(string s) {
         }
         return true;
     }
-    
+
     //Tracking the mouse position
     xymouse = _sys.mousetrack(s);
     while (xymouse != []) {
@@ -1058,7 +1062,7 @@ function mousecontrol(string s) {
         }
         xymouse = _sys.mousetrack(s);
     }
-    
+
     //Scrolling section... We can only scroll up or down
     xymouse = _sys.mousescrollup(s);
     if (xymouse != []) {
@@ -1294,7 +1298,7 @@ function deletion(int formi, int formj, int I, int J) {
             elif (regularformulas.test(k))
                 regularformulas.pop(k);
             v_matrix[formi][e] = defaultvalue;
-			dispscreen(formi, e, off_x, off_y);
+            dispscreen(formi, e, off_x, off_y);
             e++;
         }
         formi++;
@@ -1309,7 +1313,7 @@ function selection(int ei, int e, bool v) {
         [ei,I] = [I,ei];
     if (e > J)
         [e,J] = [J,e];
-    
+
     int ej;
     string k;
     while (ei <= I) {
@@ -1333,7 +1337,7 @@ function fullselection(int ei, int e, int I, int J, bool v) {
     if (e > J) {
         [e,J] = [J,e];
     }
-    
+
     int ej;
     string k;
     while (ei <= I) {
@@ -1374,7 +1378,7 @@ function replaceforpaste(string s, string k, int di, int dj) {
         rc = "mat[:"+dj+"]";
         s=s.replace(u,rc);
     }
-    
+
     //Updating row
     sub = "mat["+ki+":]";
     coord = sub in s;
@@ -1383,7 +1387,7 @@ function replaceforpaste(string s, string k, int di, int dj) {
         rl = "mat["+di+":]";
         s=s.replace(u,rl);
     }
-    
+
     //Updating one cell position: [x:y] according to new column
     treg tr1("mat%[%d+:"+kj+"%]");
     coord =  tr1 in s;
@@ -1392,7 +1396,7 @@ function replaceforpaste(string s, string k, int di, int dj) {
         rc = u[:":"]+dj+"]";
         s=s.replace(u,rc);
     }
-    
+
     //Updating one cell position: [x:y] according to new row
     treg tr2("mat%["+ki+":%d+%]");
     coord =  tr2 in s;
@@ -1434,10 +1438,10 @@ function pasting() {
                 }
             }
             else {
-				if (di >= 1 and dj >= 1) {
-					v_matrix[di][dj] = v_matrix[ci][e];
-					dispscreen(di, dj, off_x, off_y);
-				}
+                if (di >= 1 and dj >= 1) {
+                    v_matrix[di][dj] = v_matrix[ci][e];
+                    dispscreen(di, dj, off_x, off_y);
+                }
             }
             dj++;
             e++;
@@ -1469,7 +1473,7 @@ function frompaste(string s) {
             }
         }
     }
-    
+
     if (u != "") {
         if (s[0] == '(')
             formulas[ky]=replaceforpaste(formulas[ky],u,I,J);
@@ -1478,7 +1482,7 @@ function frompaste(string s) {
         evaluation(off_x,off_y);
         return true;
     }
-    
+
     if (s[0] == '(') {
         inputkey = "formula";
         currentkey = inputkey;
@@ -1540,7 +1544,7 @@ function checkfield() {
         s=initfield();
         return false;
     }
-    
+
     if (inputkey == "Moving") {
         pasting();
         deletefrominputvalue();
@@ -1625,35 +1629,35 @@ int kar;
 //17 is ctrl-q
 bool disphelp = false;
 while (s[0].ord() != 17) {
-	if (s == "") {
-		s = _sys.getchar();
-		continue;
-	}
+    if (s == "") {
+        s = _sys.getchar();
+        continue;
+    }
 
-	if (disphelp) {
-		displaymessage(msgbase);
-		disphelp = false;
-	}
+    if (disphelp) {
+        displaymessage(msgbase);
+        disphelp = false;
+    }
 
     //We delete a full cell
     if (s == _sys_keydel) {
         if (modifying) {
             if (posinstring <= inputvalue.size())
                 inputvalue = inputvalue[:posinstring-1]+inputvalue[posinstring:];
-            
+
             displayprompt(dsp+inputvalue);
             _sys.row_column(codeline-1,dsp.size()+posinstring);
             s=_sys.getchar();
             continue;
         }
-        
+
         //tracking: a number of cells have been selected with the mouse
         if (tracking) {
             //we delete them all
             deletion(firstclickx+off_x,firstclicky+off_y, lastselx+off_x, lastsely+off_y);
             tracking = false;
         }
-        
+
         //otherwise, we only delete one cell
         inputvalue = "";
         updatevalue();
@@ -1667,164 +1671,164 @@ while (s[0].ord() != 17) {
         kar = s[0].ord();
         bool used=false;
         switch (kar) {
-                1: {
-                    if (modifying) {
-                        posinstring = 1;
-                        used = true;
-                        displayprompt(dsp+inputvalue);
-                        _sys.row_column(codeline-1,dsp.size()+posinstring);
-                    }
-                }
-                2: {
+            1: {
+                if (modifying) {
+                    posinstring = 1;
                     used = true;
-                    chooseblack = chooseblack.invert();
-                    displayall(off_x, off_y);
-                    showelement(i,j, off_x, off_y);
-                }
-                4: { //ctrl-d
-                    //Deleting a group of cells
-                    if (tracking) {
-                        inputkey = "Deletion";
-                        inputvalue="from: "+firstclickx+","+firstclicky+" up to "+lastselx+","+lastsely;
-                        formi = firstclickx;
-                        formj = firstclicky;
-                        I = lastselx;
-                        J = lastsely;
-                        isselected = true;
-                    }
-                    else {
-                        inputkey="Delete";
-                        inputvalue="from: "+I+','+J+" up to ";
-                        formi = I;
-                        formj = J;
-                    }
-                    field = true;
-                    used = true;
-                }
-                5: {
-                    //Ctrl-e
-                    modifying=true;
-                    used = true;
-                    displaymessage("Modifying");
-                    posinstring = inputvalue.size()+1;
-                    backup = inputvalue;
                     displayprompt(dsp+inputvalue);
                     _sys.row_column(codeline-1,dsp.size()+posinstring);
                 }
-                6: {
-                    //ctrl-f
-                    inputkey="Data";
-                    used = true;
-                    inputvalue=inputs[inputkey];
-                    field = true;
-                    if (inputvalue == "" and inputs["File"] != "")
-                        inputvalue = inputs["File"]+".csv";
+            }
+            2: {
+                used = true;
+                chooseblack = chooseblack.invert();
+                displayall(off_x, off_y);
+                showelement(i,j, off_x, off_y);
+            }
+            4: { //ctrl-d
+                //Deleting a group of cells
+                if (tracking) {
+                    inputkey = "Deletion";
+                    inputvalue="from: "+firstclickx+","+firstclicky+" up to "+lastselx+","+lastsely;
+                    formi = firstclickx;
+                    formj = firstclicky;
+                    I = lastselx;
+                    J = lastsely;
+                    isselected = true;
                 }
-                7: { //ctrl-g
-                    inputkey = "Go";
-                    inputvalue = I+","+J;
-                    field = true;
-                    used = true;
+                else {
+                    inputkey="Delete";
+                    inputvalue="from: "+I+','+J+" up to ";
+                    formi = I;
+                    formj = J;
                 }
-                9: {//ctrl-i (hide indexes
-                    displayindexes = displayindexes.invert();
-                    displayall(off_x, off_y);
-                    used = true;
+                field = true;
+                used = true;
+            }
+            5: {
+                //Ctrl-e
+                modifying=true;
+                used = true;
+                displaymessage("Modifying");
+                posinstring = inputvalue.size()+1;
+                backup = inputvalue;
+                displayprompt(dsp+inputvalue);
+                _sys.row_column(codeline-1,dsp.size()+posinstring);
+            }
+            6: {
+                //ctrl-f
+                inputkey="Data";
+                used = true;
+                inputvalue=inputs[inputkey];
+                field = true;
+                if (inputvalue == "" and inputs["File"] != "")
+                    inputvalue = inputs["File"]+".csv";
+            }
+            7: { //ctrl-g
+                inputkey = "Go";
+                inputvalue = I+","+J;
+                field = true;
+                used = true;
+            }
+            9: {//ctrl-i (hide indexes
+                displayindexes = displayindexes.invert();
+                displayall(off_x, off_y);
+                used = true;
+                displaymessage(msgbase);
+                showelement(i,j, off_x, off_y);
+            }
+            11: { //ctrl-k
+                //Copying a group of cells
+                if (tracking) {
+                    inputkey = "Copying";
+                    inputvalue="from: "+firstclickx+","+firstclicky+" up to "+lastselx+","+lastsely+" at ";
+                    formi = firstclickx;
+                    formj = firstclicky;
+                    isselected = true;
+                }
+                else {
+                    inputkey="Copy";
+                    inputvalue="from: "+I+','+J+" up to ";
+                    formi = I;
+                    formj = J;
+                }
+                field = true;
+                used = true;
+            }
+            12: {
+                used = true;
+                inputvalue=inputs["File"];
+                field = true;
+                inputkey="Load";
+            }
+            14: {//ctrl-n (hide message
+                displayingmessage = displayingmessage.invert();
+                if (displayingmessage) {
+                    _sys.showcursor(true);
                     displaymessage(msgbase);
                     showelement(i,j, off_x, off_y);
                 }
-                11: { //ctrl-k
-                    //Copying a group of cells
-                    if (tracking) {
-                        inputkey = "Copying";
-                        inputvalue="from: "+firstclickx+","+firstclicky+" up to "+lastselx+","+lastsely+" at ";
-                        formi = firstclickx;
-                        formj = firstclicky;
-                        isselected = true;
-                    }
-                    else {
-                        inputkey="Copy";
-                        inputvalue="from: "+I+','+J+" up to ";
-                        formi = I;
-                        formj = J;
-                    }
+                else {
+                    _sys.showcursor(false);
+                    clearzonemessage();
+                }
+                used = true;
+            }
+            18: { //ctrl-r
+                inputkey="Size";
+                inputvalue=inputs[inputkey];
+                field = true;
+                used = true;
+            }
+            19: {//ctrl-s
+                used = true;
+                inputvalue=inputs["File"];
+                if (inputvalue != "") {
+                    writetable(inputvalue);
+                    initvalue();
+                    showelement(i,j, off_x, off_y);
+                }
+                else {
                     field = true;
-                    used = true;
-                }
-                12: {
-                    used = true;
-                    inputvalue=inputs["File"];
-                    field = true;
-                    inputkey="Load";
-                }
-                14: {//ctrl-n (hide message
-                    displayingmessage = displayingmessage.invert();
-                    if (displayingmessage) {
-                        _sys.showcursor(true);
-                        displaymessage(msgbase);
-                        showelement(i,j, off_x, off_y);
-                    }
-                    else {
-                        _sys.showcursor(false);
-                        clearzonemessage();
-                    }
-                    used = true;
-                }
-                18: { //ctrl-r
-                    inputkey="Size";
-                    inputvalue=inputs[inputkey];
-                    field = true;
-                    used = true;
-                }
-                19: {//ctrl-s
-                    used = true;
-                    inputvalue=inputs["File"];
-                    if (inputvalue != "") {
-                        writetable(inputvalue);
-                        initvalue();
-                        showelement(i,j, off_x, off_y);
-                    }
-                    else {
-                        field = true;
-                        inputkey="File";
-                    }
-                }
-                20: { //ctrl-t
-                    field = true;
-                    used = true;
-                    inputkey="Column";
-                    inputvalue=inputs[inputkey];
-                    
-                }
-                21: {
-                    displayhelp(helpmsg); //ctrl-u
-					disphelp = true;
-                    used = true;
-                }
-                23: { //ctrl-w
-                    field = true;
-                    used = true;
                     inputkey="File";
-                    inputvalue=inputs[inputkey];
                 }
-                24: { //ctrl-x
-                    //Moving a group of cells
-                    if (tracking) {
-                        inputkey = "Moving";
-                        inputvalue="from: "+firstclickx+","+firstclicky+" up to "+lastselx+","+lastsely+" at ";
-                        formi = firstclickx;
-                        formj = firstclicky;
-                        isselected = true;
-                    }
-                    else {
-                        inputkey="Move";
-                        inputvalue="from: "+I+','+J+" up to ";
-                        formi = I;
-                        formj = J;
-                    }
-                    field = true;
-                    used = true;
+            }
+            20: { //ctrl-t
+                field = true;
+                used = true;
+                inputkey="Column";
+                inputvalue=inputs[inputkey];
+
+            }
+            21: {
+                displayhelp(helpmsg); //ctrl-u
+                disphelp = true;
+                used = true;
+            }
+            23: { //ctrl-w
+                field = true;
+                used = true;
+                inputkey="File";
+                inputvalue=inputs[inputkey];
+            }
+            24: { //ctrl-x
+                //Moving a group of cells
+                if (tracking) {
+                    inputkey = "Moving";
+                    inputvalue="from: "+firstclickx+","+firstclicky+" up to "+lastselx+","+lastsely+" at ";
+                    formi = firstclickx;
+                    formj = firstclicky;
+                    isselected = true;
                 }
+                else {
+                    inputkey="Move";
+                    inputvalue="from: "+I+','+J+" up to ";
+                    formi = I;
+                    formj = J;
+                }
+                field = true;
+                used = true;
+            }
         }
         if (used) {
             if (field)
@@ -1860,9 +1864,9 @@ while (s[0].ord() != 17) {
             displaymessage("Building: "+formi+"_"+formj+": "+currentvalue);
         }
         elif (field)
-			displayprompt(dsp + inputvalue);
+            displayprompt(dsp + inputvalue);
     }
-        
+
     //We clear the parenthesis balance highligthing, if it is present
     if (colorparenth in inputvalue) {
         inputvalue = inputvalue.replace(colorparenth,"");
@@ -1879,7 +1883,7 @@ while (s[0].ord() != 17) {
             s=_sys.getchar();
             continue;
         }
-        
+
         if (buildingformula) {
             inputkey = currentkey;
             inputvalue = currentvalue;
@@ -1959,11 +1963,13 @@ while (s[0].ord() != 17) {
             s=_sys.getchar();
             continue;
         }
-        showelement(i,j, off_x, off_y);
+
+        string dsp = I + "," + J + " " + inputkey + ": " + inputvalue;
+        displayprompt(dsp);
         s=_sys.getchar();
         continue;
     }
-    
+
     if (s == _sys_keybackspace) {
         if (modifying) {
             if (posinstring > 1) {
@@ -1975,7 +1981,7 @@ while (s[0].ord() != 17) {
             s=_sys.getchar();
             continue;
         }
-        
+
         if (tracking) {
             deletion(firstclickx+off_x,firstclicky+off_y, lastselx+off_x, lastsely+off_y);
             tracking = false;
@@ -1998,7 +2004,7 @@ while (s[0].ord() != 17) {
         s=_sys.getchar();
         continue;
     }
-    
+
     if (s == _sys_keyescape) {
         if (field) {
             if (isselected)
@@ -2017,7 +2023,7 @@ while (s[0].ord() != 17) {
         s=_sys.getchar();
         continue;
     }
-    
+
     //recording our values after a CR
     if (s == "\n" or s == "\r") {
         if (field) {
@@ -2029,7 +2035,7 @@ while (s[0].ord() != 17) {
             }
             continue;
         }
-        
+
         if (modifying) {
             if (!buildingformula) {
                 modifying = false;
@@ -2074,7 +2080,7 @@ while (s[0].ord() != 17) {
             s=_sys.getchar();
             continue;
         }
-        
+
         if (isselected)
             selection(formi, formj, false);
 
@@ -2086,7 +2092,7 @@ while (s[0].ord() != 17) {
         s=_sys.getchar();
         continue;
     }
-    
+
     if (modifying) {
         inputvalue = inputvalue[:posinstring-1]+s+inputvalue[posinstring-1:];
         if (s == ')') {
@@ -2108,7 +2114,7 @@ while (s[0].ord() != 17) {
         s=_sys.getchar();
         continue;
     }
-        
+
     if (s.size() > 2) {
         if (frompaste(s)) {
             showelement(i,j, off_x, off_y);
@@ -2116,14 +2122,14 @@ while (s[0].ord() != 17) {
             continue;
         }
     }
-    
+
     if (_sys.isescapesequence(s) or s[0].ord() < 32) {
         initvalue();
         showelement(i,j, off_x, off_y);
         s=_sys.getchar();
         continue;
     }
-    
+
     inputvalue += s;
     if (s == ";" and inputkey == "regular") {
         i = formi - off_x;
@@ -2173,4 +2179,5 @@ while (s[0].ord() != 17) {
 }
 
 _sys.reset();
+
 
