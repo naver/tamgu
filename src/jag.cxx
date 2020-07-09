@@ -864,7 +864,8 @@ void jag_editor::movetoline(long e) {
         currentline = poslines.size()-1;
         e =  currentline;
     }
-	moveto_row_column(e, 1);
+    //first line is 0
+	moveto_row_column(e + 1, 1);
 }
 
 void jag_editor::gotoline(long p) {
@@ -1466,18 +1467,17 @@ continue;
 
 void jag_editor::Scrolldown() {
 	//From currentline down, pos is the new line number...
-	char buff[] = { 0,0,0,0,0,0 };
-	sprintf_s(buff, 4, "%0.3ld", currentline + 1);
-	m_scrollmargin[2] = buff[0];
-	m_scrollmargin[3] = buff[1];
-	m_scrollmargin[4] = buff[2];
+    long ps = currentline + 1;
+	m_scrollmargin[2] = localn999[ps][0];
+	m_scrollmargin[3] = localn999[ps][1];
+	m_scrollmargin[4] = localn999[ps][2];
 	cout << m_scrollmargin << m_scrolldown;
 	m_scrollmargin[2] = '0';
 	m_scrollmargin[3] = '0';
 	m_scrollmargin[4] = '0';
 	cout << m_scrollmargin;
 	movetoline(currentline - 1);
-	long ps = pos;
+	ps = pos;
 	//We simply change the line numbers
 	long i;
 	if (poslines.size() < row_size)
