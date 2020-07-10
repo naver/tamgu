@@ -114,7 +114,7 @@ public:
 
 	bool Load(x_reading& xr);
 	bool Compile(string& code);
-	Tamgu* Compilefunction(string& code);
+	Tamgu* Compilefunction(string& code, short idthread);
 
 	bool Loadlibrary(string n, string& library_name);
 	//------------------------------

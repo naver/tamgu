@@ -9846,8 +9846,14 @@ bool TamguCode::Compile(string& body) {
         body[1] = '/';
     }
     
-	xr.tokenize(body);
-        
+    std::chrono::high_resolution_clock::time_point before;
+    std::chrono::high_resolution_clock::time_point after;
+
+    before = std::chrono::high_resolution_clock::now();
+    xr.tokenize(body);
+    after = std::chrono::high_resolution_clock::now();
+    double dtok = std::chrono::duration_cast<std::chrono::milliseconds>( after - before ).count();
+            
     if (!xr.size())
         return false;
     
@@ -9899,6 +9905,7 @@ bool TamguCode::Compile(string& body) {
 	firstinstruction = mainframe.instructions.size();
     global->currentbnf = &bnf;
 
+    before = std::chrono::high_resolution_clock::now();
 	global->Pushstack(&mainframe);
 	try {
 		Traverse(xn, &mainframe);
@@ -9929,12 +9936,20 @@ bool TamguCode::Compile(string& body) {
 
 	global->Popstack();
 
+    after = std::chrono::high_resolution_clock::now();
+    double dparse = std::chrono::duration_cast<std::chrono::milliseconds>( after - before ).count();
+
+    TamguSystemVariable* vs = globalTamgu->systems[globalTamgu->Getid("_internals")];
+    vs->value->storevalue((long)xr.stack.size());
+    vs->value->storevalue(dtok);
+    vs->value->storevalue(dparse);
+
 	delete xn;
 	return true;
 }
 
 
-Tamgu* TamguCode::Compilefunction(string& body) {
+Tamgu* TamguCode::Compilefunction(string& body, short idthread) {
 	//we store our TamguCode also as an Tamgutamgu...
 	static bnf_tamgu bnf;
     static x_reading xr;
@@ -9950,7 +9965,7 @@ Tamgu* TamguCode::Compilefunction(string& body) {
         cerr << " in " << filename << endl;
         stringstream message;
         message << "Empty body" << endl;
-        return global->Returnerror(message.str(), global->GetThreadid());
+        return global->Returnerror(message.str(), idthread);
     }
 
 	global->lineerror = -1;
@@ -9967,7 +9982,7 @@ Tamgu* TamguCode::Compilefunction(string& body) {
 		else
 			message << bnf.labelerror;
 
-		return global->Returnerror(message.str(), global->GetThreadid());
+        return global->Returnerror(message.str(), idthread);
 	}
 
 	global->currentbnf = &bnf;

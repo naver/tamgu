@@ -1034,7 +1034,7 @@ Tamgu* ProcEvalFunction(Tamgu* contextualpattern, short idthread, TamguCall* cal
     long lastrecorded;
     
     lastrecorded = globalTamgu->Trackedsize();
-    Tamgu* compiled = acode->Compilefunction(code);
+    Tamgu* compiled = acode->Compilefunction(code, idthread);
     if (compiled == NULL || !compiled->isFunction()) {
         globalTamgu->threads[idthread].currentinstruction = callfunc;
         if (compiled != NULL) {
@@ -1071,7 +1071,7 @@ Tamgu* ProcEval(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 
     long lastrecorded = globalTamgu->Trackedsize();
 
-    Tamgu* compiled = acode->Compilefunction(code);
+    Tamgu* compiled = acode->Compilefunction(code, idthread);
     if (compiled == NULL || compiled->isError() || globalTamgu->Error(idthread)) {
         clean_from_garbage_position(idthread, position, compiled, lastrecorded);
         globalTamgu->threads[idthread].currentinstruction = ci;

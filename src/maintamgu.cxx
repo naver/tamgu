@@ -2626,6 +2626,8 @@ void debuggerthread(tamgu_editor* call) {
     wstring code;
     
     call->updateline = false;
+    //We force the new threadid to be id 0
+    globalTamgu->SetThreadid();
     
     while (debuginfo.running) {
         call->editor_loquet.Blocked();

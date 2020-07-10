@@ -71,8 +71,8 @@ int x_maxview = x_viewsize;
 int y_maxview = y_viewsize;
 //These two values define the actual matrix size, which is different from viewsize
 //If the view port is larger than 101 and 51, then the matrix is equal to the viewport
-int x_max = max(101,x_maxview);
-int y_max = max(51,y_maxview);
+int x_max = max(256,x_maxview);
+int y_max = max(256,y_maxview);
 //codeline is used to position messages
 //'inputsection' lines down after the last line of the matrix
 int codeline = x_viewsize+inputsection;
@@ -154,8 +154,6 @@ else
 //A few predefined methods
 //IMPORTANT: When you define Lisp Functions in regular code
 //The first "(" must be preceded with a "\"
-\(defun put (i j k) (key (key v_matrix i) j (string k)))
-
 \(defun average (x) (/ (sum x) (size x)))
 
 \(defun standard_deviation(x)
@@ -188,7 +186,7 @@ function fillcolumn(vector v, int r, int c) {
     for (int i in <r, r+v.size()>) {
         v_matrix[i][c] = v[vi];
         dispscreen(i, c, off_x, off_y);
-        mat[i][c] = v[vi];
+        mat[i][c] = float(v[vi]);
         vi++;
     }
     return ("C"+r+","+c);
@@ -204,7 +202,7 @@ function fillrow(vector v, int r, int c) {
     for (int i in <c, c+v.size()>) {
         v_matrix[r][i] = v[vi];
         dispscreen(r, i, off_x, off_y);
-        mat[r][i] = v[vi];
+        mat[r][i] = float(v[vi]);
         vi++;
     }
     return ("R"+r+","+c);
@@ -297,14 +295,16 @@ function initialisation() {
     for (i in <x_max>) {
         v_matrix[i] = [];
         for (j in <y_max>) {
+            mat[i:j] = 0;
             if (!i) {
                 v_matrix[i].push(string(j));
             }
             elif (!j) {
                 v_matrix[i].push(string(i));
             }
-            else
+            else {
                 v_matrix[i].push(defaultvalue);
+            }
         }
     }
 }
@@ -315,6 +315,7 @@ function readtable(string f) {
     for (i in <1,x_max>) {
         for (j in <1,y_max>) {
             v_matrix[i][j] = defaultvalue;
+            mat[i:j] = 0;
         }
     }
 
@@ -326,6 +327,7 @@ function readtable(string f) {
         sv.read(f);
         bool beg = true;
         i=0;
+        float val;
         for (s in sv) {
             cut=s.split("\t");
             if (beg == true) {
@@ -358,14 +360,21 @@ function readtable(string f) {
                     k = i+"_"+j;
                     formulas[k] = e;
                     v_matrix[i][j] = defaultvalue;
+                    mat[i:j] = 0;
                 }
                 elif (e[0] == '=' and e[-1] == ";") {
                     k = i+"_"+j;
                     regularformulas[k] = e;
                     v_matrix[i][j] = defaultvalue;
+                    mat[i:j] = 0;
                 }
-                else
+                else {
                     v_matrix[i][j] = e;
+                    if (isdigit(e[0]) or e[0]=='-') {
+                        val = e;
+                        mat[i:j] = val;
+                    }
+                }
                 j++;
             }
             i++;
@@ -459,24 +468,11 @@ function writecsv(string f) {
 
 //------------------- The Code ---------
 function evaluation(int off_x, int off_y) {
-    mat.clear();
-    string ky;
-    int i,j;
-    for (i in <1,x_bound>) {
-        for (j in <1,y_bound>) {
-            ky = i+"_"+j;
-            if (formulas.test(ky)) {
-                mat[i:j] = 0;
-            }
-            else {
-                mat[i:j] = float(v_matrix[i][j]);
-            }
-        }
-    }
-
     if (formulas.size()==0)
         return;
 
+    string ky;
+    int i,j;
     msgerr="";
     string msg;
     self val;
@@ -499,6 +495,7 @@ function evaluation(int off_x, int off_y) {
                 //We only reaevaluate a function, if it has been modified
                 if ("defun " in cell) {
                     v_matrix[i][j] = "#"+cell[" ":"("][:-1].trim();
+                    mat[i][j] = 0;
                     lisp_interpreter.eval(cell);
                 }
                 else {
@@ -528,6 +525,7 @@ function evaluation(int off_x, int off_y) {
             else
                 msgerr += " at cell: "+ky;
             v_matrix[i][j] = "#FCERR";
+            mat[i][j] = 0;
             dispscreen(i, j, off_x, off_y);
         }
     }
@@ -572,6 +570,7 @@ function evaluation(int off_x, int off_y) {
                     ky["_"] = ",";
                     msgerr += "Incomplete formula at cell: "+ky;
                     v_matrix[i][j] = "#ERR;";
+                    mat[i][j] = 0;
                     dispscreen(i, j, off_x, off_y);
                 }
             }
@@ -583,6 +582,7 @@ function evaluation(int off_x, int off_y) {
                 else
                     msgerr += " at cell: "+ky;
                 v_matrix[i][j] = "#ERR;";
+                mat[i][j] = 0;
                 dispscreen(i, j, off_x, off_y);
             }
         }
@@ -616,6 +616,7 @@ function evaluation(int off_x, int off_y) {
                 else
                     msgerr += " at cell: "+ky;
                 v_matrix[i][j] = "#ERR";
+                mat[i][j] = 0;
                 dispscreen(i, j, off_x, off_y);
             }
         }
@@ -1128,6 +1129,7 @@ function updatevalue() {
             formulas.pop(ky);
             inputkey = "value";
             v_matrix[I][J] = defaultvalue;
+            mat[I:J] = 0;
         }
         else
             formulas[ky] = inputvalue;
@@ -1137,15 +1139,20 @@ function updatevalue() {
             regularformulas.pop(ky);
             inputkey = "value";
             v_matrix[I][J] = defaultvalue;
+            mat[I:J] = 0;
         }
         else
             regularformulas[ky] = inputvalue;
     }
     elif (inputkey == "value") {
-        if (inputvalue=="")
+        if (inputvalue=="") {
             v_matrix[I][J] = defaultvalue;
-        else
+            mat[I:J] = 0;
+        }
+        else {
             v_matrix[I][J] = inputvalue;
+            mat[I][J] = inputvalue.float();
+        }
     }
 }
 
@@ -1298,6 +1305,7 @@ function deletion(int formi, int formj, int I, int J) {
             elif (regularformulas.test(k))
                 regularformulas.pop(k);
             v_matrix[formi][e] = defaultvalue;
+            mat[formi:e] = 0;
             dispscreen(formi, e, off_x, off_y);
             e++;
         }
@@ -1309,6 +1317,8 @@ function deletion(int formi, int formj, int I, int J) {
 }
 
 function selection(int ei, int e, bool v) {
+    ei = max(ei, 1);
+    e = max(e, 1);
     if (ei > I)
         [ei,I] = [I,ei];
     if (e > J)
@@ -1440,6 +1450,7 @@ function pasting() {
             else {
                 if (di >= 1 and dj >= 1) {
                     v_matrix[di][dj] = v_matrix[ci][e];
+                    mat[di:dj] = mat[ci:e];
                     dispscreen(di, dj, off_x, off_y);
                 }
             }
@@ -1625,6 +1636,7 @@ function initfield() {
 }
 
 int kar;
+float v;
 
 //17 is ctrl-q
 bool disphelp = false;
@@ -1994,9 +2006,11 @@ while (s[0].ord() != 17) {
             if (inputkey == "value") {
                 if (inputvalue == "") {
                     v_matrix[I][J] = defaultvalue;
+                    mat[I:J] = 0;
                 }
                 else {
                     v_matrix[I][J] = inputvalue;
+                    mat[I][J] = inputvalue.float();
                 }
             }
         }
@@ -2172,6 +2186,7 @@ while (s[0].ord() != 17) {
     }
     if (!field) {
         v_matrix[I][J] = inputvalue;
+        mat[I][J] = inputvalue.float();
     }
     showelement(i,j, off_x, off_y);
     s=_sys.getchar();
@@ -2179,5 +2194,4 @@ while (s[0].ord() != 17) {
 }
 
 _sys.reset();
-
 

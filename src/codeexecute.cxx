@@ -103,6 +103,8 @@ void TamguGlobal::RecordSystemVariables() {
 	a = new TamguSystemVariable(this, new TamguConstSVector, Createid("_paths"), a_svector);
 	a = new TamguSystemVariable(this, new TamguConstSVector, Createid("_args"), a_svector);
 
+    a = new TamguSystemVariable(this, new Tamguvector, Createid("_internals"), a_vector);
+
 	a = new TamguSystemVariable(this, new TamguConstString(TamguOS), Createid("_OS"), a_string);
 
 #ifdef WIN32

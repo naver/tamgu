@@ -41,7 +41,7 @@
 #include "tamgulisp.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2020.07.08.09";
+const char* tamgu_version = "Tamgu 1.2020.07.10.12";
 
 Tamgu* booleantamgu[2];
 
@@ -2445,8 +2445,24 @@ TamguCode* TamguGlobal::Loadfile(string filename) {
     spaceid=spaces.size();
     TamguCode* a = GetNewCodeSpace(filename);
 
+    std::chrono::high_resolution_clock::time_point before;
+    std::chrono::high_resolution_clock::time_point after;
+
+    before = std::chrono::high_resolution_clock::now();
     xr.tokenize(code);
+    after = std::chrono::high_resolution_clock::now();
+    double dtok = std::chrono::duration_cast<std::chrono::milliseconds>( after - before ).count();
+    
+    before = std::chrono::high_resolution_clock::now();
     a->Load(xr);
+    after = std::chrono::high_resolution_clock::now();
+    double dparse = std::chrono::duration_cast<std::chrono::milliseconds>( after - before ).count();
+
+    TamguSystemVariable* vs = globalTamgu->systems[globalTamgu->Getid("_internals")];    
+    vs->value->storevalue((long)xr.stack.size());
+    vs->value->storevalue(dtok);
+    vs->value->storevalue(dparse);
+
     spaceid=sp;
     return a;
 }
