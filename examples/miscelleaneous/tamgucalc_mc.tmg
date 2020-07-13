@@ -84,6 +84,9 @@ int y_bound=0;
 
 //v_matrix is the visualisation matrix
 vector v_matrix;
+//mat is the actual matrix in which computing is done...
+fmatrix mat(x_max,y_max);
+
 //formulas records the different Lisp expressions
 mapss formulas;
 mapss regularformulas;
@@ -100,8 +103,6 @@ int off_x = 0;
 int off_y = 0;
 bool modifying = false;
 //----------------------------------------------------------------------
-//mat is the actual matrix in which computing is done...
-fmatrix mat(x_max,y_max);
 
 //inputs is used to handle modifications on: filenames and size.
 //If you want to enrich tamgucalc, you might add a new key

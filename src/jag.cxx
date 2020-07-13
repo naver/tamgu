@@ -209,7 +209,9 @@ static char check_size_utf8(int utf) {
 }
 
 string jag_editor::getch() {
-	checkresize();
+	if (checkresize())
+		resetscreen();
+
     int i = _getch();
     string s;
     s = (uchar)i;
@@ -580,7 +582,8 @@ jag_editor::~jag_editor() {
 ///------------------------------------------------------------------------------------
 void jag_editor::screensizes() {
 #ifdef WIN32
-	Getscreensizes();
+	if (row_size == -1 && col_size == -1)
+		Getscreensizes();
 	Returnscreensize(row_size, col_size, size_row, size_col);
 	row_size -= 1;
 	col_size -= margin;
