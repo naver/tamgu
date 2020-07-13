@@ -602,6 +602,7 @@ void jag_editor::screensizes() {
 	m_scrollmargin[6] = buff[0];
 	m_scrollmargin[7] = buff[1];
 	m_scrollmargin[8] = buff[2];
+	cout << m_scrollmargin;
 }
 
 void jag_editor::reset() {

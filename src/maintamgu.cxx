@@ -2574,6 +2574,8 @@ public:
             wstring code = lines.code();
             lines.setcode(code);
             displaylist(poslines[0], poslines.back());
+			if ((currentline+1) >= poslines.size())
+				currentline = poslines.size() - 1;
             movetoline(currentline);
             posinstring = 0;
             movetobeginning();

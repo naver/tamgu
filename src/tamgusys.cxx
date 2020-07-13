@@ -106,9 +106,12 @@ bool checkresize() {
 	static CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
 
 	GetConsoleScreenBufferInfo(hStdout, &csbiInfo);
-	if (csbiInfo.dwMaximumWindowSize.X != size_row || csbiInfo.dwMaximumWindowSize.Y != size_col) {
-		row_size = csbiInfo.srWindow.Bottom;
-		col_size = csbiInfo.srWindow.Right;
+	long rs = csbiInfo.srWindow.Bottom - csbiInfo.srWindow.Top;
+	long cs = csbiInfo.srWindow.Right - csbiInfo.srWindow.Left;
+
+	if (rs != row_size || cs != col_size) {
+		row_size = rs;
+		col_size = cs;
 
 		size_row = csbiInfo.dwMaximumWindowSize.X;
 		size_col = csbiInfo.dwMaximumWindowSize.Y;
@@ -261,7 +264,7 @@ string getcharacter() {
 	int i;
 
 	//This is the most important trick here, you need to reset the flags at each call...
-	DWORD fdwMode = ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT | ENABLE_EXTENDED_FLAGS;;
+	DWORD fdwMode = ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT | ENABLE_EXTENDED_FLAGS;
 	SetConsoleMode(hStdin, fdwMode);
 
 	kar = 0;
@@ -421,8 +424,8 @@ void Getscreensizes() {
 			printf("GetConsoleScreenBufferInfo (%d)\n", GetLastError());
 			return;
 		}
-		row_size = csbiInfo.srWindow.Bottom;
-		col_size = csbiInfo.srWindow.Right;
+		row_size = csbiInfo.srWindow.Bottom - csbiInfo.srWindow.Top;
+		col_size = csbiInfo.srWindow.Right - csbiInfo.srWindow.Left;
 
 		size_row = csbiInfo.dwMaximumWindowSize.X;
 		size_col = csbiInfo.dwMaximumWindowSize.Y;
