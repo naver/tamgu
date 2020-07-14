@@ -475,7 +475,7 @@ void resizewindow() {
 	JAGEDITOR->resetscreen();
 }
 #else
-static void resizewindow(int theSignal) {
+void resizewindow(int theSignal) {
     JAGEDITOR->resetscreen();
 }
 #endif

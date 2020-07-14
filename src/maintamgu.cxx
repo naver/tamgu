@@ -110,6 +110,7 @@ static char THEMAIN[] = "/MAIN\0";
 #include <unistd.h>   //_getch
 #include <termios.h>  //_getch
 #include <sys/ioctl.h>
+void resizewindow(int theSignal);
 #endif
 
 #include <signal.h>
@@ -121,11 +122,9 @@ static void displayhelp(string wh) {
     #ifdef WITHCONSOLE
     cout << "-console ('filename'): open the console editor with an optional filename" << endl << endl;
     #endif
-#ifndef WIN321
     cout << "-e 'filename' load filename into the terminal console in edit mode" << endl << endl;
     cout << "-l 'filename' load filename into the terminal console" << endl << endl;
     cout << "-lisp activate lisp mode" << endl << endl;
-#endif
     cout << "-a 'stdin data' available in tamgu via _args" << endl;
     cout << "-a 'source code' with _args fully piped" << endl  << endl;
     cout << "-c 'source code' without piped data" << endl << endl;
@@ -1093,6 +1092,10 @@ public:
                 }
                 return pos;
            case cmd_edit:
+                #ifndef WIN32
+                    signal(SIGWINCH, resizewindow);
+                #endif
+
                 if (v.size() == 2) {
                     i = convertinteger(v[1]);
                     if (i < 0 || i >= ifilenames.size()) {
