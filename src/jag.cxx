@@ -208,30 +208,10 @@ static char check_size_utf8(int utf) {
 	return 0;
 }
 
+string getwinchar(void(*f)());
+void resizewindow();
 string jag_editor::getch() {
-	if (checkresize())
-		resetscreen();
-
-    int i = _getch();
-    string s;
-    s = (uchar)i;
-    if (!i || i == 0xE0 || i == 224) {
-        i = _getch();
-        s += (uchar)i;
-    }
-	else {
-		//We are inputting UTF8 characters, we detect the UTF8 size
-		//At most 3
-		if (i > 127) {
-			char nb = check_size_utf8(i);
-			while (nb) {
-				i = _getch();
-				s += (uchar)i;
-				nb--;
-			}
-		}
-	}
-    return s;
+	return getwinchar(resizewindow);
 }
 #else
 string jag_editor::getch(){
@@ -490,10 +470,15 @@ static void displaychar(string& bf) {
 ///------------------------------------------------------------------------------------
 jag_editor* JAGEDITOR = NULL;
 ///------------------------------------------------------------------------------------
+#ifdef WIN32
+void resizewindow() {
+	JAGEDITOR->resetscreen();
+}
+#else
 static void resizewindow(int theSignal) {
     JAGEDITOR->resetscreen();
 }
-
+#endif
 ///------------------------------------------------------------------------------------
 
 jag_editor::jag_editor() : lines(this) {

@@ -91,6 +91,36 @@ static void _clearscreen() {
 static long row_size = -1;
 static long col_size = -1;
 
+//------------------------------------------------------------------------------------------
+//This function is called whenever a resize signal is sent
+bool checkresize();
+static void callresize(int theSignal) {
+    static bool calling = true;
+	if (!calling || _mysys == NULL || _mysys->function == NULL || !checkresize())
+		return;
+    
+    calling = false;
+	TamguCallFunction kfunc(_mysys->function);
+
+	Tamgu* rs = globalTamgu->Provideint(row_size);
+	Tamgu* cs = globalTamgu->Provideint(col_size);
+
+	kfunc.arguments.push_back(rs);
+	kfunc.arguments.push_back(cs);
+	
+	rs->Setreference();
+	cs->Setreference();
+
+	kfunc.Eval(aNULL, aNULL, globalTamgu->GetThreadid());
+
+	rs->Resetreference();
+	cs->Resetreference();
+    calling = true;
+    fflush(stdout);
+}
+
+//------------------------------------------------------------------------------------------
+
 #ifdef WIN32
 static long size_row = 0;
 static long size_col = 0;
@@ -211,31 +241,7 @@ string MouseEventProc(MOUSE_EVENT_RECORD mer) {
 	return stre.str();
 }
 
-string getcharacter() {
-	string s;
-	if (_mysys == NULL || _mysys->mouseenabled == false) {
-		checkresize();
-		int kar = _getch();
-		s = (uchar)kar;
-		if (!kar || kar == 0xE0 || kar == 224) {
-			kar = _getch();
-			s += (uchar)kar;
-		}
-		else {
-			//We are inputting UTF8 characters, we detect the UTF8 size
-			//At most 3
-			if (kar > 127) {
-				char nb = check_size_utf8(kar);
-				while (nb) {
-					kar = _getch();
-					s += (uchar)kar;
-					nb--;
-				}
-			}
-		}
-		return s;
-	}
-
+string getwinchar(void(*f)()) {
 	static hmap<int, bool> keys;
 	static bool init = false;
 	if (!init) {
@@ -256,19 +262,20 @@ string getcharacter() {
 		init = true;
 	}
 
+	wstring w;
+	string s;
 	DWORD cNumRead;
 	WCHAR kar;
-	wstring w;
 	INPUT_RECORD irInBuf[512];
 	bool stop = false;
 	int i;
 
 	//This is the most important trick here, you need to reset the flags at each call...
-	DWORD fdwMode = ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT | ENABLE_EXTENDED_FLAGS;
+	DWORD fdwMode = ENABLE_WINDOW_INPUT;
 	SetConsoleMode(hStdin, fdwMode);
 
 	kar = 0;
-	while (w == L"") {
+	while (s == "") {
 		ReadConsoleInput(
 			hStdin,      // input buffer handle 
 			irInBuf,     // buffer to read into 
@@ -281,35 +288,111 @@ string getcharacter() {
 			{
 			case KEY_EVENT: {// keyboard input 
 				KEY_EVENT_RECORD& key = irInBuf[i].Event.KeyEvent;
-				if (!key.bKeyDown) {
+				if (key.bKeyDown) {
 					kar = key.uChar.UnicodeChar;
 					if (!kar) {
 						if (keys.find(key.wVirtualScanCode) != keys.end()) {
 							s = (uchar)224;
 							s += key.wVirtualScanCode;
+							return s;
 						}
+					}
+					else {
+						w = kar;
+						s_unicode_to_utf8(s, w);
 						return s;
 					}
-					w += kar;
 				}
+				break;
 			}
-				break;
-			case MOUSE_EVENT: // mouse input 
-				return MouseEventProc(irInBuf[i].Event.MouseEvent);
 			case WINDOW_BUFFER_SIZE_EVENT: // scrn buf. resizing 
-				//ResizeEventProc(irInBuf[i].Event.WindowBufferSizeEvent);
-				checkresize();
-				break;
-
-			case FOCUS_EVENT:  // disregard focus events 
-
-			case MENU_EVENT:   // disregard menu events 
+				if (checkresize())
+					(*f)();
 				break;
 			}
 		}
 	}
 
-	s_unicode_to_utf8(s, w);
+	return s;
+}
+
+string getcharacter() {
+	static hmap<int, bool> keys;
+	static bool init = false;
+	if (!init) {
+		//this is the list of control keys that we actually care for
+		keys[77] = true;
+		keys[75] = true;
+		keys[80] = true;
+		keys[72] = true;
+		keys[83] = true;
+		keys[71] = true;
+		keys[79] = true;
+		keys[119] = true;
+		keys[117] = true;
+		keys[73] = true;
+		keys[81] = true;
+		keys[116] = true;
+		keys[115] = true;
+		init = true;
+	}
+
+	string s;
+
+	DWORD cNumRead;
+	WCHAR kar;
+	wstring w;
+	INPUT_RECORD irInBuf[512];
+	bool stop = false;
+	int i;
+	DWORD fdwMode;
+
+	//This is the most important trick here, you need to reset the flags at each call...
+	if (_mysys == NULL || _mysys->mouseenabled == false)
+		fdwMode = ENABLE_WINDOW_INPUT | ENABLE_EXTENDED_FLAGS;
+	else
+		fdwMode = ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT | ENABLE_EXTENDED_FLAGS;
+
+	SetConsoleMode(hStdin, fdwMode);
+
+	kar = 0;
+	while (s == "") {
+		ReadConsoleInput(
+			hStdin,      // input buffer handle 
+			irInBuf,     // buffer to read into 
+			512,         // size of read buffer 
+			&cNumRead); // number of records read 
+
+		for (i = 0; i < cNumRead; i++)
+		{
+			switch (irInBuf[i].EventType)
+			{
+			case KEY_EVENT: {// keyboard input 
+				KEY_EVENT_RECORD& key = irInBuf[i].Event.KeyEvent;
+				if (key.bKeyDown) {
+					kar = key.uChar.UnicodeChar;
+					if (!kar) {
+						if (keys.find(key.wVirtualScanCode) != keys.end()) {
+							s = (uchar)224;
+							s += key.wVirtualScanCode;
+							return s;
+						}
+					}
+					else {
+						w = kar;
+						s_unicode_to_utf8(s, w);
+						return s;
+					}
+				}
+				break;
+			}
+			case MOUSE_EVENT: // mouse input 
+				return MouseEventProc(irInBuf[i].Event.MouseEvent);
+			case WINDOW_BUFFER_SIZE_EVENT: // scrn buf. resizing 
+                    callresize(0);
+			}
+		}
+	}
 
     return s;
 }
@@ -521,7 +604,9 @@ bool Tamgusys::InitialisationModule(TamguGlobal* global, string version) {
     
     Tamgusys::AddMethod(global, "showcursor", &Tamgusys::MethodShowCursor, P_ONE, "showcursor(bool show): show or hide the cursor");
     
-    if (version != "") {
+	Tamgusys::AddMethod(global, "resizecallback", &Tamgusys::MethodResizeCallBack, P_ONE, "resizecallback(function f): set the callback function that is called when the terminal window is resized");
+    
+	if (version != "") {
         global->newInstance[Tamgusys::idtype] = new Tamgusys(global);
         global->RecordMethods(Tamgusys::idtype, Tamgusys::exported);
         
@@ -1441,3 +1526,24 @@ Tamgu* Tamgusys::MethodShowCursor(Tamgu* contextualpattern, short idthread, Tamg
 
     return aTRUE;
 }
+
+
+Tamgu* Tamgusys::MethodResizeCallBack(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+	Tamgu* func = callfunc->Evaluate(0, aNULL, idthread);
+	if (func == aNULL) {
+		function = NULL;
+#ifndef WIN32
+		signal(SIGWINCH, NULL);
+#endif
+		return aTRUE;
+	}
+
+	if (!func->isFunction() || func->Size() != 2)
+		globalTamgu->Returnerror("Expecting a function of arity: 2", idthread);
+	function = func;
+#ifndef WIN32
+	signal(SIGWINCH, callresize);
+#endif
+	return aTRUE;
+}
+

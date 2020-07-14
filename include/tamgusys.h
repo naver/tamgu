@@ -42,6 +42,7 @@ class Tamgusys : public TamguObject {
 	string lastcommand;
     bool getcharhasbeenused;
     bool mouseenabled;
+	Tamgu* function;
 
 #ifdef WIN32
 	bool tracking;
@@ -56,6 +57,7 @@ class Tamgusys : public TamguObject {
         //Do not forget your variable initialisation
         getcharhasbeenused = false;
         mouseenabled = false;
+		function = NULL;
 #ifdef WIN32
         tracking = false;
 #endif
@@ -65,6 +67,7 @@ class Tamgusys : public TamguObject {
         //Do not forget your variable initialisation
         getcharhasbeenused = false;
         mouseenabled = false;
+		function = NULL;
         #ifdef WIN32
                 tracking = false;
         #endif
@@ -199,7 +202,7 @@ class Tamgusys : public TamguObject {
     Tamgu* MethodShowCursor(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
     Tamgu* MethodReset(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
-
+	Tamgu* MethodResizeCallBack(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     //---------------------------------------------------------------------------------------------------------------------
 
     //ExecuteMethod must be implemented in order to execute our new Tamgu methods. This method is called when a TamguCallMethodMethod object
