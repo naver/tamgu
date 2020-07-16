@@ -1387,9 +1387,7 @@ class Tamguliblinear : public TamguObject {
 	
 	Tamgu* MethodInitial(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		//Your first parameter is at position 0 etc...		
-		Tamgu* mfn = callfunc->Evaluate(0, contextualpattern, idthread);
-		model_file_name = mfn->String();
-		mfn->Release();
+        model_file_name = callfunc->Evaluate(0, contextualpattern, idthread)->String();
 
 		flag_predict_probability = 0;
 		if ((model_ = load_model(STR(model_file_name))) == 0)
