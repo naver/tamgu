@@ -2089,13 +2089,12 @@ public:
         return false;
     }
     
-    void ls(string path, vector<wstring>& paths) {
+    void ls(string cmd, string path, vector<wstring>& paths) {
         FILE *fp;
         int status;
 
         char chemin[PATH_MAX];
         
-        string cmd = "ls -1 -p ";
         cmd += path;
 
 #ifdef WIN32
@@ -2121,6 +2120,110 @@ public:
 #endif
 	}
     
+#ifdef WIN32
+bool checkpath() {
+    //The first part should be a command such as open or load...
+    long pos = line.rfind(' ');
+    if (pos == -1)
+        return false;
+    
+    wstring root = line.substr(0, pos);
+    wstring name;
+    wstring path = line.substr(pos, line.size());
+    path = Trim(path);
+    //Two cases, we have a "\\" in it...
+    pos = path.rfind(L"\\");
+    //We need to extract it
+    if (pos != -1) {
+        name = path.substr(pos+1, path.size()-pos);
+        path = path.substr(0, pos+1);
+    }
+    else {
+        name = path;
+        path = L".";
+    }
+    vector<wstring> paths;
+    vector<wstring> targets;
+    //First the directories
+    string cmd = "dir /B ";
+    ls(cmd, convert(path), paths);
+    //Now we look for continuation
+    long i;
+    for (i = 0; i < paths.size(); i++) {
+        if (paths[i].substr(0, name.size()) == name)
+            targets.push_back(paths[i]);
+    }
+    if (path == L".")
+        path = L"";
+    
+    if (targets.size() == 0)
+        return false;
+    
+    paths.clear();
+    //Only directories, we want to add a _sep at the end...
+    cmd = "dir /AD /B ";
+    ls(cmd, convert(path), paths);
+    for (i = 0; i < paths.size(); i++) {
+        for (long j = 0; j < targets.size(); j++) {
+            if (targets[j] == paths[i])
+                targets[j] += L"\\";
+        }
+    }
+
+    if (targets.size() == 1) {
+        line = root;
+        line += L" ";
+        line += path;
+        line += targets[0];
+        clearline();
+        displaygo(true);
+        posinstring = line.size();
+        movetoposition();
+        return true;
+    }
+    
+    wstring common;
+    long ln  = name.size();
+    bool end = false;
+    while (!end) {
+        //We add one letter from the targets and see if it is common to all targets
+        for (i = 0; i < targets.size(); i++) {
+            if (ln >= targets[i].size()) {
+                end = true;
+                break;
+            }
+        }
+        if (!end) {
+            ++ln;
+            common = targets[0].substr(0, ln);
+            for (i = 1; i < targets.size(); i++) {
+                if (targets[i].substr(0, ln) != common) {
+                    end = true;
+                    break;
+                }
+            }
+            if (!end)
+                name = common;
+        }
+    }
+    
+    
+    cerr << endl << endl << m_red;
+    for (i = 0; i < targets.size(); i++)
+        cerr << convert(targets[i]) << " ";
+    cerr << m_current << endl << endl;
+    
+    line = root;
+    line += L" ";
+    line += path;
+    line += name;
+    clearline();
+    displaygo(true);
+    posinstring = line.size();
+    movetoposition();
+    return true;
+}
+#else
     bool checkpath() {
         //The first part should be a command such as open or load...
         long pos = line.rfind(' ');
@@ -2143,7 +2246,8 @@ public:
         }
         vector<wstring> paths;
         vector<wstring> targets;
-        ls(convert(path), paths);
+        string cmd = "ls -1 -p ";
+        ls(cmd, convert(path), paths);
         //Now we look for continuation
         long i;
         for (i = 0; i < paths.size(); i++) {
@@ -2209,7 +2313,7 @@ public:
         movetoposition();
         return true;
     }
-    
+#endif
     bool checkkeyboard(string& buff, long& first, long& last, bool& dsp, char noinit) {
         switch ((uchar)buff[0]) {
             case 2: //ctrl-b run/breakpoint

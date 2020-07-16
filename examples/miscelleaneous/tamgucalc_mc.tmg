@@ -71,8 +71,8 @@ int x_maxview = x_viewsize;
 int y_maxview = y_viewsize;
 //These two values define the actual matrix size, which is different from viewsize
 //If the view port is larger than 101 and 51, then the matrix is equal to the viewport
-int x_max = max(256,x_maxview);
-int y_max = max(256,y_maxview);
+int x_max = max(257,x_maxview);
+int y_max = max(33,y_maxview);
 //codeline is used to position messages
 //'inputsection' lines down after the last line of the matrix
 int codeline = x_viewsize+inputsection;
@@ -146,6 +146,34 @@ if (option != "")
 else
     inputs["Data"] = "";
 
+
+//----------------------------------------------------------------------
+//      Resizing Event
+//----------------------------------------------------------------------
+bool resized = true;
+function resizing(int r, int c) {
+    //We only resize, if no manual resizing has been done
+    if (!resized)
+        return;
+    
+    x_viewsize = r - inputsection;
+    y_viewsize = c / columnsize;
+    codeline = x_viewsize + inputsection;
+
+    x_maxview = x_viewsize;
+    y_maxview = y_viewsize;
+    //These two values define the actual matrix size, which is different from viewsize
+    //If the view port is larger than 101 and 51, then the matrix is equal to the viewport
+    _sys.cls();
+    displayall(off_x, off_y);
+    showelement(i, j, off_x, off_y);
+}
+
+if (version() >= "Tamgu 1.2020.07.14.11") {
+    //This for the case people are still using an old version of Tamgu
+    //that does not provide resizing
+    _eval("_sys.resizecallback(resizing);");
+}
 
 //----------------------------------------------------------------------
 //      PREDEFINED METHODS (You can add your own here)
@@ -312,6 +340,7 @@ function initialisation() {
 
 //Loading a file
 function readtable(string f) {
+    resized = true;
     int i,j;
     for (i in <1,x_max>) {
         for (j in <1,y_max>) {
@@ -323,7 +352,7 @@ function readtable(string f) {
     try {
         svector sv;
         svector cut;
-        int nb;
+        int nb,xm, ym;
         string s,k,e;
         sv.read(f);
         bool beg = true;
@@ -336,8 +365,12 @@ function readtable(string f) {
                 x_viewsize = cut[0];
                 y_viewsize = cut[1];
                 columnsize = cut[2];
-                x_max = cut[3];
-                y_max = cut[4];
+                xm = cut[3];
+                ym = cut[4];
+                if (xm != x_max or ym != y_max)
+                    resized = false;
+                x_max = xm;
+                y_max = ym;
                 x_bound = cut[5];
                 y_bound = cut[6];
                 inputs["Size"] = ""+(x_viewsize-1)+":"+(y_viewsize-1);
@@ -533,12 +566,13 @@ function evaluation(int off_x, int off_y) {
     int loop;
     string fnct;
     call Fnct;
+    int mx = max(regularformulas.size(), formulas.size());
     //The top loop is due to the interdependencies between the formulas
     while (!stop) {
         //If we cannot get out of the main loop, it means trouble...
         //One of the formulas is in cross-dependency with another...
         //F1 needs F2 to compute and F2 needs also F1... stalemate...
-        if (loop > formulas.size())
+        if (loop > mx)
             break;
 
         stop=true;
