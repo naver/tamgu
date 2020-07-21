@@ -785,8 +785,7 @@ public:
 	}
 
     //--------------------------------
-    VECTE<long> trackerslots;
-    std::atomic<long> trackerslotfilled;
+    atomic_vector<long> trackerslots;
     
     Exporting void RecordInTracker(Tamgu* a);
     Exporting long RecordInTrackerProtected(Tamgu* a);
@@ -796,19 +795,8 @@ public:
         if (idx == -1)
             return;
         
-        tracked.erase(idx);
-        
-        if (threadMODE) {
-            _trackerlock.Locking();
-            trackerslots.push_back(idx);
-            ++trackerslotfilled;
-            _trackerlock.Unlocking();
-        }
-        else {
-            trackerslots.push_back(idx);
-            ++trackerslotfilled;
-        }
-        
+        tracked.erase(idx);        
+        trackerslots.push_back(idx);
     }
     
     inline bool Checktracker(Tamgu* a, long id) {

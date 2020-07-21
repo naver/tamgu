@@ -533,13 +533,12 @@ Exporting ThreadStruct::~ThreadStruct() {
 //----------------------------------------------------------------------------------
 TamguGlobal::TamguGlobal(long nb, bool setglobal) :
 idSymbols(false), methods(false), compatibilities(false), strictcompatibilities(false),
-    operator_strings(false), terms(false), booleanlocks(true), tracked(NULL, true) {
+    operator_strings(false), terms(false), booleanlocks(true), tracked(NULL, true), trackerslots(-1, true) {
 
         add_to_tamgu_garbage = false;
         number_of_current_eval = 0;
 
         threadcounter = 0;
-        trackerslotfilled = 0;
 
         waitingonfalse = false;
 
@@ -2364,49 +2363,27 @@ TamguCode* TamguGlobal::GetNewCodeSpace(string filename) {
 
 //----------------------------------------------------------------------------------
 Exporting void TamguGlobal::RecordInTracker(Tamgu* a) {
-    if (trackerslotfilled) {
-        long idx = trackerslots.backpop();
-        --trackerslotfilled;
-        a->Setid(tracked.put(a, idx));
-    }
-    else
+    long idx = trackerslots.backpop();
+    if (idx == -1)
         a->Setid(tracked.push_back(a));
+    else
+        a->Setid(tracked.put(a, idx));
 }
 
 Exporting long TamguGlobal::RecordInTrackerProtected(Tamgu* a) {
     if (a->idtracker != -1)
         return a->idtracker;
-
-    if (threadMODE) {
-        long idx = -1;
-        if (trackerslotfilled) {
-            _trackerlock.Locking();
-            if (trackerslotfilled) {
-                idx = trackerslots.backpop();
-                --trackerslotfilled;
-            }
-            _trackerlock.Unlocking();
-        }
-
-        if (idx == -1)
-            return a->Setidreturn(tracked.push_back(a));
-
-        return a->Setidreturn(tracked.put(a, idx));
-    }
-
-    if (trackerslotfilled) {
-        long idx = trackerslots.backpop();
-        --trackerslotfilled;
-
-        return a->Setidreturn(tracked.put(a, idx));
-    }
-
-    return a->Setidreturn(tracked.push_back(a));
+    
+    long idx = trackerslots.backpop();
+    if (idx == -1)
+        return a->Setidreturn(tracked.push_back(a));
+    
+    return a->Setidreturn(tracked.put(a, idx));
 }
 
-Exporting void TamguGlobal::ResetWithTracker(Tamgu* a, long id, long inc) {
-    if (!tracked.check(id, a))
-        return;
+Exporting void TamguGlobal::ResetWithTracker(Tamgu* a, long idx, long inc) {
+    if (!tracked.check(idx, a))
+        return;    
     a->Resetreference(inc);
 }
 

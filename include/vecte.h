@@ -625,6 +625,16 @@ public:
         }
     }
 
+    inline Z backpop() {
+        if (!last)
+            return zero;
+
+        long i = 0;
+        long pos = --last;
+        atomic_vector_element<Z>* n = findpos(pos, i);
+        return n->vecteur[i];
+    }
+
     Z back() {
         if (!last)
             return zero;
@@ -644,9 +654,8 @@ public:
     Z remove_back() {
         if (!last)
             return zero;
-        --last;
         long i = 0;
-        long pos = last;
+        long pos = --last;
         atomic_vector_element<Z>* n = findpos(pos, i);
         
         return n->replace(zero, i);
