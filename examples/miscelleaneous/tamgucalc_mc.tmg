@@ -516,6 +516,16 @@ function replacewithfloat(string str) {
             str[b:e] = s+".0";
         }
     }
+    
+    //this is a piece of code for intervals, where
+    //the the final index should be one more...
+    svector coord = r"%[?+%]%[%d+:%d+%]" in str;
+    for (s in coord) {
+        //We look for the last number in the string with a ":"
+        b = 1+s[-r":%d+"][1:];
+        str[s] = s[:-":"]+b+"]";
+    }
+
     return str;
 }
 
@@ -532,7 +542,6 @@ function evaluation(int off_x, int off_y) {
     bool stop=false;
     string recompiled;
     string cell;
-    svector coord;
     int r;
 
     //We record functions beforehand
@@ -560,11 +569,6 @@ function evaluation(int off_x, int off_y) {
                     cell = "(defun F_"+ky+"() " + cell+")";
                     //this is a piece of code for intervals, where
                     //the the final index should be one more...
-                    coord = r"%[?+%]%[%d+:%d+%]" in cell;
-                    for (string c in coord) {
-                        r = 1+c[-r":%d+"][1:];
-                        cell[c] = c[:-":"]+r+"]";
-                    }
                     functions[ky] = lisp_interpreter.eval(cell);
                 }
             }
@@ -604,13 +608,6 @@ function evaluation(int off_x, int off_y) {
                 j = ky["_":][1:];
                 if (cell[0] == '=' and cell[-1] == ';') {
                     cell=cell[1:-1];
-                    //this is a piece of code for intervals, where
-                    //the the final index should be one more...
-                    coord = r"%[?+%]%[%d+:%d+%]" in cell;
-                    for (string c in coord) {
-                        r = 1+c[-r":%d+"][1:];
-                        cell[c] = c[:-":"]+r+"]";
-                    }
                     cell = replacewithfloat(cell);
                     val = _eval(cell);
                     if (val.float() != mat[i:j])
