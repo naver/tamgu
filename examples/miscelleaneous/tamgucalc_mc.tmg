@@ -512,7 +512,7 @@ function replacewithfloat(string str) {
         if ("." in s)
             continue;
 
-        if (str[e] in " );" and str[b-1] in " (") {
+        if (str[e] in " );" and not str[b-1].isalpha()) {
             str[b:e] = s+".0";
         }
     }
