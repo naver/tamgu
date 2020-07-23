@@ -501,6 +501,24 @@ function writecsv(string f) {
 
 
 //------------------- The Code ---------
+function replacewithfloat(string str) {
+    ivector iv = r"%d+(.%d+(e({-+})%d+))" in str;
+    string s;
+    int b,e;
+    for (int i in <iv.size()-1,0,-2>) {
+        b = iv[i-1];
+        e = iv[i];
+        s = str[b:e];
+        if ("." in s)
+            continue;
+
+        if (str[e] in " );" and str[b-1] in " (") {
+            str[b:e] = s+".0";
+        }
+    }
+    return str;
+}
+
 function evaluation(int off_x, int off_y) {
     if (formulas.size()==0)
         return;
@@ -538,6 +556,7 @@ function evaluation(int off_x, int off_y) {
                     //We have replaced lambda with λ for compactness reason, we need to
                     //replace it back to compile it...
                     cell = cell.replace("λ","lambda");
+                    cell = replacewithfloat(cell);
                     cell = "(defun F_"+ky+"() " + cell+")";
                     //this is a piece of code for intervals, where
                     //the the final index should be one more...
@@ -592,6 +611,7 @@ function evaluation(int off_x, int off_y) {
                         r = 1+c[-r":%d+"][1:];
                         cell[c] = c[:-":"]+r+"]";
                     }
+                    cell = replacewithfloat(cell);
                     val = _eval(cell);
                     if (val.float() != mat[i:j])
                         stop = false;
@@ -907,6 +927,8 @@ displaymessage(msgbase);
 string msgedit = "%1Edit Mode%2... %1Esc%2=abort / %1Enter%2=record";
 msgedit =  msgedit.format(colorsel,colornrm);
 
+//Triggering mouse action
+//The _sys.reset() deactivates mouse action
 _sys.inmouse();
 
 int posinstring;
@@ -975,12 +997,13 @@ function handlingarrows(string s) {
             scroll=-1;
         }
     }
-    else
-        if (i > x_viewsize-1) {
-        i = x_viewsize-1;
-        if ((off_x+i) < x_max-1) {
-            off_x++;
-            scroll=1;
+    else {
+        if (i >= x_viewsize) {
+            i = x_viewsize-1;
+            if ((off_x+i) < x_max-1) {
+                off_x++;
+                scroll=1;
+            }
         }
     }
     if (j < 1) {
@@ -990,12 +1013,13 @@ function handlingarrows(string s) {
             redisplay=true;
         }
     }
-    else
-        if (j > y_viewsize-1) {
-        j = y_viewsize-1;
-        if ((off_y+j) < y_max-1) {
-            off_y++;
-            redisplay=true;
+    else {
+        if (j >= y_viewsize) {
+            j = y_viewsize-1;
+            if ((off_y+j) < y_max-1) {
+                off_y++;
+                redisplay=true;
+            }
         }
     }
     if (redisplay)
@@ -1048,6 +1072,12 @@ function mousecontrol(string s) {
                 xymouse[1] = columnsize;
             i = xymouse[0]-1;
             j = xymouse[1]/columnsize;
+            
+            if (i >= x_viewsize)
+                i = x_viewsize - 1;
+            if (j >= y_viewsize)
+                j = y_viewsize - 1;
+
             //this section allows for a tracking preparation
             //if tracking should occur
             firstclickx = i;
@@ -1191,7 +1221,7 @@ function updatevalue() {
     }
 }
 
-//We check if the inputvalue is actually a formula, that was modifyied from
+//We check if the inputvalue is actually a formula, that was modified from
 //a non formula
 function checkformula() {
     if (colorparenth in inputvalue) {
@@ -1555,7 +1585,7 @@ function frompaste(string s) {
     return false;
 }
 
-//Fields are actually the different values that can be modifyed in tamgucalc
+//Fields are actually the different values that can be modified in tamgucalc
 //such as: pathname, grid size, column size, but also the different actions
 //such as: copy, move or delete
 function checkfield() {
@@ -2229,4 +2259,5 @@ while (s[0].ord() != 17) {
 }
 
 _sys.reset();
+
 
