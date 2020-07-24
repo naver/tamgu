@@ -816,7 +816,7 @@ Tamgu* Tamguustring::MethodTokenize(Tamgu* contextualpattern, short idthread, Ta
                 flag |= token_separator;
             if (callfunc->Size() == 3) {
                 vector<string> rules;
-                Tamgu* vect = callfunc->Evaluate(3, contextualpattern, idthread);
+                Tamgu* vect = callfunc->Evaluate(2, contextualpattern, idthread);
                 for (long i = 0; i< vect->Size(); i++)
                     rules.push_back(vect->getstring(i));
                 Tamgu* kvect = Selectauvector(contextualpattern);
@@ -3088,7 +3088,7 @@ Tamgu* Tamgua_ustring::MethodTokenize(Tamgu* contextualpattern, short idthread, 
             if (separator)
                 flag |= token_separator;
             if (callfunc->Size() == 3) {
-                Tamgu* vect = callfunc->Evaluate(3, contextualpattern, idthread);
+                Tamgu* vect = callfunc->Evaluate(2, contextualpattern, idthread);
                 for (long i = 0; i< vect->Size(); i++)
                     rules.push_back(vect->getstring(i));
             }

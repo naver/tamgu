@@ -2593,6 +2593,8 @@ Tamgu* TamguCode::C_subfunc(x_node* xn, Tamgu* parent) {
 	if (xn->nodes[0]->nodes[0]->nodes.size() != 1)
 		name = xn->nodes[0]->nodes[0]->nodes[1]->value;
 
+    bool checkmethodarity = false;
+    short tyvar = -1;
 	parent->Addfunctionmode();
 	short id = global->Getid(name);
 	Tamgu* function = NULL;
@@ -2608,7 +2610,7 @@ Tamgu* TamguCode::C_subfunc(x_node* xn, Tamgu* parent) {
 		function = new TamguCallFrameFunction((TamguFrame*)frame, id, global, parent);
 	}
 	else {
- 		short tyvar = parent->Typevariable();
+ 		tyvar = parent->Typevariable();
         if (tyvar==a_tamgu) {
             
             if (id == a_methods) { //.methods() is the method that returns all methods within a tamgu objet...
@@ -2624,11 +2626,13 @@ Tamgu* TamguCode::C_subfunc(x_node* xn, Tamgu* parent) {
 		if (global->commons.check(id) && !global->extensionmethods.check(id))
 			function = new TamguCallCommonMethod(id, global, parent);
 		else {
-			if (global->extensions.check(tyvar) && global->extensions[tyvar]->isDeclared(id))
+            if (global->extensions.check(tyvar) && global->extensions[tyvar]->isDeclared(id))
 				function = new TamguCallCommonMethod(id, global, parent);
 			else {
-				if (global->checkmethod(tyvar, id))
+                if (global->checkmethod(tyvar, id)) {
 					function = new TamguCallMethod(id, global, parent);
+                    checkmethodarity = true;
+                }
 				else {
 					if (global->allmethods.check(id)) {
 						if (tyvar == a_self || tyvar == a_let || xn->token == "subfunc") {
@@ -2665,11 +2669,18 @@ Tamgu* TamguCode::C_subfunc(x_node* xn, Tamgu* parent) {
 		}
 	}
 
-	if (!function->Checkarity()) {
-		stringstream message;
-		message << "Wrong number of arguments or incompatible argument: '" << name << "'";
-		throw new TamguRaiseError(message, filename, current_start, current_end);
-	}
+    if (checkmethodarity && !global->checkarity(tyvar, id, function->Size())) {
+        stringstream message;
+        message << "Wrong number of arguments or incompatible argument: '" << name << "'";
+        throw new TamguRaiseError(message, filename, current_start, current_end);
+    }
+    else {
+        if (!function->Checkarity()) {
+            stringstream message;
+            message << "Wrong number of arguments or incompatible argument: '" << name << "'";
+            throw new TamguRaiseError(message, filename, current_start, current_end);
+        }
+    }
 
 	return parent;
 }

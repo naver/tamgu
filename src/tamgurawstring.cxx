@@ -988,8 +988,8 @@ Tamgu* Tamgurawstring::MethodTokenize(Tamgu* contextualpattern, short idthread, 
         comma = callfunc->Evaluate(0, contextualpattern, idthread)->Boolean();
         if (callfunc->Size() >= 2) {
             separator = callfunc->Evaluate(1, contextualpattern, idthread)->Boolean();
-            if (callfunc->Size() >= 3) {
-                Tamgu* vect = callfunc->Evaluate(3, contextualpattern, idthread);
+            if (callfunc->Size() == 3) {
+                Tamgu* vect = callfunc->Evaluate(2, contextualpattern, idthread);
                 for (long i = 0; i< vect->Size(); i++)
                     rules.push_back(vect->getstring(i));
             }
