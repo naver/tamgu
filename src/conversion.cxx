@@ -1219,7 +1219,7 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
 #ifdef WIN32
     unsigned long q = 0;
 #else
-    unsigned int q = 0;
+    uint32_t q = 0;
 #endif
     uchar c = search[0];
     long i = 0;
