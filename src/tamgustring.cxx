@@ -114,6 +114,7 @@ void Tamgustring::AddMethod(TamguGlobal* global, string name, stringMethod func,
 
     Tamgustring::AddMethod(global, "count", &Tamgustring::MethodCount, P_TWO | P_ONE, "count(string sub,int pos): Count the number of substrings starting at position pos", a_int);
        
+    Tamgustring::AddMethod(global, "countbaseline", &Tamgustring::MethodCountBaseLine, P_TWO | P_ONE, "countbaseline(string sub,int pos): Count the number of substrings starting at position pos with base line method", a_int);
 
     Tamgustring::AddMethod(global, "byteposition", &Tamgustring::MethodByteposition, P_ONE, "byteposition(int pos): Convert a character position into a byte position", a_int);
     Tamgustring::AddMethod(global, "charposition", &Tamgustring::MethodCharposition, P_ONE, "charposition(int pos): Convert a byte position into a character position", a_int);
@@ -766,6 +767,53 @@ Tamgu* Tamgustring::MethodCount(Tamgu* contextualpattern, short idthread, TamguC
             i = 0;
         else
             i = s_count(value, sub, i);
+    }
+    return globalTamgu->Provideint(i);
+}
+
+static long s_countbaseline(string& str, string& sub, long i) {
+    long nb = 0;
+    i = str.find(sub, i);
+    while (i != -1) {
+        nb++;
+        i = str.find(sub, ++i);
+    }
+    return nb;
+}
+
+Tamgu* Tamgustring::MethodCountBaseLine(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    long i = 0;
+
+    Tamgu* substr = callfunc->Evaluate(0, contextualpattern, idthread);
+    if (callfunc->Size() == 2) {
+        i = callfunc->Evaluate(1, contextualpattern, idthread)->Integer();
+    }
+    
+    if (substr->isRegular()) {
+        wstring w = UString();
+        if (i)
+            w = w.substr(i, w.size() - i);
+        
+        vector<long> values;
+        substr->searchall(w,values);
+        return globalTamgu->Provideint(values.size()>>1);
+    }
+
+    string sub = substr->String();
+
+    if (globalTamgu->threadMODE) {
+        locking();
+        if (value == "")
+            i = 0;
+        else
+            i = s_countbaseline(value, sub, i);
+        unlocking();
+    }
+    else {
+        if (value == "")
+            i = 0;
+        else
+            i = s_countbaseline(value, sub, i);
     }
     return globalTamgu->Provideint(i);
 }

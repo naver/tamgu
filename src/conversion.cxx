@@ -57,6 +57,8 @@ static inline bool wcharcomp(wchar_t* src, wchar_t* search, long lensearch) {
     return true;
 }
 
+//This method has been implemented to compare two strings, knowing that the first characters
+//of each string are the same already... We check from the end of the strings
 static inline bool charcomp(unsigned char* src, unsigned char* search, long lensearch) {
     while (--lensearch) {
         if (src[lensearch] != search[lensearch])
@@ -368,65 +370,75 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
 #endif
     uchar c = search[0];
     char shift;
-    bool small = false;
+    long pos;
+    long lenmx = lensrc - 31;
 
     switch (lensearch) {
         case 1:
         {
             __m256i firstchar = _mm256_set1_epi8(c);
             //We then scan our string for this first character...
-            for (; (i + 31) < lensrc; i += 32) {
-                //we load our section, the length should be larger than 16
-                s=src+i;
-                current_bytes = _mm256_loadu_si256((const __m256i *)s);
+            while (i < lenmx) {
+                for (; i < lenmx && !q; i += 32) {
+                    //we load our section, the length should be larger than 16
+                    s=src+i;
+                    current_bytes = _mm256_loadu_si256((const __m256i *)s);
                     //we check if we have a the first character of our string somewhere
                     //in this 16 character window...
-                current_bytes = _mm256_cmpeq_epi8(firstchar, current_bytes);
-                q = _mm256_movemask_epi8(current_bytes);
+                    current_bytes = _mm256_cmpeq_epi8(firstchar, current_bytes);
+                    q = _mm256_movemask_epi8(current_bytes);
+                }
                 if (q) {
-					bitscanforward(q, q);
-                    return (i+q);
+                    bitscanforward(q, q);
+                    return (i+q-32);
                 }
             }
             break;
         }
         case 2:
-            small = true;
         case 3:
         {
             int16_t cc = search[1];
             cc <<= 8;
             cc |= c;
             __m256i firstchar = _mm256_set1_epi16(cc);
-            
+        
                 //We then scan our string for the first two characters...
-            for (; (i + 31) < lensrc; i += 32) {
-                
-                for (shift = 0; shift < 2; shift++) {
+            while (i < lenmx) {
+                for (; i < lenmx && !q; i += 32) {
+                    for (shift = 1; shift >= 0; shift--) {
                         //we load our section, the length should be larger than 16
-                    s=src + i + shift;
+                        s=src + i + shift;
                         //we read 16 characters at a time, but with a sliding widow
                         //of 15 characters (since we are looking for a double character)
-                    current_bytes = _mm256_loadu_si256((const __m256i *)s);
+                        current_bytes = _mm256_loadu_si256((const __m256i *)s);
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
-                    current_bytes = _mm256_cmpeq_epi16(firstchar, current_bytes);
-                    q = _mm256_movemask_epi8(current_bytes);
-                    if (q) {
-                            //Our character is present, we now try to find where it is...
-                            //we find it in this section...
-                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
-                        //otherwise, we might loose a substring present before but with a different alignement with shift
-                        //More exactly, there might be a solution for shift=0 and shift=1, but the solution to shift=0 is AFTER the one
-                        //for shift=1, which means that we will return the second string instead of the first.
-                        if (shift == 1) {bitscanforward(j,q);s+=j;} else j = 0;
-                        for (; j < 31; j++) {
-                            if (*s == c && s[1] == search[1] && (small || s[2] == search[2])) {
-                                return (i + j + shift);
-                            }
-                            ++s;
-                        }
+                        current_bytes = _mm256_cmpeq_epi16(firstchar, current_bytes);
+                        q <<= 1;
+                        q |= _mm256_movemask_epi8(current_bytes);
                     }
+                }
+                if (!q)
+                    break;
+                
+                if (lensearch == 2) {
+                    bitscanforward(j,q);
+                    return (i+j-32);
+                }
+                pos = i - 32;
+                while (q) {
+                    bitscanforward(j,q);
+                    if (j) {
+                        pos+=j;
+                        s+=j;
+                        q >>= j;
+                    }
+                    if (s[2] == search[2])
+                        return (pos);
+                    q >>= 2;
+                    s+=2;
+                    pos+=2;
                 }
             }
             break;
@@ -446,33 +458,41 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
             __m256i firstchar = _mm256_set1_epi32(cc);
             
                 //We then scan our string for the first two characters...
-            for (; (i + 31) < lensrc; i += 32) {
-                shift = 0;
+            while (i < lenmx) {
+                for (; i < lenmx && !q; i += 32) {
                     //we load our section, the length should be larger than 16
-                for (shift = 0; shift < 4; shift++) {
-                    s=src + i + shift;
+                    for (shift = 3; shift >= 0; shift--) {
+                        s=src + i + shift;
                         //we read 16 characters at a time, but with a sliding widow
                         //of 15 characters (since we are looking for a double character)
-                    current_bytes = _mm256_loadu_si256((const __m256i *)s);
+                        current_bytes = _mm256_loadu_si256((const __m256i *)s);
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
-                    current_bytes = _mm256_cmpeq_epi32(firstchar, current_bytes);
-                    q = _mm256_movemask_epi8(current_bytes);
-                    if (q) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
-                        //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 3) {bitscanforward(j,q);s+=j;} else j = 0;
-                        for (; j < 29; j++) {
-                            if (*s == c) {
-                                if (charcomp(s,search,lensearch)) {
-                                    return (i + j + shift);
-                                }
-                            }
-                            ++s;
-                        }
+                        current_bytes = _mm256_cmpeq_epi32(firstchar, current_bytes);
+                        q <<= 1;
+                        q |= _mm256_movemask_epi8(current_bytes);
                     }
+                }
+                if (!q)
+                    break;
+                
+                if (lensearch == 4) {
+                    bitscanforward(j,q);
+                    return (i+j-32);
+                }
+                pos = i - 32;
+                while (q) {
+                    bitscanforward(j,q);
+                    if (j) {
+                        pos+=j;
+                        s+=j;
+                        q >>= j;
+                    }
+                    if (charcomp(s+3,search+3,lensearch-3))
+                        return (pos);
+                    q >>= 4;
+                    s+=4;
+                    pos+=4;
                 }
             }
             break;
@@ -489,33 +509,43 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
             __m256i firstchar = _mm256_set1_epi64x(cc);
             
                 //We then scan our string for the first two characters...
-            for (; (i + 31) < lensrc; i += 32) {
-                shift = 0;
+            while (i < lenmx) {
+                for (; i < lenmx && !q; i += 32) {
                     //we load our section, the length should be larger than 16
-                for (shift = 0; shift < 8; shift++) {
-                    s=src + i + shift;
+                    for (shift = 7; shift >= 0; shift--) {
+                        s=src + i + shift;
                         //we read 16 characters at a time, but with a sliding widow
                         //of 15 characters (since we are looking for a double character)
-                    current_bytes = _mm256_loadu_si256((const __m256i *)s);
+                        current_bytes = _mm256_loadu_si256((const __m256i *)s);
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
-                    current_bytes = _mm256_cmpeq_epi64(firstchar, current_bytes);
-                    q = _mm256_movemask_epi8(current_bytes);
-                    if (q) {
-                            //Our character is present, we now try to find where it is...
-                            //we find it in this section...
-                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
-                        //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 7) {bitscanforward(j,q);s+=j;} else j = 0;
-                        for (; j < 25; j++) {
-                            if (*s == c) {
-                                if (charcomp(s,search,lensearch)) {
-                                    return (i + j + shift);
-                                }
-                            }
-                            ++s;
-                        }
+                        current_bytes = _mm256_cmpeq_epi64(firstchar, current_bytes);
+                        q <<= 1;
+                        q |= _mm256_movemask_epi8(current_bytes);
                     }
+                }
+                
+                if (!q)
+                    break;
+                
+                if (lensearch == 8) {
+                    bitscanforward(j,q);
+                    return (i+j-32);
+                }
+                
+                pos = i - 32;
+                while (q) {
+                    bitscanforward(j,q);
+                    if (j) {
+                        pos+=j;
+                        s+=j;
+                        q >>= j;
+                    }
+                    if (charcomp(s+7,search+7,lensearch-7))
+                        return (pos);
+                    q >>= 8;
+                    s+=8;
+                    pos+=8;
                 }
             }
         }
@@ -551,27 +581,37 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
     uchar c = search[0];
     char shift;
 
-    //We move the post way before
-    if (i >= 32)
-        i-=32;
-
+    long pos;
     switch (lensearch) {
         case 1:
         {
             __m256i firstchar = _mm256_set1_epi8(c);
                 //We then scan our string for this first character...
-            for (; i >= 0; i -= 32) {
+            i -= 32;
+            while (i >= 0) {
+                for (; i >= 0 && !q; i -= 32) {
                     //we load our section, the length should be larger than 16
-                s=src+i;
-                current_bytes = _mm256_loadu_si256((const __m256i *)s);
+                    s=src+i;
+                    current_bytes = _mm256_loadu_si256((const __m256i *)s);
                     //we check if we have a the first character of our string somewhere
                     //in this 16 character window...
-                current_bytes = _mm256_cmpeq_epi8(firstchar, current_bytes);
-                q = _mm256_movemask_epi8(current_bytes);
-                if (q) {
-					bitscanreverse(j, q);
-                    if ((i+j) <= from)
-                        return (i+j);
+                    current_bytes = _mm256_cmpeq_epi8(firstchar, current_bytes);
+                    q = _mm256_movemask_epi8(current_bytes);
+                }
+                if (!q)
+                    break;
+
+                pos = 31; //32-1
+                while (q) {
+                    bitscanreverse(j,q);
+                    if (j) {
+                        pos -= 31-j;
+                        q <<= 31-j;
+                    }
+                    if ((i+32+pos) <= from)
+                        return (i+32+pos);
+                    q <<= 1;
+                    pos--;
                 }
             }
             break;
@@ -584,31 +624,41 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
             cc |= c;
             __m256i firstchar = _mm256_set1_epi16(cc);
             
+            i -= 34;
                 //We then scan our string for the first two characters...
-            for (; i >= 0; i -= 32) {
-
-                for (shift = 0; shift < 2; shift++) {
+            while (i >= 0) {
+                for (; i >= 0 && !q; i -= 32) {
+                    for (shift = 1; shift >= 0; shift--) {
                         //we load our section, the length should be larger than 16
-                    s=src + i + shift;
+                        s=src + i + shift;
                         //we read 16 characters at a time, but with a sliding widow
                         //of 15 characters (since we are looking for a double character)
-                    current_bytes = _mm256_loadu_si256((const __m256i *)s);
+                        current_bytes = _mm256_loadu_si256((const __m256i *)s);
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
-                    current_bytes = _mm256_cmpeq_epi16(firstchar, current_bytes);
-                    q = _mm256_movemask_epi8(current_bytes);
-                    if (q) {
-                            //Our character is present, we now try to find where it is...
-                            //we find it in this section...
-                        if (shift == 1) bitscanreverse(j, q); else j = 30;
-                        for (; j != -1; j--) {
-                            if (s[j] == c && (i+j+shift) <= from) {
-                                if (charcomp(s+j,search,lensearch)) {
-                                    return (i + j + shift);
-                                }
-                            }
-                        }
+                        current_bytes = _mm256_cmpeq_epi16(firstchar, current_bytes);
+                        q <<= 1;
+                        q |= _mm256_movemask_epi8(current_bytes);
                     }
+                }
+                
+                if (!q)
+                    break;
+                
+                //We search backward
+                pos = 30; //32-2
+                while (q) {
+                    bitscanreverse(j,q);
+                    if (j) {
+                        pos -= 31-j;
+                        q <<= 31-j;
+                    }
+                    if (lensearch == 2 || s[pos+2] == search[2]) {
+                        if ((i+pos+32) <= from)
+                            return (i+32+pos);
+                    }
+                    q <<= 2;
+                    pos-=2;
                 }
             }
             break;
@@ -626,32 +676,39 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
             }
 
             __m256i firstchar = _mm256_set1_epi32(cc);
-            
+            i -= 36;
                 //We then scan our string for the first two characters...
-            for (; i >= 0; i -= 32) {
-                shift = 0;
+            while (i >= 0) {
+                for (; i >= 0 && !q; i -= 32) {
                     //we load our section, the length should be larger than 16
-                for (shift = 0; shift < 4; shift++) {
-                    s=src + i + shift;
+                    for (shift = 3; shift >= 0; shift--) {
+                        s=src + i + shift;
                         //we read 16 characters at a time, but with a sliding widow
                         //of 15 characters (since we are looking for a double character)
-                    current_bytes = _mm256_loadu_si256((const __m256i *)s);
+                        current_bytes = _mm256_loadu_si256((const __m256i *)s);
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
-                    current_bytes = _mm256_cmpeq_epi32(firstchar, current_bytes);
-                    q = _mm256_movemask_epi8(current_bytes);
-                    if (q) {
-                            //Our character is present, we now try to find where it is...
-                            //we find it in this section...
-                        if (shift == 3) bitscanreverse(j, q); else j = 28;
-                        for (; j != -1; j--) {
-                            if (s[j] == c  && (i+j+shift) <= from) {
-                                if (charcomp(s+j,search,lensearch)) {
-                                    return (i + j + shift);
-                                }
-                            }
-                        }
+                        current_bytes = _mm256_cmpeq_epi32(firstchar, current_bytes);
+                        q <<= 1;
+                        q |= _mm256_movemask_epi8(current_bytes);
                     }
+                }
+                if (!q)
+                    break;
+                
+                pos = 28; //32-4
+                while (q) {
+                    bitscanreverse(j,q);
+                    if (j) {
+                        pos -= 31-j;
+                        q <<= 31-j;
+                    }
+                    if (lensearch == 4 || charcomp(s+pos+3,search+3,lensearch-3)) {
+                        if ((i+pos+32) <= from)
+                            return (i+32+pos);
+                    }
+                    q <<= 4;
+                    pos-=4;
                 }
             }
             break;
@@ -666,37 +723,44 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
             }
 
             __m256i firstchar = _mm256_set1_epi64x(cc);
-            
+            i -= 40;
                 //We then scan our string for the first two characters...
-            for (; i >=0; i -= 32) {
-                shift = 0;
+            while (i >= 0) {
+                for (; i >= 0 && !q; i -= 32) {
                     //we load our section, the length should be larger than 16
-                for (shift = 0; shift < 8; shift++) {
-                    s=src + i + shift;
+                    for (shift = 7; shift >= 0; shift--) {
+                        s=src + i + shift;
                         //we read 16 characters at a time, but with a sliding widow
                         //of 15 characters (since we are looking for a double character)
-                    current_bytes = _mm256_loadu_si256((const __m256i *)s);
+                        current_bytes = _mm256_loadu_si256((const __m256i *)s);
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
-                    current_bytes = _mm256_cmpeq_epi64(firstchar, current_bytes);
-                    q = _mm256_movemask_epi8(current_bytes);
-                    if (q) {
-                            //Our character is present, we now try to find where it is...
-                            //we find it in this section...
-                        if (shift == 7) bitscanreverse(j, q); else j = 24;
-                        for (; j != -1; j--) {
-                            if (s[j] == c  && (i+j+shift) <= from) {
-                                if (charcomp(s+j,search,lensearch)) {
-                                    return (i + j + shift);
-                                }
-                            }
-                        }
+                        current_bytes = _mm256_cmpeq_epi64(firstchar, current_bytes);
+                        q <<= 1;
+                        q |= _mm256_movemask_epi8(current_bytes);
                     }
+                }
+                if (!q)
+                    break;
+                
+                pos = 24; //32-8
+                while (q) {
+                    bitscanreverse(j,q);
+                    if (j) {
+                        pos -= 31-j;
+                        q <<= 31-j;
+                    }
+                    if (lensearch == 8 || charcomp(s+pos+7,search+7,lensearch-7)) {
+                        if ((i+32+pos) <= from)
+                            return (i+32+pos);
+                    }
+                    q <<= 8;
+                    pos -= 8;
                 }
             }
         }
     }
-    
+
     //We did not find anything in a string, which was a multiple of 32
     if (i == -32)
         return -1;
@@ -721,7 +785,7 @@ void find_intel_all(unsigned char* src, long lensrc, string& search, vector<long
 
         //First we try to find the section in which the first character might occur
     __m256i current_bytes = _mm256_setzero_si256();
-
+    long i = 0;
     uchar* s=NULL;
     unsigned long j;
 #ifdef WIN32
@@ -730,7 +794,8 @@ void find_intel_all(unsigned char* src, long lensrc, string& search, vector<long
     uint32_t q = 0;
 #endif
     uchar c = search[0];
-    long i = 0;
+    long p;
+    long lenmx = lensrc-31;
 
     char shift;
 
@@ -739,24 +804,26 @@ void find_intel_all(unsigned char* src, long lensrc, string& search, vector<long
         {
             __m256i firstchar = _mm256_set1_epi8(c);
                 //We then scan our string for this first character...
-            for (; (i + 31) < lensrc; i += 32) {
+            while (i < lenmx) {
+                for (; i < lenmx && !q; i += 32) {
                     //we load our section, the length should be larger than 16
-                s=src+i;
-                current_bytes = _mm256_loadu_si256((const __m256i *)s);
+                    s=src+i;
+                    current_bytes = _mm256_loadu_si256((const __m256i *)s);
                     //we check if we have a the first character of our string somewhere
                     //in this 16 character window...
-                current_bytes = _mm256_cmpeq_epi8(firstchar, current_bytes);
-                q = _mm256_movemask_epi8(current_bytes);
-                if (q) {
-					bitscanforward(j, q);
-                    s += j;
-                    //Our character is present, we now try to find where it is...
-                    //we find it in this section...
-                    for (;j<32; j++) {
-                        if (*s == c)
-                            pos.push_back(i+j);
-                        ++s;
+                    current_bytes = _mm256_cmpeq_epi8(firstchar, current_bytes);
+                    q = _mm256_movemask_epi8(current_bytes);
+                }
+                p = i - 32;
+                while (q) {
+                    bitscanforward(j,q);
+                    if (j) {
+                        p+=j;
+                        q >>= j;
                     }
+                    pos.push_back(p);
+                    q >>= 1;
+                    p++;
                 }
             }
             break;
@@ -770,41 +837,34 @@ void find_intel_all(unsigned char* src, long lensrc, string& search, vector<long
             __m256i firstchar = _mm256_set1_epi16(cc);
             
                 //We then scan our string for the first two characters...
-            for (; (i + 31) < lensrc; i += 32) {
-                
-                for (shift = 0; shift < 2; shift++) {
+            while (i < lenmx) {
+                for (; i < lenmx && !q; i += 32) {
+                    for (shift = 1; shift >= 0; shift--) {
                         //we load our section, the length should be larger than 16
-                    s=src + i + shift;
+                        s=src + i + shift;
                         //we read 16 characters at a time, but with a sliding widow
                         //of 15 characters (since we are looking for a double character)
-                    current_bytes = _mm256_loadu_si256((const __m256i *)s);
+                        current_bytes = _mm256_loadu_si256((const __m256i *)s);
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
-                    current_bytes = _mm256_cmpeq_epi16(firstchar, current_bytes);
-                    q = _mm256_movemask_epi8(current_bytes);
-                    if (q) {
-                            //Our character is present, we now try to find where it is...
-                            //we find it in this section...
-                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
-                        //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 1) {bitscanforward(j,q);s+=j;} else j = 0;
-                        for (; j < 31; j++) {
-                            if (*s == c) {
-                                if (charcomp(s,USTR(search),lensearch)) {
-                                    pos.push_back(i + j + shift);
-									s += lensearch;
-									j += lensearch - 1;
-									continue;
-                                }
-                            }
-                            ++s;
-                        }
-						//We need to re-align our string, if the last character is c...
-						if (!shift && j < 32  && *s == c) {
-							--i;
-						}
-						break;
+                        current_bytes = _mm256_cmpeq_epi16(firstchar, current_bytes);
+                        q <<= 1;
+                        q |= _mm256_movemask_epi8(current_bytes);
                     }
+                }
+                p = i - 32;
+                while (q) {
+                    bitscanforward(j,q);
+                    if (j) {
+                        p+=j;
+                        s+=j;
+                        q >>= j;
+                    }
+                    if (lensearch == 2 || s[2] == search[2])
+                        pos.push_back(p);
+                    q >>= 2;
+                    s+=2;
+                    p+=2;
                 }
             }
             break;
@@ -822,46 +882,37 @@ void find_intel_all(unsigned char* src, long lensrc, string& search, vector<long
             }
 
             __m256i firstchar = _mm256_set1_epi32(cc);
+            uchar* p_search = USTR(search);
             
                 //We then scan our string for the first two characters...
-            for (; (i + 31) < lensrc; i += 32) {
-                shift = 0;
+            while (i < lenmx) {
+                for (; i < lenmx && !q; i += 32) {
                     //we load our section, the length should be larger than 16
-                for (shift = 0; shift < 4; shift++) {
-                    s=src + i + shift;
+                    for (shift = 3; shift >= 0; shift--) {
+                        s=src + i + shift;
                         //we read 16 characters at a time, but with a sliding widow
                         //of 15 characters (since we are looking for a double character)
-                    current_bytes = _mm256_loadu_si256((const __m256i *)s);
+                        current_bytes = _mm256_loadu_si256((const __m256i *)s);
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
-                    current_bytes = _mm256_cmpeq_epi32(firstchar, current_bytes);
-                    q = _mm256_movemask_epi8(current_bytes);
-                    if (q) {
-                            //Our character is present, we now try to find where it is...
-                            //we find it in this section...
-                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
-                        //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 3) {bitscanforward(j,q);s+=j;} else j = 0;
-                        for (; j < 29; j++) {
-                            if (*s == c) {
-                                if (charcomp(s,USTR(search),lensearch)) {
-                                    pos.push_back(i + j + shift);
-									s += lensearch;
-									j += lensearch - 1;
-									continue;
-								}
-                            }
-                            ++s;
-                        }
-						for (; j < 32; j++) {
-							if (*s == c) {
-								i -= 32 - j - shift;
-								break;
-							}
-							++s;
-						}
-						break;
+                        current_bytes = _mm256_cmpeq_epi32(firstchar, current_bytes);
+                        q <<= 1;
+                        q |= _mm256_movemask_epi8(current_bytes);
                     }
+                }
+                p = i - 32;
+                while (q) {
+                    bitscanforward(j,q);
+                    if (j) {
+                        p+=j;
+                        s+=j;
+                        q >>= j;
+                    }
+                    if (lensearch == 4 || charcomp(s+3,p_search+3,lensearch-3))
+                        pos.push_back(p);
+                    q >>= 4;
+                    s+=4;
+                    p+=4;
                 }
             }
             break;
@@ -876,46 +927,37 @@ void find_intel_all(unsigned char* src, long lensrc, string& search, vector<long
             }
             
             __m256i firstchar = _mm256_set1_epi64x(cc);
+            uchar* p_search = USTR(search);
             
                 //We then scan our string for the first two characters...
-            for (; (i + 31) < lensrc; i += 32) {
-                shift = 0;
+            while (i < lenmx) {
+                for (; i < lenmx && !q; i += 32) {
                     //we load our section, the length should be larger than 16
-                for (shift = 0; shift < 8; shift++) {
-                    s=src + i + shift;
+                    for (shift = 7; shift >= 0; shift--) {
+                        s=src + i + shift;
                         //we read 16 characters at a time, but with a sliding widow
                         //of 15 characters (since we are looking for a double character)
-                    current_bytes = _mm256_loadu_si256((const __m256i *)s);
+                        current_bytes = _mm256_loadu_si256((const __m256i *)s);
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
-                    current_bytes = _mm256_cmpeq_epi64(firstchar, current_bytes);
-                    q = _mm256_movemask_epi8(current_bytes);
-                    if (q) {
-                            //Our character is present, we now try to find where it is...
-                            //we find it in this section...
-                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
-                        //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 7) {bitscanforward(j,q);s+=j;} else j = 0;
-                        for (; j < 25; j++) {
-                            if (*s == c) {
-                                if (charcomp(s,USTR(search),lensearch)) {
-                                    pos.push_back(i + j + shift);
-									s += lensearch;
-									j += lensearch - 1;
-									continue;
-								}
-                            }
-                            ++s;
-                        }
-						for (; j < 32; j++) {
-							if (*s == c) {
-								i -= 32 - j - shift;
-								break;
-							}
-							++s;
-						}
-						break;
+                        current_bytes = _mm256_cmpeq_epi64(firstchar, current_bytes);
+                        q <<= 1;
+                        q |= _mm256_movemask_epi8(current_bytes);
                     }
+                }
+                p = i - 32;
+                while (q) {
+                    bitscanforward(j,q);
+                    if (j) {
+                        p+=j;
+                        s+=j;
+                        q >>= j;
+                    }
+                    if (lensearch == 8 || charcomp(s+7,p_search+7,lensearch-7))
+                        pos.push_back(p);
+                    q >>= 8;
+                    s+=8;
+                    p+=8;
                 }
             }
         }
@@ -954,39 +996,40 @@ bool replace_intel_all(string& noe, string& src, string& search, string& replace
     uint32_t q = 0;
 #endif
     long i = 0;
-
+    
     char shift;
     long foundHere;
     long from = 0;
+    long lenmx = lensrc-31;
     
     switch (lensearch) {
         case 1:
         {
             __m256i firstchar = _mm256_set1_epi8(c);
                 //We then scan our string for this first character...
-            for (; (i + 31) < lensrc; i += 32) {
+            while (i < lenmx) {
+                for (; i < lenmx && !q; i += 32) {
                     //we load our section, the length should be larger than 16
-                s=USTR(src)+i;
-                current_bytes = _mm256_loadu_si256((const __m256i *)s);
+                    s=USTR(src)+i;
+                    current_bytes = _mm256_loadu_si256((const __m256i *)s);
                     //we check if we have a the first character of our string somewhere
                     //in this 16 character window...
-                current_bytes = _mm256_cmpeq_epi8(firstchar, current_bytes);
-                q = _mm256_movemask_epi8(current_bytes);
-                if (q) {
-					bitscanforward(j, q);
-                    s += j;
-                    //Our character is present, we now try to find where it is...
-                    //we find it in this section...
-                    for (; j<32; j++) {
-                        if (*s == c) {
-                            foundHere = i + j;
-                            if (from != foundHere)
-                                neo = concatstrings(neo, STR(src)+from, ineo, lenneo, foundHere-from);
-                            neo = concatstrings(neo, STR(replace), ineo, lenneo, replace.size());
-                            from = foundHere+1;
-                        }
-                        ++s;
+                    current_bytes = _mm256_cmpeq_epi8(firstchar, current_bytes);
+                    q = _mm256_movemask_epi8(current_bytes);
+                }
+                foundHere = i - 32;
+                while (q) {
+                    bitscanforward(j,q);
+                    if (j) {
+                        foundHere+=j;
+                        q >>= j;
                     }
+                    if (from != foundHere)
+                        neo = concatstrings(neo, STR(src)+from, ineo, lenneo, foundHere-from);
+                    neo = concatstrings(neo, STR(replace), ineo, lenneo, replace.size());
+                    from = foundHere+lensearch;
+                    q >>= 1;
+                    foundHere++;
                 }
             }
             break;
@@ -999,45 +1042,39 @@ bool replace_intel_all(string& noe, string& src, string& search, string& replace
             cc |= c;
             __m256i firstchar = _mm256_set1_epi16(cc);
             
-                //We then scan our string for the first two characters...
-            for (; (i + 31) < lensrc; i += 32) {
-                
-                for (shift = 0; shift < 2; shift++) {
+            //We then scan our string for the first two characters...
+            while (i < lenmx) {
+                for (; i < lenmx && !q; i += 32) {
+                    for (shift = 1; shift >= 0; shift--) {
                         //we load our section, the length should be larger than 16
-                    s=USTR(src) + i + shift;
+                        s=USTR(src) + i + shift;
                         //we read 16 characters at a time, but with a sliding widow
                         //of 15 characters (since we are looking for a double character)
-                    current_bytes = _mm256_loadu_si256((const __m256i *)s);
+                        current_bytes = _mm256_loadu_si256((const __m256i *)s);
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
-                    current_bytes = _mm256_cmpeq_epi16(firstchar, current_bytes);
-                    q = _mm256_movemask_epi8(current_bytes);
-                    if (q) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
-                        //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 1) {bitscanforward(j,q);s+=j;} else j = 0;
-                        for (; j < 31; j++) {
-                            if (*s == c) {
-                                if (charcomp(s,USTR(search),lensearch)) {
-                                    foundHere = i + j + shift;
-                                    if (from != foundHere)
-                                        neo = concatstrings(neo, STR(src)+from, ineo, lenneo, foundHere-from);
-                                    neo = concatstrings(neo, STR(replace), ineo, lenneo, replace.size());
-                                    from = foundHere+lensearch;
-									s += lensearch;
-									j += lensearch - 1;
-									continue;
-                                }
-                            }
-                            ++s;
-                        }
-						if (!shift && j < 32 && *s == c) {
-							--i;
-						}
-						break;
+                        current_bytes = _mm256_cmpeq_epi16(firstchar, current_bytes);
+                        q <<= 1;
+                        q |= _mm256_movemask_epi8(current_bytes);
                     }
+                }
+                foundHere = i - 32;
+                while (q) {
+                    bitscanforward(j,q);
+                    if (j) {
+                        foundHere+=j;
+                        s+=j;
+                        q >>= j;
+                    }
+                    if (lensearch == 2 || s[2] == search[2]) {
+                        if (from != foundHere)
+                            neo = concatstrings(neo, STR(src)+from, ineo, lenneo, foundHere-from);
+                        neo = concatstrings(neo, STR(replace), ineo, lenneo, replace.size());
+                        from = foundHere+lensearch;
+                    }
+                    q >>= 2;
+                    s+=2;
+                    foundHere+=2;
                 }
             }
             break;
@@ -1055,50 +1092,41 @@ bool replace_intel_all(string& noe, string& src, string& search, string& replace
             }
 
             __m256i firstchar = _mm256_set1_epi32(cc);
+            uchar* p_search = USTR(search);
             
                 //We then scan our string for the first two characters...
-            for (; (i + 31) < lensrc; i += 32) {
-                shift = 0;
+            while (i < lenmx) {
+                for (; i < lenmx && !q; i += 32) {
                     //we load our section, the length should be larger than 16
-                for (shift = 0; shift < 4; shift++) {
-                    s=USTR(src) + i + shift;
+                    for (shift = 3; shift >= 0; shift--) {
+                        s=USTR(src) + i + shift;
                         //we read 16 characters at a time, but with a sliding widow
                         //of 15 characters (since we are looking for a double character)
-                    current_bytes = _mm256_loadu_si256((const __m256i *)s);
+                        current_bytes = _mm256_loadu_si256((const __m256i *)s);
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
-                    current_bytes = _mm256_cmpeq_epi32(firstchar, current_bytes);
-                    q = _mm256_movemask_epi8(current_bytes);
-                    if (q) {
-                            //Our character is present, we now try to find where it is...
-                            //we find it in this section...
-                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
-                        //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 3) {bitscanforward(j,q);s+=j;} else j = 0;
-                        for (; j < 29; j++) {
-                            if (*s == c) {
-                                if (charcomp(s,USTR(search),lensearch)) {
-                                    foundHere = i + j + shift;
-                                    if (from != foundHere)
-                                        neo = concatstrings(neo, STR(src)+from, ineo, lenneo, foundHere-from);
-                                    neo = concatstrings(neo, STR(replace), ineo, lenneo, replace.size());
-                                    from = foundHere+lensearch;
-									s += lensearch;
-									j += lensearch - 1;
-									continue;
-                                }
-                            }
-                            ++s;
-                        }
-						for (; j < 32; j++) {
-							if (*s == c) {
-								i -= 32 - j - shift;
-								break;
-							}
-							++s;
-						}
-						break;
+                        current_bytes = _mm256_cmpeq_epi32(firstchar, current_bytes);
+                        q <<= 1;
+                        q |= _mm256_movemask_epi8(current_bytes);
                     }
+                }
+                foundHere = i-32;
+                while (q) {
+                    bitscanforward(j,q);
+                    if (j) {
+                        foundHere+=j;
+                        s+=j;
+                        q >>= j;
+                    }
+                    if (lensearch == 4 || charcomp(s+3,p_search+3,lensearch-3)) {
+                        if (from != foundHere)
+                            neo = concatstrings(neo, STR(src)+from, ineo, lenneo, foundHere-from);
+                        neo = concatstrings(neo, STR(replace), ineo, lenneo, replace.size());
+                        from = foundHere+lensearch;
+                    }
+                    q >>= 4;
+                    s+=4;
+                    foundHere+=4;
                 }
             }
             break;
@@ -1113,52 +1141,44 @@ bool replace_intel_all(string& noe, string& src, string& search, string& replace
             }
             
             __m256i firstchar = _mm256_set1_epi64x(cc);
-
+            uchar* p_search = USTR(search);
+            
                 //We then scan our string for the first two characters...
-            for (; (i + 31) < lensrc; i += 32) {
-                shift = 0;
+            while (i < lenmx) {
+                for (; i < lenmx && !q; i += 32) {
                     //we load our section, the length should be larger than 16
-                for (shift = 0; shift < 8; shift++) {
-                    s=USTR(src) + i + shift;
+                    for (shift = 7; shift >= 0; shift--) {
+                        s=USTR(src) + i + shift;
                         //we read 16 characters at a time, but with a sliding widow
                         //of 15 characters (since we are looking for a double character)
-                    current_bytes = _mm256_loadu_si256((const __m256i *)s);
+                        current_bytes = _mm256_loadu_si256((const __m256i *)s);
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
-                    current_bytes = _mm256_cmpeq_epi64(firstchar, current_bytes);
-                    q = _mm256_movemask_epi8(current_bytes);
-                    if (q) {
-                            //Our character is present, we now try to find where it is...
-                            //we find it in this section...
-                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
-                        //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 7) {bitscanforward(j,q);s+=j;} else j = 0;
-                        for (; j < 25; j++) {
-                            if (*s == c) {
-                                if (charcomp(s,USTR(search),lensearch)) {
-                                    foundHere = i + j + shift;
-                                    if (from != foundHere)
-                                        neo = concatstrings(neo, STR(src)+from, ineo, lenneo, foundHere-from);
-                                    neo = concatstrings(neo, STR(replace), ineo, lenneo, replace.size());
-                                    from = foundHere+lensearch;
-									s += lensearch;
-									j += lensearch - 1;
-									continue;
-								}
-                            }
-                            ++s;
-                        }
-						for (; j < 32; j++) {
-							if (*s == c) {
-								i -= 32 - j - shift;
-								break;
-							}
-							++s;
-						}
-						break;
+                        current_bytes = _mm256_cmpeq_epi64(firstchar, current_bytes);
+                        q <<= 1;
+                        q |= _mm256_movemask_epi8(current_bytes);
                     }
                 }
+                foundHere = i - 32;
+                while (q) {
+                    bitscanforward(j,q);
+                    if (j) {
+                        foundHere+=j;
+                        s+=j;
+                        q >>= j;
+                    }
+                    if (lensearch == 8 || charcomp(s+7,p_search+7,lensearch-7)) {
+                        if (from != foundHere)
+                            neo = concatstrings(neo, STR(src)+from, ineo, lenneo, foundHere-from);
+                        neo = concatstrings(neo, STR(replace), ineo, lenneo, replace.size());
+                        from = foundHere+lensearch;
+                    }
+                    q >>= 8;
+                    s+=8;
+                    foundHere+=8;
+                }
             }
+            break;
         }
     }
     
@@ -1191,47 +1211,42 @@ bool replace_intel_all(string& noe, string& src, string& search, string& replace
 long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc, long lensearch) {
     if (lensearch > lensrc)
         return 0;
-
-        //First we try to find the section in which the first character might occur
+    
+    //First we try to find the section in which the first character might occur
     __m256i current_bytes = _mm256_setzero_si256();
-
-    uchar* s=src;
-    unsigned long j;
+    
+    unsigned int j;
+#ifdef WIN32
+    unsigned long q = 0;
+#else
+    unsigned int q = 0;
+#endif
     uchar c = search[0];
     long i = 0;
-
-#ifdef WIN32
-	unsigned long q = 0;
-#else
-    uint32_t q = 0;
-#endif
     long counter = 0;
-
+    long lenmx = lensrc-31;
+    
     char shift;
 
     switch (lensearch) {
         case 1:
         {
             __m256i firstchar = _mm256_set1_epi8(c);
-                //We then scan our string for this first character...
-            for (; (i + 31) < lensrc; i += 32) {
+            //We then scan our string for this first character...
+            while (i < lenmx) {
+                for (; i < lenmx && !q; i += 32) {
                     //we load our section, the length should be larger than 16
-                s=src+i;
-                current_bytes = _mm256_loadu_si256((const __m256i *)s);
-                    //we check if we have a the first character of our string somewhere
-                    //in this 16 character window...
-                current_bytes = _mm256_cmpeq_epi8(firstchar, current_bytes);
-                q = _mm256_movemask_epi8(current_bytes);
-                if (q) {
-					bitscanforward(j, q);
-                    s += j;
-                    //Our character is present, we now try to find where it is...
-                    //we find it in this section...
-                    for (; j<32; j++) {
-                        if (*s == c)
-                            counter++;
-                        ++s;
-                    }
+                    current_bytes = _mm256_loadu_si256((const __m256i *)(src+i));
+                    //we check if we have the first character of our string somewhere
+                    //in this 32 characters window...
+                    current_bytes = _mm256_cmpeq_epi8(firstchar, current_bytes);
+                    q = _mm256_movemask_epi8(current_bytes);
+                }
+                while (q) {
+                    bitscanforward(j,q);
+                    counter++;
+                    q >>= j;
+                    q >>= 1;
                 }
             }
             break;
@@ -1243,40 +1258,33 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
             cc <<= 8;
             cc |= c;
             __m256i firstchar = _mm256_set1_epi16(cc);
-            
-                //We then scan our string for the first two characters...
-            for (; (i + 31) < lensrc; i += 32) {
-                
-                for (shift = 0; shift < 2; shift++) {
+            uchar* s = src;
+            //We then scan our string for the first two characters...
+            while (i < lenmx) {
+                for (; i < lenmx && !q; i += 32) {
+                    for (shift = 1; shift >= 0; shift--) {
                         //we load our section, the length should be larger than 16
-                    s=src + i + shift;
+                        s=src + i + shift;
                         //we read 16 characters at a time, but with a sliding widow
                         //of 15 characters (since we are looking for a double character)
-                    current_bytes = _mm256_loadu_si256((const __m256i *)s);
+                        current_bytes = _mm256_loadu_si256((const __m256i *)s);
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
-                    current_bytes = _mm256_cmpeq_epi16(firstchar, current_bytes);
-                    q = _mm256_movemask_epi8(current_bytes);
-                    if (q) {
-                            //Our character is present, we now try to find where it is...
-                            //we find it in this section...
-                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
-                        //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 1) {bitscanforward(j,q);s+=j;} else j = 0;
-                        for (; j< 31; j++) {
-                            if (*s == c) {
-                                if (charcomp(s,search,lensearch)) {
-                                    counter++;
-                                    s += lensearch;
-                                    j += lensearch - 1;
-                                }
-                            }
-                            ++s;
-                        }
-                        if (!shift && j < 32 && *s == c)
-                            --i;
-                        break;
+                        current_bytes = _mm256_cmpeq_epi16(firstchar, current_bytes);
+                        q <<= 1;
+                        q |= _mm256_movemask_epi8(current_bytes);
                     }
+                }
+                while (q) {
+                    bitscanforward(j,q);
+                    if (j) {
+                        s+=j;
+                        q >>= j;
+                    }
+                    if (lensearch == 2 || s[2] == search[2])
+                        counter++;
+                    q >>= 2;
+                    s+=2;
                 }
             }
             break;
@@ -1286,108 +1294,84 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
         case 6:
         case 7:
         {
-                //We look for the presence of four characters in a row
+            //We look for the presence of four characters in a row
             int32_t cc = search[3];
             for (shift = 2; shift >= 0; shift--) {
                 cc <<= 8;
                 cc |= search[shift];
             }
-
+            uchar* s = src;
             __m256i firstchar = _mm256_set1_epi32(cc);
             
-                //We then scan our string for the first two characters...
-            for (; (i + 31) < lensrc; i += 32) {
-                shift = 0;
+            //We then scan our string for the first two characters...
+            while (i < lenmx) {
+                for (; i < lenmx && !q; i += 32) {
                     //we load our section, the length should be larger than 16
-                for (shift = 0; shift < 4; shift++) {
-                    s=src + i + shift;
+                    for (shift = 3; shift >= 0; shift--) {
+                        s=src + i + shift;
                         //we read 16 characters at a time, but with a sliding widow
                         //of 15 characters (since we are looking for a double character)
-                    current_bytes = _mm256_loadu_si256((const __m256i *)s);
+                        current_bytes = _mm256_loadu_si256((const __m256i *)s);
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
-                    current_bytes = _mm256_cmpeq_epi32(firstchar, current_bytes);
-                    q = _mm256_movemask_epi8(current_bytes);
-                    if (q) {
-                            //Our character is present, we now try to find where it is...
-                            //we find it in this section...
-                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
-                        //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 3) {bitscanforward(j,q);s+=j;} else j = 0;
-                        for (; j < 29; j++) {
-                            if (*s == c) {
-                                if (charcomp(s,search,lensearch)) {
-                                    counter++;
-                                    s += lensearch;
-                                    j += lensearch - 1;
-}
-                            }
-                            ++s;
-                        }
-                        for (; j < 32; j++) {
-                            if (*s == c) {
-                                i -= 32 - j - shift;
-                                break;
-                            }
-                            ++s;
-                        }
-                        break;
+                        current_bytes = _mm256_cmpeq_epi32(firstchar, current_bytes);
+                        q <<= 1;
+                        q |= _mm256_movemask_epi8(current_bytes);
                     }
+                }
+                while (q) {
+                    bitscanforward(j,q);
+                    if (j) {
+                        s+=j;
+                        q >>= j;
+                    }
+                    if (lensearch == 4 || charcomp(s+3,search+3,lensearch-3))
+                        counter++;
+                    q >>= 4;
+                    s+=4;
                 }
             }
             break;
         }
         default:
         {
-                //We look for the presence of eight characters in a row
+            //We look for the presence of eight characters in a row
             int64_t cc = search[7];
             for (shift = 6; shift >= 0; shift--) {
                 cc <<= 8;
                 cc |= search[shift];
             }
-            
+            uchar* s = src;
             __m256i firstchar = _mm256_set1_epi64x(cc);
             
-                //We then scan our string for the first two characters...
-            for (; (i + 31) < lensrc; i += 32) {
-                shift = 0;
+            //We then scan our string for the first two characters...
+            while (i < lenmx) {
+                for (; i < lenmx && !q; i += 32) {
                     //we load our section, the length should be larger than 16
-                for (shift = 0; shift < 8; shift++) {
-                    s=src + i + shift;
-                        //we read 16 characters at a time, but with a sliding widow
+                    for (shift = 7; shift >= 0; shift--) {
+                        s=src + i + shift;
+                        //we read 16 characters at a time, but with a sliding window
                         //of 15 characters (since we are looking for a double character)
-                    current_bytes = _mm256_loadu_si256((const __m256i *)s);
+                        current_bytes = _mm256_loadu_si256((const __m256i *)s);
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
-                    current_bytes = _mm256_cmpeq_epi64(firstchar, current_bytes);
-                    q = _mm256_movemask_epi8(current_bytes);
-                    if (q) {
-                            //Our character is present, we now try to find where it is...
-                            //we find it in this section...
-                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
-                        //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 7) {bitscanforward(j,q);s+=j;} else j = 0;
-                        for (; j < 25; j++) {
-                            if (*s == c) {
-                                if (charcomp(s,search,lensearch)) {
-                                    counter++;
-                                    s += lensearch;
-                                    j += lensearch - 1;
-                                }
-                            }
-                            ++s;
-                        }
-                        for (; j < 32; j++) {
-                            if (*s == c) {
-                                i -= 32 - j - shift;
-                                break;
-                            }
-                            ++s;
-                        }
-                        break;
+                        current_bytes = _mm256_cmpeq_epi64(firstchar, current_bytes);
+                        q <<= 1;
+                        q |= _mm256_movemask_epi8(current_bytes);
                     }
                 }
-            }            
+                while (q) {
+                    bitscanforward(j,q);
+                    if (j) {
+                        s+=j;
+                        q >>= j;
+                    }
+                    if (lensearch == 8 || charcomp(s+7,search+7,lensearch-7))
+                        counter++;
+                    q >>= 8;
+                    s+=8;
+                }
+            }
         }
     }
     
@@ -2333,25 +2317,28 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
     uchar c = search[0];
     char shift;
     int q;
+    long pos;
     
     switch (lensearch) {
         case 1:
         {
             __m128i firstchar = _mm_set1_epi8(c);
                 //We then scan our string for this first character...
-            for (; (i + 15) < lensrc; i += 16) {
+            while (i < lenmx) {
+                for (; i < lenmx && !q; i += 16) {
                     //we load our section, the length should be larger than 16
-                s=src+i;
-                current_bytes = _mm_loadu_si128((const __m128i *)s);
+                    s=src+i;
+                    current_bytes = _mm_loadu_si128((const __m128i *)s);
                     //we check if we have a the first character of our string somewhere
                     //in this 16 character window...
-                current_bytes = _mm_cmpeq_epi8(firstchar, current_bytes);
-                q = _mm_movemask_epi8(current_bytes);
+                    current_bytes = _mm_cmpeq_epi8(firstchar, current_bytes);
+                    q = _mm_movemask_epi8(current_bytes);
+                }
                 if (q) {
                     //Our character is present, we now try to find where it is...
                     //we find it in this section...
                     bitscanforward(j,q);
-                    return (i+j);
+                    return (i+j-16);
                 }
             }
             break;
@@ -2365,31 +2352,41 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
             __m128i firstchar = _mm_set1_epi16(cc);
             
                 //We then scan our string for the first two characters...
-            for (; (i + 15) < lensrc; i += 16) {
-                for (shift = 0; shift < 2; shift++) {
+            while (i < lenmx) {
+                for (; i < lenmx && !q; i += 16) {
+                    for (shift = 1; shift >= 0; shift--) {
                         //we load our section, the length should be larger than 16
-                    s=src + i + shift;
+                        s=src + i + shift;
                         //we read 16 characters at a time, but with a sliding widow
                         //of 15 characters (since we are looking for a double character)
-                    current_bytes = _mm_loadu_si128((const __m128i *)s);
+                        current_bytes = _mm_loadu_si128((const __m128i *)s);
                         //we check if we have the first character of our string somewhere
                         //in this 16 character window...
-                    current_bytes = _mm_cmpeq_epi16(firstchar, current_bytes);
-                    q = _mm_movemask_epi8(current_bytes);
-                    if (q) {
-                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
-                        //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 1) {bitscanforward(j,q);s+=j;} else j = 0;
-                        for (; j < 15; j++) {
-                            if (*s == c) {
-                                if (charcomp(s,search,lensearch)) {
-                                    return (i + j + shift);
-                                }
-                            }
-                            ++s;
-                        }
-                        break;
+                        current_bytes = _mm_cmpeq_epi16(firstchar, current_bytes);
+                        q <<= 1;
+                        q |= _mm_movemask_epi8(current_bytes);
                     }
+                }
+                if (!q)
+                    continue;
+
+                if (lensearch == 2) {
+                    bitscanforward(j,q);
+                    return (i+j-16);
+                }
+                pos = i-16;
+                while (q) {
+                    bitscanforward(j,q);
+                    if (j) {
+                        pos+=j;
+                        s+=j;
+                        q >>= j;
+                    }
+                    if (s[2] == search[2])
+                        return (pos);
+                    q >>= 2;
+                    s+=2;
+                    pos+=2;
                 }
             }
             break;
@@ -2405,32 +2402,41 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
             __m128i firstchar = _mm_set1_epi32(cc);
             
                 //We then scan our string for the first two characters...
-            for (; (i + 15) < lensrc; i += 16) {
-                shift = 0;
+            while (i < lenmx) {
+                for (; i < lenmx && !q; i += 16) {
                     //we load our section, the length should be larger than 16
-                for (shift = 0; shift < 4; shift++) {
-                    s=src+i+shift;
+                    for (shift = 3; shift >=0; shift--) {
+                        s=src+i+shift;
                         //we read 16 characters at a time, but with a sliding widow
                         //of 15 characters (since we are looking for a double character)
-                    current_bytes = _mm_loadu_si128((const __m128i *)s);
+                        current_bytes = _mm_loadu_si128((const __m128i *)s);
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
-                    current_bytes = _mm_cmpeq_epi32(firstchar, current_bytes);
-                    q = _mm_movemask_epi8(current_bytes);
-                    if (q) {
-                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
-                        //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 3) {bitscanforward(j,q);s+=j;} else j = 0;
-                        for (; j < 13; j++) {
-                            if (*s == c) {
-                                if (charcomp(s,search,lensearch)) {
-                                    return (i + j + shift);
-                                }
-                            }
-                            ++s;
-                        }
-                        break;
+                        current_bytes = _mm_cmpeq_epi32(firstchar, current_bytes);
+                        q <<= 1;
+                        q |= _mm_movemask_epi8(current_bytes);
                     }
+                }
+                if (!q)
+                    continue;
+                
+                if (lensearch == 4) {
+                    bitscanforward(j,q);
+                    return (i+j-16);
+                }
+                pos = i-16;
+                while (q) {
+                    bitscanforward(j,q);
+                    if (j) {
+                        pos+=j;
+                        s+=j;
+                        q >>= j;
+                    }
+                    if (charcomp(s+3,search+3,lensearch-3))
+                        return (pos);
+                    q >>= 4;
+                    s+=4;
+                    pos+=4;
                 }
             }
         }
@@ -2459,29 +2465,39 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
     char shift;
     int q;
 
+    long pos;
+    
     long i = from;
-    if (i >= 16)
-        i -= 16;
     
     switch (lensearch) {
         case 1:
         {
             __m128i firstchar = _mm_set1_epi8(c);
                 //We then scan our string for this first character...
-            for (; i >= 0; i -= 16) {
+            i -= 16;
+            while (i >= 0) {
+                for (; i >= 0 && !q; i -= 16) {
                     //we load our section, the length should be larger than 16
-                s=src+i;
-                current_bytes = _mm_loadu_si128((const __m128i *)s);
-                //we check if we have a the first character of our string somewhere
-                //in this 16 character window...
-                current_bytes = _mm_cmpeq_epi8(firstchar, current_bytes);
-                q = _mm_movemask_epi8(current_bytes);
-                if (q) {
-                    //Our character is present, we now try to find where it is...
-                        //we find it in this section...
+                    s=src+i;
+                    current_bytes = _mm_loadu_si128((const __m128i *)s);
+                    //we check if we have a the first character of our string somewhere
+                    //in this 16 character window...
+                    current_bytes = _mm_cmpeq_epi8(firstchar, current_bytes);
+                    q = _mm_movemask_epi8(current_bytes);
+                }
+                if (!q)
+                    break;
+                pos = 15; //16-1
+                while (q) {
                     bitscanreverse(j,q);
-                    if ((i+j) <= from)
-                        return (i+j);
+                    if (j) {
+                        pos -= 15-j;
+                        q <<= 15-j;
+                    }
+                    if ((i+pos+16) <= from)
+                        return (i+pos+16);
+                    q <<= 1;
+                    pos--;
                 }
             }
             break;
@@ -2495,28 +2511,38 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
             __m128i firstchar = _mm_set1_epi16(cc);
             
                 //We then scan our string for the first two characters...
-            for (; i >= 0; i -= 16) {
-                for (shift = 0; shift < 2; shift++) {
+            i -= 18;
+            while (i >= 0) {
+                for (; i >= 0 && !q; i -= 16) {
+                    for (shift = 1; shift >= 0; shift--) {
                         //we load our section, the length should be larger than 16
-                    s=src + i + shift;
+                        s=src + i + shift;
                         //we read 16 characters at a time, but with a sliding widow
                         //of 15 characters (since we are looking for a double character)
-                    current_bytes = _mm_loadu_si128((const __m128i *)s);
+                        current_bytes = _mm_loadu_si128((const __m128i *)s);
                         //we check if we have the first character of our string somewhere
                         //in this 16 character window...
-                    current_bytes = _mm_cmpeq_epi16(firstchar, current_bytes);
-                    q = _mm_movemask_epi8(current_bytes);
-                    if (q) {
-                        if (shift == 1) bitscanreverse(j,q); else j = 14;
-                        for (; j>=0; j--) {
-                            if (s[j] == c && (i+j+shift) <= from) {
-                                if (charcomp(s+j,search,lensearch)) {
-                                    return (i + j + shift);
-                                }
-                            }
-                        }
-                        break;
+                        current_bytes = _mm_cmpeq_epi16(firstchar, current_bytes);
+                        q <<= 1;
+                        q |= _mm_movemask_epi8(current_bytes);
                     }
+                }
+                if (!q)
+                    break;
+                //We search backward
+                pos = 14; //16-2
+                while (q) {
+                    bitscanreverse(j,q);
+                    if (j) {
+                        pos -= 15-j;
+                        q <<= 15-j;
+                    }
+                    if (lensearch == 2 || s[pos+2] == search[2]) {
+                        if ((i+pos+16) <= from)
+                            return (i+pos+16);
+                    }
+                    q <<= 2;
+                    pos-=2;
                 }
             }
             break;
@@ -2528,37 +2554,47 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
                 cc <<= 8;
                 cc |= search[shift];
             }
-
+            
             __m128i firstchar = _mm_set1_epi32(cc);
             
-                //We then scan our string for the first two characters...
-            for (; i >= 0; i -= 16) {
-                shift = 0;
+            //We then scan our string for the first two characters...
+            i -= 20;
+            while (i >= 0) {
+                for (; i >= 0 && !q; i -= 16) {
                     //we load our section, the length should be larger than 16
-                for (shift = 0; shift < 4; shift++) {
-                    s=src+i+shift;
+                    for (shift = 3; shift >=0; shift--) {
+                        s=src+i+shift;
                         //we read 16 characters at a time, but with a sliding widow
                         //of 15 characters (since we are looking for a double character)
-                    current_bytes = _mm_loadu_si128((const __m128i *)s);
+                        current_bytes = _mm_loadu_si128((const __m128i *)s);
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
-                    current_bytes = _mm_cmpeq_epi32(firstchar, current_bytes);
-                    q = _mm_movemask_epi8(current_bytes);
-                    if (q) {
-                        if (shift == 1) bitscanreverse(j,q); else j = 12;
-                        for (; j>=0; j--) {
-                            if (s[j] == c && (i+j+shift) <= from) {
-                                if (charcomp(s+j,search,lensearch)) {
-                                    return (i + j + shift);
-                                }
-                            }
-                        }
+                        current_bytes = _mm_cmpeq_epi32(firstchar, current_bytes);
+                        q <<= 1;
+                        q |= _mm_movemask_epi8(current_bytes);
                     }
+                }
+                if (!q)
+                    break;
+                
+                pos = 12; //16-4
+                while (q) {
+                    bitscanreverse(j,q);
+                    if (j) {
+                        pos -= 15-j;
+                        q <<= 15-j;
+                    }
+                    if (lensearch == 4 || charcomp(s+pos+3,search+3,lensearch-3)) {
+                        if ((i+pos+16) <= from)
+                            return (i+pos+16);
+                    }
+                    q <<= 4;
+                    pos-=4;
                 }
             }
         }
     }
-    
+
     if (i == -16)
         return -1;
     
@@ -2582,37 +2618,42 @@ void find_intel_all(uchar* src, long lensrc,  string& search, vector<long>& pos)
 
         //First we try to find the section in which the first character might occur
     __m128i current_bytes = _mm_setzero_si128();
-
+    long i = 0;
     int q;
     uchar* s=NULL;
     long j;
-    long i = 0;
     uchar c = search[0];
     char shift;
+    long p;
     
     switch (lensearch) {
         case 1:
         {
             __m128i firstchar = _mm_set1_epi8(c);
                 //We then scan our string for this first character...
-            for (; (i + 15) < lensrc; i += 16) {
+            while (i < lenmx) {
+                for (; i < lenmx && !q; i += 16) {
                     //we load our section, the length should be larger than 16
-                s=src+i;
-                current_bytes = _mm_loadu_si128((const __m128i *)s);
+                    s=src+i;
+                    current_bytes = _mm_loadu_si128((const __m128i *)s);
                     //we check if we have a the first character of our string somewhere
                     //in this 16 character window...
-                current_bytes = _mm_cmpeq_epi8(firstchar, current_bytes);
-                q = _mm_movemask_epi8(current_bytes);
-                if (q) {
-                    //Our character is present, we now try to find where it is...
-                    //we find it in this section...
+                    current_bytes = _mm_cmpeq_epi8(firstchar, current_bytes);
+                    q = _mm_movemask_epi8(current_bytes);
+                }
+                if (!q)
+                    break;
+                
+                p = i-16;
+                while (q) {
                     bitscanforward(j,q);
-                    s += j;
-                    for (; j < 16; j++) {
-                        if (*s == c)
-                            pos.push_back(i+j);
-                        ++s;
+                    if (j) {
+                        p+=j;
+                        q >>= j;
                     }
+                    pos.push_back(p);
+                    q >>= 1;
+                    p++;
                 }
             }
             break;
@@ -2626,37 +2667,34 @@ void find_intel_all(uchar* src, long lensrc,  string& search, vector<long>& pos)
             __m128i firstchar = _mm_set1_epi16(cc);
             
                 //We then scan our string for the first two characters...
-            for (; (i + 15) < lensrc; i += 16) {
-                for (shift = 0; shift < 2; shift++) {
+            while (i < lenmx) {
+                for (; i < lenmx && !q; i += 16) {
+                    for (shift = 1; shift >= 0; shift--) {
                         //we load our section, the length should be larger than 16
-                    s=src + i + shift;
+                        s=src + i + shift;
                         //we read 16 characters at a time, but with a sliding widow
                         //of 15 characters (since we are looking for a double character)
-                    current_bytes = _mm_loadu_si128((const __m128i *)s);
+                        current_bytes = _mm_loadu_si128((const __m128i *)s);
                         //we check if we have the first character of our string somewhere
                         //in this 16 character window...
-                    current_bytes = _mm_cmpeq_epi16(firstchar, current_bytes);
-                    q = _mm_movemask_epi8(current_bytes);
-                    if (q) {
-                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
-                        //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 1) {bitscanforward(j,q);s+=j;} else j = 0;
-                        for (; j < 15; j++) {
-                            if (*s == c) {
-								if (charcomp(s,USTR(search),lensearch)) {
-									pos.push_back(i + j + shift);
-									s += lensearch;
-									j += lensearch - 1;
-									continue;
-								}
-                            }
-                            ++s;
-                        }
-						if (!shift && j < 16  && *s == c) {
-							--i;
-						}
-						break;
+                        current_bytes = _mm_cmpeq_epi16(firstchar, current_bytes);
+                        q <<= 1;
+                        q |= _mm_movemask_epi8(current_bytes);
                     }
+                }
+                p = i - 16;
+                while (q) {
+                    bitscanforward(j,q);
+                    if (j) {
+                        p+=j;
+                        s+=j;
+                        q >>= j;
+                    }
+                    if (lensearch == 2 || s[2] == search[2])
+                        pos.push_back(p);
+                    q >>= 2;
+                    s+=2;
+                    p+=2;
                 }
             }
             break;
@@ -2670,44 +2708,38 @@ void find_intel_all(uchar* src, long lensrc,  string& search, vector<long>& pos)
             }
 
             __m128i firstchar = _mm_set1_epi32(cc);
+            uchar* p_search = USTR(search);
             
                 //We then scan our string for the first two characters...
-            for (; (i + 15) < lensrc; i += 16) {
-                shift = 0;
+            while (i < lenmx) {
+                for (; i < lenmx && !q; i += 16) {
                     //we load our section, the length should be larger than 16
-                for (shift = 0; shift < 4; shift++) {
-                    s=src+i+shift;
+                    //we load our section, the length should be larger than 16
+                    for (shift = 3; shift >=0; shift--) {
+                        s=src+i+shift;
                         //we read 16 characters at a time, but with a sliding widow
                         //of 15 characters (since we are looking for a double character)
-                    current_bytes = _mm_loadu_si128((const __m128i *)s);
+                        current_bytes = _mm_loadu_si128((const __m128i *)s);
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
-                    current_bytes = _mm_cmpeq_epi32(firstchar, current_bytes);
-                    q = _mm_movemask_epi8(current_bytes);
-                    if (q) {
-                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
-                        //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 3) {bitscanforward(j,q);s+=j;} else j = 0;
-                        for (; j < 13; j++) {
-                            if (*s == c) {
-                                if (charcomp(s,USTR(search),lensearch)) {
-                                    pos.push_back(i + j + shift);
-									s += lensearch;
-									j += lensearch - 1;
-									continue;
-                                }
-                            }
-                            ++s;
-                        }
-						for (; j < 16; j++) {
-							if (*s == c) {
-								i -= 16 - j - shift;
-								break;
-							}
-							++s;
-						}
-						break;
+                        current_bytes = _mm_cmpeq_epi32(firstchar, current_bytes);
+                        q <<= 1;
+                        q |= _mm_movemask_epi8(current_bytes);
                     }
+                }
+                p = i - 16;
+                while (q) {
+                    bitscanforward(j,q);
+                    if (j) {
+                        p+=j;
+                        s+=j;
+                        q >>= j;
+                    }
+                    if (lensearch == 4 || charcomp(s+3,p_search+3,lensearch-3))
+                        pos.push_back(p);
+                    q >>= 4;
+                    s+=4;
+                    p+=4;
                 }
             }
         }
@@ -2752,31 +2784,29 @@ bool replace_intel_all(string& noe, string& src, string& search, string& replace
         {
             __m128i firstchar = _mm_set1_epi8(c);
                 //We then scan our string for this first character...
-            for (; (i + 15) < lensrc; i += 16) {
+            while (i < lenmx) {
+                for (; i < lenmx && !q; i += 16) {
                     //we load our section, the length should be larger than 16
-                s=USTR(src)+i;
-                current_bytes = _mm_loadu_si128((const __m128i *)s);
+                    s=USTR(src)+i;
+                    current_bytes = _mm_loadu_si128((const __m128i *)s);
                     //we check if we have a the first character of our string somewhere
                     //in this 16 character window...
-                current_bytes = _mm_cmpeq_epi8(firstchar, current_bytes);
-                q = _mm_movemask_epi8(current_bytes);
-                if (q) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
+                    current_bytes = _mm_cmpeq_epi8(firstchar, current_bytes);
+                    q = _mm_movemask_epi8(current_bytes);
+                }
+                foundHere = i - 16;
+                while (q) {
                     bitscanforward(j,q);
-                    s += j;
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (; j<32; j++) {
-                        if (*s == c) {
-                            foundHere = i + j;
-                            if (from != foundHere)
-                                neo = concatstrings(neo, STR(src)+from, ineo, lenneo, foundHere-from);
-                            neo = concatstrings(neo, STR(replace), ineo, lenneo, replace.size());
-                            from = foundHere+1;
-                        }
-                        ++s;
+                    if (j) {
+                        foundHere+=j;
+                        q >>= j;
                     }
+                    if (from != foundHere)
+                        neo = concatstrings(neo, STR(src)+from, ineo, lenneo, foundHere-from);
+                    neo = concatstrings(neo, STR(replace), ineo, lenneo, replace.size());
+                    from = foundHere+lensearch;
+                    q >>= 1;
+                    foundHere++;
                 }
             }
             break;
@@ -2788,43 +2818,41 @@ bool replace_intel_all(string& noe, string& src, string& search, string& replace
             cc <<= 8;
             cc |= c;
             __m128i firstchar = _mm_set1_epi16(cc);
+            uchar* p_src = USTR(src);
             
-                //We then scan our string for the first two characters...
-            for (; (i + 15) < lensrc; i += 16) {
-                for (shift = 0; shift < 2; shift++) {
+            //We then scan our string for the first two characters...
+            while (i < lenmx) {
+                for (; i < lenmx && !q; i += 16) {
+                    for (shift = 1; shift >= 0; shift--) {
                         //we load our section, the length should be larger than 16
-                    s=USTR(src) + i + shift;
+                        s= p_src + i + shift;
                         //we read 16 characters at a time, but with a sliding widow
                         //of 15 characters (since we are looking for a double character)
-                    current_bytes = _mm_loadu_si128((const __m128i *)s);
+                        current_bytes = _mm_loadu_si128((const __m128i *)s);
                         //we check if we have the first character of our string somewhere
                         //in this 16 character window...
-                    current_bytes = _mm_cmpeq_epi16(firstchar, current_bytes);
-                    q = _mm_movemask_epi8(current_bytes);
-                    if (q) {
-                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
-                        //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 1) {bitscanforward(j,q);s+=j;} else j = 0;
-                        for (; j < 15; j++) {
-                            if (*s == c) {
-                                if (charcomp(s,USTR(search),lensearch)) {
-                                    foundHere = i + j + shift;
-                                    if (from != foundHere)
-                                        neo = concatstrings(neo, STR(src)+from, ineo, lenneo, foundHere-from);
-                                    neo = concatstrings(neo, STR(replace), ineo, lenneo, replace.size());
-                                    from = foundHere+lensearch;
-									s += lensearch;
-									j += lensearch - 1;
-									continue;
-                                }
-                            }
-                            ++s;
-                        }
-						if (!shift && j < 16  && *s == c) {
-							--i;
-						}
-						break;
+                        current_bytes = _mm_cmpeq_epi16(firstchar, current_bytes);
+                        q <<= 1;
+                        q |= _mm_movemask_epi8(current_bytes);
                     }
+                }
+                foundHere = i - 16;
+                while (q) {
+                    bitscanforward(j,q);
+                    if (j) {
+                        foundHere+=j;
+                        s+=j;
+                        q >>= j;
+                    }
+                    if (lensearch == 2 || s[2] == search[2]) {
+                        if (from != foundHere)
+                            neo = concatstrings(neo, STR(src)+from, ineo, lenneo, foundHere-from);
+                        neo = concatstrings(neo, STR(replace), ineo, lenneo, replace.size());
+                        from = foundHere+lensearch;
+                    }
+                    q >>= 2;
+                    s+=2;
+                    foundHere+=2;
                 }
             }
             break;
@@ -2836,50 +2864,43 @@ bool replace_intel_all(string& noe, string& src, string& search, string& replace
                 cc <<= 8;
                 cc |= search[shift];
             }
-
-            __m128i firstchar = _mm_set1_epi32(cc);
             
-                //We then scan our string for the first two characters...
-            for (; (i + 15) < lensrc; i += 16) {
-                shift = 0;
+            __m128i firstchar = _mm_set1_epi32(cc);
+            uchar* p_src = USTR(src);
+            uchar* p_search = USTR(search);
+            //We then scan our string for the first two characters...
+            while (i < lenmx) {
+                for (; i < lenmx && !q; i += 16) {
                     //we load our section, the length should be larger than 16
-                for (shift = 0; shift < 4; shift++) {
-                    s=USTR(src)+i+shift;
+                    for (shift = 3; shift >=0; shift--) {
+                        s= p_src+i+shift;
                         //we read 16 characters at a time, but with a sliding widow
                         //of 15 characters (since we are looking for a double character)
-                    current_bytes = _mm_loadu_si128((const __m128i *)s);
+                        current_bytes = _mm_loadu_si128((const __m128i *)s);
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
-                    current_bytes = _mm_cmpeq_epi32(firstchar, current_bytes);
-                    q = _mm_movemask_epi8(current_bytes);
-                    if (q) {
-                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
-                        //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 3) {bitscanforward(j,q);s+=j;} else j = 0;
-                        for (; j < 13; j++) {
-                            if (*s == c) {
-                                if (charcomp(s,USTR(search),lensearch)) {
-                                    foundHere = i + j + shift;
-                                    if (from != foundHere)
-                                        neo = concatstrings(neo, STR(src)+from, ineo, lenneo, foundHere-from);
-                                    neo = concatstrings(neo, STR(replace), ineo, lenneo, replace.size());
-                                    from = foundHere+lensearch;
-									s += lensearch;
-									j += lensearch - 1;
-									continue;
-                                }
-                            }
-                            ++s;
-                        }
-						for (; j < 16; j++) {
-							if (*s == c) {
-								i -= 16 - j - shift;
-								break;
-							}
-							++s;
-						}
-						break;
+                        current_bytes = _mm_cmpeq_epi32(firstchar, current_bytes);
+                        q <<= 1;
+                        q |= _mm_movemask_epi8(current_bytes);
                     }
+                }
+                foundHere = i - 16;
+                while (q) {
+                    bitscanforward(j,q);
+                    if (j) {
+                        foundHere+=j;
+                        s+=j;
+                        q >>= j;
+                    }
+                    if (lensearch == 4 || charcomp(s+3,p_search+3,lensearch-3)) {
+                        if (from != foundHere)
+                            neo = concatstrings(neo, STR(src)+from, ineo, lenneo, foundHere-from);
+                        neo = concatstrings(neo, STR(replace), ineo, lenneo, replace.size());
+                        from = foundHere+lensearch;
+                    }
+                    q >>= 4;
+                    s+=4;
+                    foundHere+=4;
                 }
             }
         }
@@ -2932,28 +2953,22 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
         {
             __m128i firstchar = _mm_set1_epi8(c);
                 //We then scan our string for this first character...
-            for (; (i + 15) < lensrc; i += 16) {
+            while (i < lenmx) {
+                for (; i < lenmx && !q; i += 16) {
                     //we load our section, the length should be larger than 16
-                s=src+i;
-                current_bytes = _mm_loadu_si128((const __m128i *)s);
+                    s=src+i;
+                    current_bytes = _mm_loadu_si128((const __m128i *)s);
                     //we check if we have a the first character of our string somewhere
                     //in this 16 character window...
-                current_bytes = _mm_cmpeq_epi8(firstchar, current_bytes);
-                q = _mm_movemask_epi8(current_bytes);
-                if (q) {
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
+                    current_bytes = _mm_cmpeq_epi8(firstchar, current_bytes);
+                    q = _mm_movemask_epi8(current_bytes);
+                }
+                while (q) {
                     bitscanforward(j,q);
-                    s += j;
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                        //Our character is present, we now try to find where it is...
-                        //we find it in this section...
-                    for (; j < 16; j++) {
-                        if (*s == c)
-                            counter++;
-                        ++s;
-                    }
+                    counter++;
+                    if (j)
+                        q >>= j;
+                    q >>= 1;
                 }
             }
             break;
@@ -2966,38 +2981,32 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
             cc |= c;
             __m128i firstchar = _mm_set1_epi16(cc);
             
-                //We then scan our string for the first two characters...
-            for (; (i + 15) < lensrc; i += 16) {
-                for (shift = 0; shift < 2; shift++) {
+            //We then scan our string for the first two characters...
+            while (i < lenmx) {
+                for (; i < lenmx && !q; i += 16) {
+                    for (shift = 1; shift >= 0; shift--) {
                         //we load our section, the length should be larger than 16
-                    s=src + i + shift;
+                        s=src + i + shift;
                         //we read 16 characters at a time, but with a sliding widow
                         //of 15 characters (since we are looking for a double character)
-                    current_bytes = _mm_loadu_si128((const __m128i *)s);
+                        current_bytes = _mm_loadu_si128((const __m128i *)s);
                         //we check if we have the first character of our string somewhere
                         //in this 16 character window...
-                    current_bytes = _mm_cmpeq_epi16(firstchar, current_bytes);
-                    q = _mm_movemask_epi8(current_bytes);
-                    if (q) {
-                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
-                        //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 1) {bitscanforward(j,q);s+=j;} else j = 0;
-                        for (; j < 15; j++) {
-                            if (*s == c) {
-                                if (charcomp(s,search,lensearch)) {
-                                    counter++;
-									s += lensearch;
-									j += lensearch - 1;
-									continue;
-                                }
-                            }
-                            ++s;
-                        }
-						if (!shift && j < 16  && *s == c) {
-							--i;
-						}
-						break;
+                        current_bytes = _mm_cmpeq_epi16(firstchar, current_bytes);
+                        q <<= 1;
+                        q |= _mm_movemask_epi8(current_bytes);
                     }
+                }
+                while (q) {
+                    bitscanforward(j,q);
+                    if (j) {
+                        s+=j;
+                        q >>= j;
+                    }
+                    if (lensearch == 2 || s[2] == search[2])
+                        counter++;
+                    q >>= 2;
+                    s+=2;
                 }
             }
             break;
@@ -3009,51 +3018,40 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
                 cc <<= 8;
                 cc |= search[shift];
             }
-
+            
             __m128i firstchar = _mm_set1_epi32(cc);
             
-                //We then scan our string for the first two characters...
-            for (; (i + 15) < lensrc; i += 16) {
-                shift = 0;
+            //We then scan our string for the first two characters...
+            while (i < lenmx) {
+                for (; i < lenmx && !q; i += 16) {
                     //we load our section, the length should be larger than 16
-                for (shift = 0; shift < 4; shift++) {
-                    s=src+i+shift;
+                    for (shift = 3; shift >=0; shift--) {
+                        s=src+i+shift;
                         //we read 16 characters at a time, but with a sliding widow
                         //of 15 characters (since we are looking for a double character)
-                    current_bytes = _mm_loadu_si128((const __m128i *)s);
+                        current_bytes = _mm_loadu_si128((const __m128i *)s);
                         //we check if we have a the first character of our string somewhere
                         //in this 16 character window...
-                    current_bytes = _mm_cmpeq_epi32(firstchar, current_bytes);
-                    q = _mm_movemask_epi8(current_bytes);
-                    if (q) {
-                        //When shift is maximal then there cannot be alignement problems, we can use bitscanforward
-                        //otherwise, we might loose a substring present before but with a different alignement with shift
-                        if (shift == 3) {bitscanforward(j,q);s+=j;} else j = 0;
-                        for (; j < 13; j++) {
-                            if (*s == c) {
-                                if (charcomp(s,search,lensearch)) {
-                                    counter++;
-									s += lensearch;
-									j += lensearch - 1;
-									continue;
-                                }
-                            }
-                            ++s;
-                        }
-						for (; j < 16; j++) {
-							if (*s == c) {
-								i -= 16 - j - shift;
-								break;
-							}
-							++s;
-						}
-						break;
+                        current_bytes = _mm_cmpeq_epi32(firstchar, current_bytes);
+                        q <<= 1;
+                        q |= _mm_movemask_epi8(current_bytes);
                     }
+                }
+                while (q) {
+                    bitscanforward(j,q);
+                    if (j) {
+                        s+=j;
+                        q >>= j;
+                    }
+                    if (lensearch == 4 || charcomp(s+3,search+3,lensearch-3))
+                        counter++;
+                    q >>= 4;
+                    s+=4;
                 }
             }
         }
     }
-
+    
     lensrc-=lensearch;
     for (;i<=lensrc;i++) {
         if (src[i] == c) {
@@ -12132,8 +12130,12 @@ Exporting long s_rfindbyte(uchar* s, long sz, string& substr, long i) {
 Exporting long s_findbyte(string& s, string& substr, long i) {
 #ifdef INTELINTRINSICS
     long sz = s.size();
-    if ((sz-i) >= thestringincrement)
+    if ((sz-i) >= thestringincrement) {
+        i = s.find_first_of(substr[0], i);
+        if (i == -1)
+            return -1;
         return find_intel_byte(USTR(s), USTR(substr), sz, substr.size(), i);
+    }
 #endif
     return s.find(substr,i);
 }
@@ -12155,13 +12157,21 @@ Exporting long s_find(string& s, string& substr, long i) {
     long sz = s.size();
     if ((sz-i) >= thestringincrement) {
         long firstutf8 = 0;
-        if (check_ascii(USTR(s), s.size(), firstutf8))
+        if (check_ascii(USTR(s), s.size(), firstutf8)) {
+            i = s.find_first_of(substr[0], i);
+            if (i == -1)
+                return -1;
             return find_intel_byte(USTR(s), USTR(substr), sz, substr.size(), i);
+        }
         
         
         if (i > firstutf8)
             i = firstutf8 + c_chartobyteposition(USTR(s)+firstutf8, i - firstutf8);
         
+        i = s.find_first_of(substr[0], i);
+        if (i == -1)
+            return -1;
+
         i = find_intel_byte(USTR(s), USTR(substr), sz, substr.size(), i);
         
         if (i > firstutf8)
@@ -12183,6 +12193,9 @@ Exporting long s_find(string& s, string& substr, long i) {
 
 Exporting long s_count(string& str, string& sub, long i) {
 #ifdef INTELINTRINSICS
+    i = str.find_first_of(sub[0], i);
+    if (i == -1)
+        return 0;
     return count_strings_intel(USTR(str)+i, USTR(sub), str.size()-i, sub.size());
 #else
     long nb = 0;
@@ -12197,6 +12210,9 @@ Exporting long s_count(string& str, string& sub, long i) {
 
 Exporting long s_count(wstring& str, wstring& sub, long i) {
 #ifdef INTELINTRINSICS
+    i = str.find_first_of(sub[0], i);
+    if (i == -1)
+        return 0;
     return count_strings_intel(WSTR(str)+i, WSTR(sub), str.size()-i, sub.size());
 #else
     long nb = 0;
@@ -12248,8 +12264,13 @@ Exporting long s_find(wstring& s, wstring& substr, long i) {
     long sz = s.size();
     if (sz >= thewstringincrement) {
         long first = 0;
-        if (!check_large_char(WSTR(s), sz, first))
+        
+        if (!check_large_char(WSTR(s), sz, first)) {
+            i = s.find_first_of(substr[0], i);
+            if (i == -1)
+                return -1;
             return find_intel(WSTR(s), WSTR(substr), sz, substr.size(), i);
+        }
         
         i = find_intel(WSTR(s), WSTR(substr), sz, substr.size(), i);
         
@@ -12298,6 +12319,9 @@ Exporting long s_rfind(wstring& s, wstring& substr, long i) {
 //we are looking for the substring substr in s
 Exporting void s_findall(string& s, string& substr, vector<long>& v) {
 #ifdef INTELINTRINSICS
+    if (s.find_first_of(substr[0]) == -1)
+        return;
+
     find_intel_all(USTR(s), s.size(), substr, v);
 #else
     long sz = substr.size();
@@ -12318,6 +12342,9 @@ Exporting void s_findall(wstring& s, wstring& substr, vector<long>& v, long pos)
         pos = 0;
     
 #ifdef INTELINTRINSICS
+    if (s.find_first_of(substr[0]) == -1)
+        return;
+
     find_intel_all(WSTR(s), WSTR(substr), s.size(), substr.size(), v, pos);
 #else
     long sz = substr.size();
