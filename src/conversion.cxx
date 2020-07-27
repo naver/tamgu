@@ -2316,8 +2316,9 @@ long find_intel_byte(unsigned char* src, unsigned char* search, long lensrc, lon
     long j;
     uchar c = search[0];
     char shift;
-    int q;
+    uint16_t q = 0;
     long pos;
+    long lenmx = lensrc-15;
     
     switch (lensearch) {
         case 1:
@@ -2463,7 +2464,7 @@ long rfind_intel(unsigned char* src, unsigned char* search, long lensrc, long le
     long j;
     uchar c = search[0];
     char shift;
-    int q;
+    uint16_t q = 0;
 
     long pos;
     
@@ -2619,12 +2620,14 @@ void find_intel_all(uchar* src, long lensrc,  string& search, vector<long>& pos)
         //First we try to find the section in which the first character might occur
     __m128i current_bytes = _mm_setzero_si128();
     long i = 0;
-    int q;
+    uint16_t q = 0;
     uchar* s=NULL;
     long j;
     uchar c = search[0];
     char shift;
     long p;
+    
+    long lenmx = lensrc-15;
     
     switch (lensearch) {
         case 1:
@@ -2777,7 +2780,8 @@ bool replace_intel_all(string& noe, string& src, string& search, string& replace
     char shift;
     long from = 0;
     long foundHere;
-    int q;
+    uint16_t q = 0;
+    long lenmx = lensrc-15;
     
     switch (lensearch) {
         case 1:
@@ -2943,10 +2947,11 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
     uchar* s=src;
     long j;
     long i = 0;
-    int q;
+    uint16_t q = 0;
     
     uchar c = search[0];
     char shift;
+    long lenmx = lensrc-15;
     
     switch (lensearch) {
         case 1:
