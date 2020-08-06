@@ -32,7 +32,7 @@ class Tamgupython : public TamguObject {
     //We associate the method pointers with their names in the linkedmethods map
     Exchanging static basebin_hash<pythonMethod> methods;
     static hmap<string, string> infomethods;
-    static bin_hash<unsigned long> exported;
+    static  basebin_hash<unsigned long> exported;
 
     static short idtype;
 
