@@ -1297,6 +1297,73 @@ Exporting Tamgu* Tamgu::Filter(short idthread, Tamgu* env, TamguFunctionLambda* 
     return accu->Value();
 }
 
+Exporting Tamgu* Tamgu::Filterreverse(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* kcont, Tamgu* accu, Tamgu* init) {
+
+    Tamgu* returnval;
+    TamguIteration* iter = Newiteration(false);
+
+    bool first = false;
+    Tamgu* key;
+
+    if (init != aNOELEMENT) {
+        accu->Putvalue(init, idthread);
+        if (kcont != NULL) {
+            kcont->Insert(0, init);
+        }
+    }
+    else
+        first = true; //we are dealing with a foldr1 or a foldl1
+
+    vector<Tamgu*> values;
+    
+    for (iter->Begin(); iter->End() == aFALSE; iter->Next()) {
+        key = iter->IteratorValue();
+        key = key->Atomref();
+        values.push_back(key);
+    }
+    iter->Release();
+    
+    for (long i = values.size()-1; i >= 0; i--) {
+        key = values[i];
+        if (first) {
+            returnval = key->Atom();//We use the first value of the list to seed our accumulator variable
+            first = false;
+        }
+        else {
+            var->Putvalue(key, idthread);
+            returnval = bd->DirectEval(env, aNULL, idthread);
+            if (returnval->isNULL())
+                continue;
+
+            if (returnval->needInvestigate()) {
+                if (returnval == aBREAK) {
+                    accu = returnval;
+                    break;
+                }
+
+                var->Forcedclean();
+                accu->Forcedclean();
+                iter->Release();
+                if (kcont != NULL)
+                    kcont->Release();
+                return returnval;
+            }
+        }
+
+        accu->Putvalue(returnval, idthread);
+        
+        if (kcont != NULL)
+            kcont->Insert(0, returnval);
+        returnval->Releasenonconst();
+        key->Resetreference();
+    }
+
+    var->Forcedclean();
+    if (kcont != NULL)
+        return kcont;
+    return accu->Value();
+}
+
 
 Tamgu* TamguCallFunctionTaskell::GetTaskell5(Tamgu* context, Tamgu* environment, TamguFunctionLambda* bd, short idthread) {
 
@@ -1341,12 +1408,19 @@ Tamgu* TamguCallFunctionTaskell::GetTaskell5(Tamgu* context, Tamgu* environment,
             kcont->Releasenonconst();
             kcont = globalTamgu->Providevector();
         }
-        klist->Filter(idthread, environment, bd, var, kcont, accu, init, direct);
+        if (direct)
+            klist->Filterreverse(idthread, environment, bd, var, kcont, accu, init);
+        else
+            klist->Filter(idthread, environment, bd, var, kcont, accu, init, direct);
         klist->Releasenonconst();
         return kcont;
     }
 
-    key = klist->Filter(idthread, environment, bd, var, kcont, accu, init, direct);
+    if (direct)
+        key = klist->Filterreverse(idthread, environment, bd, var, kcont, accu, init);
+    else
+        key = klist->Filter(idthread, environment, bd, var, kcont, accu, init, direct);
+    
     klist->Releasenonconst();
     return key;
 }

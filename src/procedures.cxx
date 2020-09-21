@@ -354,7 +354,7 @@ Tamgu* Proc_piecewise_constant_distribution(Tamgu* contextualpattern, short idth
             vect.push_back(tvect->getfloat(i));
     }
 
-    if (tvect->Type() == a_fvector)
+    if (tinter->Type() == a_fvector)
         inter = ((Tamgufvector*)tinter)->values;
     else {
         for (i = 0; i < tinter->Size(); i++)
@@ -394,7 +394,7 @@ Tamgu* Proc_piecewise_linear_distribution(Tamgu* contextualpattern, short idthre
             vect.push_back(tvect->getfloat(i));
     }
 
-    if (tvect->Type() == a_fvector)
+    if (tinter->Type() == a_fvector)
         inter = ((Tamgufvector*)tinter)->values;
     else {
         for (i = 0; i < tinter->Size(); i++)
@@ -433,10 +433,11 @@ Tamgu* Proc_lognormal_distribution(Tamgu* contextualpattern, short idthread, Tam
 
     std::lognormal_distribution<double> d(alpha, beta);
 
-    Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
     if (nb == 1)
         return globalTamgu->Providefloat((double)d(gen));
 
+    Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
+    
     for (long i = 0; i < nb; i++) {
         alpha = d(gen);
         iv->storevalue(alpha);
@@ -484,9 +485,10 @@ Tamgu* Proc_cauchy_distribution(Tamgu* contextualpattern, short idthread, TamguC
 
     std::cauchy_distribution<double> d(alpha, beta);
 
-    Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
     if (nb == 1)
         return globalTamgu->Providefloat((double)d(gen));
+
+    Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
 
     double v;
     for (long i = 0; i < nb; i++) {

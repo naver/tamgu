@@ -464,6 +464,14 @@ class Tamgulisp : public Tamguvector {
 
     string String();
     void Setstring(string& v, short idthread);
+
+    Tamgu* Localreverse() {
+        vector<Tamgu*> v;
+        for (long i = values.size()-1; i >= 0; i--)
+            v.push_back(values[i]);
+        values = v;
+        return this;
+    }
 };
 
 

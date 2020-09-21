@@ -7669,15 +7669,27 @@ Tamgu* TamguCode::C_folding(x_node* xn, Tamgu* kbase) {
 		if (op >= a_plus && op <= a_add) {
 			TamguInstructionAPPLYOPERATION kins(NULL);
 			kins.action = op;
-			Traverse(&accuvar, &kins);
-			Traverse(&nvar, &kins);
+            if (choice->Boolean()) {
+                Traverse(&nvar, &kins);
+                Traverse(&accuvar, &kins);
+            }
+            else {
+                Traverse(&accuvar, &kins);
+                Traverse(&nvar, &kins);
+            }
 			Tamgu* kroot = kins.Compile(NULL);
 			kret->AddInstruction(kroot);
 		}
 		else {
 			TamguInstruction* ki = TamguCreateInstruction(kret, op);
-			Traverse(&accuvar, ki);
-			Traverse(&nvar, ki);
+            if (choice->Boolean()) {
+                Traverse(&nvar, ki);
+                Traverse(&accuvar, ki);
+            }
+            else {
+                Traverse(&accuvar, ki);
+                Traverse(&nvar, ki);
+            }
 		}
 	}
 	else {

@@ -1017,7 +1017,8 @@ public:
     
 	//-----------------------------------------------
 	Exporting virtual Tamgu* Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* env, TamguFunctionLambda* bd, short idthread);
-	Exporting virtual Tamgu* Filter(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* kcont, Tamgu* accu, Tamgu* init, bool direct);
+    Exporting virtual Tamgu* Filter(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* kcont, Tamgu* accu, Tamgu* init, bool direct);
+    Exporting virtual Tamgu* Filterreverse(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* kcont, Tamgu* accu, Tamgu* init);
 	Exporting virtual Tamgu* Filterboolean(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* def);
 
 	virtual void Addargmode() {}

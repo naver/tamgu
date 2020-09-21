@@ -1571,15 +1571,22 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             
             Tamgulisp* l = globalTamgu->Providelisp();
             Tamgu* e;
+            
+            Tamgulisp quoted(-1);
+            quoted.Setaction(a_quote);
+            quoted.Push(aNULL);
+            
+            if (!sz) {
+                lsp.values[1] = &quoted;
+                lsp.values[2] = &quoted;
+            }
+            else
+                lsp.values[sz] = &quoted;
+
             for (i = 0; i < v1->Size(); i++) {
                 e = v1->getvalue(i);
                 
-                if (!sz) {
-                    lsp.values[1] = e;
-                    lsp.values[2] = e;
-                }
-                else
-                    lsp.values[sz] = e;
+                quoted.values[1] = e;
                 
                 e->Setreference();
                 a = lsp.Eval(aNULL, aNULL, idthread);
@@ -1642,9 +1649,15 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             
             Tamgulisp* l = globalTamgu->Providelisp();
             Tamgu* e;
+            Tamgulisp quoted(-1);
+            quoted.Setaction(a_quote);
+            quoted.Push(aNULL);
+            
+            lsp.values[1] = &quoted;
+
             for (i = 0; i < v1->Size(); i++) {
                 e = v1->getvalue(i);
-                lsp.values[1] = e;
+                quoted.values[1] = e;
                 
                 e->Setreference();
                 a = lsp.Eval(aNULL, aNULL, idthread);
@@ -1701,9 +1714,15 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             
             Tamgulisp* l = globalTamgu->Providelisp();
             Tamgu* e;
+            Tamgulisp quoted(-1);
+            quoted.Setaction(a_quote);
+            quoted.Push(aNULL);
+            
+            lsp.values[1] = &quoted;
+
             for (i = 0; i < v1->Size(); i++) {
                 e = v1->getvalue(i);
-                lsp.values[1] = e;
+                quoted.values[1] = e;
                 
                 e->Setreference();
                 a = lsp.Eval(aNULL, aNULL, idthread);
@@ -1766,10 +1785,16 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             
             Tamgulisp* l = globalTamgu->Providelisp();
             Tamgu* e;
+            Tamgulisp quoted(-1);
+            quoted.Setaction(a_quote);
+            quoted.Push(aNULL);
+            
+            lsp.values[1] = &quoted;
+
             bool accept=false;
             for (i = 0; i < v1->Size(); i++) {
                 e = v1->getvalue(i);
-                lsp.values[1] = e;
+                quoted.values[1] = e;
                 
                 e->Setreference();
                 a = lsp.Eval(aNULL, aNULL, idthread);
@@ -1874,7 +1899,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 v0 = values[1];
             else {
                 if (!v0->isLisp() && !globalTamgu->checkoperator(v0->Action()))
-                    return globalTamgu->Returnerror("Wrong list of operations for '_map'", idthread);
+                    return globalTamgu->Returnerror("Wrong list of operations for '_zipwith'", idthread);
             }
 
             long j;
@@ -1975,11 +2000,11 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             Tamgulisp* l;
             i = 0;
             a->Setreference();
-            lsp.values[1] = a;
             switch (n) {
                 case a__foldl1:
                     i = 1;
                 case a__foldl:
+                    lsp.values[1] = a;
                     for (; i < szl; i++) {
                         lsp.values[2] = v1->getvalue(i);
                         a = lsp.Eval(aNULL, aNULL, idthread);
@@ -1997,13 +2022,14 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 case a__foldr:
                     if (!i)
                         i = szl-1;
+                    lsp.values[2] = a;
                     for (;i >= 0; i--) {
-                        lsp.values[2] = v1->getvalue(i);
+                        lsp.values[1] = v1->getvalue(i);
                         a = lsp.Eval(aNULL, aNULL, idthread);
-                        if (a != lsp.values[1]) {
-                            lsp.values[1]->Resetreference();
+                        if (a != lsp.values[2]) {
+                            lsp.values[2]->Resetreference();
                             a->Setreference();
-                            lsp.values[1] = a;
+                            lsp.values[2] = a;
                         }
                     }
                     v1->Release();
@@ -2012,6 +2038,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 case a__scanl1:
                     i = 1;
                 case a__scanl:
+                    lsp.values[1] = a;
                     l = globalTamgu->Providelisp();
                     l->push(a);
                     for (; i < szl; i++) {
@@ -2032,22 +2059,22 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 case a__scanr:
                     if (!i)
                         i = szl-1;
+                    lsp.values[2] = a;
                     l = globalTamgu->Providelisp();
                     l->push(a);
                     for (;i >= 0; i--) {
-                        lsp.values[2] = v1->getvalue(i);
+                        lsp.values[1] = v1->getvalue(i);
                         a = lsp.Eval(aNULL, aNULL, idthread);
                         l->push(a);
-                        if (a != lsp.values[1]) {
-                            lsp.values[1]->Resetreference();
+                        if (a != lsp.values[2]) {
+                            lsp.values[2]->Resetreference();
                             a->Setreference();
-                            lsp.values[1] = a;
+                            lsp.values[2] = a;
                         }
                     }
                     a->Resetreference();
                     v1->Release();
-                    return l;
-
+                    return l->Localreverse();
             }
             return aNULL;
         }
