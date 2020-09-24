@@ -20,7 +20,6 @@
 #include "jagvecte.h"
 
 typedef enum{ an_epsilon=0, an_end=1, an_remove=2, an_negation=4, an_mandatory=8, an_error=12, an_rule=16, an_final=32, an_beginning=64, an_ending=128} an_flag;
-typedef enum{an_meta=1, an_automaton, an_regex, an_token, an_any, an_lemma, an_label, an_orlabels, an_andlabels} an_type;
 
 typedef enum{aut_reg=1,aut_reg_plus,aut_reg_star,
     aut_meta, aut_meta_plus, aut_meta_star,
@@ -41,10 +40,10 @@ class Au_state;
 class Au_any {
 public:
     bool vero;
-    an_type type;
+    an_flag type;
     
     Au_any(unsigned char t) {
-        type=(an_type)t;
+        type=(an_flag)t;
         vero = true;
     }
     
@@ -54,7 +53,7 @@ public:
         return false;
     }
     
-    an_type Type() {
+    an_flag Type() {
         return type;
     }
     
@@ -201,7 +200,7 @@ public:
         delete action;
     }
     
-    an_type Type() {
+    an_flag Type() {
         return action->Type();
     }
 

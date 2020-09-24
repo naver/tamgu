@@ -21,7 +21,7 @@
 
 
 typedef enum{ an_epsilon=0, an_end=1, an_remove=2, an_negation=4, an_mandatory=8, an_error=12, an_rule=16, an_final=32, an_beginning=64, an_ending=128} an_flag;
-typedef enum{an_meta=1, an_automaton, an_regex, an_token, an_any, an_lemma, an_label, an_orlabels, an_andlabels} an_type;
+typedef enum{ ant_epsilon=0, ant_meta=1, ant_automaton, ant_regex, ant_token, ant_any, ant_lemma, ant_label, ant_orlabels, ant_andlabels} ant_type;
 
 typedef enum{aut_reg=1,aut_reg_plus,aut_reg_star,
     aut_meta, aut_meta_plus, aut_meta_star,
@@ -51,10 +51,10 @@ class Au_state;
 class Au_any {
 public:
     bool vero;
-    an_type type;
+    ant_type type;
     
     Au_any(unsigned char t) {
-        type=(an_type)t;
+        type=(ant_type)t;
         vero = true;
     }
     
@@ -64,7 +64,7 @@ public:
         return false;
     }
     
-    an_type Type() {
+    ant_type Type() {
         return type;
     }
     
@@ -105,7 +105,7 @@ public:
     Au_epsilon()  : Au_any(an_epsilon) {}
     
     bool same(Au_any* a) {
-        if (a->Type()==an_epsilon && a->vero == vero)
+        if (a->Type() == ant_epsilon && a->vero == vero)
             return true;
         return false;
     }
@@ -213,7 +213,7 @@ public:
         delete action;
     }
     
-    an_type Type() {
+    ant_type Type() {
         return action->Type();
     }
 

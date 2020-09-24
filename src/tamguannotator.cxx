@@ -216,11 +216,11 @@ bool An_rules::storerule(An_rule* r) {
         }
             
         switch(ar->atom->type()) {
-            case an_token:
-            case an_meta:
+            case ant_token:
+            case ant_meta:
                 lexicons[r->category].parse(w);
                 return true;
-            case an_automaton: {
+            case ant_automaton: {
                 if (w.find(L" ")!=-1) {
                     //In this case, we have a multiword expression, to parse it would not make any sense...
                     //We store it in our multiwords lexicon...
@@ -238,9 +238,9 @@ bool An_rules::storerule(An_rule* r) {
     }
     
     switch(ar->atom->type()) {
-        case an_token:
-        case an_meta:
-        case an_automaton:
+        case ant_token:
+        case ant_meta:
+        case ant_automaton:
             break;
         default:
             starts.push_back(r);
@@ -253,9 +253,9 @@ bool An_rules::storerule(An_rule* r) {
     for (i=1; i< r->first->arcs.last;i++) {
         w=r->first->arcs[i]->atom->value();
         switch(r->first->arcs[i]->atom->type()) {
-            case an_token:
-            case an_meta:
-            case an_automaton:
+            case ant_token:
+            case ant_meta:
+            case ant_automaton:
                 wrds.push_back(w);
                 break;
             default:
@@ -301,7 +301,7 @@ bool An_state::scanend() {
     An_arc* a;
     for (long i=0;i<arcs.last;i++) {
         a=arcs[i];
-        if (a->scanend() && a->atom->type()==an_epsilon)
+        if (a->scanend() && a->atom->type() == ant_epsilon)
             status|=an_end;
     }
     return isend();

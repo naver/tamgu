@@ -42,12 +42,12 @@ public:
         return true;
     }
     
-    virtual uchar type() {
-        return an_any;
+    virtual ant_type type() {
+        return ant_any;
     }
     
     virtual bool same(An_any* a) {
-        if (a->type()==an_any)
+        if (a->type()==ant_any)
             return true;
         return false;
     }
@@ -75,12 +75,12 @@ public:
         return w;
     }
 
-    uchar type() {
-        return an_meta;
+    ant_type type() {
+        return ant_meta;
     }
 
     bool same(An_any* a) {
-        if (a->type()==an_meta && ((An_meta*)a)->action==action)
+        if (a->type()==ant_meta && ((An_meta*)a)->action==action)
             return true;
         return false;
     }
@@ -146,7 +146,7 @@ public:
     }
     
     bool same(An_any* a) {
-        if (a->type()==an_automaton && ((An_automaton*)a)->reference==reference)
+        if (a->type()==ant_automaton && ((An_automaton*)a)->reference==reference)
             return true;
         return false;
     }
@@ -155,8 +155,8 @@ public:
     
     char compare(wstring& chr, An_context* context);
     
-    uchar type() {
-        return an_automaton;
+    ant_type type() {
+        return ant_automaton;
     }
     
     char check(An_context* c) {
@@ -180,13 +180,13 @@ public:
     }
     
     bool same(An_any* a) {
-        if (a->type()==an_regex && ((An_regex*)a)->reference==reference)
+        if (a->type()==ant_regex && ((An_regex*)a)->reference==reference)
             return true;
         return false;
     }
 
-    uchar type() {
-        return an_regex;
+    ant_type type() {
+        return ant_regex;
     }
 
     char check(An_context* c) {
@@ -205,8 +205,8 @@ public:
     
     An_token(wstring& tok): action(tok) {}
     
-    uchar type() {
-        return an_token;
+    ant_type type() {
+        return ant_token;
     }
 
     wstring value() {
@@ -214,7 +214,7 @@ public:
     }
     
     bool same(An_any* a) {
-        if (a->type()==an_token && ((An_token*)a)->action==action)
+        if (a->type()==ant_token && ((An_token*)a)->action==action)
             return true;
         return false;
     }
@@ -230,7 +230,7 @@ public:
     wstring action;
     
     bool same(An_any* a) {
-        if (a->type()==an_label && ((An_label*)a)->action==action)
+        if (a->type()==ant_label && ((An_label*)a)->action==action)
             return true;
         return false;
     }
@@ -243,8 +243,8 @@ public:
         action=tok.substr(1,tok.size()-1);
     }
     
-    uchar type() {
-        return an_label;
+    ant_type type() {
+        return ant_label;
     }
     
     char compare(wstring& chr, An_context* context);
@@ -258,13 +258,13 @@ public:
     vector<bool> negations;
 
     bool same(An_any* a) {
-        if (a->type()==an_orlabels && ((An_orlabels*)a)->actions==actions)
+        if (a->type()==ant_orlabels && ((An_orlabels*)a)->actions==actions)
             return true;
         return false;
     }
     
-    uchar type() {
-        return an_orlabels;
+    ant_type type() {
+        return ant_orlabels;
     }
     
     char compare(wstring& chr, An_context* context);
@@ -278,13 +278,13 @@ public:
     vector<bool> negations;
     
     bool same(An_any* a) {
-        if (a->type()==an_andlabels && ((An_andlabels*)a)->actions==actions)
+        if (a->type()==ant_andlabels && ((An_andlabels*)a)->actions==actions)
             return true;
         return false;
     }
     
-    uchar type() {
-        return an_andlabels;
+    ant_type type() {
+        return ant_andlabels;
     }
     
     char compare(wstring& chr, An_context* context);
@@ -305,13 +305,13 @@ public:
     }
     
     bool same(An_any* a) {
-        if (a->type()==an_lemma && ((An_lemma*)a)->action==action)
+        if (a->type()==ant_lemma && ((An_lemma*)a)->action==action)
             return true;
         return false;
     }
 
-    uchar type() {
-        return an_lemma;
+    ant_type type() {
+        return ant_lemma;
     }
     
     char compare(wstring& chr, An_context* context);
@@ -345,8 +345,8 @@ public:
 class An_epsilon : public An_any {
 public:
 
-    uchar type() {
-        return an_epsilon;
+    ant_type type() {
+        return ant_epsilon;
     }
     
     wstring value() {
@@ -362,7 +362,7 @@ public:
     }
 
     bool same(An_any* a) {
-        if (a->type()==an_epsilon)
+        if (a->type()==ant_epsilon)
             return true;
         return false;
     }
