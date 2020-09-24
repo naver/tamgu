@@ -799,6 +799,9 @@ void jag_editor::movetoposition() {
     else
         sc = size_upto(line, posinstring) + prefixego();
     cout << back;
+    if (!sc)
+        return;
+    
 	m_right[2] = localn999[sc][0];
 	m_right[3] = localn999[sc][1];
 	m_right[4] = localn999[sc][2];
@@ -811,6 +814,9 @@ void jag_editor::movetoposition() {
 void jag_editor::movetobeginning() {
     long sc = prefixego();
     cout << back;
+    if (!sc)
+        return;
+    
 	m_right[2] = localn999[sc][0];
 	m_right[3] = localn999[sc][1];
 	m_right[4] = localn999[sc][2];
@@ -1837,6 +1843,15 @@ long jag_editor::handlemultiline() {
     line = line.substr(0, posinstring);
 
     lines[pos] = line;
+    long sp = lines.indent(pos);
+    if (sub == L")")
+        sp -= GetBlankSize();
+    if (sp > 0) {
+        wstring space(sp, L' ');
+        sub = space + sub;
+    }
+    else
+        sp = 0;
 
     currentline++;
     pos++;
@@ -1880,8 +1895,8 @@ long jag_editor::handlemultiline() {
     
     movetoline(currentline);
     
-    posinstring = 0;
-    movetobeginning();
+    posinstring = sp;
+    movetoposition();
     line = sub;
     return pos;
 }
