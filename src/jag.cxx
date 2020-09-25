@@ -1844,8 +1844,9 @@ long jag_editor::handlemultiline() {
 
     lines[pos] = line;
     long sp = lines.indent(pos);
-    if (sub == L")")
+    if (sub == L")" || sub == L"}" || sub == L"]")
         sp -= GetBlankSize();
+    
     if (sp > 0) {
         wstring space(sp, L' ');
         sub = space + sub;
