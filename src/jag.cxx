@@ -221,14 +221,8 @@ string jag_editor::getch(){
     struct termios old={0};
     fflush(stdout);
     if(tcgetattr(0, &old)<0) {
-        //we reset the input stream
-        //freopen("/dev/tty", "rw", stdin);
-        setbuf(stdin, NULL);
-        //and we try again...
-        if(tcgetattr(0, &old)<0) {
-            perror("tcsetattr()");
-            exit(-1);
-        }
+        perror("tcsetattr()");
+        exit(-1);
     }
     
     old.c_lflag&=~ICANON;
@@ -483,7 +477,9 @@ void resizewindow(int theSignal) {
 
 jag_editor::jag_editor() : lines(this) {
 #ifndef WIN32
-    setbuf(stdin, NULL);
+    //we reset the input stream
+    freopen("/dev/tty", "rw", stdin);
+
     tcgetattr(0, &oldterm);
 
     //We enable ctrl-s and ctrl-q within the editor
@@ -603,7 +599,6 @@ void jag_editor::reset() {
     theterm.c_cc[VSTOP] = 0;
     theterm.c_cc[VSUSP] = 0;
     tcsetattr(0, TCSADRAIN, &theterm);
-    setbuf(stdin, NULL);
 #endif
 }
 
