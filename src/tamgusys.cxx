@@ -679,7 +679,13 @@ void Reseting_system_environment_for_getchar() {
 
     struct termios old={0};
     if(tcgetattr(0, &old)<0) {
-        perror("tcsetattr()");
+        //we reset the input stream
+        //freopen("/dev/tty", "rw", stdin);
+        setbuf(stdin, NULL);
+        //and we try again...
+        if(tcgetattr(0, &old)<0) {
+            perror("tcsetattr()");
+        }
     }
     old.c_lflag|=ICANON;
     old.c_lflag|=ECHO;
@@ -707,7 +713,13 @@ void Tamgusys::Reset() {
     if (getcharhasbeenused) {
         struct termios old={0};
         if(tcgetattr(0, &old)<0) {
-            perror("tcsetattr()");
+            //we reset the input stream
+            //freopen("/dev/tty", "rw", stdin);
+            setbuf(stdin, NULL);
+            //and we try again...
+            if(tcgetattr(0, &old)<0) {
+                perror("tcsetattr()");
+            }
         }
         old.c_lflag|=ICANON;
         old.c_lflag|=ECHO;
@@ -945,8 +957,14 @@ Tamgu* Tamgusys::MethodGETCH(Tamgu* contextualpattern, short idthread, TamguCall
     if (!getcharhasbeenused) {
         struct termios old={0};
         if(tcgetattr(0, &old)<0) {
-            perror("tcsetattr()");
-            return globalTamgu->Returnerror("tcsetattr ICANON", idthread);
+            //we reset the input stream
+            //freopen("/dev/tty", "rw", stdin);
+            setbuf(stdin, NULL);
+            //and we try again...
+            if(tcgetattr(0, &old)<0) {
+                perror("tcsetattr()");
+                return globalTamgu->Returnerror("tcsetattr ICANON", idthread);
+            }
         }
         
         old.c_lflag&=~ICANON;
