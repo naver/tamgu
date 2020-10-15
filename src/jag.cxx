@@ -1091,8 +1091,6 @@ void jag_editor::deletechar(bool left) {
         else {
 			posinstring = pins;
             printline(pos+1, line);
-            if (updateline && pos < lines.size())
-                lines[pos] = line;
         }
 
         movetoposition();
