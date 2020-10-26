@@ -1091,8 +1091,6 @@ void jag_editor::deletechar(bool left) {
         else {
 			posinstring = pins;
             printline(pos+1, line);
-            if (updateline && pos < lines.size())
-                lines[pos] = line;
         }
 
         movetoposition();
@@ -1964,13 +1962,15 @@ long jag_editor::handlingeditorline(bool computespace) {
     
         //we have different cases...
     if (!posinstring) {
-            //beginning of the line, we insert before...
+        int prf = prefixsize;
+        //beginning of the line, we insert before...
         lines.insert(pos, space); //we insert it into our line...
         undo(space, pos, u_ins_linked); //The value is inserted
         lines.numbers();
         if (currentline < row_size) {
 			//We need to insert a line at this position
 			insertaline = true;
+            prefixsize = prf;
 			displaylist(poslines[0]);
 			insertaline = false;
             currentline++;
