@@ -58,9 +58,9 @@ bool Tamgusqlite::InitialisationModule(TamguGlobal* global, string version) {
 	Tamgusqlite::AddMethod(global, "_initial", &Tamgusqlite::MethodOpen, P_ONE, "open(string pathname): open a database");
 	Tamgusqlite::AddMethod(global, "open", &Tamgusqlite::MethodOpen, P_ONE, "open(string pathname): open a database");
 	Tamgusqlite::AddMethod(global, "close", &Tamgusqlite::MethodClose, P_NONE, "close(): close a database");
-	Tamgusqlite::AddMethod(global, "create", &Tamgusqlite::MethodCreate, 65534, "create(x1x2x3): create a table in a database with the arguments x1x2x3.\rEx. mydb.create('table1''nom TEXT PRIMARY KEY''age INTEGER');");
-	Tamgusqlite::AddMethod(global, "insert", &Tamgusqlite::MethodInsert, 65534, "insert(string tablestring columnint value...): insert a line in a table.\rEx. mydb.insert('table1''nom'nm'age'i);");
-	Tamgusqlite::AddMethod(global, "insertbind", &Tamgusqlite::MethodInsertThroughBind, 65534, "insertbind(string tableint v1...): insert a line in a table through a begin/commit mode.\rEx. mydb.insert('table1'nmi);");
+	Tamgusqlite::AddMethod(global, "create", &Tamgusqlite::MethodCreate, 65534, "create(tablename, col1, col2): create a table in a database with the arguments tablename,col1,col2.\rEx. mydb.create('table1','name TEXT PRIMARY KEY','age INTEGER');");
+	Tamgusqlite::AddMethod(global, "insert", &Tamgusqlite::MethodInsert, 65534, "insert(string tablestring, columnint, value...): insert a line in a table.\rEx. mydb.insert('table1','name',nm,'age',i);");
+	Tamgusqlite::AddMethod(global, "insertbind", &Tamgusqlite::MethodInsertThroughBind, 65534, "insertbind(string table,int, v1...): insert a line in a table through a begin/commit mode.\rEx. mydb.insert('table1', nm, i);");
 	Tamgusqlite::AddMethod(global, "run", &Tamgusqlite::MethodRun, P_ONE, "run(string sqlcommand): execute a sql command. If the input variable is a vector then all possible values will be stored in it. It the input variable is an iterator then it is possible to iterate on the results of the sql command. Each result is a map where each key is a column name.");
 	Tamgusqlite::AddMethod(global, "execute", &Tamgusqlite::MethodExecute, P_ONE, "execute(string sqlcommand): execute a raw sql command.");
 	Tamgusqlite::AddMethod(global, "begin", &Tamgusqlite::MethodBegin, P_NONE | P_ONE, "begin(string mode): to enter the commit mode: default mode is DEFERRED other modes are: IMMEDIATE and EXCLUSIVE");
