@@ -952,6 +952,17 @@ public:
         //Deletion methods...
         //------------------------------------------------------------------------------------------------
 
+    long sizestring(wstring& s) {
+        long sz = s.size();
+        long szstr = 0;
+        for (long i = 0; i < sz; i++) {
+            if (c_is_emojicomp(s[i]))
+                continue;
+            szstr++;
+        }
+        return szstr;
+    }
+
         //The deletion of a character is different if it is an emoji...
     long deleteachar(wstring& l, bool last, long pins);
     void deletechar(bool);

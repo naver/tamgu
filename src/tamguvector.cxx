@@ -4240,3 +4240,145 @@ Exporting Tamgu* Tamgua_vector::Combine(Tamgu* ke) {
     
     return vect;
 }
+
+/*
+class VECTATYPE {
+public:
+    void** values;
+    bool is_atom;
+    //sz est la sz actuelle de la liste
+    long sz;
+    //last element entre... Pour gerer les ajouts en fin de liste...
+    long last;
+
+    
+    VECTATYPE(long t, bool a) {
+        is_atom = a;
+        sz = t;
+        last = 0;
+        if (!is_atom)
+            values = new void*[sz];
+        else
+            values = NULL;
+    }
+    
+    virtual void* value() {
+        return NULL;
+    }
+    
+    virtual ~VECTATYPE() {
+        if (values != NULL)
+            delete[] values;
+    }
+};
+
+template <class Z> class VECTEATOM : public VECTATYPE {
+    public:
+
+    //Un vecteur de Fonction
+    Z* vecteur;
+
+    VECTEATOM(long t = 3) : VECTATYPE(t, true) {
+        vecteur = NULL;
+        if (t > 0)
+            vecteur = new Z[t];
+
+        for (bint i = 0; i< sz; i++)
+            vecteur[i] = NULL;
+    }
+    
+    ~VECTEATOM() {
+        delete[] vecteur;
+    }
+
+    void* value() {
+        return vecteur;
+    }
+    
+    inline void push_back(Z val) {
+        //sinon on ajoute l'element en queue...
+        vecteur[last++] = val;
+    }
+};
+
+template <class Z> class VECTECONTAINER : public VECTATYPE {
+    public:
+
+    //Un vecteur de Fonction
+    Z* vecteur;
+
+    VECTECONTAINER(long t = 3) : VECTATYPE(t, false) {
+        vecteur = NULL;
+        if (t > 0)
+            vecteur = new Z[t];
+        for (bint i = 0; i< sz; i++)
+            vecteur[i] = NULL;
+    }
+
+    ~VECTECONTAINER() {
+        for (long i = 0; i < last; i++) {
+            delete vecteur[i];
+        }
+        delete[] vecteur;
+    }
+
+    void* value() {
+        return values;
+    }
+
+    inline void push_back(Z val) {
+        values[last] = val->value();
+        vecteur[last++] = val;
+    }
+};
+
+VECTATYPE* Recursion(Tamgu* vect) {
+    
+    long sz = vect->Size();
+    if (!sz)
+        return NULL;
+    
+    Tamgu* v = vect->getvalue(0);
+    if (v->isVectorContainer()) {
+        Tamgu* element;
+        VECTATYPE* res;
+        VECTECONTAINER<VECTATYPE*>* vectres = new VECTECONTAINER<VECTATYPE*>(sz);
+        for (long i = 0; i < sz; i++) {
+            element = v->getvalue(i);
+            if (!element->isVectorContainer()) {
+                delete vectres;
+                return NULL;
+            }
+            res = Recursion(element);
+            if (res == NULL) {
+                delete vectres;
+                return NULL;
+            }
+            vectres->push_back(res);
+        }
+        return vectres;
+    }
+    
+    VECTEATOM<int>* vectres = new VECTEATOM<int>(sz);
+    for (long i = 0; i < sz; i++) {
+        vectres->push_back((int)vect->getinteger(i));
+    }
+    return vectres;
+}
+
+
+void appel(Tamgu* e) {
+    if (e->isVectorContainer()) {
+        VECTATYPE* res = Recursion(e);
+        //Les valeurs à passer au tenseur: values()
+        void* r = res->value();
+        //On peut détruire la structure avec:
+        delete res;
+        
+    }
+}
+ 
+ 
+ 
+*/
+

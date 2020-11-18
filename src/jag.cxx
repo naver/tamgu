@@ -1057,7 +1057,10 @@ void jag_editor::deletechar(bool left) {
         }
         else
             clearline();
-        
+        bool emoji = false;
+        if (sizestring(line) != line.size())
+            emoji = true;
+            
         long pins = deleteachar(line, last, posinstring);
         
         if (option != x_none) {
@@ -1079,14 +1082,21 @@ void jag_editor::deletechar(bool left) {
             
             //displaylist(poslines[0]);
             //movetoline(currentline);
-			m_deletechar[2] = 48 + dif;
-			m_left[2] = 48 + dif;
-			if (left)
-				cout << m_left << m_deletechar;
-			else
-				cout << m_deletechar;
-			m_deletechar[2] = 49;
-			m_left[2] = 49;
+            if (emoji) {
+                clearline();
+                printline(pos+1, line);
+                
+            }
+            else {
+                m_deletechar[2] = 48 + dif;
+                m_left[2] = 48 + dif;
+                if (left)
+                    cout << m_left << m_deletechar;
+                else
+                    cout << m_deletechar;
+                m_deletechar[2] = 49;
+                m_left[2] = 49;
+            }
 		}
         else {
 			posinstring = pins;
@@ -3072,8 +3082,10 @@ void jag_editor::addabuffer(wstring& b, bool instring) {
         clearline();
         displaygo(true);
     }
-    else
-        cout << convert(b);
+    else {
+        printline(pos+1, line);
+    }
+    movetoposition();
 }
 
 //This is the main method that launches the terminal
