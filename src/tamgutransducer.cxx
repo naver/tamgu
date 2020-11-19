@@ -54,7 +54,7 @@ void Tamgutransducer::AddMethod(TamguGlobal* global, string name, transducerMeth
 
     Tamgutransducer::AddMethod(global, "load", &Tamgutransducer::MethodLoad, P_ATLEASTONE, "load(filename, filename2 etc...): load transducers, with alphabet normalization");
     Tamgutransducer::AddMethod(global, "add", &Tamgutransducer::MethodAdd, P_ONE | P_TWO | P_THREE, "add(string|map, bool normalize, int latintable): add a string or a mapss to the automaton");
-    Tamgutransducer::AddMethod(global, "build", &Tamgutransducer::MethodBuild, P_TWO | P_THREE | P_FOUR, "buld(input,output, norm, latintable): Build a transducer file out of a text file containing on the first line surface form, then on next line lemma+features.");
+    Tamgutransducer::AddMethod(global, "build", &Tamgutransducer::MethodBuild, P_TWO | P_THREE | P_FOUR, "build(input,output, norm, latintable): Build a transducer file out of a text file containing on the first line surface form, then on next line lemma+features.");
     Tamgutransducer::AddMethod(global, "store", &Tamgutransducer::MethodStore, P_ONE | P_TWO | P_THREE, "store(name, norm, latintable): store an automaton.");
     Tamgutransducer::AddMethod(global, "compilergx", &Tamgutransducer::MethodCompilergx, P_NONE | P_TWO | P_THREE, "compilergx(expression, vector, name): Compile a regular expression combined with a vector and store it with name. If no parameters compile the 'regular' expressions for numbers.");
     Tamgutransducer::AddMethod(global, "lookup", &Tamgutransducer::MethodLookup, P_THREE | P_ONE, "lookup(word, threshold, flags): lookup for a word with a threshold and flags");
@@ -146,6 +146,7 @@ Tamgu* Tamgutransducer::MethodLoad(Tamgu* contextualpattern, short idthread, Tam
     }
 
     automaton->fillencoding(false);
+    automaton->sorting();
     automaton->start.shuffle();
     return aTRUE;
 }
