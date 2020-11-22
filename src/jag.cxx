@@ -3081,11 +3081,16 @@ void jag_editor::addabuffer(wstring& b, bool instring) {
     if (fndchr) {
         clearline();
         displaygo(true);
+        movetoposition();
     }
     else {
-        printline(pos+1, line);
+        if (option == x_none) {
+            printline(pos+1, line);
+            movetoposition();
+        }            
+        else
+            cout << convert(b);
     }
-    movetoposition();
 }
 
 //This is the main method that launches the terminal
