@@ -738,11 +738,11 @@ public:
         thecurrentfilename = Normalizefilename(thecurrentfilename);
         currentfileid = ifilenames.size();
         ifilenames.push_back(thecurrentfilename);
+        lastlines.push_back(0);
         codes.push_back(L"");
         editor_keep kp;
         editors_undos.push_back(kp);
         editors_redos.push_back(kp);
-        lastlines.push_back(0);
         filenames[thecurrentfilename] = currentfileid;
         if (!fromwrite) {
             //We create a local undos/redos section..
@@ -805,6 +805,7 @@ public:
             }
             currentfileid = ifilenames.size();
             ifilenames.push_back(thecurrentfilename);
+            lastlines.push_back(0);
             codes.push_back(code);
             
             //We create a new redo/undo section
@@ -1529,6 +1530,7 @@ public:
                 if (filenames.find(thecurrentfilename) == filenames.end()) {
                     currentfileid = ifilenames.size();
                     ifilenames.push_back(thecurrentfilename);
+                    lastlines.push_back(0);
                     filenames[thecurrentfilename] = currentfileid;
                     code = wconvert(cd);
                     codes.push_back(code);
