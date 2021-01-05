@@ -203,10 +203,14 @@ cleanlibs:
         cleanlibs += "\t$(MAKE) -C libsound clean\n"
         incpath += " -Iinclude/macos/ao"
 
+    ostype = subprocess.Popen(["uname", "-a"], stdout=subprocess.PIPE).stdout.read()
     if withgui:
         compilelibs += "\t$(MAKE) -C libgui all\n"
         cleanlibs += "\t$(MAKE) -C libgui clean\n"
-        incpath += " -Iinclude/macos/fltk"
+        if "arm64" in ostype:
+            incpath += " -Iinclude/macarm/fltk"
+        else:
+            incpath += " -Iinclude/macos/fltk"
 
     incpath += "\n"
     compilelibs += "\n\n"
@@ -234,8 +238,11 @@ cleanlibs:
     f.write("TAMGUCONSOLENAME = tamgu\n")
 
     if withgui:
-        f.write("FLTKLIBS=-Llibs/macos -lfltk -lfltk_images\n")
-        f.write("JPEGLIB = -lfltk_jpeg\n\n")
+        if "arm64" in ostype:
+            f.write("FLTKLIBS=-Llibs/macarm -lfltk -lfltk_images -lfltk_jpeg\n")
+        else:
+            f.write("FLTKLIBS=-Llibs/macos -lfltk -lfltk_images\n")
+            f.write("JPEGLIB = -lfltk_jpeg\n\n")
 
     if withsound:
         f.write("SOURCEMM = macsound.mm\n")
@@ -259,9 +266,14 @@ cleanlibs:
            f.write("PYTHONLIB = /Library/Frameworks/Python.framework/Versions/"+pversion+"/Python\n")
         else:
            f.write("PYTHONLIB = "+pythonpath+"\n")
-
-    f.write("C++11Flag = -std=c++11 -DTamgu_REGEX -DMAVERICK -DAPPLE\n")
-    f.write("INTELINT = -DINTELINTRINSICS -mavx2 -DAVXSUPPORT\n")
+    
+    # AVX instructions are not available on arm64 machines
+    if "arm64" in ostype:
+        f.write("C++11Flag = -std=c++11 -DTamgu_REGEX -DMAVERICK -DAPPLE -DFLTK14\n")
+        f.write("INTELINT =\n")
+    else:
+        f.write("C++11Flag = -std=c++11 -DTamgu_REGEX -DMAVERICK -DAPPLE\n")
+        f.write("INTELINT = -DINTELINTRINSICS -mavx2 -DAVXSUPPORT\n")
     f.close();
     print("You can launch 'make all libs' now")
     sys.exit(0)
