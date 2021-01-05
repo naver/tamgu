@@ -697,7 +697,7 @@ class TamguConstSVector : public Tamgusvector {
     TamguConstSVector() : Tamgusvector() {
      investigate |= is_string;
         //Do not forget your variable initialisation
-        investigate |= is_const;
+        investigate |= is_constante;
     }
     
     void Setreference(short) {}

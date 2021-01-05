@@ -642,7 +642,7 @@ class TamguConstmap : public TamguObjectLockContainer {
         merge = 0;
         evaluate = false;
         constant = 0;
-        investigate |= is_const;
+        investigate |= is_constante;
     }
 
     long Size() {

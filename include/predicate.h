@@ -784,7 +784,7 @@ public:
 class TamguConstPredicate : public TamguPredicate {
 public:
 	TamguConstPredicate(TamguGlobal* g, short n) : TamguPredicate(n, g, a_predicate) {
-        investigate |= is_const;
+        investigate |= is_constante;
     }
     
 	string String() {

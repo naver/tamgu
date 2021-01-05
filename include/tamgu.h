@@ -89,7 +89,7 @@ extern Exchanging TamguGlobal* globalTamgu;
 
 #include "tamguglobal.h"
 
-typedef enum {is_none = 0, is_container = 1, is_const = 2, is_constcontainer = 3, is_declaration = 4,
+typedef enum {is_none = 0, is_container = 1, is_constante = 2, is_constcontainer = 3, is_declaration = 4,
     is_tracked = 8, is_null = 0x0A, is_variable = 0x10, is_callvariable = 0x18,
     is_index = 0x1C, is_string = 0x20, is_pure_string = 0x24, is_number =  0x40, is_regular = 0x80,
     is_tobelocked = 0x100, is_noneedforlock = 0x200, is_checkforlock = 0x300, is_frameinstance = 0x400, is_predicate = 0x800, is_predicatemethod = 0x1000,
@@ -883,7 +883,7 @@ public:
     }
     
     inline bool isConst() {
-        return ( is_const == (investigate & is_const));
+        return ( is_constante == (investigate & is_constante));
     }
 
     inline bool isNULL() {
@@ -974,7 +974,7 @@ public:
     }
     
     inline void Releasenonconst() {
-        if (!(investigate & is_const))
+        if (!(investigate & is_constante))
             Release();
     }
 
@@ -3101,7 +3101,7 @@ public:
     
     void Checkconst() {
         if (left->isConst() && (right == NULL || right->isConst()))
-            investigate |= is_const;
+            investigate |= is_constante;
     }
     
     void ScanVariables(vector<short>& vars) {

@@ -68,7 +68,7 @@ class Tamguvector : public TamguObjectLockContainer {
     Exporting virtual Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 
     void SetConst() {
-        investigate |= is_const;
+        investigate |= is_constante;
     }
 
     void Setmerge() {
@@ -948,7 +948,7 @@ public:
     Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
     
     void SetConst() {
-        investigate |= is_const;
+        investigate |= is_constante;
     }
     
     Exporting Tamgu* Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* env, TamguFunctionLambda* bd, short idthread);

@@ -37,7 +37,7 @@ public:
 
 		if (g != NULL)
 			g->RecordInTracker(this);
-        investigate = is_const;
+        investigate = is_constante;
 	}
 
 	short Type() {

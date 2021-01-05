@@ -188,7 +188,7 @@ Tamgu* Tamgulisp::Put(Tamgu* c, Tamgu* v, short idthread) {
 }
 
 Tamgulispcode::Tamgulispcode(TamguGlobal* g, Tamgu* parent) : Tamgulisp(g, parent) {
-    investigate |= is_const;
+    investigate |= is_constante;
     if (g != NULL) {
         long line = g->Getcurrentline();
         short idcode = (short)g->spaceid;
