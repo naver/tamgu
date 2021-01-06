@@ -35,20 +35,44 @@ extern BOOL nouveau;
 @implementation Lecode
 
 
+-(BOOL)appearanceIsDark:(NSAppearance*) appearance
+{
+    if (@available(*, macOS 10.14)) {
+        NSAppearanceName basicAppearance = [appearance bestMatchFromAppearancesWithNames:@[
+            NSAppearanceNameAqua,
+            NSAppearanceNameDarkAqua
+        ]];
+        return [basicAppearance isEqualToString:NSAppearanceNameDarkAqua];
+    }
+    return NO;
+}
+
 -(void)awakeFromNib {
     
     modified = NO;
-    
-    localcouleur=[NSColor colorWithSRGBRed:0.62 green:0.131 blue:0.137 alpha:1.00];
-    functioncouleur=[NSColor colorWithSRGBRed:5.0/255.0 green:5.0/255.0 blue:245.0/255.0 alpha:1.00];
-    couleurcommentaires=[NSColor colorWithSRGBRed:45.0/255.0 green:140.0/255.0 blue:45.0/255.0 alpha:1.00];
-    couleurchaine=[NSColor colorWithSRGBRed:140.0/255.0 green:140.0/255.0 blue:245.0/255.0 alpha:1.00];
-    couleurvar=[NSColor colorWithSRGBRed:130.0/255.0 green:130.0/255.0 blue:230.0/255.0 alpha:1.00];
 
+
+    dark = [self appearanceIsDark: NSAppearance.currentAppearance];
+    
+    if (dark) {
+        localcouleur= [NSColor cyanColor];
+        couleurcommentaires=[NSColor greenColor];
+        functioncouleur=[NSColor orangeColor];
+        couleurchaine=[NSColor redColor];
+        couleurchainesingle = [NSColor colorWithSRGBRed:0.7 green:0.5 blue:1 alpha:1.00];
+        couleurvar=[NSColor whiteColor];
+    } else {
+        localcouleur=[NSColor colorWithSRGBRed:0.62 green:0.131 blue:0.137 alpha:1.00];
+        functioncouleur=[NSColor colorWithSRGBRed:5.0/255.0 green:5.0/255.0 blue:245.0/255.0 alpha:1.00];
+        couleurcommentaires=[NSColor colorWithSRGBRed:45.0/255.0 green:140.0/255.0 blue:45.0/255.0 alpha:1.00];
+        couleurchaine=[NSColor colorWithSRGBRed:140.0/255.0 green:140.0/255.0 blue:245.0/255.0 alpha:1.00];
+        couleurchainesingle = [NSColor redColor];
+        couleurvar=[NSColor colorWithSRGBRed:130.0/255.0 green:130.0/255.0 blue:230.0/255.0 alpha:1.00];
+    }
+    
     //[self scrollToBeginningOfDocument:self];
     
     //This is where we define our line numerotation
-    lecode = [self enclosingScrollView];
     [lecode setRulersVisible:YES];
     [lecode setHasVerticalRuler:YES];
     ruleur=[[Linenumber alloc] init];
@@ -260,7 +284,10 @@ extern BOOL nouveau;
     
     letexte=[self string];
     
-    [self setTextColor: [NSColor blackColor] range:suivant];
+    if (dark)
+        [self setTextColor: [NSColor whiteColor] range:suivant];
+    else
+        [self setTextColor: [NSColor blackColor] range:suivant];
     long* tobecolored=colorparser([letexte UTF8String], suivant.location, limite);
 
     for (long i=0; tobecolored[i]!=-1;i+=3) {
@@ -269,16 +296,16 @@ extern BOOL nouveau;
 
         switch (tobecolored[i]) {
             case 1: //string ""
-                [self setTextColor: [NSColor redColor] range:trouve];
+                [self setTextColor: couleurchaine range:trouve];
                 break;
             case 2://string ''
-                [self setTextColor: couleurchaine range:trouve];
+                [self setTextColor: couleurchainesingle range:trouve];
                 break;
             case 3://string @""@;
                 [self setTextColor: [NSColor grayColor] range:trouve];
                 break;
             case 4: //.xxx(
-                [self setTextColor:[NSColor purpleColor] range:trouve];
+                [self setTextColor: functioncouleur range:trouve];
                 break;
             case 5://keyword
                 [self setTextColor: functioncouleur range:trouve];

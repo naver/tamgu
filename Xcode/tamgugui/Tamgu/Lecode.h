@@ -21,6 +21,7 @@
     NSScrollView* lecode;
     NSURL* fileName;
     BOOL tobecreated;
+    BOOL dark;
     Linenumber* ruleur;
     NSRange currentrange;
     long currentlength;
@@ -29,10 +30,12 @@
     NSColor* functioncouleur;
     NSColor* couleurcommentaires;
     NSColor* couleurchaine;
+    NSColor* couleurchainesingle;
     NSColor* couleurvar;
 
 }
 
+-(BOOL)appearanceIsDark:(NSAppearance*) appearance;
 -(BOOL)ismodified;
 -(void)setmodified:(BOOL)v;
 -(BOOL)isTobecreated;
