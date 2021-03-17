@@ -494,11 +494,15 @@ Tamgu* Tamgustring::MethodUTF16(Tamgu* contextualpattern, short idthread, TamguC
     Locking _lock((TamguObject*)kvect);
     for (size_t i = 0; i < s.size(); i++) {
         c_unicode_to_utf16(code, s[i]);
-        subcode = code >> 16;
-        code &= 0xFFFF;
-        kvect->storevalue((BLONG)subcode);
-        if (code)
+        if (!code)
             kvect->storevalue((BLONG)code);
+        else {
+            subcode = code >> 16;
+            code &= 0xFFFF;
+            if (subcode)
+                kvect->storevalue((BLONG)subcode);
+            kvect->storevalue((BLONG)code);
+        }
     }
     return kvect;
 }
