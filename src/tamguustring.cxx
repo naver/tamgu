@@ -69,22 +69,23 @@ void Tamguustring::AddMethod(TamguGlobal* global, string name, ustringMethod fun
 }
 
 
-   bool Tamguustring::InitialisationModule(TamguGlobal* global, string version) {
+bool Tamguustring::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
     infomethods.clear();
     exported.clear();
-
+    
     Tamguustring::idtype = global->Getid("ustring");
-
+    
     Tamguustring::AddMethod(global, "succ", &Tamguustring::MethodSucc, P_NONE, "succ(): Return the successor of a character.");
     Tamguustring::AddMethod(global, "pred", &Tamguustring::MethodPred, P_NONE, "pred(): Return the predecessor of a byte.");
-
-
+    
+    
     Tamguustring::AddMethod(global, "doublemetaphone", &Tamguustring::MethodDoubleMetaphone, P_NONE, "doublemetaphone(): Return the string double metaphone conversion into a svector");
-
-	Tamguustring::AddMethod(global, "ord", &Tamguustring::MethodOrd, P_NONE, "ord(): Return the character unicode.");
-	Tamguustring::AddMethod(global, "bytes", &Tamguustring::MethodBytes, P_NONE, "bytes(): Return the Unicode representation.");
-	Tamguustring::AddMethod(global, "hash", &Tamguustring::MethodHash, P_NONE, "hash(): Return the hash value of a string.");
+    
+    Tamguustring::AddMethod(global, "ord", &Tamguustring::MethodOrd, P_NONE, "ord(): Return the character unicode.");
+    Tamguustring::AddMethod(global, "utf16", &Tamguustring::MethodUTF16, P_NONE, "utf16(): Return the character unicode as UTF16 encoding.");
+    Tamguustring::AddMethod(global, "bytes", &Tamguustring::MethodBytes, P_NONE, "bytes(): Return the Unicode representation.");
+    Tamguustring::AddMethod(global, "hash", &Tamguustring::MethodHash, P_NONE, "hash(): Return the hash value of a string.");
     Tamguustring::AddMethod(global, "reverse", &Tamguustring::MethodReverse, P_NONE, "reverse(): reverse the string");
     Tamguustring::AddMethod(global, "format", &Tamguustring::MethodFormat, P_ATLEASTONE, "format(p1,p2,p3): Create a new string from the current string in which each '%x' is associated to one of the parameters, 'x' being the position of that parameter in the argument list. 'x' starts at 1.");
     Tamguustring::AddMethod(global, "base", &Tamguustring::MethodBase, P_ONE | P_TWO, "base(int b, bool toconvert=true): Return the value corresponding to the string in base b");
@@ -149,10 +150,10 @@ void Tamguustring::AddMethod(TamguGlobal* global, string name, ustringMethod fun
     Tamguustring::AddMethod(global, "ishangul", &Tamguustring::MethodIsHangul, P_NONE, "ishangul(): return true if it is a Hangul character.");
     Tamguustring::AddMethod(global, "normalizehangul", &Tamguustring::MethodNormalizeHangul, P_NONE, "normalizehangul(): Normalize Hangul characters.");
     Tamguustring::AddMethod(global, "romanization", &Tamguustring::MethodTransliteration, P_NONE, "romanization(): romanization of Hangul characters.");
-
+    
     Tamguustring::AddMethod(global, "read", &Tamguustring::MethodRead, P_ONE, "read(string path): read the file content into the current variable. File shoud be encoded in UTF16 characters");
     Tamguustring::AddMethod(global, "write", &Tamguustring::MethodWrite, P_ONE, "write(string path): write the string content into a file.");
-
+    
     if (version != "") {
         global->newInstance[Tamguustring::idtype] = new Tamguustring(L"", global);
         global->newInstance[a_ustringthrough] = global->newInstance[Tamguustring::idtype];
@@ -160,7 +161,7 @@ void Tamguustring::AddMethod(TamguGlobal* global, string name, ustringMethod fun
         global->RecordMethods(a_ustringthrough, Tamguustring::exported);
         global->RecordMethods(a_uloop, Tamguustring::exported);
     }
-
+    
     Tamgua_ustring::InitialisationModule(global, version);
     
     return true;
@@ -294,6 +295,8 @@ unsigned long Tamguustring::EditDistance(Tamgu* e) {
     return s2len;
 }
 
+
+
 #ifdef WSTRING_IS_UTF16
 Tamgu* Tamguustring::MethodOrd(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     wstring s = UString();
@@ -348,6 +351,22 @@ Tamgu* Tamguustring::MethodBytes(Tamgu* contextualpattern, short idthread, Tamgu
 
 	return aNULL;
 }
+
+Tamgu* Tamguustring::MethodUTF16(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    wstring s = UString();
+    uint32_t code;
+    uint32_t subcode;
+    Tamgu* kvect=SelectContainer(contextualpattern,idthread);
+    if (kvect==NULL)
+        kvect=new Tamgulvector;
+    
+    Locking _lock((TamguObject*)kvect);
+    for (size_t i = 0; i < s.size(); i++) {
+        kvect->storevalue((BLONG)s[i]);
+    }
+    return kvect;
+}
+
 #else
 Tamgu* Tamguustring::MethodOrd(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 	wstring s = UString();
@@ -372,6 +391,26 @@ Tamgu* Tamguustring::MethodOrd(Tamgu* contextualpattern, short idthread, TamguCa
 	}
 
 	return aNULL;
+}
+
+Tamgu* Tamguustring::MethodUTF16(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    wstring s = UString();
+    uint32_t code;
+    uint32_t subcode;
+    Tamgu* kvect=SelectContainer(contextualpattern,idthread);
+    if (kvect==NULL)
+        kvect=new Tamgulvector;
+    
+    Locking _lock((TamguObject*)kvect);
+    for (size_t i = 0; i < s.size(); i++) {
+        c_unicode_to_utf16(code, s[i]);
+        subcode = code >> 16;
+        code &= 0xFFFF;
+        kvect->storevalue((BLONG)subcode);
+        if (code)
+            kvect->storevalue((BLONG)code);
+    }
+    return kvect;
 }
 
 Tamgu* Tamguustring::MethodBytes(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {

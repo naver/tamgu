@@ -9913,8 +9913,10 @@ Exporting void sc_unicode_to_utf8(string& s, wstring& str) {
 	char inter[5];
 	long ineo = 0;
 	long sz = str.size();
-	if (!sz)
+    if (!sz) {
+        s = "";
 		return;
+    }
 	long szo = 1 + (sz << 1);
 	char* neo = new char[szo];
 	neo[0] = 0;
@@ -10055,8 +10057,10 @@ Exporting void s_utf8_to_unicode(wstring& w, unsigned char* str, long sz) {
 }
 
 Exporting void sc_utf8_to_unicode(wstring& w, unsigned char* str, long sz) {
-	if (!sz)
+    if (!sz) {
+        w = L"";
 		return;
+    }
 
     long ineo = 0;
     wchar_t* neo = new wchar_t[sz + 1];
@@ -10163,8 +10167,10 @@ Exporting void s_latin_to_unicode(wstring& res, unsigned char* contenu, long sz)
 }
 
 Exporting void sc_latin_to_unicode(wstring& res, unsigned char* contenu, long sz) {
-	if (!sz)
+    if (!sz) {
+        res = L"";
 		return;
+    }
 
     long ineo = 0;
     wchar_t* neo = new wchar_t[sz+1];
@@ -10367,8 +10373,10 @@ Exporting long c_char_to_pos_emoji(wstring& w, long charpos) {
 }
 
 Exporting void sc_latin_to_unicode(wstring& res, unsigned char* contenu, long sz) {
-	if (!sz)
+    if (!sz) {
+        res = L"";
 		return;
+    }
 
     long ineo = 0;
     wchar_t* neo = new wchar_t[sz+1];
@@ -10456,8 +10464,10 @@ Exporting void sc_unicode_to_utf8(string& s, wstring& str) {
 	char inter[5];
     long ineo = 0;
     long sz = str.size();
-	if (!sz)
+    if (!sz) {
+        s = "";
 		return;
+    }
     long szo = 1 + (sz << 1);
     char* neo = new char[szo];
     neo[0] = 0;
@@ -10547,10 +10557,10 @@ Exporting void s_utf8_to_unicode(wstring& w, unsigned char* str , long sz) {
 }
 
 Exporting void sc_utf8_to_unicode(wstring& w, unsigned char* str, long sz) {
+    w = L"";
 	if (!sz)
 		return;
 
-	w = L"";
     long ineo = 0;
     wchar_t* neo = new wchar_t[sz+1];
     neo[0] = 0;

@@ -742,6 +742,7 @@ public:
 		return Pred();
 	}
 
+    Tamgu* MethodUTF16(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodDoubleMetaphone(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodHash(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 	Tamgu* MethodReverse(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);

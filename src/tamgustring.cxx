@@ -74,134 +74,135 @@ void Tamgustring::AddMethod(TamguGlobal* global, string name, stringMethod func,
 
 
    bool Tamgustring::InitialisationModule(TamguGlobal* global, string version) {
-    methods.clear();
-    infomethods.clear();
-    exported.clear();
-
-    Tamgustring::idtype = global->Getid("string");
-
-    Tamgustring::AddMethod(global, "succ", &Tamgustring::MethodSucc, P_NONE, "succ(): Return the successor of a character.", a_string);
-    Tamgustring::AddMethod(global, "pred", &Tamgustring::MethodPred, P_NONE, "pred(): Return the predecessor of a byte.", a_string);
-
-    Tamgustring::AddMethod(global, "doublemetaphone", &Tamgustring::MethodDoubleMetaphone, P_NONE, "doublemetaphone(): Return the string double metaphone conversion into a svector", a_svector);
-
-    Tamgustring::AddMethod(global, "hash", &Tamgustring::MethodHash, P_NONE, "hash(): Return the hash value of a string.", a_int);
-    Tamgustring::AddMethod(global, "ord", &Tamgustring::MethodOrd, P_NONE, "ord(): return the ASCII code of the first character, or a list of all ASCII code if the recipient is a vector", a_null);
-    Tamgustring::AddMethod(global, "bytes", &Tamgustring::MethodBytes, P_NONE, "bytes(): Return the string as a vector of bytes", a_ivector);
-    Tamgustring::AddMethod(global, "base", &Tamgustring::MethodBase, P_ONE | P_TWO, "base(int b, bool toconvert=true): Return the value corresponding to the string in base b", a_null);
-    Tamgustring::AddMethod(global, "parse", &Tamgustring::MethodParse, P_NONE | P_TWO, "parse(): Parse a string as a piece of code and returns the evaluation as a vector.", a_vector);
-    Tamgustring::AddMethod(global, "sizeb", &Tamgustring::MethodSizeb, P_NONE, "sizeb(): Return the size in bytes of the string", a_int);
-    Tamgustring::AddMethod(global, "parenthetics", &Tamgustring::MethodParenthetic, P_NONE | P_TWO | P_THREE | P_FOUR | P_FIVE | P_SIX, "lisp(): lisp(string o,string c,bool comma,bool separator,bool concatenate): Parse a string as a parenthetic expressions, o is '(' and c is ')' by default. If 'comma' is true, then the decimal character is ',' otherwise it is '.'. If 'separator' is true then '1,000' is accepted as a number. If 'concatenate' is true then '3a' is a valid token", a_null);
-    Tamgustring::AddMethod(global, "tags", &Tamgustring::MethodTags, P_TWO | P_THREE | P_FOUR | P_FIVE | P_SIX, "tags(string o,string c,bool comma,bool separator,bool concatenate, svector rules): Parse a string as a parenthetic expressions, where o and c are string (not characters). If 'comma' is true, then the decimal character is ',' otherwise it is '.'. If 'separator' is true then '1,000' is accepted as a number. If 'concatenate' is true then '3a' is a valid token", a_null);
-    Tamgustring::AddMethod(global, "scan", &Tamgustring::MethodScan, P_ONE | P_TWO | P_THREE | P_FOUR, "scan(sub, string sep, bool immediate,string remaining): Find the substrings matching sub, with TRE. 'sep' is a separator between strings. 'immediate' always combines with separator, it means that the matching should start at the first character of the string, default is false. 'remaining' also combines with 'separator', it returns the rest of the string after the section that matched.", a_null);
-    Tamgustring::AddMethod(global, "getstd", &Tamgustring::MethodGetstd, P_ONE, "getstd(bool): catch or release the standard output", a_null);
-    Tamgustring::AddMethod(global, "geterr", &Tamgustring::MethodGeterr, P_ONE, "geterr(bool): catch or release the error output", a_null);
-
-    Tamgustring::AddMethod(global, "levenshtein", &Tamgustring::MethodEditdistance, P_ONE | P_TWO, "levenshtein(string s,bool byte): Return the edit distance with 's' according to Levenshtein algorithm. If byte is true, force a byte level comparison. byte is optionnal.", a_int);
-    Tamgustring::AddMethod(global, "editdistance", &Tamgustring::MethodEditdistance, P_ONE | P_TWO | P_THREE, "editdistance(string s,bool byte): Return the edit distance with 's'. If byte is true, force a byte level comparison. byte is optionnal.", a_int);
-
-    Tamgustring::AddMethod(global, "tokenize", &Tamgustring::MethodTokenize, P_NONE | P_ONE | P_TWO | P_THREE, "tokenize(bool comma,bool separator, svector rules): Segment a string into words and punctuations. If 'comma' is true, then the decimal character is ',' otherwise it is '.'. If 'separator' is true then '1,000' is accepted as a number. rules is a set of tokenization rules that can be first initialized then modified with _getdefaulttokenizerules", a_null);
-    Tamgustring::AddMethod(global, "stokenize", &Tamgustring::MethodStokenize, P_NONE | P_ONE, "stokenize(map keeps): Segment a string into words and punctuations, with a keep.", a_null);
-    Tamgustring::AddMethod(global, "split", &Tamgustring::MethodSplit, P_ONE | P_NONE, "split(string splitter): split a string along splitter and store the results  in a vector. If splitter=='', then the string is split into a vector of characters", a_svector);
-    Tamgustring::AddMethod(global, "multisplit", &Tamgustring::MethodMultiSplit, P_ATLEASTONE, "multisplit(string splitter1,string splitter2..): split a string along different splitters. Return a svector.", a_svector);
-    Tamgustring::AddMethod(global, "splite", &Tamgustring::MethodSplite, P_ONE | P_NONE, "splite(string splitter): split a string along splitter and store the results  in a vector. If splitter=='', then the string is split into a vector of characters. Empty strings are kept in the result.", a_svector);
-    Tamgustring::AddMethod(global, "slice", &Tamgustring::MethodSlice, P_ONE, "slice(int sz): Return a vector of all slices of size sz", a_svector);
-    Tamgustring::AddMethod(global, "ngrams", &Tamgustring::MethodNgrams, P_ONE, "ngrams(int r): Return a vector of all ngrams of rank r", a_svector);
-    Tamgustring::AddMethod(global, "extract", &Tamgustring::MethodExtract, P_ATLEASTTHREE, "extract(int pos,string from,string up1,string up2...): extract substrings between 'from' and 'up1'...'upn' (the shortest string is used). Return a vector of strings", a_svector);
-
-    Tamgustring::AddMethod(global, "find", &Tamgustring::MethodFind, P_TWO | P_ONE, "find(string sub,int pos): Return the position of substring sub starting at position pos", a_int);
-    Tamgustring::AddMethod(global, "rfind", &Tamgustring::MethodRfind, P_TWO | P_ONE, "rfind(string sub,int pos): Return the position of substring sub backward starting at position pos", a_int);
-
-    Tamgustring::AddMethod(global, "count", &Tamgustring::MethodCount, P_TWO | P_ONE, "count(string sub,int pos): Count the number of substrings starting at position pos", a_int);
+       methods.clear();
+       infomethods.clear();
+       exported.clear();
        
-    Tamgustring::AddMethod(global, "countbaseline", &Tamgustring::MethodCountBaseLine, P_TWO | P_ONE, "countbaseline(string sub,int pos): Count the number of substrings starting at position pos with base line method", a_int);
-
-    Tamgustring::AddMethod(global, "byteposition", &Tamgustring::MethodByteposition, P_ONE, "byteposition(int pos): Convert a character position into a byte position", a_int);
-    Tamgustring::AddMethod(global, "charposition", &Tamgustring::MethodCharposition, P_ONE, "charposition(int pos): Convert a byte position into a character position", a_int);
-
-    Tamgustring::AddMethod(global, "isalpha", &Tamgustring::MethodIsalpha, P_NONE, "isalpha(): Test if a string only contains only alphabetical characters", a_boolean);
-    Tamgustring::AddMethod(global, "isconsonant", &Tamgustring::MethodIsconsonant, P_NONE, "isconsonant(): Test if a string only contains consonants", a_boolean);
-    Tamgustring::AddMethod(global, "isvowel", &Tamgustring::MethodIsvowel, P_NONE, "isvowel(): Test if a string only contains only vowels", a_boolean);
-    Tamgustring::AddMethod(global, "ispunctuation", &Tamgustring::MethodIspunctuation, P_NONE, "ispunctuation(): Test if the character is a punctuation", a_boolean);
-    Tamgustring::AddMethod(global, "isdigit", &Tamgustring::MethodIsdigit, P_NONE, "isdigit(): Test if a string only contains digits", a_boolean);
-    Tamgustring::AddMethod(global, "isupper", &Tamgustring::MethodIsupper, P_NONE, "isupper(): Test if a string only contains uppercase characters", a_boolean);
-    Tamgustring::AddMethod(global, "islower", &Tamgustring::MethodIslower, P_NONE, "islower(): Test if a string only contains lowercase characters", a_boolean);
-    Tamgustring::AddMethod(global, "isemoji", &Tamgustring::MethodIsemoji, P_NONE, "isemoji(): Test if a string only contains emoji characters", a_boolean);
-    Tamgustring::AddMethod(global, "isutf8", &Tamgustring::MethodIsutf8, P_NONE, "isutf8(): Return true is the string is encoded in UTF8", a_boolean);
-
-
-    Tamgustring::AddMethod(global, "reverse", &Tamgustring::MethodReverse, P_NONE, "reverse(): reverse the string", a_string);
-    Tamgustring::AddMethod(global, "format", &Tamgustring::MethodFormat, P_ATLEASTONE, "format(p1,p2,p3): Create a new string from the current string in which each '%x' is associated to one of the parameters, 'x' being the position of that parameter in the argument list. 'x' starts at 1.", a_string);
-    Tamgustring::AddMethod(global, "fill", &Tamgustring::MethodFill, P_TWO, "fill(int nb,string c): create a string of nb characters c", a_string);
-    Tamgustring::AddMethod(global, "padding", &Tamgustring::MethodPadding, P_TWO | P_THREE, "padding(int nb,string c,bool paddattheend): add nb characters c to the current string. Last parameter is optional", a_string);
-    Tamgustring::AddMethod(global, "pop", &Tamgustring::MethodPop, P_NONE | P_ONE | P_TWO, "pop(): remove last character", a_string);
-    Tamgustring::AddMethod(global, "evaluate", &Tamgustring::MethodEvaluate, P_NONE, "evaluate(): evaluate the meta-characters within a string and return the evaluated string.", a_string);
-    Tamgustring::AddMethod(global, "html", &Tamgustring::MethodTohtml, P_NONE, "html(): Return the string into an HTML compatible string or as a vector of strings", a_string);
-    Tamgustring::AddMethod(global, "tohtml", &Tamgustring::MethodTohtml, P_NONE, "tohtml(): Return the string into an HTML compatible string or as a vector of strings", a_string);
-    Tamgustring::AddMethod(global, "toxml", &Tamgustring::MethodToxml, P_NONE, "toxml(): Return the string into an XML compatible string or as a vector of strings", a_string);
-    Tamgustring::AddMethod(global, "replace", &Tamgustring::MethodReplace, P_TWO, "replace(string sub,string str): Replace the substrings matching sub with str", a_string);
-    Tamgustring::AddMethod(global, "removefirst", &Tamgustring::MethodRemovefirst, P_ONE, "removefirst(int nb): remove the first nb characters of a string", a_string);
-    Tamgustring::AddMethod(global, "removelast", &Tamgustring::MethodRemovelast, P_ONE, "removelast(int nb): remove the last nb characters of a string", a_string);
-    Tamgustring::AddMethod(global, "utf8", &Tamgustring::MethodUtf8, P_NONE | P_ONE, "utf8(int table): convert a LATIN string into UTF8. table is optional, by default it is ISO/IEC 8859 part 1.", a_string);
-    Tamgustring::AddMethod(global, "latin", &Tamgustring::MethodLatin, P_NONE, "latin(): convert an UTF8 string in LATIN", a_string);
-    Tamgustring::AddMethod(global, "dos", &Tamgustring::MethodDos, P_NONE, "dos(): convert a string into DOS encoding", a_string);
-    Tamgustring::AddMethod(global, "dostoutf8", &Tamgustring::MethodDostoutf8, P_NONE, "dostoutf8(): convert a DOS string into UTF8", a_string);
-    Tamgustring::AddMethod(global, "left", &Tamgustring::MethodLeft, P_ONE, "left(int nb): return the first nb characters of a string", a_string);
-    Tamgustring::AddMethod(global, "right", &Tamgustring::MethodRight, P_ONE, "right(int nb): return the last nb characters of a string", a_string);
-    Tamgustring::AddMethod(global, "mid", &Tamgustring::MethodMid, P_TWO, "mid(int pos,int nb): return the nb characters starting at position pos of a string", a_string);
-    Tamgustring::AddMethod(global, "emoji", &Tamgustring::MethodEmoji, P_NONE, "emoji(): Return the textual description of an emoji", a_string);
-    Tamgustring::AddMethod(global, "upper", &Tamgustring::MethodUpper, P_NONE, "upper(): Return the string in upper characters", a_string);
-    Tamgustring::AddMethod(global, "deaccentuate", &Tamgustring::MethodDeaccentuate, P_NONE, "deaccentuate(): Remove the accents from accented characters", a_string);
-    Tamgustring::AddMethod(global, "indent", &Tamgustring::MethodIndent, P_NONE | P_ONE | P_TWO, "indent(int nbblanks, bool taskel): Format a piece of code.", a_string);
-    Tamgustring::AddMethod(global, "lower", &Tamgustring::MethodLower, P_NONE, "lower(): Return the string in lower characters", a_string);
-    Tamgustring::AddMethod(global, "trim", &Tamgustring::MethodTrim, P_NONE, "trim(): remove the trailing characters", a_string);
-    Tamgustring::AddMethod(global, "trimleft", &Tamgustring::MethodTrimleft, P_NONE, "trimleft(): remove the trailing characters on the left", a_string);
-    Tamgustring::AddMethod(global, "trimright", &Tamgustring::MethodTrimright, P_NONE, "trimright(): remove the trailing characters on the right", a_string);
-    Tamgustring::AddMethod(global, "last", &Tamgustring::MethodLast, P_NONE, "last(): return last character", a_string);
-    Tamgustring::AddMethod(global, "insert", &Tamgustring::MethodInsert, P_ONE | P_TWO, "insert(int i,string s): insert the string s at i. If i is -1, then insert s between each character in the input string", a_string);
-    Tamgustring::AddMethod(global, "clear", &Tamgustring::MethodClear, P_NONE, "clear(): Clean the content of a string.", a_null);
-
-    Tamgustring::AddMethod(global, "jamo", &Tamgustring::MethodJamo, P_NONE | P_ONE, "jamo(bool combine): if 'combine' is false split a Korean jamo into its main components, else combine contents into a jamo.", a_null);
-    Tamgustring::AddMethod(global, "isjamo", &Tamgustring::MethodIsJamo, P_NONE, "isjamo(): return true if it is a Hangul jamo.", a_null);
-    Tamgustring::AddMethod(global, "ishangul", &Tamgustring::MethodIsHangul, P_NONE, "ishangul(): return true if it is a Hangul character.", a_null);
-    Tamgustring::AddMethod(global, "normalizehangul", &Tamgustring::MethodNormalizeHangul, P_NONE, "normalizehangul(): Normalize Hangul characters.", a_string);
-    Tamgustring::AddMethod(global, "romanization", &Tamgustring::MethodTransliteration, P_NONE, "romanization(): romanization of Hangul characters.", a_null);
-
-    Tamgustring::AddMethod(global, "read", &Tamgustring::MethodRead, P_ONE, "read(string path): read the file content into the current variable.", a_boolean);
-    Tamgustring::AddMethod(global, "write", &Tamgustring::MethodWrite, P_ONE, "write(string path): write the string content into a file.", a_boolean);
-
-
-	if (version != "") {
-		global->newInstance[Tamgustring::idtype] = new Tamgustring("", global);
-		global->newInstance[a_stringthrough] = global->newInstance[Tamgustring::idtype];
-		global->RecordMethods(Tamgustring::idtype, Tamgustring::exported);
-		global->RecordMethods(a_stringthrough, Tamgustring::exported);
-		global->RecordMethods(a_sloop, Tamgustring::exported);
-
-
-		//Encoding table name...
-		Tamgu* a = new TamguSystemVariable(global, aONE, global->Createid("e_latin_we"), a_short);
-		a = new TamguSystemVariable(global, aTWO, global->Createid("e_latin_ce"), a_short);
-		a = new TamguSystemVariable(global, aTHREE, global->Createid("e_latin_se"), a_short);
-		a = new TamguSystemVariable(global, aFOUR, global->Createid("e_latin_ne"), a_short);
-		a = new TamguSystemVariable(global, aFIVE, global->Createid("e_cyrillic"), a_short);
-		a = new TamguSystemVariable(global, aSIX, global->Createid("e_arabic"), a_short);
-		a = new TamguSystemVariable(global, aSEVEN, global->Createid("e_greek"), a_short);
-		a = new TamguSystemVariable(global, aEIGHT, global->Createid("e_hebrew"), a_short);
-		a = new TamguSystemVariable(global, aNINE, global->Createid("e_turkish"), a_short);
-		a = new TamguSystemVariable(global, aTEN, global->Createid("e_nordic"), a_short);
-		a = new TamguSystemVariable(global, aELEVEN, global->Createid("e_thai"), a_short);
-		a = new TamguSystemVariable(global, aTHIRTEEN, global->Createid("e_baltic"), a_short);
-		a = new TamguSystemVariable(global, aFOURTEEN, global->Createid("e_celtic"), a_short);
-		a = new TamguSystemVariable(global, aFIFTEEN, global->Createid("e_latin_ffe"), a_short);
-		a = new TamguSystemVariable(global, aSIXTEEN, global->Createid("e_latin_see"), a_short);
-		a = new TamguSystemVariable(global, aSEVENTEEN, global->Createid("e_windows"), a_short);
-		a = new TamguSystemVariable(global, aSEVENTEEN, global->Createid("e_cp1252"), a_short);
-	}
-
-    Tamgua_string::InitialisationModule(global, version);
-    
-    return true;
+       Tamgustring::idtype = global->Getid("string");
+       
+       Tamgustring::AddMethod(global, "succ", &Tamgustring::MethodSucc, P_NONE, "succ(): Return the successor of a character.", a_string);
+       Tamgustring::AddMethod(global, "pred", &Tamgustring::MethodPred, P_NONE, "pred(): Return the predecessor of a byte.", a_string);
+       
+       Tamgustring::AddMethod(global, "doublemetaphone", &Tamgustring::MethodDoubleMetaphone, P_NONE, "doublemetaphone(): Return the string double metaphone conversion into a svector", a_svector);
+       
+       Tamgustring::AddMethod(global, "hash", &Tamgustring::MethodHash, P_NONE, "hash(): Return the hash value of a string.", a_int);
+       Tamgustring::AddMethod(global, "utf16", &Tamgustring::MethodUTF16, P_NONE, "utf16(): Return the character unicode as UTF16 encoding.", a_vector);
+       Tamgustring::AddMethod(global, "ord", &Tamgustring::MethodOrd, P_NONE, "ord(): return the ASCII code of the first character, or a list of all ASCII code if the recipient is a vector", a_null);
+       Tamgustring::AddMethod(global, "bytes", &Tamgustring::MethodBytes, P_NONE, "bytes(): Return the string as a vector of bytes", a_ivector);
+       Tamgustring::AddMethod(global, "base", &Tamgustring::MethodBase, P_ONE | P_TWO, "base(int b, bool toconvert=true): Return the value corresponding to the string in base b", a_null);
+       Tamgustring::AddMethod(global, "parse", &Tamgustring::MethodParse, P_NONE | P_TWO, "parse(): Parse a string as a piece of code and returns the evaluation as a vector.", a_vector);
+       Tamgustring::AddMethod(global, "sizeb", &Tamgustring::MethodSizeb, P_NONE, "sizeb(): Return the size in bytes of the string", a_int);
+       Tamgustring::AddMethod(global, "parenthetics", &Tamgustring::MethodParenthetic, P_NONE | P_TWO | P_THREE | P_FOUR | P_FIVE | P_SIX, "lisp(): lisp(string o,string c,bool comma,bool separator,bool concatenate): Parse a string as a parenthetic expressions, o is '(' and c is ')' by default. If 'comma' is true, then the decimal character is ',' otherwise it is '.'. If 'separator' is true then '1,000' is accepted as a number. If 'concatenate' is true then '3a' is a valid token", a_null);
+       Tamgustring::AddMethod(global, "tags", &Tamgustring::MethodTags, P_TWO | P_THREE | P_FOUR | P_FIVE | P_SIX, "tags(string o,string c,bool comma,bool separator,bool concatenate, svector rules): Parse a string as a parenthetic expressions, where o and c are string (not characters). If 'comma' is true, then the decimal character is ',' otherwise it is '.'. If 'separator' is true then '1,000' is accepted as a number. If 'concatenate' is true then '3a' is a valid token", a_null);
+       Tamgustring::AddMethod(global, "scan", &Tamgustring::MethodScan, P_ONE | P_TWO | P_THREE | P_FOUR, "scan(sub, string sep, bool immediate,string remaining): Find the substrings matching sub, with TRE. 'sep' is a separator between strings. 'immediate' always combines with separator, it means that the matching should start at the first character of the string, default is false. 'remaining' also combines with 'separator', it returns the rest of the string after the section that matched.", a_null);
+       Tamgustring::AddMethod(global, "getstd", &Tamgustring::MethodGetstd, P_ONE, "getstd(bool): catch or release the standard output", a_null);
+       Tamgustring::AddMethod(global, "geterr", &Tamgustring::MethodGeterr, P_ONE, "geterr(bool): catch or release the error output", a_null);
+       
+       Tamgustring::AddMethod(global, "levenshtein", &Tamgustring::MethodEditdistance, P_ONE | P_TWO, "levenshtein(string s,bool byte): Return the edit distance with 's' according to Levenshtein algorithm. If byte is true, force a byte level comparison. byte is optionnal.", a_int);
+       Tamgustring::AddMethod(global, "editdistance", &Tamgustring::MethodEditdistance, P_ONE | P_TWO | P_THREE, "editdistance(string s,bool byte): Return the edit distance with 's'. If byte is true, force a byte level comparison. byte is optionnal.", a_int);
+       
+       Tamgustring::AddMethod(global, "tokenize", &Tamgustring::MethodTokenize, P_NONE | P_ONE | P_TWO | P_THREE, "tokenize(bool comma,bool separator, svector rules): Segment a string into words and punctuations. If 'comma' is true, then the decimal character is ',' otherwise it is '.'. If 'separator' is true then '1,000' is accepted as a number. rules is a set of tokenization rules that can be first initialized then modified with _getdefaulttokenizerules", a_null);
+       Tamgustring::AddMethod(global, "stokenize", &Tamgustring::MethodStokenize, P_NONE | P_ONE, "stokenize(map keeps): Segment a string into words and punctuations, with a keep.", a_null);
+       Tamgustring::AddMethod(global, "split", &Tamgustring::MethodSplit, P_ONE | P_NONE, "split(string splitter): split a string along splitter and store the results  in a vector. If splitter=='', then the string is split into a vector of characters", a_svector);
+       Tamgustring::AddMethod(global, "multisplit", &Tamgustring::MethodMultiSplit, P_ATLEASTONE, "multisplit(string splitter1,string splitter2..): split a string along different splitters. Return a svector.", a_svector);
+       Tamgustring::AddMethod(global, "splite", &Tamgustring::MethodSplite, P_ONE | P_NONE, "splite(string splitter): split a string along splitter and store the results  in a vector. If splitter=='', then the string is split into a vector of characters. Empty strings are kept in the result.", a_svector);
+       Tamgustring::AddMethod(global, "slice", &Tamgustring::MethodSlice, P_ONE, "slice(int sz): Return a vector of all slices of size sz", a_svector);
+       Tamgustring::AddMethod(global, "ngrams", &Tamgustring::MethodNgrams, P_ONE, "ngrams(int r): Return a vector of all ngrams of rank r", a_svector);
+       Tamgustring::AddMethod(global, "extract", &Tamgustring::MethodExtract, P_ATLEASTTHREE, "extract(int pos,string from,string up1,string up2...): extract substrings between 'from' and 'up1'...'upn' (the shortest string is used). Return a vector of strings", a_svector);
+       
+       Tamgustring::AddMethod(global, "find", &Tamgustring::MethodFind, P_TWO | P_ONE, "find(string sub,int pos): Return the position of substring sub starting at position pos", a_int);
+       Tamgustring::AddMethod(global, "rfind", &Tamgustring::MethodRfind, P_TWO | P_ONE, "rfind(string sub,int pos): Return the position of substring sub backward starting at position pos", a_int);
+       
+       Tamgustring::AddMethod(global, "count", &Tamgustring::MethodCount, P_TWO | P_ONE, "count(string sub,int pos): Count the number of substrings starting at position pos", a_int);
+       
+       Tamgustring::AddMethod(global, "countbaseline", &Tamgustring::MethodCountBaseLine, P_TWO | P_ONE, "countbaseline(string sub,int pos): Count the number of substrings starting at position pos with base line method", a_int);
+       
+       Tamgustring::AddMethod(global, "byteposition", &Tamgustring::MethodByteposition, P_ONE, "byteposition(int pos): Convert a character position into a byte position", a_int);
+       Tamgustring::AddMethod(global, "charposition", &Tamgustring::MethodCharposition, P_ONE, "charposition(int pos): Convert a byte position into a character position", a_int);
+       
+       Tamgustring::AddMethod(global, "isalpha", &Tamgustring::MethodIsalpha, P_NONE, "isalpha(): Test if a string only contains only alphabetical characters", a_boolean);
+       Tamgustring::AddMethod(global, "isconsonant", &Tamgustring::MethodIsconsonant, P_NONE, "isconsonant(): Test if a string only contains consonants", a_boolean);
+       Tamgustring::AddMethod(global, "isvowel", &Tamgustring::MethodIsvowel, P_NONE, "isvowel(): Test if a string only contains only vowels", a_boolean);
+       Tamgustring::AddMethod(global, "ispunctuation", &Tamgustring::MethodIspunctuation, P_NONE, "ispunctuation(): Test if the character is a punctuation", a_boolean);
+       Tamgustring::AddMethod(global, "isdigit", &Tamgustring::MethodIsdigit, P_NONE, "isdigit(): Test if a string only contains digits", a_boolean);
+       Tamgustring::AddMethod(global, "isupper", &Tamgustring::MethodIsupper, P_NONE, "isupper(): Test if a string only contains uppercase characters", a_boolean);
+       Tamgustring::AddMethod(global, "islower", &Tamgustring::MethodIslower, P_NONE, "islower(): Test if a string only contains lowercase characters", a_boolean);
+       Tamgustring::AddMethod(global, "isemoji", &Tamgustring::MethodIsemoji, P_NONE, "isemoji(): Test if a string only contains emoji characters", a_boolean);
+       Tamgustring::AddMethod(global, "isutf8", &Tamgustring::MethodIsutf8, P_NONE, "isutf8(): Return true is the string is encoded in UTF8", a_boolean);
+       
+       
+       Tamgustring::AddMethod(global, "reverse", &Tamgustring::MethodReverse, P_NONE, "reverse(): reverse the string", a_string);
+       Tamgustring::AddMethod(global, "format", &Tamgustring::MethodFormat, P_ATLEASTONE, "format(p1,p2,p3): Create a new string from the current string in which each '%x' is associated to one of the parameters, 'x' being the position of that parameter in the argument list. 'x' starts at 1.", a_string);
+       Tamgustring::AddMethod(global, "fill", &Tamgustring::MethodFill, P_TWO, "fill(int nb,string c): create a string of nb characters c", a_string);
+       Tamgustring::AddMethod(global, "padding", &Tamgustring::MethodPadding, P_TWO | P_THREE, "padding(int nb,string c,bool paddattheend): add nb characters c to the current string. Last parameter is optional", a_string);
+       Tamgustring::AddMethod(global, "pop", &Tamgustring::MethodPop, P_NONE | P_ONE | P_TWO, "pop(): remove last character", a_string);
+       Tamgustring::AddMethod(global, "evaluate", &Tamgustring::MethodEvaluate, P_NONE, "evaluate(): evaluate the meta-characters within a string and return the evaluated string.", a_string);
+       Tamgustring::AddMethod(global, "html", &Tamgustring::MethodTohtml, P_NONE, "html(): Return the string into an HTML compatible string or as a vector of strings", a_string);
+       Tamgustring::AddMethod(global, "tohtml", &Tamgustring::MethodTohtml, P_NONE, "tohtml(): Return the string into an HTML compatible string or as a vector of strings", a_string);
+       Tamgustring::AddMethod(global, "toxml", &Tamgustring::MethodToxml, P_NONE, "toxml(): Return the string into an XML compatible string or as a vector of strings", a_string);
+       Tamgustring::AddMethod(global, "replace", &Tamgustring::MethodReplace, P_TWO, "replace(string sub,string str): Replace the substrings matching sub with str", a_string);
+       Tamgustring::AddMethod(global, "removefirst", &Tamgustring::MethodRemovefirst, P_ONE, "removefirst(int nb): remove the first nb characters of a string", a_string);
+       Tamgustring::AddMethod(global, "removelast", &Tamgustring::MethodRemovelast, P_ONE, "removelast(int nb): remove the last nb characters of a string", a_string);
+       Tamgustring::AddMethod(global, "utf8", &Tamgustring::MethodUtf8, P_NONE | P_ONE, "utf8(int table): convert a LATIN string into UTF8. table is optional, by default it is ISO/IEC 8859 part 1.", a_string);
+       Tamgustring::AddMethod(global, "latin", &Tamgustring::MethodLatin, P_NONE, "latin(): convert an UTF8 string in LATIN", a_string);
+       Tamgustring::AddMethod(global, "dos", &Tamgustring::MethodDos, P_NONE, "dos(): convert a string into DOS encoding", a_string);
+       Tamgustring::AddMethod(global, "dostoutf8", &Tamgustring::MethodDostoutf8, P_NONE, "dostoutf8(): convert a DOS string into UTF8", a_string);
+       Tamgustring::AddMethod(global, "left", &Tamgustring::MethodLeft, P_ONE, "left(int nb): return the first nb characters of a string", a_string);
+       Tamgustring::AddMethod(global, "right", &Tamgustring::MethodRight, P_ONE, "right(int nb): return the last nb characters of a string", a_string);
+       Tamgustring::AddMethod(global, "mid", &Tamgustring::MethodMid, P_TWO, "mid(int pos,int nb): return the nb characters starting at position pos of a string", a_string);
+       Tamgustring::AddMethod(global, "emoji", &Tamgustring::MethodEmoji, P_NONE, "emoji(): Return the textual description of an emoji", a_string);
+       Tamgustring::AddMethod(global, "upper", &Tamgustring::MethodUpper, P_NONE, "upper(): Return the string in upper characters", a_string);
+       Tamgustring::AddMethod(global, "deaccentuate", &Tamgustring::MethodDeaccentuate, P_NONE, "deaccentuate(): Remove the accents from accented characters", a_string);
+       Tamgustring::AddMethod(global, "indent", &Tamgustring::MethodIndent, P_NONE | P_ONE | P_TWO, "indent(int nbblanks, bool taskel): Format a piece of code.", a_string);
+       Tamgustring::AddMethod(global, "lower", &Tamgustring::MethodLower, P_NONE, "lower(): Return the string in lower characters", a_string);
+       Tamgustring::AddMethod(global, "trim", &Tamgustring::MethodTrim, P_NONE, "trim(): remove the trailing characters", a_string);
+       Tamgustring::AddMethod(global, "trimleft", &Tamgustring::MethodTrimleft, P_NONE, "trimleft(): remove the trailing characters on the left", a_string);
+       Tamgustring::AddMethod(global, "trimright", &Tamgustring::MethodTrimright, P_NONE, "trimright(): remove the trailing characters on the right", a_string);
+       Tamgustring::AddMethod(global, "last", &Tamgustring::MethodLast, P_NONE, "last(): return last character", a_string);
+       Tamgustring::AddMethod(global, "insert", &Tamgustring::MethodInsert, P_ONE | P_TWO, "insert(int i,string s): insert the string s at i. If i is -1, then insert s between each character in the input string", a_string);
+       Tamgustring::AddMethod(global, "clear", &Tamgustring::MethodClear, P_NONE, "clear(): Clean the content of a string.", a_null);
+       
+       Tamgustring::AddMethod(global, "jamo", &Tamgustring::MethodJamo, P_NONE | P_ONE, "jamo(bool combine): if 'combine' is false split a Korean jamo into its main components, else combine contents into a jamo.", a_null);
+       Tamgustring::AddMethod(global, "isjamo", &Tamgustring::MethodIsJamo, P_NONE, "isjamo(): return true if it is a Hangul jamo.", a_null);
+       Tamgustring::AddMethod(global, "ishangul", &Tamgustring::MethodIsHangul, P_NONE, "ishangul(): return true if it is a Hangul character.", a_null);
+       Tamgustring::AddMethod(global, "normalizehangul", &Tamgustring::MethodNormalizeHangul, P_NONE, "normalizehangul(): Normalize Hangul characters.", a_string);
+       Tamgustring::AddMethod(global, "romanization", &Tamgustring::MethodTransliteration, P_NONE, "romanization(): romanization of Hangul characters.", a_null);
+       
+       Tamgustring::AddMethod(global, "read", &Tamgustring::MethodRead, P_ONE, "read(string path): read the file content into the current variable.", a_boolean);
+       Tamgustring::AddMethod(global, "write", &Tamgustring::MethodWrite, P_ONE, "write(string path): write the string content into a file.", a_boolean);
+       
+       
+       if (version != "") {
+           global->newInstance[Tamgustring::idtype] = new Tamgustring("", global);
+           global->newInstance[a_stringthrough] = global->newInstance[Tamgustring::idtype];
+           global->RecordMethods(Tamgustring::idtype, Tamgustring::exported);
+           global->RecordMethods(a_stringthrough, Tamgustring::exported);
+           global->RecordMethods(a_sloop, Tamgustring::exported);
+           
+           
+           //Encoding table name...
+           Tamgu* a = new TamguSystemVariable(global, aONE, global->Createid("e_latin_we"), a_short);
+           a = new TamguSystemVariable(global, aTWO, global->Createid("e_latin_ce"), a_short);
+           a = new TamguSystemVariable(global, aTHREE, global->Createid("e_latin_se"), a_short);
+           a = new TamguSystemVariable(global, aFOUR, global->Createid("e_latin_ne"), a_short);
+           a = new TamguSystemVariable(global, aFIVE, global->Createid("e_cyrillic"), a_short);
+           a = new TamguSystemVariable(global, aSIX, global->Createid("e_arabic"), a_short);
+           a = new TamguSystemVariable(global, aSEVEN, global->Createid("e_greek"), a_short);
+           a = new TamguSystemVariable(global, aEIGHT, global->Createid("e_hebrew"), a_short);
+           a = new TamguSystemVariable(global, aNINE, global->Createid("e_turkish"), a_short);
+           a = new TamguSystemVariable(global, aTEN, global->Createid("e_nordic"), a_short);
+           a = new TamguSystemVariable(global, aELEVEN, global->Createid("e_thai"), a_short);
+           a = new TamguSystemVariable(global, aTHIRTEEN, global->Createid("e_baltic"), a_short);
+           a = new TamguSystemVariable(global, aFOURTEEN, global->Createid("e_celtic"), a_short);
+           a = new TamguSystemVariable(global, aFIFTEEN, global->Createid("e_latin_ffe"), a_short);
+           a = new TamguSystemVariable(global, aSIXTEEN, global->Createid("e_latin_see"), a_short);
+           a = new TamguSystemVariable(global, aSEVENTEEN, global->Createid("e_windows"), a_short);
+           a = new TamguSystemVariable(global, aSEVENTEEN, global->Createid("e_cp1252"), a_short);
+       }
+       
+       Tamgua_string::InitialisationModule(global, version);
+       
+       return true;
 }
 
 
@@ -434,6 +435,21 @@ Exporting Tamgu* Tamgustring::Eval(Tamgu* context, Tamgu* idx, short idthread) {
 //------------------------------------------------------------------------------------------------------------------
 
 #ifdef WSTRING_IS_UTF16
+Tamgu* Tamgustring::MethodUTF16(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    wstring s = UString();
+    uint32_t code;
+    uint32_t subcode;
+    Tamgu* kvect=SelectContainer(contextualpattern,idthread);
+    if (kvect==NULL)
+        kvect=new Tamgulvector;
+    
+    Locking _lock((TamguObject*)kvect);
+    for (size_t i = 0; i < s.size(); i++) {
+        kvect->storevalue((BLONG)s[i]);
+    }
+    return kvect;
+}
+
 Tamgu* Tamgustring::MethodOrd(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 	wstring s = UString();
 	uint32_t c;
@@ -466,6 +482,28 @@ Tamgu* Tamgustring::MethodOrd(Tamgu* contextualpattern, short idthread, TamguCal
 	return aNULL;
 }
 #else
+
+Tamgu* Tamgustring::MethodUTF16(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    wstring s = UString();
+    uint32_t code;
+    uint32_t subcode;
+    Tamgu* kvect=SelectContainer(contextualpattern,idthread);
+    if (kvect==NULL)
+        kvect=new Tamgulvector;
+    
+    Locking _lock((TamguObject*)kvect);
+    for (size_t i = 0; i < s.size(); i++) {
+        c_unicode_to_utf16(code, s[i]);
+        subcode = code >> 16;
+        code &= 0xFFFF;
+        kvect->storevalue((BLONG)subcode);
+        if (code)
+            kvect->storevalue((BLONG)code);
+    }
+    return kvect;
+}
+
+
 Tamgu* Tamgustring::MethodOrd(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     wstring s = UString();
     if (s.size() >= 1) {

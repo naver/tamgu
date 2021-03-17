@@ -777,7 +777,8 @@ public:
 	}
 
     Tamgu* MethodDoubleMetaphone(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
-	Tamgu* MethodOrd(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodOrd(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodUTF16(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 	Tamgu* MethodBytes(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 	Tamgu* MethodSizeb(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		Locking _lock(this);
