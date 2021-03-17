@@ -482,7 +482,7 @@ public:
     
     void Setstring(wstring& v, short idthread) {
         locking();
-        s_utf8_to_unicode(v, USTR(value), value.size());
+        sc_utf8_to_unicode(v, USTR(value), value.size());
         unlocking();
     }
 

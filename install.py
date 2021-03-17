@@ -266,13 +266,13 @@ cleanlibs:
            f.write("PYTHONLIB = /Library/Frameworks/Python.framework/Versions/"+pversion+"/Python\n")
         else:
            f.write("PYTHONLIB = "+pythonpath+"\n")
-    
+
     # AVX instructions are not available on arm64 machines
     if "arm64" in ostype:
-        f.write("C++11Flag = -std=c++11 -DTamgu_REGEX -DMAVERICK -DAPPLE -DFLTK14\n")
+        f.write("C++11Flag = -std=c++14 -DTamgu_REGEX -DMAVERICK -DAPPLE -DFLTK14\n")
         f.write("INTELINT =\n")
     else:
-        f.write("C++11Flag = -std=c++11 -DTamgu_REGEX -DMAVERICK -DAPPLE\n")
+        f.write("C++11Flag = -std=c++14 -DTamgu_REGEX -DMAVERICK -DAPPLE\n")
         f.write("INTELINT = -DINTELINTRINSICS -mavx2 -DAVXSUPPORT\n")
     f.close();
     print("You can launch 'make all libs' now")
