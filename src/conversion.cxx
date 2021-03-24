@@ -1215,11 +1215,12 @@ long count_strings_intel(unsigned char* src, unsigned char* search, long lensrc,
     //First we try to find the section in which the first character might occur
     __m256i current_bytes = _mm256_setzero_si256();
     
-    unsigned int j;
 #ifdef WIN32
-    unsigned long q = 0;
+	unsigned long j;
+	unsigned long q = 0;
 #else
-    uint32_t q = 0;
+	unsigned int j;
+	uint32_t q = 0;
 #endif
     uchar c = search[0];
     long i = 0;
