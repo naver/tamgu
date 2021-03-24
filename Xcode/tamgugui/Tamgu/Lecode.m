@@ -72,6 +72,7 @@ extern BOOL nouveau;
     
     //[self scrollToBeginningOfDocument:self];
     
+    lecode = [self enclosingScrollView];
     //This is where we define our line numerotation
     [lecode setRulersVisible:YES];
     [lecode setHasVerticalRuler:YES];
