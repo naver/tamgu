@@ -192,7 +192,7 @@ void clearallbreakpoints(void);
     int l=0;
     NSString* labelText;
     NSSize szn;
-    int base=visibleRect.origin.y;
+    int base=visibleRect.origin.y - 2;
     long mn=0;
     for (NSNumber* n in lignes)  {
         // if ([n intValue]>=range.location) { //&& [n intValue]<=(range.location+range.length)) {
