@@ -86,7 +86,8 @@ extern Exchanging TamguGlobal* globalTamgu;
 #define _getlocks(x,y)  globalTamgu->threadMODE ? new Doublelocking(x,y) : NULL
 #define _cleanlock(x) if (globalTamgu->threadMODE) delete x
 //-----------------------------------------------------------------------
-
+void PrintALine(TamguGlobal* g, string s);
+//-----------------------------------------------------------------------
 #include "tamguglobal.h"
 
 typedef enum {is_none = 0, is_container = 1, is_constante = 2, is_constcontainer = 3, is_declaration = 4,
@@ -1018,7 +1019,7 @@ public:
 	//-----------------------------------------------
 	Exporting virtual Tamgu* Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* env, TamguFunctionLambda* bd, short idthread);
     Exporting virtual Tamgu* Filter(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* kcont, Tamgu* accu, Tamgu* init, bool direct);
-    Exporting virtual Tamgu* Filterreverse(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* kcont, Tamgu* accu, Tamgu* init);
+    Exporting Tamgu* Filterreverse(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* kcont, Tamgu* accu, Tamgu* init);
 	Exporting virtual Tamgu* Filterboolean(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* def);
 
 	virtual void Addargmode() {}
@@ -1287,6 +1288,7 @@ public:
 		return String();
 	}
 
+    int Int() {return (int)Integer();}
 	virtual long Integer() { return 0; }
 	virtual short Short() { return (short)Integer(); }
 	virtual double Float() { return 0; }
@@ -2649,6 +2651,7 @@ public:
     
     TamguFrame* topframe;
     short thetype;
+    short theextensionvar;
     short minvar, maxvar;
     bool choosemin;
 	bool privee;
@@ -2660,6 +2663,7 @@ public:
             thetype = n;
             minvar = 0;
             maxvar = 0;
+            theextensionvar = 0;
             choosemin = true;
         }
 
@@ -2714,6 +2718,7 @@ public:
             k->declarations[it->first] = it->second;
         }
         
+        k->theextensionvar = theextensionvar;
         k->variables = variables;
         k->names = names;
         k->vnames = vnames;
@@ -2799,6 +2804,10 @@ public:
 
 		return declarations.check(id);
 	}
+
+    bool isExtension() {
+        return (topframe != NULL && topframe->idtype == a_extension);
+    }
 
 };
 

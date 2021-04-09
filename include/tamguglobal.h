@@ -572,11 +572,12 @@ public:
 	Tamgu* gNOELEMENT;
 	Tamgu* gDEFAULT;
 	Tamgu* gEND;
-	Tamgu* gRAISEERROR;
+    Tamgu* gRAISEERROR;
     TamguCallBreak* gBREAKFALSE;
     TamguCallBreak* gBREAKTRUE;
     TamguCallBreak* gBREAKZERO;
     TamguCallBreak* gBREAKONE;
+
 	Tamgu* gAFFECTATION;
 	TamguConstiteration* gITERNULL;
 	TamguPredicate* gFAIL;

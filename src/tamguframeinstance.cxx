@@ -313,6 +313,7 @@ Tamgu* TamguframeBaseInstance::Execute(Tamgu* body, VECTE<Tamgu*>& arguments, sh
     return a;
 }
 
+
 Tamgu* TamguframeBaseInstance::Execute(Tamgu* body, short idthread) {
 
 
@@ -404,8 +405,15 @@ Tamgu* Tamguframemininstance::Put(Tamgu* idx, Tamgu* value, short idthread) {
         return func;
     }
     
-    if (globalTamgu->Compatible(frame->Name(), value->Type()) == false)
+    if (globalTamgu->Compatible(frame->Name(), value->Type()) == false) {
+        if (frame->theextensionvar) {
+            //We need to check the compatibility between these values
+            if (globalTamgu->Compatible(frame->Topframe()->thetype, value->Type())) {
+                return declarations[frame->theextensionvar]->Put(aNULL, value, idthread);
+            }
+        }
         return globalTamgu->Returnerror("Wrong frame assignment", idthread);
+    }
     
     locking();
     TamguframeBaseInstance* instance = (TamguframeBaseInstance*)value;

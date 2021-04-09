@@ -1415,7 +1415,6 @@ Tamgu* ProcPrint(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) 
     return aTRUE;
 }
 
-
 Tamgu* ProcPrintLN(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     Tamgu* res = aNULL;
     Tamgustring* kval = (Tamgustring*)globalTamgu->stringbuffer;
@@ -1467,6 +1466,12 @@ Tamgu* ProcPrintLN(Tamgu* contextualpattern, short idthread, TamguCall* callfunc
         kval->value += todisplay;
 
     return aTRUE;
+}
+
+void PrintALine(TamguGlobal* g, string s) {
+    TamguCall call(g->Getid("println"));
+    call.arguments.push_back(g->Providestring(s));
+    ProcPrintLN(aNULL, 0, &call);
 }
 
 

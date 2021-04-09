@@ -2603,14 +2603,22 @@ Tamgu* TamguCode::C_subfunc(x_node* xn, Tamgu* parent) {
 		Tamgu* frame = parent->Frame();
 		function = frame->Declaration(id);
 		if (function == NULL || function->isPrivate() || !function->isFunction()) {
-			stringstream message;
-			message << "Unknown function: '" << name << "'";
-			throw new TamguRaiseError(message, filename, current_start, current_end);
+            //We check if it is not a derivation from an extension
+            if (!((TamguFrame*)frame)->theextensionvar) {
+                stringstream message;
+                message << "Unknown function: '" << name << "'";
+                throw new TamguRaiseError(message, filename, current_start, current_end);
+            }
+            else
+                tyvar = ((TamguFrame*)frame)->Topframe()->thetype;
 		}
-		function = new TamguCallFrameFunction((TamguFrame*)frame, id, global, parent);
+        else
+            function = new TamguCallFrameFunction((TamguFrame*)frame, id, global, parent);
 	}
-	else {
- 		tyvar = parent->Typevariable();
+    
+	if (function == NULL) {
+        if (tyvar == -1)
+            tyvar = parent->Typevariable();
         if (tyvar==a_tamgu) {
             
             if (id == a_methods) { //.methods() is the method that returns all methods within a tamgu objet...
@@ -5143,6 +5151,7 @@ Tamgu* TamguCode::C_extension(x_node* xn, Tamgu* kf) {
 		global->extensions[idtypename] = extension = new TamguFrame(idname, false, global); //the name of the frame is also the name of the inner variable...
         extension->thetype = idtypename;
 		extension->idtype = a_extension;
+        extension->theextensionvar = idname;
 	}
 
 	//A variable, which will be our contact here to our object...
