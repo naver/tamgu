@@ -164,6 +164,13 @@ JNIEXPORT jint JNICALL Java_com_naver_jtamgu_JTamgu_LoadStringProgramImplementat
         displayerror(env, message.str());
         return -1;
     }
+    
+    if (!TamguLoading(idcode)) {
+        message << TamguErrorMessage() << endl;
+        displayerror(env, message.str());
+        return -1;
+    }
+
     return idglobal;
 }
 
