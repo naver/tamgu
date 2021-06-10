@@ -41,7 +41,7 @@
 #include "tamgulisp.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2021.04.09.18";
+const char* tamgu_version = "Tamgu 1.2021.06.10.9";
 
 Tamgu* booleantamgu[2];
 
@@ -388,17 +388,28 @@ long initialize_local_garbage(short idthread) {
     return globalTamgu->threads[idthread].Garbagesize();
 }
 
-void ThreadStruct::Cleanfromgarbageposition(short idthread, long p, Tamgu* keep, long lastrecorded) {
+
+void ThreadStruct::Cleanfromgarbageposition(Tamgu* declaration,
+                                            short idthread,
+                                            long p,
+                                            Tamgu* keep,
+                                            long lastrecorded,
+                                            long maxrecorded) {
     Tamgu* e;
     long i;
-    for (i = p; i < localgarbage.size(); i++) {
+
+    if (maxrecorded == -1)
+        maxrecorded = localgarbage.size();
+        
+    for (i = p; i < maxrecorded; i++) {
         e = localgarbage[i];
         if (e == keep || e == NULL || e->isConst() || (e->idtracker != -1 && e->idtracker < lastrecorded))
             continue;
         globalTamgu->Removefromlocalgarbage(idthread,i,  e);
+        declaration->FindAndClean(e);
         delete e;
     }
-    
+
     if (p)
         localgarbage.erase(localgarbage.begin()+p, localgarbage.end());
     else
@@ -406,12 +417,13 @@ void ThreadStruct::Cleanfromgarbageposition(short idthread, long p, Tamgu* keep,
     in_eval = false;
 }
 
-void clean_from_garbage_position(short idthread, long p, Tamgu* keep, long lastrecorded) {
-    globalTamgu->threads[idthread].Cleanfromgarbageposition(idthread, p, keep, lastrecorded);
+void clean_from_garbage_position(Tamgu* declaration, short idthread, long p, Tamgu* keep, long lastrecorded, long maxrecorded) {
+    globalTamgu->threads[idthread].Cleanfromgarbageposition(declaration, idthread, p, keep, lastrecorded, maxrecorded);
     
     number_of_current_eval--;
     add_to_tamgu_garbage = number_of_current_eval;
 }
+
 //----------------------------------------------------------------------------------
 Exporting long ThreadLock::ids = 0;
 //----------------------------------------------------------------------------------

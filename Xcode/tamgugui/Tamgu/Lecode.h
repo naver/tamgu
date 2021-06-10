@@ -54,4 +54,5 @@
 -(void)insertBreakpoint;
 -(void)selectmatchingbracket;
 -(void)coloreview;
+-(void)selectColors;
 @end

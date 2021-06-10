@@ -17,7 +17,7 @@
 #
 # You can also call: 'optimise.tmg', without any parameters, it will load the last generated 'tamgun.cxx' as input.
 # You can skip this step if you do not have access to Tamgu at this stage.
-# It provides some additional performance improvment.
+# It provides some additional performance improvement.
 # It then generates: codeparse.cxx, which can replace tamgun.cxx in your code.
 #
 ####################################################################################################################################################

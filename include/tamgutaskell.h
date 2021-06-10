@@ -54,6 +54,15 @@ public:
 		}
 	}
 
+    void FindAndClean(Tamgu* a) {
+        for (short i = 0; i < declarations.last; i++) {
+            if (declarations[i] == a) {
+                declarations.vecteur[i] = aNULL;
+                return;
+            }
+        }
+    }
+
     void Initializevariable(short idt) {
         for (i = 0; i < names.last; i++)
             globalTamgu->Storevariable(idt, names.vecteur[i], declarations.vecteur[i]);

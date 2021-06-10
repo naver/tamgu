@@ -100,7 +100,7 @@ typedef enum {is_none = 0, is_container = 1, is_constante = 2, is_constcontainer
 
 void set_garbage_mode(bool v);
 long initialize_local_garbage(short idthread);
-void clean_from_garbage_position(short idthread, long p, Tamgu*, long);
+void clean_from_garbage_position(Tamgu* declaration, short idthread, long p, Tamgu*, long, long maxrecorded = -1);
 int Addtogarbage();
 
 //Tamgu is the class from which every element descends
@@ -385,6 +385,9 @@ public:
 	virtual Tamgu* Last() {
 		return aNULL;
 	}
+    
+    virtual void FindAndClean(Tamgu* a) {}
+
 	//------------------------------------------------------------------
 	virtual void SetVariablesWillBeCreated() {}
 	virtual void Forcedclean() {}
@@ -2137,6 +2140,15 @@ public:
         investigate = is_declaration;
     }
 
+    void FindAndClean(Tamgu* a) {
+        basebin_hash<Tamgu*>::iterator it;
+        for (it = declarations.begin(); it != declarations.end(); it++) {
+            if (it->second == a) {
+                declarations[it->first] = aNULL;
+                return;
+            }
+        }
+    }
 
 	bool hasDeclaration() {
 		return true;

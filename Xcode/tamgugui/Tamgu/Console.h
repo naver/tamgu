@@ -24,6 +24,7 @@
     NSString* inputtxt;
 }
 
+- (IBAction)forceDarkMode:(id)sender;
 - (IBAction)opendocument:(id)sender;
 - (IBAction)execution:(id)sender;
 - (IBAction)savedocument:(id)sender;

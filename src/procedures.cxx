@@ -1060,12 +1060,20 @@ Tamgu* ProcEval(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     string code = callfunc->Evaluate(0, contextualpattern, idthread)->String();
 
     Locking _lock(globalTamgu);
+    TamguCode* acode = globalTamgu->Getcurrentcode();
+    Tamgu* topstack = globalTamgu->Topstack(idthread);
+    
+    if (callfunc->Size() == 2) {
+        if (callfunc->Evaluate(1, contextualpattern, idthread)->Boolean())
+            topstack = &acode->mainframe;
+    }
+
+    TamguLocalEvaluation local(topstack);
+    
     //Return the current position in the garbage and set the condition to record
     //new elements...
     //We switch to threadMODE so that Provide will create elements and not store them
     long position = initialize_local_garbage(idthread);
-    TamguCode* acode = globalTamgu->Getcurrentcode();
-    long lastinstruction = acode->InstructionSize();
     Tamgu* ci = globalTamgu->threads[idthread].currentinstruction;
     
     if (code.find(";") == -1 && code.find("{") == -1)
@@ -1073,9 +1081,12 @@ Tamgu* ProcEval(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 
     long lastrecorded = globalTamgu->Trackedsize();
 
-    Tamgu* compiled = acode->Compilefunction(code, idthread);
+    globalTamgu->Pushstack(&local, idthread);
+    Tamgu* compiled = acode->CompileExpression(code, idthread);
+    globalTamgu->Popstack(idthread);
+    
     if (compiled == NULL || compiled->isError() || globalTamgu->Error(idthread)) {
-        clean_from_garbage_position(idthread, position, compiled, lastrecorded);
+        clean_from_garbage_position(topstack, idthread, position, compiled, lastrecorded);
         globalTamgu->threads[idthread].currentinstruction = ci;
         if (compiled != NULL && compiled->isError())
             return compiled;
@@ -1089,12 +1100,14 @@ Tamgu* ProcEval(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         return compiled;
     }
 
+    long maxrecorded = globalTamgu->threads[idthread].localgarbage.size();
+
     acode->compilemode = true;
     globalTamgu->threads[idthread].currentinstruction = ci;
-    Tamgu* a = acode->Execute(lastinstruction, idthread);
+    Tamgu* a = acode->ExecuteExpression(local,idthread);
     globalTamgu->threads[idthread].currentinstruction = ci;
 
-    clean_from_garbage_position(idthread, position, a, lastrecorded);
+    clean_from_garbage_position(topstack, idthread, position, a, lastrecorded, maxrecorded);
     return a;
 }
 
@@ -2688,7 +2701,7 @@ Exporting void TamguGlobal::RecordProcedures() {
     RecordOneProcedure("printjln", &ProcPrintJoinLN, P_ONE | P_TWO | P_THREE | P_FOUR);
     RecordOneProcedure("printjlnerr", &ProcPrintJoinErrLN, P_ONE | P_TWO | P_THREE | P_FOUR);
 
-    RecordOneProcedure("_eval", ProcEval, P_ONE);
+    RecordOneProcedure("_eval", ProcEval, P_ONE | P_TWO);
     RecordOneProcedure("_evalfunction", ProcEvalFunction, P_ONE);
     
     RecordOneProcedure("abs", &ProcMath, P_ONE, a_float);

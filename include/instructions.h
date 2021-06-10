@@ -45,6 +45,15 @@ public:
         investigate = is_declaration;
     }
 
+    void FindAndClean(Tamgu* a) {
+         for (short i = 0; i < declarations.last; i++) {
+             if (declarations[i] == a) {
+                 declarations.vecteur[i] = aNULL;
+                 return;
+             }
+         }
+     }
+
 	bool hasDeclaration() {
 		return true;
 	}
@@ -136,6 +145,62 @@ public:
         if (globalTamgu->debugmode && ins->isTracked()) {
             idinfo = ins->Currentinfo();
         }
+    }
+
+};
+
+class TamguLocalEvaluation : public TamguTracked {
+public:
+
+    Tamgu* declarations;
+    VECTE<Tamgu*> instructions;
+
+    TamguLocalEvaluation(Tamgu* d) : TamguTracked(NULL) {
+        declarations = d;
+    }
+
+    void AddInstruction(Tamgu* a) {
+        instructions.push_back(a);
+    }
+
+    bool isMainFrame() {
+        return declarations->isMainFrame();
+    }
+
+    void FindAndClean(Tamgu* a) {
+        declarations->FindAndClean(a);
+    }
+
+    bool hasDeclaration() {
+        return true;
+    }
+
+    bool isEmpty() {
+        return declarations->isEmpty();
+    }
+
+    bool isDeclared(short id) {
+        return declarations->isDeclared(id);
+    }
+
+    void Replacedeclaration(short idthread, short id, Tamgu* a) {
+        declarations->Replacedeclaration(idthread, id, a);
+    }
+
+    char Declarelocal(short idthread, short n, Tamgu* a) {
+        return declarations->Declarelocal(idthread, n, a);
+    }
+
+    void Variables(vector<short>& vars) {
+        return declarations->Variables(vars);
+    }
+
+    void Declare(short id, Tamgu* a) {
+        declarations->Declare(id, a);
+    }
+
+    Tamgu* Declaration(short idname) {
+        return declarations->Declaration(idname);
     }
 
 };

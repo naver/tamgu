@@ -392,6 +392,44 @@ Tamgu* TamguCode::Loading() {
 	return a;
 }
 
+Tamgu* TamguCode::ExecuteExpression(TamguLocalEvaluation& local, short idthread) {
+    Tamgu* ci = globalTamgu->threads[idthread].currentinstruction;
+
+    Tamgu* a = aNULL;
+
+    short sz = local.instructions.size();
+    _setdebugmin(idthread);
+    short i;
+
+    for (i = 0; i < sz; i++) {
+        a = local.instructions.vecteur[i];
+
+        _debugpush(a);
+        globalTamgu->threads[idthread].currentinstruction = ci;
+        a = a->Eval(aNULL, aNULL, idthread);
+        globalTamgu->threads[idthread].currentinstruction = ci;
+        _debugpop();
+
+        if (global->Error(idthread)) {
+            _cleandebugmin;
+            a->Releasenonconst();
+            a = global->Errorobject(idthread);
+            break;
+        }
+        
+        if (a->isReturned()) {
+            a = a->Returned(idthread);
+            break;
+        }
+            
+
+        a->Releasenonconst();
+        a = aNULL;
+    }
+    _cleandebugmin;
+    return a;
+}
+
 Tamgu* TamguCode::Run(bool glock) {
 
     executionbreak = false;

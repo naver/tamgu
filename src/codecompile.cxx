@@ -2237,7 +2237,7 @@ Tamgu* TamguCode::C_parameterdeclaration(x_node* xn, Tamgu* parent) {
             a = new TamguSelfVariableDeclaration(global, name, tid, parent);
     }
 	else {
-		if (parent == &mainframe) {
+		if (parent->isMainFrame()) {
 			a = new TamguGlobalVariableDeclaration(global, name, tid, isprivate, false, parent);
 			global->Storevariable(0, name, aNOELEMENT); //a dummy version to avoid certain bugs in the console
 			//Basically, if a program fails before allocating this variable, and the variable is still requested in the console, it might crash...
@@ -2305,7 +2305,6 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
 		type = xn->nodes[0]->nodes[1]->value;
 	}
 
-	Tamgu* element = NULL;
 	size_t last = xn->nodes.size() - 1;
 	bool recall = false;
 
@@ -2392,7 +2391,7 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
                     a = new TamguSelfVariableDeclaration(global, idname, tid, NULL);
             }
             else {
-                if (parent == &mainframe) {
+                if (parent->isMainFrame()) {
                     if (idcode) {
                         //If a piece of code is loaded with a tamgu variable
                         //then we might have a problem with global variables names that could collide
@@ -2538,7 +2537,7 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
         tid = ((TamguSelfVariableDeclaration*)a)->Checklettype();
         TamguSelfVariableDeclaration* alet = (TamguSelfVariableDeclaration*)a;
         if (tid != a_let) {
-            if (parent == &mainframe) {
+            if (parent->isMainFrame()) {
                 if (idcode) {
                     //If a piece of code is loaded with a tamgu variable
                     //then we might have a problem with global variables names that could collide
@@ -2585,7 +2584,7 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
 	iscommon = oldcommon;
 	isconstant = oldconstant;
 
-	return element;
+	return aNULL;
 }
 
 Tamgu* TamguCode::C_subfunc(x_node* xn, Tamgu* parent) {
@@ -2792,7 +2791,7 @@ Tamgu* TamguCode::C_regularcall(x_node* xn, Tamgu* parent) {
 
 	Tamgu* call = NULL;
 	if (global->systemfunctions.find(name) != global->systemfunctions.end()) {
-        if (parent != &mainframe && global->systemfunctions[name]) {
+        if (!parent->isMainFrame() && global->systemfunctions[name]) {
             stringstream message;
             message << "You cannot call '"<<name << "' from a function";
             throw new TamguRaiseError(message, filename, current_start, current_end);
@@ -3286,7 +3285,7 @@ Tamgu* TamguCode::C_variable(x_node* xn, Tamgu* parent) {
 							if (a->isConstant())
 								av = new TamguCallConstantVariable(idname, tyvar, global, parent);
                             else {
-                                if (dom == &mainframe)
+                                if (dom->isMainFrame())
                                     av = new TamguCallGlobalVariable(idname, tyvar, global, parent);
                                 else
                                     av = new TamguCallVariable(idname, tyvar, global, parent);
@@ -4751,7 +4750,7 @@ Tamgu* TamguCode::C_createfunction(x_node* xn, Tamgu* kf) {
 	}
 
 	Tamgu* kprevious = Declaration(idname);
-	if (kf != &mainframe)
+	if (!kf->isMainFrame())
 		global->functions[idname] = true;
 
 	size_t last = xn->nodes.size() - 1;
@@ -4981,7 +4980,7 @@ Tamgu* TamguCode::C_createfunction(x_node* xn, Tamgu* kf) {
 			throw new TamguRaiseError(message, filename, current_start, current_end);
 		}
 
-		if (kf != &mainframe) {
+		if (!kf->isMainFrame()) {
 			stringstream message;
 			message << "Error: An AUTORUN must be declared as a global function: '" << name << "'";
 			throw new TamguRaiseError(message, filename, current_start, current_end);
@@ -5016,7 +5015,7 @@ Tamgu* TamguCode::C_blocs(x_node* xn, Tamgu* kf) {
 	size_t i;
 	Tamgu* s;
 
-	if (kf->isFrame() || kf == &mainframe) {
+	if (kf->isFrame() || kf->isMainFrame()) {
 		x_node* xend;
 		x_node declaration_ending("declarationending", ";", xn);
 		size_t last;
@@ -5087,7 +5086,7 @@ Tamgu* TamguCode::C_blocs(x_node* xn, Tamgu* kf) {
 				if (xend->token == "declarationending") {
 					//in this case, we do not need to take these predeclarations into account anymore...
 					skip[i] = true;
-					if (kf == &mainframe && xn->nodes[i]->token == "function")
+					if (kf->isMainFrame() && xn->nodes[i]->token == "function")
 						continue;
 
 					//we modify the value as a hint of a predeclared function for the actual building of that function
@@ -5848,7 +5847,7 @@ Tamgu* TamguCode::C_trycatch(x_node* xn, Tamgu* kf) {
 
 		dom = Declaror(id, kf);
 
-        if (dom == &mainframe)
+        if (dom->isMainFrame())
             ki = new TamguCallGlobalVariable(id, declaration->Type(), global, kaff);
         else
             if (dom->isFunction())
@@ -5871,7 +5870,7 @@ Tamgu* TamguCode::C_trycatch(x_node* xn, Tamgu* kf) {
 
 	if (xn->nodes.size() != 1) {
         if (xn->nodes[1]->token == "word") {
-            if (dom == &mainframe)
+            if (dom->isMainFrame())
                 ki = new TamguCallGlobalVariable(id, declaration->Type(), global, kcatchproc);
             else
                 if (dom->isFunction())
@@ -6487,7 +6486,7 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
 
 		kprevious = kf->Declaration(idname);
 		if (kprevious == NULL) {
-			if (!kf->isFrame() && kf != &mainframe) {
+			if (!kf->isFrame() && !kf->isMainFrame()) {
 				//we check for a hdeclared declaration function...
 				kprevious = mainframe.Declaration(idname);
 				//If we have a function declaration with the same name, but without instructions and a hdeclared, we keep it...
@@ -10020,7 +10019,7 @@ Tamgu* TamguCode::Compilefunction(string& body, short idthread) {
 	global->currentbnf = &bnf;
 	firstinstruction = mainframe.instructions.size();
 
-	global->Pushstack(&mainframe);
+	global->Pushstack(&mainframe, idthread);
 	Tamgu* compiled = NULL;
 	try {
 		compiled = Traverse(xn, &mainframe);
@@ -10044,17 +10043,85 @@ Tamgu* TamguCode::Compilefunction(string& body, short idthread) {
 		delete a;
 		delete xn;
 		global->Popstack();
-		return NULL;
+		return global->errorraised[0];
 	}
 
-	global->Popstack();
+	global->Popstack(idthread);
 
 	delete xn;
 	return compiled;
 }
 
+Tamgu* TamguCode::CompileExpression(string& body, short idthread) {
+    //we store our TamguCode also as an Tamgutamgu...
+    static bnf_tamgu bnf;
+    static x_reading xr;
+    
+    global->threads[0].message.str("");
+    global->threads[0].message.clear();
+    
+    Locking _lock(global->_parselock);
+    
+    bnf.baseline = global->linereference;
+    xr.tokenize(body);
+    if (xr.size() == 0) {
+        cerr << " in " << filename << endl;
+        stringstream message;
+        message << "Empty body" << endl;
+        return global->Returnerror(message.str(), idthread);
+    }
 
+    global->lineerror = -1;
 
+    x_node* xn = bnf.x_parsing(&xr, FULL);
+    if (xn == NULL) {
+        cerr << " in " << filename << endl;
+        stringstream& message = global->threads[0].message;
+        global->lineerror = bnf.lineerror;
+        currentline = global->lineerror;
+        message << "Error while parsing program file: ";
+        if (bnf.errornumber != -1)
+            message << bnf.x_errormsg(bnf.errornumber);
+        else
+            message << bnf.labelerror;
+
+        return global->Returnerror(message.str(), idthread);
+    }
+
+    global->currentbnf = &bnf;
+    firstinstruction = mainframe.instructions.size();
+
+    Tamgu* topstack = global->Topstack(idthread);
+
+    Tamgu* compiled = NULL;
+    try {
+        compiled = Traverse(xn, topstack);
+    }
+    catch (TamguRaiseError* a) {
+        global->threads[0].message.str("");
+        global->threads[0].message.clear();
+        global->threads[0].message << a->message;
+        if (a->message.find(a->filename) == string::npos)
+            global->threads[0].message << " in " << a->filename;
+
+        if (global->errorraised[0] == NULL)
+            global->errorraised[0] = new TamguError(global->threads[0].message.str());
+        else
+            global->errorraised[0]->error = global->threads[0].message.str();
+
+        global->errors[0] = true;
+        TamguCode* c = global->Getcurrentcode();
+        if (c->filename != a->filename)
+            c->filename = a->filename;
+        delete a;
+        delete xn;
+        global->Popstack();
+        return global->errorraised[0];
+    }
+
+    delete xn;
+    return compiled;
+}
 
 
 
