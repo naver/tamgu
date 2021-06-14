@@ -54,13 +54,13 @@ public:
 		}
 	}
 
-    void FindAndClean(Tamgu* a) {
+    bool FindAndClean(Tamgu* a) {
         for (short i = 0; i < declarations.last; i++) {
             if (declarations[i] == a) {
-                declarations.vecteur[i] = aNULL;
-                return;
+                return false;
             }
         }
+        return true;
     }
 
     void Initializevariable(short idt) {

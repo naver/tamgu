@@ -278,6 +278,7 @@ returntype := %: %: word
 %subfunc := %. ;27 regularcall
 %subfuncbis := %. regularcall
 %subvar := %. ;29 variable
+%framevariable := %. ;29 variable
 
 ~notafunction := $if^$IF^$If^$while^$for^$switch^$elif^$frame^$polynomial^$function^$autorun^$thread^$not
 framesep := %: %:
@@ -328,8 +329,8 @@ negation := %!^%~^$not^$¬
 
 ########### TUPLES, VECTORS and MAPS ##############################################
 minus := %- [astringdouble^afullstring^astringsimple^apreg^aspreg^atreg^astreg^variable]
-indexes := %[;1 [minus^apreg^aspreg^atreg^astreg^expressions] %] (interval^indexes^subfunc)
-interval := %[ ([minus^apreg^aspreg^atreg^astreg^expressions]) sep;23 ([minus^apreg^aspreg^atreg^astreg^expressions]) %] (interval^indexes^subfunc)
+indexes := %[;1 [minus^apreg^aspreg^atreg^astreg^expressions] %] (interval^indexes^subfuncbis^framevariable)
+interval := %[ ([minus^apreg^aspreg^atreg^astreg^expressions]) sep;23 ([minus^apreg^aspreg^atreg^astreg^expressions]) %] (interval^indexes^subfuncbis^framevariable)
 
 %valtuple := %( wnexpressions %,;61 (wnexpressions [%, wnexpressions]*) %)
 

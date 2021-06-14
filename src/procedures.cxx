@@ -1111,7 +1111,57 @@ Tamgu* ProcEval(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     return a;
 }
 
+void TraverseFrame(string& name, Tamgumap* values, Tamgu* value) {
+    vector<short> localvariables;
+    value->Variables(localvariables);
+    string framename = globalTamgu->Getsymbol(value->Type())+ " " + name;
+    Tamgumap* attributes = globalTamgu->Providemap();
+    values->push(framename, attributes);
+    Tamgu* localval;
+    for (long l = 0; l < localvariables.size(); l++) {
+        localval = value->Declaration(localvariables[l]);
+        if (localval->isFrameinstance())
+            TraverseFrame(framename, attributes, localval);
+        else {
+            framename = globalTamgu->Getsymbol(localval->Type()) + " ";
+            framename += globalTamgu->Getsymbol(localvariables[l]);
+            attributes->push(framename, localval);
+        }
+    }
+}
 
+Tamgu* ProcVariables(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    Locking _lock(globalTamgu);
+    TamguCode* acode = globalTamgu->Getcurrentcode();
+    Tamgu* topstack = NULL;
+    
+    if (callfunc->Evaluate(0, contextualpattern, idthread)->Boolean())
+        topstack = &acode->mainframe;
+    else
+        topstack = globalTamgu->Topstack(idthread);
+    
+    Tamgumap* values = (Tamgumap*)Selectamap(contextualpattern);
+    vector<short> variables;
+    topstack->Variables(variables);
+    Tamgu* value;
+    string name;
+    for (long i = 0; i < variables.size(); i++) {
+        value = topstack->Declaration(variables[i]);
+        if (value != NULL) {
+            if (value->isFrameinstance()) {
+                name = globalTamgu->Getsymbol(variables[i]);
+                TraverseFrame(name, values, value);
+            }
+            else {
+                name = globalTamgu->Getsymbol(value->Type()) + " ";
+                name += globalTamgu->Getsymbol(variables[i]);
+                values->push(name, value);
+            }
+        }
+    }
+    
+    return values;
+}
 
 //------------------------------------------------------------------------------------------------------------------------
 Tamgu* ProcRedictectOutput(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -2701,6 +2751,7 @@ Exporting void TamguGlobal::RecordProcedures() {
     RecordOneProcedure("printjln", &ProcPrintJoinLN, P_ONE | P_TWO | P_THREE | P_FOUR);
     RecordOneProcedure("printjlnerr", &ProcPrintJoinErrLN, P_ONE | P_TWO | P_THREE | P_FOUR);
 
+    RecordOneProcedure("_variables", ProcVariables, P_ONE);
     RecordOneProcedure("_eval", ProcEval, P_ONE | P_TWO);
     RecordOneProcedure("_evalfunction", ProcEvalFunction, P_ONE);
     

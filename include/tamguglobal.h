@@ -640,6 +640,7 @@ public:
 
 	bin_hash<unsigned long> arities;
 	basebin_hash<TamguFrame*> frames;
+    basebin_hash<Tamgu*> framevariables;
 
 	basebin_hash<TamguSystemVariable*> systems;
 	

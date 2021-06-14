@@ -1041,7 +1041,9 @@ void TamguGlobal::RecordCompileFunctions() {
 	parseFunctions["negcall"] = &TamguCode::C_regularcall;
 	parseFunctions["purecall"] = &TamguCode::C_regularcall;
 
-	parseFunctions["variable"] = &TamguCode::C_variable;
+    parseFunctions["subvar"] = &TamguCode::C_framevariable;
+    parseFunctions["framevariable"] = &TamguCode::C_framevariable;
+    parseFunctions["variable"] = &TamguCode::C_variable;
 	parseFunctions["purevariable"] = &TamguCode::C_variable;
 
 	parseFunctions["indexes"] = &TamguCode::C_indexes;
@@ -3165,6 +3167,60 @@ Tamgu* TamguCode::C_taskellcall(x_node* xn, Tamgu* parent) {
 	throw new TamguRaiseError(message, filename, current_start, current_end);
 	return parent;
 }
+
+Tamgu* TamguCode::C_framevariable(x_node* xn, Tamgu* parent) {
+    string name = xn->nodes[0]->value;
+    short idname = global->Getid(name);
+    Tamgu* av = NULL;
+    x_node* subxn = xn->nodes[0];
+    
+    if (xn->token == "subvar") {
+        Tamgu* dom = Declaror(idname);
+        if (dom == NULL) {
+            dom = parent->Frame();
+            if (dom != NULL && !dom->isDeclared(idname)) {
+                stringstream message;
+                message << "Unknown variable: '" << name << "'";
+                throw new TamguRaiseError(message, filename, current_start, current_end);
+            }
+        }
+        
+        if (dom != NULL && dom->isFrame()) {
+            Tamgu* a = dom->Declaration(idname);
+            short tyvar = a->Typevariable();
+            if (parent->isCallVariable())
+                av = new TamguCallFromFrameVariable(a->Name(), tyvar, global, parent);
+            else
+                av = new TamguCallFrameVariable(a->Name(), (TamguFrame*)dom, tyvar, global, parent);
+            
+            if (subxn->nodes.size() != 1) {
+                if (global->frames.check(tyvar))
+                    global->Pushstack(global->frames[tyvar]);
+
+                Traverse(subxn->nodes[1], av);
+
+                if (global->frames.check(tyvar))
+                    global->Popstack();
+            }
+            return av;
+        }
+    }
+
+    if (!global->framevariables.check(idname)) {
+        stringstream message;
+        message << "This variable is not a frame field: '" << name << "'";
+        throw new TamguRaiseError(message, filename, current_start, current_end);
+    }
+    
+    av = new TamguCallFromFrameVariable(idname, 0, global, parent);
+
+    if (subxn->nodes.size() != 1) {
+        Traverse(subxn->nodes[1], av);
+    }
+
+    return av;
+}
+
 
 Tamgu* TamguCode::C_variable(x_node* xn, Tamgu* parent) {
 	string name = xn->nodes[0]->value;

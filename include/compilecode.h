@@ -153,6 +153,7 @@ public:
 	Tamgu* C_multideclaration(x_node*, Tamgu*);
 	Tamgu* C_subfunc(x_node*, Tamgu*);
 	Tamgu* C_variable(x_node*, Tamgu*);
+    Tamgu* C_framevariable(x_node*, Tamgu*);
 	bool isaFunction(string& name, short id);
 	Tamgu* C_regularcall(x_node*, Tamgu*);
 	Tamgu* C_taskellcall(x_node*, Tamgu*);

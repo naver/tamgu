@@ -308,6 +308,7 @@ class bnf_tamgu {
     char m_subfunc(string& lreturn,x_node** tree);
     char m_subfuncbis(string& lreturn,x_node** tree);
     char m_subvar(string& lreturn,x_node** tree);
+    char m_framevariable(string& lreturn,x_node** tree);
     char m_notafunction(string& lreturn,x_node** tree);
     char m_framesep(string& lreturn,x_node** tree);
     char m_frameup(string& lreturn,x_node** tree);

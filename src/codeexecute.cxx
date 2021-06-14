@@ -406,7 +406,7 @@ Tamgu* TamguCode::ExecuteExpression(TamguLocalEvaluation& local, short idthread)
 
         _debugpush(a);
         globalTamgu->threads[idthread].currentinstruction = ci;
-        a = a->Eval(aNULL, aNULL, idthread);
+        a = a->Eval(local.declarations, aNULL, idthread);
         globalTamgu->threads[idthread].currentinstruction = ci;
         _debugpop();
 
@@ -746,13 +746,41 @@ Tamgu* TamguIndex::Put(Tamgu* recipient, Tamgu* value, short idthread) {
 		return aTRUE;
 	}
 
+    //If function is a TamguCallFrameFromFrame object
+    //then we look for the object in the container for this index
+    //and we return this value
+    if (function->isCallVariable()) {
+        value = value->Eval(recipient, this, idthread);
+        return function->Eval(aNULL, value, idthread);
+    }
+
     unsigned short istobelocked = recipient->isToBelocked();
 
 	if (function->isIndex()) {
-		idx = this;
-		Tamgu* intermediate = recipient;
-		vector<Tamgu*> stack;
+		idx = (TamguIndex*)function;
+        Tamgu* intermediate = value;
 
+        //We check if the last element of the index chain
+        //is a TamguCallFrameFromFrame object
+        while (idx->function != NULL) {
+            idx = (TamguIndex*)idx->function;
+        }
+        
+        //This is a TamguCallFrameFromFrame object
+        if (idx->isCallVariable()) {
+            Tamgu* deepfunction = idx;
+            idx = this;
+            //We traverse the index chain
+            while (idx != deepfunction) {
+                value = value->Eval(recipient, idx, idthread);
+                idx = (TamguIndex*)idx->function;
+            }
+            return deepfunction->Eval(aNULL, value, idthread);
+        }
+        
+        vector<Tamgu*> stack;
+        idx = this;
+        intermediate = recipient;
 		while (idx->function != NULL && idx->function->isIndex()) {
 			stack.push_back(idx);
 			stack.push_back(intermediate);
@@ -771,7 +799,7 @@ Tamgu* TamguIndex::Put(Tamgu* recipient, Tamgu* value, short idthread) {
 			stack[i-1]->Put(stack[i-2], intermediate, idthread);
 		}
 	}
-
+    
 	return aTRUE;
 }
 
@@ -2130,8 +2158,17 @@ Tamgu* TamguCallFrameVariable::Eval(Tamgu* context, Tamgu* value, short idthread
 
 Tamgu* TamguCallFromFrameVariable::Eval(Tamgu* context, Tamgu* value, short idthread) {
     //In this case, the value is the calling variable...
-    if (call == NULL)
+    if (!((TamguframeBaseInstance*)value)->isDeclared(name)) {
+        stringstream msg;
+        msg << "Unknown frame variable: '"
+        << globalTamgu->Getsymbol(name)
+        << "'";
+        return globalTamgu->Returnerror(msg.str(), idthread);
+    }
+
+    if (call == NULL) {
         return ((TamguframeBaseInstance*)value)->Getvariable(name);
+    }
     
     value = ((TamguframeBaseInstance*)value)->Getvariable(name);
     
@@ -2142,6 +2179,14 @@ Tamgu* TamguCallFromFrameVariable::Eval(Tamgu* context, Tamgu* value, short idth
 
 Tamgu* TamguCallFromFrameVariable::Put(Tamgu* context, Tamgu* value, short idthread) {
     //In this case, the value is the calling variable...
+    if (!((TamguframeBaseInstance*)value)->isDeclared(name)) {
+        stringstream msg;
+        msg << "Unknown frame variable: '"
+        << globalTamgu->Getsymbol(name)
+        << "'";
+        return globalTamgu->Returnerror(msg.str(), idthread);
+    }
+
     if (call == NULL)
         return ((TamguframeBaseInstance*)value)->Getvariable(name);
     
@@ -2860,6 +2905,11 @@ Tamgu* TamguInstructionAtomicAFFECTATION::Eval(Tamgu* environment, Tamgu* value,
 }
 
 Tamgu* TamguInstructionAFFECTATION::Eval(Tamgu* environment, Tamgu* value, short idthread) {
+    //When an acccess in done through a container index to a frame variable: v[0].attribute
+    //The last "function" in the index list will be a call variable
+    //The Getindex method will then return NULL
+    //In TamguIndex::Put, this case is taken into account and is evaluated as a container traversal (through all the indexes)
+    //until the TamguCallFrameFromFrame object, which will then return a pointer to the inner variable.
 	Tamgu* variable = instructions.vecteur[0]->Eval(environment, aNULL, idthread);
 	if (variable->isError())
 		return variable;
@@ -2868,6 +2918,7 @@ Tamgu* TamguInstructionAFFECTATION::Eval(Tamgu* environment, Tamgu* value, short
 	bool relvar = false;
 
 	if (value != NULL) {
+        //if the last element of idx is a TamguCallFrameFromFrame object, Getindex returns NULL
 		Tamgu* idx = value->Getindex();
 		
 		if (idx != value) {//It could be a useless assignment

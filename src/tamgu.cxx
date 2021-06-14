@@ -41,7 +41,7 @@
 #include "tamgulisp.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2021.06.10.9";
+const char* tamgu_version = "Tamgu 1.2021.06.12.10";
 
 Tamgu* booleantamgu[2];
 
@@ -405,9 +405,11 @@ void ThreadStruct::Cleanfromgarbageposition(Tamgu* declaration,
         e = localgarbage[i];
         if (e == keep || e == NULL || e->isConst() || (e->idtracker != -1 && e->idtracker < lastrecorded))
             continue;
-        globalTamgu->Removefromlocalgarbage(idthread,i,  e);
-        declaration->FindAndClean(e);
-        delete e;
+        
+        if (declaration->FindAndClean(e)) {
+            globalTamgu->Removefromlocalgarbage(idthread,i,  e);
+            delete e;
+        }
     }
 
     if (p)

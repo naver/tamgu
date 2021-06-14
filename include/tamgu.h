@@ -386,7 +386,9 @@ public:
 		return aNULL;
 	}
     
-    virtual void FindAndClean(Tamgu* a) {}
+    virtual bool FindAndClean(Tamgu* a) {
+        return true;
+    }
 
 	//------------------------------------------------------------------
 	virtual void SetVariablesWillBeCreated() {}
@@ -1288,7 +1290,10 @@ public:
 	}
 
 	virtual string JSonString() {
-		return String();
+		string value = String();
+        string res;
+        jstringing(res, value);
+        return res;
 	}
 
     int Int() {return (int)Integer();}
@@ -2140,14 +2145,14 @@ public:
         investigate = is_declaration;
     }
 
-    void FindAndClean(Tamgu* a) {
+    bool FindAndClean(Tamgu* a) {
         basebin_hash<Tamgu*>::iterator it;
         for (it = declarations.begin(); it != declarations.end(); it++) {
             if (it->second == a) {
-                declarations[it->first] = aNULL;
-                return;
+                return false;
             }
         }
+        return true;
     }
 
 	bool hasDeclaration() {

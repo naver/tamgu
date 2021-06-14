@@ -45,13 +45,12 @@ public:
         investigate = is_declaration;
     }
 
-    void FindAndClean(Tamgu* a) {
+    bool FindAndClean(Tamgu* a) {
          for (short i = 0; i < declarations.last; i++) {
-             if (declarations[i] == a) {
-                 declarations.vecteur[i] = aNULL;
-                 return;
-             }
+             if (declarations[i] == a)
+                 return false;
          }
+        return true;
      }
 
 	bool hasDeclaration() {
@@ -167,8 +166,8 @@ public:
         return declarations->isMainFrame();
     }
 
-    void FindAndClean(Tamgu* a) {
-        declarations->FindAndClean(a);
+    bool FindAndClean(Tamgu* a) {
+        return declarations->FindAndClean(a);
     }
 
     bool hasDeclaration() {
@@ -770,7 +769,10 @@ class TamguFrameVariableDeclaration : public TamguVariableDeclaration {
 public:
 	bool common;
 
-	TamguFrameVariableDeclaration(TamguGlobal* g, short n, short t, bool p, bool c, Tamgu* parent) : common(c), TamguVariableDeclaration(g, n, t, p, false, parent) {}
+	TamguFrameVariableDeclaration(TamguGlobal* g, short n, short t, bool p, bool c, Tamgu* parent) : common(c), TamguVariableDeclaration(g, n, t, p, false, parent) {
+        if (g != NULL)
+            g->framevariables[n] = this;
+    }
 	Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 
 };
@@ -779,7 +781,10 @@ class TamguFrameAtomicVariableDeclaration : public TamguAtomicVariableDeclaratio
 public:
     bool common;
 
-    TamguFrameAtomicVariableDeclaration(TamguGlobal* g, short n, short t, bool p, bool c, Tamgu* parent) : common(c), TamguAtomicVariableDeclaration(g, n, t, p, false, parent) {}
+    TamguFrameAtomicVariableDeclaration(TamguGlobal* g, short n, short t, bool p, bool c, Tamgu* parent) : common(c), TamguAtomicVariableDeclaration(g, n, t, p, false, parent) {
+        if (g != NULL)
+            g->framevariables[n] = this;
+    }
     
     Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 };
