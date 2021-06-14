@@ -3179,9 +3179,7 @@ Tamgu* TamguCode::C_framevariable(x_node* xn, Tamgu* parent) {
         if (dom == NULL) {
             dom = parent->Frame();
             if (dom != NULL && !dom->isDeclared(idname)) {
-                stringstream message;
-                message << "Unknown variable: '" << name << "'";
-                throw new TamguRaiseError(message, filename, current_start, current_end);
+                return C_variable(subxn, parent);
             }
         }
         
