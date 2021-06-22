@@ -466,7 +466,7 @@ public:
 	}
 
 	bool Boolean() {
-		Tamgu* res = Callnumberconversion(a_boolean);
+		Tamgu* res = Callconversion(a_boolean);
         if (res == aNULL) {
             if (frame->theextensionvar) {
                 return Declaration(frame->theextensionvar)->Boolean();
@@ -479,7 +479,7 @@ public:
 	}
 
 	uchar Byte() {
-		Tamgu* res = Callnumberconversion(a_byte);
+		Tamgu* res = Callconversion(a_byte);
         if (res == aNULL) {
             if (frame->theextensionvar) {
                 return Declaration(frame->theextensionvar)->Byte();

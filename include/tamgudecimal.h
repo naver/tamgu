@@ -417,6 +417,10 @@ public:
 		return wconvertfromnumber(value);
 	}
 
+	string JSonString() {
+		return convertfromnumber(value);
+	}
+
 	string String() {
 		return convertfromnumber(value);
 	}

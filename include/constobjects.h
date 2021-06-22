@@ -787,6 +787,11 @@ public:
         return convertfromnumber(value);
     }
 
+    string JSonString() {
+        return convertfromnumber(value);
+    }
+
+
     void Setstring(string& v, short idthread) {
         convertnumber(value,v);
     }
@@ -1050,6 +1055,11 @@ public:
 	string String() {
 		return convertfromnumber(value);
 	}
+
+    string JSonString() {
+        return convertfromnumber(value);
+    }
+
 
     void Setstring(string& v, short idthread) {
         v = convertfromnumber(value);
@@ -1334,6 +1344,11 @@ public:
 		
 	}
 
+    string JSonString() {
+        return convertfromnumber(value);
+    }
+
+
 	wstring UString() {
 		
 		return wconvertfromnumber(value);
@@ -1591,15 +1606,15 @@ public:
 	}
 
 	string String() {
-		
 		return convertfromnumber(value);
-		
 	}
 
+    string JSonString() {
+        return convertfromnumber(value);
+    }
+
 	wstring UString() {
-		
 		return wconvertfromnumber(value);
-		
 	}
  
     void Setstring(string& v, short idthread) {
@@ -1864,6 +1879,11 @@ public:
 	string String() {
 		return convertfromnumber(value);
 	}
+
+    string JSonString() {
+        return convertfromnumber(value);
+    }
+
 
 	wstring UString() {
 		return wconvertfromnumber(value);
@@ -2141,6 +2161,12 @@ public:
 			return L"true";
 		return L"false";
 	}
+
+    string JSonString() {
+        if (value)
+            return "true";
+        return "false";
+    }
 
     void Setstring(string& v, short idthread) {
         if (value)

@@ -1116,7 +1116,7 @@ void TraverseFrame(string& name, Tamgumap* values, Tamgu* value) {
     value->Variables(localvariables);
     string framename = globalTamgu->Getsymbol(value->Type())+ " " + name;
     Tamgumap* attributes = globalTamgu->Providemap();
-    values->push(framename, attributes);
+    values->pushing(framename, attributes);
     Tamgu* localval;
     for (long l = 0; l < localvariables.size(); l++) {
         localval = value->Declaration(localvariables[l]);
@@ -1125,7 +1125,7 @@ void TraverseFrame(string& name, Tamgumap* values, Tamgu* value) {
         else {
             framename = globalTamgu->Getsymbol(localval->Type()) + " ";
             framename += globalTamgu->Getsymbol(localvariables[l]);
-            attributes->push(framename, localval);
+            attributes->pushing(framename, localval);
         }
     }
 }
@@ -1155,7 +1155,7 @@ Tamgu* ProcVariables(Tamgu* contextualpattern, short idthread, TamguCall* callfu
             else {
                 name = globalTamgu->Getsymbol(value->Type()) + " ";
                 name += globalTamgu->Getsymbol(variables[i]);
-                values->push(name, value);
+                values->pushing(name, value);
             }
         }
     }

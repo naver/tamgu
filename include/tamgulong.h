@@ -490,6 +490,10 @@ public:
         return wconvertfromnumber(value);
     }
 
+    string JSonString() {
+        return convertfromnumber(value);
+    }
+
     void Setstring(string& v, short idthread) {
         v = convertfromnumber(value);
     }

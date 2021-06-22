@@ -441,6 +441,10 @@ public:
 		return convertfromnumber(value);
 		
 	}
+    
+    string JSonString() {
+        return convertfromnumber(value);
+    }
 
     void Setstring(string& v, short idthread) {
         convertnumber(value,v);

@@ -2644,7 +2644,7 @@ Tamgu* TamguCode::C_subfunc(x_node* xn, Tamgu* parent) {
                 }
 				else {
 					if (global->allmethods.check(id)) {
-						if (tyvar == a_self || tyvar == a_let || xn->token == "subfunc") {
+						if (tyvar == a_self || tyvar == a_let || xn->token == "subfunc" || xn->token == "subfuncbis") {
 							if (global->extensionmethods.check(id))
 								function = new TamguCallCommonMethod(id, global, parent);
 							else
