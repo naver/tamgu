@@ -2579,6 +2579,8 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
         else {
             parent->AddInstruction(alet);
             top->Declare(idname, alet);
+            if (parent->isMainFrame())
+                global->Storevariable(0, idname, aNOELEMENT);
         }
     }
         
