@@ -1458,7 +1458,7 @@ Exporting void Tamgulist::storevalue(short u) {
 }
 
 Exporting void Tamgulist::storevalue(BLONG u) {
-    Tamgu* a = new Tamgulong(u);
+    Tamgu* a = globalTamgu->Providelong(u);
     a->Addreference(investigate,reference+1);
     locking();
     values.push_back(a);
@@ -2595,7 +2595,7 @@ Exporting void Tamguring::storevalue(short u) {
 }
 
 Exporting void Tamguring::storevalue(BLONG u) {
-    Tamgu* a = new Tamgulong(u);
+    Tamgu* a = globalTamgu->Providelong(u);
     a->Addreference(investigate,reference+1);
     a = values.push_back(a);
     if (a != NULL)

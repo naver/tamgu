@@ -2421,7 +2421,7 @@ Tamgu* CommonShort(Tamgu* object, short idthread, TamguCall* callfunc) {
 }
 
 Tamgu* CommonLong(Tamgu* object, short idthread, TamguCall* callfunc) {
-    return new Tamgulong(object->Long());
+    return globalTamgu->Providelong(object->Long());
 }
 
 Tamgu* CommonDecimal(Tamgu* object, short idthread, TamguCall* callfunc) {

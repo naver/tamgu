@@ -384,7 +384,7 @@ class Tamgumapfl : public TamguLockContainer {
         double v = convertdouble(n);
         locking();
         try {
-            Tamgu* res = new Tamgulong(values.at(v));
+            Tamgu* res = globalTamgu->Providelong(values.at(v));
             unlocking();
             return res;
         }
@@ -397,7 +397,7 @@ class Tamgumapfl : public TamguLockContainer {
     Tamgu* Value(BLONG v) {
         locking();
         try {
-            Tamgu* res = new Tamgulong(values.at(v));
+            Tamgu* res = globalTamgu->Providelong(values.at(v));
             unlocking();
             return res;
         }
@@ -410,7 +410,7 @@ class Tamgumapfl : public TamguLockContainer {
     Tamgu* Value(long v) {
         locking();
         try {
-            Tamgu* res = new Tamgulong(values.at(v));
+            Tamgu* res = globalTamgu->Providelong(values.at(v));
             unlocking();
             return res;
         }
@@ -424,7 +424,7 @@ class Tamgumapfl : public TamguLockContainer {
         double n =  a->Float();
         locking();
         try {
-            Tamgu* res = new Tamgulong(values.at(n));
+            Tamgu* res = globalTamgu->Providelong(values.at(n));
             unlocking();
             return res;
         }
@@ -437,7 +437,7 @@ class Tamgumapfl : public TamguLockContainer {
     Tamgu* Value(double n) {
         locking();
         try {
-            Tamgu* res = new Tamgulong(values.at(n));
+            Tamgu* res = globalTamgu->Providelong(values.at(n));
             unlocking();
             return res;
         }
@@ -498,7 +498,7 @@ class TamguIterationmapfl : public TamguIteration {
     
 
     Tamgu* Value() {
-        return new Tamgulong(it->second);
+        return globalTamgu->Providelong(it->second);
     }
 
     string Keystring() {

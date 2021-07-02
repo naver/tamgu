@@ -2735,7 +2735,7 @@ Exporting void Tamguvector::storevalue(short u) {
 }
 
 Exporting void Tamguvector::storevalue(BLONG u) {
-    Tamgu* a = new Tamgulong(u);
+    Tamgu* a = globalTamgu->Providelong(u);
     a->Addreference(investigate,reference+1);
     locking();
     values.push_back(a);
@@ -3902,7 +3902,7 @@ Exporting void Tamgua_vector::storevalue(short u) {
 }
 
 Exporting void Tamgua_vector::storevalue(BLONG u) {
-    Tamgu* a = new Tamgulong(u);
+    Tamgu* a = globalTamgu->Providelong(u);
     a->Addreference(investigate,reference+1);
     values.push_back(a);
 }

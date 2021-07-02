@@ -378,7 +378,7 @@ class Tamgubinmapl : public TamguLockContainer {
         }
         BLONG v = values.get(s);
         unlocking();
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
     }
 
     Tamgu* Value(long s) {
@@ -389,7 +389,7 @@ class Tamgubinmapl : public TamguLockContainer {
         }
         BLONG v = values.get((ushort)s);
         unlocking();
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
     }
 
     Tamgu* Value(Tamgu* a) {
@@ -401,7 +401,7 @@ class Tamgubinmapl : public TamguLockContainer {
         }
         BLONG v = values.get(s);
         unlocking();
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
     }
 
     Tamgu* Value(double s) {
@@ -412,7 +412,7 @@ class Tamgubinmapl : public TamguLockContainer {
         }
         BLONG v = values.get((ushort)s);
         unlocking();
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
     }
     
 
@@ -467,7 +467,7 @@ class TamguIterationbinmapl : public TamguIteration {
     
 
     Tamgu* Value() {
-        return new Tamgulong(it->second);
+        return globalTamgu->Providelong(it->second);
     }
 
     string Keystring() {

@@ -41,7 +41,7 @@
 #include "tamgulisp.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2021.06.24.11";
+const char* tamgu_version = "Tamgu 1.2021.06.30.11";
 
 Tamgu* booleantamgu[2];
 
@@ -645,6 +645,7 @@ idSymbols(false), methods(false), compatibilities(false), strictcompatibilities(
         for (i = 0; i < mx; i++) {
             lispreservoire.push_back(new Tamgulisp(i));
             intreservoire.push_back(new Tamguintbuff(i));
+            longreservoire.push_back(new Tamgulongbuff(i));
             floatreservoire.push_back(new Tamgufloatbuff(i));
             stringreservoire.push_back(new Tamgustringbuff(i));
             ustringreservoire.push_back(new Tamguustringbuff(i));
@@ -654,6 +655,7 @@ idSymbols(false), methods(false), compatibilities(false), strictcompatibilities(
 
         lispidx = 0;
         intidx = 0;
+        longidx = 0;
         slfidx = 0;
         floatidx = 0;
         stringidx = 0;
@@ -2728,7 +2730,7 @@ Exporting void Tamgu::storevalue(short u) {
 }
 
 Exporting void Tamgu::storevalue(BLONG u) {
-    Tamgu* a = new Tamgulong(u);
+    Tamgu* a = globalTamgu->Providelong(u);
     Push(a);
     a->Release();
 }
@@ -2869,7 +2871,7 @@ void TamguLet::storevalue(BLONG u) {
     if (value != aNOELEMENT)
         value->storevalue(u);
     else {
-        value = new Tamgulong(u);
+        value = globalTamgu->Providelong(u);
         value->Setreference(reference);
     }
 }
@@ -3001,7 +3003,7 @@ void TamguSelf::storevalue(BLONG u) {
         ((Tamgulong*)value)->value = u;
     else {
         value->Resetreference(reference);
-        value = new Tamgulong(u);
+        value = globalTamgu->Providelong(u);
         value->Setreference(reference);
         typevalue = a_long;
     }
@@ -3050,7 +3052,7 @@ void TamguSelf::storevalue(wchar_t u) {
 }
 //---------------------------------------------------------------------------------------------
 Exporting Tamgu* Tamgu::Push(BLONG k, Tamgu* v) {
-    Tamgu* a = new Tamgulong(k);
+    Tamgu* a = globalTamgu->Providelong(k);
     v = Push(a, v);
     a->Release();
     return v;
@@ -3643,6 +3645,45 @@ Exporting Tamguint* TamguGlobal::Provideint(long v) {
     intreservoire[intidx]->used = true;
     intreservoire[intidx]->value = v;
     ke = intreservoire[intidx++];
+    return ke;
+}
+
+
+Exporting Tamgulong* TamguGlobal::Providelong(BLONG v) {
+    if (threadMODE || add_to_tamgu_garbage)
+        return new Tamgulong(v);
+
+    Tamgulongbuff* ke;
+
+    if (lgempties.last > 0) {
+        ke = longreservoire[lgempties.backpop()];
+        ke->used = true;
+        ke->value = v;
+        return ke;
+    }
+
+    long mx = longreservoire.size();
+
+    while (longidx < mx) {
+        if (!longreservoire[longidx]->used) {
+            longreservoire[longidx]->used = true;
+            longreservoire[longidx]->value = v;
+            ke = longreservoire[longidx++];
+            return ke;
+        }
+        longidx++;
+    }
+
+    long sz = mx >> 2;
+    longreservoire.resize(mx + sz);
+    longidx = mx + sz;
+    for (long i = mx; i < longidx; i++)
+        longreservoire[i] = new Tamgulongbuff(i);
+
+    longidx = mx;
+    longreservoire[longidx]->used = true;
+    longreservoire[longidx]->value = v;
+    ke = longreservoire[longidx++];
     return ke;
 }
 

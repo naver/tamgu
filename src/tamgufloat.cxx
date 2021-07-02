@@ -368,7 +368,7 @@ Tamgu* Tamgufloat::MethodBits(Tamgu* contextualpattern, short idthread, TamguCal
         return globalTamgu->Providefloat(f.v);
     }
     double64 d(value);
-    return new Tamgulong(d.bits);
+    return globalTamgu->Providelong(d.bits);
 }
 
 Tamgu* Tamguatomicfloat::MethodExponent(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -385,6 +385,6 @@ Tamgu* Tamguatomicfloat::MethodBits(Tamgu* contextualpattern, short idthread, Ta
         return globalTamgu->Providefloat(f.v);
     }
     double64 d(value);
-    return new Tamgulong(d.bits);
+    return globalTamgu->Providelong(d.bits);
 }
 

@@ -1103,7 +1103,7 @@ bool TamguAtomicVariableDeclaration::Setvalue(Tamgu* domain, Tamgu* value, short
                 value->Setreference();
                 break;
             case a_long:
-                value = new Tamgulong(0);
+                value = globalTamgu->Providelong(0);
                 value->Setreference();
                 break;
             case a_decimal:

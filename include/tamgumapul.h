@@ -386,7 +386,7 @@ class Tamgumapul : public TamguLockContainer {
 
         locking();
         try {
-            Tamgu* res = new Tamgulong(values.at(s));
+            Tamgu* res = globalTamgu->Providelong(values.at(s));
             unlocking();
             return res;
         }
@@ -399,7 +399,7 @@ class Tamgumapul : public TamguLockContainer {
     Tamgu* Value(wstring& s) {
         locking();
         try {
-            Tamgu* res = new Tamgulong(values.at(s));
+            Tamgu* res = globalTamgu->Providelong(values.at(s));
             unlocking();
             return res;
         }
@@ -414,7 +414,7 @@ class Tamgumapul : public TamguLockContainer {
         s_utf8_to_unicode(n, USTR(s), s.size());
         locking();
         try {
-            Tamgu* res = new Tamgulong(values.at(n));
+            Tamgu* res = globalTamgu->Providelong(values.at(n));
             unlocking();
             return res;
         }
@@ -429,7 +429,7 @@ class Tamgumapul : public TamguLockContainer {
         wstring s = wconvertfromnumber(n);
         locking();
         try {
-            Tamgu* res = new Tamgulong(values.at(s));
+            Tamgu* res = globalTamgu->Providelong(values.at(s));
             unlocking();
             return res;
         }
@@ -444,7 +444,7 @@ class Tamgumapul : public TamguLockContainer {
         wstring s = wconvertfromnumber(n);
         locking();
         try {
-            Tamgu* res = new Tamgulong(values.at(s));
+            Tamgu* res = globalTamgu->Providelong(values.at(s));
             unlocking();
             return res;
         }
@@ -459,7 +459,7 @@ class Tamgumapul : public TamguLockContainer {
         wstring s = wconvertfromnumber(n);
         locking();
         try {
-            Tamgu* res = new Tamgulong(values.at(s));
+            Tamgu* res = globalTamgu->Providelong(values.at(s));
             unlocking();
             return res;
         }
@@ -539,7 +539,7 @@ class TamguIterationmapul : public TamguIteration {
     
 
     Tamgu* Value() {
-        return new Tamgulong(it->second);
+        return globalTamgu->Providelong(it->second);
     }
 
     string Valuestring() {

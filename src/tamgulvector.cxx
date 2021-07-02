@@ -137,7 +137,7 @@ Exporting Tamgu* Tamgulvector::getvalue(BLONG i) {
         unlocking();
         return aNOELEMENT;
     }
-    Tamgu* r = new Tamgulong(values[i]);
+    Tamgu* r = globalTamgu->Providelong(values[i]);
     unlocking();
     return r;
 }
@@ -1038,7 +1038,7 @@ Exporting Tamgu* Tamgulvector::Combine(Tamgu* ke) {
 
 Exporting Tamgu* Tamgulvector::Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* environment, TamguFunctionLambda* bd, short idthread) {
     Tamgu* a;
-    Tamgulong* it = new Tamgulong(0);
+    Tamgulong* it = globalTamgu->Providelong(0);
     it->Setreference();
 
     uchar addvalue = 0;
@@ -1079,7 +1079,7 @@ Exporting Tamgu* Tamgulvector::Filter(short idthread, Tamgu* env, TamguFunctionL
     Tamgu* returnval;
 
     bool first = false;
-    Tamgulong* key = new Tamgulong(0);
+    Tamgulong* key = globalTamgu->Providelong(0);
     key->Setreference();
 
     if (init != aNOELEMENT) {

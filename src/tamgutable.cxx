@@ -1597,7 +1597,7 @@ Exporting void Tamgutable::storevalue(short u) {
 }
 
 Exporting void Tamgutable::storevalue(BLONG u) {
-    Tamgu* a = new Tamgulong(u);
+    Tamgu* a = globalTamgu->Providelong(u);
 
     
     push(a);

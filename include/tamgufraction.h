@@ -515,22 +515,22 @@ public:
 			return globalTamgu->Returnerror("Error: Divided by 0");
 
 		BLONG i = Long() % ib;
-		return new Tamgulong(i);
+		return globalTamgu->Providelong(i);
 	}
 
 	Tamgu* shiftleft(Tamgu* bb, bool autoself) {
 		BLONG i = Long() << bb->Long();
-		return new Tamgulong(i);
+		return globalTamgu->Providelong(i);
 	}
 
 	Tamgu* shiftright(Tamgu* bb, bool autoself) {
 		BLONG i = Long() >> bb->Long();
-		return new Tamgulong(i);
+		return globalTamgu->Providelong(i);
 	}
 
 	Tamgu* power(Tamgu* b, bool autoself) {
 		double i = pow(Float(), b->Float());
-		return new Tamguint(i);
+		return globalTamgu->Provideint(i);
 	}
 
 	Tamgu* less(Tamgu* a) {

@@ -419,7 +419,7 @@ Exporting Tamgu* Tamgubinmapl::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
 
     }
     
-    contextualpattern = new Tamgulong(values.get(skey));
+    contextualpattern = globalTamgu->Providelong(values.get(skey));
     unlocking();
     return contextualpattern;
 }

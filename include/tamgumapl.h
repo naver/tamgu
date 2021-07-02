@@ -263,7 +263,7 @@ class Tamgumapl : public TamguObjectLockContainer {
         Tamgu* a;
 
         for (auto& it : values) {
-            a = new Tamgulong(it.first);
+            a = globalTamgu->Providelong(it.first);
             contextualpattern->Push(it.second, a);
             a->Release();
         }
@@ -565,7 +565,7 @@ class TamguIterationmapl : public TamguIteration {
     }
 
     Tamgu* Key() {
-        return new Tamgulong(it->first);
+        return globalTamgu->Providelong(it->first);
     }
 
     Tamgu* Value() {

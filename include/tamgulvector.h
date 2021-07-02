@@ -403,12 +403,12 @@ class Tamgulvector : public TamguLockContainer {
 
     Tamgu* MethodSum(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         BLONG v = LSum();
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
     }
 
     Tamgu* MethodProduct(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         BLONG v = LProduct();
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
     }
 
     Tamgu* MethodInsert(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -457,7 +457,7 @@ class Tamgulvector : public TamguLockContainer {
         BLONG c = values.back();
         values.pop_back();
         unlocking();
-        return new Tamgulong(c);
+        return globalTamgu->Providelong(c);
     }
 
     Exporting Tamgu* Unique();
@@ -495,7 +495,7 @@ class Tamgulvector : public TamguLockContainer {
         for (; i < j; i++)
             v += values[i];
 
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
     }
 
     Tamgu* Theproduct(long i, long j) {
@@ -525,7 +525,7 @@ class Tamgulvector : public TamguLockContainer {
         for (; i < j; i++)
             v *= values[i];
 
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
     }
 
     BLONG LSum() {

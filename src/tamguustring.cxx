@@ -324,7 +324,7 @@ Tamgu* Tamguustring::MethodOrd(Tamgu* contextualpattern, short idthread, TamguCa
             return contextualpattern;
         }
 
-        return new Tamgulong(c);
+        return globalTamgu->Providelong(c);
     }
     
     return aNULL;
@@ -338,7 +338,7 @@ Tamgu* Tamguustring::MethodBytes(Tamgu* contextualpattern, short idthread, Tamgu
             if (c_utf16_to_unicode(c, s[0], false))
                 c_utf16_to_unicode(c, s[1], true);
             
-            return new Tamgulong((BLONG)c);
+            return globalTamgu->Providelong((BLONG)c);
         }
         
         Tamgulvector* kvect=(Tamgulvector*)Selectalvector(contextualpattern);
@@ -387,7 +387,7 @@ Tamgu* Tamguustring::MethodOrd(Tamgu* contextualpattern, short idthread, TamguCa
 			return contextualpattern;
 		}
 
-		return new Tamgulong(s[0]);
+		return globalTamgu->Providelong(s[0]);
 	}
 
 	return aNULL;
@@ -425,7 +425,7 @@ Tamgu* Tamguustring::MethodBytes(Tamgu* contextualpattern, short idthread, Tamgu
             if (c_utf16_to_unicode(c, s[0], false))
                 c_utf16_to_unicode(c, s[1], true);
 
-            return new Tamgulong(c);
+            return globalTamgu->Providelong(c);
         }
         
         Tamgulvector* kvect=(Tamgulvector*)Selectalvector(contextualpattern);
@@ -2743,7 +2743,7 @@ Tamgu* Tamgua_ustring::MethodOrd(Tamgu* contextualpattern, short idthread, Tamgu
 			return contextualpattern;
 		}
 
-		return new Tamgulong(c);
+		return globalTamgu->Providelong(c);
 	}
 
 	return aNULL;
@@ -2757,7 +2757,7 @@ Tamgu* Tamgua_ustring::MethodBytes(Tamgu* contextualpattern, short idthread, Tam
             if (c_utf16_to_unicode(c, s[0], false))
                 c_utf16_to_unicode(c, s[1], true);
             
-            return new Tamgulong((BLONG)c);
+            return globalTamgu->Providelong((BLONG)c);
         }
         
         Tamgulvector* kvect=(Tamgulvector*)Selectalvector(contextualpattern);
@@ -2790,7 +2790,7 @@ Tamgu* Tamgua_ustring::MethodOrd(Tamgu* contextualpattern, short idthread, Tamgu
             return contextualpattern;
         }
         
-        return new Tamgulong(s[0]);
+        return globalTamgu->Providelong(s[0]);
     }
     
     return aNULL;
@@ -2804,7 +2804,7 @@ Tamgu* Tamgua_ustring::MethodBytes(Tamgu* contextualpattern, short idthread, Tam
             if (c_utf16_to_unicode(c, s[0], false))
                 c_utf16_to_unicode(c, s[1], true);
             
-            return new Tamgulong((BLONG)c);
+            return globalTamgu->Providelong((BLONG)c);
         }
         
         Tamgulvector* kvect=(Tamgulvector*)Selectalvector(contextualpattern);

@@ -45,6 +45,8 @@ class TamguPredicate;
 class TamguPredicateContainer;
 class TamguCallBreak;
 class TamguObject;
+class Tamgulongbuff;
+class Tamgulong;
 class Tamguintbuff;
 class Tamguint;
 class Tamgufloatbuff;
@@ -481,6 +483,11 @@ public:
 	VECTE<long> iempties;
 	long intidx;
 	Exporting Tamguint* Provideint(long v = 0);
+
+    vector<Tamgulongbuff*> longreservoire;
+    VECTE<long> lgempties;
+    long longidx;
+    Exporting Tamgulong* Providelong(BLONG v = 0);
 
 	vector<Tamgufloatbuff*> floatreservoire;
 	VECTE<long> fempties;

@@ -4149,7 +4149,7 @@ Tamgu* TamguInstructionEvaluate::Eval(Tamgu* contextualpattern, Tamgu* domcall, 
     if (contextualpattern->isNumber()) {
         for (i = 0; i < results.size(); i++)
             results[i]->Resetreference();
-        return new Tamguint(results.size());
+        return globalTamgu->Provideint(results.size());
     }
 
     if (contextualpattern->isPredicate()) {

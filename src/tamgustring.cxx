@@ -476,7 +476,7 @@ Tamgu* Tamgustring::MethodOrd(Tamgu* contextualpattern, short idthread, TamguCal
 			return contextualpattern;
 		}
 
-		return new Tamgulong(c);
+		return globalTamgu->Providelong(c);
 	}
 
 	return aNULL;
@@ -527,7 +527,7 @@ Tamgu* Tamgustring::MethodOrd(Tamgu* contextualpattern, short idthread, TamguCal
             return contextualpattern;
         }
         
-        return new Tamgulong(s[0]);
+        return globalTamgu->Providelong(s[0]);
     }
     
     return aNULL;
@@ -3029,7 +3029,7 @@ Tamgu* Tamgua_string::MethodOrd(Tamgu* contextualpattern, short idthread, TamguC
             return contextualpattern;
         }
         
-        return new Tamgulong(s[0]);
+        return globalTamgu->Providelong(s[0]);
     }
     
     return aNULL;

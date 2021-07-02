@@ -110,7 +110,7 @@ Exporting Tamgu* Tamgutreemapls::in(Tamgu* context, Tamgu* a, short idthread) {
         try {
             values.at(val);
             unlocking();
-            return new Tamgulong(val);
+            return globalTamgu->Providelong(val);
         }
         catch(const std::out_of_range& oor) {
             unlocking();
@@ -162,7 +162,7 @@ Exporting Tamgu* Tamgutreemapls::MethodFind(Tamgu* context, short idthread, Tamg
     Locking _lock(this);
     for (auto& it : values) {
         if (it.second == val)
-            return new Tamgulong(it.first);
+            return globalTamgu->Providelong(it.first);
     }
     return aNULL;
 }
@@ -359,13 +359,13 @@ Exporting Tamgu* Tamgutreemapls::Eval(Tamgu* contextualpattern, Tamgu* idx, shor
             locking();
             map<BLONG,string>::iterator it;
             for (it = values.begin(); it != values.end(); it++)
-                vect->Push(new Tamgulong(it->first));
+                vect->Push(globalTamgu->Providelong(it->first));
             unlocking();
             return vect;
         }
 
         if (contextualpattern->Type() == a_int || contextualpattern->Type() == a_float)
-            return new Tamgulong(values.size());
+            return globalTamgu->Providelong(values.size());
 
         return this;
     }

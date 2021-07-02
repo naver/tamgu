@@ -839,7 +839,7 @@ public:
 		if (value->values.check(r) && value->values[r].check(c))
 			v = value->values[r][c];
 
-		return new Tamguint(v);
+		return globalTamgu->Provideint(v);
 	}
 
 	string Valuestring() {

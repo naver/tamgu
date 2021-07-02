@@ -138,7 +138,7 @@ Tamgu* Tamgushort::plus(Tamgu* a, bool itself) {
     v += a->Long();
 
     if (IsLong(v))
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
 
     if (!IsShort(v))
         return globalTamgu->Provideint(v);
@@ -162,7 +162,7 @@ Tamgu* Tamgushort::multiply(Tamgu* a, bool itself) {
     v *= a->Long();
 
     if (IsLong(v))
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
 
     if (!IsShort(v))
         return globalTamgu->Provideint(v);
@@ -186,7 +186,7 @@ Tamgu* Tamgushort::shiftleft(Tamgu* a, bool itself) {
     v <<= a->Long();
 
     if (IsLong(v))
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
 
     if (!IsShort(v))
         return globalTamgu->Provideint(v);

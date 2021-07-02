@@ -1158,7 +1158,7 @@ public:
         if (a->Type() == a_short) {
             BLONG v = value;
             v += a->Long();
-            return new Tamgulong(v);
+            return globalTamgu->Providelong(v);
         }
         return a->plus(this, itself);
 	}
@@ -1167,7 +1167,7 @@ public:
         if (a->Type() == a_short) {
             BLONG v = value;
             v -= a->Long();
-            return new Tamgulong(v);
+            return globalTamgu->Providelong(v);
         }
         a = a->minus(this, itself);
         a->multiply(aMINUSONE, true);
@@ -1178,7 +1178,7 @@ public:
         if (a->Type() == a_short) {
             BLONG v = value;
             v *= a->Long();
-            return new Tamgulong(v);
+            return globalTamgu->Providelong(v);
         }
         return a->multiply(this, itself);
 	}
@@ -1200,13 +1200,13 @@ public:
 	Tamgu* shiftleft(Tamgu* a, bool itself) {
         BLONG v = value;
         v <<= a->Long();
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
 	}
 
 	Tamgu* shiftright(Tamgu* a, bool itself) {
         BLONG v = value;
         v >>= a->Long();
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
 	}
 
 	Tamgu* mod(Tamgu* a, bool itself) {
@@ -1215,7 +1215,7 @@ public:
 			return globalTamgu->Returnerror("Error: Divided by 0");
 
 		v %= a->Long();
-		return new Tamgulong(v);
+		return globalTamgu->Providelong(v);
 	}
 
 	Tamgu* less(Tamgu* a) {
@@ -1835,15 +1835,15 @@ public:
 	Exporting Tamgu* CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
 	Tamgu* Newinstance(short, Tamgu* f = NULL) {
-		return new Tamgulong(value);
+		return globalTamgu->Providelong(value);
 	}
 
 	Tamgu* Newvalue(Tamgu* a, short idthread) {
-		return new Tamgulong(a->Long());
+		return globalTamgu->Providelong(a->Long());
 	}
 
     Tamgu* Atomref() {
-        TamguReference* r = new Tamgulong(value);
+        TamguReference* r = globalTamgu->Providelong(value);
         r->reference = 1;
         r->protect = false;
         return r;
@@ -1961,34 +1961,34 @@ public:
 	}
 
 	Tamgu* Atom(bool forced = false) {
-		return new Tamgulong(value);
+		return globalTamgu->Providelong(value);
 	}
 
 
 	//we add the current value with a
 	Tamgu* andset(Tamgu* a, bool itself) {
-		return new Tamgulong(value & a->Long());
+		return globalTamgu->Providelong(value & a->Long());
 	}
 
 	Tamgu* orset(Tamgu* a, bool itself) {
-		return new Tamgulong(value | a->Long());
+		return globalTamgu->Providelong(value | a->Long());
 	}
 
 	Tamgu* xorset(Tamgu* a, bool itself) {
-		return new Tamgulong(value ^ a->Long());
+		return globalTamgu->Providelong(value ^ a->Long());
 	}
 
 
 	Tamgu* plus(Tamgu* a, bool itself) {
-		return new Tamgulong(value + a->Long());
+		return globalTamgu->Providelong(value + a->Long());
 	}
 
 	Tamgu* minus(Tamgu* a, bool itself) {
-		return new Tamgulong(value - a->Long());
+		return globalTamgu->Providelong(value - a->Long());
 	}
 
 	Tamgu* multiply(Tamgu* a, bool itself) {
-		return new Tamgulong(value * a->Long());
+		return globalTamgu->Providelong(value * a->Long());
 	}
 
 	Tamgu* divide(Tamgu* a, bool itself) {
@@ -2006,11 +2006,11 @@ public:
 	}
 
 	Tamgu* shiftleft(Tamgu* a, bool itself) {
-		return new Tamgulong(value << a->Long());
+		return globalTamgu->Providelong(value << a->Long());
 	}
 
 	Tamgu* shiftright(Tamgu* a, bool itself) {
-		return new Tamgulong(value >> a->Long());
+		return globalTamgu->Providelong(value >> a->Long());
 	}
 
 	Tamgu* mod(Tamgu* a, bool itself) {
@@ -2019,7 +2019,7 @@ public:
 			return globalTamgu->Returnerror("Error: Divided by 0");
 
 		v = value % v;
-		return new Tamgulong(v);
+		return globalTamgu->Providelong(v);
 	}
 
 	Tamgu* less(Tamgu* a) {
@@ -2083,11 +2083,11 @@ public:
 	}
 
 	Tamgu* Succ() {
-		return new Tamgulong(value + 1);
+		return globalTamgu->Providelong(value + 1);
 	}
 
 	Tamgu* Pred() {
-		return new Tamgulong(value - 1);
+		return globalTamgu->Providelong(value - 1);
 	}
 
 };

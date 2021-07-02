@@ -501,7 +501,7 @@ class Tamguivector : public TamguLockContainer {
         for (; i < j; i++)
             v += values[i];
 
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
     }
 
     Tamgu* Theproduct(long i, long j) {
@@ -531,7 +531,7 @@ class Tamguivector : public TamguLockContainer {
         for (; i < j; i++)
             v *= values[i];
 
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
     }
 
     long ISum() {
@@ -1133,7 +1133,7 @@ public:
         for (; i < j; i++)
             v += values[i];
         
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
     }
     
     Tamgu* Theproduct(long i, long j) {
@@ -1163,7 +1163,7 @@ public:
         for (; i < j; i++)
             v *= values[i];
         
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
     }
     
     long ISum() {

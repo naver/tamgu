@@ -120,14 +120,14 @@ public:
 
 	Tamgu* Atom(bool forced = false) {
 		if (forced || !protect || reference)
-			return new Tamgulong(value);
+			return globalTamgu->Providelong(value);
 		return this;
 	}
 
     Tamgu* Atomref() {
         TamguReference* r;
         if (!protect || reference)
-            r = new Tamgulong(value);
+            r = globalTamgu->Providelong(value);
         else
             r = this;
         r->reference = 1;
@@ -186,12 +186,16 @@ public:
 		return false;
 	}
 
+    Tamgu* Newpureinstance(short idthread) {
+        return new Tamgulong(0);
+    }
+
 	Tamgu* Newinstance(short, Tamgu* f = NULL) {
-		return new Tamgulong(0);
+		return globalTamgu->Providelong(0);
 	}
 
 	Tamgu* Newvalue(Tamgu* a, short idthread) {
-		return new Tamgulong(a->Long());
+		return globalTamgu->Providelong(a->Long());
 	}
 
 
@@ -219,11 +223,11 @@ public:
 
 
 	Tamgu* Succ() {
-		return new Tamgulong(value + 1);
+		return globalTamgu->Providelong(value + 1);
 	}
 
 	Tamgu* Pred() {
-		return new Tamgulong(value - 1);
+		return globalTamgu->Providelong(value - 1);
 	}
 
 	//---------------------------------------------------------------------------------------------------------------------
@@ -232,11 +236,11 @@ public:
 	Tamgu* Methodchr(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
 	Tamgu* MethodSucc(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-		return new Tamgulong(value + 1);
+		return globalTamgu->Providelong(value + 1);
 	}
 
 	Tamgu* MethodPred(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-		return new Tamgulong(value - 1);
+		return globalTamgu->Providelong(value - 1);
 	}
 
 	Tamgu* MethodPrimefactors(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -579,7 +583,7 @@ public:
 			value &= a->Long();
 			return this;
 		}
-		return new Tamgulong(value & a->Long());
+		return globalTamgu->Providelong(value & a->Long());
 	}
 
 	Tamgu* orset(Tamgu* a, bool itself) {
@@ -587,7 +591,7 @@ public:
 			value |= a->Long();
 			return this;
 		}
-		return new Tamgulong(value | a->Long());
+		return globalTamgu->Providelong(value | a->Long());
 	}
 
 	Tamgu* xorset(Tamgu* a, bool itself) {
@@ -595,7 +599,7 @@ public:
 			value ^= a->Long();
 			return this;
 		}
-		return new Tamgulong(value ^ a->Long());
+		return globalTamgu->Providelong(value ^ a->Long());
 	}
 
 
@@ -610,7 +614,7 @@ public:
 			return globalTamgu->Providefloat(v + a->Float());
 		}
 
-		return new Tamgulong(value + a->Long());
+		return globalTamgu->Providelong(value + a->Long());
 	}
 
 	Tamgu* minus(Tamgu* a, bool itself) {
@@ -618,7 +622,7 @@ public:
 			value -= a->Long();
 			return this;
 		}
-		return new Tamgulong(value - a->Long());
+		return globalTamgu->Providelong(value - a->Long());
 	}
 
 	Tamgu* multiply(Tamgu* a, bool itself) {
@@ -632,7 +636,7 @@ public:
 			return globalTamgu->Providefloat(v * a->Float());
 		}
 
-		return new Tamgulong(value * a->Long());
+		return globalTamgu->Providelong(value * a->Long());
 	}
 
 	Tamgu* divide(Tamgu* a, bool itself) {
@@ -664,7 +668,7 @@ public:
 			value <<= a->Long();
 			return this;
 		}
-		return new Tamgulong(value << a->Long());
+		return globalTamgu->Providelong(value << a->Long());
 	}
 
 	Tamgu* shiftright(Tamgu* a, bool itself) {
@@ -672,7 +676,7 @@ public:
 			value >>= a->Long();
 			return this;
 		}
-		return new Tamgulong(value >> a->Long());
+		return globalTamgu->Providelong(value >> a->Long());
 	}
 
 	Tamgu* mod(Tamgu* a, bool itself) {
@@ -685,7 +689,7 @@ public:
 		}
 
 		v = value % v;
-		return new Tamgulong(v);
+		return globalTamgu->Providelong(v);
 	}
 
 	Tamgu* less(Tamgu* a) {
@@ -872,6 +876,38 @@ public:
 	}
 };
 
+
+//---------------------------------------------------------------------------------------------------------------------
+class Tamgulongbuff : public Tamgulong {
+public:
+    long idx;
+    bool used;
+    
+    Tamgulongbuff(long i) : Tamgulong(0) {
+            //Do not forget your variable initialisation
+        idx = i;
+        used = false;
+    }
+    
+    bool Candelete() {
+        return false;
+    }
+    
+    void Resetreference(short r) {
+        if ((reference-=r) <= 0) {
+            reference = 0;
+            if (!protect) {
+                protect = true;
+                
+                used = false;
+                value = 0;
+                if (!globalTamgu->threadMODE)
+                    globalTamgu->lgempties.push_back(idx);
+            }
+        }
+    }
+    
+};
 #endif
 
 

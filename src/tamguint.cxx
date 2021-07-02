@@ -368,7 +368,7 @@ Exporting Tamgu* Tamguint::plus(Tamgu* a, bool itself) {
     v += a->Long();
 
     if (IsLong(v))
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
 
     if (itself) {
         value = v;
@@ -389,7 +389,7 @@ Exporting Tamgu* Tamguint::multiply(Tamgu* a, bool itself) {
     v *= a->Long();
 
     if (IsLong(v))
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
 
 
     if (itself) {
@@ -404,7 +404,7 @@ Exporting Tamgu* Tamguint::shiftleft(Tamgu* a, bool itself) {
     BLONG v = value;
     v <<= a->Integer();
     if (IsLong(v))
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
 
     if (itself) {
         value = v;
@@ -425,7 +425,7 @@ Exporting Tamgu* Tamguatomicint::plus(Tamgu* a, bool itself) {
     v += a->Long();
     
     if (IsLong(v))
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
     
     if (itself) {
         value = v;
@@ -446,7 +446,7 @@ Exporting Tamgu* Tamguatomicint::multiply(Tamgu* a, bool itself) {
     v *= a->Long();
     
     if (IsLong(v))
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
     
     
     if (itself) {
