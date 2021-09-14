@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="15400" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" initialViewController="B8D-0N-5wS">
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="18122" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" initialViewController="B8D-0N-5wS">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="15400"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="18122"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -655,6 +655,12 @@
                                                             <action selector="orderFrontColorPanel:" target="Ady-hI-5gd" id="mSX-Xz-DV3"/>
                                                         </connections>
                                                     </menuItem>
+                                                    <menuItem title="Dark Mode" id="x4C-ZR-7TI">
+                                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                                        <connections>
+                                                            <action selector="forceDarkMode:" target="Voe-Tx-rLC" id="XrM-Ie-kwc"/>
+                                                        </connections>
+                                                    </menuItem>
                                                     <menuItem isSeparatorItem="YES" id="iMs-zA-UFJ"/>
                                                     <menuItem title="Copy Style" keyEquivalent="c" id="5Vv-lz-BsD">
                                                         <modifierMask key="keyEquivalentModifierMask" option="YES" command="YES"/>
@@ -884,7 +890,7 @@
         <scene sceneID="spH-xE-ami">
             <objects>
                 <viewController title="Debug" storyboardIdentifier="ledebug" id="SWy-W7-oLi" sceneMemberID="viewController">
-                    <view key="view" canDrawConcurrently="YES" id="Lhr-T4-oPJ" customClass="tamgudebugger">
+                    <view key="view" id="Lhr-T4-oPJ" customClass="tamgudebugger">
                         <rect key="frame" x="0.0" y="0.0" width="1035" height="755"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
@@ -1015,11 +1021,11 @@
                             <scrollView fixedFrame="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="yOt-c1-Gtu">
                                 <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                                <clipView key="contentView" ambiguous="YES" drawsBackground="NO" id="haX-Xf-Mhx">
+                                <clipView key="contentView" drawsBackground="NO" id="haX-Xf-Mhx">
                                     <rect key="frame" x="1" y="1" width="998" height="998"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
-                                        <textView ambiguous="YES" importsGraphics="NO" horizontallyResizable="YES" verticallyResizable="YES" usesFontPanel="YES" findStyle="panel" allowsUndo="YES" usesRuler="YES" allowsNonContiguousLayout="YES" id="efR-lT-YF5" customClass="Console">
+                                        <textView importsGraphics="NO" horizontallyResizable="YES" verticallyResizable="YES" usesFontPanel="YES" findStyle="panel" allowsUndo="YES" usesRuler="YES" allowsNonContiguousLayout="YES" id="efR-lT-YF5" customClass="Console">
                                             <rect key="frame" x="0.0" y="0.0" width="998" height="998"/>
                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                             <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
@@ -1061,11 +1067,11 @@
                             <scrollView fixedFrame="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="LtY-wM-maI">
                                 <rect key="frame" x="0.0" y="0.0" width="1000" height="1000"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                                <clipView key="contentView" ambiguous="YES" drawsBackground="NO" id="orl-yg-5mG">
+                                <clipView key="contentView" drawsBackground="NO" id="orl-yg-5mG">
                                     <rect key="frame" x="1" y="1" width="998" height="998"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
-                                        <textView ambiguous="YES" importsGraphics="NO" horizontallyResizable="YES" verticallyResizable="YES" usesFontPanel="YES" findStyle="panel" allowsUndo="YES" usesRuler="YES" allowsNonContiguousLayout="YES" id="8df-Xy-qyw" customClass="Lecode">
+                                        <textView importsGraphics="NO" horizontallyResizable="YES" verticallyResizable="YES" usesFontPanel="YES" findStyle="panel" allowsUndo="YES" usesRuler="YES" allowsNonContiguousLayout="YES" id="8df-Xy-qyw" customClass="Lecode">
                                             <rect key="frame" x="0.0" y="0.0" width="998" height="998"/>
                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                             <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
