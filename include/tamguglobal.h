@@ -511,11 +511,6 @@ public:
     long longidx;
     Exporting Tamgulong* Providelong(BLONG v = 0);
 
-    vector<Tamgulongbuff*> longreservoire;
-    VECTE<long> lgempties;
-    long longidx;
-    Exporting Tamgulong* Providelong(BLONG v = 0);
-
 	vector<Tamgufloatbuff*> floatreservoire;
 	VECTE<long> fempties;
 	long floatidx;
