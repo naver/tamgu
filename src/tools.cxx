@@ -3288,7 +3288,7 @@ bool TamguCode::Loadlibrary(string n, string& library_name) {
         return true;
     }
 
-    LoadMe = dlopen(lname, RTLD_LAZY);
+    LoadMe = dlopen(lname, RTLD_LAZY | RTLD_GLOBAL);
     string baselib;
     if (LoadMe == NULL) {
         string atanlib;
@@ -3335,7 +3335,7 @@ bool TamguCode::Loadlibrary(string n, string& library_name) {
         atanlib += basename;
         atanlib = NormalizeFileName(atanlib);
         library_name = atanlib;
-        LoadMe = dlopen(STR(atanlib), RTLD_LAZY);
+        LoadMe = dlopen(STR(atanlib), RTLD_LAZY | RTLD_GLOBAL);
     }
     
     // Check to see if the library was loaded successfully
@@ -3345,7 +3345,7 @@ bool TamguCode::Loadlibrary(string n, string& library_name) {
         baselib += n;
         if (addso)
             baselib += ".so";
-        LoadMe = dlopen(STR(baselib), RTLD_LAZY);
+        LoadMe = dlopen(STR(baselib), RTLD_LAZY | RTLD_GLOBAL);
     }
     
     if (LoadMe == NULL) {

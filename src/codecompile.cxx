@@ -10037,6 +10037,7 @@ Tamgu* TamguCode::CompileExpression(string& body, short idthread) {
         message << "Empty body" << endl;
         return global->Returnerror(message.str(), idthread);
     }
+
     global->lineerror = -1;
 
     x_node* xn = bnf.x_parsing(&xr, FULL);
@@ -10050,6 +10051,7 @@ Tamgu* TamguCode::CompileExpression(string& body, short idthread) {
             message << bnf.x_errormsg(bnf.errornumber);
         else
             message << bnf.labelerror;
+
         return global->Returnerror(message.str(), idthread);
     }
 

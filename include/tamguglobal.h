@@ -224,6 +224,7 @@ public:
     }
     
     void Cleanfromgarbageposition(Tamgu* declaration, short idthread, long p, Tamgu* keep, long lastrecorded, long maxrecorded);
+	
     inline void Removevariable(short n) {
 		if (variables.check(n)) {
 			VECTE<Tamgu*>& v = variables.get(n);
