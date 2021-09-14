@@ -54,6 +54,9 @@ bool Tamgumapui::InitialisationModule(TamguGlobal* global, string version) {
     
     Tamgumapui::idtype = global->Getid("mapui");
     
+    
+    global->minimal_indexes[Tamgumapui::idtype] = true;
+
     Tamgumapui::AddMethod(global, "clear", &Tamgumapui::MethodClear, P_NONE, "clear(): clear the container.");
     
     Tamgumapui::AddMethod(global, "invert", &Tamgumapui::MethodInvert, P_NONE, "invert(): return a map with key/value inverted.");
@@ -363,6 +366,21 @@ Exporting Tamgu*  Tamgumapui::Put(Tamgu* idx, Tamgu* ke, short idthread) {
 }
 
 
+
+Tamgu* Tamgumapui::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign) {
+    wstring skey;
+    key->Setstring(skey, idthread);
+
+    Tamgu* val = Value(skey);
+    if (val == aNOELEMENT) {
+        if (globalTamgu->erroronkey)
+            return globalTamgu->Returnerror("Wrong index", idthread);
+        return aNOELEMENT;
+
+    }
+    return val;
+}
+
 Exporting Tamgu* Tamgumapui::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
     
     
@@ -386,7 +404,7 @@ Exporting Tamgu* Tamgumapui::Eval(Tamgu* contextualpattern, Tamgu* idx, short id
         
         if (contextualpattern->isNumber()) {
             long v = Size();
-            return globalTamgu->Provideint(v);
+            return globalTamgu->ProvideConstint(v);
         }
         
         return this;
@@ -846,7 +864,7 @@ Exporting Tamgu* Tamgumapui::Loopin(TamguInstruction* ins, Tamgu* context, short
     bool testcond = false;
     for (long i = 0; i < sz && !testcond; i++) {
         a->Releasenonconst();
-        var->storevalue(keys[i]);
+        var->Storevalue(keys[i]);
         
         a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
         

@@ -228,6 +228,9 @@ public:
 	Tamgu* MethodMethod(Tamgu* domain, short idthread, TamguCall* callfunc) {
 		Tamgu* func = frame->Declaration(callfunc->Name());
 		if (func == NULL) {
+            if (frame->theextensionvar) {
+                return Declaration(frame->theextensionvar)->CallMethod(callfunc->Name(), aNULL, idthread, callfunc);
+            }
 			stringstream message;
 			message << "Unknown method: '" << globalTamgu->Getsymbol(callfunc->Name()) << "' in frame: '" << globalTamgu->Getsymbol(frame->Name()) << "'";
 			return globalTamgu->Returnerror(message.str(), idthread);
@@ -256,6 +259,9 @@ public:
     Tamgu* MethodTopMethod(Tamgu* domain, short idthread, TamguCall* callfunc, TamguFrame* topframe) {
         Tamgu* func = topframe->Declaration(callfunc->Name());
         if (func == NULL) {
+            if (topframe->theextensionvar) {
+                return Declaration(topframe->theextensionvar)->CallMethod(callfunc->Name(), aNULL, idthread, callfunc);
+            }
             stringstream message;
             message << "Unknown method: '" << globalTamgu->Getsymbol(callfunc->Name()) << "' in frame: '" << globalTamgu->Getsymbol(frame->Name()) << "'";
             return globalTamgu->Returnerror(message.str(), idthread);
@@ -338,8 +344,15 @@ public:
 
 	Tamgu* in(Tamgu* context, Tamgu* a, short idthread) {
 		Tamgu* func = frame->Declaration(a_in);
-		if (func == NULL)
+        if (func == NULL) {
+            if (frame->theextensionvar) {
+                Tamgu* var = Declaration(frame->theextensionvar);
+                if (var != NULL) {
+                    return var->in(context, a, idthread);
+                }
+            }
 			return aFALSE;
+        }
 
 
 		VECTE<Tamgu*> arguments;
@@ -380,6 +393,11 @@ public:
 
 	wstring UString() {
 		Tamgu* res = Callconversion(a_ustring);
+        if (res == aNULL) {
+            if (frame->theextensionvar) {
+                return Declaration(frame->theextensionvar)->UString();
+            }
+        }
 		wstring s = res->UString();
 		res->Release();
 		return s;
@@ -388,6 +406,11 @@ public:
 
 	string String() {
 		Tamgu* res = Callconversion(a_string);
+        if (res == aNULL) {
+            if (frame->theextensionvar) {
+                return Declaration(frame->theextensionvar)->String();
+            }
+        }
 		string s = res->String();
 		res->Release();
 		return s;
@@ -395,6 +418,11 @@ public:
 
 	short Short() {
 		Tamgu* res = Callnumberconversion(a_short);
+        if (res == aNULL) {
+            if (frame->theextensionvar) {
+                return Declaration(frame->theextensionvar)->Short();
+            }
+        }
 		short s = res->Short();
 		res->Release();
 		return s;
@@ -402,6 +430,11 @@ public:
 
 	long Integer() {
 		Tamgu* res = Callnumberconversion(a_int);
+        if (res == aNULL) {
+            if (frame->theextensionvar) {
+                return Declaration(frame->theextensionvar)->Integer();
+            }
+        }
 		long s = res->Integer();
 		res->Release();
 		return s;
@@ -409,6 +442,11 @@ public:
 
 	double Float() {
 		Tamgu* res = Callnumberconversion(a_float);
+        if (res == aNULL) {
+            if (frame->theextensionvar) {
+                return Declaration(frame->theextensionvar)->Float();
+            }
+        }
 		double s = res->Float();
 		res->Release();
 		return s;
@@ -416,20 +454,38 @@ public:
 
 	BLONG Long() {
 		Tamgu* res = Callnumberconversion(a_long);
+        if (res == aNULL) {
+            if (frame->theextensionvar) {
+                return Declaration(frame->theextensionvar)->Long();
+            }
+        }
+
 		BLONG s = res->Long();
 		res->Release();
 		return s;
 	}
 
 	bool Boolean() {
-		Tamgu* res = Callnumberconversion(a_boolean);
+		Tamgu* res = Callconversion(a_boolean);
+        if (res == aNULL) {
+            if (frame->theextensionvar) {
+                return Declaration(frame->theextensionvar)->Boolean();
+            }
+        }
+
 		bool s = res->Boolean();
 		res->Release();
 		return s;
 	}
 
 	uchar Byte() {
-		Tamgu* res = Callnumberconversion(a_byte);
+		Tamgu* res = Callconversion(a_byte);
+        if (res == aNULL) {
+            if (frame->theextensionvar) {
+                return Declaration(frame->theextensionvar)->Byte();
+            }
+        }
+
 		uchar s = res->Byte();
 		res->Release();
 		return s;
@@ -441,71 +497,174 @@ public:
 	}
 
 	Tamgu* andset(Tamgu* a, bool itself) {
-		return Calloperation(a_and, a);
+		Tamgu* res = Calloperation(a_and, a);
+        if (res == aNULL) {
+            if (frame->theextensionvar) {
+                return Declaration(frame->theextensionvar)->andset(a, itself);
+            }
+        }
+        return res;
 	}
 
 	Tamgu* orset(Tamgu* a, bool itself) {
-		return Calloperation(a_or, a);
+        Tamgu* res = Calloperation(a_or, a);
+        if (res == aNULL) {
+            if (frame->theextensionvar) {
+                return Declaration(frame->theextensionvar)->orset(a, itself);
+            }
+        }
+        return res;
 	}
 
 	Tamgu* xorset(Tamgu* a, bool itself) {
-		return Calloperation(a_xor, a);
+        Tamgu* res = Calloperation(a_xor, a);
+        if (res == aNULL) {
+            if (frame->theextensionvar) {
+                return Declaration(frame->theextensionvar)->xorset(a, itself);
+            }
+        }
+        return res;
 	}
 
 
 	Tamgu* plus(Tamgu* a, bool itself) {
-		return Calloperation(a_plus, a);
+        Tamgu* res = Calloperation(a_plus, a);
+        if (res == aNULL) {
+            if (frame->theextensionvar) {
+                return Declaration(frame->theextensionvar)->plus(a, itself);
+            }
+        }
+        return res;
 	}
 
 	Tamgu* minus(Tamgu* a, bool itself) {
-		return Calloperation(a_minus, a);
+		Tamgu* res = Calloperation(a_minus, a);
+        if (res == aNULL) {
+            if (frame->theextensionvar) {
+                return Declaration(frame->theextensionvar)->minus(a, itself);
+            }
+        }
+        return res;
 	}
 
 	Tamgu* multiply(Tamgu* a, bool itself) {
-		return Calloperation(a_multiply, a);
+		Tamgu* res = Calloperation(a_multiply, a);
+        if (res == aNULL) {
+            if (frame->theextensionvar) {
+                return Declaration(frame->theextensionvar)->multiply(a, itself);
+            }
+        }
+        return res;
 	}
 
 	Tamgu* divide(Tamgu* a, bool itself) {
-		return Calloperation(a_divide, a);
+        Tamgu* res = Calloperation(a_divide, a);
+        if (res == aNULL) {
+            if (frame->theextensionvar) {
+                return Declaration(frame->theextensionvar)->divide(a, itself);
+            }
+        }
+        return res;
 	}
 
 	Tamgu* power(Tamgu* a, bool itself) {
-		return Calloperation(a_power, a);
+        Tamgu* res = Calloperation(a_power, a);
+        if (res == aNULL) {
+            if (frame->theextensionvar) {
+                return Declaration(frame->theextensionvar)->power(a, itself);
+            }
+        }
+        return res;
 	}
 
 	Tamgu* shiftleft(Tamgu* a, bool itself) {
-		return Calloperation(a_shiftleft, a);
-	}
-	Tamgu* shiftright(Tamgu* a, bool itself) {
-		return Calloperation(a_shiftright, a);
+        Tamgu* res = Calloperation(a_shiftleft, a);
+        if (res == aNULL) {
+            if (frame->theextensionvar) {
+                return Declaration(frame->theextensionvar)->shiftleft(a, itself);
+            }
+        }
+        return res;
 	}
 
+    Tamgu* shiftright(Tamgu* a, bool itself) {
+        Tamgu* res = Calloperation(a_shiftright, a);
+        if (res == aNULL) {
+            if (frame->theextensionvar) {
+                return Declaration(frame->theextensionvar)->shiftright(a, itself);
+            }
+        }
+        return res;
+}
+
 	Tamgu* mod(Tamgu* a, bool itself) {
-		return Calloperation(a_mod, a);
+        Tamgu* res = Calloperation(a_mod, a);
+        if (res == aNULL) {
+            if (frame->theextensionvar) {
+                return Declaration(frame->theextensionvar)->mod(a, itself);
+            }
+        }
+        return res;
 	}
 
 	Tamgu* less(Tamgu* a) {
-		return Calloperation(a_less, a);
+        Tamgu* res = Calloperation(a_less, a);
+        if (res == aNULL) {
+            if (frame->theextensionvar) {
+                return Declaration(frame->theextensionvar)->less(a);
+            }
+        }
+        return res;
 	}
 
 	Tamgu* more(Tamgu* a) {
-		return Calloperation(a_more, a);
+        Tamgu* res = Calloperation(a_more, a);
+        if (res == aNULL) {
+            if (frame->theextensionvar) {
+                return Declaration(frame->theextensionvar)->more(a);
+            }
+        }
+        return res;
 	}
 
 	Tamgu* same(Tamgu* a) {
-		return Calloperation(a_same, a);
+        Tamgu* res = Calloperation(a_same, a);
+        if (res == aNULL) {
+            if (frame->theextensionvar) {
+                return Declaration(frame->theextensionvar)->same(a);
+            }
+        }
+        return res;
 	}
 
 	Tamgu* different(Tamgu* a) {
-		return Calloperation(a_different, a);
+        Tamgu* res = Calloperation(a_different, a);
+        if (res == aNULL) {
+            if (frame->theextensionvar) {
+                return Declaration(frame->theextensionvar)->different(a);
+            }
+        }
+        return res;
 	}
 
 	Tamgu* lessequal(Tamgu* a) {
-		return Calloperation(a_lessequal, a);
+        Tamgu* res = Calloperation(a_lessequal, a);
+        if (res == aNULL) {
+            if (frame->theextensionvar) {
+                return Declaration(frame->theextensionvar)->lessequal(a);
+            }
+        }
+        return res;
 	}
 
 	Tamgu* moreequal(Tamgu* a) {
-		return Calloperation(a_moreequal, a);
+        Tamgu* res = Calloperation(a_moreequal, a);
+        if (res == aNULL) {
+            if (frame->theextensionvar) {
+                return Declaration(frame->theextensionvar)->moreequal(a);
+            }
+        }
+        return res;
 	}
 
 
@@ -610,26 +769,31 @@ class Tamguframemininstance : public TamguframeBaseInstance {
         bool deleted = false;
         locking();
         
-        if ((reference - r) <= 0)
-        //We are about to delete our object... We call our final function then...
-        MethodFinal();
+        if (reference <= r) {
+            //We are about to delete our object... We call our final function then...
+            MethodFinal();
+            deleted = true;
+        }
         
         for (short i = 0; i < declarations.sz; i++) {
             if (declarations.table[i] != NULL)
                 declarations.table[i]->Resetreference(r);
         }
         
-        if ((reference-=r) <= 0) {
+        if (deleted) {
             reference = 0;
-            if (protect)
+            if (protect) {
                 protect = false;
+                deleted = false;
+            }
             else {
                 if (idtracker != -1)
                     globalTamgu->RemoveFromTracker(idtracker);
-                deleted = true;
                 declarations.clear();
             }
         }
+        else
+            reference -= r;
         
         unlocking();
         
@@ -757,24 +921,29 @@ class Tamguframeinstance : public TamguframeBaseInstance {
         {
             locking();
             
-            if ((reference - r) <= 0)
-            //We are about to delete our object... We call our final function then...
-            MethodFinal();
+            if (reference <= r) {
+                //We are about to delete our object... We call our final function then...
+                MethodFinal();
+                deleted = true;
+            }
             
             for (short i = 0; i < declarations.last; i++)
                 declarations[i]->Resetreference(r);
             
-            if ((reference-=r) <= 0) {
+            if (deleted) {
                 reference = 0;
-                if (protect)
+                if (protect) {
                     protect = false;
+                    deleted = false;
+                }
                 else {
                     if (idtracker != -1)
                         globalTamgu->RemoveFromTracker(idtracker);
-                    deleted = true;
                     declarations.clear();
                 }
             }
+            else
+                reference -= r;
             
             unlocking();
         }

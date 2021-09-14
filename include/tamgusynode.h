@@ -261,6 +261,18 @@ public:
         }
     }
     
+    void Setprotect(bool v) {
+        protect = v;
+        features->Setprotect(v);
+        Tamgusynode* syn = child;
+        while (syn != NULL) {
+            Tamgusynode* nx = syn->next;
+            syn->Setprotect(v);
+            syn = nx;
+        }
+    }
+
+    
 	void Resetreference(short r = 1) {
 		Tamgusynode* syn = child;
 		while (syn != NULL) {
@@ -740,7 +752,7 @@ public:
 			s = s->next;
 		}
 
-		return globalTamgu->Provideint(nb);
+		return globalTamgu->ProvideConstint(nb);
 	}
 
 	Tamgu* MethodChildren(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {

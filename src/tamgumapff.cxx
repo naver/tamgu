@@ -54,6 +54,9 @@ void Tamgumapff::AddMethod(TamguGlobal* global, string name, mapffMethod func, u
 
     Tamgumapff::idtype = global->Getid("mapff");
 
+    
+    global->minimal_indexes[Tamgumapff::idtype] = true;
+
     Tamgumapff::AddMethod(global, "clear", &Tamgumapff::MethodClear, P_NONE, "clear(): clear the container.");
     
     Tamgumapff::AddMethod(global, "invert", &Tamgumapff::MethodInvert, P_NONE, "invert(): return a map with key/value inverted.");
@@ -112,7 +115,7 @@ Exporting Tamgu* Tamgumapff::in(Tamgu* context, Tamgu* a, short idthread) {
         try {
             values.at(val);
             unlocking();
-            return globalTamgu->Providefloat(val);
+            return globalTamgu->ProvideConstfloat(val);
         }
         catch(const std::out_of_range& oor) {
             unlocking();
@@ -164,7 +167,7 @@ Exporting Tamgu* Tamgumapff::MethodFind(Tamgu* context, short idthread, TamguCal
     Locking _lock(this);
     for (auto& it : values) {
         if (it.second == val)
-            return globalTamgu->Providefloat(it.first);
+            return globalTamgu->ProvideConstfloat(it.first);
     }
     return aNULL;
 }
@@ -342,6 +345,20 @@ Exporting Tamgu*  Tamgumapff::Put(Tamgu* idx, Tamgu* ke, short idthread) {
 }
 
 
+
+Tamgu* Tamgumapff::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign) {
+    double skey = key->Getfloat(idthread);
+
+    Tamgu* val = Value(skey);
+    if (val == aNOELEMENT) {
+        if (globalTamgu->erroronkey)
+            return globalTamgu->Returnerror("Wrong index", idthread);
+        return aNOELEMENT;
+
+    }
+    return val;
+}
+
 Exporting Tamgu* Tamgumapff::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
 
 
@@ -365,7 +382,7 @@ Exporting Tamgu* Tamgumapff::Eval(Tamgu* contextualpattern, Tamgu* idx, short id
 
         if (contextualpattern->isNumber()) {
             long v = Size();
-            return globalTamgu->Provideint(v);
+            return globalTamgu->ProvideConstint(v);
         }
 
         return this;

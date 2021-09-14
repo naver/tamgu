@@ -64,7 +64,9 @@ class Tamgulvector : public TamguLockContainer {
         isconst = true;
     }
 
-    Exporting Tamgu* Put(Tamgu* idx, Tamgu* value, short idthread);Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
+    Exporting Tamgu* Put(Tamgu* idx, Tamgu* value, short idthread);
+    Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
+    Tamgu* EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign);
     Exporting Tamgu* Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* env, TamguFunctionLambda* bd, short idthread);
     Exporting Tamgu* Filter(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* kcont, Tamgu* accu, Tamgu* init, bool direct);
     short Type() {
@@ -388,7 +390,7 @@ class Tamgulvector : public TamguLockContainer {
             locking();
             return aNOELEMENT;
         }
-        contextualpattern = globalTamgu->Provideint(values.back());
+        contextualpattern = globalTamgu->ProvideConstlong(values.back());
         unlocking();
         return contextualpattern;
     }
@@ -398,17 +400,17 @@ class Tamgulvector : public TamguLockContainer {
         locking();
         unsigned long dst = EditDistance(v);
         unlocking();
-        return globalTamgu->Provideint(dst);
+        return globalTamgu->ProvideConstlong(dst);
     }
 
     Tamgu* MethodSum(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         BLONG v = LSum();
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
     }
 
     Tamgu* MethodProduct(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         BLONG v = LProduct();
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
     }
 
     Tamgu* MethodInsert(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -457,7 +459,7 @@ class Tamgulvector : public TamguLockContainer {
         BLONG c = values.back();
         values.pop_back();
         unlocking();
-        return new Tamgulong(c);
+        return globalTamgu->Providelong(c);
     }
 
     Exporting Tamgu* Unique();
@@ -495,7 +497,7 @@ class Tamgulvector : public TamguLockContainer {
         for (; i < j; i++)
             v += values[i];
 
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
     }
 
     Tamgu* Theproduct(long i, long j) {
@@ -525,7 +527,7 @@ class Tamgulvector : public TamguLockContainer {
         for (; i < j; i++)
             v *= values[i];
 
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
     }
 
     BLONG LSum() {
@@ -608,7 +610,7 @@ class TamguIterationlvector : public TamguIteration {
     }
 
     Tamgu* Key() {
-        return globalTamgu->Provideint(itx);
+        return globalTamgu->ProvideConstlong(itx);
     }
 
     
@@ -617,7 +619,7 @@ class TamguIterationlvector : public TamguIteration {
     }
 
     Tamgu* Value() {
-        return globalTamgu->Provideint(ref->values[itx]);
+        return globalTamgu->ProvideConstlong(ref->values[itx]);
     }
 
     string Keystring() {

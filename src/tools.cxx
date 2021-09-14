@@ -2307,7 +2307,9 @@ public:
     bool compile(Tamgu* kf, string& s) {
         pos.clear();
         src = USTR(s);
-        split_container(src, s.size(), pos, false);
+        sz = s.size();
+        pos.reserve(sz >> 2);
+        split_container(src, sz, pos, false);
         r = 1;
         i = 1;
         line = 0;
@@ -2480,11 +2482,6 @@ Exporting Tamgu* TamguGlobal::EvaluateJSON(string& s, short idthread) {
 }
 
 void replacemetas(string& sub) {
-    static string search("\\");
-    
-    if (s_findbyte(sub, search ,0) == -1)
-        return;
-    
     string thestr;
     long sz = sub.size();
     for (long i=0;i<sz;i++) {
@@ -2514,9 +2511,7 @@ char TamguJsonCompiler::buildexpression(Tamgu* kf) {
     string key;
 
     Tamgu* local;
-
-    long ref = ((TamguObject*)kf)->reference + 1;
-
+    
     bool checknext = false;
     char expecting = kf->isMapContainer();
     to = 0;
@@ -2553,15 +2548,14 @@ char TamguJsonCompiler::buildexpression(Tamgu* kf) {
                             local = aNULL;
                         else {
                             local = globalTamgu->Providewithstring(token);
-                            local->Addreference(0, ref);
                         }
                 
                 if (expecting) {
-                    ((Tamgumap*)kf)->values[key] = local;
+                    ((Tamgumap*)kf)->pushone(key, local);
                     expecting = 1;
                 }
                 else
-                    ((Tamguvector*)kf)->values.push_back(local);
+                    ((Tamguvector*)kf)->pushone(local);
                 checknext=true;
             }
             src[to] = c;
@@ -2588,18 +2582,20 @@ char TamguJsonCompiler::buildexpression(Tamgu* kf) {
                 if (expecting == 1)
                     key = (char*)src+i+1;
                 else {
-                    token = (char*)src+i;
-                    replacemetas(token);
-                    local = globalTamgu->Providewithstring(token);
+                    if (strchr((char*)src+i, '\\') == NULL)
+                        local = globalTamgu->Providestring((char*)src+i);
+                    else {
+                        token = (char*)src+i;
+                        replacemetas(token);
+                        local = globalTamgu->Providewithstring(token);
+                    }
                     
-                    local->Setreference(ref);
                     if (expecting) {
-                        ((Tamgumap*)kf)->values[key] = local;
+                        ((Tamgumap*)kf)->pushone(key, local);
                         expecting = 1;
                     }
                     else
-                        ((Tamguvector*)kf)->values.push_back(local);
-                    
+                        ((Tamguvector*)kf)->pushone(local);
                     checknext=true;
                 }
                 src[to-1] = c;
@@ -2619,17 +2615,20 @@ char TamguJsonCompiler::buildexpression(Tamgu* kf) {
                 if (expecting == 1)
                     key = (char*)src+i;
                 else {
-                    token = (char*)src+i;
-                    replacemetas(token);
-                    local = globalTamgu->Providewithstring(token);
-                    
-                    local->Setreference(ref);
+                    if (strchr((char*)src+i, '\\') == NULL)
+                        local = globalTamgu->Providestring((char*)src+i);
+                    else {
+                        token = (char*)src+i;
+                        replacemetas(token);
+                        local = globalTamgu->Providewithstring(token);
+                    }
+
                     if (expecting) {
-                        ((Tamgumap*)kf)->values[key] = local;
+                        ((Tamgumap*)kf)->pushone(key, local);
                         expecting = 1;
                     }
                     else
-                        ((Tamguvector*)kf)->values.push_back(local);
+                        ((Tamguvector*)kf)->pushone(local);
                     
                     checknext=true;
                 }
@@ -2652,14 +2651,13 @@ char TamguJsonCompiler::buildexpression(Tamgu* kf) {
                 else {
                     local = globalTamgu->Providestring((char*)src+i);
                     
-                    local->Setreference(ref);
                     if (expecting) {
-                        ((Tamgumap*)kf)->values[key] = local;
+                        ((Tamgumap*)kf)->pushone(key, local);
                         expecting = 1;
                     }
                     else
-                        ((Tamguvector*)kf)->values.push_back(local);
-                    
+                        ((Tamguvector*)kf)->pushone(local);
+
                     checknext=true;
                 }
                 src[to] = c;
@@ -2690,18 +2688,17 @@ char TamguJsonCompiler::buildexpression(Tamgu* kf) {
                     key = (char*)src+i;
                 else {
                     if (strchr((char*)src+i, '.'))
-                        local = globalTamgu->Providefloat(v);
+                        local = globalTamgu->ProvideConstfloat(v);
                     else
-                        local = globalTamgu->Provideint(v);
+                        local = globalTamgu->ProvideConstint(v);
                     
-                    local->Setreference(ref);
                     if (expecting) {
-                        ((Tamgumap*)kf)->values[key] = local;
+                        ((Tamgumap*)kf)->pushone(key, local);
                         expecting = 1;
                     }
                     else
-                        ((Tamguvector*)kf)->values.push_back(local);
-                    
+                        ((Tamguvector*)kf)->pushone(local);
+
                     checknext=true;
                 }
                 src[to] = c;
@@ -2721,14 +2718,13 @@ char TamguJsonCompiler::buildexpression(Tamgu* kf) {
                         return false;
                     }
                 }
-                local->Addreference(0,ref);
                 if (expecting) {
-                    ((Tamgumap*)kf)->values[key] = local;
+                    ((Tamgumap*)kf)->pushone(key, local);
                     expecting = 1;
                 }
                 else
-                    ((Tamguvector*)kf)->values.push_back(local);
-                
+                    ((Tamguvector*)kf)->pushone(local);
+
                 checknext=true;
                 break;
             case '[':
@@ -2746,14 +2742,13 @@ char TamguJsonCompiler::buildexpression(Tamgu* kf) {
                     }
                 }
                 
-                local->Addreference(0,ref);
                 if (expecting) {
-                    ((Tamgumap*)kf)->values[key] = local;
+                    ((Tamgumap*)kf)->pushone(key, local);
                     expecting = 1;
                 }
                 else
-                    ((Tamguvector*)kf)->values.push_back(local);
-                
+                    ((Tamguvector*)kf)->pushone(local);
+
                 checknext=true;
                 break;
             case '}':

@@ -61,6 +61,8 @@ public:
     //----------------------------------------------------------------------------------------------------------------------
     Exporting Tamgu* Loopin(TamguInstruction*, Tamgu* context, short idthread);
     Exporting Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);
+
+    Tamgu* EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign);
     Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
     
     void SetConst() { isconst = true;}
@@ -263,9 +265,8 @@ public:
         Tamgu* a;
         
         for (auto& it : values) {
-            a = globalTamgu->Provideint(it.first);
+            a = globalTamgu->ProvideConstint(it.first);
             contextualpattern->Push(it.second, a);
-            a->Release();
         }
         
         return contextualpattern;
@@ -303,7 +304,7 @@ public:
     
     Tamgu* MethodSum(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = Sum();
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
     
     Tamgu* MethodKeys(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -342,7 +343,7 @@ public:
     
     Tamgu* MethodProduct(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = Product();
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
     
     Tamgu* MethodPop(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -451,60 +452,90 @@ public:
     Exporting string String();
     Exporting string JSonString();
     
-    Tamgu* Value(string& v) {
-        long n = convertlong(v);
-        
-        locking();
-        try {
-            Tamgu* res = values.at(n);
+    Tamgu* Value(string& val) {
+        long n = convertlong(val);
+        Tamgu* v;
+        if (globalTamgu->threadMODE) {
+            locking();
+            v = values[n];
+            if (v == NULL) {
+                values.erase(n);
+                v = aNOELEMENT;
+            }
             unlocking();
-            return res;
+            return v;
         }
-        catch (const std::out_of_range& oor) {
-            unlocking();
+        
+        v = values[n];
+        if (v == NULL) {
+            values.erase(n);
             return aNOELEMENT;
         }
+        return v;
     }
     
     Tamgu* Value(Tamgu* a) {
         long n =  a->Integer();
-        
-        locking();
-        try {
-            Tamgu* res = values.at(n);
+        Tamgu* v;
+        if (globalTamgu->threadMODE) {
+            locking();
+            v = values[n];
+            if (v == NULL) {
+                values.erase(n);
+                v = aNOELEMENT;
+            }
             unlocking();
-            return res;
+            return v;
         }
-        catch (const std::out_of_range& oor) {
-            unlocking();
+        
+        v = values[n];
+        if (v == NULL) {
+            values.erase(n);
             return aNOELEMENT;
         }
+        return v;
     }
     
     Tamgu* Value(long n) {
-        locking();
-        try {
-            Tamgu* res = values.at(n);
+        Tamgu* v;
+        if (globalTamgu->threadMODE) {
+            locking();
+            v = values[n];
+            if (v == NULL) {
+                values.erase(n);
+                v = aNOELEMENT;
+            }
             unlocking();
-            return res;
+            return v;
         }
-        catch (const std::out_of_range& oor) {
-            unlocking();
+        
+        v = values[n];
+        if (v == NULL) {
+            values.erase(n);
             return aNOELEMENT;
         }
+        return v;
     }
     
     Tamgu* Value(double n) {
-        locking();
-        try {
-            Tamgu* res = values.at(n);
+        Tamgu* v;
+        if (globalTamgu->threadMODE) {
+            locking();
+            v = values[n];
+            if (v == NULL) {
+                values.erase(n);
+                v = aNOELEMENT;
+            }
             unlocking();
-            return res;
+            return v;
         }
-        catch (const std::out_of_range& oor) {
-            unlocking();
+        
+        v = values[n];
+        if (v == NULL) {
+            values.erase(n);
             return aNOELEMENT;
         }
+        return v;
     }
     
     Exporting long Integer();
@@ -550,7 +581,7 @@ public:
     }
     
     Tamgu* Key() {
-        return globalTamgu->Provideint(it->first);
+        return globalTamgu->ProvideConstint(it->first);
     }
     
     Tamgu* Value() {

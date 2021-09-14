@@ -68,6 +68,10 @@ public:
 		return true;
 	}
 
+    Tamgu* AtomNoConst() {
+        return this;
+    }
+    
     bool Candelete() {
         return false;
     }
@@ -787,6 +791,11 @@ public:
         return convertfromnumber(value);
     }
 
+    string JSonString() {
+        return convertfromnumber(value);
+    }
+
+
     void Setstring(string& v, short idthread) {
         convertnumber(value,v);
     }
@@ -888,13 +897,13 @@ public:
 		if (v == 0)
 			return globalTamgu->Returnerror("Error: Divided by 0");
 		v = (double)value / v;
-		return globalTamgu->Providefloat(v);
+		return globalTamgu->ProvideConstfloat(v);
 	}
 
 	Tamgu* power(Tamgu* a, bool itself) {
 		double v = value;
 		v = pow(v, a->Float());
-		return globalTamgu->Providefloat(v);
+		return globalTamgu->ProvideConstfloat(v);
 	}
 
 	Tamgu* shiftleft(Tamgu* a, bool itself) {
@@ -911,7 +920,7 @@ public:
 			return globalTamgu->Returnerror("Error: Divided by 0");
 
 		v = value % v;
-		return globalTamgu->Provideint(v);
+		return globalTamgu->ProvideConstint(v);
 	}
 
 	Tamgu* less(Tamgu* a) {
@@ -1051,6 +1060,11 @@ public:
 		return convertfromnumber(value);
 	}
 
+    string JSonString() {
+        return convertfromnumber(value);
+    }
+
+
     void Setstring(string& v, short idthread) {
         v = convertfromnumber(value);
     }
@@ -1148,7 +1162,7 @@ public:
         if (a->Type() == a_short) {
             BLONG v = value;
             v += a->Long();
-            return new Tamgulong(v);
+            return globalTamgu->Providelong(v);
         }
         return a->plus(this, itself);
 	}
@@ -1157,7 +1171,7 @@ public:
         if (a->Type() == a_short) {
             BLONG v = value;
             v -= a->Long();
-            return new Tamgulong(v);
+            return globalTamgu->Providelong(v);
         }
         a = a->minus(this, itself);
         a->multiply(aMINUSONE, true);
@@ -1168,7 +1182,7 @@ public:
         if (a->Type() == a_short) {
             BLONG v = value;
             v *= a->Long();
-            return new Tamgulong(v);
+            return globalTamgu->Providelong(v);
         }
         return a->multiply(this, itself);
 	}
@@ -1178,25 +1192,25 @@ public:
 		if (v == 0)
 			return globalTamgu->Returnerror("Error: Divided by 0");
 		v = (double)value / v;
-		return globalTamgu->Providefloat(v);
+		return globalTamgu->ProvideConstfloat(v);
 	}
 
 	Tamgu* power(Tamgu* a, bool itself) {
 		double v = value;
 		v = pow(v, a->Float());
-		return globalTamgu->Providefloat(v);
+		return globalTamgu->ProvideConstfloat(v);
 	}
 
 	Tamgu* shiftleft(Tamgu* a, bool itself) {
         BLONG v = value;
         v <<= a->Long();
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
 	}
 
 	Tamgu* shiftright(Tamgu* a, bool itself) {
         BLONG v = value;
         v >>= a->Long();
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
 	}
 
 	Tamgu* mod(Tamgu* a, bool itself) {
@@ -1205,7 +1219,7 @@ public:
 			return globalTamgu->Returnerror("Error: Divided by 0");
 
 		v %= a->Long();
-		return new Tamgulong(v);
+		return globalTamgu->Providelong(v);
 	}
 
 	Tamgu* less(Tamgu* a) {
@@ -1333,6 +1347,11 @@ public:
 		return convertfromnumber(value);
 		
 	}
+
+    string JSonString() {
+        return convertfromnumber(value);
+    }
+
 
 	wstring UString() {
 		
@@ -1559,11 +1578,11 @@ public:
 	Exporting Tamgu* CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
 	Tamgu* Newinstance(short, Tamgu* f = NULL) {
-		return globalTamgu->Providefloat(value);
+		return globalTamgu->ProvideConstfloat(value);
 	}
 
 	Tamgu* Newvalue(Tamgu* a, short idthread) {
-		return globalTamgu->Providefloat(a->Float());
+		return globalTamgu->ProvideConstfloat(a->Float());
 	}
 
     Tamgu* Atomref() {
@@ -1591,15 +1610,15 @@ public:
 	}
 
 	string String() {
-		
 		return convertfromnumber(value);
-		
 	}
 
+    string JSonString() {
+        return convertfromnumber(value);
+    }
+
 	wstring UString() {
-		
 		return wconvertfromnumber(value);
-		
 	}
  
     void Setstring(string& v, short idthread) {
@@ -1675,33 +1694,33 @@ public:
 	}
 
 	Tamgu* Atom(bool forced = false) {
-		return globalTamgu->Providefloat(value);
+		return globalTamgu->ProvideConstfloat(value);
 	}
 
 	//we add the current value with a
 	Tamgu* andset(Tamgu* a, bool itself) {
-		return globalTamgu->Providefloat((long)value & a->Integer());
+		return globalTamgu->ProvideConstfloat((long)value & a->Integer());
 	}
 
 	Tamgu* orset(Tamgu* a, bool itself) {
-		return globalTamgu->Providefloat((long)value | a->Integer());
+		return globalTamgu->ProvideConstfloat((long)value | a->Integer());
 	}
 
 	Tamgu* xorset(Tamgu* a, bool itself) {
-		return globalTamgu->Providefloat((long)value ^ a->Integer());
+		return globalTamgu->ProvideConstfloat((long)value ^ a->Integer());
 	}
 
 
 	Tamgu* plus(Tamgu* a, bool itself) {
-		return globalTamgu->Providefloat(value + a->Float());
+		return globalTamgu->ProvideConstfloat(value + a->Float());
 	}
 
 	Tamgu* minus(Tamgu* a, bool itself) {
-		return globalTamgu->Providefloat(value - a->Float());
+		return globalTamgu->ProvideConstfloat(value - a->Float());
 	}
 
 	Tamgu* multiply(Tamgu* a, bool itself) {
-		return globalTamgu->Providefloat(value * a->Float());
+		return globalTamgu->ProvideConstfloat(value * a->Float());
 	}
 
 	Tamgu* divide(Tamgu* a, bool itself) {
@@ -1709,21 +1728,21 @@ public:
 		if (v == 0)
 			return globalTamgu->Returnerror("Error: Divided by 0");
 		v = value / v;
-		return globalTamgu->Providefloat(v);
+		return globalTamgu->ProvideConstfloat(v);
 	}
 
 	Tamgu* power(Tamgu* a, bool itself) {
 		double v = value;
 		v = pow(v, a->Float());
-		return globalTamgu->Providefloat(v);
+		return globalTamgu->ProvideConstfloat(v);
 	}
 
 	Tamgu* shiftleft(Tamgu* a, bool itself) {
-		return globalTamgu->Providefloat((long)value << a->Integer());
+		return globalTamgu->ProvideConstfloat((long)value << a->Integer());
 	}
 
 	Tamgu* shiftright(Tamgu* a, bool itself) {
-		return globalTamgu->Providefloat((long)value >> a->Integer());
+		return globalTamgu->ProvideConstfloat((long)value >> a->Integer());
 	}
 
 	Tamgu* mod(Tamgu* a, bool itself) {
@@ -1732,7 +1751,7 @@ public:
 			return globalTamgu->Returnerror("Error: Divided by 0");
 
 		v = (long)value % v;
-		return globalTamgu->Providefloat(v);
+		return globalTamgu->ProvideConstfloat(v);
 	}
 
 	Tamgu* less(Tamgu* a) {
@@ -1801,11 +1820,11 @@ public:
 	}
 
 	Tamgu* Succ() {
-		return globalTamgu->Providefloat(value + 1);
+		return globalTamgu->ProvideConstfloat(value + 1);
 	}
 
 	Tamgu* Pred() {
-		return globalTamgu->Providefloat(value - 1);
+		return globalTamgu->ProvideConstfloat(value - 1);
 	}
 };
 
@@ -1820,15 +1839,15 @@ public:
 	Exporting Tamgu* CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
 	Tamgu* Newinstance(short, Tamgu* f = NULL) {
-		return new Tamgulong(value);
+		return globalTamgu->Providelong(value);
 	}
 
 	Tamgu* Newvalue(Tamgu* a, short idthread) {
-		return new Tamgulong(a->Long());
+		return globalTamgu->Providelong(a->Long());
 	}
 
     Tamgu* Atomref() {
-        TamguReference* r = new Tamgulong(value);
+        TamguReference* r = globalTamgu->Providelong(value);
         r->reference = 1;
         r->protect = false;
         return r;
@@ -1864,6 +1883,11 @@ public:
 	string String() {
 		return convertfromnumber(value);
 	}
+
+    string JSonString() {
+        return convertfromnumber(value);
+    }
+
 
 	wstring UString() {
 		return wconvertfromnumber(value);
@@ -1941,34 +1965,34 @@ public:
 	}
 
 	Tamgu* Atom(bool forced = false) {
-		return new Tamgulong(value);
+		return globalTamgu->Providelong(value);
 	}
 
 
 	//we add the current value with a
 	Tamgu* andset(Tamgu* a, bool itself) {
-		return new Tamgulong(value & a->Long());
+		return globalTamgu->Providelong(value & a->Long());
 	}
 
 	Tamgu* orset(Tamgu* a, bool itself) {
-		return new Tamgulong(value | a->Long());
+		return globalTamgu->Providelong(value | a->Long());
 	}
 
 	Tamgu* xorset(Tamgu* a, bool itself) {
-		return new Tamgulong(value ^ a->Long());
+		return globalTamgu->Providelong(value ^ a->Long());
 	}
 
 
 	Tamgu* plus(Tamgu* a, bool itself) {
-		return new Tamgulong(value + a->Long());
+		return globalTamgu->Providelong(value + a->Long());
 	}
 
 	Tamgu* minus(Tamgu* a, bool itself) {
-		return new Tamgulong(value - a->Long());
+		return globalTamgu->Providelong(value - a->Long());
 	}
 
 	Tamgu* multiply(Tamgu* a, bool itself) {
-		return new Tamgulong(value * a->Long());
+		return globalTamgu->Providelong(value * a->Long());
 	}
 
 	Tamgu* divide(Tamgu* a, bool itself) {
@@ -1976,21 +2000,21 @@ public:
 		if (v == 0)
 			return globalTamgu->Returnerror("Error: Divided by 0");
 		v = (double)value / v;
-		return globalTamgu->Providefloat(v);
+		return globalTamgu->ProvideConstfloat(v);
 	}
 
 	Tamgu* power(Tamgu* a, bool itself) {
 		double v = (double)value;
 		v = pow(v, a->Float());
-		return globalTamgu->Providefloat(v);
+		return globalTamgu->ProvideConstfloat(v);
 	}
 
 	Tamgu* shiftleft(Tamgu* a, bool itself) {
-		return new Tamgulong(value << a->Long());
+		return globalTamgu->Providelong(value << a->Long());
 	}
 
 	Tamgu* shiftright(Tamgu* a, bool itself) {
-		return new Tamgulong(value >> a->Long());
+		return globalTamgu->Providelong(value >> a->Long());
 	}
 
 	Tamgu* mod(Tamgu* a, bool itself) {
@@ -1999,7 +2023,7 @@ public:
 			return globalTamgu->Returnerror("Error: Divided by 0");
 
 		v = value % v;
-		return new Tamgulong(v);
+		return globalTamgu->Providelong(v);
 	}
 
 	Tamgu* less(Tamgu* a) {
@@ -2063,11 +2087,11 @@ public:
 	}
 
 	Tamgu* Succ() {
-		return new Tamgulong(value + 1);
+		return globalTamgu->Providelong(value + 1);
 	}
 
 	Tamgu* Pred() {
-		return new Tamgulong(value - 1);
+		return globalTamgu->Providelong(value - 1);
 	}
 
 };
@@ -2089,10 +2113,7 @@ public:
 	}
 
     Tamgu* Atomref() {
-        TamguReference* r = new Tamguboolean(value);
-        r->reference = 1;
-        r->protect = false;
-        return r;
+        return this;
     }
 
     string Info(string n);
@@ -2141,6 +2162,12 @@ public:
 			return L"true";
 		return L"false";
 	}
+
+    string JSonString() {
+        if (value)
+            return "true";
+        return "false";
+    }
 
     void Setstring(string& v, short idthread) {
         if (value)

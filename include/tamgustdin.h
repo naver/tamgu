@@ -145,7 +145,7 @@ class Tamgustdin : public TamguObject {
 
         char c = is->get();
         if (context->isNumber())
-            return globalTamgu->Provideint(c);
+            return globalTamgu->ProvideConstint(c);
         string s;
         s = c;
         return globalTamgu->Providewithstring(s);
@@ -174,7 +174,7 @@ class Tamgustdin : public TamguObject {
 
 
         if (context->isNumber())
-            return globalTamgu->Provideint(is->get());
+            return globalTamgu->ProvideConstint(is->get());
 
         if (context->isContainer()) {
             Tamgu* vect = Selectasvector(context);

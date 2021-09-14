@@ -120,14 +120,14 @@ public:
 
 	Tamgu* Atom(bool forced = false) {
 		if (forced || !protect || reference)
-			return new Tamgulong(value);
+			return globalTamgu->Providelong(value);
 		return this;
 	}
 
     Tamgu* Atomref() {
         TamguReference* r;
         if (!protect || reference)
-            r = new Tamgulong(value);
+            r = globalTamgu->Providelong(value);
         else
             r = this;
         r->reference = 1;
@@ -186,12 +186,16 @@ public:
 		return false;
 	}
 
+    Tamgu* Newpureinstance(short idthread) {
+        return new Tamgulong(0);
+    }
+
 	Tamgu* Newinstance(short, Tamgu* f = NULL) {
-		return new Tamgulong(0);
+		return globalTamgu->Providelong(0);
 	}
 
 	Tamgu* Newvalue(Tamgu* a, short idthread) {
-		return new Tamgulong(a->Long());
+		return globalTamgu->Providelong(a->Long());
 	}
 
 
@@ -219,11 +223,11 @@ public:
 
 
 	Tamgu* Succ() {
-		return new Tamgulong(value + 1);
+		return globalTamgu->Providelong(value + 1);
 	}
 
 	Tamgu* Pred() {
-		return new Tamgulong(value - 1);
+		return globalTamgu->Providelong(value - 1);
 	}
 
 	//---------------------------------------------------------------------------------------------------------------------
@@ -232,11 +236,11 @@ public:
 	Tamgu* Methodchr(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
 	Tamgu* MethodSucc(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-		return new Tamgulong(value + 1);
+		return globalTamgu->Providelong(value + 1);
 	}
 
 	Tamgu* MethodPred(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-		return new Tamgulong(value - 1);
+		return globalTamgu->Providelong(value - 1);
 	}
 
 	Tamgu* MethodPrimefactors(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -306,162 +310,162 @@ public:
 
 	Tamgu* Methodabs(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		double v = (double)value;
-		return globalTamgu->Providefloat(fabs(v));
+		return globalTamgu->ProvideConstfloat(fabs(v));
 	}
 
 	Tamgu* Methodacos(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		double v = (double)value;
-		return globalTamgu->Providefloat(acos(v));
+		return globalTamgu->ProvideConstfloat(acos(v));
 	}
 
 	Tamgu* Methodacosh(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		double v = (double)value;
-		return globalTamgu->Providefloat(acosh(v));
+		return globalTamgu->ProvideConstfloat(acosh(v));
 	}
 
 	Tamgu* Methodasin(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		double v = (double)value;
-		return globalTamgu->Providefloat(asin(v));
+		return globalTamgu->ProvideConstfloat(asin(v));
 	}
 
 	Tamgu* Methodasinh(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		double v = (double)value;
-		return globalTamgu->Providefloat(asinh(v));
+		return globalTamgu->ProvideConstfloat(asinh(v));
 	}
 
 	Tamgu* Methodatan(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		double v = (double)value;
-		return globalTamgu->Providefloat(atan(v));
+		return globalTamgu->ProvideConstfloat(atan(v));
 	}
 
 	Tamgu* Methodatanh(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		double v = (double)value;
-		return globalTamgu->Providefloat(atanh(v));
+		return globalTamgu->ProvideConstfloat(atanh(v));
 	}
 
 	Tamgu* Methodcbrt(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		double v = (double)value;
-		return globalTamgu->Providefloat(cbrt(v));
+		return globalTamgu->ProvideConstfloat(cbrt(v));
 	}
 
 	Tamgu* Methodcos(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		double v = (double)value;
-		return globalTamgu->Providefloat(cos(v));
+		return globalTamgu->ProvideConstfloat(cos(v));
 	}
 
 	Tamgu* Methodcosh(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		double v = (double)value;
-		return globalTamgu->Providefloat(cosh(v));
+		return globalTamgu->ProvideConstfloat(cosh(v));
 	}
 
 	Tamgu* Methoderf(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		double v = (double)value;
-		return globalTamgu->Providefloat(erf(v));
+		return globalTamgu->ProvideConstfloat(erf(v));
 	}
 
 	Tamgu* Methoderfc(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		double v = (double)value;
-		return globalTamgu->Providefloat(erfc(v));
+		return globalTamgu->ProvideConstfloat(erfc(v));
 	}
 
 	Tamgu* Methodexp(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		double v = (double)value;
-		return globalTamgu->Providefloat(exp(v));
+		return globalTamgu->ProvideConstfloat(exp(v));
 	}
 
 	Tamgu* Methodexp2(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		double v = (double)value;
-		return globalTamgu->Providefloat(exp2(v));
+		return globalTamgu->ProvideConstfloat(exp2(v));
 	}
 
 	Tamgu* Methodexpm1(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		double v = (double)value;
-		return globalTamgu->Providefloat(expm1(v));
+		return globalTamgu->ProvideConstfloat(expm1(v));
 	}
 
 	Tamgu* Methodfloor(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		double v = (double)value;
-		return globalTamgu->Providefloat(floor(v));
+		return globalTamgu->ProvideConstfloat(floor(v));
 	}
 
 	Tamgu* Methodlgamma(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		double v = (double)value;
-		return globalTamgu->Providefloat(lgamma(v));
+		return globalTamgu->ProvideConstfloat(lgamma(v));
 	}
 
 	Tamgu* Methodln(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		double v = (double)value;
-		return globalTamgu->Providefloat(log(v));
+		return globalTamgu->ProvideConstfloat(log(v));
 	}
 
 	Tamgu* Methodlog(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		double v = (double)value;
-		return globalTamgu->Providefloat(log10(v));
+		return globalTamgu->ProvideConstfloat(log10(v));
 	}
 
 	Tamgu* Methodlog1p(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		double v = (double)value;
-		return globalTamgu->Providefloat(log1p(v));
+		return globalTamgu->ProvideConstfloat(log1p(v));
 	}
 
 	Tamgu* Methodlog2(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		double v = (double)value;
-		return globalTamgu->Providefloat(log2(v));
+		return globalTamgu->ProvideConstfloat(log2(v));
 	}
 
 	Tamgu* Methodlogb(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		double v = (double)value;
-		return globalTamgu->Providefloat(logb(v));
+		return globalTamgu->ProvideConstfloat(logb(v));
 	}
 
 	Tamgu* Methodnearbyint(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		double v = (double)value;
-		return globalTamgu->Providefloat(nearbyint(v));
+		return globalTamgu->ProvideConstfloat(nearbyint(v));
 	}
 
 	Tamgu* Methodrint(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		double v = (double)value;
-		return globalTamgu->Providefloat(rint(v));
+		return globalTamgu->ProvideConstfloat(rint(v));
 	}
 
 	Tamgu* Methodround(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		double v = (double)value;
-		return globalTamgu->Providefloat(round(v));
+		return globalTamgu->ProvideConstfloat(round(v));
 	}
 
 	Tamgu* Methodsin(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		double v = (double)value;
-		return globalTamgu->Providefloat(sin(v));
+		return globalTamgu->ProvideConstfloat(sin(v));
 	}
 
 	Tamgu* Methodsinh(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		double v = (double)value;
-		return globalTamgu->Providefloat(sinh(v));
+		return globalTamgu->ProvideConstfloat(sinh(v));
 	}
 
 	Tamgu* Methodsqrt(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		double v = (double)value;
-		return globalTamgu->Providefloat(sqrt(v));
+		return globalTamgu->ProvideConstfloat(sqrt(v));
 	}
 
 	Tamgu* Methodtan(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		double v = (double)value;
-		return globalTamgu->Providefloat(tan(v));
+		return globalTamgu->ProvideConstfloat(tan(v));
 	}
 
 	Tamgu* Methodtanh(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		double v = (double)value;
-		return globalTamgu->Providefloat(tanh(v));
+		return globalTamgu->ProvideConstfloat(tanh(v));
 	}
 
 	Tamgu* Methodtgamma(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		double v = (double)value;
-		return globalTamgu->Providefloat(tgamma(v));
+		return globalTamgu->ProvideConstfloat(tgamma(v));
 	}
 
 	Tamgu* Methodtrunc(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		double v = (double)value;
-		return globalTamgu->Providefloat(trunc(v));
+		return globalTamgu->ProvideConstfloat(trunc(v));
 	}
 
 	//---------------------------------------------------------------------------------------------------------------------
@@ -488,6 +492,10 @@ public:
 
     wstring UString() {
         return wconvertfromnumber(value);
+    }
+
+    string JSonString() {
+        return convertfromnumber(value);
     }
 
     void Setstring(string& v, short idthread) {
@@ -575,7 +583,7 @@ public:
 			value &= a->Long();
 			return this;
 		}
-		return new Tamgulong(value & a->Long());
+		return globalTamgu->Providelong(value & a->Long());
 	}
 
 	Tamgu* orset(Tamgu* a, bool itself) {
@@ -583,7 +591,7 @@ public:
 			value |= a->Long();
 			return this;
 		}
-		return new Tamgulong(value | a->Long());
+		return globalTamgu->Providelong(value | a->Long());
 	}
 
 	Tamgu* xorset(Tamgu* a, bool itself) {
@@ -591,7 +599,7 @@ public:
 			value ^= a->Long();
 			return this;
 		}
-		return new Tamgulong(value ^ a->Long());
+		return globalTamgu->Providelong(value ^ a->Long());
 	}
 
 
@@ -603,10 +611,10 @@ public:
 
 		if (a->isFloat()) {
 			double v = value;
-			return globalTamgu->Providefloat(v + a->Float());
+			return globalTamgu->ProvideConstfloat(v + a->Float());
 		}
 
-		return new Tamgulong(value + a->Long());
+		return globalTamgu->Providelong(value + a->Long());
 	}
 
 	Tamgu* minus(Tamgu* a, bool itself) {
@@ -614,7 +622,7 @@ public:
 			value -= a->Long();
 			return this;
 		}
-		return new Tamgulong(value - a->Long());
+		return globalTamgu->Providelong(value - a->Long());
 	}
 
 	Tamgu* multiply(Tamgu* a, bool itself) {
@@ -625,10 +633,10 @@ public:
 		
 		if (a->isFloat()) {
 			double v = value;
-			return globalTamgu->Providefloat(v * a->Float());
+			return globalTamgu->ProvideConstfloat(v * a->Float());
 		}
 
-		return new Tamgulong(value * a->Long());
+		return globalTamgu->Providelong(value * a->Long());
 	}
 
 	Tamgu* divide(Tamgu* a, bool itself) {
@@ -642,7 +650,7 @@ public:
 			return this;
 		}
 
-		return globalTamgu->Providefloat(v);
+		return globalTamgu->ProvideConstfloat(v);
 	}
 
 	Tamgu* power(Tamgu* a, bool itself) {
@@ -652,7 +660,7 @@ public:
 			value = v;
 			return this;
 		}
-		return globalTamgu->Providefloat(v);
+		return globalTamgu->ProvideConstfloat(v);
 	}
 
 	Tamgu* shiftleft(Tamgu* a, bool itself) {
@@ -660,7 +668,7 @@ public:
 			value <<= a->Long();
 			return this;
 		}
-		return new Tamgulong(value << a->Long());
+		return globalTamgu->Providelong(value << a->Long());
 	}
 
 	Tamgu* shiftright(Tamgu* a, bool itself) {
@@ -668,7 +676,7 @@ public:
 			value >>= a->Long();
 			return this;
 		}
-		return new Tamgulong(value >> a->Long());
+		return globalTamgu->Providelong(value >> a->Long());
 	}
 
 	Tamgu* mod(Tamgu* a, bool itself) {
@@ -681,7 +689,7 @@ public:
 		}
 
 		v = value % v;
-		return new Tamgulong(v);
+		return globalTamgu->Providelong(v);
 	}
 
 	Tamgu* less(Tamgu* a) {
@@ -868,6 +876,41 @@ public:
 	}
 };
 
+
+//---------------------------------------------------------------------------------------------------------------------
+class Tamgulongbuff : public Tamgulong {
+public:
+    long idx;
+    bool used;
+    
+    Tamgulongbuff(long i) : Tamgulong(0) {
+            //Do not forget your variable initialisation
+        idx = i;
+        used = false;
+    }
+    
+    bool Candelete() {
+        return false;
+    }
+    
+    void Resetreference(short r) {
+        r = reference - r;
+        if (r <= 0) {
+            reference.store(0);
+            if (!protect) {
+                protect = true;
+                
+                used = false;
+                value = 0;
+                if (!globalTamgu->threadMODE)
+                    globalTamgu->lgempties.push_back(idx);
+            }
+        }
+        else
+            reference.store(r);
+    }
+    
+};
 #endif
 
 

@@ -405,7 +405,7 @@ public:
 
 
 bool GrammarBaseAutomaton::callfunction(short idthread, wstring& a, Tamgu* b, long pos) {
-    TamguCallFunction kfunc(function);
+    TamguCallFunction3 kfunc(function);
     
     TamguConstUString ba(a);
     TamguConstInt bpos(pos);
@@ -420,7 +420,7 @@ bool GrammarBaseAutomaton::callfunction(short idthread, wstring& a, Tamgu* b, lo
 }
 
 bool GrammarBaseAutomaton::callfunction(Tamgu* func, short idthread, Tamgu* b, long pos) {
-    TamguCallFunction kfunc(func);
+    TamguCallFunction2 kfunc(func);
     
     TamguConstInt bpos(pos);
     kfunc.arguments.push_back(b);

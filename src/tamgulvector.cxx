@@ -41,35 +41,35 @@ void Tamgulvector::AddMethod(TamguGlobal* global, string name, lvectorMethod fun
 
 
 
-    void Tamgulvector::Setidtype(TamguGlobal* global) {
+void Tamgulvector::Setidtype(TamguGlobal* global) {
     Tamgulvector::InitialisationModule(global,"");
 }
 
 
-   bool Tamgulvector::InitialisationModule(TamguGlobal* global, string version) {
+bool Tamgulvector::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
     infomethods.clear();
     exported.clear();
-
-
+    
+    
     Tamgulvector::idtype = global->Getid("lvector");
-
+    
     Tamgulvector::AddMethod(global, "clear", &Tamgulvector::MethodClear, P_NONE, "clear(): clear the container.");
-
+    
     Tamgulvector::AddMethod(global, "remove", &Tamgulvector::MethodRemove, P_ONE, "remove(long e): remove 'e' from the vector.");
-
+    
     Tamgulvector::AddMethod(global, "reverse", &Tamgulvector::MethodReverse, P_NONE, "reverse(): reverse a vector.");
     Tamgulvector::AddMethod(global, "reserve", &Tamgulvector::MethodReserve, P_ONE, "reserve(int sz): Reserve a size of 'sz' potential element in the vector.");
     Tamgulvector::AddMethod(global, "unique", &Tamgulvector::MethodUnique, P_NONE, "unique(): remove duplicate elements.");
     Tamgulvector::AddMethod(global, "permute", &Tamgulvector::MethodPermute, P_NONE, "permute(): permute the values in the vector after each call.");
-
+    
     Tamgulvector::AddMethod(global, "last", &Tamgulvector::MethodLast, P_NONE, "last(): return the last element.");
     Tamgulvector::AddMethod(global, "join", &Tamgulvector::MethodJoin, P_ONE, "join(string sep): Produce a string representation for the container.");
-
+    
     Tamgulvector::AddMethod(global, "shuffle", &Tamgulvector::MethodShuffle, P_NONE, "shuffle(): shuffle the values in the vector.");
     Tamgulvector::AddMethod(global, "sort", &Tamgulvector::MethodSort, P_ONE, "sort(bool reverse): sort the elements within.");
     Tamgulvector::AddMethod(global, "sum", &Tamgulvector::MethodSum, P_NONE, "sum(): return the sum of elements.");
-
+    
     Tamgulvector::AddMethod(global, "product", &Tamgulvector::MethodProduct, P_NONE, "product(): return the product of elements.");
     Tamgulvector::AddMethod(global, "push", &Tamgulvector::MethodPush, P_ATLEASTONE, "push(v): Push a value into the vector.");
     Tamgulvector::AddMethod(global, "pop", &Tamgulvector::MethodPop, P_NONE | P_ONE, "pop(int i): Erase an element from the vector");
@@ -77,12 +77,13 @@ void Tamgulvector::AddMethod(TamguGlobal* global, string name, lvectorMethod fun
     Tamgulvector::AddMethod(global, "merge", &Tamgulvector::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
     Tamgulvector::AddMethod(global, "editdistance", &Tamgulvector::MethodEditDistance, P_ONE, "editdistance(v): Compute the edit distance with vector 'v'.");
     Tamgulvector::AddMethod(global, "insert", &Tamgulvector::MethodInsert, P_TWO, "insert(int i,v): Insert v at position i.");
-
+    
     if (version != "") {
         global->newInstance[Tamgulvector::idtype] = new Tamgulvector(global);
         global->RecordMethods(Tamgulvector::idtype, Tamgulvector::exported);
     }
-
+    
+    global->minimal_indexes[Tamgulvector::idtype] = true;
     return true;
 }
 
@@ -113,7 +114,7 @@ Exporting Tamgu* Tamgulvector::in(Tamgu* context, Tamgu* a, short idthread) {
        for (size_t i = 0; i < values.size(); i++) {
            if (values[i] == val) {
                unlocking();
-               return globalTamgu->Provideint(i);
+               return globalTamgu->ProvideConstint(i);
            }
        }
        unlocking();
@@ -137,7 +138,7 @@ Exporting Tamgu* Tamgulvector::getvalue(BLONG i) {
         unlocking();
         return aNOELEMENT;
     }
-    Tamgu* r = new Tamgulong(values[i]);
+    Tamgu* r = globalTamgu->ProvideConstlong(values[i]);
     unlocking();
     return r;
 }
@@ -713,7 +714,7 @@ Exporting Tamgu* Tamgulvector::Map(short idthread) {
     char buff[100];
     for (int it = 0; it < values.size(); it++) {
         sprintf_s(buff, 100, "%d", it);
-        kmap->Push(buff, globalTamgu->Provideint(values[it]));
+        kmap->Push(buff, globalTamgu->Providelong(values[it]));
     }
     unlocking();
     return kmap;
@@ -724,9 +725,30 @@ Exporting Tamgu* Tamgulvector::Vector(short idthread) {
     Tamguvector* kvect = globalTamgu->Providevector();
     kvect->values.reserve(values.size());
     for (int i = 0; i < values.size(); i++)
-        kvect->Push(globalTamgu->Provideint(values[i]));
+        kvect->Push(globalTamgu->ProvideConstlong(values[i]));
     unlocking();
     return kvect;
+}
+
+Tamgu* Tamgulvector::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign) {
+    long ikey;
+    ikey = key->Getinteger(idthread);
+    if (ikey < 0)
+        ikey = values.size() + ikey;
+    
+    locking();
+    if (ikey < 0 || ikey >= values.size()) {
+        if (ikey != values.size()) {
+            unlocking();
+            if (globalTamgu->erroronkey)
+                return globalTamgu->Returnerror("Wrong index", idthread);
+            return aNOELEMENT;
+        }
+    }
+    
+    key =  globalTamgu->Providelong(values[ikey]);
+    unlocking();
+    return key;
 }
 
 Exporting Tamgu* Tamgulvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
@@ -743,14 +765,14 @@ Exporting Tamgu* Tamgulvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
                 ((Tamgulvector*)kv)->values = values;
             else
                 for (int i = 0; i < values.size(); i++)
-                    kv->Push(globalTamgu->Provideint(values[i]));
+                    kv->Push(globalTamgu->ProvideConstlong(values[i]));
             unlocking();
             return kv;
         }
 
         if (contextualpattern->isNumber()) {
             long v = Size();
-            return globalTamgu->Provideint(v);
+            return globalTamgu->ProvideConstint(v);
         }
         return this;
     }
@@ -778,7 +800,7 @@ Exporting Tamgu* Tamgulvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
     }
 
     if (keyright == NULL) {
-        keyright = globalTamgu->Provideint(values[ikey]);
+        keyright = globalTamgu->Providelong(values[ikey]);
         unlocking();
         return keyright;
     }
@@ -1038,7 +1060,7 @@ Exporting Tamgu* Tamgulvector::Combine(Tamgu* ke) {
 
 Exporting Tamgu* Tamgulvector::Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* environment, TamguFunctionLambda* bd, short idthread) {
     Tamgu* a;
-    Tamgulong* it = new Tamgulong(0);
+    Tamgulong* it = globalTamgu->Providelong(0);
     it->Setreference();
 
     uchar addvalue = 0;
@@ -1079,7 +1101,7 @@ Exporting Tamgu* Tamgulvector::Filter(short idthread, Tamgu* env, TamguFunctionL
     Tamgu* returnval;
 
     bool first = false;
-    Tamgulong* key = new Tamgulong(0);
+    Tamgulong* key = globalTamgu->Providelong(0);
     key->Setreference();
 
     if (init != aNOELEMENT) {
@@ -1140,7 +1162,7 @@ Exporting Tamgu* Tamgulvector::Filter(short idthread, Tamgu* env, TamguFunctionL
 
 class LComp {
     public:
-    TamguCallFunction compare;
+    TamguCallFunction2 compare;
     short idthread;
     TamguConstLong p;
     TamguConstLong s;

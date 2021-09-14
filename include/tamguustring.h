@@ -782,7 +782,7 @@ public:
 	Tamgu* MethodBytes(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 	Tamgu* MethodSizeb(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		Locking _lock(this);
-		return globalTamgu->Provideint((long)value.size());
+		return globalTamgu->ProvideConstint((long)value.size());
 	}
 	Tamgu* MethodHash(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 	Tamgu* MethodReverse(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
@@ -1271,17 +1271,19 @@ public:
     }
 
 	void Resetreference(short r) {
-        if ((reference-=r) <= 0) {
-            reference = 0;
+        r = reference - r;
+        if (r <= 0) {
+            reference.store(0);
             if (!protect) {
                 protect = true;
                 
                 used = false;
-                value = L"";
                 if (!globalTamgu->threadMODE)
                     globalTamgu->uempties.push_back(idx);
             }
         }
+        else
+            reference.store(r);
 	}
 
 };
@@ -1311,7 +1313,7 @@ public:
 	}
 
 	Tamgu* Key() {
-		return globalTamgu->Provideint(itx);
+		return globalTamgu->ProvideConstint(itx);
 	}
 
 	Tamgu* Value() {
@@ -1673,7 +1675,7 @@ public:
     Tamgu* MethodOrd(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 	Tamgu* MethodBytes(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodSizeb(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        return globalTamgu->Provideint((long)value.size());
+        return globalTamgu->ProvideConstint((long)value.size());
     }
     
     Tamgu* MethodHash(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);

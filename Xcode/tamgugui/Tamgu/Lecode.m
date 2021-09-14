@@ -31,12 +31,18 @@ void deletion(long* c);
 const char* crgx=NULL;
 
 extern BOOL nouveau;
+int forceDark = 0;
 
 @implementation Lecode
 
 
 -(BOOL)appearanceIsDark:(NSAppearance*) appearance
 {
+    if (forceDark == 1)
+        return NO;
+    if (forceDark == 2)
+        return YES;
+        
     if (@available(*, macOS 10.14)) {
         NSAppearanceName basicAppearance = [appearance bestMatchFromAppearancesWithNames:@[
             NSAppearanceNameAqua,
@@ -204,6 +210,25 @@ extern BOOL nouveau;
             suivant.location+=1;
         currentlength++;
     }
+}
+
+-(void)selectColors {
+    if (forceDark == 1) {
+        localcouleur= [NSColor cyanColor];
+        couleurcommentaires=[NSColor greenColor];
+        functioncouleur=[NSColor orangeColor];
+        couleurchaine=[NSColor redColor];
+        couleurchainesingle = [NSColor colorWithSRGBRed:0.7 green:0.5 blue:1 alpha:1.00];
+        couleurvar=[NSColor whiteColor];
+    } else {
+        localcouleur=[NSColor colorWithSRGBRed:0.62 green:0.131 blue:0.137 alpha:1.00];
+        functioncouleur=[NSColor colorWithSRGBRed:5.0/255.0 green:5.0/255.0 blue:245.0/255.0 alpha:1.00];
+        couleurcommentaires=[NSColor colorWithSRGBRed:45.0/255.0 green:140.0/255.0 blue:45.0/255.0 alpha:1.00];
+        couleurchaine=[NSColor colorWithSRGBRed:140.0/255.0 green:140.0/255.0 blue:245.0/255.0 alpha:1.00];
+        couleurchainesingle = [NSColor redColor];
+        couleurvar=[NSColor colorWithSRGBRed:130.0/255.0 green:130.0/255.0 blue:230.0/255.0 alpha:1.00];
+    }
+    [self indentation];
 }
 
 -(NSString*)Filename {

@@ -66,6 +66,7 @@ class Tamguhvector : public TamguLockContainer {
 
     Exporting Tamgu* Put(Tamgu* context, Tamgu* value, short idthread);
     Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
+    Tamgu* EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign);
     Exporting Tamgu* Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* env, TamguFunctionLambda* bd, short idthread);
     Exporting Tamgu* Filter(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* kcont, Tamgu* accu, Tamgu* init, bool direct);
     short Type() {
@@ -382,7 +383,7 @@ class Tamguhvector : public TamguLockContainer {
         locking();
         unsigned long dst = EditDistance(v);
         unlocking();
-        return globalTamgu->Provideint(dst);
+        return globalTamgu->ProvideConstint(dst);
     }
 
     Tamgu* MethodSum(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -558,7 +559,7 @@ class TamguIterationhvector : public TamguIteration {
     }
 
     Tamgu* Key() {
-        return globalTamgu->Provideint(itx);
+        return globalTamgu->ProvideConstint(itx);
     }
 
     

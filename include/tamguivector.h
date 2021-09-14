@@ -65,6 +65,7 @@ class Tamguivector : public TamguLockContainer {
     //----------------------------------------------------------------------------------------------------------------------
     Exporting Tamgu* Put(Tamgu* idx, Tamgu* value, short idthread);
     Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
+    Tamgu* EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign);
 
     Exporting Tamgu* Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* env, TamguFunctionLambda* bd, short idthread);
     Exporting Tamgu* Filter(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* kcont, Tamgu* accu, Tamgu* init, bool direct);
@@ -394,7 +395,7 @@ class Tamguivector : public TamguLockContainer {
             unlocking();
             return aNOELEMENT;
         }
-        contextualpattern = globalTamgu->Provideint(values.back());
+        contextualpattern = globalTamgu->ProvideConstint(values.back());
         unlocking();
         return contextualpattern;
     }
@@ -404,17 +405,17 @@ class Tamguivector : public TamguLockContainer {
         locking();
         unsigned long dst = EditDistance(v);
         unlocking();
-        return globalTamgu->Provideint(dst);
+        return globalTamgu->ProvideConstint(dst);
     }
 
     Tamgu* MethodSum(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         long v = ISum();
-        return globalTamgu->Provideint(v);
+        return globalTamgu->ProvideConstint(v);
     }
 
     Tamgu* MethodProduct(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         long v = IProduct();
-        return globalTamgu->Provideint(v);
+        return globalTamgu->ProvideConstint(v);
     }
 
     Tamgu* MethodInsert(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -463,7 +464,7 @@ class Tamguivector : public TamguLockContainer {
         long c = values.back();
         values.pop_back();
         unlocking();
-        return globalTamgu->Provideint(c);
+        return globalTamgu->ProvideConstint(c);
     }
 
     Exporting Tamgu* Unique();
@@ -501,7 +502,7 @@ class Tamguivector : public TamguLockContainer {
         for (; i < j; i++)
             v += values[i];
 
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
     }
 
     Tamgu* Theproduct(long i, long j) {
@@ -531,7 +532,7 @@ class Tamguivector : public TamguLockContainer {
         for (; i < j; i++)
             v *= values[i];
 
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
     }
 
     long ISum() {
@@ -646,7 +647,7 @@ class TamguIterationivector : public TamguIteration {
     }
 
     Tamgu* Key() {
-        return globalTamgu->Provideint(itx);
+        return globalTamgu->ProvideConstint(itx);
     }
 
     
@@ -655,7 +656,7 @@ class TamguIterationivector : public TamguIteration {
     }
 
     Tamgu* Value() {
-        return globalTamgu->Provideint(ref->values[itx]);
+        return globalTamgu->ProvideConstint(ref->values[itx]);
     }
 
     string Keystring() {
@@ -744,8 +745,9 @@ class Tamguivectorbuff : public Tamguivector {
     }
 
     void Resetreference(short r) {
-        if ((reference-=r) <= 0) {
-            reference = 0;
+        r = reference - r;
+        if (r <= 0) {
+            reference.store(0);
             if (!protect) {
                 protect = true;
 
@@ -755,6 +757,8 @@ class Tamguivectorbuff : public Tamguivector {
                     globalTamgu->ivectorempties.push_back(idx);
             }
         }
+        else
+            reference.store(r);
     }
 
 };
@@ -1050,23 +1054,23 @@ public:
     Tamgu* MethodLast(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         if (values.size() == 0)
             return aNOELEMENT;
-        return globalTamgu->Provideint(values.back());
+        return globalTamgu->ProvideConstint(values.back());
     }
     
     Tamgu* MethodEditDistance(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         Tamgu* v = callfunc->Evaluate(0, contextualpattern, idthread);
         unsigned long dst = EditDistance(v);
-        return globalTamgu->Provideint(dst);
+        return globalTamgu->ProvideConstint(dst);
     }
     
     Tamgu* MethodSum(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         long v = ISum();
-        return globalTamgu->Provideint(v);
+        return globalTamgu->ProvideConstint(v);
     }
     
     Tamgu* MethodProduct(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         long v = IProduct();
-        return globalTamgu->Provideint(v);
+        return globalTamgu->ProvideConstint(v);
     }
     
     Tamgu* MethodInsert(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -1098,7 +1102,7 @@ public:
     Tamgu* Poplast() {
         if (values.size() == 0)
             return aNOELEMENT;
-        return globalTamgu->Provideint(values.remove_back());
+        return globalTamgu->ProvideConstint(values.remove_back());
     }
 
     Exporting Tamgu* Unique();
@@ -1133,7 +1137,7 @@ public:
         for (; i < j; i++)
             v += values[i];
         
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
     }
     
     Tamgu* Theproduct(long i, long j) {
@@ -1163,7 +1167,7 @@ public:
         for (; i < j; i++)
             v *= values[i];
         
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
     }
     
     long ISum() {
@@ -1269,7 +1273,7 @@ public:
     }
     
     Tamgu* Key() {
-        return globalTamgu->Provideint(it.first);
+        return globalTamgu->ProvideConstint(it.first);
     }
     
     
@@ -1278,7 +1282,7 @@ public:
     }
     
     Tamgu* Value() {
-        return globalTamgu->Provideint(it.second);
+        return globalTamgu->ProvideConstint(it.second);
     }
     
     string Keystring() {

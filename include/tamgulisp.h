@@ -624,12 +624,15 @@ public:
     }
 
     void Resetreference(short r = 1) {
-        if ((reference-=r) <= 0) {
-            reference = 0;
+        r = reference - r;
+        if (r <= 0) {
+            reference.store(0);
             if (!protect) {
                 delete this;
             }
         }
+        else
+            reference.store(r);
     }
 
     void Release() {

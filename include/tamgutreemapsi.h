@@ -66,6 +66,8 @@ class Tamgutreemapsi : public TamguLockContainer {
     //----------------------------------------------------------------------------------------------------------------------
     Exporting Tamgu* Loopin(TamguInstruction* ins, Tamgu* context, short idthread);
     Exporting Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);
+
+    Tamgu* EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign);
     Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 
     void SetConst() { isconst = true;}
@@ -246,7 +248,7 @@ class Tamgutreemapsi : public TamguLockContainer {
 
     Tamgu* MethodSum(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = Sum();
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
 
     Tamgu* MethodKeys(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -285,7 +287,7 @@ class Tamgutreemapsi : public TamguLockContainer {
 
     Tamgu* MethodProduct(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = Product();
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
 
     Tamgu* MethodPop(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -382,7 +384,7 @@ class Tamgutreemapsi : public TamguLockContainer {
 
         locking();
         try {
-            Tamgu* res = globalTamgu->Provideint(values.at(s));
+            Tamgu* res = globalTamgu->ProvideConstint(values.at(s));
             unlocking();
             return res;
         }
@@ -395,7 +397,7 @@ class Tamgutreemapsi : public TamguLockContainer {
     Tamgu* Value(string& s) {
         locking();
         try {
-            Tamgu* res = globalTamgu->Provideint(values.at(s));
+            Tamgu* res = globalTamgu->ProvideConstint(values.at(s));
             unlocking();
             return res;
         }
@@ -410,7 +412,7 @@ class Tamgutreemapsi : public TamguLockContainer {
         string s = convertfromnumber(n);
         locking();
         try {
-            Tamgu* res = globalTamgu->Provideint(values.at(s));
+            Tamgu* res = globalTamgu->ProvideConstint(values.at(s));
             unlocking();
             return res;
         }
@@ -425,7 +427,7 @@ class Tamgutreemapsi : public TamguLockContainer {
         string s = convertfromnumber(n);
         locking();
         try {
-            Tamgu* res = globalTamgu->Provideint(values.at(s));
+            Tamgu* res = globalTamgu->ProvideConstint(values.at(s));
             unlocking();
             return res;
         }
@@ -486,7 +488,7 @@ class TamguIterationtreemapsi : public TamguIteration {
     
 
     Tamgu* Value() {
-        return globalTamgu->Provideint(it->second);
+        return globalTamgu->ProvideConstint(it->second);
     }
 
     string Keystring() {

@@ -848,7 +848,7 @@ Tamgu* Evaluatetype(uchar thetype, uchar ref, Tamgu* a) {
 				ret = globalTamgu->Provideint(a->Integer());
 				break;
 			case b_long:
-				ret = new Tamgulong(a->Long());
+				ret = globalTamgu->Providelong(a->Long());
 				break;
 			case b_decimal:
 				ret = new Tamgudecimal(a->Decimal());
@@ -875,7 +875,7 @@ Tamgu* Evaluatetype(uchar thetype, uchar ref, Tamgu* a) {
 				ret = globalTamgu->Provideint(a->Integer());
 				break;
 			case b_long:
-				ret = new Tamgulong(a->Long());
+				ret = globalTamgu->Providelong(a->Long());
 				break;
 			case b_decimal:
 				ret = new Tamgudecimal(a->Decimal());
@@ -1041,7 +1041,9 @@ void TamguGlobal::RecordCompileFunctions() {
 	parseFunctions["negcall"] = &TamguCode::C_regularcall;
 	parseFunctions["purecall"] = &TamguCode::C_regularcall;
 
-	parseFunctions["variable"] = &TamguCode::C_variable;
+    parseFunctions["subvar"] = &TamguCode::C_framevariable;
+    parseFunctions["framevariable"] = &TamguCode::C_framevariable;
+    parseFunctions["variable"] = &TamguCode::C_variable;
 	parseFunctions["purevariable"] = &TamguCode::C_variable;
 
 	parseFunctions["indexes"] = &TamguCode::C_indexes;
@@ -2237,7 +2239,7 @@ Tamgu* TamguCode::C_parameterdeclaration(x_node* xn, Tamgu* parent) {
             a = new TamguSelfVariableDeclaration(global, name, tid, parent);
     }
 	else {
-		if (parent == &mainframe) {
+		if (parent->isMainFrame()) {
 			a = new TamguGlobalVariableDeclaration(global, name, tid, isprivate, false, parent);
 			global->Storevariable(0, name, aNOELEMENT); //a dummy version to avoid certain bugs in the console
 			//Basically, if a program fails before allocating this variable, and the variable is still requested in the console, it might crash...
@@ -2305,7 +2307,6 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
 		type = xn->nodes[0]->nodes[1]->value;
 	}
 
-	Tamgu* element = NULL;
 	size_t last = xn->nodes.size() - 1;
 	bool recall = false;
 
@@ -2392,7 +2393,7 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
                     a = new TamguSelfVariableDeclaration(global, idname, tid, NULL);
             }
             else {
-                if (parent == &mainframe) {
+                if (parent->isMainFrame()) {
                     if (idcode) {
                         //If a piece of code is loaded with a tamgu variable
                         //then we might have a problem with global variables names that could collide
@@ -2538,7 +2539,7 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
         tid = ((TamguSelfVariableDeclaration*)a)->Checklettype();
         TamguSelfVariableDeclaration* alet = (TamguSelfVariableDeclaration*)a;
         if (tid != a_let) {
-            if (parent == &mainframe) {
+            if (parent->isMainFrame()) {
                 if (idcode) {
                     //If a piece of code is loaded with a tamgu variable
                     //then we might have a problem with global variables names that could collide
@@ -2578,6 +2579,8 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
         else {
             parent->AddInstruction(alet);
             top->Declare(idname, alet);
+            if (parent->isMainFrame())
+                global->Storevariable(0, idname, aNOELEMENT);
         }
     }
         
@@ -2585,7 +2588,7 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
 	iscommon = oldcommon;
 	isconstant = oldconstant;
 
-	return element;
+	return aNULL;
 }
 
 Tamgu* TamguCode::C_subfunc(x_node* xn, Tamgu* parent) {
@@ -2603,14 +2606,22 @@ Tamgu* TamguCode::C_subfunc(x_node* xn, Tamgu* parent) {
 		Tamgu* frame = parent->Frame();
 		function = frame->Declaration(id);
 		if (function == NULL || function->isPrivate() || !function->isFunction()) {
-			stringstream message;
-			message << "Unknown function: '" << name << "'";
-			throw new TamguRaiseError(message, filename, current_start, current_end);
+            //We check if it is not a derivation from an extension
+            if (!((TamguFrame*)frame)->theextensionvar) {
+                stringstream message;
+                message << "Unknown function: '" << name << "'";
+                throw new TamguRaiseError(message, filename, current_start, current_end);
+            }
+            else
+                tyvar = ((TamguFrame*)frame)->Topframe()->thetype;
 		}
-		function = new TamguCallFrameFunction((TamguFrame*)frame, id, global, parent);
+        else
+            function = new TamguCallFrameFunction((TamguFrame*)frame, id, global, parent);
 	}
-	else {
- 		tyvar = parent->Typevariable();
+    
+	if (function == NULL) {
+        if (tyvar == -1)
+            tyvar = parent->Typevariable();
         if (tyvar==a_tamgu) {
             
             if (id == a_methods) { //.methods() is the method that returns all methods within a tamgu objet...
@@ -2635,7 +2646,7 @@ Tamgu* TamguCode::C_subfunc(x_node* xn, Tamgu* parent) {
                 }
 				else {
 					if (global->allmethods.check(id)) {
-						if (tyvar == a_self || tyvar == a_let || xn->token == "subfunc") {
+						if (tyvar == a_self || tyvar == a_let || xn->token == "subfunc" || xn->token == "subfuncbis") {
 							if (global->extensionmethods.check(id))
 								function = new TamguCallCommonMethod(id, global, parent);
 							else
@@ -2784,7 +2795,7 @@ Tamgu* TamguCode::C_regularcall(x_node* xn, Tamgu* parent) {
 
 	Tamgu* call = NULL;
 	if (global->systemfunctions.find(name) != global->systemfunctions.end()) {
-        if (parent != &mainframe && global->systemfunctions[name]) {
+        if (!parent->isMainFrame() && global->systemfunctions[name]) {
             stringstream message;
             message << "You cannot call '"<<name << "' from a function";
             throw new TamguRaiseError(message, filename, current_start, current_end);
@@ -3159,6 +3170,58 @@ Tamgu* TamguCode::C_taskellcall(x_node* xn, Tamgu* parent) {
 	return parent;
 }
 
+Tamgu* TamguCode::C_framevariable(x_node* xn, Tamgu* parent) {
+    string name = xn->nodes[0]->value;
+    short idname = global->Getid(name);
+    Tamgu* av = NULL;
+    x_node* subxn = xn->nodes[0];
+    
+    if (xn->token == "subvar") {
+        Tamgu* dom = Declaror(idname);
+        if (dom == NULL) {
+            dom = parent->Frame();
+            if (dom != NULL && !dom->isDeclared(idname)) {
+                return C_variable(subxn, parent);
+            }
+        }
+        
+        if (dom != NULL && dom->isFrame()) {
+            Tamgu* a = dom->Declaration(idname);
+            short tyvar = a->Typevariable();
+            if (parent->isCallVariable())
+                av = new TamguCallFromFrameVariable(a->Name(), tyvar, global, parent);
+            else
+                av = new TamguCallFrameVariable(a->Name(), (TamguFrame*)dom, tyvar, global, parent);
+            
+            if (subxn->nodes.size() != 1) {
+                if (global->frames.check(tyvar))
+                    global->Pushstack(global->frames[tyvar]);
+
+                Traverse(subxn->nodes[1], av);
+
+                if (global->frames.check(tyvar))
+                    global->Popstack();
+            }
+            return av;
+        }
+    }
+
+    if (!global->framevariables.check(idname)) {
+        stringstream message;
+        message << "This variable is not a frame field: '" << name << "'";
+        throw new TamguRaiseError(message, filename, current_start, current_end);
+    }
+    
+    av = new TamguCallFromFrameVariable(idname, 0, global, parent);
+
+    if (subxn->nodes.size() != 1) {
+        Traverse(subxn->nodes[1], av);
+    }
+
+    return av;
+}
+
+
 Tamgu* TamguCode::C_variable(x_node* xn, Tamgu* parent) {
 	string name = xn->nodes[0]->value;
 	short idname = global->Getid(name);
@@ -3278,7 +3341,7 @@ Tamgu* TamguCode::C_variable(x_node* xn, Tamgu* parent) {
 							if (a->isConstant())
 								av = new TamguCallConstantVariable(idname, tyvar, global, parent);
                             else {
-                                if (dom == &mainframe)
+                                if (dom->isMainFrame())
                                     av = new TamguCallGlobalVariable(idname, tyvar, global, parent);
                                 else
                                     av = new TamguCallVariable(idname, tyvar, global, parent);
@@ -3320,6 +3383,11 @@ Tamgu* TamguCode::C_indexes(x_node* xn, Tamgu* parent) {
 
 	if (xn->nodes.size() == 2)
 		Traverse(xn->nodes[1], idx);
+    else {
+        short type = parent->Typevariable();
+        if (global->minimal_indexes.check(type))
+            idx->minimal = true;
+    }
 
     if (!idx->Checklegit()) {
         stringstream message;
@@ -3478,149 +3546,49 @@ Tamgu* TamguCode::C_anumber(x_node* xn, Tamgu* parent) {
 	BLONG v;
 	if (name.find(".") == -1 && name.find("e") == -1) {
 		v = conversionintegerhexa(STR(name));
-
-        switch (v) {
-            case -10: kv = aMINUSTEN; break;
-            case -9: kv = aMINUSNINE; break;
-            case -8: kv = aMINUSEIGHT; break;
-            case -7: kv = aMINUSSEVEN; break;
-            case -6: kv = aMINUSSIX; break;
-            case -5: kv = aMINUSFIVE; break;
-            case -4: kv = aMINUSFOUR; break;
-            case -3: kv = aMINUSTHREE; break;
-            case -2: kv = aMINUSTWO; break;
-            case -1: kv = aMINUSONE; break;
-            case 0: kv = aZERO; break;
-            case 1: kv = aONE; break;
-            case 2: kv = aTWO; break;
-            case 3: kv = aTHREE; break;
-            case 4: kv = aFOUR; break;
-            case 5: kv = aFIVE; break;
-            case 6: kv = aSIX; break;
-            case 7: kv = aSEVEN; break;
-            case 8: kv = aEIGHT; break;
-            case 9: kv = aNINE; break;
-            case 10: kv = aTEN; break;
-            case 11: kv = aELEVEN; break;
-            case 12: kv = aTWELVE; break;
-            case 13: kv = aTHIRTEEN; break;
-            case 14: kv = aFOURTEEN; break;
-            case 15: kv = aFIFTEEN; break;
-            case 16: kv = aSIXTEEN; break;
-            case 17: kv = aSEVENTEEN; break;
-            case 18: kv = aEIGHTEEN; break;
-            case 19: kv = aNINETEEN; break;
-            case 20: kv = aTWENTY; break;
-            case 32: kv = aTHIRTYTWO; break;
-            case 64: kv = aSIXTYFOUR; break;
-            default:
-                if (global->numbers.find(v) != global->numbers.end())
-                    kv = global->numbers[v];
+        if (compilemode) {
+            if (IsLong(v))
+                kv = global->ProvideConstlong(v);
+            else
+                kv = global->ProvideConstint((long)v);
         }
-
-		if (kv != NULL) {
-			parent->AddInstruction(kv);
-			return kv;
-		}
-		if (compilemode) {
-			if (IsLong(v))
-				kv = new TamguConstLong(v, global, parent);
-			else
-			if (IsShort(v))
-				kv = new TamguConstShort((short)v, global, parent);
-			else
-				kv = new TamguConstInt((long)v, global, parent);
-
-			
-			global->numbers[v] = kv;
-			return kv;
-		}
-
-		if (IsLong(v))
-			return new Tamgulong(v, NULL, parent);
-
-		if (IsShort(v))
-			return new Tamgushort((short)v, global, parent);
-
-		return new Tamguint((long)v, NULL, parent);
+        else {
+            if (IsLong(v))
+                kv = global->Providelong(v);
+            else
+                kv = global->Provideint(v);
+        }
 	}
+    else {
+        if (compilemode)
+            kv = global->ProvideConstfloat(convertfloat(STR(name)));
+        else
+            kv = global->Providefloat(convertfloat(STR(name)));
+    }
 
-
-	if (compilemode)
-		return new TamguConstFloat(convertfloat(STR(name)), global, parent);
-	return new Tamgufloat(convertfloat(STR(name)), NULL, parent);
+    parent->AddInstruction(kv);
+    return kv;
 }
 
 Tamgu* TamguCode::C_axnumber(x_node* xn, Tamgu* parent) {
 	string& name = xn->value;
 	BLONG v = conversionintegerhexa(STR(name));
 	Tamgu* kv = NULL;
-    switch (v) {
-        case -10: kv = aMINUSTEN; break;
-        case -9: kv = aMINUSNINE; break;
-        case -8: kv = aMINUSEIGHT; break;
-        case -7: kv = aMINUSSEVEN; break;
-        case -6: kv = aMINUSSIX; break;
-        case -5: kv = aMINUSFIVE; break;
-        case -4: kv = aMINUSFOUR; break;
-        case -3: kv = aMINUSTHREE; break;
-        case -2: kv = aMINUSTWO; break;
-        case -1: kv = aMINUSONE; break;
-        case 0: kv = aZERO; break;
-        case 1: kv = aONE; break;
-        case 2: kv = aTWO; break;
-        case 3: kv = aTHREE; break;
-        case 4: kv = aFOUR; break;
-        case 5: kv = aFIVE; break;
-        case 6: kv = aSIX; break;
-        case 7: kv = aSEVEN; break;
-        case 8: kv = aEIGHT; break;
-        case 9: kv = aNINE; break;
-        case 10: kv = aTEN; break;
-        case 11: kv = aELEVEN; break;
-        case 12: kv = aTWELVE; break;
-        case 13: kv = aTHIRTEEN; break;
-        case 14: kv = aFOURTEEN; break;
-        case 15: kv = aFIFTEEN; break;
-        case 16: kv = aSIXTEEN; break;
-        case 17: kv = aSEVENTEEN; break;
-        case 18: kv = aEIGHTEEN; break;
-        case 19: kv = aNINETEEN; break;
-        case 20: kv = aTWENTY; break;
-        case 32: kv = aTHIRTYTWO; break;
-        case 64: kv = aSIXTYFOUR; break;
-        default:
-		if (global->numbers.find(v) != global->numbers.end())
-			kv = global->numbers[v];
-	}
-
-	if (kv != NULL) {
-		parent->AddInstruction(kv);
-		return kv;
-	}
-
-	if (compilemode) {
-		if (IsLong(v))
-			kv = new TamguConstLong(v, global, parent);
-		else
-		if (IsShort(v))
-			kv = new TamguConstShort((short)v, global, parent);
-		else
-			kv = new TamguConstInt((long)v, global, parent);
-
-		if (!parent->isContainer())
-			global->numbers[v] = kv;
-
-		return kv;
-	}
-
-	if (IsLong(v))
-		return new Tamgulong(v, NULL, parent);
-	
-	if (IsShort(v))
-		return new Tamgushort((short)v, NULL, parent);
-
-	return new Tamguint((long)v, NULL, parent);
+    if (compilemode) {
+        if (IsLong(v))
+            kv = global->ProvideConstlong(v);
+        else
+            kv = global->ProvideConstint((long)v);
+    }
+    else {
+        if (IsLong(v))
+            kv = global->Providelong(v);
+        else
+            kv = global->Provideint(v);
+    }
+    
+    parent->AddInstruction(kv);
+    return kv;
 }
 
 
@@ -4389,7 +4357,7 @@ Tamgu* TamguCode::C_plusplus(x_node* xn, Tamgu* kf) {
 			ki = new TamguInstructionAPPLYOPERATION(global, NULL);
 			ki->Setaction(a_power);
 			ki->AddInstruction(kf->Instruction(sz));
-			ki->AddInstruction(aTWO);
+			ki->AddInstruction(globalTamgu->ProvideConstint(2));
 			kf->Putinstruction(sz, ki);
 			return kf;
 		}
@@ -4400,7 +4368,7 @@ Tamgu* TamguCode::C_plusplus(x_node* xn, Tamgu* kf) {
 			ki = new TamguInstructionAPPLYOPERATION(global, NULL);
 			ki->Setaction(a_power);
 			ki->AddInstruction(kf->Instruction(sz));
-			ki->AddInstruction(aTHREE);
+			ki->AddInstruction(globalTamgu->ProvideConstint(3));
 			kf->Putinstruction(sz, ki);
 			return kf;
 		}
@@ -4743,7 +4711,7 @@ Tamgu* TamguCode::C_createfunction(x_node* xn, Tamgu* kf) {
 	}
 
 	Tamgu* kprevious = Declaration(idname);
-	if (kf != &mainframe)
+	if (!kf->isMainFrame())
 		global->functions[idname] = true;
 
 	size_t last = xn->nodes.size() - 1;
@@ -4826,8 +4794,12 @@ Tamgu* TamguCode::C_createfunction(x_node* xn, Tamgu* kf) {
 		else {
 			if (protection != 0)
 				kfunc = new TamguProtectedFunction(idname, global, protection);
-			else
-				kfunc = new TamguFunction(idname, global);
+            else {
+                if (kprevious != NULL)
+                    kfunc = new TamguFunction(idname, global);
+                else
+                    kfunc = new TamguFunctionMap(idname, global);
+            }
 			if (typefunction == "autorun")
 				autorun = true;
 		}
@@ -4973,7 +4945,7 @@ Tamgu* TamguCode::C_createfunction(x_node* xn, Tamgu* kf) {
 			throw new TamguRaiseError(message, filename, current_start, current_end);
 		}
 
-		if (kf != &mainframe) {
+		if (!kf->isMainFrame()) {
 			stringstream message;
 			message << "Error: An AUTORUN must be declared as a global function: '" << name << "'";
 			throw new TamguRaiseError(message, filename, current_start, current_end);
@@ -4982,6 +4954,7 @@ Tamgu* TamguCode::C_createfunction(x_node* xn, Tamgu* kf) {
 		kfunc->autorun = true;
 	}
 
+    kfunc->Indexing();
 	return kfunc;
 }
 
@@ -5008,7 +4981,7 @@ Tamgu* TamguCode::C_blocs(x_node* xn, Tamgu* kf) {
 	size_t i;
 	Tamgu* s;
 
-	if (kf->isFrame() || kf == &mainframe) {
+	if (kf->isFrame() || kf->isMainFrame()) {
 		x_node* xend;
 		x_node declaration_ending("declarationending", ";", xn);
 		size_t last;
@@ -5079,7 +5052,7 @@ Tamgu* TamguCode::C_blocs(x_node* xn, Tamgu* kf) {
 				if (xend->token == "declarationending") {
 					//in this case, we do not need to take these predeclarations into account anymore...
 					skip[i] = true;
-					if (kf == &mainframe && xn->nodes[i]->token == "function")
+					if (kf->isMainFrame() && xn->nodes[i]->token == "function")
 						continue;
 
 					//we modify the value as a hint of a predeclared function for the actual building of that function
@@ -5143,6 +5116,7 @@ Tamgu* TamguCode::C_extension(x_node* xn, Tamgu* kf) {
 		global->extensions[idtypename] = extension = new TamguFrame(idname, false, global); //the name of the frame is also the name of the inner variable...
         extension->thetype = idtypename;
 		extension->idtype = a_extension;
+        extension->theextensionvar = idname;
 	}
 
 	//A variable, which will be our contact here to our object...
@@ -5655,7 +5629,8 @@ Tamgu* TamguCode::C_forin(x_node* xn, Tamgu* kf) {
 				else {
 					idvar = kcontainer->Typevariable();
 					if (global->newInstance.check(idvar) && kcontainer->Function() == NULL &&
-						(global->newInstance[idvar]->isValueContainer() || 
+                        (global->newInstance[idvar]->isVectorContainer() ||
+						global->newInstance[idvar]->isValueContainer() ||
 						global->newInstance[idvar]->isMapContainer()))
 						kforin = new TamguInstructionFORINVALUECONTAINER(global, kref);
 					else {
@@ -5839,7 +5814,7 @@ Tamgu* TamguCode::C_trycatch(x_node* xn, Tamgu* kf) {
 
 		dom = Declaror(id, kf);
 
-        if (dom == &mainframe)
+        if (dom->isMainFrame())
             ki = new TamguCallGlobalVariable(id, declaration->Type(), global, kaff);
         else
             if (dom->isFunction())
@@ -5862,7 +5837,7 @@ Tamgu* TamguCode::C_trycatch(x_node* xn, Tamgu* kf) {
 
 	if (xn->nodes.size() != 1) {
         if (xn->nodes[1]->token == "word") {
-            if (dom == &mainframe)
+            if (dom->isMainFrame())
                 ki = new TamguCallGlobalVariable(id, declaration->Type(), global, kcatchproc);
             else
                 if (dom->isFunction())
@@ -6478,7 +6453,7 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
 
 		kprevious = kf->Declaration(idname);
 		if (kprevious == NULL) {
-			if (!kf->isFrame() && kf != &mainframe) {
+			if (!kf->isFrame() && !kf->isMainFrame()) {
 				//we check for a hdeclared declaration function...
 				kprevious = mainframe.Declaration(idname);
 				//If we have a function declaration with the same name, but without instructions and a hdeclared, we keep it...
@@ -10011,7 +9986,7 @@ Tamgu* TamguCode::Compilefunction(string& body, short idthread) {
 	global->currentbnf = &bnf;
 	firstinstruction = mainframe.instructions.size();
 
-	global->Pushstack(&mainframe);
+	global->Pushstack(&mainframe, idthread);
 	Tamgu* compiled = NULL;
 	try {
 		compiled = Traverse(xn, &mainframe);
@@ -10035,17 +10010,85 @@ Tamgu* TamguCode::Compilefunction(string& body, short idthread) {
 		delete a;
 		delete xn;
 		global->Popstack();
-		return NULL;
+		return global->errorraised[0];
 	}
 
-	global->Popstack();
+	global->Popstack(idthread);
 
 	delete xn;
 	return compiled;
 }
 
+Tamgu* TamguCode::CompileExpression(string& body, short idthread) {
+    //we store our TamguCode also as an Tamgutamgu...
+    static bnf_tamgu bnf;
+    static x_reading xr;
+    
+    global->threads[0].message.str("");
+    global->threads[0].message.clear();
+    
+    Locking _lock(global->_parselock);
+    
+    bnf.baseline = global->linereference;
+    xr.tokenize(body);
+    if (xr.size() == 0) {
+        cerr << " in " << filename << endl;
+        stringstream message;
+        message << "Empty body" << endl;
+        return global->Returnerror(message.str(), idthread);
+    }
 
+    global->lineerror = -1;
 
+    x_node* xn = bnf.x_parsing(&xr, FULL);
+    if (xn == NULL) {
+        cerr << " in " << filename << endl;
+        stringstream& message = global->threads[0].message;
+        global->lineerror = bnf.lineerror;
+        currentline = global->lineerror;
+        message << "Error while parsing program file: ";
+        if (bnf.errornumber != -1)
+            message << bnf.x_errormsg(bnf.errornumber);
+        else
+            message << bnf.labelerror;
+
+        return global->Returnerror(message.str(), idthread);
+    }
+
+    global->currentbnf = &bnf;
+    firstinstruction = mainframe.instructions.size();
+
+    Tamgu* topstack = global->Topstack(idthread);
+
+    Tamgu* compiled = NULL;
+    try {
+        compiled = Traverse(xn, topstack);
+    }
+    catch (TamguRaiseError* a) {
+        global->threads[0].message.str("");
+        global->threads[0].message.clear();
+        global->threads[0].message << a->message;
+        if (a->message.find(a->filename) == string::npos)
+            global->threads[0].message << " in " << a->filename;
+
+        if (global->errorraised[0] == NULL)
+            global->errorraised[0] = new TamguError(global->threads[0].message.str());
+        else
+            global->errorraised[0]->error = global->threads[0].message.str();
+
+        global->errors[0] = true;
+        TamguCode* c = global->Getcurrentcode();
+        if (c->filename != a->filename)
+            c->filename = a->filename;
+        delete a;
+        delete xn;
+        global->Popstack();
+        return global->errorraised[0];
+    }
+
+    delete xn;
+    return compiled;
+}
 
 
 

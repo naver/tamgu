@@ -251,7 +251,7 @@ Tamgu* TamguframeBaseInstance::Eval(Tamgu* context, Tamgu* idx, short idthread) 
 Tamgu* TamguframeBaseInstance::Execute(Tamgu* body, VECTE<Tamgu*>& arguments, short idthread) {
 
 
-    Tamgu* p;
+    TamguVariableDeclaration* p;
     TamguFunction* bd = (TamguFunction*)body->Body(idthread);
 
     
@@ -262,7 +262,9 @@ Tamgu* TamguframeBaseInstance::Execute(Tamgu* body, VECTE<Tamgu*>& arguments, sh
         return callthread.Eval(this, NULL, idthread);
     }
 
-    TamguDeclarationLocal* environment = globalTamgu->Providedeclaration(this, idthread, false);
+    TamguDeclarationLocal* environment = globalTamgu->Providedeclaration(idthread);
+    if (globalTamgu->debugmode)
+        environment->idinfo = Currentinfo();
 
     bool error = true;
     while (bd != NULL) {
@@ -273,12 +275,9 @@ Tamgu* TamguframeBaseInstance::Execute(Tamgu* body, VECTE<Tamgu*>& arguments, sh
 
         locking();
         error = false;
-        for (size_t i = 0; i < arguments.size(); i++) {
-            p = bd->Parameter(i);
-            if (!p->Setvalue(environment, arguments[i], idthread)) {
-                error = true;
-                break;
-            }
+        for (size_t i = 0; i < arguments.size() && !error; i++) {
+            p = (TamguVariableDeclaration*)bd->Parameter(i);
+            error = p->Setarguments(environment, arguments[i], idthread);
         }
         unlocking();
 
@@ -313,6 +312,7 @@ Tamgu* TamguframeBaseInstance::Execute(Tamgu* body, VECTE<Tamgu*>& arguments, sh
     return a;
 }
 
+
 Tamgu* TamguframeBaseInstance::Execute(Tamgu* body, short idthread) {
 
 
@@ -336,7 +336,9 @@ Tamgu* TamguframeBaseInstance::Execute(Tamgu* body, short idthread) {
         return callthread.Eval(this, NULL, idthread);
     }
 
-    TamguDeclarationLocal* environment = globalTamgu->Providedeclaration(this, idthread, false);
+    TamguDeclarationLocal* environment = globalTamgu->Providedeclaration(idthread);
+    if (globalTamgu->debugmode)
+        environment->idinfo = Currentinfo();
 
     Pushframe(idthread);
     //We then apply our function within this environment
@@ -404,8 +406,15 @@ Tamgu* Tamguframemininstance::Put(Tamgu* idx, Tamgu* value, short idthread) {
         return func;
     }
     
-    if (globalTamgu->Compatible(frame->Name(), value->Type()) == false)
+    if (globalTamgu->Compatible(frame->Name(), value->Type()) == false) {
+        if (frame->theextensionvar) {
+            //We need to check the compatibility between these values
+            if (globalTamgu->Compatible(frame->Topframe()->thetype, value->Type())) {
+                return declarations[frame->theextensionvar]->Put(aNULL, value, idthread);
+            }
+        }
         return globalTamgu->Returnerror("Wrong frame assignment", idthread);
+    }
     
     locking();
     TamguframeBaseInstance* instance = (TamguframeBaseInstance*)value;

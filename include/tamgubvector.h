@@ -64,6 +64,8 @@ class Tamgubvector : public TamguLockContainer {
 
     Exporting Tamgu* Put(Tamgu* context, Tamgu* value, short idthread);
     Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
+    Tamgu* EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign);
+    
     short Type() {
         return a_bvector;
     }
@@ -375,17 +377,17 @@ class Tamgubvector : public TamguLockContainer {
         locking();
         unsigned long dst = EditDistance(v);
         unlocking();
-        return globalTamgu->Provideint(dst);
+        return globalTamgu->ProvideConstint(dst);
     }
 
     Tamgu* MethodSum(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = Sum();
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
 
     Tamgu* MethodProduct(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = Product();
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
 
     Tamgu* MethodInsert(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -467,7 +469,7 @@ class Tamgubvector : public TamguLockContainer {
         for (; i < j; i++)
             v += values[i];
         unlocking();
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
     }
 
     Tamgu* Theproduct(long i, long j) {
@@ -497,7 +499,7 @@ class Tamgubvector : public TamguLockContainer {
         for (; i < j; i++)
             v *= values[i];
         unlocking();
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
     }
 
 
@@ -592,7 +594,7 @@ class TamguIterationbvector : public TamguIteration {
     }
 
     Tamgu* Key() {
-        return globalTamgu->Provideint(itx);
+        return globalTamgu->ProvideConstint(itx);
     }
 
     

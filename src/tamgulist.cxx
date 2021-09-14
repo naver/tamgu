@@ -127,7 +127,7 @@ Exporting Tamgu* Tamgulist::in(Tamgu* context, Tamgu* a, short idthread) {
     for (auto& it : values) {
         if (it->same(a) == aTRUE) {
             unlocking();
-            return globalTamgu->Provideint(i);
+            return globalTamgu->ProvideConstint(i);
         }
         i++;
     }
@@ -779,7 +779,7 @@ Exporting Tamgu* Tamgulist::Eval(Tamgu* contextualpattern, Tamgu* idx, short idt
 
         if (contextualpattern->isNumber()) {
             long v = Size();
-            return globalTamgu->Provideint(v);
+            return globalTamgu->ProvideConstint(v);
         }
 
         //Then some values must be replaced with their evaluation
@@ -1442,8 +1442,7 @@ Exporting void Tamgulist::storevalue(wstring u) {
 }
 
 Exporting void Tamgulist::storevalue(long u) {
-    Tamgu* a = globalTamgu->Provideint(u);
-    a->Addreference(investigate,reference+1);
+    Tamgu* a = globalTamgu->ProvideConstint(u);
     locking();
     values.push_back(a);
     unlocking();
@@ -1458,7 +1457,7 @@ Exporting void Tamgulist::storevalue(short u) {
 }
 
 Exporting void Tamgulist::storevalue(BLONG u) {
-    Tamgu* a = new Tamgulong(u);
+    Tamgu* a = globalTamgu->Providelong(u);
     a->Addreference(investigate,reference+1);
     locking();
     values.push_back(a);
@@ -1638,7 +1637,7 @@ Exporting Tamgu* Tamguring::in(Tamgu* context, Tamgu* a, short idthread) {
     if (context->isNumber()) {
         while (!it.end()) {
             if (a->same(it.second) == aTRUE)
-                return globalTamgu->Provideint(it.first);
+                return globalTamgu->ProvideConstint(it.first);
             it.next();
         }
         return aMINUSONE;
@@ -2463,7 +2462,7 @@ Exporting Tamgu* Tamguring::Eval(Tamgu* contextualpattern, Tamgu* idx, short idt
         
         if (contextualpattern->isNumber()) {
             long v = Size();
-            return globalTamgu->Provideint(v);
+            return globalTamgu->ProvideConstint(v);
         }
         return this;
     }
@@ -2579,8 +2578,7 @@ Exporting void Tamguring::storevalue(wstring u) {
 }
 
 Exporting void Tamguring::storevalue(long u) {
-    Tamgu* a = globalTamgu->Provideint(u);
-    a->Addreference(investigate,reference+1);
+    Tamgu* a = globalTamgu->ProvideConstint(u);
     a = values.push_back(a);
     if (a != NULL)
         a->Removereference();
@@ -2595,7 +2593,7 @@ Exporting void Tamguring::storevalue(short u) {
 }
 
 Exporting void Tamguring::storevalue(BLONG u) {
-    Tamgu* a = new Tamgulong(u);
+    Tamgu* a = globalTamgu->Providelong(u);
     a->Addreference(investigate,reference+1);
     a = values.push_back(a);
     if (a != NULL)
@@ -2680,7 +2678,7 @@ Exporting Tamgu* Tamguring::Thesum(long i, long j) {
             it.next();
         }
         
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
     
     string v;
@@ -2734,7 +2732,7 @@ Exporting Tamgu* Tamguring::Theproduct(long i, long j) {
         it.next();
     }
     
-    return globalTamgu->Providefloat(v);
+    return globalTamgu->ProvideConstfloat(v);
 }
 
 Exporting Tamgu* Tamguring::same(Tamgu* a) {

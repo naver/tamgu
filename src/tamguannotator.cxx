@@ -957,7 +957,7 @@ Tamgu* Tamguannotator::MethodToken(Tamgu* contextualpattern, short idthread, Tam
 
     if (callfunc->Size()==0) {
         if (contextualpattern->isNumber())
-            return globalTamgu->Provideint(contexts[idthread].idword);
+            return globalTamgu->ProvideConstint(contexts[idthread].idword);
             
         return globalTamgu->Provideustring(contexts[idthread].thewords[contexts[idthread].idword]);
     }
@@ -968,7 +968,7 @@ Tamgu* Tamguannotator::MethodToken(Tamgu* contextualpattern, short idthread, Tam
         return aNULL;
     
     if (contextualpattern->isNumber())
-        return globalTamgu->Provideint(idx);
+        return globalTamgu->ProvideConstint(idx);
 
     return globalTamgu->Provideustring(contexts[idthread].thewords[idx]);
 }
@@ -1446,7 +1446,7 @@ Tamgu* Tamguannotator::Execution(Tamgu* res, Tamgu* txt, short idthread, uchar c
         if (function != NULL) {
             tokvect.Setreference(1);
             Setreference(1);
-            TamguCallFunction localcall(function);
+            TamguCallFunction2 localcall(function);
             localcall.arguments.push_back(&tokvect);
             localcall.arguments.push_back(this);
             Tamgu* ret=localcall.Eval(aNULL, aNULL, idthread);

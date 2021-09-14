@@ -175,7 +175,7 @@ Tamgu* Tamguimatrix::Eval(Tamgu* context, Tamgu* idx, short idthread) {
         r = kind->left->Eval(aNULL, aNULL, idthread)->Integer();
         c = kind->right->Eval(aNULL, aNULL, idthread)->Integer();
         if (values.check(r) && values[r].check(c))
-            return globalTamgu->Provideint(values[r][c]);
+            return globalTamgu->ProvideConstint(values[r][c]);
         return aZERO;
     }
 
@@ -254,7 +254,7 @@ Tamgu* Tamguimatrix::MethodDeterminant(Tamgu* contextualpattern, short idthread,
     if (columnsize < 2 || columnsize != rowsize)
         return 0;
     long det = determinant(rowsize, columnsize, values);
-    return globalTamgu->Provideint(det);
+    return globalTamgu->ProvideConstint(det);
 }
 
 Tamgu* Tamguimatrix::MethodSum(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -267,7 +267,7 @@ Tamgu* Tamguimatrix::MethodSum(Tamgu* contextualpattern, short idthread, TamguCa
             }
         }
     }
-    return globalTamgu->Provideint(v);
+    return globalTamgu->ProvideConstint(v);
 }
 
 Tamgu* Tamguimatrix::MethodProduct(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -280,7 +280,7 @@ Tamgu* Tamguimatrix::MethodProduct(Tamgu* contextualpattern, short idthread, Tam
             }
         }
     }
-    return globalTamgu->Provideint(v);
+    return globalTamgu->ProvideConstint(v);
 }
 
 Tamgu* Tamguimatrix::MethodInversion(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {

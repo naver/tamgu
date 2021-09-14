@@ -62,7 +62,8 @@ class Tamgutreemapu : public TamguObjectLockContainer {
     Exporting Tamgu* Loopin(TamguInstruction*, Tamgu* context, short idthread);
     Exporting Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);
     Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
-
+    Exporting Tamgu* EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign);
+    
     void SetConst() { isconst = true;}
 
     short Type() {
@@ -439,74 +440,114 @@ class Tamgutreemapu : public TamguObjectLockContainer {
     Tamgu* Value(Tamgu* a) {
         wstring s =  a->UString();
 
-        locking();
-        try {
-            Tamgu* res = values.at(s);
+        Tamgu* v;
+        if (globalTamgu->threadMODE) {
+            locking();
+            v = values[s];
+            if (v == NULL) {
+                values.erase(s);
+                v = aNOELEMENT;
+            }
             unlocking();
-            return res;
+            return v;
         }
-        catch (const std::out_of_range& oor) {
-            unlocking();
+        
+        v = values[s];
+        if (v == NULL) {
+            values.erase(s);
             return aNOELEMENT;
         }
+        return v;
     }
 
     Tamgu* Value(wstring& s) {
-        locking();
-        try {
-            Tamgu* res = values.at(s);
+        Tamgu* v;
+        if (globalTamgu->threadMODE) {
+            locking();
+            v = values[s];
+            if (v == NULL) {
+                values.erase(s);
+                v = aNOELEMENT;
+            }
             unlocking();
-            return res;
+            return v;
         }
-        catch (const std::out_of_range& oor) {
-            unlocking();
+        
+        v = values[s];
+        if (v == NULL) {
+            values.erase(s);
             return aNOELEMENT;
         }
+        return v;
     }
 
     Tamgu* Value(string& n) {
         wstring s;
         s_utf8_to_unicode(s, USTR(n), n.size());
-        locking();
-        try {
-            Tamgu* res = values.at(s);
+        Tamgu* v;
+        if (globalTamgu->threadMODE) {
+            locking();
+            v = values[s];
+            if (v == NULL) {
+                values.erase(s);
+                v = aNOELEMENT;
+            }
             unlocking();
-            return res;
+            return v;
         }
-        catch (const std::out_of_range& oor) {
-            unlocking();
+        
+        v = values[s];
+        if (v == NULL) {
+            values.erase(s);
             return aNOELEMENT;
         }
+        return v;
     }
 
     Tamgu* Value(long n) {
         
         wstring s = wconvertfromnumber(n);
-        locking();
-        try {
-            Tamgu* res = values.at(s);
+        Tamgu* v;
+        if (globalTamgu->threadMODE) {
+            locking();
+            v = values[s];
+            if (v == NULL) {
+                values.erase(s);
+                v = aNOELEMENT;
+            }
             unlocking();
-            return res;
+            return v;
         }
-        catch (const std::out_of_range& oor) {
-            unlocking();
+        
+        v = values[s];
+        if (v == NULL) {
+            values.erase(s);
             return aNOELEMENT;
         }
+        return v;
     }
 
     Tamgu* Value(double n) {
         
         wstring s = wconvertfromnumber(n);
-        locking();
-        try {
-            Tamgu* res = values.at(s);
+        Tamgu* v;
+        if (globalTamgu->threadMODE) {
+            locking();
+            v = values[s];
+            if (v == NULL) {
+                values.erase(s);
+                v = aNOELEMENT;
+            }
             unlocking();
-            return res;
+            return v;
         }
-        catch (const std::out_of_range& oor) {
-            unlocking();
+        
+        v = values[s];
+        if (v == NULL) {
+            values.erase(s);
             return aNOELEMENT;
         }
+        return v;
     }
 
     Exporting long Integer();

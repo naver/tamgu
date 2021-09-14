@@ -43,23 +43,23 @@ void Tamgutreemap::AddMethod(TamguGlobal* global, string name, treemapMethod fun
 }
 
 
-   bool Tamgutreemap::InitialisationModule(TamguGlobal* global, string version) {
+bool Tamgutreemap::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
     infomethods.clear();
     exported.clear();
-
-
-
+    
+    
+    
     Tamgutreemap::idtype = global->Getid("treemap");
-
+    
     Tamgutreemap::AddMethod(global, "items", &Tamgutreemap::MethodItems, P_NONE, "items(): Return a vector of {key:value} pairs.");
     Tamgutreemap::AddMethod(global, "read", &Tamgutreemap::MethodRead, P_ONE, "read(string path): Read the content of a file into the container.");
-       
+    
     Tamgutreemap::AddMethod(global, "invert", &Tamgutreemap::MethodInvert, P_NONE, "invert(): return a map with key/value inverted.");
     Tamgutreemap::AddMethod(global, "find", &Tamgutreemap::MethodFind, P_ONE, "find(value): test if a value belongs to the map and return 'true' or the corresponding keys.");
-
-
-
+    
+    
+    
     Tamgutreemap::AddMethod(global, "join", &Tamgutreemap::MethodJoin, P_TWO, "join(string sepkey,string sepvalue): Produce a string representation for the container.");
     Tamgutreemap::AddMethod(global, "test", &Tamgutreemap::MethodTest, P_ONE, "test(key): Test if key belongs to the map container.");
     Tamgutreemap::AddMethod(global, "keys", &Tamgutreemap::MethodKeys, P_NONE, "keys(): Return the map container keys as a vector.");
@@ -68,14 +68,16 @@ void Tamgutreemap::AddMethod(TamguGlobal* global, string name, treemapMethod fun
     Tamgutreemap::AddMethod(global, "product", &Tamgutreemap::MethodProduct, P_NONE, "product(): return the product of elements.");
     Tamgutreemap::AddMethod(global, "pop", &Tamgutreemap::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamgutreemap::AddMethod(global, "merge", &Tamgutreemap::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
-
+    
+    
+    global->minimal_indexes[Tamgutreemap::idtype] = true;
     
     if (version != "") {
         global->newInstance[Tamgutreemap::idtype] = new Tamgutreemap(global);
-        
         global->RecordMethods(Tamgutreemap::idtype,Tamgutreemap::exported);
     }
-
+    
+    
     return true;
 }
 
@@ -92,7 +94,7 @@ Exporting Tamgu* Tamgutreemap::MethodFind(Tamgu* context, short idthread, TamguC
     Tamgu* a = callfunc->Evaluate(0, context, idthread);
     if (context->isBoolean()) {
         Locking _lock(this);
-        for (auto& it : values) {
+        for (const auto& it : values) {
             if (it.second->same(a) == aTRUE)
                 return aTRUE;
         }
@@ -101,14 +103,14 @@ Exporting Tamgu* Tamgutreemap::MethodFind(Tamgu* context, short idthread, TamguC
     if (context->isVectorContainer()) {
         Tamgusvector* v = (Tamgusvector*)Selectasvector(context);
         Doublelocking _lock(this, v);
-        for (auto& it : values) {
+        for (const auto& it : values) {
             if (it.second->same(a) == aTRUE)
                 v->values.push_back(it.first);
         }
         return v;
     }
     Locking _lock(this);
-    for (auto& it : values) {
+    for (const auto& it : values) {
         if (it.second->same(a) == aTRUE)
             return globalTamgu->Providestring(it.first);
     }
@@ -133,7 +135,8 @@ Tamgu* Tamgutreemap::MethodRead(Tamgu* contextualpattern, short idthread, TamguC
         return globalTamgu->Returnerror(msg, idthread);
     }
     
-    string s = file.read(-1);
+    string s;
+    file.readin(s, -1);
     Trim(s);
     
     Tamgu* m = globalTamgu->EvaluateMap(s, idthread);
@@ -210,7 +213,7 @@ Exporting Tamgu* Tamgutreemap::in(Tamgu* context, Tamgu* a, short idthread) {
 
 Exporting void Tamgutreemap::Cleanreference(short inc) {
     locking();
-    for (auto& a : values)
+    for (const auto& a : values)
         a.second->Removecontainerreference(inc);
     
     unlocking();
@@ -222,7 +225,7 @@ Exporting void Tamgutreemap::Setreference(short inc) {
     reference += inc;
     protect = false;
     
-    for (auto& it : values)
+    for (const auto& it : values)
         it.second->Addreference(investigate,inc);
     
     unlocking();
@@ -234,7 +237,7 @@ Exporting void Tamgutreemap::Setreference() {
     reference++;
     protect = false;
     
-    for (auto& it : values)
+    for (const auto& it : values)
         it.second->Addreference(investigate,1);
     unlocking();
 }
@@ -250,7 +253,7 @@ static void resetMap(Tamgutreemap* kmap, short inc) {
         return;
     }
     
-    for (auto& itx : values)
+    for (const auto& itx : values)
         itx.second->Removereference(inc);
     kmap->unlocking();
 }
@@ -264,6 +267,23 @@ Exporting void Tamgutreemap::Resetreference(short inc) {
             if (idtracker != -1)
                 globalTamgu->RemoveFromTracker(idtracker);
             delete this;
+        }
+    }
+}
+
+Exporting void Tamgutreemapbuff::Resetreference(short inc) {
+    if ((reference + containerreference - inc) > 0)
+        resetMap(this, inc);
+    else {
+        resetMap(this, inc + 1 - protect);
+        if (!protect) {
+            reference = 0;
+            protect = true;
+
+            values.clear();
+            used = false;
+            if (!globalTamgu->threadMODE)
+                globalTamgu->treemapempties.push_back(idx);
         }
     }
 }
@@ -301,7 +321,7 @@ Exporting Tamgu* Tamgutreemap::Pop(Tamgu* kkey) {
 
 Exporting void Tamgutreemap::Clear() {
     locking();
-    for (auto& itx : values)
+    for (const auto& itx : values)
         itx.second->Removereference(reference + 1);
     values.clear();
     unlocking();
@@ -316,7 +336,7 @@ Exporting string Tamgutreemap::String() {
     res << "{";
     bool beg = true;
     string sx;
-    for (auto& it : values) {
+    for (const auto& it : values) {
         if (beg == false)
             res << ",";
         beg = false;
@@ -344,7 +364,7 @@ Exporting string Tamgutreemap::JSonString() {
     res << "{";
     bool beg = true;
     string sx;
-    for (auto& it : values) {
+    for (const auto& it : values) {
         if (beg == false)
             res << ",";
         beg = false;
@@ -434,7 +454,7 @@ Exporting Tamgu*  Tamgutreemap::Put(Tamgu* idx, Tamgu* ke, short idthread) {
             Clear();
             long nb = 0;
 
-            for (auto& it : kvect->values) {
+            for (const auto& it : kvect->values) {
                 sprintf_s(ch, 20, "%ld", nb);
                 Push(ch, it);
                 nb++;
@@ -450,7 +470,7 @@ Exporting Tamgu*  Tamgutreemap::Put(Tamgu* idx, Tamgu* ke, short idthread) {
             Tamgutreemap* kmap = (Tamgutreemap*)ke;
             //We copy all values from ke to this
 
-            for (auto& it : kmap->values)
+            for (const auto& it : kmap->values)
                 Push(it.first, it.second);
         }
         else {
@@ -473,6 +493,35 @@ Exporting Tamgu*  Tamgutreemap::Put(Tamgu* idx, Tamgu* ke, short idthread) {
     ((TamguIndex*)idx)->left->Setstring(skey, idthread);
     pushing(skey, ke);
     return aTRUE;
+}
+
+Tamgu* Tamgutreemap::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign) {
+    string skey;
+    key->Setstring(skey, idthread);
+
+    if (globalTamgu->threadMODE) {
+        locking();
+        key = values[skey];
+        if (key == NULL) {
+            if (globalTamgu->erroronkey) {
+                unlocking();
+                return globalTamgu->Returnerror("Wrong index", idthread);
+            }
+            values.erase(skey);
+            key = aNOELEMENT;
+        }
+        unlocking();
+        return key;
+    }
+    
+    key = values[skey];
+    if (key == NULL) {
+        if (globalTamgu->erroronkey)
+            return globalTamgu->Returnerror("Wrong index", idthread);
+        values.erase(skey);
+        key = aNOELEMENT;
+    }
+    return key;
 }
 
 
@@ -499,7 +548,7 @@ Exporting Tamgu* Tamgutreemap::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
 
         if (contextualpattern->isNumber()) {
             long v = Size();
-            return globalTamgu->Provideint(v);
+            return globalTamgu->ProvideConstint(v);
         }
 
         return this;
@@ -507,7 +556,7 @@ Exporting Tamgu* Tamgutreemap::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
 
     if (idx->isInterval()) {
         Locking _lock(this);
-        Tamgutreemap* kmap = new Tamgutreemap;
+        Tamgutreemap* kmap = globalTamgu->Providetreemap();
         Tamgu* key = ((TamguIndex*)idx)->left->Eval(aNULL, aNULL, idthread);
         Tamgu* keyright = ((TamguIndex*)idx)->right->Eval(aNULL, aNULL, idthread);
         string vleft = key->String();
@@ -585,10 +634,10 @@ Exporting Tamgu* Tamgutreemap::xorset(Tamgu* b, bool itself) {
     if (b->isMapContainer()) {
         TamguIteration* itr = b->Newiteration(false);
 
-        res = new Tamgutreemap;
+        res = globalTamgu->Providetreemap();
         hmap<string, Tamgu*> keys;
 
-        for (auto& it : values)
+        for (const auto& it : values)
             keys[it.first] = it.second;
             
         string v;
@@ -603,7 +652,7 @@ Exporting Tamgu* Tamgutreemap::xorset(Tamgu* b, bool itself) {
         }
         itr->Release();
 
-        for (auto& a : keys)
+        for (const auto& a : keys)
             res->Push(a.first,a.second);
 
         return res;
@@ -615,7 +664,7 @@ Exporting Tamgu* Tamgutreemap::xorset(Tamgu* b, bool itself) {
     else
         res = (Tamgutreemap*)Atom(true);
 
-    for (auto& it : values)
+    for (const auto& it : values)
         it.second->xorset(b, true);
     return res;
 }
@@ -632,7 +681,7 @@ Exporting Tamgu* Tamgutreemap::orset(Tamgu* b, bool itself) {
         res->Merging(b);
         return res;
     }
-    for (auto& it : res->values)
+    for (const auto& it : res->values)
         it.second->orset(b, true);
     return res;
 }
@@ -643,7 +692,7 @@ Exporting Tamgu* Tamgutreemap::andset(Tamgu* b, bool itself) {
     Tamgutreemap* res;
     if (b->isMapContainer()) {
         TamguIteration* itr = b->Newiteration(false);
-        res = new Tamgutreemap;
+        res = globalTamgu->Providetreemap();
         Tamgu* v;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
             v = itr->IteratorValue();
@@ -657,7 +706,7 @@ Exporting Tamgu* Tamgutreemap::andset(Tamgu* b, bool itself) {
         res = this;
     else
         res = (Tamgutreemap*)Atom(true);
-    for (auto& it : res->values)
+    for (const auto& it : res->values)
         it.second->andset(b, true);
     return res;
 }
@@ -669,7 +718,7 @@ Exporting Tamgu* Tamgutreemap::plus(Tamgu* b, bool itself) {
     if (b->isMapContainer()) {
         TamguIteration* itr = b->Newiteration(false);
 
-        res = new Tamgutreemap;
+        res = globalTamgu->Providetreemap();
         Tamgu* v;
         Tamgu* r;
         string k;
@@ -694,7 +743,7 @@ Exporting Tamgu* Tamgutreemap::plus(Tamgu* b, bool itself) {
     else
         res = (Tamgutreemap*)Atom(true);
 
-    for (auto& it : res->values)
+    for (const auto& it : res->values)
         it.second->plus(b, true);
     return res;
 }
@@ -706,7 +755,7 @@ Exporting Tamgu* Tamgutreemap::minus(Tamgu* b, bool itself) {
     if (b->isMapContainer()) {
         TamguIteration* itr = b->Newiteration(false);
 
-        res = new Tamgutreemap;
+        res = globalTamgu->Providetreemap();
         Tamgu* v;
         Tamgu* r;
         string k;
@@ -731,7 +780,7 @@ Exporting Tamgu* Tamgutreemap::minus(Tamgu* b, bool itself) {
     else
         res = (Tamgutreemap*)Atom(true);
 
-    for (auto& it : res->values)
+    for (const auto& it : res->values)
         it.second->minus(b, true);
     return res;
 }
@@ -743,7 +792,7 @@ Exporting Tamgu* Tamgutreemap::multiply(Tamgu* b, bool itself) {
     if (b->isMapContainer()) {
         TamguIteration* itr = b->Newiteration(false);
 
-        res = new Tamgutreemap;
+        res = globalTamgu->Providetreemap();
         Tamgu* v;
         Tamgu* r;
         string k;
@@ -768,7 +817,7 @@ Exporting Tamgu* Tamgutreemap::multiply(Tamgu* b, bool itself) {
     else
         res = (Tamgutreemap*)Atom(true);
 
-    for (auto& it : res->values)
+    for (const auto& it : res->values)
         it.second->multiply(b, true);
     return res;
 }
@@ -784,7 +833,7 @@ Exporting Tamgu* Tamgutreemap::divide(Tamgu* b, bool itself) {
 
         TamguIteration* itr = b->Newiteration(false);
 
-        res = new Tamgutreemap;
+        res = globalTamgu->Providetreemap();
         string k;
         Tamgu* inter;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
@@ -813,7 +862,7 @@ Exporting Tamgu* Tamgutreemap::divide(Tamgu* b, bool itself) {
     else
         res = (Tamgutreemap*)Atom(true);
 
-    for (auto& it : res->values) {
+    for (const auto& it : res->values) {
         r = it.second->divide(b, true);
         if (r->isError()) {
             res->Release();
@@ -835,7 +884,7 @@ Exporting Tamgu* Tamgutreemap::mod(Tamgu* b, bool itself) {
 
         TamguIteration* itr = b->Newiteration(false);
 
-        res = new Tamgutreemap;
+        res = globalTamgu->Providetreemap();
         string k;
         Tamgu* inter;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
@@ -864,7 +913,7 @@ Exporting Tamgu* Tamgutreemap::mod(Tamgu* b, bool itself) {
     else
         res = (Tamgutreemap*)Atom(true);
 
-    for (auto& it : res->values) {
+    for (const auto& it : res->values) {
         r = it.second->mod(b, true);
         if (r->isError()) {
             res->Release();
@@ -883,7 +932,7 @@ Exporting Tamgu* Tamgutreemap::shiftright(Tamgu* b, bool itself) {
 
         TamguIteration* itr = b->Newiteration(false);
 
-        res = new Tamgutreemap;
+        res = globalTamgu->Providetreemap();
         Tamgu* v;
         Tamgu* r;
         string k;
@@ -908,7 +957,7 @@ Exporting Tamgu* Tamgutreemap::shiftright(Tamgu* b, bool itself) {
     else
         res = (Tamgutreemap*)Atom(true);
 
-    for (auto& it : res->values)
+    for (const auto& it : res->values)
         it.second->shiftright(b, true);
     return res;
 }
@@ -921,7 +970,7 @@ Exporting Tamgu* Tamgutreemap::shiftleft(Tamgu* b, bool itself) {
 
         TamguIteration* itr = b->Newiteration(false);
 
-        res = new Tamgutreemap;
+        res = globalTamgu->Providetreemap();
         Tamgu* v;
         Tamgu* r;
         string k;
@@ -946,7 +995,7 @@ Exporting Tamgu* Tamgutreemap::shiftleft(Tamgu* b, bool itself) {
     else
         res = (Tamgutreemap*)Atom(true);
 
-    for (auto& it : res->values)
+    for (const auto& it : res->values)
         it.second->shiftleft(b, true);
     return res;
 }
@@ -959,7 +1008,7 @@ Exporting Tamgu* Tamgutreemap::power(Tamgu* b, bool itself) {
 
         TamguIteration* itr = b->Newiteration(false);
 
-        res = new Tamgutreemap;
+        res = globalTamgu->Providetreemap();
         Tamgu* v;
         Tamgu* r;
         string k;
@@ -984,7 +1033,7 @@ Exporting Tamgu* Tamgutreemap::power(Tamgu* b, bool itself) {
     else
         res = (Tamgutreemap*)Atom(true);
 
-    for (auto& it : res->values)
+    for (const auto& it : res->values)
         it.second->power(b, true);
     return res;
 }
@@ -995,34 +1044,24 @@ Exporting Tamgu* Tamgutreemap::Loopin(TamguInstruction* ins, Tamgu* context, sho
     Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
     var = var->Eval(context, aNULL, idthread);
 
-    map<string, Tamgu*>::iterator it;
     
-    Tamgu* a;
-    vector<string> keys;
-
-    for (it=values.begin(); it != values.end(); it++)
-        keys.push_back(it->first);
-
-    long sz = keys.size();
-    a = aNULL;
-    bool testcond = false;
-    for (long i = 0; i < sz && !testcond; i++) {
+    Tamgu* a = aNULL;
+    for (const auto& it:values) {
         a->Releasenonconst();
-        var->storevalue(keys[i]);
+        var->storevalue(it.first);
 
         a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
         //Continue does not trigger needInvestigate
-        testcond = a->needInvestigate();
+        if (a->needInvestigate()) {
+            unlocking();
+            if (a == aBREAK)
+                return this;
+            return a;
+        }
     }
 
     unlocking();
-    
-    if (testcond) {
-        if (a == aBREAK)
-            return this;
-        return a;
-    }
 
     a->Releasenonconst();
     return this;

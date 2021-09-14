@@ -102,12 +102,9 @@ public:
 		return this;
 	}
 
-
 	short Type() {
         return a_fraction;
 	}
-
-	
 
     void Setidtype(TamguGlobal* global);
     
@@ -119,7 +116,9 @@ public:
 		return a_float;
 	}
 
-	
+    bool checkAtomType(short ty) {
+        return (ty == a_fraction);
+    }
 
 	bool isFloat() {
 		return true;
@@ -515,22 +514,22 @@ public:
 			return globalTamgu->Returnerror("Error: Divided by 0");
 
 		BLONG i = Long() % ib;
-		return new Tamgulong(i);
+		return globalTamgu->Providelong(i);
 	}
 
 	Tamgu* shiftleft(Tamgu* bb, bool autoself) {
 		BLONG i = Long() << bb->Long();
-		return new Tamgulong(i);
+		return globalTamgu->Providelong(i);
 	}
 
 	Tamgu* shiftright(Tamgu* bb, bool autoself) {
 		BLONG i = Long() >> bb->Long();
-		return new Tamgulong(i);
+		return globalTamgu->Providelong(i);
 	}
 
 	Tamgu* power(Tamgu* b, bool autoself) {
 		double i = pow(Float(), b->Float());
-		return new Tamguint(i);
+		return globalTamgu->ProvideConstint(i);
 	}
 
 	Tamgu* less(Tamgu* a) {

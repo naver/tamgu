@@ -768,6 +768,14 @@ template <class Z> class basebin_hash {
         return (i >= 0 && i < tsize && (indexes[i] & binval64[r & binmin]));
     }
 
+    Z getOrNULL(unsigned short r) {
+        bshort i = (r >> binbits) - base;
+        r &= binmin;
+        if (i >= 0 && i < tsize && (indexes[i] & binval64[r]))
+            return table[i][r];
+        return NULL;
+    }
+    
     void put(unsigned short r, Z a) {
         bshort i = r >> binbits;
         table[i-base][r & binmin] = a;
@@ -871,14 +879,25 @@ template <class Z> class basebin_hash {
 
     //nettoyage
     void clear() {
-        for (long i = 0; i < tsize; i++) {
-            if (table[i] != NULL) {
-                delete[] table[i];
-                table[i] = NULL;
+        if (tsize >= 10) {
+            for (int16_t i = 0; i < tsize; i++) {
+                if (table[i] != NULL)
+                    delete[] table[i];
+            }
+            base = -1;
+            tsize = 1;
+            delete[] table;
+            delete[] indexes;
+            table = new Z*[tsize];
+            indexes = new uint64_t[tsize];
+            table[0] = NULL;
+            indexes[0] = 0;
+        }
+        else {
+            for (int16_t i = 0; i < tsize; i++) {
                 indexes[i] = 0;
             }
         }
-        base = -1;
     }
 
     //We insert some new boxes before the position 0
@@ -1143,16 +1162,27 @@ public:
     
     //nettoyage
     void clear() {
-        for (long i = 0; i < tsize; i++) {
-            if (table[i] != NULL) {
-                delete[] table[i];
-                table[i] = NULL;
+        if (tsize >= 10) {
+            for (int16_t i = 0; i < tsize; i++) {
+                if (table[i] != NULL)
+                    delete[] table[i];
+            }
+            base = -1;
+            tsize = 1;
+            delete[] table;
+            delete[] indexes;
+            table = new Z*[tsize];
+            indexes = new uint64_t[tsize];
+            table[0] = NULL;
+            indexes[0] = 0;
+        }
+        else {
+            for (int16_t i = 0; i < tsize; i++) {
                 indexes[i] = 0;
             }
         }
-        base = -1;
     }
-    
+
     //We insert some new boxes before the position 0
     void insert(unsigned short p) {
         unsigned short inc = base - p;

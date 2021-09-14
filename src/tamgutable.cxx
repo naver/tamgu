@@ -198,7 +198,7 @@ Exporting Tamgu* Tamgutable::in(Tamgu* context, Tamgu* a, short idthread) {
     if (context->isNumber()) {
         for (size_t i = 0; i < size; i++) {
             if (a->same(values[i]) == aTRUE)
-                return globalTamgu->Provideint(i);
+                return globalTamgu->ProvideConstint(i);
         }
         return aMINUSONE;
     }
@@ -1117,7 +1117,7 @@ Exporting Tamgu* Tamgutable::Eval(Tamgu* contextualpattern, Tamgu* idx, short id
         }
 
         if (contextualpattern->Type() == a_int || contextualpattern->Type() == a_float)
-            return globalTamgu->Provideint(size);
+            return globalTamgu->ProvideConstint(size);
         return this;
     }
 
@@ -1584,7 +1584,7 @@ Exporting void Tamgutable::storevalue(wstring u) {
 }
 
 Exporting void Tamgutable::storevalue(long u) {
-    Tamgu* a = globalTamgu->Provideint(u);
+    Tamgu* a = globalTamgu->ProvideConstint(u);
     
     push(a);
 }
@@ -1597,7 +1597,7 @@ Exporting void Tamgutable::storevalue(short u) {
 }
 
 Exporting void Tamgutable::storevalue(BLONG u) {
-    Tamgu* a = new Tamgulong(u);
+    Tamgu* a = globalTamgu->Providelong(u);
 
     
     push(a);

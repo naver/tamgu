@@ -297,7 +297,7 @@ public:
 		if (thefile == NULL || feof(thefile) || op != "rb")
 			return globalTamgu->Returnerror("Wrong access to the file", idthread);
 
-		return globalTamgu->Provideint(ftell(thefile));
+		return globalTamgu->ProvideConstint(ftell(thefile));
 	}
 
     Tamgu* MethodFlush(Tamgu* context, short idthread, TamguCall* callfunc) {
@@ -799,7 +799,7 @@ public:
 		while (!feof(thefile)) {
 			if (i == sz) {
 				if (v == NULL)
-					return globalTamgu->Provideint(p);
+					return globalTamgu->ProvideConstint(p);
 				v->storevalue(p);
 				i = -1;
 			}

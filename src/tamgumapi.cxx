@@ -52,6 +52,9 @@ void Tamgumapi::AddMethod(TamguGlobal* global, string name, mapiMethod func, uns
 
     Tamgumapi::idtype = global->Getid("mapi");
 
+    
+    global->minimal_indexes[Tamgumapi::idtype] = true;
+
     Tamgumapi::AddMethod(global, "clear", &Tamgumapi::MethodClear, P_NONE, "clear(): clear the container.");
     
     Tamgumapi::AddMethod(global, "invert", &Tamgumapi::MethodInvert, P_NONE, "invert(): return a map with key/value inverted.");
@@ -110,7 +113,7 @@ Exporting Tamgu* Tamgumapi::in(Tamgu* context, Tamgu* a, short idthread) {
         try {
             values.at(val);
             unlocking();
-            return globalTamgu->Provideint(val);
+            return globalTamgu->ProvideConstint(val);
         }
         catch(const std::out_of_range& oor) {
             unlocking();
@@ -160,7 +163,7 @@ Exporting Tamgu* Tamgumapi::MethodFind(Tamgu* context, short idthread, TamguCall
     Locking _lock(this);
     for (auto& it : values) {
         if (it.second->same(a) == aTRUE)
-            return globalTamgu->Provideint(it.first);
+            return globalTamgu->ProvideConstint(it.first);
     }
     return aNULL;
 }
@@ -427,6 +430,26 @@ Exporting Tamgu*  Tamgumapi::Put(Tamgu* idx, Tamgu* ke, short idthread) {
 }
 
 
+
+Tamgu* Tamgumapi::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign) {
+    long skey = key->Getinteger(idthread);
+
+    Tamgu* val;
+    
+    locking();
+    try {
+        val = values.at(skey);
+    }
+    catch(...) {
+        unlocking();
+        if (globalTamgu->erroronkey)
+            return globalTamgu->Returnerror("Wrong index", idthread);
+        return aNOELEMENT;
+    }
+    unlocking();
+    return val;
+}
+
 Exporting Tamgu* Tamgumapi::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
 
 
@@ -443,14 +466,14 @@ Exporting Tamgu* Tamgumapi::Eval(Tamgu* contextualpattern, Tamgu* idx, short idt
             locking();
             hmap<long, Tamgu*>::iterator it;
             for (it = values.begin(); it != values.end(); it++)
-                vect->Push(globalTamgu->Provideint(it->first));
+                vect->Push(globalTamgu->ProvideConstint(it->first));
             unlocking();
             return vect;
         }
 
         if (contextualpattern->isNumber()) {
             long v = Size();
-            return globalTamgu->Provideint(v);
+            return globalTamgu->ProvideConstint(v);
         }
 
         return this;

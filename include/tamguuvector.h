@@ -63,7 +63,9 @@ class Tamguuvector : public TamguLockContainer {
         isconst = true;
     }
 
-    Exporting Tamgu* Put(Tamgu* value, Tamgu* v, short idthread);Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
+    Exporting Tamgu* Put(Tamgu* value, Tamgu* v, short idthread);
+    Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
+    Tamgu* EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign);
     Exporting Tamgu* Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* env, TamguFunctionLambda* bd, short idthread);
     Exporting Tamgu* Filter(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* kcont, Tamgu* accu, Tamgu* init, bool direct);
     short Type() {
@@ -413,7 +415,7 @@ class Tamguuvector : public TamguLockContainer {
         Tamgu* v = callfunc->Evaluate(0, contextualpattern, idthread);
         Locking _lock(this);
         unsigned long dst = EditDistance(v);
-        return globalTamgu->Provideint(dst);
+        return globalTamgu->ProvideConstint(dst);
     }
 
     Tamgu* MethodInsert(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -586,7 +588,7 @@ class TamguIterationuvector : public TamguIteration {
     }
 
     Tamgu* Key() {
-        return globalTamgu->Provideint(itx);
+        return globalTamgu->ProvideConstint(itx);
     }
 
     
@@ -698,8 +700,9 @@ class Tamguuvectorbuff : public Tamguuvector {
     }
 
     void Resetreference(short r) {
-        if ((reference-=r) <= 0) {
-            reference = 0;
+        r = reference - r;
+        if (r <= 0) {
+            reference.store(0);
             if (!protect) {
                 protect = true;
 
@@ -709,6 +712,8 @@ class Tamguuvectorbuff : public Tamguuvector {
                     globalTamgu->uvectorempties.push_back(idx);
             }
         }
+        else
+            reference.store(r);
     }
 
 };
@@ -1198,7 +1203,7 @@ public:
     }
     
     Tamgu* Key() {
-        return globalTamgu->Provideint(it.first);
+        return globalTamgu->ProvideConstint(it.first);
     }
     
     

@@ -86,7 +86,8 @@ extern Exchanging TamguGlobal* globalTamgu;
 #define _getlocks(x,y)  globalTamgu->threadMODE ? new Doublelocking(x,y) : NULL
 #define _cleanlock(x) if (globalTamgu->threadMODE) delete x
 //-----------------------------------------------------------------------
-
+void PrintALine(TamguGlobal* g, string s);
+//-----------------------------------------------------------------------
 #include "tamguglobal.h"
 
 typedef enum {is_none = 0, is_container = 1, is_constante = 2, is_constcontainer = 3, is_declaration = 4,
@@ -99,7 +100,7 @@ typedef enum {is_none = 0, is_container = 1, is_constante = 2, is_constcontainer
 
 void set_garbage_mode(bool v);
 long initialize_local_garbage(short idthread);
-void clean_from_garbage_position(short idthread, long p, Tamgu*, long);
+void clean_from_garbage_position(Tamgu* declaration, short idthread, long p, Tamgu*, long, long maxrecorded = -1);
 int Addtogarbage();
 
 //Tamgu is the class from which every element descends
@@ -129,6 +130,10 @@ public:
 	virtual Tamgu* Put(Tamgu* index, Tamgu* value, short idthread) {
 		return this;
 	}
+
+    virtual Tamgu* EvalWithSimpleIndex(Tamgu* idx, short idthread, bool) {
+        return this;
+    }
 
     virtual Tamgu* EvalIndex(Tamgu* context, TamguIndex* value, short idthread) {
         return this;
@@ -384,6 +389,11 @@ public:
 	virtual Tamgu* Last() {
 		return aNULL;
 	}
+    
+    virtual bool FindAndClean(Tamgu* a) {
+        return true;
+    }
+
 	//------------------------------------------------------------------
 	virtual void SetVariablesWillBeCreated() {}
 	virtual void Forcedclean() {}
@@ -722,6 +732,10 @@ public:
         return this;
     }
 
+    virtual Tamgu* AtomNoConst() {
+        return Atom();
+    }
+
     virtual bool isTime() {
         return false;
     }
@@ -922,6 +936,14 @@ public:
         return ((is_number == (investigate & is_number)) ? true : (investigate == is_callvariable) ? isCallNumber() : false);
     }
 
+    inline bool isJustString() {
+        return (is_string == (investigate & is_string));
+    }
+
+    inline bool isJustNumber() {
+        return (is_number == (investigate & is_number));
+    }
+
     inline bool isRegular() {
         return (investigate == is_regular);
     }
@@ -934,6 +956,8 @@ public:
         return false;
     }
     
+    virtual void Indexing() {}
+
     //We try to minimize the use of locks in threads, as they might be quite detrimental to the speed of the interpreter.
     //An object might need to be locked when it is passed as an argument to a thread
     //Global variables are always locked, whenever a threads have been activated
@@ -978,6 +1002,11 @@ public:
             Release();
     }
 
+    inline void Resetnonconst() {
+        if (!(investigate & is_constante))
+            Resetreference(1);
+    }
+
 	virtual bool baseValue() {
 		return false;
 	}
@@ -1018,7 +1047,7 @@ public:
 	//-----------------------------------------------
 	Exporting virtual Tamgu* Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* env, TamguFunctionLambda* bd, short idthread);
     Exporting virtual Tamgu* Filter(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* kcont, Tamgu* accu, Tamgu* init, bool direct);
-    Exporting virtual Tamgu* Filterreverse(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* kcont, Tamgu* accu, Tamgu* init);
+    Exporting Tamgu* Filterreverse(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* kcont, Tamgu* accu, Tamgu* init);
 	Exporting virtual Tamgu* Filterboolean(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* def);
 
 	virtual void Addargmode() {}
@@ -1284,9 +1313,13 @@ public:
 	}
 
 	virtual string JSonString() {
-		return String();
+		string value = String();
+        string res;
+        jstringing(res, value);
+        return res;
 	}
 
+    int Int() {return (int)Integer();}
 	virtual long Integer() { return 0; }
 	virtual short Short() { return (short)Integer(); }
 	virtual double Float() { return 0; }
@@ -1608,14 +1641,17 @@ public:
     }
 
     virtual void Resetreference(short r = 1) {
-        if ((reference-=r) <= 0) {
-            reference = 0;
+        r = reference - r;
+        if (r <= 0) {
+            reference.store(0);
             if (!protect) {
                 if (idtracker != -1)
                     globalTamgu->RemoveFromTracker(idtracker);
                 delete this;
             }
         }
+        else
+            reference.store(r);
     }
 
     virtual void Release() {
@@ -2135,6 +2171,15 @@ public:
         investigate = is_declaration;
     }
 
+    bool FindAndClean(Tamgu* a) {
+        basebin_hash<Tamgu*>::iterator it;
+        for (it = declarations.begin(); it != declarations.end(); it++) {
+            if (it->second == a) {
+                return false;
+            }
+        }
+        return true;
+    }
 
 	bool hasDeclaration() {
 		return true;
@@ -2466,6 +2511,7 @@ public:
 	}
 
 	virtual Tamgu* Eval(Tamgu* context, Tamgu* callfunction, short idthread);
+    Tamgu* Run(Tamgu* context, short idthread);
 
 	bool isPrivate() {
 		return privatefunction;
@@ -2521,6 +2567,45 @@ public:
     bool isaFunction() {
         return true;
     }
+    
+    virtual TamguFunction* FindFunction(short ty) {
+        return this;
+    }
+};
+
+class TamguFunctionMap : public TamguFunction {
+public:
+    
+    basebin_hash<TamguFunction*> indexes;
+    TamguFunctionMap(short n, TamguGlobal* global) : TamguFunction(n, global) {}
+
+    TamguFunction* FindFunction(short ty) {
+        if (indexes.check(ty))
+            return indexes[ty];
+    
+        basebin_hash<TamguFunction*>::iterator it;
+        for (it = indexes.begin(); it != indexes.end(); it++) {
+            if (globalTamgu->Testcompatibility(it.first, ty, strict))
+                return it.second;
+        }
+        return NULL;
+    }
+
+    void Indexing() {
+        if (choice == 1) {
+            TamguFunction* l = this;
+            short ty;
+            while (l != NULL) {
+                if (l->Size()) {
+                    ty = l->Parameter(0)->Typevariable();
+                    if (!indexes.check(ty))
+                        indexes[ty] = l;
+                }
+                l = l->next;
+            }
+        }
+    }
+
 };
 
 class TamguThread : public TamguFunction {
@@ -2649,6 +2734,7 @@ public:
     
     TamguFrame* topframe;
     short thetype;
+    short theextensionvar;
     short minvar, maxvar;
     bool choosemin;
 	bool privee;
@@ -2660,6 +2746,7 @@ public:
             thetype = n;
             minvar = 0;
             maxvar = 0;
+            theextensionvar = 0;
             choosemin = true;
         }
 
@@ -2714,6 +2801,7 @@ public:
             k->declarations[it->first] = it->second;
         }
         
+        k->theextensionvar = theextensionvar;
         k->variables = variables;
         k->names = names;
         k->vnames = vnames;
@@ -2799,6 +2887,10 @@ public:
 
 		return declarations.check(id);
 	}
+
+    bool isExtension() {
+        return (topframe != NULL && topframe->idtype == a_extension);
+    }
 
 };
 
@@ -3062,13 +3154,13 @@ public:
 	Tamgu* left;
 	Tamgu* right;
 	Tamgu* function;
-	bool interval, signleft, signright, stop;
+	bool interval, signleft, signright, stop, minimal;
 
     TamguIndex(bool itv, TamguGlobal* global = NULL, Tamgu* parent = NULL) :
     interval(itv), left(aNOELEMENT),
     signleft(false), signright(false), stop(false),
     function(NULL), right(NULL) {
-        
+        minimal = false;
         if (parent != NULL)
             parent->AddInstruction(this);
         
@@ -3081,6 +3173,7 @@ public:
     TamguIndex(TamguIndex* idx, short idthread) {
         investigate = is_index;
         interval = idx->interval;
+        minimal = idx->minimal;
         signleft = idx->signleft;
         signright = idx->signright;
         left = idx->left;
@@ -4099,11 +4192,29 @@ public:
     }
     
     Tamgu* Putvalue(Tamgu* v, short idthread) {
-        locking();
-        if (value == v) {
+        if (globalTamgu->threadMODE) {
+            locking();
+            if (value == v) {
+                unlocking();
+                return value;
+            }
+            
+            if (value != aNOELEMENT)
+                value->Resetreference(reference);
+            
+            if (v->isConst())
+                v = v->Atom();
+            
+            value = v;
+            value->Setreference(reference);
+            value->Enablelock(isToBelocked());
+            typevalue = value->Type();
             unlocking();
             return value;
         }
+        
+        if (value == v)
+            return value;
         
         if (value != aNOELEMENT)
             value->Resetreference(reference);
@@ -4115,7 +4226,7 @@ public:
         value->Setreference(reference);
         value->Enablelock(isToBelocked());
         typevalue = value->Type();
-        unlocking();
+
         return value;
     }
 
@@ -4176,8 +4287,9 @@ public:
     
     void Resetreference(short r) {
         value->Resetreference(r);
-        if ((reference-=r) <= 0) {
-            reference = 0;
+        r = reference - r;
+        if (r <= 0) {
+            reference.store(0);
             if (!protect) {
                 protect = true;
 
@@ -4188,6 +4300,8 @@ public:
                     globalTamgu->slfempties.push_back(idx);
             }
         }
+        else
+            reference.store(r);
     }
 };
 #endif

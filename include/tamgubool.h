@@ -196,8 +196,12 @@ public:
 		//To set a variable back to empty
 		value = false;
 	}
-
 	
+    wstring UString() {
+        if (value)
+            return L"true";
+        return L"false";
+    }
 
 	string String() {
 		if (value)
@@ -210,6 +214,12 @@ public:
             v = "true";
         else
             v = "false";
+    }
+
+    string JSonString() {
+        if (value)
+            return "true";
+        return "false";
     }
 
     void Setstring(wstring& v, short idthread) {
@@ -455,11 +465,21 @@ public:
     void Clear() {
             //To set a variable back to empty
         value = false;
+    }   
+    
+    wstring UString() {
+        if (value)
+            return L"true";
+        return L"false";
+    }
+
+    string String() {
+        if (value)
+            return "true";
+        return "false";
     }
     
-    
-    
-    string String() {
+    string JSonString() {
         if (value)
             return "true";
         return "false";

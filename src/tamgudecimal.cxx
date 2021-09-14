@@ -164,15 +164,14 @@ Tamgu* Tamgudecimal::MethodDegree(Tamgu* contextualpattern, short idthread, Tamg
 
 void TamguLoopDecimal::Callfunction() {
 
-    TamguCallFunction kfunc(function);
+    TamguCallFunction2 kfunc(function);
 
-    Tamguint* ki = globalTamgu->Provideint(position);
+    Tamgu* ki = globalTamgu->ProvideConstint(position);
     ki->Setreference();
     kfunc.arguments.push_back(this);
     kfunc.arguments.push_back(ki);
     Tamgu* ke = kfunc.Eval(aNULL, aNULL, globalTamgu->GetThreadid());
     ke->Release();
-    ki->Resetreference();
 }
 
 Tamgu* TamguLoopDecimal::Put(Tamgu* context, Tamgu* ke, short idthread) {

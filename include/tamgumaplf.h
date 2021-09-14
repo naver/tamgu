@@ -66,6 +66,8 @@ class Tamgumaplf : public TamguLockContainer {
     //----------------------------------------------------------------------------------------------------------------------
     Exporting Tamgu* Loopin(TamguInstruction* ins, Tamgu* context, short idthread);
     Exporting Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);
+
+    Tamgu* EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign);
     Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 
     void SetConst() { isconst = true;}
@@ -209,7 +211,7 @@ class Tamgumaplf : public TamguLockContainer {
         Tamgu* a;
 
         for (auto& it : values) {
-            a = new Tamgulong(it.first);
+            a = globalTamgu->Providelong(it.first);
             contextualpattern->Push(it.second, a);
             a->Release();
         }
@@ -249,7 +251,7 @@ class Tamgumaplf : public TamguLockContainer {
 
     Tamgu* MethodSum(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = Sum();
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
 
     Tamgu* MethodKeys(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -288,7 +290,7 @@ class Tamgumaplf : public TamguLockContainer {
 
     Tamgu* MethodProduct(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = Product();
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
 
     Tamgu* MethodPop(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -385,7 +387,7 @@ class Tamgumaplf : public TamguLockContainer {
         
         locking();
         try {
-            Tamgu* res = globalTamgu->Providefloat(values.at(v));
+            Tamgu* res = globalTamgu->ProvideConstfloat(values.at(v));
             unlocking();
             return res;
         }
@@ -400,7 +402,7 @@ class Tamgumaplf : public TamguLockContainer {
 
         locking();
         try {
-            Tamgu* res = globalTamgu->Providefloat(values.at(n));
+            Tamgu* res = globalTamgu->ProvideConstfloat(values.at(n));
             unlocking();
             return res;
         }
@@ -413,7 +415,7 @@ class Tamgumaplf : public TamguLockContainer {
     Tamgu* Value(BLONG n) {
         locking();
         try {
-            Tamgu* res = globalTamgu->Providefloat(values.at(n));
+            Tamgu* res = globalTamgu->ProvideConstfloat(values.at(n));
             unlocking();
             return res;
         }
@@ -426,7 +428,7 @@ class Tamgumaplf : public TamguLockContainer {
     Tamgu* Value(long n) {
         locking();
         try {
-            Tamgu* res = globalTamgu->Providefloat(values.at(n));
+            Tamgu* res = globalTamgu->ProvideConstfloat(values.at(n));
             unlocking();
             return res;
         }
@@ -439,7 +441,7 @@ class Tamgumaplf : public TamguLockContainer {
     Tamgu* Value(double n) {
         locking();
         try {
-            Tamgu* res = globalTamgu->Providefloat(values.at(n));
+            Tamgu* res = globalTamgu->ProvideConstfloat(values.at(n));
             unlocking();
             return res;
         }
@@ -493,14 +495,14 @@ class TamguIterationmaplf : public TamguIteration {
     }
 
     Tamgu* Key() {
-        return new Tamgulong(it->first);
+        return globalTamgu->Providelong(it->first);
     }
 
     
     
 
     Tamgu* Value() {
-        return globalTamgu->Providefloat(it->second);
+        return globalTamgu->ProvideConstfloat(it->second);
     }
 
     string Keystring() {

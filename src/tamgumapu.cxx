@@ -51,6 +51,9 @@ bool Tamgumapu::InitialisationModule(TamguGlobal* global, string version) {
     
     Tamgumapu::idtype = global->Getid("mapu");
     
+    
+    global->minimal_indexes[Tamgumapu::idtype] = true;
+
     Tamgumapu::AddMethod(global, "clear", &Tamgumapu::MethodClear, P_NONE, "clear(): clear the container.");
     
     Tamgumapu::AddMethod(global, "invert", &Tamgumapu::MethodInvert, P_NONE, "invert(): return a map with key/value inverted.");
@@ -447,6 +450,36 @@ Exporting Tamgu*  Tamgumapu::Put(Tamgu* idx, Tamgu* ke, short idthread) {
 }
 
 
+
+Tamgu* Tamgumapu::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign) {
+    wstring skey;
+    key->Setstring(skey, idthread);
+
+    if (globalTamgu->threadMODE) {
+        locking();
+        key = values[skey];
+        if (key == NULL) {
+            if (globalTamgu->erroronkey) {
+                unlocking();
+                return globalTamgu->Returnerror("Wrong index", idthread);
+            }
+            values.erase(skey);
+            key = aNOELEMENT;
+        }
+        unlocking();
+        return key;
+    }
+    
+    key = values[skey];
+    if (key == NULL) {
+        if (globalTamgu->erroronkey)
+            return globalTamgu->Returnerror("Wrong index", idthread);
+        values.erase(skey);
+        key = aNOELEMENT;
+    }
+    return key;
+}
+
 Exporting Tamgu* Tamgumapu::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
     
     
@@ -470,7 +503,7 @@ Exporting Tamgu* Tamgumapu::Eval(Tamgu* contextualpattern, Tamgu* idx, short idt
         
         if (contextualpattern->isNumber()) {
             long v = Size();
-            return globalTamgu->Provideint(v);
+            return globalTamgu->ProvideConstint(v);
         }
         
         return this;
@@ -972,7 +1005,7 @@ Exporting Tamgu* Tamgumapu::Loopin(TamguInstruction* ins, Tamgu* context, short 
     bool testcond = false;
     for (long i = 0; i < sz && !testcond; i++) {
         a->Releasenonconst();
-        var->storevalue(keys[i]);
+        var->Storevalue(keys[i]);
         
         a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
         

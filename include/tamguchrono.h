@@ -153,6 +153,7 @@ class Tamguchrono : public TamguObject {
 
     Tamgu* MethodReset(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodUnit(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodStop(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
     //---------------------------------------------------------------------------------------------------------------------
 

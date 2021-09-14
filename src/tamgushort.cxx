@@ -131,17 +131,17 @@ Tamgu* Tamgushort::MethodFormat(Tamgu* contextualpattern, short idthread, TamguC
 Tamgu* Tamgushort::plus(Tamgu* a, bool itself) {
     if (!itself && a->isFloat()) {
         double v = value;
-        return globalTamgu->Providefloat(v + a->Float());
+        return globalTamgu->ProvideConstfloat(v + a->Float());
     }
 
     BLONG v = value;
     v += a->Long();
 
     if (IsLong(v))
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
 
     if (!IsShort(v))
-        return globalTamgu->Provideint(v);
+        return globalTamgu->ProvideConstint(v);
 
 
     if (itself) {
@@ -155,17 +155,17 @@ Tamgu* Tamgushort::plus(Tamgu* a, bool itself) {
 Tamgu* Tamgushort::multiply(Tamgu* a, bool itself) {
     if (!itself && a->isFloat()) {
         double v = value;
-        return globalTamgu->Providefloat(v + a->Float());
+        return globalTamgu->ProvideConstfloat(v + a->Float());
     }
 
     BLONG v = value;
     v *= a->Long();
 
     if (IsLong(v))
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
 
     if (!IsShort(v))
-        return globalTamgu->Provideint(v);
+        return globalTamgu->ProvideConstint(v);
 
 
     if (itself) {
@@ -179,17 +179,17 @@ Tamgu* Tamgushort::multiply(Tamgu* a, bool itself) {
 Tamgu* Tamgushort::shiftleft(Tamgu* a, bool itself) {
     if (!itself && a->isFloat()) {
         double v = value;
-        return globalTamgu->Providefloat(v + a->Float());
+        return globalTamgu->ProvideConstfloat(v + a->Float());
     }
 
     BLONG v = value;
     v <<= a->Long();
 
     if (IsLong(v))
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
 
     if (!IsShort(v))
-        return globalTamgu->Provideint(v);
+        return globalTamgu->ProvideConstint(v);
 
     if (itself) {
         value = v;

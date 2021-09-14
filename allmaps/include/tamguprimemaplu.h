@@ -178,7 +178,7 @@ class Tamguprimemaplu : public TamguLockContainer {
         Tamgu* a;
         prime_hash<BLONG, wstring>::iterator it;
         for (it = values.begin(); it != values.end(); it++) {
-            a = new Tamgulong(it->first);
+            a = globalTamgu->Providelong(it->first);
             contextualpattern->Push(it->second, a);
             a->Release();
         }
@@ -421,7 +421,7 @@ class TamguIterationprimemaplu : public TamguIteration {
     }
 
     Tamgu* Key() {
-        return new Tamgulong(it->first);
+        return globalTamgu->Providelong(it->first);
     }
 
     

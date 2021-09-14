@@ -24,7 +24,6 @@
 #include "tamgulong.h"
 
 class Tamgudecimal;
-
 class Tamgutamgu;
 
 #define DIVIDEDBYZERO -101
@@ -35,6 +34,7 @@ public:
 
 	VECTE<short> names;
     VECTE<Tamgu*> declarations;
+    VECTE<Tamgu*> toclean;
 
     short idx;
     short idthread;
@@ -44,6 +44,14 @@ public:
     TamguDeclarationLocal(short ix) : idx(ix), used(false), pushed(false), idthread(-1), TamguTracked(NULL) {
         investigate = is_declaration;
     }
+
+    bool FindAndClean(Tamgu* a) {
+         for (short i = 0; i < declarations.last; i++) {
+             if (declarations[i] == a)
+                 return false;
+         }
+        return true;
+     }
 
 	bool hasDeclaration() {
 		return true;
@@ -79,7 +87,19 @@ public:
 	void Declare(short id, Tamgu* a) {
 		names.push_back(id);
         declarations.push_back(a);
+        toclean.push_back(a);
 	}
+
+    inline void Declaring(short id, Tamgu* a) {
+        names.push_back(id);
+        declarations.push_back(a);
+        toclean.push_back(a);
+    }
+
+    inline void Declaringmin(short id, Tamgu* a) {
+        names.push_back(id);
+        declarations.push_back(a);
+    }
 
     Tamgu* Declaration(short idname) {
         idname = names.search(idname);
@@ -89,40 +109,60 @@ public:
     }
 
 	void Cleaning() {
-        for (short i = 0; i < names.last; i++) {
-            globalTamgu->Removevariable(idthread, names.vecteur[i]);
-            declarations.vecteur[i]->Resetreference();
-        }
+        short i;
+        for (i = 0; i < names.last; i++)
+            globalTamgu->Removingvariable(idthread, names.vecteur[i]);
+        
+        for (i = 0; i < toclean.last; i++)
+            toclean.vecteur[i]->Resetreference();
+        
 		names.last = 0;
         declarations.last = 0;
+        toclean.last = 0;
 	}
 
     void Release() {
-        Cleaning();
+        short i;
+        for (i = 0; i < names.last; i++)
+            globalTamgu->Removingvariable(idthread, names.vecteur[i]);
+        
+        for (i = 0; i < toclean.last; i++)
+            toclean.vecteur[i]->Resetreference();
+        
         if (pushed)
             globalTamgu->Popstack(idthread);
         if (used) {
+            names.last = 0;
+            declarations.last = 0;
+            toclean.last = 0;
             used = false;
             idthread = -1;
             pushed = false;
             globalTamgu->declempties.push_back(idx);
-            return;
         }
-        delete this;
+        else
+            delete this;
     }
 
-    void Releasing() {
-        Cleaning();
-        if (pushed)
-            globalTamgu->Popstack(idthread);
+    inline void Releasing() {
+        short i;
+        for (i = 0; i < names.last; i++)
+            globalTamgu->Removingvariable(idthread, names.vecteur[i]);
+        
+        for (i = 0; i < toclean.last; i++)
+            toclean.vecteur[i]->Resetreference();
+        
         if (used) {
+            names.last = 0;
+            declarations.last = 0;
+            toclean.last = 0;
             used = false;
             idthread = -1;
             pushed = false;
             globalTamgu->declempties.push_back(idx);
-            return;
         }
-        delete this;
+        else
+            delete this;
     }
     
 
@@ -136,6 +176,62 @@ public:
         if (globalTamgu->debugmode && ins->isTracked()) {
             idinfo = ins->Currentinfo();
         }
+    }
+
+};
+
+class TamguLocalEvaluation : public TamguTracked {
+public:
+
+    Tamgu* declarations;
+    VECTE<Tamgu*> instructions;
+
+    TamguLocalEvaluation(Tamgu* d) : TamguTracked(NULL) {
+        declarations = d;
+    }
+
+    void AddInstruction(Tamgu* a) {
+        instructions.push_back(a);
+    }
+
+    bool isMainFrame() {
+        return declarations->isMainFrame();
+    }
+
+    bool FindAndClean(Tamgu* a) {
+        return declarations->FindAndClean(a);
+    }
+
+    bool hasDeclaration() {
+        return true;
+    }
+
+    bool isEmpty() {
+        return declarations->isEmpty();
+    }
+
+    bool isDeclared(short id) {
+        return declarations->isDeclared(id);
+    }
+
+    void Replacedeclaration(short idthread, short id, Tamgu* a) {
+        declarations->Replacedeclaration(idthread, id, a);
+    }
+
+    char Declarelocal(short idthread, short n, Tamgu* a) {
+        return declarations->Declarelocal(idthread, n, a);
+    }
+
+    void Variables(vector<short>& vars) {
+        return declarations->Variables(vars);
+    }
+
+    void Declare(short id, Tamgu* a) {
+        declarations->Declare(id, a);
+    }
+
+    Tamgu* Declaration(short idname) {
+        return declarations->Declaration(idname);
     }
 
 };
@@ -548,7 +644,7 @@ public:
 	//When we call this function, we actually will create an element of type value
 	virtual Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 	virtual Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);
-	virtual bool Setvalue(Tamgu* index, Tamgu* value, short idthread, bool strict = false);
+	virtual bool Setarguments(TamguDeclarationLocal* index, Tamgu* value, short idthread, bool strict = false);
 
     bool Checkarity();
     
@@ -659,7 +755,7 @@ public:
         directcall=false;
     }
     
-    bool Setvalue(Tamgu* index, Tamgu* value, short idthread, bool strict = false);
+    bool Setarguments(TamguDeclarationLocal* index, Tamgu* value, short idthread, bool strict = false);
 
     Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
     Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);
@@ -705,7 +801,10 @@ class TamguFrameVariableDeclaration : public TamguVariableDeclaration {
 public:
 	bool common;
 
-	TamguFrameVariableDeclaration(TamguGlobal* g, short n, short t, bool p, bool c, Tamgu* parent) : common(c), TamguVariableDeclaration(g, n, t, p, false, parent) {}
+	TamguFrameVariableDeclaration(TamguGlobal* g, short n, short t, bool p, bool c, Tamgu* parent) : common(c), TamguVariableDeclaration(g, n, t, p, false, parent) {
+        if (g != NULL)
+            g->framevariables[n] = this;
+    }
 	Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 
 };
@@ -714,7 +813,10 @@ class TamguFrameAtomicVariableDeclaration : public TamguAtomicVariableDeclaratio
 public:
     bool common;
 
-    TamguFrameAtomicVariableDeclaration(TamguGlobal* g, short n, short t, bool p, bool c, Tamgu* parent) : common(c), TamguAtomicVariableDeclaration(g, n, t, p, false, parent) {}
+    TamguFrameAtomicVariableDeclaration(TamguGlobal* g, short n, short t, bool p, bool c, Tamgu* parent) : common(c), TamguAtomicVariableDeclaration(g, n, t, p, false, parent) {
+        if (g != NULL)
+            g->framevariables[n] = this;
+    }
     
     Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 };
@@ -822,6 +924,8 @@ public:
 	TamguSelfVariableDeclaration(TamguGlobal* g, short n, short tid = a_self, Tamgu* parent = NULL) : TamguVariableDeclaration(g, n, tid, false, false, parent) {}
 	Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 	Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);
+    bool Setarguments(TamguDeclarationLocal* index, Tamgu* value, short idthread, bool strict = false);
+
 
     short Checklettype() {
         //The type of a let variable is set at the beginning
@@ -862,7 +966,7 @@ public:
 
 	bool affectation;
 	bool forced;
-    bool directcall;
+    char directcall;
 	
 	TamguCallVariable(short n, short idt, TamguGlobal* g = NULL, Tamgu* parent = NULL) : directcall(false), forced(false), affectation(false), typevariable(idt), name(n), call(NULL), TamguTracked(a_variable, g, parent) {
         investigate = is_callvariable;

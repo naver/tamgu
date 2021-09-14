@@ -166,7 +166,7 @@ Tamgu* Tamgufile::MethodRead(Tamgu* context, short idthread, TamguCall* callfunc
                 return vect;
             }
 
-            bf = read(nb);
+            readin(bf, nb);
             return globalTamgu->Providewithstring(bf);
         }
     }
@@ -199,7 +199,7 @@ Tamgu* Tamgufile::MethodRead(Tamgu* context, short idthread, TamguCall* callfunc
     }
 
     if (context->isNumber())
-        return globalTamgu->Provideint(get());
+        return globalTamgu->ProvideConstint(get());
 
     bf = read(-1);
     return globalTamgu->Providewithstring(bf);

@@ -100,21 +100,13 @@ static void callresize(int theSignal) {
 		return;
     
     calling = false;
-	TamguCallFunction kfunc(_mysys->function);
+	TamguCallFunction2 kfunc(_mysys->function);
 
-	Tamgu* rs = globalTamgu->Provideint(row_size);
-	Tamgu* cs = globalTamgu->Provideint(col_size);
-
-	kfunc.arguments.push_back(rs);
-	kfunc.arguments.push_back(cs);
+	kfunc.arguments.push_back(globalTamgu->ProvideConstint(row_size));
+	kfunc.arguments.push_back(globalTamgu->ProvideConstint(col_size));
 	
-	rs->Setreference();
-	cs->Setreference();
-
 	kfunc.Eval(aNULL, aNULL, globalTamgu->GetThreadid());
 
-	rs->Resetreference();
-	cs->Resetreference();
     calling = true;
     fflush(stdout);
 }
@@ -798,7 +790,7 @@ Tamgu* Tamgusys::MethodCommand(Tamgu* contextualpattern, short idthread, TamguCa
         }
         else {
             int res = system(lastcommand.c_str());
-            return globalTamgu->Provideint(res);
+            return globalTamgu->ProvideConstint(res);
         }
     }
     //you may return any value of course...
@@ -843,7 +835,7 @@ Tamgu* Tamgusys::MethodListDirectory(Tamgu* contextualpattern, short idthread, T
                 i++;
             }
         }
-        return globalTamgu->Provideint(i);
+        return globalTamgu->ProvideConstint(i);
     }
     
     Tamgu* kvect = Selectasvector(contextualpattern);
@@ -884,7 +876,7 @@ Tamgu* Tamgusys::MethodFileInfo(Tamgu* contextualpattern, short idthread, TamguC
     int stcible = stat(STR(filename), &scible);
 #endif
     if (stcible >= 0) {
-        Tamgu* size = globalTamgu->Provideint(scible.st_size);
+        Tamgu* size = globalTamgu->ProvideConstint(scible.st_size);
         Tamgu* change = new Tamgudate(scible.st_mtime);
         Tamgu* adate = new Tamgudate(scible.st_atime);
         Tamgu* cdate = new Tamgudate(scible.st_ctime);

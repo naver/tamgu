@@ -101,7 +101,7 @@ Exporting Tamgu* Tamgutreemapl::in(Tamgu* context, Tamgu* a, short idthread) {
         try {
             values.at(val);
             unlocking();
-            return new Tamgulong(val);
+            return globalTamgu->Providelong(val);
         }
         catch(const std::out_of_range& oor) {
             unlocking();
@@ -151,7 +151,7 @@ Exporting Tamgu* Tamgutreemapl::MethodFind(Tamgu* context, short idthread, Tamgu
     Locking _lock(this);
     for (auto& it : values) {
         if (it.second->same(a) == aTRUE)
-            return new Tamgulong(it.first);
+            return globalTamgu->Providelong(it.first);
     }
     return aNULL;
 }
@@ -419,6 +419,33 @@ Exporting Tamgu*  Tamgutreemapl::Put(Tamgu* idx, Tamgu* ke, short idthread) {
     return aTRUE;
 }
 
+Exporting Tamgu* Tamgutreemapl::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign) {
+    BLONG skey = key->Getlong(idthread);
+
+    if (globalTamgu->threadMODE) {
+        locking();
+        key = values[skey];
+        if (key == NULL) {
+            if (globalTamgu->erroronkey) {
+                unlocking();
+                return globalTamgu->Returnerror("Wrong index", idthread);
+            }
+            values.erase(skey);
+            key = aNOELEMENT;
+        }
+        unlocking();
+        return key;
+    }
+    
+    key = values[skey];
+    if (key == NULL) {
+        if (globalTamgu->erroronkey)
+            return globalTamgu->Returnerror("Wrong index", idthread);
+        values.erase(skey);
+        key = aNOELEMENT;
+    }
+    return key;
+}
 
 Exporting Tamgu* Tamgutreemapl::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
 
@@ -436,7 +463,7 @@ Exporting Tamgu* Tamgutreemapl::Eval(Tamgu* contextualpattern, Tamgu* idx, short
             locking();
             map<BLONG, Tamgu*>::iterator it;
             for (it = values.begin(); it != values.end(); it++)
-                vect->Push(new Tamgulong(it->first));
+                vect->Push(globalTamgu->Providelong(it->first));
             unlocking();
             return vect;
         }

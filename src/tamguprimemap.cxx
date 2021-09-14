@@ -52,6 +52,9 @@ bool Tamguprimemap::InitialisationModule(TamguGlobal* global, string version) {
     
     Tamguprimemap::idtype = global->Getid("primemap");
     
+    
+    global->minimal_indexes[Tamguprimemap::idtype] = true;
+
     Tamguprimemap::AddMethod(global, "clear", &Tamguprimemap::MethodClear, P_NONE, "clear(): clear the container.");
     
     Tamguprimemap::AddMethod(global, "items", &Tamguprimemap::MethodItems, P_NONE, "items(): Return a vector of {key:value} pairs.");
@@ -442,6 +445,21 @@ Exporting Tamgu*  Tamguprimemap::Put(Tamgu* idx, Tamgu* ke, short idthread) {
 }
 
 
+
+Tamgu* Tamguprimemap::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign) {
+    string skey;
+    key->Setstring(skey, idthread);
+
+    Tamgu* val = Value(skey);
+    if (val == aNOELEMENT) {
+        if (globalTamgu->erroronkey)
+            return globalTamgu->Returnerror("Wrong index", idthread);
+        return aNOELEMENT;
+
+    }
+    return val;
+}
+
 Exporting Tamgu* Tamguprimemap::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
     
     
@@ -465,7 +483,7 @@ Exporting Tamgu* Tamguprimemap::Eval(Tamgu* contextualpattern, Tamgu* idx, short
         
         if (contextualpattern->isNumber()) {
             long v = Size();
-            return globalTamgu->Provideint(v);
+            return globalTamgu->ProvideConstint(v);
         }
         
         return this;
@@ -950,18 +968,11 @@ Exporting Tamgu* Tamguprimemap::Loopin(TamguInstruction* ins, Tamgu* context, sh
     
     prime_hash<string, Tamgu*>::iterator it;
     
-    Tamgu* a;
-    vector<string> keys;
-    
-    for (it=values.begin(); it != values.end(); it++)
-        keys.push_back(it->first);
-    
-    long sz = keys.size();
-    a = aNULL;
+    Tamgu* a = aNULL;
     bool testcond = false;
-    for (long i = 0; i < sz && !testcond; i++) {
+    for (it=values.begin(); it != values.end() && !testcond; it++) {
         a->Releasenonconst();
-        var->storevalue(keys[i]);
+        var->Storevalue(it->first);
         
         a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
         

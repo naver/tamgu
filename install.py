@@ -171,7 +171,7 @@ while i < len(sys.argv):
 versiongcc=versiongcc.strip()
 
 ############################ MAC OS case...
-if ostype=="Darwin":
+if ostype==b"Darwin":
     compilelibs = """
 libs: install
 	$(MAKE) -C allmaps all
@@ -207,7 +207,7 @@ cleanlibs:
     if withgui:
         compilelibs += "\t$(MAKE) -C libgui all\n"
         cleanlibs += "\t$(MAKE) -C libgui clean\n"
-        if "arm64" in ostype:
+        if b"arm64" in ostype:
             incpath += " -Iinclude/macarm/fltk"
         else:
             incpath += " -Iinclude/macos/fltk"
@@ -222,6 +222,7 @@ cleanlibs:
     f=open("Makefile.in","w")
     print("MAC OS", vname)
     f.write("COMPPLUSPLUS = clang++\n")
+    f.write("Optim = -Ofast\n")
     f.write("COMP = clang\n")
     f.write("BINPATH = bin/"+vname+"\n")
     f.write("OBJPATH = objs/"+vname+"\n")
@@ -238,7 +239,7 @@ cleanlibs:
     f.write("TAMGUCONSOLENAME = tamgu\n")
 
     if withgui:
-        if "arm64" in ostype:
+        if b"arm64" in ostype:
             f.write("FLTKLIBS=-Llibs/macarm -lfltk -lfltk_images -lfltk_jpeg\n")
         else:
             f.write("FLTKLIBS=-Llibs/macos -lfltk -lfltk_images\n")
@@ -263,12 +264,15 @@ cleanlibs:
         else:
            f.write("INCLUDEPYTHON = "+pythoninclude+"\n")
         if pythonpath==None:
-           f.write("PYTHONLIB = /Library/Frameworks/Python.framework/Versions/"+pversion+"/Python\n")
+            if os.path.exists("/opt/anaconda3/lib"):
+                f.write("PYTHONLIB = -L/opt/anaconda3/lib -lpython"+pversion+"\n")
+            else:
+                f.write("PYTHONLIB = /Library/Frameworks/Python.framework/Versions/"+pversion+"/Python\n")
         else:
            f.write("PYTHONLIB = "+pythonpath+"\n")
 
     # AVX instructions are not available on arm64 machines
-    if "arm64" in ostype:
+    if b"arm64" in ostype:
         f.write("C++11Flag = -std=c++14 -DTamgu_REGEX -DMAVERICK -DAPPLE -DFLTK14\n")
         f.write("INTELINT =\n")
     else:
@@ -434,6 +438,7 @@ else:
 f=open("Makefile.in","w")
 
 f.write("TAMGUCONSOLENAME = tamguconsole\n")
+f.write("Optim = -O3\n")
 
 if avx2:
     f.write("INTELINT = -DINTELINTRINSICS -msse4.2 -mavx2 -DAVXSUPPORT\n")

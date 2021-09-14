@@ -43,31 +43,31 @@ void Tamguhvector::AddMethod(TamguGlobal* global, string name, hvectorMethod fun
 
 
 
-    void Tamguhvector::Setidtype(TamguGlobal* global) {
+void Tamguhvector::Setidtype(TamguGlobal* global) {
     Tamguhvector::InitialisationModule(global,"");
 }
 
 
-   bool Tamguhvector::InitialisationModule(TamguGlobal* global, string version) {
+bool Tamguhvector::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
     infomethods.clear();
     exported.clear();
-
+    
     Tamguhvector::idtype = global->Getid("hvector");
-
+    
     Tamguhvector::AddMethod(global, "reverse", &Tamguhvector::MethodReverse, P_NONE, "reverse(): reverse a vector.");
     Tamguhvector::AddMethod(global, "reserve", &Tamguhvector::MethodReserve, P_ONE, "reserve(int sz): Reserve a size of 'sz' potential element in the vector.");
     Tamguhvector::AddMethod(global, "unique", &Tamguhvector::MethodUnique, P_NONE, "unique(): remove duplicate elements.");
-
+    
     Tamguhvector::AddMethod(global, "remove", &Tamguhvector::MethodRemove, P_ONE, "remove(short e): remove 'e' from the vector.");
-
+    
     Tamguhvector::AddMethod(global, "last", &Tamguhvector::MethodLast, P_NONE, "last(): return the last element.");
     Tamguhvector::AddMethod(global, "join", &Tamguhvector::MethodJoin, P_ONE, "join(string sep): Produce a string representation for the container.");
-
+    
     Tamguhvector::AddMethod(global, "shuffle", &Tamguhvector::MethodShuffle, P_NONE, "shuffle(): shuffle the values in the vector.");
     Tamguhvector::AddMethod(global, "sort", &Tamguhvector::MethodSort, P_ONE, "sort(bool reverse): sort the elements within.");
     Tamguhvector::AddMethod(global, "sum", &Tamguhvector::MethodSum, P_NONE, "sum(): return the sum of elements.");
-
+    
     Tamguhvector::AddMethod(global, "product", &Tamguhvector::MethodProduct, P_NONE, "product(): return the product of elements.");
     Tamguhvector::AddMethod(global, "push", &Tamguhvector::MethodPush, P_ATLEASTONE, "push(v): Push a value into the vector.");
     Tamguhvector::AddMethod(global, "pop", &Tamguhvector::MethodPop, P_NONE | P_ONE, "pop(int i): Erase an element from the vector");
@@ -75,14 +75,16 @@ void Tamguhvector::AddMethod(TamguGlobal* global, string name, hvectorMethod fun
     Tamguhvector::AddMethod(global, "merge", &Tamguhvector::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
     Tamguhvector::AddMethod(global, "editdistance", &Tamguhvector::MethodEditDistance, P_ONE, "editdistance(v): Compute the edit distance with vector 'v'.");
     Tamguhvector::AddMethod(global, "insert", &Tamguhvector::MethodInsert, P_TWO, "insert(int i,v): Insert v at position i.");
-
+    
     Tamguhvector::AddMethod(global, "permute", &Tamguhvector::MethodPermute, P_NONE, "permute(): permute the values in the vector after each call.");
-
+    
+    global->minimal_indexes[Tamguhvector::idtype] = true;
+    
     if (version != "") {
         global->newInstance[Tamguhvector::idtype] = new Tamguhvector(global);
         global->RecordMethods(Tamguhvector::idtype,Tamguhvector::exported);
     }
-
+    
     return true;
 }
 
@@ -114,7 +116,7 @@ Exporting Tamgu* Tamguhvector::in(Tamgu* context, Tamgu* a, short idthread) {
         for (size_t i = 0; i < values.size(); i++) {
             if (values[i] == val) {
                 unlocking();
-                return globalTamgu->Provideint(i);
+                return globalTamgu->ProvideConstint(i);
             }
         }
         unlocking();
@@ -562,6 +564,26 @@ Exporting Tamgu* Tamguhvector::Unique() {
     return kvect;
 }
 
+Tamgu* Tamguhvector::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign) {
+    long ikey;
+    ikey = key->Getinteger(idthread);
+    if (ikey < 0)
+        ikey = values.size() + ikey;
+    
+    locking();
+    if (ikey < 0 || ikey >= values.size()) {
+        if (ikey != values.size()) {
+            unlocking();
+            if (globalTamgu->erroronkey)
+                return globalTamgu->Returnerror("Wrong index", idthread);
+            return aNOELEMENT;
+        }
+    }
+    
+    key =  new Tamgushort(values[ikey]);
+    unlocking();
+    return key;
+}
 
 Exporting Tamgu* Tamguhvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
 
@@ -582,7 +604,7 @@ Exporting Tamgu* Tamguhvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
         }
 
         if (contextualpattern->Type() == a_int || contextualpattern->Type() == a_short)
-            return globalTamgu->Provideint(values.size());
+            return globalTamgu->ProvideConstint(values.size());
         return this;
     }
 
@@ -1187,7 +1209,7 @@ Exporting Tamgu* Tamguhvector::Filter(short idthread, Tamgu* env, TamguFunctionL
 
 class HComp {
     public:
-    TamguCallFunction compare;
+    TamguCallFunction2 compare;
     short idthread;
     TamguConstShort p;
     TamguConstShort s;

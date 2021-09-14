@@ -20,6 +20,7 @@
 class TamguActionVariable;
 class TamguCallFunction;
 class TamguFunctionLambda;
+class TamguLocalEvaluation;
 
 //TamguCode is a class in which programs are loaded...
 class TamguCode {
@@ -115,11 +116,13 @@ public:
 	bool Load(x_reading& xr);
 	bool Compile(string& code);
 	Tamgu* Compilefunction(string& code, short idthread);
+    Tamgu* CompileExpression(string& code, short idthread);
 
 	bool Loadlibrary(string n, string& library_name);
 	//------------------------------
     Tamgu* Run(bool glock = false);
 	Tamgu* Execute(long i, short idthread);
+    Tamgu* ExecuteExpression(TamguLocalEvaluation& local, short idthread);
 	Tamgu* Loading();
 	//---------------------------------------------
 	Tamgu* Declaror(short id);
@@ -150,6 +153,7 @@ public:
 	Tamgu* C_multideclaration(x_node*, Tamgu*);
 	Tamgu* C_subfunc(x_node*, Tamgu*);
 	Tamgu* C_variable(x_node*, Tamgu*);
+    Tamgu* C_framevariable(x_node*, Tamgu*);
 	bool isaFunction(string& name, short id);
 	Tamgu* C_regularcall(x_node*, Tamgu*);
 	Tamgu* C_taskellcall(x_node*, Tamgu*);

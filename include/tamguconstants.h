@@ -38,9 +38,9 @@ const uchar b_letself = b_int | b_float | b_string;
 const uchar b_longdecimal = b_long | b_decimal;
 const uchar b_floats = b_decimal | b_float;
 //--------------------------------------------------------------------
-#define _setdebugfull(i,j) Tamgudebug* _d=NULL; bool _db = globalTamgu->debugmode; if (_db) _d=new Tamgudebug(i,j)
-#define _setdebugmin(i) Tamgudebug* _d=NULL; bool _db = globalTamgu->debugmode; if (_db) _d=new Tamgudebug(i)
-#define _debugpush(i) globalTamgu->Current(i, idthread); if (_db) _d->push()
+#define _setdebugfull(i,j) Tamgudebug* _d=NULL; bool _db = globalTamgu->debugmode; if (_db) _d=new Tamgudebug(i,j); Tamgu** _current_ = globalTamgu->Currentinstruction(idthread)
+#define _setdebugmin(i) Tamgudebug* _d=NULL; bool _db = globalTamgu->debugmode; if (_db) _d=new Tamgudebug(i); Tamgu** _current_ = globalTamgu->Currentinstruction(idthread)
+#define _debugpush(i) *_current_ = i; if (_db) _d->push()
 #define _debugpop() if (_db) _d->pop()
 #define _cleandebugfull if (_db) delete _d
 #define _cleandebugmin if (_db) delete _d
@@ -211,40 +211,11 @@ extern Exchanging Tamgu* aUNIVERSAL;
 extern Exchanging Tamgu* aTRUE;
 extern Exchanging Tamgu* aFALSE;
 
-extern Exchanging Tamgu* aMINUSTEN;
-extern Exchanging Tamgu* aMINUSNINE;
-extern Exchanging Tamgu* aMINUSEIGHT;
-extern Exchanging Tamgu* aMINUSSEVEN;
-extern Exchanging Tamgu* aMINUSSIX;
-extern Exchanging Tamgu* aMINUSFIVE;
-extern Exchanging Tamgu* aMINUSFOUR;
-extern Exchanging Tamgu* aMINUSTHREE;
-extern Exchanging Tamgu* aMINUSTWO;
 extern Exchanging Tamgu* aMINUSONE;
 extern Exchanging Tamgu* aZEROPOINTZERO;
 extern Exchanging Tamgu* aZERO;
 extern Exchanging Tamgu* aONE;
-extern Exchanging Tamgu* aTWO;
-extern Exchanging Tamgu* aTHREE;
-extern Exchanging Tamgu* aFOUR;
-extern Exchanging Tamgu* aFIVE;
-extern Exchanging Tamgu* aSIX;
-extern Exchanging Tamgu* aSEVEN;
-extern Exchanging Tamgu* aEIGHT;
-extern Exchanging Tamgu* aNINE;
-extern Exchanging Tamgu* aTEN;
-extern Exchanging Tamgu* aELEVEN;
-extern Exchanging Tamgu* aTWELVE;
-extern Exchanging Tamgu* aTHIRTEEN;
-extern Exchanging Tamgu* aFOURTEEN;
-extern Exchanging Tamgu* aFIFTEEN;
-extern Exchanging Tamgu* aSIXTEEN;
-extern Exchanging Tamgu* aSEVENTEEN;
-extern Exchanging Tamgu* aEIGHTEEN;
-extern Exchanging Tamgu* aNINETEEN;
-extern Exchanging Tamgu* aTWENTY;
-extern Exchanging Tamgu* aTHIRTYTWO;
-extern Exchanging Tamgu* aSIXTYFOUR;
+
 
 extern Exchanging Tamgu* aEMPTYLISP;
 extern Exchanging Tamgu* aEMPTYSTRING;

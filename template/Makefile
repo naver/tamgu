@@ -8,7 +8,7 @@ LOBJPATH = ../$(LIBOBJPATH)
 #------------------------------------------------------------
 object%1 = $(source%1:%.cxx=$(LOBJPATH)/%1/%.o)
 #------------------------------------------------------------
-TamguBASICFLAGS = -w -c -fPIC -O3 -DUNIX $(MULTIGA) $(INTELINT) $(REGEX) $(SPECFLAGS)
+TamguBASICFLAGS = -w -c -fPIC $(Optim) -DUNIX $(MULTIGA) $(INTELINT) $(REGEX) $(SPECFLAGS)
 TamguCFLAGS = -std=c99 $(TamguBASICFLAGS)
 TamguFLAGS = $(C++11Flag) $(TamguBASICFLAGS)
 TAMGULIBPATH = ../$(BINPATH)

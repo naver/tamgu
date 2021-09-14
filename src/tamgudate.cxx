@@ -339,7 +339,7 @@ Tamgu* Tamgudate::MethodYear(Tamgu* contextualpattern, short idthread, TamguCall
     }
 
     vl = temps.tm_year + 1900;
-    return globalTamgu->Provideint(vl);
+    return globalTamgu->ProvideConstint(vl);
 }
 
 Tamgu* Tamgudate::MethodMonth(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -355,7 +355,7 @@ Tamgu* Tamgudate::MethodMonth(Tamgu* contextualpattern, short idthread, TamguCal
         return aTRUE;
     }
     vl = temps.tm_mon + 1;
-    return globalTamgu->Provideint(vl);
+    return globalTamgu->ProvideConstint(vl);
 }
 
 Tamgu* Tamgudate::MethodDay(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -373,7 +373,7 @@ Tamgu* Tamgudate::MethodDay(Tamgu* contextualpattern, short idthread, TamguCall*
     }
 
     vl = temps.tm_mday;
-    return globalTamgu->Provideint(vl);
+    return globalTamgu->ProvideConstint(vl);
 }
 
 Tamgu* Tamgudate::MethodHour(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -388,7 +388,7 @@ Tamgu* Tamgudate::MethodHour(Tamgu* contextualpattern, short idthread, TamguCall
         return aTRUE;
     }
 
-    return globalTamgu->Provideint(temps.tm_hour);
+    return globalTamgu->ProvideConstint(temps.tm_hour);
 }
 
 Tamgu* Tamgudate::MethodMinute(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -402,7 +402,7 @@ Tamgu* Tamgudate::MethodMinute(Tamgu* contextualpattern, short idthread, TamguCa
         value = mktime(&temps);
         return aTRUE;
     }
-    return globalTamgu->Provideint(temps.tm_min);
+    return globalTamgu->ProvideConstint(temps.tm_min);
 }
 
 Tamgu* Tamgudate::MethodSecond(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -416,7 +416,7 @@ Tamgu* Tamgudate::MethodSecond(Tamgu* contextualpattern, short idthread, TamguCa
         value = mktime(&temps);
         return aTRUE;
     }
-    return globalTamgu->Provideint(temps.tm_sec);
+    return globalTamgu->ProvideConstint(temps.tm_sec);
 }
 
 Tamgu* Tamgudate::MethodWeekday(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -424,7 +424,7 @@ Tamgu* Tamgudate::MethodWeekday(Tamgu* contextualpattern, short idthread, TamguC
     struct tm temps;
     localtime_s(&temps, &value);
     int vl = temps.tm_wday;
-    return globalTamgu->Provideint(vl);
+    return globalTamgu->ProvideConstint(vl);
 }
 
 Tamgu* Tamgudate::MethodYearday(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -432,7 +432,7 @@ Tamgu* Tamgudate::MethodYearday(Tamgu* contextualpattern, short idthread, TamguC
     struct tm temps;
     localtime_s(&temps, &value);
     int vl = temps.tm_yday;
-    return globalTamgu->Provideint(vl);
+    return globalTamgu->ProvideConstint(vl);
 }
 
 Tamgu* Tamgudate::MethodFormat(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -457,7 +457,7 @@ Tamgu* Tamgudate::MethodYear(Tamgu* contextualpattern, short idthread, TamguCall
     }
 
     vl = temps->tm_year + 1900;
-    return globalTamgu->Provideint(vl);
+    return globalTamgu->ProvideConstint(vl);
 }
 
 Tamgu* Tamgudate::MethodMonth(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -472,7 +472,7 @@ Tamgu* Tamgudate::MethodMonth(Tamgu* contextualpattern, short idthread, TamguCal
         return aTRUE;
     }
     vl = temps->tm_mon + 1;
-    return globalTamgu->Provideint(vl);
+    return globalTamgu->ProvideConstint(vl);
 }
 
 Tamgu* Tamgudate::MethodDay(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -489,7 +489,7 @@ Tamgu* Tamgudate::MethodDay(Tamgu* contextualpattern, short idthread, TamguCall*
     }
 
     vl = temps->tm_mday;
-    return globalTamgu->Provideint(vl);
+    return globalTamgu->ProvideConstint(vl);
 }
 
 Tamgu* Tamgudate::MethodHour(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -503,7 +503,7 @@ Tamgu* Tamgudate::MethodHour(Tamgu* contextualpattern, short idthread, TamguCall
         return aTRUE;
     }
 
-    return globalTamgu->Provideint(temps->tm_hour);
+    return globalTamgu->ProvideConstint(temps->tm_hour);
 }
 
 Tamgu* Tamgudate::MethodMinute(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -516,7 +516,7 @@ Tamgu* Tamgudate::MethodMinute(Tamgu* contextualpattern, short idthread, TamguCa
         value = mktime(temps);
         return aTRUE;
     }
-    return globalTamgu->Provideint(temps->tm_min);
+    return globalTamgu->ProvideConstint(temps->tm_min);
 }
 
 Tamgu* Tamgudate::MethodSecond(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -529,21 +529,21 @@ Tamgu* Tamgudate::MethodSecond(Tamgu* contextualpattern, short idthread, TamguCa
         value = mktime(temps);
         return aTRUE;
     }
-    return globalTamgu->Provideint(temps->tm_sec);
+    return globalTamgu->ProvideConstint(temps->tm_sec);
 }
 
 Tamgu* Tamgudate::MethodWeekday(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     //First parameter is a string
     struct tm* temps = localtime(&value);
     int vl = temps->tm_wday;
-    return globalTamgu->Provideint(vl);
+    return globalTamgu->ProvideConstint(vl);
 }
 
 Tamgu* Tamgudate::MethodYearday(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     //First parameter is a string
     struct tm* temps = localtime(&value);
     int vl = temps->tm_yday;
-    return globalTamgu->Provideint(vl);
+    return globalTamgu->ProvideConstint(vl);
 }
 
 Tamgu* Tamgudate::MethodFormat(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {

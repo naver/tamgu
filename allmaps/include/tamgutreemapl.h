@@ -62,7 +62,7 @@ class Tamgutreemapl : public TamguObjectLockContainer {
     Exporting Tamgu* Loopin(TamguInstruction*, Tamgu* context, short idthread);
     Exporting Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);
     Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
-
+    Exporting Tamgu* EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign);
     void SetConst() { isconst = true;}
 
     short Type() {
@@ -258,7 +258,7 @@ class Tamgutreemapl : public TamguObjectLockContainer {
         Tamgu* a;
 
         for (auto& it : values) {
-            a = new Tamgulong(it.first);
+            a = globalTamgu->Providelong(it.first);
             contextualpattern->Push(it.second, a);
             a->Release();
         }
@@ -441,73 +441,112 @@ class Tamgutreemapl : public TamguObjectLockContainer {
     Exporting string String();
     Exporting string JSonString();
 
-    Tamgu* Value(string& v) {
-        BLONG n = convertlong(v);
+    Tamgu* Value(string& val) {
+        BLONG n = convertlong(val);
         
-        locking();
-        try {
-            Tamgu* res = values.at(n);
+        Tamgu* v;
+        if (globalTamgu->threadMODE) {
+            locking();
+            v = values[n];
+            if (v == NULL) {
+                values.erase(n);
+                v = aNOELEMENT;
+            }
             unlocking();
-            return res;
+            return v;
         }
-        catch (const std::out_of_range& oor) {
-            unlocking();
+        
+        v = values[n];
+        if (v == NULL) {
+            values.erase(n);
             return aNOELEMENT;
         }
+        return v;
     }
     
     Tamgu* Value(Tamgu* a) {
         BLONG n =  a->Long();
-        
-        locking();
-        try {
-            Tamgu* res = values.at(n);
+        Tamgu* v;
+        if (globalTamgu->threadMODE) {
+            locking();
+            v = values[n];
+            if (v == NULL) {
+                values.erase(n);
+                v = aNOELEMENT;
+            }
             unlocking();
-            return res;
+            return v;
         }
-        catch (const std::out_of_range& oor) {
-            unlocking();
+        
+        v = values[n];
+        if (v == NULL) {
+            values.erase(n);
             return aNOELEMENT;
         }
+        return v;
     }
     
     Tamgu* Value(BLONG n) {
-        locking();
-        try {
-            Tamgu* res = values.at(n);
+        Tamgu* v;
+        if (globalTamgu->threadMODE) {
+            locking();
+            v = values[n];
+            if (v == NULL) {
+                values.erase(n);
+                v = aNOELEMENT;
+            }
             unlocking();
-            return res;
+            return v;
         }
-        catch (const std::out_of_range& oor) {
-            unlocking();
+        
+        v = values[n];
+        if (v == NULL) {
+            values.erase(n);
             return aNOELEMENT;
         }
+        return v;
     }
     
     Tamgu* Value(long n) {
-        locking();
-        try {
-            Tamgu* res = values.at(n);
+        Tamgu* v;
+        if (globalTamgu->threadMODE) {
+            locking();
+            v = values[n];
+            if (v == NULL) {
+                values.erase(n);
+                v = aNOELEMENT;
+            }
             unlocking();
-            return res;
+            return v;
         }
-        catch (const std::out_of_range& oor) {
-            unlocking();
+        
+        v = values[n];
+        if (v == NULL) {
+            values.erase(n);
             return aNOELEMENT;
         }
+        return v;
     }
     
     Tamgu* Value(double n) {
-        locking();
-        try {
-            Tamgu* res = values.at(n);
+        Tamgu* v;
+        if (globalTamgu->threadMODE) {
+            locking();
+            v = values[n];
+            if (v == NULL) {
+                values.erase(n);
+                v = aNOELEMENT;
+            }
             unlocking();
-            return res;
+            return v;
         }
-        catch (const std::out_of_range& oor) {
-            unlocking();
+        
+        v = values[n];
+        if (v == NULL) {
+            values.erase(n);
             return aNOELEMENT;
         }
+        return v;
     }
 
     Exporting long Integer();
@@ -553,7 +592,7 @@ class TamguIterationtreemapl : public TamguIteration {
     }
 
     Tamgu* Key() {
-        return new Tamgulong(it->first);
+        return globalTamgu->Providelong(it->first);
     }
 
     Tamgu* Value() {

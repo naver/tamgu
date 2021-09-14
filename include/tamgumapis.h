@@ -66,6 +66,8 @@ class Tamgumapis : public TamguLockContainer {
     //----------------------------------------------------------------------------------------------------------------------
     Exporting Tamgu* Loopin(TamguInstruction* ins, Tamgu* context, short idthread);
     Exporting Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);
+
+    Tamgu* EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign);
     Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 
     void SetConst() { isconst = true;}
@@ -182,9 +184,8 @@ class Tamgumapis : public TamguLockContainer {
         Tamgu* a;
 
         for (auto& it : values) {
-            a = globalTamgu->Provideint(it.first);
+            a = globalTamgu->ProvideConstint(it.first);
             contextualpattern->Push(it.second, a);
-            a->Release();
         }
 
         return contextualpattern;
@@ -436,7 +437,7 @@ class TamguIterationmapis : public TamguIteration {
     }
 
     Tamgu* Key() {
-        return globalTamgu->Provideint(it->first);
+        return globalTamgu->ProvideConstint(it->first);
     }
 
     

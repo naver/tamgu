@@ -56,7 +56,7 @@ bool store_pattern(uchar,wstring&);
 Tamgu* ProcThreadhandle(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
 Tamgu* ProcThreadid(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-    return globalTamgu->Provideint(idthread);
+    return globalTamgu->ProvideConstint(idthread);
 }
 
 Tamgu* ProcNbthreads(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -71,14 +71,14 @@ Tamgu* ProcRandom(Tamgu* contextualpattern, short idthread, TamguCall* callfunc)
     long mx = 100;
     if (callfunc->Size() == 1)
         mx = callfunc->Evaluate(0, aNULL, idthread)->Float();
-    return globalTamgu->Providefloat(localrandom(mx));
+    return globalTamgu->ProvideConstfloat(localrandom(mx));
 }
 
 Tamgu* Proca_Random(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     long mx = 100;
     if (callfunc->Size() == 1)
         mx = callfunc->Evaluate(0, aNULL, idthread)->Float();
-    return globalTamgu->Providefloat(a_localrandom(mx));
+    return globalTamgu->ProvideConstfloat(a_localrandom(mx));
 }
 
 Tamgu* Proc_uniform_int(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -99,7 +99,7 @@ Tamgu* Proc_uniform_int(Tamgu* contextualpattern, short idthread, TamguCall* cal
 
     std::uniform_int_distribution<long> dis(alpha, beta);
     if (nb == 1)
-        return globalTamgu->Provideint((long)dis(gen));
+        return globalTamgu->ProvideConstint((long)dis(gen));
 
     Tamguivector* iv = (Tamguivector*)Selectaivector(contextualpattern);
     
@@ -127,7 +127,7 @@ Tamgu* Proc_uniform_real(Tamgu* contextualpattern, short idthread, TamguCall* ca
 
     std::uniform_real_distribution<double> d(alpha, beta);
     if (nb == 1)
-        return globalTamgu->Providefloat((double)d(gen));
+        return globalTamgu->ProvideConstfloat((double)d(gen));
 
     Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
     
@@ -155,7 +155,7 @@ Tamgu* Proc_binomial_distribution(Tamgu* contextualpattern, short idthread, Tamg
 
     std::binomial_distribution<long> dis(alpha, beta);
     if (nb == 1)
-        return globalTamgu->Provideint((long)dis(gen));
+        return globalTamgu->ProvideConstint((long)dis(gen));
 
     Tamguivector* iv = (Tamguivector*)Selectaivector(contextualpattern);
     
@@ -178,7 +178,7 @@ Tamgu* Proc_bernoulli_distribution(Tamgu* contextualpattern, short idthread, Tam
     
     std::bernoulli_distribution d(alpha);
     if (nb == 1)
-        return globalTamgu->Provideint((long)d(gen));
+        return globalTamgu->ProvideConstint((long)d(gen));
 
     Tamguivector* iv = (Tamguivector*)Selectaivector(contextualpattern);
     
@@ -207,7 +207,7 @@ Tamgu* Proc_normal_distribution(Tamgu* contextualpattern, short idthread, TamguC
 
     std::normal_distribution<double> d(alpha, beta);
     if (nb == 1)
-        return globalTamgu->Providefloat((double)d(gen));
+        return globalTamgu->ProvideConstfloat((double)d(gen));
 
     Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
 
@@ -236,7 +236,7 @@ Tamgu* Proc_negative_binomial_distribution(Tamgu* contextualpattern, short idthr
 
     std::negative_binomial_distribution<long> d(alpha, beta);
     if (nb == 1)
-        return globalTamgu->Provideint((long)d(gen));
+        return globalTamgu->ProvideConstint((long)d(gen));
 
     Tamguivector* iv = (Tamguivector*)Selectaivector(contextualpattern);
 
@@ -322,7 +322,7 @@ Tamgu* Proc_discrete_distribution(Tamgu* contextualpattern, short idthread, Tamg
     std::discrete_distribution<long> d(vect.begin(), vect.end());
 #endif
     if (nb == 1)
-        return globalTamgu->Provideint((long)d(gen));
+        return globalTamgu->ProvideConstint((long)d(gen));
 
     Tamguivector* iv = (Tamguivector*)Selectaivector(contextualpattern);
 
@@ -363,7 +363,7 @@ Tamgu* Proc_piecewise_constant_distribution(Tamgu* contextualpattern, short idth
 
     std::piecewise_constant_distribution<double> d(vect.begin(), vect.end(), inter.begin());
     if (nb == 1)
-        return globalTamgu->Providefloat((double)d(gen));
+        return globalTamgu->ProvideConstfloat((double)d(gen));
 
     Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
 
@@ -403,7 +403,7 @@ Tamgu* Proc_piecewise_linear_distribution(Tamgu* contextualpattern, short idthre
 
     std::piecewise_linear_distribution<double> d(vect.begin(), vect.end(), inter.begin());
     if (nb == 1)
-        return globalTamgu->Providefloat((double)d(gen));
+        return globalTamgu->ProvideConstfloat((double)d(gen));
 
     Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
 
@@ -434,7 +434,7 @@ Tamgu* Proc_lognormal_distribution(Tamgu* contextualpattern, short idthread, Tam
     std::lognormal_distribution<double> d(alpha, beta);
 
     if (nb == 1)
-        return globalTamgu->Providefloat((double)d(gen));
+        return globalTamgu->ProvideConstfloat((double)d(gen));
 
     Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
     
@@ -456,7 +456,7 @@ Tamgu* Proc_geometric_distribution(Tamgu* contextualpattern, short idthread, Tam
     
     std::geometric_distribution<long> d(alpha);
     if (nb == 1)
-        return globalTamgu->Provideint((long)d(gen));
+        return globalTamgu->ProvideConstint((long)d(gen));
 
     Tamguivector* iv = (Tamguivector*)Selectaivector(contextualpattern);
 
@@ -486,7 +486,7 @@ Tamgu* Proc_cauchy_distribution(Tamgu* contextualpattern, short idthread, TamguC
     std::cauchy_distribution<double> d(alpha, beta);
 
     if (nb == 1)
-        return globalTamgu->Providefloat((double)d(gen));
+        return globalTamgu->ProvideConstfloat((double)d(gen));
 
     Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
 
@@ -515,7 +515,7 @@ Tamgu* Proc_fisher_distribution(Tamgu* contextualpattern, short idthread, TamguC
 
     std::fisher_f_distribution<double> d(alpha, beta);
     if (nb == 1)
-        return globalTamgu->Providefloat((double)d(gen));
+        return globalTamgu->ProvideConstfloat((double)d(gen));
 
     Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
 
@@ -540,7 +540,7 @@ Tamgu* Proc_student_distribution(Tamgu* contextualpattern, short idthread, Tamgu
 
     std::student_t_distribution<double> d(alpha);
     if (nb == 1)
-        return globalTamgu->Providefloat((double)d(gen));
+        return globalTamgu->ProvideConstfloat((double)d(gen));
 
     Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
 
@@ -569,7 +569,7 @@ Tamgu* Proc_extreme_value_distribution(Tamgu* contextualpattern, short idthread,
 
     std::extreme_value_distribution<double> d(alpha, beta);
     if (nb == 1)
-        return globalTamgu->Providefloat((double)d(gen));
+        return globalTamgu->ProvideConstfloat((double)d(gen));
 
     Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
 
@@ -594,7 +594,7 @@ Tamgu* Proc_poisson_distribution(Tamgu* contextualpattern, short idthread, Tamgu
 
     std::poisson_distribution<long> d(alpha);
     if (nb == 1)
-        return globalTamgu->Provideint((long)d(gen));
+        return globalTamgu->ProvideConstint((long)d(gen));
 
     Tamguivector* iv = (Tamguivector*)Selectaivector(contextualpattern);
 
@@ -636,7 +636,7 @@ Tamgu* Proc_gamma_distribution(Tamgu* contextualpattern, short idthread, TamguCa
 
     std::gamma_distribution<double> d(alpha, beta);
     if (nb == 1)
-        return globalTamgu->Providefloat((double)d(gen));
+        return globalTamgu->ProvideConstfloat((double)d(gen));
 
     Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
 
@@ -665,7 +665,7 @@ Tamgu* Proc_weibull_distribution(Tamgu* contextualpattern, short idthread, Tamgu
 
     std::weibull_distribution<double> d(alpha, beta);
     if (nb == 1)
-        return globalTamgu->Providefloat((double)d(gen));
+        return globalTamgu->ProvideConstfloat((double)d(gen));
 
     Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
 
@@ -691,7 +691,7 @@ Tamgu* Proc_chi_squared_distribution(Tamgu* contextualpattern, short idthread, T
 
     std::chi_squared_distribution<double> d(alpha);
     if (nb == 1)
-        return globalTamgu->Providefloat((double)d(gen));
+        return globalTamgu->ProvideConstfloat((double)d(gen));
 
     Tamgufvector* iv = (Tamgufvector*)Selectafvector(contextualpattern);
 
@@ -781,6 +781,70 @@ Tamgu* ProcAllObjects(Tamgu* contextualpattern, short idthread, TamguCall* callf
     return vs;
 }
 
+Tamgu* ProcAllObjectByType(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    map<string, bool> inter;
+    Tamgusvector* vs = globalTamgu->Providesvector();
+    
+    globalTamgu->TamguAllObjects(vs->values);
+    for (long i = 0; i < vs->values.size(); i++)
+        inter[vs->values[i]] = true;
+    
+    Tamgumap* m = (Tamgumap*)Selectamap(contextualpattern);
+    vs->values.clear();
+
+    bin_hash<Tamgu*>::iterator it;
+    string value;
+    for (it = globalTamgu->newInstance.begin(); it != globalTamgu->newInstance.end(); it++) {
+        value = globalTamgu->Getsymbol(it->first);
+        vs->values.push_back(value);
+        inter[value] = false;
+    }
+    value = "types";
+    m->pushing(value, vs);
+    
+    vs = globalTamgu->Providesvector();
+    bin_hash<unsigned long>::iterator itl;
+    for (itl = globalTamgu->allmethods.begin(); itl != globalTamgu->allmethods.end(); itl++) {
+        if (globalTamgu->procedures.check(itl->first))
+            continue;
+        value = globalTamgu->Getsymbol(itl->first);
+        vs->values.push_back(value);
+        inter[value] = false;
+    }
+    bin_hash<TamguProcedure>::iterator itp;
+    for (itp = globalTamgu->commons.begin(); itp != globalTamgu->commons.end(); itp++) {
+        if (!itp->first)
+            continue;
+        value = globalTamgu->Getsymbol(itp->first);
+        vs->values.push_back(value);
+        inter[value] = false;
+    }
+    value = "methods";
+    m->pushing(value, vs);
+    
+    vs = globalTamgu->Providesvector();
+    for (itp = globalTamgu->procedures.begin(); itp != globalTamgu->procedures.end(); itp++) {
+        if (!itp->first || globalTamgu->newInstance.check(itp->first))
+            continue;
+        value = globalTamgu->Getsymbol(itp->first);
+        vs->values.push_back(value);
+        inter[value] = false;
+    }
+    
+    value = "procedures";
+    m->pushing(value, vs);
+    
+    vs = globalTamgu->Providesvector();
+    for (auto& it : inter) {
+        if (it.second)
+            vs->values.push_back(it.first);
+    }
+    value = "instructions";
+    m->pushing(value, vs);
+
+    return m;
+}
+
 //------------------------------------------------------------------------------------------------------------------------
 #ifdef GARBAGEFORDEBUG
 void Garbaging(vector<Tamgu*>& issues, vector<long>& idissues);
@@ -841,7 +905,7 @@ Tamgu* ProcPoolStats(Tamgu* context, short idthread, TamguCall* callfunc) {
 Tamgu* ProcBreakPoint(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     long i = callfunc->Evaluate(0, aNULL, idthread)->Integer();
 
-    return globalTamgu->Provideint(i);
+    return globalTamgu->ProvideConstint(i);
 }
 //------------------------------------------------------------------------------------------------------------------------
 
@@ -1060,12 +1124,20 @@ Tamgu* ProcEval(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     string code = callfunc->Evaluate(0, contextualpattern, idthread)->String();
 
     Locking _lock(globalTamgu);
+    TamguCode* acode = globalTamgu->Getcurrentcode();
+    Tamgu* topstack = globalTamgu->Topstack(idthread);
+    
+    if (callfunc->Size() == 2) {
+        if (callfunc->Evaluate(1, contextualpattern, idthread)->Boolean())
+            topstack = &acode->mainframe;
+    }
+
+    TamguLocalEvaluation local(topstack);
+    
     //Return the current position in the garbage and set the condition to record
     //new elements...
     //We switch to threadMODE so that Provide will create elements and not store them
     long position = initialize_local_garbage(idthread);
-    TamguCode* acode = globalTamgu->Getcurrentcode();
-    long lastinstruction = acode->InstructionSize();
     Tamgu* ci = globalTamgu->threads[idthread].currentinstruction;
     
     if (code.find(";") == -1 && code.find("{") == -1)
@@ -1073,9 +1145,12 @@ Tamgu* ProcEval(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 
     long lastrecorded = globalTamgu->Trackedsize();
 
-    Tamgu* compiled = acode->Compilefunction(code, idthread);
+    globalTamgu->Pushstack(&local, idthread);
+    Tamgu* compiled = acode->CompileExpression(code, idthread);
+    globalTamgu->Popstack(idthread);
+    
     if (compiled == NULL || compiled->isError() || globalTamgu->Error(idthread)) {
-        clean_from_garbage_position(idthread, position, compiled, lastrecorded);
+        clean_from_garbage_position(topstack, idthread, position, compiled, lastrecorded);
         globalTamgu->threads[idthread].currentinstruction = ci;
         if (compiled != NULL && compiled->isError())
             return compiled;
@@ -1089,16 +1164,68 @@ Tamgu* ProcEval(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         return compiled;
     }
 
+    long maxrecorded = globalTamgu->threads[idthread].localgarbage.size();
+
     acode->compilemode = true;
     globalTamgu->threads[idthread].currentinstruction = ci;
-    Tamgu* a = acode->Execute(lastinstruction, idthread);
+    Tamgu* a = acode->ExecuteExpression(local,idthread);
     globalTamgu->threads[idthread].currentinstruction = ci;
 
-    clean_from_garbage_position(idthread, position, a, lastrecorded);
+    clean_from_garbage_position(topstack, idthread, position, a, lastrecorded, maxrecorded);
     return a;
 }
 
+void TraverseFrame(string& name, Tamgumap* values, Tamgu* value) {
+    vector<short> localvariables;
+    value->Variables(localvariables);
+    string framename = globalTamgu->Getsymbol(value->Type())+ " " + name;
+    Tamgumap* attributes = globalTamgu->Providemap();
+    values->pushing(framename, attributes);
+    Tamgu* localval;
+    for (long l = 0; l < localvariables.size(); l++) {
+        localval = value->Declaration(localvariables[l]);
+        if (localval->isFrameinstance())
+            TraverseFrame(framename, attributes, localval);
+        else {
+            framename = globalTamgu->Getsymbol(localval->Type()) + " ";
+            framename += globalTamgu->Getsymbol(localvariables[l]);
+            attributes->pushing(framename, localval);
+        }
+    }
+}
 
+Tamgu* ProcVariables(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    Locking _lock(globalTamgu);
+    TamguCode* acode = globalTamgu->Getcurrentcode();
+    Tamgu* topstack = NULL;
+    
+    if (callfunc->Evaluate(0, contextualpattern, idthread)->Boolean())
+        topstack = &acode->mainframe;
+    else
+        topstack = globalTamgu->Topstack(idthread);
+    
+    Tamgumap* values = (Tamgumap*)Selectamap(contextualpattern);
+    vector<short> variables;
+    topstack->Variables(variables);
+    Tamgu* value;
+    string name;
+    for (long i = 0; i < variables.size(); i++) {
+        value = topstack->Declaration(variables[i]);
+        if (value != NULL) {
+            if (value->isFrameinstance()) {
+                name = globalTamgu->Getsymbol(variables[i]);
+                TraverseFrame(name, values, value);
+            }
+            else {
+                name = globalTamgu->Getsymbol(value->Type()) + " ";
+                name += globalTamgu->Getsymbol(variables[i]);
+                values->pushing(name, value);
+            }
+        }
+    }
+    
+    return values;
+}
 
 //------------------------------------------------------------------------------------------------------------------------
 Tamgu* ProcRedictectOutput(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -1112,7 +1239,7 @@ Tamgu* ProcRedictectOutput(Tamgu* contextualpattern, short idthread, TamguCall* 
         return globalTamgu->Returnerror("SYS(010): Stream has already been redirected", idthread);
     if (output == -1)
         return globalTamgu->Returnerror("SYS(001): Cannot open output file", idthread);
-    return globalTamgu->Provideint(output);
+    return globalTamgu->ProvideConstint(output);
 }
 
 Tamgu* ProcRestateOutput(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -1148,11 +1275,16 @@ Tamgu* ProcWaitOnJoin(Tamgu* contextualpattern, short idthread, TamguCall* callf
     while (globalTamgu->threads[idthread].nbjoined) {
         
         if (func != NULL) {
-            TamguCallFunction call(func);
-            if (object != NULL)
+            Tamgu* a;
+            if (object != NULL) {
+                TamguCallFunction1 call(func);
                 call.arguments.push_back(object);
-            
-            Tamgu* a = call.Eval(aNULL, aNULL, idthread);
+                a = call.Eval(aNULL, aNULL, idthread);
+            }
+            else {
+                TamguCallFunction0 call(func);
+                a = call.Eval(aNULL, aNULL, idthread);
+            }            
             a->Release();
         }
         
@@ -1246,7 +1378,7 @@ Tamgu* ProcFullSum(Tamgu* contextualpattern, short idthread, TamguCall* callfunc
                 val = v->Float();
         }
     }
-    return globalTamgu->Providefloat(val);
+    return globalTamgu->ProvideConstfloat(val);
 }
  
 Tamgu* ProcFullProduct(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -1267,7 +1399,7 @@ Tamgu* ProcFullProduct(Tamgu* contextualpattern, short idthread, TamguCall* call
                 val = v->Float();
         }
     }
-    return globalTamgu->Providefloat(val);
+    return globalTamgu->ProvideConstfloat(val);
 }
  
 
@@ -1415,7 +1547,6 @@ Tamgu* ProcPrint(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) 
     return aTRUE;
 }
 
-
 Tamgu* ProcPrintLN(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     Tamgu* res = aNULL;
     Tamgustring* kval = (Tamgustring*)globalTamgu->stringbuffer;
@@ -1467,6 +1598,12 @@ Tamgu* ProcPrintLN(Tamgu* contextualpattern, short idthread, TamguCall* callfunc
         kval->value += todisplay;
 
     return aTRUE;
+}
+
+void PrintALine(TamguGlobal* g, string s) {
+    TamguCall call(g->Getid("println"));
+    call.arguments.push_back(g->Providestring(s));
+    ProcPrintLN(aNULL, 0, &call);
 }
 
 
@@ -1989,7 +2126,7 @@ Tamgu* ProcOrd(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     wstring s = callfunc->Evaluate(0, contextualpattern, idthread)->UString();
     if (s.size() >= 1) {
         if (contextualpattern->isNumber())
-            return globalTamgu->Provideint((int)s[0]);
+            return globalTamgu->ProvideConstint((int)s[0]);
 
         if (contextualpattern->isVectorContainer() || s.size() > 1) {
             Tamgu* kvect = Selectaivector(contextualpattern);
@@ -2008,7 +2145,7 @@ Tamgu* ProcOrd(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
             return kvect;
         }
 
-        return globalTamgu->Provideint((int)s[0]);
+        return globalTamgu->ProvideConstint((int)s[0]);
     }
 
     return aNULL;
@@ -2182,7 +2319,7 @@ Tamgu* ProcBase(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
             caracs.push_back(w);
         }
         if (b)
-            return globalTamgu->Provideint(b);
+            return globalTamgu->ProvideConstint(b);
     }
 
     if (caracs.size() == 0) {
@@ -2236,7 +2373,7 @@ Tamgu* ProcBase(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
             v *= b;
             v += mcaracs[wc];
         }
-        return globalTamgu->Provideint(v);
+        return globalTamgu->ProvideConstint(v);
     }
 
     n = ke->Integer();
@@ -2296,7 +2433,7 @@ Tamgu* ProcGPSDistance(Tamgu* contextualpattern, short idthread, TamguCall* call
     double height = startAlt - endAlt;
     distance = (distance*distance) + (height*height);
 
-    return globalTamgu->Providefloat(sqrt(distance));
+    return globalTamgu->ProvideConstfloat(sqrt(distance));
 }
 
 
@@ -2317,7 +2454,7 @@ Tamgu* ProcMath(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     }
 
     v = av->Float();
-    return globalTamgu->Providefloat(globalTamgu->mathFunctions[callfunc->Name()](v));
+    return globalTamgu->ProvideConstfloat(globalTamgu->mathFunctions[callfunc->Name()](v));
 }
 
 Tamgu* ProcGetTokenizeRules(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -2341,11 +2478,11 @@ Tamgu* CommonUString(Tamgu* object, short idthread, TamguCall* callfunc) {
 }
 
 Tamgu* CommonInt(Tamgu* object, short idthread, TamguCall* callfunc) {
-    return globalTamgu->Provideint(object->Integer());
+    return globalTamgu->ProvideConstint(object->Integer());
 }
 
 Tamgu* CommonFloat(Tamgu* object, short idthread, TamguCall* callfunc) {
-    return globalTamgu->Providefloat(object->Float());
+    return globalTamgu->ProvideConstfloat(object->Float());
 }
 
 Tamgu* CommonShort(Tamgu* object, short idthread, TamguCall* callfunc) {
@@ -2353,7 +2490,7 @@ Tamgu* CommonShort(Tamgu* object, short idthread, TamguCall* callfunc) {
 }
 
 Tamgu* CommonLong(Tamgu* object, short idthread, TamguCall* callfunc) {
-    return new Tamgulong(object->Long());
+    return globalTamgu->Providelong(object->Long());
 }
 
 Tamgu* CommonDecimal(Tamgu* object, short idthread, TamguCall* callfunc) {
@@ -2371,8 +2508,8 @@ Tamgu* CommonMap(Tamgu* object, short idthread, TamguCall* callfunc) {
 
 Tamgu* CommonSize(Tamgu* object, short idthread, TamguCall* callfunc) {
     if (object->isString())
-        return globalTamgu->Provideint(object->CommonSize());
-    return globalTamgu->Provideint(object->Size());
+        return globalTamgu->ProvideConstint(object->CommonSize());
+    return globalTamgu->ProvideConstint(object->Size());
 }
 
 Tamgu* CommonType(Tamgu* object, short idthread, TamguCall* callfunc) {
@@ -2504,11 +2641,16 @@ Tamgu* CommonExtension(Tamgu* object, short idthread, TamguCall* callfunc) {
     globalTamgu->Storevariable(idthread, frame->Name(), object);
     globalTamgu->Storevariable(idthread, frame->Typeframe(), object);
 
-    TamguCallFunction call(frame->Declaration(name));
-    call.arguments = callfunc->arguments;
-
-    object = call.Eval(aNULL, aNULL, idthread);
-
+    if (!callfunc->arguments.size()) {
+        TamguCallFunction0 call(frame->Declaration(name));        
+        object = call.Eval(aNULL, aNULL, idthread);
+    }
+    else {
+        TamguCallFunction call(frame->Declaration(name));
+        call.arguments = callfunc->arguments;
+        
+        object = call.Eval(aNULL, aNULL, idthread);
+    }
     globalTamgu->Removevariable(idthread, frame->Name());
     globalTamgu->Removevariable(idthread, frame->Typeframe());
 
@@ -2666,7 +2808,8 @@ Exporting void TamguGlobal::RecordProcedures() {
     RecordOneProcedure("loadin", ProcLoadin, P_ONE);
 
     RecordOneProcedure("allobjects", ProcAllObjects, P_NONE);
-
+    RecordOneProcedure("allobjectsbytype", ProcAllObjectByType, P_NONE);
+    
     RecordOneProcedure("version", ProcVersion, P_NONE);
     RecordOneProcedure("_mirrordisplay", ProcMirrorDisplay, P_NONE);
 
@@ -2683,7 +2826,8 @@ Exporting void TamguGlobal::RecordProcedures() {
     RecordOneProcedure("printjln", &ProcPrintJoinLN, P_ONE | P_TWO | P_THREE | P_FOUR);
     RecordOneProcedure("printjlnerr", &ProcPrintJoinErrLN, P_ONE | P_TWO | P_THREE | P_FOUR);
 
-    RecordOneProcedure("_eval", ProcEval, P_ONE);
+    RecordOneProcedure("_variables", ProcVariables, P_ONE);
+    RecordOneProcedure("_eval", ProcEval, P_ONE | P_TWO);
     RecordOneProcedure("_evalfunction", ProcEvalFunction, P_ONE);
     
     RecordOneProcedure("abs", &ProcMath, P_ONE, a_float);

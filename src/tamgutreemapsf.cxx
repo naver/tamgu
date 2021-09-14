@@ -54,6 +54,9 @@ void Tamgutreemapsf::AddMethod(TamguGlobal* global, string name,treemapsfMethod 
     
     Tamgutreemapsf::idtype = global->Getid("treemapsf");
 
+    
+    global->minimal_indexes[Tamgutreemapsf::idtype] = true;
+
     Tamgutreemapsf::AddMethod(global, "clear", &Tamgutreemapsf::MethodClear, P_NONE, "clear(): clear the container.");
     
     Tamgutreemapsf::AddMethod(global, "invert", &Tamgutreemapsf::MethodInvert, P_NONE, "invert(): return a map with key/value inverted.");
@@ -356,6 +359,21 @@ Exporting Tamgu*  Tamgutreemapsf::Put(Tamgu* idx, Tamgu* ke, short idthread) {
 }
 
 
+
+Tamgu* Tamgutreemapsf::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign) {
+    string skey;
+    key->Setstring(skey, idthread);
+
+    Tamgu* val = Value(skey);
+    if (val == aNOELEMENT) {
+        if (globalTamgu->erroronkey)
+            return globalTamgu->Returnerror("Wrong index", idthread);
+        return aNOELEMENT;
+
+    }
+    return val;
+}
+
 Exporting Tamgu* Tamgutreemapsf::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
 
 
@@ -379,7 +397,7 @@ Exporting Tamgu* Tamgutreemapsf::Eval(Tamgu* contextualpattern, Tamgu* idx, shor
 
         if (contextualpattern->isNumber()) {
             long v = Size();
-            return globalTamgu->Provideint(v);
+            return globalTamgu->ProvideConstint(v);
         }
 
         return this;
@@ -839,7 +857,7 @@ Exporting Tamgu* Tamgutreemapsf::Loopin(TamguInstruction* ins, Tamgu* context, s
     bool testcond = false;
     for (long i = 0; i < sz && !testcond; i++) {
         a->Releasenonconst();
-        var->storevalue(keys[i]);
+        var->Storevalue(keys[i]);
 
         a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
 

@@ -248,13 +248,13 @@ Tamgu* Tamgufloat::MethodFormat(Tamgu* contextualpattern, short idthread, TamguC
 Tamgu* Tamgufloat::MethodRadian(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     double num = value;
     num = M_PI*(num / 180);
-    return globalTamgu->Providefloat(num);
+    return globalTamgu->ProvideConstfloat(num);
 }
 
 Tamgu* Tamgufloat::MethodDegree(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     double num = value;
     num = (num * 180) / M_PI;
-    return globalTamgu->Providefloat(num);
+    return globalTamgu->ProvideConstfloat(num);
 }
 
 //-------------------------------------------------------
@@ -302,15 +302,14 @@ Tamgu* Tamguatomicfloat::MethodDegree(Tamgu* contextualpattern, short idthread, 
 
 void TamguLoopFloat::Callfunction() {
 
-    TamguCallFunction kfunc(function);
+    TamguCallFunction2 kfunc(function);
 
-    Tamguint* ki = globalTamgu->Provideint(position);
+    Tamgu* ki = globalTamgu->ProvideConstint(position);
     ki->Setreference();
     kfunc.arguments.push_back(this);
     kfunc.arguments.push_back(ki);
     Tamgu* ke = kfunc.Eval(aNULL, aNULL, globalTamgu->GetThreadid());
     ke->Release();
-    ki->Resetreference();
 }
 
 Tamgu* TamguLoopFloat::Put(Tamgu* context, Tamgu* ke, short idthread) {
@@ -358,17 +357,17 @@ Tamgu* Tamgufloat::MethodExponent(Tamgu* contextualpattern, short idthread, Tamg
     int n = 0;
     
     frexp (value , &n);
-    return globalTamgu->Provideint((long)n);
+    return globalTamgu->ProvideConstint((long)n);
 }
 
 Tamgu* Tamgufloat::MethodBits(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     if (callfunc->Size() == 1) {
         double64 f(0);
         f.bits = callfunc->Evaluate(0, contextualpattern, idthread)->Long();
-        return globalTamgu->Providefloat(f.v);
+        return globalTamgu->ProvideConstfloat(f.v);
     }
     double64 d(value);
-    return new Tamgulong(d.bits);
+    return globalTamgu->Providelong(d.bits);
 }
 
 Tamgu* Tamguatomicfloat::MethodExponent(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -382,9 +381,9 @@ Tamgu* Tamguatomicfloat::MethodBits(Tamgu* contextualpattern, short idthread, Ta
     if (callfunc->Size() == 1) {
         double64 f(0);
         f.bits = callfunc->Evaluate(0, contextualpattern, idthread)->Long();
-        return globalTamgu->Providefloat(f.v);
+        return globalTamgu->ProvideConstfloat(f.v);
     }
     double64 d(value);
-    return new Tamgulong(d.bits);
+    return globalTamgu->Providelong(d.bits);
 }
 

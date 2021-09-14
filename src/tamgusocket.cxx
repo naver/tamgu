@@ -299,7 +299,7 @@ Tamgu* Tamgusocket::MethodWait(Tamgu* contextualpattern, short idthread, TamguCa
             return globalTamgu->Errorobject(idthread);
 
         socketclients[socketclient] = true;
-        return globalTamgu->Provideint(socketclient);
+        return globalTamgu->ProvideConstint(socketclient);
     }
     return aMINUSONE;
 }
@@ -569,7 +569,7 @@ Tamgu* Tamgusocket::MethodGethostname(Tamgu* contextualpattern, short idthread, 
 }
 
 Tamgu* Tamgusocket::MethodPort(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-    return globalTamgu->Provideint(port);
+    return globalTamgu->ProvideConstint(port);
 }
 
 Tamgu* Tamgusocket::MethodGetpeername(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -588,7 +588,7 @@ Tamgu* Tamgusocket::MethodGetpeername(Tamgu* contextualpattern, short idthread, 
         char* nm = inet_ntoa(client->sin_addr);
         Tamgumap* kmap = globalTamgu->Providemap();
         string key1 = "port";
-        kmap->Push(key1, globalTamgu->Provideint(client->sin_port));
+        kmap->Push(key1, globalTamgu->ProvideConstint(client->sin_port));
         string key2 = "address";
         string nms = nm;
         kmap->Push(key2, globalTamgu->Providewithstring(nms));

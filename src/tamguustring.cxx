@@ -234,7 +234,7 @@ Tamgu* Tamguustring::in(Tamgu* context, Tamgu* a, short idthread) {
     }
 
     if (context->isNumber())
-        return globalTamgu->Provideint(r);
+        return globalTamgu->ProvideConstint(r);
     
     if (r == -1)
         return aFALSE;
@@ -266,7 +266,7 @@ Tamgu* TamguConstUString::in(Tamgu* context, Tamgu* a, short idthread) {
     }
     
     if (context->isNumber())
-        return globalTamgu->Provideint(r);
+        return globalTamgu->ProvideConstint(r);
     
     if (r == -1)
         return aFALSE;
@@ -324,7 +324,7 @@ Tamgu* Tamguustring::MethodOrd(Tamgu* contextualpattern, short idthread, TamguCa
             return contextualpattern;
         }
 
-        return new Tamgulong(c);
+        return globalTamgu->Providelong(c);
     }
     
     return aNULL;
@@ -338,7 +338,7 @@ Tamgu* Tamguustring::MethodBytes(Tamgu* contextualpattern, short idthread, Tamgu
             if (c_utf16_to_unicode(c, s[0], false))
                 c_utf16_to_unicode(c, s[1], true);
             
-            return new Tamgulong((BLONG)c);
+            return globalTamgu->Providelong((BLONG)c);
         }
         
         Tamgulvector* kvect=(Tamgulvector*)Selectalvector(contextualpattern);
@@ -387,7 +387,7 @@ Tamgu* Tamguustring::MethodOrd(Tamgu* contextualpattern, short idthread, TamguCa
 			return contextualpattern;
 		}
 
-		return new Tamgulong(s[0]);
+		return globalTamgu->Providelong(s[0]);
 	}
 
 	return aNULL;
@@ -425,7 +425,7 @@ Tamgu* Tamguustring::MethodBytes(Tamgu* contextualpattern, short idthread, Tamgu
             if (c_utf16_to_unicode(c, s[0], false))
                 c_utf16_to_unicode(c, s[1], true);
 
-            return new Tamgulong(c);
+            return globalTamgu->Providelong(c);
         }
         
         Tamgulvector* kvect=(Tamgulvector*)Selectalvector(contextualpattern);
@@ -601,7 +601,7 @@ Tamgu* Tamguustring::MethodCount(Tamgu* contextualpattern, short idthread, Tamgu
         
         vector<long> values;
         substr->searchall(w,values);
-        return globalTamgu->Provideint(values.size()>>1);
+        return globalTamgu->ProvideConstint(values.size()>>1);
     }
 
     wstring sub = substr->UString();
@@ -615,7 +615,7 @@ Tamgu* Tamguustring::MethodCount(Tamgu* contextualpattern, short idthread, Tamgu
     i = s_count(value, sub, i);
     unlocking();
     
-    return globalTamgu->Provideint(i);
+    return globalTamgu->ProvideConstint(i);
 }
 
 
@@ -706,7 +706,7 @@ Tamgu* Tamguustring::MethodFind(Tamgu* contextualpattern, short idthread, TamguC
             return aMINUSONE;
         }
         unlocking();
-        return globalTamgu->Provideint(i);
+        return globalTamgu->ProvideConstint(i);
     }
     
     wstring sub = ksub->UString();
@@ -717,7 +717,7 @@ Tamgu* Tamguustring::MethodFind(Tamgu* contextualpattern, short idthread, TamguC
     if (i == string::npos)
         return aMINUSONE;
     
-    return globalTamgu->Provideint(i);
+    return globalTamgu->ProvideConstint(i);
 }
 
 Tamgu* Tamguustring::MethodRfind(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -810,7 +810,7 @@ Tamgu* Tamguustring::MethodRfind(Tamgu* contextualpattern, short idthread, Tamgu
             return aMINUSONE;
         }
         unlocking();
-        return globalTamgu->Provideint(i);
+        return globalTamgu->ProvideConstint(i);
     }
     
     wstring sub = ksub->UString();
@@ -821,7 +821,7 @@ Tamgu* Tamguustring::MethodRfind(Tamgu* contextualpattern, short idthread, Tamgu
     if (i == string::npos)
         return aMINUSONE;
     
-    return globalTamgu->Provideint(i);
+    return globalTamgu->ProvideConstint(i);
 }
 
 Tamgu* Tamguustring::MethodDoubleMetaphone(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -1788,7 +1788,7 @@ Tamgu* Tamguustring::MethodReplace(Tamgu* contextualpattern, short idthread, Tam
 
 Tamgu* Tamguustring::MethodEditdistance(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     Tamgu* e2 = callfunc->Evaluate(0, contextualpattern, idthread);
-    return globalTamgu->Provideint(EditDistance(e2));
+    return globalTamgu->ProvideConstint(EditDistance(e2));
 }
 
 
@@ -2021,7 +2021,7 @@ Tamgu* Tamguustring::MethodScan(Tamgu* contextualpattern, short idthread, TamguC
     if (contextualpattern->isNumber() && contextualpattern->isAtom()) {
         long res,end;
         a->search(reg,res,end);
-        return globalTamgu->Provideint(res);
+        return globalTamgu->ProvideConstint(res);
     }
 
     if (contextualpattern->isString()) {
@@ -2043,7 +2043,7 @@ Tamgu* Tamguustring::MethodHash(Tamgu* contextualpattern, short idthread, TamguC
     if (s == "")
         return aNULL;
     long myhash = coll.hash(s.data(), s.data() + s.length());
-    return globalTamgu->Provideint(myhash);
+    return globalTamgu->ProvideConstint(myhash);
 }
 
 Tamgu* Tamguustring::MethodBase(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -2068,7 +2068,7 @@ Tamgu* Tamguustring::MethodBase(Tamgu* contextualpattern, short idthread, TamguC
             caracs.push_back(w);
         }
         if (b)
-            return globalTamgu->Provideint(b);
+            return globalTamgu->ProvideConstint(b);
     }
 
     if (caracs.size() == 0) {
@@ -2134,7 +2134,7 @@ Tamgu* Tamguustring::MethodBase(Tamgu* contextualpattern, short idthread, TamguC
         v *= b;
         v += mcaracs[wc];
     }
-    return globalTamgu->Provideint(v);
+    return globalTamgu->ProvideConstint(v);
 }
 
 Tamgu* Tamguustring::MethodTohtml(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -2429,15 +2429,14 @@ Tamgu* Tamguustring::xorset(Tamgu* a, bool autoself) {
 
 void TamguLoopUString::Callfunction() {
 
-    TamguCallFunction kfunc(function);
+    TamguCallFunction2 kfunc(function);
 
-    Tamguint* ki = globalTamgu->Provideint(position);
+    Tamgu* ki = globalTamgu->ProvideConstint(position);
     ki->Setreference();
     kfunc.arguments.push_back(this);
     kfunc.arguments.push_back(ki);
     Tamgu* ke = kfunc.Eval(aNULL, aNULL, globalTamgu->GetThreadid());
     ke->Release();
-    ki->Resetreference();
 }
 
 Tamgu* TamguLoopUString::Put(Tamgu* context, Tamgu* ke, short idthread) {
@@ -2687,7 +2686,7 @@ Tamgu* Tamgua_ustring::in(Tamgu* context, Tamgu* a, short idthread) {
     }
     
     if (context->isNumber())
-        return globalTamgu->Provideint(r);
+        return globalTamgu->ProvideConstint(r);
     
     if (r == -1)
         return aFALSE;
@@ -2743,7 +2742,7 @@ Tamgu* Tamgua_ustring::MethodOrd(Tamgu* contextualpattern, short idthread, Tamgu
 			return contextualpattern;
 		}
 
-		return new Tamgulong(c);
+		return globalTamgu->Providelong(c);
 	}
 
 	return aNULL;
@@ -2757,7 +2756,7 @@ Tamgu* Tamgua_ustring::MethodBytes(Tamgu* contextualpattern, short idthread, Tam
             if (c_utf16_to_unicode(c, s[0], false))
                 c_utf16_to_unicode(c, s[1], true);
             
-            return new Tamgulong((BLONG)c);
+            return globalTamgu->Providelong((BLONG)c);
         }
         
         Tamgulvector* kvect=(Tamgulvector*)Selectalvector(contextualpattern);
@@ -2790,7 +2789,7 @@ Tamgu* Tamgua_ustring::MethodOrd(Tamgu* contextualpattern, short idthread, Tamgu
             return contextualpattern;
         }
         
-        return new Tamgulong(s[0]);
+        return globalTamgu->Providelong(s[0]);
     }
     
     return aNULL;
@@ -2804,7 +2803,7 @@ Tamgu* Tamgua_ustring::MethodBytes(Tamgu* contextualpattern, short idthread, Tam
             if (c_utf16_to_unicode(c, s[0], false))
                 c_utf16_to_unicode(c, s[1], true);
             
-            return new Tamgulong((BLONG)c);
+            return globalTamgu->Providelong((BLONG)c);
         }
         
         Tamgulvector* kvect=(Tamgulvector*)Selectalvector(contextualpattern);
@@ -2913,7 +2912,7 @@ Tamgu* Tamgua_ustring::MethodCount(Tamgu* contextualpattern, short idthread, Tam
         
         vector<long> values;
         substr->searchall(w,values);
-        return globalTamgu->Provideint(values.size()>>1);
+        return globalTamgu->ProvideConstint(values.size()>>1);
     }
 
     wstring str = value.value();
@@ -2921,7 +2920,7 @@ Tamgu* Tamgua_ustring::MethodCount(Tamgu* contextualpattern, short idthread, Tam
         return aZERO;
     wstring sub = substr->UString();
 
-    return globalTamgu->Provideint(s_count(str, sub, i));
+    return globalTamgu->ProvideConstint(s_count(str, sub, i));
 }
 
 
@@ -3001,7 +3000,7 @@ Tamgu* Tamgua_ustring::MethodFind(Tamgu* contextualpattern, short idthread, Tamg
         long e;
         if (!ksub->search(str,i,e,i))
             return aMINUSONE;
-        return globalTamgu->Provideint(i);
+        return globalTamgu->ProvideConstint(i);
     }
     
     wstring sub = ksub->UString();
@@ -3010,7 +3009,7 @@ Tamgu* Tamgua_ustring::MethodFind(Tamgu* contextualpattern, short idthread, Tamg
     if (i == string::npos)
         return aMINUSONE;
     
-    return globalTamgu->Provideint(i);
+    return globalTamgu->ProvideConstint(i);
 }
 
 Tamgu* Tamgua_ustring::MethodRfind(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -3092,7 +3091,7 @@ Tamgu* Tamgua_ustring::MethodRfind(Tamgu* contextualpattern, short idthread, Tam
         long e;
         if (!ksub->searchlast(str,i,e,i))
             return aMINUSONE;
-        return globalTamgu->Provideint(i);
+        return globalTamgu->ProvideConstint(i);
     }
     
     wstring sub = ksub->UString();
@@ -3101,7 +3100,7 @@ Tamgu* Tamgua_ustring::MethodRfind(Tamgu* contextualpattern, short idthread, Tam
     if (i == string::npos)
         return aMINUSONE;
     
-    return globalTamgu->Provideint(i);
+    return globalTamgu->ProvideConstint(i);
 }
 
 Tamgu* Tamgua_ustring::MethodDoubleMetaphone(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -3910,7 +3909,7 @@ Tamgu* Tamgua_ustring::MethodReplace(Tamgu* contextualpattern, short idthread, T
 
 Tamgu* Tamgua_ustring::MethodEditdistance(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     Tamgu* e2 = callfunc->Evaluate(0, contextualpattern, idthread);
-    return globalTamgu->Provideint(EditDistance(e2));
+    return globalTamgu->ProvideConstint(EditDistance(e2));
 }
 
 
@@ -4140,7 +4139,7 @@ Tamgu* Tamgua_ustring::MethodScan(Tamgu* contextualpattern, short idthread, Tamg
     if (contextualpattern->isNumber() && contextualpattern->isAtom()) {
         long res,end;
         a->search(reg,res,end);
-        return globalTamgu->Provideint(res);
+        return globalTamgu->ProvideConstint(res);
     }
     
     if (contextualpattern->isString()) {
@@ -4159,7 +4158,7 @@ Tamgu* Tamgua_ustring::MethodHash(Tamgu* contextualpattern, short idthread, Tamg
     if (s == "")
         return aNULL;
     long myhash = coll.hash(s.data(), s.data() + s.length());
-    return globalTamgu->Provideint(myhash);
+    return globalTamgu->ProvideConstint(myhash);
 }
 
 Tamgu* Tamgua_ustring::MethodBase(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -4184,7 +4183,7 @@ Tamgu* Tamgua_ustring::MethodBase(Tamgu* contextualpattern, short idthread, Tamg
             caracs.push_back(w);
         }
         if (b)
-            return globalTamgu->Provideint(b);
+            return globalTamgu->ProvideConstint(b);
     }
     
     if (caracs.size() == 0) {
@@ -4250,7 +4249,7 @@ Tamgu* Tamgua_ustring::MethodBase(Tamgu* contextualpattern, short idthread, Tamg
         v *= b;
         v += mcaracs[wc];
     }
-    return globalTamgu->Provideint(v);
+    return globalTamgu->ProvideConstint(v);
 }
 
 Tamgu* Tamgua_ustring::MethodInsert(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {

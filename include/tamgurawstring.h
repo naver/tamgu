@@ -336,7 +336,7 @@ public:
 	}
 
 	Tamgu* MethodSizeb(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-		return globalTamgu->Provideint(buffersize);
+		return globalTamgu->ProvideConstint(buffersize);
 	}
 
 	Tamgu* MethodResize(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -683,7 +683,7 @@ public:
 	}
 
 	Tamgu* Key() {
-		return globalTamgu->Provideint((long)ref.getcharpos());
+		return globalTamgu->ProvideConstint((long)ref.getcharpos());
 	}
 
 	Tamgu* Value() {

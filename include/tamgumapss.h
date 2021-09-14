@@ -66,6 +66,8 @@ class Tamgumapss : public TamguLockContainer {
     //----------------------------------------------------------------------------------------------------------------------
     Exporting Tamgu* Loopin(TamguInstruction* ins, Tamgu* context, short idthread);
     Exporting Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);
+
+    Tamgu* EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign);
     Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 
     void SetConst() { isconst = true;}
@@ -515,8 +517,9 @@ class Tamgumapssbuff : public Tamgumapss {
     }
 
     void Resetreference(short r) {
-        if ((reference-=r) <= 0) {
-            reference = 0;
+        r = reference - r;
+        if (r <= 0) {
+            reference.store(0);
             if (!protect) {
                 protect = true;
 
@@ -526,6 +529,8 @@ class Tamgumapssbuff : public Tamgumapss {
                     globalTamgu->mapssempties.push_back(idx);
             }
         }
+        else
+            reference.store(r);
     }
 
 };

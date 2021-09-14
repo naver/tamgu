@@ -52,6 +52,9 @@ void Tamgutreemapi::AddMethod(TamguGlobal* global, string name, treemapiMethod f
 
     Tamgutreemapi::idtype = global->Getid("treemapi");
 
+    
+    global->minimal_indexes[Tamgutreemapi::idtype] = true;
+
     Tamgutreemapi::AddMethod(global, "clear", &Tamgutreemapi::MethodClear, P_NONE, "clear(): clear the container.");
     
     Tamgutreemapi::AddMethod(global, "invert", &Tamgutreemapi::MethodInvert, P_NONE, "invert(): return a map with key/value inverted.");
@@ -110,7 +113,7 @@ Exporting Tamgu* Tamgutreemapi::in(Tamgu* context, Tamgu* a, short idthread) {
         try {
             values.at(val);
             unlocking();
-            return globalTamgu->Provideint(val);
+            return globalTamgu->ProvideConstint(val);
         }
         catch(const std::out_of_range& oor) {
             unlocking();
@@ -160,7 +163,7 @@ Exporting Tamgu* Tamgutreemapi::MethodFind(Tamgu* context, short idthread, Tamgu
     Locking _lock(this);
     for (auto& it : values) {
         if (it.second->same(a) == aTRUE)
-            return globalTamgu->Provideint(it.first);
+            return globalTamgu->ProvideConstint(it.first);
     }
     return aNULL;
 }
@@ -427,6 +430,35 @@ Exporting Tamgu*  Tamgutreemapi::Put(Tamgu* idx, Tamgu* ke, short idthread) {
 }
 
 
+
+Tamgu* Tamgutreemapi::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign) {
+    long skey = key->Getinteger(idthread);
+
+    if (globalTamgu->threadMODE) {
+        locking();
+        key = values[skey];
+        if (key == NULL) {
+            if (globalTamgu->erroronkey) {
+                unlocking();
+                return globalTamgu->Returnerror("Wrong index", idthread);
+            }
+            values.erase(skey);
+            key = aNOELEMENT;
+        }
+        unlocking();
+        return key;
+    }
+    
+    key = values[skey];
+    if (key == NULL) {
+        if (globalTamgu->erroronkey)
+            return globalTamgu->Returnerror("Wrong index", idthread);
+        values.erase(skey);
+        key = aNOELEMENT;
+    }
+    return key;
+}
+
 Exporting Tamgu* Tamgutreemapi::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
 
 
@@ -443,14 +475,14 @@ Exporting Tamgu* Tamgutreemapi::Eval(Tamgu* contextualpattern, Tamgu* idx, short
             locking();
             map<long, Tamgu*>::iterator it;
             for (it = values.begin(); it != values.end(); it++)
-                vect->Push(globalTamgu->Provideint(it->first));
+                vect->Push(globalTamgu->ProvideConstint(it->first));
             unlocking();
             return vect;
         }
 
         if (contextualpattern->isNumber()) {
             long v = Size();
-            return globalTamgu->Provideint(v);
+            return globalTamgu->ProvideConstint(v);
         }
 
         return this;

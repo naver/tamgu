@@ -13444,6 +13444,13 @@ Exporting void IndentationCode(string& str, string& codeindente, bool lisp, bool
                         checkspace = 0;
                 codeindente += c;
                 break;
+            case '-':
+                if (!iblank && codestr[i] == '-' && codestr[i+1] == '>') {
+                    prologmode = true;
+                    iblank += blanksize;
+                }
+                codeindente += c;
+                break;
             case ':':
                 if (!iblank && codestr[i] == '-') {
                     prologmode = true;
@@ -13865,6 +13872,12 @@ Exporting long IndentationCode(string& codestr, bool lisp) {
                 else
                     if (checkspace == 3)
                         checkspace = 0;
+                break;
+            case '-':
+                if (!iblank && codestr[i] == '-' && codestr[i+1] == '>') {
+                    prologmode = true;
+                    iblank += blanksize;
+                }
                 break;
             case ':':
                 if (!iblank && codestr[i] == '-') {

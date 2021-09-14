@@ -52,6 +52,9 @@ void Tamgumapf::AddMethod(TamguGlobal* global, string name, mapfMethod func, uns
 
     Tamgumapf::idtype = global->Getid("mapf");
 
+    
+    global->minimal_indexes[Tamgumapf::idtype] = true;
+
     Tamgumapf::AddMethod(global, "clear", &Tamgumapf::MethodClear, P_NONE, "clear(): clear the container.");
     
     Tamgumapf::AddMethod(global, "invert", &Tamgumapf::MethodInvert, P_NONE, "invert(): return a map with key/value inverted.");
@@ -110,7 +113,7 @@ Exporting Tamgu* Tamgumapf::in(Tamgu* context, Tamgu* a, short idthread) {
         try {
             values.at(val);
             unlocking();
-            return globalTamgu->Providefloat(val);
+            return globalTamgu->ProvideConstfloat(val);
         }
         catch(const std::out_of_range& oor) {
             unlocking();
@@ -160,7 +163,7 @@ Exporting Tamgu* Tamgumapf::MethodFind(Tamgu* context, short idthread, TamguCall
     Locking _lock(this);
     for (auto& it : values) {
         if (it.second->same(a) == aTRUE)
-            return globalTamgu->Providefloat(it.first);
+            return globalTamgu->ProvideConstfloat(it.first);
     }
     return aNULL;
 }
@@ -428,6 +431,35 @@ Exporting Tamgu*  Tamgumapf::Put(Tamgu* idx, Tamgu* ke, short idthread) {
 }
 
 
+
+Tamgu* Tamgumapf::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign) {
+    double skey = key->Getfloat(idthread);
+
+    if (globalTamgu->threadMODE) {
+        locking();
+        key = values[skey];
+        if (key == NULL) {
+            if (globalTamgu->erroronkey) {
+                unlocking();
+                return globalTamgu->Returnerror("Wrong index", idthread);
+            }
+            values.erase(skey);
+            key = aNOELEMENT;
+        }
+        unlocking();
+        return key;
+    }
+    
+    key = values[skey];
+    if (key == NULL) {
+        if (globalTamgu->erroronkey)
+            return globalTamgu->Returnerror("Wrong index", idthread);
+        values.erase(skey);
+        key = aNOELEMENT;
+    }
+    return key;
+}
+
 Exporting Tamgu* Tamgumapf::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
 
 
@@ -451,7 +483,7 @@ Exporting Tamgu* Tamgumapf::Eval(Tamgu* contextualpattern, Tamgu* idx, short idt
 
         if (contextualpattern->isNumber()) {
             long v = Size();
-            return globalTamgu->Provideint(v);
+            return globalTamgu->ProvideConstint(v);
         }
 
         return this;

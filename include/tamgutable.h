@@ -400,17 +400,17 @@ class Tamgutable : public TamguObjectLockContainer {
         Tamgu* v = callfunc->Evaluate(0, contextualpattern, idthread);
         
         unsigned long dst = EditDistance(v);
-        return globalTamgu->Provideint(dst);
+        return globalTamgu->ProvideConstint(dst);
     }
 
     Tamgu* MethodSum(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = Sum();
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
 
     Tamgu* MethodProduct(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = Product();
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
 
     Tamgu* MethodInsert(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -721,7 +721,7 @@ class TamguIterationtable : public TamguIteration {
     }
 
     Tamgu* Key() {
-        return globalTamgu->Provideint(itx);
+        return globalTamgu->ProvideConstint(itx);
     }
 
     Tamgu* Value() {

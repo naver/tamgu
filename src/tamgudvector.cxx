@@ -48,28 +48,28 @@ void Tamgudvector::AddMethod(TamguGlobal* global, string name, dvectorMethod fun
 }
 
 
-   bool Tamgudvector::InitialisationModule(TamguGlobal* global, string version) {
+bool Tamgudvector::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
     infomethods.clear();
     exported.clear();
-
-
-
+    
+    
+    
     Tamgudvector::idtype = global->Getid("dvector");
-
+    
     Tamgudvector::AddMethod(global, "reverse", &Tamgudvector::MethodReverse, P_NONE, "reverse(): reverse a vector.");
     Tamgudvector::AddMethod(global, "reserve", &Tamgudvector::MethodReserve, P_ONE, "reserve(int sz): Reserve a size of 'sz' potential element in the vector.");
     Tamgudvector::AddMethod(global, "unique", &Tamgudvector::MethodUnique, P_NONE, "unique(): remove duplicate elements.");
-
+    
     Tamgudvector::AddMethod(global, "remove", &Tamgudvector::MethodRemove, P_ONE, "remove(decimal e): remove 'e' from the vector.");
-
+    
     Tamgudvector::AddMethod(global, "last", &Tamgudvector::MethodLast, P_NONE, "last(): return the last element.");
     Tamgudvector::AddMethod(global, "join", &Tamgudvector::MethodJoin, P_ONE, "join(string sep): Produce a string representation for the container.");
-
+    
     Tamgudvector::AddMethod(global, "shuffle", &Tamgudvector::MethodShuffle, P_NONE, "shuffle(): shuffle the values in the vector.");
     Tamgudvector::AddMethod(global, "sort", &Tamgudvector::MethodSort, P_ONE, "sort(bool reverse): sort the elements within.");
     Tamgudvector::AddMethod(global, "sum", &Tamgudvector::MethodSum, P_NONE, "sum(): return the sum of elements.");
-
+    
     Tamgudvector::AddMethod(global, "product", &Tamgudvector::MethodProduct, P_NONE, "product(): return the product of elements.");
     Tamgudvector::AddMethod(global, "push", &Tamgudvector::MethodPush, P_ATLEASTONE, "push(v): Push a value into the vector.");
     Tamgudvector::AddMethod(global, "pop", &Tamgudvector::MethodPop, P_NONE | P_ONE, "pop(int i): Erase an element from the vector");
@@ -78,13 +78,14 @@ void Tamgudvector::AddMethod(TamguGlobal* global, string name, dvectorMethod fun
     Tamgudvector::AddMethod(global, "editdistance", &Tamgudvector::MethodEditDistance, P_ONE, "editdistance(v): Compute the edit distance with vector 'v'.");
     Tamgudvector::AddMethod(global, "insert", &Tamgudvector::MethodInsert, P_TWO, "insert(int i,v): Insert v at position i.");
     Tamgudvector::AddMethod(global, "permute", &Tamgudvector::MethodPermute, P_NONE, "permute(): permute the values in the vector after each call.");
-
-
+    
+    
     if (version != "") {
         global->newInstance[Tamgudvector::idtype] = new Tamgudvector(global);
         global->RecordMethods(Tamgudvector::idtype,Tamgudvector::exported);
     }
-
+    
+    global->minimal_indexes[Tamgudvector::idtype] = true;
     return true;
 }
 
@@ -116,7 +117,7 @@ Exporting Tamgu* Tamgudvector::in(Tamgu* context, Tamgu* a, short idthread) {
         for (size_t i = 0; i < values.size(); i++) {
             if (values[i] == val) {
                 unlocking();
-                return globalTamgu->Provideint(i);
+                return globalTamgu->ProvideConstint(i);
             }
         }
         unlocking();
@@ -554,6 +555,26 @@ Exporting Tamgu* Tamgudvector::Unique() {
     return kvect;
 }
 
+Tamgu* Tamgudvector::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign) {
+    long ikey;
+    ikey = key->Getinteger(idthread);
+    if (ikey < 0)
+        ikey = values.size() + ikey;
+    
+    locking();
+    if (ikey < 0 || ikey >= values.size()) {
+        if (ikey != values.size()) {
+            unlocking();
+            if (globalTamgu->erroronkey)
+                return globalTamgu->Returnerror("Wrong index", idthread);
+            return aNOELEMENT;
+        }
+    }
+    
+    key =  new Tamgudecimal(values[ikey]);
+    unlocking();
+    return key;
+}
 
 Exporting Tamgu* Tamgudvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
 
@@ -577,7 +598,7 @@ Exporting Tamgu* Tamgudvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
 
         if (contextualpattern->isNumber()) {
             long v = Size();
-            return globalTamgu->Provideint(v);
+            return globalTamgu->ProvideConstint(v);
         }
 
         return this;
@@ -1184,7 +1205,7 @@ Exporting Tamgu* Tamgudvector::Filter(short idthread, Tamgu* env, TamguFunctionL
 
 class DComp {
     public:
-    TamguCallFunction compare;
+    TamguCallFunction2 compare;
     short idthread;
     TamguConstDecimal p;
     TamguConstDecimal s;

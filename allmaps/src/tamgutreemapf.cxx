@@ -424,6 +424,35 @@ Exporting Tamgu*  Tamgutreemapf::Put(Tamgu* idx, Tamgu* ke, short idthread) {
 }
 
 
+Exporting Tamgu* Tamgutreemapf::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign) {
+    double skey = key->Getfloat(idthread);
+
+    if (globalTamgu->threadMODE) {
+        locking();
+        key = values[skey];
+        if (key == NULL) {
+            if (globalTamgu->erroronkey) {
+                unlocking();
+                return globalTamgu->Returnerror("Wrong index", idthread);
+            }
+            values.erase(skey);
+            key = aNOELEMENT;
+        }
+        unlocking();
+        return key;
+    }
+    
+    key = values[skey];
+    if (key == NULL) {
+        if (globalTamgu->erroronkey)
+            return globalTamgu->Returnerror("Wrong index", idthread);
+        values.erase(skey);
+        key = aNOELEMENT;
+    }
+    return key;
+}
+
+
 Exporting Tamgu* Tamgutreemapf::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
 
 

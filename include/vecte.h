@@ -209,6 +209,14 @@ public:
 		vecteur[last++] = val;
 	}
 
+    inline bool check() {
+        return (last < sz);
+    }
+    
+    inline void push(Z val) {
+        //sinon on ajoute l'element en queue...
+        vecteur[last++] = val;
+    }
 
 	inline Z operator [](long pos) {
 		return vecteur[pos];

@@ -47,6 +47,7 @@ extern AppDelegate* currentdelegate;
 extern tamgudebugger* debugger;
 
 BOOL nouveau = NO;
+extern int forceDark;
 extern BOOL runingmode;
 
 Console* tview;
@@ -189,6 +190,21 @@ const char* Inputtext(const char* msg) {
         allfiles[currentdelegate->currentfilename] = cvc;
         [vue presentViewController:cvc animator:cvc->a];
     }
+}
+
+- (IBAction)forceDarkMode:(id)sender {
+    if (forceDark == 0)
+        forceDark = 1;
+    else
+        forceDark = 3 - forceDark;
+    
+    NSWindow* wnd=[[NSApp orderedWindows] objectAtIndex:0];
+    NSViewController* n=[wnd contentViewController];
+    if (n == vue)
+        return;
+    
+    CodeViewController* cn=(CodeViewController*)n;
+    [[cn Code] selectColors];
 }
 
 - (IBAction)execution:(id)sender {

@@ -56,6 +56,8 @@ void Tamguchrono::AddMethod(TamguGlobal* global, string name, chronoMethod func,
 
     Tamguchrono::AddMethod(global, "_initial", &Tamguchrono::MethodUnit, P_ONE | P_NONE, "unit(int i): 1 is second. 2 is milliseconds. 3 is microsecond. 4 is nanosecond.");
     Tamguchrono::AddMethod(global, "reset", &Tamguchrono::MethodReset, P_NONE, "reset(): reset the chrono");
+    Tamguchrono::AddMethod(global, "start", &Tamguchrono::MethodReset, P_NONE, "start(): start the chrono");
+    Tamguchrono::AddMethod(global, "stop", &Tamguchrono::MethodStop, P_NONE, "stop(): stop the chrono and returns the intermediate time");
     Tamguchrono::AddMethod(global, "unit", &Tamguchrono::MethodUnit, P_ONE, "unit(int i): 1 is second. 2 is milliseconds. 3 is microsecond. 4 is nanosecond.");
 
 	if (version != "") {
@@ -103,6 +105,22 @@ Tamgu* Tamguchrono::MethodReset(Tamgu* contextualpattern, short idthread, TamguC
     return this;
 }
 
+Tamgu* Tamguchrono::MethodStop(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    //First parameter is a chrono
+    std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+    switch (unit) {
+        case 1:
+            return globalTamgu->ProvideConstfloat(std::chrono::duration_cast<std::chrono::seconds>( end - value ).count());
+        case 2:
+            return globalTamgu->ProvideConstfloat(std::chrono::duration_cast<std::chrono::milliseconds>( end - value ).count());
+        case 3:
+            return globalTamgu->ProvideConstfloat(std::chrono::duration_cast<std::chrono::microseconds>( end - value ).count());
+        case 4:
+            return globalTamgu->ProvideConstfloat(std::chrono::duration_cast<std::chrono::nanoseconds>( end - value ).count());
+    }
+    return globalTamgu->ProvideConstfloat(std::chrono::duration_cast<std::chrono::milliseconds>( end - value ).count());
+}
+
 Tamgu* Tamguchrono::minus(Tamgu* bb, bool autoself) {
     if (bb->Type() != idtype)
         return aNULL;
@@ -111,13 +129,13 @@ Tamgu* Tamguchrono::minus(Tamgu* bb, bool autoself) {
     
     switch (unit) {
         case 1:
-            return globalTamgu->Providefloat(std::chrono::duration_cast<std::chrono::seconds>( value - b->value ).count());
+            return globalTamgu->ProvideConstfloat(std::chrono::duration_cast<std::chrono::seconds>( value - b->value ).count());
         case 2:
-            return globalTamgu->Providefloat(std::chrono::duration_cast<std::chrono::milliseconds>( value - b->value ).count());
+            return globalTamgu->ProvideConstfloat(std::chrono::duration_cast<std::chrono::milliseconds>( value - b->value ).count());
         case 3:
-            return globalTamgu->Providefloat(std::chrono::duration_cast<std::chrono::microseconds>( value - b->value ).count());
+            return globalTamgu->ProvideConstfloat(std::chrono::duration_cast<std::chrono::microseconds>( value - b->value ).count());
         case 4:
-            return globalTamgu->Providefloat(std::chrono::duration_cast<std::chrono::nanoseconds>( value - b->value ).count());
+            return globalTamgu->ProvideConstfloat(std::chrono::duration_cast<std::chrono::nanoseconds>( value - b->value ).count());
     }
-    return globalTamgu->Providefloat(std::chrono::duration_cast<std::chrono::seconds>( value - b->value ).count());
+    return globalTamgu->ProvideConstfloat(std::chrono::duration_cast<std::chrono::seconds>( value - b->value ).count());
 }

@@ -306,9 +306,9 @@ Tamgu* Tamguatomicint::MethodBit(Tamgu* contextualpattern, short idthread, Tamgu
 
 void TamguLoopInteger::Callfunction() {
 
-    TamguCallFunction kfunc(function);
+    TamguCallFunction2 kfunc(function);
 
-    Tamguint* ki = globalTamgu->Provideint(position);
+    Tamgu* ki = globalTamgu->ProvideConstint(position);
     ki->Setreference();
     kfunc.arguments.push_back(this);
     kfunc.arguments.push_back(ki);
@@ -361,14 +361,14 @@ Tamgu* TamguLoopInteger::Vector(short idthread) {
 Exporting Tamgu* Tamguint::plus(Tamgu* a, bool itself) {
     if (!itself && a->isFloat()) {
         double v = value;
-        return globalTamgu->Providefloat(v + a->Float());
+        return globalTamgu->ProvideConstfloat(v + a->Float());
     }
 
     BLONG v = value;
     v += a->Long();
 
     if (IsLong(v))
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
 
     if (itself) {
         value = v;
@@ -376,20 +376,20 @@ Exporting Tamgu* Tamguint::plus(Tamgu* a, bool itself) {
     }
 
 
-    return globalTamgu->Provideint(v);
+    return globalTamgu->ProvideConstint(v);
 }
 
 Exporting Tamgu* Tamguint::multiply(Tamgu* a, bool itself) {
     if (!itself && a->isFloat()) {
         double v = value;
-        return globalTamgu->Providefloat(v*a->Float());
+        return globalTamgu->ProvideConstfloat(v*a->Float());
     }
 
     BLONG v = value;
     v *= a->Long();
 
     if (IsLong(v))
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
 
 
     if (itself) {
@@ -397,14 +397,14 @@ Exporting Tamgu* Tamguint::multiply(Tamgu* a, bool itself) {
         return this;
     }
 
-    return globalTamgu->Provideint(v);
+    return globalTamgu->ProvideConstint(v);
 }
 
 Exporting Tamgu* Tamguint::shiftleft(Tamgu* a, bool itself) {
     BLONG v = value;
     v <<= a->Integer();
     if (IsLong(v))
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
 
     if (itself) {
         value = v;
@@ -412,20 +412,20 @@ Exporting Tamgu* Tamguint::shiftleft(Tamgu* a, bool itself) {
     }
 
 
-    return globalTamgu->Provideint(v);
+    return globalTamgu->ProvideConstint(v);
 }
 
 Exporting Tamgu* Tamguatomicint::plus(Tamgu* a, bool itself) {
     if (!itself && a->isFloat()) {
         double v = value;
-        return globalTamgu->Providefloat(v + a->Float());
+        return globalTamgu->ProvideConstfloat(v + a->Float());
     }
     
     BLONG v = value;
     v += a->Long();
     
     if (IsLong(v))
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
     
     if (itself) {
         value = v;
@@ -433,20 +433,20 @@ Exporting Tamgu* Tamguatomicint::plus(Tamgu* a, bool itself) {
     }
     
     
-    return globalTamgu->Provideint(v);
+    return globalTamgu->ProvideConstint(v);
 }
 
 Exporting Tamgu* Tamguatomicint::multiply(Tamgu* a, bool itself) {
     if (!itself && a->isFloat()) {
         double v = value;
-        return globalTamgu->Providefloat(v*a->Float());
+        return globalTamgu->ProvideConstfloat(v*a->Float());
     }
     
     BLONG v = value;
     v *= a->Long();
     
     if (IsLong(v))
-        return new Tamgulong(v);
+        return globalTamgu->Providelong(v);
     
     
     if (itself) {

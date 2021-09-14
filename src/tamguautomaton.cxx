@@ -169,7 +169,7 @@ Tamgu* Tamguregularexpression::in(Tamgu* context, Tamgu* a, short idthread) {
                     else {
                         itr->Release();
                         if (context->isNumber())
-                            return globalTamgu->Provideint(i);
+                            return globalTamgu->ProvideConstint(i);
                         return aTRUE;
                     }
                 }
@@ -205,7 +205,7 @@ Tamgu* Tamguregularexpression::in(Tamgu* context, Tamgu* a, short idthread) {
                     }
                     else {
                         if (context->isNumber())
-                            return globalTamgu->Provideint(i);
+                            return globalTamgu->ProvideConstint(i);
                         return aTRUE;
                     }
                 }
@@ -234,7 +234,7 @@ Tamgu* Tamguregularexpression::in(Tamgu* context, Tamgu* a, short idthread) {
                 else {
                     itr->Release();
                     if (context->isNumber())
-                        return globalTamgu->Provideint(i);
+                        return globalTamgu->ProvideConstint(i);
         
                     return aTRUE;
                 }
@@ -282,7 +282,7 @@ Tamgu* Tamguregularexpression::in(Tamgu* context, Tamgu* a, short idthread) {
     
     i = automate->find(val);
     if (context->isNumber())
-        return globalTamgu->Provideint(i);
+        return globalTamgu->ProvideConstint(i);
 
     //The default value is a Boolean...
     if (i != au_error)
@@ -704,7 +704,7 @@ Tamgu* Tamguposixregularexpression::in(Tamgu* context, Tamgu* a, short idthread)
                     else {
                         itr->Release();
                         if (context->isNumber())
-                            return globalTamgu->Provideint(i);
+                            return globalTamgu->ProvideConstint(i);
                         return aTRUE;
                     }
                 }
@@ -739,7 +739,7 @@ Tamgu* Tamguposixregularexpression::in(Tamgu* context, Tamgu* a, short idthread)
                     }
                     else {
                         if (context->isNumber())
-                            return globalTamgu->Provideint(i);
+                            return globalTamgu->ProvideConstint(i);
                         return aTRUE;
                     }
                 }
@@ -767,7 +767,7 @@ Tamgu* Tamguposixregularexpression::in(Tamgu* context, Tamgu* a, short idthread)
                 else {
                     itr->Release();
                     if (context->isNumber())
-                        return globalTamgu->Provideint(i);
+                        return globalTamgu->ProvideConstint(i);
                     return aTRUE;
                 }
             }
@@ -842,8 +842,8 @@ Tamgu* Tamguposixregularexpression::in(Tamgu* context, Tamgu* a, short idthread)
         wstring val = a->UString();
         if (regex_search(val, result, *wpattern) == true) {
             if (CheckNeedConversion(val))
-                return globalTamgu->Provideint(conversionpostochar(val,result.position()));
-            return globalTamgu->Provideint(result.position());
+                return globalTamgu->ProvideConstint(conversionpostochar(val,result.position()));
+            return globalTamgu->ProvideConstint(result.position());
         }
         return aMINUSONE;
     }

@@ -323,7 +323,7 @@ public:
                 ungetc(cc, thefile);
 				ungetc(c, thefile);
                 unlocking();
-				return globalTamgu->Provideint(16);
+				return globalTamgu->ProvideConstint(16);
 			}
 
 			uchar ccc = fgetc(thefile);
@@ -335,7 +335,7 @@ public:
 			if (c == 239 && cc == 187 && ccc == 191) {
 				signature = true;
                 unlocking();
-				return aEIGHT;
+				return globalTamgu->ProvideConstint(8);
 			}
 		}
         unlocking();
@@ -374,7 +374,7 @@ public:
 
         long e = tell();
         unlocking();
-		return globalTamgu->Provideint(e);
+		return globalTamgu->ProvideConstint(e);
 	}
 
 	Tamgu* MethodSeek(Tamgu* context, short idthread, TamguCall* callfunc) {
@@ -879,6 +879,44 @@ public:
 		return str;
 	}
 
+    void readin(string& str, long nb) {
+        str = "";
+        long nbread;
+
+        while (nb) {
+            if (feof(thefile))
+                return;
+
+            fbuffer[0] = 0;
+            nbread = fread(fbuffer, 1, 4095, thefile);
+
+            if (nbread == 0)
+                return;
+
+            if (nb != -1) {
+                if (nbread >= nb) {
+                    nbread = nb;
+                    nb = 0;
+                }
+                else
+                    nb -= nbread;
+            }
+
+            fbuffer[nbread] = 0;
+            if (first) {
+                first = false;
+                if (signature) {
+                    if (fbuffer[0] == 239 && fbuffer[1] == 187 && fbuffer[2] == 191) {
+                        str += (char*)fbuffer + 3;
+                        continue;
+                    }
+                }
+            }
+
+            str += (char*)fbuffer;
+        }
+    }
+    
 	wstring wread(long nb) {
 		wstring str;
 
@@ -1027,7 +1065,7 @@ public:
 			if (utf8) {
 				if (sx.end()) {
 					if (v == NULL)
-						return globalTamgu->Provideint(p);
+						return globalTamgu->ProvideConstint(p);
 					v->storevalue(p);
 					sx.charpos = 0;
 					sx.bytepos = 0;
@@ -1042,7 +1080,7 @@ public:
 			else {
 				if (i >= s.size()) {
 					if (v == NULL)
-						return globalTamgu->Provideint(p);
+						return globalTamgu->ProvideConstint(p);
 					v->storevalue(p);
 					i = 0;
 				}

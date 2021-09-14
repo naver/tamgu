@@ -438,6 +438,34 @@ Exporting Tamgu*  Tamgutreemapu::Put(Tamgu* idx, Tamgu* ke, short idthread) {
     return aTRUE;
 }
 
+Exporting Tamgu* Tamgutreemapu::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign) {
+    wstring skey = key->Getustring(idthread);
+
+    if (globalTamgu->threadMODE) {
+        locking();
+        key = values[skey];
+        if (key == NULL) {
+            if (globalTamgu->erroronkey) {
+                unlocking();
+                return globalTamgu->Returnerror("Wrong index", idthread);
+            }
+            values.erase(skey);
+            key = aNOELEMENT;
+        }
+        unlocking();
+        return key;
+    }
+    
+    key = values[skey];
+    if (key == NULL) {
+        if (globalTamgu->erroronkey)
+            return globalTamgu->Returnerror("Wrong index", idthread);
+        values.erase(skey);
+        key = aNOELEMENT;
+    }
+    return key;
+}
+
 
 Exporting Tamgu* Tamgutreemapu::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
 

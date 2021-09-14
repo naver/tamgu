@@ -68,17 +68,17 @@ void Tamgutransducer::AddMethod(TamguGlobal* global, string name, transducerMeth
 		global->RecordMethods(Tamgutransducer::idtype, Tamgutransducer::exported);
 
 		Tamgu* a = new TamguSystemVariable(global, aONE, global->Createid("a_first"), a_short);
-		a = new TamguSystemVariable(global, aTWO, global->Createid("a_change"), a_short);
-		a = new TamguSystemVariable(global, aFOUR, global->Createid("a_delete"), a_short);
-		a = new TamguSystemVariable(global, aEIGHT, global->Createid("a_insert"), a_short);
-		a = new TamguSystemVariable(global, aSIXTEEN, global->Createid("a_switch"), a_short);
-		a = new TamguSystemVariable(global, aTHIRTYTWO, global->Createid("a_nocase"), a_short);
-		a = new TamguSystemVariable(global, aSIXTYFOUR, global->Createid("a_repetition"), a_short);
-		a = new TamguSystemVariable(global, new TamguConstShort(128, global), global->Createid("a_vowel"), a_short);
-		a = new TamguSystemVariable(global, new TamguConstShort(256, global), global->Createid("a_surface"), a_short);
-		a = new TamguSystemVariable(global, new TamguConstShort(512, global), global->Createid("a_longest"), a_short);
+		a = new TamguSystemVariable(global, global->ProvideConstint(2), global->Createid("a_change"), a_short);
+		a = new TamguSystemVariable(global, global->ProvideConstint(4), global->Createid("a_delete"), a_short);
+		a = new TamguSystemVariable(global, global->ProvideConstint(8), global->Createid("a_insert"), a_short);
+		a = new TamguSystemVariable(global, global->ProvideConstint(16), global->Createid("a_switch"), a_short);
+		a = new TamguSystemVariable(global, global->ProvideConstint(32), global->Createid("a_nocase"), a_short);
+		a = new TamguSystemVariable(global, global->ProvideConstint(64), global->Createid("a_repetition"), a_short);
+		a = new TamguSystemVariable(global, global->ProvideConstint(128), global->Createid("a_vowel"), a_short);
+		a = new TamguSystemVariable(global, global->ProvideConstint(256), global->Createid("a_surface"), a_short);
+		a = new TamguSystemVariable(global, global->ProvideConstint(512), global->Createid("a_longest"), a_short);
 		a = new TamguSystemVariable(global, aONE, global->Createid("a_offsets"), a_short);
-		a = new TamguSystemVariable(global, aTWO, global->Createid("a_features"), a_short);
+		a = new TamguSystemVariable(global, global->ProvideConstint(2), global->Createid("a_features"), a_short);
 	}
 
     return true;

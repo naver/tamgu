@@ -469,29 +469,45 @@ public:
 
 	//----------------------------------------------------------------------------------------------------------------------
     void Putatomicvalue(Tamgu* v) {
-        locking();
-        v->Setstring(value, 0);
-        unlocking();
+        if (globalTamgu->threadMODE) {
+            locking();
+            v->Setstring(value, 0);
+            unlocking();
+        }
+        else
+            v->Setstring(value, 0);
     }
 
     void Setstring(string& v, short idthread) {
-        locking();
-        v = value;
-        unlocking();
+        if (globalTamgu->threadMODE) {
+            locking();
+            v = value;
+            unlocking();
+        }
+        else
+            v = value;
     }
     
     void Setstring(wstring& v, short idthread) {
-        locking();
-        sc_utf8_to_unicode(v, USTR(value), value.size());
-        unlocking();
+        if (globalTamgu->threadMODE) {
+            locking();
+            sc_utf8_to_unicode(v, USTR(value), value.size());
+            unlocking();
+        }
+        else
+            sc_utf8_to_unicode(v, USTR(value), value.size());
     }
 
 	Exporting Tamgu* Put(Tamgu* index, Tamgu* v, short idthread);
 
 	Tamgu* Putvalue(Tamgu* v, short idthread) {
-        locking();
-		v->Setstring(value, idthread);
-        unlocking();
+        if (globalTamgu->threadMODE) {
+            locking();
+            v->Setstring(value, idthread);
+            unlocking();
+        }
+        else
+            v->Setstring(value, idthread);
 		return this;
 	}
 
@@ -583,99 +599,164 @@ public:
 	}
 
     Tamgu* Atomref() {
-        TamguReference* r = (TamguReference*)Atom();
+        TamguReference* r = this;
+        if (!globalTamgu->threadMODE) {
+            if (!protect || reference)
+                r = (TamguReference*)globalTamgu->Providewithstring(value);
+
+            r->reference = 1;
+            r->protect = false;
+            return r;
+        }
+        
+        locking();
+        if (!protect || reference)
+            r = (TamguReference*)globalTamgu->Providewithstring(value);
         r->reference = 1;
         r->protect = false;
+        unlocking();
         return r;
     }
 
 
 	void storevalue(float u) {
 		string s = convertfromnumber(u);
-        locking();
-        value = s;
-        unlocking();
+        if (globalTamgu->threadMODE) {
+            locking();
+            value = s;
+            unlocking();
+        }
+        else
+            value = s;
 	}
 
 	void storevalue(short u) {
 		string s = convertfromnumber(u);
-        locking();
-        value = s;
-        unlocking();
+        if (globalTamgu->threadMODE) {
+            locking();
+            value = s;
+            unlocking();
+        }
+        else
+            value = s;
 	}
 
 	void storevalue(long u) {
 		string s = convertfromnumber(u);
-        locking();
-        value = s;
-        unlocking();
+        if (globalTamgu->threadMODE) {
+            locking();
+            value = s;
+            unlocking();
+        }
+        else
+            value = s;
 	}
 
 	void storevalue(BLONG u) {
 		string s = convertfromnumber(u);
-        locking();
-        value = s;
-        unlocking();
+        if (globalTamgu->threadMODE) {
+            locking();
+            value = s;
+            unlocking();
+        }
+        else
+            value = s;
 	}
 
 	void storevalue(double u) {
 		string s = convertfromnumber(u);
-        locking();
-        value = s;
-        unlocking();
+        if (globalTamgu->threadMODE) {
+            locking();
+            value = s;
+            unlocking();
+        }
+        else
+            value = s;
 	}
 
 
 	void Storevalue(string& u) {
-        locking();
-        value = u;
-        unlocking();
+        if (globalTamgu->threadMODE) {
+            locking();
+            value = u;
+            unlocking();
+        }
+        else
+            value = u;
 	}
 
-	void Storevalue(wstring& u) {
-        locking();
-		sc_unicode_to_utf8(value, u);
-        unlocking();
-	}
+    void Storevalue(wstring& u) {
+        if (globalTamgu->threadMODE) {
+            locking();
+            sc_unicode_to_utf8(value, u);
+            unlocking();
+        }
+        else
+            sc_unicode_to_utf8(value, u);
+    }
 
     void storevalue(string u) {
-        locking();
-        value = u;
-        unlocking();
+        if (globalTamgu->threadMODE) {
+            locking();
+            value = u;
+            unlocking();
+        }
+        else
+            value = u;
     }
     
     void storevalue(wstring u) {
-        locking();
-        sc_unicode_to_utf8(value, u);
-        unlocking();
+        if (globalTamgu->threadMODE) {
+            locking();
+            sc_unicode_to_utf8(value, u);
+            unlocking();
+        }
+        else
+            sc_unicode_to_utf8(value, u);
     }
     
 	void storevalue(wchar_t u) {
 		wstring w;
 		w = u;
-        locking();
-		sc_unicode_to_utf8(value, w);
-        unlocking();
+        if (globalTamgu->threadMODE) {
+            locking();
+            sc_unicode_to_utf8(value, w);
+            unlocking();
+        }
+        else
+            sc_unicode_to_utf8(value, w);
 	}
-
-	void addstringto(string u) {
-        locking();
-		value += u;
-        unlocking();
-	}
+    
+    void addstringto(string u) {
+        if (globalTamgu->threadMODE) {
+            locking();
+            value += u;
+            unlocking();
+        }
+        else
+            value += u;
+    }
 
 	void addustringto(wstring u) {
-        locking();
-		s_unicode_to_utf8(value, u);
-        unlocking();
+        if (globalTamgu->threadMODE) {
+            locking();
+            s_unicode_to_utf8(value, u);
+            unlocking();
+        }
+        else
+            s_unicode_to_utf8(value, u);
 	}
 
 	void addstringto(wchar_t u) {
 		wstring w;
 		w = u;
-        locking();
-		s_unicode_to_utf8(value, w);
-        unlocking();
+        if (globalTamgu->threadMODE) {
+            locking();
+            s_unicode_to_utf8(value, w);
+            unlocking();
+        }
+        else
+            s_unicode_to_utf8(value, w);
 	}
 
 	//---------------------------------------------------------------------------------------------------------------------
@@ -729,7 +810,7 @@ public:
 	//This is an example of a function that could be implemented for your needs.
 	Tamgu* MethodSizeb(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         locking();
-        Tamgu* r = globalTamgu->Provideint((long)value.size());
+        Tamgu* r = globalTamgu->ProvideConstint((long)value.size());
         unlocking();
         return r;
 	}
@@ -1157,17 +1238,18 @@ public:
     }
 
 	void Resetreference(short r) {
-        if ((reference-=r) <= 0) {
-            reference = 0;
+        r = reference - r;
+        if (r <= 0) {
+            reference.store(0);
             if (!protect) {
                 protect = true;
-                
-                value = "";
                 used = false;
                 if (!globalTamgu->threadMODE)
                     globalTamgu->sempties.push_back(idx);
             }
         }
+        else
+            reference.store(r);
 	}
 
 };
@@ -1183,7 +1265,7 @@ public:
 	}
 
 	Tamgu* Key() {
-		return globalTamgu->Provideint((long)ref.getcharpos());
+		return globalTamgu->ProvideConstint((long)ref.getcharpos());
 	}
 
 	Tamgu* Value() {
@@ -1494,7 +1576,7 @@ public:
         //This SECTION is for your specific implementation...
         //This is an example of a function that could be implemented for your needs.
     Tamgu* MethodSizeb(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        return globalTamgu->Provideint((long)value.size());
+        return globalTamgu->ProvideConstint((long)value.size());
     }
     
     Tamgu* MethodSucc(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {

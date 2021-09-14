@@ -63,7 +63,9 @@ class Tamgusvector : public TamguLockContainer {
         isconst = true;
     }
 
-    Exporting virtual Tamgu* Put(Tamgu* i, Tamgu* value, short idthread);Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
+    Exporting virtual Tamgu* Put(Tamgu* i, Tamgu* value, short idthread);
+    Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
+    Tamgu* EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign);
     Exporting Tamgu* Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* env, TamguFunctionLambda* bd, short idthread);
     Exporting Tamgu* Filter(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* kcont, Tamgu* accu, Tamgu* init, bool direct);
 
@@ -332,7 +334,7 @@ class Tamgusvector : public TamguLockContainer {
 
     
     void Methods(Tamgu* v) {
-        for (auto& it : infomethods)
+        for (const auto& it : infomethods)
             v->storevalue(it.first);
     }
 
@@ -458,7 +460,7 @@ class Tamgusvector : public TamguLockContainer {
         locking();
         unsigned long dst = EditDistance(v);
         unlocking();
-        return globalTamgu->Provideint(dst);
+        return globalTamgu->ProvideConstint(dst);
     }
 
     Tamgu* MethodInsert(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -610,7 +612,7 @@ class TamguIterationsvector : public TamguIteration {
     }
 
     Tamgu* Key() {
-        return globalTamgu->Provideint(itx);
+        return globalTamgu->ProvideConstint(itx);
     }
 
     
@@ -728,8 +730,9 @@ class Tamgusvectorbuff : public Tamgusvector {
     }
 
     void Resetreference(short r) {
-        if ((reference-=r) <= 0) {
-            reference = 0;
+        r = reference - r;
+        if (r <= 0) {
+            reference.store(0);
             if (!protect) {
                 protect = true;
                 
@@ -739,6 +742,8 @@ class Tamgusvectorbuff : public Tamgusvector {
                     globalTamgu->svectorempties.push_back(idx);
             }
         }
+        else
+            reference.store(r);
     }
 };
 //---------------------------------------------------------------------------------------------------------------------
@@ -995,7 +1000,7 @@ public:
     
     
     void Methods(Tamgu* v) {
-        for (auto& it : infomethods)
+        for (const auto& it : infomethods)
             v->storevalue(it.first);
     }
 
@@ -1226,7 +1231,7 @@ public:
     }
     
     Tamgu* Key() {
-        return globalTamgu->Provideint(it.first);
+        return globalTamgu->ProvideConstint(it.first);
     }
     
     

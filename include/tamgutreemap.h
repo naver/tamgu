@@ -62,6 +62,7 @@ class Tamgutreemap : public TamguObjectLockContainer {
     Exporting Tamgu* Loopin(TamguInstruction*, Tamgu* context, short idthread);
     Exporting Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);
     Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
+    Tamgu* EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign);
 
     void SetConst() { isconst = true;}
 
@@ -105,7 +106,7 @@ class Tamgutreemap : public TamguObjectLockContainer {
 
 
     Tamgu* Newvalue(Tamgu* a, short idthread) {
-        Tamgutreemap* m = new Tamgutreemap;
+        Tamgutreemap* m = globalTamgu->Providetreemap();
         if (a->isContainer()) {
             TamguIteration* it = a->Newiteration(false);
             for (it->Begin(); it->End() == aFALSE; it->Next()) {
@@ -122,7 +123,7 @@ class Tamgutreemap : public TamguObjectLockContainer {
     }
 
     Tamgu* Newinstance(short idthread, Tamgu* f = NULL) {
-        return new Tamgutreemap();
+        return globalTamgu->Providetreemap();
     }
 
     Exporting TamguIteration* Newiteration(bool direction);
@@ -174,7 +175,7 @@ class Tamgutreemap : public TamguObjectLockContainer {
 
     Tamgu* Atom(bool forced) {
         if (forced) {
-            Tamgutreemap* m = new Tamgutreemap;
+            Tamgutreemap* m = globalTamgu->Providetreemap();
             locking();
             Tamgu* v;
 
@@ -264,7 +265,7 @@ class Tamgutreemap : public TamguObjectLockContainer {
         Tamgutreemap* item;
         Tamgu* vect = Selectavector(contextualpattern);
         for (auto& itr : values) {
-            item = new Tamgutreemap;
+            item = globalTamgu->Providetreemap();
             item->Push(itr.first, itr.second);
             vect->Push(item);
         }
@@ -281,7 +282,7 @@ class Tamgutreemap : public TamguObjectLockContainer {
 
     Tamgu* MethodSum(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = Sum();
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
 
     Tamgu* MethodKeys(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -320,7 +321,7 @@ class Tamgutreemap : public TamguObjectLockContainer {
 
     Tamgu* MethodProduct(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = Product();
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
 
     Tamgu* MethodPop(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -352,6 +353,11 @@ class Tamgutreemap : public TamguObjectLockContainer {
 
     Exporting Tamgu* Push(Tamgu* k, Tamgu* v);
     Exporting Tamgu* Pop(Tamgu* kkey);
+
+    inline void pushone(string& k, Tamgu* a) {
+        values[k] = a;
+        a->Addreference(0,reference + 1);
+    }
 
     Tamgu* push(string k, Tamgu* a) {
         Tamgu* v = values[k];
@@ -458,61 +464,91 @@ class Tamgutreemap : public TamguObjectLockContainer {
 
     Tamgu* Value(Tamgu* a) {
         string s =  a->String();
-        locking();
         Tamgu* v;
-        try {
-            v = values.at(s);
+        if (globalTamgu->threadMODE) {
+            locking();
+            v = values[s];
+            if (v == NULL) {
+                values.erase(s);
+                v = aNOELEMENT;
+            }
             unlocking();
             return v;
         }
-        catch (const std::out_of_range& oor) {
-            unlocking();
+        
+        v = values[s];
+        if (v == NULL) {
+            values.erase(s);
             return aNOELEMENT;
         }
+        return v;
     }
 
     Tamgu* Value(string& s) {
-        locking();
         Tamgu* v;
-        try {
-            v = values.at(s);
+        if (globalTamgu->threadMODE) {
+            locking();
+            v = values[s];
+            if (v == NULL) {
+                values.erase(s);
+                v = aNOELEMENT;
+            }
             unlocking();
             return v;
         }
-        catch (const std::out_of_range& oor) {
-            unlocking();
+        
+        v = values[s];
+        if (v == NULL) {
+            values.erase(s);
             return aNOELEMENT;
         }
+        return v;
     }
 
     Tamgu* Value(long n) {
         
         string s = convertfromnumber(n);
         Tamgu* v;
-        try {
-            v = values.at(s);
+        if (globalTamgu->threadMODE) {
+            locking();
+            v = values[s];
+            if (v == NULL) {
+                values.erase(s);
+                v = aNOELEMENT;
+            }
             unlocking();
             return v;
         }
-        catch (const std::out_of_range& oor) {
-            unlocking();
+        
+        v = values[s];
+        if (v == NULL) {
+            values.erase(s);
             return aNOELEMENT;
         }
+        return v;
     }
 
     Tamgu* Value(double n) {
         
         string s = convertfromnumber(n);
         Tamgu* v;
-        try {
-            v = values.at(s);
+        if (globalTamgu->threadMODE) {
+            locking();
+            v = values[s];
+            if (v == NULL) {
+                values.erase(s);
+                v = aNOELEMENT;
+            }
             unlocking();
             return v;
         }
-        catch (const std::out_of_range& oor) {
-            unlocking();
+        
+        v = values[s];
+        if (v == NULL) {
+            values.erase(s);
             return aNOELEMENT;
         }
+        return v;
     }
 
     //Basic operations
@@ -618,4 +654,23 @@ class TamguIterationtreemap : public TamguIteration {
 };
 
 
+//---------------------------------------------------------------------------------------------------------------------
+class Tamgutreemapbuff : public Tamgutreemap {
+    public:
+    long idx;
+    bool used;
+
+    Tamgutreemapbuff(long i)  {
+        //Do not forget your variable initialisation
+        idx = i;
+        used = false;
+    }
+
+    bool Candelete() {
+        return false;
+    }
+
+    Exporting void Resetreference(short r);
+
+};
 #endif

@@ -337,12 +337,12 @@ class Tamgulist : public TamguObjectLockContainer {
 
     Tamgu* MethodSum(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = Sum();
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
 
     Tamgu* MethodProduct(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = Product();
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
 
     Tamgu* MethodInsert(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -495,7 +495,7 @@ class Tamgulist : public TamguObjectLockContainer {
                 n++;
             }
             unlocking();
-            return globalTamgu->Providefloat(v);
+            return globalTamgu->ProvideConstfloat(v);
         }
 
         string v;
@@ -567,7 +567,7 @@ class Tamgulist : public TamguObjectLockContainer {
         }
 
         unlocking();
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
 
     double Sum() {
@@ -635,7 +635,7 @@ class TamguIterationlist : public TamguIteration {
     }
 
     Tamgu* Key() {
-        return globalTamgu->Provideint(itx);
+        return globalTamgu->ProvideConstint(itx);
     }
 
     Tamgu* Value() {
@@ -1160,12 +1160,12 @@ public:
     
     Tamgu* MethodSum(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = Sum();
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
     
     Tamgu* MethodProduct(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = Product();
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
     
     Tamgu* MethodInsert(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -1429,7 +1429,7 @@ public:
     TamguIterationring(Tamguring* v, bool d, TamguGlobal* g = NULL) : ref(v->values), TamguIteration(d, g) {}
     
     Tamgu* Key() {
-        return globalTamgu->Provideint(ref.first);
+        return globalTamgu->ProvideConstint(ref.first);
     }
     
     Tamgu* Value() {

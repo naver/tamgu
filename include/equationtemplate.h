@@ -300,7 +300,7 @@ public:
             return res;
         }
         res->Releasenonconst();
-        return new Tamgulong(r);
+        return globalTamgu->Providelong(r);
     }
 
     long Getinteger(short idthread) {
@@ -343,7 +343,7 @@ public:
             return res;
         }
         res->Releasenonconst();
-        return globalTamgu->Providefloat(r);
+        return globalTamgu->ProvideConstfloat(r);
     }
     
     double Getfloat(short idthread) {
@@ -694,7 +694,7 @@ public:
             return res;
         }
         res->Releasenonconst();
-        return new Tamgulong(r);
+        return globalTamgu->Providelong(r);
     }
 
     long Getinteger(short idthread) {
@@ -738,7 +738,7 @@ public:
             return res;
         }
         res->Releasenonconst();
-        return globalTamgu->Providefloat(r);
+        return globalTamgu->ProvideConstfloat(r);
     }
 
     long Getinteger(short idthread) {
@@ -782,7 +782,7 @@ public:
             return res;
         }
         res->Releasenonconst();
-        return new Tamgulong(r);
+        return globalTamgu->Providelong(r);
     }
 
     long Getinteger(short idthread) {
@@ -826,7 +826,7 @@ public:
             return res;
         }
         res->Releasenonconst();
-        return globalTamgu->Providefloat(r);
+        return globalTamgu->ProvideConstfloat(r);
     }
 
     long Getinteger(short idthread) {
@@ -869,7 +869,7 @@ public:
             return res;
         }
         res->Releasenonconst();
-        return new Tamgulong(r);
+        return globalTamgu->Providelong(r);
     }
 
     long Getinteger(short idthread) {
@@ -913,7 +913,7 @@ public:
             return res;
         }
         res->Releasenonconst();
-        return globalTamgu->Providefloat(r);
+        return globalTamgu->ProvideConstfloat(r);
     }
 
     long Getinteger(short idthread) {
@@ -1205,7 +1205,7 @@ public:
             return res;
         }
         res->Releasenonconst();
-        return new Tamgulong(r);
+        return globalTamgu->Providelong(r);
     }
 
     long Getinteger(short idthread) {
@@ -1248,7 +1248,7 @@ public:
             return res;
         }
         res->Releasenonconst();
-        return globalTamgu->Providefloat(r);
+        return globalTamgu->ProvideConstfloat(r);
     }
     
     long Getinteger(short idthread) {
@@ -1299,7 +1299,7 @@ public:
             return res;
         }
         res->Releasenonconst();
-        return new Tamgulong(r);
+        return globalTamgu->Providelong(r);
     }
     
 
@@ -1379,7 +1379,7 @@ public:
             return res;
         }
         res->Releasenonconst();
-       return globalTamgu->Providefloat(r);
+       return globalTamgu->ProvideConstfloat(r);
     }
     
 
@@ -1568,7 +1568,7 @@ public:
             return res;
         }
         res->Releasenonconst();
-        return new Tamgulong(r);
+        return globalTamgu->Providelong(r);
     }
 
     long Getinteger(short idthread) {
@@ -1618,7 +1618,7 @@ public:
             return res;
         }
         res->Releasenonconst();
-       return new Tamgulong(r);
+       return globalTamgu->Providelong(r);
     }
 
     long Getinteger(short idthread) {
@@ -1786,7 +1786,7 @@ public:
             return res;
         }
         res->Releasenonconst();
-        return new Tamgulong(r);
+        return globalTamgu->Providelong(r);
     }
 
     short Getshort(short idthread) {
@@ -1832,7 +1832,7 @@ public:
             return res;
         }
         res->Releasenonconst();
-        return new Tamgulong(r);
+        return globalTamgu->Providelong(r);
     }
 
     short Getshort(short idthread) {
@@ -1943,7 +1943,7 @@ public:
             return res;
         }
         res->Releasenonconst();
-        return new Tamgulong(r);
+        return globalTamgu->Providelong(r);
     }
     
     short Getshort(short idthread) {
@@ -1989,7 +1989,7 @@ public:
             return res;
         }
         res->Releasenonconst();
-        return new Tamgulong(r);
+        return globalTamgu->Providelong(r);
     }
     
 
@@ -2252,7 +2252,7 @@ public:
             return res;
         }
         res->Releasenonconst();
-        return globalTamgu->Providefloat(r);
+        return globalTamgu->ProvideConstfloat(r);
     }
 
     long Getinteger(short idthread) {
@@ -2296,7 +2296,7 @@ public:
             return res;
         }
         res->Releasenonconst();
-        return globalTamgu->Providefloat(r);
+        return globalTamgu->ProvideConstfloat(r);
     }
 
     long Getinteger(short idthread) {
@@ -2405,7 +2405,7 @@ public:
         for (long i=0;i<size; i++)
             res += values[i]->Getlong(idthread);
         
-        return new Tamgulong(res);
+        return globalTamgu->Providelong(res);
     }
 
     long Getinteger(short idthread) {
@@ -2467,7 +2467,7 @@ public:
         for (long i=0;i<size; i++)
             res += values[i]->Getfloat(idthread);
         
-        return globalTamgu->Providefloat(res);
+        return globalTamgu->ProvideConstfloat(res);
     }
 
     long Getinteger(short idthread) {
@@ -2661,7 +2661,7 @@ public:
         for (long i=0;i<size; i++)
             res -= values[i]->Getlong(idthread);
         
-        return new Tamgulong(res);
+        return globalTamgu->Providelong(res);
     }
     
 
@@ -2766,7 +2766,7 @@ public:
         for (long i=0;i<size; i++)
             res -= values[i]->Getfloat(idthread);
         
-        return globalTamgu->Providefloat(res);
+        return globalTamgu->ProvideConstfloat(res);
     }
 
     long Getinteger(short idthread) {
@@ -3017,7 +3017,7 @@ public:
         for (long i=0;i<size; i++)
             res *= values[i]->Getlong(idthread);
         
-        return new Tamgulong(res);
+        return globalTamgu->Providelong(res);
     }
 
     
@@ -3080,7 +3080,7 @@ public:
         for (long i=0;i<size; i++)
             res *= values[i]->Getfloat(idthread);
         
-        return globalTamgu->Providefloat(res);
+        return globalTamgu->ProvideConstfloat(res);
     }
 
     long Getinteger(short idthread) {
@@ -4573,7 +4573,7 @@ public:
             return res;
         }
         
-        return globalTamgu->Providefloat(r);
+        return globalTamgu->ProvideConstfloat(r);
     }
     
     short Typevariable() {
@@ -4632,7 +4632,7 @@ public:
             return res;
         }
         
-        return new Tamgulong(r);
+        return globalTamgu->Providelong(r);
     }
     
     short Typevariable() {

@@ -66,6 +66,8 @@ class Tamguprimemapsl : public TamguLockContainer {
     //----------------------------------------------------------------------------------------------------------------------
     Exporting Tamgu* Loopin(TamguInstruction* ins, Tamgu* context, short idthread);
     Exporting Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);
+
+    Tamgu* EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign);
     Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 
     void SetConst() { isconst = true;}
@@ -251,7 +253,7 @@ class Tamguprimemapsl : public TamguLockContainer {
 
     Tamgu* MethodSum(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = Sum();
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
 
     Tamgu* MethodKeys(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -287,7 +289,7 @@ class Tamguprimemapsl : public TamguLockContainer {
 
     Tamgu* MethodProduct(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = Product();
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
 
     Tamgu* MethodPop(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -387,7 +389,7 @@ class Tamguprimemapsl : public TamguLockContainer {
             unlocking();
             return aNOELEMENT;
         }
-        Tamgu* res = new Tamgulong(values[n]);
+        Tamgu* res = globalTamgu->Providelong(values[n]);
         unlocking();
         return res;        
     }
@@ -398,7 +400,7 @@ class Tamguprimemapsl : public TamguLockContainer {
             unlocking();
             return aNOELEMENT;
         }
-        Tamgu* res = new Tamgulong(values[n]);
+        Tamgu* res = globalTamgu->Providelong(values[n]);
         unlocking();
         return res;        
     }
@@ -411,7 +413,7 @@ class Tamguprimemapsl : public TamguLockContainer {
             unlocking();
             return aNOELEMENT;
         }
-        Tamgu* res = new Tamgulong(values[s]);
+        Tamgu* res = globalTamgu->Providelong(values[s]);
         unlocking();
         return res;        
     }
@@ -424,7 +426,7 @@ class Tamguprimemapsl : public TamguLockContainer {
             unlocking();
             return aNOELEMENT;
         }
-        Tamgu* res = new Tamgulong(values[s]);
+        Tamgu* res = globalTamgu->Providelong(values[s]);
         unlocking();
         return res;        
     }
@@ -437,7 +439,7 @@ class Tamguprimemapsl : public TamguLockContainer {
             unlocking();
             return aNOELEMENT;
         }
-        Tamgu* res = new Tamgulong(values[s]);
+        Tamgu* res = globalTamgu->Providelong(values[s]);
         unlocking();
         return res;        
     }
@@ -493,7 +495,7 @@ class TamguIterationprimemapsl : public TamguIteration {
     
 
     Tamgu* Value() {
-        return new Tamgulong(it->second);
+        return globalTamgu->Providelong(it->second);
     }
 
     string Keystring() {

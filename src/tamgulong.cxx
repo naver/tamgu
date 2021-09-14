@@ -142,7 +142,7 @@ Tamgu* Tamgulong::Methodchr(Tamgu* contextualpattern, short idthread, TamguCall*
 
 void TamguLoopLong::Callfunction() {
 
-    TamguCallFunction kfunc(function);
+    TamguCallFunction2 kfunc(function);
 
     Tamguint* ki = globalTamgu->Provideint(position);
     ki->Setreference();

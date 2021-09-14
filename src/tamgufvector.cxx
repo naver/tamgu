@@ -41,47 +41,49 @@ void Tamgufvector::AddMethod(TamguGlobal* global, string name, fvectorMethod fun
 
 
 
-    void Tamgufvector::Setidtype(TamguGlobal* global) {
+void Tamgufvector::Setidtype(TamguGlobal* global) {
     Tamgufvector::InitialisationModule(global,"");
 }
 
 
-   bool Tamgufvector::InitialisationModule(TamguGlobal* global, string version) {
+bool Tamgufvector::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
     infomethods.clear();
     exported.clear();
-
-
-
+    
+    
+    
     Tamgufvector::idtype = global->Getid("fvector");
-
+    
     Tamgufvector::AddMethod(global, "reverse", &Tamgufvector::MethodReverse, P_NONE, "reverse(): reverse a vector.");
     Tamgufvector::AddMethod(global, "reserve", &Tamgufvector::MethodReserve, P_ONE, "reserve(int sz): Reserve a size of 'sz' potential element in the vector.");
     Tamgufvector::AddMethod(global, "unique", &Tamgufvector::MethodUnique, P_NONE, "unique(): remove duplicate elements.");
-
+    
     Tamgufvector::AddMethod(global, "remove", &Tamgufvector::MethodRemove, P_ONE, "remove(float e): remove 'e' from the vector.");
-
+    
     Tamgufvector::AddMethod(global, "last", &Tamgufvector::MethodLast, P_NONE, "last(): return the last element.");
     Tamgufvector::AddMethod(global, "join", &Tamgufvector::MethodJoin, P_ONE, "join(string sep): Produce a string representation for the container.");
-
+    
     Tamgufvector::AddMethod(global, "shuffle", &Tamgufvector::MethodShuffle, P_NONE, "shuffle(): shuffle the values in the vector.");
     Tamgufvector::AddMethod(global, "sort", &Tamgufvector::MethodSort, P_ONE, "sort(bool reverse): sort the elements within.");
     Tamgufvector::AddMethod(global, "sum", &Tamgufvector::MethodSum, P_NONE, "sum(): return the sum of elements.");
-
+    
     Tamgufvector::AddMethod(global, "product", &Tamgufvector::MethodProduct, P_NONE, "product(): return the product of elements.");
     Tamgufvector::AddMethod(global, "push", &Tamgufvector::MethodPush, P_ATLEASTONE, "push(v): Push a value into the vector.");
     Tamgufvector::AddMethod(global, "pop", &Tamgufvector::MethodPop, P_NONE | P_ONE, "pop(int i): Erase an element from the vector");
     Tamgufvector::AddMethod(global, "merge", &Tamgufvector::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
     Tamgufvector::AddMethod(global, "editdistance", &Tamgufvector::MethodEditDistance, P_ONE, "editdistance(v): Compute the edit distance with vector 'v'.");
     Tamgufvector::AddMethod(global, "insert", &Tamgufvector::MethodInsert, P_TWO, "insert(int i,v): Insert v at position i.");
-
+    
     Tamgufvector::AddMethod(global, "permute", &Tamgufvector::MethodPermute, P_NONE, "permute(): permute the values in the vector after each call.");
-
+    
     if (version != "") {
         global->newInstance[Tamgufvector::idtype] = new Tamgufvector(global);
         global->RecordMethods(Tamgufvector::idtype,Tamgufvector::exported);
     }
-
+    
+    global->minimal_indexes[Tamgufvector::idtype] = true;
+    
     Tamgua_fvector::InitialisationModule(global, version);
     
     return true;
@@ -115,7 +117,7 @@ Exporting Tamgu* Tamgufvector::in(Tamgu* context, Tamgu* a, short idthread) {
         for (size_t i = 0; i < values.size(); i++) {
             if (values[i] == val) {
                 unlocking();
-                return globalTamgu->Provideint(i);
+                return globalTamgu->ProvideConstint(i);
             }
         }
         unlocking();
@@ -539,6 +541,26 @@ Exporting Tamgu* Tamgufvector::Unique() {
     return kvect;
 }
 
+Tamgu* Tamgufvector::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign) {
+    long ikey;
+    ikey = key->Getinteger(idthread);
+    if (ikey < 0)
+        ikey = values.size() + ikey;
+    
+    locking();
+    if (ikey < 0 || ikey >= values.size()) {
+        if (ikey != values.size()) {
+            unlocking();
+            if (globalTamgu->erroronkey)
+                return globalTamgu->Returnerror("Wrong index", idthread);
+            return aNOELEMENT;
+        }
+    }
+    
+    key =  globalTamgu->ProvideConstfloat(values[ikey]);
+    unlocking();
+    return key;    
+}
 
 Exporting Tamgu* Tamgufvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
     if (!idx->isIndex()) {
@@ -554,14 +576,14 @@ Exporting Tamgu* Tamgufvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
                 ((Tamgufvector*)kv)->values = values;
             else
                 for (int i = 0; i < values.size(); i++)
-                    kv->Push(globalTamgu->Providefloat(values[i]));
+                    kv->Push(globalTamgu->ProvideConstfloat(values[i]));
             unlocking();
             return kv;
         }
 
         if (contextualpattern->isNumber()) {
             long v = Size();
-            return globalTamgu->Provideint(v);
+            return globalTamgu->ProvideConstint(v);
         }
 
         return this;
@@ -590,7 +612,7 @@ Exporting Tamgu* Tamgufvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
     }
 
     if (keyright == NULL) {
-        keyright =  globalTamgu->Providefloat(values[ikey]);
+        keyright =  globalTamgu->ProvideConstfloat(values[ikey]);
         unlocking();
         return keyright;
     }
@@ -631,7 +653,7 @@ Exporting Tamgu* Tamgufvector::Map(short idthread) {
     char buff[100];
     for (int it = 0; it < values.size(); it++) {
         sprintf_s(buff, 100, "%d", it);
-        kmap->Push(buff, globalTamgu->Providefloat(values[it]));
+        kmap->Push(buff, globalTamgu->ProvideConstfloat(values[it]));
     }
     unlocking();
     return kmap;
@@ -642,7 +664,7 @@ Exporting Tamgu* Tamgufvector::Vector(short idthread) {
     Tamguvector* kvect = globalTamgu->Providevector();
     kvect->values.reserve(values.size());
     for (int i = 0; i < values.size(); i++)
-        kvect->Push(globalTamgu->Providefloat(values[i]));
+        kvect->Push(globalTamgu->ProvideConstfloat(values[i]));
     unlocking();
     return kvect;
 }
@@ -1130,7 +1152,7 @@ Exporting Tamgu* Tamgufvector::Filter(short idthread, Tamgu* env, TamguFunctionL
 
 class FComp {
     public:
-    TamguCallFunction compare;
+    TamguCallFunction2 compare;
     short idthread;
     TamguConstFloat p;
     TamguConstFloat s;
@@ -1271,7 +1293,7 @@ Exporting Tamgu* Tamgua_fvector::in(Tamgu* context, Tamgu* a, short idthread) {
         atomic_value_vector_iterator<double> it(values);
         for (; !it.end(); it.next()) {
             if (it.second == val)
-                return globalTamgu->Provideint(it.first);
+                return globalTamgu->ProvideConstint(it.first);
         }
         return aMINUSONE;
     }
@@ -1301,7 +1323,7 @@ Exporting Tamgu* Tamgua_fvector::in(Tamgu* context, Tamgu* a, short idthread) {
 Exporting Tamgu* Tamgua_fvector::getvalue(BLONG i) {
     if (i < 0 || i >= values.size())
         return aNOELEMENT;
-    return globalTamgu->Providefloat(values[i]);
+    return globalTamgu->ProvideConstfloat(values[i]);
 }
 
 
@@ -1826,7 +1848,7 @@ Exporting Tamgu* Tamgua_fvector::Map(short idthread) {
     atomic_value_vector_iterator<double> it(values);
     for (;!it.end();it.next()) {
         sprintf_s(buff, 100, "%ld", it.first);
-        kmap->Push(buff, globalTamgu->Providefloat(it.second));
+        kmap->Push(buff, globalTamgu->ProvideConstfloat(it.second));
     }
     return kmap;
 }
@@ -1837,7 +1859,7 @@ Exporting Tamgu* Tamgua_fvector::Vector(short idthread) {
     kvect->values.reserve(values.size());
     atomic_value_vector_iterator<double> it(values);
     for (;!it.end();it.next())
-        kvect->Push(globalTamgu->Providefloat(it.second));
+        kvect->Push(globalTamgu->ProvideConstfloat(it.second));
     return kvect;
 }
 
@@ -1860,7 +1882,7 @@ Exporting Tamgu* Tamgua_fvector::Eval(Tamgu* contextualpattern, Tamgu* idx, shor
         
         if (contextualpattern->isNumber()) {
             long v = Size();
-            return globalTamgu->Provideint(v);
+            return globalTamgu->ProvideConstint(v);
         }
         
         return this;
@@ -1885,7 +1907,7 @@ Exporting Tamgu* Tamgua_fvector::Eval(Tamgu* contextualpattern, Tamgu* idx, shor
     }
     
     if (keyright == NULL)
-        return globalTamgu->Providefloat(values[ikey]);
+        return globalTamgu->ProvideConstfloat(values[ikey]);
     
     long iright = keyright->Integer();
     if (keyright != kind->right)

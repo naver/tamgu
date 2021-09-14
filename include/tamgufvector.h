@@ -64,6 +64,7 @@ class Tamgufvector : public TamguLockContainer {
 
     Exporting Tamgu* Put(Tamgu* context, Tamgu* value, short idthread);
     Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
+    Tamgu* EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign);
     Exporting Tamgu* Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* env, TamguFunctionLambda* bd, short idthread);
     Exporting Tamgu* Filter(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* kcont, Tamgu* accu, Tamgu* init, bool direct);
 
@@ -178,88 +179,150 @@ class Tamgufvector : public TamguLockContainer {
     }
     
     Tamgu* getvalue(BLONG i) {
-        locking();
+        if (globalTamgu->threadMODE) {
+            locking();
+            if (i<0 || i>=values.size()) {
+                unlocking();
+                return aNOELEMENT;
+            }
+            
+            Tamgu* v = globalTamgu->ProvideConstfloat(values[i]);
+            unlocking();
+            return v;
+        }
+        
         if (i<0 || i>=values.size()) {
             unlocking();
             return aNOELEMENT;
         }
-        
-        Tamgu* v = globalTamgu->Providefloat(values[i]);
-        unlocking();
-        return v;
+        return globalTamgu->ProvideConstfloat(values[i]);
     }
     
     double getfloat(long i) {
-        locking();
-        if (i < 0 || i >= values.size()) {
+        if (globalTamgu->threadMODE) {
+            locking();
+            if (i<0 || i>=values.size()) {
+                unlocking();
+                return 0;
+            }
+            
+            double v = values[i];
+            unlocking();
+            return v;
+        }
+        
+        if (i<0 || i>=values.size()) {
             unlocking();
             return 0;
         }
-        double v = values[i];
-        unlocking();
-        return v;
+        return values[i];
     }
     
     long getinteger(long i) {
-        locking();
-        if (i < 0 || i >= values.size()) {
+        if (globalTamgu->threadMODE) {
+            locking();
+            if (i<0 || i>=values.size()) {
+                unlocking();
+                return 0;
+            }
+            
+            double v = values[i];
+            unlocking();
+            return v;
+        }
+        
+        if (i<0 || i>=values.size()) {
             unlocking();
             return 0;
         }
-        double v = values[i];
-        unlocking();
-        return v;
+        return values[i];
     }
     
     float getdecimal(long i) {
-        locking();
-        if (i < 0 || i >= values.size()) {
+        if (globalTamgu->threadMODE) {
+            locking();
+            if (i<0 || i>=values.size()) {
+                unlocking();
+                return 0;
+            }
+            
+            double v = values[i];
+            unlocking();
+            return v;
+        }
+        
+        if (i<0 || i>=values.size()) {
             unlocking();
             return 0;
         }
-        double v = values[i];
-        unlocking();
-        return v;
+        return values[i];
     }
     
     BLONG getlong(long i) {
-        locking();
-        if (i < 0 || i >= values.size()) {
+        if (globalTamgu->threadMODE) {
+            locking();
+            if (i<0 || i>=values.size()) {
+                unlocking();
+                return 0;
+            }
+            
+            double v = values[i];
+            unlocking();
+            return v;
+        }
+        
+        if (i<0 || i>=values.size()) {
             unlocking();
             return 0;
         }
-        double v = values[i];
-        unlocking();
-        return v;
+        return values[i];
     }
     
     uchar getbyte(long i) {
-        locking();
-        if (i < 0 || i >= values.size()) {
+        if (globalTamgu->threadMODE) {
+            locking();
+            if (i<0 || i>=values.size()) {
+                unlocking();
+                return 0;
+            }
+            
+            double v = values[i];
+            unlocking();
+            return v;
+        }
+        
+        if (i<0 || i>=values.size()) {
             unlocking();
             return 0;
         }
-        double v = values[i];
-        unlocking();
-        return v;
+        return values[i];
     }
 
     short getshort(long i) {
-        locking();
-        if (i < 0 || i >= values.size()) {
+        if (globalTamgu->threadMODE) {
+            locking();
+            if (i<0 || i>=values.size()) {
+                unlocking();
+                return 0;
+            }
+            
+            double v = values[i];
+            unlocking();
+            return v;
+        }
+        
+        if (i<0 || i>=values.size()) {
             unlocking();
             return 0;
         }
-        double v = values[i];
-        unlocking();
-        return v;
+        return values[i];
     }
 
     string getstring(long i) {
         locking();
         if (i < 0 || i >= values.size()) {
             unlocking();
-            return 0;
+            return "";
         }
         string v = convertfromnumber(values[i]);
         unlocking();
@@ -270,7 +333,7 @@ class Tamgufvector : public TamguLockContainer {
         locking();
         if (i < 0 || i >= values.size()) {
             unlocking();
-            return 0;
+            return L"";
         }
         wstring v = wconvertfromnumber(values[i]);
         unlocking();
@@ -379,7 +442,7 @@ class Tamgufvector : public TamguLockContainer {
             unlocking();
             return aNOELEMENT;
         }
-        contextualpattern = globalTamgu->Providefloat(values.back());
+        contextualpattern = globalTamgu->ProvideConstfloat(values.back());
         unlocking();
         return contextualpattern;
     }
@@ -394,17 +457,17 @@ class Tamgufvector : public TamguLockContainer {
         locking();
         unsigned long dst = EditDistance(v);
         unlocking();
-        return globalTamgu->Provideint(dst);
+        return globalTamgu->ProvideConstint(dst);
     }
 
     Tamgu* MethodSum(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = Sum();
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
 
     Tamgu* MethodProduct(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = Product();
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
 
     Tamgu* MethodInsert(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -465,7 +528,7 @@ class Tamgufvector : public TamguLockContainer {
         double c = values.back();
         values.pop_back();
         unlocking();
-        return globalTamgu->Providefloat(c);
+        return globalTamgu->ProvideConstfloat(c);
     }
 
     Exporting Tamgu* Unique();
@@ -504,7 +567,7 @@ class Tamgufvector : public TamguLockContainer {
         for (; i < j; i++)
             v += values[i];
         unlocking();
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
 
     Tamgu* Theproduct(long i, long j) {
@@ -538,7 +601,7 @@ class Tamgufvector : public TamguLockContainer {
         for (; i < j; i++)
             v *= values[i];
         unlocking();
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
 
     double Sum() {
@@ -640,7 +703,7 @@ class TamguIterationfvector : public TamguIteration {
     }
 
     Tamgu* Key() {
-        return globalTamgu->Provideint(itx);
+        return globalTamgu->ProvideConstint(itx);
     }
 
     
@@ -649,7 +712,7 @@ class TamguIterationfvector : public TamguIteration {
     }
 
     Tamgu* Value() {
-        return globalTamgu->Providefloat(ref->values[itx]);
+        return globalTamgu->ProvideConstfloat(ref->values[itx]);
     }
 
     string Keystring() {
@@ -739,8 +802,9 @@ class Tamgufvectorbuff : public Tamgufvector {
     }
 
     void Resetreference(short r) {
-        if ((reference-=r) <= 0) {
-            reference = 0;
+        r = reference - r;
+        if (r <= 0) {
+            reference.store(0);
             if (!protect) {
                 protect = true;
 
@@ -750,6 +814,8 @@ class Tamgufvectorbuff : public Tamgufvector {
                     globalTamgu->fvectorempties.push_back(idx);
             }
         }
+        else
+            reference.store(r);
     }
 
 };
@@ -1050,23 +1116,23 @@ public:
     Tamgu* MethodLast(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         if (values.size() == 0)
             return aNOELEMENT;
-        return globalTamgu->Providefloat(values.back());
+        return globalTamgu->ProvideConstfloat(values.back());
     }
     
     Tamgu* MethodEditDistance(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         Tamgu* v = callfunc->Evaluate(0, contextualpattern, idthread);
         unsigned long dst = EditDistance(v);
-        return globalTamgu->Provideint(dst);
+        return globalTamgu->ProvideConstint(dst);
     }
     
     Tamgu* MethodSum(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = Sum();
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
     
     Tamgu* MethodProduct(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = Product();
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
     
     Tamgu* MethodInsert(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -1098,7 +1164,7 @@ public:
     Tamgu* Poplast() {
         if (values.size() == 0)
             return aNOELEMENT;
-        return globalTamgu->Providefloat(values.remove_back());
+        return globalTamgu->ProvideConstfloat(values.remove_back());
     }
 
     Exporting Tamgu* Unique();
@@ -1133,7 +1199,7 @@ public:
         for (; i < j; i++)
             v += values[i];
         
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
     
     Tamgu* Theproduct(long i, long j) {
@@ -1163,7 +1229,7 @@ public:
         for (; i < j; i++)
             v *= values[i];
         
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
     
     double Sum() {
@@ -1262,7 +1328,7 @@ public:
     }
     
     Tamgu* Key() {
-        return globalTamgu->Provideint(it.first);
+        return globalTamgu->ProvideConstint(it.first);
     }
     
     
@@ -1271,7 +1337,7 @@ public:
     }
     
     Tamgu* Value() {
-        return globalTamgu->Provideint(it.second);
+        return globalTamgu->ProvideConstint(it.second);
     }
     
     string Keystring() {

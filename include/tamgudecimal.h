@@ -225,7 +225,7 @@ public:
             return new Tamgudecimal(f.v);
         }
         float32 f(value);
-        return globalTamgu->Provideint(f.v);
+        return globalTamgu->ProvideConstint(f.v);
     }
     
     Tamgu* MethodMantissa(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -240,7 +240,7 @@ public:
         int n = 0;
         
         frexp (value , &n);
-        return globalTamgu->Provideint((long)n);
+        return globalTamgu->ProvideConstint((long)n);
     }
 
 	Tamgu* Methodchr(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
@@ -415,6 +415,10 @@ public:
 
 	wstring UString() {
 		return wconvertfromnumber(value);
+	}
+
+	string JSonString() {
+		return convertfromnumber(value);
 	}
 
 	string String() {

@@ -2251,14 +2251,16 @@ Tamgu* TamguCallLispFunction::Eval(Tamgu* domain, Tamgu* a, short idthread) {
         return globalTamgu->Returnerror(msg, idthread);
     }
 
-    TamguDeclarationLocal* environment = globalTamgu->Providedeclaration(this, idthread, false);
+    TamguDeclarationLocal* environment = globalTamgu->Providedeclaration(idthread);
+    if (globalTamgu->debugmode)
+        environment->idinfo = Currentinfo();
 
-    Tamgu* p;
+    TamguVariableDeclaration* p;
 
     for (short i = 0; i < sz; i++) {
-        p = bd->parameters[i];
+        p = (TamguVariableDeclaration*)bd->parameters[i];
         a = arguments[i]->Eval(domain, aNULL, idthread);
-        if (!p->Setvalue(environment, a, idthread, false)) {
+        if (p->Setarguments(environment, a, idthread, false)) {
             a->Releasenonconst();
             environment->Release();
             string err = "Check the arguments of: ";
@@ -2272,7 +2274,7 @@ Tamgu* TamguCallLispFunction::Eval(Tamgu* domain, Tamgu* a, short idthread) {
     if (!globalTamgu->Pushstacklisp(this, idthread))
         return globalTamgu->Returnerror("Stack overflow", idthread);
 
-    globalTamgu->Pushstack(environment, idthread);
+    globalTamgu->Pushstackraw(environment, idthread);
     //We then apply our function within this environment
     a = bd->Eval(environment, aNULL, idthread);
     globalTamgu->Popstack(idthread);
@@ -2280,11 +2282,11 @@ Tamgu* TamguCallLispFunction::Eval(Tamgu* domain, Tamgu* a, short idthread) {
 
     //if a has no reference, then it means that it was recorded into the environment
     if (!a->Reference())
-        environment->Release();
+        environment->Releasing();
     else {
         a->Setreference();
         //we clean our structure...
-        environment->Release();
+        environment->Releasing();
         a->Protect();
     }
 

@@ -314,162 +314,162 @@ public:
     
     Tamgu* Methodabs(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(fabs(v));
+        return globalTamgu->ProvideConstfloat(fabs(v));
     }
     
     Tamgu* Methodacos(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(acos(v));
+        return globalTamgu->ProvideConstfloat(acos(v));
     }
     
     Tamgu* Methodacosh(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(acosh(v));
+        return globalTamgu->ProvideConstfloat(acosh(v));
     }
     
     Tamgu* Methodasin(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(asin(v));
+        return globalTamgu->ProvideConstfloat(asin(v));
     }
     
     Tamgu* Methodasinh(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(asinh(v));
+        return globalTamgu->ProvideConstfloat(asinh(v));
     }
     
     Tamgu* Methodatan(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(atan(v));
+        return globalTamgu->ProvideConstfloat(atan(v));
     }
     
     Tamgu* Methodatanh(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(atanh(v));
+        return globalTamgu->ProvideConstfloat(atanh(v));
     }
     
     Tamgu* Methodcbrt(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(cbrt(v));
+        return globalTamgu->ProvideConstfloat(cbrt(v));
     }
     
     Tamgu* Methodcos(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(cos(v));
+        return globalTamgu->ProvideConstfloat(cos(v));
     }
     
     Tamgu* Methodcosh(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(cosh(v));
+        return globalTamgu->ProvideConstfloat(cosh(v));
     }
     
     Tamgu* Methoderf(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(erf(v));
+        return globalTamgu->ProvideConstfloat(erf(v));
     }
     
     Tamgu* Methoderfc(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(erfc(v));
+        return globalTamgu->ProvideConstfloat(erfc(v));
     }
     
     Tamgu* Methodexp(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(exp(v));
+        return globalTamgu->ProvideConstfloat(exp(v));
     }
     
     Tamgu* Methodexp2(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(exp2(v));
+        return globalTamgu->ProvideConstfloat(exp2(v));
     }
     
     Tamgu* Methodexpm1(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(expm1(v));
+        return globalTamgu->ProvideConstfloat(expm1(v));
     }
     
     Tamgu* Methodfloor(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(floor(v));
+        return globalTamgu->ProvideConstfloat(floor(v));
     }
     
     Tamgu* Methodlgamma(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(lgamma(v));
+        return globalTamgu->ProvideConstfloat(lgamma(v));
     }
     
     Tamgu* Methodln(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(log(v));
+        return globalTamgu->ProvideConstfloat(log(v));
     }
     
     Tamgu* Methodlog(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(log10(v));
+        return globalTamgu->ProvideConstfloat(log10(v));
     }
     
     Tamgu* Methodlog1p(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(log1p(v));
+        return globalTamgu->ProvideConstfloat(log1p(v));
     }
     
     Tamgu* Methodlog2(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(log2(v));
+        return globalTamgu->ProvideConstfloat(log2(v));
     }
     
     Tamgu* Methodlogb(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(logb(v));
+        return globalTamgu->ProvideConstfloat(logb(v));
     }
     
     Tamgu* Methodnearbyint(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(nearbyint(v));
+        return globalTamgu->ProvideConstfloat(nearbyint(v));
     }
     
     Tamgu* Methodrint(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(rint(v));
+        return globalTamgu->ProvideConstfloat(rint(v));
     }
     
     Tamgu* Methodround(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(round(v));
+        return globalTamgu->ProvideConstfloat(round(v));
     }
     
     Tamgu* Methodsin(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(sin(v));
+        return globalTamgu->ProvideConstfloat(sin(v));
     }
     
     Tamgu* Methodsinh(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(sinh(v));
+        return globalTamgu->ProvideConstfloat(sinh(v));
     }
     
     Tamgu* Methodsqrt(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(sqrt(v));
+        return globalTamgu->ProvideConstfloat(sqrt(v));
     }
     
     Tamgu* Methodtan(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(tan(v));
+        return globalTamgu->ProvideConstfloat(tan(v));
     }
     
     Tamgu* Methodtanh(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(tanh(v));
+        return globalTamgu->ProvideConstfloat(tanh(v));
     }
     
     Tamgu* Methodtgamma(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(tgamma(v));
+        return globalTamgu->ProvideConstfloat(tgamma(v));
     }
     
     Tamgu* Methodtrunc(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(trunc(v));
+        return globalTamgu->ProvideConstfloat(trunc(v));
     }
     
         //---------------------------------------------------------------------------------------------------------------------
@@ -489,10 +489,12 @@ public:
     
     
     
-    string String() {
-        
+    string String() {        
         return convertfromnumber(value);
-        
+    }
+    
+    string JSonString() {
+        return convertfromnumber(value);
     }
     
     void Setstring(string& v, short idthread) {
@@ -623,7 +625,7 @@ public:
         if (v == 0)
             return globalTamgu->Returnerror("Error: Divided by 0");
         v = (double)value / v;
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
     
     Tamgu* power(Tamgu* a, bool itself) {
@@ -634,7 +636,7 @@ public:
             return this;
         }
         v = pow(v, a->Float());
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
     
     Exporting Tamgu* shiftleft(Tamgu* a, bool itself);
@@ -658,7 +660,7 @@ public:
         }
         
         v = value % v;
-        return globalTamgu->Provideint(v);
+        return globalTamgu->ProvideConstint(v);
     }
     
     //Comparison
@@ -725,7 +727,7 @@ public:
     }
 };
 
-    //---------------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 class Tamguintbuff : public Tamguint {
 public:
     long idx;
@@ -742,8 +744,9 @@ public:
     }
     
     void Resetreference(short r) {
-        if ((reference-=r) <= 0) {
-            reference = 0;
+        r = reference - r;
+        if (r <= 0) {
+            reference.store(0);
             if (!protect) {
                 protect = true;
                 
@@ -753,10 +756,12 @@ public:
                     globalTamgu->iempties.push_back(idx);
             }
         }
+        else
+            reference.store(r);
     }
     
 };
-    //---------------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 
 class Tamguatomicint;
     //This typedef defines a type "intMethod", which expose the typical parameters of a new Tamgu method implementation
@@ -1045,162 +1050,162 @@ public:
     
     Tamgu* Methodabs(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(fabs(v));
+        return globalTamgu->ProvideConstfloat(fabs(v));
     }
     
     Tamgu* Methodacos(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(acos(v));
+        return globalTamgu->ProvideConstfloat(acos(v));
     }
     
     Tamgu* Methodacosh(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(acosh(v));
+        return globalTamgu->ProvideConstfloat(acosh(v));
     }
     
     Tamgu* Methodasin(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(asin(v));
+        return globalTamgu->ProvideConstfloat(asin(v));
     }
     
     Tamgu* Methodasinh(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(asinh(v));
+        return globalTamgu->ProvideConstfloat(asinh(v));
     }
     
     Tamgu* Methodatan(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(atan(v));
+        return globalTamgu->ProvideConstfloat(atan(v));
     }
     
     Tamgu* Methodatanh(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(atanh(v));
+        return globalTamgu->ProvideConstfloat(atanh(v));
     }
     
     Tamgu* Methodcbrt(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(cbrt(v));
+        return globalTamgu->ProvideConstfloat(cbrt(v));
     }
     
     Tamgu* Methodcos(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(cos(v));
+        return globalTamgu->ProvideConstfloat(cos(v));
     }
     
     Tamgu* Methodcosh(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(cosh(v));
+        return globalTamgu->ProvideConstfloat(cosh(v));
     }
     
     Tamgu* Methoderf(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(erf(v));
+        return globalTamgu->ProvideConstfloat(erf(v));
     }
     
     Tamgu* Methoderfc(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(erfc(v));
+        return globalTamgu->ProvideConstfloat(erfc(v));
     }
     
     Tamgu* Methodexp(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(exp(v));
+        return globalTamgu->ProvideConstfloat(exp(v));
     }
     
     Tamgu* Methodexp2(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(exp2(v));
+        return globalTamgu->ProvideConstfloat(exp2(v));
     }
     
     Tamgu* Methodexpm1(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(expm1(v));
+        return globalTamgu->ProvideConstfloat(expm1(v));
     }
     
     Tamgu* Methodfloor(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(floor(v));
+        return globalTamgu->ProvideConstfloat(floor(v));
     }
     
     Tamgu* Methodlgamma(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(lgamma(v));
+        return globalTamgu->ProvideConstfloat(lgamma(v));
     }
     
     Tamgu* Methodln(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(log(v));
+        return globalTamgu->ProvideConstfloat(log(v));
     }
     
     Tamgu* Methodlog(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(log10(v));
+        return globalTamgu->ProvideConstfloat(log10(v));
     }
     
     Tamgu* Methodlog1p(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(log1p(v));
+        return globalTamgu->ProvideConstfloat(log1p(v));
     }
     
     Tamgu* Methodlog2(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(log2(v));
+        return globalTamgu->ProvideConstfloat(log2(v));
     }
     
     Tamgu* Methodlogb(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(logb(v));
+        return globalTamgu->ProvideConstfloat(logb(v));
     }
     
     Tamgu* Methodnearbyint(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(nearbyint(v));
+        return globalTamgu->ProvideConstfloat(nearbyint(v));
     }
     
     Tamgu* Methodrint(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(rint(v));
+        return globalTamgu->ProvideConstfloat(rint(v));
     }
     
     Tamgu* Methodround(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(round(v));
+        return globalTamgu->ProvideConstfloat(round(v));
     }
     
     Tamgu* Methodsin(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(sin(v));
+        return globalTamgu->ProvideConstfloat(sin(v));
     }
     
     Tamgu* Methodsinh(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(sinh(v));
+        return globalTamgu->ProvideConstfloat(sinh(v));
     }
     
     Tamgu* Methodsqrt(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(sqrt(v));
+        return globalTamgu->ProvideConstfloat(sqrt(v));
     }
     
     Tamgu* Methodtan(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(tan(v));
+        return globalTamgu->ProvideConstfloat(tan(v));
     }
     
     Tamgu* Methodtanh(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(tanh(v));
+        return globalTamgu->ProvideConstfloat(tanh(v));
     }
     
     Tamgu* Methodtgamma(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(tgamma(v));
+        return globalTamgu->ProvideConstfloat(tgamma(v));
     }
     
     Tamgu* Methodtrunc(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = (double)value;
-        return globalTamgu->Providefloat(trunc(v));
+        return globalTamgu->ProvideConstfloat(trunc(v));
     }
     
         //---------------------------------------------------------------------------------------------------------------------
@@ -1357,7 +1362,7 @@ public:
         if (v == 0)
             return globalTamgu->Returnerror("Error: Divided by 0");
         v = (double)value / v;
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
     
     Tamgu* power(Tamgu* a, bool itself) {
@@ -1368,7 +1373,7 @@ public:
             return this;
         }
         v = pow(v, a->Float());
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
     
     Tamgu* shiftleft(Tamgu* a, bool itself) {

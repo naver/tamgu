@@ -89,7 +89,7 @@ void Tamgusvector::AddMethod(TamguGlobal* global, string name, svectorMethod fun
     }
 
     Tamgua_svector::InitialisationModule(global, version);
-    
+    global->minimal_indexes[Tamgusvector::idtype] = true;
     return true;
 }
 
@@ -185,7 +185,7 @@ Exporting Tamgu* Tamgusvector::in(Tamgu* context, Tamgu* a, short idthread) {
        for (size_t i = 0; i < values.size(); i++) {
            if (values[i] == val) {
                unlocking();
-               return globalTamgu->Provideint(i);
+               return globalTamgu->ProvideConstint(i);
            }
        }
        unlocking();
@@ -247,9 +247,13 @@ Exporting Tamgu* Tamgusvector::Pop(Tamgu* idx) {
 
 Exporting void Tamgusvector::Clear() {
     //To set a variable back to empty
-    locking();
-    values.clear();
-    unlocking();
+    if (globalTamgu->threadMODE) {
+        locking();
+        values.clear();
+        unlocking();
+    }
+    else
+        values.clear();
 }
 
 
@@ -393,10 +397,13 @@ Exporting void Tamgusvector::addstringto(string s, int i) {
 
 //Basic operations
 Exporting long Tamgusvector::Size() {
-    locking();
-    long sz = values.size();
-    unlocking();
-    return sz;
+    if (globalTamgu->threadMODE) {
+        locking();
+        long sz = values.size();
+        unlocking();
+        return sz;
+    }
+    return values.size();
 }
 
 Exporting unsigned long Tamgusvector::EditDistance(Tamgu* e) {
@@ -527,11 +534,62 @@ Exporting Tamgu* Tamgusvector::Vector(short idthread) {
     Tamguvector* kvect = globalTamgu->Providevector();
     kvect->values.reserve(values.size());
     for (int i = 0; i < values.size(); i++)
-        kvect->Push(globalTamgu->Providestring(values[i]));
+        kvect->Push(globalTamgu->Providewithstring(values[i]));
     unlocking();
     return kvect;
 }
 
+Tamgu* Tamgusvector::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign) {
+    key = key->Eval(aNULL, aNULL, idthread);
+    locking();
+    long ikey;
+    if (key->isJustString()) {
+        string sf;
+        key->Setstring(sf, idthread);
+        bool found = false;
+        if (sign) {
+            for (ikey = values.size() - 1; ikey >= 0; ikey--) {
+                if (sf == values[ikey]) {
+                    found = true;
+                    break;
+                }
+            }
+        }
+        else {
+            for (ikey = 0; ikey < values.size(); ikey++) {
+                if (sf == values[ikey]) {
+                    found = true;
+                    break;
+                }
+            }
+        }
+        if (!found) {
+            unlocking();
+            if (globalTamgu->erroronkey)
+                return globalTamgu->Returnerror("Wrong index", idthread);
+            return aNOELEMENT;
+        }
+    }
+    else
+        ikey = key->Integer();
+
+    key->Release();
+    if (ikey < 0)
+        ikey = values.size() + ikey;
+
+    if (ikey < 0 || ikey >= values.size()) {
+        if (ikey != values.size()) {
+            unlocking();
+            if (globalTamgu->erroronkey)
+                return globalTamgu->Returnerror("Wrong index", idthread);
+            return aNOELEMENT;
+        }
+    }
+    
+    key = globalTamgu->Providewithstring(values[ikey]);
+    unlocking();
+    return key;
+}
 
 Exporting Tamgu* Tamgusvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
     if (!idx->isIndex()) {
@@ -547,14 +605,14 @@ Exporting Tamgu* Tamgusvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
                 ((Tamgusvector*)kv)->values = values;
             else
                 for (int i = 0; i < values.size(); i++)
-                    kv->Push(globalTamgu->Providestring(values[i]));
+                    kv->Push(globalTamgu->Providewithstring(values[i]));
             unlocking();
             return kv;
         }
 
         if (contextualpattern->isNumber()) {
             long v = Size();
-            return globalTamgu->Provideint(v);
+            return globalTamgu->ProvideConstint(v);
         }
         
         return this;
@@ -573,7 +631,8 @@ Exporting Tamgu* Tamgusvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
     bool stringkey = false;
     if (key->isString()) {
         stringkey = true;
-        string sf = key->String();
+        string sf;
+        key->Setstring(sf, idthread);
         bool found = false;
         if (kind->signleft) {
             for (ikey = values.size() - 1; ikey >= 0; ikey--) {
@@ -616,7 +675,7 @@ Exporting Tamgu* Tamgusvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
     }
 
     if (keyright == NULL) {
-        keyright = globalTamgu->Providestring(values[ikey]);
+        keyright = globalTamgu->Providewithstring(values[ikey]);
         unlocking();
         return keyright;
     }
@@ -943,7 +1002,7 @@ Exporting Tamgu* Tamgusvector::xorset(Tamgu *b, bool itself) {
             store[values[it]] = true;
     }
 
-    for (auto& i : store)
+    for (const auto& i : store)
         ref->values.push_back(i.first);
     unlocking();
     return ref;
@@ -1147,7 +1206,7 @@ Exporting Tamgu* Tamgusvector::Filter(short idthread, Tamgu* env, TamguFunctionL
 
 class SComp {
     public:
-    TamguCallFunction compare;
+    TamguCallFunction2 compare;
     short idthread;
     TamguConstString p;
     TamguConstString s;
@@ -1203,7 +1262,7 @@ Exporting Tamgu* Tamgusvector::Loopin(TamguInstruction* ins, Tamgu* context, sho
     locking();
     for (long i = 0; i < sz && !testcond; i++) {
         a->Releasenonconst();
-        var->storevalue(values[i]);
+        var->Storevalue(values[i]);
         a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
         //Continue does not trigger needInvestigate
@@ -1287,7 +1346,7 @@ Exporting Tamgu* Tamgua_svector::in(Tamgu* context, Tamgu* a, short idthread) {
         atomic_value_vector_iterator<atomic_string> it(values);
         for (; !it.end(); it.next()) {
             if (it.second.value() == val)
-                return globalTamgu->Provideint(it.first);
+                return globalTamgu->ProvideConstint(it.first);
         }
         return aMINUSONE;
     }
@@ -1574,7 +1633,7 @@ Exporting Tamgu* Tamgua_svector::Eval(Tamgu* contextualpattern, Tamgu* idx, shor
         
         if (contextualpattern->isNumber()) {
             long v = Size();
-            return globalTamgu->Provideint(v);
+            return globalTamgu->ProvideConstint(v);
         }
         return this;
     }
@@ -1952,7 +2011,7 @@ Exporting Tamgu* Tamgua_svector::xorset(Tamgu *b, bool itself) {
             store[w] = true;
     }
     
-    for (auto& i : store)
+    for (const auto& i : store)
         ref->values.push_back(i.first);
     
     return ref;

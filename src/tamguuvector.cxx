@@ -87,6 +87,7 @@ void Tamguuvector::AddMethod(TamguGlobal* global, string name, uvectorMethod fun
     }
 
     Tamgua_uvector::InitialisationModule(global, version);
+    global->minimal_indexes[Tamguuvector::idtype] = true;
     return true;
 }
 
@@ -177,7 +178,7 @@ Exporting Tamgu* Tamguuvector::in(Tamgu* context, Tamgu* a, short idthread) {
        for (size_t i = 0; i < values.size(); i++) {
            if (values[i] == val) {
                unlocking();
-               return globalTamgu->Provideint(i);
+               return globalTamgu->ProvideConstint(i);
            }
        }
        unlocking();
@@ -586,6 +587,57 @@ Exporting Tamgu*  Tamguuvector::Put(Tamgu* idx, Tamgu* ke, short idthread) {
     return aTRUE;
 }
 
+Tamgu* Tamguuvector::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign) {
+    key = key->Eval(aNULL, aNULL, idthread);
+    locking();
+    long ikey;
+    if (key->isJustString()) {
+        wstring sf = key->UString();
+        bool found = false;
+        if (sign) {
+            for (ikey = values.size() - 1; ikey >= 0; ikey--) {
+                if (sf == values[ikey]) {
+                    found = true;
+                    break;
+                }
+            }
+        }
+        else {
+            for (ikey = 0; ikey < values.size(); ikey++) {
+                if (sf == values[ikey]) {
+                    found = true;
+                    break;
+                }
+            }
+        }
+        if (!found) {
+            unlocking();
+            if (globalTamgu->erroronkey)
+                return globalTamgu->Returnerror("Wrong index", idthread);
+            return aNOELEMENT;
+        }
+    }
+    else
+        ikey = key->Integer();
+
+    key->Release();
+    if (ikey < 0)
+        ikey = values.size() + ikey;
+
+    if (ikey < 0 || ikey >= values.size()) {
+        if (ikey != values.size()) {
+            unlocking();
+            if (globalTamgu->erroronkey)
+                return globalTamgu->Returnerror("Wrong index", idthread);
+            return aNOELEMENT;
+        }
+    }
+    
+    key = globalTamgu->Provideustring(values[ikey]);
+    unlocking();
+    return key;
+}
+
 Exporting Tamgu* Tamguuvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
     if (!idx->isIndex()) {
         if (contextualpattern->isLoop())
@@ -607,7 +659,7 @@ Exporting Tamgu* Tamguuvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
 
         if (contextualpattern->isNumber()) {
             long v = Size();
-            return globalTamgu->Provideint(v);
+            return globalTamgu->ProvideConstint(v);
         }
         
         return this;
@@ -1168,7 +1220,7 @@ Exporting Tamgu* Tamguuvector::Filter(short idthread, Tamgu* env, TamguFunctionL
 
 class UComp {
     public:
-    TamguCallFunction compare;
+    TamguCallFunction2 compare;
     short idthread;
     TamguConstUString p;
     TamguConstUString s;
@@ -1307,7 +1359,7 @@ Exporting Tamgu* Tamgua_uvector::in(Tamgu* context, Tamgu* a, short idthread) {
         atomic_value_vector_iterator<atomic_wstring> it(values);
         for (; !it.end(); it.next()) {
             if (it.second.value() == val)
-                return globalTamgu->Provideint(it.first);
+                return globalTamgu->ProvideConstint(it.first);
         }
         return aMINUSONE;
     }
@@ -1602,7 +1654,7 @@ Exporting Tamgu* Tamgua_uvector::Eval(Tamgu* contextualpattern, Tamgu* idx, shor
         
         if (contextualpattern->isNumber()) {
             long v = Size();
-            return globalTamgu->Provideint(v);
+            return globalTamgu->ProvideConstint(v);
         }
         return this;
     }

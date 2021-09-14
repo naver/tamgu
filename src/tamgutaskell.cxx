@@ -637,8 +637,14 @@ Tamgu* TamguHBloc::Eval(Tamgu* context, Tamgu* a, short idthread) {
     short size = instructions.last;
 
     Tamgu* environment = context;
-    if (variablesWillBeCreated)
-        environment = globalTamgu->Providedeclaration(this, idthread, true);
+    
+    if (variablesWillBeCreated) {
+        environment = globalTamgu->Providedeclaration(idthread);
+        if (globalTamgu->debugmode)
+            ((TamguDeclarationLocal*)environment)->idinfo = Currentinfo();
+        globalTamgu->Pushstackraw(environment, idthread);
+        ((TamguDeclarationLocal*)environment)->pushed = true;
+    }
 
     a = aNULL;
     bool testcond = false;
@@ -1012,7 +1018,7 @@ Tamgu* TamguCallFunctionArgsTaskell::Eval(Tamgu* context, Tamgu* res, short idth
                     func = globalTamgu->conceptfunction;
 
         if (func != NULL) {
-            TamguCallFunction callfunc(func);
+            TamguCallFunction2 callfunc(func);
             Tamgu* fname = globalTamgu->Providestring(globalTamgu->Getsymbol(name));
             callfunc.arguments.push_back(fname);
             callfunc.arguments.push_back(res);

@@ -66,6 +66,7 @@ class Tamguvector : public TamguObjectLockContainer {
     //----------------------------------------------------------------------------------------------------------------------
     Exporting virtual Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);
     Exporting virtual Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
+    Exporting Tamgu* EvalWithSimpleIndex(Tamgu* idx, short idthread, bool sgn);
 
     void SetConst() {
         investigate |= is_constante;
@@ -89,6 +90,8 @@ class Tamguvector : public TamguObjectLockContainer {
     Exporting Tamgu* Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* env, TamguFunctionLambda* bd, short idthread);
     Exporting Tamgu* Filter(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* kcont, Tamgu* accu, Tamgu* init, bool direct);
 
+    Exporting Tamgu* Loopin(TamguInstruction*, Tamgu* context, short idthread);
+    
     virtual short Type() {
         return a_vector;
     }
@@ -429,17 +432,17 @@ class Tamguvector : public TamguObjectLockContainer {
         locking();
         unsigned long dst = EditDistance(v);
         unlocking();
-        return globalTamgu->Provideint(dst);
+        return globalTamgu->ProvideConstint(dst);
     }
 
     Tamgu* MethodSum(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = Sum();
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
 
     Tamgu* MethodProduct(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = Product();
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
 
     Tamgu* MethodInsert(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -580,6 +583,11 @@ class Tamguvector : public TamguObjectLockContainer {
         v = v->Atom();
         values.push_back(v);
         v->Addreference(investigate, reference + 1);
+    }
+
+    inline void pushone(Tamgu* a) {
+        a->Addreference(0,reference+1);
+        values.push_back(a);
     }
 
     Exporting virtual Tamgu* Push(Tamgu*);
@@ -805,7 +813,7 @@ class TamguIterationvector : public TamguIteration {
     }
 
     Tamgu* Key() {
-        return globalTamgu->Provideint(itx);
+        return globalTamgu->ProvideConstint(itx);
     }
 
     Tamgu* Value() {
@@ -1298,12 +1306,12 @@ public:
     
     Tamgu* MethodSum(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = Sum();
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
     
     Tamgu* MethodProduct(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = Product();
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
     
     Tamgu* MethodInsert(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -1552,7 +1560,7 @@ public:
     TamguIterationa_vector(Tamgua_vector* v, bool d, TamguGlobal* g = NULL) : ref(v->values), TamguIteration(d, g) {}
     
     Tamgu* Key() {
-        return globalTamgu->Provideint(ref.first);
+        return globalTamgu->ProvideConstint(ref.first);
     }
     
     Tamgu* Value() {
@@ -1708,11 +1716,11 @@ class TamguIterationInfinitevector : public TamguIteration {
 
 
     Tamgu* Key() {
-        return globalTamgu->Provideint(itx);
+        return globalTamgu->ProvideConstint(itx);
     }
 
     Tamgu* Value() {
-        return globalTamgu->Provideint(itx);
+        return globalTamgu->ProvideConstint(itx);
     }
 
     long Keyinteger() {
@@ -1763,11 +1771,11 @@ class TamguIterationInfinitefloatvector : public TamguIteration {
 
 
     Tamgu* Key() {
-        return globalTamgu->Providefloat(itx);
+        return globalTamgu->ProvideConstfloat(itx);
     }
 
     Tamgu* Value() {
-        return globalTamgu->Providefloat(itx);
+        return globalTamgu->ProvideConstfloat(itx);
     }
 
     long Keyinteger() {
@@ -1950,7 +1958,7 @@ class TamguIteratorCycleElement : public TamguIteration {
     }
 
     Tamgu* Key() {
-        return globalTamgu->Provideint(itx);
+        return globalTamgu->ProvideConstint(itx);
     }
 
     long Keyinteger() {
@@ -2061,7 +2069,7 @@ class TamguIteratorReplicate : public TamguIteration {
     }
 
     Tamgu* Key() {
-        return globalTamgu->Provideint(itx);
+        return globalTamgu->ProvideConstint(itx);
     }
 
     long Keyinteger() {

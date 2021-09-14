@@ -459,17 +459,17 @@ void Tamgumap::AddMethod(TamguGlobal* global, string name, mapMethod func, unsig
 }
 
 
-   bool Tamgumap::InitialisationModule(TamguGlobal* global, string version) {
+bool Tamgumap::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
     infomethods.clear();
     exported.clear();
-
-
+    
+    
     Tamgumap::idtype = global->Getid("map");
-
+    
     Tamgumap::AddMethod(global, "clear", &Tamgumap::MethodClear, P_NONE, "clear(): clear the container.");
     Tamgumap::AddMethod(global, "read", &Tamgumap::MethodRead, P_ONE, "read(string path): Read the content of a file into the container.");
-
+    
     Tamgumap::AddMethod(global, "items", &Tamgumap::MethodItems, P_NONE, "items(): Return a vector of {key:value} pairs.");
     
     Tamgumap::AddMethod(global, "invert", &Tamgumap::MethodInvert, P_NONE, "invert(): return a map with key/value inverted.");
@@ -477,28 +477,30 @@ void Tamgumap::AddMethod(TamguGlobal* global, string name, mapMethod func, unsig
     
     Tamgumap::AddMethod(global, "join", &Tamgumap::MethodJoin, P_TWO, "join(string sepkey,string sepvalue): Produce a string representation for the container.");
     global->returntypes[global->Getid("join")] = a_string;
-
+    
     Tamgumap::AddMethod(global, "test", &Tamgumap::MethodTest, P_ONE, "test(key): Test if key belongs to the map container.");
     Tamgumap::AddMethod(global, "keys", &Tamgumap::MethodKeys, P_NONE, "keys(): Return the map container keys as a vector.");
     global->returntypes[global->Getid("keys")] = a_vector;
-
+    
     Tamgumap::AddMethod(global, "values", &Tamgumap::MethodValues, P_NONE, "values(): Return the map container values as a vector.");
     global->returntypes[global->Getid("values")] = a_vector;
-
+    
     Tamgumap::AddMethod(global, "sum", &Tamgumap::MethodSum, P_NONE, "sum(): return the sum of elements.");
     global->returntypes[global->Getid("sum")] = a_float;
-
+    
     Tamgumap::AddMethod(global, "product", &Tamgumap::MethodProduct, P_NONE, "product(): return the product of elements.");
     global->returntypes[global->Getid("product")] = a_float;
-
+    
     Tamgumap::AddMethod(global, "pop", &Tamgumap::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamgumap::AddMethod(global, "merge", &Tamgumap::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
-
+   
+    global->minimal_indexes[Tamgumap::idtype] = true;
+    
     if (version != "") {
         global->newInstance[Tamgumap::idtype] = new Tamgumap(global);
         
         global->RecordMethods(Tamgumap::idtype, Tamgumap::exported);
-
+        
         global->newInstance[a_constmap] = new TamguConstmap(global);
         global->RecordMethods(a_constmap, Tamgumap::exported);
     }
@@ -529,7 +531,7 @@ Tamgu* Tamgumap::MethodRead(Tamgu* contextualpattern, short idthread, TamguCall*
         return globalTamgu->Returnerror(msg, idthread);
     }
     
-    s = file.read(-1);
+    file.readin(s, -1);
     Trim(s);
     
     Clear();
@@ -597,7 +599,7 @@ Exporting Tamgu* Tamgumap::MethodFind(Tamgu* context, short idthread, TamguCall*
 
     if (context->isBoolean()) {
         Locking _lock(this);
-        for (auto& it : values) {
+        for (const auto& it : values) {
             if (it.second->same(a) == aTRUE)
                 return aTRUE;
         }
@@ -608,7 +610,7 @@ Exporting Tamgu* Tamgumap::MethodFind(Tamgu* context, short idthread, TamguCall*
         Tamgusvector* v = (Tamgusvector*)Selectasvector(context);
         Doublelocking _lock(this, v);
 
-        for (auto& it : values) {
+        for (const auto& it : values) {
             if (it.second->same(a) == aTRUE)
                 v->values.push_back(it.first);
         }
@@ -616,7 +618,7 @@ Exporting Tamgu* Tamgumap::MethodFind(Tamgu* context, short idthread, TamguCall*
     }
 
     Locking _lock(this);
-    for (auto& it : values) {
+    for (const auto& it : values) {
         if (it.second->same(a) == aTRUE)
             return globalTamgu->Providestring(it.first);
     }
@@ -627,51 +629,64 @@ Exporting Tamgu* Tamgumap::MethodFind(Tamgu* context, short idthread, TamguCall*
 
 Exporting void Tamgumap::Cleanreference(short inc) {
     locking();
-    for (auto& a : values)
+    for (const auto& a : values)
         a.second->Removecontainerreference(inc);
 
     unlocking();
 }
 
 Exporting void Tamgumap::Setreference(short inc) {
-    locking();
-
     reference += inc;
+    if (globalTamgu->threadMODE) {
+        locking();
+        protect = false;
+        
+        for (const auto& it : values)
+            it.second->Addreference(investigate,inc);
+        unlocking();
+        return;
+    }
+    
     protect = false;
     
-    for (auto& it : values)
+    for (const auto& it : values)
         it.second->Addreference(investigate,inc);
-    
-    unlocking();
 }
 
 Exporting void Tamgumap::Setreference() {
-    locking();
-
     ++reference;
-    protect = false;
-    
-    for (auto& it : values)
-        it.second->Addreference(investigate,1);
 
-    unlocking();
+    if (globalTamgu->threadMODE) {
+        locking();
+        protect = false;
+        
+        for (const auto& it : values)
+            it.second->Addreference(investigate,1);
+        
+        unlocking();
+        return;
+    }
     
+    protect = false;    
+    for (const auto& it : values)
+        it.second->Addreference(investigate,1);
 }
 
-static void resetMap(Tamgumap* kmap, short inc) {
+static inline void resetMap(Tamgumap* kmap, short inc) {
     kmap->reference -= inc;
     
-    kmap->locking();
-    
-    hmap<string, Tamgu*>& values = kmap->values;
-    if (values.size() == 0) {
+    if (globalTamgu->threadMODE) {
+        kmap->locking();
+        
+        for (const auto& itx : kmap->values)
+            itx.second->Removereference(inc);
+        
         kmap->unlocking();
         return;
     }
     
-    for (auto& itx : values)
+    for (const auto& itx : kmap->values)
         itx.second->Removereference(inc);
-    kmap->unlocking();
 }
 
 Exporting void Tamgumap::Resetreference(short inc) {
@@ -737,11 +752,17 @@ Exporting Tamgu* Tamgumap::Pop(Tamgu* kkey) {
 }
 
 Exporting void Tamgumap::Clear() {
-    locking();
-    for (auto& itx : values)
+    if (globalTamgu->threadMODE) {
+        locking();
+        for (const auto& itx : values)
+            itx.second->Removereference(reference + 1);
+        values.clear();
+        unlocking();
+        return;
+    }
+    for (const auto& itx : values)
         itx.second->Removereference(reference + 1);
     values.clear();
-    unlocking();
 }
 
 Exporting string Tamgumap::String() {
@@ -753,7 +774,7 @@ Exporting string Tamgumap::String() {
     res << "{";
     bool beg = true;
     string sx;
-    for (auto& it : values) {
+    for (const auto& it : values) {
         if (beg == false)
             res << ",";
         beg = false;
@@ -780,7 +801,7 @@ Exporting string Tamgumap::JSonString() {
     res << "{";
     bool beg = true;
     string sx;
-    for (auto& it : values) {
+    for (const auto& it : values) {
         if (beg == false)
             res << ",";
         beg = false;
@@ -871,7 +892,7 @@ Tamgu*  Tamgumap::Put(Tamgu* idx, Tamgu* ke, short idthread) {
             Clear();
             long nb = 0;
 
-            for (auto& it : kvect->values) {
+            for (const auto& it : kvect->values) {
                 sprintf_s(ch, 20, "%ld", nb);
                 Push(ch, it);
                 nb++;
@@ -900,7 +921,7 @@ Tamgu*  Tamgumap::Put(Tamgu* idx, Tamgu* ke, short idthread) {
             Tamgumap* kmap = (Tamgumap*)ke;
             //We copy all values from ke to this
             
-            for (auto& it : kmap->values)
+            for (const auto& it : kmap->values)
                 Push(it.first, it.second);
         }
         else {
@@ -926,6 +947,35 @@ Tamgu*  Tamgumap::Put(Tamgu* idx, Tamgu* ke, short idthread) {
 }
 
 
+Tamgu* Tamgumap::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign) {
+    string skey;
+    key->Setstring(skey, idthread);
+    
+    if (globalTamgu->threadMODE) {
+        locking();
+        key = values[skey];
+        if (key == NULL) {
+            if (globalTamgu->erroronkey) {
+                unlocking();
+                return globalTamgu->Returnerror("Wrong index", idthread);
+            }
+            values.erase(skey);
+            key = aNOELEMENT;
+        }
+        unlocking();
+        return key;
+    }
+    
+    key = values[skey];
+    if (key == NULL) {
+        if (globalTamgu->erroronkey)
+            return globalTamgu->Returnerror("Wrong index", idthread);
+        values.erase(skey);
+        key = aNOELEMENT;
+    }
+    return key;
+}
+
 Tamgu* Tamgumap::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
 
     if (!idx->isIndex()) {
@@ -940,7 +990,7 @@ Tamgu* Tamgumap::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
             Tamgu* vect = contextualpattern->Newinstance(idthread);
             
             locking();
-            for (auto& it : values)
+            for (const auto& it : values)
                 vect->Push(globalTamgu->Providestring(it.first));
             unlocking();
             return vect;
@@ -948,7 +998,7 @@ Tamgu* Tamgumap::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
 
         if (contextualpattern->isNumber()) {
             long v = Size();
-            return globalTamgu->Provideint(v);
+            return globalTamgu->ProvideConstint(v);
         }
 
         return this;
@@ -1040,7 +1090,7 @@ Exporting Tamgu* Tamgumap::xorset(Tamgu* b, bool itself) {
         res = globalTamgu->Providemap();
         hmap<string, Tamgu*> keys;
 
-        for (auto& it : values)
+        for (const auto& it : values)
             keys[it.first] = it.second;
             
         string v;
@@ -1055,7 +1105,7 @@ Exporting Tamgu* Tamgumap::xorset(Tamgu* b, bool itself) {
         }
         itr->Release();
 
-        for (auto& a : keys)
+        for (const auto& a : keys)
             res->Push(a.first,a.second);
 
         return res;
@@ -1070,7 +1120,7 @@ Exporting Tamgu* Tamgumap::xorset(Tamgu* b, bool itself) {
         res = (Tamgumap*)Atom(true);
 
     
-    for (auto& it : values)
+    for (const auto& it : values)
         it.second->xorset(b, true);
     return res;
 }
@@ -1090,7 +1140,7 @@ Exporting Tamgu* Tamgumap::orset(Tamgu* b, bool itself) {
         return res;
     }
 
-    for (auto& it : res->values)
+    for (const auto& it : res->values)
         it.second->orset(b, true);
     return res;
 
@@ -1120,7 +1170,7 @@ Exporting Tamgu* Tamgumap::andset(Tamgu* b, bool itself) {
     else
         res = (Tamgumap*)Atom(true);
 
-    for (auto& it : res->values)
+    for (const auto& it : res->values)
         it.second->andset(b, true);
     return res;
 }
@@ -1157,7 +1207,7 @@ Exporting Tamgu* Tamgumap::plus(Tamgu* b, bool itself) {
     else
         res = (Tamgumap*)Atom(true);
 
-    for (auto& it : res->values)
+    for (const auto& it : res->values)
         it.second->plus(b, true);
     return res;
 }
@@ -1194,7 +1244,7 @@ Exporting Tamgu* Tamgumap::minus(Tamgu* b, bool itself) {
     else
         res = (Tamgumap*)Atom(true);
 
-    for (auto& it : res->values)
+    for (const auto& it : res->values)
         it.second->minus(b, true);
     return res;
 }
@@ -1231,7 +1281,7 @@ Exporting Tamgu* Tamgumap::multiply(Tamgu* b, bool itself) {
     else
         res = (Tamgumap*)Atom(true);
 
-    for (auto& it : res->values)
+    for (const auto& it : res->values)
         it.second->multiply(b, true);
     return res;
 }
@@ -1276,7 +1326,7 @@ Exporting Tamgu* Tamgumap::divide(Tamgu* b, bool itself) {
     else
         res = (Tamgumap*)Atom(true);
 
-    for (auto& it : res->values) {
+    for (const auto& it : res->values) {
         r = it.second->divide(b, true);
         if (r->isError()) {
             res->Release();
@@ -1327,7 +1377,7 @@ Exporting Tamgu* Tamgumap::mod(Tamgu* b, bool itself) {
     else
         res = (Tamgumap*)Atom(true);
 
-    for (auto& it : res->values) {
+    for (const auto& it : res->values) {
         r = it.second->mod(b, true);
         if (r->isError()) {
             res->Release();
@@ -1371,7 +1421,7 @@ Exporting Tamgu* Tamgumap::shiftright(Tamgu* b, bool itself) {
     else
         res = (Tamgumap*)Atom(true);
 
-    for (auto& it : res->values)
+    for (const auto& it : res->values)
         it.second->shiftright(b, true);
     return res;
 }
@@ -1409,7 +1459,7 @@ Exporting Tamgu* Tamgumap::shiftleft(Tamgu* b, bool itself) {
     else
         res = (Tamgumap*)Atom(true);
 
-    for (auto& it : res->values)
+    for (const auto& it : res->values)
         it.second->shiftleft(b, true);
     return res;
 }
@@ -1447,45 +1497,37 @@ Exporting Tamgu* Tamgumap::power(Tamgu* b, bool itself) {
     else
         res = (Tamgumap*)Atom(true);
 
-    for (auto& it : res->values)
+    for (const auto& it : res->values)
         it.second->power(b, true);
     return res;
 }
 
 Exporting Tamgu* Tamgumap::Loopin(TamguInstruction* ins, Tamgu* context, short idthread) {
     locking();
-    Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
-    var = var->Eval(context, aNULL, idthread);
-
-    hmap<string, Tamgu*>::iterator it;
+    if (!values.size()) {
+        unlocking();
+        return this;
+    }
     
-    Tamgu* a;
-    vector<string> keys;
-
-    for (it=values.begin(); it != values.end(); it++)
-        keys.push_back(it->first);
-
-    long sz = keys.size();
-    a = aNULL;
-    bool testcond = false;
-    for (long i = 0; i < sz && !testcond; i++) {
+    Tamgu* var = ins->instructions.vecteur[0]->Instruction(0)->Eval(context, aNULL, idthread);
+    Tamgu* a = aNULL;
+    for (const auto& it:values) {
         a->Releasenonconst();
-        var->storevalue(keys[i]);
+        var->storevalue(it.first);
 
         a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
         //Continue does not trigger needInvestigate
-        testcond = a->needInvestigate();
+        if (a->needInvestigate()) {
+            unlocking();
+            if (a == aBREAK)
+                return this;
+            return a;
+        }
     }
 
     unlocking();
     
-    if (testcond) {
-        if (a == aBREAK)
-            return this;
-        return a;
-    }
-
     a->Releasenonconst();
     return this;
 

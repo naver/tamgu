@@ -52,6 +52,9 @@ void Tamgumapl::AddMethod(TamguGlobal* global, string name, maplMethod func, uns
 
     Tamgumapl::idtype = global->Getid("mapl");
 
+    
+    global->minimal_indexes[Tamgumapl::idtype] = true;
+
     Tamgumapl::AddMethod(global, "clear", &Tamgumapl::MethodClear, P_NONE, "clear(): clear the container.");
     
     Tamgumapl::AddMethod(global, "invert", &Tamgumapl::MethodInvert, P_NONE, "invert(): return a map with key/value inverted.");
@@ -110,7 +113,7 @@ Exporting Tamgu* Tamgumapl::in(Tamgu* context, Tamgu* a, short idthread) {
         try {
             values.at(val);
             unlocking();
-            return new Tamgulong(val);
+            return globalTamgu->Providelong(val);
         }
         catch(const std::out_of_range& oor) {
             unlocking();
@@ -160,7 +163,7 @@ Exporting Tamgu* Tamgumapl::MethodFind(Tamgu* context, short idthread, TamguCall
     Locking _lock(this);
     for (auto& it : values) {
         if (it.second->same(a) == aTRUE)
-            return new Tamgulong(it.first);
+            return globalTamgu->Providelong(it.first);
     }
     return aNULL;
 }
@@ -425,6 +428,35 @@ Exporting Tamgu*  Tamgumapl::Put(Tamgu* idx, Tamgu* ke, short idthread) {
 }
 
 
+
+Tamgu* Tamgumapl::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign) {
+    BLONG skey = key->Getlong(idthread);
+
+    if (globalTamgu->threadMODE) {
+        locking();
+        key = values[skey];
+        if (key == NULL) {
+            if (globalTamgu->erroronkey) {
+                unlocking();
+                return globalTamgu->Returnerror("Wrong index", idthread);
+            }
+            values.erase(skey);
+            key = aNOELEMENT;
+        }
+        unlocking();
+        return key;
+    }
+    
+    key = values[skey];
+    if (key == NULL) {
+        if (globalTamgu->erroronkey)
+            return globalTamgu->Returnerror("Wrong index", idthread);
+        values.erase(skey);
+        key = aNOELEMENT;
+    }
+    return key;
+}
+
 Exporting Tamgu* Tamgumapl::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
 
 
@@ -441,14 +473,14 @@ Exporting Tamgu* Tamgumapl::Eval(Tamgu* contextualpattern, Tamgu* idx, short idt
             locking();
             hmap<BLONG, Tamgu*>::iterator it;
             for (it = values.begin(); it != values.end(); it++)
-                vect->Push(new Tamgulong(it->first));
+                vect->Push(globalTamgu->Providelong(it->first));
             unlocking();
             return vect;
         }
 
         if (contextualpattern->isNumber()) {
             long v = Size();
-            return globalTamgu->Provideint(v);
+            return globalTamgu->ProvideConstint(v);
         }
 
         return this;

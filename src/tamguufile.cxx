@@ -187,7 +187,7 @@ Tamgu* Tamguufile::MethodRead(Tamgu* context, short idthread, TamguCall* callfun
     }
 
     if (context->isNumber())
-        return globalTamgu->Provideint(Get());
+        return globalTamgu->ProvideConstint(Get());
 
 
     readall(bf);

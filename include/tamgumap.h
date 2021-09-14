@@ -60,6 +60,7 @@ class Tamgumap : public TamguObjectLockContainer {
     Exporting Tamgu* Loopin(TamguInstruction*, Tamgu* context, short idthread);
     Exporting Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);
     Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
+    Tamgu* EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign);
 
     void SetConst() {
         isconst = true;
@@ -295,7 +296,7 @@ class Tamgumap : public TamguObjectLockContainer {
 
     Tamgu* MethodSum(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = Sum();
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
 
     Tamgu* MethodKeys(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -334,7 +335,7 @@ class Tamgumap : public TamguObjectLockContainer {
 
     Tamgu* MethodProduct(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double v = Product();
-        return globalTamgu->Providefloat(v);
+        return globalTamgu->ProvideConstfloat(v);
     }
 
     Tamgu* MethodPop(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -385,6 +386,11 @@ class Tamgumap : public TamguObjectLockContainer {
         values[k] = a;
         a->Addreference(investigate,reference + 1);
         unlocking();
+    }
+    
+    inline void pushone(string& k, Tamgu* a) {
+        values[k] = a;
+        a->Addreference(0,reference + 1);
     }
     
     Tamgu* Push(string k, Tamgu* a) {
@@ -461,59 +467,91 @@ class Tamgumap : public TamguObjectLockContainer {
     Tamgu* Value(Tamgu* a) {
         string s =  a->String();
 
-        locking();
-        try {
-            Tamgu* v = values.at(s);
+        Tamgu* v;
+        if (globalTamgu->threadMODE) {
+            locking();
+            v = values[s];
+            if (v == NULL) {
+                values.erase(s);
+                v = aNOELEMENT;
+            }
             unlocking();
             return v;
         }
-        catch (const std::out_of_range& oor) {
-            unlocking();
+        
+        v = values[s];
+        if (v == NULL) {
+            values.erase(s);
             return aNOELEMENT;
         }
+        return v;
     }
 
     Tamgu* Value(string& s) {
-        locking();
-        try {
-            Tamgu* v = values.at(s);
+        Tamgu* v;
+        if (globalTamgu->threadMODE) {
+            locking();
+            v = values[s];
+            if (v == NULL) {
+                values.erase(s);
+                v = aNOELEMENT;
+            }
             unlocking();
             return v;
         }
-        catch (const std::out_of_range& oor) {
-            unlocking();
+        
+        v = values[s];
+        if (v == NULL) {
+            values.erase(s);
             return aNOELEMENT;
         }
+        return v;
     }
 
     Tamgu* Value(long n) {
-        
+        Tamgu* v;
         string s = convertfromnumber(n);
 
-        locking();
-        try {
-            Tamgu* v = values.at(s);
+        if (globalTamgu->threadMODE) {
+            locking();
+            v = values[s];
+            if (v == NULL) {
+                values.erase(s);
+                v = aNOELEMENT;
+            }
             unlocking();
             return v;
         }
-        catch (const std::out_of_range& oor) {
-            unlocking();
+        
+        v = values[s];
+        if (v == NULL) {
+            values.erase(s);
             return aNOELEMENT;
         }
+        return v;
     }
 
-    Tamgu* Value(double n) {        
+    Tamgu* Value(double n) {
+        Tamgu* v;
         string s = convertfromnumber(n);
-        locking();
-        try {
-            Tamgu* v = values.at(s);
+        
+        if (globalTamgu->threadMODE) {
+            locking();
+            v = values[s];
+            if (v == NULL) {
+                values.erase(s);
+                v = aNOELEMENT;
+            }
             unlocking();
             return v;
         }
-        catch (const std::out_of_range& oor) {
-            unlocking();
+        
+        v = values[s];
+        if (v == NULL) {
+            values.erase(s);
             return aNOELEMENT;
         }
+        return v;
     }
 
     Exporting long Integer();

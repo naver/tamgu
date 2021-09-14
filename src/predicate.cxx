@@ -183,8 +183,8 @@ Tamgu* TamguPredicate::MethodRuleid(Tamgu* contextualpattern, short idthread, Ta
         if (object != NULL) {
             long ln = object->Currentline();
             string filename = globalTamgu->Getfilename(object->Currentfile());
-            kmap->Push("id", globalTamgu->Provideint(id));
-            kmap->Push("line", globalTamgu->Provideint(ln));
+            kmap->Push("id", globalTamgu->ProvideConstint(id));
+            kmap->Push("line", globalTamgu->ProvideConstint(ln));
             kmap->Push("filename", globalTamgu->Providewithstring(filename));
         }
     }
@@ -2995,7 +2995,7 @@ Tamgu* Tamguvector::Getvalues(TamguDeclaration* dom, bool duplicate) {
 }
 
 Tamgu* TamguConstmap::Getvalues(TamguDeclaration* dom, bool duplicate) {
-    Tamgutreemap* kmap = new Tamgutreemap;
+    Tamgutreemap* kmap = globalTamgu->Providetreemap();
     Tamgu* ev = aNULL;
     Tamgu* ek;
     for (BLONG i = 0; i < values.size(); i++) {
@@ -3071,7 +3071,7 @@ Tamgu* TamguInstructionEvaluate::PredicateCreate(TamguPredicate* headrule, long 
 
     Tamgu* func = headrule->Function();
     if (func != NULL) {
-        TamguCallFunction kfunc(func);
+        TamguCallFunction2 kfunc(func);
         func = ((TamguPredicateFunction*)headrule)->object;
         func->Setreference();
         kfunc.arguments.push_back(pv);
@@ -4149,7 +4149,7 @@ Tamgu* TamguInstructionEvaluate::Eval(Tamgu* contextualpattern, Tamgu* domcall, 
     if (contextualpattern->isNumber()) {
         for (i = 0; i < results.size(); i++)
             results[i]->Resetreference();
-        return new Tamguint(results.size());
+        return globalTamgu->ProvideConstint(results.size());
     }
 
     if (contextualpattern->isPredicate()) {

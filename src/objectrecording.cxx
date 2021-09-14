@@ -19,10 +19,10 @@
 
 //The objects we need to record
 #include "tamgustring.h"
+#include "tamgushort.h"
 #include "tamgufloat.h"
 #include "tamgudecimal.h"
 #include "tamguint.h"
-#include "tamgushort.h"
 #include "tamguustring.h"
 #include "tamgurawstring.h"
 #include "tamgulong.h"

@@ -152,9 +152,7 @@ class Tamgubyte : public TamguReference {
         return (ty == a_byte);
     }
 
-	
-
-	Tamgu* Succ() {
+    Tamgu* Succ() {
 		return new Tamgubyte(value + 1);
 	}
 

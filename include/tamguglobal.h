@@ -45,6 +45,8 @@ class TamguPredicate;
 class TamguPredicateContainer;
 class TamguCallBreak;
 class TamguObject;
+class Tamgulongbuff;
+class Tamgulong;
 class Tamguintbuff;
 class Tamguint;
 class Tamgufloatbuff;
@@ -64,6 +66,8 @@ class Tamgusvectorbuff;
 class Tamguuvector;
 class Tamguuvectorbuff;
 class Tamgumap;
+class Tamgutreemap;
+class Tamgutreemapbuff;
 class Tamgumapbuff;
 class Tamgumapss;
 class Tamgumapssbuff;
@@ -189,6 +193,13 @@ public:
 		return (prologstack + stack.size() + stacklisp.size());
 	}
 
+    bool pushtracked(Tamgu* a, long mx);
+    
+    inline bool push(Tamgu* a, long mx) {
+        stack.push_back(a);
+        return (stack.size() >= mx);
+    }
+    
 	void Update(short idthread);
 
     inline void Storeingarbage(Tamgu* a) {
@@ -212,8 +223,9 @@ public:
         return localgarbage.size();
     }
     
-    void Cleanfromgarbageposition(short idthread, long p, Tamgu* keep, long lastrecorded);
-	inline void Removevariable(short n) {
+    void Cleanfromgarbageposition(Tamgu* declaration, short idthread, long p, Tamgu* keep, long lastrecorded, long maxrecorded);
+	
+    inline void Removevariable(short n) {
 		if (variables.check(n)) {
 			VECTE<Tamgu*>& v = variables.get(n);
 			if (v.last)
@@ -350,7 +362,9 @@ public:
 	basebin_hash<short> throughs;
     //-----------------------------------
     basebin_hash<short> atomics;
-	//-----------------------------------
+    //-----------------------------------
+    basebin_hash<bool> minimal_indexes;
+    //-----------------------------------
 	basebin_hash<Tamgu*> actions;
 	//-----------------------------------
 	basebin_hash<Tamgu*> concepts;
@@ -434,7 +448,13 @@ public:
     bool checkoperator(short a) {
         return operator_strings.check(a);
     }
-    
+
+	//--------------------------------
+	//Constant
+	Exporting Tamgu* ProvideConstint(long v);
+	Exporting Tamgu* ProvideConstfloat(double v);
+	Exporting Tamgu* ProvideConstlong(BLONG v);
+
 	//--------------------------------
 	//Buffers...
     vector<TamguPredicateVariableInstance*> pvireservoire;
@@ -451,6 +471,11 @@ public:
 	VECTE<long> mapempties;
 	long mapidx;
 	Exporting Tamgumap* Providemap();
+
+    vector<Tamgutreemapbuff*> treemapreservoire;
+    VECTE<long> treemapempties;
+    long treemapidx;
+    Exporting Tamgutreemap* Providetreemap();
 
 	vector<Tamguvectorbuff*> vectorreservoire;
 	VECTE<long> vectorempties;
@@ -481,6 +506,11 @@ public:
 	VECTE<long> iempties;
 	long intidx;
 	Exporting Tamguint* Provideint(long v = 0);
+    
+    vector<Tamgulongbuff*> longreservoire;
+    VECTE<long> lgempties;
+    long longidx;
+    Exporting Tamgulong* Providelong(BLONG v = 0);
 
 	vector<Tamgufloatbuff*> floatreservoire;
 	VECTE<long> fempties;
@@ -507,7 +537,7 @@ public:
     vector<TamguDeclarationLocal*> declarationreservoire;
     VECTE<long> declempties;
     long declarationidx;
-    Exporting TamguDeclarationLocal* Providedeclaration(Tamgu* ins, short idt, bool p);
+    Exporting TamguDeclarationLocal* Providedeclaration(short idt);
 
     vector<TamguDeclarationAutoClean*> declarationcleanreservoire;
     VECTE<long> declarationcleanempties;
@@ -526,41 +556,6 @@ public:
 	Tamgu* gUNIVERSAL;
 	Tamgu* gTRUE;
 	Tamgu* gFALSE;
-
-	Tamgu* gMINUSTEN;
-	Tamgu* gMINUSNINE;
-	Tamgu* gMINUSEIGHT;
-	Tamgu* gMINUSSEVEN;
-	Tamgu* gMINUSSIX;
-	Tamgu* gMINUSFIVE;
-	Tamgu* gMINUSFOUR;
-	Tamgu* gMINUSTHREE;
-	Tamgu* gMINUSTWO;
-	Tamgu* gMINUSONE;
-	Tamgu* gZERO;
-    Tamgu* gZEROPOINTZERO;
-	Tamgu* gONE;
-	Tamgu* gTWO;
-	Tamgu* gTHREE;
-	Tamgu* gFOUR;
-	Tamgu* gFIVE;
-	Tamgu* gSIX;
-	Tamgu* gSEVEN;
-	Tamgu* gEIGHT;
-	Tamgu* gNINE;
-	Tamgu* gTEN;
-    Tamgu* gELEVEN;
-    Tamgu* gTWELVE;
-    Tamgu* gTHIRTEEN;
-    Tamgu* gFOURTEEN;
-    Tamgu* gFIFTEEN;
-    Tamgu* gSIXTEEN;
-    Tamgu* gEIGHTEEN;
-    Tamgu* gSEVENTEEN;
-    Tamgu* gNINETEEN;
-    Tamgu* gTWENTY;
-    Tamgu* gTHIRTYTWO;
-    Tamgu* gSIXTYFOUR;
     
     Tamgu* gEMPTYLISP;
     Tamgu* gEMPTYSTRING;
@@ -572,11 +567,12 @@ public:
 	Tamgu* gNOELEMENT;
 	Tamgu* gDEFAULT;
 	Tamgu* gEND;
-	Tamgu* gRAISEERROR;
+    Tamgu* gRAISEERROR;
     TamguCallBreak* gBREAKFALSE;
     TamguCallBreak* gBREAKTRUE;
     TamguCallBreak* gBREAKZERO;
     TamguCallBreak* gBREAKONE;
+
 	Tamgu* gAFFECTATION;
 	TamguConstiteration* gITERNULL;
 	TamguPredicate* gFAIL;
@@ -587,7 +583,8 @@ public:
     TamguLet* gNULLLet;
     Tamgu* gNOTHING;
 
-    hmap<BLONG, Tamgu*> numbers; //we record the values we've seen so far in order to avoid some overgeneration of constant values...
+    hmap<BLONG, Tamgu*> constintegers; //recording of number values
+    hmap<double, Tamgu*> constfloats;
 
     An_rules* gTheAnnotationRules;
     Au_automatons* gAutomatons;
@@ -639,6 +636,7 @@ public:
 
 	bin_hash<unsigned long> arities;
 	basebin_hash<TamguFrame*> frames;
+    basebin_hash<Tamgu*> framevariables;
 
 	basebin_hash<TamguSystemVariable*> systems;
 	
@@ -729,7 +727,8 @@ public:
 	ThreadLock _printlock;
 	ThreadLock _knowledgelock;
     ThreadLock _parselock;
-
+    ThreadLock _numberlock;
+    
     inline bool checkmethod(short idtype, short idname) {
         return (methods.check(idtype) && methods.get(idtype).check(idname));
     }
@@ -858,7 +857,15 @@ public:
         return threads[idthread].stacklisp.back();
     }
     
-    void Pushstack(Tamgu* a, short idthread = 0);
+    inline void Pushstack(Tamgu* a, short idthread = 0) {
+        if (threads[idthread].pushtracked(a, maxstack))
+            Returnerror("Stack overflow", idthread);
+    }
+
+    inline void Pushstackraw(Tamgu* a, short idthread = 0) {
+        if (threads[idthread].push(a, maxstack))
+            Returnerror("Stack overflow", idthread);
+    }
 
 	inline void Popstack(short idthread = 0) {
 		threads[idthread].stack.pop_back();
@@ -926,14 +933,22 @@ public:
 		return threads[idthread].variables.get(name).back();
 	}
 
-	inline void Removevariable(short idthread, short name) {
-		threads[idthread].Removevariable(name);
-	}
+    inline void Removevariable(short idthread, short name) {
+        threads[idthread].Removevariable(name);
+    }
+
+    inline void Removingvariable(short idthread, short name) {
+        threads[idthread].variables.get(name).pop_back();
+    }
 
     inline Tamgu* Removetopvariable(short idthread, short name) {
         return threads[idthread].variables.get(name).backpop();
     }
 
+    Tamgu** Currentinstruction(short idthread) {
+        return &threads[idthread].currentinstruction;
+    }
+    
 	inline void Current(Tamgu* g, short idthread) {
 		threads[idthread].currentinstruction = g;
 	}

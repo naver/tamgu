@@ -97,7 +97,7 @@ Exporting Tamgu* Tamguprimemaplu::in(Tamgu* context, Tamgu* a, short idthread) {
         locking();
         if (values.find(val)!=values.end()) {
             unlocking();
-            return new Tamgulong(val);
+            return globalTamgu->Providelong(val);
         }
         unlocking();
         return aNOELEMENT;;
@@ -146,7 +146,7 @@ Exporting Tamgu* Tamguprimemaplu::MethodFind(Tamgu* context, short idthread, Tam
     Locking _lock(this);
     for (it = values.begin(); it != values.end(); it++) {
         if (it->second == val)
-            return new Tamgulong(it->first);
+            return globalTamgu->Providelong(it->first);
     }
 
     return aNULL;
@@ -366,13 +366,13 @@ Exporting Tamgu* Tamguprimemaplu::Eval(Tamgu* contextualpattern, Tamgu* idx, sho
             locking();
             prime_hash<BLONG,wstring>::iterator it;
             for (it = values.begin(); it != values.end(); it++)
-                vect->Push(new Tamgulong(it->first));
+                vect->Push(globalTamgu->Providelong(it->first));
             unlocking();
             return vect;
         }
 
         if (contextualpattern->Type() == a_int || contextualpattern->Type() == a_float)
-            return new Tamgulong(values.size());
+            return globalTamgu->Providelong(values.size());
 
         return this;
     }
