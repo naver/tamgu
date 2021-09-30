@@ -43,7 +43,7 @@ PyObject* ConvertToPythonString(string s) {
 
 string PyAsString(PyObject* po) {
     string s;
-    Py_ssize_t sz = PyUnicode_GetSize(po);
+    Py_ssize_t sz = PyUnicode_GET_LENGTH(po);
     Py_UNICODE* ibuff = PyUnicode_AsUnicode(po);
     for (int i = 0; i < sz; i++)
         s += c_unicode_to_utf8(ibuff[i]);
@@ -176,7 +176,7 @@ static Tamgu* toTamgu(PyObject* po) {
     }
     #else
     if (PyUnicode_Check(po)) {
-        Py_ssize_t sz = PyUnicode_GetSize(po);
+        Py_ssize_t sz = PyUnicode_GET_LENGTH(po);
         Py_UNICODE* ibuff = PyUnicode_AsUnicode(po);
         string s;
         for (int i = 0; i < sz; i++)

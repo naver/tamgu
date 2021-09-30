@@ -737,7 +737,7 @@ class Tamguframemininstance : public TamguframeBaseInstance {
         protect = false;
         for (short i = 0; i < declarations.sz; i++) {
             if (declarations.table[i] != NULL)
-                declarations.table[i]->Addreference(investigate, r);
+                declarations.table[i]->Setreference(r);
         }
         unlocking();
     }
@@ -894,7 +894,7 @@ class Tamguframeinstance : public TamguframeBaseInstance {
         locking();
         protect = false;
         for (short i = 0; i < declarations.last; i++)
-            declarations[i]->Addreference(investigate, r);
+            declarations[i]->Setreference(r);
         unlocking();
     }
 
