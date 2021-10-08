@@ -1140,7 +1140,7 @@ void TamguGlobal::RecordCompileFunctions() {
 	parseFunctions["negated"] = &TamguCode::C_negated;
 
 	parseFunctions["parenthetic"] = &TamguCode::C_parenthetic;
-	parseFunctions["optionalboolean"] = &TamguCode::C_parenthetic;
+    parseFunctions["optionalboolean"] = &TamguCode::C_booleanexpression;
 	parseFunctions["hoptionalboolean"] = &TamguCode::C_parenthetic;
 	parseFunctions["hforcecompare"] = &TamguCode::C_parenthetic;
 
