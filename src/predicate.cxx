@@ -470,11 +470,11 @@ void AffichageDom(TamguDeclaration* dom, long depth) {
 
 //------------------------------------------------------------------------------------------
 bool ThreadStruct::TestPredicate(TamguDeclaration* dom, TamguPredicate* p) {
-    if (p->name != a_universal && !knowledgebase.check(p->name))
+    if (p->name != a_universal && knowledgebase.find(p->name) == knowledgebase.end())
         return false;
     if (p->name == a_universal) {
 
-        basebinn_hash<vector<TamguPredicate*> >::iterator it;
+        hmap<short, vector<TamguPredicate*> >::iterator it;
         for (it = knowledgebase.begin(); it != knowledgebase.end(); it++) {
             vector<TamguPredicate*>& v = it->second;
             for (long i = 0; i < v.size(); i++) {
@@ -493,12 +493,12 @@ bool ThreadStruct::TestPredicate(TamguDeclaration* dom, TamguPredicate* p) {
 }
 
 char ThreadStruct::isaValidPredicate(TamguDeclaration* dom, TamguPredicate* p, hmap<unsigned short, vector<TamguPredicateRule*> >& rulebase) {
-    if (p->name != a_universal && !knowledgebase.check(p->name))
+    if (p->name != a_universal && knowledgebase.find(p->name) == knowledgebase.end())
         return 1;
         
     long i;
     if (p->name == a_universal) {
-        basebinn_hash<vector<TamguPredicate*> >::iterator it;
+        hmap<short, vector<TamguPredicate*> >::iterator it;
         for (it = knowledgebase.begin(); it != knowledgebase.end(); it++) {
             vector<TamguPredicate*>& v = it->second;
             for (i = 0; i < v.size(); i++) {
@@ -526,7 +526,7 @@ bool ThreadStruct::GetPredicates(TamguDeclaration* dom, TamguPredicate* p, vecto
     long i;
 
     if (p->name == a_universal) {
-        basebinn_hash<vector<TamguPredicate*> >::iterator it;
+        hmap<short, vector<TamguPredicate*> >::iterator it;
         for (it = knowledgebase.begin(); it != knowledgebase.end(); it++) {
             vector<TamguPredicate*>& v = it->second;
             for (i = 0; i < v.size(); i++) {
@@ -587,7 +587,7 @@ bool ThreadStruct::StorePredicate(TamguDeclaration* dom, TamguPredicate* pv, boo
 
 bool ThreadStruct::RemovePredicates(TamguDeclaration* dom, TamguPredicate* p) {
 
-    if (!knowledgebase.check(p->name))
+    if (knowledgebase.find(p->name) == knowledgebase.end())
         return false;
 
     vector<TamguPredicate*>& v = knowledgebase[p->name];

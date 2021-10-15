@@ -879,25 +879,18 @@ template <class Z> class basebin_hash {
 
     //nettoyage
     void clear() {
-        if (tsize >= 10) {
-            for (int16_t i = 0; i < tsize; i++) {
-                if (table[i] != NULL)
-                    delete[] table[i];
-            }
-            base = -1;
-            tsize = 1;
-            delete[] table;
-            delete[] indexes;
-            table = new Z*[tsize];
-            indexes = new uint64_t[tsize];
-            table[0] = NULL;
-            indexes[0] = 0;
+        for (int16_t i = 0; i < tsize; i++) {
+            if (table[i] != NULL)
+                delete[] table[i];
         }
-        else {
-            for (int16_t i = 0; i < tsize; i++) {
-                indexes[i] = 0;
-            }
-        }
+        base = -1;
+        tsize = 1;
+        delete[] table;
+        delete[] indexes;
+        table = new Z*[tsize];
+        indexes = new uint64_t[tsize];
+        table[0] = NULL;
+        indexes[0] = 0;
     }
 
     //We insert some new boxes before the position 0
@@ -1162,25 +1155,18 @@ public:
     
     //nettoyage
     void clear() {
-        if (tsize >= 10) {
-            for (int16_t i = 0; i < tsize; i++) {
-                if (table[i] != NULL)
-                    delete[] table[i];
-            }
-            base = -1;
-            tsize = 1;
-            delete[] table;
-            delete[] indexes;
-            table = new Z*[tsize];
-            indexes = new uint64_t[tsize];
-            table[0] = NULL;
-            indexes[0] = 0;
+        for (int16_t i = 0; i < tsize; i++) {
+            if (table[i] != NULL)
+                delete[] table[i];
         }
-        else {
-            for (int16_t i = 0; i < tsize; i++) {
-                indexes[i] = 0;
-            }
-        }
+        base = -1;
+        tsize = 1;
+        delete[] table;
+        delete[] indexes;
+        table = new Z*[tsize];
+        indexes = new uint64_t[tsize];
+        table[0] = NULL;
+        indexes[0] = 0;
     }
 
     //We insert some new boxes before the position 0

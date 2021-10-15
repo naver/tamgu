@@ -42,7 +42,7 @@
 #include "tamgulisp.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2021.10.08.09";
+const char* tamgu_version = "Tamgu 1.2021.10.15.12";
 
 Tamgu* booleantamgu[2];
 
@@ -418,7 +418,7 @@ void ThreadStruct::Setknowledgebase() {
     if (globalTamgu->threads[0].knowledgebase.size()) {
         long i;
 
-        basebinn_hash<vector<TamguPredicate*> >::iterator it;
+        hmap<short, vector<TamguPredicate*> >::iterator it;
 
         for (it = globalTamgu->threads[0].knowledgebase.begin(); it != globalTamgu->threads[0].knowledgebase.end(); it++) {
             for (i = 0; i < it->second.size(); i++) {
@@ -432,7 +432,7 @@ void ThreadStruct::Setknowledgebase() {
 
 
 void ThreadStruct::Clearknowledgebase() {
-    basebinn_hash<vector<TamguPredicate*> >::iterator itk;
+    hmap<short, vector<TamguPredicate*> >::iterator itk;
     for (itk = knowledgebase.begin(); itk != knowledgebase.end(); itk++) {
         for (size_t i = 0; i < itk->second.size(); i++) {
             itk->second[i]->Setprotect(false);

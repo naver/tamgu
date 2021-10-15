@@ -526,11 +526,11 @@ void TamguGlobal::RecordPredicateFunctions() {
 Tamgu* ProcPredicateDump(Tamgu* context, short idthread, TamguCall* callfunc) {
     //We display all predicates or one...
     string label;
-    basebinn_hash<vector<TamguPredicate*> >& knowledge = globalTamgu->threads[idthread].knowledgebase;
+    hmap<short, vector<TamguPredicate*> >& knowledge = globalTamgu->threads[idthread].knowledgebase;
     Tamguvector* kvect = globalTamgu->Providevector();
     if (callfunc->Size() == 0) {
 
-        basebinn_hash<vector<TamguPredicate*> >::iterator it;
+        hmap<short, vector<TamguPredicate*> >::iterator it;
         for (it = knowledge.begin(); it != knowledge.end(); it++) {
             vector<TamguPredicate*>& vect = it->second;
             for (size_t i = 0; i < vect.size(); i++)
@@ -540,7 +540,7 @@ Tamgu* ProcPredicateDump(Tamgu* context, short idthread, TamguCall* callfunc) {
     }
     label = callfunc->Evaluate(0, context, idthread)->String();
     short name = globalTamgu->Getid(label);
-    if (!knowledge.check(name))
+    if (knowledge.find(name) == knowledge.end())
         return kvect;
     vector<TamguPredicate*>& vect = knowledge[name];
     for (size_t i = 0; i < vect.size(); i++)
@@ -550,12 +550,12 @@ Tamgu* ProcPredicateDump(Tamgu* context, short idthread, TamguCall* callfunc) {
 
 Tamgu* ProcRetractAll(Tamgu* context, short idthread, TamguCall* callfunc) {
     //We display all predicates or one...
-    basebinn_hash<vector<TamguPredicate*> >& knowledge = globalTamgu->threads[idthread].knowledgebase;
+    hmap<short, vector<TamguPredicate*> >& knowledge = globalTamgu->threads[idthread].knowledgebase;
     if (callfunc->Size() == 0) {
 
-        basebinn_hash<vector<TamguPredicate*> >::iterator it;
+        hmap<short, vector<TamguPredicate*> >::iterator it;
         for (it = knowledge.begin(); it != knowledge.end(); it++) {
-            vector<TamguPredicate*>& vect = it.second;
+            vector<TamguPredicate*>& vect = it->second;
             for (size_t i = 0; i < vect.size(); i++)
                 vect[i]->Resetreference();
             vect.clear();
@@ -565,7 +565,7 @@ Tamgu* ProcRetractAll(Tamgu* context, short idthread, TamguCall* callfunc) {
     }
     string label = callfunc->Evaluate(0, context, idthread)->String();
     short name = globalTamgu->Getid(label);
-    if (!knowledge.check(name))
+    if (knowledge.find(name) == knowledge.end())
         return aFALSE;
     vector<TamguPredicate*>& vect = knowledge[name];
     for (size_t i = 0; i < vect.size(); i++)

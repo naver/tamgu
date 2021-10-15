@@ -165,7 +165,7 @@ public:
 
     std::atomic<short> nbjoined;
     
-	basebinn_hash<vector<TamguPredicate*> > knowledgebase;
+	hmap<short, vector<TamguPredicate*> > knowledgebase;
 	bin_hash<VECTE<Tamgu*> > variables;
 
 	string nonblockingerror;
@@ -270,7 +270,7 @@ public:
 			return false;
 		}
 
-        return knowledgebase.check(name);
+        return (knowledgebase.find(name) != knowledgebase.end());
 	}
 
 };
