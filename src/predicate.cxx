@@ -1947,8 +1947,11 @@ Tamgu* Tamgusynode::ExtractPredicateVariables(Tamgu* context, TamguDeclaration* 
     }
 
     if (previousinstance == NULL) {
-        kpvi->value = this;
-        Setreference(kpvi->reference);
+        if (kpvi->value != this) {
+            kpvi->value->Resetreference(kpvi->reference);
+            kpvi->value = this;
+            Setreference(kpvi->reference);
+        }
         return kpvi;
     }
 

@@ -207,7 +207,7 @@ cleanlibs:
     if withgui:
         compilelibs += "\t$(MAKE) -C libgui all\n"
         cleanlibs += "\t$(MAKE) -C libgui clean\n"
-        if b"arm64" in ostype:
+        if b"arm64" in ostype.lower():
             incpath += " -Iinclude/macarm/fltk"
         else:
             incpath += " -Iinclude/macos/fltk"
@@ -235,11 +235,14 @@ cleanlibs:
     f.write(compilelibs)
     f.write(cleanlibs)
     f.write(MACLIBS)
-    f.write("SYSTEMSPATH = -Llibs/macos -L../libs/macos\n")
+    if compilejava:
+        f.write("SYSTEMSPATH = -Llibs/macos -L../libs/macos -target x86_64-apple-macos11\n")
+    else:
+        f.write("SYSTEMSPATH = -Llibs/macos -L../libs/macos\n")
     f.write("TAMGUCONSOLENAME = tamgu\n")
 
     if withgui:
-        if b"arm64" in ostype:
+        if b"arm64" in ostype.lower():
             f.write("FLTKLIBS=-Llibs/macarm -lfltk -lfltk_images -lfltk_jpeg\n")
         else:
             f.write("FLTKLIBS=-Llibs/macos -lfltk -lfltk_images\n")
@@ -272,12 +275,18 @@ cleanlibs:
            f.write("PYTHONLIB = "+pythonpath+"\n")
 
     # AVX instructions are not available on arm64 machines
-    if b"arm64" in ostype:
-        f.write("C++11Flag = -std=c++14 -DTamgu_REGEX -DMAVERICK -DAPPLE -DFLTK14\n")
+    if b"arm64" in ostype.lower():
+        if compilejava:
+           f.write("C++11Flag = -std=c++14 -target x86_64-apple-macos11  -DTamgu_REGEX -DMAVERICK -DAPPLE\n")
+        else:
+           f.write("C++11Flag = -std=c++14 -DTamgu_REGEX -DMAVERICK -DAPPLE -DFLTK14\n")
         f.write("INTELINT =\n")
     else:
         f.write("C++11Flag = -std=c++14 -DTamgu_REGEX -DMAVERICK -DAPPLE\n")
-        f.write("INTELINT = -DINTELINTRINSICS -mavx2 -DAVXSUPPORT\n")
+        if compilejava:
+            f.write("INTELINT =\n")
+        else:
+            f.write("INTELINT = -DINTELINTRINSICS -mavx2 -DAVXSUPPORT\n")
     f.close();
     print("You can launch 'make all libs' now")
     sys.exit(0)

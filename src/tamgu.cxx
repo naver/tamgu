@@ -42,7 +42,7 @@
 #include "tamgulisp.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2021.10.15.12";
+const char* tamgu_version = "Tamgu 1.2021.12.30.11";
 
 Tamgu* booleantamgu[2];
 
@@ -2370,6 +2370,7 @@ void TamguGlobal::TamguAllObjects(vector<string>& vs) {
     vs.push_back("map");
     vs.push_back("Maybe");
     vs.push_back("Nothing");
+    vs.push_back("namespace");
     vs.push_back("not");
     vs.push_back("notin");
     vs.push_back("null");

@@ -371,7 +371,7 @@ extern "C" {
         return liste;
     }
     
-    void TamguFinalClean() {
+    void TamguFinalClean(void) {
         TamguExtinguish();
     }
 

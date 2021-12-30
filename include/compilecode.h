@@ -45,6 +45,7 @@ public:
 
 	string filename;
     string currentpredicatename;
+    string name_space;
 
     size_t firstinstruction;
     long insidecall;
@@ -148,6 +149,7 @@ public:
 	Tamgu* Callingprocedure(x_node*, short id);
 	//----------------------------------------
 	//The methods which need to be implemented to compile a code
+    Tamgu* C_namespace(x_node*, Tamgu*);
     Tamgu* C_expression(x_node*, Tamgu*);
 	Tamgu* C_parameterdeclaration(x_node*, Tamgu*);
 	Tamgu* C_multideclaration(x_node*, Tamgu*);

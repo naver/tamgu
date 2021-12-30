@@ -1167,6 +1167,8 @@ void TamguGlobal::RecordCompileFunctions() {
 	parseFunctions["for"] = &TamguCode::C_for;
 	parseFunctions["blocfor"] = &TamguCode::C_blocfor;
 	parseFunctions["forin"] = &TamguCode::C_forin;
+    
+    parseFunctions["namespace"] = &TamguCode::C_namespace;
 
 	parseFunctions["trycatch"] = &TamguCode::C_trycatch;
 
@@ -2209,9 +2211,19 @@ Tamgu* TamguCode::C_parameterdeclaration(x_node* xn, Tamgu* parent) {
 	}
 
 	if (global->symbolIds.find(type) == global->symbolIds.end()) {
-		stringstream message;
-		message << "Unknown type: " << type;
-		throw new TamguRaiseError(message, filename, current_start, current_end);
+        if (name_space != "") {
+            type = name_space + type;
+            if (global->symbolIds.find(type) == global->symbolIds.end()) {
+                stringstream message;
+                message << "Unknown type: " << xn->nodes[0]->value;
+                throw new TamguRaiseError(message, filename, current_start, current_end);
+            }
+        }
+        else {
+            stringstream message;
+            message << "Unknown type: " << type;
+            throw new TamguRaiseError(message, filename, current_start, current_end);
+        }
 	}
 
 	short tid = global->symbolIds[type];
@@ -2222,9 +2234,15 @@ Tamgu* TamguCode::C_parameterdeclaration(x_node* xn, Tamgu* parent) {
 		throw new TamguRaiseError(message, filename, current_start, current_end);
 	}
 
-	short name = global->Getid(xn->nodes[1]->value);
+    string name;
+    if (name_space == "")
+        name = xn->nodes[1]->value;
+    else
+        name = name_space + xn->nodes[1]->value;
 
-	if (top->isDeclared(name)) {
+    short idname = global->Getid(name);
+
+	if (top->isDeclared(idname)) {
 		stringstream message;
 		message << "This variable has already been declared: " << xn->nodes[1]->value;
 		throw new TamguRaiseError(message, filename, current_start, current_end);
@@ -2234,31 +2252,31 @@ Tamgu* TamguCode::C_parameterdeclaration(x_node* xn, Tamgu* parent) {
 	TamguVariableDeclaration* a;
     if (tid == a_self || tid == a_let) {
         if (parent->isTaskellFunction())
-            a = new TamguTaskellSelfVariableDeclaration(global, name, tid, parent);
+            a = new TamguTaskellSelfVariableDeclaration(global, idname, tid, parent);
         else
-            a = new TamguSelfVariableDeclaration(global, name, tid, parent);
+            a = new TamguSelfVariableDeclaration(global, idname, tid, parent);
     }
 	else {
 		if (parent->isMainFrame()) {
-			a = new TamguGlobalVariableDeclaration(global, name, tid, isprivate, false, parent);
-			global->Storevariable(0, name, aNOELEMENT); //a dummy version to avoid certain bugs in the console
+			a = new TamguGlobalVariableDeclaration(global, idname, tid, isprivate, false, parent);
+			global->Storevariable(0, idname, aNOELEMENT); //a dummy version to avoid certain bugs in the console
 			//Basically, if a program fails before allocating this variable, and the variable is still requested in the console, it might crash...
 		}
 		else {
             if (parent->isFrame()) {
                 if (global->atomics.check(tid))
-                    a = new TamguFrameAtomicVariableDeclaration(global, name, tid, isprivate, iscommon, parent);
+                    a = new TamguFrameAtomicVariableDeclaration(global, idname, tid, isprivate, iscommon, parent);
                 else
-                    a = new TamguFrameVariableDeclaration(global, name, tid, isprivate, iscommon, parent);
+                    a = new TamguFrameVariableDeclaration(global, idname, tid, isprivate, iscommon, parent);
             }
             else {
                 if (parent->isTaskellFunction())
-                    a = new TamguTaskellVariableDeclaration(global, name, tid, isprivate, false, parent);
+                    a = new TamguTaskellVariableDeclaration(global, idname, tid, isprivate, false, parent);
                 else {
                     if (global->atomics.check(tid))
-                        a = new TamguAtomicVariableDeclaration(global, name, tid, isprivate, false, parent);
+                        a = new TamguAtomicVariableDeclaration(global, idname, tid, isprivate, false, parent);
                     else
-                        a = new TamguVariableDeclaration(global, name, tid, isprivate, false, parent);
+                        a = new TamguVariableDeclaration(global, idname, tid, isprivate, false, parent);
                 }
             }
 		}
@@ -2275,7 +2293,7 @@ Tamgu* TamguCode::C_parameterdeclaration(x_node* xn, Tamgu* parent) {
 		a->AddInstruction(bloc.instructions[1]);
 	}
 
-	top->Declare(name, a);
+	top->Declare(idname, a);
 
 	return element;
 }
@@ -2318,9 +2336,19 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
 	}
 
 	if (global->symbolIds.find(type) == global->symbolIds.end()) {
-		stringstream message;
-		message << "Unknown type: " << type;
-		throw new TamguRaiseError(message, filename, current_start, current_end);
+        if (name_space != "") {
+            type = name_space + type;
+            if (global->symbolIds.find(type) == global->symbolIds.end()) {
+                stringstream message;
+                message << "Unknown type: " << xn->nodes[0]->value;
+                throw new TamguRaiseError(message, filename, current_start, current_end);
+            }
+        }
+        else {
+            stringstream message;
+            message << "Unknown type: " << type;
+            throw new TamguRaiseError(message, filename, current_start, current_end);
+        }
 	}
 
 	short tid = global->symbolIds[type];
@@ -2331,7 +2359,12 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
 		throw new TamguRaiseError(message, filename, current_start, current_end);
 	}
 
-	string name = xn->nodes[1]->value;
+    string name;
+    if (name_space == "")
+        name = xn->nodes[1]->value;
+    else
+        name = name_space + xn->nodes[1]->value;
+    
 	short idname = global->Getid(name);
     
 	if (tid == a_tamgu) {
@@ -3223,7 +3256,12 @@ Tamgu* TamguCode::C_framevariable(x_node* xn, Tamgu* parent) {
 
 
 Tamgu* TamguCode::C_variable(x_node* xn, Tamgu* parent) {
-	string name = xn->nodes[0]->value;
+    string name;
+    if (name_space == "")
+        name = xn->nodes[0]->value;
+    else
+        name = name_space + xn->nodes[0]->value;
+    
 	short idname = global->Getid(name);
 
 	Tamgu* av;
@@ -4454,7 +4492,7 @@ Tamgu* TamguCode::C_multiply(x_node* xn, Tamgu* kf) {
 
 Tamgu* TamguCode::C_operation(x_node* xn, Tamgu* kf) {
 	//The first parameter is the operator	
-	short op = global->string_operators[xn->nodes[0]->value];
+    short op = global->string_operators[xn->nodes[0]->value];
 	//The second parameter is the rest of the operation
 	//kf is the TOP instruction
 	TamguInstruction* ki;
@@ -4483,7 +4521,8 @@ Tamgu* TamguCode::C_operation(x_node* xn, Tamgu* kf) {
 	Tamgu* kloop;
 
 	if (global->atanOperatorMath.check(kf->Action())) {
-		if (op == a_plus || op == a_minus || op == a_merge || op == a_combine) {
+		if (op == a_plus || op == a_minus || op == a_merge || op == a_combine ||
+            (op == a_multiply && kf->Action() == a_divide)) {
 			kloop = kf;
 			short kact = kloop->Action();
 			while (kloop != NULL && global->atanOperatorMath.check(kact) && kact != a_plus && kact != a_minus && kact != a_merge  && kact != a_combine) {
@@ -4845,10 +4884,20 @@ Tamgu* TamguCode::C_createfunction(x_node* xn, Tamgu* kf) {
 		string typeret;
 		if (xn->nodes[2]->token == "returntype") {
 			typeret = xn->nodes[2]->nodes[0]->value;
-			if (global->symbolIds.find(typeret) == global->symbolIds.end()) {
-				stringstream message;
-				message << "Unknown type: " << typeret;
-				throw new TamguRaiseError(message, filename, current_start, current_end);
+            if (global->symbolIds.find(typeret) == global->symbolIds.end()) {
+                if (name_space != "") {
+                    typeret = name_space + typeret;
+                    if (global->symbolIds.find(typeret) == global->symbolIds.end()) {
+                        stringstream message;
+                        message << "Unknown type: " << xn->nodes[2]->nodes[0]->value;
+                        throw new TamguRaiseError(message, filename, current_start, current_end);
+                    }
+                }
+                else {
+                    stringstream message;
+                    message << "Unknown type: " << typeret;
+                    throw new TamguRaiseError(message, filename, current_start, current_end);
+                }
 			}
 			kfunc->returntype = global->Getid(typeret);
 
@@ -4860,9 +4909,19 @@ Tamgu* TamguCode::C_createfunction(x_node* xn, Tamgu* kf) {
 			if (xn->nodes.size() > 3 && xn->nodes[3]->token == "returntype") {
 				typeret = xn->nodes[3]->nodes[0]->value;
 				if (global->symbolIds.find(typeret) == global->symbolIds.end()) {
-					stringstream message;
-					message << "Unknown type: " << typeret;
-					throw new TamguRaiseError(message, filename, current_start, current_end);
+                    if (name_space != "") {
+                        typeret = name_space + typeret;
+                        if (global->symbolIds.find(typeret) == global->symbolIds.end()) {
+                            stringstream message;
+                            message << "Unknown type: " << xn->nodes[3]->nodes[0]->value;
+                            throw new TamguRaiseError(message, filename, current_start, current_end);
+                        }
+                    }
+                    else {
+                        stringstream message;
+                        message << "Unknown type: " << typeret;
+                        throw new TamguRaiseError(message, filename, current_start, current_end);
+                    }
 				}
 				kfunc->returntype = global->Getid(typeret);
 
@@ -5155,7 +5214,12 @@ Tamgu* TamguCode::C_frame(x_node* xn, Tamgu* kf) {
 		privated = true;
 		pos = 1;
 	}
-	string name = xn->nodes[pos]->value;
+	string name;
+    if (name_space == "")
+        name = xn->nodes[pos]->value;
+    else
+        name = name_space + xn->nodes[pos]->value;
+
 	short idname = global->Getid(name);
 	TamguFrame* kframe = NULL;
 	Tamgu* ke = NULL;
@@ -5581,6 +5645,15 @@ Tamgu* TamguCode::C_for(x_node* xn, Tamgu* kf) {
 	}
 
 	return kfor;
+}
+
+Tamgu* TamguCode::C_namespace(x_node* xn, Tamgu* kf) {
+    string nm = name_space;
+    name_space += xn->nodes[0]->value;
+    name_space += "#";
+    Traverse(xn->nodes[1], kf);
+    name_space = nm;
+    return kf;
 }
 
 
@@ -8964,6 +9037,7 @@ static void StorePredicateVariables(x_node* xn, Tamgusynode** a) {
 			if (globalTamgu->dependencyvariables.find(sid) == globalTamgu->dependencyvariables.end()) {
 				Tamgusynode* as = new Tamgusynode(atoi(STR(sid)), globalTamgu);
 				globalTamgu->dependencyvariables[sid] = as;
+                as->investigate |= is_constante;
 				as->reference = 1;
 				if (*a == NULL)
 					*a = as;
@@ -9129,6 +9203,7 @@ Tamgu* TamguCode::C_predicatevariable(x_node* xn, Tamgu* kf) {
 		int sz = 2;
 		if (xn->nodes[0]->token != "anumber") { //again a '#_' variable but with constraints...
 			as = new Tamgusynode(a_universal, global);
+            as->investigate |= is_constante;
 			sz = 1;
 		}
 		else {

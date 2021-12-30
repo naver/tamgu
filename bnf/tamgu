@@ -273,6 +273,7 @@ typefunction := (join) (protecclusive) (private) (strict) functionlabel
 indexname := %[ %]
 intervalname := %[ %: %]
 returntype := %: %: word
+space := word %@
 %function := typefunction ;7 [word^plusplus^operator^comparator^indexname^intervalname] %( (arguments) %) (returntype) [declarationending^instruction]
 
 %subfunc := %. ;27 regularcall
@@ -301,7 +302,7 @@ sep := %:
 %blocs := [extension^frame^complexbloc^function^bloc]+
 %bloc :=  annotationrule^predicatefact^[dcg ;45 %.]^[[dependencyrule^predicatedefinition] ;46 %.]^sousbloc
 %sousbloc := [[tamgulisp^hdata^hontology^telque] (%;)]^[[conceptfunction^multideclaration^increment^affectation^call^variable]  ;30 %;]
-%complexbloc := switch^trycatch^loop^doloop^iftest^forin^for
+%complexbloc := switch^trycatch^loop^doloop^iftest^forin^for^namespace
 
 ### Our entry point ####
 %analyse := (signature) (shell) blocs
@@ -605,6 +606,7 @@ declarationfor := [variable $in]^[type variable $in]
 %doloop := $do [instruction^complexbloc^bloc] $while %( ;11 booleanexpression %) declarationending
 %for := $for %( ;12 [multideclaration^blocfor] %; booleanexpression %; blocfor %) [instruction^complexbloc^bloc]
 %forin := $for %( [[[valmaptail^valvectortail] $in]^declarationfor] ;33 [arange^expressions] %) [instruction^complexbloc^bloc]
+%namespace := $namespace word instruction
 %switch := $switch %( ;16 expression %) (depend) %{ ;31 testswitch+ %}
 %trycatch := $try %{ ;22 blocs %} $catch ;22 (%( (word) %)) [%;^[%{ ;22 blocs %}]]
 %testswitch := [default^astringdouble^afullstring^astringsimple^anumber^abool] %: ;17 [instruction^complexbloc^bloc]

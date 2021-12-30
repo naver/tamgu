@@ -20,7 +20,7 @@
 #import "ViewController.h"
 
 char StopExecution(void);
-void TamguFinalClean();
+void TamguFinalClean(void);
 BOOL runingmode;
 
 extern ViewController* vue;

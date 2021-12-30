@@ -242,6 +242,9 @@ public:
 	}
     
     void Setreference() {
+        if (isConst())
+            return;
+        
         features->Setreference();
         TamguReference::Setreference();
         Tamgusynode* syn = child;
@@ -252,6 +255,9 @@ public:
     }
     
     void Setreference(short r) {
+        if (isConst())
+            return;
+        
         features->Setreference(r);
         TamguReference::Setreference(r);
         Tamgusynode* syn = child;
@@ -262,6 +268,8 @@ public:
     }
     
     void Setprotect(bool v) {
+        if (isConst())
+            return;
         protect = v;
         features->Setprotect(v);
         Tamgusynode* syn = child;
@@ -274,6 +282,9 @@ public:
 
     
 	void Resetreference(short r = 1) {
+        if (isConst())
+            return;
+        
 		Tamgusynode* syn = child;
 		while (syn != NULL) {
 			Tamgusynode* nx = syn->next;

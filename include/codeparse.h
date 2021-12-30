@@ -301,6 +301,7 @@ class bnf_tamgu {
     char m_indexname(string& lreturn,x_node** tree);
     char m_intervalname(string& lreturn,x_node** tree);
     char m_returntype(string& lreturn,x_node** tree);
+    char m_space(string& lreturn,x_node** tree);
     char m_function(string& lreturn,x_node** tree);
     char m_function_0_1(string& lreturn,x_node** tree);
     char m_function_0_2(string& lreturn,x_node** tree);
@@ -852,6 +853,7 @@ class bnf_tamgu {
     char m_forin_0_1_2(string& lreturn,x_node** tree);
     char m_forin_0_1_2_3(string& lreturn,x_node** tree);
     char m_forin_0_4(string& lreturn,x_node** tree);
+    char m_namespace(string& lreturn,x_node** tree);
     char m_switch(string& lreturn,x_node** tree);
     char m_switch_0_2(string& lreturn,x_node** tree);
     char m_trycatch(string& lreturn,x_node** tree);

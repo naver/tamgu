@@ -224,6 +224,9 @@ public:
 	Tamgu* Put(Tamgu* idx, Tamgu* value, short idthread);
 
 	bool Setvalue(Tamgu* index, Tamgu* val, short idthread, bool initial) {
+        if (value == val)
+            return true;
+        
 		if (!initial)
 			value->Resetreference(reference);
 		value = val;
@@ -661,7 +664,7 @@ public:
 		for (long i = 0; i < parameters.size(); i++) {
 			if (!parameters[i]->isInstruction()) {
 				parameters[i]->Setprotect(0);
-				parameters[i]->Resetreference();
+				parameters[i]->Resetreference(reference);
 			}
 		}
 		parameters.clear();
