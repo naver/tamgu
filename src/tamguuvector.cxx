@@ -58,6 +58,10 @@ void Tamguuvector::AddMethod(TamguGlobal* global, string name, uvectorMethod fun
 
     Tamguuvector::idtype = global->Getid("uvector");
 
+       Tamguuvector::AddMethod(global, "min", &Tamguuvector::MethodMin, P_NONE, "min(): returns the min in the vector.");
+       Tamguuvector::AddMethod(global, "max", &Tamguuvector::MethodMax, P_NONE, "max(): returns the max in the vector.");
+       Tamguuvector::AddMethod(global, "minmax", &Tamguuvector::MethodMinMax, P_NONE, "minmax(): returns the min and the max in the vector.");
+
     Tamguuvector::AddMethod(global, "remove", &Tamguuvector::MethodRemove, P_ONE, "remove(ustring e): remove 'e' from the vector.");
 
     Tamguuvector::AddMethod(global, "sum", &Tamguuvector::MethodSum, P_NONE, "sum(): concatenate the strings in the vector.");

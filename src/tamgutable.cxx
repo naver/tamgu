@@ -57,6 +57,10 @@ void Tamgutable::AddMethod(TamguGlobal* global, string name, tableMethod func, u
 
     Tamgutable::idtype = global->Getid("table");
 
+       Tamgutable::AddMethod(global, "min", &Tamgutable::MethodMin, P_NONE, "min(): returns the min in the vector.");
+       Tamgutable::AddMethod(global, "max", &Tamgutable::MethodMax, P_NONE, "max(): returns the max in the vector.");
+       Tamgutable::AddMethod(global, "minmax", &Tamgutable::MethodMinMax, P_NONE, "minmax(): returns the min and the max in the vector.");
+       
     Tamgutable::AddMethod(global, "clear", &Tamgutable::MethodClear, P_NONE, "clear(): clear the container.");
     Tamgutable::AddMethod(global, "flatten", &Tamgutable::MethodFlatten, P_NONE, "flatten(): flatten a table structure.");
 

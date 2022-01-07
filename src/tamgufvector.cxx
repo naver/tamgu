@@ -55,6 +55,12 @@ bool Tamgufvector::InitialisationModule(TamguGlobal* global, string version) {
     
     Tamgufvector::idtype = global->Getid("fvector");
     
+    Tamgufvector::AddMethod(global, "min", &Tamgufvector::MethodMin, P_NONE, "min(): returns the min in the vector.");
+    Tamgufvector::AddMethod(global, "max", &Tamgufvector::MethodMax, P_NONE, "max(): returns the max in the vector.");
+    Tamgufvector::AddMethod(global, "min", &Tamgufvector::MethodMinMax, P_NONE, "minmax(): returns the min and the max in the vector.");
+
+    Tamgufvector::AddMethod(global, "clear", &Tamgufvector::MethodClear, P_NONE, "clear(): clear the container.");
+    
     Tamgufvector::AddMethod(global, "reverse", &Tamgufvector::MethodReverse, P_NONE, "reverse(): reverse a vector.");
     Tamgufvector::AddMethod(global, "reserve", &Tamgufvector::MethodReserve, P_ONE, "reserve(int sz): Reserve a size of 'sz' potential element in the vector.");
     Tamgufvector::AddMethod(global, "unique", &Tamgufvector::MethodUnique, P_NONE, "unique(): remove duplicate elements.");
@@ -1250,7 +1256,10 @@ bool Tamgua_fvector::InitialisationModule(TamguGlobal* global, string version) {
     
     
     Tamgua_fvector::idtype = global->Getid("a_fvector");
-    
+    Tamgua_fvector::AddMethod(global, "min", &Tamgua_fvector::MethodMin, P_NONE, "min(): returns the min in the vector.");
+    Tamgua_fvector::AddMethod(global, "max", &Tamgua_fvector::MethodMax, P_NONE, "max(): returns the max in the vector.");
+    Tamgua_fvector::AddMethod(global, "min", &Tamgua_fvector::MethodMinMax, P_NONE, "minmax(): returns the min and the max in the vector.");
+
     Tamgua_fvector::AddMethod(global, "clear", &Tamgua_fvector::MethodClear, P_NONE, "clear(): clear the container.");
     
     Tamgua_fvector::AddMethod(global, "remove", &Tamgua_fvector::MethodRemove, P_ONE, "remove(float e): remove 'e' from the vector.");

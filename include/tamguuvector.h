@@ -333,6 +333,40 @@ class Tamguuvector : public TamguLockContainer {
     //---------------------------------------------------------------------------------------------------------------------
     //This SECTION is for your specific implementation...
     //This is an example of a function that could be implemented for your needs.
+    Tamgu* MethodMin(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        wstring m = values[0];
+        for (long i = 1; i < values.size(); i++) {
+            if (m > values[i])
+                m = values[i];
+        }
+        return globalTamgu->Provideustring(m);
+    }
+    
+    Tamgu* MethodMax(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        wstring m = values[0];
+        for (long i = 1; i < values.size(); i++) {
+            if (m < values[i])
+                m = values[i];
+        }
+        return globalTamgu->Provideustring(m);
+    }
+    
+    Tamgu* MethodMinMax(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        wstring mn = values[0];
+        wstring mx = mn;
+        for (long i = 1; i < values.size(); i++) {
+            if (mn > values[i])
+                mn = values[i];
+            if (mx < values[i])
+                mx = values[i];
+        }
+        Tamguuvector* b = new Tamguuvector;
+        b->values.push_back(mn);
+        b->values.push_back(mx);
+        return b;
+    }
+    
+
     Tamgu* MethodClear(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         Clear();
         return aTRUE;

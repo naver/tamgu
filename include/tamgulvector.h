@@ -330,6 +330,39 @@ class Tamgulvector : public TamguLockContainer {
 
 
 
+    Tamgu* MethodMin(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        BLONG m = values[0];
+        for (long i = 1; i < values.size(); i++) {
+            if (m > values[i])
+                m = values[i];
+        }
+        return globalTamgu->Providelong(m);
+    }
+    
+    Tamgu* MethodMax(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        BLONG m = values[0];
+        for (long i = 1; i < values.size(); i++) {
+            if (m < values[i])
+                m = values[i];
+        }
+        return globalTamgu->Providelong(m);
+    }
+    
+    Tamgu* MethodMinMax(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        BLONG mn = values[0];
+        BLONG mx = mn;
+        for (long i = 1; i < values.size(); i++) {
+            if (mn > values[i])
+                mn = values[i];
+            if (mx < values[i])
+                mx = values[i];
+        }
+        Tamgulvector* b = new Tamgulvector;
+        b->values.push_back(mn);
+        b->values.push_back(mx);
+        return b;
+    }
+    
     Tamgu* MethodClear(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         Clear();
         return aTRUE;

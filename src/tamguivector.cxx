@@ -55,6 +55,10 @@ bool Tamguivector::InitialisationModule(TamguGlobal* global, string version) {
     
     Tamguivector::idtype = global->Getid("ivector");
     
+    Tamguivector::AddMethod(global, "min", &Tamguivector::MethodMin, P_NONE, "min(): returns the min in the vector.");
+    Tamguivector::AddMethod(global, "max", &Tamguivector::MethodMax, P_NONE, "max(): returns the max in the vector.");
+    Tamguivector::AddMethod(global, "minmax", &Tamguivector::MethodMinMax, P_NONE, "minmax(): returns the min and the max in the vector.");
+
     Tamguivector::AddMethod(global, "clear", &Tamguivector::MethodClear, P_NONE, "clear(): clear the container.");
     
     Tamguivector::AddMethod(global, "remove", &Tamguivector::MethodRemove, P_ONE, "remove(int e): remove 'e' from the vector.");
@@ -1343,6 +1347,10 @@ bool Tamgua_ivector::InitialisationModule(TamguGlobal* global, string version) {
     
     Tamgua_ivector::idtype = global->Getid("a_ivector");
     
+    Tamgua_ivector::AddMethod(global, "min", &Tamgua_ivector::MethodMin, P_NONE, "min(): returns the min in the vector.");
+    Tamgua_ivector::AddMethod(global, "max", &Tamgua_ivector::MethodMax, P_NONE, "max(): returns the max in the vector.");
+    Tamgua_ivector::AddMethod(global, "minmax", &Tamgua_ivector::MethodMinMax, P_NONE, "minmax(): returns the min and the max in the vector.");
+
     Tamgua_ivector::AddMethod(global, "clear", &Tamgua_ivector::MethodClear, P_NONE, "clear(): clear the container.");
     
     Tamgua_ivector::AddMethod(global, "remove", &Tamgua_ivector::MethodRemove, P_ONE, "remove(int e): remove 'e' from the vector.");

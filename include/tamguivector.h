@@ -333,6 +333,39 @@ class Tamguivector : public TamguLockContainer {
 
 
 
+    Tamgu* MethodMin(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        long m = values[0];
+        for (long i = 1; i < values.size(); i++) {
+            if (m > values[i])
+                m = values[i];
+        }
+        return globalTamgu->Provideint(m);
+    }
+    
+    Tamgu* MethodMax(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        long m = values[0];
+        for (long i = 1; i < values.size(); i++) {
+            if (m < values[i])
+                m = values[i];
+        }
+        return globalTamgu->Provideint(m);
+    }
+    
+    Tamgu* MethodMinMax(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        long mn = values[0];
+        long mx = mn;
+        for (long i = 1; i < values.size(); i++) {
+            if (mn > values[i])
+                mn = values[i];
+            if (mx < values[i])
+                mx = values[i];
+        }
+        Tamguivector* b = new Tamguivector;
+        b->values.push_back(mn);
+        b->values.push_back(mx);
+        return b;
+    }
+
     Tamgu* MethodClear(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         Clear();
         return aTRUE;
@@ -1004,6 +1037,64 @@ public:
         return aFALSE;
     }
     
+    Tamgu* MethodMin(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        long m = 0;
+        bool first = true;
+        atomic_value_vector_iterator<long> it(values);
+        for (; !it.end(); it.next()) {
+            if (first) {
+                m = it.second;
+                first = false;
+            }
+            else {
+                if (m > it.second)
+                    m = it.second;
+            }
+        }
+        return globalTamgu->Provideint(m);
+    }
+    
+    Tamgu* MethodMax(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        long m = 0;
+        bool first = true;
+        atomic_value_vector_iterator<long> it(values);
+        for (; !it.end(); it.next()) {
+            if (first) {
+                m = it.second;
+                first = false;
+            }
+            else {
+                if (m < it.second)
+                    m = it.second;
+            }
+        }
+        return globalTamgu->Provideint(m);
+    }
+    
+    Tamgu* MethodMinMax(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        long mn = 0;
+        long mx = 0;
+        bool first = true;
+        atomic_value_vector_iterator<long> it(values);
+        for (; !it.end(); it.next()) {
+            if (first) {
+                mn = it.second;
+                mx = mn;
+                first = false;
+            }
+            else {
+                if (mn > it.second)
+                    mn = it.second;
+                if (mx < it.second)
+                    mx = it.second;
+            }
+        }
+        Tamgua_ivector* b = new Tamgua_ivector;
+        b->values.push_back(mn);
+        b->values.push_back(mx);
+        return b;
+    }
+
     Tamgu* MethodClear(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         Clear();
         return aTRUE;

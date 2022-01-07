@@ -56,6 +56,10 @@ bool Tamguvector::InitialisationModule(TamguGlobal* global, string version) {
 
     Tamguvector::idtype = global->Getid("vector");
 
+    Tamguvector::AddMethod(global, "min", &Tamguvector::MethodMin, P_NONE, "min(): returns the min in the vector.");
+    Tamguvector::AddMethod(global, "max", &Tamguvector::MethodMax, P_NONE, "max(): returns the max in the vector.");
+    Tamguvector::AddMethod(global, "minmax", &Tamguvector::MethodMinMax, P_NONE, "minmax(): returns the min and the max in the vector.");
+
     Tamguvector::AddMethod(global, "clear", &Tamguvector::MethodClear, P_NONE, "clear(): clear the container.");
     Tamguvector::AddMethod(global, "flatten", &Tamguvector::MethodFlatten, P_NONE, "flatten(): flatten a vector structure.");
 
@@ -3037,6 +3041,10 @@ bool Tamgua_vector::InitialisationModule(TamguGlobal* global, string version) {
     
     Tamgua_vector::idtype = global->Getid("a_vector");
     
+    Tamgua_vector::AddMethod(global, "min", &Tamgua_vector::MethodMin, P_NONE, "min(): returns the min in the vector.");
+    Tamgua_vector::AddMethod(global, "max", &Tamgua_vector::MethodMax, P_NONE, "max(): returns the max in the vector.");
+    Tamgua_vector::AddMethod(global, "minmax", &Tamgua_vector::MethodMinMax, P_NONE, "minmax(): returns the min and the max in the vector.");
+
     Tamgua_vector::AddMethod(global, "clear", &Tamgua_vector::MethodClear, P_NONE, "clear(): clear the container.");
     Tamgua_vector::AddMethod(global, "flatten", &Tamgua_vector::MethodFlatten, P_NONE, "flatten(): flatten a vector structure.");
     

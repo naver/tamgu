@@ -391,6 +391,39 @@ class Tamgufvector : public TamguLockContainer {
     //---------------------------------------------------------------------------------------------------------------------
     //This SECTION is for your specific implementation...
     //This is an example of a function that could be implemented for your needs.
+    Tamgu* MethodMin(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        double m = values[0];
+        for (long i = 1; i < values.size(); i++) {
+            if (m > values[i])
+                m = values[i];
+        }
+        return globalTamgu->Providefloat(m);
+    }
+    
+    Tamgu* MethodMax(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        double m = values[0];
+        for (long i = 1; i < values.size(); i++) {
+            if (m < values[i])
+                m = values[i];
+        }
+        return globalTamgu->Providefloat(m);
+    }
+    
+    Tamgu* MethodMinMax(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        double mn = values[0];
+        double mx = mn;
+        for (long i = 1; i < values.size(); i++) {
+            if (mn > values[i])
+                mn = values[i];
+            if (mx < values[i])
+                mx = values[i];
+        }
+        Tamgufvector* b = new Tamgufvector;
+        b->values.push_back(mn);
+        b->values.push_back(mx);
+        return b;
+    }
+
     Tamgu* MethodClear(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         Clear();
         return aTRUE;
@@ -1065,6 +1098,64 @@ public:
         return aFALSE;
     }
     
+    Tamgu* MethodMin(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        double m = 0;
+        bool first = true;
+        atomic_value_vector_iterator<double> it(values);
+        for (; !it.end(); it.next()) {
+            if (first) {
+                m = it.second;
+                first = false;
+            }
+            else {
+                if (m > it.second)
+                    m = it.second;
+            }
+        }
+        return globalTamgu->Providefloat(m);
+    }
+    
+    Tamgu* MethodMax(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        double m = 0;
+        bool first = true;
+        atomic_value_vector_iterator<double> it(values);
+        for (; !it.end(); it.next()) {
+            if (first) {
+                m = it.second;
+                first = false;
+            }
+            else {
+                if (m < it.second)
+                    m = it.second;
+            }
+        }
+        return globalTamgu->Providefloat(m);
+    }
+    
+    Tamgu* MethodMinMax(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        double mn = 0;
+        double mx = 0;
+        bool first = true;
+        atomic_value_vector_iterator<double> it(values);
+        for (; !it.end(); it.next()) {
+            if (first) {
+                mn = it.second;
+                mx = mn;
+                first = false;
+            }
+            else {
+                if (mn > it.second)
+                    mn = it.second;
+                if (mx < it.second)
+                    mx = it.second;
+            }
+        }
+        Tamgua_fvector* b = new Tamgua_fvector;
+        b->values.push_back(mn);
+        b->values.push_back(mx);
+        return b;
+    }
+
     Tamgu* MethodClear(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         Clear();
         return aTRUE;

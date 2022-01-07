@@ -56,6 +56,10 @@ void Tamgusvector::AddMethod(TamguGlobal* global, string name, svectorMethod fun
     
     Tamgusvector::idtype = global->Getid("svector");
 
+       Tamgusvector::AddMethod(global, "min", &Tamgusvector::MethodMin, P_NONE, "min(): returns the min in the vector.");
+       Tamgusvector::AddMethod(global, "max", &Tamgusvector::MethodMax, P_NONE, "max(): returns the max in the vector.");
+       Tamgusvector::AddMethod(global, "minmax", &Tamgusvector::MethodMinMax, P_NONE, "minmax(): returns the min and the max in the vector.");
+
     Tamgusvector::AddMethod(global, "clear", &Tamgusvector::MethodClear, P_NONE, "clear(): clear the container.");
 
     Tamgusvector::AddMethod(global, "remove", &Tamgusvector::MethodRemove, P_ONE, "remove(string e): remove 'e' from the vector.");

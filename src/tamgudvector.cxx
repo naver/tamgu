@@ -56,7 +56,11 @@ bool Tamgudvector::InitialisationModule(TamguGlobal* global, string version) {
     
     
     Tamgudvector::idtype = global->Getid("dvector");
-    
+    Tamgudvector::AddMethod(global, "min", &Tamgudvector::MethodMin, P_NONE, "min(): returns the min in the vector.");
+    Tamgudvector::AddMethod(global, "max", &Tamgudvector::MethodMax, P_NONE, "max(): returns the max in the vector.");
+    Tamgudvector::AddMethod(global, "minmax", &Tamgudvector::MethodMinMax, P_NONE, "minmax(): returns the min and the max in the vector.");
+
+
     Tamgudvector::AddMethod(global, "reverse", &Tamgudvector::MethodReverse, P_NONE, "reverse(): reverse a vector.");
     Tamgudvector::AddMethod(global, "reserve", &Tamgudvector::MethodReserve, P_ONE, "reserve(int sz): Reserve a size of 'sz' potential element in the vector.");
     Tamgudvector::AddMethod(global, "unique", &Tamgudvector::MethodUnique, P_NONE, "unique(): remove duplicate elements.");

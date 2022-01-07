@@ -372,6 +372,39 @@ class Tamguvector : public TamguObjectLockContainer {
     //This SECTION is for your specific implementation...
     //This is an example of a function that could be implemented for your needs.
 
+    Tamgu* MethodMin(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        Tamgu* m = values[0];
+        for (long i = 1; i < values.size(); i++) {
+            if (m->more(values[i])->Boolean())
+                m = values[i];
+        }
+        return m;
+    }
+    
+    Tamgu* MethodMax(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        Tamgu* m = values[0];
+        for (long i = 1; i < values.size(); i++) {
+            if (m->less(values[i])->Boolean())
+                m = values[i];
+        }
+        return m;
+    }
+    
+    Tamgu* MethodMinMax(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        Tamgu* mn = values[0];
+        Tamgu* mx = mn;
+        for (long i = 1; i < values.size(); i++) {
+            if (mn->more(values[i])->Boolean())
+                mn = values[i];
+            if (mx->less(values[i])->Boolean())
+                mx = values[i];
+        }
+        Tamguvector* b = new Tamguvector;
+        b->values.push_back(mn);
+        b->values.push_back(mx);
+        return b;
+    }   
+
     Tamgu* MethodClear(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         Clear();
         return aTRUE;
@@ -1248,6 +1281,40 @@ public:
         //---------------------------------------------------------------------------------------------------------------------
         //This SECTION is for your specific implementation...
         //This is an example of a function that could be implemented for your needs.
+    
+    Tamgu* MethodMin(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        Tamgu* m = values[0];
+        for (long i = 1; i < values.size(); i++) {
+            if (m->more(values[i])->Boolean())
+                m = values[i];
+        }
+        return m;
+    }
+    
+    Tamgu* MethodMax(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        Tamgu* m = values[0];
+        for (long i = 1; i < values.size(); i++) {
+            if (m->less(values[i])->Boolean())
+                m = values[i];
+        }
+        return m;
+    }
+    
+    Tamgu* MethodMinMax(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        Tamgu* mn = values[0];
+        Tamgu* mx = mn;
+        for (long i = 1; i < values.size(); i++) {
+            if (mn->more(values[i])->Boolean())
+                mn = values[i];
+            if (mx->less(values[i])->Boolean())
+                mx = values[i];
+        }
+        Tamgua_vector* b = new Tamgua_vector;
+        b->values.push_back(mn);
+        b->values.push_back(mx);
+        return b;
+    }
+
     Tamgu* MethodClear(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         Clear();
         return aTRUE;

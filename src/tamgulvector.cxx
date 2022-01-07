@@ -54,6 +54,10 @@ bool Tamgulvector::InitialisationModule(TamguGlobal* global, string version) {
     
     Tamgulvector::idtype = global->Getid("lvector");
     
+    Tamgulvector::AddMethod(global, "min", &Tamgulvector::MethodMin, P_NONE, "min(): returns the min in the vector.");
+    Tamgulvector::AddMethod(global, "max", &Tamgulvector::MethodMax, P_NONE, "max(): returns the max in the vector.");
+    Tamgulvector::AddMethod(global, "minmax", &Tamgulvector::MethodMinMax, P_NONE, "minmax(): returns the min and the max in the vector.");
+
     Tamgulvector::AddMethod(global, "clear", &Tamgulvector::MethodClear, P_NONE, "clear(): clear the container.");
     
     Tamgulvector::AddMethod(global, "remove", &Tamgulvector::MethodRemove, P_ONE, "remove(long e): remove 'e' from the vector.");

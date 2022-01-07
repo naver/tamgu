@@ -54,6 +54,10 @@ bool Tamgubvector::InitialisationModule(TamguGlobal* global, string version) {
     
     Tamgubvector::idtype = global->Getid("bvector");
     
+    Tamgubvector::AddMethod(global, "min", &Tamgubvector::MethodMin, P_NONE, "min(): returns the min in the vector.");
+    Tamgubvector::AddMethod(global, "max", &Tamgubvector::MethodMax, P_NONE, "max(): returns the max in the vector.");
+    Tamgubvector::AddMethod(global, "minmax", &Tamgubvector::MethodMinMax, P_NONE, "minmax(): returns the min and the max in the vector.");
+
     Tamgubvector::AddMethod(global, "clear", &Tamgubvector::MethodClear, P_NONE, "clear(): clear the container.");
     
     Tamgubvector::AddMethod(global, "reverse", &Tamgubvector::MethodReverse, P_NONE, "reverse(): reverse a vector.");

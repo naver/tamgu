@@ -278,6 +278,61 @@ class Tamgulist : public TamguObjectLockContainer {
         return res;
     }
 
+    Tamgu* MethodMin(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        Tamgu* m = NULL;
+        bool first = true;
+        for (auto& it : values) {
+            if (first) {
+                m = it;
+                first = false;
+            }
+            else {
+                if (m->more(it)->Boolean())
+                    m = it;
+            }
+        }
+        return m;
+    }
+    
+    Tamgu* MethodMax(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        Tamgu* m = NULL;
+        bool first = true;
+        for (auto& it : values) {
+            if (first) {
+                m = it;
+                first = false;
+            }
+            else {
+                if (m->less(it)->Boolean())
+                    m = it;
+            }
+        }
+        return m;
+    }
+    
+    Tamgu* MethodMinMax(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        Tamgu* mn = NULL;
+        Tamgu* mx = NULL;
+        bool first = true;
+        for (auto& it : values) {
+            if (first) {
+                mn = it;
+                mx = mn;
+                first = false;
+            }
+            else {
+                if (mn->more(it)->Boolean())
+                    mn = it;
+                if (mx->less(it)->Boolean())
+                    mx = it;
+            }
+        }
+        Tamgulist* b = new Tamgulist;
+        b->values.push_back(mn);
+        b->values.push_back(mx);
+        return b;
+    }
+    
     Tamgu* MethodClear(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         Clear();
         return aTRUE;

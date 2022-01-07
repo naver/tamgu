@@ -54,6 +54,11 @@ void Tamgulist::AddMethod(TamguGlobal* global, string name, listMethod func, uns
 
     Tamgulist::idtype = global->Getid("list");
 
+       Tamgulist::AddMethod(global, "min", &Tamgulist::MethodMin, P_NONE, "min(): returns the min in the vector.");
+       Tamgulist::AddMethod(global, "max", &Tamgulist::MethodMax, P_NONE, "max(): returns the max in the vector.");
+       Tamgulist::AddMethod(global, "minmax", &Tamgulist::MethodMinMax, P_NONE, "minmax(): returns the min and the max in the vector.");
+
+
     Tamgulist::AddMethod(global, "clear", &Tamgulist::MethodClear, P_NONE, "clear(): clear the container.");
     Tamgulist::AddMethod(global, "flatten", &Tamgulist::MethodFlatten, P_NONE, "flatten(): flatten a vector structure.");
 
