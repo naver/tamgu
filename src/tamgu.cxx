@@ -42,7 +42,7 @@
 #include "tamgulisp.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2022.01.07.13";
+const char* tamgu_version = "Tamgu 1.2022.02.17.15";
 
 Tamgu* booleantamgu[2];
 
@@ -1959,7 +1959,8 @@ Exporting void TamguGlobal::RecordConstantNames() {
     symbolIds["and"] = a_booleanand;
     symbolIds["or"] = a_booleanor;
     symbolIds["xor"] = a_booleanxor;
-    symbolIds["append"] = a_merge;
+	symbolIds["append"] = a_merge;
+	symbolIds["auto"] = a_self;
 
     dependenciesvariable[a_modifydependency] = a_modifydependency;
 
