@@ -637,9 +637,9 @@ void x_wreading::apply(wstring& toparse, bool keepos, vector<wstring>* vstack, v
     wchar_t chr[] = {0,0,0};
     wchar_t currentchr[] = {0,0,0};
 
-    long wsz=toparse.size();
+    long wsz = toparse.size();
 
-    wchar_t* token =  new wchar_t[wsz+1];
+    wchar_t* token =  new wchar_t[wsz+16];
 
     long itoken = 0;
     long line=0,i, l;

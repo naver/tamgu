@@ -59,7 +59,7 @@ public:
 	Tamgufile(string f, TamguGlobal* g, Tamgu* parent = NULL) : TamguObject(g, parent) {
 		//Do not forget your variable initialisation
 		filename = f;
-		op = "r";
+		op = "rb";
 		thefile = NULL;
 		signature = false;
 		first = false;
@@ -68,7 +68,7 @@ public:
 	Tamgufile(FILE* v = NULL) {
 		//Do not forget your variable initialisation
 		thefile = v;
-		op = "r";
+		op = "rb";
 		signature = false;
 		first = false;
 	}
@@ -217,7 +217,7 @@ public:
 
     Tamgu* MethodFlush(Tamgu* context, short idthread, TamguCall* callfunc) {
         locking();
-        if (thefile == NULL || feof(thefile) || op != "wb") {
+        if (thefile == NULL || feof(thefile) || op == "rb") {
             unlocking();
             return globalTamgu->Returnerror("Wrong access to the file", idthread);
         }
@@ -345,7 +345,7 @@ public:
 
 	Tamgu* MethodGet(Tamgu* context, short idthread, TamguCall* callfunc) {
         locking();
-        if (thefile == NULL || feof(thefile) || op != "wb") {
+        if (thefile == NULL || feof(thefile) || op != "rb") {
             unlocking();
             return globalTamgu->Returnerror("Wrong access to the file", idthread);
         }
@@ -367,7 +367,7 @@ public:
 
 	Tamgu* MethodTell(Tamgu* context, short idthread, TamguCall* callfunc) {
         locking();
-        if (thefile == NULL || feof(thefile) || op != "wb") {
+        if (thefile == NULL || feof(thefile)) {
             unlocking();
             return globalTamgu->Returnerror("Wrong access to the file", idthread);
         }
@@ -379,7 +379,7 @@ public:
 
 	Tamgu* MethodSeek(Tamgu* context, short idthread, TamguCall* callfunc) {
         locking();
-        if (thefile == NULL || feof(thefile) || op != "wb") {
+        if (thefile == NULL || feof(thefile)) {
             unlocking();
             return globalTamgu->Returnerror("Wrong access to the file", idthread);
         }
@@ -393,7 +393,7 @@ public:
 
 	Tamgu* MethodUnget(Tamgu* context, short idthread, TamguCall* callfunc) {
         locking();
-        if (thefile == NULL || feof(thefile) || op != "wb") {
+        if (thefile == NULL || feof(thefile) || op != "rb") {
             unlocking();
             return globalTamgu->Returnerror("Wrong access to the file", idthread);
         }
@@ -407,7 +407,7 @@ public:
 
 	Tamgu* MethodWrite(Tamgu* context, short idthread, TamguCall* callfunc) {
         locking();
-        if (thefile == NULL || feof(thefile) || op != "wb") {
+        if (thefile == NULL || feof(thefile) || op == "rb") {
             unlocking();
             return globalTamgu->Returnerror("Wrong access to the file", idthread);
         }
@@ -430,7 +430,7 @@ public:
 
 	Tamgu* MethodWriteln(Tamgu* context, short idthread, TamguCall* callfunc) {
         locking();
-        if (thefile == NULL || feof(thefile) || op != "wb") {
+        if (thefile == NULL || feof(thefile) || op == "rb") {
             unlocking();
             return globalTamgu->Returnerror("Wrong access to the file", idthread);
         }
@@ -454,7 +454,7 @@ public:
 
     Tamgu* MethodWriteutf16(Tamgu* context, short idthread, TamguCall* callfunc) {
         locking();
-        if (thefile == NULL || feof(thefile) || op != "wb") {
+        if (thefile == NULL || feof(thefile) || op == "rb") {
             unlocking();
             return globalTamgu->Returnerror("Wrong access to the file", idthread);
         }
@@ -499,7 +499,7 @@ public:
 
 	Tamgu* MethodWritebin(Tamgu* context, short idthread, TamguCall* callfunc) {
         locking();
-        if (thefile == NULL || feof(thefile) || op != "wb") {
+        if (thefile == NULL || feof(thefile) || op == "rb") {
             unlocking();
             return globalTamgu->Returnerror("Wrong access to the file", idthread);
         }
@@ -533,7 +533,7 @@ public:
 
 	Tamgu* MethodReadoneline(Tamgu* context, short idthread, TamguCall* callfunc) {
         locking();
-        if (thefile == NULL || feof(thefile) || op != "wb") {
+        if (thefile == NULL || feof(thefile) || op != "rb") {
             unlocking();
             return globalTamgu->Returnerror("Wrong access to the file", idthread);
         }
