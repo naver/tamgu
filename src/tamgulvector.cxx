@@ -742,14 +742,12 @@ Tamgu* Tamgulvector::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign) 
     
     locking();
     if (ikey < 0 || ikey >= values.size()) {
-        if (ikey != values.size()) {
-            unlocking();
-            if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong index", idthread);
-            return aNOELEMENT;
-        }
+        unlocking();
+        if (globalTamgu->erroronkey)
+            return globalTamgu->Returnerror("Wrong index", idthread);
+        return aNOELEMENT;
     }
-    
+
     key =  globalTamgu->Providelong(values[ikey]);
     unlocking();
     return key;

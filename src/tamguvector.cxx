@@ -1479,14 +1479,12 @@ Exporting Tamgu* Tamguvector::EvalWithSimpleIndex(Tamgu* key, short idthread, bo
         ikey = values.size() + ikey;
 
     if (ikey < 0 || ikey >= values.size()) {
-        if (ikey != values.size()) {
-            unlocking();
-            if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong index", idthread);
-            return aNOELEMENT;
-        }
+        unlocking();
+        if (globalTamgu->erroronkey)
+            return globalTamgu->Returnerror("Wrong index", idthread);
+        return aNOELEMENT;
     }
-    
+
     key = values[ikey];
     unlocking();
     return key;
