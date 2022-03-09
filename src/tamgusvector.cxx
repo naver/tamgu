@@ -582,14 +582,12 @@ Tamgu* Tamgusvector::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign) 
         ikey = values.size() + ikey;
 
     if (ikey < 0 || ikey >= values.size()) {
-        if (ikey != values.size()) {
-            unlocking();
-            if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong index", idthread);
-            return aNOELEMENT;
-        }
+        unlocking();
+        if (globalTamgu->erroronkey)
+            return globalTamgu->Returnerror("Wrong index", idthread);
+        return aNOELEMENT;
     }
-    
+
     key = globalTamgu->Providewithstring(values[ikey]);
     unlocking();
     return key;
@@ -669,14 +667,12 @@ Exporting Tamgu* Tamgusvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
     if (ikey < 0)
         ikey = values.size() + ikey;
 
-    if (ikey < 0 || ikey >= values.size()) {
-        unlocking();
-        if (ikey != values.size() || keyright == NULL) {
-            if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong index", idthread);
-            return aNOELEMENT;
-        }
-    }
+	if (ikey < 0 || ikey >= values.size()) {
+		unlocking();
+		if (globalTamgu->erroronkey)
+			return globalTamgu->Returnerror("Wrong index", idthread);
+		return aNOELEMENT;
+	}
 
     if (keyright == NULL) {
         keyright = globalTamgu->Providewithstring(values[ikey]);
@@ -1687,14 +1683,12 @@ Exporting Tamgu* Tamgua_svector::Eval(Tamgu* contextualpattern, Tamgu* idx, shor
     if (ikey < 0)
         ikey = values.size() + ikey;
     
-    if (ikey < 0 || ikey >= values.size()) {
-        if (ikey != values.size() || keyright == NULL) {
-            if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong index", idthread);
-            return aNOELEMENT;
-        }
-    }
-    
+	if (ikey < 0 || ikey >= values.size()) {
+		if (globalTamgu->erroronkey)
+			return globalTamgu->Returnerror("Wrong index", idthread);
+		return aNOELEMENT;
+	}
+
     if (keyright == NULL)
         return globalTamgu->Providestring(values[ikey].value());
     

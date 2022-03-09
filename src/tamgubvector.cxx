@@ -629,14 +629,12 @@ Tamgu* Tamgubvector::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign) 
     
     locking();
     if (ikey < 0 || ikey >= values.size()) {
-        if (ikey != values.size()) {
-            unlocking();
-            if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong index", idthread);
-            return aNOELEMENT;
-        }
+        unlocking();
+        if (globalTamgu->erroronkey)
+            return globalTamgu->Returnerror("Wrong index", idthread);
+        return aNOELEMENT;
     }
-    
+
     key =  new Tamgubyte(values[ikey]);
     unlocking();
     return key;
@@ -679,14 +677,12 @@ Exporting Tamgu* Tamgubvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
     if (ikey < 0)
         ikey = values.size() + ikey;
 
-    if (ikey < 0 || ikey >= values.size()) {
-        if (ikey != values.size() || keyright == NULL) {
-            unlocking();
-            if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong index", idthread);
-            return aNOELEMENT;
-        }
-    }
+	if (ikey < 0 || ikey >= values.size()) {
+		unlocking();
+		if (globalTamgu->erroronkey)
+			return globalTamgu->Returnerror("Wrong index", idthread);
+		return aNOELEMENT;
+	}
 
     if (keyright == NULL) {
         keyright = new Tamgubyte(values[ikey]);

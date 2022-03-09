@@ -820,15 +820,14 @@ Exporting Tamgu* Tamgulist::Eval(Tamgu* contextualpattern, Tamgu* idx, short idt
         ikey = values.size() + ikey;
     
     locking();
-    if (ikey < 0 || ikey >= values.size()) {
-        if (ikey != values.size() || keyright == NULL) {
-            unlocking();
-            if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong index", idthread);
-            return aNOELEMENT;
-        }
-    }
-    it = values.begin();
+	if (ikey < 0 || ikey >= values.size()) {
+		unlocking();
+		if (globalTamgu->erroronkey)
+			return globalTamgu->Returnerror("Wrong index", idthread);
+		return aNOELEMENT;
+	}
+
+	it = values.begin();
     for (i = 0; i < ikey; i++) ++it;
 
 
