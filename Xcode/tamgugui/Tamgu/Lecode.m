@@ -25,7 +25,7 @@ extern AppDelegate* currentdelegate;
 const char* Getkeywords(void);
 const char* lindentation(char* basecode, int blancs);
 long indentationVirtuel(char* cr, char* acc);
-long* colorparser(const char* txt, long, long);
+long* colorparser(UInt16* txt, long, long);
 void deletion(long* c);
 
 const char* crgx=NULL;
@@ -71,8 +71,8 @@ int forceDark = 0;
         localcouleur=[NSColor colorWithSRGBRed:0.62 green:0.131 blue:0.137 alpha:1.00];
         functioncouleur=[NSColor colorWithSRGBRed:5.0/255.0 green:5.0/255.0 blue:245.0/255.0 alpha:1.00];
         couleurcommentaires=[NSColor colorWithSRGBRed:45.0/255.0 green:140.0/255.0 blue:45.0/255.0 alpha:1.00];
-        couleurchaine=[NSColor colorWithSRGBRed:140.0/255.0 green:140.0/255.0 blue:245.0/255.0 alpha:1.00];
-        couleurchainesingle = [NSColor redColor];
+        couleurchaine = [NSColor redColor];
+        couleurchainesingle=[NSColor colorWithSRGBRed:140.0/255.0 green:140.0/255.0 blue:245.0/255.0 alpha:1.00];
         couleurvar=[NSColor colorWithSRGBRed:130.0/255.0 green:130.0/255.0 blue:230.0/255.0 alpha:1.00];
     }
     
@@ -134,7 +134,7 @@ int forceDark = 0;
         [wnd setTitle:[fileName path]];
 
     [self setString: fileContent];
-    [self colorie];
+    [self colorie:NO];
     [self majruleur:fileContent];
 }
 
@@ -224,8 +224,8 @@ int forceDark = 0;
         localcouleur=[NSColor colorWithSRGBRed:0.62 green:0.131 blue:0.137 alpha:1.00];
         functioncouleur=[NSColor colorWithSRGBRed:5.0/255.0 green:5.0/255.0 blue:245.0/255.0 alpha:1.00];
         couleurcommentaires=[NSColor colorWithSRGBRed:45.0/255.0 green:140.0/255.0 blue:45.0/255.0 alpha:1.00];
-        couleurchaine=[NSColor colorWithSRGBRed:140.0/255.0 green:140.0/255.0 blue:245.0/255.0 alpha:1.00];
-        couleurchainesingle = [NSColor redColor];
+        couleurchaine = [NSColor redColor];
+        couleurchainesingle = [NSColor colorWithSRGBRed:140.0/255.0 green:140.0/255.0 blue:245.0/255.0 alpha:1.00];
         couleurvar=[NSColor colorWithSRGBRed:130.0/255.0 green:130.0/255.0 blue:230.0/255.0 alpha:1.00];
     }
     [self indentation];
@@ -286,36 +286,49 @@ int forceDark = 0;
 
 -(void)coloreview {
     currentrange=NSMakeRange(0, 0);
-    [self colorie];
+    [self colorie:NO];
 }
     
--(void)colorie {
+-(void)colorie:(BOOL)cr {
     unsigned long longueur = [[self string] length];
     if (longueur<=3)
         return;
     
     long limite=longueur;
     
-    NSRange suivant;
+    NSString* letexte = [self string];
+    NSRange suivant = {0, longueur};
+    unichar* txt = (unichar*)malloc(sizeof(unichar)*longueur);
+    [letexte getCharacters:txt range:suivant];
+    
     NSRange trouve;
-    NSString* letexte;
+    
     if (currentrange.length != 0) {
-        suivant=currentrange;
-        limite=currentrange.location+currentrange.length;
+        suivant = currentrange;
+        limite = suivant.location + suivant.length;
+        if (cr == YES) {
+            if (suivant.location > 0) {
+                //it could be a cariage return
+                suivant = [letexte paragraphRangeForRange: suivant];
+                limite += suivant.length;
+                if (suivant.location > 0) {
+                    suivant.location--;
+                    suivant = [letexte paragraphRangeForRange: suivant];
+                    limite += suivant.length;
+                }
+            }
+        }
     }
-    else {
-        suivant.location=0;
-        suivant.length = longueur;
-    }
-    
-    letexte=[self string];
-    
+
     if (dark)
         [self setTextColor: [NSColor whiteColor] range:suivant];
     else
         [self setTextColor: [NSColor blackColor] range:suivant];
-    long* tobecolored=colorparser([letexte UTF8String], suivant.location, limite);
+    
+    long* tobecolored = colorparser(txt, suivant.location, longueur);
 
+    free(txt);
+    
     for (long i=0; tobecolored[i]!=-1;i+=3) {
         trouve.location=tobecolored[i+1];
         trouve.length=tobecolored[i+2];
@@ -397,7 +410,7 @@ int forceDark = 0;
         else
             //We force coloring
             currentrange=[[self string] paragraphRangeForRange: localrange];
-        [self colorie];
+        [self colorie:NO];
         return TRUE;
     }
 
@@ -467,13 +480,13 @@ int forceDark = 0;
         localrange.location+=ln;
         localrange.length=0;
         currentrange=[self viewRange];
-        [self colorie];
+        [self colorie:YES];
 
         [self setSelectedRange:localrange];
         return YES;
     }
     currentrange=[self viewRange];
-    [self colorie];
+    [self colorie:YES];
     localrange.length=0;
     [self setSelectedRange:localrange];
     return YES;
@@ -501,7 +514,7 @@ int forceDark = 0;
     [self setHidden:true];
     if ([self shouldChangeTextInRange:all replacementString:indentedcode]) {
         [self setString:indentedcode];
-        [self colorie];
+        [self colorie:NO];
         [self majruleur: indentedcode];
     }
     [self setHidden:false];

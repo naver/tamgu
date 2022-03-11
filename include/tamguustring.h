@@ -731,7 +731,7 @@ public:
     
 	
     void Methods(Tamgu* v) {
-        for (auto& it : infomethods)
+        for (const auto& it : infomethods)
             v->storevalue(it.first);
     }
 
@@ -1037,13 +1037,8 @@ public:
         }
         
         i = j;
-        if (c_is_emoji(value[j])) {
-            j++;
-            while (c_is_emojicomp(value[j]))
-                j++;
-        }
-        else
-            j++;
+        scan_emoji(value, j);
+        j++;
         value.erase(i, j-i);
 	}
 #endif
@@ -1628,7 +1623,7 @@ public:
     
     
     void Methods(Tamgu* v) {
-        for (auto& it : infomethods)
+        for (const auto& it : infomethods)
             v->storevalue(it.first);
     }
 
@@ -1867,13 +1862,8 @@ public:
             return;
         }
         i = j;
-        if (c_is_emoji(w[j])) {
-            j++;
-            while (c_is_emojicomp(w[j]))
-                j++;
-        }
-        else
-            j++;
+        scan_emoji(w, j);
+        j++;
         w.erase(i, j-i);
         value = w;
     }

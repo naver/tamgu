@@ -178,7 +178,7 @@ class Tamguvector : public TamguObjectLockContainer {
 
     
     void Methods(Tamgu* v) {
-        for (auto& it : infomethods)
+        for (const auto& it : infomethods)
             v->storevalue(it.first);
     }
 
@@ -1083,7 +1083,7 @@ public:
     
     
     void Methods(Tamgu* v) {
-        for (auto& it : infomethods)
+        for (const auto& it : infomethods)
             v->storevalue(it.first);
     }
 

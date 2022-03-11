@@ -232,7 +232,7 @@ public:
 
 	void Methods(Tamgu* v) {
 
-		for (auto& it : infomethods)
+		for (const auto& it : infomethods)
 			v->storevalue(it.first);
 	}
 	string Info(string n) {
@@ -326,7 +326,7 @@ public:
 
 		hmap<string, string >& values = ((Tamgumapss*)features)->values;
 		hmap<string, string >& avalues = ((Tamgumapss*)as->features)->values;
-		for (auto& it : avalues) {
+		for (const auto& it : avalues) {
 			aff = false;
 			key = it.first;
 			if (key[0] == '=') {
@@ -971,7 +971,7 @@ public:
 		Tamgumapss* f = (Tamgumapss*)features;
 		Locking _lock(f);
 
-		for (auto& it : f->values)
+		for (const auto& it : f->values)
 			vstr->values.push_back(it.first);
 		return vstr;
 	}

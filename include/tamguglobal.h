@@ -86,6 +86,7 @@ class TamguDoubleSideAutomaton;
 class TamguCallFibre;
 class TamguPredicateVariableInstance;
 class Tamgulisp;
+class UTF8_Handler;
 
 //--------------------------------------------------------------------
 typedef bool(*TamguExternalModule)(TamguGlobal*, string);
@@ -330,7 +331,7 @@ public:
 	ThreadStruct* threads;
     bool* errors;
     TamguError** errorraised;
-
+    UTF8_Handler* handler_on_utf8;
 
     atomic_map<threadhandle, int> threadids;
 

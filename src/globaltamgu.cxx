@@ -106,6 +106,7 @@ Exporting void TamguCleanAllGlobals() {
 			delete globals[idx];
 	}
 	globals.clear();
+    clean_utf8_handler();
 }
 
 Exporting TamguGlobal* GlobalTamgu(int idx) {

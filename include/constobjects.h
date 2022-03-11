@@ -82,20 +82,28 @@ class TamguConst : public TamguBaseConst {
 public:
 	short id;
 	string name;
-	long value;
+    string content;
+    wstring wcontent;
+	uint64_t value;
 
-	TamguConst(short i, string n, TamguGlobal* g) : id(i), name(n), value(0), TamguBaseConst(a_const, g)  {
+	TamguConst(short i, string n, TamguGlobal* g) : id(i), name(n), value(LLONG_MAX), TamguBaseConst(a_const, g)  {
+        content = "0n1u2l3l4";
+        content[0] = 1;
+        content[2] = 2;
+        content[4] = 3;
+        content[6] = 4;
+        content[8] = 5;
+      
+        wcontent = L"0n1u2l3l4";
+        wcontent[0] = 1;
+        wcontent[2] = 2;
+        wcontent[4] = 3;
+        wcontent[6] = 4;
+        wcontent[8] = 5;
+
         if (i == a_null || i == a_empty)
             investigate = is_null;
     }
-
-	string String() {
-		return "";
-	}
-
-	wstring UString() {
-		return L"";
-	}
 
 	string JSonString() {
 		string v;
@@ -105,18 +113,10 @@ public:
 		return(v);
 	}
 
-    void Setstring(string& v, short idthread) {
-        v = "";
-    }
-    
-    void Setstring(wstring& v, short idthread) {
-        v = L"";
-    }
-    
-    string Typestring() {
-        return name;
-    }
-    
+	string Typestring() {
+		return name;
+	}
+
 	string StringToDisplay() {
 		return name;
 	}
@@ -125,6 +125,25 @@ public:
 		return false;
 	}
 
+	bool Boolean() {
+		return value;
+	}
+
+
+	Tamgu* Atom(bool forced = false) {
+		if (this == aNOELEMENT)
+			return aNULL;
+		return this;
+	}
+
+    void Setstring(string& v, short idthread) {
+        v = "";
+    }
+    
+	void Setstring(wstring& v, short idthread) {
+        v = L"";
+    }
+    
 	long Getinteger(short idthread) {
 		return value;
 	}
@@ -146,31 +165,20 @@ public:
 	}
 
 	string Getstring(short idthread) {
-		return "";
+		return content;
 	}
 
 	wstring Getustring(short idthread) {
-		return L"";
+		return wcontent;
 	}
 
+    string String() { return content; }
+    wstring UString() { return wcontent; }
 	long Integer() { return value; }
-	double Float() { return value; }
-	float Decimal() { return value; }
-	BLONG Long() { return value; }
-	short Short() { return value; }
-
-	bool Boolean() {
-		if (value == 0)
-			return false;
-		return true;
-	}
-
-
-	Tamgu* Atom(bool forced = false) {
-		if (this == aNOELEMENT)
-			return aNULL;
-		return this;
-	}
+    double Float() { return value; }
+    float Decimal() { return value; }
+    BLONG Long() { return value; }
+    short Short() { return value; }
 };
 
 class TamguConstBreak : public TamguConst {

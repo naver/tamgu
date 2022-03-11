@@ -961,7 +961,7 @@ Exporting Tamgu* Tamguuvector::xorset(Tamgu *b, bool itself) {
             store[values[it]] = true;
     }
 
-    for (auto& i : store)
+    for (const auto& i : store)
         ref->values.push_back(i.first);
     unlocking();
     return ref;
@@ -2030,7 +2030,7 @@ Exporting Tamgu* Tamgua_uvector::xorset(Tamgu *b, bool itself) {
             store[w] = true;
     }
     
-    for (auto& i : store)
+    for (const auto& i : store)
         ref->values.push_back(i.first);
     
     return ref;

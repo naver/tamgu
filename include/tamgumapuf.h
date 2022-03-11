@@ -133,7 +133,7 @@ class Tamgumapuf : public TamguLockContainer {
 
          double v = 1;
 
-        for (auto& itx : values)
+        for (const auto& itx : values)
             v *= itx.second;
         unlocking();
         return v;
@@ -211,7 +211,7 @@ class Tamgumapuf : public TamguLockContainer {
 
         Tamgu* a;
 
-        for (auto& it : values) {
+        for (const auto& it : values) {
             a = globalTamgu->Provideustring(it.first);
             contextualpattern->Push(it.second, a);
             a->Release();
@@ -234,7 +234,7 @@ class Tamgumapuf : public TamguLockContainer {
 
         Tamgumapuf* item;
         Tamgu* vect = Selectavector(contextualpattern);
-        for (auto& itr : values) {
+        for (const auto& itr : values) {
             item=new Tamgumapuf;
             item->values[itr.first] = itr.second;
             vect->Push(item);
@@ -308,7 +308,7 @@ class Tamgumapuf : public TamguLockContainer {
 
         bool beg = true;
         std::wstringstream res;
-        for (auto& it : values) {
+        for (const auto& it : values) {
             if (beg == false)
                 res << sep;
             beg = false;

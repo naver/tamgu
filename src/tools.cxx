@@ -661,19 +661,11 @@ Tamgu* Mapcompare(Tamgu*a, Tamgu*b, TamguGlobal* global) {
 #ifdef WSTRING_IS_UTF16
 
 long checkemoji(wstring& svalue, long i) {
-	if ((svalue[i] & 0xFF00) == 0xD800) {
-		TAMGUCHAR c = getachar(svalue, i);
-		if (((c & 0x1F000) == 0x1F000) && c_is_emoji(c)) {
-			long j = i + 1;
-			c = getachar(svalue, j);
-			while (c_is_emojicomp(c)) {
-				j++;
-				c = getachar(svalue, j);
-			}
-			i = j;
-		}
-	}
-	return i;
+    if (!scan_emoji(svalue, i)) {
+        if ((svalue[i] & 0xFF00) == 0xD800)
+            i++;
+    }
+    return i;
 }
 
 Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& iright, short idthread) {
@@ -885,26 +877,12 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
 
 long char_to_pos_emoji(wstring& w, long& ileft, long emoji) {
     //emoji is the position of the first emoji in the string
-    long sz = w.size();
     while (emoji != ileft) {
-        if (c_is_emoji(w[emoji])) {
-            emoji++;
-            while (c_is_emojicomp(w[emoji])) {
-                emoji++;
-                ileft++;
-            }
-        }
-        else
-            emoji++;
-    }
-    if (emoji < sz && c_is_emoji(w[emoji])) {
+        scan_emoji(w, emoji);
         emoji++;
-        while (emoji < sz && c_is_emojicomp(w[emoji])) {
-            emoji++;
-        }
     }
-    else
-        emoji++;
+    scan_emoji(w, emoji);
+    emoji++;
     return emoji;
 }
 
@@ -1083,18 +1061,12 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
 //---------------------------------------------------------------------------
 long char_to_byteposition(unsigned char* contenu, long sz, long i, long charpos) {
     charpos-=i;
-    long nb;
 
     while (charpos > 0 && i < sz) {
-        nb = c_test_utf8(contenu + i);
-        if (nb == 3 && c_is_emoji(contenu,i)) {
-            i++;
-            while (c_is_emojicomp(contenu, i)) {
-                i++;
-            }
+        if (!scan_emoji(contenu, i)) {
+            i += c_test_utf8(contenu + i);
         }
-        else
-            i += nb + 1;
+        i++;
         charpos--;
     }
     return i;
@@ -1103,31 +1075,16 @@ long char_to_byteposition(unsigned char* contenu, long sz, long i, long charpos)
 long char_to_byteposition(unsigned char* contenu, long sz, long i, long charpos, long& emoji) {
     emoji = -1;
     charpos-=i;
-    long nb;
     
     while (charpos > 0 && i < sz) {
-        nb = c_test_utf8(contenu + i);
-        if (nb == 3 && c_is_emoji(contenu,i)) {
-            i++;
-            while (c_is_emojicomp(contenu, i)) {
-                i++;
-            }
+        if (!scan_emoji(contenu, i)) {
+            i += c_test_utf8(contenu + i);
         }
-        else
-            i += nb + 1;
+        i++;
         charpos--;
     }
     
-    if (c_test_utf8(contenu+i) == 3) {
-        long ii = i;
-        if (c_is_emoji(contenu,ii)) {
-            ii++;
-            while (c_is_emojicomp(contenu, ii)) {
-                ii++;
-                emoji = ii;
-            }
-        }
-    }
+    scan_emoji(contenu, i);
     return i;
 }
 

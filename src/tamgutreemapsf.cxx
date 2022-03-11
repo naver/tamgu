@@ -149,7 +149,7 @@ Exporting Tamgu* Tamgutreemapsf::MethodFind(Tamgu* context, short idthread, Tamg
     
     if (context->isBoolean()) {
         Locking _lock(this);
-        for (auto& it : values) {
+        for (const auto& it : values) {
             if (it.second == val)
                 return aTRUE;
         }
@@ -158,7 +158,7 @@ Exporting Tamgu* Tamgutreemapsf::MethodFind(Tamgu* context, short idthread, Tamg
     if (context->isVectorContainer()) {
         Tamgusvector* v = (Tamgusvector*)Selectasvector(context);
         Doublelocking _lock(this, v);
-        for (auto& it : values) {
+        for (const auto& it : values) {
             if (it.second == val)
                 v->values.push_back(it.first);
         }
@@ -166,7 +166,7 @@ Exporting Tamgu* Tamgutreemapsf::MethodFind(Tamgu* context, short idthread, Tamg
     }
     
     Locking _lock(this);
-    for (auto& it : values) {
+    for (const auto& it : values) {
         if (it.second == val)
             return globalTamgu->Providestring(it.first);
     }
@@ -324,7 +324,7 @@ Exporting Tamgu*  Tamgutreemapsf::Put(Tamgu* idx, Tamgu* ke, short idthread) {
             values.clear();
             long nb = 0;
 
-            for (auto& it : kvect->values) {
+            for (const auto& it : kvect->values) {
                 sprintf_s(buff, 20, "%ld", nb);
                 values[buff] = it->Float();
                 nb++;
@@ -487,7 +487,7 @@ Exporting Tamgu* Tamgutreemapsf::xorset(Tamgu* b, bool itself) {
         res = new Tamgutreemapsf;
         hmap<string, double> keys;
 
-        for (auto& it : values)
+        for (const auto& it : values)
             keys[it.first] = it.second;
             
         string v;
@@ -502,7 +502,7 @@ Exporting Tamgu* Tamgutreemapsf::xorset(Tamgu* b, bool itself) {
         }
         itr->Release();
 
-        for (auto& a : keys)
+        for (const auto& a : keys)
             res->values[a.first]= a.second;
 
         return res;

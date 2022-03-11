@@ -91,6 +91,7 @@ const char m_selectgray[] = {27, '[', '7', ';', '9','3', ';','4','0','m',0};
 #endif
 
 const string colordenomination[] = {"strings", "methods", "keywords", "functions", "comments"};
+typedef enum {no_type, clike_type, lisp_type, python_type, tamgu_type} file_types;
 
     //Background
 const int m_clbg[] = {40, 41, 42, 43, 44, 45, 46, 47, 49, 100, 101, 102, 103, 104, 105, 106, 107, 0};
@@ -166,6 +167,7 @@ public:
     jag_editor* jag;
     vector<wstring> lines;
     vector<char> status;
+    vector<char> longlines;
     vector<long> numeros;
     hmap<long, bool> checks;
 
@@ -179,7 +181,7 @@ public:
         return false;
     }
 
-    void setcode(wstring& code);
+    void setcode(wstring& code, bool clean);
 
     bool updatesize();
 
@@ -247,6 +249,199 @@ public:
         return c;
     }
 
+    //We detect long commented lines or long strings
+    //we check if we have spaces from the start of the string and on
+    void checkspace(long pos, long l, char code) {
+        for (long i = 0; i < pos; i++) {
+            if (lines[l][i] > 32) {
+                longlines.push_back(0);
+                return;
+            }
+        }
+        longlines.push_back(code);
+    }
+
+    void detectlisp() {
+        char l_strings = 0;
+        char l_comments = 0;
+        long pos;
+        
+        for (long i = 0; i < lines.size(); i++) {
+            if (lines[i].find(L";;") != -1) {
+                if (l_comments) {
+                    longlines.push_back(2);
+                    l_comments = 0;
+                }
+                else {
+                    l_comments = 2;
+                    longlines.push_back(l_comments);
+                }
+                continue;
+            }
+            
+            if (l_comments) {
+                longlines.push_back(l_comments);
+                continue;
+            }
+            
+            pos = lines[i].find(L"«");
+            if (pos != -1) {
+                if (lines[i].find(L"»") == -1) {
+                    l_strings = 1;
+                    checkspace(pos, i, l_strings);
+                }
+                else
+                    longlines.push_back(0);
+            }
+            else {
+                if (lines[i].find(L"»") != -1) {
+                    longlines.push_back(l_strings);
+                    l_strings = 0;
+                }
+                else {
+                    pos = lines[i].find(L"`");
+                    if (pos != -1 && lines[i].find(L"`", pos + 1) == -1) {
+                        if (l_strings) {
+                            longlines.push_back(1);
+                            l_strings = 0;
+                        }
+                        else {
+                            l_strings = 1;
+                            checkspace(pos, i, l_strings);
+                        }
+                    }
+                    else
+                        longlines.push_back(l_strings);
+                }
+            }
+        }
+    }
+    
+    void detectpython() {
+        char l_strings = 0;
+        long pos;
+
+        for (long i = 0; i < lines.size(); i++) {
+            pos = lines[i].find(L"'''");
+            if (pos != -1 && lines[i].find(L"'''", pos + 1) == -1) {
+                if (l_strings) {
+                    longlines.push_back(1);
+                    l_strings = 0;
+                }
+                else {
+                    l_strings = 1;
+                    checkspace(pos, i, l_strings);
+                }
+            }
+            else {
+                pos = lines[i].find(L"\"\"\"");
+                if (pos != -1 && lines[i].find(L"\"\"\"", pos + 1) == -1) {
+                    if (l_strings) {
+                        longlines.push_back(1);
+                        l_strings = 0;
+                    }
+                    else {
+                        l_strings = 1;
+                        checkspace(pos, i, l_strings);
+                    }
+                }
+                else
+                    longlines.push_back(l_strings);
+            }
+        }
+    }
+    
+    void detectclike() {
+        char l_comments = 0;
+        long pos;
+        for (long i = 0; i < lines.size(); i++) {
+            pos = lines[i].find(L"/*");
+            if (pos != -1) {
+                if (lines[i].find(L"*/") == -1) {
+                    l_comments = 2;
+                    checkspace(pos, i, l_comments);
+                }
+                else
+                    longlines.push_back(0);
+            }
+            else {
+                if (lines[i].find(L"*/") != -1) {
+                    longlines.push_back(l_comments);
+                    l_comments = 0;
+                }
+                else
+                    longlines.push_back(l_comments);
+            }
+        }
+    }
+    
+    void detecttamgu() {
+        char l_strings = 0;
+        char l_comments = 0;
+        long pos;
+        
+        for (long i = 0; i < lines.size(); i++) {
+            if (lines[i].find(L"/@") != -1) {
+                if (lines[i].find(L"@/") == -1) {
+                    l_comments = 2;
+                    longlines.push_back(l_comments);
+                }
+                else
+                    longlines.push_back(0);
+            }
+            else {
+                if (lines[i].find(L"@/") != -1) {
+                    longlines.push_back(l_comments);
+                    l_comments = 0;
+                }
+                else {
+                    if (l_comments)
+                        longlines.push_back(l_comments);
+                    else {
+                        pos = lines[i].find(L"@\"");
+                        if (pos != -1) {
+                            if (lines[i].find(L"\"@") == -1) {
+                                l_strings = 1;
+                                checkspace(pos, i, l_strings);
+                            }
+                            else
+                                longlines.push_back(0);
+                        }
+                        else {
+                            if (lines[i].find(L"\"@") != -1) {
+                                longlines.push_back(l_strings);
+                                l_strings = 0;
+                            }
+                            else
+                                longlines.push_back(l_strings);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    void detectlongstrings(file_types ftype) {
+        longlines.clear();
+        switch (ftype) {
+            case lisp_type:
+                detectlisp();
+                break;
+            case python_type:
+                detectpython();
+                break;
+            case tamgu_type:
+                detecttamgu();
+                break;
+            case clike_type:
+                detectclike();
+                break;
+            default:
+                for (long i = 0; i < lines.size(); i++)
+                    longlines.push_back(0);
+        }
+    }
+    
     wstring& operator[](long pos) {
         if (pos == lines.size())
             push(L"");
@@ -406,7 +601,7 @@ public:
         lines[p] = line;
     }
 
-    void refactoring(long p);
+    bool refactoring(long p);
 
 
 };
@@ -533,7 +728,6 @@ class jag_editor {
 public:
 
     vector<wstring> commandlines;
-    vector<long> longstrings;
     vector<string> colors;
     vector<long> poslines;
 
@@ -550,7 +744,8 @@ public:
     std::stringstream localhelp;
     std::wstringstream st;
 
-
+    file_types filetype;
+    
     string thecurrentfilename;
     string prefix;
 
@@ -609,6 +804,25 @@ public:
 
     void setpathname(string path) {
         thecurrentfilename =  path;
+        if (thecurrentfilename.find(".lisp") != -1)
+            filetype = lisp_type;
+        else {
+            if (thecurrentfilename.find(".py") != -1)
+                filetype = python_type;
+            else {
+                if (thecurrentfilename.find(".tmg") != -1)
+                    filetype = tamgu_type;
+                else
+                    if (thecurrentfilename.find(".java") != -1 ||
+                        thecurrentfilename.find(".cpp") != -1 ||
+                        thecurrentfilename.find(".cxx") != -1 ||
+                        thecurrentfilename.find(".hpp") != -1 ||
+                        thecurrentfilename.find(".h") != -1)
+                        filetype = clike_type;
+                    else
+                        filetype = no_type;
+            }
+        }
     }
 
     string pathname() {
@@ -825,41 +1039,7 @@ public:
         return s.size();
     }
 
-    long splitline(wstring& l, long linenumber, vector<wstring>& subs) {
-            //we compute the position of each segment of l on string...
-
-        long ps = pos;
-        pos = linenumber;
-        long sz = cjk_size(l);
-        if ((l.size()+sz) < col_size) {
-            subs.push_back(l);
-            pos = ps;
-            return 1;
-        }
-
-        long p = 0;
-        wstring code;
-        if (!sz) {
-            while (p < l.size()) {
-                code = l.substr(p, col_size);
-                subs.push_back(code);
-                p += col_size;
-            }
-            pos = ps;
-            return subs.size();
-        }
-
-
-        while (p < l.size()) {
-            code = l.substr(p, col_size);
-            while (fullsize(code) > col_size)
-                code.pop_back();
-            subs.push_back(code);
-            p += code.size();
-        }
-        pos = ps;
-        return subs.size();
-    }
+    long splitline(wstring& l, long linenumber, vector<wstring>& subs);
 
         //The main problem here is that emojis can be composed...
         //An emoji can be composed of up to 7 emojis...
@@ -883,17 +1063,11 @@ public:
 
 
 
-    long fullsize(wstring& l) {
-        wstring s;
-        cleanlongemoji(l, s, l.size());
-        return taille(s);
+    inline long fullsize(wstring& l) {
+        return taille(l);
     }
 
-    long size_upto(wstring& l, long p) {
-        wstring s;
-        cleanlongemoji(l, s, p);
-        return taille(s);
-    }
+    long size_upto(wstring& l, long p);
 
     long linesize() {
         if (emode())
@@ -912,8 +1086,7 @@ public:
     void displayonlast(string s, bool bck);
     virtual void displaygo(bool full);
 
-    //We detect long commented lines or long strings
-    virtual void scanforlonglines();
+
 
     void resetlist(long i) {
         poslines.clear();
@@ -944,24 +1117,21 @@ public:
     virtual void printline(long n, wstring& l, long i = -1) {
         if (noprefix)
             cout << back << coloringline(l, i);
-        else
-            cout << back << m_dore << prefix << m_current << m_lightgray << std::setw(prefixsize) << n << "> " << m_current << coloringline(l, i);
+        else {
+            if (n == -1) {
+                string space(prefixe(), ' ');
+                cout << back << space << coloringline(l, i);
+            }
+            else
+                cout << back << m_dore << prefix << m_current << m_lightgray << std::setw(prefixsize) << n << "> " << m_current << coloringline(l, i);
+        }
     }
 
         //------------------------------------------------------------------------------------------------
         //Deletion methods...
         //------------------------------------------------------------------------------------------------
 
-    long sizestring(wstring& s) {
-        long sz = s.size();
-        long szstr = 0;
-        for (long i = 0; i < sz; i++) {
-            if (c_is_emojicomp(s[i]))
-                continue;
-            szstr++;
-        }
-        return szstr;
-    }
+    long sizestring(wstring& s);
 
         //The deletion of a character is different if it is an emoji...
     long deleteachar(wstring& l, bool last, long pins);
@@ -1001,7 +1171,7 @@ public:
         code = wconvert(codeindente);
         code += L"\n\n";
 
-        lines.setcode(code);
+        lines.setcode(code, true);
 
         displaylist(poslines[0]);
         movetoline(currentline);
@@ -1010,7 +1180,7 @@ public:
 
     virtual void setcode(string& c) {
         wstring code = wconvert(c);
-        lines.setcode(code);
+        lines.setcode(code, true);
         displaylist(0);
         line = L"";
         currentline = 0;
@@ -1153,7 +1323,7 @@ public:
         modified = true;
         screensizes();
         wstring code = lines.code();
-        lines.setcode(code);
+        lines.setcode(code, false);
         displaylist(poslines[0]);
         movetoline(currentline);
         posinstring = 0;

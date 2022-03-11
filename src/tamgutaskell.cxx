@@ -1951,7 +1951,7 @@ Tamgu* TaskellLoopLinkedList::Process(short idthread) {
     
     stack.back()->execute(idthread);
 
-    for (auto& it : backup) {
+    for (const auto& it : backup) {
         it->reset();
         it->execute(idthread);
         stack.push_back(it);

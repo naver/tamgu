@@ -106,7 +106,7 @@ Exporting Tamgu* Tamgulist::in(Tamgu* context, Tamgu* a, short idthread) {
 
     if (context->isBoolean()) {
         locking();
-        for (auto& it : values) {
+        for (const auto& it : values) {
             if (it->same(a) == aTRUE) {
                 unlocking();
                 return aTRUE;
@@ -120,7 +120,7 @@ Exporting Tamgu* Tamgulist::in(Tamgu* context, Tamgu* a, short idthread) {
     if (context->isVectorContainer()) {
         Tamguivector* v = (Tamguivector*)Selectaivector(context);
         Doublelocking _lock(this, v);
-        for (auto& it : values) {
+        for (const auto& it : values) {
             if (it->same(a) == aTRUE)
                 v->values.push_back(i);
             i++;
@@ -129,7 +129,7 @@ Exporting Tamgu* Tamgulist::in(Tamgu* context, Tamgu* a, short idthread) {
     }
 
     locking();
-    for (auto& it : values) {
+    for (const auto& it : values) {
         if (it->same(a) == aTRUE) {
             unlocking();
             return globalTamgu->ProvideConstint(i);
@@ -149,7 +149,7 @@ Exporting Tamgu* Tamgulist::getvalue(BLONG i) {
     }
 
 
-    for (auto& it : values) {
+    for (const auto& it : values) {
         if (!i) {
             unlocking();
             return (it);
@@ -163,7 +163,7 @@ Exporting Tamgu* Tamgulist::getvalue(BLONG i) {
 
 Exporting void Tamgulist::Cleanreference(short inc) {
     locking();
-    for (auto& a : values)
+    for (const auto& a : values)
         a->Removecontainerreference(inc);
     unlocking();
 }
@@ -174,7 +174,7 @@ Exporting void Tamgulist::Setreference(short inc) {
     reference += inc;
     protect=false;
         
-    for (auto& it : values)
+    for (const auto& it : values)
         it->Addreference(investigate,inc);
     
     unlocking();
@@ -187,7 +187,7 @@ Exporting void Tamgulist::Setreference() {
     protect=false;
     
     locking();
-    for (auto& it : values)
+    for (const auto& it : values)
         it->Addreference(investigate,1);
 
     unlocking();
@@ -416,7 +416,7 @@ Exporting void Tamgulist::Shuffle() {
     locking();
 
     vector<Tamgu*> vb;
-    for (auto& it : values)
+    for (const auto& it : values)
         vb.push_back(it);
     size_t sz = vb.size();
     size_t i, f;
@@ -443,7 +443,7 @@ Exporting Tamgu* Tamgulist::Unique() {
 
     map<string, Tamgu*> inter;
     string k;
-    for (auto& it : values) {
+    for (const auto& it : values) {
         k = it->String();
         if (inter.find(k) != inter.end()) {
             if (inter[k]->same(it)->Boolean() == false)
@@ -500,7 +500,7 @@ Exporting Tamgu* Tamgulist::Merging(Tamgu* ke) {
     if (ke->Type() == a_list) {
         Tamgulist* klist = (Tamgulist*)ke;
 
-        for (auto& it : klist->values)
+        for (const auto& it : klist->values)
             Push(it);
         return this;
     }
@@ -522,7 +522,7 @@ Exporting Tamgu* Tamgulist::Combine(Tamgu* ke) {
     
     if (!ke->isContainer()) {
         locking();
-        for (auto& a: values) {
+        for (const auto& a: values) {
             val=new Tamgulist;
             val->Push(a);
             val->Push(ke);
@@ -571,7 +571,7 @@ Exporting Tamgu* Tamgulist::Map(short idthread) {
 
     long nb = 0;
     char ch[20];
-    for (auto& it : values) {
+    for (const auto& it : values) {
         sprintf_s(ch, 20, "%ld", nb);
         kmap->Push(ch, it);
         nb++;
@@ -587,7 +587,7 @@ Exporting Tamgu* Tamgulist::Vector(short idthread) {
     //We copy all values from ke to this
     kvect->values.reserve(values.size());
 
-    for (auto& it : values)
+    for (const auto& it : values)
         kvect->Push(it);
     unlocking();
     return kvect;
@@ -611,7 +611,7 @@ Exporting Tamgu*  Tamgulist::Put(Tamgu* idx, Tamgu* ke, short idthread) {
             //We copy all values from ke to this
             Clear();
 
-            for (auto& it : kvect->values) {
+            for (const auto& it : kvect->values) {
                 idx = it->Atom();
                 idx->Addreference(investigate,reference+1);
                 values.push_back(idx);
@@ -703,7 +703,7 @@ Exporting Tamgu*  Tamgulist::Put(Tamgu* idx, Tamgu* ke, short idthread) {
         }
 
         if (ke->Type() == a_list) {
-            for (auto& iti : ((Tamgulist*)ke)->values) {
+            for (const auto& iti : ((Tamgulist*)ke)->values) {
                 krkey = iti;
                 krkey = krkey->Atom();
                 values.insert(it, krkey);
@@ -772,7 +772,7 @@ Exporting Tamgu* Tamgulist::Eval(Tamgu* contextualpattern, Tamgu* idx, short idt
 
             char ch[20];
             locking();
-            for (auto& it : values) {
+            for (const auto& it : values) {
                 sprintf_s(ch, 20, "%zd", i);
                 ke = it;
                 map->Push(ch, ke);
@@ -792,7 +792,7 @@ Exporting Tamgu* Tamgulist::Eval(Tamgu* contextualpattern, Tamgu* idx, short idt
             Tamgulist* kvect = new Tamgulist;
 
             locking();
-            for (auto& it : values) {
+            for (const auto& it : values) {
                 ke = it->Eval(aNULL, aNULL, idthread);
                 if (ke == aRAISEERROR) {
                     kvect->Release();
@@ -879,7 +879,7 @@ Exporting Tamgu* Tamgulist::andset(Tamgu* b, bool itself) {
         else
             ref = (Tamgulist*)Atom(true);
         locking();
-        for (auto& itl : ref->values) {
+        for (const auto& itl : ref->values) {
             ke = itl->andset(b, true);
             if (ke->isError()) {
                 unlocking();
@@ -897,7 +897,7 @@ Exporting Tamgu* Tamgulist::andset(Tamgu* b, bool itself) {
 
     TamguIteration* itr = b->Newiteration(false);
     for (itr->Begin(); itr->End() == aFALSE; itr->Next()) {
-        for (auto& itl : ref->values) {
+        for (const auto& itl : ref->values) {
             ke = itr->IteratorValue();
             if (itl->same(ke) == aTRUE) {
                 ref->Push((itl));
@@ -920,7 +920,7 @@ Exporting Tamgu* Tamgulist::orset(Tamgu* b, bool itself) {
         ref = (Tamgulist*)Atom(true);
     if (!b->isContainer()) {
         locking();
-        for (auto& itl : ref->values) {
+        for (const auto& itl : ref->values) {
             ke = itl->orset(b, true);
             if (ke->isError()) {
                 unlocking();
@@ -949,7 +949,7 @@ Exporting Tamgu* Tamgulist::xorset(Tamgu* b, bool itself) {
         locking();
         
         Tamgu* ke;
-        for (auto& itl : ref->values) {
+        for (const auto& itl : ref->values) {
             ke = itl->xorset(b, true);
             if (ke->isError()) {
                 unlocking();
@@ -972,7 +972,7 @@ Exporting Tamgu* Tamgulist::xorset(Tamgu* b, bool itself) {
 
     bool found=false;
     long itv;
-    for (auto& itl : ref->values) {
+    for (const auto& itl : ref->values) {
         for (itv = 0; itv < vals.size(); itv++) {
             if (vals[itv] == NULL)
                 continue;
@@ -1021,7 +1021,7 @@ Exporting Tamgu* Tamgulist::plus(Tamgu* b, bool itself) {
     if (b->isContainer()) {
         TamguIteration* itr = b->Newiteration(false);
         itr->Begin();
-        for (auto& itl : ref->values) {
+        for (const auto& itl : ref->values) {
             if (itr->End() == aTRUE)
                 break;
             kv = itr->IteratorValue();
@@ -1038,7 +1038,7 @@ Exporting Tamgu* Tamgulist::plus(Tamgu* b, bool itself) {
     }
 
 
-    for (auto& itl : ref->values) {
+    for (const auto& itl : ref->values) {
         ke = itl->plus(b, true);
         if (ke->isError()) {
             ref->Release();
@@ -1070,7 +1070,7 @@ Exporting Tamgu* Tamgulist::minus(Tamgu* b, bool itself) {
     if (b->isContainer()) {
         TamguIteration* itr = b->Newiteration(false);
         itr->Begin();
-        for (auto& itl : ref->values) {
+        for (const auto& itl : ref->values) {
             if (itr->End() == aTRUE)
                 break;
             kv = itr->IteratorValue();
@@ -1087,7 +1087,7 @@ Exporting Tamgu* Tamgulist::minus(Tamgu* b, bool itself) {
     }
 
 
-    for (auto& itl : ref->values) {
+    for (const auto& itl : ref->values) {
         ke = itl->minus(b, true);
         if (ke->isError()) {
             ref->Release();
@@ -1119,7 +1119,7 @@ Exporting Tamgu* Tamgulist::multiply(Tamgu* b, bool itself) {
     if (b->isContainer()) {
         TamguIteration* itr = b->Newiteration(false);
         itr->Begin();
-        for (auto& itl : ref->values) {
+        for (const auto& itl : ref->values) {
             if (itr->End() == aTRUE)
                 break;
             kv = itr->IteratorValue();
@@ -1136,7 +1136,7 @@ Exporting Tamgu* Tamgulist::multiply(Tamgu* b, bool itself) {
     }
 
 
-    for (auto& itl : ref->values) {
+    for (const auto& itl : ref->values) {
         ke = itl->multiply(b, true);
         if (ke->isError()) {
             ref->Release();
@@ -1168,7 +1168,7 @@ Exporting Tamgu* Tamgulist::divide(Tamgu* b, bool itself) {
     if (b->isContainer()) {
         TamguIteration* itr = b->Newiteration(false);
         itr->Begin();
-        for (auto& itl : ref->values) {
+        for (const auto& itl : ref->values) {
             if (itr->End() == aTRUE)
                 break;
             kv = itr->IteratorValue();
@@ -1185,7 +1185,7 @@ Exporting Tamgu* Tamgulist::divide(Tamgu* b, bool itself) {
     }
 
 
-    for (auto& itl : ref->values) {
+    for (const auto& itl : ref->values) {
         ke = itl->divide(b, true);
         if (ke->isError()) {
             ref->Release();
@@ -1217,7 +1217,7 @@ Exporting Tamgu* Tamgulist::power(Tamgu* b, bool itself) {
     if (b->isContainer()) {
         TamguIteration* itr = b->Newiteration(false);
         itr->Begin();
-        for (auto& itl : ref->values) {
+        for (const auto& itl : ref->values) {
             if (itr->End() == aTRUE)
                 break;
             kv = itr->IteratorValue();
@@ -1234,7 +1234,7 @@ Exporting Tamgu* Tamgulist::power(Tamgu* b, bool itself) {
     }
 
 
-    for (auto& itl : ref->values) {
+    for (const auto& itl : ref->values) {
         ke = itl->power(b, true);
         if (ke->isError()) {
             ref->Release();
@@ -1266,7 +1266,7 @@ Exporting Tamgu* Tamgulist::shiftleft(Tamgu* b, bool itself) {
     if (b->isContainer()) {
         TamguIteration* itr = b->Newiteration(false);
         itr->Begin();
-        for (auto& itl : ref->values) {
+        for (const auto& itl : ref->values) {
             if (itr->End() == aTRUE)
                 break;
             kv = itr->IteratorValue();
@@ -1283,7 +1283,7 @@ Exporting Tamgu* Tamgulist::shiftleft(Tamgu* b, bool itself) {
     }
 
 
-    for (auto& itl : ref->values) {
+    for (const auto& itl : ref->values) {
         ke = itl->shiftleft(b, true);
         if (ke->isError()) {
             ref->Release();
@@ -1315,7 +1315,7 @@ Exporting Tamgu* Tamgulist::shiftright(Tamgu* b, bool itself) {
     if (b->isContainer()) {
         TamguIteration* itr = b->Newiteration(false);
         itr->Begin();
-        for (auto& itl : ref->values) {
+        for (const auto& itl : ref->values) {
             if (itr->End() == aTRUE)
                 break;
             kv = itr->IteratorValue();
@@ -1332,7 +1332,7 @@ Exporting Tamgu* Tamgulist::shiftright(Tamgu* b, bool itself) {
     }
 
 
-    for (auto& itl : ref->values) {
+    for (const auto& itl : ref->values) {
         ke = itl->shiftright(b, true);
         if (ke->isError()) {
             ref->Release();
@@ -1364,7 +1364,7 @@ Exporting Tamgu* Tamgulist::mod(Tamgu* b, bool itself) {
     if (b->isContainer()) {
         TamguIteration* itr = b->Newiteration(false);
         itr->Begin();
-        for (auto& itl : ref->values) {
+        for (const auto& itl : ref->values) {
             if (itr->End() == aTRUE)
                 break;
             kv = itr->IteratorValue();
@@ -1381,7 +1381,7 @@ Exporting Tamgu* Tamgulist::mod(Tamgu* b, bool itself) {
     }
 
 
-    for (auto& itl : ref->values) {
+    for (const auto& itl : ref->values) {
         ke = itl->mod(b, true);
         if (ke->isError()) {
             ref->Release();
@@ -2356,7 +2356,7 @@ Exporting Tamgu*  Tamguring::Put(Tamgu* idx, Tamgu* value, short idthread) {
             {
                 Locking _lock(kvect);
                 
-                for (auto& it : kvect->values)
+                for (const auto& it : kvect->values)
                     Push(it);
             }
             

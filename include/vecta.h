@@ -17,467 +17,355 @@
 #ifndef vecta_h
 #define vecta_h
 
-template <class Z> class VECTA {
- public:
-     
-     //Un vecteur de Fonction
-     Z* vecteur;
-     
-     //taille est la taille actuelle de la liste
-     long taille;
-     
-     Z zero;
-     
-     //dernier element entre... Pour gerer les ajouts en fin de liste...
-     long dernier;
-     
-     VECTA(long t=5,Z z=(Z)0) {
-         zero=z;
-         vecteur=NULL;
-         if (t>0) {
-             vecteur=new Z[t];
-             for (dernier=0;dernier<t;dernier++)
-                 vecteur[dernier]=zero;
-         }
-         taille=t;
-         dernier=0;
-     }
-     
-     ~VECTA() {
-         delete[] vecteur;
-     }
-     
-     
-     inline void raz() {
-         dernier=0;
-         if (vecteur==NULL)
-             return;
-         memset(vecteur,0,taille*sizeof(Z));
-         //for (long i=0;i<taille;i++)
-         //    vecteur[i]=zero;
-     }
+template <class Z> class vecte {
+public:
 
-	 inline void met(long z) {
-         dernier=0;
-         if (vecteur==NULL)
-             return;
-         memset(vecteur,z,taille*sizeof(Z));
-         //for (long i=0;i<taille;i++)
-         //    vecteur[i]=zero;
-     }
-     
-     
-     inline void nettoie() {
-         if (vecteur==NULL)
-             return;
-         for (long i=0;i<taille;i++) {
-             if (vecteur[i]!=zero)
-                 delete vecteur[i];
-             vecteur[i]=zero;
-         }
-         dernier=0;
-     }
-     
-      inline void nettoietable() {
-         if (vecteur==NULL)
-             return;
-         for (long i=0;i<taille;i++) {
-             if (vecteur[i]!=zero)
-                 delete[] vecteur[i];
-             vecteur[i]=zero;
-         }
-         dernier=0;
-     }
+	Z* vecteur;
+	//sz is the vector size
+	long sz;
+	//last element appended... 
+	long last;
 
-    void nulle(Z v) {
-         zero=v;
-     }
-     
-	 void reserve(long t) {
-		 delete[] vecteur;
-		 taille=t;
-		 vecteur=new Z[t];
-		 memset(vecteur,0,taille*sizeof(Z));
-	 }
+	vecte(long t = 3) {
+		last = 0;
+		sz = t + 1;
+		vecteur = (Z*)malloc(sizeof(Z)*sz);
+		memset(vecteur, NULL, sizeof(Z)*sz);
+	}
 
-     void ajuste(long t) {
-         Z* tfs;    
-         
-         if (t<=taille)
-             return;
-         //on realloue par bloc de t
-         tfs=new Z[t];
-         
-         //for (i=0;i<dernier;i++)
-         //  tfs[i]=vecteur[i];
-         memcpy(tfs,vecteur,sizeof(Z)*dernier);
-         
-         //for (i=dernier;i<t;i++)
-         //  tfs[i]=zero;
-         
-         memset(&tfs[dernier],0,sizeof(Z)*(t-dernier));
-         
-         delete[] vecteur;
-         vecteur=tfs;
-         taille=t;
-     }
-     
-     void resize(long t) {
-         Z* tfs;    
-         
-         if (t<=taille)
-             return;
-         //on realloue par bloc de t
-         tfs=new Z[t];
-         
-         memcpy(tfs,vecteur,sizeof(Z)*dernier);         
-         memset(&tfs[dernier],0,sizeof(Z)*(t-dernier));
-         
-         delete[] vecteur;
-         vecteur=tfs;
-         taille=t;
-     }
+	vecte(long nb, Z val) {
+		sz = nb;
+		vecteur = (Z*)malloc(sizeof(Z)*sz);
+		for (last = 0; last < nb; last++)
+			vecteur[last] = val;
+	}
 
-     void aupluspres() {
-         if (dernier==taille)
-             return;
-         Z* tfs;    
-         
-         //on realloue par bloc de t
-         tfs=new Z[dernier];
-         
-         memcpy(tfs,vecteur,sizeof(Z)*dernier);
-         
-         delete[] vecteur;
-         vecteur=tfs;
-         taille=dernier;     
-     }
+	vecte(vecte<Z>& v) {
+		sz = v.sz;
+		last = v.last;
+		vecteur = (Z*)malloc(sizeof(Z)*sz);
+		memcpy(vecteur, v.vecteur, sizeof(Z)*sz);
+	}
 
-     void reduit(long t) {        
-         if (t>=taille)
-             return;
-         nettoie();
-         delete[] vecteur;
-         //on realloue par bloc de t
-         vecteur=new Z[t];
-         taille=t;
-     }
+	~vecte() {
+		if (sz)
+			free(vecteur);
+	}
 
 
-     inline Z retire() {
-         if (dernier==0)
-             return zero;
-         dernier--;
-         Z v=vecteur[dernier];
-         vecteur[dernier]=zero;
-         return v;
-     }
-     
-     inline void pop_back() {
-         if (dernier==0)
-             return;
-         dernier--;         
-         vecteur[dernier]=zero;
-     }
-     
-     
-     inline Z retireElement(long i=-1) {        
-         if (dernier==0)
-             return zero;
-         
-         long pos=i;
-         
-         if (i==-1)
-             pos=dernier-1;
-         
-         Z v=vecteur[pos];
-         vecteur[pos]=zero;
-         
-         //On deplace toutes les cases de 1...
-         //if (i!=-1)
-         //  memcpy(vecteur+i,vecteur+i+1,sizeof(Z)*(dernier-i-1));
-         
-         if (i!=-1) {
-             for (long k=i;k<dernier-1;k++)
-                 vecteur[k]=vecteur[k+1];
-             if (dernier>0)
-                 vecteur[dernier-1]=zero;
-         }
-         
-         dernier--;
-         return v;
-     }
-     
-	 inline Z remove(long pos = -1) {
-		 Z v;
-		 if (pos < 0) {
-			 if (dernier == 0)
-				 return zero;
-			 dernier--;
-			 v = vecteur[dernier];
-			 vecteur[dernier] = zero;
-			 return v;
-		 }
+	inline double get_(long pos) {
+		return vecteur[pos];
+	}
 
-		 if (pos >= dernier)
-			 return zero;
-		 v = vecteur[pos];
-		 //On deplace toutes les cases de 1...
-		 dernier--;
-		 for (; pos < dernier; pos++)
-			 vecteur[pos] = vecteur[pos + 1];
-		 vecteur[dernier] = zero;
-		 return v;
-	 }
+	inline void set_(long pos, double v) {
+		vecteur[pos] = v;
+	}
 
-     inline void erase(size_t pos) {        
-         if (pos>=dernier)
-             return;
+	inline void setlast(Z val) {
+		vecteur[last - 1] = val;
+	}
 
-         //On deplace toutes les cases de 1...
-		 dernier--;
-		 for (;pos<dernier;pos++)
-			 vecteur[pos]=vecteur[pos+1];		 
-		 vecteur[dernier]=zero;                  
-     }
+	inline long size() {
+		return last;
+	}
 
-	 inline void insert(long pos,Z val) {
-		 if (pos<0)
-			 return;
+	inline void wipe() {
+		while (last > 0) {
+			if (vecteur[--last] != NULL) {
+				delete vecteur[last];
+				vecteur[last] = NULL;
+			}
+		}
+	}
 
-		 if (dernier>=taille)
-			 ajuste(taille+10);
+	inline void cleaning() {
+		while (last > 0) {
+			delete vecteur[--last];
+		}
+	}
 
-		 //Dans ce cas, c'est un simple push
-		 if (pos>=dernier) {
-			 vecteur[pos]=val;
-			 dernier++;
-			 return;
-		 }
+	inline void clean() {
+		for (last = 0; last < sz; last++) {
+			if (vecteur[last] != NULL) {
+				delete vecteur[last];
+				vecteur[last] = NULL;
+			}
+		}
+		last = 0;
+	}
 
-		 //on ajoute alors l'element a sa place
-		 //si la case est vide on le place a cet endroit
-		 //sinon on effectue un deplacement de tous les elements vers la droite
-		 if (vecteur[pos]!=NULL) {                          
-			 //sinon, on deplace tous les elements d'une case vers la droite
-			 for (long i=dernier-1;i>=pos;i--)
-				 vecteur[i+1]=vecteur[i];
-			 vecteur[pos]=val;
-			 dernier++;
-		 }
-		 else
-			 vecteur[pos]=val;
-	 }
+	void clear() {
+		last = 0;
+	}
 
-     inline Z fin() {
-         if (dernier==0)
-             return zero;
-         return vecteur[dernier-1];
-     }
-     
-     inline char detruit(long i) {   
-         if (vecteur==NULL || i<0 || i >= dernier || vecteur[i]==zero)
-             return 0;
-         
-         delete vecteur[i];
-         vecteur[i]=zero;
-         if (i==dernier-1)
-             dernier--;
-         return 1;
-     }
-     
-     
-     inline long ajoute(Z val,long inc=10) {
-         
-         if (dernier >= taille)
-             ajuste(taille+inc);
-         
-         //sinon on ajoute l'element en queue...
-         vecteur[dernier]=val;
-         dernier++;
-         return dernier-1;
-     }
+	inline void reserve(long t) {
+		if (t > sz) {
+			sz = t;
+			//We reallocate our vecteur
+			vecteur = (Z*)realloc(vecteur, sizeof(Z)*sz);
+			memset(vecteur + last, NULL, sizeof(Z)*(sz - last));
+		}
+	}
 
-     inline void ajoute(VECTE<Z>& z) {
-         long ta=z.dernier+dernier;
-         if (ta > taille)
-             ajuste(ta+3);
+	inline void trim() {
+		if (!last) {
+			free(vecteur);
+			vecteur = NULL;
+			sz = 0;
+			return;
+		}
+		if (last == sz)
+			return;
 
-         for (long i=0;i<z.dernier;i++)
-             ajoute(z.vecteur[i]);
-     }
-     
-     
-     inline long push_back(Z val,long inc=10) {
-         
-         if (dernier >= taille)
-             ajuste(taille+inc);
-         
-         //sinon on ajoute l'element en queue...
-         vecteur[dernier]=val;
-         dernier++;
-         return dernier-1;
-     }
-     
-     
-	 void operator =(VECTE<Z>& z) {
-		 dernier=z.dernier;
-		 if (dernier>=taille) {
-			 delete[] vecteur;
-			 taille=dernier+3;
-			 vecteur=new Z[taille];
-		 }
+		Z* trimmed = (Z*)malloc(sizeof(Z)*last);
+		memcpy(trimmed, vecteur, sizeof(Z)*last);
+		free(vecteur);
+		vecteur = trimmed;
+		sz = last;
+	}
 
-		 memset(vecteur,0,taille);
-		 memcpy(vecteur,z.vecteur,sizeof(Z)*dernier);		 
-	 }
+	inline void resize(long i) {
+		if (i >= sz) {
+			sz = i << 1;
+			//We reallocate our vecteur
+			vecteur = (Z*)realloc(vecteur, sizeof(Z)*sz);
+			memset(vecteur + last, NULL, sizeof(Z)*(sz - last));
+		}
+	}
 
-     inline Z operator [](long i) {
-         if (vecteur==NULL || i<0 || i >= dernier)
-             return zero;
-         
-         return vecteur[i];
-     } 
 
-     inline void affecte(VECTE<Z>& z) {
-         dernier=0;         
-         ajoute(z);
-     }
+	inline Z remove(long pos = -1) {
+		Z v;
+		if (pos < 0) {
+			if (last == 0)
+				return NULL;
+			last--;
+			v = vecteur[last];
+			vecteur[last] = NULL;
+			return v;
+		}
 
-	 inline void affecte(VECTE<Z>* z) {
-		 if (z==NULL)
-			 return;
-         dernier=0;         
-         ajoute(*z);
-     }
-     
-     
-     inline Z cell(long pos) {
-         if (vecteur==NULL || pos<0 || pos>=taille)
-             return zero;
-         
-         return vecteur[pos];
-     }
-     
-     inline Z cell(unsigned long pos) {
-         if (vecteur==NULL || pos<0 || pos>=taille)
-             return zero;
-         
-         return vecteur[pos];
-     }
-     
-     inline Z affecte(long pos,Z val) {
-         if (pos<0)
-             return zero;
-         
-         if (pos >=taille)
-             ajuste(pos+10);
-         
-         //on ajoute alors l'element a sa place
-         vecteur[pos]=val;
-         if (pos >=dernier)
-             dernier=pos+1;
-         return vecteur[pos];
-     }
-     
-	 inline void annule(long pos) {
-         if (pos<0)
-             return;
-         
-         if (pos >=dernier)
-			 return;
-		 
-		 vecteur[pos]=zero;
-		 
-		 if (pos==dernier-1)
-			 dernier=pos;
-	 }
+		if (pos >= last)
+			return NULL;
 
-     inline Z insere(long pos,Z val,long inc=10) {
-         if (pos<0)
-             return zero;
-         
-         if (pos>=taille)
-             ajuste(pos+inc);
+		v = vecteur[pos];
+		//We move all the boxes by 1...
+		last--;
+		for (; pos < last; pos++)
+			vecteur[pos] = vecteur[pos + 1];
+		vecteur[last] = NULL;
+		return v;
+	}
 
-         //on ajoute alors l'element a sa place
-         //si la case est vide on le place a cet endroit
-         //sinon on effectue un deplacement de tous les elements vers la droite
-         if (vecteur[pos]!=NULL) {
-             
-             if (dernier >=taille)
-                 ajuste(taille+10);
-             
-             //sinon, on deplace tous les elements d'une case vers la droite
-             for (long i=dernier-1;i>=pos;i--)
-                 vecteur[i+1]=vecteur[i];
-             dernier++;
-         }
-         
-         vecteur[pos]=val;
-         if (pos==dernier)
-             dernier++;         
-         return vecteur[pos];
-     }
+	inline void swap(long i, long j) {
+		Z e = vecteur[i];
+		vecteur[i] = vecteur[j];
+		vecteur[j] = e;
+	}
 
-     //Autre insertion, forcement en pos avec deplacement vers la droite des valeurs
-     inline Z insertion(long pos,Z val) {
-         if (pos<0)
-             return zero;
-         
-         //si l'element est en queue, on l'ajoute a sa position
-         if (pos>=dernier) {
-             affecte(pos,val);
-             return vecteur[pos];
-         }
+	inline Z backpop() {
+		return vecteur[--last];
+	}
 
-         //on ajoute alors l'element a sa place         
-         //sinon on effectue un deplacement de tous les elements vers la droite
+	inline void pop_back() {
+		last--;
+	}
 
-         if (dernier >=taille)
-             ajuste(taille+10);
-         
-         //sinon, on deplace tous les elements d'une case vers la droite
-         for (long i=dernier-1;i>=pos;i--)
-             vecteur[i+1]=vecteur[i];
-         
-         vecteur[pos]=val;
-         dernier++;
+	inline void insert(long pos, Z val) {
+		resize(last);
 
-         return vecteur[pos];
-     }
+		//In this case, this is a simple push
+		if (pos >= last) {
+			vecteur[last++] = val;
+			return;
+		}
 
-     long size() {
-         return dernier;
-     } 
-     
-     void Clear() {
-         nettoie();
-     }
-     
-	 void clear() {
-		 dernier = 0;
-		 if (vecteur == NULL)
-			 return;
-		 memset(vecteur, 0, taille*sizeof(Z));
-	 }
+		// the element is then added in its place
+		// if the box is empty we place it at this place
+		//If not, all elements are moved to the right.
+		//sinon, on deplace tous les elements d'une case vers la droite
+		for (long i = last - 1; i >= pos; i--)
+			vecteur[i + 1] = vecteur[i];
+		vecteur[pos] = val;
+		last++;
+	}
 
-     void asseche() {
-         if (vecteur!=NULL)
-             delete[] vecteur;
-         vecteur=NULL;
-         dernier=0;
-         taille=0;
-     }
+	inline Z back() {
+		return vecteur[last - 1];
+	}
 
-     inline long cherche(Z v) {
-         for (long i=0;i<dernier;i++)
-             if (vecteur[i]==v)
-                 return i;
-        return -1;
-     }
+	inline Z preback() {
+		return vecteur[last - 2];
+	}
+
+	inline void push_back(Z val) {
+		resize(last);
+		//sinon on ajoute l'element en queue...
+		vecteur[last++] = val;
+	}
+
+	void padding(long nb) {
+		if (sz < (nb + last)) {
+			sz = (nb + last) << 1;
+			//We reallocate our vecteur
+			vecteur = (Z*)realloc(vecteur, sizeof(Z)*sz);
+			memset(vecteur + last, NULL, sizeof(Z)*(sz - last));
+		}
+	}
+
+	void padding(long nb, Z v) {
+		if (sz < (nb + last)) {
+			sz = (nb + last) << 1;
+			//We reallocate our vecteur
+			vecteur = (Z*)realloc(vecteur, sizeof(Z)*sz);
+			for (nb = last; nb < sz; nb++)
+				vecteur[nb] = v;
+		}
+	}
+
+	inline Z operator [](long pos) {
+		return vecteur[pos];
+	}
+
+	void operator =(vecte<Z>& t) {
+		if (sz < t.sz) {
+			sz = t.sz;
+			vecteur = (Z*)realloc(vecteur, sizeof(Z)*sz);
+		}
+		last = t.last;
+		memcpy(vecteur, t.vecteur, sizeof(Z)*last);
+	}
+
+	inline bool empty() {
+		return !last;
+	}
+
+	inline Z get(long pos) {
+		return (pos >= last) ? NULL : vecteur[pos];
+	}
+
+	void reverse() {
+		Z e;
+		long stop = last >> 1;
+		for (long i = 0; i < stop; i++) {
+			e = vecteur[i];
+			vecteur[i] = vecteur[last - i];
+			vecteur[last - i] = e;
+		}
+	}
+
+	void erase(long i) {
+		if (i == last) {
+			vecteur[last--] = NULL;
+			return;
+		}
+
+		if (i >= 0 && i < last) {
+			if (last == sz) {
+				last--;
+				while (i < last) {
+					vecteur[i] = vecteur[i + 1];
+					i++;
+				}
+				vecteur[last] = NULL;
+				return;
+			}
+
+			while (i < last) {
+				vecteur[i] = vecteur[i + 1];
+				i++;
+			}
+			last--;
+		}
+	}
+
+	inline Z removeElement(long i = -1) {
+		if (!last)
+			return NULL;
+
+		long pos = i;
+
+		if (i == -1)
+			pos = last - 1;
+
+		Z v = vecteur[pos];
+		vecteur[pos] = NULL;
+
+		//On deplace toutes les cases de 1...
+
+		if (i != -1) {
+			for (long k = i; k < last - 1; k++)
+				vecteur[k] = vecteur[k + 1];
+			if (last > 0)
+				vecteur[last - 1] = NULL;
+		}
+
+		last--;
+		return v;
+	}
+
+	inline void atlast(Z val) {
+		vecteur[last - 1] = val;
+	}
+
+	inline void beforelast(Z val) {
+		if (last) {
+			reserve(last);
+			vecteur[last] = vecteur[last - 1];
+			vecteur[last - 1] = val;
+			last++;
+		}
+		else
+			vecteur[last++] = val;
+	}
+
+	inline void at(long pos, Z val) {
+		reserve(pos + 1);
+		vecteur[pos] = val;
+	}
+
+	inline long search(Z v) {
+		long i = 0;
+		for (; i < last && v != vecteur[i]; i++) {}
+		return (i == last) ? -1 : i;
+	}
+
+	inline bool check(Z v) {
+		long i = 0;
+		for (; i < last && v != vecteur[i]; i++) {}
+		return (i != last);
+	}
+
+	inline bool checkanderase(Z v) {
+		long i = 0;
+		for (; i < last && v != vecteur[i]; i++) {}
+
+		if (i != last) {
+			last--;
+			while (i < last) {
+				vecteur[i] = vecteur[i + 1];
+				i++;
+			}
+			return true;
+		}
+		return false;
+	}
+
+	inline bool operator ==(vecte<Z>& v) {
+		if (last != v.last)
+			return false;
+
+		long i = 0;
+		for (; i < last && v.vecteur[i] == vecteur[i]; i++) {}
+		return (i == last);
+	}
+
+	inline void to_vector(vector<Z>& v) {
+		for (long i = 0; i < last; i++)
+			v.push_back(vecteur[i]);
+	}
+
 };
-
 
 #endif
 

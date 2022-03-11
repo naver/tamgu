@@ -132,7 +132,7 @@ class Tamgumapff : public TamguLockContainer {
 
         double v = 1;
 
-        for (auto& itx : values)
+        for (const auto& itx : values)
             v *= itx.second;
         unlocking();
         return v;
@@ -209,7 +209,7 @@ class Tamgumapff : public TamguLockContainer {
 
         Tamgu* a;
 
-        for (auto& it : values) {
+        for (const auto& it : values) {
             a = globalTamgu->ProvideConstfloat(it.first);
             contextualpattern->Push(it.second, a);
         }
@@ -231,7 +231,7 @@ class Tamgumapff : public TamguLockContainer {
 
         Tamgumapff* item;
         Tamgu* vect = Selectavector(contextualpattern);
-        for (auto& itr : values) {
+        for (const auto& itr : values) {
             item = new Tamgumapff;
             item->values[itr.first] = itr.second;
             vect->Push(item);
@@ -305,7 +305,7 @@ class Tamgumapff : public TamguLockContainer {
 
         bool beg = true;
         stringstream res;
-        for (auto& it : values) {
+        for (const auto& it : values) {
             if (beg == false)
                 res << sep;
             beg = false;

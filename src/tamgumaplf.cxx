@@ -148,7 +148,7 @@ Exporting Tamgu* Tamgumaplf::MethodFind(Tamgu* context, short idthread, TamguCal
     
     if (context->isBoolean()) {
         Locking _lock(this);
-        for (auto& it : values) {
+        for (const auto& it : values) {
             if (it.second == val)
                 return aTRUE;
         }
@@ -157,7 +157,7 @@ Exporting Tamgu* Tamgumaplf::MethodFind(Tamgu* context, short idthread, TamguCal
     if (context->isVectorContainer()) {
         Tamgulvector* v = (Tamgulvector*)Selectalvector(context);
         Doublelocking _lock(this, v);
-        for (auto& it : values) {
+        for (const auto& it : values) {
             if (it.second == val)
                 v->values.push_back(it.first);
         }
@@ -165,7 +165,7 @@ Exporting Tamgu* Tamgumaplf::MethodFind(Tamgu* context, short idthread, TamguCal
     }
     
     Locking _lock(this);
-    for (auto& it : values) {
+    for (const auto& it : values) {
         if (it.second == val)
             return globalTamgu->Providelong(it.first);
     }
@@ -207,7 +207,7 @@ Exporting string Tamgumaplf::String() {
 
     res << "{";
     bool beg = true;
-    for (auto& it : values) {
+    for (const auto& it : values) {
         if (beg == false)
             res << ",";
         beg = false;
@@ -224,7 +224,7 @@ Exporting string Tamgumaplf::JSonString() {
 
     res << "{";
     bool beg = true;
-    for (auto& it : values) {
+    for (const auto& it : values) {
         if (beg == false)
             res << ",";
         beg = false;
@@ -315,7 +315,7 @@ Exporting Tamgu*  Tamgumaplf::Put(Tamgu* idx, Tamgu* ke, short idthread) {
             values.clear();
             long nb = 0;
 
-            for (auto& it : kvect->values) {
+            for (const auto& it : kvect->values) {
                 values[nb] = it->Float();
                 nb++;
             }
@@ -470,7 +470,7 @@ Exporting Tamgu* Tamgumaplf::xorset(Tamgu* b, bool itself) {
         res = new Tamgumaplf;
         hmap<BLONG, double> keys;
 
-        for (auto& it : values)
+        for (const auto& it : values)
             keys[it.first] = it.second;
             
         BLONG v;
@@ -485,7 +485,7 @@ Exporting Tamgu* Tamgumaplf::xorset(Tamgu* b, bool itself) {
         }
         itr->Release();
 
-        for (auto& a : keys)
+        for (const auto& a : keys)
             res->values[a.first]= a.second;
 
         return res;

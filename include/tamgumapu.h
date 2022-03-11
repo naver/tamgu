@@ -143,7 +143,7 @@ class Tamgumapu : public TamguObjectLockContainer {
             locking();
             Tamgu* v;
 
-            for (auto& it : values) {
+            for (const auto& it : values) {
                 v = it.second->Atom(true);
                 m->values[it.first] = v;
                 v->Setreference();
@@ -174,7 +174,7 @@ class Tamgumapu : public TamguObjectLockContainer {
 
          double v = 1;
 
-        for (auto& itx : values)
+        for (const auto& itx : values)
             v *= itx.second->Product();
         unlocking();
         return v;
@@ -239,7 +239,7 @@ class Tamgumapu : public TamguObjectLockContainer {
         
         usermark=false;
         
-        for (auto& it : values)
+        for (const auto& it : values)
             it.second->unmark();
         
         unlockingmark();
@@ -263,7 +263,7 @@ class Tamgumapu : public TamguObjectLockContainer {
             
         Tamgu* a;
 
-        for (auto& it : values) {
+        for (const auto& it : values) {
             a = globalTamgu->Provideustring(it.first);
             contextualpattern->Push(it.second, a);
             a->Release();
@@ -286,7 +286,7 @@ class Tamgumapu : public TamguObjectLockContainer {
 
         Tamgumapu* item;
         Tamgu* vect = Selectavector(contextualpattern);
-        for (auto& itr : values) {
+        for (const auto& itr : values) {
             item=new Tamgumapu;
             item->Push(itr.first, itr.second);
             vect->Push(item);
@@ -360,7 +360,7 @@ class Tamgumapu : public TamguObjectLockContainer {
 
         bool beg = true;
         std::wstringstream res;
-        for (auto& it : values) {
+        for (const auto& it : values) {
             if (beg == false)
                 res << sep;
             beg = false;

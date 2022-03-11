@@ -73,9 +73,8 @@ bool checkresize();
 void Returnscreensize(long& rs, long& cs, long& sr, long& sc);
 #endif
 
+
 static char m_scrollmargin[] = { 27, 91, '0', '0', '0', ';', '0', '0','0', 'r', 0 };
-static char m_deletechar[] = { 27, 91, '1', 'P', 0 };
-static char m_left[] = { 27, '[', '1', 68, 0 };
 static char m_right[] = {27, '[', '0', '0', '1', 67, 0};
 char m_down[] = {27, '[', '0', '0', '1', 66, 0};
 
@@ -374,29 +373,29 @@ bool jag_editor::check_utf8(string& buff, string& buffer) {
     utf[2] = buff[sz];
     utf[1] = buff[sz-1];
     utf[0] = buff[sz-2];
-    
+
     if (utf[2] < 0x80)
         return false;
-    
+
     if ((utf[2] & 0xF0)== 0xF0 || (utf[2] & 0xE0) == 0xE0 || (utf[2] & 0xC0) == 0xC0) {
         buff = buff.substr(0, sz);
         buffer = utf[2];
         return true;
     }
-    
+
     if ((utf[2] & 0xC0) == 0xC0)
         return false;
-    
+
     if ((utf[1] & 0xF0) == 0xF0 || (utf[1] & 0xE0) == 0xE0) {
         buff = buff.substr(0, sz - 1);
         buffer = utf[1];
         buffer += utf[2];
         return true;
     }
-    
+
     if ((utf[0] & 0xE0)== 0xE0)
         return false;
-    
+
     if ((utf[0] & 0xF0)== 0xF0) {
         buff = buff.substr(0, sz - 2);
         buffer = utf[1];
@@ -404,7 +403,7 @@ bool jag_editor::check_utf8(string& buff, string& buffer) {
         buffer += utf[3];
         return true;
     }
-    
+
     return false;
 }
 
@@ -618,73 +617,81 @@ void jag_editor::resetscrolling() {
     cout << buffer;
 }
 
-long jag_editor::taille(wstring& s) {
+long jag_editor::sizestring(wstring& s) {
     long sz = s.size();
+    long szstr = 0;
+    for (long i = 0; i < sz; i++) {
+        if (!scan_emoji(s, i)) {
+            getachar(s, i);
+        }
+        szstr++;
+    }
+    return szstr;
+}
+
+long jag_editor::size_upto(wstring& s, long p) {
     long pref = prefixego() + 1;
     long pos = pref;
-    for (long i = 0; i < sz; i++) {
-        if (c_is_emoji(s[i])) {
+    TAMGUCHAR c;
+    for (long i = 0; i < p; i++) {
+        if (scan_emoji(s, i))
             pos += 2;
-            continue;
+        else {
+            c = getachar(s, i);
+            if (ckjchar(c)) {
+                pos += 2;
+            }
+            else {
+                if (c == 9) //tab position
+                    pos += (8 - (pos%8))%8;
+                pos++;
+            }
         }
-        if (ckjchar(s[i])) {
-            pos += 2;
-            continue;
-        }
-        if (s[i] == 9) //tab position
-            pos += (8 - (pos%8))%8;
-        pos++;
     }
     return (pos-pref);
 }
 
-string jag_editor::coloringline(wstring& l, long p, bool select) {
+long jag_editor::taille(wstring& s) {
+    long sz = s.size();
+    long pref = prefixego() + 1;
+    long pos = pref;
+    TAMGUCHAR c;
+    for (long i = 0; i < sz; i++) {
+        if (scan_emoji(s, i))
+            pos += 2;
+        else {
+            c = getachar(s, i);
+            if (ckjchar(c)) {
+                pos += 2;
+            }
+            else {
+                if (c == 9) //tab position
+                    pos += (8 - (pos%8))%8;
+                pos++;
+            }
+        }
+    }
+    return (pos-pref);
+}
+
+
+string jag_editor::coloringline(wstring& l, long current_pos, bool select) {
     string line = convert(l);
     
     string sub;
     string substring;
-    long ps;
     
-    if (p != -1 && p < longstrings.size()) {
-        
-        switch (longstrings[p]) {
-            case l_str:
-                sub = m_red;
-                sub += line;
-                sub += m_current;
-                return sub;
-            case l_com:
-                sub = m_green;
-                sub += line;
-                sub += m_current;
-                return sub;
-            case l_com_one:
-                if (line.find("//") == -1) { //Ok, it is always green
-                    sub = m_green;
-                    sub += line;
-                    sub += m_current;
-                    return sub;
-                }
-                break;
-            default:
-                if (longstrings[p] < 0 && !select) {
-                    ps = longstrings[p]*-1;
-                    ps--;
-                    substring = line.substr(0, ps);
-                    sub = substring;
-                    Trim(sub);
-                    if (sub == "") {//it is alone on a line
-                        sub = m_red;
-                        sub += line;
-                        sub += m_current;
-                        return sub;
-                    }
-                    
-                    substring = m_red;
-                    substring += line.substr(ps, line.size());
-                    substring += m_current;
-                    line = line.substr(0, ps);
-                }
+    if (current_pos >= 0 && current_pos < lines.longlines.size()) {
+        char long_line = lines.longlines[current_pos];
+        if (long_line == 1) {
+            line = colors[0] + line + m_current;
+            return line;
+        }
+        else {
+            if (long_line == 2) {
+                line = colors[4] + line + m_current;
+                return line;
+            }
         }
     }
     
@@ -989,50 +996,41 @@ void jag_editor::cleanlongemoji(wstring& s, wstring& cleaned, long p) {
     }
 }
 
-    //The deletion of a character is different if it is an emoji...
+//The deletion of a character is different if it is an emoji...
 long jag_editor::deleteachar(wstring& l, bool last, long pins) {
     if (l == L"")
         return pins;
-    long emoji = 0;
-    
-    long sz = size_c(l, emoji);
-    if (sz == l.size() || pins < emoji) {
-        if (last)
-            l.pop_back();
-        else
-            l.erase(pins, 1);
-        return pins;
-    }
 
-    //i is the first position of a potential emoji...
-    //emojis are after the current character,
-    long nb = 1;
     if (last) {
-        emoji = l.size() - 1;
-        if (c_is_emojicomp(l[emoji])) {
-            emoji--;
-            while (emoji > 0 && c_is_emojicomp(l[emoji])) {
-                nb++;
-                emoji--;
+        if (c_is_emojicomp(l.back())) {
+            long sz = l.size() - 2;
+            long i = sz;
+            while (sz >= 0 && !scan_emoji(l, i)) {
+                sz--;
+                i = sz;
             }
-            if (emoji >= 0 && !c_is_emoji(l[emoji]))
-                nb = 1;
+            if (sz >= 0) {
+                pins -= i - sz;
+                l.erase(i, sz - i + 1);
+            }
+            else
+                l.pop_back();
         }
+        l.pop_back();
+    }
+    else {
+        long nb = 0;
+        long i = pins;
+        long j = i;
+        if (scan_emoji(l, j)) {
+            nb += j - i;
+            i = j;
+        }
+        else
+            i++;
+        nb++;
         l.erase(pins, nb);
-        return pins;
     }
-    
-    emoji = pins;
-    
-    //Now we need to compute the exact position in characters
-    if (c_is_emoji(l[emoji])) {
-        emoji++;
-        while (c_is_emojicomp(l[emoji])) {
-            nb++;
-            emoji++;
-        }
-    }
-    l.erase(pins, nb);
     return pins;
 }
 
@@ -1040,7 +1038,7 @@ void jag_editor::deletechar(bool left) {
     long sz = line.size();
     bool last = false;
     if (posinstring >= sz - 1) {
-            //We need to known if we are in the middle of a large string across more than one line...
+            //We need to know if we are in the middle of a large string across more than one line...
         if (!emode())
             last = true;
         else {
@@ -1048,7 +1046,10 @@ void jag_editor::deletechar(bool left) {
                 last = true;
         }
     }
-    
+    bool emoji = false;
+    if (sizestring(line) != line.size())
+        emoji = true;
+
     if (!emode() || (posinstring >= 0 && posinstring < sz)) {
 
         if (emode()) {
@@ -1057,65 +1058,69 @@ void jag_editor::deletechar(bool left) {
         }
         else
             clearline();
-        bool emoji = false;
-        if (sizestring(line) != line.size())
-            emoji = true;
-            
+
         long pins = deleteachar(line, last, posinstring);
-        
+
         if (option != x_none) {
             displaygo(false);
             return;
         }
-        
+
         //We update our line
         if (emode()) {
-			long dif = pins - posinstring;
-			posinstring = pins;
+            long dif = pins - posinstring;
+            posinstring = pins;
+            if (!dif)
+                dif = 1;
 
             tobesaved = true;
-			lines[pos] = line;
-			//clearline();
-            
-            if (lines.Status(pos))
-                lines.refactoring(pos);
-            
-            //displaylist(poslines[0]);
-            //movetoline(currentline);
-            if (emoji) {
-                clearline();
-                printline(pos+1, line);
-                
+            lines[pos] = line;
+
+            if (lines.Status(pos)) {
+                if (lines.refactoring(pos)) {
+                    displaylist(poslines[0]);
+                    movetoline(currentline);
+                }
+                else {
+                    clearline();
+                    long p = pos + 1;
+                    if (lines.Status(pos) == concat_line)
+                        printline(-1, lines[pos], -1);
+                    else
+                        printline(p, lines[pos], -1);
+                    long cl = currentline + 1;
+                    while (lines.Status(p) == concat_line) {
+                        movetoline(cl++);
+                        clearline();
+                        printline(-1, lines[p], -1);
+                        p++;
+                    }
+                    movetoline(currentline);
+                }
             }
             else {
-                m_deletechar[2] = 48 + dif;
-                m_left[2] = 48 + dif;
-                if (left)
-                    cout << m_left << m_deletechar;
-                else
-                    cout << m_deletechar;
-                m_deletechar[2] = 49;
-                m_left[2] = 49;
+                clearline();
+                printline(pos+1, line, -1);
             }
-		}
+        }
         else {
-			posinstring = pins;
-            printline(pos+1, line);
+            posinstring = pins;
+            printline(pos+1, line, -1);
         }
 
         movetoposition();
     }
 }
 
-void jag_editor::deleteline(char moveup) {
-    
+void jag_editor::deleteline(char movingup) {
+
     if (lines.size() == 1 && lines[0].size() == 0) {
         init();
         return;
     }
-    
+
     tobesaved = true;
-    if (!moveup) {
+    if (!movingup) {
         //we delete the full line
         undo(lines[pos],pos, u_del); //deletion
         char update = lines.updatestatus(pos);
@@ -1127,7 +1132,7 @@ void jag_editor::deleteline(char moveup) {
             lines.erase(pos);
             lines.numbers();
         }
-        
+
         if (update != -1) {
             lines.status[pos] = concat_line;
             undo(lines[pos],pos, u_modif_linked); //status modification
@@ -1135,27 +1140,30 @@ void jag_editor::deleteline(char moveup) {
         }
 
         displaylist(poslines[0]);
-        
+        if (pos < lines.size())
+            line = lines[pos];
+        else
+            line = L"";
         movetoline(currentline);
         posinstring = 0;
         movetobeginning();
         return;
     }
-    
+
         //left top, cannot do anything
-    
+
         //We need to kill the current line, however it can be merged with the previous one if moveup is true...
         //We are at position currentline...
         //if the line above already belong to the same line, we kill the last character of that line above
     wstring code;
-    if (moveup == -1) { // the destruction was done with backspace
+    if (movingup == -1) { // the destruction was done with backspace
         if (!pos && !posinstring && !currentline)
             return;
-        
+
         char stat = lines.status[pos];
-        
+
         code =  lines[pos]; //our current line...
-        
+
             //We need to know if we are deleting a line or a subset of a line
         if (stat != concat_line) {
             if (stat == beg_line) {
@@ -1164,42 +1172,42 @@ void jag_editor::deleteline(char moveup) {
             }
             else
                 undo(lines[pos],pos, u_del); //deletion
-            
+
             lines.erase(pos); //here the line is deleted from our list of lines
             if (stat == beg_line)// it is a long line...
                 lines.status[pos] = concat_line;
-            
+
             if (currentline > 0)
                 pos = poslines[--currentline];
             else
                 resetlist(--pos);
-            
+
             undo(lines[pos], pos, u_modif_linked); //modification
             if (stat == beg_line) {
                 if (lines.Status(pos) == solo_line)
                     lines.status[pos] = beg_line;
             }
-            
+
             posinstring = lines[pos].size();
         }
         else {
             undo(lines[pos], pos, u_modif); //modification
             undo(lines[pos+1],pos+1, u_modif_linked); //we are modifying a multiple line
-            
+
             lines.erase(pos); //here the line is deleted from our list of lines
             if (currentline > 0)
                 pos = poslines[--currentline];
             else
                 resetlist(--pos);
-            
+
             undo(lines[pos],pos, u_modif_linked); //we are modifying a multiple line
-            
+
                 //we delete the last character on the previous line since this is one single string across different lines.
             posinstring = lines[pos].size() - 1;
             deleteachar(lines[pos], true, posinstring);
         }
-        
-        
+
+
         lines[pos] += code;
         line = lines[pos];
         //we merge the current line and the above line...
@@ -1230,7 +1238,7 @@ void jag_editor::deleteline(char moveup) {
                 return;
         }
     }
-    
+
     displaylist(poslines[0]);
     movetoline(currentline);
     movetoposition();
@@ -1358,111 +1366,6 @@ void jag_editor::displaygo(bool full) {
     }
 }
 
-void jag_editor::scanforlonglines() {
-    longstrings.clear();
-        //We check for comments and long lines
-    long r;
-    for (long i = 0; i < lines.size(); i++) {
-        if (lines[i].find(L"//") != -1) {
-            longstrings.push_back(l_com_one);
-            continue;
-        }
-        
-        if (ispy()) {
-            r = lines[i].find(L"\"\"\"");
-            if (r != -1) {
-                r++;
-                if (lines[i].find(L"\"\"\"", r) != -1) {
-longstrings.push_back(l_str);
-continue;
-				}
-				longstrings.push_back(r*-1);
-				i++;
-				while (i < lines.size() && lines[i].find(L"\"\"\"") == -1) {
-					longstrings.push_back(l_str);
-					i++;
-				}
-				longstrings.push_back(l_str);
-				continue;
-			}
-
-			r = lines[i].find(L"'''");
-			if (r != -1) {
-				r++;
-				if (lines[i].find(L"'''", r) != -1) {
-					longstrings.push_back(l_str);
-					continue;
-				}
-				longstrings.push_back(r*-1);
-				i++;
-				while (i < lines.size() && lines[i].find(L"'''") == -1) {
-					longstrings.push_back(l_str);
-					i++;
-				}
-				longstrings.push_back(l_str);
-				continue;
-			}
-		}
-
-		if (isc()) {
-			r = lines[i].find(L"/*");
-			if (r != -1) {
-				longstrings.push_back(l_com);
-				if (lines[i].find(L"*/", r) != -1)
-					continue;
-				i++;
-				while (i < lines.size() && lines[i].find(L"*/") == -1) {
-					longstrings.push_back(l_com);
-					i++;
-				}
-				longstrings.push_back(l_com);
-				continue;
-			}
-		}
-		else {
-			if (lines[i][0] == '#') {
-				longstrings.push_back(l_com);
-				continue;
-			}
-		}
-
-		if (istamgu()) {
-			r = lines[i].find(L"/@");
-			if (r != -1) {
-				longstrings.push_back(l_com);
-				if (lines[i].find(L"@/", r) != -1)
-					continue;
-				i++;
-				while (i < lines.size() && lines[i].find(L"@/") == -1) {
-					longstrings.push_back(l_com);
-					i++;
-				}
-				longstrings.push_back(l_com);
-				continue;
-			}
-
-			r = lines[i].find(L"@\"");
-			if (r != -1) {
-				r++;
-				if (lines[i].find(L"\"@", r) != -1) {
-					longstrings.push_back(l_str);
-					continue;
-				}
-
-				longstrings.push_back(r*-1);
-				i++;
-				while (i < lines.size() && lines[i].find(L"\"@") == -1) {
-					longstrings.push_back(l_str);
-					i++;
-				}
-				longstrings.push_back(l_str);
-				continue;
-			}
-		}
-		longstrings.push_back(0);
-	}
-}
-
 void jag_editor::Scrolldown() {
 	//From currentline down, pos is the new line number...
     long ps = currentline + 1;
@@ -1505,18 +1408,15 @@ void jag_editor::displaylist(long beg) {
     x_option g = option;
     option = x_none;
         
-    if (modified) {
-        scanforlonglines();
-        modified = false;
-    }
-    
+    modified = false;
+    lines.detectlongstrings(filetype);
     if (!lines.updatesize()) {
         if (poslines.size() && beg == poslines[0] && currentline && insertaline) {
             Scrolldown();
             return;
         }
     }
-
+    
 	poslines.clear();
 
     stringstream blk;
@@ -2163,36 +2063,38 @@ void jag_editor::processundos() {
     movetoposition();
 }
 
-    //The main problem here is that emojis can be composed...
-    //An emoji can be composed of up to 7 emojis...
+//The main problem here is that emojis can be composed...
+//An emoji can be composed of up to 7 emojis...
 void jag_editor::forwardemoji() {
-    if (c_is_emoji(line[posinstring])) {
-        posinstring++;
-        while (c_is_emojicomp(line[posinstring]))
-            posinstring++;
-    }
-    else
-        posinstring++;
+    scan_emoji(line, posinstring);
+    posinstring++;
 }
 
 void jag_editor::backwardemoji() {
     posinstring--;
-    long i = 0;
-    if (!check_large_char(WSTR(line), line.size(), i))
-        return;
-
-    if (posinstring < i)
+    if (posinstring < 0)
         return;
     
-    i = posinstring;
-    if (c_is_emojicomp(line[i])) {
-        i--;
-        while (i > 0 && c_is_emojicomp(line[i]))
-            i--;
-        if (i >= 0 && c_is_emoji(line[i]))
-            posinstring = i;
+    long p = 0;
+    for (long i = 0; i < line.size(); i++) {
+        p = i;
+        if (!scan_emoji(line, p)) {
+            getachar(line, p);
+            if (p >= posinstring) {
+                posinstring = i;
+                return;
+            }
+        }
+        else {
+            if (p >= posinstring) {
+                posinstring = i;
+                return;
+            }
+        }
+        i = p;
     }
 }
+
 
 bool jag_editor::evaluateescape(string& buff) {
 
@@ -3172,16 +3074,31 @@ void jag_editor::launchterminal(char loadedcode) {
 
 //---------------------------------------------------------------------------------
 
-void editor_lines::setcode(wstring& code) {
+void editor_lines::setcode(wstring& code, bool clean) {
+    if (code == L"")
+        return;
+
     vector<wstring> buff;
     status.clear();
-    jag->vsplit(code, L"\n", buff);
     lines.clear();
     numeros.clear();
+    longlines.clear();
+
+    jag->vsplit(code, L"\n", buff);
+    jag->setprefixesize(buff.size());
+    if (!buff.size())
+        return;
+
     long u;
     vector<wstring> subs;
-    if (buff.back() == L"")
-        buff.pop_back();
+
+    if (clean) {
+        while (buff.back() == L"") {
+            buff.pop_back();
+        }
+
+        buff.push_back(L"");
+    }
 
     for (long i = 0; i < buff.size(); i++) {
         numeros.push_back(i + 1);
@@ -3191,7 +3108,7 @@ void editor_lines::setcode(wstring& code) {
             subs.clear();
             continue;
         }
-        
+
         lines.push_back(subs[0]);
         status.push_back(beg_line);
         for (u = 1; u < subs.size(); u++) {
@@ -3201,7 +3118,7 @@ void editor_lines::setcode(wstring& code) {
         }
         subs.clear();
     }
-    
+
     updatesize();
 }
 
@@ -3221,28 +3138,29 @@ void editor_lines::undo(wstring& l, long p, char a) {
     jag->undo(l,p,a);
 }
 
-void editor_lines::refactoring(long pos) {
+bool editor_lines::refactoring(long pos) {
     long p = pos;
         //First we look for the first line of our group
     if (Status(p) == concat_line) {
         while (Status(p) != beg_line) p--;
     }
-    
+
         //We keep this track...
     long first = p;
     wstring baseline = lines[p++];
-    
-        //It was not at the beginning of a line, we concatenate our block
+
+    //It was not at the beginning of a line, we concatenate our block
     while (Status(p) == concat_line)
         baseline += lines[p++];
-    
-    if (baseline == L"")
-        return;
-    
+
+    if (baseline == L"") {
+        return false;
+    }
+
     //We then clean all these lines...
-    
+
     editor_lines sublines(jag);
-    sublines.setcode(baseline);
+    sublines.setcode(baseline, false);
     //same number of lines
     long i;
     for (i = 0; i < sublines.size(); i++) {
@@ -3256,14 +3174,17 @@ void editor_lines::refactoring(long pos) {
             insert(first, sublines[i], sublines.status[i]);
         first++;
     }
-    
+
+    bool delete_line = false;
     while (first < p) {
+        delete_line = true;
         jag->undo(lines[first], first, u_del_linked);
         erase(first);
         p--;
     }
 
     numbers();
+    return delete_line;
 }
 
 char editor_lines::updatestatus(long pos) {
@@ -3287,3 +3208,44 @@ bool editor_lines::updatesize() {
 }
 
 ///------------------------------------------------------------------------------------
+long jag_editor::splitline(wstring& l, long linenumber, vector<wstring>& subs) {
+    //we compute the position of each segment of l on string...
+
+    long sz = prefixe();
+
+    if ((l.size() + sz) < (col_size / 2)) {
+        subs.push_back(l);
+        return 1;
+    }
+
+    wstring code;
+    TAMGUCHAR c;
+
+    for (long i = 0; i < l.size(); i++) {
+        if (store_emoji(l, code, i))
+            sz++;
+        else {
+            c = getachar(l, i);
+            concat_char_check_utf16(code, c);
+            if (c == 9) {//tab position
+                sz += (8 - (sz%8))%8;
+                sz--;
+            }
+            else {
+                if (ckjchar(c)) //double space on screen
+                    sz++;
+            }
+        }
+        sz++;
+        if (sz >= col_size) {
+            subs.push_back(code);
+            code = L"";
+            sz = prefixe();
+        }
+    }
+
+    if (code != L"" || !subs.size())
+        subs.push_back(code);
+
+    return subs.size();
+}

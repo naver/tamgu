@@ -541,7 +541,7 @@ Tamgu* Tamguustring::MethodBPE(Tamgu* contextualpattern, short idthread, TamguCa
         wstring r;
         contextualpattern->Clear();
         if (contextualpattern->Type() == Tamgumapui::idtype) {
-            for (auto& key : values) {
+            for (const auto& key : values) {
                 if (key.second >= threshold) {
                     ((Tamgumapui*)contextualpattern)->values[key.first] = key.second;
                 }
@@ -552,7 +552,7 @@ Tamgu* Tamguustring::MethodBPE(Tamgu* contextualpattern, short idthread, TamguCa
             us.Setreference();
             Tamguint tint(0);
             tint.Setreference();
-            for (auto& key : values) {
+            for (const auto& key : values) {
                 if (key.second >= threshold) {
                     tint.value =  key.second;
                     contextualpattern->Push(key.first, &tint);
@@ -562,7 +562,7 @@ Tamgu* Tamguustring::MethodBPE(Tamgu* contextualpattern, short idthread, TamguCa
     }
     else {
         contextualpattern = new Tamgumapui;
-        for (auto& key : values) {
+        for (const auto& key : values) {
             if (key.second >= threshold) {
                 ((Tamgumapui*)contextualpattern)->values[key.first] = key.second;
             }
@@ -2249,13 +2249,8 @@ void Tamguustring::Pop(long i) {
         return;
     }
     i = j;
-    if (c_is_emoji(getachar(value, j))) {
-        j++;
-        while (c_is_emojicomp(getachar(value, j)))
-            j++;
-    }
-    else
-        j++;
+    scan_emoji(value, j);
+    j++;
     value.erase(i, j-i);
 }
 #endif
@@ -4310,13 +4305,8 @@ void Tamgua_ustring::Pop(long i) {
         return;
     }
     i = j;
-    if (c_is_emoji(getachar(w, j))) {
-        j++;
-        while (c_is_emojicomp(getachar(w, j)))
-            j++;
-    }
-    else
-        j++;
+    scan_emoji(w, j);
+    j++;
     w.erase(i, j-i);
     value = w;
 }

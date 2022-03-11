@@ -776,7 +776,7 @@ Tamgu* ProcAllObjects(Tamgu* contextualpattern, short idthread, TamguCall* callf
 
 
     vs->values.clear();
-    for (auto& it : inter)
+    for (const auto& it : inter)
         vs->values.push_back(it.first);
     return vs;
 }
@@ -835,7 +835,7 @@ Tamgu* ProcAllObjectByType(Tamgu* contextualpattern, short idthread, TamguCall* 
     m->pushing(value, vs);
     
     vs = globalTamgu->Providesvector();
-    for (auto& it : inter) {
+    for (const auto& it : inter) {
         if (it.second)
             vs->values.push_back(it.first);
     }

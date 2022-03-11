@@ -16,7 +16,7 @@
 
 #include <stdio.h>
 
-
+#include <set>
 #include "tamgu.h"
 #include "compilecode.h"
 #include "x_node.h"
@@ -423,7 +423,7 @@ extern "C" {
         }
     }
     
-    void Keywords(hmap<string,bool>& names) {
+    void Keywords(std::set<wstring>& names) {
         bool tobecleaned=false;
         if (!TamguSelectglobal(0)) {
             TamguCreateGlobal();
@@ -435,15 +435,17 @@ extern "C" {
         if (tobecleaned)
             TamguDeleteGlobal(0);
         
-        
-        for (int i = 0; i < vs.size(); i++)
-            names[vs[i]]=true;
+        wstring w;
+        for (int i = 0; i < vs.size(); i++) {
+            sc_utf8_to_unicode(w, USTR(vs[i]), vs[i].size());
+            names.insert(w);
+        }
     }
     
-    long* colorparser(const char* txt, long from, long upto) {
-        static hmap<string,bool> keys;
+    long* colorparser(uint16_t* text, long from, long upto) {
+        static std::set<wstring> keys;
         static vector<long> limits;
-        static x_coloringrule xr;
+        static x_wcoloringrule xr;
         static bool init=false;
         
         if (!init) {
@@ -451,20 +453,24 @@ extern "C" {
             Keywords(keys);
         }
         
+        long i;
+        wstring txt;
+        for (long i = 0; i < upto; i++)
+            txt += (wchar_t)text[i];
+        
         xr.tokenize(txt, true);
         
         char type;
-        long gauche = 0,droite = 0,i, droiteutf16 = 0;
+        long gauche = 0,droite = 0;
         long sz=xr.stack.size();
-        string sub;
-        long offsetdrift = 0;
+        wstring sub;
         limits.clear();
         
         for (i=0;i<sz;i++) {
             type=xr.stacktype[i];
             if (!type)
                 continue;
-            gauche=xr.cpos[i] + offsetdrift;
+            gauche=xr.cpos[i];
             
             if (type == 5) {
                 if (xr.stack[i][1] == '/') {
@@ -478,13 +484,7 @@ extern "C" {
             }
             
             //The strings in the mac GUI are encoded in UTF16
-            droiteutf16 = size_utf16(USTR(xr.stack[i]), xr.stack[i].size(), droite);
-            if (droiteutf16 > droite) {
-                //if droiteutf16 is larger, then it means that a wide UTF16 character was detected
-                //we keep the difference in offsetdrift to propagate it
-                offsetdrift += droiteutf16 - droite;
-                droite = droiteutf16;
-            }
+            droite = xr.stack[i].size();
                         
             switch(type) {
                 case 1:

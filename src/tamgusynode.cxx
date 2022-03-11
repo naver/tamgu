@@ -388,14 +388,14 @@ Exporting Tamgu* TamguCallsynode::Put(Tamgu* actual, Tamgu* value, short idthrea
         if (asyn->features == aNULL)
             return aFALSE;
         hmap<string,string>& asynfeat = ((Tamgumapss*)asyn->features)->values;
-        for (auto& it : ((Tamgumapss*)features)->values) {
+        for (const auto& it : ((Tamgumapss*)features)->values) {
             if (asynfeat.find(it.first) != asynfeat.end())
                 asynfeat.erase(it.first);
         }
         return aTRUE;
     }
     Tamgumapss feats;
-    for (auto& it : ((Tamgumapss*)features)->values)
+    for (const auto& it : ((Tamgumapss*)features)->values)
         feats.values[it.first] = vstr;
     return asyn->plus(&feats, true);
 }

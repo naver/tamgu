@@ -463,7 +463,7 @@ public:
         
         string rep;
         string fd;
-        for (auto& k : metalines) {
+        for (const auto& k : metalines) {
             if (line.find(k.first) != -1) {
                 fd = k.first;
                 rep = k.second;
@@ -1025,7 +1025,7 @@ public:
 
         wstring rep;
         wstring fd;
-        for (auto& k : metalines) {
+        for (const auto& k : metalines) {
             if (line.find(k.first) != -1) {
                 fd = k.first;
                 rep = k.second;

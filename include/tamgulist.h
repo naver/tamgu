@@ -148,7 +148,7 @@ class Tamgulist : public TamguObjectLockContainer {
 
     
     void Methods(Tamgu* v) {
-        for (auto& it : infomethods)
+        for (const auto& it : infomethods)
             v->storevalue(it.first);
     }
     
@@ -165,7 +165,7 @@ class Tamgulist : public TamguObjectLockContainer {
             Tamgulist* v = new Tamgulist;
             locking();
 
-            for (auto& it : values)
+            for (const auto& it : values)
                 v->Push(it);
             unlocking();
             return v;
@@ -183,7 +183,7 @@ class Tamgulist : public TamguObjectLockContainer {
         
         usermark=false;
 
-        for (auto& it : values)
+        for (const auto& it : values)
             it->unmark();
         
         unlockingmark();
@@ -201,7 +201,7 @@ class Tamgulist : public TamguObjectLockContainer {
         protect = n;
 
 
-        for (auto& it : values)
+        for (const auto& it : values)
             it->Setprotect(n);
 
         unlockingmark();
@@ -214,7 +214,7 @@ class Tamgulist : public TamguObjectLockContainer {
         
         protect = true;
 
-        for (auto& it : values)
+        for (const auto& it : values)
             it->Setprotect(true);
         
         unlockingmark();
@@ -228,7 +228,7 @@ class Tamgulist : public TamguObjectLockContainer {
         if (Reference() <= 0)
             protect = true;
 
-        for (auto& it : values)
+        for (const auto& it : values)
             it->Popping();
         unlockingmark();
     }
@@ -281,7 +281,7 @@ class Tamgulist : public TamguObjectLockContainer {
     Tamgu* MethodMin(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         Tamgu* m = NULL;
         bool first = true;
-        for (auto& it : values) {
+        for (const auto& it : values) {
             if (first) {
                 m = it;
                 first = false;
@@ -297,7 +297,7 @@ class Tamgulist : public TamguObjectLockContainer {
     Tamgu* MethodMax(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         Tamgu* m = NULL;
         bool first = true;
-        for (auto& it : values) {
+        for (const auto& it : values) {
             if (first) {
                 m = it;
                 first = false;
@@ -314,7 +314,7 @@ class Tamgulist : public TamguObjectLockContainer {
         Tamgu* mn = NULL;
         Tamgu* mx = NULL;
         bool first = true;
-        for (auto& it : values) {
+        for (const auto& it : values) {
             if (first) {
                 mn = it;
                 mx = mn;
@@ -374,7 +374,7 @@ class Tamgulist : public TamguObjectLockContainer {
         bool beg = true;
         string res;
 
-        for (auto& it : values) {
+        for (const auto& it : values) {
             if (beg == false)
                 res += sep;
             beg = false;
@@ -613,7 +613,7 @@ class Tamgulist : public TamguObjectLockContainer {
         
         double v = 1;
 
-        for (auto& it : values) {
+        for (const auto& it : values) {
             if (n == j)
                 break;
             if (n >= i)
@@ -631,7 +631,7 @@ class Tamgulist : public TamguObjectLockContainer {
             return 0;
         double v = 0;
 
-        for (auto& it : values)
+        for (const auto& it : values)
             v += it->Float();
         unlocking();
        return v;
@@ -645,7 +645,7 @@ class Tamgulist : public TamguObjectLockContainer {
         }
         double v = 1;
 
-        for (auto& it : values)
+        for (const auto& it : values)
             v += it->Float();
         unlocking();
         return v;
@@ -929,7 +929,7 @@ public:
     
     
     void Methods(Tamgu* v) {
-        for (auto& it : infomethods)
+        for (const auto& it : infomethods)
             v->storevalue(it.first);
     }
 

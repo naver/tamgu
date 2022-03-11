@@ -97,7 +97,7 @@ class Tamgusocket : public TamguObject {
 
 	void Methods(Tamgu* v) {
 
-		for (auto& it : infomethods)
+		for (const auto& it : infomethods)
 			v->storevalue(it.first);
 	}
 
@@ -207,7 +207,7 @@ class Tamgusocket : public TamguObject {
 		if (hp != NULL && sock != -1) {
 			closesock(sock);
 
-			for (auto& it : socketclients)
+			for (const auto& it : socketclients)
 				closesock(it.first);
 			socketclients.clear();
 		}

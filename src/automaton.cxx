@@ -315,7 +315,7 @@ bool TamguState::compile(string name, TamguDoubleSideAutomaton& a) {
 	v.v = sorted.size();
 	dump.write(v.b, 2);
 
-	for (auto& its : sorted) {
+	for (const auto& its : sorted) {
 		v.v = its.second.size();
 		dump.write(v.b, 2);
 		dump.write(its.second.c_str(), its.second.size());
@@ -488,7 +488,7 @@ bool TamguState::addmap(hmap<string, string>& lexicon, TamguDoubleSideAutomaton&
 	long compte = 0;
 	long fpos = 0;
 
-	for (auto& it : lexicon) {
+	for (const auto& it : lexicon) {
 		w = it.first;
 		l = it.second;
 		if (w.size() && l.size()) {
@@ -1375,7 +1375,7 @@ void TamguDoubleSideAutomaton::merge(TamguDoubleSideAutomaton* a) {
     hmap<unsigned short, unsigned short> conversion;
     //We check each code to see if it appears in a
     bool diff=false;
-    for (auto& it: alphabet) {
+    for (const auto& it: alphabet) {
         if (a->alphabet.find(it.first) != a->alphabet.end()) {
             //This character in our automaton occurs in "a" alphabet...
             conversion[a->alphabet[it.first]] = it.second;
@@ -1385,7 +1385,7 @@ void TamguDoubleSideAutomaton::merge(TamguDoubleSideAutomaton* a) {
         }
     }
 
-    for (auto& it: a->alphabet) {
+    for (const auto& it: a->alphabet) {
         if (alphabet.find(it.first) == alphabet.end()) {
             if (ialphabet.check(it.second)) {
                 //This is already a code in the current automaton, we need to create a new one
@@ -1423,7 +1423,7 @@ void TamguDoubleSideAutomaton::merge(TamguDoubleSideAutomaton* a) {
         }
     }
 
-    for (auto& u : a->multis) {
+    for (const auto& u : a->multis) {
         if (multis.find(u.first) == multis.end()) {
             multis[u.first] = u.second;
             sortedmultis.push_back(u.first);
@@ -1519,7 +1519,7 @@ bool TamguDoubleSideAutomaton::process(charRead& w, vector<string>& readings, bo
             
             readings.clear();
             readings.push_back(surface);
-            for (auto& a : adding) {
+            for (const auto& a : adding) {
                 if (a.first != surface)
                     readings.push_back(a.first);
             }
@@ -2733,7 +2733,7 @@ void TamguDoubleSideAutomaton::fillencoding(bool add) {
 	
     encoding.clear();
     decoding.clear();
-	for (auto& it : alphabet) {
+	for (const auto& it : alphabet) {
 		agnostring s(it.first);
 		if (s.sizec() == 1) {
 			ushort p = s.nextcode();

@@ -45,7 +45,7 @@ static hmap<string, string> throughvariabletype;
 
 void RetrieveThroughVariables(string& declaration) {
     declaration += "\n";
-    for (auto& u : throughvariabletype) {
+    for (const auto& u : throughvariabletype) {
         declaration += u.second;
         declaration += " ";
         declaration += u.first;
@@ -55,7 +55,7 @@ void RetrieveThroughVariables(string& declaration) {
 
 void RetrieveThroughVariables(wstring& decl) {
     string declaration = "\n";
-    for (auto& u : throughvariabletype) {
+    for (const auto& u : throughvariabletype) {
         declaration += u.second;
         declaration += " ";
         declaration += u.first;
@@ -2606,7 +2606,7 @@ void AThread(TamguThreadCall* call) {
     
     globalTamgu->Clearfibres(idthread);
 
-	for (auto& it : globalTamgu->threads[idthread].locks)
+	for (const auto& it : globalTamgu->threads[idthread].locks)
 		it.second->Unlocking();
 	globalTamgu->threads[idthread].locks.clear();
 	globalTamgu->threads[idthread].Clearknowledgebase();

@@ -995,7 +995,7 @@ Exporting Tamgu*  Tamgutable::Put(Tamgu* idx, Tamgu* value, short idthread) {
             Clear();
             Resize(value->Size());
             {
-                for (auto& it : kvect->values)
+                for (const auto& it : kvect->values)
                     Pushing(it);
             }
             return aTRUE;

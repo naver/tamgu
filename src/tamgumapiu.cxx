@@ -146,7 +146,7 @@ Exporting Tamgu* Tamgumapiu::MethodFind(Tamgu* context, short idthread, TamguCal
     
     if (context->isBoolean()) {
         Locking _lock(this);
-        for (auto& it : values) {
+        for (const auto& it : values) {
             if (it.second == val)
                 return aTRUE;
         }
@@ -155,7 +155,7 @@ Exporting Tamgu* Tamgumapiu::MethodFind(Tamgu* context, short idthread, TamguCal
     if (context->isVectorContainer()) {
         Tamguivector* v = (Tamguivector*)Selectaivector(context);
         Doublelocking _lock(this, v);
-        for (auto& it : values) {
+        for (const auto& it : values) {
             if (it.second == val)
                 v->values.push_back(it.first);
         }
@@ -163,7 +163,7 @@ Exporting Tamgu* Tamgumapiu::MethodFind(Tamgu* context, short idthread, TamguCal
     }
     
     Locking _lock(this);
-    for (auto& it : values) {
+    for (const auto& it : values) {
         if (it.second == val)
             return globalTamgu->ProvideConstint(it.first);
     }
@@ -324,7 +324,7 @@ Exporting Tamgu*  Tamgumapiu::Put(Tamgu* idx, Tamgu* ke, short idthread) {
             values.clear();
             long nb = 0;
 
-            for (auto& it : kvect->values) {
+            for (const auto& it : kvect->values) {
                 values[nb] = it->UString();
                 nb++;
             }
@@ -482,7 +482,7 @@ Exporting Tamgu* Tamgumapiu::xorset(Tamgu* b, bool itself) {
         res = new Tamgumapiu;
         hmap<long, wstring> keys;
 
-        for (auto& it : values)
+        for (const auto& it : values)
             keys[it.first] = it.second;
             
         long v;
@@ -497,7 +497,7 @@ Exporting Tamgu* Tamgumapiu::xorset(Tamgu* b, bool itself) {
         }
         itr->Release();
 
-        for (auto& a : keys)
+        for (const auto& a : keys)
             res->values[a.first]= a.second;
 
         return res;

@@ -629,7 +629,7 @@ Exporting Tamgu* Tamgumap::MethodFind(Tamgu* context, short idthread, TamguCall*
 
 Exporting void Tamgumap::Cleanreference(short inc) {
     locking();
-    for (const auto& a : values)
+    for (auto& a : values)
         a.second->Removecontainerreference(inc);
 
     unlocking();

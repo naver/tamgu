@@ -342,7 +342,7 @@ TamguDependency::TamguDependency(TamguGlobal* g, Tamgu* f, short n, short id) : 
     if (f->Type() == a_mapss) {
         features = globalTamgu->Providemapss();
         string key;
-        for (auto& it : ((Tamgumapss*)f)->values) {
+        for (const auto& it : ((Tamgumapss*)f)->values) {
             key = it.first;
             if (key[0] == '~' || it.second == "~")
                 continue;
@@ -670,7 +670,7 @@ Tamgu* TamguDependencyKnowledgeBaseFunction::same(Tamgu* a) {
         hmap<string, string >& values = ((Tamgumapss*)feats)->values;
         hmap<string, string >& avalues = ((Tamgumapss*)features)->values;
 
-        for (auto& it : values) {
+        for (const auto& it : values) {
             neg = false;
             key = it.first;
             if (key[0] == '~') {
@@ -883,7 +883,7 @@ void TamguDependency::Setfeatures(Tamgu* feats) {
     string key;
     string val;
 
-    for (auto& it : ((Tamgumapss*)feats)->values) {
+    for (const auto& it : ((Tamgumapss*)feats)->values) {
         key = it.first;
         val = it.second;
         if (key[0] == '=')
@@ -912,7 +912,7 @@ bool TamguDependency::Unify(TamguDeclaration* dom, Tamgu* a) {
             if (features->Size() != 0) {
                 //In this case, all features should be negative...
                 hmap<string, string >& values = ((Tamgumapss*)features)->values;
-                for (auto& it : values) {
+                for (const auto& it : values) {
                     if (it.second != "~")
                         return false;
                 }
@@ -928,7 +928,7 @@ bool TamguDependency::Unify(TamguDeclaration* dom, Tamgu* a) {
                 if (features->Size() != 0) {
                     //In this case, all features should be negative...
                     hmap<string, string >& values = ((Tamgumapss*)features)->values;
-                    for (auto& it : values) {
+                    for (const auto& it : values) {
                         if (it.second != "~")
                             return false;
                     }
@@ -944,7 +944,7 @@ bool TamguDependency::Unify(TamguDeclaration* dom, Tamgu* a) {
 
                 hmap<string, string >& avalues = ((Tamgumapss*)feat)->values;
                 hmap<string, string > assignation;
-                for (auto& it : values) {
+                for (const auto& it : values) {
                     aff = false;
                     neg = false;
                     key = it.first;
@@ -989,7 +989,7 @@ bool TamguDependency::Unify(TamguDeclaration* dom, Tamgu* a) {
                         }
                     }
                 }
-                for (auto& it : assignation) {
+                for (const auto& it : assignation) {
                     if (it.second == "~")
                         avalues.erase(it.first);
                     else

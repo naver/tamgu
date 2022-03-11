@@ -894,7 +894,7 @@ Tamgu* Tamguannotator::MethodCheckWord(Tamgu* contextualpattern, short idthread,
     wstring w=callfunc->Evaluate(0,contextualpattern,idthread)->UString();
     if (contextualpattern->isContainer()) {
         Tamguuvector*  uvect=(Tamguuvector*)Selectauvector(contextualpattern);
-        for (auto& e: contexts[idthread].labels) {
+        for (const auto& e: contexts[idthread].labels) {
             if (e.second.find(w) == e.second.end())
                 uvect->storevalue(e.first);
         }
@@ -909,7 +909,7 @@ Tamgu* Tamguannotator::MethodCheckWord(Tamgu* contextualpattern, short idthread,
 Tamgu* Tamguannotator::MethodLabels(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     Locking _lock(this);
     Tamgu* vect=Selectauvector(contextualpattern);
-    for (auto& a: contexts[idthread].labels)
+    for (const auto& a: contexts[idthread].labels)
         vect->storevalue(a.first);
     return vect;
 }
@@ -919,9 +919,9 @@ Tamgu* Tamguannotator::MethodWords(Tamgu* contextualpattern, short idthread, Tam
     Locking _lock(this);
     
     Tamgu* vect=Selectauvector(contextualpattern);
-    for (auto& l: contexts[idthread].lemmaToword) {
+    for (const auto& l: contexts[idthread].lemmaToword) {
         vect->storevalue(l.first);
-        for (auto& w: l.second)
+        for (const auto& w: l.second)
             vect->storevalue(w.first);
     }
     return vect;
@@ -975,7 +975,7 @@ Tamgu* Tamguannotator::MethodToken(Tamgu* contextualpattern, short idthread, Tam
 
 Tamgu* Tamguannotator::MethodSelection(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     Tamgu* uvect=Selectauvector(contextualpattern);
-    for (auto& s: selections)
+    for (const auto& s: selections)
         uvect->storevalue(s.first);
     return uvect;
 }

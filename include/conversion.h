@@ -128,9 +128,12 @@ union w_u_char {
 #define shiftint 32
 #endif
 
+class UTF8_Handler;
 //--------------------- Main Initialization, to be launched before using any of the following methods...
 Exporting void inittableutf8();
-
+Exporting UTF8_Handler* create_utf8_handler();
+Exporting void set_utf8_handler(UTF8_Handler* u);
+Exporting void clean_utf8_handler();
 //--------------------- Code Indention
 Exporting void IndentCode(string& codestr, string& codeindente, long blancs, bool lisp = false, bool taskel = true);
 Exporting void IndentationCode(string& codestr, string& codeindente, bool lisp, bool taskel = true);
@@ -197,8 +200,8 @@ Exporting wstring wconvertfromnumber(float l);
 //--------------------- Conversions
 Exporting bool valid_latin_table(short table);
 
-void s_EvaluateMetaCharacters(wstring& s);
-void s_EvaluateMetaCharacters(string& s);
+Exporting void s_EvaluateMetaCharacters(wstring& s);
+Exporting void s_EvaluateMetaCharacters(string& s);
 
 Exporting bool s_is_utf8(unsigned char* contenu, long longueur);
 
@@ -251,16 +254,16 @@ Exporting void s_latin_to_utf8(string& res, unsigned char* contenu, long sz);
 Exporting void s_latin_to_unicode(wstring& res, unsigned char* contenu, long sz);
 
 //---------------------Korean Manipulation
-bool s_is_hangul(wstring& w);
-bool s_is_jamo(wstring& w);
-wstring s_split_jamo(wstring& w);
-wstring s_combine_jamo(wstring& w);
-bool c_is_hangul(TAMGUCHAR c);
-bool c_is_hangul(unsigned char* m, long& i);
-bool c_is_hangul(string& s);
-wstring s_hangul_normalize(wstring& w);
-string c_translate(TAMGUCHAR c);
-string c_translate(unsigned char* m, long& i);
+Exporting bool s_is_hangul(wstring& w);
+Exporting bool s_is_jamo(wstring& w);
+Exporting wstring s_split_jamo(wstring& w);
+Exporting wstring s_combine_jamo(wstring& w);
+Exporting bool c_is_hangul(TAMGUCHAR c);
+Exporting bool c_is_hangul(unsigned char* m, long& i);
+Exporting bool c_is_hangul(string& s);
+Exporting wstring s_hangul_normalize(wstring& w);
+Exporting string c_translate(TAMGUCHAR c);
+Exporting string c_translate(unsigned char* m, long& i);
 //--------------------- UNICODE Manipulation
 Exporting bool b_alpha(TAMGUCHAR c);
 
@@ -278,6 +281,17 @@ Exporting char c_is_alpha(TAMGUCHAR c);
 Exporting TAMGUCHAR c_to_lower(TAMGUCHAR c);
 Exporting TAMGUCHAR c_to_upper(TAMGUCHAR c);
 
+Exporting bool scan_emoji(string& w, long& i);
+Exporting bool scan_emoji(wstring& w, long& i);
+Exporting bool scan_emoji(unsigned char* w, long& i);
+Exporting bool get_emoji(unsigned char* w, string& res, long& i);
+Exporting bool get_emoji(string& w, string& res, long& i);
+Exporting bool get_emoji(wstring& w, wstring& res, long& i);
+Exporting bool store_emoji(unsigned char* w, string& res, long& i);
+Exporting bool store_emoji(string& w, string& res, long& i);
+Exporting bool store_emoji(wstring& w, wstring& res, long& i);
+
+    
 Exporting bool c_is_emoji(TAMGUCHAR c);
 Exporting bool c_is_emojicomp(TAMGUCHAR c);
 Exporting bool c_is_emoji(unsigned char* m, long& i);
@@ -603,26 +617,16 @@ public:
 
     //In this case, we also take into account emojis and their complement
     string nextemoji() {
+        string s;
         charpos++;
-        TAMGUCHAR v;
-        bytepos += 1 + c_utf8_to_unicode((unsigned char*)c_str() + bytepos, v);
-        string s = c_unicode_to_utf8(v);
-        if (c_is_emoji(v)) {
-            //We check for complements...
-            long bp = bytepos + 1 + c_utf8_to_unicode((unsigned char*)c_str() + bytepos, v);
-            long cp = charpos + 1;
-            bool md = false;
-            while (c_is_emojicomp(v)) {
-                md = true;
-                s += c_unicode_to_utf8(v);
-                bp += 1 + c_utf8_to_unicode((unsigned char*)c_str() + bp, v);
-                cp++;
-            }
-            if (md) {
-                bytepos = bp;
-                charpos = cp;
-            }
+        long bp = bytepos;
+        if (!get_emoji((unsigned char*)c_str(), s, bp)) {
+            TAMGUCHAR v;
+            bytepos += 1 + c_utf8_to_unicode((unsigned char*)c_str() + bytepos, v);
+            s = c_unicode_to_utf8(v);
         }
+        else
+            bytepos = bp + 1;
         return s;
     }
     
@@ -1087,7 +1091,7 @@ wstring getfullchar(wstring& s, long& i);
 
 //--------------------------------------------------------------------------------------------------------
 class Fast_String {
-    uchar buff[33];
+    uchar buff[80];
     long lenneo;
     long ineo;
 
@@ -1185,29 +1189,10 @@ class Fast_String {
         ineo = 0;
         neo[ineo++] = m[i];
         long j = i;
-        if (nb == 3 && c_is_emoji(m, j)) {
-            neo[ineo++] = (char)m[i+1];
-            neo[ineo++] = (char)m[i+2];
-            neo[ineo++] = (char)m[i+3];
-            i = ++j;
-            while (c_is_emojicomp(m, j)) {
-                nb = c_test_utf8(m+i);
-                neo[ineo++] = (char)m[i];
-                switch (nb) {
-                    case 1:
-                        neo[ineo++] = (char)m[i+1];
-                        break;
-                    case 2:
-                        neo[ineo++] = (char)m[i+1];
-                        neo[ineo++] = (char)m[i+2];
-                        break;
-                    case 3:
-                        neo[ineo++] = (char)m[i+1];
-                        neo[ineo++] = (char)m[i+2];
-                        neo[ineo++] = (char)m[i+3];
-                }
-                i = ++j;
-            }
+        if (scan_emoji(m, j)) {
+            for (long u = i + 1; u <= j; u++)
+                add(m[u]);
+            add(0);
         }
         else {
             switch (nb) {
@@ -1223,8 +1208,8 @@ class Fast_String {
                     neo[ineo++] = (char)m[i+2];
                     neo[ineo++] = (char)m[i+3];
             }
+            neo[ineo] = 0;
         }
-        neo[ineo] = 0;
     }
 
     void addonechar(long i) {
@@ -1236,32 +1221,12 @@ class Fast_String {
             return;
         }
 
-        buff[0] = neo[i];
-        ineo = 1;
+        ineo = 0;
+        buff[ineo++] = neo[i];
         long j = i;
-        if (nb == 3 && c_is_emoji(neo, j)) {
-            buff[ineo++] = neo[i+1];
-            buff[ineo++] = neo[i+2];
-            buff[ineo++] = neo[i+3];
-            i = ++j;
-            while (c_is_emojicomp(neo, j)) {
-                nb = c_test_utf8(neo+i);
-                buff[ineo++] = neo[i];
-                switch (nb) {
-                    case 1:
-                        buff[ineo++] = neo[i+1];
-                        break;
-                    case 2:
-                        buff[ineo++] = neo[i+1];
-                        buff[ineo++] = neo[i+2];
-                        break;
-                    case 3:
-                        buff[ineo++] = neo[i+1];
-                        buff[ineo++] = neo[i+2];
-                        buff[ineo++] = neo[i+3];
-                }
-                i = ++j;
-            }
+        if (scan_emoji(neo, j)) {
+            for (long u = i + 1; u <= j; u++)
+                buff[ineo++] = neo[u];
         }
         else {
             switch (nb) {

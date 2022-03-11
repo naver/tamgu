@@ -1295,7 +1295,7 @@ Exporting Tamgu*  Tamguvector::Put(Tamgu* idx, Tamgu* value, short idthread) {
             //We copy all values from value to this
             Clear();
             Reserve(value->Size());
-            for (auto& it : kvect->values) {
+            for (const auto& it : kvect->values) {
                 idx = it;
                 idx = idx->AtomNoConst();
                 idx->Addreference(investigate,reference+1);
@@ -3845,7 +3845,7 @@ Exporting Tamgu*  Tamgua_vector::Put(Tamgu* idx, Tamgu* value, short idthread) {
             kvect->locking();
                 //We copy all values from value to this
             Clear();
-            for (auto& it : kvect->values)
+            for (const auto& it : kvect->values)
                 Push(it);
             
             kvect->unlocking();

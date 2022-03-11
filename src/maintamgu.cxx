@@ -448,8 +448,14 @@ public:
         else {
             if (noprefix)
                 cout << back << coloringline(l, i);
-            else
-                cout << back << m_dore << prefix << m_current << m_lightgray << std::setw(prefixsize) << n << "> " << m_current << coloringline(l, i);
+            else {
+                if (n == -1) {
+                    string space(prefixe(), ' ');
+                    cout << back << space << coloringline(l, i);
+                }
+                else
+                    cout << back << m_dore << prefix << m_current << m_lightgray << std::setw(prefixsize) << n << "> " << m_current << coloringline(l, i);
+            }
         }
     }
 
@@ -545,52 +551,6 @@ public:
         }
     }
 
-    //We detect long commented lines or long strings
-    void scanforlonglines() {
-        longstrings.clear();
-        //We check for comments and long lines
-        long r;
-        for (long i = 0; i < lines.size(); i++) {
-            if (lines[i].find(L"//") != -1) {
-                longstrings.push_back(l_com_one);
-                continue;
-            }
-            
-            r = lines[i].find(L"/@");
-            if (r != -1) {
-                longstrings.push_back(l_com);
-                if (lines[i].find(L"@/", r) != -1)
-                    continue;
-                i++;
-                while (i < lines.size() && lines[i].find(L"@/") == -1) {
-                    longstrings.push_back(l_com);
-                    i++;
-                }
-                longstrings.push_back(l_com);
-                continue;
-            }
-            
-            r = lines[i].find(L"@\"");
-            if (r != -1) {
-                if (lines[i].find(L"\"@", r) != -1) {
-                    longstrings.push_back(l_str);
-                    continue;
-                }
-                
-                longstrings.push_back((r+1)*-1);
-                i++;
-                while (i < lines.size() && lines[i].find(L"\"@") == -1) {
-                    longstrings.push_back(l_str);
-                    i++;
-                }
-                longstrings.push_back(l_str);
-                continue;
-            }
-
-            longstrings.push_back(0);
-        }
-    }
-    
     void displaylist(long beg, long end) {
 		if (!lines.size()) {
 			clearline();
@@ -604,13 +564,10 @@ public:
         if (beg < 0)
             beg = 0;
         
-        if (modified) {
-            scanforlonglines();
-            modified = false;
-        }
+        modified = false;
+        lines.detectlongstrings(filetype);
 
         if (emode()) {
-            long nb = 0;
             x_option g = option;
             option = x_none;
             
@@ -749,7 +706,7 @@ public:
             cerr << m_redbold << "Create file space: " << thecurrentfilename << m_current <<" (" << currentfileid << ")" << endl;
             wstring c = L"\n";
             TamguSetCode(c);
-            lines.setcode(c);
+            lines.setcode(c, true);
         }
     }
     
@@ -816,7 +773,7 @@ public:
         }
         line = L"";
         posinstring = 0;
-        lines.setcode(code);
+        lines.setcode(code, false);
         return true;
 
     }
@@ -998,7 +955,7 @@ public:
                     Executesomecode(line);
                     
                     code = TamguUListing();
-                    lines.setcode(code);
+                    lines.setcode(code, false);
                     lines.pop_back();
                     code = lines.code();
                     TamguSetCode(code);
@@ -1083,7 +1040,7 @@ public:
                     editors_undos[i].storein(undos);
                     editors_redos[i].storein(redos);
                     
-                    lines.setcode(code);
+                    lines.setcode(code, false);
                     TamguSetCode(code);
                     posinstring = 0;
                     line = L"";
@@ -1118,7 +1075,7 @@ public:
                         editors_undos[i].storein(undos);
                         editors_redos[i].storein(redos);
                         
-                        lines.setcode(code);
+                        lines.setcode(code, false);
                         modified = true;
                     }
                 }
@@ -1311,7 +1268,7 @@ public:
                 codeindente = "";
                 IndentCode(cd, codeindente, i, isLispmode());
                 code = wconvert(codeindente);
-                lines.setcode(code);
+                lines.setcode(code, false);
                 
                 if (lines.size() == 0)
                     return pos;
@@ -1645,7 +1602,7 @@ public:
                             thecurrentfilename = ifilenames[currentfileid];
                             undos.storein(editors_undos[currentfileid]);
                             redos.storein(editors_redos[currentfileid]);
-                            lines.setcode(code);
+                            lines.setcode(code, false);
                             TamguSetCode(code);
                             posinstring = 0;
                             line = L"";
@@ -1685,7 +1642,7 @@ public:
                     idcode = TamguCompile(cde, THEMAIN);
                     TamguRun(idcode);
                     code = TamguUListing();
-                    lines.setcode(code);
+                    lines.setcode(code, false);
                 }
 
                 pos = 0;
@@ -1712,7 +1669,7 @@ public:
             }
                 TamguRun(idcode);
                 code = TamguUListing();
-                lines.setcode(code);
+                lines.setcode(code, false);
                 pos = 0;
                 return pos;
             case cmd_debug:
@@ -1947,7 +1904,7 @@ public:
             Executesomecode(line);
             code = TamguUListing();
             
-            lines.setcode(code);
+            lines.setcode(code, false);
             pos = lines.size();
             return pos;
         }
@@ -1961,7 +1918,7 @@ public:
             Executesomecode(code);
             clearcurlybuffer();
             code = TamguUListing();
-            lines.setcode(code);
+            lines.setcode(code, false);
             pos = lines.size();
         }
 
@@ -2469,7 +2426,7 @@ bool checkpath() {
         if (ifilenames.size() > 1) {
             currentfileid = 0;
             thecurrentfilename = ifilenames[0];
-            lines.setcode(codes[0]);
+            lines.setcode(codes[0], true);
             TamguSetCode(codes[0]);
         }
 
@@ -2608,7 +2565,7 @@ bool checkpath() {
     void setcode(string& code) {
         TamguSetCode(code);
         wstring cd = wconvert(code);
-        lines.setcode(cd);
+        lines.setcode(cd, true);
         pos = lines.size();
     }
     
@@ -2681,7 +2638,7 @@ bool checkpath() {
         if (editmode && option == x_none) {
             modified = true;
             wstring code = lines.code();
-            lines.setcode(code);
+            lines.setcode(code, false);
             displaylist(poslines[0], poslines.back());
 			if ((currentline+1) >= poslines.size())
 				currentline = poslines.size() - 1;

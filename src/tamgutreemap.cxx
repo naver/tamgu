@@ -213,7 +213,7 @@ Exporting Tamgu* Tamgutreemap::in(Tamgu* context, Tamgu* a, short idthread) {
 
 Exporting void Tamgutreemap::Cleanreference(short inc) {
     locking();
-    for (const auto& a : values)
+    for (auto& a : values)
         a.second->Removecontainerreference(inc);
     
     unlocking();

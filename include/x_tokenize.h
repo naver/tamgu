@@ -387,7 +387,7 @@ public:
         rules.push_back("+=0");                         //17    +
         rules.push_back("-=0");                         //18    -
         rules.push_back("*=0");                         //19    *
-        rules.push_back("\\=0");                        //19    \
+        rules.push_back("\\=0");                        //19    anti-slash
         rules.push_back("%=0");                         //20    %
         rules.push_back("<=0");                         //21    <
         rules.push_back(">=0");                         //22    >
@@ -463,6 +463,109 @@ public:
 //------------------------------------------------------------------------------------------------Coloring tokenizer rules
 
 class x_coloringrule : public x_reading {
+public:
+    
+    void setrules() {
+        lookforquotes = true;
+            //spaces
+        rules.push_back(" =#");                         //0     space
+        rules.push_back("\t=#");                        //1     tab
+        rules.push_back("\n=#");                        //2     cr
+        rules.push_back("\r=#");                        //3     cr
+        
+        rules.push_back("1:{%d #A-F #a-f}");            //2     metarule on 1, for hexadecimal digits
+        
+            //Fast tracks for recurrent punctuations
+        rules.push_back(";=#");                         //4     ;
+        rules.push_back(",=#");                         //5     ,
+        rules.push_back("==0");                         //6     =
+        rules.push_back(")=#");                         //7     )
+        rules.push_back("[=#");                         //8     [
+        rules.push_back("]=#");                         //9     ]
+        rules.push_back("{=#");                         //10    {
+        rules.push_back("}=#");                         //11    }
+        rules.push_back("~=#");                         //12    ~
+        rules.push_back("!=#");                         //13    !
+        rules.push_back("^=#");                         //14    ^
+        rules.push_back("+=#");                         //15    +
+        rules.push_back("-=#");                         //16    -
+        rules.push_back("*=#");                         //17    *
+        rules.push_back("%=#");                         //18    %
+        rules.push_back(">=#");                         //20    >
+        rules.push_back("|=#");                         //21    |
+        rules.push_back("&=#");                         //22    &
+        rules.push_back(":=#");                         //23    :
+        rules.push_back("\\=#");                        //19    \
+        
+        rules.push_back("${%d %a %H}+=10");             //24    $%d+
+        rules.push_back("$=#");                         //25    $
+        
+        rules.push_back("#{%d %a %H}+=10");             //26    #label
+        rules.push_back("#=#");                         //27    #
+        
+        rules.push_back("?{%a %d %H}+=10");             //28    ?label
+        rules.push_back("?=#");                         //29    ?
+        
+            // Characters that we need
+        rules.push_back("<%a{%a %d %H}+=13");           //30    <label
+        rules.push_back("<=#");                         //19    <
+        rules.push_back(".{%a %d %H}+(=11");            //30    .label(
+        rules.push_back(".=#");                         //31    .
+        rules.push_back("(=#");                         //32    (
+        
+            //Comments
+        rules.push_back("//%.~%r+=5");                  //33    comments
+        rules.push_back("//+=5");                       //34    empty comment
+        rules.push_back("/@%.+@/=5");                   //35    long comments
+        rules.push_back("/@@/=5");                      //36    empty long comments
+        rules.push_back("/=#");                         //37    /
+        
+            //Strings
+            //Double quotes
+        rules.push_back("\"\"=1");                      //38    empty string ""
+        rules.push_back("\"%?~%r+\"=1");                //39    string ""
+                                                        
+            //Single quote
+        rules.push_back("''=2");                        //40    empty string ''
+        rules.push_back("'%.~%r+'=2");                  //41    string ''
+        
+        rules.push_back("r\"%?+\"=2");                 //44    tamgu regular expressions...
+        rules.push_back("r'%?+'=2");                   //44    tamgu regular expressions...
+        rules.push_back("p\"%?+\"=2");                 //44    posix regular expressions...
+        rules.push_back("p'%?+'=2");                   //44    posix regular expressions...
+        
+            //Long quotes
+        rules.push_back("@\"\"@=3");                    //42    empty string @""@
+        rules.push_back("@\"%?+\"@=3");                 //43    string @" "@
+        rules.push_back("@{%a %d}+=14");                 //43    annotation rule head
+        
+            //Unicode double quote strings
+        rules.push_back("u\"\"=1");                     //44    empty string u""
+        rules.push_back("u\"%?~%r+\"=1");               //45    string u"" unicode string (we do not keep the u in the parse)
+        
+            //Unicode single quote strings
+        rules.push_back("u''=2");                       //46    empty string
+        rules.push_back("u'%.~%r+'=2");                 //47    string u'' unicode string
+        
+            //Unicode long quote strings
+        rules.push_back("u@\"%?+\"@=3");                //48    empty string u@""@
+        rules.push_back("u@\"%?+\"@=3");                //49    string u@".."@ unicode string
+        
+        rules.push_back("0x%1+(.%1+)([p P]([- +])%d+)=0"); //47 hexadecimal
+        rules.push_back("%d+(.%d+)([e E]([- +])%d+)=0");    //51    exponential digits
+        
+            //Rules start here
+        rules.push_back("{%a %d}+(=12");                //52    label(
+        rules.push_back("{%a %d %H}+=4");               //53    label
+        rules.push_back("%n=#");                        //52    non-breaking space (not kept)
+        rules.push_back("%o=#");                        //55    operators
+        rules.push_back("%p=#");                        //54    punctuation
+        rules.push_back("%.~{%S %p %o}+=4");            //56    An unknown token separated with spaces or punctuation...
+        rules.push_back("%=#");                         //56    An unknown character...
+    }
+};
+
+class x_wcoloringrule : public x_wreading {
 public:
     
     void setrules() {

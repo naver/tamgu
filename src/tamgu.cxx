@@ -42,7 +42,7 @@
 #include "tamgulisp.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2022.03.07.11";
+const char* tamgu_version = "Tamgu 1.2022.03.11.14";
 
 Tamgu* booleantamgu[2];
 
@@ -454,6 +454,9 @@ TamguGlobal::TamguGlobal(long nb, bool setglobal) :
 idSymbols(false), methods(false), compatibilities(false), strictcompatibilities(false),
     operator_strings(false), terms(false), booleanlocks(true), tracked(NULL, true), trackerslots(-1, true) {
 
+        
+        handler_on_utf8 = create_utf8_handler();
+        
         add_to_tamgu_garbage = false;
         number_of_current_eval = 0;
 
@@ -486,7 +489,6 @@ idSymbols(false), methods(false), compatibilities(false), strictcompatibilities(
         maxstack = 1000;
 
         debugmode = false;
-        inittableutf8();
         currentbnf = NULL;
         maxthreads = nb;
         erroronkey = false;
@@ -608,7 +610,6 @@ void Tamgu::Deletion() {
 }
 
 TamguGlobal::~TamguGlobal() {
-
     for (auto& a: constintegers) {
         if (a.second->idtracker == -1)
             delete a.second;
@@ -807,7 +808,7 @@ Exporting void TamguGlobal::Getdebuginfo(string& localvariables, string& allvari
         for (i=0;i<vars.size();i++)
             m[vars[i]]=true;
         vars.clear();
-        for (auto& it : m)
+        for (const auto& it : m)
             vars.push_back(it.first);
 
         stringstream var;
@@ -1406,8 +1407,8 @@ short TamguGlobal::Typeinstance(string thetypename) {
 
 //This function is hack which is necessary to get these variables a value in a DLL
 Exporting void TamguGlobal::Update() {
-    inittableutf8();
     globalTamgu = this;
+    set_utf8_handler(handler_on_utf8);
 
     if (aNULL == NULL) {
         aNULL = gNULL;

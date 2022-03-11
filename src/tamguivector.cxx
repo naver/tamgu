@@ -345,7 +345,7 @@ Exporting Tamgu* Tamguivector::xorset(Tamgu* b, bool itself) {
         }
         unlocking();
         
-        for (auto& i : store)
+        for (const auto& i : store)
             ref->values.push_back(i.first);
 
         return ref;

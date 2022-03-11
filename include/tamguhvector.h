@@ -307,7 +307,7 @@ class Tamguhvector : public TamguLockContainer {
     
     void Methods(Tamgu* v) {
 
-        for (auto& it : infomethods)
+        for (const auto& it : infomethods)
             v->storevalue(it.first);
     }
     string Info(string n) {

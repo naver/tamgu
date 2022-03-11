@@ -515,7 +515,7 @@ Exporting Tamgu* Tamguprimemapss::xorset(Tamgu* b, bool itself) {
         }
         itr->Release();
         
-        for (auto& a : keys)
+        for (const auto& a : keys)
             res->values[a.first]= a.second;
         
         return res;

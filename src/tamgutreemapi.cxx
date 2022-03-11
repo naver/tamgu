@@ -145,7 +145,7 @@ Exporting Tamgu* Tamgutreemapi::MethodFind(Tamgu* context, short idthread, Tamgu
     Tamgu* a = callfunc->Evaluate(0,context,idthread);
     if (context->isBoolean()) {
         Locking _lock(this);
-        for (auto& it : values) {
+        for (const auto& it : values) {
             if (it.second->same(a) == aTRUE)
                 return aTRUE;
         }
@@ -154,14 +154,14 @@ Exporting Tamgu* Tamgutreemapi::MethodFind(Tamgu* context, short idthread, Tamgu
     if (context->isVectorContainer()) {
         Tamguivector* v = (Tamguivector*)Selectaivector(context);
         Doublelocking _lock(this, v);
-        for (auto& it : values) {
+        for (const auto& it : values) {
             if (it.second->same(a) == aTRUE)
                 v->values.push_back(it.first);
         }
         return v;
     }
     Locking _lock(this);
-    for (auto& it : values) {
+    for (const auto& it : values) {
         if (it.second->same(a) == aTRUE)
             return globalTamgu->ProvideConstint(it.first);
     }
@@ -184,7 +184,7 @@ Exporting void Tamgutreemapi::Setreference(short inc) {
     reference += inc;
     protect = false;
     
-    for (auto& it : values)
+    for (const auto& it : values)
         it.second->Addreference(investigate,inc);
     
     unlocking();
@@ -196,7 +196,7 @@ Exporting void Tamgutreemapi::Setreference() {
     ++reference;
     protect = false;
     
-    for (auto& it : values)
+    for (const auto& it : values)
         it.second->Addreference(investigate,1);
 
     
@@ -392,7 +392,7 @@ Exporting Tamgu*  Tamgutreemapi::Put(Tamgu* idx, Tamgu* ke, short idthread) {
             Clear();
             long nb = 0;
 
-            for (auto& it : kvect->values) {
+            for (const auto& it : kvect->values) {
                 Push(nb, it);
                 nb++;
             }
@@ -407,7 +407,7 @@ Exporting Tamgu*  Tamgutreemapi::Put(Tamgu* idx, Tamgu* ke, short idthread) {
             Tamgutreemapi* kmap = (Tamgutreemapi*)ke;
             //We copy all values from ke to this
 
-            for (auto& it : kmap->values)
+            for (const auto& it : kmap->values)
                 Push(it.first, it.second);
         }
         else {
@@ -570,7 +570,7 @@ Exporting Tamgu* Tamgutreemapi::xorset(Tamgu* b, bool itself) {
         res = new Tamgutreemapi;
         hmap<long, Tamgu*> keys;
 
-        for (auto& it : values)
+        for (const auto& it : values)
             keys[it.first] = it.second;
             
         long v;
@@ -585,7 +585,7 @@ Exporting Tamgu* Tamgutreemapi::xorset(Tamgu* b, bool itself) {
         }
         itr->Release();
 
-        for (auto& a : keys)
+        for (const auto& a : keys)
             res->Push(a.first,a.second);
 
         return res;
