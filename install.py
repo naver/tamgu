@@ -448,6 +448,7 @@ f=open("Makefile.in","w")
 
 f.write("TAMGUCONSOLENAME = tamguconsole\n")
 f.write("Optim = -O3\n")
+f.write("# Uncomment the next line, if mouse does not work in the editor\n")
 f.write("# MOUSESUPPORT = -DXTERM_MOUSE_VT100\n")
 
 if avx2:
