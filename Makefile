@@ -22,7 +22,7 @@ OBJECTTamgu = $(SOURCETamgu:%.cxx=$(OBJPATH)/%.o)
 OBJECTTAMGUMAIN = $(SOURCETAMGUMAIN:%.cxx=$(LIBOBJPATH)/%.o)
 OBJECTJAG = $(SOURCEJAG:%.cxx=$(LIBOBJPATH)/jag/%.o)
 #------------------------------------------------------------
-TamguBASICFLAGS = -w -c -fPIC $(Optim)  -DUNIX $(MULTIGA) $(INTELINT) $(REGEX) $(SPECFLAGS)
+TamguBASICFLAGS = -w -c -fPIC $(Optim)  -DUNIX $(MULTIGA) $(INTELINT) $(REGEX) $(SPECFLAGS) $(MOUSESUPPORT)
 TamguCFLAGS = -std=c99 $(TamguBASICFLAGS)
 TamguFLAGS = $(C++11Flag) $(TamguBASICFLAGS)
 

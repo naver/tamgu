@@ -309,6 +309,7 @@ public:
             cerr << "   \t\t- " << m_redital << "C:" << m_current << " count a pattern" << endl;
             cerr << "   \t\t- " << m_redital << "H:" << m_current << " convert HTML entities to Unicode characters" << endl;
             cerr << "   \t\t- " << m_redital << "D:" << m_current << " delete a bloc of lines" << endl;
+            cerr << "   \t\t- " << m_redital << "m:" << m_current << " toggle mouse off/on" << endl;
             cerr << "   \t\t- " << m_redital << "n:" << m_current << " hide/display line numbers" << endl;
             cerr << "   \t\t- " << m_redital << "c:" << m_current << " copy a bloc of lines" << endl;
             cerr << "   \t\t- " << m_redital << "x:" << m_current << " cut a bloc of lines" << endl;
@@ -1053,7 +1054,7 @@ public:
                 #ifndef WIN32
                     signal(SIGWINCH, resizewindow);
                 #endif
-
+                mouseon();
                 if (v.size() == 2) {
                     i = convertinteger(v[1]);
                     if (i < 0 || i >= ifilenames.size()) {
@@ -1108,6 +1109,7 @@ public:
                 movetobeginning();
                 return pos;
             case cmd_run:
+                mouseoff();
                 addcommandline(line);
                 if (v.size() == 1) {
                     string cd = TamguListing();
@@ -1673,8 +1675,10 @@ public:
                 pos = 0;
                 return pos;
             case cmd_debug:
-                if (debugmode && debuginfo.running)
+                if (debugmode && debuginfo.running) {
+                    mouseoff();
                     return pos;
+                }
                 addcommandline(line);
                 
                 debugmode = 1 - debugmode;
@@ -1964,6 +1968,27 @@ public:
         return true;
     }
     
+    void backtoconsole() {
+        lastline = poslines[0];
+        currentline = poslines.back();
+
+        mouseoff();
+        editmode = false;
+        movetolastline();
+        clearline();
+        string l = m_red;
+        l += "console";
+        l += m_current;
+        prefix = "<>";
+        printline(pos+1, l);
+        cout << endl;
+        clearline();
+        printline(pos+1);
+                
+        line = L"";
+        posinstring = 0;
+    }
+
     void clear() {
         echochar = false;
         pos = lines.size();
@@ -2080,121 +2105,29 @@ public:
 	}
     
 #ifdef WIN32
-bool checkpath() {
-    //The first part should be a command such as open or load...
-    long pos = line.rfind(' ');
-    if (pos == -1)
-        return false;
-    
-    wstring root = line.substr(0, pos);
-    wstring name;
-    wstring path = line.substr(pos, line.size());
-    path = Trim(path);
-    //Two cases, we have a "\\" in it...
-    pos = path.rfind(L"\\");
-    //We need to extract it
-    if (pos != -1) {
-        name = path.substr(pos+1, path.size()-pos);
-        path = path.substr(0, pos+1);
-    }
-    else {
-        name = path;
-        path = L".";
-    }
-    vector<wstring> paths;
-    vector<wstring> targets;
-    //First the directories
-    string cmd = "dir /B ";
-    ls(cmd, convert(path), paths);
-    //Now we look for continuation
-    long i;
-    for (i = 0; i < paths.size(); i++) {
-        if (paths[i].substr(0, name.size()) == name)
-            targets.push_back(paths[i]);
-    }
-    if (path == L".")
-        path = L"";
-    
-    if (targets.size() == 0)
-        return false;
-    
-    paths.clear();
-    //Only directories, we want to add a _sep at the end...
-    cmd = "dir /AD /B ";
-    ls(cmd, convert(path), paths);
-    for (i = 0; i < paths.size(); i++) {
-        for (long j = 0; j < targets.size(); j++) {
-            if (targets[j] == paths[i])
-                targets[j] += L"\\";
-        }
-    }
-
-    if (targets.size() == 1) {
-        line = root;
-        line += L" ";
-        line += path;
-        line += targets[0];
-        clearline();
-        displaygo(true);
-        posinstring = line.size();
-        movetoposition();
-        return true;
-    }
-    
-    wstring common;
-    long ln  = name.size();
-    bool end = false;
-    while (!end) {
-        //We add one letter from the targets and see if it is common to all targets
-        for (i = 0; i < targets.size(); i++) {
-            if (ln >= targets[i].size()) {
-                end = true;
-                break;
-            }
-        }
-        if (!end) {
-            ++ln;
-            common = targets[0].substr(0, ln);
-            for (i = 1; i < targets.size(); i++) {
-                if (targets[i].substr(0, ln) != common) {
-                    end = true;
-                    break;
-                }
-            }
-            if (!end)
-                name = common;
-        }
-    }
-    
-    
-    cerr << endl << endl << m_red;
-    for (i = 0; i < targets.size(); i++)
-        cerr << convert(targets[i]) << " ";
-    cerr << m_current << endl << endl;
-    
-    line = root;
-    line += L" ";
-    line += path;
-    line += name;
-    clearline();
-    displaygo(true);
-    posinstring = line.size();
-    movetoposition();
-    return true;
-}
-#else
-    bool checkpath() {
+    bool checkpath(bool checkcmd) {
         //The first part should be a command such as open or load...
         long pos = line.rfind(' ');
-        if (pos == -1)
-            return false;
-        
-        wstring root = line.substr(0, pos);
+        wstring root;
         wstring name;
-        wstring path = line.substr(pos, line.size());
-        path = Trim(path);
-        //Two cases, we have a "/" in it...
-        pos = path.rfind(L"/");
+        wstring path;
+        if (checkcmd) {
+            if (pos == -1) {
+                checkcmd = false;
+                path = line;
+            }
+            else {
+                root = line.substr(0, pos);
+                path = line.substr(pos, line.size());
+            }
+        }
+        else
+            path = line;
+
+        path = s_trim(path);
+        //Two cases, we have a "\\" in it...
+        pos = path.rfind(L"\\");
+        //We need to extract it
         if (pos != -1) {
             name = path.substr(pos+1, path.size()-pos);
             path = path.substr(0, pos+1);
@@ -2205,7 +2138,8 @@ bool checkpath() {
         }
         vector<wstring> paths;
         vector<wstring> targets;
-        string cmd = "ls -1 -p ";
+        //First the directories
+        string cmd = "dir /B ";
         ls(cmd, convert(path), paths);
         //Now we look for continuation
         long i;
@@ -2215,14 +2149,29 @@ bool checkpath() {
         }
         if (path == L".")
             path = L"";
-        
+
         if (targets.size() == 0)
             return false;
-        
+
+        paths.clear();
+        //Only directories, we want to add a _sep at the end...
+        cmd = "dir /AD /B ";
+        ls(cmd, convert(path), paths);
+        for (i = 0; i < paths.size(); i++) {
+            for (long j = 0; j < targets.size(); j++) {
+                if (targets[j] == paths[i])
+                    targets[j] += L"\\";
+            }
+        }
+
         if (targets.size() == 1) {
-            line = root;
-            line += L" ";
-            line += path;
+            if (checkcmd) {
+                line = root;
+                line += L" ";
+                line += path;
+            }
+            else
+                line = path;
             line += targets[0];
             clearline();
             displaygo(true);
@@ -2230,7 +2179,7 @@ bool checkpath() {
             movetoposition();
             return true;
         }
-        
+
         wstring common;
         long ln  = name.size();
         bool end = false;
@@ -2255,16 +2204,127 @@ bool checkpath() {
                     name = common;
             }
         }
-        
-        
+
+
+        cerr << endl << endl << m_red;
+        for (i = 0; i < targets.size(); i++)
+            cerr << convert(targets[i]) << " ";
+        cerr << m_current << endl << endl;
+
+        if (checkcmd) {
+            line = root;
+            line += L" ";
+            line += path;
+        }
+        else
+            line = path;
+        line += name;
+        clearline();
+        displaygo(true);
+        posinstring = line.size();
+        movetoposition();
+        return true;
+    }
+#else
+    bool checkpath(bool checkcmd) {
+        //The first part should be a command such as open or load...
+        long pos = line.rfind(' ');
+        wstring root;
+        wstring name;
+        wstring path;
+        if (checkcmd) {
+            if (pos == -1) {
+                checkcmd = false;
+                path = line;
+            }
+            else {
+                root = line.substr(0, pos);
+                path = line.substr(pos, line.size());
+            }
+        }
+        else
+            path = line;
+
+        path = Trim(path);
+        //Two cases, we have a "/" in it...
+        pos = path.rfind(L"/");
+        if (pos != -1) {
+            name = path.substr(pos+1, path.size()-pos);
+            path = path.substr(0, pos+1);
+        }
+        else {
+            name = path;
+            path = L".";
+        }
+        vector<wstring> paths;
+        vector<wstring> targets;
+        string cmd = "ls -1 -p ";
+        ls(cmd, convert(path), paths);
+        //Now we look for continuation
+        long i;
+        for (i = 0; i < paths.size(); i++) {
+            if (paths[i].substr(0, name.size()) == name)
+                targets.push_back(paths[i]);
+        }
+        if (path == L".")
+            path = L"";
+
+        if (targets.size() == 0)
+            return true;
+
+        if (targets.size() == 1) {
+            if (checkcmd) {
+                line = root;
+                line += L" ";
+                line += path;
+            }
+            else
+                line = path;
+            line += targets[0];
+            clearline();
+            displaygo(true);
+            posinstring = line.size();
+            movetoposition();
+            return true;
+        }
+
+        wstring common;
+        long ln  = name.size();
+        bool end = false;
+        while (!end) {
+            //We add one letter from the targets and see if it is common to all targets
+            for (i = 0; i < targets.size(); i++) {
+                if (ln >= targets[i].size()) {
+                    end = true;
+                    break;
+                }
+            }
+            if (!end) {
+                ++ln;
+                common = targets[0].substr(0, ln);
+                for (i = 1; i < targets.size(); i++) {
+                    if (targets[i].substr(0, ln) != common) {
+                        end = true;
+                        break;
+                    }
+                }
+                if (!end)
+                    name = common;
+            }
+        }
+
+
         cerr << endl << endl << m_redital;
         for (i = 0; i < targets.size(); i++)
             cerr << convert(targets[i]) << " ";
         cerr << m_current << endl << endl;
-        
-        line = root;
-        line += L" ";
-        line += path;
+        if (checkcmd) {
+            line = root;
+            line += L" ";
+            line += path;
+        }
+        else
+            line = path;
         line += name;
         clearline();
         displaygo(true);
@@ -2273,6 +2333,7 @@ bool checkpath() {
         return true;
     }
 #endif
+
     bool checkkeyboard(string& buff, long& first, long& last, bool& dsp, char noinit) {
         switch ((uchar)buff[0]) {
             case 2: //ctrl-b run/breakpoint
@@ -2313,7 +2374,7 @@ bool checkpath() {
                 if (emode())
                     return false;
                 //We try to interpret the string as a path
-                return checkpath();
+                return checkpath(true);
 #ifdef WIN32
             case 13: //this is a carriage return
 #else
@@ -2361,7 +2422,7 @@ bool checkpath() {
                 return true;
             case 17:
                 if (emode()) {
-                    clear();
+                    backtoconsole();
                     return true;
                 }
                 return checkaction(buff, first, last, isLispmode());
@@ -2506,9 +2567,43 @@ bool checkpath() {
                 continue;
             }
             
+            if (emode()) {
+                while (isMouseAction(buff)) {
+                    handlemousectrl(buff);
+                    buff =  getch();
+                }
+            }
+            else {
+                if (isMouseAction(buff)) {
+                    continue;
+                }
+            }
+
+            //We clear the selection
+            if (selected_pos != -1 && buff[0] != 24)
+                unselectlines(selected_pos, selected_posnext, selected_x, selected_y);
+
             dsp = true;
-            if (checkkeyboard(buff, first, last, dsp, noinit))
+            if (checkkeyboard(buff, first, last, dsp, noinit)) {
+                double_click = 0;
+                if (buff[0] != 24) {
+                    selected_x = -1;
+                    selected_y = -1;
+                    selected_pos = -1;
+                }
                 continue;
+            }
+
+            if (selected_pos == pos) {
+                //We are going to replace a sequence of characters
+                //we delete it first
+                deleteselection();
+            }
+            double_click = 0;
+            selected_x = -1;
+            selected_y = -1;
+            selected_pos = -1;
+
 #ifdef WIN32
 			if (!buff[0] && buff[1] == '#') {
 				//Special case for ctrl+alt+h (ctrl-h is backdelete on windows
@@ -2526,6 +2621,7 @@ bool checkpath() {
 				continue;
 			}
 #endif
+            
             if (inbuffer) {
                 buffer += buff;
                 buff = buffer;

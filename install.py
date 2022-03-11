@@ -448,6 +448,7 @@ f=open("Makefile.in","w")
 
 f.write("TAMGUCONSOLENAME = tamguconsole\n")
 f.write("Optim = -O3\n")
+f.write("# MOUSESUPPORT = -DXTERM_MOUSE_VT100\n")
 
 if avx2:
     f.write("INTELINT = -DINTELINTRINSICS -msse4.2 -mavx2 -DAVXSUPPORT\n")

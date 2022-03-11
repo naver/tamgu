@@ -73,6 +73,56 @@ bool checkresize();
 void Returnscreensize(long& rs, long& cs, long& sr, long& sc);
 #endif
 
+#ifdef APPLE
+void quoted_string(string& value) {
+    if (value == "")
+        return;
+
+    value = s_replacestrings(value, "\\", "\\\\");
+    value = s_replacestrings(value, "\"", "\\\"");
+    value = s_replacestrings(value, "\\t", "\\\\t");
+    value = s_replacestrings(value, "\\n", "\\\\n");
+    value = s_replacestrings(value, "\\r", "\\\\r");
+
+}
+
+string exec_command(const char* cmd) {
+    FILE* pipe = popen(cmd, "r");
+
+    if (!pipe)
+        return "";
+
+    char buffer[256];
+    string result = "";
+    while(!feof(pipe))
+    {
+        if(fgets(buffer, 256, pipe) != NULL)
+        {
+            result += buffer;
+        }
+    }
+    pclose(pipe);
+    return result;
+}
+
+string paste_from_clipboard() {
+    return exec_command("pbpaste");
+}
+
+void copy_to_clipboard(string buffer) {
+    quoted_string(buffer);
+    stringstream cmd;
+    cmd << "echo \"" << STR(buffer) << "\" | pbcopy";
+    exec_command(cmd.str().c_str());
+}
+#else
+string paste_from_clipboard() {
+    return "";
+}
+void copy_to_clipboard(string buffer) {}
+#endif
+
+
 
 static char m_scrollmargin[] = { 27, 91, '0', '0', '0', ';', '0', '0','0', 'r', 0 };
 static char m_right[] = {27, '[', '0', '0', '1', 67, 0};
@@ -120,6 +170,7 @@ void jag_editor::displaythehelp(long noclear) {
     cerr << "   \t\t- " << m_redital << "P:" << m_current << " find with a POSIX Regular Expression" << endl;
     cerr << "   \t\t- " << m_redital << "R:" << m_current << " find with a Tamgu Regular Expression" << endl;
     cerr << "   \t\t- " << m_redital << "f:" << m_current << " find with previous find string" << endl;
+    cerr << "   \t\t- " << m_redital << "m:" << m_current << " toggle mouse on/off" << endl;
     cerr << "   \t\t- " << m_redital << "H:" << m_current << " convert HTML entities to Unicode characters" << endl;
     cerr << "   \t\t- " << m_redital << "D:" << m_current << " delete a bloc of lines" << endl;
     cerr << "   \t\t- " << m_redital << "n:" << m_current << " hide/display line numbers" << endl;
@@ -177,6 +228,27 @@ static int getxcursor() {
 
 static int getycursor() {
     return ycursor;
+}
+
+static bool checkcar(wchar_t c) {
+    if (c <= 32)
+        return false;
+
+    switch (c) {
+        case '(':
+        case ')':
+        case ']':
+        case '{':
+        case '}':
+        case '"':
+        case '`':
+        case ':':
+        case ',':
+        case ';':
+            return false;
+        default:
+            return true;
+    }
 }
 
 static void scrollingdown(long rowsize) {
@@ -251,7 +323,8 @@ string jag_editor::getch(){
     while (nb == _getbuffsize);
     
     old.c_lflag|=ICANON;
-    old.c_lflag|=ECHO;
+    if (!isMouseAction(res))
+        old.c_lflag|=ECHO;
     if(tcsetattr(0, TCSADRAIN, &old)<0) {
         perror ("tcsetattr ~ICANON");
         return "";
@@ -262,6 +335,69 @@ string jag_editor::getch(){
 #endif
 
 //--------------------------------------------------------
+void jag_editor::indentplus() {
+    wstring blanks(GetBlankSize(), ' ');
+    tobesaved = true;
+    if (selected_pos != -1 && selected_posnext > selected_pos) {
+        uchar modif = u_modif;
+        for (long i = selected_posnext - 1; i >= selected_pos; i--) {
+            line = lines[i];
+            line = blanks + line;
+            undo(lines[i],i, modif);
+            modif = u_modif_linked;
+            lines[i] = line;
+        }
+        selectlines(selected_pos, selected_posnext, selected_x, selected_y);
+        return;
+    }
+    line = lines[pos];
+    line = blanks + line;
+    undo(lines[pos],pos, u_modif);
+    lines[pos] = line;
+    printline(pos, line, -1);
+    movetoline(currentline);
+    movetoposition();
+}
+
+void jag_editor::deindentminus() {
+    //We remove some blanks from lines...
+    long nb = GetBlankSize();
+    long u = 0;
+    if (selected_pos != -1 && selected_posnext > selected_pos) {
+        uchar modif = u_modif;
+        for (long i = selected_posnext - 1; i >= selected_pos; i--) {
+            line = lines[i];
+            //can we remove nb blanks from the beginning of the line
+            u = 0;
+            for (; u < line.size() && line[u] == ' '; u++) {}
+            if (u >= nb) {
+                tobesaved = true;
+                line = line.substr(nb, line.size());
+                undo(lines[i],i, modif);
+                modif = u_modif_linked;
+                lines[i] = line;
+            }
+        }
+        selectlines(selected_pos, selected_posnext, selected_x, selected_y);
+        return;
+    }
+
+    line = lines[pos];
+    for (; u < line.size() && line[u] == ' '; u++) {}
+    if (u >= nb) {
+        tobesaved = true;
+        long sz = line.size();
+        line = line.substr(nb, line.size());
+        undo(lines[pos],pos, u_modif);
+        lines[pos] = line;
+        wstring blanks(sz, ' ');
+        printline(pos, blanks, -1);
+        printline(pos, line, -1);
+        movetoline(currentline);
+        movetoposition();
+    }
+}
+
 void jag_editor::colorring(string& txt, vector<long>& limits) {
     static hmap<string,bool> keys;
     static x_coloringrule xr;
@@ -492,9 +628,17 @@ jag_editor::jag_editor() : lines(this) {
     tcsetattr(0, TCSADRAIN, &theterm);
 #endif
 
+    
+    selected_x = -1;
+    selected_firstline = -1;
+    selected_y = -1;
+    selected_pos = -1;
+    selected_posnext = -1;
+    double_click = 0;
+    nbclicks = 0;
+    
 	insertaline = false;
-    margin = 10;
-    spacemargin = 9;
+    margin = 3;
 
     noprefix = false;
     tooglehelp = false;
@@ -557,6 +701,379 @@ jag_editor::~jag_editor() {
     
     if (findrgx != NULL)
         delete findrgx;
+}
+
+//------------------------------------------------------------------------------------
+void jag_editor::deleteselection() {
+    if (selected_pos == -1)
+        return;
+
+    if (selected_pos == selected_posnext) {
+        if (selected_x == 0 && selected_y == line.size()) {
+            deleteline(0);
+            resetselection();
+            return;
+        }
+
+        undo(lines[pos],pos, u_modif);
+        deleteachar(line, false, selected_x);
+        lines[selected_pos] = line;
+        clearline();
+        printline(pos+1, line, -1);
+        posinstring = selected_x;
+        movetoposition();
+        resetselection();
+        return;
+    }
+
+    long first = selected_pos;
+    long last = selected_posnext;
+    wstring savedline = lines[selected_posnext];
+
+    if (selected_x == 0) {
+        //first line must be deleted, last line is modified or deleted
+        if (selected_y < savedline.size()) {
+            undo(savedline, selected_posnext, u_modif);
+            last--;
+        }
+        else {
+            undo(savedline, selected_posnext, u_del);
+            last--;
+        }
+    }
+    else {
+        undo(savedline, selected_posnext, u_del);
+        last--;
+    }
+
+    while (last > first) {
+        undo(lines[last], last, u_del_linked);
+        last--;
+    }
+
+    if (selected_x == 0)
+        undo(lines[selected_pos], selected_pos, u_del_linked);
+    else
+        undo(lines[selected_pos], selected_pos, u_modif_linked);
+
+    last = selected_posnext;
+
+    posinstring  = 0;
+
+    if (selected_y >= savedline.size())
+        selected_y = savedline.size();
+
+
+    if (selected_x == 0) {
+        if (selected_y != savedline.size()) {
+            lines[selected_posnext] = savedline.substr(selected_y,savedline.size());
+            posinstring = selected_y;
+            last--;
+        }
+    }
+    else {
+        lines[selected_pos] = lines[selected_pos].substr(0, selected_x);
+        if (selected_y != savedline.size()) {
+            lines[selected_pos] += savedline.substr(selected_y,savedline.size());
+        }
+        posinstring = lines[selected_pos].size();
+        first++;
+    }
+
+    lines.erase(first, last+1);
+
+    displaylist(poslines[0]);
+    movetoline(selected_firstline);
+    movetoposition();
+    resetselection();
+    double_click = 0;
+}
+
+
+void jag_editor::displayextract(wstring& sub, long pos, long from_pos, long to_pos, bool select) {
+    if (from_pos > sub.size())
+        return;
+
+    if (to_pos > sub.size())
+        to_pos = sub.size();
+
+    posinstring = to_pos;
+    clearline();
+    if (select) {
+        wstring start = sub.substr(0, from_pos);
+        wstring middle = sub.substr(from_pos, to_pos-from_pos);
+        wstring end = sub.substr(to_pos, sub.size());
+        kbuffer += middle;
+        string inter = convert(start);
+        inter += m_selectgray;
+        inter += convert(middle);
+        inter +=  m_current;
+        inter += convert(end);
+        printline(pos + 1, inter);
+    }
+    else
+        printline(pos + 1, sub, -1);
+}
+
+void jag_editor::selectlines(long from_line, long to_line, long from_pos, long to_pos) {
+    wstring sub;
+
+    if (to_line < from_line)
+        return;
+
+    kbuffer = L"";
+    sub = lines[from_line];
+    char stat = lines.Status(from_line);
+    if (from_line == to_line) {
+        movetoline(currentline);
+        displayextract(sub, from_line, from_pos, to_pos);
+        if (stat == solo_line || lines.Status(from_line+1)!= concat_line) {
+            if (to_pos == sub.size())
+                kbuffer += L"\n";
+        }
+        movetoposition();
+        return;
+    }
+
+    long current = selected_firstline;
+    //Else we display first, the missing part
+    movetoline(current++);
+    displayextract(sub, from_line++, from_pos, sub.size());
+    if (stat == solo_line || lines.Status(from_line)!= concat_line)
+        kbuffer += L"\n";
+
+    while (from_line < to_line) {
+        sub = lines[from_line];
+        movetoline(current++);
+        stat = lines.Status(from_line);
+        displayextract(sub, from_line++, 0, sub.size());
+        if (stat == solo_line || lines.Status(from_line) != concat_line) {
+            kbuffer += L"\n";
+        }
+    }
+
+    stat = lines.Status(from_line);
+    movetoline(current);
+    sub = lines[from_line];
+    displayextract(sub, from_line, 0, to_pos);
+    if (stat == solo_line || lines.Status(from_line+1) != concat_line) {
+        if (to_pos == sub.size())
+            kbuffer += L"\n";
+    }
+    movetoposition();
+}
+
+void jag_editor::unselectlines(long from_line, long to_line, long from_pos, long to_pos) {
+    wstring sub;
+
+    if (to_line < from_line)
+        return;
+
+    sub = lines[from_line];
+    if (from_line == to_line) {
+        movetoline(currentline);
+        displayextract(sub, from_line, from_pos, to_pos, false);
+        return;
+    }
+
+    long current = currentline;
+    //Else we display first, the missing part
+    movetoline(current++);
+    displayextract(sub, from_line++, from_pos, sub.size(), false);
+    while (from_line < to_line) {
+        sub = lines[from_line];
+        movetoline(current++);
+        displayextract(sub, from_line++, 0, sub.size(), false);
+    }
+    movetoline(current);
+    sub = lines[from_line];
+    displayextract(sub, from_line, 0, to_pos, false);
+}
+
+void jag_editor::computeposition(int& p, long position) {
+    wstring s = lines[position];
+    p -= prefixe() + 1;
+    long i = 0;
+    int pos = 0;
+    TAMGUCHAR c;
+    while (pos < p) {
+        if (scan_emoji(s, i))
+            pos+=2;
+        else {
+            c = getachar(s, i);
+            if (ckjchar(c)) {
+                pos+=2;
+            }
+            else {
+                if (c == 9) //tab position
+                    pos += (8 - (pos%8))%8;
+                pos++;
+            }
+        }
+        i++;
+    }
+    p = i;
+}
+
+void jag_editor::handlemousectrl(string& mousectrl) {
+    vector<int> location;
+
+    if (isScrollingUp(location,mousectrl)) {
+        if (selected_pos != -1) {
+            unselectlines(selected_pos, selected_posnext, selected_x, selected_y);
+            resetselection();
+            double_click = 0;
+        }
+
+        pos = poslines[0];
+        currentline = 0;
+        updown(is_up, pos);
+        return;
+    }
+
+    if (isScrollingDown(location,mousectrl)) {
+        if (selected_pos != -1) {
+            unselectlines(selected_pos, selected_posnext, selected_x, selected_y);
+            resetselection();
+            double_click = 0;
+        }
+
+        pos = poslines.back();
+        currentline = poslines.size() - 1;
+        updown(is_down, pos);
+        return;
+    }
+
+    if (isClickFirstMouseDown(location, mousectrl)) {
+        if (selected_pos != -1)
+            unselectlines(selected_pos, selected_posnext, selected_x, selected_y);
+
+        currentline = location[0] - 1;
+
+        if (currentline < 0)
+            currentline = 0;
+        if (currentline >= poslines.size())
+            currentline = poslines.size()-1;
+
+        pos = poslines[currentline];
+        line = lines[pos];
+        long endofstring = line.size();
+        if (endofstring && !lines.eol(pos))
+            endofstring--;
+
+
+        int mxcursor = 0, mycursor;
+        long l, r;
+        computeposition(location[1], pos);
+        if (location[1] < endofstring)
+            l = location[1];
+        else
+            l = endofstring;
+
+        if (l < 0)
+            l = 0;
+
+        mycursor = location[1];
+        int cursor_y;
+        long posnext = pos;
+        r = l;
+
+
+        resetselection();
+        selected_firstline = currentline;
+
+        if (!checkMouseup(mousectrl)) {
+            mousectrl = getch();
+
+            while (mouseTracking(mousectrl, mxcursor, cursor_y)) {
+                if (cursor_y != mycursor)
+                    unselectlines(pos, posnext, l, r);
+                double_click = 0;
+                if (mxcursor >= poslines.size())
+                    mxcursor = (int)poslines.size();
+
+                posnext = poslines[mxcursor - 1];
+                computeposition(cursor_y, posnext);
+
+                if (cursor_y < 0)
+                    cursor_y = 0;
+                mycursor = cursor_y;
+                r = cursor_y;
+                selectlines(pos, posnext, l, r);
+                mousectrl = getch();
+            }
+        }
+        else {
+            mxcursor = location[0];
+            if (mxcursor >= poslines.size())
+                mxcursor = (int)poslines.size();
+
+        }
+
+        //a simple click
+#ifdef WIN32
+        if (location[0] == mxcursor && location[1] == mycursor) {
+            double_click += nbClicks();
+#else
+        if (location[0] == mxcursor && location[1] == mycursor) {
+            double_click++;
+#endif
+            posinstring = l;
+
+            if (double_click >= 2) {
+                if (double_click >= 3) {
+                    double_click = 0;
+                    nbclicks = 0;
+                    l = 0;
+                    r = endofstring;
+                    selected_pos = pos;
+                    selected_posnext = pos;
+
+                    selected_x = l;
+                    selected_y = r;
+                    selectlines(pos, pos, l,r);
+                    posinstring = r;
+                    movetoposition();
+                    return;
+                }
+
+                while (l >= 0 && l < line.size() && checkcar(line[l])) l--;
+                if (l < 0)
+                    l = 0;
+                else {
+                    if (!checkcar(line[l]))
+                        l++;
+                }
+                r = l+1;
+                while (r < endofstring && checkcar(line[r])) r++;
+                if (l < r && l < endofstring) {
+                    selected_pos = pos;
+                    selected_posnext = pos;
+                    selected_x = l;
+                    selected_y = r;
+                    selectlines(pos, pos, l, r);
+                    posinstring = r;
+                    movetoposition();
+                    return;
+                }
+            }
+
+            movetoline(currentline);
+            movetoposition();
+            return;
+        }
+
+        //a selection
+        selected_pos = pos;
+        selected_posnext = posnext;
+        double_click = 0;
+        nbclicks = 0;
+        selected_x = l;
+        selected_y = r;
+        return;
+    }
+
+    double_click = 0;
 }
 
 ///------------------------------------------------------------------------------------
@@ -1001,34 +1518,47 @@ long jag_editor::deleteachar(wstring& l, bool last, long pins) {
     if (l == L"")
         return pins;
 
+    long mx = 1;
+    if (selected_pos != -1) {
+        pins = selected_x;
+        mx = selected_y - selected_x;
+    }
+
     if (last) {
-        if (c_is_emojicomp(l.back())) {
-            long sz = l.size() - 2;
-            long i = sz;
-            while (sz >= 0 && !scan_emoji(l, i)) {
-                sz--;
-                i = sz;
+        while (mx) {
+            if (c_is_emojicomp(l.back())) {
+                long sz = l.size() - 2;
+                long i = sz;
+                while (sz >= 0 && !scan_emoji(l, i)) {
+                    sz--;
+                    i = sz;
+                }
+                if (sz >= 0) {
+                    pins -= i - sz;
+                    l.erase(i, sz - i + 1);
+                }
+                else
+                    l.pop_back();
             }
-            if (sz >= 0) {
-                pins -= i - sz;
-                l.erase(i, sz - i + 1);
-            }
-            else
-                l.pop_back();
+            mx--;
         }
         l.pop_back();
     }
     else {
         long nb = 0;
         long i = pins;
-        long j = i;
-        if (scan_emoji(l, j)) {
-            nb += j - i;
-            i = j;
+        long j;
+        while (mx) {
+            j = i;
+            if (scan_emoji(l, j)) {
+                nb += j - i;
+                i = j;
+            }
+            else
+                i++;
+            nb++;
+            mx--;
         }
-        else
-            i++;
-        nb++;
         l.erase(pins, nb);
     }
     return pins;
@@ -1932,6 +2462,7 @@ long jag_editor::getbuffsize() {
 }
 
 void jag_editor::clear() {
+    mouseoff();
     echochar = false;
     pos = lines.size();
     currentline = 0;
@@ -2285,6 +2816,47 @@ bool jag_editor::evaluateescape(string& buff) {
         return true;
     }
     
+    if (buff == (char*)alt_plus) {
+        indentplus();
+        return true;
+    }
+
+    if (buff == (char*)alt_minus) {
+        deindentminus();
+        return true;
+    }
+
+    if (buff == (char*)alt_v) {
+        handleblock(copybuffer);
+        return true;
+    }
+
+    if (buff == (char*)alt_x) {
+        if (selected_pos == pos) {
+            copybuffer = kbuffer;
+            copy_to_clipboard(convert(copybuffer));
+            kbuffer = L"";
+            deleteselection();
+            line = lines[pos];
+        }
+        return true;
+    }
+
+    if (buff == (char*)alt_c) {
+        if (selected_pos == pos) {
+            copybuffer = kbuffer;
+            copy_to_clipboard(convert(copybuffer));
+            kbuffer = L"";
+            currentline += selected_posnext-selected_pos;
+            pos = selected_posnext;
+            movetoline(currentline);
+            line = lines[pos];
+            posinstring = selected_y;
+            movetoposition();
+        }
+        return true;
+    }
+
     if (buff == left) {
         if (posinstring > 0) {
             backwardemoji();
@@ -2303,6 +2875,11 @@ bool jag_editor::evaluateescape(string& buff) {
     }
     
     if (buff == del) {
+        if (selected_pos != -1) {
+            deleteselection();
+            return true;
+        }
+
         if (emode() && pos < lines.size()) {
             if (posinstring >= lines[pos].size()) {
                 deleteline(1);
@@ -2356,6 +2933,16 @@ bool jag_editor::checkcommand(char cmd) {
             movetoline(currentline);
             movetoposition();
             return true;
+        case '-': {
+            deindentminus();
+            displayonlast("", true);
+            return true;
+        }
+        case '+': {//we indent all the lines up
+            indentplus();
+            displayonlast("", true);
+            return true;
+        }
         case 'C': // we count pattern
             displayonlast("Count:", false);
             line = currentfind;
@@ -2381,6 +2968,18 @@ bool jag_editor::checkcommand(char cmd) {
             displayonlast(false);
             line = L"";
             option = x_copy;
+            return true;
+        case 'm':
+            if (emode()) {
+                togglemouse();
+                clearst();
+                st << "mouse:";
+                if (mouse_status)
+                    st << "on";
+                else
+                    st << "off";
+                displayonlast(true);
+            }
             return true;
         case 'f':
             if (emode()) {
@@ -2451,13 +3050,19 @@ bool jag_editor::checkcommand(char cmd) {
             movetoline(currentline);
             movetoposition();
             return true;
-        case 'h':
+        case 'h': {
+            bool m = mouse_status;
+            if (m)
+                mouseoff();
             displaythehelp();
             getch();
             displaylist(poslines[0]);
+            if (m)
+                mouseon();
             movetoline(currentline);
             movetoposition();
             return true;
+        }
     }
     return false;
 }
@@ -2474,7 +3079,8 @@ void jag_editor::handlecommands() {
 }
 
 void jag_editor::resetterminal() {
-#ifdef WIN32    
+    mouseoff();
+#ifdef WIN32
 	ResetWindowsConsole();
 #else
 	tcsetattr(0, TCSADRAIN, &oldterm);
@@ -2834,6 +3440,11 @@ bool jag_editor::checkaction(string& buff, long& first, long& last, bool lisp) {
 #endif
 		case 127: //back delete
 #endif
+            if (selected_pos != -1) {
+                deleteselection();
+                return true;
+            }
+
 			if (posinstring > 0) {
                 backwardemoji();
                 deletechar(true);
@@ -2863,6 +3474,9 @@ static bool isitempty(wstring& w, wchar_t c) {
 }
 
 void jag_editor::addabuffer(wstring& b, bool instring) {
+    if (isMouseAction(b) || b == L"")
+        return;
+
     //We only keep displayable characters
     wchar_t c;
     for (long i = 0; i < b.size(); i++) {
@@ -3026,18 +3640,40 @@ void jag_editor::launchterminal(char loadedcode) {
     while (1) {
         buff = getch();
         
+        if (emode()) {
+            while (isMouseAction(buff)) {
+                handlemousectrl(buff);
+                buff = getch();
+            }
+        }
+
+        if (selected_pos != -1 && buff[0] != 24)
+            unselectlines(selected_pos, selected_posnext, selected_x, selected_y);
+
         if (echochar) {
             displaychar(buff);
             continue;
         }
         
-
-        if (checkaction(buff, first, last))
+        if (checkaction(buff, first, last)) {
+            double_click = 0;
+            if (buff[0] != 24) {
+                selected_x = -1;
+                selected_y = -1;
+                selected_pos = -1;
+            }
             continue;
-        
+        }
+
         if (option == x_exitprint)
             return;
-        
+
+        if (selected_pos == pos) {
+            //We are going to replace a sequence of characters
+            //we delete it first
+            deleteselection();
+        }
+
         if (inbuffer) {
             buffer += buff;
             buff = buffer;
