@@ -2124,7 +2124,7 @@ public:
         else
             path = line;
 
-        path = s_trim(path);
+        path = Trim(path);
         //Two cases, we have a "\\" in it...
         pos = path.rfind(L"\\");
         //We need to extract it
