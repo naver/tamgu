@@ -205,9 +205,7 @@ class Tamgutransducer : public TamguObject {
 
     bool Boolean() {
         Locking _lock(this);
-		if (automaton == NULL)
-			return false;
-		return true;
+        return (automaton != NULL);
 	}
 
 

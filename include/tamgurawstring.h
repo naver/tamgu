@@ -501,9 +501,7 @@ public:
 	}
 
 	bool Boolean() {
-		if (stringsize==0)
-			return false;
-		return true;
+        return stringsize;
 	}
 
 	BLONG Long() {

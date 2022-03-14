@@ -624,7 +624,11 @@ class Tamgudvector : public TamguLockContainer {
     Exporting string String();
     //wstring UString() {}
 
-    Exporting long Integer();Exporting float Decimal();Exporting double Float();Exporting BLONG Long();Exporting bool Boolean();
+    Exporting long Integer();
+    Exporting float Decimal();
+    Exporting double Float();
+    Exporting BLONG Long();
+    Exporting bool Boolean();
     
     //Basic operations
     Exporting long Size();

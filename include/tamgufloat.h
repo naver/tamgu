@@ -431,7 +431,6 @@ public:
 	}
 
 	wstring UString() {
-		
 		return wconvertfromnumber(value);
 		
 	}
@@ -472,18 +471,38 @@ public:
 		return (long)value;
 	}
 
+    unsigned char asByte() {
+        return value;
+    }
+
+    long asInteger() {
+        return value;
+    }
+
+    float asDecimal() {
+        return (float)value;
+    }
+
+    double asFloat() {
+        return value;
+    }
+
+    BLONG asLong() {
+        return value;
+    }
+
+    short asShort() {
+        return value;
+    }
+
 	bool Boolean() {
-		if (value == 0)
-			return false;
-		return true;
+        return value;
 	}
 
 	bool Protectedboolean() {
         Locking _lock(*globalTamgu->booleanlocks[a_float]);
-        if (value == 0)
-			return false;
-		return true;
-	}
+        return value;
+    }
 
 	//Basic operations
 	virtual long Size() {
@@ -618,7 +637,7 @@ public:
         if (!a->isNumber())
             return aFALSE;
 #endif
-		if (value < a->Float())
+		if (value < a->asFloat())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -628,7 +647,7 @@ public:
         if (!a->isNumber())
             return aFALSE;
 #endif
-		if (value > a->Float())
+		if (value > a->asFloat())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -638,9 +657,7 @@ public:
         if (!a->isNumber())
             return aFALSE;
 #endif
-		if (value == a->Float())
-			return aTRUE;
-		return aFALSE;
+        return booleantamgu[value == a->asFloat()];
 	}
 
 	Tamgu* different(Tamgu* a) {
@@ -648,7 +665,7 @@ public:
         if (!a->isNumber())
             return aTRUE;
 #endif
-		if (value != a->Float())
+		if (value != a->asFloat())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -658,7 +675,7 @@ public:
         if (!a->isNumber())
             return aFALSE;
 #endif
-		if (value <= a->Float())
+		if (value <= a->asFloat())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -668,7 +685,7 @@ public:
         if (!a->isNumber())
             return aFALSE;
 #endif
-		if (value >= a->Float())
+		if (value >= a->asFloat())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -1155,15 +1172,11 @@ public:
     }
     
     bool Boolean() {
-        if (value == 0)
-            return false;
-        return true;
+        return value;
     }
-    
+
     bool Protectedboolean() {
-        if (value == 0)
-            return false;
-        return true;
+        return value;
     }
     
         //Basic operations
@@ -1308,7 +1321,7 @@ public:
         if (!a->isNumber())
             return aFALSE;
 #endif
-        if (value < a->Float())
+        if (value < a->asFloat())
             return aTRUE;
         return aFALSE;
     }
@@ -1318,7 +1331,7 @@ public:
         if (!a->isNumber())
             return aFALSE;
 #endif
-        if (value > a->Float())
+        if (value > a->asFloat())
             return aTRUE;
         return aFALSE;
     }
@@ -1328,9 +1341,7 @@ public:
         if (!a->isNumber())
             return aFALSE;
 #endif
-        if (value == a->Float())
-            return aTRUE;
-        return aFALSE;
+        return booleantamgu[value == a->asFloat()];
     }
     
     Tamgu* different(Tamgu* a) {
@@ -1338,7 +1349,7 @@ public:
         if (!a->isNumber())
             return aTRUE;
 #endif
-        if (value != a->Float())
+        if (value != a->asFloat())
             return aTRUE;
         return aFALSE;
     }
@@ -1348,7 +1359,7 @@ public:
         if (!a->isNumber())
             return aFALSE;
 #endif
-        if (value <= a->Float())
+        if (value <= a->asFloat())
             return aTRUE;
         return aFALSE;
     }
@@ -1358,7 +1369,7 @@ public:
         if (!a->isNumber())
             return aFALSE;
 #endif
-        if (value >= a->Float())
+        if (value >= a->asFloat())
             return aTRUE;
         return aFALSE;
     }

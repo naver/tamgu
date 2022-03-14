@@ -393,9 +393,7 @@ public:
 	}
 
 	bool Boolean() {
-		if (numerator == 0)
-			return false;
-		return true;
+        return numerator;
 	}
 
 

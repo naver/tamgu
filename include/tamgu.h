@@ -1291,7 +1291,21 @@ public:
 
 	//--------------------------------------------------
 
-	//--- Some important conversion methods...
+    //The as... methods are used in comparison to make the comparison strict.
+    //For instance: i == null is always false.
+    virtual string asString() { return String(); }
+    virtual wstring asUString() { return UString(); }
+    virtual long asInteger() { return Integer(); }
+    virtual double asFloat() { return Float(); }
+    virtual float asDecimal() { return Decimal(); }
+    virtual BLONG asLong() { return Long(); }
+    virtual short asShort() { return Short(); }
+    virtual unsigned char asByte() {
+        return Byte();
+    }
+
+    //--- Some important conversion methods...
+
 	virtual string String() { return ""; }
     virtual void Setstring(string& v, short idthread) { v = String(); }
 

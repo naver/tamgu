@@ -1097,9 +1097,7 @@ public:
     }
 
     bool Boolean() {
-        if (head.next == NULL)
-            return false;
-        return true;
+        return (head.next != NULL);
     }
 
     long Size() {

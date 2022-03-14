@@ -208,6 +208,30 @@ class Tamgubyte : public TamguReference {
 		return value;
 	}
 
+    unsigned char asByte() {
+        return value;
+    }
+
+    long asInteger() {
+        return value;
+    }
+
+    float asDecimal() {
+        return (float)value;
+    }
+
+    double asFloat() {
+        return value;
+    }
+
+    BLONG asLong() {
+        return value;
+    }
+
+    short asShort() {
+        return value;
+    }
+
 	wstring UString() {
 		wstring s(L" ");
 		s[0] = value;
@@ -279,15 +303,12 @@ class Tamgubyte : public TamguReference {
 	}
 	
 	bool Boolean() {
-		if (value == 0)
-			return false;
-		return true;
+        return value;
 	}
+    
 	bool Protectedboolean() {
 		Locking _lock(*globalTamgu->booleanlocks[a_byte]);
-		if (value == 0)
-			return false;
-		return true;
+        return value;
 	}
     
     //Basic operations    
@@ -382,23 +403,21 @@ class Tamgubyte : public TamguReference {
 		return aFALSE;
 	}
 	Tamgu* same(Tamgu* a) {
-		if (value == a->Byte())
-			return aTRUE;
-		return aFALSE;
+        return booleantamgu[value == a->asByte()];
 	}
 	Tamgu* different(Tamgu* a) {
-		if (value != a->Byte())
+		if (value != a->asByte())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* lessequal(Tamgu* a) {
-		if (value <= a->Byte())
+		if (value <= a->asByte())
 			return aTRUE;
 		return aFALSE;
 	}
 	Tamgu* moreequal(Tamgu* a) {
-		if (value >= a->Byte())
+		if (value >= a->asByte())
 			return aTRUE;
 		return aFALSE;
 	}

@@ -1174,11 +1174,9 @@ public:
 		return Size();
 	}
 
-	bool Boolean() {
-		if (thefile == NULL)
-			return false;
-		return true;
-	}
+    bool Boolean() {
+        return (thefile != NULL);
+    }
 
 };
 

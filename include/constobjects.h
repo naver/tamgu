@@ -126,7 +126,7 @@ public:
 	}
 
 	bool Boolean() {
-		return value;
+		return false;
 	}
 
 
@@ -172,13 +172,28 @@ public:
 		return wcontent;
 	}
 
-    string String() { return content; }
-    wstring UString() { return wcontent; }
-	long Integer() { return value; }
-    double Float() { return value; }
-    float Decimal() { return value; }
-    BLONG Long() { return value; }
-    short Short() { return value; }
+    string asString() { return content; }
+    wstring asUString() { return wcontent; }
+	long asInteger() { return value; }
+    double asFloat() { return value; }
+    float asDecimal() { return value; }
+    BLONG asLong() { return value; }
+    short asShort() { return value; }
+    unsigned char asByte() {
+        return 255;
+    }
+    
+    string String() { return ""; }
+    wstring UString() { return L""; }
+    long Integer() { return 0; }
+    double Float() { return 0; }
+    float Decimal() { return 0; }
+    BLONG Long() { return 0; }
+    short Short() { return 0; }
+    unsigned char Byte() {
+        return 0;
+    }
+
 };
 
 class TamguConstBreak : public TamguConst {
@@ -328,16 +343,49 @@ public:
 		return res;
 	}
 
-	long Integer() {
-		return (long)conversionintegerhexa(STR(value));
-	}
-
     long CommonSize() {
         return szc;
     }
 
-	long Size() {
-		return sz;
+    long Size() {
+        return sz;
+    }
+
+    bool Boolean() {
+        return (value != "");
+    }
+
+    unsigned char Byte() {
+        return value[0];
+    }
+    
+    unsigned char asByte() {
+        return value[0];
+    }
+    
+    long asInteger() {
+        return (long)conversionintegerhexa(STR(value));
+    }
+
+    float asDecimal() {
+        return convertfloat(STR(value));
+    }
+
+    double asFloat() {
+        return convertfloat(STR(value));
+    }
+
+    BLONG asLong() {
+        return conversionintegerhexa(STR(value));
+    }
+
+    short asShort() {
+        return (short)conversionintegerhexa(STR(value));
+    }
+
+
+	long Integer() {
+		return (long)conversionintegerhexa(STR(value));
 	}
 
 	float Decimal() {
@@ -346,12 +394,6 @@ public:
 
 	double Float() {
 		return convertfloat(STR(value));
-	}
-
-	bool Boolean() {
-		if (value == "")
-			return false;
-		return true;
 	}
 
 	BLONG Long() {
@@ -402,7 +444,7 @@ public:
         if (!a->isString())
             return aFALSE;
 #endif
-		if (value < a->String())
+		if (value < a->asString())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -412,7 +454,7 @@ public:
         if (!a->isString())
             return aFALSE;
 #endif
-		if (value > a->String())
+		if (value > a->asString())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -422,9 +464,7 @@ public:
         if (!a->isString())
             return aFALSE;
 #endif
-		if (value == a->String())
-			return aTRUE;
-		return aFALSE;
+        return booleantamgu[value == a->asString()];
 	}
 
 	Tamgu* different(Tamgu* a) {
@@ -432,7 +472,7 @@ public:
         if (!a->isString())
             return aTRUE;
 #endif
-		if (value != a->String())
+		if (value != a->asString())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -442,7 +482,7 @@ public:
         if (!a->isString())
             return aFALSE;
 #endif
-		if (value <= a->String())
+		if (value <= a->asString())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -452,7 +492,7 @@ public:
         if (!a->isString())
             return aFALSE;
 #endif
-		if (value >= a->String())
+		if (value >= a->asString())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -595,12 +635,45 @@ public:
 		return value;
 	}
 
+    long Size() {
+        return sz;
+    }
+
+    bool Boolean() {
+        return (value != L"");
+    }
+
+    unsigned char Byte() {
+        return (unsigned char)value[0];
+    }
+
+    unsigned char asByte() {
+        return (unsigned char)value[0];
+    }
+
+    long asInteger() {
+        return (long)conversionintegerhexa(STR(value));
+    }
+
+    float asDecimal() {
+        return convertfloat(STR(value));
+    }
+
+    double asFloat() {
+        return convertfloat(STR(value));
+    }
+
+    BLONG asLong() {
+        return conversionintegerhexa(STR(value));
+    }
+
+    short asShort() {
+        return (short)conversionintegerhexa(STR(value));
+    }
+
+
 	long Integer() {
 		return (long)conversionintegerhexa(STR(value));
-	}
-
-	long Size() {
-		return sz;
 	}
 
 	float Decimal() {
@@ -609,12 +682,6 @@ public:
 
 	double Float() {
 		return convertfloat(STR(value));
-	}
-
-	bool Boolean() {
-		if (value == L"")
-			return false;
-		return true;
 	}
 
 	BLONG Long() {
@@ -670,7 +737,7 @@ public:
         if (!a->isString())
             return aFALSE;
 #endif
-		if (value < a->UString())
+		if (value < a->asUString())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -680,7 +747,7 @@ public:
         if (!a->isString())
             return aFALSE;
 #endif
-		if (value > a->UString())
+		if (value > a->asUString())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -690,9 +757,7 @@ public:
         if (!a->isString())
             return aFALSE;
 #endif
-		if (value == a->UString())
-			return aTRUE;
-		return aFALSE;
+        return booleantamgu[value == a->asUString()];
 	}
 
 	Tamgu* different(Tamgu* a) {
@@ -700,7 +765,7 @@ public:
         if (!a->isString())
             return aTRUE;
 #endif
-		if (value != a->UString())
+		if (value != a->asUString())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -710,7 +775,7 @@ public:
         if (!a->isString())
             return aFALSE;
 #endif
-		if (value <= a->UString())
+		if (value <= a->asUString())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -720,7 +785,7 @@ public:
         if (!a->isString())
             return aFALSE;
 #endif
-		if (value >= a->UString())
+		if (value >= a->asUString())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -844,6 +909,10 @@ public:
 		
 	}
 
+    bool Boolean() {
+        return value;
+    }
+
 	long Integer() {
 		return value;
 	}
@@ -856,12 +925,6 @@ public:
 		return value;
 	}
 
-	bool Boolean() {
-		if (value == 0)
-			return false;
-		return true;
-	}
-
 	BLONG Long() {
 		return value;
 	}
@@ -869,6 +932,34 @@ public:
 	short Short() {
 		return value;
 	}
+
+    unsigned char Byte() {
+        return value;
+    }
+
+    unsigned char asByte() {
+        return value;
+    }
+
+    long asInteger() {
+        return value;
+    }
+
+    float asDecimal() {
+        return (float)value;
+    }
+
+    double asFloat() {
+        return value;
+    }
+
+    BLONG asLong() {
+        return value;
+    }
+
+    short asShort() {
+        return value;
+    }
 
 	Tamgu* Atom(bool forced = false) {
 		return globalTamgu->Provideint(value);
@@ -937,7 +1028,7 @@ public:
             return aFALSE;
 #endif
         
-		if (value < a->Integer())
+		if (value < a->asInteger())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -948,7 +1039,7 @@ public:
             return aFALSE;
 #endif
 
-        if (value > a->Integer())
+        if (value > a->asInteger())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -959,9 +1050,7 @@ public:
             return aFALSE;
 #endif
 
-        if (value == a->Integer())
-			return aTRUE;
-		return aFALSE;
+        return booleantamgu[value == a->asInteger()];
 	}
 
 	Tamgu* different(Tamgu* a) {
@@ -970,7 +1059,7 @@ public:
             return aTRUE;
 #endif
 
-        if (value != a->Integer())
+        if (value != a->asInteger())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -981,7 +1070,7 @@ public:
             return aFALSE;
 #endif
 
-        if (value <= a->Integer())
+        if (value <= a->asInteger())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -992,7 +1081,7 @@ public:
             return aFALSE;
 #endif
 
-        if (value >= a->Integer())
+        if (value >= a->asInteger())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -1117,6 +1206,39 @@ public:
 		
 	}
 
+    bool Boolean() {
+        return value;
+    }
+
+    unsigned char Byte() {
+        return value;
+    }
+
+
+    unsigned char asByte() {
+        return value;
+    }
+
+    long asInteger() {
+        return value;
+    }
+
+    float asDecimal() {
+        return (float)value;
+    }
+
+    double asFloat() {
+        return value;
+    }
+
+    BLONG asLong() {
+        return value;
+    }
+
+    short asShort() {
+        return value;
+    }
+
 	long Integer() {
 		return value;
 	}
@@ -1127,12 +1249,6 @@ public:
 
 	double Float() {
 		return value;
-	}
-
-	bool Boolean() {
-		if (value == 0)
-			return false;
-		return true;
 	}
 
 	BLONG Long() {
@@ -1236,7 +1352,7 @@ public:
             return aFALSE;
 #endif
 
-        if (value < a->Short())
+        if (value < a->asShort())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -1247,7 +1363,7 @@ public:
             return aFALSE;
 #endif
 
-        if (value > a->Short())
+        if (value > a->asShort())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -1258,9 +1374,7 @@ public:
             return aFALSE;
 #endif
 
-        if (value == a->Short())
-			return aTRUE;
-		return aFALSE;
+        return booleantamgu[value == a->asShort()];
 	}
 
 	Tamgu* different(Tamgu* a) {
@@ -1269,7 +1383,7 @@ public:
             return aTRUE;
 #endif
 
-        if (value != a->Short())
+        if (value != a->asShort())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -1280,7 +1394,7 @@ public:
             return aFALSE;
 #endif
 
-        if (value <= a->Short())
+        if (value <= a->asShort())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -1290,7 +1404,7 @@ public:
         if (!a->isNumber())
             return aFALSE;
 #endif
-		if (value >= a->Short())
+		if (value >= a->asShort())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -1424,12 +1538,6 @@ public:
 		return value;
 	}
 
-	bool Boolean() {
-		if (value == 0)
-			return false;
-		return true;
-	}
-
 	BLONG Long() {
 		return (BLONG)value;
 	}
@@ -1437,6 +1545,39 @@ public:
 	short Short() {
 		return value;
 	}
+
+    bool Boolean() {
+        return value;
+    }
+
+    unsigned char Byte() {
+        return value;
+    }
+
+
+    unsigned char asByte() {
+        return value;
+    }
+
+    long asInteger() {
+        return value;
+    }
+
+    float asDecimal() {
+        return (float)value;
+    }
+
+    double asFloat() {
+        return value;
+    }
+
+    BLONG asLong() {
+        return value;
+    }
+
+    short asShort() {
+        return value;
+    }
 
 
 	Tamgu* Atom(bool forced = false) {
@@ -1507,7 +1648,7 @@ public:
             return aFALSE;
 #endif
 
-        if (value < a->Decimal())
+        if (value < a->asDecimal())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -1518,7 +1659,7 @@ public:
             return aFALSE;
 #endif
 
-        if (value > a->Decimal())
+        if (value > a->asDecimal())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -1529,9 +1670,7 @@ public:
             return aFALSE;
 #endif
 
-        if (value == a->Decimal())
-			return aTRUE;
-		return aFALSE;
+        return booleantamgu[value == a->asDecimal()];
 	}
 
 	Tamgu* different(Tamgu* a) {
@@ -1540,7 +1679,7 @@ public:
             return aTRUE;
 #endif
 
-        if (value != a->Decimal())
+        if (value != a->asDecimal())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -1551,7 +1690,7 @@ public:
             return aFALSE;
 #endif
 
-        if (value <= a->Decimal())
+        if (value <= a->asDecimal())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -1561,7 +1700,7 @@ public:
         if (!a->isNumber())
             return aFALSE;
 #endif
-		if (value >= a->Decimal())
+		if (value >= a->asDecimal())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -1687,12 +1826,6 @@ public:
 		return value;
 	}
 
-	bool Boolean() {
-		if (value == 0)
-			return false;
-		return true;
-	}
-
 	BLONG Long() {
 		return (BLONG)value;
 	}
@@ -1700,6 +1833,40 @@ public:
 	short Short() {
 		return value;
 	}
+
+    bool Boolean() {
+        return value;
+    }
+
+    unsigned char Byte() {
+        return value;
+    }
+
+
+    unsigned char asByte() {
+        return value;
+    }
+
+    long asInteger() {
+        return value;
+    }
+
+    float asDecimal() {
+        return (float)value;
+    }
+
+    double asFloat() {
+        return value;
+    }
+
+    BLONG asLong() {
+        return value;
+    }
+
+    short asShort() {
+        return value;
+    }
+
 
 	Tamgu* Atom(bool forced = false) {
 		return globalTamgu->ProvideConstfloat(value);
@@ -1768,7 +1935,7 @@ public:
             return aFALSE;
 #endif
 
-        if (value < a->Float())
+        if (value < a->asFloat())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -1779,7 +1946,7 @@ public:
             return aFALSE;
 #endif
 
-        if (value > a->Float())
+        if (value > a->asFloat())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -1790,9 +1957,7 @@ public:
             return aFALSE;
 #endif
 
-        if (value == a->Float())
-			return aTRUE;
-		return aFALSE;
+        return booleantamgu[value == a->asFloat()];
 	}
 
 	Tamgu* different(Tamgu* a) {
@@ -1801,7 +1966,7 @@ public:
             return aTRUE;
 #endif
 
-        if (value != a->Float())
+        if (value != a->asFloat())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -1812,7 +1977,7 @@ public:
             return aFALSE;
 #endif
 
-        if (value <= a->Float())
+        if (value <= a->asFloat())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -1822,7 +1987,7 @@ public:
         if (!a->isNumber())
             return aFALSE;
 #endif
-        if (value >= a->Float())
+        if (value >= a->asFloat())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -1958,12 +2123,6 @@ public:
 		return (double)value;
 	}
 
-	bool Boolean() {
-		if (value == 0)
-			return false;
-		return true;
-	}
-
 	BLONG Long() {
 		return value;
 	}
@@ -1971,6 +2130,40 @@ public:
 	short Short() {
 		return value;
 	}
+
+    bool Boolean() {
+        return value;
+    }
+
+    unsigned char Byte() {
+        return value;
+    }
+
+
+    unsigned char asByte() {
+        return value;
+    }
+
+    long asInteger() {
+        return value;
+    }
+
+    float asDecimal() {
+        return (float)value;
+    }
+
+    double asFloat() {
+        return value;
+    }
+
+    BLONG asLong() {
+        return value;
+    }
+
+    short asShort() {
+        return value;
+    }
+
 
 	Tamgu* Atom(bool forced = false) {
 		return globalTamgu->Providelong(value);
@@ -2039,7 +2232,7 @@ public:
         if (!a->isNumber())
             return aFALSE;
 #endif
-		if (value < a->Long())
+		if (value < a->asLong())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -2049,7 +2242,7 @@ public:
         if (!a->isNumber())
             return aFALSE;
 #endif
-		if (value > a->Long())
+		if (value > a->asLong())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -2059,9 +2252,7 @@ public:
         if (!a->isNumber())
             return aFALSE;
 #endif
-		if (value == a->Long())
-			return aTRUE;
-		return aFALSE;
+        return booleantamgu[value == a->asLong()];
 	}
 
 	Tamgu* different(Tamgu* a) {
@@ -2069,7 +2260,7 @@ public:
         if (!a->isNumber())
             return aTRUE;
 #endif
-		if (value != a->Long())
+		if (value != a->asLong())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -2079,7 +2270,7 @@ public:
         if (!a->isNumber())
             return aFALSE;
 #endif
-		if (value <= a->Long())
+		if (value <= a->asLong())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -2089,7 +2280,7 @@ public:
         if (!a->isNumber())
             return aFALSE;
 #endif
-		if (value >= a->Long())
+		if (value >= a->asLong())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -2219,6 +2410,36 @@ public:
 	short Short() {
 		return value;
 	}
+
+    unsigned char Byte() {
+        return value;
+    }
+
+
+    unsigned char asByte() {
+        return value;
+    }
+
+    long asInteger() {
+        return value;
+    }
+
+    float asDecimal() {
+        return (float)value;
+    }
+
+    double asFloat() {
+        return value;
+    }
+
+    BLONG asLong() {
+        return value;
+    }
+
+    short asShort() {
+        return value;
+    }
+
 
 	Tamgu* same(Tamgu* a) {
 		if (value == a->Boolean())

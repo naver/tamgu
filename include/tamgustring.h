@@ -957,13 +957,6 @@ public:
 
 	}
 
-	long Integer() {
-        if (!globalTamgu->threadMODE)
-            return (long)conversionintegerhexa(STR(value));
-		Locking _lock(this);
-		return (long)conversionintegerhexa(STR(value));
-	}
-
 	wstring Getustring(short idthread) {
 		wstring res;
         locking();
@@ -1011,6 +1004,13 @@ public:
 		return (long)value.size();
 	}
 
+    long Integer() {
+        if (!globalTamgu->threadMODE)
+            return (long)conversionintegerhexa(STR(value));
+        Locking _lock(this);
+        return (long)conversionintegerhexa(STR(value));
+    }
+
 	float Decimal() {
         if (!globalTamgu->threadMODE)
             return convertfloat(STR(value));
@@ -1027,16 +1027,12 @@ public:
 
 	bool Boolean() {
         if (!globalTamgu->threadMODE) {
-            if (value == "")
-                return false;
-            return true;
+            return (value != "");
         }
         
 		Locking _lock(this);
-		if (value == "")
-			return false;
-		return true;
-	}
+        return (value != "");        
+    }
 
 	BLONG Long() {
         if (!globalTamgu->threadMODE)
@@ -1045,6 +1041,51 @@ public:
         Locking _lock(this);
 		return conversionintegerhexa(STR(value));
 	}
+
+    unsigned char Byte() {
+        if (!globalTamgu->threadMODE)
+            return value[0];
+
+        Locking _lock(this);
+        return value[0];
+    }
+    
+    unsigned char asByte() {
+        if (!globalTamgu->threadMODE)
+            return value[0];
+
+        Locking _lock(this);
+        return value[0];
+    }
+    
+    long asInteger() {
+        if (!globalTamgu->threadMODE)
+            return (long)conversionintegerhexa(STR(value));
+        Locking _lock(this);
+        return (long)conversionintegerhexa(STR(value));
+    }
+
+    float asDecimal() {
+        if (!globalTamgu->threadMODE)
+            return convertfloat(STR(value));
+        Locking _lock(this);
+        return convertfloat(STR(value));
+    }
+
+    double asFloat() {
+        if (!globalTamgu->threadMODE)
+            return convertfloat(STR(value));
+        Locking _lock(this);
+        return convertfloat(STR(value));
+    }
+
+    BLONG asLong() {
+        if (!globalTamgu->threadMODE)
+            return conversionintegerhexa(STR(value));
+
+        Locking _lock(this);
+        return conversionintegerhexa(STR(value));
+    }
 
 	Exporting Tamgu* in(Tamgu* context, Tamgu* a, short idthread);
 
@@ -1130,12 +1171,12 @@ public:
             return aFALSE;
 #endif
         if (!globalTamgu->threadMODE) {
-            if (value < a->String())
+            if (value < a->asString())
                 return aTRUE;
             return aFALSE;
         }
 		Locking _lock(this);
-		if (value < a->String())
+		if (value < a->asString())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -1146,12 +1187,12 @@ public:
             return aFALSE;
 #endif
         if (!globalTamgu->threadMODE) {
-            if (value > a->String())
+            if (value > a->asString())
                 return aTRUE;
             return aFALSE;
         }
 		Locking _lock(this);
-		if (value > a->String())
+		if (value > a->asString())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -1162,14 +1203,10 @@ public:
             return aFALSE;
 #endif
         if (!globalTamgu->threadMODE) {
-            if (value == a->String())
-                return aTRUE;
-            return aFALSE;
+            return booleantamgu[value == a->asString()];
         }
 		Locking _lock(this);
-		if (value == a->String())
-			return aTRUE;
-		return aFALSE;
+        return booleantamgu[value == a->asString()];
 	}
 
 	Tamgu* different(Tamgu* a) {
@@ -1178,15 +1215,11 @@ public:
             return aTRUE;
 #endif
         if (!globalTamgu->threadMODE) {
-            if (value != a->String())
-                return aTRUE;
-            return aFALSE;
+            return booleantamgu[value != a->asString()];
         }
 		Locking _lock(this);
-		if (value != a->String())
-			return aTRUE;
-		return aFALSE;
-	}
+        return booleantamgu[value != a->asString()];        
+    }
 
 	Tamgu* lessequal(Tamgu* a) {
 #ifdef TAMGUSTRICTCOMPARISON
@@ -1194,12 +1227,12 @@ public:
             return aFALSE;
 #endif
         if (!globalTamgu->threadMODE) {
-            if (value <= a->String())
+            if (value <= a->asString())
                 return aTRUE;
             return aFALSE;
         }
 		Locking _lock(this);
-		if (value <= a->String())
+		if (value <= a->asString())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -1210,13 +1243,13 @@ public:
             return aFALSE;
 #endif
         if (!globalTamgu->threadMODE) {
-            if (value >= a->String())
+            if (value >= a->asString())
                 return aTRUE;
             return aFALSE;
         }
         
 		Locking _lock(this);
-		if (value >= a->String())
+		if (value >= a->asString())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -1828,7 +1861,7 @@ public:
         if (!a->isString())
             return aFALSE;
 #endif
-        if (value < a->String())
+        if (value < a->asString())
             return aTRUE;
         return aFALSE;
     }
@@ -1838,7 +1871,7 @@ public:
         if (!a->isString())
             return aFALSE;
 #endif
-        if (value > a->String())
+        if (value > a->asString())
             return aTRUE;
         return aFALSE;
     }
@@ -1848,9 +1881,7 @@ public:
         if (!a->isString())
             return aFALSE;
 #endif
-        if (value == a->String())
-            return aTRUE;
-        return aFALSE;
+        return booleantamgu[value == a->asString()];
     }
     
     Tamgu* different(Tamgu* a) {
@@ -1858,7 +1889,7 @@ public:
         if (!a->isString())
             return aTRUE;
 #endif
-        if (value == a->String())
+        if (value == a->asString())
             return aFALSE;
         return aTRUE;
     }
@@ -1868,7 +1899,7 @@ public:
         if (!a->isString())
             return aFALSE;
 #endif
-        if (value <= a->String())
+        if (value <= a->asString())
             return aTRUE;
         return aFALSE;
     }
@@ -1878,7 +1909,7 @@ public:
         if (!a->isString())
             return aFALSE;
 #endif
-        if (value >= a->String())
+        if (value >= a->asString())
             return aTRUE;
         return aFALSE;
     }

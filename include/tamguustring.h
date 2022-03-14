@@ -982,12 +982,79 @@ public:
 		Locking _lock(this);
 		return Integer();
 	}
-	bool Boolean() {
+
+    bool Boolean() {
 		Locking _lock(this);
-		if (value == L"")
-			return false;
-		return true;
+        return (value != L"");
 	}
+    
+    long asInteger() {
+        if (!globalTamgu->threadMODE) {
+            if (value == L"")
+                return 0;
+            string v;
+            sc_unicode_to_utf8(v, value);
+            return conversionintegerhexa(STR(v));
+        }
+
+        Locking _lock(this);
+        if (value == L"")
+            return 0;
+        string v;
+        sc_unicode_to_utf8(v, value);
+        return conversionintegerhexa(STR(v));
+    }
+    float asDecimal() {
+        if (!globalTamgu->threadMODE) {
+            if (value == L"")
+                return 0;
+            string v;
+            sc_unicode_to_utf8(v, value);
+            return convertfloat(STR(v));
+        }
+        
+        Locking _lock(this);
+        if (value == L"")
+            return 0;
+        string v;
+        sc_unicode_to_utf8(v, value);
+        return convertfloat(STR(v));
+    }
+    double asFloat() {
+        if (!globalTamgu->threadMODE) {
+            if (value == L"")
+                return 0;
+            string v;
+            sc_unicode_to_utf8(v, value);
+            return convertfloat(STR(v));
+        }
+
+        Locking _lock(this);
+        if (value == L"")
+            return 0;
+        string v;
+        sc_unicode_to_utf8(v, value);
+        return convertfloat(STR(v));
+    }
+    
+    BLONG asLong() {
+        Locking _lock(this);
+        return Integer();
+    }
+    
+    unsigned char asByte() {
+        string buffer;
+        if (!globalTamgu->threadMODE) {
+            s_unicode_to_utf8(buffer, value);
+            return buffer[0];
+        }
+
+        Locking _lock(this);
+        s_unicode_to_utf8(buffer, value);
+        return buffer[0];
+    }
+    
+
 	unsigned char Byte() {		
 		string buffer;
         if (!globalTamgu->threadMODE) {
@@ -1952,7 +2019,7 @@ public:
         if (!a->isString())
             return aFALSE;
 #endif
-        if (value < a->UString())
+        if (value < a->asUString())
             return aTRUE;
         return aFALSE;
     }
@@ -1962,7 +2029,7 @@ public:
         if (!a->isString())
             return aFALSE;
 #endif
-        if (value > a->UString())
+        if (value > a->asUString())
             return aTRUE;
         return aFALSE;
     }
@@ -1972,9 +2039,7 @@ public:
         if (!a->isString())
             return aFALSE;
 #endif
-        if (value == a->UString())
-            return aTRUE;
-        return aFALSE;
+        return booleantamgu[value == a->asUString()];        
     }
     
     Tamgu* different(Tamgu* a) {
@@ -1982,7 +2047,7 @@ public:
         if (!a->isString())
             return aTRUE;
 #endif
-        if (value == a->UString())
+        if (value == a->asUString())
             return aFALSE;
         return aTRUE;
     }
@@ -1992,7 +2057,7 @@ public:
         if (!a->isString())
             return aFALSE;
 #endif
-        if (value <= a->UString())
+        if (value <= a->asUString())
             return aTRUE;
         return aFALSE;
     }
@@ -2002,7 +2067,7 @@ public:
         if (!a->isString())
             return aFALSE;
 #endif
-        if (value >= a->UString())
+        if (value >= a->asUString())
             return aTRUE;
         return aFALSE;
     }

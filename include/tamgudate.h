@@ -187,9 +187,7 @@ public:
 	}
 
 	bool Boolean() {
-		if (value == 0)
-			return false;
-		return true;
+        return value;
 	}
 
 	Tamgu* plus(Tamgu* b, bool autoself) {
@@ -236,16 +234,14 @@ public:
         if (!a->isNumber())
             return aFALSE;
 #endif
-		if (value == a->Integer())
-			return aTRUE;
-		return aFALSE;
+        return booleantamgu[value == a->asInteger()];
 	}
 	Tamgu* different(Tamgu* a) {
 #ifdef TAMGUSTRICTCOMPARISON
         if (!a->isNumber())
             return aTRUE;
 #endif
-		if (value != a->Integer())
+		if (value != a->asInteger())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -255,7 +251,7 @@ public:
         if (!a->isNumber())
             return aFALSE;
 #endif
-		if (value <= a->Integer())
+		if (value <= a->asInteger())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -264,7 +260,7 @@ public:
         if (!a->isNumber())
             return aFALSE;
 #endif
-		if (value >= a->Integer())
+		if (value >= a->asInteger())
 			return aTRUE;
 		return aFALSE;
 	}

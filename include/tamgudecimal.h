@@ -449,6 +449,30 @@ public:
 		return (BLONG)value;
 	}
 
+    unsigned char asByte() {
+        return value;
+    }
+
+    long asInteger() {
+        return value;
+    }
+
+    float asDecimal() {
+        return (float)value;
+    }
+
+    double asFloat() {
+        return value;
+    }
+
+    BLONG asLong() {
+        return value;
+    }
+
+    short asShort() {
+        return value;
+    }
+
 	wstring Getustring(short idthread) {
 		
 		return wconvertfromnumber(value);
@@ -478,17 +502,13 @@ public:
 	}
 
 	bool Boolean() {
-		if (value == 0)
-			return false;
-		return true;
+        return value;
 	}
 
 	bool Protectedboolean() {
         Locking _lock(*globalTamgu->booleanlocks[a_decimal]);
-        if (value == 0)
-			return false;
-		return true;
-	}
+        return value;
+    }
 
 	//Basic operations
 	virtual long Size() {
@@ -623,7 +643,7 @@ public:
         if (!a->isNumber())
             return aFALSE;
 #endif
-		if (value < a->Decimal())
+		if (value < a->asDecimal())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -633,7 +653,7 @@ public:
         if (!a->isNumber())
             return aFALSE;
 #endif
-		if (value > a->Decimal())
+		if (value > a->asDecimal())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -643,9 +663,7 @@ public:
         if (!a->isNumber())
             return aFALSE;
 #endif
-		if (value == a->Decimal())
-			return aTRUE;
-		return aFALSE;
+        return booleantamgu[value == a->asDecimal()];
 	}
 
 	Tamgu* different(Tamgu* a) {
@@ -653,7 +671,7 @@ public:
         if (!a->isNumber())
             return aTRUE;
 #endif
-		if (value != a->Decimal())
+		if (value != a->asDecimal())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -663,7 +681,7 @@ public:
         if (!a->isNumber())
             return aFALSE;
 #endif
-		if (value <= a->Decimal())
+		if (value <= a->asDecimal())
 			return aTRUE;
 		return aFALSE;
 	}
@@ -673,7 +691,7 @@ public:
         if (!a->isNumber())
             return aFALSE;
 #endif
-		if (value >= a->Decimal())
+		if (value >= a->asDecimal())
 			return aTRUE;
 		return aFALSE;
 	}
