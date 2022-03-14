@@ -2462,6 +2462,8 @@ public:
     void launchterminal(char noinit) {
 		clearscreen();
 
+        long selection_beginning = 0;
+        
         localhelp << m_red<< "^b" << m_current << ":breakpoint " << m_red<< "^c/q" << m_current << ":cmd line " << m_red << "^xq" << m_current << ":exit";
         
         option = x_none;
@@ -2579,10 +2581,58 @@ public:
                 }
             }
 
+            if (linematch == -2) {
+                displaygo(true);
+                movetoposition();
+            }
+            else {
+                if (linematch != -1) {
+                    printline(linematch+1, lines[linematch], -1);
+                    movetoposition();
+                }
+            }
+
+            if (buff == (char*)shift_right) {
+                //We select to the right...
+                if (selected_pos == -1) {
+                    selected_pos = pos;
+                    selected_posnext = pos;
+                    double_click = 0;
+                    selection_beginning = posinstring;
+                    selected_x = posinstring;
+                    selected_y = posinstring++;
+                }
+
+                if (selected_y >= lines[pos].size())
+                    continue;
+
+                unselectlines(pos, pos, selected_x, selected_y);
+                selected_y++;
+                posinstring = selected_y;
+                selectlines(pos, pos, selected_x, selected_y);
+                continue;
+            }
+
+            if (buff == (char*)shift_left) {
+                //We select to the left...
+                if (selected_pos == -1 || selected_y == selection_beginning) {
+                    continue;
+                }
+
+                unselectlines(pos, pos, selected_x, selected_y);
+                selected_y--;
+                posinstring = selected_y;
+                selectlines(pos, pos, selected_x, selected_y);
+                continue;
+            }
+
+            selection_beginning = 0;
+
             //We clear the selection
             if (selected_pos != -1 && buff[0] != 24)
                 unselectlines(selected_pos, selected_posnext, selected_x, selected_y);
 
+            linematch = -1;
             dsp = true;
             if (checkkeyboard(buff, first, last, dsp, noinit)) {
                 double_click = 0;
@@ -2599,6 +2649,7 @@ public:
                 //we delete it first
                 deleteselection();
             }
+
             double_click = 0;
             selected_x = -1;
             selected_y = -1;

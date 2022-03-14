@@ -436,6 +436,7 @@ public:
         rules.push_back("u@\"%?+\"@=8");             //44    empty string u@""@
         rules.push_back("u@\"%?+\"@=8");             //45    string u@".."@ unicode string
         
+        rules.push_back("\\27%[{;%d}+m=0");                     // color detection
         rules.push_back("0x%1+(.%1+)([p P]([- +])%d+)=3"); //47 hexadecimal
         rules.push_back("%d+(.%d+)([e E]([- +])%d+)=3");         //47    exponential digits
         
@@ -474,7 +475,10 @@ public:
         rules.push_back("\r=#");                        //3     cr
         
         rules.push_back("1:{%d #A-F #a-f}");            //2     metarule on 1, for hexadecimal digits
-        
+
+        rules.push_back("\033%[0m=#");                  // color detection
+        rules.push_back("\033%[%d+;%d+;%d+m=#");        // color detection
+
             //Fast tracks for recurrent punctuations
         rules.push_back(";=#");                         //4     ;
         rules.push_back(",=#");                         //5     ,

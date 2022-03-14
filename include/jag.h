@@ -40,12 +40,6 @@ const char enablemouse[] = {27,91,'?','1','0','0','3','h',0};
 const char enablemouse[] = {27,91,'?','1','0','0','3','h',27,91,'?','1','0','1','5','h',27,91,'?','1','0','1','6','h',0};
 #endif
 const char disablemouse[] = {27,91,'?','1','0','0','0','l',0};
-const unsigned char alt_plus[] = {226, 137, 160, 0};
-const unsigned char alt_minus[] = {226, 128, 148, 0};
-
-const unsigned char alt_x[] = {226, 137, 136, 0};
-const unsigned char alt_c[] = {194, 169, 0};
-const unsigned char alt_v[] = {226, 151, 138, 0};
 
 
 #ifdef DOSOUTPUT
@@ -149,6 +143,13 @@ const char c_up[] = { 224, 73, 0 };
 const char c_down[] = { 224,81, 0 };
 const char c_right[] = { 224,116, 0 };
 const char c_left[] = { 224,115, 0 };
+const unsigned char alt_x[] = { 226, 'x', 0 };
+const unsigned char alt_c[] = { 226, 'c', 0 };
+const unsigned char alt_v[] = { 226, 'v', 0 };
+const unsigned char alt_plus[] = { 226, '+', 0 };
+const unsigned char alt_minus[] = { 226, '-', 0 };
+const unsigned char shift_right[] = { 225, 77, 0 };
+const unsigned char shift_left[] = { 225, 75, 0 };
 #else
 const char c_right[] = { 27, 91, 49, 59, 53, 67, 0 };
 const char c_left[] = { 27, 91, 49, 59, 53, 68, 0 };
@@ -168,6 +169,16 @@ const char up[] = {27, 91, 65, 0};
 const char del[] = { 27, 91, 51, 126, 0 };
 const char homekey[] = { 27, 91, 72, 0 };
 const char endkey[] = { 27, 91, 70, 0 };
+
+const unsigned char alt_plus[] = {226, 137, 160, 0};
+const unsigned char alt_minus[] = {226, 128, 148, 0};
+
+const unsigned char alt_x[] = {226, 137, 136, 0};
+const unsigned char alt_c[] = {194, 169, 0};
+const unsigned char alt_v[] = {226, 151, 138, 0};
+
+const unsigned char shift_right[] = {27, 91, 49, 59, 50, 67, 0};
+const unsigned char shift_left[] = {27, 91, 49, 59, 50, 68, 0};
 #endif
 
 
@@ -758,7 +769,9 @@ public:
     std::wstringstream st;
 
     file_types filetype;
-    
+
+    long linematch;
+
     string thecurrentfilename;
     string prefix;
 
@@ -1053,6 +1066,52 @@ public:
                 return prefixe();
         }
         return s.size();
+    }
+
+    long computeparenthesis(string& ln, char checkcar, long limit) {
+        long posmatch = -1;
+        vector<long> positions;
+        char check;
+        if (checkcar == ')')
+            check = '(';
+        else
+            check = checkcar - 2;
+        
+        for (long i = 0; i < limit; i++) {
+            switch (ln[i]) {
+                case '"':
+                    i++;
+                    while (i < limit && ln[i] != '"') {
+                        if (ln[i] == '\\')
+                            i++;
+                        i++;
+                    }
+                    break;
+                case '`':
+                    i++;
+                    while (i < limit && ln[i] != '`') {
+                        i++;
+                    }
+                    break;
+                case '(':
+                case '{':
+                case '[':
+                    if (check == ln[i])
+                        positions.push_back(i);
+                    break;
+                case ')':
+                case '}':
+                case ']':
+                    if (checkcar == ln[i]) {
+                        if (positions.size())
+                            positions.pop_back();
+                    }
+                    break;
+            }
+        }
+        if (positions.size())
+            posmatch = positions.back();
+        return posmatch;
     }
 
     long splitline(wstring& l, long linenumber, vector<wstring>& subs);

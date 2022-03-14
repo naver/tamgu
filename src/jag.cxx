@@ -241,7 +241,6 @@ static bool checkcar(wchar_t c) {
         case '{':
         case '}':
         case '"':
-        case '`':
         case ':':
         case ',':
         case ';':
@@ -629,6 +628,7 @@ jag_editor::jag_editor() : lines(this) {
 #endif
 
     
+    linematch = -1;
     selected_x = -1;
     selected_firstline = -1;
     selected_y = -1;
@@ -3461,6 +3461,7 @@ bool jag_editor::checkaction(string& buff, long& first, long& last, bool lisp) {
     
     return false;
 }
+    
 static bool isitempty(wstring& w, wchar_t c) {
     char nb = false;
     for (long i = 0; i < w.size(); i++) {
@@ -3476,7 +3477,7 @@ static bool isitempty(wstring& w, wchar_t c) {
 void jag_editor::addabuffer(wstring& b, bool instring) {
     if (isMouseAction(b) || b == L"")
         return;
-
+    
     //We only keep displayable characters
     wchar_t c;
     for (long i = 0; i < b.size(); i++) {
@@ -3494,7 +3495,7 @@ void jag_editor::addabuffer(wstring& b, bool instring) {
         if (emode())
             line = lines[poslines[currentline]];
         
-            //We insert the character within our current line...
+        //We insert the character within our current line...
         wstring code = line.substr(0, posinstring);
         code += b;
         code += line.substr(posinstring,line.size());
@@ -3503,7 +3504,7 @@ void jag_editor::addabuffer(wstring& b, bool instring) {
             pos = poslines[currentline];
             lines[pos] = code;
             lines.refactoring(pos);
-
+            
             line = lines[pos];
             if (fullsize(code) > col_size) {
                 if (currentline == row_size)
@@ -3527,44 +3528,75 @@ void jag_editor::addabuffer(wstring& b, bool instring) {
         clearline();
         line = code;
         displaygo(true);
+        if (b[0] == ')' || b[0] == '}' || b[0] == ']') {
+            string ln = convert(line);
+            long posmatch = computeparenthesis(ln, b[0], posinstring);
+            if (posmatch != -1) {
+                linematch = pos;
+                lines[pos] = line;
+                string res = ln.substr(0, posmatch);
+                res += m_redbold;
+                res += ln[posmatch];
+                res += m_current;
+                res += ln.substr(posmatch+1,ln.size());
+                printline(pos+1, res);
+            }
+        }
         posinstring += b.size();
         movetoposition();
-        
         return;
     }
     
     
-        //We extend our line...
+    //We extend our line...
     line += b;
     
     if (b[0]=='"' || b[0]=='\'')
         instring = 1 - instring;
     
     bool fndchr =  false;
-    switch (b[0]) {
-        case ' ':
-        case ':':
-        case ';':
-        case ',':
-        case ')':
-        case '{':
-        case '}':
-        case '(':
-            fndchr = true;
-            if (!instring && emode() && (b[0] == '}' || b[0] == ')') && isitempty(line, b[0])) {
-                long sp = lines.indent(pos) - GetBlankSize();
-                if (sp > 0) {
-                    wstring space(sp, ' ');
-                    line = space;
-                    posinstring = sp;
-                    line += b;
-                }
-                else {
-                    line = b;
-                    posinstring = 0;
-                }
-                printline(pos, line);
+    if (b[0] == ')' || b[0] == '}' || b[0] == ']') {
+        fndchr = true;
+        if (!instring && emode() && isitempty(line, b[0])) {
+            long sp = lines.indent(pos) - GetBlankSize();
+            if (sp > 0) {
+                wstring space(sp, ' ');
+                line = space;
+                posinstring = sp;
+                line += b;
             }
+            else {
+                line = b;
+                posinstring = 0;
+            }
+            printline(pos, line, -1);
+        }
+        else {
+            string ln = convert(line);
+            long posmatch = computeparenthesis(ln, b[0], ln.size()-1);
+            
+            if (posmatch != -1) {
+                if (emode()) {
+                    linematch = pos;
+                    lines[pos] = line;
+                }
+                else
+                    linematch = -2;
+                string res = ln.substr(0, posmatch);
+                res += m_redbold;
+                res += ln[posmatch];
+                res += m_current;
+                res += ln.substr(posmatch+1,ln.size());
+                wstring lsave = line;
+                line = L"";
+                s_utf8_to_unicode(line, USTR(res), res.size());
+                displaygo(true);
+                line = lsave;
+                posinstring += b.size();
+                movetoposition();
+                return;
+            }
+        }
     }
     
     posinstring += b.size();
@@ -3573,7 +3605,7 @@ void jag_editor::addabuffer(wstring& b, bool instring) {
         lines[pos] = line;
         lines.refactoring(pos);
         
-            //our line is now too long... we need to split it...
+        //our line is now too long... we need to split it...
         if (fullsize(line) > col_size) {
             currentline++;
             
@@ -3601,14 +3633,14 @@ void jag_editor::addabuffer(wstring& b, bool instring) {
     }
     else {
         if (option == x_none) {
-            printline(pos+1, line);
+            printline(pos+1, line, -1);
             movetoposition();
-        }            
+        }
         else
             cout << convert(b);
     }
 }
-
+    
 //This is the main method that launches the terminal
 void jag_editor::launchterminal(char loadedcode) {
 
@@ -3639,6 +3671,11 @@ void jag_editor::launchterminal(char loadedcode) {
 
     while (1) {
         buff = getch();
+
+        if (echochar) {
+            displaychar(buff);
+            continue;
+        }
         
         if (emode()) {
             while (isMouseAction(buff)) {
@@ -3650,11 +3687,6 @@ void jag_editor::launchterminal(char loadedcode) {
         if (selected_pos != -1 && buff[0] != 24)
             unselectlines(selected_pos, selected_posnext, selected_x, selected_y);
 
-        if (echochar) {
-            displaychar(buff);
-            continue;
-        }
-        
         if (checkaction(buff, first, last)) {
             double_click = 0;
             if (buff[0] != 24) {
@@ -3673,6 +3705,11 @@ void jag_editor::launchterminal(char loadedcode) {
             //we delete it first
             deleteselection();
         }
+
+        double_click = 0;
+        selected_x = -1;
+        selected_y = -1;
+        selected_pos = -1;
 
         if (inbuffer) {
             buffer += buff;
