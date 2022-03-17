@@ -662,6 +662,7 @@ jag_editor::jag_editor() : lines(this) {
     colors.push_back(m_blue);
     colors.push_back(m_gray);
     colors.push_back(m_green);
+    colors.push_back(m_selectgray);
 
     poscommand = 0;
     echochar = false;
@@ -805,7 +806,7 @@ void jag_editor::displayextract(wstring& sub, long pos, long from_pos, long to_p
         wstring end = sub.substr(to_pos, sub.size());
         kbuffer += middle;
         string inter = convert(start);
-        inter += m_selectgray;
+        inter += colors[5];
         inter += convert(middle);
         inter +=  m_current;
         inter += convert(end);
@@ -1283,7 +1284,7 @@ void jag_editor::selectfound(long l, long r) {
     string line = coloringline(lsub, pos, true);
     
     lsub = ln.substr(l, r-l);
-    string inter = m_selectgray;
+    string inter = colors[5];
     inter += convert(lsub);
     inter += m_current;
     

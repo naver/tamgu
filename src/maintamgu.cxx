@@ -1514,6 +1514,26 @@ public:
                 if (debugmode && debuginfo.running)
                     return pos;
                 addcommandline(line);
+                if (v.size() == 1) {
+                    int j;
+                    cerr << endl << m_redbold << "Denomination\t" << "att\tfg\tbg" <<endl;
+                    for (i = 0; i < nbdenomination; i++) {
+                        cerr << colors[i] << colordenomination[i] << ":\t";
+                        if (colordenomination[i].size() <= 6)
+                            cerr << "\t";
+                        j = 2;
+                        while (colors[i][j] != 'm') {
+                            if (colors[i][j] == ';')
+                                cerr << "\t";
+                            else
+                                cerr << colors[i][j];
+                            j++;
+                        }
+                        cerr << m_current << endl;
+                    }
+                    cerr << endl;
+                    return pos;
+                }
 
                 if (v.size() == 2) {
                     if (v[1] == L"no") {
@@ -1530,6 +1550,7 @@ public:
                         colors.push_back(m_blue);
                         colors.push_back(m_gray);
                         colors.push_back(m_green);
+                        colors.push_back(m_selectgray);
                         cerr << "colors full" << endl;
                         return pos;
                     }
@@ -1540,6 +1561,7 @@ public:
                         colors.push_back(m_blue);
                         colors.push_back(m_gray);
                         colors.push_back(m_green);
+                        colors.push_back(m_selectgray);
                         switch_dark_mode();
                         cerr << "colors dark mode" << endl;
                         return pos;
@@ -1598,7 +1620,7 @@ public:
                         }
                     }
                 }
-                cerr << m_redbold << "colors takes either: denomination attribute forground background" << m_current << endl;
+                cerr << m_redbold << "colors takes either: string, method, keyword, function, comment or selection" << m_current << endl;
                 return pos;
             case cmd_colors:
                 if (debugmode && debuginfo.running)
@@ -3119,12 +3141,29 @@ int main(int argc, char *argv[]) {
         }
 
         if (args == "-syncolor") {
-            if ((i + 15) >= argc) {
-                cerr << "There should be 15 values, 3 digits for each denomination: string, method, keyword, function, comment" << endl;
+            if (i < argc) {
+                args = argv[i + 1];
+                if (args == "dark") {
+                    i++;
+                    darkmode = true;
+                    continue;
+                }
+                if (args == "no") {
+                    for (long j = 0; j < nbdenomination - 1; j++)
+                        newcolors.push_back(m_current);
+                    newcolors.push_back(m_selectgray);
+                    i++;
+                    continue;
+                }
+            }
+            
+            long nb = 3*nbdenomination;
+            if ((i + nb) >= argc) {
+                cerr << "There should be "<< nb <<" values, 3 digits for each denomination: string, method, keyword, function, comment or selection" << endl;
                 exit(-1);
             }
             i++;
-            long nb = i + 15;
+            nb += i;
             long col;
             char cp = 0;
             stringstream color;
