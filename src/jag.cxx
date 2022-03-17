@@ -2925,10 +2925,7 @@ void jag_editor::convertmetas() {
 bool jag_editor::checkcommand(char cmd) {
     switch (cmd) {
         case 'b': //black mode
-            if (colors[2] == m_blue)
-                colors[2] = m_blueblack;
-            else
-                colors[2] = m_blue;
+            switch_dark_mode();
             displaylist(poslines[0]);
             movetoline(currentline);
             movetoposition();
@@ -3642,8 +3639,11 @@ void jag_editor::addabuffer(wstring& b, bool instring) {
 }
     
 //This is the main method that launches the terminal
-void jag_editor::launchterminal(char loadedcode) {
+void jag_editor::launchterminal(char loadedcode, vector<string>& newcolors) {
 
+    if (newcolors.size())
+        colors = newcolors;
+    
     localhelp << m_red << "^c/q" << m_current << ":exit";
     
     if (loadedcode) {

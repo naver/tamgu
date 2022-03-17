@@ -97,7 +97,7 @@ const char m_lightgray[] = {27, '[', '0', ';', '9','0', ';','4','9','m',0};
 const char m_selectgray[] = {27, '[', '7', ';', '9','3', ';','4','0','m',0};
 #endif
 
-const string colordenomination[] = {"strings", "methods", "keywords", "functions", "comments"};
+const string colordenomination[] = {"string", "method", "keyword", "function", "comment"};
 typedef enum {no_type, clike_type, lisp_type, python_type, tamgu_type} file_types;
 
     //Background
@@ -105,7 +105,7 @@ const int m_clbg[] = {40, 41, 42, 43, 44, 45, 46, 47, 49, 100, 101, 102, 103, 10
     //Foreground
 const int m_clfg[] =  {30, 31, 32, 33, 34, 35, 36, 37, 39, 90, 91, 92, 93, 94, 95, 96, 97, 0};
     //Formatting
-const int m_attr[] = {0, 1, 2, 4, 5, 7, -1};
+const int m_attr[] = {0, 1, 2, 3, 4, 5, 7, -1};
 
     //action, moving the cursor...
 extern char m_down[];
@@ -831,6 +831,13 @@ public:
     ~jag_editor();
 
 
+    void switch_dark_mode() {
+        if (colors[2] == m_blue)
+            colors[2] = m_blueblack;
+        else
+            colors[2] = m_blue;
+    }
+    
     virtual void displaythehelp(long noclear = 0);
 
     void setpathname(string path) {
@@ -1387,7 +1394,7 @@ public:
         //This a case of copy/paste within the editor, we need to remove the prefixes
     void cleanheaders(wstring& w);
     //This is the main method that launches the terminal
-    virtual void launchterminal(char loadedcode);
+    virtual void launchterminal(char loadedcode, vector<string>& newcolors);
     bool checkaction(string&, long& first, long& last, bool lsp = false);
 
     virtual void addcommandline(wstring& w) {}

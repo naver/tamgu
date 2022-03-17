@@ -48,6 +48,7 @@ char* Getenv(char* name);
 #define Getenv getenv
 #endif
 
+bool darkmode = false;
 //------------------------------------------------------------------------
 static string _variable_declaration("bool a,b,c; date d; int i,j,k; float f,g,h; string s,t,u; map m; vector v; self x,y,z;");
 static wstring _wvariable_declaration(L"bool a,b,c; date d; int i,j,k; float f,g,h; string s,t,u; map m; vector v; self x,y,z;");
@@ -329,11 +330,14 @@ public:
             cerr << "   \t- " << m_redbold << "console:" << m_current << " launch the GUI" << endl;
 #endif
             cerr << "   \t- " << m_redbold << "cls:" << m_current << " clear screen" << endl;
-            cerr << "   \t- " << m_redbold << "color:" << m_current << " display terminal colors" << endl;
-            cerr << "   \t- " << m_redbold << "color att fg bg:" << m_current << " display a color out of attribute, foreground, background" << endl;
-            cerr << "   \t- " << m_redbold << "colors:" << m_current << " display the colors for code coloring" << endl;
-            cerr << "   \t- " << m_redbold << "colors name att fg bg:" << m_current << " modify the color for one of the following denominations = ";
-            cerr << m_redital  << "strings, methods, keywords, functions, comments" << m_current << endl << endl;
+            cerr << "   \t- " << m_redbold << "colors:" << m_current << " display all possible colors in terminal" << endl;
+            cerr << "   \t- " << m_redbold << "colors attribute foreground background:" << m_current << " display one color with these values" << endl;
+            cerr << "   \t" << m_redbold << "\t- use -1 for attribute, foreground or background to loop on a specific color" << m_current << endl;
+            cerr << "   \t- " << m_redbold << "syntax:" << m_current << " display the selected colors for each token type in a program" << endl;
+            cerr << "   \t- " << m_redbold << "syntax syncolor:" << m_current << " display the '-syncolor' online command for tamgu" << endl;
+            cerr << "   \t" << m_redbold << "\tExample: tamgu -syncolor 0 31 49 3 0 0 0 34 49 0 90 49 0 32 49 1 91 49" << m_current << endl;
+            cerr << "   \t- " << m_redbold << "syntax type att fg bg:" << m_current << " modify the syntactic color associated with 'type'" << endl;
+            cerr << "   \t" << m_redbold << "\tExample: syntax function 3 31 49" << m_current << endl;
         }
         
         if (!i || i == 5) {
@@ -849,7 +853,7 @@ public:
     
     long handlingcommands(long pos, bool& dsp, char initvar) {
         typedef enum {cmd_none, cmd_args, cmd_filename, cmd_spaces, cmd_select, cmd_edit, cmd_run, cmd_cls, cmd_echo, cmd_console, cmd_help, cmd_list,
-            cmd_metas, cmd_rm, cmd_break, cmd_history, cmd_open, cmd_create, cmd_save, cmd_exit, cmd_load_history, cmd_store_history, cmd_colors, cmd_color, cmd_clear, cmd_reinit,
+            cmd_metas, cmd_rm, cmd_break, cmd_history, cmd_open, cmd_create, cmd_save, cmd_exit, cmd_load_history, cmd_store_history, cmd_syntax, cmd_colors, cmd_clear, cmd_reinit,
             cmd_debug, cmd_next, cmd_keep, cmd_remove, cmd_locals, cmd_all, cmd_stack, cmd_goto, cmd_in, cmd_out, cmd_stop, cmd_short_name, cmd_to_end, cmd_lispmode} thecommands;
 
         static bool init = false;
@@ -879,7 +883,7 @@ public:
             commands[L"save"] = cmd_save;
             commands[L"exit"] = cmd_exit;
             commands[L"colors"] = cmd_colors;
-            commands[L"color"] = cmd_color;
+            commands[L"syntax"] = cmd_syntax;
             commands[L"clear"] = cmd_clear;
             commands[L"reinit"] = cmd_reinit;
             commands[L"debug"] = cmd_debug;
@@ -1502,7 +1506,7 @@ public:
                 return pos;
             case cmd_exit:
                 return !terminate();
-            case cmd_colors:
+            case cmd_syntax:
                 if (debugmode && debuginfo.running)
                     return pos;
                 addcommandline(line);
@@ -1510,8 +1514,10 @@ public:
                 if (v.size() == 1) {
                     int j;
                     cerr << endl << m_redbold << "Denomination\t" << "att\tfg\tbg" <<endl;
-                    for (i = 0; i <= 4; i++) {
+                    for (i = 0; i < 5; i++) {
                         cerr << colors[i] << colordenomination[i] << ":\t";
+                        if (colordenomination[i].size() <= 6)
+                            cerr << "\t";
                         j = 2;
                         while (colors[i][j] != 'm') {
                             if (colors[i][j] == ';')
@@ -1525,17 +1531,55 @@ public:
                     cerr << endl;
                     return pos;
                 }
-                if (v.size() == 5) {
+                if (v.size() == 2) {
+                    int j, nb;
+                    cerr << "-syncolor ";
+                    for (i = 0; i < 5; i++) {
+                        j = 2;
+                        nb = 0;
+                        while (colors[i][j] != 'm') {
+                            if (colors[i][j] == ';') {
+                                cerr << " ";
+                                nb++;
+                            }
+                            else
+                                cerr << colors[i][j];
+                            j++;
+                        }
+                        if (!nb)
+                            cerr << " 0 0 ";
+                        else
+                            if (nb == 1)
+                                cerr << " 0 ";
+                            else
+                                cerr << " ";
+                    }
+                    cerr << endl;
+                    return pos;
+                }
+                if (v.size() >= 3) {
                     char buffer[100];
-                        //the second word is the denomination
+                    //the second word is the denomination
                     string s;
-                    for (i = 0; i <= 4; i++) {
-                        s_unicode_to_utf8(s, v[1]);
+                    s_unicode_to_utf8(s, v[1]);
+                    long att = 0, fg = 0, bg = 0;
+                    for (i = 0; i < 5; i++) {
                         if (colordenomination[i] == s) {
-                            long att = convertinteger(v[2]);
-                            long fg = convertinteger(v[3]);
-                            long bg = convertinteger(v[4]);
-                            sprintf(buffer,"\033[%ld;%ld;%ldm", att, fg, bg);
+                            att = convertinteger(v[2]);
+                            if (v.size() > 3) {
+                                fg = convertinteger(v[3]);
+                                if (v.size() > 4)
+                                    bg = convertinteger(v[4]);
+                            }
+                            if (fg != 0) {
+                                if (bg != 0)
+                                    sprintf(buffer,"\033[%ld;%ld;%ldm", att, fg, bg);
+                                else
+                                    sprintf(buffer,"\033[%ld;%ldm", att, fg);
+                            }
+                            else
+                                sprintf(buffer,"\033[%ldm", att);
+                            
                             colors[i] = buffer;
                             cout << buffer << s << " " << att << " " << fg << " " << bg << m_current << endl;
                             return pos;
@@ -1545,33 +1589,87 @@ public:
                 
                 cerr << m_redbold << "colors takes four parameters: denomination attribute forground background" << m_current << endl;
                 return pos;
-            case cmd_color:
+            case cmd_colors:
                 if (debugmode && debuginfo.running)
                     return pos;
                 addcommandline(line);
                 
             {
                 char buffer[100];
-                if (v.size() == 4) {
-                    long att = convertinteger(v[1]);
-                    long fg = convertinteger(v[2]);
-                    long bg = convertinteger(v[3]);
-                    sprintf(buffer,"\033[%ld;%ld;%ldm", att, fg, bg);
-                    printf("%sdisplaying color%s\n",buffer, m_current);
+                int att = -1;
+                int fg = -1;
+                int bg = -1;
+                int e_att = 0;
+                int e_fg = 0;
+                int e_bg = 0;
+                switch (v.size()) {
+                    case 4:
+                        bg = (int)convertinteger(v[3]);
+                    case 3:
+                        fg = (int)convertinteger(v[2]);
+                        e_fg = fg;
+                    case 2:
+                        att = (int)convertinteger(v[1]);
+                        e_att = att;
                 }
+                
+                if (bg != -1) {
+                    for (e_bg = 0; m_clbg[e_bg]; e_bg++) {
+                        if (bg == m_clbg[e_bg]) {
+                            bg = -10;
+                            break;
+                        }
+                    }
+                }
+                if (bg == -10)
+                    bg = m_clbg[e_bg+1];
                 else {
-                    for (int att = 0; m_attr[att] != -1; att++) {
-                        for (int fg = 0; m_clfg[fg]; fg++) {
-                            for (int bg = 0; m_clbg[bg]; bg++) {
-                                sprintf(buffer,"\033[%d;%d;%dm", m_attr[att], m_clfg[fg], m_clbg[bg]);
-                                printf("%s%d,%d,%d:\t%s displaying color%s\n",m_current,m_attr[att], m_clfg[fg], m_clbg[bg], buffer, m_current);
-                            }
+                    e_bg = 0;
+                    bg = 0;
+                }
+
+                if (fg != -1) {
+                    for (e_fg = 0; m_clfg[e_fg]; e_fg++) {
+                        if (fg == m_clfg[e_fg]) {
+                            fg = -10;
+                            break;
+                        }
+                    }
+                }
+                
+                if (fg == -10)
+                    fg = m_clfg[e_fg+1];
+                else {
+                    e_fg = 0;
+                    fg = 0;
+                }
+
+                if (att != -1) {
+                    for (e_att = 0; m_attr[e_att] != -1; e_att++) {
+                        if (att == m_attr[e_att]) {
+                            att = -10;
+                            break;
+                        }
+                    }
+                }
+                if (att == -10)
+                    att = m_attr[e_att+1];
+                else {
+                    e_att = 0;
+                    att = -1;
+                }
+
+                for (int i_att = e_att; m_attr[i_att] != att; i_att++) {
+                    for (int i_fg = e_fg; m_clfg[i_fg] != fg; i_fg++) {
+                        for (int i_bg = e_bg; m_clbg[i_bg] != bg; i_bg++) {
+                            sprintf(buffer,"\033[%d;%d;%dm", m_attr[i_att], m_clfg[i_fg], m_clbg[i_bg]);
+                            printf("%s%d,%d,%d:\t%s displaying color%s\n",m_current,m_attr[i_att], m_clfg[i_fg], m_clbg[i_bg], buffer, m_current);
                         }
                     }
                     cout << m_current;
                 }
-            }
                 return pos;
+            }
             case cmd_clear:
                 if (debugmode && debuginfo.running)
                     return pos;
@@ -2459,8 +2557,14 @@ public:
         return false;
     }
     
-    void launchterminal(char noinit) {
+    void launchterminal(char noinit, vector<string>& newcolors) {
 		clearscreen();
+
+        if (darkmode)
+            switch_dark_mode();
+        
+        if (newcolors.size())
+            colors = newcolors;
 
         long selection_beginning = 0;
         
@@ -2881,6 +2985,7 @@ void debuggerthread(tamgu_editor* call) {
 
 #ifndef WIN32
 void purejagmode(int argc, char *argv[]) {
+    vector<string> newcolors;
     JAGEDITOR = new jag_editor;
 
     if (argc == 2) {
@@ -2896,17 +3001,19 @@ void purejagmode(int argc, char *argv[]) {
         }
 
         if (JAGEDITOR->loadfile(cmd))
-            JAGEDITOR->launchterminal(true);
+            JAGEDITOR->launchterminal(true, newcolors);
         else
-            JAGEDITOR->launchterminal(false);
+            JAGEDITOR->launchterminal(false, newcolors);
     }
     else
-        JAGEDITOR->launchterminal(false);
+        JAGEDITOR->launchterminal(false, newcolors);
 
 }
 #endif
 
 int main(int argc, char *argv[]) {
+    vector<string> newcolors;
+    
 	string lnstr;
 
     current_thread_id = 0;
@@ -2946,7 +3053,7 @@ int main(int argc, char *argv[]) {
 	//No arguments , we launch the shell now
 	if (argc <= 1) {
 		JAGEDITOR = new tamgu_editor;
-		JAGEDITOR->launchterminal(2);
+		JAGEDITOR->launchterminal(2, newcolors);
 	}
 
 	lnstr = "";
@@ -3000,6 +3107,37 @@ int main(int argc, char *argv[]) {
             exit(-1);
         }
 
+        if (args == "-syncolor") {
+            if ((i + 15) >= argc) {
+                cerr << "There should be 15 values, 3 digits for each denomination: string, method, keyword, function, comment" << endl;
+                exit(-1);
+            }
+            i++;
+            long nb = i + 15;
+            long col;
+            char cp = 0;
+            stringstream color;
+            color <<  "\033[";
+            while (i < nb) {
+                args = argv[i++];
+                col = convertinteger(args);
+                color << col;
+                cp++;
+                if (cp == 3) {
+                    cp = 0;
+                    color << "m";
+                    newcolors.push_back(color.str());
+                    color.str("");
+                    color << "\033[";
+                }
+                else
+                    color << ";";
+            }
+            --i;
+            continue;
+        }
+
+
         if (args == "-i") {
             predeclarations = _variable_declaration;
             initconsoleterminal = false;
@@ -3010,6 +3148,11 @@ int main(int argc, char *argv[]) {
             if (i < argc - 1)
                 name = argv[i+1];
             lispmode = true;
+            continue;
+        }
+        
+        if (args == "-b") {
+            darkmode = true;
             continue;
         }
         
@@ -3080,9 +3223,9 @@ int main(int argc, char *argv[]) {
                 }
                 
                 if (args == "-e")
-                    JAGEDITOR->launchterminal(init);
+                    JAGEDITOR->launchterminal(init, newcolors);
                 else
-                    JAGEDITOR->launchterminal(0);
+                    JAGEDITOR->launchterminal(0, newcolors);
             }
             else {
                 cerr << endl << "Missing filename" << endl << endl;
@@ -3188,7 +3331,7 @@ int main(int argc, char *argv[]) {
                 initconsoleterminal = 1;
             }
             
-            JAGEDITOR->launchterminal(initconsoleterminal);
+            JAGEDITOR->launchterminal(initconsoleterminal, newcolors);
         }
 
         name = Normalizefilename(name);

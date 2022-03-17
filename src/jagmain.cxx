@@ -32,6 +32,7 @@ static string version = "0.98 build 26";
 
 
 int main(int argc, char *argv[]) {
+    vector<string> newcolors;
     JAGEDITOR = new jag_editor;
 
     if (argc == 2) {
@@ -46,12 +47,42 @@ int main(int argc, char *argv[]) {
             exit(0);
         }
 
+        if (cmd == "-syncolor") {
+            long i = 1;
+            if ((i + 15) >= argc) {
+                cerr << "There should be 15 values, 3 digits for each denomination: string, method, keyword, function, comment" << endl;
+                exit(-1);
+            }
+            i++;
+            long nb = i + 15;
+            long col;
+            char cp = 0;
+            stringstream color;
+            color <<  "\033[";
+            while (i < nb) {
+                args = argv[i++];
+                col = convertinteger(args);
+                color << col;
+                cp++;
+                if (cp == 3) {
+                    cp = 0;
+                    color << "m";
+                    newcolors.push_back(color.str());
+                    color.str("");
+                    color << "\033[";
+                }
+                else
+                    color << ";";
+            }
+            cmd = argv[i];
+        }
+
         if (JAGEDITOR->loadfile(cmd))
-            JAGEDITOR->launchterminal(true);
+            JAGEDITOR->launchterminal(true, newcolors);
         else
-            JAGEDITOR->launchterminal(false);
+            JAGEDITOR->launchterminal(false, newcolors);
     }
     else
-        JAGEDITOR->launchterminal(false);
+        JAGEDITOR->launchterminal(false, newcolors);
 }
 
