@@ -98,6 +98,7 @@ const char m_selectgray[] = {27, '[', '7', ';', '9','3', ';','4','0','m',0};
 #endif
 
 const string colordenomination[] = {"string", "method", "keyword", "function", "comment"};
+const short nbdenomination = 5;
 typedef enum {no_type, clike_type, lisp_type, python_type, tamgu_type} file_types;
 
     //Background

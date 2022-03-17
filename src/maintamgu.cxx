@@ -334,6 +334,10 @@ public:
             cerr << "   \t- " << m_redbold << "colors attribute foreground background:" << m_current << " display one color with these values" << endl;
             cerr << "   \t" << m_redbold << "\t- use -1 for attribute, foreground or background to loop on a specific color" << m_current << endl;
             cerr << "   \t- " << m_redbold << "syntax:" << m_current << " display the selected colors for each token type in a program" << endl;
+            cerr << "   \t- " << m_redbold << "syntax:" << m_current << " display the selected colors for each token type in a program" << endl;
+            cerr << "   \t- " << m_redbold << "syntax no:" << m_current << " no colors" << endl;
+            cerr << "   \t- " << m_redbold << "syntax dark:" << m_current << " dark mode" << endl;
+            cerr << "   \t- " << m_redbold << "syntax full:" << m_current << " full color mode" << endl;
             cerr << "   \t- " << m_redbold << "syntax syncolor:" << m_current << " display the '-syncolor' online command for tamgu" << endl;
             cerr << "   \t" << m_redbold << "\tExample: tamgu -syncolor 0 31 49 3 0 0 0 34 49 0 90 49 0 32 49 1 91 49" << m_current << endl;
             cerr << "   \t- " << m_redbold << "syntax type att fg bg:" << m_current << " modify the syntactic color associated with 'type'" << endl;
@@ -1511,30 +1515,38 @@ public:
                     return pos;
                 addcommandline(line);
 
-                if (v.size() == 1) {
-                    int j;
-                    cerr << endl << m_redbold << "Denomination\t" << "att\tfg\tbg" <<endl;
-                    for (i = 0; i < 5; i++) {
-                        cerr << colors[i] << colordenomination[i] << ":\t";
-                        if (colordenomination[i].size() <= 6)
-                            cerr << "\t";
-                        j = 2;
-                        while (colors[i][j] != 'm') {
-                            if (colors[i][j] == ';')
-                                cerr << "\t";
-                            else
-                                cerr << colors[i][j];
-                            j++;
-                        }
-                        cerr << m_current << endl;
-                    }
-                    cerr << endl;
-                    return pos;
-                }
                 if (v.size() == 2) {
+                    if (v[1] == L"no") {
+                        colors.clear();
+                        for (i = 0; i < nbdenomination - 1; i++)
+                            colors.push_back(m_current);
+                        cerr << "no colors" << endl;
+                        return pos;
+                    }
+                    if (v[1] == L"full") {
+                        colors.clear();
+                        colors.push_back(m_red);
+                        colors.push_back(m_dore);
+                        colors.push_back(m_blue);
+                        colors.push_back(m_gray);
+                        colors.push_back(m_green);
+                        cerr << "colors full" << endl;
+                        return pos;
+                    }
+                    if (v[1] == L"dark") {
+                        colors.clear();
+                        colors.push_back(m_red);
+                        colors.push_back(m_dore);
+                        colors.push_back(m_blue);
+                        colors.push_back(m_gray);
+                        colors.push_back(m_green);
+                        switch_dark_mode();
+                        cerr << "colors dark mode" << endl;
+                        return pos;
+                    }
                     int j, nb;
                     cerr << "-syncolor ";
-                    for (i = 0; i < 5; i++) {
+                    for (i = 0; i < nbdenomination; i++) {
                         j = 2;
                         nb = 0;
                         while (colors[i][j] != 'm') {
@@ -1563,7 +1575,7 @@ public:
                     string s;
                     s_unicode_to_utf8(s, v[1]);
                     long att = 0, fg = 0, bg = 0;
-                    for (i = 0; i < 5; i++) {
+                    for (i = 0; i < nbdenomination; i++) {
                         if (colordenomination[i] == s) {
                             att = convertinteger(v[2]);
                             if (v.size() > 3) {
@@ -1586,8 +1598,7 @@ public:
                         }
                     }
                 }
-                
-                cerr << m_redbold << "colors takes four parameters: denomination attribute forground background" << m_current << endl;
+                cerr << m_redbold << "colors takes either: denomination attribute forground background" << m_current << endl;
                 return pos;
             case cmd_colors:
                 if (debugmode && debuginfo.running)
