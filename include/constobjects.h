@@ -68,7 +68,7 @@ public:
 		return true;
 	}
 
-    Tamgu* AtomNoConst() {
+    virtual Tamgu* AtomNoConst() {
         return this;
     }
     
@@ -250,7 +250,9 @@ public:
 
 	Exporting Tamgu* CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
-	
+    Tamgu* AtomNoConst() {
+        return globalTamgu->Providewithstring(value);
+    }
 	
     Tamgu* Atomref() {
         TamguReference* r = globalTamgu->Providewithstring(value);
@@ -527,7 +529,10 @@ public:
     
 	Exporting Tamgu* CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
-	
+    Tamgu* AtomNoConst() {
+        return globalTamgu->Providewithustring(value);
+    }
+
 
     Tamgu* Atomref() {
         TamguReference* r = globalTamgu->Providewithustring(value);
@@ -817,6 +822,10 @@ public:
 
 		return true;
 	}
+
+    Tamgu* AtomNoConst() {
+        return globalTamgu->Provideint(value);
+    }
 
     Tamgu* Atomref() {
         TamguReference* r = globalTamgu->Provideint(value);
@@ -1108,6 +1117,10 @@ public:
 	Tamgu* Newinstance(short, Tamgu* f = NULL) {
         return globalTamgu->Provideint(value);
 	}
+
+    Tamgu* AtomNoConst() {
+        return new Tamgushort(value);
+    }
 
     Tamgu* Atomref() {
         TamguReference* r = new Tamgushort(value);
@@ -1436,6 +1449,10 @@ public:
 		return new Tamgudecimal(value);
 	}
 
+    Tamgu* AtomNoConst() {
+        return new Tamgudecimal(value);
+    }
+
     Tamgu* Atomref() {
         TamguReference* r = new Tamgudecimal(value);
         r->reference = 1;
@@ -1732,6 +1749,10 @@ public:
 		return globalTamgu->ProvideConstfloat(a->Float());
 	}
 
+    Tamgu* AtomNoConst() {
+        return globalTamgu->Providefloat(value);
+    }
+    
     Tamgu* Atomref() {
         TamguReference* r = globalTamgu->Providefloat(value);
         r->reference = 1;
@@ -2019,6 +2040,11 @@ public:
 		return globalTamgu->Providelong(a->Long());
 	}
 
+    
+    Tamgu* AtomNoConst() {
+        return globalTamgu->Providelong(value);
+    }
+
     Tamgu* Atomref() {
         TamguReference* r = globalTamgu->Providelong(value);
         r->reference = 1;
@@ -2302,6 +2328,10 @@ public:
 	bool value;
 
 	TamguConstBool(bool v, TamguGlobal* g = NULL, Tamgu* parent = NULL) : value(v), TamguBaseConst(a_boolean, g, parent) {}
+
+    Tamgu* AtomNoConst() {
+        return new Tamguboolean(value);
+    }
 
 	bool isBoolean() {
 		return true;
