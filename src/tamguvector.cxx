@@ -1297,7 +1297,7 @@ Exporting Tamgu*  Tamguvector::Put(Tamgu* idx, Tamgu* value, short idthread) {
             Reserve(value->Size());
             for (const auto& it : kvect->values) {
                 idx = it;
-                idx = idx->AtomNoConst();
+                idx = idx->Atom();
                 idx->Addreference(investigate,reference+1);
                 values.push_back(idx);
             }
@@ -1312,7 +1312,7 @@ Exporting Tamgu*  Tamguvector::Put(Tamgu* idx, Tamgu* value, short idthread) {
                 Reserve(sz);
                 for (int it = 0; it < sz; it++) {
                     idx = value->getvalue(it);
-                    idx = idx->AtomNoConst();
+                    idx = idx->Atom();
                     idx->Addreference(investigate,reference+1);
                     values.push_back(idx);
                 }
@@ -1327,7 +1327,7 @@ Exporting Tamgu*  Tamguvector::Put(Tamgu* idx, Tamgu* value, short idthread) {
                 TamguIteration* itr = value->Newiteration(false);
                 for (itr->Begin(); itr->End() == aFALSE; itr->Next()) {
                     idx = itr->Key();
-                    idx = idx->AtomNoConst();
+                    idx = idx->Atom();
                     idx->Addreference(investigate,reference+1);
                     values.push_back(idx);
                 }
@@ -1394,7 +1394,7 @@ Exporting Tamgu*  Tamguvector::Put(Tamgu* idx, Tamgu* value, short idthread) {
         if (value->isVectorContainer()) {
             for (long i = value->Size() - 1; i >= 0; i--) {
                 krkey = value->getvalue(i);
-                krkey = krkey->AtomNoConst();
+                krkey = krkey->Atom();
                 values.insert(values.begin() + lkey, krkey);
                 krkey->Addreference(investigate,reference+1);
             }
@@ -1412,7 +1412,7 @@ Exporting Tamgu*  Tamguvector::Put(Tamgu* idx, Tamgu* value, short idthread) {
             itr->Release();
             return aTRUE;
         }
-        krkey = value->AtomNoConst();
+        krkey = value->Atom();
         values.insert(values.begin() + lkey, krkey);
         krkey->Addreference(investigate,reference+1);
         return aTRUE;
@@ -1431,7 +1431,7 @@ Exporting Tamgu*  Tamguvector::Put(Tamgu* idx, Tamgu* value, short idthread) {
             if (ikey < 0)
                 return globalTamgu->Returnerror("Cannot set this value", idthread);
         }
-        value = value->AtomNoConst();
+        value = value->Atom();
         if (values[ikey] != NULL)
             values[ikey]->Removereference(reference + 1);
         values[ikey] = value;
