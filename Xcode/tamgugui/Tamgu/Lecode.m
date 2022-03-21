@@ -480,15 +480,14 @@ int forceDark = 0;
         localrange.location+=ln;
         localrange.length=0;
         currentrange=[self viewRange];
-        [self colorie:YES];
-
         [self setSelectedRange:localrange];
+        [self colorie:YES];
         return YES;
     }
     currentrange=[self viewRange];
-    [self colorie:YES];
     localrange.length=0;
     [self setSelectedRange:localrange];
+    [self colorie:YES];
     return YES;
 }
 
