@@ -64,7 +64,7 @@ bool check_large_char(wchar_t* src, long lensrc, long& i) {
     return true;
 }
 #endif
- 
+
 #ifdef WIN32
 //these methods have been implemented in tamgusys.cxx
 void ResetWindowsConsole();
@@ -150,7 +150,7 @@ void jag_editor::displaythehelp(long noclear) {
         cout << m_clear << m_clear_scrolling << m_home;
         cerr << m_redital << "jag editor help" << m_current << endl << endl;
     }
-    
+
     cerr << "   " << m_redbold << "Commands" << m_current << endl;
     cerr << "   \t- " << m_redbold << "Ctrl-k:" << m_current << " delete from cursor up to the end of the line" << endl;
     cerr << "   \t- " << m_redbold << "Ctrl-d:" << m_current << " delete a full line" << endl;
@@ -294,7 +294,7 @@ string jag_editor::getch(){
         perror("tcsetattr()");
         exit(-1);
     }
-    
+
     old.c_lflag&=~ICANON;
     old.c_lflag&=~ECHO;
     old.c_cc[VMIN]=1;
@@ -303,14 +303,14 @@ string jag_editor::getch(){
         perror("tcsetattr ICANON");
         return "";
     }
-    
+
     //If you need to get the absolute cursor position, you can decomment these lines
     //cout << cursor_position;
     //scanf("\033[%d;%dR", &xcursor, &ycursor);
-    
+
     string res;
     long nb;
-    
+
     do {
         nb = read(0,buf,_getbuffsize);
         if (nb < 0)
@@ -320,7 +320,7 @@ string jag_editor::getch(){
         memset(buf,0, _getbuffsize);
     }
     while (nb == _getbuffsize);
-    
+
     old.c_lflag|=ICANON;
     if (!isMouseAction(res))
         old.c_lflag|=ECHO;
@@ -328,7 +328,7 @@ string jag_editor::getch(){
         perror ("tcsetattr ~ICANON");
         return "";
     }
-    
+
     return res;
 }
 #endif
@@ -404,18 +404,18 @@ void jag_editor::colorring(string& txt, vector<long>& limits) {
 
     if (txt == "")
         return;
-    
+
     if (!init) {
         init=true;
         keywords(keys);
     }
 
     long sztxt = txt.size();
-    
+
     txt += "\n";
     xr.tokenize(txt, true);
     txt.pop_back();
-    
+
     char type;
     long gauche,droite,i;
     long sz=xr.stack.size();
@@ -427,7 +427,7 @@ void jag_editor::colorring(string& txt, vector<long>& limits) {
         droite = gauche + xr.stack[i].size();
         if (droite > sztxt)
             droite = sztxt;
-        
+
         switch(type) {
             case 1:
             case 2:
@@ -544,14 +544,14 @@ bool jag_editor::check_utf8(string& buff, string& buffer) {
 
 static void convertmeta(wstring& w, wstring& wsub) {
     Au_automate a("{[%%%x%x][&%c+;][&#%d+;][u%x%x%x%x][\\u%x%x%x%x][\\%d%d%d][\\?]}");
-    
+
     vector<long> vectr;
     a.searchall(wsub,vectr);
     if (vectr.size()==0) {
         w=wsub;
         return;
     }
-    
+
     w=wsub;
     wstring s;
     for (long i=vectr.size()-2;i>=0; i-=2) {
@@ -627,7 +627,7 @@ jag_editor::jag_editor() : lines(this) {
     tcsetattr(0, TCSADRAIN, &theterm);
 #endif
 
-    
+
     linematch = -1;
     selected_x = -1;
     selected_firstline = -1;
@@ -636,7 +636,7 @@ jag_editor::jag_editor() : lines(this) {
     selected_posnext = -1;
     double_click = 0;
     nbclicks = 0;
-    
+
 	insertaline = false;
     margin = 3;
 
@@ -644,13 +644,13 @@ jag_editor::jag_editor() : lines(this) {
     tooglehelp = false;
     regularexpressionfind = false;
     findrgx = NULL;
-    
+
     #ifdef Tamgu_REGEX
         wpattern = NULL;
     #endif
-    
+
     prefixsize = 1;
-    
+
     xcursor = 0;
     ycursor = 0;
 
@@ -687,10 +687,10 @@ jag_editor::jag_editor() : lines(this) {
 	col_size = -1;
     screensizes();
     localhelp << m_red<< "^xh" << m_current << ":help " << m_red<< "^k" << m_current << ":del after " << m_red<< "^p" << m_current << ":k-buffer " <<  m_red<< "^d" << m_current << ":del line " << m_red<< "^uz/^r" << m_current << ":un/redo " << m_red<< "^f" << m_current << ":find " << m_red<< "^n" << m_current << ":next " << m_red<< "^g" << m_current << ":go " << m_red<< "^l" << m_current << ":top/bottom " << m_red<< "^t" << m_current << ":indent " << m_red<< "^s/w" << m_current << ":write " << m_red<< "^x" << m_current << ":commands ";
-    
+
     updateline = true;
     taskel = true;
-    
+
     JAGEDITOR = this;
 }
 
@@ -699,7 +699,7 @@ jag_editor::~jag_editor() {
         if (wpattern != NULL)
             delete wpattern;
     #endif
-    
+
     if (findrgx != NULL)
         delete findrgx;
 }
@@ -907,8 +907,9 @@ void jag_editor::computeposition(int& p, long position) {
             }
             else {
                 if (c == 9) //tab position
-                    pos += (8 - (pos%8))%8;
-                pos++;
+                    pos += 8;
+                else
+                    pos++;
             }
         }
         i++;
@@ -1106,7 +1107,7 @@ void jag_editor::screensizes() {
 void jag_editor::reset() {
 #ifndef WIN32
     tcsetattr(0, TCSADRAIN, &oldterm);
-    
+
     termios theterm;
     tcgetattr(0, &theterm);
     theterm.c_iflag &= ~IXON;
@@ -1195,10 +1196,10 @@ long jag_editor::taille(wstring& s) {
 
 string jag_editor::coloringline(wstring& l, long current_pos, bool select) {
     string line = convert(l);
-    
+
     string sub;
     string substring;
-    
+
     if (current_pos >= 0 && current_pos < lines.longlines.size()) {
         char long_line = lines.longlines[current_pos];
         if (long_line == 1) {
@@ -1212,22 +1213,22 @@ string jag_editor::coloringline(wstring& l, long current_pos, bool select) {
             }
         }
     }
-    
+
     vector<long> tobecolored;
     colorring(line, tobecolored);
-    
+
     long i = 0;
-    
+
     long left, right;
     bool add;
     for (i = tobecolored.size()-3; i>= 0; i-=3) {
         add = false;
-        
+
         left = tobecolored[i+1];
         right = tobecolored[i+2];
-        
+
         sub = line.substr(0, left);
-        
+
         switch (tobecolored[i]) {
             case 1: //strings
             case 2:
@@ -1256,7 +1257,7 @@ string jag_editor::coloringline(wstring& l, long current_pos, bool select) {
                 add = true;
                 break;
         }
-        
+
         if (add) {
             if (right > left)
                 sub += line.substr(left, right-left);
@@ -1272,22 +1273,22 @@ string jag_editor::coloringline(wstring& l, long current_pos, bool select) {
 
 void jag_editor::selectfound(long l, long r) {
     wstring ln = lines[pos];
-    
+
     wstring lsub = ln.substr(0,l);
     lsub += L"<!@!<";
-    
+
     if (r > ln.size())
         r = ln.size();
     else
         lsub += ln.substr(r, ln.size());
-    
+
     string line = coloringline(lsub, pos, true);
-    
+
     lsub = ln.substr(l, r-l);
     string inter = colors[5];
     inter += convert(lsub);
     inter += m_current;
-    
+
     l = line.find("<!@!<");
     if (l==-1) {
         movetoposition();
@@ -1321,7 +1322,7 @@ void jag_editor::movetoposition() {
     cout << back;
     if (!sc)
         return;
-    
+
 	m_right[2] = localn999[sc][0];
 	m_right[3] = localn999[sc][1];
 	m_right[4] = localn999[sc][2];
@@ -1336,7 +1337,7 @@ void jag_editor::movetobeginning() {
     cout << back;
     if (!sc)
         return;
-    
+
 	m_right[2] = localn999[sc][0];
 	m_right[3] = localn999[sc][1];
 	m_right[4] = localn999[sc][2];
@@ -1356,10 +1357,10 @@ void jag_editor::movetoend(bool remove) {
     }
     else
         sc = fullsize(line) + prefixego();
-    
+
     if (sc <= 0)
         return;
-    
+
     cout << back;
 	m_right[2] = localn999[sc][0];
 	m_right[3] = localn999[sc][1];
@@ -1394,12 +1395,12 @@ void jag_editor::gotoline(long p) {
             }
         }
     }
-    
+
     if (!fnd)
         displaylist(p);
     else
         displaylist(poslines[0]);
-    
+
     movetoline(currentline);
 }
 
@@ -1407,7 +1408,7 @@ bool jag_editor::updown(char drt, long& pos) {
     long sz = lines.size();
     bool moveup = false;
     moveup = true;
-    
+
     char exec = 0;
     if (drt == is_up) { // we are going up
         currentline--;
@@ -1453,7 +1454,7 @@ bool jag_editor::updown(char drt, long& pos) {
         pos = poslines[++currentline];
         exec = 2;
     }
-    
+
     if (exec) {
         if (moveup) {
             if (drt == is_up)
@@ -1467,7 +1468,7 @@ bool jag_editor::updown(char drt, long& pos) {
         movetoposition();
         return true;
     }
-    
+
     return false;
 }
 
@@ -1785,7 +1786,7 @@ void jag_editor::displayonlast(bool bck) {
     wstring w = st.str();
     string s = convert(w);
     cout << back << s;
-    
+
     if (bck) {
         movetoline(currentline);
         if (currentposinstring != -1)
@@ -1804,7 +1805,7 @@ void jag_editor::displayonlast(wstring w, bool bck) {
 	clearlastline();
     string s = convert(w);
     cout << back << s;
-    
+
     if (bck) {
         movetoline(currentline);
         if (currentposinstring != -1)
@@ -1822,7 +1823,7 @@ void jag_editor::displayonlast(wstring w, bool bck) {
 void jag_editor::displayonlast(string s, bool bck) {
     clearlastline();
     cout << back << s;
-    
+
     if (bck) {
         movetoline(currentline);
         if (currentposinstring != -1)
@@ -1838,7 +1839,7 @@ void jag_editor::displayonlast(string s, bool bck) {
 }
 
 void jag_editor::displaygo(bool full) {
-    wstring val;	
+    wstring val;
     switch(option) {
         case x_goto:
 			clearline();
@@ -1938,7 +1939,7 @@ void jag_editor::displaylist(long beg) {
     long nb = 0;
     x_option g = option;
     option = x_none;
-        
+
     modified = false;
     lines.detectlongstrings(filetype);
     if (!lines.updatesize()) {
@@ -1947,7 +1948,7 @@ void jag_editor::displaylist(long beg) {
             return;
         }
     }
-    
+
 	poslines.clear();
 
     stringstream blk;
@@ -1983,7 +1984,7 @@ void jag_editor::processgo() {
         movetoend();
         return;
     }
-    
+
     i = convertinteger(line);
     if (i >= 0 && i < lines.size()) {
         pos = lines.getlinenumber(i);
@@ -1996,7 +1997,7 @@ void jag_editor::processgo() {
         movetobeginning();
         return;
     }
-    
+
     clearline();
     cout << back << "Unknown line";
     movetoline(currentline);
@@ -2075,7 +2076,7 @@ bool jag_editor::processfind() {
             displayonlast("Wrong expression", true);
             return false;
         }
-        
+
         for (i = pos; i < lines.size(); i++) {
             l = lines.getoneline(i, end);
             if (search(l, first, last, ps)) {
@@ -2088,7 +2089,7 @@ bool jag_editor::processfind() {
                     last -= ps;
                     resetlist(pos);
                 }
-                
+
                 posinstring = first;
                 currentfindpos = last;
                 gotoline(pos);
@@ -2102,7 +2103,7 @@ bool jag_editor::processfind() {
             i = end;
         }
     }
-    
+
     clearline();
     cout << back << "Not found";
     movetoline(currentline);
@@ -2113,9 +2114,9 @@ bool jag_editor::processfind() {
 long jag_editor::processcount() {
     if (currentfind == L"")
         return 0;
-    
+
     wstring code = lines.code();
-    
+
     vector<long> alls;
     if (!resetsearch()) {
         displayonlast("Wrong expression");
@@ -2136,11 +2137,11 @@ void jag_editor::processreplace() {
         if (resp == "A" || resp == "a")
             replaceall = true;
     }
-        
+
 #ifdef Tamgu_REGEX
     wstring w;
 #endif
-    
+
     if (replaceall || resp == "Y" || resp == "y") {
         //We know where the word is...
         long first, last, end;
@@ -2156,7 +2157,7 @@ void jag_editor::processreplace() {
 #endif
                 ws.replace(first, last-first, currentreplace);
             lines.replaceline(pos, end+1, ws);
-            
+
             if (first > col_size) {
                 long ps = first/col_size;
                 pos += ps;
@@ -2171,17 +2172,17 @@ void jag_editor::processreplace() {
                 posinstring = first;
                 gotoline(poslines[0]);
             }
-                    
+
             if (!findnext())
                 replaceall = false;
         }
         return;
     }
-    
+
     if (resp == "N" || resp == "n") {
         if (!findnext())
             replaceall = false;
-        
+
     }
     else
         displayonlast("", true);
@@ -2205,7 +2206,7 @@ bool jag_editor::findnext() {
                     posinstring = first;
                     resetlist(pos);
                 }
-                
+
                 posinstring = first;
                 currentfindpos = last;
                 gotoline(pos);
@@ -2217,7 +2218,7 @@ bool jag_editor::findnext() {
             i = end;
             ps = 0;
         }
-        
+
         if (!replaceall) {
             for (i = 0; i < lines.size(); i++) {
                 l = lines.getoneline(i, end);
@@ -2231,7 +2232,7 @@ bool jag_editor::findnext() {
                         last -= ps;
                         resetlist(pos);
                     }
-                    
+
                     posinstring = first;
                     currentfindpos = last;
                     gotoline(pos);
@@ -2253,18 +2254,18 @@ bool jag_editor::findnext() {
 long jag_editor::handlemultiline() {
         //We are in the middle of a very long line across multiple lines on screen
         //We need to cut it in half...
-    
+
     line = lines[poslines[currentline]]; //our current line...
                                          //we need to cut it in half
     wstring sub;
-    
+
     char stat = lines.Status(pos);
 
     //We keep track of our line before splitting...
     undo(lines[pos],pos, u_modif); //modification
 
     //We are in the middle of our substring... We extract some sub-elements...
-    
+
     //We cut our line at the right position.
     //sub is the right part of the string
     long sz = line.size() - posinstring;
@@ -2280,7 +2281,7 @@ long jag_editor::handlemultiline() {
     long sp = lines.indent(pos);
     if (sub == L")" || sub == L"}" || sub == L"]")
         sp -= GetBlankSize();
-    
+
     if (sp > 0) {
         wstring space(sp, L' ');
         sub = space + sub;
@@ -2309,7 +2310,7 @@ long jag_editor::handlemultiline() {
             lines.numbers();
         }
     }
-    
+
     if (currentline > row_size) {
         displaylist(poslines[0] + 1);
         currentline = row_size;
@@ -2327,9 +2328,9 @@ long jag_editor::handlemultiline() {
 			displaylist(poslines[0]);
 	}
 
-    
+
     movetoline(currentline);
-    
+
     posinstring = sp;
     movetoposition();
     line = sub;
@@ -2338,11 +2339,11 @@ long jag_editor::handlemultiline() {
 
 long jag_editor::handlingeditorline(bool computespace) {
     long i;
-    
+
 
     long sz = lines.size();
     long szl = lines[pos].size();
-    
+
     //if we are in the middle of a line...
     if (pos < sz) {
         if ((posinstring > 0 && posinstring < line.size()) || lines.status[pos] == concat_line)
@@ -2365,7 +2366,7 @@ long jag_editor::handlingeditorline(bool computespace) {
                 spa = '\t';
                 inc = 1;
             }
-            
+
             for (i = 0; i < szl; i++) {
                 if (line[i] != spa)
                     break;
@@ -2398,9 +2399,9 @@ long jag_editor::handlingeditorline(bool computespace) {
     }
     if (sp < 0)
         sp = 0;
-    
+
     wstring space(sp, spa);
-    
+
         //we have different cases...
     if (!posinstring) {
         int prf = prefixsize;
@@ -2418,7 +2419,7 @@ long jag_editor::handlingeditorline(bool computespace) {
         }
         else //in this case, we are at the end of the process...
             displaylist(poslines[0] + 1);
-        
+
         pos = poslines[currentline];
         line = lines[pos];
         posinstring = 0;
@@ -2426,7 +2427,7 @@ long jag_editor::handlingeditorline(bool computespace) {
         movetobeginning();
         return pos;
     }
-    
+
     char action = u_ins;
     if (pos >= sz - 1) //we already are at the end...
         lines.push_back(space);
@@ -2434,17 +2435,17 @@ long jag_editor::handlingeditorline(bool computespace) {
         lines.insert(pos+1, space); //we insert it into our line...
         lines.numbers();
     }
-    
+
     pos++;
     undo(space, pos, action); //The value is negative to indicate a deletion
-    
+
     if (currentline < row_size) {
         displaylist(poslines[0]);
         currentline++;
     }
     else //in this case, we are at the end of the process...
         displaylist(poslines[0] + 1);
-    
+
     movetoline(currentline);
     if (action == u_ins && sp) {
         posinstring = space.size();
@@ -2478,24 +2479,24 @@ void jag_editor::clear() {
 void jag_editor::processredos() {
     if (!emode() || redos.empty())
         return;
-    
+
     line = redos.l_keeplines.back();
     pos = redos.l_keeppos.back();
     char a = redos.l_keepactions.back();
     currentline = redos.l_keepcurrentline.back();
     posinstring = redos.l_keepposinstring.back();
     char status = redos.l_keepstatus.back();
-    
+
     long posfirst = redos.l_keeptop.back();
-    
+
     modified = true;
     if (emode())
         tobesaved = true;
-    
+
     bool refact = false;
 
     wstring l;
-    
+
     switch (a) {
         case u_del_linked:
         case u_del:
@@ -2516,9 +2517,9 @@ void jag_editor::processredos() {
             refact = true;
             break;
     }
-    
+
     undos.move(l, redos);
-    
+
     if (!redos.empty()) {
             //the linked actions are in other way around...
         a = redos.l_keepactions.back();
@@ -2527,12 +2528,12 @@ void jag_editor::processredos() {
             return;
         }
     }
-    
+
     if (refact)
         lines.refactoring(pos);
-    
+
     displaylist(posfirst);
-    
+
     movetoline(currentline);
     movetoposition();
 }
@@ -2540,16 +2541,16 @@ void jag_editor::processredos() {
 void jag_editor::processundos() {
     if (!emode() || undos.empty())
         return;
-    
+
     line = undos.l_keeplines.back();
     pos = undos.l_keeppos.back();
     char a = undos.l_keepactions.back();
     currentline = undos.l_keepcurrentline.back();
     posinstring = undos.l_keepposinstring.back();
     char status = undos.l_keepstatus.back();
-    
+
     long posfirst = undos.l_keeptop.back();
-    
+
     modified = true;
     if (emode())
         tobesaved = true;
@@ -2577,20 +2578,20 @@ void jag_editor::processundos() {
             refact = true;
             break;
     }
-    
+
     redos.move(l, undos);
-    
+
         //if we have linked actions (two undos done for one action), we need to apply them in sequence...
     if (a == u_del_linked || a == u_modif_linked || a == u_ins_linked) {
         processundos();
         return;
     }
-    
+
     if (refact)
         lines.refactoring(pos);
 
     displaylist(posfirst);
-    
+
     movetoline(currentline);
     movetoposition();
 }
@@ -2606,7 +2607,7 @@ void jag_editor::backwardemoji() {
     posinstring--;
     if (posinstring < 0)
         return;
-    
+
     long p = 0;
     for (long i = 0; i < line.size(); i++) {
         p = i;
@@ -2662,7 +2663,7 @@ bool jag_editor::evaluateescape(string& buff) {
         posinstring = 0;
         return true;
     }
-    
+
     if (buff == endkey) {
 		posinstring = line.size();
 		if (posinstring && !lines.eol(pos))
@@ -2713,11 +2714,11 @@ bool jag_editor::evaluateescape(string& buff) {
         movetobeginning();
         return true;
     }
-    
+
         //ctrl-down, down 10 lines
     if (buff == c_down) {
         long mxline = poslines.size() - 1;
-        
+
         posinstring = 0;
         if ((pos + mxline) == lines.size()) {
             currentline = mxline;
@@ -2725,7 +2726,7 @@ bool jag_editor::evaluateescape(string& buff) {
             movetobeginning();
             return true;
         }
-        
+
         if ((pos + mxline) > lines.size()) {
             pos = lines.size()-mxline;
             if (pos < 0)
@@ -2733,14 +2734,14 @@ bool jag_editor::evaluateescape(string& buff) {
         }
         else
             pos += mxline;
-        
+
         line = lines[pos];
         displaylist(pos);
         movetoline(currentline);
         movetobeginning();
         return true;
     }
-    
+
     if (buff == up || buff == down) {
 #ifdef WIN32
 		updown(buff[1], pos);
@@ -2749,7 +2750,7 @@ bool jag_editor::evaluateescape(string& buff) {
 #endif
 		return true;
     }
-    
+
     if (buff == c_right || buff == a_right) {
         long ipos = posinstring;
         long sz = line.size();
@@ -2763,7 +2764,7 @@ bool jag_editor::evaluateescape(string& buff) {
             }
             ipos++;
         }
-        
+
         if (!fnd) {
             posinstring = line.size();
             movetoend();
@@ -2772,10 +2773,10 @@ bool jag_editor::evaluateescape(string& buff) {
             posinstring = ipos + 1;
             movetoposition();
         }
-        
+
         return true;
     }
-    
+
     if (buff == c_left || buff == a_left) {
         long ipos = posinstring;
         bool fnd = false;
@@ -2788,16 +2789,16 @@ bool jag_editor::evaluateescape(string& buff) {
             }
             ipos--;
         }
-        
+
         if (!fnd)
             posinstring = 0;
         else
             posinstring = ipos + 1;
-        
+
         movetoposition();
         return true;
     }
-    
+
     if (buff == right) {
         long mx = line.size();
         if (!lines.eol(pos))
@@ -2813,10 +2814,10 @@ bool jag_editor::evaluateescape(string& buff) {
                 movetobeginning();
             }
         }
-        
+
         return true;
     }
-    
+
     if (buff == (char*)alt_plus) {
         indentplus();
         return true;
@@ -2874,7 +2875,7 @@ bool jag_editor::evaluateescape(string& buff) {
         }
         return true;
     }
-    
+
     if (buff == del) {
         if (selected_pos != -1) {
             deleteselection();
@@ -2898,7 +2899,7 @@ void jag_editor::init() {
     lines.push(L"");
     poslines.clear();
     poslines.push_back(0);
-    
+
     displaylist(0);
     pos = 0;
     posinstring = 0;
@@ -3072,7 +3073,7 @@ void jag_editor::handlecommands() {
 
     if (checkcommand(buff[0]))
         return;
-    
+
     displayonlast("", true);
 }
 
@@ -3082,12 +3083,12 @@ void jag_editor::resetterminal() {
 	ResetWindowsConsole();
 #else
 	tcsetattr(0, TCSADRAIN, &oldterm);
-#endif    
+#endif
 }
 
 bool jag_editor::terminate() {
     replaceall = false;
-    
+
     if (tobesaved) {
         tobesaved = false;
         displayonlast("File not saved... ctrl-c again to quit", true);
@@ -3097,7 +3098,7 @@ bool jag_editor::terminate() {
     movetolastline();
     string space(colsize(), ' ');
     cout << back << space << back << m_redbold << "Salut!!!" << m_current << endl;
-    
+
     fflush(stdout);
 	resetterminal();
     exit(0);
@@ -3105,7 +3106,7 @@ bool jag_editor::terminate() {
 }
 
 void jag_editor::cleanheaders(wstring& w) {
-    
+
     if (w.find(wprefix) != -1) {
             //we might try to copy stuff from the editor itself...
             //We will remove anything which is: "작%d+> " from our string
@@ -3173,7 +3174,7 @@ bool jag_editor::checkaction(string& buff, long& first, long& last, bool lisp) {
                 }
                 tooglehelp = 1 - tooglehelp;
             }
-            return true;		
+            return true;
 		case 10: //this is a carriage return
 #else
 		case 13:
@@ -3257,7 +3258,7 @@ bool jag_editor::checkaction(string& buff, long& first, long& last, bool lisp) {
                     line = L"";
                     if (first >= 0 && first < last && last < lines.size())
                         copybuffer = lines.code(first, last);
-                    
+
                     st << line << " copied";
                     line = lines[poslines[currentline]];
                     option = x_none;
@@ -3299,7 +3300,7 @@ bool jag_editor::checkaction(string& buff, long& first, long& last, bool lisp) {
                         else
                             break;
                     }
-                    
+
                     line = L"";
                     posinstring = 0;
                     if (lines.size()) {
@@ -3318,13 +3319,13 @@ bool jag_editor::checkaction(string& buff, long& first, long& last, bool lisp) {
                 default:
                     break;
             }
-            
+
             if (!emode()) {
                 option = x_none;
                 displayonlast("", true);
                 return true;
             }
-            
+
             pos = handlingeditorline();
             return true;
         case 11: //ctrl-k: delete trailing characters
@@ -3332,7 +3333,7 @@ bool jag_editor::checkaction(string& buff, long& first, long& last, bool lisp) {
                 deleteallafter();
                 return true;
             }
-            
+
             clearline();
             kbuffer = line.substr(posinstring, line.size());
             line = line.substr(0, posinstring);
@@ -3405,7 +3406,7 @@ bool jag_editor::checkaction(string& buff, long& first, long& last, bool lisp) {
                 code = L"File:";
                 if (line.size())
                     code += line;
-                
+
                 displayonlast(code, false);
                 posinstring = line.size();
                 option = x_write;
@@ -3428,7 +3429,7 @@ bool jag_editor::checkaction(string& buff, long& first, long& last, bool lisp) {
                 }
                 return true;
             }
-            
+
             return evaluateescape(buff);
 #ifdef WIN32
 		case 8:
@@ -3456,10 +3457,10 @@ bool jag_editor::checkaction(string& buff, long& first, long& last, bool lisp) {
             if (buff.size() > 1 && emode())
                 return evaluateescape(buff);
     }
-    
+
     return false;
 }
-    
+
 static bool isitempty(wstring& w, wchar_t c) {
     char nb = false;
     for (long i = 0; i < w.size(); i++) {
@@ -3475,7 +3476,7 @@ static bool isitempty(wstring& w, wchar_t c) {
 void jag_editor::addabuffer(wstring& b, bool instring) {
     if (isMouseAction(b) || b == L"")
         return;
-    
+
     //We only keep displayable characters
     wchar_t c;
     for (long i = 0; i < b.size(); i++) {
@@ -3484,7 +3485,7 @@ void jag_editor::addabuffer(wstring& b, bool instring) {
         if (c < 32 && c != 9 && c != 10 && c != 13)
             b[i] = 32;
     }
-    
+
     if (emode())
         tobesaved = true;
     modified = true;
@@ -3492,37 +3493,37 @@ void jag_editor::addabuffer(wstring& b, bool instring) {
     if (line.size() && posinstring < line.size()) {
         if (emode())
             line = lines[poslines[currentline]];
-        
+
         //We insert the character within our current line...
         wstring code = line.substr(0, posinstring);
         code += b;
         code += line.substr(posinstring,line.size());
-        
+
         if (emode()) {
             pos = poslines[currentline];
             lines[pos] = code;
             lines.refactoring(pos);
-            
+
             line = lines[pos];
             if (fullsize(code) > col_size) {
                 if (currentline == row_size)
                     displaylist(poslines[0] + 1);
                 else
                     displaylist(poslines[0]);
-                
+
                 if (posinstring >= col_size) {
                     currentline++;
                     posinstring = 0;
                     pos++;
                 }
-                
+
                 posinstring += b.size();
                 movetoline(currentline);
                 movetoposition();
                 return;
             }
         }
-        
+
         clearline();
         line = code;
         displaygo(true);
@@ -3544,14 +3545,14 @@ void jag_editor::addabuffer(wstring& b, bool instring) {
         movetoposition();
         return;
     }
-    
-    
+
+
     //We extend our line...
     line += b;
-    
+
     if (b[0]=='"' || b[0]=='\'')
         instring = 1 - instring;
-    
+
     bool fndchr =  false;
     if (b[0] == ')' || b[0] == '}' || b[0] == ']') {
         fndchr = true;
@@ -3572,7 +3573,7 @@ void jag_editor::addabuffer(wstring& b, bool instring) {
         else {
             string ln = convert(line);
             long posmatch = computeparenthesis(ln, b[0], ln.size()-1);
-            
+
             if (posmatch != -1) {
                 if (emode()) {
                     linematch = pos;
@@ -3596,24 +3597,24 @@ void jag_editor::addabuffer(wstring& b, bool instring) {
             }
         }
     }
-    
+
     posinstring += b.size();
-    
+
     if (emode()) {
         lines[pos] = line;
         lines.refactoring(pos);
-        
+
         //our line is now too long... we need to split it...
         if (fullsize(line) > col_size) {
             currentline++;
-            
+
             if (currentline >= row_size) {
                 displaylist(poslines[0] + 1);
                 currentline = row_size;
             }
             else
                 displaylist(poslines[0]);
-            
+
             pos++;
             posinstring = 1;
             line = lines[pos];
@@ -3622,8 +3623,8 @@ void jag_editor::addabuffer(wstring& b, bool instring) {
             return;
         }
     }
-    
-    
+
+
     if (fndchr) {
         clearline();
         displaygo(true);
@@ -3638,15 +3639,15 @@ void jag_editor::addabuffer(wstring& b, bool instring) {
             cout << convert(b);
     }
 }
-    
+
 //This is the main method that launches the terminal
 void jag_editor::launchterminal(char loadedcode, vector<string>& newcolors) {
 
     if (newcolors.size())
         colors = newcolors;
-    
+
     localhelp << m_red << "^c/q" << m_current << ":exit";
-    
+
     if (loadedcode) {
         displaylist(0);
         movetoline(currentline);
@@ -3656,16 +3657,16 @@ void jag_editor::launchterminal(char loadedcode, vector<string>& newcolors) {
     else {
         init();
     }
-    
+
     option = x_none;
-    
+
     wstring bl;
     wstring b;
 
     wstring code;
     string buffer;
     bool inbuffer = false;
-    
+
     bool instring = false;
     string buff;
     long first = 0, last;
@@ -3677,7 +3678,7 @@ void jag_editor::launchterminal(char loadedcode, vector<string>& newcolors) {
             displaychar(buff);
             continue;
         }
-        
+
         if (emode()) {
             while (isMouseAction(buff)) {
                 handlemousectrl(buff);
@@ -3717,24 +3718,24 @@ void jag_editor::launchterminal(char loadedcode, vector<string>& newcolors) {
             buff = buffer;
             inbuffer = false;
         }
-        
+
         if (buff.size() == _getbuffsize)
             inbuffer = check_utf8(buff, buffer);
-        
+
         bl = wconvert(buff);
         cleanheaders(bl);
-        
+
         if (emode()) {
             //We keep track of the initial form of the line...
             undo(lines[pos],pos, u_modif); //The value is negative to indicate a deletion
         }
-        
+
             //Only one character to add, no need for further inspection, no CR in the string as well
         if (bl.size() == 1 || buff.find(10) == -1) {
             addabuffer(bl, instring);
             continue;
         }
-        
+
         for (long j = 0; j < bl.size(); j++) {
             b = bl[j];
             if (b[0] == 10) {
@@ -3923,3 +3924,4 @@ long jag_editor::splitline(wstring& l, long linenumber, vector<wstring>& subs) {
 
     return subs.size();
 }
+
