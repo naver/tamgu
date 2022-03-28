@@ -2828,12 +2828,12 @@ bool jag_editor::evaluateescape(string& buff) {
         return true;
     }
 
-    if (buff == (char*)alt_v) {
+    if (buff == (char*)alt_v || buff == (char*)alt_vbis) {
         handleblock(copybuffer);
         return true;
     }
 
-    if (buff == (char*)alt_x) {
+    if (buff == (char*)alt_x || buff == (char*)alt_xbis) {
         if (selected_pos == pos) {
             copybuffer = kbuffer;
             copy_to_clipboard(convert(copybuffer));
@@ -2844,7 +2844,7 @@ bool jag_editor::evaluateescape(string& buff) {
         return true;
     }
 
-    if (buff == (char*)alt_c) {
+    if (buff == (char*)alt_c || buff == (char*)alt_cbis) {
         if (selected_pos == pos) {
             copybuffer = kbuffer;
             copy_to_clipboard(convert(copybuffer));
