@@ -2949,14 +2949,8 @@ bool jag_editor::checkcommand(char cmd) {
             posinstring = currentfind.size();
             option = x_count;
             return true;
-        case 'l':
-            clearst();
-            st << "load:";
-            displayonlast(false);
-            line = currentfind;
-            currentreplace = L"";
-            posinstring = currentfind.size();
-            option = x_load;
+        case 'l': //reload a file
+            reloadfile();
             return true;
         case 'H': //we convert HMTL entities to characters
             convertmetas();
@@ -3315,7 +3309,16 @@ bool jag_editor::checkaction(string& buff, long& first, long& last, bool lisp) {
                     break;
                 case x_load:
                     loadfile(line);
-                    break;
+                    if (!emode()) {
+                        option = x_none;
+                        displayonlast("", true);
+                    }
+                    else {
+                        displaylist(0);
+                        movetoline(currentline);
+                        movetobeginning();
+                    }
+                    return true;
                 default:
                     break;
             }
@@ -3339,9 +3342,16 @@ bool jag_editor::checkaction(string& buff, long& first, long& last, bool lisp) {
             line = line.substr(0, posinstring);
             displaygo(true);
             return true;
-        case 12: //ctrl-l: display one line down in the command history or toggle between top/bottom in edit mode
-            if (emode())
-                toggletopbottom();
+        case 12: //ctrl-l: load a file
+            if (emode()) {
+                clearst();
+                st << "load:";
+                displayonlast(false);
+                line = currentfind;
+                currentreplace = L"";
+                posinstring = currentfind.size();
+                option = x_load;
+            }
             return true;
         case 14:
             if (emode()) { //in edit mode looking for the next find

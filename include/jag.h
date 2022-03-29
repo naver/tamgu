@@ -1316,6 +1316,37 @@ public:
     long getbuffsize();
     bool check_utf8(string& buff, string& buffer);
 
+    virtual bool reloadfile() {
+        if (thecurrentfilename == "")
+            return false;
+        
+        ifstream rd(thecurrentfilename, openMode);
+        if (rd.fail()) {
+            cerr << m_redbold << " Cannot load: " << thecurrentfilename << m_current << endl;
+            return false;
+        }
+        string ln;
+        string cde;
+        while (!rd.eof()) {
+            getline(rd, ln);
+            ln = Trimright(ln);
+            cde += ln + "\n";
+        }
+        
+        wstring code = wconvert(cde);
+        lines.setcode(code, true);
+        
+        currentline = 0;
+        posinstring = 0;
+        pos = 0;
+        option = x_none;
+        line = lines[0];
+        displaylist(0);
+        movetoline(currentline);
+        movetobeginning();
+        return true;
+    }
+    
     virtual bool loadfile(wstring& name) {
         if (!loadfile(convert(name))) {
             clearst();

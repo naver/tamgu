@@ -297,7 +297,7 @@ public:
             cerr << "   \t- " << m_redbold << "Ctrl-f:" << m_current << " find a string" << endl;
             cerr << "   \t- " << m_redbold << "Ctrl-n:" << m_current << " find next" << endl;
             cerr << "   \t- " << m_redbold << "Ctrl-g:" << m_current << " move to a specific line, '$' is the end of the code" << endl;
-            cerr << "   \t- " << m_redbold << "Ctrl-l:" << m_current << " toggle between top and bottom of the screen" << endl;
+            cerr << "   \t- " << m_redbold << "Ctrl-l:" << m_current << " load a file" << endl;
             cerr << "   \t- " << m_redbold << "Ctrl-t:" << m_current << " reindent the code" << endl;
 #ifdef WIN32
 			cerr << "   \t- " << m_redbold << "Ctrl+Alt-h:" << m_current << " local help" << endl;
@@ -318,7 +318,7 @@ public:
             cerr << "   \t\t- " << m_redital << "d:" << m_current << " run in debug mode" << endl;
             cerr << "   \t\t- " << m_redital << "r:" << m_current << " run the code" << endl;
             cerr << "   \t\t- " << m_redital << "w:" << m_current << " write and quit" << endl;
-            cerr << "   \t\t- " << m_redital << "l:" << m_current << " load a file" << endl;
+            cerr << "   \t\t- " << m_redital << "l:" << m_current << " reload a file" << endl;
             cerr << "   \t\t- " << m_redital << "m:" << m_current << " display meta-characters" << endl;
             cerr << "   \t\t- " << m_redital << "h:" << m_current << " full help" << endl;
             cerr << "   \t\t- " << m_redital << "q:" << m_current << " quit" << endl << endl;
@@ -719,6 +719,46 @@ public:
         }
     }
     
+    bool reloadfile() {
+        if (thecurrentfilename == "")
+            return false;
+        
+        ifstream rd(thecurrentfilename, openMode);
+        if (rd.fail()) {
+            cerr << m_redbold << " Cannot load: " << thecurrentfilename << m_current << endl;
+            return false;
+        }
+        string ln;
+        string cde;
+        while (!rd.eof()) {
+            getline(rd, ln);
+            ln = Trimright(ln);
+            cde += ln + "\n";
+        }
+        
+        TamguSetCode(cde);
+        wstring code = TamguUListing();
+        lines.setcode(code, true);
+        
+        editors_undos[currentfileid].clear();
+        editors_redos[currentfileid].clear();
+        line = L"edit";
+        editmode = true;
+
+        currentline = 0;
+        posinstring = 0;
+        lastline = 0;
+
+        pos = lastline;
+        option = x_none;
+        posinstring = 0;
+        line = lines[lastline];
+        displaylist(lastline, row_size);
+        movetoline(currentline);
+        movetobeginning();
+        return true;
+    }
+    
     bool loadfile(wstring& name) {
         return loadfile(convert(name));
     }
@@ -731,6 +771,7 @@ public:
             return false;
         
         thecurrentfilename = Normalizefilename(thecurrentfilename);
+        setpathname(thecurrentfilename);
         if (filenames.find(thecurrentfilename) != filenames.end()) {
             if (currentfileid != filenames[thecurrentfilename]) {
                 //We backup our current undo/redo buffer
@@ -781,8 +822,13 @@ public:
             filenames[thecurrentfilename] = currentfileid;
         }
         line = L"";
+        lines.setcode(code, true);
+        currentline = 0;
         posinstring = 0;
-        lines.setcode(code, false);
+        lastline = 0;
+        pos = 0;
+        option = x_none;
+        line = lines[lastline];
         return true;
 
     }
