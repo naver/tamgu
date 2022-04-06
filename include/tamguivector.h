@@ -44,6 +44,7 @@ class Tamguivector : public TamguLockContainer {
     //This SECTION is for your specific implementation...
     //Your personal variables here...
     vector<long> values;
+    vector<long> shape;
     bool isconst;
     //---------------------------------------------------------------------------------------------------------------------
     Tamguivector(TamguGlobal* g, Tamgu* parent = NULL) : TamguLockContainer(g, parent) {
@@ -104,12 +105,26 @@ class Tamguivector : public TamguLockContainer {
         return false;
     }
 
-
     void Reserve(long d) {
         locking();
         if (d > values.size())
             values.reserve(d);
         unlocking();
+    }
+
+    void store(long k, Tamgu* v) {
+        locking();
+        if (k >= values.size())
+            values.push_back(v->Integer());
+        else
+            values[k] = v->Integer();
+        unlocking();
+    }
+
+    void storevalue(Tamgu* v, long beg, long end) {
+        long sz = v->Size();
+        for (;beg < end && beg < sz; beg++)
+            values.push_back(((Tamguivector*)v)->values[beg]);
     }
 
     void storevalue(long v) {
@@ -462,6 +477,8 @@ class Tamguivector : public TamguLockContainer {
         return Unique();
     }
 
+    Tamgu* MethodShape(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    
     Tamgu* MethodShuffle(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         Shuffle();
         return this;
@@ -478,7 +495,22 @@ class Tamguivector : public TamguLockContainer {
     Tamgu* MethodSort(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     //---------------------------------------------------------------------------------------------------------------------
 
+    void Getshape(vector<long>& sh) {
+        long nb = 1;
+        for (long i = 0; i < shape.size(); i++)
+            nb *= shape[i];
+        if (nb <= values.size())
+            sh = shape;
+    }
+
+    Tamgu* push(Tamgu* a) {
+        values.push_back(a->Integer());
+        return this;
+    }
+    
+
     Exporting Tamgu* Push(Tamgu*);
+
     Tamgu* Push(TamguGlobal* g, Tamgu* a, short idhtread) {
         locking();
         values.push_back(a->Integer());

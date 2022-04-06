@@ -70,6 +70,7 @@ bool Tamguhvector::InitialisationModule(TamguGlobal* global, string version) {
     
     Tamguhvector::AddMethod(global, "shuffle", &Tamguhvector::MethodShuffle, P_NONE, "shuffle(): shuffle the values in the vector.");
     Tamguhvector::AddMethod(global, "sort", &Tamguhvector::MethodSort, P_ONE, "sort(bool reverse): sort the elements within.");
+    Tamguhvector::AddMethod(global, "shape", &Tamguhvector::MethodShape, P_NONE|P_ATLEASTONE, "shape(int s1, int s2...): defines the vector shape.");
     Tamguhvector::AddMethod(global, "sum", &Tamguhvector::MethodSum, P_NONE, "sum(): return the sum of elements.");
     
     Tamguhvector::AddMethod(global, "product", &Tamguhvector::MethodProduct, P_NONE, "product(): return the product of elements.");
@@ -1238,6 +1239,35 @@ class HComparison {
         return compare->get();
     }
 };
+
+Tamgu* Tamguhvector::MethodShape(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    long nb = callfunc->Size();
+    if (!nb) {
+        Tamguivector* ivector = globalTamgu->Provideivector();
+        for (long i = 0; i < shape.size(); i++) {
+            ivector->storevalue(shape[i]);
+        }
+        return ivector;
+    }
+    
+    shape.clear();
+    Tamgu* v = callfunc->Evaluate(0, contextualpattern, idthread);
+    if (v->isVectorContainer()) {
+        if (nb != 1)
+            globalTamgu->Returnerror("Wrong shape definition", idthread);
+        nb = v->Size();
+        for (long i = 0; i < nb; i++) {
+            shape.push_back(v->getinteger(i));
+        }
+        return aTRUE;
+    }
+    
+    shape.push_back(v->Integer());
+
+    for (long i = 1; i < nb; i++)
+        shape.push_back(callfunc->Evaluate(i, contextualpattern, idthread)->Integer());
+    return aTRUE;
+}
 
 Tamgu* Tamguhvector::MethodSort(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     Tamgu* comp = callfunc->Evaluate(0, contextualpattern, idthread);

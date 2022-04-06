@@ -62,6 +62,7 @@ bool Tamguivector::InitialisationModule(TamguGlobal* global, string version) {
     Tamguivector::AddMethod(global, "clear", &Tamguivector::MethodClear, P_NONE, "clear(): clear the container.");
     
     Tamguivector::AddMethod(global, "remove", &Tamguivector::MethodRemove, P_ONE, "remove(int e): remove 'e' from the vector.");
+    Tamguivector::AddMethod(global, "shape", &Tamguivector::MethodShape, P_NONE|P_ATLEASTONE, "shape(int s1, int s2...): defines the vector shape.");
     
     Tamguivector::AddMethod(global, "reverse", &Tamguivector::MethodReverse, P_NONE, "reverse(): reverse a vector.");
     Tamguivector::AddMethod(global, "reserve", &Tamguivector::MethodReserve, P_ONE, "reserve(int sz): Reserve a size of 'sz' potential element in the vector.");
@@ -137,6 +138,34 @@ Exporting Tamgu* Tamguivector::in(Tamgu* context, Tamgu* a, short idthread) {
    return aFALSE;
 }
 
+Tamgu* Tamguivector::MethodShape(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    long nb = callfunc->Size();
+    if (!nb) {
+        Tamguivector* ivector = globalTamgu->Provideivector();
+        for (long i = 0; i < shape.size(); i++) {
+            ivector->storevalue(shape[i]);
+        }
+        return ivector;
+    }
+    
+    shape.clear();
+    Tamgu* v = callfunc->Evaluate(0, contextualpattern, idthread);
+    if (v->isVectorContainer()) {
+        if (nb != 1)
+            globalTamgu->Returnerror("Wrong shape definition", idthread);
+        nb = v->Size();
+        for (long i = 0; i < nb; i++) {
+            shape.push_back(v->getinteger(i));
+        }
+        return aTRUE;
+    }
+    
+    shape.push_back(v->Integer());
+
+    for (long i = 1; i < nb; i++)
+        shape.push_back(callfunc->Evaluate(i, contextualpattern, idthread)->Integer());
+    return aTRUE;
+}
 
 Exporting Tamgu* Tamguivector::getvalue(BLONG i) {
     if (globalTamgu->threadMODE) {

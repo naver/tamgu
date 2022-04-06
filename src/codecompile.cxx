@@ -937,6 +937,11 @@ Tamgu* TamguCallTamguVariable::Declaration(short id) {
     return aa->acode->mainframe.Declaration(id);
 }
 
+void TamguCode::Senderror(string msg) {
+    stringstream message;
+    message << msg;
+    throw new TamguRaiseError(message, filename, current_start, current_end);
+}
 //--------------------------------------------------------------------
 //The main function, which is used to traverse the parse tree and creates each instruction and declaration...
 Tamgu* TamguCode::Traverse(x_node* xn, Tamgu* parent) {
@@ -1046,7 +1051,9 @@ void TamguGlobal::RecordCompileFunctions() {
     parseFunctions["variable"] = &TamguCode::C_variable;
 	parseFunctions["purevariable"] = &TamguCode::C_variable;
 
-	parseFunctions["indexes"] = &TamguCode::C_indexes;
+    
+    parseFunctions["shapeindexes"] = &TamguCode::C_shapeindexes;
+    parseFunctions["indexes"] = &TamguCode::C_indexes;
 	parseFunctions["interval"] = &TamguCode::C_interval;
 
 	parseFunctions["parameters"] = &TamguCode::C_parameters;
@@ -3437,6 +3444,28 @@ Tamgu* TamguCode::C_indexes(x_node* xn, Tamgu* parent) {
     idx->Checkconst();
 	return idx;
 }
+
+Tamgu* TamguCode::C_shapeindexes(x_node* xn, Tamgu* parent) {
+    size_t nodesize = xn->nodes.size();
+    
+    if (TestFunction(xn->nodes[nodesize - 1]->token, false))
+        nodesize--;
+
+
+    TamguShape* idx = new TamguShape(global, parent);
+    //The first element is an index
+    
+    for (long i = 0; i < nodesize; i++)
+        Traverse(xn->nodes[i], idx);
+
+    if (nodesize != xn->nodes.size()) {
+        idx->stop = 2;
+        Traverse(xn->nodes[nodesize], idx);
+    }
+
+    return idx;
+}
+
 
 Tamgu* TamguCode::C_interval(x_node* xn, Tamgu* parent) {
 	size_t xsz = xn->nodes.size();

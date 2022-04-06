@@ -67,6 +67,8 @@ bool Tamgufvector::InitialisationModule(TamguGlobal* global, string version) {
     
     Tamgufvector::AddMethod(global, "remove", &Tamgufvector::MethodRemove, P_ONE, "remove(float e): remove 'e' from the vector.");
     
+    Tamgufvector::AddMethod(global, "shape", &Tamgufvector::MethodShape, P_NONE|P_ATLEASTONE, "shape(int s1, int s2...): defines the vector shape.");
+
     Tamgufvector::AddMethod(global, "last", &Tamgufvector::MethodLast, P_NONE, "last(): return the last element.");
     Tamgufvector::AddMethod(global, "join", &Tamgufvector::MethodJoin, P_ONE, "join(string sep): Produce a string representation for the container.");
     
@@ -138,6 +140,35 @@ Exporting Tamgu* Tamgufvector::in(Tamgu* context, Tamgu* a, short idthread) {
     }
     unlocking();
     return aFALSE;
+}
+
+Tamgu* Tamgufvector::MethodShape(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    long nb = callfunc->Size();
+    if (!nb) {
+        Tamguivector* ivector = globalTamgu->Provideivector();
+        for (long i = 0; i < shape.size(); i++) {
+            ivector->storevalue(shape[i]);
+        }
+        return ivector;
+    }
+    
+    shape.clear();
+    Tamgu* v = callfunc->Evaluate(0, contextualpattern, idthread);
+    if (v->isVectorContainer()) {
+        if (nb != 1)
+            globalTamgu->Returnerror("Wrong shape definition", idthread);
+        nb = v->Size();
+        for (long i = 0; i < nb; i++) {
+            shape.push_back(v->getinteger(i));
+        }
+        return aTRUE;
+    }
+    
+    shape.push_back(v->Integer());
+
+    for (long i = 1; i < nb; i++)
+        shape.push_back(callfunc->Evaluate(i, contextualpattern, idthread)->Integer());
+    return aTRUE;
 }
 
 Exporting Tamgu* Tamgufvector::Push(Tamgu* a) {

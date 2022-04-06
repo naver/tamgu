@@ -44,6 +44,7 @@ class Tamgulvector : public TamguLockContainer {
     //This SECTION is for your specific implementation...
     //Your personal variables here...
     vector<BLONG> values;
+    vector<long> shape;
     bool isconst;
     //---------------------------------------------------------------------------------------------------------------------
     Tamgulvector(TamguGlobal* g, Tamgu* parent = NULL) : TamguLockContainer(g, parent) {
@@ -113,6 +114,21 @@ class Tamgulvector : public TamguLockContainer {
         if (d>values.size())
             values.reserve(d);
         unlocking();
+    }
+
+    void store(long k, Tamgu* v) {
+        locking();
+        if (k >= values.size())
+            values.push_back(v->Long());
+        else
+            values[k] = v->Long();
+        unlocking();
+    }
+
+    void storevalue(Tamgu* v, long beg, long end) {
+        long sz = v->Size();
+        for (;beg < end && beg < sz; beg++)
+            values.push_back(((Tamgulvector*)v)->values[beg]);
     }
 
     void storevalue(long v) {
@@ -471,9 +487,26 @@ class Tamgulvector : public TamguLockContainer {
     }
 
     Tamgu* MethodSort(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodShape(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     //---------------------------------------------------------------------------------------------------------------------
+    void Getshape(vector<long>& sh) {
+        long nb = 1;
+        for (long i = 0; i < shape.size(); i++)
+            nb *= shape[i];
+        if (nb <= values.size())
+            sh = shape;
+    }
+    
 
-    Exporting Tamgu* Push(Tamgu*);	Tamgu* Push(TamguGlobal* g, Tamgu* a, short idhtread) {
+    Tamgu* push(Tamgu* a) {
+        values.push_back(a->Long());
+        return this;
+    }
+    
+
+    Exporting Tamgu* Push(Tamgu*);
+    
+    Tamgu* Push(TamguGlobal* g, Tamgu* a, short idhtread) {
         locking();
         values.push_back(a->Long());
         unlocking();

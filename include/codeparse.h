@@ -377,6 +377,11 @@ class bnf_tamgu {
     char m_negation(string& lreturn,x_node** tree);
     char m_minus(string& lreturn,x_node** tree);
     char m_minus_0_1(string& lreturn,x_node** tree);
+    char m_shapeindexes(string& lreturn,x_node** tree);
+    char m_shapeindexes_0_1(string& lreturn,x_node** tree);
+    char m_shapeindexes_0_1_2(string& lreturn,x_node** tree);
+    char m_shapeindexes_0_3(string& lreturn,x_node** tree);
+    char m_shapeindexes_0_3_4(string& lreturn,x_node** tree);
     char m_indexes(string& lreturn,x_node** tree);
     char m_indexes_0_1(string& lreturn,x_node** tree);
     char m_indexes_0_2(string& lreturn,x_node** tree);
@@ -876,6 +881,7 @@ class bnf_tamgu {
     char m_onetag_0_1(string& lreturn,x_node** tree);
     char m_tag(string& lreturn,x_node** tree);
     char m_tlvariable(string& lreturn,x_node** tree);
+    char m_tlvariable_0_1(string& lreturn,x_node** tree);
     char m_tlatom(string& lreturn,x_node** tree);
     char m_tlquote(string& lreturn,x_node** tree);
     char m_tlquote_0_1(string& lreturn,x_node** tree);

@@ -42,6 +42,7 @@ class Tamgufvector : public TamguLockContainer {
     //This SECTION is for your specific implementation...
     //Your personal variables here...
     vector<double> values;
+    vector<long> shape;
     bool isconst;
 
     //---------------------------------------------------------------------------------------------------------------------
@@ -114,6 +115,21 @@ class Tamgufvector : public TamguLockContainer {
         unlocking();
     }
 
+    void store(long k, Tamgu* v) {
+        locking();
+        if (k >= values.size())
+            values.push_back(v->Float());
+        else
+            values[k] = v->Float();
+        unlocking();
+    }
+    
+    void storevalue(Tamgu* v, long beg, long end) {
+        long sz = v->Size();
+        for (;beg < end && beg < sz; beg++)
+            values.push_back(((Tamgufvector*)v)->values[beg]);
+    }
+    
     void storevalue(long v) {
         locking();
         values.push_back((double)v);
@@ -527,6 +543,9 @@ class Tamgufvector : public TamguLockContainer {
         return Inverse();
     }
 
+    
+    Tamgu* MethodShape(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    
     Tamgu* MethodRemove(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double a = callfunc->Evaluate(0, contextualpattern, idthread)->Float();
         for (size_t i = 0; i < values.size(); i++) {
@@ -542,7 +561,22 @@ class Tamgufvector : public TamguLockContainer {
     Tamgu* MethodSort(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     //---------------------------------------------------------------------------------------------------------------------
 
+    void Getshape(vector<long>& sh) {
+        long nb = 1;
+        for (long i = 0; i < shape.size(); i++)
+            nb *= shape[i];
+        if (nb <= values.size())
+            sh = shape;
+    }
+    
+    Tamgu* push(Tamgu* a) {
+        values.push_back(a->Float());
+        return this;
+    }
+    
+
     Exporting Tamgu* Push(Tamgu*);
+    
     Tamgu* Push(TamguGlobal* g, Tamgu* a, short idhtread) {
         locking();
         values.push_back(a->Float());

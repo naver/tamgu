@@ -82,6 +82,8 @@ public:
 		mainframe.cleaning();
 	}
 
+    void Senderror(string msg);
+    
 	short SetFilename(string f) {
 		f = NormalizeFileName(f);
 
@@ -159,6 +161,7 @@ public:
 	bool isaFunction(string& name, short id);
 	Tamgu* C_regularcall(x_node*, Tamgu*);
 	Tamgu* C_taskellcall(x_node*, Tamgu*);
+    Tamgu* C_shapeindexes(x_node*, Tamgu*);
 	Tamgu* C_indexes(x_node*, Tamgu*);
 	Tamgu* C_interval(x_node*, Tamgu*);
 	Tamgu* C_astring(x_node*, Tamgu*);

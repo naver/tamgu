@@ -88,6 +88,9 @@ bool Tamguvector::InitialisationModule(TamguGlobal* global, string version) {
     Tamguvector::AddMethod(global, "insert", &Tamguvector::MethodInsert, P_TWO, "insert(int i,v): Insert v at position i.");
     Tamguvector::AddMethod(global, "read", &Tamguvector::MethodRead, P_ONE, "read(string path): Read the content of a file into the container.");
     Tamguvector::AddMethod(global, "write", &Tamguvector::MethodWrite, P_ONE, "write(string path): write the string content into a file.");
+    
+    Tamguvector::AddMethod(global, "shape", &Tamguvector::MethodShape, P_NONE|P_ATLEASTONE, "shape(int s1, int s2...): defines the vector shape.");
+
 
     if (version != "") {
         global->newInstance[Tamguvector::idtype] = new Tamguvector(global);
@@ -242,6 +245,35 @@ Exporting void Tamguvectorbuff::Resetreference(short inc) {
                 globalTamgu->vectorempties.push_back(idx);
         }
     }
+}
+
+Exporting Tamgu* Tamguvector::MethodShape(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    long nb = callfunc->Size();
+    if (!nb) {
+        Tamguivector* ivector = globalTamgu->Provideivector();
+        for (long i = 0; i < shape.size(); i++) {
+            ivector->storevalue(shape[i]);
+        }
+        return ivector;
+    }
+    
+    shape.clear();
+    Tamgu* v = callfunc->Evaluate(0, contextualpattern, idthread);
+    if (v->isVectorContainer()) {
+        if (nb != 1)
+            globalTamgu->Returnerror("Wrong shape definition", idthread);
+        nb = v->Size();
+        for (long i = 0; i < nb; i++) {
+            shape.push_back(v->getinteger(i));
+        }
+        return aTRUE;
+    }
+    
+    shape.push_back(v->Integer());
+
+    for (long i = 1; i < nb; i++)
+        shape.push_back(callfunc->Evaluate(i, contextualpattern, idthread)->Integer());
+    return aTRUE;
 }
 
 Exporting Tamgu* Tamguvector::in(Tamgu* context, Tamgu* a, short idthread) {

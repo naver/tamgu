@@ -43,6 +43,7 @@ class Tamgudvector : public TamguLockContainer {
     //This SECTION is for your specific implementation...
     //Your personal variables here...
     vector<float> values;
+    vector<long> shape;
     bool isconst;
     //---------------------------------------------------------------------------------------------------------------------
     Tamgudvector(TamguGlobal* g, Tamgu* parent = NULL) : TamguLockContainer(g, parent) {
@@ -117,6 +118,21 @@ class Tamgudvector : public TamguLockContainer {
         unlocking();
     }
     
+    void store(long k, Tamgu* v) {
+        locking();
+        if (k >= values.size())
+            values.push_back(v->Decimal());
+        else
+            values[k] = v->Decimal();
+        unlocking();
+    }
+    
+    void storevalue(Tamgu* v, long beg, long end) {
+        long sz = v->Size();
+        for (;beg < end && beg < sz; beg++)
+            values.push_back(((Tamgudvector*)v)->values[beg]);
+    }
+
     void storevalue(long v) {
         locking();
         values.push_back((float)v);
@@ -471,10 +487,25 @@ class Tamgudvector : public TamguLockContainer {
 
 
     Tamgu* MethodSort(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
-
+    Tamgu* MethodShape(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    
     //---------------------------------------------------------------------------------------------------------------------
-
-    Exporting Tamgu* Push(Tamgu*);	Tamgu* Push(TamguGlobal* g, Tamgu* a, short idhtread) {
+    void Getshape(vector<long>& sh) {
+        long nb = 1;
+        for (long i = 0; i < shape.size(); i++)
+            nb *= shape[i];
+        if (nb <= values.size())
+            sh = shape;
+    }
+    
+    Tamgu* push(Tamgu* a) {
+        values.push_back(a->Decimal());
+        return this;
+    }
+    
+    Exporting Tamgu* Push(Tamgu*);
+    
+    Tamgu* Push(TamguGlobal* g, Tamgu* a, short idhtread) {
         locking();
         values.push_back(a->Decimal());
         unlocking();

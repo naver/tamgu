@@ -50,6 +50,7 @@ class Tamguvector : public TamguObjectLockContainer {
     //This SECTION is for your specific implementation...
     //Your personal variables here...
     vector<Tamgu*> values;
+    vector<long> shape;
     bool merge;
 
     //---------------------------------------------------------------------------------------------------------------------
@@ -299,6 +300,25 @@ class Tamguvector : public TamguObjectLockContainer {
         return v;
     }
 
+    void store(long k, Tamgu* v) {
+        locking();
+        if (k >= values.size())
+            values.push_back(v);
+        else {
+            if (values[k] != NULL)
+                values[k]->Removereference(reference + 1);
+            values[k] = v;
+        }
+        v->Addreference(investigate, reference + 1);
+        unlocking();
+    }
+    
+    void storevalue(Tamgu* v, long beg, long end) {
+        long sz = v->Size();
+        for (;beg < end && beg < sz; beg++)
+            Push(v->getvalue(beg));
+    }
+
     Exporting void Storevalue(string& u);
     Exporting void Storevalue(wstring& u);
 
@@ -372,6 +392,8 @@ class Tamguvector : public TamguObjectLockContainer {
     //This SECTION is for your specific implementation...
     //This is an example of a function that could be implemented for your needs.
 
+    Tamgu* MethodShape(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    
     Tamgu* MethodMin(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         Tamgu* m = values[0];
         for (long i = 1; i < values.size(); i++) {
@@ -604,6 +626,14 @@ class Tamguvector : public TamguObjectLockContainer {
     }
 
     //---------------------------------------------------------------------------------------------------------
+
+    void Getshape(vector<long>& sh) {
+        long nb = 1;
+        for (long i = 0; i < shape.size(); i++)
+            nb *= shape[i];
+        if (nb <= values.size())
+            sh = shape;
+    }
 
     //Raw push
     Tamgu* push(Tamgu* v) {

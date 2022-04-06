@@ -1370,7 +1370,7 @@ string TamguPredicateTerm::String() {
     for (long i = 0; i < parameters.size(); i++) {
         if (i)
             v += ",";
-        v += parameters[i]->JSonString();
+        v += parameters[i]->String();
     }
     v += ")";
     return v;

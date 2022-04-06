@@ -73,6 +73,7 @@ void Tamguuvector::AddMethod(TamguGlobal* global, string name, uvectorMethod fun
     Tamguuvector::AddMethod(global, "shuffle", &Tamguuvector::MethodShuffle, P_NONE, "shuffle(): shuffle the values in the vector.");
     Tamguuvector::AddMethod(global, "permute", &Tamguuvector::MethodPermute, P_NONE, "permute(): permute the values in the vector after each call.");
     Tamguuvector::AddMethod(global, "sort", &Tamguuvector::MethodSort, P_ONE, "sort(bool reverse): sort the elements within.");
+    Tamguuvector::AddMethod(global, "shape", &Tamguuvector::MethodShape, P_NONE|P_ATLEASTONE, "shape(int s1, int s2...): defines the vector shape.");
     Tamguuvector::AddMethod(global, "push", &Tamguuvector::MethodPush, P_ATLEASTONE, "push(v): Push a value into the vector.");
     Tamguuvector::AddMethod(global, "pop", &Tamguuvector::MethodPop, P_NONE | P_ONE, "pop(int i): Erase an element from the vector");
     Tamguuvector::AddMethod(global, "poplast", &Tamguuvector::MethodPoplast, P_NONE, "poplast(): remove and return the last element from the vector");
@@ -1249,6 +1250,36 @@ class UComparison {
         return compare->get();
     }
 };
+
+Tamgu* Tamguuvector::MethodShape(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    long nb = callfunc->Size();
+    if (!nb) {
+        Tamguivector* ivector = globalTamgu->Provideivector();
+        for (long i = 0; i < shape.size(); i++) {
+            ivector->storevalue(shape[i]);
+        }
+        return ivector;
+    }
+    
+    shape.clear();
+    Tamgu* v = callfunc->Evaluate(0, contextualpattern, idthread);
+    if (v->isVectorContainer()) {
+        if (nb != 1)
+            globalTamgu->Returnerror("Wrong shape definition", idthread);
+        nb = v->Size();
+        for (long i = 0; i < nb; i++) {
+            shape.push_back(v->getinteger(i));
+        }
+        return aTRUE;
+    }
+    
+    shape.push_back(v->Integer());
+
+    for (long i = 1; i < nb; i++)
+        shape.push_back(callfunc->Evaluate(i, contextualpattern, idthread)->Integer());
+    return aTRUE;
+}
+
 
 Tamgu* Tamguuvector::MethodSort(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     Tamgu* comp = callfunc->Evaluate(0, contextualpattern, idthread);

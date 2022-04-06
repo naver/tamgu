@@ -188,6 +188,8 @@ public:
 		return aNULL;
 	}
     
+    virtual void Getshape(vector<long>& sh) {}
+    
     virtual void add(An_any* e) {}
     virtual void push(An_any* e) {}
 	virtual void InstructionClear() {}
@@ -1101,9 +1103,11 @@ public:
 	Exporting virtual Tamgu* Push(double k, Tamgu* v);
 	Exporting virtual Tamgu* Push(string k, Tamgu* v);
 
-	virtual Tamgu* push(string k, Tamgu* v) {
-		return this;
-	}
+    virtual Tamgu* push(string k, Tamgu* v) {
+        return this;
+    }
+
+    virtual void store(long k, Tamgu* v) {}
 
 	Exporting virtual Tamgu* Push(wstring k, Tamgu* v);
 
@@ -1164,6 +1168,7 @@ public:
         storevalue(u);
     }
 
+    Exporting virtual void storevalue(Tamgu* v, long beg, long end);
     Exporting virtual void storevalue(string u);
     Exporting virtual void storevalue(wstring u);
     Exporting virtual void storevalue(float u);
@@ -3163,6 +3168,77 @@ public:
 };
 
 //------------------------------------------------------------------------
+class TamguShape : public Tamgu {
+public:
+    vector<Tamgu*> instructions;
+    Tamgu* function;
+    char stop;
+    
+    TamguShape(TamguGlobal* global = NULL, Tamgu* parent = NULL) {
+        function = NULL;
+        stop = false;
+        if (parent != NULL)
+            parent->AddInstruction(this);
+        
+        if (global != NULL)
+            global->RecordInTracker(this);
+        
+        investigate = is_index;
+    }
+    
+    void AddInstruction(Tamgu* a) {
+        if (stop == 2) {
+            function = a;
+            stop = false;
+        }
+        else
+            instructions.push_back(a);
+    }
+
+    Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
+    Tamgu* Put(Tamgu* context, Tamgu* value, short idthread);
+
+    void ScanVariables(vector<short>& vars) {
+        for (long i = 0; i < instructions.size(); i++) {
+            if (!instructions[i]->isConst())
+                instructions[i]->ScanVariables(vars);
+        }
+    }
+
+    short Type() {
+        return a_callindex;
+    }
+
+    short Typeinfered() {
+        return a_none;
+    }
+
+    bool isCall() {
+        return true;
+    }
+
+    Tamgu* Function() {
+        return function;
+    }
+
+    bool isStop() {
+        return true;
+    }
+    
+    Tamgu* Getindex() {
+        return this;
+    }
+    
+    bool Setstopindex() {
+        if (function == NULL) {
+            stop = true;
+           return true;
+        }
+        stop = function->Setstopindex();
+        return true;
+    }
+};
+
 class TamguIndex : public Tamgu {
 public:
 	Tamgu* left;
@@ -3200,6 +3276,19 @@ public:
             right = right->Eval(aNULL, aNULL, idthread);
     }
 
+    TamguIndex(Tamgu* l, Tamgu* f) : interval(false), left(l), signleft(false), signright(false), right(NULL) {
+        minimal = true;
+        function = f;
+        stop = function->Setstopindex();
+        investigate = is_index | is_constante;
+    }
+
+    TamguIndex(Tamgu* l, Tamgu* r, Tamgu* f) : interval(true), left(l),signleft(false), signright(false),right(r) {
+        function = f;
+        stop = function->Setstopindex();
+        investigate = is_index | is_constante;
+    }
+    
     bool Checklegit() {
         if (left->isFunctionParameter() || left->isFunction() || (right != NULL && (right->isFunctionParameter() || right->isFunction())))
             return false;

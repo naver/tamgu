@@ -640,6 +640,195 @@ Tamgu* Tamguustring::EvalIndex(Tamgu* kidx, TamguIndex* idx, short idthread) {
     return inter;
 }
  
+Tamgu* TamguShape::Eval(Tamgu* context, Tamgu* value, short idthread) {
+    //If no shape, no values
+    
+    vector<long> shape;
+    value->Getshape(shape);
+    long shape_size = shape.size();
+    long ins_size = instructions.size();
+    
+    if (!shape_size)
+        return globalTamgu->Returnerror("Cannot extract values from this container: too small or no shape", idthread);
+    if (shape_size < ins_size)
+        return globalTamgu->Returnerror("Indexes do not match the shape", idthread);
+    
+    
+    long index = 0;
+    long i;
+    long idx = 0;
+    long cumul = 1;
+    
+    vector<long> values;
+    for (i = 0; i < ins_size; i++)
+        values.push_back(instructions[i]->Eval(context, aNULL, idthread)->Integer());
+    
+    for (i = ins_size - 1; i>= 0; i--) {
+        index = values[i];
+        if (index < 0)
+            break;
+        idx += index*cumul;
+        cumul *= shape[i];
+    }
+    
+    if (index < 0) {
+        long choice = index;
+        context = value->Newinstance(idthread);
+        //First we need to detect if -1 is in the middle of a structure...
+        cumul = 1;
+        long value_size = value->Size();
+        long begin = 0;
+        for (index = 0; index < i; index++) {
+            if (values[index] < 0)
+                break;
+            begin += values[index] * cumul;
+            cumul *= shape[index];
+        }
+        if (index) {
+            //We have found a restriction
+            cumul = 1;
+            for (; index < shape_size; index++) {
+                cumul *= shape[index];
+            }
+            begin *= cumul;
+            value_size = begin + cumul;
+            cumul = 1;
+        }
+        
+        //First we need to find the new bloc size
+        long block_size = 1;
+        if (choice == -1 || !i) {
+            for (index = i + 1; index < shape_size; index++) {
+                block_size *= shape[index];
+                cumul *= (index >= ins_size)?shape[index]:1;
+            }
+            if (cumul == 1) {
+                for (i = begin; i < value_size; i += block_size)
+                    context->push(value->getvalue(i + idx));
+            }
+            else {
+                idx *= cumul;
+                for (i = begin; i < value_size; i += block_size)
+                    context->storevalue(value, i + idx, i + idx + cumul);
+            }
+        }
+        else {
+            for (index = i; index < shape_size; index++) {
+                block_size *= shape[index];
+                cumul *= (index >= ins_size)?shape[index]:1;
+            }
+            shape_size = shape[i];
+            if (cumul == 1) {
+                for (index = 0; index < shape_size; index++) {
+                    for (i = begin; i < value_size; i += block_size)
+                        context->push(value->getvalue(i + idx + index));
+                }
+            }
+            else {
+                idx *= cumul;
+                for (index = 0; index < shape_size; index++) {
+                    for (i = begin; i < value_size; i += block_size) {
+                        ins_size = i + idx + (index*cumul);
+                        context->storevalue(value, ins_size, ins_size + cumul);
+                    }
+                }
+            }
+        }
+        return context;
+    }
+    
+    Tamgu* sub;
+    if (shape_size == ins_size) {
+        if (idx >= value->Size())
+            return globalTamgu->Returnerror("Index out of bound", idthread);
+        sub = value->getvalue(idx);
+    }
+    else {
+        sub = value->Newinstance(idthread);
+        cumul = 1;
+        for (i = ins_size; i < shape_size; i++) {
+            cumul *= shape[i];
+            idx *= shape[i];
+        }
+        cumul += idx;
+        sub->storevalue(value, idx, cumul);
+    }
+    
+    if (function == NULL)
+        return sub;
+        
+    value = function->Eval(context, sub, idthread);
+    if (value != sub)
+        sub->Release();
+    return value;
+}
+
+Tamgu* TamguShape::Put(Tamgu* recipient, Tamgu* value, short idthread) {
+    vector<long> shape;
+    recipient->Getshape(shape);
+    
+    long s_sz = shape.size();
+    long i_sz = instructions.size();
+
+    if (!s_sz)
+        return globalTamgu->Returnerror("Cannot extract values from this container: too small or no shape", idthread);
+    if (s_sz < i_sz)
+        return globalTamgu->Returnerror("Indexes do not match the shape", idthread);
+    
+    long index = 0;
+    long i;
+    long idx = 0;
+    long cumul = 1;
+    for (i = i_sz - 1; i>= 0; i--) {
+        index = instructions[i]->Eval(aNULL, aNULL, idthread)->Integer();
+        idx += index*cumul;
+        cumul *= shape[i];
+    }
+    
+    if (function == NULL) {
+        if (s_sz == i_sz) {
+            if (idx >= value->Size())
+                return globalTamgu->Returnerror("Index out of bound", idthread);
+            recipient->store(idx, value);
+            return aTRUE;
+        }
+        
+        cumul = 1;
+        for (i = i_sz; i < s_sz; i++) {
+            cumul *= shape[i];
+            idx *= shape[i];
+        }
+        if (value->Size() != cumul)
+            return globalTamgu->Returnerror("Cannot store this value at this position: wrong size");
+        cumul += idx;
+        for (i = idx; i < cumul; i++)
+            recipient->store(i, value->getvalue(i-idx));
+        
+        return aTRUE;
+    }
+    
+    if (s_sz == i_sz) {
+        Tamguint l(idx);
+        l.Setreference();
+        TamguIndex function_index(&l, function);
+        return function_index.Put(recipient, value, idthread);
+    }
+
+    cumul = 1;
+    for (i = i_sz; i < s_sz; i++) {
+        cumul *= shape[i];
+        idx *= shape[i];
+    }
+    cumul += idx;
+
+    Tamguint l(idx);
+    l.Setreference();
+    Tamguint r(cumul);
+    r.Setreference();
+    TamguIndex function_index(&l, &r, function);
+    return function_index.Put(recipient, value, idthread);
+}
+
 Tamgu* TamguIndex::Eval(Tamgu* klocal, Tamgu* obj, short idthread) {
     if (minimal) {
         obj = obj->EvalWithSimpleIndex(left, idthread,signleft);

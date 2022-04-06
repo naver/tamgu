@@ -42,7 +42,7 @@
 #include "tamgulisp.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2022.03.22.17";
+const char* tamgu_version = "Tamgu 1.2022.04.06.10";
 
 Tamgu* booleantamgu[2];
 
@@ -2492,6 +2492,12 @@ Exporting void Tamgu::addstringto(wchar_t s, int i) {
     }
 
     ke->addstringto(s);
+}
+
+Exporting void Tamgu::storevalue(Tamgu* a, long beg, long end) {
+    for (; beg < end; beg++)
+        Push(a->getvalue(beg));
+    a->Release();
 }
 
 Exporting void Tamgu::storevalue(string u) {

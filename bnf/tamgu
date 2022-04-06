@@ -174,6 +174,7 @@
 *65 = Wrong 'range' definition
 *66 = Wrong annotation rule
 *67 = Wrong lisp expression
+*68 = Wrong shape access
 ####################################################################################################################################################
 ####################################################################################################################################################
 ### This is the entry point of our parser: analyse, hence the "+" ######
@@ -285,8 +286,8 @@ space := word %@
 framesep := %: %:
 frameup := word framesep
 functioncall := (frameup) notafunction word
-%regularcall := functioncall %(;13 (comparing^parameters) %) (interval^indexes^subfunc)
-%purecall := functioncall %( (parameters) %) (interval^indexes)
+%regularcall := functioncall %(;13 (comparing^parameters) %) (shapeindexes^interval^indexes^subfunc)
+%purecall := functioncall %( (parameters) %) (shapeindexes^interval^indexes)
 
 returncall := $return ([comparing^nocomparisonexpressions])
 breakcall := $break
@@ -309,10 +310,10 @@ sep := %:
 
 ########### VARIABLES ##############################################
 ~wrong := $or^$and^$xor^$in^$not^$else^$continue^$break^$return^$where^$otherwise^$not
-variable := wrong word (interval^indexes^subfuncbis^subvar)
+variable := wrong word (shapeindexes^interval^indexes^subfuncbis^subvar)
 allvariable := predicatevariable^variable
 
-purevariable := wrong word (interval^indexes)
+purevariable := wrong word (shapeindexes^interval^indexes)
 predvariable := wrong predicatevariable^purevariable
 
 plusplus := [%+ %+]^[%- %-]
@@ -330,8 +331,9 @@ negation := %!^%~^$not^$¬
 
 ########### TUPLES, VECTORS and MAPS ##############################################
 minus := %- [astringdouble^afullstring^astringsimple^apreg^aspreg^atreg^astreg^variable]
-indexes := %[;1 [minus^apreg^aspreg^atreg^astreg^expressions] %] (interval^indexes^subfuncbis^framevariable)
-interval := %[ ([minus^apreg^aspreg^atreg^astreg^expressions]) sep;23 ([minus^apreg^aspreg^atreg^astreg^expressions]) %] (interval^indexes^subfuncbis^framevariable)
+shapeindexes := %[ %* ;68 [nocomparisonnorinexpressions] [%, [nocomparisonnorinexpressions]]* %] (interval^indexes^subfuncbis)
+indexes := %[;1 [minus^apreg^aspreg^atreg^astreg^expressions] %] (shapeindexes^interval^indexes^subfuncbis^framevariable)
+interval := %[ ([minus^apreg^aspreg^atreg^astreg^expressions]) sep;23 ([minus^apreg^aspreg^atreg^astreg^expressions]) %] (shapeindexes^interval^indexes^subfuncbis^framevariable)
 
 %valtuple := %( wnexpressions %,;61 (wnexpressions [%, wnexpressions]*) %)
 

@@ -42,6 +42,7 @@ class Tamguuvector : public TamguLockContainer {
     //This SECTION is for your specific implementation...
     //Your personal variables here...
     vector<wstring> values;
+    vector<long> shape;
     bool isconst;
 
     //---------------------------------------------------------------------------------------------------------------------
@@ -110,6 +111,22 @@ class Tamguuvector : public TamguLockContainer {
         Locking _lock(this);
         if (d > values.size())
             values.reserve(d);
+    }
+
+    void store(long k, Tamgu* v) {
+        locking();
+        if (k >= values.size())
+            values.push_back(v->UString());
+        else
+            values[k] = v->UString();
+        unlocking();
+        v->Release();
+    }
+
+    void storevalue(Tamgu* v, long beg, long end) {
+        long sz = v->Size();
+        for (;beg < end && beg < sz; beg++)
+            values.push_back(((Tamguuvector*)v)->values[beg]);
     }
 
     void storevalue(long l) {
@@ -500,11 +517,30 @@ class Tamguuvector : public TamguLockContainer {
     }
 
     Tamgu* MethodSort(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodShape(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     //---------------------------------------------------------------------------------------------------------------------
     Exporting void addstringto(string s, int i);
     Exporting void addstringto(wchar_t s, int i);
     Exporting void addustringto(wstring ws, int i);
-    Exporting Tamgu* Push(Tamgu*);	Tamgu* Push(TamguGlobal* g, Tamgu* a, short idhtread) {
+    
+    void Getshape(vector<long>& sh) {
+        long nb = 1;
+        for (long i = 0; i < shape.size(); i++)
+            nb *= shape[i];
+        if (nb <= values.size())
+            sh = shape;
+    }
+    
+
+    Tamgu* push(Tamgu* a) {
+        values.push_back(a->UString());
+        return this;
+    }
+    
+
+    Exporting Tamgu* Push(Tamgu*);
+
+    Tamgu* Push(TamguGlobal* g, Tamgu* a, short idhtread) {
         Locking _lock(this);
         values.push_back(a->UString());
         return this;
@@ -1134,7 +1170,9 @@ public:
     Exporting void addstringto(wchar_t s, int i);
     Exporting void addustringto(wstring ws, int i);
     
-    Exporting Tamgu* Push(Tamgu*);    Tamgu* Push(TamguGlobal* g, Tamgu* a, short idhtread) {
+    Exporting Tamgu* Push(Tamgu*);
+    
+    Tamgu* Push(TamguGlobal* g, Tamgu* a, short idhtread) {
         pushback(a->UString());
         return this;
     }
