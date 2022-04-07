@@ -122,7 +122,7 @@ class Tamgusvector : public TamguLockContainer {
         v->Release();
     }
 
-    void storevalue(Tamgu* v, long beg, long end) {
+	Exporting void storevalue(Tamgu* v, long beg, long end) {
         long sz = v->Size();
         for (;beg < end && beg < sz; beg++)
             values.push_back(((Tamgusvector*)v)->values[beg]);

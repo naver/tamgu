@@ -313,7 +313,7 @@ class Tamguvector : public TamguObjectLockContainer {
         unlocking();
     }
     
-    void storevalue(Tamgu* v, long beg, long end) {
+	Exporting void storevalue(Tamgu* v, long beg, long end) {
         long sz = v->Size();
         for (;beg < end && beg < sz; beg++)
             Push(v->getvalue(beg));
@@ -392,7 +392,7 @@ class Tamguvector : public TamguObjectLockContainer {
     //This SECTION is for your specific implementation...
     //This is an example of a function that could be implemented for your needs.
 
-    Tamgu* MethodShape(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+	Exporting Tamgu* MethodShape(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     
     Tamgu* MethodMin(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         Tamgu* m = values[0];
