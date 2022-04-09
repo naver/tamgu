@@ -73,7 +73,7 @@ bool checkresize();
 void Returnscreensize(long& rs, long& cs, long& sr, long& sc);
 #endif
 
-#ifdef APPLE
+#ifdef APPLE_COPY
 void quoted_string(string& value) {
     if (value == "")
         return;

@@ -26,6 +26,7 @@ def displayhelp(s):
         print("Unknown command:", s)
     print('')
     print("Options:")
+    print(" -anaconda: anaconda path (often /opt/anaconda3)")
     print(" -withsound: Compile with sound support")
     print(" -noregex: Do not compile with regular expression support")
     print(" -pathregex path: Path to regex include files")
@@ -60,6 +61,7 @@ guipath=None
 pythoninclude=None
 pythonpath=None
 pythonversion="python2.7"
+anaconda = None
 versionname=None
 libpath="/usr"
 i=1
@@ -128,12 +130,18 @@ while i < len(sys.argv):
         versiongcc="."+versionname
         gccversion = True
         i+=1
+    elif sys.argv[i]=="-anaconda":
+        if i >= len(sys.argv):
+            print("Missing anaconda path on command line")
+            exit(-1)
+        anaconda = sys.argv[i+1]
+        i+=1
     elif sys.argv[i]=="-pythoninclude":
         if i >= len(sys.argv):
             print("Missing python include path on command line")
             exit(-1)
         pythoninclude=sys.argv[i+1]
-        i+=1
+        i+=1    
     elif sys.argv[i]=="-pythonpath":
         if i >= len(sys.argv):
             print("Missing python path on command line")
@@ -262,18 +270,21 @@ cleanlibs:
         f.write("PYTHONLIB = /System/Library/Frameworks/Python.framework/Versions/Current/Python\n\n")
     else:
         pversion=pythonversion[6:]
-        if pythoninclude==None:
-           f.write("INCLUDEPYTHON = -I/Library/Frameworks/Python.framework/Versions/"+pversion+"/Headers\n")
+        if anaconda != None:
+            if anaconda[-1] != '/':
+               anaconda += '/'
+            f.write("INCLUDEPYTHON = -I"+anaconda+"include/python"+pversion+"\n")
+            f.write("PYTHONLIB = -L"+anaconda+"lib -lpython"+pversion+"\n")
         else:
-           f.write("INCLUDEPYTHON = "+pythoninclude+"\n")
-        if pythonpath==None:
-            if os.path.exists("/opt/anaconda3/lib"):
-                f.write("PYTHONLIB = -L/opt/anaconda3/lib -lpython"+pversion+"\n")
+            if pythoninclude==None:
+                f.write("INCLUDEPYTHON = -I/Library/Frameworks/Python.framework/Headers\n")
             else:
-                f.write("PYTHONLIB = /Library/Frameworks/Python.framework/Versions/"+pversion+"/Python\n")
+                f.write("INCLUDEPYTHON = "+pythoninclude+"\n")
+        if pythonpath==None:
+            if anaconda == None:
+                f.write("PYTHONLIB = /Library/Frameworks/Python.framework/Python\n")
         else:
            f.write("PYTHONLIB = "+pythonpath+"\n")
-
     # AVX instructions are not available on arm64 machines
     if b"arm64" in ostype.lower():
         if compilejava:
@@ -501,7 +512,15 @@ if withgui:
     compilelibs += "	$(MAKE) -C libgui all\n"
     cleanlibs += "	$(MAKE) -C libgui clean\n"
 ############################
-if pythoninclude!=None:
+if anaconda != None:
+    if anaconda[-1] != '/':
+        anaconda += '/'
+    f.write("INCLUDEPYTHON = -I"+anaconda+"include/python"+pversion+"\n")
+    f.write("PYTHONLIB = -L"+anaconda+"lib -lpython"+pversion+"\n")
+    print('')
+    print("You can compile the pytamgu library, based on anaconda")
+    print('')
+elif pythoninclude!=None:
     f.write("\n\n#Python support to compile tamgu python library: 'pytamgu'\n")
     f.write("INCLUDEPYTHON = -I"+pythoninclude+"\n")
     f.write("PYTHONLIB = -l"+pythonversion+"\n")
