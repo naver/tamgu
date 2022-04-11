@@ -63,13 +63,16 @@
 
     <target name="platformSettingLinux" depends="platformIdentification" if="linux" description="define properties for the platform : linux" >
 
-        <property name="regexboost"     value="true" />
-        <property name="regexcpp"     value="true" />
+        <!--property name="regexboost"     value="true" /-->
+        <!--property name="regexcpp"     value="true" /-->
+        <property name="nofastype"     value="true" />
+        <!--property name="nocodecvt"     value="true" /-->
+        <property name="linuxobjpath"     value="objs/linux" />
 
-        <property name="platform" 		value="linux" />
+        <property name="platform" 		    value="linux" />
         <property name="obj.suffixe" 		value="o" />
-        <property name="objs.path" 		value="objs/linux" />
-        <property name="libobjs.path" 		value="objs/linux" />
+        <property name="objs.path" 		    value="${linuxobjpath}" />
+        <property name="libobjs.path" 		value="${linuxobjpath}" />
         <property name="compilerC.name" 	value="gcc" />
         <property name="system.libC.names"  	value="c, m" />
         <property name="compilerCplus.name" 	value="g++" />
@@ -113,6 +116,8 @@
             objdir="${objdir}" outtype="shared" outfile="${libdir}/jtamgu">
             <compiler name="${compilerCplus.name}" >
                 <compilerarg value="-std=c++11" location="start" unless="windows"/>
+                <compilerarg value="-DNOFASTTYPE" location="start" if="nofastype"/>
+                <compilerarg value="-DNOCODECVT" location="start" if="nocodecvt"/>
                 <compilerarg value="-DMAVERICK" location="start" if="mac"/>
                 <compilerarg value="-DTamgu_REGEX" location="start" if="regexboost"/>
                 <compilerarg value="-DTamgu_REGEX" location="start" if="windows"/>
@@ -141,6 +146,8 @@
                 </includepath>
                 <defineset define="APPLE" if="mac"/>
                 <defineset define="WIN32" if="windows"/>
+                <compilerarg value="-target" location="start" if="mac"/>
+                <compilerarg value="x86_64-apple-macos11" location="start" if="mac"/>
             </compiler>
             <linker name="${compilerCplus.name}">
                 <!--
@@ -219,7 +226,7 @@
     <!-- compile java source file -->
     <target name="javaCompile" depends="">
         <javac srcdir="${java.source.dir}/com/naver/jtamgu" destdir="${build.classes.dir}"
-            debug="off" deprecation="on" optimize="on" target="1.8" source="1.8" >
+            debug="off" deprecation="on" optimize="on" target="1.7" source="1.7" >
             <include name="*.java"/>
             <compilerarg value="-Xlint"/>
         </javac>
@@ -251,5 +258,4 @@
     </target>
 
 </project>
-
 
