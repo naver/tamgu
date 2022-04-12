@@ -171,7 +171,7 @@ public:
             delete a.second;
     }
     
-    void traverse(Emoji_Arc* a, char32_t* e) {
+    void traverse(Emoji_Arc* a, const char32_t* e) {
         long i = 0;
         long pos;
         while (e[i]) {

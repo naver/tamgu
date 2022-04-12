@@ -154,15 +154,16 @@ Tamgusys::~Tamgusys() {
 }
 
 static char check_size_utf8(int utf) {
-    if ((utf & 0xF0) == 0xF0)
-        return 3;
+    unsigned char check = utf[0] & 0xF0;
     
-    if ((utf & 0xE0) == 0xE0)
-        return 2;
-    
-    if ((utf & 0xC0) == 0xC0)
-        return 1;
-    
+    switch (check) {
+        case 0xC0:
+            return 1;
+        case 0xE0:
+            return 2;
+        case 0xF0:
+            return 3;
+    }
     return 0;
 }
 
