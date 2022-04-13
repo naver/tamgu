@@ -154,7 +154,7 @@ Tamgusys::~Tamgusys() {
 }
 
 static char check_size_utf8(int utf) {
-    unsigned char check = utf[0] & 0xF0;
+    unsigned char check = utf & 0xF0;
     
     switch (check) {
         case 0xC0:
