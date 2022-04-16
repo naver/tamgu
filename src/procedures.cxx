@@ -1701,15 +1701,81 @@ void toDisplayJN(string& todisplay, Tamgu* context, TamguCall* callfunc, short i
         return;
     }
     
+    long element_size = 0;
     if (kcont->isVectorContainer()) {
-        if (callfunc->Size() == 3) {
+        if (callfunc->Size() >= 3) {
             nb = callfunc->Evaluate(2, context, idthread)->Integer();
             if (nb <= 0)
                 nb = -1;
+            if (callfunc->Size() == 4) {
+                element_size = callfunc->Evaluate(3, context, idthread)->Integer();
+                if (element_size < 0)
+                    element_size = 0;
+            }
         }
         
         long it;
-        for (it = 0; it < kcont->Size(); it++) {
+        if (element_size) {
+            long sz = kcont->Size() - 1;
+            long szsep = size_c(sep);
+            long all = 0;
+            vector<string> elements;
+            string inter;
+            long thesize;
+            for (it = 0; it < sz; it++) {
+                inter = kcont->getstring(it);
+                thesize = size_c(inter) + szsep;
+                if (element_size >= all + thesize) {
+                    all += thesize;
+                    elements.push_back(inter);
+                }
+                else {
+                    nb = element_size - all;
+                    for (all  = 0; all < elements.size() - 1; all++) {
+                        todisplay += elements[all];
+                        todisplay += sep;
+                        if (nb) {
+                            todisplay += " ";
+                            nb--;
+                        }
+                    }
+                    while (nb) {
+                        todisplay += " ";
+                        nb--;
+                    }
+                    todisplay += elements[all];
+                    todisplay += sep;
+                    todisplay += Endl;
+                    elements.clear();
+                    elements.push_back(inter);
+                    all = thesize;
+                }
+            }
+            inter = kcont->getstring(sz);
+            thesize = size_c(inter);
+            nb = 0;
+            beg = false;
+            if (element_size < all + thesize) {
+                nb = element_size - all;
+                beg = true;
+            }
+            
+            for (all = 0; all < elements.size(); all++) {
+                todisplay += elements[all];
+                todisplay += sep;
+                if (nb) {
+                    todisplay += " ";
+                    nb--;
+                }
+            }
+            if (beg)
+                todisplay += Endl;
+            todisplay += inter;
+            return;
+        }
+        
+        long sz = kcont->Size();
+        for (it = 0; it < sz; it++) {
             if (beg == false)
                 todisplay += sep;
             beg = false;
@@ -1731,11 +1797,64 @@ void toDisplayJN(string& todisplay, Tamgu* context, TamguCall* callfunc, short i
     
     if (callfunc->Size() >= 3) {
         valsep = callfunc->Evaluate(2, context, idthread)->String();
-        if (callfunc->Size() == 4) {
+        if (callfunc->Size() >= 4) {
             nb = callfunc->Evaluate(3, context, idthread)->Integer();
             if (nb <= 0)
                 nb = -1;
+            if (callfunc->Size() == 5) {
+                nb = -1;
+                element_size = callfunc->Evaluate(4, context, idthread)->Integer();
+            }
         }
+    }
+    
+    if (element_size) {
+        long szsep = size_c(sep);
+        vector<string> elements;
+        string item;
+        long thesize;
+        long all = 0;
+        
+        for (itr->Begin(); itr->End() == aFALSE; itr->Next()) {
+            item  = itr->Keystring();
+            item += valsep;
+            item += itr->Valuestring();
+            thesize = size_c(item) + szsep;
+            if (element_size >= all + thesize) {
+                all += thesize;
+                elements.push_back(item);
+            }
+            else {
+                nb = element_size - all;
+                for (all  = 0; all < elements.size() - 1; all ++) {
+                    todisplay += elements[all];
+                    todisplay += sep;
+                    if (nb) {
+                        todisplay += " ";
+                        nb--;
+                    }
+                }
+                while (nb) {
+                    todisplay += " ";
+                    nb--;
+                }
+                todisplay += elements[all];
+                todisplay += sep;
+                todisplay += Endl;
+                elements.clear();
+                elements.push_back(item);
+                all = thesize;
+            }
+        }
+        nb = elements.size() - 2;
+        for (all  = 0; all < nb; all += 1) {
+            todisplay += elements[all];
+            todisplay += sep;
+        }
+        if (nb >= 0) {
+            todisplay += elements[nb];
+        }
+        return;
     }
     
     for (itr->Begin(); itr->End() == aFALSE; itr->Next()) {
@@ -1754,6 +1873,19 @@ void toDisplayJN(string& todisplay, Tamgu* context, TamguCall* callfunc, short i
         todisplay += itr->Valuestring();
     }
     itr->Release();
+}
+
+Tamgu* ProcPrettify(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    string todisplay;
+    #ifdef DOSOUTPUT
+    bool convert = false;
+    if (globalTamgu->os == &cout)
+        convert = true;
+    #endif
+
+
+    toDisplayJN(todisplay, contextualpattern, callfunc, idthread);
+    return globalTamgu->Providestring(todisplay);
 }
 
 Tamgu* ProcPrintJoin(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -2817,14 +2949,15 @@ Exporting void TamguGlobal::RecordProcedures() {
     
     RecordOneProcedure("evaljson", ProcJSon, P_ONE);
 
+    RecordOneProcedure("prettystring", ProcPrettify, P_ONE | P_TWO | P_THREE | P_FOUR | P_FIVE);
     RecordOneProcedure("print", ProcPrint, P_FULL);
     RecordOneProcedure("println", ProcPrintLN, P_FULL);
     RecordOneProcedure("printerr", ProcPrinterr, P_FULL);
     RecordOneProcedure("printlnerr", ProcPrinterrLN, P_FULL);
-    RecordOneProcedure("printj", &ProcPrintJoin, P_ONE | P_TWO | P_THREE | P_FOUR);
-    RecordOneProcedure("printjerr", &ProcPrintJoinErr, P_ONE | P_TWO | P_THREE | P_FOUR);
-    RecordOneProcedure("printjln", &ProcPrintJoinLN, P_ONE | P_TWO | P_THREE | P_FOUR);
-    RecordOneProcedure("printjlnerr", &ProcPrintJoinErrLN, P_ONE | P_TWO | P_THREE | P_FOUR);
+    RecordOneProcedure("printj", &ProcPrintJoin, P_ONE | P_TWO | P_THREE | P_FOUR | P_FIVE);
+    RecordOneProcedure("printjerr", &ProcPrintJoinErr, P_ONE | P_TWO | P_THREE | P_FOUR | P_FIVE);
+    RecordOneProcedure("printjln", &ProcPrintJoinLN, P_ONE | P_TWO | P_THREE | P_FOUR | P_FIVE);
+    RecordOneProcedure("printjlnerr", &ProcPrintJoinErrLN, P_ONE | P_TWO | P_THREE | P_FOUR | P_FIVE);
 
     RecordOneProcedure("_variables", ProcVariables, P_ONE);
     RecordOneProcedure("_eval", ProcEval, P_ONE | P_TWO);

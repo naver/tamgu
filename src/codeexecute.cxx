@@ -697,11 +697,11 @@ Tamgu* TamguShape::Eval(Tamgu* context, Tamgu* value, short idthread) {
         
         //First we need to find the new bloc size
         long block_size = 1;
+        for (index = i + 1; index < shape_size; index++) {
+            block_size *= shape[index];
+            cumul *= (index >= ins_size)?shape[index]:1;
+        }
         if (choice == -1 || !i) {
-            for (index = i + 1; index < shape_size; index++) {
-                block_size *= shape[index];
-                cumul *= (index >= ins_size)?shape[index]:1;
-            }
             if (cumul == 1) {
                 for (i = begin; i < value_size; i += block_size)
                     context->push(value->getvalue(i + idx));
@@ -713,23 +713,23 @@ Tamgu* TamguShape::Eval(Tamgu* context, Tamgu* value, short idthread) {
             }
         }
         else {
-            for (index = i; index < shape_size; index++) {
-                block_size *= shape[index];
-                cumul *= (index >= ins_size)?shape[index]:1;
-            }
             shape_size = shape[i];
             if (cumul == 1) {
+                cumul = block_size;
+                block_size *= shape_size;
                 for (index = 0; index < shape_size; index++) {
+                    ins_size = idx + index*cumul;
                     for (i = begin; i < value_size; i += block_size)
-                        context->push(value->getvalue(i + idx + index));
+                        context->push(value->getvalue(i + ins_size));
                 }
             }
             else {
                 idx *= cumul;
+                block_size *= shape_size;
                 for (index = 0; index < shape_size; index++) {
+                    ins_size = idx + (index*cumul);
                     for (i = begin; i < value_size; i += block_size) {
-                        ins_size = i + idx + (index*cumul);
-                        context->storevalue(value, ins_size, ins_size + cumul);
+                        context->storevalue(value, ins_size + i, ins_size + i + cumul);
                     }
                 }
             }
