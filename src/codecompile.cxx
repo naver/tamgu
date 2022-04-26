@@ -2801,8 +2801,17 @@ Tamgu* TamguCode::C_regularcall(x_node* xn, Tamgu* parent) {
 		else
 			kx = new TamguPredicate(id, global, a_predicate, parent);
 
-		if (xn->nodes.back()->token == params)
-			ComputePredicateParameters(xn->nodes.back(), kx);
+        
+        //There could be a tail function to be called with
+        if (xn->nodes.back()->token == params)
+            ComputePredicateParameters(xn->nodes.back(), kx);
+        else {
+            for (long i = 1; i < xn->nodes.size(); i++) {
+                if (xn->nodes[i]->token == params)
+                    ComputePredicateParameters(xn->nodes[i], kx);
+            }
+            Traverse(xn->nodes.back(), kx);
+        }
 
 		if (!kx->Checkarity()) {
 			stringstream message;
