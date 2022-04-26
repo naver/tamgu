@@ -316,9 +316,9 @@ Tamgu* TamguCode::Execute(long begininstruction, short idthread) {
 	Tamgu* a = aNULL;
     global->Cleanerror(idthread);
 
-	short sz = mainframe.instructions.size();
+	size_t sz = mainframe.instructions.size();
 	_setdebugmin(idthread);
-	short i;
+	long i;
 
 	for (i = begininstruction; i < sz; i++) {
         a = mainframe.instructions.vecteur[i];
@@ -366,9 +366,9 @@ Tamgu* TamguCode::Loading() {
 	_setdebugmin(0);
 
 	Tamgu* a = aNULL;
-	short sz = mainframe.instructions.size();
+    size_t sz = mainframe.instructions.size();
 
-	for (short i = firstinstruction; i < sz; i++) {
+	for (size_t i = firstinstruction; i < sz; i++) {
         a = mainframe.instructions.vecteur[i];
 
 		_debugpush(a);
@@ -397,9 +397,9 @@ Tamgu* TamguCode::ExecuteExpression(TamguLocalEvaluation& local, short idthread)
 
     Tamgu* a = aNULL;
 
-    short sz = local.instructions.size();
+    size_t sz = local.instructions.size();
     _setdebugmin(idthread);
-    short i;
+    size_t i;
 
     for (i = 0; i < sz; i++) {
         a = local.instructions.vecteur[i];
@@ -450,11 +450,11 @@ Tamgu* TamguCode::Run(bool glock) {
 	_setdebugmin(0);
 
 	Tamgu* a = aNULL;
-	short sz = mainframe.instructions.size();
+	size_t sz = mainframe.instructions.size();
     
     bool testcond = false;
     
-	for (short i = firstinstruction; i < sz && !testcond; i++) {
+	for (size_t i = firstinstruction; i < sz && !testcond; i++) {
         a->Releasenonconst();
         a = mainframe.instructions.vecteur[i];
         

@@ -2242,7 +2242,7 @@ void Tamgulispair::Setstring(string& res, short idthread) {
 
 Tamgu* TamguCallLispFunction::Eval(Tamgu* domain, Tamgu* a, short idthread) {
     TamguFunction* bd = (TamguFunction*)body;
-    short sz = bd->parameters.size();
+    size_t sz = bd->parameters.size();
 
     if (arguments.size() != sz) {
         string msg = "Wrong number of arguments in call to: '";
@@ -2257,7 +2257,7 @@ Tamgu* TamguCallLispFunction::Eval(Tamgu* domain, Tamgu* a, short idthread) {
 
     TamguVariableDeclaration* p;
 
-    for (short i = 0; i < sz; i++) {
+    for (size_t i = 0; i < sz; i++) {
         p = (TamguVariableDeclaration*)bd->parameters[i];
         a = arguments[i]->Eval(domain, aNULL, idthread);
         if (p->Setarguments(environment, a, idthread, false)) {

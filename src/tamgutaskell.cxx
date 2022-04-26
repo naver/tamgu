@@ -254,7 +254,7 @@ bool TamguCallFunctionTaskell::Checkarity() {
         if (arguments.size() == bd->parameters.size()) {
             if (bd->hdeclared) {
                 bool found = true;
-                short i;
+                long i;
                 //In this case, we compare against the Taskell function declaration...
                 //Which might be different from the local body arguments themselves...
                 for (i = 0; i < bd->taskelldeclarations.size(); i++) {
@@ -1479,7 +1479,7 @@ Tamgu* TamguCallFunctionTaskell::GetTaskellN(Tamgu* context, Tamgu* environment,
     TaskellLoop* hloop = &loops;
     bool first = true;
     bool forcerenew = false;
-    short sz = bd->lambdadomain->instructions.last;
+    long sz = bd->lambdadomain->instructions.last;
 
     if (bd->lambdadomain->local) {
         //We might have some variables declared in "where"
@@ -1502,7 +1502,7 @@ Tamgu* TamguCallFunctionTaskell::GetTaskellN(Tamgu* context, Tamgu* environment,
             forcerenew=true;
     }
 
-    short i;
+    long i;
     for (i = 0; i < sz; i += 3) {
         if (bd->lambdadomain->instructions[i + 2] == aFALSE)  {
             if (first)
@@ -1859,12 +1859,12 @@ Tamgu* TamguCallFibre::GetTaskelFibres(Tamgu* context, TamguDeclarationAutoClean
     TamguIteration* loop;
     TaskellLoop* hloop = loops;
     bool first = true;
-    short sz = bd->lambdadomain->instructions.last;
+    long sz = bd->lambdadomain->instructions.last;
     
         //we put our system in store mode, which means that the returntype SHOULD not be tested in TamguFunctionLambda
     bd->store = true;
     
-    short i;
+    long i;
     for (i = 0; i < sz; i += 3) {
         if (bd->lambdadomain->instructions[i + 2] == aFALSE)  {
             if (first)

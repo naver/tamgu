@@ -8707,25 +8707,21 @@ Tamgu* TamguCode::C_predicatefact(x_node* xn, Tamgu* kf) {
         
 		//We check if there are some PredicateVariable in the parameters
 		if (xn->token == "predicatefact" || xn->token == "dependencyfact" || xn->nodes[1]->value == "true") {
-			bool keepasknowledge = true;
-			if (kpcont->rules.find(name) != kpcont->rules.end() || kcf->isUnified(NULL) == false)
-				keepasknowledge = false;
-			//if there is a predicate in the formula, then it cannot be an instance, it is a goal
-
-			if (keepasknowledge == false) {
-				kbloc->Remove();
-				kbloc = new TamguPredicateRule(name, global, kf);
-				((TamguPredicateRule*)kbloc)->addfinal(kpcont);
-				TamguPredicate* kfx = new TamguPredicate(name, global);
-				for (int j = 0; j < kcf->parameters.size(); j++)
-					kfx->parameters.push_back(kcf->parameters[j]);
-				kcf->parameters.clear();
-				kcf->Release();
-				((TamguPredicateRule*)kbloc)->head = kfx;
-
+            if (kpcont->rules.find(name) != kpcont->rules.end() || kcf->isUnified(NULL) == false) {
+                //if there is a predicate in the formula, then it cannot be an instance, it is a goal
+                kbloc->Remove();
+                kbloc = new TamguPredicateRule(name, global, kf);
+                ((TamguPredicateRule*)kbloc)->addfinal(kpcont);
+                TamguPredicate* kfx = new TamguPredicate(name, global);
+                for (int j = 0; j < kcf->parameters.size(); j++)
+                    kfx->parameters.push_back(kcf->parameters[j]);
+                kcf->parameters.clear();
+                kcf->Release();
+                ((TamguPredicateRule*)kbloc)->head = kfx;
+                
                 currentpredicatename = "";
-				return kbloc;
-			}
+                return kbloc;
+            }
 			//We want to add our value to the knowlegde base		
 			kcf->add = true;
 			if (xn->nodes[0]->token == "dependencyfact")

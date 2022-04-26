@@ -715,7 +715,7 @@ public:
             cerr << m_redbold << "Create file space: " << thecurrentfilename << m_current <<" (" << currentfileid << ")" << endl;
             wstring c = L"\n";
             TamguSetCode(c);
-            lines.setcode(c, true);
+            //lines.setcode(c, true);
         }
     }
     
