@@ -708,7 +708,7 @@ Tamgu* TamguDependencyKnowledgeBaseFunction::same(Tamgu* a) {
 }
 
 Tamgu* TamguPredicateTerm::same(Tamgu* a) {
-    if (a->Type() != a_term || parameters.size() != a->Size() || a->Name() != name)
+    if (a->Type() != a_term || parameters.size() != a->Size() || !a->isName(name))
         return aFALSE;
     for (long i = 0; i < parameters.size(); i++) {
         if (parameters[i]->same(a->Parameter(i)) == aFALSE)
@@ -812,7 +812,7 @@ bool TamguPredicateVariableInstance::Unify(TamguDeclaration* dom, Tamgu* a) {
 }
 
 bool TamguPredicateTerm::Unify(TamguDeclaration* dom, Tamgu* a) {
-    if (a->Type() != a_term || a->Name() != name || a->Size() != parameters.size())
+    if (a->Type() != a_term || !a->isName(name) || a->Size() != parameters.size())
         return false;
     TamguPredicateTerm* term = (TamguPredicateTerm*)a;
     for (long i = 0; i < parameters.size(); i++) {
@@ -862,7 +862,7 @@ bool TamguConstmap::Unify(TamguDeclaration* dom, Tamgu* a) {
 }
 
 bool TamguPredicate::Unify(TamguDeclaration* dom, Tamgu* a) {
-    if (!a->isPredicate() || a->Name() != name || a->Size() != parameters.size())
+    if (!a->isPredicate() || !a->isName(name) || a->Size() != parameters.size())
         return false;
 
     TamguPredicate* pred = (TamguPredicate*)a;
@@ -900,7 +900,7 @@ void TamguDependency::Setfeatures(Tamgu* feats) {
 }
 
 bool TamguDependency::Unify(TamguDeclaration* dom, Tamgu* a) {
-    if (!a->isPredicate() || a->Size() != parameters.size() || (name != a_universal && a->Name() != name))
+    if (!a->isPredicate() || a->Size() != parameters.size() || (name != a_universal && !a->isName(name)))
         return false;
 
     TamguPredicate* pred = (TamguPredicate*)a;
@@ -1056,7 +1056,7 @@ Tamgu* TamguPredicateTerm::Put(Tamgu* dom, Tamgu* ke, short idthread) {
             return aFALSE;
     }
 
-    if (ke->Type() != a_term || ke->Size() != parameters.size() || ke->Name() != name) {
+    if (ke->Type() != a_term || ke->Size() != parameters.size() || !ke->isName(name)) {
         dom->Setfail(true);
         return aTRUE;
     }
@@ -2423,7 +2423,7 @@ Tamgu* TamguPredicateTerm::ExtractPredicateVariables(Tamgu* context, TamguDeclar
 
     if (C != NULL) {
         if (C->Type() == a_term) {
-            if (C->Name() != name || C->Size() != parameters.size()) {
+            if (!C->isName(name) || C->Size() != parameters.size()) {
                 return NULL;
             }
             param = true;
@@ -2435,7 +2435,7 @@ Tamgu* TamguPredicateTerm::ExtractPredicateVariables(Tamgu* context, TamguDeclar
             Tamgu* val = c->VariableValue(dom, idthread);
             if (val != aNOELEMENT) {
                 c = val;
-                if (c->Type() != a_term || c->Name() != name || c->Size() != parameters.size())
+                if (c->Type() != a_term || !c->isName(name) || c->Size() != parameters.size())
                     return NULL;
             }
 
@@ -2488,7 +2488,7 @@ Tamgu* TamguPredicateConcept::ExtractPredicateVariables(Tamgu* context, TamguDec
 
     if (C != NULL) {
         if (C->isConcept()) {
-            if (C->Name() != name || C->Size() != parameters.size()) {
+            if (!C->isName(name) || C->Size() != parameters.size()) {
                 return NULL;
             }
             param = true;
@@ -2500,7 +2500,7 @@ Tamgu* TamguPredicateConcept::ExtractPredicateVariables(Tamgu* context, TamguDec
             Tamgu* val = c->VariableValue(dom, idthread);
             if (val != aNOELEMENT) {
                 c = val;
-                if (!c->isConcept() || c->Name() != name || c->Size() != parameters.size())
+                if (!c->isConcept() || !c->isName(name) || c->Size() != parameters.size())
                     return NULL;
             }
 

@@ -830,6 +830,10 @@ public:
 		return 0;
 	}
 
+    virtual bool isName(short n) {
+        return false;
+    }
+    
 	virtual bool isFunction() {
 		return false;
 	}

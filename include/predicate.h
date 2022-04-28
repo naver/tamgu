@@ -79,7 +79,12 @@ public:
 		name = n;
 	}
 
-	short Name() { return name; }
+	short Name() {
+        return name;
+    }
+    bool isName(short n) {
+        return (n == name || n == a_universal);
+    }
 
 	virtual string String();
 
@@ -573,7 +578,12 @@ public:
 		negation = v;
 	}
 
-	short Name() { return name; }
+    short Name() {
+        return name;
+    }
+    bool isName(short n) {
+        return (n == name || n == a_universal);
+    }
 
 	~TamguPredicate() {
 		if (idtracker != -1 && globalTamgu->Checktracker(this, idtracker))
@@ -1205,6 +1215,9 @@ public:
 	short Name() {
 		return name;
 	}
+    bool isName(short n) {
+        return (n == name || n == a_universal);
+    }
 
 	TamguPredicateRule(short n, TamguGlobal* g = NULL, Tamgu* parent = NULL) : TamguTracked(a_predicaterule, g, parent) {
 		name = n;

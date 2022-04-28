@@ -2785,7 +2785,7 @@ Tamgu* TamguCode::C_regularcall(x_node* xn, Tamgu* parent) {
 		params = "parameters";
 
 	//It could be a predicate, then two cases as part of an expression or as a call to evaluation
-	if (global->predicates.check(id)) {
+	if (global->predicates.check(id) || (id == a_universal && params == "predicateparameters")) {
 		//then it is a PredicateInstance
 		if (parent->Type() != a_predicateruleelement && parent->Type() != a_parameterpredicate) {
 			global->predicatevariables.clear();
@@ -2794,7 +2794,7 @@ Tamgu* TamguCode::C_regularcall(x_node* xn, Tamgu* parent) {
 		}
 
 		TamguPredicate* kx = global->predicates[id];
-		if (kx->isPredicateMethod()) {
+		if (kx != NULL && kx->isPredicateMethod()) {
 			kx = (TamguPredicate*)kx->Newinstance(0, parent);
 			parent->AddInstruction(kx);
 		}
