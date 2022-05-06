@@ -25,8 +25,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<primemapsiMethod>  Tamguprimemapsi::methods;
-Exporting hmap<string, string> Tamguprimemapsi::infomethods;
-Exporting basebin_hash<unsigned long> Tamguprimemapsi::exported;
 
 Exporting short Tamguprimemapsi::idtype = 0;
 
@@ -35,27 +33,33 @@ Exporting short Tamguprimemapsi::idtype = 0;
 void Tamguprimemapsi::AddMethod(TamguGlobal* global, string name,primemapsiMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
+
 void Tamguprimemapsi::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamguprimemapsi::InitialisationModule(global,"");
 }
 
 
 bool Tamguprimemapsi::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
     
     
     Tamguprimemapsi::idtype = global->Getid("primemapsi");
     
     
-    global->minimal_indexes[Tamguprimemapsi::idtype] = true;
+    
 
     Tamguprimemapsi::AddMethod(global, "clear", &Tamguprimemapsi::MethodClear, P_NONE, "clear(): clear the container.");
     
@@ -75,10 +79,12 @@ bool Tamguprimemapsi::InitialisationModule(TamguGlobal* global, string version) 
     Tamguprimemapsi::AddMethod(global, "pop", &Tamguprimemapsi::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamguprimemapsi::AddMethod(global, "merge", &Tamguprimemapsi::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
     
-    if (version != "") {
+    if (version != "") {        
+    global->minimal_indexes[Tamguprimemapsi::idtype] = true;
+
         global->newInstance[Tamguprimemapsi::idtype] = new Tamguprimemapsi(global);
         
-        global->RecordMethods(Tamguprimemapsi::idtype, Tamguprimemapsi::exported);
+        global->RecordCompatibilities(Tamguprimemapsi::idtype);
     }
     
     return true;

@@ -28,8 +28,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<decimalMethod>  Tamgudecimal::methods;
-Exporting hmap<string, string> Tamgudecimal::infomethods;
-Exporting basebin_hash<unsigned long> Tamgudecimal::exported;
 
 Exporting short Tamgudecimal::idtype = 0;
 
@@ -38,25 +36,33 @@ Exporting short Tamgudecimal::idtype = 0;
 void Tamgudecimal::AddMethod(TamguGlobal* global, string name, decimalMethod func, unsigned long arity, string infos, short typereturn) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
+    global->RecordArity(a_decimalthrough, idname, arity);
+    global->RecordArity(a_dloop, idname, arity);
     if (typereturn != a_null)
         global->returntypes[idname] = typereturn;
 }
 
 
 
-    void Tamgudecimal::Setidtype(TamguGlobal* global) {
+
+void Tamgudecimal::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgudecimal::InitialisationModule(global,"");
 }
 
 
    bool Tamgudecimal::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
-    Tamgudecimal::idtype = global->Getid("decimal");
+    Tamgudecimal::idtype = a_decimal;
 
     Tamgudecimal::AddMethod(global, "chr", &Tamgudecimal::Methodchr, P_NONE, "chr(): return the character matching the unicode code", a_ustring);
     Tamgudecimal::AddMethod(global, "invert", &Tamgudecimal::MethodInvert, P_NONE, "", a_float);
@@ -111,9 +117,9 @@ void Tamgudecimal::AddMethod(TamguGlobal* global, string name, decimalMethod fun
     if (version != "") {
         global->newInstance[Tamgudecimal::idtype] = new Tamgudecimal(0, global);
         global->newInstance[a_decimalthrough] = global->newInstance[Tamgudecimal::idtype];
-        global->RecordMethods(Tamgudecimal::idtype, Tamgudecimal::exported);
-        global->RecordMethods(a_decimalthrough, Tamgudecimal::exported);
-        global->RecordMethods(a_dloop, Tamgudecimal::exported);
+        global->RecordCompatibilities(Tamgudecimal::idtype);
+        global->RecordCompatibilities(a_decimalthrough);
+        global->RecordCompatibilities(a_dloop);
     }
     
     return true;

@@ -25,8 +25,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<binmaplMethod>  Tamgubinmapl::methods;
-Exporting hmap<string, string> Tamgubinmapl::infomethods;
-Exporting basebin_hash<unsigned long> Tamgubinmapl::exported;
 
 Exporting short Tamgubinmapl::idtype = 0;
 
@@ -35,14 +33,24 @@ Exporting short Tamgubinmapl::idtype = 0;
 void Tamgubinmapl::AddMethod(TamguGlobal* global, string name, binmaplMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
+}
+
+
+void Tamgubinmapl::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
+    Tamgubinmapl::InitialisationModule(global,"");
 }
 
 bool Tamgubinmapl::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
 
     Tamgubinmapl::idtype = global->Getid("binmapl");
@@ -67,7 +75,7 @@ bool Tamgubinmapl::InitialisationModule(TamguGlobal* global, string version) {
 
     global->newInstance[Tamgubinmapl::idtype] = new Tamgubinmapl(global);
     
-    global->RecordMethods(Tamgubinmapl::idtype, Tamgubinmapl::exported);
+    global->RecordCompatibilities(Tamgubinmapl::idtype);
 
     return true;
 }

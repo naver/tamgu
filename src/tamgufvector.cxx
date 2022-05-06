@@ -26,8 +26,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<fvectorMethod>  Tamgufvector::methods;
-Exporting hmap<string, string> Tamgufvector::infomethods;
-Exporting basebin_hash<unsigned long> Tamgufvector::exported;
 
 Exporting short Tamgufvector::idtype = 0;
 
@@ -35,25 +33,31 @@ Exporting short Tamgufvector::idtype = 0;
 void Tamgufvector::AddMethod(TamguGlobal* global, string name, fvectorMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
+
 void Tamgufvector::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgufvector::InitialisationModule(global,"");
 }
 
 
 bool Tamgufvector::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
     
     
     
-    Tamgufvector::idtype = global->Getid("fvector");
+    
+    
+    Tamgufvector::idtype = a_fvector;
     
     Tamgufvector::AddMethod(global, "min", &Tamgufvector::MethodMin, P_NONE, "min(): returns the min in the vector.");
     Tamgufvector::AddMethod(global, "max", &Tamgufvector::MethodMax, P_NONE, "max(): returns the max in the vector.");
@@ -85,12 +89,14 @@ bool Tamgufvector::InitialisationModule(TamguGlobal* global, string version) {
     
     Tamgufvector::AddMethod(global, "permute", &Tamgufvector::MethodPermute, P_NONE, "permute(): permute the values in the vector after each call.");
     
-    if (version != "") {
+    if (version != "") {        
+    global->minimal_indexes[Tamgufvector::idtype] = true;
+
         global->newInstance[Tamgufvector::idtype] = new Tamgufvector(global);
-        global->RecordMethods(Tamgufvector::idtype,Tamgufvector::exported);
+        global->RecordCompatibilities(Tamgufvector::idtype);
     }
     
-    global->minimal_indexes[Tamgufvector::idtype] = true;
+    
     
     Tamgua_fvector::InitialisationModule(global, version);
     
@@ -1262,8 +1268,6 @@ Exporting Tamgu* Tamgufvector::Loopin(TamguInstruction* ins, Tamgu* context, sho
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<a_fvectorMethod>  Tamgua_fvector::methods;
-Exporting hmap<string, string> Tamgua_fvector::infomethods;
-Exporting basebin_hash<unsigned long> Tamgua_fvector::exported;
 
 Exporting short Tamgua_fvector::idtype = 0;
 
@@ -1272,14 +1276,19 @@ Exporting short Tamgua_fvector::idtype = 0;
 void Tamgua_fvector::AddMethod(TamguGlobal* global, string name, a_fvectorMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
+
 
 bool Tamgua_fvector::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
     
     
     Tamgua_fvector::idtype = global->Getid("a_fvector");
@@ -1308,7 +1317,7 @@ bool Tamgua_fvector::InitialisationModule(TamguGlobal* global, string version) {
     
     if (version != "") {
         global->newInstance[Tamgua_fvector::idtype] = new Tamgua_fvector(global);
-        global->RecordMethods(Tamgua_fvector::idtype, Tamgua_fvector::exported);
+        global->RecordCompatibilities(Tamgua_fvector::idtype);
     }
     
     return true;

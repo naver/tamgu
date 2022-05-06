@@ -36,8 +36,8 @@ class Tamguprimemapi : public TamguObjectLockContainer {
     //this is a static object, which is common to everyone
     //We associate the method pointers with their names in the linkedmethods map
     static Exchanging basebin_hash<primemapiMethod> methods;
-    static Exchanging hmap<string, string> infomethods;
-    static Exchanging  basebin_hash<unsigned long> exported;
+    
+    
 
     static Exchanging short idtype;
 
@@ -174,9 +174,7 @@ class Tamguprimemapi : public TamguObjectLockContainer {
     //Declaration
     //All our methods must have been declared in tamguexportedmethods... See MethodInitialization below
     bool isDeclared(short n) {
-        if (exported.find(n) != exported.end())
-            return true;
-        return false;
+        return methods.check(n);
     }
 
     
@@ -207,17 +205,17 @@ class Tamguprimemapi : public TamguObjectLockContainer {
     static void AddMethod(TamguGlobal* global, string name, primemapiMethod func, unsigned long arity, string infos);
     static bool InitialisationModule(TamguGlobal* global, string version);
 
-    void Methods(Tamgu* v) {
-        hmap<string, string>::iterator it;
-        for (it = infomethods.begin(); it != infomethods.end(); it++)
-            v->storevalue(it->first);
-    }
+    
+     void Setidtype(TamguGlobal* global);
+     void Methods(Tamgu* v) {
+            for (const auto& it : globalTamgu->infomethods[idtype])
+                 v->storevalue(it.first);
+      }
 
-    string Info(string n) {
-
-        if (infomethods.find(n) != infomethods.end())
-            return infomethods[n];
-        return "Unknown method";
+      string Info(string n) {
+            if (globalTamgu->infomethods[idtype].find(n) !=  globalTamgu->infomethods[idtype].end())
+              return globalTamgu->infomethods[idtype][n];
+             return "Unknown method";
     }
 
 

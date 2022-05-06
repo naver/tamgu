@@ -19,8 +19,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<byteMethod>  Tamgubyte::methods;
-Exporting hmap<string, string> Tamgubyte::infomethods;
-Exporting basebin_hash<unsigned long> Tamgubyte::exported;
 
 Exporting short Tamgubyte::idtype = 0;
 
@@ -29,23 +27,29 @@ Exporting short Tamgubyte::idtype = 0;
 void Tamgubyte::AddMethod(TamguGlobal* global, string name, byteMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
-    void Tamgubyte::Setidtype(TamguGlobal* global) {
+
+void Tamgubyte::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgubyte::InitialisationModule(global,"");
 }
 
 
-   bool Tamgubyte::InitialisationModule(TamguGlobal* global, string version) {
+bool Tamgubyte::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
-    Tamgubyte::idtype = global->Getid("byte");
+    Tamgubyte::idtype = a_byte;
 
     Tamgubyte::AddMethod(global, "succ", &Tamgubyte::MethodSucc, P_NONE, "succ(): Return the successor of a byte.");
     Tamgubyte::AddMethod(global, "pred", &Tamgubyte::MethodPred, P_NONE, "pred(): Return the predecessor of a byte.");
@@ -53,7 +57,7 @@ void Tamgubyte::AddMethod(TamguGlobal* global, string name, byteMethod func, uns
 
     if (version != "") {
         global->newInstance[Tamgubyte::idtype] = new Tamgubyte(0, global);
-        global->RecordMethods(Tamgubyte::idtype,Tamgubyte::exported);
+        global->RecordCompatibilities(Tamgubyte::idtype);
     }
 
     return true;

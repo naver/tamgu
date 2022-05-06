@@ -19,8 +19,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<imatrixMethod>  Tamguimatrix::methods;
-Exporting hmap<string, string> Tamguimatrix::infomethods;
-Exporting basebin_hash<unsigned long> Tamguimatrix::exported;
 
 Exporting short Tamguimatrix::idtype = 0;
 
@@ -29,21 +27,27 @@ Exporting short Tamguimatrix::idtype = 0;
 void Tamguimatrix::AddMethod(TamguGlobal* global, string name, imatrixMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
+
     void Tamguimatrix::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamguimatrix::InitialisationModule(global,"");
 }
 
 
    bool Tamguimatrix::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
     Tamguimatrix::idtype = global->Getid("imatrix");
 
@@ -61,7 +65,7 @@ void Tamguimatrix::AddMethod(TamguGlobal* global, string name, imatrixMethod fun
 
     if (version != "") {
         global->newInstance[Tamguimatrix::idtype] = new Tamguimatrix(global);
-        global->RecordMethods(Tamguimatrix::idtype,Tamguimatrix::exported);
+        global->RecordCompatibilities(Tamguimatrix::idtype);
     }
 
     return true;

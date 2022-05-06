@@ -19,8 +19,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<boolMethod>  Tamguboolean::methods;
-Exporting hmap<string, string> Tamguboolean::infomethods;
-Exporting basebin_hash<unsigned long> Tamguboolean::exported;
 
 Exporting short Tamguboolean::idtype = 0;
 
@@ -29,39 +27,44 @@ Exporting short Tamguboolean::idtype = 0;
 void Tamguboolean::AddMethod(TamguGlobal* global, string name, boolMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
+    global->RecordArity(a_bloop, idname, arity);
 }
 
 
 
-    void Tamguboolean::Setidtype(TamguGlobal* global) {
+
+void Tamguboolean::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamguboolean::InitialisationModule(global,"");
 }
 
 
    bool Tamguboolean::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
-    Tamguboolean::idtype = global->Getid("bool");
+    Tamguboolean::idtype = a_boolean;
 
     Tamguboolean::AddMethod(global, "invert", &Tamguboolean::MethodInvert, P_NONE, "invert(): Invert ");
     Tamguboolean::AddMethod(global, "succ", &Tamguboolean::MethodInvert, P_NONE, "succ(): successor of a Boolean.");
 
     if (version != "") {
         global->newInstance[Tamguboolean::idtype] = new Tamguboolean(0, global);
-        global->RecordMethods(Tamguboolean::idtype,Tamguboolean::exported);
-        global->RecordMethods(a_bloop,Tamguboolean::exported);
+        global->RecordCompatibilities(Tamguboolean::idtype);
+        global->RecordCompatibilities(a_bloop);
     }
 
     return Tamguatomicbool::InitialisationModule(global, version);
 }
 
 Exporting basebin_hash<atomicboolMethod>  Tamguatomicbool::methods;
-Exporting hmap<string, string> Tamguatomicbool::infomethods;
-Exporting basebin_hash<unsigned long> Tamguatomicbool::exported;
 
 Exporting short Tamguatomicbool::idtype = 0;
 
@@ -70,14 +73,19 @@ Exporting short Tamguatomicbool::idtype = 0;
 void Tamguatomicbool::AddMethod(TamguGlobal* global, string name, atomicboolMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
+
 
 bool Tamguatomicbool::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
     
     Tamguatomicbool::idtype = global->Getid("a_bool");
     
@@ -86,7 +94,7 @@ bool Tamguatomicbool::InitialisationModule(TamguGlobal* global, string version) 
     
     if (version != "") {
         global->newInstance[Tamguatomicbool::idtype] = new Tamguatomicbool(0, global);
-        global->RecordMethods(Tamguatomicbool::idtype,Tamguatomicbool::exported);
+        global->RecordCompatibilities(Tamguatomicbool::idtype);
     }
     
     return true;

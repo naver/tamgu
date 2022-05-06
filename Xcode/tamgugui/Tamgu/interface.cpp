@@ -32,7 +32,7 @@ extern "C" {
     void displaydebug(const char* localvariables, const char* allvariables, const char* sstack, const char* filename, long currentline);
     const char* Inputtext(const char* msg);
     char WindowModeActivated(void);
-    void Inittamgulibspath();
+    void Inittamgulibspath(void);
 }
 
 //------------------------------------------------------------------------------------------------DEBUG

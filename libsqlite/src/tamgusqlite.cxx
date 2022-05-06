@@ -21,8 +21,6 @@
 
 //We need to declare once again our local definitions.
 basebin_hash<sqliteMethod>  Tamgusqlite::methods;
-hmap<string, string> Tamgusqlite::infomethods;
-basebin_hash<unsigned long> Tamgusqlite::exported;
 
 short Tamgusqlite::idtype = 0;
 
@@ -42,16 +40,26 @@ extern "C" {
 
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamgusqlite::AddMethod(TamguGlobal* global, string name, sqliteMethod func, unsigned long arity, string infos) {
-	short idname = global->Getid(name);
-	methods[idname] = func;
-	infomethods[name] = infos;
-	exported[idname] = arity;
+    short idname = global->Getid(name);
+    methods[idname] = func;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
+}
+
+
+void Tamgusqlite::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
+    Tamgusqlite::InitialisationModule(global,"");
 }
 
 bool Tamgusqlite::InitialisationModule(TamguGlobal* global, string version) {
 	methods.clear();
-	infomethods.clear();
-	exported.clear();
+	
+	
 
 	Tamgusqlite::idtype = global->Getid("sqlite");
 
@@ -68,7 +76,7 @@ bool Tamgusqlite::InitialisationModule(TamguGlobal* global, string version) {
 	Tamgusqlite::AddMethod(global, "memory", &Tamgusqlite::MethodMemory, P_NONE, "memory(): return how much memory SQLite uses");
 
 	global->newInstance[Tamgusqlite::idtype] = new Tamgusqlite(global);
-	global->RecordMethods(Tamgusqlite::idtype,Tamgusqlite::exported);
+	global->RecordCompatibilities(Tamgusqlite::idtype);
 
 	return true;
 }

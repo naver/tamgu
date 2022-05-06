@@ -22,8 +22,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<treemapMethod>  Tamgutreemap::methods;
-Exporting hmap<string, string> Tamgutreemap::infomethods;
-Exporting basebin_hash<unsigned long> Tamgutreemap::exported;
 
 Exporting short Tamgutreemap::idtype = 0;
 
@@ -32,25 +30,31 @@ Exporting short Tamgutreemap::idtype = 0;
 void Tamgutreemap::AddMethod(TamguGlobal* global, string name, treemapMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
-    void Tamgutreemap::Setidtype(TamguGlobal* global) {
+
+void Tamgutreemap::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgutreemap::InitialisationModule(global,"");
 }
 
 
 bool Tamgutreemap::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
     
     
     
-    Tamgutreemap::idtype = global->Getid("treemap");
+    
+    
+    Tamgutreemap::idtype = a_treemap;
     
     Tamgutreemap::AddMethod(global, "items", &Tamgutreemap::MethodItems, P_NONE, "items(): Return a vector of {key:value} pairs.");
     Tamgutreemap::AddMethod(global, "read", &Tamgutreemap::MethodRead, P_ONE, "read(string path): Read the content of a file into the container.");
@@ -70,11 +74,12 @@ bool Tamgutreemap::InitialisationModule(TamguGlobal* global, string version) {
     Tamgutreemap::AddMethod(global, "merge", &Tamgutreemap::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
     
     
-    global->minimal_indexes[Tamgutreemap::idtype] = true;
     
-    if (version != "") {
+    
+    if (version != "") {        
+        global->minimal_indexes[Tamgutreemap::idtype] = true;
         global->newInstance[Tamgutreemap::idtype] = new Tamgutreemap(global);
-        global->RecordMethods(Tamgutreemap::idtype,Tamgutreemap::exported);
+        global->RecordCompatibilities(Tamgutreemap::idtype);
     }
     
     
@@ -293,8 +298,11 @@ Exporting Tamgu* Tamgutreemap::Push(Tamgu* k, Tamgu* v) {
     string s = k->String();
 
     k = values[s];
-    if (k != NULL)
+    if (k != NULL) {
+        if (k == v)
+            return this;
         k->Removereference(reference + 1);
+    }
 
     v = v->Atom();
     values[s] = v;

@@ -28,8 +28,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<hvectorMethod>  Tamguhvector::methods;
-Exporting hmap<string, string> Tamguhvector::infomethods;
-Exporting basebin_hash<unsigned long> Tamguhvector::exported;
 
 Exporting short Tamguhvector::idtype = 0;
 
@@ -37,23 +35,29 @@ Exporting short Tamguhvector::idtype = 0;
 void Tamguhvector::AddMethod(TamguGlobal* global, string name, hvectorMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
+
 void Tamguhvector::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamguhvector::InitialisationModule(global,"");
 }
 
 
 bool Tamguhvector::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
     
-    Tamguhvector::idtype = global->Getid("hvector");
+    
+    
+    Tamguhvector::idtype = a_hvector;
     
     Tamguhvector::AddMethod(global, "min", &Tamguhvector::MethodMin, P_NONE, "min(): returns the min in the vector.");
     Tamguhvector::AddMethod(global, "max", &Tamguhvector::MethodMax, P_NONE, "max(): returns the max in the vector.");
@@ -83,11 +87,13 @@ bool Tamguhvector::InitialisationModule(TamguGlobal* global, string version) {
     
     Tamguhvector::AddMethod(global, "permute", &Tamguhvector::MethodPermute, P_NONE, "permute(): permute the values in the vector after each call.");
     
-    global->minimal_indexes[Tamguhvector::idtype] = true;
     
-    if (version != "") {
+    
+    if (version != "") {        
+    global->minimal_indexes[Tamguhvector::idtype] = true;
+
         global->newInstance[Tamguhvector::idtype] = new Tamguhvector(global);
-        global->RecordMethods(Tamguhvector::idtype,Tamguhvector::exported);
+        global->RecordCompatibilities(Tamguhvector::idtype);
     }
     
     return true;

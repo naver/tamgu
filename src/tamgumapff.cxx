@@ -25,8 +25,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<mapffMethod>  Tamgumapff::methods;
-Exporting hmap<string, string> Tamgumapff::infomethods;
-Exporting basebin_hash<unsigned long> Tamgumapff::exported;
 
 Exporting short Tamgumapff::idtype = 0;
 
@@ -35,27 +33,33 @@ Exporting short Tamgumapff::idtype = 0;
 void Tamgumapff::AddMethod(TamguGlobal* global, string name, mapffMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
+
     void Tamgumapff::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgumapff::InitialisationModule(global,"");
 }
 
 
    bool Tamgumapff::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
 
     Tamgumapff::idtype = global->Getid("mapff");
 
     
-    global->minimal_indexes[Tamgumapff::idtype] = true;
+    
 
     Tamgumapff::AddMethod(global, "clear", &Tamgumapff::MethodClear, P_NONE, "clear(): clear the container.");
     
@@ -75,10 +79,12 @@ void Tamgumapff::AddMethod(TamguGlobal* global, string name, mapffMethod func, u
     Tamgumapff::AddMethod(global, "pop", &Tamgumapff::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamgumapff::AddMethod(global, "merge", &Tamgumapff::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
 
-    if (version != "") {
+    if (version != "") {        
+    global->minimal_indexes[Tamgumapff::idtype] = true;
+
         global->newInstance[Tamgumapff::idtype] = new Tamgumapff(global);
         
-        global->RecordMethods(Tamgumapff::idtype, Tamgumapff::exported);
+        global->RecordCompatibilities(Tamgumapff::idtype);
     }
 
     return true;

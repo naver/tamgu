@@ -23,8 +23,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<maplMethod>  Tamgumapl::methods;
-Exporting hmap<string, string> Tamgumapl::infomethods;
-Exporting basebin_hash<unsigned long> Tamgumapl::exported;
 
 Exporting short Tamgumapl::idtype = 0;
 
@@ -33,27 +31,33 @@ Exporting short Tamgumapl::idtype = 0;
 void Tamgumapl::AddMethod(TamguGlobal* global, string name, maplMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
+
     void Tamgumapl::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgumapl::InitialisationModule(global,"");
 }
 
 
    bool Tamgumapl::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
 
     Tamgumapl::idtype = global->Getid("mapl");
 
     
-    global->minimal_indexes[Tamgumapl::idtype] = true;
+    
 
     Tamgumapl::AddMethod(global, "clear", &Tamgumapl::MethodClear, P_NONE, "clear(): clear the container.");
     
@@ -73,10 +77,12 @@ void Tamgumapl::AddMethod(TamguGlobal* global, string name, maplMethod func, uns
     Tamgumapl::AddMethod(global, "pop", &Tamgumapl::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamgumapl::AddMethod(global, "merge", &Tamgumapl::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
 
-    if (version != "") {
+    if (version != "") {        
+    global->minimal_indexes[Tamgumapl::idtype] = true;
+
         global->newInstance[Tamgumapl::idtype] = new Tamgumapl(global);
         
-        global->RecordMethods(Tamgumapl::idtype, Tamgumapl::exported);
+        global->RecordCompatibilities(Tamgumapl::idtype);
     }
 
     return true;
@@ -234,8 +240,11 @@ Exporting Tamgu* Tamgumapl::Push(Tamgu* k, Tamgu* v) {
     BLONG s = k->Long();
     
     k = values[s];
-    if (k != NULL)
+    if (k != NULL) {
+        if (k == v)
+            return this;
         k->Removereference(reference + 1);
+    }
 
     v = v->Atom();
     values[s] = v;

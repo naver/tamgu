@@ -19,8 +19,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<iteratorMethod>  Tamguiterator::methods;
-Exporting hmap<string, string> Tamguiterator::infomethods;
-Exporting basebin_hash<unsigned long> Tamguiterator::exported;
 
 Exporting short Tamguiterator::idtype = 0;
 
@@ -29,21 +27,27 @@ Exporting short Tamguiterator::idtype = 0;
 void Tamguiterator::AddMethod(TamguGlobal* global, string name, iteratorMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
-    void Tamguiterator::Setidtype(TamguGlobal* global) {
+
+void Tamguiterator::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamguiterator::InitialisationModule(global,"");
 }
 
 
    bool Tamguiterator::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
     Tamguiterator::idtype = global->Getid("iterator");
 
@@ -55,7 +59,7 @@ void Tamguiterator::AddMethod(TamguGlobal* global, string name, iteratorMethod f
     
     if (version != "") {
         global->newInstance[Tamguiterator::idtype] = new Tamguiterator(global);
-        global->RecordMethods(Tamguiterator::idtype,Tamguiterator::exported);
+        global->RecordCompatibilities(Tamguiterator::idtype);
     }
 
     return true;

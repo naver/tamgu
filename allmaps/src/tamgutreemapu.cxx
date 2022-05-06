@@ -22,8 +22,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<treemapuMethod>  Tamgutreemapu::methods;
-Exporting hmap<string, string> Tamgutreemapu::infomethods;
-Exporting basebin_hash<unsigned long> Tamgutreemapu::exported;
 
 Exporting short Tamgutreemapu::idtype = 0;
 
@@ -32,14 +30,24 @@ Exporting short Tamgutreemapu::idtype = 0;
 void Tamgutreemapu::AddMethod(TamguGlobal* global, string name, treemapuMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
+}
+
+
+void Tamgutreemapu::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
+    Tamgutreemapu::InitialisationModule(global,"");
 }
 
 bool Tamgutreemapu::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
 
     Tamgutreemapu::idtype = global->Getid("treemapu");
@@ -66,9 +74,9 @@ bool Tamgutreemapu::InitialisationModule(TamguGlobal* global, string version) {
     #ifdef OLDBACKCOMP
     global->newInstance[global->Getid("utreemap")] = new Tamgutreemapu(global);
 
-    global->RecordMethods(global->Getid("utreemap"), Tamgutreemapu::exported);
+    global->RecordCompatibilities(global->Getid("utreemap"));
     #endif
-    global->RecordMethods(Tamgutreemapu::idtype, Tamgutreemapu::exported);
+    global->RecordCompatibilities(Tamgutreemapu::idtype);
 
     return true;
 }

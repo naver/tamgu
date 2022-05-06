@@ -25,8 +25,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<mapiuMethod>  Tamgumapiu::methods;
-Exporting hmap<string, string> Tamgumapiu::infomethods;
-Exporting basebin_hash<unsigned long> Tamgumapiu::exported;
 
 Exporting short Tamgumapiu::idtype = 0;
 
@@ -35,27 +33,33 @@ Exporting short Tamgumapiu::idtype = 0;
 void Tamgumapiu::AddMethod(TamguGlobal* global, string name,mapiuMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
+
     void Tamgumapiu::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgumapiu::InitialisationModule(global,"");
 }
 
 
    bool Tamgumapiu::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
     
     Tamgumapiu::idtype = global->Getid("mapiu");
 
     
-    global->minimal_indexes[Tamgumapiu::idtype] = true;
+    
 
     Tamgumapiu::AddMethod(global, "clear", &Tamgumapiu::MethodClear, P_NONE, "clear(): clear the container.");
     
@@ -73,10 +77,12 @@ void Tamgumapiu::AddMethod(TamguGlobal* global, string name,mapiuMethod func, un
     Tamgumapiu::AddMethod(global, "pop", &Tamgumapiu::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamgumapiu::AddMethod(global, "merge", &Tamgumapiu::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
 
-    if (version != "") {
+    if (version != "") {        
+    global->minimal_indexes[Tamgumapiu::idtype] = true;
+
         global->newInstance[Tamgumapiu::idtype] = new Tamgumapiu(global);
         
-        global->RecordMethods(Tamgumapiu::idtype, Tamgumapiu::exported);
+        global->RecordCompatibilities(Tamgumapiu::idtype);
     }
 
     return true;

@@ -22,8 +22,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<transducerMethod>  Tamgutransducer::methods;
-Exporting hmap<string, string> Tamgutransducer::infomethods;
-Exporting basebin_hash<unsigned long> Tamgutransducer::exported;
 
 Exporting short Tamgutransducer::idtype = 0;
 
@@ -32,21 +30,27 @@ Exporting short Tamgutransducer::idtype = 0;
 void Tamgutransducer::AddMethod(TamguGlobal* global, string name, transducerMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
+
     void Tamgutransducer::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgutransducer::InitialisationModule(global,"");
 }
 
 
    bool Tamgutransducer::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
     Tamgutransducer::idtype = global->Getid("transducer");
 
@@ -65,7 +69,7 @@ void Tamgutransducer::AddMethod(TamguGlobal* global, string name, transducerMeth
 
 	if (version != "") {
 		global->newInstance[Tamgutransducer::idtype] = new Tamgutransducer(global);
-		global->RecordMethods(Tamgutransducer::idtype, Tamgutransducer::exported);
+		global->RecordCompatibilities(Tamgutransducer::idtype);
 
 		Tamgu* a = new TamguSystemVariable(global, aONE, global->Createid("a_first"), a_short);
 		a = new TamguSystemVariable(global, global->ProvideConstint(2), global->Createid("a_change"), a_short);

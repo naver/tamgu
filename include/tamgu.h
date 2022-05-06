@@ -413,7 +413,11 @@ public:
     virtual Tamgu* Newpureinstance(short idthread) {
         return Newinstance(idthread);
     }
-
+    
+    virtual Tamgu* anInstance(long i) {
+        return Newinstance(0);
+    }
+    
     virtual TamguIteration* Newiteration(bool direction) {
         return (TamguIteration*)aITERNULL;
     }
@@ -1314,7 +1318,10 @@ public:
     }
 
     //--- Some important conversion methods...
-
+    virtual void Stringpredicatekey(string& v) {
+        Setstring(v, 0);
+    }
+    
 	virtual string String() { return ""; }
     virtual void Setstring(string& v, short idthread) { v = String(); }
 
@@ -4390,6 +4397,10 @@ public:
     
     bool Candelete() {
         return false;
+    }
+    
+    Tamgu* anInstance(long i) {
+        return new Tamguselfbuff(i);
     }
     
     void Resetreference(short r) {

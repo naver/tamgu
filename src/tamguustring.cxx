@@ -38,8 +38,6 @@
 //------------------------------------------------------------------------------------------------------------------------
 //We need to declare once again our local definitions.
 Exporting basebin_hash<ustringMethod>  Tamguustring::methods;
-Exporting hmap<string, string> Tamguustring::infomethods;
-Exporting basebin_hash<unsigned long> Tamguustring::exported;
 Exporting short Tamguustring::idtype = 0;
 
 #ifdef UNIX
@@ -58,23 +56,31 @@ static void setdosoutput(bool d) { dosoutput = d; }
 void Tamguustring::AddMethod(TamguGlobal* global, string name, ustringMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
+    global->RecordArity(a_ustringthrough, idname, arity);
+    global->RecordArity(a_uloop, idname, arity);
 }
 
 
 
-    void Tamguustring::Setidtype(TamguGlobal* global) {
-    Tamguustring::InitialisationModule(global,"");
+
+void Tamguustring::Setidtype(TamguGlobal* global) {
+    if (methods.isEmpty())
+        Tamguustring::InitialisationModule(global,"");
 }
 
 
 bool Tamguustring::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
     
-    Tamguustring::idtype = global->Getid("ustring");
+    
+    
+    Tamguustring::idtype = a_ustring;
     
     Tamguustring::AddMethod(global, "succ", &Tamguustring::MethodSucc, P_NONE, "succ(): Return the successor of a character.");
     Tamguustring::AddMethod(global, "pred", &Tamguustring::MethodPred, P_NONE, "pred(): Return the predecessor of a byte.");
@@ -94,7 +100,7 @@ bool Tamguustring::InitialisationModule(TamguGlobal* global, string version) {
     Tamguustring::AddMethod(global, "parse", &Tamguustring::MethodParse, P_NONE | P_TWO, "parse(): Parse a string as a piece of code and returns the evaluation as a vector.");
     Tamguustring::AddMethod(global, "pop", &Tamguustring::MethodPop, P_NONE | P_ONE | P_TWO, "pop(): remove last character");
     Tamguustring::AddMethod(global, "sizeb", &Tamguustring::MethodSizeb, P_NONE, "sizeb(): Return the size in bytes of the string");
-    Tamguustring::AddMethod(global, "parenthetics", &Tamguustring::MethodParenthetic, P_NONE | P_TWO | P_THREE | P_FOUR | P_FIVE | P_SIX, "lisp(): lisp(string o,string c,bool comma,bool separator,bool concatenate): Parse a string as a parenthetic expressions, o is '(' and c is ')' by default. If 'comma' is true, then the decimal character is ',' otherwise it is '.'. If 'separator' is true then '1,000' is accepted as a number. If 'concatenate' is true then '3a' is a valid token");
+    Tamguustring::AddMethod(global, "parenthetics", &Tamguustring::MethodParenthetic, P_NONE | P_TWO | P_THREE | P_FOUR | P_FIVE | P_SIX, "parenthetics(): parenthetics(string o,string c,bool comma,bool separator,bool concatenate): Parse a string as a parenthetic expressions, o is '(' and c is ')' by default. If 'comma' is true, then the decimal character is ',' otherwise it is '.'. If 'separator' is true then '1,000' is accepted as a number. If 'concatenate' is true then '3a' is a valid token");
     Tamguustring::AddMethod(global, "tags", &Tamguustring::MethodTags, P_TWO | P_THREE | P_FOUR | P_FIVE| P_SIX, "tags(string o,string c,bool comma,bool separator,bool concatenate, svector rules): Parse a string as a parenthetic expressions, where o and c are string (not characters). If 'comma' is true, then the decimal character is ',' otherwise it is '.'. If 'separator' is true then '1,000' is accepted as a number. If 'concatenate' is true then '3a' is a valid token");
     Tamguustring::AddMethod(global, "scan", &Tamguustring::MethodScan, P_ONE | P_TWO | P_THREE | P_FOUR, "scan(sub, string sep, bool immediate,string remaining): Find the substrings matching sub, with TRE. 'sep' is a separator between strings. 'immediate' always combines with a separator, it means that the matching should start at the first character of the string, default is false. 'remaining' also combines with 'separator', it returns the rest of the string after the section that matched.");
     Tamguustring::AddMethod(global, "evaluate", &Tamguustring::MethodEvaluate, P_NONE, "evaluate(): evaluate the meta-characters within a string and return the evaluated string.");
@@ -157,9 +163,9 @@ bool Tamguustring::InitialisationModule(TamguGlobal* global, string version) {
     if (version != "") {
         global->newInstance[Tamguustring::idtype] = new Tamguustring(L"", global);
         global->newInstance[a_ustringthrough] = global->newInstance[Tamguustring::idtype];
-        global->RecordMethods(Tamguustring::idtype, Tamguustring::exported);
-        global->RecordMethods(a_ustringthrough, Tamguustring::exported);
-        global->RecordMethods(a_uloop, Tamguustring::exported);
+        global->RecordCompatibilities(Tamguustring::idtype);
+        global->RecordCompatibilities(a_ustringthrough);
+        global->RecordCompatibilities(a_uloop);
     }
     
     Tamgua_ustring::InitialisationModule(global, version);
@@ -2518,8 +2524,6 @@ Tamgu* TamguLoopUString::xorset(Tamgu* a, bool autoself) {
 //------------------------------------------------------------------------------------------------------------------------
 //We need to declare once again our local definitions.
 Exporting basebin_hash<a_ustringMethod>  Tamgua_ustring::methods;
-Exporting hmap<string, string> Tamgua_ustring::infomethods;
-Exporting basebin_hash<unsigned long> Tamgua_ustring::exported;
 
 
 Exporting short Tamgua_ustring::idtype = 0;
@@ -2528,14 +2532,19 @@ Exporting short Tamgua_ustring::idtype = 0;
 void Tamgua_ustring::AddMethod(TamguGlobal* global, string name, a_ustringMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
+
 
 bool Tamgua_ustring::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
     
     Tamgua_ustring::idtype = global->Getid("a_ustring");
     
@@ -2556,7 +2565,7 @@ bool Tamgua_ustring::InitialisationModule(TamguGlobal* global, string version) {
     Tamgua_ustring::AddMethod(global, "parse", &Tamgua_ustring::MethodParse, P_NONE | P_TWO, "parse(): Parse a string as a piece of code and returns the evaluation as a vector.");
     Tamgua_ustring::AddMethod(global, "pop", &Tamgua_ustring::MethodPop, P_NONE | P_ONE | P_TWO, "pop(): remove last character");
     Tamgua_ustring::AddMethod(global, "sizeb", &Tamgua_ustring::MethodSizeb, P_NONE, "sizeb(): Return the size in bytes of the string");
-    Tamgua_ustring::AddMethod(global, "parenthetics", &Tamgua_ustring::MethodParenthetic, P_NONE | P_TWO | P_THREE | P_FOUR | P_FIVE | P_SIX, "lisp(): lisp(string o,string c,bool comma,bool separator,bool concatenate): Parse a string as a parenthetic expressions, o is '(' and c is ')' by default. If 'comma' is true, then the decimal character is ',' otherwise it is '.'. If 'separator' is true then '1,000' is accepted as a number. If 'concatenate' is true then '3a' is a valid token");
+    Tamgua_ustring::AddMethod(global, "parenthetics", &Tamgua_ustring::MethodParenthetic, P_NONE | P_TWO | P_THREE | P_FOUR | P_FIVE | P_SIX, "parenthetics(): parenthetics(string o,string c,bool comma,bool separator,bool concatenate): Parse a string as a parenthetic expressions, o is '(' and c is ')' by default. If 'comma' is true, then the decimal character is ',' otherwise it is '.'. If 'separator' is true then '1,000' is accepted as a number. If 'concatenate' is true then '3a' is a valid token");
     Tamgua_ustring::AddMethod(global, "tags", &Tamgua_ustring::MethodTags, P_TWO | P_THREE | P_FOUR | P_FIVE| P_SIX, "tags(string o,string c,bool comma,bool separator,bool concatenate, svector rules): Parse a string as a parenthetic expressions, where o and c are string (not characters). If 'comma' is true, then the decimal character is ',' otherwise it is '.'. If 'separator' is true then '1,000' is accepted as a number. If 'concatenate' is true then '3a' is a valid token");
     Tamgua_ustring::AddMethod(global, "scan", &Tamgua_ustring::MethodScan, P_ONE | P_TWO | P_THREE | P_FOUR, "scan(sub, string sep, bool immediate,string remaining): Find the substrings matching sub, with TRE. 'sep' is a separator between strings. 'immediate' always combines with a separator, it means that the matching should start at the first character of the string, default is false. 'remaining' also combines with 'separator', it returns the rest of the string after the section that matched.");
     Tamgua_ustring::AddMethod(global, "evaluate", &Tamgua_ustring::MethodEvaluate, P_NONE, "evaluate(): evaluate the meta-characters within a string and return the evaluated string.");
@@ -2611,7 +2620,7 @@ bool Tamgua_ustring::InitialisationModule(TamguGlobal* global, string version) {
 
     if (version != "") {
         global->newInstance[Tamgua_ustring::idtype] = new Tamgua_ustring(L"", global);
-        global->RecordMethods(Tamgua_ustring::idtype, Tamgua_ustring::exported);
+        global->RecordCompatibilities(Tamgua_ustring::idtype);
     }
     
     return true;

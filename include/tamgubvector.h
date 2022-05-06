@@ -36,9 +36,6 @@ class Tamgubvector : public TamguLockContainer {
     //this is a static object, which is common to everyone
     //We associate the method pointers with their names in the linkedmethods map
     static Exchanging basebin_hash<bvectorMethod> methods;
-    static Exchanging hmap<string, string> infomethods;
-    static Exchanging basebin_hash<unsigned long> exported;
-
     static Exchanging short idtype;
 
     //---------------------------------------------------------------------------------------------------------------------
@@ -69,8 +66,6 @@ class Tamgubvector : public TamguLockContainer {
     short Type() {
         return a_bvector;
     }
-
-    
 
     void Setidtype(TamguGlobal* global);
     
@@ -258,9 +253,7 @@ class Tamgubvector : public TamguLockContainer {
     //Declaration
     //All our methods must have been declared in tamguexportedmethods... See MethodInitialization below
     bool isDeclared(short n) {
-        if (exported.find(n) != exported.end())
-            return true;
-        return false;
+        return methods.check(n);
     }
 
     Tamgu* Newinstance(short idthread, Tamgu* f = NULL) {
@@ -298,14 +291,14 @@ class Tamgubvector : public TamguLockContainer {
 
     
     void Methods(Tamgu* v) {
+            for (const auto& it : globalTamgu->infomethods[a_bvector])
+                 v->storevalue(it.first);
+      }
 
-        for (const auto& it : infomethods)
-            v->storevalue(it.first);
-    }
-    string Info(string n) {
-        if (infomethods.find(n) != infomethods.end())
-            return infomethods[n];
-        return "Unknown method";
+      string Info(string n) {
+            if (globalTamgu->infomethods[a_bvector].find(n) !=  globalTamgu->infomethods[a_bvector].end())
+              return globalTamgu->infomethods[a_bvector][n];
+             return "Unknown method";
     }
     //---------------------------------------------------------------------------------------------------------------------
     //This SECTION is for your specific implementation...

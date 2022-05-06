@@ -25,8 +25,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<bvectorMethod>  Tamgubvector::methods;
-Exporting hmap<string, string> Tamgubvector::infomethods;
-Exporting basebin_hash<unsigned long> Tamgubvector::exported;
 
 Exporting short Tamgubvector::idtype = 0;
 
@@ -35,24 +33,30 @@ Exporting short Tamgubvector::idtype = 0;
 void Tamgubvector::AddMethod(TamguGlobal* global, string name, bvectorMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
-    void Tamgubvector::Setidtype(TamguGlobal* global) {
+
+void Tamgubvector::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgubvector::InitialisationModule(global,"");
 }
 
 
 bool Tamgubvector::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
     
     
-    Tamgubvector::idtype = global->Getid("bvector");
+    
+    
+    Tamgubvector::idtype = a_bvector;
     
     Tamgubvector::AddMethod(global, "min", &Tamgubvector::MethodMin, P_NONE, "min(): returns the min in the vector.");
     Tamgubvector::AddMethod(global, "max", &Tamgubvector::MethodMax, P_NONE, "max(): returns the max in the vector.");
@@ -78,11 +82,13 @@ bool Tamgubvector::InitialisationModule(TamguGlobal* global, string version) {
     Tamgubvector::AddMethod(global, "insert", &Tamgubvector::MethodInsert, P_TWO, "insert(int i,v): Insert v at position i.");
     Tamgubvector::AddMethod(global, "permute", &Tamgubvector::MethodPermute, P_NONE, "permute(): permute the values in the vector after each call.");
     
-    global->minimal_indexes[Tamgubvector::idtype] = true;
     
-    if (version != "") {
+    
+    if (version != "") {        
+    global->minimal_indexes[Tamgubvector::idtype] = true;
+
         global->newInstance[Tamgubvector::idtype] = new Tamgubvector(global);
-        global->RecordMethods(Tamgubvector::idtype, Tamgubvector::exported);
+        global->RecordCompatibilities(Tamgubvector::idtype);
     }
     
     return true;

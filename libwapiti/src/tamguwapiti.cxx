@@ -8,9 +8,7 @@
 #endif
 
 //We need to declare once again our local definitions.
-hmap<unsigned short, wapitiMethod>  Tamguwapiti::methods;
-hmap<string, string> Tamguwapiti::infomethods;
-basebin_hash<unsigned long> Tamguwapiti::exported;
+basebin_hash<wapitiMethod>  Tamguwapiti::methods;
 
 short Tamguwapiti::idtype = 0;
 
@@ -33,14 +31,24 @@ extern "C" {
 void Tamguwapiti::AddMethod(TamguGlobal* global, string name, wapitiMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
+}
+
+
+void Tamguwapiti::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
+    Tamguwapiti::InitialisationModule(global,"");
 }
 
 bool Tamguwapiti::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
     //Each new object has a specific name, which will help recognize it in the code that will exploit wapiti...
     Tamguwapiti::idtype = global->Getid("wapiti");
@@ -60,7 +68,7 @@ bool Tamguwapiti::InitialisationModule(TamguGlobal* global, string version) {
 
     //We need this code, in order to create new instances of our wapiti object... DO NOT ALTER
     global->newInstance[Tamguwapiti::idtype] = new Tamguwapiti(global);
-    global->RecordMethods(Tamguwapiti::idtype,Tamguwapiti::exported);
+    global->RecordCompatibilities(Tamguwapiti::idtype);
     
     return true;
 }

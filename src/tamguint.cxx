@@ -24,8 +24,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<intMethod>  Tamguint::methods;
-Exporting hmap<string, string> Tamguint::infomethods;
-Exporting basebin_hash<unsigned long> Tamguint::exported;
 
 Exporting short Tamguint::idtype = 0;
 
@@ -34,22 +32,30 @@ Exporting short Tamguint::idtype = 0;
 void Tamguint::AddMethod(TamguGlobal* global, string name, intMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
+    global->RecordArity(a_intthrough, idname, arity);
+    global->RecordArity(a_iloop, idname, arity);
 }
 
 
+
 void Tamguint::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamguint::InitialisationModule(global,"");
 }
 
 
 bool Tamguint::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
-    Tamguint::idtype = global->Getid("int");
+    Tamguint::idtype = a_int;
 
     Tamguint::AddMethod(global, "isemoji", &Tamguint::MethodIsemoji, P_NONE, "isemoji(): Test if a string only contains emoji characters");
     Tamguint::AddMethod(global, "emoji", &Tamguint::MethodEmoji, P_NONE, "emoji(): Return the textual description of an emoji");
@@ -106,9 +112,9 @@ bool Tamguint::InitialisationModule(TamguGlobal* global, string version) {
     if (version != "") {
         global->newInstance[Tamguint::idtype] = new Tamguint(0, global);
         global->newInstance[a_intthrough] = global->newInstance[Tamguint::idtype];
-        global->RecordMethods(Tamguint::idtype, Tamguint::exported);
-        global->RecordMethods(a_intthrough, Tamguint::exported);
-        global->RecordMethods(a_iloop, Tamguint::exported);
+        global->RecordCompatibilities(Tamguint::idtype);
+        global->RecordCompatibilities(a_intthrough);
+        global->RecordCompatibilities(a_iloop);
     }
 
     Tamguatomicint::InitialisationModule(global, version);
@@ -117,8 +123,6 @@ bool Tamguint::InitialisationModule(TamguGlobal* global, string version) {
 }
 
 Exporting basebin_hash<atomicintMethod>  Tamguatomicint::methods;
-Exporting hmap<string, string> Tamguatomicint::infomethods;
-Exporting basebin_hash<unsigned long> Tamguatomicint::exported;
 
 Exporting short Tamguatomicint::idtype = 0;
 
@@ -126,15 +130,20 @@ Exporting short Tamguatomicint::idtype = 0;
 void Tamguatomicint::AddMethod(TamguGlobal* global, string name, atomicintMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
+
 
 bool Tamguatomicint::InitialisationModule(TamguGlobal* global, string version) {
 
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
     
     Tamguatomicint::idtype = global->Getid("a_int");
 
@@ -193,7 +202,7 @@ bool Tamguatomicint::InitialisationModule(TamguGlobal* global, string version) {
     if (version != "") {
         global->newInstance[Tamguatomicint::idtype] = new Tamguatomicint(0, global);
         
-        global->RecordMethods(Tamguatomicint::idtype, Tamguatomicint::exported);
+        global->RecordCompatibilities(Tamguatomicint::idtype);
     }
 
     return true;

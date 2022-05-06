@@ -23,8 +23,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<primemaplMethod>  Tamguprimemapl::methods;
-Exporting hmap<string, string> Tamguprimemapl::infomethods;
-Exporting basebin_hash<unsigned long> Tamguprimemapl::exported;
 
 Exporting short Tamguprimemapl::idtype = 0;
 
@@ -33,14 +31,24 @@ Exporting short Tamguprimemapl::idtype = 0;
 void Tamguprimemapl::AddMethod(TamguGlobal* global, string name, primemaplMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
+}
+
+
+void Tamguprimemapl::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
+    Tamguprimemapl::InitialisationModule(global,"");
 }
 
 bool Tamguprimemapl::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
 
     Tamguprimemapl::idtype = global->Getid("primemapl");
@@ -65,7 +73,7 @@ bool Tamguprimemapl::InitialisationModule(TamguGlobal* global, string version) {
 
     global->newInstance[Tamguprimemapl::idtype] = new Tamguprimemapl(global);
     
-    global->RecordMethods(Tamguprimemapl::idtype, Tamguprimemapl::exported);
+    global->RecordCompatibilities(Tamguprimemapl::idtype);
 
     return true;
 }

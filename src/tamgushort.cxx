@@ -21,8 +21,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<shortMethod>  Tamgushort::methods;
-Exporting hmap<string, string> Tamgushort::infomethods;
-Exporting basebin_hash<unsigned long> Tamgushort::exported;
 
 Exporting short Tamgushort::idtype = 0;
 
@@ -31,23 +29,29 @@ Exporting short Tamgushort::idtype = 0;
 void Tamgushort::AddMethod(TamguGlobal* global, string name, shortMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
-    void Tamgushort::Setidtype(TamguGlobal* global) {
+
+void Tamgushort::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgushort::InitialisationModule(global,"");
 }
 
 
    bool Tamgushort::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
-    Tamgushort::idtype = global->Getid("short");
+    Tamgushort::idtype = a_short;
 
     Tamgushort::AddMethod(global, "succ", &Tamgushort::MethodSucc, P_NONE, "succ(): return the successor of a short");
     Tamgushort::AddMethod(global, "pred", &Tamgushort::MethodPred, P_NONE, "pred(): Return the predecessor of a byte.");
@@ -97,7 +101,7 @@ void Tamgushort::AddMethod(TamguGlobal* global, string name, shortMethod func, u
 
     if (version != "") {
         global->newInstance[Tamgushort::idtype] = new Tamgushort(0, global);
-        global->RecordMethods(Tamgushort::idtype,Tamgushort::exported);
+        global->RecordCompatibilities(Tamgushort::idtype);
     }
 
     return true;

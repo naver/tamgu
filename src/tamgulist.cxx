@@ -26,8 +26,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<listMethod>  Tamgulist::methods;
-Exporting hmap<string, string> Tamgulist::infomethods;
-Exporting basebin_hash<unsigned long> Tamgulist::exported;
 
 Exporting short Tamgulist::idtype = 0;
 
@@ -36,23 +34,29 @@ Exporting short Tamgulist::idtype = 0;
 void Tamgulist::AddMethod(TamguGlobal* global, string name, listMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
+
     void Tamgulist::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgulist::InitialisationModule(global,"");
 }
 
 
    bool Tamgulist::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
-    Tamgulist::idtype = global->Getid("list");
+    Tamgulist::idtype = a_list;
 
        Tamgulist::AddMethod(global, "min", &Tamgulist::MethodMin, P_NONE, "min(): returns the min in the vector.");
        Tamgulist::AddMethod(global, "max", &Tamgulist::MethodMax, P_NONE, "max(): returns the max in the vector.");
@@ -87,7 +91,7 @@ void Tamgulist::AddMethod(TamguGlobal* global, string name, listMethod func, uns
 
     if (version != "") {
         global->newInstance[Tamgulist::idtype] = new Tamgulist(global);
-        global->RecordMethods(Tamgulist::idtype, Tamgulist::exported);
+        global->RecordCompatibilities(Tamgulist::idtype);
     }
 
     Tamguring::InitialisationModule(global, version);
@@ -1507,8 +1511,6 @@ Exporting void Tamgulist::storevalue(wchar_t u) {
 
     //We need to declare once again our local definitions.
 Exporting basebin_hash<a_listMethod>  Tamguring::methods;
-Exporting hmap<string, string> Tamguring::infomethods;
-Exporting basebin_hash<unsigned long> Tamguring::exported;
 
 Exporting short Tamguring::idtype = 0;
 
@@ -1516,14 +1518,19 @@ Exporting short Tamguring::idtype = 0;
 void Tamguring::AddMethod(TamguGlobal* global, string name, a_listMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
+
 
 bool Tamguring::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
     
     
     Tamguring::idtype = global->Getid("ring");
@@ -1552,9 +1559,7 @@ bool Tamguring::InitialisationModule(TamguGlobal* global, string version) {
     
     if (version != "") {
         global->newInstance[Tamguring::idtype] = new Tamguring(global);
-        global->RecordMethods(Tamguring::idtype, Tamguring::exported);
-        global->newInstance[a_constvector] = new TamguConstvector(global);
-        global->RecordMethods(a_constvector, Tamguring::exported);
+        global->RecordCompatibilities(Tamguring::idtype);
     }
     
     return true;
@@ -2323,7 +2328,7 @@ Exporting Tamgu*  Tamguring::Put(Tamgu* idx, Tamgu* value, short idthread) {
         if (value == this)
             return aTRUE;
         
-        if (value == aNULL) {
+        if (value->isNULL()) {
             Clear();
             return aTRUE;
         }

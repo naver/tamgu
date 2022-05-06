@@ -19,8 +19,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<fmatrixMethod>  Tamgufmatrix::methods;
-Exporting hmap<string, string> Tamgufmatrix::infomethods;
-Exporting basebin_hash<unsigned long> Tamgufmatrix::exported;
 
 Exporting short Tamgufmatrix::idtype = 0;
 
@@ -29,21 +27,27 @@ Exporting short Tamgufmatrix::idtype = 0;
 void Tamgufmatrix::AddMethod(TamguGlobal* global, string name, fmatrixMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
+
     void Tamgufmatrix::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgufmatrix::InitialisationModule(global,"");
 }
 
 
    bool Tamgufmatrix::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
     Tamgufmatrix::idtype = global->Getid("fmatrix");
 
@@ -61,7 +65,7 @@ void Tamgufmatrix::AddMethod(TamguGlobal* global, string name, fmatrixMethod fun
 
     if (version != "") {
         global->newInstance[Tamgufmatrix::idtype] = new Tamgufmatrix(global);
-        global->RecordMethods(Tamgufmatrix::idtype, Tamgufmatrix::exported);
+        global->RecordCompatibilities(Tamgufmatrix::idtype);
     }
 
     return true;

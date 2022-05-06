@@ -25,8 +25,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<mapllMethod>  Tamgumapll::methods;
-Exporting hmap<string, string> Tamgumapll::infomethods;
-Exporting basebin_hash<unsigned long> Tamgumapll::exported;
 
 Exporting short Tamgumapll::idtype = 0;
 
@@ -35,27 +33,33 @@ Exporting short Tamgumapll::idtype = 0;
 void Tamgumapll::AddMethod(TamguGlobal* global, string name,mapllMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
+
     void Tamgumapll::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgumapll::InitialisationModule(global,"");
 }
 
 
    bool Tamgumapll::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
     
     Tamgumapll::idtype = global->Getid("mapll");
 
     
-    global->minimal_indexes[Tamgumapll::idtype] = true;
+    
 
     Tamgumapll::AddMethod(global, "clear", &Tamgumapll::MethodClear, P_NONE, "clear(): clear the container.");
     
@@ -75,10 +79,12 @@ void Tamgumapll::AddMethod(TamguGlobal* global, string name,mapllMethod func, un
     Tamgumapll::AddMethod(global, "pop", &Tamgumapll::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamgumapll::AddMethod(global, "merge", &Tamgumapll::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
 
-    if (version != "") {
+    if (version != "") {        
+    global->minimal_indexes[Tamgumapll::idtype] = true;
+
         global->newInstance[Tamgumapll::idtype] = new Tamgumapll(global);
         
-        global->RecordMethods(Tamgumapll::idtype, Tamgumapll::exported);
+        global->RecordCompatibilities(Tamgumapll::idtype);
     }
 
     return true;

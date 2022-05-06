@@ -279,19 +279,22 @@ static size_t call_writing(char *ptr, size_t size, size_t nmemb, Tamgucurl* user
 
 //We need to declare once again our local definitions.
 basebin_hash<curlMethod>  Tamgucurl::methods;
-hmap<string, string> Tamgucurl::infomethods;
-basebin_hash<unsigned long> Tamgucurl::exported;
 
 short Tamgucurl::idtype = 0;
 
 
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamgucurl::AddMethod(TamguGlobal* global, string name, curlMethod func, unsigned long arity, string infos) {
-	short idname = global->Getid(name);
-	methods[idname] = func;
-	infomethods[name] = infos;
-	exported[idname] = arity;
+    short idname = global->Getid(name);
+    methods[idname] = func;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
+
 
 
 //------------------------------------------------------------------------------------------------------------------
@@ -308,10 +311,15 @@ extern "C" {
     }
 }
 
+void Tamgucurl::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
+    Tamgucurl::InitialisationModule(global,"");
+}
+
 bool Tamgucurl::InitialisationModule(TamguGlobal* global, string version) {
 	methods.clear();
-	infomethods.clear();
-	exported.clear();
+	
+	
 
 	Init();
 	Tamgucurl::idtype = global->Getid("curl");
@@ -326,7 +334,7 @@ bool Tamgucurl::InitialisationModule(TamguGlobal* global, string version) {
 	Tamgucurl::AddMethod(global, "options", &Tamgucurl::MethodOptions, P_TWO, "options(string option, string parameter): Set the options of the curl object");
 
 	global->newInstance[Tamgucurl::idtype] = new Tamgucurl(global);
-	global->RecordMethods(Tamgucurl::idtype,Tamgucurl::exported);
+	global->RecordCompatibilities(Tamgucurl::idtype);
 
 	return true;
 }

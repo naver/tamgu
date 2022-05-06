@@ -28,8 +28,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<dvectorMethod>  Tamgudvector::methods;
-Exporting hmap<string, string> Tamgudvector::infomethods;
-Exporting basebin_hash<unsigned long> Tamgudvector::exported;
 
 Exporting short Tamgudvector::idtype = 0;
 
@@ -37,25 +35,27 @@ Exporting short Tamgudvector::idtype = 0;
 void Tamgudvector::AddMethod(TamguGlobal* global, string name, dvectorMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
-    void Tamgudvector::Setidtype(TamguGlobal* global) {
+
+void Tamgudvector::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgudvector::InitialisationModule(global,"");
 }
 
 
 bool Tamgudvector::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    Tamgudvector::idtype = a_dvector;
     
-    
-    
-    Tamgudvector::idtype = global->Getid("dvector");
     Tamgudvector::AddMethod(global, "min", &Tamgudvector::MethodMin, P_NONE, "min(): returns the min in the vector.");
     Tamgudvector::AddMethod(global, "max", &Tamgudvector::MethodMax, P_NONE, "max(): returns the max in the vector.");
     Tamgudvector::AddMethod(global, "minmax", &Tamgudvector::MethodMinMax, P_NONE, "minmax(): returns the min and the max in the vector.");
@@ -85,12 +85,14 @@ bool Tamgudvector::InitialisationModule(TamguGlobal* global, string version) {
     Tamgudvector::AddMethod(global, "permute", &Tamgudvector::MethodPermute, P_NONE, "permute(): permute the values in the vector after each call.");
     
     
-    if (version != "") {
+
+    if (version != "") {        
+    global->minimal_indexes[Tamgudvector::idtype] = true;
+
         global->newInstance[Tamgudvector::idtype] = new Tamgudvector(global);
-        global->RecordMethods(Tamgudvector::idtype,Tamgudvector::exported);
+        global->RecordCompatibilities(Tamgudvector::idtype);
     }
     
-    global->minimal_indexes[Tamgudvector::idtype] = true;
     return true;
 }
 

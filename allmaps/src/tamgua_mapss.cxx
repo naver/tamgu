@@ -24,8 +24,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<a_mapssMethod>  Tamgua_mapss::methods;
-Exporting hmap<string, string> Tamgua_mapss::infomethods;
-Exporting basebin_hash<unsigned long> Tamgua_mapss::exported;
 
 Exporting short Tamgua_mapss::idtype = 0;
 
@@ -34,14 +32,24 @@ Exporting short Tamgua_mapss::idtype = 0;
 void Tamgua_mapss::AddMethod(TamguGlobal* global, string name, a_mapssMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
+}
+
+
+void Tamgua_mapss::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
+    Tamgua_mapss::InitialisationModule(global,"");
 }
 
 bool Tamgua_mapss::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
 
     Tamgua_mapss::idtype = global->Getid("a_mapss");
@@ -66,7 +74,7 @@ bool Tamgua_mapss::InitialisationModule(TamguGlobal* global, string version) {
     Tamgua_mapss::AddMethod(global, "compact", &Tamgua_mapss::MethodCompact, P_NONE, "compact(): remove empty chunks.");
 
     global->newInstance[Tamgua_mapss::idtype] = new Tamgua_mapss(global);
-    global->RecordMethods(Tamgua_mapss::idtype, Tamgua_mapss::exported);
+    global->RecordCompatibilities(Tamgua_mapss::idtype);
 
     return true;
 }

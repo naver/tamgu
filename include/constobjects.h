@@ -194,6 +194,9 @@ public:
         return 0;
     }
 
+    void Stringpredicatekey(string& v) {
+        v = "";
+    }
 };
 
 class TamguConstBreak : public TamguConst {

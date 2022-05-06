@@ -26,8 +26,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<lvectorMethod>  Tamgulvector::methods;
-Exporting hmap<string, string> Tamgulvector::infomethods;
-Exporting basebin_hash<unsigned long> Tamgulvector::exported;
 
 Exporting short Tamgulvector::idtype = 0;
 
@@ -35,24 +33,30 @@ Exporting short Tamgulvector::idtype = 0;
 void Tamgulvector::AddMethod(TamguGlobal* global, string name, lvectorMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
+
 void Tamgulvector::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgulvector::InitialisationModule(global,"");
 }
 
 
 bool Tamgulvector::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
     
     
-    Tamgulvector::idtype = global->Getid("lvector");
+    
+    
+    Tamgulvector::idtype = a_lvector;
     
     Tamgulvector::AddMethod(global, "min", &Tamgulvector::MethodMin, P_NONE, "min(): returns the min in the vector.");
     Tamgulvector::AddMethod(global, "max", &Tamgulvector::MethodMax, P_NONE, "max(): returns the max in the vector.");
@@ -83,12 +87,14 @@ bool Tamgulvector::InitialisationModule(TamguGlobal* global, string version) {
     Tamgulvector::AddMethod(global, "editdistance", &Tamgulvector::MethodEditDistance, P_ONE, "editdistance(v): Compute the edit distance with vector 'v'.");
     Tamgulvector::AddMethod(global, "insert", &Tamgulvector::MethodInsert, P_TWO, "insert(int i,v): Insert v at position i.");
     
-    if (version != "") {
+    if (version != "") {        
+    global->minimal_indexes[Tamgulvector::idtype] = true;
+
         global->newInstance[Tamgulvector::idtype] = new Tamgulvector(global);
-        global->RecordMethods(Tamgulvector::idtype, Tamgulvector::exported);
+        global->RecordCompatibilities(Tamgulvector::idtype);
     }
     
-    global->minimal_indexes[Tamgulvector::idtype] = true;
+    
     return true;
 }
 

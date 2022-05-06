@@ -31,8 +31,6 @@
 //------------------------------HASKELL----------------------------------------
 
 Exporting basebin_hash<tamguCallFibre>  TamguCallFibre::methods;
-Exporting hmap<string, string> TamguCallFibre::infomethods;
-Exporting basebin_hash<unsigned long> TamguCallFibre::exported;
 
 Exporting short TamguCallFibre::idtype = 0;
 
@@ -40,24 +38,30 @@ Exporting short TamguCallFibre::idtype = 0;
 void TamguCallFibre::AddMethod(TamguGlobal* global, string name, tamguCallFibre func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
-    void TamguCallFibre::Setidtype(TamguGlobal* global) {
+
+void TamguCallFibre::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     TamguCallFibre::InitialisationModule(global,"");
 }
 
 
    bool TamguCallFibre::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
     
     
-    TamguCallFibre::idtype = global->Getid("fibre");
+    
+    
+    TamguCallFibre::idtype = a_fibre;
     
     TamguCallFibre::AddMethod(global, "run", &TamguCallFibre::MethodRun, P_NONE, "run(): execute fibres.");
     TamguCallFibre::AddMethod(global, "block", &TamguCallFibre::MethodBlock, P_NONE, "block(): execute fibres up to the current tail.");
@@ -65,7 +69,7 @@ void TamguCallFibre::AddMethod(TamguGlobal* global, string name, tamguCallFibre 
 
     if (version != "") {
         global->newInstance[TamguCallFibre::idtype] = new TamguCallFibre(global);
-        global->RecordMethods(TamguCallFibre::idtype, TamguCallFibre::exported);
+        global->RecordCompatibilities(TamguCallFibre::idtype);
     }
     
     return true;

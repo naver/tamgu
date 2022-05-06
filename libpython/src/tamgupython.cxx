@@ -18,11 +18,11 @@ Programmer : Claude ROUX (claude.roux@naverlabs.com)
 #include "globaltamgu.h"
 #include "compilecode.h"
 #include "tamguversion.h"
+#include "tamguvector.h"
 #include "tamguint.h"
 #include "tamgufloat.h"
 #include "tamgulong.h"
 #include "tamgumap.h"
-#include "tamguvector.h"
 #include "tamgubool.h"
 #include "tamgustring.h"
 
@@ -72,8 +72,6 @@ static bool init_python = false;
 
 //We need to declare once again our local definitions.
 basebin_hash<pythonMethod>  Tamgupython::methods;
-hmap<string, string> Tamgupython::infomethods;
-basebin_hash<unsigned long> Tamgupython::exported;
 
 short Tamgupython::idtype = 0;
 
@@ -140,24 +138,24 @@ static Tamgu* toTamgu(PyObject* po) {
     if (PyDict_Check(po) == 1) {
         Tamgumap* kmap = globalTamgu->Providemap();
         Py_ssize_t pos = 0;
-        Tamgu* k;
         PyObject* key;
         string kval;
         while (PyDict_Next(po, &pos, &key, &pelement)) {
             if (key != NULL && pelement != NULL) {
-                k = toTamgu(key);
-                if (k == aRAISEERROR) {
+                e = toTamgu(key);
+                if (e == aRAISEERROR) {
                     kmap->Release();
                     return aRAISEERROR;
                 }
+                kval = e->String();
+                e->Release();
+                
                 e = toTamgu(pelement);
                 if (e == aRAISEERROR) {
                     kmap->Release();
                     return aRAISEERROR;
                 }
-                kval = k->String();
-                kmap->Push(kval, e);
-                k->Release();
+                kmap->pushing(kval, e);
             }
         }
         return kmap;
@@ -293,14 +291,24 @@ static string python_error_string() {
 void Tamgupython::AddMethod(TamguGlobal* global, string name, pythonMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
+}
+
+
+void Tamgupython::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
+    Tamgupython::InitialisationModule(global,"");
 }
 
 bool Tamgupython::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
     init_python = false;
 
@@ -313,7 +321,7 @@ bool Tamgupython::InitialisationModule(TamguGlobal* global, string version) {
     Tamgupython::AddMethod(global, "close", &Tamgupython::MethodClose, P_NONE, "close(): close the current session");
 
     global->newInstance[Tamgupython::idtype] = new Tamgupython(global);
-    global->RecordMethods(Tamgupython::idtype, Tamgupython::exported);
+    global->RecordCompatibilities(Tamgupython::idtype);
 
     return true;
 }

@@ -25,8 +25,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<treemaplsMethod>  Tamgutreemapls::methods;
-Exporting hmap<string, string> Tamgutreemapls::infomethods;
-Exporting basebin_hash<unsigned long> Tamgutreemapls::exported;
 
 Exporting short Tamgutreemapls::idtype = 0;
 
@@ -35,27 +33,33 @@ Exporting short Tamgutreemapls::idtype = 0;
 void Tamgutreemapls::AddMethod(TamguGlobal* global, string name,treemaplsMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
-    void Tamgutreemapls::Setidtype(TamguGlobal* global) {
+
+void Tamgutreemapls::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgutreemapls::InitialisationModule(global,"");
 }
 
 
    bool Tamgutreemapls::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
     
     Tamgutreemapls::idtype = global->Getid("treemapls");
 
     
-    global->minimal_indexes[Tamgutreemapls::idtype] = true;
+    
 
     Tamgutreemapls::AddMethod(global, "clear", &Tamgutreemapls::MethodClear, P_NONE, "clear(): clear the container.");
     
@@ -73,10 +77,12 @@ void Tamgutreemapls::AddMethod(TamguGlobal* global, string name,treemaplsMethod 
     Tamgutreemapls::AddMethod(global, "pop", &Tamgutreemapls::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamgutreemapls::AddMethod(global, "merge", &Tamgutreemapls::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
 
-    if (version != "") {
+    if (version != "") {        
+        global->minimal_indexes[Tamgutreemapls::idtype] = true;
+
         global->newInstance[Tamgutreemapls::idtype] = new Tamgutreemapls(global);
         
-        global->RecordMethods(Tamgutreemapls::idtype, Tamgutreemapls::exported);
+        global->RecordCompatibilities(Tamgutreemapls::idtype);
     }
 
     return true;

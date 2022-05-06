@@ -29,8 +29,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<uvectorMethod>  Tamguuvector::methods;
-Exporting hmap<string, string> Tamguuvector::infomethods;
-Exporting basebin_hash<unsigned long> Tamguuvector::exported;
 
 Exporting short Tamguuvector::idtype = 0;
 
@@ -38,25 +36,31 @@ Exporting short Tamguuvector::idtype = 0;
 void Tamguuvector::AddMethod(TamguGlobal* global, string name, uvectorMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
+
     void Tamguuvector::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamguuvector::InitialisationModule(global,"");
 }
 
 
    bool Tamguuvector::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
 
 
-    Tamguuvector::idtype = global->Getid("uvector");
+    Tamguuvector::idtype = a_uvector;
 
        Tamguuvector::AddMethod(global, "min", &Tamguuvector::MethodMin, P_NONE, "min(): returns the min in the vector.");
        Tamguuvector::AddMethod(global, "max", &Tamguuvector::MethodMax, P_NONE, "max(): returns the max in the vector.");
@@ -86,13 +90,15 @@ void Tamguuvector::AddMethod(TamguGlobal* global, string name, uvectorMethod fun
     Tamguuvector::AddMethod(global, "convert", &Tamguuvector::MethodConvert, P_NONE, "convert(): detect number values and convert them into actual numbers. Return a vector object.");
 
 
-    if (version != "") {
+    if (version != "") {        
+    global->minimal_indexes[Tamguuvector::idtype] = true;
+
         global->newInstance[Tamguuvector::idtype] = new Tamguuvector(global);
-        global->RecordMethods(Tamguuvector::idtype, Tamguuvector::exported);
+        global->RecordCompatibilities(Tamguuvector::idtype);
     }
 
     Tamgua_uvector::InitialisationModule(global, version);
-    global->minimal_indexes[Tamguuvector::idtype] = true;
+    
     return true;
 }
 
@@ -1330,8 +1336,6 @@ Exporting Tamgu* Tamguuvector::Loopin(TamguInstruction* ins, Tamgu* context, sho
 
     //We need to declare once again our local definitions.
 Exporting basebin_hash<a_uvectorMethod>  Tamgua_uvector::methods;
-Exporting hmap<string, string> Tamgua_uvector::infomethods;
-Exporting basebin_hash<unsigned long> Tamgua_uvector::exported;
 
 Exporting short Tamgua_uvector::idtype = 0;
 
@@ -1339,14 +1343,19 @@ Exporting short Tamgua_uvector::idtype = 0;
 void Tamgua_uvector::AddMethod(TamguGlobal* global, string name, a_uvectorMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
+
 
 bool Tamgua_uvector::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
     
     
     Tamgua_uvector::idtype = global->Getid("a_uvector");
@@ -1370,7 +1379,7 @@ bool Tamgua_uvector::InitialisationModule(TamguGlobal* global, string version) {
 
     if (version != "") {
         global->newInstance[Tamgua_uvector::idtype] = new Tamgua_uvector(global);
-        global->RecordMethods(Tamgua_uvector::idtype, Tamgua_uvector::exported);
+        global->RecordCompatibilities(Tamgua_uvector::idtype);
     }
     
     return true;

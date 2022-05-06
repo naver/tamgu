@@ -21,8 +21,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<fileMethod>  Tamgufile::methods;
-Exporting hmap<string, string> Tamgufile::infomethods;
-Exporting basebin_hash<unsigned long> Tamgufile::exported;
 
 Exporting short Tamgufile::idtype = 0;
 
@@ -31,21 +29,27 @@ Exporting short Tamgufile::idtype = 0;
 void Tamgufile::AddMethod(TamguGlobal* global, string name, fileMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
-    void Tamgufile::Setidtype(TamguGlobal* global) {
+
+void Tamgufile::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgufile::InitialisationModule(global,"");
 }
 
 
    bool Tamgufile::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
     Tamgufile::idtype = global->Getid("file");
 
@@ -74,7 +78,7 @@ void Tamgufile::AddMethod(TamguGlobal* global, string name, fileMethod func, uns
 
     if (version != "") {
         global->newInstance[Tamgufile::idtype] = new Tamgufile("", global);
-        global->RecordMethods(Tamgufile::idtype,Tamgufile::exported);
+        global->RecordCompatibilities(Tamgufile::idtype);
     }
 
     return true;

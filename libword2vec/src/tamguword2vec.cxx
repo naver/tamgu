@@ -62,25 +62,33 @@ extern "C" {
 
 //------------------------------------------------------------------------------------------------------------------
 //We need to declare once again our local definitions.
-hmap<unsigned short, word2vecItemMethod>  Tamguw2vector::methods;
-hmap<string, string> Tamguw2vector::infomethods;
-basebin_hash<unsigned long> Tamguw2vector::exported;
+basebin_hash<word2vecItemMethod>  Tamguw2vector::methods;
 
 short Tamguw2vector::idtype = 0;
 
 
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamguw2vector::AddMethod(TamguGlobal* global, string name, word2vecItemMethod func, unsigned long arity, string infos) {
-	short idname = global->Getid(name);
-	methods[idname] = func;
-	infomethods[name] = infos;
-	exported[idname] = arity;
+    short idname = global->Getid(name);
+    methods[idname] = func;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
+}
+
+
+void Tamguw2vector::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
+    Tamguw2vector::InitialisationModule(global,"");
 }
 
 bool Tamguw2vector::InitialisationModule(TamguGlobal* global, string version) {
 	methods.clear();
-	infomethods.clear();
-	exported.clear();
+	
+	
 
 	//Each new object has a specific name, which will help recognize it in the code that will exploit word2vec...
 	Tamguw2vector::idtype = global->Getid("w2vector");
@@ -108,7 +116,7 @@ bool Tamguw2vector::InitialisationModule(TamguGlobal* global, string version) {
 
 	//We need this code, in order to create new instances of our word2vec object... DO NOT ALTER
 	global->newInstance[Tamguw2vector::idtype] = new Tamguw2vector(global);
-	global->RecordMethods(Tamguw2vector::idtype, Tamguw2vector::exported);
+	global->RecordCompatibilities(Tamguw2vector::idtype);
 
 	return true;
 }
@@ -116,9 +124,7 @@ bool Tamguw2vector::InitialisationModule(TamguGlobal* global, string version) {
 //------------------------------------------------------------------------------------------------------------------
 
 //We need to declare once again our local definitions.
-hmap<unsigned short, word2vecMethod>  Tamguword2vec::methods;
-hmap<string, string> Tamguword2vec::infomethods;
-basebin_hash<unsigned long> Tamguword2vec::exported;
+basebin_hash<word2vecMethod>  Tamguword2vec::methods;
 
 short Tamguword2vec::idtype = 0;
 
@@ -127,14 +133,24 @@ short Tamguword2vec::idtype = 0;
 void Tamguword2vec::AddMethod(TamguGlobal* global, string name, word2vecMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
+}
+
+
+void Tamguword2vec::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
+    Tamguword2vec::InitialisationModule(global,"");
 }
 
 bool Tamguword2vec::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
     //Each new object has a specific name, which will help recognize it in the code that will exploit word2vec...
     Tamguword2vec::idtype = global->Getid("word2vec");
@@ -163,7 +179,7 @@ bool Tamguword2vec::InitialisationModule(TamguGlobal* global, string version) {
 
     //We need this code, in order to create new instances of our word2vec object... DO NOT ALTER
     global->newInstance[Tamguword2vec::idtype] = new Tamguword2vec(global);
-    global->RecordMethods(Tamguword2vec::idtype,Tamguword2vec::exported);
+    global->RecordCompatibilities(Tamguword2vec::idtype);
 
     return true;
 }

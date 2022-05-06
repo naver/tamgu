@@ -26,8 +26,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<grammarMethod>  Tamgugrammar::methods;
-Exporting hmap<string, string> Tamgugrammar::infomethods;
-Exporting basebin_hash<unsigned long> Tamgugrammar::exported;
 
 
 Exporting short Tamgugrammar::idtype = 0;
@@ -37,21 +35,27 @@ Exporting short Tamgugrammar::idtype = 0;
 void Tamgugrammar::AddMethod(TamguGlobal* global, string name, grammarMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
+
     void Tamgugrammar::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgugrammar::InitialisationModule(global,"");
 }
 
 
    bool Tamgugrammar::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
     
     Tamgugrammar::idtype = global->Getid("grammar");
     
@@ -63,7 +67,7 @@ void Tamgugrammar::AddMethod(TamguGlobal* global, string name, grammarMethod fun
     
     if (version != "") {
         global->newInstance[Tamgugrammar::idtype] = new Tamgugrammar(global);
-        global->RecordMethods(Tamgugrammar::idtype,Tamgugrammar::exported);
+        global->RecordCompatibilities(Tamgugrammar::idtype);
     }
     
     return true;

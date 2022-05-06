@@ -21,8 +21,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<synodeMethod>  Tamgusynode::methods;
-Exporting hmap<string, string> Tamgusynode::infomethods;
-Exporting basebin_hash<unsigned long> Tamgusynode::exported;
 
 short Tamgusynode::idtype = 0;
 
@@ -35,22 +33,28 @@ bool Tamgusynode::testvalid = false;
 Exporting void Tamgusynode::AddMethod(TamguGlobal* global, string name, synodeMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
+
 void Tamgusynode::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgusynode::InitialisationModule(global,"");
 }
 
 
    bool Tamgusynode::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
     validfeatures = NULL;
     Tamgusynode::testvalid = false;
-    Tamgusynode::idtype = global->Getid("synode");
+    Tamgusynode::idtype = a_synode;
     
     Tamgusynode::AddMethod(global, "_initial", &Tamgusynode::MethodInitial, P_ONE, "_initial(map m): Creates a syntactic node with some features.");
     Tamgusynode::AddMethod(global, "test", &Tamgusynode::MethodTest, P_ONE, "test(string attribute): Test if an attribute is part of the feature structure.");
@@ -79,7 +83,7 @@ void Tamgusynode::Setidtype(TamguGlobal* global) {
 
     if (version != "") {
         global->newInstance[Tamgusynode::idtype] = new Tamgusynode(-1,global);
-        global->RecordMethods(Tamgusynode::idtype,Tamgusynode::exported);
+        global->RecordCompatibilities(Tamgusynode::idtype);
     }
     
     return true;

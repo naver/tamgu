@@ -25,8 +25,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<treemapfsMethod>  Tamgutreemapfs::methods;
-Exporting map<string, string> Tamgutreemapfs::infomethods;
-Exporting basebin_hash<unsigned long> Tamgutreemapfs::exported;
 
 Exporting short Tamgutreemapfs::idtype = 0;
 
@@ -35,21 +33,27 @@ Exporting short Tamgutreemapfs::idtype = 0;
 void Tamgutreemapfs::AddMethod(TamguGlobal* global, string name, treemapfsMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
+
     void Tamgutreemapfs::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgutreemapfs::InitialisationModule(global,"");
 }
 
 
    bool Tamgutreemapfs::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
 
     Tamgutreemapfs::idtype = global->Getid("treemapfs");
@@ -73,7 +77,7 @@ void Tamgutreemapfs::AddMethod(TamguGlobal* global, string name, treemapfsMethod
     if (version != "") {
         global->newInstance[Tamgutreemapfs::idtype] = new Tamgutreemapfs(global);
         
-        global->RecordMethods(Tamgutreemapfs::idtype, Tamgutreemapfs::exported);
+        global->RecordCompatibilities(Tamgutreemapfs::idtype);
     }
 
     return true;

@@ -23,8 +23,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<treemapiMethod>  Tamgutreemapi::methods;
-Exporting hmap<string, string> Tamgutreemapi::infomethods;
-Exporting basebin_hash<unsigned long> Tamgutreemapi::exported;
 
 Exporting short Tamgutreemapi::idtype = 0;
 
@@ -33,27 +31,33 @@ Exporting short Tamgutreemapi::idtype = 0;
 void Tamgutreemapi::AddMethod(TamguGlobal* global, string name, treemapiMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
+
     void Tamgutreemapi::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgutreemapi::InitialisationModule(global,"");
 }
 
 
    bool Tamgutreemapi::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
 
     Tamgutreemapi::idtype = global->Getid("treemapi");
 
     
-    global->minimal_indexes[Tamgutreemapi::idtype] = true;
+    
 
     Tamgutreemapi::AddMethod(global, "clear", &Tamgutreemapi::MethodClear, P_NONE, "clear(): clear the container.");
     
@@ -73,10 +77,12 @@ void Tamgutreemapi::AddMethod(TamguGlobal* global, string name, treemapiMethod f
     Tamgutreemapi::AddMethod(global, "pop", &Tamgutreemapi::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamgutreemapi::AddMethod(global, "merge", &Tamgutreemapi::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
 
-    if (version != "") {
+    if (version != "") {        
+    global->minimal_indexes[Tamgutreemapi::idtype] = true;
+
         global->newInstance[Tamgutreemapi::idtype] = new Tamgutreemapi(global);
         
-        global->RecordMethods(Tamgutreemapi::idtype, Tamgutreemapi::exported);
+        global->RecordCompatibilities(Tamgutreemapi::idtype);
     }
 
     return true;
@@ -238,8 +244,11 @@ Exporting Tamgu* Tamgutreemapi::Push(Tamgu* k, Tamgu* v) {
     long s = k->Integer();
 
     k = values[s];
-    if (k != NULL)
+    if (k != NULL) {
+        if (k == v)
+            return this;
         k->Removereference(reference + 1);
+    }
 
     v = v->Atom();
     values[s] = v;

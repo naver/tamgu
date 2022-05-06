@@ -42,7 +42,7 @@
 #include "tamgulisp.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2022.04.28.17";
+const char* tamgu_version = "Tamgu 1.2022.05.06.09";
 
 Tamgu* booleantamgu[2];
 
@@ -419,10 +419,13 @@ void ThreadStruct::Setknowledgebase() {
         long i;
 
         hmap<short, vector<TamguPredicate*> >::iterator it;
-
+        string keyfirst;
         for (it = globalTamgu->threads[0].knowledgebase.begin(); it != globalTamgu->threads[0].knowledgebase.end(); it++) {
             for (i = 0; i < it->second.size(); i++) {
+                it->second[i]->Stringpredicatekey(keyfirst);
                 knowledgebase[it->first].push_back(it->second[i]);
+                if (keyfirst != "")
+                    knowledgebase_on_first[keyfirst].push_back(it->second[i]);
                 it->second[i]->Setreference();
             }
         }
@@ -441,6 +444,7 @@ void ThreadStruct::Clearknowledgebase() {
     }
 
     knowledgebase.clear();
+    knowledgebase_on_first.clear();
 }
 
 Exporting ThreadStruct::~ThreadStruct() {
@@ -1393,15 +1397,19 @@ long TamguGlobal::Getinstructionline(short idthread) {
 //--------------------------------------------------------------------------------------------
 //These three methods are the way to go to create new objets in an external library, which are declared internally within Tamgu
 Tamgu* TamguGlobal::Provideinstance(short type, short idthread) {
-    return globalTamgu->newInstance.get(type)->Newinstance(idthread);
+    return newInstance.get(type)->Newinstance(idthread);
 }
 
 Tamgu* TamguGlobal::Provideinstance(string thetypename, short idthread) {
-    return globalTamgu->newInstance.get(globalTamgu->Getid(thetypename))->Newinstance(idthread);
+    return newInstance.get(globalTamgu->Getid(thetypename))->Newinstance(idthread);
 }
 
 short TamguGlobal::Typeinstance(string thetypename) {
-    return globalTamgu->Getid(thetypename);
+    return Getid(thetypename);
+}
+
+Tamgu* TamguGlobal::Provideinstance(Tamgu* p, long i) {
+    return p->anInstance(i);
 }
 //--------------------------------------------------------------------------------------------
 
@@ -3118,7 +3126,7 @@ Exporting Tamgumap* TamguGlobal::Providemap() {
     mapreservoire.resize(mx + sz);
     mapidx = mx + sz;
     for (long i = mx; i < mapidx; i++)
-        mapreservoire[i] = new Tamgumapbuff(i);
+        mapreservoire[i] = (Tamgumapbuff*)Provideinstance(mapreservoire[0], i);
 
     mapidx = mx;
     mapreservoire[mapidx]->used = true;
@@ -3156,7 +3164,7 @@ Exporting Tamgutreemap* TamguGlobal::Providetreemap() {
     treemapreservoire.resize(mx + sz);
     treemapidx = mx + sz;
     for (long i = mx; i < treemapidx; i++)
-        treemapreservoire[i] = new Tamgutreemapbuff(i);
+        treemapreservoire[i] = (Tamgutreemapbuff*)Provideinstance(treemapreservoire[0], i);
 
     treemapidx = mx;
     treemapreservoire[treemapidx]->used = true;
@@ -3193,7 +3201,7 @@ Exporting Tamgumapss* TamguGlobal::Providemapss() {
     mapssreservoire.resize(mx + sz);
     mapssidx = mx + sz;
     for (long i = mx; i < mapssidx; i++)
-        mapssreservoire[i] = new Tamgumapssbuff(i);
+        mapssreservoire[i] = (Tamgumapssbuff*)Provideinstance(mapssreservoire[0], i);
 
     mapssidx = mx;
     mapssreservoire[mapssidx]->used = true;
@@ -3226,12 +3234,12 @@ Exporting Tamguvector* TamguGlobal::Providevector() {
         }
         vectoridx++;
     }
-
+    
     long sz = mx >> 2;
     vectorreservoire.resize(mx + sz);
     vectoridx = mx + sz;
     for (long i = mx; i < vectoridx; i++)
-        vectorreservoire[i] = new Tamguvectorbuff(i);
+        vectorreservoire[i] = (Tamguvectorbuff*)Provideinstance(vectorreservoire[0], i);
 
     vectoridx = mx;
     vectorreservoire[vectoridx]->used = true;
@@ -3270,7 +3278,7 @@ Exporting Tamguivector* TamguGlobal::Provideivector() {
     ivectorreservoire.resize(mx + sz);
     ivectoridx = mx + sz;
     for (long i = mx; i < ivectoridx; i++)
-        ivectorreservoire[i] = new Tamguivectorbuff(i);
+        ivectorreservoire[i] = (Tamguivectorbuff*)Provideinstance(ivectorreservoire[0], i);
 
     ivectoridx = mx;
     ivectorreservoire[ivectoridx]->used = true;
@@ -3307,7 +3315,7 @@ Exporting Tamgufvector* TamguGlobal::Providefvector() {
     fvectorreservoire.resize(mx + sz);
     fvectoridx = mx + sz;
     for (long i = mx; i < fvectoridx; i++)
-        fvectorreservoire[i] = new Tamgufvectorbuff(i);
+        fvectorreservoire[i] = (Tamgufvectorbuff*)Provideinstance(fvectorreservoire[0], i);
 
     fvectoridx = mx;
     fvectorreservoire[fvectoridx]->used = true;
@@ -3344,7 +3352,7 @@ Exporting Tamgusvector* TamguGlobal::Providesvector() {
     svectorreservoire.resize(mx + sz);
     svectoridx = mx + sz;
     for (long i = mx; i < svectoridx; i++)
-        svectorreservoire[i] = new Tamgusvectorbuff(i);
+        svectorreservoire[i] = (Tamgusvectorbuff*)Provideinstance(svectorreservoire[0], i);
 
     svectoridx = mx;
     svectorreservoire[svectoridx]->used = true;
@@ -3381,7 +3389,7 @@ Exporting Tamguuvector* TamguGlobal::Provideuvector() {
     uvectorreservoire.resize(mx + sz);
     uvectoridx = mx + sz;
     for (long i = mx; i < uvectoridx; i++)
-        uvectorreservoire[i] = new Tamguuvectorbuff(i);
+        uvectorreservoire[i] = (Tamguuvectorbuff*)Provideinstance(uvectorreservoire[0], i);
 
     uvectoridx = mx;
     uvectorreservoire[uvectoridx]->used = true;
@@ -3423,7 +3431,7 @@ Exporting TamguSelf* TamguGlobal::Provideself() {
     slfreservoire.resize(mx + sz);
     slfidx = mx + sz;
     for (long i = mx; i < slfidx; i++)
-        slfreservoire[i] = new Tamguselfbuff(i);
+        slfreservoire[i] = (Tamguselfbuff*)Provideinstance(slfreservoire[0], i);
 
     slfidx = mx;
     slfreservoire[slfidx]->used = true;
@@ -3537,7 +3545,7 @@ Exporting Tamguint* TamguGlobal::Provideint(long v) {
     intreservoire.resize(mx + sz);
     intidx = mx + sz;
     for (long i = mx; i < intidx; i++)
-        intreservoire[i] = new Tamguintbuff(i);
+        intreservoire[i] = (Tamguintbuff*)Provideinstance(intreservoire[0], i);
 
     intidx = mx;
     intreservoire[intidx]->used = true;
@@ -3576,7 +3584,7 @@ Exporting Tamgulong* TamguGlobal::Providelong(BLONG v) {
     longreservoire.resize(mx + sz);
     longidx = mx + sz;
     for (long i = mx; i < longidx; i++)
-        longreservoire[i] = new Tamgulongbuff(i);
+        longreservoire[i] = (Tamgulongbuff*)Provideinstance(longreservoire[0], i);
 
     longidx = mx;
     longreservoire[longidx]->used = true;
@@ -3613,7 +3621,7 @@ Exporting Tamgufloat* TamguGlobal::Providefloat(double v) {
     floatreservoire.resize(mx + sz);
     floatidx = mx + sz;
     for (long i = mx; i < floatidx; i++)
-        floatreservoire[i] = new Tamgufloatbuff(i);
+        floatreservoire[i] = (Tamgufloatbuff*)Provideinstance(floatreservoire[0], i);
 
     floatidx = mx;
     floatreservoire[floatidx]->used = true;
@@ -3732,7 +3740,7 @@ Exporting Tamgustring* TamguGlobal::Providestring(string v) {
     stringreservoire.resize(mx + sz);
     stringidx = mx + sz;
     for (long i = mx; i < stringidx; i++)
-        stringreservoire[i] = new Tamgustringbuff(i);
+        stringreservoire[i] = (Tamgustringbuff*)Provideinstance(stringreservoire[0], i);
 
     stringidx = mx;
     stringreservoire[stringidx]->used = true;
@@ -3772,7 +3780,7 @@ Exporting Tamguustring* TamguGlobal::Provideustring(wstring v) {
     ustringreservoire.resize(mx + sz);
     ustringidx = mx + sz;
     for (long i = mx; i < ustringidx; i++)
-        ustringreservoire[i] = new Tamguustringbuff(i);
+        ustringreservoire[i] = (Tamguustringbuff*)Provideinstance(ustringreservoire[0], i);
 
     ustringidx = mx;
     ustringreservoire[ustringidx]->used = true;
@@ -3812,7 +3820,7 @@ Exporting Tamgustring* TamguGlobal::Providewithstring(string& v) {
     stringreservoire.resize(mx + sz);
     stringidx = mx + sz;
     for (long i = mx; i < stringidx; i++)
-        stringreservoire[i] = new Tamgustringbuff(i);
+        stringreservoire[i] = (Tamgustringbuff*)Provideinstance(stringreservoire[0], i);
 
     stringidx = mx;
     stringreservoire[stringidx]->used = true;
@@ -3852,7 +3860,7 @@ Exporting Tamguustring* TamguGlobal::Providewithustring(wstring& v) {
     ustringreservoire.resize(mx + sz);
     ustringidx = mx + sz;
     for (long i = mx; i < ustringidx; i++)
-        ustringreservoire[i] = new Tamguustringbuff(i);
+        ustringreservoire[i] = (Tamguustringbuff*)Provideinstance(ustringreservoire[0], i);
 
     ustringidx = mx;
     ustringreservoire[ustringidx]->used = true;

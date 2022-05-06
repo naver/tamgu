@@ -25,8 +25,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<binmapfMethod>  Tamgubinmapf::methods;
-Exporting hmap<string, string> Tamgubinmapf::infomethods;
-Exporting basebin_hash<unsigned long> Tamgubinmapf::exported;
 
 Exporting short Tamgubinmapf::idtype = 0;
 
@@ -35,14 +33,24 @@ Exporting short Tamgubinmapf::idtype = 0;
 void Tamgubinmapf::AddMethod(TamguGlobal* global, string name, binmapfMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
+}
+
+
+void Tamgubinmapf::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
+    Tamgubinmapf::InitialisationModule(global,"");
 }
 
 bool Tamgubinmapf::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
 
     Tamgubinmapf::idtype = global->Getid("binmapf");
@@ -69,9 +77,9 @@ bool Tamgubinmapf::InitialisationModule(TamguGlobal* global, string version) {
     #ifdef OLDBACKCOMP
     global->newInstance[global->Getid("ifprimemap")] = new Tamgubinmapf(global);
 
-    global->RecordMethods(global->Getid("ifprimemap"), Tamgubinmapf::exported);
+    global->RecordCompatibilities(global->Getid("ifprimemap"));
     #endif
-    global->RecordMethods(Tamgubinmapf::idtype, Tamgubinmapf::exported);
+    global->RecordCompatibilities(Tamgubinmapf::idtype);
 
     return true;
 }

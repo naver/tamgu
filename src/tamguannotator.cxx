@@ -27,8 +27,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<annotatorMethod>  Tamguannotator::methods;
-Exporting hmap<string, string> Tamguannotator::infomethods;
-Exporting basebin_hash<unsigned long> Tamguannotator::exported;
 
 Exporting short Tamguannotator::idtype = 0;
 
@@ -42,21 +40,27 @@ Exporting short Tamguannotator::idtype = 0;
 void Tamguannotator::AddMethod(TamguGlobal* global, string name, annotatorMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
+
 void Tamguannotator::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamguannotator::InitialisationModule(global,"");
 }
 
 
 bool Tamguannotator::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
     
     //Each new object has a specific name, which will help recognize it in the code that will exploit annotator...
     Tamguannotator::idtype = global->Getid("annotator");
@@ -92,7 +96,7 @@ bool Tamguannotator::InitialisationModule(TamguGlobal* global, string version) {
     //We need this code, in order to create new instances of our annotator object... DO NOT ALTER
     if (version != "") {
         global->newInstance[Tamguannotator::idtype] = new Tamguannotator(global);
-        global->RecordMethods(Tamguannotator::idtype,Tamguannotator::exported);
+        global->RecordCompatibilities(Tamguannotator::idtype);
     }
     
     return true;

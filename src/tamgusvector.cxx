@@ -28,8 +28,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<svectorMethod>  Tamgusvector::methods;
-Exporting hmap<string, string> Tamgusvector::infomethods;
-Exporting basebin_hash<unsigned long> Tamgusvector::exported;
 
 Exporting short Tamgusvector::idtype = 0;
 
@@ -37,24 +35,31 @@ Exporting short Tamgusvector::idtype = 0;
 void Tamgusvector::AddMethod(TamguGlobal* global, string name, svectorMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
+    global->RecordArity(a_vectorthrough, idname, arity);
 }
 
 
 
+
     void Tamgusvector::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgusvector::InitialisationModule(global,"");
 }
 
 
    bool Tamgusvector::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
     
-    Tamgusvector::idtype = global->Getid("svector");
+    Tamgusvector::idtype = a_svector;
 
        Tamgusvector::AddMethod(global, "min", &Tamgusvector::MethodMin, P_NONE, "min(): returns the min in the vector.");
        Tamgusvector::AddMethod(global, "max", &Tamgusvector::MethodMax, P_NONE, "max(): returns the max in the vector.");
@@ -86,15 +91,17 @@ void Tamgusvector::AddMethod(TamguGlobal* global, string name, svectorMethod fun
     Tamgusvector::AddMethod(global, "write", &Tamgusvector::MethodWrite, P_ONE, "write(string path): write the string content into a file.");
 
 
-    if (version != "") {
+    if (version != "") {        
+    global->minimal_indexes[Tamgusvector::idtype] = true;
+
         global->newInstance[Tamgusvector::idtype] = new Tamgusvector(global);
         global->newInstance[a_vectorthrough] = global->newInstance[Tamgusvector::idtype];
-        global->RecordMethods(Tamgusvector::idtype, Tamgusvector::exported);
-        global->RecordMethods(a_vectorthrough, Tamgusvector::exported);
+        global->RecordCompatibilities(Tamgusvector::idtype);
+        global->RecordCompatibilities(a_vectorthrough);
     }
 
     Tamgua_svector::InitialisationModule(global, version);
-    global->minimal_indexes[Tamgusvector::idtype] = true;
+    
     return true;
 }
 
@@ -1314,8 +1321,6 @@ Exporting Tamgu* Tamgusvector::Loopin(TamguInstruction* ins, Tamgu* context, sho
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<a_svectorMethod>  Tamgua_svector::methods;
-Exporting hmap<string, string> Tamgua_svector::infomethods;
-Exporting basebin_hash<unsigned long> Tamgua_svector::exported;
 
 Exporting short Tamgua_svector::idtype = 0;
 
@@ -1323,14 +1328,19 @@ Exporting short Tamgua_svector::idtype = 0;
 void Tamgua_svector::AddMethod(TamguGlobal* global, string name, a_svectorMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
+
 
 bool Tamgua_svector::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
     
     
     Tamgua_svector::idtype = global->Getid("a_svector");
@@ -1357,7 +1367,7 @@ bool Tamgua_svector::InitialisationModule(TamguGlobal* global, string version) {
     
     if (version != "") {
         global->newInstance[Tamgua_svector::idtype] = new Tamgua_svector(global);
-        global->RecordMethods(Tamgua_svector::idtype, Tamgua_svector::exported);
+        global->RecordCompatibilities(Tamgua_svector::idtype);
     }
     
     return true;

@@ -112,8 +112,6 @@ short TamguDependency::Idvar() {
 // Predicate variables can have methods...
 //-------------------------------------------------------------------------------------------------
 Exporting basebin_hash<predicateMethod> TamguPredicate::methods;
-Exporting hmap<string, string> TamguPredicate::infomethods;
-Exporting basebin_hash<unsigned long> TamguPredicate::exported;
 
 Exporting short TamguPredicate::idtype = 0;
 
@@ -121,23 +119,30 @@ Exporting short TamguPredicate::idtype = 0;
 void TamguPredicate::AddMethod(TamguGlobal* global, string name, predicateMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
+    global->RecordArity(a_predicatevar, idname, arity);
 }
 
 
 
+
     void TamguPredicate::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     TamguPredicate::InitialisationModule(global,"");
 }
 
 
    bool TamguPredicate::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
     
-    TamguPredicate::idtype = global->Getid("predicate");
+    
+    
+    TamguPredicate::idtype = a_predicate;
 
     TamguPredicate::AddMethod(global, "_initial", &TamguPredicate::MethodInitial, P_ONE, "_initial(): Get the associated object.");
     TamguPredicate::AddMethod(global, "leaves", &TamguPredicate::MethodLeaves, P_NONE, "leaves(): Return the leaf values.");
@@ -148,10 +153,10 @@ void TamguPredicate::AddMethod(TamguGlobal* global, string name, predicateMethod
 
     if (version != "") {
         global->newInstance[TamguPredicate::idtype] = new TamguPredicate(a_predicate, global);
-        global->RecordMethods(TamguPredicate::idtype, TamguPredicate::exported);
+        global->RecordCompatibilities(TamguPredicate::idtype);
 
         global->newInstance[a_predicatevar] = new TamguPredicateVar(global, a_predicatevar);
-        global->RecordMethods(a_predicatevar, TamguPredicate::exported);
+        global->RecordCompatibilities(a_predicatevar);
 
         global->newInstance[a_dependency] = new TamguDependency(global, aNULL, a_dependency, 0);
     }
@@ -472,8 +477,20 @@ void AffichageDom(TamguDeclaration* dom, long depth) {
 bool ThreadStruct::TestPredicate(TamguDeclaration* dom, TamguPredicate* p) {
     if (p->name != a_universal && knowledgebase.find(p->name) == knowledgebase.end())
         return false;
+    
+    string keyfirst;
+    p->Stringpredicatekey(keyfirst);
+    
+    if (keyfirst != "") {
+        vector<TamguPredicate*>& v = knowledgebase_on_first[keyfirst];
+        for (long i = 0; i < v.size(); i++) {
+            if (p->Unify(dom, v[i]))
+                return true;
+        }
+        return false;
+    }
+    
     if (p->name == a_universal) {
-
         hmap<short, vector<TamguPredicate*> >::iterator it;
         for (it = knowledgebase.begin(); it != knowledgebase.end(); it++) {
             vector<TamguPredicate*>& v = it->second;
@@ -495,8 +512,22 @@ bool ThreadStruct::TestPredicate(TamguDeclaration* dom, TamguPredicate* p) {
 char ThreadStruct::isaValidPredicate(TamguDeclaration* dom, TamguPredicate* p, hmap<unsigned short, vector<TamguPredicateRule*> >& rulebase) {
     if (p->name != a_universal && knowledgebase.find(p->name) == knowledgebase.end())
         return 1;
-        
+
     long i;
+    string keyfirst;
+    p->Stringpredicatekey(keyfirst);
+    if (keyfirst != "") {
+        vector<TamguPredicate*>& v = knowledgebase_on_first[keyfirst];
+        for (i = 0; i < v.size(); i++) {
+            if (p->Unify(dom, v[i]))
+                return 2;
+        }
+        //we keep a chance of finding a rule to match with
+        if (rulebase.find(p->name) != rulebase.end())
+            return 1;
+        return 0;
+    }
+    
     if (p->name == a_universal) {
         hmap<short, vector<TamguPredicate*> >::iterator it;
         for (it = knowledgebase.begin(); it != knowledgebase.end(); it++) {
@@ -524,7 +555,26 @@ bool ThreadStruct::GetPredicates(TamguDeclaration* dom, TamguPredicate* p, vecto
     
     bool ret = false;
     long i;
+    
+    string keyfirst;
+    p->Stringpredicatekey(keyfirst);
+    
+    if (keyfirst != "") {
+        vector<TamguPredicate*>& v = knowledgebase_on_first[keyfirst];
+        for (i = 0; i < v.size(); i++) {
+            if (v[i]->isChosen())
+                continue;
 
+            if (p->Unify(dom, v[i])) {
+                res.push_back(v[i]);
+                if (cut)
+                    return true;
+                ret = true;
+            }
+        }
+        return ret;
+    }
+    
     if (p->name == a_universal) {
         hmap<short, vector<TamguPredicate*> >::iterator it;
         for (it = knowledgebase.begin(); it != knowledgebase.end(); it++) {
@@ -581,6 +631,11 @@ bool ThreadStruct::StorePredicate(TamguDeclaration* dom, TamguPredicate* pv, boo
     else
         knowledgebase[pv->name].insert(knowledgebase[pv->name].begin(), pv);
 
+    string keyfirst;
+    pv->Stringpredicatekey(keyfirst);
+    if (keyfirst != "")
+        knowledgebase_on_first[keyfirst].push_back(pv);
+
     pv->Setreference();
     return true;
 }
@@ -590,25 +645,61 @@ bool ThreadStruct::RemovePredicates(TamguDeclaration* dom, TamguPredicate* p) {
     if (knowledgebase.find(p->name) == knowledgebase.end())
         return false;
 
-    vector<TamguPredicate*>& v = knowledgebase[p->name];
     bool res = false;
-    for (BLONG i = v.size() - 1; i >= 0; i--) {
-        if (p->same(v[i]) == aTRUE) {
-            v[i]->Resetreference();
-            v.erase(v.begin() + i);
+
+    vector<TamguPredicate*>& vk = knowledgebase[p->name];
+
+    string keyfirst;
+    p->Stringpredicatekey(keyfirst);
+    long i;
+    if (keyfirst != "") {
+        vector<TamguPredicate*>& v = knowledgebase_on_first[keyfirst];
+        long j;
+        for (i = v.size() - 1; i >= 0; i--) {
+            if (p->same(v[i]) == aTRUE) {
+                for (j = vk.size() - 1; j >= 0; j--) {
+                    if (vk[j] == v[i]) {
+                        vk.erase(vk.begin() + j);
+                        break;
+                    }
+                }
+                v[i]->Resetreference();
+                v.erase(v.begin() + i);
+                res = true;
+            }
+        }
+        return res;
+    }
+    
+    for (i = vk.size() - 1; i >= 0; i--) {
+        if (p->same(vk[i]) == aTRUE) {
+            vk[i]->Resetreference();
+            vk.erase(vk.begin() + i);
             res = true;
         }
     }
+
     return res;
 }
 
 bool ThreadStruct::RemoveThePredicate(TamguDeclaration* dom, TamguPredicate* p) {
     
     vector<TamguPredicate*>& v = knowledgebase[p->name];
-    for (BLONG i = 0; i < v.size(); i++) {
+    for (long i = v.size() - 1; i >= 0; i--) {
         if (p == v[i]) {
-            p->Resetreference();
             v.erase(v.begin() + i);
+            string keyfirst;
+            p->Stringpredicatekey(keyfirst);
+            if (keyfirst != "") {
+                vector<TamguPredicate*>& vk = knowledgebase_on_first[keyfirst];
+                for (i = vk.size() - 1; i >= 0; i--) {
+                    if (p == vk[i]) {
+                        vk.erase(vk.begin() + i);
+                        break;
+                    }
+                }
+            }
+            p->Resetreference();
             return true;
         }
     }

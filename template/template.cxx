@@ -20,8 +20,6 @@ Programmer : Claude ROUX (claude.roux@naverlabs.com)
 
 //We need to declare once again our local definitions.
 basebin_hash<%1Method> Tamgu%1::methods;
-hmap<string, string> Tamgu%1::infomethods;
-basebin_hash<unsigned long> Tamgu%1::exported;
 
 short Tamgu%1::idtype = 0;
 
@@ -44,19 +42,25 @@ extern "C" {
 void Tamgu%1::AddMethod(TamguGlobal* global, string name, %1Method func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
+
 void Tamgu%1::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgu%1::InitialisationModule(global, "");
 }
 
 
 bool Tamgu%1::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
     //Each new object has a specific name, which will help recognize it in the code that will exploit %1...
     Tamgu%1::idtype = global->Getid("%1");
@@ -72,7 +76,7 @@ bool Tamgu%1::InitialisationModule(TamguGlobal* global, string version) {
 
     //We need this code, in order to create new instances of our %1 object... DO NOT ALTER
     global->newInstance[Tamgu%1::idtype] = new Tamgu%1(global);
-    global->RecordMethods(Tamgu%1::idtype,Tamgu%1::exported);
+    global->RecordCompatibilities(Tamgu%1::idtype);
 
     return true;
 }

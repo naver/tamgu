@@ -61,7 +61,7 @@ BOOL isItMainThread() {
     return NO;
 }
 
-void Inittamgulibspath() {
+void Inittamgulibspath(void) {
     static bool init=false;
     if (!init) {
         NSString* homepath=NSHomeDirectory();

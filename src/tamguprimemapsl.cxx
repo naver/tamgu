@@ -25,8 +25,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<primemapslMethod>  Tamguprimemapsl::methods;
-Exporting hmap<string, string> Tamguprimemapsl::infomethods;
-Exporting basebin_hash<unsigned long> Tamguprimemapsl::exported;
 
 Exporting short Tamguprimemapsl::idtype = 0;
 
@@ -35,27 +33,33 @@ Exporting short Tamguprimemapsl::idtype = 0;
 void Tamguprimemapsl::AddMethod(TamguGlobal* global, string name,primemapslMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
+
 void Tamguprimemapsl::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamguprimemapsl::InitialisationModule(global,"");
 }
 
 
 bool Tamguprimemapsl::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
     
     
     Tamguprimemapsl::idtype = global->Getid("primemapsl");
     
     
-    global->minimal_indexes[Tamguprimemapsl::idtype] = true;
+    
 
     Tamguprimemapsl::AddMethod(global, "clear", &Tamguprimemapsl::MethodClear, P_NONE, "clear(): clear the container.");
     
@@ -75,10 +79,12 @@ bool Tamguprimemapsl::InitialisationModule(TamguGlobal* global, string version) 
     Tamguprimemapsl::AddMethod(global, "pop", &Tamguprimemapsl::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamguprimemapsl::AddMethod(global, "merge", &Tamguprimemapsl::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
     
-    if (version != "") {
+    if (version != "") {        
+    global->minimal_indexes[Tamguprimemapsl::idtype] = true;
+
         global->newInstance[Tamguprimemapsl::idtype] = new Tamguprimemapsl(global);
         
-        global->RecordMethods(Tamguprimemapsl::idtype, Tamguprimemapsl::exported);
+        global->RecordCompatibilities(Tamguprimemapsl::idtype);
     }
     
     return true;

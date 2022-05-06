@@ -24,8 +24,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<mapssMethod>  Tamgumapss::methods;
-Exporting hmap<string, string> Tamgumapss::infomethods;
-Exporting basebin_hash<unsigned long> Tamgumapss::exported;
 
 Exporting short Tamgumapss::idtype = 0;
 
@@ -34,27 +32,32 @@ Exporting short Tamgumapss::idtype = 0;
 void Tamgumapss::AddMethod(TamguGlobal* global, string name,mapssMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
+    global->RecordArity(a_mapthrough, idname, arity);
 }
 
 
-
 void Tamgumapss::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgumapss::InitialisationModule(global,"");
 }
 
 
 bool Tamgumapss::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
     
     
-    Tamgumapss::idtype = global->Getid("mapss");
     
     
-    global->minimal_indexes[Tamgumapss::idtype] = true;
+    Tamgumapss::idtype = a_mapss;
+    
+    
+    
 
     Tamgumapss::AddMethod(global, "clear", &Tamgumapss::MethodClear, P_NONE, "clear(): clear the container.");
     
@@ -72,15 +75,17 @@ bool Tamgumapss::InitialisationModule(TamguGlobal* global, string version) {
     Tamgumapss::AddMethod(global, "pop", &Tamgumapss::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamgumapss::AddMethod(global, "merge", &Tamgumapss::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
     
-    if (version != "") {
+    if (version != "") {        
+    global->minimal_indexes[Tamgumapss::idtype] = true;
+
         global->newInstance[Tamgumapss::idtype] = new Tamgumapss(global);
         global->newInstance[a_mapthrough] = global->newInstance[Tamgumapss::idtype];
     }
     
     
     if (version != "") {
-        global->RecordMethods(Tamgumapss::idtype, Tamgumapss::exported);
-        global->RecordMethods(a_mapthrough, Tamgumapss::exported);
+        global->RecordCompatibilities(Tamgumapss::idtype);
+        global->RecordCompatibilities(a_mapthrough);
     }
     
     return true;

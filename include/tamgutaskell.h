@@ -988,8 +988,8 @@ class TamguCallFibre : public TamguCallFunctionArgsTaskell {
 public:
     
     static Exchanging basebin_hash<tamguCallFibre> methods;
-    static Exchanging hmap<string, string> infomethods;
-    static Exchanging basebin_hash<unsigned long> exported;
+    
+    
     static Exchanging short idtype;
 
     ThreadLock _lock;

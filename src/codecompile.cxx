@@ -8735,7 +8735,14 @@ Tamgu* TamguCode::C_predicatefact(x_node* xn, Tamgu* kf) {
 			kcf->add = true;
 			if (xn->nodes[0]->token == "dependencyfact")
 				Traverse(xn->nodes[0]->nodes[1], kcf);
+            else {
+                kbloc->Eval(&mainframe, aNULL, 0);
+                currentpredicatename = "";
+                kbloc->Remove();
+                return kf;
+            }
 		}
+        
 		kf->AddInstruction(kbloc);
         currentpredicatename = "";
 		return kbloc;

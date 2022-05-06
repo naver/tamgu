@@ -67,8 +67,6 @@ static UINT codepage = 0;
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<sysMethod>  Tamgusys::methods;
-Exporting hmap<string, string> Tamgusys::infomethods;
-Exporting basebin_hash<unsigned long> Tamgusys::exported;
 
 Exporting short Tamgusys::idtype = 0;
 
@@ -522,13 +520,19 @@ void Getscreensizes() {
 void Tamgusys::AddMethod(TamguGlobal* global, string name, sysMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
+
 void Tamgusys::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgusys::InitialisationModule(global,"");
 }
 
@@ -537,8 +541,8 @@ bool Tamgusys::InitialisationModule(TamguGlobal* global, string version) {
     Getscreensizes();
     
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
     
     Tamgusys::idtype = global->Getid("sys");
     
@@ -601,7 +605,7 @@ bool Tamgusys::InitialisationModule(TamguGlobal* global, string version) {
     
 	if (version != "") {
         global->newInstance[Tamgusys::idtype] = new Tamgusys(global);
-        global->RecordMethods(Tamgusys::idtype, Tamgusys::exported);
+        global->RecordCompatibilities(Tamgusys::idtype);
         
         _mysys = new TamguConstsys(global);
         Tamgu* a = new TamguSystemVariable(global, _mysys, global->Createid("_sys"), Tamgusys::idtype);

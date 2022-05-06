@@ -167,6 +167,8 @@ public:
     std::atomic<short> nbjoined;
     
 	hmap<short, vector<TamguPredicate*> > knowledgebase;
+    hmap<string,vector<TamguPredicate*> > knowledgebase_on_first;
+    
 	bin_hash<VECTE<Tamgu*> > variables;
 
 	string nonblockingerror;
@@ -334,6 +336,7 @@ public:
     UTF8_Handler* handler_on_utf8;
 
     atomic_map<threadhandle, int> threadids;
+    hmap<short, hmap<string, string> > infomethods;
 
 
 	//This variable is set to TRUE in thread mode... It allows then for the actual creation of locks...
@@ -436,7 +439,8 @@ public:
     
     Tamgu* Provideinstance(short type, short idthread);
     Tamgu* Provideinstance(string type, short idthread);
-
+    Tamgu* Provideinstance(Tamgu* p, long i);
+    
     short Typeinstance(string s);
     
     hmap<string, short> string_operators;
@@ -996,7 +1000,9 @@ public:
     void Initarguments(vector<string>& args);
 
 
-	Exporting void RecordMethods(short type, basebin_hash<unsigned long>& exported);
+    Exporting void RecordArity(short type, short name, unsigned long arity);
+    Exporting void RecordCompatibilities(short type);
+    Exporting void RecordMethods(short type, basebin_hash<unsigned long>& exported);
 
 	Exporting void RecordMethods(short type, short name, unsigned long arity);
 

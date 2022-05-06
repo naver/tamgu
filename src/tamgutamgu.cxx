@@ -19,8 +19,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<tamguMethod>  Tamgutamgu::methods;
-Exporting hmap<string, string> Tamgutamgu::infomethods;
-Exporting basebin_hash<unsigned long> Tamgutamgu::exported;
 
 Exporting hmap<string, Tamgutamgu*> Tamgutamgu::recorded;
 
@@ -56,15 +54,20 @@ Tamgu* TamguRecordFile(string filename, TamguCode* a, TamguGlobal* g) {
 void Tamgutamgu::AddMethod(TamguGlobal* global, string name, tamguMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(a_tamgu) != global->infomethods.end() &&
+        global->infomethods[a_tamgu].find(name) != global->infomethods[a_tamgu].end())
+        return;
+
+    global->infomethods[a_tamgu][name] = infos;
+    global->RecordArity(a_tamgu, idname, arity);
 }
+
 
 bool Tamgutamgu::InitialisationModule(TamguGlobal* global, string version) {
     
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
     recorded.clear();
 
 
@@ -73,7 +76,7 @@ bool Tamgutamgu::InitialisationModule(TamguGlobal* global, string version) {
 
 
     global->newInstance[a_tamgu] = new Tamgutamgu(global);
-    global->RecordMethods(a_tamgu, Tamgutamgu::exported);
+    global->RecordCompatibilities(a_tamgu);
 
     return true;
 }

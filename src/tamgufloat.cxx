@@ -28,8 +28,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<floatMethod>  Tamgufloat::methods;
-Exporting hmap<string, string> Tamgufloat::infomethods;
-Exporting basebin_hash<unsigned long> Tamgufloat::exported;
 
 Exporting short Tamgufloat::idtype = 0;
 
@@ -38,24 +36,32 @@ Exporting short Tamgufloat::idtype = 0;
 void Tamgufloat::AddMethod(TamguGlobal* global, string name, floatMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
+    global->RecordArity(global->Getid("real"), idname, arity);
+    global->RecordArity(a_floatthrough, idname, arity);
 }
+
 
 
 static const double M_GOLDEN = 1.61803398874989484820458683436563811772030917980576286213544862270526046281890244970720720418939113748475;
 
 void Tamgufloat::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgufloat::InitialisationModule(global,"");
 }
 
 
 bool Tamgufloat::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
-    Tamgufloat::idtype = global->Getid("float");
+    Tamgufloat::idtype = a_float;
 
     Tamgufloat::AddMethod(global, "chr", &Tamgufloat::Methodchr, P_NONE, "chr(): return the character matching the unicode code");
     Tamgufloat::AddMethod(global, "invert", &Tamgufloat::MethodInvert, P_NONE, "invert(): value inversion as a fraction");
@@ -112,11 +118,11 @@ bool Tamgufloat::InitialisationModule(TamguGlobal* global, string version) {
 		global->newInstance[idreal] = new Tamgufloat(0, global);
 		global->newInstance[a_floatthrough] = global->newInstance[Tamgufloat::idtype];
 
-		global->RecordMethods(Tamgufloat::idtype, Tamgufloat::exported);
-		global->RecordMethods(idreal, Tamgufloat::exported);
-		global->RecordMethods(a_floatthrough, Tamgufloat::exported);
+		global->RecordCompatibilities(Tamgufloat::idtype);
+		global->RecordCompatibilities(idreal);
+		global->RecordCompatibilities(a_floatthrough);
 
-		global->RecordMethods(a_floop, Tamgufloat::exported);
+		global->RecordCompatibilities(a_floop);
 
 		Tamgu* a = new TamguSystemVariable(global, new TamguConstFloat(M_PI), global->Createid("_pi"), a_float);
 
@@ -138,8 +144,6 @@ bool Tamgufloat::InitialisationModule(TamguGlobal* global, string version) {
 }
 
 Exporting basebin_hash<atomicfloatMethod>  Tamguatomicfloat::methods;
-Exporting hmap<string, string> Tamguatomicfloat::infomethods;
-Exporting basebin_hash<unsigned long> Tamguatomicfloat::exported;
 
 Exporting short Tamguatomicfloat::idtype = 0;
 
@@ -147,14 +151,19 @@ Exporting short Tamguatomicfloat::idtype = 0;
 void Tamguatomicfloat::AddMethod(TamguGlobal* global, string name, atomicfloatMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
+
 
 bool Tamguatomicfloat::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
     
     Tamguatomicfloat::idtype = global->Getid("a_float");
     
@@ -208,7 +217,7 @@ bool Tamguatomicfloat::InitialisationModule(TamguGlobal* global, string version)
     
     if (version != "") {
         global->newInstance[Tamguatomicfloat::idtype] = new Tamguatomicfloat(0, global);
-        global->RecordMethods(Tamguatomicfloat::idtype, Tamguatomicfloat::exported);
+        global->RecordCompatibilities(Tamguatomicfloat::idtype);
     }
     
     return true;

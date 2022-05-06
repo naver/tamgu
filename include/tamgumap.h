@@ -35,8 +35,8 @@ class Tamgumap : public TamguObjectLockContainer {
     //this is a static object, which is common to everyone
     //We associate the method pointers with their names in the linkedmethods map
     static Exchanging basebin_hash<mapMethod> methods;
-    static Exchanging hmap<string, string> infomethods;
-    static Exchanging basebin_hash<unsigned long> exported;
+    
+    
 
     static Exchanging short idtype;
 
@@ -175,9 +175,7 @@ class Tamgumap : public TamguObjectLockContainer {
     //Declaration
     //All our methods must have been declared in tamguexportedmethods... See MethodInitialization below
     bool isDeclared(short n) {
-        if (exported.find(n) != exported.end())
-            return true;
-        return false;
+        return methods.check(n);
     }
     Tamgu* Newvalue(Tamgu* a, short idthread) {
         Tamgumap* m = globalTamgu->Providemap();
@@ -209,16 +207,14 @@ class Tamgumap : public TamguObjectLockContainer {
 
 
     void Methods(Tamgu* v) {
-        hmap<string, string>::iterator it;
-        for (it = infomethods.begin(); it != infomethods.end(); it++)
-            v->storevalue(it->first);
-    }
+            for (const auto& it : globalTamgu->infomethods[idtype])
+                 v->storevalue(it.first);
+      }
 
-    string Info(string n) {
-
-        if (infomethods.find(n) != infomethods.end())
-            return infomethods[n];
-        return "Unknown method";
+      string Info(string n) {
+            if (globalTamgu->infomethods[idtype].find(n) !=  globalTamgu->infomethods[idtype].end())
+              return globalTamgu->infomethods[idtype][n];
+             return "Unknown method";
     }
 
 
@@ -370,8 +366,11 @@ class Tamgumap : public TamguObjectLockContainer {
 
     Tamgu* push(string k, Tamgu* a) {
         Tamgu* v = values[k];
-        if (v != NULL)
+        if (v != NULL) {
+            if (v == a)
+                return this;
             v->Removereference(reference + 1);
+        }
         values[k] = a;
         a->Addreference(investigate);
         return this;
@@ -380,8 +379,11 @@ class Tamgumap : public TamguObjectLockContainer {
     inline void pushing(string& k, Tamgu* a) {
         locking();
         Tamgu* v = values[k];
-        if (v != NULL)
+        if (v != NULL) {
+            if (v == a)
+                return;
             v->Removereference(reference + 1);
+        }
         a = a->Atom();
         values[k] = a;
         a->Addreference(investigate,reference + 1);
@@ -396,8 +398,11 @@ class Tamgumap : public TamguObjectLockContainer {
     Tamgu* Push(string k, Tamgu* a) {
         locking();
         Tamgu* v = values[k];
-        if (v != NULL)
+        if (v != NULL) {
+            if (v == a)
+                return this;
             v->Removereference(reference + 1);
+        }
         a = a->Atom();
         values[k] = a;
         a->Addreference(investigate,reference + 1);
@@ -784,6 +789,10 @@ class Tamgumapbuff : public Tamgumap {
 
     bool Candelete() {
         return false;
+    }
+
+    Tamgu* anInstance(long i) {
+        return new Tamgumapbuff(i);
     }
 
     Exporting void Resetreference(short r);

@@ -792,6 +792,10 @@ template <class Z> class basebin_hash {
         return (i >= 0 && i < tsize && (indexes[i] & binval64[r]));
     }
 
+    bool isEmpty() {
+        return (base == -1);
+    }
+    
     bool empty() {
         for (long i = 0; i < tsize; i++) {
             if (indexes[i])
@@ -879,18 +883,20 @@ template <class Z> class basebin_hash {
 
     //nettoyage
     void clear() {
-        for (int16_t i = 0; i < tsize; i++) {
-            if (table[i] != NULL)
-                delete[] table[i];
+        if (base != -1) {
+            for (int16_t i = 0; i < tsize; i++) {
+                if (table[i] != NULL)
+                    delete[] table[i];
+            }
+            base = -1;
+            tsize = 1;
+            delete[] table;
+            delete[] indexes;
+            table = new Z*[tsize];
+            indexes = new uint64_t[tsize];
+            table[0] = NULL;
+            indexes[0] = 0;
         }
-        base = -1;
-        tsize = 1;
-        delete[] table;
-        delete[] indexes;
-        table = new Z*[tsize];
-        indexes = new uint64_t[tsize];
-        table[0] = NULL;
-        indexes[0] = 0;
     }
 
     //We insert some new boxes before the position 0
@@ -1155,18 +1161,20 @@ public:
     
     //nettoyage
     void clear() {
-        for (int16_t i = 0; i < tsize; i++) {
-            if (table[i] != NULL)
-                delete[] table[i];
+        if (base != -1) {
+            for (int16_t i = 0; i < tsize; i++) {
+                if (table[i] != NULL)
+                    delete[] table[i];
+            }
+            base = -1;
+            tsize = 1;
+            delete[] table;
+            delete[] indexes;
+            table = new Z*[tsize];
+            indexes = new uint64_t[tsize];
+            table[0] = NULL;
+            indexes[0] = 0;
         }
-        base = -1;
-        tsize = 1;
-        delete[] table;
-        delete[] indexes;
-        table = new Z*[tsize];
-        indexes = new uint64_t[tsize];
-        table[0] = NULL;
-        indexes[0] = 0;
     }
 
     //We insert some new boxes before the position 0

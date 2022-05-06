@@ -19,8 +19,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<frameinstanceMethod>  Tamguframeseeder::methods;
-Exporting hmap<string, string> Tamguframeseeder::infomethods;
-Exporting basebin_hash<unsigned long> Tamguframeseeder::exported;
 
 Exporting short Tamguframeseeder::idtype = 0;
 
@@ -28,23 +26,29 @@ Exporting short Tamguframeseeder::idtype = 0;
 void Tamguframeseeder::AddMethod(TamguGlobal* global, string name, frameinstanceMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
+
 void Tamguframeseeder::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamguframeseeder::InitialisationModule(global,"");
 }
 
 
    bool Tamguframeseeder::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
-    Tamguframeseeder::idtype = global->Getid("frameinstance");
+    Tamguframeseeder::idtype = a_frameinstance;
     Tamguframeseeder::AddMethod(global, "_initial", &Tamguframeinstance::MethodInitial, P_NONE, "_initial(): Initialization of a frame.");
     Tamguframeseeder::AddMethod(global, "type", &Tamguframeinstance::MethodType, P_NONE, "type(): Return the frame's type.");
 

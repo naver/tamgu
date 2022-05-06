@@ -35,8 +35,8 @@ class Tamguchrono : public TamguObject {
     //this is a static object, which is common to everyone
     //We associate the method pointers with their names in the linkedmethods map
     static Exchanging basebin_hash<chronoMethod> methods;
-    static Exchanging hmap<string, string> infomethods;
-    static Exchanging basebin_hash<unsigned long> exported;
+    
+    
 
     static Exchanging short idtype;
 
@@ -115,9 +115,7 @@ class Tamguchrono : public TamguObject {
     //Declaration
     //All our methods must have been declared in tamguexportedmethods... See MethodInitialization below
     bool isDeclared(short n) {
-        if (exported.find(n) != exported.end())
-            return true;
-        return false;
+        return methods.check(n);
     }
 
     Tamgu* Newinstance(short, Tamgu* f = NULL) {
@@ -132,17 +130,14 @@ class Tamguchrono : public TamguObject {
     static bool InitialisationModule(TamguGlobal* g, string version);
 
 	void Methods(Tamgu* v) {
+            for (const auto& it : globalTamgu->infomethods[idtype])
+                 v->storevalue(it.first);
+      }
 
-		for (const auto& it : infomethods)
-			v->storevalue(it.first);
-	}
-
-
-	string Info(string n) {
-
-		if (infomethods.find(n) != infomethods.end())
-			return infomethods[n];
-		return "Unknown method";
+      string Info(string n) {
+            if (globalTamgu->infomethods[idtype].find(n) !=  globalTamgu->infomethods[idtype].end())
+              return globalTamgu->infomethods[idtype][n];
+             return "Unknown method";
 	}
 
 

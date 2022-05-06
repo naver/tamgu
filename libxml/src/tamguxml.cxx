@@ -56,24 +56,32 @@ void xmlnodeclear(xmlNodePtr n) {
 
 //We need to declare once again our local definitions.
 basebin_hash<xmlMethod>  Tamguxml::methods;
-hmap<string, string> Tamguxml::infomethods;
-basebin_hash<unsigned long> Tamguxml::exported;
 
 short Tamguxml::idtype = 0;
 
 
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamguxml::AddMethod(TamguGlobal* global, string name, xmlMethod func, unsigned long arity, string infos) {
-	short idname = global->Getid(name);
-	methods[idname] = func;
-	infomethods[name] = infos;
-	exported[idname] = arity;
+    short idname = global->Getid(name);
+    methods[idname] = func;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
+}
+
+
+void Tamguxml::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
+    Tamguxml::InitialisationModule(global,"");
 }
 
 bool Tamguxml::InitialisationModule(TamguGlobal* global, string version) {
 	methods.clear();
-	infomethods.clear();
-	exported.clear();
+	
+	
 
 	Tamguxml::idtype = global->Getid("xml");
 
@@ -99,7 +107,7 @@ bool Tamguxml::InitialisationModule(TamguGlobal* global, string version) {
 
 
 	global->newInstance[Tamguxml::idtype] = new Tamguxml(global, NULL);
-	global->RecordMethods(Tamguxml::idtype,Tamguxml::exported);
+	global->RecordCompatibilities(Tamguxml::idtype);
 
 	return true;
 }

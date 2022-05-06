@@ -42,8 +42,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<stringMethod>  Tamgustring::methods;
-Exporting hmap<string, string> Tamgustring::infomethods;
-Exporting basebin_hash<unsigned long> Tamgustring::exported;
 
 Exporting short Tamgustring::idtype = 0;
 
@@ -59,26 +57,34 @@ Exporting long GetBlankSize();
 void Tamgustring::AddMethod(TamguGlobal* global, string name, stringMethod func, unsigned long arity, string infos, short returntype) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
-    
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
+    global->RecordArity(a_stringthrough, idname, arity);
+    global->RecordArity(a_sloop, idname, arity);
+
     if (returntype != a_null)
         global->returntypes[idname] = returntype;
 }
 
 
 
-    void Tamgustring::Setidtype(TamguGlobal* global) {
+
+void Tamgustring::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgustring::InitialisationModule(global,"");
 }
 
 
    bool Tamgustring::InitialisationModule(TamguGlobal* global, string version) {
        methods.clear();
-       infomethods.clear();
-       exported.clear();
        
-       Tamgustring::idtype = global->Getid("string");
+       
+       
+       Tamgustring::idtype = a_string;
        
        Tamgustring::AddMethod(global, "succ", &Tamgustring::MethodSucc, P_NONE, "succ(): Return the successor of a character.", a_string);
        Tamgustring::AddMethod(global, "pred", &Tamgustring::MethodPred, P_NONE, "pred(): Return the predecessor of a byte.", a_string);
@@ -92,7 +98,7 @@ void Tamgustring::AddMethod(TamguGlobal* global, string name, stringMethod func,
        Tamgustring::AddMethod(global, "base", &Tamgustring::MethodBase, P_ONE | P_TWO, "base(int b, bool toconvert=true): Return the value corresponding to the string in base b", a_null);
        Tamgustring::AddMethod(global, "parse", &Tamgustring::MethodParse, P_NONE | P_TWO, "parse(): Parse a string as a piece of code and returns the evaluation as a vector.", a_vector);
        Tamgustring::AddMethod(global, "sizeb", &Tamgustring::MethodSizeb, P_NONE, "sizeb(): Return the size in bytes of the string", a_int);
-       Tamgustring::AddMethod(global, "parenthetics", &Tamgustring::MethodParenthetic, P_NONE | P_TWO | P_THREE | P_FOUR | P_FIVE | P_SIX, "lisp(): lisp(string o,string c,bool comma,bool separator,bool concatenate): Parse a string as a parenthetic expressions, o is '(' and c is ')' by default. If 'comma' is true, then the decimal character is ',' otherwise it is '.'. If 'separator' is true then '1,000' is accepted as a number. If 'concatenate' is true then '3a' is a valid token", a_null);
+       Tamgustring::AddMethod(global, "parenthetics", &Tamgustring::MethodParenthetic, P_NONE | P_TWO | P_THREE | P_FOUR | P_FIVE | P_SIX, "parenthetics(): parenthetics(string o,string c,bool comma,bool separator,bool concatenate): Parse a string as a parenthetic expressions, o is '(' and c is ')' by default. If 'comma' is true, then the decimal character is ',' otherwise it is '.'. If 'separator' is true then '1,000' is accepted as a number. If 'concatenate' is true then '3a' is a valid token", a_null);
        Tamgustring::AddMethod(global, "tags", &Tamgustring::MethodTags, P_TWO | P_THREE | P_FOUR | P_FIVE | P_SIX, "tags(string o,string c,bool comma,bool separator,bool concatenate, svector rules): Parse a string as a parenthetic expressions, where o and c are string (not characters). If 'comma' is true, then the decimal character is ',' otherwise it is '.'. If 'separator' is true then '1,000' is accepted as a number. If 'concatenate' is true then '3a' is a valid token", a_null);
        Tamgustring::AddMethod(global, "scan", &Tamgustring::MethodScan, P_ONE | P_TWO | P_THREE | P_FOUR, "scan(sub, string sep, bool immediate,string remaining): Find the substrings matching sub, with TRE. 'sep' is a separator between strings. 'immediate' always combines with separator, it means that the matching should start at the first character of the string, default is false. 'remaining' also combines with 'separator', it returns the rest of the string after the section that matched.", a_null);
        Tamgustring::AddMethod(global, "getstd", &Tamgustring::MethodGetstd, P_ONE, "getstd(bool): catch or release the standard output", a_null);
@@ -175,9 +181,9 @@ void Tamgustring::AddMethod(TamguGlobal* global, string name, stringMethod func,
        if (version != "") {
            global->newInstance[Tamgustring::idtype] = new Tamgustring("", global);
            global->newInstance[a_stringthrough] = global->newInstance[Tamgustring::idtype];
-           global->RecordMethods(Tamgustring::idtype, Tamgustring::exported);
-           global->RecordMethods(a_stringthrough, Tamgustring::exported);
-           global->RecordMethods(a_sloop, Tamgustring::exported);
+           global->RecordCompatibilities(Tamgustring::idtype);
+           global->RecordCompatibilities(a_stringthrough);
+           global->RecordCompatibilities(a_sloop);
            
            
            //Encoding table name...
@@ -2729,8 +2735,6 @@ Tamgu* TamguLoopString::xorset(Tamgu* a, bool autoself) {
 //-------------------------------------------------------------------------------------------
 //We need to declare once again our local definitions.
 Exporting basebin_hash<a_stringMethod>  Tamgua_string::methods;
-Exporting hmap<string, string> Tamgua_string::infomethods;
-Exporting basebin_hash<unsigned long> Tamgua_string::exported;
 
 Exporting short Tamgua_string::idtype = 0;
 
@@ -2739,17 +2743,22 @@ Exporting short Tamgua_string::idtype = 0;
 void Tamgua_string::AddMethod(TamguGlobal* global, string name, a_stringMethod func, unsigned long arity, string infos, short returntype) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
-    
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
+
     if (returntype != a_null)
         global->returntypes[idname] = returntype;
 }
 
+
 bool Tamgua_string::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
     
     Tamgua_string::idtype = global->Getid("a_string");
     
@@ -2823,7 +2832,7 @@ bool Tamgua_string::InitialisationModule(TamguGlobal* global, string version) {
 
     if (version != "") {
         global->newInstance[Tamgua_string::idtype] = new Tamgua_string("", global);
-        global->RecordMethods(Tamgua_string::idtype, Tamgua_string::exported);
+        global->RecordCompatibilities(Tamgua_string::idtype);
     }
 
     return true;

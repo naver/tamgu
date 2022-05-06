@@ -29,8 +29,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<tableMethod>  Tamgutable::methods;
-Exporting hmap<string, string> Tamgutable::infomethods;
-Exporting basebin_hash<unsigned long> Tamgutable::exported;
 
 Exporting short Tamgutable::idtype = 0;
 
@@ -38,24 +36,30 @@ Exporting short Tamgutable::idtype = 0;
 void Tamgutable::AddMethod(TamguGlobal* global, string name, tableMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
+
     void Tamgutable::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgutable::InitialisationModule(global,"");
 }
 
 
    bool Tamgutable::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
 
-    Tamgutable::idtype = global->Getid("table");
+    Tamgutable::idtype = a_table;
 
        Tamgutable::AddMethod(global, "min", &Tamgutable::MethodMin, P_NONE, "min(): returns the min in the vector.");
        Tamgutable::AddMethod(global, "max", &Tamgutable::MethodMax, P_NONE, "max(): returns the max in the vector.");
@@ -85,7 +89,7 @@ void Tamgutable::AddMethod(TamguGlobal* global, string name, tableMethod func, u
 
     if (version != "") {
         global->newInstance[Tamgutable::idtype] = new Tamgutable(global);
-        global->RecordMethods(Tamgutable::idtype, Tamgutable::exported);
+        global->RecordCompatibilities(Tamgutable::idtype);
     }
 
     return true;
@@ -983,7 +987,7 @@ Exporting Tamgu*  Tamgutable::Put(Tamgu* idx, Tamgu* value, short idthread) {
         if (value == this)
             return aTRUE;
 
-        if (value == aNULL) {
+        if (value->isNULL()) {
             Clear();
             return aTRUE;
         }

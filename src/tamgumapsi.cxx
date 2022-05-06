@@ -25,8 +25,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<mapsiMethod>  Tamgumapsi::methods;
-Exporting hmap<string, string> Tamgumapsi::infomethods;
-Exporting basebin_hash<unsigned long> Tamgumapsi::exported;
 
 Exporting short Tamgumapsi::idtype = 0;
 
@@ -35,27 +33,33 @@ Exporting short Tamgumapsi::idtype = 0;
 void Tamgumapsi::AddMethod(TamguGlobal* global, string name,mapsiMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
+
 void Tamgumapsi::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgumapsi::InitialisationModule(global,"");
 }
 
 
 bool Tamgumapsi::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
     
     
     Tamgumapsi::idtype = global->Getid("mapsi");
     
     
-    global->minimal_indexes[Tamgumapsi::idtype] = true;
+    
 
     Tamgumapsi::AddMethod(global, "clear", &Tamgumapsi::MethodClear, P_NONE, "clear(): clear the container.");
     
@@ -75,10 +79,12 @@ bool Tamgumapsi::InitialisationModule(TamguGlobal* global, string version) {
     Tamgumapsi::AddMethod(global, "pop", &Tamgumapsi::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamgumapsi::AddMethod(global, "merge", &Tamgumapsi::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
     
-    if (version != "") {
+    if (version != "") {        
+    global->minimal_indexes[Tamgumapsi::idtype] = true;
+
         global->newInstance[Tamgumapsi::idtype] = new Tamgumapsi(global);
         
-        global->RecordMethods(Tamgumapsi::idtype, Tamgumapsi::exported);
+        global->RecordCompatibilities(Tamgumapsi::idtype);
     }
     
     return true;

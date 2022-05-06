@@ -20,8 +20,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<dateMethod>  Tamgudate::methods;
-Exporting hmap<string, string> Tamgudate::infomethods;
-Exporting basebin_hash<unsigned long> Tamgudate::exported;
 
 Exporting short Tamgudate::idtype = 0;
 
@@ -30,21 +28,27 @@ Exporting short Tamgudate::idtype = 0;
 void Tamgudate::AddMethod(TamguGlobal* global, string name, dateMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
-    void Tamgudate::Setidtype(TamguGlobal* global) {
+
+void Tamgudate::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgudate::InitialisationModule(global,"");
 }
 
 
    bool Tamgudate::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
     Tamgudate::idtype = global->Getid("date");
 
@@ -64,7 +68,7 @@ void Tamgudate::AddMethod(TamguGlobal* global, string name, dateMethod func, uns
 
     if (version != "") {
         global->newInstance[Tamgudate::idtype] = new Tamgudate(global);
-        global->RecordMethods(Tamgudate::idtype,Tamgudate::exported);
+        global->RecordCompatibilities(Tamgudate::idtype);
     }
 
     return true;

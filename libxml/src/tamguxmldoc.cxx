@@ -130,8 +130,6 @@ static void XmlCleaningDoc(xmlDocPtr dx) {
 
 //We need to declare once again our local definitions.
 basebin_hash<xmldocMethod>  Tamguxmldoc::methods;
-hmap<string, string> Tamguxmldoc::infomethods;
-basebin_hash<unsigned long> Tamguxmldoc::exported;
 
 short Tamguxmldoc::idtype = 0;
 
@@ -154,16 +152,26 @@ extern "C" {
 
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamguxmldoc::AddMethod(TamguGlobal* global, string name, xmldocMethod func, unsigned long arity, string infos) {
-	short idname = global->Getid(name);
-	methods[idname] = func;
-	infomethods[name] = infos;
-	exported[idname] = arity;
+    short idname = global->Getid(name);
+    methods[idname] = func;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
+}
+
+
+void Tamguxmldoc::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
+    Tamguxmldoc::InitialisationModule(global,"");
 }
 
 bool Tamguxmldoc::InitialisationModule(TamguGlobal* global, string version) {
 	methods.clear();
-	infomethods.clear();
-	exported.clear();
+	
+	
 
 	Tamguxmldoc::idtype = global->Getid("xmldoc");
 
@@ -183,7 +191,7 @@ bool Tamguxmldoc::InitialisationModule(TamguGlobal* global, string version) {
 
 
 	global->newInstance[Tamguxmldoc::idtype] = new Tamguxmldoc(global, NULL);
-	global->RecordMethods(Tamguxmldoc::idtype, Tamguxmldoc::exported);
+	global->RecordCompatibilities(Tamguxmldoc::idtype);
 
 	return true;
 }

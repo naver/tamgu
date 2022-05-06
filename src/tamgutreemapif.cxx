@@ -25,8 +25,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<treemapifMethod>  Tamgutreemapif::methods;
-Exporting hmap<string, string> Tamgutreemapif::infomethods;
-Exporting basebin_hash<unsigned long> Tamgutreemapif::exported;
 
 Exporting short Tamgutreemapif::idtype = 0;
 
@@ -35,27 +33,33 @@ Exporting short Tamgutreemapif::idtype = 0;
 void Tamgutreemapif::AddMethod(TamguGlobal* global, string name,treemapifMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
+
     void Tamgutreemapif::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgutreemapif::InitialisationModule(global,"");
 }
 
 
    bool Tamgutreemapif::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
     
     Tamgutreemapif::idtype = global->Getid("treemapif");
 
     
-    global->minimal_indexes[Tamgutreemapif::idtype] = true;
+    
 
     Tamgutreemapif::AddMethod(global, "clear", &Tamgutreemapif::MethodClear, P_NONE, "clear(): clear the container.");
     
@@ -75,10 +79,12 @@ void Tamgutreemapif::AddMethod(TamguGlobal* global, string name,treemapifMethod 
     Tamgutreemapif::AddMethod(global, "pop", &Tamgutreemapif::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamgutreemapif::AddMethod(global, "merge", &Tamgutreemapif::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
 
-    if (version != "") {
+    if (version != "") {        
+    global->minimal_indexes[Tamgutreemapif::idtype] = true;
+
         global->newInstance[Tamgutreemapif::idtype] = new Tamgutreemapif(global);
         
-        global->RecordMethods(Tamgutreemapif::idtype, Tamgutreemapif::exported);
+        global->RecordCompatibilities(Tamgutreemapif::idtype);
     }
 
     return true;

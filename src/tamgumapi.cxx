@@ -23,8 +23,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<mapiMethod>  Tamgumapi::methods;
-Exporting hmap<string, string> Tamgumapi::infomethods;
-Exporting basebin_hash<unsigned long> Tamgumapi::exported;
 
 Exporting short Tamgumapi::idtype = 0;
 
@@ -33,27 +31,33 @@ Exporting short Tamgumapi::idtype = 0;
 void Tamgumapi::AddMethod(TamguGlobal* global, string name, mapiMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
+
     void Tamgumapi::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgumapi::InitialisationModule(global,"");
 }
 
 
    bool Tamgumapi::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
 
     Tamgumapi::idtype = global->Getid("mapi");
 
     
-    global->minimal_indexes[Tamgumapi::idtype] = true;
+    
 
     Tamgumapi::AddMethod(global, "clear", &Tamgumapi::MethodClear, P_NONE, "clear(): clear the container.");
     
@@ -73,10 +77,12 @@ void Tamgumapi::AddMethod(TamguGlobal* global, string name, mapiMethod func, uns
     Tamgumapi::AddMethod(global, "pop", &Tamgumapi::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamgumapi::AddMethod(global, "merge", &Tamgumapi::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
 
-    if (version != "") {
+    if (version != "") {        
+    global->minimal_indexes[Tamgumapi::idtype] = true;
+
         global->newInstance[Tamgumapi::idtype] = new Tamgumapi(global);
         
-        global->RecordMethods(Tamgumapi::idtype, Tamgumapi::exported);
+        global->RecordCompatibilities(Tamgumapi::idtype);
     }
 
     return true;
@@ -236,8 +242,11 @@ Exporting Tamgu* Tamgumapi::Push(Tamgu* k, Tamgu* v) {
     long s = k->Integer();
     
     k = values[s];
-    if (k != NULL)
+    if (k != NULL) {
+        if (k == v)
+            return this;
         k->Removereference(reference + 1);
+    }
 
     v = v->Atom();
     values[s] = v;

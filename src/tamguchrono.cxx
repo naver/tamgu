@@ -26,8 +26,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<chronoMethod>  Tamguchrono::methods;
-Exporting hmap<string, string> Tamguchrono::infomethods;
-Exporting basebin_hash<unsigned long> Tamguchrono::exported;
 
 Exporting short Tamguchrono::idtype = 0;
 
@@ -36,21 +34,27 @@ Exporting short Tamguchrono::idtype = 0;
 void Tamguchrono::AddMethod(TamguGlobal* global, string name, chronoMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
-    void Tamguchrono::Setidtype(TamguGlobal* global) {
+
+void Tamguchrono::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamguchrono::InitialisationModule(global,"");
 }
 
 
    bool Tamguchrono::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
     Tamguchrono::idtype = global->Getid("chrono");
 
@@ -62,7 +66,7 @@ void Tamguchrono::AddMethod(TamguGlobal* global, string name, chronoMethod func,
 
 	if (version != "") {
 		global->newInstance[Tamguchrono::idtype] = new Tamguchrono(global);
-		global->RecordMethods(Tamguchrono::idtype, Tamguchrono::exported);
+		global->RecordCompatibilities(Tamguchrono::idtype);
 
 		Tamgu* a = new TamguSystemVariable(global, new TamguConstInt(1), global->Createid("c_second"), a_float);
 		a = new TamguSystemVariable(global, new TamguConstInt(2), global->Createid("c_millisecond"), a_float);

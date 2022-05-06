@@ -104,8 +104,6 @@ static bool validstream(int nb) {
 //----------------------------------------------------------------------------------------------
 //We need to declare once again our local definitions.
 Exporting basebin_hash<socketMethod>  Tamgusocket::methods;
-Exporting hmap<string, string> Tamgusocket::infomethods;
-Exporting basebin_hash<unsigned long> Tamgusocket::exported;
 
 Exporting short Tamgusocket::idtype = 0;
 
@@ -114,9 +112,14 @@ Exporting short Tamgusocket::idtype = 0;
 void Tamgusocket::AddMethod(TamguGlobal* global, string name, socketMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
+
 
 #ifdef WIN32
 static WSADATA WSAData;
@@ -125,15 +128,16 @@ static bool wsainit = true;
 
 
 
-    void Tamgusocket::Setidtype(TamguGlobal* global) {
+void Tamgusocket::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgusocket::InitialisationModule(global,"");
 }
 
 
    bool Tamgusocket::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
     sockets.clear();
     isockets.clear();
 
@@ -158,7 +162,7 @@ static bool wsainit = true;
     s->root = true;
     if (version != "") {
         global->newInstance[Tamgusocket::idtype] = s;
-        global->RecordMethods(Tamgusocket::idtype,Tamgusocket::exported);
+        global->RecordCompatibilities(Tamgusocket::idtype);
     }
 
     #ifdef WIN32

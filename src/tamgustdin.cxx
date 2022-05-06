@@ -21,8 +21,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<stdinMethod>  Tamgustdin::methods;
-Exporting hmap<string, string> Tamgustdin::infomethods;
-Exporting basebin_hash<unsigned long> Tamgustdin::exported;
 
 Exporting short Tamgustdin::idtype = 0;
 
@@ -32,21 +30,27 @@ Exporting short Tamgustdin::idtype = 0;
 void Tamgustdin::AddMethod(TamguGlobal* global, string name, stdinMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
-    void Tamgustdin::Setidtype(TamguGlobal* global) {
+
+void Tamgustdin::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgustdin::InitialisationModule(global,"");
 }
 
 
    bool Tamgustdin::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
     Tamgustdin::idtype = global->Getid("_stdin");
 
@@ -57,7 +61,7 @@ void Tamgustdin::AddMethod(TamguGlobal* global, string name, stdinMethod func, u
 
 	if (version != "") {
 		global->newInstance[Tamgustdin::idtype] = new Tamgustdin(global);
-		global->RecordMethods(Tamgustdin::idtype, Tamgustdin::exported);
+		global->RecordCompatibilities(Tamgustdin::idtype);
 
 		Tamgu* a = new TamguSystemVariable(global, new Tamgustdin(global), global->Createid("stdin"), Tamgustdin::idtype);
 	}

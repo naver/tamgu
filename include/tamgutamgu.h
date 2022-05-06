@@ -34,8 +34,8 @@ class Tamgutamgu : public TamguObject {
     //this is a static object, which is common to everyone
     //We associate the method pointers with their names in the linkedmethods map
     static Exchanging basebin_hash<tamguMethod> methods;
-    static Exchanging hmap<string, string> infomethods;
-    static Exchanging basebin_hash<unsigned long> exported;
+    
+    
 
 	static Exchanging hmap<string, Tamgutamgu*> recorded;
 
@@ -53,16 +53,14 @@ class Tamgutamgu : public TamguObject {
     Tamgutamgu(string fn, TamguCode* a, TamguGlobal* g);
 
 	void Methods(Tamgu* v) {
+            for (const auto& it : globalTamgu->infomethods[idtype])
+                 v->storevalue(it.first);
+      }
 
-		for (const auto& it : infomethods)
-			v->storevalue(it.first);
-	}
-
-	string Info(string n) {
-
-		if (infomethods.find(n) != infomethods.end())
-			return infomethods[n];
-		return "Unknown method";
+      string Info(string n) {
+            if (globalTamgu->infomethods[idtype].find(n) !=  globalTamgu->infomethods[idtype].end())
+              return globalTamgu->infomethods[idtype][n];
+             return "Unknown method";
 	}
 
     //----------------------------------------------------------------------------------------------------------------------

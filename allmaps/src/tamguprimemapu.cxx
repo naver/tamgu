@@ -22,8 +22,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<primemapuMethod>  Tamguprimemapu::methods;
-Exporting hmap<string, string> Tamguprimemapu::infomethods;
-Exporting basebin_hash<unsigned long> Tamguprimemapu::exported;
 
 Exporting short Tamguprimemapu::idtype = 0;
 
@@ -32,14 +30,24 @@ Exporting short Tamguprimemapu::idtype = 0;
 void Tamguprimemapu::AddMethod(TamguGlobal* global, string name, primemapuMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
+}
+
+
+void Tamguprimemapu::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
+    Tamguprimemapu::InitialisationModule(global,"");
 }
 
 bool Tamguprimemapu::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
 
     Tamguprimemapu::idtype = global->Getid("primemapu");
@@ -66,9 +74,9 @@ bool Tamguprimemapu::InitialisationModule(TamguGlobal* global, string version) {
     #ifdef OLDBACKCOMP
     global->newInstance[global->Getid("uprimemap")] = new Tamguprimemapu(global);
 
-    global->RecordMethods(global->Getid("uprimemap"), Tamguprimemapu::exported);
+    global->RecordCompatibilities(global->Getid("uprimemap"));
     #endif
-    global->RecordMethods(Tamguprimemapu::idtype, Tamguprimemapu::exported);
+    global->RecordCompatibilities(Tamguprimemapu::idtype);
 
     return true;
 }

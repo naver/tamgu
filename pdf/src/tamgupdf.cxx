@@ -34,8 +34,6 @@ using std::ios;
 
     //We need to declare once again our local definitions.
 basebin_hash<pdfMethod> Tamgupdf::methods;
-hmap<string, string> Tamgupdf::infomethods;
-basebin_hash<unsigned long> Tamgupdf::exported;
 
 short Tamgupdf::idtype = 0;
 
@@ -58,19 +56,25 @@ Exporting bool tamgupdf_InitialisationModule(TamguGlobal* global, string version
 void Tamgupdf::AddMethod(TamguGlobal* global, string name, pdfMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
+
 void Tamgupdf::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgupdf::idtype = global->Getid("pdf");
 }
 
 
 bool Tamgupdf::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
     
         //Each new object has a specific name, which will help recognize it in the code that will exploit pdf...
     Tamgupdf::idtype = global->Getid("pdf");
@@ -106,7 +110,7 @@ bool Tamgupdf::InitialisationModule(TamguGlobal* global, string version) {
     
         //We need this code, in order to create new instances of our pdf object... DO NOT ALTER
     global->newInstance[Tamgupdf::idtype] = new Tamgupdf(global);
-    global->RecordMethods(Tamgupdf::idtype,Tamgupdf::exported);
+    global->RecordCompatibilities(Tamgupdf::idtype);
     
     return true;
 }

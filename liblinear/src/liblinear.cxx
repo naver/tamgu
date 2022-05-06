@@ -30,9 +30,7 @@
 static map<string, int> solvers;
 
 //We need to declare once again our local definitions.
-hmap<unsigned short, liblinearMethod>  Tamguliblinear::methods;
-hmap<string, string> Tamguliblinear::infomethods;
-basebin_hash<unsigned long> Tamguliblinear::exported;
+basebin_hash<liblinearMethod>  Tamguliblinear::methods;
 
 short Tamguliblinear::idtype = 0;
 
@@ -82,16 +80,26 @@ extern "C" {
 
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamguliblinear::AddMethod(TamguGlobal* global, string name, liblinearMethod func, unsigned long arity, string infos) {
-	short idname = global->Getid(name);
-	methods[idname] = func;
-	infomethods[name] = infos;
-	exported[idname] = arity;
+    short idname = global->Getid(name);
+    methods[idname] = func;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
+}
+
+
+void Tamguliblinear::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
+    Tamguliblinear::InitialisationModule(global,"");
 }
 
 bool Tamguliblinear::InitialisationModule(TamguGlobal* global, string version) {
 	methods.clear();
-	infomethods.clear();
-	exported.clear();
+	
+	
 
 	Tamguliblinear::idtype = global->Getid("liblinear");
 
@@ -116,7 +124,7 @@ bool Tamguliblinear::InitialisationModule(TamguGlobal* global, string version) {
 	Tamguliblinear::AddMethod(global, "stclean", &Tamguliblinear::MethodCleaning, P_NONE, "stclean(): Cleaning internal structures (libshorttext).");
 
 	global->newInstance[Tamguliblinear::idtype] = new Tamguliblinear(global);
-	global->RecordMethods(Tamguliblinear::idtype,Tamguliblinear::exported);
+	global->RecordCompatibilities(Tamguliblinear::idtype);
 	
 	return true;
 }

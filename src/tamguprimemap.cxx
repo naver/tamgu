@@ -23,8 +23,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<primemapMethod>  Tamguprimemap::methods;
-Exporting hmap<string, string> Tamguprimemap::infomethods;
-Exporting basebin_hash<unsigned long> Tamguprimemap::exported;
 
 Exporting short Tamguprimemap::idtype = 0;
 
@@ -33,27 +31,33 @@ Exporting short Tamguprimemap::idtype = 0;
 void Tamguprimemap::AddMethod(TamguGlobal* global, string name, primemapMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
+
 void Tamguprimemap::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamguprimemap::InitialisationModule(global,"");
 }
 
 
 bool Tamguprimemap::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
     
     
-    Tamguprimemap::idtype = global->Getid("primemap");
     
     
-    global->minimal_indexes[Tamguprimemap::idtype] = true;
+    Tamguprimemap::idtype = a_primemap;
+    
+    
+    
 
     Tamguprimemap::AddMethod(global, "clear", &Tamguprimemap::MethodClear, P_NONE, "clear(): clear the container.");
     
@@ -73,10 +77,12 @@ bool Tamguprimemap::InitialisationModule(TamguGlobal* global, string version) {
     Tamguprimemap::AddMethod(global, "pop", &Tamguprimemap::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamguprimemap::AddMethod(global, "merge", &Tamguprimemap::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
     
-    if (version != "") {
+    if (version != "") {        
+    global->minimal_indexes[Tamguprimemap::idtype] = true;
+
         global->newInstance[Tamguprimemap::idtype] = new Tamguprimemap(global);
         
-        global->RecordMethods(Tamguprimemap::idtype, Tamguprimemap::exported);
+        global->RecordCompatibilities(Tamguprimemap::idtype);
     }
     
     return true;

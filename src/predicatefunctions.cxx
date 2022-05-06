@@ -548,6 +548,21 @@ Tamgu* ProcPredicateDump(Tamgu* context, short idthread, TamguCall* callfunc) {
     return kvect;
 }
 
+void RemoveAPredicate(TamguPredicate* p, short idthread) {
+    string keyfirst;
+    p->Stringpredicatekey(keyfirst);
+    if (keyfirst != "") {
+        vector<TamguPredicate*>& vect = globalTamgu->threads[idthread].knowledgebase_on_first[keyfirst];
+        for (size_t i = 0; i < vect.size(); i++) {
+            if (vect[i] == p) {
+                vect.erase(vect.begin() + i);
+                return;
+            }
+        }
+    }
+    p->Resetreference();
+}
+
 Tamgu* ProcRetractAll(Tamgu* context, short idthread, TamguCall* callfunc) {
     //We display all predicates or one...
     hmap<short, vector<TamguPredicate*> >& knowledge = globalTamgu->threads[idthread].knowledgebase;
@@ -561,15 +576,18 @@ Tamgu* ProcRetractAll(Tamgu* context, short idthread, TamguCall* callfunc) {
             vect.clear();
         }
         globalTamgu->threads[idthread].knowledgebase.clear();
+        globalTamgu->threads[idthread].knowledgebase_on_first.clear();
         return aTRUE;
     }
+    
     string label = callfunc->Evaluate(0, context, idthread)->String();
     short name = globalTamgu->Getid(label);
     if (knowledge.find(name) == knowledge.end())
         return aFALSE;
     vector<TamguPredicate*>& vect = knowledge[name];
+    string keyfirst;
     for (size_t i = 0; i < vect.size(); i++)
-        vect[i]->Resetreference();
+        RemoveAPredicate(vect[i], idthread);
     vect.clear();
     return aTRUE;
 }

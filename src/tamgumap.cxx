@@ -23,8 +23,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<mapMethod>  Tamgumap::methods;
-Exporting hmap<string, string> Tamgumap::infomethods;
-Exporting basebin_hash<unsigned long> Tamgumap::exported;
 
 Exporting short Tamgumap::idtype = a_map;
 
@@ -448,24 +446,31 @@ Tamgu* TamguConstmap::Eval(Tamgu* index, Tamgu* value, short idthread) {
 void Tamgumap::AddMethod(TamguGlobal* global, string name, mapMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
+    global->RecordArity(a_constmap, idname, arity);
 }
 
 
 
+
     void Tamgumap::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgumap::InitialisationModule(global,"");
 }
 
 
 bool Tamgumap::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
     
     
-    Tamgumap::idtype = global->Getid("map");
+    
+    
+    Tamgumap::idtype = a_map;
     
     Tamgumap::AddMethod(global, "clear", &Tamgumap::MethodClear, P_NONE, "clear(): clear the container.");
     Tamgumap::AddMethod(global, "read", &Tamgumap::MethodRead, P_ONE, "read(string path): Read the content of a file into the container.");
@@ -494,15 +499,17 @@ bool Tamgumap::InitialisationModule(TamguGlobal* global, string version) {
     Tamgumap::AddMethod(global, "pop", &Tamgumap::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamgumap::AddMethod(global, "merge", &Tamgumap::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
    
-    global->minimal_indexes[Tamgumap::idtype] = true;
     
-    if (version != "") {
+    
+    if (version != "") {        
+    global->minimal_indexes[Tamgumap::idtype] = true;
+
         global->newInstance[Tamgumap::idtype] = new Tamgumap(global);
         
-        global->RecordMethods(Tamgumap::idtype, Tamgumap::exported);
+        global->RecordCompatibilities(Tamgumap::idtype);
         
         global->newInstance[a_constmap] = new TamguConstmap(global);
-        global->RecordMethods(a_constmap, Tamgumap::exported);
+        global->RecordCompatibilities(a_constmap);
     }
     
     return true;
@@ -725,8 +732,11 @@ Exporting Tamgu* Tamgumap::Push(Tamgu* k, Tamgu* v) {
     string s = k->String();
     
     k = values[s];
-    if (k != NULL)
+    if (k != NULL) {
+        if (k == v)
+            return this;
         k->Removereference(reference + 1);
+    }
 
     v = v->Atom();
     values[s] = v;

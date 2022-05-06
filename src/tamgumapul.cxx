@@ -25,8 +25,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<mapulMethod>  Tamgumapul::methods;
-Exporting hmap<string, string> Tamgumapul::infomethods;
-Exporting basebin_hash<unsigned long> Tamgumapul::exported;
 
 Exporting short Tamgumapul::idtype = 0;
 
@@ -35,27 +33,33 @@ Exporting short Tamgumapul::idtype = 0;
 void Tamgumapul::AddMethod(TamguGlobal* global, string name,mapulMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
+
 void Tamgumapul::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgumapul::InitialisationModule(global,"");
 }
 
 
 bool Tamgumapul::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
     
     
     Tamgumapul::idtype = global->Getid("mapul");
     
     
-    global->minimal_indexes[Tamgumapul::idtype] = true;
+    
 
     Tamgumapul::AddMethod(global, "clear", &Tamgumapul::MethodClear, P_NONE, "clear(): clear the container.");
     
@@ -75,10 +79,12 @@ bool Tamgumapul::InitialisationModule(TamguGlobal* global, string version) {
     Tamgumapul::AddMethod(global, "pop", &Tamgumapul::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamgumapul::AddMethod(global, "merge", &Tamgumapul::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
     
-    if (version != "") {
+    if (version != "") {        
+    global->minimal_indexes[Tamgumapul::idtype] = true;
+
         global->newInstance[Tamgumapul::idtype] = new Tamgumapul(global);
         
-        global->RecordMethods(Tamgumapul::idtype, Tamgumapul::exported);
+        global->RecordCompatibilities(Tamgumapul::idtype);
     }
     
     return true;

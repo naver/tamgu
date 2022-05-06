@@ -22,8 +22,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<mapuMethod>  Tamgumapu::methods;
-Exporting hmap<string, string> Tamgumapu::infomethods;
-Exporting basebin_hash<unsigned long> Tamgumapu::exported;
 
 Exporting short Tamgumapu::idtype = 0;
 
@@ -32,27 +30,33 @@ Exporting short Tamgumapu::idtype = 0;
 void Tamgumapu::AddMethod(TamguGlobal* global, string name, mapuMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
+
 void Tamgumapu::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgumapu::InitialisationModule(global,"");
 }
 
 
 bool Tamgumapu::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
     
     
     Tamgumapu::idtype = global->Getid("mapu");
     
     
-    global->minimal_indexes[Tamgumapu::idtype] = true;
+    
 
     Tamgumapu::AddMethod(global, "clear", &Tamgumapu::MethodClear, P_NONE, "clear(): clear the container.");
     
@@ -72,10 +76,12 @@ bool Tamgumapu::InitialisationModule(TamguGlobal* global, string version) {
     Tamgumapu::AddMethod(global, "pop", &Tamgumapu::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamgumapu::AddMethod(global, "merge", &Tamgumapu::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
     
-    if (version != "") {
+    if (version != "") {        
+    global->minimal_indexes[Tamgumapu::idtype] = true;
+
         global->newInstance[Tamgumapu::idtype] = new Tamgumapu(global);
         
-        global->RecordMethods(Tamgumapu::idtype, Tamgumapu::exported);
+        global->RecordCompatibilities(Tamgumapu::idtype);
     }
     
     return true;
@@ -239,8 +245,11 @@ Exporting Tamgu* Tamgumapu::Push(Tamgu* k, Tamgu* v) {
     wstring s = k->UString();
     
     k = values[s];
-    if (k != NULL)
+    if (k != NULL) {
+        if (k == v)
+            return this;
         k->Removereference(reference + 1);
+    }
 
     v = v->Atom();
     values[s] = v;

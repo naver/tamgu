@@ -22,8 +22,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<longMethod>  Tamgulong::methods;
-Exporting hmap<string, string> Tamgulong::infomethods;
-Exporting basebin_hash<unsigned long> Tamgulong::exported;
 
 Exporting short Tamgulong::idtype = 0;
 
@@ -32,23 +30,31 @@ Exporting short Tamgulong::idtype = 0;
 void Tamgulong::AddMethod(TamguGlobal* global, string name, longMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
+    global->RecordArity(a_longthrough, idname, arity);
+    global->RecordArity(a_lloop, idname, arity);
 }
 
 
 
-    void Tamgulong::Setidtype(TamguGlobal* global) {
+
+void Tamgulong::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgulong::InitialisationModule(global,"");
 }
 
 
    bool Tamgulong::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
-    Tamgulong::idtype = global->Getid("long");
+    Tamgulong::idtype = a_long;
 
     Tamgulong::AddMethod(global, "chr", &Tamgulong::Methodchr, P_NONE, "chr(): return the character matching the unicode code");
     Tamgulong::AddMethod(global, "format", &Tamgulong::MethodFormat, P_ONE, "format(string pattern): Return a string matching the C pattern.");
@@ -99,9 +105,9 @@ void Tamgulong::AddMethod(TamguGlobal* global, string name, longMethod func, uns
     if (version != "") {
         global->newInstance[Tamgulong::idtype] = new Tamgulong(0, global);
         global->newInstance[a_longthrough] = global->newInstance[Tamgulong::idtype];
-        global->RecordMethods(Tamgulong::idtype,Tamgulong::exported);
-        global->RecordMethods(a_longthrough, Tamgulong::exported);
-        global->RecordMethods(a_lloop, Tamgulong::exported);
+        global->RecordCompatibilities(Tamgulong::idtype);
+        global->RecordCompatibilities(a_longthrough);
+        global->RecordCompatibilities(a_lloop);
     }
     
     return true;

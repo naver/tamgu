@@ -19,8 +19,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<fractionMethod>  Tamgufraction::methods;
-Exporting hmap<string, string> Tamgufraction::infomethods;
-Exporting basebin_hash<unsigned long> Tamgufraction::exported;
 
 Exporting short Tamgufraction::idtype = 0;
 
@@ -29,23 +27,29 @@ Exporting short Tamgufraction::idtype = 0;
 void Tamgufraction::AddMethod(TamguGlobal* global, string name, fractionMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
-    void Tamgufraction::Setidtype(TamguGlobal* global) {
+
+void Tamgufraction::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgufraction::InitialisationModule(global,"");
 }
 
 
    bool Tamgufraction::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
-    Tamgufraction::idtype = global->Getid("fraction");
+    Tamgufraction::idtype = a_fraction;
 
     Tamgufraction::AddMethod(global, "_initial", &Tamgufraction::MethodInitial, P_ONE | P_TWO, "_initial(n,d): initialize a fraction");
     Tamgufraction::AddMethod(global, "nd", &Tamgufraction::MethodInitial, P_ONE | P_TWO, "nd(n,d): initialize a fraction");
@@ -53,7 +57,7 @@ void Tamgufraction::AddMethod(TamguGlobal* global, string name, fractionMethod f
 
     if (version != "") {
         global->newInstance[Tamgufraction::idtype] = new Tamgufraction(global);
-        global->RecordMethods(Tamgufraction::idtype,Tamgufraction::exported);
+        global->RecordCompatibilities(Tamgufraction::idtype);
     }
 
     return true;

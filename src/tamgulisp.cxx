@@ -31,21 +31,24 @@
 
 //------------------------------------------------------------------------------------------------------------------
 Exporting basebin_hash<lispMethod>  Tamgulisp::methods;
-Exporting hmap<string, string> Tamgulisp::infomethods;
-Exporting basebin_hash<unsigned long> Tamgulisp::exported;
 
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamgulisp::AddMethod(TamguGlobal* global, string name, lispMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
+
 
 bool Tamgulisp::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
     Tamgulisp::idtype = a_lisp;
 
@@ -53,7 +56,7 @@ bool Tamgulisp::InitialisationModule(TamguGlobal* global, string version) {
     Tamgulisp::AddMethod(global, "load", &Tamgulisp::MethodLoad, P_ONE, "load(path): load a lisp from the file path.");
 
     global->newInstance[a_lisp] = new Tamgulispcode(global);
-    global->RecordMethods(a_lisp, Tamgulisp::exported);
+    global->RecordCompatibilities(a_lisp);
 
     global->lispactions[a_block] = P_ATLEASTTWO;
 

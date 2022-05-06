@@ -1571,8 +1571,7 @@ Exporting Tamgu* TamguCallMethod::Put(Tamgu* context, Tamgu* object, short idthr
 		call->arguments = arguments;
 	}
 
-	if (!object->Type())
-		object->Setidtype(globalTamgu);
+    object->Setidtype(globalTamgu);
 
 	object = object->CallMethod(name, context, idthread, call);
 
@@ -1619,8 +1618,7 @@ Exporting Tamgu* TamguCallMethod::Eval(Tamgu* context, Tamgu* object, short idth
 		call->arguments = arguments;
 	}
 
-	if (!object->Type())
-		object->Setidtype(globalTamgu);
+    object->Setidtype(globalTamgu);
 
 	object = object->CallMethod(name, context, idthread, call);
 
@@ -1653,11 +1651,8 @@ Exporting Tamgu* TamguCallMethod::Eval(Tamgu* context, Tamgu* object, short idth
 //This is either a call from another method or from a container object...
 Exporting Tamgu* TamguCallFromCall::Put(Tamgu* context, Tamgu* object, short idthread) {
         //We execute the method associated to an object...
+    object->Setidtype(globalTamgu);
     short t = object->Type();
-	if (!t) {
-		object->Setidtype(globalTamgu);
-		t = object->Type();
-	}
 
 	if (!globalTamgu->checkarity(t, name, arguments.size())) {
         if (!globalTamgu->frames.check(t)) {
@@ -1713,12 +1708,10 @@ Exporting Tamgu* TamguCallFromCall::Put(Tamgu* context, Tamgu* object, short idt
 }
 
 Exporting Tamgu* TamguCallFromCall::Eval(Tamgu* context, Tamgu* object, short idthread) {
-        //We execute the method associated to an object...
-    short t = object->Type();    
-	if (!t) {
-		object->Setidtype(globalTamgu);
-		t = object->Type();
-	}
+    //We execute the method associated to an object...
+    object->Setidtype(globalTamgu);
+    short t = object->Type();
+    
     if (!globalTamgu->checkarity(t, name, arguments.size())) {
         if (!globalTamgu->frames.check(t)) {
             string mess("'");

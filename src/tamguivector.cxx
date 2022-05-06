@@ -26,8 +26,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<ivectorMethod>  Tamguivector::methods;
-Exporting hmap<string, string> Tamguivector::infomethods;
-Exporting basebin_hash<unsigned long> Tamguivector::exported;
 
 Exporting short Tamguivector::idtype = 0;
 
@@ -36,24 +34,30 @@ Exporting short Tamguivector::idtype = 0;
 void Tamguivector::AddMethod(TamguGlobal* global, string name, ivectorMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
+
 void Tamguivector::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamguivector::InitialisationModule(global,"");
 }
 
 
 bool Tamguivector::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
     
     
-    Tamguivector::idtype = global->Getid("ivector");
+    
+    
+    Tamguivector::idtype = a_ivector;
     
     Tamguivector::AddMethod(global, "min", &Tamguivector::MethodMin, P_NONE, "min(): returns the min in the vector.");
     Tamguivector::AddMethod(global, "max", &Tamguivector::MethodMax, P_NONE, "max(): returns the max in the vector.");
@@ -84,13 +88,15 @@ bool Tamguivector::InitialisationModule(TamguGlobal* global, string version) {
     Tamguivector::AddMethod(global, "editdistance", &Tamguivector::MethodEditDistance, P_ONE, "editdistance(v): Compute the edit distance with vector 'v'.");
     Tamguivector::AddMethod(global, "insert", &Tamguivector::MethodInsert, P_TWO, "insert(int i,v): Insert v at position i.");
     
-    if (version != "") {
+    if (version != "") {        
+    global->minimal_indexes[Tamguivector::idtype] = true;
+
         global->newInstance[Tamguivector::idtype] = new Tamguivector(global);
-        global->RecordMethods(Tamguivector::idtype, Tamguivector::exported);
+        global->RecordCompatibilities(Tamguivector::idtype);
     }
     
     Tamgua_ivector::InitialisationModule(global, version);
-    global->minimal_indexes[Tamguivector::idtype] = true;
+    
     return true;
 }
 
@@ -1350,8 +1356,6 @@ Exporting Tamgu* Tamguivector::Loopin(TamguInstruction* ins, Tamgu* context, sho
 
     //We need to declare once again our local definitions.
 Exporting basebin_hash<a_ivectorMethod>  Tamgua_ivector::methods;
-Exporting hmap<string, string> Tamgua_ivector::infomethods;
-Exporting basebin_hash<unsigned long> Tamgua_ivector::exported;
 
 Exporting short Tamgua_ivector::idtype = 0;
 
@@ -1360,14 +1364,19 @@ Exporting short Tamgua_ivector::idtype = 0;
 void Tamgua_ivector::AddMethod(TamguGlobal* global, string name, a_ivectorMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
+
 
 bool Tamgua_ivector::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
     
     
     Tamgua_ivector::idtype = global->Getid("a_ivector");
@@ -1397,7 +1406,7 @@ bool Tamgua_ivector::InitialisationModule(TamguGlobal* global, string version) {
     
     if (version != "") {
         global->newInstance[Tamgua_ivector::idtype] = new Tamgua_ivector(global);
-        global->RecordMethods(Tamgua_ivector::idtype, Tamgua_ivector::exported);
+        global->RecordCompatibilities(Tamgua_ivector::idtype);
     }
     
     return true;

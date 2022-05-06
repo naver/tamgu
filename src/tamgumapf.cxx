@@ -23,8 +23,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<mapfMethod>  Tamgumapf::methods;
-Exporting hmap<string, string> Tamgumapf::infomethods;
-Exporting basebin_hash<unsigned long> Tamgumapf::exported;
 
 Exporting short Tamgumapf::idtype = 0;
 
@@ -33,27 +31,33 @@ Exporting short Tamgumapf::idtype = 0;
 void Tamgumapf::AddMethod(TamguGlobal* global, string name, mapfMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
+
     void Tamgumapf::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamgumapf::InitialisationModule(global,"");
 }
 
 
    bool Tamgumapf::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
 
 
     Tamgumapf::idtype = global->Getid("mapf");
 
     
-    global->minimal_indexes[Tamgumapf::idtype] = true;
+    
 
     Tamgumapf::AddMethod(global, "clear", &Tamgumapf::MethodClear, P_NONE, "clear(): clear the container.");
     
@@ -73,10 +77,12 @@ void Tamgumapf::AddMethod(TamguGlobal* global, string name, mapfMethod func, uns
     Tamgumapf::AddMethod(global, "pop", &Tamgumapf::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamgumapf::AddMethod(global, "merge", &Tamgumapf::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
 
-    if (version != "") {
+    if (version != "") {        
+    global->minimal_indexes[Tamgumapf::idtype] = true;
+
         global->newInstance[Tamgumapf::idtype] = new Tamgumapf(global);
         
-        global->RecordMethods(Tamgumapf::idtype, Tamgumapf::exported);
+        global->RecordCompatibilities(Tamgumapf::idtype);
     }
 
     return true;
@@ -237,8 +243,11 @@ Exporting Tamgu* Tamgumapf::Push(Tamgu* k, Tamgu* v) {
     double s = k->Float();
     
     k = values[s];
-    if (k != NULL)
+    if (k != NULL) {
+        if (k == v)
+            return this;
         k->Removereference(reference + 1);
+    }
 
     v = v->Atom();
     values[s] = v;

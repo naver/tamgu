@@ -24,8 +24,6 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<primemapssMethod>  Tamguprimemapss::methods;
-Exporting hmap<string, string> Tamguprimemapss::infomethods;
-Exporting basebin_hash<unsigned long> Tamguprimemapss::exported;
 
 Exporting short Tamguprimemapss::idtype = 0;
 
@@ -34,27 +32,33 @@ Exporting short Tamguprimemapss::idtype = 0;
 void Tamguprimemapss::AddMethod(TamguGlobal* global, string name,primemapssMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    infomethods[name] = infos;
-    exported[idname] = arity;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    return;
+
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
 }
 
 
 
+
 void Tamguprimemapss::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
     Tamguprimemapss::InitialisationModule(global,"");
 }
 
 
 bool Tamguprimemapss::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    infomethods.clear();
-    exported.clear();
+    
+    
     
     
     Tamguprimemapss::idtype = global->Getid("primemapss");
     
     
-    global->minimal_indexes[Tamguprimemapss::idtype] = true;
+    
 
     Tamguprimemapss::AddMethod(global, "clear", &Tamguprimemapss::MethodClear, P_NONE, "clear(): clear the container.");
     
@@ -72,10 +76,12 @@ bool Tamguprimemapss::InitialisationModule(TamguGlobal* global, string version) 
     Tamguprimemapss::AddMethod(global, "pop", &Tamguprimemapss::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamguprimemapss::AddMethod(global, "merge", &Tamguprimemapss::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
     
-    if (version != "") {
+    if (version != "") {        
+    global->minimal_indexes[Tamguprimemapss::idtype] = true;
+
         global->newInstance[Tamguprimemapss::idtype] = new Tamguprimemapss(global);
         
-        global->RecordMethods(Tamguprimemapss::idtype, Tamguprimemapss::exported);
+        global->RecordCompatibilities(Tamguprimemapss::idtype);
     }
     
     return true;

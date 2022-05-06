@@ -2818,6 +2818,29 @@ Exporting void TamguGlobal::RecordCommon(string name, string info, TamguProcedur
         returntypes[idname] = retype;
 }
 
+Exporting void TamguGlobal::RecordArity(short type, short name, unsigned long arity) {
+    methods[type][name] = arity;
+    if (allmethods.check(name))
+        allmethods[name] |= arity;
+    else
+        allmethods[name] = arity;
+}
+
+Exporting void TamguGlobal::RecordCompatibilities(short type) {
+    compatibilities[type][type] = true;
+    strictcompatibilities[type][type] = true;
+
+    compatibilities[a_call][type] = true;
+    compatibilities[a_universal][type] = true;
+    compatibilities[a_let][type] = true;
+    compatibilities[a_self][type] = true;
+
+    strictcompatibilities[a_call][type] = true;
+    strictcompatibilities[a_universal][type] = true;
+    strictcompatibilities[a_let][type] = true;
+    strictcompatibilities[a_self][type] = true;
+}
+
 Exporting void TamguGlobal::RecordMethods(short type, basebin_hash<unsigned long>& exported) {
     basebin_hash<unsigned long>::iterator it;
     for (it = exported.begin(); it != exported.end(); it++) {
