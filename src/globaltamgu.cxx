@@ -255,6 +255,30 @@ Exporting short TamguCompile(string& codeinit, string filename, bool dsp) {
 	return a->idcode;
 }
 
+Exporting short TamguCompileMain(string& codeinit, string filename) {
+    TamguCode* a = globalTamgu->Getcode(0);
+    if (a == NULL)
+        a = globalTamgu->GetNewCodeSpace(filename);
+        
+    //The system variables...
+    globalTamgu->SystemInitialization(filename);
+    globalTamgu->Cleanerror(0);
+
+    if (!a->Compile(codeinit))
+        return -1;
+    
+    return a->idcode;
+}
+
+
+Exporting short TamguCompileNewSpace(string& codeinit, string filename) {
+    TamguCode* a = globalTamgu->GetNewCodeSpace(filename);
+
+    if (!a->Compile(codeinit))
+        return -1;
+    
+    return a->idcode;
+}
 
 Exporting string TamguListing() {
 	return _fullcode;

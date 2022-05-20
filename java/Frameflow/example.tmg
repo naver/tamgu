@@ -1,0 +1,14 @@
+frame Exchanging {
+    string s;
+    int i;
+    
+    function _initial(string u, int p) {
+        s = u;
+        i = p;
+    }
+    
+    function string() {
+        return s+"_"+i;
+    }
+}
+

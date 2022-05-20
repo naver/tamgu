@@ -143,7 +143,7 @@ Exporting Tamgu* Tamgulvector::in(Tamgu* context, Tamgu* a, short idthread) {
 }
 
 
-Exporting Tamgu* Tamgulvector::getvalue(BLONG i) {
+Exporting Tamgu* Tamgulvector::getvalue(long i) {
     locking();
     if (i < 0 || i >= values.size()) {
         unlocking();

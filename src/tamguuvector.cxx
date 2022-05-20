@@ -208,7 +208,7 @@ Exporting Tamgu* Tamguuvector::in(Tamgu* context, Tamgu* a, short idthread) {
 
 
 
-Exporting Tamgu* Tamguuvector::getvalue(BLONG i) {
+Exporting Tamgu* Tamguuvector::getvalue(long i) {
     locking();
     if (i < 0 || i >= values.size()) {
         unlocking();
@@ -1425,7 +1425,7 @@ Exporting Tamgu* Tamgua_uvector::in(Tamgu* context, Tamgu* a, short idthread) {
 }
 
 
-Exporting Tamgu* Tamgua_uvector::getvalue(BLONG i) {
+Exporting Tamgu* Tamgua_uvector::getvalue(long i) {
     if (i < 0 || i >= values.size())
         return aNOELEMENT;
     return globalTamgu->Provideustring(values[i].value());

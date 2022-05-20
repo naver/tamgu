@@ -207,7 +207,7 @@ class Tamgutable : public TamguObjectLockContainer {
              return "Unknown method";
     }
     //---------------------------------------------------------------------------------------------------------------------
-    Tamgu* getvalue(BLONG i) {
+    Tamgu* getvalue(long i) {
         
         if (i < 0 || i >= size)
             return aNOELEMENT;

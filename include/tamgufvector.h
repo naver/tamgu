@@ -194,7 +194,7 @@ class Tamgufvector : public TamguLockContainer {
         return getvalue(a->Long());
     }
     
-    Tamgu* getvalue(BLONG i) {
+    Tamgu* getvalue(long i) {
         if (globalTamgu->threadMODE) {
             locking();
             if (i<0 || i>=values.size()) {
@@ -1015,7 +1015,7 @@ public:
     }
     
     
-    Exporting Tamgu* getvalue(BLONG i);
+    Exporting Tamgu* getvalue(long i);
     
     Tamgu* Value(Tamgu* a) {
         return getvalue(a->Long());

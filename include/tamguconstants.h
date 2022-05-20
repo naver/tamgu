@@ -317,7 +317,7 @@ typedef enum{
     a_quote, a_cons, a_cond, a_atom, a_eq, a_cadr, a_defun, a_label, a_atomp, a_numberp, a_consp, a_zerop, a_nullp, a_block,
     a_eval, a_key, a_keys, a_load, a_body, a_apply, a_pair, a_calllisp, a_callcommon,
     a__map, a__filter, a__takewhile, a__dropwhile, a__zip, a__zipwith,
-    a__foldl, a__scanl, a__foldr, a__scanr, a__foldl1, a__scanl1, a__foldr1, a__scanr1,
+    a__foldl, a__scanl, a__foldr, a__scanr, a__foldl1, a__scanl1, a__foldr1, a__scanr1, a_iteration_java,
     a_lisp
 } tamgubasictypes;
 

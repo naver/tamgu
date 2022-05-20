@@ -1,0 +1,32 @@
+Exchanging e("Test",100);
+
+function rappel(string i) {
+    e.i = 2*i;
+    return string(e);
+}
+
+
+int nb;
+
+function modifie(string v) {
+    nb += int(v);
+    printlnerr("NB=",nb);
+    return "Fait";
+}
+
+
+java_vector jvect;
+
+
+function modification(string u) {
+    printlnerr("Modifie", u);
+    int i;
+    for (i in <0, jvect.size(), 1>) {
+        printlnerr("M:",i, jvect[i]);
+    }
+
+    jvect.push(1000);
+    jvect[1] = 123;
+    printlnerr(jvect);
+}
+

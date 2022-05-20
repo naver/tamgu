@@ -189,7 +189,7 @@ class Tamguhvector : public TamguLockContainer {
         return isconst;
     }
 
-    Exporting Tamgu* getvalue(BLONG i);
+    Exporting Tamgu* getvalue(long i);
 
     Tamgu* Value(Tamgu* a) {
         return getvalue(a->Long());

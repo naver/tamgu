@@ -916,6 +916,10 @@ public:
     Tamgu* moreequal(Tamgu* a) {
         return value->moreequal(a);
     }
+    
+    Tamgu* Declaration(short id) {
+        return value->Declared(id);
+    }
 };
 
 class TamguSelfVariableDeclaration : public TamguVariableDeclaration {
@@ -2161,6 +2165,10 @@ public:
 		return value;
 	}
 
+    Tamgu* Declaration(short id) {
+        return globalTamgu->systems[name]->Declaration(id);
+    }
+    
 	long Getinteger(short idthread) {
 		Tamgu* value = globalTamgu->systems[name]->value;
 

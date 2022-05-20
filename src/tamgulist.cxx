@@ -15,6 +15,7 @@
 */
 
 #include "tamgu.h"
+#include "tamgutaskell.h"
 #include "tamgulist.h"
 #include "tamguvector.h"
 #include "tamgumap.h"
@@ -95,6 +96,7 @@ void Tamgulist::AddMethod(TamguGlobal* global, string name, listMethod func, uns
     }
 
     Tamguring::InitialisationModule(global, version);
+    Tamgujava_vector::InitialisationModule(global, version);
     return true;
 }
 
@@ -145,7 +147,7 @@ Exporting Tamgu* Tamgulist::in(Tamgu* context, Tamgu* a, short idthread) {
 }
 
 
-Exporting Tamgu* Tamgulist::getvalue(BLONG i) {
+Exporting Tamgu* Tamgulist::getvalue(long i) {
     locking();
     if (i < 0 || i >= values.size()) {
         unlocking();
@@ -2852,3 +2854,821 @@ Exporting Tamgu* Tamguring::Combine(Tamgu* ke) {
     
     return vect;
 }
+
+
+
+//We need to declare once again our local definitions.
+Exporting basebin_hash<javavectorMethod>  Tamgujava_vector::methods;
+
+Exporting short Tamgujava_vector::idtype = 0;
+
+//MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
+void Tamgujava_vector::AddMethod(TamguGlobal* global, string name, javavectorMethod func, unsigned long arity, string infos) {
+    short idname = global->Getid(name);
+    methods[idname] = func;
+    if (global->infomethods.find(idtype) != global->infomethods.end() &&
+        global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+        return;
+    
+    global->infomethods[idtype][name] = infos;
+    global->RecordArity(idtype, idname, arity);
+}
+
+
+bool Tamgujava_vector::InitialisationModule(TamguGlobal* global, string version) {
+    methods.clear();
+    Tamgujava_vector::idtype = global->Getid("java_vector");
+    
+    Tamgujava_vector::AddMethod(global, "min", &Tamgujava_vector::MethodMin, P_NONE, "min(): returns the min in the vector.");
+    Tamgujava_vector::AddMethod(global, "max", &Tamgujava_vector::MethodMax, P_NONE, "max(): returns the max in the vector.");
+    Tamgujava_vector::AddMethod(global, "minmax", &Tamgujava_vector::MethodMinMax, P_NONE, "minmax(): returns the min and the max in the vector.");
+    Tamgujava_vector::AddMethod(global, "shape", &Tamgujava_vector::MethodShape, P_NONE|P_ATLEASTONE, "shape(int s1, int s2...): defines the vector shape.");
+    Tamgujava_vector::AddMethod(global, "sum", &Tamgujava_vector::MethodSum, P_NONE, "sum(): return the sum of elements.");
+    Tamgujava_vector::AddMethod(global, "product", &Tamgujava_vector::MethodProduct, P_NONE, "product(): return the product of elements.");
+    Tamgujava_vector::AddMethod(global, "push", &Tamgujava_vector::MethodPush, P_ATLEASTONE, "push(v): Push a value into the vector.");
+    
+    if (version != "") {
+        global->newInstance[Tamgujava_vector::idtype] = new Tamgujava_vector(global);
+        global->RecordCompatibilities(Tamgujava_vector::idtype);
+    }
+    
+    return true;
+}
+
+
+
+Tamgu* Tamgujava_vector::MethodPush(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    if (iter != NULL) {
+        Tamgu* v = callfunc->Evaluate(0, contextualpattern, idthread);
+        iter->storevalue(iter->Size(), v);
+    }    
+    return aTRUE;
+}
+
+Tamgu* Tamgujava_vector::Newinstance(short idthread, Tamgu* f) {
+    return new Tamgujava_vector_instance();
+}
+
+Tamgu* Tamgujava_vector::Newvalue(Tamgu* a, short idthread) {
+    return this;
+}
+
+Exporting Tamgu* Tamgujava_vector::MethodShape(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    long nb = callfunc->Size();
+    if (!nb) {
+        Tamguivector* ivector = globalTamgu->Provideivector();
+        for (long i = 0; i < shape.size(); i++) {
+            ivector->storevalue(shape[i]);
+        }
+        return ivector;
+    }
+    
+    shape.clear();
+    Tamgu* v = callfunc->Evaluate(0, contextualpattern, idthread);
+    if (v->isVectorContainer()) {
+        if (nb != 1)
+            globalTamgu->Returnerror("Wrong shape definition", idthread);
+        nb = v->Size();
+        for (long i = 0; i < nb; i++) {
+            shape.push_back(v->getinteger(i));
+        }
+        return aTRUE;
+    }
+    
+    shape.push_back(v->Integer());
+
+    for (long i = 1; i < nb; i++)
+        shape.push_back(callfunc->Evaluate(i, contextualpattern, idthread)->Integer());
+    return aTRUE;
+}
+
+Exporting Tamgu* Tamgujava_vector::in(Tamgu* c, Tamgu* a, short idthread) {
+    //Three cases along the container type...
+    //It is a Boolean, we expect false or true
+    //It is an integer, we expect a position in v
+    //It is a container, we are looking for all positions...
+    long sz = Size();
+
+    if (c->isVectorContainer()) {
+        Tamguivector* v = (Tamguivector*)Selectaivector(c);
+        
+        for (long i = 0; i < sz; i++) {
+            c = getvalue(i);
+            if (a->same(c) == aTRUE)
+                v->values.push_back(i);
+            c->Release();
+        }
+        return v;
+    }
+    
+    if (c->isNumber()) {
+        for (long i = 0; i < sz; i++) {
+            c = getvalue(i);
+            if (a->same(c) == aTRUE) {
+                c->Release();
+                return globalTamgu->ProvideConstint(i);
+            }
+            c->Release();
+        }
+        return aMINUSONE;
+    }
+    
+    for (long i = 0; i < sz; i++) {
+        c = getvalue(i);
+        if (a->same(c) == aTRUE) {
+            c->Release();
+            return aTRUE;
+        }
+        c->Release();
+    }
+    
+    return aFALSE;
+}
+
+Exporting string Tamgujava_vector::String() {
+    string res;
+    res = "[";
+    bool beg = true;
+    string sx;
+    Tamgu* element;
+    long sz = Size();
+    for (long i = 0; i < sz; i++) {
+        element = getvalue(i);
+        sx = element->StringToDisplay();
+        if (!element->isString() || element->isContainer()) {
+            if (sx == "")
+                sx = "''";
+            if (beg == false) {
+                if (sx[0] != '|')
+                    res += ",";
+            }
+            res += sx;
+        }
+        else {
+            if (beg == false)
+                res += ",";
+            stringing(res, sx);
+        }
+        beg = false;
+        element->Release();
+    }
+    res += "]";
+    return res;
+}
+
+
+Exporting string Tamgujava_vector::JSonString() {
+    string res;
+    
+    res = "[";
+    bool beg = true;
+    string sx;
+    Tamgu* element;
+    long sz = Size();
+    for (long i = 0; i < sz; i++) {
+        element = getvalue(i);
+        sx = element->JSonString();
+        if (!element->isString() || element->isContainer()) {
+            if (beg == false) {
+                if (sx[0] != '|')
+                    res += ",";
+            }
+        }
+        else {
+            if (beg == false)
+                res += ",";
+        }
+        res += sx;
+        beg = false;
+        element->Release();
+    }
+    res += "]";
+    return res;
+}
+
+
+Exporting Tamgu* Tamgujava_vector::andset(Tamgu *b, bool itself) {
+    Tamguvector* ref = globalTamgu->Providevector();
+    long sz = Size();
+    long i;
+    
+    Tamgu* a;
+    if (!b->isContainer()) {
+        for (i = 0; i < sz; i++) {
+            a = getvalue(i);
+            a->andset(b, true);
+            ref->push(a);
+        }
+        return ref;
+    }
+    
+    TamguIteration* itr = b->Newiteration(false);
+    Tamgu* ke;
+    
+    for (itr->Begin(); itr->End() == aFALSE; itr->Next()) {
+        for (i = 0; i < sz; i++) {
+            ke =  itr->IteratorValue();
+            a = getvalue(i);
+            if (a->same(ke) == aTRUE) {
+                ref->Push(a);
+                break;
+            }
+            a->Release();
+        }
+    }
+    itr->Release();
+    
+    return ref;
+    
+}
+
+Exporting Tamgu* Tamgujava_vector::orset(Tamgu *b, bool itself) {
+    Tamguvector* ref = globalTamgu->Providevector();
+    long sz = Size();
+    long i;
+    
+    Tamgu* a;
+    if (!b->isContainer()) {
+        for (i = 0; i < sz; i++) {
+            a = getvalue(i);
+            a->orset(b, true);
+            ref->push(a);
+        }
+        return ref;
+    }
+
+    for (i = 0; i < sz; i++) {
+        a = getvalue(i);
+        ref->push(a);
+    }
+
+    TamguIteration* itr = b->Newiteration(false);
+    
+    for (itr->Begin(); itr->End() == aFALSE; itr->Next()) {
+        a =  itr->IteratorValue();
+        ref->push(a);
+    }
+    return ref;
+}
+
+Exporting Tamgu* Tamgujava_vector::xorset(Tamgu *b, bool itself) {
+    Tamguvector* ref = globalTamgu->Providevector();
+    long sz = Size();
+    long i;
+    
+    Tamgu* a;
+    if (!b->isContainer()) {
+        for (i = 0; i < sz; i++) {
+            a = getvalue(i);
+            a->xorset(b, true);
+            ref->push(a);
+        }
+        return ref;
+    }
+    
+    bool found=false;
+    vector<Tamgu*> vals;
+    Tamgu* ke;
+    
+    TamguIteration* itr = b->Newiteration(false);
+    for (itr->Begin(); itr->End() == aFALSE; itr->Next())
+        vals.push_back(itr->Value());
+    itr->Release();
+    
+    long itv;
+    
+    for (i = 0; i < sz; i++) {
+        ke = getvalue(i);
+        found = false;
+        for (itv = 0; itv < vals.size(); itv++)  {
+            if (vals[itv] == NULL)
+                continue;
+            
+            if (vals[itv]->same(ke) == aTRUE) {
+                vals[itv]->Release();
+                vals[itv] = NULL;
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+            ref->Push(ke);
+        else
+            ke->Release();
+    }
+    
+    for (itv = 0; itv < vals.size(); itv++) {
+        if (vals[itv] == NULL)
+            continue;
+        ref->Push(vals[itv]);
+        vals[itv]->Release();
+    }
+    
+    return ref;
+}
+
+
+Exporting Tamgu* Tamgujava_vector::plus(Tamgu* b, bool itself) {
+    Tamguvector* ref = globalTamgu->Providevector();
+    Tamgu* kv;
+    long sz = Size();
+    long i;
+    
+    Tamgu* a;
+    if (b->isContainer()) {
+        TamguIteration* itr = b->Newiteration(false);
+        itr->Begin();
+        
+        for (i = 0; i < sz; i++) {
+            if (itr->End() == aTRUE)
+                break;
+            
+            a = getvalue(i);
+            kv = itr->IteratorValue();
+            a->plus(kv, true);
+            itr->Next();
+            ref->push(a);
+        }
+        itr->Release();
+        return ref;
+    }
+    
+    
+    for (i = 0; i < sz; i++) {
+        a = getvalue(i);
+        a->plus(b, true);
+        ref->push(a);
+    }
+    return ref;
+}
+
+Exporting Tamgu* Tamgujava_vector::minus(Tamgu *b, bool itself) {
+    Tamguvector* ref = globalTamgu->Providevector();
+    Tamgu* kv;
+    long sz = Size();
+    long i;
+    
+    Tamgu* a;
+    if (b->isContainer()) {
+        TamguIteration* itr = b->Newiteration(false);
+        itr->Begin();
+        
+        for (i = 0; i < sz; i++) {
+            if (itr->End() == aTRUE)
+                break;
+            
+            a = getvalue(i);
+            kv = itr->IteratorValue();
+            a->minus(kv, true);
+            itr->Next();
+            ref->push(a);
+        }
+        itr->Release();
+        return ref;
+    }
+    
+    
+    for (i = 0; i < sz; i++) {
+        a = getvalue(i);
+        a->minus(b, true);
+        ref->push(a);
+    }
+    return ref;
+    
+}
+
+Exporting Tamgu* Tamgujava_vector::multiply(Tamgu *b, bool itself) {
+    Tamguvector* ref = globalTamgu->Providevector();
+    Tamgu* kv;
+    long sz = Size();
+    long i;
+    
+    Tamgu* a;
+    if (b->isContainer()) {
+        TamguIteration* itr = b->Newiteration(false);
+        itr->Begin();
+        
+        for (i = 0; i < sz; i++) {
+            if (itr->End() == aTRUE)
+                break;
+            
+            a = getvalue(i);
+            kv = itr->IteratorValue();
+            a->multiply(kv, true);
+            itr->Next();
+            ref->push(a);
+        }
+        itr->Release();
+        return ref;
+    }
+    
+    
+    for (i = 0; i < sz; i++) {
+        a = getvalue(i);
+        a->multiply(b, true);
+        ref->push(a);
+    }
+    return ref;
+}
+
+Exporting Tamgu* Tamgujava_vector::divide(Tamgu *b, bool itself) {
+    Tamguvector* ref = globalTamgu->Providevector();
+    Tamgu* kv;
+    long sz = Size();
+    long i;
+    
+    Tamgu* a;
+    if (b->isContainer()) {
+        TamguIteration* itr = b->Newiteration(false);
+        itr->Begin();
+        
+        for (i = 0; i < sz; i++) {
+            if (itr->End() == aTRUE)
+                break;
+            
+            a = getvalue(i);
+            kv = itr->IteratorValue();
+            kv = a->divide(kv, true);
+            if (kv->isError()) {
+                itr->Release();
+                a->Release();
+                ref->Release();
+                return kv;
+            }
+            itr->Next();
+            ref->push(a);
+        }
+        itr->Release();
+        return ref;
+    }
+    
+    
+    for (i = 0; i < sz; i++) {
+        a = getvalue(i);
+        kv = a->divide(b, true);
+        if (kv->isError()) {
+            a->Release();
+            ref->Release();
+            return kv;
+        }
+        ref->push(a);
+    }
+    return ref;
+}
+
+Exporting Tamgu* Tamgujava_vector::power(Tamgu *b, bool itself) {
+    Tamguvector* ref = globalTamgu->Providevector();
+    Tamgu* kv;
+    long sz = Size();
+    long i;
+    
+    Tamgu* a;
+    if (b->isContainer()) {
+        TamguIteration* itr = b->Newiteration(false);
+        itr->Begin();
+        
+        for (i = 0; i < sz; i++) {
+            if (itr->End() == aTRUE)
+                break;
+            
+            a = getvalue(i);
+            kv = itr->IteratorValue();
+            a->power(kv, true);
+            itr->Next();
+            ref->push(a);
+        }
+        itr->Release();
+        return ref;
+    }
+    
+    
+    for (i = 0; i < sz; i++) {
+        a = getvalue(i);
+        a->power(b, true);
+        ref->push(a);
+    }
+    return ref;
+}
+
+Exporting Tamgu* Tamgujava_vector::shiftleft(Tamgu *b, bool itself) {
+    Tamguvector* ref = globalTamgu->Providevector();
+    Tamgu* kv;
+    long sz = Size();
+    long i;
+    
+    Tamgu* a;
+    if (b->isContainer()) {
+        TamguIteration* itr = b->Newiteration(false);
+        itr->Begin();
+        
+        for (i = 0; i < sz; i++) {
+            if (itr->End() == aTRUE)
+                break;
+            
+            a = getvalue(i);
+            kv = itr->IteratorValue();
+            a->shiftleft(kv, true);
+            itr->Next();
+            ref->push(a);
+        }
+        itr->Release();
+        return ref;
+    }
+    
+    
+    for (i = 0; i < sz; i++) {
+        a = getvalue(i);
+        a->shiftleft(b, true);
+        ref->push(a);
+    }
+    return ref;
+}
+
+Exporting Tamgu* Tamgujava_vector::shiftright(Tamgu *b, bool itself) {
+    Tamguvector* ref = globalTamgu->Providevector();
+    Tamgu* kv;
+    long sz = Size();
+    long i;
+    
+    Tamgu* a;
+    if (b->isContainer()) {
+        TamguIteration* itr = b->Newiteration(false);
+        itr->Begin();
+        
+        for (i = 0; i < sz; i++) {
+            if (itr->End() == aTRUE)
+                break;
+            
+            a = getvalue(i);
+            kv = itr->IteratorValue();
+            a->shiftright(kv, true);
+            itr->Next();
+            ref->push(a);
+        }
+        itr->Release();
+        return ref;
+    }
+    
+    
+    for (i = 0; i < sz; i++) {
+        a = getvalue(i);
+        a->shiftright(b, true);
+        ref->push(a);
+    }
+    return ref;
+}
+
+Exporting Tamgu* Tamgujava_vector::mod(Tamgu *b, bool itself) {
+    Tamguvector* ref = globalTamgu->Providevector();
+    Tamgu* kv;
+    long sz = Size();
+    long i;
+    
+    Tamgu* a;
+    if (b->isContainer()) {
+        TamguIteration* itr = b->Newiteration(false);
+        itr->Begin();
+        
+        for (i = 0; i < sz; i++) {
+            if (itr->End() == aTRUE)
+                break;
+            
+            a = getvalue(i);
+            kv = itr->IteratorValue();
+            kv = a->mod(kv, true);
+            if (kv->isError()) {
+                itr->Release();
+                a->Release();
+                ref->Release();
+                return kv;
+            }
+            itr->Next();
+            ref->push(a);
+        }
+        itr->Release();
+        return ref;
+    }
+    
+    
+    for (i = 0; i < sz; i++) {
+        a = getvalue(i);
+        kv = a->mod(b, true);
+        if (kv->isError()) {
+            a->Release();
+            ref->Release();
+            return kv;
+        }
+        ref->push(a);
+    }
+    return ref;
+}
+
+
+Exporting Tamgu*  Tamgujava_vector::Put(Tamgu* idx, Tamgu* value, short idthread) {
+    if (value->Type() == a_iteration_java) {
+        if (iter != NULL)
+            iter->Resetreference();
+        iter = (TamguJavaIteration*)value;
+        iter->Setreference();
+    }
+    if (idx->isIndex() && iter != NULL) {
+    //In this specific case, we try to replace a bloc of values with a new bloc
+        if (idx->isInterval())
+            globalTamgu->Returnerror("Cannot set a java_vector with an interval", idthread);
+
+        long ikey = idx->Getinteger(idthread);
+        iter->storevalue(ikey, value);
+        value->Release();
+    }
+    return aTRUE;
+}
+
+Exporting Tamgu* Tamgujava_vector::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
+    
+    if (!idx->isIndex()) {
+        if (contextualpattern->isLoop())
+            return this;
+        
+        //In this case, we copy the elements from the vector to the map, using the position as index
+        if (contextualpattern->isMapContainer()) {
+            Tamgu* ke;
+            Tamgu* map = Selectamap(contextualpattern);
+            char ch[20];
+            long sz = Size();
+            for (long i = 0; i < sz; i++ ) {
+                sprintf_s(ch, 20, "%ld", i);
+                ke = getvalue(i);
+                map->Push(ch, ke);
+            }
+            return map;
+        }
+        
+        if (contextualpattern->isNumber()) {
+            long v = Size();
+            return globalTamgu->ProvideConstint(v);
+        }
+        return this;
+    }
+    
+    Tamgu* key;
+    Tamgu* keyright = NULL;
+    
+    TamguIndex* kind = (TamguIndex*)idx;
+    key = kind->left->Eval(aNULL, aNULL, idthread);
+    if (kind->interval == true)
+        keyright = kind->right->Eval(aNULL, aNULL, idthread);
+    
+    long mx = Size();
+    long ikey = key->Integer();
+    key->Release();
+    if (ikey < 0)
+        ikey = mx + ikey;
+    
+    if (ikey >= 0)
+        key = getvalue(ikey);
+    
+    if (ikey < 0 || key == NULL) {
+        if (ikey != mx || keyright == NULL) {
+            if (globalTamgu->erroronkey)
+                return globalTamgu->Returnerror("Wrong index", idthread);
+            return aNOELEMENT;
+        }
+    }
+    
+    if (keyright == NULL)
+        return key;
+    
+    Tamguvector* kvect;
+    long iright;
+    
+    if (keyright == aNULL)
+        iright = 0;
+    else
+        iright = keyright->Integer();
+    
+    if (keyright != kind->right)
+        keyright->Release();
+    
+    if (iright < 0 || keyright == aNULL) {
+        iright = mx + iright;
+        if (iright<ikey) {
+            if (globalTamgu->erroronkey)
+                return globalTamgu->Returnerror("Wrong index", idthread);
+            return aNOELEMENT;
+        }
+    }
+    else {
+        if (iright>mx) {
+            if (globalTamgu->erroronkey)
+                return globalTamgu->Returnerror("Wrong index", idthread);
+            return aNOELEMENT;
+        }
+    }
+    
+    //In this case, we must create a new vector
+    kvect = globalTamgu->Providevector();
+    
+    for (long i = ikey; i < iright; i++) {
+        kvect->Push(getvalue(i));
+    }
+    
+    return kvect;
+}
+
+
+Exporting Tamgu* Tamgujava_vector::Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* environment, TamguFunctionLambda* bd, short idthread) {
+    
+    Tamgu* a;
+    uchar addvalue = 0;
+    
+    if (context != aNOELEMENT)
+        addvalue = Selecttype(context);
+    
+    long sz = Size();
+    for (long i = 0; i < sz; i++) {
+        recipient->Putvalue(getvalue(i), idthread);
+        
+        a = bd->DirectEval(environment, aNULL, idthread);
+        if (a->isNULL())
+            continue;
+        
+        if (globalTamgu->Error(idthread) || a->needInvestigate()) {
+            if (a == aBREAK)
+                break;
+            
+            recipient->Forcedclean();
+            a->Release();
+            context->Release();
+            return globalTamgu->Errorobject(idthread);
+        }
+        
+        context = Storealongtype(context, a, idthread, addvalue);
+        a->Release();
+    }
+    
+    recipient->Forcedclean();
+    return context;
+}
+
+Exporting Tamgu* Tamgujava_vector::Filter(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* kcont, Tamgu* accu, Tamgu* init, bool direct) {
+    
+    Tamgu* returnval;
+    
+    bool first = false;
+    Tamgu* key;
+    
+    if (init != aNOELEMENT) {
+        accu->Putvalue(init, idthread);
+        if (kcont != NULL) {
+            if (direct)
+                kcont->Insert(0, init);
+            else
+                kcont->Push(init);
+        }
+    }
+    else
+        first = true; //we are dealing with a foldr1 or a foldl1
+    
+    long sz = Size();
+    for (long i = 0; i < sz; i++) {
+        key = getvalue(i);
+        if (first) {
+            returnval = key->Atom();//We use the first value of the list to seed our accumulator variable
+            first = false;
+        }
+        else {
+            var->Putvalue(key, idthread);
+            returnval = bd->DirectEval(env, aNULL, idthread);
+            
+            if (returnval == aBREAK) {
+                accu = returnval;
+                break;
+            }
+            
+            if (globalTamgu->Error(idthread)) {
+                var->Forcedclean();
+                if (kcont != NULL)
+                    kcont->Release();
+                return globalTamgu->Errorobject(idthread);
+            }
+        }
+        
+        if (returnval != aNULL) {
+            
+            accu->Putvalue(returnval, idthread);
+            if (kcont != NULL) {
+                if (direct)
+                    kcont->Insert(0, returnval);
+                else
+                    kcont->Push(returnval);
+            }
+            returnval->Release();
+        }
+    }
+    
+    var->Forcedclean();
+    if (kcont != NULL)
+        return kcont;
+    return accu->Value();
+}
+

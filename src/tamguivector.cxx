@@ -173,7 +173,7 @@ Tamgu* Tamguivector::MethodShape(Tamgu* contextualpattern, short idthread, Tamgu
     return aTRUE;
 }
 
-Exporting Tamgu* Tamguivector::getvalue(BLONG i) {
+Exporting Tamgu* Tamguivector::getvalue(long i) {
     if (globalTamgu->threadMODE) {
         locking();
         if (i < 0 || i >= values.size()) {
@@ -1453,7 +1453,7 @@ Exporting Tamgu* Tamgua_ivector::in(Tamgu* context, Tamgu* a, short idthread) {
     return aFALSE;
 }
 
-Exporting Tamgu* Tamgua_ivector::getvalue(BLONG i) {
+Exporting Tamgu* Tamgua_ivector::getvalue(long i) {
     if (i < 0 || i >= values.size())
         return aNOELEMENT;
     return globalTamgu->ProvideConstint(values[i]);

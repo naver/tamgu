@@ -42,7 +42,7 @@
 #include "tamgulisp.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2022.05.06.09";
+const char* tamgu_version = "Tamgu 1.2022.05.20.15";
 
 Tamgu* booleantamgu[2];
 
@@ -1954,15 +1954,17 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("_scanl1"); //236
     Createid("_foldr1"); //237
     Createid("_scanr1"); //238
-    Createid("lisp"); //238 a_lisp
+    Createid("iterator_java"); //238 --> a_iteration_java
+    Createid("lisp"); //239 a_lisp
+    
 
     //This is a simple hack to handle "length" a typical Haskell operator as "size"...
     //Note that there will be a useless index
 
-    Createid("length"); //239
+    Createid("length"); //240
     symbolIds["length"] = a_size;
 
-    Createid("not"); //240
+    Createid("not"); //241
     symbolIds["not"] = a_negation;
 
     symbolIds["and"] = a_booleanand;
@@ -2369,6 +2371,7 @@ void TamguGlobal::TamguAllObjects(vector<string>& vs) {
     vs.push_back("in");
     vs.push_back("is");
     vs.push_back("iterator");
+    vs.push_back("java_vector");
     vs.push_back("joined");
     vs.push_back("label");
     vs.push_back("lambda");

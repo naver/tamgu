@@ -94,7 +94,7 @@ bool Tamgubvector::InitialisationModule(TamguGlobal* global, string version) {
     return true;
 }
 
-Exporting Tamgu* Tamgubvector::getvalue(BLONG i) {
+Exporting Tamgu* Tamgubvector::getvalue(long i) {
     locking();
     if (i<0 || i>values.size()) {
         unlocking();

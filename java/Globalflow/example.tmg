@@ -1,0 +1,10 @@
+int i;
+string s;
+
+
+function rappel(string a, string  b) {
+    s = b + a;
+    i += a;
+    printlnerr(s, i);
+    return 2i;
+}

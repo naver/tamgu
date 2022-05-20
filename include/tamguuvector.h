@@ -211,7 +211,7 @@ class Tamguuvector : public TamguLockContainer {
         return this;
     }
 
-    Exporting Tamgu* getvalue(BLONG i);
+    Exporting Tamgu* getvalue(long i);
     
     string getstring(long i) {
         Locking* _lock = _getlock(this);
@@ -934,7 +934,7 @@ public:
         return this;
     }
     
-    Exporting Tamgu* getvalue(BLONG i);
+    Exporting Tamgu* getvalue(long i);
     
     string getstring(long i) {
         if (i < 0 || i >= values.size())

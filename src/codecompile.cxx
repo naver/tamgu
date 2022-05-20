@@ -9948,7 +9948,8 @@ bool TamguCode::Compile(string& body) {
     
 	//we store our TamguCode also as an Tamgutamgu...
 	filename = NormalizeFileName(filename);
-    TamguRecordFile(filename, this, global);
+    Tamgu* main = TamguRecordFile(filename, this, global);
+    TamguSystemVariable* vs = new TamguSystemVariable(global, main, a_mainframe, a_tamgu);
 
 	global->spaceid = idcode;
 
@@ -10053,7 +10054,7 @@ bool TamguCode::Compile(string& body) {
     after = std::chrono::high_resolution_clock::now();
     double dparse = std::chrono::duration_cast<std::chrono::milliseconds>( after - before ).count();
 
-    TamguSystemVariable* vs = globalTamgu->systems[globalTamgu->Getid("_internals")];
+    vs = globalTamgu->systems[globalTamgu->Getid("_internals")];
     vs->value->storevalue((long)xr.stack.size());
     vs->value->storevalue(dtok);
     vs->value->storevalue(dparse);

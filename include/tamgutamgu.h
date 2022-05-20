@@ -114,6 +114,9 @@ class Tamgutamgu : public TamguObject {
 		return acode->Declaration(id);
 	}
 
+    Tamgu* Declared(short id) {
+        return acode->mainframe.Declaration(id);
+    }
 
     //---------------------------------------------------------------------------------------------------------------------
     //Declaration

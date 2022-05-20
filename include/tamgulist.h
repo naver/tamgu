@@ -92,7 +92,7 @@ class Tamgulist : public TamguObjectLockContainer {
         return false;
     }
 
-    Exporting Tamgu* getvalue(BLONG i);
+    Exporting Tamgu* getvalue(long i);
 
     Tamgu* Value(Tamgu* a) {
         return getvalue(a->Integer());
@@ -933,7 +933,7 @@ public:
              return "Unknown method";
     }
         //---------------------------------------------------------------------------------------------------------------------
-    Tamgu* getvalue(BLONG i) {
+    Tamgu* getvalue(long i) {
         if (i < 0)
             return aNOELEMENT;
         
@@ -1470,7 +1470,8 @@ public:
     Exporting Tamgu* same(Tamgu* a);
     
 };
-    //---------------------------------------------------------------------------------
+
+//---------------------------------------------------------------------------------
 class TamguIterationring : public TamguIteration {
 public:
     atomic_ring_iterator<Tamgu*> ref;
@@ -1530,5 +1531,390 @@ public:
 };
 
     //---------------------------------------------------------------------------------
+class Tamgujava_vector;
+class Tamgujava_vector_instance;
+
+typedef Tamgu* (Tamgujava_vector::*javavectorMethod)(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+
+class Tamgujava_vector : public TamguObjectContainer {
+public:
+        //We export the methods that will be exposed for our new object
+        //this is a static object, which is common to everyone
+        //We associate the method pointers with their names in the linkedmethods map
+    static Exchanging basebin_hash<javavectorMethod> methods;
+    static Exchanging short idtype;
+    
+        //---------------------------------------------------------------------------------------------------------------------
+        //This SECTION is for your specific implementation...
+        //Your personal variables here...
+    TamguJavaIteration* iter;
+    vector<long> shape;
+
+        //---------------------------------------------------------------------------------------------------------------------
+    Tamgujava_vector(TamguGlobal* g, Tamgu* parent = NULL) : TamguObjectContainer(g, parent) {
+            //Do not forget your variable initialisation
+        iter = NULL;
+    }
+    
+    Tamgujava_vector()  {
+            //Do not forget your variable initialisation
+        iter = NULL;
+    }
+    
+    ~Tamgujava_vector() {
+        if (iter != NULL)
+            iter->Resetreference();
+    }
+    
+        //----------------------------------------------------------------------------------------------------------------------
+    Exporting Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);
+    Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
+    
+    Exporting Tamgu* Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* env, TamguFunctionLambda* bd, short idthread);
+    Exporting Tamgu* Filter(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* kcont, Tamgu* accu, Tamgu* init, bool direct);
+    
+    void Getshape(vector<long>& sh) {
+        long nb = 1;
+        for (long i = 0; i < shape.size(); i++)
+            nb *= shape[i];
+        if (nb <= Size())
+            sh = shape;
+    }
+
+    short Type() {
+        return Tamgujava_vector::idtype;
+    }
+    
+    void Setidtype(TamguGlobal* global) {
+        Tamgujava_vector::InitialisationModule(global, "");
+    }
+
+    string Typename() {
+        return "java_vector";
+    }
+    
+    bool isObjectContainer() {
+        return true;
+    }
+    
+    bool isContainerClass() {
+        return true;
+    }
+    
+    bool isVectorContainer() {
+        return true;
+    }
+    
+    Tamgu* Atom(bool forced = false) {
+        return this;
+    }
+    
+    bool duplicateForCall() {
+        return false;
+    }
+    
+        //---------------------------------------------------------------------------------------------------------------------
+        //Declaration
+        //All our methods must have been declared in tamguexportedmethods... See MethodInitialization below
+    bool isDeclared(short n) {
+        return methods.check(n);
+    }
+    
+    virtual Tamgu* Newinstance(short idthread, Tamgu* f = NULL);    
+    virtual Tamgu* Newvalue(Tamgu* a, short idthread);
+    
+    Exporting TamguIteration* Newiteration(bool direction) {
+        return iter;
+    }
+    
+    
+    static void AddMethod(TamguGlobal* g, string name, javavectorMethod func, unsigned long arity, string infos);
+    static bool InitialisationModule(TamguGlobal* g, string version);
+    
+    
+    void Methods(Tamgu* v) {
+            for (const auto& it : globalTamgu->infomethods[idtype])
+                 v->storevalue(it.first);
+      }
+
+      string Info(string n) {
+            if (globalTamgu->infomethods[idtype].find(n) !=  globalTamgu->infomethods[idtype].end())
+              return globalTamgu->infomethods[idtype][n];
+             return "Unknown method";
+    }
+        //---------------------------------------------------------------------------------------------------------------------
+    Tamgu* getvalue(long i) {
+        if (iter == NULL)
+            return aNOELEMENT;
+        return iter->getvalue(i);
+    }
+    
+    string getstring(long i) {
+        if (iter == NULL)
+            return "";
+        Tamgu* a = iter->getvalue(i);
+        string s = a->String();
+        a->Release();
+        return s;
+    }
+    
+    wstring getustring(long i) {
+        if (iter == NULL)
+            return L"";
+        Tamgu* a = iter->getvalue(i);
+        wstring s = a->UString();
+        a->Release();
+        return s;
+    }
+    
+    double getfloat(long i) {
+        if (iter == NULL)
+            return 0;
+
+        Tamgu* a = iter->getvalue(i);
+        double s = a->Float();
+        a->Release();
+        return s;
+    }
+    
+    long getinteger(long i) {
+        if (iter == NULL)
+            return 0;
+
+        Tamgu* a = iter->getvalue(i);
+        long s = a->Integer();
+        a->Release();
+        return s;
+    }
+    
+    float getdecimal(long i) {
+        if (iter == NULL)
+            return 0;
+
+        Tamgu* a = iter->getvalue(i);
+        float s = a->Decimal();
+        a->Release();
+        return s;
+    }
+    
+    BLONG getlong(long i) {
+        if (iter == NULL)
+            return 0;
+
+        Tamgu* a = iter->getvalue(i);
+        BLONG s = a->Long();
+        a->Release();
+        return s;
+    }
+    
+    short getshort(long i) {
+        if (iter == NULL)
+            return 0;
+
+        Tamgu* a = iter->getvalue(i);
+        short s = a->Short();
+        a->Release();
+        return s;
+    }
+    
+    uchar getbyte(long i) {
+        if (iter == NULL)
+            return 0;
+
+        Tamgu* a = iter->getvalue(i);
+        uchar s = a->Byte();
+        a->Release();
+        return s;
+    }
+    
+    Tamgu* Value(Tamgu* a) {
+        if (iter == NULL)
+            return aNOELEMENT;
+
+        long i = a->Integer();
+        return iter->getvalue(i);
+    }
+    
+        //---------------------------------------------------------------------------------------------------------------------
+    
+        //---------------------------------------------------------------------------------------------------------------------
+        //This SECTION is for your specific implementation...
+        //This is an example of a function that could be implemented for your needs.
+    
+    Exporting Tamgu* MethodShape(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    
+    Tamgu* MethodMin(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        long sz = Size();
+        if (!sz)
+            return aNOELEMENT;
+        Tamgu* m = getvalue(0);
+        Tamgu* e;
+        for (long i = 1; i < sz; i++) {
+            e = getvalue(i);
+            if (m->more(e)->Boolean()) {
+                m->Release();
+                m = e;
+            }
+            else
+                e->Release();
+        }
+        return m;
+    }
+    
+    Tamgu* MethodMax(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        long sz = Size();
+        if (!sz)
+            return aNOELEMENT;
+        Tamgu* m = getvalue(0);
+        Tamgu* e;
+        for (long i = 1; i < sz; i++) {
+            e = getvalue(i);
+            if (m->less(e)->Boolean()) {
+                m->Release();
+                m = e;
+            }
+            else
+                e->Release();
+        }
+        return m;
+    }
+    
+    Tamgu* MethodMinMax(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        long sz = Size();
+        if (!sz)
+            return globalTamgu->Providevector();
+        
+        Tamgu* mn = getvalue(0);
+        Tamgu* mx = mn;
+        Tamgu* e;
+        for (long i = 1; i < sz; i++) {
+            e = getvalue(i);
+            if (mn->more(e)->Boolean())
+                mn = e;
+            else {
+                if (mx->less(e)->Boolean())
+                    mx = e;
+                else
+                    e->Release();
+            }
+        }
+        Tamguvector* b = globalTamgu->Providevector();
+        b->values.push_back(mn);
+        b->values.push_back(mx);
+        return b;
+    }
+
+
+    Tamgu* MethodSum(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        double v = Sum();
+        return globalTamgu->ProvideConstfloat(v);
+    }
+    
+    Tamgu* MethodProduct(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        double v = Product();
+        return globalTamgu->ProvideConstfloat(v);
+    }
+    
+    Tamgu* MethodPush(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+
+        //---------------------------------------------------------------------------------------------------------------------
+    
+        //ExecuteMethod must be implemented in order to execute our new Tamgu methods. This method is called when a TamguCallMethodMethod object
+        //is returned by the Declaration method.
+    Tamgu* CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+            //This call is a bit cryptic. It takes the method (function) pointer that has been associated in our map with "name"
+            //and run it with the proper parameters. This is the right call which should be invoked from within a class definition
+        return (this->*methods.get(idname))(contextualpattern, idthread, callfunc);
+    }
+    
+    double Sum() {
+        if (iter == NULL)
+            return 0;
+
+        double v = 0;
+        long sz = iter->Size();
+        for (long i = 0; i < sz; i++) {
+            v += getfloat(i);
+        }
+        
+        return v;
+    }
+    
+    double Product() {
+        if (iter == NULL)
+            return 0;
+
+        long sz = iter->Size();
+        if (!sz)
+            return 0;
+
+        double v = 1;
+        for (long i = 0; i < sz; i++) {
+            v *= getfloat(i);
+        }
+        return v;
+    }
+    
+    
+    Exporting string JSonString();
+    Exporting string String();
+    
+    Exporting long Integer() {
+        return Size();
+    }
+    
+    Exporting double Float() {
+        return Size();
+    }
+    
+    Exporting BLONG Long() {
+        return Size();
+    }
+    
+    Exporting bool Boolean() {
+        return Size();
+    }
+    
+    //Basic operations
+    Exporting long Size() {
+        if (iter == NULL)
+            return 0;
+
+        return iter->Size();
+    }
+    
+    Exporting Tamgu* in(Tamgu* context, Tamgu* a, short idthread);
+    
+    Exporting Tamgu* andset(Tamgu* a, bool itself);
+    Exporting Tamgu* orset(Tamgu* a, bool itself);
+    Exporting Tamgu* xorset(Tamgu* a, bool itself);
+    Exporting Tamgu* plus(Tamgu* a, bool itself);
+    Exporting Tamgu* minus(Tamgu* a, bool itself);
+    Exporting Tamgu* multiply(Tamgu* a, bool itself);
+    Exporting Tamgu* divide(Tamgu* a, bool itself);
+    Exporting Tamgu* power(Tamgu* a, bool itself);
+    Exporting Tamgu* shiftleft(Tamgu* a, bool itself);
+    Exporting Tamgu* shiftright(Tamgu* a, bool itself);
+    Exporting Tamgu* mod(Tamgu* a, bool itself);
+    
+    Exporting Tamgu* same(Tamgu* a) {
+        return aFALSE;
+    }
+    
+};
+
+class Tamgujava_vector_instance : public Tamgujava_vector {
+public:
+    
+
+    Tamgu* Newinstance(short idthread, Tamgu* f = NULL) {
+        return globalTamgu->Providevector();
+    }
+    
+    Tamgu* Newvalue(Tamgu* a, short idthread) {
+        return globalTamgu->Providevector();
+    }
+
+};
 
 #endif

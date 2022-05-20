@@ -462,6 +462,10 @@ public:
 		return NULL;
 	}
 
+    virtual Tamgu* Declared(short id) {
+        return Declaration(id);
+    }
+
     virtual uchar BType() {
         return 255;
     }
@@ -1155,7 +1159,7 @@ public:
     }
     
 	//--------------------------------------------------
-	virtual Tamgu* getvalue(BLONG i) {
+	virtual Tamgu* getvalue(long i) {
 		return aNOELEMENT;
 	}
 
@@ -2052,7 +2056,7 @@ public:
 		prevkey = prevvalue = n;		
 	}
 
-	short Type() {
+	virtual short Type() {
 		return a_iteration;
 	}
 
@@ -2182,6 +2186,132 @@ public:
 	void Release() {}
 	void Protect() {}
 };
+
+typedef Tamgu* (*javaMethod)(void*);
+typedef Tamgu* (*javaMethodInput)(void*, long);
+typedef Tamgu* (*javaMethodOutput)(void*, long, Tamgu*);
+
+class TamguJavaIteration : public TamguIteration {
+public:
+    javaMethod java_begin;
+    javaMethod java_next;
+    javaMethod java_end;
+    javaMethod java_iter;
+    javaMethod java_value;
+    javaMethod java_delete;
+    javaMethod java_size;
+    javaMethodInput java_get;
+    javaMethodOutput java_set;
+
+    void* java_iterator;
+        
+    TamguJavaIteration(void* jiv, javaMethod b, javaMethod n, javaMethod e, javaMethod iter, javaMethod v, javaMethod d, javaMethod sz, javaMethodInput g, javaMethodOutput o) :
+    java_delete(d), java_begin(b), java_next(n), java_end(e), java_iter(iter), java_value(v), java_size(sz),
+    java_get(g), java_set(o), TamguIteration(true) {
+        java_iterator = jiv;
+    }
+        
+    TamguIteration* Newiteration(bool direction) {
+        return this;
+    }
+    
+    short Type() {
+        return a_iteration_java;
+    }
+    
+    long Size() {
+        Tamgu* sz = java_size(java_iterator);
+        long s_z = sz->Integer();
+        sz->Release();
+        return s_z;
+    }
+    
+    ~TamguJavaIteration() {
+        java_delete(java_iterator);
+    }
+
+    Tamgu* getvalue(long i) {
+        return java_get(java_iterator, i);
+    }
+
+    void storevalue(long i, Tamgu* v) {
+        java_set(java_iterator, i, v);
+    }
+    
+    Tamgu* Key() {
+        return java_iter(java_iterator);
+    }
+
+    Tamgu* Value() {
+        return java_value(java_iterator);
+    }
+
+    void Next() {
+        java_next(java_iterator);
+    }
+
+    Tamgu* End() {
+        return java_end(java_iterator);
+    }
+
+    Tamgu* Begin() {
+        return java_begin(java_iterator);
+    }
+
+    string Keystring() {
+        return IteratorKey()->String();
+    }
+
+    string Valuestring() {
+        return IteratorValue()->String();
+    }
+
+    wstring Keyustring() {
+        return IteratorKey()->UString();
+    }
+
+    wstring Valueustring() {
+        return IteratorValue()->UString();
+    }
+
+    long Keyinteger() {
+        return IteratorKey()->Integer();
+    }
+
+    short Keyshort() {
+        return IteratorKey()->Short();
+    }
+
+    BLONG Keylong() {
+        return IteratorKey()->Long();
+    }
+
+    long Valueinteger() {
+        return IteratorValue()->Integer();
+    }
+
+    short Valueshort() {
+        return IteratorValue()->Short();
+    }
+    
+    BLONG Valuelong() {
+        return IteratorValue()->Long();
+    }
+
+    double Keyfloat() {
+        return IteratorKey()->Float();
+    }
+
+    double Valuefloat() {
+        return IteratorValue()->Float();
+    }
+
+    float Valuedecimal() {
+        return IteratorValue()->Decimal();
+    }
+    
+};
+
 //------------------------------------------------------------------------
 //To record objects such as functions or frames...
 class TamguDeclaration : public TamguTracked {

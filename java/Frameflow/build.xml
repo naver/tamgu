@@ -1,0 +1,21 @@
+<project name="" default="test" basedir=".">
+
+<target name="test" depends="compile"  >
+	 <java classpath="../dist/jtamgu.jar:build" classname="Test" fork="true" failonerror="true" maxmemory="128m">
+		<arg value="example.tmg"/>
+		<arg value="external.tmg"/>
+	</java>
+</target>
+
+<target name="compile" depends="clean">
+	<mkdir dir="build" />
+	<javac srcdir="${basedir}" destdir="build" classpath="../dist/jtamgu.jar" >
+	</javac>
+</target>
+
+<target name="clean" depends="" >
+	<delete dir="build" />
+</target>
+
+</project>
+

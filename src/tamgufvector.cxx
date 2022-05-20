@@ -1365,7 +1365,7 @@ Exporting Tamgu* Tamgua_fvector::in(Tamgu* context, Tamgu* a, short idthread) {
 }
 
 
-Exporting Tamgu* Tamgua_fvector::getvalue(BLONG i) {
+Exporting Tamgu* Tamgua_fvector::getvalue(long i) {
     if (i < 0 || i >= values.size())
         return aNOELEMENT;
     return globalTamgu->ProvideConstfloat(values[i]);

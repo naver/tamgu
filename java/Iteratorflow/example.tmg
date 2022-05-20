@@ -1,0 +1,22 @@
+java_vector jv;
+iterator its;
+
+function rappel() {
+    println("Itérer");
+    for (its.begin(); its.end()==false; its++) {
+        printlnerr(its.key(), its.value());
+    }
+
+    printlnerr("Taille:", jv.size());
+    for (int i in jv) {
+        printlnerr(i, jv[i]);
+    }
+
+    jv.shape([8,10,4]);
+
+    printlnerr(jv[* 1, 2]);
+    printlnerr(jv[* -1, 2]);
+    printlnerr(jv[* -2, -2]);
+
+}
+

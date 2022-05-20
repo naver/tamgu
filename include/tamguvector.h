@@ -187,7 +187,7 @@ class Tamguvector : public TamguObjectLockContainer {
              return "Unknown method";
     }
     //---------------------------------------------------------------------------------------------------------------------
-    Tamgu* getvalue(BLONG i) {
+    Tamgu* getvalue(long i) {
         locking();
         if (i < 0 || i >= values.size()) {
             unlocking();
@@ -1110,7 +1110,7 @@ public:
              return "Unknown method";
     }
         //---------------------------------------------------------------------------------------------------------------------
-    Tamgu* getvalue(BLONG i) {
+    Tamgu* getvalue(long i) {
         if (i < 0)
             return aNOELEMENT;
         
@@ -1636,7 +1636,8 @@ public:
     Exporting Tamgu* same(Tamgu* a);
     
 };
-    //---------------------------------------------------------------------------------
+
+//---------------------------------------------------------------------------------
 class TamguIterationa_vector : public TamguIteration {
 public:
     atomic_vector_iterator<Tamgu*> ref;
