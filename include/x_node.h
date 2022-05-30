@@ -397,6 +397,7 @@ public:
         
         
         rules.push_back("0x%1+(.%1+)([p P]([- +])%d+)=3");  //47 hexadecimal: can handle 0x1.16bca4f9165dep-3
+        rules.push_back("0b[1 0]+=3");                       //binary numbers
         rules.push_back("%d+(.%d+)([e E]([- +])%d+)=3");    //48    exponential digits
         
         // Rules start here
@@ -1615,6 +1616,7 @@ public:
         rules.push_back("?=0");                         //31    ?
 
         rules.push_back("0x%1+(.%1+)([p P]([- +])%d+)=3"); //32 hexadecimal
+        rules.push_back("0b[1 0]+=3");                       //binary numbers
         rules.push_back("%d+(.%d+)([e E]([- +])%d+)=3");    //33    exponential digits
         
         // Rules start here

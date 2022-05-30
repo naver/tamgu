@@ -438,6 +438,7 @@ public:
         
         rules.push_back("\\27%[{;%d}+m=0");                     // color detection
         rules.push_back("0x%1+(.%1+)([p P]([- +])%d+)=3"); //47 hexadecimal
+        rules.push_back("0b[1 0]+=3");                       //binary numbers
         rules.push_back("%d+(.%d+)([e E]([- +])%d+)=3");         //47    exponential digits
         
         // Rules start here        
@@ -556,6 +557,7 @@ public:
         rules.push_back("u@\"%?+\"@=3");                //49    string u@".."@ unicode string
         
         rules.push_back("0x%1+(.%1+)([p P]([- +])%d+)=0"); //47 hexadecimal
+        rules.push_back("0b[1 0]+=0");                       //binary numbers
         rules.push_back("%d+(.%d+)([e E]([- +])%d+)=0");    //51    exponential digits
         
             //Rules start here
@@ -659,6 +661,7 @@ public:
         rules.push_back("u@\"%?+\"@=3");                //49    string u@".."@ unicode string
         
         rules.push_back("0x%1+(.%1+)([p P]([- +])%d+)=0"); //47 hexadecimal
+        rules.push_back("0b[1 0]+=0");                       //binary numbers
         rules.push_back("%d+(.%d+)([e E]([- +])%d+)=0");    //51    exponential digits
         
             //Rules start here

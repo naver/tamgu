@@ -42,7 +42,7 @@
 #include "tamgulisp.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2022.05.20.15";
+const char* tamgu_version = "Tamgu 1.2022.05.24.12";
 
 Tamgu* booleantamgu[2];
 
@@ -458,6 +458,11 @@ TamguGlobal::TamguGlobal(long nb, bool setglobal) :
 idSymbols(false), methods(false), compatibilities(false), strictcompatibilities(false),
     operator_strings(false), terms(false), booleanlocks(true), tracked(NULL, true), trackerslots(-1, true) {
 
+#ifdef TAMGULOOSEARGUMENTCOMPATIBILITIES
+        loosecompability = true;
+#else
+        loosecompability = false;
+#endif
         
         handler_on_utf8 = create_utf8_handler();
         
@@ -1085,6 +1090,53 @@ Tamgu* TamguGlobal::GetTopFrame() {
 }
 
 Tamgu* ProcCreate(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+
+void TamguGlobal::set_loose_compatibilities(void) {
+    if (loosecompability) {        
+        bin_hash<Tamgu*>::iterator it;
+        
+        int i, j;
+        vector<short> numbertypes;
+        vector<short> stringtypes;
+        short ty;
+        for (it = newInstance.begin(); it != newInstance.end(); it++) {
+            if (it->second->isFrame()) //this type is only used to produce frames...
+                continue;
+            
+            ty = it->second->Type();
+            
+            if (it->second->isNumber()) {
+                numbertypes.push_back(ty);
+                continue;
+            }
+            
+            if (it->second->isString()) {
+                stringtypes.push_back(ty);
+                continue;
+            }
+        }
+        
+        for (i = 0; i < numbertypes.size(); i++) {
+            //We enable a loose compatibility for function arguments between strings and numbers
+            //When this flag is set to one, a function with a string parameter can be called with a number argument
+            //By default, this flag is set to 0
+            //Note that there is another flag: TAMGUSTRICTCOMPARISON, which deals with strict or loose comparisons between elements
+            //When TAMGUSTRICTCOMPARISON is set to 1, a comparison between a string and a number returns false.
+            //Else, the second element of the comparison is converted into the type of the first element.
+            for (j = 0; j < stringtypes.size(); j++)
+                compatibilities[numbertypes[i]][stringtypes[j]] = true;
+        }
+        
+        for (i = 0; i < stringtypes.size(); i++) {
+            //We enable a loose compatibility for function arguments between strings and numbers
+            //When this flag is set to one, a function with a string parameter can be called with a number argument
+            //Note that there is another flag: TAMGUSTRICTCOMPARISON, which deals with strict or loose comparisons between elements
+            for (j = 0; j < numbertypes.size(); j++)
+                compatibilities[stringtypes[i]][numbertypes[j]] = true;
+        }
+    }
+}
+
 Exporting void TamguGlobal::RecordCompatibilities() {
     bin_hash<Tamgu*>::iterator it;
 
@@ -1292,10 +1344,11 @@ Exporting void TamguGlobal::RecordCompatibilities() {
         //Note that there is another flag: TAMGUSTRICTCOMPARISON, which deals with strict or loose comparisons between elements
         //When TAMGUSTRICTCOMPARISON is set to 1, a comparison between a string and a number returns false.
         //Else, the second element of the comparison is converted into the type of the first element.
-#ifdef TAMGULOOSEARGUMENTCOMPATIBILITIES
-        for (j = 0; j < strings.size(); j++)
-            compatibilities[numbertypes[i]][stringtypes[j]] = true;
-#endif
+        if (loosecompability) {
+            for (j = 0; j < stringtypes.size(); j++)
+                compatibilities[numbertypes[i]][stringtypes[j]] = true;
+        }
+        
         compatibilities[numbertypes[i]][a_const] = true;
         strictcompatibilities[numbertypes[i]][a_const] = true;
     }
@@ -1308,10 +1361,11 @@ Exporting void TamguGlobal::RecordCompatibilities() {
         //We enable a loose compatibility for function arguments between strings and numbers
         //When this flag is set to one, a function with a string parameter can be called with a number argument
         //Note that there is another flag: TAMGUSTRICTCOMPARISON, which deals with strict or loose comparisons between elements
-#ifdef TAMGULOOSEARGUMENTCOMPATIBILITIES
-        for (j = 0; j < numbertypes.size(); j++)
-            compatibilities[stringtypes[i]][numbertypes[j]] = true;
-#endif
+        if (loosecompability) {
+            for (j = 0; j < numbertypes.size(); j++)
+                compatibilities[stringtypes[i]][numbertypes[j]] = true;
+        }
+        
         compatibilities[stringtypes[i]][a_const] = true;
         strictcompatibilities[stringtypes[i]][a_const] = true;
     }

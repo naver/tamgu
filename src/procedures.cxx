@@ -957,6 +957,13 @@ Tamgu* ProcErrorOnKey(Tamgu* contextualpattern, short idthread, TamguCall* callf
     return aTRUE;
 }
 //------------------------------------------------------------------------------------------------------------------------
+Tamgu* ProcLooseCompatibility(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    bool v = callfunc->Evaluate(0, contextualpattern, idthread)->Boolean();
+    globalTamgu->loosecompability = v;
+    globalTamgu->set_loose_compatibilities();
+    return aTRUE;
+}
+//------------------------------------------------------------------------------------------------------------------------
 Tamgu* ProcExit(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     executionbreak = true;
     return aEND;
@@ -2890,6 +2897,7 @@ Exporting void TamguGlobal::RecordMethods(short type, short name, unsigned long 
 }
 
 Exporting void TamguGlobal::RecordProcedures() {
+    systemfunctions["_loosecompatibility"] = true;
     systemfunctions["_erroronkey"] = true;
     systemfunctions["_setstacksize"] = true;
     systemfunctions["_setmaxthreads"] = true;
@@ -2906,6 +2914,7 @@ Exporting void TamguGlobal::RecordProcedures() {
     RecordOneProcedure("_setmaxrange", ProcMaxMaxRange, P_ONE);
     RecordOneProcedure("_exit", ProcExit, P_NONE);
     RecordOneProcedure("_erroronkey", ProcErrorOnKey, P_ONE);
+    RecordOneProcedure("_loosecompatibility", ProcLooseCompatibility, P_ONE);
     RecordOneProcedure("_setenv", ProcSetEnv, P_TWO);
     RecordOneProcedure("_forcelocks", ProcForceLocks, P_ONE);
     RecordOneProcedure("_lispmode", ProcLispmode, P_NONE | P_ONE);

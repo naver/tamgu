@@ -4319,9 +4319,19 @@ double conversionfloathexa(const char* s) {
         if (*s=='+')
             ++s;
     
-    if (*s=='0' && s[1]=='x') {
+    if (*s=='0' && (s[1]=='x' || s[1] == 'b')) {
+        if (s[1] == 'x') {
+            s+=2;
+            return conversiontofloathexa(s, sign);
+        }
         s+=2;
-        return conversiontofloathexa(s, sign);
+        BLONG v = 0;
+        while (isadigit(*s)) {
+            v <<= 1;
+            v |= *s - 48;
+            s++;
+        }
+        return v*sign;
     }
     
     BLONG v;
@@ -4494,10 +4504,22 @@ double conversionfloathexa(const char* s, short& l) {
             l++;
         }
     
-    if (*s=='0' && s[1]=='x') {
+    if (*s=='0' && (s[1]=='x' || s[1] == 'b')) {
+        if (s[1] == 'x') {
+            s+=2;
+            l++;
+            return conversiontofloathexa(s, sign, l);
+        }
         s+=2;
         l++;
-        return conversiontofloathexa(s, sign, l);
+        BLONG v = 0;
+        while (isadigit(*s)) {
+            v <<= 1;
+            v |= *s - 48;
+            s++;
+            l++;
+        }
+        return v*sign;
     }
     
     BLONG v;
@@ -4655,10 +4677,19 @@ void noconversionfloathexa(const char* s, short& l) {
             l++;
         }
     
-    if (*s=='0' && s[1]=='x') {
+    if (*s=='0' && (s[1]=='x' || s[1] == 'b')) {
+        if (s[1] == 'x') {
+            s+=2;
+            l++;
+            noconversiontofloathexa(s, sign, l);
+            return;
+        }
         s+=2;
         l++;
-        noconversiontofloathexa(s, sign, l);
+        while (isadigit(*s)) {
+            s++;
+            l++;
+        }
         return;
     }
     
@@ -4832,12 +4863,24 @@ double conversionfloathexa(const wchar_t* s, short& l) {
             l++;
         }
     
-    if (*s=='0' && s[1]=='x') {
+    if (*s=='0' && (s[1]=='x' || s[1] == 'b')) {
+        if (s[1] == 'x') {
+            s+=2;
+            l++;
+            return conversiontofloathexa(s, sign, l);
+        }
         s+=2;
         l++;
-        return conversiontofloathexa(s, sign, l);
+        BLONG v = 0;
+        while (isadigit(*s)) {
+            v <<= 1;
+            v |= *s - 48;
+            s++;
+            l++;
+        }
+        return v*sign;
     }
-    
+
     BLONG v;
     if (isadigit(*s)) {
         v = *s++ & 15;
@@ -4920,29 +4963,37 @@ Exporting BLONG conversionintegerhexa(char* number) {
     
     
     ++number;
-    BLONG v;
-    if (c == '0' && *number == 'x') {
-        ++number;
-        
-        v = 0;
-        while (*number) {
-            v <<= 4;
-            c = *number;
-            switch (digitaction[c]) {
-                case '0':
-                    v |= c & 15;
-                    ++number;
-                    continue;
-                case 'X':
-                    v |= c - 55;
-                    ++number;
-                    continue;
-                case 'x':
-                    v |= c - 87;
-                    ++number;
-                    continue;
-                default:
-                    return v*sign;
+    BLONG v = 0;
+    if (c == '0' && (*number == 'x' || *number == 'b')) {
+        if (*number == 'x') {
+            ++number;
+            while (*number) {
+                v <<= 4;
+                c = *number;
+                switch (digitaction[c]) {
+                    case '0':
+                        v |= c & 15;
+                        ++number;
+                        continue;
+                    case 'X':
+                        v |= c - 55;
+                        ++number;
+                        continue;
+                    case 'x':
+                        v |= c - 87;
+                        ++number;
+                        continue;
+                    default:
+                        return v*sign;
+                }
+            }
+        }
+        else {
+            ++number;
+            while (*number) {
+                v <<= 1;
+                v |= *number - 48;
+                ++number;
             }
         }
     }
@@ -4980,27 +5031,39 @@ BLONG conversionintegerhexa(wstring& number) {
 	if (number.size() == ipos)
 		return (c - 48);
 
-    if (c == '0' || number[ipos] == 'x') {
-        ipos++;
-        c = number[ipos++];
-        while (c) {
-            v <<= 4;
-            switch (digitaction[c]) {
-                case '0':
-                    v |= c & 15;
-                    c = number[ipos++];
-                    continue;
-                case 'X':
-                    v |= c - 55;
-                    c = number[ipos++];
-                    continue;
-                case 'x':
-                    v |= c - 87;
-                    c = number[ipos++];
-                    continue;
-                default:
-                    return v*sign;
+    if (c == '0' || (number[ipos] == 'x' || number[ipos] == 'b')) {
+        if (number[ipos] == 'x') {
+            ipos++;
+            c = number[ipos++];
+            while (c) {
+                v <<= 4;
+                switch (digitaction[c]) {
+                    case '0':
+                        v |= c & 15;
+                        c = number[ipos++];
+                        continue;
+                    case 'X':
+                        v |= c - 55;
+                        c = number[ipos++];
+                        continue;
+                    case 'x':
+                        v |= c - 87;
+                        c = number[ipos++];
+                        continue;
+                    default:
+                        return v*sign;
+                }
             }
+        }
+        else {
+            ipos++;
+            c = number[ipos++];
+            while (c) {
+                v <<= 1;
+                v |= c - 48;
+                c = number[ipos++];
+            }
+            return v*sign;
         }
     }
     else {
@@ -7830,6 +7893,7 @@ void getdefaultrules(vector<string>& rules) {
     rules.push_back("http(s)://%2+(.%2+)+=0");                              //40    http (we use metarule %2 to detect which characters are valid)
     
     rules.push_back("0x%4+(.%4+)([p P]([- +])%d+)=0");                         //47 hexadecimal
+    rules.push_back("0b[1 0]+=0");                                          //binary numbers
     rules.push_back("%d+,%d%d%d(,%d%d%d)+=88");                             //42    multi-word expression...
     rules.push_back("%d+.%d%d%d(.%d%d%d)+=88");                             //43    multi-word expression...
     

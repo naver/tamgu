@@ -355,6 +355,7 @@ public:
 	void Triggeronfalse(Tamgu* a);
 
 	bool erroronkey;
+    bool loosecompability;
 
 	//-----------------------------------
 	vector<string> filenames;
@@ -442,6 +443,8 @@ public:
     Tamgu* Provideinstance(Tamgu* p, long i);
     
     short Typeinstance(string s);
+    
+    void set_loose_compatibilities(void);
     
     hmap<string, short> string_operators;
 	bin_hash<string> operator_strings;

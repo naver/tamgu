@@ -757,5 +757,6 @@ void TamguGlobal::RecordPredicates() {
     for (long i = 0; i < 1000; i++)
         pvireservoire.push_back(new TamguPredicateVariableInstance(i));
     
+    predicates[a_universal] = new TamguPredicateFunction(this, NULL, a_universal);
     pviidx = 0;
 }
