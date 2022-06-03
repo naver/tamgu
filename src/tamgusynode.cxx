@@ -107,7 +107,7 @@ Exporting bool Tamgusynode::Checkfeature(string key, string value) {
 
     if (validfeatures->values[key] != value) {
         //In the case of a feature with a variable value, we use a blank string
-        if (validfeatures->values[key] == "")
+        if (validfeatures->values[key].empty())
             return true;
         return false;
     }

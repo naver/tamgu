@@ -296,7 +296,7 @@ Exporting string Tamgutable::String() {
         sx = element->StringToDisplay();
 
         if (!element->isString() || element->isContainer()) {
-            if (sx == "")
+            if (sx.empty())
                 sx = "''";
             if (beg == false) {
                 if (sx[0] != '|')
@@ -332,7 +332,7 @@ void Tamgutable::Setstring(string& res, short idthread) {
         element = values[it];
         sx = element->StringToDisplay();
         if (!element->isString() || element->isContainer()) {
-            if (sx == "")
+            if (sx.empty())
                 sx = "''";
             if (beg == false) {
                 if (sx[0] != '|')

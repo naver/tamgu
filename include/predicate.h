@@ -59,8 +59,12 @@ public:
 		name = n;
 	}
     
-    void Stringpredicatekey(string& v) {
-        v = "";
+    virtual bool Stringpredicatekey(string& v) {
+        return false;
+    }
+
+    virtual bool Stringpredicatekeysecond(string& v) {
+        return false;
     }
 
 	bool isPredicateVariable() {
@@ -86,6 +90,7 @@ public:
 	short Name() {
         return name;
     }
+    
     bool isName(short n) {
         return (n == name || n == a_universal);
     }
@@ -191,6 +196,14 @@ public:
 	}
 
 	bool Insertvalue(Tamgu* dom, Tamgu* v, basebin_hash<Tamgu*>&);
+
+    bool Stringpredicatekey(string& v) {
+        return value->Stringpredicatekey(v);
+    }
+
+    bool Stringpredicatekeysecond(string& v) {
+        return value->Stringpredicatekeysecond(v);
+    }
 
 	void Setreference(short inc) {
 		if (value != aNOELEMENT)
@@ -398,6 +411,17 @@ public:
 	string String();
     void Setstring(string& v, short idthread);
     
+    bool Stringpredicatekey(string& v) {
+        Setstring(v, 0);
+        return !v.empty();
+    }
+
+    bool Stringpredicatekeysecond(string& v) {
+        Setstring(v, 0);
+        return !v.empty();
+    }
+
+
 	BLONG Long() {
 		return parameters.size();
 	}
@@ -518,6 +542,16 @@ public:
 	string String();
     void Setstring(string& v, short idthread);
     
+    bool Stringpredicatekey(string& v) {
+        Setstring(v, 0);
+        return !v.empty();
+    }
+
+    bool Stringpredicatekeysecond(string& v) {
+        Setstring(v, 0);
+        return !v.empty();
+    }
+
 	BLONG Long() {
 		return parameters.size();
 	}
@@ -543,8 +577,6 @@ typedef Tamgu* (TamguPredicate::*predicateMethod)(Tamgu* contextualpattern, shor
 //The instance. It can contain predicate variables in its parameters: ?val
 class TamguPredicate : public TamguReference {
 public:
-
-
 	short ptype;
 	vector<Tamgu*> parameters;
 
@@ -552,19 +584,14 @@ public:
 
 	bool negation;
 	bool disjunction;
+    bool shared;
 
 	static Exchanging basebin_hash<predicateMethod> methods;
-	
-	
 	static Exchanging short idtype;
 
 	TamguPredicate(short n, TamguGlobal* g = NULL, short t = a_predicate, Tamgu* parent = NULL);
 	TamguPredicate(TamguGlobal* g, short n);
 
-    virtual void Stringpredicatekey(string& v) {
-        parameters[0]->Stringpredicatekey(v);
-    }
-    
 	void Leaves(Tamgu* v) {
 		for (size_t i = 0; i < parameters.size(); i++)
 			parameters[i]->Leaves(v);
@@ -592,6 +619,10 @@ public:
     bool isName(short n) {
         return (n == name || n == a_universal);
     }
+    string Namestring() {
+        return globalTamgu->Getsymbol(name);
+    }
+    
 
 	~TamguPredicate() {
 		if (idtracker != -1 && globalTamgu->Checktracker(this, idtracker))
@@ -618,6 +649,11 @@ public:
 	virtual short Idvar() {
 		return 0;
 	}
+    
+    virtual char setPredicateNameVariable(TamguDeclaration* dom, TamguPredicate*, long depth, short idthread) {
+        return true;
+    }
+    virtual void resetPredicateNameVariable(TamguDeclaration* dom, long depth, short idthread) {}
 
 	virtual void Setname(short n) {
 		name = n;
@@ -713,6 +749,16 @@ public:
 	virtual string JSonString();
     virtual void Setstring(string& v, short idthread);
 
+    bool Stringpredicatekey(string& v) {
+        return parameters[0]->Stringpredicatekey(v);
+    }
+    
+    bool Stringpredicatekeysecond(string& v) {
+        if (parameters.size() > 1)
+            return parameters[1]->Stringpredicatekeysecond(v);
+        return false;
+    }
+
 	bool Boolean();
 
 	Tamgu* same(Tamgu* a);
@@ -788,7 +834,6 @@ public:
         v = globalTamgu->Getwsymbol(name);
     }
 
-
 	Tamgu* Newinstance(short idthread, Tamgu* f = NULL) {
 		return new TamguPredicateFunction(globalTamgu, function, name);
 	}
@@ -818,11 +863,30 @@ public:
         v = globalTamgu->Getwsymbol(name);
     }
 
-
+    short checkTypePredicate() {
+        return name;
+    }
+    
 	Tamgu* Newinstance(short idthread, Tamgu* f = NULL) {
 		return this;
 	}
 	void Resetreference(short inc = 1) {}
+};
+
+class TamguPredicateAsVariable : public TamguPredicate {
+public:
+    short idvar;
+
+    TamguPredicateAsVariable(TamguGlobal* g, Tamgu* parent, short n, short idv) : TamguPredicate(n, g, a_predicate, parent) {
+        idvar = idv;
+    }
+    TamguPredicate* Duplicate(Tamgu* context, TamguDeclaration* d, short idthread);
+    bool isPredicateNameVariable() {
+        return true;
+    }
+    char setPredicateNameVariable(TamguDeclaration* dom, TamguPredicate*, long depth, short idthread);
+    void resetPredicateNameVariable(TamguDeclaration* dom, long depth, short idthread);
+
 };
 
 class TamguDependency : public TamguPredicate {
@@ -834,10 +898,6 @@ public:
 
 
 	TamguDependency(TamguGlobal* g, Tamgu* f, short n, short id);
-
-    void Stringpredicatekey(string& v) {
-        v = "";
-    }
 
 	short Idvar();
 
@@ -901,6 +961,15 @@ public:
 
 	string String();
     void Setstring(string& v, short idthread);
+
+    bool Stringpredicatekey(string& v) {
+        return false;
+    }
+
+    bool Stringpredicatekeysecond(string& v) {
+        return false;
+    }
+
 	string JSonString();
 
 	Tamgu* Vector(short idthread) {
@@ -968,18 +1037,21 @@ public:
 	}
 };
 
-class TamguPredicateKnowledgeBaseFunction : public TamguPredicate {
+//The actions are: retract, asserta, assertz
+class TamguPredicateAction : public TamguPredicate {
 public:
 	short action;
 
-	TamguPredicateKnowledgeBaseFunction(TamguGlobal* g, short n, Tamgu* parent = NULL) : TamguPredicate(n, g, a_predicate, parent) {
-		action = n;
-	}
+	TamguPredicateAction(TamguGlobal* g, short n, Tamgu* parent = NULL) : action(n), TamguPredicate(n, g, a_predicate, parent) {}
 
 	short kbaction() {
 		return action;
 	}
 
+    virtual short checkTypePredicate() {
+        return action;
+    }
+    
 	string String();
     void Setstring(string& v, short idthread);
 
@@ -994,7 +1066,7 @@ public:
 	TamguPredicate* Duplicate(Tamgu* context, TamguDeclaration* d, short idthread);
 
 	virtual Tamgu* Newinstance(short idthread, Tamgu* f = NULL) {
-		TamguPredicateKnowledgeBaseFunction* p = new TamguPredicateKnowledgeBaseFunction(globalTamgu, action);
+		TamguPredicateAction* p = new TamguPredicateAction(globalTamgu, action);
 		p->name = name;
 		p->negation = negation;
 		return p;
@@ -1002,13 +1074,29 @@ public:
 
 };
 
-class TamguDependencyKnowledgeBaseFunction : public TamguPredicateKnowledgeBaseFunction {
+//The actions are: retract, asserta, assertz, remove
+class TamguDependencyAction : public TamguPredicateAction {
 public:
 	Tamgu* features;
 	short idvar;
 	long idrule;
 
-	TamguDependencyKnowledgeBaseFunction(TamguGlobal* g, short n, long idr, Tamgu* parent = NULL) : idrule(idr), TamguPredicateKnowledgeBaseFunction(g, n, parent) {
+	TamguDependencyAction(TamguGlobal* g, short n, long idr, Tamgu* parent = NULL) : idrule(idr), TamguPredicateAction(g, n, parent) {
+        //we then transform the different actions:
+        //a_asserta becomes a_dependency_asserta
+        //a_assertz becomes a_dependency_assertz
+        //a_retract becomes a_dependency_retract
+        switch (action) {
+            case a_asserta:
+                action = a_dependency_asserta;
+                break;
+            case a_assertz:
+                action = a_dependency_assertz;
+                break;
+            case a_retract:
+                action = a_dependency_retract;
+                break;
+        }
 		features = aNULL;
 		idvar = 0;
 	}
@@ -1041,7 +1129,7 @@ public:
 	}
 
 	Tamgu* Newinstance(short idthread, Tamgu* f = NULL) {
-		TamguDependencyKnowledgeBaseFunction* p = new TamguDependencyKnowledgeBaseFunction(globalTamgu, action, idrule);
+		TamguDependencyAction* p = new TamguDependencyAction(globalTamgu, action, idrule);
 		p->name = name;
 		p->features = features;
 		p->negation = negation;

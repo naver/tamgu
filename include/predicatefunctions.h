@@ -35,6 +35,10 @@ public:
 			return false;
 		return true;
 	}
+    
+    short checkTypePredicate() {
+        return a_predicatemethod;
+    }
 
 	Exporting Tamgu* PredicateEvalue(TamguInstructionEvaluate* context, VECTE<Tamgu*>& stack, TamguPredicate* currenthead, long depth);
 	Exporting TamguPredicate* Duplicate(Tamgu* context, TamguDeclaration* dom, short idthread);
@@ -73,6 +77,10 @@ public:
 			return true;
 		return false;
 	}
+
+    short checkTypePredicate() {
+        return a_predicatemethod;
+    }
 
 	Exporting bool Checkparameters(TamguDeclaration*);
 
@@ -120,6 +128,10 @@ public:
 		return false;
 	}
 
+    short checkTypePredicate() {
+        return a_predicatemethod;
+    }
+
 	Exporting bool Checkparameters(TamguDeclaration*);
 
 	Exporting Tamgu* PredicateEvalue(TamguInstructionEvaluate* context, VECTE<Tamgu*>& stack, TamguPredicate* currenthead, long depth);
@@ -159,6 +171,10 @@ public:
         investigate |= is_predicatemethod;
 		size = sz; 
 	}
+
+    short checkTypePredicate() {
+        return a_predicatemethod;
+    }
 
 	Tamgu* Newinstance(short idthread, Tamgu* parent = NULL) {
 		if (parent != NULL && parent->Type() == a_parameterpredicate)

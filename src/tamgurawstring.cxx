@@ -786,7 +786,7 @@ Tamgu* Tamgurawstring::MethodCount(Tamgu* contextualpattern, short idthread, Tam
     }
 
     agnostring str(String());
-    if (str == "")
+    if (str.empty())
         return aZERO;
 
     string sub = substr->String();
@@ -1145,7 +1145,7 @@ Tamgu* Tamgurawstring::MethodSplit(Tamgu* contextualpattern, short idthread, Tam
     thesplitter=tamgusplitter->String();
     
     //Second parameter is the splitter string
-    if (thesplitter == "") {
+    if (thesplitter.empty()) {
         for (long i = 0; i < sz; i++)
             kvect->storevalue(value[i]);
         return kvect;
@@ -1294,7 +1294,7 @@ Tamgu* Tamgurawstring::MethodSplite(Tamgu* contextualpattern, short idthread, Ta
     thesplitter=tamgusplitter->String();
     
     //Second parameter is the splitter string
-    if (thesplitter == "") {
+    if (thesplitter.empty()) {
         for (long i = 0; i < sz; i++)
             kvect->storevalue(value[i]);
         return kvect;
@@ -1422,7 +1422,7 @@ Tamgu* Tamgurawstring::MethodSlice(Tamgu* contextualpattern, short idthread, Tam
 Tamgu* Tamgurawstring::MethodHash(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     static const std::collate<char>& coll = std::use_facet<std::collate<char> >(loc);
     string s =  String();
-    if (s == "")
+    if (s.empty())
         return aNULL;
     long myhash = coll.hash(s.data(), s.data() + s.length());
     return globalTamgu->ProvideConstint(myhash);
@@ -1973,7 +1973,7 @@ Tamgu* Tamgurawstring::MethodReplace(Tamgu* contextualpattern, short idthread, T
 
     string str = String();
     string reg = treg->String();
-    if (reg == "")
+    if (reg.empty())
         return globalTamgu->Providewithstring(str);
 
     string rep = callfunc->Evaluate(1, contextualpattern, idthread)->String();

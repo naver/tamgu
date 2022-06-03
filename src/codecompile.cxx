@@ -2242,7 +2242,7 @@ Tamgu* TamguCode::C_parameterdeclaration(x_node* xn, Tamgu* parent) {
 	}
 
     string name;
-    if (name_space == "")
+    if (name_space.empty())
         name = xn->nodes[1]->value;
     else
         name = name_space + xn->nodes[1]->value;
@@ -2367,7 +2367,7 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
 	}
 
     string name;
-    if (name_space == "")
+    if (name_space.empty())
         name = xn->nodes[1]->value;
     else
         name = name_space + xn->nodes[1]->value;
@@ -2777,10 +2777,20 @@ Tamgu* TamguCode::C_regularcall(x_node* xn, Tamgu* parent) {
 
 	string name = xn->nodes[0]->value;
 	short id = global->Getid(name);
+    short idname = -1;
 	string params;
 
-	if (xn->token == "predicatecall")
+    if (xn->token == "predicatecall") {
 		params = "predicateparameters";
+        if (name[0] == '_' && isdigit(name[1]) && name.size() == 2) {
+            idname = id;
+            if (!mainframe.isDeclared(idname)) {
+                mainframe.Declare(idname, aNULL);
+                global->Storevariable(0, idname, aNULL);
+            }
+            id = a_universal;
+        }
+    }
 	else
 		params = "parameters";
 
@@ -2792,14 +2802,18 @@ Tamgu* TamguCode::C_regularcall(x_node* xn, Tamgu* parent) {
 			TamguInstructionLaunch* kbloc = new TamguInstructionLaunch(global, parent);
 			parent = kbloc;
 		}
-
+        
 		TamguPredicate* kx = global->predicates[id];
 		if (kx != NULL && kx->isPredicateMethod()) {
 			kx = (TamguPredicate*)kx->Newinstance(0, parent);
 			parent->AddInstruction(kx);
 		}
-		else
-			kx = new TamguPredicate(id, global, a_predicate, parent);
+        else {
+            if (idname != -1)
+                kx = new TamguPredicateAsVariable(global, parent, id, idname);
+            else
+                kx = new TamguPredicate(id, global, a_predicate, parent);
+        }
 
         
         //There could be a tail function to be called with
@@ -3220,10 +3234,14 @@ Tamgu* TamguCode::C_taskellcall(x_node* xn, Tamgu* parent) {
 }
 
 Tamgu* TamguCode::C_framevariable(x_node* xn, Tamgu* parent) {
-    string name = xn->nodes[0]->value;
-    short idname = global->Getid(name);
-    Tamgu* av = NULL;
     x_node* subxn = xn->nodes[0];
+    Tamgu* av = NULL;
+
+    short idname;
+    if (subxn->token == "variable")
+        idname = global->Getid(subxn->nodes[0]->value);
+    else
+        idname = global->Getid(xn->nodes[0]->value);
     
     if (xn->token == "subvar") {
         Tamgu* dom = Declaror(idname);
@@ -3257,7 +3275,9 @@ Tamgu* TamguCode::C_framevariable(x_node* xn, Tamgu* parent) {
 
     if (!global->framevariables.check(idname)) {
         stringstream message;
-        message << "This variable is not a frame field: '" << name << "'";
+        if (subxn->token == "variable")
+            xn = subxn;
+        message << "This variable is not a frame field: '" << xn->nodes[0]->value << "'";
         throw new TamguRaiseError(message, filename, current_start, current_end);
     }
     
@@ -3273,7 +3293,7 @@ Tamgu* TamguCode::C_framevariable(x_node* xn, Tamgu* parent) {
 
 Tamgu* TamguCode::C_variable(x_node* xn, Tamgu* parent) {
     string name;
-    if (name_space == "")
+    if (name_space.empty())
         name = xn->nodes[0]->value;
     else
         name = name_space + xn->nodes[0]->value;
@@ -4104,7 +4124,7 @@ Tamgu* TamguCode::C_features(x_node* xn, Tamgu* kf) {
 				}
 
 				if (rgx) {
-					if (val == "") {
+					if (val.empty()) {
 						stringstream message;
 						message << "Empty string cannot be used as a regular expression: '" << key << "'";
 						throw new TamguRaiseError(message, filename, current_start, current_end);
@@ -5253,7 +5273,7 @@ Tamgu* TamguCode::C_frame(x_node* xn, Tamgu* kf) {
 		pos = 1;
 	}
 	string name;
-    if (name_space == "")
+    if (name_space.empty())
         name = xn->nodes[pos]->value;
     else
         name = name_space + xn->nodes[pos]->value;
@@ -5983,7 +6003,7 @@ Tamgu* TamguCode::C_trycatch(x_node* xn, Tamgu* kf) {
 Tamgu* TamguCode::C_parameters(x_node* xn, Tamgu* kcf) {
 	TamguInstruction kbloc;
 	short id = kbloc.idtype;
-	if (kcf->Name() >= a_asserta && kcf->Name() <= a_retract)
+	if (kcf->Name() >= a_asserta && kcf->Name() <= a_dependency_remove)
 		id = a_parameterpredicate;
 
     insidecall++;
@@ -8850,7 +8870,7 @@ Tamgu* TamguCode::C_dcg(x_node* xn, Tamgu* kf) {
 			if (kblocelement == NULL)
 				kblocelement = kpredelement;
 			kcf = new TamguPredicate(name, global, a_predicate, kpredelement);
-			if (sname == "")
+			if (sname.empty())
 				kcf->AddInstruction(kvect); //in that case, we automatically transmit [], we do not have a ?X variable to deal with
 			else {
 				buff[2] = 'A' + i - 2;
@@ -8966,7 +8986,6 @@ Tamgu* TamguCode::C_dependency(x_node* xn, Tamgu* kf) {
 
 			//We then add a variable, (which will be stored in main memory)
 			if (mainframe.isDeclared(idname) == false) {
-				global->dependenciesvariable[idvar] = idvar;
 				TamguDependency* a = new TamguDependency(global, aNULL, idvar, idvar);
 				mainframe.Declare(idvar, a);
 			}
@@ -9027,14 +9046,14 @@ Tamgu* TamguCode::C_dependency(x_node* xn, Tamgu* kf) {
 }
 
 Tamgu* TamguCode::C_dependencyresult(x_node* xn, Tamgu* kpredelement) {
-	TamguDependencyKnowledgeBaseFunction* kbloc;
+	TamguDependencyAction* kbloc;
 	long idrule = global->Predicatecontainer()->rules[a_dependency].size();
 
 	for (int i = 0; i < xn->nodes.size(); i++) {
 		kpredelement = new TamguPredicateRuleElement(global, kpredelement);
 		if (isnegation(xn->nodes[i]->token)) {
 			if (global->modifieddependency != NULL) {
-				kbloc = new TamguDependencyKnowledgeBaseFunction(global, a_remove, idrule, kpredelement);
+				kbloc = new TamguDependencyAction(global, a_dependency_remove, idrule, kpredelement);
 				kbloc->AddInstruction(global->modifieddependency);
 				//We change the idvar to 0, to distinguish between a dependency deletion from a simple modification
 				kbloc->idvar = 0;
@@ -9044,7 +9063,7 @@ Tamgu* TamguCode::C_dependencyresult(x_node* xn, Tamgu* kpredelement) {
 			if (xn->nodes[i]->token == "dependency") {
 				short nm = 0;
 				if (global->modifieddependency != NULL) {
-					kbloc = new TamguDependencyKnowledgeBaseFunction(global, a_remove, idrule, kpredelement);
+					kbloc = new TamguDependencyAction(global, a_dependency_remove, idrule, kpredelement);
 					kbloc->AddInstruction(global->modifieddependency);
 					global->modifieddependency = NULL;
 
@@ -9052,7 +9071,7 @@ Tamgu* TamguCode::C_dependencyresult(x_node* xn, Tamgu* kpredelement) {
 					nm = a_modifydependency;
 				}
 
-				kbloc = new TamguDependencyKnowledgeBaseFunction(global, a_assertz, idrule, kpredelement);
+				kbloc = new TamguDependencyAction(global, a_assertz, idrule, kpredelement);
 
 				// We prevent feature assignement within a dependency as result...
 				featureassignment = 1;
@@ -9331,7 +9350,7 @@ Tamgu* TamguCode::C_assertpredicate(x_node* xn, Tamgu* kf) {
 			id = a_retract;
 	}
 
-	Tamgu* kbloc = new TamguPredicateKnowledgeBaseFunction(global, id, kf);
+	Tamgu* kbloc = new TamguPredicateAction(global, id, kf);
 	if (xn->nodes.size() != 2)  {
 		stringstream message;
 		message << "Error: Wrong assert or retract definition";

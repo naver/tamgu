@@ -190,6 +190,14 @@ public:
     
     virtual void Getshape(vector<long>& sh) {}
     
+    virtual bool isPredicateNameVariable() {
+        return false;
+    }
+    
+    virtual short checkTypePredicate() {
+        return a_null;
+    }
+    
     virtual void add(An_any* e) {}
     virtual void push(An_any* e) {}
 	virtual void InstructionClear() {}
@@ -1322,10 +1330,16 @@ public:
     }
 
     //--- Some important conversion methods...
-    virtual void Stringpredicatekey(string& v) {
+    virtual bool Stringpredicatekey(string& v) {
         Setstring(v, 0);
+        return !v.empty();
     }
-    
+
+    virtual bool Stringpredicatekeysecond(string& v) {
+        Setstring(v, 0);
+        return !v.empty();
+    }
+
 	virtual string String() { return ""; }
     virtual void Setstring(string& v, short idthread) { v = String(); }
 

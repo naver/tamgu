@@ -168,7 +168,8 @@ public:
     
 	hmap<short, vector<TamguPredicate*> > knowledgebase;
     hmap<string,vector<TamguPredicate*> > knowledgebase_on_first;
-    
+    hmap<string,vector<TamguPredicate*> > knowledgebase_on_second;
+
 	bin_hash<VECTE<Tamgu*> > variables;
 
 	string nonblockingerror;
@@ -267,11 +268,8 @@ public:
 	bool RemoveThePredicate(TamguDeclaration* dom, TamguPredicate* p);
 
 	inline bool Checkpredicate(short name) {
-		if (name == a_universal){
-			if (knowledgebase.size())
-				return true;
-			return false;
-		}
+		if (name == a_universal) 
+            return knowledgebase.size();
 
         return (knowledgebase.find(name) != knowledgebase.end());
 	}
@@ -604,7 +602,7 @@ public:
 	unsigned short gpredicatefeature;
 
 	void SetPredicateVariableFlags() {
-		gpredicatezone = idSymbols.size();
+		gpredicatezone = symbolIds.size();
 		gpredicatedico = gpredicatezone + 1;
 		gpredicatedependency = gpredicatedico + 1;
 		gpredicatefeature = gpredicatedependency + 1;
@@ -668,7 +666,6 @@ public:
 
 	basebin_hash<TamguPredicateVariable*> predicatevariables;
 	map<string, Tamgu*> dependencyvariables;
-	basebin_hash<short> dependenciesvariable;
 	Tamgu* modifieddependency;
 	bin_hash<TamguPredicateFunction*> predicates;
 	bin_hash<string> terms;
@@ -940,6 +937,12 @@ public:
 	inline Tamgu* Getvariable(short idthread, short name) {
 		return threads[idthread].variables.get(name).back();
 	}
+
+    inline Tamgu* Getavariable(short idthread, short name) {
+        if (threads[idthread].variables.check(name) && threads[idthread].variables.get(name).size())
+            return threads[idthread].variables.get(name).back();
+        return aNULL;
+    }
 
     inline void Removevariable(short idthread, short name) {
         threads[idthread].Removevariable(name);

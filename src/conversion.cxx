@@ -6765,7 +6765,7 @@ Exporting long size_c(unsigned char* contenu, long sz, long& first) {
 }
 
 Exporting long size_c(string& s) {
-    if (s == "")
+    if (s.empty())
         return 0;
     long lg = s.size();
     uchar* contenu = USTR(s);
@@ -8306,7 +8306,7 @@ Exporting void v_split_indent(string& thestr, vector<string>& v) {
     string value;
     for (long i = 0; i < xr.stack.size(); i++) {
         if (xr.stack[i] == "\n") {
-            if (value == "")
+            if (value.empty())
                 v.push_back("\n");
             else
                 v.push_back(Trim(value));
@@ -12418,7 +12418,7 @@ bool UTF8_Handler::c_is_emojicomp(unsigned char* m, long& i) {
 }
 
 bool UTF8_Handler::s_is_emoji(string& s) {
-    if (s == "")
+    if (s.empty())
         return false;
     
     long lg = s.size();
@@ -13852,7 +13852,7 @@ bool UTF8_Handler::s_is_punctuation(string& str) {
 }
 
 bool UTF8_Handler::s_is_upper(string& s) {
-    if (s == "")
+    if (s.empty())
         return false;
     long lg = s.size();
     for (long i = 0; i < lg; i++) {
@@ -14121,7 +14121,7 @@ string UTF8_Handler::s_deaccentuate(unsigned char* s) {
 }
 
 bool UTF8_Handler::s_is_alpha(string& s) {
-    if (s == "")
+    if (s.empty())
         return false;
     long lg = s.size();
     for (long i = 0; i < lg; i++) {
@@ -14133,7 +14133,7 @@ bool UTF8_Handler::s_is_alpha(string& s) {
 }
 
 bool UTF8_Handler::s_is_lower(string& s) {
-    if (s == "")
+    if (s.empty())
         return false;
     
     long lg = s.size();

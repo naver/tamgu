@@ -266,7 +266,7 @@ string getwinchar(void(*f)()) {
 	SetConsoleMode(hStdin, fdwMode);
 
 	kar = 0;
-	while (s == "") {
+	while (s.empty()) {
 		ReadConsoleInput(
 			hStdin,      // input buffer handle 
 			irInBuf,     // buffer to read into 
@@ -347,7 +347,7 @@ string getcharacter() {
 	SetConsoleMode(hStdin, fdwMode);
 
 	kar = 0;
-	while (s == "") {
+	while (s.empty()) {
 		ReadConsoleInput(
 			hStdin,      // input buffer handle 
 			irInBuf,     // buffer to read into 

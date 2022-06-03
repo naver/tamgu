@@ -2132,7 +2132,7 @@ string Tamgulisp::String() {
         element = values[it];
         sx = element->StringToDisplay();
         if (!element->isString() || element->isContainer()) {
-            if (sx == "")
+            if (sx.empty())
                 sx = "''";
             if (beg == false)
                 res += " ";
@@ -2165,7 +2165,7 @@ string Tamgulispair::String() {
         element = values[it];
         sx = element->StringToDisplay();
         if (!element->isString() || element->isContainer()) {
-            if (sx == "")
+            if (sx.empty())
                 sx = "''";
             if (beg == false)
                 res += " ";
@@ -2193,7 +2193,7 @@ void Tamgulisp::Setstring(string& res, short idthread) {
         element = values[it];
         sx = element->StringToDisplay();
         if (!element->isString() || element->isContainer()) {
-            if (sx == "")
+            if (sx.empty())
                 sx = "''";
             if (beg == false)
                 res += " ";
@@ -2224,7 +2224,7 @@ void Tamgulispair::Setstring(string& res, short idthread) {
         element = values[it];
         sx = element->StringToDisplay();
         if (!element->isString() || element->isContainer()) {
-            if (sx == "")
+            if (sx.empty())
                 sx = "''";
             if (beg == false)
                 res += " ";

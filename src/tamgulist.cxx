@@ -1723,7 +1723,7 @@ Exporting string Tamguring::String() {
         element = it.second;
         sx = element->StringToDisplay();
         if (!element->isString() || element->isContainer()) {
-            if (sx == "")
+            if (sx.empty())
                 sx = "''";
             if (beg == false) {
                 if (sx[0] != '|')
@@ -1759,7 +1759,7 @@ Exporting void Tamguring::Setstring(string& res, short idthread) {
         element = it.second;
         sx = element->StringToDisplay();
         if (!element->isString() || element->isContainer()) {
-            if (sx == "")
+            if (sx.empty())
                 sx = "''";
             if (beg == false) {
                 if (sx[0] != '|')
@@ -2996,7 +2996,7 @@ Exporting string Tamgujava_vector::String() {
         element = getvalue(i);
         sx = element->StringToDisplay();
         if (!element->isString() || element->isContainer()) {
-            if (sx == "")
+            if (sx.empty())
                 sx = "''";
             if (beg == false) {
                 if (sx[0] != '|')

@@ -1317,7 +1317,7 @@ public:
     bool check_utf8(string& buff, string& buffer);
 
     virtual bool reloadfile() {
-        if (thecurrentfilename == "")
+        if (thecurrentfilename.empty())
             return false;
         
         ifstream rd(thecurrentfilename, openMode);

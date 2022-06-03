@@ -393,7 +393,7 @@ Exporting string Tamguvector::String() {
         element = values[it];
         sx = element->StringToDisplay();
         if (!element->isString() || element->isContainer()) {
-            if (sx == "")
+            if (sx.empty())
                 sx = "''";
             if (beg == false) {
                 if (sx[0] != '|')
@@ -430,7 +430,7 @@ Exporting void Tamguvector::Setstring(string& res, short idthread) {
         element = values[it];
         sx = element->StringToDisplay();
         if (!element->isString() || element->isContainer()) {
-            if (sx == "")
+            if (sx.empty())
                 sx = "''";
             if (beg == false) {
                 if (sx[0] != '|')
@@ -3265,7 +3265,7 @@ Exporting string Tamgua_vector::String() {
         element = it.second;
         sx = element->StringToDisplay();
         if (!element->isString() || element->isContainer()) {
-            if (sx == "")
+            if (sx.empty())
                 sx = "''";
             if (beg == false) {
                 if (sx[0] != '|')
@@ -3301,7 +3301,7 @@ Exporting void Tamgua_vector::Setstring(string& res, short idthread) {
         element = it.second;
         sx = element->StringToDisplay();
         if (!element->isString() || element->isContainer()) {
-            if (sx == "")
+            if (sx.empty())
                 sx = "''";
             if (beg == false) {
                 if (sx[0] != '|')

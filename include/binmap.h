@@ -834,6 +834,18 @@ template <class Z> class basebin_hash {
         return (i >= 0 && i < tsize && (indexes[i] & binval64[r]));
     }
 
+    Z scoot(Z reference, unsigned short name) {
+        short i = (name >> binbits) - base;
+        unsigned short r = name & binmin;
+        while (reference != table[i][r]) {
+            reference = table[i][r];
+            name = reference->Name();
+            i = (name >> binbits) - base;
+            r = name & binmin;
+        }
+        return reference;
+    }
+    
     void erase(unsigned short r) {
         bshort i = (r >> binbits) - base;
         r &= binmin;
@@ -902,7 +914,7 @@ template <class Z> class basebin_hash {
     //We insert some new boxes before the position 0
     void insert(unsigned short p) {
         unsigned short inc = base - p;
-        bint sz = inc + tsize;
+        long sz = inc + tsize;
         Z** ntable = new Z*[sz];
         binuint64* nindexes = new binuint64[sz];
 

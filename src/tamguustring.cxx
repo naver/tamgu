@@ -2046,7 +2046,7 @@ Tamgu* Tamguustring::MethodScan(Tamgu* contextualpattern, short idthread, TamguC
 Tamgu* Tamguustring::MethodHash(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     static const std::collate<char>& coll = std::use_facet<std::collate<char> >(loc);
     string s = String();
-    if (s == "")
+    if (s.empty())
         return aNULL;
     long myhash = coll.hash(s.data(), s.data() + s.length());
     return globalTamgu->ProvideConstint(myhash);
@@ -4159,7 +4159,7 @@ Tamgu* Tamgua_ustring::MethodScan(Tamgu* contextualpattern, short idthread, Tamg
 Tamgu* Tamgua_ustring::MethodHash(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     static const std::collate<char>& coll = std::use_facet<std::collate<char> >(loc);
     string s = String();
-    if (s == "")
+    if (s.empty())
         return aNULL;
     long myhash = coll.hash(s.data(), s.data() + s.length());
     return globalTamgu->ProvideConstint(myhash);

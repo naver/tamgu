@@ -1510,7 +1510,7 @@ bool TamguDoubleSideAutomaton::process(charRead& w, vector<string>& readings, bo
             }
 
             surface = w.extract();
-            if (surface.trim() == "")
+            if (surface.trim().empty())
                 return false;
 
             hmap<string, bool> adding;
@@ -1541,7 +1541,7 @@ bool TamguDoubleSideAutomaton::process(charRead& w, vector<string>& readings, bo
 
 		w.setpos(w.bend, w.cend);
         surface = w.extract();
-        if (surface.trim() == "")
+        if (surface.trim().empty())
             return false;
         
         if (!readings.size()) {
@@ -1613,7 +1613,7 @@ bool TamguDoubleSideAutomaton::process(charRead& w, vector<string>& readings, bo
         w.eset(w.w);
 
     s = w.extract();
-    if (s == "")
+    if (s.empty())
         return false;
     
     if (!w.addfeatures) {

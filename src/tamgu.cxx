@@ -42,7 +42,7 @@
 #include "tamgulisp.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2022.05.24.12";
+const char* tamgu_version = "Tamgu 1.2022.06.03.11";
 
 Tamgu* booleantamgu[2];
 
@@ -419,13 +419,17 @@ void ThreadStruct::Setknowledgebase() {
         long i;
 
         hmap<short, vector<TamguPredicate*> >::iterator it;
-        string keyfirst;
+        string argument_key;
         for (it = globalTamgu->threads[0].knowledgebase.begin(); it != globalTamgu->threads[0].knowledgebase.end(); it++) {
             for (i = 0; i < it->second.size(); i++) {
-                it->second[i]->Stringpredicatekey(keyfirst);
                 knowledgebase[it->first].push_back(it->second[i]);
-                if (keyfirst != "")
-                    knowledgebase_on_first[keyfirst].push_back(it->second[i]);
+                
+                if (it->second[i]->Stringpredicatekey(argument_key))
+                    knowledgebase_on_first[argument_key].push_back(it->second[i]);
+                
+                if (it->second[i]->Stringpredicatekeysecond(argument_key))
+                    knowledgebase_on_second[argument_key].push_back(it->second[i]);
+                
                 it->second[i]->Setreference();
             }
         }
@@ -445,6 +449,7 @@ void ThreadStruct::Clearknowledgebase() {
 
     knowledgebase.clear();
     knowledgebase_on_first.clear();
+    knowledgebase_on_second.clear();
 }
 
 Exporting ThreadStruct::~ThreadStruct() {
@@ -873,7 +878,7 @@ Exporting void TamguGlobal::Getdebuginfo(string& localvariables, string& allvari
         stackline->Variables(vars);
         for (size_t j = 0; j < vars.size(); j++) {
             //a = stackline->Declaration(vars[j]);
-            a = globalTamgu->Getvariable(idthread, vars[j]);
+            a = globalTamgu->Getavariable(idthread, vars[j]);
             var << Getsymbol(vars[j]) << " = ";
             if (!shortname)
                 var << a->String();
@@ -1841,184 +1846,188 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("asserta"); //99 --> a_asserta
     Createid("assertz"); //100 --> a_assertz
     Createid("retract"); //101 --> a_retract
-    Createid("&remove&"); //102 --> a_remove
-    Createid("predicatevar"); //103 --> a_predicatevar
-    Createid("predicate"); //104 --> a_predicate
-    Createid("term"); //105 --> a_term
-    Createid("p_instance"); //106 --> a_instance
-    Createid("p_predicateruleelement"); //107 --> a_predicateruleelement
-    Createid("p_predicatecontainer"); //108 --> a_predicatecontainer
-    Createid("p_predicaterule"); //109 --> a_predicaterule
-    Createid("p_predicateinstruction"); //110 --> a_predicateinstruction
-    Createid("p_knowledgebase"); //111 --> a_knowledgebase
-    Createid("p_dependencybase"); //112 --> a_dependencybase
-    Createid("p_predicatedomain"); //113 --> a_predicatedomain
-    Createid("p_launch"); //114 --> a_predicatelaunch
-    Createid("p_predicateelement"); //115 --> a_predicateelement
-    Createid("p_parameterpredicate"); //116 --> a_parameterpredicate
-    Createid("p_predicateevaluate"); //117 --> a_predicateevaluate
-    Createid("dependency"); //118 --> a_dependency
+    Createid("&dependency_asserta&"); //102 --> a_dependency_asserta
+    Createid("&dependency_assertz&"); //103 --> a_dependency_assertz
+    Createid("&dependency_retract&"); //104 --> a_dependency_retract
+    Createid("&dependency_remove&"); //105 --> a_dependency_remove
+    Createid("predicatemethod"); //106 --> a_predicatemethod
+    Createid("predicatevar"); //107 --> a_predicatevar
+    Createid("predicate"); //108 --> a_predicate
+    Createid("term"); //109 --> a_term
+    Createid("p_instance"); //110 --> a_instance
+    Createid("p_predicateruleelement"); //111 --> a_predicateruleelement
+    Createid("p_predicatecontainer"); //112 --> a_predicatecontainer
+    Createid("p_predicaterule"); //113 --> a_predicaterule
+    Createid("p_predicateinstruction"); //114 --> a_predicateinstruction
+    Createid("p_knowledgebase"); //115 --> a_knowledgebase
+    Createid("p_dependencybase"); //116 --> a_dependencybase
+    Createid("p_predicatedomain"); //117 --> a_predicatedomain
+    Createid("p_launch"); //118 --> a_predicatelaunch
+    Createid("p_predicateelement"); //119 --> a_predicateelement
+    Createid("p_parameterpredicate"); //120 --> a_parameterpredicate
+    Createid("p_predicateevaluate"); //121 --> a_predicateevaluate
+    Createid("dependency"); //122 --> a_dependency
 
-    Createid("tam_stream"); //119 --> a_stream
-    Createid("setq"); //120 --> a_affectation
+    Createid("tam_stream"); //123 --> a_stream
+    Createid("setq"); //124 --> a_affectation
 
-    Createid("tam_plusequ"); //121 --> a_plusequ
-    Createid("tam_minusequ"); //122 --> a_minusequ
-    Createid("tam_multiplyequ"); //123 --> a_multiplyequ
-    Createid("tam_divideequ"); //124 --> a_divideequ
-    Createid("tam_modequ"); //125 --> a_modequ
-    Createid("tam_powerequ"); //126 --> a_powerequ
-    Createid("tam_shiftleftequ"); //127 --> a_shiftleftequ
-    Createid("tam_shiftrightequ"); //128 --> a_shiftrightequ
-    Createid("tam_orequ"); //129 --> a_orequ
-    Createid("tam_xorequ"); //130 --> a_xorequ
-    Createid("tam_andequ"); //131 --> a_andequ
-    Createid("tam_mergeequ"); //132 --> a_mergeequ
-    Createid("tam_combineequ"); //133 --> a_combineequ
-    Createid("tam_addequ"); //134 --> a_addequ
+    Createid("tam_plusequ"); //125 --> a_plusequ
+    Createid("tam_minusequ"); //126 --> a_minusequ
+    Createid("tam_multiplyequ"); //127 --> a_multiplyequ
+    Createid("tam_divideequ"); //128 --> a_divideequ
+    Createid("tam_modequ"); //129 --> a_modequ
+    Createid("tam_powerequ"); //130 --> a_powerequ
+    Createid("tam_shiftleftequ"); //131 --> a_shiftleftequ
+    Createid("tam_shiftrightequ"); //132 --> a_shiftrightequ
+    Createid("tam_orequ"); //133 --> a_orequ
+    Createid("tam_xorequ"); //134 --> a_xorequ
+    Createid("tam_andequ"); //135 --> a_andequ
+    Createid("tam_mergeequ"); //136 --> a_mergeequ
+    Createid("tam_combineequ"); //137 --> a_combineequ
+    Createid("tam_addequ"); //138 --> a_addequ
 
     //Operators
 
-    Createid("+"); //135 --> a_plus
-    Createid("-"); //136 --> a_minus
-    Createid("*"); //137 --> a_multiply
-    Createid("/"); //138 --> a_divide
-    Createid("^^"); //139 --> a_power
-    Createid("<<"); //140 --> a_shiftleft
-    Createid(">>"); //141 --> a_shiftright
-    Createid("%"); //142 --> a_mod
-    Createid("|"); //143 --> a_or
-    Createid("^"); //144 --> a_xor
-    Createid("&"); //145 --> a_and
-    Createid("&&&"); //146 --> a_merge
-    Createid("|||"); //147 --> a_combine
-    Createid("::"); //148 --> a_add
-    Createid("∧"); //149 --> a_conjunction
-    Createid("∨"); //150 --> a_disjunction
-    Createid("<"); //151
-    Createid(">"); //152
-    Createid("=="); //153
-    Createid("!="); //154
-    Createid("<="); //155
-    Createid(">="); //156
-    Createid("++"); //157
-    Createid("--"); //158
-    Createid("in"); //159
-    Createid("notin"); //160
+    Createid("+"); //139 --> a_plus
+    Createid("-"); //140 --> a_minus
+    Createid("*"); //141 --> a_multiply
+    Createid("/"); //142 --> a_divide
+    Createid("^^"); //143 --> a_power
+    Createid("<<"); //144 --> a_shiftleft
+    Createid(">>"); //145 --> a_shiftright
+    Createid("%"); //146 --> a_mod
+    Createid("|"); //147 --> a_or
+    Createid("^"); //148 --> a_xor
+    Createid("&"); //149 --> a_and
+    Createid("&&&"); //150 --> a_merge
+    Createid("|||"); //151 --> a_combine
+    Createid("::"); //152 --> a_add
+    Createid("∧"); //153 --> a_conjunction
+    Createid("∨"); //154 --> a_disjunction
+    Createid("<"); //155
+    Createid(">"); //156
+    Createid("=="); //157
+    Createid("!="); //158
+    Createid("<="); //159
+    Createid(">="); //160
+    Createid("++"); //161
+    Createid("--"); //162
+    Createid("in"); //163
+    Createid("notin"); //164
 
 
-    Createid("tam_match"); //161
-    Createid("tam_bloc"); //162
-    Createid("tam_blocloopin"); //163
-    Createid("tam_filein"); //164
-    Createid("tam_blocboolean"); //165
-    Createid("tam_parameter"); //166
-    Createid("if"); //167
-    Createid("tam_try"); //168
-    Createid("tam_switch"); //169
-    Createid("while"); //170
-    Createid("for"); //171
-    Createid("tam_catchbloc"); //172
-    Createid("tam_booleanand"); //173
-    Createid("tam_booleanor"); //174
+    Createid("tam_match"); //165
+    Createid("tam_bloc"); //166
+    Createid("tam_blocloopin"); //167
+    Createid("tam_filein"); //168
+    Createid("tam_blocboolean"); //169
+    Createid("tam_parameter"); //170
+    Createid("if"); //171
+    Createid("tam_try"); //172
+    Createid("tam_switch"); //173
+    Createid("while"); //174
+    Createid("for"); //175
+    Createid("tam_catchbloc"); //176
+    Createid("tam_booleanand"); //177
+    Createid("tam_booleanor"); //178
 
     if (!globalconstantes)
-        aHASKELL = new TamguConst(Createid("&taskell"), "&taskell", NULL); //175
+        aHASKELL = new TamguConst(Createid("&taskell"), "&taskell", NULL); //179
     else
         Createid("&taskell");
 
-    Createid("tam_forcedaffectation"); //176
+    Createid("tam_forcedaffectation"); //180
 
     if (!globalconstantes) {
         aNULLDECLARATION = new TamguDeclaration(this);
         aNULLLet = new TamguLet(NULL);
     }
 
-    Createid("²"); //177
-    Createid("³"); //178
-    Createid("&counter;"); //179
+    Createid("²"); //181
+    Createid("³"); //182
+    Createid("&counter;"); //183
 
-    Createid("synode"); //180
+    Createid("synode"); //184
     //when we want to modify a dependency...
-    Createid("&modify_dependency"); //181
+    Createid("&modify_dependency"); //185
 
-    Createid("&action_var"); //182
-    Createid("&taskelldeclaration;"); //183
-    Createid("&drop;"); //184
+    Createid("&action_var"); //186
+    Createid("&taskelldeclaration;"); //187
+    Createid("&drop;"); //188
 
-    Createid("concept"); //185
-    Createid("~"); //186
-    Createid("taskellinstruction"); //187
-    Createid("methods"); //188
-    Createid("treg"); //189
-    Createid("table"); //190
-    Createid("ifnot"); //191
+    Createid("concept"); //189
+    Createid("~"); //190
+    Createid("taskellinstruction"); //191
+    Createid("methods"); //192
+    Createid("treg"); //193
+    Createid("table"); //194
+    Createid("ifnot"); //195
 
     if (!globalconstantes) {
-        aNOTHING = new TamguConst(Createid("Nothing"), "Nothing", NULL); //192 --> a_Nothing
+        aNOTHING = new TamguConst(Createid("Nothing"), "Nothing", NULL); //196 --> a_Nothing
         aNOTHING->Protectfromtracker();
     }
     else
         Createid("Nothing");
 
-    Createid("preg"); //193
-    Createid("&a_rules;"); //194
-    Createid("tam_iftaskell"); //195
-    Createid("tam_casetaskell"); //196
-    Createid("size"); //197
-    Createid("post"); //198
-    Createid("fibre"); //199
-    Createid("tam_booleanxor"); //200
-    Createid("push"); //201
+    Createid("preg"); //197
+    Createid("&a_rules;"); //198
+    Createid("tam_iftaskell"); //199
+    Createid("tam_casetaskell"); //200
+    Createid("size"); //201
+    Createid("post"); //202
+    Createid("fibre"); //203
+    Createid("tam_booleanxor"); //204
+    Createid("push"); //205
 
-    Createid("quote"); //202 a_quote
-    Createid("cons"); //203 a_cons
-    Createid("cond"); //204 a_cond
-    Createid("atom"); //205 a_atom
-    Createid("eq"); //206 a_eq
-    Createid("cadr"); //207 a_cadr
-    Createid("defun"); //208 a_defun
-    Createid("label"); //209 a_label
-    Createid("atomp"); //210 a_atomp
-    Createid("numberp"); //211 a_numberp
-    Createid("consp"); //212 a_consp
-    Createid("zerop"); //213 a_zerop,
-    Createid("nullp"); //214 a_nullp,
-    Createid("block"); //215 a_block,
-    Createid("eval"); //216 a_eval,
-    Createid("key"); //217 a_key,
-    Createid("keys"); //218 a_keys,
-    Createid("load"); //219 a_load,
-    Createid("body"); //220 a_body,
-    Createid("apply"); //221 a_apply,
-    Createid("pair"); //222 a_pair,
-    Createid("calllisp"); //223 a_calllisp
-    Createid("callcommon"); //224 a_callcommon
-    Createid("_map"); //225 _map
-    Createid("_filter"); //226 _filter
-    Createid("_takewhile"); //227 _takewhile
-    Createid("_dropwhile"); //228 _dropwhile
-    Createid("_zip"); //229 _zip
-    Createid("_zipwith"); //230 _zipwith
-    Createid("_foldl"); //231 folding and scaning operations in Lisp
-    Createid("_scanl"); //232
-    Createid("_foldr"); //233
-    Createid("_scanr"); //234
-    Createid("_foldl1"); //235
-    Createid("_scanl1"); //236
-    Createid("_foldr1"); //237
-    Createid("_scanr1"); //238
-    Createid("iterator_java"); //238 --> a_iteration_java
-    Createid("lisp"); //239 a_lisp
+    Createid("quote"); //206 a_quote
+    Createid("cons"); //207 a_cons
+    Createid("cond"); //208 a_cond
+    Createid("atom"); //209 a_atom
+    Createid("eq"); //210 a_eq
+    Createid("cadr"); //211 a_cadr
+    Createid("defun"); //212 a_defun
+    Createid("label"); //213 a_label
+    Createid("atomp"); //214 a_atomp
+    Createid("numberp"); //215 a_numberp
+    Createid("consp"); //216 a_consp
+    Createid("zerop"); //217 a_zerop,
+    Createid("nullp"); //218 a_nullp,
+    Createid("block"); //219 a_block,
+    Createid("eval"); //220 a_eval,
+    Createid("key"); //221 a_key,
+    Createid("keys"); //222 a_keys,
+    Createid("load"); //223 a_load,
+    Createid("body"); //224 a_body,
+    Createid("apply"); //225 a_apply,
+    Createid("pair"); //226 a_pair,
+    Createid("calllisp"); //227 a_calllisp
+    Createid("callcommon"); //228 a_callcommon
+    Createid("_map"); //229 _map
+    Createid("_filter"); //230 _filter
+    Createid("_takewhile"); //231 _takewhile
+    Createid("_dropwhile"); //232 _dropwhile
+    Createid("_zip"); //233 _zip
+    Createid("_zipwith"); //234 _zipwith
+    Createid("_foldl"); //235 folding and scaning operations in Lisp
+    Createid("_scanl"); //236
+    Createid("_foldr"); //237
+    Createid("_scanr"); //238
+    Createid("_foldl1"); //239
+    Createid("_scanl1"); //240
+    Createid("_foldr1"); //241
+    Createid("_scanr1"); //242
+    Createid("iterator_java"); //243 --> a_iteration_java
+    Createid("lisp"); //244 a_lisp
     
 
     //This is a simple hack to handle "length" a typical Haskell operator as "size"...
     //Note that there will be a useless index
 
-    Createid("length"); //240
+    Createid("length"); //245
     symbolIds["length"] = a_size;
 
-    Createid("not"); //241
+    Createid("not"); //246
     symbolIds["not"] = a_negation;
 
     symbolIds["and"] = a_booleanand;
@@ -2026,8 +2035,6 @@ Exporting void TamguGlobal::RecordConstantNames() {
     symbolIds["xor"] = a_booleanxor;
 	symbolIds["append"] = a_merge;
 	symbolIds["auto"] = a_self;
-
-    dependenciesvariable[a_modifydependency] = a_modifydependency;
 
     atomics[a_boolean] = a_boolean;
     atomics[a_byte] = a_boolean;

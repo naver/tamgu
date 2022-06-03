@@ -2635,16 +2635,16 @@ char TamguJsonCompiler::buildexpression(Tamgu* kf) {
                 if (checknext)
                     return false;
                 
-                v = conversionfloathexa((const char*)src+i-1, l);
+                v = conversionfloathexa((const char*)src + i - 1, l);
                 to =  i + l - 1;
                 while (pos[r] < to) r++;
                 c= src[to];
                 src[to] = 0;
                 
                 if (expecting == 1)
-                    key = (char*)src+i;
+                    key = (char*)src + i - 1;
                 else {
-                    if (strchr((char*)src+i, '.'))
+                    if (strchr((char*)src + i - 1, '.'))
                         local = globalTamgu->ProvideConstfloat(v);
                     else
                         local = globalTamgu->ProvideConstint(v);
@@ -2942,7 +2942,7 @@ void FileNameNomalization(char* fileName, char* buffer, long buffersz) {
 }
 
 string NormalizeFileName(string n) {
-    if (n == "")
+    if (n.empty())
         return "";
     
     char buff[4096];
@@ -3091,7 +3091,7 @@ Tamgu* Storealongtype(Tamgu* context, Tamgu* a, short idthread, uchar& addvalue)
 
 #ifdef WIN32
 bool TamguCode::Loadlibrary(string n, string& library_name) {
-    if (n == "")
+    if (n.empty())
         return false;
     
     string name = NormalizeFileName(n);

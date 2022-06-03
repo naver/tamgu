@@ -549,10 +549,18 @@ Tamgu* ProcPredicateDump(Tamgu* context, short idthread, TamguCall* callfunc) {
 }
 
 void RemoveAPredicate(TamguPredicate* p, short idthread) {
-    string keyfirst;
-    p->Stringpredicatekey(keyfirst);
-    if (keyfirst != "") {
-        vector<TamguPredicate*>& vect = globalTamgu->threads[idthread].knowledgebase_on_first[keyfirst];
+    string argument_key;
+    if (p->Stringpredicatekey(argument_key)) {
+        vector<TamguPredicate*>& vect = globalTamgu->threads[idthread].knowledgebase_on_first[argument_key];
+        for (size_t i = 0; i < vect.size(); i++) {
+            if (vect[i] == p) {
+                vect.erase(vect.begin() + i);
+                return;
+            }
+        }
+    }
+    if (p->Stringpredicatekeysecond(argument_key)) {
+        vector<TamguPredicate*>& vect = globalTamgu->threads[idthread].knowledgebase_on_second[argument_key];
         for (size_t i = 0; i < vect.size(); i++) {
             if (vect[i] == p) {
                 vect.erase(vect.begin() + i);
@@ -577,6 +585,7 @@ Tamgu* ProcRetractAll(Tamgu* context, short idthread, TamguCall* callfunc) {
         }
         globalTamgu->threads[idthread].knowledgebase.clear();
         globalTamgu->threads[idthread].knowledgebase_on_first.clear();
+        globalTamgu->threads[idthread].knowledgebase_on_second.clear();
         return aTRUE;
     }
     
@@ -690,13 +699,6 @@ Tamgu* ProcDependencies(Tamgu* contextualpattern, short idthread, TamguCall* cal
 
     TamguDeclarationPredicate domain;
 
-    //if (globalTamgu->dependenciesvariable.size() != 0) {
-    //	basebin_hash<short>::iterator itdep;
-    //	for (itdep = globalTamgu->dependenciesvariable.begin(); itdep != globalTamgu->dependenciesvariable.end(); itdep++) {
-    //		domain.Declare(itdep->first, aUNIVERSAL);
-    //	}
-    //}
-
     basebin_hash<TamguPredicateVariableInstance*> localdico;
     kl.dico = &localdico;
 
@@ -759,4 +761,10 @@ void TamguGlobal::RecordPredicates() {
     
     predicates[a_universal] = new TamguPredicateFunction(this, NULL, a_universal);
     pviidx = 0;
+    
+    char var_predicate_name[] = {'_','0', 0};
+    for (char i = 48; i < 58; i++) {
+        var_predicate_name[1] = i;
+        Getid(var_predicate_name);
+    }
 }

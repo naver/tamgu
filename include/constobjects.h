@@ -194,8 +194,12 @@ public:
         return 0;
     }
 
-    void Stringpredicatekey(string& v) {
-        v = "";
+    bool Stringpredicatekey(string& v) {
+        return false;
+    }
+
+    bool Stringpredicatekeysecond(string& v) {
+        return false;
     }
 };
 

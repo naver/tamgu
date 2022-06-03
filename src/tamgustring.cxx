@@ -251,7 +251,7 @@ Tamgu* Tamgustring::Loopin(TamguInstruction* ins, Tamgu* context, short idthread
 
 Tamgu* Tamgustring::Succ() {
     Locking _lock(this);
-    if (value == "")
+    if (value.empty())
         return globalTamgu->Providestring("");
 
     wstring v;
@@ -262,7 +262,7 @@ Tamgu* Tamgustring::Succ() {
 
 Tamgu* Tamgustring::Pred() {
     Locking _lock(this);
-    if (value == "")
+    if (value.empty())
         return globalTamgu->Providestring("");
 
     wstring v;
@@ -812,14 +812,14 @@ Tamgu* Tamgustring::MethodCount(Tamgu* contextualpattern, short idthread, TamguC
 
     if (globalTamgu->threadMODE) {
         locking();
-        if (value == "")
+        if (value.empty())
             i = 0;
         else
             i = s_count(value, sub, i);
         unlocking();
     }
     else {
-        if (value == "")
+        if (value.empty())
             i = 0;
         else
             i = s_count(value, sub, i);
@@ -859,14 +859,14 @@ Tamgu* Tamgustring::MethodCountBaseLine(Tamgu* contextualpattern, short idthread
 
     if (globalTamgu->threadMODE) {
         locking();
-        if (value == "")
+        if (value.empty())
             i = 0;
         else
             i = s_countbaseline(value, sub, i);
         unlocking();
     }
     else {
-        if (value == "")
+        if (value.empty())
             i = 0;
         else
             i = s_countbaseline(value, sub, i);
@@ -1412,7 +1412,7 @@ Tamgu* Tamgustring::MethodSplit(Tamgu* contextualpattern, short idthread, TamguC
     thesplitter=tamgusplitter->String();
     
     //Second parameter is the splitter string
-    if (thesplitter == "") {
+    if (thesplitter.empty()) {
         locking();
         if (kvect->Type() == Tamgubvector::idtype) {
             for (long i = 0; i < sz; i++)
@@ -1579,7 +1579,7 @@ Tamgu* Tamgustring::MethodSplite(Tamgu* contextualpattern, short idthread, Tamgu
     thesplitter=tamgusplitter->String();
     
     //Second parameter is the splitter string
-    if (thesplitter == "") {
+    if (thesplitter.empty()) {
         locking();
         if (kvect->Type() == Tamgubvector::idtype) {
             for (long i = 0; i < sz; i++)
@@ -1740,7 +1740,7 @@ Tamgu* Tamgustring::MethodHash(Tamgu* contextualpattern, short idthread, TamguCa
     string s = value;
     unlocking();
     
-    if (s == "")
+    if (s.empty())
         return aNULL;
     long myhash = coll.hash(s.data(), s.data() + s.length());
     return globalTamgu->ProvideConstint(myhash);
@@ -2304,7 +2304,7 @@ Tamgu* Tamgustring::MethodReplace(Tamgu* contextualpattern, short idthread, Tamg
     unlocking();
     
     string reg = treg->String();
-    if (reg == "")
+    if (reg.empty())
         return globalTamgu->Providewithstring(str);
 
     string rep = callfunc->Evaluate(1, contextualpattern, idthread)->String();
@@ -3143,7 +3143,7 @@ Tamgu* Tamgua_string::MethodCount(Tamgu* contextualpattern, short idthread, Tamg
     }
 
     agnostring str(value.value());
-    if (str == "")
+    if (str.empty())
         return aZERO;
     
     string sub = substr->String();
@@ -3543,7 +3543,7 @@ Tamgu* Tamgua_string::MethodReplace(Tamgu* contextualpattern, short idthread, Ta
     string str = value.value();
     
     string reg = treg->String();
-    if (reg == "")
+    if (reg.empty())
         return new Tamgua_string(str);
     
     string rep = callfunc->Evaluate(1, contextualpattern, idthread)->String();
@@ -4033,7 +4033,7 @@ Tamgu* Tamgua_string::MethodSplit(Tamgu* contextualpattern, short idthread, Tamg
     thesplitter=tamgusplitter->String();
     
         //Second parameter is the splitter string
-    if (thesplitter == "") {
+    if (thesplitter.empty()) {
         if (kvect->Type() == Tamgubvector::idtype) {
             for (long i = 0; i < thestr.size(); i++)
                 kvect->storevalue((unsigned char)thestr[i]);
@@ -4147,7 +4147,7 @@ Tamgu* Tamgua_string::MethodSplite(Tamgu* contextualpattern, short idthread, Tam
     thesplitter=tamgusplitter->String();
     
         //Second parameter is the splitter string
-    if (thesplitter == "") {
+    if (thesplitter.empty()) {
         if (kvect->Type() == Tamgubvector::idtype) {
             for (long i = 0; i < thestr.size(); i++)
                 kvect->storevalue((unsigned char)thestr[i]);
@@ -4279,7 +4279,7 @@ Tamgu* Tamgua_string::MethodHash(Tamgu* contextualpattern, short idthread, Tamgu
     
     string s = value.value();
     
-    if (s == "")
+    if (s.empty())
         return aNULL;
     long myhash = coll.hash(s.data(), s.data() + s.length());
     return globalTamgu->ProvideConstint(myhash);

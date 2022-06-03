@@ -861,7 +861,7 @@ public:
             //Pure variable
             short idname = globalTamgu->Getid(code);
             if (idname != -1) {
-                Tamgu* a = globalTamgu->Getvariable(current_thread_id, idname);
+                Tamgu* a = globalTamgu->Getavariable(current_thread_id, idname);
                 if (a != NULL) {
                     if (disp)
                         cout << code << ": ";
@@ -3591,7 +3591,7 @@ int main(int argc, char *argv[]) {
             idname = globalTamgu->Getid(predeclarations);
             if (lispmode) {
                 names.push_back(idname);
-                ret = globalTamgu->Getvariable(0, idname);
+                ret = globalTamgu->Getavariable(0, idname);
                 vars.push_back(ret);
             }
             else {

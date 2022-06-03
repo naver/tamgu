@@ -861,7 +861,7 @@ public:
 				return globalTamgu->Returnerror("Expecting a 'synode' here", idthread);
 
 			syn = (Tamgusynode*)a;
-			if (!syn->isNew())
+			if (!syn->isNew() || syn == this)
 				return globalTamgu->Returnerror("This 'synode' is already part of a tree", idthread);
 
 			syn->parent = this;
@@ -995,8 +995,12 @@ public:
 		return features->JSonString();
 	}
 
-    void Stringpredicatekey(string& v) {
-        v = "";
+    bool Stringpredicatekey(string& v) {
+        return false;
+    }
+
+    bool Stringpredicatekeysecond(string& v) {
+        return false;
     }
 
     string String() {
