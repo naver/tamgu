@@ -1340,6 +1340,11 @@ public:
         return !v.empty();
     }
 
+    virtual bool Stringpredicatekeythird(string& v) {
+        Setstring(v, 0);
+        return !v.empty();
+    }
+
 	virtual string String() { return ""; }
     virtual void Setstring(string& v, short idthread) { v = String(); }
 

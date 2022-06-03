@@ -169,6 +169,7 @@ public:
 	hmap<short, vector<TamguPredicate*> > knowledgebase;
     hmap<string,vector<TamguPredicate*> > knowledgebase_on_first;
     hmap<string,vector<TamguPredicate*> > knowledgebase_on_second;
+    hmap<string,vector<TamguPredicate*> > knowledgebase_on_third;
 
 	bin_hash<VECTE<Tamgu*> > variables;
 

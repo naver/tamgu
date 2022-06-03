@@ -201,6 +201,10 @@ public:
     bool Stringpredicatekeysecond(string& v) {
         return false;
     }
+
+    bool Stringpredicatekeythird(string& v) {
+        return false;
+    }
 };
 
 class TamguConstBreak : public TamguConst {

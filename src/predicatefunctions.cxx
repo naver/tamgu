@@ -568,6 +568,17 @@ void RemoveAPredicate(TamguPredicate* p, short idthread) {
             }
         }
     }
+
+    if (p->Stringpredicatekeythird(argument_key)) {
+        vector<TamguPredicate*>& vect = globalTamgu->threads[idthread].knowledgebase_on_third[argument_key];
+        for (size_t i = 0; i < vect.size(); i++) {
+            if (vect[i] == p) {
+                vect.erase(vect.begin() + i);
+                return;
+            }
+        }
+    }
+
     p->Resetreference();
 }
 
@@ -586,6 +597,7 @@ Tamgu* ProcRetractAll(Tamgu* context, short idthread, TamguCall* callfunc) {
         globalTamgu->threads[idthread].knowledgebase.clear();
         globalTamgu->threads[idthread].knowledgebase_on_first.clear();
         globalTamgu->threads[idthread].knowledgebase_on_second.clear();
+        globalTamgu->threads[idthread].knowledgebase_on_third.clear();
         return aTRUE;
     }
     

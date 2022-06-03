@@ -1003,6 +1003,10 @@ public:
         return false;
     }
 
+    bool Stringpredicatekeythird(string& v) {
+        return false;
+    }
+
     string String() {
         string s = "#";
         

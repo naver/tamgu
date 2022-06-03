@@ -493,6 +493,15 @@ bool ThreadStruct::TestPredicate(TamguDeclaration* dom, TamguPredicate* p) {
             }
             return false;
         }
+
+        if (p->Stringpredicatekeythird(argument_key)) {
+            vector<TamguPredicate*>& v = knowledgebase_on_third[argument_key];
+            for (long i = 0; i < v.size(); i++) {
+                if (p->Unify(dom, v[i]))
+                    return true;
+            }
+            return false;
+        }
     }
     
     if (p->name == a_universal) {
@@ -536,6 +545,18 @@ char ThreadStruct::isaValidPredicate(TamguDeclaration* dom, TamguPredicate* p, h
         
         if (p->Stringpredicatekeysecond(argument_key)) {
             vector<TamguPredicate*>& v = knowledgebase_on_second[argument_key];
+            for (i = 0; i < v.size(); i++) {
+                if (p->Unify(dom, v[i]))
+                    return 2;
+            }
+            //we keep a chance of finding a rule to match with
+            if (rulebase.find(p->name) != rulebase.end())
+                return 1;
+            return 0;
+        }
+
+        if (p->Stringpredicatekeythird(argument_key)) {
+            vector<TamguPredicate*>& v = knowledgebase_on_third[argument_key];
             for (i = 0; i < v.size(); i++) {
                 if (p->Unify(dom, v[i]))
                     return 2;
@@ -634,6 +655,22 @@ bool ThreadStruct::GetPredicates(TamguDeclaration* dom, TamguPredicate* p, vecto
             }
             return ret;
         }
+
+        if (p->Stringpredicatekeythird(argument_key)) {
+            vector<TamguPredicate*>& v = knowledgebase_on_third[argument_key];
+            for (i = 0; i < v.size(); i++) {
+                if (v[i]->isChosen())
+                    continue;
+                
+                if (p->Unify(dom, v[i])) {
+                    res.push_back(v[i]);
+                    if (cut)
+                        return true;
+                    ret = true;
+                }
+            }
+            return ret;
+        }
     }
     
     if (p->name == a_universal) {
@@ -699,6 +736,9 @@ bool ThreadStruct::StorePredicate(TamguDeclaration* dom, TamguPredicate* pv, boo
         
         if (pv->Stringpredicatekeysecond(argument_key))
             knowledgebase_on_second[argument_key].push_back(pv);
+
+        if (pv->Stringpredicatekeythird(argument_key))
+            knowledgebase_on_third[argument_key].push_back(pv);
     }
     
     pv->Setreference();
@@ -755,6 +795,25 @@ bool ThreadStruct::RemovePredicates(TamguDeclaration* dom, TamguPredicate* p) {
             }
             return res;
         }
+
+        if (p->Stringpredicatekeythird(argument_key)) {
+            vector<TamguPredicate*>& v = knowledgebase_on_third[argument_key];
+            long j;
+            for (i = v.size() - 1; i >= 0; i--) {
+                if (p->same(v[i]) == aTRUE) {
+                    for (j = vk.size() - 1; j >= 0; j--) {
+                        if (vk[j] == v[i]) {
+                            vk.erase(vk.begin() + j);
+                            break;
+                        }
+                    }
+                    v[i]->Resetreference();
+                    v.erase(v.begin() + i);
+                    res = true;
+                }
+            }
+            return res;
+        }
     }
     
     for (i = vk.size() - 1; i >= 0; i--) {
@@ -795,6 +854,17 @@ bool ThreadStruct::RemoveThePredicate(TamguDeclaration* dom, TamguPredicate* p) 
                         }
                     }
                 }
+
+                if (p->Stringpredicatekeythird(argument_key)) {
+                    vector<TamguPredicate*>& vk = knowledgebase_on_third[argument_key];
+                    for (i = vk.size() - 1; i >= 0; i--) {
+                        if (p == vk[i]) {
+                            vk.erase(vk.begin() + i);
+                            break;
+                        }
+                    }
+                }
+
             }
             p->Resetreference();
             return true;

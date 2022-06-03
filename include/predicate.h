@@ -67,6 +67,10 @@ public:
         return false;
     }
 
+    virtual bool Stringpredicatekeythird(string& v) {
+        return false;
+    }
+
 	bool isPredicateVariable() {
 		return true;
 	}
@@ -203,6 +207,10 @@ public:
 
     bool Stringpredicatekeysecond(string& v) {
         return value->Stringpredicatekeysecond(v);
+    }
+
+    bool Stringpredicatekeythird(string& v) {
+        return value->Stringpredicatekeythird(v);
     }
 
 	void Setreference(short inc) {
@@ -421,6 +429,11 @@ public:
         return !v.empty();
     }
 
+    bool Stringpredicatekeythird(string& v) {
+        Setstring(v, 0);
+        return !v.empty();
+    }
+
 
 	BLONG Long() {
 		return parameters.size();
@@ -548,6 +561,11 @@ public:
     }
 
     bool Stringpredicatekeysecond(string& v) {
+        Setstring(v, 0);
+        return !v.empty();
+    }
+
+    bool Stringpredicatekeythird(string& v) {
         Setstring(v, 0);
         return !v.empty();
     }
@@ -759,6 +777,12 @@ public:
         return false;
     }
 
+    bool Stringpredicatekeythird(string& v) {
+        if (parameters.size() > 2)
+            return parameters[2]->Stringpredicatekeythird(v);
+        return false;
+    }
+
 	bool Boolean();
 
 	Tamgu* same(Tamgu* a);
@@ -967,6 +991,10 @@ public:
     }
 
     bool Stringpredicatekeysecond(string& v) {
+        return false;
+    }
+
+    bool Stringpredicatekeythird(string& v) {
         return false;
     }
 

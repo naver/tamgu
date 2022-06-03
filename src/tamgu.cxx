@@ -42,7 +42,7 @@
 #include "tamgulisp.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2022.06.03.11";
+const char* tamgu_version = "Tamgu 1.2022.06.03.16";
 
 Tamgu* booleantamgu[2];
 
@@ -430,6 +430,9 @@ void ThreadStruct::Setknowledgebase() {
                 if (it->second[i]->Stringpredicatekeysecond(argument_key))
                     knowledgebase_on_second[argument_key].push_back(it->second[i]);
                 
+                if (it->second[i]->Stringpredicatekeythird(argument_key))
+                    knowledgebase_on_third[argument_key].push_back(it->second[i]);
+                
                 it->second[i]->Setreference();
             }
         }
@@ -450,6 +453,7 @@ void ThreadStruct::Clearknowledgebase() {
     knowledgebase.clear();
     knowledgebase_on_first.clear();
     knowledgebase_on_second.clear();
+    knowledgebase_on_third.clear();
 }
 
 Exporting ThreadStruct::~ThreadStruct() {
