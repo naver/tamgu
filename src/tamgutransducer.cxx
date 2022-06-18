@@ -186,7 +186,7 @@ Tamgu* Tamgutransducer::MethodAdd(Tamgu* contextualpattern, short idthread, Tamg
             automaton->encoding_table = callfunc->Evaluate(2, contextualpattern, idthread)->Integer();
     }
 
-    if (ke->Type() == Tamgumapss::idtype)
+    if (ke->Type() == a_mapss)
         automaton->addmap(((Tamgumapss*)ke)->values);
     else {
         hmap<string, string> values;

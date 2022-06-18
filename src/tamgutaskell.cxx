@@ -32,18 +32,16 @@
 
 Exporting basebin_hash<tamguCallFibre>  TamguCallFibre::methods;
 
-Exporting short TamguCallFibre::idtype = 0;
-
     //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void TamguCallFibre::AddMethod(TamguGlobal* global, string name, tamguCallFibre func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    if (global->infomethods.find(a_fibre) != global->infomethods.end() &&
+            global->infomethods[a_fibre].find(name) != global->infomethods[a_fibre].end())
     return;
 
-    global->infomethods[idtype][name] = infos;
-    global->RecordArity(idtype, idname, arity);
+    global->infomethods[a_fibre][name] = infos;
+    global->RecordArity(a_fibre, idname, arity);
 }
 
 
@@ -58,18 +56,13 @@ void TamguCallFibre::Setidtype(TamguGlobal* global) {
    bool TamguCallFibre::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
     
-    
-    
-    
-    TamguCallFibre::idtype = a_fibre;
-    
     TamguCallFibre::AddMethod(global, "run", &TamguCallFibre::MethodRun, P_NONE, "run(): execute fibres.");
     TamguCallFibre::AddMethod(global, "block", &TamguCallFibre::MethodBlock, P_NONE, "block(): execute fibres up to the current tail.");
     TamguCallFibre::AddMethod(global, "unblock", &TamguCallFibre::MethodUnblock, P_NONE, "unblock(): remove the current limit on execution.");
 
     if (version != "") {
-        global->newInstance[TamguCallFibre::idtype] = new TamguCallFibre(global);
-        global->RecordCompatibilities(TamguCallFibre::idtype);
+        global->newInstance[a_fibre] = new TamguCallFibre(global);
+        global->RecordCompatibilities(a_fibre);
     }
     
     return true;
@@ -1216,12 +1209,8 @@ Tamgu* TamguCallFunctionTaskell::GetTaskell3(Tamgu* context, Tamgu* environment,
 
     //We then need to take into account our context...
     if (context->isContainer()) {
-        if (bd->returntype != a_null && bd->returntype != context->Type())
-            context = globalTamgu->newInstance.get(bd->returntype)->Newinstance(idthread);
-        else {
-            if (vect == context || context->Size() || !context->isAffectation())
-                context = context->Newinstance(idthread);
-        }
+        if (vect == context || context->Size() || !context->isAffectation())
+            context = context->Newinstance(idthread);
     }
     else {
         if (context->isString())

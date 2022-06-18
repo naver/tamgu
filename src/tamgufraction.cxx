@@ -20,19 +20,16 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<fractionMethod>  Tamgufraction::methods;
 
-Exporting short Tamgufraction::idtype = 0;
-
-
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamgufraction::AddMethod(TamguGlobal* global, string name, fractionMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    if (global->infomethods.find(a_fraction) != global->infomethods.end() &&
+            global->infomethods[a_fraction].find(name) != global->infomethods[a_fraction].end())
     return;
 
-    global->infomethods[idtype][name] = infos;
-    global->RecordArity(idtype, idname, arity);
+    global->infomethods[a_fraction][name] = infos;
+    global->RecordArity(a_fraction, idname, arity);
 }
 
 
@@ -48,16 +45,13 @@ void Tamgufraction::Setidtype(TamguGlobal* global) {
     methods.clear();
     
     
-
-    Tamgufraction::idtype = a_fraction;
-
     Tamgufraction::AddMethod(global, "_initial", &Tamgufraction::MethodInitial, P_ONE | P_TWO, "_initial(n,d): initialize a fraction");
     Tamgufraction::AddMethod(global, "nd", &Tamgufraction::MethodInitial, P_ONE | P_TWO, "nd(n,d): initialize a fraction");
     Tamgufraction::AddMethod(global, "simplify", &Tamgufraction::MethodSimplify, P_NONE, "simplify(): simplify a fraction");
 
     if (version != "") {
-        global->newInstance[Tamgufraction::idtype] = new Tamgufraction(global);
-        global->RecordCompatibilities(Tamgufraction::idtype);
+        global->newInstance[a_fraction] = new Tamgufraction(global);
+        global->RecordCompatibilities(a_fraction);
     }
 
     return true;

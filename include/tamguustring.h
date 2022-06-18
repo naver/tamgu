@@ -454,10 +454,6 @@ public:
 	//this is a static object, which is common to everyone
 	//We associate the method pointers with their names in the linkedmethods map
 	static Exchanging basebin_hash<ustringMethod> methods;
-	
-	
-
-	static Exchanging short idtype;
 
 	//---------------------------------------------------------------------------------------------------------------------
 	//This SECTION is for your specific implementation...
@@ -729,13 +725,13 @@ public:
     
 	
     void Methods(Tamgu* v) {
-            for (const auto& it : globalTamgu->infomethods[idtype])
+            for (const auto& it : globalTamgu->infomethods[a_ustring])
                  v->storevalue(it.first);
       }
 
       string Info(string n) {
-            if (globalTamgu->infomethods[idtype].find(n) !=  globalTamgu->infomethods[idtype].end())
-              return globalTamgu->infomethods[idtype][n];
+            if (globalTamgu->infomethods[a_ustring].find(n) !=  globalTamgu->infomethods[a_ustring].end())
+              return globalTamgu->infomethods[a_ustring][n];
              return "Unknown method";
 	}
 
@@ -1340,10 +1336,10 @@ public:
             reference.store(0);
             if (!protect) {
                 protect = true;
-                
-                used = false;
-                if (!globalTamgu->threadMODE)
+                                
+                if (!globalTamgu->threadMODE && used)
                     globalTamgu->uempties.push_back(idx);
+                used = false;
             }
         }
         else

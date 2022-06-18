@@ -26,19 +26,16 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<bvectorMethod>  Tamgubvector::methods;
 
-Exporting short Tamgubvector::idtype = 0;
-
-
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamgubvector::AddMethod(TamguGlobal* global, string name, bvectorMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    if (global->infomethods.find(a_bvector) != global->infomethods.end() &&
+            global->infomethods[a_bvector].find(name) != global->infomethods[a_bvector].end())
     return;
 
-    global->infomethods[idtype][name] = infos;
-    global->RecordArity(idtype, idname, arity);
+    global->infomethods[a_bvector][name] = infos;
+    global->RecordArity(a_bvector, idname, arity);
 }
 
 
@@ -52,11 +49,6 @@ void Tamgubvector::Setidtype(TamguGlobal* global) {
 
 bool Tamgubvector::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    
-    
-    
-    
-    Tamgubvector::idtype = a_bvector;
     
     Tamgubvector::AddMethod(global, "min", &Tamgubvector::MethodMin, P_NONE, "min(): returns the min in the vector.");
     Tamgubvector::AddMethod(global, "max", &Tamgubvector::MethodMax, P_NONE, "max(): returns the max in the vector.");
@@ -85,10 +77,9 @@ bool Tamgubvector::InitialisationModule(TamguGlobal* global, string version) {
     
     
     if (version != "") {        
-    global->minimal_indexes[Tamgubvector::idtype] = true;
-
-        global->newInstance[Tamgubvector::idtype] = new Tamgubvector(global);
-        global->RecordCompatibilities(Tamgubvector::idtype);
+        global->minimal_indexes[a_bvector] = true;
+        global->newInstance[a_bvector] = new Tamgubvector(global);
+        global->RecordCompatibilities(a_bvector);
     }
     
     return true;
@@ -291,7 +282,7 @@ Exporting Tamgu* Tamgubvector::Merging(Tamgu* ke) {
 
     Doublelocking _lock(this, ke);
     //Three cases:
-    if (ke->Type() == idtype) {
+    if (ke->Type() == a_bvector) {
         Tamgubvector* kvect = (Tamgubvector*)ke;
         values.insert(values.end(), kvect->values.begin(), kvect->values.end());
         return this;
@@ -377,7 +368,7 @@ Exporting Tamgu* Tamgubvector::same(Tamgu* a) {
 
     Doublelocking _lock(this, a);
 
-    if (a->Type() != idtype) {
+    if (a->Type() != a_bvector) {
         if (a->isVectorContainer()) {
             if (a->Size() != values.size())
                 return aFALSE;

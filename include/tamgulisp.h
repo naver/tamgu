@@ -372,8 +372,6 @@ typedef Tamgu* (Tamgulisp::*lispMethod)(Tamgu* contextualpattern, short idthread
 class Tamgulisp : public Tamguvector {
     public:
     static Exchanging basebin_hash<lispMethod> methods;
-    
-    
 
     //---------------------------------------------------------------------------------------------------------------------
     //This SECTION is for your specific implementation...

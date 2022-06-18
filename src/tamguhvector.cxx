@@ -29,18 +29,16 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<hvectorMethod>  Tamguhvector::methods;
 
-Exporting short Tamguhvector::idtype = 0;
-
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamguhvector::AddMethod(TamguGlobal* global, string name, hvectorMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    if (global->infomethods.find(a_hvector) != global->infomethods.end() &&
+            global->infomethods[a_hvector].find(name) != global->infomethods[a_hvector].end())
     return;
 
-    global->infomethods[idtype][name] = infos;
-    global->RecordArity(idtype, idname, arity);
+    global->infomethods[a_hvector][name] = infos;
+    global->RecordArity(a_hvector, idname, arity);
 }
 
 
@@ -54,10 +52,6 @@ void Tamguhvector::Setidtype(TamguGlobal* global) {
 
 bool Tamguhvector::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    
-    
-    
-    Tamguhvector::idtype = a_hvector;
     
     Tamguhvector::AddMethod(global, "min", &Tamguhvector::MethodMin, P_NONE, "min(): returns the min in the vector.");
     Tamguhvector::AddMethod(global, "max", &Tamguhvector::MethodMax, P_NONE, "max(): returns the max in the vector.");
@@ -90,10 +84,10 @@ bool Tamguhvector::InitialisationModule(TamguGlobal* global, string version) {
     
     
     if (version != "") {        
-    global->minimal_indexes[Tamguhvector::idtype] = true;
+    global->minimal_indexes[a_hvector] = true;
 
-        global->newInstance[Tamguhvector::idtype] = new Tamguhvector(global);
-        global->RecordCompatibilities(Tamguhvector::idtype);
+        global->newInstance[a_hvector] = new Tamguhvector(global);
+        global->RecordCompatibilities(a_hvector);
     }
     
     return true;
@@ -298,7 +292,7 @@ Exporting Tamgu* Tamguhvector::Merging(Tamgu* ke) {
 
     Doublelocking _lock(this, ke);
     //Three cases:
-    if (ke->Type() == idtype) {
+    if (ke->Type() == a_hvector) {
         Tamguhvector* kvect = (Tamguhvector*)ke;
         values.insert(values.end(), kvect->values.begin(), kvect->values.end());
         return this;
@@ -702,7 +696,7 @@ Exporting Tamgu* Tamguhvector::same(Tamgu* a) {
 
     Doublelocking _lock(this, a);
 
-    if (a->Type() != idtype) {
+    if (a->Type() != a_hvector) {
         if (a->isVectorContainer()) {
             if (a->Size() != values.size())
                 return aFALSE;

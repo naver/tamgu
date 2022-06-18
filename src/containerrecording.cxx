@@ -166,8 +166,8 @@ void TamguGlobal::RecordContainers() {
 	mapnewInstances[b_string][b_long] = newInstance[Tamgumapsl::idtype];
 	mapnewInstances[b_string][b_ustring] = newInstance[Tamgumapuu::idtype];
 	mapnewInstances[b_string][b_float] = newInstance[Tamgumapsf::idtype];
-	mapnewInstances[b_string][b_string] = newInstance[Tamgumapss::idtype];
-	mapnewInstances[b_string][b_none] = newInstance[Tamgumap::idtype];
+	mapnewInstances[b_string][b_string] = newInstance[a_mapss];
+	mapnewInstances[b_string][b_none] = newInstance[a_map];
 
 }
 

@@ -285,6 +285,53 @@ public:
 
 };
 
+class TamguCallAlias : public TamguCall {
+public:
+    TamguAlias* body;
+    bool stop;
+
+    TamguCallAlias(TamguAlias* b, TamguGlobal* global = NULL, Tamgu* parent = NULL) : body(b), TamguCall(a_callfunction, global, parent) {
+        addarg = false;
+        stop = true;
+        name = b->Name();
+    }
+
+    Exporting virtual Tamgu* Eval(Tamgu* context, Tamgu* domain, short idthread);
+
+    short Name() {
+        return name;
+    }
+
+    Tamgu* Body(short idthread) {
+        return body->Body(idthread);
+    }
+
+    bool Checkarity() {
+        return (body->Size() == arguments.size());
+    }
+    
+    bool isAssignable() {
+        return (function != NULL && body->isAssignable() && body->parameters.size() == function->Size());
+    }
+    
+    bool isAlias() {
+        return true;
+    }
+    
+    Tamgu* Function() {
+        return function;
+    }
+    
+    bool Setstopindex() {
+        stop = (function == NULL || function->Function() == NULL);
+        if (!stop)
+            function->Setstopindex();
+        return true;
+    }
+
+};
+
+
 //This function call is used to call user declared functions
 class TamguCallFunction : public TamguCall {
 public:
@@ -2283,10 +2330,40 @@ public:
 };
 
 //----------------------------------------------------------------------
-class TamguInstructionAFFECTATION : public TamguInstruction {
+class TamguAliasASSIGNMENT : public TamguInstruction {
+public:
+    TamguCallAlias* alias;
+    Tamgu* body_instruction;
+    
+    TamguAliasASSIGNMENT(TamguCallAlias* b,
+                              TamguGlobal* global = NULL,
+                              Tamgu* parent = NULL) : TamguInstruction(a_instructions, global, parent) {
+        alias = b;
+        alias->body->_locker = new ThreadLock;
+        body_instruction = alias->body->instructions[0];
+        body_instruction->Setstopindex();
+    }
+
+    Exporting Tamgu* Eval(Tamgu* context, Tamgu* domain, short idthread);
+    
+    Tamgu* Function() {
+        return alias->Function();
+    }
+    
+    bool Setstopindex() {
+        return alias->Setstopindex();
+    }
+    
+    short Name() {
+        return alias->Name();
+    }
+};
+
+
+class TamguInstructionASSIGNMENT : public TamguInstruction {
 public:
 
-	TamguInstructionAFFECTATION(TamguGlobal* g, Tamgu* parent = NULL) : TamguInstruction(a_instructions, g, parent) {}
+	TamguInstructionASSIGNMENT(TamguGlobal* g, Tamgu* parent = NULL) : TamguInstruction(a_instructions, g, parent) {}
 	Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 
 	string String() {
@@ -2303,23 +2380,23 @@ public:
     }
 };
 
-class TamguInstructionSTREAM : public TamguInstructionAFFECTATION {
+class TamguInstructionSTREAM : public TamguInstructionASSIGNMENT {
 public:
     
-    TamguInstructionSTREAM(TamguGlobal* g, Tamgu* parent = NULL) : TamguInstructionAFFECTATION(g, parent) {
+    TamguInstructionSTREAM(TamguGlobal* g, Tamgu* parent = NULL) : TamguInstructionASSIGNMENT(g, parent) {
         idtype=a_stream;
     }
     
     Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 };
 
-class TamguInstructionAtomicAFFECTATION : public TamguInstruction {
+class TamguInstructionSelfASSIGNMENT : public TamguInstruction {
 public:
     Tamgu* variable;
     short name;
     char directcall;
     
-    TamguInstructionAtomicAFFECTATION(TamguGlobal* g, Tamgu* var, Tamgu* parent = NULL) : directcall(false), TamguInstruction(a_affectation, g, parent) {
+    TamguInstructionSelfASSIGNMENT(TamguGlobal* g, Tamgu* var, Tamgu* parent = NULL) : directcall(false), TamguInstruction(a_assignement, g, parent) {
         name = var->Name();
         variable = var;
     }
@@ -2341,13 +2418,42 @@ public:
 
 };
 
-class TamguInstructionGlobalVariableAFFECTATION : public TamguInstruction {
+
+class TamguInstructionAtomicASSIGNMENT : public TamguInstruction {
+public:
+    Tamgu* variable;
+    short name;
+    char directcall;
+    
+    TamguInstructionAtomicASSIGNMENT(TamguGlobal* g, Tamgu* var, Tamgu* parent = NULL) : directcall(false), TamguInstruction(a_assignement, g, parent) {
+        name = var->Name();
+        variable = var;
+    }
+    
+    virtual Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
+    
+    string String() {
+        string v = instructions[0]->String();
+        v += "=";
+        v += instructions[1]->String();
+        return v;
+    }
+    
+    void Setstring(string& v, short idthread) {
+        instructions[0]->Setstring(v, idthread);
+        v += "=";
+        v += instructions[1]->String();
+    }
+
+};
+
+class TamguInstructionGlobalVariableASSIGNMENT : public TamguInstruction {
 public:
     Tamgu* variable;
     short varname;
     bool first;
     
-    TamguInstructionGlobalVariableAFFECTATION(TamguGlobal* g, short n, Tamgu* parent = NULL) : varname(n), variable(aNULL), first(true), TamguInstruction(a_affectation, g, parent) {}
+    TamguInstructionGlobalVariableASSIGNMENT(TamguGlobal* g, short n, Tamgu* parent = NULL) : varname(n), variable(aNULL), first(true), TamguInstruction(a_assignement, g, parent) {}
     Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
     
     string String() {
@@ -2358,10 +2464,10 @@ public:
     }
 };
 
-class TamguInstructionVariableAFFECTATION : public TamguInstruction {
+class TamguInstructionVariableASSIGNMENT : public TamguInstruction {
 public:
     
-    TamguInstructionVariableAFFECTATION(TamguGlobal* g, Tamgu* parent = NULL) : TamguInstruction(a_affectation, g, parent) {}
+    TamguInstructionVariableASSIGNMENT(TamguGlobal* g, Tamgu* parent = NULL) : TamguInstruction(a_assignement, g, parent) {}
     
     Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
     
@@ -2380,11 +2486,23 @@ public:
 
 };
 
-class TamguInstructionFunctionVariableAFFECTATION : public TamguInstruction {
+class TamguPredicateVariableASSIGNMENT : public TamguInstructionVariableASSIGNMENT {
 public:
     short name;
     
-    TamguInstructionFunctionVariableAFFECTATION(TamguGlobal* g, Tamgu* var, Tamgu* parent = NULL) : TamguInstruction(a_affectation, g, parent) {
+    TamguPredicateVariableASSIGNMENT(TamguGlobal* g, Tamgu* var, Tamgu* parent) : TamguInstructionVariableASSIGNMENT(g, parent) {
+        name = var->Name();
+    }
+    
+    Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
+};
+
+
+class TamguInstructionFunctionVariableASSIGNMENT : public TamguInstruction {
+public:
+    short name;
+    
+    TamguInstructionFunctionVariableASSIGNMENT(TamguGlobal* g, Tamgu* var, Tamgu* parent = NULL) : TamguInstruction(a_assignement, g, parent) {
         name = var->Name();
     }
     
@@ -4298,7 +4416,7 @@ public:
 
 	Tamgu* Eval(Tamgu* res, Tamgu* r, short idthread) {
 		bool store = true;
-		if (r != aAFFECTATION)
+		if (r != aASSIGNMENT)
 			store = false;
 
         if (size == 1)
@@ -4337,13 +4455,27 @@ public:
 	Tamgu* instruction;
 
 	TamguInstructionAPPLYOPERATIONEQU(TamguGlobal* g, Tamgu* parent = NULL) : recipient(aNULL), TamguInstructionAPPLYOPERATIONROOT(g, parent, a_instructionequ) {}
-	Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
+	virtual Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 
     Tamgu* update(uchar btype);
 
 	bool isEQU() {
 		return true;
 	}
+};
+
+class TamguInstructionAPPLYOPERATIONEQUALIAS : public TamguInstructionAPPLYOPERATIONEQU {
+public:
+    TamguCallAlias* alias;
+    Tamgu* body_instruction;
+    
+    TamguInstructionAPPLYOPERATIONEQUALIAS(TamguCallAlias* a, TamguGlobal* g, Tamgu* parent = NULL) : TamguInstructionAPPLYOPERATIONEQU(g, parent) {
+        alias = a;
+        body_instruction = alias->body->instructions[0];
+    }
+    
+    Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
+    
 };
 
 class TamguInstructionAPPLYEQUSHORT : public TamguInstructionAPPLYOPERATIONEQU {

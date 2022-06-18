@@ -22,19 +22,16 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<shortMethod>  Tamgushort::methods;
 
-Exporting short Tamgushort::idtype = 0;
-
-
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamgushort::AddMethod(TamguGlobal* global, string name, shortMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    if (global->infomethods.find(a_short) != global->infomethods.end() &&
+            global->infomethods[a_short].find(name) != global->infomethods[a_short].end())
     return;
 
-    global->infomethods[idtype][name] = infos;
-    global->RecordArity(idtype, idname, arity);
+    global->infomethods[a_short][name] = infos;
+    global->RecordArity(a_short, idname, arity);
 }
 
 
@@ -48,10 +45,6 @@ void Tamgushort::Setidtype(TamguGlobal* global) {
 
    bool Tamgushort::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    
-    
-
-    Tamgushort::idtype = a_short;
 
     Tamgushort::AddMethod(global, "succ", &Tamgushort::MethodSucc, P_NONE, "succ(): return the successor of a short");
     Tamgushort::AddMethod(global, "pred", &Tamgushort::MethodPred, P_NONE, "pred(): Return the predecessor of a byte.");
@@ -100,8 +93,8 @@ void Tamgushort::Setidtype(TamguGlobal* global) {
 
 
     if (version != "") {
-        global->newInstance[Tamgushort::idtype] = new Tamgushort(0, global);
-        global->RecordCompatibilities(Tamgushort::idtype);
+        global->newInstance[a_short] = new Tamgushort(0, global);
+        global->RecordCompatibilities(a_short);
     }
 
     return true;

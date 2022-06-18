@@ -1036,7 +1036,7 @@ Tamgu* Tamgurawstring::MethodStokenize(Tamgu* contextualpattern, short idthread,
     thestr.stokenize(v, k);
 
     Tamgu* kvect = Selectasvector(contextualpattern);
-    if (kvect->Type() == Tamgusvector::idtype) {
+    if (kvect->Type() == a_svector) {
         Locking _lock((TamguObject*)kvect);
         ((Tamgusvector*)kvect)->values = v;
     }
@@ -1985,7 +1985,7 @@ Tamgu* Tamgurawstring::MethodReplace(Tamgu* contextualpattern, short idthread, T
 Tamgu* Tamgurawstring::MethodEditdistance(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     Tamgu* e1 = this;
     Tamgu* e2 = callfunc->Evaluate(0, contextualpattern, idthread);
-    if (e1->Type() == Tamguustring::idtype)
+    if (e1->Type() == a_ustring)
         return globalTamgu->ProvideConstint(e1->EditDistance(e2));
 
     bool bytecall = false;

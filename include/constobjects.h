@@ -17,6 +17,10 @@
 #ifndef constobjects_h
 #define constobjects_h
 
+#ifdef UNIX
+#include <climits>
+#endif
+
 #include "tamgustring.h"
 #include "tamgushort.h"
 #include "tamguustring.h"
@@ -25,6 +29,7 @@
 #include "tamgudecimal.h"
 #include "tamgulong.h"
 #include "tamgubool.h"
+
 
 //---------------------------------------------------------------------------------
 class TamguBaseConst : public Tamgu {
@@ -212,6 +217,10 @@ public:
 
 	TamguConstBreak(short i, string n, TamguGlobal* g) : TamguConst(i, n, g) {
         investigate = is_break;
+    }
+
+    short checkTypePredicate() {
+        return a_break;
     }
 
 };
@@ -2347,6 +2356,10 @@ public:
 	bool isBoolean() {
 		return true;
 	}
+
+    short checkTypePredicate() {
+        return (value?a_true:a_false);
+    }
 
 	long Getinteger(short idthread) {
 		return value;

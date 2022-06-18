@@ -20,18 +20,16 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<frameinstanceMethod>  Tamguframeseeder::methods;
 
-Exporting short Tamguframeseeder::idtype = 0;
-
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamguframeseeder::AddMethod(TamguGlobal* global, string name, frameinstanceMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    if (global->infomethods.find(a_frameinstance) != global->infomethods.end() &&
+            global->infomethods[a_frameinstance].find(name) != global->infomethods[a_frameinstance].end())
     return;
 
-    global->infomethods[idtype][name] = infos;
-    global->RecordArity(idtype, idname, arity);
+    global->infomethods[a_frameinstance][name] = infos;
+    global->RecordArity(a_frameinstance, idname, arity);
 }
 
 
@@ -46,14 +44,11 @@ void Tamguframeseeder::Setidtype(TamguGlobal* global) {
    bool Tamguframeseeder::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
     
-    
-
-    Tamguframeseeder::idtype = a_frameinstance;
     Tamguframeseeder::AddMethod(global, "_initial", &Tamguframeinstance::MethodInitial, P_NONE, "_initial(): Initialization of a frame.");
     Tamguframeseeder::AddMethod(global, "type", &Tamguframeinstance::MethodType, P_NONE, "type(): Return the frame's type.");
 
 
-    if (version != "") global->newInstance[Tamguframeseeder::idtype] = new Tamguframeseeder(NULL, global);
+    if (version != "") global->newInstance[a_frameinstance] = new Tamguframeseeder(NULL, global);
 
     return true;
 }
@@ -72,19 +67,19 @@ Tamguframeseeder* Tamguframeseeder::RecordFrame(short name, TamguFrame* f, Tamgu
 }
 
 //a Tamguframeseeder is used to record a frame creator, which can then be used to generate actual frame instances...
-Tamgu* Tamguframeseeder::Newinstance(short idthread, Tamgu* a) {
+Tamgu* Tamguframeseeder::Newinstance(short idthread, Tamgu* frame_instance) {
     //the interval between the variable names is less than 64, we can use a much faster access method, which
     //is based on basemin_hash, a simple array...
     if (frame->choosemin)
-        a = new Tamguframemininstance(frame);
+        frame_instance = new Tamguframemininstance(frame);
     else
-        a = new Tamguframeinstance(frame);
+        frame_instance = new Tamguframeinstance(frame);
     
     //The frame does not contain any frame variables...
     if (!frame->post) {
         for (long i = 0; i < frame->variables.size(); i++)
-            frame->variables[i]->Eval(a, aNULL, idthread);
-        return a;
+            frame->variables[i]->Eval(frame_instance, aNULL, idthread);
+        return frame_instance;
     }
 
     //This frame contains frame variables, we need to postpone the creation
@@ -97,13 +92,13 @@ Tamgu* Tamguframeseeder::Newinstance(short idthread, Tamgu* a) {
         o = frame->variables[i];
         if (o->isFrame()) {//these cases will be handled in the Postinstantiation method...
             //we create a temporate variable, with no actual type...
-            a->Declare(o->Name(), new TamguLet);
+            frame_instance->Declare(o->Name(), new TamguLet);
             continue;
         }
-        o = o->Eval(a, aNULL, idthread);
+        o = o->Eval(frame_instance, aNULL, idthread);
     }
 
-    return a;
+    return frame_instance;
 }
 
 void Tamguframeinstance::Postinstantiation(short idthread, bool setreference) {

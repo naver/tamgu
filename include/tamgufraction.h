@@ -32,10 +32,6 @@ public:
 	//this is a static object, which is common to everyone
 	//We associate the method pointers with their names in the linkedmethods map
 	static Exchanging basebin_hash<fractionMethod> methods;
-	
-	
-
-	static Exchanging short idtype;
 
 	//---------------------------------------------------------------------------------------------------------------------
 	//This SECTION is for your specific implementation...
@@ -65,7 +61,7 @@ public:
 
 	//----------------------------------------------------------------------------------------------------------------------
 	Tamgu* Putvalue(Tamgu* v, short idthread) {
-		if (v->Type() == idtype) {
+		if (v->Type() == a_fraction) {
 			Tamgufraction* val = (Tamgufraction*)v;
 			numerator = val->numerator;
 			denominator = val->denominator;
@@ -76,7 +72,7 @@ public:
 	}
 
 	Tamgu* Put(Tamgu* idx, Tamgu* v, short idthread) {
-		if (v->Type() == idtype) {
+		if (v->Type() == a_fraction) {
 			Tamgufraction* val = (Tamgufraction*)v;
 			numerator = val->numerator;
 			denominator = val->denominator;
@@ -150,13 +146,13 @@ public:
 	static bool InitialisationModule(TamguGlobal* g, string version);
 
 	void Methods(Tamgu* v) {
-            for (const auto& it : globalTamgu->infomethods[idtype])
+            for (const auto& it : globalTamgu->infomethods[a_fraction])
                  v->storevalue(it.first);
       }
 
       string Info(string n) {
-            if (globalTamgu->infomethods[idtype].find(n) !=  globalTamgu->infomethods[idtype].end())
-              return globalTamgu->infomethods[idtype][n];
+            if (globalTamgu->infomethods[a_fraction].find(n) !=  globalTamgu->infomethods[a_fraction].end())
+              return globalTamgu->infomethods[a_fraction][n];
              return "Unknown method";
 	}
 	//---------------------------------------------------------------------------------------------------------------------

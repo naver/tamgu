@@ -71,7 +71,8 @@ Tamgu* TamguInstructionAPPLYOPERATIONEQU::Eval(Tamgu* context, Tamgu* value, sho
     bool putback = false;
     
     if (idx != NULL) {
-        if (!idx->isIndex())
+        idx = idx->Getindex();
+        if (idx == NULL || !idx->isIndex())
             return globalTamgu->Returnerror("Cannot evaluate this instruction", idthread);
         
         value = idx->Eval(context, variable, idthread);
@@ -88,14 +89,16 @@ Tamgu* TamguInstructionAPPLYOPERATIONEQU::Eval(Tamgu* context, Tamgu* value, sho
                 return globalTamgu->Returnerror("No value at this position in the container", idthread);
         }
         else
-            if (variable->isValueContainer())
+            if (variable->isValueContainer()) {
                 putback = true;
+                value = value->AtomNoConst();
+            }
     }
     
     //The position in the expression of our variable is the second from the bottom...
     Tamgu* res = instruction->Eval(value, aNULL, idthread);
     
-    Tamgu* v=NULL;
+    Tamgu* v = NULL;
     switch (action) {
         case a_plus:
             v = value->plus(res, true);
@@ -167,6 +170,169 @@ Tamgu* TamguInstructionAPPLYOPERATIONEQU::Eval(Tamgu* context, Tamgu* value, sho
     
     if (globalTamgu->isthreading)
         globalTamgu->Triggeronfalse(variable);
+
+    if (globalTamgu->Error(idthread))
+        return globalTamgu->Errorobject(idthread);
+    
+    return aTRUE;
+}
+
+Tamgu* TamguInstructionAPPLYOPERATIONEQUALIAS::Eval(Tamgu* context, Tamgu* value, short idthread) {
+    TamguDeclarationLocal* environment = globalTamgu->Providedeclaration(idthread);
+    if (globalTamgu->debugmode)
+        environment->idinfo = Currentinfo();
+    
+    //idx is either a TamguIndex or a TamguShape
+    //A TamguIndex with an internal interval is evaluated as two different arguments.
+    Tamgu* idx = alias->Function();
+    
+    for (long i = 0; i < idx->Size(); i++) {
+        value = idx->Parameter(i)->Eval(context, aNULL, idthread);
+        if (value->isError()) {
+            environment->Cleaning();
+            return value;
+        }
+        environment->Declaring(alias->body->parameters[i], value);
+        globalTamgu->Storevariable(idthread, alias->body->parameters[i],  value);
+        value->Setreference();
+    }
+
+    globalTamgu->Pushstackraw(environment, idthread);
+    //We then apply our function within this environment
+    alias->body->lock_assignment();
+    body_instruction->Setaffectation(true);
+    Tamgu* variable = body_instruction->Eval(environment, aNULL, idthread);
+    body_instruction->Setaffectation(false);
+    alias->body->unlock_assignment();
+    if (variable->isError()) {
+        globalTamgu->Popstack(idthread);
+        environment->Releasing();
+        return variable;
+    }
+
+    
+    idx = body_instruction->Function();
+    bool putback = false;
+    
+    if (idx != NULL) {
+        idx = idx->Getindex();
+        if (idx == NULL || !idx->isIndex()) {
+            globalTamgu->Popstack(idthread);
+            environment->Releasing();
+            return globalTamgu->Returnerror("Cannot evaluate this instruction", idthread);
+        }
+        
+        value = idx->Eval(context, variable, idthread);
+        if (value == aNOELEMENT) {
+            if (variable->isValueContainer()) {
+                value = idx->Put(variable, aNULL, idthread);
+                if (value->isError()) {
+                    globalTamgu->Popstack(idthread);
+                    environment->Releasing();
+                    return value;
+                }
+                
+                value = idx->Eval(context, variable, idthread);
+                putback = true;
+            }
+            else {
+                globalTamgu->Popstack(idthread);
+                environment->Releasing();
+                return globalTamgu->Returnerror("No value at this position in the container", idthread);
+            }
+        }
+        else
+            if (variable->isValueContainer()) {
+                putback = true;
+                value = value->AtomNoConst();
+            }
+    }
+    
+    //The position in the expression of our variable is the second from the bottom...
+    Tamgu* res = instruction->Eval(value, aNULL, idthread);
+    
+    Tamgu* v = NULL;
+    switch (action) {
+        case a_plus:
+            v = value->plus(res, true);
+            break;
+        case a_minus:
+            v = value->minus(res, true);
+            break;
+        case a_multiply:
+            v = value->multiply(res, true);
+            break;
+        case a_divide:
+            v = value->divide(res, true);
+            if (v->isError()) {
+                value->Releasenonconst();
+                res->Release();
+                globalTamgu->Popstack(idthread);
+                environment->Releasing();
+                return globalTamgu->Errorobject(idthread);
+            }
+            break;
+        case a_power:
+            v = value->power(res, true);
+            break;
+        case a_shiftleft:
+            v = value->shiftleft(res, true);
+            break;
+        case a_shiftright:
+            v = value->shiftright(res, true);
+            break;
+        case a_mod:
+            v = value->mod(res, true);
+            if (v->isError()) {
+                value->Releasenonconst();
+                res->Release();
+                globalTamgu->Popstack(idthread);
+                environment->Releasing();
+                return globalTamgu->Errorobject(idthread);
+            }
+            break;
+        case a_or:
+            v = value->orset(res, true);
+            break;
+        case a_xor:
+            v = value->xorset(res, true);
+            break;
+        case a_and:
+            v = value->andset(res, true);
+            break;
+        case a_merge:
+            v = value->Merging(res);
+            break;
+        case a_combine:
+            v = value->Combine(res);
+            break;
+        case a_add:
+            if (!value->isVectorContainer()) {
+                globalTamgu->Popstack(idthread);
+                environment->Releasing();
+                return globalTamgu->Returnerror("Cannot '::' these two elements", idthread);
+            }
+            value->Merging(res);
+            v = value;
+    }
+    
+    if (v != value) {
+        value->Put(aNULL, v, idthread);
+        v->Release();
+    }
+    
+    if (putback) {
+        idx->Put(variable, value, idthread);
+        value->Release();
+    }
+    
+    res->Release();
+    
+    if (globalTamgu->isthreading)
+        globalTamgu->Triggeronfalse(variable);
+
+    globalTamgu->Popstack(idthread);
+    environment->Releasing();
 
     if (globalTamgu->Error(idthread))
         return globalTamgu->Errorobject(idthread);

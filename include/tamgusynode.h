@@ -39,8 +39,6 @@ public:
 	static Exchanging Tamgumapss* validfeatures;
 	static Exchanging bool testvalid;
 
-	static Exchanging short idtype;
-
 	//---------------------------------------------------------------------------------------------------------------------
 	//This SECTION is for your specific implementation...
 	//Your personal variables here...
@@ -124,7 +122,7 @@ public:
 
 
 	short Type() {
-		return Tamgusynode::idtype;
+		return a_synode;
 	}
 
     void Setidtype(TamguGlobal* global);
@@ -229,13 +227,13 @@ public:
 	}
 
 	void Methods(Tamgu* v) {
-            for (const auto& it : globalTamgu->infomethods[idtype])
+            for (const auto& it : globalTamgu->infomethods[a_synode])
                  v->storevalue(it.first);
       }
 
       string Info(string n) {
-            if (globalTamgu->infomethods[idtype].find(n) !=  globalTamgu->infomethods[idtype].end())
-              return globalTamgu->infomethods[idtype][n];
+            if (globalTamgu->infomethods[a_synode].find(n) !=  globalTamgu->infomethods[a_synode].end())
+              return globalTamgu->infomethods[a_synode][n];
              return "Unknown method";
 	}
     
@@ -302,7 +300,7 @@ public:
 		if (!res->isMapContainer())
 			return globalTamgu->Returnerror("Expecting a map as value", idthread);
 
-		if (res->Type() == Tamgumapss::idtype)
+		if (res->Type() == a_mapss)
 			features = res;
 		else {
 			features = globalTamgu->Providemapss();
@@ -407,7 +405,7 @@ public:
 
 	//----------------------------------------------------------------
 	Tamgu* MethodTest(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-		if (features->Type() != Tamgumapss::idtype)
+		if (features->Type() != a_mapss)
 			return aFALSE;
 
 		string s = callfunc->Evaluate(0, contextualpattern, idthread)->String();

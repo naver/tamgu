@@ -875,6 +875,11 @@ LRESULT CTAMGUIView::AfficheCourant(WPARAM wParam, LPARAM lParam) {
 	//int nLength = er.GetWindowTextLength();
 	// put the selection at the end of text
 
+	if (s->GetLength() > 50000) {
+		*s = s->Left(50000);
+		*s += _T("... string too long to display\r\n");
+	}
+
 	er.SetSel(-1, -1);
 	er.ReplaceSel(*s);
 

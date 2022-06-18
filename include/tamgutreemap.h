@@ -36,11 +36,7 @@ class Tamgutreemap : public TamguObjectLockContainer {
     //this is a static object, which is common to everyone
     //We associate the method pointers with their names in the linkedmethods map
     static Exchanging basebin_hash<treemapMethod> methods;
-    
-    
-
-    static Exchanging short idtype;
-
+  
     //---------------------------------------------------------------------------------------------------------------------
     //This SECTION is for your specific implementation...
     //Your personal variables here...
@@ -194,13 +190,13 @@ class Tamgutreemap : public TamguObjectLockContainer {
 
 
     void Methods(Tamgu* v) {
-            for (const auto& it : globalTamgu->infomethods[idtype])
+            for (const auto& it : globalTamgu->infomethods[a_treemap])
                  v->storevalue(it.first);
       }
 
       string Info(string n) {
-            if (globalTamgu->infomethods[idtype].find(n) !=  globalTamgu->infomethods[idtype].end())
-              return globalTamgu->infomethods[idtype][n];
+            if (globalTamgu->infomethods[a_treemap].find(n) !=  globalTamgu->infomethods[a_treemap].end())
+              return globalTamgu->infomethods[a_treemap][n];
              return "Unknown method";
     }
 

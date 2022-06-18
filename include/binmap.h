@@ -771,11 +771,9 @@ template <class Z> class basebin_hash {
     Z getOrNULL(unsigned short r) {
         bshort i = (r >> binbits) - base;
         r &= binmin;
-        if (i >= 0 && i < tsize && (indexes[i] & binval64[r]))
-            return table[i][r];
-        return NULL;
+        return (i >= 0 && i < tsize && (indexes[i] & binval64[r]))?table[i][r]:NULL;
     }
-    
+
     void put(unsigned short r, Z a) {
         bshort i = r >> binbits;
         table[i-base][r & binmin] = a;
@@ -1018,6 +1016,74 @@ template <class Z> class basebin_hash {
             else {
                 table[i] = NULL;
                 indexes[i] = 0;
+            }
+        }
+    }
+    
+    // Cleaning the variable instances created during the predicate evaluation...
+    void clearcommon(basebin_hash<Z>& basedomain) {
+        Z a;
+        binuint64 filter;
+        short idx;
+        long j;
+        
+    #ifdef INTELINTRINSICS
+        unsigned long qj;
+    #endif
+
+        for (long ii = 0; ii < tsize; ii++) {
+            filter = indexes[ii];
+            if (filter) {
+                idx = (ii + base) << binbits;
+                j = 0;
+                while (filter) {
+    #ifdef INTELINTRINSICS
+                    if (!(filter & 1)) {
+                        if (!(filter & 0x00000000FFFFFFFF)) {
+                            filter >>= 32;
+                            j += 32;
+                        }
+                        bitscanforward(qj, (uint32_t)(filter & 0x00000000FFFFFFFF));
+                        filter >>= qj;
+                        j += qj;
+                    }
+    #else
+                    if (!(filter & 1)) {
+                        while (!(filter & 65535)) {
+                            filter >>= 16;
+                            j = j + 16;
+                        }
+                        while (!(filter & 255)) {
+                            filter >>= 8;
+                            j = j + 8;
+                        }
+                        while (!(filter & 15)) {
+                            filter >>= 4;
+                            j = j + 4;
+                        }
+                        while (!(filter & 1)) {
+                            filter >>= 1;
+                            j++;
+                        }
+                    }
+    #endif
+                    //we do not delete the instances that were created by the underlying calls to PredicateEvalue
+                    //More exactly, when we push a new analysis of a rule into action, we want to clean the variables that were created
+                    //within this call, not the current ones.
+                    if (!basedomain.check(idx + j)) {
+                        table[ii][j]->Resetreferencenoprotect();
+                        indexes[ii] &= ~binval64[j];
+                    }
+                    else {
+                        a = basedomain.get(idx + j);
+                        if (a != table[ii][j]) {
+                            table[ii][j]->Resetreferencenoprotect();
+                            table[ii][j] = a;
+                        }
+                    }
+                    filter >>= 1;
+                    j++;
+                }
             }
         }
     }

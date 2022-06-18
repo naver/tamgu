@@ -28,19 +28,16 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<listMethod>  Tamgulist::methods;
 
-Exporting short Tamgulist::idtype = 0;
-
-
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamgulist::AddMethod(TamguGlobal* global, string name, listMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    if (global->infomethods.find(a_list) != global->infomethods.end() &&
+            global->infomethods[a_list].find(name) != global->infomethods[a_list].end())
     return;
 
-    global->infomethods[idtype][name] = infos;
-    global->RecordArity(idtype, idname, arity);
+    global->infomethods[a_list][name] = infos;
+    global->RecordArity(a_list, idname, arity);
 }
 
 
@@ -52,28 +49,24 @@ void Tamgulist::AddMethod(TamguGlobal* global, string name, listMethod func, uns
 }
 
 
-   bool Tamgulist::InitialisationModule(TamguGlobal* global, string version) {
+bool Tamgulist::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
     
+    Tamgulist::AddMethod(global, "min", &Tamgulist::MethodMin, P_NONE, "min(): returns the min in the vector.");
+    Tamgulist::AddMethod(global, "max", &Tamgulist::MethodMax, P_NONE, "max(): returns the max in the vector.");
+    Tamgulist::AddMethod(global, "minmax", &Tamgulist::MethodMinMax, P_NONE, "minmax(): returns the min and the max in the vector.");
     
-
-    Tamgulist::idtype = a_list;
-
-       Tamgulist::AddMethod(global, "min", &Tamgulist::MethodMin, P_NONE, "min(): returns the min in the vector.");
-       Tamgulist::AddMethod(global, "max", &Tamgulist::MethodMax, P_NONE, "max(): returns the max in the vector.");
-       Tamgulist::AddMethod(global, "minmax", &Tamgulist::MethodMinMax, P_NONE, "minmax(): returns the min and the max in the vector.");
-
-
+    
     Tamgulist::AddMethod(global, "clear", &Tamgulist::MethodClear, P_NONE, "clear(): clear the container.");
     Tamgulist::AddMethod(global, "flatten", &Tamgulist::MethodFlatten, P_NONE, "flatten(): flatten a vector structure.");
-
+    
     Tamgulist::AddMethod(global, "remove", &Tamgulist::MethodRemove, P_ONE, "remove(e): remove 'e' from the vector.");
-
+    
     Tamgulist::AddMethod(global, "reverse", &Tamgulist::MethodReverse, P_NONE, "reverse(): reverse a vector.");
     Tamgulist::AddMethod(global, "unique", &Tamgulist::MethodUnique, P_NONE, "unique(): remove duplicate elements.");
-
+    
     Tamgulist::AddMethod(global, "permute", &Tamgulist::MethodPermute, P_NONE, "permute(): permute the values in the vector after each call.");
-
+    
     Tamgulist::AddMethod(global, "join", &Tamgulist::MethodJoin, P_ONE, "join(string sep): Produce a string representation for the container.");
     Tamgulist::AddMethod(global, "shuffle", &Tamgulist::MethodShuffle, P_NONE, "shuffle(): shuffle the values in the list.");
     Tamgulist::AddMethod(global, "last", &Tamgulist::MethodLast, P_NONE, "last(): return the last element.");
@@ -88,13 +81,13 @@ void Tamgulist::AddMethod(TamguGlobal* global, string name, listMethod func, uns
     Tamgulist::AddMethod(global, "poplast", &Tamgulist::MethodPoplast, P_NONE, "poplast(): remove and return the last element.");
     Tamgulist::AddMethod(global, "merge", &Tamgulist::MethodMerge, P_ONE, "merge(v): Merge v into the list.");
     Tamgulist::AddMethod(global, "insert", &Tamgulist::MethodInsert, P_TWO, "insert(int i,v): Insert v at position i.");
-
-
+    
+    
     if (version != "") {
-        global->newInstance[Tamgulist::idtype] = new Tamgulist(global);
-        global->RecordCompatibilities(Tamgulist::idtype);
+        global->newInstance[a_list] = new Tamgulist(global);
+        global->RecordCompatibilities(a_list);
     }
-
+    
     Tamguring::InitialisationModule(global, version);
     Tamgujava_vector::InitialisationModule(global, version);
     return true;
@@ -2860,24 +2853,21 @@ Exporting Tamgu* Tamguring::Combine(Tamgu* ke) {
 //We need to declare once again our local definitions.
 Exporting basebin_hash<javavectorMethod>  Tamgujava_vector::methods;
 
-Exporting short Tamgujava_vector::idtype = 0;
-
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamgujava_vector::AddMethod(TamguGlobal* global, string name, javavectorMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    if (global->infomethods.find(idtype) != global->infomethods.end() &&
-        global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    if (global->infomethods.find(a_java_vector) != global->infomethods.end() &&
+        global->infomethods[a_java_vector].find(name) != global->infomethods[a_java_vector].end())
         return;
     
-    global->infomethods[idtype][name] = infos;
-    global->RecordArity(idtype, idname, arity);
+    global->infomethods[a_java_vector][name] = infos;
+    global->RecordArity(a_java_vector, idname, arity);
 }
 
 
 bool Tamgujava_vector::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    Tamgujava_vector::idtype = global->Getid("java_vector");
     
     Tamgujava_vector::AddMethod(global, "min", &Tamgujava_vector::MethodMin, P_NONE, "min(): returns the min in the vector.");
     Tamgujava_vector::AddMethod(global, "max", &Tamgujava_vector::MethodMax, P_NONE, "max(): returns the max in the vector.");
@@ -2888,8 +2878,8 @@ bool Tamgujava_vector::InitialisationModule(TamguGlobal* global, string version)
     Tamgujava_vector::AddMethod(global, "push", &Tamgujava_vector::MethodPush, P_ATLEASTONE, "push(v): Push a value into the vector.");
     
     if (version != "") {
-        global->newInstance[Tamgujava_vector::idtype] = new Tamgujava_vector(global);
-        global->RecordCompatibilities(Tamgujava_vector::idtype);
+        global->newInstance[a_java_vector] = new Tamgujava_vector(global);
+        global->RecordCompatibilities(a_java_vector);
     }
     
     return true;

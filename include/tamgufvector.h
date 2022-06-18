@@ -33,10 +33,6 @@ class Tamgufvector : public TamguLockContainer {
     //this is a static object, which is common to everyone
     //We associate the method pointers with their names in the linkedmethods map
     static Exchanging basebin_hash<fvectorMethod> methods;
-    
-    
-
-    static Exchanging short idtype;
 
     //---------------------------------------------------------------------------------------------------------------------
     //This SECTION is for your specific implementation...
@@ -393,13 +389,13 @@ class Tamgufvector : public TamguLockContainer {
 
 
     void Methods(Tamgu* v) {
-            for (const auto& it : globalTamgu->infomethods[idtype])
+            for (const auto& it : globalTamgu->infomethods[a_fvector])
                  v->storevalue(it.first);
       }
 
       string Info(string n) {
-            if (globalTamgu->infomethods[idtype].find(n) !=  globalTamgu->infomethods[idtype].end())
-              return globalTamgu->infomethods[idtype][n];
+            if (globalTamgu->infomethods[a_fvector].find(n) !=  globalTamgu->infomethods[a_fvector].end())
+              return globalTamgu->infomethods[a_fvector][n];
              return "Unknown method";
     }
     //---------------------------------------------------------------------------------------------------------------------
@@ -878,9 +874,9 @@ class Tamgufvectorbuff : public Tamgufvector {
                 protect = true;
 
                 values.clear();
-                used = false;
-                if (!globalTamgu->threadMODE)
+                if (!globalTamgu->threadMODE && used)
                     globalTamgu->fvectorempties.push_back(idx);
+                used = false;
             }
         }
         else

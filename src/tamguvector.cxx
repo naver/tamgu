@@ -31,18 +31,16 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<vectorMethod>  Tamguvector::methods;
 
-Exporting short Tamguvector::idtype = 0;
-
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamguvector::AddMethod(TamguGlobal* global, string name, vectorMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    if (global->infomethods.find(a_vector) != global->infomethods.end() &&
+            global->infomethods[a_vector].find(name) != global->infomethods[a_vector].end())
     return;
 
-    global->infomethods[idtype][name] = infos;
-    global->RecordArity(idtype, idname, arity);
+    global->infomethods[a_vector][name] = infos;
+    global->RecordArity(a_vector, idname, arity);
     global->RecordArity(a_constvector, idname, arity);
 }
 
@@ -56,11 +54,6 @@ void Tamguvector::Setidtype(TamguGlobal* global) {
 bool Tamguvector::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
     
-    
-
-
-    Tamguvector::idtype = a_vector;
-
     Tamguvector::AddMethod(global, "min", &Tamguvector::MethodMin, P_NONE, "min(): returns the min in the vector.");
     Tamguvector::AddMethod(global, "max", &Tamguvector::MethodMax, P_NONE, "max(): returns the max in the vector.");
     Tamguvector::AddMethod(global, "minmax", &Tamguvector::MethodMinMax, P_NONE, "minmax(): returns the min and the max in the vector.");
@@ -98,10 +91,10 @@ bool Tamguvector::InitialisationModule(TamguGlobal* global, string version) {
 
 
     if (version != "") {        
-    global->minimal_indexes[Tamguvector::idtype] = true;
+    global->minimal_indexes[a_vector] = true;
 
-        global->newInstance[Tamguvector::idtype] = new Tamguvector(global);
-        global->RecordCompatibilities(Tamguvector::idtype);
+        global->newInstance[a_vector] = new Tamguvector(global);
+        global->RecordCompatibilities(a_vector);
         global->newInstance[a_constvector] = new TamguConstvector(global);
         global->RecordCompatibilities(a_constvector);
     }
@@ -226,12 +219,12 @@ void Tamgulisp::Resetreference(short inc) {
             protect = true;
 
             values.clear();
-            used = false;
             if (idinfo == -1)
                 delete this;
             else {
-                if (!globalTamgu->threadMODE)
+                if (!globalTamgu->threadMODE && used)
                     globalTamgu->lempties.push_back(idinfo);
+                used = false;
             }
         }
     }
@@ -247,9 +240,9 @@ Exporting void Tamguvectorbuff::Resetreference(short inc) {
             protect = true;
 
             values.clear();
-            used = false;
-            if (!globalTamgu->threadMODE)
+            if (!globalTamgu->threadMODE && used)
                 globalTamgu->vectorempties.push_back(idx);
+            used = false;
         }
     }
 }
@@ -1755,7 +1748,7 @@ Exporting Tamgu* Tamguvector::Merging(Tamgu* ke) {
 
     Doublelocking _lock(this, ke);
     //Three cases:
-    if (ke->Type() == idtype) {
+    if (ke->Type() == a_vector) {
         Tamguvector* kvect = (Tamguvector*)ke;
         for (long i = 0; i < kvect->values.size(); i++) {
             ke = kvect->values[i]->Atom();
@@ -1834,7 +1827,7 @@ Exporting Tamgu* Tamguvector::Combine(Tamgu* ke) {
 Exporting Tamgu* Tamguvector::same(Tamgu* a) {
     Doublelocking _lock(this, a);
 
-    if (a->Type() != idtype) {
+    if (a->Type() != a_vector) {
         if (a->isVectorContainer()) {
             if (a->Size() != values.size())
                 return aFALSE;

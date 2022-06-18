@@ -531,10 +531,6 @@ public:
     //We associate the method pointers with their names in the linkedmethods map
     static Exchanging basebin_hash<regularexpressionMethod> methods;
     
-    
-    
-    static short idtype;
-    
     //---------------------------------------------------------------------------------------------------------------------
     //This SECTION is for your specific implementation...
     //Your personal variables here...
@@ -553,7 +549,7 @@ public:
 
     //----------------------------------------------------------------------------------------------------------------------
     short Type() {
-        return Tamguregularexpression::idtype;
+        return a_treg;
     }
     
     
@@ -595,13 +591,13 @@ public:
     static bool InitialisationModule(TamguGlobal* g, string version);
     
     void Methods(Tamgu* v) {
-            for (const auto& it : globalTamgu->infomethods[idtype])
+            for (const auto& it : globalTamgu->infomethods[a_treg])
                  v->storevalue(it.first);
       }
 
       string Info(string n) {
-            if (globalTamgu->infomethods[idtype].find(n) !=  globalTamgu->infomethods[idtype].end())
-              return globalTamgu->infomethods[idtype][n];
+            if (globalTamgu->infomethods[a_treg].find(n) !=  globalTamgu->infomethods[a_treg].end())
+              return globalTamgu->infomethods[a_treg][n];
              return "Unknown method";
     }
     
@@ -675,10 +671,6 @@ public:
     //We associate the method pointers with their names in the linkedmethods map
     static Exchanging basebin_hash<posixregularexpressionMethod> methods;
     
-    
-    
-    static short idtype;
-    
     //---------------------------------------------------------------------------------------------------------------------
     //This SECTION is for your specific implementation...
     //Your personal variables here...
@@ -702,7 +694,7 @@ public:
     //----------------------------------------------------------------------------------------------------------------------
     
     short Type() {
-        return Tamguposixregularexpression::idtype;
+        return a_preg;
     }
     
     string Typename() {
@@ -761,13 +753,13 @@ public:
     static bool InitialisationModule(TamguGlobal* g, string version);
     
     void Methods(Tamgu* v) {
-            for (const auto& it : globalTamgu->infomethods[idtype])
+            for (const auto& it : globalTamgu->infomethods[a_preg])
                  v->storevalue(it.first);
       }
 
       string Info(string n) {
-            if (globalTamgu->infomethods[idtype].find(n) !=  globalTamgu->infomethods[idtype].end())
-              return globalTamgu->infomethods[idtype][n];
+            if (globalTamgu->infomethods[a_preg].find(n) !=  globalTamgu->infomethods[a_preg].end())
+              return globalTamgu->infomethods[a_preg][n];
              return "Unknown method";
     }
     

@@ -29,19 +29,17 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<decimalMethod>  Tamgudecimal::methods;
 
-Exporting short Tamgudecimal::idtype = 0;
-
 
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamgudecimal::AddMethod(TamguGlobal* global, string name, decimalMethod func, unsigned long arity, string infos, short typereturn) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    if (global->infomethods.find(a_decimal) != global->infomethods.end() &&
+            global->infomethods[a_decimal].find(name) != global->infomethods[a_decimal].end())
     return;
 
-    global->infomethods[idtype][name] = infos;
-    global->RecordArity(idtype, idname, arity);
+    global->infomethods[a_decimal][name] = infos;
+    global->RecordArity(a_decimal, idname, arity);
     global->RecordArity(a_decimalthrough, idname, arity);
     global->RecordArity(a_dloop, idname, arity);
     if (typereturn != a_null)
@@ -61,8 +59,6 @@ void Tamgudecimal::Setidtype(TamguGlobal* global) {
     methods.clear();
     
     
-
-    Tamgudecimal::idtype = a_decimal;
 
     Tamgudecimal::AddMethod(global, "chr", &Tamgudecimal::Methodchr, P_NONE, "chr(): return the character matching the unicode code", a_ustring);
     Tamgudecimal::AddMethod(global, "invert", &Tamgudecimal::MethodInvert, P_NONE, "", a_float);
@@ -115,9 +111,9 @@ void Tamgudecimal::Setidtype(TamguGlobal* global) {
 
 
     if (version != "") {
-        global->newInstance[Tamgudecimal::idtype] = new Tamgudecimal(0, global);
-        global->newInstance[a_decimalthrough] = global->newInstance[Tamgudecimal::idtype];
-        global->RecordCompatibilities(Tamgudecimal::idtype);
+        global->newInstance[a_decimal] = new Tamgudecimal(0, global);
+        global->newInstance[a_decimalthrough] = global->newInstance[a_decimal];
+        global->RecordCompatibilities(a_decimal);
         global->RecordCompatibilities(a_decimalthrough);
         global->RecordCompatibilities(a_dloop);
     }

@@ -1216,6 +1216,7 @@ Tamgu* ProcVariables(Tamgu* contextualpattern, short idthread, TamguCall* callfu
     topstack->Variables(variables);
     Tamgu* value;
     string name;
+    short t_ype;
     for (long i = 0; i < variables.size(); i++) {
         value = topstack->Declaration(variables[i]);
         if (value != NULL) {
@@ -1224,9 +1225,12 @@ Tamgu* ProcVariables(Tamgu* contextualpattern, short idthread, TamguCall* callfu
                 TraverseFrame(name, values, value);
             }
             else {
-                name = globalTamgu->Getsymbol(value->Type()) + " ";
-                name += globalTamgu->Getsymbol(variables[i]);
-                values->pushing(name, value);
+                t_ype = value->Type();
+                if (t_ype != a_iteration_java && t_ype != a_java_vector) {
+                    name = globalTamgu->Getsymbol(t_ype) + " ";
+                    name += globalTamgu->Getsymbol(variables[i]);
+                    values->pushing(name, value);
+                }
             }
         }
     }

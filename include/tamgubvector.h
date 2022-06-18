@@ -36,7 +36,6 @@ class Tamgubvector : public TamguLockContainer {
     //this is a static object, which is common to everyone
     //We associate the method pointers with their names in the linkedmethods map
     static Exchanging basebin_hash<bvectorMethod> methods;
-    static Exchanging short idtype;
 
     //---------------------------------------------------------------------------------------------------------------------
     //This SECTION is for your specific implementation...

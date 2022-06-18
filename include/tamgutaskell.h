@@ -988,9 +988,6 @@ class TamguCallFibre : public TamguCallFunctionArgsTaskell {
 public:
     
     static Exchanging basebin_hash<tamguCallFibre> methods;
-    
-    
-    static Exchanging short idtype;
 
     ThreadLock _lock;
     ThreadLock _addlock;

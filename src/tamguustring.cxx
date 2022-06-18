@@ -38,7 +38,6 @@
 //------------------------------------------------------------------------------------------------------------------------
 //We need to declare once again our local definitions.
 Exporting basebin_hash<ustringMethod>  Tamguustring::methods;
-Exporting short Tamguustring::idtype = 0;
 
 #ifdef UNIX
 #define swprintf_s swprintf
@@ -56,12 +55,12 @@ static void setdosoutput(bool d) { dosoutput = d; }
 void Tamguustring::AddMethod(TamguGlobal* global, string name, ustringMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    if (global->infomethods.find(a_ustring) != global->infomethods.end() &&
+            global->infomethods[a_ustring].find(name) != global->infomethods[a_ustring].end())
     return;
 
-    global->infomethods[idtype][name] = infos;
-    global->RecordArity(idtype, idname, arity);
+    global->infomethods[a_ustring][name] = infos;
+    global->RecordArity(a_ustring, idname, arity);
     global->RecordArity(a_ustringthrough, idname, arity);
     global->RecordArity(a_uloop, idname, arity);
 }
@@ -77,10 +76,6 @@ void Tamguustring::Setidtype(TamguGlobal* global) {
 
 bool Tamguustring::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    
-    
-    
-    Tamguustring::idtype = a_ustring;
     
     Tamguustring::AddMethod(global, "succ", &Tamguustring::MethodSucc, P_NONE, "succ(): Return the successor of a character.");
     Tamguustring::AddMethod(global, "pred", &Tamguustring::MethodPred, P_NONE, "pred(): Return the predecessor of a byte.");
@@ -161,9 +156,9 @@ bool Tamguustring::InitialisationModule(TamguGlobal* global, string version) {
     Tamguustring::AddMethod(global, "write", &Tamguustring::MethodWrite, P_ONE, "write(string path): write the string content into a file.");
     
     if (version != "") {
-        global->newInstance[Tamguustring::idtype] = new Tamguustring(L"", global);
-        global->newInstance[a_ustringthrough] = global->newInstance[Tamguustring::idtype];
-        global->RecordCompatibilities(Tamguustring::idtype);
+        global->newInstance[a_ustring] = new Tamguustring(L"", global);
+        global->newInstance[a_ustringthrough] = global->newInstance[a_ustring];
+        global->RecordCompatibilities(a_ustring);
         global->RecordCompatibilities(a_ustringthrough);
         global->RecordCompatibilities(a_uloop);
     }

@@ -182,8 +182,9 @@ void TamguDeclaration::Cleaning(short idthread) {
 	BULONG filter;
 	if (declarations.base == -1)
 		return;
-
+#ifdef INTELINTRINSICS
     unsigned long qj;
+#endif
     
     for (short ii = 0; ii < declarations.tsize; ii++) {
         filter = declarations.indexes[ii];
@@ -1055,7 +1056,7 @@ Tamgu* TamguVariableDeclaration::Eval(Tamgu* domain, Tamgu* value, short idthrea
 		}
 		else {
 			bool aff = a->checkAffectation();
-			value = initialization->Eval(a, aAFFECTATION, idthread);
+			value = initialization->Eval(a, aASSIGNMENT, idthread);
 			if (value->isError())
 				return value;
 			if (value != a)
@@ -1147,7 +1148,7 @@ Tamgu* TamguFrameVariableDeclaration::Eval(Tamgu* domain, Tamgu* value, short id
 		}
 		else {
 			bool aff = a->checkAffectation();
-			value = initialization->Eval(a, aAFFECTATION, idthread);
+			value = initialization->Eval(a, aASSIGNMENT, idthread);
 			if (value->isError())
 				return value;
 			if (value != a)
@@ -1352,36 +1353,36 @@ Tamgu* TamguGlobalVariableDeclaration::Eval(Tamgu* domain, Tamgu* value, short i
 		return globalTamgu->Getmaindeclaration(name, idthread);
 
 	alreadydeclared = true;
-	Tamgu* a = globalTamgu->newInstance.get(typevariable)->Newinstance(idthread, function);
+	Tamgu* variable_value = globalTamgu->newInstance.get(typevariable)->Newinstance(idthread, function);
     //Global Variables should always be protected with a lock
-	a->Setname(name);
-	domain->Declare(name, a);
-	globalTamgu->Storevariable(idthread, name, a);
+	variable_value->Setname(name);
+	domain->Declare(name, variable_value);
+	globalTamgu->Storevariable(idthread, name, variable_value);
 
-	a->Setreference(1);
+	variable_value->Setreference(1);
 	if (initialization != NULL) {
 		if (initialization->Name() == a_initial)
-			value = initialization->Eval(aNULL, a, idthread);
+			value = initialization->Eval(aNULL, variable_value, idthread);
 		else {
-            bool aff = a->checkAffectation();
-			value = initialization->Eval(a, aAFFECTATION, idthread);
+            bool aff = variable_value->checkAffectation();
+			value = initialization->Eval(variable_value, aASSIGNMENT, idthread);
 			if (value->isError())
 				return value;
 
-			if (value != a)
-				a->Putvalue(value, idthread);
+			if (value != variable_value)
+				variable_value->Putvalue(value, idthread);
             
             if (!aff)
-                a->Setaffectation(false);
+                variable_value->Setaffectation(false);
 		}
 		value->Releasenonconst();
 	}
 
 	//If it is a frame, then we instanciate local frame declaration here...
 	//Hence, intialization of local frames can depend on local frame variables...
-	a->Postinstantiation(idthread, true);
+	variable_value->Postinstantiation(idthread, true);
 
-	return a;
+	return variable_value;
 }
 
 Tamgu* TamguThroughVariableDeclaration::Eval(Tamgu* domain, Tamgu* value, short idthread) {
@@ -1395,7 +1396,7 @@ Tamgu* TamguThroughVariableDeclaration::Eval(Tamgu* domain, Tamgu* value, short 
 	a->Setreference(1);
 	if (initialization != NULL) {
         bool aff = a->checkAffectation();
-		value = initialization->Eval(a, aAFFECTATION, idthread);
+		value = initialization->Eval(a, aASSIGNMENT, idthread);
 		if (value->isError())
 			return value;
 		if (value != a)
@@ -1820,9 +1821,8 @@ Tamgu* TamguCallFrameFunction::Put(Tamgu* context, Tamgu* object, short idthread
 	return object;
 }
 
-
 Tamgu* TamguCallFrameFunction::Eval(Tamgu* context, Tamgu* object, short idthread) {
-	object = object->CallMethod(name, context, idthread, this);
+	object = object->GetLetValue()->CallMethod(name, context, idthread, this);
 
 	if (function != NULL) {
 		if (object->isError()) {
@@ -1926,6 +1926,87 @@ Tamgu* TamguCallProcedure::Eval(Tamgu* context, Tamgu* object, short idthread) {
 }
 
 //------------------------------------------------------------------------------------
+Exporting Tamgu* TamguCallAlias::Eval(Tamgu* domain, Tamgu* a, short idthread) {
+    short szp = body->parameters.size();
+    short sza = arguments.size();
+    
+    char subfunc = 0;
+    
+    TamguDeclarationLocal* environment = globalTamgu->Providedeclaration(idthread);
+    if (globalTamgu->debugmode)
+        environment->idinfo = Currentinfo();
+    
+    if (!sza && function != NULL) {
+        if (szp != function->Size())
+            return globalTamgu->Returnerror("Wrong index access", idthread);
+        
+        for (short i = 0; i < szp; i++) {
+            a = function->Parameter(i)->Eval(domain, aNULL, idthread);
+            if (a->isError()) {
+                environment->Cleaning();
+                return a;
+            }
+            a = a->Atomref();
+            environment->Declaring(body->parameters[i], a);
+            globalTamgu->Storevariable(idthread, body->parameters[i], a);
+        }
+        subfunc = !stop;
+    }
+    else {
+        if (szp != sza) {
+            string err = "Check the arguments of: ";
+            err += globalTamgu->Getsymbol(Name());
+            return globalTamgu->Returnerror(err, idthread);
+        }
+        for (short i = 0; i < szp; i++) {
+            a = arguments.vecteur[i]->Eval(domain, aNULL, idthread);
+            if (a->isError()) {
+                environment->Cleaning();
+                return a;
+            }
+            a = a->Atomref();
+            environment->Declaring(body->parameters[i], a);
+            globalTamgu->Storevariable(idthread, body->parameters[i], a);
+        }
+        subfunc = 2*(function != NULL);
+    }
+    
+    globalTamgu->Pushstackraw(environment, idthread);
+    //We then apply our function within this environment
+    body->lock_assignment();
+    a = body->Eval(environment, aNULL, idthread);
+    body->unlock_assignment();
+    globalTamgu->Popstack(idthread);
+
+    switch (subfunc) {
+        case 1: {
+            domain = function->Function()->Eval(domain, a, idthread);
+            if (a != domain) {
+                a->Release();
+                a = domain;
+            }
+            break;
+        }
+        case 2:
+            domain = function->Eval(domain, a , idthread);
+            if (a != domain) {
+                a->Release();
+                a = domain;
+            }
+    }
+    
+    //if a has no reference, then it means that it was recorded into the environment
+    if (!a->Reference())
+        environment->Releasing();
+    else {
+        a->Setreference();
+        //we clean our structure...
+        environment->Releasing();
+        a->Protect();
+    }
+
+    return a;
+}
 
 Exporting Tamgu* TamguCallFunction::Eval(Tamgu* domain, Tamgu* a, short idthread) {
     static VECTE<Tamgu*> bvalues;
@@ -2383,7 +2464,8 @@ Tamgu* TamguCallFrameVariable::Eval(Tamgu* context, Tamgu* value, short idthread
 
 Tamgu* TamguCallFromFrameVariable::Eval(Tamgu* context, Tamgu* value, short idthread) {
     //In this case, the value is the calling variable...
-    if (!((TamguframeBaseInstance*)value)->isDeclared(name)) {
+    value = value->GetLetValue();
+    if (!value->isFrameinstance() || !((TamguframeBaseInstance*)value)->isDeclared(name)) {
         stringstream msg;
         msg << "Unknown frame variable: '"
         << globalTamgu->Getsymbol(name)
@@ -2404,7 +2486,8 @@ Tamgu* TamguCallFromFrameVariable::Eval(Tamgu* context, Tamgu* value, short idth
 
 Tamgu* TamguCallFromFrameVariable::Put(Tamgu* context, Tamgu* value, short idthread) {
     //In this case, the value is the calling variable...
-    if (!((TamguframeBaseInstance*)value)->isDeclared(name)) {
+    value = value->GetLetValue();
+    if (!value->isFrameinstance() || !((TamguframeBaseInstance*)value)->isDeclared(name)) {
         stringstream msg;
         msg << "Unknown frame variable: '"
         << globalTamgu->Getsymbol(name)
@@ -2523,25 +2606,25 @@ Tamgu* TamguCallFunctionVariable::Eval(Tamgu* context, Tamgu* value, short idthr
 //------------------------------------------------SELF SECTION-------------------------------------
 
 Tamgu* TamguSelfVariableDeclaration::Eval(Tamgu* domain, Tamgu* value, short idthread) {
-	TamguLet* a;
+	TamguLet* let_variable;
 	if (typevariable == a_self)
-		a = globalTamgu->Provideself();
+		let_variable = globalTamgu->Provideself();
 	else
-		a = new TamguLet;
+		let_variable = new TamguLet;
 
-	domain->Declare(name, a);
-	globalTamgu->Storevariable(idthread, name, a);
-	a->Setreference();
+	domain->Declare(name, let_variable);
+	globalTamgu->Storevariable(idthread, name, let_variable);
+	let_variable->Setreference();
 	if (initialization != NULL) {
 		value = initialization->Eval(aNULL, aNULL, idthread);
 		if (value->isError())
 			return value;
-		a->value = value;
+		let_variable->value = value;
 		value->Setreference();
-        a->Postinstantiation(idthread, true);
+        let_variable->Postinstantiation(idthread, true);
 	}
 
-	return a;
+	return let_variable;
 }
 
 Tamgu* TamguSelfVariableDeclaration::Put(Tamgu* domain, Tamgu* value, short idthread) {
@@ -2673,6 +2756,44 @@ Tamgu* TamguInstruction::Eval(Tamgu* context, Tamgu* a, short idthread) {
 
 	return aNULL;
 }
+
+Tamgu* TamguAlias::Eval(Tamgu* environment, Tamgu* a, short idthread) {
+    long size = instructions.size();
+    if (!size)
+        return aNULL;
+
+    _setdebugfull(idthread, this);
+
+    bool testcond = false;
+
+    for (long i = 0; i < size && !testcond; i++) {
+
+        a->Releasenonconst();
+
+        a = instructions.vecteur[i];
+        
+        _debugpush(a);
+        a = a->Eval(environment, aNULL, idthread);
+        _debugpop();
+
+        testcond = globalTamgu->Error(idthread) || a->needFullInvestigate();
+    }
+    
+    if (testcond) {
+        _cleandebugfull;
+        if (globalTamgu->Error(idthread)) {
+            if (!a->isError())
+                a->Releasenonconst();
+            return globalTamgu->Errorobject(idthread);
+        }
+
+        return a->Returned(idthread);
+    }
+
+    _cleandebugfull;
+    return a;
+}
+
 
 Tamgu* TamguFunction::Run(Tamgu* environment, short idthread) {
     long size = instructions.size();
@@ -3016,13 +3137,13 @@ Tamgu* TamguCallThread::Eval(Tamgu* environment, Tamgu* value, short idthread) {
 }
 
 //____________________________________________________________________________________
-Tamgu* TamguInstructionGlobalVariableAFFECTATION::Eval(Tamgu* context, Tamgu* value, short idthread) {
+Tamgu* TamguInstructionGlobalVariableASSIGNMENT::Eval(Tamgu* context, Tamgu* value, short idthread) {
     if (first) {
         variable = globalTamgu->Getmaindeclaration(varname, idthread);
         first = false;
     }
 
-    value = instructions.vecteur[1]->Eval(variable, aAFFECTATION, idthread);
+    value = instructions.vecteur[1]->Eval(variable, aASSIGNMENT, idthread);
     
     if (value != variable) {
         if (value->isError())
@@ -3038,10 +3159,10 @@ Tamgu* TamguInstructionGlobalVariableAFFECTATION::Eval(Tamgu* context, Tamgu* va
     return aTRUE;
 }
 
-Tamgu* TamguInstructionFunctionVariableAFFECTATION::Eval(Tamgu* var, Tamgu* value, short idthread) {
+Tamgu* TamguInstructionFunctionVariableASSIGNMENT::Eval(Tamgu* var, Tamgu* value, short idthread) {
     var = globalTamgu->Getdeclaration(name, idthread);
     
-    value = instructions.vecteur[1]->Eval(var, aAFFECTATION, idthread);
+    value = instructions.vecteur[1]->Eval(var, aASSIGNMENT, idthread);
     
     if (value !=  var) {
         if (value->isError())
@@ -3057,9 +3178,26 @@ Tamgu* TamguInstructionFunctionVariableAFFECTATION::Eval(Tamgu* var, Tamgu* valu
     return aTRUE;
 }
 
-Tamgu* TamguInstructionVariableAFFECTATION::Eval(Tamgu* var, Tamgu* value, short idthread) {
+Tamgu* TamguInstructionSelfASSIGNMENT::Eval(Tamgu* var, Tamgu* value, short idthread) {
     var = instructions.vecteur[0]->Eval(var, aNULL, idthread);
-    value = instructions.vecteur[1]->Eval(var, aAFFECTATION, idthread);
+    value = instructions.vecteur[1]->Eval(var, aASSIGNMENT, idthread);
+    
+    if (value !=  var) {
+        if (value->isError())
+            return value;
+        
+        var->Putvalue(value, idthread);
+    }
+    
+    if (globalTamgu->isthreading)
+        globalTamgu->Triggeronfalse(var);
+    
+    return aTRUE;
+}
+    
+Tamgu* TamguInstructionVariableASSIGNMENT::Eval(Tamgu* var, Tamgu* value, short idthread) {
+    var = instructions.vecteur[0]->Eval(var, aNULL, idthread);
+    value = instructions.vecteur[1]->Eval(var, aASSIGNMENT, idthread);
     
     if (value !=  var) {
         if (value->isError())
@@ -3075,10 +3213,10 @@ Tamgu* TamguInstructionVariableAFFECTATION::Eval(Tamgu* var, Tamgu* value, short
     return aTRUE;
 }
     
-Tamgu* TamguInstructionAtomicAFFECTATION::Eval(Tamgu* environment, Tamgu* value, short idthread) {
+Tamgu* TamguInstructionAtomicASSIGNMENT::Eval(Tamgu* environment, Tamgu* value, short idthread) {
     if (directcall == 1) {
         value = globalTamgu->Getdeclaration(name, idthread);
-        value = instructions.vecteur[1]->Eval(value, aAFFECTATION, idthread);
+        value = instructions.vecteur[1]->Eval(value, aASSIGNMENT, idthread);
         if (value->isError())
             return value;
         if (globalTamgu->isthreading)
@@ -3092,7 +3230,7 @@ Tamgu* TamguInstructionAtomicAFFECTATION::Eval(Tamgu* environment, Tamgu* value,
     
 	bool aff = var->checkAffectation();
 
-    value = instructions.vecteur[1]->Eval(var, aAFFECTATION, idthread);
+    value = instructions.vecteur[1]->Eval(var, aASSIGNMENT, idthread);
 
     if (!aff)
         var->Setaffectation(false);
@@ -3137,7 +3275,138 @@ Tamgu* TamguInstructionAtomicAFFECTATION::Eval(Tamgu* environment, Tamgu* value,
 	return aTRUE;
 }
 
-Tamgu* TamguInstructionAFFECTATION::Eval(Tamgu* environment, Tamgu* value, short idthread) {
+Tamgu* TamguAliasASSIGNMENT::Eval(Tamgu* domain, Tamgu* value, short idthread) {
+    TamguDeclarationLocal* environment = globalTamgu->Providedeclaration(idthread);
+    if (globalTamgu->debugmode)
+        environment->idinfo = Currentinfo();
+    
+    //idx is either a TamguIndex or a TamguShape
+    //A TamguIndex with an internal interval is evaluated as two different arguments.
+    Tamgu* idx = alias->Function();
+    
+    for (long i = 0; i < idx->Size(); i++) {
+        value = idx->Parameter(i)->Eval(domain, aNULL, idthread);
+        if (value->isError()) {
+            environment->Cleaning();
+            return value;
+        }
+        environment->Declaring(alias->body->parameters[i], value);
+        globalTamgu->Storevariable(idthread, alias->body->parameters[i],  value);
+        value->Setreference();
+    }
+
+    globalTamgu->Pushstackraw(environment, idthread);
+    //We then apply our function within this environment
+    alias->body->lock_assignment();
+    body_instruction->Setaffectation(true);
+    Tamgu* variable = body_instruction->Eval(environment, aNULL, idthread);
+    body_instruction->Setaffectation(false);
+    alias->body->unlock_assignment();
+    if (variable->isError()) {
+        globalTamgu->Popstack(idthread);
+        environment->Releasing();
+        return variable;
+    }
+    
+    value = body_instruction->Function();
+    bool relvar = false;
+
+    if (value != NULL) {
+        //if the last element of idx is a TamguCallFrameFromFrame object, Getindex returns NULL
+        idx = value->Getindex();
+        
+        if (idx != value) {//It could be a useless assignment
+            if (idx != NULL && idx->isError()) {
+                variable->Releasenonconst();
+                globalTamgu->Popstack(idthread);
+                environment->Releasing();
+                return idx;
+            }
+            relvar = true;
+        }
+
+        if (idx != NULL) {
+            value = instructions.vecteur[1]->Eval(environment, aNULL, idthread);
+            if (value->isError()) {
+                environment->Releasing();
+                globalTamgu->Popstack(idthread);
+                return value;
+            }
+
+            //for instance: v[0]=v[0][1];
+            //we need to prevent a Clear() on "variable" to delete this element...
+            value->Setprotect(true);
+
+            idx = idx->Put(variable, value, idthread);
+
+            value->Resetreferencenoprotect(0);
+
+            if (relvar)
+                variable->Releasenonconst();
+            
+            if (idx->isError()) {
+                environment->Releasing();
+                globalTamgu->Popstack(idthread);
+                return idx;
+            }
+
+            environment->Releasing();
+            globalTamgu->Popstack(idthread);
+            return aTRUE;
+        }
+    }
+
+    bool aff = variable->checkAffectation();
+
+    value = instructions.vecteur[1]->Eval(variable, aASSIGNMENT, idthread);
+
+    if (value == variable) {
+        if (!aff)
+            variable->Setaffectation(false);
+        if (globalTamgu->isthreading)
+            globalTamgu->Triggeronfalse(variable);
+
+        globalTamgu->Popstack(idthread);
+        environment->Releasing();
+        return aTRUE;
+    }
+
+    if (value->isError()) {
+        if (relvar)
+            variable->Releasenonconst();
+        globalTamgu->Popstack(idthread);
+        environment->Releasing();
+        return value;
+    }
+
+    //Then we might have an issue, if value is a sub element of variable...
+    //for instance: v=v[0];
+    //we need to prevent a Clear() on "variable" to delete this element...
+    value->Setprotect(true);
+
+    Tamgu* res = variable->Put(environment, value, idthread);
+
+    if (!aff)
+        variable->Setaffectation(false);
+    
+    value->Resetreferencenoprotect(0);
+
+    if (relvar)
+        variable->Releasenonconst();
+
+    globalTamgu->Popstack(idthread);
+    environment->Releasing();
+    
+    if (res->isError())
+        return res;
+
+    if (globalTamgu->isthreading)
+        globalTamgu->Triggeronfalse(variable);
+    return aTRUE;
+}
+    
+
+Tamgu* TamguInstructionASSIGNMENT::Eval(Tamgu* environment, Tamgu* value, short idthread) {
     //When an acccess in done through a container index to a frame variable: v[0].attribute
     //The last "function" in the index list will be a call variable
     //The Getindex method will then return NULL
@@ -3187,7 +3456,7 @@ Tamgu* TamguInstructionAFFECTATION::Eval(Tamgu* environment, Tamgu* value, short
 
 	bool aff = variable->checkAffectation();
 
-	value = instructions.vecteur[1]->Eval(variable, aAFFECTATION, idthread);
+	value = instructions.vecteur[1]->Eval(variable, aASSIGNMENT, idthread);
 
 	if (value == variable) {
         if (!aff)
@@ -3269,7 +3538,7 @@ Tamgu* TamguInstructionSTREAM::Eval(Tamgu* environment, Tamgu* value, short idth
         return aTRUE;
     }
 
-    return TamguInstructionAFFECTATION::Eval(environment,value,idthread);
+    return TamguInstructionASSIGNMENT::Eval(environment,value,idthread);
 }
 
 Tamgu* TamguInstructionSWITCH::Eval(Tamgu* context, Tamgu* ke, short idthread) {

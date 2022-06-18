@@ -30,46 +30,39 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<tableMethod>  Tamgutable::methods;
 
-Exporting short Tamgutable::idtype = 0;
-
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamgutable::AddMethod(TamguGlobal* global, string name, tableMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    if (global->infomethods.find(a_table) != global->infomethods.end() &&
+            global->infomethods[a_table].find(name) != global->infomethods[a_table].end())
     return;
 
-    global->infomethods[idtype][name] = infos;
-    global->RecordArity(idtype, idname, arity);
+    global->infomethods[a_table][name] = infos;
+    global->RecordArity(a_table, idname, arity);
 }
 
 
 
 
-    void Tamgutable::Setidtype(TamguGlobal* global) {
+void Tamgutable::Setidtype(TamguGlobal* global) {
   if (methods.isEmpty())
     Tamgutable::InitialisationModule(global,"");
 }
 
 
-   bool Tamgutable::InitialisationModule(TamguGlobal* global, string version) {
+bool Tamgutable::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
     
+    Tamgutable::AddMethod(global, "min", &Tamgutable::MethodMin, P_NONE, "min(): returns the min in the vector.");
+    Tamgutable::AddMethod(global, "max", &Tamgutable::MethodMax, P_NONE, "max(): returns the max in the vector.");
+    Tamgutable::AddMethod(global, "minmax", &Tamgutable::MethodMinMax, P_NONE, "minmax(): returns the min and the max in the vector.");
     
-
-
-    Tamgutable::idtype = a_table;
-
-       Tamgutable::AddMethod(global, "min", &Tamgutable::MethodMin, P_NONE, "min(): returns the min in the vector.");
-       Tamgutable::AddMethod(global, "max", &Tamgutable::MethodMax, P_NONE, "max(): returns the max in the vector.");
-       Tamgutable::AddMethod(global, "minmax", &Tamgutable::MethodMinMax, P_NONE, "minmax(): returns the min and the max in the vector.");
-       
     Tamgutable::AddMethod(global, "clear", &Tamgutable::MethodClear, P_NONE, "clear(): clear the container.");
     Tamgutable::AddMethod(global, "flatten", &Tamgutable::MethodFlatten, P_NONE, "flatten(): flatten a table structure.");
-
+    
     Tamgutable::AddMethod(global, "remove", &Tamgutable::MethodRemove, P_ONE, "remove(e): remove 'e' from the table.");
-
+    
     Tamgutable::AddMethod(global, "reverse", &Tamgutable::MethodReverse, P_NONE, "reverse(): reverse a table.");
     Tamgutable::AddMethod(global, "unique", &Tamgutable::MethodUnique, P_NONE, "unique(): remove duplicate elements.");
     Tamgutable::AddMethod(global, "_initial", &Tamgutable::MethodReserve, P_ONE, "_initial(int sz): Reserve a size of 'sz' potential element in the table.");
@@ -86,12 +79,12 @@ void Tamgutable::AddMethod(TamguGlobal* global, string name, tableMethod func, u
     Tamgutable::AddMethod(global, "merge", &Tamgutable::MethodMerge, P_ONE, "merge(v): Merge v into the table.");
     Tamgutable::AddMethod(global, "editdistance", &Tamgutable::MethodEditDistance, P_ONE, "editdistance(v): Compute the edit distance with table 'v'.");
     Tamgutable::AddMethod(global, "insert", &Tamgutable::MethodInsert, P_TWO, "insert(int i,v): Insert v at position i.");
-
+    
     if (version != "") {
-        global->newInstance[Tamgutable::idtype] = new Tamgutable(global);
-        global->RecordCompatibilities(Tamgutable::idtype);
+        global->newInstance[a_table] = new Tamgutable(global);
+        global->RecordCompatibilities(a_table);
     }
-
+    
     return true;
 }
 
@@ -1315,7 +1308,7 @@ Exporting Tamgu* Tamgutable::Merging(Tamgu* ke) {
 
     Locking _lock((TamguObject*)ke);
     //Two cases:
-    if (ke->Type() == idtype) {
+    if (ke->Type() == a_table) {
         Tamgutable* kvect = (Tamgutable*)ke;
         for (long i = 0; i < kvect->size; i++)
             Push(kvect->values[i]);
@@ -1379,7 +1372,7 @@ Exporting Tamgu* Tamgutable::Combine(Tamgu* ke) {
 
 Exporting Tamgu* Tamgutable::same(Tamgu* a) {
     
-    if (a->Type() != idtype) {
+    if (a->Type() != a_table) {
         if (a->isVectorContainer()) {
             if (a->Size() != size)
                 return aFALSE;

@@ -232,9 +232,11 @@ extern Exchanging TamguCallBreak* aBREAKFALSE;
 extern Exchanging TamguCallBreak* aBREAKTRUE;
 extern Exchanging TamguCallBreak* aBREAKZERO;
 extern Exchanging TamguCallBreak* aBREAKONE;
-extern Exchanging Tamgu* aAFFECTATION;
+extern Exchanging Tamgu* aASSIGNMENT;
 extern Exchanging TamguConstiteration* aITERNULL;
 extern Exchanging TamguPredicate* aFAIL;
+extern Exchanging TamguPredicate* aTERMINAL;
+extern Exchanging TamguPredicate* aCUTFALSE;
 extern Exchanging TamguPredicate* aCUT;
 extern Exchanging TamguPredicate* aSTOP;
 extern Exchanging Tamgu* aHASKELL;
@@ -301,14 +303,14 @@ typedef enum{
 	a_instructionequ, a_let, a_assign, a_tamgu, 	
 	a_this, a_index, a_interval, a_type, a_final,
 	a_infinitive, a_cycle, a_replicate,
-	a_fail, a_cut, a_stop, a_predicateentree, a_universal,
+	a_fail, a_cutfalse, a_cut, a_stop, a_predicateentree, a_universal,
     a_asserta, a_assertz, a_retract,
     a_dependency_asserta, a_dependency_assertz, a_dependency_retract, a_dependency_remove,
     a_predicatemethod, a_predicatevar, a_predicate,
 	a_term, a_instance, a_predicateruleelement, a_predicatecontainer, a_predicaterule, a_predicateinstruction, a_knowledgebase, 
 	a_dependencybase, a_predicatedomain, a_predicatelaunch,
 	a_predicateelement, a_parameterpredicate, a_predicateevaluate, a_dependency,
-	a_stream, a_affectation,
+	a_stream, a_assignement,
 	a_plusequ, a_minusequ, a_multiplyequ, a_divideequ, a_modequ, a_powerequ, a_shiftleftequ, a_shiftrightequ, a_orequ, a_xorequ, a_andequ, a_mergeequ, a_combineequ, a_addequ,
 	a_plus, a_minus, a_multiply, a_divide, a_power, a_shiftleft, a_shiftright, a_mod, a_or, a_xor, a_and, a_merge, a_combine, a_add, a_conjunction, a_disjunction,
 	a_less, a_more, a_same, a_different, a_lessequal, a_moreequal, 
@@ -320,7 +322,7 @@ typedef enum{
     a_quote, a_cons, a_cond, a_atom, a_eq, a_cadr, a_defun, a_label, a_atomp, a_numberp, a_consp, a_zerop, a_nullp, a_block,
     a_eval, a_key, a_keys, a_load, a_body, a_apply, a_pair, a_calllisp, a_callcommon,
     a__map, a__filter, a__takewhile, a__dropwhile, a__zip, a__zipwith,
-    a__foldl, a__scanl, a__foldr, a__scanr, a__foldl1, a__scanl1, a__foldr1, a__scanr1, a_iteration_java,
+    a__foldl, a__scanl, a__foldr, a__scanr, a__foldl1, a__scanl1, a__foldr1, a__scanr1, a_iteration_java, a_java_vector, a_terminal,
     a_lisp
 } tamgubasictypes;
 

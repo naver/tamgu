@@ -25,19 +25,17 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<mapssMethod>  Tamgumapss::methods;
 
-Exporting short Tamgumapss::idtype = 0;
-
 //-------------------------------------------------------------------------
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamgumapss::AddMethod(TamguGlobal* global, string name,mapssMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    if (global->infomethods.find(a_mapss) != global->infomethods.end() &&
+            global->infomethods[a_mapss].find(name) != global->infomethods[a_mapss].end())
     return;
 
-    global->infomethods[idtype][name] = infos;
-    global->RecordArity(idtype, idname, arity);
+    global->infomethods[a_mapss][name] = infos;
+    global->RecordArity(a_mapss, idname, arity);
     global->RecordArity(a_mapthrough, idname, arity);
 }
 
@@ -50,14 +48,6 @@ void Tamgumapss::Setidtype(TamguGlobal* global) {
 
 bool Tamgumapss::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    
-    
-    
-    
-    Tamgumapss::idtype = a_mapss;
-    
-    
-    
 
     Tamgumapss::AddMethod(global, "clear", &Tamgumapss::MethodClear, P_NONE, "clear(): clear the container.");
     
@@ -76,15 +66,15 @@ bool Tamgumapss::InitialisationModule(TamguGlobal* global, string version) {
     Tamgumapss::AddMethod(global, "merge", &Tamgumapss::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
     
     if (version != "") {        
-    global->minimal_indexes[Tamgumapss::idtype] = true;
+    global->minimal_indexes[a_mapss] = true;
 
-        global->newInstance[Tamgumapss::idtype] = new Tamgumapss(global);
-        global->newInstance[a_mapthrough] = global->newInstance[Tamgumapss::idtype];
+        global->newInstance[a_mapss] = new Tamgumapss(global);
+        global->newInstance[a_mapthrough] = global->newInstance[a_mapss];
     }
     
     
     if (version != "") {
-        global->RecordCompatibilities(Tamgumapss::idtype);
+        global->RecordCompatibilities(a_mapss);
         global->RecordCompatibilities(a_mapthrough);
     }
     
@@ -302,7 +292,7 @@ Exporting Tamgu*  Tamgumapss::Put(Tamgu* idx, Tamgu* ke, short idthread) {
             return aTRUE;
         }
         
-        if (ke->Type() == Tamgumapss::idtype) {
+        if (ke->Type() == a_mapss) {
             Doublelocking _lock(this, ke);
             values = ((Tamgumapss*)ke)->values;
             return aTRUE;
@@ -348,7 +338,7 @@ Exporting Tamgu*  Tamgumapss::Put(Tamgu* idx, Tamgu* ke, short idthread) {
             return globalTamgu->Returnerror("Wrong map initialization", idthread);
         locking();
         values.clear();
-        if (ke->Type() == Tamgumapss::idtype)
+        if (ke->Type() == a_mapss)
             values = ((Tamgumapss*)ke)->values;
         else {
             TamguIteration* itr = ke->Newiteration(false);
@@ -467,7 +457,7 @@ Exporting Tamgu* Tamgumapss::Eval(Tamgu* contextualpattern, Tamgu* idx, short id
 
 Exporting Tamgu* Tamgumapss::same(Tamgu* a) {
     
-    if (a->Type() != idtype)
+    if (a->Type() != a_mapss)
         return Mapcompare(this, a, NULL);
     
     Tamgumapss* m = (Tamgumapss*)a;

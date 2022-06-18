@@ -1113,7 +1113,8 @@ void TamguGlobal::RecordCompileFunctions() {
 	parseFunctions["breakpointcall"] = &TamguCode::C_uniquecall;
 	parseFunctions["continuecall"] = &TamguCode::C_uniquecall;
 
-	parseFunctions["function"] = &TamguCode::C_createfunction;
+	parseFunctions["aliasdeclaration"] = &TamguCode::C_alias;
+    parseFunctions["function"] = &TamguCode::C_createfunction;
 	parseFunctions["blocs"] = &TamguCode::C_blocs;
 
 	parseFunctions["operatoraffectation"] = &TamguCode::C_operator;
@@ -1296,8 +1297,8 @@ TamguInstruction* TamguCode::TamguCreateInstruction(Tamgu* parent, short op) {
 	case a_stream:
 		res = new TamguInstructionSTREAM(global, parent);
 		break;
-	case a_affectation:
-		res = new TamguInstructionAFFECTATION(global, parent);
+	case a_assignement:
+		res = new TamguInstructionASSIGNMENT(global, parent);
 		break;		
 	case a_less:
 	case a_more:
@@ -2293,7 +2294,7 @@ Tamgu* TamguCode::C_parameterdeclaration(x_node* xn, Tamgu* parent) {
 		TamguInstruction bloc;
 		//this is a temporary affectation, in order to push the type of the variable
 		//into its affectation value...
-		bloc.action = a_affectation;
+		bloc.action = a_assignement;
 		bloc.instructions.push_back(a);
 		a->choice = 0;
 		Traverse(xn->nodes[2], &bloc);
@@ -2507,7 +2508,7 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
 				//This is a temporary assignment, in order to push the type of the variable
 				//into its assignment value...
 				TamguInstruction bloc;
-				bloc.action = a_affectation;
+				bloc.action = a_assignement;
 				bloc.instructions.push_back(a);
 				a->choice = 0;
 				Traverse(xn->nodes[pos], &bloc);
@@ -2540,8 +2541,8 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
 			}
 
 			//this is an assignment
-			TamguInstructionAFFECTATION inst(NULL, NULL);
-			inst.action = a_affectation;
+			TamguInstructionASSIGNMENT inst(NULL, NULL);
+			inst.action = a_assignement;
 			inst.instructions.push_back(a);
             if (parent->isTaskellFunction() && xn->nodes[pos]->token == "hmetafunctions") {
                 x_node x("telque", "");
@@ -2779,16 +2780,33 @@ Tamgu* TamguCode::C_regularcall(x_node* xn, Tamgu* parent) {
 	short id = global->Getid(name);
     short idname = -1;
 	string params;
+    bool terminal_predicate = false;
+    TamguPredicateVariable* var = NULL;
 
     if (xn->token == "predicatecall") {
 		params = "predicateparameters";
         if (name[0] == '_' && isdigit(name[1]) && name.size() == 2) {
             idname = id;
             if (!mainframe.isDeclared(idname)) {
-                mainframe.Declare(idname, aNULL);
-                global->Storevariable(0, idname, aNULL);
+                name += "%"+currentpredicatename;
+                idname = global->Getid(name);
+                if (!global->predicatevariables.check(idname)) {
+                    var = new TamguPredicateVariable(global, idname, NULL);
+                    global->predicatevariables[idname] = var;
+                }
+                else {
+                    var = global->predicatevariables[idname];
+                }
+                mainframe.Declare(id, var);
             }
             id = a_universal;
+        }
+        else {
+            if (name.back() == '#') {
+                name = name.substr(0, name.size()-1);
+                terminal_predicate = true;
+                id = global->Getid(name);
+            }
         }
     }
 	else
@@ -2810,9 +2828,11 @@ Tamgu* TamguCode::C_regularcall(x_node* xn, Tamgu* parent) {
 		}
         else {
             if (idname != -1)
-                kx = new TamguPredicateAsVariable(global, parent, id, idname);
-            else
+                kx = new TamguPredicateAsVariable(global, parent, var, id, idname);
+            else {
                 kx = new TamguPredicate(id, global, a_predicate, parent);
+                kx->terminal = terminal_predicate;
+            }
         }
 
         
@@ -2941,26 +2961,32 @@ Tamgu* TamguCode::C_regularcall(x_node* xn, Tamgu* parent) {
                         }
                     }
                     else {
-                        if (call->isTaskellFunction()) {
-                            call = new TamguCallFunctionArgsTaskell((TamguFunctionLambda*)call, global, parent);
+                        if (call->isAlias()) {
+                            call = new TamguCallAlias((TamguAlias*)call, global, parent);
+                            call->Addargmode();
                         }
                         else {
-                            if (call->isFunction()) {
-                                if (call->isThread())
-                                    call = new TamguCallThread(call, global, parent);
-                                else {
-                                    if (call->isVariable())
-                                        call = new TamguFunctionDeclarationCall(call->Name(), global, parent);
+                            if (call->isTaskellFunction()) {
+                                call = new TamguCallFunctionArgsTaskell((TamguFunctionLambda*)call, global, parent);
+                            }
+                            else {
+                                if (call->isFunction()) {
+                                    if (call->isThread())
+                                        call = new TamguCallThread(call, global, parent);
                                     else {
-                                        if (call->Type() == a_lisp)
-                                            call = new TamguCallLispFunction(call, global, parent);
-                                        else
-                                            call = CreateCallFunction(call, parent);
+                                        if (call->isVariable())
+                                            call = new TamguFunctionDeclarationCall(call->Name(), global, parent);
+                                        else {
+                                            if (call->Type() == a_lisp)
+                                                call = new TamguCallLispFunction(call, global, parent);
+                                            else
+                                                call = CreateCallFunction(call, parent);
+                                        }
                                     }
                                 }
+                                else
+                                    call = NULL;
                             }
-                            else
-                                call = NULL;
                         }
                     }
                 }
@@ -2999,13 +3025,16 @@ Tamgu* TamguCode::C_regularcall(x_node* xn, Tamgu* parent) {
             Traverse(xn->nodes[2], call);
         }
     }
-
+    
 	if (!call->Checkarity()) {
 		stringstream message;
 		message << "Wrong number of arguments or incompatible argument: '" << name << "'";
 		throw new TamguRaiseError(message, filename, current_start, current_end);
 	}
 
+    if (call->isAlias())
+        call->Setstopindex();
+    
 	return call;
 }
 
@@ -3373,55 +3402,65 @@ Tamgu* TamguCode::C_variable(x_node* xn, Tamgu* parent) {
                 av = new TamguCallThis(frame->Typeframe(), global, parent);
             }
 			else {
-				a = dom->Declaration(idname);
-				//This is a variable call
-				if (a->Type() == a_tamgu)
-					av = new TamguCallTamguVariable(idname, (Tamgutamgu*)a, global, parent);
-				else {
-					tyvar = a->Typevariable();
-					switch (tyvar) {
-					case a_lambda:
-						av = new TamguFunctionTaskellParameter(idname, global, parent);
-						break;
-					case a_function:
-						av = new TamguFunctionParameter(idname, global, parent);
-						break;
-					case a_self:
-					case a_let:
-						av = new TamguCallSelfVariable(idname, tyvar, global, parent);
-						break;
-					case a_intthrough:
-					case a_longthrough:
-					case a_decimalthrough:
-					case a_floatthrough:
-					case a_stringthrough:
-					case a_ustringthrough:
-					case a_vectorthrough:
-					case a_mapthrough:
-						av = new TamguCallThroughVariable(idname, tyvar, name, parent);
-						break;
-					default:
-						if (dom->isFrame()) {
-                            a = dom->Declaration(idname);
-							if (parent->isCallVariable())
-								av = new TamguCallFromFrameVariable(a->Name(), tyvar, global, parent);
-							else
-								av = new TamguCallFrameVariable(a->Name(), (TamguFrame*)dom, tyvar, global, parent);
-						}
-						else
-						if (dom->isFunction())
-							av = new TamguCallFunctionVariable(idname, tyvar, global, parent);
-						else {
-							if (a->isConstant())
-								av = new TamguCallConstantVariable(idname, tyvar, global, parent);
-                            else {
-                                if (dom->isMainFrame())
-                                    av = new TamguCallGlobalVariable(idname, tyvar, global, parent);
-                                else
-                                    av = new TamguCallVariable(idname, tyvar, global, parent);
+                a = dom->Declaration(idname);
+                if (a->isPredicateVariable())
+                    av = new TamguPredicateVariable(global, a->Name(), parent);
+                else
+                //This is a variable call
+                if (a->Type() == a_tamgu)
+                    av = new TamguCallTamguVariable(idname, (Tamgutamgu*)a, global, parent);
+                else {
+                    if (a->isAlias()) {
+                        av = new TamguCallAlias((TamguAlias*)a, global, parent);
+                    }
+                    else {
+                        tyvar = a->Typevariable();
+                        switch (tyvar) {
+                            case a_lambda:
+                                av = new TamguFunctionTaskellParameter(idname, global, parent);
+                                break;
+                            case a_function:
+                                av = new TamguFunctionParameter(idname, global, parent);
+                                break;
+                            case a_self:
+                            case a_let:
+                                av = new TamguCallSelfVariable(idname, tyvar, global, parent);
+                                break;
+                            case a_intthrough:
+                            case a_longthrough:
+                            case a_decimalthrough:
+                            case a_floatthrough:
+                            case a_stringthrough:
+                            case a_ustringthrough:
+                            case a_vectorthrough:
+                            case a_mapthrough:
+                                av = new TamguCallThroughVariable(idname, tyvar, name, parent);
+                                break;
+                            default: {
+                                if (dom->isFrame()) {
+                                    a = dom->Declaration(idname);
+                                    if (parent->isCallVariable())
+                                        av = new TamguCallFromFrameVariable(a->Name(), tyvar, global, parent);
+                                    else
+                                        av = new TamguCallFrameVariable(a->Name(), (TamguFrame*)dom, tyvar, global, parent);
+                                }
+                                else {
+                                    if (dom->isFunction())
+                                        av = new TamguCallFunctionVariable(idname, tyvar, global, parent);
+                                    else {
+                                        if (a->isConstant())
+                                            av = new TamguCallConstantVariable(idname, tyvar, global, parent);
+                                        else {
+                                            if (dom->isMainFrame())
+                                                av = new TamguCallGlobalVariable(idname, tyvar, global, parent);
+                                            else
+                                                av = new TamguCallVariable(idname, tyvar, global, parent);
+                                        }
+                                    }
+                                }
                             }
-						}
-					}
+                        }
+                    }
 				}
 			}
 		}
@@ -3438,6 +3477,9 @@ Tamgu* TamguCode::C_variable(x_node* xn, Tamgu* parent) {
         if (global->frames.check(tyvar))
             global->Popstack();
     }
+    
+    if (av->isAlias())
+        av->Setstopindex();
 
 	return av;
 }
@@ -3893,7 +3935,7 @@ Tamgu* TamguCode::C_valvector(x_node* xn, Tamgu* kf) {
 
 	//First, we check if we are in an assignement...
 	short vartype = 0;
-	if (kf->Action() == a_affectation) {
+	if (kf->Action() == a_assignement) {
 		if (kf->InstructionSize()) {
 			Tamgu* ins = kf->Instruction(0);
 			short ty = ins->Typevariable();
@@ -3976,7 +4018,7 @@ Tamgu* TamguCode::C_valmap(x_node* xn, Tamgu* kf) {
 
 	//First, we check if we are in an assignement...
 	short vartype = 0;
-	if (kf->Action() == a_affectation) {
+	if (kf->Action() == a_assignement) {
 		if (kf->InstructionSize()) {
 			Tamgu* ins = kf->Instruction(0);
 			short ty = ins->Typevariable();
@@ -4279,7 +4321,7 @@ Tamgu* TamguCode::C_jsonvector(x_node* xn, Tamgu* kf) {
 }
 
 Tamgu* TamguCode::C_affectation(x_node* xn, Tamgu* kf) {
-	TamguInstruction* ki = TamguCreateInstruction(NULL, a_affectation);
+	TamguInstruction* ki = TamguCreateInstruction(NULL, a_assignement);
 
 	for (size_t i = 0; i < xn->nodes.size(); i++)
 		Traverse(xn->nodes[i], ki);
@@ -4296,12 +4338,17 @@ Tamgu* TamguCode::C_affectation(x_node* xn, Tamgu* kf) {
 	short act = ki->Action();
 	Tamgu* kfirst;
 	Tamgu* func;
-	if (act != a_affectation && act != a_forcedaffectation) {
+	if (act != a_assignement && act != a_forcedaffectation) {
 		TamguInstruction* k = TamguCreateInstruction(NULL, act);
+        kfirst = ki->Instruction(0);
+        if (k->isEQU() && kfirst->isAlias()) {
+            k->Remove();
+            k = new TamguInstructionAPPLYOPERATIONEQUALIAS((TamguCallAlias*)kfirst, global);
+            k->Setaction(act);
+        }
 		ki->Clone(k);
 		ki->Remove();
 		ki = k;
-		kfirst = ki->Instruction(0);
 		func = kfirst->Function();
 
 		if (act == a_stream)
@@ -4377,7 +4424,7 @@ Tamgu* TamguCode::C_affectation(x_node* xn, Tamgu* kf) {
         kf->AddInstruction(ki);
 	}
 	else {
-		if (act == a_affectation || act == a_stream) {
+		if (act == a_assignement || act == a_stream) {
 			kfirst = ki->Instruction(1);
 			//If the first operation has not been converted into a ROOT, we do it here...
 			//For instance, i=-i, where -i is converted into -1*i, does not always go through the conversion process...
@@ -4391,26 +4438,47 @@ Tamgu* TamguCode::C_affectation(x_node* xn, Tamgu* kf) {
 
 		kfirst = ki->Instruction(0);
 		func = kfirst->Function();
-		if (func == NULL && act == a_affectation) {
-            if (global->atomics.check(ki->instructions[0]->Typevariable())) {
-                if (kfirst->isGlobalVariable())
-                    func = new TamguInstructionGlobalVariableAFFECTATION(global,kfirst->Name(), kf);
-                else
-                    if (kfirst->isFunctionVariable())
-                        func = new TamguInstructionFunctionVariableAFFECTATION(global, kfirst, kf);
+        if (kfirst->isPredicateVariable()) {
+            kfirst = new TamguPredicateVariable(global, kfirst->Name());
+            ki->Putinstruction(0, kfirst);
+            func = new TamguPredicateVariableASSIGNMENT(global, kfirst, kf);
+            ((TamguInstruction*)func)->instructions = ki->instructions;
+            ki->Remove();
+            ki = (TamguInstruction*)func;
+        }
+        else {
+            if (func == NULL && act == a_assignement) {
+                short type = kfirst->Typevariable();
+                if (type == a_let || type == a_self)
+                    func = new TamguInstructionSelfASSIGNMENT(global, kfirst, kf);
+                else {
+                    if (global->atomics.check(ki->instructions[0]->Typevariable())) {
+                        if (kfirst->isGlobalVariable())
+                            func = new TamguInstructionGlobalVariableASSIGNMENT(global,kfirst->Name(), kf);
+                        else
+                            if (kfirst->isFunctionVariable())
+                                func = new TamguInstructionFunctionVariableASSIGNMENT(global, kfirst, kf);
+                            else
+                                func = new TamguInstructionVariableASSIGNMENT(global, kf);
+                    }
                     else
-                        func = new TamguInstructionVariableAFFECTATION(global, kf);
+                        func = new TamguInstructionAtomicASSIGNMENT(global, kfirst, kf);
+                }
+                ((TamguInstruction*)func)->instructions = ki->instructions;
+                ki->Remove();
+                ki = (TamguInstruction*)func;
             }
-            else
-                func = new TamguInstructionAtomicAFFECTATION(global, kfirst, kf);
-            
-			((TamguInstruction*)func)->instructions = ki->instructions;
-			ki->Remove();
-			ki = (TamguInstruction*)func;
-		}
-		else
-			kf->AddInstruction(ki);
-
+            else {
+                if (kfirst->isAlias()) {
+                    func = new TamguAliasASSIGNMENT((TamguCallAlias*)kfirst, global, kf);
+                    ((TamguInstruction*)func)->instructions = ki->instructions;
+                    ki->Remove();
+                    ki = (TamguInstruction*)func;
+                }
+                else
+                    kf->AddInstruction(ki);
+            }
+        }
 		ki->Instruction(0)->Setaffectation(true);
 		if (act == a_forcedaffectation)
 			ki->Instruction(0)->Setforced(true);
@@ -4533,7 +4601,7 @@ Tamgu* TamguCode::C_multiply(x_node* xn, Tamgu* kf) {
 	}
 
 	short act = kf->Action();
-	if ((act == a_none || act == a_stream || act == a_affectation) && kf->InstructionSize() >= 1) {
+	if ((act == a_none || act == a_stream || act == a_assignement) && kf->InstructionSize() >= 1) {
 		Tamgu* kroot;
 		if (act != a_none)
 			kroot = ki->Compile(kf->Instruction(0));
@@ -4630,7 +4698,7 @@ Tamgu* TamguCode::C_operation(x_node* xn, Tamgu* kf) {
 	}
 
 	short act = kf->Action();
-	if ((act == a_none || act == a_stream || act == a_affectation) && kf->InstructionSize() >= 1) {
+	if ((act == a_none || act == a_stream || act == a_assignement) && kf->InstructionSize() >= 1) {
 		Tamgu* kroot;
 		if (act != a_none)
 			kroot = ki->Compile(kf->Instruction(0));
@@ -4760,7 +4828,7 @@ Tamgu* TamguCode::C_operationin(x_node* xn, Tamgu* kf) {
 		Tamgu* last;
 		//In this case, we replace the previous last element in kf with this one
 		short kact = kf->Action();
-		if (kact == a_affectation || (kact >= a_plusequ && kact <= a_andequ)) {
+		if (kact == a_assignement || (kact >= a_plusequ && kact <= a_andequ)) {
 			last = kf->InstructionRemoveLast();
 			kinst = TamguCreateInstruction(kf, kcurrentop);
 			kinst->instructions.push_back(last);
@@ -4787,6 +4855,52 @@ Tamgu* TamguCode::C_operationin(x_node* xn, Tamgu* kf) {
 	return kinst;
 }
 
+
+Tamgu* TamguCode::C_alias(x_node* xn, Tamgu* kf) {
+    string name = xn->nodes[0]->value;
+
+    short idname = global->Getid(name);
+    
+    if (!kf->isFrame()) {
+        if (global->procedures.check(idname)) {
+            stringstream message;
+            message << "Error: Predefined procedure, consider choosing another name: '" << name << "'";
+            throw new TamguRaiseError(message, filename, current_start, current_end);
+        }
+    }
+
+    TamguAlias* alias = new TamguAlias(idname, global);
+    global->Pushstack(alias);
+    kf->Declare(idname, alias);
+    
+    //First we extract our variables...
+    for (long i =  1; i < xn->nodes.size() - 1; i++) {
+        idname = global->Getid(xn->nodes[i]->value);
+        alias->parameters.push_back(idname);
+        alias->Declare(idname, aNULL);
+    }
+    
+    xn = xn->nodes.back();
+    
+    if (xn->token == "wnexpressions") {
+        alias->assignable = true;        
+        if (xn->nodes.size() == 1)
+            Traverse(xn->nodes[0], alias);
+        else {
+            Tamgu* ins = new TamguInstruction(a_instructions, global);
+            for (size_t i = 0; i < xn->nodes.size(); i++)
+                Traverse(xn->nodes[i], ins);
+            alias->AddInstruction(ins->Lastinstruction());
+            ins->Remove();
+        }
+    }
+    else
+        Traverse(xn, alias);
+
+    global->Popstack();
+    
+    return kf;
+}
 
 Tamgu* TamguCode::C_createfunction(x_node* xn, Tamgu* kf) {
 	short idname;
@@ -5110,6 +5224,8 @@ Tamgu* TamguCode::C_blocs(x_node* xn, Tamgu* kf) {
 			if (xn->nodes[i]->token == "bloc") {
 				x_node* nsub = xn->nodes[i]->nodes[0];
 				if (nsub->token == "predicatedefinition" || nsub->token == "predicatefact") {
+                    if (nsub->token == "predicatedefinition")
+                        global->predicate_definitions.insert(global->Getid(nsub->nodes[0]->nodes[0]->value));
 					if (nsub->nodes[0]->token == "predicate" || nsub->nodes[0]->token == "dependencyfact") {
 						short id = global->Getid(nsub->nodes[0]->nodes[0]->value);
 						//A modifier pour PROLOG
@@ -5398,7 +5514,7 @@ Tamgu* TamguCode::C_parenthetic(x_node* xn, Tamgu* kf) {
 			//Either optional is called from within an arithmetic operation, and then we do nothing
 			//or it is called from within a bloc of instructions, then we need to promote it as a ROOT
 			if (ke->isFunction() || ke->isInstruction()) {
-				if (!kf->isOperation() && ke->isOperation() && kf->Action() != a_affectation) {
+				if (!kf->isOperation() && ke->isOperation() && kf->Action() != a_assignement) {
 					Tamgu* kroot = ke->Compile(NULL);
 					ke->Remove();
 					ke = kroot;
@@ -5941,7 +6057,7 @@ Tamgu* TamguCode::C_trycatch(x_node* xn, Tamgu* kf) {
 			throw new TamguRaiseError(message, filename, current_start, current_end);
 		}
 
-		TamguInstruction* kaff = TamguCreateInstruction(ktry, a_affectation);
+		TamguInstruction* kaff = TamguCreateInstruction(ktry, a_assignement);
 
 		dom = Declaror(id, kf);
 
@@ -7165,7 +7281,7 @@ Tamgu* TamguCode::C_ParseReturnValue(x_node* xn, TamguFunctionLambda* kf, char a
 		Tamgu* va = new TamguTaskellSelfVariableDeclaration(global, a_idreturnvariable, a_self, kf);
 		kf->Declare(a_idreturnvariable, va);
 
-		ki = TamguCreateInstruction(NULL, a_affectation);
+		ki = TamguCreateInstruction(NULL, a_assignement);
 		Traverse(&nvar, ki);
 		//We create an accumulator value in the function instructions...
 		ki->AddInstruction(kret);
@@ -7176,7 +7292,7 @@ Tamgu* TamguCode::C_ParseReturnValue(x_node* xn, TamguFunctionLambda* kf, char a
 	}
 
 	if (adding == 1) {
-		ki = TamguCreateInstruction(NULL, a_affectation);
+		ki = TamguCreateInstruction(NULL, a_assignement);
 		Traverse(&nvar, ki);
 		ki->Instruction(0)->Setaffectation(true);
 
@@ -8136,7 +8252,7 @@ Tamgu* TamguCode::C_filtering(x_node* xn, Tamgu* kbase) {
 		//We need now a sequence of instructions
 		TamguSequence* kseq = new TamguSequence(global, ktest);
 		//the variable &drop; is set to false
-		ki = TamguCreateInstruction(kseq, a_affectation);
+		ki = TamguCreateInstruction(kseq, a_assignement);
 		Traverse(&nvardrop, ki);
 		ki->Instruction(0)->Setaffectation(true);
 		ki->AddInstruction(aFALSE);
@@ -8723,7 +8839,8 @@ Tamgu* TamguCode::C_predicatefact(x_node* xn, Tamgu* kf) {
     currentpredicatename = buff;
     
 	global->predicatevariables.clear();
-	if (xn->token == "predicatefact" || xn->nodes[1]->token == "abool") {
+	if (global->predicate_definitions.find(name) == global->predicate_definitions.end() &&
+        (xn->token == "predicatefact" || xn->nodes[1]->token == "abool")) {
 		Tamgu* kbloc = new TamguInstructionPredicate(name, global);
 		TamguPredicateKnowledgeBase* kcf;
 		if (xn->nodes[0]->token == "dependencyfact")
@@ -8777,7 +8894,10 @@ Tamgu* TamguCode::C_predicatefact(x_node* xn, Tamgu* kf) {
 
 	TamguPredicateRuleElement* kblocelement = new TamguPredicateRuleElement(global, NULL);
 	//Else we need to browse our structure...
-	Traverse(xn->nodes[1], kblocelement);
+    if (xn->nodes.size() > 1)
+        Traverse(xn->nodes[1], kblocelement);
+    else
+        kblocelement->AddInstruction(aTRUE);
 	kbloc->Addtail(kpcont, kblocelement);
     currentpredicatename = "";
 	return kbloc;
@@ -9277,7 +9397,7 @@ Tamgu* TamguCode::C_predicatevariable(x_node* xn, Tamgu* kf) {
 		}
 
 		if (xn->nodes.size() == sz) {
-			if (kf->Action() == a_affectation || kf->Type() == a_predicateruleelement) {
+			if (kf->Action() == a_assignement || kf->Type() == a_predicateruleelement) {
 				TamguCallsynode* acs = new TamguCallsynode(as, global, kf);
 				Traverse(xn->nodes[sz - 1], acs);
 				return acs;
@@ -9298,7 +9418,7 @@ Tamgu* TamguCode::C_predicatevariable(x_node* xn, Tamgu* kf) {
 				TamguInstruction kbloc;
 				Traverse(xn->nodes[sz - 1], &kbloc);
 
-				if (kbloc.instructions[0]->Type() != Tamgumapss::idtype) {
+				if (kbloc.instructions[0]->Type() != a_mapss) {
 					stringstream message;
 					message << "Wrong feature structure";
 					throw new TamguRaiseError(message, filename, current_start, current_end);

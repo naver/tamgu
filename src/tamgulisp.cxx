@@ -36,21 +36,17 @@ Exporting basebin_hash<lispMethod>  Tamgulisp::methods;
 void Tamgulisp::AddMethod(TamguGlobal* global, string name, lispMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    if (global->infomethods.find(a_lisp) != global->infomethods.end() &&
+            global->infomethods[a_lisp].find(name) != global->infomethods[a_lisp].end())
     return;
 
-    global->infomethods[idtype][name] = infos;
-    global->RecordArity(idtype, idname, arity);
+    global->infomethods[a_lisp][name] = infos;
+    global->RecordArity(a_lisp, idname, arity);
 }
 
 
 bool Tamgulisp::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    
-    
-
-    Tamgulisp::idtype = a_lisp;
 
     Tamgulisp::AddMethod(global, "eval", &Tamgulisp::MethodEval, P_ONE, "eval(e): 'e' is a lisp expression provided as a string.");
     Tamgulisp::AddMethod(global, "load", &Tamgulisp::MethodLoad, P_ONE, "load(path): load a lisp from the file path.");
@@ -122,7 +118,7 @@ bool Tamgulisp::InitialisationModule(TamguGlobal* global, string version) {
     global->lispactions[a_callcommon] = P_ATLEASTTWO;
     global->lispactions[a_callmethod] = P_ATLEASTTWO;
 
-    global->lispactions[a_affectation] = P_THREE; //setq
+    global->lispactions[a_assignement] = P_THREE; //setq
     global->lispactions[a_quote] = P_TWO;
     global->lispactions[a_cons] = P_THREE;
     global->lispactions[a_cond] = P_ATLEASTTWO;
@@ -1349,7 +1345,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 v1 = values[i]->Eval(contextualpattern, aNULL, idthread);
             }
             return v1;
-        case a_affectation:
+        case a_assignement:
             n = values[1]->Name();
             if (!n)
                 return globalTamgu->Returnerror("Wrong name", idthread);

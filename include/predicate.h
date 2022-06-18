@@ -213,6 +213,8 @@ public:
         return value->Stringpredicatekeythird(v);
     }
 
+    void Removereference(short inc = 1);
+    
 	void Setreference(short inc) {
 		if (value != aNOELEMENT)
 			value->Setreference(inc);
@@ -255,7 +257,7 @@ public:
 
 	bool Setvalue(Tamgu* index, Tamgu* val, short idthread, bool initial) {
         if (value == val)
-            return true;
+            return false;
         
 		if (!initial)
 			value->Resetreference(reference);
@@ -600,12 +602,12 @@ public:
 
 	short name;
 
+    bool terminal;
 	bool negation;
 	bool disjunction;
     bool shared;
 
 	static Exchanging basebin_hash<predicateMethod> methods;
-	static Exchanging short idtype;
 
 	TamguPredicate(short n, TamguGlobal* g = NULL, short t = a_predicate, Tamgu* parent = NULL);
 	TamguPredicate(TamguGlobal* g, short n);
@@ -625,6 +627,14 @@ public:
 		return false;
 	}
     
+    bool isTerminal() {
+        return terminal;
+    }
+
+    TamguPredicate* checkTerminal(short n, short sz) {
+        return (terminal && name == n && parameters.size() == sz)?this:NULL;
+    }
+    
     void Setidtype(TamguGlobal* global);
 
 	void Setnegation(bool v) {
@@ -640,8 +650,7 @@ public:
     string Namestring() {
         return globalTamgu->Getsymbol(name);
     }
-    
-
+        
 	~TamguPredicate() {
 		if (idtracker != -1 && globalTamgu->Checktracker(this, idtracker))
 			globalTamgu->RemoveFromTracker(idtracker);
@@ -668,10 +677,11 @@ public:
 		return 0;
 	}
     
-    virtual char setPredicateNameVariable(TamguDeclaration* dom, TamguPredicate*, long depth, short idthread) {
+    virtual char setPredicateNameVariable(TamguPredicate*, short idthread) {
         return true;
     }
-    virtual void resetPredicateNameVariable(TamguDeclaration* dom, long depth, short idthread) {}
+    
+    virtual void resetPredicateNameVariable(short idthread) {}
 
 	virtual void Setname(short n) {
 		name = n;
@@ -716,7 +726,7 @@ public:
 
 
 	virtual TamguPredicate* Duplicate(Tamgu* context, TamguDeclaration* d, short idthread);
-	TamguPredicate* Copyfrom(Tamgu* context, TamguDeclaration* d, TamguPredicate* h, short);
+	bool Copyfrom(TamguPredicate* p, Tamgu* context, TamguDeclaration* d, TamguPredicate* h, short);
 
 	Tamgu* Parameter(size_t i) {
 		return parameters[i];
@@ -791,6 +801,20 @@ public:
 		return parameters.size();
 	}
 
+    void Replaceparameter(short i, Tamgu* value, short idthread) {
+        if (parameters[i] == value || value == aNOELEMENT)
+            return;
+        if (parameters[i]->isPredicateVariable()) {
+            if (parameters[i]->Setvalue(aNULL,value, idthread, false))
+                value->Setreference(parameters[i]->Reference());
+        }
+        else {
+            parameters[i]->Resetreference();
+            parameters[i] = value;
+            value->Setreference(reference);
+        }
+    }
+    
 	//--------------------------------------------------------------------------------------------------------
 	//Declaration
 	//All our methods must have been declared in tamguexportedmethods... See MethodInitialization below
@@ -800,13 +824,13 @@ public:
 
 
 	void Methods(Tamgu* v) {
-            for (const auto& it : globalTamgu->infomethods[idtype])
+            for (const auto& it : globalTamgu->infomethods[a_predicate])
                  v->storevalue(it.first);
       }
 
       string Info(string n) {
-            if (globalTamgu->infomethods[idtype].find(n) !=  globalTamgu->infomethods[idtype].end())
-              return globalTamgu->infomethods[idtype][n];
+            if (globalTamgu->infomethods[a_predicate].find(n) !=  globalTamgu->infomethods[a_predicate].end())
+              return globalTamgu->infomethods[a_predicate][n];
              return "Unknown method";
 	}
 	//---------------------------------------------------------------------------------------------------------------------
@@ -832,6 +856,7 @@ public:
 		return (this->*methods.get(idname))(contextualpattern, idthread, callfunc);
 	}
 };
+
 class TamguPredicateFunction : public TamguPredicate {
 public:
 	Tamgu* function;
@@ -895,21 +920,31 @@ public:
 		return this;
 	}
 	void Resetreference(short inc = 1) {}
+    
 };
 
 class TamguPredicateAsVariable : public TamguPredicate {
 public:
     short idvar;
+    Tamgu* predicate_name;
 
-    TamguPredicateAsVariable(TamguGlobal* g, Tamgu* parent, short n, short idv) : TamguPredicate(n, g, a_predicate, parent) {
+    TamguPredicateAsVariable(TamguGlobal* g, Tamgu* parent, Tamgu* var, short n, short idv) : TamguPredicate(n, g, a_predicate, parent) {
         idvar = idv;
+        predicate_name = var;
     }
+    
     TamguPredicate* Duplicate(Tamgu* context, TamguDeclaration* d, short idthread);
     bool isPredicateNameVariable() {
         return true;
     }
-    char setPredicateNameVariable(TamguDeclaration* dom, TamguPredicate*, long depth, short idthread);
-    void resetPredicateNameVariable(TamguDeclaration* dom, long depth, short idthread);
+    char setPredicateNameVariable(TamguPredicate*, short idthread);
+    void resetPredicateNameVariable(short idthread);
+    
+    void Popping();
+    void Setreference(short inc);
+    void Setreference();
+    void Resetreference(short inc = 1);
+    void Setprotect(bool);
 
 };
 
@@ -1043,6 +1078,7 @@ public:
 	Tamgu* Newinstance(short idthread, Tamgu* f = NULL) {
 		return new TamguPredicateKnowledgeBase(globalTamgu, name);
 	}
+    
 };
 
 class TamguDependencyKnowledgeBase : public TamguPredicateKnowledgeBase {
@@ -1404,13 +1440,12 @@ public:
 
 class TamguPredicateLocalInstruction : public TamguReference {
 public:
-
-
 	basebin_hash<TamguPredicateVariableInstance*>* dico;
 	Tamgu* instruction;
 	bool negation;
 	bool success;
 	bool disjunction;
+    bool keep;
 
 
 	TamguPredicateLocalInstruction(TamguGlobal* g, basebin_hash<TamguPredicateVariableInstance*>* context, Tamgu* e, bool n, bool d)  {
@@ -1441,7 +1476,9 @@ public:
 		return dico->check(n);
 	}
 
-	
+    bool checkDisjunction() {
+        return disjunction;
+    }
 
 	void Setdisjunction(bool v) {
 		disjunction = v;

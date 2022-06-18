@@ -23,6 +23,7 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+#include <set>
 #include "vecte.h"
 
 #include "x_node.h"
@@ -467,7 +468,7 @@ public:
     vector<TamguPredicateVariableInstance*> pvireservoire;
     VECTE<long> pviempties;
     long pviidx;
-    Exporting TamguPredicateVariableInstance* Providepvi(short);
+    Exporting TamguPredicateVariableInstance* Providevariableinstance(short);
 
 	vector<Tamgumapssbuff*> mapssreservoire;
 	VECTE<long> mapssempties;
@@ -580,10 +581,12 @@ public:
     TamguCallBreak* gBREAKZERO;
     TamguCallBreak* gBREAKONE;
 
-	Tamgu* gAFFECTATION;
+	Tamgu* gASSIGNMENT;
 	TamguConstiteration* gITERNULL;
 	TamguPredicate* gFAIL;
-	TamguPredicate* gCUT;
+    TamguPredicate* gTERMINAL;
+    TamguPredicate* gCUTFALSE;
+    TamguPredicate* gCUT;
 	TamguPredicate* gSTOP;
 	Tamgu* gHASKELL;
 	TamguDeclaration* gNULLDECLARATION;
@@ -603,11 +606,7 @@ public:
 	unsigned short gpredicatefeature;
 
 	void SetPredicateVariableFlags() {
-		gpredicatezone = symbolIds.size();
-		gpredicatedico = gpredicatezone + 1;
-		gpredicatedependency = gpredicatedico + 1;
-		gpredicatefeature = gpredicatedependency + 1;
-		gpredicatename = gpredicatefeature + 1;
+		gpredicatename = symbolIds.size();
 	}
 
 
@@ -669,6 +668,7 @@ public:
 	map<string, Tamgu*> dependencyvariables;
 	Tamgu* modifieddependency;
 	bin_hash<TamguPredicateFunction*> predicates;
+    std::set<short> predicate_definitions;
 	bin_hash<string> terms;
 
 	void Setnonblockingerror(string s, short idthread) {
@@ -1161,15 +1161,11 @@ public:
 
 	//--------------------------------
 	inline bool Error(short idthread) {
-		if (errors[idthread] || executionbreak)
-			return true;
-		return false;
+        return (errors[idthread] || executionbreak);
 	}
 
 	inline bool GenuineError(short idthread) {
-		if (errors[idthread])
-			return true;
-		return false;
+        return errors[idthread];
 	}
 
 	Exporting Tamgu* Errorobject(short idthread);

@@ -43,8 +43,6 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<stringMethod>  Tamgustring::methods;
 
-Exporting short Tamgustring::idtype = 0;
-
 #ifdef DOSOUTPUT
 static bool dosoutput = true;
 static void setdosoutput(bool d) { dosoutput = d; }
@@ -57,12 +55,12 @@ Exporting long GetBlankSize();
 void Tamgustring::AddMethod(TamguGlobal* global, string name, stringMethod func, unsigned long arity, string infos, short returntype) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    if (global->infomethods.find(a_string) != global->infomethods.end() &&
+            global->infomethods[a_string].find(name) != global->infomethods[a_string].end())
     return;
 
-    global->infomethods[idtype][name] = infos;
-    global->RecordArity(idtype, idname, arity);
+    global->infomethods[a_string][name] = infos;
+    global->RecordArity(a_string, idname, arity);
     global->RecordArity(a_stringthrough, idname, arity);
     global->RecordArity(a_sloop, idname, arity);
 
@@ -81,10 +79,6 @@ void Tamgustring::Setidtype(TamguGlobal* global) {
 
    bool Tamgustring::InitialisationModule(TamguGlobal* global, string version) {
        methods.clear();
-       
-       
-       
-       Tamgustring::idtype = a_string;
        
        Tamgustring::AddMethod(global, "succ", &Tamgustring::MethodSucc, P_NONE, "succ(): Return the successor of a character.", a_string);
        Tamgustring::AddMethod(global, "pred", &Tamgustring::MethodPred, P_NONE, "pred(): Return the predecessor of a byte.", a_string);
@@ -179,9 +173,9 @@ void Tamgustring::Setidtype(TamguGlobal* global) {
        
        
        if (version != "") {
-           global->newInstance[Tamgustring::idtype] = new Tamgustring("", global);
-           global->newInstance[a_stringthrough] = global->newInstance[Tamgustring::idtype];
-           global->RecordCompatibilities(Tamgustring::idtype);
+           global->newInstance[a_string] = new Tamgustring("", global);
+           global->newInstance[a_stringthrough] = global->newInstance[a_string];
+           global->RecordCompatibilities(a_string);
            global->RecordCompatibilities(a_stringthrough);
            global->RecordCompatibilities(a_sloop);
            
@@ -1204,7 +1198,7 @@ Tamgu* Tamgustring::MethodStokenize(Tamgu* contextualpattern, short idthread, Ta
     thestr.stokenize(v, k);
 
     Tamgu* kvect = Selectasvector(contextualpattern);
-    if (kvect->Type() == Tamgusvector::idtype) {
+    if (kvect->Type() == a_svector) {
         Locking _lock((TamguObject*)kvect);
         ((Tamgusvector*)kvect)->values = v;
     }
@@ -1414,7 +1408,7 @@ Tamgu* Tamgustring::MethodSplit(Tamgu* contextualpattern, short idthread, TamguC
     //Second parameter is the splitter string
     if (thesplitter.empty()) {
         locking();
-        if (kvect->Type() == Tamgubvector::idtype) {
+        if (kvect->Type() == a_bvector) {
             for (long i = 0; i < sz; i++)
                 kvect->storevalue((unsigned char)value[i]);
             unlocking();
@@ -1425,7 +1419,7 @@ Tamgu* Tamgustring::MethodSplit(Tamgu* contextualpattern, short idthread, TamguC
         unlocking();
         
         athestr.begin();
-        if (kvect->Type() == Tamguivector::idtype) {
+        if (kvect->Type() == a_ivector) {
             while (!athestr.end())
                 kvect->storevalue((long)athestr.nextcode());
             return kvect;
@@ -1581,7 +1575,7 @@ Tamgu* Tamgustring::MethodSplite(Tamgu* contextualpattern, short idthread, Tamgu
     //Second parameter is the splitter string
     if (thesplitter.empty()) {
         locking();
-        if (kvect->Type() == Tamgubvector::idtype) {
+        if (kvect->Type() == a_bvector) {
             for (long i = 0; i < sz; i++)
                 kvect->storevalue((unsigned char)value[i]);
             unlocking();
@@ -1592,7 +1586,7 @@ Tamgu* Tamgustring::MethodSplite(Tamgu* contextualpattern, short idthread, Tamgu
         unlocking();
         
         athestr.begin();
-        if (kvect->Type() == Tamguivector::idtype) {
+        if (kvect->Type() == a_ivector) {
             while (!athestr.end())
                 kvect->storevalue((long)athestr.nextcode());
             return kvect;
@@ -4034,7 +4028,7 @@ Tamgu* Tamgua_string::MethodSplit(Tamgu* contextualpattern, short idthread, Tamg
     
         //Second parameter is the splitter string
     if (thesplitter.empty()) {
-        if (kvect->Type() == Tamgubvector::idtype) {
+        if (kvect->Type() == a_bvector) {
             for (long i = 0; i < thestr.size(); i++)
                 kvect->storevalue((unsigned char)thestr[i]);
             return kvect;
@@ -4042,7 +4036,7 @@ Tamgu* Tamgua_string::MethodSplit(Tamgu* contextualpattern, short idthread, Tamg
         
         agnostring athestr(thestr);
         athestr.begin();
-        if (kvect->Type() == Tamguivector::idtype) {
+        if (kvect->Type() == a_ivector) {
             while (!athestr.end())
                 kvect->storevalue((long)athestr.nextcode());
             return kvect;
@@ -4148,7 +4142,7 @@ Tamgu* Tamgua_string::MethodSplite(Tamgu* contextualpattern, short idthread, Tam
     
         //Second parameter is the splitter string
     if (thesplitter.empty()) {
-        if (kvect->Type() == Tamgubvector::idtype) {
+        if (kvect->Type() == a_bvector) {
             for (long i = 0; i < thestr.size(); i++)
                 kvect->storevalue((unsigned char)thestr[i]);
             return kvect;
@@ -4156,7 +4150,7 @@ Tamgu* Tamgua_string::MethodSplite(Tamgu* contextualpattern, short idthread, Tam
         
         agnostring athestr(thestr);
         athestr.begin();
-        if (kvect->Type() == Tamguivector::idtype) {
+        if (kvect->Type() == a_ivector) {
             while (!athestr.end())
                 kvect->storevalue((long)athestr.nextcode());
             return kvect;
@@ -4345,7 +4339,7 @@ Tamgu* Tamgua_string::MethodStokenize(Tamgu* contextualpattern, short idthread, 
     thestr.stokenize(v, k);
     
     Tamgu* kvect = Selectasvector(contextualpattern);
-    if (kvect->Type() == Tamgusvector::idtype) {
+    if (kvect->Type() == a_svector) {
         Locking _lock((TamguObject*)kvect);
         ((Tamgusvector*)kvect)->values = v;
     }

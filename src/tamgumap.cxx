@@ -24,8 +24,6 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<mapMethod>  Tamgumap::methods;
 
-Exporting short Tamgumap::idtype = a_map;
-
 //If we have variables in our map, we create them on the fly...
 //Else there might be some expected values or keys in the map...
 //constant is 1, if we have only variables. At the end of the process, when constant is 1, we replace it with 0
@@ -446,12 +444,12 @@ Tamgu* TamguConstmap::Eval(Tamgu* index, Tamgu* value, short idthread) {
 void Tamgumap::AddMethod(TamguGlobal* global, string name, mapMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    if (global->infomethods.find(a_map) != global->infomethods.end() &&
+            global->infomethods[a_map].find(name) != global->infomethods[a_map].end())
     return;
 
-    global->infomethods[idtype][name] = infos;
-    global->RecordArity(idtype, idname, arity);
+    global->infomethods[a_map][name] = infos;
+    global->RecordArity(a_map, idname, arity);
     global->RecordArity(a_constmap, idname, arity);
 }
 
@@ -466,11 +464,6 @@ void Tamgumap::AddMethod(TamguGlobal* global, string name, mapMethod func, unsig
 
 bool Tamgumap::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    
-    
-    
-    
-    Tamgumap::idtype = a_map;
     
     Tamgumap::AddMethod(global, "clear", &Tamgumap::MethodClear, P_NONE, "clear(): clear the container.");
     Tamgumap::AddMethod(global, "read", &Tamgumap::MethodRead, P_ONE, "read(string path): Read the content of a file into the container.");
@@ -502,11 +495,11 @@ bool Tamgumap::InitialisationModule(TamguGlobal* global, string version) {
     
     
     if (version != "") {        
-    global->minimal_indexes[Tamgumap::idtype] = true;
+    global->minimal_indexes[a_map] = true;
 
-        global->newInstance[Tamgumap::idtype] = new Tamgumap(global);
+        global->newInstance[a_map] = new Tamgumap(global);
         
-        global->RecordCompatibilities(Tamgumap::idtype);
+        global->RecordCompatibilities(a_map);
         
         global->newInstance[a_constmap] = new TamguConstmap(global);
         global->RecordCompatibilities(a_constmap);
@@ -719,9 +712,9 @@ Exporting void Tamgumapbuff::Resetreference(short inc) {
             protect = true;
 
             values.clear();
-            used = false;
-            if (!globalTamgu->threadMODE)
+            if (!globalTamgu->threadMODE && used)
                 globalTamgu->mapempties.push_back(idx);
+            used = false;
         }
     }
 }

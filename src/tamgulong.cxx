@@ -23,19 +23,16 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<longMethod>  Tamgulong::methods;
 
-Exporting short Tamgulong::idtype = 0;
-
-
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamgulong::AddMethod(TamguGlobal* global, string name, longMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    if (global->infomethods.find(a_long) != global->infomethods.end() &&
+            global->infomethods[a_long].find(name) != global->infomethods[a_long].end())
     return;
 
-    global->infomethods[idtype][name] = infos;
-    global->RecordArity(idtype, idname, arity);
+    global->infomethods[a_long][name] = infos;
+    global->RecordArity(a_long, idname, arity);
     global->RecordArity(a_longthrough, idname, arity);
     global->RecordArity(a_lloop, idname, arity);
 }
@@ -52,10 +49,6 @@ void Tamgulong::Setidtype(TamguGlobal* global) {
    bool Tamgulong::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
     
-    
-
-    Tamgulong::idtype = a_long;
-
     Tamgulong::AddMethod(global, "chr", &Tamgulong::Methodchr, P_NONE, "chr(): return the character matching the unicode code");
     Tamgulong::AddMethod(global, "format", &Tamgulong::MethodFormat, P_ONE, "format(string pattern): Return a string matching the C pattern.");
     Tamgulong::AddMethod(global, "isprime", &Tamgulong::MethodPrime, P_NONE, "prime(): return true is the number is a prime");
@@ -103,9 +96,9 @@ void Tamgulong::Setidtype(TamguGlobal* global) {
 
 
     if (version != "") {
-        global->newInstance[Tamgulong::idtype] = new Tamgulong(0, global);
-        global->newInstance[a_longthrough] = global->newInstance[Tamgulong::idtype];
-        global->RecordCompatibilities(Tamgulong::idtype);
+        global->newInstance[a_long] = new Tamgulong(0, global);
+        global->newInstance[a_longthrough] = global->newInstance[a_long];
+        global->RecordCompatibilities(a_long);
         global->RecordCompatibilities(a_longthrough);
         global->RecordCompatibilities(a_lloop);
     }

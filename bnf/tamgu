@@ -175,6 +175,7 @@
 *66 = Wrong annotation rule
 *67 = Wrong lisp expression
 *68 = Wrong shape access
+*69 = Wrong alias declaration
 ####################################################################################################################################################
 ####################################################################################################################################################
 ### This is the entry point of our parser: analyse, hence the "+" ######
@@ -239,7 +240,7 @@ const := $const
 
 feature := [private (common)]^[common^const]
 
-~notatype := $if^$IF^$If^$while^$for^$switch^$elif^$frame^$polynomial^$function^$autorun^$thread^$not^$return
+~notatype := $if^$IF^$If^$while^$for^$switch^$elif^$frame^$polynomial^$function^$alias^$autorun^$thread^$not^$return
 type := (feature) notatype typename
 
 depend := $with ;19 word
@@ -282,7 +283,7 @@ space := word %@
 %subvar := %. ;29 variable
 %framevariable := %. ;29 variable
 
-~notafunction := $if^$IF^$If^$while^$for^$switch^$elif^$frame^$polynomial^$function^$autorun^$thread^$not
+~notafunction := $if^$IF^$If^$while^$for^$switch^$elif^$frame^$polynomial^$function^$alias^$autorun^$thread^$not
 framesep := %: %:
 frameup := word framesep
 functioncall := (frameup) notafunction word
@@ -299,8 +300,9 @@ sep := %:
 
 %parameters := nocomparisonexpressions [%, ;3 nocomparisonexpressions]*
 
+%aliasdeclaration := $alias word %( word [%, word]* %) %= ;69 [instruction^[wnexpressions %;]]
 ########### THE PARSER ##############################################
-%blocs := [extension^frame^complexbloc^function^bloc]+
+%blocs := [extension^frame^complexbloc^function^aliasdeclaration^bloc]+
 %bloc :=  annotationrule^predicatefact^[dcg ;45 %.]^[[dependencyrule^predicatedefinition] ;46 %.]^sousbloc
 %sousbloc := [[tamgulisp^hdata^hontology^telque] (%;)]^[[conceptfunction^multideclaration^increment^affectation^call^variable]  ;30 %;]
 %complexbloc := switch^trycatch^loop^doloop^iftest^forin^for^namespace
@@ -371,7 +373,7 @@ aconstant := $null
 %stop := $stop
 not := %~^$not
 
-~notapredicate := $if^$IF^$If^$while^$for^$switch^$elif^$return^$frame^$polynomial^$function^$autorun^$thread^$not
+~notapredicate := $if^$IF^$If^$while^$for^$switch^$elif^$return^$frame^$polynomial^$function^$alias^$autorun^$thread^$not
 %predicate := notapredicate word %( (predicateparameters) %)
 %predicatecall := functioncall %( (predicateparameters) %)
 

@@ -29,19 +29,17 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<floatMethod>  Tamgufloat::methods;
 
-Exporting short Tamgufloat::idtype = 0;
-
 
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamgufloat::AddMethod(TamguGlobal* global, string name, floatMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    if (global->infomethods.find(a_float) != global->infomethods.end() &&
+            global->infomethods[a_float].find(name) != global->infomethods[a_float].end())
     return;
 
-    global->infomethods[idtype][name] = infos;
-    global->RecordArity(idtype, idname, arity);
+    global->infomethods[a_float][name] = infos;
+    global->RecordArity(a_float, idname, arity);
     global->RecordArity(global->Getid("real"), idname, arity);
     global->RecordArity(a_floatthrough, idname, arity);
 }
@@ -59,10 +57,6 @@ void Tamgufloat::Setidtype(TamguGlobal* global) {
 bool Tamgufloat::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
     
-    
-
-    Tamgufloat::idtype = a_float;
-
     Tamgufloat::AddMethod(global, "chr", &Tamgufloat::Methodchr, P_NONE, "chr(): return the character matching the unicode code");
     Tamgufloat::AddMethod(global, "invert", &Tamgufloat::MethodInvert, P_NONE, "invert(): value inversion as a fraction");
     Tamgufloat::AddMethod(global, "succ", &Tamgufloat::MethodSucc, P_NONE, "succ(): Return a successor of the current value");
@@ -114,11 +108,11 @@ bool Tamgufloat::InitialisationModule(TamguGlobal* global, string version) {
     short idreal = global->Getid("real");
 
 	if (version != "") {
-		global->newInstance[Tamgufloat::idtype] = new Tamgufloat(0, global);
+		global->newInstance[a_float] = new Tamgufloat(0, global);
 		global->newInstance[idreal] = new Tamgufloat(0, global);
-		global->newInstance[a_floatthrough] = global->newInstance[Tamgufloat::idtype];
+		global->newInstance[a_floatthrough] = global->newInstance[a_float];
 
-		global->RecordCompatibilities(Tamgufloat::idtype);
+		global->RecordCompatibilities(a_float);
 		global->RecordCompatibilities(idreal);
 		global->RecordCompatibilities(a_floatthrough);
 

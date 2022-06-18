@@ -27,19 +27,16 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<ivectorMethod>  Tamguivector::methods;
 
-Exporting short Tamguivector::idtype = 0;
-
-
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamguivector::AddMethod(TamguGlobal* global, string name, ivectorMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    if (global->infomethods.find(a_ivector) != global->infomethods.end() &&
+            global->infomethods[a_ivector].find(name) != global->infomethods[a_ivector].end())
     return;
 
-    global->infomethods[idtype][name] = infos;
-    global->RecordArity(idtype, idname, arity);
+    global->infomethods[a_ivector][name] = infos;
+    global->RecordArity(a_ivector, idname, arity);
 }
 
 
@@ -53,11 +50,6 @@ void Tamguivector::Setidtype(TamguGlobal* global) {
 
 bool Tamguivector::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    
-    
-    
-    
-    Tamguivector::idtype = a_ivector;
     
     Tamguivector::AddMethod(global, "min", &Tamguivector::MethodMin, P_NONE, "min(): returns the min in the vector.");
     Tamguivector::AddMethod(global, "max", &Tamguivector::MethodMax, P_NONE, "max(): returns the max in the vector.");
@@ -89,10 +81,10 @@ bool Tamguivector::InitialisationModule(TamguGlobal* global, string version) {
     Tamguivector::AddMethod(global, "insert", &Tamguivector::MethodInsert, P_TWO, "insert(int i,v): Insert v at position i.");
     
     if (version != "") {        
-    global->minimal_indexes[Tamguivector::idtype] = true;
+    global->minimal_indexes[a_ivector] = true;
 
-        global->newInstance[Tamguivector::idtype] = new Tamguivector(global);
-        global->RecordCompatibilities(Tamguivector::idtype);
+        global->newInstance[a_ivector] = new Tamguivector(global);
+        global->RecordCompatibilities(a_ivector);
     }
     
     Tamgua_ivector::InitialisationModule(global, version);
@@ -777,7 +769,7 @@ Exporting Tamgu* Tamguivector::same(Tamgu* a) {
     if (!a->isVectorContainer())
         return aFALSE;
 
-    if (a->Type() != idtype) {
+    if (a->Type() != a_ivector) {
         if (a->isVectorContainer()) {
             Doublelocking _lock(this, a);
             if (a->Size() != values.size())

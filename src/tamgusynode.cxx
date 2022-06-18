@@ -22,8 +22,6 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<synodeMethod>  Tamgusynode::methods;
 
-short Tamgusynode::idtype = 0;
-
 Tamgumapss* Tamgusynode::validfeatures = NULL;
 bool Tamgusynode::testvalid = false;
 
@@ -33,12 +31,12 @@ bool Tamgusynode::testvalid = false;
 Exporting void Tamgusynode::AddMethod(TamguGlobal* global, string name, synodeMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    if (global->infomethods.find(a_synode) != global->infomethods.end() &&
+            global->infomethods[a_synode].find(name) != global->infomethods[a_synode].end())
     return;
 
-    global->infomethods[idtype][name] = infos;
-    global->RecordArity(idtype, idname, arity);
+    global->infomethods[a_synode][name] = infos;
+    global->RecordArity(a_synode, idname, arity);
 }
 
 
@@ -54,7 +52,6 @@ void Tamgusynode::Setidtype(TamguGlobal* global) {
     
     validfeatures = NULL;
     Tamgusynode::testvalid = false;
-    Tamgusynode::idtype = a_synode;
     
     Tamgusynode::AddMethod(global, "_initial", &Tamgusynode::MethodInitial, P_ONE, "_initial(map m): Creates a syntactic node with some features.");
     Tamgusynode::AddMethod(global, "test", &Tamgusynode::MethodTest, P_ONE, "test(string attribute): Test if an attribute is part of the feature structure.");
@@ -82,8 +79,8 @@ void Tamgusynode::Setidtype(TamguGlobal* global) {
     Tamgusynode::AddMethod(global, "definitions", &Tamgusynode::MethodDefinitions, P_ONE, "definitions(mapss): Set the valid feature definitions for all 'synodes'.");
 
     if (version != "") {
-        global->newInstance[Tamgusynode::idtype] = new Tamgusynode(-1,global);
-        global->RecordCompatibilities(Tamgusynode::idtype);
+        global->newInstance[a_synode] = new Tamgusynode(-1,global);
+        global->RecordCompatibilities(a_synode);
     }
     
     return true;
@@ -171,7 +168,7 @@ Exporting Tamgu* Tamgusynode::Put(Tamgu* idx, Tamgu* kval, short idthread) {
 }
 
 Exporting Tamgu* Tamgusynode::Merge(Tamgu* a) {
-    if (a->Type() != Tamgumapss::idtype)
+    if (a->Type() != a_mapss)
         return aFALSE;
 
     if (features == aNULL)

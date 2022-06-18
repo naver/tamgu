@@ -42,6 +42,17 @@ public:
 		last = 0;
 	}
     
+    VECTE(VECTE<Z>& v) {
+        sz = v.sz;
+        vecteur = (Z*)malloc(sizeof(Z)*sz);
+        for (last = 0; last < v.last; last++)
+            vecteur[last] = v.vecteur[last];
+        
+        for (;last < sz; last++)
+            vecteur[last] = NULL;
+        last = v.last;
+    }
+    
 	~VECTE() {
 		free(vecteur);
 	}
@@ -141,29 +152,6 @@ public:
         sz = t;
     }    
 
-	inline Z remove(long pos = -1) {
-		Z v;
-		if (pos < 0) {
-			if (last == 0)
-				return NULL;
-			last--;
-			v = vecteur[last];
-			vecteur[last] = NULL;
-			return v;
-		}
-
-		if (pos >= last)
-			return NULL;
-
-		v = vecteur[pos];
-		//On deplace toutes les cases de 1...
-		last--;
-		for (; pos < last; pos++)
-			vecteur[pos] = vecteur[pos + 1];
-		vecteur[last] = NULL;
-		return v;
-	}
-
     inline Z backpop() {
         return vecteur[--last];
     }
@@ -171,6 +159,22 @@ public:
 	inline void pop_back() {
 		last--;
 	}
+
+    inline void move(long pos, long nb) {
+        if ((last+nb) >= sz)
+            taillor(last+nb+3);
+
+        //Dans ce cas, c'est un simple push
+        if (pos >= last) {
+            last += nb;
+            return;
+        }
+        
+        
+        for (long i = last - 1; i >= pos; i--)
+            vecteur[i + nb] = vecteur[i];
+        last += nb;
+    }
 
 	inline void insert(long pos, Z val) {
         if (last >= sz)
@@ -222,51 +226,46 @@ public:
 		return vecteur[pos];
 	}
 
-	void erase(long i) {
-		if (i < 0 || i >= last)
-			return;
-		
-		if (last == sz) {
-			last--;
-			while (i < last) {
-				vecteur[i] = vecteur[i+1];
-                i++;
-			}
-			vecteur[last] = NULL;
-			return;
-		}
+    void eraseraw(long i) {
+        for (; i < last; i++)
+            vecteur[i] = vecteur[i+1];
+        last--;
+    }
 
-		while (i < last) {
-			vecteur[i] = vecteur[i+1];
-            i++;
-		}
-		last--;
-	}
+    void erase(long i) {
+        if (i >= 0 && i < last) {
+            for (; i < last; i++)
+                vecteur[i] = vecteur[i+1];
+            last--;
+        }
+    }
 
 	inline Z removeElement(long i = -1) {
-		if (last == 0)
-			return NULL;
-
-		long pos = i;
-
-		if (i == -1)
-			pos = last - 1;
-
-		Z v = vecteur[pos];
-		vecteur[pos] = NULL;
-
-		//On deplace toutes les cases de 1...
-
-		if (i != -1) {
-			for (bint k = i; k<last - 1; k++)
-				vecteur[k] = vecteur[k + 1];
-			if (last>0)
-				vecteur[last - 1] = NULL;
-		}
-
-		last--;
-		return v;
+        i = (i < 0)?last - 1 : i;
+        
+        if (i >= 0 && i < last) {
+            Z v = vecteur[i];
+            for (; i < last; i++)
+                vecteur[i] = vecteur[i + 1];
+            last--;
+            return v;
+        }
+        return NULL;
 	}
+
+    inline Z remove(long i = -1) {
+        i = (i < 0)?last - 1 : i;
+        
+        if (i >= 0 && i < last) {
+            Z v = vecteur[i];
+            for (; i < last; i++)
+                vecteur[i] = vecteur[i + 1];
+            last--;
+            return v;
+        }
+        return NULL;
+    }
+
 
 	void shaveoff() {
 		if (last == sz)
@@ -316,6 +315,16 @@ public:
             return i;
         return -1;
 	}
+
+    inline bool removevalue(Z v) {
+        long i;
+        for (i = 0; i < last && vecteur[i] != v; i++) {}
+        if (i != last) {
+            eraseraw(i);
+            return true;
+        }
+        return false;
+    }
 
     inline bool check(Z v) {
         bint i;

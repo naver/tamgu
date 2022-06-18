@@ -23,19 +23,16 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<treemapMethod>  Tamgutreemap::methods;
 
-Exporting short Tamgutreemap::idtype = 0;
-
-
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamgutreemap::AddMethod(TamguGlobal* global, string name, treemapMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    if (global->infomethods.find(a_treemap) != global->infomethods.end() &&
+            global->infomethods[a_treemap].find(name) != global->infomethods[a_treemap].end())
     return;
 
-    global->infomethods[idtype][name] = infos;
-    global->RecordArity(idtype, idname, arity);
+    global->infomethods[a_treemap][name] = infos;
+    global->RecordArity(a_treemap, idname, arity);
 }
 
 
@@ -49,12 +46,6 @@ void Tamgutreemap::Setidtype(TamguGlobal* global) {
 
 bool Tamgutreemap::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    
-    
-    
-    
-    
-    Tamgutreemap::idtype = a_treemap;
     
     Tamgutreemap::AddMethod(global, "items", &Tamgutreemap::MethodItems, P_NONE, "items(): Return a vector of {key:value} pairs.");
     Tamgutreemap::AddMethod(global, "read", &Tamgutreemap::MethodRead, P_ONE, "read(string path): Read the content of a file into the container.");
@@ -77,9 +68,9 @@ bool Tamgutreemap::InitialisationModule(TamguGlobal* global, string version) {
     
     
     if (version != "") {        
-        global->minimal_indexes[Tamgutreemap::idtype] = true;
-        global->newInstance[Tamgutreemap::idtype] = new Tamgutreemap(global);
-        global->RecordCompatibilities(Tamgutreemap::idtype);
+        global->minimal_indexes[a_treemap] = true;
+        global->newInstance[a_treemap] = new Tamgutreemap(global);
+        global->RecordCompatibilities(a_treemap);
     }
     
     
@@ -286,9 +277,9 @@ Exporting void Tamgutreemapbuff::Resetreference(short inc) {
             protect = true;
 
             values.clear();
-            used = false;
-            if (!globalTamgu->threadMODE)
+            if (!globalTamgu->threadMODE && used)
                 globalTamgu->treemapempties.push_back(idx);
+            used = false;
         }
     }
 }
@@ -474,7 +465,7 @@ Exporting Tamgu*  Tamgutreemap::Put(Tamgu* idx, Tamgu* ke, short idthread) {
             return globalTamgu->Returnerror("Wrong map initialization", idthread);
         locking();
         Clear();
-        if (ke->Type() == Tamgutreemap::idtype) {
+        if (ke->Type() == a_treemap) {
             Tamgutreemap* kmap = (Tamgutreemap*)ke;
             //We copy all values from ke to this
 
@@ -615,7 +606,7 @@ Exporting Tamgu* Tamgutreemap::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
 
 Exporting Tamgu* Tamgutreemap::same(Tamgu* a) {
 
-    if (a->Type() != idtype)
+    if (a->Type() != a_treemap)
         return Mapcompare(this, a, NULL);
 
     Tamgutreemap* m = (Tamgutreemap*)a;

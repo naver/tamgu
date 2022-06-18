@@ -34,10 +34,6 @@ public:
         //We associate the method pointers with their names in the linkedmethods map
     static Exchanging basebin_hash<intMethod> methods;
     
-    
-    
-    static Exchanging short idtype;
-    
         //---------------------------------------------------------------------------------------------------------------------
         //This SECTION is for your specific implementation...
         //Your personal variables here...
@@ -79,7 +75,7 @@ public:
     }
     
     bool Checkprecision(Tamgu* r) {
-        if (idtype < r->Typenumber())
+        if (a_int < r->Typenumber())
             return false;
         
         return true;
@@ -204,13 +200,13 @@ public:
     
     
     void Methods(Tamgu* v) {
-            for (const auto& it : globalTamgu->infomethods[idtype])
+            for (const auto& it : globalTamgu->infomethods[a_int])
                  v->storevalue(it.first);
       }
 
       string Info(string n) {
-            if (globalTamgu->infomethods[idtype].find(n) !=  globalTamgu->infomethods[idtype].end())
-              return globalTamgu->infomethods[idtype][n];
+            if (globalTamgu->infomethods[a_int].find(n) !=  globalTamgu->infomethods[a_int].end())
+              return globalTamgu->infomethods[a_int][n];
              return "Unknown method";
     }
     
@@ -768,10 +764,10 @@ public:
             if (!protect) {
                 protect = true;
                 
-                used = false;
                 value = 0;
-                if (!globalTamgu->threadMODE)
+                if (!globalTamgu->threadMODE && used)
                     globalTamgu->iempties.push_back(idx);
+                used = false;
             }
         }
         else

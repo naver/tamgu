@@ -31,10 +31,6 @@ class Tamgubyte : public TamguReference {
     //this is a static object, which is common to everyone
     //We associate the method pointers with their names in the linkedmethods map
     static Exchanging basebin_hash<byteMethod> methods;
-    
-    
-
-    static Exchanging short idtype;
 
     //---------------------------------------------------------------------------------------------------------------------
     //This SECTION is for your specific implementation...
@@ -132,13 +128,13 @@ class Tamgubyte : public TamguReference {
 
 	
 	void Methods(Tamgu* v) {
-            for (const auto& it : globalTamgu->infomethods[idtype])
+            for (const auto& it : globalTamgu->infomethods[a_byte])
                  v->storevalue(it.first);
       }
 
       string Info(string n) {
-            if (globalTamgu->infomethods[idtype].find(n) !=  globalTamgu->infomethods[idtype].end())
-              return globalTamgu->infomethods[idtype][n];
+            if (globalTamgu->infomethods[a_byte].find(n) !=  globalTamgu->infomethods[a_byte].end())
+              return globalTamgu->infomethods[a_byte][n];
              return "Unknown method";
 	}
 	

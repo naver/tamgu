@@ -42,7 +42,7 @@
 #include "tamgulisp.h"
 
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2022.06.03.16";
+const char* tamgu_version = "Tamgu 1.2022.06.18.11";
 
 Tamgu* booleantamgu[2];
 
@@ -95,9 +95,11 @@ Exchanging TamguCallBreak* aBREAKFALSE  = NULL;
 Exchanging TamguCallBreak* aBREAKTRUE  = NULL;
 Exchanging TamguCallBreak* aBREAKONE  = NULL;
 Exchanging TamguCallBreak* aBREAKZERO  = NULL;
-Exchanging Tamgu* aAFFECTATION  = NULL;
+Exchanging Tamgu* aASSIGNMENT  = NULL;
 Exchanging TamguConstiteration* aITERNULL  = NULL;
 Exchanging TamguPredicate* aFAIL  = NULL;
+Exchanging TamguPredicate* aTERMINAL  = NULL;
+Exchanging TamguPredicate* aCUTFALSE  = NULL;
 Exchanging TamguPredicate* aCUT  = NULL;
 Exchanging TamguPredicate* aSTOP  = NULL;
 Exchanging Tamgu* aHASKELL  = NULL;
@@ -132,8 +134,10 @@ void FinalTamguConstantCleaning(void) {
         delete aBREAKTRUE ;
         delete aBREAKZERO ;
         delete aBREAKONE ;
-        delete  aAFFECTATION ;
+        delete  aASSIGNMENT ;
         delete aFAIL ;
+        delete aTERMINAL ;
+        delete aCUTFALSE ;
         delete aCUT ;
         delete aSTOP ;
         delete  aHASKELL ;
@@ -166,10 +170,12 @@ void FinalTamguConstantCleaning(void) {
         aBREAKTRUE  = NULL;
         aBREAKZERO  = NULL;
         aBREAKONE  = NULL;
-        aAFFECTATION  = NULL;
+        aASSIGNMENT  = NULL;
         aITERNULL  = NULL;
         aFAIL  = NULL;
         aCUT  = NULL;
+        aCUTFALSE  = NULL;
+        aTERMINAL  = NULL;
         aSTOP  = NULL;
         aHASKELL  = NULL;
         aNULLDECLARATION  = NULL;
@@ -1507,9 +1513,11 @@ Exporting void TamguGlobal::Update() {
         aBREAKTRUE = gBREAKTRUE;
         aBREAKZERO = gBREAKZERO;
         aBREAKONE = gBREAKONE;
-        aAFFECTATION = gAFFECTATION;
+        aASSIGNMENT = gASSIGNMENT;
         aITERNULL = gITERNULL;
         aFAIL = gFAIL;
+        aTERMINAL = gTERMINAL;
+        aCUTFALSE = gCUTFALSE;
         aCUT = gCUT;
         aSTOP = gSTOP;
         aHASKELL = gHASKELL;
@@ -1531,8 +1539,8 @@ Exporting void TamguGlobal::RecordConstantNames() {
     string_operators[":>"] = a_more;
     string_operators[">="] = a_moreequal;
     string_operators["<="] = a_lessequal;
-    string_operators["="] = a_affectation;
-    string_operators["is"] = a_affectation;
+    string_operators["="] = a_assignement;
+    string_operators["is"] = a_assignement;
     string_operators[":="] = a_forcedaffectation;
     string_operators["isnot"] = a_different;
     string_operators["<>"] = a_different;
@@ -1599,7 +1607,7 @@ Exporting void TamguGlobal::RecordConstantNames() {
     operator_strings[a_more] = ">";
     operator_strings[a_moreequal] = ">=";
     operator_strings[a_lessequal] = "<=";
-    operator_strings[a_affectation] = "=";
+    operator_strings[a_assignement] = "=";
     operator_strings[a_forcedaffectation] = ":=";
     operator_strings[a_different] = "<>";
     operator_strings[a_different] = "~=";
@@ -1822,7 +1830,7 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("let"); //83 --> a_let
 
     if (!globalconstantes)
-        aAFFECTATION = new TamguConst(Createid("&assign"), "&assign", NULL); //84 --> a_assign
+        aASSIGNMENT = new TamguConst(Createid("&assign"), "&assign", NULL); //84 --> a_assign
     else
         Createid("&assign");
 
@@ -1836,6 +1844,7 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("&cycle"); //92 --> a_cycle
     Createid("&replicate"); //93 --> a_replicate
     Createid("fail");//94 --> a_fail
+    Createid("&~!"); //95 --> a_cutfalse
     Createid("!"); //95 --> a_cut
     Createid("stop"); //96 --> a_stop
     Createid("&PREDICATEENTREE"); //97 --> a_predicateentree
@@ -1873,7 +1882,7 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("dependency"); //122 --> a_dependency
 
     Createid("tam_stream"); //123 --> a_stream
-    Createid("setq"); //124 --> a_affectation
+    Createid("setq"); //124 --> a_assignement
 
     Createid("tam_plusequ"); //125 --> a_plusequ
     Createid("tam_minusequ"); //126 --> a_minusequ
@@ -2022,7 +2031,9 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("_foldr1"); //241
     Createid("_scanr1"); //242
     Createid("iterator_java"); //243 --> a_iteration_java
-    Createid("lisp"); //244 a_lisp
+    Createid("java_vector"); //244 --> a_java_vector
+    Createid("&predicate_terminal&"); //245 --> a_terminal
+    Createid("lisp"); //246 a_lisp
     
 
     //This is a simple hack to handle "length" a typical Haskell operator as "size"...
@@ -2097,9 +2108,11 @@ Exporting void TamguGlobal::RecordConstantNames() {
     gBREAKTRUE = aBREAKTRUE;
     gBREAKZERO = aBREAKZERO;
     gBREAKONE = aBREAKONE;
-    gAFFECTATION = aAFFECTATION;
+    gASSIGNMENT = aASSIGNMENT;
     gITERNULL = aITERNULL;
     gFAIL = aFAIL;
+    gTERMINAL = aTERMINAL;
+    gCUTFALSE = aCUTFALSE;
     gCUT = aCUT;
     gSTOP = aSTOP;
     gHASKELL = aHASKELL;
@@ -2356,9 +2369,10 @@ void TamguGlobal::TamguAllObjects(vector<string>& vs) {
     }
 
 
-    vs.push_back("a_first");
+    vs.push_back("alias");
     vs.push_back("a_change");
     vs.push_back("a_delete");
+    vs.push_back("a_first");
     vs.push_back("a_insert");
     vs.push_back("a_switch");
     vs.push_back("a_nocase");

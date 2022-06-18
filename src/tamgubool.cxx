@@ -20,19 +20,16 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<boolMethod>  Tamguboolean::methods;
 
-Exporting short Tamguboolean::idtype = 0;
-
-
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamguboolean::AddMethod(TamguGlobal* global, string name, boolMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    if (global->infomethods.find(a_boolean) != global->infomethods.end() &&
+            global->infomethods[a_boolean].find(name) != global->infomethods[a_boolean].end())
     return;
 
-    global->infomethods[idtype][name] = infos;
-    global->RecordArity(idtype, idname, arity);
+    global->infomethods[a_boolean][name] = infos;
+    global->RecordArity(a_boolean, idname, arity);
     global->RecordArity(a_bloop, idname, arity);
 }
 
@@ -48,16 +45,12 @@ void Tamguboolean::Setidtype(TamguGlobal* global) {
    bool Tamguboolean::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
     
-    
-
-    Tamguboolean::idtype = a_boolean;
-
     Tamguboolean::AddMethod(global, "invert", &Tamguboolean::MethodInvert, P_NONE, "invert(): Invert ");
     Tamguboolean::AddMethod(global, "succ", &Tamguboolean::MethodInvert, P_NONE, "succ(): successor of a Boolean.");
 
     if (version != "") {
-        global->newInstance[Tamguboolean::idtype] = new Tamguboolean(0, global);
-        global->RecordCompatibilities(Tamguboolean::idtype);
+        global->newInstance[a_boolean] = new Tamguboolean(0, global);
+        global->RecordCompatibilities(a_boolean);
         global->RecordCompatibilities(a_bloop);
     }
 

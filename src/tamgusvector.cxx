@@ -29,18 +29,16 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<svectorMethod>  Tamgusvector::methods;
 
-Exporting short Tamgusvector::idtype = 0;
-
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamgusvector::AddMethod(TamguGlobal* global, string name, svectorMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    if (global->infomethods.find(a_svector) != global->infomethods.end() &&
+            global->infomethods[a_svector].find(name) != global->infomethods[a_svector].end())
     return;
 
-    global->infomethods[idtype][name] = infos;
-    global->RecordArity(idtype, idname, arity);
+    global->infomethods[a_svector][name] = infos;
+    global->RecordArity(a_svector, idname, arity);
     global->RecordArity(a_vectorthrough, idname, arity);
 }
 
@@ -53,22 +51,17 @@ void Tamgusvector::AddMethod(TamguGlobal* global, string name, svectorMethod fun
 }
 
 
-   bool Tamgusvector::InitialisationModule(TamguGlobal* global, string version) {
+bool Tamgusvector::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
     
+    Tamgusvector::AddMethod(global, "min", &Tamgusvector::MethodMin, P_NONE, "min(): returns the min in the vector.");
+    Tamgusvector::AddMethod(global, "max", &Tamgusvector::MethodMax, P_NONE, "max(): returns the max in the vector.");
+    Tamgusvector::AddMethod(global, "minmax", &Tamgusvector::MethodMinMax, P_NONE, "minmax(): returns the min and the max in the vector.");
     
-
-    
-    Tamgusvector::idtype = a_svector;
-
-       Tamgusvector::AddMethod(global, "min", &Tamgusvector::MethodMin, P_NONE, "min(): returns the min in the vector.");
-       Tamgusvector::AddMethod(global, "max", &Tamgusvector::MethodMax, P_NONE, "max(): returns the max in the vector.");
-       Tamgusvector::AddMethod(global, "minmax", &Tamgusvector::MethodMinMax, P_NONE, "minmax(): returns the min and the max in the vector.");
-
     Tamgusvector::AddMethod(global, "clear", &Tamgusvector::MethodClear, P_NONE, "clear(): clear the container.");
-
+    
     Tamgusvector::AddMethod(global, "remove", &Tamgusvector::MethodRemove, P_ONE, "remove(string e): remove 'e' from the vector.");
-
+    
     Tamgusvector::AddMethod(global, "sum", &Tamgusvector::MethodSum, P_NONE, "sum(): concatenate the strings in the vector.");
     Tamgusvector::AddMethod(global, "reverse", &Tamgusvector::MethodReverse, P_NONE, "reverse(): reverse a vector.");
     Tamgusvector::AddMethod(global, "unique", &Tamgusvector::MethodUnique, P_NONE, "unique(): remove duplicate elements.");
@@ -89,17 +82,17 @@ void Tamgusvector::AddMethod(TamguGlobal* global, string name, svectorMethod fun
     Tamgusvector::AddMethod(global, "convert", &Tamgusvector::MethodConvert, P_NONE, "convert(): detect number values and convert them into actual numbers. Return a vector object.");
     Tamgusvector::AddMethod(global, "read", &Tamgusvector::MethodRead, P_ONE, "read(string path): Read the content of a file into the container.");
     Tamgusvector::AddMethod(global, "write", &Tamgusvector::MethodWrite, P_ONE, "write(string path): write the string content into a file.");
-
-
-    if (version != "") {        
-    global->minimal_indexes[Tamgusvector::idtype] = true;
-
-        global->newInstance[Tamgusvector::idtype] = new Tamgusvector(global);
-        global->newInstance[a_vectorthrough] = global->newInstance[Tamgusvector::idtype];
-        global->RecordCompatibilities(Tamgusvector::idtype);
+    
+    
+    if (version != "") {
+        global->minimal_indexes[a_svector] = true;
+        
+        global->newInstance[a_svector] = new Tamgusvector(global);
+        global->newInstance[a_vectorthrough] = global->newInstance[a_svector];
+        global->RecordCompatibilities(a_svector);
         global->RecordCompatibilities(a_vectorthrough);
     }
-
+    
     Tamgua_svector::InitialisationModule(global, version);
     
     return true;
@@ -504,7 +497,7 @@ Exporting bool Tamgusvector::Permute() {
 Exporting Tamgu* Tamgusvector::same(Tamgu* a) {
     Doublelocking _lock(this, a);
 
-    if (a->Type() != idtype) {
+    if (a->Type() != a_svector) {
         if (a->isVectorContainer()) {
             if (a->Size() != values.size())
                 return aFALSE;
@@ -907,7 +900,7 @@ Exporting Tamgu* Tamgusvector::Merging(Tamgu* ke) {
 
     Doublelocking _lock(this, ke);
     //Three cases:
-    if (ke->Type() == idtype) {
+    if (ke->Type() == a_svector) {
         Tamgusvector* kvect = (Tamgusvector*)ke;
         values.insert(values.end(), kvect->values.begin(), kvect->values.end());
         return this;

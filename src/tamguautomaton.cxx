@@ -24,8 +24,6 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<regularexpressionMethod>  Tamguregularexpression::methods;
 
-short Tamguregularexpression::idtype = 0;
-
 //We only return the emoji head, when a head is present
 TAMGUCHAR getechar(wstring& s, long& i);
 long conversionpostochar(wstring& w, long spos);
@@ -44,12 +42,12 @@ void c_bytetocharposition(unsigned char* contenu, long& bbpos, long& ebpos);
 void Tamguregularexpression::AddMethod(TamguGlobal* global, string name, regularexpressionMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    if (global->infomethods.find(a_treg) != global->infomethods.end() &&
+            global->infomethods[a_treg].find(name) != global->infomethods[a_treg].end())
     return;
 
-    global->infomethods[idtype][name] = infos;
-    global->RecordArity(idtype, idname, arity);
+    global->infomethods[a_treg][name] = infos;
+    global->RecordArity(a_treg, idname, arity);
 }
 
 
@@ -65,8 +63,6 @@ bool Tamguregularexpression::InitialisationModule(TamguGlobal* global, string ve
     
     
         //Each new object has a specific name, which will help recognize it in the code that will exploit Tamguregularexpression...
-    Tamguregularexpression::idtype = a_treg;
-    
         //You declare your methods here:
         // Argument 1 is a call to global, which will record your method into Tamgu (탐구)
         // Argument 2 is the name of your command
@@ -80,8 +76,8 @@ bool Tamguregularexpression::InitialisationModule(TamguGlobal* global, string ve
     
         //We need this code, in order to create new instances of our Tamguregularexpression object... DO NOT ALTER
     if (version != "") {
-        global->newInstance[Tamguregularexpression::idtype] = new Tamguregularexpression(global);
-        global->RecordCompatibilities(Tamguregularexpression::idtype);
+        global->newInstance[a_treg] = new Tamguregularexpression(global);
+        global->RecordCompatibilities(a_treg);
     }
     
     return true;
@@ -349,19 +345,17 @@ bool Tamguregularexpression::searchlast(string& w, long& b, long& e, long init) 
 //We need to declare once again our local definitions.
 basebin_hash<posixregularexpressionMethod>  Tamguposixregularexpression::methods;
 
-short Tamguposixregularexpression::idtype = 0;
-
 //------------------------------------------------------------------------------------------------------------------
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamguposixregularexpression::AddMethod(TamguGlobal* global, string name, posixregularexpressionMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    if (global->infomethods.find(a_preg) != global->infomethods.end() &&
+            global->infomethods[a_preg].find(name) != global->infomethods[a_preg].end())
     return;
 
-    global->infomethods[idtype][name] = infos;
-    global->RecordArity(idtype, idname, arity);
+    global->infomethods[a_preg][name] = infos;
+    global->RecordArity(a_preg, idname, arity);
 }
 
 
@@ -371,7 +365,6 @@ bool Tamguposixregularexpression::InitialisationModule(TamguGlobal* global, stri
     
     
     //Each new object has a specific name, which will help recognize it in the code that will exploit Tamguposixregularexpression...
-    Tamguposixregularexpression::idtype = a_preg;
     
     //You declare your methods here:
     // Argument 1 is a call to global, which will record your method into Tamgu (탐구)
@@ -386,8 +379,8 @@ bool Tamguposixregularexpression::InitialisationModule(TamguGlobal* global, stri
     
     //We need this code, in order to create new instances of our Tamguposixregularexpression object... DO NOT ALTER
     if (version != "") {
-        global->newInstance[Tamguposixregularexpression::idtype] = new Tamguposixregularexpression(global);
-        global->RecordCompatibilities(Tamguposixregularexpression::idtype);
+        global->newInstance[a_preg] = new Tamguposixregularexpression(global);
+        global->RecordCompatibilities(a_preg);
     }
     
     return true;

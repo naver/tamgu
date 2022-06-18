@@ -41,10 +41,6 @@ class Tamgutable : public TamguObjectLockContainer {
     //this is a static object, which is common to everyone
     //We associate the method pointers with their names in the linkedmethods map
     static Exchanging basebin_hash<tableMethod> methods;
-    
-    
-
-    static Exchanging short idtype;
 
     //---------------------------------------------------------------------------------------------------------------------
     //This SECTION is for your specific implementation...
@@ -84,7 +80,7 @@ class Tamgutable : public TamguObjectLockContainer {
     Exporting Tamgu* Filter(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* kcont, Tamgu* accu, Tamgu* init, bool direct);
 
     short Type() {
-        return Tamgutable::idtype;
+        return a_table;
     }
 
     
@@ -197,13 +193,13 @@ class Tamgutable : public TamguObjectLockContainer {
 
     
     void Methods(Tamgu* v) {
-            for (const auto& it : globalTamgu->infomethods[idtype])
+            for (const auto& it : globalTamgu->infomethods[a_table])
                  v->storevalue(it.first);
       }
 
       string Info(string n) {
-            if (globalTamgu->infomethods[idtype].find(n) !=  globalTamgu->infomethods[idtype].end())
-              return globalTamgu->infomethods[idtype][n];
+            if (globalTamgu->infomethods[a_table].find(n) !=  globalTamgu->infomethods[a_table].end())
+              return globalTamgu->infomethods[a_table][n];
              return "Unknown method";
     }
     //---------------------------------------------------------------------------------------------------------------------

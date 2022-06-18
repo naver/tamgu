@@ -27,10 +27,6 @@ typedef Tamgu* (Tamguframeinstance::*frameinstanceMethod)(Tamgu* contextualpatte
 class Tamguframeseeder : public TamguObject {
 public:
     static Exchanging basebin_hash<frameinstanceMethod> methods;
-    
-    
-    
-    static Exchanging short idtype;
 
     TamguFrame* frame;
 
@@ -99,13 +95,13 @@ public:
     
     
     void Methods(Tamgu* v) {
-            for (const auto& it : globalTamgu->infomethods[idtype])
+            for (const auto& it : globalTamgu->infomethods[a_frameinstance])
                  v->storevalue(it.first);
       }
 
       string Info(string n) {
-            if (globalTamgu->infomethods[idtype].find(n) !=  globalTamgu->infomethods[idtype].end())
-              return globalTamgu->infomethods[idtype][n];
+            if (globalTamgu->infomethods[a_frameinstance].find(n) !=  globalTamgu->infomethods[a_frameinstance].end())
+              return globalTamgu->infomethods[a_frameinstance][n];
              return "Unknown method";
     }
     

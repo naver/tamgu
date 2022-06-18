@@ -27,18 +27,16 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<fvectorMethod>  Tamgufvector::methods;
 
-Exporting short Tamgufvector::idtype = 0;
-
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamgufvector::AddMethod(TamguGlobal* global, string name, fvectorMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    if (global->infomethods.find(a_fvector) != global->infomethods.end() &&
+            global->infomethods[a_fvector].find(name) != global->infomethods[a_fvector].end())
     return;
 
-    global->infomethods[idtype][name] = infos;
-    global->RecordArity(idtype, idname, arity);
+    global->infomethods[a_fvector][name] = infos;
+    global->RecordArity(a_fvector, idname, arity);
 }
 
 
@@ -52,12 +50,6 @@ void Tamgufvector::Setidtype(TamguGlobal* global) {
 
 bool Tamgufvector::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    
-    
-    
-    
-    
-    Tamgufvector::idtype = a_fvector;
     
     Tamgufvector::AddMethod(global, "min", &Tamgufvector::MethodMin, P_NONE, "min(): returns the min in the vector.");
     Tamgufvector::AddMethod(global, "max", &Tamgufvector::MethodMax, P_NONE, "max(): returns the max in the vector.");
@@ -90,10 +82,10 @@ bool Tamgufvector::InitialisationModule(TamguGlobal* global, string version) {
     Tamgufvector::AddMethod(global, "permute", &Tamgufvector::MethodPermute, P_NONE, "permute(): permute the values in the vector after each call.");
     
     if (version != "") {        
-    global->minimal_indexes[Tamgufvector::idtype] = true;
+    global->minimal_indexes[a_fvector] = true;
 
-        global->newInstance[Tamgufvector::idtype] = new Tamgufvector(global);
-        global->RecordCompatibilities(Tamgufvector::idtype);
+        global->newInstance[a_fvector] = new Tamgufvector(global);
+        global->RecordCompatibilities(a_fvector);
     }
     
     
@@ -304,7 +296,7 @@ Exporting Tamgu* Tamgufvector::Merging(Tamgu* ke) {
 
     Doublelocking _lock(this, ke);
     //Three cases:
-    if (ke->Type() == idtype) {
+    if (ke->Type() == a_fvector) {
         Tamgufvector* kvect = (Tamgufvector*)ke;
         values.insert(values.end(), kvect->values.begin(), kvect->values.end());
         return this;
@@ -717,7 +709,7 @@ Exporting Tamgu* Tamgufvector::same(Tamgu* a) {
 
     Doublelocking _lock(this, a);
 
-    if (a->Type() != idtype) {
+    if (a->Type() != a_fvector) {
         if (a->isVectorContainer()) {
             if (a->Size() != values.size())
                 return aFALSE;

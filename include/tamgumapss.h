@@ -37,10 +37,6 @@ class Tamgumapss : public TamguLockContainer {
     //this is a static object, which is common to everyone
     //We associate the method pointers with their names in the linkedmethods map
     static Exchanging basebin_hash<mapssMethod> methods;
-    
-    
-
-    static Exchanging short idtype;
 
     //---------------------------------------------------------------------------------------------------------------------
     //This SECTION is for your specific implementation...
@@ -156,13 +152,13 @@ class Tamgumapss : public TamguLockContainer {
     static bool InitialisationModule(TamguGlobal* global, string version);
 
     void Methods(Tamgu* v) {
-            for (const auto& it : globalTamgu->infomethods[idtype])
+            for (const auto& it : globalTamgu->infomethods[a_mapss])
                  v->storevalue(it.first);
       }
 
       string Info(string n) {
-            if (globalTamgu->infomethods[idtype].find(n) !=  globalTamgu->infomethods[idtype].end())
-              return globalTamgu->infomethods[idtype][n];
+            if (globalTamgu->infomethods[a_mapss].find(n) !=  globalTamgu->infomethods[a_mapss].end())
+              return globalTamgu->infomethods[a_mapss][n];
              return "Unknown method";
     }
 
@@ -524,9 +520,9 @@ class Tamgumapssbuff : public Tamgumapss {
                 protect = true;
 
                 values.clear();
-                used = false;
-                if (!globalTamgu->threadMODE)
+                if (!globalTamgu->threadMODE && used)
                     globalTamgu->mapssempties.push_back(idx);
+                used = false;
             }
         }
         else

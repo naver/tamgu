@@ -27,18 +27,16 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<lvectorMethod>  Tamgulvector::methods;
 
-Exporting short Tamgulvector::idtype = 0;
-
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamgulvector::AddMethod(TamguGlobal* global, string name, lvectorMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    if (global->infomethods.find(a_lvector) != global->infomethods.end() &&
+            global->infomethods[a_lvector].find(name) != global->infomethods[a_lvector].end())
     return;
 
-    global->infomethods[idtype][name] = infos;
-    global->RecordArity(idtype, idname, arity);
+    global->infomethods[a_lvector][name] = infos;
+    global->RecordArity(a_lvector, idname, arity);
 }
 
 
@@ -52,11 +50,6 @@ void Tamgulvector::Setidtype(TamguGlobal* global) {
 
 bool Tamgulvector::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    
-    
-    
-    
-    Tamgulvector::idtype = a_lvector;
     
     Tamgulvector::AddMethod(global, "min", &Tamgulvector::MethodMin, P_NONE, "min(): returns the min in the vector.");
     Tamgulvector::AddMethod(global, "max", &Tamgulvector::MethodMax, P_NONE, "max(): returns the max in the vector.");
@@ -87,11 +80,11 @@ bool Tamgulvector::InitialisationModule(TamguGlobal* global, string version) {
     Tamgulvector::AddMethod(global, "editdistance", &Tamgulvector::MethodEditDistance, P_ONE, "editdistance(v): Compute the edit distance with vector 'v'.");
     Tamgulvector::AddMethod(global, "insert", &Tamgulvector::MethodInsert, P_TWO, "insert(int i,v): Insert v at position i.");
     
-    if (version != "") {        
-    global->minimal_indexes[Tamgulvector::idtype] = true;
-
-        global->newInstance[Tamgulvector::idtype] = new Tamgulvector(global);
-        global->RecordCompatibilities(Tamgulvector::idtype);
+    if (version != "") {
+        global->minimal_indexes[a_lvector] = true;
+        
+        global->newInstance[a_lvector] = new Tamgulvector(global);
+        global->RecordCompatibilities(a_lvector);
     }
     
     
@@ -694,7 +687,7 @@ Exporting Tamgu* Tamgulvector::same(Tamgu* a) {
 
     Doublelocking _lock(this, a);
 
-    if (a->Type() != idtype) {
+    if (a->Type() != a_lvector) {
         if (a->isVectorContainer()) {
             if (a->Size() != values.size())
                 return aFALSE;
@@ -1007,7 +1000,7 @@ Exporting Tamgu* Tamgulvector::Merging(Tamgu* ke) {
 
     Doublelocking _lock(this, ke);
     //Three cases:
-    if (ke->Type() == idtype) {
+    if (ke->Type() == a_lvector) {
         Tamgulvector* kvect = (Tamgulvector*)ke;
         values.insert(values.end(), kvect->values.begin(), kvect->values.end());
         return this;

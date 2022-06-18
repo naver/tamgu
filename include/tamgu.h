@@ -312,6 +312,10 @@ public:
 		return this;
 	}
 
+    virtual Tamgu* GetLetValue() {
+        return this;
+    }
+    
 	virtual Tamgu* Value(wstring& w) {
 		string res;
 		s_unicode_to_utf8(res, w);
@@ -357,6 +361,7 @@ public:
     }
     
 	Exporting virtual bool Unify(TamguDeclaration* dom, Tamgu* a);
+    
 	virtual bool isUnified(TamguDeclaration* dom) {
 		return true;
 	}
@@ -661,6 +666,10 @@ public:
 		return false;
 	}
 
+    virtual bool checkDisjunction() {
+        return false;
+    }
+
 	// Status Functions
 	virtual short Reference() {
 		return 0;
@@ -850,9 +859,13 @@ public:
         return false;
     }
     
-	virtual bool isFunction() {
+	virtual bool isAlias() {
 		return false;
 	}
+
+    virtual bool isFunction() {
+        return false;
+    }
 
     virtual bool isCurryfied() {
         return false;
@@ -976,6 +989,14 @@ public:
     
     virtual bool isCallNumber() {
         return false;
+    }
+    
+    virtual bool isTerminal() {
+        return false;
+    }
+    
+    virtual TamguPredicate* checkTerminal(short n, short sz) {
+        return NULL;
     }
     
     virtual void Indexing() {}
@@ -1681,6 +1702,11 @@ public:
         Setreference(inc);
     }
 
+    virtual Tamgu* Atomref() {
+        Setreference();
+        return this;
+    }
+    
     virtual void Setreference(short r) {
         reference += r;
         protect = false;
@@ -2629,6 +2655,65 @@ public:
 	Tamgu* Eval(Tamgu* context, Tamgu* callfunction, short idthread);
 };
 //--------------------------------------------------------------------
+class TamguAlias : public TamguDeclaration {
+public:
+    VECTE<Tamgu*> instructions;
+    VECTE<short> parameters;
+    ThreadLock* _locker;
+    bool assignable;
+
+    TamguAlias(short n, TamguGlobal* global) : TamguDeclaration(n, a_lambda, global) {
+        _locker = NULL;
+        investigate = is_tracked;
+        assignable = false;
+    }
+
+    ~TamguAlias() {
+        if (_locker != NULL)
+            delete _locker;
+    }
+
+    inline void lock_assignment() {
+        if (globalTamgu->threadMODE && hasLock() && _locker)
+            _locker->lock->lock();
+    }
+
+    inline void unlock_assignment() {
+        if (globalTamgu->threadMODE && hasLock() && _locker)
+            _locker->lock->unlock();
+    }
+
+    bool isAssignable() {
+        return assignable;
+    }
+
+    size_t InstructionSize() {
+        return instructions.last;
+    }
+
+    void AddInstruction(Tamgu* a) {
+        instructions.push_back(a);
+    }
+
+    Tamgu* Eval(Tamgu* context, Tamgu* callfunction, short idthread);
+
+    bool isAlias() {
+        return true;
+    }
+
+    bool isFunction() {
+        return true;
+    }
+    
+    long Size() {
+        return (long)parameters.size();
+    }
+
+    bool isaFunction() {
+        return true;
+    }
+};
+
 //A User Function declaration.
 class TamguFunction : public TamguDeclaration {
 public:
@@ -3239,7 +3324,7 @@ public:
 		return true;
 	}
 
-    bool Setstopindex() {
+    virtual bool Setstopindex() {
         if (function !=NULL)
             function->Setstopindex();
         return false;
@@ -3386,7 +3471,9 @@ public:
     }
     
     Tamgu* Getindex() {
-        return this;
+        if (function == NULL)
+            return this;
+        return function->Getindex();
     }
     
     bool Setstopindex() {
@@ -3397,6 +3484,15 @@ public:
         stop = function->Setstopindex();
         return true;
     }
+    
+    long Size() {
+        return instructions.size();
+    }
+    
+    Tamgu* Parameter(size_t i) {
+        return instructions[i];
+    }
+
 };
 
 class TamguIndex : public Tamgu {
@@ -3681,6 +3777,15 @@ public:
 		return left->Byte();
 	}
 
+    long Size() {
+        return (1 + interval);
+    }
+    
+    Tamgu* Parameter(size_t i) {
+        if (!i)
+            return left;
+        return right;
+    }
 };
 
 
@@ -3810,6 +3915,10 @@ public:
         protect = false;
     }
     
+    Tamgu* GetLetValue() {
+        return value;
+    }
+
 	void Setprotect(bool n) {
         value->Setprotect(n);
 		protect = n;
@@ -3905,7 +4014,7 @@ public:
             return aTRUE;
         }
         
-		value = v;
+        value = v->GetLetValue();
 		value->Setreference(reference);
         value->Enablelock(isToBelocked());
         unlocking();
@@ -3936,7 +4045,7 @@ public:
             return aTRUE;
         }
         
-		value = v;
+        value = v->GetLetValue();
 		value->Setreference(reference);
         value->Enablelock(isToBelocked());
         unlocking();
@@ -3956,7 +4065,7 @@ public:
 		if (v->isConst())
 			v = v->Atom();
 
-		value = v;
+		value = v->GetLetValue();
 		value->Setreference(reference);
         value->Enablelock(isToBelocked());
         unlocking();
@@ -3998,7 +4107,9 @@ public:
 	}
 
 	virtual string Typename() {
-		return "let";
+        if (value == aNOELEMENT)
+            return "let";
+        return value->Typename();
 	}
 
 	Tamgu* Atom(bool forced = false) {
@@ -4413,7 +4524,7 @@ public:
             return aTRUE;
         }
 
-		value = v;
+        value = v->GetLetValue();
 		value->Setreference(reference);
         value->Enablelock(isToBelocked());
         typevalue = value->Type();
@@ -4446,7 +4557,7 @@ public:
             return aTRUE;
         }
         
-        value = v;
+        value = v->GetLetValue();
         value->Setreference(reference);
         value->Enablelock(isToBelocked());
         typevalue = value->Type();
@@ -4468,7 +4579,7 @@ public:
             if (v->isConst())
                 v = v->Atom();
             
-            value = v;
+            value = v->GetLetValue();
             value->Setreference(reference);
             value->Enablelock(isToBelocked());
             typevalue = value->Type();
@@ -4485,7 +4596,7 @@ public:
         if (v->isConst())
             v = v->Atom();
         
-        value = v;
+        value = v->GetLetValue();
         value->Setreference(reference);
         value->Enablelock(isToBelocked());
         typevalue = value->Type();
@@ -4528,7 +4639,9 @@ public:
 	}
 
 	string Typename() {
-		return "self";
+        if (value == aNOELEMENT)
+            return "auto";
+        return value->Typename();
 	}
 
 };
@@ -4560,11 +4673,11 @@ public:
             if (!protect) {
                 protect = true;
 
-                used = false;
                 typevalue = a_const;
                 value = aNOELEMENT;
-                if (!globalTamgu->threadMODE)
+                if (!globalTamgu->threadMODE && used)
                     globalTamgu->slfempties.push_back(idx);
+                used = false;
             }
         }
         else

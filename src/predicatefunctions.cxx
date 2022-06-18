@@ -19,46 +19,47 @@
 #include "tamgusynode.h"
 
 //----------------------------------------------------------------------------------------------------
-Exporting TamguPredicateVariableInstance* TamguGlobal::Providepvi(short n) {
+Exporting TamguPredicateVariableInstance* TamguGlobal::Providevariableinstance(short n) {
     if (threadMODE || Addtogarbage())
         return new TamguPredicateVariableInstance(predicatename++, n);
-    
+
     TamguPredicateVariableInstance* kvi;
     if (pviempties.last > 0) {
         kvi = pvireservoire[pviempties.backpop()];
         kvi->labelname = n;
         kvi->value = aNOELEMENT;
-        kvi->name = predicatename++;
         kvi->used = true;
         return kvi;
     }
     
     long mx = pvireservoire.size();
-    
     while (pviidx < mx) {
         if (!pvireservoire[pviidx]->used) {
             kvi = pvireservoire[pviidx++];
             kvi->labelname = n;
             kvi->value = aNOELEMENT;
-            kvi->name = predicatename++;
             kvi->used = true;
             return kvi;
         }
         pviidx++;
     }
     
+    char buffer[20];
     long sz = mx >> 2;
     pvireservoire.resize(mx + sz);
     pviidx = mx + sz;
-    for (long i = mx; i < pviidx; i++)
+    for (long i = mx; i < pviidx; i++) {
         pvireservoire[i] = new TamguPredicateVariableInstance(i);
+        sprintf_s(buffer, 20, "&p%ld&", i);
+        pvireservoire[i]->name = Getid(buffer);
+    }
     
     pviidx = mx;
     kvi = pvireservoire[pviidx++];
     kvi->labelname = n;
     kvi->value = aNOELEMENT;
-    kvi->name = predicatename++;
     kvi->used = true;
+    gpredicatename = symbolIds.size();
     return kvi;
 }
 
@@ -497,10 +498,12 @@ Exporting TamguPredicate* TamguPredicateMethod::Duplicate(Tamgu* context, TamguD
 void TamguGlobal::RecordPredicateFunctions() {
 
     gpredicatename = 0;
-    gpredicatedico = 0;
-    gpredicatezone = 0;
-    gpredicatedependency = 0;
-    gpredicatefeature = 0;
+    
+    gpredicatezone = Getid("&p_zone&");
+    gpredicatedico = Getid("&p_dico&");
+    gpredicatedependency = Getid("&p_dependency&");
+    gpredicatefeature = Getid("&p_feature&");
+
 
     short n = Getid("between");
     predicates[n] = new TamguPredicateBetween(this, n);
@@ -700,6 +703,7 @@ Tamgu* ProcDependencies(Tamgu* contextualpattern, short idthread, TamguCall* cal
         return aNULL;
 
     TamguPredicateFunction pv(globalTamgu, globalTamgu->predicates[a_dependency]->Function(), a_dependency);
+    pv.reference = 1;
 
     TamguInstructionEvaluate kl(globalTamgu, &pv);
     kl.threadowner = idthread;
@@ -754,6 +758,8 @@ Tamgu* ProcDependencies(Tamgu* contextualpattern, short idthread, TamguCall* cal
 void TamguGlobal::RecordPredicates() {
     if (aFAIL == NULL) {
         aFAIL = new TamguConstPredicate(NULL, a_fail);
+        aTERMINAL = new TamguConstPredicate(NULL, a_terminal);
+        aCUTFALSE = new TamguConstPredicate(NULL, a_cutfalse);
         aCUT = new TamguConstPredicate(NULL, a_cut);
         aSTOP = new TamguConstPredicate(NULL, a_stop);
     }
@@ -768,8 +774,12 @@ void TamguGlobal::RecordPredicates() {
     RecordOneProcedure("pred", &ProcPredicatePred, P_ONE);
     RecordOneProcedure("_dependencies", &ProcDependencies, P_NONE | P_ONE);
 
-    for (long i = 0; i < 1000; i++)
+    char buffer[20];
+    for (long i = 0; i < 100; i++) {
         pvireservoire.push_back(new TamguPredicateVariableInstance(i));
+        sprintf_s(buffer, 20, "&p%ld&", i);
+        pvireservoire.back()->name = Getid(buffer);
+    }
     
     predicates[a_universal] = new TamguPredicateFunction(this, NULL, a_universal);
     pviidx = 0;

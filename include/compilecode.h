@@ -170,7 +170,8 @@ public:
     Tamgu* C_pstring(x_node*, Tamgu*);
 	Tamgu* C_anumber(x_node*, Tamgu*);
 	Tamgu* C_axnumber(x_node*, Tamgu*);
-	Tamgu* C_frame(x_node* xn, Tamgu* kf);
+    Tamgu* C_alias(x_node* xn, Tamgu* kf);
+    Tamgu* C_frame(x_node* xn, Tamgu* kf);
 	Tamgu* C_extension(x_node* xn, Tamgu* kf);
 	Tamgu* C_affectation(x_node* xn, Tamgu* kf);
 	Tamgu* C_operator(x_node* xn, Tamgu* kf);

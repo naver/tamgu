@@ -20,19 +20,16 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<byteMethod>  Tamgubyte::methods;
 
-Exporting short Tamgubyte::idtype = 0;
-
-
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamgubyte::AddMethod(TamguGlobal* global, string name, byteMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    if (global->infomethods.find(a_byte) != global->infomethods.end() &&
+            global->infomethods[a_byte].find(name) != global->infomethods[a_byte].end())
     return;
 
-    global->infomethods[idtype][name] = infos;
-    global->RecordArity(idtype, idname, arity);
+    global->infomethods[a_byte][name] = infos;
+    global->RecordArity(a_byte, idname, arity);
 }
 
 
@@ -47,17 +44,13 @@ void Tamgubyte::Setidtype(TamguGlobal* global) {
 bool Tamgubyte::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
     
-    
-
-    Tamgubyte::idtype = a_byte;
-
     Tamgubyte::AddMethod(global, "succ", &Tamgubyte::MethodSucc, P_NONE, "succ(): Return the successor of a byte.");
     Tamgubyte::AddMethod(global, "pred", &Tamgubyte::MethodPred, P_NONE, "pred(): Return the predecessor of a byte.");
     
 
     if (version != "") {
-        global->newInstance[Tamgubyte::idtype] = new Tamgubyte(0, global);
-        global->RecordCompatibilities(Tamgubyte::idtype);
+        global->newInstance[a_byte] = new Tamgubyte(0, global);
+        global->RecordCompatibilities(a_byte);
     }
 
     return true;

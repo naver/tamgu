@@ -24,19 +24,17 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<primemapMethod>  Tamguprimemap::methods;
 
-Exporting short Tamguprimemap::idtype = 0;
-
 //-------------------------------------------------------------------------
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamguprimemap::AddMethod(TamguGlobal* global, string name, primemapMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    if (global->infomethods.find(a_primemap) != global->infomethods.end() &&
+            global->infomethods[a_primemap].find(name) != global->infomethods[a_primemap].end())
     return;
 
-    global->infomethods[idtype][name] = infos;
-    global->RecordArity(idtype, idname, arity);
+    global->infomethods[a_primemap][name] = infos;
+    global->RecordArity(a_primemap, idname, arity);
 }
 
 
@@ -50,14 +48,6 @@ void Tamguprimemap::Setidtype(TamguGlobal* global) {
 
 bool Tamguprimemap::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-    
-    
-    
-    
-    Tamguprimemap::idtype = a_primemap;
-    
-    
-    
 
     Tamguprimemap::AddMethod(global, "clear", &Tamguprimemap::MethodClear, P_NONE, "clear(): clear the container.");
     
@@ -78,11 +68,11 @@ bool Tamguprimemap::InitialisationModule(TamguGlobal* global, string version) {
     Tamguprimemap::AddMethod(global, "merge", &Tamguprimemap::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
     
     if (version != "") {        
-    global->minimal_indexes[Tamguprimemap::idtype] = true;
+    global->minimal_indexes[a_primemap] = true;
 
-        global->newInstance[Tamguprimemap::idtype] = new Tamguprimemap(global);
+        global->newInstance[a_primemap] = new Tamguprimemap(global);
         
-        global->RecordCompatibilities(Tamguprimemap::idtype);
+        global->RecordCompatibilities(a_primemap);
     }
     
     return true;
@@ -421,7 +411,7 @@ Exporting Tamgu*  Tamguprimemap::Put(Tamgu* idx, Tamgu* ke, short idthread) {
         
         locking();
         Clear();
-        if (ke->Type() == Tamguprimemap::idtype) {
+        if (ke->Type() == a_primemap) {
             Tamguprimemap* kmap = (Tamguprimemap*)ke;
             //We copy all values from ke to this
             prime_hash<string, Tamgu*>::iterator it;
@@ -547,7 +537,7 @@ Exporting Tamgu* Tamguprimemap::Eval(Tamgu* contextualpattern, Tamgu* idx, short
 
 Exporting Tamgu* Tamguprimemap::same(Tamgu* a) {
     
-    if (a->Type() != idtype)
+    if (a->Type() != a_primemap)
         return Mapcompare(this, a, NULL);
     
     Tamguprimemap* m = (Tamguprimemap*)a;

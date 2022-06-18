@@ -25,19 +25,16 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<intMethod>  Tamguint::methods;
 
-Exporting short Tamguint::idtype = 0;
-
-
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamguint::AddMethod(TamguGlobal* global, string name, intMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    if (global->infomethods.find(a_int) != global->infomethods.end() &&
+            global->infomethods[a_int].find(name) != global->infomethods[a_int].end())
     return;
 
-    global->infomethods[idtype][name] = infos;
-    global->RecordArity(idtype, idname, arity);
+    global->infomethods[a_int][name] = infos;
+    global->RecordArity(a_int, idname, arity);
     global->RecordArity(a_intthrough, idname, arity);
     global->RecordArity(a_iloop, idname, arity);
 }
@@ -53,10 +50,6 @@ void Tamguint::Setidtype(TamguGlobal* global) {
 bool Tamguint::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
     
-    
-
-    Tamguint::idtype = a_int;
-
     Tamguint::AddMethod(global, "isemoji", &Tamguint::MethodIsemoji, P_NONE, "isemoji(): Test if a string only contains emoji characters");
     Tamguint::AddMethod(global, "emoji", &Tamguint::MethodEmoji, P_NONE, "emoji(): Return the textual description of an emoji");
     global->returntypes[global->Getid("emoji")] = a_string;
@@ -110,9 +103,9 @@ bool Tamguint::InitialisationModule(TamguGlobal* global, string version) {
 
 
     if (version != "") {
-        global->newInstance[Tamguint::idtype] = new Tamguint(0, global);
-        global->newInstance[a_intthrough] = global->newInstance[Tamguint::idtype];
-        global->RecordCompatibilities(Tamguint::idtype);
+        global->newInstance[a_int] = new Tamguint(0, global);
+        global->newInstance[a_intthrough] = global->newInstance[a_int];
+        global->RecordCompatibilities(a_int);
         global->RecordCompatibilities(a_intthrough);
         global->RecordCompatibilities(a_iloop);
     }

@@ -333,6 +333,11 @@ class bnf_tamgu {
     char m_parameters(string& lreturn,x_node** tree);
     char m_parameters_0_1(string& lreturn,x_node** tree);
     char m_parameters_0_1_2(string& lreturn,x_node** tree);
+    char m_aliasdeclaration(string& lreturn,x_node** tree);
+    char m_aliasdeclaration_0_1(string& lreturn,x_node** tree);
+    char m_aliasdeclaration_0_1_2(string& lreturn,x_node** tree);
+    char m_aliasdeclaration_0_3(string& lreturn,x_node** tree);
+    char m_aliasdeclaration_0_3_4(string& lreturn,x_node** tree);
     char m_blocs(string& lreturn,x_node** tree);
     char m_blocs_0_1(string& lreturn,x_node** tree);
     char m_bloc(string& lreturn,x_node** tree);
@@ -755,7 +760,6 @@ class bnf_tamgu {
     char m_hontology(string& lreturn,x_node** tree);
     char m_hontology_0_1(string& lreturn,x_node** tree);
     char m_hontology_0_1_2(string& lreturn,x_node** tree);
-    char m_hontology_0_1_2_3(string& lreturn,x_node** tree);
     char m_hconcept(string& lreturn,x_node** tree);
     char m_conceptfunction(string& lreturn,x_node** tree);
     char m_returntaskelldeclaration(string& lreturn,x_node** tree);

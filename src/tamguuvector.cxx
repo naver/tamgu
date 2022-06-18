@@ -30,18 +30,16 @@
 //We need to declare once again our local definitions.
 Exporting basebin_hash<uvectorMethod>  Tamguuvector::methods;
 
-Exporting short Tamguuvector::idtype = 0;
-
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamguuvector::AddMethod(TamguGlobal* global, string name, uvectorMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    if (global->infomethods.find(a_uvector) != global->infomethods.end() &&
+            global->infomethods[a_uvector].find(name) != global->infomethods[a_uvector].end())
     return;
 
-    global->infomethods[idtype][name] = infos;
-    global->RecordArity(idtype, idname, arity);
+    global->infomethods[a_uvector][name] = infos;
+    global->RecordArity(a_uvector, idname, arity);
 }
 
 
@@ -53,21 +51,15 @@ void Tamguuvector::AddMethod(TamguGlobal* global, string name, uvectorMethod fun
 }
 
 
-   bool Tamguuvector::InitialisationModule(TamguGlobal* global, string version) {
+bool Tamguuvector::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
     
+    Tamguuvector::AddMethod(global, "min", &Tamguuvector::MethodMin, P_NONE, "min(): returns the min in the vector.");
+    Tamguuvector::AddMethod(global, "max", &Tamguuvector::MethodMax, P_NONE, "max(): returns the max in the vector.");
+    Tamguuvector::AddMethod(global, "minmax", &Tamguuvector::MethodMinMax, P_NONE, "minmax(): returns the min and the max in the vector.");
     
-
-
-
-    Tamguuvector::idtype = a_uvector;
-
-       Tamguuvector::AddMethod(global, "min", &Tamguuvector::MethodMin, P_NONE, "min(): returns the min in the vector.");
-       Tamguuvector::AddMethod(global, "max", &Tamguuvector::MethodMax, P_NONE, "max(): returns the max in the vector.");
-       Tamguuvector::AddMethod(global, "minmax", &Tamguuvector::MethodMinMax, P_NONE, "minmax(): returns the min and the max in the vector.");
-
     Tamguuvector::AddMethod(global, "remove", &Tamguuvector::MethodRemove, P_ONE, "remove(ustring e): remove 'e' from the vector.");
-
+    
     Tamguuvector::AddMethod(global, "sum", &Tamguuvector::MethodSum, P_NONE, "sum(): concatenate the strings in the vector.");
     Tamguuvector::AddMethod(global, "reverse", &Tamguuvector::MethodReverse, P_NONE, "reverse(): reverse a vector.");
     Tamguuvector::AddMethod(global, "unique", &Tamguuvector::MethodUnique, P_NONE, "unique(): remove duplicate elements.");
@@ -88,15 +80,15 @@ void Tamguuvector::AddMethod(TamguGlobal* global, string name, uvectorMethod fun
     Tamguuvector::AddMethod(global, "read", &Tamguuvector::MethodRead, P_ONE, "read(string path): Read the content of a file into the container.");
     Tamguuvector::AddMethod(global, "write", &Tamguuvector::MethodWrite, P_ONE, "write(string path): write the string content into a file.");
     Tamguuvector::AddMethod(global, "convert", &Tamguuvector::MethodConvert, P_NONE, "convert(): detect number values and convert them into actual numbers. Return a vector object.");
-
-
-    if (version != "") {        
-    global->minimal_indexes[Tamguuvector::idtype] = true;
-
-        global->newInstance[Tamguuvector::idtype] = new Tamguuvector(global);
-        global->RecordCompatibilities(Tamguuvector::idtype);
+    
+    
+    if (version != "") {
+        global->minimal_indexes[a_uvector] = true;
+        
+        global->newInstance[a_uvector] = new Tamguuvector(global);
+        global->RecordCompatibilities(a_uvector);
     }
-
+    
     Tamgua_uvector::InitialisationModule(global, version);
     
     return true;
@@ -805,7 +797,7 @@ Exporting Tamgu* Tamguuvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
 Exporting Tamgu* Tamguuvector::same(Tamgu* a) {
     Doublelocking _lock(this, a);
 
-    if (a->Type() != idtype) {
+    if (a->Type() != a_uvector) {
         if (a->isVectorContainer()) {
             if (a->Size() != values.size())
                 return aFALSE;
@@ -1074,7 +1066,7 @@ Exporting Tamgu* Tamguuvector::Merging(Tamgu* ke) {
 
     Doublelocking _lock(this, ke);	//Three cases:
 
-    if (ke->Type() == idtype) {
+    if (ke->Type() == a_uvector) {
         Tamguuvector* kvect = (Tamguuvector*)ke;
         values.insert(values.end(), kvect->values.begin(), kvect->values.end());
         return this;

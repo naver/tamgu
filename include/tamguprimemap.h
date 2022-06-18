@@ -36,10 +36,6 @@ class Tamguprimemap : public TamguObjectLockContainer {
     //this is a static object, which is common to everyone
     //We associate the method pointers with their names in the linkedmethods map
     static Exchanging basebin_hash<primemapMethod> methods;
-    
-    
-
-    static Exchanging short idtype;
 
     //---------------------------------------------------------------------------------------------------------------------
     //This SECTION is for your specific implementation...
@@ -219,13 +215,13 @@ class Tamguprimemap : public TamguObjectLockContainer {
 
 
     void Methods(Tamgu* v) {
-            for (const auto& it : globalTamgu->infomethods[idtype])
+            for (const auto& it : globalTamgu->infomethods[a_primemap])
                  v->storevalue(it.first);
       }
 
       string Info(string n) {
-            if (globalTamgu->infomethods[idtype].find(n) !=  globalTamgu->infomethods[idtype].end())
-              return globalTamgu->infomethods[idtype][n];
+            if (globalTamgu->infomethods[a_primemap].find(n) !=  globalTamgu->infomethods[a_primemap].end())
+              return globalTamgu->infomethods[a_primemap][n];
              return "Unknown method";
     }
 
