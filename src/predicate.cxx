@@ -4299,8 +4299,29 @@ Tamgu* TamguBasePredicateVariable::Eval(Tamgu* contextualpattern, Tamgu* dom, sh
 Tamgu* TamguPredicateVariableASSIGNMENT::Eval(Tamgu* contextualpattern, Tamgu* dom, short idthread) {    
     Tamgu* var = contextualpattern->Getdico(name);
     Tamgu* value = instructions.vecteur[1]->Eval(var, aASSIGNMENT, idthread);
+    if (value->isError())
+        return value;
     
-    var->Setvalue(aNULL, value, idthread, false);
+    if (value == aNOELEMENT) {
+        var->Putvalue(aNOELEMENT, idthread);
+        return value;
+    }
+
+    //Then we might have an issue, if value is a sub element of variable...
+    //for instance: v=v[0];
+    //we need to prevent a Clear() on "variable" to delete this element...
+    value->Setprotect(true);
+
+    var = var->Put(dom, value, idthread);
+
+    value->Resetreferencenoprotect(0);
+
+    if (var->isError())
+        return var;
+
+    if (globalTamgu->isthreading)
+        globalTamgu->Triggeronfalse(var);
+    
     return aTRUE;
 }
 
@@ -4314,6 +4335,7 @@ Tamgu* TamguPredicateVariable::Eval(Tamgu* contextualpattern, Tamgu* dom, short 
     contextualpattern = dom->Declaration(predicatedico);
 
     Tamgu* val = contextualpattern->Getdico(name);
+    
     val = val->Eval(contextualpattern, dom, idthread);
     
     if (call != NULL)
