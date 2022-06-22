@@ -3442,6 +3442,7 @@ class kbpredict {
 char TamguPredicateAsVariable::setPredicateNameVariable(TamguPredicate* p, short idthread) {
     Tamgu* p_name = globalTamgu->Providestring(p->Namestring());
     predicate_name->Setvalue(aNULL, p_name, idthread, false);
+    p_name->Setreference(predicate_name->Reference());
     return storing_fact_name;
 }
 
