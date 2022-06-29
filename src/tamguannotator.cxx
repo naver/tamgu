@@ -1033,9 +1033,6 @@ Tamgu* Tamguannotator::MethodDependencies(Tamgu* contextualpattern, short idthre
     bool clear=false;
     if (callfunc->Size()==1)
         clear=callfunc->Evaluate(0,contextualpattern,idthread)->Boolean();
-
-    if (clear)
-        globalTamgu->threads[idthread].Clearknowledgebase();
     
     TamguDependency* dep;
     short idname;
@@ -1054,7 +1051,7 @@ Tamgu* Tamguannotator::MethodDependencies(Tamgu* contextualpattern, short idthre
         
         //We push it into our knowledge base...
         dep->Setreference();
-        globalTamgu->StorePredicate(aNULLDECLARATION, dep, true, idthread);
+        globalTamgu->StorePredicate(aNULLDECLARATION, dep, true);
     }
     
     return aTRUE;

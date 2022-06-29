@@ -418,16 +418,16 @@ Exporting Tamgu* Tamgua_mapfs::same(Tamgu* a) {
     atomic_string vl;
     for (it.Begin(); it.End() == aFALSE; it.Next()) {
         if (!values.check(it.first)) {
-            _cleanlockif(_lock);
+            _cleanlocktamgu(_lock);
             return aFALSE;
         }
         values.get(it.first, vl);
         if (it.second != vl) {
-            _cleanlockif(_lock);
+            _cleanlocktamgu(_lock);
             return aFALSE;
         }
     }
-    _cleanlockif(_lock);
+    _cleanlocktamgu(_lock);
     return aTRUE;
 }
 
@@ -453,7 +453,7 @@ Exporting Tamgu* Tamgua_mapfs::plus(Tamgu* b, bool itself) {
             }
         }
         itr->Release();
-        _cleanlockif(_lock);
+        _cleanlocktamgu(_lock);
         return res;
     }
     
@@ -469,7 +469,7 @@ Exporting Tamgu* Tamgua_mapfs::plus(Tamgu* b, bool itself) {
         vl = it.second.value() + v;
         values.set(it.first,  vl);
     }
-    _cleanlockif(_lock);
+    _cleanlocktamgu(_lock);
     return res;
 }
 
@@ -495,7 +495,7 @@ Exporting Tamgu* Tamgua_mapfs::minus(Tamgu* b, bool itself) {
             }
         }
         itr->Release();
-        _cleanlockif(_lock);
+        _cleanlocktamgu(_lock);
         return res;
     }
     
@@ -511,7 +511,7 @@ Exporting Tamgu* Tamgua_mapfs::minus(Tamgu* b, bool itself) {
         vl = StringMinus(it.second.value(), v);
         values.set(it.first, vl);
     }
-    _cleanlockif(_lock);
+    _cleanlocktamgu(_lock);
     return res;
 }
 
@@ -551,7 +551,7 @@ Exporting Tamgu* Tamgua_mapfs::xorset(Tamgu* b, bool itself) {
             res->values.set(a.first, a.second);
         
         
-        _cleanlockif(_lock);
+        _cleanlocktamgu(_lock);
         return res;
     }
     
@@ -567,7 +567,7 @@ Exporting Tamgu* Tamgua_mapfs::xorset(Tamgu* b, bool itself) {
         vl = StringXor(it.second.value(),v);
         values.set(it.first,  vl);
     }
-    _cleanlockif(_lock);
+    _cleanlocktamgu(_lock);
     return res;
 }
 
@@ -583,7 +583,7 @@ Exporting Tamgu* Tamgua_mapfs::orset(Tamgu* b, bool itself) {
     
     if (b->isMapContainer()) {
         res->Merging(b);
-        _cleanlockif(_lock);
+        _cleanlocktamgu(_lock);
         return res;
     }
     
@@ -594,7 +594,7 @@ Exporting Tamgu* Tamgua_mapfs::orset(Tamgu* b, bool itself) {
         vl = it.second.value() + v;
         values.set(it.first,  vl);
     }
-    _cleanlockif(_lock);
+    _cleanlocktamgu(_lock);
     return res;
 }
 
@@ -620,7 +620,7 @@ Exporting Tamgu* Tamgua_mapfs::andset(Tamgu* b, bool itself) {
             }
         }
         itr->Release();
-        _cleanlockif(_lock);
+        _cleanlocktamgu(_lock);
         return res;
     }
     
@@ -636,7 +636,7 @@ Exporting Tamgu* Tamgua_mapfs::andset(Tamgu* b, bool itself) {
         vl = StringAnd(it.second.value(),v);
         values.set(it.first,  vl);
     }
-    _cleanlockif(_lock);
+    _cleanlocktamgu(_lock);
     return res;
 }
 

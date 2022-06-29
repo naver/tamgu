@@ -402,7 +402,7 @@ Exporting Tamgu* Tamgua_mapfi::same(Tamgu* a) {
 
     Tamgua_mapfi* m = (Tamgua_mapfi*)a;
 
-    Locking* _lock = _getlockif(m);
+    Locking* _lock = _getlocktamgu(m);
     
     if (m->values.size() != values.size())
         return aFALSE;
@@ -411,21 +411,21 @@ Exporting Tamgu* Tamgua_mapfi::same(Tamgu* a) {
     long vl;
     for (it.Begin(); it.End() == aFALSE; it.Next()) {
         if (!values.check(it.first)) {
-            _cleanlockif(_lock);
+            _cleanlocktamgu(_lock);
             return aFALSE;
         }
         values.get(it.first, vl);
         if (it.second != vl) {
-            _cleanlockif(_lock);
+            _cleanlocktamgu(_lock);
             return aFALSE;
         }
     }
-    _cleanlockif(_lock);
+    _cleanlocktamgu(_lock);
     return aTRUE;
 }
 
 Exporting Tamgu* Tamgua_mapfi::xorset(Tamgu* b, bool itself) {
-    Locking* _lock = _getlockif(b);
+    Locking* _lock = _getlocktamgu(b);
 
     Tamgua_mapfi* res;
     
@@ -459,7 +459,7 @@ Exporting Tamgu* Tamgua_mapfi::xorset(Tamgu* b, bool itself) {
             res->values.set(a.first, a.second);
         
         
-        _cleanlockif(_lock);
+        _cleanlocktamgu(_lock);
         return res;
     }
     
@@ -472,12 +472,12 @@ Exporting Tamgu* Tamgua_mapfi::xorset(Tamgu* b, bool itself) {
     long v = b->Integer();
     for (it.Begin(); it.End() == aFALSE; it.Next())
         values.set(it.first, it.second ^ v);
-    _cleanlockif(_lock);
+    _cleanlocktamgu(_lock);
     return res;
 }
 
 Exporting Tamgu* Tamgua_mapfi::orset(Tamgu* b, bool itself) {
-    Locking* _lock = _getlockif(b);
+    Locking* _lock = _getlocktamgu(b);
 
     
     Tamgua_mapfi* res;
@@ -488,7 +488,7 @@ Exporting Tamgu* Tamgua_mapfi::orset(Tamgu* b, bool itself) {
     
     if (b->isMapContainer()) {
         res->Merging(b);
-        _cleanlockif(_lock);
+        _cleanlocktamgu(_lock);
         return res;
     }
     
@@ -496,12 +496,12 @@ Exporting Tamgu* Tamgua_mapfi::orset(Tamgu* b, bool itself) {
     long v = b->Integer();
     for (it.Begin(); it.End() == aFALSE; it.Next())
         values.set(it.first,  it.second | v);
-    _cleanlockif(_lock);
+    _cleanlocktamgu(_lock);
     return res;
 }
 
 Exporting Tamgu* Tamgua_mapfi::andset(Tamgu* b, bool itself) {
-    Locking* _lock = _getlockif(b);
+    Locking* _lock = _getlocktamgu(b);
 
     
     Tamgua_mapfi* res;
@@ -521,7 +521,7 @@ Exporting Tamgu* Tamgua_mapfi::andset(Tamgu* b, bool itself) {
             }
         }
         itr->Release();
-        _cleanlockif(_lock);
+        _cleanlocktamgu(_lock);
         return res;
     }
     
@@ -534,12 +534,12 @@ Exporting Tamgu* Tamgua_mapfi::andset(Tamgu* b, bool itself) {
     long v = b->Integer();
     for (it.Begin(); it.End() == aFALSE; it.Next())
         values.set(it.first, it.second & v);
-    _cleanlockif(_lock);
+    _cleanlocktamgu(_lock);
     return res;
 }
 
 Exporting Tamgu* Tamgua_mapfi::plus(Tamgu* b, bool itself) {
-    Locking* _lock = _getlockif(b);
+    Locking* _lock = _getlocktamgu(b);
 
     
     Tamgua_mapfi* res;
@@ -558,7 +558,7 @@ Exporting Tamgu* Tamgua_mapfi::plus(Tamgu* b, bool itself) {
             }
         }
         itr->Release();
-        _cleanlockif(_lock);
+        _cleanlocktamgu(_lock);
         return res;
     }
     
@@ -571,12 +571,12 @@ Exporting Tamgu* Tamgua_mapfi::plus(Tamgu* b, bool itself) {
     TamguIterationa_mapfi it(this, false);
     for (it.Begin(); it.End() == aFALSE; it.Next())
         values.set(it.first,  it.second + v);
-    _cleanlockif(_lock);
+    _cleanlocktamgu(_lock);
     return res;
 }
 
 Exporting Tamgu* Tamgua_mapfi::minus(Tamgu* b, bool itself) {
-    Locking* _lock = _getlockif(b);
+    Locking* _lock = _getlocktamgu(b);
 
     
     Tamgua_mapfi * res;
@@ -595,7 +595,7 @@ Exporting Tamgu* Tamgua_mapfi::minus(Tamgu* b, bool itself) {
             }
         }
         itr->Release();
-        _cleanlockif(_lock);
+        _cleanlocktamgu(_lock);
         return res;
     }
     
@@ -608,12 +608,12 @@ Exporting Tamgu* Tamgua_mapfi::minus(Tamgu* b, bool itself) {
     TamguIterationa_mapfi it(this, false);
     for (it.Begin(); it.End() == aFALSE; it.Next())
         values.set(it.first,  it.second - v);
-    _cleanlockif(_lock);
+    _cleanlocktamgu(_lock);
     return res;
 }
 
 Exporting Tamgu* Tamgua_mapfi::multiply(Tamgu* b, bool itself) {
-    Locking* _lock = _getlockif(b);
+    Locking* _lock = _getlocktamgu(b);
 
     
     Tamgua_mapfi * res;
@@ -632,7 +632,7 @@ Exporting Tamgu* Tamgua_mapfi::multiply(Tamgu* b, bool itself) {
             }
         }
         itr->Release();
-        _cleanlockif(_lock);
+        _cleanlocktamgu(_lock);
         return res;
     }
     
@@ -645,13 +645,13 @@ Exporting Tamgu* Tamgua_mapfi::multiply(Tamgu* b, bool itself) {
     TamguIterationa_mapfi it(this, false);
     for (it.Begin(); it.End() == aFALSE; it.Next())
         values.set(it.first,  it.second * v);
-    _cleanlockif(_lock);
+    _cleanlocktamgu(_lock);
     return res;
     
 }
 
 Exporting Tamgu* Tamgua_mapfi::divide(Tamgu* b, bool itself) {
-    Locking* _lock = _getlockif(b);
+    Locking* _lock = _getlocktamgu(b);
 
     
     Tamgua_mapfi * res;
@@ -675,7 +675,7 @@ Exporting Tamgu* Tamgua_mapfi::divide(Tamgu* b, bool itself) {
             }
         }
         itr->Release();
-        _cleanlockif(_lock);
+        _cleanlocktamgu(_lock);
         return res;
     }
     
@@ -692,13 +692,13 @@ Exporting Tamgu* Tamgua_mapfi::divide(Tamgu* b, bool itself) {
     TamguIterationa_mapfi it(this, false);
     for (it.Begin(); it.End() == aFALSE; it.Next())
         values.set(it.first,  it.second / v);
-    _cleanlockif(_lock);
+    _cleanlocktamgu(_lock);
     return res;
     
 }
 
 Exporting Tamgu* Tamgua_mapfi::mod(Tamgu* b, bool itself) {
-    Locking* _lock = _getlockif(b);
+    Locking* _lock = _getlocktamgu(b);
 
     
     Tamgua_mapfi * res;
@@ -722,7 +722,7 @@ Exporting Tamgu* Tamgua_mapfi::mod(Tamgu* b, bool itself) {
             }
         }
         itr->Release();
-        _cleanlockif(_lock);
+        _cleanlocktamgu(_lock);
         return res;
     }
     
@@ -739,12 +739,12 @@ Exporting Tamgu* Tamgua_mapfi::mod(Tamgu* b, bool itself) {
     TamguIterationa_mapfi it(this, false);
     for (it.Begin(); it.End() == aFALSE; it.Next())
         values.set(it.first, it.second % v);
-    _cleanlockif(_lock);
+    _cleanlocktamgu(_lock);
     return res;
 }
 
 Exporting Tamgu* Tamgua_mapfi::shiftright(Tamgu* b, bool itself) {
-    Locking* _lock = _getlockif(b);
+    Locking* _lock = _getlocktamgu(b);
 
     Tamgua_mapfi * res;
     if (b->isMapContainer()) {
@@ -762,7 +762,7 @@ Exporting Tamgu* Tamgua_mapfi::shiftright(Tamgu* b, bool itself) {
             }
         }
         itr->Release();
-        _cleanlockif(_lock);
+        _cleanlocktamgu(_lock);
         return res;
     }
     
@@ -775,12 +775,12 @@ Exporting Tamgu* Tamgua_mapfi::shiftright(Tamgu* b, bool itself) {
     long v = b->Integer();
     for (it.Begin(); it.End() == aFALSE; it.Next())
         values.set(it.first, it.second >> v);
-    _cleanlockif(_lock);
+    _cleanlocktamgu(_lock);
     return res;
 }
 
 Exporting Tamgu* Tamgua_mapfi::shiftleft(Tamgu* b, bool itself) {
-    Locking* _lock = _getlockif(b);
+    Locking* _lock = _getlocktamgu(b);
 
     
     Tamgua_mapfi * res;
@@ -799,7 +799,7 @@ Exporting Tamgu* Tamgua_mapfi::shiftleft(Tamgu* b, bool itself) {
             }
         }
         itr->Release();
-        _cleanlockif(_lock);
+        _cleanlocktamgu(_lock);
         return res;
     }
     
@@ -812,12 +812,12 @@ Exporting Tamgu* Tamgua_mapfi::shiftleft(Tamgu* b, bool itself) {
     long v = b->Integer();
     for (it.Begin(); it.End() == aFALSE; it.Next())
         values.set(it.first, it.second << v);
-    _cleanlockif(_lock);
+    _cleanlocktamgu(_lock);
     return res;
 }
 
 Exporting Tamgu* Tamgua_mapfi::power(Tamgu* b, bool itself) {
-    Locking* _lock = _getlockif(b);
+    Locking* _lock = _getlocktamgu(b);
 
     
     Tamgua_mapfi * res;
@@ -837,7 +837,7 @@ Exporting Tamgu* Tamgua_mapfi::power(Tamgu* b, bool itself) {
             }
         }
         itr->Release();
-        _cleanlockif(_lock);
+        _cleanlocktamgu(_lock);
         return res;
     }
     
@@ -850,7 +850,7 @@ Exporting Tamgu* Tamgua_mapfi::power(Tamgu* b, bool itself) {
     TamguIterationa_mapfi it(this, false);
     for (it.Begin(); it.End() == aFALSE; it.Next())
         values.set(it.first,  pow(it.second, v));
-    _cleanlockif(_lock);
+    _cleanlocktamgu(_lock);
     return res;
 }
 

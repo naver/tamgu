@@ -40,9 +40,8 @@
 #include "vecte.h"
 #include "tamgutaskell.h"
 #include "tamgulisp.h"
-
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2022.06.21.12";
+const char* tamgu_version = "Tamgu 1.2022.06.29.15";
 
 Tamgu* booleantamgu[2];
 
@@ -418,41 +417,18 @@ threadhandle ThreadStruct::Initialization() {
     return handle;
 }
 
-
-void ThreadStruct::Setknowledgebase() {
-    Locking* _lock = _getlock(globalTamgu->_knowledgelock);
-    if (globalTamgu->threads[0].knowledgebase.size()) {
-        long i;
-
-        hmap<short, vector<TamguPredicate*> >::iterator it;
-        string argument_key;
-        for (it = globalTamgu->threads[0].knowledgebase.begin(); it != globalTamgu->threads[0].knowledgebase.end(); it++) {
-            for (i = 0; i < it->second.size(); i++) {
-                knowledgebase[it->first].push_back(it->second[i]);
-                
-                if (it->second[i]->Stringpredicatekey(argument_key))
-                    knowledgebase_on_first[argument_key].push_back(it->second[i]);
-                
-                if (it->second[i]->Stringpredicatekeysecond(argument_key))
-                    knowledgebase_on_second[argument_key].push_back(it->second[i]);
-                
-                if (it->second[i]->Stringpredicatekeythird(argument_key))
-                    knowledgebase_on_third[argument_key].push_back(it->second[i]);
-                
-                it->second[i]->Setreference();
-            }
-        }
-    }
-    _cleanlock(_lock);
-}
-
-
-void ThreadStruct::Clearknowledgebase() {
+void TamguGlobal::Clearknowledgebase() {
     hmap<short, vector<TamguPredicate*> >::iterator itk;
+    Tamgu* k;
     for (itk = knowledgebase.begin(); itk != knowledgebase.end(); itk++) {
         for (size_t i = 0; i < itk->second.size(); i++) {
-            itk->second[i]->Setprotect(false);
-            itk->second[i]->Resetreference();
+            k = itk->second[i];
+            if (deleted_elements.find((unsigned long)k) == deleted_elements.end()) {
+                if (k->Candelete()) {
+                    deleted_elements.insert((unsigned long)k);
+                    delete k;
+                }
+            }
         }
     }
 
@@ -463,12 +439,12 @@ void ThreadStruct::Clearknowledgebase() {
 }
 
 Exporting ThreadStruct::~ThreadStruct() {
-    Clearknowledgebase();
     if (fstcompanion!=NULL)
         delete fstcompanion;
 }
 
 //----------------------------------------------------------------------------------
+
 TamguGlobal::TamguGlobal(long nb, bool setglobal) :
 idSymbols(false), methods(false), compatibilities(false), strictcompatibilities(false),
     operator_strings(false), terms(false), booleanlocks(true), tracked(NULL, true), trackerslots(-1, true) {
@@ -490,6 +466,8 @@ idSymbols(false), methods(false), compatibilities(false), strictcompatibilities(
 
         SetThreadid();
 
+        ThreadLock::ids = 10;
+
         booleanlocks[a_int] = new ThreadLock;
         booleanlocks[a_float] = new ThreadLock;
         booleanlocks[a_decimal] = new ThreadLock;
@@ -508,8 +486,6 @@ idSymbols(false), methods(false), compatibilities(false), strictcompatibilities(
         threadMODE = false;
         isthreading = false;
 
-        ThreadLock::ids = 0;
-
         maxstack = 1000;
 
         debugmode = false;
@@ -527,6 +503,7 @@ idSymbols(false), methods(false), compatibilities(false), strictcompatibilities(
 
         long i;
         for (i = 0; i < maxthreads; i++) {
+            threads[i].idthread = i;
             errors[i] = false;
             errorraised[i] = NULL;
         }
@@ -618,19 +595,25 @@ idSymbols(false), methods(false), compatibilities(false), strictcompatibilities(
         }
     }
 
-void Tamgu::Deletion() {
+void Tamgu::Deletion(std::set<unsigned long>& deleted_elements) {
     if (idtracker != -1)
         return;
 
     if (isObjectContainer()) {
+        Tamgu* k;
         TamguIteration* itr = Newiteration(true);
-        for (itr->Begin(); itr->End() == aFALSE; itr->Next())
-            itr->Value()->Deletion();
+        for (itr->Begin(); itr->End() == aFALSE; itr->Next()) {
+            k = itr->Value();
+            if (deleted_elements.find((unsigned long)k) == deleted_elements.end())
+                k->Deletion(deleted_elements);
+        }
         delete itr;
     }
 
-    if (Candelete())
+    if (Candelete()) {
+        deleted_elements.insert((unsigned long)this);
         delete this;
+    }
 }
 
 TamguGlobal::~TamguGlobal() {
@@ -668,6 +651,8 @@ TamguGlobal::~TamguGlobal() {
         if (spaces[i] != NULL)
             delete spaces[i];
     }
+
+    Clearknowledgebase();
     spaces.clear();
     tracked.clean();
 

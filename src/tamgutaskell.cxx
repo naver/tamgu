@@ -2227,7 +2227,7 @@ Tamgu* TamguGetFunction::Eval(Tamgu* context, Tamgu* c, short idthread) {
 }
 
 Tamgu* TamguGetFunctionThrough::Eval(Tamgu* context, Tamgu* callfunction, short idthread) {
-    callfunction = call->Eval(context, aNULL, idthread);
+    callfunction = function->Eval(context, aNULL, idthread);
 
     if (callfunction->isFunctionParameter())
         return callfunction->Execute(context, this, idthread);

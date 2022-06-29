@@ -2786,19 +2786,15 @@ Tamgu* TamguCode::C_regularcall(x_node* xn, Tamgu* parent) {
     if (xn->token == "predicatecall") {
 		params = "predicateparameters";
         if (name[0] == '_' && isdigit(name[1]) && name.size() == 2) {
-            idname = id;
-            if (!mainframe.isDeclared(idname)) {
-                name += "%"+currentpredicatename;
-                idname = global->Getid(name);
-                if (!global->predicatevariables.check(idname)) {
-                    var = new TamguPredicateVariable(global, idname, NULL);
-                    global->predicatevariables[idname] = var;
-                }
-                else {
-                    var = global->predicatevariables[idname];
-                }
+            name += "%"+currentpredicatename;
+            idname = global->Getid(name);
+            if (!global->predicatevariables.check(idname)) {
+                var = new TamguPredicateVariable(global, idname, NULL);
+                global->predicatevariables[idname] = var;
                 mainframe.Declare(id, var);
             }
+            else
+                var = global->predicatevariables[idname];
             id = a_universal;
         }
         else {
@@ -4779,7 +4775,13 @@ Tamgu* TamguCode::C_comparison(x_node* xn, Tamgu* kf) {
 		}
 	}
 
-	return ki;
+    if (!ki->Checkarity()) {
+        stringstream message;
+        message << "Wrong number of element in an instruction";
+        throw new TamguRaiseError(message, filename, current_start, current_end);
+    }
+    
+    return ki;
 }
 
 Tamgu* TamguCode::C_negated(x_node* xn, Tamgu* kf) {
@@ -5680,7 +5682,7 @@ Tamgu* TamguCode::C_switch(x_node* xn, Tamgu* kf) {
             throw new TamguRaiseError(message, filename, current_start, current_end);
         }
         
-        kswitch->call = func;
+        kswitch->function = func;
         if (func->Size() != 2) {
             stringstream message;
             message << "Wrong number of arguments or incompatible argument: '" << funcname << "' for 'switch'";
@@ -5692,7 +5694,7 @@ Tamgu* TamguCode::C_switch(x_node* xn, Tamgu* kf) {
     
 	for (; i < xn->nodes.size(); i++)
 		Traverse(xn->nodes[i], kswitch);
-    if (kswitch->call == NULL) {
+    if (kswitch->function == NULL) {
         bool onlybasevalue = true;
         for (i = 1; i < kswitch->instructions.size(); i += 2) {
             if (kswitch->instructions[i] == aDEFAULT)

@@ -79,12 +79,16 @@ extern localthread TamguGlobal* globalTamgu;
 extern Exchanging TamguGlobal* globalTamgu;
 #endif
 
-#define _getlockif(x) globalTamgu->threadMODE ? (x->hasLock() ? new Locking((TamguObject*)x) : NULL) : NULL
-#define _cleanlockif(x) if (x != NULL) delete x
+#define _getlocktamgu(x) globalTamgu->threadMODE ? (x->hasLock() ? new Locking((TamguObject*)x) : NULL) : NULL
+#define _cleanlocktamgu(x) if (x != NULL) delete x
 
 #define _getlock(x) globalTamgu->threadMODE ? new Locking(x) : NULL
 #define _getlocks(x,y)  globalTamgu->threadMODE ? new Doublelocking(x,y) : NULL
 #define _cleanlock(x) if (globalTamgu->threadMODE) delete x
+
+#define _getlockg(x) threadMODE ? new Locking(x) : NULL
+#define _cleanlockg(x) if (threadMODE) delete x
+
 //-----------------------------------------------------------------------
 void PrintALine(TamguGlobal* g, string s);
 //-----------------------------------------------------------------------
@@ -560,7 +564,7 @@ public:
         return true;
     }
     
-    void Deletion();
+    void Deletion(std::set<unsigned long>& deleted_elements);
     
 	virtual long Setprotect() {
 		return -1;
@@ -1725,7 +1729,7 @@ public:
             reference.store(0);
             if (!protect) {
                 if (idtracker != -1)
-                    globalTamgu->RemoveFromTracker(idtracker);
+                    globalTamgu->RemoveFromTracker(idtracker);            
                 delete this;
             }
         }
@@ -3169,10 +3173,10 @@ public:
 	Tamgu* Declaration(short id);
 	void Declare(short id, Tamgu* a);
 	bool isDeclared(short id);
-	void cleaning() {
+	void cleaning(TamguGlobal* global) {
         basebin_hash<Tamgu*>::iterator it;
         for (it = declarations.begin(); it != declarations.end(); it++) {
-            it->second->Deletion();
+            it->second->Deletion(global->deleted_elements);
         }
 	}
     
@@ -3543,6 +3547,11 @@ public:
         function = f;
         stop = function->Setstopindex();
         investigate = is_index | is_constante;
+    }
+    
+    void Setaffectation(bool b) {
+        if (function != NULL)
+            function->Setaffectation(b);
     }
     
     bool Checklegit() {

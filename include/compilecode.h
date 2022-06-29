@@ -33,7 +33,8 @@ private:
 
 
 public:
-    TamguMainFrame mainframe;
+    TamguMainFrame mainframe;    
+    
     size_t currentline;
     size_t current_start, current_end;
 
@@ -79,7 +80,7 @@ public:
 	}
 
 	~TamguCode() {
-		mainframe.cleaning();
+		mainframe.cleaning(global);
 	}
 
     void Senderror(string msg);

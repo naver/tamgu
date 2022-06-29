@@ -121,7 +121,7 @@ Tamgu* Tamguxml::Put(Tamgu* idx, Tamgu* kval, short idthread) {
 	}
 
 	if (kval->Type() != idtype) {
-		if (node != NULL && idx != NULL && !idx->isConst()) {
+		if (node != NULL && !idx->isNULL()) {
 			string att = idx->String();
 			string val = kval->String();
 			xmlSetProp(node, USTR(att), USTR(val));
@@ -137,9 +137,9 @@ Tamgu* Tamguxml::Put(Tamgu* idx, Tamgu* kval, short idthread) {
 Tamgu* Tamguxml::Eval(Tamgu* context, Tamgu* idx, short idthread) {
 	if (node == NULL)
 		return aNOELEMENT;
-	if (idx != NULL && !idx->isConst()) {
-		string att = idx->String();
-		xmlAttrPtr propriete;
+    string att = idx->String();
+	if (!idx->isNULL()) {
+ 		xmlAttrPtr propriete;
 		if (node->properties == NULL)
 			return aNOELEMENT;
 		propriete = node->properties;

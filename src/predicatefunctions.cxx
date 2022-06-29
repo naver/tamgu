@@ -19,11 +19,11 @@
 #include "tamgusynode.h"
 
 //----------------------------------------------------------------------------------------------------
-Exporting TamguPredicateVariableInstance* TamguGlobal::Providevariableinstance(short n) {
+Exporting TamguPredicateVariableInstance* TamguGlobal::Providevariableinstance(short n, short idthread) {
     if (threadMODE || Addtogarbage())
-        return new TamguPredicateVariableInstance(predicatename++, n);
+        return new TamguPredicateVariableInstance(GetName(idthread), n, idthread);
 
-    TamguPredicateVariableInstance* kvi;
+    TamguPredicateVariableInstancebuff* kvi;
     if (pviempties.last > 0) {
         kvi = pvireservoire[pviempties.backpop()];
         kvi->labelname = n;
@@ -45,11 +45,10 @@ Exporting TamguPredicateVariableInstance* TamguGlobal::Providevariableinstance(s
     }
     
     char buffer[20];
-    long sz = mx >> 2;
-    pvireservoire.resize(mx + sz);
-    pviidx = mx + sz;
+    pvireservoire.resize(2*mx);
+    pviidx = 2*mx;
     for (long i = mx; i < pviidx; i++) {
-        pvireservoire[i] = new TamguPredicateVariableInstance(i);
+        pvireservoire[i] = new TamguPredicateVariableInstancebuff(i);
         sprintf_s(buffer, 20, "&p%ld&", i);
         pvireservoire[i]->name = Getid(buffer);
     }
@@ -59,7 +58,6 @@ Exporting TamguPredicateVariableInstance* TamguGlobal::Providevariableinstance(s
     kvi->labelname = n;
     kvi->value = aNOELEMENT;
     kvi->used = true;
-    gpredicatename = symbolIds.size();
     return kvi;
 }
 
@@ -496,9 +494,6 @@ Exporting TamguPredicate* TamguPredicateMethod::Duplicate(Tamgu* context, TamguD
 
 //--------------------------------------------------------------------------------------------
 void TamguGlobal::RecordPredicateFunctions() {
-
-    gpredicatename = 0;
-    
     gpredicatezone = Getid("&p_zone&");
     gpredicatedico = Getid("&p_dico&");
     gpredicatedependency = Getid("&p_dependency&");
@@ -529,67 +524,85 @@ void TamguGlobal::RecordPredicateFunctions() {
 Tamgu* ProcPredicateDump(Tamgu* context, short idthread, TamguCall* callfunc) {
     //We display all predicates or one...
     string label;
-    hmap<short, vector<TamguPredicate*> >& knowledge = globalTamgu->threads[idthread].knowledgebase;
+    
+    Locking* _lock = _getlock(globalTamgu->_knowledgelock);
+    
+    hmap<short, vector<TamguPredicate*> >& knowledge = globalTamgu->knowledgebase;
+    
     Tamguvector* kvect = globalTamgu->Providevector();
     if (callfunc->Size() == 0) {
-
         hmap<short, vector<TamguPredicate*> >::iterator it;
         for (it = knowledge.begin(); it != knowledge.end(); it++) {
             vector<TamguPredicate*>& vect = it->second;
             for (size_t i = 0; i < vect.size(); i++)
                 kvect->Push(vect[i]);
         }
+        _cleanlock(_lock);
         return kvect;
     }
+    
     label = callfunc->Evaluate(0, context, idthread)->String();
     short name = globalTamgu->Getid(label);
-    if (knowledge.find(name) == knowledge.end())
+    if (knowledge.find(name) == knowledge.end()) {
+        _cleanlock(_lock);
         return kvect;
+    }
+    
     vector<TamguPredicate*>& vect = knowledge[name];
     for (size_t i = 0; i < vect.size(); i++)
         kvect->Push(vect[i]);
+    
+    _cleanlock(_lock);
     return kvect;
 }
 
 void RemoveAPredicate(TamguPredicate* p, short idthread) {
     string argument_key;
+    
+    Locking* _lock = _getlock(globalTamgu->_knowledgelock);
+    
     if (p->Stringpredicatekey(argument_key)) {
-        vector<TamguPredicate*>& vect = globalTamgu->threads[idthread].knowledgebase_on_first[argument_key];
+        vector<TamguPredicate*>& vect = globalTamgu->knowledgebase_on_first[argument_key];
         for (size_t i = 0; i < vect.size(); i++) {
             if (vect[i] == p) {
                 vect.erase(vect.begin() + i);
+                _cleanlock(_lock);
                 return;
             }
         }
     }
     if (p->Stringpredicatekeysecond(argument_key)) {
-        vector<TamguPredicate*>& vect = globalTamgu->threads[idthread].knowledgebase_on_second[argument_key];
+        vector<TamguPredicate*>& vect = globalTamgu->knowledgebase_on_second[argument_key];
         for (size_t i = 0; i < vect.size(); i++) {
             if (vect[i] == p) {
                 vect.erase(vect.begin() + i);
+                _cleanlock(_lock);
                 return;
             }
         }
     }
 
     if (p->Stringpredicatekeythird(argument_key)) {
-        vector<TamguPredicate*>& vect = globalTamgu->threads[idthread].knowledgebase_on_third[argument_key];
+        vector<TamguPredicate*>& vect = globalTamgu->knowledgebase_on_third[argument_key];
         for (size_t i = 0; i < vect.size(); i++) {
             if (vect[i] == p) {
                 vect.erase(vect.begin() + i);
+                _cleanlock(_lock);
                 return;
             }
         }
     }
 
+    _cleanlock(_lock);
     p->Resetreference();
 }
 
 Tamgu* ProcRetractAll(Tamgu* context, short idthread, TamguCall* callfunc) {
     //We display all predicates or one...
-    hmap<short, vector<TamguPredicate*> >& knowledge = globalTamgu->threads[idthread].knowledgebase;
+    Locking* _lock = _getlock(globalTamgu->_knowledgelock);
+    
+    hmap<short, vector<TamguPredicate*> >& knowledge = globalTamgu->knowledgebase;
     if (callfunc->Size() == 0) {
-
         hmap<short, vector<TamguPredicate*> >::iterator it;
         for (it = knowledge.begin(); it != knowledge.end(); it++) {
             vector<TamguPredicate*>& vect = it->second;
@@ -597,22 +610,27 @@ Tamgu* ProcRetractAll(Tamgu* context, short idthread, TamguCall* callfunc) {
                 vect[i]->Resetreference();
             vect.clear();
         }
-        globalTamgu->threads[idthread].knowledgebase.clear();
-        globalTamgu->threads[idthread].knowledgebase_on_first.clear();
-        globalTamgu->threads[idthread].knowledgebase_on_second.clear();
-        globalTamgu->threads[idthread].knowledgebase_on_third.clear();
+        globalTamgu->knowledgebase.clear();
+        globalTamgu->knowledgebase_on_first.clear();
+        globalTamgu->knowledgebase_on_second.clear();
+        globalTamgu->knowledgebase_on_third.clear();
+        _cleanlock(_lock);
         return aTRUE;
     }
     
     string label = callfunc->Evaluate(0, context, idthread)->String();
     short name = globalTamgu->Getid(label);
-    if (knowledge.find(name) == knowledge.end())
+    if (knowledge.find(name) == knowledge.end()) {
+        _cleanlock(_lock);
         return aFALSE;
+    }
     vector<TamguPredicate*>& vect = knowledge[name];
     string keyfirst;
     for (size_t i = 0; i < vect.size(); i++)
         RemoveAPredicate(vect[i], idthread);
     vect.clear();
+    
+    _cleanlock(_lock);
     return aTRUE;
 }
 
@@ -630,7 +648,7 @@ Tamgu* ProcPredicateRetract(Tamgu* context, short idthread, TamguCall* callfunc)
         head->parameters[i]->Setreference();
     }
 
-    if (globalTamgu->RemovePredicates(aNULLDECLARATION, head, idthread))
+    if (globalTamgu->RemovePredicates(aNULLDECLARATION, head))
         a = aTRUE;
     else
         a = aFALSE;
@@ -655,7 +673,7 @@ Tamgu* ProcPredicateAsserta(Tamgu* context, short idthread, TamguCall* callfunc)
         head->parameters[i]->Setreference();
     }
 
-    globalTamgu->StorePredicate(aNULLDECLARATION, head, false, idthread);
+    globalTamgu->StorePredicate(aNULLDECLARATION, head, false);
 
     for (i = 0; i < head->parameters.size(); i++)
         head->parameters[i]->Resetreference();
@@ -676,7 +694,7 @@ Tamgu* ProcPredicateAssertz(Tamgu* context, short idthread, TamguCall* callfunc)
         head->parameters[i]->Setreference();
     }
 
-    globalTamgu->StorePredicate(aNULLDECLARATION, head, true, idthread);
+    globalTamgu->StorePredicate(aNULLDECLARATION, head, true);
 
     for (i = 0; i < head->parameters.size(); i++)
         head->parameters[i]->Resetreference();
@@ -705,13 +723,10 @@ Tamgu* ProcDependencies(Tamgu* contextualpattern, short idthread, TamguCall* cal
     TamguPredicateFunction pv(globalTamgu, globalTamgu->predicates[a_dependency]->Function(), a_dependency);
     pv.reference = 1;
 
-    TamguInstructionEvaluate kl(globalTamgu, &pv);
-    kl.threadowner = idthread;
-
-    kl.trace = trace;
+    TamguInstructionEvaluate kl(&pv, idthread, trace, true);
 
     //Important variables...
-    globalTamgu->SetPredicateVariableFlags();
+    globalTamgu->SetPredicateVariableFlags(idthread);
 
     TamguDeclarationPredicate domain;
 
@@ -740,15 +755,13 @@ Tamgu* ProcDependencies(Tamgu* contextualpattern, short idthread, TamguCall* cal
 
     e = kl.Eval(contextualpattern, &domain, idthread);
 
+    basebin_hash<Tamgu*>::iterator it;
+    for (it = domain.declarations.begin(); it != domain.declarations.end(); it++) {
+        it->second->Resetreferencenoprotect();
+    }
+
     for (i = 0; i < pv.Size(); i++)
         pv.parameters[i]->Resetreference();
-
-    basebin_hash<Tamgu*>::iterator it;
-
-    for (it = domain.declarations.begin(); it != domain.declarations.end(); it++) {
-        it->second->Setprotect(0);
-        it->second->Resetreference();
-    }
 
     return e;
 }
@@ -776,7 +789,7 @@ void TamguGlobal::RecordPredicates() {
 
     char buffer[20];
     for (long i = 0; i < 100; i++) {
-        pvireservoire.push_back(new TamguPredicateVariableInstance(i));
+        pvireservoire.push_back(new TamguPredicateVariableInstancebuff(i));
         sprintf_s(buffer, 20, "&p%ld&", i);
         pvireservoire.back()->name = Getid(buffer);
     }

@@ -86,6 +86,7 @@ class FstCompanion;
 class TamguDoubleSideAutomaton;
 class TamguCallFibre;
 class TamguPredicateVariableInstance;
+class TamguPredicateVariableInstancebuff;
 class Tamgulisp;
 class UTF8_Handler;
 
@@ -167,11 +168,6 @@ public:
 
     std::atomic<short> nbjoined;
     
-	hmap<short, vector<TamguPredicate*> > knowledgebase;
-    hmap<string,vector<TamguPredicate*> > knowledgebase_on_first;
-    hmap<string,vector<TamguPredicate*> > knowledgebase_on_second;
-    hmap<string,vector<TamguPredicate*> > knowledgebase_on_third;
-
 	bin_hash<VECTE<Tamgu*> > variables;
 
 	string nonblockingerror;
@@ -185,6 +181,9 @@ public:
     Tamgu* currentinstruction;
 	hmap<string, ThreadLock*> locks;
 
+    short gpredicatename;
+    VECTE<short> basepredicatename;
+    
 	long parentthreads;
 	short prologstack;
 
@@ -195,10 +194,26 @@ public:
 
     FstCompanion* Companion();
     
-	inline long Size() {
+    void SetPredicateVariableFlags(short base) {
+        gpredicatename = base;
+        basepredicatename.clear();
+    }
+
+    void Returnname(short name) {
+        basepredicatename.push_back(name);
+    }
+    
+    short GetName() {
+        if (basepredicatename.last)
+            return basepredicatename.backpop();
+        gpredicatename++;
+        return gpredicatename;
+    }
+
+    inline long Size() {
 		return (prologstack + stack.size() + stacklisp.size());
 	}
-
+    
     bool pushtracked(Tamgu* a, long mx);
     
     inline bool push(Tamgu* a, long mx) {
@@ -253,28 +268,12 @@ public:
 
 	void Clear();
 	threadhandle Initialization();
-	void Clearknowledgebase();
-	void Setknowledgebase();
 
 	Tamgu* Getdefinition(short id);
     Tamgu* Declaration(short id);
 	Tamgu* Declarator(short id);
 	bool isDeclared(short id);
 	Tamgu* GetTopFrame();
-
-	bool TestPredicate(TamguDeclaration* dom, TamguPredicate* p);
-	char isaValidPredicate(TamguDeclaration* dom, TamguPredicate* p, hmap<unsigned short, vector<TamguPredicateRule*> >& rulebase);
-	bool GetPredicates(TamguDeclaration* dom, TamguPredicate* p, vector<TamguPredicate*>& res, bool cut);
-	bool StorePredicate(TamguDeclaration* dom, TamguPredicate* pv, bool last);
-	bool RemovePredicates(TamguDeclaration* dom, TamguPredicate* p);
-	bool RemoveThePredicate(TamguDeclaration* dom, TamguPredicate* p);
-
-	inline bool Checkpredicate(short name) {
-		if (name == a_universal) 
-            return knowledgebase.size();
-
-        return (knowledgebase.find(name) != knowledgebase.end());
-	}
 
 };
 
@@ -322,6 +321,7 @@ private:
 public:
 
     atomic_vector<Tamgu*> tracked;
+    std::set<unsigned long> deleted_elements;
 
     short idglobal;
 	long maxrange;
@@ -338,6 +338,10 @@ public:
     atomic_map<threadhandle, int> threadids;
     hmap<short, hmap<string, string> > infomethods;
 
+    hmap<short, vector<TamguPredicate*> > knowledgebase;
+    hmap<string,vector<TamguPredicate*> > knowledgebase_on_first;
+    hmap<string,vector<TamguPredicate*> > knowledgebase_on_second;
+    hmap<string,vector<TamguPredicate*> > knowledgebase_on_third;
 
 	//This variable is set to TRUE in thread mode... It allows then for the actual creation of locks...
     bool threadMODE;
@@ -457,7 +461,7 @@ public:
         return operator_strings.check(a);
     }
 
-	//--------------------------------
+    //--------------------------------
 	//Constant
 	Exporting Tamgu* ProvideConstint(long v);
 	Exporting Tamgu* ProvideConstfloat(double v);
@@ -465,10 +469,10 @@ public:
 
 	//--------------------------------
 	//Buffers...
-    vector<TamguPredicateVariableInstance*> pvireservoire;
+    vector<TamguPredicateVariableInstancebuff*> pvireservoire;
     VECTE<long> pviempties;
     long pviidx;
-    Exporting TamguPredicateVariableInstance* Providevariableinstance(short);
+    Exporting TamguPredicateVariableInstance* Providevariableinstance(short, short);
 
 	vector<Tamgumapssbuff*> mapssreservoire;
 	VECTE<long> mapssempties;
@@ -557,7 +561,7 @@ public:
     long slfidx;
     Exporting TamguSelf* Provideself();
     
-    bin_hash<ThreadLock*> booleanlocks;
+    hmap<short, ThreadLock*> booleanlocks;
     
     //--------------------------------
 	Tamgu* gNULL;
@@ -598,17 +602,23 @@ public:
 
     An_rules* gTheAnnotationRules;
     Au_automatons* gAutomatons;
-    
-	unsigned short gpredicatename;
-	unsigned short gpredicatedico;
-	unsigned short gpredicatezone;
-	unsigned short gpredicatedependency;
-	unsigned short gpredicatefeature;
+        
+	short gpredicatedico;
+	short gpredicatezone;
+	short gpredicatedependency;
+	short gpredicatefeature;
 
-	void SetPredicateVariableFlags() {
-		gpredicatename = symbolIds.size();
+	void SetPredicateVariableFlags(short idthread) {
+        threads[idthread].SetPredicateVariableFlags(symbolIds.size());
 	}
 
+    void Returnname(short idthread, short name) {
+        threads[idthread].Returnname(name);
+    }
+    
+    short GetName(short idthread) {
+        return threads[idthread].GetName();
+    }
 
     void Setineval(short idthread, bool v) {
         threads[idthread].in_eval = v;
@@ -679,33 +689,17 @@ public:
 		return threads[idthread].nonblockingerror;
 	}
 
-	bool TestPredicate(TamguDeclaration* dom, TamguPredicate* p, short idthread) {
-		return threads[idthread].TestPredicate(dom, p);
-	}
-	
-	char isaValidPredicate(TamguDeclaration* dom, TamguPredicate* p, hmap<unsigned short, vector<TamguPredicateRule*> >& rulebase, short idthread) {
-		return threads[idthread].isaValidPredicate(dom, p, rulebase);
-	}
-	
-	bool Checkpredicate(short name, short idthread) {
-		return threads[idthread].Checkpredicate(name);
-	}
+    //--------------------------------
+    //Predicate Functions
+    bool Checkpredicate(short name);    
+    void Clearknowledgebase();
 
-	bool GetPredicates(TamguDeclaration* dom, TamguPredicate* p, vector<TamguPredicate*>& res, bool cut, short idthread) {
-		return threads[idthread].GetPredicates(dom, p, res, cut);
-	}
-	
-	bool StorePredicate(TamguDeclaration* dom, TamguPredicate* pv, bool last, short idthread) {
-		return threads[idthread].StorePredicate(dom, pv, last);
-	}
-	
-	bool RemovePredicates(TamguDeclaration* dom, TamguPredicate* p, short idthread) {
-		return threads[idthread].RemovePredicates(dom, p);
-	}
-
-	bool RemoveThePredicate(TamguDeclaration* dom, TamguPredicate* p, short idthread) {
-		return threads[idthread].RemoveThePredicate(dom, p);
-	}
+    bool TestPredicate(TamguDeclaration* dom, TamguPredicate* p);
+    char isaValidPredicate(TamguDeclaration* dom, TamguPredicate* p, hmap<unsigned short, vector<TamguPredicateRule*> >& rulebase);
+    bool GetPredicates(TamguDeclaration* dom, TamguPredicate* p, vector<TamguPredicate*>& res, bool cut);
+    bool StorePredicate(TamguDeclaration* dom, TamguPredicate* pv, bool last);
+    bool RemovePredicates(TamguDeclaration* dom, TamguPredicate* p);
+    bool RemoveThePredicate(TamguDeclaration* dom, TamguPredicate* p);
 	
 	TamguPredicateContainer* Predicatecontainer();
 
@@ -783,6 +777,7 @@ public:
             errorraised = new TamguError*[maxthreads];
 
             for (long i = 0; i < maxthreads; i++) {
+                threads[i].idthread = i;
                 errors[i] = false;
                 errorraised[i] = NULL;
             }

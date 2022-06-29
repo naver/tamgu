@@ -1010,7 +1010,7 @@ public:
 //------------------------------------------------
 class TamguCallVariable : public TamguTracked {
 public:
-	Tamgu* call;
+	Tamgu* function;
 
 	short name;
 	short typevariable;
@@ -1019,7 +1019,7 @@ public:
 	bool forced;
     char directcall;
 	
-	TamguCallVariable(short n, short idt, TamguGlobal* g = NULL, Tamgu* parent = NULL) : directcall(false), forced(false), affectation(false), typevariable(idt), name(n), call(NULL), TamguTracked(a_variable, g, parent) {
+	TamguCallVariable(short n, short idt, TamguGlobal* g = NULL, Tamgu* parent = NULL) : directcall(false), forced(false), affectation(false), typevariable(idt), name(n), function(NULL), TamguTracked(a_variable, g, parent) {
         investigate = is_callvariable;
     }
 
@@ -1032,7 +1032,7 @@ public:
     }
 
 	virtual short Action() {
-		if (call != NULL)
+		if (function != NULL)
 			return a_none;
 		return a_variable;
 	}
@@ -1063,8 +1063,8 @@ public:
 
     void ScanVariables(vector<short>& vars) {
         vars.push_back(name);
-        if (call != NULL)
-            call->ScanVariables(vars);
+        if (function != NULL)
+            function->ScanVariables(vars);
     }
 
 	bool isFunction() {
@@ -1074,14 +1074,16 @@ public:
 	}
 
 	void AddInstruction(Tamgu* a) {
-		if (call == NULL)
-			call = a;
+		if (function == NULL)
+			function = a;
 		else
-			call->AddInstruction(a);
+			function->AddInstruction(a);
 	}
 
 	void Setaffectation(bool b) {
 		affectation = b;
+        if (function != NULL)
+            function->Setaffectation(b);
 	}
 
 	bool isAffectation() {
@@ -1100,16 +1102,16 @@ public:
 	}
 
 	short Typeinfered() {
-		if (call != NULL) {
-			if (call->isIndex() || call->isIncrement())
+		if (function != NULL) {
+			if (function->isIndex() || function->isIncrement())
 				return a_none;
-			return call->Typeinfered();
+			return function->Typeinfered();
 		}
 		return typevariable;
 	}
 
 	bool isPureCallVariable() {
-		if (call == NULL)
+		if (function == NULL)
 			return true;
 		return false;
 	}
@@ -1133,18 +1135,18 @@ public:
 	}
 
 	Tamgu* Function() {
-		return call;
+		return function;
 	}
     
     bool Setstopindex() {
-        if (call !=NULL)
-            call->Setstopindex();
+        if (function !=NULL)
+            function->Setstopindex();
         return false;
     }
 
     Tamgu* Getindex() {
-        if (call != NULL)
-            return call->Getindex();
+        if (function != NULL)
+            return function->Getindex();
         return NULL;
     }
 
@@ -1160,7 +1162,7 @@ public:
 	}
 
 	virtual long Getinteger(short idthread) {
-		if (call == NULL)
+		if (function == NULL)
 			return globalTamgu->threads[idthread].variables.get(name).back()->Integer();
 
 		Tamgu* a = Eval(aNULL, aNULL, idthread);
@@ -1170,7 +1172,7 @@ public:
 	}
 
 	virtual BLONG Getlong(short idthread) {
-		if (call == NULL)
+		if (function == NULL)
 			return globalTamgu->threads[idthread].variables.get(name).back()->Long();
 
 		Tamgu* a = Eval(aNULL, aNULL, idthread);
@@ -1180,7 +1182,7 @@ public:
 	}
 
 	virtual short Getshort(short idthread) {
-		if (call == NULL)
+		if (function == NULL)
 			return globalTamgu->threads[idthread].variables.get(name).back()->Short();
 
 		Tamgu* a = Eval(aNULL, aNULL, idthread);
@@ -1190,7 +1192,7 @@ public:
 	}
 
 	virtual float Getdecimal(short idthread) {
-		if (call == NULL)
+		if (function == NULL)
 			return globalTamgu->threads[idthread].variables.get(name).back()->Decimal();
 
 		Tamgu* a = Eval(aNULL, aNULL, idthread);
@@ -1200,7 +1202,7 @@ public:
 	}
 
 	virtual double Getfloat(short idthread) {
-		if (call == NULL)
+		if (function == NULL)
 			return globalTamgu->threads[idthread].variables.get(name).back()->Float();
 
 		Tamgu* a = Eval(aNULL, aNULL, idthread);
@@ -1210,7 +1212,7 @@ public:
 	}
 
     virtual string Getstring(short idthread) {
-        if (call == NULL)
+        if (function == NULL)
             return globalTamgu->threads[idthread].variables.get(name).back()->String();
 
         Tamgu* a = Eval(aNULL, aNULL, idthread);
@@ -1220,7 +1222,7 @@ public:
     }
 
     virtual wstring Getustring(short idthread) {
-        if (call == NULL)
+        if (function == NULL)
             return globalTamgu->threads[idthread].variables.get(name).back()->UString();
 
         Tamgu* a = Eval(aNULL, aNULL, idthread);
@@ -1230,7 +1232,7 @@ public:
     }
 
     virtual void Setstring(string& s, short idthread) {
-        if (call == NULL) {
+        if (function == NULL) {
             globalTamgu->threads[idthread].variables.get(name).back()->Setstring(s, idthread);
             return;
         }
@@ -1241,7 +1243,7 @@ public:
     }
 
     virtual void Setstring(wstring& s, short idthread) {
-        if (call == NULL) {
+        if (function == NULL) {
             globalTamgu->threads[idthread].variables.get(name).back()->Setstring(s, idthread);
             return;
         }
@@ -1459,102 +1461,102 @@ public:
 	TamguCallThis(short idt, TamguGlobal* g, Tamgu* parent) : TamguCallVariable(a_this, idt, g, parent) {}
 
     Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread) {
-        if (call == NULL)
+        if (function == NULL)
             return globalTamgu->threads[idthread].variables.get(typevariable).back();
         value = globalTamgu->threads[idthread].variables.get(typevariable).back();
-        return call->Eval(context, value, idthread);
+        return function->Eval(context, value, idthread);
     }
 
 	long Getinteger(short idthread) {
-        if (call == NULL)
+        if (function == NULL)
             return globalTamgu->threads[idthread].variables.get(typevariable).back()->Integer();
         Tamgu* value = globalTamgu->threads[idthread].variables.get(typevariable).back();
-        value = call->Eval(aNULL, value, idthread);
+        value = function->Eval(aNULL, value, idthread);
         long v = value->Integer();
         value->Release();
         return v;
 	}
 
 	BLONG Getlong(short idthread) {
-        if (call == NULL)
+        if (function == NULL)
             return globalTamgu->threads[idthread].variables.get(typevariable).back()->Long();
         Tamgu* value = globalTamgu->threads[idthread].variables.get(typevariable).back();
-        value = call->Eval(aNULL, value, idthread);
+        value = function->Eval(aNULL, value, idthread);
         BLONG v = value->Long();
         value->Release();
         return v;
 	}
 
 	short Getshort(short idthread) {
-        if (call == NULL)
+        if (function == NULL)
             return globalTamgu->threads[idthread].variables.get(typevariable).back()->Short();
         Tamgu* value = globalTamgu->threads[idthread].variables.get(typevariable).back();
-        value = call->Eval(aNULL, value, idthread);
+        value = function->Eval(aNULL, value, idthread);
         short v = value->Short();
         value->Release();
         return v;
 	}
 
 	float Getdecimal(short idthread) {
-        if (call == NULL)
+        if (function == NULL)
             return globalTamgu->threads[idthread].variables.get(typevariable).back()->Decimal();
         Tamgu* value = globalTamgu->threads[idthread].variables.get(typevariable).back();
-        value = call->Eval(aNULL, value, idthread);
+        value = function->Eval(aNULL, value, idthread);
         float v = value->Decimal();
         value->Release();
         return v;
 	}
 
 	double Getfloat(short idthread) {
-        if (call == NULL)
+        if (function == NULL)
             return globalTamgu->threads[idthread].variables.get(typevariable).back()->Float();
         Tamgu* value = globalTamgu->threads[idthread].variables.get(typevariable).back();
-        value = call->Eval(aNULL, value, idthread);
+        value = function->Eval(aNULL, value, idthread);
         double v = value->Float();
         value->Release();
         return v;
 	}
 
 	string Getstring(short idthread) {
-        if (call == NULL)
+        if (function == NULL)
             return globalTamgu->threads[idthread].variables.get(typevariable).back()->String();
         Tamgu* value = globalTamgu->threads[idthread].variables.get(typevariable).back();
-        value = call->Eval(aNULL, value, idthread);
+        value = function->Eval(aNULL, value, idthread);
         string v = value->String();
         value->Release();
         return v;
 	}
 
 	wstring Getustring(short idthread) {
-        if (call == NULL)
+        if (function == NULL)
             return globalTamgu->threads[idthread].variables.get(typevariable).back()->UString();
         Tamgu* value = globalTamgu->threads[idthread].variables.get(typevariable).back();
-        value = call->Eval(aNULL, value, idthread);
+        value = function->Eval(aNULL, value, idthread);
         wstring v = value->UString();
         value->Release();
         return v;
 	}
 
     void Setstring(string& v, short idthread) {
-        if (call == NULL) {
+        if (function == NULL) {
             globalTamgu->threads[idthread].variables.get(typevariable).back()->Setstring(v, idthread);
             return;
         }
         
         Tamgu* value = globalTamgu->threads[idthread].variables.get(typevariable).back();
-        value = call->Eval(aNULL, value, idthread);
+        value = function->Eval(aNULL, value, idthread);
         value->Setstring(v, idthread);
         value->Release();
     }
 
     void Setstring(wstring& v, short idthread) {
-        if (call == NULL) {
+        if (function == NULL) {
             globalTamgu->threads[idthread].variables.get(typevariable).back()->Setstring(v, idthread);
             return;
         }
         
         Tamgu* value = globalTamgu->threads[idthread].variables.get(typevariable).back();
-        value = call->Eval(aNULL, value, idthread);
+        value = function->Eval(aNULL, value, idthread);
         value->Setstring(v, idthread);
         value->Release();
     }
@@ -1591,7 +1593,7 @@ public:
                 return globalTamgu->Getframedefinition(frame_name, name, idthread)->Declaration(call_name)->Integer();
             case 3: {
                 Tamgu* a = globalTamgu->Getdeclaration(frame_name, idthread);
-                a = call->Eval(aNULL, a, idthread);
+                a = function->Eval(aNULL, a, idthread);
                 long v = a->Integer();
                 a->Release();
                 return v;
@@ -1599,7 +1601,7 @@ public:
             case 4:
                 return globalTamgu->Getdeclaration(frame_name, idthread)->Integer();
             case 10:
-                if (call == NULL) {
+                if (function == NULL) {
                     if (frame_name ==  name) {
                         nocall = 4;
                         return globalTamgu->Getdeclaration(frame_name, idthread)->Integer();
@@ -1608,15 +1610,15 @@ public:
                     return globalTamgu->Getframedefinition(frame_name, name, idthread)->Integer();
                 }
                 else
-                    if (call->Function() == NULL && call->isCallVariable()) {
-                        nocall = 2; call_name = call->Name();
+                    if (function->Function() == NULL && function->isCallVariable()) {
+                        nocall = 2; call_name = function->Name();
                         return globalTamgu->Getframedefinition(frame_name, name, idthread)->Declaration(call_name)->Integer();
                     }
                     else
                         if (frame_name ==  name) {
                             nocall = 3;
                             Tamgu* a = globalTamgu->Getdeclaration(frame_name, idthread);
-                            a = call->Eval(aNULL, a, idthread);
+                            a = function->Eval(aNULL, a, idthread);
                             long v = a->Integer();
                             a->Release();
                             return v;
@@ -1626,7 +1628,7 @@ public:
         }
 
         Tamgu* a = globalTamgu->Getframedefinition(frame_name, name, idthread);
-		a = call->Eval(aNULL, a, idthread);
+		a = function->Eval(aNULL, a, idthread);
 		long v = a->Integer();
 		a->Release();
 		return v;
@@ -1640,7 +1642,7 @@ public:
                 return globalTamgu->Getframedefinition(frame_name, name, idthread)->Declaration(call_name)->Long();
             case 3: {
                 Tamgu* a = globalTamgu->Getdeclaration(frame_name, idthread);
-                a = call->Eval(aNULL, a, idthread);
+                a = function->Eval(aNULL, a, idthread);
                 BLONG v = a->Long();
                 a->Release();
                 return v;
@@ -1648,7 +1650,7 @@ public:
             case 4:
                 return globalTamgu->Getdeclaration(frame_name, idthread)->Long();
             case 10:
-                if (call == NULL) {
+                if (function == NULL) {
                     if (frame_name ==  name) {
                         nocall = 4;
                         return globalTamgu->Getdeclaration(frame_name, idthread)->Long();
@@ -1656,15 +1658,15 @@ public:
                     return globalTamgu->Getframedefinition(frame_name, name, idthread)->Long();
                 }
                 else
-                    if (call->Function() == NULL && call->isCallVariable()) {
-                        nocall = 2; call_name = call->Name();
+                    if (function->Function() == NULL && function->isCallVariable()) {
+                        nocall = 2; call_name = function->Name();
                         return globalTamgu->Getframedefinition(frame_name, name, idthread)->Declaration(call_name)->Long();
                     }
                     else
                         if (frame_name ==  name) {
                             nocall = 3;
                             Tamgu* a = globalTamgu->Getdeclaration(frame_name, idthread);
-                            a = call->Eval(aNULL, a, idthread);
+                            a = function->Eval(aNULL, a, idthread);
                             BLONG v = a->Long();
                             a->Release();
                             return v;
@@ -1673,7 +1675,7 @@ public:
         }
         
         Tamgu* a = globalTamgu->Getframedefinition(frame_name, name, idthread);
-        a = call->Eval(aNULL, a, idthread);
+        a = function->Eval(aNULL, a, idthread);
         BLONG v = a->Long();
         a->Release();
         return v;
@@ -1687,7 +1689,7 @@ public:
                 return globalTamgu->Getframedefinition(frame_name, name, idthread)->Declaration(call_name)->Short();
             case 3: {
                 Tamgu* a = globalTamgu->Getdeclaration(frame_name, idthread);
-                a = call->Eval(aNULL, a, idthread);
+                a = function->Eval(aNULL, a, idthread);
                 short v = a->Short();
                 a->Release();
                 return v;
@@ -1695,7 +1697,7 @@ public:
             case 4:
                 return globalTamgu->Getdeclaration(frame_name, idthread)->Short();
             case 10:
-                if (call == NULL) {
+                if (function == NULL) {
                     if (frame_name ==  name) {
                         nocall = 4;
                         return globalTamgu->Getdeclaration(frame_name, idthread)->Short();
@@ -1703,15 +1705,15 @@ public:
                     return globalTamgu->Getframedefinition(frame_name, name, idthread)->Short();
                 }
                 else
-                    if (call->Function() == NULL && call->isCallVariable()) {
-                        nocall = 2; call_name = call->Name();
+                    if (function->Function() == NULL && function->isCallVariable()) {
+                        nocall = 2; call_name = function->Name();
                         return globalTamgu->Getframedefinition(frame_name, name, idthread)->Declaration(call_name)->Short();
                     }
                     else
                         if (frame_name ==  name) {
                             nocall = 3;
                             Tamgu* a = globalTamgu->Getdeclaration(frame_name, idthread);
-                            a = call->Eval(aNULL, a, idthread);
+                            a = function->Eval(aNULL, a, idthread);
                             short v = a->Short();
                             a->Release();
                             return v;
@@ -1719,7 +1721,7 @@ public:
                 nocall=0;
         }
 		Tamgu* a = globalTamgu->Getframedefinition(frame_name, name, idthread);
-		a = call->Eval(aNULL, a, idthread);
+		a = function->Eval(aNULL, a, idthread);
 		short v = a->Short();
 		a->Release();
 		return v;
@@ -1733,7 +1735,7 @@ public:
                 return globalTamgu->Getframedefinition(frame_name, name, idthread)->Declaration(call_name)->Decimal();
             case 3: {
                 Tamgu* a = globalTamgu->Getdeclaration(frame_name, idthread);
-                a = call->Eval(aNULL, a, idthread);
+                a = function->Eval(aNULL, a, idthread);
                 float v = a->Decimal();
                 a->Release();
                 return v;
@@ -1741,7 +1743,7 @@ public:
             case 4:
                 return globalTamgu->Getdeclaration(frame_name, idthread)->Decimal();
             case 10:
-                if (call == NULL) {
+                if (function == NULL) {
                     if (frame_name ==  name) {
                         nocall = 4;
                         return globalTamgu->Getdeclaration(frame_name, idthread)->Decimal();
@@ -1749,15 +1751,15 @@ public:
                     return globalTamgu->Getframedefinition(frame_name, name, idthread)->Decimal();
                 }
                 else
-                    if (call->Function() == NULL && call->isCallVariable()) {
-                        nocall = 2; call_name = call->Name();
+                    if (function->Function() == NULL && function->isCallVariable()) {
+                        nocall = 2; call_name = function->Name();
                         return globalTamgu->Getframedefinition(frame_name, name, idthread)->Declaration(call_name)->Decimal();
                     }
                     else
                         if (frame_name ==  name) {
                             nocall = 3;
                             Tamgu* a = globalTamgu->Getdeclaration(frame_name, idthread);
-                            a = call->Eval(aNULL, a, idthread);
+                            a = function->Eval(aNULL, a, idthread);
                             float v = a->Decimal();
                             a->Release();
                             return v;
@@ -1766,7 +1768,7 @@ public:
         }
 
 		Tamgu* a = globalTamgu->Getframedefinition(frame_name, name, idthread);
-		a = call->Eval(aNULL, a, idthread);
+		a = function->Eval(aNULL, a, idthread);
 		float v = a->Decimal();
 		a->Release();
 		return v;
@@ -1780,7 +1782,7 @@ public:
                 return globalTamgu->Getframedefinition(frame_name, name, idthread)->Declaration(call_name)->Float();
             case 3: {
                 Tamgu* a = globalTamgu->Getdeclaration(frame_name, idthread);
-                a = call->Eval(aNULL, a, idthread);
+                a = function->Eval(aNULL, a, idthread);
                 double v = a->Float();
                 a->Release();
                 return v;
@@ -1788,7 +1790,7 @@ public:
             case 4:
                 return globalTamgu->Getdeclaration(frame_name, idthread)->Float();
             case 10:
-                if (call == NULL) {
+                if (function == NULL) {
                     if (frame_name ==  name) {
                         nocall = 4;
                         return globalTamgu->Getdeclaration(frame_name, idthread)->Float();
@@ -1796,15 +1798,15 @@ public:
                     return globalTamgu->Getframedefinition(frame_name, name, idthread)->Float();
                 }
                 else
-                    if (call->Function() == NULL && call->isCallVariable()) {
-                        nocall = 2; call_name = call->Name();
+                    if (function->Function() == NULL && function->isCallVariable()) {
+                        nocall = 2; call_name = function->Name();
                         return globalTamgu->Getframedefinition(frame_name, name, idthread)->Declaration(call_name)->Float();
                     }
                     else
                         if (frame_name ==  name) {
                             nocall = 3;
                             Tamgu* a = globalTamgu->Getdeclaration(frame_name, idthread);
-                            a = call->Eval(aNULL, a, idthread);
+                            a = function->Eval(aNULL, a, idthread);
                             double v = a->Float();
                             a->Release();
                             return v;
@@ -1813,7 +1815,7 @@ public:
         }
 
 		Tamgu* a = globalTamgu->Getframedefinition(frame_name, name, idthread);
-		a = call->Eval(aNULL, a, idthread);
+		a = function->Eval(aNULL, a, idthread);
 		double v = a->Float();
 		a->Release();
 		return v;
@@ -1827,7 +1829,7 @@ public:
                 return globalTamgu->Getframedefinition(frame_name, name, idthread)->Declaration(call_name)->String();
             case 3: {
                 Tamgu* a = globalTamgu->Getdeclaration(frame_name, idthread);
-                a = call->Eval(aNULL, a, idthread);
+                a = function->Eval(aNULL, a, idthread);
                 string v = a->String();
                 a->Release();
                 return v;
@@ -1835,7 +1837,7 @@ public:
             case 4:
                 return globalTamgu->Getdeclaration(frame_name, idthread)->String();
             case 10:
-                if (call == NULL) {
+                if (function == NULL) {
                     if (frame_name ==  name) {
                         nocall = 4;
                         return globalTamgu->Getdeclaration(frame_name, idthread)->String();
@@ -1843,15 +1845,15 @@ public:
                     return globalTamgu->Getframedefinition(frame_name, name, idthread)->String();
                 }
                 else
-                    if (call->Function() == NULL && call->isCallVariable()) {
-                        nocall = 2; call_name = call->Name();
+                    if (function->Function() == NULL && function->isCallVariable()) {
+                        nocall = 2; call_name = function->Name();
                         return globalTamgu->Getframedefinition(frame_name, name, idthread)->Declaration(call_name)->String();
                     }
                     else
                         if (frame_name ==  name) {
                             nocall = 3;
                             Tamgu* a = globalTamgu->Getdeclaration(frame_name, idthread);
-                            a = call->Eval(aNULL, a, idthread);
+                            a = function->Eval(aNULL, a, idthread);
                             string v = a->String();
                             a->Release();
                             return v;
@@ -1860,7 +1862,7 @@ public:
         }
 
 		Tamgu* a = globalTamgu->Getframedefinition(frame_name, name, idthread);
-		a = call->Eval(aNULL, a, idthread);
+		a = function->Eval(aNULL, a, idthread);
 		string v = a->String();
 		a->Release();
 		return v;
@@ -1874,7 +1876,7 @@ public:
                 return globalTamgu->Getframedefinition(frame_name, name, idthread)->Declaration(call_name)->UString();
             case 3: {
                 Tamgu* a = globalTamgu->Getdeclaration(frame_name, idthread);
-                a = call->Eval(aNULL, a, idthread);
+                a = function->Eval(aNULL, a, idthread);
                 wstring v = a->UString();
                 a->Release();
                 return v;
@@ -1882,7 +1884,7 @@ public:
             case 4:
                 return globalTamgu->Getdeclaration(frame_name, idthread)->UString();
             case 10:
-                if (call == NULL) {
+                if (function == NULL) {
                     if (frame_name ==  name) {
                         nocall = 4;
                         return globalTamgu->Getdeclaration(frame_name, idthread)->UString();
@@ -1890,15 +1892,15 @@ public:
                     return globalTamgu->Getframedefinition(frame_name, name, idthread)->UString();
                 }
                 else
-                    if (call->Function() == NULL && call->isCallVariable()) {
-                        nocall = 2; call_name = call->Name();
+                    if (function->Function() == NULL && function->isCallVariable()) {
+                        nocall = 2; call_name = function->Name();
                         return globalTamgu->Getframedefinition(frame_name, name, idthread)->Declaration(call_name)->UString();
                     }
                     else
                         if (frame_name ==  name) {
                             nocall = 3;
                             Tamgu* a = globalTamgu->Getdeclaration(frame_name, idthread);
-                            a = call->Eval(aNULL, a, idthread);
+                            a = function->Eval(aNULL, a, idthread);
                             wstring v = a->UString();
                             a->Release();
                             return v;
@@ -1907,7 +1909,7 @@ public:
         }
 
 		Tamgu* a = globalTamgu->Getframedefinition(frame_name, name, idthread);
-		a = call->Eval(aNULL, a, idthread);
+		a = function->Eval(aNULL, a, idthread);
 		wstring v = a->UString();
 		a->Release();
 		return v;
@@ -1923,7 +1925,7 @@ public:
                 return;
             case 3: {
                 Tamgu* a = globalTamgu->Getdeclaration(frame_name, idthread);
-                a = call->Eval(aNULL, a, idthread);
+                a = function->Eval(aNULL, a, idthread);
                 a->Setstring(v, idthread);
                 a->Release();
                 return;
@@ -1932,7 +1934,7 @@ public:
                 globalTamgu->Getdeclaration(frame_name, idthread)->Setstring(v, idthread);
                 return;
             case 10:
-                if (call == NULL) {
+                if (function == NULL) {
                     if (frame_name ==  name) {
                         nocall = 4;
                         globalTamgu->Getdeclaration(frame_name, idthread)->Setstring(v, idthread);
@@ -1942,8 +1944,8 @@ public:
                     return;
                 }
                 else
-                    if (call->Function() == NULL && call->isCallVariable()) {
-                        nocall = 2; call_name = call->Name();
+                    if (function->Function() == NULL && function->isCallVariable()) {
+                        nocall = 2; call_name = function->Name();
                         globalTamgu->Getframedefinition(frame_name, name, idthread)->Declaration(call_name)->Setstring(v, idthread);
                         return;
                     }
@@ -1951,7 +1953,7 @@ public:
                         if (frame_name ==  name) {
                             nocall = 3;
                             Tamgu* a = globalTamgu->Getdeclaration(frame_name, idthread);
-                            a = call->Eval(aNULL, a, idthread);
+                            a = function->Eval(aNULL, a, idthread);
                             a->Setstring(v, idthread);
                             a->Release();
                             return;
@@ -1960,7 +1962,7 @@ public:
         }
 
         Tamgu* a = globalTamgu->Getframedefinition(frame_name, name, idthread);
-        a = call->Eval(aNULL, a, idthread);
+        a = function->Eval(aNULL, a, idthread);
         a->Setstring(v, idthread);
         a->Release();
     }
@@ -1975,7 +1977,7 @@ public:
                 return;
             case 3: {
                 Tamgu* a = globalTamgu->Getdeclaration(frame_name, idthread);
-                a = call->Eval(aNULL, a, idthread);
+                a = function->Eval(aNULL, a, idthread);
                 a->Setstring(v, idthread);
                 a->Release();
                 return;
@@ -1984,7 +1986,7 @@ public:
                 globalTamgu->Getdeclaration(frame_name, idthread)->Setstring(v, idthread);
                 return;
             case 10:
-                if (call == NULL) {
+                if (function == NULL) {
                     if (frame_name ==  name) {
                         nocall = 4;
                         globalTamgu->Getdeclaration(frame_name, idthread)->Setstring(v, idthread);
@@ -1994,8 +1996,8 @@ public:
                     return;
                 }
                 else
-                    if (call->Function() == NULL && call->isCallVariable()) {
-                        nocall = 2; call_name = call->Name();
+                    if (function->Function() == NULL && function->isCallVariable()) {
+                        nocall = 2; call_name = function->Name();
                         globalTamgu->Getframedefinition(frame_name, name, idthread)->Declaration(call_name)->Setstring(v, idthread);
                         return;
                     }
@@ -2003,7 +2005,7 @@ public:
                         if (frame_name ==  name) {
                             nocall = 3;
                             Tamgu* a = globalTamgu->Getdeclaration(frame_name, idthread);
-                            a = call->Eval(aNULL, a, idthread);
+                            a = function->Eval(aNULL, a, idthread);
                             a->Setstring(v, idthread);
                             a->Release();
                             return;
@@ -2012,7 +2014,7 @@ public:
         }
 
         Tamgu* a = globalTamgu->Getframedefinition(frame_name, name, idthread);
-        a = call->Eval(aNULL, a, idthread);
+        a = function->Eval(aNULL, a, idthread);
         a->Setstring(v, idthread);
         a->Release();
     }
@@ -2206,8 +2208,8 @@ public:
 	Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread) {
 		value = globalTamgu->systems[name]->value;
 
-		if (call != NULL)
-			return call->Eval(context, value, idthread);
+		if (function != NULL)
+			return function->Eval(context, value, idthread);
 
 		return value;
 	}
@@ -2219,8 +2221,8 @@ public:
 	long Getinteger(short idthread) {
 		Tamgu* value = globalTamgu->systems[name]->value;
 
-        if (call != NULL)
-			value = call->Eval(aNULL, value, idthread);
+        if (function != NULL)
+			value = function->Eval(aNULL, value, idthread);
 
 		return value->Integer();
 	}
@@ -2228,8 +2230,8 @@ public:
 	BLONG Getlong(short idthread) {
 		Tamgu* value = globalTamgu->systems[name]->value;
 
-        if (call != NULL)
-            value = call->Eval(aNULL, value, idthread);
+        if (function != NULL)
+            value = function->Eval(aNULL, value, idthread);
 
 		return value->Long();
 	}
@@ -2237,8 +2239,8 @@ public:
 	short Getshort(short idthread) {
 		Tamgu* value = globalTamgu->systems[name]->value;
 
-        if (call != NULL)
-            value = call->Eval(aNULL, value, idthread);
+        if (function != NULL)
+            value = function->Eval(aNULL, value, idthread);
 
 		return value->Short();
 	}
@@ -2246,8 +2248,8 @@ public:
 	float Getdecimal(short idthread) {
 		Tamgu* value = globalTamgu->systems[name]->value;
 
-        if (call != NULL)
-            value = call->Eval(aNULL, value, idthread);
+        if (function != NULL)
+            value = function->Eval(aNULL, value, idthread);
 
 		return value->Decimal();
 	}
@@ -2255,8 +2257,8 @@ public:
 	double Getfloat(short idthread) {
 		Tamgu* value = globalTamgu->systems[name]->value;
 
-        if (call != NULL)
-            value = call->Eval(aNULL, value, idthread);
+        if (function != NULL)
+            value = function->Eval(aNULL, value, idthread);
 
 		return value->Float();
 	}
@@ -2264,8 +2266,8 @@ public:
 	string Getstring(short idthread) {
 		Tamgu* value = globalTamgu->systems[name]->value;
 
-        if (call != NULL)
-            value = call->Eval(aNULL, value, idthread);
+        if (function != NULL)
+            value = function->Eval(aNULL, value, idthread);
 
 		return value->String();
 	}
@@ -2273,8 +2275,8 @@ public:
 	wstring Getustring(short idthread) {
 		Tamgu* value = globalTamgu->systems[name]->value;
 
-        if (call != NULL)
-            value = call->Eval(aNULL, value, idthread);
+        if (function != NULL)
+            value = function->Eval(aNULL, value, idthread);
 
 		return value->UString();
 	}
@@ -2282,8 +2284,8 @@ public:
     void Setstring(string& v, short idthread) {
         Tamgu* value = globalTamgu->systems[name]->value;
 
-        if (call != NULL)
-            value = call->Eval(aNULL, value, idthread);
+        if (function != NULL)
+            value = function->Eval(aNULL, value, idthread);
 
         value->Setstring(v, idthread);
     }
@@ -2291,8 +2293,8 @@ public:
     void Setstring(wstring& v, short idthread) {
         Tamgu* value = globalTamgu->systems[name]->value;
 
-        if (call != NULL)
-            value = call->Eval(aNULL, value, idthread);
+        if (function != NULL)
+            value = function->Eval(aNULL, value, idthread);
 
         value->Setstring(v, idthread);
     }
@@ -4780,12 +4782,12 @@ public:
 class TamguInstructionSWITCH : public TamguInstruction {
 public:
 	hmap<string, int> keys;
-    Tamgu* call;
+    Tamgu* function;
 	char usekeys;
 
 
 	TamguInstructionSWITCH(TamguGlobal* g, Tamgu* parent = NULL) : TamguInstruction(a_instructions, g, parent) {
-        call = NULL;
+        function = NULL;
 		usekeys = 0;
 	}
 

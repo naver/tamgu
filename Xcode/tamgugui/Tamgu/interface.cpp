@@ -424,16 +424,12 @@ extern "C" {
     }
     
     void Keywords(std::set<wstring>& names) {
-        bool tobecleaned=false;
         if (!TamguSelectglobal(0)) {
             TamguCreateGlobal();
-            tobecleaned=true;
         }
         
         vector<string> vs;
         TamguAllObjects(vs);
-        if (tobecleaned)
-            TamguDeleteGlobal(0);
         
         wstring w;
         for (int i = 0; i < vs.size(); i++) {

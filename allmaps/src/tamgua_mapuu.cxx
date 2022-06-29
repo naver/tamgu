@@ -427,7 +427,7 @@ Exporting Tamgu* Tamgua_mapuu::same(Tamgu* a) {
 
     Tamgua_mapuu* m = (Tamgua_mapuu*)a;
 
-    Locking* _lock = _getlockif(m);
+    Locking* _lock = _getlocktamgu(m);
     
     if (m->values.size() != values.size())
         return aFALSE;
@@ -436,21 +436,21 @@ Exporting Tamgu* Tamgua_mapuu::same(Tamgu* a) {
     atomic_wstring vl;
     for (it.Begin(); it.End() == aFALSE; it.Next()) {
         if (!values.check(it.first)) {
-            _cleanlockif(_lock);
+            _cleanlocktamgu(_lock);
             return aFALSE;
         }
         values.get(it.first, vl);
         if (it.second != vl) {
-            _cleanlockif(_lock);
+            _cleanlocktamgu(_lock);
             return aFALSE;
         }
     }
-    _cleanlockif(_lock);
+    _cleanlocktamgu(_lock);
     return aTRUE;
 }
 
 Exporting Tamgu* Tamgua_mapuu::plus(Tamgu* b, bool itself) {
-    Locking* _lock = _getlockif(b);
+    Locking* _lock = _getlocktamgu(b);
     
     
     Tamgua_mapuu* res;
@@ -470,7 +470,7 @@ Exporting Tamgu* Tamgua_mapuu::plus(Tamgu* b, bool itself) {
             }
         }
         itr->Release();
-        _cleanlockif(_lock);
+        _cleanlocktamgu(_lock);
         return res;
     }
     
@@ -483,12 +483,12 @@ Exporting Tamgu* Tamgua_mapuu::plus(Tamgu* b, bool itself) {
     TamguIterationa_mapuu it(this, false);
     for (it.Begin(); it.End() == aFALSE; it.Next())
         setvalue(it.first,  it.second.value() + v);
-    _cleanlockif(_lock);
+    _cleanlocktamgu(_lock);
     return res;
 }
 
 Exporting Tamgu* Tamgua_mapuu::minus(Tamgu* b, bool itself) {
-    Locking* _lock = _getlockif(b);
+    Locking* _lock = _getlocktamgu(b);
     
     
     Tamgua_mapuu * res;
@@ -508,7 +508,7 @@ Exporting Tamgu* Tamgua_mapuu::minus(Tamgu* b, bool itself) {
             }
         }
         itr->Release();
-        _cleanlockif(_lock);
+        _cleanlocktamgu(_lock);
         return res;
     }
     
@@ -521,13 +521,13 @@ Exporting Tamgu* Tamgua_mapuu::minus(Tamgu* b, bool itself) {
     TamguIterationa_mapuu it(this, false);
     for (it.Begin(); it.End() == aFALSE; it.Next())
         setvalue(it.first, StringMinus(it.second.value(),v));
-    _cleanlockif(_lock);
+    _cleanlocktamgu(_lock);
     return res;
 }
 
 Exporting Tamgu* Tamgua_mapuu::xorset(Tamgu* b, bool itself) {
     
-    Locking* _lock = _getlockif(b);
+    Locking* _lock = _getlocktamgu(b);
     
     Tamgua_mapuu* res;
     
@@ -561,7 +561,7 @@ Exporting Tamgu* Tamgua_mapuu::xorset(Tamgu* b, bool itself) {
             res->setvalue(a.first, a.second);
         
         
-        _cleanlockif(_lock);
+        _cleanlocktamgu(_lock);
         return res;
     }
     
@@ -574,12 +574,12 @@ Exporting Tamgu* Tamgua_mapuu::xorset(Tamgu* b, bool itself) {
     wstring v = b->UString();
     for (it.Begin(); it.End() == aFALSE; it.Next())
         setvalue(it.first,  StringXor(it.second.value(),v));
-    _cleanlockif(_lock);
+    _cleanlocktamgu(_lock);
     return res;
 }
 
 Exporting Tamgu* Tamgua_mapuu::orset(Tamgu* b, bool itself) {
-    Locking* _lock = _getlockif(b);
+    Locking* _lock = _getlocktamgu(b);
     
     
     Tamgua_mapuu* res;
@@ -590,7 +590,7 @@ Exporting Tamgu* Tamgua_mapuu::orset(Tamgu* b, bool itself) {
     
     if (b->isMapContainer()) {
         res->Merging(b);
-        _cleanlockif(_lock);
+        _cleanlocktamgu(_lock);
         return res;
     }
     
@@ -598,12 +598,12 @@ Exporting Tamgu* Tamgua_mapuu::orset(Tamgu* b, bool itself) {
     wstring v = b->UString();
     for (it.Begin(); it.End() == aFALSE; it.Next())
         setvalue(it.first,  it.second.value() + v);
-    _cleanlockif(_lock);
+    _cleanlocktamgu(_lock);
     return res;
 }
 
 Exporting Tamgu* Tamgua_mapuu::andset(Tamgu* b, bool itself) {
-    Locking* _lock = _getlockif(b);
+    Locking* _lock = _getlocktamgu(b);
     
     
     Tamgua_mapuu* res;
@@ -624,7 +624,7 @@ Exporting Tamgu* Tamgua_mapuu::andset(Tamgu* b, bool itself) {
             }
         }
         itr->Release();
-        _cleanlockif(_lock);
+        _cleanlocktamgu(_lock);
         return res;
     }
     
@@ -637,7 +637,7 @@ Exporting Tamgu* Tamgua_mapuu::andset(Tamgu* b, bool itself) {
     wstring v = b->UString();
     for (it.Begin(); it.End() == aFALSE; it.Next())
         setvalue(it.first, StringAnd(it.second.value(),v));
-    _cleanlockif(_lock);
+    _cleanlocktamgu(_lock);
     return res;
 }
 

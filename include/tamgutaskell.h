@@ -401,9 +401,9 @@ public:
 
 class TamguGetFunctionThrough : public TamguArguments {
 public:
-	Tamgu* call;
+	Tamgu* function;
 
-	TamguGetFunctionThrough(Tamgu* c, TamguGlobal* g, Tamgu* parent) : call(c), TamguArguments(c->Name(), a_call, g, parent) {}
+	TamguGetFunctionThrough(Tamgu* c, TamguGlobal* g, Tamgu* parent) : function(c), TamguArguments(c->Name(), a_call, g, parent) {}
 
 
 	Tamgu* Eval(Tamgu* context, Tamgu* callfunction, short idthread);

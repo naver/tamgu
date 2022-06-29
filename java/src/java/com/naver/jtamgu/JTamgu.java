@@ -288,6 +288,21 @@ public class JTamgu {
         return SetListLongiteratorimplementation(handler, idcode, name, args);
     }
     //------------------------------------------------------------------------
+    private native boolean SetListStringiteratorimplementation(int handler, int idcode, String name, List<String> args)
+            throws Exception;
+
+    /**
+     * Execute a Tamgu program from String
+     *
+     * @param code of the Tamgu program to execute
+     * @param args arguments as a string, where each parameter is separated with a space
+     * @return
+     * @exception Exception
+     */
+    public synchronized boolean SetListStringiterator(int handler, int idcode, String name, List<String> args) throws Exception {
+        return SetListStringiteratorimplementation(handler, idcode, name, args);
+    }
+    //------------------------------------------------------------------------
 
     private native int CleanImplementation(int handler) throws Exception;
 

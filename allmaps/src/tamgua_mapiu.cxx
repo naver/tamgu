@@ -431,7 +431,7 @@ Exporting Tamgu* Tamgua_mapiu::same(Tamgu* a) {
 
     Tamgua_mapiu* m = (Tamgua_mapiu*)a;
 
-    Locking* _lock = _getlockif(m);
+    Locking* _lock = _getlocktamgu(m);
     
     if (m->values.size() != values.size())
         return aFALSE;
@@ -440,21 +440,21 @@ Exporting Tamgu* Tamgua_mapiu::same(Tamgu* a) {
     atomic_wstring vl;
     for (it.Begin(); it.End() == aFALSE; it.Next()) {
         if (!values.check(it.first)) {
-            _cleanlockif(_lock);
+            _cleanlocktamgu(_lock);
             return aFALSE;
         }
         values.get(it.first, vl);
         if (it.second != vl) {
-            _cleanlockif(_lock);
+            _cleanlocktamgu(_lock);
             return aFALSE;
         }
     }
-    _cleanlockif(_lock);
+    _cleanlocktamgu(_lock);
     return aTRUE;
 }
 
 Exporting Tamgu* Tamgua_mapiu::plus(Tamgu* b, bool itself) {
-   Locking* _lock = _getlockif(b);
+   Locking* _lock = _getlocktamgu(b);
     
     
     Tamgua_mapiu* res;
@@ -475,7 +475,7 @@ Exporting Tamgu* Tamgua_mapiu::plus(Tamgu* b, bool itself) {
             }
         }
         itr->Release();
-        _cleanlockif(_lock);
+        _cleanlocktamgu(_lock);
         return res;
     }
     
@@ -491,12 +491,12 @@ Exporting Tamgu* Tamgua_mapiu::plus(Tamgu* b, bool itself) {
         vl = it.second.value() + v;
         values.set(it.first,  vl);
     }
-    _cleanlockif(_lock);
+    _cleanlocktamgu(_lock);
     return res;
 }
 
 Exporting Tamgu* Tamgua_mapiu::minus(Tamgu* b, bool itself) {
-   Locking* _lock = _getlockif(b);
+   Locking* _lock = _getlocktamgu(b);
     
     
     Tamgua_mapiu * res;
@@ -517,7 +517,7 @@ Exporting Tamgu* Tamgua_mapiu::minus(Tamgu* b, bool itself) {
             }
         }
         itr->Release();
-        _cleanlockif(_lock);
+        _cleanlocktamgu(_lock);
         return res;
     }
     
@@ -533,13 +533,13 @@ Exporting Tamgu* Tamgua_mapiu::minus(Tamgu* b, bool itself) {
         vl = StringMinus(it.second.value(), v);
         values.set(it.first,  vl);
     }
-    _cleanlockif(_lock);
+    _cleanlocktamgu(_lock);
     return res;
 }
 
 Exporting Tamgu* Tamgua_mapiu::xorset(Tamgu* b, bool itself) {
     
-   Locking* _lock = _getlockif(b);
+   Locking* _lock = _getlocktamgu(b);
     
     Tamgua_mapiu* res;
     
@@ -573,7 +573,7 @@ Exporting Tamgu* Tamgua_mapiu::xorset(Tamgu* b, bool itself) {
             res->values.set(a.first, a.second);
         
         
-        _cleanlockif(_lock);
+        _cleanlocktamgu(_lock);
         return res;
     }
     
@@ -589,12 +589,12 @@ Exporting Tamgu* Tamgua_mapiu::xorset(Tamgu* b, bool itself) {
         vl = StringXor(it.second.value(), v);
         values.set(it.first,  vl);
     }
-    _cleanlockif(_lock);
+    _cleanlocktamgu(_lock);
     return res;
 }
 
 Exporting Tamgu* Tamgua_mapiu::orset(Tamgu* b, bool itself) {
-   Locking* _lock = _getlockif(b);
+   Locking* _lock = _getlocktamgu(b);
     
     
     Tamgua_mapiu* res;
@@ -605,7 +605,7 @@ Exporting Tamgu* Tamgua_mapiu::orset(Tamgu* b, bool itself) {
     
     if (b->isMapContainer()) {
         res->Merging(b);
-        _cleanlockif(_lock);
+        _cleanlocktamgu(_lock);
         return res;
     }
     
@@ -616,12 +616,12 @@ Exporting Tamgu* Tamgua_mapiu::orset(Tamgu* b, bool itself) {
         vl = it.second.value() + v;
         values.set(it.first,  vl);
     }
-    _cleanlockif(_lock);
+    _cleanlocktamgu(_lock);
     return res;
 }
 
 Exporting Tamgu* Tamgua_mapiu::andset(Tamgu* b, bool itself) {
-   Locking* _lock = _getlockif(b);
+   Locking* _lock = _getlocktamgu(b);
     
     
     Tamgua_mapiu* res;
@@ -642,7 +642,7 @@ Exporting Tamgu* Tamgua_mapiu::andset(Tamgu* b, bool itself) {
             }
         }
         itr->Release();
-        _cleanlockif(_lock);
+        _cleanlocktamgu(_lock);
         return res;
     }
     
@@ -658,7 +658,7 @@ Exporting Tamgu* Tamgua_mapiu::andset(Tamgu* b, bool itself) {
         vl = StringAnd(it.second.value(), v);
         values.set(it.first,  vl);
     }
-    _cleanlockif(_lock);
+    _cleanlocktamgu(_lock);
     return res;
 }
 

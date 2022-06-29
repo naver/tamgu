@@ -1190,7 +1190,7 @@ void TraverseFrame(string& name, Tamgumap* values, Tamgu* value) {
     values->pushing(framename, attributes);
     Tamgu* localval;
     for (long l = 0; l < localvariables.size(); l++) {
-        localval = value->Declaration(localvariables[l]);
+        localval = value->Declaration(localvariables[l])->GetLetValue();
         if (localval->isFrameinstance())
             TraverseFrame(framename, attributes, localval);
         else {
@@ -1226,7 +1226,7 @@ Tamgu* ProcVariables(Tamgu* contextualpattern, short idthread, TamguCall* callfu
             }
             else {
                 t_ype = value->Type();
-                if (t_ype != a_iteration_java && t_ype != a_java_vector) {
+                if (t_ype != a_iteration_java && t_ype != a_java_vector && values != value) {
                     name = globalTamgu->Getsymbol(t_ype) + " ";
                     name += globalTamgu->Getsymbol(variables[i]);
                     values->pushing(name, value);

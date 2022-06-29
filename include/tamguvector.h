@@ -118,7 +118,8 @@ class Tamguvector : public TamguObjectLockContainer {
             Tamguvector* v = globalTamgu->Providevector();
             Tamgu* a;
             locking();
-            for (size_t i = 0; i < values.size(); i++) {
+            long sz = values.size();
+            for (long i = 0; i < sz; i++) {
                 a = values[i]->Atom(true);
                 a->Addreference(investigate,1);
                 v->values.push_back(a);

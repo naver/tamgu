@@ -2348,7 +2348,7 @@ Exporting Tamgu*  Tamguring::Put(Tamgu* idx, Tamgu* value, short idthread) {
         }
         
         if (value->Type() == a_list) {
-            Locking* _lock = _getlockif(value);
+            Locking* _lock = _getlocktamgu(value);
             
             Tamgulist* kvect = (Tamgulist*)value;
                 //We copy all values from value to this
@@ -2360,13 +2360,13 @@ Exporting Tamgu*  Tamguring::Put(Tamgu* idx, Tamgu* value, short idthread) {
                     Push(it);
             }
             
-            _cleanlockif(_lock);
+            _cleanlocktamgu(_lock);
             return aTRUE;
         }
         
         long sz = value->Size();
         if (value->isVectorContainer()) {
-            Locking* _lock = _getlockif(value);
+            Locking* _lock = _getlocktamgu(value);
             
             
                 //We copy all values from value to this
@@ -2383,7 +2383,7 @@ Exporting Tamgu*  Tamguring::Put(Tamgu* idx, Tamgu* value, short idthread) {
                 }
             }
             
-            _cleanlockif(_lock);
+            _cleanlocktamgu(_lock);
             return aTRUE;
         }
             //We gather all the keys from the MAP
@@ -2784,14 +2784,14 @@ Exporting Tamgu* Tamguring::Merging(Tamgu* ke) {
     
     
     if (ke->isVectorValueContainer()) {
-        Locking* _lock = _getlockif(ke);
+        Locking* _lock = _getlocktamgu(ke);
         Tamgu* k;
         for (long i = 0; i < ke->Size(); i++) {
             k = ke->getvalue(i);
             k->Addreference(investigate,reference+1);
             values.push_back(k);
         }
-        _cleanlockif(_lock);
+        _cleanlocktamgu(_lock);
         return this;
     }
     

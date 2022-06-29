@@ -621,7 +621,9 @@ public:
     
     bool iterate(atomic_element<K,Z>** ele, K& key, Z& val, short& indexarray, uchar& idx, BULONG& filter) {
         atomic_element<K,Z>* e = *ele;
+#ifdef INTELINTRINSICS
         unsigned long qj;
+#endif
         
         while (indexarray < basearraysize) {
             while (e) {
@@ -686,7 +688,9 @@ public:
 
     Z iteratepointer(atomic_element<K,Z>** ele, K& key, short& indexarray, uchar& idx, BULONG& filter, bool& end) {
         atomic_element<K,Z>* e = *ele;
+#ifdef INTELINTRINSICS
         unsigned long qj;
+#endif
         
         while (indexarray < basearraysize) {
             while (e) {

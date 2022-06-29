@@ -637,7 +637,9 @@ bool TamguState::factorize(TamguDoubleSideAutomaton& a, long first) {
 
 
     binuint64 filter;
+#ifdef INTELINTRINSICS
     unsigned long qj;
+#endif
     long j;
     for (i = 0; i < toberemoved.tsize; i++) {
         if (toberemoved.table[i] != NULL) {

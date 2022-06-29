@@ -1083,13 +1083,6 @@ Tamgu* Tamgustring::MethodTokenize(Tamgu* contextualpattern, short idthread, Tam
     static x_tokenize xr;
     static bool init = false;
     
-    if (!init) {
-        xr.juststack=true;
-        xr.load();
-        xr.keeprc(false);
-        init = true;
-    }
-    
     bool comma = false;
     bool separator = false;
     
@@ -1125,6 +1118,13 @@ Tamgu* Tamgustring::MethodTokenize(Tamgu* contextualpattern, short idthread, Tam
 
     Tamgu* kvect = Selectasvector(contextualpattern);
     if (!globalTamgu->threadMODE) {
+        if (!init) {
+            xr.juststack=true;
+            xr.load();
+            xr.keeprc(false);
+            init = true;
+        }
+        
         if (comma)
             xr.selectcomma(true);
         else

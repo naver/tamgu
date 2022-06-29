@@ -124,16 +124,16 @@ public:
 
 class TamguPredicateVariable : public TamguBasePredicateVariable {
 public:
-	Tamgu* call;
+	Tamgu* function;
 	bool affectation;
 
 	TamguPredicateVariable(TamguGlobal* g, short n, Tamgu* parent = NULL) : TamguBasePredicateVariable(g, n, parent) {
 		affectation = false;
-		call = NULL;
+		function = NULL;
 	}
 
 	void AddInstruction(Tamgu* a) {
-		call = a;
+		function = a;
 	}
 
 	void Setaffectation(bool v) {
@@ -154,32 +154,31 @@ public:
 	Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 
 	Tamgu* Function() {
-		return call;
+		return function;
 	}
 
 };
 
 class TamguPredicateVariableInstance : public TamguBasePredicateVariable {
 public:
-
 	Tamgu* value;
-    long idx;
 	short labelname;
+    short thread_id;
 	bool merge;
-    char used;
 
-    TamguPredicateVariableInstance(long i) : idx(i), labelname(-1), value(aNOELEMENT), merge(false), TamguBasePredicateVariable(-1), used(0) {}
-	TamguPredicateVariableInstance(short n, short ln) : idx(-1), labelname(ln), value(aNOELEMENT), merge(false), used(2), TamguBasePredicateVariable(n) {}
+    TamguPredicateVariableInstance() : thread_id(-1), labelname(-1), value(aNOELEMENT), merge(false), TamguBasePredicateVariable(-1) {}
+	TamguPredicateVariableInstance(short n, short ln, short idthread) : thread_id(idthread), labelname(ln), value(aNOELEMENT), merge(false), TamguBasePredicateVariable(n) {}
 
+    
+    ~TamguPredicateVariableInstance() {
+        if (thread_id != -1) {
+            globalTamgu->Returnname(thread_id, name);
+        }
+    }
+    
 	bool isToMerge() {
 		return merge;
 	}
-
-    bool Candelete() {
-        if (used == 2)
-            return true;
-        return false;
-    }
     
 	short Type() {
 		return a_instance;
@@ -196,7 +195,7 @@ public:
 
 
 	Tamgu* Newinstance(short idthread, Tamgu* f = NULL) {
-		return new TamguPredicateVariableInstance(name, labelname);
+		return new TamguPredicateVariableInstance(name, labelname, idthread);
 	}
 
 	bool Insertvalue(Tamgu* dom, Tamgu* v, basebin_hash<Tamgu*>&);
@@ -212,25 +211,22 @@ public:
     bool Stringpredicatekeythird(string& v) {
         return value->Stringpredicatekeythird(v);
     }
-
-    void Removereference(short inc = 1);
     
-	void Setreference(short inc) {
+	virtual void Setreference(short inc) {
 		if (value != aNOELEMENT)
 			value->Setreference(inc);
 		reference += inc;
 		protect = false;
 	}
 
-    void Setreference() {
+    virtual void Setreference() {
         if (value != aNOELEMENT)
             value->Setreference();
         ++reference;
         protect = false;
     }
 
-    void Resetreference(short inc = 1);
-	void Resetreferencenoprotect(short r = 1);
+    virtual void Resetreference(short inc = 1);
 
 	void affiche();
 
@@ -333,6 +329,39 @@ public:
 	}
 
 };
+
+class TamguPredicateVariableInstancebuff : public TamguPredicateVariableInstance {
+public:
+    long idx;
+    char used;
+
+    TamguPredicateVariableInstancebuff(long i) : idx(i) {
+        used = false;
+    }
+    
+    bool Candelete() {
+        return false;
+    }
+
+    void Resetreference(short inc = 1);
+    void Resetreferencenoprotect(short r = 1);
+    void Removereference(short inc = 1);
+  
+    void Setreference(short inc) {
+        if (value != aNOELEMENT)
+            value->Setreference(inc);
+        reference += inc;
+        protect = false;
+    }
+    
+    void Setreference() {
+        if (value != aNOELEMENT)
+            value->Setreference();
+        ++reference;
+        protect = false;
+    }
+};
+
 
 class TamguPredicateVariableInstanceForCleaning : public TamguReference {
 public:
@@ -742,7 +771,7 @@ public:
 	virtual void Setprotect(bool);
 	void Popping();
 
-	void Clear() {
+	virtual void Clear() {
 		for (long i = 0; i < parameters.size(); i++) {
 			if (!parameters[i]->isInstruction()) {
 				parameters[i]->Setprotect(0);
@@ -940,11 +969,36 @@ public:
     char setPredicateNameVariable(TamguPredicate*, short idthread);
     void resetPredicateNameVariable(short idthread);
     
+    virtual void Popping() {}
+    virtual void Setreference(short inc) {}
+    virtual void Setreference() {}
+    virtual void Resetreference(short inc = 1) {}
+    virtual void Setprotect(bool) {}
+    
+};
+
+class TamguPredicateAsVariableInstance : public TamguPredicateAsVariable {
+public:
+
+    TamguPredicateAsVariableInstance(short n, short idv) : TamguPredicateAsVariable(NULL, NULL, NULL, n, idv) {}
+    
     void Popping();
     void Setreference(short inc);
     void Setreference();
     void Resetreference(short inc = 1);
     void Setprotect(bool);
+
+    void Clear() {
+        predicate_name->Resetreference(reference);
+        for (long i = 0; i < parameters.size(); i++) {
+            if (!parameters[i]->isInstruction()) {
+                parameters[i]->Setprotect(0);
+                parameters[i]->Resetreference(reference);
+            }
+        }
+        parameters.clear();
+    }
+
 
 };
 
@@ -1230,7 +1284,7 @@ public:
 };
 
 //This is a most important class, as it contains the element which is used as a trigger to force the analyse of rules...
-class TamguInstructionEvaluate : public TamguReference {
+class TamguInstructionEvaluate : public Tamgu {
 public:
 	hmap<unsigned short, vector<TamguPredicateRule*> > rules;
 	basebin_hash<TamguPredicateVariableInstance*>* dico;	
@@ -1246,14 +1300,17 @@ public:
 
 	bool count;
 	bool trace;
+    bool dependency_mode;
 	predicatesearch fulltraversal;
 
 
-	TamguInstructionEvaluate(TamguGlobal* g, TamguPredicate* h = NULL) : results(10), TamguReference(g) {
+	TamguInstructionEvaluate(TamguPredicate* h, short idthread, bool tr, bool d_m = false) : results(10) {
+        dependency_mode = d_m;
 		fulltraversal = SEARCHONE;
+        threadowner = idthread;
 		callfunc = NULL;
 		value = aNULL;
-		trace = false;
+		trace = tr;
 		count = false;
 		headrule = NULL;
 		head = h;

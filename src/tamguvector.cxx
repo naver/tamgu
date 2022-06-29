@@ -1685,8 +1685,12 @@ Exporting Tamgu* Tamguvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short i
 
     //In this case, we must create a new vector
     kvect = globalTamgu->Providevector();
-    for (long i = ikey; i < iright; i++)
-        kvect->Push(values[i]);
+
+    for (long i = ikey; i < iright; i++) {
+        key = values[i]->Atom();
+        key->Addreference(0,1);
+        kvect->values.push_back(key);
+    }
 
     unlocking();
     return kvect;
@@ -4372,14 +4376,14 @@ Exporting Tamgu* Tamgua_vector::Merging(Tamgu* ke) {
     
 
     if (ke->isVectorValueContainer()) {
-        Locking* _lock = _getlockif(ke);
+        Locking* _lock = _getlocktamgu(ke);
         Tamgu* k;
         for (long i = 0; i < ke->Size(); i++) {
             k = ke->getvalue(i);
             k->Addreference(investigate,reference+1);
             values.push_back(k);
         }
-        _cleanlockif(_lock);
+        _cleanlocktamgu(_lock);
         return this;
     }
     

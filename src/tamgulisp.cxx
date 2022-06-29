@@ -285,7 +285,7 @@ Tamgu* Tamgulispvariable::Eval(Tamgu* a, Tamgu* v, short idthread) {
             return globalTamgu->Returnerror(msg, idthread);
         }
     }
-    return call->Eval(a, v, idthread);
+    return function->Eval(a, v, idthread);
 }
 
 

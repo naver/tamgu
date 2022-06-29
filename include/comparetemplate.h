@@ -35,6 +35,10 @@ public:
         taskellif=true;
     }
 
+    bool Checkarity() {
+        return (instructions.size() == 2);
+    }
+
     bool isPartialtest() {
         return taskellif;
     }

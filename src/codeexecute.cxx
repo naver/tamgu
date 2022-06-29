@@ -1556,10 +1556,10 @@ TamguCallTamguVariable::TamguCallTamguVariable(short n, Tamgutamgu* f, TamguGlob
 	aa(f),TamguCallVariable(n, f->Typevariable(), g, parent) {}
 
 Tamgu* TamguCallTamguVariable::Eval(Tamgu* context, Tamgu* object, short idthread) {
-    if (call->Name() ==  a_methods)
-        return aa->MethodMethods(context, idthread, (TamguCall*)call);
+    if (function->Name() ==  a_methods)
+        return aa->MethodMethods(context, idthread, (TamguCall*)function);
 
-	return aa->MethodMethod(context, idthread, (TamguCall*)call);
+	return aa->MethodMethod(context, idthread, (TamguCall*)function);
 }
 
 Exporting Tamgu* TamguCallMethod::Put(Tamgu* context, Tamgu* object, short idthread) {
@@ -2207,14 +2207,10 @@ Tamgu* TamguCallFunction2::Eval(Tamgu* domain, Tamgu* a, short idthread) {
 
     TamguFunction* bd = (TamguFunction*)body;
     
-    bool strict = false;
-    if (bd != NULL)
-        strict = bd->strict;
-    
     bool error = false;
     for (short i = 0; i < 2 && !error; i++) {
         a = arguments[i]->Eval(domain, aNULL, idthread);
-        error = ((TamguVariableDeclaration*)bd->parameters[i])->Setarguments(environment, a, idthread, strict);
+        error = ((TamguVariableDeclaration*)bd->parameters[i])->Setarguments(environment, a, idthread, bd->strict);
     }
 
     if (error) {
@@ -2403,7 +2399,7 @@ Tamgu* TamguCallFrameVariable::Put(Tamgu* context, Tamgu* value, short idthread)
         case 1:
             return globalTamgu->Getframedefinition(frame_name, name, idthread);
         case 10:
-            if (call == NULL) {
+            if (function == NULL) {
                 nocall = 1;
                 return globalTamgu->Getframedefinition(frame_name, name, idthread);
             }
@@ -2412,9 +2408,9 @@ Tamgu* TamguCallFrameVariable::Put(Tamgu* context, Tamgu* value, short idthread)
     
     value = globalTamgu->Getframedefinition(frame_name, name, idthread);
     
-    if (call->isStop())
+    if (function->isStop())
         return value;
-    return call->Put(context, value, idthread);
+    return function->Put(context, value, idthread);
 }
 
 Tamgu* TamguCallFrameVariable::Eval(Tamgu* context, Tamgu* value, short idthread) {
@@ -2425,13 +2421,13 @@ Tamgu* TamguCallFrameVariable::Eval(Tamgu* context, Tamgu* value, short idthread
             return globalTamgu->Getframedefinition(frame_name, name, idthread)->Declaration(call_name);
         case 3:
             value = globalTamgu->Getdeclaration(frame_name, idthread);
-            if (affectation && call->isStop())
+            if (affectation && function->isStop())
                 return value;
-            return call->Eval(context, value, idthread);
+            return function->Eval(context, value, idthread);
         case 4:
             return globalTamgu->Getdeclaration(frame_name, idthread);
         case 10:
-            if (call == NULL) {
+            if (function == NULL) {
                 if (frame_name ==  name) {
                     nocall = 4;
                     return globalTamgu->Getdeclaration(frame_name, idthread);
@@ -2440,26 +2436,26 @@ Tamgu* TamguCallFrameVariable::Eval(Tamgu* context, Tamgu* value, short idthread
                 return globalTamgu->Getframedefinition(frame_name, name, idthread);
             }
             else
-                if (call->Function() == NULL && call->isCallVariable()) {
-                    nocall = 2;call_name = call->Name();
+                if (function->Function() == NULL && function->isCallVariable()) {
+                    nocall = 2;call_name = function->Name();
                     return globalTamgu->Getframedefinition(frame_name, name, idthread)->Declaration(call_name);
                 }
             else
                 if (frame_name ==  name) {
                     nocall = 3;
                     value = globalTamgu->Getdeclaration(frame_name, idthread);
-                    if (affectation && call->isStop())
+                    if (affectation && function->isStop())
                         return value;
-                    return call->Eval(context, value, idthread);
+                    return function->Eval(context, value, idthread);
                 }
             nocall=0;
     }
 
     value = globalTamgu->Getframedefinition(frame_name, name, idthread);
     
-    if (affectation && call->isStop())
+    if (affectation && function->isStop())
         return value;
-    return call->Eval(context, value, idthread);
+    return function->Eval(context, value, idthread);
 }
 
 Tamgu* TamguCallFromFrameVariable::Eval(Tamgu* context, Tamgu* value, short idthread) {
@@ -2473,15 +2469,15 @@ Tamgu* TamguCallFromFrameVariable::Eval(Tamgu* context, Tamgu* value, short idth
         return globalTamgu->Returnerror(msg.str(), idthread);
     }
 
-    if (call == NULL) {
+    if (function == NULL) {
         return ((TamguframeBaseInstance*)value)->Getvariable(name);
     }
     
     value = ((TamguframeBaseInstance*)value)->Getvariable(name);
     
-    if (affectation && call->isStop())
+    if (affectation && function->isStop())
         return value;
-    return call->Eval(context, value, idthread);
+    return function->Eval(context, value, idthread);
 }
 
 Tamgu* TamguCallFromFrameVariable::Put(Tamgu* context, Tamgu* value, short idthread) {
@@ -2495,35 +2491,35 @@ Tamgu* TamguCallFromFrameVariable::Put(Tamgu* context, Tamgu* value, short idthr
         return globalTamgu->Returnerror(msg.str(), idthread);
     }
 
-    if (call == NULL)
+    if (function == NULL)
         return ((TamguframeBaseInstance*)value)->Getvariable(name);
     
     value = ((TamguframeBaseInstance*)value)->Getvariable(name);
 
-    if (call->isStop())
+    if (function->isStop())
         return value;
-    return call->Put(context, value, idthread);
+    return function->Put(context, value, idthread);
 }
 
 
 Tamgu* TamguCallThroughVariable::Eval(Tamgu* context, Tamgu* value, short idthread) {
-    if (call == NULL)
+    if (function == NULL)
         return throughvariables[sname];
 
     value = throughvariables[sname];
     if (affectation) {
-        if (call->isStop())
+        if (function->isStop())
             return value;
-        return call->Put(context, value, idthread);
+        return function->Put(context, value, idthread);
     }
-    return call->Eval(context, value, idthread);
+    return function->Eval(context, value, idthread);
 }
 
 Tamgu* TamguCallVariable::Eval(Tamgu* context, Tamgu* value, short idthread) {
     if (directcall)
         return globalTamgu->Getdeclaration(name, idthread);
 
-    if (call == NULL) {
+    if (function == NULL) {
         if (!forced) {
             directcall = true;
             return globalTamgu->Getdeclaration(name, idthread);
@@ -2537,11 +2533,11 @@ Tamgu* TamguCallVariable::Eval(Tamgu* context, Tamgu* value, short idthread) {
     value = globalTamgu->Getdeclaration(name, idthread);
     
     if (affectation) {
-        if (call->isStop())
+        if (function->isStop())
             return value;
-        return call->Put(context, value, idthread);
+        return function->Put(context, value, idthread);
     }
-    return call->Eval(context, value, idthread);
+    return function->Eval(context, value, idthread);
 }
 
 Tamgu* TamguCallGlobalVariable::Eval(Tamgu* context, Tamgu* v, short idthread) {
@@ -2559,14 +2555,14 @@ Tamgu* TamguCallGlobalVariable::Eval(Tamgu* context, Tamgu* v, short idthread) {
         first = false;
     }
 
-    if (call != NULL) {
+    if (function != NULL) {
         first = 2;
         if (affectation) {
-            if (call->isStop())
+            if (function->isStop())
                 return value;
-            return call->Put(context, value, idthread);
+            return function->Put(context, value, idthread);
         }
-        return call->Eval(context, value, idthread);
+        return function->Eval(context, value, idthread);
     }
     
     if (forced) {
@@ -2580,15 +2576,15 @@ Tamgu* TamguCallGlobalVariable::Eval(Tamgu* context, Tamgu* v, short idthread) {
 Tamgu* TamguCallConstantVariable::Eval(Tamgu* context, Tamgu* value, short idthread) {
 	value = globalTamgu->Getdeclaration(name, idthread);
 
-	if (call != NULL)
-		return call->Eval(context, value, idthread);
+	if (function != NULL)
+		return function->Eval(context, value, idthread);
 
 	value->SetConst();
 	return value;
 }
 
 Tamgu* TamguCallFunctionVariable::Eval(Tamgu* context, Tamgu* value, short idthread) {
-    if (call == NULL) {
+    if (function == NULL) {
         directcall = true;
         return globalTamgu->Getdeclaration(name, idthread);
     }
@@ -2596,11 +2592,11 @@ Tamgu* TamguCallFunctionVariable::Eval(Tamgu* context, Tamgu* value, short idthr
     value = globalTamgu->Getdeclaration(name, idthread);
     
     if (affectation) {
-        if (call->isStop())
+        if (function->isStop())
             return value;
-        return call->Put(context, value, idthread);
+        return function->Put(context, value, idthread);
     }
-    return call->Eval(context, value, idthread);
+    return function->Eval(context, value, idthread);
 }
 
 //------------------------------------------------SELF SECTION-------------------------------------
@@ -2648,15 +2644,15 @@ Tamgu* TamguCallSelfVariable::Eval(Tamgu* context, Tamgu* value, short idthread)
     
 	value = globalTamgu->Getdeclaration(name, idthread);
 
-	if (call != NULL) {
+	if (function != NULL) {
 		value = value->Value();
 
 		if (value == aNOELEMENT)
 			return globalTamgu->Returnerror("Uninitialized 'self' variable", idthread);
 
-		if (affectation && call->isStop())
+		if (affectation && function->isStop())
 			return value;
-		return call->Eval(context, value, idthread);
+		return function->Eval(context, value, idthread);
 	}
 
 	if (affectation) {
@@ -2912,7 +2908,6 @@ void AThread(TamguThreadCall* call) {
 	for (const auto& it : globalTamgu->threads[idthread].locks)
 		it.second->Unlocking();
 	globalTamgu->threads[idthread].locks.clear();
-	globalTamgu->threads[idthread].Clearknowledgebase();
 	
     if (globalTamgu->Error(idthread)) {
         if (!globalTamgu->errors[idparent] && globalTamgu->errorraised[idthread] != NULL) {
@@ -3092,7 +3087,6 @@ Tamgu* TamguCallThread::Eval(Tamgu* environment, Tamgu* value, short idthread) {
     }
     
 	//Then we copy the current knowledge base into the new thread own knowledge base as they must share it...
-	globalTamgu->threads[id].Setknowledgebase();
 
 	bool cleandom = false;
 	Tamgu* dom = main;
@@ -3564,7 +3558,7 @@ Tamgu* TamguInstructionSWITCH::Eval(Tamgu* context, Tamgu* ke, short idthread) {
 	long maxid = instructions.size();
 	Tamgu* result;
     if (usekeys == 2) {
-        TamguCallFunction2 callfunc(call);
+        TamguCallFunction2 callfunc(function);
         callfunc.arguments.push_back(var);
         callfunc.arguments.push_back(aNULL);
         

@@ -1961,8 +1961,14 @@ Exporting Tamgu* TamguGlobal::EvaluateParenthetic(string& s, string& o, string& 
     threads[idthread].message.str("");
     threads[idthread].message.clear();
 
-    if (rules.size()==0)
+    if (rules.size()==0) {
         xr.load();
+        //Normalisation: numbers are associated with 3
+        for (int i = 0; i < xr.action.size(); i++) {
+            if (xr.action[i] == 92 || xr.action[i] == 93)
+                xr.action[i] = 3;
+        }
+    }
     else {
         xr.resetrules(rules);
         xr.rules = rules;
@@ -1986,7 +1992,7 @@ Exporting Tamgu* TamguGlobal::EvaluateParenthetic(string& s, string& o, string& 
         xr.separator(true);
     else
         xr.separator(false);
-
+    
     xr.tokenize(s);
         
     bnf.initialize(&xr);
@@ -2036,8 +2042,14 @@ Exporting Tamgu* TamguGlobal::EvaluateTags(string& s, string& o, string& c, bool
     threads[idthread].message.str("");
     threads[idthread].message.clear();
 
-    if (rules.size()==0)
+    if (rules.size()==0) {
         xr.load();
+        //Normalisation: numbers are associated with 3
+        for (int i = 0; i < xr.action.size(); i++) {
+            if (xr.action[i] == 92 || xr.action[i] == 93)
+                xr.action[i] = 3;
+        }
+    }
     else {
         xr.resetrules(rules);
         xr.rules = rules;

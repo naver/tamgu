@@ -195,7 +195,6 @@ const unsigned long P_ATLEASTFIFTEEN = P_ATLEASTFOURTEEN^P_FOURTEEN;
 //--------------------------------------------------------------------------------
 const long CIRCULARDETECTION = -25;
 //--------------------------------------------------------------------------------
-#define predicatename globalTamgu->gpredicatename
 #define predicatedico globalTamgu->gpredicatedico
 #define predicatezone globalTamgu->gpredicatezone
 #define predicatedependency globalTamgu->gpredicatedependency

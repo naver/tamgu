@@ -67,15 +67,16 @@ Exporting bool TamguDeleteGlobal(int idx) {
 	if (idx <0 || idx >= globals.size() || globals[idx] == NULL)
 		return false;
 
-    bool cleanit=false;
-    if (globalTamgu == globals[idx])
-        cleanit = true;
-
-	delete globals[idx];
-	globals[idx] = NULL;
-    
-    if (cleanit)
+    if (globalTamgu == globals[idx]) {
+        globals[idx] = NULL;
+        delete globalTamgu;
         globalTamgu = NULL;
+    }
+    else {
+        TamguGlobal* g = globals[idx];
+        globals[idx] = NULL;
+        delete g;
+    }
         
  	return true;
 }

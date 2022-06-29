@@ -142,52 +142,52 @@ public:
 
 class Tamgulispvariable : public TamguReference {
 public:
-    Tamgu* call;
+    Tamgu* function;
     short name;
     
-    Tamgulispvariable(string& symb, TamguGlobal* g, Tamgu* parent) : call(NULL), TamguReference(g, parent) {
+    Tamgulispvariable(string& symb, TamguGlobal* g, Tamgu* parent) : function(NULL), TamguReference(g, parent) {
         name = g->Getid(symb);
     }
 
     void Setreference() {
-        if (call != NULL)
-            call->Setreference();
+        if (function != NULL)
+            function->Setreference();
         TamguReference::Setreference();
     }    
 
     void Setreference(short inc) {
-        if (call != NULL)
-            call->Setreference(inc);
+        if (function != NULL)
+            function->Setreference(inc);
         TamguReference::Setreference(inc);
     }
     
     void Resetreference(short inc = 1) {
-        if ((reference - inc) <= 0 && call != NULL) {
-            if (call->isIndex())
-                call->Clear();
-            call = NULL;
+        if ((reference - inc) <= 0 && function != NULL) {
+            if (function->isIndex())
+                function->Clear();
+            function = NULL;
         }
         TamguReference::Resetreference(inc);
     }
     
     void AddInstruction(Tamgu* e) {
-        call = e;
+        function = e;
     }
     
     Tamgu* Function() {
-        return call;
+        return function;
     }
 
     bool isStop() {
-        return call->isStop();
+        return function->isStop();
     }
     
     Tamgu* Getindex() {
-        return call->Getindex();
+        return function->Getindex();
     }
     
     bool Setstopindex() {
-        return call->Setstopindex();
+        return function->Setstopindex();
     }
     
     bool isCall() {
@@ -212,14 +212,14 @@ public:
         string v;
         v = '"';
         v += globalTamgu->Getsymbol(name);
-        v += call->String();
+        v += function->String();
         v += '"';
         return(v);
     }
 
     string String() {
         string v = globalTamgu->Getsymbol(name);
-        v += call->String();
+        v += function->String();
         return v;
     }
     

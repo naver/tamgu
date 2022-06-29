@@ -2122,14 +2122,14 @@ Exporting Tamgu* Tamgua_fvector::Merging(Tamgu* ke) {
     if (ke->Size() == 0)
         return this;
     
-    Locking* _dlock = _getlockif(ke);
+    Locking* _dlock = _getlocktamgu(ke);
         //Three cases:
     if (ke->isVectorContainer()) {
         Tamgua_fvector* kvect = (Tamgua_fvector*)ke;
         atomic_value_vector_iterator<double> it(kvect->values);
         for (; !it.end();it.next())
             values.push_back(it.second);
-        _cleanlockif(_dlock);
+        _cleanlocktamgu(_dlock);
         return this;
     }
     
@@ -2137,7 +2137,7 @@ Exporting Tamgu* Tamgua_fvector::Merging(Tamgu* ke) {
         Tamgufvector* kvect = (Tamgufvector*)ke;
         for (long i=0; i< kvect->values.size();i++)
             values.push_back(kvect->values[i]);
-        _cleanlockif(_dlock);
+        _cleanlocktamgu(_dlock);
         return this;
     }
     
@@ -2146,7 +2146,7 @@ Exporting Tamgu* Tamgua_fvector::Merging(Tamgu* ke) {
         values.push_back(itr->Valuefloat());
     itr->Release();
     
-    _cleanlockif(_dlock);
+    _cleanlocktamgu(_dlock);
     return this;
 }
 
