@@ -3420,7 +3420,15 @@ Tamgu* TamguCode::C_variable(x_node* xn, Tamgu* parent) {
                                 break;
                             case a_self:
                             case a_let:
-                                av = new TamguCallSelfVariable(idname, tyvar, global, parent);
+                                if (dom->isFrame()) {
+                                    a = dom->Declaration(idname);
+                                    if (parent->isCallVariable())
+                                        av = new TamguCallFromFrameVariable(a->Name(), tyvar, global, parent);
+                                    else
+                                        av = new TamguCallFrameVariable(a->Name(), (TamguFrame*)dom, tyvar, global, parent);
+                                }
+                                else
+                                    av = new TamguCallSelfVariable(idname, tyvar, global, parent);
                                 break;
                             case a_intthrough:
                             case a_longthrough:
