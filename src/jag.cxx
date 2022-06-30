@@ -57,13 +57,7 @@ string conversiontodos(char* c) {
 #include <iomanip>
 #include "jag.h"
 
-#ifdef INTELINTRINSICS
 bool check_large_char(wchar_t* src, long lensrc, long& i);
-#else
-bool check_large_char(wchar_t* src, long lensrc, long& i) {
-    return true;
-}
-#endif
 
 #ifdef WIN32
 //these methods have been implemented in tamgusys.cxx

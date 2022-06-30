@@ -962,3 +962,34 @@ JNIEXPORT jboolean JNICALL Java_com_naver_jtamgu_JTamgu_SetListDoubleiteratorimp
     displayerror(env, message);
     return false;
 }
+
+JNIEXPORT jboolean JNICALL Java_com_naver_jtamgu_JTamgu_SetListStringiteratorimplementation(JNIEnv *env, jobject obj, jint handler, jint idcode, jstring variable_name, jobject values) {
+    TamguCode* tamgucode = CheckTamgu(env, handler, idcode);
+    if (tamgucode == NULL)
+        return false;
+
+    jsize count = env->GetArrayLength((jobjectArray)values);
+
+    string str_name = jstringToString(env, variable_name);
+
+    if (idcode) {
+        str_name += "&";
+        str_name += std::to_string(idcode);
+    }
+
+    short name = globalTamgu->Getid(str_name);
+    
+    //Then we need to access the variable itself...
+    if (Checkvariable(tamgucode, idcode, name)) {
+        Tamgu* var = Getvariable(tamgucode, idcode, name);
+        JavaIterationListString* jiv = new JavaIterationListString(env, values, count);
+        TamguJavaIteration* it = new TamguJavaIteration(jiv, JavaBegin, JavaNext, JavaEnd, JavaIterator, JavaValue, JavaDelete, JavaSize, JavaGet, JavaSet);
+        var->Put(aNULL, it, 0);
+        return true;
+    }
+    
+    string message = "Could not find a Tamgu variable with that name: ";
+    message += str_name;
+    displayerror(env, message);
+    return false;
+}

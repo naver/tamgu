@@ -3636,6 +3636,16 @@ void find_quotes(unsigned char* src, long lensrc, vector<long>& pos, bool lisp) 
             pos.push_back(e);
     }
 }
+
+#define large_char 0xFFFF0000
+bool check_large_char(wchar_t* w, long sz, long& first) {
+    for (; first < sz; first++) {
+        if (w[first] & large_char)
+            return true;
+    }
+    return false;
+}
+
 #endif
 
 //------------------------------------------------------------------------
@@ -4091,6 +4101,7 @@ Exporting void clean_utf8_handler() {
 }
 
 //-----------------------------------------------------------------------------------------
+
 bool CheckNeedConversion(string& w) {
     #ifdef INTELINTRINSICS
     long first = 0;
@@ -4101,12 +4112,9 @@ bool CheckNeedConversion(string& w) {
 }
 
 bool CheckNeedConversion(wstring& w) {
-    #ifdef INTELINTRINSICS
     long first = 0;
         //we check if we have any large characters between 0 and ipos
     return check_large_char(WSTR(w), w.size(), first);
-    #endif
-    return true;
 }
 
 //We only return the emoji head, when a head is present
@@ -5652,12 +5660,10 @@ size_t size_w(wstring& w) {
 	long sz = 0;
 	long i = 0;
 
-#ifdef INTELINTRINSICS
         //we check if we have any large characters between 0 and ipos
     if (!check_large_char(WSTR(w), lg, sz))
         return lg;
 	i = sz;
-#endif
 
 	TAMGUCHAR c;
     for (; i < lg; i++) {
@@ -5676,12 +5682,11 @@ size_t size_w(wstring& w, long& first) {
     long sz = 0;
     long lg = w.size();
     long i = 0;
-#ifdef INTELINTRINSICS
-        //we check if we have any large characters between 0 and ipos
+
+    //we check if we have any large characters between 0 and ipos
     if (!check_large_char(WSTR(w), lg, sz))
         return lg;
     i = sz;
-#endif
 
 	bool long_c;
 	for (; i < lg; i++) {
@@ -5733,11 +5738,9 @@ long convertpostocharutf16(wstring& w, long first, long spos) {
 }
 
 Exporting long convertpostochar(wstring& w, long first, long spos) {
-#ifdef INTELINTRINSICS
         //we check if we have any large characters between 0 and ipos
 	if (!check_large_char(WSTR(w), w.size(), first))
         return spos;
-#endif
     
     if (spos <= first)
         return spos;
@@ -5758,11 +5761,9 @@ Exporting long convertpostochar(wstring& w, long first, long spos) {
 }
 
 Exporting long convertchartopos(wstring& w, long first, long cpos) {
-#ifdef INTELINTRINSICS
         //we check if we have any large characters between 0 and ipos
 	if (!check_large_char(WSTR(w), w.size(), first))
         return cpos;
-#endif
     
     if (cpos <= first)
         return cpos;
@@ -5813,11 +5814,9 @@ long convertchartoposraw(wstring& w, long first, long cpos) {
 
 void convertpostochar(wstring& w, vector<long>& vspos) {
     long first = 0;
-#ifdef INTELINTRINSICS
         //we check if we have any large characters between 0 and ipos
     if (!check_large_char(WSTR(w), w.size(), first))
         return;
-#endif
 
     vector<long> vcpos;
     long realpos = first;
@@ -6172,11 +6171,9 @@ Exporting void sc_latin_to_unicode(wstring& res, unsigned char* contenu, long sz
 // In this case, wstring handles UTF32 characters...
 //-----------------------------------------------------------------------------------
 Exporting long convertchartopos(wstring& w, long first, long cpos) {
-#ifdef INTELINTRINSICS
         //we check if we have any large characters between 0 and ipos
     if (!check_large_char(WSTR(w), w.size(), first))
         return cpos;
-#endif
     
     if (cpos <= first)
         return cpos;
@@ -6191,11 +6188,9 @@ Exporting long convertchartopos(wstring& w, long first, long cpos) {
 }
 
 Exporting long convertpostochar(wstring& w, long first, long spos) {
-#ifdef INTELINTRINSICS
         //we check if we have any large characters between 0 and ipos
     if (!check_large_char(WSTR(w), w.size(), first))
         return spos;
-#endif
 
     if (spos <= first)
         return spos;
@@ -6232,11 +6227,9 @@ Exporting long convertpostocharraw(wstring& w, long first, long spos) {
 
 void convertpostochar(wstring& w, vector<long>& vspos) {
     long first = 0;
-#ifdef INTELINTRINSICS
         //we check if we have any large characters between 0 and ipos
     if (!check_large_char(WSTR(w), w.size(), first))
         return;
-#endif
 
     vector<long> vcpos;
     long realpos = first;
@@ -6261,11 +6254,9 @@ void convertpostochar(wstring& w, vector<long>& vspos) {
 //We transform a character position into a position within w
 Exporting long c_char_to_pos_emoji(wstring& w, long charpos) {
     long i = 0;
-#ifdef INTELINTRINSICS
         //we check if we have any large characters between 0 and ipos
     if (!check_large_char(WSTR(w), charpos, i))
         return charpos;
-#endif
     
         //there is one in the block starting at i...
     charpos -= i;
@@ -6797,10 +6788,8 @@ Exporting long size_c(wstring& w) {
     long szr = w.size();
     long i = 0;
 
-#ifdef INTELINTRINSICS
     if (!check_large_char(WSTR(w), szr, i))
         return szr;
-#endif
     
     long sz = i;
     while (i < szr) {
@@ -6816,11 +6805,9 @@ Exporting long size_c(wstring& w, long& emoji) {
     long szr = w.size();
     long i = 0;
 
-#ifdef INTELINTRINSICS
     if (!check_large_char(WSTR(w), szr, i)) {
         return szr;
     }
-#endif
     
     long sz = i;
     while (i < szr) {
