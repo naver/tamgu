@@ -591,7 +591,7 @@ public:
             }
         }
         return res;
-}
+    }
 
 	Tamgu* mod(Tamgu* a, bool itself) {
         Tamgu* res = Calloperation(a_mod, a);
@@ -618,26 +618,6 @@ public:
         if (res == aNULL) {
             if (frame->theextensionvar) {
                 return Declaration(frame->theextensionvar)->more(a);
-            }
-        }
-        return res;
-	}
-
-	Tamgu* same(Tamgu* a) {
-        Tamgu* res = Calloperation(a_same, a);
-        if (res == aNULL) {
-            if (frame->theextensionvar) {
-                return Declaration(frame->theextensionvar)->same(a);
-            }
-        }
-        return res;
-	}
-
-	Tamgu* different(Tamgu* a) {
-        Tamgu* res = Calloperation(a_different, a);
-        if (res == aNULL) {
-            if (frame->theextensionvar) {
-                return Declaration(frame->theextensionvar)->different(a);
             }
         }
         return res;
@@ -821,6 +801,60 @@ class Tamguframemininstance : public TamguframeBaseInstance {
         unlocking();
     }
     
+    Tamgu* same(Tamgu* a) {
+        if (a == this)
+            return aTRUE;
+        
+        Tamgu* res = Calloperation(a_same, a);
+        if (res == aNULL) {
+            if (frame->theextensionvar)
+                return Declaration(frame->theextensionvar)->same(a);
+            
+            if (a->Frame() != frame)
+                return aFALSE;
+
+            locking();
+            Tamguframemininstance* tfm = (Tamguframemininstance*)a;
+            for (short i = 0; i < declarations.sz; i++) {
+                if (declarations.table[i] != NULL && declarations.table[i]->same(tfm->declarations.table[i]) == aFALSE) {
+                    unlocking();
+                    return aFALSE;
+                }
+                
+            }
+            unlocking();
+            
+            return aTRUE;
+        }
+        return res;
+    }
+
+    Tamgu* different(Tamgu* a) {
+        if (a == this)
+            return aFALSE;
+        
+        Tamgu* res = Calloperation(a_different, a);
+        if (res == aNULL) {
+            if (frame->theextensionvar)
+                return Declaration(frame->theextensionvar)->different(a);
+
+            if (a->Frame() != frame)
+                return aTRUE;
+
+            locking();
+            Tamguframemininstance* tfm = (Tamguframemininstance*)a;
+            for (short i = 0; i < declarations.sz; i++) {
+                if (declarations.table[i] != NULL && declarations.table[i]->same(tfm->declarations.table[i]) == aFALSE) {
+                    unlocking();
+                    return aTRUE;
+                }                
+            }
+            unlocking();
+            
+            return aFALSE;
+        }
+        return res;
+    }
 };
 
 
@@ -965,6 +999,60 @@ class Tamguframeinstance : public TamguframeBaseInstance {
         for (short i = 0; i < declarations.last; i++)
             declarations.vecteur[i]->Popping();
         unlocking();
+    }
+    
+    Tamgu* same(Tamgu* a) {
+        if (a == this)
+            return aTRUE;
+        
+        Tamgu* res = Calloperation(a_same, a);
+        if (res == aNULL) {
+            if (frame->theextensionvar)
+                return Declaration(frame->theextensionvar)->same(a);
+
+            if (a->Frame() != frame)
+                return aFALSE;
+            
+            Tamguframeinstance* tfm = (Tamguframeinstance*)a;
+            for (short i = 0; i < declarations.last; i++) {
+                if (declarations.vecteur[i] != NULL && declarations.vecteur[i]->same(tfm->declarations.vecteur[i]) == aFALSE) {
+                    unlocking();
+                    return aFALSE;
+                }
+                
+            }
+            unlocking();
+            return aTRUE;
+        }
+        return res;
+    }
+
+    Tamgu* different(Tamgu* a) {
+        if (a == this)
+            return aFALSE;
+        
+        Tamgu* res = Calloperation(a_different, a);
+        if (res == aNULL) {
+            if (frame->theextensionvar)
+                return Declaration(frame->theextensionvar)->different(a);
+            
+            if (a->Frame() != frame)
+                return aTRUE;
+            
+            locking();
+            
+            Tamguframeinstance* tfm = (Tamguframeinstance*)a;
+            for (short i = 0; i < declarations.last; i++) {
+                if (declarations.vecteur[i] != NULL && declarations.vecteur[i]->same(tfm->declarations.vecteur[i]) == aFALSE) {
+                    unlocking();
+                    return aTRUE;
+                }
+                
+            }
+            unlocking();
+            return aFALSE;
+        }
+        return res;
     }
     
 };
