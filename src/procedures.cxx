@@ -45,6 +45,7 @@
 #include "tamguframeinstance.h"
 #include "tamgumapsi.h"
 #include "x_tokenize.h"
+#include "codeparse.h"
 
 #ifdef UNIX
 #include <sys/time.h>
@@ -1095,6 +1096,119 @@ Tamgu* ProcLoadin(Tamgu* domain, short idthread, TamguCall* callfunc) {
     }
     return aTRUE;
 }
+
+
+Tamgu* ProcLoadfacts(Tamgu* domain, short idthread, TamguCall* callfunc) {
+
+    string filename = callfunc->Evaluate(0, domain, idthread)->String();
+    //It has already been loaded once for all...
+    for (int i = 0; i < globalTamgu->filenames.size(); i++) {
+        if (globalTamgu->filenames[i] == filename)
+            return aTRUE;
+    }
+
+    string code;
+    ifstream file(filename, openMode);
+    if (file.fail()) {
+        stringstream message;
+        message << "Cannot open file: " << filename;
+        TamguError* err = new TamguError(message.str());
+        return err;
+    }
+
+    string line;
+    char c = file.get();
+    if (!file.eof()) {
+        do {
+            code += c;
+            c = file.get();
+
+        } while (!file.eof());
+    }
+
+    file.close();
+
+    //We will store our content into the current code space
+    TamguCode* acode = globalTamgu->Getcurrentcode();
+
+    //A loadin takes place into the loading of another file, whose index we save
+    short id = acode->currentfileid;
+    string currentfilename = acode->filename;
+    //Our new filename is pushed into the current code space
+    acode->SetFilename(filename);
+    //We protect the current parse tree
+    bnf_tamgu* current = globalTamgu->currentbnf;
+
+    x_reading xr;
+    bnf_tamgu bnf;
+
+    xr.tokenize(code);
+    x_node* xn = new x_node;
+
+    bnf.baseline = globalTamgu->linereference;
+    bnf.initialize(&xr);
+    string lret;
+    
+    if (bnf.m_facts(lret, &xn) != 1 || bnf.currentpos != xr.stack.size()) {
+        delete xn;
+        cerr << " in " << filename << endl;
+        stringstream& message = globalTamgu->threads[0].message;
+        globalTamgu->lineerror = bnf.lineerror;
+        acode->currentline = globalTamgu->lineerror;
+        message << "Error while parsing program file: ";
+        if (bnf.errornumber != -1)
+            message << bnf.x_errormsg(bnf.errornumber);
+        else
+            message << bnf.labelerror;
+        
+       return globalTamgu->Returnerror(message.str(), globalTamgu->GetThreadid());
+    }
+    
+    globalTamgu->currentbnf = &bnf;
+    
+    size_t previousfirstinstruction = acode->firstinstruction;
+
+    globalTamgu->Pushstack(&acode->mainframe);
+    try {
+        for (long i = 0; i < xn->nodes.size(); i++)
+            acode->C_rawfact(xn->nodes[i], &acode->mainframe);
+    }
+    catch (TamguRaiseError* a) {
+        globalTamgu->threads[0].currentinstruction = NULL;
+        globalTamgu->lineerror = a->left;
+        globalTamgu->threads[0].message.str("");
+        globalTamgu->threads[0].message.clear();
+        globalTamgu->threads[0].message << a->message;
+        if (a->message.find(a->filename) == string::npos)
+            globalTamgu->threads[0].message << " in " << a->filename;
+        
+        if (globalTamgu->errorraised[0] == NULL)
+            globalTamgu->errorraised[0] = new TamguError(globalTamgu->threads[0].message.str());
+        else
+            globalTamgu->errorraised[0]->error = globalTamgu->threads[0].message.str();
+        
+        globalTamgu->errors[0] = true;
+        TamguCode* c = globalTamgu->Getcurrentcode();
+        if (c->filename != a->filename)
+            c->filename = a->filename;
+        delete a;
+        delete xn;
+        globalTamgu->Popstack();
+        return aFALSE;
+    }
+    
+    globalTamgu->Popstack();
+    
+    acode->firstinstruction = previousfirstinstruction;
+    globalTamgu->currentbnf = current;
+    //and we put back the current filename id...
+    acode->currentfileid = id;
+    acode->filename = currentfilename;
+
+    delete xn;
+    return aTRUE;
+}
+
 //------------------------------------------------------------------------------------------------------------------------
 Tamgu* ProcEvalFunction(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     if (globalTamgu->threadMODE)
@@ -2910,6 +3024,7 @@ Exporting void TamguGlobal::RecordProcedures() {
     systemfunctions["_setmaxrange"] = true;
     systemfunctions["use"] = true;
     systemfunctions["loadin"] = true;
+    systemfunctions["loadfacts"] = true;
     systemfunctions["_setvalidfeatures"] = true;
     systemfunctions["grammar_macros"] = true;
 
@@ -2974,7 +3089,8 @@ Exporting void TamguGlobal::RecordProcedures() {
     RecordOneProcedure("nope", ProcNope, P_NONE);
     RecordOneProcedure("use", ProcUse, P_ONE);
     RecordOneProcedure("loadin", ProcLoadin, P_ONE);
-
+    RecordOneProcedure("loadfacts", ProcLoadfacts, P_ONE);
+    
     RecordOneProcedure("allobjects", ProcAllObjects, P_NONE);
     RecordOneProcedure("allobjectsbytype", ProcAllObjectByType, P_NONE);
     

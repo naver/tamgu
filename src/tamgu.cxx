@@ -41,7 +41,7 @@
 #include "tamgutaskell.h"
 #include "tamgulisp.h"
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2022.07.04.18";
+const char* tamgu_version = "Tamgu 1.2022.07.06.11";
 
 Tamgu* booleantamgu[2];
 

@@ -1022,7 +1022,7 @@ public:
 	TamguCallVariable(short n, short idt, TamguGlobal* g = NULL, Tamgu* parent = NULL) : directcall(false), forced(false), affectation(false), typevariable(idt), name(n), function(NULL), TamguTracked(a_variable, g, parent) {
         investigate = is_callvariable;
     }
-
+    
 	void Setforced(bool v) {
 		forced = v;
 	}
@@ -1304,6 +1304,10 @@ public:
     TamguCallGlobalVariable(short n, short idt, TamguGlobal* g = NULL, Tamgu* parent = NULL) : first(true), value(NULL), TamguCallVariable(n,idt,g,parent) {}
     
     Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
+
+    bool isUnified(TamguDeclaration* dom) {
+        return (dom != NULL);
+    }
 
     bool isGlobalVariable() {
         return true;

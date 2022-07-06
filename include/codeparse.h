@@ -571,6 +571,13 @@ class bnf_tamgu {
     char m_dcg_0_1_3_4(string& lreturn,x_node** tree);
     char m_dcg_0_5(string& lreturn,x_node** tree);
     char m_dcg_0_5_6(string& lreturn,x_node** tree);
+    char m_factvalue(string& lreturn,x_node** tree);
+    char m_factparameters(string& lreturn,x_node** tree);
+    char m_factparameters_0_1(string& lreturn,x_node** tree);
+    char m_factparameters_0_1_2(string& lreturn,x_node** tree);
+    char m_rawfact(string& lreturn,x_node** tree);
+    char m_rawfact_0_1(string& lreturn,x_node** tree);
+    char m_facts(string& lreturn,x_node** tree);
     char m_taskelltail(string& lreturn,x_node** tree);
     char m_taskelltail_0_1(string& lreturn,x_node** tree);
     char m_taskellexpression(string& lreturn,x_node** tree);

@@ -290,6 +290,7 @@ public:
 	Tamgu* C_cut(x_node* xn, Tamgu* kf);
 	Tamgu* C_dcg(x_node* xn, Tamgu* kf);
 	Tamgu* C_predicatefact(x_node* xn, Tamgu* kf);
+    Tamgu* C_rawfact(x_node* xn, Tamgu* kf);
 	Tamgu* C_predicate(x_node* xn, Tamgu* kf);
 	Tamgu* C_predicateexpression(x_node* xn, Tamgu* kf);
 	Tamgu* C_predicatevariable(x_node* xn, Tamgu* kf);

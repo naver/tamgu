@@ -438,6 +438,11 @@ finaltoken := %[ ([predicatevariable^astringdouble^astringsimple^apreg^aspreg^at
 finaldcg := %{ predicateexpression %}
 %dcg := dcgword %- %- %> ;44 [[finaltoken^dcgword] [%, dcgword]*] (%, finaldcg)
 
+
+%factvalue := abool^astringdouble^afullstring^astringsimple^anumber
+%factparameters := factvalue [%, factvalue]*
+%rawfact := notapredicate asimple %( factparameters %) %.
+%facts := rawfact+
 ########### T(H)ASKELL ##############################################
 
 %taskelltail := [%|^%:] taskellexpression

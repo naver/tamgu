@@ -1191,6 +1191,7 @@ void TamguGlobal::RecordCompileFunctions() {
 	parseFunctions["fail"] = &TamguCode::C_cut;
 	parseFunctions["stop"] = &TamguCode::C_cut;
 	parseFunctions["dcg"] = &TamguCode::C_dcg;
+    parseFunctions["rawfact"] = &TamguCode::C_rawfact;
 	parseFunctions["predicatefact"] = &TamguCode::C_predicatefact;
 	parseFunctions["predicatedefinition"] = &TamguCode::C_predicatefact;
 	parseFunctions["predicate"] = &TamguCode::C_predicate;
@@ -8850,56 +8851,65 @@ Tamgu* TamguCode::C_predicatefact(x_node* xn, Tamgu* kf) {
     
 	global->predicatevariables.clear();
 	if (global->predicate_definitions.find(name) == global->predicate_definitions.end() &&
-        (xn->token == "predicatefact" || xn->nodes[1]->token == "abool")) {
+        kpcont->rules.find(name) == kpcont->rules.end() &&
+        (xn->token == "predicatefact" || xn->nodes[1]->value == "true")) {
 		Tamgu* kbloc = new TamguInstructionPredicate(name, global);
 		TamguPredicateKnowledgeBase* kcf;
-		if (xn->nodes[0]->token == "dependencyfact")
+        sname = xn->nodes[0]->token;
+        if (sname == "dependencyfact") {
 			kcf = new TamguDependencyKnowledgeBase(global, name, kbloc);
+            kcf->add = true;
+            Traverse(xn->nodes[0]->nodes[1], kcf);
+            kcf->add = false;
+        }
 		else
 			kcf = new TamguPredicateKnowledgeBase(global, name, kbloc);
 
 		if (xn->nodes[0]->nodes.back()->token == "predicateparameters")
 			ComputePredicateParameters(xn->nodes[0]->nodes.back(), kcf);
         
-		//We check if there are some PredicateVariable in the parameters
-		if (xn->token == "predicatefact" || xn->token == "dependencyfact" || xn->nodes[1]->value == "true") {
-            if (kpcont->rules.find(name) != kpcont->rules.end() || kcf->isUnified(NULL) == false) {
-                //if there is a predicate in the formula, then it cannot be an instance, it is a goal
-                kbloc->Remove();
-                kbloc = new TamguPredicateRule(name, global, kf);
-                ((TamguPredicateRule*)kbloc)->addfinal(kpcont);
-                TamguPredicate* kfx = new TamguPredicate(name, global);
-                for (int j = 0; j < kcf->parameters.size(); j++)
-                    kfx->parameters.push_back(kcf->parameters[j]);
-                kcf->parameters.clear();
-                kcf->Release();
-                ((TamguPredicateRule*)kbloc)->head = kfx;
+        if (kcf->isUnified(NULL)) {
+            TamguPredicate* pv;
+            if (sname == "predicate") {
+                //In this case, we can already create the right element in the knowledgebase
+                pv = new TamguPredicate(global, name);
+                pv->parameters = kcf->parameters;
+                if (pv->Stringpredicatekey(sname))
+                    global->knowledgebase_on_first[sname].push_back(pv);
                 
-                currentpredicatename = "";
-                return kbloc;
+                if (pv->Stringpredicatekeysecond(sname))
+                    global->knowledgebase_on_second[sname].push_back(pv);
+                
+                if (pv->Stringpredicatekeythird(sname))
+                    global->knowledgebase_on_third[sname].push_back(pv);
             }
-			//We want to add our value to the knowlegde base		
-			kcf->add = true;
-			if (xn->nodes[0]->token == "dependencyfact")
-				Traverse(xn->nodes[0]->nodes[1], kcf);
             else {
-                kbloc->Eval(&mainframe, aNULL, 0);
-                currentpredicatename = "";
-                kbloc->Remove();
-                return kf;
+                pv = new TamguDependency(global, ((TamguDependencyKnowledgeBase*)kcf)->features, name, 0);
+                pv->parameters = kcf->parameters;
             }
-		}
+            
+            kcf->parameters.clear();
+            kcf->Release();
+            kbloc->Remove();
+
+            global->knowledgebase[name].push_back(pv);
+            pv->Setreference();
+            return pv;
+        }
         
-		kf->AddInstruction(kbloc);
+        //We want to add our value to the knowlegde base
+        kcf->add = true;
+        kf->AddInstruction(kbloc);
         currentpredicatename = "";
-		return kbloc;
-	}
+        return kbloc;
+    }
 
 	TamguPredicateRule* kbloc = new TamguPredicateRule(name, global, kf);
 	TamguPredicate* kcf = new TamguPredicate(name, global);
 
 	if (xn->nodes[0]->nodes.back()->token == "predicateparameters")
 		ComputePredicateParameters(xn->nodes[0]->nodes.back(), kcf);
+    
 	kbloc->head = kcf;
 
 	TamguPredicateRuleElement* kblocelement = new TamguPredicateRuleElement(global, NULL);
@@ -8911,6 +8921,34 @@ Tamgu* TamguCode::C_predicatefact(x_node* xn, Tamgu* kf) {
 	kbloc->Addtail(kpcont, kblocelement);
     currentpredicatename = "";
 	return kbloc;
+}
+
+
+Tamgu* TamguCode::C_rawfact(x_node* xn, Tamgu* kf) {
+    //We load a file containing only facts...
+    short name = global->Getid(xn->nodes[0]->value);
+    if (!global->predicates.check(name))
+        global->predicates[name] = new TamguPredicateFunction(global, NULL, name);
+
+    TamguPredicate* pv = new TamguPredicate(global, name);
+    
+    for (long i = 0; i < xn->nodes[1]->nodes.size(); i++)
+        Traverse(xn->nodes[1]->nodes[i], pv);
+    
+    global->knowledgebase[name].push_back(pv);
+    
+    string argument_key;
+    if (pv->Stringpredicatekey(argument_key))
+        global->knowledgebase_on_first[argument_key].push_back(pv);
+    
+    if (pv->Stringpredicatekeysecond(argument_key))
+        global->knowledgebase_on_second[argument_key].push_back(pv);
+    
+    if (pv->Stringpredicatekeythird(argument_key))
+        global->knowledgebase_on_third[argument_key].push_back(pv);
+    
+    pv->Setreference();
+    return pv;
 }
 
 
