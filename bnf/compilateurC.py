@@ -60,7 +60,7 @@ def sequencedesymboles(subsub):
                         subsub.pop(-1)
                         subsub.extend(x[1:])
                         return
-                if td(x)==False or len(x)!=1 or x.keys()[0]!='symbole':
+                if td(x)==False or len(x)!=1 or list(x.keys())[0]!='symbole':
                     return
             subsub[0]='?'
 
@@ -857,8 +857,8 @@ long baseline;
 x_reading* fx;
 
 vector<string> labelerrors;
-vector<int> lineerrors;
-vector<int> errornumbers;
+vector<long> lineerrors;
+vector<long> errornumbers;
 
 %%%%%(int l=0) {
     baseline=l;
@@ -874,10 +874,13 @@ void initialize(x_reading* xr) {
    errornumbers.clear();
 
     baseline=0;
-    fx=xr;
     gFail=0;
     intoken=0;
     currentpos=0;
+    lineerror=-1;
+    errornumber=-1;
+    labelerror="";
+    fx=xr;
 }
 
 void setfail(char test) {
@@ -1130,7 +1133,7 @@ def displayanalysis(tree,nb):
     if "%NAME" in tree:
         name=tree["%NAME"]
         value=tree["%VALUE"]
-        print space,name,value
+        print(space,name,value)
     if "%NODES" in tree:
         lst=tree["%NODES"]
         for l in lst:
@@ -1185,7 +1188,7 @@ def concatenaterule(elements,nb,values,nbtab):
                         nr='x_test_char(lret,'+concat[0]+")"
                         ngarde=nr
                     else:
-                        vari='!static char tab'+str(nbtab[0])+"[]="+'{'+",".join(concat)+',0}'
+                        vari='!static char tab'+str(nbtab[0])+"[] = "+'{'+",".join(concat)+',0}'
                         rule.append(vari);
                         var="tab"+str(nbtab[0])
                         nbtab[0]+=1;
@@ -1202,7 +1205,7 @@ def concatenaterule(elements,nb,values,nbtab):
             nr='x_test_char(lret,'+concat[0]+")"
             ngarde=nr
         else:
-            vari='!static char tab'+str(nbtab[0])+"[]="+'{'+",".join(concat)+',0}'
+            vari='!static char tab'+str(nbtab[0])+"[] = "+'{'+",".join(concat)+',0}'
             rule.append(vari);
             var="tab"+str(nbtab[0])
             nbtab[0]+=1;
@@ -1602,7 +1605,6 @@ def generate(name,ruletree,result,functions,nb,current,initialisations,firstloop
             xname=returnbasename(newname)
             if xname not in donotconcatenate:
                 subdef.append(" lreturn+=lret;")
-#            subdef.append(" lreturn+=lret;")
             subdef.append(" return(1);")
             subdef.append(" }")
             keyfunc="".join(subdef[9:])
@@ -1656,7 +1658,7 @@ def generate(name,ruletree,result,functions,nb,current,initialisations,firstloop
             elif "string" in ruletree:
                 lx=len(ruletree["string"][1:])
                 sb=ruletree["string"][1:]
-                if lx==1:
+                if lx==1 and ord(sb) < 128:
                     if sb=='"':
                         result.append("X_34")
                     elif sb=="'":
@@ -1686,9 +1688,9 @@ def generate(name,ruletree,result,functions,nb,current,initialisations,firstloop
                 result.append("# &&&&_pop(this);");
                 lasterror=None
         else:
-            print
-            print "Erreur",ruletree
-            print
+            print()
+            print("Erreur",ruletree)
+            print()
 
 
 def simplify(r,bodies):
@@ -1838,7 +1840,7 @@ def compiling(filename):
                 usedoublestring.append(ct)
                 parsenot.append(ct)
             elif rulecode=='2': # simple quote strings
- 		usesimplestring.append(ct)
+                usesimplestring.append(ct)
                 parsenot.append(ct)
             elif rulecode=='3': #we detect numbers
                 usenumbers.append(ct)
@@ -1898,7 +1900,7 @@ def compiling(filename):
                 rules.append(struct)
 
     for x in erreur:
-        print "Error:",x
+        print("Error:",x)
     nb=[0]
     #First the .h file
     if "/" in filename:
@@ -1939,7 +1941,7 @@ def compiling(filename):
         pip=len(filename)
 
     classname="bnf_"+filename[ips+1:pip]
-    print classname
+    print(classname)
     foutput=open(filenewh,"w")
 
     bodies=[]
@@ -2108,7 +2110,7 @@ def compiling(filename):
             for fct in fc:
                 if "static const char* label" in fct:
                     continue
-                if "label" in fct:
+                if "label," in fct:
                     skipconst=False
                     break
             for fct in fc:

@@ -37,11 +37,16 @@ class bnf_tamgu {
         lineerrors.clear();
         errornumbers.clear();
 
-        baseline=0;
-        fx=xr;
         gFail=0;
         intoken=0;
         currentpos=0;
+        lineerror=-1;
+        labelerror="";
+        errornumber=-1;
+        baseline=0;
+        
+        fx=xr;
+        
     }
 
     void setfail(char test) {
