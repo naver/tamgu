@@ -326,15 +326,9 @@ public:
     Tamgu* MethodTest(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         locking();
         long  v = callfunc->Evaluate(0, contextualpattern, idthread)->Integer();
-        try {
-            values.at(v);
-            unlocking();
-            return aTRUE;
-        }
-        catch(const std::out_of_range& oor) {
-            unlocking();
-            return aFALSE;
-        }
+        bool res = values.find(v) != values.end();
+        unlocking();
+        return booleantamgu[res];
     }
     
     Tamgu* MethodProduct(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {

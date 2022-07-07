@@ -41,7 +41,7 @@
 #include "tamgutaskell.h"
 #include "tamgulisp.h"
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2022.07.06.11";
+const char* tamgu_version = "Tamgu 1.2022.07.07.11";
 
 Tamgu* booleantamgu[2];
 
@@ -617,16 +617,23 @@ void Tamgu::Deletion(std::set<unsigned long>& deleted_elements) {
 }
 
 TamguGlobal::~TamguGlobal() {
-    for (auto& a: constintegers) {
+    for (auto& a: integer_pool) {
         if (a.second->idtracker == -1)
             delete a.second;
     }
     
-    for (auto& a: constfloats) {
+    for (auto& a: float_pool) {
         if (a.second->idtracker == -1)
             delete a.second;
     }
 
+    for (auto& a : string_pool) {
+        if (a.second->idtracker == -1)
+            delete a.second;
+    }
+    
+    string_pool.clear();
+    
     clear_pattern();
     clear_automates();
 
@@ -3511,75 +3518,78 @@ Exporting Tamgu* TamguGlobal::ProvideConstfloat(double v) {
     Tamgu* value;
     if (threadMODE) {
         _numberlock.Locking();
-        try {
-            value = constfloats.at(v);
-        }
-        catch(...) {
+        value = float_pool[v];
+        if (value == NULL) {
             value = new TamguConstFloat(v);
-            constfloats[v] = value;
+            float_pool[v] = value;
         }
         _numberlock.Unlocking();
         return value;
     }
 
-    try {
-        return constfloats.at(v);
-    }
-    catch(...) {
+    value = float_pool[v];
+    if (value == NULL) {
         value = new TamguConstFloat(v);
-        constfloats[v] = value;
-        return value;
+        float_pool[v] = value;
     }
+    
+    return value;
 }
+
+Exporting Tamgu* TamguGlobal::ProvideConstString(string v, Tamgu* parent) {
+    Tamgu* vstr = string_pool[v];
+    if (vstr != NULL) {
+        if (parent != NULL)
+            parent->AddInstruction(vstr);
+        return vstr;
+    }
+    
+    vstr = new TamguConstString(v,parent);
+    string_pool[v] = (TamguConstString*)vstr;
+    return vstr;
+}
+
 
 Exporting Tamgu* TamguGlobal::ProvideConstint(long v) {
     Tamgu* value;
     if (threadMODE) {
         _numberlock.Locking();
-        try {
-            value = constintegers.at(v);
-        }
-        catch(...) {
+        value = integer_pool[v];
+        if (value == NULL) {
             value = new TamguConstInt(v);
-            constintegers[v] = value;
+            integer_pool[v] = value;
         }
         _numberlock.Unlocking();
         return value;
     }
 
-    try {
-        return constintegers.at(v);
-    }
-    catch(...) {
+    value = integer_pool[v];
+    if (value == NULL) {
         value = new TamguConstInt(v);
-        constintegers[v] = value;
-        return value;
+        integer_pool[v] = value;
     }
+    return value;
 }
 
 Exporting Tamgu* TamguGlobal::ProvideConstlong(BLONG v) {
     Tamgu* value;
     if (threadMODE) {
         _numberlock.Locking();
-        try {
-            value = constintegers.at(v);
-        }
-        catch(...) {
-            value = new TamguConstLong(v);
-            constintegers[v] = value;
+        value = integer_pool[v];
+        if (value == NULL) {
+            value = new TamguConstInt(v);
+            integer_pool[v] = value;
         }
         _numberlock.Unlocking();
         return value;
     }
 
-    try {
-        return constintegers.at(v);
+    value = integer_pool[v];
+    if (value == NULL) {
+        value = new TamguConstInt(v);
+        integer_pool[v] = value;
     }
-    catch(...) {
-        value = new TamguConstLong(v);
-        constintegers[v] = value;
-        return value;
-    }
+    return value;
 }
 
 

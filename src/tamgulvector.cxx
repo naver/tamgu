@@ -656,19 +656,18 @@ Exporting void Tamgulvector::Shuffle() {
 }
 
 Exporting Tamgu* Tamgulvector::Unique() {
-    locking();
     Tamgulvector* kvect = new Tamgulvector;
-    hmap<long, bool> inter;
+    std::set<BLONG> inter;
+    
+    locking();
     for (int i = 0; i < values.size(); i++) {
-        try {
-            inter.at(values[i]);
-        }
-        catch(const std::out_of_range& oor) {
-            inter[values[i]] = true;
+        if (inter.find(values[i]) == inter.end()) {
+            inter.insert(values[i]);
             kvect->values.push_back(values[i]);
         }
     }
     unlocking();
+    
     return kvect;
 }
 

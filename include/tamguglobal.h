@@ -89,6 +89,7 @@ class TamguPredicateVariableInstance;
 class TamguPredicateVariableInstancebuff;
 class Tamgulisp;
 class UTF8_Handler;
+class TamguConstString;
 
 //--------------------------------------------------------------------
 typedef bool(*TamguExternalModule)(TamguGlobal*, string);
@@ -466,7 +467,7 @@ public:
 	Exporting Tamgu* ProvideConstint(long v);
 	Exporting Tamgu* ProvideConstfloat(double v);
 	Exporting Tamgu* ProvideConstlong(BLONG v);
-
+    Exporting Tamgu* ProvideConstString(string v, Tamgu* parent = NULL);    
 	//--------------------------------
 	//Buffers...
     vector<TamguPredicateVariableInstancebuff*> pvireservoire;
@@ -564,6 +565,8 @@ public:
     hmap<short, ThreadLock*> booleanlocks;
     
     //--------------------------------
+    hmap<std::string, TamguConstString*> string_pool;
+    //--------------------------------
 	Tamgu* gNULL;
 	Tamgu* gUNIVERSAL;
 	Tamgu* gTRUE;
@@ -597,8 +600,8 @@ public:
     TamguLet* gNULLLet;
     Tamgu* gNOTHING;
 
-    hmap<BLONG, Tamgu*> constintegers; //recording of number values
-    hmap<double, Tamgu*> constfloats;
+    hmap<BLONG, Tamgu*> integer_pool; //recording of number values
+    hmap<double, Tamgu*> float_pool;
 
     An_rules* gTheAnnotationRules;
     Au_automatons* gAutomatons;

@@ -262,7 +262,7 @@ public:
 	string value;
     long sz, szc;
 
-	TamguConstString(string v, TamguGlobal* g = NULL, Tamgu* parent = NULL) : value(v), TamguBaseConst(a_string, g, parent) {
+	TamguConstString(string v, Tamgu* parent = NULL) : value(v), TamguBaseConst(a_string, NULL, parent) {
         investigate |= is_pure_string;
         sz = v.size();
         szc = size_c(v);

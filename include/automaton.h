@@ -723,16 +723,15 @@ public:
     void fillencoding(bool add);
     
     TamguState* addfeature(uint32_t p, TamguState* a = NULL) {
-        try {
-            return features.at(p);
-        }
-        catch(const std::out_of_range& oor) {
+        TamguState* val = features[p];
+        if (val == NULL) {
             if (a == NULL)
                 a = new TamguState(*this);
             features[p] = a;
             a->status |= xfarcend;
             return a;
         }
+        return val;
     }
     
     void regulars() {

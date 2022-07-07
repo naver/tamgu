@@ -560,19 +560,18 @@ Exporting void Tamgufvector::Shuffle() {
 }
 
 Exporting Tamgu* Tamgufvector::Unique() {
-    locking();
     Tamgufvector* kvect = globalTamgu->Providefvector();
-    hmap<double, bool> inter;
+
+    std::set<double> inter;
+    locking();
     for (int i = 0; i < values.size(); i++) {
-        try {
-            inter.at(values[i]);
-        }
-        catch(const std::out_of_range& oor) {
-            inter[values[i]] = true;
+        if (inter.find(values[i]) == inter.end()) {
+            inter.insert(values[i]);
             kvect->values.push_back(values[i]);
         }
     }
     unlocking();
+    
     return kvect;
 }
 
@@ -1830,11 +1829,11 @@ Exporting unsigned long Tamgua_fvector::EditDistance(Tamgu* e) {
 Exporting Tamgu* Tamgua_fvector::Unique() {
     Tamgua_fvector* kvect = new Tamgua_fvector();
     
-    hmap<double, bool> inter;
+    std::set<double> inter;
     atomic_value_vector_iterator<double> it(values);
     for (;!it.end();it.next()) {
         if (inter.find(it.second) == inter.end()) {
-            inter[it.second] = true;
+            inter.insert(it.second);
             kvect->values.push_back(it.second);
         }
     }

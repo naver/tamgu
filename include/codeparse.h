@@ -37,16 +37,14 @@ class bnf_tamgu {
         lineerrors.clear();
         errornumbers.clear();
 
+        baseline=0;
         gFail=0;
         intoken=0;
         currentpos=0;
         lineerror=-1;
-        labelerror="";
         errornumber=-1;
-        baseline=0;
-        
+        labelerror="";
         fx=xr;
-        
     }
 
     void setfail(char test) {
@@ -576,6 +574,7 @@ class bnf_tamgu {
     char m_dcg_0_1_3_4(string& lreturn,x_node** tree);
     char m_dcg_0_5(string& lreturn,x_node** tree);
     char m_dcg_0_5_6(string& lreturn,x_node** tree);
+    char m_achar(string& lreturn,x_node** tree);
     char m_factvalue(string& lreturn,x_node** tree);
     char m_factparameters(string& lreturn,x_node** tree);
     char m_factparameters_0_1(string& lreturn,x_node** tree);

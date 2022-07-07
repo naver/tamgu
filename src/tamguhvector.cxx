@@ -553,15 +553,12 @@ Exporting void Tamguhvector::Shuffle() {
 }
 
 Exporting Tamgu* Tamguhvector::Unique() {
-    locking();
     Tamguhvector* kvect = new Tamguhvector;
-    hmap<short, bool> inter;
+    std::set<short> inter;
+    locking();
     for (int i = 0; i < values.size(); i++) {
-        try {
-            inter.at(values[i]);
-        }
-        catch(const std::out_of_range& oor) {
-            inter[values[i]] = true;
+        if (inter.find(values[i]) == inter.end()) {
+            inter.insert(values[i]);
             kvect->values.push_back(values[i]);
         }
     }

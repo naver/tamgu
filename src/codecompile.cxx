@@ -1059,7 +1059,8 @@ void TamguGlobal::RecordCompileFunctions() {
 	parseFunctions["parameters"] = &TamguCode::C_parameters;
 	parseFunctions["dependencyparameters"] = &TamguCode::C_parameters;
 
-	parseFunctions["astring"] = &TamguCode::C_astring;
+    parseFunctions["achar"] = &TamguCode::C_achar;
+    parseFunctions["astring"] = &TamguCode::C_astring;
 	parseFunctions["afullstring"] = &TamguCode::C_astring;
 	parseFunctions["astringdouble"] = &TamguCode::C_astring;
 	parseFunctions["astringsimple"] = &TamguCode::C_astring;
@@ -3602,6 +3603,14 @@ Tamgu* TamguCode::C_interval(x_node* xn, Tamgu* parent) {
 	return idx;
 }
 
+Tamgu* TamguCode::C_achar(x_node* xn, Tamgu* parent) {
+    string thestr = xn->value;
+    //compilemode indicates whether the code is compiled from a file or from a string while executing some code...
+    if (compilemode)
+        return global->ProvideConstString(thestr, parent);
+
+    return new Tamgustring(thestr, NULL, parent);
+}
 
 Tamgu* TamguCode::C_astring(x_node* xn, Tamgu* parent) {
 	string thestr;
@@ -3616,7 +3625,7 @@ Tamgu* TamguCode::C_astring(x_node* xn, Tamgu* parent) {
 
 	//compilemode indicates whether the code is compiled from a file or from a string while executing some code...
 	if (compilemode)
-		return new TamguConstString(thestr, global, parent);
+		return global->ProvideConstString(thestr, parent);
 
 	return new Tamgustring(thestr, NULL, parent);
 }

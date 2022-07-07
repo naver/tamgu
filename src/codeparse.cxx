@@ -12279,6 +12279,29 @@ char bnf_tamgu::m_dcg(string& lreturn,x_node** tree) {
 }
 
 
+char bnf_tamgu::m_achar(string& lreturn,x_node** tree) {
+    if (gFail==1) return(0);
+    static const char* label="achar";
+    string lret;
+    long pos=currentpos;
+    int itok=intoken;
+    x_node* subtree=NULL;
+    int addsubtree=0;
+    bool exitonfail=false;
+    if (m_word(lret,&subtree))
+        x_init_tree(tree,subtree,addsubtree);
+    else {
+        x_pop_node(tree,addsubtree);
+        currentpos=pos;
+        intoken=itok;
+        setfail(exitonfail);
+        return(0);
+    }
+    x_init_node(lreturn,lret,tree,label,pos,true);
+    return(1);
+}
+
+
 char bnf_tamgu::m_factvalue(string& lreturn,x_node** tree) {
     if (gFail==1) return(0);
     static const char* label="factvalue";
@@ -12290,7 +12313,7 @@ char bnf_tamgu::m_factvalue(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYOR
     subtree=NULL;
-    if (m_abool(lret,&subtree) || m_astringdouble(lret,&subtree) || m_afullstring(lret,&subtree) || m_astringsimple(lret,&subtree) || m_anumber(lret,&subtree))
+    if (m_abool(lret,&subtree) || m_astringdouble(lret,&subtree) || m_afullstring(lret,&subtree) || m_astringsimple(lret,&subtree) || m_anumber(lret,&subtree) || m_achar(lret,&subtree))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);

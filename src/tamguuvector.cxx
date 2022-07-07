@@ -847,19 +847,18 @@ Exporting void Tamguuvector::Shuffle() {
 }
 
 Exporting Tamgu* Tamguuvector::Unique() {
-    locking();
     Tamguuvector* kvect = globalTamgu->Provideuvector();
-    hmap<wstring, bool> inter;
+
+    std::set<wstring> inter;
+    locking();
     for (int i = 0; i < values.size(); i++) {
-        try {
-            inter.at(values[i]);
-        }
-        catch(const std::out_of_range& oor) {
-            inter[values[i]] = true;
+        if (inter.find(values[i]) == inter.end()) {
+            inter.insert(values[i]);
             kvect->values.push_back(values[i]);
         }
     }
     unlocking();
+    
     return kvect;
 }
 
@@ -1596,13 +1595,14 @@ Exporting long Tamgua_uvector::Size() {
 
 Exporting Tamgu* Tamgua_uvector::Unique() {
     Tamguuvector* kvect = globalTamgu->Provideuvector();
-    hmap<wstring, bool> inter;
+    
+    std::set<wstring> inter;
     atomic_value_vector_iterator<atomic_wstring> it(values);
     wstring w;
     for (; !it.end(); it.next()) {
         w = it.second.value();
         if (inter.find(w) == inter.end()) {
-            inter[w] = true;
+            inter.insert(w);
             kvect->values.push_back(w);
         }
     }

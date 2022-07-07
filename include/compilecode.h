@@ -165,7 +165,8 @@ public:
     Tamgu* C_shapeindexes(x_node*, Tamgu*);
 	Tamgu* C_indexes(x_node*, Tamgu*);
 	Tamgu* C_interval(x_node*, Tamgu*);
-	Tamgu* C_astring(x_node*, Tamgu*);
+    Tamgu* C_achar(x_node*, Tamgu*);
+    Tamgu* C_astring(x_node*, Tamgu*);
     Tamgu* C_ustring(x_node*, Tamgu*);
     Tamgu* C_rstring(x_node*, Tamgu*);
     Tamgu* C_pstring(x_node*, Tamgu*);

@@ -543,19 +543,19 @@ Exporting void Tamgudvector::Shuffle() {
 }
 
 Exporting Tamgu* Tamgudvector::Unique() {
-    locking();
     Tamgudvector* kvect = new Tamgudvector;
-    hmap<float, bool> inter;
+    
+    std::set<float> inter;
+    
+    locking();
     for (int i = 0; i < values.size(); i++) {
-        try {
-            inter.at(values[i]);
-        }
-        catch(const std::out_of_range& oor) {
-            inter[values[i]] = true;
+        if (inter.find(values[i]) == inter.end()) {
+            inter.insert(values[i]);
             kvect->values.push_back(values[i]);
         }
     }
     unlocking();
+    
     return kvect;
 }
 

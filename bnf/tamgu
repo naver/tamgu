@@ -438,8 +438,8 @@ finaltoken := %[ ([predicatevariable^astringdouble^astringsimple^apreg^aspreg^at
 finaldcg := %{ predicateexpression %}
 %dcg := dcgword %- %- %> ;44 [[finaltoken^dcgword] [%, dcgword]*] (%, finaldcg)
 
-
-%factvalue := abool^astringdouble^afullstring^astringsimple^anumber
+achar := word
+%factvalue := abool^astringdouble^afullstring^astringsimple^anumber^achar
 %factparameters := factvalue [%, factvalue]*
 %rawfact := notapredicate asimple %( factparameters %) %.
 %facts := rawfact+
