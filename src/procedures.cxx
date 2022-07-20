@@ -1077,8 +1077,17 @@ Tamgu* ProcLoadin(Tamgu* domain, short idthread, TamguCall* callfunc) {
     bnf_tamgu* current = globalTamgu->currentbnf;
     size_t previousfirstinstruction = acode->firstinstruction;
     //We compile our code
+    bool push_in_stack = false;
+    if (globalTamgu->Topstack() != &acode->mainframe) {
+        globalTamgu->Pushstack(&acode->mainframe);
+        push_in_stack = true;
+    }
+        
     acode->Compile(code);
 
+    if (push_in_stack)
+        globalTamgu->Popstack();
+    
     acode->firstinstruction = previousfirstinstruction;
 
     //we reset our our parse tree

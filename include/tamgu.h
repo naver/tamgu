@@ -143,6 +143,10 @@ public:
         return this;
     }
     
+    virtual Tamgu* Eval_Arguments(TamguDeclarationLocal* context, Tamgu* value, short idthread) {
+        return aFALSE;
+    }
+    
 	virtual Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread) {
 		return this;
 	}
@@ -345,6 +349,10 @@ public:
 
 	//------------------------------------------------------------------
     virtual bool directCall() {
+        return false;
+    }
+    
+    virtual bool isLocalEvaluation() {
         return false;
     }
     
@@ -695,6 +703,10 @@ public:
 		return false;
 	}
 
+    virtual bool isTail() {
+        return false;
+    }
+        
 	virtual bool isCall() {
 		return false;
 	}
@@ -3248,7 +3260,7 @@ public:
 	short Name() {
 		return name;
 	}
-
+    
     bool Computevariablecheck(short idthread) {
         vector<short> vars;
         ScanVariables(vars);

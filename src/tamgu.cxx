@@ -41,7 +41,7 @@
 #include "tamgutaskell.h"
 #include "tamgulisp.h"
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2022.07.07.11";
+const char* tamgu_version = "Tamgu 1.2022.07.19.18";
 
 Tamgu* booleantamgu[2];
 
@@ -266,6 +266,12 @@ void set_garbage_mode(bool v) {
     
     if (!number_of_current_eval)
         add_to_tamgu_garbage = false;
+}
+
+bool Activategarbage(bool v) {
+    bool previous = add_to_tamgu_garbage;
+    add_to_tamgu_garbage = v;
+    return previous;
 }
 
 int Addtogarbage() {

@@ -237,7 +237,8 @@ Tamgu* TamguGlobal::EvaluateMainVariable() {
 	TamguCode* acode = Getcurrentcode();
 	TamguFrame* frame = (TamguFrame*)acode->Mainframe();
 	Tamgu* res;
-	for (short i = 0; i < frame->instructions.size(); i++) {
+    long i;
+	for (i = 0; i < frame->instructions.size(); i++) {
         res = frame->instructions.vecteur[i];
 		if (res->isVariable()) {
 			res = res->Eval(frame, aNULL, 0);
@@ -245,6 +246,20 @@ Tamgu* TamguGlobal::EvaluateMainVariable() {
 				return res;
 		}
 	}
+    Tamgu* top = Topstack();
+    if (top != frame && top->isLocalEvaluation()) {
+        //We are in an _eval
+        TamguLocalEvaluation* local = (TamguLocalEvaluation*)top;
+        for (i = local->instructions.last - 1; i >= 0; i--) {
+            res = local->instructions.vecteur[i];
+            if (res->isVariable()) {
+                res = res->Eval(frame, aNULL, 0);
+                if (res->needInvestigate())
+                    return res;
+            }
+        }
+    }
+    
 	return aTRUE;
 }
 
@@ -2008,6 +2023,40 @@ Exporting Tamgu* TamguCallAlias::Eval(Tamgu* domain, Tamgu* a, short idthread) {
     return a;
 }
 
+Tamgu* TamguCallFunction::Eval_Arguments(TamguDeclarationLocal* domain, Tamgu* a, short idthread) {
+    TamguFunction* bd = (TamguFunction*)body->Body(idthread);
+    
+    short i, sz = 0, sza = arguments.size();
+    VECTE<Tamgu*> values;
+    
+    bool error = true;
+    while (bd != NULL && error) {
+        sz = bd->parameters.size();
+        if (sz != sza)
+            continue;
+        
+        if (!values.last) {
+            for (i = 0; i < sz; i++) {
+                a = arguments.vecteur[i]->Eval(domain, aNULL, idthread);
+                a->Setreference();
+                values.push_back(a);
+            }
+        }
+        
+        domain->Cleaning();
+        error = false;
+        for (i = 0; i < sz && !error; i++) {
+            error = ((TamguVariableDeclaration*)bd->parameters[i])->Setarguments(domain, values.vecteur[i], idthread, bd->strict);
+        }
+    }
+    
+    for (i = 0; i < sza; i++)
+        values[i]->Resetreference();
+    
+    return booleantamgu[!error];
+}
+
+
 Exporting Tamgu* TamguCallFunction::Eval(Tamgu* domain, Tamgu* a, short idthread) {
     static VECTE<Tamgu*> bvalues;
     
@@ -2799,43 +2848,59 @@ Tamgu* TamguFunction::Run(Tamgu* environment, short idthread) {
     _setdebugfull(idthread, this);
 
     Tamgu* a = aNULL;
+    bool continue_on_tail = true;
     bool testcond = false;
 
-    for (long i = 0; i < size && !testcond; i++) {
-
-        a->Releasenonconst();
-
-        a = instructions.vecteur[i];
+    while (continue_on_tail) {
+        for (long i = 0; i < size && !testcond; i++) {
+            
+            a->Releasenonconst();
+            
+            a = instructions.vecteur[i];
+            
+            _debugpush(a);
+            a = a->Eval(environment, aNULL, idthread);
+            _debugpop();
+            
+            testcond = globalTamgu->Error(idthread) || a->needFullInvestigate();
+        }
         
-        _debugpush(a);
-        a = a->Eval(environment, aNULL, idthread);
-        _debugpop();
-
-        testcond = globalTamgu->Error(idthread) || a->needFullInvestigate();
-    }
-    
-    if (testcond) {
-        _cleandebugfull;
-        if (globalTamgu->Error(idthread)) {
-            if (!a->isError())
-                a->Releasenonconst();
-            return globalTamgu->Errorobject(idthread);
-        }
-
-        a = a->Returned(idthread);
-        if (returntype) {
-            if (a->Type() != returntype && !globalTamgu->Compatiblestrict(returntype, a->Type())) {
-                a->Releasenonconst();
-                stringstream msg;
-                msg << "Mismatch between return value and function declaration. Expecting: '"
-                << globalTamgu->Getsymbol(returntype)
-                << "' Got: '" << globalTamgu->Getsymbol(a->Type()) << "'";
-                return globalTamgu->Returnerror(msg.str(), idthread);
+        if (testcond) {
+            _cleandebugfull;
+            if (globalTamgu->Error(idthread)) {
+                if (!a->isError())
+                    a->Releasenonconst();
+                return globalTamgu->Errorobject(idthread);
             }
-        }
-        return a;
-    }
+                        
+            if (a->isTail()) {
+                if (a->Argument(0)->Eval_Arguments((TamguDeclarationLocal*)environment, aNULL, idthread) == aTRUE) {
+                    testcond = false;
+                    a = aNULL;
+                    continue;
+                }
+                
+                string err = "Check the arguments of: ";
+                err += globalTamgu->Getsymbol(Name());
+                err += " (tail recursion)";
+                return globalTamgu->Returnerror(err, idthread);
+            }
 
+            a = a->Returned(idthread);
+            if (returntype) {
+                if (a->Type() != returntype && !globalTamgu->Compatiblestrict(returntype, a->Type())) {
+                    a->Releasenonconst();
+                    stringstream msg;
+                    msg << "Mismatch between return value and function declaration. Expecting: '"
+                    << globalTamgu->Getsymbol(returntype)
+                    << "' Got: '" << globalTamgu->Getsymbol(a->Type()) << "'";
+                    return globalTamgu->Returnerror(msg.str(), idthread);
+                }
+            }
+            return a;
+        }
+        break;
+    }
     a->Releasenonconst();
 
     _cleandebugfull;

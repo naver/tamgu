@@ -189,11 +189,15 @@ public:
     TamguLocalEvaluation(Tamgu* d) : TamguTracked(NULL) {
         declarations = d;
     }
-
+    
     void AddInstruction(Tamgu* a) {
         instructions.push_back(a);
     }
 
+    bool isLocalEvaluation() {
+        return true;
+    }
+    
     bool isMainFrame() {
         return declarations->isMainFrame();
     }
@@ -353,6 +357,7 @@ public:
         arguments=c.arguments;
     }
     
+    Tamgu* Eval_Arguments(TamguDeclarationLocal* context, Tamgu* value, short idthread);
 	Exporting virtual Tamgu* Eval(Tamgu* context, Tamgu* domain, short idthread);
 
 	short Name() {
@@ -594,9 +599,11 @@ public:
 class TamguCallReturn : public TamguTracked {
 public:
 	Tamgu* argument;
+    bool tail;
 
 	TamguCallReturn(TamguGlobal* global = NULL, Tamgu* parent = NULL) : argument(aNOELEMENT), TamguTracked(a_return, global, parent) {
         investigate = is_return;
+        tail = false;
     }
 
     Tamgu* DirectEval(Tamgu* context, Tamgu* v, short idthread) {
@@ -605,7 +612,7 @@ public:
     }
     
 	virtual Tamgu* Eval(Tamgu* context, Tamgu* v, short idthread) {
-		globalTamgu->threads[idthread].returnvalue = argument->Eval(context, aNULL, idthread);
+        globalTamgu->threads[idthread].returnvalue = tail?aNOELEMENT:argument->Eval(context, aNULL, idthread);
 		return this;
 	}
 
@@ -614,6 +621,10 @@ public:
 		return aTRUE;
 	}
 
+    bool isTail() {
+        return tail;
+    }
+    
 	bool isCall() {
 		return true;
 	}

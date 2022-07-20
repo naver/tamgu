@@ -48,6 +48,7 @@
 #define charsz(c) c[1] ? c[2] ? c[3] ? 4 : 3 : 2 : 1
 #define addtoken(tok,c) tok.add((uchar*)c,charsz(c))
 #define checkcr if (chr[0] == '\n') l++
+bool Activategarbage(bool v);
 //--------------------------------------------------------------------
 char x_reading::loop(short i, Fast_String& token, char* chr, short& r, long& l) {
     size_t bp, cp;
@@ -4830,7 +4831,13 @@ Tamgu* TamguCode::C_uniquecall(x_node* xn, Tamgu* kf) {
                 if (xn->nodes.size() == 1) {
                     TamguInstruction kbloc;
                     Traverse(xn->nodes[0], &kbloc);
-                    kcf->AddInstruction(kbloc.instructions[0]);
+                    kf = kbloc.instructions[0];
+                    //Is it a tail recursion?
+                    short function_name = kf->Name();
+                    short function_on_stack = global->Topstack()->Name();
+                    if (function_name && function_name == function_on_stack)
+                        ((TamguCallReturn*)kcf)->tail = true;
+                    kcf->AddInstruction(kf);
                 }
             }
     return kcf;
@@ -8859,6 +8866,7 @@ Tamgu* TamguCode::C_predicatefact(x_node* xn, Tamgu* kf) {
     currentpredicatename = buff;
     
 	global->predicatevariables.clear();
+    bool previous = Activategarbage(false);
 	if (global->predicate_definitions.find(name) == global->predicate_definitions.end() &&
         kpcont->rules.find(name) == kpcont->rules.end() &&
         (xn->token == "predicatefact" || xn->nodes[1]->value == "true")) {
@@ -8903,6 +8911,8 @@ Tamgu* TamguCode::C_predicatefact(x_node* xn, Tamgu* kf) {
 
             global->knowledgebase[name].push_back(pv);
             pv->Setreference();
+            
+            Activategarbage(previous);
             return pv;
         }
         
@@ -8910,6 +8920,7 @@ Tamgu* TamguCode::C_predicatefact(x_node* xn, Tamgu* kf) {
         kcf->add = true;
         kf->AddInstruction(kbloc);
         currentpredicatename = "";
+        Activategarbage(previous);
         return kbloc;
     }
 
@@ -8929,6 +8940,7 @@ Tamgu* TamguCode::C_predicatefact(x_node* xn, Tamgu* kf) {
         kblocelement->AddInstruction(aTRUE);
 	kbloc->Addtail(kpcont, kblocelement);
     currentpredicatename = "";
+    Activategarbage(previous);
 	return kbloc;
 }
 
@@ -8938,6 +8950,8 @@ Tamgu* TamguCode::C_rawfact(x_node* xn, Tamgu* kf) {
     short name = global->Getid(xn->nodes[0]->value);
     if (!global->predicates.check(name))
         global->predicates[name] = new TamguPredicateFunction(global, NULL, name);
+
+    bool previous = Activategarbage(false);
 
     TamguPredicate* pv = new TamguPredicate(global, name);
     
@@ -8956,7 +8970,9 @@ Tamgu* TamguCode::C_rawfact(x_node* xn, Tamgu* kf) {
     if (pv->Stringpredicatekeythird(argument_key))
         global->knowledgebase_on_third[argument_key].push_back(pv);
     
+    Activategarbage(previous);
     pv->Setreference();
+    
     return pv;
 }
 
