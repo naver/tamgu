@@ -40,6 +40,8 @@
 #endif
 
 //--------------------------------------------------------------------
+bool Activategarbage(bool v);
+//--------------------------------------------------------------------
 static hmap<string, Tamgu*> throughvariables;
 static hmap<string, string> throughvariabletype;
 
@@ -1367,6 +1369,7 @@ Tamgu* TamguGlobalVariableDeclaration::Eval(Tamgu* domain, Tamgu* value, short i
 	if (alreadydeclared)
 		return globalTamgu->Getmaindeclaration(name, idthread);
 
+    bool activated = Activategarbage(false);
 	alreadydeclared = true;
 	Tamgu* variable_value = globalTamgu->newInstance.get(typevariable)->Newinstance(idthread, function);
     //Global Variables should always be protected with a lock
@@ -1381,8 +1384,10 @@ Tamgu* TamguGlobalVariableDeclaration::Eval(Tamgu* domain, Tamgu* value, short i
 		else {
             bool aff = variable_value->checkAffectation();
 			value = initialization->Eval(variable_value, aASSIGNMENT, idthread);
-			if (value->isError())
+            if (value->isError()) {
+                Activategarbage(activated);
 				return value;
+            }
 
 			if (value != variable_value)
 				variable_value->Putvalue(value, idthread);
@@ -1397,6 +1402,7 @@ Tamgu* TamguGlobalVariableDeclaration::Eval(Tamgu* domain, Tamgu* value, short i
 	//Hence, intialization of local frames can depend on local frame variables...
 	variable_value->Postinstantiation(idthread, true);
 
+    Activategarbage(activated);
 	return variable_value;
 }
 
