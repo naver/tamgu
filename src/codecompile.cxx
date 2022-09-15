@@ -2717,7 +2717,19 @@ Tamgu* TamguCode::C_subfunc(x_node* xn, Tamgu* parent) {
 		x_node* sub = xn->nodes[0];
 		if (sub->nodes[1]->token != "parameters")
 			function->Addfunctionmode();
+        Tamgu* frame = global->Topstack();
+        //If this subfunc is called from a frame variable
+        //then the top of the stack is the frame to which
+        //this variable belongs.
+        //We need to remove this element from the stack
+        //in order to properly assess the arguments.
+        //Otherwise, the arguments could be confused with
+        //arguments in the frame.
+        if (frame->isFrameinstance())
+            global->Popstack();
 		parent = Traverse(sub->nodes[1], function);
+        if (frame->isFrameinstance())
+            global->Pushstack(frame);
 		if (sub->nodes.size() == 3) {
 			function->Addfunctionmode();
 			parent = Traverse(sub->nodes[2], function);
@@ -3476,13 +3488,17 @@ Tamgu* TamguCode::C_variable(x_node* xn, Tamgu* parent) {
 
 	//we might have four cases then: interval, indexes, method or variable (in a frame)
     if (xn->nodes.size() != 1) {
-        if (global->frames.check(tyvar))
+        if (global->frames.check(tyvar)) {
             global->Pushstack(global->frames[tyvar]);
+            global->frames[tyvar]->investigate |= is_frameinstance;
+        }
 
 		Traverse(xn->nodes[1], av);
 
-        if (global->frames.check(tyvar))
+        if (global->frames.check(tyvar)) {
+            global->frames[tyvar]->investigate &= ~is_frameinstance;
             global->Popstack();
+        }
     }
     
     if (av->isAlias())
