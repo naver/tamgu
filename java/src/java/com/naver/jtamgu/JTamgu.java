@@ -313,6 +313,17 @@ public class JTamgu {
     public synchronized int Clean(int handler) throws Exception {
         return CleanImplementation(handler);
     }
+    //------------------------------------------------------------------------
+
+    private native int CleanErrorsImplementation(int handler) throws Exception;
+
+    /**
+     * Clean One Tamgu Program
+     *
+     */
+    public synchronized int CleanErrors(int handler) throws Exception {
+        return CleanErrorsImplementation(handler);
+    }
 
     //------------------------------------------------------------------------
 

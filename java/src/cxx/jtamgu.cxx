@@ -286,6 +286,7 @@ JNIEXPORT jstring JNICALL Java_com_naver_jtamgu_JTamgu_ExecuteFunctionImplementa
         }
         else
             value = globalTamgu->Errorstring(0);
+        globalTamgu->Cleanerror(0);
         displayerror(env, value);
     }
     else {
@@ -344,6 +345,7 @@ JNIEXPORT jobjectArray JNICALL Java_com_naver_jtamgu_JTamgu_ExecuteFunctionArray
         element = jstringFromString(env, value);
         env->SetObjectArrayElement(ret, 0, element);
         env->DeleteLocalRef(element);
+        globalTamgu->Cleanerror(0);
         displayerror(env, value);
         TamguReleaseglobal(handler);
         return ret;
@@ -400,6 +402,7 @@ JNIEXPORT jstring JNICALL Java_com_naver_jtamgu_JTamgu_ExecuteSpaceFunctionImple
         }
         else
             value = globalTamgu->Errorstring(0);
+        globalTamgu->Cleanerror(0);
         displayerror(env, value);
     }
     else {
@@ -458,6 +461,7 @@ JNIEXPORT jobjectArray JNICALL Java_com_naver_jtamgu_JTamgu_ExecuteSpaceFunction
         element = jstringFromString(env, value);
         env->SetObjectArrayElement(ret, 0, element);
         env->DeleteLocalRef(element);
+        globalTamgu->Cleanerror(0);
         displayerror(env, value);
         TamguReleaseglobal(handler);
         return ret;
@@ -486,6 +490,16 @@ JNIEXPORT jint JNICALL Java_com_naver_jtamgu_JTamgu_CleanAllImplementation(JNIEn
 	return 1;
 }
 
+
+JNIEXPORT jint JNICALL Java_com_naver_jtamgu_JTamgu_CleanErrorsImplementation(JNIEnv *env, jobject obj, jint handler) {
+    if (!TamguSelectglobal(handler)) {
+        string value = "Cannot find any program loaded for this handler";
+        displayerror(env, value);
+        return -1;
+    }
+    globalTamgu->Cleanerror(0);
+    return 1;
+}
 
 /**
 * Clean memory for a Global
@@ -662,6 +676,7 @@ JNIEXPORT jstring JNICALL Java_com_naver_jtamgu_JTamgu_ExecuteFunctionImplementa
         }
         else
             value = globalTamgu->Errorstring(0);
+        globalTamgu->Cleanerror(0);
         displayerror(env, value);
     }
     else {

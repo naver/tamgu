@@ -10427,7 +10427,6 @@ Tamgu* TamguCode::CompileExpression(string& body, short idthread) {
             c->filename = a->filename;
         delete a;
         delete xn;
-        global->Popstack();
         return global->errorraised[0];
     }
 
