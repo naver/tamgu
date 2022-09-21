@@ -67,7 +67,6 @@ Tamgu* ProcNbthreads(Tamgu* contextualpattern, short idthread, TamguCall* callfu
 //---------------------------------------------------------
 // RANDOM FUNCTIONS
 //---------------------------------------------------------
-
 Tamgu* ProcRandom(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     long mx = 100;
     if (callfunc->Size() == 1)
@@ -81,6 +80,7 @@ Tamgu* Proca_Random(Tamgu* contextualpattern, short idthread, TamguCall* callfun
         mx = callfunc->Evaluate(0, aNULL, idthread)->Float();
     return globalTamgu->ProvideConstfloat(a_localrandom(mx));
 }
+
 
 Tamgu* Proc_uniform_int(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     static std::random_device rd;  //Will be used to obtain a seed for the random number engine
@@ -704,6 +704,67 @@ Tamgu* Proc_chi_squared_distribution(Tamgu* contextualpattern, short idthread, T
     return iv;
 }
 
+//---------------------------------------------------------
+// UUID
+//---------------------------------------------------------
+uint32_t random32() {
+    static uint64_t x = 123456789;
+    static uint64_t y = 362436069;
+    static uint64_t z = 521288629;
+    static int64_t w = time(0);
+    
+    unsigned long t;
+    
+    t = x ^ (x << 11);
+    x = y; y = z; z = w;
+    w = w ^ (w >> 19) ^ (t ^ (t >> 8));
+    return (uint32_t)w;
+}
+
+uint16_t random16() {
+    static uint64_t x = 123456789;
+    static uint64_t y = 362436069;
+    static uint64_t z = 521288629;
+    static int64_t w = time(0);
+    
+    unsigned long t;
+    
+    t = x ^ (x << 11);
+    x = y; y = z; z = w;
+    w = w ^ (w >> 19) ^ (t ^ (t >> 8));
+    return (uint16_t)w;
+}
+
+struct UUID_base {
+public:
+    uint32_t premier;
+    uint16_t second;
+    uint16_t troisieme;
+    uint16_t quatrieme;
+    uint32_t dernier;
+    
+    UUID_base() {
+        premier = random32();
+        dernier = random32();
+        second = random16();
+        troisieme = random16();
+        quatrieme = random16();
+    }
+    
+    string str() {
+        char res[132];
+        sprintf_s(res, 128, "%08x-%04x-%04x-%04x-%08x",premier,second,troisieme,quatrieme,dernier);
+        res[9] = '4';
+        res[14] = '1';
+        return res;
+    }
+};
+
+Tamgu* Proc_UUID(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    UUID_base base;
+    string str = base.str();
+    return globalTamgu->Providestring(str);
+}
 
 //------------------------------------------------------------------------------------------------------------------------
 Tamgu* ProcCreate(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -3079,6 +3140,9 @@ Exporting void TamguGlobal::RecordProcedures() {
     RecordOneProcedure("discrete_distribution", Proc_discrete_distribution, P_TWO);
     RecordOneProcedure("piecewise_constant_distribution", Proc_piecewise_constant_distribution, P_THREE);
     RecordOneProcedure("piecewise_linear_distribution", Proc_piecewise_linear_distribution, P_THREE);
+
+    RecordOneProcedure("uuid", Proc_UUID, P_NONE);
+
 
 
     //-------------------------
