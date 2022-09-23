@@ -3948,11 +3948,13 @@ Tamgu* TamguInstructionFORIN::Eval(Tamgu* context, Tamgu* loop, short idthread) 
 	short idname = 0;
 	short typevar = var->Type();
 	//In some cases, we cannot duplicate the value...
-	Tamgu* dom = NULL;
+    TamguSelf* replace_with_self = NULL;
 
 	if (var->isFrameinstance()) {
 		idname = loop->Name();
-		dom = globalTamgu->Declarator(idname, idthread);
+        replace_with_self = globalTamgu->Provideself();
+        globalTamgu->Storevariable(idthread, idname, replace_with_self);
+        replace_with_self->Setreference();
 	}
 
 	loop = instructions.vecteur[0]->Instruction(1)->Eval(context, aNULL, idthread);
@@ -3971,13 +3973,16 @@ Tamgu* TamguInstructionFORIN::Eval(Tamgu* context, Tamgu* loop, short idthread) 
 
             v = loop->getvalue(i);
 
-			if (dom != NULL) {
+			if (idname) {
 				if (!globalTamgu->Compatible(v->Type(), typevar)) {
-					dom->Declare(idname, var);
+                    globalTamgu->Removetopvariable(idthread, idname);
+                    replace_with_self->Resetreference();
 					loop->Release();
 					return globalTamgu->Returnerror("Incompatible type in loop", idthread);
 				}
-				dom->Declare(idname, v);
+                if (cleanup)
+                    replace_with_self->Forcedclean();
+                replace_with_self->Putvalue(v, idthread);
 			}
 			else {
 				if (cleanup)
@@ -3989,9 +3994,11 @@ Tamgu* TamguInstructionFORIN::Eval(Tamgu* context, Tamgu* loop, short idthread) 
             testcond = a->needInvestigate() || executionbreak;
         }
         
-        if (!a->isError() && dom != NULL)
-            dom->Declare(idname, var);
-
+        if (idname) {
+            globalTamgu->Removetopvariable(idthread, idname);
+            replace_with_self->Resetreference();
+        }
+            
         loop->Release();
 
         if (testcond) {
@@ -4025,14 +4032,17 @@ Tamgu* TamguInstructionFORIN::Eval(Tamgu* context, Tamgu* loop, short idthread) 
 
         v = getval ? it->IteratorValue() : v = it->IteratorKey();
 
-		if (dom != NULL) {
+		if (idname) {
 			if (!globalTamgu->Compatible(v->Type(), typevar)) {
-				dom->Declare(idname, var);
+                globalTamgu->Removetopvariable(idthread, idname);
+                replace_with_self->Resetreference();
 				delete it;
 				loop->Release();
 				return globalTamgu->Returnerror("Incompatible type in loop", idthread);
 			}
-			dom->Declare(idname, v);
+            if (cleanup)
+                replace_with_self->Forcedclean();
+            replace_with_self->Putvalue(v, idthread);
 		}
 		else {
 			if (cleanup)
@@ -4044,9 +4054,11 @@ Tamgu* TamguInstructionFORIN::Eval(Tamgu* context, Tamgu* loop, short idthread) 
         testcond = a->needInvestigate() || executionbreak;
     }
 
-    if (!a->isError() && dom != NULL)
-        dom->Declare(idname, var);
-    
+    if (idname) {
+        globalTamgu->Removetopvariable(idthread, idname);
+        replace_with_self->Resetreference();
+    }
+
     delete it;
     loop->Release();
 

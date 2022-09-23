@@ -2426,8 +2426,11 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
         if (tid == a_self) {
             if (parent->isTaskellFunction())
                 a = new TamguTaskellSelfVariableDeclaration(global, idname, tid, parent);
-            else
+            else {
                 a = new TamguSelfVariableDeclaration(global, idname, tid, parent);
+                if (parent->isFrame() && !parent->isMainFrame())
+                    global->framevariables[idname] = a;
+            }
         }
         else
             if (tid == a_let) {//in this case, we postpone the storage. If an initalization is provided then the type of this element will be the type of its initialization
