@@ -707,8 +707,6 @@ Tamgu* Proc_chi_squared_distribution(Tamgu* contextualpattern, short idthread, T
 //---------------------------------------------------------
 // UUID
 //---------------------------------------------------------
-static long* random_seed_as_pointer;
-
 uint32_t random32() {
     static bool lisperestrandom = true;
     static uint64_t x = 123456789;
@@ -716,7 +714,7 @@ uint32_t random32() {
     static uint64_t z = 521288629;
     static int64_t w = time(0);
     if (lisperestrandom) {
-        w *= (int64_t)&random_seed_as_pointer;
+        w *= (int64_t)&x;
         lisperestrandom = false;
     }
 
@@ -735,7 +733,7 @@ uint16_t random16() {
     static uint64_t z = 521288629;
     static int64_t w = time(0);
     if (lisperestrandom) {
-        w *= (int64_t)&random_seed_as_pointer;
+        w *= (int64_t)&y;
         lisperestrandom = false;
     }
 

@@ -67,32 +67,37 @@ Tamgu* TamguCUBE::Eval(Tamgu* value, Tamgu* variable, short idthread) {
 Tamgu* TamguInstructionAPPLYOPERATIONEQU::Eval(Tamgu* context, Tamgu* value, short idthread) {
     Tamgu* variable = value = recipient->Eval(context, aNULL, idthread);
     
-    Tamgu* idx = recipient->Function();
+    Tamgu* recipient_variable = recipient->Function();
     bool putback = false;
     
-    if (idx != NULL) {
-        idx = idx->Getindex();
-        if (idx == NULL || !idx->isIndex())
-            return globalTamgu->Returnerror("Cannot evaluate this instruction", idthread);
-        
-        value = idx->Eval(context, variable, idthread);
-        if (value == aNOELEMENT) {
-            if (variable->isValueContainer()) {
-                value = idx->Put(variable, aNULL, idthread);
-                if (value->isError())
-                    return value;
-                
-                value = idx->Eval(context, variable, idthread);
-                putback = true;
-            }
-            else
-                return globalTamgu->Returnerror("No value at this position in the container", idthread);
+    if (recipient_variable != NULL) {
+        Tamgu* idx = recipient_variable->Getindex();
+        if (idx == NULL || !idx->isIndex()) {
+            if (!recipient_variable->isCallVariable())
+                return globalTamgu->Returnerror("Cannot evaluate this instruction", idthread);
         }
-        else
-            if (variable->isValueContainer()) {
-                putback = true;
-                value = value->AtomNoConst();
+        else {
+            recipient_variable = idx;
+            value = idx->Eval(context, variable, idthread);
+            if (value == aNOELEMENT) {
+                if (variable->isValueContainer()) {
+                    value = idx->Put(variable, aNULL, idthread);
+                    if (value->isError())
+                        return value;
+                    
+                    value = idx->Eval(context, variable, idthread);
+                    putback = true;
+                }
+                else
+                    return globalTamgu->Returnerror("No value at this position in the container", idthread);
             }
+            else {
+                if (variable->isValueContainer()) {
+                    putback = true;
+                    value = value->AtomNoConst();
+                }
+            }
+        }
     }
     
     //The position in the expression of our variable is the second from the bottom...
@@ -162,7 +167,7 @@ Tamgu* TamguInstructionAPPLYOPERATIONEQU::Eval(Tamgu* context, Tamgu* value, sho
     }
     
     if (putback) {
-        idx->Put(variable, value, idthread);
+        recipient_variable->Put(variable, value, idthread);
         value->Release();
     }
     

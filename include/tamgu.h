@@ -4011,16 +4011,17 @@ public:
 			return aTRUE;
         }
 
-        if (value != aNOELEMENT) {
+        if (!value->isConst()) {
             value->Put(idx, v, idthread);
             unlocking();
             return aTRUE;
         }
-        else
+        else {
             if (idx->isIndex()) {
                 unlocking();
                 return globalTamgu->Returnerror("LET(001): Undefined assignment", idthread);
             }
+        }
 
         if (v->isConst()) {
             if (v == aNOELEMENT) {
@@ -4055,7 +4056,7 @@ public:
 			return false;
 		}
 
-        if (value != aNOELEMENT)
+        if (!value->isConst())
             value->Resetreference(reference);
         
         if (v != aNOELEMENT && v->isConst()) {
@@ -4080,7 +4081,7 @@ public:
 			return v;
         }
 
-		if (value != aNOELEMENT)
+        if (!value->isConst())
 			value->Resetreference(reference);
 
 		if (v->isConst())
@@ -4510,7 +4511,7 @@ public:
 			return aTRUE;
         }
 
-		if (value != aNOELEMENT) {
+		if (!value->isConst()) {
             if (idx->isIndex()) {
                 unlocking();
 				return value->Put(idx, v, idthread);
@@ -4524,11 +4525,12 @@ public:
 
 			value->Resetreference(reference);
 		}
-        else
+        else {
             if (idx->isIndex()) {
                 unlocking();
                 return globalTamgu->Returnerror("LET(001): Undefined assignment", idthread);
             }
+        }
 
         if (v->isConst()) {
             if (v == aNOELEMENT) {
@@ -4566,7 +4568,7 @@ public:
             return false;
         }
         
-        if (value != aNOELEMENT)
+        if (!value->isConst())
             value->Resetreference(reference);
         
         if (v != aNOELEMENT && v->isConst()) {
@@ -4594,7 +4596,7 @@ public:
                 return value;
             }
             
-            if (value != aNOELEMENT)
+            if (!value->isConst())
                 value->Resetreference(reference);
             
             if (v->isConst())
@@ -4611,7 +4613,7 @@ public:
         if (value == v)
             return value;
         
-        if (value != aNOELEMENT)
+        if (!value->isConst())
             value->Resetreference(reference);
         
         if (v->isConst())

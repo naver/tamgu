@@ -145,7 +145,6 @@ long timeminus(double init, timeval& tempsfinal) {
 
 //---------------------------------------------------------
 static bool tamgurestrandom = false;
-static unsigned long* a_random_pointer_seed;
 
 static ThreadLock randomlock;
 double localrandom(long mx) {
@@ -157,7 +156,7 @@ double localrandom(long mx) {
     static long w = time(0);
     unsigned long t;
     if (tamgurestrandom) {
-        w *= (int64_t)&a_random_pointer_seed;
+        w *= (int64_t)&x;
         tamgurestrandom = false;
     }
     
@@ -177,7 +176,7 @@ double a_localrandom(long mx) {
     static long w = time(0);
     unsigned long t;
     if (tamgurestrandom) {
-        w *= (int64_t)&a_random_pointer_seed;
+        w *= (int64_t)&y;
         tamgurestrandom = false;
     }
     
