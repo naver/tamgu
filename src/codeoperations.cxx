@@ -72,11 +72,7 @@ Tamgu* TamguInstructionAPPLYOPERATIONEQU::Eval(Tamgu* context, Tamgu* value, sho
     
     if (recipient_variable != NULL) {
         Tamgu* idx = recipient_variable->Getindex();
-        if (idx == NULL || !idx->isIndex()) {
-            if (!recipient_variable->isCallVariable())
-                return globalTamgu->Returnerror("Cannot evaluate this instruction", idthread);
-        }
-        else {
+        if (idx != NULL && idx->isIndex()) {
             recipient_variable = idx;
             value = idx->Eval(context, variable, idthread);
             if (value == aNOELEMENT) {
