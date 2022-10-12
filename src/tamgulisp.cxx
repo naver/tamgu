@@ -100,17 +100,17 @@ bool Tamgulisp::InitialisationModule(TamguGlobal* global, string version) {
     global->lispactions[a__scanl1] = P_THREE;
     global->lispactions[a__scanr1] = P_THREE;
 
-    global->lispactions[a_or] = P_ATLEASTTHREE;
-    global->lispactions[a_xor] = P_ATLEASTTHREE;
-    global->lispactions[a_and] = P_ATLEASTTHREE;
-    global->lispactions[a_plus] = P_ATLEASTTHREE;
-    global->lispactions[a_minus] = P_ATLEASTTHREE;
-    global->lispactions[a_multiply] = P_ATLEASTTHREE;
-    global->lispactions[a_divide] = P_ATLEASTTHREE;
-    global->lispactions[a_power] = P_THREE;
-    global->lispactions[a_mod] = P_THREE;
-    global->lispactions[a_shiftleft] = P_THREE;
-    global->lispactions[a_shiftright] = P_THREE;
+    global->lispactions[a_or] = P_ATLEASTTWO;
+    global->lispactions[a_xor] = P_ATLEASTTWO;
+    global->lispactions[a_and] = P_ATLEASTTWO;
+    global->lispactions[a_plus] = P_ATLEASTTWO;
+    global->lispactions[a_minus] = P_ATLEASTTWO;
+    global->lispactions[a_multiply] = P_ATLEASTTWO;
+    global->lispactions[a_divide] = P_ATLEASTTWO;
+    global->lispactions[a_power] = P_ATLEASTTWO;
+    global->lispactions[a_mod] = P_ATLEASTTWO;
+    global->lispactions[a_shiftleft] = P_ATLEASTTWO;
+    global->lispactions[a_shiftright] = P_ATLEASTTWO;
 
     global->lispactions[a_callfunction] = P_ATLEASTONE;
     global->lispactions[a_calllisp] = P_ATLEASTONE;
@@ -617,6 +617,22 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
         case a_plus:
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v0);
+            if (sz == 2 && v0->isContainer()) {
+                sz = v0->Size();
+                if (sz > 0) {
+                    Tamgu* value = v0->getvalue(0);
+                    value = value->AtomNoConst();
+                    Tamgu* val;
+                    for (i = 1; i < sz; i++) {
+                        val = v0->getvalue(i);
+                        value->plus(val, true);
+                        val->Release();
+                    }
+                    v0->Release();
+                    return value;
+                }
+                return v0;
+            }
             v0 = v0->Atom();
             for (i = 2; i < sz ; i++) {
                 v1 = values[i]->Eval(contextualpattern, aNULL, idthread);
@@ -628,6 +644,23 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
         case a_minus:
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v0);
+            if (sz == 2 && v0->isContainer()) {
+                sz = v0->Size();
+                if (sz > 0) {
+                    Tamgu* value = v0->getvalue(0);
+                    value = value->AtomNoConst();
+                    Tamgu* val;
+                    for (i = 1; i < sz; i++) {
+                        val = v0->getvalue(i);
+                        value->minus(val, true);
+                        val->Release();
+                    }
+                    v0->Release();
+                    return value;
+                }
+                return v0;
+            }
+                
             v0 = v0->Atom();
             for (i = 2; i < sz; i++) {
                 v1 = values[i]->Eval(contextualpattern, aNULL, idthread);
@@ -639,6 +672,22 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
         case a_multiply:
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v0);
+            if (sz == 2 && v0->isContainer()) {
+                sz = v0->Size();
+                if (sz > 0) {
+                    Tamgu* value = v0->getvalue(0);
+                    value = value->AtomNoConst();
+                    Tamgu* val;
+                    for (i = 1; i < sz; i++) {
+                        val = v0->getvalue(i);
+                        value->multiply(val, true);
+                        val->Release();
+                    }
+                    v0->Release();
+                    return value;
+                }
+                return v0;
+            }
             v0 = v0->Atom();
             for (i = 2; i < sz; i++) {
                 v1 = values[i]->Eval(contextualpattern, aNULL, idthread);
@@ -650,6 +699,28 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
         case a_divide:
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v0);
+            if (sz == 2 && v0->isContainer()) {
+                sz = v0->Size();
+                if (sz > 0) {
+                    Tamgu* value = v0->getvalue(0);
+                    value = value->AtomNoConst();
+                    Tamgu* val;
+                    Tamgu* err;
+                    for (i = 1; i < sz; i++) {
+                        val = v0->getvalue(i);
+                        err = value->divide(val, true);
+                        val->Release();
+                        if (err->isError()) {
+                            value->Release();
+                            v0->Release();
+                            return err;
+                        }
+                    }
+                    v0->Release();
+                    return value;
+                }
+                return v0;
+            }
             v0 = v0->Atom();
             for (i = 2; i < sz; i++) {
                 v1 = values[i]->Eval(contextualpattern, aNULL, idthread);
@@ -666,6 +737,22 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
         case a_power:
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v0);
+            if (sz == 2 && v0->isContainer()) {
+                sz = v0->Size();
+                if (sz > 0) {
+                    Tamgu* value = v0->getvalue(0);
+                    value = value->AtomNoConst();
+                    Tamgu* val;
+                    for (i = 1; i < sz; i++) {
+                        val = v0->getvalue(i);
+                        value->power(val, true);
+                        val->Release();
+                    }
+                    v0->Release();
+                    return value;
+                }
+                return v0;
+            }
             v1 = values[2]->Eval(contextualpattern, aNULL, idthread);
             checkerrorwithrelease(v1, v0);
             v0 = v0->Atom();
@@ -675,6 +762,28 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
         case a_mod:
             a = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(a);
+            if (sz == 2 && v0->isContainer()) {
+                sz = v0->Size();
+                if (sz > 0) {
+                    Tamgu* value = v0->getvalue(0);
+                    value = value->AtomNoConst();
+                    Tamgu* val;
+                    Tamgu* err;
+                    for (i = 1; i < sz; i++) {
+                        val = v0->getvalue(i);
+                        err = value->mod(val, true);
+                        val->Release();
+                        if (err->isError()) {
+                            value->Release();
+                            v0->Release();
+                            return err;
+                        }
+                    }
+                    v0->Release();
+                    return value;
+                }
+                return v0;
+            }
             v1 = values[2]->Eval(contextualpattern, aNULL, idthread);
             checkerrorwithrelease(v1, a);
             v0 = a->Atom();
@@ -686,6 +795,22 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
         case a_shiftleft:
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v0);
+            if (sz == 2 && v0->isContainer()) {
+                sz = v0->Size();
+                if (sz > 0) {
+                    Tamgu* value = v0->getvalue(0);
+                    value = value->AtomNoConst();
+                    Tamgu* val;
+                    for (i = 1; i < sz; i++) {
+                        val = v0->getvalue(i);
+                        value->shiftleft(val, true);
+                        val->Release();
+                    }
+                    v0->Release();
+                    return value;
+                }
+                return v0;
+            }
             v1 = values[2]->Eval(contextualpattern, aNULL, idthread);
             checkerrorwithrelease(v1, v0);
             v0 = v0->Atom();
@@ -695,6 +820,22 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
         case a_shiftright:
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v0);
+            if (sz == 2 && v0->isContainer()) {
+                sz = v0->Size();
+                if (sz > 0) {
+                    Tamgu* value = v0->getvalue(0);
+                    value = value->AtomNoConst();
+                    Tamgu* val;
+                    for (i = 1; i < sz; i++) {
+                        val = v0->getvalue(i);
+                        value->shiftright(val, true);
+                        val->Release();
+                    }
+                    v0->Release();
+                    return value;
+                }
+                return v0;
+            }
             v1 = values[2]->Eval(contextualpattern, aNULL, idthread);
             checkerrorwithrelease(v1, v0);
             v0 = v0->Atom();
@@ -704,6 +845,22 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
         case a_and:
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v0);
+            if (sz == 2 && v0->isContainer()) {
+                sz = v0->Size();
+                if (sz > 0) {
+                    Tamgu* value = v0->getvalue(0);
+                    value = value->AtomNoConst();
+                    Tamgu* val;
+                    for (i = 1; i < sz; i++) {
+                        val = v0->getvalue(i);
+                        value->andset(val, true);
+                        val->Release();
+                    }
+                    v0->Release();
+                    return value;
+                }
+                return v0;
+            }
             v0 = v0->Atom();
             for (i = 2; i < sz; i++) {
                 v1 = values[i]->Eval(contextualpattern, aNULL, idthread);
@@ -715,6 +872,22 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
         case a_xor:
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v0);
+            if (sz == 2 && v0->isContainer()) {
+                sz = v0->Size();
+                if (sz > 0) {
+                    Tamgu* value = v0->getvalue(0);
+                    value = value->AtomNoConst();
+                    Tamgu* val;
+                    for (i = 1; i < sz; i++) {
+                        val = v0->getvalue(i);
+                        value->xorset(val, true);
+                        val->Release();
+                    }
+                    v0->Release();
+                    return value;
+                }
+                return v0;
+            }
             v0 = v0->Atom();
             for (i = 2; i < sz; i++) {
                 v1 = values[i]->Eval(contextualpattern, aNULL, idthread);
@@ -726,6 +899,22 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
         case a_or:
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v0);
+            if (sz == 2 && v0->isContainer()) {
+                sz = v0->Size();
+                if (sz > 0) {
+                    Tamgu* value = v0->getvalue(0);
+                    value = value->AtomNoConst();
+                    Tamgu* val;
+                    for (i = 1; i < sz; i++) {
+                        val = v0->getvalue(i);
+                        value->orset(val, true);
+                        val->Release();
+                    }
+                    v0->Release();
+                    return value;
+                }
+                return v0;
+            }
             v0 = v0->Atom();
             for (i = 2; i < sz; i++) {
                 v1 = values[i]->Eval(contextualpattern, aNULL, idthread);
