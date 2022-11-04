@@ -808,7 +808,7 @@ Exporting Tamgu* Tamgulist::Eval(Tamgu* contextualpattern, Tamgu* idx, short idt
 
     Tamgu* keyright = NULL;
     
-    long ikey = ((TamguIndex*)idx)->left->Getinteger(idthread);
+    long ikey = ((TamguIndex*)idx)->left->Getinteger0(idthread);
     if (idx->isInterval())
         keyright = ((TamguIndex*)idx)->right->Eval(aNULL, aNULL, idthread);
 

@@ -871,7 +871,7 @@ Exporting Tamgu* Tamguivector::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
     Tamgu* keyright = NULL;
     long ikey;
     TamguIndex* kind = (TamguIndex*)idx;
-    ikey = kind->left->Getinteger(idthread);
+    ikey = kind->left->Getinteger0(idthread);
     if (kind->interval == true)
         keyright = kind->right->Eval(aNULL, aNULL, idthread);
 
@@ -2015,7 +2015,7 @@ Exporting Tamgu* Tamgua_ivector::Eval(Tamgu* contextualpattern, Tamgu* idx, shor
     Tamgu* keyright = NULL;
     long ikey;
     TamguIndex* kind = (TamguIndex*)idx;
-    ikey = kind->left->Getinteger(idthread);
+    ikey = kind->left->Getinteger0(idthread);
     if (kind->interval == true)
         keyright = kind->right->Eval(aNULL, aNULL, idthread);
     

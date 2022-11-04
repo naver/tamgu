@@ -148,7 +148,11 @@ public:
 	void Setstring(wstring& v, short idthread) {
         v = L"";
     }
-    
+
+    long Getinteger0(short idthread) {
+        return 0;
+    }
+
 	long Getinteger(short idthread) {
 		return value;
 	}

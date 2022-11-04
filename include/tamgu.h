@@ -1244,6 +1244,10 @@ public:
 		return Eval(aNULL, aNULL, idthread);
 	}
 
+    virtual long Getinteger0(short idthread) {
+        return Getinteger(idthread);
+    }
+    
 	virtual long Getinteger(short idthread) {
 		Tamgu* value = Eval(aNULL, aNULL, idthread);
 		long v = value->Integer();
@@ -3745,6 +3749,10 @@ public:
 	string JSonString() {
 		return left->JSonString();
 	}
+
+    long Getinteger0(short idthread) {
+        return left->Getinteger0(idthread);
+    }
 
 	long Getinteger(short idthread) {
 		return left->Getinteger(idthread);
