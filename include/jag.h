@@ -34,11 +34,9 @@
 #define l_com 2
 #define l_com_one 3
 
-#ifdef XTERM_MOUSE_VT100
-const char enablemouse[] = {27,91,'?','1','0','0','3','h',0};
-#else
+const char enablemouse_vt100[] = {27,91,'?','1','0','0','3','h',0};
 const char enablemouse[] = {27,91,'?','1','0','0','3','h',27,91,'?','1','0','1','5','h',27,91,'?','1','0','1','6','h',0};
-#endif
+
 const char disablemouse[] = {27,91,'?','1','0','0','0','l',0};
 
 
@@ -1524,7 +1522,10 @@ public:
 #else
     
     void mouseon() {
-        sendcommand(enablemouse);
+        if (vt100)
+            sendcommand(enablemouse_vt100);
+        else
+            sendcommand(enablemouse);
         mouse_status = true;
         activate_mouse = true;
     }
@@ -1536,7 +1537,10 @@ public:
     
     void togglemouse() {
         if (!mouse_status) {
-            sendcommand(enablemouse);
+            if (vt100)
+                sendcommand(enablemouse_vt100);
+            else
+                sendcommand(enablemouse);
             mouse_status = true;
             activate_mouse = true;
         }
