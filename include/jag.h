@@ -101,19 +101,19 @@ const string colordenomination[] = {"string", "method", "keyword", "function", "
 const short nbdenomination = 6;
 typedef enum {no_type, clike_type, lisp_type, python_type, tamgu_type} file_types;
 
-    //Background
+//Background
 const int m_clbg[] = {40, 41, 42, 43, 44, 45, 46, 47, 49, 100, 101, 102, 103, 104, 105, 106, 107, 0};
-    //Foreground
+//Foreground
 const int m_clfg[] =  {30, 31, 32, 33, 34, 35, 36, 37, 39, 90, 91, 92, 93, 94, 95, 96, 97, 0};
-    //Formatting
+//Formatting
 const int m_attr[] = {0, 1, 2, 3, 4, 5, 7, -1};
 
-    //action, moving the cursor...
+//action, moving the cursor...
 extern char m_down[];
 const char m_up[] = {27, '[', '1', 65, 0};
-    //On macos you might need to insert these key combination in the keyboard preference as: \033[1;5A and \033[1;5B
+//On macos you might need to insert these key combination in the keyboard preference as: \033[1;5A and \033[1;5B
 
-    //arrow moving
+//arrow moving
 
 const char a_right[] = {27, 102, 0};
 const char a_left[] = {27, 98, 0};
@@ -204,21 +204,21 @@ public:
     vector<char> longlines;
     vector<long> numeros;
     hmap<long, bool> checks;
-
+    
     editor_lines(jag_editor* j) {
         jag = j;
     }
-
+    
     bool check(long p) {
         if (checks.find(p) != checks.end())
             return true;
         return false;
     }
-
+    
     void setcode(wstring& code, bool clean);
-
+    
     bool updatesize();
-
+    
     void numbers() {
         long nb = 0;
         numeros.clear();
@@ -227,10 +227,10 @@ public:
                 nb++;
             numeros.push_back(nb);
         }
-
+        
         updatesize();
     }
-
+    
     long getlinenumber(long l) {
         for (long i = 0; i < numeros.size(); i++) {
             if (numeros[i] == l)
@@ -238,7 +238,7 @@ public:
         }
         return 0;
     }
-
+    
     wstring code() {
         wstring c;
         bool rc = false;
@@ -258,7 +258,7 @@ public:
         }
         return c;
     }
-
+    
     wstring code(long first, long end) {
         wstring c;
         bool rc = false;
@@ -282,7 +282,7 @@ public:
         }
         return c;
     }
-
+    
     //We detect long commented lines or long strings
     //we check if we have spaces from the start of the string and on
     void checkspace(long pos, long l, char code) {
@@ -294,7 +294,7 @@ public:
         }
         longlines.push_back(code);
     }
-
+    
     void detectlisp() {
         char l_strings = 0;
         char l_comments = 0;
@@ -354,7 +354,7 @@ public:
     void detectpython() {
         char l_strings = 0;
         long pos;
-
+        
         for (long i = 0; i < lines.size(); i++) {
             pos = lines[i].find(L"'''");
             if (pos != -1 && lines[i].find(L"'''", pos + 1) == -1) {
@@ -481,11 +481,11 @@ public:
             push(L"");
         return lines[pos];
     }
-
+    
     long size() {
         return lines.size();
     }
-
+    
     long indent(long p) {
         long i = p;
         wchar_t c;
@@ -500,34 +500,34 @@ public:
         s_unicode_to_utf8(ccd, cd);
         return VirtualIndentation(ccd);
     }
-
+    
     long splitline(wstring& l, long linenumber, vector<wstring>& subs);
-
+    
     char Status(long pos) {
         if (pos >= 0 && pos < lines.size())
             return status[pos];
         return 0;
     }
-
+    
     //Check if we can go up to the end of the line
     bool eol(long p) {
         if (Status(p) != solo_line &&  Status(p+1) == concat_line)
             return false;
         return true;
     }
-        //the line is cut after pos (either for destruction of copy)
-        //the line is cut after pos (either for destruction of copy)
+    //the line is cut after pos (either for destruction of copy)
+    //the line is cut after pos (either for destruction of copy)
     char updatestatus(long pos);
-
+    
     void erase(long pos) {
         lines.erase(lines.begin()+pos);
         status.erase(status.begin()+pos);
     }
-
+    
     void erase(long pos, long end) {
         if (end >= lines.size())
             end = -1;
-
+        
         if (end == -1) {
             lines.erase(lines.begin()+pos, lines.end());
             status.erase(status.begin()+pos, status.end());
@@ -537,25 +537,25 @@ public:
             status.erase(status.begin()+pos, status.begin() + end);
         }
     }
-
+    
     void insert(long pos, wstring& sub, char st) {
         lines.insert(lines.begin() + pos, sub);
         status.insert(status.begin()+pos, st);
         updatesize();
     }
-
+    
     void insert(long pos, wstring& sub) {
         lines.insert(lines.begin() + pos, sub);
         status.insert(status.begin()+pos, solo_line);
         updatesize();
     }
-
+    
     void inserting(long pos, wstring sub) {
         lines.insert(lines.begin() + pos, sub);
         status.insert(status.begin()+pos, solo_line);
         updatesize();
     }
-
+    
     void push_back(wstring& sub) {
         lines.push_back(sub);
         status.push_back(solo_line);
@@ -565,7 +565,7 @@ public:
             numeros.push_back(1);
         updatesize();
     }
-
+    
     void push(wstring sub) {
         lines.push_back(sub);
         status.push_back(solo_line);
@@ -575,46 +575,46 @@ public:
             numeros.push_back(1);
         updatesize();
     }
-
+    
     void pop_back() {
         lines.pop_back();
         status.pop_back();
         numeros.pop_back();
     }
-
+    
     wstring getoneline(long pos, long& end) {
         if (status[pos] == solo_line) {
             end = pos;
             return lines[pos];
         }
-
+        
         wstring line = lines[pos++];
         while (pos < lines.size() && Status(pos) == concat_line)
             line += lines[pos++];
-
+        
         end = pos-1;
         return line;
     }
-
+    
     void clear() {
         checks.clear();
         lines.clear();
         status.clear();
         numeros.clear();
     }
-
+    
     wstring back() {
         return lines.back();
     }
-
+    
     bool checkfullsize(wstring&, bool&);
     bool checksize(long p);
     void undo(wstring& l, long p, char a);
-
+    
     void replaceline(long p, long end, wstring& line) {
         bool equal = false;
         if (checkfullsize(line, equal)) {
-                //We need to protect the last line
+            //We need to protect the last line
             vector<wstring> subs;
             splitline(line, numeros[p], subs);
             long u;
@@ -626,7 +626,7 @@ public:
                     status.insert(status.begin()+p+u, concat_line);
                 }
             }
-
+            
             if ((p+u) < end)
                 erase(p+u, end);
             numbers();
@@ -634,12 +634,12 @@ public:
         }
         lines[p] = line;
     }
-
+    
     bool refactoring(long p);
-
-
+    
+    
 };
-    ///------------------------------------------------------------------------------------
+///------------------------------------------------------------------------------------
 
 class editor_keep {
 public:
@@ -650,7 +650,7 @@ public:
     list<long> l_keepcurrentline;
     list<long> l_keeptop;
     list<char> l_keepstatus;
-
+    
     void pop() {
         l_keeplines.pop_back();
         l_keeppos.pop_back();
@@ -660,7 +660,7 @@ public:
         l_keeptop.pop_back();
         l_keepstatus.pop_back();
     }
-
+    
     void move(wstring& l, editor_keep& e) {
         l_keeplines.push_back(l);
         l_keeptop.push_back(e.l_keeptop.back());
@@ -671,7 +671,7 @@ public:
         l_keepstatus.push_back(e.l_keepstatus.back());
         e.pop();
     }
-
+    
     void clear() {
         l_keeplines.clear();
         l_keeppos.clear();
@@ -681,7 +681,7 @@ public:
         l_keeptop.clear();
         l_keepstatus.clear();
     }
-
+    
     void store(long postop, wstring& line, long pos, char action, long currentline, long posinstring, char status) {
         l_keeptop.push_back(postop);
         l_keeplines.push_back(line);
@@ -691,7 +691,7 @@ public:
         l_keepposinstring.push_back(posinstring);
         l_keepstatus.push_back(status);
     }
-
+    
     void storein(editor_keep& e) {
         e.l_keeptop = l_keeptop;
         e.l_keeplines = l_keeplines;
@@ -701,45 +701,45 @@ public:
         e.l_keepposinstring = l_keepposinstring;
         e.l_keepstatus = l_keepstatus;
     }
-
+    
     void prune() {
         if (l_keepactions.size() >= 10000) {
             list<wstring>::iterator srange_end = l_keeplines.begin();
             std::advance(srange_end,1000);
             l_keeplines.erase(l_keeplines.begin(), srange_end);
-
+            
             list<long>::iterator prange_end = l_keeppos.begin();
             std::advance(prange_end,1000);
             l_keeppos.erase(l_keeppos.begin(), prange_end);
-
+            
             list<char>::iterator arange_end = l_keepactions.begin();
             std::advance(arange_end,1000);
             l_keepactions.erase(l_keepactions.begin(), arange_end);
-
+            
             list<long>::iterator psrange_end = l_keepposinstring.begin();
             std::advance(psrange_end,1000);
             l_keepposinstring.erase(l_keepposinstring.begin(), psrange_end);
-
+            
             list<long>::iterator crange_end = l_keepcurrentline.begin();
             std::advance(crange_end,1000);
             l_keepcurrentline.erase(l_keepcurrentline.begin(), crange_end);
-
+            
             list<long>::iterator trange_end = l_keeptop.begin();
             std::advance(trange_end,1000);
             l_keeptop.erase(l_keeptop.begin(), trange_end);
-
+            
             list<char>::iterator strange_end = l_keepstatus.begin();
             std::advance(strange_end,1000);
             l_keepstatus.erase(l_keepstatus.begin(), strange_end);
         }
     }
-
+    
     bool empty() {
         if (l_keeplines.size() == 0)
             return true;
         return false;
     }
-
+    
     void display() {
         string s;
         wstring w = l_keeplines.back();
@@ -752,7 +752,7 @@ public:
         cout << l_keeptop.back() << endl;
         cout << l_keepstatus.back() << endl;
     }
-
+    
 };
 
 typedef enum { x_none, x_goto, x_find, x_replace, x_write, x_count, x_delete, x_copy, x_cut, x_copying, x_deleting, x_cutting, x_load, x_exitprint} x_option;
@@ -760,65 +760,65 @@ class Jag_automaton;
 
 class jag_editor {
 public:
-
+    
     vector<wstring> commandlines;
     vector<string> colors;
     vector<long> poslines;
-
+    
     editor_lines lines;
-
+    
     editor_keep undos;
     editor_keep redos;
-
+    
 #ifndef WIN32
     struct termios oldterm;
     struct winsize wns;
 #endif
-
+    
     std::stringstream localhelp;
     std::wstringstream st;
-
+    
     file_types filetype;
-
+    
     long linematch;
-
+    
     string thecurrentfilename;
     string prefix;
-
+    
     wstring wprefix;
     wstring line;
     wstring currentfind;
     wstring currentreplace;
     wstring kbuffer;
     wstring copybuffer;
-
+    
 #ifdef Tamgu_REGEX
     wstring wpatternexpression;
     wregex* wpattern;
 #endif
-
+    
     Jag_automaton* findrgx;
-
-
+    
+    
     long poscommand;
     long row_size, col_size;
-
+    
 #ifdef WIN32
-	long size_row, size_col;
+    long size_row, size_col;
 #endif
     long pos;
     long posinstring;
     long currentposinstring;
     long currentfindpos;
     long currentline;
-
+    
     long margin;
-
+    
     int prefixsize;
     int xcursor, ycursor;
-
+    
     x_option option;
-
+    
     bool echochar;
     bool replaceall;
     bool modified;
@@ -826,21 +826,24 @@ public:
     bool tooglehelp;
     bool updateline;
     bool noprefix;
-	bool insertaline;
+    bool insertaline;
     bool taskel;
-
+    
     //Mouse Section
     long selected_x, selected_y, selected_pos, selected_posnext, selected_firstline, double_click;
     int nbclicks;
+    
+    bool activate_mouse;
     bool mouse_status;
-
-
+    bool vt100;
+    
+    
     char regularexpressionfind;
-
+    
     jag_editor();
     ~jag_editor();
-
-
+    
+    
     void switch_dark_mode() {
         if (colors[2] == m_blue)
             colors[2] = m_blueblack;
@@ -849,7 +852,7 @@ public:
     }
     
     virtual void displaythehelp(long noclear = 0);
-
+    
     void setpathname(string path) {
         thecurrentfilename =  path;
         if (thecurrentfilename.find(".lisp") != -1)
@@ -872,43 +875,43 @@ public:
             }
         }
     }
-
+    
     string pathname() {
         return thecurrentfilename;
     }
-
+    
     wstring wpathname() {
         wstring name = wconvert(thecurrentfilename);
         return name;
     }
-
-	void resetterminal();
-	void screensizes();
-
+    
+    void resetterminal();
+    void screensizes();
+    
     void setscrolling();
     void reset();
-
+    
     void resetscrolling();
-
+    
     long colsize() {
         return col_size;
     }
-
+    
     void clearst() {
         st.str(L"");
         st.clear();
     }
-
+    
     virtual bool emode() {
         if (option == x_none)
             return true;
         return false;
     }
-
+    
     //------------------------------------------------------------------------------------------------
     //Undo/Redo
     //------------------------------------------------------------------------------------------------
-
+    
     void setnoprefix() {
         noprefix = 1-noprefix;
         if (noprefix) {
@@ -920,8 +923,8 @@ public:
         else {
             margin = 3;
 #ifdef WIN32
-			prefix = "<>";
-			wprefix = L"<>";
+            prefix = "<>";
+            wprefix = L"<>";
 #else
             prefix = "작";
             wprefix = L"작";
@@ -930,7 +933,7 @@ public:
         }
         resetscreen();
     }
-
+    
     bool isc() {
         if (thecurrentfilename != "") {
             if (thecurrentfilename.find(".java") != -1) {
@@ -948,7 +951,7 @@ public:
         }
         return false;
     }
-
+    
     bool istamgu() {
         if (thecurrentfilename != "") {
             if (thecurrentfilename.find(".tmg") != -1)
@@ -956,7 +959,7 @@ public:
         }
         return false;
     }
-
+    
     bool ispy() {
         if (thecurrentfilename != "") {
             if (thecurrentfilename.find(".py") != -1)
@@ -964,33 +967,33 @@ public:
         }
         return false;
     }
-
+    
     void undo(wstring& l, long p, char a) {
         if (!emode() || p >= lines.size())
             return;
-
+        
         modified = true;
         redos.clear();
         undos.prune();
         undos.store(poslines[0], l, p, a, currentline, posinstring, lines.Status(p));
     }
-
+    
     void processredos();
-
+    
     void processundos();
-
-        //------------------------------------------------------------------------------------------------
-        //Syntactic coloration...
-        //------------------------------------------------------------------------------------------------
-
+    
+    //------------------------------------------------------------------------------------------------
+    //Syntactic coloration...
+    //------------------------------------------------------------------------------------------------
+    
     void colorring(string& l, vector<long>& limits);
     virtual string coloringline(wstring& l, long p = -1, bool select = false);
     void vsplit(wstring& thestr, wstring thesplitter, vector<wstring>& vs);
-
-        //------------------------------------------------------------------------------------------------
-        //Cursor movements...
-        //------------------------------------------------------------------------------------------------
-
+    
+    //------------------------------------------------------------------------------------------------
+    //Cursor movements...
+    //------------------------------------------------------------------------------------------------
+    
     void selectfound(long l, long r);
     void movetoposition();
     void movetobeginning();
@@ -999,37 +1002,37 @@ public:
     void movetoline(long e);
     void gotoline(long p);
     virtual bool updown(char drt, long& pos);
-
+    
     void getcursor();
-
+    
     void toggletopbottom() {
         if (poslines.size() == 0)
             return;
-
+        
         if (currentline == 0)
             currentline = poslines.size() -1;
         else
             currentline = 0;
-
+        
         movetoline(currentline);
         pos = poslines[currentline];
         line = lines[pos];
         posinstring = line.size();
         movetoend();
     }
-
-        //------------------------------------------------------------------------------------------------
-        //Size calculations...
-        //------------------------------------------------------------------------------------------------
-
-        //Since there is always a prefix at the beginning of the line, we compute it here...
-
+    
+    //------------------------------------------------------------------------------------------------
+    //Size calculations...
+    //------------------------------------------------------------------------------------------------
+    
+    //Since there is always a prefix at the beginning of the line, we compute it here...
+    
     long prefixesize(long sz) {
         if (noprefix)
             return 0;
         return (sz > 9999 ? 5 : sz > 999 ? 4: sz > 99 ? 3 : sz > 9 ? 2 : 1);
     }
-
+    
     void setprefixesize(long sz) {
         if (noprefix) {
             prefixsize = 0;
@@ -1037,13 +1040,13 @@ public:
         }
         prefixsize = sz > 9999 ? 5 : sz > 999 ? 4: sz > 99 ? 3 : sz > 9 ? 2 : 1 ;
     }
-
-	long prefixe() {
-		if (noprefix)
-			return 0;
-		return (4 + prefixsize);
-	}
-
+    
+    long prefixe() {
+        if (noprefix)
+            return 0;
+        return (4 + prefixsize);
+    }
+    
     virtual long prefixego() {
         wstring s;
         switch(option) {
@@ -1084,7 +1087,7 @@ public:
         }
         return s.size();
     }
-
+    
     long computeparenthesis(string& ln, char checkcar, long limit) {
         long posmatch = -1;
         vector<long> positions;
@@ -1130,82 +1133,82 @@ public:
             posmatch = positions.back();
         return posmatch;
     }
-
+    
     long splitline(wstring& l, long linenumber, vector<wstring>& subs);
-
-        //The main problem here is that emojis can be composed...
-        //An emoji can be composed of up to 7 emojis...
+    
+    //The main problem here is that emojis can be composed...
+    //An emoji can be composed of up to 7 emojis...
     void forwardemoji();
     void backwardemoji();
-
-        //We find the beginning of each emoji, skipping composed ones...
-        //We build a string with no composed emoji, to match the position of the cursor...
+    
+    //We find the beginning of each emoji, skipping composed ones...
+    //We build a string with no composed emoji, to match the position of the cursor...
     void cleanlongemoji(wstring& s, wstring& cleaned, long p);
-
-        //This size is computed to take into account Chinese/Japanese/Korean characters...
-        //These characters can occupy up to two columns... We also take into account the tab size
+    
+    //This size is computed to take into account Chinese/Japanese/Korean characters...
+    //These characters can occupy up to two columns... We also take into account the tab size
     long taille(wstring& s);
-
+    
     long cjk_size(wstring& l) {
         wstring cleaned;
         cleanlongemoji(l, cleaned, l.size());
         long sz = taille(cleaned);
         return (sz - cleaned.size());
     }
-
-
-
+    
+    
+    
     inline long fullsize(wstring& l) {
         return taille(l);
     }
-
+    
     long size_upto(wstring& l, long p);
-
+    
     long linesize() {
         if (emode())
             return lines[poslines[currentline]].size();
         return line.size();
     }
-
-        //--------------------------------------------------------------------------------
-        //Display methods....
-        //--------------------------------------------------------------------------------
+    
+    //--------------------------------------------------------------------------------
+    //Display methods....
+    //--------------------------------------------------------------------------------
     void clearscreen();
     void clearline();
-	void clearlastline();
+    void clearlastline();
     void displayonlast(bool bck);
     void displayonlast(wstring w, bool bck = false);
     void displayonlast(string s, bool bck);
     virtual void displaygo(bool full);
-
-
-
+    
+    
+    
     void resetlist(long i) {
         poslines.clear();
         long mx = i + row_size;
-
+        
         while (i <= mx) {
             poslines.push_back(i);
             i++;
         }
     }
-
+    
     void displaylist(long beg);
-
+    
     virtual void printline(long n, string l) {
         if (noprefix)
             cout << back << l;
         else
             cout << back << m_dore << prefix << m_current << m_lightgray << std::setw(prefixsize) << n << "> " << m_current << l;
     }
-
+    
     virtual void printline(long n) {
         if (noprefix)
             cout << back;
         else
             cout << back << m_dore << prefix << m_current << m_lightgray << std::setw(prefixsize) << n << "> " << m_current;
     }
-
+    
     virtual void printline(long n, wstring& l, long i = -1) {
         if (noprefix)
             cout << back << coloringline(l, i);
@@ -1218,21 +1221,21 @@ public:
                 cout << back << m_dore << prefix << m_current << m_lightgray << std::setw(prefixsize) << n << "> " << m_current << coloringline(l, i);
         }
     }
-
-        //------------------------------------------------------------------------------------------------
-        //Deletion methods...
-        //------------------------------------------------------------------------------------------------
-
+    
+    //------------------------------------------------------------------------------------------------
+    //Deletion methods...
+    //------------------------------------------------------------------------------------------------
+    
     long sizestring(wstring& s);
-
-        //The deletion of a character is different if it is an emoji...
+    
+    //The deletion of a character is different if it is an emoji...
     long deleteachar(wstring& l, bool last, long pins);
     void deletechar(bool);
-
-        //Delete all characters after the cursor
+    
+    //Delete all characters after the cursor
     void deleteallafter() {
         undo(lines[pos],pos, u_modif); //The value is negative to indicate a deletion
-
+        
         wstring code = lines[poslines[currentline]];
         kbuffer = code.substr(posinstring, code.size());
         code = code.substr(0, posinstring);
@@ -1242,34 +1245,34 @@ public:
         movetoline(currentline);
         movetoposition();
     }
-
-        //moveup means that the cursor must be positionned on the line above...
+    
+    //moveup means that the cursor must be positionned on the line above...
     void deleteline(char moveup);
-
-        //------------------------------------------------------------------------------------------------
-        //formating method...
-        //------------------------------------------------------------------------------------------------
-
+    
+    //------------------------------------------------------------------------------------------------
+    //formating method...
+    //------------------------------------------------------------------------------------------------
+    
     void indentcode(long ps, bool lisp) {
         if (!lines.size())
             return;
-
+        
         wstring code = lines.code();
-
+        
         string codeindente;
         string cd = convert(code);
         IndentCode(cd, codeindente, GetBlankSize(), lisp, taskel);
         lines.clear();
         code = wconvert(codeindente);
         code += L"\n\n";
-
+        
         lines.setcode(code, true);
-
+        
         displaylist(poslines[0]);
         movetoline(currentline);
         movetoposition();
     }
-
+    
     virtual void setcode(string& c) {
         wstring code = wconvert(c);
         lines.setcode(code, true);
@@ -1283,26 +1286,26 @@ public:
             movetoend();
         }
     }
-
-        //------------------------------------------------------------------------------------------------
-        //search method...
-        //------------------------------------------------------------------------------------------------
-
+    
+    //------------------------------------------------------------------------------------------------
+    //search method...
+    //------------------------------------------------------------------------------------------------
+    
     bool search(wstring& l, long& first, long& last, long ps);
     void processgo();
     bool processfind();
     long processcount();
     void processreplace();
     bool findnext();
-
+    
     bool resetsearch();
-
-        //------------------------------------------------------------------------------------------------
-        //command methods...
-        //------------------------------------------------------------------------------------------------
+    
+    //------------------------------------------------------------------------------------------------
+    //command methods...
+    //------------------------------------------------------------------------------------------------
     virtual bool writetofile() {
         wstring code = lines.code();
-
+        
         ofstream wd(thecurrentfilename, ios::binary);
         if (wd.fail())
             return false;
@@ -1311,11 +1314,11 @@ public:
         tobesaved = false;
         return true;
     }
-
+    
     string getch();
     long getbuffsize();
     bool check_utf8(string& buff, string& buffer);
-
+    
     virtual bool reloadfile() {
         if (thecurrentfilename.empty())
             return false;
@@ -1356,13 +1359,13 @@ public:
         }
         return true;
     }
-
+    
     virtual bool loadfile(string name) {
         setpathname(name);
         ifstream rd(pathname(), openMode);
         if (rd.fail())
             return false;
-
+        
         string code = "";
         string line;
         while (!rd.eof()) {
@@ -1375,44 +1378,44 @@ public:
         setcode(code);
         return true;
     }
-
+    
     string convert(wstring& w) {
         string s;
         s_unicode_to_utf8(s, w);
 #ifdef WIN32
-		if (isDosOutput())
-			return s_utf8_to_dos(STR(s));
+        if (isDosOutput())
+            return s_utf8_to_dos(STR(s));
 #endif
         return s;
     }
-
+    
     wstring wconvert(string& s) {
         wstring w;
         s_utf8_to_unicode(w, USTR(s), s.size());
         return w;
     }
-
-
-        //A CR was hit, we need either to modify the current line or to add a new one...
-        //If the cursor was in the middle of a line, then we split it in two
-
+    
+    
+    //A CR was hit, we need either to modify the current line or to add a new one...
+    //If the cursor was in the middle of a line, then we split it in two
+    
     long handlemultiline() ;
     long handlingeditorline(bool computespace = true);
-	void Scrolldown();
-
+    void Scrolldown();
+    
     bool evaluateescape(string& buff);
     virtual void init();
     virtual void clear();
-
-
+    
+    
     //This is the main instruction to add characters into the editor
     void addabuffer(wstring& b, bool instring);
-
+    
     void handleblock(wstring& bl) {
-
-            //We keep track of the initial form of the line...
+        
+        //We keep track of the initial form of the line...
         undo(lines[pos],pos, u_modif); //The value is negative to indicate a deletion
-
+        
         wstring b;
         for (long j = 0; j < bl.size(); j++) {
             b = bl[j];
@@ -1426,22 +1429,22 @@ public:
         movetoline(currentline);
         movetoposition();
     }
-
+    
     void convertmetas();
     //This section handles combined commands introduced with Ctrl-x
     virtual bool checkcommand(char);
     void handlecommands();
-
-        //This a case of copy/paste within the editor, we need to remove the prefixes
+    
+    //This a case of copy/paste within the editor, we need to remove the prefixes
     void cleanheaders(wstring& w);
     //This is the main method that launches the terminal
     virtual void launchterminal(char loadedcode, vector<string>& newcolors);
     bool checkaction(string&, long& first, long& last, bool lsp = false);
-
+    
     virtual void addcommandline(wstring& w) {}
-
+    
     virtual bool terminate();
-
+    
     virtual void resetscreen() {
         modified = true;
         screensizes();
@@ -1452,30 +1455,30 @@ public:
         posinstring = 0;
         movetobeginning();
     }
-
+    
     bool checksize(wstring& l) {
         if (fullsize(l) > col_size)
             return true;
         return false;
     }
-
+    
     bool checksizeequal(wstring& l, bool& equal) {
         long ll = fullsize(l);
         if (ll == col_size) {
             equal = true;
             return true;
         }
-
+        
         if (ll > col_size)
             return true;
         return false;
     }
-
+    
     string thecode() {
         wstring c = lines.code();
         return convert(c);
     }
-
+    
     void indentplus();
     void deindentminus();
     
@@ -1496,14 +1499,15 @@ public:
         selected_pos = -1;
         selected_posnext = -1;
     }
-
+    
     void sendcommand(string s) {
         cout.flush();
         cout << s;
     }
-
+    
 #ifdef WIN32
     void mouseon() {
+        activate_mouse = true;
         mouse_status = true;
     }
     
@@ -1513,6 +1517,8 @@ public:
     
     void togglemouse() {
         mouse_status = 1 - mouse_status;
+        if (mouse_status)
+            activate_mouse = true;
     }
     
 #else
@@ -1520,6 +1526,7 @@ public:
     void mouseon() {
         sendcommand(enablemouse);
         mouse_status = true;
+        activate_mouse = true;
     }
     
     void mouseoff() {
@@ -1531,6 +1538,7 @@ public:
         if (!mouse_status) {
             sendcommand(enablemouse);
             mouse_status = true;
+            activate_mouse = true;
         }
         else {
             sendcommand(disablemouse);
@@ -1539,8 +1547,7 @@ public:
     }
 #endif
     
-#ifdef XTERM_MOUSE_VT100
-    bool isScrollingUp(vector<int>& vect, string& mousectrl) {
+    bool isScrollingUp_VT100(vector<int>& vect, string& mousectrl) {
         int action, mxcursor, mycursor;
         if (mouse_status && mousectrl.size() >= 6 && mousectrl[0] == 27 && mousectrl[1] == '[' && mousectrl[2] == 'M') {
             //This a move
@@ -1556,7 +1563,7 @@ public:
         return false;
     }
     
-    bool isScrollingDown(vector<int>& vect, string& mousectrl) {
+    bool isScrollingDown_VT100(vector<int>& vect, string& mousectrl) {
         int action, mxcursor, mycursor;
         if (mouse_status && mousectrl.size() >= 6 && mousectrl[0] == 27 && mousectrl[1] == '[' && mousectrl[2] == 'M') {
             //This a move
@@ -1576,7 +1583,7 @@ public:
         return nbclicks;
     }
     
-    bool isClickFirstMouseDown(vector<int>& vect, string& mousectrl) {
+    bool isClickFirstMouseDown_VT100(vector<int>& vect, string& mousectrl) {
         int action, mxcursor, mycursor;
         if (mouse_status && mousectrl.size() >= 6 && mousectrl[0] == 27 && mousectrl[1] == '[' && mousectrl[2] == 'M') {
             action = mousectrl[3];
@@ -1591,7 +1598,7 @@ public:
         return false;
     }
     
-    bool checkMouseup(string& mousectrl) {
+    bool checkMouseup_VT100(string& mousectrl) {
         string mouse_up;
         mouse_up = 27;
         mouse_up += '[';
@@ -1602,8 +1609,8 @@ public:
         }
         return false;
     }
-
-    bool isClickMouseUp(vector<int>& vect, string& mousectrl) {
+    
+    bool isClickMouseUp_VT100(vector<int>& vect, string& mousectrl) {
         int action, mxcursor, mycursor;
         if (mouse_status && mousectrl.size() >= 6 && mousectrl[0] == 27 && mousectrl[1] == '[' && mousectrl[2] == 'M') {
             //This a move
@@ -1619,7 +1626,7 @@ public:
         return false;
     }
     
-    bool isClickSecondMouseDown(vector<int>& vect, string& mousectrl) {
+    bool isClickSecondMouseDown_VT100(vector<int>& vect, string& mousectrl) {
         int action, mxcursor, mycursor;
         if (mouse_status && mousectrl.size() >= 6 && mousectrl[0] == 27 && mousectrl[1] == '[' && mousectrl[2] == 'M') {
             //This a move
@@ -1635,7 +1642,7 @@ public:
         return false;
     }
     
-    bool mouseTracking(string& mousectrl, int& mxcursor, int& mycursor) {
+    bool mouseTracking_VT100(string& mousectrl, int& mxcursor, int& mycursor) {
         int action;
         if (mouse_status && mousectrl.size() >= 6 && mousectrl[0] == 27 && mousectrl[1] == '[' && mousectrl[2] == 'M') {
             //This a move
@@ -1648,168 +1655,189 @@ public:
         return false;
     }
     
-    bool isMouseAction(string mousectrl) {
+    bool isMouseAction_VT100(string mousectrl) {
         return (mouse_status && mousectrl.size() >= 6 && mousectrl[0] == 27 && mousectrl[1] == '[' && mousectrl[2] == 'M');
+    }
+    
+    bool isMouseAction_VT100(std::wstring& mousectrl) {
+        return (mouse_status && mousectrl.size() >= 6 && mousectrl[0] == 27 && mousectrl[1] == '[' && mousectrl[2] == 'M');
+    }
+    
+    void mouseLocation(vector<int>& vect, string& mousectrl) {
+        int action, mxcursor, mycursor;
+        if (mouse_status && mousectrl.size() >= 8 && mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[') {
+            //This a move
+            sscanf(STR(mousectrl), "\033[%d;%d;%dM", &action, &mycursor, &mxcursor);
+            if (action == 67) {
+                vect.push_back(mxcursor);
+                vect.push_back(mycursor);
+            }
+        }
+    }
+    
+    bool isScrollingUp(vector<int>& vect, string& mousectrl) {
+        if (vt100)
+            return isScrollingUp_VT100(vect, mousectrl);
+        
+        int action, mxcursor, mycursor;
+        if (mouse_status && mousectrl.size() >= 8 && mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[') {
+            //This a move
+            sscanf(STR(mousectrl), "\033[%d;%d;%dM", &action, &mycursor, &mxcursor);
+            if (action == 96) {
+                vect.push_back(mxcursor);
+                vect.push_back(mycursor);
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    bool isScrollingDown(vector<int>& vect, string& mousectrl) {
+        if (vt100)
+            return isScrollingDown_VT100(vect, mousectrl);
+        
+        int action, mxcursor, mycursor;
+        if (mouse_status && mousectrl.size() >= 8 && mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[') {
+            //This a move
+            sscanf(STR(mousectrl), "\033[%d;%d;%dM", &action, &mycursor, &mxcursor);
+            if (action == 97) {
+                vect.push_back(mxcursor);
+                vect.push_back(mycursor);
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    
+    bool isClickFirstMouseDown(vector<int>& vect, string& mousectrl) {
+        if (vt100)
+            return isClickFirstMouseDown_VT100(vect, mousectrl);
+        
+        int action, mxcursor, mycursor;
+        if (mouse_status && mousectrl.size() >= 8 && mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[') {
+            //This a move
+#ifdef WIN32
+            //On Windows, a double-click contains a D
+            if (mousectrl[mousectrl.size() - 2] == 'D') {
+                sscanf(STR(mousectrl), "\033[%d;%d;%dDM", &action, &mycursor, &mxcursor);
+                nbclicks = 2;
+            }
+            else {
+                sscanf(STR(mousectrl), "\033[%d;%d;%dM", &action, &mycursor, &mxcursor);
+                nbclicks = 1;
+            }
+#else
+            sscanf(STR(mousectrl), "\033[%d;%d;%dM", &action, &mycursor, &mxcursor);
+#endif
+            if (action == 32) {
+                vect.push_back(mxcursor);
+                vect.push_back(mycursor);
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    bool checkMouseup(string& mousectrl) {
+        if (vt100)
+            return checkMouseup_VT100(mousectrl);
+        
+        string mouse_up;
+        mouse_up = 27;
+        mouse_up += '[';
+        mouse_up += "35";
+        
+        
+        if (mouse_status && mousectrl.size() >= 8 && mousectrl.back() == 'M') {
+            return (mousectrl.find(mouse_up) != -1);
+        }
+        return false;
+    }
+    
+    bool isClickMouseUp(vector<int>& vect, string& mousectrl) {
+        if (vt100)
+            return isClickMouseUp_VT100(vect, mousectrl);
+        
+        int action, mxcursor, mycursor;
+        if (mouse_status && mousectrl.size() >= 8 && mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[') {
+            //This a move
+#ifdef WIN32
+            //On Windows, a double-click contains a D
+            if (mousectrl[mousectrl.size() - 2] == 'D')
+                sscanf(STR(mousectrl), "\033[%d;%d;%dDM", &action, &mycursor, &mxcursor);
+            else
+                sscanf(STR(mousectrl), "\033[%d;%d;%dM", &action, &mycursor, &mxcursor);
+#else
+            sscanf(STR(mousectrl), "\033[%d;%d;%dM", &action, &mycursor, &mxcursor);
+#endif
+            
+            if (action == 35) {
+                vect.push_back(mxcursor);
+                vect.push_back(mycursor);
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    bool isClickSecondMouseDown(vector<int>& vect, string& mousectrl) {
+        if (vt100)
+            return isClickSecondMouseDown_VT100(vect, mousectrl);
+        
+        int action, mxcursor, mycursor;
+        if (mouse_status && mousectrl.size() >= 8 && mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[') {
+            //This a move
+#ifdef WIN32
+            //On Windows, a double-click contains a D
+            if (mousectrl[mousectrl.size() - 2] == 'D') {
+                sscanf(STR(mousectrl), "\033[%d;%d;%dDM", &action, &mycursor, &mxcursor);
+                nbclicks = 2;
+            }
+            else {
+                sscanf(STR(mousectrl), "\033[%d;%d;%dM", &action, &mycursor, &mxcursor);
+                nbclicks = 1;
+            }
+#else
+            sscanf(STR(mousectrl), "\033[%d;%d;%dM", &action, &mycursor, &mxcursor);
+#endif
+            if (action == 34) {
+                vect.push_back(mxcursor);
+                vect.push_back(mycursor);
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    bool mouseTracking(string& mousectrl, int& mxcursor, int& mycursor) {
+        if (vt100)
+            return mouseTracking_VT100(mousectrl, mxcursor, mycursor);
+        
+        int action;
+        if (mouse_status && mousectrl.size() >= 8 && mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[') {
+            //This a move
+            sscanf(STR(mousectrl), "\033[%d;%d;%dM", &action, &mycursor, &mxcursor);
+            if (action == 64)
+                return true;
+        }
+        return false;
+    }
+    
+    bool isMouseAction(string& mousectrl) {
+        if (vt100)
+            return isMouseAction_VT100(mousectrl);
+        
+        return (mouse_status && mousectrl.size() >= 8 && mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[');
     }
     
     bool isMouseAction(std::wstring& mousectrl) {
-        return (mouse_status && mousectrl.size() >= 6 && mousectrl[0] == 27 && mousectrl[1] == '[' && mousectrl[2] == 'M');
-    }
-};
-
-#else
-void mouseLocation(vector<int>& vect, string& mousectrl) {
-    int action, mxcursor, mycursor;
-    if (mouse_status && mousectrl.size() >= 8 && mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[') {
-        //This a move
-        sscanf(STR(mousectrl), "\033[%d;%d;%dM", &action, &mycursor, &mxcursor);
-        if (action == 67) {
-            vect.push_back(mxcursor);
-            vect.push_back(mycursor);
-        }
-    }
-}
-
-bool isScrollingUp(vector<int>& vect, string& mousectrl) {
-    int action, mxcursor, mycursor;
-    if (mouse_status && mousectrl.size() >= 8 && mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[') {
-        //This a move
-        sscanf(STR(mousectrl), "\033[%d;%d;%dM", &action, &mycursor, &mxcursor);
-        if (action == 96) {
-            vect.push_back(mxcursor);
-            vect.push_back(mycursor);
-            return true;
-        }
-    }
-    return false;
-}
-
-bool isScrollingDown(vector<int>& vect, string& mousectrl) {
-    int action, mxcursor, mycursor;
-    if (mouse_status && mousectrl.size() >= 8 && mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[') {
-        //This a move
-        sscanf(STR(mousectrl), "\033[%d;%d;%dM", &action, &mycursor, &mxcursor);
-        if (action == 97) {
-            vect.push_back(mxcursor);
-            vect.push_back(mycursor);
-            return true;
-        }
-    }
-    return false;
-}
-
-long nbClicks() {
-    return nbclicks;
-}
-
-bool isClickFirstMouseDown(vector<int>& vect, string& mousectrl) {
-    int action, mxcursor, mycursor;
-    if (mouse_status && mousectrl.size() >= 8 && mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[') {
-        //This a move
-#ifdef WIN32
-        //On Windows, a double-click contains a D
-        if (mousectrl[mousectrl.size() - 2] == 'D') {
-            sscanf(STR(mousectrl), "\033[%d;%d;%dDM", &action, &mycursor, &mxcursor);
-            nbclicks = 2;
-        }
-        else {
-            sscanf(STR(mousectrl), "\033[%d;%d;%dM", &action, &mycursor, &mxcursor);
-            nbclicks = 1;
-        }
-#else
-        sscanf(STR(mousectrl), "\033[%d;%d;%dM", &action, &mycursor, &mxcursor);
-#endif
-        if (action == 32) {
-            vect.push_back(mxcursor);
-            vect.push_back(mycursor);
-            return true;
-        }
-    }
-    return false;
-}
-
-bool checkMouseup(string& mousectrl) {
-    string mouse_up;
-    mouse_up = 27;
-    mouse_up += '[';
-    mouse_up += "35";
-    
-    
-    if (mouse_status && mousectrl.size() >= 8 && mousectrl.back() == 'M') {
-        return (mousectrl.find(mouse_up) != -1);
-    }
-    return false;
-}
-
-bool isClickMouseUp(vector<int>& vect, string& mousectrl) {
-    int action, mxcursor, mycursor;
-    if (mouse_status && mousectrl.size() >= 8 && mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[') {
-        //This a move
-#ifdef WIN32
-        //On Windows, a double-click contains a D
-        if (mousectrl[mousectrl.size() - 2] == 'D')
-            sscanf(STR(mousectrl), "\033[%d;%d;%dDM", &action, &mycursor, &mxcursor);
-        else
-            sscanf(STR(mousectrl), "\033[%d;%d;%dM", &action, &mycursor, &mxcursor);
-#else
-        sscanf(STR(mousectrl), "\033[%d;%d;%dM", &action, &mycursor, &mxcursor);
-#endif
+        if (vt100)
+            return isMouseAction_VT100(mousectrl);
         
-        if (action == 35) {
-            vect.push_back(mxcursor);
-            vect.push_back(mycursor);
-            return true;
-        }
+        return (mouse_status && mousectrl.size() >= 8 && mousectrl.back() == L'M' && mousectrl[0] == 27 && mousectrl[1] == L'[');
     }
-    return false;
-}
-
-bool isClickSecondMouseDown(vector<int>& vect, string& mousectrl) {
-    int action, mxcursor, mycursor;
-    if (mouse_status && mousectrl.size() >= 8 && mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[') {
-        //This a move
-#ifdef WIN32
-        //On Windows, a double-click contains a D
-        if (mousectrl[mousectrl.size() - 2] == 'D') {
-            sscanf(STR(mousectrl), "\033[%d;%d;%dDM", &action, &mycursor, &mxcursor);
-            nbclicks = 2;
-        }
-        else {
-            sscanf(STR(mousectrl), "\033[%d;%d;%dM", &action, &mycursor, &mxcursor);
-            nbclicks = 1;
-        }
-#else
-        sscanf(STR(mousectrl), "\033[%d;%d;%dM", &action, &mycursor, &mxcursor);
-#endif
-        if (action == 34) {
-            vect.push_back(mxcursor);
-            vect.push_back(mycursor);
-            return true;
-        }
-    }
-    return false;
-}
-
-bool mouseTracking(string& mousectrl, int& mxcursor, int& mycursor) {
-    int action;
-    if (mouse_status && mousectrl.size() >= 8 && mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[') {
-        //This a move
-        sscanf(STR(mousectrl), "\033[%d;%d;%dM", &action, &mycursor, &mxcursor);
-        if (action == 64)
-            return true;
-    }
-    return false;
-}
-
-bool isMouseAction(string& mousectrl) {
-    return (mouse_status && mousectrl.size() >= 8 && mousectrl.back() == 'M' && mousectrl[0] == 27 && mousectrl[1] == '[');
-}
-
-bool isMouseAction(std::wstring& mousectrl) {
-    return (mouse_status && mousectrl.size() >= 8 && mousectrl.back() == L'M' && mousectrl[0] == 27 && mousectrl[1] == L'[');
-}
-#endif
-
+    
 };
 
 #endif

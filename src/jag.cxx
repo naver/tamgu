@@ -621,7 +621,10 @@ jag_editor::jag_editor() : lines(this) {
     tcsetattr(0, TCSADRAIN, &theterm);
 #endif
 
-
+    activate_mouse = false;
+    vt100 = false;
+    mouse_status = false;
+    
     linematch = -1;
     selected_x = -1;
     selected_firstline = -1;

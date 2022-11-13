@@ -123,6 +123,8 @@ static void displayhelp(string wh) {
     #ifdef WITHCONSOLE
     cout << "-console ('filename'): open the console editor with an optional filename" << endl << endl;
     #endif
+    cout << "-vt100: VT100 mode for mouse for some Linux platforms" << endl << endl;
+    cout << "-m: Activates mouse" << endl << endl;
     cout << "-e 'filename' load filename into the terminal console in edit mode" << endl << endl;
     cout << "-l 'filename' load filename into the terminal console" << endl << endl;
     cout << "-lisp activate lisp mode" << endl << endl;
@@ -1108,7 +1110,8 @@ public:
                 #ifndef WIN32
                     signal(SIGWINCH, resizewindow);
                 #endif
-                mouseon();
+                if (activate_mouse)
+                    mouseon();
                 if (v.size() == 2) {
                     i = convertinteger(v[1]);
                     if (i < 0 || i >= ifilenames.size()) {
@@ -3099,6 +3102,9 @@ int main(int argc, char *argv[]) {
     
 	string wh = TamguVersion();
 
+    bool mouse_action = false;
+    bool vt100 = false;
+    
 	char* v = Getenv("TAMGULIBS");
     if (v != NULL)
         lnstr = v;
@@ -3115,11 +3121,13 @@ int main(int argc, char *argv[]) {
 		s_unicode_to_utf8(spath, wpath);
 		spath = "TAMGULIBS=" + spath;
 		_putenv(STR(spath));
+        mouse_action = true;
 #endif
 #ifdef APPLE
 		char path[2048];
 		strcpy(path, "/usr/local/lib/tamgu");
 		setenv("TAMGULIBS", path, 1);
+        mouse_action = true;
 #else
 #ifdef UNIX
 		if (getenv("TAMGULIBS") == NULL) {
@@ -3132,6 +3140,7 @@ int main(int argc, char *argv[]) {
 	//No arguments , we launch the shell now
 	if (argc <= 1) {
 		JAGEDITOR = new tamgu_editor;
+        JAGEDITOR->activate_mouse = mouse_action;
 		JAGEDITOR->launchterminal(2, newcolors);
 	}
 
@@ -3179,6 +3188,16 @@ int main(int argc, char *argv[]) {
         if (console) {
             cerr << "Unknown command:" << args << endl;
             exit(-1);
+        }
+
+        if (args == "-m") {
+            mouse_action = true;
+            continue;
+        }
+
+        if (args == "-vt100") {
+            vt100 = true;
+            continue;
         }
 
         if (args == "-h") {
@@ -3254,9 +3273,12 @@ int main(int argc, char *argv[]) {
         
         if (args == "-l" || args == "-e") {
             vector<string> names;
-            if (JAGEDITOR == NULL)
+            if (JAGEDITOR == NULL) {
                 JAGEDITOR =  new tamgu_editor;
-
+                JAGEDITOR->activate_mouse = mouse_action;
+                JAGEDITOR->vt100 = vt100;
+            }
+            
             if (i < argc - 1) {
                 i++;
                 JAGEDITOR->setpathname(argv[i]);
@@ -3414,9 +3436,12 @@ int main(int argc, char *argv[]) {
     //executing a file
     if (code == "") {
         if (name[0] == '-') {
-            if (JAGEDITOR == NULL)
+            if (JAGEDITOR == NULL) {
                 JAGEDITOR =  new tamgu_editor;
-            
+                JAGEDITOR->activate_mouse = mouse_action;
+                JAGEDITOR->vt100 = vt100;
+            }
+
             if (!initconsoleterminal) {
                 TamguLaunching();
                 if (arguments.size())
