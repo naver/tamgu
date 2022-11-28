@@ -102,8 +102,10 @@ Tamgu* Tamguframeseeder::Newinstance(short idthread, Tamgu* frame_instance) {
 }
 
 void Tamguframeinstance::Postinstantiation(short idthread, bool setreference) {
-    if (!frame->post)
+    if (!frame->post) {
+        Cleanframevariable(idthread);
         return;
+    }
     
     //Now we are going to create frame variables...
     Tamgu* o;
@@ -146,11 +148,14 @@ void Tamguframeinstance::Postinstantiation(short idthread, bool setreference) {
         }
     }
     Popframe(idthread);
+    Cleanframevariable(idthread);
 }
 
 void Tamguframemininstance::Postinstantiation(short idthread, bool setreference) {
-    if (!frame->post)
+    if (!frame->post) {
+        Cleanframevariable(idthread);
         return;
+    }
 
     //Now we are going to create frame variables...
     Tamgu* o;
@@ -193,6 +198,7 @@ void Tamguframemininstance::Postinstantiation(short idthread, bool setreference)
         }
     }
     Popframe(idthread);
+    Cleanframevariable(idthread);
 }
 
 Tamgu* TamguframeBaseInstance::Eval(Tamgu* context, Tamgu* idx, short idthread) {

@@ -37,18 +37,22 @@
 #include "tamgudate.h"
 #include "tamgutime.h"
 #include "tamgufraction.h"
-#include "tamgusocket.h"
 #include "tamgutransducer.h"
 #include "tamgugrammar.h"
 #include "tamguimatrix.h"
 #include "tamgufmatrix.h"
 #include "tamgutamgu.h"
 #include "predicate.h"
-#include "tamgustdin.h"
 #include "tamgusynode.h"
 #include "tamguannotator.h"
 #include "tamgutaskell.h"
 #include "tamguchrono.h"
+
+#ifndef TAMGUWASM
+#include "tamgusocket.h"
+#include "tamgustdin.h"
+#endif
+
 #include "globaltamgu.h"
 //-------------------------------------------------------
 
@@ -117,8 +121,10 @@ void TamguGlobal::RecordObjects() {
     Tamguchrono::InitialisationModule(this, TamguVersion());
 
     Tamgufraction::InitialisationModule(this, TamguVersion());
+#ifndef TAMGUWASM
     Tamgusocket::InitialisationModule(this, TamguVersion());
-
+    Tamgustdin::InitialisationModule(this, TamguVersion());
+#endif
     Tamgutransducer::InitialisationModule(this, TamguVersion());
     Tamgugrammar::InitialisationModule(this, TamguVersion());
 
@@ -126,8 +132,7 @@ void TamguGlobal::RecordObjects() {
 
     Tamguimatrix::InitialisationModule(this, TamguVersion());
     Tamgufmatrix::InitialisationModule(this, TamguVersion());
-    Tamgustdin::InitialisationModule(this, TamguVersion());
-
+    
     //------------------ Predicates ------------------
     TamguPredicate::InitialisationModule(this, TamguVersion());
     Tamgusynode::InitialisationModule(this, TamguVersion());

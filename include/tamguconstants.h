@@ -17,6 +17,10 @@
 #ifndef tamguconstants_h
 #define tamguconstants_h
 
+#ifdef UNIX
+#include <sys/time.h>
+#endif
+
 //--------------------------------------------------------------------
 class TamguGlobal;
 class TamguConstiteration;
@@ -206,42 +210,40 @@ class TamguCallBreak;
 class TamguLet;
 
 extern Exchanging Tamgu* aNULL;
-extern Exchanging Tamgu* aUNIVERSAL;
-extern Exchanging Tamgu* aTRUE;
-extern Exchanging Tamgu* aFALSE;
 
-extern Exchanging Tamgu* aMINUSONE;
-extern Exchanging Tamgu* aZEROPOINTZERO;
-extern Exchanging Tamgu* aZERO;
-extern Exchanging Tamgu* aONE;
-
-
-extern Exchanging Tamgu* aEMPTYLISP;
-extern Exchanging Tamgu* aEMPTYSTRING;
-extern Exchanging Tamgu* aEMPTYUSTRING;
-extern Exchanging Tamgu* aBREAK;
-extern Exchanging Tamgu* aCONTINUE;
-extern Exchanging Tamgu* aRETURN;
-extern Exchanging Tamgu* aPIPE;
-extern Exchanging Tamgu* aNOELEMENT;
-extern Exchanging Tamgu* aDEFAULT;
-extern Exchanging Tamgu* aEND;
-extern Exchanging Tamgu* aRAISEERROR;
-extern Exchanging TamguCallBreak* aBREAKFALSE;
-extern Exchanging TamguCallBreak* aBREAKTRUE;
-extern Exchanging TamguCallBreak* aBREAKZERO;
-extern Exchanging TamguCallBreak* aBREAKONE;
-extern Exchanging Tamgu* aASSIGNMENT;
-extern Exchanging TamguConstiteration* aITERNULL;
-extern Exchanging TamguPredicate* aFAIL;
-extern Exchanging TamguPredicate* aTERMINAL;
-extern Exchanging TamguPredicate* aCUTFALSE;
-extern Exchanging TamguPredicate* aCUT;
-extern Exchanging TamguPredicate* aSTOP;
-extern Exchanging Tamgu* aHASKELL;
-extern Exchanging TamguDeclaration* aNULLDECLARATION;
-extern Exchanging TamguLet* aNULLLet;
-extern Exchanging Tamgu* aNOTHING;
+#define aUNIVERSAL globalTamgu->gUNIVERSAL
+#define aTRUE globalTamgu->gTRUE
+#define aFALSE globalTamgu->gFALSE
+#define aMINUSONE globalTamgu->gMINUSONE
+#define aZEROPOINTZERO globalTamgu->gZEROPOINTZERO
+#define aZERO globalTamgu->gZERO
+#define aONE globalTamgu->gONE
+#define aEMPTYLISP globalTamgu->gEMPTYLISP
+#define aEMPTYSTRING globalTamgu->gEMPTYSTRING
+#define aEMPTYUSTRING globalTamgu->gEMPTYUSTRING
+#define aBREAK globalTamgu->gBREAK
+#define aCONTINUE globalTamgu->gCONTINUE
+#define aRETURN globalTamgu->gRETURN
+#define aPIPE globalTamgu->gPIPE
+#define aNOELEMENT globalTamgu->gNOELEMENT
+#define aDEFAULT globalTamgu->gDEFAULT
+#define aEND globalTamgu->gEND
+#define aRAISEERROR globalTamgu->gRAISEERROR
+#define aBREAKFALSE globalTamgu->gBREAKFALSE
+#define aBREAKTRUE globalTamgu->gBREAKTRUE
+#define aBREAKZERO globalTamgu->gBREAKZERO
+#define aBREAKONE globalTamgu->gBREAKONE
+#define aASSIGNMENT globalTamgu->gASSIGNMENT
+#define aITERNULL globalTamgu->gITERNULL
+#define aFAIL globalTamgu->gFAIL
+#define aTERMINAL globalTamgu->gTERMINAL
+#define aCUTFALSE globalTamgu->gCUTFALSE
+#define aCUT globalTamgu->gCUT
+#define aSTOP globalTamgu->gSTOP
+#define aHASKELL globalTamgu->gHASKELL
+#define aNULLDECLARATION globalTamgu->gNULLDECLARATION
+#define aNULLLet globalTamgu->gNULLLet
+#define aNOTHING globalTamgu->gNOTHING
 
 //---------------------------------------------------------------------------
 #define MIN3(a, b, c) ((a) < (b) ? ((a) < (c) ? (a) : (c)) : ((b) < (c) ? (b) : (c)))

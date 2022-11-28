@@ -769,13 +769,11 @@ Tamgu* ProcDependencies(Tamgu* contextualpattern, short idthread, TamguCall* cal
 
 //----------------------------------------------------------------------------------------------------
 void TamguGlobal::RecordPredicates() {
-    if (aFAIL == NULL) {
-        aFAIL = new TamguConstPredicate(NULL, a_fail);
-        aTERMINAL = new TamguConstPredicate(NULL, a_terminal);
-        aCUTFALSE = new TamguConstPredicate(NULL, a_cutfalse);
-        aCUT = new TamguConstPredicate(NULL, a_cut);
-        aSTOP = new TamguConstPredicate(NULL, a_stop);
-    }
+    gFAIL = new TamguConstPredicate(NULL, a_fail);
+    gTERMINAL = new TamguConstPredicate(NULL, a_terminal);
+    gCUTFALSE = new TamguConstPredicate(NULL, a_cutfalse);
+    gCUT = new TamguConstPredicate(NULL, a_cut);
+    gSTOP = new TamguConstPredicate(NULL, a_stop);
     
     RecordOneProcedure("asserta", &ProcPredicateAsserta, P_ONE | P_ONE);
     RecordOneProcedure("assertz", &ProcPredicateAssertz, P_ONE | P_ONE);

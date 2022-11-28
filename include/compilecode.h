@@ -126,6 +126,7 @@ public:
 	//------------------------------
     Tamgu* Run(bool glock = false);
 	Tamgu* Execute(long i, short idthread);
+    Tamgu* Eval(long i);
     Tamgu* ExecuteExpression(TamguLocalEvaluation& local, short idthread);
 	Tamgu* Loading();
 	//---------------------------------------------

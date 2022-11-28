@@ -209,6 +209,34 @@ Tamgu* Tamgufile::MethodRead(Tamgu* context, short idthread, TamguCall* callfunc
     return globalTamgu->Providewithstring(bf);
 }
 
+
+long Tamgufile::Size() {
+    locking();
+    struct stat scible;
+    int stcible = -1;
+    long size = -1;
+
+    if (thefile != NULL) {
+#ifdef TAMGUWASM
+        stcible = fstat(fileno(thefile), &scible);
+#else
+#if (_MSC_VER >= 1900)
+        stcible = fstat(_fileno(thefile), &scible);
+#else
+#if  defined(WIN32) | defined(APPLE)
+        stcible = fstat(thefile->_file, &scible);
+#else
+        stcible = fstat(thefile->_fileno, &scible);
+#endif
+#endif
+#endif
+        if (stcible >= 0)
+            size = scible.st_size;
+    }
+    unlocking();
+    return size;
+}
+
 Tamgu* Tamgufile::Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* environment, TamguFunctionLambda* bd, short idthread) {
     Locking _lock(this);
     if (thefile == NULL || feof(thefile) || op != "rb")

@@ -814,13 +814,12 @@ Tamgu* ProcCreate(Tamgu* contextualpattern, short idthread, TamguCall* callfunc)
 Tamgu* ProcCreateFrame(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     Tamgu* object = globalTamgu->newInstance.get(callfunc->Name())->Newinstance(idthread);
     if (object->Frame()->isDeclared(a_initial)) {
-        //callfunc->name = a_initial;
         object->Setreference();
 
         Tamgu* a = ((Tamguframeinstance*)object)->MethodInitial(contextualpattern, idthread, callfunc);
-        //Tamgu* a = object->CallMethod(a_initial, contextualpattern, idthread, callfunc);
 
         if (globalTamgu->Error(idthread)) {
+            ((Tamguframemininstance*)object)->Popframe(idthread);
             object->Resetreference();
             a->Release();
             return globalTamgu->Errorobject(idthread);
@@ -831,10 +830,12 @@ Tamgu* ProcCreateFrame(Tamgu* contextualpattern, short idthread, TamguCall* call
     }
     else {
         if (callfunc->Size() != 0) {
+            ((Tamguframemininstance*)object)->Popframe(idthread);
             object->Release();
             return globalTamgu->Returnerror("Wrong frame initialization", idthread);
         }
     }
+    
     object->Postinstantiation(idthread, true);
     return object;
 }
@@ -1037,7 +1038,7 @@ Tamgu* ProcLooseCompatibility(Tamgu* contextualpattern, short idthread, TamguCal
 }
 //------------------------------------------------------------------------------------------------------------------------
 Tamgu* ProcExit(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-    executionbreak = true;
+    globalTamgu->executionbreak = true;
     return aEND;
 }
 

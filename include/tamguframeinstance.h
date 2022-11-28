@@ -201,9 +201,20 @@ public:
 
 		VECTE<Tamgu*> arguments(callfunc->arguments.last);
 		Tamgu* a;
+        Tamgu* local = NULL;
 		long i;
+        short idname;
 		for (i = 0; i < callfunc->arguments.last; i++) {
-			a = callfunc->arguments[i]->Eval(domain, aNULL, idthread);
+            idname = callfunc->arguments[i]->Name();
+            if (isDeclared(idname)) {
+                //Case in which a local variable name might cover a call
+                local = globalTamgu->Removetopvariable(idthread, idname);
+                a = callfunc->arguments[i]->Eval(domain, aNULL, idthread);
+                globalTamgu->Storevariable(idthread, idname, local);
+            }
+            else
+                a = callfunc->arguments[i]->Eval(domain, aNULL, idthread);
+            
 			a->Setreference();
 			arguments.push_back(a);
 		}
@@ -212,7 +223,7 @@ public:
 
 		for (i = 0; i < arguments.size(); i++)
 			arguments[i]->Resetreference();
-
+        
 		return func;
 	}
 
@@ -294,6 +305,14 @@ public:
                 globalTamgu->Storevariable(idthread, fr->name, this);
                 fr = fr->topframe;
             }
+        }
+    }
+    
+    void Cleanframevariable(short idthread) {
+        Tamgu* o;
+        for (long i = 0; i < frame->variables.size(); i++) {
+            o = frame->variables[i];
+            globalTamgu->Removevariable(idthread, o->Name());
         }
     }
     

@@ -3714,7 +3714,7 @@ int main(int argc, char *argv[]) {
                 for (;i < maxsize; i++)
                     vars[i]->storevalue("");
                 
-                executionbreak = false;
+                globalTamgu->executionbreak = false;
                 globalTamgu->running = true;
                 globalTamgu->threadMODE = false;
                 globalTamgu->isthreading = false;

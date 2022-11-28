@@ -448,9 +448,51 @@ Tamgu* TamguCode::ExecuteExpression(TamguLocalEvaluation& local, short idthread)
     return a;
 }
 
+Tamgu* TamguCode::Eval(long begin_instruction) {
+
+    global->Cleanerror(0);
+    global->executionbreak = false;
+    global->running = true;
+
+    global->Pushstack(&mainframe);
+
+    Tamgu* a = aNULL;
+    size_t sz = mainframe.instructions.size();
+    
+    bool testcond = false;
+    
+    for (size_t i = begin_instruction; i < sz && !testcond; i++) {
+        a->Releasenonconst();
+        a = mainframe.instructions.vecteur[i];
+        
+        a = a->Eval(&mainframe, aNULL, 0);
+
+        testcond = global->Error(0) || global->executionbreak || a->isReturned();
+    }
+         
+    if (testcond) {
+        if (a->isReturned())
+            a = a->Returned(0);
+        else {
+            if (global->Error(0)) {
+                a = global->Errorobject(0);
+            }
+        }
+    }
+    else {
+        a->Releasenonconst();
+        a = aNULL;
+    }
+
+    global->Popstack(0);
+    global->running = false;
+
+    return a;
+}
+
 Tamgu* TamguCode::Run(bool glock) {
 
-    executionbreak = false;
+    global->executionbreak = false;
 
     //These are atomic values that need to be set before all
     global->running = true;
@@ -480,7 +522,7 @@ Tamgu* TamguCode::Run(bool glock) {
 		a = a->Eval(&mainframe, aNULL, 0);
 		_debugpop();
 
-        testcond = global->Error(0) || executionbreak;
+        testcond = global->Error(0) || global->executionbreak;
     }
      
     a->Releasenonconst();
@@ -508,7 +550,7 @@ Tamgu* TamguCode::Run(bool glock) {
     if (global->terminationfunction != NULL)
         (*global->terminationfunction)(global);
     
-    executionbreak = true;
+    global->executionbreak = true;
     
     //we wait for all threads to end, before leaving...
 	while (global->threadcounter) {}
@@ -3922,7 +3964,7 @@ Tamgu* TamguInstructionFORINVECTOR::Eval(Tamgu* context, Tamgu* loop, short idth
 
 		a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
-        testcond = a->needInvestigate() || executionbreak;
+        testcond = a->needInvestigate() || globalTamgu->executionbreak;
     }
 
     loop->Release();
@@ -3991,7 +4033,7 @@ Tamgu* TamguInstructionFORIN::Eval(Tamgu* context, Tamgu* loop, short idthread) 
 			}
 
 			a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
-            testcond = a->needInvestigate() || executionbreak;
+            testcond = a->needInvestigate() || globalTamgu->executionbreak;
         }
         
         if (idname) {
@@ -4051,7 +4093,7 @@ Tamgu* TamguInstructionFORIN::Eval(Tamgu* context, Tamgu* loop, short idthread) 
 		}
 
 		a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
-        testcond = a->needInvestigate() || executionbreak;
+        testcond = a->needInvestigate() || globalTamgu->executionbreak;
     }
 
     if (idname) {
@@ -4093,7 +4135,7 @@ Tamgu* TamguInstructionFORVECTORIN::Eval(Tamgu* context, Tamgu* loop, short idth
 
 		a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
-        testcond = executionbreak || a->needInvestigate();
+        testcond = globalTamgu->executionbreak || a->needInvestigate();
     }
 
     loop->Release();
@@ -4128,7 +4170,7 @@ Tamgu* TamguInstructionFORMAPIN::Eval(Tamgu* context, Tamgu* loop, short idthrea
 
 		a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
-        testcond = a->needInvestigate() || executionbreak;
+        testcond = a->needInvestigate() || globalTamgu->executionbreak;
     }
     
     loop->Release();
@@ -4157,7 +4199,7 @@ Tamgu* TamguInstructionFILEIN::Eval(Tamgu* context, Tamgu* loop, short idthread)
 	while (!testcond && loop->Eval(var, aNULL, idthread)->Boolean()) {
         a->Releasenonconst();
 		a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
-        testcond = a->needInvestigate() || executionbreak;
+        testcond = a->needInvestigate() || globalTamgu->executionbreak;
     }
         
     if (testcond) {
@@ -4186,7 +4228,7 @@ Tamgu* TamguInstructionFOR::Eval(Tamgu* context, Tamgu* stop, short idthread) {
         a->Releasenonconst();
         a = instructions.vecteur[3]->Eval(context, aNULL, idthread);
 
-        testcond = a->needInvestigate() || executionbreak;
+        testcond = a->needInvestigate() || globalTamgu->executionbreak;
     }
     
     if (testcond) {
@@ -4237,7 +4279,7 @@ Tamgu* TamguInstructionFORINRANGE::ExecuteInteger(Tamguint* value, Tamgu* contex
             a->Releasenonconst();
 			value->value = v;
 			a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
-            testcond = a->needInvestigate() || executionbreak;
+            testcond = a->needInvestigate() || globalTamgu->executionbreak;
         }
 
         value->Resetreference();
@@ -4257,7 +4299,7 @@ Tamgu* TamguInstructionFORINRANGE::ExecuteInteger(Tamguint* value, Tamgu* contex
         a->Releasenonconst();
         value->value = v;
         a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
-        testcond = a->needInvestigate() || executionbreak;
+        testcond = a->needInvestigate() || globalTamgu->executionbreak;
     }
     
     value->Resetreference();
@@ -4289,7 +4331,7 @@ Tamgu* TamguInstructionFORINRANGE::ExecuteDecimal(Tamgudecimal* value, Tamgu* co
             a->Releasenonconst();
             value->value = v;
             a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
-            testcond = a->needInvestigate() || executionbreak;
+            testcond = a->needInvestigate() || globalTamgu->executionbreak;
         }
         
         value->Resetreference();
@@ -4309,7 +4351,7 @@ Tamgu* TamguInstructionFORINRANGE::ExecuteDecimal(Tamgudecimal* value, Tamgu* co
         a->Releasenonconst();
         value->value = v;
         a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
-        testcond = a->needInvestigate() || executionbreak;
+        testcond = a->needInvestigate() || globalTamgu->executionbreak;
     }
     
     value->Resetreference();
@@ -4341,7 +4383,7 @@ Tamgu* TamguInstructionFORINRANGE::ExecuteFloat(Tamgufloat* value, Tamgu* contex
             a->Releasenonconst();
             value->value = v;
             a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
-            testcond = a->needInvestigate() || executionbreak;
+            testcond = a->needInvestigate() || globalTamgu->executionbreak;
         }
         
         value->Resetreference();
@@ -4361,7 +4403,7 @@ Tamgu* TamguInstructionFORINRANGE::ExecuteFloat(Tamgufloat* value, Tamgu* contex
         a->Releasenonconst();
         value->value = v;
         a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
-        testcond = a->needInvestigate() || executionbreak;
+        testcond = a->needInvestigate() || globalTamgu->executionbreak;
     }
     
     value->Resetreference();
@@ -4393,7 +4435,7 @@ Tamgu* TamguInstructionFORINRANGE::ExecuteLong(Tamgulong* value, Tamgu* context,
             a->Releasenonconst();
             value->value = v;
             a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
-            testcond = a->needInvestigate() || executionbreak;
+            testcond = a->needInvestigate() || globalTamgu->executionbreak;
         }
         
         value->Resetreference();
@@ -4413,7 +4455,7 @@ Tamgu* TamguInstructionFORINRANGE::ExecuteLong(Tamgulong* value, Tamgu* context,
         a->Releasenonconst();
         value->value = v;
         a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
-        testcond = a->needInvestigate() || executionbreak;
+        testcond = a->needInvestigate() || globalTamgu->executionbreak;
     }
     
     value->Resetreference();
@@ -4445,7 +4487,7 @@ Tamgu* TamguInstructionFORINRANGE::ExecuteShort(Tamgushort* value, Tamgu* contex
             a->Releasenonconst();
             value->value = v;
             a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
-            testcond = a->needInvestigate() || executionbreak;
+            testcond = a->needInvestigate() || globalTamgu->executionbreak;
         }
         
         value->Resetreference();
@@ -4465,7 +4507,7 @@ Tamgu* TamguInstructionFORINRANGE::ExecuteShort(Tamgushort* value, Tamgu* contex
         a->Releasenonconst();
         value->value = v;
         a = instructions.vecteur[1]->Eval(context, aNULL, idthread);
-        testcond = a->needInvestigate() || executionbreak;
+        testcond = a->needInvestigate() || globalTamgu->executionbreak;
     }
     
     value->Resetreference();
@@ -4497,7 +4539,7 @@ Tamgu* TamguInstructionFORINRANGEINTEGER::Eval(Tamgu* context, Tamgu* a, short i
             a->Releasenonconst();
             value->value = v;
             a = instruction->Eval(aNULL, aNULL, idthread);
-            testcond = a->needInvestigate() || executionbreak;
+            testcond = a->needInvestigate() || globalTamgu->executionbreak;
         }
         
         value->Release();
@@ -4517,7 +4559,7 @@ Tamgu* TamguInstructionFORINRANGEINTEGER::Eval(Tamgu* context, Tamgu* a, short i
         a->Releasenonconst();
         value->value = v;
         a = instruction->Eval(aNULL, aNULL, idthread);
-        testcond = a->needInvestigate() || executionbreak;
+        testcond = a->needInvestigate() || globalTamgu->executionbreak;
     }
     
     value->Release();
@@ -4549,7 +4591,7 @@ Tamgu* TamguInstructionFORINRANGEDECIMAL::Eval(Tamgu* context, Tamgu* a, short i
             a->Releasenonconst();
             value->value = v;
             a = instruction->Eval(aNULL, aNULL, idthread);
-            testcond = a->needInvestigate() || executionbreak;
+            testcond = a->needInvestigate() || globalTamgu->executionbreak;
         }
         
         value->Release();
@@ -4569,7 +4611,7 @@ Tamgu* TamguInstructionFORINRANGEDECIMAL::Eval(Tamgu* context, Tamgu* a, short i
         a->Releasenonconst();
         value->value = v;
         a = instruction->Eval(aNULL, aNULL, idthread);
-        testcond = a->needInvestigate() || executionbreak;
+        testcond = a->needInvestigate() || globalTamgu->executionbreak;
     }
     
     value->Release();
@@ -4601,7 +4643,7 @@ Tamgu* TamguInstructionFORINRANGEFLOAT::Eval(Tamgu* context, Tamgu* a, short idt
             a->Releasenonconst();
             value->value = v;
             a = instruction->Eval(aNULL, aNULL, idthread);
-            testcond = a->needInvestigate() || executionbreak;
+            testcond = a->needInvestigate() || globalTamgu->executionbreak;
         }
         
         value->Release();
@@ -4621,7 +4663,7 @@ Tamgu* TamguInstructionFORINRANGEFLOAT::Eval(Tamgu* context, Tamgu* a, short idt
         a->Releasenonconst();
         value->value = v;
         a = instruction->Eval(aNULL, aNULL, idthread);
-        testcond = a->needInvestigate() || executionbreak;
+        testcond = a->needInvestigate() || globalTamgu->executionbreak;
     }
     
     value->Release();
@@ -4653,7 +4695,7 @@ Tamgu* TamguInstructionFORINRANGELONG::Eval(Tamgu* context, Tamgu* a, short idth
             a->Releasenonconst();
             value->value = v;
             a = instruction->Eval(aNULL, aNULL, idthread);
-            testcond = a->needInvestigate() || executionbreak;
+            testcond = a->needInvestigate() || globalTamgu->executionbreak;
         }
         
         value->Release();
@@ -4673,7 +4715,7 @@ Tamgu* TamguInstructionFORINRANGELONG::Eval(Tamgu* context, Tamgu* a, short idth
         a->Releasenonconst();
         value->value = v;
         a = instruction->Eval(aNULL, aNULL, idthread);
-        testcond = a->needInvestigate() || executionbreak;
+        testcond = a->needInvestigate() || globalTamgu->executionbreak;
     }
     
     value->Release();
@@ -4705,7 +4747,7 @@ Tamgu* TamguInstructionFORINRANGESHORT::Eval(Tamgu* context, Tamgu* a, short idt
             a->Releasenonconst();
             value->value = v;
             a = instruction->Eval(aNULL, aNULL, idthread);
-            testcond = a->needInvestigate() || executionbreak;
+            testcond = a->needInvestigate() || globalTamgu->executionbreak;
         }
         
         value->Release();
@@ -4725,7 +4767,7 @@ Tamgu* TamguInstructionFORINRANGESHORT::Eval(Tamgu* context, Tamgu* a, short idt
         a->Releasenonconst();
         value->value = v;
         a = instruction->Eval(aNULL, aNULL, idthread);
-        testcond = a->needInvestigate() || executionbreak;
+        testcond = a->needInvestigate() || globalTamgu->executionbreak;
     }
     
     value->Release();
@@ -4753,7 +4795,7 @@ Tamgu* TamguInstructionFORINRANGECONSTINTEGER::Eval(Tamgu* context, Tamgu* a, sh
         while (v > t && !testcond) {
             value->value = v;
             a = instruction->Eval(aNULL, aNULL, idthread);
-            testcond = a->needInvestigate() || executionbreak;
+            testcond = a->needInvestigate() || globalTamgu->executionbreak;
             v+=i;
         }
         
@@ -4773,7 +4815,7 @@ Tamgu* TamguInstructionFORINRANGECONSTINTEGER::Eval(Tamgu* context, Tamgu* a, sh
     while (v < t && !testcond) {
         value->value = v;
         a = instruction->Eval(aNULL, aNULL, idthread);
-        testcond = a->needInvestigate() || executionbreak;
+        testcond = a->needInvestigate() || globalTamgu->executionbreak;
         v+=i;
     }
     
@@ -4801,7 +4843,7 @@ Tamgu* TamguInstructionFORINRANGECONSTDECIMAL::Eval(Tamgu* context, Tamgu* a, sh
         while (v > t && !testcond) {
             value->value = v;
             a = instruction->Eval(aNULL, aNULL, idthread);
-            testcond = a->needInvestigate() || executionbreak;
+            testcond = a->needInvestigate() || globalTamgu->executionbreak;
             v+=i;
         }
         
@@ -4821,7 +4863,7 @@ Tamgu* TamguInstructionFORINRANGECONSTDECIMAL::Eval(Tamgu* context, Tamgu* a, sh
     while (v < t && !testcond) {
         value->value = v;
         a = instruction->Eval(aNULL, aNULL, idthread);
-        testcond = a->needInvestigate() || executionbreak;
+        testcond = a->needInvestigate() || globalTamgu->executionbreak;
         v+=i;
     }
     
@@ -4848,7 +4890,7 @@ Tamgu* TamguInstructionFORINRANGECONSTFLOAT::Eval(Tamgu* context, Tamgu* a, shor
         while (v > t && !testcond) {
             value->value = v;
             a = instruction->Eval(aNULL, aNULL, idthread);
-            testcond = a->needInvestigate() || executionbreak;
+            testcond = a->needInvestigate() || globalTamgu->executionbreak;
             v+=i;
         }
         
@@ -4868,7 +4910,7 @@ Tamgu* TamguInstructionFORINRANGECONSTFLOAT::Eval(Tamgu* context, Tamgu* a, shor
     while (v < t && !testcond) {
         value->value = v;
         a = instruction->Eval(aNULL, aNULL, idthread);
-        testcond = a->needInvestigate() || executionbreak;
+        testcond = a->needInvestigate() || globalTamgu->executionbreak;
         v+=i;
     }
     
@@ -4895,7 +4937,7 @@ Tamgu* TamguInstructionFORINRANGECONSTLONG::Eval(Tamgu* context, Tamgu* a, short
         while (v > t && !testcond) {
             value->value = v;
             a = instruction->Eval(aNULL, aNULL, idthread);
-            testcond = a->needInvestigate() || executionbreak;
+            testcond = a->needInvestigate() || globalTamgu->executionbreak;
             v+=i;
         }
         
@@ -4915,7 +4957,7 @@ Tamgu* TamguInstructionFORINRANGECONSTLONG::Eval(Tamgu* context, Tamgu* a, short
     while (v < t && !testcond) {
         value->value = v;
         a = instruction->Eval(aNULL, aNULL, idthread);
-        testcond = a->needInvestigate() || executionbreak;
+        testcond = a->needInvestigate() || globalTamgu->executionbreak;
         v+=i;
     }
     
@@ -4942,7 +4984,7 @@ Tamgu* TamguInstructionFORINRANGECONSTSHORT::Eval(Tamgu* context, Tamgu* a, shor
         while (v > t && !testcond) {
             value->value = v;
             a = instruction->Eval(aNULL, aNULL, idthread);
-            testcond = a->needInvestigate() || executionbreak;
+            testcond = a->needInvestigate() || globalTamgu->executionbreak;
             v+=i;
         }
         
@@ -4962,7 +5004,7 @@ Tamgu* TamguInstructionFORINRANGECONSTSHORT::Eval(Tamgu* context, Tamgu* a, shor
     while (v < t && !testcond) {
         value->value = v;
         a = instruction->Eval(aNULL, aNULL, idthread);
-        testcond = a->needInvestigate() || executionbreak;
+        testcond = a->needInvestigate() || globalTamgu->executionbreak;
         v+=i;
     }
     
@@ -5026,7 +5068,7 @@ Tamgu* TamguInstructionTRY::Eval(Tamgu* res, Tamgu* ins, short idthread) {
             return res;
         }
         
-        if (executionbreak) {
+        if (globalTamgu->executionbreak) {
             environment->Releasing();
             return aNULL;
         }
@@ -5074,7 +5116,7 @@ Tamgu* TamguInstructionCATCH::Eval(Tamgu* context, Tamgu* a, short idthread) {
 		a = a->Eval(aNULL, aNULL, idthread);
 		_debugpop();
 
-        testcond = executionbreak || a->needFullInvestigate();
+        testcond = globalTamgu->executionbreak || a->needFullInvestigate();
     }
     
     if (testcond) {

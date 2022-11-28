@@ -2810,11 +2810,18 @@ bool DirectoryCreation(char* noms, long pos) {
 
 #ifdef APPLE
 extern "C" {
-    int    gethostuuid(uuid_t id, const struct timespec *wait) {
+#ifdef TAMGUWASM
+    int gethostuuid(uid_t id, const struct timespec *wait) {
         return -1;
     }
+#else
+    int gethostuuid(uuid_t id, const struct timespec *wait) {
+        return -1;
+    }
+#endif
 }
 #endif
+
 //-----------------------------------------------------------------------
 static FILE* localstreamerr = NULL;
 static FILE* localstream = NULL;

@@ -1279,82 +1279,82 @@ void TamguGlobal::RecordCompileFunctions() {
 
 //------------------------------------------------------------------------
 TamguInstruction* TamguCode::TamguCreateInstruction(Tamgu* parent, short op) {
-	TamguInstruction* res;
-	switch (op) {
-	case a_plusequ:
-	case a_minusequ:
-	case a_multiplyequ:
-	case a_divideequ:
-	case a_modequ:
-	case a_powerequ:
-	case a_shiftleftequ:
-	case a_shiftrightequ:
-	case a_orequ:
-	case a_xorequ:
-	case a_andequ:
-	case a_mergeequ:
-    case a_combineequ:
-	case a_addequ:
-		res = new TamguInstructionAPPLYOPERATIONEQU(global, parent);
-		break;
-	case a_stream:
-		res = new TamguInstructionSTREAM(global, parent);
-		break;
-	case a_assignement:
-		res = new TamguInstructionASSIGNMENT(global, parent);
-		break;		
-	case a_less:
-	case a_more:
-	case a_same:
-	case a_different:
-	case a_lessequal:
-	case a_moreequal:
-		res = new TamguInstructionCOMPARE(global, parent);
-		break;
-	case a_plus:
-	case a_minus:
-	case a_multiply:
-	case a_divide:
-	case a_mod:
-	case a_power:
-	case a_shiftleft:
-	case a_shiftright:
-	case a_or:
-	case a_xor:
-	case a_and:
-	case a_merge:
-    case a_combine:
-	case a_add:
-		res = new TamguInstructionAPPLYOPERATION(global, parent);
-		break;
-    case a_booleanor:
-        res = new TamguInstructionOR(global, parent);
-        break;
-    case a_booleanxor:
-        res = new TamguInstructionXOR(global, parent);
-        break;
-	case a_booleanand:
-		res = new TamguInstructionAND(global, parent);
-		break;
-	case a_conjunction:
-		res = new TamguInstructionConjunction(global, parent);
-		break;
-	case a_disjunction:
-		res = new TamguInstructionDisjunction(global, parent);
-		break;
-	case a_notin:
-	case a_in:
-		res = new TamguInstructionIN(global, parent);
-		break;
-	case a_match:
-		res = new TamguInstructionHASKELLCASE(global, parent);
-		break;
-    case a_ifnot:
-        res = new TamguInstructionOperationIfnot(global, parent);
-        break;
-	default:
-		res = new TamguInstruction(a_instructions, global, parent);
-	}
+    TamguInstruction* res;
+    switch (op) {
+        case a_plusequ:
+        case a_minusequ:
+        case a_multiplyequ:
+        case a_divideequ:
+        case a_modequ:
+        case a_powerequ:
+        case a_shiftleftequ:
+        case a_shiftrightequ:
+        case a_orequ:
+        case a_xorequ:
+        case a_andequ:
+        case a_mergeequ:
+        case a_combineequ:
+        case a_addequ:
+            res = new TamguInstructionAPPLYOPERATIONEQU(global, parent);
+            break;
+        case a_stream:
+            res = new TamguInstructionSTREAM(global, parent);
+            break;
+        case a_assignement:
+            res = new TamguInstructionASSIGNMENT(global, parent);
+            break;
+        case a_less:
+        case a_more:
+        case a_same:
+        case a_different:
+        case a_lessequal:
+        case a_moreequal:
+            res = new TamguInstructionCOMPARE(global, parent);
+            break;
+        case a_plus:
+        case a_minus:
+        case a_multiply:
+        case a_divide:
+        case a_mod:
+        case a_power:
+        case a_shiftleft:
+        case a_shiftright:
+        case a_or:
+        case a_xor:
+        case a_and:
+        case a_merge:
+        case a_combine:
+        case a_add:
+            res = new TamguInstructionAPPLYOPERATION(global, parent);
+            break;
+        case a_booleanor:
+            res = new TamguInstructionOR(global, parent);
+            break;
+        case a_booleanxor:
+            res = new TamguInstructionXOR(global, parent);
+            break;
+        case a_booleanand:
+            res = new TamguInstructionAND(global, parent);
+            break;
+        case a_conjunction:
+            res = new TamguInstructionConjunction(global, parent);
+            break;
+        case a_disjunction:
+            res = new TamguInstructionDisjunction(global, parent);
+            break;
+        case a_notin:
+        case a_in:
+            res = new TamguInstructionIN(global, parent);
+            break;
+        case a_match:
+            res = new TamguInstructionHASKELLCASE(global, parent);
+            break;
+        case a_ifnot:
+            res = new TamguInstructionOperationIfnot(global, parent);
+            break;
+        default:
+            res = new TamguInstruction(a_instructions, global, parent);
+    }
 
 	res->Setaction(op);
 	return res;
@@ -5548,45 +5548,52 @@ Tamgu* TamguCode::C_frame(x_node* xn, Tamgu* kf) {
 }
 
 Tamgu* TamguCode::C_parenthetic(x_node* xn, Tamgu* kf) {
-	if (kf->Action() != a_blocboolean) {
-		TamguInstruction* ki = new TamguSequence(global);
+    if (kf->Action() != a_blocboolean) {
+        TamguInstruction* ki = new TamguSequence(global);
         Tamgu* ke;
         
-		for (size_t i = 0; i < xn->nodes.size(); i++)
-			Traverse(xn->nodes[i], ki);
-
-		if (ki->action == a_bloc && ki->instructions.size() == 1) {
-			ke = ki->instructions[0];
-			//Either optional is called from within an arithmetic operation, and then we do nothing
-			//or it is called from within a bloc of instructions, then we need to promote it as a ROOT
-			if (ke->isFunction() || ke->isInstruction()) {
-				if (!kf->isOperation() && ke->isOperation() && kf->Action() != a_assignement) {
-					Tamgu* kroot = ke->Compile(NULL);
-					ke->Remove();
-					ke = kroot;
-				}
-
-				if (ki->negation)
-					ke->Setnegation(ki->negation - ke->isNegation());
-			}
-
+        for (size_t i = 0; i < xn->nodes.size(); i++)
+            Traverse(xn->nodes[i], ki);
+        
+        if (ki->action == a_bloc && ki->instructions.size() == 1) {
+            ke = ki->instructions[0];
+            //Either optional is called from within an arithmetic operation, and then we do nothing
+            //or it is called from within a bloc of instructions, then we need to promote it as a ROOT
+            if (ke->isFunction() || ke->isInstruction()) {
+                if (!kf->isOperation() && ke->isOperation() && kf->Action() != a_assignement) {
+                    Tamgu* kroot = ke->Compile(NULL);
+                    ke->Remove();
+                    ke = kroot;
+                }
+                
+                if (ki->negation)
+                    ke->Setnegation(ki->negation - ke->isNegation());
+            }
+            
             ki->Remove();
             kf->AddInstruction(ke);
             return ke;
-		}
-
+        }
+        
         ke = CloningInstruction(ki);
-		kf->AddInstruction(ke);
-		return ke;
-	}
-
-    Tamgu* kbloc = TamguCreateInstruction(NULL, a_blocboolean);
-
-	for (size_t i = 0; i < xn->nodes.size(); i++)
-		Traverse(xn->nodes[i], kbloc);
+        kf->AddInstruction(ke);
+        return ke;
+    }
     
-    kbloc = CloningInstruction((TamguInstruction*)kbloc);
-    kf->AddInstruction(kbloc);
+    
+    if (kf->Action() != a_blocboolean || kf->Size()) {
+        Tamgu* kbloc = TamguCreateInstruction(NULL, a_blocboolean);
+        for (size_t i = 0; i < xn->nodes.size(); i++)
+            Traverse(xn->nodes[i], kbloc);
+        
+        kbloc = CloningInstruction((TamguInstruction*)kbloc);
+        kf->AddInstruction(kbloc);
+    }
+    else {
+        for (size_t i = 0; i < xn->nodes.size(); i++)
+            Traverse(xn->nodes[i], kf);
+
+    }
     return kf;
 }
 

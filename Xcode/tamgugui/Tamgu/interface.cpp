@@ -107,7 +107,7 @@ extern "C" {
     }
     
     void Released(void) {
-        if (executionbreak)
+        if (globalTamgu->executionbreak)
             return;
         
         infodebug.loquet.Released();

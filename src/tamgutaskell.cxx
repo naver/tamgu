@@ -1374,7 +1374,7 @@ Tamgu* TamguCallFunctionTaskell::GetTaskell5(Tamgu* context, Tamgu* environment,
     Tamgu* init = bd->lambdadomain->instructions[3]->Eval(aNULL, aNULL, idthread);
 
     Tamgu* klist = bd->lambdadomain->instructions[1]->Eval(aNULL, aNULL, idthread);
-    if (executionbreak || globalTamgu->Error(idthread))
+    if (globalTamgu->Error(idthread))
         return aNULL;
 
     if (klist->Size() == 0 && !klist->isInfinite()) {

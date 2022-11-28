@@ -43,6 +43,8 @@ Exporting short TamguCompileMain(string& code, string filename);
 Exporting short TamguCompileNewSpace(string& codeinit, string filename);
 Exporting size_t TamguCompile(string& code, short idcode);
 Exporting bool TamguRun(short icode, bool glock = false);
+Exporting long TamguLastInstruction(short idcode);
+Exporting Tamgu* TamguEval(short idcode, long begininstruction);
 Exporting bool TamguLoading(short icode);
 Exporting short TamguLastCodeSpace();
 Exporting TamguCode* TamguCurrentSpace();

@@ -689,6 +689,7 @@ void Reseting_system_environment_for_getchar() {
 }
 
 void Tamgusys::Reset() {
+#ifndef TAMGUWASM
 #ifdef WIN32
 	if (getcharhasbeenused) {
 		ResetWindowsConsole();
@@ -716,7 +717,8 @@ void Tamgusys::Reset() {
         getcharhasbeenused = false;
     }
 #endif
-    lastcommand="";
+#endif
+    lastcommand="";    
 }
 
 #ifdef WIN32

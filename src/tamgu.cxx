@@ -12,7 +12,7 @@
  Purpose    : The place of all initializations...
  Programmer : Claude ROUX (claude.roux@naverlabs.com)
  Reviewer   :
-*/
+ */
 
 
 #include "tamgu.h"
@@ -41,19 +41,17 @@
 #include "tamgutaskell.h"
 #include "tamgulisp.h"
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2022.11.04.13";
-
-Tamgu* booleantamgu[2];
+const char* tamgu_version = "Tamgu 1.2022.11.24.17";
 
 extern "C" {
-    Exporting const char* TamguVersion(void) {
-        return tamgu_version;
-    }
+Exporting const char* TamguVersion(void) {
+    return tamgu_version;
+}
 }
 
 //specific hack to compile with visual 2017
 #if (_MSC_VER >= 1900)
-    FILE _iob[] = { *stdin, *stdout, *stderr };
+FILE _iob[] = { *stdin, *stdout, *stderr };
 extern "C" FILE * __cdecl __iob_func(void) { return _iob; }
 #endif
 
@@ -65,127 +63,14 @@ Exchanging TamguGlobal* globalTamgu = NULL;
 #endif
 //----------------------------------------------------------------------------------
 vector<string> TamguGlobal::arguments;
-//----------------------------------------------------------------------------------
-static bool globalconstantes = false;
-bool executionbreak = false;
-
 Exchanging Tamgu* aNULL  = NULL;
-Exchanging Tamgu* aUNIVERSAL  = NULL;
-Exchanging Tamgu* aTRUE  = NULL;
-Exchanging Tamgu* aFALSE  = NULL;
+Tamgu* booleantamgu[2];
 
-Exchanging Tamgu* aMINUSONE  = NULL;
-Exchanging Tamgu* aZERO  = NULL;
-Exchanging Tamgu* aZEROPOINTZERO = NULL;
-Exchanging Tamgu* aONE  = NULL;
-
-Exchanging Tamgu* aEMPTYLISP  = NULL;
-Exchanging Tamgu* aEMPTYSTRING  = NULL;
-Exchanging Tamgu* aEMPTYUSTRING  = NULL;
-Exchanging Tamgu* aBREAK  = NULL;
-Exchanging Tamgu* aCONTINUE  = NULL;
-Exchanging Tamgu* aRETURN  = NULL;
-Exchanging Tamgu* aPIPE  = NULL;
-Exchanging Tamgu* aNOELEMENT  = NULL;
-Exchanging Tamgu* aDEFAULT  = NULL;
-Exchanging Tamgu* aEND  = NULL;
-Exchanging Tamgu* aRAISEERROR  = NULL;
-Exchanging TamguCallBreak* aBREAKFALSE  = NULL;
-Exchanging TamguCallBreak* aBREAKTRUE  = NULL;
-Exchanging TamguCallBreak* aBREAKONE  = NULL;
-Exchanging TamguCallBreak* aBREAKZERO  = NULL;
-Exchanging Tamgu* aASSIGNMENT  = NULL;
-Exchanging TamguConstiteration* aITERNULL  = NULL;
-Exchanging TamguPredicate* aFAIL  = NULL;
-Exchanging TamguPredicate* aTERMINAL  = NULL;
-Exchanging TamguPredicate* aCUTFALSE  = NULL;
-Exchanging TamguPredicate* aCUT  = NULL;
-Exchanging TamguPredicate* aSTOP  = NULL;
-Exchanging Tamgu* aHASKELL  = NULL;
-Exchanging TamguDeclaration* aNULLDECLARATION  = NULL;
-Exchanging TamguLet* aNULLLet  = NULL;
-Exchanging Tamgu* aNOTHING  = NULL;
-
-
-//For those who cannot tolerate non cleaned global variables...
-void FinalTamguConstantCleaning(void) {
-    if (globalconstantes) {
-
-        delete aITERNULL ;
-
-        delete  aNULL ;
-        delete  aUNIVERSAL ;
-        delete  aTRUE ;
-        delete  aFALSE ;
-
-        delete aEMPTYLISP;
-        delete  aEMPTYSTRING ;
-        delete  aEMPTYUSTRING ;
-        delete  aBREAK ;
-        delete  aCONTINUE ;
-        delete  aRETURN ;
-        delete  aPIPE ;
-        delete  aNOELEMENT ;
-        delete  aDEFAULT ;
-        delete  aEND ;
-        delete  aRAISEERROR ;
-        delete aBREAKFALSE ;
-        delete aBREAKTRUE ;
-        delete aBREAKZERO ;
-        delete aBREAKONE ;
-        delete  aASSIGNMENT ;
-        delete aFAIL ;
-        delete aTERMINAL ;
-        delete aCUTFALSE ;
-        delete aCUT ;
-        delete aSTOP ;
-        delete  aHASKELL ;
-        delete aNULLDECLARATION ;
-        delete aNULLLet ;
-        delete aNOTHING;
-
-        aNULL  = NULL;
-        aUNIVERSAL  = NULL;
-        aTRUE  = NULL;
-        aFALSE  = NULL;
-
-        aMINUSONE  = NULL;
-        aZERO  = NULL;
-        aZEROPOINTZERO  = NULL;
-        aONE  = NULL;
-
-        aEMPTYLISP = NULL;
-        aEMPTYSTRING  = NULL;
-        aEMPTYUSTRING  = NULL;
-        aBREAK  = NULL;
-        aCONTINUE  = NULL;
-        aRETURN  = NULL;
-        aPIPE  = NULL;
-        aNOELEMENT  = NULL;
-        aDEFAULT  = NULL;
-        aEND  = NULL;
-        aRAISEERROR  = NULL;
-        aBREAKFALSE  = NULL;
-        aBREAKTRUE  = NULL;
-        aBREAKZERO  = NULL;
-        aBREAKONE  = NULL;
-        aASSIGNMENT  = NULL;
-        aITERNULL  = NULL;
-        aFAIL  = NULL;
-        aCUT  = NULL;
-        aCUTFALSE  = NULL;
-        aTERMINAL  = NULL;
-        aSTOP  = NULL;
-        aHASKELL  = NULL;
-        aNULLDECLARATION  = NULL;
-        aNULLLet  = NULL;
-        aNOTHING = NULL;
-
-        globalconstantes = false;
-    }
+void clean_aNULL() {
+    if (aNULL != NULL)
+        delete aNULL;
+    aNULL = NULL;
 }
-
-//----------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------
 // These two variables are used to manage local garbaging when an eval is executed...
 static std::atomic<short> number_of_current_eval;
@@ -202,7 +87,7 @@ static vector<Tamgu*> _tamgu_garbage;
 Exporting Tamgu::Tamgu() {
     idtracker = -1;
     investigate = is_none;
-
+    
     if (globalTamgu != NULL && globalTamgu->threadMODE) {
         Locking _lock(_garbaging);
         iddebug = _tamgu_garbage.size();
@@ -282,7 +167,7 @@ void TamguGlobal::Removefromlocalgarbage(short idthread, long i, Tamgu* a) {
     //If has already been cleaned or it was not created in this thread
     if (a->idtracker == -555)
         return;
-
+    
     //if idthread == -1, it comes from ~Tamgu directly
     if (idthread == -1) {
         idthread = GetThreadid();
@@ -313,10 +198,10 @@ void ThreadStruct::Cleanfromgarbageposition(Tamgu* declaration,
                                             long maxrecorded) {
     Tamgu* e;
     long i;
-
+    
     if (maxrecorded == -1)
         maxrecorded = localgarbage.size();
-        
+    
     for (i = p; i < maxrecorded; i++) {
         e = localgarbage[i];
         if (e == keep || e == NULL || e->isConst() || (e->idtracker != -1 && e->idtracker < lastrecorded))
@@ -327,7 +212,7 @@ void ThreadStruct::Cleanfromgarbageposition(Tamgu* declaration,
             delete e;
         }
     }
-
+    
     if (p)
         localgarbage.erase(localgarbage.begin()+p, localgarbage.end());
     else
@@ -368,7 +253,7 @@ Exporting LockedThread::~LockedThread() {
 
 TamguRaiseError::TamguRaiseError(stringstream& mes, string file, size_t l, size_t r) {
     message = mes.str();
-
+    
     filename = file;
     left = l;
     right = r;
@@ -412,9 +297,9 @@ threadhandle ThreadStruct::Initialization() {
     prologstack = 0;
     returnvalue = aNULL;
     used = true;
-
+    
     locks.clear();
-
+    
     handle = _GETTHREADID();
     message.str("");
     debugstack.clear();
@@ -437,7 +322,7 @@ void TamguGlobal::Clearknowledgebase() {
             }
         }
     }
-
+    
     knowledgebase.clear();
     knowledgebase_on_first.clear();
     knowledgebase_on_second.clear();
@@ -453,158 +338,160 @@ Exporting ThreadStruct::~ThreadStruct() {
 
 TamguGlobal::TamguGlobal(long nb, bool setglobal) :
 idSymbols(false), methods(false), compatibilities(false), strictcompatibilities(false),
-    operator_strings(false), terms(false), booleanlocks(true), tracked(NULL, true), trackerslots(-1, true) {
-
+operator_strings(false), terms(false), booleanlocks(true), tracked(NULL, true), trackerslots(-1, true) {
+    
 #ifdef TAMGULOOSEARGUMENTCOMPATIBILITIES
-        loosecompability = true;
+    loosecompability = true;
 #else
-        loosecompability = false;
+    loosecompability = false;
 #endif
-        
-        handler_on_utf8 = create_utf8_handler();
-        
-        add_to_tamgu_garbage = false;
-        number_of_current_eval = 0;
-
-        threadcounter = 0;
-
-        waitingonfalse = false;
-
-        SetThreadid();
-
-        ThreadLock::ids = 10;
-
-        booleanlocks[a_int] = new ThreadLock;
-        booleanlocks[a_float] = new ThreadLock;
-        booleanlocks[a_decimal] = new ThreadLock;
-        booleanlocks[a_long] = new ThreadLock;
-        booleanlocks[a_short] = new ThreadLock;
-        booleanlocks[a_byte] = new ThreadLock;
-        booleanlocks[a_boolean] = new ThreadLock;
-
-        maxrange = 100000;
-        idglobal = 0;
-
-        conceptfunction = NULL;
-        rolefunction = NULL;
-        propertyfunction = NULL;
-
-        threadMODE = false;
-        isthreading = false;
-
-        maxstack = 1000;
-
-        debugmode = false;
-        currentbnf = NULL;
-        maxthreads = nb;
-        erroronkey = false;
-        windowmode = false;
-        spaceid = -1;
-        running = false;
-
-
-        threads = new ThreadStruct[maxthreads];
-        errors = new bool[maxthreads];
-        errorraised = new TamguError*[maxthreads];
-
-        long i;
-        for (i = 0; i < maxthreads; i++) {
-            threads[i].idthread = i;
-            errors[i] = false;
-            errorraised[i] = NULL;
-        }
-
-        predicateContainer = NULL;
-
-        linereference = 0;
-        lineerror = -1;
-
-        kstd = NULL;
-        kerr = NULL;
-		if (setglobal)
-			globalTamgu = this;
-
-        RecordConstantNames();
-        RecordSystemVariables();
-
-        RecordCompileFunctions();
-        RecordObjects();
-        RecordContainers();
-        RecordProcedures();
-        RecordPredicates();
-        RecordPredicateFunctions();
-
-        RecordMathFunctions();
-        RecordCompatibilities();
-        //---------------------------------
-        //We use it as a way to deflect printing to a string...
-        stringbuffer = NULL;
-        stringbuffererror = NULL;
-        os = &cout;
-        doubledisplay = false;
-        displayfunction = NULL;
-        displayobject = NULL;
-        executionbreak = false;
-        //---------------------------------
-        debugfunction = NULL;
-        debugdata = NULL;
-        terminationfunction = NULL;
-
-        //---------------------------------
-        gTheAnnotationRules=NULL;
-        gAutomatons=NULL;
-        //---------------------------------
-        long mx = 1000;
-        //---------------------------------
-        for (i = 0; i < mx; i++) {
-            lispreservoire.push_back(new Tamgulisp(i));
-            intreservoire.push_back(new Tamguintbuff(i));
-            longreservoire.push_back(new Tamgulongbuff(i));
-            floatreservoire.push_back(new Tamgufloatbuff(i));
-            stringreservoire.push_back(new Tamgustringbuff(i));
-            ustringreservoire.push_back(new Tamguustringbuff(i));
-            declarationreservoire.push_back(new TamguDeclarationLocal(i));
-            declarationcleanreservoire.push_back(new TamguDeclarationAutoClean(i));
-        }
-
-        lispidx = 0;
-        intidx = 0;
-        longidx = 0;
-        slfidx = 0;
-        floatidx = 0;
-        stringidx = 0;
-        ustringidx = 0;
-        declarationidx = 0;
-        declarationcleanidx = 0;
-
-        mapidx = 0;
-        treemapidx = 0;
-        mapssidx = 0;
-        vectoridx = 0;
-        ivectoridx = 0;
-        fvectoridx = 0;
-        svectoridx = 0;
-        uvectoridx = 0;
-
-        //---------------------------------
-        mx >>= 3;
-        for (long i = 0; i < mx; i++) {
-            slfreservoire.push_back(new Tamguselfbuff(i));
-            vectorreservoire.push_back(new Tamguvectorbuff(i));
-            mapreservoire.push_back(new Tamgumapbuff(i));
-            treemapreservoire.push_back(new Tamgutreemapbuff(i));
-            mapssreservoire.push_back(new Tamgumapssbuff(i));
-            ivectorreservoire.push_back(new Tamguivectorbuff(i));
-            fvectorreservoire.push_back(new Tamgufvectorbuff(i));
-            svectorreservoire.push_back(new Tamgusvectorbuff(i));
-            uvectorreservoire.push_back(new Tamguuvectorbuff(i));
-        }
+    
+    handler_on_utf8 = create_utf8_handler();
+    
+    add_to_tamgu_garbage = false;
+    number_of_current_eval = 0;
+    
+    threadcounter = 0;
+    
+    waitingonfalse = false;
+    
+    SetThreadid();
+    
+    ThreadLock::ids = 10;
+    
+    booleanlocks[a_int] = new ThreadLock;
+    booleanlocks[a_float] = new ThreadLock;
+    booleanlocks[a_decimal] = new ThreadLock;
+    booleanlocks[a_long] = new ThreadLock;
+    booleanlocks[a_short] = new ThreadLock;
+    booleanlocks[a_byte] = new ThreadLock;
+    booleanlocks[a_boolean] = new ThreadLock;
+    
+    maxrange = 100000;
+    idglobal = 0;
+    
+    conceptfunction = NULL;
+    rolefunction = NULL;
+    propertyfunction = NULL;
+    
+    threadMODE = false;
+    isthreading = false;
+    
+    maxstack = 1000;
+    
+    debugmode = false;
+    currentbnf = NULL;
+    maxthreads = nb;
+    erroronkey = false;
+    windowmode = false;
+    spaceid = -1;
+    running = false;
+    
+    
+    threads = new ThreadStruct[maxthreads];
+    errors = new bool[maxthreads];
+    errorraised = new TamguError*[maxthreads];
+    
+    long i;
+    for (i = 0; i < maxthreads; i++) {
+        threads[i].idthread = i;
+        errors[i] = false;
+        errorraised[i] = NULL;
     }
+    
+    predicateContainer = NULL;
+    
+    linereference = 0;
+    lineerror = -1;
+    
+    kstd = NULL;
+    kerr = NULL;
+    TamguGlobal* globalSave = globalTamgu;
+    globalTamgu = this;
+    
+    RecordConstantNames();
+    RecordSystemVariables();
+    
+    RecordCompileFunctions();
+    RecordObjects();
+    RecordContainers();
+    RecordProcedures();
+    RecordPredicates();
+    RecordPredicateFunctions();
+    
+    RecordMathFunctions();
+    RecordCompatibilities();
+    //---------------------------------
+    //We use it as a way to deflect printing to a string...
+    stringbuffer = NULL;
+    stringbuffererror = NULL;
+    os = &cout;
+    doubledisplay = false;
+    displayfunction = NULL;
+    displayobject = NULL;
+    //---------------------------------
+    debugfunction = NULL;
+    debugdata = NULL;
+    terminationfunction = NULL;
+    
+    //---------------------------------
+    gTheAnnotationRules=NULL;
+    gAutomatons=NULL;
+    //---------------------------------
+    long mx = 1000;
+    //---------------------------------
+    for (i = 0; i < mx; i++) {
+        lispreservoire.push_back(new Tamgulisp(i));
+        intreservoire.push_back(new Tamguintbuff(i));
+        longreservoire.push_back(new Tamgulongbuff(i));
+        floatreservoire.push_back(new Tamgufloatbuff(i));
+        stringreservoire.push_back(new Tamgustringbuff(i));
+        ustringreservoire.push_back(new Tamguustringbuff(i));
+        declarationreservoire.push_back(new TamguDeclarationLocal(i));
+        declarationcleanreservoire.push_back(new TamguDeclarationAutoClean(i));
+    }
+    
+    lispidx = 0;
+    intidx = 0;
+    longidx = 0;
+    slfidx = 0;
+    floatidx = 0;
+    stringidx = 0;
+    ustringidx = 0;
+    declarationidx = 0;
+    declarationcleanidx = 0;
+    
+    mapidx = 0;
+    treemapidx = 0;
+    mapssidx = 0;
+    vectoridx = 0;
+    ivectoridx = 0;
+    fvectoridx = 0;
+    svectoridx = 0;
+    uvectoridx = 0;
+    
+    //---------------------------------
+    mx >>= 3;
+    for (long i = 0; i < mx; i++) {
+        slfreservoire.push_back(new Tamguselfbuff(i));
+        vectorreservoire.push_back(new Tamguvectorbuff(i));
+        mapreservoire.push_back(new Tamgumapbuff(i));
+        treemapreservoire.push_back(new Tamgutreemapbuff(i));
+        mapssreservoire.push_back(new Tamgumapssbuff(i));
+        ivectorreservoire.push_back(new Tamguivectorbuff(i));
+        fvectorreservoire.push_back(new Tamgufvectorbuff(i));
+        svectorreservoire.push_back(new Tamgusvectorbuff(i));
+        uvectorreservoire.push_back(new Tamguuvectorbuff(i));
+    }
+    
+    if (!setglobal)
+        globalTamgu = globalSave;
+}
 
 void Tamgu::Deletion(std::set<unsigned long>& deleted_elements) {
     if (idtracker != -1)
         return;
-
+    
     if (isObjectContainer()) {
         Tamgu* k;
         TamguIteration* itr = Newiteration(true);
@@ -615,7 +502,7 @@ void Tamgu::Deletion(std::set<unsigned long>& deleted_elements) {
         }
         delete itr;
     }
-
+    
     if (Candelete()) {
         deleted_elements.insert((unsigned long)this);
         delete this;
@@ -632,7 +519,7 @@ TamguGlobal::~TamguGlobal() {
         if (a.second->idtracker == -1)
             delete a.second;
     }
-
+    
     for (auto& a : string_pool) {
         if (a.second->idtracker == -1)
             delete a.second;
@@ -642,13 +529,13 @@ TamguGlobal::~TamguGlobal() {
     
     clear_pattern();
     clear_automates();
-
+    
     delete[] threads;
     delete[] errors;
     delete[] errorraised;
-
+    
     size_t i;
-
+    
     delete booleanlocks[a_int];
     delete booleanlocks[a_float];
     delete booleanlocks[a_decimal];
@@ -656,28 +543,28 @@ TamguGlobal::~TamguGlobal() {
     delete booleanlocks[a_short];
     delete booleanlocks[a_byte];
     delete booleanlocks[a_boolean];
-
+    
     for (auto & it : rules)
         delete it.second;
-
+    
     for (i = 0; i < spaces.size(); i++) {
         if (spaces[i] != NULL)
             delete spaces[i];
     }
-
+    
     Clearknowledgebase();
     spaces.clear();
     tracked.clean();
-
+    
     for (i = 0; i < mapreservoire.size(); i++)
         delete mapreservoire[i];
-
+    
     for (i = 0; i < mapssreservoire.size(); i++)
         delete mapssreservoire[i];
-
+    
     for (i = 0; i < vectorreservoire.size(); i++)
         delete vectorreservoire[i];
-
+    
     for (i = 0; i < ivectorreservoire.size(); i++)
         delete ivectorreservoire[i];
     for (i = 0; i < fvectorreservoire.size(); i++)
@@ -686,10 +573,10 @@ TamguGlobal::~TamguGlobal() {
         delete svectorreservoire[i];
     for (i = 0; i < uvectorreservoire.size(); i++)
         delete uvectorreservoire[i];
-
+    
     for (i = 0; i < slfreservoire.size(); i++)
         delete slfreservoire[i];
-
+    
     for (i = 0; i < intreservoire.size(); i++)
         delete intreservoire[i];
     
@@ -704,25 +591,25 @@ TamguGlobal::~TamguGlobal() {
     
     for (i = 0; i < lispreservoire.size(); i++)
         delete lispreservoire[i];
-
+    
     for (i = 0; i < declarationreservoire.size(); i++)
         delete declarationreservoire[i];
-
+    
     for (i = 0; i < declarationcleanreservoire.size(); i++)
         delete declarationcleanreservoire[i];
-
+    
     for (i = 0; i < pvireservoire.size(); i++)
         delete pvireservoire[i];
-
+    
     atomic_iterator<string, ThreadLock*> itlocktables(locktables);
     atomic_iterator<string, LockedThread*> itwaitstrings(waitstrings);
     atomic_iterator<long, LockedThread*> itthreadvariables(threadvariables);
-
+    
     while (!itlocktables.end()) {
         delete itlocktables.second;
         itlocktables.next();
     }
-
+    
     while (!itwaitstrings.end()) {
         delete itwaitstrings.second;
         itwaitstrings.next();
@@ -732,7 +619,7 @@ TamguGlobal::~TamguGlobal() {
         delete itthreadvariables.second;
         itthreadvariables.next();
     }
-
+    
     codes.clear();
     locktables.clear();
     waitstrings.clear();
@@ -743,7 +630,7 @@ TamguGlobal::~TamguGlobal() {
     operator_strings.clear();
     atanOperatorMath.clear();
     parseFunctions.clear();
-
+    
     newInstance.clear();
     methods.clear();
     allmethods.clear();
@@ -751,22 +638,50 @@ TamguGlobal::~TamguGlobal() {
     functions.clear();
     procedures.clear();
     commons.clear();
-
+    
     arities.clear();
     frames.clear();
-
+    
     systems.clear();
-
+    
     compatibilities.clear();
     strictcompatibilities.clear();
     hierarchy.clear();
-
+    
     if (gAutomatons!=NULL)
         delete gAutomatons;
-
-    //FinalTamguConstantCleaning();
-
-    #ifdef GARBAGEFORDEBUG
+    
+    delete gITERNULL;
+    delete gUNIVERSAL;
+    delete gTRUE;
+    delete gFALSE;
+    delete gEMPTYLISP;
+    delete gEMPTYSTRING;
+    delete gEMPTYUSTRING;
+    delete gBREAK;
+    delete gCONTINUE;
+    delete gRETURN;
+    delete gPIPE;
+    delete gNOELEMENT;
+    delete gDEFAULT;
+    delete gEND;
+    delete gRAISEERROR;
+    delete gBREAKFALSE;
+    delete gBREAKTRUE;
+    delete gBREAKZERO;
+    delete gBREAKONE;
+    delete gASSIGNMENT;
+    delete gFAIL;
+    delete gTERMINAL;
+    delete gCUTFALSE;
+    delete gCUT;
+    delete gSTOP;
+    delete gHASKELL;
+    delete gNULLDECLARATION;
+    delete gNULLLet;
+    delete gNOTHING;
+    
+#ifdef GARBAGEFORDEBUG
     vector<Tamgu*> issues;
     vector<long> idissues;
     Garbaging(issues, idissues);
@@ -775,44 +690,44 @@ TamguGlobal::~TamguGlobal() {
         cerr << "No fully cleaned:" << issues.size() << endl;
     else
         cerr << "No dangling values. All has been cleaned." << endl;
-    #endif
+#endif
 }
 
 static void getname(string& f) {
-    #ifdef WIN32
+#ifdef WIN32
     long pos = f.rfind("\\");
-    #else
+#else
     long pos = f.rfind("/");
-    #endif
-
+#endif
+    
     if (pos != -1)
         f = f.substr(pos + 1, f.size() - pos - 1);
 }
 
 Exporting void TamguGlobal::Getdebuginfo(string& localvariables, string& allvariables, string& stackstring, bool shortname, long sz, short idthread) {
-
+    
     vector<Tamgu*>& stack = threads[idthread].debugstack;
-
+    
     localvariables = "";
     allvariables = "";
     stackstring = "";
-
+    
     short idcode = stack.back()->Currentspace();
     if (idcode == -1)
         return;
-
+    
     debugmode=false;
-
+    
     short fileid = stack.back()->Currentfile();
     string filename = Getfilename(fileid);
     long currentline = stack.back()->Currentline();
     getname(filename);
-
+    
     VECTE<Tamgu*>& threadstack = threads[idthread].stack;
     long i;
     stringstream sstack;
     sstack << currentline << " in " << filename << "\n";
-
+    
     string funcname;
     
     Tamgu* a =threads[idthread].currentinstruction;
@@ -820,21 +735,21 @@ Exporting void TamguGlobal::Getdebuginfo(string& localvariables, string& allvari
     if (a!=NULL) {
         vector<short> vars;
         a->ScanVariables(vars);
-
+        
         if (threads[idthread].previousinstruction!=NULL)
             threads[idthread].previousinstruction->ScanVariables(vars);
-
+        
         threads[idthread].previousinstruction=a;
-
+        
         hmap<short,bool> m;
         for (i=0;i<vars.size();i++)
             m[vars[i]]=true;
         vars.clear();
         for (const auto& it : m)
             vars.push_back(it.first);
-
+        
         stringstream var;
-
+        
         for (size_t j = 0; j < vars.size(); j++) {
             a = Getdefinition(vars[j], idthread, aNULL);
             var << Getsymbol(vars[j]) << " = ";
@@ -863,14 +778,14 @@ Exporting void TamguGlobal::Getdebuginfo(string& localvariables, string& allvari
                 }
                 var << s;
             }
-
+            
             var << "\n";
         }
-
+        
         if (var.str().size())
             localvariables += var.str();
     }
-
+    
     Tamgu* stackline;
     for (i = threadstack.size() - 1; i >= 0; i--) {
         stringstream var;
@@ -878,11 +793,11 @@ Exporting void TamguGlobal::Getdebuginfo(string& localvariables, string& allvari
         stackline=threadstack[i];
         funcname = "";
         short nm = stackline->Name();
-
+        
         if (nm > 0)
             funcname = Getsymbol(nm);
-
-
+        
+        
         stackline->Variables(vars);
         for (size_t j = 0; j < vars.size(); j++) {
             //a = stackline->Declaration(vars[j]);
@@ -914,34 +829,34 @@ Exporting void TamguGlobal::Getdebuginfo(string& localvariables, string& allvari
                 }
                 var << s;
             }
-
+            
             if (nm > 0)
                 var << " //" << funcname;
-
+            
             var << "\n";
         }
-
+        
         if (var.str().size())
             allvariables += var.str();
     }
-
+    
     for (i = stack.size() - 1; i >= 0; i--) {
         stackline=stack[i];
         if (!stackline->isaFunction())
             continue;
-
+        
         short nm = stackline->Name();
-
+        
         if (nm > 0) {
             funcname = Getsymbol(nm);
             a = Getdefinition(nm, idthread);
-
+            
             short idc = stackline->Currentspace();
             if (idc == -1)
                 sstack << "\n";
             else {
                 stringstream aline;
-
+                
                 fileid = stackline->Currentfile();
                 filename = Getfilename(fileid);
                 getname(filename);
@@ -951,7 +866,7 @@ Exporting void TamguGlobal::Getdebuginfo(string& localvariables, string& allvari
             }
         }
     }
-
+    
     stackstring = sstack.str();
     debugmode=true;
 }
@@ -962,12 +877,12 @@ void TamguGlobal::Releasevariables() {
     //We then need to remove any wait on variables still active...
     atomic_iterator<string, LockedThread*> itwaitstrings(waitstrings);
     atomic_iterator<long, LockedThread*> itthreadvariables(threadvariables);
-
+    
     while (!itwaitstrings.end()) {
         itwaitstrings.second->Released();
         itwaitstrings.next();
     }
-
+    
     while (!itthreadvariables.end()) {
         itthreadvariables.second->Released();
         itthreadvariables.next();
@@ -977,7 +892,7 @@ void TamguGlobal::Releasevariables() {
 void TamguGlobal::Triggeronfalse(Tamgu* a) {
     if (!waitingonfalse)
         return;
-
+    
     if (a->idtracker != -1 && threadvariables.check(a->idtracker)) {
         if (!a->Protectedboolean())
             threadvariables.getpointer(a->idtracker)->Released();
@@ -1041,27 +956,27 @@ void TamguGlobal::Cleanerror(short idthread) {
 Exporting Tamgu* TamguGlobal::Errorobject(short idthread) {
     if (executionbreak)
         return aEND;
-
+    
     if (errors[idthread])
         return errorraised[idthread];
-
+    
     return aNULL;
 }
 
 string TamguGlobal::Errorstring(short idthread) {
     if (executionbreak)
         return "Stop";
-
+    
     if (errors[idthread])
         return errorraised[idthread]->String();
-
+    
     return "";
 }
 
 Exporting Tamgu* TamguGlobal::Returnerror(Tamgu* err, short idthread) {
     if (errors[idthread])
         return errorraised[idthread];
-
+    
     errorraised[idthread] = (TamguError*)err;
     errors[idthread] = true;
     return err;
@@ -1071,7 +986,7 @@ Exporting Tamgu* TamguGlobal::Returnerror(string msgerr) {
     short idthread = GetThreadid();
     if (errors[idthread])
         return errorraised[idthread];
-
+    
     errorraised[idthread] = new TamguError(msgerr);
     errors[idthread] = true;
     return errorraised[idthread];
@@ -1080,7 +995,7 @@ Exporting Tamgu* TamguGlobal::Returnerror(string msgerr) {
 Exporting Tamgu* TamguGlobal::Returnerror(string msgerr, short idthread) {
     if (errors[idthread])
         return errorraised[idthread];
-
+    
     errorraised[idthread] = new TamguError(msgerr);
     errors[idthread] = true;
     return errorraised[idthread];
@@ -1089,7 +1004,7 @@ Exporting Tamgu* TamguGlobal::Returnerror(string msgerr, short idthread) {
 bool ThreadStruct::pushtracked(Tamgu* a, long mx) {
     if (a->isTracked())
         currentinstruction = a;
-
+    
     stack.push_back(a);
     return (stack.size() >= mx);
 }
@@ -1105,7 +1020,7 @@ Tamgu* TamguGlobal::GetTopFrame() {
 Tamgu* ProcCreate(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
 void TamguGlobal::set_loose_compatibilities(void) {
-    if (loosecompability) {        
+    if (loosecompability) {
         bin_hash<Tamgu*>::iterator it;
         
         int i, j;
@@ -1152,12 +1067,12 @@ void TamguGlobal::set_loose_compatibilities(void) {
 
 Exporting void TamguGlobal::RecordCompatibilities() {
     bin_hash<Tamgu*>::iterator it;
-
+    
     vector<short> numbertypes;
     vector<short> stringtypes;
     vector<short> maptypes;
     vector<short> vectortypes;
-
+    
     equto[a_plusequ] = a_plus;
     equto[a_minusequ] = a_minus;
     equto[a_multiplyequ] = a_multiply;
@@ -1186,7 +1101,7 @@ Exporting void TamguGlobal::RecordCompatibilities() {
     equto[a_or] = a_or;
     equto[a_xor] = a_xor;
     equto[a_and] = a_and;
-
+    
     compatibilities[a_call][a_call] = true;
     compatibilities[a_call][a_callfunction] = true;
     compatibilities[a_call][a_callmethod] = true;
@@ -1196,7 +1111,7 @@ Exporting void TamguGlobal::RecordCompatibilities() {
     compatibilities[a_call][a_let] = true;
     compatibilities[a_call][a_self] = true;
     compatibilities[a_call][a_none] = true;
-
+    
     compatibilities[a_let][a_call] = true;
     compatibilities[a_let][a_function] = true;
     compatibilities[a_let][a_callfunction] = true;
@@ -1205,7 +1120,7 @@ Exporting void TamguGlobal::RecordCompatibilities() {
     compatibilities[a_let][a_calltaskell] = true;
     compatibilities[a_let][a_lambda] = true;
     compatibilities[a_let][a_none] = true;
-
+    
     compatibilities[a_self][a_call] = true;
     compatibilities[a_self][a_function] = true;
     compatibilities[a_self][a_callfunction] = true;
@@ -1214,14 +1129,14 @@ Exporting void TamguGlobal::RecordCompatibilities() {
     compatibilities[a_self][a_calltaskell] = true;
     compatibilities[a_self][a_lambda] = true;
     compatibilities[a_self][a_none] = true;
-
+    
     compatibilities[a_self][a_const] = true;
     compatibilities[a_let][a_const] = true;
-
+    
     compatibilities[a_boolean][a_const] = true;
     compatibilities[a_predicate][a_predicatevar] = true;
     compatibilities[a_predicatevar][a_predicate] = true;
-
+    
     //The difference between strict and not strict (see TamguCallFunctionArgsTaskell::Get) is that
     //in regular compatibility, string and integer can be accepted as compatible, while in a strict compatibility it is not the case
     //second, vector will be compatible with ivector, fvector etc... but the reverse will be false. The same for maps.
@@ -1235,7 +1150,7 @@ Exporting void TamguGlobal::RecordCompatibilities() {
     strictcompatibilities[a_call][a_let] = true;
     strictcompatibilities[a_call][a_self] = true;
     strictcompatibilities[a_call][a_none] = true;
-
+    
     strictcompatibilities[a_universal][a_call] = true;
     strictcompatibilities[a_universal][a_function] = true;
     strictcompatibilities[a_universal][a_callfunction] = true;
@@ -1244,7 +1159,7 @@ Exporting void TamguGlobal::RecordCompatibilities() {
     strictcompatibilities[a_universal][a_calltaskell] = true;
     strictcompatibilities[a_universal][a_lambda] = true;
     strictcompatibilities[a_universal][a_none] = true;
-
+    
     strictcompatibilities[a_let][a_call] = true;
     strictcompatibilities[a_let][a_function] = true;
     strictcompatibilities[a_let][a_callfunction] = true;
@@ -1253,7 +1168,7 @@ Exporting void TamguGlobal::RecordCompatibilities() {
     strictcompatibilities[a_let][a_calltaskell] = true;
     strictcompatibilities[a_let][a_lambda] = true;
     strictcompatibilities[a_let][a_none] = true;
-
+    
     strictcompatibilities[a_self][a_call] = true;
     strictcompatibilities[a_self][a_function] = true;
     strictcompatibilities[a_self][a_callfunction] = true;
@@ -1262,36 +1177,36 @@ Exporting void TamguGlobal::RecordCompatibilities() {
     strictcompatibilities[a_self][a_calltaskell] = true;
     strictcompatibilities[a_self][a_lambda] = true;
     strictcompatibilities[a_self][a_none] = true;
-
+    
     strictcompatibilities[a_self][a_const] = true;
     strictcompatibilities[a_let][a_const] = true;
-
+    
     strictcompatibilities[a_boolean][a_const] = true;
     strictcompatibilities[a_predicate][a_predicatevar] = true;
     strictcompatibilities[a_predicatevar][a_predicate] = true;
-
+    
     maptypes.push_back(a_constmap);
     vectortypes.push_back(a_constvector);
-
+    
     short ty;
     for (it = newInstance.begin(); it != newInstance.end(); it++) {
         if (it->second->isFrame()) //this type is only used to produce frames...
             continue;
         
         ty = it->second->Type();
-
+        
         //we record each object as being its own procedure... These procedures (actually calling ProcCreate)
         //return an object of this type...
         RecordOneProcedure(Getsymbol(ty), ProcCreate, P_NONE | P_ONE);
         returntypes[ty] = ty;
-
+        
         compatibilities[ty][ty] = true;
-
+        
         compatibilities[a_self][ty] = true;
         compatibilities[a_let][ty] = true;
         compatibilities[ty][a_self] = true;
         compatibilities[ty][a_let] = true;
-
+        
         compatibilities[ty][a_call] = true;
         compatibilities[ty][a_function] = true;
         compatibilities[ty][a_callfunction] = true;
@@ -1302,18 +1217,18 @@ Exporting void TamguGlobal::RecordCompatibilities() {
         compatibilities[ty][a_instructions] = true;
         compatibilities[ty][a_none] = true;
         compatibilities[ty][a_predicatevar] = true;
-
+        
         compatibilities[a_boolean][ty] = true;
-
+        
         strictcompatibilities[ty][ty] = true;
-
+        
         strictcompatibilities[a_self][ty] = true;
         strictcompatibilities[a_let][ty] = true;
         strictcompatibilities[a_universal][ty] = true;
         strictcompatibilities[ty][a_self] = true;
         strictcompatibilities[ty][a_let] = true;
         strictcompatibilities[ty][a_universal] = true;
-
+        
         strictcompatibilities[ty][a_call] = true;
         strictcompatibilities[ty][a_function] = true;
         strictcompatibilities[ty][a_callfunction] = true;
@@ -1324,7 +1239,7 @@ Exporting void TamguGlobal::RecordCompatibilities() {
         strictcompatibilities[ty][a_instructions] = true;
         strictcompatibilities[ty][a_none] = true;
         strictcompatibilities[ty][a_predicatevar] = true;
-
+        
         if (it->second->isVectorContainer()) {
             vectortypes.push_back(ty);
             continue;
@@ -1333,18 +1248,18 @@ Exporting void TamguGlobal::RecordCompatibilities() {
             maptypes.push_back(ty);
             continue;
         }
-
+        
         if (it->second->isNumber()) {
             numbertypes.push_back(ty);
             continue;
         }
-
+        
         if (it->second->isString()) {
             stringtypes.push_back(ty);
             continue;
         }
     }
-
+    
     int i, j;
     for (i = 0; i < numbertypes.size(); i++) {
         for (j = 0; j < numbertypes.size(); j++) {
@@ -1365,7 +1280,7 @@ Exporting void TamguGlobal::RecordCompatibilities() {
         compatibilities[numbertypes[i]][a_const] = true;
         strictcompatibilities[numbertypes[i]][a_const] = true;
     }
-
+    
     for (i = 0; i < stringtypes.size(); i++) {
         for (j = 0; j < stringtypes.size(); j++) {
             compatibilities[stringtypes[i]][stringtypes[j]] = true;
@@ -1382,45 +1297,45 @@ Exporting void TamguGlobal::RecordCompatibilities() {
         compatibilities[stringtypes[i]][a_const] = true;
         strictcompatibilities[stringtypes[i]][a_const] = true;
     }
-
+    
     for (i = 0; i < vectortypes.size(); i++) {
         for (j = 0; j < vectortypes.size(); j++)
             compatibilities[vectortypes[i]][vectortypes[j]] = true;
-
+        
         strictcompatibilities[a_vector][vectortypes[i]] = true;
         strictcompatibilities[vectortypes[i]][a_vector] = true;
         compatibilities[vectortypes[i]][a_const] = true;
         strictcompatibilities[vectortypes[i]][a_const] = true;
     }
-
+    
     for (i = 0; i < maptypes.size(); i++) {
         for (j = 0; j < maptypes.size(); j++)
             compatibilities[maptypes[i]][maptypes[j]] = true;
-
+        
         strictcompatibilities[a_map][maptypes[i]] = true;
         strictcompatibilities[a_primemap][maptypes[i]] = true;
         strictcompatibilities[a_treemap][maptypes[i]] = true;
         strictcompatibilities[a_binmap][maptypes[i]] = true;
-
+        
         strictcompatibilities[maptypes[i]][a_map] = true;
         strictcompatibilities[maptypes[i]][a_primemap] = true;
         strictcompatibilities[maptypes[i]][a_treemap] = true;
         strictcompatibilities[maptypes[i]][a_binmap] = true;
-
+        
         compatibilities[maptypes[i]][a_const] = true;
         strictcompatibilities[maptypes[i]][a_const] = true;
     }
 }
 
 void TamguGlobal::SetCompatibilities(short ty) {
-
+    
     compatibilities[ty][ty] = true;
-
+    
     compatibilities[a_self][ty] = true;
     compatibilities[a_let][ty] = true;
     compatibilities[ty][a_self] = true;
     compatibilities[ty][a_let] = true;
-
+    
     compatibilities[ty][a_call] = true;
     compatibilities[ty][a_function] = true;
     compatibilities[ty][a_callfunction] = true;
@@ -1431,10 +1346,10 @@ void TamguGlobal::SetCompatibilities(short ty) {
     compatibilities[ty][a_instructions] = true;
     compatibilities[ty][a_none] = true;
     compatibilities[ty][a_predicatevar] = true;
-
+    
     compatibilities[a_boolean][ty] = true;
-
-
+    
+    
     strictcompatibilities[ty][ty] = true;
     strictcompatibilities[a_self][ty] = true;
     strictcompatibilities[a_let][ty] = true;
@@ -1442,7 +1357,7 @@ void TamguGlobal::SetCompatibilities(short ty) {
     strictcompatibilities[ty][a_self] = true;
     strictcompatibilities[ty][a_let] = true;
     strictcompatibilities[ty][a_universal] = true;
-
+    
     strictcompatibilities[ty][a_call] = true;
     strictcompatibilities[ty][a_function] = true;
     strictcompatibilities[ty][a_callfunction] = true;
@@ -1483,49 +1398,11 @@ Tamgu* TamguGlobal::Provideinstance(Tamgu* p, long i) {
 //This function is hack which is necessary to get these variables a value in a DLL
 Exporting void TamguGlobal::Update() {
     globalTamgu = this;
+    aNULL = gNULL;
+    booleantamgu[0] = gFALSE;
+    booleantamgu[1] = gTRUE;
+    
     set_utf8_handler(handler_on_utf8);
-
-    if (aNULL == NULL) {
-        aNULL = gNULL;
-        aUNIVERSAL = gUNIVERSAL;
-        aTRUE = gTRUE;
-        aFALSE = gFALSE;
-
-        aMINUSONE = ProvideConstint(-1);
-        aZERO = ProvideConstint(0);
-        aZEROPOINTZERO = ProvideConstfloat(0.0);
-        aONE = ProvideConstint(1);
-
-        aEMPTYLISP = gEMPTYLISP;
-        aEMPTYSTRING = gEMPTYSTRING;
-        aEMPTYUSTRING = gEMPTYUSTRING;
-        aBREAK = gBREAK;
-        aCONTINUE = gCONTINUE;
-        aRETURN = gRETURN;
-        aPIPE = gPIPE;
-        aNOELEMENT = gNOELEMENT;
-        aDEFAULT = gDEFAULT;
-        aEND = gEND;
-        aRAISEERROR = gRAISEERROR;
-        aBREAKFALSE = gBREAKFALSE;
-        aBREAKTRUE = gBREAKTRUE;
-        aBREAKZERO = gBREAKZERO;
-        aBREAKONE = gBREAKONE;
-        aASSIGNMENT = gASSIGNMENT;
-        aITERNULL = gITERNULL;
-        aFAIL = gFAIL;
-        aTERMINAL = gTERMINAL;
-        aCUTFALSE = gCUTFALSE;
-        aCUT = gCUT;
-        aSTOP = gSTOP;
-        aHASKELL = gHASKELL;
-        aNULLDECLARATION = gNULLDECLARATION;
-        aNULLLet = gNULLLet;
-        aNOTHING = gNOTHING;
-
-        booleantamgu[0] = aFALSE;
-        booleantamgu[1] = aTRUE;
-    }
 }
 
 
@@ -1598,8 +1475,8 @@ Exporting void TamguGlobal::RecordConstantNames() {
     string_operators["³"] = a_cube;
     string_operators["∧"] = a_conjunction;
     string_operators["∨"] = a_disjunction;
-
-
+    
+    
     operator_strings[a_same] = "==";
     operator_strings[a_less] = "<";
     operator_strings[a_more] = ">";
@@ -1650,7 +1527,7 @@ Exporting void TamguGlobal::RecordConstantNames() {
     operator_strings[a_combineequ] = "|||=";
     operator_strings[a_addequ] = "::=";
     operator_strings[a_quote] = "quote";
-
+    
     atanOperatorMath[a_plus] = true;
     atanOperatorMath[a_minus] = true;
     atanOperatorMath[a_multiply] = true;
@@ -1662,48 +1539,51 @@ Exporting void TamguGlobal::RecordConstantNames() {
     atanOperatorMath[a_and] = true;
     atanOperatorMath[a_shiftleft] = true;
     atanOperatorMath[a_shiftright] = true;
-
-    aMINUSONE = ProvideConstint(-1);
-    aZERO = ProvideConstint(0);
-    aZEROPOINTZERO = ProvideConstfloat(0.0);
-    aONE = ProvideConstint(1);
-
-    if (!globalconstantes) {
-		//They are created once for all...
-        //Constants and ids
-        aITERNULL = new TamguConstiteration(false, NULL);
-        aPIPE = new TamguConstPipe(a_pipe, ":", NULL);
-
-        aTRUE = new TamguConstBool(true, NULL);
-        aFALSE = new TamguConstBool(false, NULL);
-
-        aEMPTYLISP = new Tamgulispcode(NULL);
-        aEMPTYSTRING = new TamguConstString("", NULL);
-        aEMPTYUSTRING = new TamguConstUString(L"", NULL);
-        aEMPTYLISP->Protectfromtracker();
-        aEMPTYSTRING->Protectfromtracker();
-        aEMPTYUSTRING->Protectfromtracker();
-
+    
+    gMINUSONE = ProvideConstint(-1);
+    gZERO = ProvideConstint(0);
+    gZEROPOINTZERO = ProvideConstfloat(0.0);
+    gONE = ProvideConstint(1);
+    
+    //They are created once for all...
+    //Constants and ids
+    gITERNULL = new TamguConstiteration(false, NULL);
+    gPIPE = new TamguConstPipe(a_pipe, ":", NULL);
+    
+    gTRUE = new TamguConstBool(true, NULL);
+    gFALSE = new TamguConstBool(false, NULL);
+    
+    gEMPTYLISP = new Tamgulispcode(NULL);
+    gEMPTYSTRING = new TamguConstString("", NULL);
+    gEMPTYUSTRING = new TamguConstUString(L"", NULL);
+    gEMPTYLISP->Protectfromtracker();
+    gEMPTYSTRING->Protectfromtracker();
+    gEMPTYUSTRING->Protectfromtracker();
+    
+    if (aNULL == NULL) {
         aNULL = new TamguConst(Createid("null"), "null", NULL); //0 --> a_null
         //a hack to avoid this value to be stored in the tracker, when creating the corresponding system variable (see RecordSystemVariables() in codeexecute.cxx)
         aNULL->Protectfromtracker();
-        aITERNULL->Update(aNULL); //Horrible hack to have aITERNULL being deleted before aNULL, but benefiting from aNULL still
     }
     else
         Createid("null"); //a_null
-
-    booleantamgu[0] = aFALSE;
-    booleantamgu[1] = aTRUE;
-
+    
+    gNULL = aNULL;
+    
+    gITERNULL->Update(aNULL); //Horrible hack to have aITERNULL being deleted before aNULL, but benefiting from aNULL still
+    
+    booleantamgu[0] = gFALSE;
+    booleantamgu[1] = gTRUE;
+    
     Setlispmode(false);
-
-
+    
+    
     Createid("true"); //1 --> a_true
     Createid("false"); //2 --> a_false
-
+    
     Createid("zero"); //3 --> a_zero
     Createid("one"); //4 --> a_one
-
+    
     Createid("minusone"); //5 --> a_minusone
     
     Createid("bool");//6 -->a_boolean
@@ -1714,13 +1594,13 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("decimal");//11 --> a_decimal
     Createid("fraction");//12 --> a_fraction
     Createid("float");//13 --> a_float
-
+    
     Createid("bloop");//14 --> a_bloop
     Createid("iloop");//15 --> a_iloop
     Createid("lloop");//16 --> a_lloop
     Createid("dloop");//17 --> a_dloop
     Createid("floop");//18 --> a_floop
-
+    
     Createid("ithrough"); //19 --> a_intthrough
     Createid("lthrough"); //20 --> a_longthrough
     Createid("dthrough"); //21 --> a_decimalthrough
@@ -1729,14 +1609,14 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("uthrough"); //24 --> a_ustringthrough
     Createid("vthrough"); //25 --> a_vectorthrough
     Createid("mthrough"); //26 --> a_mapthrough
-
+    
     Createid("string");//27 --> a_string
     Createid("ustring");//28 --> a_ustring
-
+    
     Createid("sloop"); //29 --> a_sloop
     Createid("uloop");//30 --> a_uloop
-
-
+    
+    
     Createid("constvector"); //31 --> a_constvector
     Createid("vector");//32 --> a_vector
     Createid("bvector");//33 --> a_bvector
@@ -1748,41 +1628,31 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("dvector");//39 --> a_dvector
     Createid("lvector");//40 --> a_lvector
     Createid("list"); //41 --> a_list
-
+    
     Createid("constmap"); //42 --> a_constmap
     Createid("map");//43 --> a_map
     Createid("treemap"); //44 --> a_treemap
     Createid("primemap"); //45 --> a_primemap
     Createid("binmap"); //46 --> a_binmap
     Createid("mapss"); //47 --> a_mapss
-
+    
     Createid("&error");//48 --> a_error
-
-    if (!globalconstantes) {
-        aEND = new TamguError(NULL, "END");
-        aRAISEERROR = new TamguError(NULL, "ERROR");
-    }
-
+    
+    gEND = new TamguError(NULL, "END");
+    gRAISEERROR = new TamguError(NULL, "ERROR");
+    
     Createid("const"); //49 --> a_const
     Createid("tam_none"); //50 --> a_none
     Createid(":"); //51 --> a_pipe
-
-    if (!globalconstantes) {
-        aBREAK = new TamguConstBreak(Createid("break"), "break", NULL); //52 --> a_break
-        aCONTINUE = new TamguConstContinue(Createid("continue"), "continue", NULL); //53 --> a_continue
-        aRETURN = new TamguConst(Createid("return"), "return",  NULL); //54 --> a_return
-        aNOELEMENT = new TamguConst(Createid("empty"), "empty", NULL); //55 --> a_empty
-        aNOELEMENT->Protectfromtracker(); //a hack to avoid this value to be stored in the tracker...
-    }
-    else {
-        Createid("break");
-        Createid("continue");
-        Createid("return");
-        Createid("empty");
-    }
-
+    
+    gBREAK = new TamguConstBreak(Createid("break"), "break", NULL); //52 --> a_break
+    gCONTINUE = new TamguConstContinue(Createid("continue"), "continue", NULL); //53 --> a_continue
+    gRETURN = new TamguConst(Createid("return"), "return",  NULL); //54 --> a_return
+    gNOELEMENT = new TamguConst(Createid("empty"), "empty", NULL); //55 --> a_empty
+    gNOELEMENT->Protectfromtracker(); //a hack to avoid this value to be stored in the tracker...
+    
     Createid("_MAIN"); //56 --> a_mainframe
-
+    
     Createid("call"); //57 --> a_call
     Createid("callfunction");//58 --> a_callfunction
     Createid("callthread");//59 --> a_callthread
@@ -1791,7 +1661,7 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("callindex"); //62 --> a_callindex
     Createid("calltaskell");//63 --> a_calltaskell
     Createid("lambda");//64 --> a_lambda
-
+    
     Createid("variable"); //65 --> a_variable
     Createid("declarations"); //66 --> a_declaration
     Createid("instructions"); //67 --> a_instructions
@@ -1801,37 +1671,29 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("extension"); //71 --> a_extension
     Createid("_initial"); //72 --> a_initial
     Createid("iterator"); //73 --> a_iteration
-
-    if (!globalconstantes)
-        aDEFAULT = new TamguConst(Createid("&default"), "&default", NULL); //74 --> a_default
-    else
-        Createid("&default");
-
+    
+    gDEFAULT = new TamguConst(Createid("&default"), "&default", NULL); //74 --> a_default
+    
     Createid("forinrange"); //75 --> a_forinrange
     Createid("sequence"); //76 --> a_sequence
     Createid("self"); //77 --> a_self
     Createid("&return;");//78 --> a_idreturnvariable
     Createid("&breaktrue"); //79 --> a_breaktrue
     Createid("&breakfalse"); //80 --> a_breakfalse
-
-    if (!globalconstantes) {
-        aBREAKTRUE = new TamguCallBreak(aTRUE, NULL);
-        aBREAKFALSE = new TamguCallBreak(aFALSE, NULL);
-        aBREAKONE = new TamguCallBreak(aONE, NULL);
-        aBREAKZERO = new TamguCallBreak(aZERO, NULL);
-    }
-
+    
+    gBREAKTRUE = new TamguCallBreak(gTRUE, NULL);
+    gBREAKFALSE = new TamguCallBreak(gFALSE, NULL);
+    gBREAKONE = new TamguCallBreak(gONE, NULL);
+    gBREAKZERO = new TamguCallBreak(gZERO, NULL);
+    
     Createid("constvectormerge"); //81 --> a_vectormerge
     Createid("instructionequ"); //82 --> a_instructionequ
-
+    
     //let is used in Taskell expression, it corresponds to a self variable...
     Createid("let"); //83 --> a_let
-
-    if (!globalconstantes)
-        aASSIGNMENT = new TamguConst(Createid("&assign"), "&assign", NULL); //84 --> a_assign
-    else
-        Createid("&assign");
-
+    
+    gASSIGNMENT = new TamguConst(Createid("&assign"), "&assign", NULL); //84 --> a_assign
+    
     Createid("tamgu");//85 --> a_tamgu
     Createid("this");//86 --> a_this
     Createid("[]");//87 --> a_index
@@ -1846,14 +1708,10 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("!"); //95 --> a_cut
     Createid("stop"); //96 --> a_stop
     Createid("&PREDICATEENTREE"); //97 --> a_predicateentree
-
-    if (!globalconstantes) {
-        aUNIVERSAL = new TamguConstUniversal(Createid("_"), "_", NULL); //98 --> a_universal
-        aUNIVERSAL->Protectfromtracker(); //a hack to avoid this value to be stored in the tracker...
-    }
-    else
-        Createid("_");
-
+    
+    gUNIVERSAL = new TamguConstUniversal(Createid("_"), "_", NULL); //98 --> a_universal
+    gUNIVERSAL->Protectfromtracker(); //a hack to avoid this value to be stored in the tracker...
+    
     Createid("asserta"); //99 --> a_asserta
     Createid("assertz"); //100 --> a_assertz
     Createid("retract"); //101 --> a_retract
@@ -1878,10 +1736,10 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("p_parameterpredicate"); //120 --> a_parameterpredicate
     Createid("p_predicateevaluate"); //121 --> a_predicateevaluate
     Createid("dependency"); //122 --> a_dependency
-
+    
     Createid("tam_stream"); //123 --> a_stream
     Createid("setq"); //124 --> a_assignement
-
+    
     Createid("tam_plusequ"); //125 --> a_plusequ
     Createid("tam_minusequ"); //126 --> a_minusequ
     Createid("tam_multiplyequ"); //127 --> a_multiplyequ
@@ -1896,9 +1754,9 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("tam_mergeequ"); //136 --> a_mergeequ
     Createid("tam_combineequ"); //137 --> a_combineequ
     Createid("tam_addequ"); //138 --> a_addequ
-
+    
     //Operators
-
+    
     Createid("+"); //139 --> a_plus
     Createid("-"); //140 --> a_minus
     Createid("*"); //141 --> a_multiply
@@ -1925,8 +1783,8 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("--"); //162
     Createid("in"); //163
     Createid("notin"); //164
-
-
+    
+    
     Createid("tam_match"); //165
     Createid("tam_bloc"); //166
     Createid("tam_blocloopin"); //167
@@ -1941,31 +1799,26 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("tam_catchbloc"); //176
     Createid("tam_booleanand"); //177
     Createid("tam_booleanor"); //178
-
-    if (!globalconstantes)
-        aHASKELL = new TamguConst(Createid("&taskell"), "&taskell", NULL); //179
-    else
-        Createid("&taskell");
-
+    
+    gHASKELL = new TamguConst(Createid("&taskell"), "&taskell", NULL); //179
+    
     Createid("tam_forcedaffectation"); //180
-
-    if (!globalconstantes) {
-        aNULLDECLARATION = new TamguDeclaration(this);
-        aNULLLet = new TamguLet(NULL);
-    }
-
+    
+    gNULLDECLARATION = new TamguDeclaration(this);
+    gNULLLet = new TamguLet(NULL);
+    
     Createid("²"); //181
     Createid("³"); //182
     Createid("&counter;"); //183
-
+    
     Createid("synode"); //184
     //when we want to modify a dependency...
     Createid("&modify_dependency"); //185
-
+    
     Createid("&action_var"); //186
     Createid("&taskelldeclaration;"); //187
     Createid("&drop;"); //188
-
+    
     Createid("concept"); //189
     Createid("~"); //190
     Createid("taskellinstruction"); //191
@@ -1973,14 +1826,10 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("treg"); //193
     Createid("table"); //194
     Createid("ifnot"); //195
-
-    if (!globalconstantes) {
-        aNOTHING = new TamguConst(Createid("Nothing"), "Nothing", NULL); //196 --> a_Nothing
-        aNOTHING->Protectfromtracker();
-    }
-    else
-        Createid("Nothing");
-
+    
+    gNOTHING = new TamguConst(Createid("Nothing"), "Nothing", NULL); //196 --> a_Nothing
+    gNOTHING->Protectfromtracker();
+    
     Createid("preg"); //197
     Createid("&a_rules;"); //198
     Createid("tam_iftaskell"); //199
@@ -1990,7 +1839,7 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("fibre"); //203
     Createid("tam_booleanxor"); //204
     Createid("push"); //205
-
+    
     Createid("quote"); //206 a_quote
     Createid("cons"); //207 a_cons
     Createid("cond"); //208 a_cond
@@ -2033,22 +1882,22 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("&predicate_terminal&"); //245 --> a_terminal
     Createid("lisp"); //246 a_lisp
     
-
+    
     //This is a simple hack to handle "length" a typical Haskell operator as "size"...
     //Note that there will be a useless index
-
+    
     Createid("length"); //245
     symbolIds["length"] = a_size;
-
+    
     Createid("not"); //246
     symbolIds["not"] = a_negation;
-
+    
     symbolIds["and"] = a_booleanand;
     symbolIds["or"] = a_booleanor;
     symbolIds["xor"] = a_booleanxor;
-	symbolIds["append"] = a_merge;
-	symbolIds["auto"] = a_self;
-
+    symbolIds["append"] = a_merge;
+    symbolIds["auto"] = a_self;
+    
     atomics[a_boolean] = a_boolean;
     atomics[a_byte] = a_boolean;
     atomics[a_short] = a_short;
@@ -2059,7 +1908,7 @@ Exporting void TamguGlobal::RecordConstantNames() {
     atomics[a_string] = a_string;
     atomics[a_ustring] = a_ustring;
     atomics[a_fraction] = a_ustring;
-
+    
     throughs[a_intthrough] = a_int;
     throughs[a_longthrough] = a_long;
     throughs[a_decimalthrough] = a_decimal;
@@ -2068,7 +1917,7 @@ Exporting void TamguGlobal::RecordConstantNames() {
     throughs[a_ustringthrough] = a_ustring;
     throughs[a_vectorthrough] = a_svector;
     throughs[a_mapthrough] = a_mapss;
-
+    
     actions[a_plus] = new TamguAction(this, a_plus);
     actions[a_minus] = new TamguAction(this, a_minus);
     actions[a_multiply] = new TamguAction(this, a_multiply);
@@ -2083,41 +1932,6 @@ Exporting void TamguGlobal::RecordConstantNames() {
     actions[a_merge] = new TamguAction(this, a_merge);
     actions[a_combine] = new TamguAction(this, a_combine);
     actions[a_add] = new TamguAction(this, a_add);
-
-    globalconstantes=true;
-
-    gNULL = aNULL;
-    gUNIVERSAL = aUNIVERSAL;
-    gTRUE = aTRUE;
-    gFALSE = aFALSE;
-
-    gEMPTYLISP = aEMPTYLISP;
-    gEMPTYSTRING = aEMPTYSTRING;
-    gEMPTYUSTRING = aEMPTYUSTRING;
-    gBREAK = aBREAK;
-    gCONTINUE = aCONTINUE;
-    gRETURN = aRETURN;
-    gPIPE = aPIPE;
-    gNOELEMENT = aNOELEMENT;
-    gDEFAULT = aDEFAULT;
-    gEND = aEND;
-    gRAISEERROR = aRAISEERROR;
-    gBREAKFALSE = aBREAKFALSE;
-    gBREAKTRUE = aBREAKTRUE;
-    gBREAKZERO = aBREAKZERO;
-    gBREAKONE = aBREAKONE;
-    gASSIGNMENT = aASSIGNMENT;
-    gITERNULL = aITERNULL;
-    gFAIL = aFAIL;
-    gTERMINAL = aTERMINAL;
-    gCUTFALSE = aCUTFALSE;
-    gCUT = aCUT;
-    gSTOP = aSTOP;
-    gHASKELL = aHASKELL;
-    gNULLDECLARATION = aNULLDECLARATION;
-    gNULLLet = aNULLLet;
-    gNOTHING = aNOTHING;
-
 }
 
 //------------------- Threads-------------------------------------
@@ -2174,7 +1988,7 @@ Tamgu* ProcThreadhandle(Tamgu* contextualpattern, short idthread, TamguCall* cal
 Exporting short TamguGlobal::GetThreadid() {
     if (!isthreading)
         return 0;
-
+    
     int id;
     threadids.get(_GETTHREADID(), id);
     return id;
@@ -2273,7 +2087,7 @@ Exporting long TamguGlobal::RecordInTrackerProtected(Tamgu* a) {
 
 Exporting void TamguGlobal::ResetWithTracker(Tamgu* a, long idx, long inc) {
     if (!tracked.check(idx, a))
-        return;    
+        return;
     a->Resetreference(inc);
 }
 
@@ -2281,7 +2095,7 @@ Exporting void TamguGlobal::ResetWithTracker(Tamgu* a, long idx, long inc) {
 bool TamguGlobal::Loadcontent(string content) {
     //We directly parse the content...
     static x_reading xr;
-
+    
     xr.tokenize(content);
     TamguCode* a = GetNewCodeSpace("SCRIPT");
     return a->Load(xr);
@@ -2290,31 +2104,31 @@ bool TamguGlobal::Loadcontent(string content) {
 TamguCode* TamguGlobal::Loadfile(string filename) {
     x_reading xr;
     filename = NormalizeFileName(filename);
-
+    
     string code;
     ifstream file(filename, openMode);
-
+    
     if (file.fail())
         return NULL;
-
+    
     char c = file.get();
     if (!file.eof()) {
         do {
             code += c;
             c = file.get();
-
+            
         } while (!file.eof());
     }
-
+    
     file.close();
-
+    
     long sp = spaceid;
     spaceid=spaces.size();
     TamguCode* a = GetNewCodeSpace(filename);
-
+    
     std::chrono::high_resolution_clock::time_point before;
     std::chrono::high_resolution_clock::time_point after;
-
+    
     before = std::chrono::high_resolution_clock::now();
     xr.tokenize(code);
     after = std::chrono::high_resolution_clock::now();
@@ -2324,49 +2138,49 @@ TamguCode* TamguGlobal::Loadfile(string filename) {
     a->Load(xr);
     after = std::chrono::high_resolution_clock::now();
     double dparse = std::chrono::duration_cast<std::chrono::milliseconds>( after - before ).count();
-
-    TamguSystemVariable* vs = globalTamgu->systems[globalTamgu->Getid("_internals")];    
+    
+    TamguSystemVariable* vs = globalTamgu->systems[globalTamgu->Getid("_internals")];
     vs->value->storevalue((long)xr.stack.size());
     vs->value->storevalue(dtok);
     vs->value->storevalue(dparse);
-
+    
     spaceid=sp;
     return a;
 }
 
 void TamguGlobal::TamguAllObjects(vector<string>& vs) {
     vs.clear();
-
+    
     bin_hash<Tamgu*>::iterator it;
     string n;
     for (it = newInstance.begin(); it != newInstance.end(); it++) {
         n = Getsymbol(it->first);
         vs.push_back(n);
     }
-
+    
     bin_hash<TamguProcedure>::iterator itp;
     for (itp = procedures.begin(); itp != procedures.end(); itp++) {
         n = Getsymbol(itp->first);
         vs.push_back(n);
     }
-
+    
     bin_hash<unsigned long>::iterator itl;
     for (itl = allmethods.begin(); itl != allmethods.end(); itl++) {
         n = Getsymbol(itl->first);
         vs.push_back(n);
     }
-
+    
     for (itl = framemethods.begin(); itl != framemethods.end(); itl++) {
         n = Getsymbol(itl->first);
         vs.push_back(n);
     }
-
+    
     for (itp = commons.begin(); itp != commons.end(); itp++) {
         n = Getsymbol(itp->first);
         vs.push_back(n);
     }
-
-
+    
+    
     vs.push_back("alias");
     vs.push_back("a_change");
     vs.push_back("a_delete");
@@ -2499,7 +2313,7 @@ void TamguGlobal::TamguAllObjects(vector<string>& vs) {
     vs.push_back("xor");
     vs.push_back("zip");
     vs.push_back("zipWith");
-
+    
 }
 
 //----------------------------------------------------------------------------------------
@@ -2531,13 +2345,13 @@ Exporting void Tamgu::addstringto(wchar_t s) {
     Tamgu* a = globalTamgu->Providewithustring(w);
     Push(a);
     a->Release();
-
+    
 }
 
 Exporting void Tamgu::addustringto(wstring ws, int i) {
     if (Size() == 0)
         return;
-
+    
     Tamgu* ke;
     if (i < 0)
         ke = Last();
@@ -2546,14 +2360,14 @@ Exporting void Tamgu::addustringto(wstring ws, int i) {
             return;
         ke = getvalue(i);
     }
-
+    
     ke->addustringto(ws);
 }
 
 Exporting void Tamgu::addstringto(string s, int i) {
     if (Size() == 0)
         return;
-
+    
     Tamgu* ke;
     if (i < 0)
         ke = Last();
@@ -2562,14 +2376,14 @@ Exporting void Tamgu::addstringto(string s, int i) {
             return;
         ke = getvalue(i);
     }
-
+    
     ke->addstringto(s);
 }
 
 Exporting void Tamgu::addstringto(wchar_t s, int i) {
     if (Size() == 0)
         return;
-
+    
     Tamgu* ke;
     if (i < 0)
         ke = Last();
@@ -2578,7 +2392,7 @@ Exporting void Tamgu::addstringto(wchar_t s, int i) {
             return;
         ke = getvalue(i);
     }
-
+    
     ke->addstringto(s);
 }
 
@@ -2646,10 +2460,10 @@ Exporting TamguTracked::TamguTracked(short t, TamguGlobal* g, Tamgu* parent) {
     investigate = is_tracked;
     idtype = t;
     idinfo = -1;
-
+    
     if (parent != NULL)
         parent->AddInstruction(this);
-
+    
     if (g != NULL) {
         g->RecordInTracker(this);
         long line = g->Getcurrentline();
@@ -2663,13 +2477,13 @@ Exporting TamguTracked::TamguTracked(short t, TamguGlobal* g, Tamgu* parent) {
 
 Exporting TamguTracked::TamguTracked(string t, TamguGlobal* g, Tamgu* parent) {
     investigate = is_tracked;
-
+    
     idtype = 0;
     idinfo = -1;
-
+    
     if (parent != NULL)
         parent->AddInstruction(this);
-
+    
     if (g != NULL) {
         idtype = g->Getid(t);
         g->RecordInTracker(this);
@@ -2930,6 +2744,10 @@ void TamguSelf::storevalue(wchar_t u) {
     unlocking();
 }
 //---------------------------------------------------------------------------------------------
+Exporting Tamgu* Tamgu::Push(Tamgu*, Tamgu*) {
+    return this;
+}
+
 Exporting Tamgu* Tamgu::Push(BLONG k, Tamgu* v) {
     return Push(globalTamgu->ProvideConstlong(k), v);
 }
@@ -3003,7 +2821,7 @@ Exporting Tamgu* TamguConstString::CallMethod(short idname, Tamgu* contextualpat
         mess += "' : Unknown method or Wrong number of arguments for type: 'string'";
         return globalTamgu->Returnerror(mess, idthread);
     }
-
+    
     Tamgustring v(value);
     contextualpattern = v.CallMethod(idname, contextualpattern, idthread, callfunc);
     if (contextualpattern == &v)
@@ -3047,7 +2865,7 @@ Exporting Tamgu* TamguConstShort::CallMethod(short idname, Tamgu* contextualpatt
         mess += "' : Unknown method or Wrong number of arguments for type: 'short'";
         return globalTamgu->Returnerror(mess, idthread);
     }
-
+    
     Tamgushort v(value);
     contextualpattern = v.CallMethod(idname, contextualpattern, idthread, callfunc);
     if (contextualpattern == &v)
@@ -3180,18 +2998,18 @@ string TamguConstBool::Info(string s) {
 Exporting Tamgumap* TamguGlobal::Providemap() {
     if (threadMODE || add_to_tamgu_garbage)
         return new Tamgumap;
-
+    
     Tamgumapbuff* ke;
-
+    
     if (mapempties.last > 0) {
         ke = mapreservoire[mapempties.backpop()];
         ke->used = true;
         ke->Enablelock(0);
         return ke;
     }
-
+    
     long mx = mapreservoire.size();
-
+    
     while (mapidx < mx) {
         if (!mapreservoire[mapidx]->used) {
             mapreservoire[mapidx]->used = true;
@@ -3201,13 +3019,13 @@ Exporting Tamgumap* TamguGlobal::Providemap() {
         }
         mapidx++;
     }
-
+    
     long sz = mx >> 2;
     mapreservoire.resize(mx + sz);
     mapidx = mx + sz;
     for (long i = mx; i < mapidx; i++)
         mapreservoire[i] = (Tamgumapbuff*)Provideinstance(mapreservoire[0], i);
-
+    
     mapidx = mx;
     mapreservoire[mapidx]->used = true;
     ke = mapreservoire[mapidx++];
@@ -3218,18 +3036,18 @@ Exporting Tamgumap* TamguGlobal::Providemap() {
 Exporting Tamgutreemap* TamguGlobal::Providetreemap() {
     if (threadMODE || add_to_tamgu_garbage)
         return new Tamgutreemap;
-
+    
     Tamgutreemapbuff* ke;
-
+    
     if (treemapempties.last > 0) {
         ke = treemapreservoire[treemapempties.backpop()];
         ke->used = true;
         ke->Enablelock(0);
         return ke;
     }
-
+    
     long mx = treemapreservoire.size();
-
+    
     while (treemapidx < mx) {
         if (!treemapreservoire[treemapidx]->used) {
             treemapreservoire[treemapidx]->used = true;
@@ -3239,13 +3057,13 @@ Exporting Tamgutreemap* TamguGlobal::Providetreemap() {
         }
         treemapidx++;
     }
-
+    
     long sz = mx >> 2;
     treemapreservoire.resize(mx + sz);
     treemapidx = mx + sz;
     for (long i = mx; i < treemapidx; i++)
         treemapreservoire[i] = (Tamgutreemapbuff*)Provideinstance(treemapreservoire[0], i);
-
+    
     treemapidx = mx;
     treemapreservoire[treemapidx]->used = true;
     ke = treemapreservoire[treemapidx++];
@@ -3255,18 +3073,18 @@ Exporting Tamgutreemap* TamguGlobal::Providetreemap() {
 Exporting Tamgumapss* TamguGlobal::Providemapss() {
     if (threadMODE || add_to_tamgu_garbage)
         return new Tamgumapss;
-
+    
     Tamgumapssbuff* ke;
-
+    
     if (mapssempties.last > 0) {
         ke = mapssreservoire[mapssempties.backpop()];
         ke->used = true;
         ke->Enablelock(0);
         return ke;
     }
-
+    
     long mx = mapssreservoire.size();
-
+    
     while (mapssidx < mx) {
         if (!mapssreservoire[mapssidx]->used) {
             mapssreservoire[mapssidx]->used = true;
@@ -3276,13 +3094,13 @@ Exporting Tamgumapss* TamguGlobal::Providemapss() {
         }
         mapssidx++;
     }
-
+    
     long sz = mx >> 2;
     mapssreservoire.resize(mx + sz);
     mapssidx = mx + sz;
     for (long i = mx; i < mapssidx; i++)
         mapssreservoire[i] = (Tamgumapssbuff*)Provideinstance(mapssreservoire[0], i);
-
+    
     mapssidx = mx;
     mapssreservoire[mapssidx]->used = true;
     ke = mapssreservoire[mapssidx++];
@@ -3293,18 +3111,18 @@ Exporting Tamgumapss* TamguGlobal::Providemapss() {
 Exporting Tamguvector* TamguGlobal::Providevector() {
     if (threadMODE || add_to_tamgu_garbage)
         return new Tamguvector;
-
+    
     Tamguvectorbuff* ke;
-
+    
     if (vectorempties.last > 0) {
         ke = vectorreservoire[vectorempties.backpop()];
         ke->used = true;
         ke->Enablelock(0);
         return ke;
     }
-
+    
     long mx = vectorreservoire.size();
-
+    
     while (vectoridx < mx) {
         if (!vectorreservoire[vectoridx]->used) {
             vectorreservoire[vectoridx]->used = true;
@@ -3320,7 +3138,7 @@ Exporting Tamguvector* TamguGlobal::Providevector() {
     vectoridx = mx + sz;
     for (long i = mx; i < vectoridx; i++)
         vectorreservoire[i] = (Tamguvectorbuff*)Provideinstance(vectorreservoire[0], i);
-
+    
     vectoridx = mx;
     vectorreservoire[vectoridx]->used = true;
     ke = vectorreservoire[vectoridx++];
@@ -3332,18 +3150,18 @@ Exporting Tamguvector* TamguGlobal::Providevector() {
 Exporting Tamguivector* TamguGlobal::Provideivector() {
     if (threadMODE || add_to_tamgu_garbage)
         return new Tamguivector;
-
+    
     Tamguivectorbuff* ke;
-
+    
     if (ivectorempties.last > 0) {
         ke = ivectorreservoire[ivectorempties.backpop()];
         ke->used = true;
         ke->Enablelock(0);
         return ke;
     }
-
+    
     long mx = ivectorreservoire.size();
-
+    
     while (ivectoridx < mx) {
         if (!ivectorreservoire[ivectoridx]->used) {
             ivectorreservoire[ivectoridx]->used = true;
@@ -3353,13 +3171,13 @@ Exporting Tamguivector* TamguGlobal::Provideivector() {
         }
         ivectoridx++;
     }
-
+    
     long sz = mx >> 2;
     ivectorreservoire.resize(mx + sz);
     ivectoridx = mx + sz;
     for (long i = mx; i < ivectoridx; i++)
         ivectorreservoire[i] = (Tamguivectorbuff*)Provideinstance(ivectorreservoire[0], i);
-
+    
     ivectoridx = mx;
     ivectorreservoire[ivectoridx]->used = true;
     ke = ivectorreservoire[ivectoridx++];
@@ -3370,7 +3188,7 @@ Exporting Tamguivector* TamguGlobal::Provideivector() {
 Exporting Tamgufvector* TamguGlobal::Providefvector() {
     if (threadMODE || add_to_tamgu_garbage)
         return new Tamgufvector;
-
+    
     Tamgufvectorbuff* ke;
     if (fvectorempties.last > 0) {
         ke = fvectorreservoire[fvectorempties.backpop()];
@@ -3378,9 +3196,9 @@ Exporting Tamgufvector* TamguGlobal::Providefvector() {
         ke->Enablelock(0);
         return ke;
     }
-
+    
     long mx = fvectorreservoire.size();
-
+    
     while (fvectoridx < mx) {
         if (!fvectorreservoire[fvectoridx]->used) {
             fvectorreservoire[fvectoridx]->used = true;
@@ -3390,13 +3208,13 @@ Exporting Tamgufvector* TamguGlobal::Providefvector() {
         }
         fvectoridx++;
     }
-
+    
     long sz = mx >> 2;
     fvectorreservoire.resize(mx + sz);
     fvectoridx = mx + sz;
     for (long i = mx; i < fvectoridx; i++)
         fvectorreservoire[i] = (Tamgufvectorbuff*)Provideinstance(fvectorreservoire[0], i);
-
+    
     fvectoridx = mx;
     fvectorreservoire[fvectoridx]->used = true;
     ke = fvectorreservoire[fvectoridx++];
@@ -3407,7 +3225,7 @@ Exporting Tamgufvector* TamguGlobal::Providefvector() {
 Exporting Tamgusvector* TamguGlobal::Providesvector() {
     if (threadMODE || add_to_tamgu_garbage)
         return new Tamgusvector;
-
+    
     Tamgusvectorbuff* ke;
     if (svectorempties.last > 0) {
         ke = svectorreservoire[svectorempties.backpop()];
@@ -3415,9 +3233,9 @@ Exporting Tamgusvector* TamguGlobal::Providesvector() {
         ke->Enablelock(0);
         return ke;
     }
-
+    
     long mx = svectorreservoire.size();
-
+    
     while (svectoridx < mx) {
         if (!svectorreservoire[svectoridx]->used) {
             svectorreservoire[svectoridx]->used = true;
@@ -3427,13 +3245,13 @@ Exporting Tamgusvector* TamguGlobal::Providesvector() {
         }
         svectoridx++;
     }
-
+    
     long sz = mx >> 2;
     svectorreservoire.resize(mx + sz);
     svectoridx = mx + sz;
     for (long i = mx; i < svectoridx; i++)
         svectorreservoire[i] = (Tamgusvectorbuff*)Provideinstance(svectorreservoire[0], i);
-
+    
     svectoridx = mx;
     svectorreservoire[svectoridx]->used = true;
     ke = svectorreservoire[svectoridx++];
@@ -3444,7 +3262,7 @@ Exporting Tamgusvector* TamguGlobal::Providesvector() {
 Exporting Tamguuvector* TamguGlobal::Provideuvector() {
     if (threadMODE || add_to_tamgu_garbage)
         return new Tamguuvector;
-
+    
     Tamguuvectorbuff* ke;
     if (uvectorempties.last > 0) {
         ke = uvectorreservoire[uvectorempties.backpop()];
@@ -3452,9 +3270,9 @@ Exporting Tamguuvector* TamguGlobal::Provideuvector() {
         ke->Enablelock(0);
         return ke;
     }
-
+    
     long mx = uvectorreservoire.size();
-
+    
     while (uvectoridx < mx) {
         if (!uvectorreservoire[uvectoridx]->used) {
             uvectorreservoire[uvectoridx]->used = true;
@@ -3464,13 +3282,13 @@ Exporting Tamguuvector* TamguGlobal::Provideuvector() {
         }
         uvectoridx++;
     }
-
+    
     long sz = mx >> 2;
     uvectorreservoire.resize(mx + sz);
     uvectoridx = mx + sz;
     for (long i = mx; i < uvectoridx; i++)
         uvectorreservoire[i] = (Tamguuvectorbuff*)Provideinstance(uvectorreservoire[0], i);
-
+    
     uvectoridx = mx;
     uvectorreservoire[uvectoridx]->used = true;
     ke = uvectorreservoire[uvectoridx++];
@@ -3481,9 +3299,9 @@ Exporting Tamguuvector* TamguGlobal::Provideuvector() {
 Exporting TamguSelf* TamguGlobal::Provideself() {
     if (threadMODE || add_to_tamgu_garbage)
         return new TamguSelf;
-
+    
     Tamguselfbuff* ke;
-
+    
     if (slfempties.last > 0) {
         ke = slfreservoire[slfempties.backpop()];
         ke->used = true;
@@ -3492,9 +3310,9 @@ Exporting TamguSelf* TamguGlobal::Provideself() {
         ke->Enablelock(0);
         return ke;
     }
-
+    
     long mx = slfreservoire.size();
-
+    
     while (slfidx < mx) {
         if (!slfreservoire[slfidx]->used) {
             ke = slfreservoire[slfidx++];
@@ -3506,13 +3324,13 @@ Exporting TamguSelf* TamguGlobal::Provideself() {
         }
         slfidx++;
     }
-
+    
     long sz = mx >> 2;
     slfreservoire.resize(mx + sz);
     slfidx = mx + sz;
     for (long i = mx; i < slfidx; i++)
         slfreservoire[i] = (Tamguselfbuff*)Provideinstance(slfreservoire[0], i);
-
+    
     slfidx = mx;
     slfreservoire[slfidx]->used = true;
     ke = slfreservoire[slfidx++];
@@ -3532,7 +3350,7 @@ Exporting Tamgu* TamguGlobal::ProvideConstfloat(double v) {
         _numberlock.Unlocking();
         return value;
     }
-
+    
     value = float_pool[v];
     if (value == NULL) {
         value = new TamguConstFloat(v);
@@ -3568,7 +3386,7 @@ Exporting Tamgu* TamguGlobal::ProvideConstint(long v) {
         _numberlock.Unlocking();
         return value;
     }
-
+    
     value = integer_pool[v];
     if (value == NULL) {
         value = new TamguConstInt(v);
@@ -3589,7 +3407,7 @@ Exporting Tamgu* TamguGlobal::ProvideConstlong(BLONG v) {
         _numberlock.Unlocking();
         return value;
     }
-
+    
     value = integer_pool[v];
     if (value == NULL) {
         value = new TamguConstInt(v);
@@ -3602,18 +3420,18 @@ Exporting Tamgu* TamguGlobal::ProvideConstlong(BLONG v) {
 Exporting Tamguint* TamguGlobal::Provideint(long v) {
     if (threadMODE || add_to_tamgu_garbage)
         return new Tamguint(v);
-
+    
     Tamguintbuff* ke;
-
+    
     if (iempties.last > 0) {
         ke = intreservoire[iempties.backpop()];
         ke->used = true;
         ke->value = v;
         return ke;
     }
-
+    
     long mx = intreservoire.size();
-
+    
     while (intidx < mx) {
         if (!intreservoire[intidx]->used) {
             intreservoire[intidx]->used = true;
@@ -3623,13 +3441,13 @@ Exporting Tamguint* TamguGlobal::Provideint(long v) {
         }
         intidx++;
     }
-
+    
     long sz = mx >> 2;
     intreservoire.resize(mx + sz);
     intidx = mx + sz;
     for (long i = mx; i < intidx; i++)
         intreservoire[i] = (Tamguintbuff*)Provideinstance(intreservoire[0], i);
-
+    
     intidx = mx;
     intreservoire[intidx]->used = true;
     intreservoire[intidx]->value = v;
@@ -3641,18 +3459,18 @@ Exporting Tamguint* TamguGlobal::Provideint(long v) {
 Exporting Tamgulong* TamguGlobal::Providelong(BLONG v) {
     if (threadMODE || add_to_tamgu_garbage)
         return new Tamgulong(v);
-
+    
     Tamgulongbuff* ke;
-
+    
     if (lgempties.last > 0) {
         ke = longreservoire[lgempties.backpop()];
         ke->used = true;
         ke->value = v;
         return ke;
     }
-
+    
     long mx = longreservoire.size();
-
+    
     while (longidx < mx) {
         if (!longreservoire[longidx]->used) {
             longreservoire[longidx]->used = true;
@@ -3662,13 +3480,13 @@ Exporting Tamgulong* TamguGlobal::Providelong(BLONG v) {
         }
         longidx++;
     }
-
+    
     long sz = mx >> 2;
     longreservoire.resize(mx + sz);
     longidx = mx + sz;
     for (long i = mx; i < longidx; i++)
         longreservoire[i] = (Tamgulongbuff*)Provideinstance(longreservoire[0], i);
-
+    
     longidx = mx;
     longreservoire[longidx]->used = true;
     longreservoire[longidx]->value = v;
@@ -3679,17 +3497,17 @@ Exporting Tamgulong* TamguGlobal::Providelong(BLONG v) {
 Exporting Tamgufloat* TamguGlobal::Providefloat(double v) {
     if (threadMODE || add_to_tamgu_garbage)
         return new Tamgufloat(v);
-
+    
     Tamgufloatbuff* ke;
     if (fempties.last > 0) {
         ke = floatreservoire[fempties.backpop()];
         ke->used = true;
         ke->value = v;
         return ke;
-   }
-
+    }
+    
     long mx = floatreservoire.size();
-
+    
     while (floatidx < mx) {
         if (!floatreservoire[floatidx]->used) {
             floatreservoire[floatidx]->used = true;
@@ -3699,13 +3517,13 @@ Exporting Tamgufloat* TamguGlobal::Providefloat(double v) {
         }
         floatidx++;
     }
-
+    
     long sz = mx >> 2;
     floatreservoire.resize(mx + sz);
     floatidx = mx + sz;
     for (long i = mx; i < floatidx; i++)
         floatreservoire[i] = (Tamgufloatbuff*)Provideinstance(floatreservoire[0], i);
-
+    
     floatidx = mx;
     floatreservoire[floatidx]->used = true;
     floatreservoire[floatidx]->value = v;
@@ -3715,26 +3533,26 @@ Exporting Tamgufloat* TamguGlobal::Providefloat(double v) {
 
 Exporting TamguDeclarationLocal* TamguGlobal::Providedeclaration(short idt) {
     TamguDeclarationLocal* ke;
-
+    
     if (threadMODE || add_to_tamgu_garbage) {
         ke = new TamguDeclarationLocal(-1);
         ke->idthread = idt;
         return ke;
     }
-
+    
     if (declempties.last > 0) {
-
+        
         ke = declarationreservoire[declempties.backpop()];
         ke->used = true;
         ke->idthread = idt;
         return ke;
     }
-
+    
     long mx = declarationreservoire.size();
-
+    
     while (declarationidx < mx) {
         if (!declarationreservoire[declarationidx]->used) {
-
+            
             ke = declarationreservoire[declarationidx++];
             ke->used = true;
             ke->idthread = idt;
@@ -3742,13 +3560,13 @@ Exporting TamguDeclarationLocal* TamguGlobal::Providedeclaration(short idt) {
         }
         declarationidx++;
     }
-
+    
     long sz = mx >> 2;
     declarationreservoire.resize(mx + sz);
     declarationidx = mx + sz;
     for (long i = mx; i < declarationidx; i++)
         declarationreservoire[i] = new TamguDeclarationLocal(i);
-
+    
     declarationidx = mx;
     ke = declarationreservoire[declarationidx++];
     ke->used = true;
@@ -3759,7 +3577,7 @@ Exporting TamguDeclarationLocal* TamguGlobal::Providedeclaration(short idt) {
 Exporting Tamgulisp* TamguGlobal::Providelisp() {
     if (threadMODE || add_to_tamgu_garbage)
         return new Tamgulisp(-1);
-
+    
     Tamgulisp* ke;
     if (lempties.last > 0) {
         ke = lispreservoire[lempties.backpop()];
@@ -3767,9 +3585,9 @@ Exporting Tamgulisp* TamguGlobal::Providelisp() {
         ke->Enablelock(0);
         return ke;
     }
-
+    
     long mx = lispreservoire.size();
-
+    
     while (lispidx < mx) {
         if (!lispreservoire[lispidx]->used) {
             lispreservoire[lispidx]->used = true;
@@ -3779,13 +3597,13 @@ Exporting Tamgulisp* TamguGlobal::Providelisp() {
         }
         lispidx++;
     }
-
+    
     long sz = mx >> 2;
     lispreservoire.resize(mx + sz);
     lispidx = mx + sz;
     for (long i = mx; i < lispidx; i++)
         lispreservoire[i] = new Tamgulisp(i);
-
+    
     lispidx = mx;
     lispreservoire[lispidx]->used = true;
     ke = lispreservoire[lispidx++];
@@ -3796,7 +3614,7 @@ Exporting Tamgulisp* TamguGlobal::Providelisp() {
 Exporting Tamgustring* TamguGlobal::Providestring(string v) {
     if (threadMODE || add_to_tamgu_garbage)
         return new Tamgustring(v);
-
+    
     Tamgustringbuff* ke;
     if (sempties.last > 0) {
         ke = stringreservoire[sempties.backpop()];
@@ -3805,9 +3623,9 @@ Exporting Tamgustring* TamguGlobal::Providestring(string v) {
         ke->Enablelock(0);
         return ke;
     }
-
+    
     long mx = stringreservoire.size();
-
+    
     while (stringidx < mx) {
         if (!stringreservoire[stringidx]->used) {
             stringreservoire[stringidx]->used = true;
@@ -3818,13 +3636,13 @@ Exporting Tamgustring* TamguGlobal::Providestring(string v) {
         }
         stringidx++;
     }
-
+    
     long sz = mx >> 2;
     stringreservoire.resize(mx + sz);
     stringidx = mx + sz;
     for (long i = mx; i < stringidx; i++)
         stringreservoire[i] = (Tamgustringbuff*)Provideinstance(stringreservoire[0], i);
-
+    
     stringidx = mx;
     stringreservoire[stringidx]->used = true;
     stringreservoire[stringidx]->value = v;
@@ -3836,7 +3654,7 @@ Exporting Tamgustring* TamguGlobal::Providestring(string v) {
 Exporting Tamguustring* TamguGlobal::Provideustring(wstring v) {
     if (threadMODE || add_to_tamgu_garbage)
         return new Tamguustring(v);
-
+    
     Tamguustringbuff* ke;
     if (uempties.last > 0) {
         ke = ustringreservoire[uempties.backpop()];
@@ -3845,9 +3663,9 @@ Exporting Tamguustring* TamguGlobal::Provideustring(wstring v) {
         ke->Enablelock(0);
         return ke;
     }
-
+    
     long mx = ustringreservoire.size();
-
+    
     while (ustringidx < mx) {
         if (!ustringreservoire[ustringidx]->used) {
             ustringreservoire[ustringidx]->value = v;
@@ -3858,13 +3676,13 @@ Exporting Tamguustring* TamguGlobal::Provideustring(wstring v) {
         }
         ustringidx++;
     }
-
+    
     long sz = mx >> 2;
     ustringreservoire.resize(mx + sz);
     ustringidx = mx + sz;
     for (long i = mx; i < ustringidx; i++)
         ustringreservoire[i] = (Tamguustringbuff*)Provideinstance(ustringreservoire[0], i);
-
+    
     ustringidx = mx;
     ustringreservoire[ustringidx]->used = true;
     ustringreservoire[ustringidx]->value = v;
@@ -3876,7 +3694,7 @@ Exporting Tamguustring* TamguGlobal::Provideustring(wstring v) {
 Exporting Tamgustring* TamguGlobal::Providewithstring(string& v) {
     if (threadMODE || add_to_tamgu_garbage)
         return new Tamgustring(v);
-
+    
     Tamgustringbuff* ke;
     if (sempties.last > 0) {
         ke = stringreservoire[sempties.backpop()];
@@ -3885,9 +3703,9 @@ Exporting Tamgustring* TamguGlobal::Providewithstring(string& v) {
         ke->Enablelock(0);
         return ke;
     }
-
+    
     long mx = stringreservoire.size();
-
+    
     while (stringidx < mx) {
         if (!stringreservoire[stringidx]->used) {
             stringreservoire[stringidx]->used = true;
@@ -3898,13 +3716,13 @@ Exporting Tamgustring* TamguGlobal::Providewithstring(string& v) {
         }
         stringidx++;
     }
-
+    
     long sz = mx >> 2;
     stringreservoire.resize(mx + sz);
     stringidx = mx + sz;
     for (long i = mx; i < stringidx; i++)
         stringreservoire[i] = (Tamgustringbuff*)Provideinstance(stringreservoire[0], i);
-
+    
     stringidx = mx;
     stringreservoire[stringidx]->used = true;
     stringreservoire[stringidx]->value = v;
@@ -3916,7 +3734,7 @@ Exporting Tamgustring* TamguGlobal::Providewithstring(string& v) {
 Exporting Tamguustring* TamguGlobal::Providewithustring(wstring& v) {
     if (threadMODE || add_to_tamgu_garbage)
         return new Tamguustring(v);
-
+    
     Tamguustringbuff* ke;
     if (uempties.last > 0) {
         ke = ustringreservoire[uempties.backpop()];
@@ -3925,9 +3743,9 @@ Exporting Tamguustring* TamguGlobal::Providewithustring(wstring& v) {
         ke->Enablelock(0);
         return ke;
     }
-
+    
     long mx = ustringreservoire.size();
-
+    
     while (ustringidx < mx) {
         if (!ustringreservoire[ustringidx]->used) {
             ustringreservoire[ustringidx]->value = v;
@@ -3938,13 +3756,13 @@ Exporting Tamguustring* TamguGlobal::Providewithustring(wstring& v) {
         }
         ustringidx++;
     }
-
+    
     long sz = mx >> 2;
     ustringreservoire.resize(mx + sz);
     ustringidx = mx + sz;
     for (long i = mx; i < ustringidx; i++)
         ustringreservoire[i] = (Tamguustringbuff*)Provideinstance(ustringreservoire[0], i);
-
+    
     ustringidx = mx;
     ustringreservoire[ustringidx]->used = true;
     ustringreservoire[ustringidx]->value = v;

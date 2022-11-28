@@ -82,7 +82,7 @@ class Debuginfo {
     }
     
     bool next() {
-        if (executionbreak) {
+        if (globalTamgu->executionbreak) {
             display("end of process (in)");
             return false;
         }
@@ -92,7 +92,7 @@ class Debuginfo {
     }
     
     bool gotonext() {
-        if (executionbreak) {
+        if (globalTamgu->executionbreak) {
             display("end of process (next)");
             return false;
         }
@@ -104,7 +104,7 @@ class Debuginfo {
     }
     
     bool getin() {
-        if (executionbreak) {
+        if (globalTamgu->executionbreak) {
             display("end of process (in)");
             return false;
         }
@@ -116,7 +116,7 @@ class Debuginfo {
     }
 
     bool getout() {
-        if (executionbreak) {
+        if (globalTamgu->executionbreak) {
             display("end of process (out)");
             return false;
         }
@@ -132,12 +132,12 @@ class Debuginfo {
         globalTamgu->Setdebugmode(false);
         globalTamgu->Setdebugfunction(NULL);
 
-        if (executionbreak) {
+        if (globalTamgu->executionbreak) {
             display("end of process (end)");
             return true;
         }
         clear();
-        executionbreak = true;
+        globalTamgu->executionbreak = true;
         display("end of process (stop)");
         running = false;
         loquet.Released();
@@ -145,7 +145,7 @@ class Debuginfo {
     }
 
     bool gotoend() {
-        if (executionbreak) {
+        if (globalTamgu->executionbreak) {
             display("end of process (end)");
             return false;
         }

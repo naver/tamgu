@@ -4087,15 +4087,11 @@ Exporting UTF8_Handler* create_utf8_handler() {
 }
 
 Exporting void set_utf8_handler(UTF8_Handler* u) {
-    if (utf8_handler != u) {
-        if (utf8_handler != NULL)
-            delete utf8_handler;
-        utf8_handler = u;
-    }
+    utf8_handler = u;
 }
 
 Exporting void clean_utf8_handler() {
-    if (utf8_handler == NULL)
+    if (utf8_handler != NULL)
         delete utf8_handler;
     utf8_handler = NULL;
 }
@@ -9215,6 +9211,92 @@ Exporting long VirtualIndentation(string& codestr) {
     if (codestr[0] == '(' && codestr[1] == ')')
         lisp = true;
     return IndentationCode(codestr, lisp);
+}
+
+void S_utf8_to_utf16(wstring& w, unsigned char* str , long sz) {
+    if (!sz)
+        return;
+
+
+	TAMGUCHAR c;
+    uchar nb;
+
+	TAMGUCHAR c16;
+    while (sz--) {
+        if (*str & 0x80) {
+            nb = c_utf8_to_unicode(str, c);
+            str += nb + 1;
+            sz = (sz >= nb)?sz-nb:0;
+            if (!(c & 0xFFFF0000)) {
+                w += (wchar_t)c;
+                continue;
+            }
+
+            c16 = 0xD800 | ((c & 0xFC00) >> 10) | ((((c & 0x1F0000) >> 16) - 1) << 6);
+            w += c16;
+            w += 0xDC00 | (c & 0x3FF);
+            continue;
+        }
+        w += (wchar_t)*str;
+        ++str;
+    }
+}
+
+void s_utf8_to_utf16(wstring& w, string& str) {
+    S_utf8_to_utf16(w, USTR(str), str.size());
+}
+
+
+void s_utf16_to_utf8(string& s, wstring& str) {
+    long sz = str.size();
+    if (!sz)
+        return;
+
+    long i = 0;
+    char inter[5];
+    long ineo = 0;
+    long szo = 1 + (sz << 1);
+    char* neo = new char[szo];
+    neo[0] = 0;
+    long nb;
+    uint32_t c;
+
+    while (i < sz) {
+        if (str[i] < 0x0080 && ineo < szo - 1) {
+            neo[ineo++] = (char)str[i];
+            i++;
+            continue;
+        }
+
+        if (c_utf16_to_unicode(c, str[i], false))
+            c_utf16_to_unicode(c, str[++i], true);
+
+        nb = c_unicode_to_utf8(c, (uchar*)inter);
+        neo = concatstrings(neo, inter, ineo, szo, nb);
+        i++;
+    }
+
+    neo[ineo] = 0;
+    s += neo;
+    delete[] neo;
+}
+
+void s_unicode_to_utf16(wstring& w, wstring& u) {
+    w = L"";
+    wchar_t c;
+    wchar_t c16;
+    
+    for (long i = 0; i < u.size(); i++) {
+        c = u[i];
+        if (!(c & 0xFFFF0000)) {
+            w += (wchar_t)c;
+            continue;
+        }
+        
+        c16 = 0xD800 | ((c & 0xFC00) >> 10) | ((((c & 0x1F0000) >> 16) - 1) << 6);
+        w += c16;
+        w += 0xDC00 | (c & 0x3FF);
+    }
 }
 
 //----------------------------------------------------------------------------------------------------------------------

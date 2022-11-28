@@ -96,8 +96,6 @@ typedef bool(*TamguExternalModule)(TamguGlobal*, string);
 //--------------------------------------------------------------------
 typedef double(*mathFunc)(double);
 //--------------------------------------------------------------------
-extern bool executionbreak;
-//--------------------------------------------------------------------
 
 class ThreadLock {
 public:
@@ -572,6 +570,11 @@ public:
 	Tamgu* gTRUE;
 	Tamgu* gFALSE;
     
+    Tamgu* gMINUSONE;
+    Tamgu* gZEROPOINTZERO;
+    Tamgu* gZERO;
+    Tamgu* gONE;
+
     Tamgu* gEMPTYLISP;
     Tamgu* gEMPTYSTRING;
     Tamgu* gEMPTYUSTRING;
@@ -1059,6 +1062,7 @@ public:
 	}
 
 	//--------------------------------
+    bool executionbreak;
 	static vector<string> arguments;
 	void Setarguments(string args);
 	//--------------------------------

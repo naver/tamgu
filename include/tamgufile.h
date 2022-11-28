@@ -1118,28 +1118,7 @@ public:
 	}
 
 	//------------------------------------------------------------------------------------
-	long Size() {
-        locking();
-		struct stat scible;
-		int stcible = -1;
-		long size = -1;
-
-		if (thefile != NULL) {
-#if (_MSC_VER >= 1900)
-			stcible = fstat(_fileno(thefile), &scible);
-#else
-#if  defined(WIN32) | defined(APPLE)
-			stcible = fstat(thefile->_file, &scible);
-#else
-			stcible = fstat(thefile->_fileno, &scible);
-#endif
-#endif
-			if (stcible >= 0)
-				size = scible.st_size;
-		}
-        unlocking();
-		return size;
-	}
+    long Size();
 
 	void Clear() {
 		//To set a variable back to empty

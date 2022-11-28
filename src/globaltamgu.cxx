@@ -21,6 +21,7 @@
 #include "codeparse.h"
 
 static string _fullcode;
+void clean_aNULL();
 //----------------------------------------------------------------------------------
 static vector<TamguGlobal*> globals;
 static ThreadLock globalLock;
@@ -108,6 +109,7 @@ Exporting void TamguCleanAllGlobals() {
 	}
 	globals.clear();
     clean_utf8_handler();
+    clean_aNULL();
 }
 
 Exporting TamguGlobal* GlobalTamgu(int idx) {
@@ -333,6 +335,29 @@ Exporting bool TamguLoading(short idcode) {
 	return true;
 }
 
+Exporting long TamguLastInstruction(short idcode) {
+    TamguCode* code = globalTamgu->Getcode(idcode);
+    if (code == NULL)
+        return -1;
+    
+    return code->mainframe.instructions.size();
+}
+
+Exporting Tamgu* TamguEval(short idcode, long begininstruction) {
+    TamguCode* code = globalTamgu->Getcode(idcode);
+    if (code == NULL)
+        return NULL;
+    
+    globalTamgu->spaceid = idcode;
+
+    Tamgu* a = code->Eval(begininstruction);
+
+    if (globalTamgu->GenuineError(0))
+        return NULL;
+    
+    return a;
+}
+
 Exporting bool TamguRun(short idcode, bool glock) {
 	TamguCode* a = globalTamgu->Getcode(idcode);
 	if (a == NULL)
@@ -468,7 +493,7 @@ Exporting bool TamguStop() {
 		return true;
     
     if (globalTamgu->isRunning()) {
-        executionbreak = true;
+        globalTamgu->executionbreak = true;
         globalTamgu->Releasevariables();
     }
     

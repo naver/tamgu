@@ -9,7 +9,7 @@
  Version    : See tamgu.cxx for the version number
  filename   : debogueur.cpp
  Date       : 2017/09/01
- Purpose    : 
+ Purpose    :
  Programmer : Claude ROUX (claude.roux@naverlabs.com)
  Reviewer   :
 */
@@ -59,7 +59,7 @@ debogueur::debogueur(CWnd* pParent /*=NULL*/)
 
 debogueur::~debogueur()
 {
-	if (!executionbreak)
+	if (!globalTamgu->executionbreak)
 		loquet->Released();
 
 
@@ -67,7 +67,7 @@ debogueur::~debogueur()
 	globalTamgu->Setdebugfunction(NULL);
 	DisplayValue(((stringstream*)globalTamgu->os)->str(), NULL);
 	delete globalTamgu->os;
-	globalTamgu->os = oldos;	
+	globalTamgu->os = oldos;
 	TamguDisplayFunction(DisplayValue, NULL);
 }
 
@@ -135,7 +135,7 @@ BOOL debogueur::OnInitDialog() {
 		IMAGE_ICON,
 		0,0, // use actual size
 		LR_DEFAULTCOLOR
-		);		
+		);
 	bsaute.SetIcon(hIcn);
 
 	hIcn= (HICON)LoadImage(
@@ -233,7 +233,7 @@ void debogueur::Variables(string& s) {
 void debogueur::OnBnClickedSaute()
 {
 	// TODO: Add your control notification handler code here
-	if (executionbreak) {
+	if (globalTamgu->executionbreak) {
 		CDialogEx::OnOK();
 		return;
 	}
@@ -246,11 +246,11 @@ void debogueur::OnBnClickedSaute()
 void debogueur::OnBnClickedSortir()
 {
 	// TODO: Add your control notification handler code here
-	if (executionbreak) {
+	if (globalTamgu->executionbreak) {
 		CDialogEx::OnOK();
 		return;
 	}
-	
+
 	lastfunction = -1;
 	getintofunction = false;
 	getoutfunction = true;
@@ -262,14 +262,14 @@ void debogueur::OnBnClickedSortir()
 
 void debogueur::OnBnClickedFin()
 {
-	if (executionbreak) {
+	if (globalTamgu->executionbreak) {
 		CDialogEx::OnOK();
 		return;
 	}
 
 	// TODO: Add your control notification handler code here
 	globalTamgu->Setdebugmode(false);
-	globalTamgu->Setdebugfunction(NULL);	
+	globalTamgu->Setdebugfunction(NULL);
 	loquet->Released();
 
 	CDialogEx::OnOK();
@@ -279,7 +279,7 @@ void debogueur::OnBnClickedFin()
 void debogueur::OnBnClickedSuivant()
 {
 	// TODO: Add your control notification handler code here
-	if (executionbreak) {
+	if (globalTamgu->executionbreak) {
 		CDialogEx::OnOK();
 		return;
 	}
@@ -291,7 +291,7 @@ void debogueur::OnBnClickedSuivant()
 void debogueur::OnBnClickedEntre()
 {
 	// TODO: Add your control notification handler code here
-	if (executionbreak) {
+	if (globalTamgu->executionbreak) {
 		CDialogEx::OnOK();
 		return;
 	}
@@ -306,12 +306,12 @@ void debogueur::OnBnClickedEntre()
 void debogueur::OnBnClickedArretprg()
 {
 	// TODO: Add your control notification handler code here
-	if (!executionbreak)
+	if (!globalTamgu->executionbreak)
 		loquet->Released();
 
 	globalTamgu->Setdebugmode(false);
 	globalTamgu->Setdebugfunction(NULL);
-	executionbreak = true;
+	globalTamgu->executionbreak = true;
 	CDialogEx::OnOK();
 }
 
@@ -334,7 +334,7 @@ void debogueur::OnEnChangeEdit4()
 	UpdateData(TRUE);
 
 	Locals();
-	UpdateData(FALSE);	
+	UpdateData(FALSE);
 }
 
 
@@ -375,7 +375,7 @@ void debogueur::OnEnChangeEdit6()
 	UpdateData(FALSE);
 }
 
-Tamgu* Debug_callback(vector<Tamgu*>& stack, short idthread, void* data) {	
+Tamgu* Debug_callback(vector<Tamgu*>& stack, short idthread, void* data) {
 	static ThreadLock _locker;
 
 	Locking _lock(_locker);

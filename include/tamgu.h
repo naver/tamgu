@@ -1150,10 +1150,7 @@ public:
 
 	Exporting virtual Tamgu* Pushinmap(Tamgu* a, short idhtread);
 
-	virtual Tamgu* Push(Tamgu*, Tamgu*) {
-		return this;
-	}
-
+    Exporting virtual Tamgu* Push(Tamgu*, Tamgu*);
 	Exporting virtual Tamgu* Push(BLONG k, Tamgu* a);
 	Exporting virtual Tamgu* Push(long k, Tamgu* v);
 	Exporting virtual Tamgu* Push(ushort k, Tamgu* v);
