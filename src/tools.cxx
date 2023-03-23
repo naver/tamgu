@@ -1956,45 +1956,32 @@ Exporting Tamgu* Selectabvector(Tamgu* context) {
 }
 //--------------------------------------------------------------------
 Exporting Tamgu* TamguGlobal::EvaluateParenthetic(string& s, string& o, string& c, bool comma, bool separator, bool keeprc, vector<string>& rules, short idthread) {
-    x_tokenize xr;
+    tokenizer_result<string> xr;
+    segmenter_automaton sa;
     bnf_tamgu bnf;
 
     threads[idthread].message.str("");
     threads[idthread].message.clear();
 
-    if (rules.size()==0) {
-        xr.load();
-        //Normalisation: numbers are associated with 3
-        for (int i = 0; i < xr.action.size(); i++) {
-            if (xr.action[i] == 92 || xr.action[i] == 93)
-                xr.action[i] = 3;
-        }
+    if (!rules.size()) {
+        sa.setrules();
+        sa.compile();
     }
     else {
-        xr.resetrules(rules);
-        xr.rules = rules;
-        string mess;
-        if (!xr.parseexternalrules(mess))
-            return globalTamgu->Returnerror(mess, idthread);
-        xr.loaded=true;
+        sa.put_rules(rules);
+        long err = sa.compile();
+        if (err != -1) {
+            string error = "Error: rule '";
+            error += rules[err] + "' is malformed.";
+            return Returnerror(error, idthread);
+        }
     }
 
-    if (comma)
-        xr.selectcomma(true);
-    else
-        xr.selectcomma(false);
+    sa.setdecimalmode(comma);
+    sa.keepblanks(keeprc);
+    sa.setseparator(separator);
     
-    if (keeprc)
-        xr.keeprc(true);
-    else
-        xr.keeprc(false);
-    
-    if (separator)
-        xr.separator(true);
-    else
-        xr.separator(false);
-    
-    xr.tokenize(s);
+    sa.tokenize<string>(s, xr);
         
     bnf.initialize(&xr);
     bnf.baseline = linereference;
@@ -2037,45 +2024,32 @@ Exporting Tamgu* TamguGlobal::EvaluateParenthetic(string& s, string& o, string& 
 }
 
 Exporting Tamgu* TamguGlobal::EvaluateTags(string& s, string& o, string& c, bool comma, bool separator, bool keeprc, vector<string>& rules, short idthread){
-    x_tokenize xr;
+    tokenizer_result<string> xr(false);
+    segmenter_automaton sa;
     bnf_tamgu bnf;
-    
+
     threads[idthread].message.str("");
     threads[idthread].message.clear();
 
-    if (rules.size()==0) {
-        xr.load();
-        //Normalisation: numbers are associated with 3
-        for (int i = 0; i < xr.action.size(); i++) {
-            if (xr.action[i] == 92 || xr.action[i] == 93)
-                xr.action[i] = 3;
-        }
+    if (!rules.size()) {
+        sa.setrules();
+        sa.compile();
     }
     else {
-        xr.resetrules(rules);
-        xr.rules = rules;
-        string mess;
-        if (!xr.parseexternalrules(mess))
-            return globalTamgu->Returnerror(mess, idthread);
-        xr.loaded=true;
+        sa.put_rules(rules);
+        long err = sa.compile();
+        if (err != -1) {
+            string error = "Error: rule '";
+            error += rules[err] + "' is malformed.";
+            return Returnerror(error, idthread);
+        }
     }
 
-    if (comma)
-        xr.selectcomma(true);
-    else
-        xr.selectcomma(false);
-    
-    if (keeprc)
-        xr.keeprc(true);
-    else
-        xr.keeprc(false);
-    
-    if (separator)
-        xr.separator(true);
-    else
-        xr.separator(false);
+    sa.setdecimalmode(comma);
+    sa.keepblanks(keeprc);
+    sa.setseparator(separator);
 
-    xr.tokenize(s);
+    sa.tokenize<string>(s, xr);
     
     bnf.initialize(&xr);
     bnf.baseline = linereference;
@@ -2119,7 +2093,7 @@ Exporting Tamgu* TamguGlobal::EvaluateTags(string& s, string& o, string& c, bool
 }
 
 Exporting An_rules* TamguGlobal::EvaluateRules(string& body, short idthread) {
-    x_reading xr;
+    tokenizer_result<string> xr;
     bnf_tamgu bnf;
     
     threads[idthread].message.str("");
@@ -2130,7 +2104,7 @@ Exporting An_rules* TamguGlobal::EvaluateRules(string& body, short idthread) {
 
     bnf_tamgu* previous = currentbnf;
     
-    xr.tokenize(body);
+    tamgu_tokenizer.tokenize<string>(body, xr);
     if (xr.size() == 0) {
         stringstream message;
         message << "Empry string" << endl;
@@ -2186,7 +2160,7 @@ Exporting An_rules* TamguGlobal::EvaluateRules(string& body, short idthread) {
 }
 
 Exporting Tamgu* TamguGlobal::EvaluateLisp(Tamgu* contextualpattern, string filename, string& body, short idthread) {
-    x_reading xr;
+    tokenizer_result<string> xr;
     bnf_tamgu bnf;
     
     threads[idthread].message.str("");
@@ -2198,8 +2172,8 @@ Exporting Tamgu* TamguGlobal::EvaluateLisp(Tamgu* contextualpattern, string file
     }
     
     xr.lispmode = true;
-    xr.tokenize(body);
-    
+    tamgu_tokenizer.tokenize<string>(body, xr);
+
     bnf.initialize(&xr);
     bnf.baseline = linereference;
 

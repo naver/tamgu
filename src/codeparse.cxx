@@ -27177,7 +27177,7 @@ string bnf_tamgu::x_errormsg(long i) {
 }
 
 
-x_node* bnf_tamgu::x_parsing(x_reading* xr,x_parsing_mode mode,bool display) {
+x_node* bnf_tamgu::x_parsing(tokenizer_result<string>* xr,x_parsing_mode mode,bool display) {
     fx=xr;
     string lret;
     x_node* tree=new x_node;

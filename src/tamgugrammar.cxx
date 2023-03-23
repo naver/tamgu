@@ -273,7 +273,7 @@ static bool gramtraverse(GrammarBaseAutomaton* gram, x_node* x, gramstate* s, ve
 }
 
 Tamgu* Tamgugrammar::Loader(string& vrule, short idthread) {
-    x_reading xr;
+    tokenizer_result<string> xr;
     bnf_tamgu bnf;
     
     
@@ -282,7 +282,7 @@ Tamgu* Tamgugrammar::Loader(string& vrule, short idthread) {
     string lret;
     x_node* xn = new x_node;
     
-    xr.tokenize(vrule);
+    globalTamgu->tamgu_tokenizer.tokenize<string>(vrule, xr);
     bnf.initialize(&xr);
     
     

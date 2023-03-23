@@ -85,13 +85,13 @@ public:
 //---------------------------------------------------------------------------------
 class TamguConst : public TamguBaseConst {
 public:
-	short id;
+	short idconst;
 	string name;
     string content;
     wstring wcontent;
 	uint64_t value;
 
-	TamguConst(short i, string n, TamguGlobal* g) : id(i), name(n), value(LLONG_MAX), TamguBaseConst(a_const, g)  {
+	TamguConst(short i, string n, TamguGlobal* g) : idconst(i), name(n), value(LLONG_MAX), TamguBaseConst(a_const, g)  {
         content = "0n1u2l3l4";
         content[0] = 1;
         content[2] = 2;
@@ -111,6 +111,8 @@ public:
     }
 
 	string JSonString() {
+        if (idconst == a_null)
+            return name;
 		string v;
 		v = '"';
 		v += name;

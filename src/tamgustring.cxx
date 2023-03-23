@@ -92,8 +92,8 @@ void Tamgustring::Setidtype(TamguGlobal* global) {
        Tamgustring::AddMethod(global, "base", &Tamgustring::MethodBase, P_ONE | P_TWO, "base(int b, bool toconvert=true): Return the value corresponding to the string in base b", a_null);
        Tamgustring::AddMethod(global, "parse", &Tamgustring::MethodParse, P_NONE | P_TWO, "parse(): Parse a string as a piece of code and returns the evaluation as a vector.", a_vector);
        Tamgustring::AddMethod(global, "sizeb", &Tamgustring::MethodSizeb, P_NONE, "sizeb(): Return the size in bytes of the string", a_int);
-       Tamgustring::AddMethod(global, "parenthetics", &Tamgustring::MethodParenthetic, P_NONE | P_TWO | P_THREE | P_FOUR | P_FIVE | P_SIX, "parenthetics(): parenthetics(string o,string c,bool comma,bool separator,bool concatenate): Parse a string as a parenthetic expressions, o is '(' and c is ')' by default. If 'comma' is true, then the decimal character is ',' otherwise it is '.'. If 'separator' is true then '1,000' is accepted as a number. If 'concatenate' is true then '3a' is a valid token", a_null);
-       Tamgustring::AddMethod(global, "tags", &Tamgustring::MethodTags, P_TWO | P_THREE | P_FOUR | P_FIVE | P_SIX, "tags(string o,string c,bool comma,bool separator,bool concatenate, svector rules): Parse a string as a parenthetic expressions, where o and c are string (not characters). If 'comma' is true, then the decimal character is ',' otherwise it is '.'. If 'separator' is true then '1,000' is accepted as a number. If 'concatenate' is true then '3a' is a valid token", a_null);
+       Tamgustring::AddMethod(global, "parenthetics", &Tamgustring::MethodParenthetic, P_NONE | P_TWO | P_THREE | P_FOUR | P_FIVE | P_SIX, "parenthetics(): parenthetics(string o,string c,bool comma,bool keep_carriage): Parse a string as a parenthetic expressions, o is '(' and c is ')' by default. If 'comma' is true, then the decimal character is ',' otherwise it is '.'. If 'separator' is true then '1,000' is accepted as a number.", a_null);
+       Tamgustring::AddMethod(global, "tags", &Tamgustring::MethodTags, P_TWO | P_THREE | P_FOUR | P_FIVE | P_SIX, "tags(string o,string c,bool comma,bool separator,bool keep_carriage, svector rules): Parse a string as a parenthetic expressions, where o and c are string (not characters). If 'comma' is true, then the decimal character is ',' otherwise it is '.'. If 'separator' is true then '1,000' is accepted as a number.", a_null);
        Tamgustring::AddMethod(global, "scan", &Tamgustring::MethodScan, P_ONE | P_TWO | P_THREE | P_FOUR, "scan(sub, string sep, bool immediate,string remaining): Find the substrings matching sub, with TRE. 'sep' is a separator between strings. 'immediate' always combines with separator, it means that the matching should start at the first character of the string, default is false. 'remaining' also combines with 'separator', it returns the rest of the string after the section that matched.", a_null);
        Tamgustring::AddMethod(global, "getstd", &Tamgustring::MethodGetstd, P_ONE, "getstd(bool): catch or release the standard output", a_null);
        Tamgustring::AddMethod(global, "geterr", &Tamgustring::MethodGeterr, P_ONE, "geterr(bool): catch or release the error output", a_null);
@@ -562,7 +562,7 @@ Tamgu* Tamgustring::MethodEvaluate(Tamgu* contextualpattern, short idthread, Tam
 
 void XNBrowse(x_node* xn, Tamgu* kf);
 Tamgu* Tamgustring::MethodParse(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-    x_reading xr;
+    tokenizer_result<string> xr;
     bnf_tamgu bnf;
     
     locking();
@@ -571,7 +571,7 @@ Tamgu* Tamgustring::MethodParse(Tamgu* contextualpattern, short idthread, TamguC
 
     x_node* xn;
     
-    xr.tokenize(str);
+    globalTamgu->tamgu_tokenizer.tokenize<string>(str, xr);
     if (xr.size() == 0)
         return Selectavector(contextualpattern);
 
@@ -1080,9 +1080,6 @@ Tamgu* Tamgustring::MethodCharposition(Tamgu* contextualpattern, short idthread,
 }
 
 Tamgu* Tamgustring::MethodTokenize(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-    static x_tokenize xr;
-    static bool init = false;
-    
     bool comma = false;
     bool separator = false;
     
@@ -1118,49 +1115,38 @@ Tamgu* Tamgustring::MethodTokenize(Tamgu* contextualpattern, short idthread, Tam
 
     Tamgu* kvect = Selectasvector(contextualpattern);
     if (!globalTamgu->threadMODE) {
-        if (!init) {
-            xr.juststack=true;
-            xr.load();
-            xr.keeprc(false);
-            init = true;
+        static tokenizer_result<string> xr(false);
+        static segmenter_automaton sa;
+
+        if (!sa.loaded) {
+            sa.setrules();
+            sa.compile();
         }
         
-        if (comma)
-            xr.selectcomma(true);
-        else
-            xr.selectcomma(false);
+        sa.setdecimalmode(comma);
+        sa.setseparator(separator);
         
-        if (token_separator)
-            xr.separator(true);
-        else
-            xr.separator(false);
-        
-        xr.tokenize(value,false,&((Tamgusvector*)kvect)->values);
-        
+        xr.setstack(&((Tamgusvector*)kvect)->values);
+        sa.tokenize<string>(value,xr);
         return kvect;
     }
 
-    x_tokenize xrr;
-    xrr.juststack=true;
-    xrr.load();
-    xrr.keeprc(false);
-    if (comma)
-        xrr.selectcomma(true);
-    else
-        xrr.selectcomma(false);
-    
-    if (token_separator)
-        xrr.separator(true);
-    else
-        xrr.separator(false);
+    tokenizer_result<string> xr(false);
+    segmenter_automaton sa;
+
+    sa.setrules();
+    sa.compile();
+
+    sa.setdecimalmode(comma);
+    sa.setseparator(separator);
 
     locking();
     string s =  value;
     unlocking();
     
     Locking _lock((TamguObject*)kvect);
-    xrr.tokenize(s,false,&((Tamgusvector*)kvect)->values);
-
+    xr.setstack(&((Tamgusvector*)kvect)->values);
+    sa.tokenize<string>(value,xr);
     
     return kvect;
 }

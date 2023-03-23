@@ -544,6 +544,7 @@ public:
 
 
     hash_short<bool> punctuations;
+    std::set<char32_t> vpunctuations;
     hash_short<TAMGUCHAR> utf8codemin;
 
     basebin_hash<TAMGUCHAR> utf8codemaj;

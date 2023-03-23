@@ -32,109 +32,87 @@
 // $ [ { is 7
 // 
 
-
-class x_colorreading : public x_wreading {
+#include "tokens.h"
+class token_res : public tokenizer_result<wstring> {
 public:
+	vector<long> stacksize;
+};
 
+class x_colorreading : public tokenizer_automaton {
+public:
 	x_colorreading();
 	vector<long> stacksize;
 
-	void setrules() {
-
-        lookforquotes = true;
-        
+	void setrules() {        
 		//Spaces, skipped in the parsing string
-		rules.push_back(" =#");                         //0     space (not kept)
-		rules.push_back("\t=#");                        //1     tab (not kept)
-		rules.push_back("\n=#");                        //2     cr (not kept)
-		rules.push_back("\r=#");                        //3     cr (not kept)
-
-        rules.push_back("1:{%d #A-F #a-f}");            //2     metarule on 1, for hexadecimal digits
+		rules.push_back(U"%S=#");                         //0     space (not kept)
 
         //Fast tracks for recurrent punctations
-		rules.push_back(";=0");                         //4     ;
-		rules.push_back(",=0");                         //5     ,
-		rules.push_back("==0");                         //6     =
-		rules.push_back("~=0");                         //7     ~
-		rules.push_back("!=0");                         //8     !
-		rules.push_back("(=7");                         //9     (
-		rules.push_back(")=0");                         //10    )
-		rules.push_back("]=0");                         //11    ]
-		rules.push_back("}=0");                         //12    }
-		rules.push_back("..=0");                        //13    ..
-		rules.push_back("^=0");                         //14    ^
-		rules.push_back("+=0");                         //15    +
-		rules.push_back("-=0");                         //16    -
-		rules.push_back("*=0");                         //17    *
-		rules.push_back("%=0");                         //18    %
-		rules.push_back("<=0");                         //19    <
-		rules.push_back(">=0");                         //20    >
-		rules.push_back("|=0");                         //21    |
-		rules.push_back("&=0");                         //22    &
-		rules.push_back(":=0");                         //23    :
+		rules.push_back(U"%)=#");                         //10    )
+		rules.push_back(U"%]=#");                         //12    ]
+		rules.push_back(U"%}=#");                         //14    }
+		rules.push_back(U"%+=#");                         //18    +
+		rules.push_back(U"%-=#");                         //19    -
+		rules.push_back(U"%*=#");                         //20    *
+		rules.push_back(U"%~=#");                         //7     ~
+
+		rules.push_back(U";=#");                         //4     ;
+		rules.push_back(U",=#");                         //5     ,
+		rules.push_back(U"==#");                         //6     =
+		rules.push_back(U"!=#");                         //8     !
+		rules.push_back(U"..=#");                        //13    ..
+		rules.push_back(U"^=#");                         //14    ^
+		rules.push_back(U"<=#");                         //19    <
+		rules.push_back(U">=#");                         //20    >
+		rules.push_back(U"|=#");                         //21    |
+		rules.push_back(U"&=#");                         //22    &
+		rules.push_back(U":=#");                         //23    :
 		
-        rules.push_back("#%d+=8");                      //24    rules for #d+
-		rules.push_back("#=0");                         //25    #
+        rules.push_back(U"%#%d+=8");                      //24    rules for #d+
+		rules.push_back(U"%?{%a %d}+=9");                 //26    rules for ?var
+		rules.push_back(U"$%d+=8");                      //31    rules for $d+
 
-		rules.push_back("?{%a %d}+=9");                 //26    rules for ?var
-		rules.push_back("?=0");                         //27    ?
 
-		rules.push_back(".=6");                         //28    .
-		rules.push_back("[=7");                         //29    [
-		rules.push_back("{=7");                         //30    {
-
-		rules.push_back("$%d+=8");                      //31    rules for $d+
-		rules.push_back("$=7");                         //32    :
-
+		rules.push_back(U".=6");                         //28    .		
+		rules.push_back(U"%(=7");                         //10    )
+		rules.push_back(U"%[=7");                         //29    [
+		rules.push_back(U"%{=7");                         //30    {
+		rules.push_back(U"$=7");                         //32    :
 														//Comments
-		rules.push_back("//%.~%r+=5");                  //33    comments starting with // with no carriage return (CR) inside (not kept)
-		rules.push_back("//=5");                        //34    empty comment starting with // with no carriage return (CR) inside (not kept)
-		rules.push_back("/@%.+@/=5");                   //35    long comments starting with /@ and finishing with @/ (not kept)
-		rules.push_back("/@@/=5");                      //36    empty long comment starting with /@ and finishing with @/
-		rules.push_back("/=0");                         //37    /
+		rules.push_back(U"//?*%r=5");                  //33    comments starting with // with no carriage return (CR) inside (not kept)
+		rules.push_back(U"/@?*@/=5");                   //35    long comments starting with /@ and finishing with @/ (not kept)
 
-														//Strings
-														//Double quote
-		rules.push_back("\"\"=1");                      //38    empty string ""
-		rules.push_back("\"%?~%r+\"=1");                //39    string "" does not contain CR and can escape characters (%?)
+		rules.push_back(U"%#=#");                         //25    #
+		rules.push_back(U"%?=#");                         //27    ?
+		rules.push_back(U"/=#");                         //37    /
 
-														//Single quote
-		rules.push_back("''=2");                        //40    empty string ''
-		rules.push_back("'%.~%r+'=2");                  //41    string '' does not contain CR and does not process escape characters
-
-		rules.push_back("r\"%?+\"=2");                 //44    tamgu regular expressions...
-		rules.push_back("r'%?+'=2");                   //44    tamgu regular expressions...
-		rules.push_back("p\"%?+\"=2");                 //44    tamgu regular expressions...
-		rules.push_back("p'%?+'=2");                   //44    tamgu regular expressions...
-		
+		//Double quote
+		rules.push_back(U"(u)\"{[\\-\"] ~%r}*\"=1");     
+		//Single quote
+		rules.push_back(U"(u)'~%r*'=2");                 
 		//Long quotes
-		rules.push_back("@\"\"@=5");                  //42    empty string @""@
-		rules.push_back("@\"%?+\"@=10");              //43    string @" "@ can contain CR and escape characters (we do not keep the @s)
+		rules.push_back(U"(u)@\"?*\"@=10");
 
-														//Unicode double quote strings
-		rules.push_back("u\"\"=6");                    //44    empty string u""
-		rules.push_back("u\"%?~%r+\"=6");              //45    string u"" unicode string (we do not keep the u in the parse)
+		//tamgu regular expression strings
+		rules.push_back(U"r\"~%r+\"=2");              //42    string r"" tamgu regular expression (we do not keep the r in the parse)
+		rules.push_back(U"r'~%r+'=2");               //42    string r"" tamgu regular expression (we do not keep the r in the parse)
+		rules.push_back(U"p\"~%r+\"=2");             //42    string p"" tamgu posix expression (we do not keep the p in the parse)
+		rules.push_back(U"p'~%r+'=2");               //42    string p"" tamgu posix expression (we do not keep the p in the parse)
 
-														//Unicode single quote strings
-		rules.push_back("u''=1");						//46    empty string u''
-		rules.push_back("u'%.~%r+'=2");					//47    string u'' unicode string
 
-														//Unicode long quote strings
-		rules.push_back("u@\"%?+\"@=10");				//48    empty string u@""@
-		rules.push_back("u@\"%?+\"@=10");				//49    string u@".."@ unicode string
-
-        rules.push_back("0x%1+(.%1+)(p([- +])%d+)=#"); //47 hexadecimal
-		rules.push_back("%d+(.%d+)(e([- +])%d+)=#");    //47    exponential digits
+		rules.push_back(U"1:{%d #A-F #a-f}");            //2     metarule on 1, for hexadecimal digits
+        rules.push_back(U"0x%1+(.%1+)(p([- +])%d+)=#"); //47 hexadecimal
+		rules.push_back(U"%d+(.%d+)(e([- +])%d+)=#");    //47    exponential digits
 
 														// Rules start here
-		rules.push_back("{%a %d %h}+=4");               //52    label a combination of alpha, digits and hangul characters
-        rules.push_back("%n=#");                        //53    non-breaking space
-        rules.push_back("%o=0");                        //54    operators
-		rules.push_back("%p=0");                        //53    punctuation
-		rules.push_back("%.~{%S %p %o}+=4");            //55    An unknown UTF8 token separated with spaces, punctuation or operators...
+		rules.push_back(U"{%a %d %h}+=4");               //52    label a combination of alpha, digits and hangul characters
+        rules.push_back(U"%n=#");                        //53    non-breaking space
+        rules.push_back(U"%o=#");                        //54    operators
+		rules.push_back(U"%p=#");                        //53    punctuation
+		rules.push_back(U"~{%S %p %o}+=4");            //55    An unknown UTF8 token separated with spaces, punctuation or operators...
 	}
 
-	void tokenize(wstring& thestr, bool keeppos = false);
+	void tokenizing(wstring& thestr, token_res& xr);
 
 };
 
@@ -198,7 +176,8 @@ public:
 	bool bMatchCase;
 	bool bMatchWholeWord;
 	bool bSearchDown;
-	x_colorreading bnfxs;
+	x_colorreading tok_color;
+	token_res bnfxs;
 	string currentname;	
 	list<ModifItem> listundos;
 	list<ModifItem> listdos;

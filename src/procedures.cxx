@@ -1220,10 +1220,10 @@ Tamgu* ProcLoadfacts(Tamgu* domain, short idthread, TamguCall* callfunc) {
     //We protect the current parse tree
     bnf_tamgu* current = globalTamgu->currentbnf;
 
-    x_reading xr;
+    tokenizer_result<string> xr;
     bnf_tamgu bnf;
 
-    xr.tokenize(code);
+    globalTamgu->tamgu_tokenizer.tokenize<string>(code,xr);
     x_node* xn = new x_node;
 
     bnf.baseline = globalTamgu->linereference;

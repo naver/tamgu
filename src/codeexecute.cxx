@@ -269,7 +269,8 @@ Tamgu* TamguGlobal::EvaluateMainVariable() {
 Exporting Tamgu* TamguExecute(TamguCode* code, string name, vector<Tamgu*>& params) {
 
 	globalTamgu->threadMODE = true;
-
+    globalTamgu->executionbreak = false;
+    
 	short idthread = globalTamgu->GetThreadid();
     globalTamgu->Cleanerror(0);
 
@@ -300,7 +301,8 @@ Exporting Tamgu* TamguExecute(TamguCode* code, string name, vector<Tamgu*>& para
 Exporting Tamgu* TamguExecute(TamguCode* code, string name, vector<Tamgu*>& params, short idthread) {
 	Tamgu* main = code->Mainframe();
 
-	globalTamgu->threadMODE = true;
+    globalTamgu->executionbreak = false;
+    globalTamgu->threadMODE = true;
     globalTamgu->Cleanerror(idthread);
 
 
@@ -372,10 +374,15 @@ Tamgu* TamguCode::Execute(long begininstruction, short idthread) {
 }
 
 Tamgu* TamguCode::Loading() {
-    
+        
     //These are atomic values that need to be set before all
-    globalTamgu->threadMODE = false;
+    global->executionbreak = false;
+    global->running = true;
+    global->waitingonfalse = false;
+    global->threadMODE = false;
+    global->isthreading = false;
 
+    global->Cleanerror(0);
 
 	short idthread = 0;
 	global->InitThreadid(idthread);
@@ -403,9 +410,9 @@ Tamgu* TamguCode::Loading() {
 		a = aNULL;
 	}
 
-
 	_cleandebugmin;
 	global->Popstack(0);
+    global->running = false;
 
 	return a;
 }

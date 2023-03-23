@@ -138,7 +138,7 @@ JNIEXPORT jint JNICALL Java_com_naver_jtamgu_JTamgu_LoadProgramImplementation(JN
 
     string nameOfFile = jstringToString(env, filename);
     string theargs = jstringToString(env, args);
-    short idglobal = TamguCreateGlobal(10);
+    short idspace = TamguCreateGlobal(10);
     
     stringstream message;
     TamguSetArguments(theargs);
@@ -163,7 +163,7 @@ JNIEXPORT jint JNICALL Java_com_naver_jtamgu_JTamgu_LoadProgramImplementation(JN
         return -1;
     }
 
-    return idglobal;
+    return idspace;
 }
 
 /**
@@ -177,7 +177,7 @@ JNIEXPORT jint JNICALL Java_com_naver_jtamgu_JTamgu_LoadStringProgramImplementat
     string jcode = jstringToString(env, code);
     string theargs = jstringToString(env, args);
 
-    short idglobal = TamguCreateGlobal(10);
+    short idspace = TamguCreateGlobal(10);
 
 #ifdef WIN32
     string name = "C:\\JAVA";
@@ -204,8 +204,8 @@ JNIEXPORT jint JNICALL Java_com_naver_jtamgu_JTamgu_LoadStringProgramImplementat
         displayerror(env, message.str());
         return -1;
     }
-
-    return idglobal;
+    
+    return idspace;
 }
 
 /**

@@ -1715,18 +1715,13 @@ Exporting void Tamguvector::Shuffle() {
 Exporting Tamgu* Tamguvector::Unique() {
     locking();
     Tamguvector* kvect = globalTamgu->Providevector();
-    map<string, Tamgu*> inter;
+    std::set<string> inter;
     string k;
     for (int i = 0; i < values.size(); i++) {
-        k = values[i]->String();
-        if (inter.find(k) != inter.end()) {
-            if (inter[k]->same(values[i])->Boolean() == false)
-                kvect->Push(values[i]);
-        }
-        else {
-            inter[k] = values[i];
+        k = values[i]->Typestring();
+        k += "::" + values[i]->String();
+        if (inter.insert(k).second)
             kvect->Push(values[i]);
-        }
     }
     unlocking();
     return kvect;
@@ -3844,19 +3839,14 @@ Exporting Tamgu* Tamgua_vector::mod(Tamgu *b, bool itself) {
 
 Exporting Tamgu* Tamgua_vector::Unique() {
     Tamguvector* kvect = globalTamgu->Providevector();
-    map<string, Tamgu*> inter;
+    std::set<string> inter;
     string k;
     atomic_vector_iterator<Tamgu*> it(values);
     while (!it.end()) {
-        k = it.second->String();
-        if (inter.find(k) != inter.end()) {
-            if (inter[k]->same(it.second)->Boolean() == false)
-                kvect->Push(it.second);
-        }
-        else {
-            inter[k] = it.second;
+        k = it.second->Typestring();
+        k += "::" + it.second->String();
+        if (inter.insert(k).second)
             kvect->Push(it.second);
-        }
         it.next();
     }
     return kvect;

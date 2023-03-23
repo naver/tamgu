@@ -1,6 +1,7 @@
 #ifndef bnf_tamgu_h
 #define bnf_tamgu_h
 #include "x_node.h"
+#include "tokens.h"
 
 
 class bnf_tamgu {
@@ -14,7 +15,7 @@ class bnf_tamgu {
     int errornumber;
     char gFail;
     long baseline;
-    x_reading* fx;
+    tokenizer_result<string>* fx;
 
     vector<string> labelerrors;
     vector<long> lineerrors;
@@ -32,7 +33,7 @@ class bnf_tamgu {
 
     }
 
-    void initialize(x_reading* xr) {
+    void initialize(tokenizer_result<string>* xr) {
         labelerrors.clear();
         lineerrors.clear();
         errornumbers.clear();
@@ -198,7 +199,7 @@ class bnf_tamgu {
     }
 
     string x_errormsg(long i);
-    x_node* x_parsing(x_reading* xr,x_parsing_mode mode,bool display=true);
+    x_node* x_parsing(tokenizer_result<string>* xr,x_parsing_mode mode,bool display=true);
 
 
 

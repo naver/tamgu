@@ -165,8 +165,8 @@ Exporting short TamguLoad(string filename) {
 	return a->idcode;
 }
 
-Exporting short TamguCompile(string& codeinit, string filename, bool dsp) {
-    static x_reading xr;
+Exporting short TamguCompile(string& codeinit, string filename, char dsp) {
+    static tokenizer_result<string> xr;
     static bnf_tamgu bnf;
 
 	TamguCode* a = globalTamgu->Getcode(0);
@@ -184,7 +184,7 @@ Exporting short TamguCompile(string& codeinit, string filename, bool dsp) {
 		if (code.size() == 0)
 			return -1;
 
-        xr.tokenize(code);
+        globalTamgu->tamgu_tokenizer.tokenize<string>(code, xr);
         if (!xr.size())
             return -1;
         
@@ -226,7 +226,13 @@ Exporting short TamguCompile(string& codeinit, string filename, bool dsp) {
 				delete x;
 			}
 
-			if (dsp) {
+			if (dsp == 2) {
+                code = "return";
+                code += "(";
+                code += codeinit;
+                code += ");";
+            }
+            else if (dsp) {
                 add = false;
                 if (isLispmode()) {
                     _fullcode += codeinit;

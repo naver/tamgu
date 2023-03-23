@@ -274,15 +274,13 @@ extern "C" {
         if (!TamguSelectglobal(0)) {
             TamguCreateGlobal();
         }
-        
-        if (debugmode == true) {
-            globalTamgu->Setdebugmode(true);
+
+        globalTamgu->Setdebugmode(debugmode);
+
+        if (debugmode == true)
             globalTamgu->Setdebugfunction(Debug_callback);
-        }
-        else {
-            globalTamgu->Setdebugmode(false);
+        else
             globalTamgu->Setdebugfunction(NULL);
-        }
         
         int idcode=-1;
         string code=cde;
@@ -423,7 +421,7 @@ extern "C" {
         }
     }
     
-    void Keywords(std::set<wstring>& names) {
+    void Keywords(std::set<u16string>& names) {
         if (!TamguSelectglobal(0)) {
             TamguCreateGlobal();
         }
@@ -431,17 +429,18 @@ extern "C" {
         vector<string> vs;
         TamguAllObjects(vs);
         
-        wstring w;
+        u16string w;
         for (int i = 0; i < vs.size(); i++) {
-            sc_utf8_to_unicode(w, USTR(vs[i]), vs[i].size());
+            sc_utf8_to_utf16(w, USTR(vs[i]), vs[i].size());
             names.insert(w);
         }
     }
     
     long* colorparser(uint16_t* text, long from, long upto) {
-        static std::set<wstring> keys;
+        static std::set<std::u16string> keys;
         static vector<long> limits;
-        static x_wcoloringrule xr;
+        static x_coloringrule tok;
+        static tokenizer_result<std::u16string> xr;
         static bool init=false;
         
         if (!init) {
@@ -450,16 +449,16 @@ extern "C" {
         }
         
         long i;
-        wstring txt;
+        std::u16string txt;
         for (long i = 0; i < upto; i++)
-            txt += (wchar_t)text[i];
+            txt += (char16_t)text[i];
         
-        xr.tokenize(txt, true);
+        tok.tokenize<std::u16string>(txt, xr);
         
         char type;
         long gauche = 0,droite = 0;
         long sz=xr.stack.size();
-        wstring sub;
+        u16string sub;
         limits.clear();
         
         for (i=0;i<sz;i++) {
@@ -544,7 +543,6 @@ extern "C" {
                     break;
                 case 14:
                     //annotation lexicon head rule
-                    sub=xr.stack[i];
                     limits.push_back(6);
                     limits.push_back(gauche);
                     limits.push_back(droite);

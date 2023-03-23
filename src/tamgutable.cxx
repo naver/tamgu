@@ -1269,20 +1269,15 @@ Exporting void Tamgutable::Shuffle() {
 Exporting Tamgu* Tamgutable::Unique() {
     
     Tamgutable* kvect = new Tamgutable(size);
-    map<string, Tamgu*> inter;
+    std::set<string> inter;
     string k;
     Tamgu* e;
     for (int i = 0; i < size; i++) {
         e = values[i];
-        k = e->String();
-        try {
-            if (inter.at(k)->same(values[i])->Boolean() == false)
-                kvect->Push(values[i]);
-        }
-        catch(const std::out_of_range& oor) {
-            inter[k] = values[i];
+        k = e->Typestring();
+        k += "::" + e->String();
+        if (inter.insert(k).second)
             kvect->Push(values[i]);
-        }
     }
     return kvect;
 }

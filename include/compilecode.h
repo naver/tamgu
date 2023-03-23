@@ -21,6 +21,7 @@ class TamguActionVariable;
 class TamguCallFunction;
 class TamguFunctionLambda;
 class TamguLocalEvaluation;
+#include "tokens.h"
 
 //TamguCode is a class in which programs are loaded...
 class TamguCode {
@@ -117,7 +118,7 @@ public:
 	}
 
 
-	bool Load(x_reading& xr);
+	bool Load(tokenizer_result<string>& xr);
 	bool Compile(string& code);
 	Tamgu* Compilefunction(string& code, short idthread);
     Tamgu* CompileExpression(string& code, short idthread);

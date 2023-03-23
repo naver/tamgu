@@ -744,10 +744,8 @@ Exporting Tamgu* Tamguivector::Unique() {
     
     locking();
     for (int i = 0; i < values.size(); i++) {
-        if (inter.find(values[i]) == inter.end()) {
-            inter.insert(values[i]);
+        if (inter.insert(values[i]).second)
             kvect->values.push_back(values[i]);
-        }
     }
     unlocking();
     
@@ -1922,10 +1920,8 @@ Exporting Tamgu* Tamgua_ivector::Unique() {
     std::set<long> inter;
     atomic_value_vector_iterator<long> it(values);
     for (;!it.end();it.next()) {
-        if (inter.find(it.second) == inter.end()) {
-            inter.insert(it.second);
+        if (inter.insert(it.second).second)
             kvect->values.push_back(it.second);
-        }
     }
     return kvect;
 }

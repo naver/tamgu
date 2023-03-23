@@ -32,6 +32,7 @@
 #include <map>
 #include "tamgutypes.h"
 #include "tamguboost.h"
+#include <set>
 
 #include "binmap.h"
 
@@ -216,7 +217,15 @@ Exporting string s_utf8_to_dos(const char* contenu);
 Exporting string s_dos_to_utf8(const char* contenu);
 Exporting string s_unicode_to_dos(wstring& contenu);
 
+void s_unicode_to_utf16(wstring& w, wstring& u);
+void s_unicode_to_utf16(std::u16string& w, std::u32string& u);
+void s_unicode_to_utf16(std::wstring& w, std::u32string& u);
+void s_unicode_to_utf8(string& s, std::u32string& str);
+
 Exporting void s_unicode_to_utf8(string& s, wstring& str);
+Exporting void s_utf16_to_utf8(string& s, int32_t* str, long sz);
+Exporting void s_utf8_to_utf16(wstring& w, string& str);
+void sc_utf8_to_utf16(std::u16string& w, unsigned char* str , long sz);
 
 Exporting void s_utf8_to_unicode(wstring& s, unsigned char* str, long sz);
 Exporting void s_doubleutf8_to_unicode(wstring& s, wchar_t* str, long sz);
@@ -229,14 +238,17 @@ Exporting TAMGUCHAR c_unicode_to_latin(TAMGUCHAR u);
 Exporting void sc_unicode_to_utf8(string& s, wstring& str);
 Exporting void s_unicode_to_utf8(string& s, wchar_t* str, long sz);
 Exporting void sc_utf8_to_unicode(wstring& s, unsigned char* str, long sz);
+Exporting void sc_utf8_to_unicode(std::u32string& w, unsigned char* str, long sz);
 //--------------------- Character conversion
 Exporting void c_HTMLcode(string& s, TAMGUCHAR code);
 Exporting void c_XMLcode(string& s, TAMGUCHAR code);
 Exporting unsigned char c_utf8_to_unicode(unsigned char* utf, TAMGUCHAR& code);
+Exporting unsigned char c_utf8_to_unicode(string* utf, long i, char32_t& code);
 Exporting unsigned char c_unicode_to_utf8(TAMGUCHAR code, unsigned char* utf);
 
 Exporting bool c_unicode_to_utf16(uint32_t& r, uint32_t code);
 Exporting bool c_utf16_to_unicode(uint32_t& r, uint32_t code, bool second);
+Exporting bool c_utf16_to_unicode(char32_t& r, char32_t code, bool second);
 //--------------------- String conversion
 Exporting unsigned char conversion_utf8_to_latin(short);
 Exporting string conversion_utf8_to_latin(string contenu);
@@ -310,7 +322,7 @@ Exporting void c_to_upper(string&, unsigned char* s, long lg);
 Exporting char c_is_alpha(unsigned char* m, long& i);
 
 Exporting string c_latin_utf8(long c);
-
+Exporting std::set<char32_t>& vpunctuations();
 //--------------------- String manipulation
 Exporting bool s_is_upper(string& s);
 Exporting bool s_is_alpha(string& s);
@@ -381,6 +393,7 @@ Exporting wstring s_left(wstring& s, long nb);
 Exporting wstring s_right(wstring& s, long nb);
 Exporting wstring s_middle(wstring& s, long l, long nb);
 Exporting wstring s_replacestring(wstring& str, wstring reg, wstring rep);
+std::u32string s_ureplacestring(std::u32string& s, std::u32string reg, std::u32string rep);
 
 Exporting wstring s_revert(wstring& s);
 

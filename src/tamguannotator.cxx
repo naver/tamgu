@@ -1385,13 +1385,12 @@ Tamgu* Tamguannotator::Apply(An_context* context,Tamgu* res, bool computelexicon
 
 static void Unique(vector<wstring>& values) {
     vector<wstring> vals;
-    hmap<wstring, bool> inter;
+    std::set<wstring> inter;
+    
     long sz=values.size();
     for (int i = 0; i < sz; i++) {
-        if (inter.find(values[i]) == inter.end()) {
-            inter[values[i]] = true;
+        if (inter.insert(values[i]).second)
             vals.push_back(values[i]);
-        }
     }
     values = vals;
 }
@@ -1515,9 +1514,10 @@ Tamgu* Tamguannotator::Execution(Tamgu* res, Tamgu* txt, short idthread, uchar c
         return finalres;
     }
     
-    x_wtokenize xr;
+    tokenizer_result<wstring> xr;
     wstring wrds=txt->UString();
-    xr.tokenize(wrds,true,&vectoroftokens.values);
+    xr.setstack(&vectoroftokens.values);
+    globalTamgu->tamgu_tokenizer.tokenize<wstring>(wrds,xr);
     res=Apply(&vectoroftokens,res, computelexicon, idthread);
     //res is a vector, which contains vectors in which the first value is the label and the other values the indexes...
     for (i=0;i<res->Size();i++) {

@@ -27,6 +27,7 @@
 
 #include "tables.h"
 #include "utf8handler.h"
+#include "tokens.h"
 
 Exchanging UTF8_Handler* utf8_handler = NULL;
 
@@ -3943,6 +3944,9 @@ Exporting string conversion_utf8_to_latin(string contenu) {
 Exporting string conversion_latin_to_utf8(string contenu) {
     return utf8_handler->conversion_latin_to_utf8(contenu);
 }
+Exporting std::set<char32_t>& vpunctuations() {
+    return utf8_handler->vpunctuations;
+}
 Exporting char c_is_alpha(unsigned char* m, long& i) {
     return utf8_handler->c_is_alpha(m, i);
 }
@@ -5326,6 +5330,40 @@ uchar c_utf8_to_latin(unsigned char* utf, uchar& nb) {
     return c;
 }
 
+Exporting unsigned char c_utf8_to_unicode(string* utf, long i, char32_t& code) {
+    code = (*utf)[i];
+
+    unsigned char check = (*utf)[i] & 0xF0;
+    
+    switch (check) {
+        case 0xC0:
+            if (((*utf)[i + 1] & 0x80)== 0x80) {
+                code = ((*utf)[i] & 0x1F) << 6;
+                code |= ((*utf)[i + 1] & 0x3F);
+                return 1;
+            }
+            break;
+        case 0xE0:
+            if (((*utf)[i + 1] & 0x80)== 0x80 && ((*utf)[i + 2] & 0x80)== 0x80) {
+                code = ((*utf)[i] & 0xF) << 12;
+                code |= ((*utf)[i + 1] & 0x3F) << 6;
+                code |= ((*utf)[i + 2] & 0x3F);
+                return 2;
+            }
+            break;
+        case 0xF0:
+            if (((*utf)[i + 1] & 0x80) == 0x80 && ((*utf)[i + 2] & 0x80)== 0x80 && ((*utf)[i + 3] & 0x80)== 0x80) {
+                code = ((*utf)[i] & 0x7) << 18;
+                code |= ((*utf)[i + 1] & 0x3F) << 12;
+                code |= ((*utf)[i + 2] & 0x3F) << 6;
+                code |= ((*utf)[i + 3] & 0x3F);
+                return 3;
+            }
+            break;
+    }
+    return 0;
+}
+
 Exporting unsigned char c_utf8_to_unicode(unsigned char* utf, TAMGUCHAR& code) {
     unsigned char check = utf[0] & 0xF0;
     
@@ -5362,6 +5400,44 @@ Exporting unsigned char c_utf8_to_unicode(unsigned char* utf, TAMGUCHAR& code) {
     
     return 0;
 }
+
+unsigned char c_utf8_to_unicode(unsigned char* utf, char32_t& code) {
+    unsigned char check = utf[0] & 0xF0;
+    
+    code = utf[0];
+
+    switch (check) {
+        case 0xF0: {
+            if ((utf[1] & 0x80) == 0x80 && (utf[2] & 0x80)== 0x80 && (utf[3] & 0x80)== 0x80) {
+                code = (code & 0x7) << 18;
+                code |= (utf[1] & 0x3F) << 12;
+                code |= (utf[2] & 0x3F) << 6;
+                code |= (utf[3] & 0x3F);
+                return 3;
+            }
+            return 0;
+        }
+        case 0xE0: {
+            if ((utf[1] & 0x80)== 0x80 && (utf[2] & 0x80)== 0x80) {
+                code = (code & 0xF) << 12;
+                code |= (utf[1] & 0x3F) << 6;
+                code |= (utf[2] & 0x3F);
+                return 2;
+            }
+            return 0;
+        }
+        case 0xC0: {
+            if ((utf[1] & 0x80)== 0x80) {
+                code = (code & 0x1F) << 6;
+                code |= (utf[1] & 0x3F);
+                return 1;
+            }
+        }
+    }
+    
+    return 0;
+}
+
 
 Exporting char c_test_utf8(unsigned char* utf) {
     if (utf == NULL)
@@ -5425,6 +5501,25 @@ Exporting bool c_utf16_to_unicode(uint32_t& r, uint32_t code, bool second) {
     r = code;
     return false;
 }
+
+Exporting bool c_utf16_to_unicode(char32_t& r, char32_t code, bool second) {
+    if (second) {
+        r |= code & 0x3FF;
+        return false;
+    }
+    
+        //if the first byte is  0xD8000000 then it is a four bytes coding
+    if ((code & 0xFF00) == 0xD800) {
+            //first we extract w
+        r = ((((code & 0x03C0) >> 6) + 1) << 16) | ((code & 0x3F) << 10);
+        return true;
+    }
+    
+    //else r is code...
+    r = code;
+    return false;
+}
+
 
 void c_unicode_to_utf16(wstring& w, uint32_t c) {
     if (!(c & 0xFFFF0000))
@@ -6486,10 +6581,81 @@ Exporting void sc_utf8_to_unicode(wstring& w, unsigned char* str, long sz) {
     w = neo;
     delete[] neo;
 }
+
 //-----------------------------------------------------------------------------------
 //------------------END SPECIFIC SECTION FOR UTF16 wstring---------------------------
 //-----------------------------------------------------------------------------------
 #endif
+
+Exporting void sc_utf8_to_unicode(std::u32string& w, unsigned char* str, long sz) {
+	w = U"";
+	if (!sz)
+		return;
+
+	long ineo = 0;
+	char32_t* neo = new char32_t[sz + 1];
+	neo[0] = 0;
+
+#ifdef INTELINTRINSICS
+	long i;
+	if (check_ascii(str, sz, i)) {
+		for (i = 0; i < sz; i++)
+			neo[ineo++] = (char32_t)str[i];
+		neo[ineo] = 0;
+		w = neo;
+		delete[] neo;
+		return;
+	}
+#endif
+	char32_t c;
+
+	uchar nb;
+	while (sz--) {
+		if (str[sz] & 0x80) {
+			nb = c_utf8_to_unicode(str, c);
+			str += nb + 1;
+			sz -= nb;
+			neo[ineo++] = c;
+			continue;
+		}
+		neo[ineo++] = (char32_t)*str;
+		++str;
+	}
+	neo[ineo] = 0;
+	w = neo;
+	delete[] neo;
+}
+
+void s_unicode_to_utf8(string& s, u32string& str) {
+    long i = 0;
+    char inter[5];
+    long ineo = 0;
+    long sz = str.size();
+    if (!sz)
+        return;
+
+    long szo = 1 + (sz << 1);
+    char* neo = new char[szo];
+    neo[0] = 0;
+    long nb;
+
+    while (i < sz) {
+        if (str[i] < 0x0080 && ineo < szo-1) {
+            neo[ineo++] = (char)str[i];
+            i++;
+            continue;
+        }
+        
+        nb = c_unicode_to_utf8(str[i], (uchar*)inter);
+        neo = concatstrings(neo,inter,ineo, szo, nb);
+        i++;
+    }
+    
+    neo[ineo] = 0;
+    s += neo;
+    delete[] neo;
+}
+
 
 Exporting void s_doubleutf8_to_unicode(wstring& s, wchar_t* str, long l) {
     string sutf8;
@@ -6615,6 +6781,28 @@ Exporting wstring s_replacestring(wstring& s, wstring reg, wstring rep) {
     if (from < rsz)
         neo += s.substr(from, rsz - from);
 #endif
+    return neo;
+}
+
+u_ustring s_ureplacestring(u_ustring& s, u_ustring reg, u_ustring rep) {
+    u_ustring neo;
+    
+    long gsz = reg.size();
+    if (!gsz)
+        return s;
+    
+    long rsz = s.size();
+    long from = 0;
+    
+    long foundHere;
+    while ((foundHere = s.find(reg, from)) != string::npos) {
+        if (foundHere != from)
+            neo += s.substr(from, foundHere - from);
+        neo += rep;
+        from = foundHere + gsz;
+    }
+    if (from < rsz)
+        neo += s.substr(from, rsz - from);
     return neo;
 }
 
@@ -7815,267 +8003,92 @@ void s_tokenize(vector<string>& vect, string& thestr, map<string, bool>& keeps) 
 //------------------------------------------------------------------------------------------
 
 void getdefaultrules(vector<string>& rules) {
-    //Spaces, skipped in the parsing string
-    rules.push_back("%s=#");                                                //0     space (not kept)
-    rules.push_back("%r=#");                                                //1     cr (can be kept)
+    rules.push_back("#10=!99");                                  //gated arcs to keep carriage or not
+    rules.push_back("%S+=#");                                  //we skip all spaces
     
-    rules.push_back("1:{%a %d #. #- #= #@ #% #&}");                         //2 metarule on 1
-    rules.push_back("2:{%a %d #% #= ## #& #/ #? #- #@}");                   //3 metarule on 2
-    rules.push_back("3:{%a %d #% #= ## #& #/ #? #- #@ #.}");                //4 metarule on 3
-    rules.push_back("4:{%d #A-F #a-f}");                                    //2 metarule on 4, for hexadecimal digits
-    rules.push_back("5:{%a %d #% #= ## #& #/ #? #-}");                //4 metarule on 3
+    //regular numbers
+    rules.push_back("%d+{[rd][th][nd][er][ième][ieme]}=1");    //3rd or 4th
+    rules.push_back("%d(%d)(:%d%d){[am][pm]}=1");              //American hours 6:30am, 9pm
+    rules.push_back("%d(%d){:h}%d%d=1");                       //European hours 6h30, 21:00
     
-    //Fast tracks for recurrent punctations
-    rules.push_back(";=0");                                                 //5     ;
-    rules.push_back(",=0");                                                 //6     ,
-    rules.push_back("==0");                                                 //7     =
-    rules.push_back("~=0");                                                 //8     ~
-    rules.push_back("(=0");                                                 //9     (
-    rules.push_back(")=0");                                                 //10    )
-    rules.push_back("[=0");                                                 //11    [
-    rules.push_back("]=0");                                                 //12    ]
-    rules.push_back("{=0");                                                 //13    {
-    rules.push_back("}=0");                                                 //14    }
-    rules.push_back("^=0");                                                 //15    ^
-    rules.push_back("*=0");                                                 //16    *
-    rules.push_back("%=0");                                                 //17    %
-    rules.push_back("<=0");                                                 //18    <
-    rules.push_back(">=0");                                                 //19    >
-    rules.push_back("|=0");                                                 //20    |
-    rules.push_back("&=0");                                                 //21    &
-    rules.push_back("$=0");                                                 //22    $
-    rules.push_back("\"=0");                                                //24    "
-    rules.push_back("'=0");                                                 //23    '
+    //We put this meta-rule here to avoid checking all the rules belows with it
+    rules.push_back("1:{%d #A-F #a-f}");                    //metarule on 1, for hexadecimal digits
     
-    rules.push_back("+0x%4+(.%4+)([p P]([- +])%d+)=0");                         //47 hexadecimal
-    rules.push_back("+%d(.%d+)[e E]([- +])%d+=92");                               //25    exponential digits
-    rules.push_back("+%d+(.%d+)=93");                                       //26    digits
-    rules.push_back("+=0");                                                 //27    +
+    //Decimal rules
+    rules.push_back("{%- %+}%d+[,%d%d%d]+=22");          //separators
     
-    rules.push_back("-0x%4+(.%4+)([p P]([- +])%d+)=0");                         //47 hexadecimal
-    rules.push_back("-%d(.%d+)[e E]([- +])%d+=92");                               //28    exponential digits
-    rules.push_back("-%d+(.%d+)=93");                                       //29    digits
-    rules.push_back("-=0");                                                 //30    -
+    rules.push_back("%d+[,%d%d%d]+=33");            //digits
+    rules.push_back("{%- %+}%d+(.%d+({eE}({%- %+})%d+))=33");    //digits
+    rules.push_back("%d+(.%d+({eE}({%- %+})%d+))=33");      //digits
     
-    rules.push_back("\\+=0");                                               //31    \
+    //Hexadecimal rules
+    rules.push_back("{%- %+}0x%1+(.%1+({pP}({%- %+})%d+))=33");  //hexadecimal
+    rules.push_back("0x%1+(.%1+({p P}({%- %+})%d+))=33");   //hexadecimal
+
+    //Decimal comma rules, all gated
+    rules.push_back("{%- %+}%d+[{.#32}%d%d%d]+=!44"); //separators
     
-    rules.push_back(":+=0");                                                //32    :::
+    rules.push_back("%d+[{.#32}%d%d%d]+=!66");
+    rules.push_back("{%- %+}%d+(,%d+({eE}({%- %+})%d+))=!66");
+    rules.push_back("%d+(,%d+({eE}({%- %+})%d+))=!66");
+    rules.push_back("{%- %+}0x%1+(,%1+({pP}({%- %+})%d+))=!66");
+    rules.push_back("0x%1+(,%1+({p P}({%- %+})%d+))=!66");
+
+    rules.push_back("{%- %+}0b{1 0}+=1");  //binaries
+    rules.push_back("0b{1 0}+=1");  //binaires
+
+    rules.push_back("%#{%a %d}+=1");       //Regular strings
+    rules.push_back("${%a %d}+=1");       //Regular strings
     
-    rules.push_back(".+=0");                                                //33    ....
+    rules.push_back("http(s)://{%a %d . = %# & %? / %- %+}+=1");       //http
+    rules.push_back("{%a %d . %- %+}+@{%a %d . = & %? %# %- %+}+=1");       //mail address
     
-    rules.push_back("?+=0");                                                //34    ????
-    
-    rules.push_back("!+=0");                                                //35    !!!!!
-    
-    rules.push_back("/%1+(/%1+)+=0");                                       //36    UNIX path... (we use metarule %1 to detect which characters are valid)
-    rules.push_back("/+=0");                                                //37    /
-    
-    rules.push_back("#{%a %d %- %_ %@ %+ %=}+=0");                          //38    #digits or hashtag
-    rules.push_back("#=0");                                                 //39    #
-    
-    rules.push_back("http(s)://%2+(.%2+)+=0");                              //40    http (we use metarule %2 to detect which characters are valid)
-    
-    rules.push_back("0x%4+(.%4+)([p P]([- +])%d+)=0");                         //47 hexadecimal
-    rules.push_back("0b[1 0]+=0");                                          //binary numbers
-    rules.push_back("%d+,%d%d%d(,%d%d%d)+=88");                             //42    multi-word expression...
-    rules.push_back("%d+.%d%d%d(.%d%d%d)+=88");                             //43    multi-word expression...
-    
-    rules.push_back("%d(.%d+)e([- +])%d+=91");                                //44    exponential digits
-    rules.push_back("%d+(.%d+)=92");                                        //45    digits
-    
-    // rules start here
-    //rules.push_back("%C%a+.=0");                                            //47    e-mail address
-    rules.push_back("%5+(.%5+)+@%5+(.%5+)+=0");                                           //47    e-mail address
-    rules.push_back("%a:\\%3+(\\%3+)+=0");                                  //46    Windows path...
-    rules.push_back("{%a #- %d %H}+=0");                                    //48    label a combination of alpha, digits and hangul characters
-    rules.push_back("%n=#");                                                //49    non-breaking space
-    rules.push_back("%o=0");                                                //50    operators
-    rules.push_back("%p=0");                                                //49    punctuation
-    rules.push_back("%.~{%S %p %o}+=0");                                    //51    An unknown UTF8 token separated with spaces, punctuation or operators...
+    rules.push_back("%o=1");                 //operator
+    rules.push_back("%p=1");                  //punctuation
+    rules.push_back("%H{%H %d}*=1");       //Asian characters (Chinese, Korean, Japanese)
+    rules.push_back("%h{%h %- %d}*=1");       //Greek
+    rules.push_back("%a{%a %- %d}*=1");       //Regular strings
+    rules.push_back("~{%S %o %p}+=1");           //Any combination of Unicode characters ending at a space or a punctuation
 }
 
-static void loadrules(vector<string>& rules, vector<short>& points, vector<short>& separators) {
-    getdefaultrules(rules);
-    
-    //A little hack. When the action is 9x, x is the position of the point into the parsed rule.
-    long ipos;
-    for (long r=0; r<rules.size();r++) {
-        ipos=rules[r].find("=9");
-        if (ipos != -1) {
-            points.push_back(r);
-            points.push_back(rules[r][ipos+2]-48); // this is the position of the point (.) in the rule
-        }
-        ipos=rules[r].find("=88");
-        if (ipos != -1)
-            separators.push_back(r);
-    }
-}
-
-void x_tokenize::resetrules(vector<string>& rules) {
-    //A little hack. When the action is 9x, x is the position of the point into the parsed rule.
-    points.clear();
-    separators.clear();
-    
-    long ipos;
-    for (long r=0; r<rules.size();r++) {
-        ipos=rules[r].find("=9");
-        if (ipos != -1) {
-            points.push_back(r);
-            points.push_back(rules[r][ipos+2]-48); // this is the position of the point (.) in the rule
-        }
-        ipos=rules[r].find("=88");
-        if (ipos != -1)
-            separators.push_back(r);
-    }
-}
-
-void x_wtokenize::resetrules(vector<string>& rules) {
-    //A little hack. When the action is 9x, x is the position of the point into the parsed rule.
-    points.clear();
-    separators.clear();
-    
-    long ipos;
-    for (long r=0; r<rules.size();r++) {
-        ipos=rules[r].find("=9");
-        if (ipos != -1) {
-            points.push_back(r);
-            points.push_back(rules[r][ipos+2]-48); // this is the position of the point (.) in the rule
-        }
-        ipos=rules[r].find("=88");
-        if (ipos != -1)
-            separators.push_back(r);
-    }
-}
-
-void x_tokenize::setrules() {
-    loadrules(rules,points,separators);
-}
-
-void x_wtokenize::setrules() {
-    loadrules(rules,points,separators);
-}
-
-
-bool v_tokenize(vector<string>& vect, string& thestr, short flags, vector<string>& rules) {
-    
-    x_tokenize xr;
-    
-    xr.juststack=true;
-    if (rules.size()==0)
-        xr.load();
-    else {
-        xr.resetrules(rules);
-        xr.rules = rules;
-        string mess;
-        if (!xr.parseexternalrules(mess)) {
-            vect.push_back(mess);
-            return false;
-        }
-        xr.loaded=true;
-    }
-
-    if ((flags&token_comma) == token_comma)
-        xr.selectcomma(true);
-    else
-        xr.selectcomma(false);
-    
-    if ((flags&token_keeprc) == token_keeprc)
-        xr.keeprc(true);
-    else
-        xr.keeprc(false);
-    
-    if ((flags&token_separator) == token_separator)
-        xr.separator(true);
-    else
-        xr.separator(false);
-    
-    xr.tokenize(thestr,false,&vect);
-    return true;
-}
-
-bool vw_tokenize(vector<wstring>& vect, wstring& ustr, short flags, vector<string>& rules) {
-    x_wtokenize xr;
-    
-    xr.juststack=true;
-    if (rules.size()==0)
-        xr.load();
-    else {
-        xr.resetrules(rules);
-        xr.rules = rules;
-        wstring mess;
-        if (!xr.parseexternalrules(mess)) {
-            vect.push_back(mess);
-            return false;
-        }
-        xr.loaded=true;
-    }
-
-    if ((flags&token_comma) == token_comma)
-        xr.selectcomma(true);
-    else
-        xr.selectcomma(false);
-    
-    if ((flags&token_keeprc) == token_keeprc)
-        xr.keeprc(true);
-    else
-        xr.keeprc(false);
-    
-    if ((flags&token_separator) == token_separator)
-        xr.separator(true);
-    else
-        xr.separator(false);
-    
-    xr.tokenize(ustr,false,&vect);
-    return true;
-}
+//See codecompile.cxx for the actual code
+bool v_tokenize(vector<string>& vect, string& thestr, short flags, vector<string>& rules);
+bool vw_tokenize(vector<wstring>& vect, wstring& ustr, short flags, vector<string>& rules);
 
 void v_tokenize(vector<string>& vect, string& thestr, short flags) {
-    
-    x_tokenize xr;
-    
-    xr.juststack=true;
-    xr.load();
+    tokenizer_result<string> xr;
+    segmenter_automaton sa;
 
-    if ((flags&token_comma) == token_comma)
-        xr.selectcomma(true);
-    else
-        xr.selectcomma(false);
-    
-    if ((flags&token_keeprc) == token_keeprc)
-        xr.keeprc(true);
-    else
-        xr.keeprc(false);
-    
-    if ((flags&token_separator) == token_separator)
-        xr.separator(true);
-    else
-        xr.separator(false);
-    
-    xr.tokenize(thestr,false,&vect);
+    sa.setrules();
+    sa.compile();
+
+    if (check_flag(flags, token_comma))
+        sa.setdecimalmode(true);
+    if (check_flag(flags, token_keeprc))
+        sa.keepblanks(true);
+    if (check_flag(flags, token_separator))
+        sa.setseparator(true);
+
+    xr.setstack(&vect);
+    sa.tokenize<string>(thestr,xr);
 }
 
 void vw_tokenize(vector<wstring>& vect, wstring& ustr, short flags) {
-    x_wtokenize xr;
+    tokenizer_result<wstring> xr;
+    segmenter_automaton sa;
+
+    sa.setrules();
+    sa.compile();
     
-    xr.juststack=true;
-    xr.load();
-    
-    if ((flags&token_comma) == token_comma)
-        xr.selectcomma(true);
-    else
-        xr.selectcomma(false);
-    
-    if ((flags&token_keeprc) == token_keeprc)
-        xr.keeprc(true);
-    else
-        xr.keeprc(false);
-    
-    if ((flags&token_separator) == token_separator)
-        xr.separator(true);
-    else
-        xr.separator(false);
-    
-    xr.tokenize(ustr,false,&vect);
+    if (check_flag(flags, token_comma))
+        sa.setdecimalmode(true);
+    if (check_flag(flags, token_keeprc))
+        sa.keepblanks(true);
+    if (check_flag(flags, token_separator))
+        sa.setseparator(true);
+
+    xr.setstack(&vect);
+    sa.tokenize<wstring>(ustr,xr);
 }
 
 //------------------------------------------------------------------------------------------
@@ -8282,9 +8295,10 @@ Exporting long GetBlankSize() {
 
 Exporting void v_split_indent(string& thestr, vector<string>& v) {
     //The variable is static to avoid rebuilding it at each call
-    static x_forindent xr;
+    static x_forindent tok;
+    static tokenizer_result<string> xr(false);
     
-    xr.tokenize(thestr);
+    tok.tokenize<string>(thestr, xr);
     
     string value;
     for (long i = 0; i < xr.stack.size(); i++) {
@@ -9213,6 +9227,36 @@ Exporting long VirtualIndentation(string& codestr) {
     return IndentationCode(codestr, lisp);
 }
 
+void sc_utf8_to_utf16(std::u16string& w, unsigned char* str , long sz) {
+    w.clear();
+    if (!sz)
+        return;
+
+
+    TAMGUCHAR c;
+    uchar nb;
+
+    TAMGUCHAR c16;
+    while (sz--) {
+        if (*str & 0x80) {
+            nb = c_utf8_to_unicode(str, c);
+            str += nb + 1;
+            sz = (sz >= nb)?sz-nb:0;
+            if (!(c & 0xFFFF0000)) {
+                w += (wchar_t)c;
+                continue;
+            }
+
+            c16 = 0xD800 | ((c & 0xFC00) >> 10) | ((((c & 0x1F0000) >> 16) - 1) << 6);
+            w += c16;
+            w += 0xDC00 | (c & 0x3FF);
+            continue;
+        }
+        w += (char16_t)*str;
+        ++str;
+    }
+}
+
 void S_utf8_to_utf16(wstring& w, unsigned char* str , long sz) {
     if (!sz)
         return;
@@ -9242,10 +9286,43 @@ void S_utf8_to_utf16(wstring& w, unsigned char* str , long sz) {
     }
 }
 
-void s_utf8_to_utf16(wstring& w, string& str) {
+Exporting void s_utf8_to_utf16(wstring& w, string& str) {
     S_utf8_to_utf16(w, USTR(str), str.size());
 }
 
+Exporting void s_utf16_to_utf8(string& s, int32_t* str, long sz) {
+    s = "";
+    if (!sz)
+        return;
+
+    long i = 0;
+    char inter[5];
+    long ineo = 0;
+    long szo = 1 + (sz << 1);
+    char* neo = new char[szo];
+    neo[0] = 0;
+    long nb;
+    uint32_t c;
+
+    while (i < sz) {
+        if (str[i] < 0x0080 && ineo < szo - 1) {
+            neo[ineo++] = (char)str[i];
+            i++;
+            continue;
+        }
+
+        if (c_utf16_to_unicode(c, str[i], false))
+            c_utf16_to_unicode(c, str[++i], true);
+
+        nb = c_unicode_to_utf8(c, (uchar*)inter);
+        neo = concatstrings(neo, inter, ineo, szo, nb);
+        i++;
+    }
+
+    neo[ineo] = 0;
+    s += neo;
+    delete[] neo;
+}
 
 void s_utf16_to_utf8(string& s, wstring& str) {
     long sz = str.size();
@@ -9299,6 +9376,42 @@ void s_unicode_to_utf16(wstring& w, wstring& u) {
     }
 }
 
+void s_unicode_to_utf16(std::u16string& w, u_ustring& u) {
+    w.clear();
+    char32_t c;
+    char32_t c16;
+    
+    for (long i = 0; i < u.size(); i++) {
+        c = u[i];
+        if (!(c & 0xFFFF0000)) {
+            w += (char16_t)c;
+            continue;
+        }
+        
+        c16 = 0xD800 | ((c & 0xFC00) >> 10) | ((((c & 0x1F0000) >> 16) - 1) << 6);
+        w += (char16_t)c16;
+        w += (char16_t)(0xDC00 | (c & 0x3FF));
+    }
+}
+
+void s_unicode_to_utf16(std::wstring& w, u_ustring& u) {
+	w.clear();
+	char32_t c;
+	char32_t c16;
+
+	for (long i = 0; i < u.size(); i++) {
+		c = u[i];
+		if (!(c & 0xFFFF0000)) {
+			w += (wchar_t)c;
+			continue;
+		}
+
+		c16 = 0xD800 | ((c & 0xFC00) >> 10) | ((((c & 0x1F0000) >> 16) - 1) << 6);
+		w += (wchar_t)c16;
+		w += (wchar_t)(0xDC00 | (c & 0x3FF));
+	}
+}
+
 //----------------------------------------------------------------------------------------------------------------------
 
 //----------------------------------------------------------------------------------------------------
@@ -9350,6 +9463,7 @@ UTF8_Handler::UTF8_Handler() : punctuations(32, 11), utf8codemin(32, 11), number
     i = 0;
     while (ponctuations[i] != 0) {
         punctuations[ponctuations[i]] = true;
+        vpunctuations.insert(ponctuations[i]);
         i++;
     }
     
@@ -13774,7 +13888,7 @@ void UTF8_Handler::c_XMLcode(string& s, TAMGUCHAR code) {
 }
 
 void UTF8_Handler::s_EvaluateMetaCharacters(string& s) {
-    TAMGUCHAR cd = 0;
+    long cd = 0;
     
     switch (s[0]) {
         case '\\':
@@ -13829,12 +13943,12 @@ void UTF8_Handler::s_EvaluateMetaCharacters(string& s) {
         return;
     
     uchar inter[5];
-    c_unicode_to_utf8(cd, inter);
+    c_unicode_to_utf8((TAMGUCHAR)cd, inter);
     s = (char*)inter;
 }
 
 void UTF8_Handler::s_EvaluateMetaCharacters(wstring& s) {
-    TAMGUCHAR cd = 0;
+    long cd = 0;
     
     switch (s[0]) {
         case '\\':

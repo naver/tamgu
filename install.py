@@ -141,7 +141,7 @@ while i < len(sys.argv):
             print("Missing python include path on command line")
             exit(-1)
         pythoninclude=sys.argv[i+1]
-        i+=1    
+        i+=1
     elif sys.argv[i]=="-pythonpath":
         if i >= len(sys.argv):
             print("Missing python path on command line")
@@ -224,9 +224,31 @@ cleanlibs:
     compilelibs += "\n\n"
     cleanlibs += "\n\n"
 
+    if b"arm64" in ostype.lower():
+        mac_os = "arm"
+        obuild=open('java/build.base')
+        txt=obuild.read()
+        obuild.close()
+        txt = txt.replace("mac.java", "arm.java")
+        txt = txt.replace('value="mac"', 'value="arm"')
+        wbuild = open("java/build.xml","w")
+        wbuild.write(txt)
+        wbuild.close()
+    else:
+        mac_os = "mac"
+        obuild=open('java/build.base')
+        txt=obuild.read()
+        obuild.close()
+        wbuild = open("java/build.xml","w")
+        wbuild.write(txt)
+        wbuild.close()
+
     vname = "mac"
     if compilejava:
-        vname = "mac.java"
+        if mac_os == "arm":
+            vname = "arm.java"
+        else:
+            vname = "mac.java"
     f=open("Makefile.in","w")
     print("MAC OS", vname)
     f.write("COMPPLUSPLUS = clang++\n")
@@ -243,14 +265,11 @@ cleanlibs:
     f.write(compilelibs)
     f.write(cleanlibs)
     f.write(MACLIBS)
-    if compilejava:
-        f.write("SYSTEMSPATH = -Llibs/macos -L../libs/macos -target x86_64-apple-macos11\n")
-    else:
-        f.write("SYSTEMSPATH = -Llibs/macos -L../libs/macos\n")
+    f.write("SYSTEMSPATH = -Llibs/macos -L../libs/macos\n")
     f.write("TAMGUCONSOLENAME = tamgu\n")
 
     if withgui:
-        if b"arm64" in ostype.lower():
+        if mac_os == "arm":
             f.write("FLTKLIBS=-Llibs/macarm -lfltk -lfltk_images -lfltk_jpeg\n")
         else:
             f.write("FLTKLIBS=-Llibs/macos -lfltk -lfltk_images\n")
@@ -286,19 +305,20 @@ cleanlibs:
         else:
            f.write("PYTHONLIB = "+pythonpath+"\n")
     # AVX instructions are not available on arm64 machines
-    if b"arm64" in ostype.lower():
+    if mac_os == "arm":
         if compilejava:
-           f.write("C++11Flag = -std=c++14 -target x86_64-apple-macos11  -DTamgu_REGEX -DMAVERICK -DAPPLE\n")
+           f.write("C++11Flag = -std=c++11 -DTamgu_REGEX -DMAVERICK -DAPPLE\n")
         else:
            f.write("C++11Flag = -std=c++14 -DTamgu_REGEX -DMAVERICK -DAPPLE -DFLTK14\n")
         f.write("INTELINT =\n")
     else:
-        f.write("C++11Flag = -std=c++14 -DTamgu_REGEX -DMAVERICK -DAPPLE\n")
         if compilejava:
+            f.write("C++11Flag = -std=c++11 -DTamgu_REGEX -DMAVERICK -DAPPLE\n")
             f.write("INTELINT =\n")
         else:
+            f.write("C++11Flag = -std=c++14 -DTamgu_REGEX -DMAVERICK -DAPPLE\n")
             f.write("INTELINT = -DINTELINTRINSICS -mavx2 -DAVXSUPPORT\n")
-    f.close();
+    f.close()
     print("You can launch 'make all libs' now")
     sys.exit(0)
 ##############################################

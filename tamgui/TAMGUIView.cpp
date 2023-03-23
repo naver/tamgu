@@ -252,19 +252,20 @@ x_colorreading::x_colorreading() {
 	}
 }
 
-void x_colorreading::tokenize(wstring& w, bool keeppos) {
-	stack.clear();
-	stackln.clear();
-	stacktype.clear();
-	stacksize.clear();
-	cpos.clear();
-	apply(w, true, NULL, NULL);
+void x_colorreading::tokenizing(wstring& thestr, token_res& xr) {
+	if (!loaded) {
+		setrules();
+		compile();
+	}
+	xr.stacksize.clear();
+	xr.clear(thestr);
+	apply<wstring>(xr);
 
-	for (long i = 0; i < stack.size(); i++) {
-		stacksize.push_back(stack[i].size());
-		stackln[i] = cpos[i] + 1;
-		if (stacktype[i] == 4 && colorkeywords.find(stack[i]) != colorkeywords.end())
-			stacktype[i] = 3;
+	for (long i = 0; i < xr.stack.size(); i++) {
+		xr.stacksize.push_back(xr.stack[i].size());
+		xr.stackln[i] = xr.cpos[i] + 1;
+		if (xr.stacktype[i] == 4 && colorkeywords.find(xr.stack[i]) != colorkeywords.end())
+			xr.stacktype[i] = 3;
 	}
 }
 
@@ -305,7 +306,7 @@ bool CTAMGUIView::FindDeclarations(wstring& wlocalcode, int& letype) {
 		return false;
 
 
-	bnfxs.tokenize(wlocalcode);
+	tok_color.tokenizing(wlocalcode, bnfxs);
 
 	if (bnfxs.stack.size() == 0 || bnfxs.stacktype.back() != 4)
 		return false;
@@ -875,9 +876,10 @@ LRESULT CTAMGUIView::AfficheCourant(WPARAM wParam, LPARAM lParam) {
 	//int nLength = er.GetWindowTextLength();
 	// put the selection at the end of text
 
-	if (s->GetLength() > 50000) {
-		*s = s->Left(50000);
-		*s += _T("... string too long to display\r\n");
+	if (s->GetLength() > 100000) {
+		er.LimitText(1000000);
+		*s = s->Left(100000);
+		*s += _T("\r\nDisplay Buffer Full...\r\n");
 	}
 
 	er.SetSel(-1, -1);
@@ -1209,7 +1211,7 @@ void CTAMGUIView::colorisation() {
 
 bool CTAMGUIView::ApplyColor(wstring& sw, int offset, int mxpos, bool rebuilt) {
 	if (rebuilt)
-		bnfxs.tokenize(sw);
+		tok_color.tokenizing(sw, bnfxs);
 
 	if (bnfxs.stacktype.size() >= 10000) {
 		colore1000();
@@ -1222,39 +1224,27 @@ bool CTAMGUIView::ApplyColor(wstring& sw, int offset, int mxpos, bool rebuilt) {
 	size_t istack;
 	bool colorized = false;
 	for (istack = 0; istack < nb; istack++) {
+		positions.cpMin = bnfxs.stackln[istack] + offset - 1;
+		positions.cpMax = positions.cpMin + bnfxs.stacksize[istack];
+		if (mxpos != -1 && positions.cpMax > mxpos)
+			break;
 		switch (bnfxs.stacktype[istack]) {
 		case 1:
-			positions.cpMin = bnfxs.stackln[istack] + offset - 1;
-			positions.cpMax = positions.cpMin + bnfxs.stacksize[istack];
-			if (mxpos != -1 && positions.cpMax>mxpos)
-				break;
 			e.SetSel(positions);
 			if (Couleur(255, 0, 0))
 				colorized = true;
 			break;
 		case 2:
-			positions.cpMin = bnfxs.stackln[istack] + offset - 1;
-			positions.cpMax = positions.cpMin + bnfxs.stacksize[istack];
-			if (mxpos != -1 && positions.cpMax > mxpos)
-				break;
 			e.SetSel(positions);
 			if (Couleur(150, 150, 250))
 				colorized = true;
 			break;
 		case 10: //string between @"..."@
-			positions.cpMin = bnfxs.stackln[istack] + offset - 1;
-			positions.cpMax = positions.cpMin + bnfxs.stacksize[istack];
-			if (mxpos != -1 && positions.cpMax > mxpos)
-				break;
 			e.SetSel(positions);
 			if (Couleur(150, 150, 150))
 				colorized = true;
 			break;
 		case 3: //keywords in colorkeywords
-			positions.cpMin = bnfxs.stackln[istack] + offset - 1;
-			positions.cpMax = positions.cpMin + bnfxs.stacksize[istack];
-			if (mxpos != -1 && positions.cpMax > mxpos)
-				break;
 			e.SetSel(positions);
 			if (Couleur(0, 0, 255))
 				colorized = true;
@@ -1263,20 +1253,12 @@ bool CTAMGUIView::ApplyColor(wstring& sw, int offset, int mxpos, bool rebuilt) {
 			//we skip if the file size is too large...
 			if (istack<bnfxs.stacktype.size() - 1) {//regular keyword preceded either by a: '[' or '(' (previous code is 7) or a '.' (previous code is 6)
 				if (istack>0 && bnfxs.stacktype[istack - 1] == 6 && bnfxs.stacktype[istack + 1] == 7) {
-					positions.cpMin = bnfxs.stackln[istack] + offset - 1;
-					positions.cpMax = positions.cpMin + bnfxs.stacksize[istack];
-					if (mxpos != -1 && positions.cpMax > mxpos)
-						break;
 					e.SetSel(positions);
 					if (Couleur(160, 100, 10))
 						colorized = true;
 				}
 				else
 				if (bnfxs.stacktype[istack + 1] == 7) {//regular keyword followed with: '[' or '('
-					positions.cpMin = bnfxs.stackln[istack] + offset - 1;
-					positions.cpMax = positions.cpMin + bnfxs.stacksize[istack];
-					if (mxpos != -1 && positions.cpMax > mxpos)
-						break;
 					e.SetSel(positions);
 					if (Couleur(140, 0, 160))
 						colorized = true;
@@ -1284,28 +1266,16 @@ bool CTAMGUIView::ApplyColor(wstring& sw, int offset, int mxpos, bool rebuilt) {
 			}
 			break;
 		case 5://comments
-			positions.cpMin = bnfxs.stackln[istack] + offset - 1;
-			positions.cpMax = positions.cpMin + bnfxs.stacksize[istack];
-			if (mxpos != -1 && positions.cpMax > mxpos)
-				break;
 			e.SetSel(positions);
 			if (Couleur(85, 180, 85))
 				colorized = true;
 			break;
 		case 8:// '#' or '$'
-			positions.cpMin = bnfxs.stackln[istack] + offset - 1;
-			positions.cpMax = positions.cpMin + bnfxs.stacksize[istack];
-			if (mxpos != -1 && positions.cpMax > mxpos)
-				break;
 			e.SetSel(positions);
 			if (Couleur(255, 120, 120))
 				colorized = true;
 			break;
 		case 9:// '?'
-			positions.cpMin = bnfxs.stackln[istack] + offset - 1;
-			positions.cpMax = positions.cpMin + bnfxs.stacksize[istack];
-			if (mxpos != -1 && positions.cpMax > mxpos)
-				break;
 			e.SetSel(positions);
 			if (Couleur(160, 100, 10))
 				colorized = true;

@@ -661,10 +661,8 @@ Exporting Tamgu* Tamgulvector::Unique() {
     
     locking();
     for (int i = 0; i < values.size(); i++) {
-        if (inter.find(values[i]) == inter.end()) {
-            inter.insert(values[i]);
+        if (inter.insert(values[i]).second)
             kvect->values.push_back(values[i]);
-        }
     }
     unlocking();
     

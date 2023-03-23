@@ -852,10 +852,8 @@ Exporting Tamgu* Tamguuvector::Unique() {
     std::set<wstring> inter;
     locking();
     for (int i = 0; i < values.size(); i++) {
-        if (inter.find(values[i]) == inter.end()) {
-            inter.insert(values[i]);
+        if (inter.insert(values[i]).second)
             kvect->values.push_back(values[i]);
-        }
     }
     unlocking();
     
@@ -1601,10 +1599,8 @@ Exporting Tamgu* Tamgua_uvector::Unique() {
     wstring w;
     for (; !it.end(); it.next()) {
         w = it.second.value();
-        if (inter.find(w) == inter.end()) {
-            inter.insert(w);
+        if (inter.insert(w).second)
             kvect->values.push_back(w);
-        }
     }
     return kvect;
 }

@@ -732,65 +732,55 @@ bool TamguState::factorize(TamguDoubleSideAutomaton& a, long first) {
 }
 
 //-----------------------------------------------------------
-class x_wdoubleautomaton : public x_wreading {
+static class x_wdoubleautomaton : public tokenizer_automaton {
 public:
     
-    x_wdoubleautomaton() {
-        juststack=true;
-    }
-    
     void setrules() {
-        rules.push_back("%r=#");
-        rules.push_back("%s=#");
+        rules.push_back(U"%S=#");
         
-        rules.push_back("${%a %d %H #. #, #;}+%+=25");
-        rules.push_back("${%a %d %H #. #, #;}+*=26");
-        rules.push_back("${%a %d %H #. #, #;}+=27");
+        rules.push_back(U"${%a %d %H . , ;}+%+=25");
+        rules.push_back(U"${%a %d %H . , ;}+%*=26");
+        rules.push_back(U"${%a %d %H . , ;}+=27");
 
-        rules.push_back("!%d+=30");
+        rules.push_back(U"!%d+=30");
         
-        rules.push_back("?%+=40"); //the any character...
-        rules.push_back("?*=41");
-        rules.push_back("?=42");
+        rules.push_back(U"%?%+=40"); //the any character...
+        rules.push_back(U"%?%*=41");
+        rules.push_back(U"%?=42");
 
-        rules.push_back("%% %+=4");
-        rules.push_back("%% %*=5");
-        rules.push_back("%% %=6");
+        rules.push_back(U"%% %+=4");
+        rules.push_back(U"%% %*=5");
+        rules.push_back(U"%% %=6");
 
-        rules.push_back("%%%.%+=4");
-        rules.push_back("%%%.*=5");
-        rules.push_back("%%%.=6");
+        rules.push_back(U"%%.%+=4");
+        rules.push_back(U"%%.%*=5");
+        rules.push_back(U"%%.=6");
         
-        rules.push_back("{=7");
-        rules.push_back("}%+=8");
-        rules.push_back("}*=9");
-        rules.push_back("}=10");
+        rules.push_back(U"%{=7");
+        rules.push_back(U"%}%+=8");
+        rules.push_back(U"%}%*=9");
+        rules.push_back(U"%}=10");
         
-        rules.push_back("[=11");
-        rules.push_back("]%+=12");
-        rules.push_back("]*=13");
-        rules.push_back("]=14");
+        rules.push_back(U"%[=11");
+        rules.push_back(U"%]%+=12");
+        rules.push_back(U"%]%*=13");
+        rules.push_back(U"%]=14");
         
-        rules.push_back("(=15");
-        rules.push_back(")=16");
+        rules.push_back(U"%(=15");
+        rules.push_back(U"%)=16");
         
-        rules.push_back("%d%-%d%+=20");
-        rules.push_back("%a%-%a%+=20");
-        rules.push_back("%d%-%d*=21");
-        rules.push_back("%a%-%a*=21");
-        rules.push_back("%d%-%d=22");
-        rules.push_back("%a%-%a=22");
-        rules.push_back("%.%+=1");
-        rules.push_back("%.*=2");
-        rules.push_back("%.=3");
+        rules.push_back(U"%d%-%d%+=20");
+        rules.push_back(U"%a%-%a%+=20");
+        rules.push_back(U"%d%-%d%*=21");
+        rules.push_back(U"%a%-%a%*=21");
+        rules.push_back(U"%d%-%d=22");
+        rules.push_back(U"%a%-%a=22");
+        rules.push_back(U".%+=1");
+        rules.push_back(U".%*=2");
+        rules.push_back(U".=3");
     }
     
-    void tokenize(wstring& thestr, vector<wstring>& vstack, vector<uchar>& vtypes) {
-        //only stack is necessary
-        apply(thestr,false, &vstack, &vtypes);
-    }
-    
-};
+} double_tok;
 
 //-----------------------------------------------------------
 
@@ -1252,17 +1242,20 @@ TamguState* TamguState::parse(TamguDoubleSideAutomaton& a, vector<wstring>& vs, 
 
 
 bool TamguState::parse(TamguDoubleSideAutomaton& a, agnostring& expression, vector<uint32_t>& indexes) {
-    static x_wdoubleautomaton xr;
-    vector<wstring> vs;
+    tokenizer_result<wstring> xr;
+    
     vector<uchar> types;
     wstring w=expression.utf8tounicode();
 
-    xr.tokenize(w,vs,types);
+    long i;
+    double_tok.tokenize<wstring>(w,xr);
+    for (i = 0; i < xr.stacktype.size(); i++)
+        types.push_back(xr.stacktype[i]);
     
-	long i = 0;
+	i = 0;
     
     TamguState* xf = new TamguState(a);
-	if (xf->parse(a, vs, types, i, indexes, NULL)==NULL)
+	if (xf->parse(a, xr.stack, types, i, indexes, NULL)==NULL)
 		return false;
 
 	status |= xf->status;
@@ -1279,16 +1272,19 @@ bool TamguState::parse(TamguDoubleSideAutomaton& a, agnostring& expression, vect
 }
 
 bool TamguState::parse(TamguDoubleSideAutomaton& a, wstring& w, vector<uint32_t>& indexes) {
-    static x_wdoubleautomaton xr;
-    vector<wstring> vs;
+    tokenizer_result<wstring> xr;
+
     vector<uchar> types;
     
-    xr.tokenize(w,vs,types);
+    long i;
+    double_tok.tokenize<wstring>(w,xr);
+    for (i = 0; i < xr.stacktype.size(); i++)
+        types.push_back(xr.stacktype[i]);
     
-    long i = 0;
-    
+    i = 0;
+
     TamguState* xf = new TamguState(a);
-    if (xf->parse(a, vs, types, i, indexes, NULL)==NULL)
+    if (xf->parse(a, xr.stack, types, i, indexes, NULL)==NULL)
         return false;
         
     vector<TamguState*> marked;

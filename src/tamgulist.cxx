@@ -440,18 +440,13 @@ Exporting Tamgu* Tamgulist::Unique() {
     locking();
     Tamgulist* klist = new Tamgulist;
 
-    map<string, Tamgu*> inter;
+    std::set<string> inter;
     string k;
     for (const auto& it : values) {
-        k = it->String();
-        if (inter.find(k) != inter.end()) {
-            if (inter[k]->same(it)->Boolean() == false)
-                klist->Push(it);
-        }
-        else {
-            inter[k] = it;
+        k = it->Typestring();
+        k += "::" + it->String();
+        if (inter.insert(k).second)
             klist->Push(it);
-        }
     }
     unlocking();
     return klist;
@@ -2299,19 +2294,14 @@ Exporting Tamgu* Tamguring::mod(Tamgu *b, bool itself) {
 
 Exporting Tamgu* Tamguring::Unique() {
     Tamguvector* kvect = globalTamgu->Providevector();
-    map<string, Tamgu*> inter;
+    std::set<string> inter;
     string k;
     atomic_ring_iterator<Tamgu*> it(values);
     while (!it.end()) {
-        k = it.second->String();
-        if (inter.find(k) != inter.end()) {
-            if (inter[k]->same(it.second)->Boolean() == false)
-                kvect->Push(it.second);
-        }
-        else {
-            inter[k] = it.second;
+        k = it.second->Typestring();
+        k += "::" + it.second->String();
+        if (inter.insert(k).second)
             kvect->Push(it.second);
-        }
         it.next();
     }
     return kvect;

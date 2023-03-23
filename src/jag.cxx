@@ -393,7 +393,8 @@ void jag_editor::deindentminus() {
 
 void jag_editor::colorring(string& txt, vector<long>& limits) {
     static hmap<string,bool> keys;
-    static x_coloringrule xr;
+    static x_coloringrule color_tok;
+    static tokenizer_result<string> xr;
     static bool init=false;
 
     if (txt == "")
@@ -407,7 +408,7 @@ void jag_editor::colorring(string& txt, vector<long>& limits) {
     long sztxt = txt.size();
 
     txt += "\n";
-    xr.tokenize(txt, true);
+    color_tok.tokenize<string>(txt, xr);
     txt.pop_back();
 
     char type;
@@ -3486,12 +3487,18 @@ void jag_editor::addabuffer(wstring& b, bool instring) {
 
     //We only keep displayable characters
     wchar_t c;
+    wstring code;
     for (long i = 0; i < b.size(); i++) {
         c = b[i];
         //We replace these characters with a blank
         if (c < 32 && c != 9 && c != 10 && c != 13)
-            b[i] = 32;
+            continue;
+        code += c;
     }
+    if (code == L"")
+        return;
+    
+    b = code;
 
     if (emode())
         tobesaved = true;
@@ -3502,7 +3509,7 @@ void jag_editor::addabuffer(wstring& b, bool instring) {
             line = lines[poslines[currentline]];
 
         //We insert the character within our current line...
-        wstring code = line.substr(0, posinstring);
+        code = line.substr(0, posinstring);
         code += b;
         code += line.substr(posinstring,line.size());
 

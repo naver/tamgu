@@ -27,6 +27,7 @@
 #include "vecte.h"
 
 #include "x_node.h"
+#include "tokens.h"
 
 #define threadhandle std::thread::id
 #define THREADPTR std::thread*
@@ -341,6 +342,8 @@ public:
     hmap<string,vector<TamguPredicate*> > knowledgebase_on_first;
     hmap<string,vector<TamguPredicate*> > knowledgebase_on_second;
     hmap<string,vector<TamguPredicate*> > knowledgebase_on_third;
+    
+    tokenizer_automaton tamgu_tokenizer;
 
 	//This variable is set to TRUE in thread mode... It allows then for the actual creation of locks...
     bool threadMODE;

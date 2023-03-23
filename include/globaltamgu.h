@@ -38,7 +38,7 @@ void FinalTamguConstantCleaning(void);
 Exporting TamguGlobal* TamguCreate(long nbthreads = 50);
 Exporting bool TamguExtinguish();
 Exporting short TamguLoad(string filename);
-Exporting short TamguCompile(string& code, string filename, bool display = false);
+Exporting short TamguCompile(string& code, string filename, char display = false);
 Exporting short TamguCompileMain(string& code, string filename);
 Exporting short TamguCompileNewSpace(string& codeinit, string filename);
 Exporting size_t TamguCompile(string& code, short idcode);

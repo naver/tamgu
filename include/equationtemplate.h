@@ -2531,7 +2531,7 @@ public:
             vector<Tamgu*> vv;
             for (long i = 0; i < v.size(); i++) {
                 if (v[i]->isConst())
-                    val += v[i]->Long();
+                    val += v[i]->Float();
                 else
                     vv.push_back(v[i]);
             }
@@ -2883,13 +2883,13 @@ public:
                 if (v[i]->isConst()) {
                     if (!i) {
                         first = true;
-                        val = v[i]->Long();
+                        val = v[i]->Float();
                         continue;
                     }
                     if (first)
-                        val -= v[i]->Long();
+                        val -= v[i]->Float();
                     else
-                        val += v[i]->Long();
+                        val += v[i]->Float();
                 }
                 else
                     vv.push_back(v[i]);
@@ -3144,7 +3144,7 @@ public:
             vector<Tamgu*> vv;
             for (long i = 0; i < v.size(); i++) {
                 if (v[i]->isConst())
-                    val *= v[i]->Long();
+                    val *= v[i]->Float();
                 else
                     vv.push_back(v[i]);
             }

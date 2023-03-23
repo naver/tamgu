@@ -41,7 +41,7 @@
 #include "tamgutaskell.h"
 #include "tamgulisp.h"
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2022.11.24.17";
+const char* tamgu_version = "Tamgu 1.2023.03.23.12";
 
 extern "C" {
 Exporting const char* TamguVersion(void) {
@@ -345,16 +345,15 @@ operator_strings(false), terms(false), booleanlocks(true), tracked(NULL, true), 
 #else
     loosecompability = false;
 #endif
-    
+
+
     handler_on_utf8 = create_utf8_handler();
     
     add_to_tamgu_garbage = false;
     number_of_current_eval = 0;
     
     threadcounter = 0;
-    
-    waitingonfalse = false;
-    
+        
     SetThreadid();
     
     ThreadLock::ids = 10;
@@ -385,8 +384,10 @@ operator_strings(false), terms(false), booleanlocks(true), tracked(NULL, true), 
     erroronkey = false;
     windowmode = false;
     spaceid = -1;
-    running = false;
-    
+    running = false;    
+    waitingonfalse = false;
+    executionbreak = false;
+
     
     threads = new ThreadStruct[maxthreads];
     errors = new bool[maxthreads];
@@ -2094,15 +2095,15 @@ Exporting void TamguGlobal::ResetWithTracker(Tamgu* a, long idx, long inc) {
 //----------------------------------------------------------------------------------
 bool TamguGlobal::Loadcontent(string content) {
     //We directly parse the content...
-    static x_reading xr;
+    static tokenizer_result<string> xr;
     
-    xr.tokenize(content);
+    tamgu_tokenizer.tokenize<string>(content, xr);
     TamguCode* a = GetNewCodeSpace("SCRIPT");
     return a->Load(xr);
 }
 
 TamguCode* TamguGlobal::Loadfile(string filename) {
-    x_reading xr;
+    tokenizer_result<string> xr;
     filename = NormalizeFileName(filename);
     
     string code;
@@ -2130,7 +2131,7 @@ TamguCode* TamguGlobal::Loadfile(string filename) {
     std::chrono::high_resolution_clock::time_point after;
     
     before = std::chrono::high_resolution_clock::now();
-    xr.tokenize(code);
+    tamgu_tokenizer.tokenize<string>(code, xr);
     after = std::chrono::high_resolution_clock::now();
     double dtok = std::chrono::duration_cast<std::chrono::milliseconds>( after - before ).count();
     
