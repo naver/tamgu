@@ -835,9 +835,7 @@ Tamgu* Tamguustring::MethodDoubleMetaphone(Tamgu* contextualpattern, short idthr
 }
 
 
-Tamgu* Tamguustring::MethodTokenize(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-    static bool init = false;
-    
+Tamgu* Tamguustring::MethodTokenize(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {    
     short flag = 0;
     bool comma = false;
     bool separator = false;

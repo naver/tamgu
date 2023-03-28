@@ -5677,7 +5677,7 @@ char bnf_tamgu::m_minus_0_1(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYOR
     subtree=NULL;
-    if (m_astringdouble(lret,&subtree) || m_afullstring(lret,&subtree) || m_astringsimple(lret,&subtree) || m_apreg(lret,&subtree) || m_aspreg(lret,&subtree) || m_atreg(lret,&subtree) || m_astreg(lret,&subtree) || m_variable(lret,&subtree))
+    if (m_astringdouble(lret,&subtree) || m_afullstring(lret,&subtree) || m_astringsimple(lret,&subtree) || m_apreg(lret,&subtree) || m_aspreg(lret,&subtree) || m_atreg(lret,&subtree) || m_astreg(lret,&subtree) || m_fstring(lret,&subtree) || m_festring(lret,&subtree) || m_variable(lret,&subtree))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -5922,7 +5922,7 @@ char bnf_tamgu::m_indexes_0_1(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYOR
     subtree=NULL;
-    if (m_minus(lret,&subtree) || m_apreg(lret,&subtree) || m_aspreg(lret,&subtree) || m_atreg(lret,&subtree) || m_astreg(lret,&subtree) || m_expressions(lret,&subtree))
+    if (m_minus(lret,&subtree) || m_apreg(lret,&subtree) || m_aspreg(lret,&subtree) || m_atreg(lret,&subtree) || m_astreg(lret,&subtree) || m_fstring(lret,&subtree) || m_festring(lret,&subtree) || m_expressions(lret,&subtree))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -11006,11 +11006,11 @@ char bnf_tamgu::m_pexpression(string& lreturn,x_node** tree) {
                 found=true;
             break;
         case 34:
-            if (m_astringdouble(lret,&subtree) || m_afullstring(lret,&subtree) || m_apreg(lret,&subtree) || m_atreg(lret,&subtree)) 
+            if (m_astringdouble(lret,&subtree) || m_afullstring(lret,&subtree) || m_apreg(lret,&subtree) || m_atreg(lret,&subtree) || m_fstring(lret,&subtree)) 
                 found=true;
             break;
         case 39:
-            if (m_astringsimple(lret,&subtree) || m_aspreg(lret,&subtree) || m_astreg(lret,&subtree)) 
+            if (m_astringsimple(lret,&subtree) || m_aspreg(lret,&subtree) || m_astreg(lret,&subtree) || m_festring(lret,&subtree)) 
                 found=true;
             break;
         case '0':
@@ -11788,11 +11788,11 @@ char bnf_tamgu::m_finaltoken_0_1_2_3(string& lreturn,x_node** tree) {
                 found=true;
             break;
         case 34:
-            if (m_astringdouble(lret,&subtree) || m_apreg(lret,&subtree) || m_atreg(lret,&subtree)) 
+            if (m_astringdouble(lret,&subtree) || m_apreg(lret,&subtree) || m_atreg(lret,&subtree) || m_fstring(lret,&subtree)) 
                 found=true;
             break;
         case 39:
-            if (m_astringsimple(lret,&subtree) || m_aspreg(lret,&subtree) || m_astreg(lret,&subtree)) 
+            if (m_astringsimple(lret,&subtree) || m_aspreg(lret,&subtree) || m_astreg(lret,&subtree) || m_festring(lret,&subtree)) 
                 found=true;
             break;
         case '0':
@@ -12620,11 +12620,11 @@ char bnf_tamgu::m_taskellexpression(string& lreturn,x_node** tree) {
                 found=true;
             break;
         case 34:
-            if (m_astringdouble(lret,&subtree) || m_afullstring(lret,&subtree) || m_apreg(lret,&subtree) || m_atreg(lret,&subtree)) 
+            if (m_astringdouble(lret,&subtree) || m_afullstring(lret,&subtree) || m_apreg(lret,&subtree) || m_atreg(lret,&subtree) || m_fstring(lret,&subtree)) 
                 found=true;
             break;
         case 39:
-            if (m_astringsimple(lret,&subtree) || m_aspreg(lret,&subtree) || m_astreg(lret,&subtree)) 
+            if (m_astringsimple(lret,&subtree) || m_aspreg(lret,&subtree) || m_astreg(lret,&subtree) || m_festring(lret,&subtree)) 
                 found=true;
             break;
         case '0':
@@ -12926,11 +12926,11 @@ char bnf_tamgu::m_taskellkeymap(string& lreturn,x_node** tree) {
     bool found = false;
     switch (xu) {
         case 34:
-            if (m_astringdouble(lret,&subtree) || m_afullstring(lret,&subtree) || m_apreg(lret,&subtree) || m_atreg(lret,&subtree)) 
+            if (m_astringdouble(lret,&subtree) || m_afullstring(lret,&subtree) || m_apreg(lret,&subtree) || m_atreg(lret,&subtree) || m_fstring(lret,&subtree)) 
                 found=true;
             break;
         case 39:
-            if (m_astringsimple(lret,&subtree) || m_aspreg(lret,&subtree) || m_astreg(lret,&subtree)) 
+            if (m_astringsimple(lret,&subtree) || m_aspreg(lret,&subtree) || m_astreg(lret,&subtree) || m_festring(lret,&subtree)) 
                 found=true;
             break;
         case '0':
@@ -13659,7 +13659,7 @@ char bnf_tamgu::m_hdeclaration_0_1_2_3(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYOR
     subtree=NULL;
-    if (m_taskellmap(lret,&subtree) || m_taskellvector(lret,&subtree) || m_abool(lret,&subtree) || m_astringdouble(lret,&subtree) || m_afullstring(lret,&subtree) || m_astringsimple(lret,&subtree) || m_apreg(lret,&subtree) || m_aspreg(lret,&subtree) || m_atreg(lret,&subtree) || m_astreg(lret,&subtree) || m_anumber(lret,&subtree) || m_word(lret,&subtree))
+    if (m_taskellmap(lret,&subtree) || m_taskellvector(lret,&subtree) || m_abool(lret,&subtree) || m_astringdouble(lret,&subtree) || m_afullstring(lret,&subtree) || m_astringsimple(lret,&subtree) || m_apreg(lret,&subtree) || m_aspreg(lret,&subtree) || m_atreg(lret,&subtree) || m_astreg(lret,&subtree) || m_fstring(lret,&subtree) || m_festring(lret,&subtree) || m_anumber(lret,&subtree) || m_word(lret,&subtree))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -14114,11 +14114,11 @@ char bnf_tamgu::m_taskell_0_1_2_3(string& lreturn,x_node** tree) {
                 found=true;
             break;
         case 34:
-            if (m_astringdouble(lret,&subtree) || m_afullstring(lret,&subtree) || m_apreg(lret,&subtree) || m_atreg(lret,&subtree)) 
+            if (m_astringdouble(lret,&subtree) || m_afullstring(lret,&subtree) || m_apreg(lret,&subtree) || m_atreg(lret,&subtree) || m_fstring(lret,&subtree)) 
                 found=true;
             break;
         case 39:
-            if (m_astringsimple(lret,&subtree) || m_aspreg(lret,&subtree) || m_astreg(lret,&subtree)) 
+            if (m_astringsimple(lret,&subtree) || m_aspreg(lret,&subtree) || m_astreg(lret,&subtree) || m_festring(lret,&subtree)) 
                 found=true;
             break;
         case '0':
@@ -17406,7 +17406,7 @@ char bnf_tamgu::m_hitem(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYOR
     subtree=NULL;
-    if (m_taskellcase(lret,&subtree) || m_localif(lret,&subtree) || m_abool(lret,&subtree) || m_astringdouble(lret,&subtree) || m_afullstring(lret,&subtree) || m_astringsimple(lret,&subtree) || m_apreg(lret,&subtree) || m_aspreg(lret,&subtree) || m_atreg(lret,&subtree) || m_astreg(lret,&subtree) || m_anumber(lret,&subtree) || m_negcall(lret,&subtree) || m_call(lret,&subtree) || m_valtuple(lret,&subtree) || m_parenthetic(lret,&subtree) || m_increment(lret,&subtree) || m_variable(lret,&subtree) || m_subtelque(lret,&subtree) || m_telque(lret,&subtree) || m_intentionvect(lret,&subtree) || m_valvector(lret,&subtree) || m_valmap(lret,&subtree))
+    if (m_taskellcase(lret,&subtree) || m_localif(lret,&subtree) || m_abool(lret,&subtree) || m_astringdouble(lret,&subtree) || m_afullstring(lret,&subtree) || m_astringsimple(lret,&subtree) || m_apreg(lret,&subtree) || m_aspreg(lret,&subtree) || m_atreg(lret,&subtree) || m_astreg(lret,&subtree) || m_fstring(lret,&subtree) || m_festring(lret,&subtree) || m_anumber(lret,&subtree) || m_negcall(lret,&subtree) || m_call(lret,&subtree) || m_valtuple(lret,&subtree) || m_parenthetic(lret,&subtree) || m_increment(lret,&subtree) || m_variable(lret,&subtree) || m_subtelque(lret,&subtree) || m_telque(lret,&subtree) || m_intentionvect(lret,&subtree) || m_valvector(lret,&subtree) || m_valmap(lret,&subtree))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -21063,11 +21063,11 @@ char bnf_tamgu::m_expression_0_2(string& lreturn,x_node** tree) {
                 found=true;
             break;
         case 34:
-            if (m_astringdouble(lret,&subtree) || m_afullstring(lret,&subtree) || m_apreg(lret,&subtree) || m_atreg(lret,&subtree)) 
+            if (m_astringdouble(lret,&subtree) || m_afullstring(lret,&subtree) || m_apreg(lret,&subtree) || m_atreg(lret,&subtree) || m_fstring(lret,&subtree)) 
                 found=true;
             break;
         case 39:
-            if (m_astringsimple(lret,&subtree) || m_aspreg(lret,&subtree) || m_astreg(lret,&subtree)) 
+            if (m_astringsimple(lret,&subtree) || m_aspreg(lret,&subtree) || m_astreg(lret,&subtree) || m_festring(lret,&subtree)) 
                 found=true;
             break;
         case '(':
@@ -24174,11 +24174,11 @@ char bnf_tamgu::m_tlatom(string& lreturn,x_node** tree) {
                 found=true;
             break;
         case 34:
-            if (m_astringdouble(lret,&subtree) || m_apreg(lret,&subtree) || m_atreg(lret,&subtree)) 
+            if (m_astringdouble(lret,&subtree) || m_apreg(lret,&subtree) || m_atreg(lret,&subtree) || m_fstring(lret,&subtree)) 
                 found=true;
             break;
         case 39:
-            if (m_aspreg(lret,&subtree) || m_astreg(lret,&subtree)) 
+            if (m_aspreg(lret,&subtree) || m_astreg(lret,&subtree) || m_festring(lret,&subtree)) 
                 found=true;
             break;
         case '0':
@@ -27450,6 +27450,32 @@ char bnf_tamgu::m_aspreg(string& lreturn,x_node** tree) {
         return(0);
     static const char* label="aspreg";
     if (fx->stacktype[currentpos]==12) {
+        x_init_node(lreturn,fx->stack[currentpos],tree,label,currentpos,true);
+        incrementpos();
+        return(1);
+    }
+    return(0);
+}
+
+char bnf_tamgu::m_fstring(string& lreturn,x_node** tree) {
+    if (gFail==1) return(0);
+    if (currentpos>=fx->stack.size())
+        return(0);
+    static const char* label="fstring";
+    if (fx->stacktype[currentpos]==13) {
+        x_init_node(lreturn,fx->stack[currentpos],tree,label,currentpos,true);
+        incrementpos();
+        return(1);
+    }
+    return(0);
+}
+
+char bnf_tamgu::m_festring(string& lreturn,x_node** tree) {
+    if (gFail==1) return(0);
+    if (currentpos>=fx->stack.size())
+        return(0);
+    static const char* label="festring";
+    if (fx->stacktype[currentpos]==14) {
         x_init_node(lreturn,fx->stack[currentpos],tree,label,currentpos,true);
         incrementpos();
         return(1);

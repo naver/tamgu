@@ -41,6 +41,7 @@ const int32_t def_lisp_mode = 1611; //This value should not be used in rules
 // Automaton based method
 //---------------------------------------------------
 //---------------------------------------------------
+class tokenizer_node;
 
 template <typename STRNG> class tokenizer_result {
 public:
@@ -49,6 +50,10 @@ public:
     vector<long> bpos;
     vector<long> cpos;
     
+    vector<long> p_stack;
+    vector<short> i_stack;
+    vector<tokenizer_node*> r_stack;
+
     u_uchar currentchr;
     u_ustring token;
     
@@ -85,7 +90,59 @@ public:
         stack_ptr = &stack;
         store_all = p_all;
     }
-     
+
+    
+    inline void clear_stack() {
+        r_stack.clear();
+        i_stack.clear();
+        p_stack.clear();
+    }
+
+    //Keeping the stack small
+    inline void check_stack(tokenizer_node* rule) {
+        if (r_stack.size() > 1000) {
+            if (rule == r_stack[0])
+                clear_stack();
+            else {
+                if (rule == r_stack[1]) {
+                    r_stack.erase(r_stack.begin() + 1, r_stack.end());
+                    i_stack.erase(i_stack.begin() + 1, i_stack.end());
+                    p_stack.erase(p_stack.begin() + 5, p_stack.end());
+                }
+            }
+        }
+    }
+    
+    inline void push_stack(tokenizer_node* rule, long i) {
+        r_stack.push_back(rule);
+        i_stack.push_back(i);
+        
+        p_stack.push_back(line);
+        p_stack.push_back(b_pos);
+        p_stack.push_back(c_pos);
+        p_stack.push_back(token.size());
+        p_stack.push_back((long)currentchr);
+    }
+
+    inline long pop() {
+        long i = p_stack.back();
+        p_stack.pop_back();
+        return i;
+    }
+    
+    inline long pop_stack() {
+        long  i = i_stack.back();
+        i_stack.pop_back();
+        r_stack.pop_back();
+
+        currentchr = (u_uchar)pop();
+        token = token.substr(0, pop());
+        c_pos = pop();
+        b_pos = pop();
+        line = pop();
+        return i;
+    }
+    
     void setstack(vector<STRNG>* s) {
         stack_ptr = s;
     }
@@ -662,42 +719,55 @@ public:
         //In this case, we apply a iterative analysis...
         //The first element is the one that should be found to stop
         tokenizer_node* r;
+        long i = 0;
+        
+        rst.clear_stack();
+        rst.push_stack(rule, 0);
+        if (!check_flag(rule->action, act_epsilon)) {
+            if (!rule->check_skip())
+                rst.token += rst.currentchr;
+            rst.getnext();
+        }
+
         long sz = rule->size();
-        long p = rst.b_pos;
-        long c = rst.c_pos;
-        if (!rule->check_skip())
-            rst.token += rst.currentchr;
-        rst.getnext();
-        long tokenlen;
-        for (long i = 0; i < sz && !rst.end(); i++) {
-            r = rule->arcs[i];
-            if (r->check(rst.currentchr, operators, !r->check_negation())) {
-                if (r->arcs.size() == 1) {
-                    tokenlen = rst.token.size();
-                    while (r->arcs.size() == 1) {
-                        if (!r->check_skip())
-                            rst.token += rst.currentchr;
-                        rst.getnext();
-                        r = r->arcs[0];
-                        if (r->action == act_end) {
-                            rst.store(r->label);
-                            return true;
-                        }
-                        if (!r->check(rst.currentchr, operators, !rule->check_negation())) {
-                            rst.b_pos = p;
-                            rst.c_pos = c;
-                            rst.token = rst.token.substr(0, tokenlen);
+        while (rst.r_stack.size() && !rst.end()) {
+            for (; i < sz && !rst.end(); i++) {
+                r = rule->arcs[i];
+                if (r->action == act_end) {
+                    rst.store(r->label);
+                    return true;
+                }
+                
+                if (r->check(rst.currentchr, operators, !r->check_negation())) {
+                    if (r == rule) {
+                        i = -1;
+                        if (!check_flag(r->action, act_epsilon)) {
+                            if (!r->check_skip())
+                                rst.token += rst.currentchr;
                             rst.getnext();
-                            break;
                         }
                     }
+                    else {
+                        rst.check_stack(r);
+                        rst.push_stack(r, i + 1);
+                        if (!check_flag(r->action, act_epsilon)) {
+                            if (!r->check_skip())
+                                rst.token += rst.currentchr;
+                            rst.getnext();
+                        }
+                        rule = r;
+                        sz = rule->size();
+                        i = 0;
+                        break;
+                    }
                 }
-                i = -1;
-                if (!r->check_skip())
-                    rst.token += rst.currentchr;
-                p = rst.b_pos;
-                c = rst.c_pos;
-                rst.getnext();
+            }
+            if (i == sz) {
+                i = rst.pop_stack();
+                if (rst.r_stack.size()) {
+                    rule = rst.r_stack.back();
+                    sz = rule->size();
+                }
             }
         }
         return false;
@@ -717,8 +787,6 @@ public:
             rst.c_start = rst.c_pos - 1;
             rst.token = U"";
         }
-        
-        bool tail = rule->check_tail();
 
         u_uchar chr = rst.currentchr;
         long l = rst.line;
@@ -735,6 +803,9 @@ public:
                 if (rule->check_fail())
                     return true;
                 
+                if (rule->check_tail())
+                    return iterative_traversal<STRNG>(rst, rule);
+
                 if (!check_flag(rule->action, act_epsilon)) {
                     if (!rule->check_skip())
                         rst.token += rst.currentchr;
@@ -758,12 +829,12 @@ public:
             }
         }
 
-        if (tail)
-            return iterative_traversal<STRNG>(rst, rule);
-
         if (alreadychecked || rule->check(rst.currentchr, operators, !rule->check_negation())) {
             if (rule->check_fail())
                 return true;
+
+            if (rule->check_tail())
+                return iterative_traversal<STRNG>(rst, rule);
 
             //If it is not an epsilon, there was an actual character comparison
             alreadychecked = false;

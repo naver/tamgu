@@ -33,7 +33,7 @@ mapss keywords={"foldl":"folding",
 
 string cr="\n";
 
-map indexes={"atreg":34,"astreg":39,"apreg":34,"aspreg":39,"astringdouble":34,"afullstring":34,"astringsimple":39,"anumber":'0123456789-',"valtail":"|","maptail":"|","valmaptail":"{","valvectortail":"[",
+map indexes={"atreg":34,"astreg":39,"apreg":34,"aspreg":39,"fstring":34,"festring":39,"astringdouble":34,"afullstring":34,"astringsimple":39,"anumber":'0123456789-',"valtail":"|","maptail":"|","valmaptail":"{","valvectortail":"[",
     "jvector":"[","jmap":"{","telque":"<","intentionvect":"[","pintentionvect":"[","valmap":"{","parenthetic":"(","optional":"(","taskellvector":"[","taskellmap":"{","taskellmaptail":"|",
     "valvector":"[","valmap":"{","term":"?","tuple":"(","predicatevariable":"?","valpredicatevector":"[","valmappredicate":"{","valtuple":"(",
     "taskellcase":"c!","abool":lg,"localif":"i!", "tlquote":39, "tlist":"(","tlkeys":"{","tamgulisp":'\'
@@ -441,4 +441,5 @@ txt=txt.indent(4, false);
 sa.openwrite(_current+'tamgun.h');
 sa.write(txt);
 sa.close();
+
 

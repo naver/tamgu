@@ -950,8 +950,13 @@ long tokenizer_automaton::compile() {
         initial->trim_epsilon(nodes);
         if (final_action >= 0)
             indexed_on_label[final_action].push_back(initial);
-        if (tail)
-            add_flag(initial->flags, flag_tail);
+
+        if (tail) {
+            anode = initial;
+            while (anode->arcs.size() == 1)
+                anode = anode->arcs[0];
+            add_flag(anode->flags, flag_tail);
+        }
     }
     
     //Cleaning useless nodes
@@ -1267,6 +1272,8 @@ void tokenizer_automaton::setrules() {
     rules.push_back(U"r-'~%r+'=10");               //42    string r"" tamgu regular expression (we do not keep the r in the parse)
     rules.push_back(U"p-\"~%r+\"=11");             //42    string p"" tamgu posix expression (we do not keep the p in the parse)
     rules.push_back(U"p-'~%r+'=12");               //42    string p"" tamgu posix expression (we do not keep the p in the parse)
+    rules.push_back(U"f-\"~%r+\"=13");              //42    string f"" tamgu format expression
+    rules.push_back(U"f-'~%r+'=14");              //42    string f'' tamgu format expression
 
     //Unicode double quote strings
     rules.push_back(U"u-\"{[\\-\"] ~%r}*\"=1");     //string "" does not contain CR and can escape characters
@@ -1659,6 +1666,9 @@ void TamguGlobal::RecordCompileFunctions() {
 
     parseFunctions["apreg"] = &TamguCode::C_pstring;
     parseFunctions["aspreg"] = &TamguCode::C_pstring;
+
+    parseFunctions["fstring"] = &TamguCode::C_fstring;
+    parseFunctions["festring"] = &TamguCode::C_fstring;
 
     
 	parseFunctions["ufullstring"] = &TamguCode::C_ustring;
@@ -4267,6 +4277,46 @@ Tamgu* TamguCode::C_pstring(x_node* xn, Tamgu* parent) {
     return tre;
 }
 #endif
+
+//This a fstring, in which {..} expressions must be parsed again...
+Tamgu* TamguCode::C_fstring(x_node* xn, Tamgu* parent) {
+    string thestr = xn->value.substr(1, xn->value.size() - 2);
+    
+    //First we detect all the {...} expression
+    string code;
+    Tamgu* action;
+    Tamguformat* vect = new Tamguformat(global, parent);
+    long beginning = 0;
+    long pos = thestr.find("{");
+    long posc;
+    while (pos != -1) {
+        posc = thestr.find("}", pos);
+        if (posc == -1) {
+            stringstream message;
+            message << "Format expression malformed: missing closing '}': '" << thestr << "'";
+            throw new TamguRaiseError(message, filename, current_start, current_end);
+        }
+        if ((pos - beginning))
+            action = new Tamgustring(thestr.substr(beginning, pos - beginning), global, vect);
+        
+        code = "_nop(" + thestr.substr(pos+1, posc - pos - 1) + ");";
+        action = CompileFormat(code, vect);
+        if (action->isError()) {
+            stringstream message;
+            message << "Wrong expression: '" << code << "': " << action->String();
+            action->Release();
+            throw new TamguRaiseError(message, filename, current_start, current_end);
+        }
+        beginning = posc + 1;
+        pos = thestr.find("{", beginning);
+    }
+    
+    if (beginning < thestr.size() -1)
+        action = new Tamgustring(thestr.substr(beginning, thestr.size()), global, vect);
+    
+    return vect;
+}
+
 
 Tamgu* TamguCode::C_rstring(x_node* xn, Tamgu* parent) {
     string thestr = xn->value.substr(1, xn->value.size() - 2);
@@ -11034,5 +11084,58 @@ Tamgu* TamguCode::CompileExpression(string& body, short idthread) {
     return compiled;
 }
 
+Tamgu* TamguCode::CompileFormat(string& body, Tamgu* parent) {
+    //we store our TamguCode also as an Tamgutamgu...
+    static tokenizer_result<string> xr;
+    bnf_tamgu& bnf = *global->currentbnf;
+
+    global->tamgu_tokenizer.tokenize<string>(body, xr);
+
+    global->lineerror = -1;
+
+    x_node* xn = bnf.x_parsing(&xr, FULL);
+    if (xn == NULL) {
+        cerr << " in " << filename << endl;
+        stringstream& message = global->threads[0].message;
+        global->lineerror = bnf.lineerror;
+        currentline = global->lineerror;
+        message << "Error while parsing program file: ";
+        if (bnf.errornumber != -1)
+            message << bnf.x_errormsg(bnf.errornumber);
+        else
+            message << bnf.labelerror;
+
+        return globalTamgu->Returnerror(message.str(), 0);
+    }
+
+
+    Tamgu* compiled = NULL;
+    try {
+        compiled = Traverse(xn, parent);
+    }
+    catch (TamguRaiseError* a) {
+        global->threads[0].message.str("");
+        global->threads[0].message.clear();
+        global->threads[0].message << a->message;
+        if (a->message.find(a->filename) == string::npos)
+            global->threads[0].message << " in " << a->filename;
+
+        if (global->errorraised[0] == NULL)
+            global->errorraised[0] = new TamguError(global->threads[0].message.str());
+        else
+            global->errorraised[0]->error = global->threads[0].message.str();
+
+        global->errors[0] = true;
+        TamguCode* c = global->Getcurrentcode();
+        if (c->filename != a->filename)
+            c->filename = a->filename;
+        delete a;
+        delete xn;
+        return global->errorraised[0];
+    }
+
+    delete xn;
+    return compiled;
+}
 
 

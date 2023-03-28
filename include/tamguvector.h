@@ -2186,4 +2186,29 @@ class TamguIteratorReplicate : public TamguIteration {
     }
 };
 
+class Tamguformat : public TamguObjectLockContainer {
+public:
+    vector<Tamgu*> values;
+    
+    Tamguformat(TamguGlobal* g = NULL, Tamgu* parent = NULL) : TamguObjectLockContainer(g, parent) {}
+
+    Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
+    
+    void AddInstruction(Tamgu* a) {
+        a->Addreference(investigate,reference + 1);
+        values.push_back(a);
+    }
+
+    Exporting string JSonString();
+    Exporting wstring UString();
+    Exporting string String();
+    Exporting long Integer();
+    Exporting double Float();
+    Exporting BLONG Long();
+    Exporting short Short();
+    Exporting float Decimal();
+    Exporting bool Boolean();
+
+};
+
 #endif

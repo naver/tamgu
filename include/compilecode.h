@@ -122,6 +122,7 @@ public:
 	bool Compile(string& code);
 	Tamgu* Compilefunction(string& code, short idthread);
     Tamgu* CompileExpression(string& code, short idthread);
+    Tamgu* CompileFormat(string& code, Tamgu* parent);
 
 	bool Loadlibrary(string n, string& library_name);
 	//------------------------------
@@ -172,6 +173,7 @@ public:
     Tamgu* C_ustring(x_node*, Tamgu*);
     Tamgu* C_rstring(x_node*, Tamgu*);
     Tamgu* C_pstring(x_node*, Tamgu*);
+    Tamgu* C_fstring(x_node*, Tamgu*);
 	Tamgu* C_anumber(x_node*, Tamgu*);
 	Tamgu* C_axnumber(x_node*, Tamgu*);
     Tamgu* C_alias(x_node* xn, Tamgu* kf);

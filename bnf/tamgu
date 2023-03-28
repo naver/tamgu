@@ -215,6 +215,8 @@ path := %/ word (path)
 ^a astreg := .
 ^b apreg := .
 ^c aspreg := .
+^d fstring := .
+^e festring := .
 ########### OPERATORS ##############################################
 
 operator := $ifnot^$∧^$∨^$×^$÷^[%& %& %&]^[%| %| %|]^[%: %:]^[%< %<]^[%> %>]^[%^ %^]^[%* %*]^%&^%|^%+^%-^%*^%/^%%^%^
@@ -332,10 +334,10 @@ operatorin := notin^in
 negation := %!^%~^$not^$¬
 
 ########### TUPLES, VECTORS and MAPS ##############################################
-minus := %- [astringdouble^afullstring^astringsimple^apreg^aspreg^atreg^astreg^variable]
+minus := %- [astringdouble^afullstring^astringsimple^apreg^aspreg^atreg^astreg^fstring^festring^variable]
 shapeindexes := %[ %* ;68 [nocomparisonnorinexpressions] [%, [nocomparisonnorinexpressions]]* %] (interval^indexes^subfuncbis)
-indexes := %[;1 [minus^apreg^aspreg^atreg^astreg^expressions] %] (shapeindexes^interval^indexes^subfuncbis^framevariable)
-interval := %[ ([minus^apreg^aspreg^atreg^astreg^expressions]) sep;23 ([minus^apreg^aspreg^atreg^astreg^expressions]) %] (shapeindexes^interval^indexes^subfuncbis^framevariable)
+indexes := %[;1 [minus^apreg^aspreg^atreg^astreg^fstring^festring^expressions] %] (shapeindexes^interval^indexes^subfuncbis^framevariable)
+interval := %[ ([minus^apreg^aspreg^atreg^astreg^fstring^festring^expressions]) sep;23 ([minus^apreg^aspreg^atreg^astreg^fstring^festring^expressions]) %] (shapeindexes^interval^indexes^subfuncbis^framevariable)
 
 %valtuple := %( wnexpressions %,;61 (wnexpressions [%, wnexpressions]*) %)
 
@@ -418,7 +420,7 @@ tuple := %( predicateparameters %)
 %apredicatelist := pexpression ([%, ;25 apredicatelist]^[%| ;25 merging {%]}])
 %valpredicatevector := %[ (apredicatelist) %]
 
-%pexpression := term^tuple^parenthetic^predicatevariable^pintentionvect^valpredicatevector^valmappredicate^abool^astringdouble^afullstring^astringsimple^apreg^aspreg^atreg^astreg^anumber^purecall^purevariable
+%pexpression := term^tuple^parenthetic^predicatevariable^pintentionvect^valpredicatevector^valmappredicate^abool^astringdouble^afullstring^astringsimple^apreg^aspreg^atreg^astreg^fstring^festring^anumber^purecall^purevariable
 %predicateparameters := pexpression [%, pexpression]*
 
 #For predicate map... The order is important for the unification
@@ -434,7 +436,7 @@ predicateoperator := %,^%;
 %predicatefact := [dependencyfact^predicate] %.
 
 dcgword := predicate^word
-finaltoken := %[ ([predicatevariable^astringdouble^astringsimple^apreg^aspreg^atreg^astreg^anumber^astring] [%, [predicatevariable^astringdouble^astringsimple^apreg^aspreg^atreg^astreg^anumber^astring]]*) %]
+finaltoken := %[ ([predicatevariable^astringdouble^astringsimple^apreg^aspreg^atreg^astreg^fstring^festring^anumber^astring] [%, [predicatevariable^astringdouble^astringsimple^apreg^aspreg^atreg^astreg^fstring^festring^anumber^astring]]*) %]
 finaldcg := %{ predicateexpression %}
 %dcg := dcgword %- %- %> ;44 [[finaltoken^dcgword] [%, dcgword]*] (%, finaldcg)
 
@@ -446,11 +448,11 @@ achar := word
 ########### T(H)ASKELL ##############################################
 
 %taskelltail := [%|^%:] taskellexpression
-%taskellexpression := taskellmap^taskellvector^abool^astringdouble^afullstring^astringsimple^apreg^aspreg^atreg^astreg^anumber^word
+%taskellexpression := taskellmap^taskellvector^abool^astringdouble^afullstring^astringsimple^apreg^aspreg^atreg^astreg^fstring^festring^anumber^word
 %taskellvector := %[ (taskellexpression [%, taskellexpression]* (taskelltail)) %]
 
 %taskellmaptail := [%|^%:] taskellexpression
-%taskellkeymap := abool^astringdouble^afullstring^astringsimple^apreg^aspreg^atreg^astreg^anumber^word
+%taskellkeymap := abool^astringdouble^afullstring^astringsimple^apreg^aspreg^atreg^astreg^fstring^festring^anumber^word
 %taskelldico := taskellkeymap %: taskellexpression
 %taskellmap := %{ (taskelldico [%, taskelldico]* (taskellmaptail)) %}
 
@@ -463,13 +465,13 @@ letkeyword := (static) wrong word
 %hvalmaptail := %{ (dicoval [%, dicoval]* (maptail)) %}
 %range := let^[[hvalmaptail^valvectortail^variable] [$←^[%< %-]] ;65 hmetafunctions^hoperations]^hbloc
 
-hdeclaration := word [subdata^[taskellmap^taskellvector^abool^astringdouble^afullstring^astringsimple^apreg^aspreg^atreg^astreg^anumber^word]+]
+hdeclaration := word [subdata^[taskellmap^taskellvector^abool^astringdouble^afullstring^astringsimple^apreg^aspreg^atreg^astreg^fstring^festring^anumber^word]+]
 subtaskelldeclaration := %( hdeclaration %)
 maybe := $Maybe word
 declarationtaskell := [subtaskelldeclaration^word] [[$→^[%- %>]] [subtaskelldeclaration^maybe^word]]*
 taskelldeclaration := word %: %: declarationtaskell
 
-%taskell := word %( ([taskellmap^taskellvector^abool^astringdouble^afullstring^astringsimple^apreg^aspreg^atreg^astreg^anumber^hdeclaration^word] [%, [taskellmap^taskellvector^abool^astringdouble^afullstring^astringsimple^apreg^aspreg^atreg^astreg^anumber^hdeclaration^word]]*) %) [%:^%=]
+%taskell := word %( ([taskellmap^taskellvector^abool^astringdouble^afullstring^astringsimple^apreg^aspreg^atreg^astreg^fstring^festring^anumber^hdeclaration^word] [%, [taskellmap^taskellvector^abool^astringdouble^afullstring^astringsimple^apreg^aspreg^atreg^astreg^fstring^festring^anumber^hdeclaration^word]]*) %) [%:^%=]
 
 %otherwise := %| $otherwise %= expression
 %guard := %| hbooleanexpression %= ;48 expression [otherwise^guard]
@@ -537,7 +539,7 @@ hoper := $∧^$∨^$×^$÷^[%& %& %&]^[%| %| %|]^[%: %:]^[%^ %^]^[%* %*]^%&^%+^%
 %hoperation := hoper hoperations
 
 negcall := negation call
-%hitem := taskellcase^localif^abool^astringdouble^afullstring^astringsimple^apreg^aspreg^atreg^astreg^anumber^negcall^call^valtuple^parenthetic^increment^variable^subtelque^telque^intentionvect^valvector^valmap
+%hitem := taskellcase^localif^abool^astringdouble^afullstring^astringsimple^apreg^aspreg^atreg^astreg^fstring^festring^anumber^negcall^call^valtuple^parenthetic^increment^variable^subtelque^telque^intentionvect^valvector^valmap
 %hnegated := %- hitem
 %hmultiply := variable (power) (hoperation)
 %hoperations := [[hnegated^hitem] (power) (hoperation)]|[anumber hmultiply]
@@ -578,7 +580,7 @@ hrange := range [hoperator range]* (%, whereexpression^[hbooleanexpression (%, w
 ########### EXPRESSION DEFINITIONS ##############################################
 
 %parenthetic := %( ;4 wnexpressions %)
-expression := (negation) [tamgulisp^taskellcase^localif^abool^astringdouble^afullstring^astringsimple^apreg^aspreg^atreg^astreg^anumber^call^valtuple^parenthetic^increment^allvariable^telque^intentionvect^valvector^valmap]
+expression := (negation) [tamgulisp^taskellcase^localif^abool^astringdouble^afullstring^astringsimple^apreg^aspreg^atreg^astreg^fstring^festring^anumber^call^valtuple^parenthetic^increment^allvariable^telque^intentionvect^valvector^valmap]
 %expressions := expression (power) (fulloperation^comparison^operationin^multiply)
 
 %comparing := expression [comparison^operationin]
@@ -634,7 +636,7 @@ parentheticexpression := astringdouble^afullstring^astringsimple^anumber^astring
 
 ########### TAMGULISP (different from above. This is the real stuff) It starts with \(...) #######################################
 tlvariable := wrong word [interval^indexes]
-tlatom := predicatevariable^anumber^astringdouble^apreg^aspreg^atreg^astreg^tlvariable^word
+tlatom := predicatevariable^anumber^astringdouble^apreg^aspreg^atreg^astreg^fstring^festring^tlvariable^word
 %tlquote := %' [tlquote^tlatom^comparator^operator^tlkeys^tlist]
 %tlkey := tlatom %: [tlquote^tlatom^tlkeys^tlist]
 %tlkeys := %{ ;26 tlkey* %}

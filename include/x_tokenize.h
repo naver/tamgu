@@ -83,6 +83,8 @@ public:
         rules.push_back(U"r'~%r+'=2");               //42    string r"" tamgu regular expression (we do not keep the r in the parse)
         rules.push_back(U"p\"~%r+\"=2");             //42    string p"" tamgu posix expression (we do not keep the p in the parse)
         rules.push_back(U"p'~%r+'=2");               //42    string p"" tamgu posix expression (we do not keep the p in the parse)
+        rules.push_back(U"f\"~%r+\"=2");              //42    string r"" tamgu regular expression (we do not keep the r in the parse)
+        rules.push_back(U"f'~%r+'=2");               //42    string r"" tamgu regular expression (we do not keep the r in the parse)
 
         //Unicode double quote strings
         rules.push_back(U"u\"{[\\-\"] ~%r}*\"=1");     //string "" does not contain CR and can escape characters
@@ -190,6 +192,8 @@ public:
         rules.push_back(U"r'~%r+'=2");               //42    string r"" tamgu regular expression (we do not keep the r in the parse)
         rules.push_back(U"p\"~%r+\"=2");             //42    string p"" tamgu posix expression (we do not keep the p in the parse)
         rules.push_back(U"p'~%r+'=2");               //42    string p"" tamgu posix expression (we do not keep the p in the parse)
+        rules.push_back(U"f\"~%r+\"=2");              //42    string r"" tamgu regular expression (we do not keep the r in the parse)
+        rules.push_back(U"f'~%r+'=2");               //42    string r"" tamgu regular expression (we do not keep the r in the parse)
 
         //Unicode double quote strings
         rules.push_back(U"u\"{[\\-\"] ~%r}*\"=1");     //string "" does not contain CR and can escape characters

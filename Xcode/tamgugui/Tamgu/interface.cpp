@@ -483,6 +483,7 @@ extern "C" {
                         
             switch(type) {
                 case 1:
+                    droite += std::count(xr.stack[i].begin(), xr.stack[i].end(), '"') - 2;
                 case 2:
                 case 3:
                     //strings
@@ -495,7 +496,6 @@ extern "C" {
                         limits.push_back(5);
                         limits.push_back(gauche);
                         limits.push_back(droite);
-                        break;
                     }
                     break;
                 case 5://comments

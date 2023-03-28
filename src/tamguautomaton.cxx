@@ -1213,7 +1213,7 @@ static bool tokenize(wstring& rg, vector<wstring>& stack, vector<aut_actions>& v
 //----------------------------------------------------------------
 //an epsilon, which points to a final state with no arcs attached
 bool Au_arc::checkfinalepsilon() {
-    if (action->Type() == an_epsilon && state->isend() && !state->arcs.last)
+    if (action->Type() == ant_epsilon && state->isend() && !state->arcs.last)
         return true;
     return false;
 }

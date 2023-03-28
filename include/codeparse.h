@@ -999,6 +999,8 @@ class bnf_tamgu {
     char m_astreg(string& lreturn,x_node** tree);
     char m_apreg(string& lreturn,x_node** tree);
     char m_aspreg(string& lreturn,x_node** tree);
+    char m_fstring(string& lreturn,x_node** tree);
+    char m_festring(string& lreturn,x_node** tree);
     char m_metas(string& lreturn,x_node** tree);
     char m_rgx(string& lreturn,x_node** tree);
     char Y_var_1;

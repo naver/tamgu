@@ -91,8 +91,7 @@ bool Tamguvector::InitialisationModule(TamguGlobal* global, string version) {
 
 
     if (version != "") {        
-    global->minimal_indexes[a_vector] = true;
-
+        global->minimal_indexes[a_vector] = true;
         global->newInstance[a_vector] = new Tamguvector(global);
         global->RecordCompatibilities(a_vector);
         global->newInstance[a_constvector] = new TamguConstvector(global);
@@ -4429,6 +4428,86 @@ Exporting Tamgu* Tamgua_vector::Combine(Tamgu* ke) {
     
     return vect;
 }
+
+//------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------
+
+Exporting Tamgu* Tamguformat::Eval(Tamgu* context, Tamgu* value, short idthread) {
+    value = globalTamgu->Providestring();
+    
+    for (long i = 0; i < values.size(); i++) {
+        if (values[i]->isString())
+            ((Tamgustring*)value)->value += values[i]->String();
+        else
+            values[i]->Eval(value, aNULL, idthread);
+    }
+    return value;
+}
+
+Exporting string Tamguformat::JSonString() {
+    Tamgu* e = Eval(aNULL, aNULL, globalTamgu->GetThreadid());
+    string v = e->JSonString();
+    e->Release();
+    return v;
+}
+
+Exporting wstring Tamguformat::UString() {
+    Tamgu* e = Eval(aNULL, aNULL, globalTamgu->GetThreadid());
+    wstring v = e->UString();
+    e->Release();
+    return v;
+}
+
+Exporting string Tamguformat::String() {
+    Tamgu* e = Eval(aNULL, aNULL, globalTamgu->GetThreadid());
+    string v = e->String();
+    e->Release();
+    return v;
+}
+
+Exporting long Tamguformat::Integer() {
+    Tamgu* e = Eval(aNULL, aNULL, globalTamgu->GetThreadid());
+    long v = e->Integer();
+    e->Release();
+    return v;
+}
+
+Exporting double Tamguformat::Float() {
+    Tamgu* e = Eval(aNULL, aNULL, globalTamgu->GetThreadid());
+    double v = e->Float();
+    e->Release();
+    return v;
+}
+
+Exporting BLONG Tamguformat::Long() {
+    Tamgu* e = Eval(aNULL, aNULL, globalTamgu->GetThreadid());
+    BLONG v = e->Long();
+    e->Release();
+    return v;
+}
+
+Exporting bool Tamguformat::Boolean() {
+    Tamgu* e = Eval(aNULL, aNULL, globalTamgu->GetThreadid());
+    bool v = e->Boolean();
+    e->Release();
+    return v;
+}
+
+Exporting short Tamguformat::Short() {
+    Tamgu* e = Eval(aNULL, aNULL, globalTamgu->GetThreadid());
+    BLONG v = e->Short();
+    e->Release();
+    return v;
+}
+
+Exporting float Tamguformat::Decimal() {
+    Tamgu* e = Eval(aNULL, aNULL, globalTamgu->GetThreadid());
+    float v = e->Decimal();
+    e->Release();
+    return v;
+}
+
 
 /*
 class VECTATYPE {

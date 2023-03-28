@@ -1101,6 +1101,18 @@ Tamgu* ProcUse(Tamgu* domain, short idthread, TamguCall* callfunc) {
     return aTRUE;
 }
 
+Tamgu* ProcNop(Tamgu* value, short idthread, TamguCall* callfunc) {
+    if (!value->isString())
+        value = globalTamgu->Providestring();
+    Tamgu* e;
+    for (long i = 0; i < callfunc->Size(); i++) {
+        e = callfunc->Evaluate(i, aNULL, idthread);
+        ((Tamgustring*)value)->value += e->String();
+        e->Release();
+    }
+    return value;
+}
+
 Tamgu* ProcNope(Tamgu* domain, short idthread, TamguCall* callfunc) {
     return aTRUE;
 }
@@ -3157,6 +3169,7 @@ Exporting void TamguGlobal::RecordProcedures() {
 
 
     //-------------------------
+    RecordOneProcedure("_nop", ProcNop, P_FULL);
     RecordOneProcedure("_nbthreads", ProcNbthreads, P_NONE);
 
     RecordOneProcedure("_setvalidfeatures", ProcSetValidFeatures, P_ONE);
