@@ -1123,7 +1123,7 @@ void jag_editor::setscrolling() {
 #ifndef WIN32
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &wns);
     char buffer[20];
-    sprintf(buffer, "\33[%d,%dr", xcursor, wns.ws_row);
+    sprintf_s(buffer, 20, "\33[%d,%dr", xcursor, wns.ws_row);
     cout << buffer;
 #endif
 }

@@ -103,7 +103,7 @@ Tamgu* Tamguframeseeder::Newinstance(short idthread, Tamgu* frame_instance) {
 
 void Tamguframeinstance::Postinstantiation(short idthread, bool setreference) {
     if (!frame->post) {
-        Cleanframevariable(idthread);
+        //Cleanframevariable(idthread);
         return;
     }
     
@@ -148,12 +148,11 @@ void Tamguframeinstance::Postinstantiation(short idthread, bool setreference) {
         }
     }
     Popframe(idthread);
-    Cleanframevariable(idthread);
 }
 
 void Tamguframemininstance::Postinstantiation(short idthread, bool setreference) {
     if (!frame->post) {
-        Cleanframevariable(idthread);
+        //Cleanframevariable(idthread);
         return;
     }
 
@@ -198,7 +197,6 @@ void Tamguframemininstance::Postinstantiation(short idthread, bool setreference)
         }
     }
     Popframe(idthread);
-    Cleanframevariable(idthread);
 }
 
 Tamgu* TamguframeBaseInstance::Eval(Tamgu* context, Tamgu* idx, short idthread) {
@@ -304,7 +302,6 @@ Tamgu* TamguframeBaseInstance::Execute(Tamgu* body, VECTE<Tamgu*>& arguments, sh
     //We then apply our function within this environment
     Tamgu* a = bd->Eval(environment, this, idthread);
     Popframe(idthread);
-
     if (a->Reference()) {
         a->Setreference();
         //we clean our structure...
@@ -313,7 +310,6 @@ Tamgu* TamguframeBaseInstance::Execute(Tamgu* body, VECTE<Tamgu*>& arguments, sh
     }
     else
         environment->Releasing();
-
     return a;
 }
 

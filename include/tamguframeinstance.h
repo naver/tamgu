@@ -198,29 +198,19 @@ public:
 			return globalTamgu->Returnerror("Missing '_initial' function, check the arguments", idthread);
 		}
 
-
 		VECTE<Tamgu*> arguments(callfunc->arguments.last);
 		Tamgu* a;
-        Tamgu* local = NULL;
 		long i;
         short idname;
 		for (i = 0; i < callfunc->arguments.last; i++) {
             idname = callfunc->arguments[i]->Name();
-            if (isDeclared(idname)) {
-                //Case in which a local variable name might cover a call
-                local = globalTamgu->Removetopvariable(idthread, idname);
-                a = callfunc->arguments[i]->Eval(domain, aNULL, idthread);
-                globalTamgu->Storevariable(idthread, idname, local);
-            }
-            else
-                a = callfunc->arguments[i]->Eval(domain, aNULL, idthread);
-            
+            a = callfunc->arguments[i]->Eval(domain, aNULL, idthread);            
 			a->Setreference();
 			arguments.push_back(a);
 		}
 
 		func = Execute(func, arguments, idthread);
-
+        
 		for (i = 0; i < arguments.size(); i++)
 			arguments[i]->Resetreference();
         

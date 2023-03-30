@@ -931,6 +931,16 @@ public:
 		threads[idthread].Update(fromidthread);
 	}
 
+    void Displaystack(short idthread) {
+        auto& a = threads[idthread].variables;
+        bin_iter<short, VECTE<Tamgu*> > iter(a.table, a.indexes, a.tsize);
+        
+        for (;iter.table; iter++) {
+            cerr << Getsymbol(iter->first) << ":" << iter->second.size() << endl;
+        }
+        cerr << "-------------------------" << endl;
+    }
+    
     inline void Storevariable(short idthread, short name, Tamgu* var) {
         threads[idthread].variables[name].push_back(var);
     }

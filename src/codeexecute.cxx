@@ -1136,8 +1136,7 @@ Tamgu* TamguVariableDeclaration::Eval(Tamgu* domain, Tamgu* value, short idthrea
 
 	//If it is a frame, then we instanciate local frame declaration here...
 	//Hence, intialization of local frames can depend on local frame variables...
-	a->Postinstantiation(idthread, true);
-
+    a->Postinstantiation(idthread, true);
 	return a;
 }
 
@@ -2713,7 +2712,8 @@ Tamgu* TamguSelfVariableDeclaration::Eval(Tamgu* domain, Tamgu* value, short idt
 		let_variable = new TamguLet;
 
 	domain->Declare(name, let_variable);
-	globalTamgu->Storevariable(idthread, name, let_variable);
+    if (!domain->isFrameinstance())
+        globalTamgu->Storevariable(idthread, name, let_variable);
 	let_variable->Setreference();
 	if (initialization != NULL) {
 		value = initialization->Eval(aNULL, aNULL, idthread);
@@ -2734,7 +2734,8 @@ Tamgu* TamguSelfVariableDeclaration::Put(Tamgu* domain, Tamgu* value, short idth
         value = new TamguLet;
     
     domain->Declare(name, value);
-    globalTamgu->Storevariable(idthread, name, value);
+    if (!domain->isFrameinstance())
+        globalTamgu->Storevariable(idthread, name, value);
     value->Setreference();
     return value;
 }

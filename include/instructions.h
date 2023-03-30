@@ -557,8 +557,10 @@ public:
 	short Typeinfered() {
 		if (function != NULL)
 			return function->Typeinfered();
-
-		return frame->Declaration(name)->Typeinfered();
+        if (frame != NULL)
+            return frame->Declaration(name)->Typeinfered();
+        
+        return globalTamgu->returntypes[name];
 	}
 
 };
