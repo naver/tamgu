@@ -3326,10 +3326,13 @@ Tamgu* TamguCode::C_subfunc(x_node* xn, Tamgu* parent) {
         //in order to properly assess the arguments.
         //Otherwise, the arguments could be confused with
         //arguments in the frame.
-        if (frame->isFrameinstance())
+        bool pushback = false;
+        if (frame->isFrameinstance()) {
             global->Popstack();
+            pushback = true;
+        }
 		parent = Traverse(sub->nodes[1], function);
-        if (frame->isFrameinstance())
+        if (pushback)
             global->Pushstack(frame);
 		if (sub->nodes.size() == 3) {
 			function->Addfunctionmode();
@@ -4090,15 +4093,21 @@ Tamgu* TamguCode::C_variable(x_node* xn, Tamgu* parent) {
 
 	//we might have four cases then: interval, indexes, method or variable (in a frame)
     if (xn->nodes.size() != 1) {
+        char modif = 0;
         if (global->frames.check(tyvar)) {
+            modif = 1;
             global->Pushstack(global->frames[tyvar]);
-            global->frames[tyvar]->investigate |= is_frameinstance;
+            if (!global->frames[tyvar]->isFrameinstance()) {
+                global->frames[tyvar]->investigate |= is_frameinstance;
+                modif = 2;
+            }
         }
 
 		Traverse(xn->nodes[1], av);
 
-        if (global->frames.check(tyvar)) {
-            global->frames[tyvar]->investigate &= ~is_frameinstance;
+        if (modif) {
+            if (modif == 2)
+                global->frames[tyvar]->investigate &= ~is_frameinstance;
             global->Popstack();
         }
     }

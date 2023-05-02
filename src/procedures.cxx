@@ -1373,7 +1373,7 @@ Tamgu* ProcEval(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         return globalTamgu->Returnerror("Cannot compile this code", idthread);
     }
 
-    if (compiled->isFunction() || compiled->Type() == a_calltaskell) {
+    if (compiled->isFunction()) {
         set_garbage_mode(false);
         return compiled;
     }

@@ -41,7 +41,7 @@
 #include "tamgutaskell.h"
 #include "tamgulisp.h"
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2023.03.30.15";
+const char* tamgu_version = "Tamgu 1.2023.04.19.10";
 
 extern "C" {
 Exporting const char* TamguVersion(void) {
