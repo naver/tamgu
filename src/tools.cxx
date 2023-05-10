@@ -1957,7 +1957,7 @@ Exporting Tamgu* Selectabvector(Tamgu* context) {
 //--------------------------------------------------------------------
 Exporting Tamgu* TamguGlobal::EvaluateParenthetic(string& s, string& o, string& c, bool comma, bool separator, bool keeprc, vector<string>& rules, short idthread) {
     tokenizer_result<string> xr;
-    segmenter_automaton sa;
+    tags_automaton sa;
     bnf_tamgu bnf;
 
     threads[idthread].message.str("");
@@ -1982,6 +1982,8 @@ Exporting Tamgu* TamguGlobal::EvaluateParenthetic(string& s, string& o, string& 
     sa.setseparator(separator);
     
     sa.tokenize<string>(s, xr);
+    
+    sa.force_type(xr);
         
     bnf.initialize(&xr);
     bnf.baseline = linereference;
@@ -2024,8 +2026,8 @@ Exporting Tamgu* TamguGlobal::EvaluateParenthetic(string& s, string& o, string& 
 }
 
 Exporting Tamgu* TamguGlobal::EvaluateTags(string& s, string& o, string& c, bool comma, bool separator, bool keeprc, vector<string>& rules, short idthread){
-    tokenizer_result<string> xr(false);
-    segmenter_automaton sa;
+    tokenizer_result<string> xr;
+    tags_automaton sa;
     bnf_tamgu bnf;
 
     threads[idthread].message.str("");
@@ -2050,6 +2052,7 @@ Exporting Tamgu* TamguGlobal::EvaluateTags(string& s, string& o, string& c, bool
     sa.setseparator(separator);
 
     sa.tokenize<string>(s, xr);
+    sa.force_type(xr);
     
     bnf.initialize(&xr);
     bnf.baseline = linereference;

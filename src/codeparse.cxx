@@ -23938,7 +23938,7 @@ char bnf_tamgu::m_tagexpression(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYOR
     subtree=NULL;
-    if (m_astringdouble(lret,&subtree) || m_afullstring(lret,&subtree) || m_astringsimple(lret,&subtree) || m_anumber(lret,&subtree) || m_astring(lret,&subtree) || m_punct(lret,&subtree))
+    if (m_anumber(lret,&subtree) || m_astring(lret,&subtree) || m_punct(lret,&subtree))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);

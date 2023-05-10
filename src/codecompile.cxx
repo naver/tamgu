@@ -1352,6 +1352,66 @@ void segmenter_automaton::setrules() {
     rules.push_back(U"%a{%a %- '’ %d}*=1");       //Regular strings
     rules.push_back(U"~{%S %o %p}+=1");           //Any combination of Unicode characters ending at a space or a punctuation
 }
+
+void tags_automaton::setrules() {
+    rules.push_back(U"#10=!99");                                  //gated arcs to keep carriage or not
+    rules.push_back(U"%S+=#");                                  //we skip all spaces
+    
+    //regular numbers
+    rules.push_back(U"%d+{[rd][th][nd][er][ième][ieme]}=4");    //3rd or 4th
+    rules.push_back(U"%d(%d)(:%d%d){[am][pm]}=4");              //American hours 6:30am, 9pm
+    rules.push_back(U"%d(%d){:h}%d%d=4");                       //European hours 6h30, 21:00
+    
+    //Double quote
+    rules.push_back(U"\"{[\\-\"] ~%r}*\"=:1");     //string "" does not contain CR and can escape characters
+
+    //Single quote
+    rules.push_back(U"'=!");                         //4 In the case of Lisp, this rule is activated
+    rules.push_back(U"'~%r*'=:2");                    //38    string '' does not contain CR and does not process escape characters
+
+    
+    //We put this meta-rule here to avoid checking all the rules belows with it
+    rules.push_back(U"1:{%d #A-F #a-f}");                    //metarule on 1, for hexadecimal digits
+    
+    //Tokenizing numbers
+    //22 for blocs of 3, with a comma
+    //44 for blocs of 3, with a point or a space
+    //rules are either 22 or 44 never both
+    //33 using a decimal point
+    //66 using a decimal comma
+    //rules are either 33 or 66 never both
+    //The order of the rules is important, if blocs of 3 are to be taken into account
+    rules.push_back(U"{%- %+}%d+[,%d%d%d]+=22");          //digits separated with a , by block of 3
+    rules.push_back(U"{%- %+}%d+[{.#32}%d%d%d]+=!44");    //digits separated with a . or a space by block of 3
+    rules.push_back(U"%d+[,%d%d%d]+=22");  //digits separated with a , by block of 3
+    rules.push_back(U"%d+[{.#32}%d%d%d]+=!44"); //digits separated with a . or a space by block of 3
+
+    rules.push_back(U"{%- %+}0x%1+(.%1+({pP}({%- %+})%d+))=33");  //hexadecimal with a decimal point
+    rules.push_back(U"{%- %+}0x%1+(,%1+({pP}({%- %+})%d+))=!66"); //Gated: hexadecimal with a decimal comma
+    rules.push_back(U"{%- %+}%d+(.%d+({eE}({%- %+})%d+))=33");    //Numbers with decimal point
+    rules.push_back(U"{%- %+}%d+(,%d+({eE}({%- %+})%d+))=!66"); //Gated: Numbers with decimal comma
+
+    rules.push_back(U"0x%1+(.%1+({p P}({%- %+})%d+))=33");   //hexadecimal
+    rules.push_back(U"0x%1+(,%1+({p P}({%- %+})%d+))=!66"); //Gated rules
+    rules.push_back(U"%d+(.%d+({eE}({%- %+})%d+))=33");      //digits
+    rules.push_back(U"%d+(,%d+({eE}({%- %+})%d+))=!66"); //Gated rules
+
+    rules.push_back(U"{%- %+}0b{1 0}+=4");  //binaries
+    rules.push_back(U"0b{1 0}+=4");  //binaires
+
+    rules.push_back(U"%#{%a %d}+=4");       //Regular strings
+    rules.push_back(U"${%a %d}+=4");       //Regular strings
+    
+    rules.push_back(U"http(s)://{%a %d . = %# & %? / %- %+}+=4");       //http
+    rules.push_back(U"{%a %d . %- %+}+@{%a %d . = & %? %# %- %+}+=4");       //mail address
+    
+    rules.push_back(U"%o=4");                 //operator
+    rules.push_back(U"%p=4");                  //punctuation
+    rules.push_back(U"%H{%H %d}*=4");       //Asian characters (Chinese, Korean, Japanese)
+    rules.push_back(U"%h{%h %- %d}*=4");       //Greek
+    rules.push_back(U"%a{%a %- '’ %d}*=4");       //Regular strings
+    rules.push_back(U"~{%S %o %p}+=4");           //Any combination of Unicode characters ending at a space or a punctuation
+}
 //--------------------------------------------------------------------
 Tamgu* ProcCreateFrame(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 bool Activategarbage(bool v);

@@ -629,7 +629,7 @@ parentheticexpression := astringdouble^afullstring^astringsimple^anumber^astring
 %oneparenthetic := @( parentheticexpressions* @)
 %parenthetique := oneparenthetic+
 
-%tagexpression := astringdouble^afullstring^astringsimple^anumber^astring^punct
+%tagexpression := anumber^astring^punct
 %tagexpressions := onetag^tagexpression
 %onetag := :OPEN tagexpressions* :CLOSE
 %tag := onetag+

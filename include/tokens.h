@@ -961,7 +961,7 @@ public:
         separator = false;
     }
     
-    void setrules();
+    virtual void setrules();
     
     bool check_rule(int32_t label) {
         return (indexed_on_label.find(label) != indexed_on_label.end() && indexed_on_label[label].size());
@@ -1025,6 +1025,16 @@ public:
     }
 };
 
+
+class tags_automaton : public segmenter_automaton {
+public:
+    
+    void setrules();
+    void force_type(tokenizer_result<string>& xr) {
+        for (long i = 0; i < xr.stacktype.size(); i++)
+            xr.stacktype[i] = 4;        
+    }
+};
 
 #endif
 

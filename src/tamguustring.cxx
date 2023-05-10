@@ -1880,8 +1880,6 @@ Tamgu* Tamguustring::MethodTags(Tamgu* contextualpattern, short idthread, TamguC
     vector<string> rules;
     copen = callfunc->Evaluate(0, contextualpattern, idthread)->String();
     cclose = callfunc->Evaluate(1, contextualpattern, idthread)->String();
-    if (copen.size() != 1 || cclose.size() != 1)
-        return globalTamgu->Returnerror("TAMGUI(832): Wrong opening or closing character in TAGS", idthread);
     
     bool comma = false;
     bool separator = false;
@@ -4000,8 +3998,6 @@ Tamgu* Tamgua_ustring::MethodTags(Tamgu* contextualpattern, short idthread, Tamg
     vector<string> rules;
     copen = callfunc->Evaluate(0, contextualpattern, idthread)->String();
     cclose = callfunc->Evaluate(1, contextualpattern, idthread)->String();
-    if (copen.size() != 1 || cclose.size() != 1)
-        return globalTamgu->Returnerror("TAMGUI(832): Wrong opening or closing character in TAGS", idthread);
     
     bool comma = false;
     bool separator = false;
