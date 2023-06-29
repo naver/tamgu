@@ -208,6 +208,45 @@ JNIEXPORT jint JNICALL Java_com_naver_jtamgu_JTamgu_LoadStringProgramImplementat
     return idspace;
 }
 
+JNIEXPORT jboolean JNICALL Java_com_naver_jtamgu_JTamgu_CheckProgramImplementation(JNIEnv *env, jobject obj, jstring code, jstring args, jobjectArray messages, jobjectArray lines, jobjectArray positions) {
+
+    string jcode = jstringToString(env, code);
+    string theargs = jstringToString(env, args);
+
+    short idspace = TamguCreateGlobal(10);
+
+#ifdef WIN32
+    string name = "C:\\JAVA";
+#else
+    string name = "/JAVA";
+#endif
+
+    char buff[20];
+    sprintf(buff, "_%d", nbfilename);
+    nbfilename++;
+    name += buff;
+    TamguSetArguments(theargs);
+    short idcode = -1;
+    std::vector<TamguFullError*> errors;
+    if (TamguCheckCompile(jcode, name, errors))
+        return true;
+    
+    long nb = errors.size();
+    JavaIterationListString jmess(env, messages, 0);
+    JavaIterationListInteger jlines(env, lines, 0);
+    JavaIterationListInteger jpos(env, positions, 0);
+    
+    for (long i = 0; i < nb; i++) {
+        jmess.Set(i, errors[i]->error);
+        jlines.Set(i, errors[i]->line);
+        jpos.Set(i, errors[i]->posbinary);
+        delete errors[i];
+    }
+    
+    return false;
+}
+
+
 /**
  * Execute and load a Tamgu program as a String
  * @param code is the Tamgu program as a String

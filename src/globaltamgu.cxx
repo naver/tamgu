@@ -289,6 +289,18 @@ Exporting short TamguCompileNewSpace(string& codeinit, string filename) {
     return a->idcode;
 }
 
+Exporting bool TamguCheckCompile(string& codeinit, string filename, vector<TamguFullError*>& errors) {
+    filename = NormalizeFileName(filename);
+    TamguCode* a = new TamguCode(1000, filename, globalTamgu);
+    if (!a->CompileFull(codeinit, errors)) {
+        delete a;
+        return false;
+    }
+    delete a;
+    return true;
+}
+
+
 Exporting string TamguListing() {
 	return _fullcode;
 }

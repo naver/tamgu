@@ -41,6 +41,14 @@ PyObject* ConvertToPythonString(string s) {
     return PyUnicode_FromStringAndSize(buff, res.size());
 }
 
+#if PY_MINOR_VERSION >= 9
+string PyAsString(PyObject* po) {
+	PyObject* utf8_string = PyUnicode_AsUTF8String(po);
+	char* c_string = PyBytes_AsString(utf8_string);
+	return c_string;
+}
+#else
+
 string PyAsString(PyObject* po) {
     string s;
     Py_ssize_t sz = PyUnicode_GET_LENGTH(po);
@@ -49,7 +57,7 @@ string PyAsString(PyObject* po) {
         s += c_unicode_to_utf8(ibuff[i]);
     return s;
 }
-
+#endif
 #else
 #define ConvertToPythonString(s)  PyString_FromString(s)
     #define ConvertToPythonLong(i)	PyInt_FromLong(i)
@@ -172,7 +180,15 @@ static Tamgu* toTamgu(PyObject* po) {
         }
         return globalTamgu->Providestring(s);
     }
-    #else
+    #elif PY_MINOR_VERSION >= 9
+	if (PyUnicode_Check(po)) {
+		string s;
+		PyObject* utf8_string = PyUnicode_AsUTF8String(po);
+		char* c_string = PyBytes_AsString(utf8_string);
+		s = c_string;
+		return globalTamgu->Providestring(s);
+	}
+	#else
     if (PyUnicode_Check(po)) {
         Py_ssize_t sz = PyUnicode_GET_LENGTH(po);
         Py_UNICODE* ibuff = PyUnicode_AsUnicode(po);
@@ -181,9 +197,8 @@ static Tamgu* toTamgu(PyObject* po) {
             s += c_unicode_to_utf8(ibuff[i]);
         return globalTamgu->Providestring(s);
     }
-    #endif
-
-    PyObject* perr = PyObject_Str(po);
+	#endif
+	PyObject* perr = PyObject_Str(po);
     if (perr != NULL) {
         string s = PyAsString(perr);
         e = globalTamgu->Providestring(s);

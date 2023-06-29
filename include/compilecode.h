@@ -40,10 +40,12 @@ public:
     size_t current_start, current_end;
 
 	//This is a pointer to the global object with which this code space is linked...
-	TamguGlobal* global;
     basebin_hash<TamguActionVariable*> variables;
     basebin_hash<Tamgu*> fibrevariables;
-	uchar featureassignment;
+    TamguGlobal* global;
+    x_node* last_node;
+
+    uchar featureassignment;
 
 	string filename;
     string currentpredicatename;
@@ -65,6 +67,7 @@ public:
 	TamguCode(short i, string& f, TamguGlobal* g) : idcode(i), filename(f), currentline(0), mainframe(a_mainframe, false, NULL) {
 		compilemode = true;
         insidecall = 0;
+        last_node = NULL;
         currentpredicatename="";
         currentfileid = (short)g->filenames.size();
 		g->filenames.push_back(f);
@@ -117,9 +120,9 @@ public:
 		return -1;
 	}
 
-
 	bool Load(tokenizer_result<string>& xr);
 	bool Compile(string& code);
+    bool CompileFull(string& code, vector<TamguFullError*>& errors);
 	Tamgu* Compilefunction(string& code, short idthread);
     Tamgu* CompileExpression(string& code, short idthread);
     Tamgu* CompileFormat(string& code, Tamgu* parent);
@@ -142,6 +145,7 @@ public:
 	//---------------------------------------------
 	//This method traverses a x_node tree to create the adequate elements...
 	Tamgu* Traverse(x_node* xn, Tamgu* parent);
+    Tamgu* Traverse_in_error(x_node* xn, Tamgu* parent, long line);
 	void BrowseVariable(x_node* xn, Tamgu* kf);
 	void BrowseVariableVector(x_node* xn, Tamgu* kf);
 	void BrowseVariableMap(x_node* xn, Tamgu* kf);

@@ -27212,7 +27212,39 @@ x_node* bnf_tamgu::x_parsing(tokenizer_result<string>* xr,x_parsing_mode mode,bo
     return NULL;
 }
 
+x_node* bnf_tamgu::x_call_again(tokenizer_result<string>* xr,x_parsing_mode mode,bool display) {
+    fx=xr;
+    string lret;
+    x_node* tree=new x_node;
+    gFail=0;
+    lineerror=-1;
+    labelerror="";
+    errornumber=-1;
+    intoken=0;
+    labelerrors.clear();
+    lineerrors.clear();
+    errornumbers.clear();
 
+    char res=m_analyse(lret,&tree);
+
+    if (currentpos!=fx->stack.size() && mode==FULL) {
+        if (display) {
+            if (errornumber!=-1)
+                cerr<<endl<<"Error line:"<<lineerror<<" => "<<errorlabels[errornumber];
+            else
+                cerr<<endl<<"Error line:"<<lineerror;
+        }
+        if (tree!=NULL)
+            delete tree;
+        return NULL;
+    }
+
+    if (res==1)
+        return tree;
+
+    delete tree;
+    return NULL;
+}
 
 char bnf_tamgu::x_test_dot(string& lret) {
     if (currentpos>=fx->stack.size())

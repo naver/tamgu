@@ -200,6 +200,7 @@ class bnf_tamgu {
 
     string x_errormsg(long i);
     x_node* x_parsing(tokenizer_result<string>* xr,x_parsing_mode mode,bool display=true);
+    x_node* x_call_again(tokenizer_result<string>* xr,x_parsing_mode mode,bool display=true);
 
 
 

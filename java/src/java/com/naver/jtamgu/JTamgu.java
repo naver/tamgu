@@ -44,6 +44,21 @@ public class JTamgu {
 
     //------------------------------------------------------------------------
 
+    private native boolean CheckProgramImplementation(String filename,String args, List<String> messages, List<Integer> lines, List<Integer> positions) throws Exception;
+
+    /**
+     * Load a Tamgu program
+     *
+     * @param filename of the Tamgu program to load
+     * @param args arguments as a string, where each parameter is separated with a space
+     * @return
+     * @exception Exception
+     */
+    public synchronized boolean CheckProgram(String filename,String args, List<String> messages, List<Integer> lines, List<Integer> positions) throws Exception {
+        return CheckProgramImplementation(filename, args, messages, lines, positions);
+    }
+    //------------------------------------------------------------------------
+
     private native int LoadProgramImplementation(String filename,String args) throws Exception;
 
     /**

@@ -1657,6 +1657,19 @@ public:
     }
     
 };
+
+class TamguFullError : public TamguError {
+public:
+    string filename;
+    long posbinary;
+    long poscharacter;
+    long line;
+    
+    TamguFullError(string err, string& fn, long pb, long pc, long l) : filename(fn), posbinary(pb), poscharacter(pc), line(l), TamguError(err) {}
+    
+};
+
+
 //-------------------------------------------------------------------------
 //We need to declare the following other classes
 //The TamguReference implements the reference counting mechanism...

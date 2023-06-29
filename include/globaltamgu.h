@@ -39,6 +39,7 @@ Exporting TamguGlobal* TamguCreate(long nbthreads = 50);
 Exporting bool TamguExtinguish();
 Exporting short TamguLoad(string filename);
 Exporting short TamguCompile(string& code, string filename, char display = false);
+Exporting bool TamguCheckCompile(string& code, string filename, vector<TamguFullError*>& errors);
 Exporting short TamguCompileMain(string& code, string filename);
 Exporting short TamguCompileNewSpace(string& codeinit, string filename);
 Exporting size_t TamguCompile(string& code, short idcode);

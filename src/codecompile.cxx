@@ -110,10 +110,10 @@ template<> void tokenizer_result<u_ustring>::getnext() {
         return;
     }
     
+    line += (currentchr == '\n');
     sz_read = 1;
     currentchr = (*buffer)[b_pos++];
     c_pos++;
-    line += (currentchr == '\n');
 }
 
 #ifdef WIN32
@@ -123,13 +123,13 @@ template<> void tokenizer_result<wstring>::getnext() {
         return;
     }
     
+    line += (currentchr == '\n');
     sz_read = 1;
     if (c_utf16_to_unicode(currentchr, (*buffer)[b_pos++], false)) {
         sz_read = 2;
         c_utf16_to_unicode(currentchr, (*buffer)[b_pos++], true);
     }
     c_pos++;
-    line += (currentchr == '\n');
 }
 #else
 template<> void tokenizer_result<wstring>::getnext() {
@@ -138,10 +138,10 @@ template<> void tokenizer_result<wstring>::getnext() {
         return;
     }
     
+    line += (currentchr == '\n');
     sz_read = 1;
     currentchr = (*buffer)[b_pos++];
     c_pos++;
-    line += (currentchr == '\n');
 }
 #endif
 
@@ -151,13 +151,13 @@ template<> void tokenizer_result<u16string>::getnext() {
         return;
     }
     
+    line += (currentchr == '\n');
     sz_read = 1;
     if (c_utf16_to_unicode(currentchr, (*buffer)[b_pos++], false)) {
         sz_read = 2;
         c_utf16_to_unicode(currentchr, (*buffer)[b_pos++], true);
     }
     c_pos++;
-    line += (currentchr == '\n');
 }
 
 template<> void tokenizer_result<string>::getnext() {
@@ -166,10 +166,10 @@ template<> void tokenizer_result<string>::getnext() {
         return;
     }
     
+    line += (currentchr == '\n');
     sz_read = 1 + c_utf8_to_unicode(buffer, b_pos, currentchr);
     b_pos += sz_read;
     c_pos++;
-    line += (currentchr == '\n');
 }
 
 
@@ -1603,7 +1603,8 @@ void TamguCode::Senderror(string msg) {
 Tamgu* TamguCode::Traverse(x_node* xn, Tamgu* parent) {
 	if (xn == NULL)
 		return NULL;
-
+    
+    last_node = xn;
 	currentline = Computecurrentline(0, xn);
 	if (global->parseFunctions.find(xn->token) != global->parseFunctions.end())
 		return (this->*global->parseFunctions[xn->token])(xn, parent);
@@ -1617,6 +1618,22 @@ Tamgu* TamguCode::Traverse(x_node* xn, Tamgu* parent) {
 	}
 
 	return res;
+}
+
+Tamgu* TamguCode::Traverse_in_error(x_node* xn, Tamgu* parent, long line) {
+    if (xn == NULL || last_node == xn)
+        return NULL;
+    
+    currentline = Computecurrentline(0, xn);
+    if (currentline > line)
+        return Traverse(xn, parent);
+    
+    Tamgu* a = NULL;
+    for (size_t i = 0; i < xn->nodes.size() && a == NULL; i++) {
+        a = Traverse_in_error(xn->nodes[i], parent, line);
+    }
+
+    return a;
 }
 
 void TamguCode::BrowseVariable(x_node* xn, Tamgu* kf) {
@@ -10883,6 +10900,143 @@ void Setlispmode(bool v) {
     lispmode = v;
 }
 
+bool TamguCode::CompileFull(string& body, vector<TamguFullError*>& errors) {
+    tokenizer_result<string> xr;
+    bnf_tamgu bnf;
+
+    InitWindowMode();
+    
+    global->threads[0].message.str("");
+    global->threads[0].message.clear();
+    
+    //we store our TamguCode also as an Tamgutamgu...
+    filename = NormalizeFileName(filename);
+    Tamgu* main = TamguRecordFile(filename, this, global);
+    TamguSystemVariable* vs = new TamguSystemVariable(global, main, a_mainframe, a_tamgu);
+
+    global->spaceid = idcode;
+
+    xr.lispmode = lispmode;
+
+    if (body[0] == '(' && body[1] == ')') {
+        xr.lispmode = true;
+        body[0] = '/';
+        body[1] = '/';
+    }
+    
+    std::chrono::high_resolution_clock::time_point before;
+    std::chrono::high_resolution_clock::time_point after;
+
+    before = std::chrono::high_resolution_clock::now();
+    global->tamgu_tokenizer.tokenize<string>(body, xr);
+    
+    after = std::chrono::high_resolution_clock::now();
+    double dtok = std::chrono::duration_cast<std::chrono::milliseconds>( after - before ).count();
+            
+    if (!xr.size())
+        return false;
+    
+    global->lineerror = -1;
+
+
+    x_node* xn;
+    if (xr.lispmode) {
+        bnf.initialize(&xr);
+        bnf.baseline = global->linereference;
+        string lret;
+        xn = new x_node;
+        if (bnf.m_tamgupurelisp(lret, &xn) != 1 || bnf.currentpos != bnf.fx->stack.size()) {
+            delete xn;
+            TamguFullError* err;
+            long pos = bnf.currentpos;
+            long ln = xr.stackln[pos];
+
+            if (bnf.errornumber != -1)
+                err = new TamguFullError(bnf.x_errormsg(bnf.errornumber), filename, xr.bpos[pos], xr.cpos[pos], ln);
+            else
+                err = new TamguFullError(bnf.labelerror, filename, xr.bpos[pos], xr.cpos[pos], ln);
+            
+            errors.push_back(err);
+            return false;
+        }
+    }
+    else {
+        bnf.baseline = global->linereference;
+        xn = bnf.x_parsing(&xr, FULL);
+    }
+    
+    if (xn == NULL) {
+        TamguFullError* err;
+        long pos;
+        long ln;
+        while (xn == NULL) {
+            pos = bnf.currentpos;
+            ln = xr.stackln[pos];
+            
+            if (bnf.errornumber != -1)
+                err = new TamguFullError(bnf.x_errormsg(bnf.errornumber), filename, xr.bpos[pos], xr.cpos[pos], ln);
+            else
+                err = new TamguFullError(bnf.labelerror, filename, xr.bpos[pos], xr.cpos[pos], ln);
+            
+            errors.push_back(err);
+            
+            while (pos < xr.stackln.size() && xr.stackln[pos] <= ln) pos++;
+            
+            if (pos == xr.stackln.size())
+                break;
+            
+            bnf.currentpos = pos;
+            xn = bnf.x_call_again(&xr, FULL);
+        }
+        
+        if (xn != NULL)
+            delete xn;
+        return false;
+    }
+
+    firstinstruction = mainframe.instructions.size();
+    global->currentbnf = &bnf;
+
+    global->Pushstack(&mainframe);
+    char loop_on_error = 1;
+    while (loop_on_error) {
+        try {
+            if (loop_on_error == 1)
+                Traverse(xn, &mainframe);
+            else
+                Traverse_in_error(xn, &mainframe, currentline);
+        }
+        catch (TamguRaiseError* a) {
+            global->threads[0].currentinstruction = NULL;
+            global->lineerror = a->left;
+            TamguFullError* err;
+            long pos = -1;
+            if (a->left != -1) {
+                pos = 0;
+                while (pos < xr.stackln.size() && xr.stackln[pos] < a->left) pos++;
+                if (pos != xr.stackln.size())
+                    err = new TamguFullError(a->message, a->filename, xr.bpos[pos] , xr.cpos[pos], a->left);
+                else
+                    err = new TamguFullError(a->message, a->filename, -1, -1, a->left);
+            }
+            else
+                err = new TamguFullError(a->message, a->filename, -1, -1, a->left);
+            
+            errors.push_back(err);
+            delete a;
+            loop_on_error = 2;
+            continue;
+        }
+        loop_on_error = 0;
+    }
+
+    global->Popstack();
+
+    delete xn;
+    return true;
+}
+
+
 bool TamguCode::Compile(string& body) {
     tokenizer_result<string> xr;
     bnf_tamgu bnf;
@@ -10949,21 +11103,20 @@ bool TamguCode::Compile(string& body) {
         xn = bnf.x_parsing(&xr, FULL);
     }
     
-	if (xn == NULL) {
-		cerr << " in " << filename << endl;
-		stringstream& message = global->threads[0].message;
-		global->lineerror = bnf.lineerror;
-		currentline = global->lineerror;
-		message << "Error while parsing program file: ";
-		if (bnf.errornumber != -1)
-			message << bnf.x_errormsg(bnf.errornumber);
-		else
-			message << bnf.labelerror;
-
-		global->Returnerror(message.str(), global->GetThreadid());
-		return false;
-	}
-
+    if (xn == NULL) {
+        cerr << " in " << filename << endl;
+        stringstream& message = global->threads[0].message;
+        global->lineerror = bnf.lineerror;
+        currentline = global->lineerror;
+        message << "Error while parsing program file: ";
+        if (bnf.errornumber != -1)
+            message << bnf.x_errormsg(bnf.errornumber);
+        else
+            message << bnf.labelerror;
+        global->Returnerror(message.str(), global->GetThreadid());
+        return false;
+    }
+    
 	firstinstruction = mainframe.instructions.size();
     global->currentbnf = &bnf;
 
