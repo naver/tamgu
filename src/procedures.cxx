@@ -1672,6 +1672,19 @@ Tamgu* ProcSymbols(Tamgu* contextualpattern, short idthread, TamguCall* callfunc
     return tr;
 }
 
+Tamgu* ProcTypes(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    Tamgusvector* tr = globalTamgu->Providesvector();
+    bin_hash<Tamgu*>::iterator it;
+    string value;
+
+    for (it = globalTamgu->newInstance.begin(); it != globalTamgu->newInstance.end(); it++) {
+        value = globalTamgu->Getsymbol(it->first);
+        tr->values.push_back(value);
+    }
+    return tr;
+}
+
+
 Tamgu* ProcPatterns(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     string key= callfunc->Evaluate(0, contextualpattern, idthread)->String();
     if (key.size() != 1)
@@ -3180,6 +3193,7 @@ Exporting void TamguGlobal::RecordProcedures() {
     RecordOneProcedure("_getdefaulttokenizerules", ProcGetTokenizeRules, P_NONE);
 
     RecordOneProcedure("_symbols", ProcSymbols, P_NONE);
+    RecordOneProcedure("_types", ProcTypes, P_NONE);
 
     RecordOneProcedure("_poolstats", ProcPoolStats, P_NONE);
 

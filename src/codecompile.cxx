@@ -2901,22 +2901,22 @@ Tamgu* TamguCode::C_parameterdeclaration(x_node* xn, Tamgu* parent) {
             type = name_space + type;
             if (global->symbolIds.find(type) == global->symbolIds.end()) {
                 stringstream message;
-                message << "Unknown type: " << xn->nodes[0]->value;
+                message << "Unknown type: '" << xn->nodes[0]->value << "'";
                 throw new TamguRaiseError(message, filename, current_start, current_end);
             }
         }
         else {
             stringstream message;
-            message << "Unknown type: " << type;
+            message << "Unknown type: '" << type << "'";
             throw new TamguRaiseError(message, filename, current_start, current_end);
         }
 	}
 
 	short tid = global->symbolIds[type];
 	Tamgu* element = NULL;
-	if (global->newInstance.find(tid) == global->newInstance.end()) {
+    if (!global->newInstance.check(tid)) {
 		stringstream message;
-		message << "Unknown type: " << type;
+		message << "Unknown type: '" << type << "'";
 		throw new TamguRaiseError(message, filename, current_start, current_end);
 	}
 
@@ -2927,6 +2927,11 @@ Tamgu* TamguCode::C_parameterdeclaration(x_node* xn, Tamgu* parent) {
         name = name_space + xn->nodes[1]->value;
 
     short idname = global->Getid(name);
+    if (global->newInstance.check(idname)) {
+        stringstream message;
+        message << "Variable name cannot be a type: " << name;
+        throw new TamguRaiseError(message, filename, current_start, current_end);
+    }
 
 	if (top->isDeclared(idname)) {
 		stringstream message;
@@ -3026,22 +3031,22 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
             type = name_space + type;
             if (global->symbolIds.find(type) == global->symbolIds.end()) {
                 stringstream message;
-                message << "Unknown type: " << xn->nodes[0]->value;
+                message << "Unknown type: '" << xn->nodes[0]->value << "'";
                 throw new TamguRaiseError(message, filename, current_start, current_end);
             }
         }
         else {
             stringstream message;
-            message << "Unknown type: " << type;
+            message << "Unknown type: '" << type << "'";
             throw new TamguRaiseError(message, filename, current_start, current_end);
         }
 	}
 
 	short tid = global->symbolIds[type];
 
-	if (global->newInstance.find(tid) == global->newInstance.end()) {
+    if (!global->newInstance.check(tid)) {
 		stringstream message;
-		message << "Unknown type: " << type;
+		message << "Unknown type: '" << type << "'";
 		throw new TamguRaiseError(message, filename, current_start, current_end);
 	}
 
@@ -3052,6 +3057,11 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
         name = name_space + xn->nodes[1]->value;
     
 	short idname = global->Getid(name);
+    if (global->newInstance.check(idname)) {
+        stringstream message;
+        message << "Variable name cannot be a type: '" << name << "'";
+        throw new TamguRaiseError(message, filename, current_start, current_end);
+    }
     
 	if (tid == a_tamgu) {
 		if (xn->nodes.size() != 3) {
@@ -5478,7 +5488,7 @@ Tamgu* TamguCode::C_taskcomparison(x_node* xn, Tamgu* kf) {
         string typeret = xn->nodes[0]->nodes[0]->value;
         if (global->symbolIds.find(typeret) == global->symbolIds.end()) {
             stringstream message;
-            message << "Unknown type: " << typeret;
+            message << "Unknown type: '" << typeret << "'";
             throw new TamguRaiseError(message, filename, current_start, current_end);
         }
         
@@ -5832,13 +5842,13 @@ Tamgu* TamguCode::C_createfunction(x_node* xn, Tamgu* kf) {
                     typeret = name_space + typeret;
                     if (global->symbolIds.find(typeret) == global->symbolIds.end()) {
                         stringstream message;
-                        message << "Unknown type: " << xn->nodes[2]->nodes[0]->value;
+                        message << "Unknown type: '" << xn->nodes[2]->nodes[0]->value << "'";
                         throw new TamguRaiseError(message, filename, current_start, current_end);
                     }
                 }
                 else {
                     stringstream message;
-                    message << "Unknown type: " << typeret;
+                    message << "Unknown type: '" << typeret << "'";
                     throw new TamguRaiseError(message, filename, current_start, current_end);
                 }
 			}
@@ -5856,13 +5866,13 @@ Tamgu* TamguCode::C_createfunction(x_node* xn, Tamgu* kf) {
                         typeret = name_space + typeret;
                         if (global->symbolIds.find(typeret) == global->symbolIds.end()) {
                             stringstream message;
-                            message << "Unknown type: " << xn->nodes[3]->nodes[0]->value;
+                            message << "Unknown type: '" << xn->nodes[3]->nodes[0]->value << "'";
                             throw new TamguRaiseError(message, filename, current_start, current_end);
                         }
                     }
                     else {
                         stringstream message;
-                        message << "Unknown type: " << typeret;
+                        message << "Unknown type: '" << typeret << "'";
                         throw new TamguRaiseError(message, filename, current_start, current_end);
                     }
 				}
@@ -10923,16 +10933,10 @@ bool TamguCode::CompileFull(string& body, vector<TamguFullError*>& errors) {
         body[0] = '/';
         body[1] = '/';
     }
-    
-    std::chrono::high_resolution_clock::time_point before;
-    std::chrono::high_resolution_clock::time_point after;
 
-    before = std::chrono::high_resolution_clock::now();
+    body += "\n";
     global->tamgu_tokenizer.tokenize<string>(body, xr);
     
-    after = std::chrono::high_resolution_clock::now();
-    double dtok = std::chrono::duration_cast<std::chrono::milliseconds>( after - before ).count();
-            
     if (!xr.size())
         return false;
     
@@ -11065,6 +11069,8 @@ bool TamguCode::Compile(string& body) {
     std::chrono::high_resolution_clock::time_point after;
 
     before = std::chrono::high_resolution_clock::now();
+    
+    body += "\n";
     global->tamgu_tokenizer.tokenize<string>(body, xr);
     
     after = std::chrono::high_resolution_clock::now();
