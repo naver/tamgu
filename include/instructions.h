@@ -706,6 +706,20 @@ public:
 	virtual Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);
 	virtual bool Setarguments(TamguDeclarationLocal* index, Tamgu* value, short idthread, bool strict = false);
 
+    
+    string String() {
+        string s = "[";
+        s = globalTamgu->Getsymbol(typevariable);
+        s += " ";
+        s += globalTamgu->Getsymbol(name);
+        if (initialization != NULL) {
+            s += " = ";
+            s += initialization->String();
+        }
+        s += "]";
+        return s;
+    }
+    
     bool Checkarity();
     
 	bool isFrame() {
@@ -4855,7 +4869,7 @@ public:
 	Tamgu* increment;
 	Tamgu* instruction;
 
-	TamguInstructionFORINRANGESHORT(Tamgu* r, TamguInstruction* i, TamguGlobal* g, Tamgu* parent = NULL) : recipient(r), TamguTracked(a_forinrange, g, parent) {
+	TamguInstructionFORINRANGESHORT(Tamgu* r, TamguInstruction* i, TamguGlobal* g, Tamgu* parent = NULL) : recipient(r), TamguTracked(a_forinrange, i, g, parent) {
 		init = i->instructions.vecteur[0]->Instruction(1);
 		test = i->instructions.vecteur[0]->Instruction(2);
 		increment = i->instructions.vecteur[0]->Instruction(3);
@@ -4873,7 +4887,7 @@ public:
 	Tamgu* increment;
 	Tamgu* instruction;
 
-	TamguInstructionFORINRANGEINTEGER(Tamgu* r, TamguInstruction* i, TamguGlobal* g, Tamgu* parent = NULL) : recipient(r), TamguTracked(a_forinrange, g, parent)  {
+	TamguInstructionFORINRANGEINTEGER(Tamgu* r, TamguInstruction* i, TamguGlobal* g, Tamgu* parent = NULL) : recipient(r), TamguTracked(a_forinrange, i, g, parent)  {
 		init = i->instructions.vecteur[0]->Instruction(1);
 		test = i->instructions.vecteur[0]->Instruction(2);
 		increment = i->instructions.vecteur[0]->Instruction(3);
@@ -4891,7 +4905,7 @@ public:
 	Tamgu* increment;
 	Tamgu* instruction;
 
-	TamguInstructionFORINRANGELONG(Tamgu* r, TamguInstruction* i, TamguGlobal* g, Tamgu* parent = NULL) : recipient(r), TamguTracked(a_forinrange, g, parent)  {
+	TamguInstructionFORINRANGELONG(Tamgu* r, TamguInstruction* i, TamguGlobal* g, Tamgu* parent = NULL) : recipient(r), TamguTracked(a_forinrange, i, g, parent)  {
 		init = i->instructions.vecteur[0]->Instruction(1);
 		test = i->instructions.vecteur[0]->Instruction(2);
 		increment = i->instructions.vecteur[0]->Instruction(3);
@@ -4909,7 +4923,7 @@ public:
 	Tamgu* increment;
 	Tamgu* instruction;
 
-	TamguInstructionFORINRANGEDECIMAL(Tamgu* r, TamguInstruction* i, TamguGlobal* g, Tamgu* parent = NULL) : recipient(r), TamguTracked(a_forinrange, g, parent)  {
+	TamguInstructionFORINRANGEDECIMAL(Tamgu* r, TamguInstruction* i, TamguGlobal* g, Tamgu* parent = NULL) : recipient(r), TamguTracked(a_forinrange, i, g, parent)  {
 		init = i->instructions.vecteur[0]->Instruction(1);
 		test = i->instructions.vecteur[0]->Instruction(2);
 		increment = i->instructions.vecteur[0]->Instruction(3);
@@ -4927,7 +4941,7 @@ public:
 	Tamgu* increment;
 	Tamgu* instruction;
 
-	TamguInstructionFORINRANGEFLOAT(Tamgu* r, TamguInstruction* i, TamguGlobal* g, Tamgu* parent = NULL) : recipient(r), TamguTracked(a_forinrange, g, parent)  {
+	TamguInstructionFORINRANGEFLOAT(Tamgu* r, TamguInstruction* i, TamguGlobal* g, Tamgu* parent = NULL) : recipient(r), TamguTracked(a_forinrange, i, g, parent)  {
 		init = i->instructions.vecteur[0]->Instruction(1);
 		test = i->instructions.vecteur[0]->Instruction(2);
 		increment = i->instructions.vecteur[0]->Instruction(3);
@@ -4946,7 +4960,7 @@ public:
     short V, t, i;
 
     
-    TamguInstructionFORINRANGECONSTSHORT(Tamgu* r, TamguInstruction* ins, TamguGlobal* g, Tamgu* parent = NULL) : recipient(r), TamguTracked(a_forinrange, g, parent) {
+    TamguInstructionFORINRANGECONSTSHORT(Tamgu* r, TamguInstruction* ins, TamguGlobal* g, Tamgu* parent = NULL) : recipient(r), TamguTracked(a_forinrange, ins, g, parent) {
         V =  ins->instructions.vecteur[0]->Instruction(1)->Short();
         t = ins->instructions.vecteur[0]->Instruction(2)->Short();
         i = ins->instructions.vecteur[0]->Instruction(3)->Short();
@@ -4962,7 +4976,7 @@ public:
     Tamgu* instruction;
     long V,t,i;
     
-    TamguInstructionFORINRANGECONSTINTEGER(Tamgu* r, TamguInstruction* ins, TamguGlobal* g, Tamgu* parent = NULL) : recipient(r), TamguTracked(a_forinrange, g, parent)  {
+    TamguInstructionFORINRANGECONSTINTEGER(Tamgu* r, TamguInstruction* ins, TamguGlobal* g, Tamgu* parent = NULL) : recipient(r), TamguTracked(a_forinrange, ins, g, parent)  {
         V =  ins->instructions.vecteur[0]->Instruction(1)->Integer();
         t = ins->instructions.vecteur[0]->Instruction(2)->Integer();
         i = ins->instructions.vecteur[0]->Instruction(3)->Integer();
@@ -4978,7 +4992,7 @@ public:
     Tamgu* instruction;
     BLONG V,t,i;
     
-    TamguInstructionFORINRANGECONSTLONG(Tamgu* r, TamguInstruction* ins, TamguGlobal* g, Tamgu* parent = NULL) : recipient(r), TamguTracked(a_forinrange, g, parent)  {
+    TamguInstructionFORINRANGECONSTLONG(Tamgu* r, TamguInstruction* ins, TamguGlobal* g, Tamgu* parent = NULL) : recipient(r), TamguTracked(a_forinrange, ins, g, parent)  {
         V =  ins->instructions.vecteur[0]->Instruction(1)->Long();
         t = ins->instructions.vecteur[0]->Instruction(2)->Long();
         i = ins->instructions.vecteur[0]->Instruction(3)->Long();
@@ -4994,7 +5008,7 @@ public:
     Tamgu* instruction;
     float V,t,i;
     
-    TamguInstructionFORINRANGECONSTDECIMAL(Tamgu* r, TamguInstruction* ins, TamguGlobal* g, Tamgu* parent = NULL) : recipient(r), TamguTracked(a_forinrange, g, parent)  {
+    TamguInstructionFORINRANGECONSTDECIMAL(Tamgu* r, TamguInstruction* ins, TamguGlobal* g, Tamgu* parent = NULL) : recipient(r), TamguTracked(a_forinrange, ins, g, parent)  {
         V =  ins->instructions.vecteur[0]->Instruction(1)->Decimal();
         t = ins->instructions.vecteur[0]->Instruction(2)->Decimal();
         i = ins->instructions.vecteur[0]->Instruction(3)->Decimal();
@@ -5010,7 +5024,7 @@ public:
     Tamgu* instruction;
     double V,t,i;
 
-    TamguInstructionFORINRANGECONSTFLOAT(Tamgu* r, TamguInstruction* ins, TamguGlobal* g, Tamgu* parent = NULL) : recipient(r), TamguTracked(a_forinrange, g, parent)  {
+    TamguInstructionFORINRANGECONSTFLOAT(Tamgu* r, TamguInstruction* ins, TamguGlobal* g, Tamgu* parent = NULL) : recipient(r), TamguTracked(a_forinrange, ins, g, parent)  {
         V =  ins->instructions.vecteur[0]->Instruction(1)->Float();
         t = ins->instructions.vecteur[0]->Instruction(2)->Float();
         i = ins->instructions.vecteur[0]->Instruction(3)->Float();

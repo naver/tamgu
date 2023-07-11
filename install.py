@@ -293,7 +293,9 @@ cleanlibs:
             if anaconda[-1] != '/':
                anaconda += '/'
             f.write("INCLUDEPYTHON = -I"+anaconda+"include/python"+pversion+"\n")
-            f.write("PYTHONLIB = -L"+anaconda+"lib -lpython"+pversion+"\n")
+            f.write("# PYTHONLIB = -L"+anaconda+"lib -lpython"+pversion+"\n")
+            f.write("# See: 'https://github.com/shogun-toolbox/shogun/issues/4068' for an explanation of the following line\n")
+            f.write("PYTHONLIB = -undefined dynamic_lookup\n")
         else:
             if pythoninclude==None:
                 f.write("INCLUDEPYTHON = -I/Library/Frameworks/Python.framework/Headers\n")

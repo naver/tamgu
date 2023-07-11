@@ -44,10 +44,11 @@ const uchar b_floats = b_decimal | b_float;
 //--------------------------------------------------------------------
 #define _setdebugfull(i,j) Tamgudebug* _d=NULL; bool _db = globalTamgu->debugmode; if (_db) _d=new Tamgudebug(i,j); Tamgu** _current_ = globalTamgu->Currentinstruction(idthread)
 #define _setdebugmin(i) Tamgudebug* _d=NULL; bool _db = globalTamgu->debugmode; if (_db) _d=new Tamgudebug(i); Tamgu** _current_ = globalTamgu->Currentinstruction(idthread)
-#define _debugpush(i) *_current_ = i; if (_db) _d->push()
-#define _debugpop() if (_db) _d->pop()
+#define _debugpush(a) globalTamgu->Pushinstruction(a, idthread); if (_db) _d->push()
+#define _debugpop() globalTamgu->Popinstruction(idthread); if (_db) _d->pop()
 #define _cleandebugfull if (_db) delete _d
 #define _cleandebugmin if (_db) delete _d
+#define _setcurrentinstruction(id) globalTamgu->threads[id].currentinstruction = this
 //--------------------------------------------------------------------
 Exporting Tamgu* SelectContainer(Tamgu* context, short idthread);
 Exporting Tamgu* Selectacontainer(Tamgu* context, short idthread);
@@ -287,7 +288,7 @@ union u_tamgulong {
 //The order should follow the order in which Createid are implemented in TamguGlobal::RecordConstantNames
 typedef enum{
 	a_null,
-	a_true, a_false, a_zero, a_one, a_minusone, a_boolean, a_byte, a_short, a_int, a_long, a_decimal, a_fraction, a_float,
+	a_true, a_false, a_zero, a_one, a_minusone, a_boolean, a_byte, a_short, a_int, a_long, a_decimal, a_fraction, a_complex, a_float,
 	a_bloop, a_iloop, a_lloop, a_dloop, a_floop, 
 	a_intthrough, a_longthrough, a_decimalthrough, a_floatthrough, a_stringthrough, a_ustringthrough, a_vectorthrough, a_mapthrough,
 	a_string, a_ustring, a_sloop, a_uloop,

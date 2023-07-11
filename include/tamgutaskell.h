@@ -748,6 +748,10 @@ public:
 		return true;
 	}
 
+    string String() {
+        return "<taskell>";
+    }
+    
 	virtual Tamgu* Composition();
 
 	virtual bool Checkarity();

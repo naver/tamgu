@@ -213,6 +213,16 @@ public:
 		vecteur[last++] = val;
 	}
 
+    inline bool push_size(Z val, long mx) {
+
+        if (last >= sz)
+            taillor(sz<<1);
+
+        //sinon on ajoute l'element en queue...
+        vecteur[last++] = val;
+        return (last >= mx);
+    }
+
     inline bool check() {
         return (last < sz);
     }

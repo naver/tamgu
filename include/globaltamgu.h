@@ -52,6 +52,10 @@ Exporting TamguCode* TamguCurrentSpace();
 Exporting TamguCode* TamguCodeSpace(short idcode);
 Exporting string TamguCurrentFilename();
 Exporting string TamguErrorMessage();
+Exporting bool TamguErrorVector(TamguGlobal*,
+                                std::vector<string>& errorlines,
+                                std::vector<string>& files,
+                                std::vector<long>& linenumbers);
 Exporting void TamguSetinitline(long i);
 Exporting long TamguCurrentLine();
 Exporting bool TamguRunning();

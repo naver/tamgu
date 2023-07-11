@@ -5,7 +5,7 @@ static const char* errorlabels[]={"","Wrong index format",
     "Wrong expression after an operator",
     "Wrong list of parameters",
     "Wrong expressions in parentheses",
-    "Wrong FRAME declaration",
+    "Wrong FRAME declaration (check the name)",
     "Wrong argument declaration",
     "Wrong FUNCTION declaration",
     "Wrong BOOLEAN EXPRESSION",
@@ -27245,6 +27245,7 @@ x_node* bnf_tamgu::x_call_again(tokenizer_result<string>* xr,x_parsing_mode mode
     delete tree;
     return NULL;
 }
+
 
 char bnf_tamgu::x_test_dot(string& lret) {
     if (currentpos>=fx->stack.size())

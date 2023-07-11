@@ -111,7 +111,7 @@
 *2 = Wrong expression after an operator
 *3 = Wrong list of parameters
 *4 = Wrong expressions in parentheses
-*5 = Wrong FRAME declaration
+*5 = Wrong FRAME declaration (check the name)
 *6 = Wrong argument declaration
 *7 = Wrong FUNCTION declaration
 *8 = Wrong BOOLEAN EXPRESSION

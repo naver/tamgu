@@ -52,15 +52,22 @@ public:
     
 
     virtual string String() {
-        string s="(";
+        string s;
         string sym=globalTamgu->Getsymbol(Action());
-        
-        for (long i=0; i<size;i++) {
-            if (i)
-                s+=sym;
-            s+=values[i]->String();
+
+        if (values != NULL) {
+            s="(";
+            
+            for (long i=0; i<size;i++) {
+                if (i)
+                    s+=sym;
+                s+=values[i]->String();
+            }
+            s+=")";
         }
-        s+=")";
+        else
+            s = sym;
+        
         return s;
     }
     
@@ -4286,6 +4293,7 @@ public:
     TamguInstructionCompute(TamguInstructionAPPLYOPERATIONROOT* r, TamguGlobal* g, Tamgu* parent = NULL) : TamguComputeValue(r, true,  a_short, g, parent) {}
     
     Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
+        _setcurrentinstruction(idthread);
         Tamgu* r = op->Eval(res, aNULL, idthread);
         
         if (inter == aASSIGNMENT) {
@@ -4385,6 +4393,7 @@ public:
 
 
     Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
+        _setcurrentinstruction(idthread);
         short r = op->Getshort(idthread);
         
         if (inter == aASSIGNMENT) {
@@ -4444,6 +4453,7 @@ public:
     }
 
     Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
+        _setcurrentinstruction(idthread);
         long r = op->Getinteger(idthread);
         
         if (inter == aASSIGNMENT) {
@@ -4506,6 +4516,7 @@ public:
     }
 
     Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
+        _setcurrentinstruction(idthread);
         float r = op->Getdecimal(idthread);
 
         if (inter == aASSIGNMENT) {
@@ -4566,6 +4577,7 @@ public:
     }
 
     Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
+        _setcurrentinstruction(idthread);
         double r = op->Getfloat(idthread);
 
         if (inter == aASSIGNMENT) {
@@ -4625,6 +4637,7 @@ public:
     }
 
     Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
+        _setcurrentinstruction(idthread);
         BLONG r = op->Getlong(idthread);
 
         if (inter == aASSIGNMENT) {
@@ -4688,6 +4701,7 @@ public:
     }
 
     Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
+        _setcurrentinstruction(idthread);
         string r = op->Getstring(idthread);
         if (inter == aASSIGNMENT) {
             res->Storevalue(r);
@@ -4748,6 +4762,7 @@ public:
     }
 
     Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
+        _setcurrentinstruction(idthread);
         wstring r = op->Getustring(idthread);
         if (inter == aASSIGNMENT) {
             res->Storevalue(r);
@@ -4787,6 +4802,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
+        _setcurrentinstruction(idthread);
         short d = (short)size - 1;
         Tamgu* r = cfraction(idthread, d);
         if (r->isError())

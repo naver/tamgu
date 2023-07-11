@@ -180,6 +180,12 @@ Exporting short TamguCompile(string& codeinit, string filename, char dsp) {
 	bool add = true;
 	string code;	
 	if (dsp) {
+        globalTamgu->store_in_code_lines = true;
+        globalTamgu->codelines.clear();
+        
+        globalTamgu->codelines.push_back("");
+        v_split(codeinit, "\n", globalTamgu->codelines);
+
 		code = Trim(codeinit);
 		if (code.size() == 0)
 			return -1;
@@ -272,6 +278,13 @@ Exporting short TamguCompileMain(string& codeinit, string filename) {
     //The system variables...
     globalTamgu->SystemInitialization(filename);
     globalTamgu->Cleanerror(0);
+    
+    //This is
+    globalTamgu->store_in_code_lines = true;
+    globalTamgu->codelines.clear();
+    
+    globalTamgu->codelines.push_back("");
+    v_split(codeinit, "\n", globalTamgu->codelines);
 
     if (!a->Compile(codeinit))
         return -1;
@@ -449,15 +462,41 @@ Exporting string TamguDisplayValue() {
     return gl_os->str();
 }
 
+Exporting bool TamguErrorVector(TamguGlobal* global,
+                                std::vector<string>& errorlines,
+                                std::vector<string>& files,
+                                std::vector<long>& linenumbers) {
+    if (global->errorraised[0] != NULL) {
+        string filename = global->Getcurrentfile();
+        stringstream message;
+        global->Getstack(errorlines, files, linenumbers);
+        errorlines.push_back(global->errorraised[0]->String());
+        linenumbers.push_back(global->Getinstructionline(0));
+        string name = "string";
+        if (!global->store_in_code_lines) {
+            long file_id = global->Getinstructionfile(0);
+            if (file_id != -1)
+                name = global->Getfilename(file_id);
+        }
+        files.push_back(name);
+        return true;
+    }
+    return false;
+
+}
+
 Exporting string TamguErrorMessage() {
 	if (globalTamgu->errorraised[0] != NULL) {
 		string filename = globalTamgu->Getcurrentfile();
-		stringstream message;		
-		message << globalTamgu->errorraised[0]->String() << " at " << globalTamgu->Getinstructionline(0);
-		string msg = message.str();
-		if (msg.find(filename) == string::npos)
-			message << " in " << filename;
+		stringstream message;
 
+        globalTamgu->Getstack(message);
+        message << globalTamgu->errorraised[0]->String() << " at " << globalTamgu->Getinstructionline(0);
+        if (!globalTamgu->store_in_code_lines) {
+            long file_id = globalTamgu->Getinstructionfile(0);
+            if (file_id != -1)
+                message << " in " << globalTamgu->Getfilename(file_id);
+        }
 		return message.str();
 	}
 	return globalTamgu->threads[0].message.str();

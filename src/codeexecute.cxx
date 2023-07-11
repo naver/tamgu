@@ -2138,9 +2138,18 @@ Exporting Tamgu* TamguCallFunction::Eval(Tamgu* domain, Tamgu* a, short idthread
     if (idthread)
         values = new VECTE<Tamgu*>(sza);
     
-    for (i=0; i < sza; i++) {
+    for (i = 0; i < sza && !globalTamgu->Error(idthread); i++) {
         a = arguments.vecteur[i]->Eval(domain, aNULL, idthread);
         values->push_back(a);
+    }
+    
+    if (globalTamgu->Error(idthread)) {
+        for (i = 0; i < values->size(); i++) {
+            a = values->vecteur[i];
+            if (!a-isError())
+                a->Releasenonconst();
+        }
+        return globalTamgu->Errorobject(idthread);
     }
     
     if (sza) {
@@ -2273,7 +2282,13 @@ Tamgu* TamguCallFunction1::Eval(Tamgu* domain, Tamgu* a, short idthread) {
         strict = bd->strict;
     
     a = arguments[0]->Eval(domain, aNULL, idthread);
-    
+
+    if (globalTamgu->Error(idthread)) {
+        if (!a->isError())
+            a->Releasenonconst();
+        return globalTamgu->Errorobject(idthread);
+    }
+
     if (((TamguVariableDeclaration*)bd->parameters[0])->Setarguments(environment, a, idthread, strict)) {
         a->Releasenonconst();
         string err = "Check the arguments of: ";
@@ -2313,14 +2328,17 @@ Tamgu* TamguCallFunction2::Eval(Tamgu* domain, Tamgu* a, short idthread) {
     bool error = false;
     for (short i = 0; i < 2 && !error; i++) {
         a = arguments[i]->Eval(domain, aNULL, idthread);
-        error = ((TamguVariableDeclaration*)bd->parameters[i])->Setarguments(environment, a, idthread, bd->strict);
+        error = ((TamguVariableDeclaration*)bd->parameters[i])->Setarguments(environment, a, idthread, bd->strict) || globalTamgu->Error(idthread);
     }
 
     if (error) {
         environment->Releasing();
-        a->Releasenonconst();
+        if (!a->isError())
+            a->Releasenonconst();
         string err = "Check the arguments of: ";
         err += globalTamgu->Getsymbol(Name());
+        if (globalTamgu->Error(idthread))
+            return globalTamgu->Errorobject(idthread);
         return globalTamgu->Returnerror(err, idthread);
     }
 
@@ -2361,17 +2379,20 @@ Tamgu* TamguCallFunction3::Eval(Tamgu* domain, Tamgu* a, short idthread) {
     bool error = false;
     for (short i = 0; i < 3 && !error; i++) {
         a = arguments[i]->Eval(domain, aNULL, idthread);
-        error = ((TamguVariableDeclaration*)bd->parameters[i])->Setarguments(environment, a, idthread, strict);
+        error = ((TamguVariableDeclaration*)bd->parameters[i])->Setarguments(environment, a, idthread, bd->strict) || globalTamgu->Error(idthread);
     }
 
     if (error) {
         environment->Releasing();
-        a->Releasenonconst();
+        if (!a->isError())
+            a->Releasenonconst();
         string err = "Check the arguments of: ";
         err += globalTamgu->Getsymbol(Name());
+        if (globalTamgu->Error(idthread))
+            return globalTamgu->Errorobject(idthread);
         return globalTamgu->Returnerror(err, idthread);
     }
-    
+
     globalTamgu->Pushstackraw(environment, idthread);
     //We then apply our function within this environment
     a = bd->Run(environment, idthread);
@@ -2407,14 +2428,17 @@ Tamgu* TamguCallFunction4::Eval(Tamgu* domain, Tamgu* a, short idthread) {
     bool error = false;
     for (short i = 0; i < 4 && !error; i++) {
         a = arguments[i]->Eval(domain, aNULL, idthread);
-        error = ((TamguVariableDeclaration*)bd->parameters[i])->Setarguments(environment, a, idthread, strict);
+        error = ((TamguVariableDeclaration*)bd->parameters[i])->Setarguments(environment, a, idthread, bd->strict) || globalTamgu->Error(idthread);
     }
 
     if (error) {
         environment->Releasing();
-        a->Releasenonconst();
+        if (!a->isError())
+            a->Releasenonconst();
         string err = "Check the arguments of: ";
         err += globalTamgu->Getsymbol(Name());
+        if (globalTamgu->Error(idthread))
+            return globalTamgu->Errorobject(idthread);
         return globalTamgu->Returnerror(err, idthread);
     }
 
@@ -2454,14 +2478,17 @@ Tamgu* TamguCallFunction5::Eval(Tamgu* domain, Tamgu* a, short idthread) {
     bool error = false;
     for (short i = 0; i < 5 && !error; i++) {
         a = arguments[i]->Eval(domain, aNULL, idthread);
-        error = ((TamguVariableDeclaration*)bd->parameters[i])->Setarguments(environment, a, idthread, strict);
+        error = ((TamguVariableDeclaration*)bd->parameters[i])->Setarguments(environment, a, idthread, bd->strict) || globalTamgu->Error(idthread);
     }
 
     if (error) {
         environment->Releasing();
-        a->Releasenonconst();
+        if (!a->isError())
+            a->Releasenonconst();
         string err = "Check the arguments of: ";
         err += globalTamgu->Getsymbol(Name());
+        if (globalTamgu->Error(idthread))
+            return globalTamgu->Errorobject(idthread);
         return globalTamgu->Returnerror(err, idthread);
     }
 
@@ -3208,7 +3235,8 @@ Tamgu* TamguCallThread::Eval(Tamgu* environment, Tamgu* value, short idthread) {
     }
     
 	//Then we copy the current knowledge base into the new thread own knowledge base as they must share it...
-
+    globalTamgu->threads[id].stackinstructions = globalTamgu->threads[idthread].stackinstructions;
+    
 	bool cleandom = false;
 	Tamgu* dom = main;
 	if (environment != main) {
@@ -3739,7 +3767,6 @@ Tamgu* TamguInstructionSWITCH::Eval(Tamgu* context, Tamgu* ke, short idthread) {
 }
 
 Tamgu* TamguInstructionIF::Eval(Tamgu* context, Tamgu* value, short idthread) {
-    
     value = instructions.vecteur[0]->Eval(aTRUE, aNULL, idthread);
     
     if (value->isError())
@@ -5042,6 +5069,7 @@ Tamgu* TamguInstructionTRY::Eval(Tamgu* res, Tamgu* ins, short idthread) {
     if (globalTamgu->debugmode)
         environment->idinfo = Currentinfo();
 
+    globalTamgu->increment_try(idthread);
     res = aNULL;
     bool testcond = false;
     _setdebugmin(idthread);
@@ -5055,8 +5083,9 @@ Tamgu* TamguInstructionTRY::Eval(Tamgu* res, Tamgu* ins, short idthread) {
         
         testcond = res->needFullInvestigate() || globalTamgu->Error(idthread);
     }
-
     _cleandebugmin;
+    globalTamgu->decrement_try(idthread);
+    
     if (testcond) {
         if (globalTamgu->Error(idthread)) {
             instructions.vecteur[last]->Eval(aNULL, aNULL, idthread);

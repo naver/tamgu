@@ -25,6 +25,7 @@
 #include "tamgudvector.h"
 #include "instructions.h"
 #include "constobjects.h"
+#include "tamgucomplex.h"
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<decimalMethod>  Tamgudecimal::methods;
@@ -216,3 +217,65 @@ Tamgu* TamguLoopDecimal::Vector(short idthread) {
     kvect->values = interval;
     return kvect;
 }
+
+
+// Tamgu complex implementation
+
+//We need to declare once again our local definitions.
+Exporting basebin_hash<complexMethod>  Tamgucomplex::methods;
+
+
+//MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
+void Tamgucomplex::AddMethod(TamguGlobal* global, string name, complexMethod func, unsigned long arity, string infos, short typereturn) {
+    short idname = global->Getid(name);
+    methods[idname] = func;
+    if (global->infomethods.find(a_complex) != global->infomethods.end() &&
+            global->infomethods[a_complex].find(name) != global->infomethods[a_complex].end())
+    return;
+
+    global->infomethods[a_complex][name] = infos;
+    global->RecordArity(a_complex, idname, arity);
+    if (typereturn != a_null)
+        global->returntypes[idname] = typereturn;
+}
+
+
+
+
+void Tamgucomplex::Setidtype(TamguGlobal* global) {
+  if (methods.isEmpty())
+    Tamgucomplex::InitialisationModule(global,"");
+}
+
+
+   bool Tamgucomplex::InitialisationModule(TamguGlobal* global, string version) {
+    methods.clear();
+
+    Tamgucomplex::AddMethod(global, "_initial", &Tamgucomplex::MethodUnit, P_TWO | P_NONE, "complex(double r, double i)", a_float);
+    Tamgucomplex::AddMethod(global, "invert", &Tamgucomplex::MethodInvert, P_NONE, "", a_float);
+    Tamgucomplex::AddMethod(global, "succ", &Tamgucomplex::MethodSucc, P_NONE, "succ(): Return a successor of the current value", a_float);
+    Tamgucomplex::AddMethod(global, "pred", &Tamgucomplex::MethodPred, P_NONE, "pred(): Return the predecessor of a byte.", a_float);
+
+    Tamgucomplex::AddMethod(global, "real", &Tamgucomplex::MethodReal, P_NONE, "real(): return the real part of the value", a_float);
+    Tamgucomplex::AddMethod(global, "imaginary", &Tamgucomplex::MethodImaginary, P_NONE, "imaginary(): return the imaginary part of the value", a_float);
+
+
+
+    if (version != "") {
+        global->newInstance[a_complex] = new Tamgucomplex(0, 0, global);
+        global->RecordCompatibilities(a_complex);
+    }
+    
+    return true;
+}
+
+Tamgu* Tamgucomplex::MethodUnit(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    if (callfunc->Size()) {
+        double real = callfunc->Evaluate(0, contextualpattern, idthread)->Float();
+        double imaginary = callfunc->Evaluate(1, contextualpattern, idthread)->Float();
+        value.real(real);
+        value.imag(imaginary);
+    }
+    return aTRUE;
+}
+

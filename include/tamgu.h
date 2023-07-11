@@ -2062,7 +2062,8 @@ public:
     long idinfo;
 	short idtype;
 
-	Exporting TamguTracked(short t, TamguGlobal* g = NULL, Tamgu* parent = NULL);
+    Exporting TamguTracked(short t, TamguGlobal* g = NULL, Tamgu* parent = NULL);
+    Exporting TamguTracked(short t, TamguTracked* copie, TamguGlobal* g = NULL, Tamgu* parent = NULL);
 	Exporting TamguTracked(string t, TamguGlobal* g = NULL, Tamgu* parent = NULL);
 
 	void Remove() {
@@ -2510,6 +2511,13 @@ public:
         for (long i=0; i<instructions.size();i++)
             instructions[i]->ScanVariables(vars);
         
+    }
+    
+    string String() {
+        string s = "[";
+        s += globalTamgu->Getsymbol(idtype);
+        s += "]";
+        return s;
     }
     
 	void SetVariablesWillBeCreated() {
@@ -3314,8 +3322,8 @@ public:
 		}
 	}
 
-    string String() {
-        string v = "<";
+    virtual string String() {
+        string v = "[";
         v += globalTamgu->Getsymbol(name);
         v+="(";
         for (long i = 0; i < arguments.size(); i++) {
@@ -3323,12 +3331,12 @@ public:
                 v+=",";
             v+=arguments[i]->String();
         }
-        v+=")>";
+        v+=")]";
         return v;
     }
     
     void Setstring(string& v, short idthread) {
-        v = "<";
+        v = "[";
         v += globalTamgu->Getsymbol(name);
         v+="(";
         for (long i = 0; i < arguments.size(); i++) {
@@ -3336,7 +3344,7 @@ public:
                 v+=",";
             v+=arguments[i]->String();
         }
-        v+=")>";
+        v+=")]";
     }
     
     virtual void AddInstruction(Tamgu* a) {

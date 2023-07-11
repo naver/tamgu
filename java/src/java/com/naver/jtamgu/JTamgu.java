@@ -43,7 +43,20 @@ public class JTamgu {
     }
 
     //------------------------------------------------------------------------
+    private native boolean GetErrorImplementation(int handler, List<String> messages, List<String> files, List<Integer> lines) throws Exception;
 
+    /**
+     * Load a Tamgu program
+     *
+     * @param filename of the Tamgu program to load
+     * @param args arguments as a string, where each parameter is separated with a space
+     * @return
+     * @exception Exception
+     */
+    public synchronized boolean GetError(int handler, List<String> messages, List<String> files, List<Integer> lines) throws Exception {
+        return GetErrorImplementation(handler, messages, files, lines);
+    }
+    //------------------------------------------------------------------------
     private native boolean CheckProgramImplementation(String filename,String args, List<String> messages, List<Integer> lines, List<Integer> positions) throws Exception;
 
     /**

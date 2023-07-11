@@ -203,7 +203,6 @@ class bnf_tamgu {
     x_node* x_call_again(tokenizer_result<string>* xr,x_parsing_mode mode,bool display=true);
 
 
-
     char m_path(string& lreturn,x_node** tree);
     char m_path_0_1(string& lreturn,x_node** tree);
     char m_shell(string& lreturn,x_node** tree);

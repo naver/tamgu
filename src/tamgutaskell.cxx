@@ -683,6 +683,8 @@ Tamgu* TamguHBloc::Eval(Tamgu* context, Tamgu* a, short idthread) {
 
 //------------------------------HASKELL----------------------------------------
 Tamgu* TamguCallFunctionTaskell::Eval(Tamgu* context, Tamgu* res, short idthread) {
+    _setcurrentinstruction(idthread);
+    
     TamguDeclarationAutoClean* environment = globalTamgu->Providedeclarationclean(idthread);
     
     if (globalTamgu->debugmode)
@@ -717,7 +719,6 @@ Tamgu* TamguCallFunctionTaskell::Eval(Tamgu* context, Tamgu* res, short idthread
             return aNOTHING;
         }
         
-        globalTamgu->Current(this, idthread);
         if (res == aRAISEERROR && context->Type() != a_taskelldeclaration)
             return globalTamgu->Returnerror("Lambda expression failed...", idthread);
         return res;
@@ -735,7 +736,8 @@ Tamgu* TamguCallFunctionTaskell::Eval(Tamgu* context, Tamgu* res, short idthread
 }
 
 Tamgu* TamguCallFunctionArgsTaskell::Eval(Tamgu* context, Tamgu* res, short idthread) {
-
+    _setcurrentinstruction(idthread);
+    
     Tamgu* argms[3];
     Tamgu** args=argms;
 
@@ -994,7 +996,6 @@ Tamgu* TamguCallFunctionArgsTaskell::Eval(Tamgu* context, Tamgu* res, short idth
             return aNOTHING;
         }
         
-        globalTamgu->Current(this, idthread);
         string err = "Error: no suitable declaration was found for function: ";
         err += globalTamgu->Getsymbol(name);
         err += " --> ";
@@ -1578,6 +1579,8 @@ Tamgu* TamguCallFibre::Put(Tamgu* context, Tamgu* v, short idthread) {
 }
 
 Tamgu* TamguCallFibre::Eval(Tamgu* context, Tamgu* res, short idthread) {
+    _setcurrentinstruction(idthread);
+    
     Tamgu** args = NULL;
     
     short i, sz = arguments.size();
@@ -1829,7 +1832,6 @@ Tamgu* TamguCallFibre::Eval(Tamgu* context, Tamgu* res, short idthread) {
             return aNOTHING;
         }
         
-        globalTamgu->Current(this, idthread);
         string err = "Error: no suitable declaration was found for function: ";
         err += globalTamgu->Getsymbol(name);
         err += " --> ";

@@ -41,6 +41,7 @@
 #include "comparetemplate.h"
 #include "tamgulisp.h"
 #include "tokens.h"
+#include "tamgucomplex.h"
 
 #include <memory>
 
@@ -1285,12 +1286,13 @@ void tokenizer_automaton::setrules() {
     rules.push_back(U"u-@-\"?+\"@-=8");             //46    string u@".."@ unicode string
     
     rules.push_back(U"0b{1 0}+=3");                       //binary numbers
-    
+    rules.push_back(U"0c({%- %+})%d+(.%d+)({eE}({%- %+})%d+):({%- %+})(%d+(.%d+)({eE}({%- %+})%d+))i=3");    //complex numbers
+
     rules.push_back(U"1:{%d #A-F #a-f}");            //2     metarule on 1, for hexadecimal digits
     rules.push_back(U"0x%1+(.%1+)({pP}({%- %+})%d+)=3");  //47 hexadecimal: can handle 0x1.16bca4f9165dep-3
     
     rules.push_back(U"%d+(.%d+)({eE}({%- %+})%d+)=3");    //48    exponential digits
-    
+
     // Rules start here
     //This character should be interpreted as one
     rules.push_back(U"{%a %d %H}+=4");               //49    label a combination of alpha, digits and hangul characters
@@ -1709,6 +1711,105 @@ long TamguCode::Computecurrentline(int i, x_node* xn) {
 	return (long)current_start;
 }
 
+//--------------------------------------------------------------------
+//This method is used to retrieve lines from stack_error
+void TamguGlobal::Getstack(vector<string>& stacklines, vector<string>& files, vector<long>& linenumbers) {
+    long file_id = -1, ln, current_file = -1;
+    long nb = 0;
+    string name = "string";
+    string line;
+    Tamgu* a;
+    vector<string> lines;
+    if (store_in_code_lines)
+        lines = codelines;
+    
+    for (long i = 0; i < stack_error.size(); i++) {
+        stringstream message;
+        a = stack_error[i];
+        ln = a->Currentline();
+        if (ln != -1) {
+            line = a->String();
+            if (!store_in_code_lines) {
+                file_id = a->Currentfile();
+                if (file_id !=-1) {
+                    name = Getfilename(file_id);
+                    if (current_file == -1 || current_file != file_id) {
+                        ifstream thefile(name, ios::binary);
+                        lines.clear();
+                        lines.push_back("");
+                        while (!thefile.eof()) {
+                            std::getline(thefile, line);
+                            lines.push_back(line);
+                        }
+                    }
+                }
+            }
+
+            if (!lines.empty() && ln < lines.size()) {
+                line = "[";
+                line += Trim(lines[ln]);
+                line += "]";
+            }
+            
+            stacklines.push_back(message.str());
+            linenumbers.push_back(ln);
+            files.push_back(name);
+        }
+    }
+}
+
+void TamguGlobal::Getstack(std::stringstream& message) {
+    long file_id = -1, ln, current_file = -1;
+    long nb = 0;
+    string name;
+    string line;
+    Tamgu* a;
+    vector<string> lines;
+    if (store_in_code_lines)
+        lines = codelines;
+    
+    if (stack_error.size() > 1) {
+        for (long i = 0; i < stack_error.size(); i++) {
+            a = stack_error[i];
+            ln = a->Currentline();
+            if (ln != -1) {
+                line = a->String();
+                if (!store_in_code_lines) {
+                    file_id = a->Currentfile();
+                    if (file_id !=-1) {
+                        name = Getfilename(file_id);
+                        if ((current_file == -1 || current_file != file_id) && name != "") {
+                            ifstream thefile(name, ios::binary);
+                            lines.clear();
+                            lines.push_back("");
+                            while (!thefile.eof()) {
+                                std::getline(thefile, line);
+                                lines.push_back(line);
+                            }
+                        }
+                    }
+                }
+                
+                if (!lines.empty() && ln < lines.size()) {
+                    string l = Trim(lines[ln]);
+                    if (l.size() > 23) {
+                        l = l.substr(0,20);
+                        l += "...";
+                    }
+                    line = "[";
+                    line += l;
+                    line += "]";
+                }
+                
+                message << nb++ << ": " << line << " at " << ln;
+                if (file_id != -1 && name != "")
+                    message << " in " << name  << endl;
+                else
+                    message << endl;
+            }
+        }
+    }
+}
 //--------------------------------------------------------------------
 void TamguGlobal::RecordCompileFunctions() {
 	parseFunctions["declaration"] = &TamguCode::C_parameterdeclaration;
@@ -4449,7 +4550,23 @@ Tamgu* TamguCode::C_ustring(x_node* xn, Tamgu* parent) {
 
 Tamgu* TamguCode::C_anumber(x_node* xn, Tamgu* parent) {
 	string& name = xn->value;
-	Tamgu* kv = NULL;
+    if (name[0] == '0' && name[1] == 'c') {
+        //This is a complex number...
+        long p = name.find(":");
+        double r = convertfloat(name.substr(2, p));
+        name = name.substr(p + 1, name.size() - p - 1);
+        double i;
+        if (name == "-i")
+            i = -1;
+        else
+            if (name == "i")
+                i = 1;
+            else
+                i = convertfloat(name);
+        return new Tamgucomplex(r, i, global, parent);
+    }
+    
+    Tamgu* kv = NULL;
 	BLONG v;
 	if (name.find(".") == -1 && name.find("e") == -1) {
 		v = conversionintegerhexa(STR(name));
@@ -4479,6 +4596,23 @@ Tamgu* TamguCode::C_anumber(x_node* xn, Tamgu* parent) {
 
 Tamgu* TamguCode::C_axnumber(x_node* xn, Tamgu* parent) {
 	string& name = xn->value;
+
+    if (name[0] == '0' && name[1] == 'c') {
+        //This is a complex number...
+        long p = name.find(":");
+        double r = convertfloat(name.substr(2, p));
+        name = name.substr(p + 1, name.size());
+        double i;
+        if (name == "-i")
+            i = -1;
+        else
+            if (name == "i")
+                i = 1;
+            else
+                i = convertfloat(name);
+        return new Tamgucomplex(r, i, global, parent);
+    }
+
 	BLONG v = conversionintegerhexa(STR(name));
 	Tamgu* kv = NULL;
     if (compilemode) {

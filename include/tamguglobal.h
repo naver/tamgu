@@ -156,43 +156,52 @@ typedef Tamgu* (TamguCode::*ParseElement)(x_node*, Tamgu*);
 
 class ThreadStruct {
 public:
-    short idthread;
-    
 	VECTE<Tamgu*> stack;
     VECTE<Tamgu*> stacklisp;
-	vector<Tamgu*> debugstack;
-    
+    VECTE<Tamgu*> stackinstructions;
+    VECTE<short> basepredicatename;
     VECTE<TamguCallFibre*> fibres;
+    vector<Tamgu*> debugstack;
     vector<Tamgu*> localgarbage;
-    bool in_eval;
-
-    std::atomic<short> nbjoined;
-    
 	bin_hash<VECTE<Tamgu*> > variables;
+    hmap<string, ThreadLock*> locks;
 
 	string nonblockingerror;
 
 	stringstream message;
 	threadhandle handle;
+    
+    std::atomic<short> nbjoined;
 
     FstCompanion* fstcompanion;
 	Tamgu* returnvalue;
     Tamgu* previousinstruction;
     Tamgu* currentinstruction;
-	hmap<string, ThreadLock*> locks;
 
+    long embedded_try;
+    long parentthreads;
+
+    short idthread;
     short gpredicatename;
-    VECTE<short> basepredicatename;
-    
-	long parentthreads;
 	short prologstack;
 
 	bool used;
+    bool in_eval;
 
 	ThreadStruct();
 	Exporting ~ThreadStruct();
 
     FstCompanion* Companion();
+    
+    
+    void Pushinstruction(Tamgu* a) {
+        currentinstruction = a;
+        stackinstructions.push_back(a);
+    }
+    
+    void Popinstruction() {
+        stackinstructions.pop_back();
+    }
     
     void SetPredicateVariableFlags(short base) {
         gpredicatename = base;
@@ -317,7 +326,7 @@ private:
 	//The specific objects which we want to track (not exactly a garbage)
     
 	long maxthreads;
-		
+    
 public:
 
     atomic_vector<Tamgu*> tracked;
@@ -343,6 +352,11 @@ public:
     hmap<string,vector<TamguPredicate*> > knowledgebase_on_second;
     hmap<string,vector<TamguPredicate*> > knowledgebase_on_third;
     
+    std::vector<std::string> codelines;
+    bool store_in_code_lines;
+    
+    VECTE<Tamgu*> stack_error;
+
     tokenizer_automaton tamgu_tokenizer;
 
 	//This variable is set to TRUE in thread mode... It allows then for the actual creation of locks...
@@ -639,6 +653,14 @@ public:
     
     void Removefromlocalgarbage(short idthread, long i, Tamgu* a);
     
+    void increment_try(short idthread) {
+        threads[idthread].embedded_try++;
+    }
+
+    void decrement_try(short idthread) {
+        threads[idthread].embedded_try--;
+    }
+
     Exporting void Clearfibres(short);
 	Exporting void Update();
 	//--------------------------------
@@ -747,6 +769,14 @@ public:
         return (methods.check(idtype) && methods.get(idtype).check(idname) && a == (methods.get(idtype).get(idname)&a));
     }
     
+    inline void Pushinstruction(Tamgu* a, short idthread) {
+        threads[idthread].Pushinstruction(a);
+    }
+    
+    inline void Popinstruction(short idthread) {
+        threads[idthread].Popinstruction();
+    }
+    
 	bool isRunning() {
 		return running;
 	}
@@ -761,6 +791,8 @@ public:
 		threadids.erase(_GETTHREADID());
 	}
 
+    void Getstack(vector<string>& lines, vector<string>&, vector<long>&);
+    void Getstack(std::stringstream& message);
 	void EraseThreadid(short id);
 	short InitThreadid(short id);
 	short SelectThreadid();
@@ -869,12 +901,12 @@ public:
     
     inline void Pushstack(Tamgu* a, short idthread = 0) {
         if (threads[idthread].pushtracked(a, maxstack))
-            Returnerror("Stack overflow", idthread);
+            Seterror("Stack overflow", idthread);
     }
 
     inline void Pushstackraw(Tamgu* a, short idthread = 0) {
         if (threads[idthread].push(a, maxstack))
-            Returnerror("Stack overflow", idthread);
+            Seterror("Stack overflow", idthread);
     }
 
 	inline void Popstack(short idthread = 0) {
@@ -1002,6 +1034,7 @@ public:
 	}
 
 	long Getinstructionline(short idthread);
+    long Getinstructionfile(short idthread);
 	//--------------------------------
 	Exporting void RecordCompileFunctions();
 	Exporting void RecordCompatibilities();
@@ -1187,6 +1220,7 @@ public:
 	string Errorstring(short idthread);
 	Exporting Tamgu* Returnerror(Tamgu* err, short idthread);
 	Exporting Tamgu* Returnerror(string err, short idthread);
+    Exporting void Seterror(string err, short idthread);
 	Exporting Tamgu* Returnerror(string err);
 
 	void Cleanerror(short idthread);
