@@ -2800,7 +2800,7 @@ short TamguGlobal::Getfileid(short& idc, string f) {
 }
 
 Exporting string TamguGlobal::Getfilename(short fileid) {
-	if (fileid != -1)
+	if (fileid != -1 && fileid < filenames.size())
 		return filenames[fileid];
 	return "";
 }

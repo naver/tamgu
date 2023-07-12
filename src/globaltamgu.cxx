@@ -468,17 +468,12 @@ Exporting bool TamguErrorVector(TamguGlobal* global,
                                 std::vector<long>& linenumbers) {
     if (global->errorraised[0] != NULL) {
         string filename = global->Getcurrentfile();
+        long line = globalTamgu->Getcurrentline();
         stringstream message;
         global->Getstack(errorlines, files, linenumbers);
         errorlines.push_back(global->errorraised[0]->String());
-        linenumbers.push_back(global->Getinstructionline(0));
-        string name = "string";
-        if (!global->store_in_code_lines) {
-            long file_id = global->Getinstructionfile(0);
-            if (file_id != -1)
-                name = global->Getfilename(file_id);
-        }
-        files.push_back(name);
+        linenumbers.push_back(line);
+        files.push_back(filename);
         return true;
     }
     return false;
@@ -488,14 +483,14 @@ Exporting bool TamguErrorVector(TamguGlobal* global,
 Exporting string TamguErrorMessage() {
 	if (globalTamgu->errorraised[0] != NULL) {
 		string filename = globalTamgu->Getcurrentfile();
+        long line = globalTamgu->Getcurrentline();
 		stringstream message;
 
         globalTamgu->Getstack(message);
-        message << globalTamgu->errorraised[0]->String() << " at " << globalTamgu->Getinstructionline(0);
+        message << globalTamgu->errorraised[0]->String() << " at " << line;
         if (!globalTamgu->store_in_code_lines) {
-            long file_id = globalTamgu->Getinstructionfile(0);
-            if (file_id != -1)
-                message << " in " << globalTamgu->Getfilename(file_id);
+            if (filename != "")
+                message << " in " << filename;
         }
 		return message.str();
 	}
