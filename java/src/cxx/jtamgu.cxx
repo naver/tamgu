@@ -246,6 +246,39 @@ JNIEXPORT jboolean JNICALL Java_com_naver_jtamgu_JTamgu_CheckProgramImplementati
     return false;
 }
 
+JNIEXPORT jboolean JNICALL Java_com_naver_jtamgu_JTamgu_GetErrorImplementation(JNIEnv *env, jobject obj,
+                                                                               jint handler,
+                                                                               jobjectArray messages,
+                                                                               jobjectArray files,
+                                                                               jobjectArray lines) {
+    string value;
+    jstring element;
+    bool theerror = false;
+
+    TamguCode* tamgucode = GetTamgu(env, handler, value);
+    if (tamgucode == NULL)
+        return false;
+
+    std::vector<string> c_errors;
+    std::vector<string> c_files;
+    std::vector<long> c_lines;
+    if (!TamguErrorVector(globalTamgu, c_errors, c_files, c_lines))
+        return true;
+    
+    long nb = c_errors.size();
+    JavaIterationListString jmess(env, messages, 0);
+    JavaIterationListString jfiles(env, files, 0);
+    JavaIterationListInteger jlines(env, lines, 0);
+
+    for (long i = 0; i < nb; i++) {
+        jmess.Set(i, c_errors[i]);
+        jfiles.Set(i, c_files[i]);
+        jlines.Set(i, c_lines[i]);
+    }
+    
+    return false;
+}
+
 
 /**
  * Execute and load a Tamgu program as a String
