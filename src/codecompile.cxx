@@ -1340,6 +1340,7 @@ void segmenter_automaton::setrules() {
 
     rules.push_back(U"{%- %+}0b{1 0}+=1");  //binaries
     rules.push_back(U"0b{1 0}+=1");  //binaires
+    rules.push_back(U"0c({%- %+})%d+(.%d+)({eE}({%- %+})%d+):({%- %+})(%d+(.%d+)({eE}({%- %+})%d+))i=1");    //complex numbers
 
     rules.push_back(U"%#{%a %d}+=1");       //Regular strings
     rules.push_back(U"${%a %d}+=1");       //Regular strings
@@ -1400,6 +1401,7 @@ void tags_automaton::setrules() {
 
     rules.push_back(U"{%- %+}0b{1 0}+=4");  //binaries
     rules.push_back(U"0b{1 0}+=4");  //binaires
+    rules.push_back(U"0c({%- %+})%d+(.%d+)({eE}({%- %+})%d+):({%- %+})(%d+(.%d+)({eE}({%- %+})%d+))i=4");    //complex numbers
 
     rules.push_back(U"%#{%a %d}+=4");       //Regular strings
     rules.push_back(U"${%a %d}+=4");       //Regular strings

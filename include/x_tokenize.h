@@ -98,6 +98,7 @@ public:
         rules.push_back(U"#27%[{;%d}+m=0");
         
         rules.push_back(U"0b{1 0}+=3");                       //binary numbers
+        rules.push_back(U"0c({%- %+})%d+(.%d+)({eE}({%- %+})%d+):({%- %+})(%d+(.%d+)({eE}({%- %+})%d+))i=3");    //complex numbers
         rules.push_back(U"1:{%d #A-F #a-f}");            //2     metarule on 1, for hexadecimal digits
         rules.push_back(U"0x%1+(.%1+)({pP}({%- %+})%d+)=3");  //47 hexadecimal: can handle 0x1.16bca4f9165dep-3
         rules.push_back(U"%d+(.%d+)({eE}({%- %+})%d+)=3");    //48    exponential digits
@@ -206,6 +207,7 @@ public:
 
         
         rules.push_back(U"0b{1 0}+=0");                       //binary numbers
+        rules.push_back(U"0c({%- %+})%d+(.%d+)({eE}({%- %+})%d+):({%- %+})(%d+(.%d+)({eE}({%- %+})%d+))i=0");    //complex numbers
         rules.push_back(U"1:{%d #A-F #a-f}");            //2     metarule on 1, for hexadecimal digits
         rules.push_back(U"0x%1+(.%1+)({pP}({%- %+})%d+)=0");  //47 hexadecimal: can handle 0x1.16bca4f9165dep-3
         rules.push_back(U"%d+(.%d+)({eE}({%- %+})%d+)=0");    //48    exponential digits

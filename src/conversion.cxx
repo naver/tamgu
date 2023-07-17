@@ -8036,6 +8036,7 @@ void getdefaultrules(vector<string>& rules) {
 
     rules.push_back("{%- %+}0b{1 0}+=1");  //binaries
     rules.push_back("0b{1 0}+=1");  //binaires
+    rules.push_back("0c({%- %+})%d+(.%d+)({eE}({%- %+})%d+):({%- %+})(%d+(.%d+)({eE}({%- %+})%d+))i=1");    //complex numbers
 
     rules.push_back("%#{%a %d}+=1");       //Regular strings
     rules.push_back("${%a %d}+=1");       //Regular strings
