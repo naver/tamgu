@@ -1307,14 +1307,16 @@ void segmenter_automaton::setrules() {
     rules.push_back(U"#10=!99");                                  //gated arcs to keep carriage or not
     rules.push_back(U"%S+=#");                                  //we skip all spaces
     
+
     //regular numbers
     rules.push_back(U"%d+{[rd][th][nd][er][ième][ieme]}=1");    //3rd or 4th
     rules.push_back(U"%d(%d)(:%d%d){[am][pm]}=1");              //American hours 6:30am, 9pm
     rules.push_back(U"%d(%d){:h}%d%d=1");                       //European hours 6h30, 21:00
-    
-    //We put this meta-rule here to avoid checking all the rules belows with it
-    rules.push_back(U"1:{%d #A-F #a-f}");                    //metarule on 1, for hexadecimal digits
-    
+
+    rules.push_back(U"{%- %+}0b{1 0}+=1");  //binaries
+    rules.push_back(U"0b{1 0}+=1");  //binaires
+    rules.push_back(U"0c({%- %+})%d+(.%d+)({eE}({%- %+})%d+):({%- %+})(%d+(.%d+)({eE}({%- %+})%d+))i=1");    //complex numbers
+
     //Tokenizing numbers
     //22 for blocs of 3, with a comma
     //44 for blocs of 3, with a point or a space
@@ -1328,6 +1330,9 @@ void segmenter_automaton::setrules() {
     rules.push_back(U"%d+[,%d%d%d]+=22");  //digits separated with a , by block of 3
     rules.push_back(U"%d+[{.#32}%d%d%d]+=!44"); //digits separated with a . or a space by block of 3
 
+    //We put this meta-rule here to avoid checking all the rules belows with it
+    rules.push_back(U"1:{%d #A-F #a-f}");                    //metarule on 1, for hexadecimal digits
+
     rules.push_back(U"{%- %+}0x%1+(.%1+({pP}({%- %+})%d+))=33");  //hexadecimal with a decimal point
     rules.push_back(U"{%- %+}0x%1+(,%1+({pP}({%- %+})%d+))=!66"); //Gated: hexadecimal with a decimal comma
     rules.push_back(U"{%- %+}%d+(.%d+({eE}({%- %+})%d+))=33");    //Numbers with decimal point
@@ -1337,10 +1342,6 @@ void segmenter_automaton::setrules() {
     rules.push_back(U"0x%1+(,%1+({p P}({%- %+})%d+))=!66"); //Gated rules
     rules.push_back(U"%d+(.%d+({eE}({%- %+})%d+))=33");      //digits
     rules.push_back(U"%d+(,%d+({eE}({%- %+})%d+))=!66"); //Gated rules
-
-    rules.push_back(U"{%- %+}0b{1 0}+=1");  //binaries
-    rules.push_back(U"0b{1 0}+=1");  //binaires
-    rules.push_back(U"0c({%- %+})%d+(.%d+)({eE}({%- %+})%d+):({%- %+})(%d+(.%d+)({eE}({%- %+})%d+))i=1");    //complex numbers
 
     rules.push_back(U"%#{%a %d}+=1");       //Regular strings
     rules.push_back(U"${%a %d}+=1");       //Regular strings
@@ -2391,6 +2392,9 @@ bool TamguInstructionAPPLYOPERATIONROOT::Stacking(Tamgu* ins, char top) {
 	else
 		instructions.push_back(ins);
 
+    if (ins->Typeinfered() == a_complex)
+        complex = true;
+
 	if (top) {
 		uchar ty = Evaluateatomtype(ins);
 		alls |= ty;
@@ -2445,7 +2449,7 @@ Tamgu* TamguInstructionAPPLYOPERATIONEQU::update(uchar btype) {
 Tamgu* TamguInstructionAPPLYOPERATIONROOT::Returnlocal(TamguGlobal* g, Tamgu* parent) {
 
 	if (!thetype) {
-		if (alls == 255)
+		if (alls == 255 || complex)
 			thetype = 255;
 		else
 			thetype = head;
@@ -2523,6 +2527,9 @@ Tamgu* TamguInstructionAPPLYOPERATIONROOT::Returnlocal(TamguGlobal* g, Tamgu* pa
 	}
 
     try {
+        if (complex)
+            return new TamguInstructionComplex(this, g);
+        
         return new TamguInstructionCompute(this, g);
     }
     catch(TamguRaiseError* msg) {

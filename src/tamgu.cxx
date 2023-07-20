@@ -40,8 +40,9 @@
 #include "vecte.h"
 #include "tamgutaskell.h"
 #include "tamgulisp.h"
+#include "tamgucomplex.h"
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2023.07.17.10";
+const char* tamgu_version = "Tamgu 1.2023.07.19.12";
 
 extern "C" {
 Exporting const char* TamguVersion(void) {
@@ -2338,6 +2339,10 @@ void TamguGlobal::TamguAllObjects(vector<string>& vs) {
 }
 
 //----------------------------------------------------------------------------------------
+Tamgu* Tamgu::Complex() {
+    return new Tamgucomplex((double)Float(), 0);
+}
+
 Exporting Tamgu* Tamgu::Succ() {
     long v = Integer();
     return globalTamgu->ProvideConstint(v + 1);

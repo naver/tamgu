@@ -4233,11 +4233,13 @@ public:
 	uchar alls;
 	bool sub;
 	bool fraction;
+    bool complex;
 
 	TamguInstructionAPPLYOPERATIONROOT(TamguGlobal* g, Tamgu* parent = NULL, short a_i = a_instructions) : thetype(0), head(0), alls(0), TamguInstruction(a_i, g, parent) {
 		size = 0; 
 		sub = false;
 		fraction = false;
+        complex = false;
 	}
 
 	bool isROOTOPERATION() {

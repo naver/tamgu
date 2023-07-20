@@ -301,6 +301,10 @@ public:
 		return value.real();
 	}
 
+    Tamgu* Complex() {
+        return this;
+    }
+    
 	BLONG Long() {
 		return (BLONG)value.real();
 	}
@@ -408,7 +412,7 @@ public:
         }
 
 		if (itself) {
-			value *= a->Float();
+            value *= ((Tamgucomplex*)a)->value;
 			return this;
 		}
 		return new Tamgucomplex(value * a->Float());

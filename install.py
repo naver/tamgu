@@ -537,6 +537,7 @@ if withgui:
 if anaconda != None:
     if anaconda[-1] != '/':
         anaconda += '/'
+    pversion=pythonversion[6:]
     f.write("INCLUDEPYTHON = -I"+anaconda+"include/python"+pversion+"\n")
     f.write("PYTHONLIB = -L"+anaconda+"lib -lpython"+pversion+"\n")
     print('')

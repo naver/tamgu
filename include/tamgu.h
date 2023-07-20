@@ -151,6 +151,10 @@ public:
 		return this;
 	}
 
+    virtual Tamgu* EvalComplex(Tamgu* context, Tamgu* value, short idthread) {
+        return Eval(context, value, idthread);
+    }
+
 	virtual Tamgu* Execute(Tamgu* environment, Tamgu* value, short idthread) {
 		return Eval(environment, value, idthread);
 	}
@@ -1413,6 +1417,8 @@ public:
     int Int() {return (int)Integer();}
 	virtual long Integer() { return 0; }
 	virtual short Short() { return (short)Integer(); }
+    virtual Tamgu* Complex();
+    
 	virtual double Float() { return 0; }
 	
 	virtual float Decimal() {
