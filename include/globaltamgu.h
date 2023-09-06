@@ -66,6 +66,7 @@ Exporting bool TamguStop();
 Exporting void TamguDisplayFunction(DisplayFunctionCall call, void* o);
 Exporting void TamguSetArguments(string args);
 Exporting void TamguSetArguments(vector<string>& args);
+Exporting string TamguAllObjectWithInfo();
 Exporting void TamguAllObjects(vector<string>& vs);
 Exporting Tamgu* TamguExecute(TamguCode* code, string name, vector<Tamgu*>& params);
 Exporting Tamgu* TamguExecute(TamguCode* code, string name, vector<Tamgu*>& params, short idthread);

@@ -1355,7 +1355,7 @@ Tamgu* ProcEval(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     Tamgu* ci = globalTamgu->threads[idthread].currentinstruction;
     
     if (code.find(";") == -1 && code.find("{") == -1)
-        code = "return ("+code+");";
+        code = "Returns ("+code+");";
 
     long lastrecorded = globalTamgu->Trackedsize();
 
@@ -1524,11 +1524,16 @@ Tamgu* ProcGetinfo(Tamgu* contextualpattern, short idthread, TamguCall* callfunc
     Tamgumapss* mapss = globalTamgu->Providemapss();
 
     string name = callfunc->Evaluate(0, contextualpattern, idthread)->String();
+    if (globalTamgu->procedureinfos.find(name) != globalTamgu->procedureinfos.end()) {
+        mapss->values[globalTamgu->procedureinfos[name]] = "procedure";
+        return mapss;
+    }
+
     if (globalTamgu->commoninfos.find(name) != globalTamgu->commoninfos.end()) {
         mapss->values[globalTamgu->commoninfos[name]] = "all";
         return mapss;
     }
-    
+
 
     //Else we need to check with which type it is associated...
     bin_hash<Tamgu* >::iterator itl;
@@ -2933,6 +2938,10 @@ Tamgu* CommonIsmap(Tamgu* object, short idthread, TamguCall* callfunc) {
 Tamgu* CommonInfo(Tamgu* object, short idthread, TamguCall* callfunc) {
     Tamgu* methodname = callfunc->Evaluate(0, aNULL, idthread);
     string s = methodname->String();
+
+    if (globalTamgu->procedureinfos.find(s) != globalTamgu->procedureinfos.end())
+        return globalTamgu->Providestring(globalTamgu->procedureinfos[s]);
+
     if (globalTamgu->commoninfos.find(s) != globalTamgu->commoninfos.end())
         return globalTamgu->Providestring(globalTamgu->commoninfos[s]);
 
@@ -3025,10 +3034,11 @@ Tamgu* CommonExtension(Tamgu* object, short idthread, TamguCall* callfunc) {
 //------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
-Exporting void TamguGlobal::RecordOneProcedure(string name, TamguProcedure p, unsigned long arity, short retype) {
+Exporting void TamguGlobal::RecordOneProcedure(string name, string info, TamguProcedure p, unsigned long arity, short retype) {
     short idname = Getid(name);
     procedures[idname] = p;
     arities[idname] = arity;
+    procedureinfos[name] = info;
 
     if (retype != a_null)
         returntypes[idname] = retype;
@@ -3134,203 +3144,199 @@ Exporting void TamguGlobal::RecordProcedures() {
     systemfunctions["_setvalidfeatures"] = true;
     systemfunctions["grammar_macros"] = true;
 
-    RecordOneProcedure("_setstacksize", ProcStackSize, P_ONE);
-    RecordOneProcedure("_setmaxthreads", ProcMaxThreads, P_ONE);
-    RecordOneProcedure("_setmaxrange", ProcMaxMaxRange, P_ONE);
-    RecordOneProcedure("_exit", ProcExit, P_NONE);
-    RecordOneProcedure("_erroronkey", ProcErrorOnKey, P_ONE);
-    RecordOneProcedure("_loosecompatibility", ProcLooseCompatibility, P_ONE);
-    RecordOneProcedure("_setenv", ProcSetEnv, P_TWO);
-    RecordOneProcedure("_forcelocks", ProcForceLocks, P_ONE);
-    RecordOneProcedure("_lispmode", ProcLispmode, P_NONE | P_ONE);
+    RecordOneProcedure("_setstacksize", "Set the maximum size of the stack", ProcStackSize, P_ONE);
+    RecordOneProcedure("_setmaxthreads", "Set the maximum number of threads in memory",ProcMaxThreads, P_ONE);
+    RecordOneProcedure("_setmaxrange", "Set the maximum value to build a value 'range'", ProcMaxMaxRange, P_ONE);
+    RecordOneProcedure("_exit", "Exit the current program", ProcExit, P_NONE);
+    RecordOneProcedure("_erroronkey", "When true, a wrong key access will throw an exception", ProcErrorOnKey, P_ONE);
+    RecordOneProcedure("_loosecompatibility","When true, functions can be called with some loose compatibility between 'string' and 'number' types", ProcLooseCompatibility, P_ONE);
+    RecordOneProcedure("_setenv", "Set an environment variable at compile time.", ProcSetEnv, P_TWO);
+    RecordOneProcedure("_forcelocks", "If false, it can remove locks on containers in threads", ProcForceLocks, P_ONE);
+    RecordOneProcedure("_lispmode", "Activate Lisp Mode. Every instruction will be analysed as a Lisp instruction", ProcLispmode, P_NONE | P_ONE);
 
     //Randomized distribution
-    RecordOneProcedure("random_choice", Proc_random_choice, P_TWO);
+    RecordOneProcedure("random_choice", "random_choice(int nb, vector v): returns a list of nb values picked out of v", Proc_random_choice, P_TWO);
 
     //Uniform distributions
-    RecordOneProcedure("uniform_int", Proc_uniform_int, P_ONE | P_TWO | P_THREE);
-    RecordOneProcedure("uniform_real", Proc_uniform_real, P_ONE | P_TWO | P_THREE);
+    RecordOneProcedure("uniform_int", "uniform_int(int nb, int a = 0, int b = max_value): Produces random integer values i, uniformly distributed on the closed interval [a, b], that is, distributed according to the discrete probability function.", Proc_uniform_int, P_ONE | P_TWO | P_THREE);
+    RecordOneProcedure("uniform_real", "uniform_real(int nb, float a=0, float b=1): Produces random floating-point values x, uniformly distributed on the interval [a, b), that is, distributed according to the probability density function.", Proc_uniform_real, P_ONE | P_TWO | P_THREE);
 
     //Bernoulli distributions
-    RecordOneProcedure("bernoulli_distribution", Proc_bernoulli_distribution, P_ONE | P_TWO);
-    RecordOneProcedure("binomial_distribution", Proc_binomial_distribution, P_ONE|P_TWO|P_THREE);
-    RecordOneProcedure("negative_binomial_distribution", Proc_negative_binomial_distribution, P_ONE|P_TWO|P_THREE);
-    RecordOneProcedure("geometric_distribution", Proc_geometric_distribution, P_ONE | P_TWO);
+    RecordOneProcedure("bernoulli_distribution", "bernoulli_distribution(int nb, float probability = 0.5): A discrete distribution having two possible outcomes labelled by n=0 and n=1 in which n=1 (\"success\") occurs with probability p and n=0 (\"failure\") occurs with probability q=1-p, where 0<p<1.", Proc_bernoulli_distribution, P_ONE | P_TWO);
+    RecordOneProcedure("binomial_distribution", "binomial_distribution(int nb,int t = 1, float p = 0.5): The discrete probability distribution of the number of successes in a sequence of n independent experiments, each asking a yes–no question.", Proc_binomial_distribution, P_ONE|P_TWO|P_THREE);
+    RecordOneProcedure("negative_binomial_distribution", "negative_binomial_distribution(int nb, int k = 1, float p=0.5): A discrete probability distribution that models the number of failures in a sequence of independent and identically distributed Bernoulli trials before a specified (non-random) number of successes (denoted r) occurs.", Proc_negative_binomial_distribution, P_ONE|P_TWO|P_THREE);
+    RecordOneProcedure("geometric_distribution", "geometric_distribution(int nb, float p = 0.5):A discrete probability distribution that describes the chances of achieving success in a series of independent trials, each having two possible outcomes.", Proc_geometric_distribution, P_ONE | P_TWO);
 
     //Poisson distributions
-    RecordOneProcedure("poisson_distribution", Proc_poisson_distribution, P_ONE | P_TWO);
-    RecordOneProcedure("exponential_distribution", Proc_exponential_distribution, P_TWO);
-    RecordOneProcedure("gamma_distribution", Proc_gamma_distribution, P_THREE);
-    RecordOneProcedure("weibull_distribution", Proc_weibull_distribution, P_ONE|P_TWO|P_THREE);
-    RecordOneProcedure("extreme_value_distribution", Proc_extreme_value_distribution, P_ONE|P_TWO|P_THREE);
+    RecordOneProcedure("poisson_distribution", "poisson_distribution(int nb, float mean = 1): The discrete probability distribution of obtaining exactly k successes out of Bernoulli trials (where the result of each Bernoulli trial is true with probability p and false with probability q=1-p).", Proc_poisson_distribution, P_ONE | P_TWO);
+    RecordOneProcedure("exponential_distribution", "exponential_distribution(int nb,float lambda = 1): The probability distribution of the time between events in a Poisson point process, i.e., a process in which events occur continuously and independently at a constant average rate.", Proc_exponential_distribution, P_TWO);
+    RecordOneProcedure("gamma_distribution", "gamma_distribution(int nb, float alpha = 1, float beta = 1): A general type of statistical distribution that is related to the beta distribution and arises naturally in processes for which the waiting times between Poisson distributed events are relevant.", Proc_gamma_distribution, P_THREE);
+    RecordOneProcedure("weibull_distribution", "weibull_distribution(int nb, float a = 1, float b = 1): A continuous probability distribution that can fit an extensive range of distribution shapes. It can also model skewed data.", Proc_weibull_distribution, P_ONE|P_TWO|P_THREE);
+    
+    RecordOneProcedure("extreme_value_distribution", "extreme_value_distribution(int nb, float a = 0, float b = 1): The Extreme Value Distribution usually refers to the distribution of the minimum of a large number of unbounded random observations", Proc_extreme_value_distribution, P_ONE|P_TWO|P_THREE);
 
     //Normal distributions
-    RecordOneProcedure("normal_distribution", Proc_normal_distribution, P_ONE|P_TWO|P_THREE);
-    RecordOneProcedure("lognormal_distribution", Proc_lognormal_distribution, P_ONE|P_TWO|P_THREE);
-    RecordOneProcedure("chi_squared_distribution", Proc_chi_squared_distribution, P_ONE | P_TWO);
-    RecordOneProcedure("cauchy_distribution", Proc_cauchy_distribution, P_ONE | P_TWO | P_THREE);
-    RecordOneProcedure("fisher_distribution", Proc_fisher_distribution, P_ONE|P_TWO|P_THREE);
-    RecordOneProcedure("student_distribution", Proc_student_distribution, P_ONE|P_TWO);
+    RecordOneProcedure("normal_distribution", "normal_distribution(int nb, float mean = 0, float stddev = 1): In a normal distribution, data is symmetrically distributed with no skew. When plotted on a graph, the data follows a bell shape", Proc_normal_distribution, P_ONE|P_TWO|P_THREE);
+    RecordOneProcedure("lognormal_distribution", "lognormal_distribution(int nb, float m = 0, float s = 1): The log-normal distribution is the probability distribution of a random variable whose logarithm follows a normal distribution", Proc_lognormal_distribution, P_ONE|P_TWO|P_THREE);
+    RecordOneProcedure("chi_squared_distribution", "chi_squared_distribution(int nb, float n = 1): The chi-squared distribution with degrees of freedom is the distribution of a sum of the squares of independent standard normal random variables", Proc_chi_squared_distribution, P_ONE | P_TWO);
+    RecordOneProcedure("cauchy_distribution", "cauchy_distribution(int nb, float a=0, float b=1): The Cauchy distribution, named after Augustin Cauchy, is a continuous probability distribution. It is also known as the Lorentz distribution (after Hendrik Lorentz), Cauchy–Lorentz distribution, Lorentz(ian) function, or Breit–Wigner distribution", Proc_cauchy_distribution, P_ONE | P_TWO | P_THREE);
+    RecordOneProcedure("fisher_distribution", "fisher_distribution(int nb, float m=1.0, float n=1.0): Fisher distribution may refer to any of several probability distributions named after Ronald Fisher: Behrens–Fisher distribution; Fisher's noncentral hypergeometric distribution; Fisher's z-distribution; Fisher's fiducial distribution; Fisher–Bingham distribution; F-distribution, also called Fisher–Snedecor distribution or Fisher F-distribution; Fisher–Tippett distribution; Von Mises–Fisher distribution on a sphere", Proc_fisher_distribution, P_ONE|P_TWO|P_THREE);
+    RecordOneProcedure("student_distribution", "student_distribution(int nb, float n=1.0): The Student's t-distribution is a continuous probability distribution that is often encountered in statistics (e.g., in hypothesis tests about the mean)", Proc_student_distribution, P_ONE|P_TWO);
 
     //Sampling distributions
-    RecordOneProcedure("discrete_distribution", Proc_discrete_distribution, P_TWO);
-    RecordOneProcedure("piecewise_constant_distribution", Proc_piecewise_constant_distribution, P_THREE);
-    RecordOneProcedure("piecewise_linear_distribution", Proc_piecewise_linear_distribution, P_THREE);
+    RecordOneProcedure("discrete_distribution", "discrete_distribution(int nb, ivector il): A discrete distribution is a distribution of data in statistics that has discrete values. Discrete values are countable, finite, non-negative integers", Proc_discrete_distribution, P_TWO);
+    RecordOneProcedure("piecewise_constant_distribution", "piecewise_constant_distribution(int nb, fvector firstb, fvector firstw):: piecewise_constant_distribution produces random floating-point numbers, which are uniformly distributed within each of the several subintervals [b i, b i+1), each with its own weight w i.", Proc_piecewise_constant_distribution, P_THREE);
+    RecordOneProcedure("piecewise_linear_distribution", "piecewise_linear_distribution(int nb, fvector firstb, fvector firstw): piecewise_linear_distribution produces random floating-point numbers, which are distributed according to a linear probability density function within each of the several subintervals [b i, b i+1)", Proc_piecewise_linear_distribution, P_THREE);
 
-    RecordOneProcedure("uuid", Proc_UUID, P_NONE);
-
-
+    RecordOneProcedure("uuid", "Generate a Universally Unique ID", Proc_UUID, P_NONE);
 
     //-------------------------
-    RecordOneProcedure("_nop", ProcNop, P_FULL);
-    RecordOneProcedure("_nbthreads", ProcNbthreads, P_NONE);
+    RecordOneProcedure("_nop", "Generation a concatenation of string (internal use only)", ProcNop, P_FULL);
+    RecordOneProcedure("_nbthreads", "Returns the number of active threads in memory", ProcNbthreads, P_NONE);
 
-    RecordOneProcedure("_setvalidfeatures", ProcSetValidFeatures, P_ONE);
+    RecordOneProcedure("_setvalidfeatures", "Defines the valid features for a synode", ProcSetValidFeatures, P_ONE);
 
-    RecordOneProcedure("grammar_macros", &ProcPatterns, P_TWO);
+    RecordOneProcedure("grammar_macros", "Definition of macros in grammars", &ProcPatterns, P_TWO);
 
-    RecordOneProcedure("_breakpoint", ProcBreakPoint, P_ONE);
-    RecordOneProcedure("_getdefaulttokenizerules", ProcGetTokenizeRules, P_NONE);
+    RecordOneProcedure("_breakpoint", "break point (internal use)", ProcBreakPoint, P_ONE);
+    RecordOneProcedure("_getdefaulttokenizerules","Returns the list of default tokenization rules", ProcGetTokenizeRules, P_NONE);
 
-    RecordOneProcedure("_symbols", ProcSymbols, P_NONE);
-    RecordOneProcedure("_types", ProcTypes, P_NONE);
+    RecordOneProcedure("_symbols", "Returns a list of all symbols (variables and functions) declared in the code", ProcSymbols, P_NONE);
+    RecordOneProcedure("_types", "Returns a list of all available types in Tamgu", ProcTypes, P_NONE);
 
-    RecordOneProcedure("_poolstats", ProcPoolStats, P_NONE);
+    RecordOneProcedure("_poolstats", "Returns statistics information about pools. Many data structures such as vectors and maps are stored in pools of values", ProcPoolStats, P_NONE);
 
-    RecordOneProcedure("nope", ProcNope, P_NONE);
-    RecordOneProcedure("use", ProcUse, P_ONE);
-    RecordOneProcedure("loadin", ProcLoadin, P_ONE);
-    RecordOneProcedure("loadfacts", ProcLoadfacts, P_ONE);
+    RecordOneProcedure("nope", "Do nothing", ProcNope, P_NONE);
+    RecordOneProcedure("use", "Load a library", ProcUse, P_ONE);
+    RecordOneProcedure("loadin", "Load the code of a file into the current memory space (merging)", ProcLoadin, P_ONE);
+    RecordOneProcedure("loadfacts", "Fast loadings of facts for the internal predicate engine", ProcLoadfacts, P_ONE);
     
-    RecordOneProcedure("allobjects", ProcAllObjects, P_NONE);
-    RecordOneProcedure("allobjectsbytype", ProcAllObjectByType, P_NONE);
+    RecordOneProcedure("allobjects", "Returns the list of all pre-defined symbols", ProcAllObjects, P_NONE);
+    RecordOneProcedure("allobjectsbytype", "Returns the list of all pre-defined symbols as a map indexed on types",  ProcAllObjectByType, P_NONE);
     
-    RecordOneProcedure("version", ProcVersion, P_NONE);
-    RecordOneProcedure("_mirrordisplay", ProcMirrorDisplay, P_NONE);
+    RecordOneProcedure("version", "Returns Tamgu version", ProcVersion, P_NONE);
+    RecordOneProcedure("_mirrordisplay", "internal use", ProcMirrorDisplay, P_NONE);
 
-    RecordOneProcedure("emojis", ProcEmojis, P_NONE);
+
+    RecordOneProcedure("prettystring", "Returns a string that corresponds to a 'print'", ProcPrettify, P_ONE | P_TWO | P_THREE | P_FOUR | P_FIVE);
+    RecordOneProcedure("print", "Displays a list of values on screen", ProcPrint, P_FULL);
+    RecordOneProcedure("println", "Displays a list of values on screen, with a CR at the end. Commas separate elements with a space.", ProcPrintLN, P_FULL);
+    RecordOneProcedure("printerr", "Displays a list of values on the error output.", ProcPrinterr, P_FULL);
+    RecordOneProcedure("printlnerr", "Displays a list of values on the error output, with a CR at the end. Commas separate elements with a space.", ProcPrinterrLN, P_FULL);
+    RecordOneProcedure("printj", "Displays with a join on values given by the arguments.", &ProcPrintJoin, P_ONE | P_TWO | P_THREE | P_FOUR | P_FIVE);
+    RecordOneProcedure("printjerr", "Displays on the error output with a join on values given by the arguments.", &ProcPrintJoinErr, P_ONE | P_TWO | P_THREE | P_FOUR | P_FIVE);
+    RecordOneProcedure("printjln", "Displays with a join on values given by the arguments.", &ProcPrintJoinLN, P_ONE | P_TWO | P_THREE | P_FOUR | P_FIVE);
+    RecordOneProcedure("printjlnerr", "Displays on the error output with a join on values given by the arguments.", &ProcPrintJoinErrLN, P_ONE | P_TWO | P_THREE | P_FOUR | P_FIVE);
+
+    RecordOneProcedure("_variables", "Returns the list of active variables", ProcVariables, P_ONE);
+    RecordOneProcedure("_eval", "Evaluates a string as code", ProcEval, P_ONE | P_TWO);
+    RecordOneProcedure("_evalfunction", "Evaluates a string as a function call", ProcEvalFunction, P_ONE);
     
-    RecordOneProcedure("evaljson", ProcJSon, P_ONE);
+    RecordOneProcedure("abs", "Returns the absolute value of a number", &ProcMath, P_ONE, a_float);
+    RecordOneProcedure("acos", "Returns the arccosine of a number", &ProcMath, P_ONE, a_float);
+    RecordOneProcedure("acosh", "Returns the inverse hyperbolic cosine of a number", &ProcMath, P_ONE, a_float);
+    RecordOneProcedure("asin", "Returns the arcsine of a number", &ProcMath, P_ONE, a_float);
+    RecordOneProcedure("asinh", "Returns the inverse hyperbolic sine of a number", &ProcMath, P_ONE, a_float);
+    RecordOneProcedure("atan", "Returns the arctangent of a number", &ProcMath, P_ONE, a_float);
+    RecordOneProcedure("atanh", "Returns the inverse hyperbolic tangent of a number", &ProcMath, P_ONE, a_float);
+    RecordOneProcedure("cbrt", "Returns the cube root of a number", &ProcMath, P_ONE, a_float);
+    RecordOneProcedure("∛", "Returns the cube root of a number", &ProcMath, P_ONE, a_float);
+    RecordOneProcedure("cos", "Returns the cosine of an angle (in radians)", &ProcMath, P_ONE, a_float);
+    RecordOneProcedure("cosh", "Returns the hyperbolic cosine of an angle (in radians)", &ProcMath, P_ONE, a_float);
+    RecordOneProcedure("erf", "Returns the error function value for a given number", &ProcMath, P_ONE, a_float);
+    RecordOneProcedure("erfc", "Returns the complementary error function value for a given number", &ProcMath, P_ONE, a_float);
+    RecordOneProcedure("exp", "Returns Euler's number raised to the power of a given number", &ProcMath, P_ONE, a_float);
+    RecordOneProcedure("exp2", "Returns 2 raised to the power of a given number", &ProcMath, P_ONE, a_float);
+    RecordOneProcedure("expm1", "Returns exp(x) - 1 for a given number x", &ProcMath, P_ONE, a_float);
+    RecordOneProcedure("floor", "Rounds down to the nearest integer value that is less than or equal to x.", &ProcMath, P_ONE, a_float);
+    RecordOneProcedure("lgamma", "Returns the natural logarithm of the absolute value of gamma function for x.", &ProcMath, P_ONE, a_float);
+    RecordOneProcedure("ln", "Returns the natural logarithm (base e) of x.", &ProcMath, P_ONE, a_float);
+    RecordOneProcedure("log", "Returns the natural logarithm (base e) of x.", &ProcMath, P_ONE, a_float);
+    RecordOneProcedure("log1p","Returns log(1 + x) for x.",&ProcMath,P_ONE,a_float);
+    RecordOneProcedure("log2","Returns log base 2 of x.",&ProcMath,P_ONE,a_float);
+    RecordOneProcedure("logb","Extracts exponent from floating-point numbers.",&ProcMath,P_ONE,a_float);
+    RecordOneProcedure("nearbyint","Rounds to nearest integer value in floating-point format.",&ProcMath,P_ONE,a_float);
+    RecordOneProcedure("rint","Rounds to nearest integer value in floating-point format.",&ProcMath,P_ONE,a_float);
+    RecordOneProcedure("round","Rounds to nearest integer value in floating-point format.",&ProcMath,P_ONE,a_float);
+    RecordOneProcedure("sin","Returns sine of an angle (in radians).",&ProcMath,P_ONE,a_float);
+    RecordOneProcedure("sinh","Returns hyperbolic sine of an angle (in radians).",&ProcMath,P_ONE,a_float);
+    RecordOneProcedure("sqrt","Returns square root of x.",&ProcMath,P_ONE,a_float);
+    RecordOneProcedure("√","Returns square root of x.",&ProcMath,P_ONE,a_float);
+    RecordOneProcedure("tan","Returns tangent of an angle (in radians).",&ProcMath,P_ONE,a_float);
+    RecordOneProcedure("tanh","Returns hyperbolic tangent of an angle (in radians).",&ProcMath,P_ONE,a_float);
+    RecordOneProcedure("tgamma","Gamma function for x.",&ProcMath,P_ONE,a_float);
+    RecordOneProcedure("trunc","Truncates fractional part from floating-point numbers.",&ProcMath,P_ONE,a_float);
 
-    RecordOneProcedure("prettystring", ProcPrettify, P_ONE | P_TWO | P_THREE | P_FOUR | P_FIVE);
-    RecordOneProcedure("print", ProcPrint, P_FULL);
-    RecordOneProcedure("println", ProcPrintLN, P_FULL);
-    RecordOneProcedure("printerr", ProcPrinterr, P_FULL);
-    RecordOneProcedure("printlnerr", ProcPrinterrLN, P_FULL);
-    RecordOneProcedure("printj", &ProcPrintJoin, P_ONE | P_TWO | P_THREE | P_FOUR | P_FIVE);
-    RecordOneProcedure("printjerr", &ProcPrintJoinErr, P_ONE | P_TWO | P_THREE | P_FOUR | P_FIVE);
-    RecordOneProcedure("printjln", &ProcPrintJoinLN, P_ONE | P_TWO | P_THREE | P_FOUR | P_FIVE);
-    RecordOneProcedure("printjlnerr", &ProcPrintJoinErrLN, P_ONE | P_TWO | P_THREE | P_FOUR | P_FIVE);
+    RecordOneProcedure("∑", "Sum of the values of a vector", &ProcSum, P_ONE | P_TWO | P_THREE);
+    RecordOneProcedure("∏", "Product of the values of a vector", &ProcProduct, P_ONE | P_TWO | P_THREE);
 
-    RecordOneProcedure("_variables", ProcVariables, P_ONE);
-    RecordOneProcedure("_eval", ProcEval, P_ONE | P_TWO);
-    RecordOneProcedure("_evalfunction", ProcEvalFunction, P_ONE);
-    
-    RecordOneProcedure("abs", &ProcMath, P_ONE, a_float);
-    RecordOneProcedure("acos", &ProcMath, P_ONE, a_float);
-    RecordOneProcedure("acosh", &ProcMath, P_ONE, a_float);
-    RecordOneProcedure("asin", &ProcMath, P_ONE, a_float);
-    RecordOneProcedure("asinh", &ProcMath, P_ONE, a_float);
-    RecordOneProcedure("atan", &ProcMath, P_ONE, a_float);
-    RecordOneProcedure("atanh", &ProcMath, P_ONE, a_float);
-    RecordOneProcedure("cbrt", &ProcMath, P_ONE, a_float);
-    RecordOneProcedure("∛", &ProcMath, P_ONE, a_float);
-    RecordOneProcedure("cos", &ProcMath, P_ONE, a_float);
-    RecordOneProcedure("cosh", &ProcMath, P_ONE, a_float);
-    RecordOneProcedure("erf", &ProcMath, P_ONE, a_float);
-    RecordOneProcedure("erfc", &ProcMath, P_ONE, a_float);
-    RecordOneProcedure("exp", &ProcMath, P_ONE, a_float);
-    RecordOneProcedure("exp2", &ProcMath, P_ONE, a_float);
-    RecordOneProcedure("expm1", &ProcMath, P_ONE, a_float);
-    RecordOneProcedure("floor", &ProcMath, P_ONE, a_float);
-    RecordOneProcedure("lgamma", &ProcMath, P_ONE, a_float);
-    RecordOneProcedure("ln", &ProcMath, P_ONE, a_float);
-    RecordOneProcedure("log", &ProcMath, P_ONE, a_float);
-    RecordOneProcedure("log1p", &ProcMath, P_ONE, a_float);
-    RecordOneProcedure("log2", &ProcMath, P_ONE, a_float);
-    RecordOneProcedure("logb", &ProcMath, P_ONE, a_float);
-    RecordOneProcedure("nearbyint", &ProcMath, P_ONE, a_float);
-    RecordOneProcedure("rint", &ProcMath, P_ONE, a_float);
-    RecordOneProcedure("round", &ProcMath, P_ONE, a_float);
-    RecordOneProcedure("sin", &ProcMath, P_ONE, a_float);
-    RecordOneProcedure("sinh", &ProcMath, P_ONE, a_float);
-    RecordOneProcedure("sqrt", &ProcMath, P_ONE, a_float);
-    RecordOneProcedure("√", &ProcMath, P_ONE, a_float);
-    RecordOneProcedure("tan", &ProcMath, P_ONE, a_float);
-    RecordOneProcedure("tanh", &ProcMath, P_ONE, a_float);
-    RecordOneProcedure("tgamma", &ProcMath, P_ONE, a_float);
-    RecordOneProcedure("trunc", &ProcMath, P_ONE, a_float);
-
-    RecordOneProcedure("∑", &ProcSum, P_ONE | P_TWO | P_THREE);
-    RecordOneProcedure("∏", &ProcProduct, P_ONE | P_TWO | P_THREE);
-
-    RecordOneProcedure("sum", &ProcFullSum, P_ATLEASTONE);
-    RecordOneProcedure("product", &ProcFullProduct, P_ATLEASTONE);
+    RecordOneProcedure("sum", "Sum of the values of a vector", &ProcFullSum, P_ATLEASTONE);
+    RecordOneProcedure("product", "Product of the values of a vector", &ProcFullProduct, P_ATLEASTONE);
 
     //Error management...
-    RecordOneProcedure("catch", ProcCatch, P_ONE);
-    RecordOneProcedure("raise", ProcRaise, P_ONE);
+    RecordOneProcedure("catch", "Catches an exception", ProcCatch, P_ONE);
+    RecordOneProcedure("raise", "Raises an exception", ProcRaise, P_ONE);
 
-    RecordOneProcedure("GPSdistance", &ProcGPSDistance, P_FOUR | P_FIVE);
+    RecordOneProcedure("GPSdistance", "Returns the GPS distance between two points on Earth", ProcGPSDistance, P_FOUR | P_FIVE);
 
     //Range including interval definition
-    RecordOneProcedure("range", ProcRange, P_TWO | P_THREE);
-    RecordOneProcedure("ord", ProcOrd, P_ONE); //this specific one is used with range...
+    RecordOneProcedure("range", "Returns a range of values", ProcRange, P_TWO | P_THREE);
+    RecordOneProcedure("ord", "Returns the list of Unicode code for a string of characters", ProcOrd, P_ONE); //this specific one is used with range...
 
-    RecordOneProcedure("random", ProcRandom, P_NONE | P_ONE, a_float);
-    RecordOneProcedure("a_random", Proca_Random, P_NONE | P_ONE, a_float);
+    RecordOneProcedure("random", "Returns a random value", ProcRandom, P_NONE | P_ONE, a_float);
+    RecordOneProcedure("a_random", "Returns a random value", Proca_Random, P_NONE | P_ONE, a_float);
 
-    RecordOneProcedure("pause", ProcPause, P_ONE);
+    RecordOneProcedure("pause", "Pauses the code in seconds", ProcPause, P_ONE);
 
-    RecordOneProcedure("kget", ProcKeyboardGet, P_NONE | P_ONE);
+    RecordOneProcedure("kget", "Reads a value on keyboard", ProcKeyboardGet, P_NONE | P_ONE);
 
-    RecordOneProcedure("redirectoutput", ProcRedictectOutput, P_TWO);
-    RecordOneProcedure("restateoutput", ProcRestateOutput, P_TWO);
+    RecordOneProcedure("redirectoutput", "Redirects the output to a file", ProcRedictectOutput, P_TWO);
+    RecordOneProcedure("restateoutput", "Puts back the output to the screen", ProcRestateOutput, P_TWO);
 
-    RecordOneProcedure("max", ProcMax, P_ATLEASTTWO);
-    RecordOneProcedure("min", ProcMin, P_ATLEASTTWO);
-    RecordOneProcedure("not", &ProcNegation, P_ONE, a_boolean);
+    RecordOneProcedure("max", "Maximum value in a list of arguments", ProcMax, P_ATLEASTTWO);
+    RecordOneProcedure("min", "Minimum value in a list of arguments", ProcMin, P_ATLEASTTWO);
+    RecordOneProcedure("not", "Negation of a Boolean expression", &ProcNegation, P_ONE, a_boolean);
 
-    RecordOneProcedure("base", ProcBase, P_TWO);
+    RecordOneProcedure("base", "base(value, base): Converts an element from base 10 to base b", ProcBase, P_TWO);
 
     //Threading
-    RecordOneProcedure("_threadhandle", ProcThreadhandle, P_NONE);
-    RecordOneProcedure("_threadid", ProcThreadid, P_NONE);
-    RecordOneProcedure("waitonjoined", ProcWaitOnJoin, P_NONE | P_ONE | P_TWO);
-    RecordOneProcedure("lock", ProcLock, P_ONE);
-    RecordOneProcedure("unlock", ProcUnlock, P_ONE);
-    RecordOneProcedure("wait", ProcWaiton, P_ONE);
-    RecordOneProcedure("waitonfalse", ProcWaitonfalse, P_ONE);
-    RecordOneProcedure("cast", ProcCast, P_NONE | P_ONE);
-    RecordOneProcedure("sleep", ProcSleep, P_ONE);
+    RecordOneProcedure("_threadhandle", "Returns the internal handle of the current thread", ProcThreadhandle, P_NONE);
+    RecordOneProcedure("_threadid", "Returns the internal id of the current thread", ProcThreadid, P_NONE);
+    RecordOneProcedure("waitonjoined", "Waits until all joinded threads are terminated", ProcWaitOnJoin, P_NONE | P_ONE | P_TWO);
+    RecordOneProcedure("lock", "Lock", ProcLock, P_ONE);
+    RecordOneProcedure("unlock", "Unlock", ProcUnlock, P_ONE);
+    RecordOneProcedure("wait", "Waits until a cast is sent (a string)", ProcWaiton, P_ONE);
+    RecordOneProcedure("waitonfalse", "Waits until a variable has a false interpretation", ProcWaitonfalse, P_ONE);
+    RecordOneProcedure("cast", "Activates all threads that have been waiting on this 'string'.", ProcCast, P_NONE | P_ONE);
+    RecordOneProcedure("sleep", "Sleeps for a given amount of ms", ProcSleep, P_ONE);
 
-    RecordOneProcedure("_info", ProcGetinfo, P_ONE);
+    RecordOneProcedure("_info", "Returns the infos of a method",ProcGetinfo, P_ONE);
 
     //Common methods to all objects...
-    RecordCommon("json", "return the json container string", CommonJSon, P_NONE, a_string);
-    RecordCommon("string", "return the string conversion", CommonString, P_NONE, a_string);
-    RecordCommon("ustring", "return the ustring conversion", CommonUString, P_NONE, a_ustring);
-    RecordCommon("int", "return the integer conversion", CommonInt, P_NONE, a_int);
-    RecordCommon("float", "return the float conversion", CommonFloat, P_NONE, a_float);
-    RecordCommon("long", "return the long conversion", CommonLong, P_NONE, a_long);
-    RecordCommon("decimal","return the decimal conversion", CommonDecimal, P_NONE, a_decimal);
-    RecordCommon("short","return the short conversion", CommonShort, P_NONE, a_short);
-    RecordCommon("vector", "return the vector conversion", CommonVector, P_NONE);
-    RecordCommon("map", "return the map conversion", CommonMap, P_NONE);
+    RecordCommon("json", "Returns the json container string", CommonJSon, P_NONE, a_string);
+    RecordCommon("string", "Returns the string conversion", CommonString, P_NONE, a_string);
+    RecordCommon("ustring", "Returns the ustring conversion", CommonUString, P_NONE, a_ustring);
+    RecordCommon("int", "Returns the integer conversion", CommonInt, P_NONE, a_int);
+    RecordCommon("float", "Returns the float conversion", CommonFloat, P_NONE, a_float);
+    RecordCommon("long", "Returns the long conversion", CommonLong, P_NONE, a_long);
+    RecordCommon("decimal","Returns the decimal conversion", CommonDecimal, P_NONE, a_decimal);
+    RecordCommon("short","Returns the short conversion", CommonShort, P_NONE, a_short);
+    RecordCommon("vector", "Returns the vector conversion", CommonVector, P_NONE);
+    RecordCommon("map", "Returns the map conversion", CommonMap, P_NONE);
 
-    RecordCommon("size", "return the size of the object", CommonSize, P_NONE, a_int);
-    RecordCommon("info", "return information of the method", CommonInfo, P_ONE, a_string);
-    RecordCommon("methods", "return the list of methods associated to the object", CommonMethods, P_NONE);
-    RecordCommon("type", "return the type of the object", CommonType, P_NONE, a_string);
-    RecordCommon("isa", "check if the object is of the same type as the value", CommonISA, P_ONE);
+    RecordCommon("size", "Returns the size of the object", CommonSize, P_NONE, a_int);
+    RecordCommon("info", "Returns information of the method", CommonInfo, P_ONE, a_string);
+    RecordCommon("methods", "Returns the list of methods associated to the object", CommonMethods, P_NONE);
+    RecordCommon("type", "Returns the type of the object", CommonType, P_NONE, a_string);
+    RecordCommon("isa", "Checks if the object is of the same type as the value", CommonISA, P_ONE);
 
-    RecordCommon("isstring", "check if the object is a string", CommonIsstring, P_NONE);
-    RecordCommon("isvector", "check if the object is a vector", CommonIsvector, P_NONE);
-    RecordCommon("ismap", "check if the object is a map", CommonIsmap, P_NONE);
-    RecordCommon("iscontainer", "check if the object is a container", CommonIscontainer, P_NONE);
-    RecordCommon("isnumber", "check if the object is a number", CommonIsnumber, P_NONE);
+    RecordCommon("isstring", "Checks if the object is a string", CommonIsstring, P_NONE);
+    RecordCommon("isvector", "Checks if the object is a vector", CommonIsvector, P_NONE);
+    RecordCommon("ismap", "Checks if the object is a map", CommonIsmap, P_NONE);
+    RecordCommon("iscontainer", "Checks if the object is a container", CommonIscontainer, P_NONE);
+    RecordCommon("isnumber", "Checks if the object is a number", CommonIsnumber, P_NONE);
 
-    RecordCommon("mark", "mark this object while traversing an object container", CommonMark, P_NONE | P_ONE);
-    RecordCommon("unmark", "unmark this object while traversing an object container", CommonUnMark, P_NONE);
+    RecordCommon("mark", "Marks this object while traversing an object container", CommonMark, P_NONE | P_ONE);
+    RecordCommon("unmark", "Unmarks this object while traversing an object container", CommonUnMark, P_NONE);
 
 }

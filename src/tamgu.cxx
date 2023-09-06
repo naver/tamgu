@@ -42,7 +42,7 @@
 #include "tamgulisp.h"
 #include "tamgucomplex.h"
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2023.07.19.12";
+const char* tamgu_version = "Tamgu 1.2023.09.05.16";
 
 extern "C" {
 Exporting const char* TamguVersion(void) {
@@ -1212,7 +1212,7 @@ Exporting void TamguGlobal::RecordCompatibilities() {
         
         //we record each object as being its own procedure... These procedures (actually calling ProcCreate)
         //return an object of this type...
-        RecordOneProcedure(Getsymbol(ty), ProcCreate, P_NONE | P_ONE);
+        RecordOneProcedure(Getsymbol(ty), "Procedure as Predicate", ProcCreate, P_NONE | P_ONE);
         returntypes[ty] = ty;
         
         compatibilities[ty][ty] = true;

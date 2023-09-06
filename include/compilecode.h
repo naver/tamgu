@@ -70,7 +70,7 @@ public:
         last_node = NULL;
         currentpredicatename="";
         currentfileid = (short)g->filenames.size();
-		g->filenames.push_back(f);
+		g->filenames.push_back(filename);
 		g->frames[a_mainframe] = &mainframe;
 		loader = NULL;
 		isprivate = false;

@@ -319,7 +319,7 @@ extern "C" {
             finaldisplay = true;
         }
         else
-            globalTamgu->RecordOneProcedure("kget", ProcMacEditor, P_NONE | P_ONE);
+            globalTamgu->RecordOneProcedure("kget", "Read a string from keyboard within a window", ProcMacEditor, P_NONE | P_ONE);
 
         if (debugmode == true) {
             globalTamgu->Setdebugmode(true);

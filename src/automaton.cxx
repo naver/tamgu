@@ -2714,8 +2714,12 @@ bool TamguDoubleSideAutomaton::down(wstring& w, vector<string>& res, short idthr
 
     FstCompanion* f = globalTamgu->threads[idthread].Companion();
     res.clear();
+#ifdef WSTRING_IS_UTF16
+    wstring ww = TAMGUVALUE(w);
+    f->set(ww,this,res);
+#else
     f->set(TAMGUVALUE(w),this,res);
-
+#endif
     return start.down(v, 0, f, lemma);
 }
 

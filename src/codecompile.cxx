@@ -6337,7 +6337,10 @@ Tamgu* TamguCode::C_frame(x_node* xn, Tamgu* kf) {
 		kframe = new TamguFrame(idname, privated, global, kf);
 		Tamguframeseeder::RecordFrame(idname, kframe, global);
 		//We consider each frame as a potential procedure that will create a frame of the same type.
-		global->RecordOneProcedure(name, ProcCreateFrame, P_FULL);
+        string info = "Create a frame with: '";
+        info += name;
+        info += "'";
+		global->RecordOneProcedure(name, info, ProcCreateFrame, P_FULL);
 		global->returntypes[idname] = idname;
 		//We record the compatibilities, which might come as handy to check function argument
 		global->SetCompatibilities(idname);
@@ -7170,8 +7173,11 @@ Tamgu* TamguCode::C_hdata(x_node* xn, Tamgu* kf) {
         else {
             kframe = new TamguFrame(idname, false, global, kf);
             Tamguframeseeder::RecordFrame(idname, kframe, global);
+            string info = "Create a frame with: '";
+            info += name;
+            info += "'";
             //We consider each frame as a potential procedure that will create a frame of the same type.
-            global->RecordOneProcedure(name, ProcCreateFrame, P_FULL);
+            global->RecordOneProcedure(name, info, ProcCreateFrame, P_FULL);
             global->returntypes[idname] = idname;
             //We then record this new Frame in our instructions list
             //We also store it at the TOP level, so that others can have access to it...
@@ -7408,8 +7414,11 @@ Tamgu* TamguCode::C_hdatadeclaration(x_node* xn, Tamgu* kf) {
 			if (localframe == NULL) {
 				localframe = new TamguFrame(idname, false, global, &mainframe);
 				Tamguframeseeder::RecordFrame(idname, localframe, global);
+                string info = "Create a frame with: '";
+                info += name;
+                info += "'";
 				//We consider each frame as a potential procedure that will create a frame of the same type.
-				global->RecordOneProcedure(name, ProcCreateFrame, P_FULL);
+				global->RecordOneProcedure(name, info, ProcCreateFrame, P_FULL);
 				global->returntypes[idname] = idname;
 				//We record the compatibilities, which might come as handy to check function argument
 				global->SetCompatibilities(idname);

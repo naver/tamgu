@@ -304,13 +304,13 @@ Exporting short TamguCompileNewSpace(string& codeinit, string filename) {
 
 Exporting bool TamguCheckCompile(string& codeinit, string filename, vector<TamguFullError*>& errors) {
     filename = NormalizeFileName(filename);
-    TamguCode* a = new TamguCode(1000, filename, globalTamgu);
-    if (!a->CompileFull(codeinit, errors)) {
-        delete a;
-        return false;
-    }
-    delete a;
-    return true;
+    TamguGlobal* g = globalTamgu;
+    globalTamgu = new TamguGlobal(1);
+    TamguCode* a = globalTamgu->GetNewCodeSpace(filename);
+    a->CompileFull(codeinit, errors);
+    delete globalTamgu;
+    globalTamgu = g;
+    return !errors.size();
 }
 
 
@@ -571,4 +571,70 @@ Exporting void TamguSetArguments(vector<string>& args) {
 	if (globalTamgu == NULL)
 		return;
 	globalTamgu->arguments = args;
+}
+
+
+void jsoning(stringstream& res, string value) {
+    if (value.find("\"") == -1)
+        res << "\"" << value << "\"";
+    else {
+        string v = s_replacestrings(value, "\"", "\\\"");
+        res << "\"" << v << "\"";
+    }
+}
+
+Exporting string TamguAllObjectWithInfo() {
+    map<string, map<string, string> > information;
+    string key;
+    string subkey;
+    
+    for (const auto& info : globalTamgu->infomethods) {
+        for (const auto& types : info.second) {
+            key = globalTamgu->Getsymbol(info.first);
+            subkey = "." + types.first;
+            information[subkey][key] = types.second;
+            information[key][types.first] = types.second;
+        }
+    }
+    
+    bin_hash<TamguProcedure>::iterator itp;
+    for (itp = globalTamgu->commons.begin(); itp != globalTamgu->commons.end(); itp++) {
+        if (!itp->first)
+            continue;
+        key = globalTamgu->Getsymbol(itp->first);
+        subkey = "." + key;
+        information[subkey]["common"] = globalTamgu->commoninfos[key];
+    }
+    
+    for (itp = globalTamgu->procedures.begin(); itp != globalTamgu->procedures.end(); itp++) {
+        if (!itp->first || globalTamgu->newInstance.check(itp->first))
+            continue;
+        key = globalTamgu->Getsymbol(itp->first);
+        information[key]["procedure"]  = globalTamgu->procedureinfos[key];
+    }
+    
+    std::stringstream json;
+    json << "{";
+    bool first = true;
+    for (const auto& names : information) {
+        if (!first)
+            json << ",\n";
+        else
+            first = false;
+        jsoning(json, names.first);
+        json << ": {";
+        bool comma = false;
+        for (const auto& info : names.second) {
+            if (comma)
+                json << ",";
+            else
+                comma = true;
+            jsoning(json, info.first);
+            json << ":";
+            jsoning(json, info.second);
+        }
+        json << "}";
+    }
+    json << "}";
+    return json.str();
 }

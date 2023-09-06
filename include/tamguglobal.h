@@ -680,6 +680,7 @@ public:
 	basebin_hash<TamguProcedure> procedures;
 	basebin_hash<TamguProcedure> commons;
     hmap<string, string> commoninfos;
+    hmap<string, string> procedureinfos;
 
 	bin_hash<unsigned long> arities;
 	basebin_hash<TamguFrame*> frames;
@@ -1043,7 +1044,7 @@ public:
 	Exporting void RecordContainers();
 	Exporting void RecordConstantNames();
 	Exporting void RecordProcedures();
-	Exporting void RecordOneProcedure(string, TamguProcedure, unsigned long arity, short rettype = a_null);
+	Exporting void RecordOneProcedure(string, string, TamguProcedure, unsigned long arity, short rettype = a_null);
 	Exporting void RecordCommon(string, string, TamguProcedure, unsigned long arity, short rettype = a_null);
 	Exporting void RecordSystemVariables();
 	Exporting void RecordPredicates();

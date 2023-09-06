@@ -1671,7 +1671,7 @@ public:
     long poscharacter;
     long line;
     
-    TamguFullError(string err, string& fn, long pb, long pc, long l) : filename(fn), posbinary(pb), poscharacter(pc), line(l), TamguError(err) {}
+    TamguFullError(string err, string& fn, long pb, long pc, long l) : filename(fn), posbinary(pb), poscharacter(pc), line(l), TamguError(NULL, err) {}
     
 };
 

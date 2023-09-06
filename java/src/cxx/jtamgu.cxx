@@ -213,7 +213,7 @@ JNIEXPORT jboolean JNICALL Java_com_naver_jtamgu_JTamgu_CheckProgramImplementati
     string jcode = jstringToString(env, code);
     string theargs = jstringToString(env, args);
 
-    short idspace = TamguCreateGlobal(10);
+    //short idspace = TamguCreateGlobal(10);
 
 #ifdef WIN32
     string name = "C:\\JAVA";

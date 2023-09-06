@@ -775,15 +775,15 @@ void TamguGlobal::RecordPredicates() {
     gCUT = new TamguConstPredicate(NULL, a_cut);
     gSTOP = new TamguConstPredicate(NULL, a_stop);
     
-    RecordOneProcedure("asserta", &ProcPredicateAsserta, P_ONE | P_ONE);
-    RecordOneProcedure("assertz", &ProcPredicateAssertz, P_ONE | P_ONE);
-    RecordOneProcedure("predicatedump", &ProcPredicateDump, P_NONE | P_ONE);
-    RecordOneProcedure("findall", &ProcPredicateDump, P_NONE | P_ONE);
-    RecordOneProcedure("retract", &ProcPredicateRetract, P_ONE);
-    RecordOneProcedure("retractall", &ProcRetractAll, P_NONE | P_ONE);
-    RecordOneProcedure("succ", &ProcPredicateSucc, P_ONE);
-    RecordOneProcedure("pred", &ProcPredicatePred, P_ONE);
-    RecordOneProcedure("_dependencies", &ProcDependencies, P_NONE | P_ONE);
+    RecordOneProcedure("asserta", "Assert a clause (fact or rule) into the database as the first clause of the predicate", &ProcPredicateAsserta, P_ONE | P_ONE);
+    RecordOneProcedure("assertz", "Assert a clause (fact or rule) into the database as the last clause of the predicate", &ProcPredicateAssertz, P_ONE | P_ONE);
+    RecordOneProcedure("predicatedump", "Return all predicates in the knowledge base that match the given pattern", &ProcPredicateDump, P_NONE | P_ONE);
+    RecordOneProcedure("findall", "Return all predicates in the knowledge base  that match the given pattern", &ProcPredicateDump, P_NONE | P_ONE);
+    RecordOneProcedure("retract", "Retract a clause (fact or rule) from the database", &ProcPredicateRetract, P_ONE);
+    RecordOneProcedure("retractall", "Retract all clauses (facts or rules) from the database that match the given pattern", &ProcRetractAll, P_NONE | P_ONE);
+    RecordOneProcedure("succ", "The next element", &ProcPredicateSucc, P_ONE);
+    RecordOneProcedure("pred", "The previous element", &ProcPredicatePred, P_ONE);
+    RecordOneProcedure("_dependencies", "Return the list of dependencies in memory", &ProcDependencies, P_NONE | P_ONE);
 
     char buffer[20];
     for (long i = 0; i < 100; i++) {

@@ -56,8 +56,8 @@ void Tamgusynode::Setidtype(TamguGlobal* global) {
     Tamgusynode::AddMethod(global, "_initial", &Tamgusynode::MethodInitial, P_ONE, "_initial(map m): Creates a syntactic node with some features.");
     Tamgusynode::AddMethod(global, "test", &Tamgusynode::MethodTest, P_ONE, "test(string attribute): Test if an attribute is part of the feature structure.");
     Tamgusynode::AddMethod(global, "addchild", &Tamgusynode::MethodAddChild, P_ATLEASTONE, "addchild(synode): Add a first child node.");
-    Tamgusynode::AddMethod(global, "addprevious", &Tamgusynode::MethodAddPrevious, P_ONE, "addprevious(synode): Add a previous.");
-    Tamgusynode::AddMethod(global, "addnext", &Tamgusynode::MethodAddNext, P_ONE, "addnext(synode): Add a next node.");
+    Tamgusynode::AddMethod(global, "addprevious", &Tamgusynode::MethodAddPrevious, P_ONE, "addprevious(synode): Add as a previous node.");
+    Tamgusynode::AddMethod(global, "addnext", &Tamgusynode::MethodAddNext, P_ONE, "addnext(synode): Add as a next node.");
     Tamgusynode::AddMethod(global, "parent", &Tamgusynode::MethodParent, P_NONE | P_ONE, "parent(): Return the parent node or check it against the parameter.");
     Tamgusynode::AddMethod(global, "child", &Tamgusynode::MethodChild, P_NONE | P_ONE, "child(): Return the first child node or check it against the parameter.");
     Tamgusynode::AddMethod(global, "last", &Tamgusynode::MethodLast, P_NONE | P_ONE, "last(): Return the last child node or check it against the parameter.");
