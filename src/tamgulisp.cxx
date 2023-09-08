@@ -2343,7 +2343,7 @@ string Tamgulispair::String() {
     bool beg = true;
     string sx;
     Tamgu* element;
-    long sz = values.size() - 1;
+    long sz = (long)values.size() - 1;
     for (it = 0; it <= sz; it++) {
         if (it == sz)
             res += " .";
@@ -2402,7 +2402,7 @@ void Tamgulispair::Setstring(string& res, short idthread) {
     bool beg = true;
     string sx;
     Tamgu* element;
-    long sz = values.size() - 1;
+    long sz = (long)values.size() - 1;
     for (it = 0; it <= sz; it++) {
         if (it == sz)
             res += " .";

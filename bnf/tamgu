@@ -176,6 +176,7 @@
 *67 = Wrong lisp expression
 *68 = Wrong shape access
 *69 = Wrong alias declaration
+*70 = Wrong 'iferror' declaration
 ####################################################################################################################################################
 ####################################################################################################################################################
 ### This is the entry point of our parser: analyse, hence the "+" ######
@@ -242,7 +243,7 @@ const := $const
 
 feature := [private (common)]^[common^const]
 
-~notatype := $if^$IF^$If^$while^$for^$switch^$elif^$frame^$polynomial^$function^$alias^$autorun^$thread^$not^$return
+~notatype := $absent^$alias^$all^$and^$any^$assert^$asserta^$assertz^$autorun^$break^$case^$catch^$common^$concept^$const^$continue^$cycle^$data^$default^$deriving^$do^$drop^$elif^$else^$exclusive^$extension^$fail^$false^$filter^$flip^$foldl^$foldr^$for^$frame^$from^$function^$if^$ifnot^$in^$is^$joined^$let^$namespace^$not^$notin^$null^$of^$iferror^$ontology^$or^$otherwise^$polynomial^$private^$property^$protected^$repeat^$replicate^$retract^$return^$role^$scanl^$scanr^$static^$stop^$strict^$switch^$take^$thread^$true^$try^$where^$while^$with^$xor^$zip
 type := (feature) notatype typename
 
 depend := $with ;19 word
@@ -285,7 +286,7 @@ space := word %@
 %subvar := %. ;29 variable
 %framevariable := %. ;29 variable
 
-~notafunction := $if^$IF^$If^$while^$for^$switch^$elif^$frame^$polynomial^$function^$alias^$autorun^$thread^$not
+~notafunction := $absent^$alias^$all^$and^$any^$assert^$asserta^$assertz^$autorun^$break^$case^$catch^$common^$concept^$const^$continue^$cycle^$data^$default^$deriving^$do^$drop^$elif^$else^$exclusive^$extension^$fail^$false^$filter^$flip^$foldl^$foldr^$for^$frame^$from^$function^$if^$ifnot^$in^$is^$joined^$let^$namespace^$not^$notin^$null^$of^$iferror^$ontology^$or^$otherwise^$polynomial^$private^$property^$protected^$repeat^$replicate^$retract^$return^$role^$scanl^$scanr^$static^$stop^$strict^$switch^$take^$thread^$true^$try^$where^$while^$with^$xor^$zip
 framesep := %: %:
 frameup := word framesep
 functioncall := (frameup) notafunction word
@@ -307,7 +308,8 @@ sep := %:
 %blocs := [extension^frame^complexbloc^function^aliasdeclaration^bloc]+
 %bloc :=  annotationrule^predicatefact^[dcg ;45 %.]^[[dependencyrule^predicatedefinition] ;46 %.]^sousbloc
 %sousbloc := [[tamgulisp^hdata^hontology^telque] (%;)]^[[conceptfunction^multideclaration^increment^affectation^call^variable]  ;30 %;]
-%complexbloc := switch^trycatch^loop^doloop^iftest^forin^for^namespace
+%complexbloc := switch^trycatch^loop^doloop^iftest^forin^for^namespace^catchon
+%singleinstruction := tamgulisp^hdata^hontology^telque^increment^affectation^call^variable
 
 ### Our entry point ####
 %analyse := (signature) (shell) blocs
@@ -375,7 +377,7 @@ aconstant := $null
 %stop := $stop
 not := %~^$not
 
-~notapredicate := $if^$IF^$If^$while^$for^$switch^$elif^$return^$frame^$polynomial^$function^$alias^$autorun^$thread^$not
+~notapredicate := $absent^$alias^$all^$and^$any^$assert^$asserta^$assertz^$autorun^$break^$case^$catch^$common^$concept^$const^$continue^$cycle^$data^$default^$deriving^$do^$drop^$elif^$else^$exclusive^$extension^$fail^$false^$filter^$flip^$foldl^$foldr^$for^$frame^$from^$function^$if^$ifnot^$in^$is^$joined^$let^$namespace^$not^$notin^$null^$of^$iferror^$ontology^$or^$otherwise^$polynomial^$private^$property^$protected^$repeat^$replicate^$retract^$return^$role^$scanl^$scanr^$static^$stop^$strict^$switch^$take^$thread^$true^$try^$where^$while^$with^$xor^$zip
 %predicate := notapredicate word %( (predicateparameters) %)
 %predicatecall := functioncall %( (predicateparameters) %)
 
@@ -621,6 +623,7 @@ declarationfor := [variable $in]^[type variable $in]
 %switch := $switch %( ;16 expression %) (depend) %{ ;31 testswitch+ %}
 %trycatch := $try %{ ;22 blocs %} $catch ;22 (%( (word) %)) [%;^[%{ ;22 blocs %}]]
 %testswitch := [default^astringdouble^afullstring^astringsimple^anumber^abool] %: ;17 [instruction^complexbloc^bloc]
+%catchon := $iferror %( ;70 singleinstruction %) [instruction^complexbloc^bloc]
 default := $default
 
 ########### PATTERNS FOR CERTAIN SPECIALIZED OBJECTS CALLED FROM WITHIN TAMGUI INSTRUCTIONS ##############################################

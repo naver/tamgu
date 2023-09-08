@@ -5075,6 +5075,13 @@ public:
 };
 
 
+class TamguInstructionCatchON : public TamguInstruction {
+public:
+
+    TamguInstructionCatchON(TamguGlobal* g, Tamgu* parent = NULL) : TamguInstruction(a_instructions, g, parent) {}
+    Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
+};
+
 
 class TamguInstructionTRY : public TamguInstruction {
 public:

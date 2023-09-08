@@ -158,7 +158,7 @@ public:
 	}
 
 	bool Checkarity() {
-		return Arity(size, parameters.size() - 1);
+		return Arity(size, (long)parameters.size() - 1);
 	}
 
 };

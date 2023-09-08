@@ -236,7 +236,7 @@ Exporting Tamgu* Tamgusvector::Pop(Tamgu* idx) {
 
     BLONG v = idx->Integer();
     if (v == -1) {
-        v = values.size() - 1;
+        v = (long)values.size() - 1;
         values.pop_back();
     }
     else {
@@ -550,7 +550,7 @@ Tamgu* Tamgusvector::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign) 
         key->Setstring(sf, idthread);
         bool found = false;
         if (sign) {
-            for (ikey = values.size() - 1; ikey >= 0; ikey--) {
+            for (ikey = (long)values.size() - 1; ikey >= 0; ikey--) {
                 if (sf == values[ikey]) {
                     found = true;
                     break;
@@ -635,7 +635,7 @@ Exporting Tamgu* Tamgusvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
         key->Setstring(sf, idthread);
         bool found = false;
         if (kind->signleft) {
-            for (ikey = values.size() - 1; ikey >= 0; ikey--) {
+            for (ikey = (long)values.size() - 1; ikey >= 0; ikey--) {
                 if (sf == values[ikey]) {
                     found = true;
                     break;
@@ -684,7 +684,7 @@ Exporting Tamgu* Tamgusvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
         string sf = keyright->String();
         bool found = false;
         if (kind->signright) {
-            for (iright = values.size() - 1; iright >= 0; iright--) {
+            for (iright = (long)values.size() - 1; iright >= 0; iright--) {
                 if (sf == values[iright]) {
                     found = true;
                     iright++;
@@ -1421,7 +1421,7 @@ Exporting Tamgu* Tamgua_svector::Pop(Tamgu* idx) {
     
     BLONG v = idx->Integer();
     if (v == -1) {
-        v = values.size() - 1;
+        v = (long)values.size() - 1;
         values.pop_back();
     }
     else {
@@ -1683,7 +1683,7 @@ Exporting Tamgu* Tamgua_svector::Eval(Tamgu* contextualpattern, Tamgu* idx, shor
         string sf = key->String();
         bool found = false;
         if (kind->signleft) {
-            for (ikey = values.size() - 1; ikey >= 0; ikey--) {
+            for (ikey = (long)values.size() - 1; ikey >= 0; ikey--) {
                 if (sf == values[ikey].value()) {
                     found = true;
                     break;
@@ -1728,7 +1728,7 @@ Exporting Tamgu* Tamgua_svector::Eval(Tamgu* contextualpattern, Tamgu* idx, shor
         string sf = keyright->String();
         bool found = false;
         if (kind->signright) {
-            for (iright = values.size() - 1; iright >= 0; iright--) {
+            for (iright = (long)values.size() - 1; iright >= 0; iright--) {
                 if (sf == values[iright].value()) {
                     found = true;
                     iright++;

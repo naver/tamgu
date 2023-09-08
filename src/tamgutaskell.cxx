@@ -1323,7 +1323,7 @@ Exporting Tamgu* Tamgu::Filterreverse(short idthread, Tamgu* env, TamguFunctionL
     }
     iter->Release();
     
-    for (long i = values.size()-1; i >= 0; i--) {
+    for (long i = (long)values.size() - 1; i >= 0; i--) {
         key = values[i];
         if (first) {
             returnval = key->Atom();//We use the first value of the list to seed our accumulator variable

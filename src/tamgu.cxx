@@ -42,7 +42,7 @@
 #include "tamgulisp.h"
 #include "tamgucomplex.h"
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2023.09.05.16";
+const char* tamgu_version = "Tamgu 1.2023.09.08.14";
 
 extern "C" {
 Exporting const char* TamguVersion(void) {
@@ -499,7 +499,7 @@ void Tamgu::Deletion(std::set<unsigned long>& deleted_elements) {
     if (idtracker != -1)
         return;
     
-    if (isObjectContainer()) {
+    if (isObjectContainer() && Size()) {
         Tamgu* k;
         TamguIteration* itr = Newiteration(true);
         for (itr->Begin(); itr->End() == aFALSE; itr->Next()) {
@@ -794,7 +794,7 @@ Exporting void TamguGlobal::Getdebuginfo(string& localvariables, string& allvari
     }
     
     Tamgu* stackline;
-    for (i = threadstack.size() - 1; i >= 0; i--) {
+    for (i = (long)threadstack.size() - 1; i >= 0; i--) {
         stringstream var;
         vector<short> vars;
         stackline=threadstack[i];
@@ -847,7 +847,7 @@ Exporting void TamguGlobal::Getdebuginfo(string& localvariables, string& allvari
             allvariables += var.str();
     }
     
-    for (i = stack.size() - 1; i >= 0; i--) {
+    for (i = (long)stack.size() - 1; i >= 0; i--) {
         stackline=stack[i];
         if (!stackline->isaFunction())
             continue;
@@ -1903,7 +1903,8 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("iterator_java"); //245 --> a_iteration_java
     Createid("java_vector"); //246 --> a_java_vector
     Createid("&predicate_terminal&"); //247 --> a_terminal
-    Createid("lisp"); //248 a_lisp
+    Createid("_iferror"); //248 --> a_iferror
+    Createid("lisp"); //249 a_lisp
     
     //This is a simple hack to handle "length" a typical Haskell operator as "size"...
     //Note that there will be a useless index
@@ -2278,6 +2279,7 @@ void TamguGlobal::TamguAllObjects(vector<string>& vs) {
     vs.push_back("function");
     vs.push_back("get");
     vs.push_back("if");
+    vs.push_back("iferror");
     vs.push_back("ifnot");
     vs.push_back("If");
     vs.push_back("IF");

@@ -1492,7 +1492,7 @@ Exporting Tamgu* Tamguvector::EvalWithSimpleIndex(Tamgu* key, short idthread, bo
         string sf = key->String();
         bool found = false;
         if (sign) {
-            for (ikey = values.size() - 1; ikey >= 0; ikey--) {
+            for (ikey = (long)values.size() - 1; ikey >= 0; ikey--) {
                 if (sf == values[ikey]->String()) {
                     found = true;
                     break;
@@ -1578,7 +1578,7 @@ Exporting Tamgu* Tamguvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short i
         stringkey = true;
         bool found = false;
         if (kind->signleft) {
-            for (ikey = values.size() - 1; ikey >= 0; ikey--) {
+            for (ikey = (long)values.size() - 1; ikey >= 0; ikey--) {
                 if (sf == values[ikey]->String()) {
                     found = true;
                     break;
@@ -1627,7 +1627,7 @@ Exporting Tamgu* Tamguvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short i
         string sf = keyright->String();
         bool found = false;
         if (kind->signright) {
-            for (iright = values.size() - 1; iright >= 0; iright--) {
+            for (iright = (long)values.size() - 1; iright >= 0; iright--) {
                 if (sf == values[iright]->String()) {
                     found = true;
                     iright++;

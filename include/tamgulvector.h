@@ -626,7 +626,7 @@ class Tamgulvector : public TamguLockContainer {
     Tamgu* Inverse() {
         locking();
         Tamgulvector* vect = new Tamgulvector;
-        for (long i = values.size() - 1; i >= 0; i--) {
+        for (long i = (long)values.size() - 1; i >= 0; i--) {
             vect->values.push_back(values[i]);
         }
         unlocking();
@@ -743,7 +743,8 @@ class TamguIterationlvector : public TamguIteration {
 
     Tamgu* Begin() {
         if (reverse) {
-            itx = ref->values.size() - 1;
+            itx = ref->values.size();
+            itx--;
         }
         else
             itx = 0;

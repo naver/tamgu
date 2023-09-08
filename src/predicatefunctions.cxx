@@ -324,7 +324,7 @@ Exporting Tamgu* TamguPredicateTermMethod::Getvalues(TamguDeclaration* dom, bool
 //----------------------------------------------------------------------------------------------------
 
 Exporting bool TamguPredicateMethod::Checkparameters(TamguDeclaration* dom) {
-    short last = parameters.size() - 1;
+    short last = (short)parameters.size() - 1;
     for (short i = 0; i < last; i++) {
         if (!parameters[i]->isUnified(dom))
             return false;
@@ -335,7 +335,7 @@ Exporting bool TamguPredicateMethod::Checkparameters(TamguDeclaration* dom) {
 
 Exporting Tamgu* TamguPredicateMethod::PredicateEvalue(TamguInstructionEvaluate* context, VECTE<Tamgu*>& stack, TamguPredicate* currenthead, long depth) {
     vector<Tamgu*> args;
-    short last = parameters.size() - 1;
+    short last = (short)parameters.size() - 1;
     short i;
     for (i = 0; i < last; i++) {
         if (parameters[i]->isUnified(context->dom))

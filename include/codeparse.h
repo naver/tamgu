@@ -355,6 +355,7 @@ class bnf_tamgu {
     char m_sousbloc_0_4(string& lreturn,x_node** tree);
     char m_sousbloc_0_4_5(string& lreturn,x_node** tree);
     char m_complexbloc(string& lreturn,x_node** tree);
+    char m_singleinstruction(string& lreturn,x_node** tree);
     char m_analyse(string& lreturn,x_node** tree);
     char m_analyse_0_1(string& lreturn,x_node** tree);
     char m_analyse_0_2(string& lreturn,x_node** tree);
@@ -885,6 +886,7 @@ class bnf_tamgu {
     char m_trycatch_0_4_5(string& lreturn,x_node** tree);
     char m_testswitch(string& lreturn,x_node** tree);
     char m_testswitch_0_1(string& lreturn,x_node** tree);
+    char m_catchon(string& lreturn,x_node** tree);
     char m_default(string& lreturn,x_node** tree);
     char m_parentheticexpression(string& lreturn,x_node** tree);
     char m_parentheticexpressions(string& lreturn,x_node** tree);

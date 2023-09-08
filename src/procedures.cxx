@@ -1967,7 +1967,7 @@ void toDisplayJN(string& todisplay, Tamgu* context, TamguCall* callfunc, short i
                 }
                 else {
                     nb = element_size - all;
-                    for (all  = 0; all < elements.size() - 1; all++) {
+                    for (all  = 0; all < (long)elements.size() - 1; all++) {
                         todisplay += elements[all];
                         todisplay += sep;
                         if (nb) {
@@ -2062,7 +2062,7 @@ void toDisplayJN(string& todisplay, Tamgu* context, TamguCall* callfunc, short i
             }
             else {
                 nb = element_size - all;
-                for (all  = 0; all < elements.size() - 1; all ++) {
+                for (all  = 0; all < (long)elements.size() - 1; all ++) {
                     todisplay += elements[all];
                     todisplay += sep;
                     if (nb) {

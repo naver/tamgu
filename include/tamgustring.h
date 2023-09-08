@@ -1988,7 +1988,7 @@ public:
         if (position < 0) {
             if (function != NULL)
                 Callfunction();
-            position = interval.size() - 1;
+            position = (long)interval.size() - 1;
         }
         Locking _lock(this);
         value = interval[position];

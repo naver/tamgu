@@ -758,7 +758,8 @@ class TamguIterationlist : public TamguIteration {
 
     Tamgu* Begin() {
         if (reverse) {
-            itx = ref->values.size() - 1;
+            itx = ref->values.size();
+            itx--;
             rit = ref->values.rbegin();
         }
         else {

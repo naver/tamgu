@@ -749,7 +749,7 @@ class Tamguvector : public TamguObjectLockContainer {
     Tamgu* Inverse() {
         Tamguvector* vect = globalTamgu->Providevector();
         locking();
-        for (long i = values.size() - 1; i >= 0; i--) {
+        for (long i = (long)values.size() - 1; i >= 0; i--) {
             vect->Push(values[i]);
         }
         unlocking();
@@ -918,7 +918,7 @@ class TamguIterationvector : public TamguIteration {
 
     Tamgu* Begin() {
         if (reverse) {
-            itx = ref->values.size() - 1;
+            itx = (long)ref->values.size() - 1;
         }
         else
             itx = 0;

@@ -785,9 +785,9 @@ bool TamguGlobal::RemovePredicates(TamguDeclaration* dom, TamguPredicate* p) {
         if (p->Stringpredicatekey(argument_key)) {
             vector<TamguPredicate*>& v = knowledgebase_on_first[argument_key];
             long j;
-            for (i = v.size() - 1; i >= 0; i--) {
+            for (i = (long)v.size() - 1; i >= 0; i--) {
                 if (p->same(v[i]) == aTRUE) {
-                    for (j = vk.size() - 1; j >= 0; j--) {
+                    for (j = (long)vk.size() - 1; j >= 0; j--) {
                         if (vk[j] == v[i]) {
                             vk.erase(vk.begin() + j);
                             break;
@@ -805,9 +805,9 @@ bool TamguGlobal::RemovePredicates(TamguDeclaration* dom, TamguPredicate* p) {
         if (p->Stringpredicatekeysecond(argument_key)) {
             vector<TamguPredicate*>& v = knowledgebase_on_second[argument_key];
             long j;
-            for (i = v.size() - 1; i >= 0; i--) {
+            for (i = (long)v.size() - 1; i >= 0; i--) {
                 if (p->same(v[i]) == aTRUE) {
-                    for (j = vk.size() - 1; j >= 0; j--) {
+                    for (j = (long)vk.size() - 1; j >= 0; j--) {
                         if (vk[j] == v[i]) {
                             vk.erase(vk.begin() + j);
                             break;
@@ -825,9 +825,9 @@ bool TamguGlobal::RemovePredicates(TamguDeclaration* dom, TamguPredicate* p) {
         if (p->Stringpredicatekeythird(argument_key)) {
             vector<TamguPredicate*>& v = knowledgebase_on_third[argument_key];
             long j;
-            for (i = v.size() - 1; i >= 0; i--) {
+            for (i = (long)v.size() - 1; i >= 0; i--) {
                 if (p->same(v[i]) == aTRUE) {
-                    for (j = vk.size() - 1; j >= 0; j--) {
+                    for (j = (long)vk.size() - 1; j >= 0; j--) {
                         if (vk[j] == v[i]) {
                             vk.erase(vk.begin() + j);
                             break;
@@ -843,7 +843,7 @@ bool TamguGlobal::RemovePredicates(TamguDeclaration* dom, TamguPredicate* p) {
         }
     }
     
-    for (i = vk.size() - 1; i >= 0; i--) {
+    for (i = (long)vk.size() - 1; i >= 0; i--) {
         if (p->same(vk[i]) == aTRUE) {
             vk[i]->Resetreference();
             vk.erase(vk.begin() + i);
@@ -858,7 +858,7 @@ bool TamguGlobal::RemovePredicates(TamguDeclaration* dom, TamguPredicate* p) {
 bool TamguGlobal::RemoveThePredicate(TamguDeclaration* dom, TamguPredicate* p) {
     Locking* _lock = _getlockg(_knowledgelock);
     vector<TamguPredicate*>& v = knowledgebase[p->name];
-    for (long i = v.size() - 1; i >= 0; i--) {
+    for (long i = (long)v.size() - 1; i >= 0; i--) {
         if (p == v[i]) {
             v.erase(v.begin() + i);
             if (!p->isDependency()) {
@@ -866,7 +866,7 @@ bool TamguGlobal::RemoveThePredicate(TamguDeclaration* dom, TamguPredicate* p) {
                 
                 if (p->Stringpredicatekey(argument_key)) {
                     vector<TamguPredicate*>& vk = knowledgebase_on_first[argument_key];
-                    for (i = vk.size() - 1; i >= 0; i--) {
+                    for (i = (long)vk.size() - 1; i >= 0; i--) {
                         if (p == vk[i]) {
                             vk.erase(vk.begin() + i);
                             break;
@@ -875,7 +875,7 @@ bool TamguGlobal::RemoveThePredicate(TamguDeclaration* dom, TamguPredicate* p) {
                 }
                 if (p->Stringpredicatekeysecond(argument_key)) {
                     vector<TamguPredicate*>& vk = knowledgebase_on_second[argument_key];
-                    for (i = vk.size() - 1; i >= 0; i--) {
+                    for (i = (long)vk.size() - 1; i >= 0; i--) {
                         if (p == vk[i]) {
                             vk.erase(vk.begin() + i);
                             break;
@@ -885,7 +885,7 @@ bool TamguGlobal::RemoveThePredicate(TamguDeclaration* dom, TamguPredicate* p) {
 
                 if (p->Stringpredicatekeythird(argument_key)) {
                     vector<TamguPredicate*>& vk = knowledgebase_on_third[argument_key];
-                    for (i = vk.size() - 1; i >= 0; i--) {
+                    for (i = (long)vk.size() - 1; i >= 0; i--) {
                         if (p == vk[i]) {
                             vk.erase(vk.begin() + i);
                             break;
@@ -2437,7 +2437,7 @@ Tamgu* TamguConstvectormerge::ExtractPredicateVariables(Tamgu* context, TamguDec
         e = values[i];
         if (szc != -1) {
             //then, if it is the last element, then we associate our element with the rest of the vector
-            if (i == values.size() - 1) {
+            if (i == (long)values.size() - 1) {
                 if (values.size() == 1)
                     e = e->ExtractPredicateVariables(context, dom, c, NULL, idthread, false);
                 else {
@@ -4642,7 +4642,7 @@ void TamguPredicateRule::Reorderdisjunction(long disjposition) {
                 ins.push_back(instructions[i]);
                 //we reverse it...in order to simplify the disjunction application
                 //The last element will become the first and the first the last....
-                for (long p = ins.size() - 1; p >= 0; p--) {
+                for (long p = (long)ins.size() - 1; p >= 0; p--) {
                     ins[p]->Setdisjunction(true);
                     instructions[first++] = ins[p];
                 }

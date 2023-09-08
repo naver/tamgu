@@ -1960,6 +1960,7 @@ void TamguGlobal::RecordCompileFunctions() {
     parseFunctions["namespace"] = &TamguCode::C_namespace;
 
 	parseFunctions["trycatch"] = &TamguCode::C_trycatch;
+    parseFunctions["catchon"] = &TamguCode::C_catchon;
 
 	parseFunctions["alist"] = &TamguCode::C_alist;
 	parseFunctions["valtail"] = &TamguCode::C_alist;
@@ -2318,7 +2319,7 @@ bool TamguInstructionAPPLYOPERATIONROOT::Stacking(Tamgu* ins, char top) {
 		}
 
 		TamguInstruction* ai = (TamguInstruction*)ins;
-		for (short i = ai->instructions.size() - 1; i >= 0; i--) {
+		for (short i = (short)ai->instructions.size() - 1; i >= 0; i--) {
 			if (ai->instructions[i]->isOperation()) {
 				instructions.push_back(aPIPE);
 				sub = true;
@@ -4517,7 +4518,7 @@ Tamgu* TamguCode::C_fstring(x_node* xn, Tamgu* parent) {
         pos = thestr.find("{", beginning);
     }
     
-    if (beginning < thestr.size() -1)
+    if (beginning < (long)thestr.size() -1)
         action = new Tamgustring(thestr.substr(beginning, thestr.size()), global, vect);
     
     return vect;
@@ -5102,7 +5103,7 @@ Tamgu* TamguCode::C_declarationtaskell(x_node* xn, Tamgu* kf) {
 	short ty;
 	TamguFunctionLambda* klambda = (TamguFunctionLambda*)kf;
 
-	long sz = xn->nodes.size() - 1;
+	long sz = (long)xn->nodes.size() - 1;
 	for (long i = 0; i <= sz; i++) {
 		if (xn->nodes[i]->token == "word" || xn->nodes[i]->token == "maybe") {
             bool mybe=false;
@@ -5798,7 +5799,7 @@ Tamgu* TamguCode::C_alias(x_node* xn, Tamgu* kf) {
     kf->Declare(idname, alias);
     
     //First we extract our variables...
-    for (long i =  1; i < xn->nodes.size() - 1; i++) {
+    for (long i =  1; i < (long)xn->nodes.size() - 1; i++) {
         idname = global->Getid(xn->nodes[i]->value);
         alias->parameters.push_back(idname);
         alias->Declare(idname, aNULL);
@@ -5849,7 +5850,7 @@ Tamgu* TamguCode::C_createfunction(x_node* xn, Tamgu* kf) {
 	if (!kf->isMainFrame())
 		global->functions[idname] = true;
 
-	size_t last = xn->nodes.size() - 1;
+	size_t last = (long)xn->nodes.size() - 1;
 
 
 	TamguFunction* kfunc = NULL;
@@ -6204,7 +6205,7 @@ Tamgu* TamguCode::C_blocs(x_node* xn, Tamgu* kf) {
 			}
 
 			if (xn->nodes[i]->token == "function" || xn->nodes[i]->token == "frame") {
-				last = xn->nodes[i]->nodes.size() - 1;
+				last = (long)xn->nodes[i]->nodes.size() - 1;
 				xend = xn->nodes[i]->nodes[last];
 				if (xend->token == "declarationending") {
 					//in this case, we do not need to take these predeclarations into account anymore...
@@ -6527,6 +6528,39 @@ Tamgu* TamguCode::C_ifcondition(x_node* xn, Tamgu* kf) {
 
 	return ktest;
 }
+
+//Basically, if there is an error in the Boolean expression, then we execute the code...
+Tamgu* TamguCode::C_catchon(x_node* xn, Tamgu* kf) {
+    TamguInstruction* ktest = new TamguInstructionCatchON(global, kf);
+    
+    Traverse(xn->nodes[0], ktest);
+    Tamgu* nxt = ktest->instructions[0];
+
+    //Small improvement, when we have only one element of test
+    //It is BOOLEANBLOC, with only one element...
+    //We can get rid of it and push it to the top...
+    if (nxt->Action() == a_blocboolean && nxt->InstructionSize() == 1) {
+        //we push the negation up then... otherwise it would be lost
+        ktest->negation = nxt->isNegation();
+        nxt = nxt->Instruction(0);
+        ktest->instructions[0]->Remove();
+        ktest->instructions.vecteur[0] = nxt;
+    }
+
+    Tamgu* ktrue = new TamguSequence(global, ktest);
+    global->Pushstack(ktrue);
+    Traverse(xn->nodes[1], ktrue);
+    global->Popstack();
+    if (!global->debugmode && ktrue->InstructionSize() == 1 && !ktrue->Instruction(0)->isVariable()) {
+        nxt = ktrue->Instruction(0);
+        ktest->Putinstruction(1, nxt);
+        ktrue->InstructionClear();
+        ktrue->Remove();
+    }
+
+    return ktest;
+}
+
 
 Tamgu* TamguCode::C_booleanexpression(x_node* xn, Tamgu* kf) {
 	Tamgu* kbloc;
@@ -7281,7 +7315,7 @@ Tamgu* TamguCode::C_hdatadeclaration(x_node* xn, Tamgu* kf) {
         }
         else {
             for (i = 1; i < maxnodes; i++) {
-                sprintf(buff,"%02d",i);
+                sprintf_s(buff,3,"%02d",i);
                 nm[1] = buff[0];
                 nm[2] = buff[1];
                 framecode << xn->nodes[i]->value << " " << nm << ";";
@@ -7304,7 +7338,7 @@ Tamgu* TamguCode::C_hdatadeclaration(x_node* xn, Tamgu* kf) {
         if (maxnodes <= 9)
             nm[1] = 49 + i;
         else {
-            sprintf(buff,"%02d",i+1);
+            sprintf_s(buff,3,"%02d",i+1);
             nm[1] = buff[0];
             nm[2] = buff[1];
         }
@@ -7317,7 +7351,7 @@ Tamgu* TamguCode::C_hdatadeclaration(x_node* xn, Tamgu* kf) {
         if (maxnodes <= 9)
             nm[1] = 49 + i;
         else {
-            sprintf(buff,"%02d",i+1);
+            sprintf_s(buff,3,"%02d",i+1);
             nm[1] = buff[0];
             nm[2] = buff[1];
         }
@@ -7514,7 +7548,7 @@ Tamgu* TamguCode::C_ontology(x_node* xn, Tamgu* kf) {
 	short idmaster = global->Getid(xn->nodes.back()->value);
 	global->hierarchy[idmaster][idmaster] = true;
 	short id;
-	for (int i = 0; i < xn->nodes.size() - 1; i++) {
+	for (int i = 0; i < (int)xn->nodes.size() - 1; i++) {
 		id = global->Getid(xn->nodes[i]->value);
 		global->hierarchy[id][idmaster] = true;
 	}
@@ -8247,7 +8281,7 @@ Tamgu* TamguCode::C_hlambda(x_node* xn, Tamgu* kf) {
 	int idname = global->Getid("&lambdataskell;");
 	TamguFunctionLambda* kfunc = new TamguFunctionLambda(idname, global);
 	Tamgu* var;
-	for (int i = 0; i < xn->nodes.size() - 1; i++) {
+	for (int i = 0; i < (int)xn->nodes.size() - 1; i++) {
 		if (xn->nodes[i]->token == "word") {
 			idname = global->Getid(xn->nodes[i]->value);
 			var = new TamguTaskellSelfVariableDeclaration(global, idname, a_self, kfunc);
@@ -10071,7 +10105,7 @@ Tamgu* TamguCode::C_dependency(x_node* xn, Tamgu* kf) {
 	}
 
 	string name = xn->nodes[i++]->value;
-	long lst = name.size() - 1;
+	long lst = (long)name.size() - 1;
 	short idname = -1;
 	short idvar = 0;
 	if (name[lst] >= '0' && name[lst] <= '9' && lst >= 1) {
@@ -10237,7 +10271,7 @@ Tamgu* TamguCode::C_dependencyrule(x_node* xn, Tamgu* kf) {
 	int i;
 	string sid;
 	Tamgusynode* as = NULL;
-	for (i = 0; i < xn->nodes.size() - 1; i++) {
+	for (i = 0; i < (int)xn->nodes.size() - 1; i++) {
 		nsub = xn->nodes[i]; //we do not take into account the negated dependencies... Hence the test nsub->nodes[0]->token
 		if (nsub->token == "dependance" && nsub->nodes[0]->token == "dependency") {
 			nsub = nsub->nodes[0];
@@ -10271,7 +10305,7 @@ Tamgu* TamguCode::C_dependencyrule(x_node* xn, Tamgu* kf) {
 
 	featureassignment = 0;
 
-	for (i = 0; i < xn->nodes.size() - 1; i += 2) {
+	for (i = 0; i < (int)xn->nodes.size() - 1; i += 2) {
 		nsub = xn->nodes[i];
 		if (kpredelement == NULL)
 			kpredelement = kblocelement;

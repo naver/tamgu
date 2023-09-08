@@ -1443,7 +1443,7 @@ public:
         if (position < 0) {
             if (function != NULL)
                 Callfunction();
-            position = interval.size() - 1;
+            position = (long)interval.size() - 1;
         }
         value = interval[position];
         return this;

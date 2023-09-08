@@ -164,7 +164,7 @@ Exporting Tamgu* Tamgubvector::Pop(Tamgu* idx) {
 
     BLONG v = idx->Integer();
     if (v == -1) {
-        v = values.size() - 1;
+        v = (long)values.size() - 1;
         values.pop_back();
     }
     else {

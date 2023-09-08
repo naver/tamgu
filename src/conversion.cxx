@@ -7197,7 +7197,7 @@ Exporting string s_revert(string& s) {
 
 wstring s_revert(wstring& s) {
     wstring res = L"";
-    for (long i = s.size() - 1; i >= 0; i--)
+    for (long i = (long)s.size() - 1; i >= 0; i--)
         res += s[i];
     return res;
 }
@@ -7763,7 +7763,7 @@ string& Trim(string& chaine) {
             break;
     }
     
-    for (f = chaine.size() - 1; f >= 0; f--) {
+    for (f = (long)chaine.size() - 1; f >= 0; f--) {
         if ((uchar)chaine[f] > 32)
             break;
     }
@@ -7777,7 +7777,7 @@ string& Trim(string& chaine) {
 
 string& Trimleft(string& chaine) {
     long d, f;
-    f = chaine.size() - 1;
+    f = (long)chaine.size() - 1;
     for (d = 0; d<chaine.size(); d++) {
         if ((uchar)chaine[d]>32)
             break;
@@ -7794,7 +7794,7 @@ string& Trimleft(string& chaine) {
 string& Trimright(string& chaine) {
     long d = 0, f;
     
-    for (f = chaine.size() - 1; f >= 0; f--) {
+    for (f = (long)chaine.size() - 1; f >= 0; f--) {
         if ((uchar)chaine[f] > 32)
             break;
     }
@@ -7814,7 +7814,7 @@ wstring& Trim(wstring& chaine) {
             break;
     }
     
-    for (f = chaine.size() - 1; f >= 0; f--) {
+    for (f = (long)chaine.size() - 1; f >= 0; f--) {
         if (chaine[f] > 32)
             break;
     }
@@ -7828,7 +7828,7 @@ wstring& Trim(wstring& chaine) {
 
 wstring& Trimleft(wstring& chaine) {
     long d, f;
-    f = chaine.size() - 1;
+    f = (long)chaine.size() - 1;
     for (d = 0; d<chaine.size(); d++) {
         if (chaine[d]>32)
             break;
@@ -7845,7 +7845,7 @@ wstring& Trimleft(wstring& chaine) {
 wstring& Trimright(wstring& chaine) {
     long d = 0, f;
     
-    for (f = chaine.size() - 1; f >= 0; f--) {
+    for (f = (long)chaine.size() - 1; f >= 0; f--) {
         if (chaine[f] > 32)
             break;
     }

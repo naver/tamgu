@@ -234,6 +234,7 @@ public:
 	Tamgu* C_testswitch(x_node* xn, Tamgu* kf);
 
 	Tamgu* C_trycatch(x_node* xn, Tamgu* kf);
+    Tamgu* C_catchon(x_node* xn, Tamgu* kf);
 
 	Tamgu* C_loop(x_node* xn, Tamgu* kf);
 	Tamgu* C_doloop(x_node* xn, Tamgu* kf);

@@ -465,7 +465,7 @@ class Tamgulisp : public Tamguvector {
 
     Tamgu* Localreverse() {
         vector<Tamgu*> v;
-        for (long i = values.size()-1; i >= 0; i--)
+        for (long i = (long)values.size() - 1; i >= 0; i--)
             v.push_back(values[i]);
         values = v;
         return this;

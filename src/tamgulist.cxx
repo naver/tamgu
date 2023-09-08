@@ -682,7 +682,7 @@ Exporting Tamgu*  Tamgulist::Put(Tamgu* idx, Tamgu* ke, short idthread) {
             ++it;
         }
 
-        for (long i = vit.size() - 1; i >= 0; i--)
+        for (long i = (long)vit.size() - 1; i >= 0; i--)
             values.erase(vit[i]);
 
         listValue(it, lkey);

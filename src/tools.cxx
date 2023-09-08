@@ -3195,13 +3195,13 @@ bool TamguCode::Loadlibrary(string n, string& library_name) {
     if (pt != NULL) {
         if (memcmp(pt + 1, "lib", 3)) {
             if (addso)
-                sprintf(buff, "lib%s.so", pt + 1);
+                sprintf_s(buff, 4095, "lib%s.so", pt + 1);
             else
-                sprintf(buff, "lib%s", pt + 1);
+                sprintf_s(buff, 4095, "lib%s", pt + 1);
         }
         else {
             if (addso)
-                sprintf(buff, "%s.so", pt + 1);
+                sprintf_s(buff, 4095, "%s.so", pt + 1);
             else
                 strcpy(buff, pt + 1);
         }
@@ -3211,13 +3211,13 @@ bool TamguCode::Loadlibrary(string n, string& library_name) {
     else {
         if (memcmp(lname, "lib", 3)) {
             if (addso)
-                sprintf(buff, "lib%s.so", lname);
+                sprintf_s(buff, 4095, "lib%s.so", lname);
             else
-                sprintf(buff, "lib%s", lname);
+                sprintf_s(buff, 4095, "lib%s", lname);
         }
         else {
             if (addso)
-                sprintf(buff, "%s.so", lname);
+                sprintf_s(buff, 4095, "%s.so", lname);
             else
                 strcpy(buff, lname);
         }

@@ -108,6 +108,7 @@ void TamguGlobal::RecordSystemVariables() {
     a = new TamguSystemVariable(this, new Tamguvector, Createid("_internals"), a_vector);
 
 	a = new TamguSystemVariable(this, new TamguConstString(TamguOS), Createid("_OS"), a_string);
+    a = new TamguSystemVariable(this, new TamguConstString(""), a_iferror, a_string);
 
 #ifdef WIN32
 	a = new TamguSystemVariable(this, new TamguConstString("\\"), Createid("_sep"), a_string);
@@ -337,7 +338,7 @@ Tamgu* TamguCode::Execute(long begininstruction, short idthread) {
     global->Cleanerror(idthread);
 
 	size_t sz = mainframe.instructions.size();
-	_setdebugmin(idthread);
+	_setdebugmini(idthread);
 	long i;
 
 	for (i = begininstruction; i < sz; i++) {
@@ -388,7 +389,7 @@ Tamgu* TamguCode::Loading() {
 	global->InitThreadid(idthread);
 
 	global->Pushstack(&mainframe);
-	_setdebugmin(0);
+	_setdebugmini(0);
 
 	Tamgu* a = aNULL;
     size_t sz = mainframe.instructions.size();
@@ -423,7 +424,7 @@ Tamgu* TamguCode::ExecuteExpression(TamguLocalEvaluation& local, short idthread)
     Tamgu* a = aNULL;
 
     size_t sz = local.instructions.size();
-    _setdebugmin(idthread);
+    _setdebugmini(idthread);
     size_t i;
 
     for (i = 0; i < sz; i++) {
@@ -514,7 +515,7 @@ Tamgu* TamguCode::Run(bool glock) {
 	global->InitThreadid(idthread);
 
 	global->Pushstack(&mainframe);
-	_setdebugmin(0);
+	_setdebugmini(0);
 
 	Tamgu* a = aNULL;
 	size_t sz = mainframe.instructions.size();
@@ -1054,7 +1055,7 @@ Tamgu* TamguIndex::Put(Tamgu* recipient, Tamgu* value, short idthread) {
 
 		intermediate->Put(idx, value, idthread);
 
-		for (long i = stack.size() - 1; i >= 0; i -= 3) {
+		for (long i = (long)stack.size() - 1; i >= 0; i -= 3) {
 			intermediate = stack[i];
 			if (!intermediate->isProtected() || intermediate->Reference())
 				break;
@@ -2819,7 +2820,7 @@ Tamgu* TamguInstruction::Eval(Tamgu* context, Tamgu* a, short idthread) {
     if (!instructions.last)
         return aNULL;
     
-    _setdebugmin(idthread);
+    _setdebugmini(idthread);
 
     if (variablesWillBeCreated) {
 		context = globalTamgu->Providedeclaration(idthread);
@@ -2890,7 +2891,7 @@ Tamgu* TamguAlias::Eval(Tamgu* environment, Tamgu* a, short idthread) {
     if (!size)
         return aNULL;
 
-    _setdebugfull(idthread, this);
+    _setdebugfulli(idthread, this);
 
     bool testcond = false;
 
@@ -2928,7 +2929,7 @@ Tamgu* TamguFunction::Run(Tamgu* environment, short idthread) {
     if (!size)
         return aNULL;
 
-    _setdebugfull(idthread, this);
+    _setdebugfulli(idthread, this);
 
     Tamgu* a = aNULL;
     bool continue_on_tail = true;
@@ -3157,7 +3158,7 @@ Tamgu* TamguThread::Eval(Tamgu* environment, Tamgu* a, short idthread) {
 	if (_locker != NULL)
 		_lock = new Locking(*_locker);
 
-	_setdebugfull(idthread, this);
+	_setdebugfulli(idthread, this);
 	long size = instructions.size();
     a = aNULL;
     bool testcond = false;
@@ -3854,7 +3855,7 @@ Tamgu* TamguInstructionWHILE::Eval(Tamgu* context, Tamgu* result, short idthread
     result = aNULL;
     negation = ktest->isNegation();
 
-	_setdebugfull(idthread, this);
+	_setdebugfulli(idthread, this);
 
     bool testcond = false;
 	while (!testcond && ktest->Eval(aTRUE, aNULL, idthread)->Boolean() != negation) {
@@ -3893,7 +3894,7 @@ Tamgu* TamguInstructionUNTIL::Eval(Tamgu* context, Tamgu* result, short idthread
     result = aNULL;
     bool testcond = false;
     
-	_setdebugmin(idthread);
+	_setdebugmini(idthread);
 
 	do {
 		result->Releasenonconst();
@@ -5058,7 +5059,7 @@ Tamgu* TamguInstructionFORINRANGECONSTSHORT::Eval(Tamgu* context, Tamgu* a, shor
 //------------------------------------------------------------------------------
 Tamgu* TamguInstructionTRY::Eval(Tamgu* res, Tamgu* ins, short idthread) {
 
-	short last = instructions.size() - 1;
+	short last = (short)instructions.size() - 1;
 	bool catchbloc = false;
 	if (instructions.vecteur[last]->Action() == a_catchbloc) {
 		last--;
@@ -5072,7 +5073,7 @@ Tamgu* TamguInstructionTRY::Eval(Tamgu* res, Tamgu* ins, short idthread) {
     globalTamgu->increment_try(idthread);
     res = aNULL;
     bool testcond = false;
-    _setdebugmin(idthread);
+    _setdebugmini(idthread);
 	for (short i = 0; i < last && !testcond; i++) {
         res->Releasenonconst();
         res = instructions.vecteur[i];
@@ -5134,13 +5135,13 @@ Tamgu* TamguInstructionCATCH::Eval(Tamgu* context, Tamgu* a, short idthread) {
 
 	if (size == 1) {
         a = instructions.vecteur[0];
-        _setdebugfull(idthread, a);
+        _setdebugfulli(idthread, a);
 		a = a->Eval(context, aNULL, idthread);
 		_cleandebugfull;
 		return a;
 	}
 
-    _setdebugmin(idthread);
+    _setdebugmini(idthread);
 
     a = aNULL;
     bool testcond = false;
@@ -5169,19 +5170,42 @@ Tamgu* TamguInstructionCATCH::Eval(Tamgu* context, Tamgu* a, short idthread) {
 	return aNULL;
 }
     
-    wstring TamguSQUARE::UString() {
-        return L"²";
-    }
+Tamgu* TamguInstructionCatchON::Eval(Tamgu* context, Tamgu* ins, short idthread) {
     
-    wstring TamguCallSQUARE::UString() {
-        return L"²";
-    }
+
+    globalTamgu->increment_try(idthread);
+    _setdebugmini(idthread);
+    Tamgu* check_error = instructions.vecteur[0]->Eval(context, aNULL, idthread);
+    globalTamgu->decrement_try(idthread);
     
-    wstring TamguCUBE::UString() {
-        return L"³";
+    if (globalTamgu->Error(idthread)) {
+        
+        ((TamguConstString*)globalTamgu->systems[a_iferror]->value)->value = globalTamgu->Errorobject(idthread)->String();
+        globalTamgu->Cleanerror(idthread);
+        short last = instructions.size();
+        check_error = aNULL;
+        for (long i = 1; i < last; i++) {
+            check_error->Releasenonconst();
+            check_error = instructions.vecteur[i]->Eval(aNULL, aNULL, idthread);
+        }
     }
+    _cleandebugmin;
+    return check_error;
+}
+
+wstring TamguSQUARE::UString() {
+    return L"²";
+}
     
-    wstring TamguCallCUBE::UString() {
-        return L"³";
-    }
+wstring TamguCallSQUARE::UString() {
+    return L"²";
+}
+    
+wstring TamguCUBE::UString() {
+    return L"³";
+}
+    
+wstring TamguCallCUBE::UString() {
+    return L"³";
+}
 

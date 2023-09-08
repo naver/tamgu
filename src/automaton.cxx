@@ -1501,7 +1501,7 @@ bool TamguDoubleSideAutomaton::process(charRead& w, vector<string>& readings, bo
             
             if (readings.size() > 1) {
                 //we only keep the longest match
-                for (i = readings.size() - 1; i >= 0; i--) {
+                for (i = (long)readings.size() - 1; i >= 0; i--) {
                     if (w.bends[i] < w.bend)
                         readings.erase(readings.begin() + i);
                 }
