@@ -1,0 +1,5 @@
+# Tamgu: A Functional Language inspired by Haskell
+
+Tamgu is a programming language that shares some similarities with Haskell, a well-known functional programming language. While Haskell is primarily used for expressing mathematical problems in a concise and powerful manner, it is also considered a general-purpose language. In Tamgu, we have incorporated some of the expressive features of Haskell, focusing on a selected range of functions. It is important to note that Tamgu is not a full Haskell compiler, but it does provide some interesting aspects of the language.
+
+Throughout this chapter, we will refer to this subset of the language integrated into Tamgu as "Tamgu Haskell" or "TASKELL". However, we acknowledge that our implementation does not fully encompass the intricacies of the Haskell language.
