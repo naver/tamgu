@@ -1,0 +1,116 @@
+# Library curl
+
+The `curl` library is used to load HTML pages from the internet. It is based on the cURL library (http://curl.haxx.se/) and offers some basic tools to handle HTML pages.
+
+The name of the library is `tamgucurl`. To use it, import it using the following command: `use("tamgucurl")`.
+
+## Methods
+
+1. `execute()`: Executes a curl query. Options should have been provided.
+2. `execute(string filename)`: Executes a curl query. Options should have been provided. When a filename is supplied, the output is stored in a file.
+3. `options(string option, string|int parameter)`: Supplies options to curl before either calling execute or url. See below for a list of all available options.
+4. `password(string user, string psswrd)`: Provides a site with a user and a password.
+5. `proxy(string proxy)`: Sets a proxy connection.
+6. `url(string uri)`: Loads a URL. This command executes an option `s("CURLOPT_URL", uri)` before executing the command itself.
+7. `url(string uri, string filename)`: Loads a URL and stores the result in a file.
+
+## Options
+
+The following is a list of all available options for curl:
+
+CURLOPT_ACCEPTTIMEOUT_MS, CURLOPT_ACCEPT_ENCODING, CURLOPT_ADDRESS_SCOPE, CURLOPT_APPEND, CURLOPT_AUTOREFERER, CURLOPT_BUFFERSIZE, CURLOPT_CAINFO, CURLOPT_CAPATH, CURLOPT_CERTINFO, CURLOPT_CHUNK_BGN_FUNCTION, CURLOPT_CHUNK_DATA, CURLOPT_CHUNK_END_FUNCTION, CURLOPT_CLOSESOCKETDATA, CURLOPT_CLOSESOCKETFUNCTION, CURLOPT_CONNECTTIMEOUT, CURLOPT_CONNECTTIMEOUT_MS, CURLOPT_CONNECT_ONLY, CURLOPT_CONV_FROM_NETWORK_FUNCTION, CURLOPT_CONV_FROM_UTF8_FUNCTION, CURLOPT_CONV_TO_NETWORK_FUNCTION, CURLOPT_COOKIE, CURLOPT_COOKIEFILE, CURLOPT_COOKIEJAR, CURLOPT_COOKIELIST, CURLOPT_COOKIESESSION, CURLOPT_COPYPOSTFIELDS, CURLOPT_CRLF, CURLOPT_CRLFILE, CURLOPT_CUSTOMREQUEST, CURLOPT_DEBUGDATA, CURLOPT_DEBUGFUNCTION, CURLOPT_DIRLISTONLY, CURLOPT_DNS_CACHE_TIMEOUT, CURLOPT_DNS_SERVERS, CURLOPT_DNS_USE_GLOBAL_CACHE, CURLOPT_EGDSOCKET, CURLOPT_ERRORBUFFER, CURLOPT_FAILONERROR, CURLOPT_FILETIME, CURLOPT_FNMATCH_DATA, CURLOPT_FNMATCH_FUNCTION, CURLOPT_FOLLOWLOCATION, CURLOPT_FORBID_REUSE, CURLOPT_FRESH_CONNECT, CURLOPT_FTPPORT, CURLOPT_FTPSSLAUTH, CURLOPT_FTP_ACCOUNT, CURLOPT_FTP_ALTERNATIVE_TO_USER, CURLOPT_FTP_CREATE_MISSING_DIRS, CURLOPT_FTP_FILEMETHOD, CURLOPT_FTP_RESPONSE_TIMEOUT, CURLOPT_FTP_SKIP_PASV_IP, CURLOPT_FTP_SSL_CCC, CURLOPT_FTP_USE_EPRT, CURLOPT_FTP_USE_EPSV, CURLOPT_FTP_USE_PRET, CURLOPT_GSSAPI_DELEGATION, CURLOPT_HEADER, CURLOPT_HEADERDATA, CURLOPT_HEADERFUNCTION, CURLOPT_HTTP200ALIASES, CURLOPT_HTTPAUTH, CURLOPT_HTTPGET, CURLOPT_HTTPHEADER, CURLOPT_HTTPPOST, CURLOPT_HTTPPROXYTUNNEL, CURLOPT_HTTP_CONTENT_DECODING, CURLOPT_HTTP_TRANSFER_DECODING, CURLOPT_HTTP_VERSION, CURLOPT_IGNORE_CONTENT_LENGTH, CURLOPT_INFILESIZE, CURLOPT_INFILESIZE_LARGE, CURLOPT_INTERLEAVEDATA, CURLOPT_INTERLEAVEFUNCTION, CURLOPT_IOCTLDATA, CURLOPT_IOCTLFUNCTION, CURLOPT_IPRESOLVE, CURLOPT_ISSUERCERT, CURLOPT_KEYPASSWD, CURLOPT_KRBLEVEL, CURLOPT_LOCALPORT, CURLOPT_LOCALPORTRANGE, CURLOPT_LOW_SPEED_LIMIT, CURLOPT_LOW_SPEED_TIME, CURLOPT_MAIL_FROM, CURLOPT_MAIL_RCPT, CURLOPT_MAXCONNECTS, CURLOPT_MAXFILESIZE, CURLOPT_MAXFILESIZE_LARGE, CURLOPT_MAXREDIRS, CURLOPT_MAX_RECV_SPEED_LARGE, CURLOPT_MAX_SEND_SPEED_LARGE, CURLOPT_NETRC, CURLOPT_NETRC_FILE, CURLOPT_NEW_DIRECTORY_PERMS, CURLOPT_NEW_FILE_PERMS, CURLOPT_NOBODY, CURLOPT_NOPROGRESS, CURLOPT_NOPROXY, CURLOPT_NOSIGNAL, CURLOPT_OPENSOCKETDATA, CURLOPT_OPENSOCKETFUNCTION, CURLOPT_PASSWORD, CURLOPT_PORT, CURLOPT_POST, CURLOPT_POSTFIELDS, CURLOPT_POSTFIELDSIZE, CURLOPT_POSTFIELDSIZE_LARGE, CURLOPT_POSTQUOTE, CURLOPT_POSTREDIR, CURLOPT_PREQUOTE, CURLOPT_PRIVATE, CURLOPT_PROGRESSDATA, CURLOPT_PROGRESSFUNCTION, CURLOPT_PROTOCOLS, CURLOPT_PROXY, CURLOPT_PROXYAUTH, CURLOPT_PROXYPASSWORD, CURLOPT_PROXYPORT, CURLOPT_PROXYTYPE, CURLOPT_PROXYUSERNAME, CURLOPT_PROXYUSERPWD, CURLOPT_PROXY_TRANSFER_MODE, CURLOPT_PUT, CURLOPT_QUOTE, CURLOPT_RANDOM_FILE, CURLOPT_RANGE, CURLOPT_READDATA, CURLOPT_READFUNCTION, CURLOPT_REDIR_PROTOCOLS, CURLOPT_REFERER, CURLOPT_RESOLVE, CURLOPT_RESUME_FROM, CURLOPT_RESUME_FROM_LARGE, CURLOPT_RTSP_CLIENT_CSEQ, CURLOPT_RTSP_REQUEST, CURLOPT_RTSP_SERVER_CSEQ, CURLOPT_RTSP_SESSION_ID, CURLOPT_RTSP_STREAM_URI, CURLOPT_RTSP_TRANSPORT, CURLOPT_SEEKDATA, CURLOPT_SEEKFUNCTION, CURLOPT_SHARE, CURLOPT_SOCKOPTDATA, CURLOPT_SOCKOPTFUNCTION, CURLOPT_SOCKS5_GSSAPI_NEC, CURLOPT_SOCKS5_GSSAPI_SERVICE, CURLOPT_SSH_AUTH_TYPES, CURLOPT_SSH_HOST_PUBLIC_KEY_MD5, CURLOPT_SSH_KEYDATA, CURLOPT_SSH_KEYFUNCTION, CURLOPT_SSH_KNOWNHOSTS, CURLOPT_SSH_PRIVATE_KEYFILE, CURLOPT_SSH_PUBLIC_KEYFILE, CURLOPT_SSLCERT, CURLOPT_SSLCERTTYPE, CURLOPT_SSLENGINE, CURLOPT_SSLENGINE_DEFAULT, CURLOPT_SSLKEY, CURLOPT_SSLKEYTYPE, CURLOPT_SSLVERSION, CURLOPT_SSL_CIPHER_LIST, CURLOPT_SSL_CTX_DATA, CURLOPT_SSL_CTX_FUNCTION, CURLOPT_SSL_SESSIONID_CACHE, CURLOPT_SSL_VERIFYHOST, CURLOPT_SSL_VERIFYPEER, CURLOPT_STDERR, CURLOPT_TELNETOPTIONS, CURLOPT_TFTP_BLKSIZE, CURLOPT_TIMECONDITION, CURLOPT_TIMEOUT, CURLOPT_TIMEOUT_MS, CURLOPT_TIMEVALUE, CURLOPT_TLSAUTH_PASSWORD, CURLOPT_TLSAUTH_TYPE, CURLOPT_TLSAUTH_USERNAME, CURLOPT_TRANSFERTEXT, CURLOPT_TRANSFER_ENCODING, CURLOPT_UNRESTRICTED_AUTH, CURLOPT_UPLOAD, CURLOPT_URL, CURLOPT_USERAGENT, CURLOPT_USERNAME, CURLOPT_USERPWD, CURLOPT_USE_SSL, CURLOPT_VERBOSE, CURLOPT_WILDCARDMATCH, CURLOPT_WRITEDATA, CURLOPT_WRITEFUNCTION, CURLOPT_UNIX_SOCKET_PATH, CURLOPT_XFERINFODATA, CURLOPT_XFERINFOFUNCTION, CURLOPT_XOAUTH2_BEARER, CURLOPT_SSL_ENABLE_ALPN, CURLOPT_SSL_ENABLE_NPN, CURLOPT_SSL_FALSESTART, CURLOPT_SSL_OPTIONS, CURLOPT_SASL_IR, CURLOPT_SERVICE_NAME, CURLOPT_PROXYHEADER, CURLOPT_PATH_AS_IS, CURLOPT_PINNEDPUBLICKEY, CURLOPT_PIPEWAIT, CURLOPT_LOGIN_OPTIONS, CURLOPT_INTERFACE, CURLOPT_HEADEROPT, CURLOPT_DNS_INTERFACE, CURLOPT_DNS_LOCAL_IP4, CURLOPT_DNS_LOCAL_IP6, CURLOPT_EXPECT_100_TIMEOUT_MS, CURLOPT_MAIL_AUTH, CURLOPT_PROXY_SERVICE_NAME, CURLOPT_TCP_KEEPALIVE, CURLOPT_TCP_KEEPIDLE, CURLOPT_TCP_KEEPINTVL, CURLOPT_TCP_NODELAY, CURLOPT_SSL_VERIFYSTATUS
+
+For more information about these options, please visit: http://curl.haxx.se/
+
+## Handling Web pages
+
+There are two different ways to load an HTML page: either through a callback function or with a filename.
+
+### Callback
+
+The first possibility is to associate your `url` object with a callback function, whose signature should be the following:
+
+```
+function url_callback(string content, myobject o);
+```
+
+The function will be associated with the following declaration:
+
+```
+url u(o) with url_callback.
+```
+
+In that case, you should use the `url(string html)` method in order to have each block of text loaded from your web page. For each block, your `url_callback` will be called with the block content as the value.
+
+Example:
+
+```python
+use("tamgucurl");
+
+function fonc(string content, self o) {
+    println(content);
+}
+
+curl c with fonc;
+
+// Set a proxy, which will be used as a way to load your web pages through
+c.proxy("http://myproxy.mycompany:5050");
+
+// Load our web page. For each block, func will be called...
+c.url("http://www.liberation.fr/");
+```
+
+### File
+
+The other possibility is to provide the `url` method with a filename, which will be used to store the content of your web page. In that case, do not declare your variable with a callback function.
+
+Example:
+
+```python
+use("tamgucurl");
+
+curl c;
+
+// Set a proxy, which will be used as a way to load your web pages through
+c.proxy("http://myproxy.mycompany:5050");
+
+// Load our web page and store the result in a file
+c.url("http://www.liberation.fr/", "c:\temp\myfile.html");
+```
+
+### Example
+
+This example shows how to query a search site (the URL provided here does not exist at the time when this manual was written):
+
+```python
+string mytxt;
+
+function requester(string s, self e) {
+    mytxt += s;
+}
+
+curl querying with requester;
+
+// Set a proxy
+querying.proxy("my.proxy.com:8080");
+
+// Set some options, which are necessary to proceed with our command
+querying.options("CURLOPT_HEADER", 0);
+querying.options("CURLOPT_VERBOSE", 0);
+querying.options("CURLOPT_AUTOREFERER", 1);
+querying.options("CURLOPT_FOLLOWLOCATION", 1);
+querying.options("CURLOPT_COOKIEFILE", "");
+querying.options("CURLOPT_COOKIEJAR", "");
+querying.options("CURLOPT_USERAGENT", "Mozilla/4.0 (compatible;)");
+
+function request(svector words) {
+    // Build our query
+    string query = "http://my.any.search.engine.com/html/?q=";
+    mytxt = "";
+    string thequery = query + words.join("+");
+    querying.url(thequery);
+    println(mytxt);
+}
+
+request(["test", "word"]);
+```
