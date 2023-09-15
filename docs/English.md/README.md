@@ -4,7 +4,7 @@
 2. [Summary](https://github.com/naver/tamgu/blob/master/docs/English.md/2_Summary.md)
 3. [Tamgu: An Introduction](https://github.com/naver/tamgu/blob/master/docs/English.md/3_Tamgu_an_introduction.md)
 4. [Command Line (Unix Platforms)](https://github.com/naver/tamgu/blob/master/docs/English.md/4_Command_line_Unix_platforms.md)
-5. [5 Basic Types](https://github.com/naver/tamgu/blob/master/docs/English.md/5_Basic_Types.md)
+5. [Basic Types](https://github.com/naver/tamgu/blob/master/docs/English.md/5_Basic_Types.md)
 6. [First Program](https://github.com/naver/tamgu/blob/master/docs/English.md/6_First_Program.md)
 7. [Function, Autorun, Thread](https://github.com/naver/tamgu/blob/master/docs/English.md/7_Function_autorun_thread.md)
 8. [Alias](https://github.com/naver/tamgu/blob/master/docs/English.md/8_Alias.md)
