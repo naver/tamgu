@@ -35,7 +35,7 @@
 33. [Type Time](https://github.com/naver/tamgu/blob/master/docs/English.md/33_Type_time.md)
 34. [Type Chrono](https://github.com/naver/tamgu/blob/master/docs/English.md/34_Type_chrono.md)
 35. [File Management](https://github.com/naver/tamgu/blob/master/docs/English.md/35_Type_file_wfile.md)
-36. [36 Type Call](https://github.com/naver/tamgu/blob/master/docs/English.md/36_Type_call.md)
+36. [Type Call](https://github.com/naver/tamgu/blob/master/docs/English.md/36_Type_call.md)
 37. [Tamgu Specific Instructions](https://github.com/naver/tamgu/blob/master/docs/English.md/37_Specific_instructions.md)
 38. [Random](https://github.com/naver/tamgu/blob/master/docs/English.md/38_Random.md)
 39. [Error Handling in Python](https://github.com/naver/tamgu/blob/master/docs/English.md/39_try_catch_raise_iferror.md)
