@@ -104,8 +104,10 @@ __Note__: _Releases_ for Windows, Mac OS and Linux are available at: https://git
 
 ## Documentation
 The documentation is in : 
-**[English](https://github.com/naver/tamgu/blob/master/documentations/English/README.md)**
-**[Korean](https://github.com/naver/tamgu/blob/master/documentations/Korean/README.md)**
+
+**[English Documentation](https://github.com/naver/tamgu/blob/master/documentations/English/README.md)**
+
+**[한국어 문서](https://github.com/naver/tamgu/blob/master/documentations/Korean/README.md)**
 
 ## Examples
 
