@@ -42,7 +42,7 @@
 40. [Operator in](https://github.com/naver/tamgu/blob/master/docs/English.md/40_Operator_in.md)
 41. [Functional Language: à la Lisp](https://github.com/naver/tamgu/blob/master/docs/English.md/41_Functional_Language_à_la_Lisp.md)
 42. [Taskell](https://github.com/naver/tamgu/blob/master/docs/English.md/42_Functional_Language_à_la_Haskell.md)
-43. [43 Type Fibre](https://github.com/naver/tamgu/blob/master/docs/English.md/43_Type_fibre.md)
+43. [Type Fibre](https://github.com/naver/tamgu/blob/master/docs/English.md/43_Type_fibre.md)
 44. [Synchronization](https://github.com/naver/tamgu/blob/master/docs/English.md/44_Synchronization.md)
 45. [Inference Engine](https://github.com/naver/tamgu/blob/master/docs/English.md/45_Inference_engine.md)
 46. [Dependency and Synode](https://github.com/naver/tamgu/blob/master/docs/English.md/46_dependency_and_synode.md)
