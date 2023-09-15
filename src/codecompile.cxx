@@ -1718,7 +1718,7 @@ long TamguCode::Computecurrentline(int i, x_node* xn) {
 //This method is used to retrieve lines from stack_error
 void TamguGlobal::Getstack(vector<string>& stacklines, vector<string>& files, vector<long>& linenumbers) {
     long file_id = -1, ln, current_file = -1;
-    long nb = 0;
+
     string name = "string";
     string line;
     Tamgu* a;
@@ -1823,7 +1823,6 @@ void TamguGlobal::RecordCompileFunctions() {
 	parseFunctions["negcall"] = &TamguCode::C_regularcall;
 	parseFunctions["purecall"] = &TamguCode::C_regularcall;
 
-    parseFunctions["subvar"] = &TamguCode::C_framevariable;
     parseFunctions["framevariable"] = &TamguCode::C_framevariable;
     parseFunctions["variable"] = &TamguCode::C_variable;
 	parseFunctions["purevariable"] = &TamguCode::C_variable;
@@ -4080,40 +4079,46 @@ Tamgu* TamguCode::C_framevariable(x_node* xn, Tamgu* parent) {
     x_node* subxn = xn->nodes[0];
     Tamgu* av = NULL;
 
-    short idname;
+    short idname = parent->Typevariable();
+    //We check if idtype is a frame
+    if (!global->frames.check(idname) && idname != a_self && idname != a_let && !parent->isIndex()) {
+        stringstream message;
+        message << "This variable is not a frame type: '" << global->Getsymbol(idname) << " ";
+        idname = parent->Name();
+        message <<  global->Getsymbol(idname) << "'";
+        throw new TamguRaiseError(message, filename, current_start, current_end);
+    }
+    
     if (subxn->token == "variable")
         idname = global->Getid(subxn->nodes[0]->value);
     else
         idname = global->Getid(xn->nodes[0]->value);
     
-    if (xn->token == "subvar") {
-        Tamgu* dom = Declaror(idname);
-        if (dom == NULL) {
-            dom = parent->Frame();
-            if (dom != NULL && !dom->isDeclared(idname)) {
-                return C_variable(subxn, parent);
-            }
-        }
+    Tamgu* dom = Declaror(idname);
+    if (dom == NULL) {
+        stringstream message;
+        message << "Unknown frame variable: '" << global->Getsymbol(idname) << "'";
+        throw new TamguRaiseError(message, filename, current_start, current_end);
+    }
+    
+    if (dom->isFrame()) {
+        Tamgu* a = dom->Declaration(idname);
+        short tyvar = a->Typevariable();
+        if (parent->isCallVariable())
+            av = new TamguCallFromFrameVariable(a->Name(), tyvar, global, parent);
+        else
+            av = new TamguCallFrameVariable(a->Name(), (TamguFrame*)dom, tyvar, global, parent);
         
-        if (dom != NULL && dom->isFrame()) {
-            Tamgu* a = dom->Declaration(idname);
-            short tyvar = a->Typevariable();
-            if (parent->isCallVariable())
-                av = new TamguCallFromFrameVariable(a->Name(), tyvar, global, parent);
-            else
-                av = new TamguCallFrameVariable(a->Name(), (TamguFrame*)dom, tyvar, global, parent);
+        if (subxn->nodes.size() != 1) {
+            if (global->frames.check(tyvar))
+                global->Pushstack(global->frames[tyvar]);
             
-            if (subxn->nodes.size() != 1) {
-                if (global->frames.check(tyvar))
-                    global->Pushstack(global->frames[tyvar]);
-
-                Traverse(subxn->nodes[1], av);
-
-                if (global->frames.check(tyvar))
-                    global->Popstack();
-            }
-            return av;
+            Traverse(subxn->nodes[1], av);
+            
+            if (global->frames.check(tyvar))
+                global->Popstack();
         }
+        return av;
     }
 
     if (!global->framevariables.check(idname)) {
@@ -11108,7 +11113,8 @@ bool TamguCode::CompileFull(string& body, vector<TamguFullError*>& errors) {
     //we store our TamguCode also as an Tamgutamgu...
     filename = NormalizeFileName(filename);
     Tamgu* main = TamguRecordFile(filename, this, global);
-    TamguSystemVariable* vs = new TamguSystemVariable(global, main, a_mainframe, a_tamgu);
+    
+    global->CreateSystemVariable(main, a_mainframe, a_tamgu);
 
     global->spaceid = idcode;
 
@@ -11187,6 +11193,8 @@ bool TamguCode::CompileFull(string& body, vector<TamguFullError*>& errors) {
     firstinstruction = mainframe.instructions.size();
     global->currentbnf = &bnf;
 
+    fullcompilemode = true;
+    
     global->Pushstack(&mainframe);
     char loop_on_error = 1;
     while (loop_on_error) {
@@ -11221,7 +11229,8 @@ bool TamguCode::CompileFull(string& body, vector<TamguFullError*>& errors) {
     }
 
     global->Popstack();
-
+    fullcompilemode = false;
+    
     delete xn;
     return true;
 }
@@ -11239,7 +11248,8 @@ bool TamguCode::Compile(string& body) {
 	//we store our TamguCode also as an Tamgutamgu...
 	filename = NormalizeFileName(filename);
     Tamgu* main = TamguRecordFile(filename, this, global);
-    TamguSystemVariable* vs = new TamguSystemVariable(global, main, a_mainframe, a_tamgu);
+    
+    global->CreateSystemVariable(main, a_mainframe, a_tamgu);
 
 	global->spaceid = idcode;
 
@@ -11346,7 +11356,7 @@ bool TamguCode::Compile(string& body) {
     after = std::chrono::high_resolution_clock::now();
     double dparse = std::chrono::duration_cast<std::chrono::milliseconds>( after - before ).count();
 
-    vs = globalTamgu->systems[globalTamgu->Getid("_internals")];
+    TamguSystemVariable* vs = globalTamgu->systems[globalTamgu->Getid("_internals")];
     vs->value->storevalue((long)xr.stack.size());
     vs->value->storevalue(dtok);
     vs->value->storevalue(dparse);

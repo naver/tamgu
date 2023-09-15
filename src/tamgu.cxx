@@ -42,7 +42,7 @@
 #include "tamgulisp.h"
 #include "tamgucomplex.h"
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2023.09.08.14";
+const char* tamgu_version = "Tamgu 1.2023.09.15.11";
 
 extern "C" {
 Exporting const char* TamguVersion(void) {
@@ -2112,6 +2112,23 @@ Exporting void TamguGlobal::ResetWithTracker(Tamgu* a, long idx, long inc) {
     if (!tracked.check(idx, a))
         return;
     a->Resetreference(inc);
+}
+
+
+Exporting TamguSystemVariable* TamguGlobal::CreateSystemVariable(Tamgu* v, short n, short t) {
+    if (systems.check(n))
+        return systems[n];
+    
+    return new TamguSystemVariable(this, v, n, t);
+}
+
+Exporting TamguSystemVariable* TamguGlobal::CreateSystemVariable(Tamgu* v, string nm, short t) {
+    short n = Getid(nm);
+    
+    if (systems.check(n))
+        return systems[n];
+    
+    return new TamguSystemVariable(this, v, n, t);
 }
 
 //----------------------------------------------------------------------------------

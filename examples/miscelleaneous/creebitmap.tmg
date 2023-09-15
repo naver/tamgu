@@ -16,7 +16,8 @@ int positionx=120;
 int positiony=120;
 
 bool effacer=false;
-bool switch=false;
+bool switched=false;
+
 map pixels;
 ivector lesbits;
 
@@ -155,7 +156,7 @@ function calcul(button b,window f) {
 
 function efface(button b,self e)  {
     effacer=1-effacer;
-    switch=true;
+    switched=true;
     if (effacer)
         b.bitmap(bgomme,FL_RED);
     else
@@ -303,7 +304,7 @@ function dessin(window f,coords o) {
 
 
     string k;
-    if (switch==false) {
+    if (switched==false) {
         if (originefixée==false) {
             //Nous avons la position de la souris
             //elle doit etre comprise entre px and px+pw
@@ -327,7 +328,7 @@ function dessin(window f,coords o) {
             }
         }
     }
-    switch=false;
+    switched=false;
     for (self oo in pixels.values())
         f.rectanglefill(oo[0],oo[1],10,10,FL_DARK_BLUE);
 
@@ -463,6 +464,7 @@ bcercle.bitmap(btcercle,FL_RED);
 
 f.end();
 f.run();
+
 
 
 

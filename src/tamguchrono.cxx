@@ -62,10 +62,10 @@ bool Tamguchrono::InitialisationModule(TamguGlobal* global, string version) {
         global->newInstance[Tamguchrono::idtype] = new Tamguchrono(global);
         global->RecordCompatibilities(Tamguchrono::idtype);
         
-        Tamgu* a = new TamguSystemVariable(global, new TamguConstInt(1), global->Createid("c_second"), a_float);
-        a = new TamguSystemVariable(global, new TamguConstInt(2), global->Createid("c_millisecond"), a_float);
-        a = new TamguSystemVariable(global, new TamguConstInt(3), global->Createid("c_microsecond"), a_float);
-        a = new TamguSystemVariable(global, new TamguConstInt(4), global->Createid("c_nanosecond"), a_float);
+        global->CreateSystemVariable(new TamguConstInt(1), "c_second", a_float);
+        global->CreateSystemVariable(new TamguConstInt(2), "c_millisecond", a_float);
+        global->CreateSystemVariable(new TamguConstInt(3), "c_microsecond", a_float);
+        global->CreateSystemVariable(new TamguConstInt(4), "c_nanosecond", a_float);
     }
     
     return true;

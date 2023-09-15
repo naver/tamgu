@@ -118,18 +118,18 @@ bool Tamgufloat::InitialisationModule(TamguGlobal* global, string version) {
 
 		global->RecordCompatibilities(a_floop);
 
-		Tamgu* a = new TamguSystemVariable(global, new TamguConstFloat(M_PI), global->Createid("_pi"), a_float);
+		global->CreateSystemVariable(new TamguConstFloat(M_PI), "_pi", a_float);
 
-		a = new TamguSystemVariable(global, new TamguConstFloat(M_PI), global->Createid("π"), a_float);
+		global->CreateSystemVariable(new TamguConstFloat(M_PI), "π", a_float);
 
-		a = new TamguSystemVariable(global, new TamguConstFloat(2 * M_PI), global->Createid("_tau"), a_float);
-		a = new TamguSystemVariable(global, new TamguConstFloat(2 * M_PI), global->Createid("τ"), a_float);
+		global->CreateSystemVariable(new TamguConstFloat(2 * M_PI), "_tau", a_float);
+		global->CreateSystemVariable(new TamguConstFloat(2 * M_PI), "τ", a_float);
 
-		a = new TamguSystemVariable(global, new TamguConstFloat(M_E), global->Createid("_e"), a_float);
-		a = new TamguSystemVariable(global, new TamguConstFloat(M_E), global->Createid("ℯ"), a_float);
+		global->CreateSystemVariable(new TamguConstFloat(M_E), "_e", a_float);
+		global->CreateSystemVariable(new TamguConstFloat(M_E), "ℯ", a_float);
 
-		a = new TamguSystemVariable(global, new TamguConstFloat(M_GOLDEN), global->Createid("_phi"), a_float);
-		a = new TamguSystemVariable(global, new TamguConstFloat(M_GOLDEN), global->Createid("φ"), a_float);
+		global->CreateSystemVariable(new TamguConstFloat(M_GOLDEN), "_phi", a_float);
+		global->CreateSystemVariable(new TamguConstFloat(M_GOLDEN), "φ", a_float);
 	}
 
     Tamguatomicfloat::InitialisationModule(global, version);

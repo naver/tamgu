@@ -208,6 +208,7 @@ class bnf_tamgu {
     char m_shell(string& lreturn,x_node** tree);
     char m_shell_0_1(string& lreturn,x_node** tree);
     char m_signature(string& lreturn,x_node** tree);
+    char m_notreserved(string& lreturn,x_node** tree);
     char m_operator(string& lreturn,x_node** tree);
     char m_operator_0_1(string& lreturn,x_node** tree);
     char m_operator_0_2(string& lreturn,x_node** tree);
@@ -262,7 +263,6 @@ class bnf_tamgu {
     char m_feature_0_1(string& lreturn,x_node** tree);
     char m_feature_0_1_2(string& lreturn,x_node** tree);
     char m_feature_0_3(string& lreturn,x_node** tree);
-    char m_notatype(string& lreturn,x_node** tree);
     char m_type(string& lreturn,x_node** tree);
     char m_type_0_1(string& lreturn,x_node** tree);
     char m_depend(string& lreturn,x_node** tree);
@@ -312,9 +312,7 @@ class bnf_tamgu {
     char m_function_0_3(string& lreturn,x_node** tree);
     char m_subfunc(string& lreturn,x_node** tree);
     char m_subfuncbis(string& lreturn,x_node** tree);
-    char m_subvar(string& lreturn,x_node** tree);
     char m_framevariable(string& lreturn,x_node** tree);
-    char m_notafunction(string& lreturn,x_node** tree);
     char m_framesep(string& lreturn,x_node** tree);
     char m_frameup(string& lreturn,x_node** tree);
     char m_functioncall(string& lreturn,x_node** tree);
@@ -359,7 +357,6 @@ class bnf_tamgu {
     char m_analyse(string& lreturn,x_node** tree);
     char m_analyse_0_1(string& lreturn,x_node** tree);
     char m_analyse_0_2(string& lreturn,x_node** tree);
-    char m_wrong(string& lreturn,x_node** tree);
     char m_variable(string& lreturn,x_node** tree);
     char m_variable_0_1(string& lreturn,x_node** tree);
     char m_variable_0_1_2(string& lreturn,x_node** tree);
@@ -380,7 +377,6 @@ class bnf_tamgu {
     char m_increment_0_1(string& lreturn,x_node** tree);
     char m_notin(string& lreturn,x_node** tree);
     char m_notin_0_1(string& lreturn,x_node** tree);
-    char m_notin_0_2(string& lreturn,x_node** tree);
     char m_in(string& lreturn,x_node** tree);
     char m_operatorin(string& lreturn,x_node** tree);
     char m_operationin(string& lreturn,x_node** tree);
@@ -394,8 +390,6 @@ class bnf_tamgu {
     char m_shapeindexes_0_3_4(string& lreturn,x_node** tree);
     char m_indexes(string& lreturn,x_node** tree);
     char m_indexes_0_1(string& lreturn,x_node** tree);
-    char m_indexes_0_2(string& lreturn,x_node** tree);
-    char m_indexes_0_2_3(string& lreturn,x_node** tree);
     char m_interval(string& lreturn,x_node** tree);
     char m_interval_0_1(string& lreturn,x_node** tree);
     char m_valtuple(string& lreturn,x_node** tree);
@@ -456,7 +450,6 @@ class bnf_tamgu {
     char m_fail(string& lreturn,x_node** tree);
     char m_stop(string& lreturn,x_node** tree);
     char m_not(string& lreturn,x_node** tree);
-    char m_notapredicate(string& lreturn,x_node** tree);
     char m_predicate(string& lreturn,x_node** tree);
     char m_predicate_0_1(string& lreturn,x_node** tree);
     char m_predicatecall(string& lreturn,x_node** tree);

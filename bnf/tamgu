@@ -218,6 +218,9 @@ path := %/ word (path)
 ^c aspreg := .
 ^d fstring := .
 ^e festring := .
+
+########### Reserved keywords ##############################################
+~notreserved := $IF^$If^$alias^$and^$autorun^$break^$continue^$deriving^$do^$elif^$else^$for^$frame^$function^$if^$in^$not^$or^$otherwise^$polynomial^$return^$switch^$thread^$where^$while^$xor^$iferror^$ifnot
 ########### OPERATORS ##############################################
 
 operator := $ifnot^$∧^$∨^$×^$÷^[%& %& %&]^[%| %| %|]^[%: %:]^[%< %<]^[%> %>]^[%^ %^]^[%* %*]^%&^%|^%+^%-^%*^%/^%%^%^
@@ -243,8 +246,7 @@ const := $const
 
 feature := [private (common)]^[common^const]
 
-~notatype := $absent^$alias^$all^$and^$any^$assert^$asserta^$assertz^$autorun^$break^$case^$catch^$common^$concept^$const^$continue^$cycle^$data^$default^$deriving^$do^$drop^$elif^$else^$exclusive^$extension^$fail^$false^$filter^$flip^$foldl^$foldr^$for^$frame^$from^$function^$if^$ifnot^$in^$is^$joined^$let^$namespace^$not^$notin^$null^$of^$iferror^$ontology^$or^$otherwise^$polynomial^$private^$property^$protected^$repeat^$replicate^$retract^$return^$role^$scanl^$scanr^$static^$stop^$strict^$switch^$take^$thread^$true^$try^$where^$while^$with^$xor^$zip
-type := (feature) notatype typename
+type := (feature) notreserved typename
 
 depend := $with ;19 word
 
@@ -283,13 +285,11 @@ space := word %@
 
 %subfunc := %. ;27 regularcall
 %subfuncbis := %. regularcall
-%subvar := %. ;29 variable
 %framevariable := %. ;29 variable
 
-~notafunction := $absent^$alias^$all^$and^$any^$assert^$asserta^$assertz^$autorun^$break^$case^$catch^$common^$concept^$const^$continue^$cycle^$data^$default^$deriving^$do^$drop^$elif^$else^$exclusive^$extension^$fail^$false^$filter^$flip^$foldl^$foldr^$for^$frame^$from^$function^$if^$ifnot^$in^$is^$joined^$let^$namespace^$not^$notin^$null^$of^$iferror^$ontology^$or^$otherwise^$polynomial^$private^$property^$protected^$repeat^$replicate^$retract^$return^$role^$scanl^$scanr^$static^$stop^$strict^$switch^$take^$thread^$true^$try^$where^$while^$with^$xor^$zip
 framesep := %: %:
 frameup := word framesep
-functioncall := (frameup) notafunction word
+functioncall := (frameup) notreserved word
 %regularcall := functioncall %(;13 (comparing^parameters) %) (shapeindexes^interval^indexes^subfunc)
 %purecall := functioncall %( (parameters) %) (shapeindexes^interval^indexes)
 
@@ -315,12 +315,11 @@ sep := %:
 %analyse := (signature) (shell) blocs
 
 ########### VARIABLES ##############################################
-~wrong := $or^$and^$xor^$in^$not^$else^$continue^$break^$return^$where^$otherwise^$not
-variable := wrong word (shapeindexes^interval^indexes^subfuncbis^subvar)
+variable := notreserved word (shapeindexes^interval^indexes^subfuncbis^framevariable)
 allvariable := predicatevariable^variable
 
-purevariable := wrong word (shapeindexes^interval^indexes)
-predvariable := wrong predicatevariable^purevariable
+purevariable := notreserved word (shapeindexes^interval^indexes)
+predvariable := notreserved predicatevariable^purevariable
 
 plusplus := [%+ %+]^[%- %-]
 power := $²^$³
@@ -329,7 +328,7 @@ power := $²^$³
 %increment := variable [plusplus^power]
 
 ########### IN & ON ##############################################
-%notin := $notin^[$not $in]^[$absent $from]
+%notin := $notin^[$not $in]
 %in := $in
 operatorin := notin^in
 %operationin := operatorin ;18 expression
@@ -377,8 +376,7 @@ aconstant := $null
 %stop := $stop
 not := %~^$not
 
-~notapredicate := $absent^$alias^$all^$and^$any^$assert^$asserta^$assertz^$autorun^$break^$case^$catch^$common^$concept^$const^$continue^$cycle^$data^$default^$deriving^$do^$drop^$elif^$else^$exclusive^$extension^$fail^$false^$filter^$flip^$foldl^$foldr^$for^$frame^$from^$function^$if^$ifnot^$in^$is^$joined^$let^$namespace^$not^$notin^$null^$of^$iferror^$ontology^$or^$otherwise^$polynomial^$private^$property^$protected^$repeat^$replicate^$retract^$return^$role^$scanl^$scanr^$static^$stop^$strict^$switch^$take^$thread^$true^$try^$where^$while^$with^$xor^$zip
-%predicate := notapredicate word %( (predicateparameters) %)
+%predicate := notreserved word %( (predicateparameters) %)
 %predicatecall := functioncall %( (predicateparameters) %)
 
 retractcommand := $retract
@@ -445,7 +443,7 @@ finaldcg := %{ predicateexpression %}
 achar := word
 %factvalue := abool^astringdouble^afullstring^astringsimple^anumber^achar
 %factparameters := factvalue [%, factvalue]*
-%rawfact := notapredicate asimple %( factparameters %) %.
+%rawfact := notreserved asimple %( factparameters %) %.
 %facts := rawfact+
 ########### T(H)ASKELL ##############################################
 
@@ -459,7 +457,7 @@ achar := word
 %taskellmap := %{ (taskelldico [%, taskelldico]* (taskellmaptail)) %}
 
 %static := $static
-letkeyword := (static) wrong word
+letkeyword := (static) notreserved word
 %let := letkeyword [valmaptail^valvectortail^purevariable] %= hmetafunctions^hoperations
 %letmin := purevariable %= [hmetafunctions^nocomparisonnorinexpressions]
 
@@ -638,7 +636,7 @@ parentheticexpression := astringdouble^afullstring^astringsimple^anumber^astring
 %tag := onetag+
 
 ########### TAMGULISP (different from above. This is the real stuff) It starts with \(...) #######################################
-tlvariable := wrong word [interval^indexes]
+tlvariable := notreserved word [interval^indexes]
 tlatom := predicatevariable^anumber^astringdouble^apreg^aspreg^atreg^astreg^fstring^festring^tlvariable^word
 %tlquote := %' [tlquote^tlatom^comparator^operator^tlkeys^tlist]
 %tlkey := tlatom %: [tlquote^tlatom^tlkeys^tlist]

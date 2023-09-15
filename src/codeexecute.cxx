@@ -94,28 +94,26 @@ Exporting TamguSystemVariable::TamguSystemVariable(TamguGlobal* g, Tamgu* v, sho
 //--------------------------------------------------------------------
 
 void TamguGlobal::RecordSystemVariables() {
-	Tamgu* a;
+	CreateSystemVariable(aNULL, a_null, a_const);
+	CreateSystemVariable(aNOELEMENT, a_empty, a_const);
+    CreateSystemVariable(aUNIVERSAL, a_universal, a_const);
+    CreateSystemVariable(aNOTHING, a_Nothing, a_const);
 
-	a = new TamguSystemVariable(this, aNULL, a_null, a_const);
-	a = new TamguSystemVariable(this, aNOELEMENT, a_empty, a_const);
-    a = new TamguSystemVariable(this, aUNIVERSAL, a_universal, a_const);
-    a = new TamguSystemVariable(this, aNOTHING, a_Nothing, a_const);
+	CreateSystemVariable(new TamguConstString(""), "_current", a_string);
+	CreateSystemVariable(new TamguConstSVector, "_paths", a_svector);
+	CreateSystemVariable(new TamguConstSVector, "_args", a_svector);
 
-	a = new TamguSystemVariable(this, new TamguConstString(""), Createid("_current"), a_string);
-	a = new TamguSystemVariable(this, new TamguConstSVector, Createid("_paths"), a_svector);
-	a = new TamguSystemVariable(this, new TamguConstSVector, Createid("_args"), a_svector);
+    CreateSystemVariable(new Tamguvector, "_internals", a_vector);
 
-    a = new TamguSystemVariable(this, new Tamguvector, Createid("_internals"), a_vector);
-
-	a = new TamguSystemVariable(this, new TamguConstString(TamguOS), Createid("_OS"), a_string);
-    a = new TamguSystemVariable(this, new TamguConstString(""), a_iferror, a_string);
+	CreateSystemVariable(new TamguConstString(TamguOS), "_OS", a_string);
+    CreateSystemVariable(new TamguConstString(""), a_iferror, a_string);
 
 #ifdef WIN32
-	a = new TamguSystemVariable(this, new TamguConstString("\\"), Createid("_sep"), a_string);
-	a = new TamguSystemVariable(this, new TamguConstString("\r\n"), Createid("_endl"), a_string);
+	CreateSystemVariable(new TamguConstString("\\"), "_sep", a_string);
+	CreateSystemVariable(new TamguConstString("\r\n"), "_endl", a_string);
 #else
-	a = new TamguSystemVariable(this, new TamguConstString("/"), Createid("_sep"), a_string);
-	a = new TamguSystemVariable(this, new TamguConstString("\n"), Createid("_endl"), a_string);
+	CreateSystemVariable(new TamguConstString("/"), "_sep", a_string);
+	CreateSystemVariable(new TamguConstString("\n"), "_endl", a_string);
 #endif
 
 }

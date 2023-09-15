@@ -181,23 +181,23 @@ void Tamgustring::Setidtype(TamguGlobal* global) {
            
            
            //Encoding table name...
-           Tamgu* a = new TamguSystemVariable(global, aONE, global->Createid("e_latin_we"), a_short);
-           a = new TamguSystemVariable(global, global->ProvideConstint(2), global->Createid("e_latin_ce"), a_short);
-           a = new TamguSystemVariable(global, global->ProvideConstint(3), global->Createid("e_latin_se"), a_short);
-           a = new TamguSystemVariable(global, global->ProvideConstint(4), global->Createid("e_latin_ne"), a_short);
-           a = new TamguSystemVariable(global, global->ProvideConstint(5), global->Createid("e_cyrillic"), a_short);
-           a = new TamguSystemVariable(global, global->ProvideConstint(6), global->Createid("e_arabic"), a_short);
-           a = new TamguSystemVariable(global, global->ProvideConstint(7), global->Createid("e_greek"), a_short);
-           a = new TamguSystemVariable(global, global->ProvideConstint(8), global->Createid("e_hebrew"), a_short);
-           a = new TamguSystemVariable(global, global->ProvideConstint(9), global->Createid("e_turkish"), a_short);
-           a = new TamguSystemVariable(global, global->ProvideConstint(10), global->Createid("e_nordic"), a_short);
-           a = new TamguSystemVariable(global, global->ProvideConstint(11), global->Createid("e_thai"), a_short);
-           a = new TamguSystemVariable(global, global->ProvideConstint(13), global->Createid("e_baltic"), a_short);
-           a = new TamguSystemVariable(global, global->ProvideConstint(14), global->Createid("e_celtic"), a_short);
-           a = new TamguSystemVariable(global, global->ProvideConstint(15), global->Createid("e_latin_ffe"), a_short);
-           a = new TamguSystemVariable(global, global->ProvideConstint(16), global->Createid("e_latin_see"), a_short);
-           a = new TamguSystemVariable(global, global->ProvideConstint(17), global->Createid("e_windows"), a_short);
-           a = new TamguSystemVariable(global, global->ProvideConstint(17), global->Createid("e_cp1252"), a_short);
+           global->CreateSystemVariable(aONE, "e_latin_we", a_short);
+           global->CreateSystemVariable(global->ProvideConstint(2), "e_latin_ce", a_short);
+           global->CreateSystemVariable(global->ProvideConstint(3), "e_latin_se", a_short);
+           global->CreateSystemVariable(global->ProvideConstint(4), "e_latin_ne", a_short);
+           global->CreateSystemVariable(global->ProvideConstint(5), "e_cyrillic", a_short);
+           global->CreateSystemVariable(global->ProvideConstint(6), "e_arabic", a_short);
+           global->CreateSystemVariable(global->ProvideConstint(7), "e_greek", a_short);
+           global->CreateSystemVariable(global->ProvideConstint(8), "e_hebrew", a_short);
+           global->CreateSystemVariable(global->ProvideConstint(9), "e_turkish", a_short);
+           global->CreateSystemVariable(global->ProvideConstint(10), "e_nordic", a_short);
+           global->CreateSystemVariable(global->ProvideConstint(11), "e_thai", a_short);
+           global->CreateSystemVariable(global->ProvideConstint(13), "e_baltic", a_short);
+           global->CreateSystemVariable(global->ProvideConstint(14), "e_celtic", a_short);
+           global->CreateSystemVariable(global->ProvideConstint(15), "e_latin_ffe", a_short);
+           global->CreateSystemVariable(global->ProvideConstint(16), "e_latin_see", a_short);
+           global->CreateSystemVariable(global->ProvideConstint(17), "e_windows", a_short);
+           global->CreateSystemVariable(global->ProvideConstint(17), "e_cp1252", a_short);
        }
        
        Tamgua_string::InitialisationModule(global, version);

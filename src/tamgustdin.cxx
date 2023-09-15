@@ -63,7 +63,7 @@ void Tamgustdin::Setidtype(TamguGlobal* global) {
 		global->newInstance[Tamgustdin::idtype] = new Tamgustdin(global);
 		global->RecordCompatibilities(Tamgustdin::idtype);
 
-		Tamgu* a = new TamguSystemVariable(global, new Tamgustdin(global), global->Createid("stdin"), Tamgustdin::idtype);
+        global->CreateSystemVariable(new Tamgustdin(global), "stdin", Tamgustdin::idtype);
 	}
     return true;
 }

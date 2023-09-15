@@ -61,11 +61,13 @@ public:
 	bool isconstant;
 
 	bool compilemode;
+    bool fullcompilemode;
 
 	Tamgu* EvaluateVariable(Tamgu* var);
 
 	TamguCode(short i, string& f, TamguGlobal* g) : idcode(i), filename(f), currentline(0), mainframe(a_mainframe, false, NULL) {
 		compilemode = true;
+        fullcompilemode = false;
         insidecall = 0;
         last_node = NULL;
         currentpredicatename="";

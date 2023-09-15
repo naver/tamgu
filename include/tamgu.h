@@ -3121,18 +3121,18 @@ public:
         k->choosemin = choosemin;
     }
 
-    void Storename(short id, short n) {
-        vnames.push_back(id);
-        names[id] = n;
+    void Storename(short idn, short n) {
+        vnames.push_back(idn);
+        names[idn] = n;
         if (!minvar) {
-            minvar = id;
-            maxvar = id;
+            minvar = idn;
+            maxvar = idn;
         }
         else {
-            if (minvar > id)
-                minvar = id;
-            if (maxvar < id)
-                maxvar = id;
+            if (minvar > idn)
+                minvar = idn;
+            if (maxvar < idn)
+                maxvar = idn;
             //Up to 64, this is still interesting to handle frames as an array of 64 elements
             //In that case, the frame instances will be created with a basemin_hash...
             //see Tamguframeseeder::Newinstance for an explanation...
@@ -3141,8 +3141,8 @@ public:
         }
     }
     
-	void Declare(short id, Tamgu* a) {
-		if (id >= a_short && id <= a_float) {
+	void Declare(short idn, Tamgu* a) {
+		if (idn >= a_short && idn <= a_float) {
 			if (numbers.empty()) {
 				numbers[a_short] = a;
 				numbers[a_int] = a;
@@ -3151,12 +3151,12 @@ public:
 				numbers[a_float] = a;
 			}
 			else
-				numbers[id] = a;
+				numbers[idn] = a;
 		}
 
-		declarations[id] = a;
+		declarations[idn] = a;
 		if (a->isVariable()) {
-            Storename(id, variables.size());
+            Storename(idn, variables.size());
 			variables.push_back(a);
 			if (a->isFrame())
 				post = true;

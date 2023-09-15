@@ -608,25 +608,25 @@ bool Tamgusys::InitialisationModule(TamguGlobal* global, string version) {
         global->RecordCompatibilities(Tamgusys::idtype);
         
         _mysys = new TamguConstsys(global);
-        Tamgu* a = new TamguSystemVariable(global, _mysys, global->Createid("_sys"), Tamgusys::idtype);
-        a = new TamguSystemVariable(global, new TamguConstString((char*)sys_keyright), global->Createid("_sys_keyright"), a_string);
-        a = new TamguSystemVariable(global, new TamguConstString((char*)sys_keyleft), global->Createid("_sys_keyleft"), a_string);
-        a = new TamguSystemVariable(global, new TamguConstString((char*)sys_keydown), global->Createid("_sys_keydown"), a_string);
-        a = new TamguSystemVariable(global, new TamguConstString((char*)sys_keyup), global->Createid("_sys_keyup"), a_string);
-        a = new TamguSystemVariable(global, new TamguConstString((char*)sys_keydel), global->Createid("_sys_keydel"), a_string);
-        a = new TamguSystemVariable(global, new TamguConstString((char*)sys_keyhomekey), global->Createid("_sys_keyhomekey"), a_string);
-        a = new TamguSystemVariable(global, new TamguConstString((char*)sys_keyendkey), global->Createid("_sys_keyendkey"), a_string);
+        global->CreateSystemVariable(_mysys, "_sys", Tamgusys::idtype);
+        global->CreateSystemVariable(new TamguConstString((char*)sys_keyright), "_sys_keyright", a_string);
+        global->CreateSystemVariable(new TamguConstString((char*)sys_keyleft), "_sys_keyleft", a_string);
+        global->CreateSystemVariable(new TamguConstString((char*)sys_keydown), "_sys_keydown", a_string);
+        global->CreateSystemVariable(new TamguConstString((char*)sys_keyup), "_sys_keyup", a_string);
+        global->CreateSystemVariable(new TamguConstString((char*)sys_keydel), "_sys_keydel", a_string);
+        global->CreateSystemVariable(new TamguConstString((char*)sys_keyhomekey), "_sys_keyhomekey", a_string);
+        global->CreateSystemVariable(new TamguConstString((char*)sys_keyendkey), "_sys_keyendkey", a_string);
 #ifdef WIN32
-        a = new TamguSystemVariable(global, new TamguConstString((char*)sys_keyc_homekey), global->Createid("_sys_keyc_homekey"), a_string);
-        a = new TamguSystemVariable(global, new TamguConstString((char*)sys_keyc_endkey), global->Createid("_sys_keyc_endkey"), a_string);
+        global->CreateSystemVariable(new TamguConstString((char*)sys_keyc_homekey), "_sys_keyc_homekey", a_string);
+        global->CreateSystemVariable(new TamguConstString((char*)sys_keyc_endkey), "_sys_keyc_endkey", a_string);
 #endif
-        a = new TamguSystemVariable(global, new TamguConstString((char*)sys_keyc_up), global->Createid("_sys_keyc_up"), a_string);
-        a = new TamguSystemVariable(global, new TamguConstString((char*)sys_keyc_down), global->Createid("_sys_keyc_down"), a_string);
-        a = new TamguSystemVariable(global, new TamguConstString((char*)sys_keyc_right), global->Createid("_sys_keyc_right"), a_string);
-        a = new TamguSystemVariable(global, new TamguConstString((char*)sys_keyc_left), global->Createid("_sys_keyc_left"), a_string);
+        global->CreateSystemVariable(new TamguConstString((char*)sys_keyc_up), "_sys_keyc_up", a_string);
+        global->CreateSystemVariable(new TamguConstString((char*)sys_keyc_down), "_sys_keyc_down", a_string);
+        global->CreateSystemVariable(new TamguConstString((char*)sys_keyc_right), "_sys_keyc_right", a_string);
+        global->CreateSystemVariable(new TamguConstString((char*)sys_keyc_left), "_sys_keyc_left", a_string);
         
-        a = new TamguSystemVariable(global, new TamguConstString((char*)sys_backspacekey), global->Createid("_sys_keybackspace"), a_string);
-        a = new TamguSystemVariable(global, new TamguConstString((char*)sys_escapekey), global->Createid("_sys_keyescape"), a_string);
+        global->CreateSystemVariable(new TamguConstString((char*)sys_backspacekey), "_sys_keybackspace", a_string);
+        global->CreateSystemVariable(new TamguConstString((char*)sys_escapekey), "_sys_keyescape", a_string);
     }
     return true;
 }

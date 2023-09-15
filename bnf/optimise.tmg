@@ -155,6 +155,49 @@ for (s in f) {
                 }
             }
 
+            if ( "::m_notreserved" in regle) {
+                v=< <trim x> | x <- regle.trim().split(cr) >;
+                vx=<x | x <- v," || " in x>;
+                sxx=vx[0]['(':'))'][1:-1];
+                vx=sxx.split(" || ");
+                string reg = @"     static std::set<string> keywords;
+     static bool init = true;
+     if (init) {
+           init = false;
+"@;                
+                for (sxx in vx) {
+                    string k = sxx["var":")"][:-1];
+                    reg += "           keywords.insert("+k+");\n";
+                }
+                reg += @"   }
+"@;
+                svector vres;
+                vres.push(v[0]);
+                vres.push(reg);
+                reg = @"     if (keywords.find(fx->stack[currentpos]) != keywords.end()) {
+            lret+=fx->stack[currentpos];
+            incrementpos();"@;
+
+                int io;
+                for (io in <1,v,1>) {
+                    sxx = v[io];
+                    if ("||" in sxx)
+                        break;
+                    vres.push(sxx);
+                }
+                vres.push(reg);
+                io++;
+                vres.push(v[io]);
+                vres.push("}");
+                io++;
+                vres &&&= v[io:];
+                reg = vres.join("\n");
+                reg+="\n\n";
+                sauve.write(reg);
+                regle=s;
+                continue;
+            }
+
             if ( "::m_wrong" in regle || "::m_notafunction" in regle || "::m_notapredicate" in regle || "::m_functionsort" in regle || "::m_filterkeyword" in regle) {
                 v=< <trim x> | x <- regle.trim().split(cr) >;
                 vx=<x | x <- v," || " in x>;

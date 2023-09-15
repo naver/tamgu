@@ -832,6 +832,8 @@ public:
     Exporting void RecordInTracker(Tamgu* a);
     Exporting long RecordInTrackerProtected(Tamgu* a);
     Exporting void ResetWithTracker(Tamgu* a, long id, long inc = 1);
+    Exporting TamguSystemVariable* CreateSystemVariable(Tamgu* v, short n, short t);
+    Exporting TamguSystemVariable* CreateSystemVariable(Tamgu* v, string n, short t);
     
     inline void RemoveFromTracker(long idx) {
         if (idx == -1)

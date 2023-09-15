@@ -427,7 +427,7 @@ inline void jstringing(stringstream& res, string& value) {
 		res << "\"" << value << "\"";
 	else {
 		string v = s_replacestrings(value, "\"", "\\\"");
-		res << "'" << v << "'";
+		res << "\"" << v << "\"";
 	}
 }
 
@@ -448,7 +448,7 @@ inline void ujstringing(std::wstringstream& res, wstring& value) {
 		res << L"\"" << value << L"\"";
 	else {
 		wstring v = s_replacestring(value, L"\"", L"\\\"");
-		res << L"'" << v << L"'";
+		res << L"\"" << v << L"\"";
 	}
 }
 

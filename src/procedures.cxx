@@ -840,6 +840,62 @@ Tamgu* ProcCreateFrame(Tamgu* contextualpattern, short idthread, TamguCall* call
     return object;
 }
 //------------------------------------------------------------------------------------------------------------------------
+Tamgu* ProcAllDefinitions(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    hmap<string, hmap<string, string> > information;
+    string key;
+    string subkey;
+
+    for (const auto& info : globalTamgu->infomethods) {
+        for (const auto& types : info.second) {
+            key = globalTamgu->Getsymbol(info.first);
+            subkey = "." + types.first;
+            information[subkey][key] = types.second;
+            information[key][types.first] = types.second;
+            information["auto"][types.first] = types.second;
+            information["self"][types.first] = types.second;
+            information["let"][types.first] = types.second;
+            for (const auto& itp : globalTamgu->commoninfos) {
+                subkey = "." + itp.first;
+                information[subkey][types.first] = itp.second;
+            }
+        }
+    }
+    
+    for (const auto& itp : globalTamgu->commoninfos) {
+        key = itp.first;
+        subkey = "." + key;
+        information[subkey]["common"] = key;
+    }
+    
+    for (const auto& itp : globalTamgu->procedureinfos) {
+        information[itp.first]["procedure"]  = itp.second;
+    }
+    
+    basebin_hash<TamguFrame*>::iterator itf;
+    TamguFrame* tframe;
+    for (itf = globalTamgu->frames.begin(); itf != globalTamgu->frames.end(); itf++) {
+        key = globalTamgu->Getsymbol(itf->first);
+        tframe = itf->second;
+        basebin_hash<Tamgu*>::iterator itt;
+        for (itt = tframe->declarations.begin(); itt != tframe->declarations.end(); itt++) {
+            if (itt->second->isFunction()) {
+                subkey = globalTamgu->Getsymbol(itt->first);
+                information[key][subkey] = "method";
+            }
+        }
+    }
+    Tamgumap* themap = globalTamgu->Providemap();
+    Tamgumapss* submap;
+    
+    for (const auto& values: information) {
+        submap = globalTamgu->Providemapss();
+        submap->values = values.second;
+        themap->Push(values.first, submap);
+    }
+    
+    return themap;
+}
+
 Tamgu* ProcAllObjects(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     Tamgusvector* vs = (Tamgusvector*)Selectasvector(contextualpattern);
     globalTamgu->TamguAllObjects(vs->values);
@@ -3211,6 +3267,7 @@ Exporting void TamguGlobal::RecordProcedures() {
     RecordOneProcedure("loadin", "Load the code of a file into the current memory space (merging)", ProcLoadin, P_ONE);
     RecordOneProcedure("loadfacts", "Fast loadings of facts for the internal predicate engine", ProcLoadfacts, P_ONE);
     
+    RecordOneProcedure("alldefinitions", "Returns the list of all methods and their definition", ProcAllDefinitions, P_NONE);
     RecordOneProcedure("allobjects", "Returns the list of all pre-defined symbols", ProcAllObjects, P_NONE);
     RecordOneProcedure("allobjectsbytype", "Returns the list of all pre-defined symbols as a map indexed on types",  ProcAllObjectByType, P_NONE);
     

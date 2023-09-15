@@ -70,7 +70,8 @@ static const char* errorlabels[]={"","Wrong index format",
     "Wrong lisp expression",
     "Wrong shape access",
     "Wrong alias declaration",
-    "Wrong 'iferror' declaration"
+    "Wrong 'iferror' declaration",
+    "Reserved keyword"
 };
 
 static char tab0[] = {'&','|','+','-','*','/','%','^',0};
@@ -89,104 +90,102 @@ static char tab12[] = {'d','p','c','C','H','a','r','s','S','?','%',0};
 static char tab13[] = {'*','+',0};
 static char tab14[] = {'+','*',0};
 static char tab15[] = {'@','~','#',0};
-static const char* varstring0="ifnot";
-static const char* varstring1="∧";
-static const char* varstring2="∨";
-static const char* varstring3="×";
-static const char* varstring4="÷";
-static const char* varstring5="is";
-static const char* varstring6="not";
-static const char* varstring7="or";
-static const char* varstring8="and";
-static const char* varstring9="xor";
-static const char* varstring10="≠";
-static const char* varstring11="private";
-static const char* varstring12="common";
-static const char* varstring13="const";
-static const char* varstring14="absent";
-static const char* varstring15="alias";
-static const char* varstring16="all";
-static const char* varstring17="any";
-static const char* varstring18="assert";
-static const char* varstring19="asserta";
-static const char* varstring20="assertz";
-static const char* varstring21="autorun";
-static const char* varstring22="break";
-static const char* varstring23="case";
-static const char* varstring24="catch";
-static const char* varstring25="concept";
-static const char* varstring26="continue";
-static const char* varstring27="cycle";
-static const char* varstring28="data";
-static const char* varstring29="default";
-static const char* varstring30="deriving";
-static const char* varstring31="do";
-static const char* varstring32="drop";
-static const char* varstring33="elif";
-static const char* varstring34="else";
-static const char* varstring35="exclusive";
-static const char* varstring36="extension";
-static const char* varstring37="fail";
-static const char* varstring38="false";
-static const char* varstring39="filter";
-static const char* varstring40="flip";
-static const char* varstring41="foldl";
-static const char* varstring42="foldr";
-static const char* varstring43="for";
-static const char* varstring44="frame";
-static const char* varstring45="from";
-static const char* varstring46="function";
-static const char* varstring47="if";
-static const char* varstring48="in";
-static const char* varstring49="joined";
-static const char* varstring50="let";
-static const char* varstring51="namespace";
-static const char* varstring52="notin";
-static const char* varstring53="null";
-static const char* varstring54="of";
-static const char* varstring55="iferror";
-static const char* varstring56="ontology";
-static const char* varstring57="otherwise";
-static const char* varstring58="polynomial";
-static const char* varstring59="property";
-static const char* varstring60="protected";
-static const char* varstring61="repeat";
-static const char* varstring62="replicate";
-static const char* varstring63="retract";
-static const char* varstring64="return";
-static const char* varstring65="role";
-static const char* varstring66="scanl";
-static const char* varstring67="scanr";
-static const char* varstring68="static";
-static const char* varstring69="stop";
-static const char* varstring70="strict";
-static const char* varstring71="switch";
-static const char* varstring72="take";
-static const char* varstring73="thread";
-static const char* varstring74="true";
-static const char* varstring75="try";
-static const char* varstring76="where";
-static const char* varstring77="while";
-static const char* varstring78="with";
-static const char* varstring79="zip";
-static const char* varstring80="...";
-static const char* varstring81="²";
-static const char* varstring82="³";
-static const char* varstring83="¬";
-static const char* varstring84="..";
-static const char* varstring85="IF";
-static const char* varstring86="If";
-static const char* varstring87="←";
-static const char* varstring88="Maybe";
-static const char* varstring89="→";
-static const char* varstring90="foldl1";
-static const char* varstring91="foldr1";
-static const char* varstring92="scanl1";
-static const char* varstring93="scanr1";
-static const char* varstring94="takeWhile";
-static const char* varstring95="dropWhile";
-static const char* varstring96="map";
-static const char* varstring97="zipWith";
+static const char* varstring0="IF";
+static const char* varstring1="If";
+static const char* varstring2="alias";
+static const char* varstring3="and";
+static const char* varstring4="autorun";
+static const char* varstring5="break";
+static const char* varstring6="continue";
+static const char* varstring7="deriving";
+static const char* varstring8="do";
+static const char* varstring9="elif";
+static const char* varstring10="else";
+static const char* varstring11="for";
+static const char* varstring12="frame";
+static const char* varstring13="function";
+static const char* varstring14="if";
+static const char* varstring15="in";
+static const char* varstring16="not";
+static const char* varstring17="or";
+static const char* varstring18="otherwise";
+static const char* varstring19="polynomial";
+static const char* varstring20="return";
+static const char* varstring21="switch";
+static const char* varstring22="thread";
+static const char* varstring23="where";
+static const char* varstring24="while";
+static const char* varstring25="xor";
+static const char* varstring26="iferror";
+static const char* varstring27="ifnot";
+static const char* varstring28="∧";
+static const char* varstring29="∨";
+static const char* varstring30="×";
+static const char* varstring31="÷";
+static const char* varstring32="is";
+static const char* varstring33="≠";
+static const char* varstring34="private";
+static const char* varstring35="common";
+static const char* varstring36="const";
+static const char* varstring37="with";
+static const char* varstring38="extension";
+static const char* varstring39="...";
+static const char* varstring40="strict";
+static const char* varstring41="joined";
+static const char* varstring42="protected";
+static const char* varstring43="exclusive";
+static const char* varstring44="²";
+static const char* varstring45="³";
+static const char* varstring46="notin";
+static const char* varstring47="¬";
+static const char* varstring48="..";
+static const char* varstring49="null";
+static const char* varstring50="fail";
+static const char* varstring51="stop";
+static const char* varstring52="retract";
+static const char* varstring53="asserta";
+static const char* varstring54="assertz";
+static const char* varstring55="assert";
+static const char* varstring56="static";
+static const char* varstring57="←";
+static const char* varstring58="Maybe";
+static const char* varstring59="→";
+static const char* varstring60="foldl";
+static const char* varstring61="foldr";
+static const char* varstring62="scanl";
+static const char* varstring63="scanr";
+static const char* varstring64="all";
+static const char* varstring65="any";
+static const char* varstring66="foldl1";
+static const char* varstring67="foldr1";
+static const char* varstring68="scanl1";
+static const char* varstring69="scanr1";
+static const char* varstring70="takeWhile";
+static const char* varstring71="filter";
+static const char* varstring72="dropWhile";
+static const char* varstring73="take";
+static const char* varstring74="drop";
+static const char* varstring75="map";
+static const char* varstring76="zipWith";
+static const char* varstring77="zip";
+static const char* varstring78="repeat";
+static const char* varstring79="cycle";
+static const char* varstring80="replicate";
+static const char* varstring81="flip";
+static const char* varstring82="case";
+static const char* varstring83="of";
+static const char* varstring84="let";
+static const char* varstring85="data";
+static const char* varstring86="ontology";
+static const char* varstring87="concept";
+static const char* varstring88="role";
+static const char* varstring89="property";
+static const char* varstring90="true";
+static const char* varstring91="false";
+static const char* varstring92="namespace";
+static const char* varstring93="try";
+static const char* varstring94="catch";
+static const char* varstring95="default";
 
 
 char bnf_tamgu::m_path_0_1(string& lreturn,x_node** tree) {
@@ -370,6 +369,67 @@ char bnf_tamgu::m_signature(string& lreturn,x_node** tree) {
     return(1);
 }
 
+
+char bnf_tamgu::m_notreserved(string& lreturn,x_node** tree) {
+    static std::set<string> keywords;
+    static bool init = true;
+    if (init) {
+        init = false;
+        keywords.insert(varstring0);
+        keywords.insert(varstring1);
+        keywords.insert(varstring2);
+        keywords.insert(varstring3);
+        keywords.insert(varstring4);
+        keywords.insert(varstring5);
+        keywords.insert(varstring6);
+        keywords.insert(varstring7);
+        keywords.insert(varstring8);
+        keywords.insert(varstring9);
+        keywords.insert(varstring10);
+        keywords.insert(varstring11);
+        keywords.insert(varstring12);
+        keywords.insert(varstring13);
+        keywords.insert(varstring14);
+        keywords.insert(varstring15);
+        keywords.insert(varstring16);
+        keywords.insert(varstring17);
+        keywords.insert(varstring18);
+        keywords.insert(varstring19);
+        keywords.insert(varstring20);
+        keywords.insert(varstring21);
+        keywords.insert(varstring22);
+        keywords.insert(varstring23);
+        keywords.insert(varstring24);
+        keywords.insert(varstring25);
+        keywords.insert(varstring26);
+        keywords.insert(varstring27);
+    }
+
+    if (gFail==1) return(0);
+    static const char* label="notreserved";
+    string lret;
+    long pos=currentpos;
+    int itok=intoken;
+    x_node* subtree=NULL;
+    int addsubtree=0;
+    bool exitonfail=false;
+    //BODYOR
+    subtree=NULL;
+    if (keywords.find(fx->stack[currentpos]) != keywords.end()) {
+        lret+=fx->stack[currentpos];
+        incrementpos();
+        x_init_tree(tree,subtree,addsubtree);
+    }
+    else {
+        x_pop_node(tree,addsubtree);
+        currentpos=pos;
+        intoken=itok;
+        setfail(exitonfail);
+        return 0;
+    }
+    x_init_node(lreturn,lret,tree,label,pos,true);
+    return(1);
+}
 
 char bnf_tamgu::m_operator_0_1(string& lreturn,x_node** tree) {
     if (gFail==1) return(0);
@@ -573,7 +633,7 @@ char bnf_tamgu::m_operator(string& lreturn,x_node** tree) {
                 found=true;
             break;
         default:
-            if (x_test_string(lret,varstring0) || x_test_string(lret,varstring1) || x_test_string(lret,varstring2) || x_test_string(lret,varstring3) || x_test_string(lret,varstring4)) 
+            if (x_test_string(lret,varstring27) || x_test_string(lret,varstring28) || x_test_string(lret,varstring29) || x_test_string(lret,varstring30) || x_test_string(lret,varstring31)) 
                 found=true;
     }
     if (found)
@@ -599,7 +659,7 @@ char bnf_tamgu::m_operatoraffectation_0_1(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring3)) 
+    if (x_test_string(lret,varstring30)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -634,7 +694,7 @@ char bnf_tamgu::m_operatoraffectation_0_2(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring4)) 
+    if (x_test_string(lret,varstring31)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -749,7 +809,7 @@ char bnf_tamgu::m_operatoraffectation_0_7_8(string& lreturn,x_node** tree) {
     //bool exitonfail=false;
     //BODYOPTIONAL
     subtree=NULL;
-    if (x_test_string(lret,varstring6))
+    if (x_test_string(lret,varstring16))
         x_init_tree(tree,subtree,addsubtree);
     else
         lret="";
@@ -768,7 +828,7 @@ char bnf_tamgu::m_operatoraffectation_0_7(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring5)) 
+    if (x_test_string(lret,varstring32)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -1186,7 +1246,7 @@ char bnf_tamgu::m_orand(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYOR
     subtree=NULL;
-    if (m_orand_0_1(lret,&subtree) || m_orand_0_2(lret,&subtree) || x_test_string(lret,varstring7) || x_test_string(lret,varstring8) || x_test_string(lret,varstring9))
+    if (m_orand_0_1(lret,&subtree) || m_orand_0_2(lret,&subtree) || x_test_string(lret,varstring17) || x_test_string(lret,varstring3) || x_test_string(lret,varstring25))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -1358,7 +1418,7 @@ char bnf_tamgu::m_comparator(string& lreturn,x_node** tree) {
                 found=true;
             break;
         default:
-            if (x_test_string(lret,varstring10)) 
+            if (x_test_string(lret,varstring33)) 
                 found=true;
     }
     if (found)
@@ -1597,7 +1657,7 @@ char bnf_tamgu::m_private(string& lreturn,x_node** tree) {
     x_node* subtree=NULL;
     int addsubtree=0;
     bool exitonfail=false;
-    if (x_test_string(lret,varstring11))
+    if (x_test_string(lret,varstring34))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -1620,7 +1680,7 @@ char bnf_tamgu::m_common(string& lreturn,x_node** tree) {
     x_node* subtree=NULL;
     int addsubtree=0;
     bool exitonfail=false;
-    if (x_test_string(lret,varstring12))
+    if (x_test_string(lret,varstring35))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -1643,7 +1703,7 @@ char bnf_tamgu::m_const(string& lreturn,x_node** tree) {
     x_node* subtree=NULL;
     int addsubtree=0;
     bool exitonfail=false;
-    if (x_test_string(lret,varstring13))
+    if (x_test_string(lret,varstring36))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -1760,31 +1820,6 @@ char bnf_tamgu::m_feature(string& lreturn,x_node** tree) {
 }
 
 
-char bnf_tamgu::m_notatype(string& lreturn,x_node** tree) {
-    if (gFail==1) return(0);
-    static const char* label="notatype";
-    string lret;
-    long pos=currentpos;
-    int itok=intoken;
-    x_node* subtree=NULL;
-    int addsubtree=0;
-    bool exitonfail=false;
-    //BODYOR
-    subtree=NULL;
-    if (x_test_string(lret,varstring14) || x_test_string(lret,varstring15) || x_test_string(lret,varstring16) || x_test_string(lret,varstring8) || x_test_string(lret,varstring17) || x_test_string(lret,varstring18) || x_test_string(lret,varstring19) || x_test_string(lret,varstring20) || x_test_string(lret,varstring21) || x_test_string(lret,varstring22) || x_test_string(lret,varstring23) || x_test_string(lret,varstring24) || x_test_string(lret,varstring12) || x_test_string(lret,varstring25) || x_test_string(lret,varstring13) || x_test_string(lret,varstring26) || x_test_string(lret,varstring27) || x_test_string(lret,varstring28) || x_test_string(lret,varstring29) || x_test_string(lret,varstring30) || x_test_string(lret,varstring31) || x_test_string(lret,varstring32) || x_test_string(lret,varstring33) || x_test_string(lret,varstring34) || x_test_string(lret,varstring35) || x_test_string(lret,varstring36) || x_test_string(lret,varstring37) || x_test_string(lret,varstring38) || x_test_string(lret,varstring39) || x_test_string(lret,varstring40) || x_test_string(lret,varstring41) || x_test_string(lret,varstring42) || x_test_string(lret,varstring43) || x_test_string(lret,varstring44) || x_test_string(lret,varstring45) || x_test_string(lret,varstring46) || x_test_string(lret,varstring47) || x_test_string(lret,varstring0) || x_test_string(lret,varstring48) || x_test_string(lret,varstring5) || x_test_string(lret,varstring49) || x_test_string(lret,varstring50) || x_test_string(lret,varstring51) || x_test_string(lret,varstring6) || x_test_string(lret,varstring52) || x_test_string(lret,varstring53) || x_test_string(lret,varstring54) || x_test_string(lret,varstring55) || x_test_string(lret,varstring56) || x_test_string(lret,varstring7) || x_test_string(lret,varstring57) || x_test_string(lret,varstring58) || x_test_string(lret,varstring11) || x_test_string(lret,varstring59) || x_test_string(lret,varstring60) || x_test_string(lret,varstring61) || x_test_string(lret,varstring62) || x_test_string(lret,varstring63) || x_test_string(lret,varstring64) || x_test_string(lret,varstring65) || x_test_string(lret,varstring66) || x_test_string(lret,varstring67) || x_test_string(lret,varstring68) || x_test_string(lret,varstring69) || x_test_string(lret,varstring70) || x_test_string(lret,varstring71) || x_test_string(lret,varstring72) || x_test_string(lret,varstring73) || x_test_string(lret,varstring74) || x_test_string(lret,varstring75) || x_test_string(lret,varstring76) || x_test_string(lret,varstring77) || x_test_string(lret,varstring78) || x_test_string(lret,varstring9) || x_test_string(lret,varstring79))
-        x_init_tree(tree,subtree,addsubtree);
-    else {
-        x_pop_node(tree,addsubtree);
-        currentpos=pos;
-        intoken=itok;
-        setfail(exitonfail);
-        return 0;
-    }
-    x_init_node(lreturn,lret,tree,label,pos,true);
-    return(1);
-}
-
-
 char bnf_tamgu::m_type_0_1(string& lreturn,x_node** tree) {
     if (gFail==1) return(0);
     string lret;
@@ -1826,7 +1861,7 @@ char bnf_tamgu::m_type(string& lreturn,x_node** tree) {
     }
     //BODYFAIL
     subtree=NULL;
-    if (m_notatype(lret,&subtree)) {
+    if (m_notreserved(lret,&subtree)) {
         x_pop_node(tree,addsubtree);
         currentpos=pos;
         intoken=itok;
@@ -1860,7 +1895,7 @@ char bnf_tamgu::m_depend(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring78)) 
+    if (x_test_string(lret,varstring37)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -2518,7 +2553,7 @@ char bnf_tamgu::m_frame(string& lreturn,x_node** tree) {
     }
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring44)) 
+    if (x_test_string(lret,varstring12)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -2579,7 +2614,7 @@ char bnf_tamgu::m_extension(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring36)) 
+    if (x_test_string(lret,varstring38)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -2696,7 +2731,7 @@ char bnf_tamgu::m_nonlimited(string& lreturn,x_node** tree) {
     x_node* subtree=NULL;
     int addsubtree=0;
     bool exitonfail=false;
-    if (x_test_string(lret,varstring80))
+    if (x_test_string(lret,varstring39))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -2837,7 +2872,7 @@ char bnf_tamgu::m_strict(string& lreturn,x_node** tree) {
     x_node* subtree=NULL;
     int addsubtree=0;
     bool exitonfail=false;
-    if (x_test_string(lret,varstring70))
+    if (x_test_string(lret,varstring40))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -2860,7 +2895,7 @@ char bnf_tamgu::m_join(string& lreturn,x_node** tree) {
     x_node* subtree=NULL;
     int addsubtree=0;
     bool exitonfail=false;
-    if (x_test_string(lret,varstring49))
+    if (x_test_string(lret,varstring41))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -2885,7 +2920,7 @@ char bnf_tamgu::m_protecclusive(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYOR
     subtree=NULL;
-    if (x_test_string(lret,varstring60) || x_test_string(lret,varstring35))
+    if (x_test_string(lret,varstring42) || x_test_string(lret,varstring43))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -2910,7 +2945,7 @@ char bnf_tamgu::m_functionlabel(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYOR
     subtree=NULL;
-    if (x_test_string(lret,varstring58) || x_test_string(lret,varstring46) || x_test_string(lret,varstring21) || x_test_string(lret,varstring73))
+    if (x_test_string(lret,varstring19) || x_test_string(lret,varstring13) || x_test_string(lret,varstring4) || x_test_string(lret,varstring22))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -3422,45 +3457,6 @@ char bnf_tamgu::m_subfuncbis(string& lreturn,x_node** tree) {
 }
 
 
-char bnf_tamgu::m_subvar(string& lreturn,x_node** tree) {
-    if (gFail==1) return(0);
-    static const char* label="subvar";
-    string lret;
-    long pos=currentpos;
-    int itok=intoken;
-    x_node* subtree=NULL;
-    int addsubtree=0;
-    bool exitonfail=false;
-    //BODYSEQUENCE
-    subtree=NULL;
-    if (x_test_dot(lret)) 
-        x_init_tree(tree,subtree,addsubtree);
-    else {
-        x_pop_node(tree,addsubtree);
-        currentpos=pos;
-        intoken=itok;
-        setfail(exitonfail);
-        return(0);
-    }
-    exitonfail=true;
-    initfail(label,currentpos,29);
-    bnf_tamgu_pop pop0(this);
-    //BODYSEQUENCE
-    subtree=NULL;
-    if (m_variable(lret,&subtree)) 
-        x_init_tree(tree,subtree,addsubtree);
-    else {
-        x_pop_node(tree,addsubtree);
-        currentpos=pos;
-        intoken=itok;
-        setfail(exitonfail);
-        return(0);
-    }
-    x_init_node(lreturn,lret,tree,label,pos,false);
-    return(1);
-}
-
-
 char bnf_tamgu::m_framevariable(string& lreturn,x_node** tree) {
     if (gFail==1) return(0);
     static const char* label="framevariable";
@@ -3499,107 +3495,6 @@ char bnf_tamgu::m_framevariable(string& lreturn,x_node** tree) {
     return(1);
 }
 
-
-char bnf_tamgu::m_notafunction(string& lreturn,x_node** tree) {
-    if (gFail==1) return(0);
-    static const char* label="notafunction";
-    string lret;
-    long pos=currentpos;
-    int itok=intoken;
-    x_node* subtree=NULL;
-    int addsubtree=0;
-    bool exitonfail=false;
-    //BODYOR
-    subtree=NULL;
-
-    bool found=false;
-    unsigned char xs = fx->stack[currentpos][intoken];
-    switch (xs) {
-        case 'a' :
-            if (x_test_string(lret,varstring14) || x_test_string(lret,varstring15) || x_test_string(lret,varstring16) || x_test_string(lret,varstring8) || x_test_string(lret,varstring17) || x_test_string(lret,varstring18) || x_test_string(lret,varstring19) || x_test_string(lret,varstring20) || x_test_string(lret,varstring21))
-                found=true;
-            break;
-        case 'b' :
-            if (x_test_string(lret,varstring22))
-                found=true;
-            break;
-        case 'c' :
-            if (x_test_string(lret,varstring23) || x_test_string(lret,varstring24) || x_test_string(lret,varstring12) || x_test_string(lret,varstring25) || x_test_string(lret,varstring13) || x_test_string(lret,varstring26) || x_test_string(lret,varstring27))
-                found=true;
-            break;
-        case 'd' :
-            if (x_test_string(lret,varstring28) || x_test_string(lret,varstring29) || x_test_string(lret,varstring30) || x_test_string(lret,varstring31) || x_test_string(lret,varstring32))
-                found=true;
-            break;
-        case 'e' :
-            if (x_test_string(lret,varstring33) || x_test_string(lret,varstring34) || x_test_string(lret,varstring35) || x_test_string(lret,varstring36))
-                found=true;
-            break;
-        case 'f' :
-            if (x_test_string(lret,varstring37) || x_test_string(lret,varstring38) || x_test_string(lret,varstring39) || x_test_string(lret,varstring40) || x_test_string(lret,varstring41) || x_test_string(lret,varstring42) || x_test_string(lret,varstring43) || x_test_string(lret,varstring44) || x_test_string(lret,varstring45) || x_test_string(lret,varstring46))
-                found=true;
-            break;
-        case 'i' :
-            if (x_test_string(lret,varstring47) || x_test_string(lret,varstring0) || x_test_string(lret,varstring48) || x_test_string(lret,varstring5) || x_test_string(lret,varstring55))
-                found=true;
-            break;
-        case 'j' :
-            if (x_test_string(lret,varstring49))
-                found=true;
-            break;
-        case 'l' :
-            if (x_test_string(lret,varstring50))
-                found=true;
-            break;
-        case 'n' :
-            if (x_test_string(lret,varstring51) || x_test_string(lret,varstring6) || x_test_string(lret,varstring52) || x_test_string(lret,varstring53))
-                found=true;
-            break;
-        case 'o' :
-            if (x_test_string(lret,varstring54) || x_test_string(lret,varstring56) || x_test_string(lret,varstring7) || x_test_string(lret,varstring57))
-                found=true;
-            break;
-        case 'p' :
-            if (x_test_string(lret,varstring58) || x_test_string(lret,varstring11) || x_test_string(lret,varstring59) || x_test_string(lret,varstring60))
-                found=true;
-            break;
-        case 'r' :
-            if (x_test_string(lret,varstring61) || x_test_string(lret,varstring62) || x_test_string(lret,varstring63) || x_test_string(lret,varstring64) || x_test_string(lret,varstring65))
-                found=true;
-            break;
-        case 's' :
-            if (x_test_string(lret,varstring66) || x_test_string(lret,varstring67) || x_test_string(lret,varstring68) || x_test_string(lret,varstring69) || x_test_string(lret,varstring70) || x_test_string(lret,varstring71))
-                found=true;
-            break;
-        case 't' :
-            if (x_test_string(lret,varstring72) || x_test_string(lret,varstring73) || x_test_string(lret,varstring74) || x_test_string(lret,varstring75))
-                found=true;
-            break;
-        case 'w' :
-            if (x_test_string(lret,varstring76) || x_test_string(lret,varstring77) || x_test_string(lret,varstring78))
-                found=true;
-            break;
-        case 'x' :
-            if (x_test_string(lret,varstring9))
-                found=true;
-            break;
-        case 'z' :
-            if (x_test_string(lret,varstring79))
-                found=true;
-            break;
-    }
-    if (found)
-        x_init_tree(tree,subtree,addsubtree);
-    else {
-        x_pop_node(tree,addsubtree);
-        currentpos=pos;
-        intoken=itok;
-        setfail(exitonfail);
-        return 0;
-    }
-    x_init_node(lreturn,lret,tree,label,pos,true);
-    return(1);
-}
 
 char bnf_tamgu::m_framesep(string& lreturn,x_node** tree) {
     if (gFail==1) return(0);
@@ -3701,7 +3596,7 @@ char bnf_tamgu::m_functioncall(string& lreturn,x_node** tree) {
     }
     //BODYFAIL
     subtree=NULL;
-    if (m_notafunction(lret,&subtree)) {
+    if (m_notreserved(lret,&subtree)) {
         x_pop_node(tree,addsubtree);
         currentpos=pos;
         intoken=itok;
@@ -4042,7 +3937,7 @@ char bnf_tamgu::m_returncall(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring64)) 
+    if (x_test_string(lret,varstring20)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -4076,7 +3971,7 @@ char bnf_tamgu::m_breakcall(string& lreturn,x_node** tree) {
     x_node* subtree=NULL;
     int addsubtree=0;
     bool exitonfail=false;
-    if (x_test_string(lret,varstring22))
+    if (x_test_string(lret,varstring5))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -4099,7 +3994,7 @@ char bnf_tamgu::m_continuecall(string& lreturn,x_node** tree) {
     x_node* subtree=NULL;
     int addsubtree=0;
     bool exitonfail=false;
-    if (x_test_string(lret,varstring26))
+    if (x_test_string(lret,varstring6))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -4391,7 +4286,7 @@ char bnf_tamgu::m_aliasdeclaration(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring15)) 
+    if (x_test_string(lret,varstring2)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -4947,75 +4842,6 @@ char bnf_tamgu::m_analyse(string& lreturn,x_node** tree) {
 }
 
 
-char bnf_tamgu::m_wrong(string& lreturn,x_node** tree) {
-    if (gFail==1) return(0);
-    static const char* label="wrong";
-    string lret;
-    long pos=currentpos;
-    int itok=intoken;
-    x_node* subtree=NULL;
-    int addsubtree=0;
-    bool exitonfail=false;
-    //BODYOR
-    subtree=NULL;
-
-    bool found=false;
-    unsigned char xs = fx->stack[currentpos][intoken];
-    switch (xs) {
-        case 'a' :
-            if (x_test_string(lret,varstring8))
-                found=true;
-            break;
-        case 'b' :
-            if (x_test_string(lret,varstring22))
-                found=true;
-            break;
-        case 'c' :
-            if (x_test_string(lret,varstring26))
-                found=true;
-            break;
-        case 'e' :
-            if (x_test_string(lret,varstring34))
-                found=true;
-            break;
-        case 'i' :
-            if (x_test_string(lret,varstring48))
-                found=true;
-            break;
-        case 'n' :
-            if (x_test_string(lret,varstring6) || x_test_string(lret,varstring6))
-                found=true;
-            break;
-        case 'o' :
-            if (x_test_string(lret,varstring7) || x_test_string(lret,varstring57))
-                found=true;
-            break;
-        case 'r' :
-            if (x_test_string(lret,varstring64))
-                found=true;
-            break;
-        case 'w' :
-            if (x_test_string(lret,varstring76))
-                found=true;
-            break;
-        case 'x' :
-            if (x_test_string(lret,varstring9))
-                found=true;
-            break;
-    }
-    if (found)
-        x_init_tree(tree,subtree,addsubtree);
-    else {
-        x_pop_node(tree,addsubtree);
-        currentpos=pos;
-        intoken=itok;
-        setfail(exitonfail);
-        return 0;
-    }
-    x_init_node(lreturn,lret,tree,label,pos,true);
-    return(1);
-}
-
 char bnf_tamgu::m_variable_0_1_2(string& lreturn,x_node** tree) {
     if (gFail==1) return(0);
     string lret;
@@ -5026,7 +4852,7 @@ char bnf_tamgu::m_variable_0_1_2(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYOR
     subtree=NULL;
-    if (m_shapeindexes(lret,&subtree) || m_interval(lret,&subtree) || m_indexes(lret,&subtree) || m_subfuncbis(lret,&subtree) || m_subvar(lret,&subtree))
+    if (m_shapeindexes(lret,&subtree) || m_interval(lret,&subtree) || m_indexes(lret,&subtree) || m_subfuncbis(lret,&subtree) || m_framevariable(lret,&subtree))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -5070,7 +4896,7 @@ char bnf_tamgu::m_variable(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYFAIL
     subtree=NULL;
-    if (m_wrong(lret,&subtree)) {
+    if (m_notreserved(lret,&subtree)) {
         x_pop_node(tree,addsubtree);
         currentpos=pos;
         intoken=itok;
@@ -5183,7 +5009,7 @@ char bnf_tamgu::m_purevariable(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYFAIL
     subtree=NULL;
-    if (m_wrong(lret,&subtree)) {
+    if (m_notreserved(lret,&subtree)) {
         x_pop_node(tree,addsubtree);
         currentpos=pos;
         intoken=itok;
@@ -5252,7 +5078,7 @@ char bnf_tamgu::m_predvariable(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYFAIL
     subtree=NULL;
-    if (m_wrong(lret,&subtree)) {
+    if (m_notreserved(lret,&subtree)) {
         x_pop_node(tree,addsubtree);
         currentpos=pos;
         intoken=itok;
@@ -5351,7 +5177,7 @@ char bnf_tamgu::m_power(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYOR
     subtree=NULL;
-    if (x_test_string(lret,varstring81) || x_test_string(lret,varstring82))
+    if (x_test_string(lret,varstring44) || x_test_string(lret,varstring45))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -5531,7 +5357,7 @@ char bnf_tamgu::m_notin_0_1(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring6)) 
+    if (x_test_string(lret,varstring16)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -5542,41 +5368,7 @@ char bnf_tamgu::m_notin_0_1(string& lreturn,x_node** tree) {
     }
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring48)) 
-        x_init_tree(tree,subtree,addsubtree);
-    else {
-        x_pop_node(tree,addsubtree);
-        currentpos=pos;
-        intoken=itok;
-        setfail(exitonfail);
-        return(0);
-    }
-    return(1);
-}
-
-
-char bnf_tamgu::m_notin_0_2(string& lreturn,x_node** tree) {
-    if (gFail==1) return(0);
-    string lret;
-    long pos=currentpos;
-    int itok=intoken;
-    x_node* subtree=NULL;
-    int addsubtree=0;
-    bool exitonfail=false;
-    //BODYSEQUENCE
-    subtree=NULL;
-    if (x_test_string(lret,varstring14)) 
-        x_init_tree(tree,subtree,addsubtree);
-    else {
-        x_pop_node(tree,addsubtree);
-        currentpos=pos;
-        intoken=itok;
-        setfail(exitonfail);
-        return(0);
-    }
-    //BODYSEQUENCE
-    subtree=NULL;
-    if (x_test_string(lret,varstring45)) 
+    if (x_test_string(lret,varstring15)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -5600,7 +5392,7 @@ char bnf_tamgu::m_notin(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYOR
     subtree=NULL;
-    if (x_test_string(lret,varstring52) || m_notin_0_1(lret,&subtree) || m_notin_0_2(lret,&subtree))
+    if (x_test_string(lret,varstring46) || m_notin_0_1(lret,&subtree))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -5623,7 +5415,7 @@ char bnf_tamgu::m_in(string& lreturn,x_node** tree) {
     x_node* subtree=NULL;
     int addsubtree=0;
     bool exitonfail=false;
-    if (x_test_string(lret,varstring48))
+    if (x_test_string(lret,varstring15))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -5712,7 +5504,7 @@ char bnf_tamgu::m_negation(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYOR
     subtree=NULL;
-    if (x_test_in(lret,tab2) || x_test_string(lret,varstring6) || x_test_string(lret,varstring83))
+    if (x_test_in(lret,tab2) || x_test_string(lret,varstring16) || x_test_string(lret,varstring47))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -5995,49 +5787,6 @@ char bnf_tamgu::m_indexes_0_1(string& lreturn,x_node** tree) {
 }
 
 
-char bnf_tamgu::m_indexes_0_2_3(string& lreturn,x_node** tree) {
-    if (gFail==1) return(0);
-    string lret;
-    long pos=currentpos;
-    int itok=intoken;
-    x_node* subtree=NULL;
-    int addsubtree=0;
-    bool exitonfail=false;
-    //BODYOR
-    subtree=NULL;
-    if (m_shapeindexes(lret,&subtree) || m_interval(lret,&subtree) || m_indexes(lret,&subtree) || m_subfuncbis(lret,&subtree) || m_framevariable(lret,&subtree))
-        x_init_tree(tree,subtree,addsubtree);
-    else {
-        x_pop_node(tree,addsubtree);
-        currentpos=pos;
-        intoken=itok;
-        setfail(exitonfail);
-        return 0;
-    }
-    lreturn+=lret;
-    return(1);
-}
-
-
-char bnf_tamgu::m_indexes_0_2(string& lreturn,x_node** tree) {
-    if (gFail==1) return(0);
-    string lret;
-    //long pos=currentpos;
-    //int itok=intoken;
-    x_node* subtree=NULL;
-    int addsubtree=0;
-    //bool exitonfail=false;
-    //BODYOPTIONAL
-    subtree=NULL;
-    if (m_indexes_0_2_3(lret,&subtree))
-        x_init_tree(tree,subtree,addsubtree);
-    else
-        lret="";
-    lreturn+=lret;
-    return(1);
-}
-
-
 char bnf_tamgu::m_indexes(string& lreturn,x_node** tree) {
     if (gFail==1) return(0);
     static const char* label="indexes";
@@ -6085,7 +5834,7 @@ char bnf_tamgu::m_indexes(string& lreturn,x_node** tree) {
     }
     //BODYSEQUENCE
     subtree=NULL;
-    if (m_indexes_0_2(lret,&subtree)) 
+    if (m_variable_0_1(lret,&subtree)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -6187,7 +5936,7 @@ char bnf_tamgu::m_interval(string& lreturn,x_node** tree) {
     }
     //BODYSEQUENCE
     subtree=NULL;
-    if (m_indexes_0_2(lret,&subtree)) 
+    if (m_variable_0_1(lret,&subtree)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -6927,7 +6676,7 @@ char bnf_tamgu::m_intentionsep(string& lreturn,x_node** tree) {
     x_node* subtree=NULL;
     int addsubtree=0;
     bool exitonfail=false;
-    if (x_test_string(lret,varstring84))
+    if (x_test_string(lret,varstring48))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -8130,7 +7879,7 @@ char bnf_tamgu::m_aconstant(string& lreturn,x_node** tree) {
     x_node* subtree=NULL;
     int addsubtree=0;
     bool exitonfail=false;
-    if (x_test_string(lret,varstring53))
+    if (x_test_string(lret,varstring49))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -8176,7 +7925,7 @@ char bnf_tamgu::m_fail(string& lreturn,x_node** tree) {
     x_node* subtree=NULL;
     int addsubtree=0;
     bool exitonfail=false;
-    if (x_test_string(lret,varstring37))
+    if (x_test_string(lret,varstring50))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -8199,7 +7948,7 @@ char bnf_tamgu::m_stop(string& lreturn,x_node** tree) {
     x_node* subtree=NULL;
     int addsubtree=0;
     bool exitonfail=false;
-    if (x_test_string(lret,varstring69))
+    if (x_test_string(lret,varstring51))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -8224,7 +7973,7 @@ char bnf_tamgu::m_not(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYOR
     subtree=NULL;
-    if (x_test_char(lret,'~') || x_test_string(lret,varstring6))
+    if (x_test_char(lret,'~') || x_test_string(lret,varstring16))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -8237,107 +7986,6 @@ char bnf_tamgu::m_not(string& lreturn,x_node** tree) {
     return(1);
 }
 
-
-char bnf_tamgu::m_notapredicate(string& lreturn,x_node** tree) {
-    if (gFail==1) return(0);
-    static const char* label="notapredicate";
-    string lret;
-    long pos=currentpos;
-    int itok=intoken;
-    x_node* subtree=NULL;
-    int addsubtree=0;
-    bool exitonfail=false;
-    //BODYOR
-    subtree=NULL;
-
-    bool found=false;
-    unsigned char xs = fx->stack[currentpos][intoken];
-    switch (xs) {
-        case 'a' :
-            if (x_test_string(lret,varstring14) || x_test_string(lret,varstring15) || x_test_string(lret,varstring16) || x_test_string(lret,varstring8) || x_test_string(lret,varstring17) || x_test_string(lret,varstring18) || x_test_string(lret,varstring19) || x_test_string(lret,varstring20) || x_test_string(lret,varstring21))
-                found=true;
-            break;
-        case 'b' :
-            if (x_test_string(lret,varstring22))
-                found=true;
-            break;
-        case 'c' :
-            if (x_test_string(lret,varstring23) || x_test_string(lret,varstring24) || x_test_string(lret,varstring12) || x_test_string(lret,varstring25) || x_test_string(lret,varstring13) || x_test_string(lret,varstring26) || x_test_string(lret,varstring27))
-                found=true;
-            break;
-        case 'd' :
-            if (x_test_string(lret,varstring28) || x_test_string(lret,varstring29) || x_test_string(lret,varstring30) || x_test_string(lret,varstring31) || x_test_string(lret,varstring32))
-                found=true;
-            break;
-        case 'e' :
-            if (x_test_string(lret,varstring33) || x_test_string(lret,varstring34) || x_test_string(lret,varstring35) || x_test_string(lret,varstring36))
-                found=true;
-            break;
-        case 'f' :
-            if (x_test_string(lret,varstring37) || x_test_string(lret,varstring38) || x_test_string(lret,varstring39) || x_test_string(lret,varstring40) || x_test_string(lret,varstring41) || x_test_string(lret,varstring42) || x_test_string(lret,varstring43) || x_test_string(lret,varstring44) || x_test_string(lret,varstring45) || x_test_string(lret,varstring46))
-                found=true;
-            break;
-        case 'i' :
-            if (x_test_string(lret,varstring47) || x_test_string(lret,varstring0) || x_test_string(lret,varstring48) || x_test_string(lret,varstring5) || x_test_string(lret,varstring55))
-                found=true;
-            break;
-        case 'j' :
-            if (x_test_string(lret,varstring49))
-                found=true;
-            break;
-        case 'l' :
-            if (x_test_string(lret,varstring50))
-                found=true;
-            break;
-        case 'n' :
-            if (x_test_string(lret,varstring51) || x_test_string(lret,varstring6) || x_test_string(lret,varstring52) || x_test_string(lret,varstring53))
-                found=true;
-            break;
-        case 'o' :
-            if (x_test_string(lret,varstring54) || x_test_string(lret,varstring56) || x_test_string(lret,varstring7) || x_test_string(lret,varstring57))
-                found=true;
-            break;
-        case 'p' :
-            if (x_test_string(lret,varstring58) || x_test_string(lret,varstring11) || x_test_string(lret,varstring59) || x_test_string(lret,varstring60))
-                found=true;
-            break;
-        case 'r' :
-            if (x_test_string(lret,varstring61) || x_test_string(lret,varstring62) || x_test_string(lret,varstring63) || x_test_string(lret,varstring64) || x_test_string(lret,varstring65))
-                found=true;
-            break;
-        case 's' :
-            if (x_test_string(lret,varstring66) || x_test_string(lret,varstring67) || x_test_string(lret,varstring68) || x_test_string(lret,varstring69) || x_test_string(lret,varstring70) || x_test_string(lret,varstring71))
-                found=true;
-            break;
-        case 't' :
-            if (x_test_string(lret,varstring72) || x_test_string(lret,varstring73) || x_test_string(lret,varstring74) || x_test_string(lret,varstring75))
-                found=true;
-            break;
-        case 'w' :
-            if (x_test_string(lret,varstring76) || x_test_string(lret,varstring77) || x_test_string(lret,varstring78))
-                found=true;
-            break;
-        case 'x' :
-            if (x_test_string(lret,varstring9))
-                found=true;
-            break;
-        case 'z' :
-            if (x_test_string(lret,varstring79))
-                found=true;
-            break;
-    }
-    if (found)
-        x_init_tree(tree,subtree,addsubtree);
-    else {
-        x_pop_node(tree,addsubtree);
-        currentpos=pos;
-        intoken=itok;
-        setfail(exitonfail);
-        return 0;
-    }
-    x_init_node(lreturn,lret,tree,label,pos,true);
-    return(1);
-}
 
 char bnf_tamgu::m_predicate_0_1(string& lreturn,x_node** tree) {
     if (gFail==1) return(0);
@@ -8368,7 +8016,7 @@ char bnf_tamgu::m_predicate(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYFAIL
     subtree=NULL;
-    if (m_notapredicate(lret,&subtree)) {
+    if (m_notreserved(lret,&subtree)) {
         x_pop_node(tree,addsubtree);
         currentpos=pos;
         intoken=itok;
@@ -8491,7 +8139,7 @@ char bnf_tamgu::m_retractcommand(string& lreturn,x_node** tree) {
     x_node* subtree=NULL;
     int addsubtree=0;
     bool exitonfail=false;
-    if (x_test_string(lret,varstring63))
+    if (x_test_string(lret,varstring52))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -8514,7 +8162,7 @@ char bnf_tamgu::m_assertcommandbefore(string& lreturn,x_node** tree) {
     x_node* subtree=NULL;
     int addsubtree=0;
     bool exitonfail=false;
-    if (x_test_string(lret,varstring19))
+    if (x_test_string(lret,varstring53))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -8539,7 +8187,7 @@ char bnf_tamgu::m_assertcommandafter(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYOR
     subtree=NULL;
-    if (x_test_string(lret,varstring20) || x_test_string(lret,varstring18))
+    if (x_test_string(lret,varstring54) || x_test_string(lret,varstring55))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -9614,7 +9262,7 @@ char bnf_tamgu::m_dependencyrule_0_1(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYOR
     subtree=NULL;
-    if (x_test_string(lret,varstring85) || x_test_string(lret,varstring86))
+    if (x_test_string(lret,varstring0) || x_test_string(lret,varstring1))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -12534,7 +12182,7 @@ char bnf_tamgu::m_rawfact(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYFAIL
     subtree=NULL;
-    if (m_notapredicate(lret,&subtree)) {
+    if (m_notreserved(lret,&subtree)) {
         x_pop_node(tree,addsubtree);
         currentpos=pos;
         intoken=itok;
@@ -13298,7 +12946,7 @@ char bnf_tamgu::m_static(string& lreturn,x_node** tree) {
     x_node* subtree=NULL;
     int addsubtree=0;
     bool exitonfail=false;
-    if (x_test_string(lret,varstring68))
+    if (x_test_string(lret,varstring56))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -13353,7 +13001,7 @@ char bnf_tamgu::m_letkeyword(string& lreturn,x_node** tree) {
     }
     //BODYFAIL
     subtree=NULL;
-    if (m_wrong(lret,&subtree)) {
+    if (m_notreserved(lret,&subtree)) {
         x_pop_node(tree,addsubtree);
         currentpos=pos;
         intoken=itok;
@@ -13649,7 +13297,7 @@ char bnf_tamgu::m_range_0_1_3(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYOR
     subtree=NULL;
-    if (x_test_string(lret,varstring87) || m_range_0_1_3_4(lret,&subtree))
+    if (x_test_string(lret,varstring57) || m_range_0_1_3_4(lret,&subtree))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -13909,7 +13557,7 @@ char bnf_tamgu::m_maybe(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring88)) 
+    if (x_test_string(lret,varstring58)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -13988,7 +13636,7 @@ char bnf_tamgu::m_declarationtaskell_0_2_3_4(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYOR
     subtree=NULL;
-    if (x_test_string(lret,varstring89) || m_declarationtaskell_0_2_3_4_5(lret,&subtree))
+    if (x_test_string(lret,varstring59) || m_declarationtaskell_0_2_3_4_5(lret,&subtree))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -14467,7 +14115,7 @@ char bnf_tamgu::m_otherwise(string& lreturn,x_node** tree) {
     }
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring57)) 
+    if (x_test_string(lret,varstring18)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -14650,7 +14298,7 @@ char bnf_tamgu::m_hlambda_0_2_4(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYOR
     subtree=NULL;
-    if (x_test_string(lret,varstring89) || m_hlambda_0_2_4_5(lret,&subtree))
+    if (x_test_string(lret,varstring59) || m_hlambda_0_2_4_5(lret,&subtree))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -15000,7 +14648,7 @@ char bnf_tamgu::m_lfold(string& lreturn,x_node** tree) {
     x_node* subtree=NULL;
     int addsubtree=0;
     bool exitonfail=false;
-    if (x_test_string(lret,varstring41))
+    if (x_test_string(lret,varstring60))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -15023,7 +14671,7 @@ char bnf_tamgu::m_rfold(string& lreturn,x_node** tree) {
     x_node* subtree=NULL;
     int addsubtree=0;
     bool exitonfail=false;
-    if (x_test_string(lret,varstring42))
+    if (x_test_string(lret,varstring61))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -15046,7 +14694,7 @@ char bnf_tamgu::m_lscan(string& lreturn,x_node** tree) {
     x_node* subtree=NULL;
     int addsubtree=0;
     bool exitonfail=false;
-    if (x_test_string(lret,varstring66))
+    if (x_test_string(lret,varstring62))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -15069,7 +14717,7 @@ char bnf_tamgu::m_rscan(string& lreturn,x_node** tree) {
     x_node* subtree=NULL;
     int addsubtree=0;
     bool exitonfail=false;
-    if (x_test_string(lret,varstring67))
+    if (x_test_string(lret,varstring63))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -15248,7 +14896,7 @@ char bnf_tamgu::m_taskellalloperator(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYOR
     subtree=NULL;
-    if (x_test_string(lret,varstring16) || x_test_string(lret,varstring17))
+    if (x_test_string(lret,varstring64) || x_test_string(lret,varstring65))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -15273,7 +14921,7 @@ char bnf_tamgu::m_taskellboolcheck(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYOR
     subtree=NULL;
-    if (x_test_string(lret,varstring8) || x_test_string(lret,varstring7) || x_test_string(lret,varstring9))
+    if (x_test_string(lret,varstring3) || x_test_string(lret,varstring17) || x_test_string(lret,varstring25))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -15296,7 +14944,7 @@ char bnf_tamgu::m_lfold1(string& lreturn,x_node** tree) {
     x_node* subtree=NULL;
     int addsubtree=0;
     bool exitonfail=false;
-    if (x_test_string(lret,varstring90))
+    if (x_test_string(lret,varstring66))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -15319,7 +14967,7 @@ char bnf_tamgu::m_rfold1(string& lreturn,x_node** tree) {
     x_node* subtree=NULL;
     int addsubtree=0;
     bool exitonfail=false;
-    if (x_test_string(lret,varstring91))
+    if (x_test_string(lret,varstring67))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -15342,7 +14990,7 @@ char bnf_tamgu::m_lscan1(string& lreturn,x_node** tree) {
     x_node* subtree=NULL;
     int addsubtree=0;
     bool exitonfail=false;
-    if (x_test_string(lret,varstring92))
+    if (x_test_string(lret,varstring68))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -15365,7 +15013,7 @@ char bnf_tamgu::m_rscan1(string& lreturn,x_node** tree) {
     x_node* subtree=NULL;
     int addsubtree=0;
     bool exitonfail=false;
-    if (x_test_string(lret,varstring93))
+    if (x_test_string(lret,varstring69))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -15492,15 +15140,15 @@ char bnf_tamgu::m_filterkeyword(string& lreturn,x_node** tree) {
     unsigned char xs = fx->stack[currentpos][intoken];
     switch (xs) {
         case 'd' :
-            if (x_test_string(lret,varstring95))
+            if (x_test_string(lret,varstring72))
                 found=true;
             break;
         case 'f' :
-            if (x_test_string(lret,varstring39))
+            if (x_test_string(lret,varstring71))
                 found=true;
             break;
         case 't' :
-            if (x_test_string(lret,varstring94))
+            if (x_test_string(lret,varstring70))
                 found=true;
             break;
     }
@@ -15528,7 +15176,7 @@ char bnf_tamgu::m_takekeyword(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYOR
     subtree=NULL;
-    if (x_test_string(lret,varstring72) || x_test_string(lret,varstring32))
+    if (x_test_string(lret,varstring73) || x_test_string(lret,varstring74))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -15648,7 +15296,7 @@ char bnf_tamgu::m_mapping(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring96)) 
+    if (x_test_string(lret,varstring75)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -16029,7 +15677,7 @@ char bnf_tamgu::m_zipping(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring97)) 
+    if (x_test_string(lret,varstring76)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -16109,7 +15757,7 @@ char bnf_tamgu::m_pairing(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring79)) 
+    if (x_test_string(lret,varstring77)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -16156,7 +15804,7 @@ char bnf_tamgu::m_cycle(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYOR
     subtree=NULL;
-    if (x_test_string(lret,varstring61) || x_test_string(lret,varstring27))
+    if (x_test_string(lret,varstring78) || x_test_string(lret,varstring79))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -16220,7 +15868,7 @@ char bnf_tamgu::m_repeating(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring62)) 
+    if (x_test_string(lret,varstring80)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -16270,7 +15918,7 @@ char bnf_tamgu::m_flipping(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring40)) 
+    if (x_test_string(lret,varstring81)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -16376,7 +16024,7 @@ char bnf_tamgu::m_taskellcaseotherwise(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring57)) 
+    if (x_test_string(lret,varstring18)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -16554,7 +16202,7 @@ char bnf_tamgu::m_taskellcase(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring23)) 
+    if (x_test_string(lret,varstring82)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -16579,7 +16227,7 @@ char bnf_tamgu::m_taskellcase(string& lreturn,x_node** tree) {
     }
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring54)) 
+    if (x_test_string(lret,varstring83)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -17394,7 +17042,7 @@ char bnf_tamgu::m_hoper(string& lreturn,x_node** tree) {
                 found=true;
             break;
         default:
-            if (x_test_string(lret,varstring1) || x_test_string(lret,varstring2) || x_test_string(lret,varstring3) || x_test_string(lret,varstring4)) 
+            if (x_test_string(lret,varstring28) || x_test_string(lret,varstring29) || x_test_string(lret,varstring30) || x_test_string(lret,varstring31)) 
                 found=true;
     }
     if (found)
@@ -17779,7 +17427,7 @@ char bnf_tamgu::m_hcomparator(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYOR
     subtree=NULL;
-    if (m_comparator_0_2(lret,&subtree) || x_test_string(lret,varstring10) || m_comparator_0_3(lret,&subtree) || m_comparator_0_4(lret,&subtree) || m_comparator_0_5(lret,&subtree) || m_comparator_0_6(lret,&subtree))
+    if (m_comparator_0_2(lret,&subtree) || x_test_string(lret,varstring33) || m_comparator_0_3(lret,&subtree) || m_comparator_0_4(lret,&subtree) || m_comparator_0_5(lret,&subtree) || m_comparator_0_6(lret,&subtree))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -18375,7 +18023,7 @@ char bnf_tamgu::m_whereexpression_0_1_2_3_4_5(string& lreturn,x_node** tree) {
     //bool exitonfail=false;
     //BODYOPTIONAL
     subtree=NULL;
-    if (x_test_string(lret,varstring50))
+    if (x_test_string(lret,varstring84))
         x_init_tree(tree,subtree,addsubtree);
     else
         lret="";
@@ -18609,7 +18257,7 @@ char bnf_tamgu::m_whereexpression(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring76)) 
+    if (x_test_string(lret,varstring23)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -18656,7 +18304,7 @@ char bnf_tamgu::m_hinexpression(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring48)) 
+    if (x_test_string(lret,varstring15)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -18690,7 +18338,7 @@ char bnf_tamgu::m_notadeclaration(string& lreturn,x_node** tree) {
     x_node* subtree=NULL;
     int addsubtree=0;
     bool exitonfail=false;
-    if (x_test_string(lret,varstring30))
+    if (x_test_string(lret,varstring7))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -18785,7 +18433,7 @@ char bnf_tamgu::m_deriving(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring30)) 
+    if (x_test_string(lret,varstring7)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -19302,7 +18950,7 @@ char bnf_tamgu::m_hdata(string& lreturn,x_node** tree) {
     }
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring28)) 
+    if (x_test_string(lret,varstring85)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -19439,7 +19087,7 @@ char bnf_tamgu::m_hontology(string& lreturn,x_node** tree) {
     }
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring56)) 
+    if (x_test_string(lret,varstring86)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -19522,7 +19170,7 @@ char bnf_tamgu::m_hconcept(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYOR
     subtree=NULL;
-    if (x_test_string(lret,varstring25) || x_test_string(lret,varstring65) || x_test_string(lret,varstring59))
+    if (x_test_string(lret,varstring87) || x_test_string(lret,varstring88) || x_test_string(lret,varstring89))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -19558,7 +19206,7 @@ char bnf_tamgu::m_conceptfunction(string& lreturn,x_node** tree) {
     }
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring78)) 
+    if (x_test_string(lret,varstring37)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -20314,7 +19962,7 @@ char bnf_tamgu::m_telque_0_1_2_7_8(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring50)) 
+    if (x_test_string(lret,varstring84)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -20471,7 +20119,7 @@ char bnf_tamgu::m_telque_0_1_2_7_14_17_18_19(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYOR
     subtree=NULL;
-    if (x_test_char(lret,'|') || x_test_string(lret,varstring76))
+    if (x_test_char(lret,'|') || x_test_string(lret,varstring23))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -21728,7 +21376,7 @@ char bnf_tamgu::m_abool(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYOR
     subtree=NULL;
-    if (x_test_string(lret,varstring74) || x_test_string(lret,varstring38))
+    if (x_test_string(lret,varstring90) || x_test_string(lret,varstring91))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -21866,7 +21514,7 @@ char bnf_tamgu::m_localif_0_1_2(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring34)) 
+    if (x_test_string(lret,varstring10)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -21919,7 +21567,7 @@ char bnf_tamgu::m_localif(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring47)) 
+    if (x_test_string(lret,varstring14)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -22012,7 +21660,7 @@ char bnf_tamgu::m_declarationfor_0_1(string& lreturn,x_node** tree) {
     }
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring48)) 
+    if (x_test_string(lret,varstring15)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -22058,7 +21706,7 @@ char bnf_tamgu::m_declarationfor_0_2(string& lreturn,x_node** tree) {
     }
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring48)) 
+    if (x_test_string(lret,varstring15)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -22542,7 +22190,7 @@ char bnf_tamgu::m_iftest_0_3_4(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring34)) 
+    if (x_test_string(lret,varstring10)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -22598,7 +22246,7 @@ char bnf_tamgu::m_iftest(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring47)) 
+    if (x_test_string(lret,varstring14)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -22692,7 +22340,7 @@ char bnf_tamgu::m_testelif(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring33)) 
+    if (x_test_string(lret,varstring9)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -22786,7 +22434,7 @@ char bnf_tamgu::m_loop(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring77)) 
+    if (x_test_string(lret,varstring24)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -22858,7 +22506,7 @@ char bnf_tamgu::m_doloop(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring31)) 
+    if (x_test_string(lret,varstring8)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -22880,7 +22528,7 @@ char bnf_tamgu::m_doloop(string& lreturn,x_node** tree) {
     }
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring77)) 
+    if (x_test_string(lret,varstring24)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -22975,7 +22623,7 @@ char bnf_tamgu::m_for(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring43)) 
+    if (x_test_string(lret,varstring11)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -23138,7 +22786,7 @@ char bnf_tamgu::m_forin_0_1_2(string& lreturn,x_node** tree) {
     }
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring48)) 
+    if (x_test_string(lret,varstring15)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -23208,7 +22856,7 @@ char bnf_tamgu::m_forin(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring43)) 
+    if (x_test_string(lret,varstring11)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -23291,7 +22939,7 @@ char bnf_tamgu::m_namespace(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring51)) 
+    if (x_test_string(lret,varstring92)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -23390,7 +23038,7 @@ char bnf_tamgu::m_switch(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring71)) 
+    if (x_test_string(lret,varstring21)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -23640,7 +23288,7 @@ char bnf_tamgu::m_trycatch(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring75)) 
+    if (x_test_string(lret,varstring93)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -23687,7 +23335,7 @@ char bnf_tamgu::m_trycatch(string& lreturn,x_node** tree) {
     }
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring24)) 
+    if (x_test_string(lret,varstring94)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -23850,7 +23498,7 @@ char bnf_tamgu::m_catchon(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_string(lret,varstring55)) 
+    if (x_test_string(lret,varstring26)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -23920,7 +23568,7 @@ char bnf_tamgu::m_default(string& lreturn,x_node** tree) {
     x_node* subtree=NULL;
     int addsubtree=0;
     bool exitonfail=false;
-    if (x_test_string(lret,varstring29))
+    if (x_test_string(lret,varstring95))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -24273,7 +23921,7 @@ char bnf_tamgu::m_tlvariable(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYFAIL
     subtree=NULL;
-    if (m_wrong(lret,&subtree)) {
+    if (m_notreserved(lret,&subtree)) {
         x_pop_node(tree,addsubtree);
         currentpos=pos;
         intoken=itok;
@@ -27142,7 +26790,7 @@ char bnf_tamgu::m_annotationrule_0_2(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYOR
     subtree=NULL;
-    if (m_range_0_1_3_4(lret,&subtree) || x_test_string(lret,varstring87))
+    if (m_range_0_1_3_4(lret,&subtree) || x_test_string(lret,varstring57))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
