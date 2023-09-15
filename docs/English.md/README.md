@@ -9,7 +9,7 @@
 7. [Function, Autorun, Thread](https://github.com/naver/tamgu/blob/master/docs/English.md/7_Function_autorun_thread.md)
 8. [Alias](https://github.com/naver/tamgu/blob/master/docs/English.md/8_Alias.md)
 9. [Loading External Files: Type Tamgu vs Loadin](https://github.com/naver/tamgu/blob/master/docs/English.md/9_Loading_external_files_Type_Tamgu_vs_loadin.md)
-10. [10 Frame](https://github.com/naver/tamgu/blob/master/docs/English.md/10_Frame.md)
+10. [Frame](https://github.com/naver/tamgu/blob/master/docs/English.md/10_Frame.md)
 11. [Extensions](https://github.com/naver/tamgu/blob/master/docs/English.md/11_Extensions.md)
 12. [Tamgu Contextual](https://github.com/naver/tamgu/blob/master/docs/English.md/12_Tamgu_Contextual.md)
 13. [Predefined Types](https://github.com/naver/tamgu/blob/master/docs/English.md/13_Predefined_Types.md)
