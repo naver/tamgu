@@ -2,10 +2,10 @@
 
 Un alias est similaire à une fonction, mais avec quelques différences spécifiques :
 
-a. Les paramètres sont décrits sans aucun type.
-b. Les arguments dans un alias peuvent tous être modifiés.
-c. Un alias peut être utilisé pour remplacer un appel de structure complexe.
-d. Un alias peut être utilisé comme une fonction simple, auquel cas il doit renvoyer sa valeur avec `return`.
+1. Les paramètres sont décrits sans aucun type.
+1. Les arguments dans un alias peuvent tous être modifiés.
+1. Un alias peut être utilisé pour remplacer un appel de structure complexe.
+1. Un alias peut être utilisé comme une fonction simple, auquel cas il doit renvoyer sa valeur avec `return`.
 
 ### Modèle
 
