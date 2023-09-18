@@ -99,15 +99,20 @@ vector v = r.parse(sentence);
 
 ```
 
-## Pre-compiled Releases
-__Note__: _Releases_ for Windows, Mac OS and Linux are available at: https://github.com/naver/tamgu/releases
-
 ## Documentation
-The documentation is available in : 
 
 **[English Documentation](https://github.com/naver/tamgu/blob/master/documentations/English/README.md)**
 
 **[한국어 문서](https://github.com/naver/tamgu/blob/master/documentations/Korean/README.md)**
+
+**[Documentation en français](https://github.com/naver/tamgu/blob/master/documentations/French/README.md)**
+
+**[Documentación en español](https://github.com/naver/tamgu/blob/master/documentations/Spanish/README.md)**
+
+
+## Pre-compiled Releases
+__Note__: _Releases_ for Windows, Mac OS and Linux are available at: https://github.com/naver/tamgu/releases
+
 
 ## Examples
 
