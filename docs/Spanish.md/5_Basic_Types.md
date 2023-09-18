@@ -1,8 +1,8 @@
-## 5 Tipos Básicos
+## Tipos Básicos
 
 Tamgu requiere que todos los elementos se declaren con un tipo específico. Los tipos pueden ser predefinidos o definidos por el usuario como un marco.
 
-### 5.1 Tipos predefinidos
+### Tipos predefinidos
 
 Tamgu propone algunos tipos muy básicos:
 

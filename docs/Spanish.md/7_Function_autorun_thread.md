@@ -2,7 +2,7 @@
 
 En Tamgu, una función se declara usando la palabra clave `function`, seguida de su nombre y parámetros. Un valor puede ser devuelto usando la palabra clave `return`. Los parámetros siempre se envían como valores, excepto si el tipo es `self`. Cabe destacar que una función no proporciona ninguna información de tipo para su valor de retorno.
 
-## 7.1 Imponiendo el tipo de retorno
+## Imponiendo el tipo de retorno
 
 Una función puede especificar un tipo de retorno usando el símbolo `::` después de la lista de argumentos. Por ejemplo:
 
@@ -15,7 +15,7 @@ function toto(int i) :: int {
 
 En este ejemplo, la función `toto` se declara para devolver un `int`.
 
-## 7.2 Autorun
+## Autorun
 
 Una función `autorun` se ejecuta automáticamente después de su declaración. Las funciones autorun solo se ejecutan en el archivo principal. Si tienes funciones autorun en un archivo que es llamado desde otro archivo, esas funciones no se ejecutarán.
 
@@ -27,7 +27,7 @@ autorun waitonred() {
 }
 ```
 
-## 7.3 Hilo
+## Hilo
 
 Cuando se lanza una función `thread`, se ejecuta en un hilo de sistema independiente.
 
@@ -202,7 +202,7 @@ function launch() {
 launch();
 ```
 
-## 7.4 Múltiples definiciones
+## Múltiples definiciones
 
 Tamgu permite múltiples definiciones de funciones que comparten el mismo nombre pero difieren en su definición de parámetros. Por ejemplo, puedes implementar un `display(string s)` y un `display(int s)`. En este caso, el sistema elegirá la función más adecuada según la lista de argumentos de la llamada a la función.
 
@@ -228,7 +228,7 @@ testmultipledeclaration(s1, s2); // La implementación de cadena
 testmultipledeclaration(i, j); // La implementación de entero
 ```
 
-## 7.5 Argumentos predeterminados
+## Argumentos predeterminados
 
 Tamgu proporciona un mecanismo para declarar argumentos predeterminados en una función. Puedes definir un valor para un parámetro que puede omitirse en la llamada.
 
@@ -244,7 +244,7 @@ acall(10, 5); // El resultado es: 88 = 10 + 5 + 30 + 43
 
 Nota: Solo los últimos parámetros en una lista de declaración pueden ser opcionales.
 
-## 7.6 Banderas específicas: Private y Strict
+## Banderas específicas: Private y Strict
 
 Las funciones también se pueden declarar con dos banderas específicas: `private` y `strict`.
 

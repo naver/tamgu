@@ -1,4 +1,4 @@
-# 36 Type Appel
+# Type Appel
 
 Cet objet est utilisé pour suivre les fonctions, qui peuvent ensuite être exécutées. L'appel est fait en utilisant le nom de variable comme fonction.
 

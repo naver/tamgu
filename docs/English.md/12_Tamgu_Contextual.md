@@ -33,7 +33,7 @@ print("S="+s+"\n");
 
 Output:
 ```
-S=10
+S=1210
 ```
 
 ## Implicit conversion

@@ -1,4 +1,4 @@
-# 43 Tipo Fibra
+# Tipo Fibra
 
 Una fibra es un hilo de ejecución ligero. Al igual que los hilos, las fibras comparten el mismo espacio de direcciones. Sin embargo, las fibras utilizan la multitarea cooperativa mientras que los hilos utilizan la multitarea preemptiva. Los hilos a menudo dependen del planificador de hilos del kernel para interrumpir un hilo ocupado y reanudar otro hilo, mientras que las fibras se ceden a sí mismas para permitir que se ejecute otra fibra mientras se ejecutan.
 

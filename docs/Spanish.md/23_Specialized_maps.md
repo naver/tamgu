@@ -1,6 +1,6 @@
 # Mapas Especializados
 
-## 23.1 Mapas (Árbol|Primo|Binario)
+## Mapas (Árbol|Primo|Binario)
 
 Estos tipos son muy similares a los "Map" y "TreeMap" con una excepción: utilizan enteros (`MapI`, `TreeMapI`, `PrimeMapI`), flotantes (`MapF`, `TreeMapF`, `PrimeMapF`), o cadenas de texto (`MapU`, `TreeMapU`, `PrimeMapU`) como claves, mientras que "Map", "TreeMap" y "PrimeMap" utilizan cadenas de texto.
 
@@ -21,7 +21,7 @@ Sin embargo, algunos mapas ya son parte del intérprete principal y no requieren
 
 Para los demás, debe cargar `allmaps` primero.
 
-## 23.2 Mapas de Valor Especializados
+## Mapas de Valor Especializados
 
 Estos mapas específicos tienen una clave, que puede ser una cadena de texto, un entero o un flotante, y un valor, que también es necesario que sea una cadena de texto, un entero o un flotante. La convención de nomenclatura en este caso es:
 

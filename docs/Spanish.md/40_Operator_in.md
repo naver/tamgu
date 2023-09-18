@@ -2,7 +2,7 @@
 
 Este operador tiene un comportamiento rico, por lo que tenemos una sección dedicada para explicarlo. En la descripción anterior, ya discutimos algunos posibles usos de este operador con archivos, vectores, mapas o cadenas. Ahora, veamos cómo también se puede usar con frames.
 
-## 1. "in" dentro de un Frame
+## "in" dentro de un Frame
 
 Un frame puede tener una función `in`, que se utiliza cuando se aplica el operador `in` a un frame. Si un objeto frame no tiene una función `in`, entonces el operador siempre devuelve falso.
 

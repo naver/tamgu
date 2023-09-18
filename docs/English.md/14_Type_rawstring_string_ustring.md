@@ -126,8 +126,8 @@ Tamgu allows indexing and modification of strings using indexes:
 
 - `str[i]`: Returns the `i`th character of a string.
 - `str[i:j]`: Returns the substring between `i` and `j`.
-- `str[s:]`: Returns the substring starting at string `s`.
-- `str[-s:]`: Returns the substring starting at string `s` from the end of the string.
+- `str[s..]`: Returns the substring starting at string `s`.
+- `str[-s..]`: Returns the substring starting at string `s` from the end of the string.
 
 If an index is out of bounds, an exception is raised unless the flag `erroronkey` has been set to `false`.
 

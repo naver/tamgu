@@ -1,8 +1,8 @@
-## 5 Types de base
+## Types de base
 
 Tamgu nécessite que tous les éléments soient déclarés avec un type spécifique. Les types peuvent être prédéfinis ou définis par l'utilisateur en tant que frame.
 
-### 5.1 Types prédéfinis
+### Types prédéfinis
 
 Tamgu propose quelques types très basiques :
 

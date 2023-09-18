@@ -1,4 +1,4 @@
-# 43 Type Fibre
+# Type Fibre
 
 Une fibre est un fil d'exécution léger. Comme les threads, les fibres partagent le même espace d'adressage. Cependant, les fibres utilisent une multitâche coopérative tandis que les threads utilisent une multitâche préemptive. Les threads s'appuient souvent sur le planificateur de threads du noyau pour préempter un thread occupé et reprendre l'exécution d'un autre thread, tandis que les fibres se laissent passer la main pour permettre à une autre fibre de s'exécuter.
 

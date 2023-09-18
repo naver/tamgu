@@ -1,6 +1,6 @@
 # Specialized Maps
 
-## 23.1 (Tree|Prime|Bin)Maps
+## (Tree|Prime|Bin)Maps
 
 These types are very similar to the "Map" and "TreeMap" with one exception: they use integers (`MapI`, `TreeMapI`, `PrimeMapI`), floats (`MapF`, `TreeMapF`, `PrimeMapF`), or ustrings (`MapU`, `TreeMapU`, `PrimeMapU`) as keys, while "Map", "TreeMap", and "PrimeMap" use strings.
 
@@ -21,7 +21,7 @@ However, some maps are already part of the main interpreter and do not require l
 
 For the others, you need to load `allmaps` first.
 
-## 23.2 Specialized Value Maps
+## Specialized Value Maps
 
 These specific maps have a key, which can be a string, an integer, or a float, and a value, which is also necessary a string, an integer, or a float. The naming convention in this case is:
 

@@ -2,7 +2,7 @@
 
 En Tamgu, une fonction est déclarée en utilisant le mot-clé `function`, suivi de son nom et de ses paramètres. Une valeur peut être renvoyée en utilisant le mot-clé `return`. Les paramètres sont toujours envoyés en tant que valeurs, sauf si le type est `self`. Il convient de noter qu'une fonction ne fournit aucune information de type pour sa valeur de retour.
 
-## 7.1 Imposer un type de retour
+## Imposer un type de retour
 
 Une fonction peut spécifier un type de retour en utilisant le symbole `::` après la liste des arguments. Par exemple:
 
@@ -15,7 +15,7 @@ function toto(int i) :: int {
 
 Dans cet exemple, la fonction `toto` est déclarée pour renvoyer un `int`.
 
-## 7.2 Autorun
+## Autorun
 
 Une fonction `autorun` est automatiquement exécutée après sa déclaration. Les fonctions autorun ne sont exécutées que dans le fichier principal. Si vous avez des fonctions autorun dans un fichier appelé depuis un autre fichier, ces fonctions ne seront pas exécutées.
 
@@ -27,7 +27,7 @@ autorun waitonred() {
 }
 ```
 
-## 7.3 Thread
+## Thread
 
 Lorsqu'une fonction `thread` est lancée, elle est exécutée dans un thread système indépendant.
 
@@ -202,7 +202,7 @@ function launch() {
 launch();
 ```
 
-## 7.4 Définitions multiples
+## Définitions multiples
 
 Tamgu permet de définir plusieurs fonctions portant le même nom mais différant dans leur définition de paramètre. Par exemple, vous pouvez implémenter une `display(string s)` et une `display(int s)`. Dans ce cas, le système choisira la fonction la plus appropriée en fonction de la liste des arguments de l'appel de fonction.
 
@@ -228,7 +228,7 @@ testmultipledeclaration(s1, s2); // L'implémentation de la chaîne de caractèr
 testmultipledeclaration(i, j); // L'implémentation de l'entier
 ```
 
-## 7.5 Arguments par défaut
+## Arguments par défaut
 
 Tamgu permet de déclarer des arguments par défaut dans une fonction. Vous pouvez définir une valeur pour un paramètre qui peut être omis lors de l'appel.
 
@@ -244,7 +244,7 @@ acall(10, 5); // Le résultat est: 88 = 10 + 5 + 30 + 43
 
 Remarque: seuls les derniers paramètres dans une liste de déclaration peuvent être facultatifs.
 
-## 7.6 Drapeaux spécifiques: Private & Strict
+## Drapeaux spécifiques: Private & Strict
 
 Les fonctions peuvent également être déclarées avec deux drapeaux spécifiques: `private` et `strict`.
 

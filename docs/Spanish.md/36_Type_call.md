@@ -1,4 +1,4 @@
-# 36 Tipo de Llamada
+# Tipo de Llamada
 
 Este objeto se utiliza para realizar un seguimiento de las funciones, las cuales luego pueden ser ejecutadas. La llamada se realiza utilizando el nombre de la variable como una función.
 

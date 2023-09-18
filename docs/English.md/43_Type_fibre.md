@@ -1,4 +1,4 @@
-# 43 Type Fibre
+# Type Fibre
 
 A fibre is a lightweight thread of execution. Like threads, fibres share the same address space. However, fibres use cooperative multitasking while threads use preemptive multitasking. Threads often rely on the kernel's thread scheduler to preempt a busy thread and resume another thread, whereas fibres yield themselves to allow another fibre to run while executing.
 

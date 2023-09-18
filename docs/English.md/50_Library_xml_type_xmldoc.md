@@ -2,7 +2,7 @@
 
 This type is used to handle XML documents. It can be used to create a new XML document or to parse one. It is possible to associate a function with an xmldoc variable when parsing a document to have access to each node on the fly. This type is accessed through the library xml: `use("xml")`.
 
-## 50.1 Methods
+## Methods
 
 1. `close()`: Close the current XML document and clean the memory from all XML values.
 2. `create(string topnode)`: Create a new XML document, whose main node has topnode as its name. If topnode is a full XML structure, then use it to create the document.
@@ -16,7 +16,7 @@ This type is used to handle XML documents. It can be used to create a new XML do
 10. `xmlstring()`: Return an XML document as a string.
 11. `xpath(string myxpath)`: Evaluate an XPath and return a vector of XML nodes.
 
-## 50.2 Associated function
+## Associated function
 
 The associated function must have the following signature:
 

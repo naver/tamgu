@@ -1,6 +1,6 @@
 # Tamgu Contextuel
 
-## 12.1 Tamgu est un langage de programmation contextuel.
+## Tamgu est un langage de programmation contextuel.
 
 Dans Tamgu, la manière dont une variable est traitée dépend de son contexte d'utilisation. Lorsque deux variables sont utilisées ensemble à travers un opérateur, le résultat de l'opération dépend du type de la variable à gauche, qui introduit l'opération. Dans le cas d'une affectation, le type de la variable réceptrice détermine le type de l'ensemble du groupe.
 
@@ -36,7 +36,7 @@ Sortie:
 S=1210
 ```
 
-## 12.2 Conversion implicite
+## Conversion implicite
 
 La notion de contexte est très importante dans Tamgu car elle définit comment chaque variable doit être interprétée. Les conversions implicites sont effectuées automatiquement pour certains types. Par exemple, un entier est automatiquement transformé en une chaîne de caractères, avec ses propres chiffres comme valeur. Dans le cas d'une chaîne de caractères, le contenu est transformé en un nombre si la chaîne ne contient que des chiffres, sinon il est 0.
 

@@ -1,4 +1,4 @@
-# 10 Frame
+# Frame
 
 La clase `Frame` se utiliza para declarar estructuras de datos complejas junto con funciones. Proporciona las siguientes características:
 
@@ -27,7 +27,7 @@ frame myframe {
 }
 ```
 
-## 10.1 Uso de un frame
+## Uso de un frame
 
 Se declara un objeto frame con el nombre de su frame como tipo. 
 
@@ -44,7 +44,7 @@ first = myframe; // equivalente a "new myframe" en C++ o Java
 myframe.display();
 ```
 
-## 10.2 Función `_initial`
+## Función `_initial`
 
 Se puede asociar una función creadora con un frame. Esta función se llama automáticamente cuando se crea una nueva instancia de ese frame.
 
@@ -68,7 +68,7 @@ frame myframe {
 myframe second(10); // los parámetros se pasan a la función _initial como en C++
 ```
 
-## 10.3 Función `_final`
+## Función `_final`
 
 La función `_final` se llama cada vez que se elimina un objeto frame. Por lo general, un objeto que se declara en una función o en un bucle se elimina una vez que esta función o bucle termina.
 
@@ -102,7 +102,7 @@ while (i >= 0) {
 }
 ```
 
-## 10.4 Orden de inicialización
+## Orden de inicialización
 
 Cuando se declaran elementos dentro de un frame, la llamada a la función `_initial` se realiza de arriba hacia abajo hasta sus hijos. Además, si un elemento dentro de un frame F se instancia dentro de la función `_initial` de ese frame F, entonces esta declaración tiene prioridad sobre cualquier otra declaración.
 
@@ -138,7 +138,7 @@ frame test {
 test t1(20);
 ```
 
-## 10.5 Creación dentro del constructor
+## Creación dentro del constructor
 
 Es posible crear un elemento frame tanto declarando su inicialización directamente en la lista de campos del frame como dentro del propio constructor. Cuando la construcción del elemento frame se realiza en el constructor, basta con una declaración simple; cualquier otra declaración sería redundante.
 
@@ -169,7 +169,7 @@ test t1(20);
 Importante:
 Si se requieren parámetros del constructor para "w" y no se realiza ninguna creación de ese elemento "w" en el constructor, entonces Tamgu mostrará un error sobre los parámetros que faltan.
 
-## 10.6 Variables comunes
+## Variables comunes
 
 Tamgu proporciona una forma sencilla de declarar variables de clase. Una variable de clase es una variable cuyo valor se comparte entre todas las instancias de un frame dado.
 
@@ -187,7 +187,7 @@ t2.i = 15;
 println(t1.i, t2.i); // muestra para ambas variables: 15 15
 ```
 
-## 10.7 Funciones y miembros privados
+## Funciones y miembros privados
 
 Se pueden declarar ciertas funciones o variables como privadas en un frame. Una función o una variable privada solo se puede acceder desde dentro del frame.
 
@@ -223,7 +223,7 @@ test.modify(100); // esta instrucción no es válida ya que "modify" es privado
 println(test.s); // esta instrucción no es válida ya que "s" es privado
 ```
 
-## 10.8 Sub-framing o Enriqueciendo un Frame
+## Sub-framing o Enriqueciendo un Frame
 
 Tamgu permite al programador enriquecer o sub-framear un frame existente. Se puede implementar una descripción de frame en unos pocos pasos. Por ejemplo, se puede comenzar con una primera descripción y luego decidir enriquecerla más tarde en el programa.
 
@@ -298,7 +298,7 @@ st.display(); // muestra: "En subtest, 2" y "En test, 2"
 st.test::display(); // muestra: "En test, 2"
 ```
 
-## 10.9 Funciones del sistema
+## Funciones del sistema
 
 Las funciones del sistema se utilizan para asignar los diferentes operadores del lenguaje Tamgu a los métodos de un frame.
 

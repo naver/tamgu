@@ -2,11 +2,11 @@
 
 Le type `tamgu` est utilisé pour charger dynamiquement un programme Tamgu spécifique. D'autre part, `loadin` est utilisé pour charger le contenu d'un fichier dans le programme actuel.
 
-### 9.1 Méthodes
+### Méthodes
 
 1. `tamgu var(string Tamgu pathname)`: Crée et charge un programme Tamgu.
 
-### 9.2 Exécution de fonctions externes
+### Exécution de fonctions externes
 
 Les fonctions disponibles dans le fichier Tamgu peuvent être appelées via une variable `tamgu`.
 

@@ -1,4 +1,4 @@
-# 36 Type Call
+# Type Call
 
 This object is used to keep track of functions, which can then be executed. The call is made using the variable name as a function.
 

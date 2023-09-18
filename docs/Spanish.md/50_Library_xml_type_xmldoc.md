@@ -2,7 +2,7 @@
 
 Este tipo se utiliza para manejar documentos XML. Se puede utilizar para crear un nuevo documento XML o para analizar uno existente. Es posible asociar una función con una variable xmldoc al analizar un documento para tener acceso a cada nodo mientras se procesa. Este tipo se accede a través de la biblioteca xml: `use("xml")`.
 
-## 50.1 Métodos
+## Métodos
 
 1. `close()`: Cierra el documento XML actual y libera la memoria de todos los valores XML.
 2. `create(string topnode)`: Crea un nuevo documento XML, cuyo nodo principal tiene como nombre topnode. Si topnode es una estructura XML completa, entonces se utiliza para crear el documento.
@@ -16,7 +16,7 @@ Este tipo se utiliza para manejar documentos XML. Se puede utilizar para crear u
 10. `xmlstring()`: Devuelve un documento XML como una cadena.
 11. `xpath(string myxpath)`: Evalúa una expresión XPath y devuelve un vector de nodos XML.
 
-## 50.2 Función asociada
+## Función asociada
 
 La función asociada debe tener la siguiente firma:
 

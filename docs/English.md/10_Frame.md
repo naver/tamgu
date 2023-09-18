@@ -1,4 +1,4 @@
-# 10 Frame
+# Frame
 
 The `Frame` class is used to declare complex data structures along with functions. It provides the following features:
 
@@ -27,7 +27,7 @@ frame myframe {
 }
 ```
 
-## 10.1 Using a frame
+## Using a frame
 
 A frame object is declared with the name of its frame as a type. 
 
@@ -44,7 +44,7 @@ first = myframe; // equivalent to "new myframe" in C++ or Java
 myframe.display();
 ```
 
-## 10.2 `_initial` function
+## `_initial` function
 
 A creator function can be associated with a frame. This function is automatically called when a new instance of that frame is created.
 
@@ -68,7 +68,7 @@ frame myframe {
 myframe second(10); // the parameters are then passed to the _initial function as in C++
 ```
 
-## 10.3 `_final` function
+## `_final` function
 
 The `_final` function is called whenever a frame object is deleted. Usually, an object that is declared in a function or in a loop is deleted once this function or loop ends.
 
@@ -102,7 +102,7 @@ while (i >= 0) {
 }
 ```
 
-## 10.4 Initialization Order
+## Initialization Order
 
 When items are declared within a frame, the call to the `_initial` function is done from the top down to its children. Furthermore, if an item within a frame F is instantiated within the `_initial` function of that frame F, then this declaration takes precedence over any other declarations.
 
@@ -138,7 +138,7 @@ frame test {
 test t1(20);
 ```
 
-## 10.5 Creation within the constructor
+## Creation within the constructor
 
 It is possible to create a frame element by either declaring its initialization directly into the frame field list or within the constructor itself. When the frame element construction is made in the constructor, a simple declaration suffices; any other declaration would be redundant.
 
@@ -169,7 +169,7 @@ test t1(20);
 Important:
 If constructor parameters are required for "w" and no creation of that element "w" is done in the constructor, then Tamgu will yield an error about missing parameters.
 
-## 10.6 Common Variables
+## Common Variables
 
 Tamgu provides a simple way to declare class variables. A class variable is a variable whose value is shared across all instances of a given frame.
 
@@ -187,7 +187,7 @@ t2.i = 15;
 println(t1.i, t2.i); // display for both variables: 15 15
 ```
 
-## 10.7 Private Functions and Members
+## Private Functions and Members
 
 Certain functions or variables can be declared as private in a frame. A private function or a private variable can only be accessed from within the frame.
 
@@ -223,7 +223,7 @@ test.modify(100); // this instruction is illegal as "modify" is private
 println(test.s); // this instruction is illegal as "s" is private
 ```
 
-## 10.8 Sub-framing or Enriching a Frame
+## Sub-framing or Enriching a Frame
 
 Tamgu enables the programmer to enrich or sub-frame an existing frame. A frame description can be implemented in a few steps. For instance, one can start with a first description and then decide to enrich it later in the program.
 
@@ -298,7 +298,7 @@ st.display(); // display: "In subtest, 2" and "In test, 2"
 st.test::display(); // display: "In test, 2"
 ```
 
-## 10.9 System Functions
+## System Functions
 
 System functions are used to map the different operators of the Tamgu language onto frame methods.
 

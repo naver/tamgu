@@ -2,7 +2,7 @@
 
 In Tamgu, a function is declared using the keyword `function`, followed by its name and parameters. A value can be returned using the keyword `return`. Parameters are always sent as values, except if the type is `self`. It should be noted that a function does not provide any type information for its return value.
 
-## 7.1 Enforcing Return Type
+## Enforcing Return Type
 
 A function can specify a return type by using the `::` symbol after the argument list. For example:
 
@@ -15,7 +15,7 @@ function toto(int i) :: int {
 
 In this example, the function `toto` is declared to return an `int`.
 
-## 7.2 Autorun
+## Autorun
 
 An `autorun` function is automatically executed after its declaration. Autorun functions are only executed in the main file. If you have autorun functions in a file that is called from another file, those functions will not be executed.
 
@@ -27,7 +27,7 @@ autorun waitonred() {
 }
 ```
 
-## 7.3 Thread
+## Thread
 
 When a `thread` function is launched, it is executed in an independent system thread.
 
@@ -202,7 +202,7 @@ function launch() {
 launch();
 ```
 
-## 7.4 Multiple Definitions
+## Multiple Definitions
 
 Tamgu allows for multiple definitions of functions sharing the same name but differing in their parameter definition. For example, you can implement a `display(string s)` and a `display(int s)`. In this case, the system will choose the most suitable function based on the argument list of the function call.
 
@@ -228,7 +228,7 @@ testmultipledeclaration(s1, s2); // The string implementation
 testmultipledeclaration(i, j); // The integer implementation
 ```
 
-## 7.5 Default Arguments
+## Default Arguments
 
 Tamgu provides a mechanism to declare default arguments in a function. You can define a value for a parameter that can be omitted from the call.
 
@@ -244,7 +244,7 @@ acall(10, 5); // The result is: 88 = 10 + 5 + 30 + 43
 
 Note: Only the last parameters in a declaration list can be optional.
 
-## 7.6 Specific Flags: Private & Strict
+## Specific Flags: Private & Strict
 
 Functions can also be declared with two specific flags: `private` and `strict`.
 

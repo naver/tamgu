@@ -1,8 +1,8 @@
-## 5 Basic Types
+## Basic Types
 
 Tamgu requires all items to be declared with a specific type. Types can be either predefined or user-defined as a frame.
 
-### 5.1 Predefined types
+### Predefined types
 
 Tamgu proposes some very basic types:
 
