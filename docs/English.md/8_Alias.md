@@ -2,10 +2,10 @@
 
 An alias is similar to a function, but with some specific differences:
 
-a) Parameters are described without any types.
-b) Arguments in an alias can all be modified.
-c) An alias can be used to replace a complex structure call.
-d) An alias can be used as a simple function, in which case it must return its value with `return`.
+1. Parameters are described without any types.
+1. Arguments in an alias can all be modified.
+1. An alias can be used to replace a complex structure call.
+1. An alias can be used as a simple function, in which case it must return its value with `return`.
 
 ### Pattern
 
