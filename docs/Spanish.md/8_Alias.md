@@ -2,10 +2,10 @@
 
 Un alias es similar a una función, pero con algunas diferencias específicas:
 
-a) Los parámetros se describen sin ningún tipo.
-b) Los argumentos en un alias pueden ser modificados.
-c) Un alias puede ser utilizado para reemplazar una llamada a una estructura compleja.
-d) Un alias puede ser utilizado como una función simple, en cuyo caso debe devolver su valor con `return`.
+1. Los parámetros se describen sin ningún tipo.
+1. Los argumentos en un alias pueden ser modificados.
+1. Un alias puede ser utilizado para reemplazar una llamada a una estructura compleja.
+1. Un alias puede ser utilizado como una función simple, en cuyo caso debe devolver su valor con `return`.
 
 ### Patrón
 
