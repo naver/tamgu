@@ -1,6 +1,6 @@
 # Tamgu Contextual
 
-## 12.1 Tamgu is a contextual programming language.
+## Tamgu is a contextual programming language.
 
 In Tamgu, the way a variable is handled depends on its context of utilization. When two variables are used together through an operator, the result of the operation depends on the type of the variable on the left, which introduces the operation. In the case of an assignment, the type of the receiving variable determines the type of the entire group.
 
@@ -33,10 +33,10 @@ print("S="+s+"\n");
 
 Output:
 ```
-S=1210
+S=10
 ```
 
-## 12.2 Implicit conversion
+## Implicit conversion
 
 The notion of context is very important in Tamgu as it defines how each variable should be interpreted. Implicit conversions are processed automatically for certain types. For instance, an integer is automatically transformed into a string, with its own digits as the value. In the case of a string, the content is transformed into a number if the string only contains digits, otherwise it is 0.
 
