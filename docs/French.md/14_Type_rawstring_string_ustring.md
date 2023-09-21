@@ -135,7 +135,7 @@ Si un index est hors limites, une exception est levée à moins que le drapeau `
 
 Voici quelques exemples de manipulations de chaînes dans Tamgu :
 
-```javascript
+```java
 string s;
 string x;
 vector v;
