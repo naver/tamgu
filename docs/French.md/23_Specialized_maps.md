@@ -1,4 +1,4 @@
-# Cartes spécialisées
+# Dictionaires spécialisées
 
 ## Maps (Arbres|Premiers|Binaires)
 
