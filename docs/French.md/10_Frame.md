@@ -451,3 +451,19 @@ test[1] = 5; // Nous appelons la fonction [](...)
 // Nous appelons la fonction [:](...)
 println(test[0], test[1], test[0:]); // Affichage : 10 5 [10, 5]
 ```
+
+## Conteneurs spécialisés pour les `frames``
+
+Il est possible de contraindre les conteneurs de n'accepter qu'un certain type de `frame`. Il suffit de déclarer le vecteur ou le dictionnaire de la façon suivante:
+
+```Java
+frame Test {
+    int a;
+}
+
+vector<Test> v;
+map<Test> m;
+```
+Notons que dans le cas d'un dictionnaire (map), ce sont les valeurs et non les clefs qui sont de type `Test`.
+
+Toute tentative d'ajouter une valeur qui n'est pas compatible avec la `frame` entrainera une erreur d'allocation.

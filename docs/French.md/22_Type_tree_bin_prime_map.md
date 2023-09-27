@@ -1,4 +1,4 @@
-# Type (Tree, Binary, Prime) Map
+# Type (tree, bin, prime) Map
 
 Une map est une table de hachage qui utilise une chaîne de caractères ou tout élément pouvant être analysé comme une chaîne de caractères comme clé. La map dans Tamgu convertit toutes les clés en une chaîne de caractères, ce qui signifie que "123" et 123 sont considérés comme une clé unique.
 

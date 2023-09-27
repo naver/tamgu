@@ -451,3 +451,20 @@ test[1] = 5; // We call function [](...)
 // We call function [:](...)
 println(test[0], test[1], test[0:]); // Display: 10 5 [10, 5]
 ```
+
+## Specialized containers for `frames`
+
+It is possible to constrain containers to only accept a certain type of `frame`. You just need to declare the vector or dictionary as follows:
+
+```Java
+frame Test {
+    int a;
+}
+
+vector<Test> v;
+map<Test> m;
+```
+
+Note that in the case of a dictionary (map), it is the values and not the keys that are of type `Test`.
+
+Any attempt to add a value that is not compatible with the `frame` will result in an allocation error.
