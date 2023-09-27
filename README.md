@@ -109,6 +109,7 @@ vector v = r.parse(sentence);
 
 **[Documentación en español](https://github.com/naver/tamgu/blob/master/documentations/Spanish/README.md)**
 
+**[Ελληνική τεκμηρίωση](https://github.com/naver/tamgu/blob/master/documentations/Greek/README.md)**
 
 ## Pre-compiled Releases
 __Note__: _Releases_ for Windows, Mac OS and Linux are available at: https://github.com/naver/tamgu/releases
