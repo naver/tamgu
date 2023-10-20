@@ -54,10 +54,15 @@ public:
 		return this;
 	}
 
-	Tamgu* Putvalue(Tamgu* v, short idthread) {
-		value = v->Boolean();
-		return this;
-	}
+    Tamgu* Putvalue(Tamgu* v, short idthread) {
+        value = v->Boolean();
+        return this;
+    }
+
+    Tamgu* Clonevalue(Tamgu* v, short idthread) {
+        value = v->Boolean();
+        return this;
+    }
 
     void Putatomicvalue(Tamgu* v) {
         value = v->Boolean();
@@ -327,6 +332,11 @@ public:
         return this;
     }
     
+    Tamgu* Clonevalue(Tamgu* v, short idthread) {
+        value = v->Boolean();
+        return this;
+    }
+    
     void Putatomicvalue(Tamgu* v) {
         value = v->Boolean();
     }
@@ -584,6 +594,11 @@ public:
     }
     
     Tamgu* Putvalue(Tamgu* ke, short) {
+        value = ke->Boolean();
+        return aTRUE;
+    }
+    
+    Tamgu* Clonevalue(Tamgu* ke, short) {
         value = ke->Boolean();
         return aTRUE;
     }

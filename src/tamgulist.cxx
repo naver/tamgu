@@ -639,7 +639,7 @@ Exporting Tamgu*  Tamgulist::Put(Tamgu* idx, Tamgu* ke, short idthread) {
         }
         ke = ke->Vector(idthread);
         if (!ke->isVectorContainer())
-            return globalTamgu->Returnerror("Cannot set this value", idthread);
+            return globalTamgu->Returnerror(e_cannot_set_this, idthread);
 
         Clear();
         //We copy all values from ke to this
@@ -666,7 +666,7 @@ Exporting Tamgu*  Tamgulist::Put(Tamgu* idx, Tamgu* ke, short idthread) {
 
         if (rkey < lkey || rkey >= values.size() || lkey >= values.size()) {
             if (globalTamgu->erroronkey)
-                globalTamgu->Returnerror("Wrong index", idthread);
+                globalTamgu->Returnerror(e_wrong_index, idthread);
             return aTRUE;
         }
 
@@ -740,7 +740,7 @@ Exporting Tamgu*  Tamgulist::Put(Tamgu* idx, Tamgu* ke, short idthread) {
             if (ikey < 0) {
                 ikey = mx + ikey;
                 if (ikey < 0)
-                    return globalTamgu->Returnerror("Cannot set this value", idthread);
+                    return globalTamgu->Returnerror(e_cannot_set_this, idthread);
             }
             ke = ke->Atom();
             listValue(it, ikey);
@@ -817,7 +817,7 @@ Exporting Tamgu* Tamgulist::Eval(Tamgu* contextualpattern, Tamgu* idx, short idt
 	if (ikey < 0 || ikey >= values.size()) {
 		unlocking();
 		if (globalTamgu->erroronkey)
-			return globalTamgu->Returnerror("Wrong index", idthread);
+			return globalTamgu->Returnerror(e_wrong_index, idthread);
 		return aNOELEMENT;
 	}
 
@@ -840,7 +840,7 @@ Exporting Tamgu* Tamgulist::Eval(Tamgu* contextualpattern, Tamgu* idx, short idt
         if (iright<ikey) {
             unlocking();
             if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong index", idthread);
+                return globalTamgu->Returnerror(e_wrong_index, idthread);
             return aNOELEMENT;
         }
     }
@@ -848,7 +848,7 @@ Exporting Tamgu* Tamgulist::Eval(Tamgu* contextualpattern, Tamgu* idx, short idt
         if (iright>values.size()) {
             unlocking();
             if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong index", idthread);
+                return globalTamgu->Returnerror(e_wrong_index, idthread);
             return aNOELEMENT;
         }
     }
@@ -2397,7 +2397,7 @@ Exporting Tamgu*  Tamguring::Put(Tamgu* idx, Tamgu* value, short idthread) {
         
         value = value->Vector(idthread);
         if (!value->isVectorContainer())
-            return globalTamgu->Returnerror("Cannot set this value", idthread);
+            return globalTamgu->Returnerror(e_cannot_set_this, idthread);
         
         sz = value->Size();
         
@@ -2423,7 +2423,7 @@ Exporting Tamgu*  Tamguring::Put(Tamgu* idx, Tamgu* value, short idthread) {
     if (ikey < 0) {
         ikey = mx + ikey;
         if (ikey < 0)
-            return globalTamgu->Returnerror("Cannot set this value", idthread);
+            return globalTamgu->Returnerror(e_cannot_set_this, idthread);
     }
     value = value->Atom();
     value->Addreference(investigate,reference+1);
@@ -2481,7 +2481,7 @@ Exporting Tamgu* Tamguring::Eval(Tamgu* contextualpattern, Tamgu* idx, short idt
     if (ikey < 0 || key == NULL) {
         if (ikey != mx || keyright == NULL) {
             if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong index", idthread);
+                return globalTamgu->Returnerror(e_wrong_index, idthread);
             return aNOELEMENT;
         }
     }
@@ -2504,14 +2504,14 @@ Exporting Tamgu* Tamguring::Eval(Tamgu* contextualpattern, Tamgu* idx, short idt
         iright = mx + iright;
         if (iright<ikey) {
             if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong index", idthread);
+                return globalTamgu->Returnerror(e_wrong_index, idthread);
             return aNOELEMENT;
         }
     }
     else {
         if (iright>mx) {
             if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong index", idthread);
+                return globalTamgu->Returnerror(e_wrong_index, idthread);
             return aNOELEMENT;
         }
     }
@@ -2894,6 +2894,9 @@ Tamgu* Tamgujava_vector::Newvalue(Tamgu* a, short idthread) {
 }
 
 Exporting Tamgu* Tamgujava_vector::MethodShape(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    if (iter == NULL)
+        return globalTamgu->Returnerror("Error: No Java Structure attached");
+
     long nb = callfunc->Size();
     if (!nb) {
         Tamguivector* ivector = globalTamgu->Provideivector();
@@ -2907,7 +2910,7 @@ Exporting Tamgu* Tamgujava_vector::MethodShape(Tamgu* contextualpattern, short i
     Tamgu* v = callfunc->Evaluate(0, contextualpattern, idthread);
     if (v->isVectorContainer()) {
         if (nb != 1)
-            globalTamgu->Returnerror("Wrong shape definition", idthread);
+            globalTamgu->Returnerror(e_wrong_shape_definition, idthread);
         nb = v->Size();
         for (long i = 0; i < nb; i++) {
             shape.push_back(v->getinteger(i));
@@ -2923,6 +2926,7 @@ Exporting Tamgu* Tamgujava_vector::MethodShape(Tamgu* contextualpattern, short i
 }
 
 Exporting Tamgu* Tamgujava_vector::in(Tamgu* c, Tamgu* a, short idthread) {
+
     //Three cases along the container type...
     //It is a Boolean, we expect false or true
     //It is an integer, we expect a position in v
@@ -2931,6 +2935,8 @@ Exporting Tamgu* Tamgujava_vector::in(Tamgu* c, Tamgu* a, short idthread) {
 
     if (c->isVectorContainer()) {
         Tamguivector* v = (Tamguivector*)Selectaivector(c);
+        if (iter == NULL)
+            return v;
         
         for (long i = 0; i < sz; i++) {
             c = getvalue(i);
@@ -2942,6 +2948,9 @@ Exporting Tamgu* Tamgujava_vector::in(Tamgu* c, Tamgu* a, short idthread) {
     }
     
     if (c->isNumber()) {
+        if (iter == NULL)
+            return aMINUSONE;
+        
         for (long i = 0; i < sz; i++) {
             c = getvalue(i);
             if (a->same(c) == aTRUE) {
@@ -2952,6 +2961,9 @@ Exporting Tamgu* Tamgujava_vector::in(Tamgu* c, Tamgu* a, short idthread) {
         }
         return aMINUSONE;
     }
+    
+    if (iter == NULL)
+        return aFALSE;
     
     for (long i = 0; i < sz; i++) {
         c = getvalue(i);
@@ -2966,6 +2978,9 @@ Exporting Tamgu* Tamgujava_vector::in(Tamgu* c, Tamgu* a, short idthread) {
 }
 
 Exporting string Tamgujava_vector::String() {
+    if (iter == NULL)
+        return "[]";
+
     string res;
     res = "[";
     bool beg = true;
@@ -2998,6 +3013,9 @@ Exporting string Tamgujava_vector::String() {
 
 
 Exporting string Tamgujava_vector::JSonString() {
+    if (iter == NULL)
+        return "[]";
+
     string res;
     
     res = "[";
@@ -3028,6 +3046,9 @@ Exporting string Tamgujava_vector::JSonString() {
 
 
 Exporting Tamgu* Tamgujava_vector::andset(Tamgu *b, bool itself) {
+    if (iter == NULL)
+        return globalTamgu->Returnerror("Error: No Java Structure attached");
+
     Tamguvector* ref = globalTamgu->Providevector();
     long sz = Size();
     long i;
@@ -3063,6 +3084,9 @@ Exporting Tamgu* Tamgujava_vector::andset(Tamgu *b, bool itself) {
 }
 
 Exporting Tamgu* Tamgujava_vector::orset(Tamgu *b, bool itself) {
+    if (iter == NULL)
+        return globalTamgu->Returnerror("Error: No Java Structure attached");
+
     Tamguvector* ref = globalTamgu->Providevector();
     long sz = Size();
     long i;
@@ -3092,6 +3116,9 @@ Exporting Tamgu* Tamgujava_vector::orset(Tamgu *b, bool itself) {
 }
 
 Exporting Tamgu* Tamgujava_vector::xorset(Tamgu *b, bool itself) {
+    if (iter == NULL)
+        return globalTamgu->Returnerror("Error: No Java Structure attached");
+
     Tamguvector* ref = globalTamgu->Providevector();
     long sz = Size();
     long i;
@@ -3149,6 +3176,9 @@ Exporting Tamgu* Tamgujava_vector::xorset(Tamgu *b, bool itself) {
 
 
 Exporting Tamgu* Tamgujava_vector::plus(Tamgu* b, bool itself) {
+    if (iter == NULL)
+        return globalTamgu->Returnerror("Error: No Java Structure attached");
+
     Tamguvector* ref = globalTamgu->Providevector();
     Tamgu* kv;
     long sz = Size();
@@ -3183,6 +3213,9 @@ Exporting Tamgu* Tamgujava_vector::plus(Tamgu* b, bool itself) {
 }
 
 Exporting Tamgu* Tamgujava_vector::minus(Tamgu *b, bool itself) {
+    if (iter == NULL)
+        return globalTamgu->Returnerror("Error: No Java Structure attached");
+
     Tamguvector* ref = globalTamgu->Providevector();
     Tamgu* kv;
     long sz = Size();
@@ -3218,6 +3251,9 @@ Exporting Tamgu* Tamgujava_vector::minus(Tamgu *b, bool itself) {
 }
 
 Exporting Tamgu* Tamgujava_vector::multiply(Tamgu *b, bool itself) {
+    if (iter == NULL)
+        return globalTamgu->Returnerror("Error: No Java Structure attached");
+
     Tamguvector* ref = globalTamgu->Providevector();
     Tamgu* kv;
     long sz = Size();
@@ -3252,6 +3288,9 @@ Exporting Tamgu* Tamgujava_vector::multiply(Tamgu *b, bool itself) {
 }
 
 Exporting Tamgu* Tamgujava_vector::divide(Tamgu *b, bool itself) {
+    if (iter == NULL)
+        return globalTamgu->Returnerror("Error: No Java Structure attached");
+
     Tamguvector* ref = globalTamgu->Providevector();
     Tamgu* kv;
     long sz = Size();
@@ -3297,6 +3336,9 @@ Exporting Tamgu* Tamgujava_vector::divide(Tamgu *b, bool itself) {
 }
 
 Exporting Tamgu* Tamgujava_vector::power(Tamgu *b, bool itself) {
+    if (iter == NULL)
+        return globalTamgu->Returnerror("Error: No Java Structure attached");
+
     Tamguvector* ref = globalTamgu->Providevector();
     Tamgu* kv;
     long sz = Size();
@@ -3331,6 +3373,9 @@ Exporting Tamgu* Tamgujava_vector::power(Tamgu *b, bool itself) {
 }
 
 Exporting Tamgu* Tamgujava_vector::shiftleft(Tamgu *b, bool itself) {
+    if (iter == NULL)
+        return globalTamgu->Returnerror("Error: No Java Structure attached");
+
     Tamguvector* ref = globalTamgu->Providevector();
     Tamgu* kv;
     long sz = Size();
@@ -3365,6 +3410,9 @@ Exporting Tamgu* Tamgujava_vector::shiftleft(Tamgu *b, bool itself) {
 }
 
 Exporting Tamgu* Tamgujava_vector::shiftright(Tamgu *b, bool itself) {
+    if (iter == NULL)
+        return globalTamgu->Returnerror("Error: No Java Structure attached");
+
     Tamguvector* ref = globalTamgu->Providevector();
     Tamgu* kv;
     long sz = Size();
@@ -3399,6 +3447,9 @@ Exporting Tamgu* Tamgujava_vector::shiftright(Tamgu *b, bool itself) {
 }
 
 Exporting Tamgu* Tamgujava_vector::mod(Tamgu *b, bool itself) {
+    if (iter == NULL)
+        return globalTamgu->Returnerror("Error: No Java Structure attached");
+
     Tamguvector* ref = globalTamgu->Providevector();
     Tamgu* kv;
     long sz = Size();
@@ -3451,19 +3502,36 @@ Exporting Tamgu*  Tamgujava_vector::Put(Tamgu* idx, Tamgu* value, short idthread
         iter = (TamguJavaIteration*)value;
         iter->Setreference();
     }
-    if (idx->isIndex() && iter != NULL) {
-    //In this specific case, we try to replace a bloc of values with a new bloc
-        if (idx->isInterval())
-            globalTamgu->Returnerror("Cannot set a java_vector with an interval", idthread);
-
-        long ikey = idx->Getinteger(idthread);
-        iter->storevalue(ikey, value);
-        value->Release();
+    else {
+        if (iter != NULL) {
+            if (idx->isIndex()) {
+                //In this specific case, we try to replace a bloc of values with a new bloc
+                if (idx->isInterval())
+                    globalTamgu->Returnerror(e_cannot_set_a, idthread);
+                
+                long ikey = idx->Getinteger(idthread);
+                iter->storevalue(ikey, value);
+                value->Release();
+            }
+            else {
+                if (value->isVectorContainer()) {
+                    Tamgu* v;
+                    iter->Clear();
+                    for (long i = 0; i < value->Size(); i++) {
+                        v =  value->getvalue(i);
+                        iter->storevalue(i, v);
+                        v->Release();
+                    }
+                }
+            }
+        }
     }
     return aTRUE;
 }
 
 Exporting Tamgu* Tamgujava_vector::Eval(Tamgu* contextualpattern, Tamgu* idx, short idthread) {
+    if (iter == NULL)
+        return globalTamgu->Returnerror("Error: No Java Structure attached");
     
     if (!idx->isIndex()) {
         if (contextualpattern->isLoop())
@@ -3510,7 +3578,7 @@ Exporting Tamgu* Tamgujava_vector::Eval(Tamgu* contextualpattern, Tamgu* idx, sh
     if (ikey < 0 || key == NULL) {
         if (ikey != mx || keyright == NULL) {
             if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong index", idthread);
+                return globalTamgu->Returnerror(e_wrong_index, idthread);
             return aNOELEMENT;
         }
     }
@@ -3533,14 +3601,14 @@ Exporting Tamgu* Tamgujava_vector::Eval(Tamgu* contextualpattern, Tamgu* idx, sh
         iright = mx + iright;
         if (iright<ikey) {
             if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong index", idthread);
+                return globalTamgu->Returnerror(e_wrong_index, idthread);
             return aNOELEMENT;
         }
     }
     else {
         if (iright>mx) {
             if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong index", idthread);
+                return globalTamgu->Returnerror(e_wrong_index, idthread);
             return aNOELEMENT;
         }
     }
@@ -3557,7 +3625,9 @@ Exporting Tamgu* Tamgujava_vector::Eval(Tamgu* contextualpattern, Tamgu* idx, sh
 
 
 Exporting Tamgu* Tamgujava_vector::Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* environment, TamguFunctionLambda* bd, short idthread) {
-    
+    if (iter == NULL)
+        return globalTamgu->Returnerror("Error: No Java Structure attached");
+
     Tamgu* a;
     uchar addvalue = 0;
     
@@ -3591,7 +3661,9 @@ Exporting Tamgu* Tamgujava_vector::Looptaskell(Tamgu* recipient, Tamgu* context,
 }
 
 Exporting Tamgu* Tamgujava_vector::Filter(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* kcont, Tamgu* accu, Tamgu* init, bool direct) {
-    
+    if (iter == NULL)
+        return globalTamgu->Returnerror("Error: No Java Structure attached");
+
     Tamgu* returnval;
     
     bool first = false;

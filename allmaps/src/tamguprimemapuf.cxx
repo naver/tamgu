@@ -73,6 +73,7 @@ bool Tamguprimemapuf::InitialisationModule(TamguGlobal* global, string version) 
     Tamguprimemapuf::AddMethod(global, "pop", &Tamguprimemapuf::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamguprimemapuf::AddMethod(global, "merge", &Tamguprimemapuf::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
 
+    global->returnindextypes[Tamguprimemapuf::idtype] = a_float;
     global->newInstance[Tamguprimemapuf::idtype] = new Tamguprimemapuf(global);
     #ifdef OLDBACKCOMP
     global->newInstance[global->Getid("ufprimemap")] = new Tamguprimemapuf(global);

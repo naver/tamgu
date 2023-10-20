@@ -172,7 +172,7 @@ Tamgu* Tamgulisp::Convert(Tamgu* v, short idthread) {
 
 Tamgu* Tamgulisp::Put(Tamgu* c, Tamgu* v, short idthread) {
     if (!v->isVectorContainer())
-        return globalTamgu->Returnerror("Expecting a vector as input", idthread);
+        return globalTamgu->Returnerror(e_expecting_a_vector03, idthread);
         
     //We then consider strings to be atoms...
     Clear();
@@ -988,7 +988,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
 
             v0->Releasenonconst();
             v1->Releasenonconst();
-            return globalTamgu->Returnerror("Cannot apply 'cons' to these elements", idthread);
+            return globalTamgu->Returnerror(e_cannot_apply_cons, idthread);
         }
         case a_cond:
         {
@@ -998,7 +998,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 szv = v1->Size();
                 
                 if (!v1->isLisp() || szv <= 1)
-                    return globalTamgu->Returnerror("Wrong cond element", idthread);
+                    return globalTamgu->Returnerror(e_wrong_cond_element, idthread);
                 
                 Tamgulisp* code = (Tamgulisp*)v1;
 
@@ -1024,7 +1024,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                     call.arguments.push_back(values[i]);
                 return call.Eval(contextualpattern, aNULL, idthread);
             }
-            return globalTamgu->Returnerror("Cannot call 'self'", idthread);
+            return globalTamgu->Returnerror(e_cannot_call_self, idthread);
         case a_atom:
         {
                 //it has to ba a function call
@@ -1085,7 +1085,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
 
             if (globalTamgu->commons.check(n)) {
                 if (sz < 2)
-                    return globalTamgu->Returnerror("Wrong number of arguments in 'call method'", idthread);
+                    return globalTamgu->Returnerror(e_wrong_number_of03, idthread);
 
                 TamguCallCommonMethod call(n);
                 for (i = 2; i < sz; i++)
@@ -1281,7 +1281,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 return v1;
 
             if (!v1->isLisp())
-                return globalTamgu->Returnerror("Missing parameters",idthread);
+                return globalTamgu->Returnerror(e_missing_parameters,idthread);
             
             //The first elements is the parameters
             bool fromEval = !isConst();
@@ -1304,7 +1304,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 n = v1->getvalue(i)->Name();
                 if (!n) {
                     a->Remove();
-                    return globalTamgu->Returnerror("Wrong parameter definition",idthread);
+                    return globalTamgu->Returnerror(e_wrong_parameter_definition,idthread);
                 }
                 if (fromEval)
                     v0 = new TamguSelfVariableDeclaration(NULL, n);
@@ -1367,13 +1367,13 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
 
             v1 = values[2];
             if (!v1->isLisp()) {
-                return globalTamgu->Returnerror("Missing parameters",idthread);
+                return globalTamgu->Returnerror(e_missing_parameters,idthread);
             }
             
             lockparse();
             n = v0->Name();
             if (n == 0) {
-                return globalTamgu->Returnerror("Wrong function name",idthread);
+                return globalTamgu->Returnerror(e_wrong_function_name,idthread);
             }
 
             if (fromEval) {
@@ -1406,7 +1406,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                     if (fromEval)
                         delete a;
                     unlockparse();
-                    return globalTamgu->Returnerror("Wrong parameter definition",idthread);
+                    return globalTamgu->Returnerror(e_wrong_parameter_definition,idthread);
                 }
                 if (fromEval)
                     v0 = new TamguSelfVariableDeclaration(NULL, n);
@@ -1459,7 +1459,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             v0 = values[1];
             n = v0->Name();
             if (!n)
-                return globalTamgu->Returnerror("Wrong name", idthread);
+                return globalTamgu->Returnerror(e_wrong_name, idthread);
             
             if (contextualpattern == aEMPTYLISP)
                 contextualpattern = globalTamgu->Getmainframe(0);
@@ -1537,7 +1537,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
         case a_assignement:
             n = values[1]->Name();
             if (!n)
-                return globalTamgu->Returnerror("Wrong name", idthread);
+                return globalTamgu->Returnerror(e_wrong_name, idthread);
 
             a = values[2]->Eval(contextualpattern, aNULL, idthread);
             checkerror(a);
@@ -1577,7 +1577,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             checkerrorwithrelease(v1, tl);
             if (!v1->isVectorContainer()) {
                 v1->Release();
-                return globalTamgu->Returnerror("Can only 'append' to a list", idthread);
+                return globalTamgu->Returnerror(e_can_only_append, idthread);
             }
             long j;
             for (j = 0; j < v1->Size(); j++)
@@ -1637,7 +1637,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                     return v0; //We return the map...
                 }
             }
-            return globalTamgu->Returnerror("Wrong number of arguments in 'key'", idthread);
+            return globalTamgu->Returnerror(e_wrong_number_of05, idthread);
             
         }
         case a_keys: //We handle vectors and maps... (keys m kleft kright v), v is optional
@@ -1670,7 +1670,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                     return v0; //We return the map...
                 }
             }
-            return globalTamgu->Returnerror("Wrong number of arguments in 'keys'", idthread);
+            return globalTamgu->Returnerror(e_wrong_number_of, idthread);
         }
         case a_body:
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
@@ -1681,12 +1681,12 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             a = values[1]->Eval(contextualpattern, aNULL, idthread);
             n = a->Name();
             if (!n)
-                return globalTamgu->Returnerror("Cannot evaluate this expression", idthread);
+                return globalTamgu->Returnerror(e_cannot_evaluate_this02, idthread);
 
             v1 = values[2]->Eval(contextualpattern, aNULL, idthread);
             if (!v1->isVectorContainer()) {
                 v1->Release();
-                return globalTamgu->Returnerror("Wrong list of arguments for 'apply'", idthread);
+                return globalTamgu->Returnerror(e_wrong_list_of06, idthread);
             }
             
             Tamgulisp lsp(-1);
@@ -1706,13 +1706,13 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 v0 = values[1];
             else {
                 if (!v0->isLisp() && !globalTamgu->checkoperator(v0->Action()))
-                    return globalTamgu->Returnerror("Wrong list of operations for '_map'", idthread);
+                    return globalTamgu->Returnerror(e_wrong_list_of12, idthread);
             }
             v1 = values[2]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v1);
             if (!v1->isVectorContainer()) {
                 v1->Release();
-                return globalTamgu->Returnerror("Wrong list of arguments for '_map'", idthread);
+                return globalTamgu->Returnerror(e_wrong_list_of11, idthread);
             }
             //We prepare our solution... Either the content of v0 is one or two
             
@@ -1804,14 +1804,14 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 v0 = values[1];
             else {
                 if (!v0->isLisp() && !globalTamgu->checkoperator(v0->Action()))
-                    return globalTamgu->Returnerror("Wrong list of operations for '_filter'", idthread);
+                    return globalTamgu->Returnerror(e_wrong_list_of04, idthread);
             }
 
             v1 = values[2]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v1);
             if (!v1->isVectorContainer()) {
                 v1->Release();
-                return globalTamgu->Returnerror("Wrong list of arguments for '_filter'", idthread);
+                return globalTamgu->Returnerror(e_wrong_list_of07, idthread);
             }
             //We prepare our solution... Either the content of v0 is one or two
             
@@ -1869,14 +1869,14 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 v0 = values[1];
             else {
                 if (!v0->isLisp() && !globalTamgu->checkoperator(v0->Action()))
-                    return globalTamgu->Returnerror("Wrong list of operations for '_takewhile'", idthread);
+                    return globalTamgu->Returnerror(e_wrong_list_of03, idthread);
             }
 
             v1 = values[2]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v1);
             if (!v1->isVectorContainer()) {
                 v1->Release();
-                return globalTamgu->Returnerror("Wrong list of arguments for '_takewhile'", idthread);
+                return globalTamgu->Returnerror(e_wrong_list_of10, idthread);
             }
             //We prepare our solution... Either the content of v0 is one or two
             
@@ -1940,14 +1940,14 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 v0 = values[1];
             else {
                 if (!v0->isLisp() && !globalTamgu->checkoperator(v0->Action()))
-                    return globalTamgu->Returnerror("Wrong list of operations for '_dropwhile'", idthread);
+                    return globalTamgu->Returnerror(e_wrong_list_of05, idthread);
             }
 
             v1 = values[2]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v1);
             if (!v1->isVectorContainer()) {
                 v1->Release();
-                return globalTamgu->Returnerror("Wrong list of arguments for '_dropwhile'", idthread);
+                return globalTamgu->Returnerror(e_wrong_list_of08, idthread);
             }
             //We prepare our solution... Either the content of v0 is one or two
             
@@ -2015,7 +2015,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                         listes[i]->Releasenonconst();
                     if (!v1->isError()) {
                         v1->Release();
-                        return globalTamgu->Returnerror("'_zip' accepts only lists as arguments", idthread);
+                        return globalTamgu->Returnerror(e__zip_accepts_only, idthread);
                     }
                     return v1;
                 }
@@ -2025,7 +2025,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                     if (szl != v1->Size()) {
                         for (i = 0; i < listes.size(); i++)
                             listes[i]->Releasenonconst();
-                        return globalTamgu->Returnerror("Lists should all have the same size in '_zip'", idthread);
+                        return globalTamgu->Returnerror(e_lists_should_all02, idthread);
                     }
                 }
                 listes.push_back(v1);
@@ -2052,7 +2052,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 v0 = values[1];
             else {
                 if (!v0->isLisp() && !globalTamgu->checkoperator(v0->Action()))
-                    return globalTamgu->Returnerror("Wrong list of operations for '_zipWith'", idthread);
+                    return globalTamgu->Returnerror(e_wrong_list_of02, idthread);
             }
 
             vector<Tamgu*> listes;
@@ -2064,7 +2064,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                         listes[i]->Releasenonconst();
                     if (!v1->isError()) {
                         v1->Release();
-                        return globalTamgu->Returnerror("'_zipwith' accepts only lists as arguments", idthread);
+                        return globalTamgu->Returnerror(e__zipwith_accepts_only, idthread);
                     }
                     return v1;
                 }
@@ -2074,7 +2074,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                     if (szl != v1->Size()) {
                         for (i = 0; i < listes.size(); i++)
                             listes[i]->Releasenonconst();
-                        return globalTamgu->Returnerror("Lists should all have the same size in '_zipwith'", idthread);
+                        return globalTamgu->Returnerror(e_lists_should_all, idthread);
                     }
                 }
                 listes.push_back(v1);
@@ -2087,7 +2087,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 v0 = values[1];
             else {
                 if (!v0->isLisp() && !globalTamgu->checkoperator(v0->Action()))
-                    return globalTamgu->Returnerror("Wrong list of operations for '_zipwith'", idthread);
+                    return globalTamgu->Returnerror(e_wrong_list_of09, idthread);
             }
 
             long j;
@@ -2132,7 +2132,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             v1 = values[3]->Eval(contextualpattern,aNULL, idthread);
             if (!v1->isVectorContainer()) {
                 v1->Release();
-                return globalTamgu->Returnerror("Expecting a list as argument for folding", idthread);
+                return globalTamgu->Returnerror(e_expecting_a_list, idthread);
             }
             a = values[2]->Eval(contextualpattern,aNULL, idthread);
             //a will be our first value
@@ -2146,7 +2146,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 v1 = values[2]->Eval(contextualpattern,aNULL, idthread);
                 if (!v1->isVectorContainer()) {
                     v1->Release();
-                    return globalTamgu->Returnerror("Expecting a list as argument for folding", idthread);
+                    return globalTamgu->Returnerror(e_expecting_a_list, idthread);
                 }
                 if (v1->Size() == 0) {
                     if (n == a__scanl1 || n == a__scanr1)
@@ -2167,7 +2167,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 v0 = values[1];
             else {
                 if (!v0->isLisp() && !globalTamgu->checkoperator(v0->Action()))
-                    return globalTamgu->Returnerror("Wrong list of operations for folding", idthread);
+                    return globalTamgu->Returnerror(e_wrong_list_of, idthread);
             }
         
             Tamgulisp lsp(-1);
@@ -2460,7 +2460,7 @@ Tamgu* TamguCallLispFunction::Eval(Tamgu* domain, Tamgu* a, short idthread) {
     }
     
     if (!globalTamgu->Pushstacklisp(this, idthread))
-        return globalTamgu->Returnerror("Stack overflow", idthread);
+        return globalTamgu->Returnerror(e_stack_overflow, idthread);
 
     globalTamgu->Pushstackraw(environment, idthread);
     //We then apply our function within this environment

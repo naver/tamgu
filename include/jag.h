@@ -18,6 +18,7 @@
 #define jag_h
 
 #include "tamguboost.h"
+#include "messages_error.h"
 
 #define solo_line 0
 #define beg_line 1
@@ -1323,7 +1324,7 @@ public:
         
         ifstream rd(thecurrentfilename, openMode);
         if (rd.fail()) {
-            cerr << m_redbold << " Cannot load: " << thecurrentfilename << m_current << endl;
+            cerr << m_redbold << e_cannot_load02 << thecurrentfilename << m_current << endl;
             return false;
         }
         string ln;

@@ -1301,7 +1301,7 @@ Tamgu* TamguBasePredicateVariable::Put(Tamgu* ke, Tamgu* dom, short idthread) {
     if (!dom->isDeclared(predicatedico)) {
         dom = globalTamgu->Declarator(predicatedico, idthread);
         if (dom == aNULL)
-            return globalTamgu->Returnerror("Unknown predicate variable", idthread);
+            return globalTamgu->Returnerror(e_unknown_predicate_variable, idthread);
     }
 
     if (dom->Failed())
@@ -1323,7 +1323,7 @@ Tamgu* TamguPredicateVariableInstance::Put(Tamgu* dom, Tamgu* ke, short idthread
     if (!dom->isDeclared(predicatezone)) {
         dom = globalTamgu->Declarator(predicatezone, idthread);
         if (dom == aNULL)
-            return globalTamgu->Returnerror("Unknown predicate variable", idthread);
+            return globalTamgu->Returnerror(e_unknown_predicate_variable, idthread);
     }
 
     TamguPredicateVariableInstance* v = (TamguPredicateVariableInstance*)Variable((TamguDeclaration*)dom);
@@ -2220,6 +2220,19 @@ bool Tamguvector::Insertvalue(Tamgu* dom, Tamgu* val, basebin_hash<Tamgu*>& kept
         values[i]->Insertvalue(dom, kpt->values[i], kept);
     return true;
 }
+
+bool Tamguframevector::Insertvalue(Tamgu* dom, Tamgu* val, basebin_hash<Tamgu*>& kept) {
+    Tamguvector* kpt = (Tamguvector*)val;
+    for (BLONG i = 0; i < values.size(); i++) {
+        if (!check_frame(kpt->values[i]))
+            return globalTamgu->Returnerror(e_error_on_frame_vector);
+    }
+    for (BLONG i = 0; i < values.size(); i++) {
+        values[i]->Insertvalue(dom, kpt->values[i], kept);
+    }
+    return true;
+}
+
 
 bool TamguConstmap::Insertvalue(Tamgu* dom, Tamgu* val, basebin_hash<Tamgu*>& kept) {
     TamguConstmap* kpt = (TamguConstmap*)val;
@@ -4416,7 +4429,7 @@ Tamgu* TamguPredicateTerm::Eval(Tamgu* contextualpattern, Tamgu* ke, short idthr
     ty = ke->Indexes(idthread, parameters.size(), left, right);
     if (ty == 0) {
         if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong index", idthread);
+            return globalTamgu->Returnerror(e_wrong_index, idthread);
         return aNOELEMENT;
     }
 
@@ -4447,7 +4460,7 @@ Tamgu* TamguPredicateConcept::Eval(Tamgu* contextualpattern, Tamgu* ke, short id
     ty = ke->Indexes(idthread, parameters.size(), left, right);
     if (ty == 0) {
         if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong index", idthread);
+            return globalTamgu->Returnerror(e_wrong_index, idthread);
         return aNOELEMENT;
     }
 
@@ -4528,7 +4541,7 @@ Tamgu* TamguPredicate::Eval(Tamgu* contextualpattern, Tamgu* ke, short idthread)
     ty = ke->Indexes(idthread, parameters.size(), left, right);
     if (ty == 0) {
         if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong index", idthread);
+            return globalTamgu->Returnerror(e_wrong_index, idthread);
         return aNOELEMENT;
     }
 

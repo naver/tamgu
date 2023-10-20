@@ -464,6 +464,7 @@ public:
     
     short Typeinstance(string s);
     
+    void set_full_compatibilities(void);
     void set_loose_compatibilities(void);
     
     hmap<string, short> string_operators;
@@ -472,6 +473,7 @@ public:
 	bin_hash<short> equto;
 
 	bin_hash<short> returntypes;
+    bin_hash<short> returnindextypes;
 
     bool checkoperator(short a) {
         return operator_strings.check(a);
@@ -684,11 +686,14 @@ public:
 
 	bin_hash<unsigned long> arities;
 	basebin_hash<TamguFrame*> frames;
+    basebin_hash<TamguFrame*> framecontainers;
     basebin_hash<Tamgu*> framevariables;
+    hmap<string, short> framecontainer_predeclared;
 
 	basebin_hash<TamguSystemVariable*> systems;
 	
-	bin_hash<basebin_hash<bool> > compatibilities;
+    bin_hash<basebin_hash<bool> > compatibilities;
+    bin_hash<basebin_hash<bool> > fullcompatibilities;
 	bin_hash<basebin_hash<bool> > strictcompatibilities;
 	
 	basebin_hash<TamguFrame*> extensions;
@@ -868,7 +873,7 @@ public:
 	void Pushpredicate(short idthread) {
 		threads[idthread].prologstack++;
 		if (threads[idthread].Size() >= maxstack)
-			Returnerror("Stack overflow", idthread);
+			Returnerror(e_stack_overflow, idthread);
 	}
 
 	void Poppredicate(short idthread) {
@@ -904,12 +909,12 @@ public:
     
     inline void Pushstack(Tamgu* a, short idthread = 0) {
         if (threads[idthread].pushtracked(a, maxstack))
-            Seterror("Stack overflow", idthread);
+            Seterror(e_stack_overflow, idthread);
     }
 
     inline void Pushstackraw(Tamgu* a, short idthread = 0) {
         if (threads[idthread].push(a, maxstack))
-            Seterror("Stack overflow", idthread);
+            Seterror(e_stack_overflow, idthread);
     }
 
 	inline void Popstack(short idthread = 0) {
@@ -1104,6 +1109,12 @@ public:
 		return false;
 	}
 
+    bool Compatiblefull(short r, short v) {
+        if (fullcompatibilities.check(r) && fullcompatibilities.get(r).check(v))
+            return true;
+        return false;
+    }
+
 	bool Compatiblestrict(short r, short v) {
 		if (strictcompatibilities.check(r) && strictcompatibilities.get(r).check(v))
 			return true;
@@ -1246,8 +1257,10 @@ public:
 	string filename;
 	size_t left;
 	size_t right;
+    size_t left_pos;
+    size_t right_pos;
 
-	TamguRaiseError(stringstream& mes, string file = "", size_t l = 0, size_t r = 0);
+	TamguRaiseError(stringstream& mes, string file = "", size_t l = 0, size_t r = 0, size_t l_p = 0, size_t r_p = 0);
 };
 
 class Tamgudebug {

@@ -137,7 +137,7 @@ class Tamgustdin : public TamguObject {
     Tamgu* MethodGet(Tamgu* context, short idthread, TamguCall* callfunc) {
         Locking _lock(this);
         if (is == NULL)
-            return globalTamgu->Returnerror("Wrong access to the file", idthread);
+            return globalTamgu->Returnerror(e_wrong_access_to, idthread);
 
         char c = is->get();
         if (context->isNumber())
@@ -150,7 +150,7 @@ class Tamgustdin : public TamguObject {
     Tamgu* MethodRead(Tamgu* context, short idthread, TamguCall* callfunc) {
         Locking _lock(this);
         if (is == NULL)
-            return globalTamgu->Returnerror("Wrong access to the file", idthread);
+            return globalTamgu->Returnerror(e_wrong_access_to, idthread);
 
         string bf;
         long nb = -1;
@@ -186,7 +186,7 @@ class Tamgustdin : public TamguObject {
     Tamgu* MethodReadLine(Tamgu* context, short idthread, TamguCall* callfunc) {
         Locking _lock(this);
         if (is == NULL)
-            return globalTamgu->Returnerror("Wrong access to the file", idthread);
+            return globalTamgu->Returnerror(e_wrong_access_to, idthread);
             
 
         if (context->isContainer()) {

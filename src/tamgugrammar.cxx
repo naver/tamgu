@@ -296,7 +296,7 @@ Tamgu* Tamgugrammar::Loader(string& vrule, short idthread) {
             content += "...>";
             return globalTamgu->Returnerror(content, idthread);
         }
-        return globalTamgu->Returnerror("Cannot evaluate this grammar", idthread);
+        return globalTamgu->Returnerror(e_cannot_evaluate_this, idthread);
     }
     
     if (automaton != NULL && clean)

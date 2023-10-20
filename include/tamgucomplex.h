@@ -422,7 +422,7 @@ public:
         if (a->Type() == a_complex) {
             Tamgucomplex* c = (Tamgucomplex*)a;
             if (c->value == 0.0)
-                return globalTamgu->Returnerror("Error: Divided by 0");
+                return globalTamgu->Returnerror(e_error_divided_by);
             if (itself) {
                 value /= c->value;
                 return this;
@@ -432,7 +432,7 @@ public:
 
         double v = a->Float();
 		if (v == 0)
-			return globalTamgu->Returnerror("Error: Divided by 0");
+			return globalTamgu->Returnerror(e_error_divided_by);
 		if (itself) {
 			value /= v;
 			return this;

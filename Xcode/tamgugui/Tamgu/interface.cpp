@@ -172,7 +172,7 @@ extern "C" {
 
         setenv("TAMGULIBS",start,1);
         char path[4096];
-        sprintf(path,"%s/.tamgu",homepath);
+        sprintf_s(path, 4095,"%s/.tamgu",homepath);
         ofstream savepath(path);
         savepath.write(start,strlen(start));
         savepath.write("\n",1);
@@ -181,7 +181,7 @@ extern "C" {
     
     void inittamgupath(const char* homepath) {
         char path[4096];
-        sprintf(path,"%s/.tamgu",homepath);
+        sprintf_s(path,4096, "%s/.tamgu",homepath);
         ifstream getpath(path);
         if (getpath.fail()) {
             getpath.close();

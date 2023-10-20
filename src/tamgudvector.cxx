@@ -70,6 +70,8 @@ bool Tamgudvector::InitialisationModule(TamguGlobal* global, string version) {
     Tamgudvector::AddMethod(global, "shuffle", &Tamgudvector::MethodShuffle, P_NONE, "shuffle(): shuffle the values in the vector.");
     Tamgudvector::AddMethod(global, "sort", &Tamgudvector::MethodSort, P_ONE, "sort(bool reverse): sort the elements within.");
     Tamgudvector::AddMethod(global, "shape", &Tamgudvector::MethodShape, P_NONE|P_ATLEASTONE, "shape(int s1, int s2...): defines the vector shape.");
+    Tamgudvector::AddMethod(global, "matrixproduct", &Tamgudvector::MethodMatrixproduct, P_ONE, "matrixproduct(fvector): Matrix multiplication. The two vectors must have shapes");
+    Tamgudvector::AddMethod(global, "transpose", &Tamgudvector::MethodTranspose, P_NONE, "transpose(fvector): Matrix transposition");
     Tamgudvector::AddMethod(global, "sum", &Tamgudvector::MethodSum, P_NONE, "sum(): return the sum of elements.");
     
     Tamgudvector::AddMethod(global, "product", &Tamgudvector::MethodProduct, P_NONE, "product(): return the product of elements.");
@@ -83,7 +85,8 @@ bool Tamgudvector::InitialisationModule(TamguGlobal* global, string version) {
     
     
 
-    if (version != "") {        
+    if (version != "") {
+        global->returnindextypes[a_dvector] = a_decimal;        
         global->minimal_indexes[a_dvector] = true;
 
         global->newInstance[a_dvector] = new Tamgudvector(global);
@@ -434,12 +437,12 @@ Exporting Tamgu* Tamgudvector::Put(Tamgu* idx, Tamgu* ke, short idthread) {
             values.clear();
             string sv = ke->String();
             if (!v_comma_split_decimal(sv, values))
-                return globalTamgu->Returnerror("Cannot set this value", idthread);
+                return globalTamgu->Returnerror(e_cannot_set_this, idthread);
             return aTRUE;
         }
         ke = ke->Vector(idthread);
         if (!ke->isVectorContainer())
-            return globalTamgu->Returnerror("Cannot set this value", idthread);
+            return globalTamgu->Returnerror(e_cannot_set_this, idthread);
 
         sz = ke->Size();
         values.clear();
@@ -466,7 +469,7 @@ Exporting Tamgu* Tamgudvector::Put(Tamgu* idx, Tamgu* ke, short idthread) {
 
             if (rkey < lkey || rkey >= values.size() || lkey >= values.size()) {
                 if (globalTamgu->erroronkey)
-                    globalTamgu->Returnerror("Wrong index", idthread);
+                    globalTamgu->Returnerror(e_wrong_index, idthread);
                 return aTRUE;
             }
 
@@ -502,7 +505,7 @@ Exporting Tamgu* Tamgudvector::Put(Tamgu* idx, Tamgu* ke, short idthread) {
             if (ikey < 0) {
                 ikey = sz + ikey;
                 if (ikey < 0)
-                    return globalTamgu->Returnerror("Cannot set this value", idthread);
+                    return globalTamgu->Returnerror(e_cannot_set_this, idthread);
             }
 
             if (ikey >= sz) {
@@ -567,7 +570,7 @@ Tamgu* Tamgudvector::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign) 
     if (ikey < 0 || ikey >= values.size()) {
         unlocking();
         if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong index", idthread);
+            return globalTamgu->Returnerror(e_wrong_index, idthread);
         return aNOELEMENT;
     }
 
@@ -617,7 +620,7 @@ Exporting Tamgu* Tamgudvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
 	if (ikey < 0 || ikey >= values.size()) {
 		unlocking();
 		if (globalTamgu->erroronkey)
-			return globalTamgu->Returnerror("Wrong index", idthread);
+			return globalTamgu->Returnerror(e_wrong_index, idthread);
 		return aNOELEMENT;
 	}
 
@@ -638,7 +641,7 @@ Exporting Tamgu* Tamgudvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
         if (iright<ikey) {
             unlocking();
             if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong index", idthread);
+                return globalTamgu->Returnerror(e_wrong_index, idthread);
             return aNOELEMENT;
         }
     }
@@ -646,7 +649,7 @@ Exporting Tamgu* Tamgudvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
         if (iright>values.size()) {
             unlocking();
             if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong index", idthread);
+                return globalTamgu->Returnerror(e_wrong_index, idthread);
             return aNOELEMENT;
         }
     }
@@ -931,7 +934,7 @@ Exporting Tamgu* Tamgudvector::divide(Tamgu* b, bool itself) {
             v = itr->Valuedecimal();
             if (v == 0) {
                 ref->Release();
-                return globalTamgu->Returnerror("Error: Divided by 0");
+                return globalTamgu->Returnerror(e_error_divided_by);
             }
             ref->values[it] /= v;
             itr->Next();
@@ -943,7 +946,7 @@ Exporting Tamgu* Tamgudvector::divide(Tamgu* b, bool itself) {
     v = b->Decimal();
     if (v == 0) {
         ref->Release();
-        return globalTamgu->Returnerror("Error: Divided by 0");
+        return globalTamgu->Returnerror(e_error_divided_by);
     }
 
     for (it = 0; it < ref->values.size(); it++)
@@ -1071,7 +1074,7 @@ Exporting Tamgu* Tamgudvector::mod(Tamgu* b, bool itself) {
             v = itr->Valueinteger();
             if (v == 0) {
                 ref->Release();
-                return globalTamgu->Returnerror("Error: Divided by 0");
+                return globalTamgu->Returnerror(e_error_divided_by);
             }
             vbis = ref->values[it];
             vbis %= v;
@@ -1085,7 +1088,7 @@ Exporting Tamgu* Tamgudvector::mod(Tamgu* b, bool itself) {
     v = b->Integer();
     if (v == 0) {
         ref->Release();
-        return globalTamgu->Returnerror("Error: Divided by 0");
+        return globalTamgu->Returnerror(e_error_divided_by);
     }
 
     for (it = 0; it < ref->values.size(); it++) {
@@ -1247,7 +1250,7 @@ Tamgu* Tamgudvector::MethodShape(Tamgu* contextualpattern, short idthread, Tamgu
     Tamgu* v = callfunc->Evaluate(0, contextualpattern, idthread);
     if (v->isVectorContainer()) {
         if (nb != 1)
-            globalTamgu->Returnerror("Wrong shape definition", idthread);
+            globalTamgu->Returnerror(e_wrong_shape_definition, idthread);
         nb = v->Size();
         for (long i = 0; i < nb; i++) {
             shape.push_back(v->getinteger(i));
@@ -1262,11 +1265,74 @@ Tamgu* Tamgudvector::MethodShape(Tamgu* contextualpattern, short idthread, Tamgu
     return aTRUE;
 }
 
+Tamgu* Tamgudvector::MethodTranspose(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    if (shape.size() != 2)
+        return globalTamgu->Returnerror("Error: Can only transpose a two dimensions matrix", idthread);
+    
+    Tamgudvector* transpose = (Tamgudvector*)Selectadvector(contextualpattern);
+    transpose->values.reserve(values.size());
+    transpose->shape.push_back(shape[1]);
+    transpose->shape.push_back(shape[0]);
+    for (long i = 0; i < shape[1]; i++) {
+        for (long j = 0; j < shape[0]; j++) {
+            transpose->values.push_back(values[i+j*shape[1]]);
+        }
+    }
+    return transpose;
+}
+
+Tamgu* Tamgudvector::MethodMatrixproduct(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    if (shape.size() != 2)
+        return globalTamgu->Returnerror("Error: the shape should have two dimensions", idthread);
+    
+    Tamgu* vect = callfunc->Evaluate(0, contextualpattern, idthread);
+    if (vect->Type() != a_dvector)
+        return globalTamgu->Returnerror("Error: the argument must be another 'dvector'", idthread);
+    
+    Tamgudvector* fvect = (Tamgudvector*)vect;
+    long sh = shape[1];
+    long sh10 = shape[0];
+    long sh21 = fvect->shape[1];
+    
+    if (fvect->shape.size() != 2 || fvect->shape[0] != sh)
+        return globalTamgu->Returnerror("Error: Vector shapes are incompatible", idthread);
+    
+    Tamgudvector* result = (Tamgudvector*)Selectadvector(contextualpattern);
+    result->values.reserve(sh10 * sh);
+    result->shape.push_back(sh10);
+    result->shape.push_back(sh);
+
+    long sz = values.size();
+    long szf = fvect->values.size();
+    long i, j, k;
+    vector<float> transpose;
+    float v;
+
+    transpose.reserve(szf);
+    for (i = 0; i < sh21; i++) {
+        for (j = 0; j < sh; j++) {
+            transpose.push_back(fvect->values[i+j*sh21]);
+        }
+    }
+    
+    for (i = 0; i < sz; i += sh) {
+        for (j = 0; j < szf; j += sh) {
+            v = 0;
+            for (k = 0; k < sh; k++) {
+                v += values[k + i] * transpose[k + j];
+            }
+            result->values.push_back(v);
+        }
+    }
+
+    return result;
+}
+
 Tamgu* Tamgudvector::MethodSort(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     Tamgu* comp = callfunc->Evaluate(0, contextualpattern, idthread);
     if (comp->isFunction()) {
         if (comp->Size() != 2)
-            return globalTamgu->Returnerror("Expecting a comparison function with two parameters", idthread);
+            return globalTamgu->Returnerror(e_expecting_a_comparison02, idthread);
 
         DComp kcomp((TamguFunction*)comp->Body(idthread), idthread);
         DComparison kfcomp(&kcomp);

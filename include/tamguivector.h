@@ -71,15 +71,11 @@ class Tamguivector : public TamguLockContainer {
         return a_ivector;
     }
 
-    
-
     void Setidtype(TamguGlobal* global);
     
     string Typename() {
         return "ivector";
     }
-
-    
 
     bool isContainerClass() {
         return true;
@@ -472,7 +468,9 @@ class Tamguivector : public TamguLockContainer {
     }
 
     Tamgu* MethodShape(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
-    
+    Tamgu* MethodTranspose(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodMatrixproduct(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+
     Tamgu* MethodShuffle(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         Shuffle();
         return this;

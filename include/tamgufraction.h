@@ -59,17 +59,28 @@ public:
 		Evaluatefraction(n);
 	}
 
-	//----------------------------------------------------------------------------------------------------------------------
-	Tamgu* Putvalue(Tamgu* v, short idthread) {
-		if (v->Type() == a_fraction) {
-			Tamgufraction* val = (Tamgufraction*)v;
-			numerator = val->numerator;
-			denominator = val->denominator;
-		}
-		else
-			Evaluatefraction(v->Float());
-		return aTRUE;
-	}
+	//--------------------------------------------------------------------------------------------------------------
+    Tamgu* Putvalue(Tamgu* v, short idthread) {
+        if (v->Type() == a_fraction) {
+            Tamgufraction* val = (Tamgufraction*)v;
+            numerator = val->numerator;
+            denominator = val->denominator;
+        }
+        else
+            Evaluatefraction(v->Float());
+        return aTRUE;
+    }
+
+    Tamgu* Clonevalue(Tamgu* v, short idthread) {
+        if (v->Type() == a_fraction) {
+            Tamgufraction* val = (Tamgufraction*)v;
+            numerator = val->numerator;
+            denominator = val->denominator;
+        }
+        else
+            Evaluatefraction(v->Float());
+        return aTRUE;
+    }
 
 	Tamgu* Put(Tamgu* idx, Tamgu* v, short idthread) {
 		if (v->Type() == a_fraction) {
@@ -84,7 +95,7 @@ public:
 
 	Tamgu* Invert(bool autoself) {
 		if (numerator == 0)
-			return globalTamgu->Returnerror("Cannot invert, numerator is 0");
+			return globalTamgu->Returnerror(e_cannot_invert_numerator);
 		
 		if (autoself)  {
 			ND(denominator, numerator);
@@ -165,7 +176,7 @@ public:
 			numerator = callfunc->Evaluate(0, aNULL, idthread)->Long();
 			denominator = callfunc->Evaluate(1, aNULL, idthread)->Long();
 			if (denominator == 0)
-				return globalTamgu->Returnerror("Denominator cannot be 0", idthread);
+				return globalTamgu->Returnerror(e_denominator_cannot_be, idthread);
 			Simplify();
 		}
 		return this;
@@ -503,7 +514,7 @@ public:
 	Tamgu* mod(Tamgu* b, bool autoself) {
 		BLONG ib = b->Long();
 		if (ib == 0)
-			return globalTamgu->Returnerror("Error: Divided by 0");
+			return globalTamgu->Returnerror(e_error_divided_by);
 
 		BLONG i = Long() % ib;
 		return globalTamgu->Providelong(i);

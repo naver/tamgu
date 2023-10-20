@@ -79,7 +79,8 @@ void Tamgutreemapsi::AddMethod(TamguGlobal* global, string name,treemapsiMethod 
     Tamgutreemapsi::AddMethod(global, "pop", &Tamgutreemapsi::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamgutreemapsi::AddMethod(global, "merge", &Tamgutreemapsi::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
 
-    if (version != "") {        
+    if (version != "") {
+        global->returnindextypes[Tamgutreemapsi::idtype] = a_int;        
     global->minimal_indexes[Tamgutreemapsi::idtype] = true;
 
         global->newInstance[Tamgutreemapsi::idtype] = new Tamgutreemapsi(global);
@@ -339,7 +340,7 @@ Exporting Tamgu*  Tamgutreemapsi::Put(Tamgu* idx, Tamgu* ke, short idthread) {
         }
         ke = ke->Map(idthread);
         if (!ke->isMapContainer())
-            return globalTamgu->Returnerror("Wrong map initialization", idthread);
+            return globalTamgu->Returnerror(e_wrong_map_initialization, idthread);
         locking();
         values.clear();
         if (ke->Type() == Tamgutreemapsi::idtype)
@@ -373,7 +374,7 @@ Tamgu* Tamgutreemapsi::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign
     Tamgu* val = Value(skey);
     if (val == aNOELEMENT) {
         if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong index", idthread);
+            return globalTamgu->Returnerror(e_wrong_index, idthread);
         return aNOELEMENT;
 
     }
@@ -453,7 +454,7 @@ Exporting Tamgu* Tamgutreemapsi::Eval(Tamgu* contextualpattern, Tamgu* idx, shor
     Tamgu* kval = Value(skey);
     if (kval == aNOELEMENT) {
         if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong index", idthread);
+            return globalTamgu->Returnerror(e_wrong_index, idthread);
         return aNOELEMENT;
 
     }
@@ -700,7 +701,7 @@ Exporting Tamgu* Tamgutreemapsi::divide(Tamgu* b, bool itself) {
     long v = b->Integer();
     if (v == 0) {
         res->Release();
-        return globalTamgu->Returnerror("Error: Divided by 0");
+        return globalTamgu->Returnerror(e_error_divided_by);
     }
     for (auto& it : res->values)
         it.second /= v;
@@ -738,7 +739,7 @@ Exporting Tamgu* Tamgutreemapsi::mod(Tamgu* b, bool itself) {
     long v = b->Integer();
     if (v == 0) {
         res->Release();
-        return globalTamgu->Returnerror("Error: Divided by 0");
+        return globalTamgu->Returnerror(e_error_divided_by);
     }
     for (auto& it : res->values)
         it.second = it.second % v;

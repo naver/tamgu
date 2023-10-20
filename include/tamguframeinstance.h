@@ -195,7 +195,7 @@ public:
 		if (func == NULL) {
 			if (callfunc->Size() == 0)
 				return aTRUE;
-			return globalTamgu->Returnerror("Missing '_initial' function, check the arguments", idthread);
+			return globalTamgu->Returnerror(e_missing__initial_function02, idthread);
 		}
 
 		VECTE<Tamgu*> arguments(callfunc->arguments.last);
@@ -229,7 +229,7 @@ public:
                 return Declaration(frame->theextensionvar)->CallMethod(callfunc->Name(), aNULL, idthread, callfunc);
             }
 			stringstream message;
-			message << "Unknown method: '" << globalTamgu->Getsymbol(callfunc->Name()) << "' in frame: '" << globalTamgu->Getsymbol(frame->Name()) << "'";
+			message << e_unknown_method << globalTamgu->Getsymbol(callfunc->Name()) << "' in frame: '" << globalTamgu->Getsymbol(frame->Name()) << "'";
 			return globalTamgu->Returnerror(message.str(), idthread);
 		}
 
@@ -260,7 +260,7 @@ public:
                 return Declaration(topframe->theextensionvar)->CallMethod(callfunc->Name(), aNULL, idthread, callfunc);
             }
             stringstream message;
-            message << "Unknown method: '" << globalTamgu->Getsymbol(callfunc->Name()) << "' in frame: '" << globalTamgu->Getsymbol(frame->Name()) << "'";
+            message << e_unknown_method << globalTamgu->Getsymbol(callfunc->Name()) << "' in frame: '" << globalTamgu->Getsymbol(frame->Name()) << "'";
             return globalTamgu->Returnerror(message.str(), idthread);
         }
         
@@ -378,7 +378,7 @@ public:
         switch (idname) {
             case a_initial:
                 return MethodInitial(contextualpattern, idthread, callfunc);
-            case a_type:
+            case a_frametype:
                 return MethodType(contextualpattern, idthread, callfunc);
             default:
                 //Or a basic function...
@@ -676,6 +676,7 @@ class Tamguframemininstance : public TamguframeBaseInstance {
     //----------------------------------------------------------------------------------------------------------------------
     Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);
     Tamgu* Putvalue(Tamgu* value, short idthread);
+    Tamgu* Clonevalue(Tamgu* value, short idthread);
     void Postinstantiation(short idthread, bool setreference);
 
     
@@ -887,6 +888,7 @@ class Tamguframeinstance : public TamguframeBaseInstance {
     //----------------------------------------------------------------------------------------------------------------------
     Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);
     Tamgu* Putvalue(Tamgu* value, short idthread);
+    Tamgu* Clonevalue(Tamgu* value, short idthread);
     void Postinstantiation(short idthread, bool setreference);
     
     

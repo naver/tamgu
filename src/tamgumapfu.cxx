@@ -77,7 +77,8 @@ void Tamgumapfu::AddMethod(TamguGlobal* global, string name, mapfuMethod func, u
     Tamgumapfu::AddMethod(global, "pop", &Tamgumapfu::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamgumapfu::AddMethod(global, "merge", &Tamgumapfu::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
 
-    if (version != "") {        
+    if (version != "") {
+        global->returnindextypes[Tamgumapfu::idtype] = a_ustring;        
     global->minimal_indexes[Tamgumapfu::idtype] = true;
 
         global->newInstance[Tamgumapfu::idtype] = new Tamgumapfu(global);
@@ -337,7 +338,7 @@ Exporting Tamgu*  Tamgumapfu::Put(Tamgu* idx, Tamgu* ke, short idthread) {
         }
         ke = ke->Map(idthread);
         if (!ke->isMapContainer())
-            return globalTamgu->Returnerror("Wrong map initialization", idthread);
+            return globalTamgu->Returnerror(e_wrong_map_initialization, idthread);
         locking();
         values.clear();
         if (ke->Type() == Tamgumapfu::idtype)
@@ -366,7 +367,7 @@ Tamgu* Tamgumapfu::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign) {
     Tamgu* val = Value(skey);
     if (val == aNOELEMENT) {
         if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong index", idthread);
+            return globalTamgu->Returnerror(e_wrong_index, idthread);
         return aNOELEMENT;
 
     }
@@ -445,7 +446,7 @@ Exporting Tamgu* Tamgumapfu::Eval(Tamgu* contextualpattern, Tamgu* idx, short id
     Tamgu* kval = Value(skey);
     if (kval == aNOELEMENT) {
         if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong index", idthread);
+            return globalTamgu->Returnerror(e_wrong_index, idthread);
         return aNOELEMENT;
 
     }

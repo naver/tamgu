@@ -142,7 +142,7 @@ class Tamgutamgu : public TamguObject {
 		Tamgu* domain = acode->Mainframe();
 		Tamgu* func = domain->Declaration(callfunc->Name());
 		if (func == NULL || !func->isFunction() || func->isPrivate()) {
-			string message = "Unknown function: '";
+			string message = e_unknown_function;
 			message += globalTamgu->Getsymbol(callfunc->Name());
 			message += "'";
 			return globalTamgu->Returnerror(message, idthread);

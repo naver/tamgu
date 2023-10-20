@@ -60,10 +60,15 @@ public:
 		return this;
 	}
 
-	Tamgu* Putvalue(Tamgu* v, short idthread) {
-		value = v->Float();
-		return this;
-	}
+    Tamgu* Putvalue(Tamgu* v, short idthread) {
+        value = v->Float();
+        return this;
+    }
+
+    Tamgu* Clonevalue(Tamgu* v, short idthread) {
+        value = v->Float();
+        return this;
+    }
 
 	Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread) {
 
@@ -567,7 +572,7 @@ public:
 	Tamgu* divide(Tamgu* a, bool itself) {
 		double v = a->Float();
 		if (v == 0)
-			return globalTamgu->Returnerror("Error: Divided by 0");
+			return globalTamgu->Returnerror(e_error_divided_by);
 		if (itself) {
 			value /= v;
 			return this;
@@ -614,7 +619,7 @@ public:
 	Tamgu* mod(Tamgu* a, bool itself) {
 		long v = a->Integer();
 		if (v == 0)
-			return globalTamgu->Returnerror("Error: Divided by 0");
+			return globalTamgu->Returnerror(e_error_divided_by);
 		if (itself) {
 			value = (long)value % v;
 			return this;
@@ -769,6 +774,11 @@ public:
     }
     
     Tamgu* Putvalue(Tamgu* v, short idthread) {
+        value = v->Float();
+        return this;
+    }
+    
+    Tamgu* Clonevalue(Tamgu* v, short idthread) {
         value = v->Float();
         return this;
     }
@@ -1251,7 +1261,7 @@ public:
     Tamgu* divide(Tamgu* a, bool itself) {
         double v = a->Float();
         if (v == 0)
-            return globalTamgu->Returnerror("Error: Divided by 0");
+            return globalTamgu->Returnerror(e_error_divided_by);
         if (itself) {
             value = value / v;
             return this;
@@ -1298,7 +1308,7 @@ public:
     Tamgu* mod(Tamgu* a, bool itself) {
         long v = a->Integer();
         if (v == 0)
-            return globalTamgu->Returnerror("Error: Divided by 0");
+            return globalTamgu->Returnerror(e_error_divided_by);
         if (itself) {
             value = (long)value % v;
             return this;
@@ -1402,7 +1412,12 @@ public:
 
     Tamgu* Put(Tamgu*, Tamgu*, short);
     Tamgu* Vector(short idthread);
+    
     Tamgu* Putvalue(Tamgu* ke, short idthread) {
+        return Put(aNULL, ke, idthread);
+    }
+
+    Tamgu* Clonevalue(Tamgu* ke, short idthread) {
         return Put(aNULL, ke, idthread);
     }
 

@@ -82,7 +82,8 @@ void TamguGlobal::RecordContainers() {
     Tamgulisp::InitialisationModule(this, TamguVersion());
 
     Tamguvector::InitialisationModule(this, TamguVersion());
-	Tamguivector::InitialisationModule(this, TamguVersion());
+
+    Tamguivector::InitialisationModule(this, TamguVersion());
 	Tamgubvector::InitialisationModule(this, TamguVersion());
 	Tamgufvector::InitialisationModule(this, TamguVersion());
 	Tamgudvector::InitialisationModule(this, TamguVersion());
@@ -129,7 +130,7 @@ void TamguGlobal::RecordContainers() {
 
 	Tamgutreemapsf::InitialisationModule(this, TamguVersion());
 	Tamgutreemapsi::InitialisationModule(this, TamguVersion());
-	Tamgutreemapss::InitialisationModule(this, TamguVersion());
+    Tamgutreemapss::InitialisationModule(this, TamguVersion());
 	Tamgutreemapsl::InitialisationModule(this, TamguVersion());
 
     Tamguprimemap::InitialisationModule(this, TamguVersion());
@@ -169,8 +170,26 @@ void TamguGlobal::RecordContainers() {
 	mapnewInstances[b_string][b_string] = newInstance[a_mapss];
 	mapnewInstances[b_string][b_none] = newInstance[a_map];
 
+    framecontainer_predeclared["vector<int>"] = a_ivector;
+    framecontainer_predeclared["vector<float>"] = a_fvector;
+    framecontainer_predeclared["vector<long>"] = a_lvector;
+    framecontainer_predeclared["vector<short>"] = a_hvector;
+    framecontainer_predeclared["vector<string>"] = a_svector;
+    framecontainer_predeclared["vector<ustring>"] = a_uvector;
+
+    framecontainer_predeclared["map<int>"] = Tamgumapsi::idtype;
+    framecontainer_predeclared["map<float>"] = Tamgumapsf::idtype;
+    framecontainer_predeclared["map<long>"] = Tamgumapsl::idtype;
+    framecontainer_predeclared["map<string>"] = a_mapss;
+    framecontainer_predeclared["map<ustring>"] = Tamgumapuu::idtype;
+
+    framecontainer_predeclared["treemap<int>"] = Tamgutreemapsi::idtype;
+    framecontainer_predeclared["treemap<float>"] = Tamgutreemapsf::idtype;
+    framecontainer_predeclared["treemap<long>"] = Tamgutreemapsl::idtype;
+    framecontainer_predeclared["treemap<string>"] = Tamgutreemapss::idtype;
+
+    framecontainer_predeclared["primemap<int>"] = Tamguprimemapsi::idtype;
+    framecontainer_predeclared["primemap<float>"] = Tamguprimemapsf::idtype;
+    framecontainer_predeclared["primemap<long>"] = Tamguprimemapsl::idtype;
+    framecontainer_predeclared["primemap<string>"] = Tamguprimemapss::idtype;
 }
-
-
-
-

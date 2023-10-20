@@ -60,7 +60,7 @@ bool Tamgubyte::InitialisationModule(TamguGlobal* global, string version) {
 Tamgu* Tamgubyte::divide(Tamgu* a, bool autoself) {
     unsigned char ib = a->Byte();
     if (ib == 0)
-        return globalTamgu->Returnerror("Error: Divided by 0");
+        return globalTamgu->Returnerror(e_error_divided_by);
     if (autoself) {
         value /= ib;
         return this;
@@ -74,7 +74,7 @@ Tamgu* Tamgubyte::divide(Tamgu* a, bool autoself) {
 Tamgu* Tamgubyte::mod(Tamgu* a, bool autoself) {
     unsigned char ib = a->Byte();
     if (ib == 0)
-        return globalTamgu->Returnerror("Error: Divided by 0");
+        return globalTamgu->Returnerror(e_error_divided_by);
     if (autoself) {
         value %= ib;
         return this;

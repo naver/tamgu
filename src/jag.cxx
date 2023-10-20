@@ -177,7 +177,7 @@ void jag_editor::displaythehelp(long noclear) {
     cerr << "   \t\t- " << m_redital << "h:" << m_current << " full help" << endl;
     cerr << "   \t\t- " << m_redital << "q:" << m_current << " quit" << endl << endl;
 
-    cerr << "   " << m_redbold << "Regular expressions for " << m_redital << "'find'" << m_current << endl;
+    cerr << "   " << m_redbold << e_regular_expressions_for << m_redital << "'find'" << m_current << endl;
     cerr << "   \t- " << m_redbold << "%d" << m_current <<"\t\tstands for any digit" << m_current << endl;
     cerr << "   \t- " << m_redbold << "%x" << m_current <<"\t\tstands for a hexadecimal digit (abcdef0123456789ABCDEF)" << m_current << endl;
     cerr << "   \t- " << m_redbold << "%p" << m_current <<"\t\tstands for any punctuation" << m_current << endl;
@@ -1997,7 +1997,7 @@ void jag_editor::processgo() {
     }
 
     clearline();
-    cout << back << "Unknown line";
+    cout << back << e_unknown_line;
     movetoline(currentline);
     movetoend();
 }
@@ -2103,7 +2103,7 @@ bool jag_editor::processfind() {
     }
 
     clearline();
-    cout << back << "Not found";
+    cout << back << e_not_found;
     movetoline(currentline);
     movetoend();
     return false;

@@ -407,7 +407,7 @@ Exporting Tamgu*  Tamgumapl::Put(Tamgu* idx, Tamgu* ke, short idthread) {
         }
         ke = ke->Map(idthread);
         if (!ke->isMapContainer())
-            return globalTamgu->Returnerror("Wrong map initialization", idthread);
+            return globalTamgu->Returnerror(e_wrong_map_initialization, idthread);
         locking();
         Clear();
         if (ke->Type() == Tamgumapl::idtype) {
@@ -447,7 +447,7 @@ Tamgu* Tamgumapl::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign) {
         if (key == NULL) {
             if (globalTamgu->erroronkey) {
                 unlocking();
-                return globalTamgu->Returnerror("Wrong index", idthread);
+                return globalTamgu->Returnerror(e_wrong_index, idthread);
             }
             values.erase(skey);
             key = aNOELEMENT;
@@ -459,7 +459,7 @@ Tamgu* Tamgumapl::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign) {
     key = values[skey];
     if (key == NULL) {
         if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong index", idthread);
+            return globalTamgu->Returnerror(e_wrong_index, idthread);
         values.erase(skey);
         key = aNOELEMENT;
     }
@@ -538,7 +538,7 @@ Exporting Tamgu* Tamgumapl::Eval(Tamgu* contextualpattern, Tamgu* idx, short idt
     Tamgu* kval = Value(skey);
     if (kval == aNOELEMENT) {
         if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong index", idthread);
+            return globalTamgu->Returnerror(e_wrong_index, idthread);
         return aNOELEMENT;
 
     }

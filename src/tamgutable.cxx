@@ -1022,7 +1022,7 @@ Exporting Tamgu*  Tamgutable::Put(Tamgu* idx, Tamgu* value, short idthread) {
         
         value = value->Vector(idthread);
         if (!value->isVectorContainer())
-            return globalTamgu->Returnerror("Cannot set this value", idthread);
+            return globalTamgu->Returnerror(e_cannot_set_this, idthread);
 
         long sz = value->Size();
         Clear();
@@ -1031,7 +1031,7 @@ Exporting Tamgu*  Tamgutable::Put(Tamgu* idx, Tamgu* value, short idthread) {
         for (long it = 0; it < sz; ++it) {
             if (!Pushing(value->getvalue(it))) {
                 value->Releasenonconst();
-                return globalTamgu->Returnerror("Maximum size of table reached", idthread);
+                return globalTamgu->Returnerror(e_maximum_size_of, idthread);
             }
         }
         value->Releasenonconst();
@@ -1049,7 +1049,7 @@ Exporting Tamgu*  Tamgutable::Put(Tamgu* idx, Tamgu* value, short idthread) {
             rkey = size + rkey;
         if (rkey < lkey || rkey >= size || lkey >= size) {
             if (globalTamgu->erroronkey)
-                globalTamgu->Returnerror("Wrong index", idthread);
+                globalTamgu->Returnerror(e_wrong_index, idthread);
             return aTRUE;
         }
         if (rkey != lkey)
@@ -1082,12 +1082,12 @@ Exporting Tamgu*  Tamgutable::Put(Tamgu* idx, Tamgu* value, short idthread) {
     }
     long ikey = idx->Getinteger(idthread);
     if (ikey >= size)
-        return globalTamgu->Returnerror("Table is full", idthread);
+        return globalTamgu->Returnerror(e_table_is_full, idthread);
 
     if (ikey < 0) {
         ikey = size + ikey;
         if (ikey < 0)
-            return globalTamgu->Returnerror("Cannot set this value", idthread);
+            return globalTamgu->Returnerror(e_cannot_set_this, idthread);
     }
     value = value->Atom();
     value->Addreference(investigate,reference+1);
@@ -1158,7 +1158,7 @@ Exporting Tamgu* Tamgutable::Eval(Tamgu* contextualpattern, Tamgu* idx, short id
         }
         if (!found) {
             if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong index", idthread);
+                return globalTamgu->Returnerror(e_wrong_index, idthread);
             return aNOELEMENT;
         }
     }
@@ -1173,7 +1173,7 @@ Exporting Tamgu* Tamgutable::Eval(Tamgu* contextualpattern, Tamgu* idx, short id
     if (ikey < 0 || ikey >= size) {
         if (ikey != size || keyright == NULL) {
             if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong index", idthread);
+                return globalTamgu->Returnerror(e_wrong_index, idthread);
             return aNOELEMENT;
         }
     }
@@ -1208,7 +1208,7 @@ Exporting Tamgu* Tamgutable::Eval(Tamgu* contextualpattern, Tamgu* idx, short id
         }
         if (!found) {
             if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong index", idthread);
+                return globalTamgu->Returnerror(e_wrong_index, idthread);
             return aNOELEMENT;
         }
     }
@@ -1229,14 +1229,14 @@ Exporting Tamgu* Tamgutable::Eval(Tamgu* contextualpattern, Tamgu* idx, short id
         iright = size + iright;
         if (iright<ikey) {
             if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong index", idthread);
+                return globalTamgu->Returnerror(e_wrong_index, idthread);
             return aNOELEMENT;
         }
     }
     else {
         if (iright>size) {
             if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong index", idthread);
+                return globalTamgu->Returnerror(e_wrong_index, idthread);
             return aNOELEMENT;
         }
     }

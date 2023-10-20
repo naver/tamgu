@@ -314,18 +314,18 @@ class Tamguvector : public TamguObjectLockContainer {
             Push(v->getvalue(beg));
     }
 
-    Exporting void Storevalue(string& u);
-    Exporting void Storevalue(wstring& u);
+    Exporting virtual void Storevalue(string& u);
+    Exporting virtual void Storevalue(wstring& u);
 
-    Exporting void storevalue(string u);
-    Exporting void storevalue(float u);
-    Exporting void storevalue(short u);
-    Exporting void storevalue(wstring u);
-    Exporting void storevalue(long u);
-    Exporting void storevalue(BLONG u);
-    Exporting void storevalue(double u);
-    Exporting void storevalue(unsigned char u);
-    Exporting void storevalue(wchar_t u);
+    Exporting virtual void storevalue(string u);
+    Exporting virtual void storevalue(float u);
+    Exporting virtual void storevalue(short u);
+    Exporting virtual void storevalue(wstring u);
+    Exporting virtual void storevalue(long u);
+    Exporting virtual void storevalue(BLONG u);
+    Exporting virtual void storevalue(double u);
+    Exporting virtual void storevalue(unsigned char u);
+    Exporting virtual void storevalue(wchar_t u);
     //---------------------------------------------------------------------------------------------------------------------
     
     void unmark() {
@@ -510,14 +510,14 @@ class Tamguvector : public TamguObjectLockContainer {
         if (comp->isFunction()) {
             comp = comp->Body(idthread);
             if (comp == NULL || (comp->Size() != 1 && comp->Size() != 2))
-                return globalTamgu->Returnerror("Expecting a comparison function with one or two parameters", idthread);
+                return globalTamgu->Returnerror(e_expecting_a_comparison, idthread);
             if (callfunc->Size() == 2)
                 d = callfunc->Evaluate(1, contextualpattern, idthread)->Boolean();
         }
         else {
             if (comp->isFunctionParameter()) {
                 if (comp->Size() > 2)
-                    return globalTamgu->Returnerror("Expecting a comparison function with one parameter", idthread);
+                    return globalTamgu->Returnerror(e_expecting_a_comparison03, idthread);
                 if (callfunc->Size() == 2)
                     d = callfunc->Evaluate(1, contextualpattern, idthread)->Boolean();
             }
@@ -639,11 +639,11 @@ class Tamguvector : public TamguObjectLockContainer {
     }
 
     Exporting virtual Tamgu* Push(Tamgu*);
-    Exporting Tamgu* Push(TamguGlobal* g, Tamgu* a, short idhtread);
+    Exporting virtual Tamgu* Push(TamguGlobal* g, Tamgu* a, short idhtread);
 
     Exporting virtual Tamgu* Pop(Tamgu*);
 
-    void addstringto(string s, int i) {
+    virtual void addstringto(string s, int i) {
         locking();
         if (values.size() == 0) {
             unlocking();
@@ -663,7 +663,7 @@ class Tamguvector : public TamguObjectLockContainer {
         unlocking();
     }
 
-    void addustringto(wstring s, int i) {
+    virtual void addustringto(wstring s, int i) {
         locking();
         if (values.size() == 0) {
             unlocking();
@@ -683,7 +683,7 @@ class Tamguvector : public TamguObjectLockContainer {
         unlocking();
     }
 
-    void addstringto(wchar_t s, int i) {
+    virtual void addstringto(wchar_t s, int i) {
         locking();
         if (values.size() == 0) {
             unlocking();
@@ -2209,6 +2209,229 @@ public:
     Exporting float Decimal();
     Exporting bool Boolean();
 
+};
+
+
+//---------------------------------------------------------------------------------------------------------------------
+
+class Tamguframevector : public Tamguvector {
+    public:
+    //We export the methods that will be exposed for our new object
+    //this is a static object, which is common to everyone
+    //We associate the method pointers with their names in the linkedmethods map
+
+    //---------------------------------------------------------------------------------------------------------------------
+    //This SECTION is for your specific implementation...
+    //Your personal variables here...
+    Tamgu* frame;
+
+    //---------------------------------------------------------------------------------------------------------------------
+    Tamguframevector(Tamgu* fr, TamguGlobal* g, Tamgu* parent = NULL) : Tamguvector(g, parent) {
+        //Do not forget your variable initialisation
+        frame = fr;
+    }
+
+    Tamguframevector(Tamgu* fr) {
+        //Do not forget your variable initialisation
+        frame = fr;
+    }
+
+    //----------------------------------------------------------------------------------------------------------------------
+    Exporting Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);
+    Exporting bool Insertvalue(Tamgu* dom, Tamgu* v, basebin_hash<Tamgu*>&);
+    
+    virtual short Type() {
+        return a_framevector;
+    }
+
+    Tamgu* Atom(bool forced = false) {
+        if (forced) {
+            Tamguframevector* v = new Tamguframevector(frame);
+            Tamgu* a;
+            locking();
+            long sz = values.size();
+            for (long i = 0; i < sz; i++) {
+                a = values[i]->Atom(true);
+                a->Addreference(investigate,1);
+                v->values.push_back(a);
+            }
+            unlocking();
+            return v;
+        }
+        return this;
+    }
+    //---------------------------------------------------------------------------------------------------------------------
+    //Declaration
+    //All our methods must have been declared in tamguexportedmethods... See MethodInitialization below
+    Tamgu* Newinstance(short idthread, Tamgu* f = NULL) {
+        return new Tamguframevector(frame);
+    }
+
+    Tamgu* Newvalue(Tamgu* a, short idthread) {
+        Tamguframevector* v = new Tamguframevector(frame);
+        if (a->isContainer()) {
+            TamguIteration* it = a->Newiteration(false);
+            for (it->Begin(); it->End() == aFALSE; it->Next())
+                v->Push(it->IteratorValue());
+            it->Release();
+            return v;
+        }
+        
+        for (long i=0; i<values.size();i++)
+            v->Push(a);
+        return v;
+    }
+
+    short Typeinfered() {
+        return frame->Name();
+    }
+
+    inline bool check_frame(Tamgu* value) {
+        return globalTamgu->Compatible(frame->Name(), value->Type());
+    }
+
+    Tamgu* Frame() {
+        return frame;
+    }
+    //---------------------------------------------------------------------------------------------------------------------
+    void store(long k, Tamgu* v) {
+        if (!check_frame(v)) {
+            globalTamgu->Returnerror(e_error_on_frame_vector);
+            return;
+        }
+        locking();
+        if (k >= values.size())
+            values.push_back(v);
+        else {
+            if (values[k] != NULL)
+                values[k]->Removereference(reference + 1);
+            values[k] = v;
+        }
+        v->Addreference(investigate, reference + 1);
+        unlocking();
+    }
+    
+    Exporting void storevalue(Tamgu* v, long beg, long end) {
+        if (!check_frame(v)) {
+            globalTamgu->Returnerror(e_error_on_frame_vector);
+            return;
+        }
+
+        long sz = v->Size();
+        for (;beg < end && beg < sz; beg++)
+            Push(v->getvalue(beg));
+    }
+
+    Exporting void Storevalue(string& u) {
+        globalTamgu->Returnerror(e_error_on_frame_vector);
+    }
+    Exporting void Storevalue(wstring& u) {
+        globalTamgu->Returnerror(e_error_on_frame_vector);
+    }
+
+    Exporting void storevalue(string u) {
+        globalTamgu->Returnerror(e_error_on_frame_vector);
+    }
+    Exporting void storevalue(float u) {
+        globalTamgu->Returnerror(e_error_on_frame_vector);
+    }
+    Exporting void storevalue(short u) {
+        globalTamgu->Returnerror(e_error_on_frame_vector);
+    }
+    Exporting void storevalue(wstring u) {
+        globalTamgu->Returnerror(e_error_on_frame_vector);
+    }
+    Exporting void storevalue(long u) {
+        globalTamgu->Returnerror(e_error_on_frame_vector);
+    }
+    Exporting void storevalue(BLONG u) {
+        globalTamgu->Returnerror(e_error_on_frame_vector);
+    }
+    Exporting void storevalue(double u) {
+        globalTamgu->Returnerror(e_error_on_frame_vector);
+    }
+    Exporting void storevalue(unsigned char u) {
+        globalTamgu->Returnerror(e_error_on_frame_vector);
+    }
+    Exporting void storevalue(wchar_t u) {
+        globalTamgu->Returnerror(e_error_on_frame_vector);
+    }
+    //---------------------------------------------------------------------------------------------------------------------
+    //---------------------------------------------------------------------------------------------------------------------
+    //This SECTION is for your specific implementation...
+    //This is an example of a function that could be implemented for your needs.
+    Tamgu* MethodPushinFrame(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+
+    Tamgu* MethodInsertinFrame(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        Tamgu* v = callfunc->Evaluate(1, contextualpattern, idthread);
+        if (!check_frame(v))
+            return globalTamgu->Returnerror(e_error_on_frame_vector);
+
+        long i = callfunc->Evaluate(0, contextualpattern, idthread)->Integer();
+        Insert(i, v);
+        return aTRUE;
+    }
+
+    //---------------------------------------------------------------------------------------------------------
+    //Raw push
+    Tamgu* push(Tamgu* v) {
+        if (!check_frame(v))
+            return globalTamgu->Returnerror(e_error_on_frame_vector);
+        values.push_back(v);
+        v->Addreference(investigate, reference + 1);
+        return this;
+    }
+
+    void pushatom(Tamgu* v) {
+        if (!check_frame(v)) {
+            globalTamgu->Returnerror(e_error_on_frame_vector);
+            return;
+        }
+        v = v->Atom();
+        values.push_back(v);
+        v->Addreference(investigate, reference + 1);
+    }
+
+    inline void pushone(Tamgu* a) {
+        if (!check_frame(a)) {
+            globalTamgu->Returnerror(e_error_on_frame_vector);
+            return;
+        }
+        a->Addreference(0,reference+1);
+        values.push_back(a);
+    }
+
+    Exporting Tamgu* Push(Tamgu*);
+    Exporting Tamgu* Push(TamguGlobal* g, Tamgu* a, short idhtread);
+
+    void addstringto(string s, int i) {
+        globalTamgu->Returnerror(e_error_on_frame_vector);
+    }
+
+    void addustringto(wstring s, int i) {
+        globalTamgu->Returnerror(e_error_on_frame_vector);
+    }
+
+    void addstringto(wchar_t s, int i) {
+        globalTamgu->Returnerror(e_error_on_frame_vector);
+    }
+    
+    //---------------------------------------------------------------------------------------------------------------------
+
+    //ExecuteMethod must be implemented in order to execute our new Tamgu methods. This method is called when a TamguCallMethodMethod object
+    //is returned by the Declaration method.
+    Tamgu* CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        //This call is a bit cryptic. It takes the method (function) pointer that has been associated in our map with "name"
+        //and run it with the proper parameters. This is the right call which should be invoked from within a class definition
+        switch (idname) {
+            case a_push:
+                return MethodPushinFrame(contextualpattern, idthread, callfunc);
+            case a_insert:
+                return MethodInsertinFrame(contextualpattern, idthread, callfunc);
+            default:
+                return (this->*methods.get(idname))(contextualpattern, idthread, callfunc);
+        }
+    }
 };
 
 #endif

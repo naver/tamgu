@@ -79,7 +79,8 @@ bool Tamguprimemapsi::InitialisationModule(TamguGlobal* global, string version) 
     Tamguprimemapsi::AddMethod(global, "pop", &Tamguprimemapsi::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamguprimemapsi::AddMethod(global, "merge", &Tamguprimemapsi::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
     
-    if (version != "") {        
+    if (version != "") {
+        global->returnindextypes[Tamguprimemapsi::idtype] = a_int;        
     global->minimal_indexes[Tamguprimemapsi::idtype] = true;
 
         global->newInstance[Tamguprimemapsi::idtype] = new Tamguprimemapsi(global);
@@ -341,7 +342,7 @@ Exporting Tamgu*  Tamguprimemapsi::Put(Tamgu* idx, Tamgu* ke, short idthread) {
         
         ke = ke->Map(idthread);
         if (!ke->isMapContainer())
-            return globalTamgu->Returnerror("Wrong map initialization", idthread);
+            return globalTamgu->Returnerror(e_wrong_map_initialization, idthread);
         
         locking();
         values.clear();
@@ -381,7 +382,7 @@ Tamgu* Tamguprimemapsi::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sig
     Tamgu* val = Value(skey);
     if (val == aNOELEMENT) {
         if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong index", idthread);
+            return globalTamgu->Returnerror(e_wrong_index, idthread);
         return aNOELEMENT;
 
     }
@@ -461,7 +462,7 @@ Exporting Tamgu* Tamguprimemapsi::Eval(Tamgu* contextualpattern, Tamgu* idx, sho
     Tamgu* kval = Value(skey);
     if (kval == aNOELEMENT) {
         if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong index", idthread);
+            return globalTamgu->Returnerror(e_wrong_index, idthread);
         return aNOELEMENT;
 
     }
@@ -703,7 +704,7 @@ Exporting Tamgu* Tamguprimemapsi::divide(Tamgu* b, bool itself) {
             v = itr->Valueinteger();
             if (v == 0) {
                 res->Release();
-                return globalTamgu->Returnerror("Error: Divided by 0");
+                return globalTamgu->Returnerror(e_error_divided_by);
             }
             
             it = values.find(itr->Keystring());
@@ -723,7 +724,7 @@ Exporting Tamgu* Tamguprimemapsi::divide(Tamgu* b, bool itself) {
     long v = b->Integer();
     if (v == 0) {
         res->Release();
-        return globalTamgu->Returnerror("Error: Divided by 0");
+        return globalTamgu->Returnerror(e_error_divided_by);
     }
     for (it = values.begin(); it != values.end(); it++)
         it->second /= v;
@@ -745,7 +746,7 @@ Exporting Tamgu* Tamguprimemapsi::mod(Tamgu* b, bool itself) {
             v = itr->Valueinteger();
             if (v == 0) {
                 res->Release();
-                return globalTamgu->Returnerror("Error: Divided by 0");
+                return globalTamgu->Returnerror(e_error_divided_by);
             }
             
             it = values.find(itr->Keystring());
@@ -765,7 +766,7 @@ Exporting Tamgu* Tamguprimemapsi::mod(Tamgu* b, bool itself) {
     long v = b->Integer();
     if (v == 0) {
         res->Release();
-        return globalTamgu->Returnerror("Error: Divided by 0");
+        return globalTamgu->Returnerror(e_error_divided_by);
     }
     for (it = values.begin(); it != values.end(); it++)
         it->second = it->second % v;

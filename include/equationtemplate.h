@@ -1296,7 +1296,7 @@ public:
         BLONG r = res->Long();
         if (!r) {
             res->Releasenonconst();
-            return globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            return globalTamgu->Returnerror(e_cannot_divide_by, idthread);
         }
 
         r = v / r;
@@ -1313,7 +1313,7 @@ public:
     long Getinteger(short idthread) {
         long vv = val->Getinteger(idthread);
         if (vv == 0) {
-            globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             return 0;
         }
         
@@ -1323,7 +1323,7 @@ public:
     short Getshort(short idthread) {
         short vv = val->Getshort(idthread);
         if (vv == 0) {
-            globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             return 0;
         }
         
@@ -1333,7 +1333,7 @@ public:
     BLONG Getlong(short idthread) {
         BLONG vv = val->Getlong(idthread);
         if (vv == 0) {
-            globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             return 0;
         }
         
@@ -1343,7 +1343,7 @@ public:
     double Getfloat(short idthread) {
         double vv = val->Getfloat(idthread);
         if (vv == 0) {
-            globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             return 0;
         }
         
@@ -1353,7 +1353,7 @@ public:
     float Getdecimal(short idthread) {
         float vv = val->Getdecimal(idthread);
         if (vv == 0) {
-            globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             return 0;
         }
         return (v/vv);
@@ -1377,7 +1377,7 @@ public:
         double r = res->Float();
         if (!r) {
             res->Releasenonconst();
-            return globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            return globalTamgu->Returnerror(e_cannot_divide_by, idthread);
         }
         r = v / r;
 
@@ -1393,7 +1393,7 @@ public:
     double Getfloat(short idthread) {
         double vv = val->Getfloat(idthread);
         if (vv == 0) {
-            globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             return 0;
         }
 
@@ -1403,7 +1403,7 @@ public:
     float Getdecimal(short idthread) {
         float vv = val->Getdecimal(idthread);
         if (vv == 0) {
-            globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             return 0;
         }
         return (v/vv);
@@ -1412,7 +1412,7 @@ public:
     long Getinteger(short idthread) {
         long vv = val->Getinteger(idthread);
         if (vv == 0) {
-            globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             return 0;
         }
         
@@ -1422,7 +1422,7 @@ public:
     short Getshort(short idthread) {
         short vv = val->Getshort(idthread);
         if (vv == 0) {
-            globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             return 0;
         }
         
@@ -1432,7 +1432,7 @@ public:
     BLONG Getlong(short idthread) {
         BLONG vv = val->Getlong(idthread);
         if (vv == 0) {
-            globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             return 0;
         }
         
@@ -1512,7 +1512,7 @@ public:
     long Getinteger(short idthread) {
         long v = values[1]->Getinteger(idthread);
         if (v == 0) {
-            globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             return 0;
         }
         return (values[0]->Getinteger(idthread)/v);
@@ -1521,7 +1521,7 @@ public:
     short Getshort(short idthread) {
         short v = values[1]->Getshort(idthread);
         if (v == 0) {
-            globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             return 0;
         }
         return (values[0]->Getshort(idthread)/v);
@@ -1530,7 +1530,7 @@ public:
     double Getfloat(short idthread) {
         double v = values[1]->Getfloat(idthread);
         if (v == 0) {
-            globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             return 0;
         }
         return (values[0]->Getfloat(idthread)/v);
@@ -1539,7 +1539,7 @@ public:
     float Getdecimal(short idthread) {
         float v = values[1]->Getdecimal(idthread);
         if (v == 0) {
-            globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             return 0;
         }
         return (values[0]->Getdecimal(idthread)/v);
@@ -1549,7 +1549,7 @@ public:
     BLONG Getlong(short idthread) {
         BLONG v = values[1]->Getlong(idthread);
         if (v == 0) {
-            globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             return 0;
         }
         return (values[0]->Getlong(idthread)/v);
@@ -1616,7 +1616,7 @@ public:
         BLONG r = res->Long();
         if (!r) {
             res->Releasenonconst();
-            return globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            return globalTamgu->Returnerror(e_cannot_divide_by, idthread);
         }
         r = v % r;
         
@@ -1631,7 +1631,7 @@ public:
     long Getinteger(short idthread) {
         long vv = val->Getinteger(idthread);
         if (vv == 0) {
-            globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             return 0;
         }
         
@@ -1641,7 +1641,7 @@ public:
     short Getshort(short idthread) {
         short vv = val->Getshort(idthread);
         if (vv == 0) {
-            globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             return 0;
         }
         
@@ -1651,7 +1651,7 @@ public:
     BLONG Getlong(short idthread) {
         BLONG vv = val->Getlong(idthread);
         if (vv == 0) {
-            globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             return 0;
         }
         
@@ -1661,7 +1661,7 @@ public:
     double Getfloat(short idthread) {
         BLONG vv = val->Getlong(idthread);
         if (vv == 0) {
-            globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             return 0;
         }
         
@@ -1671,7 +1671,7 @@ public:
     float Getdecimal(short idthread) {
         long vv = val->Getinteger(idthread);
         if (vv == 0) {
-            globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             return 0;
         }
         
@@ -1730,7 +1730,7 @@ public:
     short Getshort(short idthread) {
         short v = values[1]->Getshort(idthread);
         if (v == 0) {
-            globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             return 0;
         }
         return (values[0]->Getshort(idthread)%v);
@@ -1739,7 +1739,7 @@ public:
     long Getinteger(short idthread) {
         long v = values[1]->Getinteger(idthread);
         if (v == 0) {
-            globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             return 0;
         }
         return (values[0]->Getinteger(idthread)%v);
@@ -1748,7 +1748,7 @@ public:
     BLONG Getlong(short idthread) {
         BLONG v = values[1]->Getlong(idthread);
         if (v == 0) {
-            globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             return 0;
         }
         return (values[0]->Getlong(idthread)%v);
@@ -1757,7 +1757,7 @@ public:
     float Getdecimal(short idthread) {
         long v = values[1]->Getinteger(idthread);
         if (v == 0) {
-            globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             return 0;
         }
         return (values[0]->Getinteger(idthread)%v);
@@ -1766,7 +1766,7 @@ public:
     double Getfloat(short idthread) {
         BLONG v = values[1]->Getlong(idthread);
         if (v == 0) {
-            globalTamgu->Returnerror("Cannot divide by 0", idthread);
+            globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             return 0;
         }
         return (values[0]->Getlong(idthread)%v);
@@ -3349,7 +3349,7 @@ public:
         for (long i=1;i<size; i++) {
             v = values[i]->Getinteger(idthread);
             if (v == 0) {
-                globalTamgu->Returnerror("Cannot divide by 0", idthread);
+                globalTamgu->Returnerror(e_cannot_divide_by, idthread);
                 return 0;
             }
             res /=v;
@@ -3364,7 +3364,7 @@ public:
         for (long i=1;i<size; i++) {
             v = values[i]->Getshort(idthread);
             if (v == 0) {
-                globalTamgu->Returnerror("Cannot divide by 0", idthread);
+                globalTamgu->Returnerror(e_cannot_divide_by, idthread);
                 return 0;
             }
             res /=v;
@@ -3378,7 +3378,7 @@ public:
         for (long i=1;i<size; i++) {
             v = values[i]->Getfloat(idthread);
             if (v == 0) {
-                globalTamgu->Returnerror("Cannot divide by 0", idthread);
+                globalTamgu->Returnerror(e_cannot_divide_by, idthread);
                 return 0;
             }
             res /=v;
@@ -3392,7 +3392,7 @@ public:
         for (long i=1;i<size; i++) {
             v = values[i]->Getdecimal(idthread);
             if (v == 0) {
-                globalTamgu->Returnerror("Cannot divide by 0", idthread);
+                globalTamgu->Returnerror(e_cannot_divide_by, idthread);
                 return 0;
             }
             res /=v;
@@ -3407,7 +3407,7 @@ public:
         for (long i=1;i<size; i++) {
             v = values[i]->Getlong(idthread);
             if (v == 0) {
-                globalTamgu->Returnerror("Cannot divide by 0", idthread);
+                globalTamgu->Returnerror(e_cannot_divide_by, idthread);
                 return 0;
             }
             res /=v;
@@ -3472,7 +3472,7 @@ public:
         for (long i=1;i<size; i++) {
             v = values[i]->Getshort(idthread);
             if (v == 0) {
-                globalTamgu->Returnerror("Cannot divide by 0", idthread);
+                globalTamgu->Returnerror(e_cannot_divide_by, idthread);
                 return 0;
             }
             res %=v;
@@ -3486,7 +3486,7 @@ public:
         for (long i=1;i<size; i++) {
             v = values[i]->Getinteger(idthread);
             if (v == 0) {
-                globalTamgu->Returnerror("Cannot divide by 0", idthread);
+                globalTamgu->Returnerror(e_cannot_divide_by, idthread);
                 return 0;
             }
             res %=v;
@@ -3501,7 +3501,7 @@ public:
         for (long i=1;i<size; i++) {
             v = values[i]->Getlong(idthread);
             if (v == 0) {
-                globalTamgu->Returnerror("Cannot divide by 0", idthread);
+                globalTamgu->Returnerror(e_cannot_divide_by, idthread);
                 return 0;
             }
             res %=v;
@@ -3515,7 +3515,7 @@ public:
         for (long i=1;i<size; i++) {
             v = values[i]->Getinteger(idthread);
             if (v == 0) {
-                globalTamgu->Returnerror("Cannot divide by 0", idthread);
+                globalTamgu->Returnerror(e_cannot_divide_by, idthread);
                 return 0;
             }
             res %=v;
@@ -3530,7 +3530,7 @@ public:
         for (long i=1;i<size; i++) {
             v = values[i]->Getlong(idthread);
             if (v == 0) {
-                globalTamgu->Returnerror("Cannot divide by 0", idthread);
+                globalTamgu->Returnerror(e_cannot_divide_by, idthread);
                 return 0;
             }
             res %=v;
@@ -4204,7 +4204,7 @@ public:
                 else {
                     r->Releasenonconst();
                     a->Releasenonconst();
-                    return globalTamgu->Returnerror("Cannot '::' these two elements", idthread);
+                    return globalTamgu->Returnerror(e_cannot_these_two, idthread);
                 }
             }
             
@@ -4355,7 +4355,7 @@ public:
                 break;
             default: {
                 stringstream msg;
-                msg << "Invalid operation: '" << g->Getsymbol(act) << "'";
+                msg << e_invalid_operation << g->Getsymbol(act) << "'";
                 throw new TamguRaiseError(msg);
             }
                 
@@ -4978,14 +4978,19 @@ public:
 
 class TamguInstructionFRACTION : public TamguInstruction {
 public:
-    
     long size;
+    uchar b_type;
     
     TamguInstructionFRACTION(TamguInstructionAPPLYOPERATIONROOT* r, TamguGlobal* g, Tamgu* parent = NULL) : TamguInstruction(a_instructions, g, parent) {
         instructions = r->instructions;
         size = r->Size();
+        b_type = b_float;
     }
     
+    uchar BType() {
+        return b_type;
+    }
+
     long Size() {
         return size;
     }
@@ -5015,7 +5020,8 @@ public:
         return r;
     }
     
-    Tamgu* cfraction(short idthread, short& d);
+    Tamgu* cfraction(short idthread, short& d);    
+    Tamgu* Getfraction(Tamgu* res, Tamgu* inter, short idthread, short& d, short action);
     
     bool isOperation() {
         return false;
@@ -5166,6 +5172,36 @@ public:
     
     short Typevariable() {
         return a_float;
+    }
+
+    void ScanVariables(vector<short>& vars) {
+        if (recipient != NULL)
+            recipient->ScanVariables(vars);
+        if (instruction != NULL)
+            instruction->ScanVariables(vars);
+    }
+
+};
+
+class TamguInstructionEQUFraction : public TamguInstruction {
+public:
+    Tamgu* recipient;
+    TamguInstructionFRACTION* instruction;
+
+    TamguInstructionEQUFraction(TamguInstructionAPPLYOPERATIONEQU* e, TamguGlobal* g, Tamgu* parent = NULL) : TamguInstruction(a_instructionequ, g, parent) {
+        recipient = e->recipient;
+        instruction = (TamguInstructionFRACTION*)e->instruction;
+        action = e->action;
+    }
+    
+    Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
+    
+    bool isEQU() {
+        return true;
+    }
+    
+    short Typevariable() {
+        return a_fraction;
     }
 
     void ScanVariables(vector<short>& vars) {

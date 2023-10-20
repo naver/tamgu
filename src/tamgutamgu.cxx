@@ -98,7 +98,7 @@ Tamgu* Tamgutamgu::Load() {
     acode = globalTamgu->Loadfile(filename);
     if (acode==NULL) {
         stringstream msg;
-        msg << "Unknown file: "<<filename;
+        msg << e_unknown_file<<filename;
         return globalTamgu->Returnerror(msg.str());
     }
     

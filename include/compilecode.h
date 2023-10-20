@@ -38,6 +38,7 @@ public:
     
     size_t currentline;
     size_t current_start, current_end;
+    size_t left_position, right_position;
 
 	//This is a pointer to the global object with which this code space is linked...
     basebin_hash<TamguActionVariable*> variables;
@@ -83,6 +84,8 @@ public:
 		current_start = 0;
 		current_end = 0;
 		featureassignment = 0;
+        left_position = 0;
+        right_position = 0;
 	}
 
 	~TamguCode() {
@@ -189,7 +192,8 @@ public:
 	Tamgu* C_operator(x_node* xn, Tamgu* kf);
 	Tamgu* C_increment(x_node* xn, Tamgu* kf);
 	Tamgu* C_valvector(x_node* xn, Tamgu* kf);
-	Tamgu* C_jsonvector(x_node* xn, Tamgu* kf);
+    Tamgu* C_jsonvector(x_node* xn, Tamgu* kf);
+    Tamgu* C_framecontainer(x_node* xn, Tamgu* kf);
 
 	Tamgu* C_dependencyrule(x_node* xn, Tamgu* kf);
 	Tamgu* C_dependency(x_node* xn, Tamgu* kf);

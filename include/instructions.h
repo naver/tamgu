@@ -333,6 +333,10 @@ public:
         return true;
     }
 
+    bool isDirectIndex() {
+        return (function != NULL && function->isIndex() && !function->Function());
+    }
+
 };
 
 
@@ -457,7 +461,7 @@ public:
 		body = globalTamgu->Getdeclaration(name, idthread);
 		body = body->Body(idthread);
 		if (body == NULL)
-			return globalTamgu->Returnerror("Cannot execute this function", idthread);
+			return globalTamgu->Returnerror(e_cannot_execute_this02, idthread);
 		return TamguCallFunction::Eval(context, callfunction, idthread);
 	}
 
@@ -788,6 +792,10 @@ public:
         return false;
     }
 
+    bool isDirectIndex() {
+        return (function != NULL && function->isIndex() && !function->Function());
+    }
+    
 	short Name() {
 		return name;
 	}
@@ -1177,6 +1185,10 @@ public:
         return NULL;
     }
 
+    bool isDirectIndex() {
+        return (function != NULL && function->isIndex() && !function->Function());
+    }
+    
 	short Name() {
 		return name;
 	}
@@ -2387,6 +2399,10 @@ public:
         return alias->Setstopindex();
     }
     
+    bool isDirectIndex() {
+        return (alias != NULL && alias->isIndex() && !alias->Function());
+    }
+
     short Name() {
         return alias->Name();
     }

@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include "messages_error.h"
 
 #include <thread>
 #include <mutex>
@@ -176,7 +177,11 @@ public:
 	virtual Tamgu* Putvalue(Tamgu* value, short idthread) {
 		return Put(aNULL, value, idthread);
 	}
-    
+
+    virtual Tamgu* Clonevalue(Tamgu* value, short idthread) {
+        return Putvalue(value, idthread);
+    }
+
     virtual void Putatomicvalue(Tamgu* value) {
         Put(value, aNULL, globalTamgu->GetThreadid());
     }
@@ -977,6 +982,10 @@ public:
 
     inline bool isIndex() {
         return (is_index == (investigate & is_noconst));
+    }
+    
+    virtual bool isDirectIndex() {
+        return false;
     }
     
     inline bool isPureString() {
@@ -2282,14 +2291,15 @@ public:
     javaMethod java_value;
     javaMethod java_delete;
     javaMethod java_size;
+    javaMethod java_clear;
     javaMethodInput java_get;
     javaMethodOutput java_set;
 
     void* java_iterator;
         
-    TamguJavaIteration(void* jiv, javaMethod b, javaMethod n, javaMethod e, javaMethod iter, javaMethod v, javaMethod d, javaMethod sz, javaMethodInput g, javaMethodOutput o) :
+    TamguJavaIteration(void* jiv, javaMethod b, javaMethod n, javaMethod e, javaMethod iter, javaMethod v, javaMethod d, javaMethod sz, javaMethodInput g, javaMethodOutput o, javaMethod cl) :
     java_delete(d), java_begin(b), java_next(n), java_end(e), java_iter(iter), java_value(v), java_size(sz),
-    java_get(g), java_set(o), TamguIteration(true) {
+    java_get(g), java_set(o), java_clear(cl), TamguIteration(true) {
         java_iterator = jiv;
     }
         
@@ -2334,6 +2344,10 @@ public:
 
     Tamgu* End() {
         return java_end(java_iterator);
+    }
+    
+    void Clear() {
+        java_clear(java_iterator);
     }
 
     Tamgu* Begin() {
@@ -2980,7 +2994,7 @@ public:
 
 	Tamgu* Eval(Tamgu* context, Tamgu* callfunction, short idthread) {
 		if (body == NULL)
-			return globalTamgu->Returnerror("No function assigned", idthread);
+			return globalTamgu->Returnerror(e_no_function_assigned, idthread);
 
 		return body->Eval(context, callfunction, idthread);
 	}
@@ -3000,7 +3014,7 @@ public:
             return aTRUE;
 		}
 
-		return globalTamgu->Returnerror("Expecting a function", idthread);
+		return globalTamgu->Returnerror(e_expecting_a_function02, idthread);
 	}
 
 	bool duplicateForCall() {
@@ -3374,6 +3388,10 @@ public:
         return false;
     }
 
+    bool isDirectIndex() {
+        return (function != NULL && function->isIndex() && !function->Function());
+    }
+
 	Tamgu* Getindex() {
 		if (function != NULL)
 			return function->Getindex();
@@ -3529,6 +3547,10 @@ public:
         return true;
     }
     
+    bool isDirectIndex() {
+        return (function != NULL && function->isIndex() && !function->Function());
+    }
+
     long Size() {
         return instructions.size();
     }
@@ -3742,6 +3764,10 @@ public:
         return stop;
     }
     
+    bool isDirectIndex() {
+        return (function != NULL && function->isIndex() && !function->Function());
+    }
+
 	bool isCall() {
 		return true;
 	}
@@ -4106,25 +4132,45 @@ public:
 		return true;
 	}
 
-	virtual Tamgu* Putvalue(Tamgu* v, short idthread) {
-		locking();
+    virtual Tamgu* Clonevalue(Tamgu* v, short idthread) {
+        locking();
         if (value == v) {
             unlocking();
-			return v;
+            return v;
         }
 
         if (!value->isConst())
-			value->Resetreference(reference);
+            value->Resetreference(reference);
 
-		if (v->isConst())
-			v = v->Atom();
+        if (v->isConst())
+            v = v->Atom();
 
-		value = v->GetLetValue();
-		value->Setreference(reference);
+        value = v->GetLetValue();
+        value->Setreference(reference);
         value->Enablelock(isToBelocked());
         unlocking();
-		return value;
-	}
+        return value;
+    }
+
+    virtual Tamgu* Putvalue(Tamgu* v, short idthread) {
+        locking();
+        if (value == v) {
+            unlocking();
+            return v;
+        }
+
+        if (!value->isConst())
+            value->Resetreference(reference);
+
+        if (v->isConst())
+            v = v->Atom();
+
+        value = v->GetLetValue();
+        value->Setreference(reference);
+        value->Enablelock(isToBelocked());
+        unlocking();
+        return value;
+    }
 
     void Clean() {
         value =  aNOELEMENT;
@@ -4324,7 +4370,7 @@ public:
         locking();
         if (value == aNOELEMENT) {
             unlocking();
-            return globalTamgu->Returnerror("Uninitialized 'self' variable");
+            return globalTamgu->Returnerror(e_uninitialized_self_variable);
         }
         a = value->Merging(a);
         unlocking();
@@ -4335,7 +4381,7 @@ public:
         locking();
         if (value == aNOELEMENT) {
             unlocking();
-            return globalTamgu->Returnerror("Uninitialized 'self' variable");
+            return globalTamgu->Returnerror(e_uninitialized_self_variable);
         }
         a = value->Combine(a);
         unlocking();
@@ -4346,7 +4392,7 @@ public:
         locking();
         if (value == aNOELEMENT) {
             unlocking();
-            return globalTamgu->Returnerror("Uninitialized 'self' variable");
+            return globalTamgu->Returnerror(e_uninitialized_self_variable);
         }
         a = value->andset(a, itself);
         unlocking();
@@ -4357,7 +4403,7 @@ public:
         locking();
         if (value == aNOELEMENT) {
             unlocking();
-            return globalTamgu->Returnerror("Uninitialized 'self' variable");
+            return globalTamgu->Returnerror(e_uninitialized_self_variable);
         }
         a = value->orset(a, itself);
         unlocking();
@@ -4368,7 +4414,7 @@ public:
         locking();
         if (value == aNOELEMENT) {
             unlocking();
-            return globalTamgu->Returnerror("Uninitialized 'self' variable");
+            return globalTamgu->Returnerror(e_uninitialized_self_variable);
         }
         a = value->xorset(a, itself);
         unlocking();
@@ -4379,7 +4425,7 @@ public:
         locking();
         if (value == aNOELEMENT) {
             unlocking();
-            return globalTamgu->Returnerror("Uninitialized 'self' variable");
+            return globalTamgu->Returnerror(e_uninitialized_self_variable);
         }
         a = value->plus(a, itself);
         unlocking();
@@ -4390,7 +4436,7 @@ public:
         locking();
         if (value == aNOELEMENT) {
             unlocking();
-            return globalTamgu->Returnerror("Uninitialized 'self' variable");
+            return globalTamgu->Returnerror(e_uninitialized_self_variable);
         }
         a = value->minus(a, itself);
         unlocking();
@@ -4401,7 +4447,7 @@ public:
         locking();
         if (value == aNOELEMENT) {
             unlocking();
-            return globalTamgu->Returnerror("Uninitialized 'self' variable");
+            return globalTamgu->Returnerror(e_uninitialized_self_variable);
         }
         a = value->multiply(a, itself);
         unlocking();
@@ -4412,7 +4458,7 @@ public:
         locking();
         if (value == aNOELEMENT) {
             unlocking();
-            return globalTamgu->Returnerror("Uninitialized 'self' variable");
+            return globalTamgu->Returnerror(e_uninitialized_self_variable);
         }
         a = value->divide(a, itself);
         unlocking();
@@ -4422,7 +4468,7 @@ public:
         locking();
         if (value == aNOELEMENT) {
             unlocking();
-            return globalTamgu->Returnerror("Uninitialized 'self' variable");
+            return globalTamgu->Returnerror(e_uninitialized_self_variable);
         }
         a = value->power(a, itself);
         unlocking();
@@ -4432,7 +4478,7 @@ public:
         locking();
         if (value == aNOELEMENT) {
             unlocking();
-            return globalTamgu->Returnerror("Uninitialized 'self' variable");
+            return globalTamgu->Returnerror(e_uninitialized_self_variable);
         }
         a = value->shiftleft(a, itself);
         unlocking();
@@ -4442,7 +4488,7 @@ public:
         locking();
         if (value == aNOELEMENT) {
             unlocking();
-            return globalTamgu->Returnerror("Uninitialized 'self' variable");
+            return globalTamgu->Returnerror(e_uninitialized_self_variable);
         }
         a = value->shiftright(a, itself);
         unlocking();
@@ -4452,7 +4498,7 @@ public:
         locking();
         if (value == aNOELEMENT) {
             unlocking();
-            return globalTamgu->Returnerror("Uninitialized 'self' variable");
+            return globalTamgu->Returnerror(e_uninitialized_self_variable);
         }
         a = value->mod(a, itself);
         unlocking();
@@ -4621,6 +4667,45 @@ public:
     }
     
     Tamgu* Putvalue(Tamgu* v, short idthread) {
+        if (globalTamgu->threadMODE) {
+            locking();
+            if (value == v) {
+                unlocking();
+                return value;
+            }
+            
+            if (!value->isConst())
+                value->Resetreference(reference);
+            
+            if (v->isConst())
+                v = v->Atom();
+            
+            value = v->GetLetValue();
+            value->Setreference(reference);
+            value->Enablelock(isToBelocked());
+            typevalue = value->Type();
+            unlocking();
+            return value;
+        }
+        
+        if (value == v)
+            return value;
+        
+        if (!value->isConst())
+            value->Resetreference(reference);
+        
+        if (v->isConst())
+            v = v->Atom();
+        
+        value = v->GetLetValue();
+        value->Setreference(reference);
+        value->Enablelock(isToBelocked());
+        typevalue = value->Type();
+
+        return value;
+    }
+
+    Tamgu* Clonevalue(Tamgu* v, short idthread) {
         if (globalTamgu->threadMODE) {
             locking();
             if (value == v) {

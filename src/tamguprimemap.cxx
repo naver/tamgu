@@ -357,8 +357,6 @@ Exporting long Tamguprimemap::Size() {
 
 
 Exporting Tamgu*  Tamguprimemap::Put(Tamgu* idx, Tamgu* ke, short idthread) {
-    
-    
     if (!idx->isIndex()) {
         if (ke == this)
             return aTRUE;
@@ -407,7 +405,7 @@ Exporting Tamgu*  Tamguprimemap::Put(Tamgu* idx, Tamgu* ke, short idthread) {
         
         ke = ke->Map(idthread);
         if (!ke->isMapContainer())
-            return globalTamgu->Returnerror("Wrong map initialization", idthread);
+            return globalTamgu->Returnerror(e_wrong_map_initialization, idthread);
         
         locking();
         Clear();
@@ -449,7 +447,7 @@ Tamgu* Tamguprimemap::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign)
     Tamgu* val = Value(skey);
     if (val == aNOELEMENT) {
         if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong index", idthread);
+            return globalTamgu->Returnerror(e_wrong_index, idthread);
         return aNOELEMENT;
 
     }
@@ -528,7 +526,7 @@ Exporting Tamgu* Tamguprimemap::Eval(Tamgu* contextualpattern, Tamgu* idx, short
     Tamgu* kval = Value(skey);
     if (kval == aNOELEMENT) {
         if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong index", idthread);
+            return globalTamgu->Returnerror(e_wrong_index, idthread);
         return aNOELEMENT;
 
     }
@@ -987,5 +985,107 @@ Exporting Tamgu* Tamguprimemap::Loopin(TamguInstruction* ins, Tamgu* context, sh
     a->Releasenonconst();
     return this;
     
+}
+
+Exporting Tamgu*  Tamguframeprimemap::Put(Tamgu* idx, Tamgu* ke, short idthread) {
+    if (!idx->isIndex()) {
+        if (ke == this)
+            return aTRUE;
+        
+        if (ke->isNULL()) {
+            Clear();
+            return aTRUE;
+        }
+        
+        if (ke->isMapContainer()) {
+            Doublelocking _lock(this, ke);
+            Clear();
+            TamguIteration* itr = ke->Newiteration(false);
+            for (itr->Begin(); itr->End() == aFALSE; itr->Next())
+                Push(itr->Keystring(), itr->Value());
+            itr->Release();
+            return aTRUE;
+        }
+        
+        char ch[20];
+        if (ke->isVectorContainer()) {
+            Doublelocking _lock(this, ke);
+            Clear();
+            long nb = 0;
+            for (long it = 0; it < ke->Size(); ++it) {
+                sprintf_s(ch, 20, "%ld", nb);
+                Push(ch, ke->getvalue(it));
+                nb++;
+            }
+            return aTRUE;
+        }
+        
+        if (ke->Type() == a_list) {
+            Doublelocking _lock(this, ke);
+            Tamgulist* kvect = (Tamgulist*)ke;
+            Clear();
+            long nb = 0;
+            list<Tamgu*>::iterator it;
+            for (it = kvect->values.begin(); it != kvect->values.end(); it++) {
+                sprintf_s(ch, 20, "%ld", nb);
+                Push(ch, *it);
+                nb++;
+            }
+            return aTRUE;
+        }
+        
+        ke = ke->Map(idthread);
+        if (!ke->isMapContainer())
+            return globalTamgu->Returnerror(e_wrong_map_initialization, idthread);
+        
+        locking();
+        Clear();
+        if (ke->Type() == a_primemap) {
+            Tamguprimemap* kmap = (Tamguprimemap*)ke;
+            //We copy all values from ke to this
+            prime_hash<string, Tamgu*>::iterator it;
+            for (it = kmap->values.begin(); it != kmap->values.end(); it++)
+                Push(it->first, it->second);
+        }
+        else {
+            TamguIteration* itr = ke->Newiteration(false);
+            Tamgu* a;
+            for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
+                a=itr->IteratorValue();
+                a=a->Atom();
+                values[itr->Keystring()] = a;
+                a->Addreference(investigate,reference+1);
+            }
+            itr->Release();
+        }
+        ke->Release();
+        unlocking();
+        return aTRUE;
+    }
+    
+    string skey;
+    ((TamguIndex*)idx)->left->Setstring(skey, idthread);
+    pushing(skey, ke);
+    return aTRUE;
+}
+
+Exporting Tamgu* Tamguframeprimemap::Push(Tamgu* k, Tamgu* v) {
+    if (!check_frame(v)) {
+        return globalTamgu->Returnerror(e_error_on_frame_map);
+    }
+
+    locking();
+    string s = k->String();
+    if (values.find(s) != values.end()) {
+        Tamgu* kval = values[s];
+        values.erase(s);
+        kval->Removereference(reference + 1);
+    }
+    
+    v = v->Atom();
+    values[s] = v;
+    v->Addreference(investigate,reference+1);
+    unlocking();
+    return aTRUE;
 }
 

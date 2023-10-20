@@ -68,7 +68,7 @@ public:
     void SetConst() { isconst = true;}
     
     short Type() {
-        return Tamgutreemapi::idtype;
+        return a_treemapi;
     }
     
     
@@ -644,5 +644,115 @@ public:
 };
 
 //-------------------------------------------------------------------------------------------
+class Tamguframetreemapi : public Tamgutreemapi {
+    public:
+    //We export the methods that will be exposed for our new object
+    //this is a static object, which is common to everyone
+    //We associate the method pointers with their names in the linkedmethods map
+    //---------------------------------------------------------------------------------------------------------------------
+    //This SECTION is for your specific implementation...
+    //Your personal variables here...
+    Tamgu* frame;
+
+    //---------------------------------------------------------------------------------------------------------------------
+    Tamguframetreemapi(Tamgu* fr, TamguGlobal* g, Tamgu* parent = NULL) : Tamgutreemapi(g, parent) {
+        //Do not forget your variable initialisation
+        frame = fr;
+    }
+
+    Tamguframetreemapi(Tamgu* fr) {
+        frame = fr;
+    }
+
+    //----------------------------------------------------------------------------------------------------------------------
+    short Type() {
+        return a_frametreemapi;
+    }
+
+    string Typename() {
+        return "frametreemapi";
+    }
+
+    Tamgu* Atom(bool forced) {
+        if (forced) {
+            Tamguframetreemapi* m = new Tamguframetreemapi(frame);
+            locking();
+            Tamgu* v;
+
+            for (const auto& it : values) {
+                v = it.second->Atom(true);
+                m->values[it.first] = v;
+                v->Setreference();
+            }
+            unlocking();
+        return m;
+        }
+        return this;
+    }
+    //---------------------------------------------------------------------------------------------------------------------
+    //Declaration
+    //All our methods must have been declared in tamguexportedmethods... See MethodInitialization below
+
+    Tamgu* Newvalue(Tamgu* a, short idthread) {
+        Tamguframetreemapi* m = new Tamguframetreemapi(frame);
+        if (a->isContainer()) {
+            TamguIteration* it = a->Newiteration(false);
+            for (it->Begin(); it->End() == aFALSE; it->Next()) {
+                m->Push(it->Keyinteger(), it->IteratorValue());
+            }
+            it->Release();
+            return m;
+        }
+        
+        map<long,Tamgu*>::iterator ist;
+        for (ist=values.begin(); ist!=values.end();ist++)
+            m->Push(ist->first,a);
+        return m;
+    }
+
+    Tamgu* Newinstance(short idthread, Tamgu* f = NULL) {
+        return new Tamguframetreemapi(frame);
+    }
+
+    short Typeinfered() {
+        return frame->Name();
+    }
+
+    inline bool check_frame(Tamgu* value) {
+        return globalTamgu->Compatible(frame->Name(), value->Type());
+    }
+
+    Tamgu* Frame() {
+        return frame;
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    //This SECTION is for your specific implementation...
+    //This is an example of a function that could be implemented for your needs.
+    //------------------------------------------------------------------------------------------
+    Exporting Tamgu* Push(Tamgu* k, Tamgu* v);
+    Exporting Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);
+    
+    Tamgu* Push(long k, Tamgu* a) {
+        if (!check_frame(a)) {
+            return globalTamgu->Returnerror(e_error_on_frame_map);
+        }
+
+        locking();
+        Tamgu* v = values[k];
+        if (v != NULL) {
+            if (v == a)
+                return this;
+            v->Removereference(reference + 1);
+        }
+        a = a->Atom();
+        values[k] = a;
+        a->Addreference(investigate,reference + 1);
+        unlocking();
+        return this;
+    }
+    //---------------------------------------------------------------------------------------------------------------------
+
+};
 
 #endif

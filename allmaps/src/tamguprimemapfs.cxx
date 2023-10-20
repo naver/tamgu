@@ -71,6 +71,7 @@ bool Tamguprimemapfs::InitialisationModule(TamguGlobal* global, string version) 
     Tamguprimemapfs::AddMethod(global, "pop", &Tamguprimemapfs::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamguprimemapfs::AddMethod(global, "merge", &Tamguprimemapfs::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
 
+    global->returnindextypes[Tamguprimemapfs::idtype] = a_string;
     global->newInstance[Tamguprimemapfs::idtype] = new Tamguprimemapfs(global);
     #ifdef OLDBACKCOMP
     global->newInstance[global->Getid("fsprimemap")] = new Tamguprimemapfs(global);

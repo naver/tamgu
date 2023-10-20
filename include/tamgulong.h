@@ -63,11 +63,15 @@ public:
 		return this;
 	}
 
-	Tamgu* Putvalue(Tamgu* v, short idthread) {
-		value = v->Long();
-		return this;
-	}
+    Tamgu* Putvalue(Tamgu* v, short idthread) {
+        value = v->Long();
+        return this;
+    }
 
+    Tamgu* Clonevalue(Tamgu* v, short idthread) {
+        value = v->Long();
+        return this;
+    }
 
 	Tamgu* Eval(Tamgu* context, Tamgu* v, short idthread) {
 
@@ -654,7 +658,7 @@ public:
 	Tamgu* divide(Tamgu* a, bool itself) {
 		double v = a->Float();
 		if (v == 0)
-			return globalTamgu->Returnerror("Error: Divided by 0");
+			return globalTamgu->Returnerror(e_error_divided_by);
 		v = (double)value / v;
 		
 		if (itself) {
@@ -694,7 +698,7 @@ public:
 	Tamgu* mod(Tamgu* a, bool itself) {
 		BLONG v = a->Long();
 		if (v == 0)
-			return globalTamgu->Returnerror("Error: Divided by 0");
+			return globalTamgu->Returnerror(e_error_divided_by);
 		if (itself) {
 			value %= v;
 			return this;
@@ -800,6 +804,10 @@ public:
 	Tamgu* Put(Tamgu*, Tamgu*, short);
 	Tamgu* Vector(short idthread);
     Tamgu* Putvalue(Tamgu* ke, short idthread) {
+        return Put(aNULL, ke, idthread);
+    }
+
+    Tamgu* Clonevalue(Tamgu* ke, short idthread) {
         return Put(aNULL, ke, idthread);
     }
 

@@ -77,7 +77,8 @@ bool Tamgutreemapuf::InitialisationModule(TamguGlobal* global, string version) {
     Tamgutreemapuf::AddMethod(global, "merge", &Tamgutreemapuf::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
     
     if (version != "") {
-        global->newInstance[Tamgutreemapuf::idtype] = new Tamgutreemapuf(global);
+        global->returnindextypes[Tamgutreemapuf::idtype] = a_float;
+    global->newInstance[Tamgutreemapuf::idtype] = new Tamgutreemapuf(global);
         
         global->RecordCompatibilities(Tamgutreemapuf::idtype);
     }

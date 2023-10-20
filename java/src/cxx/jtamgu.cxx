@@ -794,6 +794,10 @@ Tamgu* JavaBegin(void* jiv) {
     return ((JavaIteration*)jiv)->Begin();
 }
 
+Tamgu* JavaClear(void* jiv) {
+    return ((JavaIteration*)jiv)->Clear();
+}
+
 Tamgu* JavaIterator(void* jiv) {
     return ((JavaIteration*)jiv)->Iterate();
 }
@@ -824,7 +828,7 @@ JNIEXPORT jboolean JNICALL Java_com_naver_jtamgu_JTamgu_Setlongiteratorimplement
     if (Checkvariable(tamgucode, idcode, name)) {
         Tamgu* var = Getvariable(tamgucode, idcode, name);
         JavaIterationLong* jiv = new JavaIterationLong(env, (jobjectArray)values, count);
-        TamguJavaIteration* it = new TamguJavaIteration(jiv, JavaBegin, JavaNext, JavaEnd, JavaIterator, JavaValue, JavaDelete, JavaSize, JavaGet, JavaSet);
+        TamguJavaIteration* it = new TamguJavaIteration(jiv, JavaBegin, JavaNext, JavaEnd, JavaIterator, JavaValue, JavaDelete, JavaSize, JavaGet, JavaSet, JavaClear);
         var->Put(aNULL, it, 0);
         return true;
     }
@@ -854,7 +858,7 @@ JNIEXPORT jboolean JNICALL Java_com_naver_jtamgu_JTamgu_Setfloatiteratorimplemen
     if (Checkvariable(tamgucode, idcode, name)) {
         Tamgu* var = Getvariable(tamgucode, idcode, name);
         JavaIterationFloat* jiv = new JavaIterationFloat(env, (jobjectArray)values, count);
-        TamguJavaIteration* it = new TamguJavaIteration(jiv, JavaBegin, JavaNext, JavaEnd, JavaIterator, JavaValue, JavaDelete, JavaSize, JavaGet, JavaSet);
+        TamguJavaIteration* it = new TamguJavaIteration(jiv, JavaBegin, JavaNext, JavaEnd, JavaIterator, JavaValue, JavaDelete, JavaSize, JavaGet, JavaSet, JavaClear);
         var->Put(aNULL, it, 0);
         return true;
     }
@@ -884,7 +888,7 @@ JNIEXPORT jboolean JNICALL Java_com_naver_jtamgu_JTamgu_Setdoubleiteratorimpleme
     if (Checkvariable(tamgucode, idcode, name)) {
         Tamgu* var = Getvariable(tamgucode, idcode, name);
         JavaIterationDouble* jiv = new JavaIterationDouble(env, (jobjectArray)values, count);
-        TamguJavaIteration* it = new TamguJavaIteration(jiv, JavaBegin, JavaNext, JavaEnd, JavaIterator, JavaValue, JavaDelete, JavaSize, JavaGet, JavaSet);
+        TamguJavaIteration* it = new TamguJavaIteration(jiv, JavaBegin, JavaNext, JavaEnd, JavaIterator, JavaValue, JavaDelete, JavaSize, JavaGet, JavaSet, JavaClear);
         var->Put(aNULL, it, 0);
         return true;
     }
@@ -914,7 +918,7 @@ JNIEXPORT jboolean JNICALL Java_com_naver_jtamgu_JTamgu_Setstringiteratorimpleme
     if (Checkvariable(tamgucode, idcode, name)) {
         Tamgu* var = Getvariable(tamgucode, idcode, name);
         JavaIterationString* jiv = new JavaIterationString(env, values, count);
-        TamguJavaIteration* it = new TamguJavaIteration(jiv, JavaBegin, JavaNext, JavaEnd, JavaIterator, JavaValue, JavaDelete, JavaSize, JavaGet, JavaSet);
+        TamguJavaIteration* it = new TamguJavaIteration(jiv, JavaBegin, JavaNext, JavaEnd, JavaIterator, JavaValue, JavaDelete, JavaSize, JavaGet, JavaSet, JavaClear);
         var->Put(aNULL, it, 0);
         return true;
     }
@@ -946,7 +950,7 @@ JNIEXPORT jboolean JNICALL Java_com_naver_jtamgu_JTamgu_SetListFloatiteratorimpl
     if (Checkvariable(tamgucode, idcode, name)) {
         Tamgu* var = Getvariable(tamgucode, idcode, name);
         JavaIterationListFloat* jiv = new JavaIterationListFloat(env, values, count);
-        TamguJavaIteration* it = new TamguJavaIteration(jiv, JavaBegin, JavaNext, JavaEnd, JavaIterator, JavaValue, JavaDelete, JavaSize, JavaGet, JavaSet);
+        TamguJavaIteration* it = new TamguJavaIteration(jiv, JavaBegin, JavaNext, JavaEnd, JavaIterator, JavaValue, JavaDelete, JavaSize, JavaGet, JavaSet, JavaClear);
         var->Put(aNULL, it, 0);
         return true;
     }
@@ -977,7 +981,7 @@ JNIEXPORT jboolean JNICALL Java_com_naver_jtamgu_JTamgu_SetListIntiteratorimplem
     if (Checkvariable(tamgucode, idcode, name)) {
         Tamgu* var = Getvariable(tamgucode, idcode, name);
         JavaIterationListInteger* jiv = new JavaIterationListInteger(env, values, count);
-        TamguJavaIteration* it = new TamguJavaIteration(jiv, JavaBegin, JavaNext, JavaEnd, JavaIterator, JavaValue, JavaDelete, JavaSize, JavaGet, JavaSet);
+        TamguJavaIteration* it = new TamguJavaIteration(jiv, JavaBegin, JavaNext, JavaEnd, JavaIterator, JavaValue, JavaDelete, JavaSize, JavaGet, JavaSet, JavaClear);
         var->Put(aNULL, it, 0);
         return true;
     }
@@ -1008,7 +1012,7 @@ JNIEXPORT jboolean JNICALL Java_com_naver_jtamgu_JTamgu_SetListLongiteratorimple
     if (Checkvariable(tamgucode, idcode, name)) {
         Tamgu* var = Getvariable(tamgucode, idcode, name);
         JavaIterationListLong* jiv = new JavaIterationListLong(env, values, count);
-        TamguJavaIteration* it = new TamguJavaIteration(jiv, JavaBegin, JavaNext, JavaEnd, JavaIterator, JavaValue, JavaDelete, JavaSize, JavaGet, JavaSet);
+        TamguJavaIteration* it = new TamguJavaIteration(jiv, JavaBegin, JavaNext, JavaEnd, JavaIterator, JavaValue, JavaDelete, JavaSize, JavaGet, JavaSet, JavaClear);
         var->Put(aNULL, it, 0);
         return true;
     }
@@ -1039,7 +1043,7 @@ JNIEXPORT jboolean JNICALL Java_com_naver_jtamgu_JTamgu_SetListDoubleiteratorimp
     if (Checkvariable(tamgucode, idcode, name)) {
         Tamgu* var = Getvariable(tamgucode, idcode, name);
         JavaIterationListDouble* jiv = new JavaIterationListDouble(env, values, count);
-        TamguJavaIteration* it = new TamguJavaIteration(jiv, JavaBegin, JavaNext, JavaEnd, JavaIterator, JavaValue, JavaDelete, JavaSize, JavaGet, JavaSet);
+        TamguJavaIteration* it = new TamguJavaIteration(jiv, JavaBegin, JavaNext, JavaEnd, JavaIterator, JavaValue, JavaDelete, JavaSize, JavaGet, JavaSet, JavaClear);
         var->Put(aNULL, it, 0);
         return true;
     }
@@ -1070,7 +1074,7 @@ JNIEXPORT jboolean JNICALL Java_com_naver_jtamgu_JTamgu_SetListStringiteratorimp
     if (Checkvariable(tamgucode, idcode, name)) {
         Tamgu* var = Getvariable(tamgucode, idcode, name);
         JavaIterationListString* jiv = new JavaIterationListString(env, values, count);
-        TamguJavaIteration* it = new TamguJavaIteration(jiv, JavaBegin, JavaNext, JavaEnd, JavaIterator, JavaValue, JavaDelete, JavaSize, JavaGet, JavaSet);
+        TamguJavaIteration* it = new TamguJavaIteration(jiv, JavaBegin, JavaNext, JavaEnd, JavaIterator, JavaValue, JavaDelete, JavaSize, JavaGet, JavaSet, JavaClear);
         var->Put(aNULL, it, 0);
         return true;
     }
@@ -1080,3 +1084,4 @@ JNIEXPORT jboolean JNICALL Java_com_naver_jtamgu_JTamgu_SetListStringiteratorimp
     displayerror(env, message);
     return false;
 }
+

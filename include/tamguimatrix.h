@@ -212,7 +212,7 @@ public:
         if (r >= 0 && c >= 0)
             values[r][c] = val;
         else
-            globalTamgu->Returnerror("Wrong indexes in a 'imatrix'");
+            globalTamgu->Returnerror(e_wrong_indexes_in02);
 	}
 	void populate(Tamgu* krow, Tamgu* kcol, Tamgu* value) {
 		long r = krow->Integer();
@@ -221,7 +221,7 @@ public:
         if (r >= 0 && c >= 0)
             values[r][c] = val;
         else
-            globalTamgu->Returnerror("Wrong indexes in a 'imatrix'");
+            globalTamgu->Returnerror(e_wrong_indexes_in02);
 	}
     
 	void populate(Tamguimatrix* ke) {

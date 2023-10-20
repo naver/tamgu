@@ -88,49 +88,68 @@ public:
 	Tamgu* Put(Tamgu* index, Tamgu* v, short idthread);
     Tamgu* Loopin(TamguInstruction* ins, Tamgu* context, short idthread);
 
-	Tamgu* Putvalue(Tamgu* v, short idthread) {
-		string s = v->String();
+    Tamgu* Putvalue(Tamgu* v, short idthread) {
+        string s = v->String();
 
-		if (value == NULL) {
-			stringsize = s.size();
-			buffersize = stringsize + 1;
-			value = new uchar[buffersize];
-			strcpy_s((char*)value, buffersize, STR(s));
-			return this;
-		}
+        if (value == NULL) {
+            stringsize = s.size();
+            buffersize = stringsize + 1;
+            value = new uchar[buffersize];
+            strcpy_s((char*)value, buffersize, STR(s));
+            return this;
+        }
 
-		if (buffersize <= s.size())
-			return globalTamgu->Returnerror("String overflow", idthread);
+        if (buffersize <= s.size())
+            return globalTamgu->Returnerror(e_string_overflow, idthread);
 
-		strcpy((char*)value, STR(s));
-		stringsize = s.size();
-		return this;
-	}
+        strcpy((char*)value, STR(s));
+        stringsize = s.size();
+        return this;
+    }
+
+    Tamgu* Clonevalue(Tamgu* v, short idthread) {
+        string s = v->String();
+
+        if (value == NULL) {
+            stringsize = s.size();
+            buffersize = stringsize + 1;
+            value = new uchar[buffersize];
+            strcpy_s((char*)value, buffersize, STR(s));
+            return this;
+        }
+
+        if (buffersize <= s.size())
+            return globalTamgu->Returnerror(e_string_overflow, idthread);
+
+        strcpy((char*)value, STR(s));
+        stringsize = s.size();
+        return this;
+    }
 
 	Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 
 
 	Tamgu* Vector(short idthread) {		
 		if (value==NULL)
-			return globalTamgu->Returnerror("Unknown expression", idthread);
+			return globalTamgu->Returnerror(e_unknown_expression, idthread);
 		string v((char*)value);
 		return globalTamgu->EvaluateVector(v, idthread);
 	}
 
 	Tamgu* Map(short idthread) {		
 		if (value == NULL)
-			return globalTamgu->Returnerror("Unknown expression", idthread);
+			return globalTamgu->Returnerror(e_unknown_expression, idthread);
 		string v((char*)value);
 		return globalTamgu->EvaluateMap(v, idthread);
 	}
 
 	Tamgu* Push(Tamgu* a) {
 		if (value == NULL)
-			return globalTamgu->Returnerror("String overflow", globalTamgu->GetThreadid());
+			return globalTamgu->Returnerror(e_string_overflow, globalTamgu->GetThreadid());
 
 		string s = a->String();
 		if ((stringsize + s.size()) >= buffersize)
-			return globalTamgu->Returnerror("String overflow", globalTamgu->GetThreadid());
+			return globalTamgu->Returnerror(e_string_overflow, globalTamgu->GetThreadid());
 
 		for (long i = 0; i < s.size(); i++)
 			value[stringsize + i] = s[i];
@@ -206,12 +225,12 @@ public:
 
 	void Storevalue(string& s) {
 		if (value == NULL) {
-			globalTamgu->Returnerror("String overflow", globalTamgu->GetThreadid());
+			globalTamgu->Returnerror(e_string_overflow, globalTamgu->GetThreadid());
 			return;
 		}
 
 		if ((stringsize + s.size()) >= buffersize) {
-			globalTamgu->Returnerror("String overflow", globalTamgu->GetThreadid());
+			globalTamgu->Returnerror(e_string_overflow, globalTamgu->GetThreadid());
 			return;
 		}
 
@@ -228,12 +247,12 @@ public:
 
     void storevalue(string s) {
         if (value == NULL) {
-            globalTamgu->Returnerror("String overflow", globalTamgu->GetThreadid());
+            globalTamgu->Returnerror(e_string_overflow, globalTamgu->GetThreadid());
             return;
         }
         
         if ((stringsize + s.size()) >= buffersize) {
-            globalTamgu->Returnerror("String overflow", globalTamgu->GetThreadid());
+            globalTamgu->Returnerror(e_string_overflow, globalTamgu->GetThreadid());
             return;
         }
         
@@ -260,7 +279,7 @@ public:
 	void Forcedclean() {
 		//we cannot reset or resize a rawstring in a thread, since they are not protected with locks.
 		if (globalTamgu->isthreading) {
-			globalTamgu->Returnerror("Cannot reset a 'rawstring' with threads on", globalTamgu->GetThreadid());
+			globalTamgu->Returnerror(e_cannot_reset_a, globalTamgu->GetThreadid());
 			return;
 		}
 
@@ -337,7 +356,7 @@ public:
 
 	Tamgu* MethodResize(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		if (globalTamgu->isthreading)
-			return globalTamgu->Returnerror("Cannot reset a 'rawstring' with threads on", idthread);
+			return globalTamgu->Returnerror(e_cannot_reset_a, idthread);
 
 		long bsz = callfunc->Evaluate(0, contextualpattern, idthread)->Integer();
 		if (!bsz || bsz <= stringsize)
@@ -517,7 +536,7 @@ public:
 			string add = b->String();
 			long sz = add.size();
 			if ((stringsize + sz) >= buffersize)
-				return globalTamgu->Returnerror("String overflow", globalTamgu->GetThreadid());
+				return globalTamgu->Returnerror(e_string_overflow, globalTamgu->GetThreadid());
 
 			if (sz == 1)
 				value[stringsize] = add[0];

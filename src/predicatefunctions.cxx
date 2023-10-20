@@ -639,7 +639,7 @@ Tamgu* ProcPredicateRetract(Tamgu* context, short idthread, TamguCall* callfunc)
     if (!a->isPredicate()) {
         a = callfunc->Evaluate(0, context, idthread);
         if (!a->isPredicate())
-            return globalTamgu->Returnerror("Expecting a predicate as argument", idthread);
+            return globalTamgu->Returnerror(e_expecting_a_predicate, idthread);
     }
     TamguPredicate* head = (TamguPredicate*)a;
     long i;
@@ -664,7 +664,7 @@ Tamgu* ProcPredicateAsserta(Tamgu* context, short idthread, TamguCall* callfunc)
     if (!a->isPredicate()) {
         a = callfunc->Evaluate(0, context, idthread);
         if (!a->isPredicate())
-            return globalTamgu->Returnerror("Expecting a predicate as argument", idthread);
+            return globalTamgu->Returnerror(e_expecting_a_predicate, idthread);
     }
     TamguPredicate* head = (TamguPredicate*)a;
     long i;
@@ -685,7 +685,7 @@ Tamgu* ProcPredicateAssertz(Tamgu* context, short idthread, TamguCall* callfunc)
     if (!a->isPredicate()) {
         a = callfunc->Evaluate(0, context, idthread);
         if (!a->isPredicate())
-            return globalTamgu->Returnerror("Expecting a predicate as argument", idthread);
+            return globalTamgu->Returnerror(e_expecting_a_predicate, idthread);
     }
     TamguPredicate* head = (TamguPredicate*)a;
     long i;

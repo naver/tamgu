@@ -263,7 +263,7 @@ Tamgu* Proc_random_choice(Tamgu* contextualpattern, short idthread, TamguCall* c
     Tamgu* valuevect = callfunc->Evaluate(1, aNULL, idthread);
 
     if (!valuevect->isVectorContainer())
-        return globalTamgu->Returnerror("Expecting a vector as second parameter", idthread);
+        return globalTamgu->Returnerror(e_expecting_a_vector02, idthread);
     
     long i;
     size_t sz = valuevect->Size();
@@ -832,7 +832,7 @@ Tamgu* ProcCreateFrame(Tamgu* contextualpattern, short idthread, TamguCall* call
         if (callfunc->Size() != 0) {
             ((Tamguframemininstance*)object)->Popframe(idthread);
             object->Release();
-            return globalTamgu->Returnerror("Wrong frame initialization", idthread);
+            return globalTamgu->Returnerror(e_wrong_frame_initialization, idthread);
         }
     }
     
@@ -850,6 +850,12 @@ Tamgu* ProcAllDefinitions(Tamgu* contextualpattern, short idthread, TamguCall* c
             key = globalTamgu->Getsymbol(info.first);
             subkey = "." + types.first;
             information[subkey][key] = types.second;
+            if (globalTamgu->returntypes.check(info.first)) {
+                string returntype = globalTamgu->Getsymbol(globalTamgu->returntypes[info.first]);
+                if (returntype[0] == 'a' && returntype[1] == '_')
+                    returntype = returntype.substr(2, returntype.size() - 2);
+                information[subkey][".return"] = returntype;
+            }
             information[key][types.first] = types.second;
             information["auto"][types.first] = types.second;
             information["self"][types.first] = types.second;
@@ -884,6 +890,29 @@ Tamgu* ProcAllDefinitions(Tamgu* contextualpattern, short idthread, TamguCall* c
             }
         }
     }
+    
+    for (itf = globalTamgu->framecontainers.begin(); itf != globalTamgu->framecontainers.end(); itf++) {
+        key = globalTamgu->Getsymbol(itf->first);
+        for (const auto& types : globalTamgu->infomethods[a_vector]) {
+            subkey = "." + types.first;
+            information[subkey][key] = types.second;
+            if (globalTamgu->returntypes.check(itf->first)) {
+                string returntype = globalTamgu->Getsymbol(globalTamgu->returntypes[itf->first]);
+                if (returntype[0] == 'a' && returntype[1] == '_')
+                    returntype = returntype.substr(2, returntype.size() - 2);
+                information[subkey][".return"] = returntype;
+            }
+            information[key][types.first] = types.second;
+            information["auto"][types.first] = types.second;
+            information["self"][types.first] = types.second;
+            information["let"][types.first] = types.second;
+            for (const auto& itp : globalTamgu->commoninfos) {
+                subkey = "." + itp.first;
+                information[subkey][types.first] = itp.second;
+            }
+        }
+    }
+    
     Tamgumap* themap = globalTamgu->Providemap();
     Tamgumapss* submap;
     
@@ -1188,7 +1217,7 @@ Tamgu* ProcLoadin(Tamgu* domain, short idthread, TamguCall* callfunc) {
     ifstream file(filename, openMode);
     if (file.fail()) {
         stringstream message;
-        message << "Cannot open file: " << filename;
+        message << e_cannot_open_file << filename;
         TamguError* err = new TamguError(message.str());
         return err;
     }
@@ -1260,7 +1289,7 @@ Tamgu* ProcLoadfacts(Tamgu* domain, short idthread, TamguCall* callfunc) {
     ifstream file(filename, openMode);
     if (file.fail()) {
         stringstream message;
-        message << "Cannot open file: " << filename;
+        message << e_cannot_open_file << filename;
         TamguError* err = new TamguError(message.str());
         return err;
     }
@@ -1304,7 +1333,7 @@ Tamgu* ProcLoadfacts(Tamgu* domain, short idthread, TamguCall* callfunc) {
         stringstream& message = globalTamgu->threads[0].message;
         globalTamgu->lineerror = bnf.lineerror;
         acode->currentline = globalTamgu->lineerror;
-        message << "Error while parsing program file: ";
+        message << e_error_while_parsing02;
         if (bnf.errornumber != -1)
             message << bnf.x_errormsg(bnf.errornumber);
         else
@@ -1361,7 +1390,7 @@ Tamgu* ProcLoadfacts(Tamgu* domain, short idthread, TamguCall* callfunc) {
 //------------------------------------------------------------------------------------------------------------------------
 Tamgu* ProcEvalFunction(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     if (globalTamgu->threadMODE)
-        return globalTamgu->Returnerror("Cannot launch '_eval' in threads", idthread);
+        return globalTamgu->Returnerror(e_cannot_launch__eval, idthread);
 
     string code = callfunc->Evaluate(0, contextualpattern, idthread)->String();
 
@@ -1381,7 +1410,7 @@ Tamgu* ProcEvalFunction(Tamgu* contextualpattern, short idthread, TamguCall* cal
         }
         if (globalTamgu->Error(idthread))
             return globalTamgu->Errorobject(idthread);
-        return globalTamgu->Returnerror("Cannot compile this function declaration", idthread);
+        return globalTamgu->Returnerror(e_cannot_compile_this, idthread);
     }
 
     return compiled;
@@ -1411,7 +1440,7 @@ Tamgu* ProcEval(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     Tamgu* ci = globalTamgu->threads[idthread].currentinstruction;
     
     if (code.find(";") == -1 && code.find("{") == -1)
-        code = "Returns ("+code+");";
+        code = "return ("+code+");";
 
     long lastrecorded = globalTamgu->Trackedsize();
 
@@ -1426,7 +1455,7 @@ Tamgu* ProcEval(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
             return compiled;
         if (globalTamgu->Error(idthread))
             return globalTamgu->Errorobject(idthread);
-        return globalTamgu->Returnerror("Cannot compile this code", idthread);
+        return globalTamgu->Returnerror(e_cannot_compile_this02, idthread);
     }
 
     if (compiled->isFunction()) {
@@ -1538,7 +1567,7 @@ Tamgu* ProcWaitOnJoin(Tamgu* contextualpattern, short idthread, TamguCall* callf
     if (callfunc->Size() != 0) {
         func = callfunc->Evaluate(0, aNULL, idthread);
         if (!func->isFunction())
-            return globalTamgu->Returnerror("Argument shoud be a function", idthread);
+            return globalTamgu->Returnerror(e_argument_should_be_function, idthread);
         if (callfunc->Size() == 2) {
             object = callfunc->Evaluate(1, aNULL, idthread);
             object->Setreference();
@@ -1685,7 +1714,7 @@ Tamgu* ProcFullProduct(Tamgu* contextualpattern, short idthread, TamguCall* call
 Tamgu* ProcSum(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     Tamgu* v = callfunc->Evaluate(0, contextualpattern, idthread);
     if (!v->isVectorContainer() && v->Type() != a_list)
-        return globalTamgu->Returnerror("Expecting a vector container", idthread);
+        return globalTamgu->Returnerror(e_expecting_a_vector, idthread);
 
     long sz = v->Size();
     if (!sz)
@@ -1705,7 +1734,7 @@ Tamgu* ProcSum(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 Tamgu* ProcProduct(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     Tamgu* v = callfunc->Evaluate(0, contextualpattern, idthread);
     if (!v->isVectorContainer() && v->Type() != a_list)
-        return globalTamgu->Returnerror("Expecting a vector container", idthread);
+        return globalTamgu->Returnerror(e_expecting_a_vector, idthread);
 
     long sz = v->Size();
     if (!sz)
@@ -1749,7 +1778,7 @@ Tamgu* ProcTypes(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) 
 Tamgu* ProcPatterns(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     string key= callfunc->Evaluate(0, contextualpattern, idthread)->String();
     if (key.size() != 1)
-        return globalTamgu->Returnerror("Expecting a key of 1 ASCII character");
+        return globalTamgu->Returnerror(e_expecting_a_key);
     
     wstring pattern= callfunc->Evaluate(1, contextualpattern, idthread)->UString();
     
@@ -2374,7 +2403,7 @@ Tamgu* ProcRange(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) 
                 return kvect;
             }
             kvect->Release();
-            return globalTamgu->Returnerror("RANGE over actual capacity", idthread);
+            return globalTamgu->Returnerror(e_range_over_actual, idthread);
         }
 
         long l = initial->Integer();
@@ -2405,7 +2434,7 @@ Tamgu* ProcRange(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) 
         }
 
         kvect->Release();
-        return globalTamgu->Returnerror("RANGE over actual capacity", idthread);
+        return globalTamgu->Returnerror(e_range_over_actual, idthread);
     }
 
     if (initial->isFloat() || increment->isFloat()) {
@@ -2443,7 +2472,7 @@ Tamgu* ProcRange(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) 
                 return kvect;
             }
             kvect->Release();
-            return globalTamgu->Returnerror("RANGE over actual capacity", idthread);
+            return globalTamgu->Returnerror(e_range_over_actual, idthread);
         }
 
         double l = initial->Float();
@@ -2472,14 +2501,14 @@ Tamgu* ProcRange(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) 
             return kvect;
         }
         kvect->Release();
-        return globalTamgu->Returnerror("RANGE over actual capacity", idthread);
+        return globalTamgu->Returnerror(e_range_over_actual, idthread);
     }
 
     if (initial->Typevariable() == a_ustring) {
         wstring l = initial->UString();
         wstring r = boundary->UString();
         if (l.size() != 1 || r.size() != 1)
-            return globalTamgu->Returnerror("String should be one character long in RANGE", idthread);
+            return globalTamgu->Returnerror(e_string_should_be, idthread);
         long inc = increment->Integer();
 
         char cl = l[0];
@@ -2514,7 +2543,7 @@ Tamgu* ProcRange(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) 
     string l = initial->String();
     string r = boundary->String();
     if (l.size() != 1 || r.size() != 1)
-        return globalTamgu->Returnerror("String should be one character long in RANGE", idthread);
+        return globalTamgu->Returnerror(e_string_should_be, idthread);
     long inc = increment->Integer();
 
     char cl = l[0];
@@ -2609,7 +2638,7 @@ Tamgu* ProcUnlock(Tamgu* contextualpattern, short idthread, TamguCall* callfunc)
     string lock = callfunc->Evaluate(0, aNULL, idthread)->String();
 
     if (globalTamgu->locktables.check(lock) == false)
-        return globalTamgu->Returnerror("Unknown lock", idthread);
+        return globalTamgu->Returnerror(e_unknown_lock, idthread);
     
     ktl = globalTamgu->locktables.getpointer(lock);
 
@@ -2697,7 +2726,7 @@ Tamgu* ProcCast(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     Tamgu* varlock = callfunc->Evaluate(0, aNULL, idthread);
     string lock = varlock->String();
     if (globalTamgu->waitstrings.check(lock) ==false)
-        return globalTamgu->Returnerror("Unknown variable", idthread);
+        return globalTamgu->Returnerror(e_unknown_variable02, idthread);
     
     var = globalTamgu->waitstrings.getpointer(lock);
 
@@ -2811,7 +2840,9 @@ Tamgu* ProcBase(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 }
 
 //----------------------------------------------------------------------------------------------------------
-//<distance(L1,l1,L2,l2) = r | let a=L1.radian(), let b=L2.radian(), let c=l1.radian(), let d=l2.radian(), let r= acos(cos(a)*cos(b)*cos(abs(c-d))+sin(a)*sin(b))*6371>
+/*
+<distance(L1,l1,L2,l2) = r | let a=L1.radian(), let b=L2.radian(), let c=l1.radian(), let d=l2.radian(), let r= acos(cos(a)*cos(b)*cos(abs(c-d))+sin(a)*sin(b))*6371>
+*/
 
 static inline double Radian(double num) {
     return(M_PI*(num / 180));
@@ -3046,7 +3077,7 @@ Tamgu* CommonExtension(Tamgu* object, short idthread, TamguCall* callfunc) {
             return callfunc->Execute(aNULL, object, idthread);
 
         stringstream message;
-        message << "No 'extension' exists for a '" << globalTamgu->Getsymbol(t) << "' object";
+        message << e_no_extension_exists << globalTamgu->Getsymbol(t) << "' object";
         return globalTamgu->Returnerror(message.str(), idthread);
     }
 

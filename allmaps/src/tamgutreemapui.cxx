@@ -77,7 +77,8 @@ bool Tamgutreemapui::InitialisationModule(TamguGlobal* global, string version) {
     Tamgutreemapui::AddMethod(global, "merge", &Tamgutreemapui::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
     
     if (version != "") {
-        global->newInstance[Tamgutreemapui::idtype] = new Tamgutreemapui(global);
+        global->returnindextypes[Tamgutreemapui::idtype] = a_int;
+    global->newInstance[Tamgutreemapui::idtype] = new Tamgutreemapui(global);
         
         global->RecordCompatibilities(Tamgutreemapui::idtype);
     }

@@ -297,7 +297,7 @@ Tamgu* TamguFunctionTaskellParameter::Execute(Tamgu* context, Tamgu* hcall, shor
     long sz = defcall->Size();
     if (sz != hcall->Size()) {
         stringstream err;
-        err << "Error: mismatch argument in a taskell function call to: " << globalTamgu->Getsymbol(name);
+        err << e_error_mismatch_argument << globalTamgu->Getsymbol(name);
         return globalTamgu->Returnerror(err.str(), idthread);
     }
 
@@ -720,7 +720,7 @@ Tamgu* TamguCallFunctionTaskell::Eval(Tamgu* context, Tamgu* res, short idthread
         }
         
         if (res == aRAISEERROR && context->Type() != a_taskelldeclaration)
-            return globalTamgu->Returnerror("Lambda expression failed...", idthread);
+            return globalTamgu->Returnerror(e_lambda_expression_failed, idthread);
         return res;
     }
 
@@ -1570,7 +1570,7 @@ Tamgu* TamguCallFibre::Put(Tamgu* context, Tamgu* v, short idthread) {
         defcall = globalTamgu->Getdefinition(v->Name(), idthread, context);
 
     if (defcall == NULL || !defcall->isTaskellFunction())
-        return globalTamgu->Returnerror("Wrong assignement: Expected a taskell function");
+        return globalTamgu->Returnerror(e_wrong_taskell_assignment);
 
     body = (TamguFunctionLambda*)defcall;
     returntype = body->returntype;
@@ -1584,6 +1584,12 @@ Tamgu* TamguCallFibre::Eval(Tamgu* context, Tamgu* res, short idthread) {
     Tamgu** args = NULL;
     
     short i, sz = arguments.size();
+    
+    //In this case, we need to get rid of this value for context
+    //Otherwise there might be some issue at cleaning, since mainframe would have been deleted
+    //we before the new fibre.
+    if (context->isMainFrame())
+        context = aNULL;
     
     args = new Tamgu*[sz];
     
@@ -1604,13 +1610,13 @@ Tamgu* TamguCallFibre::Eval(Tamgu* context, Tamgu* res, short idthread) {
     
     res = variable->Eval(aNULL, aNULL, idthread);
     if (res->Type() != a_fibre)
-        return globalTamgu->Returnerror("Cannot execute this fibre... No function attached");
+        return globalTamgu->Returnerror(e_cannot_execute_this);
     
     TamguCallFibre* thevar = (TamguCallFibre*)res;
     
     res = thevar->Body(idthread);
     if (!res->isTaskellFunction())
-        return globalTamgu->Returnerror("Cannot execute this fibre... No function attached");
+        return globalTamgu->Returnerror(e_cannot_execute_this);
     
     TamguFunctionLambda* bd = (TamguFunctionLambda*)res;
     
@@ -2062,7 +2068,7 @@ Tamgu* TamguFunctionParameter::Execute(Tamgu* context, Tamgu* callfunction, shor
     Tamgu* body = globalTamgu->Getdefinition(name, idthread, context);
 
     if (!body->isFunction())
-        return globalTamgu->Returnerror("This object is not a function", idthread);
+        return globalTamgu->Returnerror(e_this_object_is, idthread);
 
     TamguCallFunction fcall(body);
     fcall.arguments = ((TamguCall*)callfunction)->arguments;
@@ -2073,7 +2079,7 @@ Tamgu* TamguFunctionParameter::Execute(Tamgu* context, Tamgu* callfunction, shor
 Tamgu* TamguMethodParameter::Execute(Tamgu* context, Tamgu* callfunction, short idthread) {
         //In this case, the first argument is our object...
     if (callfunction->Size() == 0)
-        return globalTamgu->Returnerror("Missing object", idthread);
+        return globalTamgu->Returnerror(e_missing_object, idthread);
     
     TamguCall* acall = (TamguCall*)callfunction;
     
@@ -2112,7 +2118,7 @@ Tamgu* TamguOperatorParameter::Execute(Tamgu* context, Tamgu* callfunction, shor
 Tamgu* TamguFrameMethodParameter::Execute(Tamgu* context, Tamgu* callfunction, short idthread) {
     //In this case, the first argument is our object...
     if (callfunction->Size() == 0)
-        return globalTamgu->Returnerror("Missing object", idthread);
+        return globalTamgu->Returnerror(e_missing_object, idthread);
 
     TamguCall* acall = (TamguCall*)callfunction;
 
@@ -2129,7 +2135,7 @@ Tamgu* TamguFrameMethodParameter::Execute(Tamgu* context, Tamgu* callfunction, s
 Tamgu* TamguCommonParameter::Execute(Tamgu* context, Tamgu* callfunction, short idthread) {
     //In this case, the first argument is our object...
     if (callfunction->Size() == 0)
-        return globalTamgu->Returnerror("Missing object", idthread);
+        return globalTamgu->Returnerror(e_missing_object, idthread);
 
     TamguCall* acall = (TamguCall*)callfunction;
 
@@ -2327,11 +2333,11 @@ Tamgu* TamguFrameParameter::Compare(Tamgu* env, Tamgu* a, short idthread) {
 Tamgu* TamguCallFrameMethod::Eval(Tamgu* context, Tamgu* value, short idthread) {
     //the first argument must be a frame instance...
     if (arguments.size() == 0)
-        return globalTamgu->Returnerror("Missing object", idthread);
+        return globalTamgu->Returnerror(e_missing_object, idthread);
 
     value = arguments[0]->Eval(context, aNULL, idthread);
     if (!value->isFrameinstance())
-        return globalTamgu->Returnerror("Expecting object", idthread);
+        return globalTamgu->Returnerror(e_expecting_object, idthread);
 
     TamguCallFrameFunction callfunc((TamguFrame*)value->Frame(), name);
     Tamgu* a;
@@ -2359,7 +2365,7 @@ bool TamguCallFrameMethod::Checkarity() {
 //We do not replace it...
 Tamgu* TamguInstructionDisjunction::Eval(Tamgu* dom, Tamgu* result, short idthread) {
     if (dom->Type() != a_taskelldeclaration)
-        return globalTamgu->Returnerror("This operator can only be used within Taskell expressions", idthread);
+        return globalTamgu->Returnerror(e_this_operator_can, idthread);
 
     Tamgu* ins;
     short i = 0;
@@ -2388,7 +2394,7 @@ Tamgu* TamguInstructionDisjunction::Eval(Tamgu* dom, Tamgu* result, short idthre
 
 Tamgu* TamguInstructionConjunction::Eval(Tamgu* dom, Tamgu* result, short idthread) {
     if (dom->Type() != a_taskelldeclaration)
-        return globalTamgu->Returnerror("This operator can only be used within Taskell expressions", idthread);
+        return globalTamgu->Returnerror(e_this_operator_can, idthread);
 
     Tamgu* param;
     Tamgu* ins;

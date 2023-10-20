@@ -215,7 +215,7 @@ public:
 		for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
 			if (!Checkfeature(itr->Keystring(), itr->Valuestring())) {
 				stringstream msg;
-				msg << "Unknown feature: '" << itr->Keystring() << ":" << itr->Valuestring() << "'";
+				msg << e_unknown_feature << itr->Keystring() << ":" << itr->Valuestring() << "'";
 				globalTamgu->Returnerror(msg.str(), idthread);
 				itr->Release();
 				return false;
@@ -298,7 +298,7 @@ public:
 	Tamgu* MethodInitial(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		Tamgu* res = callfunc->Evaluate(0, contextualpattern, idthread);
 		if (!res->isMapContainer())
-			return globalTamgu->Returnerror("Expecting a map as value", idthread);
+			return globalTamgu->Returnerror(e_expecting_a_map02, idthread);
 
 		if (res->Type() == a_mapss)
 			features = res;
@@ -856,11 +856,11 @@ public:
 		for (int i = 0; i < callfunc->Size(); i++) {
 			a = callfunc->Evaluate(i, contextualpattern, idthread);
 			if (a->Type() != a_synode)
-				return globalTamgu->Returnerror("Expecting a 'synode' here", idthread);
+				return globalTamgu->Returnerror(e_expecting_a_synode02, idthread);
 
 			syn = (Tamgusynode*)a;
 			if (!syn->isNew() || syn == this)
-				return globalTamgu->Returnerror("This 'synode' is already part of a tree", idthread);
+				return globalTamgu->Returnerror(e_this_synode_is, idthread);
 
 			syn->parent = this;
 
@@ -881,11 +881,11 @@ public:
 	Tamgu* MethodAddNext(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		Tamgu* a = callfunc->Evaluate(0, contextualpattern, idthread);
         if (a->Type() != a_synode)
-            return globalTamgu->Returnerror("Expecting a 'synode' here", idthread);
+            return globalTamgu->Returnerror(e_expecting_a_synode02, idthread);
 
 		Tamgusynode* syn = (Tamgusynode*)a;
 		if (!syn->isNew())
-			return globalTamgu->Returnerror("This 'synode' is already part of a tree", idthread);
+			return globalTamgu->Returnerror(e_this_synode_is, idthread);
 
 		syn->previous = this;
 		syn->next = next;
@@ -905,11 +905,11 @@ public:
 	Tamgu* MethodAddPrevious(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		Tamgu* a = callfunc->Evaluate(0, contextualpattern, idthread);
         if (a->Type() != a_synode)
-            return globalTamgu->Returnerror("Expecting a 'synode' here", idthread);
+            return globalTamgu->Returnerror(e_expecting_a_synode02, idthread);
 
 		Tamgusynode* syn = (Tamgusynode*)a;
 		if (!syn->isNew())
-			return globalTamgu->Returnerror("This 'synode' is already part of a tree", idthread);
+			return globalTamgu->Returnerror(e_this_synode_is, idthread);
 
 		syn->next = this;
 		syn->previous = previous;
@@ -930,7 +930,7 @@ public:
 	Tamgu* MethodDefinitions(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		Tamgu* fmap = callfunc->Evaluate(0, contextualpattern, idthread);
 		if (!fmap->isMapContainer())
-			return globalTamgu->Returnerror("Expecting a 'map' as argument", idthread);
+			return globalTamgu->Returnerror(e_expecting_a_map, idthread);
 
 		if (validfeatures == NULL)
 			validfeatures = globalTamgu->Providemapss();

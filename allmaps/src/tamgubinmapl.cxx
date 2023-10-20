@@ -73,6 +73,7 @@ bool Tamgubinmapl::InitialisationModule(TamguGlobal* global, string version) {
     Tamgubinmapl::AddMethod(global, "pop", &Tamgubinmapl::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamgubinmapl::AddMethod(global, "merge", &Tamgubinmapl::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
 
+    global->returnindextypes[Tamgubinmapl::idtype] = a_long;
     global->newInstance[Tamgubinmapl::idtype] = new Tamgubinmapl(global);
     
     global->RecordCompatibilities(Tamgubinmapl::idtype);

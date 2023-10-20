@@ -85,7 +85,7 @@ Tamgu* TamguInstructionAPPLYOPERATIONEQU::Eval(Tamgu* context, Tamgu* value, sho
                     putback = true;
                 }
                 else
-                    return globalTamgu->Returnerror("No value at this position in the container", idthread);
+                    return globalTamgu->Returnerror(e_no_value_at, idthread);
             }
             else {
                 if (variable->isValueContainer()) {
@@ -152,7 +152,7 @@ Tamgu* TamguInstructionAPPLYOPERATIONEQU::Eval(Tamgu* context, Tamgu* value, sho
             break;
         case a_add:
             if (!value->isVectorContainer())
-                return globalTamgu->Returnerror("Cannot '::' these two elements", idthread);
+                return globalTamgu->Returnerror(e_cannot_these_two, idthread);
             value->Merging(res);
             v = value;
     }
@@ -220,7 +220,7 @@ Tamgu* TamguInstructionAPPLYOPERATIONEQUALIAS::Eval(Tamgu* context, Tamgu* value
         if (idx == NULL || !idx->isIndex()) {
             globalTamgu->Popstack(idthread);
             environment->Releasing();
-            return globalTamgu->Returnerror("Cannot evaluate this instruction", idthread);
+            return globalTamgu->Returnerror(e_cannot_evaluate_this03, idthread);
         }
         
         value = idx->Eval(context, variable, idthread);
@@ -239,7 +239,7 @@ Tamgu* TamguInstructionAPPLYOPERATIONEQUALIAS::Eval(Tamgu* context, Tamgu* value
             else {
                 globalTamgu->Popstack(idthread);
                 environment->Releasing();
-                return globalTamgu->Returnerror("No value at this position in the container", idthread);
+                return globalTamgu->Returnerror(e_no_value_at, idthread);
             }
         }
         else
@@ -311,7 +311,7 @@ Tamgu* TamguInstructionAPPLYOPERATIONEQUALIAS::Eval(Tamgu* context, Tamgu* value
             if (!value->isVectorContainer()) {
                 globalTamgu->Popstack(idthread);
                 environment->Releasing();
-                return globalTamgu->Returnerror("Cannot '::' these two elements", idthread);
+                return globalTamgu->Returnerror(e_cannot_these_two, idthread);
             }
             value->Merging(res);
             v = value;
@@ -361,7 +361,7 @@ Tamgu* TamguInstructionAPPLYEQUSHORT::Eval(Tamgu* context, Tamgu* value, short i
             break;
         case a_divide:
             if (res == 0)
-                return globalTamgu->Returnerror("Cannot divide by 0", idthread);
+                return globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             v /= res;
             break;
         case a_power:
@@ -375,7 +375,7 @@ Tamgu* TamguInstructionAPPLYEQUSHORT::Eval(Tamgu* context, Tamgu* value, short i
             break;
         case a_mod:
             if (res == 0)
-                return globalTamgu->Returnerror("Cannot divide by 0", idthread);
+                return globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             v %= res;
             break;
         case a_or:
@@ -413,7 +413,7 @@ Tamgu* TamguInstructionAPPLYEQUINT::Eval(Tamgu* context, Tamgu* value, short idt
             break;
         case a_divide:
             if (res == 0)
-                return globalTamgu->Returnerror("Cannot divide by 0", idthread);
+                return globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             v /= res;
             break;
         case a_power:
@@ -427,7 +427,7 @@ Tamgu* TamguInstructionAPPLYEQUINT::Eval(Tamgu* context, Tamgu* value, short idt
             break;
         case a_mod:
             if (res == 0)
-                return globalTamgu->Returnerror("Cannot divide by 0", idthread);
+                return globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             v %= res;
             break;
         case a_or:
@@ -464,7 +464,7 @@ Tamgu* TamguInstructionAPPLYEQULONG::Eval(Tamgu* context, Tamgu* value, short id
             break;
         case a_divide:
             if (res == 0)
-                return globalTamgu->Returnerror("Cannot divide by 0", idthread);
+                return globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             v /= res;
             break;
         case a_power:
@@ -478,7 +478,7 @@ Tamgu* TamguInstructionAPPLYEQULONG::Eval(Tamgu* context, Tamgu* value, short id
             break;
         case a_mod:
             if (res == 0)
-                return globalTamgu->Returnerror("Cannot divide by 0", idthread);
+                return globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             v %= res;
             break;
         case a_or:
@@ -516,7 +516,7 @@ Tamgu* TamguInstructionAPPLYEQUDECIMAL::Eval(Tamgu* context, Tamgu* value, short
             break;
         case a_divide:
             if (res == 0)
-                return globalTamgu->Returnerror("Cannot divide by 0", idthread);
+                return globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             v /= res;
             break;
         case a_power:
@@ -530,7 +530,7 @@ Tamgu* TamguInstructionAPPLYEQUDECIMAL::Eval(Tamgu* context, Tamgu* value, short
             break;
         case a_mod:
             if (res == 0)
-                return globalTamgu->Returnerror("Cannot divide by 0", idthread);
+                return globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             v = (int)v % (int)res;
             break;
         case a_or:
@@ -567,7 +567,7 @@ Tamgu* TamguInstructionAPPLYEQUFLOAT::Eval(Tamgu* context, Tamgu* value, short i
             break;
         case a_divide:
             if (res == 0)
-                return globalTamgu->Returnerror("Cannot divide by 0", idthread);
+                return globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             v /= res;
             break;
         case a_power:
@@ -581,7 +581,7 @@ Tamgu* TamguInstructionAPPLYEQUFLOAT::Eval(Tamgu* context, Tamgu* value, short i
             break;
         case a_mod:
             if (res == 0)
-                return globalTamgu->Returnerror("Cannot divide by 0", idthread);
+                return globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             v = (int)v % (int)res;
             break;
         case a_or:
@@ -658,7 +658,7 @@ Tamgu* TamguInstructionEQUShort::Eval(Tamgu* context, Tamgu* value, short idthre
             break;
         case a_divide:
             if (valres == 0)
-                return globalTamgu->Returnerror("Cannot divide by 0", idthread);
+                return globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             val /= valres;
             break;
         case a_power:
@@ -672,7 +672,7 @@ Tamgu* TamguInstructionEQUShort::Eval(Tamgu* context, Tamgu* value, short idthre
             break;
         case a_mod:
             if (valres == 0)
-                return globalTamgu->Returnerror("Cannot divide by 0", idthread);
+                return globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             val %= valres;
             break;
         case a_or:
@@ -709,7 +709,7 @@ Tamgu* TamguInstructionEQUInteger::Eval(Tamgu* context, Tamgu* value, short idth
             break;
         case a_divide:
             if (valres == 0)
-                return globalTamgu->Returnerror("Cannot divide by 0", idthread);
+                return globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             val /= valres;
             break;
         case a_power:
@@ -723,7 +723,7 @@ Tamgu* TamguInstructionEQUInteger::Eval(Tamgu* context, Tamgu* value, short idth
             break;
         case a_mod:
             if (valres == 0)
-                return globalTamgu->Returnerror("Cannot divide by 0", idthread);
+                return globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             val %= valres;
             break;
         case a_or:
@@ -760,7 +760,7 @@ Tamgu* TamguInstructionEQULong::Eval(Tamgu* context, Tamgu* value, short idthrea
             break;
         case a_divide:
             if (valres == 0)
-                return globalTamgu->Returnerror("Cannot divide by 0", idthread);
+                return globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             val /= valres;
             break;
         case a_power:
@@ -774,7 +774,7 @@ Tamgu* TamguInstructionEQULong::Eval(Tamgu* context, Tamgu* value, short idthrea
             break;
         case a_mod:
             if (valres == 0)
-                return globalTamgu->Returnerror("Cannot divide by 0", idthread);
+                return globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             val %= valres;
             break;
         case a_or:
@@ -811,7 +811,7 @@ Tamgu* TamguInstructionEQUDecimal::Eval(Tamgu* context, Tamgu* value, short idth
             break;
         case a_divide:
             if (valres == 0)
-                return globalTamgu->Returnerror("Cannot divide by 0", idthread);
+                return globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             val /= valres;
             break;
         case a_power:
@@ -825,7 +825,7 @@ Tamgu* TamguInstructionEQUDecimal::Eval(Tamgu* context, Tamgu* value, short idth
             break;
         case a_mod:
             if (valres == 0)
-                return globalTamgu->Returnerror("Cannot divide by 0", idthread);
+                return globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             val = (long)val % (long)valres;
             break;
         case a_or:
@@ -862,7 +862,7 @@ Tamgu* TamguInstructionEQUFloat::Eval(Tamgu* context, Tamgu* value, short idthre
             break;
         case a_divide:
             if (valres == 0)
-                return globalTamgu->Returnerror("Cannot divide by 0", idthread);
+                return globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             val /= valres;
             break;
         case a_power:
@@ -876,7 +876,7 @@ Tamgu* TamguInstructionEQUFloat::Eval(Tamgu* context, Tamgu* value, short idthre
             break;
         case a_mod:
             if (valres == 0)
-                return globalTamgu->Returnerror("Cannot divide by 0", idthread);
+                return globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             val = (BLONG)val % (BLONG)valres;
             break;
         case a_or:
@@ -893,6 +893,18 @@ Tamgu* TamguInstructionEQUFloat::Eval(Tamgu* context, Tamgu* value, short idthre
     value->storevalue(val);
     return aTRUE;
 }
+
+Tamgu* TamguInstructionEQUFraction::Eval(Tamgu* context, Tamgu* value, short idthread) {
+    value = recipient->Eval(context, aNULL, idthread);
+    
+    //The position in the expression of our variable is the second from the bottom...
+    short d = instruction->Size() - 1;
+    Tamgu* val = instruction->Getfraction(context, value, idthread, d, action);
+    value->Putvalue(val, idthread);
+    val->Release();
+    return aTRUE;
+}
+
 
 Tamgu* TamguInstructionEQUString::Eval(Tamgu* context, Tamgu* value, short idthread) {
     string val;
@@ -1122,7 +1134,7 @@ Tamgu* TamguInstructionAPPLYOPERATIONROOT::ccompute(short idthread, uchar top, s
                         r->Release();
                         a->Release();
                         d = DIVIDEDBYZERO;
-                        return globalTamgu->Returnerror("Cannot '::' these two elements", idthread);
+                        return globalTamgu->Returnerror(e_cannot_these_two, idthread);
                     }
                 }
         }
@@ -1139,6 +1151,87 @@ Tamgu* TamguInstructionAPPLYOPERATIONROOT::ccompute(short idthread, uchar top, s
     return r;
 }
 
+Tamgu* TamguInstructionFRACTION::Getfraction(Tamgu* r, Tamgu* value, short idthread, short& d, short action) {
+    bool itself = true;
+    Tamgu* a;
+    Tamgu* v = aNULL;
+    r = value;
+    while (d >= 0) {
+        a = instructions.vecteur[d--];
+        
+        switch (a->Action()) {
+            case a_const:
+                break;
+            case a_none:
+                a = a->Eval(aNULL, aNULL, idthread);
+                break;
+            case a_pipe:
+                return value;
+            case a_variable:
+                a = a->Eval(aNULL, aNULL, idthread);
+                break;
+            default:
+                a = Getfraction(aNULL, r, idthread, d, a->Action());
+        }
+        
+        v = (Tamgu*)a->Fraction();
+        if (v != a) {
+            a->Release();
+            a = v;
+        }
+        
+        switch (action) {
+            case a_plus:
+                v = r->plus(a, itself);
+                break;
+            case a_minus:
+                v = r->minus(a, itself);
+                break;
+            case a_multiply:
+                v = r->multiply(a, itself);
+                break;
+            case a_divide:
+                v = r->divide(a, itself);
+                if (v->isError()) {
+                    r->Release();
+                    a->Release();
+                    d = DIVIDEDBYZERO;
+                    return aRAISEERROR;
+                }
+                break;
+            case a_power:
+                v = r->power(a, itself);
+                break;
+            case a_shiftleft:
+                v = r->shiftleft(a, itself);
+                break;
+            case a_shiftright:
+                v = r->shiftright(a, itself);
+                break;
+            case a_mod:
+                v = r->mod(a, itself);
+                if (v->isError()) {
+                    r->Release();
+                    a->Release();
+                    d = DIVIDEDBYZERO;
+                    return aRAISEERROR;
+                }
+                break;
+        }
+        
+        a->Release();
+        
+        itself = true;
+        if (r != v) {
+            r->Release();
+            r = (Tamgu*)v->Fraction();
+            if (r != v)
+                v->Release();
+        }
+    }
+    
+    return r;
+}
 
 Tamgu* TamguInstructionFRACTION::cfraction(short idthread, short& d) {
     Tamgu* a = instructions.vecteur[d];

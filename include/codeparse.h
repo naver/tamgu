@@ -281,6 +281,9 @@ class bnf_tamgu {
     char m_multideclaration_0_1(string& lreturn,x_node** tree);
     char m_multideclaration_0_1_2(string& lreturn,x_node** tree);
     char m_multideclaration_0_1_2_3(string& lreturn,x_node** tree);
+    char m_container(string& lreturn,x_node** tree);
+    char m_framecontainer(string& lreturn,x_node** tree);
+    char m_framecontainer_0_1(string& lreturn,x_node** tree);
     char m_declarationending(string& lreturn,x_node** tree);
     char m_frame(string& lreturn,x_node** tree);
     char m_frame_0_1(string& lreturn,x_node** tree);
@@ -816,7 +819,8 @@ class bnf_tamgu {
     char m_parenthetic(string& lreturn,x_node** tree);
     char m_expression(string& lreturn,x_node** tree);
     char m_expression_0_1(string& lreturn,x_node** tree);
-    char m_expression_0_2(string& lreturn,x_node** tree);
+    char m_expression_0_1_2(string& lreturn,x_node** tree);
+    char m_expression_0_3(string& lreturn,x_node** tree);
     char m_expressions(string& lreturn,x_node** tree);
     char m_expressions_0_2(string& lreturn,x_node** tree);
     char m_expressions_0_2_3(string& lreturn,x_node** tree);

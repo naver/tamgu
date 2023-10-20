@@ -132,7 +132,7 @@ Exporting Tamgu* Tamgusynode::Put(Tamgu* idx, Tamgu* kval, short idthread) {
         }
 
         if (kval->Type() != a_synode)
-            return globalTamgu->Returnerror("Expecting a 'synode' or a 'map'", idthread);
+            return globalTamgu->Returnerror(e_expecting_a_synode, idthread);
 
         Tamgusynode* as = (Tamgusynode*)kval;
         

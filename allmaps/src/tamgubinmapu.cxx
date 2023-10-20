@@ -71,6 +71,7 @@ bool Tamgubinmapu::InitialisationModule(TamguGlobal* global, string version) {
     Tamgubinmapu::AddMethod(global, "pop", &Tamgubinmapu::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamgubinmapu::AddMethod(global, "merge", &Tamgubinmapu::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
 
+    global->returnindextypes[Tamgubinmapu::idtype] = a_ustring;
     global->newInstance[Tamgubinmapu::idtype] = new Tamgubinmapu(global);
     #ifdef OLDBACKCOMP
     global->newInstance[global->Getid("iuprimemap")] = new Tamgubinmapu(global);

@@ -908,7 +908,7 @@ public:
             return aTRUE;
         }
         
-        return globalTamgu->Returnerror("Expected a vector as input");
+        return globalTamgu->Returnerror(e_expected_a_vector);
     }
 
     Tamgu* MethodCompileLexicons(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);

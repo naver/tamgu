@@ -496,7 +496,7 @@ public:
 
 	Exporting Tamgu* Put(Tamgu* index, Tamgu* v, short idthread);
 
-	Tamgu* Putvalue(Tamgu* v, short idthread) {
+    Tamgu* Putvalue(Tamgu* v, short idthread) {
         if (globalTamgu->threadMODE) {
             locking();
             v->Setstring(value, idthread);
@@ -504,8 +504,19 @@ public:
         }
         else
             v->Setstring(value, idthread);
-		return this;
-	}
+        return this;
+    }
+
+    Tamgu* Clonevalue(Tamgu* v, short idthread) {
+        if (globalTamgu->threadMODE) {
+            locking();
+            v->Setstring(value, idthread);
+            unlocking();
+        }
+        else
+            v->Setstring(value, idthread);
+        return this;
+    }
 
 
     Tamgu* EvalIndex(Tamgu* context, TamguIndex* idx, short idthread);
@@ -1412,7 +1423,12 @@ public:
         return this;
     }
     
+    Tamgu* Clonevalue(Tamgu* v, short idthread) {
+        value = v->String();
+        return this;
+    }
     
+
     Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
     
     Exporting Tamgu* Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* env, TamguFunctionLambda* bd, short idthread);
@@ -1945,6 +1961,10 @@ public:
     Tamgu* Put(Tamgu*, Tamgu*, short);
     Tamgu* Vector(short idthread);
     Tamgu* Putvalue(Tamgu* ke, short idthread) {
+        return Put(aNULL, ke, idthread);
+    }
+
+    Tamgu* Clonevalue(Tamgu* ke, short idthread) {
         return Put(aNULL, ke, idthread);
     }
 

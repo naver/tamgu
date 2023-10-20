@@ -69,7 +69,7 @@ public:
     void SetConst() { isconst = true;}
     
     short Type() {
-        return Tamgumapf::idtype;
+        return a_mapf;
     }
     
     
@@ -644,6 +644,117 @@ public:
     
 };
 
-//-------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
+
+class Tamguframemapf : public Tamgumapf {
+    public:
+    //We export the methods that will be exposed for our new object
+    //this is a static object, which is common to everyone
+    //We associate the method pointers with their names in the linkedmethods map
+    //---------------------------------------------------------------------------------------------------------------------
+    //This SECTION is for your specific implementation...
+    //Your personal variables here...
+    Tamgu* frame;
+
+    //---------------------------------------------------------------------------------------------------------------------
+    Tamguframemapf(Tamgu* fr, TamguGlobal* g, Tamgu* parent = NULL) : Tamgumapf(g, parent) {
+        //Do not forget your variable initialisation
+        frame = fr;
+    }
+
+    Tamguframemapf(Tamgu* fr) {
+        frame = fr;
+    }
+
+    //----------------------------------------------------------------------------------------------------------------------
+    short Type() {
+        return a_framemapf;
+    }
+
+    string Typename() {
+        return "framemapf";
+    }
+
+    Tamgu* Atom(bool forced) {
+        if (forced) {
+            Tamguframemapf* m = new Tamguframemapf(frame);
+            locking();
+            Tamgu* v;
+
+            for (const auto& it : values) {
+                v = it.second->Atom(true);
+                m->values[it.first] = v;
+                v->Setreference();
+            }
+            unlocking();
+        return m;
+        }
+        return this;
+    }
+    //---------------------------------------------------------------------------------------------------------------------
+    //Declaration
+    //All our methods must have been declared in tamguexportedmethods... See MethodInitialization below
+
+    Tamgu* Newvalue(Tamgu* a, short idthread) {
+        Tamguframemapf* m = new Tamguframemapf(frame);
+        if (a->isContainer()) {
+            TamguIteration* it = a->Newiteration(false);
+            for (it->Begin(); it->End() == aFALSE; it->Next()) {
+                m->Push(it->Keyfloat(), it->IteratorValue());
+            }
+            it->Release();
+            return m;
+        }
+        
+        hmap<double,Tamgu*>::iterator ist;
+        for (ist=values.begin(); ist!=values.end();ist++)
+            m->Push(ist->first,a);
+        return m;
+    }
+
+    Tamgu* Newinstance(short idthread, Tamgu* f = NULL) {
+        return new Tamguframemapf(frame);
+    }
+
+    short Typeinfered() {
+        return frame->Name();
+    }
+
+    inline bool check_frame(Tamgu* value) {
+        return globalTamgu->Compatible(frame->Name(), value->Type());
+    }
+
+    Tamgu* Frame() {
+        return frame;
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    //This SECTION is for your specific implementation...
+    //This is an example of a function that could be implemented for your needs.
+    //------------------------------------------------------------------------------------------
+    Exporting Tamgu* Push(Tamgu* k, Tamgu* v);
+    Exporting Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);
+    
+    Tamgu* Push(double k, Tamgu* a) {
+        if (!check_frame(a)) {
+            return globalTamgu->Returnerror(e_error_on_frame_map);
+        }
+
+        locking();
+        Tamgu* v = values[k];
+        if (v != NULL) {
+            if (v == a)
+                return this;
+            v->Removereference(reference + 1);
+        }
+        a = a->Atom();
+        values[k] = a;
+        a->Addreference(investigate,reference + 1);
+        unlocking();
+        return this;
+    }
+    //---------------------------------------------------------------------------------------------------------------------
+
+};
 
 #endif

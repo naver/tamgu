@@ -236,7 +236,7 @@ Tamgu* Tamgufloat::MethodFormat(Tamgu* contextualpattern, short idthread, TamguC
     errorsprintf = false;
     sprintf_s(buffer, 100, STR(sformat), Float());
     if (errorsprintf == true)
-        return globalTamgu->Returnerror("Incorrect format specifier or size too long", idthread);
+        return globalTamgu->Returnerror(e_incorrect_format_specifier, idthread);
     #else
     int spres;
     spres = sprintf_s(buffer, 100, STR(sformat), Float());
@@ -279,7 +279,7 @@ Tamgu* Tamguatomicfloat::MethodFormat(Tamgu* contextualpattern, short idthread, 
     errorsprintf = false;
     sprintf_s(buffer, 100, STR(sformat), Float());
     if (errorsprintf == true)
-        return globalTamgu->Returnerror("Incorrect format specifier or size too long", idthread);
+        return globalTamgu->Returnerror(e_incorrect_format_specifier, idthread);
 #else
     int spres;
     spres = sprintf_s(buffer, 100, STR(sformat), Float());

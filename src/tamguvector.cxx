@@ -260,7 +260,7 @@ Exporting Tamgu* Tamguvector::MethodShape(Tamgu* contextualpattern, short idthre
     Tamgu* v = callfunc->Evaluate(0, contextualpattern, idthread);
     if (v->isVectorContainer()) {
         if (nb != 1)
-            globalTamgu->Returnerror("Wrong shape definition", idthread);
+            globalTamgu->Returnerror(e_wrong_shape_definition, idthread);
         nb = v->Size();
         for (long i = 0; i < nb; i++) {
             shape.push_back(v->getinteger(i));
@@ -323,7 +323,7 @@ Exporting Tamgu* Tamguvector::Push(Tamgu* a) {
     return aTRUE;
 }
 
-Exporting Tamgu* Tamguvector::Push(TamguGlobal* g, Tamgu* a, short idhtread) {
+Exporting Tamgu* Tamguvector::Push(TamguGlobal* g, Tamgu* a, short idthread) {
     locking();
     a = a->Atom();
     a->Addreference(investigate,reference+1);
@@ -1393,7 +1393,7 @@ Exporting Tamgu*  Tamguvector::Put(Tamgu* idx, Tamgu* value, short idthread) {
 
         value = value->Vector(idthread);
         if (!value->isVectorContainer())
-            return globalTamgu->Returnerror("Cannot set this value", idthread);
+            return globalTamgu->Returnerror(e_cannot_set_this, idthread);
 
         sz = value->Size();
         
@@ -1422,7 +1422,7 @@ Exporting Tamgu*  Tamguvector::Put(Tamgu* idx, Tamgu* value, short idthread) {
             rkey = values.size() + rkey;
         if (rkey < lkey || rkey >= values.size() || lkey >= values.size()) {
             if (globalTamgu->erroronkey)
-                globalTamgu->Returnerror("Wrong index", idthread);
+                globalTamgu->Returnerror(e_wrong_index, idthread);
             return aTRUE;
         }
         if (rkey != lkey)
@@ -1472,7 +1472,7 @@ Exporting Tamgu*  Tamguvector::Put(Tamgu* idx, Tamgu* value, short idthread) {
         if (ikey < 0) {
             ikey = mx + ikey;
             if (ikey < 0)
-                return globalTamgu->Returnerror("Cannot set this value", idthread);
+                return globalTamgu->Returnerror(e_cannot_set_this, idthread);
         }
         value = value->Atom();
         if (values[ikey] != NULL)
@@ -1510,7 +1510,7 @@ Exporting Tamgu* Tamguvector::EvalWithSimpleIndex(Tamgu* key, short idthread, bo
         if (!found) {
             unlocking();
             if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong index", idthread);
+                return globalTamgu->Returnerror(e_wrong_index, idthread);
             return aNOELEMENT;
         }
     }
@@ -1524,7 +1524,7 @@ Exporting Tamgu* Tamguvector::EvalWithSimpleIndex(Tamgu* key, short idthread, bo
     if (ikey < 0 || ikey >= values.size()) {
         unlocking();
         if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong index", idthread);
+            return globalTamgu->Returnerror(e_wrong_index, idthread);
         return aNOELEMENT;
     }
 
@@ -1597,7 +1597,7 @@ Exporting Tamgu* Tamguvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short i
         if (!found) {
             unlocking();
             if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong index", idthread);
+                return globalTamgu->Returnerror(e_wrong_index, idthread);
             return aNOELEMENT;
         }
     }
@@ -1611,7 +1611,7 @@ Exporting Tamgu* Tamguvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short i
 	if (ikey < 0 || ikey >= values.size()) {
 		unlocking();
 		if (globalTamgu->erroronkey)
-			return globalTamgu->Returnerror("Wrong index", idthread);
+			return globalTamgu->Returnerror(e_wrong_index, idthread);
 		return aNOELEMENT;
 	}
 
@@ -1647,7 +1647,7 @@ Exporting Tamgu* Tamguvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short i
         if (!found) {
             unlocking();
             if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong index", idthread);
+                return globalTamgu->Returnerror(e_wrong_index, idthread);
             return aNOELEMENT;
         }
     }
@@ -1669,7 +1669,7 @@ Exporting Tamgu* Tamguvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short i
         if (iright<ikey) {
             unlocking();
             if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong index", idthread);
+                return globalTamgu->Returnerror(e_wrong_index, idthread);
             return aNOELEMENT;
         }
     }
@@ -1677,7 +1677,7 @@ Exporting Tamgu* Tamguvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short i
         if (iright>values.size()) {
             unlocking();
             if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong index", idthread);
+                return globalTamgu->Returnerror(e_wrong_index, idthread);
             return aNOELEMENT;
         }
     }
@@ -1924,7 +1924,7 @@ Exporting bool TamguConstvector::Setvalue(Tamgu* index, Tamgu* value, short idth
     for (size_t i = 0; i < values.size(); i++) {
         if (i >= value->Size()) {
             unlocking();
-            globalTamgu->Returnerror("Out of range affectation.", idthread);
+            globalTamgu->Returnerror(e_out_of_range, idthread);
             return false;
         }
 
@@ -2002,7 +2002,7 @@ Exporting Tamgu* TamguConstvector::same(Tamgu* value) {
             if (!v->isVectorContainer()) {
                 if (clean)
                     v->Release();
-                return globalTamgu->Returnerror("Mismatch assignment, expecting two vector containers.", idthread);
+                return globalTamgu->Returnerror(e_mismatch_assignment_expecting, idthread);
             }
 
             a->Putvalue(v, idthread);
@@ -2018,7 +2018,7 @@ Exporting Tamgu* TamguConstvector::same(Tamgu* value) {
             if (!v->isMapContainer()) {
                 if (clean)
                     v->Release();
-                return globalTamgu->Returnerror("Mismatch assignment, expecting two map containers.", idthread);
+                return globalTamgu->Returnerror(e_mismatch_assignment_expecting02, idthread);
             }
 
             a->Putvalue(v, idthread);
@@ -2067,7 +2067,7 @@ Exporting Tamgu* TamguConstvector::Put(Tamgu* index, Tamgu* value, short idthrea
             return aTRUE;
         if (index->isError())
             return index;
-        return globalTamgu->Returnerror("Size mismatch.", idthread);
+        return globalTamgu->Returnerror(e_size_mismatch, idthread);
     }
     
     size_t sz = value->Size();
@@ -2078,7 +2078,7 @@ Exporting Tamgu* TamguConstvector::Put(Tamgu* index, Tamgu* value, short idthrea
                 unlocking();
                 if (index->isError())
                     return index;
-                return globalTamgu->Returnerror("Size mismatch.", idthread);
+                return globalTamgu->Returnerror(e_size_mismatch, idthread);
             }
         }
         else {
@@ -2086,7 +2086,7 @@ Exporting Tamgu* TamguConstvector::Put(Tamgu* index, Tamgu* value, short idthrea
                 unlocking();
                 if (index->isError())
                     return index;
-                return globalTamgu->Returnerror("Size mismatch.", idthread);
+                return globalTamgu->Returnerror(e_size_mismatch, idthread);
             }
         }
     }
@@ -2118,7 +2118,7 @@ Exporting Tamgu* TamguConstvector::Put(Tamgu* index, Tamgu* value, short idthrea
                 unlocking();
                 if (index->isError())
                     return index;
-                return globalTamgu->Returnerror("Out of range affectation.", idthread);
+                return globalTamgu->Returnerror(e_out_of_range, idthread);
             }
             v = value->getvalue(i);
         }
@@ -2149,7 +2149,7 @@ Exporting Tamgu* TamguConstvector::Put(Tamgu* index, Tamgu* value, short idthrea
                 unlocking();
                 if (index->isError())
                     return index;
-                return globalTamgu->Returnerror("Mismatch assignment, expecting two vector containers.", idthread);
+                return globalTamgu->Returnerror(e_mismatch_assignment_expecting, idthread);
             }
             a = a->Put(index, v, idthread);
             if (clean)
@@ -2170,7 +2170,7 @@ Exporting Tamgu* TamguConstvector::Put(Tamgu* index, Tamgu* value, short idthrea
                 unlocking();
                 if (index->isError())
                     return index;
-                return globalTamgu->Returnerror("Mismatch assignment, expecting two map containers.", idthread);
+                return globalTamgu->Returnerror(e_mismatch_assignment_expecting02, idthread);
             }
             a = a->Put(index, v, idthread);
             if (clean)
@@ -2190,7 +2190,7 @@ Exporting Tamgu* TamguConstvector::Put(Tamgu* index, Tamgu* value, short idthrea
             unlocking();
             if (index->isError())
                 return index;
-            return globalTamgu->Returnerror("Mismatch assignment.", idthread);
+            return globalTamgu->Returnerror(e_mismatch_assignment, idthread);
         }
 
         if (clean)
@@ -2487,12 +2487,12 @@ Exporting Tamgu* Tamguvector::Sort(Tamgu* comp, short idthread, bool d) {
         if (comp->Size() == 2) {
             if (comp->isFunctionParameter()) {
                 if (!comp->isTaskellFunction())
-                    return globalTamgu->Returnerror("Wrong function call: expecting a 'taskell function'", idthread);
+                    return globalTamgu->Returnerror(e_wrong_function_call, idthread);
 
                 TamguCallFunction cmp(NULL);
                 Comparisontaskell kfcomp((TamguParameterFunction*)comp, &cmp, idthread, d);
                 if (kfcomp.failcheck(values[0]))
-                    return globalTamgu->Returnerror("The comparison function does not satisfy the strict weak ordering rule", idthread);
+                    return globalTamgu->Returnerror(e_the_comparison_function, idthread);
 
                 locking();
                 sort(values.begin(), values.end(), kfcomp);
@@ -2503,7 +2503,7 @@ Exporting Tamgu* Tamguvector::Sort(Tamgu* comp, short idthread, bool d) {
             Comp kcomp((TamguFunction*)comp, idthread);
             Comparison kfcomp(&kcomp);
             if (kfcomp.failcheck(values[0]))
-                return globalTamgu->Returnerror("The comparison function does not satisfy the strict weak ordering rule", idthread);
+                return globalTamgu->Returnerror(e_the_comparison_function, idthread);
             
             locking();
             sort(values.begin(), values.end(), kfcomp);
@@ -2717,7 +2717,7 @@ Exporting Tamgu* Tamguvector::Loopin(TamguInstruction* ins, Tamgu* context, shor
     bool testcond = false;
     for (long i = 0; i < sz && !testcond; i++) {
         a->Releasenonconst();
-        var->Putvalue(values[i], idthread);
+        var->Clonevalue(values[i], idthread);
 
         a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
 
@@ -2747,7 +2747,7 @@ Exporting Tamgu* Tamguvector::Looptaskell(Tamgu* recipient, Tamgu* context, Tamg
         addvalue = Selecttype(context);
 
     for (size_t i = 0; i < values.size(); i++) {
-        recipient->Putvalue(values[i], idthread);
+        recipient->Clonevalue(values[i], idthread);
 
         a = bd->DirectEval(environment, aNULL, idthread);
         if (a->isNULL())
@@ -3214,7 +3214,7 @@ Exporting Tamgu* Tamgua_vector::Push(Tamgu* a) {
     return aTRUE;
 }
 
-Exporting Tamgu* Tamgua_vector::Push(TamguGlobal* g, Tamgu* a, short idhtread) {
+Exporting Tamgu* Tamgua_vector::Push(TamguGlobal* g, Tamgu* a, short idthread) {
     a = a->Atom();
     a->Addreference(investigate,reference+1);
     values.push_back(a);
@@ -3919,7 +3919,7 @@ Exporting Tamgu*  Tamgua_vector::Put(Tamgu* idx, Tamgu* value, short idthread) {
         
         value = value->Vector(idthread);
         if (!value->isVectorContainer())
-            return globalTamgu->Returnerror("Cannot set this value", idthread);
+            return globalTamgu->Returnerror(e_cannot_set_this, idthread);
         
         sz = value->Size();
         
@@ -3938,7 +3938,7 @@ Exporting Tamgu*  Tamgua_vector::Put(Tamgu* idx, Tamgu* value, short idthread) {
     if (ikey < 0) {
         ikey = mx + ikey;
         if (ikey < 0)
-            return globalTamgu->Returnerror("Cannot set this value", idthread);
+            return globalTamgu->Returnerror(e_cannot_set_this, idthread);
     }
     value = value->Atom();
     value->Addreference(investigate,reference+1);
@@ -3997,7 +3997,7 @@ Exporting Tamgu* Tamgua_vector::Eval(Tamgu* contextualpattern, Tamgu* idx, short
     if (ikey < 0 || key == NULL) {
         if (ikey != mx || keyright == NULL) {
             if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong index", idthread);
+                return globalTamgu->Returnerror(e_wrong_index, idthread);
             return aNOELEMENT;
         }
     }
@@ -4020,14 +4020,14 @@ Exporting Tamgu* Tamgua_vector::Eval(Tamgu* contextualpattern, Tamgu* idx, short
         iright = mx + iright;
         if (iright<ikey) {
             if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong index", idthread);
+                return globalTamgu->Returnerror(e_wrong_index, idthread);
             return aNOELEMENT;
         }
     }
     else {
         if (iright>mx) {
             if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong index", idthread);
+                return globalTamgu->Returnerror(e_wrong_index, idthread);
             return aNOELEMENT;
         }
     }
@@ -4506,6 +4506,187 @@ Exporting float Tamguformat::Decimal() {
     float v = e->Decimal();
     e->Release();
     return v;
+}
+
+Exporting Tamgu* Tamguframevector::Push(Tamgu* a) {
+    if (!check_frame(a))
+        return globalTamgu->Returnerror(e_error_on_frame_vector);
+
+    locking();
+    a = a->Atom();
+    a->Addreference(investigate,reference+1);
+    values.push_back(a);
+    unlocking();
+    return aTRUE;
+}
+
+Exporting Tamgu* Tamguframevector::Push(TamguGlobal* g, Tamgu* a, short idthread) {
+    if (!check_frame(a))
+        return globalTamgu->Returnerror(e_error_on_frame_vector, idthread);
+
+    locking();
+    a = a->Atom();
+    a->Addreference(investigate,reference+1);
+    values.push_back(a);
+    unlocking();
+    return aTRUE;
+}
+
+Tamgu* Tamguframevector::MethodPushinFrame(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    Tamgu* v;
+    for (size_t i = 0; i < callfunc->Size(); i++) {
+        v = callfunc->Evaluate(i, contextualpattern, idthread);
+        if (!check_frame(v)) {
+            v->Release();
+            return globalTamgu->Returnerror(e_error_on_frame_vector, idthread);
+        }
+        if (v->isError())
+            return v;
+        Push(v);
+        v->Release();
+    }
+    return aTRUE;
+}
+
+Exporting Tamgu* Tamguframevector::Put(Tamgu* idx, Tamgu* value, short idthread) {
+    Doublelocking _lock(this, value);
+    if (!idx->isIndex()) {
+        if (value == this)
+            return aTRUE;
+
+        if (value->isNULL()) {
+            Clear();
+            return aTRUE;
+        }
+        if (value->Type() == a_list) {
+            Tamgulist* kvect = (Tamgulist*)value;
+            //We copy all values from value to this
+            Clear();
+            Reserve(value->Size());
+            for (const auto& it : kvect->values) {
+                idx = it;
+                if (!check_frame(idx)) {
+                    Clear();
+                    return globalTamgu->Returnerror(e_error_on_frame_vector, idthread);
+                }
+                idx = idx->Atom();
+                idx->Addreference(investigate,reference+1);
+                values.push_back(idx);
+            }
+            return aTRUE;
+        }
+
+        long sz = value->Size();
+        if (value->isVectorContainer()) {
+            //We copy all values from value to this
+            Clear();
+            if (sz) {
+                Reserve(sz);
+                for (int it = 0; it < sz; it++) {
+                    idx = value->getvalue(it);
+                    if (!check_frame(idx)) {
+                        Clear();
+                        idx->Release();
+                        return globalTamgu->Returnerror(e_error_on_frame_vector, idthread);
+                    }
+
+                    idx = idx->Atom();
+                    idx->Addreference(investigate,reference+1);
+                    values.push_back(idx);
+                }
+            }
+            return aTRUE;
+        }
+        return globalTamgu->Returnerror(e_cannot_set_this, idthread);
+    }
+    
+    //In this specific case, we try to replace a bloc of values with a new bloc
+    if (idx->isInterval()) {
+        //First we remove the values...
+        long lkey = idx->Getinteger(idthread);
+        if (lkey < 0)
+            lkey = values.size() + lkey;
+        long rkey = ((TamguIndex*)idx)->right->Getinteger(idthread);
+        if (rkey < 0)
+            rkey = values.size() + rkey;
+        if (rkey < lkey || rkey >= values.size() || lkey >= values.size()) {
+            if (globalTamgu->erroronkey)
+                globalTamgu->Returnerror(e_wrong_index, idthread);
+            return aTRUE;
+        }
+        if (rkey != lkey)
+            rkey--;
+        Tamgu* krkey;
+        while (rkey >= lkey) {
+            krkey = values[rkey];
+            values.erase(values.begin() + rkey);
+            krkey->Removereference(reference + 1);
+            rkey--;
+        }
+        if (value->isVectorContainer()) {
+            for (long i = value->Size() - 1; i >= 0; i--) {
+                krkey = value->getvalue(i);
+                if (!check_frame(krkey)) {
+                    krkey->Release();
+                    return globalTamgu->Returnerror(e_error_on_frame_vector, idthread);
+                }
+
+                krkey = krkey->Atom();
+                values.insert(values.begin() + lkey, krkey);
+                krkey->Addreference(investigate,reference+1);
+            }
+            return aTRUE;
+        }
+        if (value->isContainer()) {
+            TamguIteration* itr = value->Newiteration(false);
+            for (itr->Begin(); itr->End() == aFALSE; itr->Next()) {
+                krkey = itr->Value();
+                if (!check_frame(krkey)) {
+                    krkey->Release();
+                    return globalTamgu->Returnerror(e_error_on_frame_vector, idthread);
+                }
+                if (krkey->Reference())
+                    krkey = krkey->Atom();
+                values.insert(values.begin() + lkey, krkey);
+                krkey->Addreference(investigate,reference+1);
+            }
+            itr->Release();
+            return aTRUE;
+        }
+        
+        if (!check_frame(value))
+            return globalTamgu->Returnerror(e_error_on_frame_vector, idthread);
+
+        krkey = value->Atom();
+        values.insert(values.begin() + lkey, krkey);
+        krkey->Addreference(investigate,reference+1);
+        return aTRUE;
+    }
+    
+    if (!check_frame(value))
+        return globalTamgu->Returnerror(e_error_on_frame_vector, idthread);
+
+    long ikey = idx->Getinteger(idthread);
+    long nb, mx;
+    mx = values.size();
+    if (ikey >= mx) {
+        for (nb = values.size(); nb < ikey; nb++)
+            values.push_back(aNULL);
+        Push(value);
+    }
+    else {
+        if (ikey < 0) {
+            ikey = mx + ikey;
+            if (ikey < 0)
+                return globalTamgu->Returnerror(e_cannot_set_this, idthread);
+        }
+        value = value->Atom();
+        if (values[ikey] != NULL)
+            values[ikey]->Removereference(reference + 1);
+        values[ikey] = value;
+        value->Addreference(investigate,reference+1);
+    }
+    return aTRUE;
 }
 
 

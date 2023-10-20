@@ -2000,7 +2000,7 @@ Exporting Tamgu* TamguGlobal::EvaluateParenthetic(string& s, string& o, string& 
     if (bnf.m_parenthetique(lret, &xn) != 1 || bnf.currentpos != xr.stack.size()) {
         delete xn;
         stringstream& message = globalTamgu->threads[0].message;
-        message << "Error while parsing a parenthetic expression at line: " << bnf.lineerror;
+        message << e_error_while_parsing05 << bnf.lineerror;
         return globalTamgu->Returnerror(message.str(), idthread);
     }
     
@@ -2070,7 +2070,7 @@ Exporting Tamgu* TamguGlobal::EvaluateTags(string& s, string& o, string& c, bool
     if (bnf.m_tag(lret, &xn) != 1 || bnf.currentpos != xr.stack.size()) {
         delete xn;
         stringstream& message = globalTamgu->threads[0].message;
-        message << "Error while parsing a TAG expression at line: " << bnf.lineerror;
+        message << e_error_while_parsing04 << bnf.lineerror;
         return globalTamgu->Returnerror(message.str(), idthread);
     }
     
@@ -2128,7 +2128,7 @@ Exporting An_rules* TamguGlobal::EvaluateRules(string& body, short idthread) {
         stringstream& message = globalTamgu->threads[0].message;
         globalTamgu->lineerror = bnf.lineerror;
         code->currentline = globalTamgu->lineerror;
-        message << "Error while parsing string: ";
+        message << e_error_while_parsing03;
         if (bnf.errornumber != -1)
             message << bnf.x_errormsg(bnf.errornumber);
         else
@@ -2189,7 +2189,7 @@ Exporting Tamgu* TamguGlobal::EvaluateLisp(Tamgu* contextualpattern, string file
     if (bnf.m_tamgupurelisp(lret, &xn) != 1 || bnf.currentpos != xr.stack.size()) {
         delete xn;
         stringstream& message = globalTamgu->threads[0].message;
-        message << "Error while parsing Lisp '"<< filename << "'  at line: " << bnf.lineerror;
+        message << e_error_while_parsing<< filename << "'  at line: " << bnf.lineerror;
         return globalTamgu->Returnerror(message.str(), idthread);
     }
     
@@ -2278,7 +2278,7 @@ Exporting Tamgu* TamguGlobal::EvaluateVector(string& s, short idthread) {
 
     if (s[0] != '[') {
         stringstream msg;
-        msg << "Wrong map definition. Expecting a vector definition";
+        msg << e_wrong_map_definition02;
         return globalTamgu->Returnerror(msg.str(), idthread);
     }
 
@@ -2293,7 +2293,7 @@ Exporting Tamgu* TamguGlobal::EvaluateVector(string& s, short idthread) {
         
         kf->Release();
         stringstream msg;
-        msg << "Wrong vector definition. Internal line error: " << jcomp->line;
+        msg << e_wrong_vector_definition << jcomp->line;
         return globalTamgu->Returnerror(msg.str(), idthread);
     }
     
@@ -2311,7 +2311,7 @@ Exporting Tamgu* TamguGlobal::EvaluateVector(Tamgu* kf, string& s, short idthrea
 
     if (s[0] != '[') {
         stringstream msg;
-        msg << "Wrong map definition. Expecting a vector definition";
+        msg << e_wrong_map_definition02;
         return globalTamgu->Returnerror(msg.str(), idthread);
     }
 
@@ -2323,7 +2323,7 @@ Exporting Tamgu* TamguGlobal::EvaluateVector(Tamgu* kf, string& s, short idthrea
         if (idthread)
             delete jcomp;
         stringstream msg;
-        msg << "Wrong vector definition. Internal line error: " << jcomp->line;
+        msg << e_wrong_vector_definition << jcomp->line;
         return globalTamgu->Returnerror(msg.str(), idthread);
     }
 
@@ -2340,7 +2340,7 @@ Exporting Tamgu* TamguGlobal::EvaluateMap(Tamgu* kf, string& s, short idthread) 
 
     if (s[0] != '{') {
         stringstream msg;
-        msg << "Wrong map definition. Expecting a map definition";
+        msg << e_wrong_map_definition03;
         return globalTamgu->Returnerror(msg.str(), idthread);
     }
 
@@ -2352,7 +2352,7 @@ Exporting Tamgu* TamguGlobal::EvaluateMap(Tamgu* kf, string& s, short idthread) 
         if (idthread)
             delete jcomp;
         stringstream msg;
-        msg << "Wrong map definition. Internal line error: " << jcomp->line;
+        msg << e_wrong_map_definition << jcomp->line;
         return globalTamgu->Returnerror(msg.str(), idthread);
     }
 
@@ -2369,7 +2369,7 @@ Exporting Tamgu* TamguGlobal::EvaluateMap(string& s, short idthread) {
 
     if (s[0] != '{') {
         stringstream msg;
-        msg << "Wrong map definition. Expecting a map definition";
+        msg << e_wrong_map_definition03;
         return globalTamgu->Returnerror(msg.str(), idthread);
     }
 
@@ -2383,7 +2383,7 @@ Exporting Tamgu* TamguGlobal::EvaluateMap(string& s, short idthread) {
             delete jcomp;
         kf->Release();
         stringstream msg;
-        msg << "Wrong map definition. Internal line error: " << jcomp->line;
+        msg << e_wrong_map_definition << jcomp->line;
         return globalTamgu->Returnerror(msg.str(), idthread);
     }
 
@@ -2406,7 +2406,7 @@ Exporting Tamgu* TamguGlobal::EvaluateJSON(string& s, short idthread) {
             kf = globalTamgu->Providemap();
     else {
         stringstream msg;
-        msg << "Wrong JSON definition. Expecting a map or a vector definition";
+        msg << e_wrong_json_definition02;
         return globalTamgu->Returnerror(msg.str(), idthread);
     }
 
@@ -2419,7 +2419,7 @@ Exporting Tamgu* TamguGlobal::EvaluateJSON(string& s, short idthread) {
             delete jcomp;
         kf->Release();
         stringstream msg;
-        msg << "Wrong JSON definition. Internal line error: " << jcomp->line;
+        msg << e_wrong_json_definition << jcomp->line;
         return globalTamgu->Returnerror(msg.str(), idthread);
     }
 
@@ -3123,8 +3123,8 @@ bool TamguCode::Loadlibrary(string n, string& library_name) {
             atanlib = Getenv("TAMGULIBS");
         else {
             stringstream message;
-            message << "Please set TAMGULIBS: " << name;
-            throw new TamguRaiseError(message, filename, current_start, current_end);
+            message << e_please_set_tamgulibs << name;
+            throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
         }
         
         if (Getenv("PATH") != NULL) {
@@ -3147,24 +3147,24 @@ bool TamguCode::Loadlibrary(string n, string& library_name) {
     if (LoadMe == 0) {
         DWORD err = GetLastError();
         stringstream message;
-        message << "Cannot load library: " << name;
-        throw new TamguRaiseError(message, filename, current_start, current_end);
+        message << e_cannot_load_library << name;
+        throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
     }
     
     LibEntryPoint = (TamguExternalModule)GetProcAddress(LoadMe, STR(moduleinitname));
     
     if (LibEntryPoint == NULL) {
         stringstream message;
-        message << "No entry point in this library: " << name;
-        throw new TamguRaiseError(message, filename, current_start, current_end);
+        message << e_no_entry_point << name;
+        throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
     }
     
     globalTamgu->RecordExternalLibrary(moduleinitname, LibEntryPoint);
     
     if ((*LibEntryPoint)(globalTamgu, TamguVersion()) == false) {
         stringstream message;
-        message << "Wrong version: " << name;
-        throw new TamguRaiseError(message, filename, current_start, current_end);
+        message << e_wrong_version << name;
+        throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
     }
     
     return true;
@@ -3250,37 +3250,41 @@ bool TamguCode::Loadlibrary(string n, string& library_name) {
             atanlib = Getenv("TAMGULIBS");
         else {
             stringstream message;
-            message << "Please set TAMGULIBS: " << name;
-            throw new TamguRaiseError(message, filename, current_start, current_end);
+            message << e_please_set_tamgulibs << name;
+            throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
         }
         
         string ldlibpath;
         if (Getenv("LD_LIBRARY_PATH") != NULL) {
             ldlibpath = Getenv("LD_LIBRARY_PATH");
-            ldlibpath = ":" + ldlibpath;
         }
         
-        ldlibpath = atanlib + ldlibpath;
-        setenv("LD_LIBRARY_PATH", ldlibpath.c_str(), 1);
+        if (ldlibpath.find(atanlib) == -1) {
+            ldlibpath = atanlib + ":" + ldlibpath;
+            setenv("LD_LIBRARY_PATH", ldlibpath.c_str(), 1);
+        }
         
 #ifdef APPLE
         ldlibpath="";
         if (Getenv("DYLD_LIBRARY_PATH") != NULL) {
             ldlibpath = Getenv("DYLD_LIBRARY_PATH");
-            ldlibpath = ":" + ldlibpath;
         }
         
-        ldlibpath = atanlib + ldlibpath;
-        setenv("DYLD_LIBRARY_PATH", ldlibpath.c_str(), 1);
+        if (ldlibpath.find(atanlib) == -1) {
+            ldlibpath = "/usr/local/lib:" + atanlib + ":" + ldlibpath;
+            setenv("DYLD_LIBRARY_PATH", ldlibpath.c_str(), 1);
+        }
 #endif
         
         ldlibpath = "";
         if (Getenv("PATH") != NULL) {
             ldlibpath = Getenv("PATH");
-            ldlibpath = ":" + ldlibpath;
         }
-        ldlibpath = atanlib + ldlibpath;
-        setenv("PATH", ldlibpath.c_str(), 1);
+        
+        if (ldlibpath.find(atanlib) == -1) {
+            ldlibpath = atanlib + ":" + ldlibpath;
+            setenv("PATH", ldlibpath.c_str(), 1);
+        }
         
         if (atanlib.back() != '/')
             atanlib += "/";
@@ -3306,7 +3310,7 @@ bool TamguCode::Loadlibrary(string n, string& library_name) {
         error = dlerror();
         stringstream message;
         message << error << ": " << lname;
-        throw new TamguRaiseError(message, filename, current_start, current_end);
+        throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
     }
     
 #ifdef TAMGUINEEDCLOSELIBS
@@ -3319,15 +3323,15 @@ bool TamguCode::Loadlibrary(string n, string& library_name) {
     if ((error = dlerror()) != NULL) {
         stringstream message;
         message << error << ": " << name;
-        throw new TamguRaiseError(message, filename, current_start, current_end);
+        throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
     }
     
     global->RecordExternalLibrary(moduleinitname, LibEntryPoint);
     
     if ((*LibEntryPoint)(global,TamguVersion()) == false) {
         stringstream message;
-        message << "Wrong version: " << name;
-        throw new TamguRaiseError(message, filename, current_start, current_end);
+        message << e_wrong_version << name;
+        throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
     }
     
     return true;

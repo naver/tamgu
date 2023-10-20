@@ -71,6 +71,7 @@ bool Tamguprimemapls::InitialisationModule(TamguGlobal* global, string version) 
     Tamguprimemapls::AddMethod(global, "pop", &Tamguprimemapls::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamguprimemapls::AddMethod(global, "merge", &Tamguprimemapls::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
 
+    global->returnindextypes[Tamguprimemapls::idtype] = a_string;
     global->newInstance[Tamguprimemapls::idtype] = new Tamguprimemapls(global);
     
     global->RecordCompatibilities(Tamguprimemapls::idtype);

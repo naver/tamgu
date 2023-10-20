@@ -48,26 +48,20 @@ void Tamgumapf::AddMethod(TamguGlobal* global, string name, mapfMethod func, uns
 }
 
 
-   bool Tamgumapf::InitialisationModule(TamguGlobal* global, string version) {
+bool Tamgumapf::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
     
+    Tamgumapf::idtype = a_mapf;
     
-
-
-    Tamgumapf::idtype = global->Getid("mapf");
-
-    
-    
-
     Tamgumapf::AddMethod(global, "clear", &Tamgumapf::MethodClear, P_NONE, "clear(): clear the container.");
     
     Tamgumapf::AddMethod(global, "invert", &Tamgumapf::MethodInvert, P_NONE, "invert(): return a map with key/value inverted.");
     Tamgumapf::AddMethod(global, "find", &Tamgumapf::MethodFind, P_ONE, "find(value): test if a value belongs to the map and return 'true' or the corresponding keys.");
-
-
+    
+    
     Tamgumapf::AddMethod(global, "items", &Tamgumapf::MethodItems, P_NONE, "items(): Return a vector of {key:value} pairs.");
-
-
+    
+    
     Tamgumapf::AddMethod(global, "join", &Tamgumapf::MethodJoin, P_TWO, "join(string sepkey,string sepvalue): Produce a string representation for the container.");
     Tamgumapf::AddMethod(global, "test", &Tamgumapf::MethodTest, P_ONE, "test(key): Test if key belongs to the map container.");
     Tamgumapf::AddMethod(global, "keys", &Tamgumapf::MethodKeys, P_NONE, "keys(): Return the map container keys as a vector.");
@@ -76,15 +70,15 @@ void Tamgumapf::AddMethod(TamguGlobal* global, string name, mapfMethod func, uns
     Tamgumapf::AddMethod(global, "product", &Tamgumapf::MethodProduct, P_NONE, "product(): return the product of elements.");
     Tamgumapf::AddMethod(global, "pop", &Tamgumapf::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamgumapf::AddMethod(global, "merge", &Tamgumapf::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
-
-    if (version != "") {        
-    global->minimal_indexes[Tamgumapf::idtype] = true;
-
-        global->newInstance[Tamgumapf::idtype] = new Tamgumapf(global);
+    
+    if (version != "") {
+        global->minimal_indexes[a_mapf] = true;
         
-        global->RecordCompatibilities(Tamgumapf::idtype);
+        global->newInstance[a_mapf] = new Tamgumapf(global);
+        
+        global->RecordCompatibilities(a_mapf);
     }
-
+    
     return true;
 }
 
@@ -410,10 +404,10 @@ Exporting Tamgu*  Tamgumapf::Put(Tamgu* idx, Tamgu* ke, short idthread) {
         }
         ke = ke->Map(idthread);
         if (!ke->isMapContainer())
-            return globalTamgu->Returnerror("Wrong map initialization", idthread);
+            return globalTamgu->Returnerror(e_wrong_map_initialization, idthread);
         locking();
         Clear();
-        if (ke->Type() == Tamgumapf::idtype) {
+        if (ke->Type() == a_mapf) {
             Tamgumapf* kmap = (Tamgumapf*)ke;
             //We copy all values from ke to this
 
@@ -450,7 +444,7 @@ Tamgu* Tamgumapf::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign) {
         if (key == NULL) {
             if (globalTamgu->erroronkey) {
                 unlocking();
-                return globalTamgu->Returnerror("Wrong index", idthread);
+                return globalTamgu->Returnerror(e_wrong_index, idthread);
             }
             values.erase(skey);
             key = aNOELEMENT;
@@ -462,7 +456,7 @@ Tamgu* Tamgumapf::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign) {
     key = values[skey];
     if (key == NULL) {
         if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong index", idthread);
+            return globalTamgu->Returnerror(e_wrong_index, idthread);
         values.erase(skey);
         key = aNOELEMENT;
     }
@@ -541,7 +535,7 @@ Exporting Tamgu* Tamgumapf::Eval(Tamgu* contextualpattern, Tamgu* idx, short idt
     Tamgu* kval = Value(skey);
     if (kval == aNOELEMENT) {
         if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong index", idthread);
+            return globalTamgu->Returnerror(e_wrong_index, idthread);
         return aNOELEMENT;
 
     }
@@ -1020,3 +1014,95 @@ Exporting Tamgu* Tamgumapf::Loopin(TamguInstruction* ins, Tamgu* context, short 
 
 }
 
+Exporting Tamgu* Tamguframemapf::Push(Tamgu* k, Tamgu* v) {
+    if (!check_frame(v)) {
+        return globalTamgu->Returnerror(e_error_on_frame_map);
+    }
+
+    locking();
+    double s = k->Float();
+    
+    k = values[s];
+    if (k != NULL) {
+        if (k == v)
+            return this;
+        k->Removereference(reference + 1);
+    }
+
+    v = v->Atom();
+    values[s] = v;
+    unlocking();
+    v->Addreference(investigate,reference+1);
+    return aTRUE;
+}
+
+Exporting Tamgu*  Tamguframemapf::Put(Tamgu* idx, Tamgu* ke, short idthread) {
+    if (!idx->isIndex()) {
+        if (ke == this)
+            return aTRUE;
+
+        if (ke->isNULL()) {
+            Clear();
+            return aTRUE;
+        }
+        if (ke->isMapContainer()) {
+            Doublelocking _lock(this, ke);
+            Clear();
+            TamguIteration* itr = ke->Newiteration(false);
+            for (itr->Begin(); itr->End() == aFALSE; itr->Next())
+                Push(itr->Keyfloat(), itr->Value());
+            itr->Release();
+            return aTRUE;
+        }
+        if (ke->isVectorContainer()) {
+            Doublelocking _lock(this, ke);
+            Clear();
+            long nb = 0;
+            for (long it = 0; it < ke->Size(); ++it) {
+                Push(nb, ke->getvalue(it));
+                nb++;
+            }
+            return aTRUE;
+        }
+        if (ke->Type() == a_list) {
+            Doublelocking _lock(this, ke);
+            Tamgulist* kvect = (Tamgulist*)ke;
+            Clear();
+            long nb = 0;
+
+            for (const auto& it : kvect->values) {
+                Push(nb, it);
+                nb++;
+            }
+            return aTRUE;
+        }
+        ke = ke->Map(idthread);
+        if (!ke->isMapContainer())
+            return globalTamgu->Returnerror(e_wrong_map_initialization, idthread);
+        locking();
+        Clear();
+        if (ke->Type() == a_framemapf) {
+            Tamguframemapf* kmap = (Tamguframemapf*)ke;
+            //We copy all values from ke to this
+
+            for (const auto& it : kmap->values)
+                Push(it.first, it.second);
+        }
+        else {
+            TamguIteration* itr = ke->Newiteration(false);
+            Tamgu* a;
+            for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
+                a=itr->IteratorValue();
+                a=a->Atom();
+                values[itr->Keyfloat()] = a;
+                a->Addreference(investigate,reference+1);
+            }
+            itr->Release();
+        }
+        ke->Release();
+        unlocking();
+        return aTRUE;
+    }
+    Push(idx->Getfloat(idthread), ke);
+    return aTRUE;
+}

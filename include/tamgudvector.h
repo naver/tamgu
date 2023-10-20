@@ -482,6 +482,8 @@ class Tamgudvector : public TamguLockContainer {
 
     Tamgu* MethodSort(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodShape(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodTranspose(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodMatrixproduct(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     
     //---------------------------------------------------------------------------------------------------------------------
     void Getshape(vector<long>& sh) {

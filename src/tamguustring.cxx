@@ -462,7 +462,7 @@ Tamgu* Tamguustring::Put(Tamgu* idx, Tamgu* v, short idthread) {
     if (res == 0) {
         unlocking();
         if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);
+            return globalTamgu->Returnerror(e_wrong_key_in, idthread);
         return aFALSE;
     }
 
@@ -495,7 +495,7 @@ Tamgu* Tamguustring::Eval(Tamgu* context, Tamgu* idx, short idthread) {
     if (res == 0) {
         unlocking();
        if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);
+            return globalTamgu->Returnerror(e_wrong_key_in, idthread);
         return aNOELEMENT;
     }
 
@@ -530,7 +530,7 @@ Tamgu* Tamguustring::MethodBPE(Tamgu* contextualpattern, short idthread, TamguCa
     if (callfunc->Size() == 3) {
         Tamgu* e = callfunc->Evaluate(2, contextualpattern, idthread);
         if (e->Type() != Tamgumapui::idtype)
-            return globalTamgu->Returnerror("Expecting a mapui as argument", idthread);
+            return globalTamgu->Returnerror(e_expecting_a_mapui, idthread);
         values = ((Tamgumapui*)e)->values;
     }
 
@@ -578,7 +578,7 @@ Tamgu* Tamguustring::MethodBPEReplace(Tamgu* contextualpattern, short idthread, 
     long nb = callfunc->Evaluate(0, contextualpattern, idthread)->Integer();
     Tamgu* e = callfunc->Evaluate(1, contextualpattern, idthread);
     if (e->Type() != Tamgumapui::idtype)
-        return globalTamgu->Returnerror("Expecting a mapui as argument", idthread);
+        return globalTamgu->Returnerror(e_expecting_a_mapui, idthread);
 
     wstring str = UString();
     Tamguustring* res =  globalTamgu->Provideustring();
@@ -1027,7 +1027,7 @@ Tamgu* Tamguustring::MethodRead(Tamgu* contextualpattern, short idthread, TamguC
     
     Tamguufile file;
     if (!file.openfile(filename)) {
-        string msg = "Cannot open file: ";
+        string msg = e_cannot_open_file;
         msg+=filename;
         return globalTamgu->Returnerror(msg,idthread);
     }
@@ -1046,7 +1046,7 @@ Tamgu* Tamguustring::MethodWrite(Tamgu* contextualpattern, short idthread, Tamgu
     
     Tamguufile file;
     if (!file.openfilewrite(filename)) {
-        string msg = "Cannot open file: ";
+        string msg = e_cannot_open_file;
         msg+=filename;
         return globalTamgu->Returnerror(msg,idthread);
     }
@@ -1825,7 +1825,7 @@ Tamgu* Tamguustring::MethodParse(Tamgu* contextualpattern, short idthread, Tamgu
             msg += ch;
             return globalTamgu->Returnerror(msg, idthread);
         }
-        return globalTamgu->Returnerror("Unknown expression", idthread);
+        return globalTamgu->Returnerror(e_unknown_expression, idthread);
     }
     
     Tamgu* kvect = Selectavector(contextualpattern);
@@ -1909,7 +1909,7 @@ Tamgu* Tamguustring::MethodScan(Tamgu* contextualpattern, short idthread, TamguC
     Tamgu* rgx = callfunc->Evaluate(0, contextualpattern, idthread);
     Au_automate* a = getautomate(rgx);
     if (a == NULL)
-        return globalTamgu->Returnerror("Wrong grammar definition");
+        return globalTamgu->Returnerror(e_wrong_grammar_definition);
 
     wstring reg;
     {
@@ -2828,7 +2828,7 @@ Tamgu* Tamgua_ustring::Put(Tamgu* idx, Tamgu* v, short idthread) {
     
     if (res == 0) {
         if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);
+            return globalTamgu->Returnerror(e_wrong_key_in, idthread);
         return aFALSE;
     }
     
@@ -2858,7 +2858,7 @@ Tamgu* Tamgua_ustring::Eval(Tamgu* context, Tamgu* idx, short idthread) {
     
     if (res == 0) {
         if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);
+            return globalTamgu->Returnerror(e_wrong_key_in, idthread);
         return aNOELEMENT;
     }
     
@@ -3943,7 +3943,7 @@ Tamgu* Tamgua_ustring::MethodParse(Tamgu* contextualpattern, short idthread, Tam
             msg += ch;
             return globalTamgu->Returnerror(msg, idthread);
         }
-        return globalTamgu->Returnerror("Unknown expression", idthread);
+        return globalTamgu->Returnerror(e_unknown_expression, idthread);
     }
     
     Tamgu* kvect = Selectavector(contextualpattern);
@@ -4027,7 +4027,7 @@ Tamgu* Tamgua_ustring::MethodScan(Tamgu* contextualpattern, short idthread, Tamg
     Tamgu* rgx = callfunc->Evaluate(0, contextualpattern, idthread);
     Au_automate* a = getautomate(rgx);
     if (a == NULL)
-        return globalTamgu->Returnerror("Wrong grammar definition");
+        return globalTamgu->Returnerror(e_wrong_grammar_definition);
     
     wstring reg = value.value();
     

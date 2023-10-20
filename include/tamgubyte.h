@@ -56,10 +56,15 @@ class Tamgubyte : public TamguReference {
         return this;
     }
     
-	Tamgu* Putvalue(Tamgu* v, short idthread) {
-		value = v->Byte();
-		return this;
-	}
+    Tamgu* Putvalue(Tamgu* v, short idthread) {
+        value = v->Byte();
+        return this;
+    }
+
+    Tamgu* Clonevalue(Tamgu* v, short idthread) {
+        value = v->Byte();
+        return this;
+    }
 
 
     Tamgu* Eval(Tamgu* context, Tamgu* v, short idthread) {        

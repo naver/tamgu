@@ -105,7 +105,7 @@ bool Tamguannotator::InitialisationModule(TamguGlobal* global, string version) {
 Tamgu* Tamguannotator::Put(Tamgu* idx, Tamgu* kval, short idthread) {
     //If you want to put some element into your object
     if (kval->Type() != Tamguannotator::idtype)
-        return globalTamgu->Returnerror("Wrong assignment: Expected an 'annotator' variable");
+        return globalTamgu->Returnerror(e_wrong_assignment_expected);
 
     Tamguannotator* ann = (Tamguannotator*)kval;
     
@@ -880,7 +880,7 @@ Tamgu* Tamguannotator::MethodLexicon(Tamgu* contextualpattern, short idthread, T
         return aTRUE;
     }
     
-    return globalTamgu->Returnerror("Wrong argument. Expecting a 'transducer' object.");
+    return globalTamgu->Returnerror(e_wrong_argument_expecting);
 }
 
 Tamgu* Tamguannotator::MethodCheckLabel(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -1592,7 +1592,7 @@ Tamgu* Tamguannotator::MethodApply(Tamgu* contextualpattern, short idthread, Tam
     }
     
     if (!kvect->isVectorContainer())
-        globalTamgu->Returnerror("Argument should be an uvector");
+        globalTamgu->Returnerror(e_argument_should_be);
         
     if (kvect->Size() == 0)
         return aNULL;

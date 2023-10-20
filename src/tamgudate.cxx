@@ -336,7 +336,7 @@ Tamgu* Tamgudate::MethodYear(Tamgu* contextualpattern, short idthread, TamguCall
     if (callfunc->Size() == 2) {
         vl = (int)callfunc->Evaluate(1, aNULL, idthread)->Integer();
         if (vl < 100)
-            return globalTamgu->Returnerror("Wrong value for a year", idthread);
+            return globalTamgu->Returnerror(e_wrong_value_for02, idthread);
         temps.tm_year = vl - 1900;
         value = mktime(&temps);
         return aTRUE;
@@ -353,7 +353,7 @@ Tamgu* Tamgudate::MethodMonth(Tamgu* contextualpattern, short idthread, TamguCal
     if (callfunc->Size() == 2) {
         vl = (int)callfunc->Evaluate(1, aNULL, idthread)->Integer();
         if (vl < 1 || vl>12)
-            return globalTamgu->Returnerror("Wrong value for a day", idthread);
+            return globalTamgu->Returnerror(e_wrong_value_for05, idthread);
         temps.tm_mon = vl - 1;
         value = mktime(&temps);
         return aTRUE;
@@ -370,7 +370,7 @@ Tamgu* Tamgudate::MethodDay(Tamgu* contextualpattern, short idthread, TamguCall*
     if (callfunc->Size() == 2) {
         vl = (int)callfunc->Evaluate(1, aNULL, idthread)->Integer();
         if (vl < 1 || vl>31)
-            return globalTamgu->Returnerror("Wrong value for a day", idthread);
+            return globalTamgu->Returnerror(e_wrong_value_for05, idthread);
         temps.tm_mday = vl;
         value = mktime(&temps);
         return aTRUE;
@@ -386,7 +386,7 @@ Tamgu* Tamgudate::MethodHour(Tamgu* contextualpattern, short idthread, TamguCall
     if (callfunc->Size() == 2) {
         int vl = (int)callfunc->Evaluate(1, aNULL, idthread)->Integer();
         if (vl < 0 || vl>23)
-            return globalTamgu->Returnerror("Wrong value for an hour", idthread);
+            return globalTamgu->Returnerror(e_wrong_value_for, idthread);
         temps.tm_hour = vl;
         value = mktime(&temps);
         return aTRUE;
@@ -401,7 +401,7 @@ Tamgu* Tamgudate::MethodMinute(Tamgu* contextualpattern, short idthread, TamguCa
     if (callfunc->Size() == 2) {
         int vl = (int)callfunc->Evaluate(1, aNULL, idthread)->Integer();
         if (vl < 0 || vl>59)
-            return globalTamgu->Returnerror("Wrong value for a minute", idthread);
+            return globalTamgu->Returnerror(e_wrong_value_for04, idthread);
         temps.tm_min = vl;
         value = mktime(&temps);
         return aTRUE;
@@ -415,7 +415,7 @@ Tamgu* Tamgudate::MethodSecond(Tamgu* contextualpattern, short idthread, TamguCa
     if (callfunc->Size() == 2) {
         int vl = (int)callfunc->Evaluate(1, aNULL, idthread)->Integer();
         if (vl < 0 || vl>59)
-            return globalTamgu->Returnerror("Wrong value for a second", idthread);
+            return globalTamgu->Returnerror(e_wrong_value_for03, idthread);
         temps.tm_sec = vl;
         value = mktime(&temps);
         return aTRUE;
@@ -454,7 +454,7 @@ Tamgu* Tamgudate::MethodYear(Tamgu* contextualpattern, short idthread, TamguCall
     if (callfunc->Size() == 2) {
         vl = (int)callfunc->Evaluate(1, aNULL, idthread)->Integer();
         if (vl < 100)
-            return globalTamgu->Returnerror("Wrong value for a year", idthread);
+            return globalTamgu->Returnerror(e_wrong_value_for02, idthread);
         temps->tm_year = vl - 1900;
         value = mktime(temps);
         return aTRUE;
@@ -470,7 +470,7 @@ Tamgu* Tamgudate::MethodMonth(Tamgu* contextualpattern, short idthread, TamguCal
     if (callfunc->Size() == 2) {
         vl = (int)callfunc->Evaluate(1, aNULL, idthread)->Integer();
         if (vl < 1 || vl>12)
-            return globalTamgu->Returnerror("Wrong value for a day", idthread);
+            return globalTamgu->Returnerror(e_wrong_value_for05, idthread);
         temps->tm_mon = vl - 1;
         value = mktime(temps);
         return aTRUE;
@@ -486,7 +486,7 @@ Tamgu* Tamgudate::MethodDay(Tamgu* contextualpattern, short idthread, TamguCall*
     if (callfunc->Size() == 2) {
         vl = (int)callfunc->Evaluate(1, aNULL, idthread)->Integer();
         if (vl < 1 || vl>31)
-            return globalTamgu->Returnerror("Wrong value for a day", idthread);
+            return globalTamgu->Returnerror(e_wrong_value_for05, idthread);
         temps->tm_mday = vl;
         value = mktime(temps);
         return aTRUE;
@@ -501,7 +501,7 @@ Tamgu* Tamgudate::MethodHour(Tamgu* contextualpattern, short idthread, TamguCall
     if (callfunc->Size() == 2) {
         int vl = (int)callfunc->Evaluate(1, aNULL, idthread)->Integer();
         if (vl < 0 || vl>23)
-            return globalTamgu->Returnerror("Wrong value for an hour", idthread);
+            return globalTamgu->Returnerror(e_wrong_value_for, idthread);
         temps->tm_hour = vl;
         value = mktime(temps);
         return aTRUE;
@@ -515,7 +515,7 @@ Tamgu* Tamgudate::MethodMinute(Tamgu* contextualpattern, short idthread, TamguCa
     if (callfunc->Size() == 2) {
         int vl = (int)callfunc->Evaluate(1, aNULL, idthread)->Integer();
         if (vl < 0 || vl>59)
-            return globalTamgu->Returnerror("Wrong value for a minute", idthread);
+            return globalTamgu->Returnerror(e_wrong_value_for04, idthread);
         temps->tm_min = vl;
         value = mktime(temps);
         return aTRUE;
@@ -528,7 +528,7 @@ Tamgu* Tamgudate::MethodSecond(Tamgu* contextualpattern, short idthread, TamguCa
     if (callfunc->Size() == 2) {
         int vl = (int)callfunc->Evaluate(1, aNULL, idthread)->Integer();
         if (vl < 0 || vl>59)
-            return globalTamgu->Returnerror("Wrong value for a second", idthread);
+            return globalTamgu->Returnerror(e_wrong_value_for03, idthread);
         temps->tm_sec = vl;
         value = mktime(temps);
         return aTRUE;

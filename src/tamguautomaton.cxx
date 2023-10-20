@@ -112,7 +112,7 @@ Tamgu* Tamguregularexpression::MethodMatch(Tamgu* contextualpattern, short idthr
 Tamgu* Tamguregularexpression::Put(Tamgu* idx, Tamgu* rgx, short idthread) {
     Au_automate* a = getautomate(rgx);
     if (a == NULL)
-        return globalTamgu->Returnerror("Wrong tamgu regular expression");
+        return globalTamgu->Returnerror(e_wrong_tamgu_regular);
 
     automate = a;
     reg = rgx->UString();
@@ -123,7 +123,7 @@ Tamgu* Tamguregularexpression::MethodCompile(Tamgu* contextualpattern, short idt
     Tamgu* rgx = callfunc->Evaluate(0, contextualpattern, idthread);
     Au_automate* a = getautomate(rgx);
     if (a == NULL)
-        return globalTamgu->Returnerror("Wrong tamgu regular expression");
+        return globalTamgu->Returnerror(e_wrong_tamgu_regular);
 
     automate = a;
     reg = rgx->UString();
@@ -642,7 +642,7 @@ Tamgu* Tamguposixregularexpression::MethodMatch(Tamgu* contextualpattern, short 
 Tamgu* Tamguposixregularexpression::Put(Tamgu* idx, Tamgu* rgx, short idthread) {
     wregex* a = wgetposixregex(rgx);
     if (a == NULL)
-        return globalTamgu->Returnerror("Wrong tamgu regular expression");
+        return globalTamgu->Returnerror(e_wrong_tamgu_regular);
     
     wpattern = a;
     pattern = getposixregex(rgx);
@@ -657,7 +657,7 @@ Tamgu* Tamguposixregularexpression::MethodCompile(Tamgu* contextualpattern, shor
     wregex* a = wgetposixregex(rgx);
     
     if (a == NULL)
-        return globalTamgu->Returnerror("Wrong tamgu regular expression");
+        return globalTamgu->Returnerror(e_wrong_tamgu_regular);
     
     wpattern = a;
     pattern = getposixregex(rgx);

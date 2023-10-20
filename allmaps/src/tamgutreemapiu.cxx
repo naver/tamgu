@@ -75,7 +75,8 @@ void Tamgutreemapiu::AddMethod(TamguGlobal* global, string name,treemapiuMethod 
     Tamgutreemapiu::AddMethod(global, "merge", &Tamgutreemapiu::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
 
     if (version != "") {
-        global->newInstance[Tamgutreemapiu::idtype] = new Tamgutreemapiu(global);
+        global->returnindextypes[Tamgutreemapiu::idtype] = a_ustring;
+    global->newInstance[Tamgutreemapiu::idtype] = new Tamgutreemapiu(global);
         
         global->RecordCompatibilities(Tamgutreemapiu::idtype);
     }

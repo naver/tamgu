@@ -744,7 +744,7 @@ Tamgu* Tamgusys::MethodPopen(Tamgu* contextualpattern, short idthread, TamguCall
     
 #endif
     if (fp == NULL)
-        return globalTamgu->Returnerror("Error while opening 'popen' stream");
+        return globalTamgu->Returnerror(e_error_while_opening);
     
     while (fgets(path, PATH_MAX, fp) != NULL) {
         cmd  = path;
@@ -759,7 +759,7 @@ Tamgu* Tamgusys::MethodPopen(Tamgu* contextualpattern, short idthread, TamguCall
 #endif
     
     if (status == -1)
-        return globalTamgu->Returnerror("Error while closing 'popen' stream");
+        return globalTamgu->Returnerror(e_error_while_closing);
     
     
     return contextualpattern;
@@ -1520,7 +1520,7 @@ Tamgu* Tamgusys::MethodResizeCallBack(Tamgu* contextualpattern, short idthread, 
 	}
 
 	if (!func->isFunction() || func->Size() != 2)
-		globalTamgu->Returnerror("Expecting a function of arity: 2", idthread);
+		globalTamgu->Returnerror(e_expecting_a_function, idthread);
 	function = func;
 #ifndef WIN32
 	signal(SIGWINCH, callresize);

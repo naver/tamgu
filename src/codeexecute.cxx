@@ -579,7 +579,7 @@ Tamgu* Tamgustring::EvalIndex(Tamgu* kidx, TamguIndex* idx, short idthread) {
     char res = StringIndexes(value, idx, ileft, iright, idthread);
     if (!res) {
         if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);
+            return globalTamgu->Returnerror(e_wrong_key_in, idthread);
         return aNOELEMENT;
     }
 
@@ -610,7 +610,7 @@ Tamgu* Tamgustring::EvalIndex(Tamgu* kidx, TamguIndex* idx, short idthread) {
             if (globalTamgu->threadMODE)
                 delete str;
             if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);
+                return globalTamgu->Returnerror(e_wrong_key_in, idthread);
             return aNOELEMENT;
         }
         if (res == 1)
@@ -647,7 +647,7 @@ Tamgu* Tamguustring::EvalIndex(Tamgu* kidx, TamguIndex* idx, short idthread) {
     char res = StringIndexes(value, idx, ileft, iright, idthread);
     if (!res) {
         if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);
+            return globalTamgu->Returnerror(e_wrong_key_in, idthread);
         return aNOELEMENT;
     }
 
@@ -677,7 +677,7 @@ Tamgu* Tamguustring::EvalIndex(Tamgu* kidx, TamguIndex* idx, short idthread) {
         if (!res) {
             inter->Release();
             if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);
+                return globalTamgu->Returnerror(e_wrong_key_in, idthread);
             return aNOELEMENT;
         }
         if (res == 1) {
@@ -715,9 +715,9 @@ Tamgu* TamguShape::Eval(Tamgu* context, Tamgu* value, short idthread) {
     long ins_size = instructions.size();
     
     if (!shape_size)
-        return globalTamgu->Returnerror("Cannot extract values from this container: too small or no shape", idthread);
+        return globalTamgu->Returnerror(e_cannot_extract_values, idthread);
     if (shape_size < ins_size)
-        return globalTamgu->Returnerror("Indexes do not match the shape", idthread);
+        return globalTamgu->Returnerror(e_indexes_do_not, idthread);
     
     
     long index = 0;
@@ -806,7 +806,7 @@ Tamgu* TamguShape::Eval(Tamgu* context, Tamgu* value, short idthread) {
     Tamgu* sub;
     if (shape_size == ins_size) {
         if (idx >= value->Size())
-            return globalTamgu->Returnerror("Index out of bound", idthread);
+            return globalTamgu->Returnerror(e_index_out_of, idthread);
         sub = value->getvalue(idx);
     }
     else {
@@ -837,9 +837,9 @@ Tamgu* TamguShape::Put(Tamgu* recipient, Tamgu* value, short idthread) {
     long i_sz = instructions.size();
 
     if (!s_sz)
-        return globalTamgu->Returnerror("Cannot extract values from this container: too small or no shape", idthread);
+        return globalTamgu->Returnerror(e_cannot_extract_values, idthread);
     if (s_sz < i_sz)
-        return globalTamgu->Returnerror("Indexes do not match the shape", idthread);
+        return globalTamgu->Returnerror(e_indexes_do_not, idthread);
     
     long index = 0;
     long i;
@@ -854,7 +854,7 @@ Tamgu* TamguShape::Put(Tamgu* recipient, Tamgu* value, short idthread) {
     if (function == NULL) {
         if (s_sz == i_sz) {
             if (idx >= value->Size())
-                return globalTamgu->Returnerror("Index out of bound", idthread);
+                return globalTamgu->Returnerror(e_index_out_of, idthread);
             recipient->store(idx, value);
             return aTRUE;
         }
@@ -865,7 +865,7 @@ Tamgu* TamguShape::Put(Tamgu* recipient, Tamgu* value, short idthread) {
             idx *= shape[i];
         }
         if (value->Size() != cumul)
-            return globalTamgu->Returnerror("Cannot store this value at this position: wrong size");
+            return globalTamgu->Returnerror(e_cannot_store_this);
         cumul += idx;
         for (i = idx; i < cumul; i++)
             recipient->store(i, value->getvalue(i-idx));
@@ -950,7 +950,7 @@ Tamgu* TamguIndex::Eval(Tamgu* klocal, Tamgu* obj, short idthread) {
 	while (kidx != NULL && kidx->isIndex()) {
 		if (object == aNOELEMENT) {
 			if (globalTamgu->erroronkey)
-				return globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);
+				return globalTamgu->Returnerror(e_wrong_key_in, idthread);
 			return aNOELEMENT;
 		}
 
@@ -975,7 +975,7 @@ Tamgu* TamguIndex::Eval(Tamgu* klocal, Tamgu* obj, short idthread) {
 			}
 			else {
 				if (globalTamgu->erroronkey)
-					return globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);
+					return globalTamgu->Returnerror(e_wrong_key_in, idthread);
 				return aNOELEMENT;
 			}
 		}
@@ -2006,7 +2006,7 @@ Exporting Tamgu* TamguCallAlias::Eval(Tamgu* domain, Tamgu* a, short idthread) {
     
     if (!sza && function != NULL) {
         if (szp != function->Size())
-            return globalTamgu->Returnerror("Wrong index access", idthread);
+            return globalTamgu->Returnerror(e_wrong_index_access, idthread);
         
         for (short i = 0; i < szp; i++) {
             a = function->Parameter(i)->Eval(domain, aNULL, idthread);
@@ -2592,7 +2592,7 @@ Tamgu* TamguCallFromFrameVariable::Eval(Tamgu* context, Tamgu* value, short idth
     value = value->GetLetValue();
     if (!value->isFrameinstance() || !((TamguframeBaseInstance*)value)->isDeclared(name)) {
         stringstream msg;
-        msg << "Unknown frame variable: '"
+        msg << e_unknown_frame_variable
         << globalTamgu->Getsymbol(name)
         << "'";
         return globalTamgu->Returnerror(msg.str(), idthread);
@@ -2614,7 +2614,7 @@ Tamgu* TamguCallFromFrameVariable::Put(Tamgu* context, Tamgu* value, short idthr
     value = value->GetLetValue();
     if (!value->isFrameinstance() || !((TamguframeBaseInstance*)value)->isDeclared(name)) {
         stringstream msg;
-        msg << "Unknown frame variable: '"
+        msg << e_unknown_frame_variable
         << globalTamgu->Getsymbol(name)
         << "'";
         return globalTamgu->Returnerror(msg.str(), idthread);
@@ -2779,7 +2779,7 @@ Tamgu* TamguCallSelfVariable::Eval(Tamgu* context, Tamgu* value, short idthread)
 		value = value->Value();
 
 		if (value == aNOELEMENT)
-			return globalTamgu->Returnerror("Uninitialized 'self' variable", idthread);
+			return globalTamgu->Returnerror(e_uninitialized_self_variable, idthread);
 
 		if (affectation && function->isStop())
 			return value;
@@ -2973,7 +2973,7 @@ Tamgu* TamguFunction::Run(Tamgu* environment, short idthread) {
                 if (a->Type() != returntype && !globalTamgu->Compatiblestrict(returntype, a->Type())) {
                     a->Releasenonconst();
                     stringstream msg;
-                    msg << "Mismatch between return value and function declaration. Expecting: '"
+                    msg << e_mismatch_between_return
                     << globalTamgu->Getsymbol(returntype)
                     << "' Got: '" << globalTamgu->Getsymbol(a->Type()) << "'";
                     return globalTamgu->Returnerror(msg.str(), idthread);
@@ -2987,7 +2987,7 @@ Tamgu* TamguFunction::Run(Tamgu* environment, short idthread) {
 
     _cleandebugfull;
     if (returntype && name != a_initial)
-        return globalTamgu->Returnerror("This function is expected to return a value", idthread);
+        return globalTamgu->Returnerror(e_this_function_is, idthread);
 
     return aNULL;
 }
@@ -3182,7 +3182,7 @@ Tamgu* TamguThread::Eval(Tamgu* environment, Tamgu* a, short idthread) {
 				if (a->Type() != returntype && !globalTamgu->Compatible(returntype, a->Type())) {
 					a->Releasenonconst();
 					stringstream msg;
-					msg << "Mismatch between return value and thread declaration. Expecting: '"
+					msg << e_mismatch_between_return02
 						<< globalTamgu->Getsymbol(returntype)
 						<< "' Got: '" << globalTamgu->Getsymbol(a->Type()) << "'";
 					return globalTamgu->Returnerror(msg.str(), idthread);
@@ -3206,7 +3206,7 @@ Tamgu* TamguThread::Eval(Tamgu* environment, Tamgu* a, short idthread) {
 		delete _lock;
 	_cleandebugfull;
 	if (returntype)
-		return globalTamgu->Returnerror("This function is expected to return a value", idthread);
+		return globalTamgu->Returnerror(e_this_function_is, idthread);
 
 	return aNULL;
 }
@@ -3217,7 +3217,7 @@ Tamgu* TamguCallThread::Eval(Tamgu* environment, Tamgu* value, short idthread) {
 
 	short id = globalTamgu->SelectThreadid();
 	if (id == -1)
-		return globalTamgu->Returnerror("Too many threads", idthread);
+		return globalTamgu->Returnerror(e_too_many_threads, idthread);
 
 	Tamgu* main = globalTamgu->Getmainframe(Currentspace());
 
@@ -3941,7 +3941,7 @@ Tamgu* TamguInstructionIN::Eval(Tamgu* context, Tamgu* value, short idthread) {
 Tamgu* Tamgu::Loopin(TamguInstruction* ins, Tamgu* context, short idthread) {
     TamguIteration* itr = Newiteration(false);
     if (itr == aITERNULL)
-        return globalTamgu->Returnerror("Cannot loop on this element...", idthread);
+        return globalTamgu->Returnerror(e_cannot_loop_on, idthread);
 
     Tamgu* var = ins->instructions.vecteur[0]->Instruction(0);
     var = var->Eval(context, aNULL, idthread);
@@ -4054,7 +4054,7 @@ Tamgu* TamguInstructionFORIN::Eval(Tamgu* context, Tamgu* loop, short idthread) 
                     globalTamgu->Removetopvariable(idthread, idname);
                     replace_with_self->Resetreference();
 					loop->Release();
-					return globalTamgu->Returnerror("Incompatible type in loop", idthread);
+					return globalTamgu->Returnerror(e_incompatible_type_in, idthread);
 				}
                 if (cleanup)
                     replace_with_self->Forcedclean();
@@ -4095,7 +4095,7 @@ Tamgu* TamguInstructionFORIN::Eval(Tamgu* context, Tamgu* loop, short idthread) 
     TamguIteration* it = loop->Newiteration(false);
     if (it == aITERNULL) {
         if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Cannot loop on this value", idthread);
+            return globalTamgu->Returnerror(e_cannot_loop_on02, idthread);
         return this;
     }
 
@@ -4114,7 +4114,7 @@ Tamgu* TamguInstructionFORIN::Eval(Tamgu* context, Tamgu* loop, short idthread) 
                 replace_with_self->Resetreference();
 				delete it;
 				loop->Release();
-				return globalTamgu->Returnerror("Incompatible type in loop", idthread);
+				return globalTamgu->Returnerror(e_incompatible_type_in, idthread);
 			}
             if (cleanup)
                 replace_with_self->Forcedclean();
@@ -4156,7 +4156,7 @@ Tamgu* TamguInstructionFORVECTORIN::Eval(Tamgu* context, Tamgu* loop, short idth
 	Tamgu* var = instructions.vecteur[0]->Instruction(0)->Eval(context, aNULL, idthread);
 	loop = instructions.vecteur[0]->Instruction(1)->Eval(context, aNULL, idthread);
 	if (!loop->isVectorContainer())
-		return globalTamgu->Returnerror("Can only loop on vectors here", idthread);
+		return globalTamgu->Returnerror(e_can_only_loop02, idthread);
 
 	TamguIteration* it = loop->Newiteration(false);
 
@@ -4191,7 +4191,7 @@ Tamgu* TamguInstructionFORMAPIN::Eval(Tamgu* context, Tamgu* loop, short idthrea
 	Tamgu* var = instructions.vecteur[0]->Instruction(0)->Eval(context, aNULL, idthread);
 	loop = instructions.vecteur[0]->Instruction(1)->Eval(context, aNULL, idthread);
 	if (!loop->isMapContainer())
-		return globalTamgu->Returnerror("Can only loop on a map here", idthread);
+		return globalTamgu->Returnerror(e_can_only_loop, idthread);
 
 	TamguIteration* it = loop->Newiteration(false);
 

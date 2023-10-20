@@ -539,6 +539,8 @@ class Tamgufvector : public TamguLockContainer {
 
     
     Tamgu* MethodShape(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodTranspose(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodMatrixproduct(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     
     Tamgu* MethodRemove(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double a = callfunc->Evaluate(0, contextualpattern, idthread)->Float();

@@ -79,7 +79,8 @@ void Tamgumaplf::AddMethod(TamguGlobal* global, string name, maplfMethod func, u
     Tamgumaplf::AddMethod(global, "pop", &Tamgumaplf::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamgumaplf::AddMethod(global, "merge", &Tamgumaplf::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
 
-    if (version != "") {        
+    if (version != "") {
+        global->returnindextypes[Tamgumaplf::idtype] = a_float;        
     global->minimal_indexes[Tamgumaplf::idtype] = true;
 
         global->newInstance[Tamgumaplf::idtype] = new Tamgumaplf(global);
@@ -329,7 +330,7 @@ Exporting Tamgu*  Tamgumaplf::Put(Tamgu* idx, Tamgu* ke, short idthread) {
         }
         ke = ke->Map(idthread);
         if (!ke->isMapContainer())
-            return globalTamgu->Returnerror("Wrong map initialization", idthread);
+            return globalTamgu->Returnerror(e_wrong_map_initialization, idthread);
         locking();
         values.clear();
         if (ke->Type() == Tamgumaplf::idtype)
@@ -358,7 +359,7 @@ Tamgu* Tamgumaplf::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign) {
     Tamgu* val = Value(skey);
     if (val == aNOELEMENT) {
         if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong index", idthread);
+            return globalTamgu->Returnerror(e_wrong_index, idthread);
         return aNOELEMENT;
 
     }
@@ -437,7 +438,7 @@ Exporting Tamgu* Tamgumaplf::Eval(Tamgu* contextualpattern, Tamgu* idx, short id
     Tamgu* kval = Value(skey);
     if (kval == aNOELEMENT) {
         if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong index", idthread);
+            return globalTamgu->Returnerror(e_wrong_index, idthread);
         return aNOELEMENT;
 
     }
@@ -683,7 +684,7 @@ Exporting Tamgu* Tamgumaplf::divide(Tamgu* b, bool itself) {
     double v = b->Float();
     if (v == 0) {
         res->Release();
-        return globalTamgu->Returnerror("Error: Divided by 0");
+        return globalTamgu->Returnerror(e_error_divided_by);
     }
     for (auto& it : res->values)
         it.second /= v;
@@ -721,7 +722,7 @@ Exporting Tamgu* Tamgumaplf::mod(Tamgu* b, bool itself) {
     long v = b->Integer();
     if (v == 0) {
         res->Release();
-        return globalTamgu->Returnerror("Error: Divided by 0");
+        return globalTamgu->Returnerror(e_error_divided_by);
     }
     for (auto& it : res->values)
         it.second = (long)it.second % v;

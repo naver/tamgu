@@ -215,7 +215,7 @@ Exporting short TamguCompile(string& codeinit, string filename, char dsp) {
 
 				x_node* x = bnf.x_parsing(&xr, FULL);
 				if (x == NULL) {
-					globalTamgu->Returnerror("Cannot parse this string", 0);
+					globalTamgu->Returnerror(e_cannot_parse_this, 0);
 					return -1;
 				}
 				x_node* xn = x;

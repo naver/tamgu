@@ -435,7 +435,7 @@ Tamgu* Tamgurawstring::Put(Tamgu* idx, Tamgu* ke, short idthread) {
         }
 
         if (buffersize <= s.size())
-            return globalTamgu->Returnerror("String overflow", idthread);
+            return globalTamgu->Returnerror(e_string_overflow, idthread);
 
         strcpy((char*)value, STR(s));
         stringsize = s.size();
@@ -443,7 +443,7 @@ Tamgu* Tamgurawstring::Put(Tamgu* idx, Tamgu* ke, short idthread) {
     else {
         if (value == NULL) {
             if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);
+                return globalTamgu->Returnerror(e_wrong_key_in, idthread);
             return aFALSE;
         }
 
@@ -452,7 +452,7 @@ Tamgu* Tamgurawstring::Put(Tamgu* idx, Tamgu* ke, short idthread) {
 
         if (res == 0) {
             if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);
+                return globalTamgu->Returnerror(e_wrong_key_in, idthread);
             return aFALSE;
         }
 
@@ -462,7 +462,7 @@ Tamgu* Tamgurawstring::Put(Tamgu* idx, Tamgu* ke, short idthread) {
         //the size is:
         long computesize = stringsize - (iright - ileft) + s.size();
         if (computesize > buffersize)
-            return globalTamgu->Returnerror("String overflow", idthread);
+            return globalTamgu->Returnerror(e_string_overflow, idthread);
 
         stringsize = computesize;
         s += (char*)value + iright;
@@ -487,7 +487,7 @@ Tamgu* Tamgurawstring::Eval(Tamgu* context, Tamgu* idx, short idthread) {
 
     if (res == 0) {
         if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);
+            return globalTamgu->Returnerror(e_wrong_key_in, idthread);
         return aNOELEMENT;
     }
 
@@ -556,7 +556,7 @@ Tamgu* Tamgurawstring::MethodScan(Tamgu* contextualpattern, short idthread, Tamg
     Tamgu* rgx = callfunc->Evaluate(0, contextualpattern, idthread);
     Au_automate* a = getautomate(rgx);
     if (a == NULL)
-        return globalTamgu->Returnerror("Wrong grammar definition");
+        return globalTamgu->Returnerror(e_wrong_grammar_definition);
     
     wstring reg;
     sc_utf8_to_unicode(reg, value, stringsize);
@@ -683,7 +683,7 @@ Tamgu* Tamgurawstring::MethodParse(Tamgu* contextualpattern, short idthread, Tam
             msg += ch;
             return globalTamgu->Returnerror(msg, idthread);
         }
-        return globalTamgu->Returnerror("Unknown expression", idthread);
+        return globalTamgu->Returnerror(e_unknown_expression, idthread);
     }
     
     Tamgu* kvect = Selectavector(contextualpattern);
@@ -1681,7 +1681,7 @@ Tamgu* Tamgurawstring::MethodPadding(Tamgu* contextualpattern, short idthread, T
         v = sres + v;
 
     if (v.size() >= buffersize)
-        return globalTamgu->Returnerror("String overflow", idthread);
+        return globalTamgu->Returnerror(e_string_overflow, idthread);
 
     strcpy_s((char*)value, buffersize, STR(v));
     stringsize = v.size();

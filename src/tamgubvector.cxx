@@ -76,7 +76,8 @@ bool Tamgubvector::InitialisationModule(TamguGlobal* global, string version) {
     
     
     
-    if (version != "") {        
+    if (version != "") {
+        global->returnindextypes[a_bvector] = a_byte;        
         global->minimal_indexes[a_bvector] = true;
         global->newInstance[a_bvector] = new Tamgubvector(global);
         global->RecordCompatibilities(a_bvector);
@@ -536,12 +537,12 @@ Exporting Tamgu*  Tamgubvector::Put(Tamgu* idx, Tamgu* ke, short idthread) {
             values.clear();
             string sv = ke->String();
             if (!v_comma_split_byte(sv, values))
-                return globalTamgu->Returnerror("Cannot set this value", idthread);
+                return globalTamgu->Returnerror(e_cannot_set_this, idthread);
             return aTRUE;
         }
         ke = ke->Vector(idthread);
         if (!ke->isVectorContainer())
-            return globalTamgu->Returnerror("Cannot set this value", idthread);
+            return globalTamgu->Returnerror(e_cannot_set_this, idthread);
 
         values.clear();
         values.reserve(ke->Size());
@@ -564,7 +565,7 @@ Exporting Tamgu*  Tamgubvector::Put(Tamgu* idx, Tamgu* ke, short idthread) {
                 rkey = values.size() + rkey;
             if (rkey < lkey || rkey >= values.size() || lkey >= values.size()) {
                 if (globalTamgu->erroronkey)
-                    globalTamgu->Returnerror("Wrong index", idthread);
+                    globalTamgu->Returnerror(e_wrong_index, idthread);
                 return aTRUE;
             }
 
@@ -600,7 +601,7 @@ Exporting Tamgu*  Tamgubvector::Put(Tamgu* idx, Tamgu* ke, short idthread) {
             if (ikey < 0) {
                 ikey = sz + ikey;
                 if (ikey < 0)
-                    return globalTamgu->Returnerror("Cannot set this value", idthread);
+                    return globalTamgu->Returnerror(e_cannot_set_this, idthread);
             }
 
             if (ikey >= sz) {
@@ -625,7 +626,7 @@ Tamgu* Tamgubvector::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign) 
     if (ikey < 0 || ikey >= values.size()) {
         unlocking();
         if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong index", idthread);
+            return globalTamgu->Returnerror(e_wrong_index, idthread);
         return aNOELEMENT;
     }
 
@@ -674,7 +675,7 @@ Exporting Tamgu* Tamgubvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
 	if (ikey < 0 || ikey >= values.size()) {
 		unlocking();
 		if (globalTamgu->erroronkey)
-			return globalTamgu->Returnerror("Wrong index", idthread);
+			return globalTamgu->Returnerror(e_wrong_index, idthread);
 		return aNOELEMENT;
 	}
 
@@ -694,7 +695,7 @@ Exporting Tamgu* Tamgubvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
         if (iright<ikey) {
             unlocking();
             if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong index", idthread);
+                return globalTamgu->Returnerror(e_wrong_index, idthread);
             return aNOELEMENT;
         }
     }
@@ -702,7 +703,7 @@ Exporting Tamgu* Tamgubvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
         if (iright>values.size()) {
             unlocking();
             if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong index", idthread);
+                return globalTamgu->Returnerror(e_wrong_index, idthread);
             return aNOELEMENT;
         }
     }
@@ -939,7 +940,7 @@ Exporting Tamgu* Tamgubvector::divide(Tamgu* b, bool itself) {
             v = (uchar)itr->Valueinteger();
             if (v == 0) {
                 ref->Release();
-                return globalTamgu->Returnerror("Error: Divided by 0");
+                return globalTamgu->Returnerror(e_error_divided_by);
             }
             ref->values[it] /= v;
             itr->Next();
@@ -951,7 +952,7 @@ Exporting Tamgu* Tamgubvector::divide(Tamgu* b, bool itself) {
     v = (uchar)b->Integer();
     if (v == 0) {
         ref->Release();
-        return globalTamgu->Returnerror("Error: Divided by 0");
+        return globalTamgu->Returnerror(e_error_divided_by);
     }
 
     for (it = 0; it < ref->values.size(); it++)
@@ -1067,7 +1068,7 @@ Exporting Tamgu* Tamgubvector::mod(Tamgu* b, bool itself) {
             v = (uchar)itr->Valueinteger();
             if (v == 0) {
                 ref->Release();
-                return globalTamgu->Returnerror("Error: Divided by 0");
+                return globalTamgu->Returnerror(e_error_divided_by);
             }
 
             ref->values[it] %= v;
@@ -1080,7 +1081,7 @@ Exporting Tamgu* Tamgubvector::mod(Tamgu* b, bool itself) {
     v = (uchar)b->Integer();
     if (v == 0) {
         ref->Release();
-        return globalTamgu->Returnerror("Error: Divided by 0");
+        return globalTamgu->Returnerror(e_error_divided_by);
     }
 
     for (it = 0; it < ref->values.size(); it++)
@@ -1126,7 +1127,7 @@ Tamgu* Tamgubvector::MethodSort(Tamgu* contextualpattern, short idthread, TamguC
     Tamgu* comp= callfunc->Evaluate(0, contextualpattern, idthread);
     if (comp->isFunction()) {
         if (comp->Size() != 2)
-            return globalTamgu->Returnerror("Expecting a comparison function with two parameters", idthread);
+            return globalTamgu->Returnerror(e_expecting_a_comparison02, idthread);
 
         BComp kcomp((TamguFunction*)comp->Body(idthread), idthread);
         BComparison kfcomp(&kcomp);

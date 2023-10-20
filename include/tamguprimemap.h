@@ -611,4 +611,134 @@ class TamguIterationprimemap : public TamguIteration {
 
 //-------------------------------------------------------------------------------------------
 
+class Tamguframeprimemap : public Tamguprimemap {
+    public:
+    Tamgu* frame;
+
+    //---------------------------------------------------------------------------------------------------------------------
+    Tamguframeprimemap(Tamgu* fr, TamguGlobal* g, Tamgu* parent = NULL) : Tamguprimemap(g, parent) {
+        //Do not forget your variable initialisation
+        frame = fr;
+    }
+
+    Tamguframeprimemap(Tamgu* fr) {
+        //Do not forget your variable initialisation
+        frame = fr;
+    }
+
+    //----------------------------------------------------------------------------------------------------------------------
+    Exporting Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);
+    short Type() {
+        return a_frameprimemap;
+    }
+
+    string Typename() {
+        return "frameprimemap";
+    }
+
+    Tamgu* Atom(bool forced) {
+        if (forced) {
+            Tamguframeprimemap* m = new Tamguframeprimemap(frame);
+            locking();
+            Tamgu* v;
+            prime_hash<string, Tamgu*>::iterator it;
+            for (it = values.begin(); it != values.end(); it++) {
+                v = it->second->Atom(true);
+                m->values[it->first] = v;
+                v->Setreference();
+            }
+            unlocking();
+        return m;
+        }
+        return this;
+    }
+
+  //---------------------------------------------------------------------------------------------------------------------
+    //Declaration
+    //All our methods must have been declared in tamguexportedmethods... See MethodInitialization below
+    Tamgu* Newvalue(Tamgu* a, short idthread) {
+        Tamguframeprimemap* m = new Tamguframeprimemap(frame);
+        if (a->isContainer()) {
+            TamguIteration* it = a->Newiteration(false);
+            for (it->Begin(); it->End() == aFALSE; it->Next()) {
+                m->Push(it->Keystring(), it->IteratorValue());
+            }
+            it->Release();
+            return m;
+        }
+        
+        prime_hash<string,Tamgu*>::iterator ist;
+        for (ist=values.begin(); ist!=values.end();ist++)
+            m->Push(ist->first,a);
+        return m;
+    }
+
+    Tamgu* Newinstance(short idthread, Tamgu* f = NULL) {
+        return new Tamguframeprimemap(frame);
+    }
+
+    short Typeinfered() {
+        return frame->Name();
+    }
+
+    inline bool check_frame(Tamgu* value) {
+        return globalTamgu->Compatible(frame->Name(), value->Type());
+    }
+
+    Tamgu* Frame() {
+        return frame;
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    //This SECTION is for your specific implementation...
+    //This is an example of a function that could be implemented for your needs.
+    //------------------------------------------------------------------------------------------
+    Exporting Tamgu* Push(Tamgu* k, Tamgu* v);
+
+    Tamgu* push(string k, Tamgu* a) {
+        if (!check_frame(a)) {
+            return globalTamgu->Returnerror(e_error_on_frame_map);
+        }
+
+        if (values.find(k) !=  values.end())
+            values[k]->Removereference(reference + 1);
+        values[k] = a;
+        a->Addreference(investigate);
+        return this;
+    }
+
+    Tamgu* Push(string k, Tamgu* a) {
+        if (!check_frame(a)) {
+            return globalTamgu->Returnerror(e_error_on_frame_map);
+        }
+
+        locking();
+        if (values.find(k) !=  values.end())
+            values[k]->Removereference(reference + 1);
+        a = a->Atom();
+        values[k] = a;
+        a->Addreference(investigate,reference + 1);
+        unlocking();
+        return this;
+    }
+
+    inline void pushing(string& k, Tamgu* a) {
+        if (!check_frame(a)) {
+            globalTamgu->Returnerror(e_error_on_frame_map);
+            return;
+        }
+
+        locking();
+        if (values.find(k) !=  values.end())
+            values[k]->Removereference(reference + 1);
+        a = a->Atom();
+        values[k] = a;
+        a->Addreference(investigate,reference + 1);
+        unlocking();
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+
+};
+
 #endif

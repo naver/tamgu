@@ -727,7 +727,7 @@ public:
         
         ifstream rd(thecurrentfilename, openMode);
         if (rd.fail()) {
-            cerr << m_redbold << " Cannot load: " << thecurrentfilename << m_current << endl;
+            cerr << m_redbold << e_cannot_load02 << thecurrentfilename << m_current << endl;
             return false;
         }
         string ln;
@@ -792,7 +792,7 @@ public:
         else {
             ifstream rd(thecurrentfilename, openMode);
             if (rd.fail()) {
-                cerr << m_redbold << "Cannot load: " << thecurrentfilename << m_current << endl;
+                cerr << m_redbold << e_cannot_load << thecurrentfilename << m_current << endl;
                 return false;
             }
             string ln;
@@ -1076,7 +1076,7 @@ public:
                 if (debugmode && debuginfo.running)
                     return pos;
                 if (v.size() == 1) {
-                    cout << back << m_redbold << "Missing file space id" << endl;
+                    cout << back << m_redbold << e_missing_file_space << endl;
                     return pos;
                 }
                 i = convertinteger(v[1]);
@@ -1224,7 +1224,7 @@ public:
                     }
                 }
                 else
-                    cerr << m_redbold << "Cannot load: " << thecurrentfilename << m_current << endl;
+                    cerr << m_redbold << e_cannot_load << thecurrentfilename << m_current << endl;
                 return pos;
             case cmd_cls:
                 clearscreen();
@@ -1248,7 +1248,7 @@ public:
                 exit(0);
             }
 #else
-                cerr << m_redbold << "Not implemented" << endl;
+                cerr << m_redbold << e_not_implemented << endl;
 #endif
                 return pos;
 
@@ -1451,7 +1451,7 @@ public:
 
                 if (v.size() != 2) {
                     if (historyfilename == "") {
-                        cerr << m_redbold << "Missing file name.." << m_current << endl;
+                        cerr << m_redbold << e_missing_file_name << m_current << endl;
                         return pos;
                     }
                 }
@@ -1461,7 +1461,7 @@ public:
                     
                 ifstream ld(historyfilename, openMode);
                 if (ld.fail()) {
-                    cerr << m_redbold << "Cannot load:" << historyfilename << m_current << endl;
+                    cerr << m_redbold << e_cannot_load03 << historyfilename << m_current << endl;
                     return pos;
                 }
                 string s;
@@ -1481,7 +1481,7 @@ public:
 
                 if (v.size() != 2) {
                     if (historyfilename == "") {
-                        cerr << m_redbold << "Missing file name.." << m_current << endl;
+                        cerr << m_redbold << e_missing_file_name << m_current << endl;
                         return pos;
                     }
                 }
@@ -1499,7 +1499,7 @@ public:
 
                 if (v.size() == 1) {
                     if (thecurrentfilename == "") {
-                        cerr << m_redbold << "Missing file name.." << m_current << endl;
+                        cerr << m_redbold << e_missing_file_name << m_current << endl;
                         return pos;
                     }
                 }
@@ -1512,7 +1512,7 @@ public:
                 
                 addcommandline(line);
                 if (v.size() == 1) {
-                    cerr << m_redbold << "Missing file name.." << m_current << endl;
+                    cerr << m_redbold << e_missing_file_name << m_current << endl;
                     return pos;
                 }
                 addspace(convert(v[1]));
@@ -1524,7 +1524,7 @@ public:
                 addcommandline(line);
                 if (v.size() == 1) {
                     if (thecurrentfilename == "") {
-                        cerr << m_redbold << "Missing file name.." << m_current << endl;
+                        cerr << m_redbold << e_missing_file_name << m_current << endl;
                         return pos;
                     }
                 }
@@ -1656,12 +1656,12 @@ public:
                             }
                             if (fg != 0) {
                                 if (bg != 0)
-                                    sprintf(buffer,"\033[%ld;%ld;%ldm", att, fg, bg);
+                                    sprintf_s(buffer,100,"\033[%ld;%ld;%ldm", att, fg, bg);
                                 else
-                                    sprintf(buffer,"\033[%ld;%ldm", att, fg);
+                                    sprintf_s(buffer,100,"\033[%ld;%ldm", att, fg);
                             }
                             else
-                                sprintf(buffer,"\033[%ldm", att);
+                                sprintf_s(buffer,100, "\033[%ldm", att);
                             
                             colors[i] = buffer;
                             cout << buffer << s << " " << att << " " << fg << " " << bg << m_current << endl;
@@ -1744,7 +1744,7 @@ public:
                 for (int i_att = e_att; m_attr[i_att] != att; i_att++) {
                     for (int i_fg = e_fg; m_clfg[i_fg] != fg; i_fg++) {
                         for (int i_bg = e_bg; m_clbg[i_bg] != bg; i_bg++) {
-                            sprintf(buffer,"\033[%d;%d;%dm", m_attr[i_att], m_clfg[i_fg], m_clbg[i_bg]);
+                            sprintf_s(buffer,100, "\033[%d;%d;%dm", m_attr[i_att], m_clfg[i_fg], m_clbg[i_bg]);
                             printf("%s%d,%d,%d:\t%s displaying color%s\n",m_current,m_attr[i_att], m_clfg[i_fg], m_clbg[i_bg], buffer, m_current);
                         }
                     }
@@ -3186,7 +3186,7 @@ int main(int argc, char *argv[]) {
         }
         
         if (console) {
-            cerr << "Unknown command:" << args << endl;
+            cerr << e_unknown_command << args << endl;
             exit(-1);
         }
 
@@ -3346,7 +3346,7 @@ int main(int argc, char *argv[]) {
                     JAGEDITOR->launchterminal(0, newcolors);
             }
             else {
-                cerr << endl << "Missing filename" << endl << endl;
+                cerr << endl << e_missing_filename << endl << endl;
                 exit(-1);
             }
         }
@@ -3396,7 +3396,7 @@ int main(int argc, char *argv[]) {
                     continue;
                 }
                 
-                cerr << "Error: missing code or unknown argument: " << args << endl;
+                cerr << e_error_missing_code << args << endl;
                 exit(-1);
             }
             
@@ -3417,7 +3417,7 @@ int main(int argc, char *argv[]) {
             break;
         }
 
-        cerr << "Unknown command:" << args << endl;
+        cerr << e_unknown_command << args << endl;
         exit(-1);
     }
 
@@ -3466,7 +3466,7 @@ int main(int argc, char *argv[]) {
         }
 
         if (idcode == -1) {
-            cerr << "Unknown filename: " << name << endl;
+            cerr << e_unknown_filename << name << endl;
             exit(-1);
         }
 

@@ -55,7 +55,9 @@ class Tamgulist : public TamguObjectLockContainer {
     }
 
     //----------------------------------------------------------------------------------------------------------------------
-    Exporting Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
+    Exporting Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);
+    Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
+    
     short Type() {
         return a_list;
     }
@@ -1440,7 +1442,7 @@ public:
         ke = ke->Atom();
         if (!values.insert(idx, ke)) {
             ke->Release();
-            return globalTamgu->Returnerror("Error: Ring full");
+            return globalTamgu->Returnerror(e_error_ring_full);
         }
         ke->Setreference(reference+1);
         return aTRUE;
@@ -1620,6 +1622,8 @@ public:
     virtual Tamgu* Newvalue(Tamgu* a, short idthread);
     
     Exporting TamguIteration* Newiteration(bool direction) {
+        if (iter == NULL)
+            return aITERNULL;
         return iter;
     }
     

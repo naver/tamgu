@@ -73,6 +73,7 @@ bool Tamguprimemapii::InitialisationModule(TamguGlobal* global, string version) 
     Tamguprimemapii::AddMethod(global, "pop", &Tamguprimemapii::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamguprimemapii::AddMethod(global, "merge", &Tamguprimemapii::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
 
+    global->returnindextypes[Tamguprimemapii::idtype] = a_int;
     global->newInstance[Tamguprimemapii::idtype] = new Tamguprimemapii(global);
     #ifdef OLDBACKCOMP
     global->newInstance[global->Getid("iiprimemap")] = new Tamguprimemapii(global);

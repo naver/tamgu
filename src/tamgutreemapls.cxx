@@ -77,7 +77,8 @@ void Tamgutreemapls::Setidtype(TamguGlobal* global) {
     Tamgutreemapls::AddMethod(global, "pop", &Tamgutreemapls::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamgutreemapls::AddMethod(global, "merge", &Tamgutreemapls::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
 
-    if (version != "") {        
+    if (version != "") {
+        global->returnindextypes[Tamgutreemapls::idtype] = a_string;        
         global->minimal_indexes[Tamgutreemapls::idtype] = true;
 
         global->newInstance[Tamgutreemapls::idtype] = new Tamgutreemapls(global);
@@ -330,7 +331,7 @@ Exporting Tamgu*  Tamgutreemapls::Put(Tamgu* idx, Tamgu* ke, short idthread) {
         }
         ke = ke->Map(idthread);
         if (!ke->isMapContainer())
-            return globalTamgu->Returnerror("Wrong map initialization", idthread);
+            return globalTamgu->Returnerror(e_wrong_map_initialization, idthread);
         locking();
         values.clear();
         if (ke->Type() == Tamgutreemapls::idtype)
@@ -359,7 +360,7 @@ Tamgu* Tamgutreemapls::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign
     Tamgu* val = Value(skey);
     if (val == aNOELEMENT) {
         if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong index", idthread);
+            return globalTamgu->Returnerror(e_wrong_index, idthread);
         return aNOELEMENT;
 
     }
@@ -436,7 +437,7 @@ Exporting Tamgu* Tamgutreemapls::Eval(Tamgu* contextualpattern, Tamgu* idx, shor
     Tamgu* kval = Value(skey);
     if (kval == aNOELEMENT) {
         if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong index", idthread);
+            return globalTamgu->Returnerror(e_wrong_index, idthread);
         return aNOELEMENT;
 
     }

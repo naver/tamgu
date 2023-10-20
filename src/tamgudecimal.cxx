@@ -62,11 +62,11 @@ void Tamgudecimal::Setidtype(TamguGlobal* global) {
     
 
     Tamgudecimal::AddMethod(global, "chr", &Tamgudecimal::Methodchr, P_NONE, "chr(): return the character matching the unicode code", a_ustring);
-    Tamgudecimal::AddMethod(global, "invert", &Tamgudecimal::MethodInvert, P_NONE, "", a_float);
-    Tamgudecimal::AddMethod(global, "succ", &Tamgudecimal::MethodSucc, P_NONE, "succ(): Return a successor of the current value", a_float);
-    Tamgudecimal::AddMethod(global, "pred", &Tamgudecimal::MethodPred, P_NONE, "pred(): Return the predecessor of a byte.", a_float);
+    Tamgudecimal::AddMethod(global, "invert", &Tamgudecimal::MethodInvert, P_NONE, "", a_none);
+    Tamgudecimal::AddMethod(global, "succ", &Tamgudecimal::MethodSucc, P_NONE, "succ(): Return a successor of the current value", a_none);
+    Tamgudecimal::AddMethod(global, "pred", &Tamgudecimal::MethodPred, P_NONE, "pred(): Return the predecessor of a byte.", a_none);
 
-    Tamgudecimal::AddMethod(global, "format", &Tamgudecimal::MethodFormat, P_ONE, "format(string pattern): Return a string matching the C pattern.", a_string);
+    Tamgudecimal::AddMethod(global, "format", &Tamgudecimal::MethodFormat, P_ONE, "format(string pattern): Return a string matching the C pattern.", a_none);
     Tamgudecimal::AddMethod(global, "radian", &Tamgudecimal::MethodRadian, P_NONE, "abs(): radian(): return the radian value out of a degree value", a_float);
     Tamgudecimal::AddMethod(global, "degree", &Tamgudecimal::MethodDegree, P_NONE, "degree(): return the degree value out of a radian value", a_float);
 
@@ -141,7 +141,7 @@ Tamgu* Tamgudecimal::MethodFormat(Tamgu* contextualpattern, short idthread, Tamg
     errorsprintf = false;
     sprintf_s(buffer, 100, STR(sformat), Float());
     if (errorsprintf == true)
-        return globalTamgu->Returnerror("Incorrect format specifier or size too long", idthread);
+        return globalTamgu->Returnerror(e_incorrect_format_specifier, idthread);
     #else
     int spres;
     spres = sprintf_s(buffer, 100, STR(sformat), Float());
@@ -251,7 +251,7 @@ void Tamgucomplex::Setidtype(TamguGlobal* global) {
    bool Tamgucomplex::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
 
-    Tamgucomplex::AddMethod(global, "_initial", &Tamgucomplex::MethodUnit, P_TWO | P_NONE, "complex(double r, double i)", a_float);
+    Tamgucomplex::AddMethod(global, "_initial", &Tamgucomplex::MethodUnit, P_TWO | P_NONE, "complex(double r, double i)", a_none);
     Tamgucomplex::AddMethod(global, "invert", &Tamgucomplex::MethodInvert, P_NONE, "", a_float);
     Tamgucomplex::AddMethod(global, "succ", &Tamgucomplex::MethodSucc, P_NONE, "succ(): Return a successor of the current value", a_float);
     Tamgucomplex::AddMethod(global, "pred", &Tamgucomplex::MethodPred, P_NONE, "pred(): Return the predecessor of a byte.", a_float);

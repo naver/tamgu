@@ -118,7 +118,7 @@ Tamgu* Tamgulong::MethodFormat(Tamgu* contextualpattern, short idthread, TamguCa
     errorsprintf = false;
     sprintf_s(buffer, 100, STR(sformat), Long());
     if (errorsprintf == true)
-        return globalTamgu->Returnerror("Incorrect format specifier or size too long", idthread);
+        return globalTamgu->Returnerror(e_incorrect_format_specifier, idthread);
     #else
     int spres;
     spres = sprintf_s(buffer, 100, STR(sformat), Long());

@@ -188,7 +188,7 @@ public:
 			op = callfunc->Evaluate(1, aNULL, idthread)->String();
             if (op != "r" && op != "a" && op != "w") {
                 unlocking();
-				return globalTamgu->Returnerror("Unknown operation for this file", idthread);
+				return globalTamgu->Returnerror(e_unknown_operation_for, idthread);
             }
 			if (op == "w")
 				first = true;
@@ -204,7 +204,7 @@ public:
 #endif
         if (thefile == NULL) {
             unlocking();
-			return globalTamgu->Returnerror("Cannot open this file", idthread);
+			return globalTamgu->Returnerror(e_cannot_open_this, idthread);
         }
 
 		if (op[0] == 'r')
@@ -217,7 +217,7 @@ public:
         locking();
         if (thefile == NULL || feof(thefile) || op == "rb") {
             unlocking();
-            return globalTamgu->Returnerror("Wrong access to the file", idthread);
+            return globalTamgu->Returnerror(e_wrong_access_to, idthread);
         }
         fflush(thefile);
         unlocking();
@@ -239,7 +239,7 @@ public:
 #endif
         if (thefile == NULL) {
             unlocking();
-			return globalTamgu->Returnerror("Cannot open this file", idthread);
+			return globalTamgu->Returnerror(e_cannot_open_this, idthread);
         }
 
 		consume_header();
@@ -263,7 +263,7 @@ public:
 #endif
         if (thefile == NULL) {
             unlocking();
-            return globalTamgu->Returnerror("Cannot open this file", idthread);
+            return globalTamgu->Returnerror(e_cannot_open_this, idthread);
         }
 
         unlocking();
@@ -285,7 +285,7 @@ public:
 #endif
         if (thefile == NULL) {
             unlocking();
-			return globalTamgu->Returnerror("Cannot open this file", idthread);
+			return globalTamgu->Returnerror(e_cannot_open_this, idthread);
         }
         unlocking();
 		return aTRUE;
@@ -345,7 +345,7 @@ public:
         locking();
         if (thefile == NULL || feof(thefile) || op != "rb") {
             unlocking();
-            return globalTamgu->Returnerror("Wrong access to the file", idthread);
+            return globalTamgu->Returnerror(e_wrong_access_to, idthread);
         }
 
 		if (context->isString()) {
@@ -367,7 +367,7 @@ public:
         locking();
         if (thefile == NULL || feof(thefile)) {
             unlocking();
-            return globalTamgu->Returnerror("Wrong access to the file", idthread);
+            return globalTamgu->Returnerror(e_wrong_access_to, idthread);
         }
 
         long e = tell();
@@ -379,7 +379,7 @@ public:
         locking();
         if (thefile == NULL || feof(thefile)) {
             unlocking();
-            return globalTamgu->Returnerror("Wrong access to the file", idthread);
+            return globalTamgu->Returnerror(e_wrong_access_to, idthread);
         }
 		
         long i = callfunc->Evaluate(0, context, idthread)->Integer();
@@ -393,7 +393,7 @@ public:
         locking();
         if (thefile == NULL || feof(thefile) || op != "rb") {
             unlocking();
-            return globalTamgu->Returnerror("Wrong access to the file", idthread);
+            return globalTamgu->Returnerror(e_wrong_access_to, idthread);
         }
 
 
@@ -407,7 +407,7 @@ public:
         locking();
         if (thefile == NULL || feof(thefile) || op == "rb") {
             unlocking();
-            return globalTamgu->Returnerror("Wrong access to the file", idthread);
+            return globalTamgu->Returnerror(e_wrong_access_to, idthread);
         }
 
 
@@ -430,7 +430,7 @@ public:
         locking();
         if (thefile == NULL || feof(thefile) || op == "rb") {
             unlocking();
-            return globalTamgu->Returnerror("Wrong access to the file", idthread);
+            return globalTamgu->Returnerror(e_wrong_access_to, idthread);
         }
 
 
@@ -454,7 +454,7 @@ public:
         locking();
         if (thefile == NULL || feof(thefile) || op == "rb") {
             unlocking();
-            return globalTamgu->Returnerror("Wrong access to the file", idthread);
+            return globalTamgu->Returnerror(e_wrong_access_to, idthread);
         }
 
 
@@ -499,7 +499,7 @@ public:
         locking();
         if (thefile == NULL || feof(thefile) || op == "rb") {
             unlocking();
-            return globalTamgu->Returnerror("Wrong access to the file", idthread);
+            return globalTamgu->Returnerror(e_wrong_access_to, idthread);
         }
 
 
@@ -533,7 +533,7 @@ public:
         locking();
         if (thefile == NULL || feof(thefile) || op != "rb") {
             unlocking();
-            return globalTamgu->Returnerror("Wrong access to the file", idthread);
+            return globalTamgu->Returnerror(e_wrong_access_to, idthread);
         }
 
 

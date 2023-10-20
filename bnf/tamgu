@@ -177,6 +177,7 @@
 *68 = Wrong shape access
 *69 = Wrong alias declaration
 *70 = Wrong 'iferror' declaration
+*71 = Wrong 'frame vector' declaration
 ####################################################################################################################################################
 ####################################################################################################################################################
 ### This is the entry point of our parser: analyse, hence the "+" ######
@@ -256,6 +257,9 @@ depend := $with ;19 word
 
 %multideclaration := type word (%( (parameters) %)) (depend) (%= ;32 wnexpressions) (%, ;32 declarationlist)
 
+container := $vector^$map^$treemap^$primemap^$mapi^$treemapi^$mapf
+%framecontainer := (feature) container %< word %> ;71 word (%= wnexpressions)
+
 declarationending := %;
 
 %frame := (private) $frame ;5 typename (depend) [declarationending^instruction]
@@ -290,7 +294,7 @@ space := word %@
 framesep := %: %:
 frameup := word framesep
 functioncall := (frameup) notreserved word
-%regularcall := functioncall %(;13 (comparing^parameters) %) (shapeindexes^interval^indexes^subfunc)
+%regularcall := functioncall %(;13 (comparing^parameters) %) (shapeindexes^interval^indexes^subfuncbis^framevariable)
 %purecall := functioncall %( (parameters) %) (shapeindexes^interval^indexes)
 
 returncall := $return ([comparing^nocomparisonexpressions])
@@ -307,7 +311,7 @@ sep := %:
 ########### THE PARSER ##############################################
 %blocs := [extension^frame^complexbloc^function^aliasdeclaration^bloc]+
 %bloc :=  annotationrule^predicatefact^[dcg ;45 %.]^[[dependencyrule^predicatedefinition] ;46 %.]^sousbloc
-%sousbloc := [[tamgulisp^hdata^hontology^telque] (%;)]^[[conceptfunction^multideclaration^increment^affectation^call^variable]  ;30 %;]
+%sousbloc := [[tamgulisp^hdata^hontology^telque] (%;)]^[[conceptfunction^framecontainer^multideclaration^increment^affectation^call^variable]  ;30 %;]
 %complexbloc := switch^trycatch^loop^doloop^iftest^forin^for^namespace^catchon
 %singleinstruction := tamgulisp^hdata^hontology^telque^increment^affectation^call^variable
 
@@ -580,7 +584,7 @@ hrange := range [hoperator range]* (%, whereexpression^[hbooleanexpression (%, w
 ########### EXPRESSION DEFINITIONS ##############################################
 
 %parenthetic := %( ;4 wnexpressions %)
-expression := (negation) [tamgulisp^taskellcase^localif^abool^astringdouble^afullstring^astringsimple^apreg^aspreg^atreg^astreg^fstring^festring^anumber^call^valtuple^parenthetic^increment^allvariable^telque^intentionvect^valvector^valmap]
+expression := [negation [tamgulisp^call^valtuple^parenthetic^allvariable^telque]]^  [tamgulisp^taskellcase^localif^abool^astringdouble^afullstring^astringsimple^apreg^aspreg^atreg^astreg^fstring^festring^anumber^call^valtuple^parenthetic^increment^allvariable^telque^intentionvect^valvector^valmap]
 %expressions := expression (power) (fulloperation^comparison^operationin^multiply)
 
 %comparing := expression [comparison^operationin]

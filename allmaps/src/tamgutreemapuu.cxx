@@ -75,11 +75,13 @@ bool Tamgutreemapuu::InitialisationModule(TamguGlobal* global, string version) {
     Tamgutreemapuu::AddMethod(global, "merge", &Tamgutreemapuu::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
     
     if (version != "") {
-        global->newInstance[Tamgutreemapuu::idtype] = new Tamgutreemapuu(global);
+        global->returnindextypes[Tamgutreemapuu::idtype] = a_ustring;
+    global->newInstance[Tamgutreemapuu::idtype] = new Tamgutreemapuu(global);
         
         global->RecordCompatibilities(Tamgutreemapuu::idtype);
     }
     
+    global->framecontainer_predeclared["treemap<ustring>"] = Tamgutreemapuu::idtype;
     return true;
 }
 

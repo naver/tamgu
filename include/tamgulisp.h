@@ -81,37 +81,37 @@ public:
     }
 
     Tamgu* andset(Tamgu* a, bool itself) {
-        return globalTamgu->Returnerror("Cannot compute with symbols");
+        return globalTamgu->Returnerror(e_cannot_compute_with);
     }
     Tamgu* orset(Tamgu* a, bool itself) {
-        return globalTamgu->Returnerror("Cannot compute with symbols");
+        return globalTamgu->Returnerror(e_cannot_compute_with);
     }
     Tamgu* xorset(Tamgu* a, bool itself) {
-        return globalTamgu->Returnerror("Cannot compute with symbols");
+        return globalTamgu->Returnerror(e_cannot_compute_with);
     }
     Tamgu* plus(Tamgu* a, bool itself) {
-        return globalTamgu->Returnerror("Cannot compute with symbols");
+        return globalTamgu->Returnerror(e_cannot_compute_with);
     }
     Tamgu* minus(Tamgu* a, bool itself) {
-        return globalTamgu->Returnerror("Cannot compute with symbols");
+        return globalTamgu->Returnerror(e_cannot_compute_with);
     }
     Tamgu* multiply(Tamgu* a, bool itself) {
-        return globalTamgu->Returnerror("Cannot compute with symbols");
+        return globalTamgu->Returnerror(e_cannot_compute_with);
     }
     Tamgu* divide(Tamgu* a, bool itself) {
-        return globalTamgu->Returnerror("Cannot compute with symbols");
+        return globalTamgu->Returnerror(e_cannot_compute_with);
     }
     Tamgu* power(Tamgu* a, bool itself) {
-        return globalTamgu->Returnerror("Cannot compute with symbols");
+        return globalTamgu->Returnerror(e_cannot_compute_with);
     }
     Tamgu* shiftleft(Tamgu* a, bool itself) {
-        return globalTamgu->Returnerror("Cannot compute with symbols");
+        return globalTamgu->Returnerror(e_cannot_compute_with);
     }
     Tamgu* shiftright(Tamgu* a, bool itself) {
-        return globalTamgu->Returnerror("Cannot compute with symbols");
+        return globalTamgu->Returnerror(e_cannot_compute_with);
     }
     Tamgu* mod(Tamgu* a, bool itself) {
-        return globalTamgu->Returnerror("Cannot compute with symbols");
+        return globalTamgu->Returnerror(e_cannot_compute_with);
     }
 
     Tamgu* same(Tamgu* a) {
@@ -123,19 +123,19 @@ public:
     }
 
     Tamgu* less(Tamgu* a) {
-        return globalTamgu->Returnerror("Meaningless comparison with symbols");
+        return globalTamgu->Returnerror(e_meaningless_comparison_with);
     }
 
     Tamgu* more(Tamgu* a) {
-        return globalTamgu->Returnerror("Meaningless comparison with symbols");
+        return globalTamgu->Returnerror(e_meaningless_comparison_with);
     }
 
     Tamgu* lessequal(Tamgu* a) {
-        return globalTamgu->Returnerror("Meaningless comparison with symbols");
+        return globalTamgu->Returnerror(e_meaningless_comparison_with);
     }
 
     Tamgu* moreequal(Tamgu* a) {
-        return globalTamgu->Returnerror("Meaningless comparison with symbols");
+        return globalTamgu->Returnerror(e_meaningless_comparison_with);
     }
 
 };
@@ -190,6 +190,10 @@ public:
         return function->Setstopindex();
     }
     
+    bool isDirectIndex() {
+        return (function != NULL && function->isIndex() && !function->Function());
+    }
+
     bool isCall() {
         return true;
     }
@@ -236,37 +240,37 @@ public:
     }
 
     Tamgu* andset(Tamgu* a, bool itself) {
-        return globalTamgu->Returnerror("Cannot compute with symbols");
+        return globalTamgu->Returnerror(e_cannot_compute_with);
     }
     Tamgu* orset(Tamgu* a, bool itself) {
-        return globalTamgu->Returnerror("Cannot compute with symbols");
+        return globalTamgu->Returnerror(e_cannot_compute_with);
     }
     Tamgu* xorset(Tamgu* a, bool itself) {
-        return globalTamgu->Returnerror("Cannot compute with symbols");
+        return globalTamgu->Returnerror(e_cannot_compute_with);
     }
     Tamgu* plus(Tamgu* a, bool itself) {
-        return globalTamgu->Returnerror("Cannot compute with symbols");
+        return globalTamgu->Returnerror(e_cannot_compute_with);
     }
     Tamgu* minus(Tamgu* a, bool itself) {
-        return globalTamgu->Returnerror("Cannot compute with symbols");
+        return globalTamgu->Returnerror(e_cannot_compute_with);
     }
     Tamgu* multiply(Tamgu* a, bool itself) {
-        return globalTamgu->Returnerror("Cannot compute with symbols");
+        return globalTamgu->Returnerror(e_cannot_compute_with);
     }
     Tamgu* divide(Tamgu* a, bool itself) {
-        return globalTamgu->Returnerror("Cannot compute with symbols");
+        return globalTamgu->Returnerror(e_cannot_compute_with);
     }
     Tamgu* power(Tamgu* a, bool itself) {
-        return globalTamgu->Returnerror("Cannot compute with symbols");
+        return globalTamgu->Returnerror(e_cannot_compute_with);
     }
     Tamgu* shiftleft(Tamgu* a, bool itself) {
-        return globalTamgu->Returnerror("Cannot compute with symbols");
+        return globalTamgu->Returnerror(e_cannot_compute_with);
     }
     Tamgu* shiftright(Tamgu* a, bool itself) {
-        return globalTamgu->Returnerror("Cannot compute with symbols");
+        return globalTamgu->Returnerror(e_cannot_compute_with);
     }
     Tamgu* mod(Tamgu* a, bool itself) {
-        return globalTamgu->Returnerror("Cannot compute with symbols");
+        return globalTamgu->Returnerror(e_cannot_compute_with);
     }
 
     Tamgu* same(Tamgu* a) {
@@ -278,19 +282,19 @@ public:
     }
 
     Tamgu* less(Tamgu* a) {
-        return globalTamgu->Returnerror("Meaningless comparison with symbols");
+        return globalTamgu->Returnerror(e_meaningless_comparison_with);
     }
 
     Tamgu* more(Tamgu* a) {
-        return globalTamgu->Returnerror("Meaningless comparison with symbols");
+        return globalTamgu->Returnerror(e_meaningless_comparison_with);
     }
 
     Tamgu* lessequal(Tamgu* a) {
-        return globalTamgu->Returnerror("Meaningless comparison with symbols");
+        return globalTamgu->Returnerror(e_meaningless_comparison_with);
     }
 
     Tamgu* moreequal(Tamgu* a) {
-        return globalTamgu->Returnerror("Meaningless comparison with symbols");
+        return globalTamgu->Returnerror(e_meaningless_comparison_with);
     }
 
 };

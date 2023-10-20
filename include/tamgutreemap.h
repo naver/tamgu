@@ -56,7 +56,7 @@ class Tamgutreemap : public TamguObjectLockContainer {
 
     //----------------------------------------------------------------------------------------------------------------------
     Exporting Tamgu* Loopin(TamguInstruction*, Tamgu* context, short idthread);
-    Exporting Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);
+    Exporting virtual Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);
     Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
     Tamgu* EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign);
 
@@ -672,4 +672,160 @@ class Tamgutreemapbuff : public Tamgutreemap {
     Exporting void Resetreference(short r);
 
 };
+
+//---------------------------------------------------------------------------------------------------------------------
+
+class Tamguframetreemap : public Tamgutreemap {
+    public:
+    //---------------------------------------------------------------------------------------------------------------------
+    //This SECTION is for your specific implementation...
+    //Your personal variables here...
+    Tamgu* frame;
+
+    //---------------------------------------------------------------------------------------------------------------------
+    Tamguframetreemap(Tamgu* fr, TamguGlobal* g, Tamgu* parent = NULL) : Tamgutreemap(g, parent) {
+        //Do not forget your variable initialisation
+        frame = fr;
+    }
+
+    Tamguframetreemap(Tamgu* fr) {
+        frame = fr;
+    }
+
+    //----------------------------------------------------------------------------------------------------------------------
+    short Type() {
+        return a_frametreemap;
+    }
+
+    string Typename() {
+        return "frametreemap";
+    }
+
+    Tamgu* Atom(bool forced) {
+        if (forced) {
+            Tamguframetreemap* m = new Tamguframetreemap(frame);
+            locking();
+            Tamgu* v;
+
+            for (const auto& it : values) {
+                v = it.second->Atom(true);
+                m->values[it.first] = v;
+                v->Setreference();
+            }
+            unlocking();
+        return m;
+        }
+        return this;
+    }
+    //---------------------------------------------------------------------------------------------------------------------
+    //Declaration
+    //All our methods must have been declared in tamguexportedmethods... See MethodInitialization below
+
+    Tamgu* Newvalue(Tamgu* a, short idthread) {
+        Tamguframetreemap* m = new Tamguframetreemap(frame);
+        if (a->isContainer()) {
+            TamguIteration* it = a->Newiteration(false);
+            for (it->Begin(); it->End() == aFALSE; it->Next()) {
+                m->Push(it->Keystring(), it->IteratorValue());
+            }
+            it->Release();
+            return m;
+        }
+        
+        map<string,Tamgu*>::iterator ist;
+        for (ist=values.begin(); ist!=values.end();ist++)
+            m->Push(ist->first,a);
+        return m;
+    }
+
+    Tamgu* Newinstance(short idthread, Tamgu* f = NULL) {
+        return new Tamguframetreemap(frame);
+    }
+
+    short Typeinfered() {
+        return frame->Name();
+    }
+
+    inline bool check_frame(Tamgu* value) {
+        return globalTamgu->Compatible(frame->Name(), value->Type());
+    }
+
+    Tamgu* Frame() {
+        return frame;
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    //This SECTION is for your specific implementation...
+    //This is an example of a function that could be implemented for your needs.
+    //------------------------------------------------------------------------------------------
+    Exporting Tamgu* Push(Tamgu* k, Tamgu* v);
+    Exporting Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);
+    
+    Tamgu* push(string k, Tamgu* a) {
+        if (!check_frame(a)) {
+            return globalTamgu->Returnerror(e_error_on_frame_map);
+        }
+
+        Tamgu* v = values[k];
+        if (v != NULL) {
+            if (v == a)
+                return this;
+            v->Removereference(reference + 1);
+        }
+        values[k] = a;
+        a->Addreference(investigate);
+        return this;
+    }
+
+    inline void pushing(string& k, Tamgu* a) {
+        if (!check_frame(a)) {
+            globalTamgu->Returnerror(e_error_on_frame_map);
+            return;
+        }
+
+        locking();
+        Tamgu* v = values[k];
+        if (v != NULL) {
+            if (v == a)
+                return;
+            v->Removereference(reference + 1);
+        }
+        a = a->Atom();
+        values[k] = a;
+        a->Addreference(investigate,reference + 1);
+        unlocking();
+    }
+    
+    inline void pushone(string& k, Tamgu* a) {
+        if (!check_frame(a)) {
+            globalTamgu->Returnerror(e_error_on_frame_map);
+            return;
+        }
+
+        values[k] = a;
+        a->Addreference(0,reference + 1);
+    }
+    
+    Tamgu* Push(string k, Tamgu* a) {
+        if (!check_frame(a)) {
+            return globalTamgu->Returnerror(e_error_on_frame_map);
+        }
+
+        locking();
+        Tamgu* v = values[k];
+        if (v != NULL) {
+            if (v == a)
+                return this;
+            v->Removereference(reference + 1);
+        }
+        a = a->Atom();
+        values[k] = a;
+        a->Addreference(investigate,reference + 1);
+        unlocking();
+        return this;
+    }
+    //---------------------------------------------------------------------------------------------------------------------
+
+};
+
 #endif

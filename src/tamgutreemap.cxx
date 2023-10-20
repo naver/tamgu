@@ -462,7 +462,7 @@ Exporting Tamgu*  Tamgutreemap::Put(Tamgu* idx, Tamgu* ke, short idthread) {
         }
         ke = ke->Map(idthread);
         if (!ke->isMapContainer())
-            return globalTamgu->Returnerror("Wrong map initialization", idthread);
+            return globalTamgu->Returnerror(e_wrong_map_initialization, idthread);
         locking();
         Clear();
         if (ke->Type() == a_treemap) {
@@ -504,7 +504,7 @@ Tamgu* Tamgutreemap::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign) 
         if (key == NULL) {
             if (globalTamgu->erroronkey) {
                 unlocking();
-                return globalTamgu->Returnerror("Wrong index", idthread);
+                return globalTamgu->Returnerror(e_wrong_index, idthread);
             }
             values.erase(skey);
             key = aNOELEMENT;
@@ -516,7 +516,7 @@ Tamgu* Tamgutreemap::EvalWithSimpleIndex(Tamgu* key, short idthread, bool sign) 
     key = values[skey];
     if (key == NULL) {
         if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong index", idthread);
+            return globalTamgu->Returnerror(e_wrong_index, idthread);
         values.erase(skey);
         key = aNOELEMENT;
     }
@@ -597,7 +597,7 @@ Exporting Tamgu* Tamgutreemap::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
     Tamgu* kval = Value(skey);
     if (kval == aNOELEMENT) {
         if (globalTamgu->erroronkey)
-            return globalTamgu->Returnerror("Wrong index", idthread);
+            return globalTamgu->Returnerror(e_wrong_index, idthread);
         return aNOELEMENT;
 
     }
@@ -1066,3 +1066,103 @@ Exporting Tamgu* Tamgutreemap::Loopin(TamguInstruction* ins, Tamgu* context, sho
     return this;
 }
 
+Exporting Tamgu* Tamguframetreemap::Push(Tamgu* k, Tamgu* v) {
+    if (!check_frame(v)) {
+        return globalTamgu->Returnerror(e_error_on_frame_map);
+    }
+
+    locking();
+    string s = k->String();
+    
+    k = values[s];
+    if (k != NULL) {
+        if (k == v)
+            return this;
+        k->Removereference(reference + 1);
+    }
+
+    v = v->Atom();
+    values[s] = v;
+    unlocking();
+    v->Addreference(investigate,reference+1);
+    return aTRUE;
+}
+
+
+Exporting Tamgu*  Tamguframetreemap::Put(Tamgu* idx, Tamgu* ke, short idthread) {
+    if (!idx->isIndex()) {
+        if (ke == this)
+            return aTRUE;
+
+        if (ke->isNULL()) {
+            Clear();
+            return aTRUE;
+        }
+        
+        if (ke->isMapContainer()) {
+            Doublelocking _lock(this, ke);
+            Clear();
+            TamguIteration* itr = ke->Newiteration(false);
+            for (itr->Begin(); itr->End() == aFALSE; itr->Next())
+                Push(itr->Keystring(), itr->Value());
+            itr->Release();
+            return aTRUE;
+        }
+        char ch[20];
+        if (ke->isVectorContainer()) {
+            Doublelocking _lock(this, ke);
+            Clear();
+            long nb = 0;
+            for (long it = 0; it < ke->Size(); ++it) {
+                sprintf_s(ch, 20, "%ld", nb);
+                Push(ch, ke->getvalue(it));
+                nb++;
+            }
+            return aTRUE;
+        }
+        if (ke->Type() == a_list) {
+            Doublelocking _lock(this, ke);
+            Tamgulist* kvect = (Tamgulist*)ke;
+            Clear();
+            long nb = 0;
+
+            for (const auto& it : kvect->values) {
+                sprintf_s(ch, 20, "%ld", nb);
+                Push(ch, it);
+                nb++;
+            }
+            return aTRUE;
+        }
+        ke = ke->Map(idthread);
+        if (!ke->isMapContainer())
+            return globalTamgu->Returnerror(e_wrong_map_initialization, idthread);
+        locking();
+        Clear();
+        if (ke->Type() == a_treemap) {
+            Tamgutreemap* kmap = (Tamgutreemap*)ke;
+            //We copy all values from ke to this
+
+            for (const auto& it : kmap->values)
+                Push(it.first, it.second);
+        }
+        else {
+            TamguIteration* itr = ke->Newiteration(false);
+            Tamgu* a;
+            for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
+                a=itr->IteratorValue();
+                a=a->Atom();
+                values[itr->Keystring()] = a;
+                a->Addreference(investigate,reference+1);
+            }
+            itr->Release();
+        }
+        ke->Release();
+        unlocking();
+        return aTRUE;
+    }
+    
+    string skey;
+    ((TamguIndex*)idx)->left->Setstring(skey, idthread);
+    pushing(skey, ke);
+    return aTRUE;
+}

@@ -75,7 +75,8 @@ void Tamgutreemapfs::AddMethod(TamguGlobal* global, string name, treemapfsMethod
     Tamgutreemapfs::AddMethod(global, "merge", &Tamgutreemapfs::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
 
     if (version != "") {
-        global->newInstance[Tamgutreemapfs::idtype] = new Tamgutreemapfs(global);
+        global->returnindextypes[Tamgutreemapfs::idtype] = a_string;
+    global->newInstance[Tamgutreemapfs::idtype] = new Tamgutreemapfs(global);
         
         global->RecordCompatibilities(Tamgutreemapfs::idtype);
     }

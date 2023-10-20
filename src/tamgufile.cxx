@@ -104,7 +104,7 @@ Tamgu* Tamgufile::MethodScan(Tamgu* context, short idthread, TamguCall* callfunc
     Au_automate* a = getautomate(pattern);
     
     if (a == NULL)
-        return globalTamgu->Returnerror("Wrong grammar definition");
+        return globalTamgu->Returnerror(e_wrong_grammar_definition);
 
     wstring wbuff;
     
@@ -136,7 +136,7 @@ Tamgu* Tamgufile::MethodScan(Tamgu* context, short idthread, TamguCall* callfunc
 Tamgu* Tamgufile::MethodRead(Tamgu* context, short idthread, TamguCall* callfunc) {
     Locking _lock(this);
     if (thefile == NULL || feof(thefile) || op != "rb")
-        return globalTamgu->Returnerror("Wrong access to the file", idthread);
+        return globalTamgu->Returnerror(e_wrong_access_to, idthread);
 
     string bf;
     long nb = -1;
@@ -240,7 +240,7 @@ long Tamgufile::Size() {
 Tamgu* Tamgufile::Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* environment, TamguFunctionLambda* bd, short idthread) {
     Locking _lock(this);
     if (thefile == NULL || feof(thefile) || op != "rb")
-        return globalTamgu->Returnerror("Wrong access to the file", idthread);
+        return globalTamgu->Returnerror(e_wrong_access_to, idthread);
 
     Tamgu* a;
     uchar addvalue = 0;
@@ -280,7 +280,7 @@ Tamgu* Tamgufile::Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* environme
 Tamgu* Tamgufile::Filter(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* kcont, Tamgu* accu, Tamgu* init, bool direct) {
     Locking _lock(this);
     if (thefile == NULL || feof(thefile) || op != "rb")
-        return globalTamgu->Returnerror("Wrong access to the file", idthread);
+        return globalTamgu->Returnerror(e_wrong_access_to, idthread);
 
     Tamgu* returnval;
     

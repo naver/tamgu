@@ -400,7 +400,7 @@ public:
 	Tamgu* divide(Tamgu* a, bool itself) {
 		double v = a->Float();
 		if (v == 0)
-			return globalTamgu->Returnerror("Error: Divided by 0");
+			return globalTamgu->Returnerror(e_error_divided_by);
 		v = (double)value / v;
 		
 		if (itself) {
@@ -440,7 +440,7 @@ public:
 	Tamgu* mod(Tamgu* a, bool itself) {
 		BLONG v = a->Long();
 		if (v == 0)
-			return globalTamgu->Returnerror("Error: Divided by 0");
+			return globalTamgu->Returnerror(e_error_divided_by);
 		if (itself) {
 			value %= v;
 			return this;

@@ -932,10 +932,19 @@ public:
         recipient = r;
         args = a;
         sz = s;
+        
+        
         idargs = new short[sz];
-        for (long i = 0; i < sz; i++)
-            idargs[i] = globalTamgu->RecordInTrackerProtected(args[i]);
-        idrecipient = globalTamgu->RecordInTrackerProtected(recipient);
+        for (long i = 0; i < sz; i++) {
+            if (args[i]->Candelete())
+                idargs[i] = globalTamgu->RecordInTrackerProtected(args[i]);
+            else
+                idargs[i] = -1;
+        }
+        if (recipient->Candelete())
+            idrecipient = globalTamgu->RecordInTrackerProtected(recipient);
+        else
+            idrecipient = -1;
     }
     
     void clean() {
@@ -965,7 +974,7 @@ public:
             delete[] args;
             delete[] idargs;
         }
-
+        
         if (environment != NULL) {
             if (!environment->isEmpty()) {
                 recipient->Setreference();

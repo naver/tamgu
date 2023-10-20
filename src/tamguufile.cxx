@@ -123,7 +123,7 @@ Tamgu* Tamguufile::Eval(Tamgu* context, Tamgu* idx, short idthread) {
 Tamgu* Tamguufile::MethodScan(Tamgu* context, short idthread, TamguCall* callfunc) {
     Locking _lock(this);
     if (thefile == NULL || feof(thefile) || op != "rb")
-        return globalTamgu->Returnerror("Wrong access to the file", idthread);
+        return globalTamgu->Returnerror(e_wrong_access_to, idthread);
 
     Tamgu* pattern = callfunc->Evaluate(0, context, idthread);
     wstring sep= L" ";
@@ -138,7 +138,7 @@ Tamgu* Tamguufile::MethodScan(Tamgu* context, short idthread, TamguCall* callfun
     
     Au_automate* a = getautomate(pattern);
     if (a == NULL)
-        return globalTamgu->Returnerror("Wrong grammar definition");
+        return globalTamgu->Returnerror(e_wrong_grammar_definition);
 
     vector<long> vectr;
     vectr.push_back(0);
@@ -166,7 +166,7 @@ Tamgu* Tamguufile::MethodScan(Tamgu* context, short idthread, TamguCall* callfun
 Tamgu* Tamguufile::MethodRead(Tamgu* context, short idthread, TamguCall* callfunc) {
     Locking _lock(this);
     if (thefile == NULL || feof(thefile) || op != "rb")
-        return globalTamgu->Returnerror("Wrong access to the file", idthread);
+        return globalTamgu->Returnerror(e_wrong_access_to, idthread);
 
     wstring bf;
     long nb = -1;
@@ -202,7 +202,7 @@ Tamgu* Tamguufile::MethodRead(Tamgu* context, short idthread, TamguCall* callfun
 Tamgu* Tamguufile::Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* environment, TamguFunctionLambda* bd, short idthread) {
     Locking _lock(this);
     if (thefile == NULL || feof(thefile) || op != "rb")
-        return globalTamgu->Returnerror("Wrong access to the file", idthread);
+        return globalTamgu->Returnerror(e_wrong_access_to, idthread);
 
     Tamgu* a;
     uchar addvalue = 0;
@@ -242,7 +242,7 @@ Tamgu* Tamguufile::Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* environm
 Tamgu* Tamguufile::Filter(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* kcont, Tamgu* accu, Tamgu* init, bool direct) {
     Locking _lock(this);
     if (thefile == NULL || feof(thefile) || op != "rb")
-        return globalTamgu->Returnerror("Wrong access to the file", idthread);
+        return globalTamgu->Returnerror(e_wrong_access_to, idthread);
     
     Tamgu* returnval;
     

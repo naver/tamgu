@@ -71,6 +71,7 @@ bool Tamguprimemapuu::InitialisationModule(TamguGlobal* global, string version) 
     Tamguprimemapuu::AddMethod(global, "pop", &Tamguprimemapuu::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamguprimemapuu::AddMethod(global, "merge", &Tamguprimemapuu::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
 
+    global->returnindextypes[Tamguprimemapuu::idtype] = a_ustring;
     global->newInstance[Tamguprimemapuu::idtype] = new Tamguprimemapuu(global);
     #ifdef OLDBACKCOMP
     global->newInstance[global->Getid("uuprimemap")] = new Tamguprimemapuu(global);
@@ -78,7 +79,7 @@ bool Tamguprimemapuu::InitialisationModule(TamguGlobal* global, string version) 
     global->RecordCompatibilities(global->Getid("uuprimemap"));
     #endif
     global->RecordCompatibilities(Tamguprimemapuu::idtype);
-
+    global->framecontainer_predeclared["primemap<ustring>"] = Tamguprimemapuu::idtype;
     return true;
 }
 

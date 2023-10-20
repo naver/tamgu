@@ -25,6 +25,11 @@
 #include "tamguframeinstance.h"
 #include "tamguvector.h"
 #include "tamgumap.h"
+#include "tamgutreemap.h"
+#include "tamgumapi.h"
+#include "tamgumapf.h"
+#include "tamgutreemapi.h"
+#include "tamguprimemap.h"
 #include "tamgutamgu.h"
 #include "predicate.h"
 #include "tamgusynode.h"
@@ -1601,7 +1606,7 @@ Tamgu* TamguCallTamguVariable::Declaration(short id) {
 void TamguCode::Senderror(string msg) {
     stringstream message;
     message << msg;
-    throw new TamguRaiseError(message, filename, current_start, current_end);
+    throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 }
 //--------------------------------------------------------------------
 //The main function, which is used to traverse the parse tree and creates each instruction and declaration...
@@ -1709,8 +1714,10 @@ void TamguCode::DeclareVariable(x_node* xn, Tamgu* kf) {
 
 //--------------------------------------------------------------------
 long TamguCode::Computecurrentline(int i, x_node* xn) {
-	current_start = global->currentbnf->x_linenumber(xn->start + i);
-	current_end = global->currentbnf->x_linenumber(xn->end + i);
+    left_position = xn->start + i;
+    right_position = xn->end + i;
+	current_start = global->currentbnf->x_linenumber(left_position);
+	current_end = global->currentbnf->x_linenumber(right_position);
 	return (long)current_start;
 }
 
@@ -1817,6 +1824,7 @@ void TamguGlobal::Getstack(std::stringstream& message) {
 void TamguGlobal::RecordCompileFunctions() {
 	parseFunctions["declaration"] = &TamguCode::C_parameterdeclaration;
 	parseFunctions["multideclaration"] = &TamguCode::C_multideclaration;
+    parseFunctions["framecontainer"] = &TamguCode::C_framecontainer;
 	parseFunctions["subfunc"] = &TamguCode::C_subfunc;
 	parseFunctions["subfuncbis"] = &TamguCode::C_subfunc;
     parseFunctions["regularcall"] = &TamguCode::C_regularcall;
@@ -2429,7 +2437,7 @@ Tamgu* TamguInstructionAPPLYOPERATIONEQU::update(uchar btype) {
                     return new TamguInstructionEQUDecimal(this, globalTamgu);
                 case b_float: {
                     if (fraction)
-                        return this;
+                        return new TamguInstructionEQUFraction(this, globalTamgu);
                     return new TamguInstructionEQUFloat(this, globalTamgu);
                 }
             }
@@ -3011,14 +3019,14 @@ Tamgu* TamguCode::C_parameterdeclaration(x_node* xn, Tamgu* parent) {
             type = name_space + type;
             if (global->symbolIds.find(type) == global->symbolIds.end()) {
                 stringstream message;
-                message << "Unknown type: '" << xn->nodes[0]->value << "'";
-                throw new TamguRaiseError(message, filename, current_start, current_end);
+                message << e_unknown_type << xn->nodes[0]->value << "'";
+                throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
             }
         }
         else {
             stringstream message;
-            message << "Unknown type: '" << type << "'";
-            throw new TamguRaiseError(message, filename, current_start, current_end);
+            message << e_unknown_type << type << "'";
+            throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
         }
 	}
 
@@ -3026,8 +3034,8 @@ Tamgu* TamguCode::C_parameterdeclaration(x_node* xn, Tamgu* parent) {
 	Tamgu* element = NULL;
     if (!global->newInstance.check(tid)) {
 		stringstream message;
-		message << "Unknown type: '" << type << "'";
-		throw new TamguRaiseError(message, filename, current_start, current_end);
+		message << e_unknown_type << type << "'";
+		throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 	}
 
     string name;
@@ -3039,14 +3047,14 @@ Tamgu* TamguCode::C_parameterdeclaration(x_node* xn, Tamgu* parent) {
     short idname = global->Getid(name);
     if (global->newInstance.check(idname)) {
         stringstream message;
-        message << "Variable name cannot be a type: " << name;
-        throw new TamguRaiseError(message, filename, current_start, current_end);
+        message << e_variable_name_cannot02 << name;
+        throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
     }
 
 	if (top->isDeclared(idname)) {
 		stringstream message;
-		message << "This variable has already been declared: " << xn->nodes[1]->value;
-		throw new TamguRaiseError(message, filename, current_start, current_end);
+		message << e_this_variable_has << xn->nodes[1]->value;
+		throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 	}
 
 	//We declare a variable, which we store in our declaration domain...
@@ -3141,14 +3149,14 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
             type = name_space + type;
             if (global->symbolIds.find(type) == global->symbolIds.end()) {
                 stringstream message;
-                message << "Unknown type: '" << xn->nodes[0]->value << "'";
-                throw new TamguRaiseError(message, filename, current_start, current_end);
+                message << e_unknown_type << xn->nodes[0]->value << "'";
+                throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
             }
         }
         else {
             stringstream message;
-            message << "Unknown type: '" << type << "'";
-            throw new TamguRaiseError(message, filename, current_start, current_end);
+            message << e_unknown_type << type << "'";
+            throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
         }
 	}
 
@@ -3156,8 +3164,8 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
 
     if (!global->newInstance.check(tid)) {
 		stringstream message;
-		message << "Unknown type: '" << type << "'";
-		throw new TamguRaiseError(message, filename, current_start, current_end);
+		message << e_unknown_type << type << "'";
+		throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 	}
 
     string name;
@@ -3169,15 +3177,15 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
 	short idname = global->Getid(name);
     if (global->newInstance.check(idname)) {
         stringstream message;
-        message << "Variable name cannot be a type: '" << name << "'";
-        throw new TamguRaiseError(message, filename, current_start, current_end);
+        message << e_variable_name_cannot << name << "'";
+        throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
     }
     
 	if (tid == a_tamgu) {
 		if (xn->nodes.size() != 3) {
 			stringstream message;
-			message << "Missing parameter: '" << name << "'";
-			throw new TamguRaiseError(message, filename, current_start, current_end);
+			message << e_missing_parameter << name << "'";
+			throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 		}
 
 		Tamgu* ret = Callingprocedure(xn->nodes[2], tid);
@@ -3187,8 +3195,8 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
 
 	if (top->isDeclared(idname) && top->Declaration(idname) != aNOELEMENT) {
 		stringstream message;
-		message << "This variable has already been declared: " << name;
-		throw new TamguRaiseError(message, filename, current_start, current_end);
+		message << e_this_variable_has << name;
+		throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 	}
 
 	if (top->isFunction()) {
@@ -3196,8 +3204,8 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
 		for (long i = 1; i < global->threads[0].stack.last - 1; i++) {
 			if (global->threads[0].stack[i]->isFrame() && global->threads[0].stack[i]->isDeclared(idname)) {
 				stringstream message;
-				message << "This variable has already been declared as a frame variable: " << name;
-				throw new TamguRaiseError(message, filename, current_start, current_end);
+				message << e_this_variable_has02 << name;
+				throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 			}
 		}
 	}
@@ -3221,11 +3229,8 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
         if (tid == a_self) {
             if (parent->isTaskellFunction())
                 a = new TamguTaskellSelfVariableDeclaration(global, idname, tid, parent);
-            else {
+            else
                 a = new TamguSelfVariableDeclaration(global, idname, tid, parent);
-                if (parent->isFrame() && !parent->isMainFrame())
-                    global->framevariables[idname] = a;
-            }
         }
         else
             if (tid == a_let) {//in this case, we postpone the storage. If an initalization is provided then the type of this element will be the type of its initialization
@@ -3286,8 +3291,8 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
 				Tamgu* func = Declaration(idfuncname);
 				if (func == NULL || !func->isFunction()) {
 					stringstream message;
-					message << "We can only associate a function through 'with': " << name;
-					throw new TamguRaiseError(message, filename, current_start, current_end);
+					message << e_we_can_only << name;
+					throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 				}
 
 				if (func->isVariable()) {
@@ -3299,8 +3304,8 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
 				a->function = func;
                 if (!a->Checkarity()) {
                     stringstream message;
-                    message << "Wrong number of arguments or incompatible argument: '" << funcname << "' for '" << name << "'";
-                    throw new TamguRaiseError(message, filename, current_start, current_end);
+                    message << e_wrong_number_of06 << funcname << "' for '" << name << "'";
+                    throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
                 }
 				continue;
 			}
@@ -3312,7 +3317,33 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
 				bloc.action = a_assignement;
 				bloc.instructions.push_back(a);
 				a->choice = 0;
+                
 				Traverse(xn->nodes[pos], &bloc);
+                Tamgu* the_value = bloc.instructions[1];
+                if (the_value->isError()) {
+                    stringstream message;
+                    message << the_value->String();
+                    throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
+                }
+
+                short typerecipient = a->Typevariable();
+                short typevalue = the_value->Typeinfered();
+
+                typevalue = typevalue==a_null?a_none:typevalue;
+                
+                if (typevalue == a_none &&
+                    the_value->isDirectIndex() &&
+                    global->returnindextypes.check(the_value->Typevariable())) {
+                    typevalue = the_value->Typevariable();
+                    typevalue = global->returnindextypes[typevalue];
+                }
+
+                if (typerecipient != a_none && !global->Compatiblefull(typerecipient, typevalue)) {
+                    stringstream message;
+                    message << "The type: '" << global->Getsymbol(typerecipient) << "' cannot receive a '" << global->Getsymbol(typevalue) << "' as a value";
+                    throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
+                }
+
 				a->AddInstruction(bloc.instructions[1]);
 				continue;
 			}
@@ -3321,8 +3352,8 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
 				//Then we need to call a _initial method...
 				if (!global->newInstance[tid]->isDeclared(a_initial)) {
 					stringstream message;
-					message << "Missing '_initial' function for this object: '" << global->idSymbols[tid] << " " << name << "'";
-					throw new TamguRaiseError(message, filename, current_start, current_end);
+					message << e_missing__initial_function << global->idSymbols[tid] << " " << name << "'";
+					throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 				}
 				TamguCall* call;
 				if (global->newInstance[tid]->isFrame()) {
@@ -3330,8 +3361,8 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
 					Traverse(xn->nodes[pos], call);
 					if (!call->Checkarity()) {
 						stringstream message;
-						message << "Wrong number of arguments or incompatible argument in '_initial' function for this object: '" << global->idSymbols[tid] << " " << name << "'";
-						throw new TamguRaiseError(message, filename, current_start, current_end);
+						message << e_wrong_number_of02 << global->idSymbols[tid] << " " << name << "'";
+						throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 					}
 				}
 				else {
@@ -3363,14 +3394,14 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
 			if (!call->Checkarity()) {
                 stringstream message;
                 if (localframe == NULL || localframe->Declaration(a_initial) == NULL)
-                    message << "No '_initial' function' for " << global->idSymbols[tid] << " '" << name << "'";
+                    message << e_no__initial_function << global->idSymbols[tid] << " '" << name << "'";
                 else {
                     if (call->Size() == 0)
-                        message << "No '_initial' function' for " << global->idSymbols[tid] << " '" << name << "' with no arguments";
+                        message << e_no__initial_function << global->idSymbols[tid] << " '" << name << "' with no arguments";
                     else
-                        message << "No '_initial' function' for " << global->idSymbols[tid] << " '" << name << "' with " << call->Size() << " arguments";
+                        message << e_no__initial_function << global->idSymbols[tid] << " '" << name << "' with " << call->Size() << " arguments";
                 }
-				throw new TamguRaiseError(message, filename, current_start, current_end);
+				throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 			}
 		}
 	}
@@ -3433,6 +3464,197 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
 	return aNULL;
 }
 
+Tamgu* TamguCode::C_framecontainer(x_node* xn, Tamgu* parent) {
+    Tamgu* top = global->Topstack();
+    
+    bool oldprive = isprivate;
+    bool oldcommon = iscommon;
+    bool oldconstant = isconstant;
+    
+    string type;
+    string frametype;
+    string name;
+    
+    if (xn->nodes[0]->nodes.size() && xn->nodes[0]->nodes[0]->token == "feature") {
+        string& s = xn->nodes[0]->nodes[0]->nodes[0]->value;
+        if (s == "private") {
+            isprivate = true;
+            if (xn->nodes[0]->nodes[0]->nodes.size() != 1)
+                iscommon = true;
+        }
+        else
+        if (s == "common")
+            iscommon = true;
+        else
+        if (s == "const")
+            isconstant = true;
+        type = xn->nodes[1]->value;
+        frametype = xn->nodes[2]->value;
+        name = xn->nodes[3]->value;
+    }
+    else {
+        type = xn->nodes[0]->value;
+        frametype = xn->nodes[1]->value;
+        name = xn->nodes[2]->value;
+    }
+
+    short tid;
+    string framecontainer = type + "<" + frametype + ">";
+    if (global->framecontainer_predeclared.find(framecontainer) != global->framecontainer_predeclared.end())
+        tid = global->framecontainer_predeclared[framecontainer];
+    else {
+        if (global->symbolIds.find(frametype) == global->symbolIds.end()) {
+            stringstream message;
+            message << e_unknown_type << frametype << "'";
+            throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
+        }
+        
+        short framename = global->symbolIds[frametype];
+        
+        //framename should be a frame declaration
+        if (!global->frames.check(framename)) {
+            stringstream message;
+            message << e_expecting_a_frame << frametype << "'";
+            throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
+        }
+        
+        //We re-create the frame vector: vector<Frame>
+        short idcontainer = global->Getid(type);
+        tid = global->Getid(framecontainer);
+        
+        //framevector keeps track of all vector<Frame> types found in the code
+        if (!global->framecontainers.check(tid)) {
+            //We then create a newInstance entry on the fly
+            switch(idcontainer) {
+                case a_vector:
+                    global->newInstance[tid] = new Tamguframevector(global->frames[framename], global);
+                    break;
+                case a_map:
+                    global->newInstance[tid] = new Tamguframemap(global->frames[framename], global);
+                    break;
+                case a_treemap:
+                    global->newInstance[tid] = new Tamguframetreemap(global->frames[framename], global);
+                    break;
+                case a_primemap:
+                    global->newInstance[tid] = new Tamguframeprimemap(global->frames[framename], global);
+                    break;
+                case a_mapi:
+                    global->newInstance[tid] = new Tamguframemapi(global->frames[framename], global);
+                    break;
+                case a_treemapi:
+                    global->newInstance[tid] = new Tamguframetreemapi(global->frames[framename], global);
+                    break;
+                case a_mapf:
+                    global->newInstance[tid] = new Tamguframemapf(global->frames[framename], global);
+                    break;
+                default: {
+                    stringstream message;
+                    message << "Unknown container type: '" << type << "'";
+                    throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
+                }
+            }
+            //Then we copy the methods matching the type
+            global->methods[tid] = global->methods[idcontainer];
+            //We keep a track of that element
+            global->framecontainers[tid] = global->frames[framename];
+        }
+    }
+    
+    if (!name_space.empty())
+        name = name_space + name;
+    
+    short idname = global->Getid(name);
+    if (global->newInstance.check(idname)) {
+        stringstream message;
+        message << e_variable_name_cannot << name << "'";
+        throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
+    }
+    
+    if (top->isDeclared(idname) && top->Declaration(idname) != aNOELEMENT) {
+        stringstream message;
+        message << e_this_variable_has << name;
+        throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
+    }
+
+    if (top->isFunction()) {
+        //this a specific case, where we cannot accept a variable which declared both in a function and in its frame...
+        for (long i = 1; i < global->threads[0].stack.last - 1; i++) {
+            if (global->threads[0].stack[i]->isFrame() && global->threads[0].stack[i]->isDeclared(idname)) {
+                stringstream message;
+                message << e_this_variable_has02 << name;
+                throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
+            }
+        }
+    }
+    TamguVariableDeclaration* a;
+    if (parent->isMainFrame()) {
+        if (idcode) {
+            //If a piece of code is loaded with a tamgu variable
+            //then we might have a problem with global variables names that could collide
+            //in this case, we modify slightly the variable name in order to avoid this problem...
+            char ch[10];
+            sprintf_s(ch,10,"&%d",idcode);
+            string nm(name);
+            nm+=ch;
+            idname=global->Getid(nm);
+            global->idSymbols[idname]=name;
+        }
+        a = new TamguGlobalVariableDeclaration(global, idname, tid, isprivate, isconstant, parent);
+        global->Storevariable(0, idname, aNOELEMENT); //a dummy version to avoid certain bugs in the console
+    }
+    else {
+        if (parent->isFrame()) {
+            a = new TamguFrameVariableDeclaration(global, idname, tid, isprivate, iscommon, parent);
+        }
+        else {
+            if (parent->isTaskellFunction())
+                a = new TamguTaskellVariableDeclaration(global, idname, tid, isprivate, isconstant, parent);
+            else {
+                a = new TamguVariableDeclaration(global, idname, tid, isprivate, isconstant, parent);
+            }
+        }
+    }
+
+    top->Declare(idname, a);
+
+    if (xn->nodes.size() >= 3) {
+        for (size_t pos = 2; pos < xn->nodes.size(); pos++) {
+            if (xn->nodes[pos]->token == "wnexpressions") {
+                //This is a temporary assignment, in order to push the type of the variable
+                //into its assignment value...
+                TamguInstruction bloc;
+                bloc.action = a_assignement;
+                bloc.instructions.push_back(a);
+                a->choice = 0;
+                Traverse(xn->nodes[pos], &bloc);
+                a->AddInstruction(bloc.instructions[1]);
+                continue;
+            }
+
+            //this is an assignment
+            TamguInstructionASSIGNMENT inst(NULL, NULL);
+            inst.action = a_assignement;
+            inst.instructions.push_back(a);
+            if (parent->isTaskellFunction() && xn->nodes[pos]->token == "hmetafunctions") {
+                x_node x("telque", "");
+                x.nodes.push_back(xn->nodes[pos]);
+                Traverse(&x, &inst);
+                x.nodes.clear();
+            }
+            else
+                Traverse(xn->nodes[pos], &inst);
+            a->AddInstruction(inst.instructions[1]);
+        }
+    }
+    
+    isprivate = oldprive;
+    iscommon = oldcommon;
+    isconstant = oldconstant;
+
+    return aNULL;
+}
+
+
 Tamgu* TamguCode::C_subfunc(x_node* xn, Tamgu* parent) {
 	string name = xn->nodes[0]->nodes[0]->value;
 	if (xn->nodes[0]->nodes[0]->nodes.size() != 1)
@@ -3451,8 +3673,8 @@ Tamgu* TamguCode::C_subfunc(x_node* xn, Tamgu* parent) {
             //We check if it is not a derivation from an extension
             if (!((TamguFrame*)frame)->theextensionvar) {
                 stringstream message;
-                message << "Unknown function: '" << name << "'";
-                throw new TamguRaiseError(message, filename, current_start, current_end);
+                message << e_unknown_function << name << "'";
+                throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
             }
             else
                 tyvar = ((TamguFrame*)frame)->Topframe()->thetype;
@@ -3506,8 +3728,8 @@ Tamgu* TamguCode::C_subfunc(x_node* xn, Tamgu* parent) {
 
 	if (function == NULL) {
 		stringstream message;
-		message << "Unknown method: '" << name << "'";
-		throw new TamguRaiseError(message, filename, current_start, current_end);
+		message << e_unknown_method << name << "'";
+		throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 	}
 
 	//we then parse the arguments of the function call
@@ -3539,14 +3761,14 @@ Tamgu* TamguCode::C_subfunc(x_node* xn, Tamgu* parent) {
 
     if (checkmethodarity && !global->checkarity(tyvar, id, function->Size())) {
         stringstream message;
-        message << "Wrong number of arguments or incompatible argument: '" << name << "'";
-        throw new TamguRaiseError(message, filename, current_start, current_end);
+        message << e_wrong_number_of06 << name << "'";
+        throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
     }
     else {
         if (!function->Checkarity()) {
             stringstream message;
-            message << "Wrong number of arguments or incompatible argument: '" << name << "'";
-            throw new TamguRaiseError(message, filename, current_start, current_end);
+            message << e_wrong_number_of06 << name << "'";
+            throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
         }
     }
 
@@ -3564,7 +3786,7 @@ Tamgu* TamguCode::Callingprocedure(x_node* xn, short id) {
 	if (call->isError()) {
 		stringstream message;
 		message << call->String();
-		throw new TamguRaiseError(message, filename, current_start, current_end);
+		throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 	}
 	return call;
 }
@@ -3661,8 +3883,8 @@ Tamgu* TamguCode::C_regularcall(x_node* xn, Tamgu* parent) {
 
 		if (!kx->Checkarity()) {
 			stringstream message;
-			message << "Wrong number of arguments or incompatible argument: '" << name << "'";
-			throw new TamguRaiseError(message, filename, current_start, current_end);
+			message << e_wrong_number_of06 << name << "'";
+			throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 		}
 		return kx;
 	}
@@ -3693,7 +3915,7 @@ Tamgu* TamguCode::C_regularcall(x_node* xn, Tamgu* parent) {
         if (!parent->isMainFrame() && global->systemfunctions[name]) {
             stringstream message;
             message << "You cannot call '"<<name << "' from a function";
-            throw new TamguRaiseError(message, filename, current_start, current_end);
+            throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
         }
 		Callingprocedure(xn->nodes[1], id);
         //if the value stored in systemfunctions is true, then it means that we have
@@ -3714,14 +3936,14 @@ Tamgu* TamguCode::C_regularcall(x_node* xn, Tamgu* parent) {
 				TamguFrame* top = global->frames[framename];
 				if (top == NULL) {
 					stringstream message;
-					message << "Unknown frame: '" << xn->nodes[0]->nodes[0]->nodes[0]->value << "'";
-					throw new TamguRaiseError(message, filename, current_start, current_end);
+					message << e_unknown_frame << xn->nodes[0]->nodes[0]->nodes[0]->value << "'";
+					throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 				}
 				call = Frame();
 				if (call == NULL || !call->isParent(top)) {
 					stringstream message;
-					message << "Frame function unreachable: '" << name << "'";
-					throw new TamguRaiseError(message, filename, current_start, current_end);
+					message << e_frame_function_unreachable << name << "'";
+					throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 				}
 				name = xn->nodes[0]->nodes[1]->value;
 				id = global->Getid(name);
@@ -3813,8 +4035,8 @@ Tamgu* TamguCode::C_regularcall(x_node* xn, Tamgu* parent) {
 			call = new TamguGetMethod(id, global, parent);
 			if (xn->nodes.size() != 2) {
 				stringstream message;
-				message << "Missing argument in: '" << name << "'";
-				throw new TamguRaiseError(message, filename, current_start, current_end);
+				message << e_missing_argument_in << name << "'";
+				throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 			}
 			Traverse(xn->nodes[1], call);
 			call->CheckTaskellComposition();
@@ -3824,8 +4046,8 @@ Tamgu* TamguCode::C_regularcall(x_node* xn, Tamgu* parent) {
 
 	if (call == NULL) {
 		stringstream message;
-		message << "Unknown function or procedure: '" << name << "'";
-		throw new TamguRaiseError(message, filename, current_start, current_end);
+		message << e_unknown_function_or << name << "'";
+		throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 	}
 
 	parent->Addargmode();
@@ -3840,8 +4062,8 @@ Tamgu* TamguCode::C_regularcall(x_node* xn, Tamgu* parent) {
     
 	if (!call->Checkarity()) {
 		stringstream message;
-		message << "Wrong number of arguments or incompatible argument: '" << name << "'";
-		throw new TamguRaiseError(message, filename, current_start, current_end);
+		message << e_wrong_number_of06 << name << "'";
+		throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 	}
 
     if (call->isAlias())
@@ -3872,8 +4094,8 @@ Tamgu* TamguCode::C_conceptfunction(x_node* xn, Tamgu* parent) {
 	//We have a WITH description
 	if (kfunc == NULL || !kfunc->isFunction()) {
 		stringstream message;
-		message << "Unknown function: '" << funcname << "'";
-		throw new TamguRaiseError(message, filename, current_start, current_end);
+		message << e_unknown_function << funcname << "'";
+		throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 	}
 
 	if (xn->nodes[0]->value == "concept")
@@ -3897,8 +4119,8 @@ Tamgu* TamguCode::C_dataassignment(x_node* xn, Tamgu* parent) {
 
 	if (global->frames.check(id) == false) {
 		stringstream message;
-		message << "Expecting a frame: '" << name << "'";
-		throw new TamguRaiseError(message, filename, current_start, current_end);
+		message << e_expecting_a_frame << name << "'";
+		throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 	}
 
 	//Then, we simply need a method...
@@ -3943,8 +4165,8 @@ Tamgu* TamguCode::C_dataassignment(x_node* xn, Tamgu* parent) {
 	}
 
 	stringstream message;
-	message << "Expecting a frame: '" << name << "'";
-	throw new TamguRaiseError(message, filename, current_start, current_end);
+	message << e_expecting_a_frame << name << "'";
+	throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 
 }
 
@@ -3978,8 +4200,8 @@ Tamgu* TamguCode::C_taskellcall(x_node* xn, Tamgu* parent) {
 		TamguGetCommon* call = new TamguGetCommon(id, global, parent);
 		if (xn->nodes.size() != 2) {
 			stringstream message;
-			message << "Missing argument in: '" << name << "'";
-			throw new TamguRaiseError(message, filename, current_start, current_end);
+			message << e_missing_argument_in << name << "'";
+			throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 		}
 		Traverse(xn->nodes[1], call);
 		call->CheckTaskellComposition();
@@ -3990,8 +4212,8 @@ Tamgu* TamguCode::C_taskellcall(x_node* xn, Tamgu* parent) {
 		TamguGetMethod* call = new TamguGetMethod(id, global, parent);
 		if (xn->nodes.size() != 2) {
 			stringstream message;
-			message << "Missing argument in: '" << name << "'";
-			throw new TamguRaiseError(message, filename, current_start, current_end);
+			message << e_missing_argument_in << name << "'";
+			throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 		}
 		Traverse(xn->nodes[1], call);
 		call->CheckTaskellComposition();
@@ -4002,8 +4224,8 @@ Tamgu* TamguCode::C_taskellcall(x_node* xn, Tamgu* parent) {
 		TamguCallFrameMethod* call = new TamguCallFrameMethod(id, global, parent);
 		if (xn->nodes.size() != 2) {
 			stringstream message;
-			message << "Missing argument in: '" << name << "'";
-			throw new TamguRaiseError(message, filename, current_start, current_end);
+			message << e_missing_argument_in << name << "'";
+			throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 		}
 		Traverse(xn->nodes[1], call);
 		call->CheckTaskellComposition();
@@ -4024,8 +4246,8 @@ Tamgu* TamguCode::C_taskellcall(x_node* xn, Tamgu* parent) {
             if (!call->Checkarity()) {
                 if (parent->Type() != a_taskellinstruction || !insidecall || call->Body(0)->Size() < call->Size()) {
                     stringstream message;
-                    message << "Wrong number of arguments or incompatible argument: '" << name << "'";
-                    throw new TamguRaiseError(message, filename, current_start, current_end);
+                    message << e_wrong_number_of06 << name << "'";
+                    throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
                 }
                 ((TamguCall*)call)->curryfied = true;
 			}
@@ -4046,8 +4268,8 @@ Tamgu* TamguCode::C_taskellcall(x_node* xn, Tamgu* parent) {
 			if (!call->Checkarity()) {
                 if (parent->Type() != a_taskellinstruction || !insidecall || call->Body(0)->Size() < call->Size()) {
                     stringstream message;
-                    message << "Wrong number of arguments or incompatible argument: '" << name << "'";
-                    throw new TamguRaiseError(message, filename, current_start, current_end);
+                    message << e_wrong_number_of06 << name << "'";
+                    throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
                 }
                 ((TamguCall*)call)->curryfied = true;
 			}
@@ -4070,8 +4292,8 @@ Tamgu* TamguCode::C_taskellcall(x_node* xn, Tamgu* parent) {
 	}
 
 	stringstream message;
-	message << "Unknown function or procedure: '" << name << "'";
-	throw new TamguRaiseError(message, filename, current_start, current_end);
+	message << e_unknown_function_or << name << "'";
+	throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 	return parent;
 }
 
@@ -4079,29 +4301,24 @@ Tamgu* TamguCode::C_framevariable(x_node* xn, Tamgu* parent) {
     x_node* subxn = xn->nodes[0];
     Tamgu* av = NULL;
 
-    short idname = parent->Typevariable();
+    short idparentname = parent->Typeinfered();
     //We check if idtype is a frame
-    if (!global->frames.check(idname) && idname != a_self && idname != a_let && !parent->isIndex()) {
+    if (!global->frames.check(idparentname) && !parent->isCall() && idparentname != a_self && idparentname != a_let && idparentname != a_callindex) {
         stringstream message;
-        message << "This variable is not a frame type: '" << global->Getsymbol(idname) << " ";
-        idname = parent->Name();
-        message <<  global->Getsymbol(idname) << "'";
-        throw new TamguRaiseError(message, filename, current_start, current_end);
+        message << e_this_variable_is << global->Getsymbol(idparentname) << " ";
+        idparentname = parent->Name();
+        message <<  global->Getsymbol(idparentname) << "'";
+        throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
     }
     
+    short idname;
     if (subxn->token == "variable")
         idname = global->Getid(subxn->nodes[0]->value);
     else
         idname = global->Getid(xn->nodes[0]->value);
     
     Tamgu* dom = Declaror(idname);
-    if (dom == NULL) {
-        stringstream message;
-        message << "Unknown frame variable: '" << global->Getsymbol(idname) << "'";
-        throw new TamguRaiseError(message, filename, current_start, current_end);
-    }
-    
-    if (dom->isFrame()) {
+    if (dom != NULL && dom->isFrame()) {
         Tamgu* a = dom->Declaration(idname);
         short tyvar = a->Typevariable();
         if (parent->isCallVariable())
@@ -4120,13 +4337,13 @@ Tamgu* TamguCode::C_framevariable(x_node* xn, Tamgu* parent) {
         }
         return av;
     }
-
+        
     if (!global->framevariables.check(idname)) {
         stringstream message;
         if (subxn->token == "variable")
             xn = subxn;
-        message << "This variable is not a frame field: '" << xn->nodes[0]->value << "'";
-        throw new TamguRaiseError(message, filename, current_start, current_end);
+        message << e_this_variable_is02 << xn->nodes[0]->value << "'";
+        throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
     }
     
     av = new TamguCallFromFrameVariable(idname, 0, global, parent);
@@ -4199,8 +4416,8 @@ Tamgu* TamguCode::C_variable(x_node* xn, Tamgu* parent) {
                 Tamgu* frame = parent->Frame();
                 if (frame == NULL || !frame->isDeclared(idname)) {
                     stringstream message;
-                    message << "Unknown variable: '" << name << "'";
-                    throw new TamguRaiseError(message, filename, current_start, current_end);
+                    message << e_unknown_variable << name << "'";
+                    throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
                 }
                 a = frame->Declaration(idname);
                 tyvar = a->Typevariable();
@@ -4215,8 +4432,8 @@ Tamgu* TamguCode::C_variable(x_node* xn, Tamgu* parent) {
                 Tamgu* frame = global->GetTopFrame();
                 if (frame ==  NULL) {
                     stringstream message;
-                    message << "You cannot use 'this' out of a frame or an extension";
-                    throw new TamguRaiseError(message, filename, current_start, current_end);
+                    message << e_you_cannot_use;
+                    throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
                 }
                 av = new TamguCallThis(frame->Typeframe(), global, parent);
             }
@@ -4344,12 +4561,26 @@ Tamgu* TamguCode::C_indexes(x_node* xn, Tamgu* parent) {
 
     if (!idx->Checklegit()) {
         stringstream message;
-        message << "Wrong Index Value";
-        throw new TamguRaiseError(message, filename, current_start, current_end);
+        message << e_wrong_index_value;
+        throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
         return aNULL;
     }
     
     idx->Checkconst();
+    short idparent = parent->Typevariable();
+    if (global->framecontainers.check(idparent) && idx->function != NULL) {
+        short idname = idx->function->Name();
+        Tamgu* frame = global->framecontainers[idparent];
+        if (!frame->Declared(idname)) {
+            stringstream message;
+            message << "This element: '" <<
+            global->Getsymbol(idname) <<
+            "' does not belong to this frame: '" <<
+            global->Getsymbol(frame->Name()) << "'";
+            throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
+            return aNULL;
+        }
+    }
 	return idx;
 }
 
@@ -4425,8 +4656,8 @@ Tamgu* TamguCode::C_interval(x_node* xn, Tamgu* parent) {
 
     if (!idx->Checklegit()) {
         stringstream message;
-        message << "Wrong Index Value";
-        throw new TamguRaiseError(message, filename, current_start, current_end);
+        message << e_wrong_index_value;
+        throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
         return aNULL;
     }
 
@@ -4464,8 +4695,8 @@ Tamgu* TamguCode::C_astring(x_node* xn, Tamgu* parent) {
 #ifndef Tamgu_REGEX
 Tamgu* TamguCode::C_pstring(x_node* xn, Tamgu* parent) {
     stringstream message;
-    message << "Posix regular expressions not available";
-    throw new TamguRaiseError(message, filename, current_start, current_end);
+    message << e_posix_regular_expressions;
+    throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
     return aNULL;
 }
 #else
@@ -4479,8 +4710,8 @@ Tamgu* TamguCode::C_pstring(x_node* xn, Tamgu* parent) {
     
     if (wa == NULL) {
         stringstream message;
-        message << "Unknown posix regular expression: '" << thestr << "'";
-        throw new TamguRaiseError(message, filename, current_start, current_end);
+        message << e_unknown_posix_regular << thestr << "'";
+        throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
     }
     
     regex* a = getposixregex(thestr);
@@ -4505,8 +4736,8 @@ Tamgu* TamguCode::C_fstring(x_node* xn, Tamgu* parent) {
         posc = thestr.find("}", pos);
         if (posc == -1) {
             stringstream message;
-            message << "Format expression malformed: missing closing '}': '" << thestr << "'";
-            throw new TamguRaiseError(message, filename, current_start, current_end);
+            message << e_format_expression_malformed << thestr << "'";
+            throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
         }
         if ((pos - beginning))
             action = new Tamgustring(thestr.substr(beginning, pos - beginning), global, vect);
@@ -4515,9 +4746,9 @@ Tamgu* TamguCode::C_fstring(x_node* xn, Tamgu* parent) {
         action = CompileFormat(code, vect);
         if (action->isError()) {
             stringstream message;
-            message << "Wrong expression: '" << code << "': " << action->String();
+            message << e_wrong_expression << code << "': " << action->String();
             action->Release();
-            throw new TamguRaiseError(message, filename, current_start, current_end);
+            throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
         }
         beginning = posc + 1;
         pos = thestr.find("{", beginning);
@@ -4537,8 +4768,8 @@ Tamgu* TamguCode::C_rstring(x_node* xn, Tamgu* parent) {
     
     if (a == NULL) {
         stringstream message;
-        message << "Unknown tamgu regular expression: '" << thestr << "'";
-        throw new TamguRaiseError(message, filename, current_start, current_end);
+        message << e_unknown_tamgu_regular << thestr << "'";
+        throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
     }
     
     Tamguregularexpressionconstant* tre = new Tamguregularexpressionconstant(thestr, a, global, parent);
@@ -5035,8 +5266,8 @@ Tamgu* TamguCode::C_features(x_node* xn, Tamgu* kf) {
 
 		if (Tamgusynode::Checkattribute(key) == false) {
 			stringstream message;
-			message << "Unknown attribute: '" << key << "'";
-			throw new TamguRaiseError(message, filename, current_start, current_end);
+			message << e_unknown_attribute << key << "'";
+			throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 		}
 
 		if (sub->nodes.size() == 1)
@@ -5047,8 +5278,8 @@ Tamgu* TamguCode::C_features(x_node* xn, Tamgu* kf) {
 
 				if (featureassignment == 2) {
 					stringstream message;
-					message << "Cannot assign a feature to a dependency node";
-					throw new TamguRaiseError(message, filename, current_start, current_end);
+					message << e_cannot_assign_a;
+					throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 				}
 
 				key = "=" + key;
@@ -5079,15 +5310,15 @@ Tamgu* TamguCode::C_features(x_node* xn, Tamgu* kf) {
 				}
 				if (Tamgusynode::Checkfeature(key, val) == false) {
 					stringstream message;
-					message << "Unknown attribute/value: '" << key << "'/'" << val << "'";
-					throw new TamguRaiseError(message, filename, current_start, current_end);
+					message << e_unknown_attributevalue << key << "'/'" << val << "'";
+					throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 				}
 
 				if (rgx) {
 					if (val.empty()) {
 						stringstream message;
-						message << "Empty string cannot be used as a regular expression: '" << key << "'";
-						throw new TamguRaiseError(message, filename, current_start, current_end);
+						message << e_empty_string_cannot << key << "'";
+						throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 					}
 
 					global->rules[val] = new Au_automaton(val);
@@ -5121,8 +5352,8 @@ Tamgu* TamguCode::C_declarationtaskell(x_node* xn, Tamgu* kf) {
 			ty = global->Getid(arg);
 			if (ty != a_universal && global->newInstance.check(ty) == false) {
 				stringstream message;
-				message << "Unknown type: '" << arg << "'";
-				throw new TamguRaiseError(message, filename, current_start, current_end);
+				message << e_unknown_type << arg << "'";
+				throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 			}
 			if (i == sz) {
 				klambda->returntype = ty;
@@ -5140,8 +5371,8 @@ Tamgu* TamguCode::C_declarationtaskell(x_node* xn, Tamgu* kf) {
 		ty = global->Getid(arg);
 		if (ty != a_universal && global->newInstance.check(ty) == false) {
 			stringstream message;
-			message << "Unknown type: '" << arg << "'";
-			throw new TamguRaiseError(message, filename, current_start, current_end);
+			message << e_unknown_type << arg << "'";
+			throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 		}
 		if (i == sz) {
 			klambda->returntype = ty;
@@ -5155,8 +5386,8 @@ Tamgu* TamguCode::C_declarationtaskell(x_node* xn, Tamgu* kf) {
 				ty = global->Getid(arg);
 				if (ty != a_universal && global->newInstance.check(ty) == false) {
 					stringstream message;
-					message << "Unknown type: '" << arg << "'";
-					throw new TamguRaiseError(message, filename, current_start, current_end);
+					message << e_unknown_type << arg << "'";
+					throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 				}
 				sub->Push(ty);
 			}
@@ -5248,8 +5479,8 @@ Tamgu* TamguCode::C_affectation(x_node* xn, Tamgu* kf) {
 	if (ki->InstructionSize()) {
 		if (ki->Instruction(0)->isConstant()) {
 			stringstream message;
-			message << "You cannot modify this constant variable";
-			throw new TamguRaiseError(message, filename, current_start, current_end);
+			message << e_you_cannot_modify;
+			throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 		}
 	}
 
@@ -5404,15 +5635,62 @@ Tamgu* TamguCode::C_affectation(x_node* xn, Tamgu* kf) {
 
 	if (!kfirst->isAssignable()) {
 		stringstream message;
-		message << "Cannot assign a value in this configuration";
+		message << e_cannot_assign_a02;
 		if (func != NULL)
 			message << ": '" << global->Getsymbol(func->Name()) << "'";
 		else {
 			if (kfirst->Name() > 1)
 				message << ", : '" << global->Getsymbol(kfirst->Name()) << "'";
 		}
-		throw new TamguRaiseError(message, filename, current_start, current_end);
+		throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 	}
+    
+    func = ki->Instruction(0);
+    if (func != NULL && ki->Size() > 1) {
+        kf = ki->Instruction(1);
+        if (kf->isError()) {
+            stringstream message;
+            message << kf->String();
+            throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
+        }
+
+        short typerecipient = func->Typeinfered();
+        short typevalue = kf->Typeinfered();
+        
+        typevalue = typevalue==a_null?a_none:typevalue;
+        
+        if (typevalue == a_none &&
+            kf->isDirectIndex() &&
+            global->returnindextypes.check(kf->Typevariable())) {
+            typevalue = kf->Typevariable();
+            typevalue = global->returnindextypes[typevalue];
+        }
+        
+        if (typerecipient != a_none && !global->Compatiblefull(typerecipient, typevalue)) {
+            stringstream message;
+            message << "The type: '" << global->Getsymbol(typerecipient) << "' cannot receive a '" << global->Getsymbol(typevalue) << "' as a value";
+            throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
+        }
+        
+        if (typerecipient == a_none && func->isDirectIndex()) {
+            //We will check if it is a frame container...
+            typerecipient = func->Typevariable();
+            if (global->framecontainers.check(typerecipient))
+                typerecipient = global->framecontainers[typerecipient]->Name();
+            else {
+                if (global->returnindextypes.check(typerecipient))
+                    typerecipient = global->returnindextypes[typerecipient];
+                else
+                    typerecipient = -1;
+            }
+            if (typerecipient != -1 && !global->Compatiblefull(typerecipient, typevalue)) {
+                stringstream message;
+                message << "The type: '" << global->Getsymbol(typerecipient) << "' cannot receive a '" << global->Getsymbol(typevalue) << "' as a value";
+                throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
+            }
+        }
+    }
+    
 	kfirst->Setstopindex();
 	return ki;
 }
@@ -5637,8 +5915,8 @@ Tamgu* TamguCode::C_taskcomparison(x_node* xn, Tamgu* kf) {
         string typeret = xn->nodes[0]->nodes[0]->value;
         if (global->symbolIds.find(typeret) == global->symbolIds.end()) {
             stringstream message;
-            message << "Unknown type: '" << typeret << "'";
-            throw new TamguRaiseError(message, filename, current_start, current_end);
+            message << e_unknown_type << typeret << "'";
+            throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
         }
         
         kf->Setreturntype(global->Getid(typeret));
@@ -5699,8 +5977,8 @@ Tamgu* TamguCode::C_comparison(x_node* xn, Tamgu* kf) {
 
     if (!ki->Checkarity()) {
         stringstream message;
-        message << "Wrong number of element in an instruction";
-        throw new TamguRaiseError(message, filename, current_start, current_end);
+        message << e_wrong_number_of04;
+        throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
     }
     
     return ki;
@@ -5794,8 +6072,8 @@ Tamgu* TamguCode::C_alias(x_node* xn, Tamgu* kf) {
     if (!kf->isFrame()) {
         if (global->procedures.check(idname)) {
             stringstream message;
-            message << "Error: Predefined procedure, consider choosing another name: '" << name << "'";
-            throw new TamguRaiseError(message, filename, current_start, current_end);
+            message << e_error_predefined_procedure << name << "'";
+            throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
         }
     }
 
@@ -5838,16 +6116,16 @@ Tamgu* TamguCode::C_createfunction(x_node* xn, Tamgu* kf) {
     
 	if (kf->isFunction()) {
 		stringstream message;
-		message << "Error: You cannot declare a function within a function: '" << name << "'";
-		throw new TamguRaiseError(message, filename, current_start, current_end);
+		message << e_error_you_cannot << name << "'";
+		throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 	}
 
 	idname = global->Getid(name);
 	if (!kf->isFrame()) {
 		if (global->procedures.check(idname)) {
 			stringstream message;
-			message << "Error: Predefined procedure, consider choosing another name: '" << name << "'";
-			throw new TamguRaiseError(message, filename, current_start, current_end);
+			message << e_error_predefined_procedure << name << "'";
+			throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 		}
 	}
 
@@ -5870,7 +6148,7 @@ Tamgu* TamguCode::C_createfunction(x_node* xn, Tamgu* kf) {
 		if (kprevious->isFunction() == false) {
 			stringstream message;
 			message << "Variable: '" << name << "' already declared";
-			throw new TamguRaiseError(message, filename, current_start, current_end);
+			throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 		}
 
 		//When value==".", it is an actual pre-declaration in a frame otherwise it is a type declaration scan... See TamguParsePredeclareFunctions
@@ -5967,8 +6245,8 @@ Tamgu* TamguCode::C_createfunction(x_node* xn, Tamgu* kf) {
 
 	if (kfunc == NULL) {
 		stringstream message;
-		message << "Error: This function has already been used in a call: '" << name << "'";
-		throw new TamguRaiseError(message, filename, current_start, current_end);
+		message << e_error_this_function << name << "'";
+		throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 	}
 
 	kfunc->privatefunction = privatefunction;
@@ -5991,14 +6269,14 @@ Tamgu* TamguCode::C_createfunction(x_node* xn, Tamgu* kf) {
                     typeret = name_space + typeret;
                     if (global->symbolIds.find(typeret) == global->symbolIds.end()) {
                         stringstream message;
-                        message << "Unknown type: '" << xn->nodes[2]->nodes[0]->value << "'";
-                        throw new TamguRaiseError(message, filename, current_start, current_end);
+                        message << e_unknown_type << xn->nodes[2]->nodes[0]->value << "'";
+                        throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
                     }
                 }
                 else {
                     stringstream message;
-                    message << "Unknown type: '" << typeret << "'";
-                    throw new TamguRaiseError(message, filename, current_start, current_end);
+                    message << e_unknown_type << typeret << "'";
+                    throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
                 }
 			}
 			kfunc->returntype = global->Getid(typeret);
@@ -6015,14 +6293,14 @@ Tamgu* TamguCode::C_createfunction(x_node* xn, Tamgu* kf) {
                         typeret = name_space + typeret;
                         if (global->symbolIds.find(typeret) == global->symbolIds.end()) {
                             stringstream message;
-                            message << "Unknown type: '" << xn->nodes[3]->nodes[0]->value << "'";
-                            throw new TamguRaiseError(message, filename, current_start, current_end);
+                            message << e_unknown_type << xn->nodes[3]->nodes[0]->value << "'";
+                            throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
                         }
                     }
                     else {
                         stringstream message;
-                        message << "Unknown type: '" << typeret << "'";
-                        throw new TamguRaiseError(message, filename, current_start, current_end);
+                        message << e_unknown_type << typeret << "'";
+                        throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
                     }
 				}
 				kfunc->returntype = global->Getid(typeret);
@@ -6079,8 +6357,8 @@ Tamgu* TamguCode::C_createfunction(x_node* xn, Tamgu* kf) {
 				}
 				else {
 					stringstream message;
-					message << "Error: Cannot find a matching function to a pre-declared function (check the declaration order): '" << name << "'";
-					throw new TamguRaiseError(message, filename, current_start, current_end);
+					message << e_error_cannot_find << name << "'";
+					throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 				}
 			}
 		}
@@ -6102,14 +6380,14 @@ Tamgu* TamguCode::C_createfunction(x_node* xn, Tamgu* kf) {
 	if (autorun && loader == NULL) {
 		if (kfunc->parameters.size() != 0) {
 			stringstream message;
-			message << "Error: An AUTORUN cannot have parameters: '" << name << "'";
-			throw new TamguRaiseError(message, filename, current_start, current_end);
+			message << e_error_an_autorun << name << "'";
+			throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 		}
 
 		if (!kf->isMainFrame()) {
 			stringstream message;
-			message << "Error: An AUTORUN must be declared as a global function: '" << name << "'";
-			throw new TamguRaiseError(message, filename, current_start, current_end);
+			message << e_error_an_autorun02 << name << "'";
+			throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 		}
 
 		kfunc->autorun = true;
@@ -6194,8 +6472,8 @@ Tamgu* TamguCode::C_blocs(x_node* xn, Tamgu* kf) {
                                         
                                         if (!l->isFunction()) {
                                             stringstream message;
-                                            message << "Wrong definition of a lisp 'defun' function";
-                                            throw new TamguRaiseError(message, filename, current_start, current_end);
+                                            message << e_wrong_definition_of;
+                                            throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
                                         }
                                         //and we remove it from future analysis
                                         delete nsub;
@@ -6261,8 +6539,8 @@ Tamgu* TamguCode::C_extension(x_node* xn, Tamgu* kf) {
 
 	if (!global->newInstance.check(idtypename)) {
 		stringstream message;
-		message << "Error: cannot extend this type:" << nametype;
-		throw new TamguRaiseError(message, filename, current_start, current_end);
+		message << e_error_cannot_extend << nametype;
+		throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 	}
 
 	string name;
@@ -6332,8 +6610,8 @@ Tamgu* TamguCode::C_frame(x_node* xn, Tamgu* kf) {
 		ke = global->frames[idname];
 		if (privated) {
 			stringstream message;
-			message << "Error: attempt to use private frame:" << name;
-			throw new TamguRaiseError(message, filename, current_start, current_end);
+			message << e_error_attempt_to << name;
+			throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 		}
 	}
 	else
@@ -6352,6 +6630,7 @@ Tamgu* TamguCode::C_frame(x_node* xn, Tamgu* kf) {
 		global->SetCompatibilities(idname);
 		if (kf->isFrame()) {
 			global->compatibilities[idname][kf->Name()] = true;
+            global->fullcompatibilities[idname][kf->Name()] = true;
 			global->strictcompatibilities[idname][kf->Name()] = true;
 		}
 	}
@@ -6362,8 +6641,8 @@ Tamgu* TamguCode::C_frame(x_node* xn, Tamgu* kf) {
 
 	if (kframe == NULL) {
 		stringstream message;
-		message << "Error: This frame cannot be created:" << name;
-		throw new TamguRaiseError(message, filename, current_start, current_end);
+		message << e_error_this_frame << name;
+		throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 	}
 
 
@@ -6396,8 +6675,8 @@ Tamgu* TamguCode::C_frame(x_node* xn, Tamgu* kf) {
 		//We have a WITH description
 		if (kfunc == NULL) {
 			stringstream message;
-			message << "Unknown function: '" << funcname << "'";
-			throw new TamguRaiseError(message, filename, current_start, current_end);
+			message << e_unknown_function << funcname << "'";
+			throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 		}
 		if (kfunc->isFunction()) {
 			if (kfunc->isVariable()) {
@@ -6410,8 +6689,8 @@ Tamgu* TamguCode::C_frame(x_node* xn, Tamgu* kf) {
 		}
 		else {
 			stringstream message;
-			message << "Unknown function: '" << global->idSymbols[kfunc->Name()] << "'";
-			throw new TamguRaiseError(message, filename, current_start, current_end);
+			message << e_unknown_function << global->idSymbols[kfunc->Name()] << "'";
+			throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 		}
 
 		Traverse(xn->nodes[pos + 2], kframe);
@@ -6430,7 +6709,11 @@ Tamgu* TamguCode::C_frame(x_node* xn, Tamgu* kf) {
 		((TamguFunction*)callinitial)->returntype = idname;
 		callinitial = callinitial->Nextfunction();
 	}
-
+    for (int i = 0; i < kframe->variables.size(); i++) {
+        kf = kframe->variables[i];
+        global->framevariables[kf->Name()] = kf;
+    }
+    
 	return kframe;
 }
 
@@ -6649,15 +6932,15 @@ Tamgu* TamguCode::C_switch(x_node* xn, Tamgu* kf) {
         Tamgu* func = Declaration(idfuncname);
         if (func == NULL || !func->isFunction()) {
             stringstream message;
-            message << "We can only associate a function through 'with' in a 'switch' statement";
-            throw new TamguRaiseError(message, filename, current_start, current_end);
+            message << e_we_can_only02;
+            throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
         }
         
         kswitch->function = func;
         if (func->Size() != 2) {
             stringstream message;
-            message << "Wrong number of arguments or incompatible argument: '" << funcname << "' for 'switch'";
-            throw new TamguRaiseError(message, filename, current_start, current_end);
+            message << e_wrong_number_of06 << funcname << "' for 'switch'";
+            throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
         }
         i = 2;
         kswitch->usekeys = 2;
@@ -6830,9 +7113,10 @@ Tamgu* TamguCode::C_forin(x_node* xn, Tamgu* kf) {
 		kref = kbase;
 	}
 
+    char checkcompatible = false;
 	bool checkrange = false;
 	bool checkforinself = false;
-	short idvar = -1;
+	short idvarcontainer = -1;
 	if (kcontainer->isCallVariable() && global->isFile(kcontainer))
 		kforin = new TamguInstructionFILEIN(global, kref);
 	else {
@@ -6844,15 +7128,19 @@ Tamgu* TamguCode::C_forin(x_node* xn, Tamgu* kf) {
 			if (xn->nodes[0]->token == "valvectortail")
 				kforin = new TamguInstructionFORVECTORIN(global, kref);
 			else {
-				if (xn->nodes[0]->token == "valmaptail")
-					kforin = new TamguInstructionFORMAPIN(global, kref);
+                if (xn->nodes[0]->token == "valmaptail") {
+                    kforin = new TamguInstructionFORMAPIN(global, kref);
+                    checkcompatible = 2;
+                }
 				else {
-					idvar = kcontainer->Typevariable();
-					if (global->newInstance.check(idvar) && kcontainer->Function() == NULL &&
-                        (global->newInstance[idvar]->isVectorContainer() ||
-						global->newInstance[idvar]->isValueContainer() ||
-						global->newInstance[idvar]->isMapContainer()))
-						kforin = new TamguInstructionFORINVALUECONTAINER(global, kref);
+					idvarcontainer = kcontainer->Typevariable();
+					if (global->newInstance.check(idvarcontainer) && kcontainer->Function() == NULL &&
+                        (global->newInstance[idvarcontainer]->isVectorContainer() ||
+						global->newInstance[idvarcontainer]->isValueContainer() ||
+                         global->newInstance[idvarcontainer]->isMapContainer())) {
+                        checkcompatible = global->newInstance[idvarcontainer]->isVectorContainer();
+                        kforin = new TamguInstructionFORINVALUECONTAINER(global, kref);
+                    }
 					else {
 						kforin = new TamguInstructionFORIN(global);										
 						checkforinself = true;
@@ -6862,25 +7150,39 @@ Tamgu* TamguCode::C_forin(x_node* xn, Tamgu* kf) {
 		}
 	}
 
-	Tamgu* kin = TamguCreateInstruction(kforin, a_blocloopin);
+	Tamgu* kinloop = TamguCreateInstruction(kforin, a_blocloopin);
 	if (kbase == NULL)
-		Traverse(xn->nodes[0], kin);
+		Traverse(xn->nodes[0], kinloop);
 	else
-		Traverse(xn->nodes[0]->nodes[1], kin);
+		Traverse(xn->nodes[0]->nodes[1], kinloop);
 
-	if (!kin->Instruction(0)->Checkvariable()) {
+	if (!kinloop->Instruction(0)->Checkvariable()) {
 		stringstream message;
-		message << "Expecting variables in FOR to loop in";
-		throw new TamguRaiseError(message, filename, current_start, current_end);
+		message << e_expecting_variables_in;
+		throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 	}
 
+    if (checkcompatible == 1) {
+        //We check if the loop variable is compatible with the loop vector
+        Tamgu* frame = global->newInstance[idvarcontainer]->Frame();
+        if (frame != NULL) {
+            short idloopvar = kinloop->Instruction(0)->Typevariable();
+            if (!globalTamgu->Compatible(frame->Name(), idloopvar)) {
+                stringstream message;
+                message << e_error_frame_container
+                << global->Getsymbol(idloopvar) << e_error_loop_frame_container
+                << global->Getsymbol(idvarcontainer) << "'";
+                throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
+            }
+        }
+    }
+    
 	if (checkforinself) {
-		
 		if (kcontainer->isVectorContainer() && kcontainer->Function() == NULL) {
-			if (kin->Instruction(0)->Function() == NULL) {
+			if (kinloop->Instruction(0)->Function() == NULL) {
 				kforin->Remove();
 				kforin = new TamguInstructionFORINVECTOR(global, kref);
-				kforin->AddInstruction(kin);
+				kforin->AddInstruction(kinloop);
 				checkforinself = false;
 			}
 		}
@@ -6889,49 +7191,71 @@ Tamgu* TamguCode::C_forin(x_node* xn, Tamgu* kf) {
 			kref->AddInstruction(kforin);
 	}
 
-	kin->Instruction(0)->Setevaluate(true);
-	kin->Instruction(0)->Setaffectation(true);
+	kinloop->Instruction(0)->Setevaluate(true);
+	kinloop->Instruction(0)->Setaffectation(true);
 
     bool allconst=false;
 	if (kforin->Type() == a_forinrange) {
-		if (!kin->Instruction(0)->isCallVariable()) {
+		if (!kinloop->Instruction(0)->isCallVariable()) {
 			stringstream message;
-			message << "Expecting a variable in FOR";
-			throw new TamguRaiseError(message, filename, current_start, current_end);
+			message << e_expecting_a_variable;
+			throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 		}
 
-		if (!global->isNumber(kin->Instruction(0))) {
+		if (!global->isNumber(kinloop->Instruction(0))) {
 			stringstream message;
-			message << "Only numerical variable can be used here";
-			throw new TamguRaiseError(message, filename, current_start, current_end);
+			message << e_only_numerical_variable;
+			throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 		}
         switch(ktemp.instructions.size()) {
             case 1:
                 //the initial value is zero and the increment is one
-                kin->AddInstruction(aZERO);
-                kin->AddInstruction(ktemp.instructions[0]);
-                kin->AddInstruction(aONE);
+                kinloop->AddInstruction(aZERO);
+                kinloop->AddInstruction(ktemp.instructions[0]);
+                kinloop->AddInstruction(aONE);
                 if (ktemp.instructions[0]->isConst())
                     allconst=true;
                 break;
             case 2:
                 //the increment is one
-                kin->AddInstruction(ktemp.instructions[0]);
-                kin->AddInstruction(ktemp.instructions[1]);
+                kinloop->AddInstruction(ktemp.instructions[0]);
+                kinloop->AddInstruction(ktemp.instructions[1]);
                 if (ktemp.instructions[0]->isConst() && ktemp.instructions[1]->isConst())
                     allconst=true;
-                kin->AddInstruction(aONE);
+                kinloop->AddInstruction(aONE);
             default:
-                kin->AddInstruction(ktemp.instructions[0]);
-                kin->AddInstruction(ktemp.instructions[1]);
-                kin->AddInstruction(ktemp.instructions[2]);
+                kinloop->AddInstruction(ktemp.instructions[0]);
+                kinloop->AddInstruction(ktemp.instructions[1]);
+                kinloop->AddInstruction(ktemp.instructions[2]);
                 if (ktemp.instructions[0]->isConst() && ktemp.instructions[1]->isConst() && ktemp.instructions[2]->isConst())
                     allconst=true;
         }
 	}
 	else
-		kin->AddInstruction(kcontainer);
+		kinloop->AddInstruction(kcontainer);
 
+    if (checkcompatible == 2) {
+        //We check if the loop variable is compatible with the loop map container
+        if (kinloop->Instruction(0)->isMapContainer()) {
+            Tamgu* frame = kinloop->Instruction(1);
+            if (frame->Function() == NULL) {
+                short idloopvar = frame->Typevariable();
+                if (global->newInstance.check(idloopvar)) {
+                    frame = global->newInstance[idloopvar]->Frame();
+                    if (frame != NULL) {
+                        idloopvar = ((TamguConstmap*)kinloop->Instruction(0))->values[0]->Typevariable();
+                        if (!globalTamgu->Compatible(frame->Name(), idloopvar)) {
+                            stringstream message;
+                            message << e_error_frame_container
+                            << global->Getsymbol(idloopvar) << e_error_loop_frame_container
+                            << global->Getsymbol(idvarcontainer) << "'";
+                            throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
+                        }
+                    }
+                }
+            }
+        }
+    }
 
 	//We then compile the instruction bloc
 	Tamgu* ktrue = new TamguSequence(global, kforin);
@@ -7026,8 +7350,8 @@ Tamgu* TamguCode::C_trycatch(x_node* xn, Tamgu* kf) {
 
 		if (declaration == NULL || !declaration->isVariable()) {
 			stringstream message;
-			message << "Unknown variable: '" << name << "'";
-			throw new TamguRaiseError(message, filename, current_start, current_end);
+			message << e_unknown_variable << name << "'";
+			throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 		}
 
 		TamguInstruction* kaff = TamguCreateInstruction(ktry, a_assignement);
@@ -7105,8 +7429,8 @@ Tamgu* TamguCode::C_parameters(x_node* xn, Tamgu* kcf) {
 
 		if (kbloc.instructions.last == 0) {
 			stringstream message;
-			message << "Error: Wrong parameter definition" << endl;
-			throw new TamguRaiseError(message, filename, current_start, current_end);
+			message << e_error_wrong_parameter << endl;
+			throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 		}
 
 		ki = kbloc.instructions[0];
@@ -7267,8 +7591,8 @@ Tamgu* TamguCode::C_hdatadeclaration(x_node* xn, Tamgu* kf) {
             localframe = global->frames[idname];
             if (!global->frames[idframe]->Pushdeclaration(localframe)) {
                 stringstream message;
-                message << "Derivation is limited to one frame. You cannot derive from '" << classname << "'";
-                throw new TamguRaiseError(message, filename, current_start, current_end);
+                message << e_derivation_is_limited << classname << "'";
+                throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
             }
         }
         return kf;
@@ -7446,8 +7770,8 @@ Tamgu* TamguCode::C_hdatadeclaration(x_node* xn, Tamgu* kf) {
 			short idframe = global->Getid(classname);
 			if (!global->frames.check(idframe)) {
 				stringstream message;
-				message << "Unknown data structure: '" << classname << "'";
-				throw new TamguRaiseError(message, filename, current_start, current_end);
+				message << e_unknown_data_structure02 << classname << "'";
+				throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 			}
 			
 			if (localframe == NULL) {
@@ -7463,6 +7787,7 @@ Tamgu* TamguCode::C_hdatadeclaration(x_node* xn, Tamgu* kf) {
 				global->SetCompatibilities(idname);
 				if (kf->isFrame()) {
 					global->compatibilities[idname][kf->Name()] = true;
+                    global->fullcompatibilities[idname][kf->Name()] = true;
 					global->strictcompatibilities[idname][kf->Name()] = true;
 				}
 			}
@@ -7498,6 +7823,7 @@ Tamgu* TamguCode::C_hdatadeclaration(x_node* xn, Tamgu* kf) {
 		global->Pushstack(kf);
 	else {//otherwise, we add a strictcompatibilities between the mother and the daughter frames...
 		global->compatibilities[kf->Name()][idname] = true;
+        global->fullcompatibilities[kf->Name()][idname] = true;
 		global->strictcompatibilities[kf->Name()][idname] = true;
 	}
 
@@ -7511,8 +7837,8 @@ Tamgu* TamguCode::C_hdeclaration(x_node* xn, Tamgu* kf) {
     
     if (!global->frames.check(idname)) {
         stringstream message;
-        message << "Unknown data structure (or frame): '" << name << "'";
-        throw new TamguRaiseError(message, filename, current_start, current_end);
+        message << e_unknown_data_structure << name << "'";
+        throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
     }
     
     TamguFrame* kframe = global->frames[idname];
@@ -7520,8 +7846,8 @@ Tamgu* TamguCode::C_hdeclaration(x_node* xn, Tamgu* kf) {
     Tamgu* var;
     if (kframe->variables.size() != xn->nodes.size() - 1) {
         stringstream message;
-        message << "Data structure mismatch (or frame): '" << name << "'";
-        throw new TamguRaiseError(message, filename, current_start, current_end);
+        message << e_data_structure_mismatch << name << "'";
+        throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
     }
     short argtype;
     short id;
@@ -7673,8 +7999,8 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
 
 		if (global->procedures.check(idname)) {
 			stringstream message;
-			message << "Error: Predefined procedure, consider choosing another name: '" << name << "'";
-			throw new TamguRaiseError(message, filename, current_start, current_end);
+			message << e_error_predefined_procedure << name << "'";
+			throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 		}
 
 		kprevious = kf->Declaration(idname);
@@ -7699,8 +8025,8 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
 		if (kprevious != NULL) {
 			if (taskelldeclarationfound || kprevious->Type() != a_lambda) {
 				stringstream message;
-				message << "Error: A function with this name already exists: '" << name << "'";
-				throw new TamguRaiseError(message, filename, current_start, current_end);
+				message << e_error_a_function << name << "'";
+				throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 			}
 
 			kfuncbase = (TamguFunctionLambda*)kprevious;
@@ -7792,8 +8118,8 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
 			long sz = xn->nodes[0]->nodes.size() - first;
 			if (sz != localtaskelldeclarations.size()) {
 				stringstream message;
-				message << "The declaration does not match the argument list of the function";
-				throw new TamguRaiseError(message, filename, current_start, current_end);
+				message << e_the_declaration_does;
+				throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 			}
 			short argtype;
 			Tamgu* local;
@@ -7818,14 +8144,14 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
 						if (!local->isVectorContainer()) {
 							stringstream message;
 							message << "The argument: " << (i - first) + 1 << " does not match the hdeclared description";
-							throw new TamguRaiseError(message, filename, current_start, current_end);
+							throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 						}
 					}
 					else if (argtype == a_map) {
 						if (!local->isMapContainer()) {
 							stringstream message;
 							message << "The argument: " << (i - first) + 1 << " does not match the hdeclared description";
-							throw new TamguRaiseError(message, filename, current_start, current_end);
+							throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 						}
 					}					
 				}
@@ -7840,19 +8166,19 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
 			if (concept == 1 && kfuncbase->Size() != 1) {
 				stringstream message;
 				message << "Concept requires one single parameter:" << name;
-				throw new TamguRaiseError(message, filename, current_start, current_end);
+				throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 			}
 
 			if (concept == 2 && kfuncbase->Size() != 2) {
 				stringstream message;
-				message << "Property requires two parameters:" << name;
-				throw new TamguRaiseError(message, filename, current_start, current_end);
+				message << e_property_requires_two << name;
+				throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 			}
 
 			if (concept == 3 && kfuncbase->Size() == 0) {
 				stringstream message;
-				message << "Role requires at least one parameter:" << name;
-				throw new TamguRaiseError(message, filename, current_start, current_end);
+				message << e_role_requires_at << name;
+				throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 			}
 		}
 
@@ -7886,8 +8212,8 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
 				if (kfuncbase->Returntype() != a_none) {
 					if (global->Compatiblestrict(kfuncbase->Returntype(), return_type) == false) {
 						stringstream message;
-						message << "Type mismatch... Expected: '" << global->Getsymbol(kfuncbase->Returntype()) << "' Proposed: '" << global->Getsymbol(return_type) << "'";
-						throw new TamguRaiseError(message, filename, current_start, current_end);
+						message << e_type_mismatch_expected << global->Getsymbol(kfuncbase->Returntype()) << "' Proposed: '" << global->Getsymbol(return_type) << "'";
+						throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 					}
 				}
 				else
@@ -7916,8 +8242,8 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
 	if (return_type != -1 && kfunc->returntype == a_null) {		
 		if (localtaskelldeclarations.size() != 0) {
 			stringstream message;
-			message << "Only a return type can declared in a lambda expression";
-			throw new TamguRaiseError(message, filename, current_start, current_end);
+			message << e_only_a_return;
+			throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 		}
         kint->returntype = return_type;
 		kfunc->returntype = return_type;
@@ -8201,8 +8527,8 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
 						//We check against the expected type
 						if (global->Compatiblestrict(kfunc->Returntype(), return_type) == false) {
 							stringstream message;
-							message << "Type mismatch... Expected: '" << global->Getsymbol(kfunc->Returntype()) << "' Proposed: '" << global->Getsymbol(return_type) << "'";
-							throw new TamguRaiseError(message, filename, current_start, current_end);
+							message << e_type_mismatch_expected << global->Getsymbol(kfunc->Returntype()) << "' Proposed: '" << global->Getsymbol(return_type) << "'";
+							throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 						}
 					}
 					else
@@ -8432,8 +8758,8 @@ Tamgu* TamguCode::C_hfunctioncall(x_node* xn, Tamgu* kf) {
 		TamguFrame* frame = global->frames[idname];
 		if (frame->variables.size() != param->nodes.size()) {
 			stringstream message;
-			message << "The number of parameters does not match the data structure definition";
-			throw new TamguRaiseError(message, filename, current_start, current_end);
+			message << e_the_number_of;
+			throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 		}
 		//Now for each field in the fname, we need to check if it compatible with the function parameters...
 		short ftype, ptype;
@@ -8442,8 +8768,8 @@ Tamgu* TamguCode::C_hfunctioncall(x_node* xn, Tamgu* kf) {
 			ptype = kcall->Argument(i)->Typeinfered();
 			if (ptype != a_none && !global->Compatiblestrict(ptype, ftype)) {
 				stringstream message;
-				message << "Type mismatch... Expected: '" << global->Getsymbol(ftype) << "' Proposed: '" << global->Getsymbol(ptype) << "'";
-				throw new TamguRaiseError(message, filename, current_start, current_end);
+				message << e_type_mismatch_expected << global->Getsymbol(ftype) << "' Proposed: '" << global->Getsymbol(ptype) << "'";
+				throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 			}
 		}
 	}
@@ -9472,7 +9798,7 @@ Tamgu* TamguCode::C_taskellexpression(x_node* xn, Tamgu* kf) {
 			//It is a case construction within a function...
 			stringstream message;
 			message << "Variable: '" << global->Getsymbol(id) << "' has already been declared";
-			throw new TamguRaiseError(message, filename, current_start, current_end);
+			throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 		}
 
 		var = new TamguTaskellSelfVariableDeclaration(global, id);
@@ -9558,7 +9884,7 @@ Tamgu* TamguCode::C_whereexpression(x_node* xn, Tamgu* kf) {
 			if (kint->body->lambdadomain->declarations.check(idname)) {
 				stringstream message;
 				message << "Variable: '" << xn->nodes[i]->value << "' already declared";
-				throw new TamguRaiseError(message, filename, current_start, current_end);
+				throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 			}
 
 			var = new TamguTaskellSelfVariableDeclaration(global, idname);
@@ -10096,8 +10422,8 @@ Tamgu* TamguCode::C_dependency(x_node* xn, Tamgu* kf) {
 	if (xn->nodes[0]->token == "modifcall") {
 		if (global->modifieddependency != NULL) {
 			stringstream message;
-			message << "Error: You can only modify one dependency at a time.";
-			throw new TamguRaiseError(message, filename, current_start, current_end);
+			message << e_error_you_can;
+			throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 		}
 
 		modifcall = true;
@@ -10155,8 +10481,8 @@ Tamgu* TamguCode::C_dependency(x_node* xn, Tamgu* kf) {
 
 				if (!kx->Checkarity()) {
 					stringstream message;
-					message << "Wrong number of arguments or incompatible argument: '" << name << "'";
-					throw new TamguRaiseError(message, filename, current_start, current_end);
+					message << e_wrong_number_of06 << name << "'";
+					throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 				}
 				kx->Setnegation(negation);
 				return kx;
@@ -10416,8 +10742,8 @@ Tamgu* TamguCode::C_predicatevariable(x_node* xn, Tamgu* kf) {
 			as = (Tamgusynode*)global->dependencyvariables[sid];
 			if (as == NULL) {
 				stringstream message;
-				message << "Non instanciated variable in a dependency rule: '" << name << "' ";
-				throw new TamguRaiseError(message, filename, current_start, current_end);
+				message << e_non_instanciated_variable << name << "' ";
+				throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 			}						
 		}
 
@@ -10431,8 +10757,8 @@ Tamgu* TamguCode::C_predicatevariable(x_node* xn, Tamgu* kf) {
 
 			if (featureassignment == 1) {
 				stringstream message;
-				message << "Cannot assign or test a feature to this dependency node";
-				throw new TamguRaiseError(message, filename, current_start, current_end);
+				message << e_cannot_assign_or;
+				throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 			}
 
 			featureassignment = 2;
@@ -10445,14 +10771,14 @@ Tamgu* TamguCode::C_predicatevariable(x_node* xn, Tamgu* kf) {
 
 				if (kbloc.instructions[0]->Type() != a_mapss) {
 					stringstream message;
-					message << "Wrong feature structure";
-					throw new TamguRaiseError(message, filename, current_start, current_end);
+					message << e_wrong_feature_structure;
+					throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 				}
 
 				if (!Mergingfeatures((Tamgumapss*)as->features, (Tamgumapss*)kbloc.instructions[0])) {
 					stringstream message;
-					message << "Incoherent feature testing";
-					throw new TamguRaiseError(message, filename, current_start, current_end);
+					message << e_incoherent_feature_testing;
+					throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 				}
 			}			
 
@@ -10498,8 +10824,8 @@ Tamgu* TamguCode::C_assertpredicate(x_node* xn, Tamgu* kf) {
 	Tamgu* kbloc = new TamguPredicateAction(global, id, kf);
 	if (xn->nodes.size() != 2)  {
 		stringstream message;
-		message << "Error: Wrong assert or retract definition";
-		throw new TamguRaiseError(message, filename, current_start, current_end);
+		message << e_error_wrong_assert;
+		throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 	}
 	Traverse(xn->nodes.back(), kbloc);
 	return kbloc;
@@ -10575,8 +10901,8 @@ Tamgu* TamguCode::C_annotationrule(x_node* xn, Tamgu* kf) {
     
     if (!global->gTheAnnotationRules->storerule(krule)) {
         stringstream message;
-        message << "Unknown expression: " << xn->nodes[ipos-1]->value;
-        throw new TamguRaiseError(message, filename, current_start, current_end);
+        message << e_unknown_expression02 << xn->nodes[ipos-1]->value;
+        throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
     }
     
     return krule;
@@ -10739,8 +11065,8 @@ Tamgu* TamguCode::C_token(x_node* xn, Tamgu* kf) {
             if (((An_automaton*)a)->action==NULL) {
                 delete a;
                 stringstream message;
-                message << "Unknown expression: " << xn->nodes[0]->value;
-                throw new TamguRaiseError(message, filename, current_start, current_end);
+                message << e_unknown_expression02 << xn->nodes[0]->value;
+                throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
             }
         }
     
@@ -10754,8 +11080,8 @@ Tamgu* TamguCode::C_token(x_node* xn, Tamgu* kf) {
                 if (((An_regex*)a)->action==NULL) {
                     delete a;
                     stringstream message;
-                    message << "Unknown expression: " << xn->nodes[0]->value;
-                    throw new TamguRaiseError(message, filename, current_start, current_end);
+                    message << e_unknown_expression02 << xn->nodes[0]->value;
+                    throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
                 }
             }
 #endif
@@ -10769,8 +11095,8 @@ Tamgu* TamguCode::C_token(x_node* xn, Tamgu* kf) {
                     //We have a WITH description
                     if (kfunc == NULL) {
                         stringstream message;
-                        message << "Unknown function: '" << funcname << "'";
-                        throw new TamguRaiseError(message, filename, current_start, current_end);
+                        message << e_unknown_function << funcname << "'";
+                        throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
                     }
                     if (krule->classing || krule->removing)
                         a = new An_call(kfunc, false); //here only one...
@@ -10783,8 +11109,8 @@ Tamgu* TamguCode::C_token(x_node* xn, Tamgu* kf) {
 
                     if (!call->Checkarity()) {
                         stringstream message;
-                        message << "Wrong number of arguments or incompatible argument: '" << funcname << "'";
-                        throw new TamguRaiseError(message, filename, current_start, current_end);
+                        message << e_wrong_number_of06 << funcname << "'";
+                        throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
                     }
                 }
                 else {
@@ -10996,8 +11322,8 @@ Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
                 Tamgu* l = kf->Eval(parent, aNULL, 0);
                 if (!l->isFunction()) {
                     stringstream message;
-                    message << "Wrong definition of a lisp 'defun' function";
-                    throw new TamguRaiseError(message, filename, current_start, current_end);
+                    message << e_wrong_definition_of;
+                    throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
                 }
             }
             return kf;
@@ -11058,7 +11384,7 @@ bool TamguCode::Load(tokenizer_result<string>& xr) {
 		stringstream message;
 		global->lineerror = bnf.lineerror;
 		currentline = global->lineerror;
-		message << "Error while parsing program file: ";
+		message << e_error_while_parsing02;
 		if (bnf.errornumber != -1)
 			message << bnf.x_errormsg(bnf.errornumber);
 		else
@@ -11208,18 +11534,7 @@ bool TamguCode::CompileFull(string& body, vector<TamguFullError*>& errors) {
             global->threads[0].currentinstruction = NULL;
             global->lineerror = a->left;
             TamguFullError* err;
-            long pos = -1;
-            if (a->left != -1) {
-                pos = 0;
-                while (pos < xr.stackln.size() && xr.stackln[pos] < a->left) pos++;
-                if (pos != xr.stackln.size())
-                    err = new TamguFullError(a->message, a->filename, xr.bpos[pos] , xr.cpos[pos], a->left);
-                else
-                    err = new TamguFullError(a->message, a->filename, -1, -1, a->left);
-            }
-            else
-                err = new TamguFullError(a->message, a->filename, -1, -1, a->left);
-            
+            err = new TamguFullError(a->message, a->filename, a->left_pos, a->right_pos, a->left);
             errors.push_back(err);
             delete a;
             loop_on_error = 2;
@@ -11290,7 +11605,7 @@ bool TamguCode::Compile(string& body) {
             stringstream& message = global->threads[0].message;
             global->lineerror = bnf.lineerror;
             currentline = global->lineerror;
-            message << "Error while parsing program file: ";
+            message << e_error_while_parsing02;
             if (bnf.errornumber != -1)
                 message << bnf.x_errormsg(bnf.errornumber);
             else
@@ -11310,7 +11625,7 @@ bool TamguCode::Compile(string& body) {
         stringstream& message = global->threads[0].message;
         global->lineerror = bnf.lineerror;
         currentline = global->lineerror;
-        message << "Error while parsing program file: ";
+        message << e_error_while_parsing02;
         if (bnf.errornumber != -1)
             message << bnf.x_errormsg(bnf.errornumber);
         else
@@ -11393,7 +11708,7 @@ Tamgu* TamguCode::Compilefunction(string& body, short idthread) {
 		stringstream& message = global->threads[0].message;
 		global->lineerror = bnf.lineerror;
 		currentline = global->lineerror;
-		message << "Error while parsing program file: ";
+		message << e_error_while_parsing02;
 		if (bnf.errornumber != -1)
 			message << bnf.x_errormsg(bnf.errornumber);
 		else
@@ -11465,7 +11780,7 @@ Tamgu* TamguCode::CompileExpression(string& body, short idthread) {
         stringstream& message = global->threads[0].message;
         global->lineerror = bnf.lineerror;
         currentline = global->lineerror;
-        message << "Error while parsing program file: ";
+        message << e_error_while_parsing02;
         if (bnf.errornumber != -1)
             message << bnf.x_errormsg(bnf.errornumber);
         else
@@ -11523,7 +11838,7 @@ Tamgu* TamguCode::CompileFormat(string& body, Tamgu* parent) {
         stringstream& message = global->threads[0].message;
         global->lineerror = bnf.lineerror;
         currentline = global->lineerror;
-        message << "Error while parsing program file: ";
+        message << e_error_while_parsing02;
         if (bnf.errornumber != -1)
             message << bnf.x_errormsg(bnf.errornumber);
         else

@@ -303,7 +303,7 @@ public:
         
         if (res == 0) {
             if (globalTamgu->erroronkey)
-                return globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);
+                return globalTamgu->Returnerror(e_wrong_key_in, idthread);
             return aNOELEMENT;
         }
         
@@ -582,7 +582,7 @@ public:
         
         if (res == 0) {
             if (globalTamgu->erroronkey)
-               return globalTamgu->Returnerror("Wrong key in a container or a string access", idthread);
+               return globalTamgu->Returnerror(e_wrong_key_in, idthread);
             return aNOELEMENT;
         }
         
@@ -1029,7 +1029,7 @@ public:
 	Tamgu* divide(Tamgu* a, bool itself) {
 		double v = a->Float();
 		if (v == 0)
-			return globalTamgu->Returnerror("Error: Divided by 0");
+			return globalTamgu->Returnerror(e_error_divided_by);
 		v = (double)value / v;
 		return globalTamgu->ProvideConstfloat(v);
 	}
@@ -1051,7 +1051,7 @@ public:
 	Tamgu* mod(Tamgu* a, bool itself) {
 		long v = a->Integer();
 		if (v == 0)
-			return globalTamgu->Returnerror("Error: Divided by 0");
+			return globalTamgu->Returnerror(e_error_divided_by);
 
 		v = value % v;
 		return globalTamgu->ProvideConstint(v);
@@ -1353,7 +1353,7 @@ public:
 	Tamgu* divide(Tamgu* a, bool itself) {
 		double v = a->Float();
 		if (v == 0)
-			return globalTamgu->Returnerror("Error: Divided by 0");
+			return globalTamgu->Returnerror(e_error_divided_by);
 		v = (double)value / v;
 		return globalTamgu->ProvideConstfloat(v);
 	}
@@ -1379,7 +1379,7 @@ public:
 	Tamgu* mod(Tamgu* a, bool itself) {
 		BLONG v = value;
 		if (v == 0)
-			return globalTamgu->Returnerror("Error: Divided by 0");
+			return globalTamgu->Returnerror(e_error_divided_by);
 
 		v %= a->Long();
 		return globalTamgu->Providelong(v);
@@ -1657,7 +1657,7 @@ public:
 	Tamgu* divide(Tamgu* a, bool itself) {
 		float v = a->Decimal();
 		if (v == 0)
-			return globalTamgu->Returnerror("Error: Divided by 0");
+			return globalTamgu->Returnerror(e_error_divided_by);
 		v = value / v;
 		return new Tamgudecimal(v);
 	}
@@ -1679,7 +1679,7 @@ public:
 	Tamgu* mod(Tamgu* a, bool itself) {
 		long v = a->Integer();
 		if (v == 0)
-			return globalTamgu->Returnerror("Error: Divided by 0");
+			return globalTamgu->Returnerror(e_error_divided_by);
 
 		v = (long)value % v;
 		return new Tamgudecimal(v);
@@ -1948,7 +1948,7 @@ public:
 	Tamgu* divide(Tamgu* a, bool itself) {
 		double v = a->Float();
 		if (v == 0)
-			return globalTamgu->Returnerror("Error: Divided by 0");
+			return globalTamgu->Returnerror(e_error_divided_by);
 		v = value / v;
 		return globalTamgu->ProvideConstfloat(v);
 	}
@@ -1970,7 +1970,7 @@ public:
 	Tamgu* mod(Tamgu* a, bool itself) {
 		long v = a->Integer();
 		if (v == 0)
-			return globalTamgu->Returnerror("Error: Divided by 0");
+			return globalTamgu->Returnerror(e_error_divided_by);
 
 		v = (long)value % v;
 		return globalTamgu->ProvideConstfloat(v);
@@ -2251,7 +2251,7 @@ public:
 	Tamgu* divide(Tamgu* a, bool itself) {
 		double v = a->Float();
 		if (v == 0)
-			return globalTamgu->Returnerror("Error: Divided by 0");
+			return globalTamgu->Returnerror(e_error_divided_by);
 		v = (double)value / v;
 		return globalTamgu->ProvideConstfloat(v);
 	}
@@ -2273,7 +2273,7 @@ public:
 	Tamgu* mod(Tamgu* a, bool itself) {
 		BLONG v = a->Long();
 		if (v == 0)
-			return globalTamgu->Returnerror("Error: Divided by 0");
+			return globalTamgu->Returnerror(e_error_divided_by);
 
 		v = value % v;
 		return globalTamgu->Providelong(v);

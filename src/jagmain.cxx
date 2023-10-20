@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
         if (cmd == "-syncolor") {
             long i = 1;
             if ((i + 15) >= argc) {
-                cerr << "There should be 15 values, 3 digits for each denomination: string, method, keyword, function, comment" << endl;
+                cerr << e_there_should_be << endl;
                 exit(-1);
             }
             i++;

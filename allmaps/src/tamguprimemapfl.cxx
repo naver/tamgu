@@ -73,6 +73,7 @@ bool Tamguprimemapfl::InitialisationModule(TamguGlobal* global, string version) 
     Tamguprimemapfl::AddMethod(global, "pop", &Tamguprimemapfl::MethodPop, P_ONE, "pop(key): Erase an element from the map");
     Tamguprimemapfl::AddMethod(global, "merge", &Tamguprimemapfl::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
 
+    global->returnindextypes[Tamguprimemapfl::idtype] = a_long;
     global->newInstance[Tamguprimemapfl::idtype] = new Tamguprimemapfl(global);
     
     global->RecordCompatibilities(Tamguprimemapfl::idtype);

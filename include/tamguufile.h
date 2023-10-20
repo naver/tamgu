@@ -185,7 +185,7 @@ public:
 		if (callfunc->Size() == 2) {
 			op = callfunc->Evaluate(1, aNULL, idthread)->String();
 			if (op != "r" && op != "a" && op != "w")
-				return globalTamgu->Returnerror("Unknown operation for this file", idthread);
+				return globalTamgu->Returnerror(e_unknown_operation_for, idthread);
 			if (op == "w")
 				first = true;
 		}
@@ -200,7 +200,7 @@ public:
 #endif
         
         if (thefile == NULL)
-            return globalTamgu->Returnerror("Cannot open this file", idthread);
+            return globalTamgu->Returnerror(e_cannot_open_this, idthread);
         
         if (op[0] == 'r')
             consume_header();
@@ -221,7 +221,7 @@ public:
         thefile=fopen(STR(filename),STR(op));
 #endif
         if (thefile == NULL)
-			return globalTamgu->Returnerror("Cannot open this file", idthread);
+			return globalTamgu->Returnerror(e_cannot_open_this, idthread);
 
 		
 		return aTRUE;
@@ -242,7 +242,7 @@ public:
         thefile=fopen(STR(filename),STR(op));
 #endif
         if (thefile == NULL)
-            return globalTamgu->Returnerror("Cannot open this file", idthread);
+            return globalTamgu->Returnerror(e_cannot_open_this, idthread);
 
 		return aTRUE;
 	}
@@ -262,7 +262,7 @@ public:
         thefile=fopen(STR(filename),STR(op));
 #endif
         if (thefile == NULL)
-            return globalTamgu->Returnerror("Cannot open this file", idthread);
+            return globalTamgu->Returnerror(e_cannot_open_this, idthread);
 
 		long pos = ftell(thefile);
 		if (pos == 0)
@@ -284,7 +284,7 @@ public:
 	Tamgu* MethodGet(Tamgu* context, short idthread, TamguCall* callfunc) {
 		Locking _lock(this);
 		if (thefile == NULL || feof(thefile) || op != "rb")
-			return globalTamgu->Returnerror("Wrong access to the file", idthread);
+			return globalTamgu->Returnerror(e_wrong_access_to, idthread);
 
 		TAMGUCHAR c = Get();
 		return new Tamguustring(c);
@@ -293,7 +293,7 @@ public:
 	Tamgu* MethodTell(Tamgu* context, short idthread, TamguCall* callfunc) {
 		Locking _lock(this);
 		if (thefile == NULL || feof(thefile))
-			return globalTamgu->Returnerror("Wrong access to the file", idthread);
+			return globalTamgu->Returnerror(e_wrong_access_to, idthread);
 
 		return globalTamgu->ProvideConstint(ftell(thefile));
 	}
@@ -301,7 +301,7 @@ public:
     Tamgu* MethodFlush(Tamgu* context, short idthread, TamguCall* callfunc) {
         Locking _lock(this);
         if (thefile == NULL || feof(thefile) || op == "rb")
-            return globalTamgu->Returnerror("Wrong access to the file", idthread);
+            return globalTamgu->Returnerror(e_wrong_access_to, idthread);
         
         fflush(thefile);
         return aTRUE;
@@ -310,7 +310,7 @@ public:
 	Tamgu* MethodSeek(Tamgu* context, short idthread, TamguCall* callfunc) {
 		Locking _lock(this);
 		if (thefile == NULL || feof(thefile))
-			return globalTamgu->Returnerror("Wrong access to the file", idthread);
+			return globalTamgu->Returnerror(e_wrong_access_to, idthread);
 
 		long i = callfunc->Evaluate(0, context, idthread)->Integer();
 
@@ -323,7 +323,7 @@ public:
 	Tamgu* MethodUnget(Tamgu* context, short idthread, TamguCall* callfunc) {
 		Locking _lock(this);
 		if (thefile == NULL || feof(thefile) || op != "rb")
-			return globalTamgu->Returnerror("Wrong access to the file", idthread);
+			return globalTamgu->Returnerror(e_wrong_access_to, idthread);
 
         TAMGUCHAR c = (TAMGUCHAR)callfunc->Evaluate(0, aNULL, idthread)->Integer();
 
@@ -344,7 +344,7 @@ public:
 	Tamgu* MethodWrite(Tamgu* context, short idthread, TamguCall* callfunc) {
         Locking _lock(this);
         if (thefile == NULL || feof(thefile) || op == "rb")
-            return globalTamgu->Returnerror("Wrong access to the file", idthread);
+            return globalTamgu->Returnerror(e_wrong_access_to, idthread);
         
         wstring s = callfunc->Evaluate(0, aNULL, idthread)->UString();
         
@@ -394,7 +394,7 @@ public:
 	Tamgu* MethodWriteln(Tamgu* context, short idthread, TamguCall* callfunc) {
 		Locking _lock(this);
 		if (thefile == NULL || feof(thefile) || op == "rb")
-			return globalTamgu->Returnerror("Wrong access to the file", idthread);
+			return globalTamgu->Returnerror(e_wrong_access_to, idthread);
 
 		wstring s = callfunc->Evaluate(0, aNULL, idthread)->UString();
 
@@ -459,7 +459,7 @@ public:
 	Tamgu* MethodReadoneline(Tamgu* context, short idthread, TamguCall* callfunc) {
 		Locking _lock(this);
 		if (thefile == NULL || feof(thefile) || op != "rb")
-			return globalTamgu->Returnerror("Wrong access to the file", idthread);
+			return globalTamgu->Returnerror(e_wrong_access_to, idthread);
 
 		wstring s;
 		readoneline(s);

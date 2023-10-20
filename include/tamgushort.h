@@ -64,10 +64,15 @@ class Tamgushort : public TamguReference {
         return this;
     }
     
-	Tamgu* Putvalue(Tamgu* v, short idthread) {
-		value = v->Short();
-		return this;
-	}
+    Tamgu* Putvalue(Tamgu* v, short idthread) {
+        value = v->Short();
+        return this;
+    }
+
+    Tamgu* Clonevalue(Tamgu* v, short idthread) {
+        value = v->Short();
+        return this;
+    }
 
 
     Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread) {
@@ -631,7 +636,7 @@ class Tamgushort : public TamguReference {
 	Tamgu* divide(Tamgu* a, bool itself) {
 		double v = a->Float();
 		if (v == 0)
-			return globalTamgu->Returnerror("Error: Divided by 0");
+			return globalTamgu->Returnerror(e_error_divided_by);
 		v = (double)value / v;
 		return globalTamgu->ProvideConstfloat(v);
 	}
@@ -658,7 +663,7 @@ class Tamgushort : public TamguReference {
 	Tamgu* mod(Tamgu* a, bool itself) {
 		short v = a->Short();
 		if (v == 0)
-			return globalTamgu->Returnerror("Error: Divided by 0");
+			return globalTamgu->Returnerror(e_error_divided_by);
 
 		if (itself) {
 			value %= a->Short();

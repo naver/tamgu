@@ -77,7 +77,8 @@ bool Tamgutreemapul::InitialisationModule(TamguGlobal* global, string version) {
     Tamgutreemapul::AddMethod(global, "merge", &Tamgutreemapul::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
     
     if (version != "") {
-        global->newInstance[Tamgutreemapul::idtype] = new Tamgutreemapul(global);
+        global->returnindextypes[Tamgutreemapul::idtype] = a_long;
+    global->newInstance[Tamgutreemapul::idtype] = new Tamgutreemapul(global);
         
         global->RecordCompatibilities(Tamgutreemapul::idtype);
     }
