@@ -1152,12 +1152,41 @@ Tamgu* TamguInstructionAPPLYOPERATIONROOT::ccompute(short idthread, uchar top, s
 }
 
 Tamgu* TamguInstructionFRACTION::Getfraction(Tamgu* r, Tamgu* value, short idthread, short& d, short action) {
-    bool itself = true;
-    Tamgu* a;
+    bool itself = false;
     Tamgu* v = aNULL;
-    r = value;
+    Tamgu* a = instructions.vecteur[d--];
+    short act = 0;
+    if (d > 0) {
+        act = a->Action();
+        a = instructions.vecteur[d--];
+    }
+    
+    switch (a->Action()) {
+        case a_const:
+            r = a;
+            break;
+        case a_none:
+            r = a->Eval(aNULL, aNULL, idthread);
+            break;
+        case a_pipe:
+            return value;
+        case a_variable:
+            r = a->Eval(aNULL, aNULL, idthread);
+            break;
+        default:
+            r = Getfraction(aNULL, r, idthread, d, a->Action());
+    }
+    
+    v = (Tamgu*)r->Fraction();
+    if (v != r) {
+        r->Release();
+        r = v;
+    }
+
     while (d >= 0) {
         a = instructions.vecteur[d--];
+        if (a->Action() == a_pipe)
+            break;
         
         switch (a->Action()) {
             case a_const:
@@ -1165,8 +1194,6 @@ Tamgu* TamguInstructionFRACTION::Getfraction(Tamgu* r, Tamgu* value, short idthr
             case a_none:
                 a = a->Eval(aNULL, aNULL, idthread);
                 break;
-            case a_pipe:
-                return value;
             case a_variable:
                 a = a->Eval(aNULL, aNULL, idthread);
                 break;
@@ -1180,7 +1207,7 @@ Tamgu* TamguInstructionFRACTION::Getfraction(Tamgu* r, Tamgu* value, short idthr
             a = v;
         }
         
-        switch (action) {
+        switch (act) {
             case a_plus:
                 v = r->plus(a, itself);
                 break;
@@ -1219,9 +1246,8 @@ Tamgu* TamguInstructionFRACTION::Getfraction(Tamgu* r, Tamgu* value, short idthr
                 break;
         }
         
-        a->Release();
-        
         itself = true;
+        a->Release();
         if (r != v) {
             r->Release();
             r = (Tamgu*)v->Fraction();
@@ -1230,6 +1256,50 @@ Tamgu* TamguInstructionFRACTION::Getfraction(Tamgu* r, Tamgu* value, short idthr
         }
     }
     
+    switch (action) {
+        case a_plus:
+            v = r->plus(value, true);
+            break;
+        case a_minus:
+            v = r->minus(value, true);
+            break;
+        case a_multiply:
+            v = r->multiply(value, true);
+            break;
+        case a_divide:
+            v = r->divide(value, true);
+            if (v->isError()) {
+                r->Release();
+                d = DIVIDEDBYZERO;
+                return aRAISEERROR;
+            }
+            break;
+        case a_power:
+            v = r->power(value, true);
+            break;
+        case a_shiftleft:
+            v = r->shiftleft(value, true);
+            break;
+        case a_shiftright:
+            v = r->shiftright(value, true);
+            break;
+        case a_mod:
+            v = r->mod(value, true);
+            if (v->isError()) {
+                r->Release();
+                d = DIVIDEDBYZERO;
+                return aRAISEERROR;
+            }
+            break;
+    }
+
+    if (r != v) {
+        r->Release();
+        r = (Tamgu*)v->Fraction();
+        if (r != v)
+            v->Release();
+    }
+
     return r;
 }
 
