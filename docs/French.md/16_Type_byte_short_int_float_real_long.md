@@ -88,7 +88,7 @@ Tamgu prend en charge divers opérateurs mathématiques et logiques :
 
 ## Sucre Syntaxique
 
-Tamgu propose quelques notations de sucre syntaxique, rendant les opérations plus lisibles. Celles-ci incluent :
+Tamgu propose quelques notations améliorées pour rendre les opérations plus lisibles. Celles-ci incluent :
 
 - `×`, `÷` peuvent être utilisés à la place de `*` et `/`
 - `π`, `τ`, `φ`, `ℯ`, dont les valeurs sont respectivement 3.14159, 6.2831, 1.61803 et 2.71828
