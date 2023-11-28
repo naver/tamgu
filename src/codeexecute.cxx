@@ -339,7 +339,7 @@ public:
 
 
 #ifdef WIN32
-void __stdcall CodeinThread(ExecuteCode* call) {
+void __stdcall CodeinThread(ExecutionCode* call) {
 #else
     void CodeinThread(ExecutionCode* call) {
 #endif
@@ -360,7 +360,7 @@ Exporting Tamgu* TamguExecutionCode(TamguCode* code, string name, vector<Tamgu*>
 }
 
 #ifdef WIN32
-void __stdcall DeleteCodeinThread(ExecuteCode* call) {
+void __stdcall DeleteCodeinThread(ExecutionCode* call) {
 #else
     void DeleteCodeinThread(ExecutionCode* call) {
 #endif

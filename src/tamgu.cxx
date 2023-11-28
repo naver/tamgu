@@ -66,7 +66,8 @@ Exchanging TamguGlobal* globalTamgu = NULL;
 //----------------------------------------------------------------------------------
 vector<string> TamguGlobal::arguments;
 
-Exchanging Tamgu* aNULL = NULL;
+Tamgu* aNULL = NULL;
+
 void GlobalConstants::clean() {
     if (gNULL != NULL) {
         delete gITERNULL;
@@ -1476,7 +1477,7 @@ Tamgu* TamguGlobal::Provideinstance(Tamgu* p, long i) {
 }
 //--------------------------------------------------------------------------------------------
 
-//This function is hack which is necessary to get these variables a value in a DLL
+//This function is a hack which is necessary to get these variables a value in a DLL
 Exporting void TamguGlobal::Update() {
     globalTamgu = this;
     globalConstants.set(globalTamgu->global_constants);

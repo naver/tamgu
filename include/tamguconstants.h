@@ -212,7 +212,7 @@ const long CIRCULARDETECTION = -25;
 class TamguCallBreak;
 class TamguLet;
 
-extern Exchanging Tamgu* aNULL;
+extern Tamgu* aNULL;
 //---------------------------------------------------------------------------
 #define MIN3(a, b, c) ((a) < (b) ? ((a) < (c) ? (a) : (c)) : ((b) < (c) ? (b) : (c)))
 //---------------------------------------------------------------------------
