@@ -98,8 +98,6 @@ typedef bool(*TamguExternalModule)(TamguGlobal*, string);
 //--------------------------------------------------------------------
 typedef double(*mathFunc)(double);
 //--------------------------------------------------------------------
-extern Exchanging Tamgu* aNULL;
-//--------------------------------------------------------------------
 class GlobalConstants {
 public:
     
