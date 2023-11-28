@@ -158,9 +158,9 @@ void Tamgusocket::Setidtype(TamguGlobal* global) {
     Tamgusocket::AddMethod(global, "port", &Tamgusocket::MethodPort, P_NONE, "port(): return the current port number");
     Tamgusocket::AddMethod(global, "getpeername", &Tamgusocket::MethodGetpeername, P_ONE, "getpeername(int num): return the current peer name on the socket 'num'");
 
-    Tamgusocket* s = new Tamgusocket(global);
-    s->root = true;
     if (version != "") {
+        Tamgusocket* s = new Tamgusocket(global);
+        s->root = true;
         global->newInstance[Tamgusocket::idtype] = s;
         global->RecordCompatibilities(Tamgusocket::idtype);
     }
@@ -184,7 +184,6 @@ Tamgusocket::Tamgusocket(TamguGlobal* g, Tamgu* parent) : TamguObject(g, parent)
     idclient = 0;
     blocking = true;
     timeout = false;
-    g->RecordInTrackerProtected(this);
     sockets.push_back(this);
     isockets.push_back(idtracker);
 }

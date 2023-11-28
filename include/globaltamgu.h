@@ -25,12 +25,14 @@ const long DEFAUTTHREADMAX = 500;
 
 //------------------------------------------------------------------------
 // We use these methods to create different Jtamgu objects...
-Exporting int TamguCreateGlobal(long nbthreads = DEFAUTTHREADMAX);
-Exporting bool TamguDeleteGlobal(int idx);
-Exporting bool TamguSelectglobal(int idx);
-Exporting bool TamguReleaseglobal(int idx);
+Exporting short TamguCreateGlobal(long nbthreads = DEFAUTTHREADMAX);
+Exporting bool TamguDeleteGlobal(short idglobal);
+Exporting bool TamguDeleteGlobalinThread(short idglobal);
+Exporting bool TamguDeleteSpace(short idglobal, short idcode);
+Exporting bool TamguSelectglobal(short idglobal);
+Exporting bool TamguReleaseglobal(short idglobal);
 Exporting void TamguCleanAllGlobals();
-Exporting TamguGlobal* GlobalTamgu(int idx);
+Exporting TamguGlobal* getGlobalTamgu(short idglobal);
 //------------------------------------------------------------------------
 //These methods are used to create an tamgu engine...
 void FinalTamguConstantCleaning(void);
@@ -49,6 +51,7 @@ Exporting Tamgu* TamguEval(short idcode, long begininstruction);
 Exporting bool TamguLoading(short icode);
 Exporting short TamguLastCodeSpace();
 Exporting TamguCode* TamguCurrentSpace();
+Exporting TamguCode* TamguCodeSpace(short idglobal, short idcode);
 Exporting TamguCode* TamguCodeSpace(short idcode);
 Exporting string TamguCurrentFilename();
 Exporting string TamguErrorMessage();
@@ -62,12 +65,14 @@ Exporting bool TamguRunning();
 Exporting TamguGlobal* GlobalTamgu();
 Exporting short TamguCurrentThreadId();
 Exporting string TamguIndentation(string& codestr,string blanc);
+Exporting bool TamguStop(short idglobal);
 Exporting bool TamguStop();
 Exporting void TamguDisplayFunction(DisplayFunctionCall call, void* o);
 Exporting void TamguSetArguments(string args);
 Exporting void TamguSetArguments(vector<string>& args);
 Exporting string TamguAllObjectWithInfo(string code);
 Exporting void TamguAllObjects(vector<string>& vs);
+Exporting Tamgu* TamguExecutionCode(TamguCode* code, string name, vector<Tamgu*>& params);
 Exporting Tamgu* TamguExecute(TamguCode* code, string name, vector<Tamgu*>& params);
 Exporting Tamgu* TamguExecute(TamguCode* code, string name, vector<Tamgu*>& params, short idthread);
 Exporting void TamguSetos();

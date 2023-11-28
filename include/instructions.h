@@ -499,23 +499,24 @@ public:
 //This function call is used to call user declared functions
 class TamguThreadCall : public TamguCallFunction {
 public:
+    std::atomic<bool> joined;
+    std::atomic<bool> to_be_deleted;
+    threadhandle tid;
 
     TamguGlobal* global;
 
     Tamgu* domain;
 	Tamgu* recipient;
-    std::atomic<bool> joined;
+    std::thread* thid;
 
     long idomain;
 	short parentid;
 	short idthread;
 	bool cleandom;
 	bool exclusive;
-	std::thread* thid;
-	threadhandle tid;
 
-	TamguThreadCall(Tamgu* b, Tamgu* r, Tamgu* d, bool c, bool e, short id, short pid) : TamguCallFunction(b) {
-        
+	TamguThreadCall(Tamgu* b, Tamgu* r, Tamgu* d, bool c, bool e, short idt, short pid) : TamguCallFunction(b) {
+        to_be_deleted = false;
         global = globalTamgu;
 
         recipient = r;
@@ -523,7 +524,7 @@ public:
 		joined = false;
 		idtype = a_callthread;
 		domain = d;
-		idthread = id;
+		idthread = idt;
 		cleandom = c;
 		exclusive = e;
 		idomain = -1;
@@ -531,6 +532,13 @@ public:
 			idomain = d->Setprotect();
 	}
 
+    ~TamguThreadCall() {
+        if (to_be_deleted) {
+            thid->join();
+            delete thid;
+        }
+    }
+    
 	Tamgu* Eval(Tamgu* domain, Tamgu* value, short idthread);
 
 	short Name() {
@@ -4277,7 +4285,7 @@ public:
 		return size;
 	}
 	
-	bool Stacking(Tamgu* ins, char top);
+	bool Stacking(TamguGlobal* global, Tamgu* ins, char top);
 	
 	Tamgu* Returnlocal(TamguGlobal* g, Tamgu* parent = NULL);
 
@@ -4508,7 +4516,7 @@ public:
 	TamguInstructionAPPLYOPERATIONEQU(TamguGlobal* g, Tamgu* parent = NULL) : recipient(aNULL), TamguInstructionAPPLYOPERATIONROOT(g, parent, a_instructionequ) {}
 	virtual Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 
-    Tamgu* update(uchar btype);
+    Tamgu* update(TamguGlobal* global, uchar btype);
 
 	bool isEQU() {
 		return true;
@@ -4643,7 +4651,7 @@ public:
 	}
 
 	virtual Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
-	virtual Tamgu* Compile(Tamgu* parent);
+	virtual Tamgu* Compile(TamguGlobal*, Tamgu* parent);
     
     long Getinteger(short idthread);
     BLONG Getlong(short idthread);

@@ -55,7 +55,7 @@ public:
             }
         }
     }
-
+    
     void clean() {
 		if (vecteur == NULL)
 			return;

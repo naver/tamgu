@@ -1436,7 +1436,7 @@ Tamgu* ProcEval(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     //Return the current position in the garbage and set the condition to record
     //new elements...
     //We switch to threadMODE so that Provide will create elements and not store them
-    long position = initialize_local_garbage(idthread);
+    long position = globalTamgu->initialize_local_garbage(idthread);
     Tamgu* ci = globalTamgu->threads[idthread].currentinstruction;
     
     if (code.find(";") == -1 && code.find("{") == -1)
@@ -1449,7 +1449,7 @@ Tamgu* ProcEval(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     globalTamgu->Popstack(idthread);
     
     if (compiled == NULL || compiled->isError() || globalTamgu->Error(idthread)) {
-        clean_from_garbage_position(topstack, idthread, position, compiled, lastrecorded);
+        globalTamgu->clean_from_garbage_position(topstack, idthread, position, compiled, lastrecorded);
         globalTamgu->threads[idthread].currentinstruction = ci;
         if (compiled != NULL && compiled->isError())
             return compiled;
@@ -1459,7 +1459,7 @@ Tamgu* ProcEval(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     }
 
     if (compiled->isFunction()) {
-        set_garbage_mode(false);
+        globalTamgu->set_garbage_mode(false);
         return compiled;
     }
 
@@ -1470,7 +1470,7 @@ Tamgu* ProcEval(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     Tamgu* a = acode->ExecuteExpression(local,idthread);
     globalTamgu->threads[idthread].currentinstruction = ci;
 
-    clean_from_garbage_position(topstack, idthread, position, a, lastrecorded, maxrecorded);
+    globalTamgu->clean_from_garbage_position(topstack, idthread, position, a, lastrecorded, maxrecorded);
     return a;
 }
 

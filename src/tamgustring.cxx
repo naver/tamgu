@@ -155,6 +155,7 @@ bool Tamgustring::InitialisationModule(TamguGlobal* global, string version) {
     Tamgustring::AddMethod(global, "deaccentuate", &Tamgustring::MethodDeaccentuate, P_NONE, "deaccentuate(): Remove the accents from accented characters", a_string);
     Tamgustring::AddMethod(global, "indent", &Tamgustring::MethodIndent, P_NONE | P_ONE | P_TWO, "indent(int nbblanks, bool taskel): Format a piece of code.", a_string);
     Tamgustring::AddMethod(global, "lower", &Tamgustring::MethodLower, P_NONE, "lower(): Return the string in lower characters", a_string);
+    Tamgustring::AddMethod(global, "startwith", &Tamgustring::MethodStartWith, P_ONE, "startwith(string): check if it starts with a given string", a_boolean);
     Tamgustring::AddMethod(global, "trim", &Tamgustring::MethodTrim, P_NONE, "trim(): remove the trailing characters", a_string);
     Tamgustring::AddMethod(global, "trimleft", &Tamgustring::MethodTrimleft, P_NONE, "trimleft(): remove the trailing characters on the left", a_string);
     Tamgustring::AddMethod(global, "trimright", &Tamgustring::MethodTrimright, P_NONE, "trimright(): remove the trailing characters on the right", a_string);
@@ -270,6 +271,15 @@ Tamgu* Tamgustring::Pred() {
     return globalTamgu->Providewithustring(v);
 }
 
+
+Tamgu* Tamgustring::MethodStartWith(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    string copen = callfunc->Evaluate(0, contextualpattern, idthread)->String();
+    Locking _lock(this);
+    string v =  value.substr(0, copen.size());
+    if (v == copen)
+        return aTRUE;
+    return aFALSE;
+}
 
 Exporting Tamgu* Tamgustring::in(Tamgu* context, Tamgu* a, short idthread) {
     //Three cases along the container type...
@@ -2796,6 +2806,7 @@ bool Tamgua_string::InitialisationModule(TamguGlobal* global, string version) {
     Tamgua_string::AddMethod(global, "deaccentuate", &Tamgua_string::MethodDeaccentuate, P_NONE, "deaccentuate(): Remove the accents from accented characters", a_string);
     
     Tamgua_string::AddMethod(global, "lower", &Tamgua_string::MethodLower, P_NONE, "lower(): Return the string in lower characters", a_string);
+    Tamgua_string::AddMethod(global, "startwith", &Tamgua_string::MethodStartWith, P_ONE, "startwith(string): check if it starts with a given string", a_boolean);
     Tamgua_string::AddMethod(global, "trim", &Tamgua_string::MethodTrim, P_NONE, "trim(): remove the trailing characters", a_string);
     Tamgua_string::AddMethod(global, "trimleft", &Tamgua_string::MethodTrimleft, P_NONE, "trimleft(): remove the trailing characters on the left", a_string);
     Tamgua_string::AddMethod(global, "trimright", &Tamgua_string::MethodTrimright, P_NONE, "trimright(): remove the trailing characters on the right", a_string);
@@ -2881,6 +2892,15 @@ Tamgu* Tamgua_string::Pred() {
     return globalTamgu->Providewithustring(w);
 }
 
+
+Tamgu* Tamgua_string::MethodStartWith(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    string copen = callfunc->Evaluate(0, contextualpattern, idthread)->String();
+    string v = value.value();
+    v =  v.substr(0, copen.size());
+    if (v == copen)
+        return aTRUE;
+    return aFALSE;
+}
 
 Exporting Tamgu* Tamgua_string::in(Tamgu* context, Tamgu* a, short idthread) {
     //Three cases along the container type...

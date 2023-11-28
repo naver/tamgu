@@ -41,8 +41,9 @@
 #include "tamgutaskell.h"
 #include "tamgulisp.h"
 #include "tamgucomplex.h"
+#include "tamgusocket.h"
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2023.10.20.16";
+const char* tamgu_version = "Tamgu 1.2023.11.23.10";
 
 extern "C" {
 Exporting const char* TamguVersion(void) {
@@ -64,21 +65,47 @@ Exchanging TamguGlobal* globalTamgu = NULL;
 #endif
 //----------------------------------------------------------------------------------
 vector<string> TamguGlobal::arguments;
-Exchanging Tamgu* aNULL  = NULL;
+
+Exchanging Tamgu* aNULL = NULL;
+void GlobalConstants::clean() {
+    if (gNULL != NULL) {
+        delete gITERNULL;
+        delete gUNIVERSAL;
+        delete gTRUE;
+        delete gFALSE;
+        delete gEMPTYLISP;
+        delete gEMPTYSTRING;
+        delete gEMPTYUSTRING;
+        delete gBREAK;
+        delete gCONTINUE;
+        delete gRETURN;
+        delete gPIPE;
+        delete gNOELEMENT;
+        delete gDEFAULT;
+        delete gEND;
+        delete gRAISEERROR;
+        delete gBREAKFALSE;
+        delete gBREAKTRUE;
+        delete gBREAKZERO;
+        delete gBREAKONE;
+        delete gASSIGNMENT;
+        delete gFAIL;
+        delete gTERMINAL;
+        delete gCUTFALSE;
+        delete gCUT;
+        delete gSTOP;
+        delete gHASKELL;
+        delete gNULLDECLARATION;
+        delete gNULLLet;
+        delete gNOTHING;
+    }
+}
+
+GlobalConstants globalConstants;
+
 Tamgu* booleantamgu[2];
 
-void clean_aNULL() {
-    if (aNULL != NULL)
-        delete aNULL;
-    aNULL = NULL;
-}
 //----------------------------------------------------------------------------------
-// These two variables are used to manage local garbaging when an eval is executed...
-static std::atomic<short> number_of_current_eval;
-static bool add_to_tamgu_garbage = false;
-//----------------------------------------------------------------------------------
-
-
 // Debug area, to detect potential memory leaks...
 #ifdef GARBAGEFORDEBUG
 
@@ -98,9 +125,8 @@ Exporting Tamgu::Tamgu() {
         iddebug = _tamgu_garbage.size();
         _tamgu_garbage.push_back(this);
     }
-    if (add_to_tamgu_garbage) {
-        globalTamgu->Storeingarbage(this);
-    }
+
+    globalTamgu->Storeingarbageif_add(this);
 }
 
 Exporting Tamgu::~Tamgu() {
@@ -108,8 +134,8 @@ Exporting Tamgu::~Tamgu() {
     if (idtracker != -1)
         globalTamgu->RemoveFromTracker(idtracker);
     _tamgu_garbage[iddebug] = NULL;
-    if (add_to_tamgu_garbage)
-        globalTamgu->Removefromlocalgarbage(-1,-1,this);
+
+    globalTamgu->Removefromlocalgarbageif_add(-1,-1,this);
 }
 
 void Garbaging(vector<Tamgu*>& issues, vector<long>& idissues) {
@@ -132,37 +158,14 @@ void Garbaging(vector<Tamgu*>& issues, vector<long>& idissues) {
 Tamgu::Tamgu() {
     idtracker = -1;
     investigate = is_none;
-    if (add_to_tamgu_garbage) {
-        globalTamgu->Storeingarbage(this);
-    }
+    globalTamgu->Storeingarbageif_add(this);
 }
 
 Tamgu::~Tamgu() {
-    if (add_to_tamgu_garbage)
-        globalTamgu->Removefromlocalgarbage(-1,-1,this);
+    globalTamgu->Removefromlocalgarbageif_add(-1,-1,this);
 }
 
 #endif
-
-void set_garbage_mode(bool v) {
-    if (v)
-        number_of_current_eval++;
-    else
-        number_of_current_eval--;
-    
-    if (!number_of_current_eval)
-        add_to_tamgu_garbage = false;
-}
-
-bool Activategarbage(bool v) {
-    bool previous = add_to_tamgu_garbage;
-    add_to_tamgu_garbage = v;
-    return previous;
-}
-
-int Addtogarbage() {
-    return add_to_tamgu_garbage;
-}
 
 void TamguGlobal::Removefromlocalgarbage(short idthread, long i, Tamgu* a) {
     //If has already been cleaned or it was not created in this thread
@@ -183,13 +186,6 @@ void TamguGlobal::Removefromlocalgarbage(short idthread, long i, Tamgu* a) {
     a->idtracker = -555;
     
 }
-
-long initialize_local_garbage(short idthread) {
-    number_of_current_eval++;
-    add_to_tamgu_garbage = true;
-    return globalTamgu->threads[idthread].Garbagesize();
-}
-
 
 void ThreadStruct::Cleanfromgarbageposition(Tamgu* declaration,
                                             short idthread,
@@ -219,13 +215,6 @@ void ThreadStruct::Cleanfromgarbageposition(Tamgu* declaration,
     else
         localgarbage.clear();
     in_eval = false;
-}
-
-void clean_from_garbage_position(Tamgu* declaration, short idthread, long p, Tamgu* keep, long lastrecorded, long maxrecorded) {
-    globalTamgu->threads[idthread].Cleanfromgarbageposition(declaration, idthread, p, keep, lastrecorded, maxrecorded);
-    
-    number_of_current_eval--;
-    add_to_tamgu_garbage = number_of_current_eval;
 }
 
 //----------------------------------------------------------------------------------
@@ -348,12 +337,17 @@ TamguGlobal::TamguGlobal(long nb, bool setglobal) :
 idSymbols(false), methods(false), compatibilities(false), strictcompatibilities(false),
 operator_strings(false), terms(false), booleanlocks(true), tracked(NULL, true), trackerslots(-1, true) {
     
+    TamguGlobal* globalSave = globalTamgu;
+    globalTamgu = this;
+
 #ifdef TAMGULOOSEARGUMENTCOMPATIBILITIES
     loosecompability = true;
 #else
     loosecompability = false;
 #endif
-
+    
+    global_constants = &globalConstants;
+    
     handler_on_utf8 = create_utf8_handler();
     
     add_to_tamgu_garbage = false;
@@ -392,10 +386,10 @@ operator_strings(false), terms(false), booleanlocks(true), tracked(NULL, true), 
     erroronkey = false;
     windowmode = false;
     spaceid = -1;
-    running = false;    
+    running = false;
     waitingonfalse = false;
     executionbreak = false;
-
+    
     
     threads = new ThreadStruct[maxthreads];
     errors = new bool[maxthreads];
@@ -415,8 +409,6 @@ operator_strings(false), terms(false), booleanlocks(true), tracked(NULL, true), 
     
     kstd = NULL;
     kerr = NULL;
-    TamguGlobal* globalSave = globalTamgu;
-    globalTamgu = this;
     
     RecordConstantNames();
     RecordSystemVariables();
@@ -520,7 +512,11 @@ void Tamgu::Deletion(std::set<unsigned long>& deleted_elements) {
 
 TamguGlobal::~TamguGlobal() {
     vector<Tamgu*> tobecleaned;
-    
+
+    TamguGlobal* resetToNUll = globalTamgu;
+    if (globalTamgu != this)
+        globalTamgu = this;
+
     for (auto& a: integer_pool) {
         if (a.second->idtracker == -1)
             tobecleaned.push_back(a.second);
@@ -538,6 +534,7 @@ TamguGlobal::~TamguGlobal() {
     
     string_pool.clear();
     
+
     clear_pattern();
     clear_automates();
     
@@ -565,6 +562,8 @@ TamguGlobal::~TamguGlobal() {
     
     Clearknowledgebase();
     spaces.clear();
+
+    //For the sockets, we do it in advance
     tracked.clean();
     
     for (i = 0; i < mapreservoire.size(); i++)
@@ -666,35 +665,7 @@ TamguGlobal::~TamguGlobal() {
     if (gAutomatons!=NULL)
         delete gAutomatons;
     
-    delete gITERNULL;
-    delete gUNIVERSAL;
-    delete gTRUE;
-    delete gFALSE;
-    delete gEMPTYLISP;
-    delete gEMPTYSTRING;
-    delete gEMPTYUSTRING;
-    delete gBREAK;
-    delete gCONTINUE;
-    delete gRETURN;
-    delete gPIPE;
-    delete gNOELEMENT;
-    delete gDEFAULT;
-    delete gEND;
-    delete gRAISEERROR;
-    delete gBREAKFALSE;
-    delete gBREAKTRUE;
-    delete gBREAKZERO;
-    delete gBREAKONE;
-    delete gASSIGNMENT;
-    delete gFAIL;
-    delete gTERMINAL;
-    delete gCUTFALSE;
-    delete gCUT;
-    delete gSTOP;
-    delete gHASKELL;
-    delete gNULLDECLARATION;
-    delete gNULLLet;
-    delete gNOTHING;
+    globalTamgu = resetToNUll;
     
 #ifdef GARBAGEFORDEBUG
     vector<Tamgu*> issues;
@@ -1508,10 +1479,9 @@ Tamgu* TamguGlobal::Provideinstance(Tamgu* p, long i) {
 //This function is hack which is necessary to get these variables a value in a DLL
 Exporting void TamguGlobal::Update() {
     globalTamgu = this;
-    aNULL = gNULL;
-    booleantamgu[0] = gFALSE;
-    booleantamgu[1] = gTRUE;
-    
+    globalConstants.set(globalTamgu->global_constants);
+    booleantamgu[0] = aFALSE;
+    booleantamgu[1] = aTRUE;
     set_utf8_handler(handler_on_utf8);
 }
 
@@ -1650,40 +1620,75 @@ Exporting void TamguGlobal::RecordConstantNames() {
     atanOperatorMath[a_shiftleft] = true;
     atanOperatorMath[a_shiftright] = true;
     
-    gMINUSONE = ProvideConstint(-1);
-    gZERO = ProvideConstint(0);
-    gZEROPOINTZERO = ProvideConstfloat(0.0);
-    gONE = ProvideConstint(1);
-    
-    //They are created once for all...
-    //Constants and ids
-    gITERNULL = new TamguConstiteration(false, NULL);
-    gPIPE = new TamguConstPipe(a_pipe, ":", NULL);
-    
-    gTRUE = new TamguConstBool(true, NULL);
-    gFALSE = new TamguConstBool(false, NULL);
-    
-    gEMPTYLISP = new Tamgulispcode(NULL);
-    gEMPTYSTRING = new TamguConstString("", NULL);
-    gEMPTYUSTRING = new TamguConstUString(L"", NULL);
-    gEMPTYLISP->Protectfromtracker();
-    gEMPTYSTRING->Protectfromtracker();
-    gEMPTYUSTRING->Protectfromtracker();
-    
-    if (aNULL == NULL) {
+    if (aMINUSONE == NULL) {
+        aMINUSONE = new TamguConstInt(-1);
+        aZERO = new TamguConstInt(0);
+        aZEROPOINTZERO = new TamguConstFloat(0.0);
+        aONE = new TamguConstInt(1);
+
+        //They are created once for all...
+        //Constants and ids
+        aPIPE = new TamguConstPipe(a_pipe, ":", NULL);
+        
+        aTRUE = new TamguConstBool(true, NULL);
+        aFALSE = new TamguConstBool(false, NULL);
+        
+        aEMPTYLISP = new Tamgulispcode(NULL);
+        aEMPTYSTRING = new TamguConstString("", NULL);
+        aEMPTYUSTRING = new TamguConstUString(L"", NULL);
+        
+        aEND = new TamguError(NULL, "END");
+        aRAISEERROR = new TamguError(NULL, "ERROR");
+        aBREAKTRUE = new TamguCallBreak(aTRUE, NULL);
+        aBREAKFALSE = new TamguCallBreak(aFALSE, NULL);
+        aBREAKONE = new TamguCallBreak(aONE, NULL);
+        aBREAKZERO = new TamguCallBreak(aZERO, NULL);
+
+        aNULLDECLARATION = new TamguDeclaration((TamguGlobal*)NULL);
+        aNULLLet = new TamguLet(NULL);
+
+
+        //Since we need to set aNULL in vecte, we keep local instantiation of aNULL, which is related to gNULL
         aNULL = new TamguConst(Createid("null"), "null", NULL); //0 --> a_null
         //a hack to avoid this value to be stored in the tracker, when creating the corresponding system variable (see RecordSystemVariables() in codeexecute.cxx)
+
+        globalConstants.gNULL = aNULL;
+
+        aITERNULL = new TamguConstiteration(false, NULL);
+        aITERNULL->Update(aNULL); //Horrible hack to have aITERNULL being deleted before aNULL, but benefiting from aNULL still
+
+        aMINUSONE->Protectfromtracker();
+        aZERO->Protectfromtracker();
+        aZEROPOINTZERO->Protectfromtracker();
+        aONE->Protectfromtracker();
+
+        aITERNULL->Protectfromtracker();
+        aPIPE->Protectfromtracker();
+        
+        aTRUE->Protectfromtracker();
+        aFALSE->Protectfromtracker();
+        
+        aEMPTYLISP->Protectfromtracker();
+        aEMPTYSTRING->Protectfromtracker();
+        aEMPTYUSTRING->Protectfromtracker();
+        
+        aEND->Protectfromtracker();
+        aRAISEERROR->Protectfromtracker();
+        aBREAKTRUE->Protectfromtracker();
+        aBREAKFALSE->Protectfromtracker();
+        aBREAKONE->Protectfromtracker();
+        aBREAKZERO->Protectfromtracker();
+
+        aNULLDECLARATION->Protectfromtracker();
+        aNULLLet->Protectfromtracker();
+        
         aNULL->Protectfromtracker();
+
+        booleantamgu[0] = aFALSE;
+        booleantamgu[1] = aTRUE;
     }
     else
         Createid("null"); //a_null
-    
-    gNULL = aNULL;
-    
-    gITERNULL->Update(aNULL); //Horrible hack to have aITERNULL being deleted before aNULL, but benefiting from aNULL still
-    
-    booleantamgu[0] = gFALSE;
-    booleantamgu[1] = gTRUE;
     
     Setlispmode(false);
     
@@ -1764,18 +1769,27 @@ Exporting void TamguGlobal::RecordConstantNames() {
 
     Createid("&error");//59 --> a_error
     
-    gEND = new TamguError(NULL, "END");
-    gRAISEERROR = new TamguError(NULL, "ERROR");
-    
     Createid("const"); //60 --> a_const
     Createid("tam_none"); //61 --> a_none
     Createid(":"); //62 --> a_pipe
     
-    gBREAK = new TamguConstBreak(Createid("break"), "break", NULL); //63 --> a_break
-    gCONTINUE = new TamguConstContinue(Createid("continue"), "continue", NULL); //64 --> a_continue
-    gRETURN = new TamguConst(Createid("return"), "return",  NULL); //65 --> a_return
-    gNOELEMENT = new TamguConst(Createid("empty"), "empty", NULL); //66 --> a_empty
-    gNOELEMENT->Protectfromtracker(); //a hack to avoid this value to be stored in the tracker...
+    if (aBREAK == NULL) {
+        aBREAK = new TamguConstBreak(Createid("break"), "break", NULL); //63 --> a_break
+        aCONTINUE = new TamguConstContinue(Createid("continue"), "continue", NULL); //64 --> a_continue
+        aRETURN = new TamguConst(Createid("return"), "return",  NULL); //65 --> a_return
+        aNOELEMENT = new TamguConst(Createid("empty"), "empty", NULL); //66 --> a_empty
+
+        aBREAK->Protectfromtracker();
+        aCONTINUE->Protectfromtracker();
+        aRETURN->Protectfromtracker();
+        aNOELEMENT->Protectfromtracker(); //a hack to avoid this value to be stored in the tracker...
+    }
+    else {
+        Createid("break");
+        Createid("continue");
+        Createid("return");
+        Createid("empty");
+    }
     
     Createid("_MAIN"); //67 --> a_mainframe
     
@@ -1798,7 +1812,12 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("_initial"); //83 --> a_initial
     Createid("iterator"); //84 --> a_iteration
     
-    gDEFAULT = new TamguConst(Createid("&default"), "&default", NULL); //85 --> a_default
+    if (aDEFAULT == NULL) {
+        aDEFAULT = new TamguConst(Createid("&default"), "&default", NULL); //85 --> a_default
+        aDEFAULT->Protectfromtracker();
+    }
+    else
+        Createid("&default");
     
     Createid("forinrange"); //86 --> a_forinrange
     Createid("sequence"); //87 --> a_sequence
@@ -1807,18 +1826,18 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("&breaktrue"); //90 --> a_breaktrue
     Createid("&breakfalse"); //91 --> a_breakfalse
     
-    gBREAKTRUE = new TamguCallBreak(gTRUE, NULL);
-    gBREAKFALSE = new TamguCallBreak(gFALSE, NULL);
-    gBREAKONE = new TamguCallBreak(gONE, NULL);
-    gBREAKZERO = new TamguCallBreak(gZERO, NULL);
-    
     Createid("constvectormerge"); //92 --> a_vectormerge
     Createid("instructionequ"); //93 --> a_instructionequ
     
     //let is used in Taskell expression, it corresponds to a self variable...
     Createid("let"); //94 --> a_let
     
-    gASSIGNMENT = new TamguConst(Createid("&assign"), "&assign", NULL); //95 --> a_assign
+    if (aASSIGNMENT == NULL) {
+        aASSIGNMENT = new TamguConst(Createid("&assign"), "&assign", NULL); //95 --> a_assign
+        aASSIGNMENT->Protectfromtracker();
+    }
+    else
+        Createid("&assign");
     
     Createid("tamgu");//96 --> a_tamgu
     Createid("this");//97 --> a_this
@@ -1839,9 +1858,12 @@ Exporting void TamguGlobal::RecordConstantNames() {
 
     Createid("&PREDICATEENTREE"); //109 --> a_predicateentree
 
-
-    gUNIVERSAL = new TamguConstUniversal(Createid("_"), "_", NULL); //110 --> a_universal
-    gUNIVERSAL->Protectfromtracker(); //a hack to avoid this value to be stored in the tracker...
+    if (aUNIVERSAL == NULL) {
+        aUNIVERSAL = new TamguConstUniversal(Createid("_"), "_", NULL); //110 --> a_universal
+        aUNIVERSAL->Protectfromtracker(); //a hack to avoid this value to be stored in the tracker...
+    }
+    else
+        Createid("_");
     
     Createid("asserta"); //111 --> a_asserta
     Createid("assertz"); //112 --> a_assertz
@@ -1931,13 +1953,15 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("tam_booleanand"); //189
     Createid("tam_booleanor"); //190
     
-    gHASKELL = new TamguConst(Createid("&taskell"), "&taskell", NULL); //191
+    if (aHASKELL == NULL) {
+        aHASKELL = new TamguConst(Createid("&taskell"), "&taskell", NULL); //191
+        aHASKELL->Protectfromtracker();
+    }
+    else
+        Createid("&taskell");
     
     Createid("tam_forcedaffectation"); //192
-    
-    gNULLDECLARATION = new TamguDeclaration(this);
-    gNULLLet = new TamguLet(NULL);
-    
+        
     Createid("²"); //193
     Createid("³"); //194
     Createid("&counter;"); //195
@@ -1958,9 +1982,13 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("table"); //206
     Createid("ifnot"); //207
     
-    gNOTHING = new TamguConst(Createid("Nothing"), "Nothing", NULL); //208 --> a_Nothing
-    gNOTHING->Protectfromtracker();
-    
+    if (aNOTHING == NULL) {
+        aNOTHING = new TamguConst(Createid("Nothing"), "Nothing", NULL); //208 --> a_Nothing
+        aNOTHING->Protectfromtracker();
+    }
+    else
+        Createid("Nothing");
+        
     Createid("preg"); //209
     Createid("&a_rules;"); //210
     Createid("tam_iftaskell"); //211
@@ -2122,14 +2150,14 @@ Exporting short TamguGlobal::GetThreadid() {
     if (!isthreading)
         return 0;
     
-    int id;
-    threadids.get(_GETTHREADID(), id);
-    return id;
+    int idthread;
+    threadids.get(_GETTHREADID(), idthread);
+    return idthread;
 }
 
-short TamguGlobal::InitThreadid(short id) {
-    threadids.set(threads[id].Initialization(),id);
-    return id;
+short TamguGlobal::InitThreadid(short idthread) {
+    threadids.set(threads[idthread].Initialization(),idthread);
+    return idthread;
 }
 
 Tamgu* TamguGlobal::Getmainframe(size_t idcode) {

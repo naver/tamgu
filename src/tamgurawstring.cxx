@@ -290,6 +290,7 @@ void Tamgurawstring::Setidtype(TamguGlobal* global) {
     Tamgurawstring::AddMethod(global, "upper", &Tamgurawstring::MethodUpper, P_NONE, "upper(): Return the string in upper characters");
     Tamgurawstring::AddMethod(global, "deaccentuate", &Tamgurawstring::MethodDeaccentuate, P_NONE, "deaccentuate(): Remove the accents from accented characters");
     Tamgurawstring::AddMethod(global, "lower", &Tamgurawstring::MethodLower, P_NONE, "lower(): Return the string in lower characters");
+    Tamgurawstring::AddMethod(global, "startwith", &Tamgurawstring::MethodStartWith, P_ONE, "startwith(string): check if it starts with a given string");
     Tamgurawstring::AddMethod(global, "trim", &Tamgurawstring::MethodTrim, P_NONE, "trim(): remove the trailing characters");
     Tamgurawstring::AddMethod(global, "trimleft", &Tamgurawstring::MethodTrimleft, P_NONE, "trimleft(): remove the trailing characters on the left");
     Tamgurawstring::AddMethod(global, "trimright", &Tamgurawstring::MethodTrimright, P_NONE, "trimright(): remove the trailing characters on the right");
@@ -390,6 +391,16 @@ Tamgu* Tamgurawstring::in(Tamgu* context, Tamgu* a, short idthread) {
         return aFALSE;
 
     return aTRUE;
+}
+
+Tamgu* Tamgurawstring::MethodStartWith(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    string copen = callfunc->Evaluate(0, contextualpattern, idthread)->String();
+    Locking _lock(this);
+    string v = String();
+    v =  v.substr(0, copen.size());
+    if (v == copen)
+        return aTRUE;
+    return aFALSE;
 }
 
 unsigned long Tamgurawstring::EditDistance(Tamgu* e) {

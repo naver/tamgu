@@ -72,6 +72,9 @@ void Setlispmode(bool v);
 inline long maxlocal(long x, long y) { return (x > y) ? x : y; }
 inline long minlocal(long x, long y) { return (x < y) ? x : y; }
 //-----------------------------------------------------------------------
+extern Exchanging vector<TamguGlobal*> globalTamguPool;
+
+#define global_tamgu globalTamguPool[idglobal]
 
 //The main variable, which controls the world...
 #ifdef MULTIGLOBALTAMGU
@@ -103,11 +106,6 @@ typedef enum {is_none = 0, is_container = 1, is_constante = 2, is_constcontainer
     is_noconst = 0xFFFD
 } is_investigations;
 
-void set_garbage_mode(bool v);
-long initialize_local_garbage(short idthread);
-void clean_from_garbage_position(Tamgu* declaration, short idthread, long p, Tamgu*, long, long maxrecorded = -1);
-int Addtogarbage();
-
 //Tamgu is the class from which every element descends
 class Tamgu {
 public:
@@ -123,7 +121,7 @@ public:
 	virtual ~Tamgu();
 #endif
 
-	virtual Tamgu* Compile(Tamgu* parent) {
+	virtual Tamgu* Compile(TamguGlobal*, Tamgu* parent) {
 		return this;
 	}
 

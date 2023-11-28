@@ -55,7 +55,7 @@ tamgudebugger* debugcontroller = nil;
 
 extern ViewController* vue;
 
-BOOL isItMainThread() {
+BOOL isItMainThread(void) {
     if ([NSThread isMainThread]==YES)
         return YES;
     return NO;

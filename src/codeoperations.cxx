@@ -1417,7 +1417,7 @@ Tamgu* TamguInstructionAPPLYOPERATION::Eval(Tamgu* res, Tamgu* inter, short idth
     //This is an expression that escaped the compiler...
     if (root == NULL)
         //we create it on the fly...
-        root = Compile(NULL);
+        root = Compile(globalTamgu, NULL);
     
     return root->Eval(res, inter, idthread);
 }
@@ -1426,7 +1426,7 @@ Tamgu* TamguInstructionAPPLYOPERATION::Eval(Tamgu* res, Tamgu* inter, short idth
 long TamguInstructionAPPLYOPERATION::Getinteger(short idthread) {
     if (root == NULL)
         //we create it on the fly...
-        root = Compile(NULL);
+        root = Compile(globalTamgu, NULL);
     
     return root->Getinteger(idthread);
 }
@@ -1434,7 +1434,7 @@ long TamguInstructionAPPLYOPERATION::Getinteger(short idthread) {
 BLONG TamguInstructionAPPLYOPERATION::Getlong(short idthread) {
     if (root == NULL)
         //we create it on the fly...
-        root = Compile(NULL);
+        root = Compile(globalTamgu, NULL);
     
     return root->Getlong(idthread);
 }
@@ -1442,7 +1442,7 @@ BLONG TamguInstructionAPPLYOPERATION::Getlong(short idthread) {
 short TamguInstructionAPPLYOPERATION::Getshort(short idthread) {
     if (root == NULL)
         //we create it on the fly...
-        root = Compile(NULL);
+        root = Compile(globalTamgu, NULL);
     
     return root->Getshort(idthread);
 }
@@ -1450,7 +1450,7 @@ short TamguInstructionAPPLYOPERATION::Getshort(short idthread) {
 float TamguInstructionAPPLYOPERATION::Getdecimal(short idthread)  {
     if (root == NULL)
         //we create it on the fly...
-        root = Compile(NULL);
+        root = Compile(globalTamgu, NULL);
     
     return root->Getdecimal(idthread);
 }
@@ -1458,7 +1458,7 @@ float TamguInstructionAPPLYOPERATION::Getdecimal(short idthread)  {
 double TamguInstructionAPPLYOPERATION::Getfloat(short idthread) {
     if (root == NULL)
         //we create it on the fly...
-        root = Compile(NULL);
+        root = Compile(globalTamgu, NULL);
     
     return root->Getfloat(idthread);
 }
@@ -1466,7 +1466,7 @@ double TamguInstructionAPPLYOPERATION::Getfloat(short idthread) {
 string TamguInstructionAPPLYOPERATION::Getstring(short idthread)  {
     if (root == NULL)
         //we create it on the fly...
-        root = Compile(NULL);
+        root = Compile(globalTamgu, NULL);
     
     return root->Getstring(idthread);
 }
@@ -1474,7 +1474,7 @@ string TamguInstructionAPPLYOPERATION::Getstring(short idthread)  {
 wstring TamguInstructionAPPLYOPERATION::Getustring(short idthread) {
     if (root == NULL)
         //we create it on the fly...
-        root = Compile(NULL);
+        root = Compile(globalTamgu, NULL);
     
     return root->Getustring(idthread);
 }
@@ -1482,7 +1482,7 @@ wstring TamguInstructionAPPLYOPERATION::Getustring(short idthread) {
 void TamguInstructionAPPLYOPERATION::Setstring(string& v, short idthread)  {
     if (root == NULL)
         //we create it on the fly...
-        root = Compile(NULL);
+        root = Compile(globalTamgu, NULL);
     
     root->Setstring(v, idthread);
 }
@@ -1490,11 +1490,10 @@ void TamguInstructionAPPLYOPERATION::Setstring(string& v, short idthread)  {
 void TamguInstructionAPPLYOPERATION::Setstring(wstring& v, short idthread)  {
     if (root == NULL)
         //we create it on the fly...
-        root = Compile(NULL);
+        root = Compile(globalTamgu, NULL);
     
     root->Setstring(v, idthread);
 }
-
 
 //--------------------------------------------------------------------------------
 

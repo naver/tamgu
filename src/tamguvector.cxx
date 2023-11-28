@@ -2290,10 +2290,10 @@ public:
     short idthread;
     bool direction;
     
-    Comparisonparam(TamguParameterFunction* c, short id, bool d)  {
+    Comparisonparam(TamguParameterFunction* c, short idt, bool d)  {
         compare = c;
         direction = d;
-        idthread = id;
+        idthread = idt;
     }
     
     bool operator() (Tamgu* i, Tamgu* j) {
@@ -2330,11 +2330,11 @@ public:
     short idthread;
     bool direction;
     
-    Comparisontaskell(TamguParameterFunction* c, TamguCallFunction* a, short id, bool d)  {
+    Comparisontaskell(TamguParameterFunction* c, TamguCallFunction* a, short idt, bool d)  {
         args = a;
         compare = c;
         direction = d;
-        idthread = id;
+        idthread = idt;
     }
     
     bool failcheck(Tamgu* i) {
@@ -2357,9 +2357,9 @@ public:
     short idthread;
     bool direction;
     
-    Comparisonfunction(TamguFunction* c, TamguCallFunction* C, short id, bool d) {
+    Comparisonfunction(TamguFunction* c, TamguCallFunction* C, short idt, bool d) {
         compare = C;
-        idthread = id;
+        idthread = idt;
         direction = d;
         compare->arguments.push_back(aNULL);
     }

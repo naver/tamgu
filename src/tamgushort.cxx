@@ -43,17 +43,17 @@ void Tamgushort::Setidtype(TamguGlobal* global) {
 }
 
 
-   bool Tamgushort::InitialisationModule(TamguGlobal* global, string version) {
+bool Tamgushort::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-
+    
     Tamgushort::AddMethod(global, "succ", &Tamgushort::MethodSucc, P_NONE, "succ(): return the successor of a short");
     Tamgushort::AddMethod(global, "pred", &Tamgushort::MethodPred, P_NONE, "pred(): Return the predecessor of a byte.");
-
+    
     Tamgushort::AddMethod(global, "chr", &Tamgushort::Methodchr, P_NONE, "chr(): return the character matching the unicode code");
     Tamgushort::AddMethod(global, "format", &Tamgushort::MethodFormat, P_ONE, "format(string pattern): Return a string matching the C pattern.");
     Tamgushort::AddMethod(global, "isprime", &Tamgushort::MethodPrime, P_NONE, "prime(): return true is the number is a prime");
     Tamgushort::AddMethod(global, "factors", &Tamgushort::MethodPrimefactors, P_NONE, "factors(): return the list of prime factors");
-
+    
     Tamgushort::AddMethod(global, "abs", &Tamgushort::Methodabs, P_NONE, "abs(): call fabs on the value");
     Tamgushort::AddMethod(global, "acos", &Tamgushort::Methodacos, P_NONE, "acos(): call acos on the value");
     Tamgushort::AddMethod(global, "acosh", &Tamgushort::Methodacosh, P_NONE, "acosh(): call acosh on the value");
@@ -88,15 +88,11 @@ void Tamgushort::Setidtype(TamguGlobal* global) {
     Tamgushort::AddMethod(global, "trunc", &Tamgushort::Methodtrunc, P_NONE, "trunc(): call trunc on the value");
     Tamgushort::AddMethod(global, "even", &Tamgushort::Methodeven, P_NONE, "even(): return true is the value is even");
     Tamgushort::AddMethod(global, "odd", &Tamgushort::Methododd, P_NONE, "odd(): return true is the value is odd");
-
-
-
-
+    
     if (version != "") {
         global->newInstance[a_short] = new Tamgushort(0, global);
         global->RecordCompatibilities(a_short);
     }
-
     return true;
 }
 

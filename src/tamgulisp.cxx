@@ -1558,7 +1558,7 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
             
             a = a->Atom();
             a->Setreference();
-            if (!idthread && contextualpattern->isMainFrame()) {
+            if (!globalTamgu->isthreading && contextualpattern->isMainFrame()) {
                 //The variable needs to be declare fully
                 contextualpattern->Declare(n, a);
                 //This is a hack, actually, the first position for a variable is a TamguGlobalVariableDeclaration

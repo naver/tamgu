@@ -91,11 +91,173 @@ class TamguPredicateVariableInstancebuff;
 class Tamgulisp;
 class UTF8_Handler;
 class TamguConstString;
+class TamguThreadCall;
 
 //--------------------------------------------------------------------
 typedef bool(*TamguExternalModule)(TamguGlobal*, string);
 //--------------------------------------------------------------------
 typedef double(*mathFunc)(double);
+//--------------------------------------------------------------------
+extern Exchanging Tamgu* aNULL;
+//--------------------------------------------------------------------
+class GlobalConstants {
+public:
+    
+    Tamgu* gNULL;
+    Tamgu* gUNIVERSAL;
+    Tamgu* gTRUE;
+    Tamgu* gFALSE;
+    
+    Tamgu* gMINUSONE;
+    Tamgu* gZEROPOINTZERO;
+    Tamgu* gZERO;
+    Tamgu* gONE;
+
+    Tamgu* gEMPTYLISP;
+    Tamgu* gEMPTYSTRING;
+    Tamgu* gEMPTYUSTRING;
+    Tamgu* gBREAK;
+    Tamgu* gCONTINUE;
+    Tamgu* gRETURN;
+    Tamgu* gPIPE;
+    Tamgu* gNOELEMENT;
+    Tamgu* gDEFAULT;
+    Tamgu* gEND;
+    Tamgu* gRAISEERROR;
+    TamguCallBreak* gBREAKFALSE;
+    TamguCallBreak* gBREAKTRUE;
+    TamguCallBreak* gBREAKZERO;
+    TamguCallBreak* gBREAKONE;
+
+    Tamgu* gASSIGNMENT;
+    TamguConstiteration* gITERNULL;
+    TamguPredicate* gFAIL;
+    TamguPredicate* gTERMINAL;
+    TamguPredicate* gCUTFALSE;
+    TamguPredicate* gCUT;
+    TamguPredicate* gSTOP;
+    Tamgu* gHASKELL;
+    TamguDeclaration* gNULLDECLARATION;
+    TamguLet* gNULLLet;
+    Tamgu* gNOTHING;
+    
+    GlobalConstants() {
+        gNULL= NULL;
+        gUNIVERSAL= NULL;
+        gTRUE= NULL;
+        gFALSE= NULL;
+        
+        gMINUSONE= NULL;
+        gZEROPOINTZERO= NULL;
+        gZERO= NULL;
+        gONE= NULL;
+
+        gEMPTYLISP= NULL;
+        gEMPTYSTRING= NULL;
+        gEMPTYUSTRING= NULL;
+        gBREAK= NULL;
+        gCONTINUE= NULL;
+        gRETURN= NULL;
+        gPIPE= NULL;
+        gNOELEMENT= NULL;
+        gDEFAULT= NULL;
+        gEND= NULL;
+        gRAISEERROR= NULL;
+        gBREAKFALSE= NULL;
+        gBREAKTRUE= NULL;
+        gBREAKZERO= NULL;
+        gBREAKONE= NULL;
+
+        gASSIGNMENT= NULL;
+        gITERNULL= NULL;
+        gFAIL= NULL;
+        gTERMINAL= NULL;
+        gCUTFALSE= NULL;
+        gCUT= NULL;
+        gSTOP= NULL;
+        gHASKELL= NULL;
+        gNULLDECLARATION= NULL;
+        gNULLLet= NULL;
+        gNOTHING= NULL;
+        aNULL = NULL;
+    }
+    
+    void set(GlobalConstants* g) {
+        gNULL = g->gNULL;
+        aNULL = gNULL;
+        gUNIVERSAL = g->gUNIVERSAL;
+        gTRUE = g->gTRUE;
+        gFALSE = g->gFALSE;
+        gMINUSONE = g->gMINUSONE;
+        gZEROPOINTZERO = g->gZEROPOINTZERO;
+        gZERO = g->gZERO;
+        gONE = g->gONE;
+        gEMPTYLISP = g->gEMPTYLISP;
+        gEMPTYSTRING = g->gEMPTYSTRING;
+        gEMPTYUSTRING = g->gEMPTYUSTRING;
+        gBREAK = g->gBREAK;
+        gCONTINUE = g->gCONTINUE;
+        gRETURN = g->gRETURN;
+        gPIPE = g->gPIPE;
+        gNOELEMENT = g->gNOELEMENT;
+        gDEFAULT = g->gDEFAULT;
+        gEND = g->gEND;
+        gRAISEERROR = g->gRAISEERROR;
+        gBREAKFALSE = g->gBREAKFALSE;
+        gBREAKTRUE = g->gBREAKTRUE;
+        gBREAKZERO = g->gBREAKZERO;
+        gBREAKONE = g->gBREAKONE;
+        gASSIGNMENT = g->gASSIGNMENT;
+        gITERNULL = g->gITERNULL;
+        gFAIL = g->gFAIL;
+        gTERMINAL = g->gTERMINAL;
+        gCUTFALSE = g->gCUTFALSE;
+        gCUT = g->gCUT;
+        gSTOP = g->gSTOP;
+        gHASKELL = g->gHASKELL;
+        gNULLDECLARATION = g->gNULLDECLARATION;
+        gNULLLet = g->gNULLLet;
+        gNOTHING = g->gNOTHING;
+    }
+    void clean();
+};
+
+//--------------------------------------------------------------------
+extern GlobalConstants globalConstants;
+
+#define aUNIVERSAL globalConstants.gUNIVERSAL
+#define aTRUE globalConstants.gTRUE
+#define aFALSE globalConstants.gFALSE
+#define aMINUSONE globalConstants.gMINUSONE
+#define aZEROPOINTZERO globalConstants.gZEROPOINTZERO
+#define aZERO globalConstants.gZERO
+#define aONE globalConstants.gONE
+#define aEMPTYLISP globalConstants.gEMPTYLISP
+#define aEMPTYSTRING globalConstants.gEMPTYSTRING
+#define aEMPTYUSTRING globalConstants.gEMPTYUSTRING
+#define aBREAK globalConstants.gBREAK
+#define aCONTINUE globalConstants.gCONTINUE
+#define aRETURN globalConstants.gRETURN
+#define aPIPE globalConstants.gPIPE
+#define aNOELEMENT globalConstants.gNOELEMENT
+#define aDEFAULT globalConstants.gDEFAULT
+#define aEND globalConstants.gEND
+#define aRAISEERROR globalConstants.gRAISEERROR
+#define aBREAKFALSE globalConstants.gBREAKFALSE
+#define aBREAKTRUE globalConstants.gBREAKTRUE
+#define aBREAKZERO globalConstants.gBREAKZERO
+#define aBREAKONE globalConstants.gBREAKONE
+#define aASSIGNMENT globalConstants.gASSIGNMENT
+#define aITERNULL globalConstants.gITERNULL
+#define aFAIL globalConstants.gFAIL
+#define aTERMINAL globalConstants.gTERMINAL
+#define aCUTFALSE globalConstants.gCUTFALSE
+#define aCUT globalConstants.gCUT
+#define aSTOP globalConstants.gSTOP
+#define aHASKELL globalConstants.gHASKELL
+#define aNULLDECLARATION globalConstants.gNULLDECLARATION
+#define aNULLLet globalConstants.gNULLLet
+#define aNOTHING globalConstants.gNOTHING
 //--------------------------------------------------------------------
 
 class ThreadLock {
@@ -356,6 +518,7 @@ public:
     bool store_in_code_lines;
     
     VECTE<Tamgu*> stack_error;
+    std::vector<TamguThreadCall*> thread_pool;
 
     tokenizer_automaton tamgu_tokenizer;
 
@@ -584,43 +747,8 @@ public:
     //--------------------------------
     hmap<std::string, TamguConstString*> string_pool;
     //--------------------------------
-	Tamgu* gNULL;
-	Tamgu* gUNIVERSAL;
-	Tamgu* gTRUE;
-	Tamgu* gFALSE;
-    
-    Tamgu* gMINUSONE;
-    Tamgu* gZEROPOINTZERO;
-    Tamgu* gZERO;
-    Tamgu* gONE;
-
-    Tamgu* gEMPTYLISP;
-    Tamgu* gEMPTYSTRING;
-    Tamgu* gEMPTYUSTRING;
-	Tamgu* gBREAK;
-	Tamgu* gCONTINUE;
-	Tamgu* gRETURN;
-	Tamgu* gPIPE;
-	Tamgu* gNOELEMENT;
-	Tamgu* gDEFAULT;
-	Tamgu* gEND;
-    Tamgu* gRAISEERROR;
-    TamguCallBreak* gBREAKFALSE;
-    TamguCallBreak* gBREAKTRUE;
-    TamguCallBreak* gBREAKZERO;
-    TamguCallBreak* gBREAKONE;
-
-	Tamgu* gASSIGNMENT;
-	TamguConstiteration* gITERNULL;
-	TamguPredicate* gFAIL;
-    TamguPredicate* gTERMINAL;
-    TamguPredicate* gCUTFALSE;
-    TamguPredicate* gCUT;
-	TamguPredicate* gSTOP;
-	Tamgu* gHASKELL;
-	TamguDeclaration* gNULLDECLARATION;
-    TamguLet* gNULLLet;
-    Tamgu* gNOTHING;
+    GlobalConstants* global_constants;
+    //--------------------------------
 
     hmap<BLONG, Tamgu*> integer_pool; //recording of number values
     hmap<double, Tamgu*> float_pool;
@@ -655,6 +783,16 @@ public:
     
     void Removefromlocalgarbage(short idthread, long i, Tamgu* a);
     
+    void Storeingarbageif_add(Tamgu* a) {
+        if (add_to_tamgu_garbage)
+            threads[GetThreadid()].Storeingarbage(a);
+    }
+
+    void Removefromlocalgarbageif_add(short idthread, long i, Tamgu* a) {
+        if (add_to_tamgu_garbage)
+            Removefromlocalgarbage(-1, -1, a);
+    }
+
     void increment_try(short idthread) {
         threads[idthread].embedded_try++;
     }
@@ -707,6 +845,10 @@ public:
 
     void TamguAllObjects(vector<string>& vs);
 
+    //----------------------------------------------------------------------------------
+    // These two variables are used to manage local garbaging when an eval is executed...
+    std::atomic<short> number_of_current_eval;
+    bool add_to_tamgu_garbage;
     //--------------------------------
 	long maxstack;
 	//--------------------------------
@@ -755,8 +897,9 @@ public:
 
 	//--------------------------------
 	//Threading...
-	ThreadLock _trackerlock;
+	ThreadLock _threadlocks;
     
+    ThreadLock _trackerlock;
     ThreadLock _locktableslock;
     ThreadLock _waitstringslock;
     ThreadLock _threadvariableslock;
@@ -765,7 +908,39 @@ public:
 	ThreadLock _knowledgelock;
     ThreadLock _parselock;
     ThreadLock _numberlock;
-    
+
+    void set_garbage_mode(bool v) {
+        if (v)
+            number_of_current_eval++;
+        else
+            number_of_current_eval--;
+        
+        if (!number_of_current_eval)
+            add_to_tamgu_garbage = false;
+    }
+
+    bool Activategarbage(bool v) {
+        bool previous = add_to_tamgu_garbage;
+        add_to_tamgu_garbage = v;
+        return previous;
+    }
+
+    int Addtogarbage() {
+        return add_to_tamgu_garbage;
+    }
+
+    void clean_from_garbage_position(Tamgu* declaration, short idthread, long p, Tamgu* keep, long lastrecorded, long maxrecorded = -1) {
+        threads[idthread].Cleanfromgarbageposition(declaration, idthread, p, keep, lastrecorded, maxrecorded);
+        number_of_current_eval--;
+        add_to_tamgu_garbage = number_of_current_eval;
+    }
+
+    long initialize_local_garbage(short idthread) {
+        number_of_current_eval++;
+        add_to_tamgu_garbage = true;
+        return threads[idthread].Garbagesize();
+    }
+
     inline bool checkmethod(short idtype, short idname) {
         return (methods.check(idtype) && methods.get(idtype).check(idname));
     }
@@ -812,6 +987,8 @@ public:
 		return isthreading;
 	}
 
+    void Cleanthreads(TamguThreadCall* current = NULL);
+    
 	void Reallocatemaxthreads(short nb) {
 		if (nb > maxthreads) {
 			delete[] threads;
@@ -1270,8 +1447,8 @@ public:
 	bool protect;
 	bool protectfirst;
 
-	Tamgudebug(short id, Tamgu* i = NULL) {
-		idthread = id;
+	Tamgudebug(short idt, Tamgu* i = NULL) {
+		idthread = idt;
 		protect = true;
 		if (i != NULL) {
             globalTamgu->Current(i, idthread);

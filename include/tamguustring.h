@@ -838,6 +838,7 @@ public:
 	Tamgu* MethodUpper(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 	Tamgu* MethodDeaccentuate(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 	Tamgu* MethodLower(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodStartWith(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 	Tamgu* MethodTrim(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 	Tamgu* MethodTrimleft(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 	Tamgu* MethodTrimright(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
@@ -1796,6 +1797,7 @@ public:
     Tamgu* MethodUpper(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodDeaccentuate(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodLower(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodStartWith(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodTrim(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodTrimleft(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodTrimright(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);

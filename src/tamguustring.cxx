@@ -139,6 +139,7 @@ bool Tamguustring::InitialisationModule(TamguGlobal* global, string version) {
     Tamguustring::AddMethod(global, "upper", &Tamguustring::MethodUpper, P_NONE, "upper(): Return the string in upper characters");
     Tamguustring::AddMethod(global, "deaccentuate", &Tamguustring::MethodDeaccentuate, P_NONE, "deaccentuate(): Remove the accents from accented characters");
     Tamguustring::AddMethod(global, "lower", &Tamguustring::MethodLower, P_NONE, "lower(): Return the string in lower characters");
+    Tamguustring::AddMethod(global, "startwith", &Tamguustring::MethodStartWith, P_ONE, "startwith(string): check if it starts with a given string");
     Tamguustring::AddMethod(global, "trim", &Tamguustring::MethodTrim, P_NONE, "trim(): remove the trailing characters");
     Tamguustring::AddMethod(global, "trimleft", &Tamguustring::MethodTrimleft, P_NONE, "trimleft(): remove the trailing characters on the left");
     Tamguustring::AddMethod(global, "trimright", &Tamguustring::MethodTrimright, P_NONE, "trimright(): remove the trailing characters on the right");
@@ -240,6 +241,15 @@ Tamgu* Tamguustring::in(Tamgu* context, Tamgu* a, short idthread) {
     if (r == -1)
         return aFALSE;
     return aTRUE;
+}
+
+Tamgu* Tamguustring::MethodStartWith(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    wstring copen = callfunc->Evaluate(0, contextualpattern, idthread)->UString();
+    Locking _lock(this);
+    wstring v =  value.substr(0, copen.size());
+    if (v == copen)
+        return aTRUE;
+    return aFALSE;
 }
 
 Tamgu* TamguConstUString::in(Tamgu* context, Tamgu* a, short idthread) {
@@ -2584,6 +2594,7 @@ bool Tamgua_ustring::InitialisationModule(TamguGlobal* global, string version) {
     Tamgua_ustring::AddMethod(global, "upper", &Tamgua_ustring::MethodUpper, P_NONE, "upper(): Return the string in upper characters");
     Tamgua_ustring::AddMethod(global, "deaccentuate", &Tamgua_ustring::MethodDeaccentuate, P_NONE, "deaccentuate(): Remove the accents from accented characters");
     Tamgua_ustring::AddMethod(global, "lower", &Tamgua_ustring::MethodLower, P_NONE, "lower(): Return the string in lower characters");
+    Tamgua_ustring::AddMethod(global, "startwith", &Tamgua_ustring::MethodStartWith, P_ONE, "startwith(string): check if it starts with a given string");
     Tamgua_ustring::AddMethod(global, "trim", &Tamgua_ustring::MethodTrim, P_NONE, "trim(): remove the trailing characters");
     Tamgua_ustring::AddMethod(global, "trimleft", &Tamgua_ustring::MethodTrimleft, P_NONE, "trimleft(): remove the trailing characters on the left");
     Tamgua_ustring::AddMethod(global, "trimright", &Tamgua_ustring::MethodTrimright, P_NONE, "trimright(): remove the trailing characters on the right");
@@ -2642,6 +2653,14 @@ Tamgu* Tamgua_ustring::Loopin(TamguInstruction* ins, Tamgu* context, short idthr
     return this;
 }
 
+Tamgu* Tamgua_ustring::MethodStartWith(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    wstring copen = callfunc->Evaluate(0, contextualpattern, idthread)->UString();
+    wstring v = value.value();
+    v =  v.substr(0, copen.size());
+    if (v == copen)
+        return aTRUE;
+    return aFALSE;
+}
 
 Tamgu* Tamgua_ustring::in(Tamgu* context, Tamgu* a, short idthread) {
         //Three cases along the container type...

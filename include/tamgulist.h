@@ -1559,12 +1559,7 @@ public:
         iter = NULL;
     }
     
-    ~Tamgujava_vector() {
-        if (iter != NULL)
-            iter->Resetreference();
-    }
-    
-        //----------------------------------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------------------------------
     Exporting Tamgu* Put(Tamgu* index, Tamgu* value, short idthread);
     Exporting Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
     
@@ -1883,6 +1878,10 @@ public:
         return iter->Size();
     }
     
+    virtual bool isInstancejava() {
+        return false;
+    }
+    
     Exporting Tamgu* in(Tamgu* context, Tamgu* a, short idthread);
     
     Exporting Tamgu* andset(Tamgu* a, bool itself);
@@ -1906,7 +1905,10 @@ public:
 class Tamgujava_vector_instance : public Tamgujava_vector {
 public:
     
-
+    bool isInstancejava() {
+        return true;
+    }
+    
     Tamgu* Newinstance(short idthread, Tamgu* f = NULL) {
         return globalTamgu->Providevector();
     }

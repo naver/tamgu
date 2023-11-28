@@ -40,8 +40,6 @@
 #endif
 
 //--------------------------------------------------------------------
-bool Activategarbage(bool v);
-//--------------------------------------------------------------------
 static hmap<string, Tamgu*> throughvariables;
 static hmap<string, string> throughvariabletype;
 
@@ -265,6 +263,123 @@ Tamgu* TamguGlobal::EvaluateMainVariable() {
 }
 
 //--------------------------------------------------------------------
+//We execute our function in a thread to be sure that globalTamgu will have specific value
+class ExecutionCode {
+public:
+    TamguCode* code;
+    short idglobal;
+    string name;
+    vector<Tamgu*> params;
+    Tamgu* result;
+    std::mutex m;
+    std::condition_variable cv;
+
+    ExecutionCode(TamguCode* c, string n, vector<Tamgu*>& p) : name(n), params(p) {
+        code = c;
+        result = NULL;
+        idglobal = c->idglobal;
+    }
+    
+    ExecutionCode(short idg) {
+        result = NULL;
+        idglobal = idg;
+    }
+    
+    void Eval() {
+        globalTamgu = code->global;
+        globalTamgu->threadMODE = false;
+        globalTamgu->executionbreak = false;
+        globalTamgu->Cleanerror(0);
+
+        short id = globalTamgu->Getid(name);
+        Tamgu* func = code->Mainframe()->Declaration(id);
+
+        if (func == NULL || !func->isFunction()) {
+            name = "Unknown function: " + name;
+            std::lock_guard<std::mutex> lock(m);
+            result = globalTamgu->Returnerror(name, 0);
+            cv.notify_all(); // Notifie que la valeur a été mise à jour
+            return;
+        }
+
+        short i;
+        TamguCallFunction call(func);
+        for (i = 0; i < params.size(); i++) {
+            call.arguments.push_back(params[i]);
+            params[i]->Setreference();
+        }
+
+        globalTamgu->Pushstack(code->Mainframe(), 0);
+        
+        std::lock_guard<std::mutex> lock(m);
+        result = call.Eval(aNULL, aNULL, 0);
+        globalTamgu->Popstack(0);
+
+        for (i = 0; i < params.size(); i++)
+            params[i]->Resetreference();
+        
+        cv.notify_all(); // Notifie que la valeur a été mise à jour
+    }
+    
+    void Delete() {
+        std::lock_guard<std::mutex> lock(m);
+        
+        if (idglobal >= 0 && idglobal < globalTamguPool.size() && globalTamguPool[idglobal] != NULL) {
+            globalTamgu = globalTamguPool[idglobal];
+            delete globalTamgu;
+            globalTamguPool[idglobal] = NULL;
+            result = aTRUE;
+            cerr.flush();
+        }
+        else
+            result = aFALSE;
+        cv.notify_all();
+    }
+};
+
+
+#ifdef WIN32
+void __stdcall CodeinThread(ExecuteCode* call) {
+#else
+    void CodeinThread(ExecutionCode* call) {
+#endif
+        call->Eval();
+    }
+
+Exporting Tamgu* TamguExecutionCode(TamguCode* code, string name, vector<Tamgu*>& params) {
+    ExecutionCode call(code, name, params);
+    std::thread* thid = new std::thread(CodeinThread, &call);
+    
+    std::unique_lock<std::mutex> lock(call.m);
+    call.cv.wait(lock, [&call] { return call.result != nullptr; });
+    Tamgu* res = call.result;
+    thid->join();
+    delete thid;
+
+    return res;
+}
+
+#ifdef WIN32
+void __stdcall DeleteCodeinThread(ExecuteCode* call) {
+#else
+    void DeleteCodeinThread(ExecutionCode* call) {
+#endif
+        call->Delete();
+    }
+
+bool TamguDeleteInThread(short handler) {
+    ExecutionCode call(handler);
+    std::thread* thid = new std::thread(DeleteCodeinThread, &call);
+    
+    std::unique_lock<std::mutex> lock(call.m);
+    call.cv.wait(lock, [&call] { return call.result != nullptr; });
+    thid->join();
+    delete thid;
+
+    return call.result->Boolean();
+}
+
+//--------------------------------------------------------------------------------------------------------
 Exporting Tamgu* TamguExecute(TamguCode* code, string name, vector<Tamgu*>& params) {
 
 	globalTamgu->threadMODE = true;
@@ -527,7 +642,7 @@ Tamgu* TamguCode::Run(bool glock) {
 		_debugpush(a);
 		a = a->Eval(&mainframe, aNULL, 0);
 		_debugpop();
-
+        
         testcond = global->Error(0) || global->executionbreak;
     }
      
@@ -544,6 +659,7 @@ Tamgu* TamguCode::Run(bool glock) {
 
 
     global->Clearfibres(0);
+
     if (a != aNULL) {
         if (global->threads[0].currentinstruction != NULL) {
             currentline = global->threads[0].currentinstruction->Currentline();
@@ -562,6 +678,7 @@ Tamgu* TamguCode::Run(bool glock) {
 	while (global->threadcounter) {}
 
     global->Releasevariables();
+    global->Cleanthreads();
     global->isthreading = false;
     global->threads[0].used = false;
     global->running = false;
@@ -1416,7 +1533,7 @@ Tamgu* TamguGlobalVariableDeclaration::Eval(Tamgu* domain, Tamgu* value, short i
 	if (alreadydeclared)
 		return globalTamgu->Getmaindeclaration(name, idthread);
 
-    bool activated = Activategarbage(false);
+    bool activated = globalTamgu->Activategarbage(false);
 	alreadydeclared = true;
 	Tamgu* variable_value = globalTamgu->newInstance.get(typevariable)->Newinstance(idthread, function);
     //Global Variables should always be protected with a lock
@@ -1432,7 +1549,7 @@ Tamgu* TamguGlobalVariableDeclaration::Eval(Tamgu* domain, Tamgu* value, short i
             bool aff = variable_value->checkAffectation();
 			value = initialization->Eval(variable_value, aASSIGNMENT, idthread);
             if (value->isError()) {
-                Activategarbage(activated);
+                globalTamgu->Activategarbage(activated);
 				return value;
             }
 
@@ -1449,7 +1566,7 @@ Tamgu* TamguGlobalVariableDeclaration::Eval(Tamgu* domain, Tamgu* value, short i
 	//Hence, intialization of local frames can depend on local frame variables...
 	variable_value->Postinstantiation(idthread, true);
 
-    Activategarbage(activated);
+    globalTamgu->Activategarbage(activated);
 	return variable_value;
 }
 
@@ -3002,26 +3119,28 @@ void __stdcall AThread(TamguThreadCall* call) {
 void AThread(TamguThreadCall* call) {
 #endif
 
-    globalTamgu = call->global;
+    TamguGlobal* global = call->global;
+    globalTamgu = global;
     
     short idparent = call->parentid;
 	short idthread = call->idthread;
     bool waitonjoin = call->joined;
 
-	if (globalTamgu->Error(idparent)) {
+	if (global->Error(idparent)) {
 		for (short i = 0; i < call->arguments.size(); i++)
 			call->arguments[i]->Resetreference();
 		if (call->cleandom) {
-			if (globalTamgu->Checktracker(call->domain, call->idomain))
+			if (global->Checktracker(call->domain, call->idomain))
 				call->domain->Resetreference();
 		}
-		globalTamgu->EraseThreadid(idthread);
-		delete call;
+        global->EraseThreadid(idthread);
+        global->Cleanthreads();
+        call->to_be_deleted = true;
 		return;
 	}
 	
-	globalTamgu->InitThreadid(idthread);
-    call->tid = globalTamgu->threads[idthread].handle;
+    global->InitThreadid(idthread);
+    call->tid = global->threads[idthread].handle;
     
     
 	Locking* _exclusive = NULL;
@@ -3050,31 +3169,30 @@ void AThread(TamguThreadCall* call) {
 	if (_exclusive != NULL)
 		delete _exclusive;
     
-    globalTamgu->Clearfibres(idthread);
+    global->Clearfibres(idthread);
 
-	for (const auto& it : globalTamgu->threads[idthread].locks)
+	for (const auto& it : global->threads[idthread].locks)
 		it.second->Unlocking();
-	globalTamgu->threads[idthread].locks.clear();
+    global->threads[idthread].locks.clear();
 	
-    if (globalTamgu->Error(idthread)) {
-        if (!globalTamgu->errors[idparent] && globalTamgu->errorraised[idthread] != NULL) {
-            globalTamgu->errors[idparent] = true;
-            globalTamgu->errorraised[idparent] = globalTamgu->errorraised[idthread];
-            globalTamgu->threads[idparent].currentinstruction = globalTamgu->threads[idthread].currentinstruction;
+    if (global->Error(idthread)) {
+        if (!global->errors[idparent] && global->errorraised[idthread] != NULL) {
+            global->errors[idparent] = true;
+            global->errorraised[idparent] = global->errorraised[idthread];
+            global->threads[idparent].currentinstruction = global->threads[idthread].currentinstruction;
         }
 	}
 	for (short i = 0; i < call->arguments.size(); i++)
 		call->arguments[i]->Resetreference();
 	if (call->cleandom) {
-		if (globalTamgu->Checktracker(call->domain, call->idomain))
+		if (global->Checktracker(call->domain, call->idomain))
 			call->domain->Resetreference();
 	}	
-	globalTamgu->EraseThreadid(idthread);
-	delete call;
-
+    global->EraseThreadid(idthread);
+    global->Cleanthreads();
+    call->to_be_deleted = true;
     if (waitonjoin)
-        globalTamgu->threads[idparent].nbjoined--;
-
+        global->threads[idparent].nbjoined--;
 }
 
 Tamgu* TamguThreadCall::Eval(Tamgu* domain, Tamgu* value, short idthread) {
@@ -3147,7 +3265,6 @@ Tamgu* TamguThreadCall::Eval(Tamgu* domain, Tamgu* value, short idthread) {
 	}
     
 	globalTamgu->threads[idthread].variables.clear();
-
 	return a;
 }
 
@@ -3201,7 +3318,7 @@ Tamgu* TamguThread::Eval(Tamgu* environment, Tamgu* a, short idthread) {
 	}
 
     a->Releasenonconst();
-
+    
 	if (_lock != NULL)
 		delete _lock;
 	_cleandebugfull;
@@ -3211,6 +3328,29 @@ Tamgu* TamguThread::Eval(Tamgu* environment, Tamgu* a, short idthread) {
 	return aNULL;
 }
 
+//We need to check that some threads can be deleted
+//And then we add current
+void TamguGlobal::Cleanthreads(TamguThreadCall* current) {
+    if (threadMODE) {
+        Locking _locker(_threadlocks);
+        long sz = thread_pool.size() - 1;
+        for (long i = sz; i >= 0; i--) {
+            if (thread_pool[i] != NULL && thread_pool[i]->to_be_deleted) {
+                TamguThreadCall* tc = thread_pool[i];
+                if (i == sz) {
+                    thread_pool.pop_back();
+                    sz--;
+                }
+                else
+                    thread_pool.erase(thread_pool.begin() + i);
+                delete tc;
+            }
+        }
+        if (current != NULL)
+            thread_pool.push_back(current);
+    }
+}
+    
 Tamgu* TamguCallThread::Eval(Tamgu* environment, Tamgu* value, short idthread) {
 	//We enter a thread... //Now Locks will be created...
 	globalTamgu->Sethreading();
@@ -3275,6 +3415,7 @@ Tamgu* TamguCallThread::Eval(Tamgu* environment, Tamgu* value, short idthread) {
         return globalTamgu->Returnerror("Could not create a thread", idthread);
     }
     
+    globalTamgu->Cleanthreads(threadcall);
 	return aNULL;
 }
 

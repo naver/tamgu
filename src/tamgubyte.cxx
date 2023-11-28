@@ -25,15 +25,12 @@ void Tamgubyte::AddMethod(TamguGlobal* global, string name, byteMethod func, uns
     short idname = global->Getid(name);
     methods[idname] = func;
     if (global->infomethods.find(a_byte) != global->infomethods.end() &&
-            global->infomethods[a_byte].find(name) != global->infomethods[a_byte].end())
-    return;
-
+        global->infomethods[a_byte].find(name) != global->infomethods[a_byte].end())
+        return;
+    
     global->infomethods[a_byte][name] = infos;
     global->RecordArity(a_byte, idname, arity);
 }
-
-
-
 
 void Tamgubyte::Setidtype(TamguGlobal* global) {
   if (methods.isEmpty())

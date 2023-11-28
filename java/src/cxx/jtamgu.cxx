@@ -62,7 +62,6 @@ string jstringToString(JNIEnv* env, jstring str) {
 
 jstring jstringFromChars(JNIEnv* env, const char *chars) {
     jstring jstr = env->NewStringUTF(chars);
-    //    listjstring.ajoute(jstr);
     return jstr;
 }
 
@@ -85,48 +84,42 @@ static void displayerror(JNIEnv *env, string message) {
 /// ---------------------------------------------------------------------------------------------------
 /// TAMGU Interpreter access Methods
 /// ---------------------------------------------------------------------------------------------------
-
-
-
 inline Tamgu* Getvariable(TamguCode* codespace, short idcode, short name) {
-    return globalTamgu->Getmaindeclaration(name, 0);
+    return codespace->global->Getmaindeclaration(name, 0);
 }
 
 inline bool Checkvariable(TamguCode* codespace, short idcode, short name) {
-    return globalTamgu->threads[0].variables.check(name);
+    return codespace->global->threads[0].variables.check(name);
 }
 
 TamguCode* CheckTamgu(JNIEnv *env, jint handler, jint idcode) {
-    if (!TamguSelectglobal(handler)) {
-        string value = "Cannot find any program loaded for this handler";
-        displayerror(env, value);
-        return NULL;
-    }
-
-    TamguCode* tamgucode = TamguCodeSpace(idcode);
+    TamguCode* tamgucode = TamguCodeSpace(handler, idcode);
     if (tamgucode == NULL) {
         string value = "This handler does not match an existing Tamgu space";
         displayerror(env, value);
         return NULL;
     }
-    
+    globalTamgu = tamgucode->global;
     return tamgucode;
 }
 
 
-TamguCode* GetTamgu(JNIEnv *env, jint handler, string& value, short idcode = 0) {
-    if (!TamguSelectglobal(handler)) {
-        value = "Cannot find any program loaded for this handler";
-        return NULL;
-    }
-
-    TamguCode* tamgucode = TamguCodeSpace(idcode);
+TamguCode* GetTamguCode(JNIEnv *env, jint handler, string& value, short idcode = 0) {
+    TamguCode* tamgucode = TamguCodeSpace(handler, idcode);
     if (tamgucode == NULL) {
         value = "This handler does not match an existing Tamgu space";
         return NULL;
     }
-    
+    globalTamgu = tamgucode->global;
     return tamgucode;
+}
+
+
+/**
+* Create a GlobalTamgu object
+*/
+JNIEXPORT jint JNICALL Java_com_naver_jtamgu_JTamgu_CreateTamgu(JNIEnv *env, jobject obj) {
+    return TamguCreateGlobal(10);
 }
 
 /**
@@ -138,7 +131,7 @@ JNIEXPORT jint JNICALL Java_com_naver_jtamgu_JTamgu_LoadProgramImplementation(JN
 
     string nameOfFile = jstringToString(env, filename);
     string theargs = jstringToString(env, args);
-    short idspace = TamguCreateGlobal(10);
+    short handler = TamguCreateGlobal(10);
     
     stringstream message;
     TamguSetArguments(theargs);
@@ -163,7 +156,7 @@ JNIEXPORT jint JNICALL Java_com_naver_jtamgu_JTamgu_LoadProgramImplementation(JN
         return -1;
     }
 
-    return idspace;
+    return handler;
 }
 
 /**
@@ -177,7 +170,7 @@ JNIEXPORT jint JNICALL Java_com_naver_jtamgu_JTamgu_LoadStringProgramImplementat
     string jcode = jstringToString(env, code);
     string theargs = jstringToString(env, args);
 
-    short idspace = TamguCreateGlobal(10);
+    short handler = TamguCreateGlobal(10);
 
 #ifdef WIN32
     string name = "C:\\JAVA";
@@ -205,7 +198,7 @@ JNIEXPORT jint JNICALL Java_com_naver_jtamgu_JTamgu_LoadStringProgramImplementat
         return -1;
     }
     
-    return idspace;
+    return handler;
 }
 
 JNIEXPORT jboolean JNICALL Java_com_naver_jtamgu_JTamgu_CheckProgramImplementation(JNIEnv *env, jobject obj, jstring code, jstring args, jobjectArray messages, jobjectArray lines, jobjectArray positions) {
@@ -231,10 +224,11 @@ JNIEXPORT jboolean JNICALL Java_com_naver_jtamgu_JTamgu_CheckProgramImplementati
     if (TamguCheckCompile(jcode, name, errors))
         return true;
     
+    string value;
     long nb = errors.size();
-    JavaIterationListString jmess(env, messages, 0);
-    JavaIterationListInteger jlines(env, lines, 0);
-    JavaIterationListInteger jpos(env, positions, 0);
+    JavaIterationListString jmess(env, globalTamgu, messages, 0);
+    JavaIterationListInteger jlines(env, globalTamgu, lines, 0);
+    JavaIterationListInteger jpos(env, globalTamgu, positions, 0);
     
     for (long i = 0; i < nb; i++) {
         jmess.Set(i, errors[i]->error);
@@ -255,20 +249,20 @@ JNIEXPORT jboolean JNICALL Java_com_naver_jtamgu_JTamgu_GetErrorImplementation(J
     jstring element;
     bool theerror = false;
 
-    TamguCode* tamgucode = GetTamgu(env, handler, value);
+    TamguCode* tamgucode = GetTamguCode(env, handler, value);
     if (tamgucode == NULL)
         return false;
 
     std::vector<string> c_errors;
     std::vector<string> c_files;
     std::vector<long> c_lines;
-    if (!TamguErrorVector(globalTamgu, c_errors, c_files, c_lines))
+    if (!TamguErrorVector(tamgucode->global, c_errors, c_files, c_lines))
         return true;
     
     long nb = c_errors.size();
-    JavaIterationListString jmess(env, messages, 0);
-    JavaIterationListString jfiles(env, files, 0);
-    JavaIterationListInteger jlines(env, lines, 0);
+    JavaIterationListString jmess(env, tamgucode->global, messages, 0);
+    JavaIterationListString jfiles(env, tamgucode->global, files, 0);
+    JavaIterationListInteger jlines(env, tamgucode->global, lines, 0);
 
     for (long i = 0; i < nb; i++) {
         jmess.Set(i, c_errors[i]);
@@ -337,28 +331,29 @@ JNIEXPORT jstring JNICALL Java_com_naver_jtamgu_JTamgu_ExecuteFunctionImplementa
     jstring element;
     bool theerror = false;
 
-    TamguCode* tamgucode = GetTamgu(env, handler, value);
+    TamguCode* tamgucode = GetTamguCode(env, handler, value);
     if (tamgucode == NULL) {
         element = jstringFromString(env, value);
         displayerror(env, value);
         return element;
     }
     
+    TamguGlobal* global = tamgucode->global;
     for (int i = 0; i < stringCount; i++) {
         element = (jstring)env->GetObjectArrayElement(parameters, i);
         value = jstringToString(env, element);
         params.push_back(new Tamgustring(value));
     }
 
-    Tamgu* resultat = TamguExecute(tamgucode, nameOfFunction, params);
+    Tamgu* resultat = TamguExecutionCode(tamgucode, nameOfFunction, params);
 	
-    if (globalTamgu->Error(0) || resultat->isError()) {
+    if (global->Error(0) || resultat->isError()) {
         if (resultat->isError()) {
             value = resultat->String();
         }
         else
-            value = globalTamgu->Errorstring(0);
-        globalTamgu->Cleanerror(0);
+            value = global->Errorstring(0);
+        global->Cleanerror(0);
         displayerror(env, value);
     }
     else {
@@ -387,7 +382,7 @@ JNIEXPORT jobjectArray JNICALL Java_com_naver_jtamgu_JTamgu_ExecuteFunctionArray
 
     jobjectArray ret;
 
-    TamguCode* tamgucode = GetTamgu(env, handler, value);
+    TamguCode* tamgucode = GetTamguCode(env, handler, value);
     if (tamgucode == NULL) {
         ret = (jobjectArray)env->NewObjectArray(1, env->FindClass("java/lang/String"), env->NewStringUTF(""));
         element = jstringFromString(env, value);
@@ -397,6 +392,8 @@ JNIEXPORT jobjectArray JNICALL Java_com_naver_jtamgu_JTamgu_ExecuteFunctionArray
         return ret;
     }
 
+    TamguGlobal* global = tamgucode->global;
+
     for (int i = 0; i < stringCount; i++) {
         element = (jstring)env->GetObjectArrayElement(parameters, i);
         value = jstringToString(env, element);
@@ -405,19 +402,19 @@ JNIEXPORT jobjectArray JNICALL Java_com_naver_jtamgu_JTamgu_ExecuteFunctionArray
 
 	//JtamguLocking _lock;
 
-    Tamgu* resultat = TamguExecute(tamgucode, nameOfFunction, params);
+    Tamgu* resultat = TamguExecutionCode(tamgucode, nameOfFunction, params);
 	
-    if (globalTamgu->Error(0)  || resultat->isError()) {
+    if (global->Error(0)  || resultat->isError()) {
         if (resultat->isError()) {
             value = resultat->String();
         }
         else
-            value = globalTamgu->Errorstring(0);
+            value = global->Errorstring(0);
         ret = (jobjectArray)env->NewObjectArray(1, env->FindClass("java/lang/String"), env->NewStringUTF(""));
         element = jstringFromString(env, value);
         env->SetObjectArrayElement(ret, 0, element);
         env->DeleteLocalRef(element);
-        globalTamgu->Cleanerror(0);
+        global->Cleanerror(0);
         displayerror(env, value);
         TamguReleaseglobal(handler);
         return ret;
@@ -453,28 +450,28 @@ JNIEXPORT jstring JNICALL Java_com_naver_jtamgu_JTamgu_ExecuteSpaceFunctionImple
     jstring element;
     bool theerror = false;
 
-    TamguCode* tamgucode = GetTamgu(env, handler, value, idcode);
+    TamguCode* tamgucode = GetTamguCode(env, handler, value, idcode);
     if (tamgucode == NULL) {
         element = jstringFromString(env, value);
         displayerror(env, value);
         return element;
     }
-    
+    TamguGlobal* global = tamgucode->global;
     for (int i = 0; i < stringCount; i++) {
         element = (jstring)env->GetObjectArrayElement(parameters, i);
         value = jstringToString(env, element);
         params.push_back(new Tamgustring(value));
     }
 
-    Tamgu* resultat = TamguExecute(tamgucode, nameOfFunction, params);
+    Tamgu* resultat = TamguExecutionCode(tamgucode, nameOfFunction, params);
     
-    if (globalTamgu->Error(0) || resultat->isError()) {
+    if (global->Error(0) || resultat->isError()) {
         if (resultat->isError()) {
             value = resultat->String();
         }
         else
-            value = globalTamgu->Errorstring(0);
-        globalTamgu->Cleanerror(0);
+            value = global->Errorstring(0);
+        global->Cleanerror(0);
         displayerror(env, value);
     }
     else {
@@ -503,7 +500,7 @@ JNIEXPORT jobjectArray JNICALL Java_com_naver_jtamgu_JTamgu_ExecuteSpaceFunction
 
     jobjectArray ret;
 
-    TamguCode* tamgucode = GetTamgu(env, handler, value, idcode);
+    TamguCode* tamgucode = GetTamguCode(env, handler, value, idcode);
     if (tamgucode == NULL) {
         ret = (jobjectArray)env->NewObjectArray(1, env->FindClass("java/lang/String"), env->NewStringUTF(""));
         element = jstringFromString(env, value);
@@ -512,7 +509,7 @@ JNIEXPORT jobjectArray JNICALL Java_com_naver_jtamgu_JTamgu_ExecuteSpaceFunction
         displayerror(env, value);
         return ret;
     }
-
+    TamguGlobal* global = tamgucode->global;
     for (int i = 0; i < stringCount; i++) {
         element = (jstring)env->GetObjectArrayElement(parameters, i);
         value = jstringToString(env, element);
@@ -521,19 +518,19 @@ JNIEXPORT jobjectArray JNICALL Java_com_naver_jtamgu_JTamgu_ExecuteSpaceFunction
 
     //JtamguLocking _lock;
 
-    Tamgu* resultat = TamguExecute(tamgucode, nameOfFunction, params);
+    Tamgu* resultat = TamguExecutionCode(tamgucode, nameOfFunction, params);
     
-    if (globalTamgu->Error(0)  || resultat->isError()) {
+    if (global->Error(0)  || resultat->isError()) {
         if (resultat->isError()) {
             value = resultat->String();
         }
         else
-            value = globalTamgu->Errorstring(0);
+            value = global->Errorstring(0);
         ret = (jobjectArray)env->NewObjectArray(1, env->FindClass("java/lang/String"), env->NewStringUTF(""));
         element = jstringFromString(env, value);
         env->SetObjectArrayElement(ret, 0, element);
         env->DeleteLocalRef(element);
-        globalTamgu->Cleanerror(0);
+        global->Cleanerror(0);
         displayerror(env, value);
         TamguReleaseglobal(handler);
         return ret;
@@ -554,6 +551,7 @@ JNIEXPORT jobjectArray JNICALL Java_com_naver_jtamgu_JTamgu_ExecuteSpaceFunction
     resultat->Resetreference();
     return ret;
 }
+
 /**
 * Clean memory for all TamguGlobal Objects
 */
@@ -564,12 +562,13 @@ JNIEXPORT jint JNICALL Java_com_naver_jtamgu_JTamgu_CleanAllImplementation(JNIEn
 
 
 JNIEXPORT jint JNICALL Java_com_naver_jtamgu_JTamgu_CleanErrorsImplementation(JNIEnv *env, jobject obj, jint handler) {
-    if (!TamguSelectglobal(handler)) {
+    TamguGlobal* global = getGlobalTamgu(handler);
+    if (global == NULL) {
         string value = "Cannot find any program loaded for this handler";
         displayerror(env, value);
         return -1;
     }
-    globalTamgu->Cleanerror(0);
+    global->Cleanerror(0);
     return 1;
 }
 
@@ -577,10 +576,29 @@ JNIEXPORT jint JNICALL Java_com_naver_jtamgu_JTamgu_CleanErrorsImplementation(JN
 * Clean memory for a Global
 */
 JNIEXPORT jint JNICALL Java_com_naver_jtamgu_JTamgu_CleanImplementation(JNIEnv *env, jobject obj, jint handler) {
-	if (TamguDeleteGlobal(handler))
+	if (TamguDeleteGlobalinThread(handler))
 		return 1;
 	return 0;
 }
+
+/**
+* Stop a process
+*/
+JNIEXPORT jint JNICALL Java_com_naver_jtamgu_JTamgu_StopExecution(JNIEnv *env, jobject obj, jint handler) {
+	if (TamguStop(handler))
+		return 1;
+	return 0;
+}
+
+/**
+* Clean memory for a Global
+*/
+JNIEXPORT jint JNICALL Java_com_naver_jtamgu_JTamgu_CleanSpaceImplementation(JNIEnv *env, jobject obj, jint handler, jint idspace) {
+	if (TamguDeleteSpace(handler, idspace))
+		return 1;
+	return 0;
+}
+
 
 JNIEXPORT jstring JNICALL Java_com_naver_jtamgu_JTamgu_TamguVersionImplementation(JNIEnv *env, jobject obj) {
     string version = TamguVersion();
@@ -634,13 +652,13 @@ void StoreGlobalValues(JNIEnv *env, TamguGlobal* global, TamguCode* tamgucode, s
         }
         
         //First we need to find the associate global variable
-        name = globalTamgu->Getid(strKey);
+        name = global->Getid(strKey);
         
         if (Checkvariable(tamgucode, idcode, name)) {
             //Then we need to access the variable itself...
             var = Getvariable(tamgucode, idcode, name);
             //Then we need to put the value in it...
-            value = globalTamgu->Providestring(strValue);
+            value = global->Providestring(strValue);
             var->Put(aNULL, value, 0);
             value->Release();
         }
@@ -695,7 +713,7 @@ void RetrieveGlobalValues(JNIEnv *env, TamguGlobal* global, TamguCode* tamgucode
         }
 
         //First we need to find the associate global variable
-        name = globalTamgu->Getid(strKey);
+        name = global->Getid(strKey);
         
         //Then we need to access the variable itself...
         if (Checkvariable(tamgucode, idcode, name)) {
@@ -726,12 +744,14 @@ JNIEXPORT jstring JNICALL Java_com_naver_jtamgu_JTamgu_ExecuteFunctionImplementa
     jstring element;
     bool theerror = false;
 
-    TamguCode* tamgucode = GetTamgu(env, handler, value, idcode);
+    TamguCode* tamgucode = GetTamguCode(env, handler, value, idcode);
     if (tamgucode == NULL) {
         element = jstringFromString(env, value);
         displayerror(env, value);
         return element;
     }
+
+    TamguGlobal* global = tamgucode->global;
 
     for (int i = 0; i < stringCount; i++) {
         element = (jstring)env->GetObjectArrayElement(parameters, i);
@@ -739,20 +759,20 @@ JNIEXPORT jstring JNICALL Java_com_naver_jtamgu_JTamgu_ExecuteFunctionImplementa
         params.push_back(new Tamgustring(value));
     }
 
-    StoreGlobalValues(env, globalTamgu, tamgucode, idcode, globalvariables);
-    Tamgu* resultat = TamguExecute(tamgucode, nameOfFunction, params);
+    StoreGlobalValues(env, global, tamgucode, idcode, globalvariables);
+    Tamgu* resultat = TamguExecutionCode(tamgucode, nameOfFunction, params);
     
-    if (globalTamgu->Error(0) || resultat->isError()) {
+    if (global->Error(0) || resultat->isError()) {
         if (resultat->isError()) {
             value = resultat->String();
         }
         else
-            value = globalTamgu->Errorstring(0);
-        globalTamgu->Cleanerror(0);
+            value = global->Errorstring(0);
+        global->Cleanerror(0);
         displayerror(env, value);
     }
     else {
-        RetrieveGlobalValues(env, globalTamgu, tamgucode, idcode, globalvariables);
+        RetrieveGlobalValues(env, global, tamgucode, idcode, globalvariables);
         value = resultat->String();
         resultat->Resetreference();
     }
@@ -767,7 +787,7 @@ JNIEXPORT jstring JNICALL Java_com_naver_jtamgu_JTamgu_ExecuteFunctionImplementa
 //---------------------------------------------------------------------------------------
 
 Tamgu* JavaSize(void* jiv) {
-    return globalTamgu->Provideint(((JavaIteration*)jiv)->count);
+    return ((JavaIteration*)jiv)->global->Provideint(((JavaIteration*)jiv)->count);
 }
 
 Tamgu* JavaGet(void* jiv, long i) {
@@ -822,12 +842,12 @@ JNIEXPORT jboolean JNICALL Java_com_naver_jtamgu_JTamgu_Setlongiteratorimplement
         str_name += std::to_string(idcode);
     }
 
-    short name = globalTamgu->Getid(str_name);
+    short name = tamgucode->global->Getid(str_name);
     
     //Then we need to access the variable itself...
     if (Checkvariable(tamgucode, idcode, name)) {
         Tamgu* var = Getvariable(tamgucode, idcode, name);
-        JavaIterationLong* jiv = new JavaIterationLong(env, (jobjectArray)values, count);
+        JavaIterationLong* jiv = new JavaIterationLong(env, tamgucode->global, (jobjectArray)values, count);
         TamguJavaIteration* it = new TamguJavaIteration(jiv, JavaBegin, JavaNext, JavaEnd, JavaIterator, JavaValue, JavaDelete, JavaSize, JavaGet, JavaSet, JavaClear);
         var->Put(aNULL, it, 0);
         return true;
@@ -852,12 +872,12 @@ JNIEXPORT jboolean JNICALL Java_com_naver_jtamgu_JTamgu_Setfloatiteratorimplemen
         str_name += std::to_string(idcode);
     }
 
-    short name = globalTamgu->Getid(str_name);
+    short name = tamgucode->global->Getid(str_name);
     
     //Then we need to access the variable itself...
     if (Checkvariable(tamgucode, idcode, name)) {
         Tamgu* var = Getvariable(tamgucode, idcode, name);
-        JavaIterationFloat* jiv = new JavaIterationFloat(env, (jobjectArray)values, count);
+        JavaIterationFloat* jiv = new JavaIterationFloat(env, tamgucode->global, (jobjectArray)values, count);
         TamguJavaIteration* it = new TamguJavaIteration(jiv, JavaBegin, JavaNext, JavaEnd, JavaIterator, JavaValue, JavaDelete, JavaSize, JavaGet, JavaSet, JavaClear);
         var->Put(aNULL, it, 0);
         return true;
@@ -882,12 +902,12 @@ JNIEXPORT jboolean JNICALL Java_com_naver_jtamgu_JTamgu_Setdoubleiteratorimpleme
         str_name += std::to_string(idcode);
     }
 
-    short name = globalTamgu->Getid(str_name);
+    short name = tamgucode->global->Getid(str_name);
     
     //Then we need to access the variable itself...
     if (Checkvariable(tamgucode, idcode, name)) {
         Tamgu* var = Getvariable(tamgucode, idcode, name);
-        JavaIterationDouble* jiv = new JavaIterationDouble(env, (jobjectArray)values, count);
+        JavaIterationDouble* jiv = new JavaIterationDouble(env, tamgucode->global, (jobjectArray)values, count);
         TamguJavaIteration* it = new TamguJavaIteration(jiv, JavaBegin, JavaNext, JavaEnd, JavaIterator, JavaValue, JavaDelete, JavaSize, JavaGet, JavaSet, JavaClear);
         var->Put(aNULL, it, 0);
         return true;
@@ -912,12 +932,12 @@ JNIEXPORT jboolean JNICALL Java_com_naver_jtamgu_JTamgu_Setstringiteratorimpleme
         str_name += std::to_string(idcode);
     }
 
-    short name = globalTamgu->Getid(str_name);
+    short name = tamgucode->global->Getid(str_name);
     
     //Then we need to access the variable itself...
     if (Checkvariable(tamgucode, idcode, name)) {
         Tamgu* var = Getvariable(tamgucode, idcode, name);
-        JavaIterationString* jiv = new JavaIterationString(env, values, count);
+        JavaIterationString* jiv = new JavaIterationString(env, tamgucode->global, values, count);
         TamguJavaIteration* it = new TamguJavaIteration(jiv, JavaBegin, JavaNext, JavaEnd, JavaIterator, JavaValue, JavaDelete, JavaSize, JavaGet, JavaSet, JavaClear);
         var->Put(aNULL, it, 0);
         return true;
@@ -944,12 +964,12 @@ JNIEXPORT jboolean JNICALL Java_com_naver_jtamgu_JTamgu_SetListFloatiteratorimpl
         str_name += std::to_string(idcode);
     }
 
-    short name = globalTamgu->Getid(str_name);
+    short name = tamgucode->global->Getid(str_name);
     
     //Then we need to access the variable itself...
     if (Checkvariable(tamgucode, idcode, name)) {
         Tamgu* var = Getvariable(tamgucode, idcode, name);
-        JavaIterationListFloat* jiv = new JavaIterationListFloat(env, values, count);
+        JavaIterationListFloat* jiv = new JavaIterationListFloat(env, tamgucode->global, values, count);
         TamguJavaIteration* it = new TamguJavaIteration(jiv, JavaBegin, JavaNext, JavaEnd, JavaIterator, JavaValue, JavaDelete, JavaSize, JavaGet, JavaSet, JavaClear);
         var->Put(aNULL, it, 0);
         return true;
@@ -975,12 +995,12 @@ JNIEXPORT jboolean JNICALL Java_com_naver_jtamgu_JTamgu_SetListIntiteratorimplem
         str_name += std::to_string(idcode);
     }
 
-    short name = globalTamgu->Getid(str_name);
+    short name = tamgucode->global->Getid(str_name);
     
     //Then we need to access the variable itself...
     if (Checkvariable(tamgucode, idcode, name)) {
         Tamgu* var = Getvariable(tamgucode, idcode, name);
-        JavaIterationListInteger* jiv = new JavaIterationListInteger(env, values, count);
+        JavaIterationListInteger* jiv = new JavaIterationListInteger(env, tamgucode->global, values, count);
         TamguJavaIteration* it = new TamguJavaIteration(jiv, JavaBegin, JavaNext, JavaEnd, JavaIterator, JavaValue, JavaDelete, JavaSize, JavaGet, JavaSet, JavaClear);
         var->Put(aNULL, it, 0);
         return true;
@@ -1006,12 +1026,12 @@ JNIEXPORT jboolean JNICALL Java_com_naver_jtamgu_JTamgu_SetListLongiteratorimple
         str_name += std::to_string(idcode);
     }
 
-    short name = globalTamgu->Getid(str_name);
+    short name = tamgucode->global->Getid(str_name);
     
     //Then we need to access the variable itself...
     if (Checkvariable(tamgucode, idcode, name)) {
         Tamgu* var = Getvariable(tamgucode, idcode, name);
-        JavaIterationListLong* jiv = new JavaIterationListLong(env, values, count);
+        JavaIterationListLong* jiv = new JavaIterationListLong(env, tamgucode->global, values, count);
         TamguJavaIteration* it = new TamguJavaIteration(jiv, JavaBegin, JavaNext, JavaEnd, JavaIterator, JavaValue, JavaDelete, JavaSize, JavaGet, JavaSet, JavaClear);
         var->Put(aNULL, it, 0);
         return true;
@@ -1037,12 +1057,12 @@ JNIEXPORT jboolean JNICALL Java_com_naver_jtamgu_JTamgu_SetListDoubleiteratorimp
         str_name += std::to_string(idcode);
     }
 
-    short name = globalTamgu->Getid(str_name);
+    short name = tamgucode->global->Getid(str_name);
     
     //Then we need to access the variable itself...
     if (Checkvariable(tamgucode, idcode, name)) {
         Tamgu* var = Getvariable(tamgucode, idcode, name);
-        JavaIterationListDouble* jiv = new JavaIterationListDouble(env, values, count);
+        JavaIterationListDouble* jiv = new JavaIterationListDouble(env, tamgucode->global, values, count);
         TamguJavaIteration* it = new TamguJavaIteration(jiv, JavaBegin, JavaNext, JavaEnd, JavaIterator, JavaValue, JavaDelete, JavaSize, JavaGet, JavaSet, JavaClear);
         var->Put(aNULL, it, 0);
         return true;
@@ -1068,12 +1088,12 @@ JNIEXPORT jboolean JNICALL Java_com_naver_jtamgu_JTamgu_SetListStringiteratorimp
         str_name += std::to_string(idcode);
     }
 
-    short name = globalTamgu->Getid(str_name);
+    short name = tamgucode->global->Getid(str_name);
     
     //Then we need to access the variable itself...
     if (Checkvariable(tamgucode, idcode, name)) {
         Tamgu* var = Getvariable(tamgucode, idcode, name);
-        JavaIterationListString* jiv = new JavaIterationListString(env, values, count);
+        JavaIterationListString* jiv = new JavaIterationListString(env, tamgucode->global, values, count);
         TamguJavaIteration* it = new TamguJavaIteration(jiv, JavaBegin, JavaNext, JavaEnd, JavaIterator, JavaValue, JavaDelete, JavaSize, JavaGet, JavaSet, JavaClear);
         var->Put(aNULL, it, 0);
         return true;

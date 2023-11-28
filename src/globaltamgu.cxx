@@ -9,7 +9,7 @@
  Version    : See tamgu.cxx for the version number
  filename   : globaltamgu.cxx
  Date       : 2017/09/01
- Purpose    : 
+ Purpose    :
  Programmer : Claude ROUX (claude.roux@naverlabs.com)
  Reviewer   :
 */
@@ -21,9 +21,9 @@
 #include "codeparse.h"
 
 static string _fullcode;
-void clean_aNULL();
 //----------------------------------------------------------------------------------
-static vector<TamguGlobal*> globals;
+bool TamguDeleteInThread(short idglobal);
+Exchanging vector<TamguGlobal*> globalTamguPool;
 static ThreadLock globalLock;
 
 class JtamguGlobalLocking {
@@ -40,155 +40,171 @@ public:
     }
 };
 
-static int Storeglobal(TamguGlobal* g) {
+static short Storeglobal(TamguGlobal* g) {
     JtamguGlobalLocking _lock;
-	for (int idx = 0; idx < globals.size(); idx++) {
-		if (globals[idx] == NULL) {
-			g->idglobal = idx;
-			globals[idx] = g;
-			return idx;
-		}
-	}
-	
-	g->idglobal = globals.size();
-	globals.push_back(g);
-	return g->idglobal;
+    for (short idglobal = 0; idglobal < globalTamguPool.size(); idglobal++) {
+        if (globalTamguPool[idglobal] == NULL) {
+            g->idglobal = idglobal;
+            globalTamguPool[idglobal] = g;
+            return idglobal;
+        }
+    }
+    
+    g->idglobal = globalTamguPool.size();
+    globalTamguPool.push_back(g);
+    return g->idglobal;
 }
 
-Exporting int TamguCreateGlobal(long nbthreads) {
-	_fullcode = "";
-	TamguGlobal* global = new TamguGlobal(nbthreads);
-	global->linereference = 1;
-    globalTamgu = global;
-	return Storeglobal(global);
+Exporting short TamguCreateGlobal(long nbthreads) {
+    _fullcode = "";
+    TamguGlobal* global = new TamguGlobal(nbthreads, true);
+    global->linereference = 1;
+    return Storeglobal(global);
 }
 
-Exporting bool TamguDeleteGlobal(int idx) {
+Exporting bool TamguDeleteGlobal(short idglobal) {
     JtamguGlobalLocking _lock;
-	if (idx <0 || idx >= globals.size() || globals[idx] == NULL)
-		return false;
+    if (idglobal <0 || idglobal >= globalTamguPool.size() || globalTamguPool[idglobal] == NULL)
+        return false;
 
-    if (globalTamgu == globals[idx]) {
-        globals[idx] = NULL;
+    if (globalTamgu == globalTamguPool[idglobal]) {
         delete globalTamgu;
         globalTamgu = NULL;
     }
     else {
-        TamguGlobal* g = globals[idx];
-        globals[idx] = NULL;
+        TamguGlobal* g = globalTamguPool[idglobal];
         delete g;
     }
-        
- 	return true;
+
+    globalTamguPool[idglobal] = NULL;
+    return true;
 }
 
-Exporting bool TamguSelectglobal(int idx) {
+Exporting bool TamguDeleteGlobalinThread(short idglobal) {
     JtamguGlobalLocking _lock;
-	if (idx <0 || idx >= globals.size() || globals[idx] == NULL)
-		return false;
-
-	globals[idx]->SetThreadid();
-	globalTamgu = globals[idx];
-	return true;
+    return TamguDeleteInThread(idglobal);
 }
 
-Exporting bool TamguReleaseglobal(int idx) {
+Exporting bool TamguDeleteSpace(short idglobal, short idcode) {
     JtamguGlobalLocking _lock;
-	if (idx <0 || idx >= globals.size() || globals[idx] == NULL)
-		return false;
+    if (idglobal <0 || idglobal >= globalTamguPool.size() || globalTamguPool[idglobal] == NULL)
+        return false;
+    TamguGlobal* g = globalTamguPool[idglobal];
+    if (g->spaces[idcode] != NULL) {
+        delete g->spaces[idcode];
+        g->spaces[idcode] = NULL;
+        return true;
+    }
+    return false;
+}
 
-	globals[idx]->ResetThreadid();
-	return true;
+Exporting bool TamguSelectglobal(short idglobal) {
+    JtamguGlobalLocking _lock;
+    if (idglobal <0 || idglobal >= globalTamguPool.size() || globalTamguPool[idglobal] == NULL)
+        return false;
+
+    globalTamguPool[idglobal]->SetThreadid();
+    globalTamgu = globalTamguPool[idglobal];
+    return true;
+}
+
+Exporting bool TamguReleaseglobal(short idglobal) {
+    JtamguGlobalLocking _lock;
+    if (idglobal <0 || idglobal >= globalTamguPool.size() || globalTamguPool[idglobal] == NULL)
+        return false;
+
+    globalTamguPool[idglobal]->ResetThreadid();
+    return true;
 }
 
 Exporting void TamguCleanAllGlobals() {
     JtamguGlobalLocking _lock;
-	for (int idx = 0; idx < globals.size(); idx++) {
-		if (globals[idx] != NULL)
-			delete globals[idx];
-	}
-	globals.clear();
+    for (short idglobal = 0; idglobal < globalTamguPool.size(); idglobal++) {
+        if (globalTamguPool[idglobal] != NULL)
+            delete globalTamguPool[idglobal];
+    }
+    globalTamguPool.clear();
     clean_utf8_handler();
-    clean_aNULL();
 }
 
-Exporting TamguGlobal* GlobalTamgu(int idx) {
+Exporting TamguGlobal* getGlobalTamgu(short idglobal) {
     JtamguGlobalLocking _lock;
-    if (idx <0 || idx >= globals.size() || globals[idx] == NULL)
+    if (idglobal <0 || idglobal >= globalTamguPool.size() || globalTamguPool[idglobal] == NULL)
         return NULL;
     
-    return globals[idx];
+    return globalTamguPool[idglobal];
 }
 
 //----------------------------------------------------------------------------------
 
 Exporting TamguGlobal* TamguCreate(long nbthreads) {
-	if (globalTamgu != NULL)
-		return NULL;
+    if (globalTamgu != NULL)
+        return NULL;
 
-	_fullcode = "";
-	globalTamgu = new TamguGlobal(nbthreads, true);
-	globalTamgu->linereference = 1;
-	Storeglobal(globalTamgu);
-	return globalTamgu;
+    _fullcode = "";
+    TamguGlobal* global = new TamguGlobal(nbthreads, true);
+    global->linereference = 1;
+    Storeglobal(global);
+    return global;
 }
 
 
 Exporting bool TamguExtinguish() {
-	if (globalTamgu != NULL) {
-		if (globalTamgu->isRunning())
-			return false;
+    if (globalTamgu != NULL) {
+        if (globalTamgu->isRunning())
+            return false;
         
         JtamguGlobalLocking _lock;
-        globals[globalTamgu->idglobal] = NULL;
-		delete globalTamgu;		
-		globalTamgu = NULL;		
-	}
-	return true;
+        short idglobal = globalTamgu->idglobal;
+        delete globalTamgu;
+        globalTamguPool[idglobal] = NULL;
+        globalTamgu = NULL;
+    }
+    return true;
 }
 
 Exporting void TamguAllObjects(vector<string>& vs) {
-	if (globalTamgu!=NULL)
-		globalTamgu->TamguAllObjects(vs);
+    if (globalTamgu!=NULL)
+        globalTamgu->TamguAllObjects(vs);
 }
 
 Exporting short TamguLoad(string filename) {
-	if (globalTamgu == NULL)
-		return -1;
+    if (globalTamgu == NULL)
+        return -1;
 
-	//The system variables...
-	globalTamgu->SystemInitialization(filename);
+    //The system variables...
+    globalTamgu->SystemInitialization(filename);
 
-	TamguCode* a = globalTamgu->Loadfile(filename);
-	if (a == NULL)
-		return -1;
-	return a->idcode;
+    TamguCode* a = globalTamgu->Loadfile(filename);
+    if (a == NULL)
+        return -1;
+    return a->idcode;
 }
 
 Exporting short TamguCompile(string& codeinit, string filename, char dsp) {
     static tokenizer_result<string> xr;
     static bnf_tamgu bnf;
 
-	TamguCode* a = globalTamgu->Getcode(0);
-	if (a == NULL)
-		a = globalTamgu->GetNewCodeSpace(filename);
-		
-	//The system variables...
-	globalTamgu->SystemInitialization(filename);
+    TamguCode* a = globalTamgu->Getcode(0);
+    if (a == NULL)
+        a = globalTamgu->GetNewCodeSpace(filename);
+        
+    //The system variables...
+    globalTamgu->SystemInitialization(filename);
     globalTamgu->Cleanerror(0);
     
-	bool add = true;
-	string code;	
-	if (dsp) {
+    bool add = true;
+    string code;
+    if (dsp) {
         globalTamgu->store_in_code_lines = true;
         globalTamgu->codelines.clear();
         
         globalTamgu->codelines.push_back("");
         v_split(codeinit, "\n", globalTamgu->codelines);
 
-		code = Trim(codeinit);
-		if (code.size() == 0)
-			return -1;
+        code = Trim(codeinit);
+        if (code.size() == 0)
+            return -1;
 
         globalTamgu->tamgu_tokenizer.tokenize<string>(code, xr);
         if (!xr.size())
@@ -209,30 +225,30 @@ Exporting short TamguCompile(string& codeinit, string filename, char dsp) {
             }
         }
         
-		if (puredisplay) {
-			if (code[0] == '<' && code.back() == '>') {
-				//Is it a function description
+        if (puredisplay) {
+            if (code[0] == '<' && code.back() == '>') {
+                //Is it a function description
 
-				x_node* x = bnf.x_parsing(&xr, FULL);
-				if (x == NULL) {
-					globalTamgu->Returnerror(e_cannot_parse_this, 0);
-					return -1;
-				}
-				x_node* xn = x;
-				while (xn != NULL && xn->token != "telque" && xn->nodes.size()) xn = xn->nodes[0];
+                x_node* x = bnf.x_parsing(&xr, FULL);
+                if (x == NULL) {
+                    globalTamgu->Returnerror(e_cannot_parse_this, 0);
+                    return -1;
+                }
+                x_node* xn = x;
+                while (xn != NULL && xn->token != "telque" && xn->nodes.size()) xn = xn->nodes[0];
 
-				if (xn != NULL) {
-					for (int i = 0; i<xn->nodes.size(); i++) {
-						if (xn->nodes[i]->token == "taskell") {
-							dsp = false;
-							break;
-						}
-					}
-				}
-				delete x;
-			}
+                if (xn != NULL) {
+                    for (int i = 0; i<xn->nodes.size(); i++) {
+                        if (xn->nodes[i]->token == "taskell") {
+                            dsp = false;
+                            break;
+                        }
+                    }
+                }
+                delete x;
+            }
 
-			if (dsp == 2) {
+            if (dsp == 2) {
                 code = "return";
                 code += "(";
                 code += codeinit;
@@ -253,21 +269,21 @@ Exporting short TamguCompile(string& codeinit, string filename, char dsp) {
                     code += codeinit;
                     code += ");";
                 }
-			}
-		}
-	}
-	else
-		code = codeinit;
+            }
+        }
+    }
+    else
+        code = codeinit;
 
-	if (!a->Compile(code))
-		return -1;
-	
-	if (add) {
-		_fullcode += code;
-		_fullcode += Endl;
-	}
+    if (!a->Compile(code))
+        return -1;
+    
+    if (add) {
+        _fullcode += code;
+        _fullcode += Endl;
+    }
 
-	return a->idcode;
+    return a->idcode;
 }
 
 Exporting short TamguCompileMain(string& codeinit, string filename) {
@@ -315,7 +331,7 @@ Exporting bool TamguCheckCompile(string& codeinit, string filename, vector<Tamgu
 
 
 Exporting string TamguListing() {
-	return _fullcode;
+    return _fullcode;
 }
 
 Exporting wstring TamguUListing() {
@@ -347,23 +363,23 @@ Exporting void TamguAddCode(string& code) {
 
 
 Exporting size_t TamguCompile(string& code, short idcode) {
-	TamguCode* a = globalTamgu->Getcode(idcode);
-	if (a == NULL || !a->Compile(code))
-		return -1;
-	return a->firstinstruction;
+    TamguCode* a = globalTamgu->Getcode(idcode);
+    if (a == NULL || !a->Compile(code))
+        return -1;
+    return a->firstinstruction;
 }
 
 Exporting bool TamguLoading(short idcode) {
-	TamguCode* a = globalTamgu->Getcode(idcode);
-	if (a == NULL)
-		return false;
-	globalTamgu->spaceid = idcode;
+    TamguCode* a = globalTamgu->Getcode(idcode);
+    if (a == NULL)
+        return false;
+    globalTamgu->spaceid = idcode;
 
-	a->Loading();
+    a->Loading();
 
-	if (globalTamgu->GenuineError(0))
-		return false;
-	return true;
+    if (globalTamgu->GenuineError(0))
+        return false;
+    return true;
 }
 
 Exporting long TamguLastInstruction(short idcode) {
@@ -390,54 +406,66 @@ Exporting Tamgu* TamguEval(short idcode, long begininstruction) {
 }
 
 Exporting bool TamguRun(short idcode, bool glock) {
-	TamguCode* a = globalTamgu->Getcode(idcode);
-	if (a == NULL)
-		return false;
-	globalTamgu->spaceid = idcode;
+    TamguCode* a = globalTamgu->Getcode(idcode);
+    if (a == NULL)
+        return false;
+    globalTamgu->spaceid = idcode;
 
-	a->Run(glock);
+    a->Run(glock);
 
-	if (globalTamgu->GenuineError(0))
-		return false;
-	return true;
+    if (globalTamgu->GenuineError(0))
+        return false;
+    return true;
 }
 
 Exporting short TamguLastCodeSpace() {
-	return (short)globalTamgu->spaceid;
+    return (short)globalTamgu->spaceid;
 }
 
 Exporting TamguCode* TamguCurrentSpace() {
-	if (globalTamgu->spaceid == -1)
-		return NULL;
-	return globalTamgu->spaces[globalTamgu->spaceid];
+    if (globalTamgu->spaceid == -1)
+        return NULL;
+    return globalTamgu->spaces[globalTamgu->spaceid];
 }
 
 Exporting TamguCode* TamguCodeSpace(short idcode) {
     JtamguGlobalLocking _lock;
-	if (globalTamgu == NULL || idcode >= globalTamgu->spaces.size() || idcode < 0)
-		return NULL;
+    if (globalTamgu == NULL || idcode >= globalTamgu->spaces.size() || idcode < 0)
+        return NULL;
 
-	return globalTamgu->spaces[idcode];
+    return globalTamgu->spaces[idcode];
+}
+
+Exporting TamguCode* TamguCodeSpace(short idglobal, short idcode) {
+    JtamguGlobalLocking _lock;
+    if (idglobal < 0 || idglobal >= globalTamguPool.size() || globalTamguPool[idglobal] == NULL)
+        return NULL;
+    
+    TamguGlobal* g = globalTamguPool[idglobal];
+    if (idcode < g->spaces.size() && g->spaces[idcode] != NULL)
+        return g->spaces[idcode];
+    
+    return NULL;
 }
 
 Exporting string TamguCurrentFilename() {
-	if (globalTamgu == NULL)
-		return "";
+    if (globalTamgu == NULL)
+        return "";
 
-	TamguCode* c = globalTamgu->Getcurrentcode();
-	if (c == NULL)
-		return "";
-	return c->filename;
+    TamguCode* c = globalTamgu->Getcurrentcode();
+    if (c == NULL)
+        return "";
+    return c->filename;
 }
 
 Exporting long TamguCurrentLine() {
-	if (globalTamgu == NULL)
-		return 0;
+    if (globalTamgu == NULL)
+        return 0;
 
-	TamguCode* c = globalTamgu->Getcurrentcode();
-	if (c == NULL)
-		return 0;
-	return c->Getcurrentline();
+    TamguCode* c = globalTamgu->Getcurrentcode();
+    if (c == NULL)
+        return 0;
+    return c->Getcurrentline();
 }
 
 Exporting void TamguSetinitline(long i) {
@@ -481,10 +509,10 @@ Exporting bool TamguErrorVector(TamguGlobal* global,
 }
 
 Exporting string TamguErrorMessage() {
-	if (globalTamgu->errorraised[0] != NULL) {
-		string filename = globalTamgu->Getcurrentfile();
+    if (globalTamgu->errorraised[0] != NULL) {
+        string filename = globalTamgu->Getcurrentfile();
         long line = globalTamgu->Getcurrentline();
-		stringstream message;
+        stringstream message;
 
         globalTamgu->Getstack(message);
         message << globalTamgu->errorraised[0]->String() << " at " << line;
@@ -492,24 +520,24 @@ Exporting string TamguErrorMessage() {
             if (filename != "")
                 message << " in " << filename;
         }
-		return message.str();
-	}
-	return globalTamgu->threads[0].message.str();
+        return message.str();
+    }
+    return globalTamgu->threads[0].message.str();
 }
 
 Exporting TamguGlobal* GlobalTamgu() {
-	return globalTamgu;
+    return globalTamgu;
 }
 
 Exporting bool TamguRunning() {
-	if (globalTamgu == NULL)
-		return false;
+    if (globalTamgu == NULL)
+        return false;
 
-	return globalTamgu->isRunning();
+    return globalTamgu->isRunning();
 }
 
 Exporting short TamguCurrentThreadId() {
-	return globalTamgu->GetThreadid();
+    return globalTamgu->GetThreadid();
 }
 
 Exporting void TamguSpaceInit(string filename) {
@@ -523,54 +551,66 @@ Exporting void TamguSpaceInit(string filename) {
     globalTamgu->Pushstack(&a->mainframe);
 }
 
-Exporting string TamguIndentation(string& codestr,string blanc) {	
-	bool lisp = false;
-	if (codestr[0] == '(' && codestr[1] == ')') {
-		lisp = true;
-	}
+Exporting string TamguIndentation(string& codestr,string blanc) {
+    bool lisp = false;
+    if (codestr[0] == '(' && codestr[1] == ')') {
+        lisp = true;
+    }
 
-	cr_normalise(codestr);
-	string codeindente;
-	IndentationCode(codestr, codeindente, lisp, true);
-	Trimright(codeindente);
-	codeindente += "\n";
-	if (codeindente.find("/@") != string::npos || codeindente.find("@\"") != string::npos)
-		cr_normalise(codeindente);
-	return codeindente.c_str();
+    cr_normalise(codestr);
+    string codeindente;
+    IndentationCode(codestr, codeindente, lisp, true);
+    Trimright(codeindente);
+    codeindente += "\n";
+    if (codeindente.find("/@") != string::npos || codeindente.find("@\"") != string::npos)
+        cr_normalise(codeindente);
+    return codeindente.c_str();
 }
 
+Exporting bool TamguStop(short idglobal) {
+    if (idglobal <0 || idglobal >= globalTamguPool.size() || globalTamguPool[idglobal] == NULL)
+        return false;
+    
+    TamguGlobal* global = globalTamguPool[idglobal];
+    if (global->isRunning()) {
+        global->executionbreak = true;
+        global->Releasevariables();
+    }
+    
+    return true;
+}
 
 Exporting bool TamguStop() {
-	if (globalTamgu == NULL)
-		return true;
+    if (globalTamgu == NULL)
+        return true;
     
     if (globalTamgu->isRunning()) {
         globalTamgu->executionbreak = true;
         globalTamgu->Releasevariables();
     }
     
-	return true;
+    return true;
 }
 
 Exporting void TamguDisplayFunction(DisplayFunctionCall call, void* o) {
-	if (globalTamgu == NULL)
-		return;
-	globalTamgu->displayfunction = call;
-	globalTamgu->displayobject = o;
+    if (globalTamgu == NULL)
+        return;
+    globalTamgu->displayfunction = call;
+    globalTamgu->displayobject = o;
 }
 
 
 Exporting void TamguSetArguments(string args) {
-	if (globalTamgu == NULL)
-		return;
-	globalTamgu->Setarguments(args);
+    if (globalTamgu == NULL)
+        return;
+    globalTamgu->Setarguments(args);
 }
 
 
 Exporting void TamguSetArguments(vector<string>& args) {
-	if (globalTamgu == NULL)
-		return;
-	globalTamgu->arguments = args;
+    if (globalTamgu == NULL)
+        return;
+    globalTamgu->arguments = args;
 }
 
 

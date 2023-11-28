@@ -213,41 +213,6 @@ class TamguCallBreak;
 class TamguLet;
 
 extern Exchanging Tamgu* aNULL;
-
-#define aUNIVERSAL globalTamgu->gUNIVERSAL
-#define aTRUE globalTamgu->gTRUE
-#define aFALSE globalTamgu->gFALSE
-#define aMINUSONE globalTamgu->gMINUSONE
-#define aZEROPOINTZERO globalTamgu->gZEROPOINTZERO
-#define aZERO globalTamgu->gZERO
-#define aONE globalTamgu->gONE
-#define aEMPTYLISP globalTamgu->gEMPTYLISP
-#define aEMPTYSTRING globalTamgu->gEMPTYSTRING
-#define aEMPTYUSTRING globalTamgu->gEMPTYUSTRING
-#define aBREAK globalTamgu->gBREAK
-#define aCONTINUE globalTamgu->gCONTINUE
-#define aRETURN globalTamgu->gRETURN
-#define aPIPE globalTamgu->gPIPE
-#define aNOELEMENT globalTamgu->gNOELEMENT
-#define aDEFAULT globalTamgu->gDEFAULT
-#define aEND globalTamgu->gEND
-#define aRAISEERROR globalTamgu->gRAISEERROR
-#define aBREAKFALSE globalTamgu->gBREAKFALSE
-#define aBREAKTRUE globalTamgu->gBREAKTRUE
-#define aBREAKZERO globalTamgu->gBREAKZERO
-#define aBREAKONE globalTamgu->gBREAKONE
-#define aASSIGNMENT globalTamgu->gASSIGNMENT
-#define aITERNULL globalTamgu->gITERNULL
-#define aFAIL globalTamgu->gFAIL
-#define aTERMINAL globalTamgu->gTERMINAL
-#define aCUTFALSE globalTamgu->gCUTFALSE
-#define aCUT globalTamgu->gCUT
-#define aSTOP globalTamgu->gSTOP
-#define aHASKELL globalTamgu->gHASKELL
-#define aNULLDECLARATION globalTamgu->gNULLDECLARATION
-#define aNULLLet globalTamgu->gNULLLet
-#define aNOTHING globalTamgu->gNOTHING
-
 //---------------------------------------------------------------------------
 #define MIN3(a, b, c) ((a) < (b) ? ((a) < (c) ? (a) : (c)) : ((b) < (c) ? (b) : (c)))
 //---------------------------------------------------------------------------

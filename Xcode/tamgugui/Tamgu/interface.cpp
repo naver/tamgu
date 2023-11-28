@@ -235,7 +235,7 @@ extern "C" {
         
         threading=th;
         displaybuffer="";
-        TamguGlobal* g = GlobalTamgu(id);
+        TamguGlobal* g = getGlobalTamgu(id);
         if (g!=NULL) {
             g->displayfunction = send_result;
             g->displayobject = &threading;
@@ -245,7 +245,7 @@ extern "C" {
     
     void Initdisplay(short id) {
         displaybuffer="";
-        TamguGlobal* g = GlobalTamgu(id);
+        TamguGlobal* g = getGlobalTamgu(id);
         if (g!=NULL) {
             g->displayfunction = display_result;
             g->doubledisplay = false;

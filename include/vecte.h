@@ -18,7 +18,7 @@
 #define vecte_h
 
 class Tamgu;
-extern Exchanging Tamgu* aNULL;
+extern Tamgu* aNULL;
 
 template <class Z> class VECTE {
 public:

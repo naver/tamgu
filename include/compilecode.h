@@ -56,6 +56,7 @@ public:
     long insidecall;
 	short currentfileid;
 	short idcode;
+    short idglobal;
 
 	bool isprivate;
 	bool iscommon;
@@ -72,6 +73,7 @@ public:
         insidecall = 0;
         last_node = NULL;
         currentpredicatename="";
+        idglobal = g->idglobal;
         currentfileid = (short)g->filenames.size();
 		g->filenames.push_back(filename);
 		g->frames[a_mainframe] = &mainframe;

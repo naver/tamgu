@@ -769,11 +769,13 @@ Tamgu* ProcDependencies(Tamgu* contextualpattern, short idthread, TamguCall* cal
 
 //----------------------------------------------------------------------------------------------------
 void TamguGlobal::RecordPredicates() {
-    gFAIL = new TamguConstPredicate(NULL, a_fail);
-    gTERMINAL = new TamguConstPredicate(NULL, a_terminal);
-    gCUTFALSE = new TamguConstPredicate(NULL, a_cutfalse);
-    gCUT = new TamguConstPredicate(NULL, a_cut);
-    gSTOP = new TamguConstPredicate(NULL, a_stop);
+    if (aFAIL == NULL) {
+        aFAIL = new TamguConstPredicate(NULL, a_fail);
+        aTERMINAL = new TamguConstPredicate(NULL, a_terminal);
+        aCUTFALSE = new TamguConstPredicate(NULL, a_cutfalse);
+        aCUT = new TamguConstPredicate(NULL, a_cut);
+        aSTOP = new TamguConstPredicate(NULL, a_stop);
+    }
     
     RecordOneProcedure("asserta", "Assert a clause (fact or rule) into the database as the first clause of the predicate", &ProcPredicateAsserta, P_ONE | P_ONE);
     RecordOneProcedure("assertz", "Assert a clause (fact or rule) into the database as the last clause of the predicate", &ProcPredicateAssertz, P_ONE | P_ONE);

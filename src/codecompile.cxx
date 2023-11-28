@@ -1424,7 +1424,6 @@ void tags_automaton::setrules() {
 }
 //--------------------------------------------------------------------
 Tamgu* ProcCreateFrame(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
-bool Activategarbage(bool v);
 //--------------------------------------------------------------------
 static bool windowmode;
 extern "C" {
@@ -1500,7 +1499,7 @@ uchar Returnequ(short ty, bool top = false) {
 	return 255;
 }
 
-Tamgu* Evaluatetype(uchar thetype, uchar ref, Tamgu* a) {
+Tamgu* Evaluatetype(TamguGlobal* global, uchar thetype, uchar ref, Tamgu* a) {
 	uchar t = Returnequ(a->Type());
 	Tamgu* ret = NULL;
 	if ((thetype & b_allnumbers)) {
@@ -1511,16 +1510,16 @@ Tamgu* Evaluatetype(uchar thetype, uchar ref, Tamgu* a) {
 				ret = new Tamgushort(a->Short());
 				break;
 			case b_int:
-				ret = globalTamgu->Provideint(a->Integer());
+				ret = global->Provideint(a->Integer());
 				break;
 			case b_long:
-				ret = globalTamgu->Providelong(a->Long());
+				ret = global->Providelong(a->Long());
 				break;
 			case b_decimal:
 				ret = new Tamgudecimal(a->Decimal());
 				break;
 			case b_float:
-				ret = globalTamgu->Providefloat(a->Float());
+				ret = global->Providefloat(a->Float());
 				break;
 			}
 			if (ret != NULL) {
@@ -1538,16 +1537,16 @@ Tamgu* Evaluatetype(uchar thetype, uchar ref, Tamgu* a) {
                 ret = new Tamgushort(a->Short());
                 break;
 			case b_int:
-				ret = globalTamgu->Provideint(a->Integer());
+				ret = global->Provideint(a->Integer());
 				break;
 			case b_long:
-				ret = globalTamgu->Providelong(a->Long());
+				ret = global->Providelong(a->Long());
 				break;
 			case b_decimal:
 				ret = new Tamgudecimal(a->Decimal());
 				break;
 			case b_float:
-				ret = globalTamgu->Providefloat(a->Float());
+				ret = global->Providefloat(a->Float());
 				break;
 			}
 			if (ret != NULL) {
@@ -1560,11 +1559,11 @@ Tamgu* Evaluatetype(uchar thetype, uchar ref, Tamgu* a) {
 
 	if ((thetype & b_allstrings) && (t & b_allnumbers)) {
 		if (thetype == a_ustring) {
-			ret = globalTamgu->Provideustring(a->UString());
+			ret = global->Provideustring(a->UString());
 			a->Release();
 			return ret;
 		}
-		ret = globalTamgu->Providestring(a->String());
+		ret = global->Providestring(a->String());
 		a->Release();
 		return ret;
 	}
@@ -2184,7 +2183,7 @@ Tamgu* TamguCode::CloningInstruction(TamguInstruction* ki) {
 	ki->Remove();
 	if (k->Action() >= a_less && k->Action() <= a_moreequal) {
 		//Let's try analysing this stuff...
-		Tamgu* kcomp = k->Compile(NULL);
+		Tamgu* kcomp = k->Compile(global, NULL);
 		if (k == kcomp)
 			return k;
 
@@ -2218,17 +2217,17 @@ Tamgu* TamguCode::EvaluateVariable(Tamgu* var) {
 
 //-------------------------------------------------------------------------------------
 
-static uchar Evaluateatomtype(Tamgu* ins, bool top = false) {
+static uchar Evaluateatomtype(TamguGlobal* global, Tamgu* ins, bool top = false) {
 	short ty = ins->Typeinfered();
 	if (ty == a_none)
 		return 255;
 
 	if (ty < a_short || ty > a_ustring) {
 		if (ins->Function() != NULL) {
-			if (!globalTamgu->newInstance.check(ty))
+			if (!global->newInstance.check(ty))
 				return 255;
 
-			Tamgu* a = globalTamgu->newInstance[ty];
+			Tamgu* a = global->newInstance[ty];
 			if (a->isValueContainer() && ins->Function()->isIndex()) {
 				if (a->isDecimal())
 					ty = a_decimal;
@@ -2286,14 +2285,14 @@ static uchar Evaluateatomtype(Tamgu* ins, bool top = false) {
 	return Returnequ(ty, top);
 }
 
-bool TamguInstructionAPPLYOPERATIONROOT::Stacking(Tamgu* ins, char top) {	
+bool TamguInstructionAPPLYOPERATIONROOT::Stacking(TamguGlobal* global, Tamgu* ins, char top) {
 	if (top && !head) {
 		//we might need to detect the type of the all instruction set, which is based on
 		//the deepest element in the structure on the left...
 		Tamgu* loop = ins;
 		while (loop != NULL && loop->isInstruction()) loop = loop->Instruction(0);
 		if (loop != NULL) {
-			head = Evaluateatomtype(loop);
+			head = Evaluateatomtype(global, loop);
 			alls = head;
 		}
 		else
@@ -2333,14 +2332,14 @@ bool TamguInstructionAPPLYOPERATIONROOT::Stacking(Tamgu* ins, char top) {
 				t = 2;
 				simple = false;
 			}
-			if (!Stacking(ai->instructions[i], t))
+			if (!Stacking(global, ai->instructions[i], t))
 				simple = false;
 			if (t == 2)
 				t = 0;
 		}
 
 		if (!ins->isEQU()) {
-			instructions.push_back(globalTamgu->actions[ins->Action()]);			
+			instructions.push_back(global->actions[ins->Action()]);
 			if (top != 1)
 				ins->Remove();
 		}
@@ -2374,15 +2373,15 @@ bool TamguInstructionAPPLYOPERATIONROOT::Stacking(Tamgu* ins, char top) {
         else {
             TamguActionVariable* act;
             if (ins->isGlobalVariable()) {
-                if (globalTamgu->globalvariables.check(n))
-                    instructions.push_back(globalTamgu->globalvariables[n]);
+                if (global->globalvariables.check(n))
+                    instructions.push_back(global->globalvariables[n]);
                 else {
                     if (ins->Typeinfered() == a_self || ins->Typeinfered() == a_let)
                         act = new TamguActionGlobalLetVariable(n, ins->Typeinfered());
                     else
                         act = new TamguActionGlobalVariable(n, ins->Typeinfered());
                     remove = true;
-                    globalTamgu->globalvariables[n] = act;
+                    global->globalvariables[n] = act;
                     instructions.push_back(act);
                 }
             }
@@ -2404,7 +2403,7 @@ bool TamguInstructionAPPLYOPERATIONROOT::Stacking(Tamgu* ins, char top) {
         complex = true;
 
 	if (top) {
-		uchar ty = Evaluateatomtype(ins);
+		uchar ty = Evaluateatomtype(global, ins);
 		alls |= ty;
 
 		if (ins->Typeinfered() == a_fraction)
@@ -2417,7 +2416,7 @@ bool TamguInstructionAPPLYOPERATIONROOT::Stacking(Tamgu* ins, char top) {
 	return true;
 }
 
-Tamgu* TamguInstructionAPPLYOPERATIONEQU::update(uchar btype) {
+Tamgu* TamguInstructionAPPLYOPERATIONEQU::update(TamguGlobal* global, uchar btype) {
     if (btype == 255 || thetype == 255)
         return this;
     
@@ -2428,17 +2427,17 @@ Tamgu* TamguInstructionAPPLYOPERATIONEQU::update(uchar btype) {
         if (btype & b_allnumbers) {
             switch (thetype) {
                 case b_short:
-                    return new TamguInstructionEQUShort(this, globalTamgu);
+                    return new TamguInstructionEQUShort(this, global);
                 case b_int:
-                    return new TamguInstructionEQUInteger(this, globalTamgu);
+                    return new TamguInstructionEQUInteger(this, global);
                 case b_long:
-                    return new TamguInstructionEQULong(this, globalTamgu);
+                    return new TamguInstructionEQULong(this, global);
                 case b_decimal:
-                    return new TamguInstructionEQUDecimal(this, globalTamgu);
+                    return new TamguInstructionEQUDecimal(this, global);
                 case b_float: {
                     if (fraction)
-                        return new TamguInstructionEQUFraction(this, globalTamgu);
-                    return new TamguInstructionEQUFloat(this, globalTamgu);
+                        return new TamguInstructionEQUFraction(this, global);
+                    return new TamguInstructionEQUFloat(this, global);
                 }
             }
         }
@@ -2447,14 +2446,14 @@ Tamgu* TamguInstructionAPPLYOPERATIONEQU::update(uchar btype) {
 
     if (btype & b_allstrings) {
         if (thetype == b_string)
-            return new TamguInstructionEQUString(this, globalTamgu);
+            return new TamguInstructionEQUString(this, global);
         if (thetype == b_ustring)
-            return new TamguInstructionEQUUString(this, globalTamgu);
+            return new TamguInstructionEQUUString(this, global);
     }
     return this;
 }
 
-Tamgu* TamguInstructionAPPLYOPERATIONROOT::Returnlocal(TamguGlobal* g, Tamgu* parent) {
+Tamgu* TamguInstructionAPPLYOPERATIONROOT::Returnlocal(TamguGlobal* global, Tamgu* parent) {
 
 	if (!thetype) {
 		if (alls == 255 || complex)
@@ -2483,13 +2482,13 @@ Tamgu* TamguInstructionAPPLYOPERATIONROOT::Returnlocal(TamguGlobal* g, Tamgu* pa
 
 	if (!sub) {
         if (thetype == b_letself)
-            return new TamguInstructionCompute(this, g);
+            return new TamguInstructionCompute(this, global);
 
 		switch (thetype) {
 		case b_string:
-			return new TamguInstructionSTRING(this, g);
+			return new TamguInstructionSTRING(this, global);
         case b_ustring:
-			return new TamguInstructionUSTRING(this, g);
+			return new TamguInstructionUSTRING(this, global);
 		case b_short:
 		case b_int:
 		case b_long:
@@ -2500,48 +2499,48 @@ Tamgu* TamguInstructionAPPLYOPERATIONROOT::Returnlocal(TamguGlobal* g, Tamgu* pa
 			if (alls != 255) {
 				if ((alls & b_float) || (alls & b_longdecimal) == b_longdecimal) {
 					if (fraction)
-						return new TamguInstructionFRACTION(this, g);
-					return new TamguInstructionFLOAT(this, g);
+						return new TamguInstructionFRACTION(this, global);
+					return new TamguInstructionFLOAT(this, global);
 				}
 
 				if ((alls & b_decimal))
-					return new TamguInstructionDECIMAL(this, g);
+					return new TamguInstructionDECIMAL(this, global);
 
 				if ((alls & b_long) || parent == NULL)
-					return new TamguInstructionLONG(this, g);
+					return new TamguInstructionLONG(this, global);
 
 				if ((alls & b_int))
-					return new TamguInstructionINTEGER(this, g);
+					return new TamguInstructionINTEGER(this, global);
 
 				if ((alls & b_short))
-					return new TamguInstructionSHORT(this, g);
+					return new TamguInstructionSHORT(this, global);
 			}
 
 			switch (thetype) {
 			case b_short:
-				return new TamguInstructionSHORT(this, g);
+				return new TamguInstructionSHORT(this, global);
 			case b_int:
-				return new TamguInstructionINTEGER(this, g);
+				return new TamguInstructionINTEGER(this, global);
 			case b_long:
-				return new TamguInstructionLONG(this, g);
+				return new TamguInstructionLONG(this, global);
 			case b_decimal:
-				return new TamguInstructionDECIMAL(this, g);
+				return new TamguInstructionDECIMAL(this, global);
 			case b_float:
 				if (fraction)
-					return new TamguInstructionFRACTION(this, g);
-				return new TamguInstructionFLOAT(this, g);
+					return new TamguInstructionFRACTION(this, global);
+				return new TamguInstructionFLOAT(this, global);
 			}
 		}
 	}
 
     try {
         if (complex)
-            return new TamguInstructionComplex(this, g);
+            return new TamguInstructionComplex(this, global);
         
-        return new TamguInstructionCompute(this, g);
+        return new TamguInstructionCompute(this, global);
     }
     catch(TamguRaiseError* msg) {
-        TamguCode* code = globalTamgu->Getcurrentcode();
+        TamguCode* code = global->Getcurrentcode();
         msg->filename = code->filename;
         msg->left = code->current_start;
         msg->right = code->current_end;
@@ -2557,17 +2556,17 @@ Tamgu* TamguCallFunctionTaskell::Composition() {
 	return aNOELEMENT;
 }
 
-Tamgu* TamguInstructionAPPLYOPERATION::Compile(Tamgu* parent) {
-	TamguInstructionAPPLYOPERATIONROOT* kroot = new TamguInstructionAPPLYOPERATIONROOT(globalTamgu);
+Tamgu* TamguInstructionAPPLYOPERATION::Compile(TamguGlobal* global, Tamgu* parent) {
+	TamguInstructionAPPLYOPERATIONROOT* kroot = new TamguInstructionAPPLYOPERATIONROOT(global);
     if (parent != NULL) {
-		kroot->thetype = Evaluateatomtype(parent, true);
+		kroot->thetype = Evaluateatomtype(global, parent, true);
         parent = aONE;
     }
 
-	kroot->Stacking(this, true);
+	kroot->Stacking(global, this, true);
 	kroot->Setsize();
     
-	Tamgu* kvroot = kroot->Returnlocal(globalTamgu, parent);
+	Tamgu* kvroot = kroot->Returnlocal(global, parent);
 	if (kvroot != kroot) {
 		kroot->Remove();
 		return kvroot;
@@ -2576,7 +2575,7 @@ Tamgu* TamguInstructionAPPLYOPERATION::Compile(Tamgu* parent) {
 	return kroot;
 }
 
-Tamgu* TamguInstructionCOMPARE::Compile(Tamgu* parent) {
+Tamgu* TamguInstructionCOMPARE::Compile(TamguGlobal* global, Tamgu* parent) {
 	uchar left;
 	uchar right;
     uchar check;
@@ -2586,8 +2585,8 @@ Tamgu* TamguInstructionCOMPARE::Compile(Tamgu* parent) {
     }
     else {
         if (parent == NULL) {
-            left = Evaluateatomtype(instructions.vecteur[0]);
-            right = Evaluateatomtype(instructions.vecteur[1]);
+            left = Evaluateatomtype(global, instructions.vecteur[0]);
+            right = Evaluateatomtype(global, instructions.vecteur[1]);
 
             if (left == 255) {
                 //regular expressions...
@@ -2597,8 +2596,8 @@ Tamgu* TamguInstructionCOMPARE::Compile(Tamgu* parent) {
             }
         }
         else {
-            left = Evaluateatomtype(instructions.vecteur[0]->Eval(aNULL, aNULL, 0));
-            right = Evaluateatomtype(instructions.vecteur[1]->Eval(aNULL, aNULL, 0));
+            left = Evaluateatomtype(global, instructions.vecteur[0]->Eval(aNULL, aNULL, 0));
+            right = Evaluateatomtype(global, instructions.vecteur[1]->Eval(aNULL, aNULL, 0));
             if (left == 255) {
                 //regular expressions...
                 short ty = instructions.vecteur[0]->Eval(aNULL, aNULL, 0)->Typeinfered();
@@ -2625,17 +2624,17 @@ Tamgu* TamguInstructionCOMPARE::Compile(Tamgu* parent) {
                 if ((check & b_float) || (check & b_longdecimal) == b_longdecimal) {
                     switch (action) {
                         case a_less:
-                            return new c_less_float(globalTamgu, this);
+                            return new c_less_float(global, this);
                         case a_more:
-                            return new c_more_float(globalTamgu, this);
+                            return new c_more_float(global, this);
                         case a_same:
-                            return new c_same_float(globalTamgu, this);
+                            return new c_same_float(global, this);
                         case a_different:
-                            return new c_different_float(globalTamgu, this);
+                            return new c_different_float(global, this);
                         case a_lessequal:
-                            return new c_lessequal_float(globalTamgu, this);
+                            return new c_lessequal_float(global, this);
                         case a_moreequal:
-                            return new c_moreequal_float(globalTamgu, this);
+                            return new c_moreequal_float(global, this);
                     }
                     
                     return this;
@@ -2644,17 +2643,17 @@ Tamgu* TamguInstructionCOMPARE::Compile(Tamgu* parent) {
                 if ((check & b_decimal)) {
                     switch (action) {
                         case a_less:
-                            return new c_less_decimal(globalTamgu, this);
+                            return new c_less_decimal(global, this);
                         case a_more:
-                            return new c_more_decimal(globalTamgu, this);
+                            return new c_more_decimal(global, this);
                         case a_same:
-                            return new c_same_decimal(globalTamgu, this);
+                            return new c_same_decimal(global, this);
                         case a_different:
-                            return new c_different_decimal(globalTamgu, this);
+                            return new c_different_decimal(global, this);
                         case a_lessequal:
-                            return new c_lessequal_decimal(globalTamgu, this);
+                            return new c_lessequal_decimal(global, this);
                         case a_moreequal:
-                            return new c_moreequal_decimal(globalTamgu, this);
+                            return new c_moreequal_decimal(global, this);
                     }
                     
                     return this;
@@ -2663,17 +2662,17 @@ Tamgu* TamguInstructionCOMPARE::Compile(Tamgu* parent) {
                 if ((check & b_long)) {
                     switch (action) {
                         case a_less:
-                            return new c_less_long(globalTamgu, this);
+                            return new c_less_long(global, this);
                         case a_more:
-                            return new c_more_long(globalTamgu, this);
+                            return new c_more_long(global, this);
                         case a_same:
-                            return new c_same_long(globalTamgu, this);
+                            return new c_same_long(global, this);
                         case a_different:
-                            return new c_different_long(globalTamgu, this);
+                            return new c_different_long(global, this);
                         case a_lessequal:
-                            return new c_lessequal_long(globalTamgu, this);
+                            return new c_lessequal_long(global, this);
                         case a_moreequal:
-                            return new c_moreequal_long(globalTamgu, this);
+                            return new c_moreequal_long(global, this);
                     }
                     return this;
                 }
@@ -2681,17 +2680,17 @@ Tamgu* TamguInstructionCOMPARE::Compile(Tamgu* parent) {
                 if ((check & b_int)) {
                     switch (action) {
                         case a_less:
-                            return new c_less_int(globalTamgu, this);
+                            return new c_less_int(global, this);
                         case a_more:
-                            return new c_more_int(globalTamgu, this);
+                            return new c_more_int(global, this);
                         case a_same:
-                            return new c_same_int(globalTamgu, this);
+                            return new c_same_int(global, this);
                         case a_different:
-                            return new c_different_int(globalTamgu, this);
+                            return new c_different_int(global, this);
                         case a_lessequal:
-                            return new c_lessequal_int(globalTamgu, this);
+                            return new c_lessequal_int(global, this);
                         case a_moreequal:
-                            return new c_moreequal_int(globalTamgu, this);
+                            return new c_moreequal_int(global, this);
                     }
                     return this;
                 }
@@ -2699,17 +2698,17 @@ Tamgu* TamguInstructionCOMPARE::Compile(Tamgu* parent) {
                 if ((check & b_short)) {
                     switch (action) {
                         case a_less:
-                            return new c_less_short(globalTamgu, this);
+                            return new c_less_short(global, this);
                         case a_more:
-                            return new c_more_short(globalTamgu, this);
+                            return new c_more_short(global, this);
                         case a_same:
-                            return new c_same_short(globalTamgu, this);
+                            return new c_same_short(global, this);
                         case a_different:
-                            return new c_different_short(globalTamgu, this);
+                            return new c_different_short(global, this);
                         case a_lessequal:
-                            return new c_lessequal_short(globalTamgu, this);
+                            return new c_lessequal_short(global, this);
                         case a_moreequal:
-                            return new c_moreequal_short(globalTamgu, this);
+                            return new c_moreequal_short(global, this);
                     }
                     return this;
                 }
@@ -2724,17 +2723,17 @@ Tamgu* TamguInstructionCOMPARE::Compile(Tamgu* parent) {
                 if ((check & b_string)) {
                     switch (action) {
                         case a_less:
-                            return new c_less_string(globalTamgu, this);
+                            return new c_less_string(global, this);
                         case a_more:
-                            return new c_more_string(globalTamgu, this);
+                            return new c_more_string(global, this);
                         case a_same:
-                            return new c_same_string(globalTamgu, this);
+                            return new c_same_string(global, this);
                         case a_different:
-                            return new c_different_string(globalTamgu, this);
+                            return new c_different_string(global, this);
                         case a_lessequal:
-                            return new c_lessequal_string(globalTamgu, this);
+                            return new c_lessequal_string(global, this);
                         case a_moreequal:
-                            return new c_moreequal_string(globalTamgu, this);
+                            return new c_moreequal_string(global, this);
                     }
                     return this;
                 }
@@ -2742,17 +2741,17 @@ Tamgu* TamguInstructionCOMPARE::Compile(Tamgu* parent) {
                 if ((check & b_ustring)) {
                     switch (action) {
                         case a_less:
-                            return new c_less_ustring(globalTamgu, this);
+                            return new c_less_ustring(global, this);
                         case a_more:
-                            return new c_more_ustring(globalTamgu, this);
+                            return new c_more_ustring(global, this);
                         case a_same:
-                            return new c_same_ustring(globalTamgu, this);
+                            return new c_same_ustring(global, this);
                         case a_different:
-                            return new c_different_ustring(globalTamgu, this);
+                            return new c_different_ustring(global, this);
                         case a_lessequal:
-                            return new c_lessequal_ustring(globalTamgu, this);
+                            return new c_lessequal_ustring(global, this);
                         case a_moreequal:
-                            return new c_moreequal_ustring(globalTamgu, this);
+                            return new c_moreequal_ustring(global, this);
                     }
                     return this;
                 }
@@ -2762,17 +2761,17 @@ Tamgu* TamguInstructionCOMPARE::Compile(Tamgu* parent) {
     
     switch (action) {
         case a_less:
-            return new c_less(globalTamgu, this);
+            return new c_less(global, this);
         case a_more:
-            return new c_more(globalTamgu, this);
+            return new c_more(global, this);
         case a_same:
-            return new c_same(globalTamgu, this);
+            return new c_same(global, this);
         case a_different:
-            return new c_different(globalTamgu, this);
+            return new c_different(global, this);
         case a_lessequal:
-            return new c_lessequal(globalTamgu, this);
+            return new c_lessequal(global, this);
         case a_moreequal:
-            return new c_moreequal(globalTamgu, this);
+            return new c_moreequal(global, this);
     }
     
 	return this;
@@ -4303,7 +4302,7 @@ Tamgu* TamguCode::C_framevariable(x_node* xn, Tamgu* parent) {
 
     short idparentname = parent->Typeinfered();
     //We check if idtype is a frame
-    if (!global->frames.check(idparentname) && !parent->isCall() && idparentname != a_self && idparentname != a_let && idparentname != a_callindex) {
+    if (!global->frames.check(idparentname) && !parent->isCall() && !parent->isCallVariable() && idparentname != a_self && idparentname != a_let && idparentname != a_callindex) {
         stringstream message;
         message << e_this_variable_is << global->Getsymbol(idparentname) << " ";
         idparentname = parent->Name();
@@ -5028,12 +5027,12 @@ Tamgu* TamguCode::C_intentionwithdouble(x_node* xn, Tamgu* kf) {
 		kroot->instructions.push_back(kcf);
 	}
 	else
-		kroot->Stacking(ki.instructions[0], false);
+		kroot->Stacking(global, ki.instructions[0], false);
 	
 	ki.instructions.clear();
 	Traverse(xn->nodes[1], &ki);
 	if (!idord)
-		kroot->Stacking(ki.instructions[0], false);
+		kroot->Stacking(global, ki.instructions[0], false);
 	else {
 		kcf = new TamguCallProcedure(idord, global);
 		kcf->arguments.push_back(ki.instructions[0]);
@@ -5439,11 +5438,11 @@ Tamgu* TamguCode::C_jsondico(x_node* xn, Tamgu* kf) {
 }
 
 Tamgu* TamguCode::C_jsonmap(x_node* xn, Tamgu* kf) {
-    Tamgumap* kmap = globalTamgu->Providemap();
+    Tamgumap* kmap = global->Providemap();
     if (kf != NULL)
         kf->AddInstruction(kmap);
     
-    short idthread = globalTamgu->GetThreadid();
+    short idthread = global->GetThreadid();
     TamguInstruction kbloc;
     string key;
     long sz = xn->nodes.size();
@@ -5460,7 +5459,7 @@ Tamgu* TamguCode::C_jsonmap(x_node* xn, Tamgu* kf) {
 }
 
 Tamgu* TamguCode::C_jsonvector(x_node* xn, Tamgu* kf) {
-    Tamguvector* kvect = globalTamgu->Providevector();
+    Tamguvector* kvect = global->Providevector();
     if (kf != NULL)
         kf->AddInstruction(kvect);
     long sz = xn->nodes.size();
@@ -5512,9 +5511,9 @@ Tamgu* TamguCode::C_affectation(x_node* xn, Tamgu* kf) {
                 for (int i = 1; i < kequ->instructions.size(); i++)
                     ktmp.instructions.push_back(kequ->instructions[i]);
                 kequ->recipient = kequ->instructions[0];
-                kequ->thetype = Evaluateatomtype(kequ->recipient, true);
+                kequ->thetype = Evaluateatomtype(global, kequ->recipient, true);
                 kequ->instructions.clear();
-                kequ->Stacking(&ktmp, true);
+                kequ->Stacking(global, &ktmp, true);
                 kequ->Setsize();
                 kequ->instruction = kequ->Returnlocal(global, aONE);
                 if (kequ->instruction == kequ) {
@@ -5526,7 +5525,7 @@ Tamgu* TamguCode::C_affectation(x_node* xn, Tamgu* kf) {
                     ((TamguInstructionAPPLYOPERATIONROOT*)kequ->instruction)->Setsize();
                 }
                 else {
-                    Tamgu* kloc = kequ->update(kequ->instruction->BType());
+                    Tamgu* kloc = kequ->update(global, kequ->instruction->BType());
                     if (kloc != kequ) {
                         kequ->Remove();
                         ki = (TamguInstruction*)kloc;
@@ -5579,7 +5578,7 @@ Tamgu* TamguCode::C_affectation(x_node* xn, Tamgu* kf) {
 			//For instance, i=-i, where -i is converted into -1*i, does not always go through the conversion process...
 			if (kfirst->isOperation()) {
 				//we need then to recast it into an actual operation root
-				Tamgu* kroot = kfirst->Compile(ki->Instruction(0));
+				Tamgu* kroot = kfirst->Compile(global, ki->Instruction(0));
 				kfirst->Remove();
 				ki->Putinstruction(1, kroot);
 			}
@@ -5717,7 +5716,7 @@ Tamgu* TamguCode::C_plusplus(x_node* xn, Tamgu* kf) {
 			ki = new TamguInstructionAPPLYOPERATION(global, NULL);
 			ki->Setaction(a_power);
 			ki->AddInstruction(kf->Instruction(sz));
-			ki->AddInstruction(globalTamgu->ProvideConstint(2));
+			ki->AddInstruction(global->ProvideConstint(2));
 			kf->Putinstruction(sz, ki);
 			return kf;
 		}
@@ -5728,7 +5727,7 @@ Tamgu* TamguCode::C_plusplus(x_node* xn, Tamgu* kf) {
 			ki = new TamguInstructionAPPLYOPERATION(global, NULL);
 			ki->Setaction(a_power);
 			ki->AddInstruction(kf->Instruction(sz));
-			ki->AddInstruction(globalTamgu->ProvideConstint(3));
+			ki->AddInstruction(global->ProvideConstint(3));
 			kf->Putinstruction(sz, ki);
 			return kf;
 		}
@@ -5800,9 +5799,9 @@ Tamgu* TamguCode::C_multiply(x_node* xn, Tamgu* kf) {
 	if ((act == a_none || act == a_stream || act == a_assignement) && kf->InstructionSize() >= 1) {
 		Tamgu* kroot;
 		if (act != a_none)
-			kroot = ki->Compile(kf->Instruction(0));
+			kroot = ki->Compile(global, kf->Instruction(0));
 		else
-			kroot = ki->Compile(NULL);
+			kroot = ki->Compile(global, NULL);
 
 		kf->InstructionRemoveLast();
 		kf->AddInstruction(kroot);
@@ -5897,9 +5896,9 @@ Tamgu* TamguCode::C_operation(x_node* xn, Tamgu* kf) {
 	if ((act == a_none || act == a_stream || act == a_assignement) && kf->InstructionSize() >= 1) {
 		Tamgu* kroot;
 		if (act != a_none)
-			kroot = ki->Compile(kf->Instruction(0));
+			kroot = ki->Compile(global, kf->Instruction(0));
 		else
-			kroot = ki->Compile(NULL);
+			kroot = ki->Compile(global, NULL);
 
 		if (kroot != ki) {
 			kf->InstructionRemoveLast();
@@ -5989,7 +5988,7 @@ Tamgu* TamguCode::C_negated(x_node* xn, Tamgu* kf) {
 	Tamgu* ki = TamguCreateInstruction(NULL, a_multiply);
 	ki->AddInstruction(aMINUSONE);
 	Traverse(xn->nodes[0], ki);
-	Tamgu* kroot = ki->Compile(NULL);
+	Tamgu* kroot = ki->Compile(global, NULL);
 	ki->Remove();
 	kf->AddInstruction(kroot);
 	return kroot;
@@ -6731,7 +6730,7 @@ Tamgu* TamguCode::C_parenthetic(x_node* xn, Tamgu* kf) {
             //or it is called from within a bloc of instructions, then we need to promote it as a ROOT
             if (ke->isFunction() || ke->isInstruction()) {
                 if (!kf->isOperation() && ke->isOperation() && kf->Action() != a_assignement) {
-                    Tamgu* kroot = ke->Compile(NULL);
+                    Tamgu* kroot = ke->Compile(global, NULL);
                     ke->Remove();
                     ke = kroot;
                 }
@@ -7167,7 +7166,7 @@ Tamgu* TamguCode::C_forin(x_node* xn, Tamgu* kf) {
         Tamgu* frame = global->newInstance[idvarcontainer]->Frame();
         if (frame != NULL) {
             short idloopvar = kinloop->Instruction(0)->Typevariable();
-            if (!globalTamgu->Compatible(frame->Name(), idloopvar)) {
+            if (!global->Compatible(frame->Name(), idloopvar)) {
                 stringstream message;
                 message << e_error_frame_container
                 << global->Getsymbol(idloopvar) << e_error_loop_frame_container
@@ -7244,7 +7243,7 @@ Tamgu* TamguCode::C_forin(x_node* xn, Tamgu* kf) {
                     frame = global->newInstance[idloopvar]->Frame();
                     if (frame != NULL) {
                         idloopvar = ((TamguConstmap*)kinloop->Instruction(0))->values[0]->Typevariable();
-                        if (!globalTamgu->Compatible(frame->Name(), idloopvar)) {
+                        if (!global->Compatible(frame->Name(), idloopvar)) {
                             stringstream message;
                             message << e_error_frame_container
                             << global->Getsymbol(idloopvar) << e_error_loop_frame_container
@@ -8629,7 +8628,7 @@ Tamgu* TamguCode::C_hlambda(x_node* xn, Tamgu* kf) {
 
     Tamgu* kroot;
 	if (kbloc->action == a_bloc && kbloc->instructions.size() == 1) {
-		kroot = kbloc->instructions[0]->Compile(NULL);
+		kroot = kbloc->instructions[0]->Compile(global, NULL);
 		var->AddInstruction(kroot);
 		if (kroot != kbloc->instructions[0])
 			kbloc->instructions[0]->Remove();
@@ -8927,7 +8926,7 @@ Tamgu* TamguCode::C_mapping(x_node* xn, Tamgu* kbase) {
 			kins.action = op;
 			Traverse(xn->nodes[0]->nodes[0], &kins);
 			Traverse(&nvar, &kins);
-			Tamgu* kroot = kins.Compile(NULL);
+			Tamgu* kroot = kins.Compile(global, NULL);
 			kret->AddInstruction(kroot);
 		}
 		else {
@@ -8944,7 +8943,7 @@ Tamgu* TamguCode::C_mapping(x_node* xn, Tamgu* kbase) {
 				kins.action = op;
 				Traverse(&nvar, &kins);
 				Traverse(&nvar, &kins);
-				Tamgu* kroot = kins.Compile(NULL);
+				Tamgu* kroot = kins.Compile(global, NULL);
 				kret->AddInstruction(kroot);
 			}
 			else {
@@ -8960,7 +8959,7 @@ Tamgu* TamguCode::C_mapping(x_node* xn, Tamgu* kbase) {
 				Traverse(xn->nodes[0], ki);
 
 				if (ki->action == a_bloc && ki->instructions.size() == 1) {
-					Tamgu* kroot = ki->instructions[0]->Compile(NULL);
+					Tamgu* kroot = ki->instructions[0]->Compile(global, NULL);
 					kret->AddInstruction(kroot);
 					if (kroot != ki->instructions[0])
 						ki->instructions[0]->Remove();
@@ -9032,7 +9031,7 @@ Tamgu* TamguCode::C_taskellalltrue(x_node* xn, Tamgu* kbase) {
 		Traverse(xn->nodes[1], ki); // we add our comparison operator with its value...
 
 		if (ki->action == a_bloc && ki->instructions.size() == 1) {
-			Tamgu* kroot = ki->instructions[0]->Compile(NULL);
+			Tamgu* kroot = ki->instructions[0]->Compile(global, NULL);
 			ktest->AddInstruction(kroot);
 			if (kroot != ki->instructions[0])
 				ki->instructions[0]->Remove();
@@ -9204,7 +9203,7 @@ Tamgu* TamguCode::C_folding(x_node* xn, Tamgu* kbase) {
                 Traverse(&accuvar, &kins);
                 Traverse(&nvar, &kins);
             }
-			Tamgu* kroot = kins.Compile(NULL);
+			Tamgu* kroot = kins.Compile(global, NULL);
 			kret->AddInstruction(kroot);
 		}
 		else {
@@ -9324,7 +9323,7 @@ Tamgu* TamguCode::C_zipping(x_node* xn, Tamgu* kbase) {
 					Traverse(nvars[i], &kins);
 					delete nvars[i];
 				}
-				Tamgu* kroot = kins.Compile(NULL);
+				Tamgu* kroot = kins.Compile(global, NULL);
 				kret->AddInstruction(kroot);
 			}
 			else {
@@ -9508,7 +9507,7 @@ Tamgu* TamguCode::C_filtering(x_node* xn, Tamgu* kbase) {
 			Traverse(xn->nodes[1], ki); // we add our comparison operator with its value...
 
 			if (ki->action == a_bloc && ki->instructions.size() == 1) {
-				Tamgu* kroot = ki->instructions[0]->Compile(NULL);
+				Tamgu* kroot = ki->instructions[0]->Compile(global, NULL);
 				ktest->AddInstruction(kroot);
 				if (kroot != ki->instructions[0])
 					ki->instructions[0]->Remove();
@@ -9603,7 +9602,7 @@ Tamgu* TamguCode::C_flipping(x_node* xn, Tamgu* kbase) {
 			kins.action = op;
 			Traverse(xn->nodes[2], &kins);
 			Traverse(xn->nodes[1], &kins);
-			Tamgu* kroot = kins.Compile(NULL);
+			Tamgu* kroot = kins.Compile(global, NULL);
 			kret->AddInstruction(kroot);
 		}
 		else {
@@ -9979,7 +9978,7 @@ Tamgu* TamguCode::C_taskellcase(x_node* xn, Tamgu* kf) {
 				Traverse(xn->nodes[i]->nodes[0], thetest);
 
 				if (thetest->action == a_bloc && thetest->instructions.size() == 1) {
-					Tamgu* kroot = thetest->instructions[0]->Compile(NULL);
+					Tamgu* kroot = thetest->instructions[0]->Compile(global, NULL);
 					kret->AddInstruction(kroot);
 					if (kroot != thetest->instructions[0])
 						thetest->instructions[0]->Remove();
@@ -10001,7 +10000,7 @@ Tamgu* TamguCode::C_taskellcase(x_node* xn, Tamgu* kf) {
 			thetest = TamguCreateInstruction(NULL, a_bloc);
 			Traverse(xn->nodes[i]->nodes[1], thetest);
 			if (thetest->action == a_bloc && thetest->instructions.size() == 1) {
-				Tamgu* kroot = thetest->instructions[0]->Compile(NULL);
+				Tamgu* kroot = thetest->instructions[0]->Compile(global, NULL);
 				kret->AddInstruction(kroot);
 				if (kroot != thetest->instructions[0])
 					thetest->instructions[0]->Remove();
@@ -10144,7 +10143,7 @@ Tamgu* TamguCode::C_predicatefact(x_node* xn, Tamgu* kf) {
     currentpredicatename = buff;
     
 	global->predicatevariables.clear();
-    bool previous = Activategarbage(false);
+    bool previous = global->Activategarbage(false);
 	if (global->predicate_definitions.find(name) == global->predicate_definitions.end() &&
         kpcont->rules.find(name) == kpcont->rules.end() &&
         (xn->token == "predicatefact" || xn->nodes[1]->value == "true")) {
@@ -10190,7 +10189,7 @@ Tamgu* TamguCode::C_predicatefact(x_node* xn, Tamgu* kf) {
             global->knowledgebase[name].push_back(pv);
             pv->Setreference();
             
-            Activategarbage(previous);
+            global->Activategarbage(previous);
             return pv;
         }
         
@@ -10198,7 +10197,7 @@ Tamgu* TamguCode::C_predicatefact(x_node* xn, Tamgu* kf) {
         kcf->add = true;
         kf->AddInstruction(kbloc);
         currentpredicatename = "";
-        Activategarbage(previous);
+        global->Activategarbage(previous);
         return kbloc;
     }
 
@@ -10218,7 +10217,7 @@ Tamgu* TamguCode::C_predicatefact(x_node* xn, Tamgu* kf) {
         kblocelement->AddInstruction(aTRUE);
 	kbloc->Addtail(kpcont, kblocelement);
     currentpredicatename = "";
-    Activategarbage(previous);
+    global->Activategarbage(previous);
 	return kbloc;
 }
 
@@ -10229,7 +10228,7 @@ Tamgu* TamguCode::C_rawfact(x_node* xn, Tamgu* kf) {
     if (!global->predicates.check(name))
         global->predicates[name] = new TamguPredicateFunction(global, NULL, name);
 
-    bool previous = Activategarbage(false);
+    bool previous = global->Activategarbage(false);
 
     TamguPredicate* pv = new TamguPredicate(global, name);
     
@@ -10248,7 +10247,7 @@ Tamgu* TamguCode::C_rawfact(x_node* xn, Tamgu* kf) {
     if (pv->Stringpredicatekeythird(argument_key))
         global->knowledgebase_on_third[argument_key].push_back(pv);
     
-    Activategarbage(previous);
+    global->Activategarbage(previous);
     pv->Setreference();
     
     return pv;
@@ -10559,15 +10558,15 @@ Tamgu* TamguCode::C_dependencyresult(x_node* xn, Tamgu* kpredelement) {
 }
 
 
-static void StorePredicateVariables(x_node* xn, Tamgusynode** a) {
+static void StorePredicateVariables(TamguGlobal* global, x_node* xn, Tamgusynode** a) {
 	for (int i = 0; i < xn->nodes.size(); i++) {
 		if (xn->nodes[i]->token == "predicatevariable") {
 			if (xn->nodes[i]->nodes.size() == 0 || xn->nodes[i]->nodes[0]->token != "anumber") //#_ variable
 				continue;
 			string sid = xn->nodes[i]->nodes[0]->value;
-			if (globalTamgu->dependencyvariables.find(sid) == globalTamgu->dependencyvariables.end()) {
-				Tamgusynode* as = new Tamgusynode(atoi(STR(sid)), globalTamgu);
-				globalTamgu->dependencyvariables[sid] = as;
+			if (global->dependencyvariables.find(sid) == global->dependencyvariables.end()) {
+				Tamgusynode* as = new Tamgusynode(atoi(STR(sid)), global);
+                global->dependencyvariables[sid] = as;
                 as->investigate |= is_constante;
 				as->reference = 1;
 				if (*a == NULL)
@@ -10608,7 +10607,7 @@ Tamgu* TamguCode::C_dependencyrule(x_node* xn, Tamgu* kf) {
 			nsub = nsub->nodes[0];
 			if (isnegation(nsub->nodes[0]->token))
 				continue;
-			StorePredicateVariables(nsub->nodes.back(), &as);
+			StorePredicateVariables(global, nsub->nodes.back(), &as);
 		}
 	}
 
@@ -11205,7 +11204,7 @@ Tamgu* TamguCode::C_tamgulispquote(x_node* xn, Tamgu* parent) {
         kf->Setaction(a_quote);
     }
     else {
-        kf = globalTamgu->Providelisp();
+        kf = global->Providelisp();
         kf->Setaction(a_quote);
         parent->push(kf);
     }
@@ -11287,7 +11286,7 @@ Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
         if (!xn->nodes.size())
             kf = aEMPTYLISP;
         else
-            kf = globalTamgu->Providelisp();
+            kf = global->Providelisp();
         parent->push(kf);
     }
     
@@ -11341,15 +11340,15 @@ Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
                 }
             }
             else {
-                if (globalTamgu->procedures.check(n)) {
+                if (global->procedures.check(n)) {
                     ((Tamgulisp*)kf)->values[0] = global->Providelispsymbols(n, a_callprocedure);
                 }
                 else {
-                    if (globalTamgu->commons.check(n)) {
+                    if (global->commons.check(n)) {
                         ((Tamgulisp*)kf)->values[0] = global->Providelispsymbols(n, a_callcommon);
                     }
                     else {
-                        if (globalTamgu->allmethods.check(n)) {
+                        if (global->allmethods.check(n)) {
                             ((Tamgulisp*)kf)->values[0] = global->Providelispsymbols(n, a_callmethod);
                         }
                     }
@@ -11671,7 +11670,7 @@ bool TamguCode::Compile(string& body) {
     after = std::chrono::high_resolution_clock::now();
     double dparse = std::chrono::duration_cast<std::chrono::milliseconds>( after - before ).count();
 
-    TamguSystemVariable* vs = globalTamgu->systems[globalTamgu->Getid("_internals")];
+    TamguSystemVariable* vs = global->systems[global->Getid("_internals")];
     vs->value->storevalue((long)xr.stack.size());
     vs->value->storevalue(dtok);
     vs->value->storevalue(dparse);
@@ -11844,7 +11843,7 @@ Tamgu* TamguCode::CompileFormat(string& body, Tamgu* parent) {
         else
             message << bnf.labelerror;
 
-        return globalTamgu->Returnerror(message.str(), 0);
+        return global->Returnerror(message.str(), 0);
     }
 
 

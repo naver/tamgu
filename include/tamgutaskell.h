@@ -647,7 +647,7 @@ public:
 	short idthread;
     bool maprecipient;
 
-	TaskellLoop(short id, Tamgu* e) : maprecipient(false), next(NULL), idthread(id), environment(e) {}
+	TaskellLoop(short idt, Tamgu* e) : maprecipient(false), next(NULL), idthread(idt), environment(e) {}
 
 	~TaskellLoop() {
 		for (int i = 0; i < loops.size(); i++) {

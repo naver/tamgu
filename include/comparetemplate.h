@@ -29,7 +29,7 @@ public:
     }
     
     Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
-    Tamgu* Compile(Tamgu* parent);
+    Tamgu* Compile(TamguGlobal* global, Tamgu* parent);
     
     void Setpartialtest(bool b) {
         taskellif=true;
@@ -149,7 +149,10 @@ public:
     Tamgu* Eval(Tamgu* r, Tamgu* l, short idthread) {
         l = left->Eval(r, aNULL, idthread);
         r = right->Eval(r, aNULL, idthread);
-
+        
+        if (l->isNULL() || r->isNULL())
+            return aFALSE;
+        
         Tamgu* rp = l->less(r);
         l->Release();
         r->Release();
@@ -166,6 +169,12 @@ public:
     Tamgu* Eval(Tamgu* r, Tamgu* l, short idthread) {
         l = left->Eval(r, aNULL, idthread);
         r = right->Eval(r, aNULL, idthread);
+
+        if (l->isNULL() || r->isNULL()) {
+            if (l == r)
+                return aTRUE;
+            return aFALSE;
+        }
 
         Tamgu* rp = l->lessequal(r);
         l->Release();

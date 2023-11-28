@@ -3454,9 +3454,9 @@ class localpredict {
     VECTE<Tamgu*> localgoals;
     short idthread;
 
-    localpredict(short id, long sz) : localgoals(sz) {
-        idthread = id;
-        globalTamgu->Pushpredicate(id);
+    localpredict(short idt, long sz) : localgoals(sz) {
+        idthread = idt;
+        globalTamgu->Pushpredicate(idt);
 
     }
 
@@ -3477,9 +3477,9 @@ class predictvalue {
     
     short idthread;
 
-    predictvalue(long id, long sz, short name) : localgoals(sz), currentgoals(sz), head_predicate(name) {
-        idthread = id;
-        globalTamgu->Pushpredicate(id);
+    predictvalue(long idt, long sz, short name) : localgoals(sz), currentgoals(sz), head_predicate(name) {
+        idthread = idt;
+        globalTamgu->Pushpredicate(idt);
         head_predicate.reference = 1;
 
     }
