@@ -79,6 +79,15 @@ Tamgu* Tamgudate::Put(Tamgu* index, Tamgu* val, short idthread) {
         value = ((Tamgudate*)val)->value;
         return aTRUE;
     }
+    
+    if (val->Type() == a_ivector)
+        return set_the_date((Tamguivector*)val);
+    
+    if (val->isString()) {
+        string v = val->String();
+        return setstringdate(v, idthread);
+    }
+        
     return aFALSE;
 }
 
@@ -146,7 +155,126 @@ void Tamgudate::Setstring(wstring& s, short idthread) {
         s+= (wchar_t)buffer[i];
 }
 
+
+Tamgu* Tamgudate::setstringdate(string& v, short idthread) {
+    vector<string> values;
+    string dt;
+    string mn;
+    if (v.find(" ")) {
+        v_split(v, " ", values);
+        if (values.size() != 2)
+            return globalTamgu->Returnerror("Error: Wrong date format", idthread);
+        dt = values[0];
+        mn = values[1];
+    }
+    else {
+        if (v.find("/"))
+            dt = v;
+        else {
+            if (v.find(":"))
+                mn = v;
+            else
+                return globalTamgu->Returnerror("Error: Wrong date format", idthread);
+        }
+    }
+    Tamguivector* iv = globalTamgu->Provideivector();
+    if (dt.size()) {
+        values.clear();
+        v_split(dt, "/", values);
+        if (values.size() != 3)
+            return globalTamgu->Returnerror("Error: Wrong date format", idthread);
+        for (int i = 0; i < values.size(); i++) {
+            dt = values[i];
+            iv->values.push_back(conversionintegerhexa(STR(dt)));
+        }
+    }
+    else {
+        iv->values.push_back(0);
+        iv->values.push_back(0);
+        iv->values.push_back(0);
+    }
+    if (mn.size()) {
+        values.clear();
+        v_split(mn, ":", values);
+        if (values.size() != 3)
+            return globalTamgu->Returnerror("Error: Wrong date format", idthread);
+        for (int i = 0; i < values.size(); i++) {
+            dt = values[i];
+            iv->values.push_back(conversionintegerhexa(STR(dt)));
+        }
+    }
+    else {
+        iv->values.push_back(0);
+        iv->values.push_back(0);
+        iv->values.push_back(0);
+    }
+    return set_the_date(iv);
+}
+
 #ifdef WIN32
+Tamgu* Tamgudate::set_the_date(Tamguivector* iv) {
+    time_t x = 0;
+    struct tm temps;
+    localtime_s(&temps, &x);
+    
+    int fulldate = 0;
+    
+    long sz = iv->values.size();
+    if (!sz)
+        return aFALSE;
+    
+    int res = (int)iv->values[0];
+    
+    if (res > 0) {
+        temps.tm_year = res - 1900;
+        fulldate = 100;
+    }
+        
+    //Month
+    if (sz >= 2) {
+        res = (int)iv->values[1];
+        if (res > 0) {
+            fulldate += 10;
+            temps.tm_mon = res - 1;
+        }
+        if (sz >= 3) {
+            res = (int)iv->values[2];
+            if (res > 0) {
+                fulldate += 1;
+                temps.tm_mday = res;
+            }
+            if (sz >= 4) {
+                res = (int)iv->values[3];
+                if (res >= 0 && res < 24) {
+                    //reference is 1AM
+                    if (fulldate == 0)
+                        res += 2;
+                    else
+                        if (fulldate == 1)
+                            res += 1;
+                    temps.tm_hour = res;
+                }
+                if (sz >= 5) {
+                    res = (int)iv->values[4];
+                    if (res >= 0 && res < 60)
+                        temps.tm_min = res;
+                    if (sz >= 6) {
+                        res = (int)iv->values[5];
+                        if (res >= 0 && res < 60)
+                            temps.tm_sec = res;
+                    }
+                }
+            }
+        }
+    }
+    
+    x = mktime(&temps);
+    if (x <= 0)
+        return aFALSE;
+    value = x;
+    return aTRUE;
+}
+
 Tamgu* Tamgudate::MethodInitial(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 
     if (callfunc->Size() == 0) {
@@ -168,7 +296,18 @@ Tamgu* Tamgudate::MethodInitial(Tamgu* contextualpattern, short idthread, TamguC
 
     int fulldate = 0;
 
-
+    if (kinit->isString()) {
+        string v = kinit->String();
+        kinit->Release();
+        return setstringdate(v, idthread);
+    }
+    
+    if (kinit->Type() == a_ivector) {
+        Tamgu* v = set_the_date((Tamguivector*)kinit);
+        kinit->Release();
+        return v;
+    }
+    
     //Year
     long res = kinit->Integer();
     kinit->Release();
@@ -235,6 +374,70 @@ Tamgu* Tamgudate::MethodInitial(Tamgu* contextualpattern, short idthread, TamguC
     return aTRUE;
 }
 #else
+Tamgu* Tamgudate::set_the_date(Tamguivector* iv) {
+    time_t x = 0;
+    struct tm* temps = localtime(&x);
+    
+    int fulldate = 0;
+    
+    long sz = iv->values.size();
+    if (!sz)
+        return aFALSE;
+    
+    int res = (int)iv->values[0];
+    
+    if (res > 0) {
+        temps->tm_year = res - 1900;
+        fulldate = 100;
+    }
+    
+    
+    //Month
+    if (sz >= 2) {
+        res = (int)iv->values[1];
+        if (res > 0) {
+            fulldate += 10;
+            temps->tm_mon = res - 1;
+        }
+        if (sz >= 3) {
+            res = (int)iv->values[2];
+            if (res > 0) {
+                fulldate += 1;
+                temps->tm_mday = res;
+            }
+            if (sz >= 4) {
+                res = (int)iv->values[3];
+                if (res >= 0 && res < 24) {
+                    //reference is 1AM
+                    if (fulldate == 0)
+                        res += 2;
+                    else
+                        if (fulldate == 1)
+                            res += 1;
+                    temps->tm_hour = res;
+                }
+                if (sz >= 5) {
+                    res = (int)iv->values[4];
+                    if (res >= 0 && res < 60)
+                        temps->tm_min = res;
+                    if (sz >= 6) {
+                        res = (int)iv->values[5];
+                        if (res >= 0 && res < 60)
+                            temps->tm_sec = res;
+                    }
+                }
+            }
+        }
+    }
+    
+    x = mktime(temps);
+    if (x <= 0)
+        return aFALSE;
+    value = x;
+    return aTRUE;
+}
+
+
 Tamgu* Tamgudate::MethodInitial(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 
     if (callfunc->Size() == 0) {
@@ -250,11 +453,22 @@ Tamgu* Tamgudate::MethodInitial(Tamgu* contextualpattern, short idthread, TamguC
         return aTRUE;
     }
 
+    if (kinit->isString()) {
+        string v = kinit->String();
+        kinit->Release();
+        return setstringdate(v, idthread);
+    }
+
     time_t x = 0;
     struct tm* temps = localtime(&x);
 
     int fulldate = 0;
-
+    
+    if (kinit->Type() == a_ivector) {
+        Tamgu* v = set_the_date((Tamguivector*)kinit);
+        kinit->Release();
+        return v;
+    }
 
     //Year
     int res = (int)kinit->Integer();

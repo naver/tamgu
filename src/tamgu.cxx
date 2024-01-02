@@ -42,8 +42,9 @@
 #include "tamgulisp.h"
 #include "tamgucomplex.h"
 #include "tamgusocket.h"
+#include "tamgudate.h"
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2023.11.23.10";
+const char* tamgu_version = "Tamgu 1.2023.12.08.14";
 
 extern "C" {
 Exporting const char* TamguVersion(void) {
@@ -1055,6 +1056,7 @@ void TamguGlobal::set_full_compatibilities(void) {
         //We enable a loose compatibility for function arguments between strings and numbers
         //When this flag is set to one, a function with a string parameter can be called with a number argument
         //Note that there is another flag: TAMGUSTRICTCOMPARISON, which deals with strict or loose comparisons between elements
+        fullcompatibilities[stringtypes[i]][Tamgudate::idtype] = true;
         for (j = 0; j < numbertypes.size(); j++)
             fullcompatibilities[stringtypes[i]][numbertypes[j]] = true;
     }

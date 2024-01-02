@@ -156,6 +156,8 @@ bool Tamgustring::InitialisationModule(TamguGlobal* global, string version) {
     Tamgustring::AddMethod(global, "indent", &Tamgustring::MethodIndent, P_NONE | P_ONE | P_TWO, "indent(int nbblanks, bool taskel): Format a piece of code.", a_string);
     Tamgustring::AddMethod(global, "lower", &Tamgustring::MethodLower, P_NONE, "lower(): Return the string in lower characters", a_string);
     Tamgustring::AddMethod(global, "startwith", &Tamgustring::MethodStartWith, P_ONE, "startwith(string): check if it starts with a given string", a_boolean);
+    Tamgustring::AddMethod(global, "endwith", &Tamgustring::MethodEndWith, P_ONE, "endwith(string): check if it ends with a given string", a_boolean);
+
     Tamgustring::AddMethod(global, "trim", &Tamgustring::MethodTrim, P_NONE, "trim(): remove the trailing characters", a_string);
     Tamgustring::AddMethod(global, "trimleft", &Tamgustring::MethodTrimleft, P_NONE, "trimleft(): remove the trailing characters on the left", a_string);
     Tamgustring::AddMethod(global, "trimright", &Tamgustring::MethodTrimright, P_NONE, "trimright(): remove the trailing characters on the right", a_string);
@@ -278,6 +280,19 @@ Tamgu* Tamgustring::MethodStartWith(Tamgu* contextualpattern, short idthread, Ta
     string v =  value.substr(0, copen.size());
     if (v == copen)
         return aTRUE;
+    return aFALSE;
+}
+
+Tamgu* Tamgustring::MethodEndWith(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    string copen = callfunc->Evaluate(0, contextualpattern, idthread)->String();
+    Locking _lock(this);
+    long sz = value.size();
+    long szo = copen.size();
+    if (sz >= szo) {
+        string v =  value.substr(sz - szo, szo);
+        if (v == copen)
+            return aTRUE;
+    }
     return aFALSE;
 }
 
@@ -2807,6 +2822,8 @@ bool Tamgua_string::InitialisationModule(TamguGlobal* global, string version) {
     
     Tamgua_string::AddMethod(global, "lower", &Tamgua_string::MethodLower, P_NONE, "lower(): Return the string in lower characters", a_string);
     Tamgua_string::AddMethod(global, "startwith", &Tamgua_string::MethodStartWith, P_ONE, "startwith(string): check if it starts with a given string", a_boolean);
+    Tamgua_string::AddMethod(global, "endwith", &Tamgua_string::MethodEndWith, P_ONE, "endwith(string): check if it ends with a given string", a_boolean);
+
     Tamgua_string::AddMethod(global, "trim", &Tamgua_string::MethodTrim, P_NONE, "trim(): remove the trailing characters", a_string);
     Tamgua_string::AddMethod(global, "trimleft", &Tamgua_string::MethodTrimleft, P_NONE, "trimleft(): remove the trailing characters on the left", a_string);
     Tamgua_string::AddMethod(global, "trimright", &Tamgua_string::MethodTrimright, P_NONE, "trimright(): remove the trailing characters on the right", a_string);
@@ -2899,6 +2916,19 @@ Tamgu* Tamgua_string::MethodStartWith(Tamgu* contextualpattern, short idthread, 
     v =  v.substr(0, copen.size());
     if (v == copen)
         return aTRUE;
+    return aFALSE;
+}
+
+Tamgu* Tamgua_string::MethodEndWith(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    string copen = callfunc->Evaluate(0, contextualpattern, idthread)->String();
+    string v = value.value();
+    long sz = v.size();
+    long szo = copen.size();
+    if (sz >= szo) {
+        v =  v.substr(sz - szo, szo);
+        if (v == copen)
+            return aTRUE;
+    }
     return aFALSE;
 }
 

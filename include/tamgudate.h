@@ -159,7 +159,9 @@ public:
 	}
 
 	
-
+    Tamgu* set_the_date(Tamguivector* kinit);
+    Tamgu* setstringdate(string& v, short idthread);
+    
 	string String();
     void Setstring(string& s, short idthread);
     void Setstring(wstring& s, short idthread);
