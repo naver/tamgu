@@ -38,6 +38,7 @@
 const char enablemouse_vt100[] = {27,91,'?','1','0','0','3','h',0};
 const char enablemouse[] = {27,91,'?','1','0','0','3','h',27,91,'?','1','0','1','5','h',27,91,'?','1','0','1','6','h',0};
 
+const char disablemouse_vt100[] = {27,91,'?','1','0','0','3','l',0};
 const char disablemouse[] = {27,91,'?','1','0','0','0','l',0};
 
 
@@ -1532,7 +1533,10 @@ public:
     }
     
     void mouseoff() {
-        sendcommand(disablemouse);
+        if (vt100)
+            sendcommand(disablemouse_vt100);
+        else
+            sendcommand(disablemouse);
         mouse_status = false;
     }
     
@@ -1546,7 +1550,10 @@ public:
             activate_mouse = true;
         }
         else {
-            sendcommand(disablemouse);
+            if (vt100)
+                sendcommand(disablemouse_vt100);
+            else
+                sendcommand(disablemouse);
             mouse_status = false;
         }
     }
