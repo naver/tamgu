@@ -121,6 +121,7 @@ void TamguGlobal::RecordObjects() {
     Tamgudate::InitialisationModule(this, TamguVersion());
     Tamgutime::InitialisationModule(this, TamguVersion());
     Tamguchrono::InitialisationModule(this, TamguVersion());
+    Tamguclock::InitialisationModule(this, TamguVersion());
 
     Tamgufraction::InitialisationModule(this, TamguVersion());
 #ifndef TAMGUWASM
