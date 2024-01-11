@@ -44,7 +44,7 @@
 #include "tamgusocket.h"
 #include "tamgudate.h"
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2024.01.09.14";
+const char* tamgu_version = "Tamgu 1.2024.01.10.15";
 
 extern "C" {
 Exporting const char* TamguVersion(void) {

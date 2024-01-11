@@ -260,7 +260,7 @@ typedef Tamgu* (Tamguclock::*clockMethod)(Tamgu* contextualpattern, short idthre
 
 //---------------------------------------------------------------------------------------------------------------------
 
-class Tamguclock : public TamguObject {
+class Tamguclock : public TamguReference {
     public:
     //We export the methods that will be exposed for our new object
     //this is a static object, which is common to everyone
@@ -276,28 +276,33 @@ class Tamguclock : public TamguObject {
     //Your personal variables here...
 
     std::chrono::system_clock::time_point value;
+    string timezone_offset;
     long unit;
 
     //---------------------------------------------------------------------------------------------------------------------
-    Tamguclock(TamguGlobal* g, Tamgu* parent = NULL) : TamguObject(g, parent) {
+    Tamguclock(TamguGlobal* g, Tamgu* parent = NULL) : TamguReference(g, parent) {
         //Do not forget your variable initialisation
         value = std::chrono::system_clock::now();
-        unit=1;
+        unit = 3;
+        timezone_offset = compute_time_zone();
     }
 
     Tamguclock() {
         //Do not forget your variable initialisation
         value = std::chrono::system_clock::now();
-        unit=1;
+        unit = 3;
+        timezone_offset = compute_time_zone();
     }
 
     Tamguclock(std::chrono::system_clock::time_point& t) {
         //Do not forget your variable initialisation
         value = t;
-        unit=1;
+        unit = 3;
+        timezone_offset = compute_time_zone();
     }
 
     //----------------------------------------------------------------------------------------------------------------------
+    string compute_time_zone();
     Tamgu* Put(Tamgu* v, Tamgu* i, short idthread);
     
     Tamgu* Eval(Tamgu* context, Tamgu* v, short idthread);
@@ -373,6 +378,7 @@ class Tamguclock : public TamguObject {
 
     Tamgu* MethodReset(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodUnit(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodTimezone(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodStop(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodFormat(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodUTC(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
