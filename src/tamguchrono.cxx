@@ -220,8 +220,32 @@ Tamgu* Tamguclock::MethodFormat(Tamgu* contextualpattern, short idthread, TamguC
     string frm = callfunc->Evaluate(0, contextualpattern, idthread)->String();
     std::time_t currentTime = std::chrono::system_clock::to_time_t(value);
     os << std::put_time(std::gmtime(&currentTime), STR(frm));
+    
+    string s = os.str();
+    if (frm.find("%fm")) {
+        auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(value);
+        auto epoch = now_ms.time_since_epoch();
+        auto val = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);
+        os.str("");        
+        long pos = s.find("fm");
+        if (isdigit(s[pos+2])) {
+            int nb = s[pos+2] - 48;
+            long p10 = 1;
+            while (nb) {
+                p10 *= 10;
+                nb--;
+            }
+            nb = s[pos+2] - 48;
+            os << std::setw(nb) << std::setfill('0') << val.count() % p10;
+            s.replace(pos, 3, os.str());
+        }
+        else {
+            os << std::setw(6) << std::setfill('0') << val.count() % 1000000;
+            s.replace(pos, 2, os.str());
+        }
+    }
     unlocking_clock(this);
-    return globalTamgu->Providestring(os.str());
+    return globalTamgu->Providestring(s);
 }
 
 Tamgu* Tamguclock::MethodUnit(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
