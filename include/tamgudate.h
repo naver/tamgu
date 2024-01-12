@@ -47,14 +47,7 @@ public:
 		value = NULL;
 	}
 
-	Tamgudate(time_t v)  {
-		//Do not forget your variable initialisation
-		if (v == 0)
-			time(&value);
-		else
-			value = v;
-
-	}
+    Tamgudate(time_t v);
 
 	//----------------------------------------------------------------------------------------------------------------------
 	Tamgu* Put(Tamgu* v, Tamgu* i, short idthread);
@@ -148,11 +141,7 @@ public:
 
 	//ExecuteMethod must be implemented in order to execute our new a methods. This method is called when a TamguCallMethodMethod object
 	//is returned by the Declaration method.
-	Tamgu* CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-		//This call is a bit cryptic. It takes the method (function) pointer that has been associated in our map with "name"
-		//and run it with the proper parameters. This is the right call which should be invoked from within a class definition
-		return (this->*methods.get(idname))(contextualpattern, idthread, callfunc);
-	}
+    Tamgu* CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
 	void Clear() {
 		//To set a variable back to empty

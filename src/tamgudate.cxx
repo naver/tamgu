@@ -23,6 +23,27 @@ Exporting basebin_hash<dateMethod>  Tamgudate::methods;
 
 Exporting short Tamgudate::idtype = 0;
 
+static ThreadLock date_locker;
+
+static void locking_date(Tamgu* c) {
+    if (globalTamgu->threadMODE && c->hasLock())
+        date_locker.lock->lock();
+}
+
+static void unlocking_date(Tamgu* c) {
+    if (globalTamgu->threadMODE && c->hasLock())
+        date_locker.lock->unlock();
+}
+
+Tamgudate::Tamgudate(time_t v)  {
+    //Do not forget your variable initialisation
+    locking_date(this);
+    if (v == 0)
+        time(&value);
+    else
+        value = v;
+    unlocking_date(this);
+}
 
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamgudate::AddMethod(TamguGlobal* global, string name, dateMethod func, unsigned long arity, string infos) {
@@ -37,6 +58,14 @@ void Tamgudate::AddMethod(TamguGlobal* global, string name, dateMethod func, uns
 }
 
 
+Tamgu* Tamgudate::CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    //This call is a bit cryptic. It takes the method (function) pointer that has been associated in our map with "name"
+    //and run it with the proper parameters. This is the right call which should be invoked from within a class definition
+    locking_date(this);
+    Tamgu* val = (this->*methods.get(idname))(contextualpattern, idthread, callfunc);
+    unlocking_date(this);
+    return val;
+}
 
 
 void Tamgudate::Setidtype(TamguGlobal* global) {

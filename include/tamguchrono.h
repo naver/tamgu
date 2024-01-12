@@ -378,6 +378,7 @@ class Tamguclock : public TamguReference {
 
     Tamgu* MethodReset(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodUnit(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodMilliseconds(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodTimezone(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodStop(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodFormat(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
@@ -398,7 +399,7 @@ class Tamguclock : public TamguReference {
         //To set a variable back to empty
     }
 
-    
+    string UTC(bool);
 
     string String();
 

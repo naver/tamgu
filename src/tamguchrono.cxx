@@ -187,6 +187,7 @@ bool Tamguclock::InitialisationModule(TamguGlobal* global, string version) {
     Tamguclock::AddMethod(global, "unit", &Tamguclock::MethodUnit, P_ONE, "unit(int i): 1 is second. 2 is milliseconds. 3 is microsecond. 4 is nanosecond.");
     Tamguclock::AddMethod(global, "timezone", &Tamguclock::MethodTimezone, P_NONE | P_ONE, "timezone(int time_zone): Defines the time difference with GM time.");
     Tamguclock::AddMethod(global, "format", &Tamguclock::MethodFormat, P_ONE, "format(string frm): frm describes the format, which is used to return a string.");
+    Tamguclock::AddMethod(global, "milliseconds", &Tamguclock::MethodMilliseconds, P_NONE, "milliseconds(): returns the milliseconds.");
     Tamguclock::AddMethod(global, "utc", &Tamguclock::MethodUTC, P_NONE|P_ONE, "utc(string date|bool time_zone): UTC() returns the UTC time. utc('...') uses the date to instantiate itself.");
 
     if (version != "") {
@@ -210,10 +211,7 @@ Tamgu* Tamguclock::Eval(Tamgu* context, Tamgu* index, short idthread) {
 }
 
 string Tamguclock::String() {
-    char buffer[100];
-    double chronoval = value.time_since_epoch().count();
-    sprintf_s(buffer, 100, "%fs", chronoval);
-    return buffer;
+    return UTC(false);
 }
 
 Tamgu* Tamguclock::MethodFormat(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -240,7 +238,15 @@ string Tamguclock::compute_time_zone() {
     char buffer[101];
     strftime(buffer, 100, "%z", local_tm);
     unlocking_clock(this);
-    return buffer;
+    
+    string res;
+    res = buffer[0];
+    res += buffer[1];
+    res += buffer[2];
+    res += ":";
+    res += buffer[3];
+    res += buffer[4];
+    return res;
 }
 
 Tamgu* Tamguclock::MethodTimezone(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -462,30 +468,48 @@ Tamgu* Tamguclock::getstringdate(string& v) {
     return fv;
 }
 
+Tamgu* Tamguclock::MethodMilliseconds(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(value);
+    auto epoch = now_ms.time_since_epoch();
+    auto val = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);
+    std::ostringstream os;
+    os << std::setw(6) << std::setfill('0') << val.count() % 1000000;
+    return globalTamgu->Providestring(os.str());
+}
+
+string Tamguclock::UTC(bool compute) {
+    std::ostringstream os;
+    auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(value);
+    auto epoch = now_ms.time_since_epoch();
+    auto val = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);
+    
+    std::time_t currentTime = std::chrono::system_clock::to_time_t(value);
+    std::tm* utc_tm = std::gmtime(&currentTime);
+    
+    string tmoff = timezone_offset;
+
+    if (compute)
+        tmoff = compute_time_zone();
+
+    os << std::put_time(utc_tm, "%FT%T");
+    os << '.' << std::setw(6) << std::setfill('0') << val.count() % 1000000;
+    
+    os << tmoff;
+    return os.str();
+}
+
 Tamgu* Tamguclock::MethodUTC(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     Tamgu* argument = NULL;
     if (callfunc->Size() == 1)
         argument = callfunc->Evaluate(0, contextualpattern, idthread);
     
     if (callfunc->Size() == 0 || argument->Type() == a_boolean) {
-        std::ostringstream os;
-        auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(value);
-        auto epoch = now_ms.time_since_epoch();
-        auto val = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);
-        
-        std::time_t currentTime = std::chrono::system_clock::to_time_t(value);
-        std::tm* utc_tm = std::gmtime(&currentTime);
-        
-        string tmoff = timezone_offset;
-
+        string utc_string;
         if (argument != NULL && argument->Boolean())
-            tmoff = compute_time_zone();
-
-        os << std::put_time(utc_tm, "%FT%T");
-        os << '.' << std::setw(6) << std::setfill('0') << val.count() % 1000000;
-        
-        os << tmoff;
-        return globalTamgu->Providestring(os.str());
+            utc_string = UTC(true);
+        else
+            utc_string = UTC(false);
+        return globalTamgu->Providestring(utc_string);
     }
     
     string dte = argument->String();
