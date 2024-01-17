@@ -79,13 +79,14 @@ public class JTamgu {
      *
      * @param filename of the Tamgu program to load
      * @param args arguments as a string, where each parameter is separated with a space
-     * @return a handler to a global tamgu object
+     * @return 
      * @exception Exception
      */
     public synchronized int LoadProgram(String filename,String args) throws Exception {
         return LoadProgramImplementation(filename, args);
     }
     //------------------------------------------------------------------------
+    
     private native int LoadStringProgramImplementation(String code,String args) throws Exception;
     
     /**
@@ -93,7 +94,7 @@ public class JTamgu {
      *
      * @param filename of the Tamgu program to load
      * @param args arguments as a string, where each parameter is separated with a space
-     * @return a handler to a global tamgu object
+     * @return
      * @exception Exception
      */
     public synchronized int LoadProgramAsString(String code,String args) throws Exception {
@@ -108,7 +109,7 @@ public class JTamgu {
      *
      * @param filename of the Tamgu program to load
      * @param args arguments as a string, where each parameter is separated with a space
-     * @return an id on a specific space into Tamgu
+     * @return
      * @exception Exception
      */
     public synchronized int LoadAProgramAsString(int handler, String code) throws Exception {
@@ -330,16 +331,7 @@ public class JTamgu {
         return SetListStringiteratorimplementation(handler, idcode, name, args);
     }
     //------------------------------------------------------------------------
-    private native int CreateTamguImplementation() throws Exception;
 
-    /**
-     * Create One Tamgu Object
-     *
-     */
-    public synchronized int CreateTamgu() throws Exception {
-        return CreateTamguImplementation();
-    }
-    //------------------------------------------------------------------------
     private native int CleanImplementation(int handler) throws Exception;
 
     /**
@@ -348,26 +340,6 @@ public class JTamgu {
      */
     public synchronized int Clean(int handler) throws Exception {
         return CleanImplementation(handler);
-    }
-    //------------------------------------------------------------------------
-    private native int StopExecutionImplementation(int handler) throws Exception;
-
-    /**
-     * Clean One Tamgu Program
-     *
-     */
-    public synchronized int StopExecution(int handler) throws Exception {
-        return StopExecutionImplementation(handler);
-    }
-    //------------------------------------------------------------------------
-    private native int CleanSpaceImplementation(int handler, int idspace) throws Exception;
-
-    /**
-     * Clean One Tamgu Space Program
-     *
-     */
-    public synchronized int CleanSpace(int handler, int idspace) throws Exception {
-        return CleanSpaceImplementation(handler, idspace);
     }
     //------------------------------------------------------------------------
 
@@ -403,5 +375,15 @@ public class JTamgu {
      */
     public synchronized String TamguVersion() throws Exception {
         return TamguVersionImplementation();
+    }
+
+    private native void TamguSetGarbageModeImplementation(int setgarbage) throws Exception;
+    
+    /**
+     * Set the garbage mode
+     *
+     */
+    public synchronized void TamguSetGarbageMode(int setgarbage) throws Exception {
+        TamguSetGarbageModeImplementation(setgarbage);
     }
 }

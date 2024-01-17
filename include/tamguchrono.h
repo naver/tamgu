@@ -378,7 +378,7 @@ class Tamguclock : public TamguReference {
 
     Tamgu* MethodReset(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodUnit(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
-    Tamgu* MethodMilliseconds(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodMicroseconds(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodTimezone(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodStop(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodFormat(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);

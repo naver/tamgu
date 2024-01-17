@@ -187,7 +187,7 @@ bool Tamguclock::InitialisationModule(TamguGlobal* global, string version) {
     Tamguclock::AddMethod(global, "unit", &Tamguclock::MethodUnit, P_ONE, "unit(int i): 1 is second. 2 is milliseconds. 3 is microsecond. 4 is nanosecond.");
     Tamguclock::AddMethod(global, "timezone", &Tamguclock::MethodTimezone, P_NONE | P_ONE, "timezone(int time_zone): Defines the time difference with GM time.");
     Tamguclock::AddMethod(global, "format", &Tamguclock::MethodFormat, P_ONE, "format(string frm): frm describes the format, which is used to return a string.");
-    Tamguclock::AddMethod(global, "milliseconds", &Tamguclock::MethodMilliseconds, P_NONE, "milliseconds(): returns the milliseconds.");
+    Tamguclock::AddMethod(global, "microseconds", &Tamguclock::MethodMicroseconds, P_NONE, "microseconds(): returns the microseconds.");
     Tamguclock::AddMethod(global, "utc", &Tamguclock::MethodUTC, P_NONE|P_ONE, "utc(string date|bool time_zone): UTC() returns the UTC time. utc('...') uses the date to instantiate itself.");
 
     if (version != "") {
@@ -219,15 +219,39 @@ Tamgu* Tamguclock::MethodFormat(Tamgu* contextualpattern, short idthread, TamguC
     std::ostringstream os;
     string frm = callfunc->Evaluate(0, contextualpattern, idthread)->String();
     std::time_t currentTime = std::chrono::system_clock::to_time_t(value);
+    long pos;
     os << std::put_time(std::gmtime(&currentTime), STR(frm));
     
     string s = os.str();
-    if (frm.find("%fm")) {
+    pos = frm.find("%fm");
+    if (pos != -1) {
         auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(value);
         auto epoch = now_ms.time_since_epoch();
         auto val = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);
-        os.str("");        
-        long pos = s.find("fm");
+        long vali = val.count();
+        os.str("");
+        if (isdigit(s[pos+2])) {
+            int nb = s[pos+2] - 48;
+            long p10 = 1;
+            while (nb) {
+                p10 *= 10;
+                nb--;
+            }
+            nb = s[pos+2] - 48;
+            os << std::setw(nb) << std::setfill('0') << vali % p10;
+            s.replace(pos, 3, os.str());
+        }
+        else {
+            os << std::setw(3) << std::setfill('0') << vali % 1000;
+            s.replace(pos, 2, os.str());
+        }
+    }
+    pos =frm.find("%fc");
+    if (pos != -1) {
+        auto now_ms = std::chrono::time_point_cast<std::chrono::microseconds>(value);
+        auto epoch = now_ms.time_since_epoch();
+        auto val = std::chrono::duration_cast<std::chrono::microseconds>(epoch);
+        os.str("");
         if (isdigit(s[pos+2])) {
             int nb = s[pos+2] - 48;
             long p10 = 1;
@@ -244,6 +268,7 @@ Tamgu* Tamguclock::MethodFormat(Tamgu* contextualpattern, short idthread, TamguC
             s.replace(pos, 2, os.str());
         }
     }
+
     unlocking_clock(this);
     return globalTamgu->Providestring(s);
 }
@@ -409,14 +434,23 @@ Tamgu* Tamguclock::set_the_date(Tamgufvector* iv) {
         return aFALSE;
     
     value = std::chrono::system_clock::from_time_t(x);
-    timezone_offset = (int)iv->values[7];
+    int v = (int)iv->values[7];
+    
+    double tm = (iv->values[7] - (double)v)*60;
 
-    auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(value);
+    char buffer[100];
+    if (v >= 0)
+        sprintf_s(buffer, 100, "+%02d:%02d", v, (int)tm);
+    else
+        sprintf_s(buffer, 100, "%02d:%02d", v - 1, (int)tm);
+    timezone_offset = buffer;
+
+    auto now_ms = std::chrono::time_point_cast<std::chrono::microseconds>(value);
     auto epoch = now_ms.time_since_epoch();
-    auto val = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);
+    auto val = std::chrono::duration_cast<std::chrono::microseconds>(epoch);
     
     int diff = iv->values[6] - (val.count()%1000000);
-    value += std::chrono::milliseconds(diff);
+    value += std::chrono::microseconds(diff);
     return aTRUE;
 }
 
@@ -441,14 +475,22 @@ Tamgu* Tamguclock::set_the_date(Tamgufvector* iv) {
     
     
     value = std::chrono::system_clock::from_time_t(x);
-    timezone_offset = (int)iv->values[7];
+    int v = (int)iv->values[7];
+    
+    double tm = (iv->values[7] - (double)v)*60;
+    char buffer[100];
+    if (v >= 0)
+        sprintf_s(buffer, 100, "+%02d:%02d", v, (int)tm);
+    else
+        sprintf_s(buffer, 100, "%02d:%02d", v - 1, (int)tm);
+    timezone_offset = buffer;
 
-    auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(value);
+    auto now_ms = std::chrono::time_point_cast<std::chrono::microseconds>(value);
     auto epoch = now_ms.time_since_epoch();
-    auto val = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);
+    auto val = std::chrono::duration_cast<std::chrono::microseconds>(epoch);
     
     int diff = iv->values[6] - (val.count()%1000000);
-    value += std::chrono::milliseconds(diff);
+    value += std::chrono::microseconds(diff);
     
     return aTRUE;
 }
@@ -459,43 +501,61 @@ Tamgu* Tamguclock::getstringdate(string& v) {
     string dt;
     string mn;
     Tamgufvector* fv = new Tamgufvector();
+    double tm = -1;
     char sep = '-';
+    bool timezone = false;
     
     for (long i = 0; i < v.size(); i++) {
-        if (v[i] == sep) {
-            fv->values.push_back(conversionfloathexa(STR(dt)));
+        if (timezone == true && v[i] == ':') {
+            tm = conversionfloathexa(STR(dt));
             dt = "";
         }
         else {
-            if (v[i] == 'T') {
+            if (v[i] == sep) {
                 fv->values.push_back(conversionfloathexa(STR(dt)));
-                dt = "";
-                sep = ':';
+                if (timezone)
+                    dt = sep;
+                else
+                    dt = "";
             }
             else {
-                if (v[i] == '.') {
+                if (v[i] == 'T') {
                     fv->values.push_back(conversionfloathexa(STR(dt)));
-                    if (v.find("+", i) != -1)
-                        sep = '+';
-                    else
-                        sep = '-';
-                    dt = sep;
+                    dt = "";
+                    sep = ':';
                 }
-                else
-                    dt += v[i];
+                else {
+                    if (v[i] == '.') {
+                        fv->values.push_back(conversionfloathexa(STR(dt)));
+                        if (v.find("+", i) != -1)
+                            sep = '+';
+                        else
+                            sep = '-';
+                        dt = "";
+                        timezone = true;
+                    }
+                    else
+                        dt += v[i];
+                }
             }
         }
     }
     
-    if (dt != "")
-        fv->values.push_back(conversionfloathexa(STR(dt)));
+    if (dt != "") {
+        double v = conversionfloathexa(STR(dt));
+        if (timezone) {
+            tm += v / 60;
+            v = tm;
+        }
+        fv->values.push_back(v);
+    }
     return fv;
 }
 
-Tamgu* Tamguclock::MethodMilliseconds(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-    auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(value);
+Tamgu* Tamguclock::MethodMicroseconds(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    auto now_ms = std::chrono::time_point_cast<std::chrono::microseconds>(value);
     auto epoch = now_ms.time_since_epoch();
-    auto val = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);
+    auto val = std::chrono::duration_cast<std::chrono::microseconds>(epoch);
     std::ostringstream os;
     os << std::setw(6) << std::setfill('0') << val.count() % 1000000;
     return globalTamgu->Providestring(os.str());
@@ -503,9 +563,9 @@ Tamgu* Tamguclock::MethodMilliseconds(Tamgu* contextualpattern, short idthread, 
 
 string Tamguclock::UTC(bool compute) {
     std::ostringstream os;
-    auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(value);
+    auto now_ms = std::chrono::time_point_cast<std::chrono::microseconds>(value);
     auto epoch = now_ms.time_since_epoch();
-    auto val = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);
+    auto val = std::chrono::duration_cast<std::chrono::microseconds>(epoch);
     
     std::time_t currentTime = std::chrono::system_clock::to_time_t(value);
     std::tm* utc_tm = std::gmtime(&currentTime);

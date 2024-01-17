@@ -68,6 +68,7 @@ class An_any;
 bool ToggleLispMode();
 bool isLispmode();
 void Setlispmode(bool v);
+Exporting void Set_keep_track_garbage(bool v);
 //-----------------------------------------------------------------------
 inline long maxlocal(long x, long y) { return (x > y) ? x : y; }
 inline long minlocal(long x, long y) { return (x < y) ? x : y; }
@@ -112,7 +113,7 @@ public:
 	long idtracker;
     unsigned short investigate;
 
-#ifdef GARBAGEFORDEBUG
+#if defined(MULTIGLOBALTAMGU) || defined(GARBAGEINDEBUG)
 	long iddebug;
 	Exporting Tamgu();
 	Exporting virtual ~Tamgu();

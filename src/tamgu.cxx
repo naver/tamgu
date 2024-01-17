@@ -44,7 +44,7 @@
 #include "tamgusocket.h"
 #include "tamgudate.h"
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2024.01.12.09";
+const char* tamgu_version = "Tamgu 1.2024.01.16.11";
 
 extern "C" {
 Exporting const char* TamguVersion(void) {
@@ -109,25 +109,51 @@ Tamgu* booleantamgu[2];
 
 //----------------------------------------------------------------------------------
 // Debug area, to detect potential memory leaks...
-#ifdef GARBAGEFORDEBUG
-
+#if defined(MULTIGLOBALTAMGU) || defined(GARBAGEINDEBUG)
 ThreadLock _garbaging;
+static bool keep_track_of_garbage = true;
 static vector<Tamgu*> _tamgu_garbage;
+static long _tamgu_garbage_id = 0;
+
+Exporting void Set_keep_track_garbage(bool v) {
+    keep_track_of_garbage = v;
+    if (v) {
+        _tamgu_garbage.clear();
+        _tamgu_garbage_id = 0;
+    }
+}
+
+bool Is_keep_track_garbage() {
+    return keep_track_of_garbage;
+}
 
 Exporting Tamgu::Tamgu() {
     idtracker = -1;
     investigate = is_none;
     
-    if (globalTamgu != NULL && globalTamgu->threadMODE) {
+    if (keep_track_of_garbage) {
         Locking _lock(_garbaging);
+        
+#ifdef GARBAGEINDEBUG
         iddebug = _tamgu_garbage.size();
         _tamgu_garbage.push_back(this);
+        _tamgu_garbage_id = iddebug;
+#else
+        long sz = _tamgu_garbage.size();
+        if (_tamgu_garbage_id < sz && _tamgu_garbage[_tamgu_garbage_id] == NULL) {
+            iddebug = _tamgu_garbage_id;
+            _tamgu_garbage[iddebug] = this;
+            _tamgu_garbage_id++;
+            //We find the next NULL slot in _tamgu_garbage...
+            while (_tamgu_garbage_id < sz && _tamgu_garbage[_tamgu_garbage_id] != NULL) _tamgu_garbage_id++;
+        }
+        else {
+            iddebug = sz;
+            _tamgu_garbage.push_back(this);
+            _tamgu_garbage_id = iddebug;
+        }
+#endif
     }
-    else {
-        iddebug = _tamgu_garbage.size();
-        _tamgu_garbage.push_back(this);
-    }
-
     globalTamgu->Storeingarbageif_add(this);
 }
 
@@ -135,12 +161,18 @@ Exporting Tamgu::~Tamgu() {
     Locking _lock(_garbaging);
     if (idtracker != -1)
         globalTamgu->RemoveFromTracker(idtracker);
-    _tamgu_garbage[iddebug] = NULL;
+    
+    if (keep_track_of_garbage) {
+        Locking _lock(_garbaging);
+        _tamgu_garbage[iddebug] = NULL;
+        if (_tamgu_garbage_id > iddebug)
+            _tamgu_garbage_id = iddebug;
+    }
 
     globalTamgu->Removefromlocalgarbageif_add(-1,-1,this);
 }
 
-void Garbaging(vector<Tamgu*>& issues, vector<long>& idissues) {
+void Garbaging(TamguGlobal* global, vector<Tamgu*>& issues, vector<long>& idissues) {
     issues.clear();
     idissues.clear();
     Tamgu* g;
@@ -155,8 +187,24 @@ void Garbaging(vector<Tamgu*>& issues, vector<long>& idissues) {
         }
     }
 }
+
+void Garbaging(hmap<std::string, long>& issues) {
+    issues.clear();
+    Tamgu* g;
+    Locking _lock(_garbaging);
+    for (size_t i = 0; i < _tamgu_garbage.size(); i++) {
+        g = _tamgu_garbage[i];
+        if (g != NULL) {
+            if (g->idtracker == -1 && g->Reference() == 0) {
+                issues[g->Typestring()] += 1;
+            }
+        }
+    }
+}
 #else
 //This is a mode that is only activated when _eval is called...
+Exporting void Set_keep_track_garbage(bool v) {}
+
 Tamgu::Tamgu() {
     idtracker = -1;
     investigate = is_none;
@@ -603,7 +651,13 @@ TamguGlobal::~TamguGlobal() {
     
     for (i = 0; i < lispreservoire.size(); i++)
         delete lispreservoire[i];
+
+    for (i = 0; i < longreservoire.size(); i++)
+        delete longreservoire[i];
     
+    for (i = 0; i < treemapreservoire.size(); i++)
+        delete treemapreservoire[i];
+
     for (i = 0; i < declarationreservoire.size(); i++)
         delete declarationreservoire[i];
     
@@ -668,12 +722,11 @@ TamguGlobal::~TamguGlobal() {
         delete gAutomatons;
     
     globalTamgu = resetToNUll;
-    
-#ifdef GARBAGEFORDEBUG
+
+#ifdef GARBAGEINDEBUG
     vector<Tamgu*> issues;
     vector<long> idissues;
-    Garbaging(issues, idissues);
-    _tamgu_garbage.clear();
+    Garbaging(this, issues, idissues);
     if (issues.size())
         cerr << e_no_fully_cleaned << issues.size() << endl;
     else

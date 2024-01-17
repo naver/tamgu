@@ -45,8 +45,8 @@ On rajoute aux méthodes de _chrono_:
 1. `utc()`: Renvoie l'horloge au format UTC
 2. `utc(string fmt)`: Initialise l'horloge à partir d'une chaine au format UTC
 3. `timezone(string tm)`: Initialise le fuseau horaire avec une chaine de type: "+|-dd:dd"
-4. `format(string fmt)`: Renvoie une chaine au format fmt. On rajoute aussi %fm comme balise supplémentaire pour renvoyer les millisecondes.
-5. `milliseconds()` : Renvoie les milliseconds
+4. `format(string fmt)`: Renvoie une chaine au format fmt. On rajoute aussi %fm comme balise supplémentaire pour renvoyer les millisecondes et `%fc`pour renvoyer les microsecondes.
+5. `microseconds()` : Renvoie les microseconds
 
 ## Initialisation
 

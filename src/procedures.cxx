@@ -1004,8 +1004,9 @@ Tamgu* ProcAllObjectByType(Tamgu* contextualpattern, short idthread, TamguCall* 
 }
 
 //------------------------------------------------------------------------------------------------------------------------
-#ifdef GARBAGEFORDEBUG
-void Garbaging(vector<Tamgu*>& issues, vector<long>& idissues);
+#if defined(MULTIGLOBALTAMGU) || defined(GARBAGEINDEBUG)
+Exporting void Garbaging(hmap<std::string, long>& issues);
+bool Is_keep_track_garbage();
 #endif
 
 Tamgu* ProcPoolStats(Tamgu* context, short idthread, TamguCall* callfunc) {
@@ -1019,42 +1020,42 @@ Tamgu* ProcPoolStats(Tamgu* context, short idthread, TamguCall* callfunc) {
     else
         stats = new Tamgumapsi;
 
-#ifdef GARBAGEFORDEBUG
-    vector<Tamgu*> issues;
-    vector<long> idissues;
-    Garbaging(issues, idissues);
-    stats->values["garbage"] = idissues.size();
+#if defined(MULTIGLOBALTAMGU) || defined(GARBAGEINDEBUG)
+    if (Is_keep_track_garbage())
+        Garbaging(stats->values);
+    else
 #endif
-
-    stats->values["mapss"] = globalTamgu->mapssreservoire.size();
-    stats->values["map"] = globalTamgu->mapreservoire.size();
-    stats->values["vector"] = globalTamgu->vectorreservoire.size();
-    stats->values["ivector"] = globalTamgu->ivectorreservoire.size();
-    stats->values["fvector"] = globalTamgu->fvectorreservoire.size();
-    stats->values["svector"] = globalTamgu->svectorreservoire.size();
-    stats->values["uvector"] = globalTamgu->uvectorreservoire.size();
-    stats->values["int"] = globalTamgu->intreservoire.size();
-    stats->values["float"] = globalTamgu->floatreservoire.size();
-    stats->values["string"] = globalTamgu->stringreservoire.size();
-    stats->values["ustring"] = globalTamgu->ustringreservoire.size();
-    stats->values["declaration"] = globalTamgu->declarationreservoire.size();
-    stats->values["declarationclean"] = globalTamgu->declarationcleanreservoire.size();
-    stats->values["self"] = globalTamgu->slfreservoire.size();
-    stats->values["mapss_idx"] = globalTamgu->mapssidx;
-    stats->values["map_idx"] = globalTamgu->mapidx;
-    stats->values["vector_idx"] = globalTamgu->vectoridx;
-    stats->values["ivector_idx"] = globalTamgu->ivectoridx;
-    stats->values["fvector_idx"] = globalTamgu->fvectoridx;
-    stats->values["svector_idx"] = globalTamgu->svectoridx;
-    stats->values["uvector_idx"] = globalTamgu->uvectoridx;
-    stats->values["int_idx"] = globalTamgu->intidx;
-    stats->values["float_idx"] = globalTamgu->floatidx;
-    stats->values["string_idx"] = globalTamgu->stringidx;
-    stats->values["ustring_idx"] = globalTamgu->ustringidx;
-    stats->values["declaration_idx"] = globalTamgu->declarationidx;
-    stats->values["declarationclean_idx"] = globalTamgu->declarationcleanidx;
-    stats->values["self_idx"] = globalTamgu->slfidx;
-
+    {
+        stats->values["mapss"] = globalTamgu->mapssreservoire.size();
+        stats->values["map"] = globalTamgu->mapreservoire.size();
+        stats->values["vector"] = globalTamgu->vectorreservoire.size();
+        stats->values["ivector"] = globalTamgu->ivectorreservoire.size();
+        stats->values["fvector"] = globalTamgu->fvectorreservoire.size();
+        stats->values["svector"] = globalTamgu->svectorreservoire.size();
+        stats->values["uvector"] = globalTamgu->uvectorreservoire.size();
+        stats->values["int"] = globalTamgu->intreservoire.size();
+        stats->values["float"] = globalTamgu->floatreservoire.size();
+        stats->values["string"] = globalTamgu->stringreservoire.size();
+        stats->values["ustring"] = globalTamgu->ustringreservoire.size();
+        stats->values["declaration"] = globalTamgu->declarationreservoire.size();
+        stats->values["declarationclean"] = globalTamgu->declarationcleanreservoire.size();
+        stats->values["self"] = globalTamgu->slfreservoire.size();
+        stats->values["mapss_idx"] = globalTamgu->mapssidx;
+        stats->values["map_idx"] = globalTamgu->mapidx;
+        stats->values["vector_idx"] = globalTamgu->vectoridx;
+        stats->values["ivector_idx"] = globalTamgu->ivectoridx;
+        stats->values["fvector_idx"] = globalTamgu->fvectoridx;
+        stats->values["svector_idx"] = globalTamgu->svectoridx;
+        stats->values["uvector_idx"] = globalTamgu->uvectoridx;
+        stats->values["int_idx"] = globalTamgu->intidx;
+        stats->values["float_idx"] = globalTamgu->floatidx;
+        stats->values["string_idx"] = globalTamgu->stringidx;
+        stats->values["ustring_idx"] = globalTamgu->ustringidx;
+        stats->values["declaration_idx"] = globalTamgu->declarationidx;
+        stats->values["declarationclean_idx"] = globalTamgu->declarationcleanidx;
+        stats->values["self_idx"] = globalTamgu->slfidx;
+    }
+    
     return stats;
 }
 
@@ -3290,7 +3291,7 @@ Exporting void TamguGlobal::RecordProcedures() {
 
     RecordOneProcedure("_symbols", "Returns a list of all symbols (variables and functions) declared in the code", ProcSymbols, P_NONE);
     RecordOneProcedure("_types", "Returns a list of all available types in Tamgu", ProcTypes, P_NONE);
-
+    
     RecordOneProcedure("_poolstats", "Returns statistics information about pools. Many data structures such as vectors and maps are stored in pools of values", ProcPoolStats, P_NONE);
 
     RecordOneProcedure("nope", "Do nothing", ProcNope, P_NONE);

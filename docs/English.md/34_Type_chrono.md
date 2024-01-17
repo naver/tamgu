@@ -44,8 +44,8 @@ Added to the methods of `chrono`:
 1. `utc()`: Returns the clock in UTC format.
 2. `utc(string fmt)`: Initializes the clock from a string in UTC format.
 3. `timezone(string tm)`: Initializes the time zone with a string of the type: "+|-dd:dd".
-4. `format(string fmt)`: Returns a string in the fmt format. An additional `%fm` tag is also added to return the milliseconds.
-5. `milliseconds()`: Returns the milliseconds.
+4. `format(string fmt)`: Returns a string in the fmt format. An additional `%fm` tag is also added to return the milliseconds and `%fc` for the microseconds. 
+5. `microseconds()`: Returns the microseconds.
 
 ## Initialization
 
