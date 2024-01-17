@@ -32,7 +32,7 @@
 31. [Itérateur et Ritérateur](https://github.com/naver/tamgu/blob/master/docs/French.md/31_Type_iterator_riterator.md)
 32. [Type date](https://github.com/naver/tamgu/blob/master/docs/French.md/32_Type_date.md)
 33. [Type temps](https://github.com/naver/tamgu/blob/master/docs/French.md/33_Type_time.md)
-34. [Type chrono](https://github.com/naver/tamgu/blob/master/docs/French.md/34_Type_chrono.md)
+34. [Type chrono et clock](https://github.com/naver/tamgu/blob/master/docs/French.md/34_Type_chrono.md)
 35. [Gestion de fichiers](https://github.com/naver/tamgu/blob/master/docs/French.md/35_Type_file_wfile.md)
 36. [Type Appel](https://github.com/naver/tamgu/blob/master/docs/French.md/36_Type_call.md)
 37. [Instructions spécifiques à Tamgu](https://github.com/naver/tamgu/blob/master/docs/French.md/37_Specific_instructions.md)

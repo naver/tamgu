@@ -33,7 +33,7 @@
 31. [Iterator and Riterator](https://github.com/naver/tamgu/blob/master/docs/English.md/31_Type_iterator_riterator.md)
 32. [Date Type](https://github.com/naver/tamgu/blob/master/docs/English.md/32_Type_date.md)
 33. [Type Time](https://github.com/naver/tamgu/blob/master/docs/English.md/33_Type_time.md)
-34. [Type Chrono](https://github.com/naver/tamgu/blob/master/docs/English.md/34_Type_chrono.md)
+34. [Type Chrono, Clock](https://github.com/naver/tamgu/blob/master/docs/English.md/34_Type_chrono.md)
 35. [File Management](https://github.com/naver/tamgu/blob/master/docs/English.md/35_Type_file_wfile.md)
 36. [Type Call](https://github.com/naver/tamgu/blob/master/docs/English.md/36_Type_call.md)
 37. [Tamgu Specific Instructions](https://github.com/naver/tamgu/blob/master/docs/English.md/37_Specific_instructions.md)
