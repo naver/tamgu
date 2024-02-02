@@ -1004,7 +1004,7 @@ Tamgu* ProcAllObjectByType(Tamgu* contextualpattern, short idthread, TamguCall* 
 }
 
 //------------------------------------------------------------------------------------------------------------------------
-#if defined(MULTIGLOBALTAMGU) || defined(GARBAGEINDEBUG)
+#if defined(GARBAGESCAN) || defined(GARBAGEINDEBUG)
 Exporting void Garbaging(hmap<std::string, long>& issues);
 bool Is_keep_track_garbage();
 #endif
@@ -1020,7 +1020,7 @@ Tamgu* ProcPoolStats(Tamgu* context, short idthread, TamguCall* callfunc) {
     else
         stats = new Tamgumapsi;
 
-#if defined(MULTIGLOBALTAMGU) || defined(GARBAGEINDEBUG)
+#if defined(GARBAGESCAN) || defined(GARBAGEINDEBUG)
     if (Is_keep_track_garbage())
         Garbaging(stats->values);
     else
@@ -1200,6 +1200,9 @@ Tamgu* ProcNop(Tamgu* value, short idthread, TamguCall* callfunc) {
 }
 
 Tamgu* ProcNope(Tamgu* domain, short idthread, TamguCall* callfunc) {
+    long i = 0;
+    if (callfunc->Size() == 1)
+        i = callfunc->Evaluate(0, domain, idthread)->Integer();
     return aTRUE;
 }
 
@@ -3294,7 +3297,7 @@ Exporting void TamguGlobal::RecordProcedures() {
     
     RecordOneProcedure("_poolstats", "Returns statistics information about pools. Many data structures such as vectors and maps are stored in pools of values", ProcPoolStats, P_NONE);
 
-    RecordOneProcedure("nope", "Do nothing", ProcNope, P_NONE);
+    RecordOneProcedure("nope", "Do nothing", ProcNope, P_NONE | P_ONE);
     RecordOneProcedure("use", "Load a library", ProcUse, P_ONE);
     RecordOneProcedure("loadin", "Load the code of a file into the current memory space (merging)", ProcLoadin, P_ONE);
     RecordOneProcedure("loadfacts", "Fast loadings of facts for the internal predicate engine", ProcLoadfacts, P_ONE);

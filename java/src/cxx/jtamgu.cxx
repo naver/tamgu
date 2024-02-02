@@ -15,12 +15,14 @@
 #include "com_naver_jtamgu_JTamgu.h"
 
 #include "tamgu.h"
+#include <signal.h>
 #include "tamguversion.h"
 #include "math.h"
 #include "globaltamgu.h"
 #include "compilecode.h"
 #include "tamgustring.h"
 #include "tamgudecimal.h"
+#include "tamgushort.h"
 
 #include "jtamgu.h"
 
@@ -33,6 +35,7 @@
 * @param str the java string
 * @return the utf8 c++ string
 */
+
 string jstringToString(JNIEnv* env, jstring str) {
     /*
     * The GetStringUTFChars function retrieves 8-bit characters from a 16-bit jstring
@@ -61,8 +64,7 @@ string jstringToString(JNIEnv* env, jstring str) {
 //VECTA<jstring> listjstring;
 
 jstring jstringFromChars(JNIEnv* env, const char *chars) {
-    jstring jstr = env->NewStringUTF(chars);
-    return jstr;
+    return env->NewStringUTF(chars);
 }
 
 /**
@@ -76,9 +78,57 @@ jstring jstringFromString(JNIEnv* env, string& str) {
     return jstringFromChars(env, str.c_str());
 }
 
+jstring jstringFromAString(JNIEnv* env, string str) {
+    return jstringFromChars(env, str.c_str());
+}
+
 static void displayerror(JNIEnv *env, string message) {
     jclass Exception = env->FindClass("java/lang/Exception");
     env->ThrowNew(Exception,message.c_str());
+    env->DeleteLocalRef(Exception); // release local reference
+}
+
+/// ---------------------------------------------------------------------------------------------------
+/// Handling JNI crashes
+/// ---------------------------------------------------------------------------------------------------
+static JavaVM* g_jvm = NULL;
+static bool already_sent = false;
+
+// Signal handler
+void segfault_handler(int sig, siginfo_t *si, void *uc) {
+    // Get JNIEnv* corresponding to current thread
+    if (g_jvm != NULL && !already_sent) {
+        already_sent = true;
+        JNIEnv* env = NULL;
+        g_jvm->AttachCurrentThread((void**)&env, NULL);
+        TamguStopAll();
+        // Throw a Java exception
+        jclass cls = env->FindClass("java/lang/Exception");
+        if (cls != NULL) {
+            env->ThrowNew(cls, "Caught SIGSEGV");
+        }
+
+        // Detach current thread
+        g_jvm->DetachCurrentThread();
+    }
+}
+
+
+JNIEXPORT void JNICALL Java_com_naver_jtamgu_JTamgu_TamguCatchJNICrashImplementation(JNIEnv *env, jobject obj) {
+    // Store the JVM
+    already_sent = false;
+    if (g_jvm == NULL) {        
+        env->GetJavaVM(&g_jvm);
+
+        // Register signal handler
+        struct sigaction sa;
+        sa.sa_flags = SA_SIGINFO;
+        sa.sa_sigaction = segfault_handler;
+        sigemptyset(&sa.sa_mask);
+        if (sigaction(SIGSEGV, &sa, NULL) == -1) {
+            perror("sigaction");
+        }
+    }
 }
 
 /// ---------------------------------------------------------------------------------------------------
@@ -90,6 +140,14 @@ inline Tamgu* Getvariable(TamguCode* codespace, short idcode, short name) {
 
 inline bool Checkvariable(TamguCode* codespace, short idcode, short name) {
     return codespace->global->threads[0].variables.check(name);
+}
+
+inline Tamgu* Getvariable(TamguGlobal* global, short idcode, short name) {
+    return global->Getmaindeclaration(name, 0);
+}
+
+inline bool Checkvariable(TamguGlobal* global, short idcode, short name) {
+    return global->threads[0].variables.check(name);
 }
 
 TamguCode* CheckTamgu(JNIEnv *env, jint handler, jint idcode) {
@@ -120,6 +178,45 @@ TamguCode* GetTamguCode(JNIEnv *env, jint handler, string& value, short idcode =
 */
 JNIEXPORT jint JNICALL Java_com_naver_jtamgu_JTamgu_CreateTamgu(JNIEnv *env, jobject obj) {
     return TamguCreateGlobal(10);
+}
+
+
+/**
+ * Set Garbage Mode On/Off
+*/
+ 
+ JNIEXPORT void JNICALL Java_com_naver_jtamgu_JTamgu_TamguSetGarbageModeImplementation(JNIEnv *env, jobject obj, jint mode) {
+    Set_keep_track_garbage((bool)mode); 
+}
+
+/**
+* Count the number of instances in memory
+*/
+JNIEXPORT jint JNICALL Java_com_naver_jtamgu_JTamgu_CountinstancesImplementation(JNIEnv *env, jobject obj) {
+    return Countinstances();
+}
+
+
+/**
+* Count the number of active instances
+*/
+JNIEXPORT jint JNICALL Java_com_naver_jtamgu_JTamgu_CountactiveinstancesImplementation(JNIEnv *env, jobject obj) {
+    return Count_active_instances();
+}
+
+/**
+* Count the number of instances in memory
+*/
+JNIEXPORT jint JNICALL Java_com_naver_jtamgu_JTamgu_MaxcountinstancesImplementation(JNIEnv *env, jobject obj) {
+    return Maxcountinstances();
+}
+
+
+/**
+* Count the number of active instances
+*/
+JNIEXPORT jint JNICALL Java_com_naver_jtamgu_JTamgu_MaxcountactiveinstancesImplementation(JNIEnv *env, jobject obj) {
+    return Max_count_active_instances();
 }
 
 /**
@@ -170,31 +267,35 @@ JNIEXPORT jint JNICALL Java_com_naver_jtamgu_JTamgu_LoadStringProgramImplementat
     string jcode = jstringToString(env, code);
     string theargs = jstringToString(env, args);
 
-    short handler = TamguCreateGlobal(10);
+    short handler = TamguCreateGlobal(1);
+
+    stringstream os;
 
 #ifdef WIN32
-    string name = "C:\\JAVA";
+    os << "C:\\JAVA" << nbfilename;
 #else
-    string name = "/JAVA";
+    os << "/JAVA" << nbfilename;
 #endif
 
-    char buff[20];
-    sprintf(buff, "_%d", nbfilename);
+    string name = os.str();
     nbfilename++;
-    name += buff;
-    stringstream message;
+
     TamguSetArguments(theargs);
     short idcode = -1;
     idcode = TamguCompileMain(jcode, name);
+
+    os.str("");
+    os.clear();
+
     if (idcode == -1) {
-        message << TamguErrorMessage() << endl;
-        displayerror(env, message.str());
+        os << TamguErrorMessage() << endl;
+        displayerror(env, os.str());
         return -1;
     }
     
     if (!TamguLoading(idcode)) {
-        message << TamguErrorMessage() << endl;
-        displayerror(env, message.str());
+        os << TamguErrorMessage() << endl;
+        displayerror(env, os.str());
         return -1;
     }
     
@@ -479,7 +580,6 @@ JNIEXPORT jstring JNICALL Java_com_naver_jtamgu_JTamgu_ExecuteSpaceFunctionImple
         resultat->Resetreference();
     }
     TamguReleaseglobal(handler);
-    
     element = jstringFromString(env, value);
     return element;
 }
@@ -599,6 +699,95 @@ JNIEXPORT jint JNICALL Java_com_naver_jtamgu_JTamgu_CleanSpaceImplementation(JNI
 	return 0;
 }
 
+JNIEXPORT void JNICALL Java_com_naver_jtamgu_JTamgu_ScanGarbageImplementation(JNIEnv *env, jobject obj, jobject java_issues) {
+    hmap<std::string, long> issues;
+    Garbaging(issues);
+    jclass hashMapClass = env->FindClass("java/util/HashMap");
+
+    jmethodID constructor = env->GetMethodID(hashMapClass, "<init>", "()V");
+    jobject javaIssuesObj = env->NewObject(hashMapClass, constructor);
+    jmethodID putMethod = env->GetMethodID(hashMapClass, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+  
+    jclass cl = env->FindClass("java/lang/Integer");
+    jclass intClass = (jclass)env->NewGlobalRef(cl);
+    jmethodID intValue = env->GetMethodID(intClass, "intValue", "()I");
+    jmethodID create_an_object = env->GetMethodID(intClass, "<init>", "(I)V");
+
+    // Iterate through the 'issues' map and add its contents to 'java_issues'
+    for (const auto& entry : issues) {
+        jstring keyStr = jstringFromAString(env, entry.first);
+        jint valueInt = entry.second;
+        
+        // Convert the integer value to a Java Integer object
+        jobject value = env->NewObject(intClass, create_an_object, (jint)valueInt);
+        
+        // Add the key-value pair to the Java HashMap
+        env->CallObjectMethod(java_issues, putMethod, keyStr, value);
+        
+        // Release local references
+        env->DeleteLocalRef(keyStr);
+        env->DeleteLocalRef(value);
+  }
+
+    env->DeleteLocalRef(hashMapClass);
+    env->DeleteLocalRef(javaIssuesObj);
+    env->DeleteLocalRef(cl);
+    env->DeleteLocalRef(intClass);
+
+}
+
+JNIEXPORT void JNICALL Java_com_naver_jtamgu_JTamgu_ScanGarbagelongImplementation(JNIEnv *env, jobject obj, jobject java_issues) {
+    hmap<long, long> issues;
+    Garbaging(issues);
+    jclass hashMapClass = env->FindClass("java/util/HashMap");
+
+    jmethodID constructor = env->GetMethodID(hashMapClass, "<init>", "()V");
+    jobject javaIssuesObj = env->NewObject(hashMapClass, constructor);
+    jmethodID putMethod = env->GetMethodID(hashMapClass, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+  
+    jclass cl = env->FindClass("java/lang/Integer");
+    jclass intClass = (jclass)env->NewGlobalRef(cl);
+    env->DeleteLocalRef(cl);
+    jmethodID intValue = env->GetMethodID(intClass, "intValue", "()I");
+    jmethodID create_an_object = env->GetMethodID(intClass, "<init>", "(I)V");
+
+    // Iterate through the 'issues' map and add its contents to 'java_issues'
+    for (const auto& entry : issues) {
+        jint keyInt = entry.first;
+        jint valueInt = entry.second;
+        
+        // Convert the integer value to a Java Integer object
+        jobject key = env->NewObject(intClass, create_an_object, (jint)keyInt);
+        jobject value = env->NewObject(intClass, create_an_object, (jint)valueInt);
+
+        // Add the key-value pair to the Java HashMap
+        env->CallObjectMethod(java_issues, putMethod, key, value);
+        
+        // Release local references
+        env->DeleteLocalRef(key);
+        env->DeleteLocalRef(value);
+    }
+
+    env->DeleteLocalRef(hashMapClass);
+    env->DeleteLocalRef(javaIssuesObj);
+    env->DeleteLocalRef(cl);
+    env->DeleteLocalRef(intClass);
+}
+
+JNIEXPORT void JNICALL Java_com_naver_jtamgu_JTamgu_TamguIdleImplementation(JNIEnv *env, jobject obj, jint diff, jobject jidles) {
+    vector<long> idles;
+    TamguIdle(diff, idles);
+
+    if (idles.size()) {
+        jsize count = env->GetArrayLength((jobjectArray)jidles);
+        JavaIterationListInteger* li = new JavaIterationListInteger(env, NULL, jidles, count);
+        for (long i = 0; i < idles.size(); i++) {
+            li->Push(idles[i]);
+        }
+        delete li;
+    }
+}
+
 
 JNIEXPORT jstring JNICALL Java_com_naver_jtamgu_JTamgu_TamguVersionImplementation(JNIEnv *env, jobject obj) {
     string version = TamguVersion();
@@ -654,20 +843,29 @@ void StoreGlobalValues(JNIEnv *env, TamguGlobal* global, TamguCode* tamgucode, s
         //First we need to find the associate global variable
         name = global->Getid(strKey);
         
-        if (Checkvariable(tamgucode, idcode, name)) {
+        if (Checkvariable(global, idcode, name)) {
             //Then we need to access the variable itself...
-            var = Getvariable(tamgucode, idcode, name);
+            var = Getvariable(global, idcode, name);
             //Then we need to put the value in it...
             value = global->Providestring(strValue);
             var->Put(aNULL, value, 0);
             value->Release();
         }
+        env->DeleteLocalRef(entry);
         env->DeleteLocalRef(okey);
         env->DeleteLocalRef(ovalue);
         env->DeleteLocalRef(jstrKey);
         env->DeleteLocalRef(jstrValue);
         hasNext = (bool) env->CallBooleanMethod(obj_iterator, id_hasNext);
     }
+
+    env->DeleteLocalRef(c_map);
+    env->DeleteLocalRef(c_entryset);
+    env->DeleteLocalRef(c_iterator);
+    env->DeleteLocalRef(c_entry);
+    env->DeleteLocalRef(c_string);
+    env->DeleteLocalRef(obj_entrySet);
+    env->DeleteLocalRef(obj_iterator);
 }
 
 void RetrieveGlobalValues(JNIEnv *env, TamguGlobal* global, TamguCode* tamgucode, short idcode, jobject map) {
@@ -701,7 +899,6 @@ void RetrieveGlobalValues(JNIEnv *env, TamguGlobal* global, TamguCode* tamgucode
     Tamgu* value;
     while(hasNext) {
         jobject entry = env->CallObjectMethod(obj_iterator, id_next);
-
         jobject okey = env->CallObjectMethod(entry, id_getKey);
         jstring jstrKey = (jstring) env->CallObjectMethod(okey, id_toString);
 
@@ -724,10 +921,19 @@ void RetrieveGlobalValues(JNIEnv *env, TamguGlobal* global, TamguCode* tamgucode
             env->CallObjectMethod(entry, id_setValue, element);
             env->DeleteLocalRef(element);
         }
+        env->DeleteLocalRef(entry);
         env->DeleteLocalRef(okey);
         env->DeleteLocalRef(jstrKey);
         hasNext = (bool) env->CallBooleanMethod(obj_iterator, id_hasNext);
     }
+
+    env->DeleteLocalRef(c_map);
+    env->DeleteLocalRef(c_entryset);
+    env->DeleteLocalRef(c_iterator);
+    env->DeleteLocalRef(c_entry);
+    env->DeleteLocalRef(c_string);
+    env->DeleteLocalRef(obj_entrySet);
+    env->DeleteLocalRef(obj_iterator);
 }
 
 /**
@@ -777,7 +983,7 @@ JNIEXPORT jstring JNICALL Java_com_naver_jtamgu_JTamgu_ExecuteFunctionImplementa
         resultat->Resetreference();
     }
     TamguReleaseglobal(handler);
-    
+
     element = jstringFromString(env, value);
     return element;
 }
@@ -803,7 +1009,8 @@ Tamgu* JavaNext(void* jiv) {
 }
 
 Tamgu* JavaValue(void* jiv) {
-    return ((JavaIteration*)jiv)->Value();
+    Tamgu* v = ((JavaIteration*)jiv)->Value();
+    return v;
 }
 
 Tamgu* JavaEnd(void* jiv) {

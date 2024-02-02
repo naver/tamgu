@@ -116,7 +116,50 @@ public class JTamgu {
         return LoadAStringProgramImplementation(handler, code);
     }
     //------------------------------------------------------------------------
+    private native int CountinstancesImplementation() throws Exception;
 
+    /**
+     * Returns the number of active instances in memory
+     *
+     * @exception Exception
+     */
+    public synchronized int Countinstances() throws Exception {
+        return CountinstancesImplementation();
+    }
+    //------------------------------------------------------------------------
+    private native int CountactiveinstancesImplementation() throws Exception;
+
+    /**
+     * Returns the number of active instances in memory
+     *
+     * @exception Exception
+     */
+    public synchronized int Countactiveinstances() throws Exception {
+        return CountactiveinstancesImplementation();
+    }
+    //------------------------------------------------------------------------
+    private native int MaxcountinstancesImplementation() throws Exception;
+
+    /**
+     * Returns the number of active instances in memory
+     *
+     * @exception Exception
+     */
+    public synchronized int Maxcountinstances() throws Exception {
+        return MaxcountinstancesImplementation();
+    }
+    //------------------------------------------------------------------------
+    private native int MaxcountactiveinstancesImplementation() throws Exception;
+
+    /**
+     * Returns the number of active instances in memory
+     *
+     * @exception Exception
+     */
+    public synchronized int Maxcountactiveinstances() throws Exception {
+        return MaxcountactiveinstancesImplementation();
+    }
+    //------------------------------------------------------------------------
     private native String ExecuteFunctionImplementation(int handler, String code, String[] args)
             throws Exception;
 
@@ -239,6 +282,18 @@ public class JTamgu {
      */
     public synchronized boolean Setdoubleiterator(int handler, int idcode, String name, double[] args) throws Exception {
         return Setdoubleiteratorimplementation(handler, idcode, name, args);
+    }
+    //------------------------------------------------------------------------
+    private native void TamguIdleImplementation(int diff, List<Integer> idles) throws Exception;
+    /**
+    * Detect idle Tamgu interpreters
+    *
+    * @param diff is the time in seconds that serves as a time limit
+    * @param idles list of Tamgu idle handlers
+    * @exception Exception
+    */
+    public synchronized void TamguIdle(int diff, List<Integer> idles) throws Exception {
+        TamguIdleImplementation(diff, idles);
     }
     //------------------------------------------------------------------------
     private native boolean Setstringiteratorimplementation(int handler, int idcode, String name, String[] args)
@@ -376,7 +431,7 @@ public class JTamgu {
     public synchronized String TamguVersion() throws Exception {
         return TamguVersionImplementation();
     }
-
+    //------------------------------------------------------------------------
     private native void TamguSetGarbageModeImplementation(int setgarbage) throws Exception;
     
     /**
@@ -386,4 +441,36 @@ public class JTamgu {
     public synchronized void TamguSetGarbageMode(int setgarbage) throws Exception {
         TamguSetGarbageModeImplementation(setgarbage);
     }
+
+    private native void ScanGarbageImplementation(Map<String, Integer> garbage) throws Exception;
+    
+    /**
+     * Set the garbage mode
+     *
+     */
+    public synchronized void ScanGarbage(Map<String, Integer> garbage) throws Exception {
+        ScanGarbageImplementation(garbage);
+    }
+
+    private native void ScanGarbagelongImplementation(Map<Integer, Integer> garbage) throws Exception;
+    
+    /**
+     * Set the garbage mode
+     *
+     */
+    public synchronized void ScanGarbagelong(Map<Integer, Integer> garbage) throws Exception {
+        ScanGarbagelongImplementation(garbage);
+    }
+    //------------------------------------------------------------------------
+    
+    private native void TamguCatchJNICrashImplementation() throws Exception;
+        
+    /**
+     * Return Version Number of Current Tamgu Implementation
+     *
+     */
+    public synchronized void TamguCatchJNICrash() throws Exception {
+        TamguCatchJNICrashImplementation();
+    }
+
 }

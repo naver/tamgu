@@ -2556,17 +2556,16 @@ Tamgu* TamguCallFunctionTaskell::Composition() {
 	return aNOELEMENT;
 }
 
-Tamgu* TamguInstructionAPPLYOPERATION::Compile(TamguGlobal* global, Tamgu* parent) {
+Tamgu* TamguInstructionAPPLYOPERATION::Compile(TamguGlobal* global, Tamgu* recipient_variable) {
 	TamguInstructionAPPLYOPERATIONROOT* kroot = new TamguInstructionAPPLYOPERATIONROOT(global);
-    if (parent != NULL) {
-		kroot->thetype = Evaluateatomtype(global, parent, true);
-        parent = aONE;
+    if (recipient_variable != NULL) {
+		kroot->thetype = Evaluateatomtype(global, recipient_variable, true);
+        recipient_variable = aONE;
     }
 
 	kroot->Stacking(global, this, true);
 	kroot->Setsize();
-    
-	Tamgu* kvroot = kroot->Returnlocal(global, parent);
+	Tamgu* kvroot = kroot->Returnlocal(global, recipient_variable);
 	if (kvroot != kroot) {
 		kroot->Remove();
 		return kvroot;
@@ -5474,7 +5473,6 @@ Tamgu* TamguCode::C_affectation(x_node* xn, Tamgu* kf) {
 	for (size_t i = 0; i < xn->nodes.size(); i++)
 		Traverse(xn->nodes[i], ki);
 
-	
 	if (ki->InstructionSize()) {
 		if (ki->Instruction(0)->isConstant()) {
 			stringstream message;

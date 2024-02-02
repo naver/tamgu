@@ -180,7 +180,7 @@ bool Tamguclock::InitialisationModule(TamguGlobal* global, string version) {
 
     Tamguclock::idtype = global->Getid("clock");
     
-    Tamguclock::AddMethod(global, "_initial", &Tamguclock::MethodTimezone, P_NONE | P_ONE, "timezone(int time_zone): time_zone defines the time difference with GM time.");
+    Tamguclock::AddMethod(global, "_initial", &Tamguclock::MethodUTC, P_NONE | P_ONE, "utc(string utc_str): Initializes a clock with a string.");
     Tamguclock::AddMethod(global, "reset", &Tamguclock::MethodReset, P_NONE, "reset(): reset the chrono");
     Tamguclock::AddMethod(global, "start", &Tamguclock::MethodReset, P_NONE, "start(): start the chrono");
     Tamguclock::AddMethod(global, "stop", &Tamguclock::MethodStop, P_NONE, "stop(): stop the chrono and returns the intermediate time");
@@ -188,8 +188,9 @@ bool Tamguclock::InitialisationModule(TamguGlobal* global, string version) {
     Tamguclock::AddMethod(global, "timezone", &Tamguclock::MethodTimezone, P_NONE | P_ONE, "timezone(int time_zone): Defines the time difference with GM time.");
     Tamguclock::AddMethod(global, "format", &Tamguclock::MethodFormat, P_ONE, "format(string frm): frm describes the format, which is used to return a string.");
     Tamguclock::AddMethod(global, "microseconds", &Tamguclock::MethodMicroseconds, P_NONE, "microseconds(): returns the microseconds.");
-    Tamguclock::AddMethod(global, "utc", &Tamguclock::MethodUTC, P_NONE|P_ONE, "utc(string date|bool time_zone): UTC() returns the UTC time. utc('...') uses the date to instantiate itself.");
-
+    Tamguclock::AddMethod(global, "utc", &Tamguclock::MethodUTC, P_NONE|P_ONE, "utc(string utc_str|bool time_zone): utc() returns the UTC time. utc('...') uses the date to instantiate itself.");
+    Tamguclock::AddMethod(global, "iso", &Tamguclock::MethodISO8601, P_NONE|P_ONE, "iso(string utc_str|bool time_zone): iso() returns the ISO8601 time. iso('...') uses the date to instantiate itself.");
+    
     if (version != "") {
         global->newInstance[Tamguclock::idtype] = new Tamguclock(global);
         global->RecordCompatibilities(Tamguclock::idtype);
@@ -211,7 +212,7 @@ Tamgu* Tamguclock::Eval(Tamgu* context, Tamgu* index, short idthread) {
 }
 
 string Tamguclock::String() {
-    return UTC(false);
+    return ISO8601(false);
 }
 
 Tamgu* Tamguclock::MethodFormat(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -388,28 +389,188 @@ Tamgu* Tamguclock::MethodStop(Tamgu* contextualpattern, short idthread, TamguCal
     return globalTamgu->ProvideConstfloat(std::chrono::duration_cast<std::chrono::milliseconds>( end - value ).count());
 }
 
-Tamgu* Tamguclock::minus(Tamgu* bb, bool autoself) {
-    if (bb->Type() != idtype)
-        return aNULL;
+
+Tamgu* Tamguclock::plus(Tamgu* bb, bool autoself) {
+    long val = bb->Integer();
     
-    Tamguclock* b = (Tamguclock*)bb;
+    Tamguclock* chrono;
+    if (autoself)
+        chrono = this;
+    else
+        chrono = new Tamguclock(value);
     
     switch (unit) {
-        case 1:
-            return globalTamgu->ProvideConstfloat(std::chrono::duration_cast<std::chrono::seconds>( value - b->value ).count());
-        case 2:
-            return globalTamgu->ProvideConstfloat(std::chrono::duration_cast<std::chrono::milliseconds>( value - b->value ).count());
-        case 3:
-            return globalTamgu->ProvideConstfloat(std::chrono::duration_cast<std::chrono::microseconds>( value - b->value ).count());
-        case 4:
-            return globalTamgu->ProvideConstfloat(std::chrono::duration_cast<std::chrono::nanoseconds>( value - b->value ).count());
+        case 1: {
+            auto add = std::chrono::seconds(val);
+            chrono->value += add;
+            break;
+        }
+        case 2: {
+            auto add = std::chrono::milliseconds(val);
+            chrono->value += add;
+            break;
+        }
+        case 3: {
+            auto add = std::chrono::microseconds(val);
+            chrono->value += add;
+            break;
+        }
+        case 4: {
+            val /= 1000;
+            auto add = std::chrono::microseconds(val);
+            chrono->value += add;
+            break;
+        }
     }
-    return globalTamgu->ProvideConstfloat(std::chrono::duration_cast<std::chrono::seconds>( value - b->value ).count());
+    return chrono;
 }
 
+Tamgu* Tamguclock::minus(Tamgu* bb, bool autoself) {
+    Tamguclock* chrono;
+    if (autoself)
+        chrono = this;
+    else
+        chrono = new Tamguclock(value);
+    
+    if (bb->Type() == idtype) {
+        //In this case this is a time difference
+        Tamguclock* b = (Tamguclock*)bb;
+        
+        switch (unit) {
+            case 1:
+                return globalTamgu->ProvideConstfloat(std::chrono::duration_cast<std::chrono::seconds>( value - b->value ).count());
+            case 2:
+                return globalTamgu->ProvideConstfloat(std::chrono::duration_cast<std::chrono::milliseconds>( value - b->value ).count());
+            case 3:
+                return globalTamgu->ProvideConstfloat(std::chrono::duration_cast<std::chrono::microseconds>( value - b->value ).count());
+            case 4:
+                return globalTamgu->ProvideConstfloat(std::chrono::duration_cast<std::chrono::nanoseconds>( value - b->value ).count());
+        }
+        return globalTamgu->ProvideConstfloat(std::chrono::duration_cast<std::chrono::seconds>( value - b->value ).count());
+    }
+    
+    long val = bb->Integer();
+    
+    
+    switch (unit) {
+        case 1: {
+            auto add = std::chrono::seconds(val);
+            chrono->value -= add;
+            break;
+        }
+        case 2: {
+            auto add = std::chrono::milliseconds(val);
+            chrono->value -= add;
+            break;
+        }
+        case 3: {
+            auto add = std::chrono::microseconds(val);
+            chrono->value -= add;
+            break;
+        }
+        case 4: {
+            val /= 1000;
+            auto add = std::chrono::microseconds(val);
+            chrono->value -= add;
+            break;
+        }
+    }
+    return chrono;
+}
+
+Tamgu* Tamguclock::multiply(Tamgu* bb, bool autoself) {
+    double v = bb->Float();
+
+    auto epoch = value.time_since_epoch();
+    
+    
+    switch (unit) {
+        case 1: {
+            auto val = std::chrono::duration_cast<std::chrono::seconds>(epoch);
+            val *= v;
+            return globalTamgu->Providefloat(val.count());
+        }
+        case 2: {
+            auto val = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);
+            val *= v;
+            return globalTamgu->Providefloat(val.count());
+        }
+        case 3: {
+            auto val = std::chrono::duration_cast<std::chrono::microseconds>(epoch);
+            val *= v;
+            return globalTamgu->Providefloat(val.count());
+        }
+    }
+
+    auto val = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);
+    val *= v;
+    return globalTamgu->Providefloat(val.count());
+}
+
+Tamgu* Tamguclock::divide(Tamgu* bb, bool autoself) {
+    double v = bb->Float();
+    if (!v)
+        return globalTamgu->Returnerror("MAT(203): Cannot divide by 0");
+    
+    auto epoch = value.time_since_epoch();
+    
+    
+    switch (unit) {
+        case 1: {
+            auto val = std::chrono::duration_cast<std::chrono::seconds>(epoch);
+            val /= v;
+            return globalTamgu->Providefloat(val.count());
+        }
+        case 2: {
+            auto val = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);
+            val /= v;
+            return globalTamgu->Providefloat(val.count());
+        }
+        case 3: {
+            auto val = std::chrono::duration_cast<std::chrono::microseconds>(epoch);
+            val /= v;
+            return globalTamgu->Providefloat(val.count());
+        }
+    }
+
+    auto val = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);
+    val /= v;
+    return globalTamgu->Providefloat(val.count());
+}
+
+Tamgu* Tamguclock::mod(Tamgu* bb, bool autoself) {
+    long v = bb->Integer();
+    if (!v)
+        return globalTamgu->Returnerror("MAT(203): Cannot divide by 0");
+    
+    auto epoch = value.time_since_epoch();
+    
+    
+    switch (unit) {
+        case 1: {
+            auto val = std::chrono::duration_cast<std::chrono::seconds>(epoch);
+            val %= v;
+            return globalTamgu->Providefloat(val.count());
+        }
+        case 2: {
+            auto val = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);
+            val %= v;
+            return globalTamgu->Providefloat(val.count());
+        }
+        case 3: {
+            auto val = std::chrono::duration_cast<std::chrono::microseconds>(epoch);
+            val %= v;
+            return globalTamgu->Providefloat(val.count());
+        }
+    }
+
+    auto val = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);
+    val %= v;
+    return globalTamgu->Providefloat(val.count());
+}
 
 #ifdef WIN32
-Tamgu* Tamguclock::set_the_date(Tamgufvector* iv) {
+Tamgu* Tamguclock::set_the_utc_date(Tamgufvector* iv) {
     locking_clock(this);
     time_t x = 0;
     struct tm temps;
@@ -424,7 +585,7 @@ Tamgu* Tamguclock::set_the_date(Tamgufvector* iv) {
     temps.tm_year = iv->values[0] - 1900;
     temps.tm_mon = iv->values[1] - 1;
     temps.tm_mday = iv->values[2];
-    temps.tm_hour = iv->values[3] + 1;
+    temps.tm_hour = iv->values[3];
     temps.tm_min = iv->values[4];
     temps.tm_sec = iv->values[5];
     
@@ -454,8 +615,52 @@ Tamgu* Tamguclock::set_the_date(Tamgufvector* iv) {
     return aTRUE;
 }
 
+Tamgu* Tamguclock::set_the_iso8601_date(Tamgufvector* iv) {
+    locking_clock(this);
+    time_t x = 0;
+    struct tm temps;
+    localtime_s(&temps, &x);
+    
+    int fulldate = 0;
+    
+    long sz = iv->values.size();
+    if (!sz)
+        return aFALSE;
+    
+    temps.tm_year = iv->values[0] - 1900;
+    temps.tm_mon = iv->values[1] - 1;
+    temps.tm_mday = iv->values[2];
+    temps.tm_hour = iv->values[3];
+    temps.tm_min = iv->values[4];
+    temps.tm_sec = iv->values[5];
+    
+    x = mktime(&temps);
+    unlocking_clock(this);
+    if (x <= 0)
+        return aFALSE;
+    
+    value = std::chrono::system_clock::from_time_t(x);
+    int v = (int)iv->values[7];
+    
+    double tm = (iv->values[7] - (double)v)*60;
+    char buffer[100];
+    if (v >= 0)
+        sprintf_s(buffer, 100, "+%02d:%02d", v, (int)tm);
+    else
+        sprintf_s(buffer, 100, "%02d:%02d", v - 1, (int)tm);
+    timezone_offset = buffer;
+
+    auto now_ms = std::chrono::time_point_cast<std::chrono::microseconds>(value);
+    auto epoch = now_ms.time_since_epoch();
+    auto val = std::chrono::duration_cast<std::chrono::microseconds>(epoch);
+    
+    int diff = iv->values[6] - (val.count()%1000000);
+    value += std::chrono::microseconds(diff);
+    return aTRUE;
+}
+
 #else
-Tamgu* Tamguclock::set_the_date(Tamgufvector* iv) {
+Tamgu* Tamguclock::set_the_utc_date(Tamgufvector* iv) {
     locking_clock(this);
     time_t x = 0;
     struct tm* temps = localtime(&x);
@@ -464,7 +669,7 @@ Tamgu* Tamguclock::set_the_date(Tamgufvector* iv) {
     //Month
     temps->tm_mon = iv->values[1] - 1;
     temps->tm_mday = iv->values[2];
-    temps->tm_hour = iv->values[3] + 1;
+    temps->tm_hour = iv->values[3];
     temps->tm_min = iv->values[4];
     temps->tm_sec = iv->values[5];
     x = mktime(temps);
@@ -494,13 +699,53 @@ Tamgu* Tamguclock::set_the_date(Tamgufvector* iv) {
     
     return aTRUE;
 }
+
+Tamgu* Tamguclock::set_the_iso8601_date(Tamgufvector* iv) {
+    locking_clock(this);
+    time_t x = 0;
+    struct tm* temps = localtime(&x);
+    
+    temps->tm_year = iv->values[0] - 1900;
+    //Month
+    temps->tm_mon = iv->values[1] - 1;
+    temps->tm_mday = iv->values[2];
+    temps->tm_hour = iv->values[3];
+    temps->tm_min = iv->values[4];
+    temps->tm_sec = iv->values[5];
+    x = mktime(temps);
+    unlocking_clock(this);
+    
+    if (x <= 0)
+        return aFALSE;
+    
+    
+    value = std::chrono::system_clock::from_time_t(x);
+    int v = (int)iv->values[7];
+    
+    double tm = (iv->values[7] - (double)v)*60;
+    char buffer[100];
+    if (v >= 0)
+        sprintf_s(buffer, 100, "+%02d:%02d", v, (int)tm);
+    else
+        sprintf_s(buffer, 100, "%02d:%02d", v - 1, (int)tm);
+    timezone_offset = buffer;
+
+    auto now_ms = std::chrono::time_point_cast<std::chrono::microseconds>(value);
+    auto epoch = now_ms.time_since_epoch();
+    auto val = std::chrono::duration_cast<std::chrono::microseconds>(epoch);
+    
+    int diff = iv->values[6] - (val.count()%1000000);
+    value += std::chrono::microseconds(diff);
+
+    return aTRUE;
+}
 #endif
 
 Tamgu* Tamguclock::getstringdate(string& v) {
     vector<string> values;
     string dt;
     string mn;
-    Tamgufvector* fv = new Tamgufvector();
+    Tamgufvector* fv = globalTamgu->Providefvector();
     double tm = -1;
     char sep = '-';
     bool timezone = false;
@@ -582,6 +827,27 @@ string Tamguclock::UTC(bool compute) {
     return os.str();
 }
 
+string Tamguclock::ISO8601(bool compute) {
+    std::ostringstream os;
+    auto now_ms = std::chrono::time_point_cast<std::chrono::microseconds>(value);
+    auto epoch = now_ms.time_since_epoch();
+    auto val = std::chrono::duration_cast<std::chrono::microseconds>(epoch);
+    
+    std::time_t currentTime = std::chrono::system_clock::to_time_t(value);
+    std::tm* utc_tm = std::localtime(&currentTime);
+    
+    string tmoff = timezone_offset;
+
+    if (compute)
+        tmoff = compute_time_zone();
+
+    os << std::put_time(utc_tm, "%FT%T");
+    os << '.' << std::setw(6) << std::setfill('0') << val.count() % 1000000;
+    
+    os << tmoff;
+    return os.str();
+}
+
 Tamgu* Tamguclock::MethodUTC(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     Tamgu* argument = NULL;
     if (callfunc->Size() == 1)
@@ -596,13 +862,48 @@ Tamgu* Tamguclock::MethodUTC(Tamgu* contextualpattern, short idthread, TamguCall
         return globalTamgu->Providestring(utc_string);
     }
     
+    if (argument->Type() == Tamguclock::idtype) {
+        value = ((Tamguclock*)argument)->value;
+        return aTRUE;
+    }
+    
     string dte = argument->String();
     Tamgufvector* fv = (Tamgufvector*)getstringdate(dte);
     if (fv->Size() != 8)
         return globalTamgu->Returnerror("Error: Wrong format", idthread);
     
     
-    Tamgu* res = set_the_date(fv);
+    Tamgu* res = set_the_utc_date(fv);
+    fv->Release();
+    return res;
+}
+
+Tamgu* Tamguclock::MethodISO8601(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    Tamgu* argument = NULL;
+    if (callfunc->Size() == 1)
+        argument = callfunc->Evaluate(0, contextualpattern, idthread);
+    
+    if (callfunc->Size() == 0 || argument->Type() == a_boolean) {
+        string utc_string;
+        if (argument != NULL && argument->Boolean())
+            utc_string = ISO8601(true);
+        else
+            utc_string = ISO8601(false);
+        return globalTamgu->Providestring(utc_string);
+    }
+    
+    if (argument->Type() == Tamguclock::idtype) {
+        value = ((Tamguclock*)argument)->value;
+        return aTRUE;
+    }
+    
+    string dte = argument->String();
+    Tamgufvector* fv = (Tamgufvector*)getstringdate(dte);
+    if (fv->Size() != 8)
+        return globalTamgu->Returnerror("Error: Wrong format", idthread);
+    
+    
+    Tamgu* res = set_the_iso8601_date(fv);
     fv->Release();
     return res;
 }

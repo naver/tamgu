@@ -219,6 +219,9 @@ public:
         return aTRUE;
     }
     
+    ~JavaIterationList() {
+        current_env->DeleteLocalRef(jclazzlist);
+    }
 };
 
 class JavaIterationListFloat : public JavaIterationList {
@@ -261,7 +264,7 @@ public:
         JNIEnv* env = getEnv();
         jobject element =  env->CallObjectMethod(object, java_util_List_get, pos);
         jfloat v  = env->CallFloatMethod(element, floatValue);
-        Tamgu* value = global->Providefloat(v);
+        Tamgu* value = new Tamgudecimal(v);
         env->DeleteLocalRef(element);
         freeEnv();
         return value;
@@ -356,6 +359,12 @@ public:
             env->CallObjectMethod(object, java_util_List_set, pos, value);
         freeEnv();
         return aTRUE;
+    }
+
+    void Push(long v) {
+        jobject value = current_env->NewObject(intClass, create_an_object, (jint)v);
+        current_env->CallObjectMethod(object, java_util_List_add, value);
+        count++;
     }
 
 };

@@ -2314,6 +2314,10 @@ bool TamguState::finals(FstCompanion* f, long threshold) {
     return found;
 }
 //----------------------------------------------------------------------------------------
+Exporting ThreadStruct::~ThreadStruct() {
+    if (fstcompanion!=NULL)
+        delete fstcompanion;
+}
 
 FstCompanion* ThreadStruct::Companion() {
     if (fstcompanion==NULL)

@@ -283,21 +283,21 @@ class Tamguclock : public TamguReference {
     Tamguclock(TamguGlobal* g, Tamgu* parent = NULL) : TamguReference(g, parent) {
         //Do not forget your variable initialisation
         value = std::chrono::system_clock::now();
-        unit = 3;
+        unit = 1;
         timezone_offset = compute_time_zone();
     }
 
     Tamguclock() {
         //Do not forget your variable initialisation
         value = std::chrono::system_clock::now();
-        unit = 3;
+        unit = 1;
         timezone_offset = compute_time_zone();
     }
 
     Tamguclock(std::chrono::system_clock::time_point& t) {
         //Do not forget your variable initialisation
         value = t;
-        unit = 3;
+        unit = 1;
         timezone_offset = compute_time_zone();
     }
 
@@ -383,8 +383,10 @@ class Tamguclock : public TamguReference {
     Tamgu* MethodStop(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodFormat(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodUTC(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodISO8601(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* getstringdate(string& v);
-    Tamgu* set_the_date(Tamgufvector* fv);
+    Tamgu* set_the_utc_date(Tamgufvector* fv);
+    Tamgu* set_the_iso8601_date(Tamgufvector* fv);
     //---------------------------------------------------------------------------------------------------------------------
 
     //ExecuteMethod must be implemented in order to execute our new Tamgu methods. This method is called when a TamguCallMethodMethod object
@@ -400,6 +402,7 @@ class Tamguclock : public TamguReference {
     }
 
     string UTC(bool);
+    string ISO8601(bool);
 
     string String();
 
@@ -424,6 +427,10 @@ class Tamguclock : public TamguReference {
     }
 
     Tamgu* minus(Tamgu* bb, bool autoself);
+    Tamgu* plus(Tamgu* bb, bool autoself);
+    Tamgu* multiply(Tamgu* b, bool autoself);
+    Tamgu* divide(Tamgu* b, bool autoself);
+    Tamgu* mod(Tamgu* b, bool autoself);
 
 
     Tamgu* less(Tamgu* a) {

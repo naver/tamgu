@@ -143,6 +143,7 @@ string Tamgudate() {
 
 string Tamgudate::String() {
     char buffer[100];
+    locking_date(this);
     #ifdef WIN32
     struct tm temps;
     localtime_s(&temps, &value);
@@ -151,11 +152,13 @@ string Tamgudate::String() {
     struct tm* temps = localtime(&value);
     strftime(buffer, 100, "%Y/%m/%d %H:%M:%S", temps);
     #endif
+    unlocking_date(this);
     return buffer;
 }
 
 void Tamgudate::Setstring(string& s, short idthread) {
     char buffer[100];
+    locking_date(this);
     #ifdef WIN32
     struct tm temps;
     localtime_s(&temps, &value);
@@ -164,12 +167,14 @@ void Tamgudate::Setstring(string& s, short idthread) {
     struct tm* temps = localtime(&value);
     strftime(buffer, 100, "%Y/%m/%d %H:%M:%S", temps);
     #endif
+    unlocking_date(this);
     s = buffer;
 }
 
 void Tamgudate::Setstring(wstring& s, short idthread) {
     char buffer[100];
     long sz;
+    locking_date(this);
     #ifdef WIN32
     struct tm temps;
     localtime_s(&temps, &value);
@@ -178,7 +183,7 @@ void Tamgudate::Setstring(wstring& s, short idthread) {
     struct tm* temps = localtime(&value);
     sz = strftime(buffer, 100, "%Y/%m/%d %H:%M:%S", temps);
     #endif
-    
+    unlocking_date(this);
     s=L"";
     for (long i = 0; i < sz; i++)
         s+= (wchar_t)buffer[i];
@@ -243,14 +248,17 @@ Tamgu* Tamgudate::setstringdate(string& v, short idthread) {
 #ifdef WIN32
 Tamgu* Tamgudate::set_the_date(Tamguivector* iv) {
     time_t x = 0;
+    locking_date(this);
     struct tm temps;
     localtime_s(&temps, &x);
     
     int fulldate = 0;
     
     long sz = iv->values.size();
-    if (!sz)
+    if (!sz) {
+        unlocking_date(this);
         return aFALSE;
+    }
     
     int res = (int)iv->values[0];
     
@@ -298,6 +306,7 @@ Tamgu* Tamgudate::set_the_date(Tamguivector* iv) {
     }
     
     x = mktime(&temps);
+    unlocking_date(this);
     if (x <= 0)
         return aFALSE;
     value = x;
@@ -305,8 +314,9 @@ Tamgu* Tamgudate::set_the_date(Tamguivector* iv) {
 }
 
 Tamgu* Tamgudate::MethodInitial(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-
-    if (callfunc->Size() == 0) {
+    long szcall = callfunc->Size();
+    
+    if (szcall == 0) {
         time(&value);
         return aTRUE;
     }
@@ -319,21 +329,24 @@ Tamgu* Tamgudate::MethodInitial(Tamgu* contextualpattern, short idthread, TamguC
         return aTRUE;
     }
 
+    locking_date(this);
     time_t x = 0;
     struct tm temps;
     localtime_s(&temps, &x);
 
     int fulldate = 0;
 
-    if (kinit->isString()) {
+    if (kinit->isString() && szcall == 1) {
         string v = kinit->String();
         kinit->Release();
+        unlocking_date(this);
         return setstringdate(v, idthread);
     }
     
-    if (kinit->Type() == a_ivector) {
+    if (kinit->Type() == a_ivector && szcall == 1) {
         Tamgu* v = set_the_date((Tamguivector*)kinit);
         kinit->Release();
+        unlocking_date(this);
         return v;
     }
     
@@ -348,7 +361,7 @@ Tamgu* Tamgudate::MethodInitial(Tamgu* contextualpattern, short idthread, TamguC
 
 
     //Month
-    if (callfunc->Size() >= 2) {
+    if (szcall >= 2) {
         res = (int)callfunc->Evaluate(1, aNULL, idthread)->Integer();
         if (res > 0) {
             fulldate += 10;
@@ -357,7 +370,7 @@ Tamgu* Tamgudate::MethodInitial(Tamgu* contextualpattern, short idthread, TamguC
     }
 
     //Day
-    if (callfunc->Size() >= 3) {
+    if (szcall >= 3) {
         res = (int)callfunc->Evaluate(2,  aNULL, idthread)->Integer();
         if (res > 0) {
             fulldate += 1;
@@ -366,7 +379,7 @@ Tamgu* Tamgudate::MethodInitial(Tamgu* contextualpattern, short idthread, TamguC
     }
 
     //Hour
-    if (callfunc->Size() >= 4) {
+    if (szcall >= 4) {
         res = (int)callfunc->Evaluate(3,  aNULL, idthread)->Integer();
         if (res >= 0 && res < 24) {
             //reference is 1AM
@@ -381,14 +394,14 @@ Tamgu* Tamgudate::MethodInitial(Tamgu* contextualpattern, short idthread, TamguC
 
 
     //Minute
-    if (callfunc->Size() >= 5) {
+    if (szcall >= 5) {
         res = (int)callfunc->Evaluate(4,  aNULL, idthread)->Integer();
         if (res >= 0 && res < 60)
             temps.tm_min = res;
     }
 
     //Second
-    if (callfunc->Size() >= 6) {
+    if (szcall >= 6) {
         res = (int)callfunc->Evaluate(5,  aNULL, idthread)->Integer();
         if (res >= 0 && res < 60)
             temps.tm_sec = res;
@@ -397,6 +410,7 @@ Tamgu* Tamgudate::MethodInitial(Tamgu* contextualpattern, short idthread, TamguC
 
 
     x = mktime(&temps);
+    unlocking_date(this);
     if (x <= 0)
         return aFALSE;
     value = x;
@@ -405,13 +419,16 @@ Tamgu* Tamgudate::MethodInitial(Tamgu* contextualpattern, short idthread, TamguC
 #else
 Tamgu* Tamgudate::set_the_date(Tamguivector* iv) {
     time_t x = 0;
+    locking_date(this);
     struct tm* temps = localtime(&x);
     
     int fulldate = 0;
     
     long sz = iv->values.size();
-    if (!sz)
+    if (!sz) {
+        unlocking_date(this);
         return aFALSE;
+    }
     
     int res = (int)iv->values[0];
     
@@ -460,6 +477,7 @@ Tamgu* Tamgudate::set_the_date(Tamguivector* iv) {
     }
     
     x = mktime(temps);
+    unlocking_date(this);
     if (x <= 0)
         return aFALSE;
     value = x;
@@ -468,9 +486,11 @@ Tamgu* Tamgudate::set_the_date(Tamguivector* iv) {
 
 
 Tamgu* Tamgudate::MethodInitial(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-
-    if (callfunc->Size() == 0) {
+    locking_date(this);
+    long szcall = callfunc->Size();
+    if (szcall == 0) {
         time(&value);
+        unlocking_date(this);
         return aTRUE;
     }
 
@@ -479,12 +499,14 @@ Tamgu* Tamgudate::MethodInitial(Tamgu* contextualpattern, short idthread, TamguC
     if (kinit->Type() == idtype) {
         memcpy((void*)&value, (void*)&((Tamgudate*)kinit)->value, sizeof(time_t));
         kinit->Release();
+        unlocking_date(this);
         return aTRUE;
     }
 
-    if (kinit->isString()) {
+    if (kinit->isString() && szcall == 1) {
         string v = kinit->String();
         kinit->Release();
+        unlocking_date(this);
         return setstringdate(v, idthread);
     }
 
@@ -493,9 +515,10 @@ Tamgu* Tamgudate::MethodInitial(Tamgu* contextualpattern, short idthread, TamguC
 
     int fulldate = 0;
     
-    if (kinit->Type() == a_ivector) {
+    if (kinit->Type() == a_ivector && szcall == 1) {
         Tamgu* v = set_the_date((Tamguivector*)kinit);
         kinit->Release();
+        unlocking_date(this);
         return v;
     }
 
@@ -510,7 +533,7 @@ Tamgu* Tamgudate::MethodInitial(Tamgu* contextualpattern, short idthread, TamguC
 
 
     //Month
-    if (callfunc->Size() >= 2) {
+    if (szcall >= 2) {
         res = (int)callfunc->Evaluate(1, aNULL, idthread)->Integer();
         if (res > 0) {
             fulldate += 10;
@@ -519,7 +542,7 @@ Tamgu* Tamgudate::MethodInitial(Tamgu* contextualpattern, short idthread, TamguC
     }
 
     //Day
-    if (callfunc->Size() >= 3) {
+    if (szcall >= 3) {
         res = (int)callfunc->Evaluate(2, aNULL, idthread)->Integer();
         if (res > 0) {
             fulldate += 1;
@@ -528,7 +551,7 @@ Tamgu* Tamgudate::MethodInitial(Tamgu* contextualpattern, short idthread, TamguC
     }
 
     //Hour
-    if (callfunc->Size() >= 4) {
+    if (szcall >= 4) {
         res = (int)callfunc->Evaluate(3, aNULL, idthread)->Integer();
         if (res >= 0 && res < 24) {
             //reference is 1AM
@@ -543,22 +566,21 @@ Tamgu* Tamgudate::MethodInitial(Tamgu* contextualpattern, short idthread, TamguC
 
 
     //Minute
-    if (callfunc->Size() >= 5) {
+    if (szcall >= 5) {
         res = (int)callfunc->Evaluate(4, aNULL, idthread)->Integer();
         if (res >= 0 && res < 60)
             temps->tm_min = res;
     }
 
     //Second
-    if (callfunc->Size() >= 6) {
+    if (szcall >= 6) {
         res = (int)callfunc->Evaluate(5, aNULL, idthread)->Integer();
         if (res >= 0 && res < 60)
             temps->tm_sec = res;
     }
 
-
-
     x = mktime(temps);
+    unlocking_date(this);
     if (x <= 0)
         return aFALSE;
     value = x;
@@ -574,6 +596,7 @@ Tamgu* Tamgudate::MethodDate(Tamgu* contextualpattern, short idthread, TamguCall
 #ifdef WIN32
 Tamgu* Tamgudate::MethodYear(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     struct tm temps;
+    locking_date(this);
     localtime_s(&temps, &value);
     int vl;
     if (callfunc->Size() == 2) {
@@ -582,14 +605,17 @@ Tamgu* Tamgudate::MethodYear(Tamgu* contextualpattern, short idthread, TamguCall
             return globalTamgu->Returnerror(e_wrong_value_for02, idthread);
         temps.tm_year = vl - 1900;
         value = mktime(&temps);
+        unlocking_date(this);
         return aTRUE;
     }
 
     vl = temps.tm_year + 1900;
+    unlocking_date(this);
     return globalTamgu->ProvideConstint(vl);
 }
 
 Tamgu* Tamgudate::MethodMonth(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    locking_date(this);
     struct tm temps;
     localtime_s(&temps, &value);
     int vl;
@@ -599,15 +625,18 @@ Tamgu* Tamgudate::MethodMonth(Tamgu* contextualpattern, short idthread, TamguCal
             return globalTamgu->Returnerror(e_wrong_value_for05, idthread);
         temps.tm_mon = vl - 1;
         value = mktime(&temps);
+        unlocking_date(this);
         return aTRUE;
     }
     vl = temps.tm_mon + 1;
+    unlocking_date(this);
     return globalTamgu->ProvideConstint(vl);
 }
 
 Tamgu* Tamgudate::MethodDay(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     //First parameter is a string
     struct tm temps;
+    locking_date(this);
     localtime_s(&temps, &value);
     int vl;
     if (callfunc->Size() == 2) {
@@ -616,15 +645,18 @@ Tamgu* Tamgudate::MethodDay(Tamgu* contextualpattern, short idthread, TamguCall*
             return globalTamgu->Returnerror(e_wrong_value_for05, idthread);
         temps.tm_mday = vl;
         value = mktime(&temps);
+        unlocking_date(this);
         return aTRUE;
     }
 
     vl = temps.tm_mday;
+    unlocking_date(this);
     return globalTamgu->ProvideConstint(vl);
 }
 
 Tamgu* Tamgudate::MethodHour(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     struct tm temps;
+    locking_date(this);
     localtime_s(&temps, &value);
     if (callfunc->Size() == 2) {
         int vl = (int)callfunc->Evaluate(1, aNULL, idthread)->Integer();
@@ -632,14 +664,17 @@ Tamgu* Tamgudate::MethodHour(Tamgu* contextualpattern, short idthread, TamguCall
             return globalTamgu->Returnerror(e_wrong_value_for, idthread);
         temps.tm_hour = vl;
         value = mktime(&temps);
+        unlocking_date(this);
         return aTRUE;
     }
 
+    unlocking_date(this);
     return globalTamgu->ProvideConstint(temps.tm_hour);
 }
 
 Tamgu* Tamgudate::MethodMinute(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     struct tm temps;
+    locking_date(this);
     localtime_s(&temps, &value);
     if (callfunc->Size() == 2) {
         int vl = (int)callfunc->Evaluate(1, aNULL, idthread)->Integer();
@@ -647,13 +682,16 @@ Tamgu* Tamgudate::MethodMinute(Tamgu* contextualpattern, short idthread, TamguCa
             return globalTamgu->Returnerror(e_wrong_value_for04, idthread);
         temps.tm_min = vl;
         value = mktime(&temps);
+        unlocking_date(this);
         return aTRUE;
     }
+    unlocking_date(this);
     return globalTamgu->ProvideConstint(temps.tm_min);
 }
 
 Tamgu* Tamgudate::MethodSecond(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     struct tm temps;
+    locking_date(this);
     localtime_s(&temps, &value);
     if (callfunc->Size() == 2) {
         int vl = (int)callfunc->Evaluate(1, aNULL, idthread)->Integer();
@@ -661,24 +699,30 @@ Tamgu* Tamgudate::MethodSecond(Tamgu* contextualpattern, short idthread, TamguCa
             return globalTamgu->Returnerror(e_wrong_value_for03, idthread);
         temps.tm_sec = vl;
         value = mktime(&temps);
+        unlocking_date(this);
         return aTRUE;
     }
+    unlocking_date(this);
     return globalTamgu->ProvideConstint(temps.tm_sec);
 }
 
 Tamgu* Tamgudate::MethodWeekday(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     //First parameter is a string
     struct tm temps;
+    locking_date(this);
     localtime_s(&temps, &value);
     int vl = temps.tm_wday;
+    unlocking_date(this);
     return globalTamgu->ProvideConstint(vl);
 }
 
 Tamgu* Tamgudate::MethodYearday(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     //First parameter is a string
     struct tm temps;
+    locking_date(this);
     localtime_s(&temps, &value);
     int vl = temps.tm_yday;
+    unlocking_date(this);
     return globalTamgu->ProvideConstint(vl);
 }
 
@@ -686,12 +730,16 @@ Tamgu* Tamgudate::MethodFormat(Tamgu* contextualpattern, short idthread, TamguCa
     Tamgu* kformat = callfunc->Evaluate(0, aNULL, idthread);
     char buffer[101];
     string sformat = kformat->String();
-    struct tm temps; localtime_s(&temps, &value);
+    struct tm temps;
+    locking_date(this);
+    localtime_s(&temps, &value);
     strftime(buffer, 100, STR(sformat), &temps);
+    unlocking_date(this);
     return globalTamgu->Providestring(buffer);
 }
 #else
 Tamgu* Tamgudate::MethodYear(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    locking_date(this);
     struct tm* temps = localtime(&value);
     int vl;
     if (callfunc->Size() == 2) {
@@ -700,14 +748,17 @@ Tamgu* Tamgudate::MethodYear(Tamgu* contextualpattern, short idthread, TamguCall
             return globalTamgu->Returnerror(e_wrong_value_for02, idthread);
         temps->tm_year = vl - 1900;
         value = mktime(temps);
+        unlocking_date(this);
         return aTRUE;
     }
 
     vl = temps->tm_year + 1900;
+    unlocking_date(this);
     return globalTamgu->ProvideConstint(vl);
 }
 
 Tamgu* Tamgudate::MethodMonth(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    locking_date(this);
     struct tm* temps = localtime(&value);
     int vl;
     if (callfunc->Size() == 2) {
@@ -716,14 +767,17 @@ Tamgu* Tamgudate::MethodMonth(Tamgu* contextualpattern, short idthread, TamguCal
             return globalTamgu->Returnerror(e_wrong_value_for05, idthread);
         temps->tm_mon = vl - 1;
         value = mktime(temps);
+        unlocking_date(this);
         return aTRUE;
     }
     vl = temps->tm_mon + 1;
+    unlocking_date(this);
     return globalTamgu->ProvideConstint(vl);
 }
 
 Tamgu* Tamgudate::MethodDay(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     //First parameter is a string
+    locking_date(this);
     struct tm* temps = localtime(&value);
     int vl;
     if (callfunc->Size() == 2) {
@@ -732,14 +786,17 @@ Tamgu* Tamgudate::MethodDay(Tamgu* contextualpattern, short idthread, TamguCall*
             return globalTamgu->Returnerror(e_wrong_value_for05, idthread);
         temps->tm_mday = vl;
         value = mktime(temps);
+        unlocking_date(this);
         return aTRUE;
     }
 
     vl = temps->tm_mday;
+    unlocking_date(this);
     return globalTamgu->ProvideConstint(vl);
 }
 
 Tamgu* Tamgudate::MethodHour(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    locking_date(this);
     struct tm* temps = localtime(&value);
     if (callfunc->Size() == 2) {
         int vl = (int)callfunc->Evaluate(1, aNULL, idthread)->Integer();
@@ -747,13 +804,16 @@ Tamgu* Tamgudate::MethodHour(Tamgu* contextualpattern, short idthread, TamguCall
             return globalTamgu->Returnerror(e_wrong_value_for, idthread);
         temps->tm_hour = vl;
         value = mktime(temps);
+        unlocking_date(this);
         return aTRUE;
     }
 
+    unlocking_date(this);
     return globalTamgu->ProvideConstint(temps->tm_hour);
 }
 
 Tamgu* Tamgudate::MethodMinute(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    locking_date(this);
     struct tm* temps = localtime(&value);
     if (callfunc->Size() == 2) {
         int vl = (int)callfunc->Evaluate(1, aNULL, idthread)->Integer();
@@ -761,12 +821,15 @@ Tamgu* Tamgudate::MethodMinute(Tamgu* contextualpattern, short idthread, TamguCa
             return globalTamgu->Returnerror(e_wrong_value_for04, idthread);
         temps->tm_min = vl;
         value = mktime(temps);
+        unlocking_date(this);
         return aTRUE;
     }
+    unlocking_date(this);
     return globalTamgu->ProvideConstint(temps->tm_min);
 }
 
 Tamgu* Tamgudate::MethodSecond(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    locking_date(this);
     struct tm* temps = localtime(&value);
     if (callfunc->Size() == 2) {
         int vl = (int)callfunc->Evaluate(1, aNULL, idthread)->Integer();
@@ -774,31 +837,39 @@ Tamgu* Tamgudate::MethodSecond(Tamgu* contextualpattern, short idthread, TamguCa
             return globalTamgu->Returnerror(e_wrong_value_for03, idthread);
         temps->tm_sec = vl;
         value = mktime(temps);
+        unlocking_date(this);
         return aTRUE;
     }
+    unlocking_date(this);
     return globalTamgu->ProvideConstint(temps->tm_sec);
 }
 
 Tamgu* Tamgudate::MethodWeekday(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     //First parameter is a string
+    locking_date(this);
     struct tm* temps = localtime(&value);
     int vl = temps->tm_wday;
+    unlocking_date(this);
     return globalTamgu->ProvideConstint(vl);
 }
 
 Tamgu* Tamgudate::MethodYearday(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     //First parameter is a string
+    locking_date(this);
     struct tm* temps = localtime(&value);
     int vl = temps->tm_yday;
+    unlocking_date(this);
     return globalTamgu->ProvideConstint(vl);
 }
 
 Tamgu* Tamgudate::MethodFormat(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     Tamgu* kformat = callfunc->Evaluate(0, aNULL, idthread);
     char buffer[101];
+    locking_date(this);
     string sformat = kformat->String();
     struct tm* temps = localtime(&value);
     strftime(buffer, 100, STR(sformat), temps);
+    unlocking_date(this);
     return globalTamgu->Providestring(buffer);
 }
 

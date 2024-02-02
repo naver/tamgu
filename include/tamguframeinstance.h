@@ -120,11 +120,13 @@ public:
 	//Your personal variables here...
 
     TamguFrame* frame;
+    bool setReference;
 	//---------------------------------------------------------------------------------------------------------------------
 
     TamguframeBaseInstance(TamguFrame* f)  {
         frame = f;
         investigate |= is_frameinstance;
+        setReference = false;
     }
 
 	//----------------------------------------------------------------------------------------------------------------------
@@ -700,7 +702,21 @@ class Tamguframemininstance : public TamguframeBaseInstance {
         v->Enablelock(is_tobelocked);
         return v;
     }
-    
+
+    inline void Finalclean(std::set<Tamgu*>& elements_to_delete) {
+        short nm;
+        Tamgu* k;
+        for (short i = 0; i < frame->vnames.last; i++) {
+            nm = frame->vnames.vecteur[i];
+            if (declarations.check(nm)) {
+                k = declarations[nm];
+                if (k != NULL && elements_to_delete.find(k) == elements_to_delete.end()) {
+                    k->Deletion(elements_to_delete);
+                }
+            }
+        }
+        declarations.clear();
+    }
 
     inline void Cleaning(short idthread) {
         short nm;
@@ -718,39 +734,61 @@ class Tamguframemininstance : public TamguframeBaseInstance {
     //---------------------------------------------------------------------------------------------------------------------
     void Addreference(unsigned short inv, short r=1) {
         investigate |= (inv & is_tobelocked);
-        reference += r;
         locking();
-        protect = false;
-        for (short i = 0; i < declarations.sz; i++) {
-            if (declarations.table[i] != NULL)
-                declarations.table[i]->Setreference(r);
+        if (!setReference) {
+            for (short i = 0; i < declarations.sz; i++) {
+                if (declarations.table[i] != NULL)
+                    declarations.table[i]->Addreference(inv);
+            }
+            setReference = true;
         }
+        reference += r;
+        protect = false;
         unlocking();
     }
     
     void Setreference(short r) {
         locking();
+        if (!setReference) {
+            for (short i = 0; i < declarations.sz; i++) {
+                if (declarations.table[i] != NULL)
+                    declarations.table[i]->Setreference();
+            }
+            setReference = true;
+        }
         reference += r;
         protect = false;
-        for (short i = 0; i < declarations.sz; i++) {
-            if (declarations.table[i] != NULL)
-                declarations.table[i]->Setreference(r);
-        }
         unlocking();
     }
     
 
     void Setreference() {
         locking();
+        if (!setReference) {
+            for (short i = 0; i < declarations.sz; i++) {
+                if (declarations.table[i] != NULL)
+                    declarations.table[i]->Setreference();
+            }
+            setReference = true;
+        }
         ++reference;
         protect = false;
-        for (short i = 0; i < declarations.sz; i++) {
-            if (declarations.table[i] != NULL)
-                declarations.table[i]->Setreference();
-        }
         unlocking();
     }
     
+    void Release() {
+        if (reference == 0) {
+            locking();
+            protect = false;
+            for (short i = 0; i < declarations.sz; i++) {
+                if (declarations.table[i] != NULL)
+                    declarations.table[i]->Setprotect(false);
+            }
+            unlocking();
+            Resetreference(0);
+        }
+    }
+
     void Resetreference(short r = 1) {
         bool deleted = false;
         locking();
@@ -761,20 +799,24 @@ class Tamguframemininstance : public TamguframeBaseInstance {
             deleted = true;
         }
         
-        for (short i = 0; i < declarations.sz; i++) {
-            if (declarations.table[i] != NULL)
-                declarations.table[i]->Resetreference(r);
-        }
-        
         if (deleted) {
             reference = 0;
             if (protect) {
+                for (short i = 0; i < declarations.sz; i++) {
+                    if (declarations.table[i] != NULL) {
+                        declarations.table[i]->Setprotect(false);
+                    }
+                }
                 protect = false;
                 deleted = false;
             }
             else {
                 if (idtracker != -1)
                     globalTamgu->RemoveFromTracker(idtracker);
+                for (short i = 0; i < declarations.sz; i++) {
+                    if (declarations.table[i] != NULL)
+                        declarations.table[i]->Resetreference();
+                }
                 declarations.clear();
             }
         }
@@ -917,6 +959,17 @@ class Tamguframeinstance : public TamguframeBaseInstance {
         return e;
     }
         
+    inline void Finalclean(std::set<Tamgu*>& elements_to_delete) {
+        Tamgu* k;
+        for (short i = 0; i < declarations.last; i++) {
+            k = declarations.vecteur[i];
+            if (k!= NULL && elements_to_delete.find(k) == elements_to_delete.end()) {
+                k->Deletion(elements_to_delete);
+            }
+        }
+        declarations.last = 0;
+    }
+
     inline void Cleaning(short idthread) {
         for (short i = 0; i < declarations.last; i++) {
             declarations.vecteur[i]->Resetreference();
@@ -930,31 +983,51 @@ class Tamguframeinstance : public TamguframeBaseInstance {
     //All our methods must have been declared in tamguexportedmethods... See MethodInitialization below
     //---------------------------------------------------------------------------------------------------------------------
     void Addreference(unsigned short inv, short r=1) {
-        investigate |= (inv & is_tobelocked);
-        reference += r;
         locking();
+        investigate |= (inv & is_tobelocked);
+        if (!setReference) {
+            for (short i = 0; i < declarations.last; i++)
+                declarations[i]->Addreference(inv);
+            setReference = true;
+        }
+        reference += r;
         protect = false;
-        for (short i = 0; i < declarations.last; i++)
-            declarations[i]->Setreference(r);
         unlocking();
     }
 
     void Setreference(short r) {
-        reference += r;
         locking();
+        if (!setReference) {
+            for (short i = 0; i < declarations.last; i++)
+                declarations[i]->Setreference();
+            setReference = true;
+        }
+        reference += r;
         protect = false;
-        for (short i = 0; i < declarations.last; i++)
-            declarations[i]->Setreference(r);
         unlocking();
     }
     
     void Setreference() {
-        ++reference;
         locking();
+        if (!setReference) {
+            for (short i = 0; i < declarations.last; i++)
+                declarations[i]->Setreference();
+            setReference = true;
+        }
+        ++reference;
         protect = false;
-        for (short i = 0; i < declarations.last; i++)
-            declarations[i]->Setreference();
         unlocking();
+    }
+    
+    void Release() {
+        if (reference == 0) {
+            locking();
+            protect = false;
+            for (short i = 0; i < declarations.last; i++)
+                declarations[i]->Setprotect(false);
+            unlocking();
+            Resetreference(0);
+        }
     }
     
     void Resetreference(short r = 1) {
@@ -968,18 +1041,20 @@ class Tamguframeinstance : public TamguframeBaseInstance {
                 deleted = true;
             }
             
-            for (short i = 0; i < declarations.last; i++)
-                declarations[i]->Resetreference(r);
-            
             if (deleted) {
                 reference = 0;
                 if (protect) {
+                    for (short i = 0; i < declarations.last; i++) {
+                        declarations[i]->Setprotect(false);
+                    }
                     protect = false;
                     deleted = false;
                 }
                 else {
                     if (idtracker != -1)
                         globalTamgu->RemoveFromTracker(idtracker);
+                    for (short i = 0; i < declarations.last; i++)
+                        declarations[i]->Resetreference();
                     declarations.clear();
                 }
             }

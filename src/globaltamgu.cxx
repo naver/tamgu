@@ -25,6 +25,7 @@ static string _fullcode;
 bool TamguDeleteInThread(short idglobal);
 Exchanging vector<TamguGlobal*> globalTamguPool;
 static ThreadLock globalLock;
+static long max_instances = 0;
 
 class JtamguGlobalLocking {
 private:
@@ -55,6 +56,24 @@ static short Storeglobal(TamguGlobal* g) {
     return g->idglobal;
 }
 
+Exporting long Countinstances() {
+    JtamguGlobalLocking _lock;
+    long nb = 0;
+    for (short idglobal = 0; idglobal < globalTamguPool.size(); idglobal++) {
+        if (globalTamguPool[idglobal] != NULL) {
+            nb += globalTamguPool[idglobal]->spaces.size();
+        }
+    }
+    
+    max_instances = std::max(max_instances, nb);
+    return nb;
+}
+
+Exporting long Maxcountinstances() {
+    return max_instances;
+}
+
+
 Exporting short TamguCreateGlobal(long nbthreads) {
     _fullcode = "";
     TamguGlobal* global = new TamguGlobal(nbthreads, true);
@@ -63,21 +82,38 @@ Exporting short TamguCreateGlobal(long nbthreads) {
 }
 
 Exporting bool TamguDeleteGlobal(short idglobal) {
-    JtamguGlobalLocking _lock;
-    if (idglobal <0 || idglobal >= globalTamguPool.size() || globalTamguPool[idglobal] == NULL)
-        return false;
-
-    if (globalTamgu == globalTamguPool[idglobal]) {
-        delete globalTamgu;
-        globalTamgu = NULL;
+    TamguGlobal* g = NULL;
+    
+    {
+        JtamguGlobalLocking _lock;
+        if (idglobal <0 || idglobal >= globalTamguPool.size() || globalTamguPool[idglobal] == NULL)
+            return false;
+        
+        g = globalTamguPool[idglobal];
+        globalTamguPool[idglobal] = NULL;
     }
-    else {
-        TamguGlobal* g = globalTamguPool[idglobal];
+    
+    if (g != NULL)
         delete g;
-    }
-
-    globalTamguPool[idglobal] = NULL;
+    
     return true;
+}
+
+//We detect all globalTamgu objects that have been idle for more than diff seconds
+Exporting void TamguIdle(long diff, vector<long>& idles) {
+    
+    std::chrono::system_clock::time_point currenttime = std::chrono::system_clock::now();
+    auto add = std::chrono::seconds(diff);
+    
+    currenttime -= add;
+    
+    JtamguGlobalLocking _lock;
+    for (short idglobal = 0; idglobal < globalTamguPool.size(); idglobal++) {
+        if (globalTamguPool[idglobal] != NULL) {
+            if (globalTamguPool[idglobal]->last_execution < currenttime)
+                idles.push_back(idglobal);
+        }
+    }
 }
 
 Exporting bool TamguDeleteGlobalinThread(short idglobal) {
@@ -123,6 +159,7 @@ Exporting void TamguCleanAllGlobals() {
         if (globalTamguPool[idglobal] != NULL)
             delete globalTamguPool[idglobal];
     }
+    globalConstants.clean();
     globalTamguPool.clear();
     clean_utf8_handler();
 }
@@ -288,9 +325,10 @@ Exporting short TamguCompile(string& codeinit, string filename, char dsp) {
 
 Exporting short TamguCompileMain(string& codeinit, string filename) {
     TamguCode* a = globalTamgu->Getcode(0);
-    if (a == NULL)
+    if (a == NULL) {
         a = globalTamgu->GetNewCodeSpace(filename);
-        
+    }
+    
     //The system variables...
     globalTamgu->SystemInitialization(filename);
     globalTamgu->Cleanerror(0);
@@ -308,6 +346,30 @@ Exporting short TamguCompileMain(string& codeinit, string filename) {
     return a->idcode;
 }
 
+
+Exporting short TamguCompileWithNewSpace(string& codeinit, string filename) {
+    if (filename == "") {
+        long sz = globalTamgu->pathnames.size();
+        ostringstream os;
+        os << "%FILE_INTERNAL" << sz;
+        filename = os.str();
+    }
+    else {
+        if (globalTamgu->pathnames.find(filename) != globalTamgu->pathnames.end()) {
+            long sz = globalTamgu->pathnames.size();
+            ostringstream os;
+            os << filename << "_" << sz;
+            filename = os.str();
+        }
+    }
+    
+    TamguCode* a = globalTamgu->GetNewCodeSpace(filename);
+
+    if (!a->Compile(codeinit))
+        return -1;
+    
+    return a->idcode;
+}
 
 Exporting short TamguCompileNewSpace(string& codeinit, string filename) {
     TamguCode* a = globalTamgu->GetNewCodeSpace(filename);
@@ -375,7 +437,7 @@ Exporting bool TamguLoading(short idcode) {
         return false;
     globalTamgu->spaceid = idcode;
 
-    a->Loading();
+    a->Executing();
 
     if (globalTamgu->GenuineError(0))
         return false;
@@ -578,6 +640,15 @@ Exporting bool TamguStop(short idglobal) {
     }
     
     return true;
+}
+
+Exporting void TamguStopAll() {
+    JtamguGlobalLocking _lock;
+    for (short idglobal = 0; idglobal < globalTamguPool.size(); idglobal++) {
+        if (globalTamguPool[idglobal] == NULL) {
+            TamguStop(idglobal);
+        }
+    }
 }
 
 Exporting bool TamguStop() {

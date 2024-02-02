@@ -367,13 +367,34 @@ public:
             delete next;
     }
 
+    bool check(Z& v) {
+        for (short i = 0; i < atomic_vector_size; i++) {
+            if (vecteur[i] == v)
+                return true;
+        }
+        if (next != NULL)
+            return next->check(v);
+        return false;
+    }
+
     void clear(Z& z) {
         for (short i = 0; i < atomic_vector_size; i++)
             vecteur[i] = z;
         if (next != NULL)
             next->clear(z);
     }
-    
+
+    void clean(Z& z, std::set<Tamgu*>& elements_to_delete) {
+        Z v;
+        for (short i = 0; i < atomic_vector_size; i++) {
+            v = vecteur[i].exchange(z);
+            if (v != z)
+                elements_to_delete.insert(v);
+        }
+        if (next != NULL)
+            next->clean(z, elements_to_delete);
+    }
+
     void clean(Z& z) {
         Z v;
         for (short i = 0; i < atomic_vector_size; i++) {
@@ -455,13 +476,20 @@ public:
         return last;
     }
     
+    void clean(std::set<Tamgu*>& elements_to_delete) {
+        _lock.lock();
+        head->clean(zero, elements_to_delete);
+        _lock.unlock();
+        last = 0;
+    }
+
     void clean() {
         _lock.lock();
         head->clean(zero);
         _lock.unlock();
         last = 0;
     }
-    
+
     void clear() {
         _lock.lock();
         head->clear(zero);
@@ -770,9 +798,11 @@ public:
     inline bool check(long pos, Z v) {
         long i = 0;
         atomic_vector_element<Z>* n = findelement(pos, i);
-        if (n == NULL || n->vecteur[i] != v)
-            return false;
-        return true;
+        return (n != NULL && n->vecteur[i] == v);
+    }
+
+    inline bool check(Z v) {
+        return head->check(v);
     }
 
     void insert(long pos, Z val) {

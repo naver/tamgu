@@ -263,6 +263,17 @@ Tamgu* TamguGlobal::EvaluateMainVariable() {
 }
 
 //--------------------------------------------------------------------
+static std::atomic<long> nb_active_instances(0);
+static long max_active_instances;
+
+Exporting long Count_active_instances() {
+    return nb_active_instances;
+}
+
+Exporting long Max_count_active_instances() {
+    return max_active_instances;
+}
+
 //We execute our function in a thread to be sure that globalTamgu will have specific value
 class ExecutionCode {
 public:
@@ -298,6 +309,7 @@ public:
             name = "Unknown function: " + name;
             std::lock_guard<std::mutex> lock(m);
             result = globalTamgu->Returnerror(name, 0);
+            globalTamgu->last_execution = std::chrono::system_clock::now();
             cv.notify_all(); // Notifie que la valeur a été mise à jour
             return;
         }
@@ -317,7 +329,8 @@ public:
 
         for (i = 0; i < params.size(); i++)
             params[i]->Resetreference();
-        
+
+        globalTamgu->last_execution = std::chrono::system_clock::now();
         cv.notify_all(); // Notifie que la valeur a été mise à jour
     }
     
@@ -344,10 +357,14 @@ void __stdcall CodeinThread(ExecutionCode* call) {
     void CodeinThread(ExecutionCode* call) {
 #endif
         call->Eval();
-    }
+}
 
 Exporting Tamgu* TamguExecutionCode(TamguCode* code, string name, vector<Tamgu*>& params) {
     ExecutionCode call(code, name, params);
+    
+    nb_active_instances++;
+    long nb = nb_active_instances;
+    max_active_instances = std::max(nb, max_active_instances);
     std::thread* thid = new std::thread(CodeinThread, &call);
     
     std::unique_lock<std::mutex> lock(call.m);
@@ -355,7 +372,8 @@ Exporting Tamgu* TamguExecutionCode(TamguCode* code, string name, vector<Tamgu*>
     Tamgu* res = call.result;
     thid->join();
     delete thid;
-
+        
+    nb_active_instances--;
     return res;
 }
 
@@ -369,6 +387,10 @@ void __stdcall DeleteCodeinThread(ExecutionCode* call) {
 
 bool TamguDeleteInThread(short handler) {
     ExecutionCode call(handler);
+    
+    nb_active_instances++;
+    long nb = nb_active_instances;
+    max_active_instances = std::max(nb, max_active_instances);
     std::thread* thid = new std::thread(DeleteCodeinThread, &call);
     
     std::unique_lock<std::mutex> lock(call.m);
@@ -376,6 +398,7 @@ bool TamguDeleteInThread(short handler) {
     thid->join();
     delete thid;
 
+    nb_active_instances--;
     return call.result->Boolean();
 }
 
@@ -487,7 +510,7 @@ Tamgu* TamguCode::Execute(long begininstruction, short idthread) {
 	return a;
 }
 
-Tamgu* TamguCode::Loading() {
+Tamgu* TamguCode::Executing() {
         
     //These are atomic values that need to be set before all
     global->executionbreak = false;
@@ -2855,9 +2878,10 @@ Tamgu* TamguSelfVariableDeclaration::Eval(Tamgu* domain, Tamgu* value, short idt
 		let_variable = new TamguLet;
 
 	domain->Declare(name, let_variable);
-    if (!domain->isFrameinstance())
+    if (!domain->isFrameinstance()) {
         globalTamgu->Storevariable(idthread, name, let_variable);
-	let_variable->Setreference();
+        let_variable->Setreference();
+    }
 	if (initialization != NULL) {
 		value = initialization->Eval(aNULL, aNULL, idthread);
 		if (value->isError())

@@ -51,6 +51,26 @@ public:
     }
     
 
+    virtual string displayString() {
+        string s;
+        string sym=globalTamgu->Getsymbol(Action());
+
+        if (values != NULL) {
+            s="(";
+            
+            for (long i=0; i<size;i++) {
+                if (i)
+                    s+=sym;
+                s+=values[i]->displayString();
+            }
+            s+=")";
+        }
+        else
+            s = sym;
+        
+        return s;
+    }
+
     virtual string String() {
         string s;
         string sym=globalTamgu->Getsymbol(Action());
@@ -4404,6 +4424,10 @@ public:
     
     bool isOperation() {
         return false;
+    }
+
+    string displayString() {
+        return op->displayString();
     }
 
     string String() {

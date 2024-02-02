@@ -99,6 +99,13 @@ public:
         first = false;
     }
 
+    ~atomic_element() {
+        if (_lock != NULL)
+            delete _lock;
+        if (next != NULL)
+            delete next;
+    }
+
     void clear(bool top) {
         indexes = 0;
         index = 0;
@@ -431,11 +438,6 @@ public:
         _lock->unlock();
     }
 
-
-    ~atomic_element() {
-        if (next != NULL)
-            delete next;
-    }
 };
 
 template <class K, class Z> class atomic_map {

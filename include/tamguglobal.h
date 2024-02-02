@@ -24,6 +24,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <set>
+#include <chrono>
 #include "vecte.h"
 
 #include "x_node.h"
@@ -490,15 +491,18 @@ private:
 public:
 
     atomic_vector<Tamgu*> tracked;
-    std::set<unsigned long> deleted_elements;
+    std::set<Tamgu*> elements_to_delete;
 
     short idglobal;
 	long maxrange;
 
 	//All programmes stored in memory
 	vector<TamguCode*> spaces;
-	hmap<string, TamguCode*> codes;
+	hmap<string, TamguCode*> pathnames;
+    hmap<string, TamguCode*> codes;
 
+    std::chrono::system_clock::time_point last_execution;
+    
 	ThreadStruct* threads;
     bool* errors;
     TamguError** errorraised;
@@ -1019,14 +1023,15 @@ public:
         if (idx == -1)
             return;
         
-        tracked.erase(idx);        
-        trackerslots.push_back(idx);
+        tracked.erase(idx);
+
+        if (!trackerslots.check(idx)) {
+            trackerslots.push_back(idx);
+        }
     }
     
     inline bool Checktracker(Tamgu* a, long id) {
-        if (id >= 0 && tracked.check(id,a))
-            return true;
-        return false;
+        return (id >= 0 && tracked.check(id,a));
     }
     
     inline Tamgu* GetFromTracker(long id) {
@@ -1259,41 +1264,27 @@ public:
     Exporting An_rules* EvaluateRules(string& s, short idthread);
 
 	bool Checkhierarchy(short c1, short c2) {
-		if (c1 == c2)
-			return true;
-		if (hierarchy.check(c1) && hierarchy.get(c1).check(c2))
-			return true;
-		return false;
+        return (c1 == c2 || (hierarchy.check(c1) && hierarchy.get(c1).check(c2)));
 	}
 
 	bool Testcompatibility(short r, short v, bool strict) {
 		if (strict) {
-			if (strictcompatibilities.check(r) && strictcompatibilities.get(r).check(v))
-				return true;
-			return false;
+            return (strictcompatibilities.check(r) && strictcompatibilities.get(r).check(v));
 		}
 
-		if (compatibilities.check(r) && compatibilities.get(r).check(v))
-			return true;
-		return false;
+        return (compatibilities.check(r) && compatibilities.get(r).check(v));
 	}
 
 	bool Compatible(short r, short v) {
-		if (compatibilities.check(r) && compatibilities.get(r).check(v))
-			return true;
-		return false;
+        return (compatibilities.check(r) && compatibilities.get(r).check(v));
 	}
 
     bool Compatiblefull(short r, short v) {
-        if (fullcompatibilities.check(r) && fullcompatibilities.get(r).check(v))
-            return true;
-        return false;
+        return (fullcompatibilities.check(r) && fullcompatibilities.get(r).check(v));
     }
 
 	bool Compatiblestrict(short r, short v) {
-		if (strictcompatibilities.check(r) && strictcompatibilities.get(r).check(v))
-			return true;
-		return false;
+        return (strictcompatibilities.check(r) && strictcompatibilities.get(r).check(v));
 	}
 
 	//--------------------------------

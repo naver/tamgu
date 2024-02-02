@@ -32,7 +32,12 @@ Exporting bool TamguDeleteSpace(short idglobal, short idcode);
 Exporting bool TamguSelectglobal(short idglobal);
 Exporting bool TamguReleaseglobal(short idglobal);
 Exporting void TamguCleanAllGlobals();
+Exporting long Countinstances();
+Exporting long Maxcountinstances();
+Exporting long Count_active_instances(); //see codeexecute.cxx
+Exporting long Max_count_active_instances();
 Exporting TamguGlobal* getGlobalTamgu(short idglobal);
+Exporting void TamguIdle(long diff, vector<long>& idles);
 //------------------------------------------------------------------------
 //These methods are used to create an tamgu engine...
 void FinalTamguConstantCleaning(void);
@@ -43,6 +48,7 @@ Exporting short TamguLoad(string filename);
 Exporting short TamguCompile(string& code, string filename, char display = false);
 Exporting bool TamguCheckCompile(string& code, string filename, vector<TamguFullError*>& errors);
 Exporting short TamguCompileMain(string& code, string filename);
+Exporting short TamguCompileWithNewSpace(string& codeinit, string filename);
 Exporting short TamguCompileNewSpace(string& codeinit, string filename);
 Exporting size_t TamguCompile(string& code, short idcode);
 Exporting bool TamguRun(short icode, bool glock = false);
@@ -67,6 +73,7 @@ Exporting short TamguCurrentThreadId();
 Exporting string TamguIndentation(string& codestr,string blanc);
 Exporting bool TamguStop(short idglobal);
 Exporting bool TamguStop();
+Exporting void TamguStopAll();
 Exporting void TamguDisplayFunction(DisplayFunctionCall call, void* o);
 Exporting void TamguSetArguments(string args);
 Exporting void TamguSetArguments(vector<string>& args);

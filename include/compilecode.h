@@ -140,7 +140,7 @@ public:
 	Tamgu* Execute(long i, short idthread);
     Tamgu* Eval(long i);
     Tamgu* ExecuteExpression(TamguLocalEvaluation& local, short idthread);
-	Tamgu* Loading();
+	Tamgu* Executing();
 	//---------------------------------------------
 	Tamgu* Declaror(short id);
 	Tamgu* Declaror(short id, Tamgu* parent);

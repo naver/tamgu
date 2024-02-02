@@ -2881,7 +2881,7 @@ Tamgu* Tamgujava_vector::MethodPush(Tamgu* contextualpattern, short idthread, Ta
     if (iter != NULL) {
         Tamgu* v = callfunc->Evaluate(0, contextualpattern, idthread);
         iter->storevalue(iter->Size(), v);
-    }    
+    }
     return aTRUE;
 }
 
@@ -3511,7 +3511,6 @@ Exporting Tamgu*  Tamgujava_vector::Put(Tamgu* idx, Tamgu* value, short idthread
                 
                 long ikey = idx->Getinteger(idthread);
                 iter->storevalue(ikey, value);
-                value->Release();
             }
             else {
                 if (value->isVectorContainer()) {

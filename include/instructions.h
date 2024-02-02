@@ -732,6 +732,10 @@ public:
         return s;
     }
     
+    string displayString() {
+        return String();
+    }
+    
     bool Checkarity();
     
 	bool isFrame() {
@@ -1064,6 +1068,13 @@ public:
 	
 	TamguCallVariable(short n, short idt, TamguGlobal* g = NULL, Tamgu* parent = NULL) : directcall(false), forced(false), affectation(false), typevariable(idt), name(n), function(NULL), TamguTracked(a_variable, g, parent) {
         investigate = is_callvariable;
+    }
+    
+    string displayString() {
+        string s = "<";
+        s += globalTamgu->Getsymbol(name);
+        s += ">";
+        return s;
     }
     
 	void Setforced(bool v) {
@@ -2664,6 +2675,13 @@ public:
     
     virtual double Float() {
         return Getfloat(globalTamgu->GetThreadid());
+    }
+    
+    string displayString() {
+        string s = "<";
+        s += globalTamgu->Getsymbol(name);
+        s += ">";
+        return s;
     }
     
     virtual string String() {

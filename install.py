@@ -40,6 +40,7 @@ def displayhelp(s):
     print(" -avx: Compile with Intel Intrinsics instruction to speed up string conversion and string search (same as intel)")
     print(" -avx2: Compile with more advanced Intel Intrinsics instruction to speed up string conversion and string search")
     print(" -java: Prepare compiling to java")
+    print(" -garbagescan: Activate memory scan for memory leaks")
     print(" -gccversion: Directory names for intermediate and final files depend on local gcc version")
     print(" -version name: Directory names for intermediate and final files depend on name (do not use with gccversion)")
     print(" -pathlib path: provides a system path to check for system libraries")
@@ -68,6 +69,7 @@ i=1
 avx=False
 avx2=False
 forcejpeg = False
+garbagescan = False;
 
 compilelibs="""
 amaps: install
@@ -97,6 +99,8 @@ while i < len(sys.argv):
         forcejpeg = True
     elif sys.argv[i]=="-java":
         compilejava=True
+    elif sys.argv[i]=="-garbagescan":
+        garbagescan = True
     elif sys.argv[i]=="-withsound":
         withsound=True
     elif sys.argv[i]=="-intel" or sys.argv[i] == "-avx":
@@ -231,6 +235,8 @@ cleanlibs:
         obuild.close()
         txt = txt.replace("mac.java", "arm.java")
         txt = txt.replace('value="mac"', 'value="arm"')
+        if garbagescan:
+            txt = txt.replace('<!--compilerarg value="-DGARBAGESCAN" location="start"/-->', '<compilerarg value="-DGARBAGESCAN" location="start"/>')
         wbuild = open("java/build.xml","w")
         wbuild.write(txt)
         wbuild.close()
@@ -238,6 +244,8 @@ cleanlibs:
         mac_os = "mac"
         obuild=open('java/build.base')
         txt=obuild.read()
+        if garbagescan:
+            txt = txt.replace('<!--compilerarg value="-DGARBAGESCAN" location="start"/-->', '<compilerarg value="-DGARBAGESCAN" location="start"/>')
         obuild.close()
         wbuild = open("java/build.xml","w")
         wbuild.write(txt)
@@ -260,7 +268,10 @@ cleanlibs:
     f.write(incpath)
     MACLIBS= "MACLIBS= -framework Cocoa -framework AudioToolbox -framework AudioUnit -framework CoreAudio\n"
     if compilejava:
-        f.write("MULTIGA=-stdlib=libc++ -DMULTIGLOBALTAMGU\n");
+        if garbagescan:
+            f.write("MULTIGA=-stdlib=libc++ -DMULTIGLOBALTAMGU -DGARBAGESCAN\n");
+        else:
+            f.write("MULTIGA=-stdlib=libc++ -DMULTIGLOBALTAMGU\n");
     f.write("# MAC OS support\n")
     f.write(compilelibs)
     f.write(cleanlibs)
@@ -505,7 +516,10 @@ else:
 
 ############################
 if compilejava:
-    f.write("MULTIGA=-DMULTIGLOBALTAMGU\n");
+    if garbagescan:
+        f.write("MULTIGA=-DMULTIGLOBALTAMGU -DGARBAGESCAN\n");
+    else:
+        f.write("MULTIGA=-DMULTIGLOBALTAMGU\n");
 ############################
 specflags="SPECFLAGS =";
 if not withfastint:
@@ -790,6 +804,9 @@ if compilejava:
         txt=txt.replace(p3,rep3)
     if nbversion<= 5.1:
         txt=txt.replace(p4,rep4)
+
+    if garbagescan:
+        txt = txt.replace('<!--compilerarg value="-DGARBAGESCAN" location="start"/-->', '<compilerarg value="-DGARBAGESCAN" location="start"/>')
 
     if objpath != None:
         txt=txt.replace("objs/linux",objpath)

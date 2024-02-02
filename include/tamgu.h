@@ -50,7 +50,14 @@ class An_any;
 
 #include "tamguconstants.h"
 
+#ifdef GARBAGESCAN
+Exporting void Garbaging(hmap<std::string, long>& issues);
+Exporting void Garbaging(hmap<long, long>& issues);
+#endif
+
 #ifdef MULTIGLOBALTAMGU
+Exporting void Garbaging(hmap<std::string, long>& issues);
+Exporting void Garbaging(hmap<long, long>& issues);
 #ifdef WIN32
 #define localthread __declspec( thread )
 #else
@@ -113,7 +120,7 @@ public:
 	long idtracker;
     unsigned short investigate;
 
-#if defined(MULTIGLOBALTAMGU) || defined(GARBAGEINDEBUG)
+#if defined(GARBAGESCAN) || defined(GARBAGEINDEBUG)
 	long iddebug;
 	Exporting Tamgu();
 	Exporting virtual ~Tamgu();
@@ -580,7 +587,8 @@ public:
         return true;
     }
     
-    void Deletion(std::set<unsigned long>& deleted_elements);
+    virtual void Finalclean(std::set<Tamgu*>& elements_to_delete) {}
+    void Deletion(std::set<Tamgu*>& elements_to_delete);
     
 	virtual long Setprotect() {
 		return -1;
@@ -1395,6 +1403,7 @@ public:
         return !v.empty();
     }
 
+    virtual string displayString() { return String(); }
 	virtual string String() { return ""; }
     virtual void Setstring(string& v, short idthread) { v = String(); }
 
@@ -1509,6 +1518,9 @@ public:
 	virtual Tamgu* divide(Tamgu* a, bool itself) {
 		return this;
 	}
+    virtual Tamgu* mod(Tamgu* a, bool itself) {
+        return this;
+    }
 	virtual Tamgu* power(Tamgu* a, bool itself) {
 		return this;
 	}
@@ -1516,9 +1528,6 @@ public:
 		return this;
 	}
 	virtual Tamgu* shiftright(Tamgu* a, bool itself) {
-		return this;
-	}
-	virtual Tamgu* mod(Tamgu* a, bool itself) {
 		return this;
 	}
 
@@ -2539,6 +2548,18 @@ public:
         return s;
     }
     
+    virtual string displayString() {
+        string s = "[";
+        s += globalTamgu->Getsymbol(action);
+        for (long i = 0; i < instructions.size(); i++) {
+            if (i)
+                s += ",";
+            s += instructions[i]->displayString();
+        }
+        s += "]";
+        return s;
+    }
+    
 	void SetVariablesWillBeCreated() {
 		//This variable is set to true when a variable creation is present in the instruction vector...
 		variablesWillBeCreated = true;
@@ -3229,7 +3250,7 @@ public:
 	void cleaning(TamguGlobal* global) {
         basebin_hash<Tamgu*>::iterator it;
         for (it = declarations.begin(); it != declarations.end(); it++) {
-            it->second->Deletion(global->deleted_elements);
+            it->second->Deletion(global->elements_to_delete);
         }
 	}
     
@@ -3973,7 +3994,7 @@ public:
 	bool isLetSelf() {
 		return true;
 	}
-
+    
     void Addreference(unsigned short inv, short r=1) {
         investigate |= (inv & is_tobelocked);
         reference += r;
@@ -3993,10 +4014,32 @@ public:
         protect = false;
     }
     
+    void Release() {
+        if (protect == true && reference == 0) {
+            {
+                locking();
+                value->Setprotect(false);
+                unlocking();
+                protect = false;
+            }
+            Resetreference(1);
+        }
+    }
+
+    void Resetreference(short r = 1) {
+        {
+            locking();
+            value->Resetreference(r);
+            unlocking();
+        }
+        TamguObject::Resetreference(r);
+    }
+
+    
     Tamgu* GetLetValue() {
         return value;
     }
-
+    
 	void Setprotect(bool n) {
         value->Setprotect(n);
 		protect = n;
@@ -4019,27 +4062,6 @@ public:
             return aNOELEMENT;
         return value->Declaration(id);
     }
-    
-	void Release() {
-		if (protect == true && reference == 0) {
-			{
-				locking();
-				value->Setprotect(false);
-                unlocking();
-				protect = false;
-			}
-			Resetreference(1);
-		}
-	}
-
-	void Resetreference(short r = 1) {
-		{
-			locking();
-			value->Resetreference(r);
-            unlocking();
-		}
-		TamguObject::Resetreference(r);
-	}
 
 	//----------------------------------------------------------------------------------------------------------------------
 	Tamgu* Newvalue(Tamgu* a, short idthread) {
@@ -4580,6 +4602,7 @@ public:
 	void storevalue(double u);
 	void storevalue(unsigned char u);
 	void storevalue(wchar_t u);
+    
 	//----------------------------------------------------------------------------------------------------------------------
 	Tamgu* Put(Tamgu* idx, Tamgu* v, short idthread) {
         locking();

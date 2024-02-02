@@ -44,7 +44,7 @@
 #include "tamgusocket.h"
 #include "tamgudate.h"
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2024.01.16.11";
+const char* tamgu_version = "Tamgu 1.2024.02.01.16";
 
 extern "C" {
 Exporting const char* TamguVersion(void) {
@@ -100,6 +100,46 @@ void GlobalConstants::clean() {
         delete gNULLDECLARATION;
         delete gNULLLet;
         delete gNOTHING;
+        
+        gNULL= NULL;
+        gUNIVERSAL= NULL;
+        gTRUE= NULL;
+        gFALSE= NULL;
+        
+        gMINUSONE= NULL;
+        gZEROPOINTZERO= NULL;
+        gZERO= NULL;
+        gONE= NULL;
+
+        gEMPTYLISP= NULL;
+        gEMPTYSTRING= NULL;
+        gEMPTYUSTRING= NULL;
+        gBREAK= NULL;
+        gCONTINUE= NULL;
+        gRETURN= NULL;
+        gPIPE= NULL;
+        gNOELEMENT= NULL;
+        gDEFAULT= NULL;
+        gEND= NULL;
+        gRAISEERROR= NULL;
+        gBREAKFALSE= NULL;
+        gBREAKTRUE= NULL;
+        gBREAKZERO= NULL;
+        gBREAKONE= NULL;
+
+        gASSIGNMENT= NULL;
+        gITERNULL= NULL;
+        gFAIL= NULL;
+        gTERMINAL= NULL;
+        gCUTFALSE= NULL;
+        gCUT= NULL;
+        gSTOP= NULL;
+        gHASKELL= NULL;
+        gNULLDECLARATION= NULL;
+        gNULLLet= NULL;
+        gNOTHING= NULL;
+        aNULL = NULL;
+
     }
 }
 
@@ -109,9 +149,9 @@ Tamgu* booleantamgu[2];
 
 //----------------------------------------------------------------------------------
 // Debug area, to detect potential memory leaks...
-#if defined(MULTIGLOBALTAMGU) || defined(GARBAGEINDEBUG)
+#if defined(GARBAGESCAN) || defined(GARBAGEINDEBUG)
 ThreadLock _garbaging;
-static bool keep_track_of_garbage = true;
+static bool keep_track_of_garbage = false;
 static vector<Tamgu*> _tamgu_garbage;
 static long _tamgu_garbage_id = 0;
 
@@ -172,7 +212,7 @@ Exporting Tamgu::~Tamgu() {
     globalTamgu->Removefromlocalgarbageif_add(-1,-1,this);
 }
 
-void Garbaging(TamguGlobal* global, vector<Tamgu*>& issues, vector<long>& idissues) {
+void Garbaging(vector<Tamgu*>& issues, vector<long>& idissues) {
     issues.clear();
     idissues.clear();
     Tamgu* g;
@@ -180,15 +220,32 @@ void Garbaging(TamguGlobal* global, vector<Tamgu*>& issues, vector<long>& idissu
     for (size_t i = 0; i < _tamgu_garbage.size(); i++) {
         g = _tamgu_garbage[i];
         if (g != NULL) {
-            if (g->idtracker == -1 && g->Reference() == 0) {
-                issues.push_back(g);
-                idissues.push_back(i);
-            }
+            issues.push_back(g);
+            idissues.push_back(i);
         }
     }
 }
 
-void Garbaging(hmap<std::string, long>& issues) {
+Exporting void Garbaging(hmap<std::string, long>& issues) {
+    issues.clear();
+    Tamgu* g;
+    string key;
+    char buffer[100];
+    Locking _lock(_garbaging);
+    for (size_t i = 0; i < _tamgu_garbage.size(); i++) {
+        g = _tamgu_garbage[i];
+        if (g != NULL) {
+            key = g->Typestring();
+            if (key == "") {
+                sprintf_s(buffer, 100, "%d", g->Type());
+                key = buffer;
+            }
+            issues[key] += 1;
+        }
+    }
+}
+
+Exporting void Garbaging(hmap<long, long>& issues) {
     issues.clear();
     Tamgu* g;
     Locking _lock(_garbaging);
@@ -196,14 +253,17 @@ void Garbaging(hmap<std::string, long>& issues) {
         g = _tamgu_garbage[i];
         if (g != NULL) {
             if (g->idtracker == -1 && g->Reference() == 0) {
-                issues[g->Typestring()] += 1;
+                issues[g->Type()] += 1;
             }
         }
     }
 }
+
 #else
 //This is a mode that is only activated when _eval is called...
 Exporting void Set_keep_track_garbage(bool v) {}
+Exporting void Garbaging(hmap<std::string, long>& issues) {}
+Exporting void Garbaging(hmap<long, long>& issues) {}
 
 Tamgu::Tamgu() {
     idtracker = -1;
@@ -361,10 +421,9 @@ void TamguGlobal::Clearknowledgebase() {
     for (itk = knowledgebase.begin(); itk != knowledgebase.end(); itk++) {
         for (size_t i = 0; i < itk->second.size(); i++) {
             k = itk->second[i];
-            if (deleted_elements.find((unsigned long)k) == deleted_elements.end()) {
+            if (elements_to_delete.find(k) == elements_to_delete.end()) {
                 if (k->Candelete()) {
-                    deleted_elements.insert((unsigned long)k);
-                    delete k;
+                    elements_to_delete.insert(k);
                 }
             }
         }
@@ -376,11 +435,6 @@ void TamguGlobal::Clearknowledgebase() {
     knowledgebase_on_third.clear();
 }
 
-Exporting ThreadStruct::~ThreadStruct() {
-    if (fstcompanion!=NULL)
-        delete fstcompanion;
-}
-
 //----------------------------------------------------------------------------------
 
 TamguGlobal::TamguGlobal(long nb, bool setglobal) :
@@ -390,6 +444,8 @@ operator_strings(false), terms(false), booleanlocks(true), tracked(NULL, true), 
     TamguGlobal* globalSave = globalTamgu;
     globalTamgu = this;
 
+    last_execution = std::chrono::system_clock::now();
+    
 #ifdef TAMGULOOSEARGUMENTCOMPATIBILITIES
     loosecompability = true;
 #else
@@ -489,7 +545,7 @@ operator_strings(false), terms(false), booleanlocks(true), tracked(NULL, true), 
     gTheAnnotationRules=NULL;
     gAutomatons=NULL;
     //---------------------------------
-    long mx = 1000;
+    long mx = 50;
     //---------------------------------
     for (i = 0; i < mx; i++) {
         lispreservoire.push_back(new Tamgulisp(i));
@@ -539,47 +595,45 @@ operator_strings(false), terms(false), booleanlocks(true), tracked(NULL, true), 
         globalTamgu = globalSave;
 }
 
-void Tamgu::Deletion(std::set<unsigned long>& deleted_elements) {
+void Tamgu::Deletion(std::set<Tamgu*>& elements_to_delete) {
     if (idtracker != -1)
         return;
+
+    if (Candelete())
+        elements_to_delete.insert(this);
     
-    if (isObjectContainer() && Size()) {
+    if (isObjectContainer() && Size() && Type() != a_java_vector) {
         Tamgu* k;
         TamguIteration* itr = Newiteration(true);
         for (itr->Begin(); itr->End() == aFALSE; itr->Next()) {
             k = itr->Value();
-            if (deleted_elements.find((unsigned long)k) == deleted_elements.end())
-                k->Deletion(deleted_elements);
+            if (k!= NULL && elements_to_delete.find(k) == elements_to_delete.end())
+                k->Deletion(elements_to_delete);
         }
         delete itr;
     }
     
-    if (Candelete()) {
-        deleted_elements.insert((unsigned long)this);
-        delete this;
-    }
+    Finalclean(elements_to_delete);
 }
 
 TamguGlobal::~TamguGlobal() {
-    vector<Tamgu*> tobecleaned;
-
     TamguGlobal* resetToNUll = globalTamgu;
     if (globalTamgu != this)
         globalTamgu = this;
 
     for (auto& a: integer_pool) {
         if (a.second->idtracker == -1)
-            tobecleaned.push_back(a.second);
+            elements_to_delete.insert(a.second);
     }
     
     for (auto& a: float_pool) {
         if (a.second->idtracker == -1)
-            tobecleaned.push_back(a.second);
+            elements_to_delete.insert(a.second);
     }
     
     for (auto& a : string_pool) {
         if (a.second->idtracker == -1)
-            tobecleaned.push_back(a.second);
+            elements_to_delete.insert(a.second);
     }
     
     string_pool.clear();
@@ -614,7 +668,7 @@ TamguGlobal::~TamguGlobal() {
     spaces.clear();
 
     //For the sockets, we do it in advance
-    tracked.clean();
+    tracked.clean(elements_to_delete);
     
     for (i = 0; i < mapreservoire.size(); i++)
         delete mapreservoire[i];
@@ -667,8 +721,8 @@ TamguGlobal::~TamguGlobal() {
     for (i = 0; i < pvireservoire.size(); i++)
         delete pvireservoire[i];
     
-    for (i = 0; i < tobecleaned.size(); i++)
-        delete tobecleaned[i];
+    for (auto k : elements_to_delete)
+        delete k;
     
     atomic_iterator<string, ThreadLock*> itlocktables(locktables);
     atomic_iterator<string, LockedThread*> itwaitstrings(waitstrings);
@@ -689,7 +743,7 @@ TamguGlobal::~TamguGlobal() {
         itthreadvariables.next();
     }
     
-    codes.clear();
+    pathnames.clear();
     locktables.clear();
     waitstrings.clear();
     idSymbols.clear();
@@ -726,7 +780,7 @@ TamguGlobal::~TamguGlobal() {
 #ifdef GARBAGEINDEBUG
     vector<Tamgu*> issues;
     vector<long> idissues;
-    Garbaging(this, issues, idissues);
+    Garbaging(issues, idissues);
     if (issues.size())
         cerr << e_no_fully_cleaned << issues.size() << endl;
     else
@@ -2272,12 +2326,12 @@ TamguCode* TamguGlobal::GetNewCodeSpace(string filename) {
     filename = NormalizeFileName(filename);
     
     try {
-        return codes.at(filename);
+        return pathnames.at(filename);
     }
     catch(const std::out_of_range& oor) {
         TamguCode* a = new TamguCode((short)spaces.size(), filename, this);
         spaces.push_back(a);
-        codes[filename] = a;
+        pathnames[filename] = a;
         return a;
     }
 }
@@ -3248,7 +3302,7 @@ string TamguConstBool::Info(string s) {
 }
 //------------------------------------------------------------------------------------------------------------------------
 Exporting Tamgumap* TamguGlobal::Providemap() {
-    if (threadMODE || add_to_tamgu_garbage)
+    if (threadMODE)
         return new Tamgumap;
     
     Tamgumapbuff* ke;
@@ -3286,7 +3340,7 @@ Exporting Tamgumap* TamguGlobal::Providemap() {
 }
 
 Exporting Tamgutreemap* TamguGlobal::Providetreemap() {
-    if (threadMODE || add_to_tamgu_garbage)
+    if (threadMODE)
         return new Tamgutreemap;
     
     Tamgutreemapbuff* ke;
@@ -3323,7 +3377,7 @@ Exporting Tamgutreemap* TamguGlobal::Providetreemap() {
     return ke;
 }
 Exporting Tamgumapss* TamguGlobal::Providemapss() {
-    if (threadMODE || add_to_tamgu_garbage)
+    if (threadMODE)
         return new Tamgumapss;
     
     Tamgumapssbuff* ke;
@@ -3361,7 +3415,7 @@ Exporting Tamgumapss* TamguGlobal::Providemapss() {
 }
 
 Exporting Tamguvector* TamguGlobal::Providevector() {
-    if (threadMODE || add_to_tamgu_garbage)
+    if (threadMODE)
         return new Tamguvector;
     
     Tamguvectorbuff* ke;
@@ -3400,7 +3454,7 @@ Exporting Tamguvector* TamguGlobal::Providevector() {
 
 
 Exporting Tamguivector* TamguGlobal::Provideivector() {
-    if (threadMODE || add_to_tamgu_garbage)
+    if (threadMODE)
         return new Tamguivector;
     
     Tamguivectorbuff* ke;
@@ -3438,7 +3492,7 @@ Exporting Tamguivector* TamguGlobal::Provideivector() {
 }
 
 Exporting Tamgufvector* TamguGlobal::Providefvector() {
-    if (threadMODE || add_to_tamgu_garbage)
+    if (threadMODE)
         return new Tamgufvector;
     
     Tamgufvectorbuff* ke;
@@ -3475,7 +3529,7 @@ Exporting Tamgufvector* TamguGlobal::Providefvector() {
 }
 
 Exporting Tamgusvector* TamguGlobal::Providesvector() {
-    if (threadMODE || add_to_tamgu_garbage)
+    if (threadMODE)
         return new Tamgusvector;
     
     Tamgusvectorbuff* ke;
@@ -3512,7 +3566,7 @@ Exporting Tamgusvector* TamguGlobal::Providesvector() {
 }
 
 Exporting Tamguuvector* TamguGlobal::Provideuvector() {
-    if (threadMODE || add_to_tamgu_garbage)
+    if (threadMODE)
         return new Tamguuvector;
     
     Tamguuvectorbuff* ke;
@@ -3549,7 +3603,7 @@ Exporting Tamguuvector* TamguGlobal::Provideuvector() {
 }
 
 Exporting TamguSelf* TamguGlobal::Provideself() {
-    if (threadMODE || add_to_tamgu_garbage)
+    if (threadMODE)
         return new TamguSelf;
     
     Tamguselfbuff* ke;
@@ -3670,7 +3724,7 @@ Exporting Tamgu* TamguGlobal::ProvideConstlong(BLONG v) {
 
 
 Exporting Tamguint* TamguGlobal::Provideint(long v) {
-    if (threadMODE || add_to_tamgu_garbage)
+    if (threadMODE)
         return new Tamguint(v);
     
     Tamguintbuff* ke;
@@ -3709,7 +3763,7 @@ Exporting Tamguint* TamguGlobal::Provideint(long v) {
 
 
 Exporting Tamgulong* TamguGlobal::Providelong(BLONG v) {
-    if (threadMODE || add_to_tamgu_garbage)
+    if (threadMODE)
         return new Tamgulong(v);
     
     Tamgulongbuff* ke;
@@ -3747,7 +3801,7 @@ Exporting Tamgulong* TamguGlobal::Providelong(BLONG v) {
 }
 
 Exporting Tamgufloat* TamguGlobal::Providefloat(double v) {
-    if (threadMODE || add_to_tamgu_garbage)
+    if (threadMODE)
         return new Tamgufloat(v);
     
     Tamgufloatbuff* ke;
@@ -3786,14 +3840,13 @@ Exporting Tamgufloat* TamguGlobal::Providefloat(double v) {
 Exporting TamguDeclarationLocal* TamguGlobal::Providedeclaration(short idt) {
     TamguDeclarationLocal* ke;
     
-    if (threadMODE || add_to_tamgu_garbage) {
+    if (threadMODE) {
         ke = new TamguDeclarationLocal(-1);
         ke->idthread = idt;
         return ke;
     }
     
     if (declempties.last > 0) {
-        
         ke = declarationreservoire[declempties.backpop()];
         ke->used = true;
         ke->idthread = idt;
@@ -3827,7 +3880,7 @@ Exporting TamguDeclarationLocal* TamguGlobal::Providedeclaration(short idt) {
 }
 
 Exporting Tamgulisp* TamguGlobal::Providelisp() {
-    if (threadMODE || add_to_tamgu_garbage)
+    if (threadMODE)
         return new Tamgulisp(-1);
     
     Tamgulisp* ke;
@@ -3864,7 +3917,7 @@ Exporting Tamgulisp* TamguGlobal::Providelisp() {
 }
 
 Exporting Tamgustring* TamguGlobal::Providestring(string v) {
-    if (threadMODE || add_to_tamgu_garbage)
+    if (threadMODE)
         return new Tamgustring(v);
     
     Tamgustringbuff* ke;
@@ -3904,7 +3957,7 @@ Exporting Tamgustring* TamguGlobal::Providestring(string v) {
 }
 
 Exporting Tamguustring* TamguGlobal::Provideustring(wstring v) {
-    if (threadMODE || add_to_tamgu_garbage)
+    if (threadMODE)
         return new Tamguustring(v);
     
     Tamguustringbuff* ke;
@@ -3944,7 +3997,7 @@ Exporting Tamguustring* TamguGlobal::Provideustring(wstring v) {
 }
 
 Exporting Tamgustring* TamguGlobal::Providewithstring(string& v) {
-    if (threadMODE || add_to_tamgu_garbage)
+    if (threadMODE)
         return new Tamgustring(v);
     
     Tamgustringbuff* ke;
@@ -3984,7 +4037,7 @@ Exporting Tamgustring* TamguGlobal::Providewithstring(string& v) {
 }
 
 Exporting Tamguustring* TamguGlobal::Providewithustring(wstring& v) {
-    if (threadMODE || add_to_tamgu_garbage)
+    if (threadMODE)
         return new Tamguustring(v);
     
     Tamguustringbuff* ke;

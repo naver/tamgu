@@ -412,7 +412,6 @@ char bnf_tamgu::m_notreserved(string& lreturn,x_node** tree) {
     }
 
     if (gFail==1) return(0);
-    static const char* label="notreserved";
     string lret;
     long pos=currentpos;
     int itok=intoken;
@@ -433,7 +432,6 @@ char bnf_tamgu::m_notreserved(string& lreturn,x_node** tree) {
         setfail(exitonfail);
         return 0;
     }
-    x_init_node(lreturn,lret,tree,label,pos,true);
     return(1);
 }
 
@@ -18474,7 +18472,6 @@ char bnf_tamgu::m_hinexpression(string& lreturn,x_node** tree) {
 
 char bnf_tamgu::m_notadeclaration(string& lreturn,x_node** tree) {
     if (gFail==1) return(0);
-    static const char* label="notadeclaration";
     string lret;
     long pos=currentpos;
     int itok=intoken;
@@ -18490,7 +18487,6 @@ char bnf_tamgu::m_notadeclaration(string& lreturn,x_node** tree) {
         setfail(exitonfail);
         return(0);
     }
-    x_init_node(lreturn,lret,tree,label,pos,true);
     return(1);
 }
 

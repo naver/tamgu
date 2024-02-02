@@ -16,6 +16,7 @@
 
 #ifndef tamgudate_h
 #define tamgudate_h
+#include "tamguint.h"
 
 //We create a map between our methods, which have been declared in our class below. See MethodInitialization for an example
 //of how to declare a new method.
@@ -25,7 +26,7 @@ typedef Tamgu* (Tamgudate::*dateMethod)(Tamgu* contextualpattern, short idthread
 
 //---------------------------------------------------------------------------------------------------------------------
 
-class Tamgudate : public TamguObject {
+class Tamgudate : public TamguReference {
 public:
 	//We export the methods that will be exposed for our new object
 	//this is a static object, which is common to everyone
@@ -42,7 +43,7 @@ public:
 	time_t value;
 
 	//---------------------------------------------------------------------------------------------------------------------
-	Tamgudate(TamguGlobal* g, Tamgu* parent = NULL) : TamguObject(g, parent) {
+	Tamgudate(TamguGlobal* g, Tamgu* parent = NULL) : TamguReference(g, parent) {
 		//Do not forget your variable initialisation
 		value = NULL;
 	}
@@ -161,15 +162,14 @@ public:
 	//	}
 
 	long Integer() {
-
 		return value;
 	}
+    
 	double Float() {
-
 		return value;
 	}
+    
 	BLONG Long() {
-
 		return value;
 	}
 
@@ -195,6 +195,24 @@ public:
 		time_t i = difftime(value, b->Integer());
 		return new Tamgudate(i);
 	}
+
+    Tamgu* multiply(Tamgu* b, bool autoself) {
+        return globalTamgu->Provideint(value * b->Integer());
+    }
+    
+    Tamgu* divide(Tamgu* b, bool autoself) {
+        long v = b->Integer();
+        if (!v)
+            return globalTamgu->Returnerror("MAT(203): Cannot divide by 0");
+        return globalTamgu->Provideint(value / b->Integer());
+    }
+    
+    Tamgu* mod(Tamgu* b, bool autoself) {
+        long v = b->Integer();
+        if (!v)
+            return globalTamgu->Returnerror("MAT(203): Cannot divide by 0");
+        return globalTamgu->Provideint(value % b->Integer());
+    }
 
 	//Basic operations
 
