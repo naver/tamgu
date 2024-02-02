@@ -233,11 +233,12 @@ public:
     }
     
     bool emode() {
-        if (editmode && option == x_none)
-            return true;
+        if (editmode)
+            return (option == x_none);
+        noprefix = false;
         return false;
     }
-    
+
     void displaythehelp(long i) {
         cout << m_clear << m_home;
         cerr << endl << m_redbold << "Commands:" << m_current << endl << endl;
