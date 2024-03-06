@@ -128,6 +128,38 @@ Windows and Unix use different carriage return characters. `_endl` returns the p
 
 Unix-based systems and Windows use different separators in pathnames between directory names. Unix requires a "/" while Windows requires a "\". Tamgu provides a specific variable called `_sep`, which returns the right separator according to your system.
 
+### `_seteventvariable(var)`: Set the event variable.
+This variable must be declared as a global variable in your code. It can be a string, a svector or a simple vector. An `event` variable can be modified with `_pushevent`, but it also receives the error message if one occurs during the execution. When the error occurs, the system returns the whole event, including the one that were stored with `pushevent`.
+
+### `_pushevent(v1,v2,v3...)`: Push an event in the event variable
+It adds a series of strings into the event variable.
+
+```C++
+string event;
+_seteventvariable(event);
+
+float v = 10000;
+for (int i in <3,-1,-1>) {
+    _pushevent("I =",i);
+    v = v/i;
+}
+
+// Tamgu displays:
+
+/*
+I = 3
+I = 2
+I = 1
+I = 0
+0: [sequence] at 11 in file
+1:  at 11 in file
+2: =(0/0) at 13 in file
+Cannot divide by 0 at 13 in file
+*/
+
+```
+
+
 ## Console
 
 Tamgu provides a default console, which can be used to load and edit any programs. The console can be used to test small pieces of code or to check the values at the end of an execution.
