@@ -1789,11 +1789,13 @@ void TamguGlobal::Getstack(std::stringstream& message) {
                         name = Getfilename(file_id);
                         if ((current_file == -1 || current_file != file_id) && name != "") {
                             ifstream thefile(name, ios::binary);
-                            lines.clear();
-                            lines.push_back("");
-                            while (!thefile.eof()) {
-                                std::getline(thefile, line);
-                                lines.push_back(line);
+                            if (!thefile.fail()) {
+                                lines.clear();
+                                lines.push_back("");
+                                while (!thefile.eof()) {
+                                    std::getline(thefile, line);
+                                    lines.push_back(line);
+                                }
                             }
                         }
                     }
