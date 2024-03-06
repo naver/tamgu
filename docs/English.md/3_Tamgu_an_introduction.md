@@ -1,4 +1,4 @@
-# Tamgu: An Introduction
+# Tamgu: System Functions
 
 The Tamgu language borrows many concepts from other languages, primarily C++ and Python. Therefore, it is quite straightforward to learn for someone with a basic knowledge of these languages.
 
