@@ -2,7 +2,7 @@
 
 1. [Table of Contents](https://github.com/naver/tamgu/blob/master/docs/English.md/README.md)
 2. [Summary](https://github.com/naver/tamgu/blob/master/docs/English.md/2_Summary.md)
-3. [Tamgu: An Introduction](https://github.com/naver/tamgu/blob/master/docs/English.md/3_Tamgu_an_introduction.md)
+3. [Tamgu: System Functions](https://github.com/naver/tamgu/blob/master/docs/English.md/3_Tamgu_an_introduction.md)
 4. [Command Line (Unix Platforms)](https://github.com/naver/tamgu/blob/master/docs/English.md/4_Command_line_Unix_platforms.md)
 5. [Basic Types](https://github.com/naver/tamgu/blob/master/docs/English.md/5_Basic_Types.md)
 6. [First Program](https://github.com/naver/tamgu/blob/master/docs/English.md/6_First_Program.md)
