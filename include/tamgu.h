@@ -1225,6 +1225,8 @@ public:
 		return aNOELEMENT;
 	}
 
+    Exporting virtual void addstringonly(string s) {}
+
 	Exporting virtual void addustringto(wstring ws);
 	Exporting virtual void addstringto(string s);
 	Exporting virtual void addstringto(wchar_t s);

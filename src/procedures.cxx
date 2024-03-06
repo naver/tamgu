@@ -1002,7 +1002,6 @@ Tamgu* ProcAllObjectByType(Tamgu* contextualpattern, short idthread, TamguCall* 
 
     return m;
 }
-
 //------------------------------------------------------------------------------------------------------------------------
 #if defined(GARBAGESCAN) || defined(GARBAGEINDEBUG)
 Exporting void Garbaging(hmap<std::string, long>& issues);
@@ -1067,7 +1066,37 @@ Tamgu* ProcBreakPoint(Tamgu* contextualpattern, short idthread, TamguCall* callf
     return globalTamgu->ProvideConstint(i);
 }
 //------------------------------------------------------------------------------------------------------------------------
+Tamgu* ProcSetEventVariable(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    Tamgu* globalvar = callfunc->Evaluate(0, aNULL, idthread);
+    //if (globalvar->Type() != a_string && callfunc->)
+    //globalTamgu->error_stack = globalvar;
+    Tamgu* var = callfunc->arguments[0];
+    if (var->isGlobalVariable() && !idthread) {
+        if (globalTamgu->event_variable != NULL)
+            globalTamgu->event_variable->Resetreference();
+        globalTamgu->event_variable = globalvar;
+        globalvar->Setreference();
+        return aTRUE;
+    }
+    return globalTamgu->Returnerror("Error: Input should be a global string variable", idthread);
+}
 
+Tamgu* ProcPushEvent(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    Tamgu* event;
+    if (globalTamgu->event_variable != NULL) {
+        if (globalTamgu->event_variable->Size())
+            globalTamgu->event_variable->addstringonly("\n");
+
+        for (size_t i = 0; i < callfunc->Size(); i++) {
+            if (i)
+                globalTamgu->event_variable->addstringonly(" ");
+            event = callfunc->Evaluate(i, aNULL, idthread);
+            globalTamgu->event_variable->Push(event);
+        }
+    }
+    return aTRUE;
+}
+//------------------------------------------------------------------------------------------------------------------------
 Tamgu* ProcMax(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     Tamgu* current = callfunc->Evaluate(0, aNULL, idthread);
     Tamgu* right;
@@ -3236,6 +3265,8 @@ Exporting void TamguGlobal::RecordProcedures() {
     systemfunctions["grammar_macros"] = true;
 
     RecordOneProcedure("_setstacksize", "Set the maximum size of the stack", ProcStackSize, P_ONE);
+    RecordOneProcedure("_seteventvariable", "Associate a variable with event message", ProcSetEventVariable, P_ONE);
+    RecordOneProcedure("_pushevent", "Push a string value into the event variable", ProcPushEvent, P_ATLEASTONE);
     RecordOneProcedure("_setmaxthreads", "Set the maximum number of threads in memory",ProcMaxThreads, P_ONE);
     RecordOneProcedure("_setmaxrange", "Set the maximum value to build a value 'range'", ProcMaxMaxRange, P_ONE);
     RecordOneProcedure("_exit", "Exit the current program", ProcExit, P_NONE);

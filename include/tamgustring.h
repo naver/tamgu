@@ -734,6 +734,16 @@ public:
             sc_unicode_to_utf8(value, w);
 	}
     
+    void addstringonly(string u) {
+        if (globalTamgu->threadMODE) {
+            locking();
+            value += u;
+            unlocking();
+        }
+        else
+            value += u;
+    }
+    
     void addstringto(string u) {
         if (globalTamgu->threadMODE) {
             locking();

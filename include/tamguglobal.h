@@ -572,6 +572,9 @@ public:
 
 	Tamgustring* stringbuffer;
 	Tamgustring* stringbuffererror;
+    
+    Tamgu* event_variable;
+    
 	ostream* os;
 	bool doubledisplay;
 	DisplayFunctionCall displayfunction;
@@ -1398,6 +1401,10 @@ public:
 
 	Exporting Tamgu* Errorobject(short idthread);
 	string Errorstring(short idthread);
+    
+    void PushErrorInEvent(Tamgu* a);
+    string ErrorMessage();
+
 	Exporting Tamgu* Returnerror(Tamgu* err, short idthread);
 	Exporting Tamgu* Returnerror(string err, short idthread);
     Exporting void Seterror(string err, short idthread);

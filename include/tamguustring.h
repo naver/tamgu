@@ -697,6 +697,12 @@ public:
         unlocking();
 	}
 
+    void addstringonly(string s) {
+        locking();
+        s_utf8_to_unicode(value, USTR(s), s.size());
+        unlocking();
+    }
+
 	void addstringto(wchar_t s) {
         locking();
 		value += s;

@@ -38,6 +38,7 @@ Exporting long Count_active_instances(); //see codeexecute.cxx
 Exporting long Max_count_active_instances();
 Exporting TamguGlobal* getGlobalTamgu(short idglobal);
 Exporting void TamguIdle(long diff, vector<long>& idles);
+Exporting string TamguEventString(short idglobal);
 //------------------------------------------------------------------------
 //These methods are used to create an tamgu engine...
 void FinalTamguConstantCleaning(void);

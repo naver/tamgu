@@ -44,7 +44,7 @@
 #include "tamgusocket.h"
 #include "tamgudate.h"
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2024.02.01.16";
+const char* tamgu_version = "Tamgu 1.2024.03.06.14";
 
 extern "C" {
 Exporting const char* TamguVersion(void) {
@@ -456,6 +456,7 @@ operator_strings(false), terms(false), booleanlocks(true), tracked(NULL, true), 
     
     handler_on_utf8 = create_utf8_handler();
     
+    event_variable = NULL;
     add_to_tamgu_garbage = false;
     number_of_current_eval = 0;
     
@@ -621,6 +622,11 @@ TamguGlobal::~TamguGlobal() {
     if (globalTamgu != this)
         globalTamgu = this;
 
+    if (event_variable != NULL)
+        event_variable->Resetreference();
+    
+    event_variable = NULL;
+    
     for (auto& a: integer_pool) {
         if (a.second->idtracker == -1)
             elements_to_delete.insert(a.second);
@@ -4074,4 +4080,32 @@ Exporting Tamguustring* TamguGlobal::Providewithustring(wstring& v) {
     ke = ustringreservoire[ustringidx++];
     ke->Enablelock(0);
     return ke;
+}
+
+//--------------------------------------------------------------------
+string TamguGlobal::ErrorMessage() {
+    if (errorraised[0] != NULL) {
+        string filename = Getcurrentfile();
+        long line = Getcurrentline();
+        stringstream message;
+        
+        Getstack(message);
+        message << errorraised[0]->String() << " at " << line;
+        if (!store_in_code_lines) {
+            if (filename != "")
+                message << " in " << filename;
+        }
+        return message.str();
+    }
+    return threads[0].message.str();
+}
+    
+void TamguGlobal::PushErrorInEvent(Tamgu* a) {
+    if (a->isError() && event_variable != NULL) {
+        if (event_variable->Size())
+            event_variable->addstringonly("\n");
+        Tamgu* str = Providestring(ErrorMessage());
+        event_variable->Push(str);
+        str->Release();
+    }
 }

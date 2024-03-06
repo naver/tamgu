@@ -550,6 +550,7 @@ Tamgu* TamguCode::Executing() {
 	_cleandebugmin;
 	global->Popstack(0);
     global->running = false;
+    global->PushErrorInEvent(a);
 
 	return a;
 }
@@ -630,7 +631,8 @@ Tamgu* TamguCode::Eval(long begin_instruction) {
 
     global->Popstack(0);
     global->running = false;
-
+    global->PushErrorInEvent(a);
+    
     return a;
 }
 
@@ -704,11 +706,12 @@ Tamgu* TamguCode::Run(bool glock) {
     global->Cleanthreads();
     global->isthreading = false;
     global->threads[0].used = false;
+    
     global->running = false;
-
+    global->PushErrorInEvent(a);
+    
 	return a;
 }
-
 //--------------------------------------------------------------------
 Tamgu* Tamgustring::EvalIndex(Tamgu* kidx, TamguIndex* idx, short idthread) {
     static Fast_String basestr(1024);

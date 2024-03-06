@@ -19,6 +19,7 @@
 #include "tamgu.h"
 #include "compilecode.h"
 #include "codeparse.h"
+#include "tamgustring.h"
 
 static string _fullcode;
 //----------------------------------------------------------------------------------
@@ -119,6 +120,15 @@ Exporting void TamguIdle(long diff, vector<long>& idles) {
 Exporting bool TamguDeleteGlobalinThread(short idglobal) {
     JtamguGlobalLocking _lock;
     return TamguDeleteInThread(idglobal);
+}
+
+Exporting string TamguEventString(short idglobal) {
+    if (idglobal <0 || idglobal >= globalTamguPool.size() || globalTamguPool[idglobal] == NULL)
+        return "NONE";
+    TamguGlobal* g = globalTamguPool[idglobal];
+    if (g->event_variable != NULL)
+        return g->event_variable->String();
+    return "NONE";
 }
 
 Exporting bool TamguDeleteSpace(short idglobal, short idcode) {
@@ -571,6 +581,9 @@ Exporting bool TamguErrorVector(TamguGlobal* global,
 }
 
 Exporting string TamguErrorMessage() {
+    if (globalTamgu->event_variable != NULL)
+        return globalTamgu->event_variable->String();
+    
     if (globalTamgu->errorraised[0] != NULL) {
         string filename = globalTamgu->Getcurrentfile();
         long line = globalTamgu->Getcurrentline();

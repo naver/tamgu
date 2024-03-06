@@ -421,6 +421,16 @@ public class JTamgu {
     }
     
     //------------------------------------------------------------------------
+    private native String TamguEventStringImplementation(int handler) throws Exception;
+    
+    /**
+     * Return Version Number of Current Tamgu Implementation
+     *
+     */
+    public synchronized String TamguEventString(int handler) throws Exception {
+        return TamguEventStringImplementation(handler);
+    }
+    //------------------------------------------------------------------------
 
     private native String TamguVersionImplementation() throws Exception;
     
