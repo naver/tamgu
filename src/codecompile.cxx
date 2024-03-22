@@ -9,7 +9,7 @@
  Version    : See tamgu.cxx for the version number
  filename   : codecompile.cxx
  Date       : 2017/09/01
- Purpose    : 
+ Purpose    :
  Programmer : Claude ROUX (claude.roux@naverlabs.com)
  Reviewer   :
 */
@@ -58,7 +58,7 @@
 //However each type has a specific expected behaviour
 //----------------------------------------------------------------------------------------
 bool v_tokenize(vector<string>& vect, string& thestr, short flags, vector<string>& rules) {
-    
+
     tokenizer_result<string> xr;
     segmenter_automaton sa;
 
@@ -115,7 +115,7 @@ template<> void tokenizer_result<u_ustring>::getnext() {
         currentchr =  0;
         return;
     }
-    
+
     line += (currentchr == '\n');
     sz_read = 1;
     currentchr = (*buffer)[b_pos++];
@@ -128,7 +128,7 @@ template<> void tokenizer_result<wstring>::getnext() {
         currentchr =  0;
         return;
     }
-    
+
     line += (currentchr == '\n');
     sz_read = 1;
     if (c_utf16_to_unicode(currentchr, (*buffer)[b_pos++], false)) {
@@ -143,7 +143,7 @@ template<> void tokenizer_result<wstring>::getnext() {
         currentchr =  0;
         return;
     }
-    
+
     line += (currentchr == '\n');
     sz_read = 1;
     currentchr = (*buffer)[b_pos++];
@@ -156,7 +156,7 @@ template<> void tokenizer_result<u16string>::getnext() {
         currentchr =  0;
         return;
     }
-    
+
     line += (currentchr == '\n');
     sz_read = 1;
     if (c_utf16_to_unicode(currentchr, (*buffer)[b_pos++], false)) {
@@ -171,7 +171,7 @@ template<> void tokenizer_result<string>::getnext() {
         currentchr =  0;
         return;
     }
-    
+
     line += (currentchr == '\n');
     sz_read = 1 + c_utf8_to_unicode(buffer, b_pos, currentchr);
     b_pos += sz_read;
@@ -202,7 +202,7 @@ template<> void tokenizer_result<wstring>::store_currentchr() {
     else
         w = (wchar_t)c;
 
-    
+
     stack_ptr->push_back(w);
     if (store_all) {
         stacktype.push_back(0);
@@ -236,8 +236,8 @@ template<> void tokenizer_result<std::u16string>::store_currentchr() {
     }
     else
         w = (char16_t)c;
-        
-    
+
+
     stack_ptr->push_back(w);
     if (store_all) {
         stacktype.push_back(0);
@@ -362,10 +362,10 @@ void tokenizer_automaton::display(tokenizer_node* a, int nbblanks, bool top) {
         ret = true;
     else
         found.insert(a->idpos);
-    
+
     string blanks(nbblanks, ' ');
     cout << blanks;
-    
+
     if (a->check_negation())
         cout << "~";
     if (a->check_skip())
@@ -380,11 +380,11 @@ void tokenizer_automaton::display(tokenizer_node* a, int nbblanks, bool top) {
         if (a->check_fail())
             cout << "<E>";
     }
-    
+
     if (a->action == act_meta) {
         cout << '%';
     }
-    
+
     if (a->action == act_end) {
         if (a->label < 33)
             cout << '$' << (int)a->label;
@@ -411,12 +411,12 @@ void tokenizer_automaton::display(tokenizer_node* a, int nbblanks, bool top) {
             }
         }
     }
-    
+
     if (ret && a->action != act_end) {
         cout << "_SEE_" << a->idpos << endl;
         return;
     }
-    
+
     cout << '_' << a->idpos << endl;
 
     //we explore the subarcs to give them a position
@@ -432,16 +432,16 @@ void tokenizer_automaton::display(tokenizer_node* a, int nbblanks, bool top) {
 
 long tokenizer_automaton::compile() {
     /*
-     
+
      The rules are compiled into tokenizer_node arcs and the results are stored in vectorization_table.
      This table contains: 1611 elements (see table_character_size).
-     
+
      When a character code is < 1611, then the associated rules are stored in vectorization_table at character code location.
      For instance, if a rule starts with "A", then the rule will be stored at position 65 (ASCII code for "A")in vectorization_table.
-     
+
      For rules that cannot be indexed, either because they start with an epsilon or because the initial character is > 1611, the
      rule is then stored at position 0.
-     
+
      We have different potential action associated with an arc
      act_char             -> regular character
      act_meta             -> meta-character (%x)
@@ -449,7 +449,7 @@ long tokenizer_automaton::compile() {
      act_any              -> any character
      act_epsilon          -> an epsilon arc, which has created to handle disjunction or optionalaties
      act_end              -> the termination act, associated with a rule identifier, the returned value when the rule has applied
-     
+
      We also have different flags to handle the node status
      flag_negation (1)        -> negation (~)
      flag_skip (2)            -> Character not stored (-)
@@ -457,7 +457,7 @@ long tokenizer_automaton::compile() {
      flag_start_fail (8)      -> Set the initial element of a negated disjunction element. Different from flag_fail only for sequences
      flag_gate (16)           -> When this flag is activated, the path always fails
      flag_action (31)          -> flag_negation | flag_skip | flag_fail | flag_start_fail | flag_gate | flag_lisp
-     
+
      //The next flags are used to mark node utilisation
      flag_vectorized (32)   //has been added to vectorization_table as an index based on the first value of the rule
      flag_added (64)       //has been added to vectorization_table at position 0
@@ -467,43 +467,43 @@ long tokenizer_automaton::compile() {
 
      -> IMPORTANT: for meta-characters such as %a or %d, we also use each possible value for these meta-characters as index in vectorization_table.
      */
-    
+
     //The meta-characters for which there is a specific semantics
     static char x_actions[]="CHSacdhnoprs";
-    
+
     lisp_detection = false;
-    
+
     map<u_ustring, u_ustring> metalines;
     vector<tokenizer_node*> brackets;
     vector<char> currentbracket;
-    
+
     u_ustring line;
     u_ustring action_id;
-    
+
     tokenizer_node* anode = NULL;
     tokenizer_node* current = NULL;
     tokenizer_node* root = NULL;
-    
+
     u_uchar e;
     u_uchar cc;
-    
+
     int32_t irule, final_action = -1;
     long pos;
-    
+
     bool metarule_available = false;
     bool error = false;
     long begin_nodes;
     bool first;
     bool first_value;
-    
+
     bool tail = false;
-    
-    
+
+
     for (irule = 0; irule < rules.size() && !error; irule++) {
         tail = false;
         line = rules[irule];
         begin_nodes = nodes.size();
-        
+
         if (line[1]==':') { //we detect a meta-rule...
             cc = line[0];
             line=line.c_str()+2;
@@ -515,7 +515,7 @@ long tokenizer_automaton::compile() {
             metarule_available = true;
             continue;
         }
-        
+
         anode = NULL;
         current = NULL;
         disjunction = false;
@@ -524,9 +524,9 @@ long tokenizer_automaton::compile() {
         //We need a dummy value in currentbracket
         currentbracket.clear();
         currentbracket.push_back('*');
-        
+
         //first we look for the = sign at the end of the string...
-        
+
         pos = line.rfind(U"=",line.size()-1);
         if (pos == -1)
             error = true;
@@ -536,9 +536,9 @@ long tokenizer_automaton::compile() {
                 tail = true;
                 pos++;
             }
-                
+
             action_id = line.c_str()+pos+1;
-            
+
             switch (action_id[0]) {
                 case '!':
                     final_action = -2;
@@ -553,17 +553,17 @@ long tokenizer_automaton::compile() {
                 default:
                     final_action = convert(action_id);
             }
-            
+
             if (tail)
                 line=line.substr(0,pos - 1);
             else
                 line=line.substr(0,pos);
-            
+
             //We have some meta rules
             if (metarule_available)
                 replacemetas(metalines,line);
         }
-        
+
         first = true;
         first_value = false;
         for (pos = 0; pos < line.size() && !error; pos++) {
@@ -572,12 +572,12 @@ long tokenizer_automaton::compile() {
                 error = true;
                 break;
             }
-            
+
             switch(cc) {
                 case '%':
                     //We record the first rule not starting with a character
                     cc = line[pos+1];
-                    
+
                     if (first) {
                         //Note: current = append(current, anode) might seem redundant
                         //but it is important to call it when in a disjunction, as when
@@ -681,13 +681,13 @@ long tokenizer_automaton::compile() {
                         pos++;
                         break;
                     }
-                    
+
                     //This is a direct comparison or a meta
                     if (strchr(x_actions,cc) == NULL)
                         anode = node(act_char, cc);
                     else
                         anode = node(act_meta, cc);
-                    
+
                     root = current;
                     current = append(current, anode);
                     pos++;
@@ -698,7 +698,7 @@ long tokenizer_automaton::compile() {
                         currentbracket.push_back('^');
                         first_value = true;
                     }
-                    
+
                     anode = node(act_epsilon, 0);
                     current = append(current, anode);
                     brackets.push_back(current);
@@ -755,7 +755,7 @@ long tokenizer_automaton::compile() {
                             anode = node(act_any, 0);
                             current->append(anode);
                         }
-                        
+
                         root = current;
                         current->append(anode->arcs[0]);
                         currentbracket.pop_back();
@@ -792,7 +792,7 @@ long tokenizer_automaton::compile() {
                             anode = node(act_any, 0);
                             current->append(anode);
                         }
-                        
+
                         cc = line[pos+1];
                         if (cc != '+' && cc != '*') {
                             anode = node(act_epsilon, 0);
@@ -803,7 +803,7 @@ long tokenizer_automaton::compile() {
                                 current->append(anode);
                             current = anode;
                         }
-                        
+
                         currentbracket.pop_back();
                         disjunction = (currentbracket.back() == '{');
                     }
@@ -842,7 +842,7 @@ long tokenizer_automaton::compile() {
                             error = true;
                             break;
                         }
-                        
+
                         if (check_flag(current->action, act_epsilon)) {
                             anode = node(act_epsilon, 0);
                             for (e = 0; e < current->size(); e++) {
@@ -931,10 +931,10 @@ long tokenizer_automaton::compile() {
             if (first_value && (currentbracket.back() == '[' || currentbracket.back() == '('))
                 first_value = false;
         }
-        
+
         if (initial == NULL || error || brackets.size())
             return irule;
-        
+
         if (final_action == -2) {
             final_action = 0;
             if (action_id.size() > 1) {
@@ -949,10 +949,10 @@ long tokenizer_automaton::compile() {
             if (lisp_detection && initial->label == '\'' && vectorization_table[39]->arcs[0] == initial)
                 lisp_quote = initial;
         }
-            
+
         anode = node(act_end, final_action);
         append(current, anode);
-                    
+
         initial->trim_epsilon(nodes);
         if (final_action >= 0)
             indexed_on_label[final_action].push_back(initial);
@@ -964,15 +964,15 @@ long tokenizer_automaton::compile() {
             add_flag(anode->flags, flag_tail);
         }
     }
-    
+
     //Cleaning useless nodes
     //Removing all marks except flag_negation, flag_skip and flag_fail
     for (auto& nd : nodes)
         nd->flags &= flag_action;
-    
+
     //When there is only one rule in vectorization_table, no need to keep the epsilon
     vectorization_table[0]->mark_nodes();
-    
+
     //the position 0 can never be removed, thus we start at 1
     for (e = 1; e < table_character_size; e++) {
         if (vectorization_table[e] != NULL) {
@@ -981,7 +981,7 @@ long tokenizer_automaton::compile() {
             vectorization_table[e]->mark_nodes();
         }
     }
-    
+
     vector<tokenizer_node*> intermediary;
     for (auto& nd : nodes) {
         if (!nd->check_visited())
@@ -991,7 +991,7 @@ long tokenizer_automaton::compile() {
             intermediary.push_back(nd);
         }
     }
-    
+
     nodes = intermediary;
     loaded = true;
     return -1;
@@ -1005,9 +1005,9 @@ long tokenizer_automaton::compile() {
 void tokenizer_node::processing_postponed_nodes(std::set<long>& visited, vector<tokenizer_node*>& nodes, long idpos) {
     if (check_seen())
         return;
-    
+
     add_flag(flags, flag_seen);
-    
+
     long found = -1;
     for (long i = 0; i < arcs.size(); i++) {
         if (arcs[i]->idpos == idpos) {
@@ -1052,14 +1052,14 @@ void tokenizer_node::remove_epsilon_nodes(std::unordered_map<long,std::set<long>
         return;
 
     add_flag(flags, flag_visited);
-    
+
     std::set<long> locals;
     std::set<long>* vect;
     tokenizer_node* n;
     long i;
-    
+
     long sz = size();
-    
+
     if (sz) {
         //We merge the arcs that share the same definition
         long key;
@@ -1094,7 +1094,7 @@ void tokenizer_node::remove_epsilon_nodes(std::unordered_map<long,std::set<long>
         vect = &current;
     else
         vect = &locals;
-    
+
     for (i = 0; i < sz; i++) {
         n = arcs[i];
         if (n->is_epsilon()) {
@@ -1128,7 +1128,7 @@ void tokenizer_node::remove_epsilon_nodes(std::unordered_map<long,std::set<long>
             n->remove_epsilon_nodes(visited, *vect, nodes, false);
         }
     }
-    
+
     if (locals.size() != 0) {
         arcs.clear();
         for (auto& e : locals) {
@@ -1136,13 +1136,13 @@ void tokenizer_node::remove_epsilon_nodes(std::unordered_map<long,std::set<long>
             if (n->pure_arc())
                 arcs.push_back(n);
         }
-        
+
         for (auto& e : locals) {
             n = nodes[e];
             if (!n->pure_arc())
                 arcs.push_back(n);
         }
-        
+
         for (auto& e : locals) {
             n = nodes[e];
             if (n->check_postpone() && visited.find(n->idpos) != visited.end())
@@ -1155,30 +1155,30 @@ void tokenizer_node::remove_epsilon_nodes(std::unordered_map<long,std::set<long>
 void tokenizer_automaton::setrules() {
     /*
      a) A metarule is composed of two parts: c:expression, where c is the metacharacter that be accessed through %c and expression is a single body rule.
-     
+
      for instance, we could have encoded %o as:
      rules.push_back(U"o:[≠ ∨ ∧ ÷ × ² ³ ¬]");
-     
+
      IMPORTANT: These rules should be declared with one single operation.
      Their body will replace the call to a %c in other rules  (see the test on metas in the parse section)
-     
+
      If you use a character that is already a meta-character (such as "a" or "d"), then the meta-character will be replaced with
      this new description... However, its content might still use the standard declaration:
-     
+
      rules.push_back(U"a:{%a %d %p}"); "%1 is now a combination of alphabetical characters, digits and punctuations
-     
-     
+
+
      b) A rule is composed of two parts: body = action (action is either an integer or a #.)
-     
+
      body uses the following instructions:
-     
+
      x   is a character that should be recognized
-     
+
      #x     comparison with character of code x...
      #x-y   comparison between x and y. x and y should be ascii characters...
-     
+
      %x  is a meta-character with the following possibilities:
-     
+
      ?  is any character
      %a  is any alphabetical character (including unicode ones such as éè)
      %C  is any uppercase character
@@ -1192,10 +1192,10 @@ void tokenizer_automaton::setrules() {
      %r  is a carriage return both \n and \r
      %s  is a space (32) or a tab (09)
      %S  is both a carriage return or a space (%s or %r)
-     
+
      %nn  you can create new metarules associated with any OTHER characters...
-     
-     
+
+
      (..) is a sequence of optional instructions
      [..] is a sequence of characters in a disjunction
      {..} is a disjunction of meta-characters
@@ -1203,25 +1203,25 @@ void tokenizer_automaton::setrules() {
      x+   means that the instruction can be repeated at least once
      x-   means that the character should be recognized but not stored in the parsing string
      ~..  means that all character will be recognized except for those in the list after the tilda.
-     
+
      IMPORTANT: spaces are considered characters except in disjunctions
-     
-     
+
+
      Final Action
      ------------
      When a rule applies it returns its final action value, which is usually a numerical value.
      However, there are some special values:
-     
+
      £ : These are characters that trigger the Lisp mode. This is a case when quotes do not encapsulate strings anymore
      !value : Use to add gate keeping in the automatin. For instance, the rule for single quotes is activated.
      #: The rule applies but nothing is stored in the stacks
-     
+
      */
-    
+
     //Spaces, skipped in the parsing string
     rules.push_back(U"%S+=#");                         //0     space (not kept)
-    
-    
+
+
     rules.push_back(U"\\%(=L");  //detecting Lisp Expression
     rules.push_back(U"\\'%(=L");
 
@@ -1256,12 +1256,13 @@ void tokenizer_automaton::setrules() {
     rules.push_back(U":=0");                         //26    :
     rules.push_back(U"$=0");                         //27    $
     rules.push_back(U"\\=0");                        //29    ?
+    rules.push_back(U"_%#=4");                       //a special token
 
     //Comments
     rules.push_back(U"//?*%r=#");                  //30    comments starting with // with no carriage return (CR) inside (not kept)
     rules.push_back(U"/@?*@/=#");                   //32    long comments starting with /@ and finishing with @/ (not kept)
     rules.push_back(U"/=0");                         //34    /
-    
+
     //Strings
     //Double quote
     rules.push_back(U"\"{[\\-\"] ~%r}*\"=:1");     //string "" does not contain CR and can escape characters
@@ -1269,10 +1270,10 @@ void tokenizer_automaton::setrules() {
     //Single quote
     rules.push_back(U"'=!");                         //4 In the case of Lisp, this rule is activated
     rules.push_back(U"'~%r*'=:2");                    //38    string '' does not contain CR and does not process escape characters
-    
+
     //Long quotes
     rules.push_back(U"@-\"?*\"@-=5");               //40    string @" "@ can contain CR and escape characters (we do not keep the @s)
-    
+
     //tamgu regular expression strings
     rules.push_back(U"r-\"~%r+\"=9");              //42    string r"" tamgu regular expression (we do not keep the r in the parse)
     rules.push_back(U"r-'~%r+'=10");               //42    string r"" tamgu regular expression (we do not keep the r in the parse)
@@ -1283,19 +1284,19 @@ void tokenizer_automaton::setrules() {
 
     //Unicode double quote strings
     rules.push_back(U"u-\"{[\\-\"] ~%r}*\"=1");     //string "" does not contain CR and can escape characters
-    
+
     //Unicode single quote strings
     rules.push_back(U"u-'~%r*'=7");                //44    string u'' unicode string
-    
+
     //Unicode long quote strings
     rules.push_back(U"u-@-\"?+\"@-=8");             //46    string u@".."@ unicode string
-    
+
     rules.push_back(U"0b{1 0}+=3");                       //binary numbers
     rules.push_back(U"0c({%- %+})%d+(.%d+)({eE}({%- %+})%d+):({%- %+})(%d+(.%d+)({eE}({%- %+})%d+))i=3");    //complex numbers
 
     rules.push_back(U"1:{%d #A-F #a-f}");            //2     metarule on 1, for hexadecimal digits
     rules.push_back(U"0x%1+(.%1+)({pP}({%- %+})%d+)=3");  //47 hexadecimal: can handle 0x1.16bca4f9165dep-3
-    
+
     rules.push_back(U"%d+(.%d+)({eE}({%- %+})%d+)=3");    //48    exponential digits
 
     // Rules start here
@@ -1311,7 +1312,7 @@ void tokenizer_automaton::setrules() {
 void segmenter_automaton::setrules() {
     rules.push_back(U"#10=!99");                                  //gated arcs to keep carriage or not
     rules.push_back(U"%S+=#");                                  //we skip all spaces
-    
+
 
     //regular numbers
     rules.push_back(U"%d+{[rd][th][nd][er][ième][ieme]}=1");    //3rd or 4th
@@ -1350,10 +1351,10 @@ void segmenter_automaton::setrules() {
 
     rules.push_back(U"%#{%a %d}+=1");       //Regular strings
     rules.push_back(U"${%a %d}+=1");       //Regular strings
-    
+
     rules.push_back(U"http(s)://{%a %d . = %# & %? / %- %+}+=1");       //http
     rules.push_back(U"{%a %d . %- %+}+@{%a %d . = & %? %# %- %+}+=1");       //mail address
-    
+
     rules.push_back(U"%o=1");                 //operator
     rules.push_back(U"%p=1");                  //punctuation
     rules.push_back(U"%H{%H %d}*=1");       //Asian characters (Chinese, Korean, Japanese)
@@ -1365,12 +1366,12 @@ void segmenter_automaton::setrules() {
 void tags_automaton::setrules() {
     rules.push_back(U"#10=!99");                                  //gated arcs to keep carriage or not
     rules.push_back(U"%S+=#");                                  //we skip all spaces
-    
+
     //regular numbers
     rules.push_back(U"%d+{[rd][th][nd][er][ième][ieme]}=4");    //3rd or 4th
     rules.push_back(U"%d(%d)(:%d%d){[am][pm]}=4");              //American hours 6:30am, 9pm
     rules.push_back(U"%d(%d){:h}%d%d=4");                       //European hours 6h30, 21:00
-    
+
     //Double quote
     rules.push_back(U"\"{[\\-\"] ~%r}*\"=:1");     //string "" does not contain CR and can escape characters
 
@@ -1378,10 +1379,10 @@ void tags_automaton::setrules() {
     rules.push_back(U"'=!");                         //4 In the case of Lisp, this rule is activated
     rules.push_back(U"'~%r*'=:2");                    //38    string '' does not contain CR and does not process escape characters
 
-    
+
     //We put this meta-rule here to avoid checking all the rules belows with it
     rules.push_back(U"1:{%d #A-F #a-f}");                    //metarule on 1, for hexadecimal digits
-    
+
     //Tokenizing numbers
     //22 for blocs of 3, with a comma
     //44 for blocs of 3, with a point or a space
@@ -1411,10 +1412,10 @@ void tags_automaton::setrules() {
 
     rules.push_back(U"%#{%a %d}+=4");       //Regular strings
     rules.push_back(U"${%a %d}+=4");       //Regular strings
-    
+
     rules.push_back(U"http(s)://{%a %d . = %# & %? / %- %+}+=4");       //http
     rules.push_back(U"{%a %d . %- %+}+@{%a %d . = & %? %# %- %+}+=4");       //mail address
-    
+
     rules.push_back(U"%o=4");                 //operator
     rules.push_back(U"%p=4");                  //punctuation
     rules.push_back(U"%H{%H %d}*=4");       //Asian characters (Chinese, Korean, Japanese)
@@ -1612,7 +1613,7 @@ void TamguCode::Senderror(string msg) {
 Tamgu* TamguCode::Traverse(x_node* xn, Tamgu* parent) {
 	if (xn == NULL)
 		return NULL;
-    
+
     last_node = xn;
 	currentline = Computecurrentline(0, xn);
 	if (global->parseFunctions.find(xn->token) != global->parseFunctions.end())
@@ -1632,11 +1633,11 @@ Tamgu* TamguCode::Traverse(x_node* xn, Tamgu* parent) {
 Tamgu* TamguCode::Traverse_in_error(x_node* xn, Tamgu* parent, long line) {
     if (xn == NULL || last_node == xn)
         return NULL;
-    
+
     currentline = Computecurrentline(0, xn);
     if (currentline > line)
         return Traverse(xn, parent);
-    
+
     Tamgu* a = NULL;
     for (size_t i = 0; i < xn->nodes.size() && a == NULL; i++) {
         a = Traverse_in_error(xn->nodes[i], parent, line);
@@ -1731,7 +1732,7 @@ void TamguGlobal::Getstack(vector<string>& stacklines, vector<string>& files, ve
     vector<string> lines;
     if (store_in_code_lines)
         lines = codelines;
-    
+
     for (long i = 0; i < stack_error.size(); i++) {
         stringstream message;
         a = stack_error[i];
@@ -1759,7 +1760,7 @@ void TamguGlobal::Getstack(vector<string>& stacklines, vector<string>& files, ve
                 line += Trim(lines[ln]);
                 line += "]";
             }
-            
+
             stacklines.push_back(message.str());
             linenumbers.push_back(ln);
             files.push_back(name);
@@ -1776,7 +1777,7 @@ void TamguGlobal::Getstack(std::stringstream& message) {
     vector<string> lines;
     if (store_in_code_lines)
         lines = codelines;
-    
+
     if (stack_error.size() > 1) {
         for (long i = 0; i < stack_error.size(); i++) {
             a = stack_error[i];
@@ -1800,7 +1801,7 @@ void TamguGlobal::Getstack(std::stringstream& message) {
                         }
                     }
                 }
-                
+
                 if (!lines.empty() && ln < lines.size()) {
                     string l = Trim(lines[ln]);
                     if (l.size() > 23) {
@@ -1811,7 +1812,7 @@ void TamguGlobal::Getstack(std::stringstream& message) {
                     line += l;
                     line += "]";
                 }
-                
+
                 message << nb++ << ": " << line << " at " << ln;
                 if (file_id != -1 && name != "")
                     message << " in " << name  << endl;
@@ -1836,7 +1837,7 @@ void TamguGlobal::RecordCompileFunctions() {
     parseFunctions["variable"] = &TamguCode::C_variable;
 	parseFunctions["purevariable"] = &TamguCode::C_variable;
 
-    
+
     parseFunctions["shapeindexes"] = &TamguCode::C_shapeindexes;
     parseFunctions["indexes"] = &TamguCode::C_indexes;
 	parseFunctions["interval"] = &TamguCode::C_interval;
@@ -1859,7 +1860,7 @@ void TamguGlobal::RecordCompileFunctions() {
     parseFunctions["fstring"] = &TamguCode::C_fstring;
     parseFunctions["festring"] = &TamguCode::C_fstring;
 
-    
+
 	parseFunctions["ufullstring"] = &TamguCode::C_ustring;
 	parseFunctions["ustringdouble"] = &TamguCode::C_ustring;
 	parseFunctions["ustringsimple"] = &TamguCode::C_ustring;
@@ -1920,7 +1921,7 @@ void TamguGlobal::RecordCompileFunctions() {
 
     parseFunctions["curryingright"] = &TamguCode::C_curryingright;
     parseFunctions["curryingleft"] = &TamguCode::C_curryingleft;
-    
+
 	parseFunctions["multiply"] = &TamguCode::C_multiply;
 	parseFunctions["hmultiply"] = &TamguCode::C_multiply;
     parseFunctions["operation"] = &TamguCode::C_operation;
@@ -1964,7 +1965,7 @@ void TamguGlobal::RecordCompileFunctions() {
 	parseFunctions["for"] = &TamguCode::C_for;
 	parseFunctions["blocfor"] = &TamguCode::C_blocfor;
 	parseFunctions["forin"] = &TamguCode::C_forin;
-    
+
     parseFunctions["namespace"] = &TamguCode::C_namespace;
 
 	parseFunctions["trycatch"] = &TamguCode::C_trycatch;
@@ -2013,7 +2014,7 @@ void TamguGlobal::RecordCompileFunctions() {
 
 	parseFunctions["dataassignment"] = &TamguCode::C_dataassignment;
 	parseFunctions["conceptfunction"] = &TamguCode::C_conceptfunction;
-		
+
 	parseFunctions["taskellexpression"] = &TamguCode::C_taskellexpression;
 	parseFunctions["taskellkeymap"] = &TamguCode::C_taskellexpression;
 
@@ -2037,7 +2038,7 @@ void TamguGlobal::RecordCompileFunctions() {
 	parseFunctions["hcompose"] = &TamguCode::C_hcompose;
 	parseFunctions["let"] = &TamguCode::C_multideclaration;
 	parseFunctions["hlambda"] = &TamguCode::C_hlambda;
-	
+
 	parseFunctions["hontology"] = &TamguCode::C_ontology;
 	parseFunctions["telque"] = &TamguCode::C_telque;
     parseFunctions["subtelque"] = &TamguCode::C_telque;
@@ -2054,7 +2055,7 @@ void TamguGlobal::RecordCompileFunctions() {
     parseFunctions["optionaltokens"] = &TamguCode::C_optionaltokens;
     parseFunctions["removetokens"] = &TamguCode::C_removetokens;
     parseFunctions["token"] = &TamguCode::C_token;
-    
+
     //LISP implementation
     parseFunctions["tlvariable"] = &TamguCode::C_tamgulispvariable;
     parseFunctions["tlatom"] = &TamguCode::C_tamgulispatom;
@@ -2151,7 +2152,7 @@ TamguInstruction* TamguCode::TamguCreateInstruction(Tamgu* parent, short op) {
 TamguCallFunction* TamguCode::CreateCallFunction(Tamgu* function, Tamgu* parent) {
     if (function->Nextfunction() != NULL)
         return new TamguCallFunction(function, global, parent);
-    
+
     switch (function->Size()) {
         case 0:
             return new TamguCallFunction0(function, global, parent);
@@ -2166,7 +2167,7 @@ TamguCallFunction* TamguCode::CreateCallFunction(Tamgu* function, Tamgu* parent)
         case 5:
             return new TamguCallFunction5(function, global, parent);
     }
-    
+
     return new TamguCallFunction(function, global, parent);
 }
 
@@ -2421,10 +2422,10 @@ bool TamguInstructionAPPLYOPERATIONROOT::Stacking(TamguGlobal* global, Tamgu* in
 Tamgu* TamguInstructionAPPLYOPERATIONEQU::update(TamguGlobal* global, uchar btype) {
     if (btype == 255 || thetype == 255)
         return this;
-    
+
     if (thetype == b_letself)
         thetype = btype;
-    
+
     if (thetype & b_allnumbers) {
         if (btype & b_allnumbers) {
             switch (thetype) {
@@ -2538,7 +2539,7 @@ Tamgu* TamguInstructionAPPLYOPERATIONROOT::Returnlocal(TamguGlobal* global, Tamg
     try {
         if (complex)
             return new TamguInstructionComplex(this, global);
-        
+
         return new TamguInstructionCompute(this, global);
     }
     catch(TamguRaiseError* msg) {
@@ -2580,7 +2581,7 @@ Tamgu* TamguInstructionCOMPARE::Compile(TamguGlobal* global, Tamgu* parent) {
 	uchar left;
 	uchar right;
     uchar check;
-    
+
     if (returntype != a_null) {
         check = right = left = Returnequ(returntype);
     }
@@ -2621,7 +2622,7 @@ Tamgu* TamguInstructionCOMPARE::Compile(TamguGlobal* global, Tamgu* parent) {
                 }
                 else
                     check = left | right;
-                
+
                 if ((check & b_float) || (check & b_longdecimal) == b_longdecimal) {
                     switch (action) {
                         case a_less:
@@ -2637,10 +2638,10 @@ Tamgu* TamguInstructionCOMPARE::Compile(TamguGlobal* global, Tamgu* parent) {
                         case a_moreequal:
                             return new c_moreequal_float(global, this);
                     }
-                    
+
                     return this;
                 }
-                
+
                 if ((check & b_decimal)) {
                     switch (action) {
                         case a_less:
@@ -2656,10 +2657,10 @@ Tamgu* TamguInstructionCOMPARE::Compile(TamguGlobal* global, Tamgu* parent) {
                         case a_moreequal:
                             return new c_moreequal_decimal(global, this);
                     }
-                    
+
                     return this;
                 }
-                
+
                 if ((check & b_long)) {
                     switch (action) {
                         case a_less:
@@ -2677,7 +2678,7 @@ Tamgu* TamguInstructionCOMPARE::Compile(TamguGlobal* global, Tamgu* parent) {
                     }
                     return this;
                 }
-                
+
                 if ((check & b_int)) {
                     switch (action) {
                         case a_less:
@@ -2695,7 +2696,7 @@ Tamgu* TamguInstructionCOMPARE::Compile(TamguGlobal* global, Tamgu* parent) {
                     }
                     return this;
                 }
-                
+
                 if ((check & b_short)) {
                     switch (action) {
                         case a_less:
@@ -2714,13 +2715,13 @@ Tamgu* TamguInstructionCOMPARE::Compile(TamguGlobal* global, Tamgu* parent) {
                     return this;
                 }
             }
-            
+
             if ((left&b_allstrings) && (right&b_allstrings)) {
                 if (left == 255)
                     check=right;
                 else
                     check = left | right;
-                
+
                 if ((check & b_string)) {
                     switch (action) {
                         case a_less:
@@ -2738,7 +2739,7 @@ Tamgu* TamguInstructionCOMPARE::Compile(TamguGlobal* global, Tamgu* parent) {
                     }
                     return this;
                 }
-                
+
                 if ((check & b_ustring)) {
                     switch (action) {
                         case a_less:
@@ -2759,7 +2760,7 @@ Tamgu* TamguInstructionCOMPARE::Compile(TamguGlobal* global, Tamgu* parent) {
             }
         }
     }
-    
+
     switch (action) {
         case a_less:
             return new c_less(global, this);
@@ -2774,7 +2775,7 @@ Tamgu* TamguInstructionCOMPARE::Compile(TamguGlobal* global, Tamgu* parent) {
         case a_moreequal:
             return new c_moreequal(global, this);
     }
-    
+
 	return this;
 }
 
@@ -2830,9 +2831,9 @@ Exporting string TamguGlobal::Getfilename(short fileid) {
 // In the global space...
 Tamgu* TamguCode::Declaror(short id) {
     long i = global->Stacksize() - 1;
-    
+
     for (; i >= 0 && !global->DStack(i)->isDeclared(id); i--) {}
-    
+
     if (i >= 0)
         return global->DStack(i);
     return NULL;
@@ -2843,19 +2844,19 @@ Tamgu* TamguCode::Declaror(short id, Tamgu* parent) {
 		return parent;
 
     long i = global->Stacksize() - 1;
-    
+
     for (; i >= 0 && !global->DStack(i)->isDeclared(id); i--) {}
-    
+
     if (i >= 0)
         return global->DStack(i);
     return NULL;
 }
-    
+
 Tamgu* TamguCode::Frame() {
     long i = global->Stacksize() - 1;
-    
+
     for (; i >= 0 && !global->DStack(i)->isFrame(); i--) {}
-    
+
     if (i >= 0)
         return global->DStack(i);
     return NULL;
@@ -2864,9 +2865,9 @@ Tamgu* TamguCode::Frame() {
 
 Tamgu* TamguCode::Declaration(short id) {
     long i = global->Stacksize() - 1;
-    
+
     for (; i >= 0 && !global->DStack(i)->isDeclared(id); i--) {}
-    
+
     if (i >= 0)
         return global->DStack(i)->Declaration(id);
     return NULL;
@@ -2877,9 +2878,9 @@ Tamgu* TamguCode::Declaration(short id, Tamgu* parent) {
 		return parent->Declaration(id);
 
     long i = global->Stacksize() - 1;
-    
+
     for (; i >= 0 && !global->DStack(i)->isDeclared(id); i--) {}
-    
+
     if (i >= 0)
         return global->DStack(i)->Declaration(id);
     return NULL;
@@ -2887,9 +2888,9 @@ Tamgu* TamguCode::Declaration(short id, Tamgu* parent) {
 
 bool TamguCode::isDeclared(short id) {
     long i = global->Stacksize() - 1;
-    
+
     for (; i >= 0 && !global->DStack(i)->isDeclared(id); i--) {}
-    
+
     return (i >= 0);
 }
 
@@ -2914,7 +2915,7 @@ inline Tamgu* ThreadStruct::GetTopFrame() {
     for (; i >= 0 && !stack.vecteur[i]->isFrame(); i--) {}
     if (i >= 0)
         return stack.vecteur[i];
-    
+
 	return NULL;
 }
 
@@ -2992,7 +2993,7 @@ Tamgu* TamguCode::C_expression(x_node* xn, Tamgu* parent) {
         Traverse(xn->nodes[1], call);
         return call;
     }
-    
+
     Tamgu* a;
     Tamgu* res = NULL;
     for (size_t i = 0; i < xn->nodes.size(); i++) {
@@ -3000,7 +3001,7 @@ Tamgu* TamguCode::C_expression(x_node* xn, Tamgu* parent) {
         if (res == NULL)
             res = a;
     }
-    
+
     return res;
 }
 
@@ -3114,7 +3115,7 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
     if (type == "window")
         windowmode = true;
 
-    
+
 	bool oldprive = isprivate;
 	bool oldcommon = iscommon;
 	bool oldconstant = isconstant;
@@ -3173,14 +3174,14 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
         name = xn->nodes[1]->value;
     else
         name = name_space + xn->nodes[1]->value;
-    
+
 	short idname = global->Getid(name);
     if (global->newInstance.check(idname)) {
         stringstream message;
         message << e_variable_name_cannot << name << "'";
         throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
     }
-    
+
 	if (tid == a_tamgu) {
 		if (xn->nodes.size() != 3) {
 			stringstream message;
@@ -3317,7 +3318,7 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
 				bloc.action = a_assignement;
 				bloc.instructions.push_back(a);
 				a->choice = 0;
-                
+
 				Traverse(xn->nodes[pos], &bloc);
                 Tamgu* the_value = bloc.instructions[1];
                 if (the_value->isError()) {
@@ -3330,7 +3331,7 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
                 short typevalue = the_value->Typeinfered();
 
                 typevalue = typevalue==a_null?a_none:typevalue;
-                
+
                 if (typevalue == a_none &&
                     the_value->isDirectIndex() &&
                     global->returnindextypes.check(the_value->Typevariable())) {
@@ -3456,7 +3457,7 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
                 global->Storevariable(0, idname, aNOELEMENT);
         }
     }
-        
+
 	isprivate = oldprive;
 	iscommon = oldcommon;
 	isconstant = oldconstant;
@@ -3466,15 +3467,15 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
 
 Tamgu* TamguCode::C_framecontainer(x_node* xn, Tamgu* parent) {
     Tamgu* top = global->Topstack();
-    
+
     bool oldprive = isprivate;
     bool oldcommon = iscommon;
     bool oldconstant = isconstant;
-    
+
     string type;
     string frametype;
     string name;
-    
+
     if (xn->nodes[0]->nodes.size() && xn->nodes[0]->nodes[0]->token == "feature") {
         string& s = xn->nodes[0]->nodes[0]->nodes[0]->value;
         if (s == "private") {
@@ -3508,20 +3509,20 @@ Tamgu* TamguCode::C_framecontainer(x_node* xn, Tamgu* parent) {
             message << e_unknown_type << frametype << "'";
             throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
         }
-        
+
         short framename = global->symbolIds[frametype];
-        
+
         //framename should be a frame declaration
         if (!global->frames.check(framename)) {
             stringstream message;
             message << e_expecting_a_frame << frametype << "'";
             throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
         }
-        
+
         //We re-create the frame vector: vector<Frame>
         short idcontainer = global->Getid(type);
         tid = global->Getid(framecontainer);
-        
+
         //framevector keeps track of all vector<Frame> types found in the code
         if (!global->framecontainers.check(tid)) {
             //We then create a newInstance entry on the fly
@@ -3559,17 +3560,17 @@ Tamgu* TamguCode::C_framecontainer(x_node* xn, Tamgu* parent) {
             global->framecontainers[tid] = global->frames[framename];
         }
     }
-    
+
     if (!name_space.empty())
         name = name_space + name;
-    
+
     short idname = global->Getid(name);
     if (global->newInstance.check(idname)) {
         stringstream message;
         message << e_variable_name_cannot << name << "'";
         throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
     }
-    
+
     if (top->isDeclared(idname) && top->Declaration(idname) != aNOELEMENT) {
         stringstream message;
         message << e_this_variable_has << name;
@@ -3646,7 +3647,7 @@ Tamgu* TamguCode::C_framecontainer(x_node* xn, Tamgu* parent) {
             a->AddInstruction(inst.instructions[1]);
         }
     }
-    
+
     isprivate = oldprive;
     iscommon = oldcommon;
     isconstant = oldconstant;
@@ -3682,12 +3683,12 @@ Tamgu* TamguCode::C_subfunc(x_node* xn, Tamgu* parent) {
         else
             function = new TamguCallFrameFunction((TamguFrame*)frame, id, global, parent);
 	}
-    
+
 	if (function == NULL) {
         if (tyvar == -1)
             tyvar = parent->Typevariable();
         if (tyvar==a_tamgu) {
-            
+
             if (id == a_methods) { //.methods() is the method that returns all methods within a tamgu objet...
                 function = new TamguCallFromCall(id, global, parent);
             }
@@ -3854,7 +3855,7 @@ Tamgu* TamguCode::C_regularcall(x_node* xn, Tamgu* parent) {
 			TamguInstructionLaunch* kbloc = new TamguInstructionLaunch(global, parent);
 			parent = kbloc;
 		}
-        
+
 		TamguPredicate* kx = global->predicates[id];
 		if (kx != NULL && kx->isPredicateMethod()) {
 			kx = (TamguPredicate*)kx->Newinstance(0, parent);
@@ -3869,7 +3870,7 @@ Tamgu* TamguCode::C_regularcall(x_node* xn, Tamgu* parent) {
             }
         }
 
-        
+
         //There could be a tail function to be called with
         if (xn->nodes.back()->token == params)
             ComputePredicateParameters(xn->nodes.back(), kx);
@@ -3976,12 +3977,12 @@ Tamgu* TamguCode::C_regularcall(x_node* xn, Tamgu* parent) {
 
 			//This HAS to be a function declaration...
 			if (call == NULL && isDeclared(id)) {
-                
+
 				if (!framename)
 					call = Declaration(id);
                 else //In this case, we are calling a function from the main frame... _MAIN::call...
                     call = mainframe.Declaration(id);
-                
+
                 if (call != NULL) {
                     if (call->Typevariable() == a_fibre) {
                         call = new TamguCallFibre(global, parent);
@@ -4059,7 +4060,7 @@ Tamgu* TamguCode::C_regularcall(x_node* xn, Tamgu* parent) {
             Traverse(xn->nodes[2], call);
         }
     }
-    
+
 	if (!call->Checkarity()) {
 		stringstream message;
 		message << e_wrong_number_of06 << name << "'";
@@ -4068,7 +4069,7 @@ Tamgu* TamguCode::C_regularcall(x_node* xn, Tamgu* parent) {
 
     if (call->isAlias())
         call->Setstopindex();
-    
+
 	return call;
 }
 
@@ -4112,7 +4113,7 @@ Tamgu* TamguCode::C_conceptfunction(x_node* xn, Tamgu* parent) {
 Tamgu* TamguCode::C_dataassignment(x_node* xn, Tamgu* parent) {
     static tokenizer_result<string> xr;
     static bnf_tamgu bnf;
-    
+
 	string name = xn->nodes[0]->value;
 
 	short id = global->Getid(name);
@@ -4126,7 +4127,7 @@ Tamgu* TamguCode::C_dataassignment(x_node* xn, Tamgu* parent) {
 	//Then, we simply need a method...
 	//We create a call method...
 	//the parameter in this case is the object we need...
-    
+
 	if (global->procedures.check(id)) {
 		stringstream framecode;
 		string var("_");
@@ -4138,10 +4139,10 @@ Tamgu* TamguCode::C_dataassignment(x_node* xn, Tamgu* parent) {
 			framecode << var << "." << xn->nodes[i]->nodes[0]->value << "= _#;";
 		}
 		framecode << "return(" << var << ");";
-        
+
         string s_frame = framecode.str();
         global->tamgu_tokenizer.tokenize<string>(s_frame, xr);
-		
+
 		x_node* xstring = bnf.x_parsing(&xr, FULL);
 		setstartend(xstring, xn);
 
@@ -4251,7 +4252,7 @@ Tamgu* TamguCode::C_taskellcall(x_node* xn, Tamgu* parent) {
                 }
                 ((TamguCall*)call)->curryfied = true;
 			}
-            
+
 			call->CheckTaskellComposition();
 			return call;
 		}
@@ -4261,7 +4262,7 @@ Tamgu* TamguCode::C_taskellcall(x_node* xn, Tamgu* parent) {
                 call = new TamguCallFunction(call, global, parent);
             else
                 call = CreateCallFunction(call, parent);
-            
+
 			if (xn->nodes.size() == 2)
 				Traverse(xn->nodes[1], call);
 
@@ -4310,13 +4311,13 @@ Tamgu* TamguCode::C_framevariable(x_node* xn, Tamgu* parent) {
         message <<  global->Getsymbol(idparentname) << "'";
         throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
     }
-    
+
     short idname;
     if (subxn->token == "variable")
         idname = global->Getid(subxn->nodes[0]->value);
     else
         idname = global->Getid(xn->nodes[0]->value);
-    
+
     Tamgu* dom = Declaror(idname);
     if (dom != NULL && dom->isFrame()) {
         Tamgu* a = dom->Declaration(idname);
@@ -4325,19 +4326,19 @@ Tamgu* TamguCode::C_framevariable(x_node* xn, Tamgu* parent) {
             av = new TamguCallFromFrameVariable(a->Name(), tyvar, global, parent);
         else
             av = new TamguCallFrameVariable(a->Name(), (TamguFrame*)dom, tyvar, global, parent);
-        
+
         if (subxn->nodes.size() != 1) {
             if (global->frames.check(tyvar))
                 global->Pushstack(global->frames[tyvar]);
-            
+
             Traverse(subxn->nodes[1], av);
-            
+
             if (global->frames.check(tyvar))
                 global->Popstack();
         }
         return av;
     }
-        
+
     if (!global->framevariables.check(idname)) {
         stringstream message;
         if (subxn->token == "variable")
@@ -4345,7 +4346,7 @@ Tamgu* TamguCode::C_framevariable(x_node* xn, Tamgu* parent) {
         message << e_this_variable_is02 << xn->nodes[0]->value << "'";
         throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
     }
-    
+
     av = new TamguCallFromFrameVariable(idname, 0, global, parent);
 
     if (subxn->nodes.size() != 1) {
@@ -4362,7 +4363,7 @@ Tamgu* TamguCode::C_variable(x_node* xn, Tamgu* parent) {
         name = xn->nodes[0]->value;
     else
         name = name_space + xn->nodes[0]->value;
-    
+
 	short idname = global->Getid(name);
 
 	Tamgu* av;
@@ -4531,7 +4532,7 @@ Tamgu* TamguCode::C_variable(x_node* xn, Tamgu* parent) {
             global->Popstack();
         }
     }
-    
+
     if (av->isAlias())
         av->Setstopindex();
 
@@ -4565,7 +4566,7 @@ Tamgu* TamguCode::C_indexes(x_node* xn, Tamgu* parent) {
         throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
         return aNULL;
     }
-    
+
     idx->Checkconst();
     short idparent = parent->Typevariable();
     if (global->framecontainers.check(idparent) && idx->function != NULL) {
@@ -4586,14 +4587,14 @@ Tamgu* TamguCode::C_indexes(x_node* xn, Tamgu* parent) {
 
 Tamgu* TamguCode::C_shapeindexes(x_node* xn, Tamgu* parent) {
     size_t nodesize = xn->nodes.size();
-    
+
     if (TestFunction(xn->nodes[nodesize - 1]->token, false))
         nodesize--;
 
 
     TamguShape* idx = new TamguShape(global, parent);
     //The first element is an index
-    
+
     for (long i = 0; i < nodesize; i++)
         Traverse(xn->nodes[i], idx);
 
@@ -4705,17 +4706,17 @@ regex* getposixregex(string& s);
 
 Tamgu* TamguCode::C_pstring(x_node* xn, Tamgu* parent) {
     string thestr = xn->value.substr(1, xn->value.size() - 2);
-    
+
     wregex* wa = wgetposixregex(thestr);
-    
+
     if (wa == NULL) {
         stringstream message;
         message << e_unknown_posix_regular << thestr << "'";
         throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
     }
-    
+
     regex* a = getposixregex(thestr);
-    
+
     Tamguposixregularexpressionconstant* tre = new Tamguposixregularexpressionconstant(thestr, a, wa, global, parent);
     return tre;
 }
@@ -4724,7 +4725,7 @@ Tamgu* TamguCode::C_pstring(x_node* xn, Tamgu* parent) {
 //This a fstring, in which {..} expressions must be parsed again...
 Tamgu* TamguCode::C_fstring(x_node* xn, Tamgu* parent) {
     string thestr = xn->value.substr(1, xn->value.size() - 2);
-    
+
     //First we detect all the {...} expression
     string code;
     Tamgu* action;
@@ -4741,7 +4742,7 @@ Tamgu* TamguCode::C_fstring(x_node* xn, Tamgu* parent) {
         }
         if ((pos - beginning))
             action = new Tamgustring(thestr.substr(beginning, pos - beginning), global, vect);
-        
+
         code = "_nop(" + thestr.substr(pos+1, posc - pos - 1) + ");";
         action = CompileFormat(code, vect);
         if (action->isError()) {
@@ -4753,25 +4754,25 @@ Tamgu* TamguCode::C_fstring(x_node* xn, Tamgu* parent) {
         beginning = posc + 1;
         pos = thestr.find("{", beginning);
     }
-    
+
     if (beginning < (long)thestr.size() -1)
         action = new Tamgustring(thestr.substr(beginning, thestr.size()), global, vect);
-    
+
     return vect;
 }
 
 
 Tamgu* TamguCode::C_rstring(x_node* xn, Tamgu* parent) {
     string thestr = xn->value.substr(1, xn->value.size() - 2);
-    
+
     Au_automate* a = getautomate(thestr);
-    
+
     if (a == NULL) {
         stringstream message;
         message << e_unknown_tamgu_regular << thestr << "'";
         throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
     }
-    
+
     Tamguregularexpressionconstant* tre = new Tamguregularexpressionconstant(thestr, a, global, parent);
     return tre;
 }
@@ -4811,7 +4812,7 @@ Tamgu* TamguCode::C_anumber(x_node* xn, Tamgu* parent) {
                 i = convertfloat(name);
         return new Tamgucomplex(r, i, global, parent);
     }
-    
+
     Tamgu* kv = NULL;
 	BLONG v;
 	if (name.find(".") == -1 && name.find("e") == -1) {
@@ -4873,7 +4874,7 @@ Tamgu* TamguCode::C_axnumber(x_node* xn, Tamgu* parent) {
         else
             kv = global->Provideint(v);
     }
-    
+
     parent->AddInstruction(kv);
     return kv;
 }
@@ -4905,14 +4906,14 @@ Tamgu* TamguCode::C_intentionvector(x_node* xn, Tamgu* kf) {
 	}
 
 	if (xn->nodes.size() == 3) {
-		x_node* nop = new x_node("regularcall", "", xn);		
+		x_node* nop = new x_node("regularcall", "", xn);
 		x_node* nfunc = creationxnode("functioncall", "range", nop);
 		creationxnode("word", "range", nfunc);
 		x_node* param = creationxnode("parameters", "", nop);
 
 		param->nodes.push_back(xn->nodes[0]);
 		param->nodes.push_back(xn->nodes[2]);
-		
+
 
 		if (nstep != NULL)
 			//we add the step
@@ -4994,7 +4995,7 @@ Tamgu* TamguCode::C_intentionwithdouble(x_node* xn, Tamgu* kf) {
 	//[x,y..z]
 
 	x_node* nop = new x_node("regularcall", "", xn);
-	
+
 	x_node* nfunc = creationxnode("functioncall", "range", nop);
 	creationxnode("word", "range", nfunc);
 
@@ -5013,11 +5014,11 @@ Tamgu* TamguCode::C_intentionwithdouble(x_node* xn, Tamgu* kf) {
 			break;
 		}
 	}
-	
+
 
 	TamguInstructionAPPLYOPERATIONROOT* kroot = new TamguInstructionAPPLYOPERATIONROOT(global, kret);
 	TamguInstruction ki;
-	
+
 	short idord = 0;
 
 	Traverse(xn->nodes[0], &ki);
@@ -5029,7 +5030,7 @@ Tamgu* TamguCode::C_intentionwithdouble(x_node* xn, Tamgu* kf) {
 	}
 	else
 		kroot->Stacking(global, ki.instructions[0], false);
-	
+
 	ki.instructions.clear();
 	Traverse(xn->nodes[1], &ki);
 	if (!idord)
@@ -5135,7 +5136,7 @@ Tamgu* TamguCode::C_valvector(x_node* xn, Tamgu* kf) {
 		}
 	}
 
-	
+
 	if (vartype && duplicate) {
 		Tamgu* v = global->newInstance[vartype]->Newinstance(0);
 		v->SetConst();
@@ -5146,7 +5147,7 @@ Tamgu* TamguCode::C_valvector(x_node* xn, Tamgu* kf) {
 		kf->AddInstruction(v);
 		return v;
 	}
-	
+
 	kf->AddInstruction(kvect);
 	return kvect;
 }
@@ -5204,7 +5205,7 @@ Tamgu* TamguCode::C_valmap(x_node* xn, Tamgu* kf) {
 			types |= Returnequ(key->Type());
 		}
 	}
-	
+
 	if (types && !vartype) {
 		//in that case, if all keys are numbers, well we need to take this into account...
 		if ((types&b_allnumbers) == types) {
@@ -5228,7 +5229,7 @@ Tamgu* TamguCode::C_valmap(x_node* xn, Tamgu* kf) {
 	}
 
 	//If we have a map, which can be directly evaluated at this moment (no variable in the map for instance) and we know the type
-	//of the variable to store it in, we do it now...	
+	//of the variable to store it in, we do it now...
 	if (duplicate && vartype) {
 		Tamgu* m = global->newInstance[vartype]->Newinstance(0);
 		m->SetConst();
@@ -5442,7 +5443,7 @@ Tamgu* TamguCode::C_jsonmap(x_node* xn, Tamgu* kf) {
     Tamgumap* kmap = global->Providemap();
     if (kf != NULL)
         kf->AddInstruction(kmap);
-    
+
     short idthread = global->GetThreadid();
     TamguInstruction kbloc;
     string key;
@@ -5568,7 +5569,7 @@ Tamgu* TamguCode::C_affectation(x_node* xn, Tamgu* kf) {
                 }
             }
         }
-        
+
         kf->AddInstruction(ki);
 	}
 	else {
@@ -5643,7 +5644,7 @@ Tamgu* TamguCode::C_affectation(x_node* xn, Tamgu* kf) {
 		}
 		throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 	}
-    
+
     func = ki->Instruction(0);
     if (func != NULL && ki->Size() > 1) {
         kf = ki->Instruction(1);
@@ -5655,22 +5656,22 @@ Tamgu* TamguCode::C_affectation(x_node* xn, Tamgu* kf) {
 
         short typerecipient = func->Typeinfered();
         short typevalue = kf->Typeinfered();
-        
+
         typevalue = typevalue==a_null?a_none:typevalue;
-        
+
         if (typevalue == a_none &&
             kf->isDirectIndex() &&
             global->returnindextypes.check(kf->Typevariable())) {
             typevalue = kf->Typevariable();
             typevalue = global->returnindextypes[typevalue];
         }
-        
+
         if (typerecipient != a_none && !global->Compatiblefull(typerecipient, typevalue)) {
             stringstream message;
             message << "The type: '" << global->Getsymbol(typerecipient) << "' cannot receive a '" << global->Getsymbol(typevalue) << "' as a value";
             throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
         }
-        
+
         if (typerecipient == a_none && func->isDirectIndex()) {
             //We will check if it is a frame container...
             typerecipient = func->Typevariable();
@@ -5689,7 +5690,7 @@ Tamgu* TamguCode::C_affectation(x_node* xn, Tamgu* kf) {
             }
         }
     }
-    
+
 	kfirst->Setstopindex();
 	return ki;
 }
@@ -5812,7 +5813,7 @@ Tamgu* TamguCode::C_multiply(x_node* xn, Tamgu* kf) {
 }
 
 Tamgu* TamguCode::C_operation(x_node* xn, Tamgu* kf) {
-	//The first parameter is the operator	
+	//The first parameter is the operator
     short op = global->string_operators[xn->nodes[0]->value];
 	//The second parameter is the rest of the operation
 	//kf is the TOP instruction
@@ -5860,7 +5861,7 @@ Tamgu* TamguCode::C_operation(x_node* xn, Tamgu* kf) {
 					return kloop;
 				}
 			}
-            
+
             ki = TamguCreateInstruction(NULL, kloop->Action());
             for (size_t i = 0; i < kloop->InstructionSize(); i++)
                 ki->instructions.push_back(kloop->Instruction(i));
@@ -5868,7 +5869,7 @@ Tamgu* TamguCode::C_operation(x_node* xn, Tamgu* kf) {
             kloop->InstructionClear();
             kloop->Putinstruction(0, ki);
             ki->Addparent(kf);
-            
+
             Traverse(xn->nodes[1], kloop);
 			return kloop;
 		}
@@ -5876,7 +5877,7 @@ Tamgu* TamguCode::C_operation(x_node* xn, Tamgu* kf) {
 
 	//we create a new level
     ki = TamguCreateInstruction(NULL, op);
-    
+
 	ki->AddInstruction(kf->Lastinstruction());
 	kf->Putinstruction(kf->InstructionSize() - 1, ki);
 	ki->Addparent(kf);
@@ -5917,7 +5918,7 @@ Tamgu* TamguCode::C_taskcomparison(x_node* xn, Tamgu* kf) {
             message << e_unknown_type << typeret << "'";
             throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
         }
-        
+
         kf->Setreturntype(global->Getid(typeret));
         Traverse(xn->nodes[1], kf);
     }
@@ -5979,7 +5980,7 @@ Tamgu* TamguCode::C_comparison(x_node* xn, Tamgu* kf) {
         message << e_wrong_number_of04;
         throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
     }
-    
+
     return ki;
 }
 
@@ -5999,7 +6000,7 @@ Tamgu* TamguCode::C_uniquecall(x_node* xn, Tamgu* kf) {
     string& name = xn->value;
     //Looking if it is known as function
     Tamgu* kcf = NULL;
-    
+
     if (name == "break")
         kcf = new TamguBreak(global, kf);
     else
@@ -6042,7 +6043,7 @@ Tamgu* TamguCode::C_operationin(x_node* xn, Tamgu* kf) {
 		}
 		else {
 			if (kf->Parent() != NULL) {
-				//In this case, we need to keep the full instruction			
+				//In this case, we need to keep the full instruction
 				last = kf->Parent()->InstructionRemoveLast();
 				kinst = TamguCreateInstruction(kf->Parent(), kcurrentop);
 				kinst->instructions.push_back(kf);
@@ -6067,7 +6068,7 @@ Tamgu* TamguCode::C_alias(x_node* xn, Tamgu* kf) {
     string name = xn->nodes[0]->value;
 
     short idname = global->Getid(name);
-    
+
     if (!kf->isFrame()) {
         if (global->procedures.check(idname)) {
             stringstream message;
@@ -6079,18 +6080,18 @@ Tamgu* TamguCode::C_alias(x_node* xn, Tamgu* kf) {
     TamguAlias* alias = new TamguAlias(idname, global);
     global->Pushstack(alias);
     kf->Declare(idname, alias);
-    
+
     //First we extract our variables...
     for (long i =  1; i < (long)xn->nodes.size() - 1; i++) {
         idname = global->Getid(xn->nodes[i]->value);
         alias->parameters.push_back(idname);
         alias->Declare(idname, aNULL);
     }
-    
+
     xn = xn->nodes.back();
-    
+
     if (xn->token == "wnexpressions") {
-        alias->assignable = true;        
+        alias->assignable = true;
         if (xn->nodes.size() == 1)
             Traverse(xn->nodes[0], alias);
         else {
@@ -6105,14 +6106,14 @@ Tamgu* TamguCode::C_alias(x_node* xn, Tamgu* kf) {
         Traverse(xn, alias);
 
     global->Popstack();
-    
+
     return kf;
 }
 
 Tamgu* TamguCode::C_createfunction(x_node* xn, Tamgu* kf) {
 	short idname;
 	string name = xn->nodes[1]->value;
-    
+
 	if (kf->isFunction()) {
 		stringstream message;
 		message << e_error_you_cannot << name << "'";
@@ -6448,7 +6449,7 @@ Tamgu* TamguCode::C_blocs(x_node* xn, Tamgu* kf) {
                         catch (TamguRaiseError* m) {
                             throw m;
                         }
-                        
+
                         //We then mark the structure as having been consummed already
                         nsub->nodes[0]->value = "$";
                     }
@@ -6468,7 +6469,7 @@ Tamgu* TamguCode::C_blocs(x_node* xn, Tamgu* kf) {
                                         Tamgu* l = aNULL;
                                         if (lsp.Size() == 1)
                                             l = lsp.values[0]->Eval(kf, aNULL, 0);
-                                        
+
                                         if (!l->isFunction()) {
                                             stringstream message;
                                             message << e_wrong_definition_of;
@@ -6565,7 +6566,7 @@ Tamgu* TamguCode::C_extension(x_node* xn, Tamgu* kf) {
         var = new TamguAtomicVariableDeclaration(global, idname, idtypename);
     else
         var = new TamguVariableDeclaration(global, idname, idtypename);
-    
+
 	extension->Declare(idname, var);
 	global->Pushstack(extension);
 
@@ -6712,7 +6713,7 @@ Tamgu* TamguCode::C_frame(x_node* xn, Tamgu* kf) {
         kf = kframe->variables[i];
         global->framevariables[kf->Name()] = kf;
     }
-    
+
 	return kframe;
 }
 
@@ -6720,10 +6721,10 @@ Tamgu* TamguCode::C_parenthetic(x_node* xn, Tamgu* kf) {
     if (kf->Action() != a_blocboolean) {
         TamguInstruction* ki = new TamguSequence(global);
         Tamgu* ke;
-        
+
         for (size_t i = 0; i < xn->nodes.size(); i++)
             Traverse(xn->nodes[i], ki);
-        
+
         if (ki->action == a_bloc && ki->instructions.size() == 1) {
             ke = ki->instructions[0];
             //Either optional is called from within an arithmetic operation, and then we do nothing
@@ -6734,27 +6735,27 @@ Tamgu* TamguCode::C_parenthetic(x_node* xn, Tamgu* kf) {
                     ke->Remove();
                     ke = kroot;
                 }
-                
+
                 if (ki->negation)
                     ke->Setnegation(ki->negation - ke->isNegation());
             }
-            
+
             ki->Remove();
             kf->AddInstruction(ke);
             return ke;
         }
-        
+
         ke = CloningInstruction(ki);
         kf->AddInstruction(ke);
         return ke;
     }
-    
-    
+
+
     if (kf->Action() != a_blocboolean || kf->Size()) {
         Tamgu* kbloc = TamguCreateInstruction(NULL, a_blocboolean);
         for (size_t i = 0; i < xn->nodes.size(); i++)
             Traverse(xn->nodes[i], kbloc);
-        
+
         kbloc = CloningInstruction((TamguInstruction*)kbloc);
         kf->AddInstruction(kbloc);
     }
@@ -6772,7 +6773,7 @@ Tamgu* TamguCode::C_ifcondition(x_node* xn, Tamgu* kf) {
         ktest = new TamguInstructionTaskellIF(global, kf);
     else
         ktest = new TamguInstructionIF(global, kf);
-    
+
 	Traverse(xn->nodes[0], ktest);
 	Tamgu* nxt = ktest->instructions[0];
 
@@ -6819,7 +6820,7 @@ Tamgu* TamguCode::C_ifcondition(x_node* xn, Tamgu* kf) {
 //Basically, if there is an error in the Boolean expression, then we execute the code...
 Tamgu* TamguCode::C_catchon(x_node* xn, Tamgu* kf) {
     TamguInstruction* ktest = new TamguInstructionCatchON(global, kf);
-    
+
     Traverse(xn->nodes[0], ktest);
     Tamgu* nxt = ktest->instructions[0];
 
@@ -6934,7 +6935,7 @@ Tamgu* TamguCode::C_switch(x_node* xn, Tamgu* kf) {
             message << e_we_can_only02;
             throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
         }
-        
+
         kswitch->function = func;
         if (func->Size() != 2) {
             stringstream message;
@@ -6944,7 +6945,7 @@ Tamgu* TamguCode::C_switch(x_node* xn, Tamgu* kf) {
         i = 2;
         kswitch->usekeys = 2;
     }
-    
+
 	for (; i < xn->nodes.size(); i++)
 		Traverse(xn->nodes[i], kswitch);
     if (kswitch->function == NULL) {
@@ -6952,7 +6953,7 @@ Tamgu* TamguCode::C_switch(x_node* xn, Tamgu* kf) {
         for (i = 1; i < kswitch->instructions.size(); i += 2) {
             if (kswitch->instructions[i] == aDEFAULT)
                 break;
-            
+
             if (kswitch->instructions[i]->baseValue() == false) {
                 onlybasevalue = false;
                 break;
@@ -7141,7 +7142,7 @@ Tamgu* TamguCode::C_forin(x_node* xn, Tamgu* kf) {
                         kforin = new TamguInstructionFORINVALUECONTAINER(global, kref);
                     }
 					else {
-						kforin = new TamguInstructionFORIN(global);										
+						kforin = new TamguInstructionFORIN(global);
 						checkforinself = true;
 					}
 				}
@@ -7175,7 +7176,7 @@ Tamgu* TamguCode::C_forin(x_node* xn, Tamgu* kf) {
             }
         }
     }
-    
+
 	if (checkforinself) {
 		if (kcontainer->isVectorContainer() && kcontainer->Function() == NULL) {
 			if (kinloop->Instruction(0)->Function() == NULL) {
@@ -7268,7 +7269,7 @@ Tamgu* TamguCode::C_forin(x_node* xn, Tamgu* kf) {
 		ktrue->InstructionClear();
 		ktrue->Remove();
 	}
-    
+
     if (checkrange) {
         Tamgu* value = kforin->instructions.vecteur[0]->Instruction(0);
         if (value->Function() == NULL) {
@@ -7336,7 +7337,7 @@ Tamgu* TamguCode::C_trycatch(x_node* xn, Tamgu* kf) {
 		name = xn->nodes[1]->value;
 		id = global->Getid(name);
 		declaration = Declaration(id, kf);
-        
+
         if (idcode && declaration==NULL) {
             char ch[10];
             sprintf_s(ch,10,"&%d",idcode);
@@ -7444,7 +7445,7 @@ Tamgu* TamguCode::C_parameters(x_node* xn, Tamgu* kcf) {
 
 		kbloc.instructions.clear();
 	}
-    
+
     insidecall--;
 	return kcf;
 }
@@ -7498,14 +7499,14 @@ Tamgu* TamguCode::C_hbloc(x_node* xn, Tamgu* kf) {
 }
 
 Tamgu* TamguCode::C_taskellbasic(x_node* xn, Tamgu* kf) {
-    
+
     return kf;
 }
 
 Tamgu* TamguCode::C_hdata(x_node* xn, Tamgu* kf) {
 	//we create a frame, whose name is the value of that data structure...
     //The structure has already been analyzed...
-    
+
     string name = xn->nodes[0]->value;
     short idname = global->Getid(name);
     TamguFrame* kframe;
@@ -7544,7 +7545,7 @@ Tamgu* TamguCode::C_hdata(x_node* xn, Tamgu* kf) {
             //We then record this new Frame in our instructions list
             //We also store it at the TOP level, so that others can have access to it...
             mainframe.Declare(kframe->name, kframe);
-            
+
             global->SetCompatibilities(idname);
         }
     }
@@ -7572,20 +7573,20 @@ Tamgu* TamguCode::C_hdatadeclaration(x_node* xn, Tamgu* kf) {
     string name = xn->nodes[0]->value;
     short idname = global->Getid(name);
     long maxnodes = xn->nodes.size();
-    
+
     if (xn->nodes.back()->token == "*deriving") {
         maxnodes--;
         TamguFrame* localframe = NULL;
         int ii;
         if (global->frames.check(idname))
             localframe = global->frames[idname];
-        
+
         string classname;
         for (ii = 0; ii < xn->nodes[maxnodes]->nodes.size(); ii++) {
             classname = xn->nodes[maxnodes]->nodes[ii]->value;
             if (classname == "Show" || classname == "Eq" || classname == "Ord")
                 continue;
-            
+
             short idframe = global->Getid(classname);
             localframe = global->frames[idname];
             if (!global->frames[idframe]->Pushdeclaration(localframe)) {
@@ -7596,7 +7597,7 @@ Tamgu* TamguCode::C_hdatadeclaration(x_node* xn, Tamgu* kf) {
         }
         return kf;
     }
-    
+
 	//we create a frame, whose name is the value of a subframe to the data structure...
 
 	//We map a Taskell data structure into a frame...
@@ -7606,7 +7607,7 @@ Tamgu* TamguCode::C_hdatadeclaration(x_node* xn, Tamgu* kf) {
 
 	vector<string> variables;
 	vector<string> types;
-    
+
 	string nm("d");
     if (maxnodes > 9)
         nm += "00_";
@@ -7689,10 +7690,10 @@ Tamgu* TamguCode::C_hdatadeclaration(x_node* xn, Tamgu* kf) {
 
 	TamguFrame* localframe = NULL;
 	if (deriving) {
-		int ii;		
+		int ii;
 		if (global->frames.check(idname))
 			localframe = global->frames[idname];
-		
+
 		string classname;
 		for (ii = 0; ii < xn->nodes[maxnodes]->nodes.size(); ii++) {
 			classname = xn->nodes[maxnodes]->nodes[ii]->value;
@@ -7772,7 +7773,7 @@ Tamgu* TamguCode::C_hdatadeclaration(x_node* xn, Tamgu* kf) {
 				message << e_unknown_data_structure02 << classname << "'";
 				throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 			}
-			
+
 			if (localframe == NULL) {
 				localframe = new TamguFrame(idname, false, global, &mainframe);
 				Tamguframeseeder::RecordFrame(idname, localframe, global);
@@ -7792,23 +7793,23 @@ Tamgu* TamguCode::C_hdatadeclaration(x_node* xn, Tamgu* kf) {
 			}
 		}
 	}
-	
+
 	if (subdata) {
 		for (i = 0; i < variables.size(); i++)
 			framecode << "function _" << variables[i] << "() :: "<<types[i]<<" { return(" << variables[i] << ");}";
 	}
 
 	framecode << "}";
-	
+
     string s_frame = framecode.str();
     global->tamgu_tokenizer.tokenize<string>(s_frame, xr);
-		
+
 	x_node* xstring = bnf.x_parsing(&xr, FULL);
 	setstartend(xstring, xn);
 
     //In this way, it will be deleted no matter what...
     std::unique_ptr<x_node> dxnode(xstring);
-    
+
 	//Specific case, when the declaration is: <data TOTO = TOTO...>
 	//In this case, we do not want this element to be a subframe of itself...
 	//So we pop up the element in the stack
@@ -7816,7 +7817,7 @@ Tamgu* TamguCode::C_hdatadeclaration(x_node* xn, Tamgu* kf) {
 		global->Popstack();
 
 	Traverse(xstring->nodes[0]->nodes[0], &mainframe);
-	
+
 	//And we put it back...
 	if (idname == kf->Name())
 		global->Pushstack(kf);
@@ -7830,16 +7831,16 @@ Tamgu* TamguCode::C_hdatadeclaration(x_node* xn, Tamgu* kf) {
 }
 
 Tamgu* TamguCode::C_hdeclaration(x_node* xn, Tamgu* kf) {
-    
+
     string name = xn->nodes[0]->value;
     short idname = global->Getid(name);
-    
+
     if (!global->frames.check(idname)) {
         stringstream message;
         message << e_unknown_data_structure << name << "'";
         throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
     }
-    
+
     TamguFrame* kframe = global->frames[idname];
     TamguFrameParameter* fparam = new TamguFrameParameter(kframe->Name(), global, kf);
     Tamgu* var;
@@ -7938,11 +7939,11 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
 	int first = 0;
 	short return_type = -1;
 	bool onepushtoomany = false;
-	
+
 	Tamgu* kprevious = NULL;
 
 	vector<Taskelldeclaration*> localtaskelldeclarations;
-	
+
 	bool clearlocaltaskelldeclarations = false;
 	bool taskelldeclarationfound = false;
 	char concept = 0;
@@ -7965,7 +7966,7 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
             if (kint == NULL)
                 kint = new TamguCallFunctionTaskell(global, kf);
             kint->Init(NULL);
-            
+
             if (return_type != -1 && kint->body->returntype == a_null) {
                 kint->returntype = return_type;
                 kint->body->returntype = return_type;
@@ -7989,7 +7990,7 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
 		xn->nodes.erase(xn->nodes.begin());
 		delete hdecl;
 	}
-	
+
 
 	if (xn->nodes[0]->token == "taskell" ||  taskelldeclarationfound) {
         bool maybe = false;
@@ -8038,7 +8039,7 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
 			}
 
 			kfuncbase = new TamguFunctionLambda(idname, global);
-			
+
 			if (kprevious->Puretaskelldeclaration()) {
 				if (kf->hasDeclaration())
 					kf->Declare(idname, kfuncbase);
@@ -8047,14 +8048,14 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
 			}
 			//we keep the top function as the reference in the declarations list (which will be available throughout the stack)
 			kfuncbase->declarations[idname] = kprevious;
-			kprevious->Addfunction(kfuncbase);			
+			kprevious->Addfunction(kfuncbase);
 		}
 		else {
 			kfuncbase = new TamguFunctionLambda(idname, global);
 			if (kf->hasDeclaration())
 				kf->Declare(idname, kfuncbase);
 			else //in that case, it means that we are returning a function as result...
-				kf->AddInstruction(new TamguGetFunctionLambda(kfuncbase, global));			
+				kf->AddInstruction(new TamguGetFunctionLambda(kfuncbase, global));
 
 			if (concept) {
 				global->concepts[idname] = kfuncbase;
@@ -8080,12 +8081,12 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
 			else
 				global->framemethods[idname] = a;
 		}
-			
+
 
 		kfuncbase->choice = 0;
 		short id;
 		Tamgu* var;
-		
+
 		first++;
 		//If no hdeclared has been declared, we declare each variable as a Self variable
 		if (return_type == -1) {
@@ -8136,7 +8137,7 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
                         kfuncbase->Declare(id, var);
                     }
 				}
-				else {//it is a taskellvector...					
+				else {//it is a taskellvector...
 					Traverse(xn->nodes[0]->nodes[i], kfuncbase);
 					local = kfuncbase->parameters.back();
 					if (argtype == a_vector) {
@@ -8152,7 +8153,7 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
 							message << "The argument: " << (i - first) + 1 << " does not match the hdeclared description";
 							throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 						}
-					}					
+					}
 				}
 			}
 			localtaskelldeclarations.clear();
@@ -8160,7 +8161,7 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
 
         //We check if we have constant arguments...
         kfuncbase->Constanttaskelldeclaration();
-        
+
 		if (concept) {
 			if (concept == 1 && kfuncbase->Size() != 1) {
 				stringstream message;
@@ -8218,7 +8219,7 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
 				else
 					kfuncbase->returntype = return_type;
 			}
-            
+
 			//In that case, we do not need anything else...
 			global->Popstack();
 			return kf;
@@ -8238,7 +8239,7 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
 	TamguLambdaDomain* lambdadom = kfunc->lambdadomain;
 
 	//If we have a hdeclared, then we have a return_type...
-	if (return_type != -1 && kfunc->returntype == a_null) {		
+	if (return_type != -1 && kfunc->returntype == a_null) {
 		if (localtaskelldeclarations.size() != 0) {
 			stringstream message;
 			message << e_only_a_return;
@@ -8280,7 +8281,7 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
 		 println(x+1);
 		 return(x+1);
      }
-		  
+
 	*/
 
 	string xname;
@@ -8292,8 +8293,8 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
 	std::unique_ptr<x_node> aconstant(new x_node("aconstant", "null"));
 	//hrange is a pure expression with no return value: <x <- v, x!=10>...
 	//we flatten the structure, and add the remaining elements...
-	
-	if (xn->nodes[0]->token == "hrange") {		
+
+	if (xn->nodes[0]->token == "hrange") {
 		cpnode->nodes.push_back(aconstant.get());
 		for (i = 0; i < xn->nodes[0]->nodes.size(); i++)
 			cpnode->nodes.push_back(xn->nodes[0]->nodes[i]);
@@ -8542,7 +8543,7 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
 	global->Popstack();
 	if (onepushtoomany)
 		//In that case, we need to copy onto the current function (see TAMGUIAPPLY) all the variables that were declared
-		//in funcbase, for them to be accessible from the code...			
+		//in funcbase, for them to be accessible from the code...
 		global->Popstack();
 
 	return kint;
@@ -8654,12 +8655,12 @@ Tamgu* TamguCode::C_hcompose(x_node* xn, Tamgu* kbase) {
 }
 
 Tamgu* TamguCode::C_hfunctioncall(x_node* xn, Tamgu* kf) {
-	//We rebuild a complete tree, in order to benefit from the regular parsing of a function call		
+	//We rebuild a complete tree, in order to benefit from the regular parsing of a function call
 	if (xn->nodes[0]->token == "telque") {
 		TamguInstruction ai;
-		Traverse(xn->nodes[0], &ai);		
+		Traverse(xn->nodes[0], &ai);
 		Tamgu* calllocal = ai.instructions[0];
-		
+
 		TamguFunctionLambda* kfunc = ((TamguCallFunctionTaskell*)calllocal)->body;
 		TamguLambdaDomain* lambdadom = kfunc->lambdadomain;
 
@@ -8734,7 +8735,7 @@ Tamgu* TamguCode::C_hfunctioncall(x_node* xn, Tamgu* kf) {
 		return kcall;
 
 	}
-	
+
 	nop->token = "taskellcall";
 	x_node* nfunc = creationxnode("functioncall", xn->nodes[0]->value, nop);
 	nfunc->nodes.push_back(xn->nodes[0]);
@@ -8782,10 +8783,10 @@ Tamgu* TamguCode::C_hfunctioncall(x_node* xn, Tamgu* kf) {
 x_node* Composecalls(x_node* nop, x_node* xn) {
 	x_node* nfunc = NULL;
 	for (long i = 0; i < xn->nodes.size(); i++) {
-		if (nfunc != NULL) {			
+		if (nfunc != NULL) {
 			x_node* param = creationxnode("parameters", "", nop);
 			nop = creationxnode("taskellcall", "", param);
-		}		
+		}
 		if (xn->nodes[i]->token == "power")
 			nfunc = creationxnode("power", xn->nodes[i]->value, nop);
 		else
@@ -8975,18 +8976,18 @@ Tamgu* TamguCode::C_mapping(x_node* xn, Tamgu* kbase) {
 					Traverse(&nvar, (Tamgu*)kcall);
 				}
 				else { // a function call
-					x_node* nop = new x_node("taskellcall", "", xn);					
+					x_node* nop = new x_node("taskellcall", "", xn);
 					x_node* nfunc = Composecalls(nop, xn->nodes[0]->nodes[0]);
 
-					x_node* param = creationxnode("parameters", "", nfunc);				
+					x_node* param = creationxnode("parameters", "", nfunc);
 
 					for (int i = 1; i < xn->nodes[0]->nodes.size(); i++)
 						param->nodes.push_back(xn->nodes[0]->nodes[i]);
 
-					param->nodes.push_back(&nvar);					
+					param->nodes.push_back(&nvar);
 
 					Traverse(nop, kret);
-					
+
 					param->nodes.clear();
 					delete nop;
 				}
@@ -9058,7 +9059,7 @@ Tamgu* TamguCode::C_taskellalltrue(x_node* xn, Tamgu* kbase) {
 				param->nodes.push_back(xn->nodes[1]->nodes[i]);
 
 			param->nodes.push_back(&nvar);
-			
+
 			Traverse(nop, ktest);
 
 			param->nodes.clear();
@@ -9076,7 +9077,7 @@ Tamgu* TamguCode::C_taskellalltrue(x_node* xn, Tamgu* kbase) {
         ktest->AddInstruction(aBREAKTRUE);
         lambdadom->name = 2; //the name 2 corresponds to a ANY
     }
-    
+
 	global->Popstack();
 	global->Popstack();
 	return kfunc;
@@ -9095,20 +9096,20 @@ Tamgu* TamguCode::C_taskellboolchecking(x_node* xn, Tamgu* kbase) {
     TamguLambdaDomain* lambdadom = kfunc->lambdadomain;
     global->Pushstack(kfunc);
     global->Pushstack(lambdadom);
-    
+
     char buff[50];
     sprintf_s(buff, 50, "&%s;", xn->nodes[0]->value.c_str());
     //we need first to create a variable...
     x_node nvar("variable", buff, xn);
     creationxnode("word", nvar.value, &nvar);
-    
+
     BrowseVariable(&nvar, lambdadom);
     Traverse(xn->nodes[1], lambdadom);
-    
+
     kfunc->choice = 1;
     TamguInstructionTaskellIF* ktest = new TamguInstructionTaskellIF(global, kfunc);
     Traverse(&nvar, ktest); // we add our variable to compare with
-    
+
     if (xn->nodes[0]->value == "and") {
         //Whenever a value is not true, we break
         ktest->AddInstruction(aNULL);
@@ -9125,13 +9126,13 @@ Tamgu* TamguCode::C_taskellboolchecking(x_node* xn, Tamgu* kbase) {
             lambdadom->name = 3; //the name 3 corresponds to a XOR
         }
     }
-    
+
     global->Popstack();
     global->Popstack();
     return kfunc;
-    
+
 }
-    
+
 
 Tamgu* TamguCode::C_folding(x_node* xn, Tamgu* kbase) {
 	TamguCallFunctionTaskell* kf;
@@ -9237,7 +9238,7 @@ Tamgu* TamguCode::C_folding(x_node* xn, Tamgu* kbase) {
 			x_node* nfunc = Composecalls(nop, xn->nodes[1]->nodes[0]);
 
 			x_node* param = creationxnode("parameters", "", nfunc);
-			
+
 			for (int i = 1; i < xn->nodes[1]->nodes.size(); i++)
 				param->nodes.push_back(xn->nodes[1]->nodes[i]);
 
@@ -9249,7 +9250,7 @@ Tamgu* TamguCode::C_folding(x_node* xn, Tamgu* kbase) {
 				param->nodes.push_back(&accuvar);
 				param->nodes.push_back(&nvar);
 			}
-			
+
 
 			Traverse(nop, kret);
 
@@ -9317,7 +9318,7 @@ Tamgu* TamguCode::C_zipping(x_node* xn, Tamgu* kbase) {
 		if (xn->nodes[0]->token == "operator") {
 			short op = global->string_operators[xn->nodes[0]->value];
 			if (op >= a_plus && op <= a_add) {
-				TamguInstructionAPPLYOPERATION kins(NULL);				
+				TamguInstructionAPPLYOPERATION kins(NULL);
 				kins.action = op;
 				for (i = 0; i < nvars.size(); i++) {
 					Traverse(nvars[i], &kins);
@@ -9349,12 +9350,12 @@ Tamgu* TamguCode::C_zipping(x_node* xn, Tamgu* kbase) {
 				x_node* nfunc = Composecalls(nop, xn->nodes[0]->nodes[0]);
 
 				x_node* param = creationxnode("parameters", "", nfunc);
-				
+
 				for (i = 1; i < xn->nodes[0]->nodes.size(); i++)
 					param->nodes.push_back(xn->nodes[0]->nodes[i]);
 
 				for (i = 0; i < nvars.size(); i++)
-					param->nodes.push_back(nvars[i]);				
+					param->nodes.push_back(nvars[i]);
 
 				Traverse(nop, kret);
 
@@ -9463,7 +9464,7 @@ Tamgu* TamguCode::C_filtering(x_node* xn, Tamgu* kbase) {
 
 	if (xn->nodes[0]->value == "dropWhile") {
 		creationxnode("word", nvardrop.value, &nvardrop);
-				
+
 		TamguVariableDeclaration* var = new TamguTaskellVariableDeclaration(global, a_drop, a_boolean, false, false, NULL);
 		var->initialization = aTRUE;
 		lambdadom->Declare(a_drop, var);
@@ -9490,7 +9491,7 @@ Tamgu* TamguCode::C_filtering(x_node* xn, Tamgu* kbase) {
 		var = new TamguPLUSPLUS(global, var);
 		//Then we need to add our test
 		ktest = new TamguInstructionTaskellIF(global, kfunc);
-		
+
 		if (xn->nodes[0]->value == "drop")
 			ki = TamguCreateInstruction(ktest, a_more);
 		else
@@ -9529,12 +9530,12 @@ Tamgu* TamguCode::C_filtering(x_node* xn, Tamgu* kbase) {
 				x_node* nfunc = Composecalls(nop, xn->nodes[1]->nodes[0]);
 
 				x_node* param = creationxnode("parameters", "", nfunc);
-				
+
 				for (int i = 1; i < xn->nodes[1]->nodes.size(); i++)
 					param->nodes.push_back(xn->nodes[1]->nodes[i]);
 
 				param->nodes.push_back(&nvar);
-				
+
 				Traverse(nop, ktest);
 
 				param->nodes.clear();
@@ -9635,7 +9636,7 @@ Tamgu* TamguCode::C_flipping(x_node* xn, Tamgu* kbase) {
 
 			if (param != NULL)
 				param->nodes.clear();
-			
+
 			delete nop;
 		}
 	}
@@ -9791,7 +9792,7 @@ Tamgu* TamguCode::C_taskellexpression(x_node* xn, Tamgu* kf) {
 		id = global->Getid(xn->nodes[0]->value);
         if (id == a_universal)
             return aUNIVERSAL;
-        
+
 		if (kf->isDeclared(id)) {
 			//In this case, we do not need to return an error
 			//It is a case construction within a function...
@@ -9815,7 +9816,7 @@ Tamgu* TamguCode::C_taskellmap(x_node* xn, Tamgu* kf) {
     char ch = kf->Choice(); //Only the top Taskell Vector can be an argument
 
     TamguConstmap* kmap;
-    
+
     if (ch == 10) //In this case, we do not want this map to be integrated as an instruction into the lambda...
         kmap = new TamguConstmap(global);
     else
@@ -9844,9 +9845,9 @@ Tamgu* TamguCode::C_taskellmap(x_node* xn, Tamgu* kf) {
 Tamgu* TamguCode::C_taskellvector(x_node* xn, Tamgu* kf) {
 
     char ch = kf->Choice(); //Only the top Taskell Vector can be an argument
-	
+
     TamguConstvector* kvect;
-    
+
     if (ch == 10) //In this case, we do not want this vector to be an instruction in kf (which is a lambda)
         kvect = new TamguConstvector(global);
     else
@@ -9938,7 +9939,7 @@ Tamgu* TamguCode::C_taskellcase(x_node* xn, Tamgu* kf) {
 	for (int i = 1; i < xn->nodes.size(); i++) {
 		if (xn->nodes[i]->token == "taskellcaseotherwise")
 			break;
-		
+
 		xname = xn->nodes[i]->nodes[0]->token;
 		if (xname == "valvectortail") {
 			//In this case, we need to create a function, in which everything is going to get executed
@@ -9988,7 +9989,7 @@ Tamgu* TamguCode::C_taskellcase(x_node* xn, Tamgu* kf) {
 					kret->AddInstruction(CloningInstruction(thetest));
 			}
 			break;
-		}				
+		}
 		//It should a be match between two values, it will be a match
 		thetest = TamguCreateInstruction(ktest, a_match);
 		Traverse(xn->nodes[0], thetest);
@@ -10033,7 +10034,7 @@ Tamgu* TamguCode::C_guard(x_node* xn, Tamgu* kf) {
 
 	TamguInstructionTaskellMainCASE* ktest = new TamguInstructionTaskellMainCASE(global);
 
-	while (xn->nodes.size() == 3) {		
+	while (xn->nodes.size() == 3) {
 		Traverse(xn->nodes[0], ktest);//the comparison
 		Traverse(xn->nodes[1], ktest); //then the value
 		xn = xn->nodes.back();
@@ -10137,11 +10138,11 @@ Tamgu* TamguCode::C_predicatefact(x_node* xn, Tamgu* kf) {
     long nbpredicates = 0;
     if (kpcont->rules.find(name) != kpcont->rules.end())
         nbpredicates = kpcont->rules[name].size();
-    
+
     char buff[100];
     sprintf_s(buff,100,"%ld_%d",nbpredicates,name);
     currentpredicatename = buff;
-    
+
 	global->predicatevariables.clear();
     bool previous = global->Activategarbage(false);
 	if (global->predicate_definitions.find(name) == global->predicate_definitions.end() &&
@@ -10161,7 +10162,7 @@ Tamgu* TamguCode::C_predicatefact(x_node* xn, Tamgu* kf) {
 
 		if (xn->nodes[0]->nodes.back()->token == "predicateparameters")
 			ComputePredicateParameters(xn->nodes[0]->nodes.back(), kcf);
-        
+
         if (kcf->isUnified(NULL)) {
             TamguPredicate* pv;
             if (sname == "predicate") {
@@ -10170,10 +10171,10 @@ Tamgu* TamguCode::C_predicatefact(x_node* xn, Tamgu* kf) {
                 pv->parameters = kcf->parameters;
                 if (pv->Stringpredicatekey(sname))
                     global->knowledgebase_on_first[sname].push_back(pv);
-                
+
                 if (pv->Stringpredicatekeysecond(sname))
                     global->knowledgebase_on_second[sname].push_back(pv);
-                
+
                 if (pv->Stringpredicatekeythird(sname))
                     global->knowledgebase_on_third[sname].push_back(pv);
             }
@@ -10181,18 +10182,18 @@ Tamgu* TamguCode::C_predicatefact(x_node* xn, Tamgu* kf) {
                 pv = new TamguDependency(global, ((TamguDependencyKnowledgeBase*)kcf)->features, name, 0);
                 pv->parameters = kcf->parameters;
             }
-            
+
             kcf->parameters.clear();
             kcf->Release();
             kbloc->Remove();
 
             global->knowledgebase[name].push_back(pv);
             pv->Setreference();
-            
+
             global->Activategarbage(previous);
             return pv;
         }
-        
+
         //We want to add our value to the knowlegde base
         kcf->add = true;
         kf->AddInstruction(kbloc);
@@ -10206,7 +10207,7 @@ Tamgu* TamguCode::C_predicatefact(x_node* xn, Tamgu* kf) {
 
 	if (xn->nodes[0]->nodes.back()->token == "predicateparameters")
 		ComputePredicateParameters(xn->nodes[0]->nodes.back(), kcf);
-    
+
 	kbloc->head = kcf;
 
 	TamguPredicateRuleElement* kblocelement = new TamguPredicateRuleElement(global, NULL);
@@ -10231,25 +10232,25 @@ Tamgu* TamguCode::C_rawfact(x_node* xn, Tamgu* kf) {
     bool previous = global->Activategarbage(false);
 
     TamguPredicate* pv = new TamguPredicate(global, name);
-    
+
     for (long i = 0; i < xn->nodes[1]->nodes.size(); i++)
         Traverse(xn->nodes[1]->nodes[i], pv);
-    
+
     global->knowledgebase[name].push_back(pv);
-    
+
     string argument_key;
     if (pv->Stringpredicatekey(argument_key))
         global->knowledgebase_on_first[argument_key].push_back(pv);
-    
+
     if (pv->Stringpredicatekeysecond(argument_key))
         global->knowledgebase_on_second[argument_key].push_back(pv);
-    
+
     if (pv->Stringpredicatekeythird(argument_key))
         global->knowledgebase_on_third[argument_key].push_back(pv);
-    
+
     global->Activategarbage(previous);
     pv->Setreference();
-    
+
     return pv;
 }
 
@@ -10260,7 +10261,7 @@ Tamgu* TamguCode::C_rawfact(x_node* xn, Tamgu* kf) {
 
 Tamgu* TamguCode::C_dcg(x_node* xn, Tamgu* kf) {
 
-	//the container is where the rules are stored... 
+	//the container is where the rules are stored...
 	TamguPredicateContainer* kpcont = global->Predicatecontainer();
 	//We extract our predicate head name
 	string sname = xn->nodes[0]->nodes[0]->value;
@@ -10286,7 +10287,7 @@ Tamgu* TamguCode::C_dcg(x_node* xn, Tamgu* kf) {
 
 	//Two cases: First it is a rule of the sort: det --> [a]...
 	if (xn->nodes[1]->token == "finaltoken") {
-		//Terminal rule		
+		//Terminal rule
 		TamguConstvector* kvect = new TamguConstvector(global, kcf);
 		//We add our value...
 		Traverse(xn->nodes[1], kvect);
@@ -10367,7 +10368,7 @@ Tamgu* TamguCode::C_dcg(x_node* xn, Tamgu* kf) {
 
 	//the head...
 	//We will implement the head as: predicate(??S0,??Sn...) where n is the number of elements in our expressions
-	// p --> sn,vp,pp. here n is 3... p(??S0,??S3...)	
+	// p --> sn,vp,pp. here n is 3... p(??S0,??S3...)
 	sname = buff;
 	//We add our first variable
 	TamguParsePredicateDCGVariable(sname, kcf, true);
@@ -10553,7 +10554,7 @@ Tamgu* TamguCode::C_dependencyresult(x_node* xn, Tamgu* kpredelement) {
 				Traverse(xn->nodes[i], kpredelement);
 		}
 	}
-	
+
 	return kpredelement;
 }
 
@@ -10651,7 +10652,7 @@ Tamgu* TamguCode::C_dependencyrule(x_node* xn, Tamgu* kf) {
 
 	Traverse(xn->nodes.back(), kpredelement);
 
-	//the container retrieved by Predicatecontainer is where the rules are stored... 
+	//the container retrieved by Predicatecontainer is where the rules are stored...
 	krule->Addtail(global->Predicatecontainer(), kblocelement);
 	return krule;
 }
@@ -10707,7 +10708,7 @@ Tamgu* TamguCode::C_predicateexpression(x_node* xn, Tamgu* kf) {
 bool Mergingfeatures(Tamgumapss* nodes, Tamgumapss* novel) {
 	hmap<string, string>::iterator it;
 	for (it = novel->values.begin(); it != novel->values.end(); it++) {
-		if (nodes->values.find(it->first) == nodes->values.end()) 
+		if (nodes->values.find(it->first) == nodes->values.end())
 			nodes->values[it->first] = it->second;
 		else {
 			if (nodes->values[it->first] != it->second)
@@ -10743,7 +10744,7 @@ Tamgu* TamguCode::C_predicatevariable(x_node* xn, Tamgu* kf) {
 				stringstream message;
 				message << e_non_instanciated_variable << name << "' ";
 				throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
-			}						
+			}
 		}
 
 		if (xn->nodes.size() == sz) {
@@ -10752,7 +10753,7 @@ Tamgu* TamguCode::C_predicatevariable(x_node* xn, Tamgu* kf) {
 				Traverse(xn->nodes[sz - 1], acs);
 				return acs;
 			}
-			
+
 
 			if (featureassignment == 1) {
 				stringstream message;
@@ -10779,7 +10780,7 @@ Tamgu* TamguCode::C_predicatevariable(x_node* xn, Tamgu* kf) {
 					message << e_incoherent_feature_testing;
 					throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 				}
-			}			
+			}
 
 			featureassignment = 0;
 		}
@@ -10863,12 +10864,12 @@ Tamgu* TamguCode::C_annotationrule(x_node* xn, Tamgu* kf) {
     //There is only one rule section...
     if (global->gTheAnnotationRules==NULL)
         global->gTheAnnotationRules=new An_rulesConst(global); //this one cannot be deleted through a Resetreference...
-    
+
 
     //A rule is composed of a category, a context and different annotation...
-    
+
     global->gTheAnnotationRules->getpos();
-    
+
     //Then the rest...
     An_rule* krule=new An_rule;
     short ipos=0;
@@ -10886,24 +10887,24 @@ Tamgu* TamguCode::C_annotationrule(x_node* xn, Tamgu* kf) {
         }
         ipos=1;
     }
-    
+
     s_utf8_to_unicode(krule->category, USTR(xn->nodes[ipos]->value), xn->nodes[ipos]->value.size());
     ++ipos;
-    
+
     for (long i=ipos;i<xn->nodes.size();i++)
         Traverse(xn->nodes[i], krule);
-    
+
     //Then we add our rule to gTheAnnotationRules
     krule->last->status|=an_end;
     if (krule->lexicon==false)
         krule->scanend();
-    
+
     if (!global->gTheAnnotationRules->storerule(krule)) {
         stringstream message;
         message << e_unknown_expression02 << xn->nodes[ipos-1]->value;
         throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
     }
-    
+
     return krule;
 }
 
@@ -10917,18 +10918,18 @@ Tamgu* TamguCode::C_annotation(x_node* xn, Tamgu* kf) {
         global->gTheAnnotationRules->negation=false;
         return kf;
     }
-    
+
     Traverse(xn->nodes[0], kf);
     return kf;
 }
 
 Tamgu* TamguCode::C_listoftokens(x_node* xn, Tamgu* kf) {
-    
+
     An_rule* krule=(An_rule*)kf;
     long mx=xn->nodes.size();
-    
+
     An_state* next=global->gTheAnnotationRules->newstate();
-    
+
     char kleene=0;
     long maxkleene=0;
     if (xn->nodes.back()->token=="kleene") {
@@ -10947,7 +10948,7 @@ Tamgu* TamguCode::C_listoftokens(x_node* xn, Tamgu* kf) {
             krule->next=NULL;
             continue;
         }
-        
+
         An_rule rl;
         Traverse(xn->nodes[i], &rl);
         for (long a=0;a<rl.first->arcs.size();a++)
@@ -10976,7 +10977,7 @@ Tamgu* TamguCode::C_listoftokens(x_node* xn, Tamgu* kf) {
             epsilon->state->setfinal();
         }
     }
-    
+
     krule->last=next;
     return krule;
 }
@@ -10984,7 +10985,7 @@ Tamgu* TamguCode::C_listoftokens(x_node* xn, Tamgu* kf) {
 Tamgu* TamguCode::C_sequenceoftokens(x_node* xn, Tamgu* kf) {
     An_rule* krule=(An_rule*)kf;
     long mx=xn->nodes.size();
-    
+
     char kleene=0;
     long maxkleene=0;
     if (xn->nodes.back()->token=="kleene") {
@@ -10997,7 +10998,7 @@ Tamgu* TamguCode::C_sequenceoftokens(x_node* xn, Tamgu* kf) {
     An_state* current=krule->last;
     for (long i=0;i<mx;i++)
         Traverse(xn->nodes[i], krule);
-   
+
     if (kleene) {
         An_state* next=krule->last;
         next->setfinal();
@@ -11049,10 +11050,10 @@ Tamgu* TamguCode::C_removetokens(x_node* xn, Tamgu* kf) {
 
 Tamgu* TamguCode::C_token(x_node* xn, Tamgu* kf) {
     An_rule* krule=(An_rule*)kf;
-    
+
     An_any* a=NULL;
     bool first=true;
-    
+
     if (xn->nodes[0]->token=="meta") {
         a = new An_meta(xn->nodes[0]->value[1]);
     }
@@ -11068,7 +11069,7 @@ Tamgu* TamguCode::C_token(x_node* xn, Tamgu* kf) {
                 throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
             }
         }
-    
+
 #ifdef Tamgu_REGEX
         else
             if (xn->nodes[0]->token=="regex") {
@@ -11102,7 +11103,7 @@ Tamgu* TamguCode::C_token(x_node* xn, Tamgu* kf) {
                     else
                         a = new An_call(kfunc, true); // in this case, we need two variables
                     TamguCallFunction* call=&((An_call*)a)->call;
-                    
+
                     for (long i=1;i<sub->nodes.size();i++)
                         Traverse(sub->nodes[i], call);
 
@@ -11160,19 +11161,19 @@ Tamgu* TamguCode::C_token(x_node* xn, Tamgu* kf) {
                     }
                 }
     }
-    
+
     if (xn->nodes.size()==1) {
         krule->addarc(a,first);
         return krule;
     }
-    
-    
+
+
     An_state* current=krule->last;
     char kleene=xn->nodes[1]->value[0];
     long maxkleene=0;
     if (xn->nodes[1]->nodes.size())
         maxkleene=convertinteger(xn->nodes[1]->nodes[0]->value);
-    
+
     An_arc* arc=krule->addarc(a,false);
     //The arc loops on itself...
     arc->state->arcs.push_back(arc);
@@ -11182,14 +11183,14 @@ Tamgu* TamguCode::C_token(x_node* xn, Tamgu* kf) {
         arc->state->setmax(maxkleene);
         krule->hasmax=true;
     }
-    
+
     if (kleene=='*') {
         //In this case, we create an epsilon to this state
         An_arc* epsilon=global->gTheAnnotationRules->newarc(new An_epsilon,arc->state);
         current->arcs.push_back(epsilon);
         epsilon->state->setfinal();
     }
-    
+
     return krule;
 }
 
@@ -11208,10 +11209,10 @@ Tamgu* TamguCode::C_tamgulispquote(x_node* xn, Tamgu* parent) {
         kf->Setaction(a_quote);
         parent->push(kf);
     }
-    
+
     for (long i = 0; i < xn->nodes.size(); i++)
         Traverse(xn->nodes[i], kf);
-    
+
     return kf;
 }
 
@@ -11273,7 +11274,7 @@ Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
                     nx.nodes.clear();
                     throw a;
                 }
-                
+
                 //if the value stored in systemfunctions is true, then it means that we have
                 //a local call otherwise, it means that the function should be called twice.
                 //At compile time and at run time
@@ -11289,11 +11290,11 @@ Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
             kf = global->Providelisp();
         parent->push(kf);
     }
-    
+
     long i;
     for (i = 0; i < xn->nodes.size(); i++)
         Traverse(xn->nodes[i], kf);
-    
+
     //The next section deals with idea of precompiling some function calls
     //there are three cases, when we do not want to evaluate a specific list
     //defun: if the list is 3, then kf is the list of parameters, no evaluation
@@ -11310,8 +11311,8 @@ Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
         if (n == a_defun && i == 3)
             return kf;
     }
-    
-    
+
+
     if (kf->Size()) {
         a = kf->getvalue(0);
         n = a->Name();
@@ -11327,7 +11328,7 @@ Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
             }
             return kf;
         }
-        
+
         if (n > a_lisp && a->Type() == a_atom) {
             //This is a call to a function
             if (isDeclared(n)) {
@@ -11356,7 +11357,7 @@ Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
             }
         }
     }
-    
+
     return kf;
 }
 //------------------------------------------------------------------------------------------------------
@@ -11366,11 +11367,11 @@ Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
 bool TamguCode::Load(tokenizer_result<string>& xr) {
     if (xr.size() == 0)
         return false;
-    
+
 	short currentspaceid = global->spaceid;
 	bnf_tamgu* previous = global->currentbnf;
     TamguRecordFile(filename, this, global);
-	
+
     global->spaceid = idcode;
 
 	bnf_tamgu bnf;
@@ -11397,12 +11398,12 @@ bool TamguCode::Load(tokenizer_result<string>& xr) {
     VECTE<Tamgu*> stack;
     stack = global->threads[0].stack;
     global->threads[0].stack.clear();
-    
+
 	global->Pushstack(&mainframe);
 	Traverse(xn, &mainframe);
 	global->Popstack();
     global->threads[0].stack = stack;
-    
+
 	global->currentbnf = previous;
 	global->spaceid = currentspaceid;
 
@@ -11431,14 +11432,14 @@ bool TamguCode::CompileFull(string& body, vector<TamguFullError*>& errors) {
     bnf_tamgu bnf;
 
     InitWindowMode();
-    
+
     global->threads[0].message.str("");
     global->threads[0].message.clear();
-    
+
     //we store our TamguCode also as an Tamgutamgu...
     filename = NormalizeFileName(filename);
     Tamgu* main = TamguRecordFile(filename, this, global);
-    
+
     global->CreateSystemVariable(main, a_mainframe, a_tamgu);
 
     global->spaceid = idcode;
@@ -11453,10 +11454,10 @@ bool TamguCode::CompileFull(string& body, vector<TamguFullError*>& errors) {
 
     body += "\n";
     global->tamgu_tokenizer.tokenize<string>(body, xr);
-    
+
     if (!xr.size())
         return false;
-    
+
     global->lineerror = -1;
 
 
@@ -11476,7 +11477,7 @@ bool TamguCode::CompileFull(string& body, vector<TamguFullError*>& errors) {
                 err = new TamguFullError(bnf.x_errormsg(bnf.errornumber), filename, xr.bpos[pos], xr.cpos[pos], ln);
             else
                 err = new TamguFullError(bnf.labelerror, filename, xr.bpos[pos], xr.cpos[pos], ln);
-            
+
             errors.push_back(err);
             return false;
         }
@@ -11485,7 +11486,7 @@ bool TamguCode::CompileFull(string& body, vector<TamguFullError*>& errors) {
         bnf.baseline = global->linereference;
         xn = bnf.x_parsing(&xr, FULL);
     }
-    
+
     if (xn == NULL) {
         TamguFullError* err;
         long pos;
@@ -11493,23 +11494,23 @@ bool TamguCode::CompileFull(string& body, vector<TamguFullError*>& errors) {
         while (xn == NULL) {
             pos = bnf.currentpos;
             ln = xr.stackln[pos];
-            
+
             if (bnf.errornumber != -1)
                 err = new TamguFullError(bnf.x_errormsg(bnf.errornumber), filename, xr.bpos[pos], xr.cpos[pos], ln);
             else
                 err = new TamguFullError(bnf.labelerror, filename, xr.bpos[pos], xr.cpos[pos], ln);
-            
+
             errors.push_back(err);
-            
+
             while (pos < xr.stackln.size() && xr.stackln[pos] <= ln) pos++;
-            
+
             if (pos == xr.stackln.size())
                 break;
-            
+
             bnf.currentpos = pos;
             xn = bnf.x_call_again(&xr, FULL);
         }
-        
+
         if (xn != NULL)
             delete xn;
         return false;
@@ -11519,7 +11520,7 @@ bool TamguCode::CompileFull(string& body, vector<TamguFullError*>& errors) {
     global->currentbnf = &bnf;
 
     fullcompilemode = true;
-    
+
     global->Pushstack(&mainframe);
     char loop_on_error = 1;
     while (loop_on_error) {
@@ -11544,7 +11545,7 @@ bool TamguCode::CompileFull(string& body, vector<TamguFullError*>& errors) {
 
     global->Popstack();
     fullcompilemode = false;
-    
+
     delete xn;
     return true;
 }
@@ -11555,14 +11556,14 @@ bool TamguCode::Compile(string& body) {
     bnf_tamgu bnf;
 
     InitWindowMode();
-    
+
     global->threads[0].message.str("");
     global->threads[0].message.clear();
-    
+
 	//we store our TamguCode also as an Tamgutamgu...
 	filename = NormalizeFileName(filename);
     Tamgu* main = TamguRecordFile(filename, this, global);
-    
+
     global->CreateSystemVariable(main, a_mainframe, a_tamgu);
 
 	global->spaceid = idcode;
@@ -11574,21 +11575,21 @@ bool TamguCode::Compile(string& body) {
         body[0] = '/';
         body[1] = '/';
     }
-    
+
     std::chrono::high_resolution_clock::time_point before;
     std::chrono::high_resolution_clock::time_point after;
 
     before = std::chrono::high_resolution_clock::now();
-    
+
     body += "\n";
     global->tamgu_tokenizer.tokenize<string>(body, xr);
-    
+
     after = std::chrono::high_resolution_clock::now();
     double dtok = std::chrono::duration_cast<std::chrono::milliseconds>( after - before ).count();
-            
+
     if (!xr.size())
         return false;
-    
+
 	global->lineerror = -1;
 
 
@@ -11618,7 +11619,7 @@ bool TamguCode::Compile(string& body) {
         bnf.baseline = global->linereference;
         xn = bnf.x_parsing(&xr, FULL);
     }
-    
+
     if (xn == NULL) {
         cerr << " in " << filename << endl;
         stringstream& message = global->threads[0].message;
@@ -11632,7 +11633,7 @@ bool TamguCode::Compile(string& body) {
         global->Returnerror(message.str(), global->GetThreadid());
         return false;
     }
-    
+
 	firstinstruction = mainframe.instructions.size();
     global->currentbnf = &bnf;
 
@@ -11684,12 +11685,12 @@ Tamgu* TamguCode::Compilefunction(string& body, short idthread) {
 	//we store our TamguCode also as an Tamgutamgu...
 	static bnf_tamgu bnf;
     static tokenizer_result<string> xr;
-    
+
     global->threads[0].message.str("");
     global->threads[0].message.clear();
-    
+
     Locking _lock(global->_parselock);
-    
+
     bnf.baseline = global->linereference;
     global->tamgu_tokenizer.tokenize<string>(body, xr);
     if (xr.size() == 0) {
@@ -11756,12 +11757,12 @@ Tamgu* TamguCode::CompileExpression(string& body, short idthread) {
     //we store our TamguCode also as an Tamgutamgu...
     static bnf_tamgu bnf;
     static tokenizer_result<string> xr;
-    
+
     global->threads[0].message.str("");
     global->threads[0].message.clear();
-    
+
     Locking _lock(global->_parselock);
-    
+
     bnf.baseline = global->linereference;
     global->tamgu_tokenizer.tokenize<string>(body, xr);
     if (xr.size() == 0) {
@@ -11875,5 +11876,4 @@ Tamgu* TamguCode::CompileFormat(string& body, Tamgu* parent) {
     delete xn;
     return compiled;
 }
-
 
