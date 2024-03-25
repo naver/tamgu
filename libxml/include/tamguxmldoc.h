@@ -149,7 +149,7 @@ class Tamguxmldoc : public TamguObject {
         return aITERNULL;
     }
 
-    static void AddMethod(TamguGlobal* g, string name, xmldocMethod func, unsigned long arity, string infos);
+    static void AddMethod(TamguGlobal* g, string name, xmldocMethod func, unsigned long arity, string infos, short returntype);
     static bool InitialisationModule(TamguGlobal* g, string version);
 
 	

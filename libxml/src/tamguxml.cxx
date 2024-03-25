@@ -61,15 +61,17 @@ short Tamguxml::idtype = 0;
 
 
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
-void Tamguxml::AddMethod(TamguGlobal* global, string name, xmlMethod func, unsigned long arity, string infos) {
+void Tamguxml::AddMethod(TamguGlobal* global, string name, xmlMethod func, unsigned long arity, string infos, short returntype) {
     short idname = global->Getid(name);
     methods[idname] = func;
-    if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+    if (global->infomethods.find(Tamguxml::idtype) != global->infomethods.end() &&
+            global->infomethods[Tamguxml::idtype].find(name) != global->infomethods[Tamguxml::idtype].end())
     return;
 
-    global->infomethods[idtype][name] = infos;
-    global->RecordArity(idtype, idname, arity);
+    global->infomethods[Tamguxml::idtype][name] = infos;
+    global->RecordArity(Tamguxml::idtype, idname, arity);
+	if (returntype != a_null)
+        global->returntypes[idname] = returntype;
 }
 
 
@@ -85,24 +87,24 @@ bool Tamguxml::InitialisationModule(TamguGlobal* global, string version) {
 
 	Tamguxml::idtype = global->Getid("xml");
 
-	Tamguxml::AddMethod(global, "_initial", &Tamguxml::MethodNew, P_ONE, "_initial(string name): Create a new XML node");
-	Tamguxml::AddMethod(global, "root", &Tamguxml::MethodRoot, P_NONE, "root(): return the root node");
-	Tamguxml::AddMethod(global, "document", &Tamguxml::MethodDocument, P_NONE, "document(): return the xmldoc associated with this node");
-	Tamguxml::AddMethod(global, "next", &Tamguxml::MethodNext, P_NONE | P_ONE, "next(): next xml node");
-	Tamguxml::AddMethod(global, "unlink", &Tamguxml::MethodUnlink, P_NONE, "unlink(): remove a node from a tree structure");
-	Tamguxml::AddMethod(global, "delete", &Tamguxml::MethodDelete, P_NONE, "delete(): delete the internal representation of the XML node");
-	Tamguxml::AddMethod(global, "previous", &Tamguxml::MethodPrevious, P_NONE | P_ONE, "previous(): previous xml node");
-	Tamguxml::AddMethod(global, "parent", &Tamguxml::MethodParent, P_NONE, "parent(): parent xml node");
-	Tamguxml::AddMethod(global, "child", &Tamguxml::MethodChild, P_NONE | P_ONE, "child(): child xml node");
-	Tamguxml::AddMethod(global, "name", &Tamguxml::MethodName, P_NONE | P_ONE, "name(): name node");
-	Tamguxml::AddMethod(global, "line", &Tamguxml::MethodLine, P_NONE, "line(): return the line position of the node");
-	Tamguxml::AddMethod(global, "id", &Tamguxml::MethodId, P_NONE, "id(): return the node id (only available with callback functions)");
-	Tamguxml::AddMethod(global, "xmltype", &Tamguxml::MethodxmlType, P_NONE, "xmltype(): return the XML node type");
-	Tamguxml::AddMethod(global, "properties", &Tamguxml::MethodProperties, P_NONE | P_ONE, "properties(): return the xml node properties");
-	Tamguxml::AddMethod(global, "content", &Tamguxml::MethodContent, P_NONE | P_ONE, "content(): return the text content of an xml node");
-	Tamguxml::AddMethod(global, "namespace", &Tamguxml::MethodNamespace, P_NONE, "namespace(): return the namespace vector of an xml node");
-	Tamguxml::AddMethod(global, "new", &Tamguxml::MethodNew, P_ONE, "new(string name): Create a new XML node");
-	Tamguxml::AddMethod(global, "xmlstring", &Tamguxml::Methodxmlstring, P_NONE, "xmlstring(): Return the whole tree from the current XML node as a string");
+	Tamguxml::AddMethod(global, "_initial", &Tamguxml::MethodNew, P_ONE, "_initial(string name): Create a new XML node", Tamguxml::idtype);
+	Tamguxml::AddMethod(global, "root", &Tamguxml::MethodRoot, P_NONE, "root(): return the root node", Tamguxml::idtype);
+	Tamguxml::AddMethod(global, "document", &Tamguxml::MethodDocument, P_NONE, "document(): return the xmldoc associated with this node", Tamguxmldoc::idtype);
+	Tamguxml::AddMethod(global, "next", &Tamguxml::MethodNext, P_NONE | P_ONE, "next(): next xml node", Tamguxml::idtype);
+	Tamguxml::AddMethod(global, "unlink", &Tamguxml::MethodUnlink, P_NONE, "unlink(): remove a node from a tree structure", a_none);
+	Tamguxml::AddMethod(global, "delete", &Tamguxml::MethodDelete, P_NONE, "delete(): delete the internal representation of the XML node", a_none);
+	Tamguxml::AddMethod(global, "previous", &Tamguxml::MethodPrevious, P_NONE | P_ONE, "previous(): previous xml node", Tamguxml::idtype);
+	Tamguxml::AddMethod(global, "parent", &Tamguxml::MethodParent, P_NONE, "parent(): parent xml node", Tamguxml::idtype);
+	Tamguxml::AddMethod(global, "child", &Tamguxml::MethodChild, P_NONE | P_ONE, "child(): child xml node", Tamguxml::idtype);
+	Tamguxml::AddMethod(global, "name", &Tamguxml::MethodName, P_NONE | P_ONE, "name(): name node", a_string);
+	Tamguxml::AddMethod(global, "line", &Tamguxml::MethodLine, P_NONE, "line(): return the line position of the node", a_int);
+	Tamguxml::AddMethod(global, "id", &Tamguxml::MethodId, P_NONE, "id(): return the node id (only available with callback functions)", a_int);
+	Tamguxml::AddMethod(global, "xmltype", &Tamguxml::MethodxmlType, P_NONE, "xmltype(): return the XML node type", a_int);
+	Tamguxml::AddMethod(global, "properties", &Tamguxml::MethodProperties, P_NONE | P_ONE, "properties(): return the xml node properties", a_mapss);
+	Tamguxml::AddMethod(global, "content", &Tamguxml::MethodContent, P_NONE | P_ONE, "content(): return the text content of an xml node", a_string);
+	Tamguxml::AddMethod(global, "namespace", &Tamguxml::MethodNamespace, P_NONE, "namespace(): return the namespace vector of an xml node", a_string);
+	Tamguxml::AddMethod(global, "new", &Tamguxml::MethodNew, P_ONE, "new(string name): Create a new XML node", Tamguxml::idtype);
+	Tamguxml::AddMethod(global, "xmlstring", &Tamguxml::Methodxmlstring, P_NONE, "xmlstring(): Return the whole tree from the current XML node as a string", a_string);
 
 
 

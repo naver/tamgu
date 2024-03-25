@@ -3190,6 +3190,7 @@ Exporting void TamguGlobal::RecordArity(short type, short name, unsigned long ar
 Exporting void TamguGlobal::RecordCompatibilities(short type) {
     compatibilities[type][type] = true;
     strictcompatibilities[type][type] = true;
+    fullcompatibilities[type][type] = true;
 
     compatibilities[a_call][type] = true;
     compatibilities[a_universal][type] = true;
@@ -3200,6 +3201,11 @@ Exporting void TamguGlobal::RecordCompatibilities(short type) {
     strictcompatibilities[a_universal][type] = true;
     strictcompatibilities[a_let][type] = true;
     strictcompatibilities[a_self][type] = true;
+
+    fullcompatibilities[a_call][type] = true;
+    fullcompatibilities[a_universal][type] = true;
+    fullcompatibilities[a_let][type] = true;
+    fullcompatibilities[a_self][type] = true;
 }
 
 Exporting void TamguGlobal::RecordMethods(short type, basebin_hash<unsigned long>& exported) {

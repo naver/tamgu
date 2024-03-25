@@ -37,9 +37,6 @@ public:
 	//this is a static object, which is common to everyone
 	//We associate the method pointers with their names in the linkedmethods map
 	static basebin_hash<xmlMethod> methods;
-	
-	
-
 	static short idtype;
 
 	//---------------------------------------------------------------------------------------------------------------------
@@ -107,7 +104,7 @@ public:
 		return aITERNULL;
 	}
 
-	static void AddMethod(TamguGlobal* g, string name, xmlMethod func, unsigned long arity, string infos);
+	static void AddMethod(TamguGlobal* g, string name, xmlMethod func, unsigned long arity, string infos, short returntype);
 	static bool InitialisationModule(TamguGlobal* g, string version);
 
 	
