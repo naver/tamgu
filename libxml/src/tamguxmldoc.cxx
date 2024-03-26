@@ -151,7 +151,7 @@ extern "C" {
 
 
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
-void Tamguxmldoc::AddMethod(TamguGlobal* global, string name, xmldocMethod func, unsigned long arity, string infos, short returntype) {
+void Tamguxmldoc::AddMethod(TamguGlobal* global, string name, xmldocMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
     if (global->infomethods.find(idtype) != global->infomethods.end() &&
@@ -160,8 +160,6 @@ void Tamguxmldoc::AddMethod(TamguGlobal* global, string name, xmldocMethod func,
 
     global->infomethods[idtype][name] = infos;
     global->RecordArity(idtype, idname, arity);
-	if (returntype != a_null)
-        global->returntypes[idname] = returntype;
 }
 
 
@@ -177,19 +175,19 @@ bool Tamguxmldoc::InitialisationModule(TamguGlobal* global, string version) {
 
 	Tamguxmldoc::idtype = global->Getid("xmldoc");
 
-	Tamguxmldoc::AddMethod(global, "_initial", &Tamguxmldoc::MethodInitial, P_ONE, "_initial(variable): Interception of a callback object", Tamguxmldoc::idtype);
+	Tamguxmldoc::AddMethod(global, "_initial", &Tamguxmldoc::MethodInitial, P_ONE, "_initial(variable): Interception of a callback object");
 
-	Tamguxmldoc::AddMethod(global, "load", &Tamguxmldoc::MethodLoadXML, P_ONE, "load(string filename): load an xml file", a_boolean);
-	Tamguxmldoc::AddMethod(global, "onclosing", &Tamguxmldoc::MethodOnClosing, P_TWO, "onclosing(functionobject): function to call on closing markup tag", a_boolean);
-	Tamguxmldoc::AddMethod(global, "parse", &Tamguxmldoc::MethodLoadXMLBuffer, P_ONE, "parse(string buffer): parse an xml buffer", a_boolean);
-	Tamguxmldoc::AddMethod(global, "create", &Tamguxmldoc::MethodCreate, P_ONE, "create(string topnode): create an XML file with topnode as the top node or with topnode if topdenode is a full XML structure", a_boolean);
-	Tamguxmldoc::AddMethod(global, "xpath", &Tamguxmldoc::MethodXPath, P_ONE, "xpath(string myxpath): Return a vector of xml nodes matching myxpath", a_vector);
-	Tamguxmldoc::AddMethod(global, "save", &Tamguxmldoc::MethodSave, P_ONE | P_TWO, "save(string filename, string encoding): save an XML file. Encoding default is 'utf8'", a_boolean);
-	Tamguxmldoc::AddMethod(global, "close", &Tamguxmldoc::MethodClose, P_NONE, "close(): close an xml file", a_boolean);
-	Tamguxmldoc::AddMethod(global, "node", &Tamguxmldoc::MethodNode, P_NONE, "node(): return the top node of the file", global->Getid("xml"));
-	Tamguxmldoc::AddMethod(global, "xmlstring", &Tamguxmldoc::MethodxmlEncoding, P_NONE, "xmlstring(): Return an XML document as a string", a_string);
-	Tamguxmldoc::AddMethod(global, "serialize", &Tamguxmldoc::MethodSerialize, P_ONE, "serialize(object): Serialize as an XML document any Tamgu object", a_boolean);
-	Tamguxmldoc::AddMethod(global, "serializestring", &Tamguxmldoc::MethodSerializeString, P_ONE, "serialize, string(object): Serialize as an XML document any Tamgu object and return the corresponding string", a_none);
+	Tamguxmldoc::AddMethod(global, "load", &Tamguxmldoc::MethodLoadXML, P_ONE, "load(string filename): load an xml file");
+	Tamguxmldoc::AddMethod(global, "onclosing", &Tamguxmldoc::MethodOnClosing, P_TWO, "onclosing(functionobject): function to call on closing markup tag");
+	Tamguxmldoc::AddMethod(global, "parse", &Tamguxmldoc::MethodLoadXMLBuffer, P_ONE, "parse(string buffer): parse an xml buffer");
+	Tamguxmldoc::AddMethod(global, "create", &Tamguxmldoc::MethodCreate, P_ONE, "create(string topnode): create an XML file with topnode as the top node or with topnode if topdenode is a full XML structure");
+	Tamguxmldoc::AddMethod(global, "xpath", &Tamguxmldoc::MethodXPath, P_ONE, "xpath(string myxpath): Return a vector of xml nodes matching myxpath");
+	Tamguxmldoc::AddMethod(global, "save", &Tamguxmldoc::MethodSave, P_ONE | P_TWO, "save(string filename, string encoding): save an XML file. Encoding default is 'utf8'");
+	Tamguxmldoc::AddMethod(global, "close", &Tamguxmldoc::MethodClose, P_NONE, "close(): close an xml file");
+	Tamguxmldoc::AddMethod(global, "node", &Tamguxmldoc::MethodNode, P_NONE, "node(): return the top node of the file");
+	Tamguxmldoc::AddMethod(global, "xmlstring", &Tamguxmldoc::MethodxmlEncoding, P_NONE, "xmlstring(): Return an XML document as a string");
+	Tamguxmldoc::AddMethod(global, "serialize", &Tamguxmldoc::MethodSerialize, P_ONE, "serialize(object): Serialize as an XML document any Tamgu object");
+	Tamguxmldoc::AddMethod(global, "serializestring", &Tamguxmldoc::MethodSerializeString, P_ONE, "serialize, string(object): Serialize as an XML document any Tamgu object and return the corresponding string");
 
 
 	global->newInstance[Tamguxmldoc::idtype] = new Tamguxmldoc(global, NULL);

@@ -104,7 +104,7 @@ public:
 		return aITERNULL;
 	}
 
-	static void AddMethod(TamguGlobal* g, string name, xmlMethod func, unsigned long arity, string infos, short returntype);
+	static void AddMethod(TamguGlobal* g, string name, xmlMethod func, unsigned long arity, string infos);
 	static bool InitialisationModule(TamguGlobal* g, string version);
 
 	
@@ -213,6 +213,8 @@ public:
 	Tamgu* same(Tamgu* a) {
 		Locking _lock(this);
 		if (a == this)
+			return aTRUE;
+		if (node == NULL && a->isNULL())
 			return aTRUE;
 		return aFALSE;
 	}
