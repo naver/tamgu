@@ -3361,6 +3361,8 @@ Exporting void TamguGlobal::RecordProcedures() {
     RecordOneProcedure("_eval", "Evaluates a string as code", ProcEval, P_ONE | P_TWO);
     RecordOneProcedure("_evalfunction", "Evaluates a string as a function call", ProcEvalFunction, P_ONE);
     
+    RecordOneProcedure("evaljson", "Transforms a JSON string in a container", &ProcJSon, P_ONE, a_none);
+
     RecordOneProcedure("abs", "Returns the absolute value of a number", &ProcMath, P_ONE, a_float);
     RecordOneProcedure("acos", "Returns the arccosine of a number", &ProcMath, P_ONE, a_float);
     RecordOneProcedure("acosh", "Returns the inverse hyperbolic cosine of a number", &ProcMath, P_ONE, a_float);
