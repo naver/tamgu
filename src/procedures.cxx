@@ -1855,7 +1855,7 @@ Tamgu* ProcJSon(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 //___________________________________________________________________________________________________
 Tamgu* ProcPrint(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     Tamgu* res = aNULL;
-    Tamgustring* kval = (Tamgustring*)globalTamgu->stringbuffer;
+    Tamgustring* kval = globalTamgu->stringbuffer;
     string todisplay;
     #ifdef DOSOUTPUT
     bool convert = false;
@@ -1871,6 +1871,15 @@ Tamgu* ProcPrint(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) 
     }
 
     Locking _lock(globalTamgu->_printlock);
+    if (globalTamgu->doubledisplay) {
+        #ifdef DOSOUTPUT
+        string sdos = conversion2dos(todisplay);
+        cout << sdos;
+        #else
+        cout << todisplay;
+        #endif
+    }
+
     if (kval == NULL) {
         if (globalTamgu->displayfunction == NULL) {
             #ifdef DOSOUTPUT
@@ -1886,14 +1895,6 @@ Tamgu* ProcPrint(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) 
         }
         else
             globalTamgu->displayfunction(todisplay, globalTamgu->displayobject);
-        if (globalTamgu->doubledisplay) {
-            #ifdef DOSOUTPUT
-            string sdos = conversion2dos(todisplay);
-            cout << sdos;
-            #else
-            cout << todisplay;
-            #endif
-        }
     }
     else
         kval->value += todisplay;
@@ -1903,7 +1904,7 @@ Tamgu* ProcPrint(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) 
 
 Tamgu* ProcPrintLN(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     Tamgu* res = aNULL;
-    Tamgustring* kval = (Tamgustring*)globalTamgu->stringbuffer;
+    Tamgustring* kval = globalTamgu->stringbuffer;
     string todisplay;
     #ifdef DOSOUTPUT
     bool convert = false;
@@ -1924,15 +1925,15 @@ Tamgu* ProcPrintLN(Tamgu* contextualpattern, short idthread, TamguCall* callfunc
     todisplay += Endl;
 
     Locking _lock(globalTamgu->_printlock);
+    if (globalTamgu->doubledisplay) {
+        #ifdef DOSOUTPUT
+        string sdos = conversion2dos(todisplay);
+        cout << sdos;
+        #else
+        cout << todisplay;
+        #endif
+    }
     if (kval == NULL) {
-        if (globalTamgu->doubledisplay) {
-            #ifdef DOSOUTPUT
-            string sdos = conversion2dos(todisplay);
-            cout << sdos;
-            #else
-            cout << todisplay;
-            #endif
-        }
         if (globalTamgu->displayfunction == NULL) {
             #ifdef DOSOUTPUT
             if (convert) {
@@ -1968,7 +1969,7 @@ Tamgu* ProcPrintFlush(Tamgu* contextualpattern, short idthread, TamguCall* callf
 
 Tamgu* ProcPrinterr(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     Tamgu* res = aNULL;
-    Tamgustring* kval = (Tamgustring*)globalTamgu->stringbuffererror;
+    Tamgustring* kval = globalTamgu->stringbuffererror;
     string todisplay;
 
     for (int i = 0; i < callfunc->Size(); i++) {
@@ -1985,15 +1986,24 @@ Tamgu* ProcPrinterr(Tamgu* contextualpattern, short idthread, TamguCall* callfun
         #endif
         cerr << todisplay;
     }
-    else
+    else {
+        if (globalTamgu->doubledisplay) {
+            #ifdef DOSOUTPUT
+            string sdos = conversion2dos(todisplay);
+            cout << sdos;
+            #else
+            cerr << todisplay;
+            #endif
+        }
         kval->value += todisplay;
+    }
 
     return aTRUE;
 }
 
 Tamgu* ProcPrinterrLN(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     Tamgu* res = aNULL;
-    Tamgustring* kval = (Tamgustring*)globalTamgu->stringbuffererror;
+    Tamgustring* kval = globalTamgu->stringbuffererror;
 
     string todisplay;
     for (int i = 0; i < callfunc->Size(); i++) {
@@ -2014,8 +2024,17 @@ Tamgu* ProcPrinterrLN(Tamgu* contextualpattern, short idthread, TamguCall* callf
         #endif
         cerr << todisplay;
     }
-    else
+    else {
+        if (globalTamgu->doubledisplay) {
+            #ifdef DOSOUTPUT
+            string sdos = conversion2dos(todisplay);
+            cout << sdos;
+            #else
+            cerr << todisplay;
+            #endif
+        }
         kval->value += todisplay;
+    }
     return aTRUE;
 }
 
@@ -3360,7 +3379,7 @@ Exporting void TamguGlobal::RecordProcedures() {
     RecordOneProcedure("_variables", "Returns the list of active variables", ProcVariables, P_ONE);
     RecordOneProcedure("_eval", "Evaluates a string as code", ProcEval, P_ONE | P_TWO);
     RecordOneProcedure("_evalfunction", "Evaluates a string as a function call", ProcEvalFunction, P_ONE);
-    
+
     RecordOneProcedure("evaljson", "Transforms a JSON string in a container", &ProcJSon, P_ONE, a_none);
 
     RecordOneProcedure("abs", "Returns the absolute value of a number", &ProcMath, P_ONE, a_float);

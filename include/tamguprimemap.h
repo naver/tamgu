@@ -257,6 +257,7 @@ class Tamguprimemap : public TamguObjectLockContainer {
     }
 
 
+    Tamgu* MethodRead(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     
     Tamgu* MethodInvert(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         if (contextualpattern == this || !contextualpattern->isMapContainer() || !contextualpattern->isAffectation())
@@ -366,6 +367,11 @@ class Tamguprimemap : public TamguObjectLockContainer {
 
 
     //------------------------------------------------------------------------------------------
+    inline void pushone(string& k, Tamgu* a) {
+        values[k] = a;
+        a->Addreference(0,reference + 1);
+    }
+
     Exporting Tamgu* Push(Tamgu* k, Tamgu* v);
     Exporting Tamgu* Pop(Tamgu* kkey);
 
@@ -741,4 +747,27 @@ class Tamguframeprimemap : public Tamguprimemap {
 
 };
 
+//---------------------------------------------------------------------------------------------------------------------
+class Tamguprimemapbuff : public Tamguprimemap {
+    public:
+    long idx;
+    bool used;
+
+    Tamguprimemapbuff(long i)  {
+        //Do not forget your variable initialisation
+        idx = i;
+        used = false;
+    }
+
+    bool Candelete() {
+        return false;
+    }
+
+    Tamgu* anInstance(long i) {
+        return new Tamguprimemapbuff(i);
+    }
+
+    Exporting void Resetreference(short r);
+
+};
 #endif

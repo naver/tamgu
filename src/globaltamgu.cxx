@@ -131,6 +131,68 @@ Exporting string TamguEventString(short idglobal) {
     return "NONE";
 }
 
+Exporting string TamguOutBuffer(short idglobal)  {
+    if (idglobal <0 || idglobal >= globalTamguPool.size() || globalTamguPool[idglobal] == NULL)
+        return "";
+    TamguGlobal* g = globalTamguPool[idglobal];
+    if (g->stringbuffer != NULL)
+        return g->stringbuffer->String();
+    return "";
+}
+
+Exporting string TamguErrBuffer(short idglobal)  {
+    if (idglobal <0 || idglobal >= globalTamguPool.size() || globalTamguPool[idglobal] == NULL)
+        return "";
+    TamguGlobal* g = globalTamguPool[idglobal];
+    if (g->stringbuffererror != NULL)
+        return g->stringbuffererror->String();
+    return "";
+}
+
+
+Exporting bool TamguCleanPrintVariables(short idglobal) {
+    if (idglobal <0 || idglobal >= globalTamguPool.size() || globalTamguPool[idglobal] == NULL)
+        return false;
+
+    TamguGlobal* g = globalTamguPool[idglobal];
+    
+    if (g->stringbuffer != NULL) {
+        g->stringbuffer->Resetreference();
+        g->stringbuffer = NULL;
+    }
+
+    if (g->stringbuffererror != NULL) {
+        g->stringbuffererror->Resetreference();
+        g->stringbuffererror = NULL;
+    }
+    
+    g->doubledisplay = false;
+    return true;
+}
+
+Exporting bool TamguInitializePrintVariables(short idglobal, bool mirror) {
+    if (idglobal <0 || idglobal >= globalTamguPool.size() || globalTamguPool[idglobal] == NULL)
+        return false;
+    TamguGlobal* g = globalTamguPool[idglobal];
+    
+    if (g->stringbuffer == NULL) {
+        g->stringbuffer = g->Providestring();
+        g->stringbuffer->Setreference();
+    }
+    else
+        g->stringbuffer->value = "";
+    if (g->stringbuffererror == NULL) {
+        g->stringbuffererror = g->Providestring();
+        g->stringbuffererror->Setreference();
+    }
+    else
+        g->stringbuffererror->value = "";
+    
+    g->doubledisplay = mirror;
+    return true;
+}
+
+
 Exporting bool TamguDeleteSpace(short idglobal, short idcode) {
     JtamguGlobalLocking _lock;
     if (idglobal <0 || idglobal >= globalTamguPool.size() || globalTamguPool[idglobal] == NULL)

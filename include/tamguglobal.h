@@ -70,6 +70,8 @@ class Tamguuvector;
 class Tamguuvectorbuff;
 class Tamgumap;
 class Tamgutreemap;
+class Tamguprimemap;
+class Tamguprimemapbuff;
 class Tamgutreemapbuff;
 class Tamgumapbuff;
 class Tamgumapss;
@@ -669,6 +671,11 @@ public:
 	VECTE<long> mapempties;
 	long mapidx;
 	Exporting Tamgumap* Providemap();
+
+    vector<Tamguprimemapbuff*> primemapreservoire;
+    VECTE<long> primemapempties;
+    long primemapidx;
+    Exporting Tamguprimemap* Provideprimemap();
 
     vector<Tamgutreemapbuff*> treemapreservoire;
     VECTE<long> treemapempties;

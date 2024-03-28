@@ -33,6 +33,7 @@
 #include "tamgufvector.h"
 #include "tamgusvector.h"
 #include "tamguuvector.h"
+#include "tamguprimemap.h"
 #include "predicate.h"
 #include "tamguautomaton.h"
 #include "tamguannotator.h"
@@ -557,6 +558,7 @@ operator_strings(false), terms(false), booleanlocks(true), tracked(NULL, true), 
         ustringreservoire.push_back(new Tamguustringbuff(i));
         declarationreservoire.push_back(new TamguDeclarationLocal(i));
         declarationcleanreservoire.push_back(new TamguDeclarationAutoClean(i));
+        primemapreservoire.push_back(new Tamguprimemapbuff(i));
     }
     
     lispidx = 0;
@@ -570,6 +572,7 @@ operator_strings(false), terms(false), booleanlocks(true), tracked(NULL, true), 
     declarationcleanidx = 0;
     
     mapidx = 0;
+    primemapidx = 0;
     treemapidx = 0;
     mapssidx = 0;
     vectoridx = 0;
@@ -625,6 +628,13 @@ TamguGlobal::~TamguGlobal() {
     if (event_variable != NULL)
         event_variable->Resetreference();
     
+    if (stringbuffer != NULL)
+        stringbuffer->Resetreference();
+    if (stringbuffererror != NULL)
+        stringbuffererror->Resetreference();
+
+    stringbuffer = NULL;
+    stringbuffererror = NULL;
     event_variable = NULL;
     
     for (auto& a: integer_pool) {
@@ -717,6 +727,9 @@ TamguGlobal::~TamguGlobal() {
     
     for (i = 0; i < treemapreservoire.size(); i++)
         delete treemapreservoire[i];
+
+    for (i = 0; i < primemapreservoire.size(); i++)
+        delete primemapreservoire[i];
 
     for (i = 0; i < declarationreservoire.size(); i++)
         delete declarationreservoire[i];
@@ -3382,6 +3395,45 @@ Exporting Tamgutreemap* TamguGlobal::Providetreemap() {
     ke->Enablelock(0);
     return ke;
 }
+
+Exporting Tamguprimemap* TamguGlobal::Provideprimemap() {
+    if (threadMODE)
+        return new Tamguprimemap;
+    
+    Tamguprimemapbuff* ke;
+    
+    if (primemapempties.last > 0) {
+        ke = primemapreservoire[primemapempties.backpop()];
+        ke->used = true;
+        ke->Enablelock(0);
+        return ke;
+    }
+    
+    long mx = primemapreservoire.size();
+    
+    while (primemapidx < mx) {
+        if (!primemapreservoire[primemapidx]->used) {
+            primemapreservoire[primemapidx]->used = true;
+            ke = primemapreservoire[primemapidx++];
+            ke->Enablelock(0);
+            return ke;
+        }
+        primemapidx++;
+    }
+    
+    long sz = mx >> 2;
+    primemapreservoire.resize(mx + sz);
+    primemapidx = mx + sz;
+    for (long i = mx; i < primemapidx; i++)
+        primemapreservoire[i] = (Tamguprimemapbuff*)Provideinstance(primemapreservoire[0], i);
+    
+    primemapidx = mx;
+    primemapreservoire[primemapidx]->used = true;
+    ke = primemapreservoire[primemapidx++];
+    ke->Enablelock(0);
+    return ke;
+}
+
 Exporting Tamgumapss* TamguGlobal::Providemapss() {
     if (threadMODE)
         return new Tamgumapss;

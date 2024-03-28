@@ -2262,12 +2262,19 @@ public:
         line = 0;
         sz = pos.size();
         
+        if (kf->Type() == a_primemap) {
+            if (!buildprimemap(kf) || r != pos.size())
+                return false;
+            return true;
+        }
+        
         if (!buildexpression(kf) || r != pos.size())
             return false;
         return true;
     }
     
     char buildexpression(Tamgu* kf);
+    char buildprimemap(Tamgu* kf);
 };
 
 Exporting Tamgu* TamguGlobal::EvaluateVector(string& s, short idthread) {
@@ -2373,7 +2380,7 @@ Exporting Tamgu* TamguGlobal::EvaluateMap(string& s, short idthread) {
         return globalTamgu->Returnerror(msg.str(), idthread);
     }
 
-    Tamgu* kf = globalTamgu->Providemap();
+    Tamgu* kf = globalTamgu->Provideprimemap();
     TamguJsonCompiler* jcomp = &jcomp_base;
     if (idthread)
         jcomp = new TamguJsonCompiler;
@@ -2403,7 +2410,7 @@ Exporting Tamgu* TamguGlobal::EvaluateJSON(string& s, short idthread) {
         kf = globalTamgu->Providevector();
     else
         if (s[0] == '{')
-            kf = globalTamgu->Providemap();
+            kf = globalTamgu->Provideprimemap();
     else {
         stringstream msg;
         msg << e_wrong_json_definition02;
@@ -2716,6 +2723,268 @@ char TamguJsonCompiler::buildexpression(Tamgu* kf) {
     return false;
 }
 
+//We build with a prime map
+char TamguJsonCompiler::buildprimemap(Tamgu* kf) {
+    string key;
+
+    Tamgu* local;
+    
+    bool checknext = false;
+    char expecting = kf->isMapContainer();
+    to = 0;
+    while (r < pos.size()) {
+        c = src[i++];
+        if (c <= 32) {
+            if (c == '\n')
+                line++;
+            continue;
+        }
+        
+        if (c == '@' && src[i] != '"')
+            r++;
+        
+        if (i != pos[r] + 1) {
+            if (checknext)
+                return false;
+            
+            to = i;
+            while (src[to] > 32 && to < pos[r]) to++;
+            c = src[to];
+            src[to] = 0;
+            if (expecting == 1)
+                key = (char*)src+i-1;
+            else {
+                token = (char*)src+i-1;
+                if (token == "false")
+                    local = aFALSE;
+                else
+                    if (token == "true")
+                        local = aTRUE;
+                    else
+                        if (token == "null" || token == "nil")
+                            local = aNULL;
+                        else {
+                            local = globalTamgu->Providewithstring(token);
+                        }
+                
+                if (expecting) {
+                    ((Tamguprimemap*)kf)->pushone(key, local);
+                    expecting = 1;
+                }
+                else
+                    ((Tamguvector*)kf)->pushone(local);
+                checknext=true;
+            }
+            src[to] = c;
+            i = to;
+            continue;
+        }
+        
+        r++;
+        switch (c) {
+            case '@':
+                if (checknext)
+                    return false;
+                
+                r++; // the " has already been detected above...
+                while (r < sz) {
+                    to  = pos[r++];
+                    if (src[to-1] != '\\' && src[to] == '"' && src[to+1] == '@') {
+                        to = pos[r++];
+                        break;
+                    }
+                }
+                c= src[to-1];
+                src[to-1] = 0;
+                if (expecting == 1)
+                    key = (char*)src+i+1;
+                else {
+                    if (strchr((char*)src+i, '\\') == NULL)
+                        local = globalTamgu->Providestring((char*)src+i);
+                    else {
+                        token = (char*)src+i;
+                        replacemetas(token);
+                        local = globalTamgu->Providewithstring(token);
+                    }
+                    
+                    if (expecting) {
+                        ((Tamguprimemap*)kf)->pushone(key, local);
+                        expecting = 1;
+                    }
+                    else
+                        ((Tamguvector*)kf)->pushone(local);
+                    checknext=true;
+                }
+                src[to-1] = c;
+                i = to + 1;
+                break;
+            case 34:
+                if (checknext)
+                    return false;
+                
+                while (r < sz) {
+                    to  = pos[r++];
+                    if (src[to-1] != '\\' && src[to] == '"')
+                        break;
+                }
+                c= src[to];
+                src[to] = 0;
+                if (expecting == 1)
+                    key = (char*)src+i;
+                else {
+                    if (strchr((char*)src+i, '\\') == NULL)
+                        local = globalTamgu->Providestring((char*)src+i);
+                    else {
+                        token = (char*)src+i;
+                        replacemetas(token);
+                        local = globalTamgu->Providewithstring(token);
+                    }
+
+                    if (expecting) {
+                        ((Tamguprimemap*)kf)->pushone(key, local);
+                        expecting = 1;
+                    }
+                    else
+                        ((Tamguvector*)kf)->pushone(local);
+                    
+                    checknext=true;
+                }
+                src[to] = c;
+                i = to + 1;
+                break;
+            case 39:
+                if (checknext)
+                    return false;
+                
+                while (r < sz) {
+                    to  = pos[r++];
+                    if (src[to] == '\'')
+                        break;
+                }
+                c= src[to];
+                src[to] = 0;
+                if (expecting == 1)
+                    key = (char*)src+i;
+                else {
+                    local = globalTamgu->Providestring((char*)src+i);
+                    
+                    if (expecting) {
+                        ((Tamguprimemap*)kf)->pushone(key, local);
+                        expecting = 1;
+                    }
+                    else
+                        ((Tamguvector*)kf)->pushone(local);
+
+                    checknext=true;
+                }
+                src[to] = c;
+                i = to + 1;
+                break;
+            case '+':
+            case '-':
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9':
+                if (checknext)
+                    return false;
+                
+                v = conversionfloathexa((const char*)src + i - 1, l);
+                to =  i + l - 1;
+                while (pos[r] < to) r++;
+                c= src[to];
+                src[to] = 0;
+                
+                if (expecting == 1)
+                    key = (char*)src + i - 1;
+                else {
+                    if (strchr((char*)src + i - 1, '.'))
+                        local = globalTamgu->ProvideConstfloat(v);
+                    else
+                        local = globalTamgu->ProvideConstint(v);
+                    
+                    if (expecting) {
+                        ((Tamguprimemap*)kf)->pushone(key, local);
+                        expecting = 1;
+                    }
+                    else
+                        ((Tamguvector*)kf)->pushone(local);
+
+                    checknext=true;
+                }
+                src[to] = c;
+                i = to;
+                break;
+            case '{':
+                if (expecting == 1 || checknext)
+                    return false;
+                local = globalTamgu->Provideprimemap();
+                if (src[i] == '}') {
+                    r++;
+                    i++;
+                }
+                else {
+                    if (!buildprimemap(local)) {
+                        local->Release();
+                        return false;
+                    }
+                }
+                if (expecting) {
+                    ((Tamguprimemap*)kf)->pushone(key, local);
+                    expecting = 1;
+                }
+                else
+                    ((Tamguvector*)kf)->pushone(local);
+
+                checknext=true;
+                break;
+            case '[':
+                if (expecting == 1 || checknext)
+                    return false;
+                local = globalTamgu->Providevector();
+                if (src[i] == ']') {
+                    r++;
+                    i++;
+                }
+                else {
+                    if (!buildprimemap(local)) {
+                        local->Release();
+                        return false;
+                    }
+                }
+                
+                if (expecting) {
+                    ((Tamguprimemap*)kf)->pushone(key, local);
+                    expecting = 1;
+                }
+                else
+                    ((Tamguvector*)kf)->pushone(local);
+
+                checknext=true;
+                break;
+            case '}':
+                return (expecting == 1);
+            case ']':
+                return (!expecting);
+            case ':':
+                if (expecting != 1)
+                    return false;
+                expecting = 2;
+                break;
+            case ',':
+                if (!checknext)
+                    return false;
+                checknext = false;
+        }
+    }
+    return false;
+}
 //--------------------------------------------------------------------
 bool WaitingFor(double tm, PauseBack pb, void* data) {
     double init;

@@ -39,6 +39,10 @@ Exporting long Max_count_active_instances();
 Exporting TamguGlobal* getGlobalTamgu(short idglobal);
 Exporting void TamguIdle(long diff, vector<long>& idles);
 Exporting string TamguEventString(short idglobal);
+Exporting bool TamguInitializePrintVariables(short idglobal, bool mirror);
+Exporting bool TamguCleanPrintVariables(short idglobal);
+Exporting string TamguOutBuffer(short idglobal);
+Exporting string TamguErrBuffer(short idglobal);
 //------------------------------------------------------------------------
 //These methods are used to create an tamgu engine...
 void FinalTamguConstantCleaning(void);

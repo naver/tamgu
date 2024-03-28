@@ -19,6 +19,7 @@
 #include "tamguprimemap.h"
 #include "tamgulist.h"
 #include "tamguivector.h"
+#include "tamgufile.h"
 
 
 //We need to declare once again our local definitions.
@@ -50,7 +51,8 @@ bool Tamguprimemap::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
 
     Tamguprimemap::AddMethod(global, "clear", &Tamguprimemap::MethodClear, P_NONE, "clear(): clear the container.");
-    
+    Tamguprimemap::AddMethod(global, "read", &Tamguprimemap::MethodRead, P_ONE, "read(string path): Read the content of a file into the container.");
+
     Tamguprimemap::AddMethod(global, "items", &Tamguprimemap::MethodItems, P_NONE, "items(): Return a vector of {key:value} pairs.");
     
     Tamguprimemap::AddMethod(global, "invert", &Tamguprimemap::MethodInvert, P_NONE, "invert(): return a map with key/value inverted.");
@@ -197,6 +199,34 @@ Exporting void Tamguprimemap::Setreference() {
     unlocking();
 }
 
+
+Tamgu* Tamguprimemap::MethodRead(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        //The separator between values
+    string s = callfunc->Evaluate(0, contextualpattern, idthread)->String();
+    Tamgufile file;
+    
+#ifdef WIN32
+    fopen_s(&file.thefile, STR(s), "rb");
+#else
+    file.thefile=fopen(STR(s), "rb");
+#endif
+    
+    if (file.thefile == NULL) {
+        string msg="Cannot open the file:";
+        msg += s;
+        return globalTamgu->Returnerror(msg, idthread);
+    }
+    
+    file.readin(s, -1);
+    Trim(s);
+    
+    Clear();
+    locking();
+    contextualpattern = globalTamgu->EvaluateMap(this, s, idthread);
+    unlocking();
+    return contextualpattern;
+}
+ 
 static void resetMap(Tamguprimemap* kmap, short inc) {
     kmap->reference -= inc;
     
@@ -1087,5 +1117,22 @@ Exporting Tamgu* Tamguframeprimemap::Push(Tamgu* k, Tamgu* v) {
     v->Addreference(investigate,reference+1);
     unlocking();
     return aTRUE;
+}
+
+Exporting void Tamguprimemapbuff::Resetreference(short inc) {
+    if ((reference + containerreference - inc) > 0)
+        resetMap(this, inc);
+    else {
+        resetMap(this, inc + 1 - protect);
+        if (!protect) {
+            reference = 0;
+            protect = true;
+
+            values.clear();
+            if (!globalTamgu->threadMODE && used)
+                globalTamgu->primemapempties.push_back(idx);
+            used = false;
+        }
+    }
 }
 
