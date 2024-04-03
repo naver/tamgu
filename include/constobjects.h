@@ -2502,12 +2502,16 @@ public:
 
 
 	Tamgu* same(Tamgu* a) {
+        if (a->isNULL())
+            return aFALSE;
 		if (value == a->Boolean())
 			return aTRUE;
 		return aFALSE;
 	}
 
 	Tamgu* different(Tamgu* a) {
+        if (a->isNULL())
+            return aTRUE;
 		if (value != a->Boolean())
 			return aTRUE;
 		return aFALSE;
