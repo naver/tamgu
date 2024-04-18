@@ -1637,6 +1637,14 @@ Tamgu* ProcWaitOnJoin(Tamgu* contextualpattern, short idthread, TamguCall* callf
     return aTRUE;
 }
 
+Tamgu* ProcLen(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    Tamgu* object = callfunc->Evaluate(0, contextualpattern, idthread);
+    if (object->isString())
+        return globalTamgu->ProvideConstint(object->CommonSize());
+    return globalTamgu->ProvideConstint(object->Size());
+}
+
+
 Tamgu* ProcGetinfo(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     //We read the method name
     Tamgumapss* mapss = globalTamgu->Providemapss();
@@ -3461,6 +3469,7 @@ Exporting void TamguGlobal::RecordProcedures() {
     RecordOneProcedure("sleep", "Sleeps for a given amount of ms", ProcSleep, P_ONE);
 
     RecordOneProcedure("_info", "Returns the infos of a method",ProcGetinfo, P_ONE);
+    RecordOneProcedure("len", "For those who can't let Python go",ProcLen, P_ONE);
 
     //Common methods to all objects...
     RecordCommon("json", "Returns the json container string", CommonJSon, P_NONE, a_string);

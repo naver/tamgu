@@ -747,7 +747,7 @@ rep4='<property name="nocodecvt"     value="true" />'
 brep1=False
 brep2=False
 
-if "libboost_regex" not in v and noregex==False:
+if noregex==False:
     #we check now how to include regex... either #include "boost/regex.hpp" or <regex>
     pathtest= os.getcwd()
     if pathtest[-1]!='/':
