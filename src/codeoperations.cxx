@@ -158,8 +158,12 @@ Tamgu* TamguInstructionAPPLYOPERATIONEQU::Eval(Tamgu* context, Tamgu* value, sho
     }
     
     if (v != value) {
-        value->Put(aNULL, v, idthread);
-        v->Release();
+        if (value->isConst())
+            value = v;
+        else {
+            value->Put(aNULL, v, idthread);
+            v->Release();
+        }
     }
     
     if (putback) {
