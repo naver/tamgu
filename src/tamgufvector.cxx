@@ -732,7 +732,9 @@ Exporting Tamgu* Tamgufvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
     if (kind->interval == true)
         keyright = kind->right->Eval(aNULL, aNULL, idthread);
 
-
+    if (kind->signleft)
+        ikey *= -1;
+    
     Tamgufvector* kvect;
     if (ikey < 0)
         ikey = values.size() + ikey;
@@ -754,6 +756,9 @@ Exporting Tamgu* Tamgufvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
     long iright = keyright->Integer();
     if (keyright != kind->right)
         keyright->Release();
+    
+    if (kind->signright)
+        iright *= -1;
     
     if (iright < 0 || keyright == aNULL) {
         iright = values.size() + iright;
@@ -2030,6 +2035,9 @@ Exporting Tamgu* Tamgua_fvector::Eval(Tamgu* contextualpattern, Tamgu* idx, shor
     long ikey;
     TamguIndex* kind = (TamguIndex*)idx;
     ikey = kind->left->Getinteger0(idthread);
+    if (kind->signleft)
+        ikey *= -1;
+    
     if (kind->interval == true)
         keyright = kind->right->Eval(aNULL, aNULL, idthread);
     
@@ -2046,6 +2054,9 @@ Exporting Tamgu* Tamgua_fvector::Eval(Tamgu* contextualpattern, Tamgu* idx, shor
         return globalTamgu->ProvideConstfloat(values[ikey]);
     
     long iright = keyright->Integer();
+    if (kind->signright)
+        iright *= -1;
+
     if (keyright != kind->right)
         keyright->Release();
     if (iright < 0 || keyright == aNULL) {

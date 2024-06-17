@@ -936,6 +936,9 @@ Exporting Tamgu* Tamguivector::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
     long ikey;
     TamguIndex* kind = (TamguIndex*)idx;
     ikey = kind->left->Getinteger0(idthread);
+    if (kind->signleft)
+        ikey *= -1;
+
     if (kind->interval == true)
         keyright = kind->right->Eval(aNULL, aNULL, idthread);
 
@@ -958,6 +961,9 @@ Exporting Tamgu* Tamguivector::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
     }
 
     long iright = keyright->Integer();
+    if (kind->signright)
+        iright *= -1;
+
     if (keyright != kind->right)
         keyright->Release();
 
@@ -2078,6 +2084,9 @@ Exporting Tamgu* Tamgua_ivector::Eval(Tamgu* contextualpattern, Tamgu* idx, shor
     long ikey;
     TamguIndex* kind = (TamguIndex*)idx;
     ikey = kind->left->Getinteger0(idthread);
+    if (kind->signleft)
+        ikey *= -1;
+
     if (kind->interval == true)
         keyright = kind->right->Eval(aNULL, aNULL, idthread);
     
@@ -2094,6 +2103,9 @@ Exporting Tamgu* Tamgua_ivector::Eval(Tamgu* contextualpattern, Tamgu* idx, shor
         return globalTamgu->ProvideConstint(values[ikey]);
     
     long iright = keyright->Integer();
+    if (kind->signright)
+        iright *= -1;
+
     if (keyright != kind->right)
         keyright->Release();
     if (iright < 0 || keyright == aNULL) {

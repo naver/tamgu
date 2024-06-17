@@ -705,8 +705,11 @@ Exporting Tamgu* Tamguuvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
             return aNOELEMENT;
         }
     }
-    else
+    else {
         ikey = key->Integer();
+        if (kind->signleft)
+            ikey *= -1;
+    }
 
     key->Release();
     if (ikey < 0)
@@ -759,6 +762,9 @@ Exporting Tamgu* Tamguuvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short 
             iright = 0;
         else {
             iright = keyright->Integer();
+            if (kind->signright)
+                iright *= -1;
+
             if (stringkey && iright >= 0)
                 iright = ikey + iright + 1;
         }
@@ -1725,9 +1731,11 @@ Exporting Tamgu* Tamgua_uvector::Eval(Tamgu* contextualpattern, Tamgu* idx, shor
             return aNOELEMENT;
         }
     }
-    else
+    else {
         ikey = key->Integer();
-    
+        if (kind->signleft)
+            ikey *= -1;
+    }
     key->Release();
     
     if (ikey < 0)
@@ -1776,6 +1784,9 @@ Exporting Tamgu* Tamgua_uvector::Eval(Tamgu* contextualpattern, Tamgu* idx, shor
             iright = 0;
         else {
             iright = keyright->Integer();
+            if (kind->signright)
+                iright *= -1;
+
             if (stringkey && iright >= 0)
                 iright = ikey + iright + 1;
         }

@@ -215,11 +215,17 @@ Tamgu* TamguframeBaseInstance::Eval(Tamgu* context, Tamgu* idx, short idthread) 
         VECTE<Tamgu*> arguments;
         Tamgu* a = aid->left->Eval(context, aNULL, idthread);
         a->Setreference();
+        if (aid->signleft)
+            a->multiply(aMINUSONE, true);
+        
         arguments.push_back(a);
 
         if (aid->interval) {
             a = aid->right->Eval(context, aNULL, idthread);
             a->Setreference();
+            if (aid->signright)
+                a->multiply(aMINUSONE, true);
+
             arguments.push_back(a);
         }
 
@@ -377,11 +383,16 @@ Tamgu* Tamguframemininstance::Put(Tamgu* idx, Tamgu* value, short idthread) {
         VECTE<Tamgu*> arguments;
         Tamgu* a = aid->left->Eval(aNULL, aNULL, idthread);
         a->Setreference();
+        if (aid->signleft)
+            a->multiply(aMINUSONE, true);
+
         arguments.push_back(a);
         
         if (aid->interval) {
             a = aid->right->Eval(aNULL, aNULL, idthread);
             a->Setreference();
+            if (aid->signright)
+                a->multiply(aMINUSONE, true);
             arguments.push_back(a);
         }
         
@@ -437,14 +448,17 @@ Tamgu* Tamguframemininstance::Putvalue(Tamgu* value, short idthread) {
     locking();
     TamguframeBaseInstance* instance = (TamguframeBaseInstance*)value;
     
+    Tamgu* vi;
     short nm;
     for (short ii = 0; ii < frame->vnames.last; ii++) {
         nm = frame->vnames[ii];
-        declarations[nm]->Putvalue(instance->Declaration(nm), idthread);
+        vi = instance->Declaration(nm);
+        if (vi->isFrameinstance() && !vi->Reference())
+            vi->Setreference();
+        declarations[nm]->Putvalue(vi, idthread);
     }
 
-    unlocking();
-    
+    unlocking();    
     return aTRUE;
 }
 
@@ -489,11 +503,15 @@ Tamgu* Tamguframeinstance::Put(Tamgu* idx, Tamgu* value, short idthread) {
         VECTE<Tamgu*> arguments;
         Tamgu* a = aid->left->Eval(aNULL, aNULL, idthread);
         a->Setreference();
+        if (aid->signleft)
+            a->multiply(aMINUSONE, true);
         arguments.push_back(a);
         
         if (aid->interval) {
             a = aid->right->Eval(aNULL, aNULL, idthread);
             a->Setreference();
+            if (aid->signright)
+                a->multiply(aMINUSONE, true);
             arguments.push_back(a);
         }
         
@@ -539,8 +557,13 @@ Tamgu* Tamguframeinstance::Putvalue(Tamgu* value, short idthread) {
     locking();
     TamguframeBaseInstance* instance = (TamguframeBaseInstance*)value;
     
-    for (short ii = 0; ii < declarations.last; ii++)
-        declarations[ii]->Putvalue(instance->Declaration(frame->vnames[ii]), idthread);
+    Tamgu* vi;
+    for (short ii = 0; ii < declarations.last; ii++) {
+        vi = instance->Declaration(frame->vnames[ii]);
+        if (vi->isFrameinstance() && !vi->Reference())
+            vi->Setreference();
+        declarations[ii]->Putvalue(vi, idthread);
+    }
     
     unlocking();
     

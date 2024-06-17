@@ -735,7 +735,7 @@ class Tamguframemininstance : public TamguframeBaseInstance {
     void Addreference(unsigned short inv, short r=1) {
         investigate |= (inv & is_tobelocked);
         locking();
-        if (!setReference) {
+        if (!setReference && r) {
             for (short i = 0; i < declarations.sz; i++) {
                 if (declarations.table[i] != NULL)
                     declarations.table[i]->Addreference(inv);
@@ -749,7 +749,7 @@ class Tamguframemininstance : public TamguframeBaseInstance {
     
     void Setreference(short r) {
         locking();
-        if (!setReference) {
+        if (!setReference && r) {
             for (short i = 0; i < declarations.sz; i++) {
                 if (declarations.table[i] != NULL)
                     declarations.table[i]->Setreference();

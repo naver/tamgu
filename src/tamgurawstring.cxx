@@ -53,8 +53,8 @@ char RawStringIndexes(char* svalue, long sz, Tamgu* index, long& ileft, long& ir
     Tamgu* left = index;
     Tamgu* right = NULL;
     
-    bool sleft = false;
-    bool sright = false;
+    long sleft = 1;
+    long sright = 1;
     bool releft = false;
     bool reright = false;
     
@@ -62,8 +62,12 @@ char RawStringIndexes(char* svalue, long sz, Tamgu* index, long& ileft, long& ir
     
     if (index->isIndex()) {
         TamguIndex* kind = (TamguIndex*)index;
-        sleft = kind->signleft;
-        sright = kind->signright;
+        if(kind->signleft)
+            sleft = -1;
+        
+        if (kind->signright)
+            sright = -1;
+        
         left = kind->left->Eval(aNULL, aNULL, idthread);
         if (left != kind->left)
             releft = true;
@@ -80,7 +84,7 @@ char RawStringIndexes(char* svalue, long sz, Tamgu* index, long& ileft, long& ir
     if (left->isRegular()) {
         //this is a regular expression...
         string val(svalue, sz);
-        if (sleft) {
+        if (sleft == -1) {
             //we need the last one...
             if (!left->searchlast(val, ileft, iright))
                 return 0;
@@ -97,7 +101,7 @@ char RawStringIndexes(char* svalue, long sz, Tamgu* index, long& ileft, long& ir
                 left->Release();
             
             //then we are looking for a substring
-            if (sleft)
+            if (sleft == -1)
                 strleft = strrstr(svalue, STR(sub), sz, sub.size());
             else
                 strleft = strstr(svalue, STR(sub));
@@ -110,10 +114,10 @@ char RawStringIndexes(char* svalue, long sz, Tamgu* index, long& ileft, long& ir
             iright = ileft + sub.size();
         }
         else {
-            ileft = left->Integer();
+            ileft = left->Integer() * sleft;
             if (releft)
                 left->Release();
-            
+                        
             if (ileft < 0)
                 ileft += sz;
             
@@ -140,7 +144,7 @@ char RawStringIndexes(char* svalue, long sz, Tamgu* index, long& ileft, long& ir
         //this is a regular expression...
         long r = iright;
         
-        if (sright) {
+        if (sright == -1) {
             //we need the last one...
             if (!right->searchlast(val, r, iright, r))
                 return 0;
@@ -159,7 +163,7 @@ char RawStringIndexes(char* svalue, long sz, Tamgu* index, long& ileft, long& ir
         if (reright)
             right->Release();
         
-        if (sright)
+        if (sright == -1)
             strleft = strrstr(svalue, STR(sub), sz, sub.size());
         else {
             if (iright != -1)
@@ -178,10 +182,10 @@ char RawStringIndexes(char* svalue, long sz, Tamgu* index, long& ileft, long& ir
     }
     
     if (iright == -1) {//absolute position
-        iright = right->Integer();
+        iright = right->Integer() * sright;
         if (reright)
             right->Release();
-        
+                
         if (iright < 0 || right == aNULL)
             iright += sz;
     }
@@ -190,7 +194,8 @@ char RawStringIndexes(char* svalue, long sz, Tamgu* index, long& ileft, long& ir
         if (right == aNULL)
             iright = sz;
         else {
-            iright += right->Integer();
+            iright += right->Integer() * sright;
+            
             if (reright)
                 right->Release();
         }

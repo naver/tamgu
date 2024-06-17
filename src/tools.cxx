@@ -681,8 +681,8 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
 	long pivot = -1;
 	long szchar = size_w(svalue, pivot);
 
-    bool sleft = false;
-    bool sright = false;
+    long sleft = 1;
+    long sright = 1;
     bool releft = false;
     bool reright = false;
     
@@ -690,8 +690,11 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
     
     if (index->isIndex()) {
         TamguIndex* kind = (TamguIndex*)index;
-        sleft = kind->signleft;
-        sright = kind->signright;
+        if(kind->signleft)
+            sleft = -1;
+        if (kind->signright)
+            sright = -1;
+
         if (kind->isConst()) {
             left = kind->left;
             right = kind->right;
@@ -712,7 +715,7 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
     
     if (left->isRegular()) {
         //this is a regular expression...
-        if (sleft) {
+        if (sleft == -1) {
             //we need the last one...
             if (!left->searchlast(svalue, ileft, iright))
                 return 0;
@@ -729,7 +732,7 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
                 left->Release();
             
             //then we are looking for a substring
-            if (sleft)
+            if (sleft == -1)
                 ileft = s_rfind(svalue, sub, sz);
             else
                 ileft = s_find(svalue, sub, 0);
@@ -740,7 +743,7 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
             iright = ileft + sub.size();
         }
         else {
-            ileft = left->Integer();
+            ileft = left->Integer() * sleft;
             if (releft)
                 left->Release();
 
@@ -780,7 +783,7 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
         //this is a regular expression...
         long r = iright;
         
-        if (sright) {
+        if (sright == -1) {
             //we need the last one...
             if (!right->searchlast(svalue, r, iright, r))
                 return 0;
@@ -799,7 +802,7 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
         if (reright)
             right->Release();
         
-        if (sright) {
+        if (sright == -1) {
             iright = s_rfind(svalue, sub, sz);
             if (iright < ileft)
                 return 0;
@@ -819,7 +822,7 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
     }
     
     if (iright == -1) {//absolute position
-        iright = right->Integer();
+        iright = right->Integer() * sright;
         if (reright)
             right->Release();
         
@@ -847,7 +850,7 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
 	if (right == aNULL)
 		iright = sz;
 	else {
-		shift = right->Integer();
+		shift = right->Integer() * sright;
 		if (reright)
 			right->Release();
 
@@ -895,8 +898,8 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
     long emoji = -1;
 	long sz = size_c(svalue, emoji);
 
-	bool sleft = false;
-	bool sright = false;
+    long sleft = 1;
+    long sright = 1;
 	bool releft = false;
 	bool reright = false;
 
@@ -904,8 +907,11 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
 
 	if (index->isIndex()) {
 		TamguIndex* kind = (TamguIndex*)index;
-		sleft = kind->signleft;
-		sright = kind->signright;
+        if(kind->signleft)
+            sleft = -1;        
+        if (kind->signright)
+            sright = -1;
+        
         if (kind->isConst()) {
             left = kind->left;
             right = kind->right;
@@ -926,7 +932,7 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
 
 	if (left->isRegular()) {
 		//this is a regular expression...
-		if (sleft) {
+		if (sleft == -1) {
 			//we need the last one...
 			if (!left->searchlast(svalue, ileft, iright))
 				return 0;
@@ -943,7 +949,7 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
 				left->Release();
 
 			//then we are looking for a substring
-			if (sleft)
+			if (sleft == -1)
 				ileft = s_rfind(svalue, sub, sz);
 			else
 				ileft = s_find(svalue, sub, 0);
@@ -954,7 +960,7 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
 			iright = ileft + sub.size();
 		}
 		else {
-			ileft = left->Integer();
+			ileft = left->Integer() * sleft;
 			if (releft)
 				left->Release();
 			if (ileft < 0)
@@ -982,7 +988,7 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
 		//this is a regular expression...
 		long r = iright;
 
-		if (sright) {
+		if (sright == -1) {
 			//we need the last one...
 			if (!right->searchlast(svalue, r, iright, r))
 				return 0;
@@ -1001,7 +1007,7 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
 		if (reright)
 			right->Release();
 
-		if (sright) {
+		if (sright == -1) {
 			iright = s_rfind(svalue, sub, sz);
 			if (iright < ileft)
 				return 0;
@@ -1021,7 +1027,7 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
 	}
 
 	if (iright == -1) {//absolute position
-		iright = right->Integer();
+		iright = right->Integer()  * sright;
 		if (reright)
 			right->Release();
 
@@ -1033,7 +1039,7 @@ Exporting char StringIndexes(wstring& svalue, Tamgu* index, long& ileft, long& i
 		if (right == aNULL)
 			iright = sz;
 		else
-			iright += right->Integer();
+			iright += right->Integer() * sright;
 	}
 
     if (emoji != -1) {
@@ -1102,16 +1108,19 @@ Exporting char StringIndexes(string& svalue, Tamgu* index, long& ileft, long& ir
     
     char utf8 = 0;
     char clean = 0;
-    bool sleft = false;
-    bool sright = false;
+    long sleft = 1;
+    long sright = 1;
     
     
     iright = -1;
     
     if (index->isIndex()) {
         TamguIndex* kind = (TamguIndex*)index;
-        sleft = kind->signleft;
-        sright = kind->signright;
+        if(kind->signleft)
+            sleft = -1;
+        if (kind->signright)
+            sright = -1;
+        
         if (kind->isConst()) {
             left = kind->left;
             right = kind->right;
@@ -1132,7 +1141,7 @@ Exporting char StringIndexes(string& svalue, Tamgu* index, long& ileft, long& ir
     
     if (left->isRegular()) {
         //this is a regular expression...
-        if (sleft) {
+        if (sleft == -1) {
             //we need the last one...
             if (!left->searchlast(svalue, ileft, iright))
                 return 0;
@@ -1150,7 +1159,7 @@ Exporting char StringIndexes(string& svalue, Tamgu* index, long& ileft, long& ir
                 left->Release();
             
             //then we are looking for a substring
-            if (sleft)
+            if (sleft == -1)
                 ileft = s_rfindbyte(svalue, sub, sz);
             else
                 ileft = s_findbyte(svalue, sub, 0);
@@ -1161,7 +1170,7 @@ Exporting char StringIndexes(string& svalue, Tamgu* index, long& ileft, long& ir
             iright = ileft + sub.size();
         }
         else {
-            ileft = left->Integer();
+            ileft = left->Integer() * sleft;
             if ((clean & 1)==1)
                 left->Release();
             
@@ -1218,7 +1227,7 @@ Exporting char StringIndexes(string& svalue, Tamgu* index, long& ileft, long& ir
         //this is a regular expression...
         long r = iright;
         
-        if (sright) {
+        if (sright == -1) {
             //we need the last one...
             if (!right->searchlast(svalue, r, iright, r))
                 return 0;
@@ -1240,7 +1249,7 @@ Exporting char StringIndexes(string& svalue, Tamgu* index, long& ileft, long& ir
         if ((clean & 2)==2)
             right->Release();
         
-        if (sright) {
+        if (sright == -1) {
             iright = s_rfindbyte(svalue, sub, sz);
             if (iright < ileft)
                 return 0;
@@ -1269,7 +1278,7 @@ Exporting char StringIndexes(string& svalue, Tamgu* index, long& ileft, long& ir
     //Now we have two cases...
     //First, this is a pure integer interval, in that case, iright is the absolute position
     if (iright == -1) {
-        iright = right->Integer();
+        iright = right->Integer() * sright;
         if ((clean & 2)==2)
             right->Release();
         
@@ -1301,7 +1310,7 @@ Exporting char StringIndexes(string& svalue, Tamgu* index, long& ileft, long& ir
         return 2;
     }
     
-    long shift = right->Integer();
+    long shift = right->Integer() * sright;
     if ((clean & 2)==2)
         right->Release();
     if (shift < 0)
@@ -1346,16 +1355,19 @@ Exporting char StringIndexes(uchar* svalue, long sz, Tamgu* index, long& ileft, 
     
     char utf8 = 0;
     char clean = 0;
-    bool sleft = false;
-    bool sright = false;
+    long sleft = 1;
+    long sright = 1;
     
     
     iright = -1;
     
     if (index->isIndex()) {
         TamguIndex* kind = (TamguIndex*)index;
-        sleft = kind->signleft;
-        sright = kind->signright;
+        if(kind->signleft)
+            sleft = -1;
+        if (kind->signright)
+            sright = -1;
+        
         if (kind->isConst()) {
             left = kind->left;
             right = kind->right;
@@ -1378,7 +1390,7 @@ Exporting char StringIndexes(uchar* svalue, long sz, Tamgu* index, long& ileft, 
         //this is a regular expression...
         sub = (char*)svalue;
         
-        if (sleft) {
+        if (sleft == -1) {
             //we need the last one...
             if (!left->searchlast(sub, ileft, iright))
                 return 0;
@@ -1395,7 +1407,7 @@ Exporting char StringIndexes(uchar* svalue, long sz, Tamgu* index, long& ileft, 
                 left->Release();
             
             //then we are looking for a substring
-            if (sleft)
+            if (sleft == -1)
                 ileft = s_rfindbyte(svalue, sz, sub, sz);
             else
                 ileft = s_findbyte(svalue, sz, sub, 0);
@@ -1406,7 +1418,7 @@ Exporting char StringIndexes(uchar* svalue, long sz, Tamgu* index, long& ileft, 
             iright = ileft + sub.size();
         }
         else {
-            ileft = left->Integer();
+            ileft = left->Integer() * sleft;
             if ((clean & 1)==1)
                 left->Release();
             
@@ -1464,7 +1476,7 @@ Exporting char StringIndexes(uchar* svalue, long sz, Tamgu* index, long& ileft, 
         long r = iright;
         sub = (char*)svalue;
         
-        if (sright) {
+        if (sright==-1) {
             //we need the last one...
             if (!right->searchlast(sub, r, iright, r))
                 return 0;
@@ -1483,7 +1495,7 @@ Exporting char StringIndexes(uchar* svalue, long sz, Tamgu* index, long& ileft, 
         if ((clean & 2)==2)
             right->Release();
         
-        if (sright) {
+        if (sright==-1) {
             iright = s_rfindbyte(svalue, sz, sub, sz);
             if (iright < ileft)
                 return 0;
@@ -1512,7 +1524,7 @@ Exporting char StringIndexes(uchar* svalue, long sz, Tamgu* index, long& ileft, 
     //Now we have two cases...
     //First, this is a pure integer interval, in that case, iright is the absolute position
     if (iright == -1) {
-        iright = right->Integer();
+        iright = right->Integer()  * sright;
         if ((clean & 2)==2)
             right->Release();
         
@@ -1544,7 +1556,7 @@ Exporting char StringIndexes(uchar* svalue, long sz, Tamgu* index, long& ileft, 
         return 2;
     }
     
-    long shift = right->Integer();
+    long shift = right->Integer()  * sright;
     if ((clean & 2)==2)
         right->Release();
     if (shift < 0)

@@ -804,6 +804,9 @@ Exporting Tamgu* Tamgulist::Eval(Tamgu* contextualpattern, Tamgu* idx, short idt
     Tamgu* keyright = NULL;
     
     long ikey = ((TamguIndex*)idx)->left->Getinteger0(idthread);
+    if (((TamguIndex*)idx)->signleft)
+        ikey *= -1;
+
     if (idx->isInterval())
         keyright = ((TamguIndex*)idx)->right->Eval(aNULL, aNULL, idthread);
 
@@ -832,6 +835,9 @@ Exporting Tamgu* Tamgulist::Eval(Tamgu* contextualpattern, Tamgu* idx, short idt
     }
 
     long iright = keyright->Integer();
+    if (((TamguIndex*)idx)->signright)
+        iright *= -1;
+
     if (keyright != ((TamguIndex*)idx)->right)
         keyright->Release();
 
@@ -2471,6 +2477,9 @@ Exporting Tamgu* Tamguring::Eval(Tamgu* contextualpattern, Tamgu* idx, short idt
     
     long mx = values.size();
     long ikey = key->Integer();
+    if (kind->signleft)
+        ikey *= -1;
+    
     key->Release();
     if (ikey < 0)
         ikey = mx + ikey;
@@ -2494,8 +2503,11 @@ Exporting Tamgu* Tamguring::Eval(Tamgu* contextualpattern, Tamgu* idx, short idt
     
     if (keyright == aNULL)
         iright = 0;
-    else
+    else {
         iright = keyright->Integer();
+        if (kind->signright)
+            iright *= -1;
+    }
     
     if (keyright != kind->right)
         keyright->Release();
@@ -3567,6 +3579,9 @@ Exporting Tamgu* Tamgujava_vector::Eval(Tamgu* contextualpattern, Tamgu* idx, sh
     
     long mx = Size();
     long ikey = key->Integer();
+    if (kind->signleft)
+        ikey *= -1;
+    
     key->Release();
     if (ikey < 0)
         ikey = mx + ikey;
@@ -3590,8 +3605,11 @@ Exporting Tamgu* Tamgujava_vector::Eval(Tamgu* contextualpattern, Tamgu* idx, sh
     
     if (keyright == aNULL)
         iright = 0;
-    else
+    else {
         iright = keyright->Integer();
+        if (kind->signright)
+            iright *= -1;
+    }
     
     if (keyright != kind->right)
         keyright->Release();
