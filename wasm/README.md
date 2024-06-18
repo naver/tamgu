@@ -51,7 +51,7 @@ etc.
 We also added an additional function to clean the interpreter:
 
 ```Javascript
-function callResettamgu() //this function resets the tamgu interpreter
+function callResetTamgu() //this function resets the tamgu interpreter
 ```
 
 Note that the code and variables created in tamgu are _persistent_, hence the need to be able to regenerate the interpreter when needed. Thus, between two calls, the variables keep their value.
