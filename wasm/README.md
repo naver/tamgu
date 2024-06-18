@@ -116,7 +116,7 @@ Then you can use the address: `http://localhost:8080` in any browser to interact
 
 As demonstrated, it is possible to interact with `tamgu.wasm` in a straightforward manner. You can add code, compile, and execute it on the fly. To re-execute code, simply position the cursor at the beginning of the line you wish to re-run.
 
-![](https://github.com/naver/tamgu/blob/master/wasm/example_wasm.png)
+![](https://github.com/naver/tamgu/blob/master/wasm/tamgu_wasm.png)
 
 By default, the `callEval` method takes code and returns a string result. In many cases, this may be adequate, but it is also possible to return numeric values or lists of numeric values. You can even minimize compilation by initializing variables directly with lists or strings, for instance (see _callSetq_).
 
