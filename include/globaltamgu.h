@@ -48,6 +48,9 @@ Exporting string TamguErrBuffer(short idglobal);
 void FinalTamguConstantCleaning(void);
 
 Exporting TamguGlobal* TamguCreate(long nbthreads = 50);
+Exporting bool TamguDelete();
+Exporting bool TamguSelect();
+
 Exporting bool TamguExtinguish();
 Exporting short TamguLoad(string filename);
 Exporting short TamguCompile(string& code, string filename, char display = false);

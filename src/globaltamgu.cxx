@@ -245,6 +245,37 @@ Exporting TamguGlobal* getGlobalTamgu(short idglobal) {
 }
 
 //----------------------------------------------------------------------------------
+Exporting bool TamguSelect() {
+    JtamguGlobalLocking _lock;
+    if (!globalTamguPool.size() || globalTamguPool[0] == NULL)
+        return false;
+
+    globalTamguPool[0]->SetThreadid();
+    globalTamgu = globalTamguPool[0];
+    return true;
+}
+
+Exporting bool TamguDelete() {
+    TamguGlobal* g = NULL;
+    
+    {
+        JtamguGlobalLocking _lock;
+        if (!globalTamguPool.size() || globalTamguPool[0] == NULL)
+            return false;
+        
+        g = globalTamguPool[0];
+        globalTamguPool[0] = NULL;
+    }
+    
+
+    if (g != NULL) {
+        if (globalTamgu == g)
+            globalTamgu = NULL;
+        delete g;
+    }
+    
+    return true;
+}
 
 Exporting TamguGlobal* TamguCreate(long nbthreads) {
     if (globalTamgu != NULL)
@@ -253,10 +284,17 @@ Exporting TamguGlobal* TamguCreate(long nbthreads) {
     _fullcode = "";
     TamguGlobal* global = new TamguGlobal(nbthreads, true);
     global->linereference = 1;
-    Storeglobal(global);
+    {
+        JtamguGlobalLocking _lock;
+        global->idglobal = 0;
+        if (!globalTamguPool.size())
+            globalTamguPool.push_back(global);
+        else
+            globalTamguPool[0] = global;
+    }
+    globalTamgu = global;
     return global;
 }
-
 
 Exporting bool TamguExtinguish() {
     if (globalTamgu != NULL) {
