@@ -1458,7 +1458,11 @@ char gramstate::comparemap(short idthread, wstring& lkey, GrammarBaseAutomaton* 
     }
     
     long c = i;
-    Tamguvector* v = (Tamguvector*)m->Value(lkey);
+    Tamgu* v_value = m->Value(lkey);
+    if (!v_value->isVectorContainer())
+        return false;
+    
+    Tamguvector* v = (Tamguvector*)v_value;
     
     bool topop = false;
     bool callfunc = false;

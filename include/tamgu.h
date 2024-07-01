@@ -345,8 +345,7 @@ public:
 		return Value(res);
 	}
 
-
-	virtual Tamgu* Value(string) {
+	virtual Tamgu* Value(string&) {
 		return aNOELEMENT;
 	}
 

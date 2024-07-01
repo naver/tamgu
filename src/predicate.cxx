@@ -2097,7 +2097,8 @@ Tamgu* Tamgu::Predicate(TamguDeclaration* dom, short idthread) {
     }
 
     if (isMapContainer()) {
-        e = Value("name");
+        string n_key = "name";
+        e = Value(n_key);
         if (e == aNOELEMENT)
             return globalTamgu->Returnerror("PRE(003): Unknown predicate name", idthread);
         name = e->String();
@@ -2122,7 +2123,8 @@ Tamgu* Tamgu::Predicate(TamguDeclaration* dom, short idthread) {
                 else
                     buff[0]++;
             }
-            e = Value(buff);
+            n_key = buff;
+            e = Value(n_key);
             if (e == aNOELEMENT)
                 return globalTamgu->Returnerror("PRE(004): Missing index parameter in the map", idthread);
             pred->parameters.push_back(e->Atom(true));

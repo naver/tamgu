@@ -641,10 +641,12 @@ Tamgu* Mapcompare(Tamgu*a, Tamgu*b, TamguGlobal* global) {
                 if (vb != aNOELEMENT)
                     res = vb->same(value);
                 break;
-            default:
-                vb = b->Value(key->String());
+            default: {
+                string s_key = key->String();
+                vb = b->Value(s_key);
                 if (vb != aNOELEMENT)
                     res = vb->same(value);
+            }
         }
         
         vb->Release();
