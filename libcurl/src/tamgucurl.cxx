@@ -454,8 +454,12 @@ Tamgu* Tamgucurl::MethodOptions(Tamgu* contextualpattern, short idthread, TamguC
 	CURLcode res;
 	CURLoption noption = curloptions[option];
 	Tamgu*  kdata = callfunc->Evaluate(1, contextualpattern, idthread);
-	if (kdata->Type() == a_string) {
-		string data = kdata->String();
+	if (kdata->isNumber()) {
+		long data = kdata->Integer();
+		res = curl_easy_setopt(curl, noption, data);
+	}
+	else {
+		string data = kdata->JSonString();
 		if (data.size() >= urlsize) {
 			free(urlbuffer);
 			urlsize = data.size()*1.5;
@@ -464,10 +468,7 @@ Tamgu* Tamgucurl::MethodOptions(Tamgu* contextualpattern, short idthread, TamguC
 		strcpy_s(urlbuffer, urlsize, STR(data));
 		res = curl_easy_setopt(curl, noption, urlbuffer);
 	}
-	else {
-		long data = kdata->Integer();
-		res = curl_easy_setopt(curl, noption, data);
-	}
+
 	if (res == 0)
 		return aTRUE;
 	return errormsg(idthread, res);
