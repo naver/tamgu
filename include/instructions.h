@@ -602,6 +602,10 @@ public:
 
 	Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 
+    bool isUnified(TamguDeclaration* dom) {
+        return false;
+    }
+    
 	short Typeinfered() {
 		if (globalTamgu->returntypes.check(name))
 			return globalTamgu->returntypes[name];
