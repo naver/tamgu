@@ -113,8 +113,8 @@ m = g.apply("Test 123")
 
 # Nous pouvons utiliser l'opérateur "_" pour supprimer les informations inutiles de la sortie, telles que "bloc".
 string r = @"
-base := bloc+.
-bloc := mot;nombre;%s.
+base := _bloc+.
+_bloc := mot;nombre;%s.
 mot := %a+.
 nombre := %d+.
 "@;

@@ -113,8 +113,8 @@ m = g.apply("Test 123")
 
 # Μπορούμε να χρησιμοποιήσουμε τον τελεστή "_" για να αφαιρέσουμε περιττές πληροφορίες από την έξοδο, όπως το "bloc".
 string r = @"
-base := bloc+.
-bloc := word;number;%s.
+base := _bloc+.
+_bloc := word;number;%s.
 word := %a+.
 number := %d+.
 "@;

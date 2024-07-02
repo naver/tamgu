@@ -111,8 +111,8 @@ m = g.apply("Test 123")
 
 # 출력에서 "bloc"과 같은 불필요한 정보를 제거하기 위해 "_" 연산자를 사용할 수 있습니다.
 string r = @"
-base := bloc+.
-bloc := word;number;%s.
+base := _bloc+.
+_bloc := word;number;%s.
 word := %a+.
 number := %d+.
 "@;

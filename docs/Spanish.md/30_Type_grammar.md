@@ -100,8 +100,8 @@ m = g.apply("123")
 # a) Tener en cuenta los espacios
 # b) Iterar para reconocer cada token en la cadena
 cadena r = @"
-base := bloque+.
-bloque := palabra;número;%s.
+base := _bloque+.
+_bloque := palabra;número;%s.
 palabra := %a+.
 número := %d+.
 "@;

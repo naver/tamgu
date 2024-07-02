@@ -113,8 +113,8 @@ m = g.apply("Test 123")
 
 # We can use the "_" operator to remove unnecessary information from the output, such as "bloc".
 string r = @"
-base := bloc+.
-bloc := word;number;%s.
+base := _bloc+.
+_bloc := word;number;%s.
 word := %a+.
 number := %d+.
 "@;
