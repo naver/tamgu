@@ -459,7 +459,12 @@ Tamgu* Tamgucurl::MethodOptions(Tamgu* contextualpattern, short idthread, TamguC
 		res = curl_easy_setopt(curl, noption, data);
 	}
 	else {
-		string data = kdata->JSonString();
+		string data;
+		if (kdata->isContainer())
+			data = kdata->JSonString();
+		else
+			data = kdata->String();
+			
 		if (data.size() >= urlsize) {
 			free(urlbuffer);
 			urlsize = data.size()*1.5;
