@@ -4364,6 +4364,13 @@ Tamgu* TamguBasePredicateVariable::Eval(Tamgu* contextualpattern, Tamgu* dom, sh
 
 Tamgu* TamguPredicateVariableASSIGNMENT::Eval(Tamgu* contextualpattern, Tamgu* dom, short idthread) {    
     Tamgu* var = contextualpattern->Getdico(name);
+    if (var == NULL) {
+        var = globalTamgu->Providevariableinstance(name, idthread);
+        contextualpattern->Setdico(name, (TamguPredicateVariableInstance*)var);
+        var->Setreference();
+        ((TamguDeclaration*)dom)->declarations[var->Name()] = var;
+    }
+    
     Tamgu* value = instructions.vecteur[1]->Eval(var, aASSIGNMENT, idthread);
     if (value->isError())
         return value;
@@ -4401,7 +4408,9 @@ Tamgu* TamguPredicateVariable::Eval(Tamgu* contextualpattern, Tamgu* dom, short 
     contextualpattern = dom->Declaration(predicatedico);
 
     Tamgu* val = contextualpattern->Getdico(name);
-    
+    if (val == NULL)
+        return aNOELEMENT;
+
     val = val->Eval(contextualpattern, dom, idthread);
     
     if (function != NULL)
