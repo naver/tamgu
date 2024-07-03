@@ -34,9 +34,6 @@ class Tamgutamgu : public TamguObject {
     //this is a static object, which is common to everyone
     //We associate the method pointers with their names in the linkedmethods map
     static Exchanging basebin_hash<tamguMethod> methods;
-    
-    
-
 	static Exchanging hmap<string, Tamgutamgu*> recorded;
 
     short idtype;
@@ -83,10 +80,6 @@ class Tamgutamgu : public TamguObject {
 	string Typename() {
         return "tamgu";
     }
-
-    
-
-    
 
     bool isBoolean() {
         return false;
@@ -138,20 +131,10 @@ class Tamgutamgu : public TamguObject {
     //This SECTION is for your specific implementation...
     //This is an example of a function that could be implemented for your needs.
 
-    Tamgu* MethodMethod(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {        
+    Tamgu* MethodMethod(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {    
 		Tamgu* domain = acode->Mainframe();
-		Tamgu* func = domain->Declaration(callfunc->Name());
-		if (func == NULL || !func->isFunction() || func->isPrivate()) {
-			string message = e_unknown_function;
-			message += globalTamgu->Getsymbol(callfunc->Name());
-			message += "'";
-			return globalTamgu->Returnerror(message, idthread);
-		}
-
-		TamguCallFunction cfunc(func);
-		cfunc.arguments = callfunc->arguments;
-		globalTamgu->Pushstack(domain, idthread);
-		Tamgu* a = cfunc.Eval(domain, aNULL, idthread);
+        globalTamgu->Pushstack(domain, idthread);
+        Tamgu* a = callfunc->Eval(domain, aNULL, idthread);
 		globalTamgu->Popstack(idthread);
 		return a;
 	}

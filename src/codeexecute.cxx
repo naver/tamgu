@@ -2280,12 +2280,14 @@ Exporting Tamgu* TamguCallFunction::Eval(Tamgu* domain, Tamgu* a, short idthread
     if (idthread)
         values = new VECTE<Tamgu*>(sza);
     
-    for (i = 0; i < sza && !globalTamgu->Error(idthread); i++) {
+    bool error = false;
+    for (i = 0; i < sza && !error; i++) {
         a = arguments.vecteur[i]->Eval(domain, aNULL, idthread);
         values->push_back(a);
+        error = globalTamgu->Error(idthread);
     }
     
-    if (globalTamgu->Error(idthread)) {
+    if (error) {
         for (i = 0; i < values->size(); i++) {
             a = values->vecteur[i];
             if (!a-isError())
@@ -2308,7 +2310,7 @@ Exporting Tamgu* TamguCallFunction::Eval(Tamgu* domain, Tamgu* a, short idthread
         environment->idinfo = Currentinfo();
 
 
-	bool error = true;
+	error = true;
 	while (bd != NULL) {
         sz = bd->parameters.size();
         
