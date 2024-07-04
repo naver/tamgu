@@ -1,0 +1,48 @@
+{
+    "name": "tamgu-runner",
+    "displayName": "Tamgu Runner",
+    "description": "Run Tamgu scripts from within VS Code",
+    "version": "0.0.1",
+    "publisher": "your-publisher-name",
+    "engines": {
+        "vscode": "^1.91.0"
+    },
+    "activationEvents": [
+        "onCommand:extension.runTamgu"
+    ],
+    "main": "./out/extension.js",
+    "contributes": {
+        "commands": [
+            {
+                "command": "extension.runTamgu",
+                "title": "Run Tamgu Script"
+            }
+        ],
+        "languages": [
+            {
+                "id": "tmg",
+                "aliases": ["TMG", "tmg"],
+                "extensions": [".tmg"],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "tmg",
+                "scopeName": "source.cs",
+                "path": "./grammars/tamgu.tmLanguage"
+            }
+        ]
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ."
+    },
+    "devDependencies": {
+        "typescript": "^5.5.3",
+        "@types/node": "^20.14.9",
+        "@types/vscode": "^1.91.0"
+    }
+  }
+  
