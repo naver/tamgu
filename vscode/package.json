@@ -21,8 +21,13 @@
         "languages": [
             {
                 "id": "tmg",
-                "aliases": ["TMG", "tmg"],
-                "extensions": [".tmg"],
+                "aliases": [
+                    "TMG",
+                    "tmg"
+                ],
+                "extensions": [
+                    ".tmg"
+                ],
                 "configuration": "./language-configuration.json"
             }
         ],
@@ -40,9 +45,8 @@
         "watch": "tsc -watch -p ."
     },
     "devDependencies": {
-        "typescript": "^5.5.3",
         "@types/node": "^20.14.9",
-        "@types/vscode": "^1.91.0"
+        "@types/vscode": "^1.91.0",
+        "typescript": "^5.5.3"
     }
-  }
-  
+}
