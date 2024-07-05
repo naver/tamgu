@@ -7,20 +7,6 @@ export function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(disposableCommand);
 
-    let disposableOpen = vscode.workspace.onDidOpenTextDocument((document) => {
-        if (document.fileName.endsWith('.tmg')) {
-            runTamguFile(document.fileName);
-        }
-    });
-
-    let disposableSave = vscode.workspace.onDidSaveTextDocument((document) => {
-        if (document.fileName.endsWith('.tmg')) {
-            runTamguFile(document.fileName);
-        }
-    });
-
-    context.subscriptions.push(disposableOpen);
-    context.subscriptions.push(disposableSave);
 }
 
 function runCurrentTamguFile() {
