@@ -2,7 +2,7 @@
     "name": "tamgu-runner",
     "displayName": "Tamgu Runner",
     "description": "Run Tamgu scripts from within VS Code",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "publisher": "your-publisher-name",
     "engines": {
         "vscode": "^1.91.0"
