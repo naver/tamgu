@@ -8357,7 +8357,7 @@
       <key>type-builtin</key>
       <dict>
         <key>match</key>
-        <string>\b(bool|byte|decimal|short|int|long|float|map|primemap|string|treemap|ustring|vector|ivector|fvector|svector|uvector)\b</string>
+        <string>\b(bool|byte|short|int|long|decimal|fraction|complex|float|bloop|iloop|lloop|dloop|floop|ithrough|lthrough|dthrough|fthrough|sthrough|uthrough|vthrough|mthrough|string|ustring|sloop|uloop|constvector|vector|bvector|fvector|ivector|hvector|svector|uvector|dvector|lvector|list|constmap|map|treemap|primemap|mapss|mapi|treemapi|mapf|call|frameinstance|iterator|self|let|tamgu|predicatevar|predicate|term|dependency|synode|treg|table|preg|fibre|java_vector|lisp|a_string|rawstring|a_int|real|a_float|a_ustring|a_bool|file|ufile|wfile|date|time|chrono|clock|socket|_stdin|transducer|grammar|sys|imatrix|fmatrix|annotator|a_vector|a_ivector|a_fvector|a_uvector|a_svector|ring|mapsf|mapsi|mapsl|mapff|mapfi|mapfl|mapfs|mapfu|mapif|mapii|mapis|mapiu|mapl|maplf|mapll|mapls|maplu|mapu|mapuf|mapui|mapul|mapuu|treemapls|treemapif|treemapsf|treemapsi|treemapss|treemapsl|primemapsf|primemapsi|primemapss|primemapsl)\b</string>
         <key>captures</key>
         <dict>
           <key>1</key>
