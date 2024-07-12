@@ -543,6 +543,7 @@ public:
 
 	bool erroronkey;
     bool loosecompability;
+    short short_string;
 
 	//-----------------------------------
 	vector<string> filenames;

@@ -259,12 +259,14 @@ class bnf_tamgu {
     char m_private(string& lreturn,x_node** tree);
     char m_common(string& lreturn,x_node** tree);
     char m_const(string& lreturn,x_node** tree);
+    char m_instance_variable(string& lreturn,x_node** tree);
     char m_feature(string& lreturn,x_node** tree);
     char m_feature_0_1(string& lreturn,x_node** tree);
     char m_feature_0_1_2(string& lreturn,x_node** tree);
     char m_feature_0_3(string& lreturn,x_node** tree);
     char m_type(string& lreturn,x_node** tree);
     char m_type_0_1(string& lreturn,x_node** tree);
+    char m_type_0_2(string& lreturn,x_node** tree);
     char m_depend(string& lreturn,x_node** tree);
     char m_declaration(string& lreturn,x_node** tree);
     char m_declaration_0_1(string& lreturn,x_node** tree);

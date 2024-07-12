@@ -111,7 +111,130 @@ short TamguDependency::Idvar() {
         return predicatedependency;
     return idvar;
 }
-
+//-------------------------------------------------------------------------------------------------
+Exporting Tamgu* TamguCallFromPredicateRule::Eval(Tamgu* domain, Tamgu* a, short idthread) {
+    static VECTE<Tamgu*> bvalues;
+    
+    TamguFunction* bd = (TamguFunction*)body->Body(idthread);
+    TamguVariableDeclaration* p = NULL;
+    
+    short i, sz = arguments.size();
+    bool strict = bd->strict;
+    
+    while (bd != NULL && bd->parameters.size() != sz) {
+        bd = bd->next;
+    }
+        
+    if (bd == NULL) {
+        string err = "Could not find a match for: '";
+        err += globalTamgu->Getsymbol(Name());
+        err += "'";
+        return globalTamgu->Returnerror(err, idthread);
+    }
+    
+    VECTE<Tamgu*>* values = &bvalues;
+    if (idthread)
+        values = new VECTE<Tamgu*>(sz);
+    
+    char error = false;
+    for (i = 0; i < sz && !error; i++) {
+        p = (TamguVariableDeclaration*)bd->parameters[i];
+        //The reason why we have a specific case...
+        if (p->typevariable == a_instance)
+            a = arguments.vecteur[i]->Execute(domain, aNULL, idthread);
+        else
+            a = arguments.vecteur[i]->Eval(domain, aNULL, idthread);
+        if (a == NULL || a == aNOELEMENT)
+            error = 2;
+        else {
+            values->push_back(a);
+            error = globalTamgu->Error(idthread);
+        }
+    }
+    
+    if (error) {
+        for (i = 0; i < values->size(); i++) {
+            a = values->vecteur[i];
+            if (!a-isError())
+                a->Releasenonconst();
+        }
+        
+        if (error == 2)
+            return aNOELEMENT;
+        
+        return globalTamgu->Errorobject(idthread);
+    }
+        
+    TamguDeclarationLocal* environment = globalTamgu->Providedeclaration(idthread);
+    if (globalTamgu->debugmode)
+        environment->idinfo = Currentinfo();
+        
+    error = false;
+    short type_a = 0, type_p = 0;
+    vector<Tamgu*> instances;
+    for (i = 0; i < sz && !error; i++) {
+        p = (TamguVariableDeclaration*)bd->parameters[i];
+        a = values->vecteur[i];
+        type_a = a->Type();
+        type_p = p->typevariable;
+        //The reason why we have a specific case...
+        if (p->typevariable == a_instance) {
+            environment->Declaring(p->Name(), a);
+            globalTamgu->Storevariable(idthread, p->Name(), a);
+            a->Setreference();
+            instances.push_back(a);
+        }
+        else
+            error = p->Setarguments(environment, a, idthread, strict);
+    }
+    if (error)
+        environment->Cleaning();
+    
+    for (i = 0; i < sz; i++)
+        values->vecteur[i]->Releasenonconst();
+    
+    if (idthread)
+        delete values;
+    else
+        values->clear();
+    
+    if (error) {
+        environment->Releasing();
+        string err = "Check the argument '";
+        err += (char)(i+48);
+        err += "' of: '";
+        err += globalTamgu->Getsymbol(Name());
+        err += "'. ";
+        err += "Argument: '" + globalTamgu->Getsymbol(type_a);
+        err += "' is incompatible with parameter: '" + globalTamgu->Getsymbol(type_p) + "'";
+        return globalTamgu->Returnerror(err, idthread);
+    }
+    
+    globalTamgu->Pushstackraw(environment, idthread);
+    //We then apply our function within this environment
+    a = bd->Run(environment, idthread);
+    globalTamgu->Popstack(idthread);
+    
+    //if a has no reference, then it means that it was recorded into the environment
+    if (!a->Reference())
+        environment->Releasing();
+    else {
+        a->Setreference();
+        //we clean our structure...
+        environment->Releasing();
+        a->Protect();
+    }
+    
+    for (i = 0; i < instances.size(); i++) {
+        TamguPredicateVariableInstance* ins = (TamguPredicateVariableInstance*)instances[i];
+        if (ins->value == aNOELEMENT) {
+            a->Releasenonconst();
+            return aFALSE;
+        }
+    }
+    return a;
+}
+    
 //-------------------------------------------------------------------------------------------------
 // Predicate variables can have methods...
 //-------------------------------------------------------------------------------------------------
@@ -152,6 +275,9 @@ bool TamguPredicate::InitialisationModule(TamguGlobal* global, string version) {
 
         global->newInstance[a_predicatevar] = new TamguPredicateVar(global, a_predicatevar);
         global->RecordCompatibilities(a_predicatevar);
+
+        global->newInstance[a_instance] = new TamguPredicateVariableInstance(global);
+        global->RecordCompatibilities(a_instance);
 
         global->newInstance[a_dependency] = new TamguDependency(global, aNULL, a_dependency, 0);
     }
@@ -1648,6 +1774,8 @@ string TamguBasePredicateVariable::String() {
     v << globalTamgu->Getsymbol(name) << vx->name;
     if (vx->value != aUNIVERSAL && vx->value != aNOELEMENT)
         v << ":" << vx->value->String();
+    if (globalTamgu->short_string)
+        return v.str().substr(0, globalTamgu->short_string);
     return v.str();
 }
 
@@ -1699,7 +1827,16 @@ string TamguPredicateTerm::String() {
     for (long i = 0; i < parameters.size(); i++) {
         if (i)
             v += ",";
-        v += parameters[i]->String();
+        if (globalTamgu->short_string) {
+            string vsub = parameters[i]->String();
+            if (vsub.size() < globalTamgu->short_string)
+                v += vsub;
+            else
+                v += vsub.substr(0, globalTamgu->short_string) + "..";
+        }
+        else
+            v += parameters[i]->String();
+
     }
     v += ")";
     return v;
@@ -1713,7 +1850,15 @@ string TamguPredicateConcept::String() {
     for (long i = 0; i < parameters.size(); i++) {
         if (i)
             v += ",";
-        v += parameters[i]->JSonString();
+        if (globalTamgu->short_string) {
+            string vsub = parameters[i]->String();
+            if (vsub.size() < globalTamgu->short_string)
+                v += vsub;
+            else
+                v += vsub.substr(0, globalTamgu->short_string) + "..";
+        }
+        else
+            v += parameters[i]->String();
     }
     v += ")";
     return v;
@@ -1729,7 +1874,15 @@ string TamguPredicate::String() {
         for (long i = 0; i < sz; i++) {
             if (i)
                 v += ",";
-            v += parameters[i]->JSonString();
+            if (globalTamgu->short_string) {
+                string vsub = parameters[i]->JSonString();
+                if (vsub.size() < globalTamgu->short_string)
+                    v += vsub;
+                else
+                    v += vsub.substr(0, globalTamgu->short_string) + "..";
+            }
+            else
+                v += parameters[i]->JSonString();
         }
         v += ")";
     }
@@ -1808,7 +1961,15 @@ string TamguDependency::String() {
         for (long i = 0; i < sz; i++) {
             if (i)
                 v += ",";
-            v += parameters[i]->JSonString();
+            if (globalTamgu->short_string) {
+                string vsub = parameters[i]->JSonString();
+                if (vsub.size() < globalTamgu->short_string)
+                    v += vsub;
+                else
+                    v += vsub.substr(0, globalTamgu->short_string) + "..";
+            }
+            else
+                v += parameters[i]->JSonString();
         }
         v += ")";
     }
@@ -3366,6 +3527,7 @@ void Displaypredicatestack(const char* ty, TamguDeclaration* dom, TamguPredicate
     Tamgu* se;
     long i, j, sz = goals.size();
     char sep = ',';
+    string n;
     for (i = -1; i < sz; i++) {
         if (i == -1)
             se = kpr;
@@ -3386,7 +3548,7 @@ void Displaypredicatestack(const char* ty, TamguDeclaration* dom, TamguPredicate
                 first = false;
             displayed = true;
             TamguPredicate* kpi = (TamguPredicate*)se;
-            string n = globalTamgu->Getsymbol(kpi->name);
+            n = globalTamgu->Getsymbol(kpi->name);
             if (kpi->isNegation())
                 s << "~";
             s << n;
@@ -3395,6 +3557,8 @@ void Displaypredicatestack(const char* ty, TamguDeclaration* dom, TamguPredicate
             s << "(";
             for (j = 0; j < kpi->parameters.size(); j++) {
                 n = kpi->parameters[j]->String();
+                if (n.size() > globalTamgu->short_string)
+                    n = n.substr(0, globalTamgu->short_string) + "..";
                 if (j)
                     s << ",";
                 s << n;
@@ -3412,8 +3576,10 @@ void Displaypredicatestack(const char* ty, TamguDeclaration* dom, TamguPredicate
             if (i != -1)
                 first = false;
             displayed = true;
-            if (se->Name() != -1 || (se->Action() >= a_assignement && se->Action() <= a_notin))
-                s << se->String();
+            if (se->Name() != -1 || (se->Action() >= a_assignement && se->Action() <= a_notin)) {
+                n = se->String();
+                s << n;
+            }
             else
                 s << "[i]";
         }
@@ -3427,9 +3593,10 @@ void Displaypredicatestack(const char* ty, TamguDeclaration* dom, TamguPredicate
         if (se->isDisjunction())
             sep = ';';
     }
-
+    
     if (displayed)
         PreLocalPrint(s.str());
+    displayed = false;
 }
 
 //---------------------------------------------------------------------
@@ -3624,6 +3791,16 @@ TamguPredicate* TamguInstructionEvaluate::PredicateUnification(VECTE<Tamgu*>& go
         }
         else {
             if (headpredicate == NULL) {
+                /*
+                 T -> TRUE
+                 F -> FALSE
+                 N -> NOELEMENT (no unified variable)
+                 
+                 neg  T T T F F F
+                 res  T F N T F N
+                 test F T T T F F
+                 SUCC F T T T F T
+                 */
                 bool neg = e->isNegation();
                 Tamgu* res = e->Eval(this, dom, threadowner);
                 test = res->Boolean() ^ neg;
@@ -3636,14 +3813,11 @@ TamguPredicate* TamguInstructionEvaluate::PredicateUnification(VECTE<Tamgu*>& go
                     }
                 }
                 if (!test) {
-                    //if res==aNOELEMENT, then it means that there are no unified variables...
-                    if (!neg && !dom->Failed() && res != aNOELEMENT)
+                    if (res != aNOELEMENT)
                         return aFAIL;
                     keep = true;
                 }
                 else {
-                    if (neg)
-                        return aFAIL;
                     if (!keep)
                         from = i + 1;
                 }
@@ -4289,6 +4463,8 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
 
         switch (localres->checkTypePredicate()) {
             case a_true:
+                if (incut)
+                    return aTRUE;
                 res = localres;
                 break;
             case a_break:
@@ -4370,8 +4546,51 @@ Tamgu* TamguPredicateVariableASSIGNMENT::Eval(Tamgu* contextualpattern, Tamgu* d
         var->Setreference();
         ((TamguDeclaration*)dom)->declarations[var->Name()] = var;
     }
+
+
+    TamguRawSelf vself;
+    Tamgu* value = instructions.vecteur[1]->Eval(&vself, aASSIGNMENT, idthread);
+    if (vself.value != aNOELEMENT) {
+        value = vself.value;
+        vself.value = aNOELEMENT;
+    }
+    if (value->isError())
+        return value;
     
-    Tamgu* value = instructions.vecteur[1]->Eval(var, aASSIGNMENT, idthread);
+    if (value == aNOELEMENT) {
+        var->Putvalue(aNOELEMENT, idthread);
+        return value;
+    }
+
+    //Then we might have an issue, if value is a sub element of variable...
+    //for instance: v=v[0];
+    //we need to prevent a Clear() on "variable" to delete this element...
+    value->Setprotect(true);
+
+    var = var->Put(dom, value, idthread);
+
+    value->Resetreferencenoprotect(0);
+
+    if (var->isError())
+        return var;
+
+    if (globalTamgu->isthreading)
+        globalTamgu->Triggeronfalse(var);
+    
+    return aTRUE;
+}
+
+Tamgu* TamguPredicateVariableASSIGNMENTCall::Eval(Tamgu* contextualpattern, Tamgu* dom, short idthread) {
+    Tamgu* var = contextualpattern->Getdico(name);
+    if (var == NULL) {
+        var = globalTamgu->Providevariableinstance(name, idthread);
+        contextualpattern->Setdico(name, (TamguPredicateVariableInstance*)var);
+        var->Setreference();
+        ((TamguDeclaration*)dom)->declarations[var->Name()] = var;
+    }
+
+    Tamgu* value = instructions.vecteur[1]->Eval(contextualpattern, aASSIGNMENT, idthread);
+    
     if (value->isError())
         return value;
     
@@ -4417,6 +4636,19 @@ Tamgu* TamguPredicateVariable::Eval(Tamgu* contextualpattern, Tamgu* dom, short 
         return function->Eval(contextualpattern, val, idthread);
     
     return val;
+}
+
+Tamgu* TamguPredicateVariable::Execute(Tamgu* contextualpattern, Tamgu* dom, short idthread) {
+    TamguPredicateVariableInstance* kpvi = contextualpattern->Getdico(name);
+    if (kpvi == NULL) {
+        kpvi = globalTamgu->Providevariableinstance(name, idthread);
+        contextualpattern->Setdico(name, kpvi);
+        kpvi->Setreference();
+        if (!dom->isDeclared(predicatedico))
+            dom = globalTamgu->Declarator(predicatedico, idthread);
+        ((TamguDeclaration*)dom)->declarations[kpvi->Name()] = kpvi;
+    }
+    return kpvi;
 }
 
 Tamgu* TamguPredicateVariableInstance::Eval(Tamgu* contextualpattern, Tamgu* dom, short idthread) {
@@ -4586,11 +4818,17 @@ Tamgu* TamguPredicateLocalInstruction::Eval(Tamgu* contextualpattern, Tamgu* dom
     Tamgu* res = instruction->Eval(this, dom, idthread);
     dom->declarations.erase(predicatedico);
 
-    if (dom->Failed() || globalTamgu->Error(idthread))
+    if (res->isError())
         return aFALSE;
-
-    if (res == aNOELEMENT)
+    
+    if (res == aNOELEMENT) {
+        //In that case, a variable could not be unified...
+        dom->Setfail(false);
         return res;
+    }
+
+    if (dom->Failed())
+        return aFALSE;
     
     success = res->Boolean();
     
@@ -4627,7 +4865,15 @@ string TamguPredicateLocalInstruction::String() {
                 for (long i = 0; i < ins->Size(); i++) {
                     if (i)
                         v += ",";
-                    v += ins->Argument(i)->String();
+                    if (globalTamgu->short_string) {
+                        string vsub = ins->Argument(i)->String();
+                        if (vsub.size() < globalTamgu->short_string)
+                            v += vsub;
+                        else
+                            v += vsub.substr(0, globalTamgu->short_string) + "..";
+                    }
+                    else
+                        v += ins->Argument(i)->String();
                 }
                 v += ")";
             }
@@ -4806,7 +5052,10 @@ Tamgu* TamguInstructionLaunch::Eval(Tamgu* context, Tamgu* val, short idthread) 
         pv.parameters.push_back(e);
     }
 
+    globalTamgu->short_string = 10;
     e = kl.Eval(context, &domain, idthread);
+    globalTamgu->short_string = 0;
+
 
     basebin_hash<Tamgu*>::iterator it;
     for (it = domain.declarations.begin(); it != domain.declarations.end(); it++) {

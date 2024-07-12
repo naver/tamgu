@@ -36,7 +36,7 @@ Tamgu also provides the traditional lists à la Prolog, which can be used with t
 
 **Example:**
 
-```tamgu
+```C++
 predicate alist;
 // in this clause, C is the rest of the list...
 alist([?A,?B|?C],[?A,?B],?C) :- true.
@@ -48,7 +48,7 @@ Tamgu also provides an associative map, which is implemented as a Tamgu map, but
 
 **Example:**
 
-```tamgu
+```C++
 predicate assign,avalue;
 avalue(1,1) :- true.
 avalue(10,2) :- true.
@@ -79,7 +79,7 @@ It should be noted that the method "predicate", which exists both for a map and 
 
 **Example:**
 
-```tamgu
+```C++
 vector v=['female','mary'];
 predicatevar fem;
 fem=v.predicate(); // we transform our vector into a predicate
@@ -92,19 +92,19 @@ v=fem.query(female,'mary'); // We build a predicate query with a string
 
 A clause is defined as follows:
 
-```tamgu
+```C++
 predicate(arg1,arg2,...,argn) :- pred(arg...),pred(arg,...), etc. ;
 ```
 
 Fact in a knowledge base. A fact can be declared in a program with the following instruction:
 
-```tamgu
+```C++
 predicate(val1,val2,...).
 ```
 
 or
 
-```tamgu
+```C++
 predicate(val1,val2,...) :- true.
 ```
 
@@ -120,7 +120,7 @@ Tamgu also accepts disjunctions in clauses with the operator ";", which can be u
 
 **Example:**
 
-```tamgu
+```C++
 predicate mere,pere;
 mere("jeanne","marie").
 mere("jeanne","rolande").
@@ -176,7 +176,7 @@ This function, when used without any parameters, returns all predicates stored i
 
 **Example:**
 
-```tamgu
+```C++
 // Note that you need to declare "parent" if you want to use it in an assert
 predicate parent;
 adding(?X,?Y) :- asserta(parent(?X,?Y)).
@@ -190,7 +190,7 @@ When looking for facts in a knowledge base, it is possible to query without a sp
 
 **Example:**
 
-```tamgu
+```C++
 // Our knowledge base
 father("george","sam").
 father("george","andy").
@@ -204,7 +204,7 @@ We can also use some specific variables: _0.._9, which can return what was the p
 
 **Example:**
 
-```tamgu
+```C++
 // Our rule, it will match any facts above
 parent(?A,?B,?P) :- _1(?A,?B), ?P is _1.
 ```
@@ -226,7 +226,7 @@ Tail recursion transforms the traversal of a vector for instance into an iterati
 
 **Example:**
 
-```tamgu
+```C++
 vector v = [1..10];
 // End of recursion
 traverse([],0).
@@ -256,7 +256,7 @@ println(vv);
 
 A predicate can be declared with a callback function, whose signature is the following:
 
-```tamgu
+```C++
 function OnSuccess(predicatevar p, string s) {
     println(s,p);
     return true;
@@ -264,6 +264,25 @@ function OnSuccess(predicatevar p, string s) {
 ```
 
 The second argument in the function corresponds to the parameter given to parent in the declaration. If the function returns true, then the inference engine tries other solutions; otherwise, it stops.
+
+It also possible to unify a variable in a call. In that case, the variable type should be: `?_`.
+
+```C++
+
+//We define a function, which is going to unify the variable x:
+function calling(string v, ?_ x) {        
+    x = v + 1;
+    return true;
+}
+
+//In this call, the variable ?R will be unified within calling
+test(?X,?R) :-
+	calling(?X, ?R).
+
+vector v = test("Toto", ?R);
+println(v);
+```
+
 
 **Result:**
 
@@ -280,7 +299,7 @@ Tamgu also accepts DCG rules (Definite Clause Grammar) with a few modifications 
 
 **Example:**
 
-```tamgu
+```C++
 predicate sentence,noun_phrase,verb_phrase;
 term s,np,vp,d,n,v;
 sentence(s(np(d("the"),n("cat")),vp(v("eats"),np(d("a"),n("bat"))))) --> [].
@@ -298,7 +317,7 @@ Most object methods are mapped into predicates in a very simple way. For instanc
 
 **Example:**
 
-```tamgu
+```C++
 compute(?X,?Y) :- p_log(?X,?Y).
 between(?X,?B,?E), succ(?X,?Y).
 ```
@@ -309,7 +328,7 @@ If you use common variables in predicates, such as string s, integer s, or any o
 
 **Example 1**
 
-```tamgu
+```C++
 string s="test";
 string sx="other";
 predicate comp;
@@ -328,7 +347,7 @@ This clause has failed because s and sx have different values.
 
 **Example 2**
 
-```tamgu
+```C++
 string s="test"; // now they have the same values
 string sx="test";
 predicate comp;
@@ -349,7 +368,7 @@ Be careful when you design your clauses to use external variables as comparison 
 
 **Example 3**
 
-```tamgu
+```C++
 string sx="test";
 predicate comp;
 comp._trace(true);
@@ -371,7 +390,7 @@ success:1=comp('test',3)
 
 The following program solves the Hanoi tower problem for you.
 
-```tamgu
+```C++
 predicate move;
 move(1,?X,?Y,_) :- println('Move the top disk from ',?X,' to ',?Y).
 move(?N,?X,?Y,?Z) :- ?N>1, ?M is ?N-1, move(?M,?X,?Z,?Y), move(1,?X,?Y,_), move(?M,?Z,?Y,?X).
@@ -384,7 +403,7 @@ println(res);
 
 With this program, you can find the common female ancestor between different people parent relationships.
 
-```tamgu
+```C++
 predicate ancestor,parent,male,female,test;
 ancestor(?X,?X) :- true.
 ancestor(?X,?Z) :- parent(?X,?Y),ancestor(?Y,?Z).
@@ -405,7 +424,7 @@ println(v);
 
 This example corresponds to the clauses that have been generated out of the previous DCG grammar given as an example.
 
-```tamgu
+```C++
 predicate sentence,noun_phrase,det,noun,verb_phrase,verb;
 term P,SN,SV,dét,nom,verbe;
 sentence(?S1,?S3,P(?A,?B)) :- noun_phrase(?S1,?S2,?A), verb_phrase(?S2,?S3,?B).
@@ -428,7 +447,7 @@ println("The analysis:",v);
 
 The code below displays an animation in which disks are moved from one column to another. It merges both graphics and predicates.
 
-```tamgu
+```C++
 predicate move;
 map columns={'left':[70,50,30],'centre':[],'right':[]};
 function disk(window w,int x,int y,int sz,int position) {

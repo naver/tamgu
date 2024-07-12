@@ -45,7 +45,7 @@
 #include "tamgusocket.h"
 #include "tamgudate.h"
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2024.07.03.15";
+const char* tamgu_version = "Tamgu 1.2024.07.12.10";
 
 extern "C" {
 Exporting const char* TamguVersion(void) {
@@ -445,6 +445,8 @@ operator_strings(false), terms(false), booleanlocks(true), tracked(NULL, true), 
     TamguGlobal* globalSave = globalTamgu;
     globalTamgu = this;
 
+    short_string = 0;
+    
     last_execution = std::chrono::system_clock::now();
     
 #ifdef TAMGULOOSEARGUMENTCOMPATIBILITIES
@@ -2005,7 +2007,7 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("predicatevar"); //119 --> a_predicatevar
     Createid("predicate"); //120 --> a_predicate
     Createid("term"); //121 --> a_term
-    Createid("p_instance"); //122 --> a_instance
+    Createid("?_"); //122 --> a_instance
     Createid("p_predicateruleelement"); //123 --> a_predicateruleelement
     Createid("p_predicatecontainer"); //124 --> a_predicatecontainer
     Createid("p_predicaterule"); //125 --> a_predicaterule
@@ -3067,6 +3069,96 @@ void TamguSelf::storevalue(wchar_t u) {
         typevalue = a_ustring;
     }
     unlocking();
+}
+//---------------------------------------------------------------------------------------------
+void TamguRawSelf::Storevalue(string& u) {
+    if (value != aNOELEMENT)
+        value->Storevalue(u);
+    else {
+        value = globalTamgu->Providewithstring(u);
+    }
+}
+
+void TamguRawSelf::Storevalue(wstring& u) {
+    if (value != aNOELEMENT)
+        value->Storevalue(u);
+    else {
+        value = globalTamgu->Providewithustring(u);
+    }
+}
+
+void TamguRawSelf::storevalue(string u) {
+    if (value != aNOELEMENT)
+        value->storevalue(u);
+    else {
+        value = globalTamgu->Providewithstring(u);
+    }
+}
+
+void TamguRawSelf::storevalue(float u) {
+    if (value != aNOELEMENT)
+        value->storevalue(u);
+    else {
+        value = new Tamgudecimal(u);
+    }
+}
+
+void TamguRawSelf::storevalue(short u) {
+    if (value != aNOELEMENT)
+        value->storevalue(u);
+    else {
+        value = new Tamgushort(u);
+    }
+}
+
+void TamguRawSelf::storevalue(wstring u) {
+    if (value != aNOELEMENT)
+        value->storevalue(u);
+    else {
+        value = globalTamgu->Providewithustring(u);
+    }
+}
+
+void TamguRawSelf::storevalue(long u) {
+    if (value != aNOELEMENT)
+        value->storevalue(u);
+    else {
+        value = globalTamgu->Provideint(u);
+    }
+}
+
+void TamguRawSelf::storevalue(BLONG u) {
+    if (value != aNOELEMENT)
+        value->storevalue(u);
+    else {
+        value = globalTamgu->Providelong(u);
+    }
+}
+
+void TamguRawSelf::storevalue(double u) {
+    if (value != aNOELEMENT)
+        value->storevalue(u);
+    else {
+        value = globalTamgu->Providefloat(u);
+    }
+}
+
+void TamguRawSelf::storevalue(unsigned char u) {
+    if (value != aNOELEMENT)
+        value->storevalue(u);
+    else {
+        value = new Tamgubyte(u);
+    }
+}
+
+void TamguRawSelf::storevalue(wchar_t u) {
+    if (value != aNOELEMENT)
+        value->storevalue(u);
+    else {
+        wstring w;
+        w = u;
+        value = globalTamgu->Providewithustring(w);
+    }
 }
 //---------------------------------------------------------------------------------------------
 Exporting Tamgu* Tamgu::Push(Tamgu*, Tamgu*) {

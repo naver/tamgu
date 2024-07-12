@@ -452,6 +452,13 @@ public:
     Tamgu* Eval(Tamgu* context, Tamgu* domain, short idthread);
 };
 
+class TamguCallFromPredicateRule : public TamguCallFunction {
+public:
+    TamguCallFromPredicateRule(Tamgu* b, TamguGlobal* global = NULL, Tamgu* parent = NULL) : TamguCallFunction(b, global, parent) {}
+    
+    Tamgu* Eval(Tamgu* context, Tamgu* domain, short idthread);
+};
+
 
 class TamguFunctionDeclarationCall : public TamguCallFunction {
 public:
@@ -844,6 +851,7 @@ public:
             case a_long:
             case a_short:
                 constant = aZERO;
+                break;
         }
         
         directcall=false;
@@ -2563,6 +2571,17 @@ public:
     short name;
     
     TamguPredicateVariableASSIGNMENT(TamguGlobal* g, Tamgu* var, Tamgu* parent) : TamguInstructionVariableASSIGNMENT(g, parent) {
+        name = var->Name();
+    }
+    
+    Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
+};
+
+class TamguPredicateVariableASSIGNMENTCall : public TamguInstructionVariableASSIGNMENT {
+public:
+    short name;
+    
+    TamguPredicateVariableASSIGNMENTCall(TamguGlobal* g, Tamgu* var, Tamgu* parent) : TamguInstructionVariableASSIGNMENT(g, parent) {
         name = var->Name();
     }
     
@@ -5129,17 +5148,17 @@ public:
 };
 
 
-class TamguInstructionTRY : public TamguInstruction {
+class TamguInstructionTRY : public TamguSequence {
 public:
 
-	TamguInstructionTRY(TamguGlobal* g, Tamgu* parent = NULL) : TamguInstruction(a_instructions, g, parent) {}
+	TamguInstructionTRY(TamguGlobal* g, Tamgu* parent = NULL) : TamguSequence(a_instructions, g, parent) {}
 	Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
 };
 
-class TamguInstructionCATCH : public TamguInstruction {
+class TamguInstructionCATCH : public TamguSequence {
 public:
 
-	TamguInstructionCATCH(TamguGlobal* g, Tamgu* parent = NULL) : TamguInstruction(a_instructions, g, parent) {
+	TamguInstructionCATCH(TamguGlobal* g, Tamgu* parent = NULL) : TamguSequence(a_instructions, g, parent) {
 		action = a_catchbloc;
 	}
 

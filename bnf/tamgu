@@ -245,9 +245,10 @@ private := $private
 common := $common
 const := $const
 
+instance_variable := %? %_
 feature := [private (common)]^[common^const]
 
-type := (feature) notreserved typename
+type := (feature) notreserved [instance_variable^typename]
 
 depend := $with ;19 word
 

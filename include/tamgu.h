@@ -2667,9 +2667,13 @@ class TamguSequence : public TamguInstruction {
 public:
 	basebin_hash<Tamgu*> declarations;
 
-	TamguSequence(TamguGlobal* g, Tamgu* parent = NULL) : TamguInstruction(a_sequence, g, parent) {
-		action = a_bloc;
-	}
+    TamguSequence(TamguGlobal* g, Tamgu* parent = NULL) : TamguInstruction(a_sequence, g, parent) {
+        action = a_bloc;
+    }
+
+    TamguSequence(short a_code, TamguGlobal* g, Tamgu* parent = NULL) : TamguInstruction(a_code, g, parent) {
+        action = a_bloc;
+    }
 
     void Replacedeclaration(short idthread, short id, Tamgu* a) {
         declarations[id] = a;
@@ -3370,7 +3374,15 @@ public:
         for (long i = 0; i < arguments.size(); i++) {
             if (i)
                 v+=",";
-            v+=arguments[i]->String();
+            if (globalTamgu->short_string) {
+                string vsub = arguments[i]->String();
+                if (vsub.size() < globalTamgu->short_string)
+                    v += vsub;
+                else
+                    v += vsub.substr(0, globalTamgu->short_string) + "..";
+            }
+            else
+                v+=arguments[i]->String();
         }
         v+=")]";
         return v;
@@ -4847,6 +4859,399 @@ public:
             reference.store(r);
     }
 };
+
+//------------------------------------------------------------------------
+//The difference between let and self, is that in a let the first value defines once for all the type of the variable...
+//let i=0; i is then an integer, unless you use the operator :=
+// i := "tutu"; becomes a string...
+//In a self, the type does not depend on the first assignment.
+
+class TamguRawSelf : public Tamgu {
+public:
+    //---------------------------------------------------------------------------------------------------------------------
+    //This SECTION is for your specific implementation...
+    //Your personal variables here...
+    Tamgu* value;
+
+    //---------------------------------------------------------------------------------------------------------------------
+
+    TamguRawSelf() {
+        //Do not forget your variable initialisation
+        value = aNOELEMENT;
+    }
+
+    bool isLetSelf() {
+        return true;
+    }
+    
+    Tamgu* GetLetValue() {
+        return value;
+    }
+    
+    //----------------------------------------------------------------------------------------------------------------------
+    void Storevalue(string& u);
+    void Storevalue(wstring& u);
+    
+    void storevalue(string u);
+    void storevalue(float u);
+    void storevalue(short u);
+    void storevalue(wstring u);
+    void storevalue(long u);
+    void storevalue(BLONG u);
+    void storevalue(double u);
+    void storevalue(unsigned char u);
+    void storevalue(wchar_t u);
+    //----------------------------------------------------------------------------------------------------------------------
+    Tamgu* Put(Tamgu* idx, Tamgu* v, short idthread) {
+        if (value == v) {
+            return aTRUE;
+        }
+
+        if (!value->isConst()) {
+            value->Put(idx, v, idthread);
+            return aTRUE;
+        }
+        else {
+            if (idx->isIndex()) {
+                return globalTamgu->Returnerror("LET(001): Undefined assignment", idthread);
+            }
+        }
+
+        if (v->isConst()) {
+            if (v == aNOELEMENT) {
+                value = aNOELEMENT;
+                return aTRUE;
+            }
+            value = v->Atom();
+            value->Enablelock(isToBelocked());
+            return aTRUE;
+        }
+        
+        value = v->GetLetValue();
+        value->Enablelock(isToBelocked());
+        return aTRUE;
+    }
+
+    bool Setvalue(Tamgu* index, Tamgu* v, short idthread, bool strict = false) {
+        if (value == v) {
+            return true;
+        }
+
+        if (index->isIndex()) {
+            globalTamgu->Returnerror("LET(001): Undefined assignment", idthread);
+            return false;
+        }
+
+        if (!value->isConst())
+            value->Resetreference();
+        
+        if (v != aNOELEMENT && v->isConst()) {
+            value = v->Atom();
+            value->Enablelock(isToBelocked());
+            return aTRUE;
+        }
+        
+        value = v->GetLetValue();
+        value->Enablelock(isToBelocked());
+        return true;
+    }
+
+    Tamgu* Clonevalue(Tamgu* v, short idthread) {
+        if (value == v) {
+            return v;
+        }
+
+        if (!value->isConst())
+            value->Resetreference();
+
+        if (v->isConst())
+            v = v->Atom();
+
+        value = v->GetLetValue();
+        value->Enablelock(isToBelocked());
+        return value;
+    }
+
+    Tamgu* Putvalue(Tamgu* v, short idthread) {
+        if (value == v) {
+            return v;
+        }
+
+        if (!value->isConst())
+            value->Resetreference();
+
+        if (v->isConst())
+            v = v->Atom();
+
+        value = v->GetLetValue();
+        value->Enablelock(isToBelocked());
+        return value;
+    }
+
+    void Clean() {
+        value =  aNOELEMENT;
+    }
+    
+    Tamgu* Eval(Tamgu* context, Tamgu* v, short idthread) {
+        return value->Eval(context, v, idthread);
+    }
+
+    short Typevariable() {
+        if (value == aNOELEMENT)
+            return a_let;
+        return value->Typevariable();
+    }
+
+    short Type() {
+        if (value == aNOELEMENT)
+            return a_let;
+        return value->Type();
+    }
+
+    short Typeinfered() {
+        return a_let;
+    }
+
+    string Typename() {
+        if (value == aNOELEMENT)
+            return "let";
+        return value->Typename();
+    }
+
+    Tamgu* Atom(bool forced = false) {
+        return value->Atom(forced);
+    }
+
+    bool isFrame() {
+        return value->isFrame();
+    }
+    
+    Tamgu* Frame() {
+        return value->Frame();
+    }
+
+    //If it is too complex to duplicate an element (for instance when passed to a function)
+    //then you can use return false...  Usually in that case, Atom should always be just: return this;
+    bool duplicateForCall() {
+        return value->duplicateForCall();
+    }
+
+    Tamgu* Value() {
+        return value;
+    }
+
+    bool isFunction() {
+        return value->isFunction();
+    }
+
+    Tamgu* Body(short idthread) {
+        return value->Body(idthread);
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+    //Declaration
+    //All our methods must have been declared in tamguexportedmethods... See MethodInitialization below
+
+    void Clear() {
+        //To set a variable back to empty
+        value->Clear();
+    }
+
+
+    string String() {
+        return value->String();
+    }
+
+    wstring UString() {
+        return value->UString();
+    }
+
+    void Setstring(string& v, short idthread) {
+        value->Setstring(v, idthread);
+    }
+
+    void Setstring(wstring& v, short idthread) {
+        value->Setstring(v, idthread);
+    }
+
+    long Getinteger(short idthread) {
+        return value->Getinteger(idthread);
+    }
+
+    BLONG Getlong(short idthread) {
+        return value->Getlong(idthread);
+    }
+
+    short Getshort(short idthread) {
+        return value->Getshort(idthread);
+    }
+
+    float Getdecimal(short idthread) {
+        return value->Getdecimal(idthread);
+    }
+
+    double Getfloat(short idthread) {
+        return value->Getfloat(idthread);
+    }
+
+    string Getstring(short idthread) {
+        return value->Getstring(idthread);
+    }
+
+    wstring Getustring(short idthread) {
+        return value->Getustring(idthread);
+    }
+
+    long Integer() {
+        return value->Integer();
+    }
+    double Float() {
+        return value->Float();
+    }
+    BLONG Long() {
+        return value->Long();
+    }
+
+    bool Boolean() {
+        return value->Boolean();
+    }
+
+    string StringToDisplay() {
+        return value->StringToDisplay();
+    }
+
+    string JSonString() {
+        return value->JSonString();
+    }
+
+    string Bytes() {
+        return value->Bytes();
+    }
+
+
+    //Basic operations
+    long Size() {
+        return value->Size();
+    }
+
+    Tamgu* Merging(Tamgu* a) {
+        if (value == aNOELEMENT) {
+            return globalTamgu->Returnerror(e_uninitialized_self_variable);
+        }
+        a = value->Merging(a);
+        return a;
+    }
+    
+    Tamgu* Combine(Tamgu* a) {
+        if (value == aNOELEMENT) {
+            return globalTamgu->Returnerror(e_uninitialized_self_variable);
+        }
+        a = value->Combine(a);
+        return a;
+    }
+    
+    Tamgu* andset(Tamgu* a, bool itself) {
+        if (value == aNOELEMENT) {
+            return globalTamgu->Returnerror(e_uninitialized_self_variable);
+        }
+        a = value->andset(a, itself);
+        return a;
+    }
+
+    Tamgu* orset(Tamgu* a, bool itself) {
+        if (value == aNOELEMENT) {
+            return globalTamgu->Returnerror(e_uninitialized_self_variable);
+        }
+        a = value->orset(a, itself);
+        return a;
+    }
+
+    Tamgu* xorset(Tamgu* a, bool itself) {
+        if (value == aNOELEMENT) {
+            return globalTamgu->Returnerror(e_uninitialized_self_variable);
+        }
+        a = value->xorset(a, itself);
+        return a;
+    }
+
+    Tamgu* plus(Tamgu* a, bool itself) {
+        if (value == aNOELEMENT) {
+            return globalTamgu->Returnerror(e_uninitialized_self_variable);
+        }
+        return value->plus(a, itself);
+    }
+
+    Tamgu* minus(Tamgu* a, bool itself) {
+        if (value == aNOELEMENT) {
+            return globalTamgu->Returnerror(e_uninitialized_self_variable);
+        }
+        return value->minus(a, itself);
+    }
+
+    Tamgu* multiply(Tamgu* a, bool itself) {
+        if (value == aNOELEMENT) {
+            return globalTamgu->Returnerror(e_uninitialized_self_variable);
+        }
+        return value->multiply(a, itself);
+    }
+
+    Tamgu* divide(Tamgu* a, bool itself) {
+        if (value == aNOELEMENT) {
+            return globalTamgu->Returnerror(e_uninitialized_self_variable);
+        }
+        return value->divide(a, itself);
+    }
+    Tamgu* power(Tamgu* a, bool itself) {
+        if (value == aNOELEMENT) {
+            return globalTamgu->Returnerror(e_uninitialized_self_variable);
+        }
+        return value->power(a, itself);
+    }
+    Tamgu* shiftleft(Tamgu* a, bool itself) {
+        if (value == aNOELEMENT) {
+            return globalTamgu->Returnerror(e_uninitialized_self_variable);
+        }
+        return value->shiftleft(a, itself);
+    }
+    Tamgu* shiftright(Tamgu* a, bool itself) {
+        if (value == aNOELEMENT) {
+            return globalTamgu->Returnerror(e_uninitialized_self_variable);
+        }
+        return value->shiftright(a, itself);
+    }
+    Tamgu* mod(Tamgu* a, bool itself) {
+        if (value == aNOELEMENT) {
+            return globalTamgu->Returnerror(e_uninitialized_self_variable);
+        }
+        return value->mod(a, itself);
+    }
+
+    Tamgu* less(Tamgu* a) {
+        return value->less(a);
+    }
+
+    Tamgu* more(Tamgu* a) {
+        return value->more(a);
+    }
+
+    Tamgu* same(Tamgu* a) {
+        return value->same(a);
+    }
+
+    Tamgu* different(Tamgu* a) {
+        return value->different(a);
+    }
+
+    Tamgu* lessequal(Tamgu* a) {
+        return value->lessequal(a);
+    }
+
+    Tamgu* moreequal(Tamgu* a) {
+        return value->moreequal(a);
+    }
+
+};
+
 #endif
 
 

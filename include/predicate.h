@@ -152,7 +152,8 @@ public:
     }
 
 	Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
-
+    Tamgu* Execute(Tamgu* environment, Tamgu* value, short idthread);
+    
 	Tamgu* Function() {
 		return function;
 	}
@@ -167,6 +168,7 @@ public:
 	bool merge;
 
     TamguPredicateVariableInstance() : thread_id(-1), labelname(-1), value(aNOELEMENT), merge(false), TamguBasePredicateVariable(-1) {}
+    TamguPredicateVariableInstance(TamguGlobal* global) : thread_id(-1), labelname(-1), value(aNOELEMENT), merge(false), TamguBasePredicateVariable(global, -2) {}
 	TamguPredicateVariableInstance(short n, short ln, short idthread) : thread_id(idthread), labelname(ln), value(aNOELEMENT), merge(false), TamguBasePredicateVariable(n) {}
 
     

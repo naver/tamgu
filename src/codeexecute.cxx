@@ -1209,9 +1209,10 @@ Tamgu* TamguIndex::Put(Tamgu* recipient, Tamgu* value, short idthread) {
 
 //----------------------------------------------------------------------------------
 //This is actually a line of code, which when it is executed records a new variable into the declaration space...
-TamguVariableDeclaration::TamguVariableDeclaration(TamguGlobal* g, short n, short t, bool p, bool c, Tamgu* parent) : TamguTracked(a_declaration, g, parent) {
-	if (parent != NULL)
-		parent->SetVariablesWillBeCreated();
+TamguVariableDeclaration::TamguVariableDeclaration(TamguGlobal* g, short n, short t, 
+                                                   bool p, bool c, Tamgu* parent) : TamguTracked(a_declaration, g, parent) {
+    if (parent != NULL)
+        parent->SetVariablesWillBeCreated();
 	
 	name = n;
 	typevariable = t;
@@ -2165,8 +2166,9 @@ Exporting Tamgu* TamguCallAlias::Eval(Tamgu* domain, Tamgu* a, short idthread) {
     }
     else {
         if (szp != sza) {
-            string err = "Check the arguments of: ";
+            string err = "Check the number of arguments of: '";
             err += globalTamgu->Getsymbol(Name());
+            err += "'";
             return globalTamgu->Returnerror(err, idthread);
         }
         for (short i = 0; i < szp; i++) {
@@ -2257,7 +2259,8 @@ Exporting Tamgu* TamguCallFunction::Eval(Tamgu* domain, Tamgu* a, short idthread
     static VECTE<Tamgu*> bvalues;
     
     TamguFunction* bd = (TamguFunction*)body->Body(idthread);
-
+    bool next = (bd->next != NULL);
+    
     if (curryfied) {
         TamguGetCurryfiedFunction* func = new TamguGetCurryfiedFunction(bd);
         for (long i = 0; i < arguments.size(); i++) {
@@ -2271,7 +2274,7 @@ Exporting Tamgu* TamguCallFunction::Eval(Tamgu* domain, Tamgu* a, short idthread
         return func;
     }
     
-	TamguVariableDeclaration* p;
+	TamguVariableDeclaration* p = NULL;
 
 	short i, sz = 0, sza = arguments.size();
 	bool strict = bd->strict;
@@ -2299,8 +2302,9 @@ Exporting Tamgu* TamguCallFunction::Eval(Tamgu* domain, Tamgu* a, short idthread
     if (sza) {
         bd = bd->FindFunction(values->vecteur[0]->Type());
         if (bd == NULL) {
-            string err = "Check the arguments of: ";
+            string err = "Could not find a match for: '";
             err += globalTamgu->Getsymbol(Name());
+            err += "'";
             return globalTamgu->Returnerror(err, idthread);
         }
     }
@@ -2308,9 +2312,9 @@ Exporting Tamgu* TamguCallFunction::Eval(Tamgu* domain, Tamgu* a, short idthread
     TamguDeclarationLocal* environment = globalTamgu->Providedeclaration(idthread);
     if (globalTamgu->debugmode)
         environment->idinfo = Currentinfo();
-
-
+    
 	error = true;
+    short type_a = 0, type_p = 0;
 	while (bd != NULL) {
         sz = bd->parameters.size();
         
@@ -2328,8 +2332,10 @@ Exporting Tamgu* TamguCallFunction::Eval(Tamgu* domain, Tamgu* a, short idthread
             error = false;
             for (i = 0; i < sz && !error; i++) {
                 p = (TamguVariableDeclaration*)bd->parameters[i];
+                type_p = p->typevariable;
                 if (i < sza) {
                     a = values->vecteur[i];
+                    type_a = a->Type();
                     error = p->Setarguments(environment, a, idthread, strict);
                 }
                 else {
@@ -2338,6 +2344,7 @@ Exporting Tamgu* TamguCallFunction::Eval(Tamgu* domain, Tamgu* a, short idthread
                         error = true;
                         break;
                     }
+                    type_a = a->Type();
                     error = p->Setarguments(environment, a, idthread, strict);
                     a->Releasenonconst();
                 }
@@ -2362,8 +2369,19 @@ Exporting Tamgu* TamguCallFunction::Eval(Tamgu* domain, Tamgu* a, short idthread
     
 	if (error) {
         environment->Releasing();
-		string err = "Check the arguments of: ";
-		err += globalTamgu->Getsymbol(Name());
+        if (bd == NULL && next) {
+            string err = "Could not find a match for: '";
+            err += globalTamgu->Getsymbol(Name());
+            err += "'";
+            return globalTamgu->Returnerror(err, idthread);
+        }
+        string err = "Check the argument '";
+        err += (char)(i+48);
+        err += "' of: '";
+        err += globalTamgu->Getsymbol(Name());
+        err += "'. ";
+        err += "Argument: '" + globalTamgu->Getsymbol(type_a);
+        err += "' is incompatible with parameter: '" + globalTamgu->Getsymbol(type_p) + "'";
 		return globalTamgu->Returnerror(err, idthread);
 	}
 
@@ -2433,10 +2451,15 @@ Tamgu* TamguCallFunction1::Eval(Tamgu* domain, Tamgu* a, short idthread) {
         return globalTamgu->Errorobject(idthread);
     }
 
-    if (((TamguVariableDeclaration*)bd->parameters[0])->Setarguments(environment, a, idthread, strict)) {
+    TamguVariableDeclaration* p = (TamguVariableDeclaration*)bd->parameters[0];
+    if (p->Setarguments(environment, a, idthread, strict)) {
+        short type_a  = a->Type();
         a->Releasenonconst();
-        string err = "Check the arguments of: ";
+        string err = "Check the argument '1' of: '";
         err += globalTamgu->Getsymbol(Name());
+        err += "'. ";
+        err += "Argument: '" + globalTamgu->Getsymbol(type_a);
+        err += "' is incompatible with parameter: '" + globalTamgu->Getsymbol(p->typevariable) + "'";
         return globalTamgu->Returnerror(err, idthread);
     }
     
@@ -2470,19 +2493,30 @@ Tamgu* TamguCallFunction2::Eval(Tamgu* domain, Tamgu* a, short idthread) {
     TamguFunction* bd = (TamguFunction*)body;
     
     bool error = false;
-    for (short i = 0; i < 2 && !error; i++) {
+    TamguVariableDeclaration* p = NULL;
+    short i;
+    short type_a = 0, type_p = 0;
+    for (i = 0; i < 2 && !error; i++) {
         a = arguments[i]->Eval(domain, aNULL, idthread);
-        error = ((TamguVariableDeclaration*)bd->parameters[i])->Setarguments(environment, a, idthread, bd->strict) || globalTamgu->Error(idthread);
+        p = (TamguVariableDeclaration*)bd->parameters[i];
+        type_a = a->Type();
+        type_p = p->typevariable;
+        error = a->isError() || p->Setarguments(environment, a, idthread, bd->strict);
     }
 
     if (error) {
         environment->Releasing();
         if (!a->isError())
             a->Releasenonconst();
-        string err = "Check the arguments of: ";
-        err += globalTamgu->Getsymbol(Name());
         if (globalTamgu->Error(idthread))
             return globalTamgu->Errorobject(idthread);
+        string err = "Check the argument '";
+        err += (char)(i+48);
+        err += "' of: '";
+        err += globalTamgu->Getsymbol(Name());
+        err += "'. ";
+        err += "Argument: '" + globalTamgu->Getsymbol(type_a);
+        err += "' is incompatible with parameter: '" + globalTamgu->Getsymbol(type_p) + "'";
         return globalTamgu->Returnerror(err, idthread);
     }
 
@@ -2521,19 +2555,30 @@ Tamgu* TamguCallFunction3::Eval(Tamgu* domain, Tamgu* a, short idthread) {
 
     
     bool error = false;
-    for (short i = 0; i < 3 && !error; i++) {
+    TamguVariableDeclaration* p = NULL;
+    short i;
+    short type_a = 0, type_p = 0;
+    for (i = 0; i < 3 && !error; i++) {
         a = arguments[i]->Eval(domain, aNULL, idthread);
-        error = ((TamguVariableDeclaration*)bd->parameters[i])->Setarguments(environment, a, idthread, bd->strict) || globalTamgu->Error(idthread);
+        p = (TamguVariableDeclaration*)bd->parameters[i];
+        type_a = a->Type();
+        type_p = p->typevariable;
+        error = a->isError() || p->Setarguments(environment, a, idthread, bd->strict);
     }
 
     if (error) {
         environment->Releasing();
         if (!a->isError())
             a->Releasenonconst();
-        string err = "Check the arguments of: ";
-        err += globalTamgu->Getsymbol(Name());
         if (globalTamgu->Error(idthread))
             return globalTamgu->Errorobject(idthread);
+        string err = "Check the argument '";
+        err += (char)(i+48);
+        err += "' of: '";
+        err += globalTamgu->Getsymbol(Name());
+        err += "'. ";
+        err += "Argument: '" + globalTamgu->Getsymbol(type_a);
+        err += "' is incompatible with parameter: '" + globalTamgu->Getsymbol(type_p) + "'";
         return globalTamgu->Returnerror(err, idthread);
     }
 
@@ -2570,22 +2615,32 @@ Tamgu* TamguCallFunction4::Eval(Tamgu* domain, Tamgu* a, short idthread) {
         strict = bd->strict;
     
     bool error = false;
-    for (short i = 0; i < 4 && !error; i++) {
+    TamguVariableDeclaration* p = NULL;
+    short i;
+    short type_a = 0, type_p = 0;
+    for (i = 0; i < 4 && !error; i++) {
         a = arguments[i]->Eval(domain, aNULL, idthread);
-        error = ((TamguVariableDeclaration*)bd->parameters[i])->Setarguments(environment, a, idthread, bd->strict) || globalTamgu->Error(idthread);
+        p = (TamguVariableDeclaration*)bd->parameters[i];
+        type_a = a->Type();
+        type_p = p->typevariable;
+        error = a->isError() || p->Setarguments(environment, a, idthread, bd->strict);
     }
 
     if (error) {
         environment->Releasing();
         if (!a->isError())
             a->Releasenonconst();
-        string err = "Check the arguments of: ";
-        err += globalTamgu->Getsymbol(Name());
         if (globalTamgu->Error(idthread))
             return globalTamgu->Errorobject(idthread);
+        string err = "Check the argument '";
+        err += (char)(i+48);
+        err += "' of: '";
+        err += globalTamgu->Getsymbol(Name());
+        err += "'. ";
+        err += "Argument: '" + globalTamgu->Getsymbol(type_a);
+        err += "' is incompatible with parameter: '" + globalTamgu->Getsymbol(type_p) + "'";
         return globalTamgu->Returnerror(err, idthread);
     }
-
     
     globalTamgu->Pushstackraw(environment, idthread);
     //We then apply our function within this environment
@@ -2620,22 +2675,32 @@ Tamgu* TamguCallFunction5::Eval(Tamgu* domain, Tamgu* a, short idthread) {
         strict = bd->strict;
     
     bool error = false;
-    for (short i = 0; i < 5 && !error; i++) {
+    TamguVariableDeclaration* p = NULL;
+    short i;
+    short type_a = 0, type_p = 0;
+    for (i = 0; i < 5 && !error; i++) {
         a = arguments[i]->Eval(domain, aNULL, idthread);
-        error = ((TamguVariableDeclaration*)bd->parameters[i])->Setarguments(environment, a, idthread, bd->strict) || globalTamgu->Error(idthread);
+        p = (TamguVariableDeclaration*)bd->parameters[i];
+        type_a = a->Type();
+        type_p = p->typevariable;
+        error = a->isError() || p->Setarguments(environment, a, idthread, bd->strict);
     }
 
     if (error) {
         environment->Releasing();
         if (!a->isError())
             a->Releasenonconst();
-        string err = "Check the arguments of: ";
-        err += globalTamgu->Getsymbol(Name());
         if (globalTamgu->Error(idthread))
             return globalTamgu->Errorobject(idthread);
+        string err = "Check the argument '";
+        err += (char)(i+48);
+        err += "' of: '";
+        err += globalTamgu->Getsymbol(Name());
+        err += "'. ";
+        err += "Argument: '" + globalTamgu->Getsymbol(type_a);
+        err += "' is incompatible with parameter: '" + globalTamgu->Getsymbol(type_p) + "'";
         return globalTamgu->Returnerror(err, idthread);
     }
-
     
     globalTamgu->Pushstackraw(environment, idthread);
     //We then apply our function within this environment
@@ -3229,15 +3294,18 @@ Tamgu* TamguThreadCall::Eval(Tamgu* domain, Tamgu* value, short idthread) {
     if (globalTamgu->debugmode)
         environment->idinfo = Currentinfo();
 
-	TamguVariableDeclaration* p;
+	TamguVariableDeclaration* p = NULL;
 	TamguFunction* bd = (TamguFunction*)body->Body(idthread);
+    bool next = (bd->next != NULL);
 	bool strict = bd->strict;
 	if (!strict && bd->next)
 		strict = true;
 
-    Tamgu* a;
+    Tamgu* a = NULL;
 
 	bool error = true;
+    short i = 0;
+    short type_a = 0, type_p = 0;
 	while (bd != NULL) {
 		if (arguments.size() != bd->Size()) {
 			if (!nonlimited) {
@@ -3247,11 +3315,12 @@ Tamgu* TamguThreadCall::Eval(Tamgu* domain, Tamgu* value, short idthread) {
 		}
 
 		error = false;
-		for (short i = 0; i < bd->parameters.size() && !error; i++) {
+		for (i = 0; i < bd->parameters.size() && !error; i++) {
 			p = (TamguVariableDeclaration*)bd->Parameter(i);
-
+            type_p = p->typevariable;
             if (!nonlimited || i < arguments.size()) {
 				a = arguments[i];
+                type_a = a->Type();
                 error = p->Setarguments(environment, a, idthread, strict);
             }
 			else {
@@ -3260,6 +3329,7 @@ Tamgu* TamguThreadCall::Eval(Tamgu* domain, Tamgu* value, short idthread) {
 					error = true;
 					break;
 				}
+                type_a = a->Type();
                 error = p->Setarguments(environment, a, idthread, strict);
                 a->Releasenonconst();
 			}
@@ -3274,8 +3344,19 @@ Tamgu* TamguThreadCall::Eval(Tamgu* domain, Tamgu* value, short idthread) {
 
 	if (error) {
         environment->Releasing();
-		string err = "Check the arguments of: ";
-		err += globalTamgu->Getsymbol(Name());
+        if (bd == NULL && next) {
+            string err = "Could not find a match for: '";
+            err += globalTamgu->Getsymbol(Name());
+            err += "'";
+            return globalTamgu->Returnerror(err, idthread);
+        }
+        string err = "Check the argument '";
+        err += (char)(i+48);
+        err += "' of: '";
+        err += globalTamgu->Getsymbol(Name());
+        err += "'. ";
+        err += "Argument: '" + globalTamgu->Getsymbol(type_a);
+        err += "' is incompatible with parameter: '" + globalTamgu->Getsymbol(type_p) + "'";
 		return globalTamgu->Returnerror(err, idthread);
 	}
 

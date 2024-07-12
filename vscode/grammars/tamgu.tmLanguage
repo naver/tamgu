@@ -2720,7 +2720,7 @@
       <key>variable-initializer</key>
       <dict>
         <key>begin</key>
-        <string>(?&lt;!=|!)(=)(?!=|&gt;)</string>
+        <string>(?&lt;!=|!)(=|is)(?!=|&gt;)</string>
         <key>beginCaptures</key>
         <dict>
           <key>1</key>
