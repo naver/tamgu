@@ -1,4 +1,5 @@
 # Tamgu : Un orchestrateur d'agents IA multi-paradigme
+([English version](https://github.com/naver/tamgu/blob/master/examples/PREDIBAG/README.md))
 
 ## Introduction
 
@@ -9,6 +10,8 @@ Tamgu est un langage de programmation innovant conçu pour orchestrer des agents
 ### 1. Intégration transparente des modèles de langage (LLM)
 
 Tamgu permet d'incorporer directement des appels à des LLM dans le flux de programmation. Cette intégration estompe la frontière traditionnelle entre la programmation classique et l'IA générative.
+
+(Tous les exemples sont issus de: [agents_prolog_code.tmg](https://github.com/naver/tamgu/blob/master/examples/PREDIBAG/agents_prolog_code.tmg)
 
 Exemple :
 ```prolog
