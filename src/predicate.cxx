@@ -112,7 +112,7 @@ short TamguDependency::Idvar() {
     return idvar;
 }
 //-------------------------------------------------------------------------------------------------
-Exporting Tamgu* TamguCallFromPredicateRule::Eval(Tamgu* domain, Tamgu* a, short idthread) {
+Tamgu* TamguCallFromPredicateRule::Eval(Tamgu* domain, Tamgu* a, short idthread) {
     static VECTE<Tamgu*> bvalues;
     
     TamguFunction* bd = (TamguFunction*)body->Body(idthread);
