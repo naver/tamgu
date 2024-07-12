@@ -12,7 +12,7 @@ Tamgu is an innovative programming language designed to orchestrate Artificial I
 
 Tamgu allows direct incorporation of LLM calls into the programming flow. This integration blurs the traditional boundary between classical programming and generative AI.
 
-(The examples have been extracted from: [agents_prolog_code.tmg](https://github.com/naver/tamgu/blob/master/examples/PREDIBAG/agents_prolog_code.tmg)
+(The examples have been extracted from: [agents_prolog_code.tmg](https://github.com/naver/tamgu/blob/master/examples/PREDIBAG/agents_prolog_code.tmg))
 
 
 Example:

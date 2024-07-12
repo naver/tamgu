@@ -11,7 +11,7 @@ Tamgu est un langage de programmation innovant conçu pour orchestrer des agents
 
 Tamgu permet d'incorporer directement des appels à des LLM dans le flux de programmation. Cette intégration estompe la frontière traditionnelle entre la programmation classique et l'IA générative.
 
-(Tous les exemples sont issus de: [agents_prolog_code.tmg](https://github.com/naver/tamgu/blob/master/examples/PREDIBAG/agents_prolog_code.tmg)
+(Tous les exemples sont issus de: [agents_prolog_code.tmg](https://github.com/naver/tamgu/blob/master/examples/PREDIBAG/agents_prolog_code.tmg))
 
 Exemple :
 ```prolog
