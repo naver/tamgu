@@ -1,0 +1,116 @@
+/@
+Date: 04/07/2024
+Author: Claude Roux
+Description: Coding agents in Prolog
+This code demonstrates a sophisticated approach to generating, executing, and correcting 
+Python code using various language models within a Prolog-like environment. 
+It showcases Tamgu's ability to integrate different programming paradigms and interact
+with external AI models to solve complex problems.
+@/
+
+// Loading the Python interpreter
+use("pytamgu");
+loadin(_current + 'prompting.tmg');
+
+// We need a variable to handle the Python interpreter
+python p;
+
+// Define the problem statement
+string problem = @"Problem: A lady goes to a hotel for the weekend and takes a room for 3 nights.
+She arrives at the hotel in the evening and decides to upgrade to a suite for an additional 20€ per night.
+She also orders room service for dinner on the first night, which costs 30€.
+The next day, she goes to the hotel spa and gets a massage for 60€.
+On the last day, she checks out of the hotel early and doesn't take a breakfast.
+A normal night in the hotel is 50€, a breakfast is 10€, and there is a tax of 10% on all charges.
+"@;
+
+// Define the main question to be answered by the Python script
+string q0 = @"Create a Python script to anwser the following question:
+How much will she spend at the hotel,including taxes?
+Put the code in a markdown style with Python as code definition.
+The final result should be stored in a Python variable called: hotel_bill."@;
+
+// Prompt for correcting the code
+string correction = @"Please correct this code.
+We need to have the return value as `hotel_bill` and the corrected code into markdown, with `python` as code identifier.
+We have this error: "@;
+
+// Function to extract Python code from markdown
+function extractcode(string c, ?_ v) {
+    string r = c["```python":"```"][9:-3];
+    if (r == "") {
+        r = c["```":"```"][3:-3];
+        if (r == "")
+            return false;
+    }
+    v = r;
+    return true;
+}
+
+// Function to execute Python code and return the result
+function execute_code(string c, ?_ v) {
+    println("execute code");
+    string py_err;
+    try {
+        v = p.run(c, "hotel_bill");
+        return true;
+    }
+    catch(py_err) {
+        v = py_err;
+        return false;
+    }
+}
+
+// Function to execute Python code without error handling
+function execute_code_final(string c, ?_ v) {
+    string err;
+    try {
+        v = p.run(c, "hotel_bill");
+        return true;
+    }
+    catch(err) {
+        return false;
+    }
+}
+
+// Predicate to execute code and handle errors
+execution(?model,?code, ?res) :-
+    println("Execution"),
+    ?err is execute_code(?code, ?r),
+    execute_check(?err, ?model, ?code, ?r, ?res).
+
+// Predicate to check execution result and correct if necessary
+execute_check(true, ?model, ?code, ?r, ?r) :- !,
+    println("Execution done", ?r).
+    
+execute_check(false, ?model, ?code, ?r, ?res) :-
+    printlnerr("Correction"),
+    ?c is ?r + "\n```python "+?code + "```",
+    vprompt(?model, correction, ?c, ?Gen),
+    extractcode(?Gen, ?codebis),
+    execute_code_final(?codebis, ?res),
+    println("Execution done after correction").
+
+// Predicate to create and execute code using different models
+create(?P, ?Q, ?R):-
+    ?model is "command-r",
+    println("Model:", ?model),
+    vprompt(?model, ?P, ?Q, ?Gen),
+    extractcode(?Gen, ?code),
+    execution(?model, ?code, ?R).
+create(?P, ?Q, ?R):-
+    ?model is "llama3",
+    println("Model:", ?model),
+    vprompt(?model, ?P, ?Q, ?Gen),
+    extractcode(?Gen, ?code),
+    execution(?model, ?code, ?R).
+create(?P, ?Q, ?R):-
+    ?model is "llama3:70b",
+    println("Model:", ?model),
+    vprompt(?model, ?P, ?Q, ?Gen),
+    extractcode(?Gen, ?code),
+    execution(?model, ?code, ?R).
+
+// Main execution
+vector v = create(problem, q0, ?R);
+println(v);

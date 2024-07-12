@@ -1,0 +1,82 @@
+/@
+Date: 04/07/2024
+Author: Claude Roux 
+Description:  Prompting
+@/
+
+tamgu ollama(_current+"ollamacurl.tmg");
+
+string uri = "http://localhost:11434";
+
+function prompt(string p) {
+    return ollama.promptnostream(uri, "mixtral", p);
+}
+
+function prompt(string p, string valeur) {
+    p += " " + valeur;
+    return ollama.promptnostream(uri, "mixtral", p);
+}
+
+function prompt(string p, string valeur, string lst) {
+    p += " " + valeur + " " + lst;
+    return ollama.promptnostream(uri, "command-r", p);
+}
+
+function mprompt(string model, string p) {
+    return ollama.promptnostream(uri, model, p);
+}
+
+function mprompt(string model, string p, string valeur) {
+    p += " " + valeur;
+    return ollama.promptnostream(uri, model, p);
+}
+
+function mprompt(string model, string p, string valeur, string lst) {
+    p += " " + valeur + " " + lst;
+    return ollama.promptnostream(uri, model, p);
+}
+
+function mcheck(string model, string prompt, string problem, string response, string questions) {
+    prompt += " " + problem + ":" + response + ". In " + questions;
+    return ollama.promptnostream(uri, model, prompt);
+}
+
+function mcheck(string model, string prompt, string r1, string r2, string r3, string question) {
+    prompt += " " + question + " <responses>";
+    prompt += '<response id="1">'+r1+"</response>";
+    prompt += '<response id="2">'+r2+"</response>";
+    prompt += '<response id="3">'+r3+"</response></responses>";
+    return ollama.promptnostream(uri, model, prompt, 3000);
+}
+//---------- We use a variable to return the value -----------
+function vprompt(string model, string p, ?_ res) {
+    res = ollama.promptnostream(uri, model, p);
+    return true;
+}
+
+function vprompt(string model, string p, string valeur, ?_ res) {
+    p += " " + valeur;
+    res = ollama.promptnostream(uri, model, p);
+    return true;
+}
+
+function vprompt(string model, string p, string valeur, string lst, ?_ res) {
+    p += " " + valeur + " " + lst;
+    res = ollama.promptnostream(uri, model, p);
+    return true;
+}
+
+function vcheck(string model, string prompt, string problem, string response, string questions, ?_ res) {
+    prompt += " " + problem + ":" + response + ". In " + questions;
+    res = ollama.promptnostream(uri, model, prompt);
+    return true;
+}
+
+function vcheck(string model, string prompt, string r1, string r2, string r3, string question, ?_ res) {
+    prompt += " " + question + " <responses>";
+    prompt += '<response id="1">'+r1+"</response>";
+    prompt += '<response id="2">'+r2+"</response>";
+    prompt += '<response id="3">'+r3+"</response></responses>";
+    res = ollama.promptnostream(uri, model, prompt, 3000);
+    return true;
+}

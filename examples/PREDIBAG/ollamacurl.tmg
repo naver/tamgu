@@ -1,0 +1,143 @@
+/@
+Date: 02/07/2024
+Author: Claude Roux
+Description: Calling ollama through cURL
+	curl http://localhost:11434/api/generate -d '{
+	  "model": "llama3",
+	  "prompt": "Why is the sky blue?"
+	}'
+@/
+
+use('tamgucurl');
+
+function fonc(string content, auto o) {
+    content = content.trim();    
+    try {
+        mapss m;
+        m = content;
+        o += m["response"];
+    }
+    catch();
+}
+
+function foncembed(string content, auto o) {
+    content = content.trim();    
+    if (content != "404 page not found") {
+        o += content;
+    }
+}
+
+
+function foncchat(string content, auto o) {
+    content = content.trim();    
+    try {
+        map m;
+        m = content;
+        o.push(m["message"]);
+    }
+    catch();
+}
+
+function fonclist(string content, auto o) {
+    content = content.trim();    
+    try {
+        if ('{"models":' in content)
+            o.push(content);
+        else
+            o[-1] += content;
+    }
+    catch();
+}
+
+
+function promptnostream(string uri, string model,  string msg, int num_ctx = 1000, float temperature = 0.1) {
+    uri += "/api/generate";
+    string res;
+    curl c(res) with foncembed;
+
+    msg = msg.replace("\n", '\n');
+    map m = {"model": model, "stream":false, "prompt": msg, "options":{"temperature":temperature, "num_ctx": num_ctx}};
+
+    // Charger notre page web. Pour chaque bloc, fonc sera appelée...
+    c.url(uri);
+    c.options("CURLOPT_POSTFIELDS", m);
+
+    c.execute();
+    m = res;
+
+    return m["response"];
+}
+
+
+function prompting(string uri, string model,  string msg, int num_ctx = 1000, float temperature = 0.1) {
+    uri += "/api/generate";
+
+    msg = msg.replace("\n", '\n');
+    string res;
+    curl c(res) with fonc;
+    map m = {"model": model, "prompt": msg, "options":{"temperature":temperature, "num_ctx": num_ctx}};
+
+    // Charger notre page web. Pour chaque bloc, fonc sera appelée...
+    c.url(uri);
+    c.options("CURLOPT_POSTFIELDS", m);
+
+    c.execute();
+    println("Execution", res);
+    return res;
+}
+
+function chat(string uri, string model, string msg, int num_ctx, float temperature) {    
+    uri += "/api/chat";
+    vector res;
+    curl c(res) with foncchat;
+    map m = {
+        "model": model, 
+        "messages": [
+            {
+                "role": "user",
+                "content": msg                
+            }
+        ],
+        "options":{"temperature":temperature, "num_ctx": num_ctx},
+        "stream" : false
+    };
+
+    // Charger notre page web. Pour chaque bloc, fonc sera appelée...
+    c.url(uri);
+    c.options("CURLOPT_POSTFIELDS", m);
+
+    c.execute();
+    return res;
+}
+
+function embeddings(string uri, string model, string msg) {
+    uri += "/api/embeddings";
+    string res;
+    curl c(res) with foncembed;
+
+    map m = {"model": model, "prompt": msg}
+
+    c.url(uri);
+    c.options("CURLOPT_POSTFIELDS", m);
+    c.execute();
+
+    m = res;
+    fvector fv = m["embedding"];
+    return fv;
+}
+
+function modellist(string uri) {
+    uri += "/api/tags";
+    vector res;
+    curl c(res) with fonclist;
+
+    c.url(uri);
+    c.execute();
+    vector lst;
+    for (string l in res) {
+        lst.push(map(l));
+    }
+    return lst;
+}
+
+
