@@ -27,6 +27,7 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<listMethod>  Tamgulist::methods;
+static ThreadLock classlock;
 
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamgulist::AddMethod(TamguGlobal* global, string name, listMethod func, unsigned long arity, string infos) {
@@ -44,7 +45,8 @@ void Tamgulist::AddMethod(TamguGlobal* global, string name, listMethod func, uns
 
 
     void Tamgulist::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamgulist::methods.isEmpty())
     Tamgulist::InitialisationModule(global,"");
 }
 

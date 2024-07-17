@@ -19,6 +19,7 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<fmatrixMethod>  Tamgufmatrix::methods;
+static ThreadLock classlock;
 
 Exporting short Tamgufmatrix::idtype = 0;
 
@@ -39,7 +40,8 @@ void Tamgufmatrix::AddMethod(TamguGlobal* global, string name, fmatrixMethod fun
 
 
     void Tamgufmatrix::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamgufmatrix::methods.isEmpty())
     Tamgufmatrix::InitialisationModule(global,"");
 }
 

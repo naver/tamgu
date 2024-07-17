@@ -12,13 +12,14 @@
  Purpose    : 
  Programmer : Claude ROUX (claude.roux@naverlabs.com)
  Reviewer   :
-*/
+ */
 
 #include "tamgu.h"
 #include "tamguiterator.h"
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<iteratorMethod>  Tamguiterator::methods;
+static ThreadLock classlock;
 
 Exporting short Tamguiterator::idtype = 0;
 
@@ -28,9 +29,9 @@ void Tamguiterator::AddMethod(TamguGlobal* global, string name, iteratorMethod f
     short idname = global->Getid(name);
     methods[idname] = func;
     if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
-    return;
-
+        global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+        return;
+    
     global->infomethods[idtype][name] = infos;
     global->RecordArity(idtype, idname, arity);
 }
@@ -39,18 +40,19 @@ void Tamguiterator::AddMethod(TamguGlobal* global, string name, iteratorMethod f
 
 
 void Tamguiterator::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
-    Tamguiterator::InitialisationModule(global,"");
+    Locking lock(classlock);
+    if (Tamguiterator::methods.isEmpty())
+        Tamguiterator::InitialisationModule(global,"");
 }
 
 
-   bool Tamguiterator::InitialisationModule(TamguGlobal* global, string version) {
+bool Tamguiterator::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
     
     
-
+    
     Tamguiterator::idtype = global->Getid("iterator");
-
+    
     Tamguiterator::AddMethod(global, "begin", &Tamguiterator::MethodBegin, P_NONE, "begin(): Start the iteration.");
     Tamguiterator::AddMethod(global, "key", &Tamguiterator::MethodKey, P_NONE, "key(): Return current key.");
     Tamguiterator::AddMethod(global, "value", &Tamguiterator::MethodValue, P_NONE, "value(): Return the current value.");
@@ -61,6 +63,6 @@ void Tamguiterator::Setidtype(TamguGlobal* global) {
         global->newInstance[Tamguiterator::idtype] = new Tamguiterator(global);
         global->RecordCompatibilities(Tamguiterator::idtype);
     }
-
+    
     return true;
 }

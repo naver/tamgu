@@ -20,6 +20,7 @@ Programmer : Claude ROUX (claude.roux@naverlabs.com)
 
 //We need to declare once again our local definitions.
 basebin_hash<%1Method> Tamgu%1::methods;
+static ThreadLock classlock;
 
 short Tamgu%1::idtype = 0;
 
@@ -52,8 +53,9 @@ void Tamgu%1::AddMethod(TamguGlobal* global, string name, %1Method func, unsigne
 
 
 void Tamgu%1::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
-    Tamgu%1::InitialisationModule(global, "");
+    Locking lock(classlock);
+    if (Tamgu%1::methods.isEmpty())
+        Tamgu%1::InitialisationModule(global, "");
 }
 
 

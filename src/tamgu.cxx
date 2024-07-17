@@ -45,7 +45,7 @@
 #include "tamgusocket.h"
 #include "tamgudate.h"
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2024.07.12.10";
+const char* tamgu_version = "Tamgu 1.2024.07.17.11";
 
 extern "C" {
 Exporting const char* TamguVersion(void) {
@@ -139,8 +139,6 @@ void GlobalConstants::clean() {
         gNULLDECLARATION= NULL;
         gNULLLet= NULL;
         gNOTHING= NULL;
-        aNULL = NULL;
-
     }
 }
 
@@ -1307,6 +1305,7 @@ Exporting void TamguGlobal::RecordCompatibilities() {
     compatibilities[a_boolean][a_const] = true;
     compatibilities[a_predicate][a_predicatevar] = true;
     compatibilities[a_predicatevar][a_predicate] = true;
+    compatibilities[a_predicatevar][a_predicatelaunch] = true;
     
     //The difference between strict and not strict (see TamguCallFunctionArgsTaskell::Get) is that
     //in regular compatibility, string and integer can be accepted as compatible, while in a strict compatibility it is not the case
@@ -1355,6 +1354,7 @@ Exporting void TamguGlobal::RecordCompatibilities() {
     strictcompatibilities[a_boolean][a_const] = true;
     strictcompatibilities[a_predicate][a_predicatevar] = true;
     strictcompatibilities[a_predicatevar][a_predicate] = true;
+    strictcompatibilities[a_predicatevar][a_predicatelaunch] = true;
     
     maptypes.push_back(a_constmap);
     vectortypes.push_back(a_constvector);
@@ -1473,6 +1473,7 @@ Exporting void TamguGlobal::RecordCompatibilities() {
         for (j = 0; j < vectortypes.size(); j++)
             compatibilities[vectortypes[i]][vectortypes[j]] = true;
         
+        compatibilities[vectortypes[i]][a_predicatelaunch] = true;
         strictcompatibilities[a_vector][vectortypes[i]] = true;
         strictcompatibilities[vectortypes[i]][a_vector] = true;
         compatibilities[vectortypes[i]][a_const] = true;
@@ -2173,7 +2174,8 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("&predicate_terminal&"); //258 --> a_terminal
     Createid("_iferror"); //259 --> a_iferror
     Createid("frametype"); //260 --> a_frametype
-    Createid("lisp"); //261 a_lisp
+    Createid("waitonjoined"); // 261 --> a_waitonjoined
+    Createid("lisp"); //262 a_lisp
 
     //This is a simple hack to handle "length" a typical Haskell operator as "size"...
     //Note that there will be a useless index

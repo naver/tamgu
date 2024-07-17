@@ -26,6 +26,7 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<ivectorMethod>  Tamguivector::methods;
+static ThreadLock classlock;
 
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamguivector::AddMethod(TamguGlobal* global, string name, ivectorMethod func, unsigned long arity, string infos) {
@@ -43,7 +44,8 @@ void Tamguivector::AddMethod(TamguGlobal* global, string name, ivectorMethod fun
 
 
 void Tamguivector::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamguivector::methods.isEmpty())
     Tamguivector::InitialisationModule(global,"");
 }
 

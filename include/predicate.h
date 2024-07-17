@@ -31,10 +31,31 @@ typedef enum { SEARCHONE, FULLSEARCH, STOPSEARCH } predicatesearch;
 
 class TamguDeclarationPredicate : public TamguDeclaration {
 public:
+    ThreadLock* _locker;
 	bool fail;
 
-	TamguDeclarationPredicate() : fail(false) {}
+	TamguDeclarationPredicate() : fail(false), _locker(NULL) {}
 
+    ~TamguDeclarationPredicate() {
+        if (_locker != NULL)
+            delete _locker;
+    }
+
+    void Setdomainlock() {
+        if (_locker)
+            _locker->lock->lock();
+    }
+
+    void Resetdomainlock() {
+        if (_locker)
+            _locker->lock->unlock();
+    }
+
+    void Initlock() {
+        if (_locker == NULL)
+            _locker = new ThreadLock;
+    }
+    
 	void Setfail(bool v) {
 		fail = v;
 	}
@@ -884,7 +905,7 @@ public:
 	Tamgu* CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		//This call is a bit cryptic. It takes the method (function) pointer that has been associated in our map with "name"
 		//and run it with the proper parameters. This is the right call which should be invoked from within a class definition
-		return (this->*methods.get(idname))(contextualpattern, idthread, callfunc);
+		return (this->*TamguPredicate::methods.get(idname))(contextualpattern, idthread, callfunc);
 	}
 };
 
@@ -1367,6 +1388,10 @@ public:
 		return a_predicatelaunch;
 	}
 
+    short Typeinfered() {
+        return a_predicatelaunch;
+    }
+    
 	void AddInstruction(Tamgu* e) {
 		head = (TamguPredicate*)e;
 	}
@@ -1518,6 +1543,10 @@ public:
 	short Type() {
 		return a_predicateevaluate;
 	}
+    
+    bool isThread() {
+        return instruction->isThread();
+    }
 
 	basebin_hash<TamguPredicateVariableInstance*>* Dico() {
 		return dico;

@@ -12,13 +12,14 @@
  Purpose    : 
  Programmer : Claude ROUX (claude.roux@naverlabs.com)
  Reviewer   :
-*/
+ */
 
 #include "tamgu.h"
 #include "tamgutime.h"
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<timeMethod>  Tamgutime::methods;
+static ThreadLock classlock;
 
 Exporting short Tamgutime::idtype = 0;
 
@@ -28,9 +29,9 @@ void Tamgutime::AddMethod(TamguGlobal* global, string name, timeMethod func, uns
     short idname = global->Getid(name);
     methods[idname] = func;
     if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
-    return;
-
+        global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+        return;
+    
     global->infomethods[idtype][name] = infos;
     global->RecordArity(idtype, idname, arity);
 }
@@ -39,25 +40,26 @@ void Tamgutime::AddMethod(TamguGlobal* global, string name, timeMethod func, uns
 
 
 void Tamgutime::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
-    Tamgutime::InitialisationModule(global,"");
+    Locking lock(classlock);
+    if (Tamgutime::methods.isEmpty())
+        Tamgutime::InitialisationModule(global,"");
 }
 
 
-   bool Tamgutime::InitialisationModule(TamguGlobal* global, string version) {
+bool Tamgutime::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
     
     
-
+    
     Tamgutime::idtype = global->Getid("time");
-
+    
     Tamgutime::AddMethod(global, "reset", &Tamgutime::MethodReset, P_NONE, "reset(): reset the time");
-
+    
     if (version != "") {
         global->newInstance[Tamgutime::idtype] = new Tamgutime(global);
         global->RecordCompatibilities(Tamgutime::idtype);
     }
-
+    
     return true;
 }
 

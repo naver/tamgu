@@ -12,7 +12,7 @@
  Purpose    : 
  Programmer : Claude ROUX (claude.roux@naverlabs.com)
  Reviewer   :
-*/
+ */
 
 #include "tamgu.h"
 #include "instructions.h"
@@ -31,15 +31,16 @@
 //------------------------------HASKELL----------------------------------------
 
 Exporting basebin_hash<tamguCallFibre>  TamguCallFibre::methods;
+static ThreadLock classlock;
 
-    //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
+//MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void TamguCallFibre::AddMethod(TamguGlobal* global, string name, tamguCallFibre func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
     if (global->infomethods.find(a_fibre) != global->infomethods.end() &&
-            global->infomethods[a_fibre].find(name) != global->infomethods[a_fibre].end())
-    return;
-
+        global->infomethods[a_fibre].find(name) != global->infomethods[a_fibre].end())
+        return;
+    
     global->infomethods[a_fibre][name] = infos;
     global->RecordArity(a_fibre, idname, arity);
 }
@@ -48,18 +49,19 @@ void TamguCallFibre::AddMethod(TamguGlobal* global, string name, tamguCallFibre 
 
 
 void TamguCallFibre::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
-    TamguCallFibre::InitialisationModule(global,"");
+    Locking lock(classlock);
+    if (TamguCallFibre::methods.isEmpty())
+        TamguCallFibre::InitialisationModule(global,"");
 }
 
 
-   bool TamguCallFibre::InitialisationModule(TamguGlobal* global, string version) {
+bool TamguCallFibre::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
     
     TamguCallFibre::AddMethod(global, "run", &TamguCallFibre::MethodRun, P_NONE, "run(): execute fibres.");
     TamguCallFibre::AddMethod(global, "block", &TamguCallFibre::MethodBlock, P_NONE, "block(): execute fibres up to the current tail.");
     TamguCallFibre::AddMethod(global, "unblock", &TamguCallFibre::MethodUnblock, P_NONE, "unblock(): remove the current limit on execution.");
-
+    
     if (version != "") {
         global->newInstance[a_fibre] = new TamguCallFibre(global);
         global->RecordCompatibilities(a_fibre);
@@ -77,8 +79,8 @@ Exporting TamguDeclarationAutoClean* TamguGlobal::Providedeclarationclean(short 
         ke->idthread = idthread;
         return ke;
     }
-
-
+    
+    
     if (declarationcleanempties.last > 0) {
         ke = declarationcleanreservoire[declarationcleanempties.backpop()];
         ke->used = true;
@@ -86,7 +88,7 @@ Exporting TamguDeclarationAutoClean* TamguGlobal::Providedeclarationclean(short 
         return ke;
     }
     
-
+    
     long mx = declarationcleanreservoire.size();
     
     while (declarationcleanidx < mx) {
@@ -179,7 +181,7 @@ Tamgu* TamguTaskellVariableDeclaration::Eval(Tamgu* a, Tamgu* value, short idthr
             value = ((TamguCallFunctionTaskell*)initialization)->Eval(aNULL, aNULL, idthread);
             if (value->isError())
                 return value;
-
+            
             return ((TamguDeclarationAutoClean*)a)->Declarationvalue(name, value, typevariable);
         case 4:
             value = ((TamguCallFunctionArgsTaskell*)initialization)->Eval(aNULL, aNULL, idthread);
@@ -202,7 +204,7 @@ short TamguCallFunctionArgsTaskell::Typeinfered() {
                 bd = bd->Following();
                 continue;
             }
-
+            
             if (Isnumber(ref)) {
                 if (Isnumber(ty)) {
                     if (ref < ty) {
@@ -293,25 +295,25 @@ bool TamguCallFunctionTaskell::Checkarity() {
 
 Tamgu* TamguFunctionTaskellParameter::Execute(Tamgu* context, Tamgu* hcall, short idthread) {
     Tamgu* defcall = globalTamgu->Getdefinition(name, idthread, context);
-
+    
     long sz = defcall->Size();
     if (sz != hcall->Size()) {
         stringstream err;
         err << e_error_mismatch_argument << globalTamgu->Getsymbol(name);
         return globalTamgu->Returnerror(err.str(), idthread);
     }
-
+    
     if (!sz) {
         TamguCallFunctionTaskell hfunc((TamguFunctionLambda*)defcall);
         return hfunc.Eval(context, aNULL, idthread);
     }
-
-
+    
+    
     TamguCallFunctionArgsTaskell hfunc((TamguFunctionLambda*)defcall);
     for (int i = 0; i < sz; i++)
         hfunc.arguments.push_back(hcall->Argument(i));
     return hfunc.Eval(context, aNULL, idthread);
-
+    
 }
 
 long TamguFunctionTaskellParameter::Size() {
@@ -404,7 +406,7 @@ Tamgu* TamguFunctionLambda::DirectEval(Tamgu* environment, Tamgu* a, short idthr
             return a;
         
         a = a->Returned(idthread);
-
+        
         if (globalTamgu->Error(idthread)) {
             a->Release();
             return globalTamgu->Errorobject(idthread);
@@ -448,7 +450,7 @@ Tamgu* TamguFunctionLambda::DirectEval(Tamgu* environment, Tamgu* a, short idthr
 Tamgu* TamguFunctionLambda::Eval(Tamgu* environment, Tamgu* a, short idthread) {
     if (!returnonly)
         Checkreturnonly();
-
+    
     bool testcond = false;
     
     switch(returnonly) {
@@ -489,8 +491,8 @@ Tamgu* TamguFunctionLambda::Eval(Tamgu* environment, Tamgu* a, short idthread) {
                 a = aNULL;
             }
     }
-
-
+    
+    
     if (a->needFullInvestigate()) {
         if (a->isError())
             return a;
@@ -504,7 +506,7 @@ Tamgu* TamguFunctionLambda::Eval(Tamgu* environment, Tamgu* a, short idthread) {
         
         if (!hdeclared || store || a->needInvestigate())
             return a;
-
+        
         short atype = a->Type();
         if (returntype != a_null && returntype != atype) {
             if (globalTamgu->Compatiblestrict(returntype, atype)) {
@@ -548,7 +550,7 @@ Tamgu* TamguInstructionHASKELLCASE::Eval(Tamgu* var, Tamgu* context, short idthr
         var->Releasenonconst();
         return context;
     }
-
+    
     ins = ins->Eval(context, aNULL, idthread);
     context = ins->same(var);
     var->Releasenonconst();
@@ -571,10 +573,10 @@ Tamgu* TamguInstructionTaskellMainCASE::Eval(Tamgu* context, Tamgu* value, short
         else
             return instructions.vecteur[i - 1]->Eval(context, aNULL, idthread);
     }
-
+    
     if (other)
         return instructions.vecteur[instructions.last - 1]->Eval(context, aNULL, idthread);
-
+    
     return aNULL;
 }
 
@@ -583,15 +585,15 @@ Tamgu* TamguInstructionTaskellIF::DirectEval(Tamgu* context, Tamgu* value, short
     //	instructions.vecteur[0] = instructions.vecteur[0]->Compile(aTRUE);
     //	compiled = true;
     //}
-
+    
     value = instructions.vecteur[0]->Eval(aTRUE, context, idthread);
-
+    
     if (value->needInvestigate())
         return value;
-
+    
     bool truevalue = value->Boolean();
     value->Releasenonconst();
-
+    
     if (truevalue != negation) {
         if (callreturn)
             return returncall->DirectEval(context, aNULL, idthread);
@@ -600,7 +602,7 @@ Tamgu* TamguInstructionTaskellIF::DirectEval(Tamgu* context, Tamgu* value, short
     }
     if (instructions.last == 3)
         return instructions.vecteur[2]->Eval(context, aNULL, idthread);
-
+    
     return aNULL;
 }
 
@@ -632,7 +634,7 @@ Tamgu* TamguInstructionTaskellIF::Eval(Tamgu* context, Tamgu* value, short idthr
 
 Tamgu* TamguHBloc::Eval(Tamgu* context, Tamgu* a, short idthread) {
     short size = instructions.last;
-
+    
     Tamgu* environment = context;
     
     if (variablesWillBeCreated) {
@@ -642,15 +644,15 @@ Tamgu* TamguHBloc::Eval(Tamgu* context, Tamgu* a, short idthread) {
         globalTamgu->Pushstackraw(environment, idthread);
         ((TamguDeclarationLocal*)environment)->pushed = true;
     }
-
+    
     a = aNULL;
     bool testcond = false;
     for (short i = 0; i < size && !testcond; i++) {
         a->Releasenonconst();
         a = instructions[i];
-
+        
         a = a->Eval(environment, aNULL, idthread);
-
+        
         testcond = a->needFullInvestigate();
     }
     
@@ -673,11 +675,11 @@ Tamgu* TamguHBloc::Eval(Tamgu* context, Tamgu* a, short idthread) {
         }
         return context;
     }
-
+    
     a->Releasenonconst();
     if (variablesWillBeCreated)
         environment->Release();
-
+    
     return aNULL;
 }
 
@@ -689,31 +691,31 @@ Tamgu* TamguCallFunctionTaskell::Eval(Tamgu* context, Tamgu* res, short idthread
     
     if (globalTamgu->debugmode)
         globalTamgu->threads[idthread].nonblockingerror = "";
-
+    
     for (long i = 0; i < body->names.size(); i++)
         body->localvariables[i]->Eval(environment, aHASKELL, idthread);
-
+    
     switch (body->lambdadomain->instructions.last) {
         case 0:
-        res = body->DirectEval(environment, aNULL, idthread);
-        break;
+            res = body->DirectEval(environment, aNULL, idthread);
+            break;
         case 2:
-        res = GetTaskell2(context, environment, body, idthread);
-        break;
+            res = GetTaskell2(context, environment, body, idthread);
+            break;
         case 3:
-        res = GetTaskell3(context, environment, body, idthread);
-        break;
+            res = GetTaskell3(context, environment, body, idthread);
+            break;
         case 5:
-        res = GetTaskell5(context, environment, body, idthread);
-        break;
+            res = GetTaskell5(context, environment, body, idthread);
+            break;
         default:
-        res = GetTaskellN(context, environment, body, idthread);
+            res = GetTaskellN(context, environment, body, idthread);
     }
-
-
+    
+    
     if (res->isError()) {
         environment->Cleanenvironment();
-
+        
         if (body->maybe) {
             globalTamgu->Cleanerror(idthread);
             return aNOTHING;
@@ -723,13 +725,13 @@ Tamgu* TamguCallFunctionTaskell::Eval(Tamgu* context, Tamgu* res, short idthread
             return globalTamgu->Returnerror(e_lambda_expression_failed, idthread);
         return res;
     }
-
+    
     if (!environment->isEmpty() && res->Reference()) {
         res->Setreference();
         environment->Cleaning();
         res->Protect();
     }
-
+    
     environment->Cleanenvironment();
     
     return res;
@@ -740,12 +742,12 @@ Tamgu* TamguCallFunctionArgsTaskell::Eval(Tamgu* context, Tamgu* res, short idth
     
     Tamgu* argms[3];
     Tamgu** args=argms;
-
+    
     short i, sz = arguments.size();
-
+    
     if (sz>3)
         args = new Tamgu*[sz];
-
+    
     if (curryfied) {
         TamguGetCurryfiedFunction* func = new TamguGetCurryfiedFunction(body);
         for (i = 0; i < sz; i++) {
@@ -759,7 +761,7 @@ Tamgu* TamguCallFunctionArgsTaskell::Eval(Tamgu* context, Tamgu* res, short idth
         }
         return func;
     }
-
+    
     for (i = 0; i < sz; i++) {
         res = arguments[i]->Eval(aNULL, aHASKELL, idthread);
         
@@ -779,23 +781,23 @@ Tamgu* TamguCallFunctionArgsTaskell::Eval(Tamgu* context, Tamgu* res, short idth
     TamguDeclarationAutoClean* environment = globalTamgu->Providedeclarationclean(idthread);
     
     TamguFunctionLambda* bd = body;
-
+    
     Tamgu* arg;
     
     short param_name, typevariable;
     bool execute = false;
-
+    
     res = aNULL;
-
+    
     if (globalTamgu->debugmode)
         globalTamgu->threads[idthread].nonblockingerror = "";
-
+    
     while (bd != NULL) {
         if (sz != bd->parameters.size()) {
             bd = bd->Following();
             continue;
         }
-
+        
         //In this case, we check all constant arguments beforehand...
         if (bd->constantparameters) {
             //The flag: constantargument has been set at compiling time...
@@ -803,7 +805,7 @@ Tamgu* TamguCallFunctionArgsTaskell::Eval(Tamgu* context, Tamgu* res, short idth
             //It is the first constant element in our list...
             for (i = bd->firstconstant; i < sz; i++) {
                 arg = args[i];
-
+                
                 if (bd->checkconstant(i) && bd->parameters[i]->same(arg) == aFALSE) {
                     if (globalTamgu->debugmode) {
                         string s = "Mismatch between argument and declaration...";
@@ -830,7 +832,7 @@ Tamgu* TamguCallFunctionArgsTaskell::Eval(Tamgu* context, Tamgu* res, short idth
             
             res = bd->parameters[i];
             arg = args[i];
-
+            
             if (res->isConstContainer()) {
                 //They could be some variables, that need to be created...
                 if (!res->Size() && arg->Size()) {
@@ -854,7 +856,7 @@ Tamgu* TamguCallFunctionArgsTaskell::Eval(Tamgu* context, Tamgu* res, short idth
             if (!param_name) {//it could be either a value comparison (see above for constantargument or a data frame comparison)
                 if (hdeclared == true && bd->taskelldeclarations[i]->Size()) {
                     short argsz = arg->Size();
-
+                    
                     if (argsz != bd->taskelldeclarations[i]->Size()) {
                         if (globalTamgu->debugmode) {
                             string s = "Argument number does not match data structure declaration size... ";
@@ -894,7 +896,7 @@ Tamgu* TamguCallFunctionArgsTaskell::Eval(Tamgu* context, Tamgu* res, short idth
             }
             
             typevariable = res->Typevariable();
-
+            
             if (hdeclared == true && typevariable != a_self) {
                 if (typevariable != arg->Type() && !globalTamgu->Compatiblestrict(typevariable, arg->Type())) {
                     if (globalTamgu->debugmode) {
@@ -922,7 +924,7 @@ Tamgu* TamguCallFunctionArgsTaskell::Eval(Tamgu* context, Tamgu* res, short idth
         if (res != aRAISEERROR) {
             for (i = 0; i < bd->names.size(); i++)
                 bd->localvariables[i]->Eval(environment, aHASKELL, idthread);
-
+            
             switch (bd->lambdadomain->instructions.last) {
                 case 0:
                     res = bd->DirectEval(environment, aNULL, idthread);
@@ -947,8 +949,8 @@ Tamgu* TamguCallFunctionArgsTaskell::Eval(Tamgu* context, Tamgu* res, short idth
                 }
                 
                 if (bd->maybe) {
-                        //In this case, it could be an error, but we have Maybe...
-                        //We return Nothing...
+                    //In this case, it could be an error, but we have Maybe...
+                    //We return Nothing...
                     globalTamgu->Cleanerror(idthread);
                     environment->Cleanenvironment();
                     for (i = 0; i < sz; i++) {
@@ -974,22 +976,22 @@ Tamgu* TamguCallFunctionArgsTaskell::Eval(Tamgu* context, Tamgu* res, short idth
         res = aNULL;
         bd = bd->Following();
     }
-
+    
     for (i = 0; i < sz; i++) {
         if (args[i] != res)
             args[i]->Resetreference();
     }
     if (args != argms)
         delete[] args;
-
+    
     if (!environment->isEmpty() && res->Reference()) {
         res->Setreference();
         environment->Cleaning();
         res->Protect();
     }
-
+    
     environment->Cleanenvironment();
-
+    
     if (!execute && !globalTamgu->Error(idthread)) {
         if (body->maybe) {
             res->Releasenonconst();
@@ -1003,7 +1005,7 @@ Tamgu* TamguCallFunctionArgsTaskell::Eval(Tamgu* context, Tamgu* res, short idth
         res->Releasenonconst();
         return globalTamgu->Returnerror(err, idthread);
     }
-
+    
     if (globalTamgu->concepts.check(name)) {
         TamguFunction* func = NULL;
         if (globalTamgu->roles.check(name) && globalTamgu->rolefunction != NULL)
@@ -1014,7 +1016,7 @@ Tamgu* TamguCallFunctionArgsTaskell::Eval(Tamgu* context, Tamgu* res, short idth
             else
                 if (globalTamgu->conceptfunction != NULL)
                     func = globalTamgu->conceptfunction;
-
+        
         if (func != NULL) {
             TamguCallFunction2 callfunc(func);
             Tamgu* fname = globalTamgu->Providestring(globalTamgu->Getsymbol(name));
@@ -1031,7 +1033,7 @@ Tamgu* TamguCallFunctionArgsTaskell::Eval(Tamgu* context, Tamgu* res, short idth
             res->Protect();
         }
     }
-
+    
     return res;
 }
 
@@ -1039,23 +1041,23 @@ Tamgu* TamguCallFunctionArgsTaskell::Eval(Tamgu* context, Tamgu* res, short idth
 //The main difference between the two calls is that when bd return FALSE for a AND it is a fail, while it suffices of one  TRUE for a OR to succeed.
 //When a NULL is returned for a AND, it is OK, while it is a FAIL for a OR... Hence, the default value for AND is TRUE while it is FALSE for OR
 Exporting Tamgu* Tamgu::Filterboolean(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* def) {
-
+    
     Tamgu* returnval;
     TamguIteration* iter = Newiteration(false);
     char val = -1;
     char v;
-
-
+    
+    
     for (iter->Begin(); iter->End() == aFALSE; iter->Next()) {
         var->Putvalue(iter->IteratorValue(), idthread);
         returnval = bd->DirectEval(env, aNULL, idthread);
-
+        
         if (returnval->needInvestigate()) {
             iter->Release();
             var->Forcedclean();
             return returnval;
         }
-
+        
         if (returnval == aFALSE || returnval == aTRUE) {
             def = returnval;
             break;
@@ -1074,7 +1076,7 @@ Exporting Tamgu* Tamgu::Filterboolean(short idthread, Tamgu* env, TamguFunctionL
             }
         }
     }
-
+    
     var->Forcedclean();
     iter->Release();
     if (def == aNULL)
@@ -1085,13 +1087,13 @@ Exporting Tamgu* Tamgu::Filterboolean(short idthread, Tamgu* env, TamguFunctionL
 
 //The <all...>, <and ...> and the <or ...> <xor ...> operators...
 Tamgu* TamguCallFunctionTaskell::GetTaskell2(Tamgu* context, Tamgu* environment, TamguFunctionLambda* bd, short idthread) {
-
+    
     Tamgu* var = bd->lambdadomain->instructions[0]->Eval(environment, aNULL, idthread);
     Tamgu* alist = bd->lambdadomain->instructions[1]->Eval(environment, aNULL, idthread);
-
+    
     switch (bd->lambdadomain->name) {
         case 1:
-        context = alist->Filterboolean(idthread, environment, bd, var, aTRUE);
+            context = alist->Filterboolean(idthread, environment, bd, var, aTRUE);
             break;
         case 2:
             context = alist->Filterboolean(idthread, environment, bd, var, aFALSE); //It is a OR
@@ -1100,7 +1102,7 @@ Tamgu* TamguCallFunctionTaskell::GetTaskell2(Tamgu* context, Tamgu* environment,
             context = alist->Filterboolean(idthread, environment, bd, var, aNULL); //It is a XOR
             break;
     }
-
+    
     alist->Release();
     var->Release();
     return context;
@@ -1110,13 +1112,13 @@ Exporting Tamgu* Tamgu::Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* env
     TamguIteration* loop = Newiteration(false);
     if (loop == aITERNULL)
         return context;
-
+    
     Tamgu* a;
     uchar addvalue = 0;
-
+    
     if (context != aNOELEMENT)
         addvalue = Selecttype(context);
-
+    
     char getkey = 0;
     if (isMapContainer()) {
         if (recipient->isMapContainer()) {
@@ -1126,56 +1128,56 @@ Exporting Tamgu* Tamgu::Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* env
         else
             getkey = 1;
     }
-
+    
     loop->Begin();
     while (!loop->End()->Boolean()) {
         switch (getkey) {
             case 0:
-            recipient->Putvalue(loop->IteratorValue(), idthread);
-            break;
+                recipient->Putvalue(loop->IteratorValue(), idthread);
+                break;
             case 1:
-            recipient->Putvalue(loop->IteratorKey(), idthread);
-            break;
+                recipient->Putvalue(loop->IteratorKey(), idthread);
+                break;
             case 2:
-            recipient->Setvalue(loop, aNULL, idthread);
+                recipient->Setvalue(loop, aNULL, idthread);
         }
-
+        
         a = bd->DirectEval(environment, aNULL, idthread);
         if (a->isNULL()) {
             loop->Next();
             continue;
         }
-
+        
         if (a->needInvestigate()) {
             if (a == aBREAK)
                 break;
-
+            
             delete loop;
             recipient->Forcedclean();
             context->Releasenonconst();
             return a;
         }
-
-
+        
+        
         context = Storealongtype(context, a, idthread, addvalue);
         a->Releasenonconst();
         loop->Next();
     }
-
+    
     delete loop;
     recipient->Forcedclean();
     return context;
-
+    
 }
 
 Tamgu* TamguCallFunctionTaskell::GetTaskell3(Tamgu* context, Tamgu* environment, TamguFunctionLambda* bd, short idthread) {
     //First we create our variables...
     //The first variable is the one that receives the iteration in the vector...
-
+    
     Tamgu* recipient = NULL;
     
     if (bd->lambdadomain->local) {
-            //We might have some variables declared in "where"
+        //We might have some variables declared in "where"
         for (short i = 0; i < bd->wherevariables.last; i++) {
             if (bd->wherevariables.vecteur[i]->Computevariablecheck(idthread)) {
                 recipient = bd->wherevariables.vecteur[i]->Eval(environment, aNULL, idthread);
@@ -1193,21 +1195,21 @@ Tamgu* TamguCallFunctionTaskell::GetTaskell3(Tamgu* context, Tamgu* environment,
     else
         if (bd->lambdadomain->declarations.check(a_drop))
             bd->lambdadomain->Declaration(a_drop)->Eval(environment, aNULL, idthread);
-
+    
     bd->lambdadomain->instructions[0]->Setaffectation(true);
-
+    
     //We put our system in store mode, which means that the returntype SHOULD not be tested in TamguFunctionLambda
     //The reason is that the context variable is the variable that is going to store the data and its type has already been tested
     //against returntype above, or below when context is missing... In that case, we create a context whose type will match returntype.
     bd->store = true;
-
+    
     recipient = bd->lambdadomain->instructions[0]->Eval(environment, aNULL, idthread);
     Tamgu* vect = bd->lambdadomain->instructions[1]->Eval(environment, aNULL, idthread);
-
+    
     //if it is constvector or a constmap, we need to declare the variables in them...
     if (recipient->isConstContainer())
         recipient->Prepare(environment, idthread);
-
+    
     //We then need to take into account our context...
     if (context->isContainer()) {
         if (vect == context || context->Size() || !context->isAffectation())
@@ -1226,20 +1228,20 @@ Tamgu* TamguCallFunctionTaskell::GetTaskell3(Tamgu* context, Tamgu* environment,
     
     //we need to loop...
     recipient = vect->Looptaskell(recipient, context, environment, bd, idthread);
-
+    
     vect->Release();
     return recipient;
 }
 
 
 Exporting Tamgu* Tamgu::Filter(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* kcont, Tamgu* accu, Tamgu* init, bool direct) {
-
+    
     Tamgu* returnval;
     TamguIteration* iter = Newiteration(false);
-
+    
     bool first = false;
     Tamgu* key;
-
+    
     if (init != aNOELEMENT) {
         accu->Putvalue(init, idthread);
         if (kcont != NULL) {
@@ -1251,7 +1253,7 @@ Exporting Tamgu* Tamgu::Filter(short idthread, Tamgu* env, TamguFunctionLambda* 
     }
     else
         first = true; //we are dealing with a foldr1 or a foldl1
-
+    
     for (iter->Begin(); iter->End() == aFALSE; iter->Next()) {
         key = iter->IteratorValue();
         if (first) {
@@ -1263,13 +1265,13 @@ Exporting Tamgu* Tamgu::Filter(short idthread, Tamgu* env, TamguFunctionLambda* 
             returnval = bd->DirectEval(env, aNULL, idthread);
             if (returnval->isNULL())
                 continue;
-
+            
             if (returnval->needInvestigate()) {
                 if (returnval == aBREAK) {
                     accu = returnval;
                     break;
                 }
-
+                
                 var->Forcedclean();
                 accu->Forcedclean();
                 iter->Release();
@@ -1278,7 +1280,7 @@ Exporting Tamgu* Tamgu::Filter(short idthread, Tamgu* env, TamguFunctionLambda* 
                 return returnval;
             }
         }
-
+        
         accu->Putvalue(returnval, idthread);
         
         if (kcont != NULL) {
@@ -1289,7 +1291,7 @@ Exporting Tamgu* Tamgu::Filter(short idthread, Tamgu* env, TamguFunctionLambda* 
         }
         returnval->Releasenonconst();
     }
-
+    
     var->Forcedclean();
     iter->Release();
     if (kcont != NULL)
@@ -1298,13 +1300,13 @@ Exporting Tamgu* Tamgu::Filter(short idthread, Tamgu* env, TamguFunctionLambda* 
 }
 
 Exporting Tamgu* Tamgu::Filterreverse(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* kcont, Tamgu* accu, Tamgu* init) {
-
+    
     Tamgu* returnval;
     TamguIteration* iter = Newiteration(false);
-
+    
     bool first = false;
     Tamgu* key;
-
+    
     if (init != aNOELEMENT) {
         accu->Putvalue(init, idthread);
         if (kcont != NULL) {
@@ -1313,7 +1315,7 @@ Exporting Tamgu* Tamgu::Filterreverse(short idthread, Tamgu* env, TamguFunctionL
     }
     else
         first = true; //we are dealing with a foldr1 or a foldl1
-
+    
     vector<Tamgu*> values;
     
     for (iter->Begin(); iter->End() == aFALSE; iter->Next()) {
@@ -1334,13 +1336,13 @@ Exporting Tamgu* Tamgu::Filterreverse(short idthread, Tamgu* env, TamguFunctionL
             returnval = bd->DirectEval(env, aNULL, idthread);
             if (returnval->isNULL())
                 continue;
-
+            
             if (returnval->needInvestigate()) {
                 if (returnval == aBREAK) {
                     accu = returnval;
                     break;
                 }
-
+                
                 var->Forcedclean();
                 accu->Forcedclean();
                 iter->Release();
@@ -1349,7 +1351,7 @@ Exporting Tamgu* Tamgu::Filterreverse(short idthread, Tamgu* env, TamguFunctionL
                 return returnval;
             }
         }
-
+        
         accu->Putvalue(returnval, idthread);
         
         if (kcont != NULL)
@@ -1357,7 +1359,7 @@ Exporting Tamgu* Tamgu::Filterreverse(short idthread, Tamgu* env, TamguFunctionL
         returnval->Releasenonconst();
         key->Resetreference();
     }
-
+    
     var->Forcedclean();
     if (kcont != NULL)
         return kcont;
@@ -1366,18 +1368,18 @@ Exporting Tamgu* Tamgu::Filterreverse(short idthread, Tamgu* env, TamguFunctionL
 
 
 Tamgu* TamguCallFunctionTaskell::GetTaskell5(Tamgu* context, Tamgu* environment, TamguFunctionLambda* bd, short idthread) {
-
+    
     Tamgu* kcont = NULL;
-
+    
     Tamgu* key;
-
-
+    
+    
     Tamgu* init = bd->lambdadomain->instructions[3]->Eval(aNULL, aNULL, idthread);
-
+    
     Tamgu* klist = bd->lambdadomain->instructions[1]->Eval(aNULL, aNULL, idthread);
     if (globalTamgu->Error(idthread))
         return aNULL;
-
+    
     if (klist->Size() == 0 && !klist->isInfinite()) {
         key = bd->lambdadomain->instructions[4];
         if (key == aZERO || key == aONE) {// this is a scan
@@ -1389,20 +1391,20 @@ Tamgu* TamguCallFunctionTaskell::GetTaskell5(Tamgu* context, Tamgu* environment,
         init = NULL;
         return kcont;
     }
-
+    
     Tamgu* var = bd->lambdadomain->instructions[0]->Eval(environment, aNULL, idthread);
     Tamgu* accu = bd->lambdadomain->instructions[2]->Eval(environment, aNULL, idthread);
-
+    
     if (globalTamgu->Error(idthread))
         return globalTamgu->Errorobject(idthread);
-
+    
     key = bd->lambdadomain->instructions[4];
     bool direct = key->Boolean();
-
+    
     if (key == aZERO || key == aONE) // this is a scan
         kcont = klist->Newinstance(idthread);
-
-
+    
+    
     if (kcont != NULL) {
         if (!kcont->isContainer() && !kcont->isString()) {
             kcont->Releasenonconst();
@@ -1415,7 +1417,7 @@ Tamgu* TamguCallFunctionTaskell::GetTaskell5(Tamgu* context, Tamgu* environment,
         klist->Releasenonconst();
         return kcont;
     }
-
+    
     if (direct)
         key = klist->Filterreverse(idthread, environment, bd, var, kcont, accu, init);
     else
@@ -1428,28 +1430,28 @@ Tamgu* TamguCallFunctionTaskell::GetTaskell5(Tamgu* context, Tamgu* environment,
 
 Tamgu* TamguCallFunctionTaskell::Process(TaskellLoop* loop, Tamgu* context, Tamgu* env, TamguFunctionLambda* bd, short idthread) {
     Tamgu* a;
-
+    
     loop->reset();
     while (!loop->end()) {
         if (globalTamgu->Error(idthread))
             return globalTamgu->Errorobject(idthread);
-            
+        
         loop->execute(idthread);
         if (loop->next != NULL)
             Process(loop->next, context, env, bd, idthread);
         else {
             a = bd->DirectEval(env, aNULL, idthread);
-
+            
             if (a->needInvestigate()) {
                 if (a == aBREAK)
                     break;
                 return a;
             }
-
-
+            
+            
             if (a->isNULL())
                 continue;
-
+            
             if (context->isVectorContainer())
                 context->Push(a);
             else
@@ -1457,15 +1459,15 @@ Tamgu* TamguCallFunctionTaskell::Process(TaskellLoop* loop, Tamgu* context, Tamg
             a->Releasenonconst();
         }
     }
-
+    
     return context;
 }
 
 Tamgu* TamguCallFunctionTaskell::GetTaskellN(Tamgu* context, Tamgu* environment, TamguFunctionLambda* bd, short idthread) {
-
-
+    
+    
     TaskellLoop loops(idthread, environment);
-
+    
     //First we store the recipients and the variables.
     Tamgu* recipient;
     Tamgu* vect;
@@ -1474,7 +1476,7 @@ Tamgu* TamguCallFunctionTaskell::GetTaskellN(Tamgu* context, Tamgu* environment,
     bool first = true;
     bool forcerenew = false;
     long sz = bd->lambdadomain->instructions.last;
-
+    
     if (bd->lambdadomain->local) {
         //We might have some variables declared in "where"
         for (short i = 0; i < bd->wherevariables.last; i++) {
@@ -1490,12 +1492,12 @@ Tamgu* TamguCallFunctionTaskell::GetTaskellN(Tamgu* context, Tamgu* environment,
     
     //we put our system in store mode, which means that the returntype SHOULD not be tested in TamguFunctionLambda
     bd->store = true;
-
+    
     if (context->isContainer()) {
         if (context->Size() || !context->isAffectation() || (bd->returntype != a_null && bd->returntype != context->Type()))
             forcerenew=true;
     }
-
+    
     long i;
     for (i = 0; i < sz; i += 3) {
         if (bd->lambdadomain->instructions[i + 2] == aFALSE)  {
@@ -1506,7 +1508,7 @@ Tamgu* TamguCallFunctionTaskell::GetTaskellN(Tamgu* context, Tamgu* environment,
                 loops.add(hloop);
             }
         }
-
+        
         bd->lambdadomain->instructions[i]->Setaffectation(true);
         recipient = bd->lambdadomain->instructions[i]->Eval(environment, aNULL, idthread);
         vect = bd->lambdadomain->instructions[i + 1]->Eval(environment, aNULL, idthread);
@@ -1514,7 +1516,7 @@ Tamgu* TamguCallFunctionTaskell::GetTaskellN(Tamgu* context, Tamgu* environment,
             recipient->Prepare(environment, idthread);
             hloop->maprecipient = true;
         }
-
+        
         if (vect == aNOELEMENT) {
             //Missing variables to finalize the loop...
             //we need to postpone the evaluation...
@@ -1523,13 +1525,13 @@ Tamgu* TamguCallFunctionTaskell::GetTaskellN(Tamgu* context, Tamgu* environment,
         }
         else
             loop = vect->Newiteration(false);
-
+        
         if (vect == context)
             forcerenew=true;
-
+        
         hloop->push(recipient, vect, loop);
     }
-
+    
     vect = loops.vects[0];
     //We then need to take into account our context...
     if (context->isContainer()) {
@@ -1552,14 +1554,14 @@ Tamgu* TamguCallFunctionTaskell::GetTaskellN(Tamgu* context, Tamgu* environment,
                 context = globalTamgu->newInstance.get(bd->returntype)->Newinstance(idthread);
         }
     }
-
+    
     recipient = Process(&loops, context, environment, bd, idthread);
-
+    
     if (recipient->isError()) {
         context->Releasenonconst();
         return recipient;
     }
-
+    
     return context;
 }
 
@@ -1568,10 +1570,10 @@ Tamgu* TamguCallFibre::Put(Tamgu* context, Tamgu* v, short idthread) {
     Tamgu* defcall = v;
     if (v->isFunctionParameter())
         defcall = globalTamgu->Getdefinition(v->Name(), idthread, context);
-
+    
     if (defcall == NULL || !defcall->isTaskellFunction())
         return globalTamgu->Returnerror(e_wrong_taskell_assignment);
-
+    
     body = (TamguFunctionLambda*)defcall;
     returntype = body->returntype;
     
@@ -1638,11 +1640,11 @@ Tamgu* TamguCallFibre::Eval(Tamgu* context, Tamgu* res, short idthread) {
             continue;
         }
         
-            //In this case, we check all constant arguments beforehand...
+        //In this case, we check all constant arguments beforehand...
         if (bd->constantparameters) {
-                //The flag: constantargument has been set at compiling time...
+            //The flag: constantargument has been set at compiling time...
             execute = true;
-                //It is the first constant element in our list...
+            //It is the first constant element in our list...
             for (i = bd->firstconstant; i < sz; i++) {
                 arg = args[i];
                 
@@ -1674,7 +1676,7 @@ Tamgu* TamguCallFibre::Eval(Tamgu* context, Tamgu* res, short idthread) {
             arg = args[i];
             
             if (res->isConstContainer()) {
-                    //They could be some variables, that need to be created...
+                //They could be some variables, that need to be created...
                 if (!res->Size() && arg->Size()) {
                     res = aRAISEERROR;
                     break;
@@ -1787,8 +1789,8 @@ Tamgu* TamguCallFibre::Eval(Tamgu* context, Tamgu* res, short idthread) {
             }
             
             if (bd->maybe) {
-                    //In this case, it could be an error, but we have Maybe...
-                    //We return Nothing...
+                //In this case, it could be an error, but we have Maybe...
+                //We return Nothing...
                 globalTamgu->Cleanerror(idthread);
                 environment->Cleanenvironment();
                 for (i = 0; i < sz; i++) {
@@ -1813,10 +1815,10 @@ Tamgu* TamguCallFibre::Eval(Tamgu* context, Tamgu* res, short idthread) {
         res = aNULL;
         bd = bd->Following();
     }
-
+    
     if (!cleanenv)
         return aTRUE;
-
+    
     for (i = 0; i < sz; i++) {
         if (args[i] != res)
             args[i]->Resetreference();
@@ -1854,7 +1856,7 @@ Tamgu* TamguCallFibre::GetTaskelFibres(Tamgu* context, TamguDeclarationAutoClean
     
     TaskellLoop* loops = new TaskellLoop(idthread, environment);
     
-        //First we store the recipients and the variables.
+    //First we store the recipients and the variables.
     Tamgu* recipient;
     Tamgu* vect;
     TamguIteration* loop;
@@ -1862,7 +1864,7 @@ Tamgu* TamguCallFibre::GetTaskelFibres(Tamgu* context, TamguDeclarationAutoClean
     bool first = true;
     long sz = bd->lambdadomain->instructions.last;
     
-        //we put our system in store mode, which means that the returntype SHOULD not be tested in TamguFunctionLambda
+    //we put our system in store mode, which means that the returntype SHOULD not be tested in TamguFunctionLambda
     bd->store = true;
     
     long i;
@@ -1885,8 +1887,8 @@ Tamgu* TamguCallFibre::GetTaskelFibres(Tamgu* context, TamguDeclarationAutoClean
         }
         
         if (vect == aNOELEMENT) {
-                //Missing variables to finalize the loop...
-                //we need to postpone the evaluation...
+            //Missing variables to finalize the loop...
+            //we need to postpone the evaluation...
             loop = aITERNULL;
             vect = bd->lambdadomain->instructions[i + 1];
         }
@@ -1906,11 +1908,11 @@ Tamgu* TamguCallFibre::GetTaskelFibres(Tamgu* context, TamguDeclarationAutoClean
         context->Put(aNULL, cnt, idthread);
         context = cnt;
     }
-
+    
     vect = loops->vects[0];
     context->Clear();
     context->Setreference();
-
+    
     //We need to remove the variables now...
     environment->Removevariable(idthread);
     add(loops, context, bd, environment, args, bd->Size());
@@ -1922,7 +1924,7 @@ long TaskellLoopLinkedList::idx = 0;
 Tamgu* TaskellLoopLinkedList::Process(short idthread) {
     if (globalTamgu->Error(idthread))
         return globalTamgu->Errorobject(idthread);
-
+    
     TaskellLoop* l;
     if (first) {
         l = loop;
@@ -1951,7 +1953,7 @@ Tamgu* TaskellLoopLinkedList::Process(short idthread) {
     environment->Initializevariable(idthread);
     
     stack.back()->execute(idthread);
-
+    
     for (const auto& it : backup) {
         it->reset();
         it->execute(idthread);
@@ -1971,7 +1973,7 @@ Tamgu* TaskellLoopLinkedList::Process(short idthread) {
         else
             recipient->Pushinmap(a, idthread);
     }
-
+    
     a->Releasenonconst();
     return aTRUE;
 }
@@ -1990,7 +1992,7 @@ Exporting void TamguGlobal::Clearfibres(short idthread) {
 //Different threads can add new elements to the list, but only one can run fibres
 Tamgu* TamguCallFibre::Run(short idthread) {
     Locking lock(_lock);
-
+    
     //We need to clean fibres from within the same thread... because of the iterator locks
     if (idfibre == -1) {
         threadid = idthread;
@@ -2066,18 +2068,18 @@ void TamguParameterFunction::Setstring(string& nm, short idthread) {
 
 Tamgu* TamguFunctionParameter::Execute(Tamgu* context, Tamgu* callfunction, short idthread) {
     Tamgu* body = globalTamgu->Getdefinition(name, idthread, context);
-
+    
     if (!body->isFunction())
         return globalTamgu->Returnerror(e_this_object_is, idthread);
-
+    
     TamguCallFunction fcall(body);
     fcall.arguments = ((TamguCall*)callfunction)->arguments;
-
+    
     return fcall.Eval(context, aNULL, idthread);
 }
 
 Tamgu* TamguMethodParameter::Execute(Tamgu* context, Tamgu* callfunction, short idthread) {
-        //In this case, the first argument is our object...
+    //In this case, the first argument is our object...
     if (callfunction->Size() == 0)
         return globalTamgu->Returnerror(e_missing_object, idthread);
     
@@ -2105,7 +2107,7 @@ Tamgu* TamguOperatorParameter::Execute(Tamgu* context, Tamgu* callfunction, shor
     
     for (i = callfunction->Size()-1; i>=0; i--)
         root.instructions.push_back(callfunction->Argument(i));
-
+    
     if (!left) {
         for (i = instructions.size()-1; i>=0; i--)
             root.instructions.push_back(instructions.vecteur[i]);
@@ -2119,13 +2121,13 @@ Tamgu* TamguFrameMethodParameter::Execute(Tamgu* context, Tamgu* callfunction, s
     //In this case, the first argument is our object...
     if (callfunction->Size() == 0)
         return globalTamgu->Returnerror(e_missing_object, idthread);
-
+    
     TamguCall* acall = (TamguCall*)callfunction;
-
+    
     TamguCallFrameFunction fcall(name);
     for (short i = 1; i < acall->arguments.size(); i++)
         fcall.arguments.push_back(acall->arguments[i]);
-
+    
     Tamgu* object = acall->arguments[0]->Eval(context, aNULL, idthread);
     Tamgu* a = fcall.Eval(context, object, idthread);
     object->Releasenonconst();
@@ -2136,13 +2138,13 @@ Tamgu* TamguCommonParameter::Execute(Tamgu* context, Tamgu* callfunction, short 
     //In this case, the first argument is our object...
     if (callfunction->Size() == 0)
         return globalTamgu->Returnerror(e_missing_object, idthread);
-
+    
     TamguCall* acall = (TamguCall*)callfunction;
-
+    
     TamguCallCommonMethod fcall(name);
     for (short i = 1; i < acall->arguments.size(); i++)
         fcall.arguments.push_back(acall->arguments[i]);
-
+    
     Tamgu* object = acall->arguments[0]->Eval(context, aNULL, idthread);
     Tamgu* a = fcall.Eval(context, object, idthread);
     object->Releasenonconst();
@@ -2150,10 +2152,10 @@ Tamgu* TamguCommonParameter::Execute(Tamgu* context, Tamgu* callfunction, short 
 }
 
 Tamgu* TamguProcedureParameter::Execute(Tamgu* context, Tamgu* callfunction, short idthread) {
-
+    
     TamguCallProcedure pcall(name);
     pcall.arguments = ((TamguCall*)callfunction)->arguments;
-
+    
     return pcall.Eval(context, aNULL, idthread);
 }
 
@@ -2162,18 +2164,18 @@ Tamgu* TamguGetFunction::Eval(Tamgu* context, Tamgu* c, short idthread) {
     c = globalTamgu->Getdeclaration(name, idthread);
     if (c->isFunctionParameter())
         return c->Execute(context, this, idthread);
-
+    
     c = c->Body(idthread);
     if (c->isFunctionParameter())
         return c->Execute(context, this, idthread);
-
+    
     if (c->isFunction()) {
         
         if (c->isCurryfied()) {
             long sz = c->Size()+arguments.size();
             Tamgu* cc = c->Function();
             long i;
-
+            
             if (cc->isTaskellFunction()) {
                 if (sz) {
                     TamguCallFunctionArgsTaskell hfunc((TamguFunctionLambda*)cc);
@@ -2211,24 +2213,24 @@ Tamgu* TamguGetFunction::Eval(Tamgu* context, Tamgu* c, short idthread) {
                 acall.arguments[i]->Release();
             return cc;
         }
-
+        
         if (c->isTaskellFunction()) {
             if (arguments.size()) {
                 TamguCallFunctionArgsTaskell hfunc((TamguFunctionLambda*)c);
                 hfunc.arguments = arguments;
                 return hfunc.Eval(context, aNULL, idthread);
             }
-
+            
             TamguCallFunctionTaskell hfunc((TamguFunctionLambda*)c);
             return hfunc.Eval(context, aNULL, idthread);
         }
-
-
+        
+        
         TamguCallFunction acall(c);
         acall.arguments = arguments;
         return acall.Eval(context, aNULL, idthread);
     }
-
+    
     string message = "Cannot evaluate this variable as a function call: ";
     message += globalTamgu->Getsymbol(name);
     return globalTamgu->Returnerror(message, idthread);
@@ -2236,28 +2238,28 @@ Tamgu* TamguGetFunction::Eval(Tamgu* context, Tamgu* c, short idthread) {
 
 Tamgu* TamguGetFunctionThrough::Eval(Tamgu* context, Tamgu* callfunction, short idthread) {
     callfunction = function->Eval(context, aNULL, idthread);
-
+    
     if (callfunction->isFunctionParameter())
         return callfunction->Execute(context, this, idthread);
-
+    
     if (callfunction->isTaskellFunction()) {
-
+        
         if (arguments.size()) {
             TamguCallFunctionArgsTaskell hfunc((TamguFunctionLambda*)callfunction);
             hfunc.arguments = arguments;
             return hfunc.Eval(context, aNULL, idthread);
         }
-
+        
         TamguCallFunctionTaskell hfunc((TamguFunctionLambda*)callfunction);
         return hfunc.Eval(context, aNULL, idthread);
     }
-
+    
     if (callfunction->isFunction()) {
         TamguCallFunction acall(callfunction);
         acall.arguments = arguments;
         return acall.Eval(context, aNULL, idthread);
     }
-
+    
     string message = "Cannot evaluate this as a function call: ";
     message += globalTamgu->Getsymbol(name);
     return globalTamgu->Returnerror(message, idthread);
@@ -2271,7 +2273,7 @@ Tamgu* TamguGetMethod::Eval(Tamgu* context, Tamgu* callfunction, short idthread)
     TamguCallFromCall fcall(name);
     for (short i = 1; i < arguments.size(); i++)
         fcall.arguments.push_back(arguments[i]);
-
+    
     Tamgu* object = arguments[0]->Eval(context, aNULL, idthread);
     Tamgu* a = fcall.Eval(context, object, idthread);
     object->Releasenonconst();
@@ -2279,11 +2281,11 @@ Tamgu* TamguGetMethod::Eval(Tamgu* context, Tamgu* callfunction, short idthread)
 }
 
 Tamgu* TamguGetCommon::Eval(Tamgu* context, Tamgu* callfunction, short idthread) {
-
+    
     TamguCallCommonMethod fcall(name);
     for (short i = 1; i < arguments.size(); i++)
         fcall.arguments.push_back(arguments[i]);
-
+    
     Tamgu* object;
     if (is_size) {
         TamguTaskellCounter* counter = new TamguTaskellCounter(0);
@@ -2310,7 +2312,7 @@ Tamgu* TamguGetCommon::Eval(Tamgu* context, Tamgu* callfunction, short idthread)
 Tamgu* TamguFrameParameter::Compare(Tamgu* env, Tamgu* a, short idthread) {
     if (!a->isFrameinstance() || a->Frame()->Name() != framename)
         return aFALSE;
-
+    
     Tamguframeinstance* af = (Tamguframeinstance*)a->Value();
     short idvar;
     
@@ -2326,7 +2328,7 @@ Tamgu* TamguFrameParameter::Compare(Tamgu* env, Tamgu* a, short idthread) {
         a->Setreference();
         globalTamgu->Storevariable(idthread, equivalence[i + 1], a);
     }
-
+    
     return aTRUE;
 }
 
@@ -2334,11 +2336,11 @@ Tamgu* TamguCallFrameMethod::Eval(Tamgu* context, Tamgu* value, short idthread) 
     //the first argument must be a frame instance...
     if (arguments.size() == 0)
         return globalTamgu->Returnerror(e_missing_object, idthread);
-
+    
     value = arguments[0]->Eval(context, aNULL, idthread);
     if (!value->isFrameinstance())
         return globalTamgu->Returnerror(e_expecting_object, idthread);
-
+    
     TamguCallFrameFunction callfunc((TamguFrame*)value->Frame(), name);
     Tamgu* a;
     int i;
@@ -2347,12 +2349,12 @@ Tamgu* TamguCallFrameMethod::Eval(Tamgu* context, Tamgu* value, short idthread) 
         callfunc.arguments.push_back(a);
         a->Setreference();
     }
-
+    
     a = callfunc.Eval(context, value, idthread);
-
+    
     for (i = 0; i < callfunc.arguments.size(); i++)
         callfunc.arguments[i]->Resetreference();
-
+    
     return a;
 }
 
@@ -2366,16 +2368,16 @@ bool TamguCallFrameMethod::Checkarity() {
 Tamgu* TamguInstructionDisjunction::Eval(Tamgu* dom, Tamgu* result, short idthread) {
     if (dom->Type() != a_taskelldeclaration)
         return globalTamgu->Returnerror(e_this_operator_can, idthread);
-
+    
     Tamgu* ins;
     short i = 0;
-
-
+    
+    
     Tamguvector* results = globalTamgu->Providevector();
     if (negation)
         results->Push(globalTamgu->Providestring("¬"));
     results->Push(globalTamgu->Providestring("∨"));
-
+    
     result = aNULL;
     for (i = 0; i < instructions.size(); i++) {
         ins = instructions[i];
@@ -2384,27 +2386,27 @@ Tamgu* TamguInstructionDisjunction::Eval(Tamgu* dom, Tamgu* result, short idthre
         //We need to find out about its main parameter:
         if (ins->isNegation())
             result->Insert(0, globalTamgu->Providestring("¬"));
-            
+        
         results->Push(result);
         result->Releasenonconst();
     }
-
+    
     return results;
 }
 
 Tamgu* TamguInstructionConjunction::Eval(Tamgu* dom, Tamgu* result, short idthread) {
     if (dom->Type() != a_taskelldeclaration)
         return globalTamgu->Returnerror(e_this_operator_can, idthread);
-
+    
     Tamgu* param;
     Tamgu* ins;
     VECTE<short> names;
     short i = 0;
     short p;
     short n;
-
+    
     TamguDeclarationAutoClean* ada = (TamguDeclarationAutoClean*)dom;
-
+    
     Tamgu* previous = aNULL;
     result = aNULL;
     for (i = 0; i < instructions.size(); i++) {
@@ -2414,17 +2416,17 @@ Tamgu* TamguInstructionConjunction::Eval(Tamgu* dom, Tamgu* result, short idthre
         //We need to find out about its main parameter:
         if (ins->isNegation())
             result->Insert(0, globalTamgu->Providestring("¬"));
-
+        
         if (ins->Size()) {
             n = 0;
             p = ins->Size() - 1; //the last parameter receives the result of the operation...
-
+            
             while (!n && p >= 0) {
                 param = ins->Argument(p);
                 n = param->Name();
                 p--;
             }
-
+            
             if (n) {
                 if (names.search(n) == -1)
                     names.push_back(n);
@@ -2441,6 +2443,6 @@ Tamgu* TamguInstructionConjunction::Eval(Tamgu* dom, Tamgu* result, short idthre
     
     if (negation)
         result->Insert(0, globalTamgu->Providestring("¬"));
-
+    
     return result;
 }

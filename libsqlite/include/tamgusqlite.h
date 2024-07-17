@@ -198,10 +198,10 @@ class Tamgusqlite : public TamguObject {
         //This call is a bit cryptic. It takes the method (function) pointer that has been associated in our map with "name"
         //and run it with the proper parameters. This is the right call which should be invoked from within a class definition
         if (!globalTamgu->threadMODE)
-            return (this->*methods.get(idname))(contextualpattern, idthread, callfunc);
+            return (this->*Tamgusqlite::methods.get(idname))(contextualpattern, idthread, callfunc);
         
         _lock.Locking();
-        contextualpattern = (this->*methods.get(idname))(contextualpattern, idthread, callfunc);
+        contextualpattern = (this->*Tamgusqlite::methods.get(idname))(contextualpattern, idthread, callfunc);
         _lock.Unlocking();
         return contextualpattern;
     }

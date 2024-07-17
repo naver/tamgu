@@ -178,7 +178,7 @@ Tamgu* TamguCallFromPredicateRule::Eval(Tamgu* domain, Tamgu* a, short idthread)
         type_a = a->Type();
         type_p = p->typevariable;
         //The reason why we have a specific case...
-        if (p->typevariable == a_instance) {
+        if (type_p == a_instance) {
             environment->Declaring(p->Name(), a);
             globalTamgu->Storevariable(idthread, p->Name(), a);
             a->Setreference();
@@ -234,11 +234,91 @@ Tamgu* TamguCallFromPredicateRule::Eval(Tamgu* domain, Tamgu* a, short idthread)
     }
     return a;
 }
+//-------------------------------------------------------------------------------------------------
+Tamgu* TamguThreadCallFromPredicate::Eval(Tamgu* domain, Tamgu* zone, short idthread) {
+    TamguDeclarationLocal* environment = globalTamgu->Providedeclaration(idthread);
+    if (globalTamgu->debugmode)
+        environment->idinfo = Currentinfo();
+
+    TamguVariableDeclaration* p = NULL;
+    TamguFunction* bd = (TamguFunction*)body->Body(idthread);
+    bool next = (bd->next != NULL);
+    bool strict = bd->strict;
+    if (!strict && bd->next)
+        strict = true;
+
+    Tamgu* a = NULL;
+
+    bool error = true;
+    short i = 0;
+    short type_a = 0, type_p = 0;
     
+    while (bd != NULL) {
+        if (arguments.size() != bd->Size()) {
+            bd = bd->next;
+            continue;
+        }
+
+        error = false;
+        for (i = 0; i < bd->parameters.size() && !error; i++) {
+            p = (TamguVariableDeclaration*)bd->Parameter(i);
+            a = arguments[i];
+            type_p = p->typevariable;
+            type_a = a->Type();
+            if (type_p == a_instance) {
+                environment->Declaring(p->Name(), a);
+                globalTamgu->Storevariable(idthread, p->Name(), a);
+                a->Setreference();
+            }
+            else
+                error = p->Setarguments(environment, a, idthread, strict);
+        }
+
+        if (!error)
+            break;
+
+        environment->Cleaning();
+        bd = bd->next;
+    }
+
+    if (error) {
+        environment->Releasing();
+        if (bd == NULL && next) {
+            string err = "Could not find a match for: '";
+            err += globalTamgu->Getsymbol(Name());
+            err += "'";
+            return globalTamgu->Returnerror(err, idthread);
+        }
+        string err = "Check the argument '";
+        err += (char)(i+48);
+        err += "' of: '";
+        err += globalTamgu->Getsymbol(Name());
+        err += "'. ";
+        err += "Argument: '" + globalTamgu->Getsymbol(type_a);
+        err += "' is incompatible with parameter: '" + globalTamgu->Getsymbol(type_p) + "'";
+        return globalTamgu->Returnerror(err, idthread);
+    }
+
+    zone = globalTamgu->Declarator(predicatezone, parentid);
+    ((TamguDeclarationPredicate*)zone)->Initlock();
+    
+    globalTamgu->Pushstackraw(zone, idthread);
+    globalTamgu->Pushstackraw(environment, idthread);
+    //We then apply our function within this environment
+    a = bd->Eval(environment, aNULL, idthread);
+    globalTamgu->Popstack(idthread);
+    globalTamgu->Popstack(idthread);
+
+    environment->Releasing();
+    globalTamgu->threads[idthread].variables.clear();
+    return aTRUE;
+}
+
 //-------------------------------------------------------------------------------------------------
 // Predicate variables can have methods...
 //-------------------------------------------------------------------------------------------------
 Exporting basebin_hash<predicateMethod> TamguPredicate::methods;
+static ThreadLock classlock;
 
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void TamguPredicate::AddMethod(TamguGlobal* global, string name, predicateMethod func, unsigned long arity, string infos) {
@@ -254,7 +334,8 @@ void TamguPredicate::AddMethod(TamguGlobal* global, string name, predicateMethod
 }
 
 void TamguPredicate::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (TamguPredicate::methods.isEmpty())
     TamguPredicate::InitialisationModule(global,"");
 }
 
@@ -1037,11 +1118,16 @@ Tamgu* TamguPredicateVariableInstance::same(Tamgu* a) {
     if (dom == aNULL)
         return aFALSE;
 
+    dom->Setdomainlock();
     Tamgu* v = Value((TamguDeclaration*)dom);
-
-    if (v == aNOELEMENT)
+    
+    if (v == aNOELEMENT) {
+        dom->Resetdomainlock();
         return aFALSE;
-    return v->same(a);
+    }
+    v = v->same(a);
+    dom->Resetdomainlock();
+    return v;
 }
 
 Tamgu* TamguPredicate::same(Tamgu* a) {
@@ -1452,6 +1538,7 @@ Tamgu* TamguPredicateVariableInstance::Put(Tamgu* dom, Tamgu* ke, short idthread
             return globalTamgu->Returnerror(e_unknown_predicate_variable, idthread);
     }
 
+    dom->Setdomainlock();
     TamguPredicateVariableInstance* v = (TamguPredicateVariableInstance*)Variable((TamguDeclaration*)dom);
     if (v->value == ke)
         return aTRUE;
@@ -1460,6 +1547,7 @@ Tamgu* TamguPredicateVariableInstance::Put(Tamgu* dom, Tamgu* ke, short idthread
     v->value = ke->Atom(true);
     val->Resetreference(reference);
     v->value->Setreference(reference);
+    dom->Resetdomainlock();
     return v->value;
 }
 
@@ -1470,14 +1558,17 @@ Tamgu* TamguPredicateTerm::Put(Tamgu* dom, Tamgu* ke, short idthread) {
             return aFALSE;
     }
 
+    dom->Setdomainlock();
     if (ke->Type() != a_term || ke->Size() != parameters.size() || !ke->isName(name)) {
         dom->Setfail(true);
+        dom->Resetdomainlock();
         return aTRUE;
     }
     TamguPredicateTerm* kpf = (TamguPredicateTerm*)ke;
 
     for (long i = 0; i < parameters.size(); i++)
         parameters[i]->Put(dom, kpf->parameters[i], idthread);
+    dom->Resetdomainlock();
     return aTRUE;
 }
 
@@ -1488,8 +1579,10 @@ Tamgu* TamguPredicateConcept::Put(Tamgu* dom, Tamgu* ke, short idthread) {
             return aFALSE;
     }
 
+    dom->Setdomainlock();
     if (ke->Type() != a_concept || ke->Size() != parameters.size() || globalTamgu->Checkhierarchy(name, ke->Name())) {
         dom->Setfail(true);
+        dom->Resetdomainlock();
         return aTRUE;
     }
 
@@ -1497,6 +1590,7 @@ Tamgu* TamguPredicateConcept::Put(Tamgu* dom, Tamgu* ke, short idthread) {
     
     for (long i = 0; i < parameters.size(); i++)
         parameters[i]->Put(dom, kpf->parameters[i], idthread);
+    dom->Resetdomainlock();
     return aTRUE;
 }
 
@@ -1784,8 +1878,10 @@ string TamguPredicateVariableInstance::String() {
     if (dom == aNULL)
         return globalTamgu->Getsymbol(name);
 
+    dom->Setdomainlock();
     TamguPredicateVariableInstance* vx = (TamguPredicateVariableInstance*)Variable((TamguDeclaration*)dom);
-
+    dom->Resetdomainlock();
+    
     stringstream s;
     if (merge) {
         if (vx->value->Type() == a_vector && vx->value->Size() == 1) {
@@ -2432,16 +2528,20 @@ Tamgu* Tamgusynode::ExtractPredicateVariables(Tamgu* context, TamguDeclaration* 
     if (name == a_universal) {
         kpvi = globalTamgu->Providevariableinstance(a_universal, idthread);
         kpvi->Setreference();
+        dom->Setdomainlock();
         dom->declarations[kpvi->Name()] = kpvi;
+        dom->Resetdomainlock();
     }
     else {
         if (context->Checkdico(name))
             kpvi = context->Getdico(name);
         else {
             kpvi = globalTamgu->Providevariableinstance(name, idthread);
+            dom->Setdomainlock();
             context->Setdico(name, kpvi);
             kpvi->Setreference();
             dom->declarations[kpvi->Name()] = kpvi;
+            dom->Resetdomainlock();
         }
     }
 
@@ -2466,9 +2566,11 @@ Tamgu* TamguBasePredicateVariable::ExtractPredicateVariables(Tamgu* context, Tam
         kpvi = context->Getdico(name);
     else {
         kpvi = globalTamgu->Providevariableinstance(name, idthread);
+        dom->Setdomainlock();
         context->Setdico(name, kpvi);
         kpvi->Setreference();
         dom->declarations[kpvi->Name()] = kpvi;
+        dom->Resetdomainlock();
     }
 
     if (previousinstance == NULL)
@@ -2550,11 +2652,12 @@ Tamgu* Tamgu::ExtractPredicateVariables(Tamgu* contextualpattern, TamguDeclarati
                 
                 kpvi->value = e->AtomNoConst();
                 
+                dom->Setdomainlock();
                 contextualpattern->Setdico(ln, kpvi);
                 dom->declarations[kpvi->Name()] = kpvi;
                 dom->declarations[param->Name()] = kpvi;
                 kpvi->Setreference(2);
-
+                dom->Resetdomainlock();
                 return kpvi;
             }
 
@@ -2655,6 +2758,7 @@ Tamgu* TamguConstvectormerge::ExtractPredicateVariables(Tamgu* context, TamguDec
         localvect->Release();
     }
     
+    dom->Setdomainlock();
     TamguPredicateVariableInstance* kpvi = globalTamgu->Providevariableinstance(a_map, idthread);
 
     if (isMerge())
@@ -2669,6 +2773,7 @@ Tamgu* TamguConstvectormerge::ExtractPredicateVariables(Tamgu* context, TamguDec
         dom->declarations[csend->Name()] = kpvi;
         kpvi->Setreference();
     }
+    dom->Resetdomainlock();
     return kpvi;
 }
 
@@ -2797,6 +2902,7 @@ Tamgu* Tamguvector::ExtractPredicateVariables(Tamgu* context, TamguDeclaration* 
     if (root || merge) {
         kpvi = globalTamgu->Providevariableinstance(a_vector, idthread);
 
+        dom->Setdomainlock();
         kpvi->value = vect;
         dom->declarations[kpvi->name] = kpvi;
         kpvi->Setreference();
@@ -2805,6 +2911,7 @@ Tamgu* Tamguvector::ExtractPredicateVariables(Tamgu* context, TamguDeclaration* 
             dom->declarations[source_predicate->Name()] = kpvi;
             kpvi->Setreference();
         }
+        dom->Resetdomainlock();
         return kpvi;
     }
     return vect;
@@ -2903,6 +3010,7 @@ Tamgu* TamguConstmap::ExtractPredicateVariables(Tamgu* context, TamguDeclaration
     if (root || merge) {
         TamguPredicateVariableInstance* kpvi = globalTamgu->Providevariableinstance(a_map, idthread);
 
+        dom->Setdomainlock();
         kpvi->value = kmap;
         dom->declarations[kpvi->name] = kpvi;
         kpvi->Setreference();
@@ -2911,6 +3019,7 @@ Tamgu* TamguConstmap::ExtractPredicateVariables(Tamgu* context, TamguDeclaration
             dom->declarations[c->Name()] = kpvi;
             kpvi->Setreference();
         }
+        dom->Resetdomainlock();
         return kpvi;
     }
     return kmap;
@@ -2968,6 +3077,7 @@ Tamgu* TamguPredicateTerm::ExtractPredicateVariables(Tamgu* context, TamguDeclar
     if (root) {
         TamguPredicateVariableInstance* kpvi = globalTamgu->Providevariableinstance(a_term, idthread);
 
+        dom->Setdomainlock();
         kpvi->value = term;
         kpvi->Setreference();
         dom->declarations[kpvi->name] = kpvi;
@@ -2977,6 +3087,7 @@ Tamgu* TamguPredicateTerm::ExtractPredicateVariables(Tamgu* context, TamguDeclar
             dom->declarations[c->Name()] = kpvi;
             kpvi->Setreference();
         }
+        dom->Resetdomainlock();
         return kpvi;
     }
 
@@ -3048,6 +3159,7 @@ Tamgu* TamguPredicateConcept::ExtractPredicateVariables(Tamgu* context, TamguDec
     if (root) {
         TamguPredicateVariableInstance* kpvi = globalTamgu->Providevariableinstance(a_term, idthread);
 
+        dom->Setdomainlock();
         kpvi->value = e;
         kpvi->Setreference();
         dom->declarations[kpvi->name] = kpvi;
@@ -3057,6 +3169,7 @@ Tamgu* TamguPredicateConcept::ExtractPredicateVariables(Tamgu* context, TamguDec
             dom->declarations[c->Name()] = kpvi;
             kpvi->Setreference();
         }
+        dom->Resetdomainlock();
         return kpvi;
     }
 
@@ -3247,7 +3360,9 @@ Exporting Tamgu* Tamgu::EvaluePredicateVariables(Tamgu* context, TamguDeclaratio
 
 Tamgu* TamguBasePredicateVariable::EvaluePredicateVariables(Tamgu* context, TamguDeclaration* dom, short idthread) {
     TamguPredicateVariableInstance* kpi = globalTamgu->Providevariableinstance(name, idthread);
+    dom->Setdomainlock();
     dom->declarations[kpi->name] = kpi;
+    dom->Resetdomainlock();
     return kpi;
 }
 
@@ -4396,6 +4511,7 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
         localres = aTRUE;
         incut = false;
         from = rb->instructions.size();
+        char threading = false;
         if (from) {
             for (j = 0; j < from; j++) {
                 e = ((TamguPredicateRuleItem*)rb->instructions[j])->Unify(this, dom, dico, threadowner);
@@ -4405,8 +4521,17 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
                 }
                 if (e == aCUT)
                     incut = true;
+                if (threading && e->Name() == a_waitonjoined)
+                    threading = 2;
+                if (e->isThread())
+                    threading = true;
                 rulegoals.push_back(e);
             }
+        }
+        
+        if (threading == true) {
+            localres = aFALSE;
+            globalTamgu->Returnerror("Missing 'waitonjoined' in predicate thread call.", threadowner);
         }
         
         tail_recursion = NULL;
@@ -4542,9 +4667,11 @@ Tamgu* TamguPredicateVariableASSIGNMENT::Eval(Tamgu* contextualpattern, Tamgu* d
     Tamgu* var = contextualpattern->Getdico(name);
     if (var == NULL) {
         var = globalTamgu->Providevariableinstance(name, idthread);
+        dom->Setdomainlock();
         contextualpattern->Setdico(name, (TamguPredicateVariableInstance*)var);
         var->Setreference();
         ((TamguDeclaration*)dom)->declarations[var->Name()] = var;
+        dom->Resetdomainlock();
     }
 
 
@@ -4584,9 +4711,11 @@ Tamgu* TamguPredicateVariableASSIGNMENTCall::Eval(Tamgu* contextualpattern, Tamg
     Tamgu* var = contextualpattern->Getdico(name);
     if (var == NULL) {
         var = globalTamgu->Providevariableinstance(name, idthread);
+        dom->Setdomainlock();
         contextualpattern->Setdico(name, (TamguPredicateVariableInstance*)var);
         var->Setreference();
         ((TamguDeclaration*)dom)->declarations[var->Name()] = var;
+        dom->Resetdomainlock();
     }
 
     Tamgu* value = instructions.vecteur[1]->Eval(contextualpattern, aASSIGNMENT, idthread);
@@ -4642,11 +4771,13 @@ Tamgu* TamguPredicateVariable::Execute(Tamgu* contextualpattern, Tamgu* dom, sho
     TamguPredicateVariableInstance* kpvi = contextualpattern->Getdico(name);
     if (kpvi == NULL) {
         kpvi = globalTamgu->Providevariableinstance(name, idthread);
-        contextualpattern->Setdico(name, kpvi);
-        kpvi->Setreference();
         if (!dom->isDeclared(predicatedico))
             dom = globalTamgu->Declarator(predicatedico, idthread);
+        dom->Setdomainlock();
+        contextualpattern->Setdico(name, kpvi);
+        kpvi->Setreference();
         ((TamguDeclaration*)dom)->declarations[kpvi->Name()] = kpvi;
+        dom->Resetdomainlock();
     }
     return kpvi;
 }
@@ -4845,6 +4976,7 @@ string TamguPredicateLocalInstruction::String() {
     if (dom == aNULL)
         return "";
 
+    dom->Setdomainlock();
     dom->declarations[predicatedico] = this;
     string v = instruction->String();
 
@@ -4889,6 +5021,7 @@ string TamguPredicateLocalInstruction::String() {
     dom->declarations.erase(predicatedico);
     if (instruction->Function() != NULL)
         v += instruction->Function()->String();
+    dom->Resetdomainlock();
     return v;
 }
 

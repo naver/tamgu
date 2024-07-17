@@ -19,6 +19,7 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<boolMethod>  Tamguboolean::methods;
+static ThreadLock classlock;
 
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamguboolean::AddMethod(TamguGlobal* global, string name, boolMethod func, unsigned long arity, string infos) {
@@ -37,7 +38,8 @@ void Tamguboolean::AddMethod(TamguGlobal* global, string name, boolMethod func, 
 
 
 void Tamguboolean::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamguboolean::methods.isEmpty())
     Tamguboolean::InitialisationModule(global,"");
 }
 

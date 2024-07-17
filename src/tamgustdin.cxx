@@ -21,6 +21,7 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<stdinMethod>  Tamgustdin::methods;
+static ThreadLock classlock;
 
 Exporting short Tamgustdin::idtype = 0;
 
@@ -42,7 +43,8 @@ void Tamgustdin::AddMethod(TamguGlobal* global, string name, stdinMethod func, u
 
 
 void Tamgustdin::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamgustdin::methods.isEmpty())
     Tamgustdin::InitialisationModule(global,"");
 }
 

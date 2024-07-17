@@ -63,6 +63,7 @@ extern "C" {
 //------------------------------------------------------------------------------------------------------------------
 //We need to declare once again our local definitions.
 basebin_hash<word2vecItemMethod>  Tamguw2vector::methods;
+static ThreadLock classlock;
 
 short Tamguw2vector::idtype = 0;
 
@@ -81,7 +82,8 @@ void Tamguw2vector::AddMethod(TamguGlobal* global, string name, word2vecItemMeth
 
 
 void Tamguw2vector::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamguw2vector::methods.isEmpty())
     Tamguw2vector::InitialisationModule(global,"");
 }
 
@@ -143,7 +145,8 @@ void Tamguword2vec::AddMethod(TamguGlobal* global, string name, word2vecMethod f
 
 
 void Tamguword2vec::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamguword2vec::methods.isEmpty())
     Tamguword2vec::InitialisationModule(global,"");
 }
 

@@ -12,7 +12,7 @@
  Purpose    : vector implementation
  Programmer : Claude ROUX (claude.roux@naverlabs.com)
  Reviewer   :
-*/
+ */
 
 #include "tamgu.h"
 #include "tamgutaskell.h"
@@ -30,15 +30,16 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<vectorMethod>  Tamguvector::methods;
+static ThreadLock classlock;
 
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamguvector::AddMethod(TamguGlobal* global, string name, vectorMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
     if (global->infomethods.find(a_vector) != global->infomethods.end() &&
-            global->infomethods[a_vector].find(name) != global->infomethods[a_vector].end())
-    return;
-
+        global->infomethods[a_vector].find(name) != global->infomethods[a_vector].end())
+        return;
+    
     global->infomethods[a_vector][name] = infos;
     global->RecordArity(a_vector, idname, arity);
     global->RecordArity(a_constvector, idname, arity);
@@ -46,8 +47,9 @@ void Tamguvector::AddMethod(TamguGlobal* global, string name, vectorMethod func,
 
 
 void Tamguvector::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
-    Tamguvector::InitialisationModule(global,"");
+    Locking lock(classlock);
+    if (Tamguvector::methods.isEmpty())
+        Tamguvector::InitialisationModule(global,"");
 }
 
 
@@ -57,13 +59,13 @@ bool Tamguvector::InitialisationModule(TamguGlobal* global, string version) {
     Tamguvector::AddMethod(global, "min", &Tamguvector::MethodMin, P_NONE, "min(): returns the min in the vector.");
     Tamguvector::AddMethod(global, "max", &Tamguvector::MethodMax, P_NONE, "max(): returns the max in the vector.");
     Tamguvector::AddMethod(global, "minmax", &Tamguvector::MethodMinMax, P_NONE, "minmax(): returns the min and the max in the vector.");
-
+    
     Tamguvector::AddMethod(global, "clear", &Tamguvector::MethodClear, P_NONE, "clear(): clear the container.");
     Tamguvector::AddMethod(global, "flatten", &Tamguvector::MethodFlatten, P_NONE, "flatten(): flatten a vector structure.");
-
+    
     Tamguvector::AddMethod(global, "remove", &Tamguvector::MethodRemove, P_ONE, "remove(e): remove 'e' from the vector.");
     Tamguvector::AddMethod(global, "ngrams", &Tamguvector::MethodNGrams, P_ONE|P_TWO, "ngrams(int nb, int sep): produces a ngrams svector.");
-
+    
     Tamguvector::AddMethod(global, "reverse", &Tamguvector::MethodReverse, P_NONE, "reverse(): reverse a vector.");
     Tamguvector::AddMethod(global, "unique", &Tamguvector::MethodUnique, P_NONE, "unique(): remove duplicate elements.");
     Tamguvector::AddMethod(global, "reserve", &Tamguvector::MethodReserve, P_ONE, "reserve(int sz): Reserve a size of 'sz' potential element in the vector.");
@@ -88,16 +90,16 @@ bool Tamguvector::InitialisationModule(TamguGlobal* global, string version) {
     Tamguvector::AddMethod(global, "write", &Tamguvector::MethodWrite, P_ONE, "write(string path): write the string content into a file.");
     
     Tamguvector::AddMethod(global, "shape", &Tamguvector::MethodShape, P_NONE|P_ATLEASTONE, "shape(int s1, int s2...): defines the vector shape.");
-
-
-    if (version != "") {        
+    
+    
+    if (version != "") {
         global->minimal_indexes[a_vector] = true;
         global->newInstance[a_vector] = new Tamguvector(global);
         global->RecordCompatibilities(a_vector);
         global->newInstance[a_constvector] = new TamguConstvector(global);
         global->RecordCompatibilities(a_constvector);
     }
-
+    
     Tamgua_vector::InitialisationModule(global, version);
     
     
@@ -117,7 +119,7 @@ Exporting void Tamguvector::Insert(long idx, Tamgu* ke) {
     ke->Addreference(investigate,reference+1);
     if (idx<0)
         idx=0;
-
+    
     locking();
     if (idx>=values.size())
         values.push_back(ke);
@@ -216,7 +218,7 @@ void Tamgulisp::Resetreference(short inc) {
         if (!protect) {
             reference = 0;
             protect = true;
-
+            
             values.clear();
             if (idinfo == -1)
                 delete this;
@@ -237,7 +239,7 @@ Exporting void Tamguvectorbuff::Resetreference(short inc) {
         if (!protect) {
             reference = 0;
             protect = true;
-
+            
             values.clear();
             if (!globalTamgu->threadMODE && used)
                 globalTamgu->vectorempties.push_back(idx);
@@ -269,7 +271,7 @@ Exporting Tamgu* Tamguvector::MethodShape(Tamgu* contextualpattern, short idthre
     }
     
     shape.push_back(v->Integer());
-
+    
     for (long i = 1; i < nb; i++)
         shape.push_back(callfunc->Evaluate(i, contextualpattern, idthread)->Integer());
     return aTRUE;
@@ -280,7 +282,7 @@ Exporting Tamgu* Tamguvector::in(Tamgu* context, Tamgu* a, short idthread) {
     //It is a Boolean, we expect false or true
     //It is an integer, we expect a position in v
     //It is a container, we are looking for all positions...
-
+    
     if (context->isVectorContainer()) {
         Tamguivector* v = (Tamguivector*)Selectaivector(context);
         Doublelocking _lock(this, v);
@@ -290,7 +292,7 @@ Exporting Tamgu* Tamguvector::in(Tamgu* context, Tamgu* a, short idthread) {
         }
         return v;
     }
-
+    
     locking();
     if (context->isNumber()) {
         for (size_t i = 0; i < values.size(); i++) {
@@ -309,7 +311,7 @@ Exporting Tamgu* Tamguvector::in(Tamgu* context, Tamgu* a, short idthread) {
             return aTRUE;
         }
     }
-
+    
     unlocking();
     return aFALSE;
 }
@@ -351,7 +353,7 @@ Exporting Tamgu* Tamguvector::Pop(Tamgu* idx) {
         return aFALSE;
     }
     BLONG v = idx->Integer();
-
+    
     if (v == -1) {
         idx = values.back();
         values.pop_back();
@@ -374,7 +376,7 @@ Exporting Tamgu* Tamguvector::Pop(Tamgu* idx) {
 Exporting string Tamguvector::String() {
     if (!lockingmark())
         return("[...]");
-
+    
     string res;
     int it;
     res = "[";
@@ -399,9 +401,9 @@ Exporting string Tamguvector::String() {
             stringing(res, sx);
         }
         beg = false;
-
+        
     }
-
+    
     unlockingmark();
     res += "]";
     return res;
@@ -436,9 +438,9 @@ Exporting void Tamguvector::Setstring(string& res, short idthread) {
             stringing(res, sx);
         }
         beg = false;
-
+        
     }
-
+    
     unlockingmark();
     res += "]";
 }
@@ -446,8 +448,8 @@ Exporting void Tamguvector::Setstring(string& res, short idthread) {
 Exporting Tamgu* Tamguvector::Map(short idthread) {
     if (!lockingmark())
         return aNULL;
-
-
+    
+    
     Tamgumap* kmap = globalTamgu->Providemap();
     char ch[20];
     for (int it = 0; it < values.size(); it++) {
@@ -462,7 +464,7 @@ Exporting Tamgu* Tamguvector::Map(short idthread) {
 Exporting string Tamguvector::JSonString() {
     if (!lockingmark())
         return ("");
-
+    
     string res;
     int it;
     res = "[";
@@ -529,7 +531,7 @@ Exporting long Tamguvector::Size() {
 
 Exporting Tamgu* Tamguvector::andset(Tamgu *b, bool itself) {
     Tamguvector* ref;
-
+    
     long size = Size();
     size_t it;
     Tamgu* ke;
@@ -538,9 +540,9 @@ Exporting Tamgu* Tamguvector::andset(Tamgu *b, bool itself) {
             ref = this;
         else
             ref = (Tamguvector*)Atom(true);
-
+        
         locking();
-
+        
         for (it = 0; it < size; it++) {
             ke = ref->values[it]->andset(b, true);
             if (ke->isError()) {
@@ -552,9 +554,9 @@ Exporting Tamgu* Tamguvector::andset(Tamgu *b, bool itself) {
         unlocking();
         return ref;
     }
-
+    
     locking();
-
+    
     ref = globalTamgu->Providevector();
     TamguIteration* itr = b->Newiteration(false);
     for (itr->Begin(); itr->End() == aFALSE; itr->Next()) {
@@ -569,35 +571,35 @@ Exporting Tamgu* Tamguvector::andset(Tamgu *b, bool itself) {
     unlocking();
     itr->Release();
     return ref;
-
+    
 }
 
 Exporting Tamgu* Tamguvector::orset(Tamgu *b, bool itself) {
     Tamguvector* ref;
-
+    
     long size = Size();
     if (itself)
         ref = this;
     else
         ref = (Tamguvector*)Atom(true);
-
+    
     if (!b->isContainer()) {
         locking();
-
+        
         for (long it = 0; it < size; it++) {
             ref->values[it]->orset(b, true);
         }
         unlocking();
         return ref;
     }
-
+    
     ref->Merging(b);
     return ref;
 }
 
 Exporting Tamgu* Tamguvector::xorset(Tamgu *b, bool itself) {
     Tamguvector* ref;
-
+    
     long size = Size();
     size_t it;
     Tamgu* ke;
@@ -608,7 +610,7 @@ Exporting Tamgu* Tamguvector::xorset(Tamgu *b, bool itself) {
         }
         else
             ref = (Tamguvector*)Atom(true);
-
+        
         for (it = 0; it < size; it++) {
             ref->values[it]->xorset(b, true);
         }
@@ -616,7 +618,7 @@ Exporting Tamgu* Tamguvector::xorset(Tamgu *b, bool itself) {
         unlocking();
         return ref;
     }
-
+    
     ref = globalTamgu->Providevector();
     bool found=false;
     vector<Tamgu*> vals;
@@ -625,7 +627,7 @@ Exporting Tamgu* Tamguvector::xorset(Tamgu *b, bool itself) {
     for (itr->Begin(); itr->End() == aFALSE; itr->Next())
         vals.push_back(itr->Value());
     itr->Release();
-
+    
     long itv;
     for (it = 0; it < size; it++) {
         ke = values[it];
@@ -633,7 +635,7 @@ Exporting Tamgu* Tamguvector::xorset(Tamgu *b, bool itself) {
         for (itv = 0; itv < vals.size(); itv++)  {
             if (vals[itv] == NULL)
                 continue;
-
+            
             if (vals[itv]->same(ke) == aTRUE) {
                 vals[itv]->Release();
                 vals[itv] = NULL;
@@ -644,7 +646,7 @@ Exporting Tamgu* Tamguvector::xorset(Tamgu *b, bool itself) {
         if (!found)
             ref->Push(ke);
     }
-
+    
     for (itv = 0; itv < vals.size(); itv++) {
         if (vals[itv] == NULL)
             continue;
@@ -663,7 +665,7 @@ Exporting Tamgu* Tamguvector::plus(Tamgu* b, bool itself) {
     }
     else
         ref = (Tamguvector*)Atom(true);
-
+    
     locking();
     int it;
     
@@ -671,11 +673,11 @@ Exporting Tamgu* Tamguvector::plus(Tamgu* b, bool itself) {
         unlocking();
         return aNULL;
     }
-
+    
     TamguCircular _c(this);
-
+    
     long size = values.size();
-
+    
     if (b->isContainer()) {
         Tamgu* ke;
         Tamgu* kv;
@@ -693,12 +695,12 @@ Exporting Tamgu* Tamguvector::plus(Tamgu* b, bool itself) {
         unlocking();
         return ref;
     }
-
-
+    
+    
     for (it = 0; it < size; it++) {
         ref->values[it]->plus(b, true);
     }
-
+    
     unlocking();
     return ref;
 }
@@ -710,7 +712,7 @@ Exporting Tamgu* Tamguvector::minus(Tamgu *b, bool itself) {
     }
     else
         ref = (Tamguvector*)Atom(true);
-
+    
     locking();
     int it;
     
@@ -718,11 +720,11 @@ Exporting Tamgu* Tamguvector::minus(Tamgu *b, bool itself) {
         unlocking();
         return aNULL;
     }
-
+    
     TamguCircular _c(this);
-
+    
     long size = values.size();
-
+    
     if (b->isContainer()) {
         Tamgu* ke;
         Tamgu* kv;
@@ -740,12 +742,12 @@ Exporting Tamgu* Tamguvector::minus(Tamgu *b, bool itself) {
         unlocking();
         return ref;
     }
-
-
+    
+    
     for (it = 0; it < size; it++) {
         ref->values[it]->minus(b, true);
     }
-
+    
     unlocking();
     return ref;
 }
@@ -757,7 +759,7 @@ Exporting Tamgu* Tamguvector::multiply(Tamgu *b, bool itself) {
     }
     else
         ref = (Tamguvector*)Atom(true);
-
+    
     locking();
     int it;
     
@@ -765,11 +767,11 @@ Exporting Tamgu* Tamguvector::multiply(Tamgu *b, bool itself) {
         unlocking();
         return aNULL;
     }
-
+    
     TamguCircular _c(this);
-
+    
     long size = values.size();
-
+    
     if (b->isContainer()) {
         Tamgu* ke;
         Tamgu* kv;
@@ -787,12 +789,12 @@ Exporting Tamgu* Tamguvector::multiply(Tamgu *b, bool itself) {
         unlocking();
         return ref;
     }
-
-
+    
+    
     for (it = 0; it < size; it++) {
         ref->values[it]->multiply(b, true);
     }
-
+    
     unlocking();
     return ref;
 }
@@ -805,12 +807,12 @@ Exporting Tamgu* Tamguvector::divide(Tamgu *b, bool itself) {
     }
     else
         ref = (Tamguvector*)Atom(true);
-
+    
     int it;
-
+    
     long size = values.size();
     Tamgu* ke;
-
+    
     if (b->isContainer()) {
         Tamgu* kv;
         TamguIteration* itr = b->Newiteration(false);
@@ -826,7 +828,7 @@ Exporting Tamgu* Tamguvector::divide(Tamgu *b, bool itself) {
                 unlocking();
                 return ke;
             }
-
+            
             ke->Release();
             itr->Next();
         }
@@ -834,8 +836,8 @@ Exporting Tamgu* Tamguvector::divide(Tamgu *b, bool itself) {
         unlocking();
         return ref;
     }
-
-
+    
+    
     for (it = 0; it < size; it++) {
         ke = ref->values[it]->divide(b, true);
         if (ke->isError()) {
@@ -844,7 +846,7 @@ Exporting Tamgu* Tamguvector::divide(Tamgu *b, bool itself) {
             return ke;
         }
     }
-
+    
     unlocking();
     return ref;
 }
@@ -856,7 +858,7 @@ Exporting Tamgu* Tamguvector::power(Tamgu *b, bool itself) {
     }
     else
         ref = (Tamguvector*)Atom(true);
-
+    
     locking();
     int it;
     
@@ -864,11 +866,11 @@ Exporting Tamgu* Tamguvector::power(Tamgu *b, bool itself) {
         unlocking();
         return aNULL;
     }
-
+    
     TamguCircular _c(this);
-
+    
     long size = values.size();
-
+    
     if (b->isContainer()) {
         Tamgu* ke;
         Tamgu* kv;
@@ -886,12 +888,12 @@ Exporting Tamgu* Tamguvector::power(Tamgu *b, bool itself) {
         unlocking();
         return ref;
     }
-
-
+    
+    
     for (it = 0; it < size; it++) {
         ref->values[it]->power(b, true);
     }
-
+    
     unlocking();
     return ref;
 }
@@ -903,7 +905,7 @@ Exporting Tamgu* Tamguvector::shiftleft(Tamgu *b, bool itself) {
     }
     else
         ref = (Tamguvector*)Atom(true);
-
+    
     locking();
     int it;
     
@@ -911,11 +913,11 @@ Exporting Tamgu* Tamguvector::shiftleft(Tamgu *b, bool itself) {
         unlocking();
         return aNULL;
     }
-
+    
     TamguCircular _c(this);
-
+    
     long size = values.size();
-
+    
     if (b->isContainer()) {
         Tamgu* ke;
         Tamgu* kv;
@@ -933,12 +935,12 @@ Exporting Tamgu* Tamguvector::shiftleft(Tamgu *b, bool itself) {
         unlocking();
         return ref;
     }
-
-
+    
+    
     for (it = 0; it < size; it++) {
         ref->values[it]->shiftleft(b, true);
     }
-
+    
     unlocking();
     return ref;
 }
@@ -950,7 +952,7 @@ Exporting Tamgu* Tamguvector::shiftright(Tamgu *b, bool itself) {
     }
     else
         ref = (Tamguvector*)Atom(true);
-
+    
     locking();
     int it;
     
@@ -958,11 +960,11 @@ Exporting Tamgu* Tamguvector::shiftright(Tamgu *b, bool itself) {
         unlocking();
         return aNULL;
     }
-
+    
     TamguCircular _c(this);
-
+    
     long size = values.size();
-
+    
     if (b->isContainer()) {
         Tamgu* ke;
         Tamgu* kv;
@@ -980,12 +982,12 @@ Exporting Tamgu* Tamguvector::shiftright(Tamgu *b, bool itself) {
         unlocking();
         return ref;
     }
-
-
+    
+    
     for (it = 0; it < size; it++) {
         ref->values[it]->shiftright(b, true);
     }
-
+    
     unlocking();
     return ref;
 }
@@ -998,13 +1000,13 @@ Exporting Tamgu* Tamguvector::mod(Tamgu *b, bool itself) {
     }
     else
         ref = (Tamguvector*)Atom(true);
-
+    
     int it;
     Tamgu* ke;
     Tamgu* kv;
-
+    
     long size = values.size();
-
+    
     if (b->isContainer()) {
         TamguIteration* itr = b->Newiteration(false);
         itr->Begin();
@@ -1019,7 +1021,7 @@ Exporting Tamgu* Tamguvector::mod(Tamgu *b, bool itself) {
                 unlocking();
                 return ke;
             }
-
+            
             ke->Release();
             itr->Next();
         }
@@ -1027,8 +1029,8 @@ Exporting Tamgu* Tamguvector::mod(Tamgu *b, bool itself) {
         unlocking();
         return ref;
     }
-
-
+    
+    
     for (it = 0; it < size; it++) {
         ke = ref->values[it]->mod(b, true);
         if (ke->isError()) {
@@ -1037,13 +1039,13 @@ Exporting Tamgu* Tamguvector::mod(Tamgu *b, bool itself) {
             return ke;
         }
     }
-
+    
     unlocking();
     return ref;
 }
 
 Tamgu* Tamguvector::MethodRead(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        //The separator between values
+    //The separator between values
     string filename = callfunc->Evaluate(0, contextualpattern, idthread)->String();
     Clear();
     Tamgufile file;
@@ -1072,7 +1074,7 @@ Tamgu* Tamguvector::MethodRead(Tamgu* contextualpattern, short idthread, TamguCa
 }
 
 Tamgu* Tamguvector::MethodWrite(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        //The separator between values
+    //The separator between values
     string filename = callfunc->Evaluate(0, contextualpattern, idthread)->String();
     Clear();
     Tamgufile file;
@@ -1107,13 +1109,13 @@ Tamgu* Tamguvector::MethodWrite(Tamgu* contextualpattern, short idthread, TamguC
 Exporting TamguIteration* TamguInfinitevector::Newiteration(bool rev) {
     Tamgu* s = seed;
     Tamgu* st = step;
-
+    
     if (!seed->isNumber())
         s = seed->Put(aNULL, aNULL, globalTamgu->GetThreadid());
-
+    
     if (!step->isNumber())
         st = step->Put(aNULL, aNULL, globalTamgu->GetThreadid());
-
+    
     if (compute) {//In this case, the step is a difference between the two values step-seed
         if (s->Type() == a_float || st->Type() == a_float) {
             double d = st->Float() - s->Float();
@@ -1126,7 +1128,7 @@ Exporting TamguIteration* TamguInfinitevector::Newiteration(bool rev) {
                 st->Release();
             return iter;
         }
-
+        
         long d = st->Integer() - s->Integer();
         TamguIterationInfinitevector* iter = new TamguIterationInfinitevector(false);
         iter->itx = s->Integer();
@@ -1137,7 +1139,7 @@ Exporting TamguIteration* TamguInfinitevector::Newiteration(bool rev) {
             st->Release();
         return iter;
     }
-
+    
     if (s->Type() == a_float || st->Type() == a_float) {
         TamguIterationInfinitefloatvector* iter = new TamguIterationInfinitefloatvector(false);
         iter->itx = s->Float();
@@ -1148,7 +1150,7 @@ Exporting TamguIteration* TamguInfinitevector::Newiteration(bool rev) {
             st->Release();
         return iter;
     }
-
+    
     TamguIterationInfinitevector* iter = new TamguIterationInfinitevector(false);
     iter->itx = s->Integer();
     iter->inc = st->Integer();
@@ -1167,7 +1169,7 @@ Exporting Tamgu* TamguInfinitevector::Looptaskell(Tamgu* recipient, Tamgu* conte
     
     if (context != aNOELEMENT)
         addvalue = Selecttype(context);
-
+    
     Tamgu* number = seed;
     Tamgu* st = step;
     
@@ -1256,14 +1258,14 @@ Exporting Tamgu* TamguInfinitevector::Filter(short idthread, Tamgu* env, TamguFu
         st = step->Eval(aNULL, aNULL, idthread);
         st->Setreference();
     }
-
+    
     if (compute) {
         returnval = st->minus(key, false);
         if (st != step)
             st->Resetreference();
         st = returnval;
     }
-
+    
     while (true) {
         
         if (first) {
@@ -1328,7 +1330,7 @@ Exporting Tamgu*  Tamguvector::Put(Tamgu* idx, Tamgu* value, short idthread) {
     if (!idx->isIndex()) {
         if (value == this)
             return aTRUE;
-
+        
         if (value->isNULL()) {
             Clear();
             return aTRUE;
@@ -1346,7 +1348,7 @@ Exporting Tamgu*  Tamguvector::Put(Tamgu* idx, Tamgu* value, short idthread) {
             }
             return aTRUE;
         }
-
+        
         long sz = value->Size();
         if (value->isVectorContainer()) {
             //We copy all values from value to this
@@ -1378,7 +1380,7 @@ Exporting Tamgu*  Tamguvector::Put(Tamgu* idx, Tamgu* value, short idthread) {
             }
             return aTRUE;
         }
-
+        
         if (value->isString()) {
             Clear();
             string s;
@@ -1390,15 +1392,15 @@ Exporting Tamgu*  Tamguvector::Put(Tamgu* idx, Tamgu* value, short idthread) {
                 return value;
             return aTRUE;
         }
-
+        
         value = value->Vector(idthread);
         if (!value->isVectorContainer())
             return globalTamgu->Returnerror(e_cannot_set_this, idthread);
-
+        
         sz = value->Size();
         
         Clear();
-
+        
         if (sz) {
             //We copy all values from ke to this
             for (long it = 0; it < sz; ++it) {
@@ -1516,18 +1518,18 @@ Exporting Tamgu* Tamguvector::EvalWithSimpleIndex(Tamgu* key, short idthread, bo
     }
     else
         ikey = key->Integer();
-
+    
     key->Release();
     if (ikey < 0)
         ikey = values.size() + ikey;
-
+    
     if (ikey < 0 || ikey >= values.size()) {
         unlocking();
         if (globalTamgu->erroronkey)
             return globalTamgu->Returnerror(e_wrong_index, idthread);
         return aNOELEMENT;
     }
-
+    
     key = values[ikey];
     unlocking();
     return key;
@@ -1537,7 +1539,7 @@ Exporting Tamgu* Tamguvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short i
     if (!idx->isIndex()) {
         if (contextualpattern->isLoop())
             return this;
-
+        
         //In this case, we copy the elements from the vector to the map, using the position as index
         if (contextualpattern->isMapContainer()) {
             Tamgu* ke;
@@ -1554,22 +1556,22 @@ Exporting Tamgu* Tamguvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short i
             unlocking();
             return map;
         }
-
+        
         if (contextualpattern->isNumber()) {
             long v = Size();
             return globalTamgu->ProvideConstint(v);
         }
         return this;
     }
-
+    
     Tamgu* key;
     Tamgu* keyright = NULL;
-
+    
     TamguIndex* kind = (TamguIndex*)idx;
     key = kind->left->Eval(aNULL, aNULL, idthread);
     if (kind->interval == true)
         keyright = kind->right->Eval(aNULL, aNULL, idthread);
-
+    
     locking();
     long ikey;
     bool stringkey = false;
@@ -1584,7 +1586,7 @@ Exporting Tamgu* Tamguvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short i
                     break;
                 }
             }
-
+            
         }
         else {
             for (ikey = 0; ikey < values.size(); ikey++) {
@@ -1606,24 +1608,24 @@ Exporting Tamgu* Tamguvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short i
         if (kind->signleft)
             ikey *= -1;
     }
-
+    
     key->Release();
     if (ikey < 0)
         ikey = values.size() + ikey;
-
-	if (ikey < 0 || ikey >= values.size()) {
-		unlocking();
-		if (globalTamgu->erroronkey)
-			return globalTamgu->Returnerror(e_wrong_index, idthread);
-		return aNOELEMENT;
-	}
-
+    
+    if (ikey < 0 || ikey >= values.size()) {
+        unlocking();
+        if (globalTamgu->erroronkey)
+            return globalTamgu->Returnerror(e_wrong_index, idthread);
+        return aNOELEMENT;
+    }
+    
     if (keyright == NULL) {
         keyright = values[ikey];
         unlocking();
         return keyright;
     }
-
+    
     Tamguvector* kvect;
     long iright;
     if (keyright->isString()) {
@@ -1661,15 +1663,15 @@ Exporting Tamgu* Tamguvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short i
             iright = keyright->Integer();
             if (kind->signright)
                 iright *= -1;
-
+            
             if (stringkey && iright >= 0)
                 iright = ikey + iright + 1;
         }
     }
-
+    
     if (keyright != kind->right)
         keyright->Release();
-
+    
     if (iright < 0 || keyright == aNULL) {
         iright = values.size() + iright;
         if (iright<ikey) {
@@ -1687,16 +1689,16 @@ Exporting Tamgu* Tamguvector::Eval(Tamgu* contextualpattern, Tamgu* idx, short i
             return aNOELEMENT;
         }
     }
-
+    
     //In this case, we must create a new vector
     kvect = globalTamgu->Providevector();
-
+    
     for (long i = ikey; i < iright; i++) {
         key = values[i]->Atom();
         key->Addreference(0,1);
         kvect->values.push_back(key);
     }
-
+    
     unlocking();
     return kvect;
 }
@@ -1746,10 +1748,10 @@ Exporting Tamgu* Tamguvector::Merging(Tamgu* ke) {
         Push(ke);
         return this;
     }
-
+    
     if (ke->Size() == 0)
         return this;
-
+    
     Doublelocking _lock(this, ke);
     //Three cases:
     if (ke->Type() == a_vector) {
@@ -1761,7 +1763,7 @@ Exporting Tamgu* Tamguvector::Merging(Tamgu* ke) {
         }
         return this;
     }
-
+    
     if (ke->isVectorValueContainer()) {
         Tamgu* k;
         for (long i = 0; i < ke->Size(); i++) {
@@ -1771,7 +1773,7 @@ Exporting Tamgu* Tamguvector::Merging(Tamgu* ke) {
         }
         return this;
     }
-
+    
     TamguIteration* itr = ke->Newiteration(false);
     for (itr->Begin(); itr->End() == aFALSE; itr->Next())
         Push(itr->Value());
@@ -1830,7 +1832,7 @@ Exporting Tamgu* Tamguvector::Combine(Tamgu* ke) {
 
 Exporting Tamgu* Tamguvector::same(Tamgu* a) {
     Doublelocking _lock(this, a);
-
+    
     if (a->Type() != a_vector) {
         if (a->isVectorContainer()) {
             if (a->Size() != values.size())
@@ -1848,12 +1850,12 @@ Exporting Tamgu* Tamguvector::same(Tamgu* a) {
         }
         return aFALSE;
     }
-
+    
     Tamguvector* v = (Tamguvector*)a;
-
+    
     if (values.size() != v->values.size())
         return aFALSE;
-
+    
     for (int i = 0; i < values.size(); i++) {
         if (values[i]->same(v->values[i]) == aFALSE)
             return aFALSE;
@@ -1865,10 +1867,10 @@ Exporting unsigned long Tamguvector::EditDistance(Tamgu* e) {
     unsigned long s1len, s2len, x, y, lastdiag, olddiag;
     s1len = Size();
     s2len = e->Size();
-
+    
     Tamgu** v1 = new Tamgu*[s1len + 1];
     Tamgu** v2 = new Tamgu*[s2len + 1];
-
+    
     y =  maxlocal(s1len, s2len);
     for (x = 0; x < y; x++) {
         if (x < s1len)
@@ -1876,11 +1878,11 @@ Exporting unsigned long Tamguvector::EditDistance(Tamgu* e) {
         if (x < s2len)
             v2[x] = e->getvalue(x);
     }
-
+    
     size_t* column = new size_t[s1len + 1];
     for (y = 1; y <= s1len; y++)
         column[y] = y;
-
+    
     unsigned long ed;
     for (x = 1; x <= s2len; x++) {
         column[0] = x;
@@ -1891,7 +1893,7 @@ Exporting unsigned long Tamguvector::EditDistance(Tamgu* e) {
             lastdiag = olddiag;
         }
     }
-
+    
     y =  maxlocal(s1len, s2len);
     for (x = 0; x < y; x++) {
         if (x < s1len)
@@ -1899,14 +1901,14 @@ Exporting unsigned long Tamguvector::EditDistance(Tamgu* e) {
         if (x < s2len)
             v2[x]->Release();
     }
-
+    
     delete[] v1;
     delete[] v2;
-
+    
     s2len = column[s1len];
     delete[] column;
     return s2len;
-
+    
 }
 
 //---------------------------------------------------------------------------------------
@@ -1914,12 +1916,12 @@ Exporting unsigned long Tamguvector::EditDistance(Tamgu* e) {
 Exporting bool TamguConstvector::Checkvariable() {
     if (values.size() == 0)
         return false;
-
+    
     for (size_t i = 0; i < values.size(); i++) {
         if (!values[i]->isCallVariable())
             return false;
     }
-
+    
     return true;
 }
 
@@ -1933,7 +1935,7 @@ Exporting bool TamguConstvector::Setvalue(Tamgu* index, Tamgu* value, short idth
             globalTamgu->Returnerror(e_out_of_range, idthread);
             return false;
         }
-
+        
         v = value->getvalue(i);
         a = values[i];
         a->Setaffectation(true);
@@ -1941,7 +1943,7 @@ Exporting bool TamguConstvector::Setvalue(Tamgu* index, Tamgu* value, short idth
         a->Putvalue(v, idthread);
         v->Release();
     }
-
+    
     unlocking();
     return true;
 }
@@ -1952,7 +1954,7 @@ Exporting Tamgu* TamguConstvector::same(Tamgu* value) {
             return aTRUE;
         return aFALSE;
     }
-
+    
     size_t sz = value->Size();
     if (!isMerge()) {
         if (!values.back()->isMerge()) {
@@ -1964,25 +1966,25 @@ Exporting Tamgu* TamguConstvector::same(Tamgu* value) {
                 return aFALSE;
         }
     }
-
+    
     short idthread = globalTamgu->GetThreadid();
     Tamgu* a;
     Tamgu* v;
     bool clean = true;
     for (size_t i = 0; i < values.size(); i++) {
         a = values[i];
-
+        
         if (a->isMerge()) {
             TamguIndex idx(true);
             idx.left = globalTamgu->ProvideConstint(i);
             idx.right = aNULL;
-
+            
             v = value->Eval(aNULL, &idx, idthread);
             a = a->same(v);
             v->Release();
             return a;
         }
-
+        
         if (isMerge()) {
             v = value;
             clean = false;
@@ -1993,7 +1995,7 @@ Exporting Tamgu* TamguConstvector::same(Tamgu* value) {
                 return aFALSE;
             v = value->getvalue(i);
         }
-
+        
         if (a->isCallVariable()) {
             a->Setaffectation(true);
             a = a->Eval(aNULL, aNULL, idthread);
@@ -2002,7 +2004,7 @@ Exporting Tamgu* TamguConstvector::same(Tamgu* value) {
                 v->Release();
             continue;
         }
-
+        
         //a comes from the const vector, while v comes from the value to match the const vector with...
         if (a->isVectorContainer()) {
             if (!v->isVectorContainer()) {
@@ -2010,23 +2012,23 @@ Exporting Tamgu* TamguConstvector::same(Tamgu* value) {
                     v->Release();
                 return globalTamgu->Returnerror(e_mismatch_assignment_expecting, idthread);
             }
-
+            
             a->Putvalue(v, idthread);
             if (clean)
                 v->Release();
             if (a->isError())
                 return a;
-
+            
             continue;
         }
-
+        
         if (a->isMapContainer()) {
             if (!v->isMapContainer()) {
                 if (clean)
                     v->Release();
                 return globalTamgu->Returnerror(e_mismatch_assignment_expecting02, idthread);
             }
-
+            
             a->Putvalue(v, idthread);
             if (clean)
                 v->Release();
@@ -2034,14 +2036,14 @@ Exporting Tamgu* TamguConstvector::same(Tamgu* value) {
                 return a;
             continue;
         }
-
+        
         a = a->Eval(aNULL, aNULL, idthread);
         if (a != aNOELEMENT && a->same(v) == aFALSE) {
             if (clean)
                 v->Release();
             return aFALSE;
         }
-
+        
         if (clean)
             v->Release();
     }
@@ -2066,7 +2068,7 @@ Exporting void TamguConstvector::Prepare(Tamgu* env, short idthread) {
 Exporting Tamgu* TamguConstvector::Put(Tamgu* index, Tamgu* value, short idthread) {
     if (!evaluate)
         return this;
-
+    
     
     if (Size() == 0) {
         if (value->Size() == 0)
@@ -2096,7 +2098,7 @@ Exporting Tamgu* TamguConstvector::Put(Tamgu* index, Tamgu* value, short idthrea
             }
         }
     }
-
+    
     Tamgu* a;
     Tamgu* v;
     bool clean = true;
@@ -2107,13 +2109,13 @@ Exporting Tamgu* TamguConstvector::Put(Tamgu* index, Tamgu* value, short idthrea
             TamguIndex idx(true);
             idx.left = globalTamgu->ProvideConstint(i);
             idx.right = aNULL;
-
+            
             v = value->Eval(aNULL, &idx, idthread);
             unlocking();
             return a->Put(index, v, idthread);
         }
-
-
+        
+        
         if (isMerge()) {
             v = value;
             clean = false;
@@ -2128,7 +2130,7 @@ Exporting Tamgu* TamguConstvector::Put(Tamgu* index, Tamgu* value, short idthrea
             }
             v = value->getvalue(i);
         }
-
+        
         if (a->isCallVariable()) {
             a->Setaffectation(true);
             a = a->Eval(aNULL, aNULL, idthread);
@@ -2137,7 +2139,7 @@ Exporting Tamgu* TamguConstvector::Put(Tamgu* index, Tamgu* value, short idthrea
                 v->Release();
             continue;
         }
-
+        
         if (a->isVariable()) {
             //Then it should have created before hand...
             a = globalTamgu->Getdeclaration(a->Name(), idthread);
@@ -2146,7 +2148,7 @@ Exporting Tamgu* TamguConstvector::Put(Tamgu* index, Tamgu* value, short idthrea
                 v->Release();
             continue;
         }
-
+        
         //a comes from the const vector, while v comes from the value to match the const vector with...
         if (a->isVectorContainer()) {
             if (!v->isVectorContainer()) {
@@ -2162,13 +2164,13 @@ Exporting Tamgu* TamguConstvector::Put(Tamgu* index, Tamgu* value, short idthrea
                 v->Release();
             
             if (a->isError()) {
-                 locking();
+                locking();
                 return a;
             }
-
+            
             continue;
         }
-
+        
         if (a->isMapContainer()) {
             if (!v->isMapContainer()) {
                 if (clean)
@@ -2181,14 +2183,14 @@ Exporting Tamgu* TamguConstvector::Put(Tamgu* index, Tamgu* value, short idthrea
             a = a->Put(index, v, idthread);
             if (clean)
                 v->Release();
-
+            
             if (a->isError()) {
                 unlocking();
                 return a;
             }
             continue;
         }
-
+        
         a = a->Eval(aNULL, aNULL, idthread);
         if (a->same(v) == aFALSE) {
             if (clean)
@@ -2198,7 +2200,7 @@ Exporting Tamgu* TamguConstvector::Put(Tamgu* index, Tamgu* value, short idthrea
                 return index;
             return globalTamgu->Returnerror(e_mismatch_assignment, idthread);
         }
-
+        
         if (clean)
             v->Release();
     }
@@ -2207,15 +2209,15 @@ Exporting Tamgu* TamguConstvector::Put(Tamgu* index, Tamgu* value, short idthrea
 }
 
 Exporting Tamgu* TamguConstvector::Eval(Tamgu* index, Tamgu* value, short idthread) {
-
-
+    
+    
     if (affectation && evaluate)
         return this;
-
+    
     Tamguvector* kvect = globalTamgu->Providevector();
-
+    
     locking();
-
+    
     BLONG it;
     BLONG sz = values.size();
     if (isEvaluate()) {
@@ -2257,15 +2259,15 @@ Exporting string TamguConstvectormerge::String() {
 }
 
 class Comp {
-    public:
+public:
     TamguCallFunction2 compare;
     short idthread;
-
+    
     Comp(TamguFunction* comp, short idt) : compare(comp), idthread(idt) {
         compare.arguments.push_back(aNULL);
         compare.arguments.push_back(aNULL);
     }
-
+    
     bool get(Tamgu* i, Tamgu* j) {
         compare.arguments.vecteur[0] = i;
         compare.arguments.vecteur[1] = j;
@@ -2274,13 +2276,13 @@ class Comp {
 };
 
 class Comparison {
-    public:
+public:
     Comp* compare;
-
+    
     Comparison(Comp* c)  {
         compare = c;
     }
-
+    
     bool failcheck(Tamgu* i) {
         return compare->get(i,i);
     }
@@ -2488,18 +2490,18 @@ Exporting Tamgu* Tamguvector::Sort(Tamgu* comp, short idthread, bool d) {
     //First parameter should be a vector
     if (Size() <= 1)
         return this;
-
+    
     if (comp != NULL) {
         if (comp->Size() == 2) {
             if (comp->isFunctionParameter()) {
                 if (!comp->isTaskellFunction())
                     return globalTamgu->Returnerror(e_wrong_function_call, idthread);
-
+                
                 TamguCallFunction cmp(NULL);
                 Comparisontaskell kfcomp((TamguParameterFunction*)comp, &cmp, idthread, d);
                 if (kfcomp.failcheck(values[0]))
                     return globalTamgu->Returnerror(e_the_comparison_function, idthread);
-
+                
                 locking();
                 sort(values.begin(), values.end(), kfcomp);
                 unlocking();
@@ -2532,59 +2534,59 @@ Exporting Tamgu* Tamguvector::Sort(Tamgu* comp, short idthread, bool d) {
         unlocking();
         return this;
     }
-
+    
     //we use the first element as a trigger
     Tamgu* kfirst = values[0];
     if (!d) {
         locking();
         switch (kfirst->Type()) {
             case a_short:
-            sort(values.begin(), values.end(), CompareShort);
-            break;
+                sort(values.begin(), values.end(), CompareShort);
+                break;
             case a_int:
-            sort(values.begin(), values.end(), CompareInteger);
-            break;
+                sort(values.begin(), values.end(), CompareInteger);
+                break;
             case a_long:
-            sort(values.begin(), values.end(), CompareLong);
-            break;
+                sort(values.begin(), values.end(), CompareLong);
+                break;
             case a_decimal:
-            sort(values.begin(), values.end(), CompareDecimal);
-            break;
+                sort(values.begin(), values.end(), CompareDecimal);
+                break;
             case a_float:
-            sort(values.begin(), values.end(), CompareFloat);
-            break;
+                sort(values.begin(), values.end(), CompareFloat);
+                break;
             case a_string: //else we only use strings for other types
-            sort(values.begin(), values.end(), CompareString);
-            break;
+                sort(values.begin(), values.end(), CompareString);
+                break;
             case a_ustring: //else we only use strings for other types
-            sort(values.begin(), values.end(), CompareUString);
+                sort(values.begin(), values.end(), CompareUString);
         }
         unlocking();
         return this;
     }
-
+    
     locking();
     switch (kfirst->Type()) {
         case a_short:
-        sort(values.begin(), values.end(), InvCompareShort);
-        break;
+            sort(values.begin(), values.end(), InvCompareShort);
+            break;
         case a_int:
-        sort(values.begin(), values.end(), InvCompareInteger);
-        break;
+            sort(values.begin(), values.end(), InvCompareInteger);
+            break;
         case a_long:
-        sort(values.begin(), values.end(), InvCompareLong);
-        break;
+            sort(values.begin(), values.end(), InvCompareLong);
+            break;
         case a_decimal:
-        sort(values.begin(), values.end(), InvCompareDecimal);
-        break;
+            sort(values.begin(), values.end(), InvCompareDecimal);
+            break;
         case a_float:
-        sort(values.begin(), values.end(), InvCompareFloat);
-        break;
+            sort(values.begin(), values.end(), InvCompareFloat);
+            break;
         case a_string: //else we only use strings for other types
-        sort(values.begin(), values.end(), InvCompareString);
-        break;
+            sort(values.begin(), values.end(), InvCompareString);
+            break;
         case a_ustring: //else we only use strings for other types
-        sort(values.begin(), values.end(), InvCompareUString);
+            sort(values.begin(), values.end(), InvCompareUString);
     }
     unlocking();
     return this;
@@ -2594,9 +2596,9 @@ Exporting Tamgu* Tamguvector::Sortint(short idthread, bool d) {
     //First parameter should be a vector
     if (Size() <= 1)
         return this;
-
+    
     locking();
-
+    
     if (d)
         sort(values.begin(), values.end(), InvCompareInteger);
     else
@@ -2609,9 +2611,9 @@ Exporting Tamgu* Tamguvector::Sortstring(short idthread, bool d) {
     //First parameter should be a vector
     if (Size() <= 1)
         return this;
-
+    
     locking();
-
+    
     if (d)
         sort(values.begin(), values.end(), InvCompareString);
     else
@@ -2624,9 +2626,9 @@ Exporting Tamgu* Tamguvector::Sortustring(short idthread, bool d) {
     //First parameter should be a vector
     if (Size() <= 1)
         return this;
-
+    
     locking();
-
+    
     if (d)
         sort(values.begin(), values.end(), InvCompareUString);
     else
@@ -2639,9 +2641,9 @@ Exporting Tamgu* Tamguvector::Sortfloat(short idthread, bool d) {
     //First parameter should be a vector
     if (Size() <= 1)
         return this;
-
+    
     locking();
-
+    
     if (d)
         sort(values.begin(), values.end(), InvCompareFloat);
     else
@@ -2660,17 +2662,17 @@ Exporting Tamgu* TamguCycleVector::Eval(Tamgu* context, Tamgu* v, short idthread
 Exporting Tamgu* TamguCycleVector::Newinstance(short idthread, Tamgu* f) {
     if (!repeat)
         return value->Newinstance(idthread);
-
+    
     //Depends on the internal type of value...
     switch (value->Type()) {
         case a_int:
-        return globalTamgu->Provideivector();
+            return globalTamgu->Provideivector();
         case a_float:
-        return globalTamgu->Providefvector();
+            return globalTamgu->Providefvector();
         case a_string:
-        return globalTamgu->Providesvector();
+            return globalTamgu->Providesvector();
         case a_ustring:
-        return globalTamgu->Provideuvector();
+            return globalTamgu->Provideuvector();
     }
     return globalTamgu->Providevector();
 }
@@ -2678,7 +2680,7 @@ Exporting Tamgu* TamguCycleVector::Newinstance(short idthread, Tamgu* f) {
 Exporting TamguIteration* TamguCycleVector::Newiteration(bool rev) {
     if (repeat)
         return new TamguIteratorCycleElement(this);
-
+    
     return new TamguIteratorCycleVector(this);
 }
 
@@ -2694,13 +2696,13 @@ Exporting Tamgu* TamguReplicateVector::Newinstance(short idthread, Tamgu* f) {
     //Depends on the internal type of value...
     switch (value->Type()) {
         case a_int:
-        return globalTamgu->Provideivector();
+            return globalTamgu->Provideivector();
         case a_float:
-        return globalTamgu->Providefvector();
+            return globalTamgu->Providefvector();
         case a_string:
-        return globalTamgu->Providesvector();
+            return globalTamgu->Providesvector();
         case a_ustring:
-        return globalTamgu->Provideuvector();
+            return globalTamgu->Provideuvector();
     }
     return globalTamgu->Providevector();
 }
@@ -2711,7 +2713,7 @@ Exporting TamguIteration* TamguReplicateVector::Newiteration(bool rev) {
 }
 
 Exporting Tamgu* Tamguvector::Loopin(TamguInstruction* ins, Tamgu* context, short idthread) {
-
+    
     locking();
     long sz = values.size();
     if (!sz) {
@@ -2724,66 +2726,66 @@ Exporting Tamgu* Tamguvector::Loopin(TamguInstruction* ins, Tamgu* context, shor
     for (long i = 0; i < sz && !testcond; i++) {
         a->Releasenonconst();
         var->Clonevalue(values[i], idthread);
-
+        
         a = ins->instructions.vecteur[1]->Eval(context, aNULL, idthread);
-
+        
         //Continue does not trigger needInvestigate
         testcond = a->needInvestigate();
     }
-
+    
     unlocking();
-
+    
     if (testcond) {
         if (a == aBREAK)
             return this;
         return a;
     }
-
+    
     a->Releasenonconst();
     return this;
-
+    
 }
 
 Exporting Tamgu* Tamguvector::Looptaskell(Tamgu* recipient, Tamgu* context, Tamgu* environment, TamguFunctionLambda* bd, short idthread) {
-
+    
     Tamgu* a;
     uchar addvalue = 0;
-
+    
     if (context != aNOELEMENT)
         addvalue = Selecttype(context);
-
+    
     for (size_t i = 0; i < values.size(); i++) {
         recipient->Clonevalue(values[i], idthread);
-
+        
         a = bd->DirectEval(environment, aNULL, idthread);
         if (a->isNULL())
             continue;
-
+        
         if (globalTamgu->Error(idthread) || a->needInvestigate()) {
             if (a == aBREAK)
                 break;
-
+            
             recipient->Forcedclean();
             a->Release();
             context->Release();
             return globalTamgu->Errorobject(idthread);
         }
-
+        
         context = Storealongtype(context, a, idthread, addvalue);
         a->Release();
     }
-
+    
     recipient->Forcedclean();
     return context;
 }
 
 Exporting Tamgu* Tamguvector::Filter(short idthread, Tamgu* env, TamguFunctionLambda* bd, Tamgu* var, Tamgu* kcont, Tamgu* accu, Tamgu* init, bool direct) {
-
+    
     Tamgu* returnval;
-
+    
     bool first = false;
     Tamgu* key;
-
+    
     if (init != aNOELEMENT) {
         accu->Putvalue(init, idthread);
         if (kcont != NULL) {
@@ -2795,7 +2797,7 @@ Exporting Tamgu* Tamguvector::Filter(short idthread, Tamgu* env, TamguFunctionLa
     }
     else
         first = true; //we are dealing with a foldr1 or a foldl1
-
+    
     for (size_t i = 0; i < values.size(); i++) {
         key = values[i];
         if (first) {
@@ -2805,12 +2807,12 @@ Exporting Tamgu* Tamguvector::Filter(short idthread, Tamgu* env, TamguFunctionLa
         else {
             var->Putvalue(key, idthread);
             returnval = bd->DirectEval(env, aNULL, idthread);
-
+            
             if (returnval == aBREAK) {
                 accu = returnval;
                 break;
             }
-
+            
             if (globalTamgu->Error(idthread)) {
                 var->Forcedclean();
                 if (kcont != NULL)
@@ -2818,9 +2820,9 @@ Exporting Tamgu* Tamguvector::Filter(short idthread, Tamgu* env, TamguFunctionLa
                 return globalTamgu->Errorobject(idthread);
             }
         }
-
+        
         if (returnval != aNULL) {
-
+            
             accu->Putvalue(returnval, idthread);
             if (kcont != NULL) {
                 if (direct)
@@ -2831,7 +2833,7 @@ Exporting Tamgu* Tamguvector::Filter(short idthread, Tamgu* env, TamguFunctionLa
             returnval->Release();
         }
     }
-
+    
     var->Forcedclean();
     if (kcont != NULL)
         return kcont;
@@ -2977,24 +2979,24 @@ Exporting Tamgu* Tamguvector::Thesum(long i, long j) {
     long sz = values.size();
     if (!sz)
         return aNULL;
-
+    
     if (i < 0)
         i += sz;
     if (j < 0)
         j += sz;
-
+    
     if (i < 0)
         i = 0;
     else
         if (i >= sz)
             i = sz - 1;
-
+    
     if (j <= i)
         j = i + 1;
-
+    
     if (j >= sz)
         j = sz - 1;
-
+    
     if (values[0]->isContainer()) {
         Tamgufvector* sub = globalTamgu->Providefvector();
         Tamgu* res;
@@ -3005,15 +3007,15 @@ Exporting Tamgu* Tamguvector::Thesum(long i, long j) {
         }
         return sub;
     }
-
+    
     if (values[0]->isNumber()) {
         double v = 0;
         for (; i <= j; i++)
             v += values[i]->Float();
-
+        
         return globalTamgu->ProvideConstfloat(v);
     }
-
+    
     string v;
     for (; i < j; i++)
         v += values[i]->String();
@@ -3024,24 +3026,24 @@ Exporting Tamgu* Tamguvector::Theproduct(long i, long j) {
     long sz = values.size();
     if (!sz)
         return aNULL;
-
+    
     if (i < 0)
         i += sz;
     if (j < 0)
         j += sz;
-
+    
     if (i < 0)
         i = 0;
     else
         if (i >= sz)
             i = sz - 1;
-
+    
     if (j <= i)
         j = i + 1;
-
+    
     if (j >= sz)
         j = sz - 1;
-
+    
     if (values[0]->isContainer()) {
         Tamgufvector* sub = globalTamgu->Providefvector();
         Tamgu* res;
@@ -3052,29 +3054,29 @@ Exporting Tamgu* Tamguvector::Theproduct(long i, long j) {
         }
         return sub;
     }
-
+    
     double v = 1;
     for (; i <= j; i++)
         v *= values[i]->Float();
-
+    
     return globalTamgu->ProvideConstfloat(v);
 }
 
 //----------------------------------------------------------------------------------------------------------
 
-    //We need to declare once again our local definitions.
+//We need to declare once again our local definitions.
 Exporting basebin_hash<a_vectorMethod>  Tamgua_vector::methods;
 
 Exporting short Tamgua_vector::idtype = 0;
 
-    //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
+//MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamgua_vector::AddMethod(TamguGlobal* global, string name, a_vectorMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
     if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
-    return;
-
+        global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+        return;
+    
     global->infomethods[idtype][name] = infos;
     global->RecordArity(idtype, idname, arity);
 }
@@ -3091,7 +3093,7 @@ bool Tamgua_vector::InitialisationModule(TamguGlobal* global, string version) {
     Tamgua_vector::AddMethod(global, "min", &Tamgua_vector::MethodMin, P_NONE, "min(): returns the min in the vector.");
     Tamgua_vector::AddMethod(global, "max", &Tamgua_vector::MethodMax, P_NONE, "max(): returns the max in the vector.");
     Tamgua_vector::AddMethod(global, "minmax", &Tamgua_vector::MethodMinMax, P_NONE, "minmax(): returns the min and the max in the vector.");
-
+    
     Tamgua_vector::AddMethod(global, "clear", &Tamgua_vector::MethodClear, P_NONE, "clear(): clear the container.");
     Tamgua_vector::AddMethod(global, "flatten", &Tamgua_vector::MethodFlatten, P_NONE, "flatten(): flatten a vector structure.");
     
@@ -3109,7 +3111,7 @@ bool Tamgua_vector::InitialisationModule(TamguGlobal* global, string version) {
     Tamgua_vector::AddMethod(global, "poplast", &Tamgua_vector::MethodPoplast, P_NONE, "poplast(): remove and return the last element from the vector");
     Tamgua_vector::AddMethod(global, "merge", &Tamgua_vector::MethodMerge, P_ONE, "merge(v): Merge v into the vector.");
     Tamgua_vector::AddMethod(global, "insert", &Tamgua_vector::MethodInsert, P_TWO, "insert(int i,v): Insert v at position i.");
-
+    
     if (version != "") {
         global->newInstance[Tamgua_vector::idtype] = new Tamgua_vector(global);
         global->RecordCompatibilities(Tamgua_vector::idtype);
@@ -3133,7 +3135,7 @@ Exporting void Tamgua_vector::Cleanreference(short inc) {
 Exporting void Tamgua_vector::Setreference(short inc) {
     reference += inc;
     protect=false;
-
+    
     atomic_vector_iterator<Tamgu*> it(values);
     while (!it.end()) {
         it.second->Addreference(investigate,inc);
@@ -3144,7 +3146,7 @@ Exporting void Tamgua_vector::Setreference(short inc) {
 Exporting void Tamgua_vector::Setreference() {
     ++reference;
     protect=false;
-
+    
     atomic_vector_iterator<Tamgu*> it(values);
     while (!it.end()) {
         it.second->Addreference(investigate,1);
@@ -3178,13 +3180,13 @@ Exporting void Tamgua_vector::Resetreference(short inc) {
 
 
 Exporting Tamgu* Tamgua_vector::in(Tamgu* context, Tamgu* a, short idthread) {
-        //Three cases along the container type...
-        //It is a Boolean, we expect false or true
-        //It is an integer, we expect a position in v
-        //It is a container, we are looking for all positions...
+    //Three cases along the container type...
+    //It is a Boolean, we expect false or true
+    //It is an integer, we expect a position in v
+    //It is a container, we are looking for all positions...
     
     atomic_vector_iterator<Tamgu*> it(values);
-
+    
     if (context->isVectorContainer()) {
         Tamguivector* v = (Tamguivector*)Selectaivector(context);
         while (!it.end()) {
@@ -3209,7 +3211,7 @@ Exporting Tamgu* Tamgua_vector::in(Tamgu* context, Tamgu* a, short idthread) {
             return aTRUE;
         it.next();
     }
-
+    
     return aFALSE;
 }
 
@@ -3238,10 +3240,10 @@ Exporting Tamgu* Tamgua_vector::Pop(Tamgu* idx) {
             return aFALSE;
         idx = values.remove(v);
     }
-
+    
     if (idx == NULL)
         return aFALSE;
-
+    
     idx->Removereference(reference + 1);
     return aTRUE;
 }
@@ -3251,7 +3253,7 @@ Exporting Tamgu* Tamgua_vector::Pop(Tamgu* idx) {
 Exporting string Tamgua_vector::String() {
     if (!lockingmark())
         return("[...]");
-
+    
     string res;
     res = "[";
     bool beg = true;
@@ -3338,9 +3340,9 @@ Exporting Tamgu* Tamgua_vector::Map(short idthread) {
 Exporting string Tamgua_vector::JSonString() {
     if (!lockingmark())
         return("");
-
+    
     string res;
-
+    
     res = "[";
     bool beg = true;
     string sx;
@@ -3386,7 +3388,7 @@ Exporting bool Tamgua_vector::Boolean() {
     return false;
 }
 
-    //Basic operations
+//Basic operations
 Exporting long Tamgua_vector::Size() {
     return values.size();
 }
@@ -3412,7 +3414,7 @@ Exporting Tamgu* Tamgua_vector::andset(Tamgu *b, bool itself) {
     TamguIteration* itr = b->Newiteration(false);
     atomic_vector_iterator<Tamgu*> it;
     Tamgu* ke;
-
+    
     for (itr->Begin(); itr->End() == aFALSE; itr->Next()) {
         it.begin(values);
         while (!it.end()) {
@@ -3474,7 +3476,7 @@ Exporting Tamgu* Tamgua_vector::xorset(Tamgu *b, bool itself) {
     bool found=false;
     vector<Tamgu*> vals;
     Tamgu* ke;
-
+    
     TamguIteration* itr = b->Newiteration(false);
     for (itr->Begin(); itr->End() == aFALSE; itr->Next())
         vals.push_back(itr->Value());
@@ -3482,7 +3484,7 @@ Exporting Tamgu* Tamgua_vector::xorset(Tamgu *b, bool itself) {
     
     long itv;
     atomic_vector_iterator<Tamgu*> it(values);
-
+    
     while (!it.end()) {
         ke = it.second;
         found = false;
@@ -3523,7 +3525,7 @@ Exporting Tamgu* Tamgua_vector::plus(Tamgu* b, bool itself) {
     Tamgu* kv;
     if (!lockingmark())
         return aNULL;
-        
+    
     if (b->isContainer()) {
         TamguIteration* itr = b->Newiteration(false);
         itr->Begin();
@@ -3588,7 +3590,7 @@ Exporting Tamgu* Tamgua_vector::minus(Tamgu *b, bool itself) {
     }
     unlockingmark();
     return ref;
-
+    
 }
 
 Exporting Tamgu* Tamgua_vector::multiply(Tamgu *b, bool itself) {
@@ -3601,7 +3603,7 @@ Exporting Tamgu* Tamgua_vector::multiply(Tamgu *b, bool itself) {
     Tamgu* kv;
     if (!lockingmark())
         return aNULL;
-        
+    
     if (b->isContainer()) {
         TamguIteration* itr = b->Newiteration(false);
         itr->Begin();
@@ -3640,7 +3642,7 @@ Exporting Tamgu* Tamgua_vector::divide(Tamgu *b, bool itself) {
     Tamgu* kv;
     if (!lockingmark())
         return aNULL;
-        
+    
     if (b->isContainer()) {
         TamguIteration* itr = b->Newiteration(false);
         itr->Begin();
@@ -3688,7 +3690,7 @@ Exporting Tamgu* Tamgua_vector::power(Tamgu *b, bool itself) {
     Tamgu* kv;
     if (!lockingmark())
         return aNULL;
-        
+    
     if (b->isContainer()) {
         TamguIteration* itr = b->Newiteration(false);
         itr->Begin();
@@ -3726,7 +3728,7 @@ Exporting Tamgu* Tamgua_vector::shiftleft(Tamgu *b, bool itself) {
     Tamgu* kv;
     if (!lockingmark())
         return aNULL;
-        
+    
     if (b->isContainer()) {
         TamguIteration* itr = b->Newiteration(false);
         itr->Begin();
@@ -3803,7 +3805,7 @@ Exporting Tamgu* Tamgua_vector::mod(Tamgu *b, bool itself) {
     Tamgu* kv;
     if (!lockingmark())
         return aNULL;
-        
+    
     if (b->isContainer()) {
         TamguIteration* itr = b->Newiteration(false);
         itr->Begin();
@@ -3887,7 +3889,7 @@ Exporting Tamgu*  Tamgua_vector::Put(Tamgu* idx, Tamgu* value, short idthread) {
         if (value->Type() == a_list) {
             Tamgulist* kvect = (Tamgulist*)value;
             kvect->locking();
-                //We copy all values from value to this
+            //We copy all values from value to this
             Clear();
             for (const auto& it : kvect->values)
                 Push(it);
@@ -3900,8 +3902,8 @@ Exporting Tamgu*  Tamgua_vector::Put(Tamgu* idx, Tamgu* value, short idthread) {
         if (value->isVectorContainer()) {
             ((TamguObject*)value)->locking();
             
-
-                //We copy all values from value to this
+            
+            //We copy all values from value to this
             Clear();
             if (sz) {
                 for (int it = 0; it < sz; it++)
@@ -3911,7 +3913,7 @@ Exporting Tamgu*  Tamgua_vector::Put(Tamgu* idx, Tamgu* value, short idthread) {
             ((TamguObject*)value)->unlocking();
             return aTRUE;
         }
-            //We gather all the keys from the MAP
+        //We gather all the keys from the MAP
         if (value->isMapContainer()) {
             Clear();
             if (sz) {
@@ -3938,7 +3940,7 @@ Exporting Tamgu*  Tamgua_vector::Put(Tamgu* idx, Tamgu* value, short idthread) {
         value->Releasenonconst();
         return aTRUE;
     }
-
+    
     long ikey = idx->Getinteger(idthread);
     long mx = values.size();
     if (ikey < 0) {
@@ -3960,8 +3962,8 @@ Exporting Tamgu* Tamgua_vector::Eval(Tamgu* contextualpattern, Tamgu* idx, short
     if (!idx->isIndex()) {
         if (contextualpattern->isLoop())
             return this;
-
-            //In this case, we copy the elements from the vector to the map, using the position as index
+        
+        //In this case, we copy the elements from the vector to the map, using the position as index
         if (contextualpattern->isMapContainer()) {
             Tamgu* ke;
             Tamgu* map = Selectamap(contextualpattern);
@@ -3995,7 +3997,7 @@ Exporting Tamgu* Tamgua_vector::Eval(Tamgu* contextualpattern, Tamgu* idx, short
     long ikey = key->Integer();
     if (kind->signleft)
         ikey *= -1;
-
+    
     key->Release();
     if (ikey < 0)
         ikey = mx + ikey;
@@ -4027,7 +4029,7 @@ Exporting Tamgu* Tamgua_vector::Eval(Tamgu* contextualpattern, Tamgu* idx, short
     
     if (keyright != kind->right)
         keyright->Release();
-
+    
     if (iright < 0 || keyright == aNULL) {
         iright = mx + iright;
         if (iright<ikey) {
@@ -4044,7 +4046,7 @@ Exporting Tamgu* Tamgua_vector::Eval(Tamgu* contextualpattern, Tamgu* idx, short
         }
     }
     
-        //In this case, we must create a new vector
+    //In this case, we must create a new vector
     kvect = globalTamgu->Providevector();
     
     atomic_vector_iterator<Tamgu*> it(values, ikey);
@@ -4230,7 +4232,7 @@ Exporting Tamgu* Tamgua_vector::Theproduct(long i, long j) {
         v *= it.second->Float();
         it.next();
     }
-
+    
     return globalTamgu->ProvideConstfloat(v);
 }
 
@@ -4246,7 +4248,7 @@ Exporting Tamgu* Tamgua_vector::Looptaskell(Tamgu* recipient, Tamgu* context, Ta
     while (!it.end()) {
         recipient->Putvalue(it.second, idthread);
         it.next();
-
+        
         a = bd->DirectEval(environment, aNULL, idthread);
         if (a->isNULL())
             continue;
@@ -4357,7 +4359,7 @@ Exporting Tamgu* Tamgua_vector::same(Tamgu* a) {
     
     if (values.size() != v->values.size())
         return aFALSE;
-
+    
     atomic_vector_iterator<Tamgu*> it(values);
     for (; !it.end(); it.next()) {
         if (it.second->same(v->values[it.first]) == aFALSE)
@@ -4375,7 +4377,7 @@ Exporting Tamgu* Tamgua_vector::Merging(Tamgu* ke) {
     if (ke->Size() == 0)
         return this;
     
-
+    
     if (ke->isVectorValueContainer()) {
         Locking* _lock = _getlocktamgu(ke);
         Tamgu* k;
@@ -4523,7 +4525,7 @@ Exporting float Tamguformat::Decimal() {
 Exporting Tamgu* Tamguframevector::Push(Tamgu* a) {
     if (!check_frame(a))
         return globalTamgu->Returnerror(e_error_on_frame_vector);
-
+    
     locking();
     a = a->Atom();
     a->Addreference(investigate,reference+1);
@@ -4535,7 +4537,7 @@ Exporting Tamgu* Tamguframevector::Push(Tamgu* a) {
 Exporting Tamgu* Tamguframevector::Push(TamguGlobal* g, Tamgu* a, short idthread) {
     if (!check_frame(a))
         return globalTamgu->Returnerror(e_error_on_frame_vector, idthread);
-
+    
     locking();
     a = a->Atom();
     a->Addreference(investigate,reference+1);
@@ -4565,7 +4567,7 @@ Exporting Tamgu* Tamguframevector::Put(Tamgu* idx, Tamgu* value, short idthread)
     if (!idx->isIndex()) {
         if (value == this)
             return aTRUE;
-
+        
         if (value->isNULL()) {
             Clear();
             return aTRUE;
@@ -4587,7 +4589,7 @@ Exporting Tamgu* Tamguframevector::Put(Tamgu* idx, Tamgu* value, short idthread)
             }
             return aTRUE;
         }
-
+        
         long sz = value->Size();
         if (value->isVectorContainer()) {
             //We copy all values from value to this
@@ -4601,7 +4603,7 @@ Exporting Tamgu* Tamguframevector::Put(Tamgu* idx, Tamgu* value, short idthread)
                         idx->Release();
                         return globalTamgu->Returnerror(e_error_on_frame_vector, idthread);
                     }
-
+                    
                     idx = idx->Atom();
                     idx->Addreference(investigate,reference+1);
                     values.push_back(idx);
@@ -4642,7 +4644,7 @@ Exporting Tamgu* Tamguframevector::Put(Tamgu* idx, Tamgu* value, short idthread)
                     krkey->Release();
                     return globalTamgu->Returnerror(e_error_on_frame_vector, idthread);
                 }
-
+                
                 krkey = krkey->Atom();
                 values.insert(values.begin() + lkey, krkey);
                 krkey->Addreference(investigate,reference+1);
@@ -4668,7 +4670,7 @@ Exporting Tamgu* Tamguframevector::Put(Tamgu* idx, Tamgu* value, short idthread)
         
         if (!check_frame(value))
             return globalTamgu->Returnerror(e_error_on_frame_vector, idthread);
-
+        
         krkey = value->Atom();
         values.insert(values.begin() + lkey, krkey);
         krkey->Addreference(investigate,reference+1);
@@ -4677,7 +4679,7 @@ Exporting Tamgu* Tamguframevector::Put(Tamgu* idx, Tamgu* value, short idthread)
     
     if (!check_frame(value))
         return globalTamgu->Returnerror(e_error_on_frame_vector, idthread);
-
+    
     long ikey = idx->Getinteger(idthread);
     long nb, mx;
     mx = values.size();
@@ -4703,143 +4705,143 @@ Exporting Tamgu* Tamguframevector::Put(Tamgu* idx, Tamgu* value, short idthread)
 
 
 /*
-class VECTATYPE {
-public:
-    void** values;
-    bool is_atom;
-    //sz est la sz actuelle de la liste
-    long sz;
-    //last element entre... Pour gerer les ajouts en fin de liste...
-    long last;
-
-    
-    VECTATYPE(long t, bool a) {
-        is_atom = a;
-        sz = t;
-        last = 0;
-        if (!is_atom)
-            values = new void*[sz];
-        else
-            values = NULL;
-    }
-    
-    virtual void* value() {
-        return NULL;
-    }
-    
-    virtual ~VECTATYPE() {
-        if (values != NULL)
-            delete[] values;
-    }
-};
-
-template <class Z> class VECTEATOM : public VECTATYPE {
-    public:
-
-    //Un vecteur de Fonction
-    Z* vecteur;
-
-    VECTEATOM(long t = 3) : VECTATYPE(t, true) {
-        vecteur = NULL;
-        if (t > 0)
-            vecteur = new Z[t];
-
-        for (bint i = 0; i< sz; i++)
-            vecteur[i] = NULL;
-    }
-    
-    ~VECTEATOM() {
-        delete[] vecteur;
-    }
-
-    void* value() {
-        return vecteur;
-    }
-    
-    inline void push_back(Z val) {
-        //sinon on ajoute l'element en queue...
-        vecteur[last++] = val;
-    }
-};
-
-template <class Z> class VECTECONTAINER : public VECTATYPE {
-    public:
-
-    //Un vecteur de Fonction
-    Z* vecteur;
-
-    VECTECONTAINER(long t = 3) : VECTATYPE(t, false) {
-        vecteur = NULL;
-        if (t > 0)
-            vecteur = new Z[t];
-        for (bint i = 0; i< sz; i++)
-            vecteur[i] = NULL;
-    }
-
-    ~VECTECONTAINER() {
-        for (long i = 0; i < last; i++) {
-            delete vecteur[i];
-        }
-        delete[] vecteur;
-    }
-
-    void* value() {
-        return values;
-    }
-
-    inline void push_back(Z val) {
-        values[last] = val->value();
-        vecteur[last++] = val;
-    }
-};
-
-VECTATYPE* Recursion(Tamgu* vect) {
-    
-    long sz = vect->Size();
-    if (!sz)
-        return NULL;
-    
-    Tamgu* v = vect->getvalue(0);
-    if (v->isVectorContainer()) {
-        Tamgu* element;
-        VECTATYPE* res;
-        VECTECONTAINER<VECTATYPE*>* vectres = new VECTECONTAINER<VECTATYPE*>(sz);
-        for (long i = 0; i < sz; i++) {
-            element = v->getvalue(i);
-            if (!element->isVectorContainer()) {
-                delete vectres;
-                return NULL;
-            }
-            res = Recursion(element);
-            if (res == NULL) {
-                delete vectres;
-                return NULL;
-            }
-            vectres->push_back(res);
-        }
-        return vectres;
-    }
-    
-    VECTEATOM<int>* vectres = new VECTEATOM<int>(sz);
-    for (long i = 0; i < sz; i++) {
-        vectres->push_back((int)vect->getinteger(i));
-    }
-    return vectres;
-}
-
-
-void appel(Tamgu* e) {
-    if (e->isVectorContainer()) {
-        VECTATYPE* res = Recursion(e);
-        //Les valeurs à passer au tenseur: values()
-        void* r = res->value();
-        //On peut détruire la structure avec:
-        delete res;
-        
-    }
-}
+ class VECTATYPE {
+ public:
+ void** values;
+ bool is_atom;
+ //sz est la sz actuelle de la liste
+ long sz;
+ //last element entre... Pour gerer les ajouts en fin de liste...
+ long last;
+ 
+ 
+ VECTATYPE(long t, bool a) {
+ is_atom = a;
+ sz = t;
+ last = 0;
+ if (!is_atom)
+ values = new void*[sz];
+ else
+ values = NULL;
+ }
+ 
+ virtual void* value() {
+ return NULL;
+ }
+ 
+ virtual ~VECTATYPE() {
+ if (values != NULL)
+ delete[] values;
+ }
+ };
+ 
+ template <class Z> class VECTEATOM : public VECTATYPE {
+ public:
+ 
+ //Un vecteur de Fonction
+ Z* vecteur;
+ 
+ VECTEATOM(long t = 3) : VECTATYPE(t, true) {
+ vecteur = NULL;
+ if (t > 0)
+ vecteur = new Z[t];
+ 
+ for (bint i = 0; i< sz; i++)
+ vecteur[i] = NULL;
+ }
+ 
+ ~VECTEATOM() {
+ delete[] vecteur;
+ }
+ 
+ void* value() {
+ return vecteur;
+ }
+ 
+ inline void push_back(Z val) {
+ //sinon on ajoute l'element en queue...
+ vecteur[last++] = val;
+ }
+ };
+ 
+ template <class Z> class VECTECONTAINER : public VECTATYPE {
+ public:
+ 
+ //Un vecteur de Fonction
+ Z* vecteur;
+ 
+ VECTECONTAINER(long t = 3) : VECTATYPE(t, false) {
+ vecteur = NULL;
+ if (t > 0)
+ vecteur = new Z[t];
+ for (bint i = 0; i< sz; i++)
+ vecteur[i] = NULL;
+ }
+ 
+ ~VECTECONTAINER() {
+ for (long i = 0; i < last; i++) {
+ delete vecteur[i];
+ }
+ delete[] vecteur;
+ }
+ 
+ void* value() {
+ return values;
+ }
+ 
+ inline void push_back(Z val) {
+ values[last] = val->value();
+ vecteur[last++] = val;
+ }
+ };
+ 
+ VECTATYPE* Recursion(Tamgu* vect) {
+ 
+ long sz = vect->Size();
+ if (!sz)
+ return NULL;
+ 
+ Tamgu* v = vect->getvalue(0);
+ if (v->isVectorContainer()) {
+ Tamgu* element;
+ VECTATYPE* res;
+ VECTECONTAINER<VECTATYPE*>* vectres = new VECTECONTAINER<VECTATYPE*>(sz);
+ for (long i = 0; i < sz; i++) {
+ element = v->getvalue(i);
+ if (!element->isVectorContainer()) {
+ delete vectres;
+ return NULL;
+ }
+ res = Recursion(element);
+ if (res == NULL) {
+ delete vectres;
+ return NULL;
+ }
+ vectres->push_back(res);
+ }
+ return vectres;
+ }
+ 
+ VECTEATOM<int>* vectres = new VECTEATOM<int>(sz);
+ for (long i = 0; i < sz; i++) {
+ vectres->push_back((int)vect->getinteger(i));
+ }
+ return vectres;
+ }
+ 
+ 
+ void appel(Tamgu* e) {
+ if (e->isVectorContainer()) {
+ VECTATYPE* res = Recursion(e);
+ //Les valeurs à passer au tenseur: values()
+ void* r = res->value();
+ //On peut détruire la structure avec:
+ delete res;
+ 
+ }
+ }
  
  
  
-*/
+ */
 

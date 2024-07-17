@@ -2151,7 +2151,7 @@ TamguInstruction* TamguCode::TamguCreateInstruction(Tamgu* parent, short op) {
 }
 
 TamguCallFunction* TamguCode::CreateCallFunction(Tamgu* function, Tamgu* parent) {
-    if (predicate_rule)
+    if (building_predicate_rule)
         return new TamguCallFromPredicateRule(function, global, parent);
     
     for (short i = 0; i < function->Size(); i++) {
@@ -4019,7 +4019,7 @@ Tamgu* TamguCode::C_regularcall(x_node* xn, Tamgu* parent) {
                             else {
                                 if (call->isFunction()) {
                                     if (call->isThread())
-                                        call = new TamguCallThread(call, global, parent);
+                                        call = new TamguCallThread(call, building_predicate_rule, global, parent);
                                     else {
                                         if (call->isVariable())
                                             call = new TamguFunctionDeclarationCall(call->Name(), global, parent);
@@ -10132,6 +10132,12 @@ void TamguCode::ComputePredicateParameters(x_node* xn, Tamgu* kcf) {
 	for (int i = 0; i < xn->nodes.size(); i++) {
 		kbloc.idtype = id;
 		Traverse(xn->nodes[i], &kbloc);
+        if (kbloc.instructions[0]->Typevariable() == a_instance) {
+            stringstream message;
+            message << "Error: You cannot use a '?_' variable in a predicate call: '" << global->Getsymbol(kbloc.instructions[0]->Name()) << "'";
+            throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
+
+        }
 		kcf->AddInstruction(kbloc.instructions[0]);
 		kbloc.instructions.clear();
 	}
@@ -10149,8 +10155,8 @@ Tamgu* TamguCode::C_predicatefact(x_node* xn, Tamgu* kf) {
 	//If it is a boolean value (either true or false)
 	TamguPredicateContainer* kpcont = global->Predicatecontainer();
 
-    bool pred_rule = predicate_rule;
-    predicate_rule = true;
+    bool pred_rule = building_predicate_rule;
+    building_predicate_rule = true;
 
 	string sname = xn->nodes[0]->nodes[0]->value;
 	short name = global->Getid(sname);
@@ -10213,7 +10219,7 @@ Tamgu* TamguCode::C_predicatefact(x_node* xn, Tamgu* kf) {
             pv->Setreference();
             
             global->Activategarbage(previous);
-            predicate_rule = pred_rule;
+            building_predicate_rule = pred_rule;
             return pv;
         }
         
@@ -10222,7 +10228,7 @@ Tamgu* TamguCode::C_predicatefact(x_node* xn, Tamgu* kf) {
         kf->AddInstruction(kbloc);
         currentpredicatename = "";
         global->Activategarbage(previous);
-        predicate_rule = pred_rule;
+        building_predicate_rule = pred_rule;
         return kbloc;
     }
 
@@ -10243,15 +10249,15 @@ Tamgu* TamguCode::C_predicatefact(x_node* xn, Tamgu* kf) {
 	kbloc->Addtail(kpcont, kblocelement);
     currentpredicatename = "";
     global->Activategarbage(previous);
-    predicate_rule = pred_rule;
+    building_predicate_rule = pred_rule;
 	return kbloc;
 }
 
 
 Tamgu* TamguCode::C_rawfact(x_node* xn, Tamgu* kf) {
     //We load a file containing only facts...
-    bool pred_rule = predicate_rule;
-    predicate_rule = true;
+    bool pred_rule = building_predicate_rule;
+    building_predicate_rule = true;
     
     short name = global->Getid(xn->nodes[0]->value);
     if (!global->predicates.check(name))
@@ -10279,7 +10285,7 @@ Tamgu* TamguCode::C_rawfact(x_node* xn, Tamgu* kf) {
     global->Activategarbage(previous);
     pv->Setreference();
     
-    predicate_rule = pred_rule;
+    building_predicate_rule = pred_rule;
     return pv;
 }
 
@@ -10290,8 +10296,8 @@ Tamgu* TamguCode::C_rawfact(x_node* xn, Tamgu* kf) {
 
 Tamgu* TamguCode::C_dcg(x_node* xn, Tamgu* kf) {
 
-    bool pred_rule = predicate_rule;
-    predicate_rule = true;
+    bool pred_rule = building_predicate_rule;
+    building_predicate_rule = true;
     
 	//the container is where the rules are stored...
 	TamguPredicateContainer* kpcont = global->Predicatecontainer();
@@ -10362,7 +10368,7 @@ Tamgu* TamguCode::C_dcg(x_node* xn, Tamgu* kf) {
 					krule->Addtail(kpcont, kpredelement);
 				else
 					krule->Addtail(kpcont, kblocelement);
-                predicate_rule = pred_rule;
+                building_predicate_rule = pred_rule;
 				return krule;
 			}
 
@@ -10394,7 +10400,7 @@ Tamgu* TamguCode::C_dcg(x_node* xn, Tamgu* kf) {
 			((TamguPredicateRule*)krule)->addfinal(kpcont);
 		else
 			krule->Addtail(kpcont, kblocelement);
-        predicate_rule = pred_rule;
+        building_predicate_rule = pred_rule;
 		return krule;
 	}
 
@@ -10445,7 +10451,7 @@ Tamgu* TamguCode::C_dcg(x_node* xn, Tamgu* kf) {
 	}
 
 	krule->Addtail(kpcont, kblocelement);
-    predicate_rule = pred_rule;
+    building_predicate_rule = pred_rule;
 	return krule;
 }
 
@@ -10624,8 +10630,8 @@ Tamgu* TamguCode::C_dependencyrule(x_node* xn, Tamgu* kf) {
 	if (xn->nodes.back()->token == "dependencyresult")
 		endidx--;
 
-    bool pred_rule = predicate_rule;
-    predicate_rule = true;
+    bool pred_rule = building_predicate_rule;
+    building_predicate_rule = true;
 	//We create our rule:
 	global->modifieddependency = NULL;
 	global->dependencyvariables.clear();
@@ -10691,7 +10697,7 @@ Tamgu* TamguCode::C_dependencyrule(x_node* xn, Tamgu* kf) {
 
 	//the container retrieved by Predicatecontainer is where the rules are stored... 
 	krule->Addtail(global->Predicatecontainer(), kblocelement);
-    predicate_rule = pred_rule;
+    building_predicate_rule = pred_rule;
 	return krule;
 }
 
@@ -10708,8 +10714,8 @@ Tamgu* TamguCode::C_predicate(x_node* xn, Tamgu* kf) {
 
 Tamgu* TamguCode::C_predicateexpression(x_node* xn, Tamgu* kf) {
 	//This is where we analyse our structure...
-    bool pred_rule = predicate_rule;
-    predicate_rule = true;
+    bool pred_rule = building_predicate_rule;
+    building_predicate_rule = true;
     
 	TamguPredicateRuleElement* kbloc = new TamguPredicateRuleElement(global, kf);
 	if (isnegation(xn->nodes[0]->token)) {
@@ -10744,7 +10750,7 @@ Tamgu* TamguCode::C_predicateexpression(x_node* xn, Tamgu* kf) {
 		}
 	}
     
-    predicate_rule = pred_rule;
+    building_predicate_rule = pred_rule;
 	return kbloc;
 }
 

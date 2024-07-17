@@ -24,6 +24,7 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<mapssMethod>  Tamgumapss::methods;
+static ThreadLock classlock;
 
 //-------------------------------------------------------------------------
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
@@ -41,7 +42,8 @@ void Tamgumapss::AddMethod(TamguGlobal* global, string name,mapssMethod func, un
 
 
 void Tamgumapss::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamgumapss::methods.isEmpty())
     Tamgumapss::InitialisationModule(global,"");
 }
 

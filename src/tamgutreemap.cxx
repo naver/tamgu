@@ -22,6 +22,7 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<treemapMethod>  Tamgutreemap::methods;
+static ThreadLock classlock;
 
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamgutreemap::AddMethod(TamguGlobal* global, string name, treemapMethod func, unsigned long arity, string infos) {
@@ -39,7 +40,8 @@ void Tamgutreemap::AddMethod(TamguGlobal* global, string name, treemapMethod fun
 
 
 void Tamgutreemap::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamgutreemap::methods.isEmpty())
     Tamgutreemap::InitialisationModule(global,"");
 }
 

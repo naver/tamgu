@@ -182,7 +182,7 @@ class Tamgutransducer : public TamguObject {
         //and run it with the proper parameters. This is the right call which should be invoked from within a class definition
 
 		Locking _lock(this);
-        return (this->*methods.get(idname))(contextualpattern, idthread, callfunc);
+        return (this->*Tamgutransducer::methods.get(idname))(contextualpattern, idthread, callfunc);
     }
 
     void Clear() {

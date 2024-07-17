@@ -23,6 +23,7 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<regularexpressionMethod>  Tamguregularexpression::methods;
+static ThreadLock classlock;
 
 //We only return the emoji head, when a head is present
 TAMGUCHAR getechar(wstring& s, long& i);
@@ -52,7 +53,8 @@ void Tamguregularexpression::AddMethod(TamguGlobal* global, string name, regular
 
 
 void Tamguregularexpression::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamguregularexpression::methods.isEmpty())
     Tamguregularexpression::InitialisationModule(global,"");
 }
 

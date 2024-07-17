@@ -1777,7 +1777,7 @@ Tamgu* TamguCallTamguVariable::Eval(Tamgu* context, Tamgu* object, short idthrea
 Exporting Tamgu* TamguCallMethod::Put(Tamgu* context, Tamgu* object, short idthread) {
 	//We execute the method associated to an object...
 	TamguCallMethod* call = this;
-	if (idthread && call->arguments.size()) {
+	if (idthread) {
 		//In the case of thread, we need to duplicate this structure
 		//in order to get a proper cleaning variable...
 		call = new TamguCallMethod(name);
@@ -1824,7 +1824,7 @@ Exporting Tamgu* TamguCallMethod::Eval(Tamgu* context, Tamgu* object, short idth
 	//We execute the method associated to an object...
     
 	TamguCallMethod* call = this;
-	if (idthread && call->arguments.size()) {
+	if (idthread) {
 		//In the case of thread, we need to duplicate this structure
 		//in order to get a proper cleaning variable...
 		call = new TamguCallMethod(name);
@@ -1879,7 +1879,7 @@ Exporting Tamgu* TamguCallFromCall::Put(Tamgu* context, Tamgu* object, short idt
     }
     
     TamguCallMethod* call = this;
-    if (idthread && call->arguments.size()) {
+    if (idthread) {
             //In the case of thread, we need to duplicate this structure
             //in order to get a proper cleaning variable...
         call = new TamguCallMethod(name);
@@ -1937,7 +1937,7 @@ Exporting Tamgu* TamguCallFromCall::Eval(Tamgu* context, Tamgu* object, short id
     }
     
     TamguCallMethod* call = this;
-    if (idthread && call->arguments.size()) {
+    if (idthread) {
             //In the case of thread, we need to duplicate this structure
             //in order to get a proper cleaning variable...
         call = new TamguCallMethod(name);
@@ -3461,7 +3461,7 @@ void TamguGlobal::Cleanthreads(TamguThreadCall* current) {
     }
 }
     
-Tamgu* TamguCallThread::Eval(Tamgu* environment, Tamgu* value, short idthread) {
+Tamgu* TamguCallThread::Eval(Tamgu* environment, Tamgu* domain, short idthread) {
 	//We enter a thread... //Now Locks will be created...
 	globalTamgu->Sethreading();
 
@@ -3470,7 +3470,8 @@ Tamgu* TamguCallThread::Eval(Tamgu* environment, Tamgu* value, short idthread) {
 		return globalTamgu->Returnerror(e_too_many_threads, idthread);
 
 	Tamgu* main = globalTamgu->Getmainframe(Currentspace());
-
+    Tamgu* value;
+    
 	globalTamgu->Pushstack(main, id);
 	short i;
 	vector<short> vars;
@@ -3500,7 +3501,11 @@ Tamgu* TamguCallThread::Eval(Tamgu* environment, Tamgu* value, short idthread) {
 		}
 	}
 
-	TamguThreadCall* threadcall = new TamguThreadCall(body, recipient, dom, cleandom, body->isExclusive(), id, idthread);
+    TamguThreadCall* threadcall;
+    if (predicate_rule)
+        threadcall = new TamguThreadCallFromPredicate(body, recipient, environment, cleandom, body->isExclusive(), id, idthread);
+    else
+        threadcall = new TamguThreadCall(body, recipient, dom, cleandom, body->isExclusive(), id, idthread);
 	threadcall->Getinfo(this);
 
     if (body->isJoined()) {
@@ -3510,14 +3515,46 @@ Tamgu* TamguCallThread::Eval(Tamgu* environment, Tamgu* value, short idthread) {
 
 	//we need to evaluate our arguments beforehand
 	Tamgu* a;
-	for (i = 0; i < arguments.size(); i++) {
-        a = arguments[i]->Eval(environment, aNULL, idthread)->GetvalueforThread();
-        if (!a->isProtected())
-            a->Enablelock(is_tobelocked);
-		a->Setreference();
-		threadcall->arguments.push_back(a);
+    bool error = false;
+	for (i = 0; i < arguments.size() && !error; i++) {
+        a = arguments[i]->Eval(environment, aNULL, idthread);
+        if (predicate_rule) {
+            if (domain->Failed()) {
+                if (a == aNOELEMENT) {
+                    a = arguments[i]->Execute(environment, aNULL, idthread);
+                    domain->Setfail(false);
+                }
+                else
+                    error = true;
+            }
+            else {
+                a = a->GetvalueforThread();
+                if (!a->isProtected())
+                    a->Enablelock(is_tobelocked);
+            }
+        }
+        else {
+            a = a->GetvalueforThread();
+            if (!a->isProtected())
+                a->Enablelock(is_tobelocked);
+        }
+        error = globalTamgu->Error(idthread);
+        if (!error) {
+            a->Setreference();
+            threadcall->arguments.push_back(a);
+        }
 	}
     
+    if (error) {
+        for (i = 0; i < threadcall->arguments.size(); i++) {
+            a = threadcall->arguments.vecteur[i];
+            a->Releasenonconst();
+        }
+        globalTamgu->threads[id].Clear();
+        delete threadcall;
+        return globalTamgu->Errorobject(idthread);
+    }
+
     threadcall->thid = new std::thread(AThread, threadcall);
     if (threadcall->thid == NULL) {
         globalTamgu->threads[id].Clear();
@@ -3526,7 +3563,7 @@ Tamgu* TamguCallThread::Eval(Tamgu* environment, Tamgu* value, short idthread) {
     }
     
     globalTamgu->Cleanthreads(threadcall);
-	return aNULL;
+	return aTRUE;
 }
 
 //____________________________________________________________________________________

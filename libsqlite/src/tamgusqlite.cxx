@@ -21,6 +21,7 @@
 
 //We need to declare once again our local definitions.
 basebin_hash<sqliteMethod>  Tamgusqlite::methods;
+static ThreadLock classlock;
 
 short Tamgusqlite::idtype = 0;
 
@@ -52,7 +53,8 @@ void Tamgusqlite::AddMethod(TamguGlobal* global, string name, sqliteMethod func,
 
 
 void Tamgusqlite::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamgusqlite::methods.isEmpty())
     Tamgusqlite::InitialisationModule(global,"");
 }
 

@@ -19,6 +19,7 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<frameinstanceMethod>  Tamguframeseeder::methods;
+static ThreadLock classlock;
 
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamguframeseeder::AddMethod(TamguGlobal* global, string name, frameinstanceMethod func, unsigned long arity, string infos) {
@@ -36,7 +37,8 @@ void Tamguframeseeder::AddMethod(TamguGlobal* global, string name, frameinstance
 
 
 void Tamguframeseeder::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamguframeseeder::methods.isEmpty())
     Tamguframeseeder::InitialisationModule(global,"");
 }
 

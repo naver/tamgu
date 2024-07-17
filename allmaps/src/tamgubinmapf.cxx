@@ -25,6 +25,7 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<binmapfMethod>  Tamgubinmapf::methods;
+static ThreadLock classlock;
 
 Exporting short Tamgubinmapf::idtype = 0;
 
@@ -43,7 +44,8 @@ void Tamgubinmapf::AddMethod(TamguGlobal* global, string name, binmapfMethod fun
 
 
 void Tamgubinmapf::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamgubinmapf::methods.isEmpty())
     Tamgubinmapf::InitialisationModule(global,"");
 }
 

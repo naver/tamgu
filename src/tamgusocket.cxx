@@ -104,6 +104,7 @@ static bool validstream(int nb) {
 //----------------------------------------------------------------------------------------------
 //We need to declare once again our local definitions.
 Exporting basebin_hash<socketMethod>  Tamgusocket::methods;
+static ThreadLock classlock;
 
 Exporting short Tamgusocket::idtype = 0;
 
@@ -129,7 +130,8 @@ static bool wsainit = true;
 
 
 void Tamgusocket::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamgusocket::methods.isEmpty())
     Tamgusocket::InitialisationModule(global,"");
 }
 

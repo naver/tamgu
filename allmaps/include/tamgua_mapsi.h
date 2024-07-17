@@ -345,7 +345,7 @@ class Tamgua_mapsi : public TamguContainer {
     Tamgu* CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         //This call is a bit cryptic. It takes the method (function) pointer that has been associated in our map with "name"
         //and run it with the proper parameters. This is the right call which should be invoked from within a class definition
-        return (this->*methods.get(idname))(contextualpattern, idthread, callfunc);
+        return (this->*Tamgua_mapsi::methods.get(idname))(contextualpattern, idthread, callfunc);
     }
 
     Exporting void Clear();

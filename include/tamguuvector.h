@@ -586,7 +586,7 @@ class Tamguuvector : public TamguLockContainer {
     Tamgu* CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         //This call is a bit cryptic. It takes the method (function) pointer that has been associated in our map with "name"
         //and run it with the proper parameters. This is the right call which should be invoked from within a class definition
-        return (this->*methods.get(idname))(contextualpattern, idthread, callfunc);
+        return (this->*Tamguuvector::methods.get(idname))(contextualpattern, idthread, callfunc);
     }
 
     Tamgu* Thesum(long i, long j) {
@@ -1214,7 +1214,7 @@ public:
     Tamgu* CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
             //This call is a bit cryptic. It takes the method (function) pointer that has been associated in our map with "name"
             //and run it with the proper parameters. This is the right call which should be invoked from within a class definition
-        return (this->*methods.get(idname))(contextualpattern, idthread, callfunc);
+        return (this->*Tamgua_uvector::methods.get(idname))(contextualpattern, idthread, callfunc);
     }
     
     Tamgu* Thesum(long i, long j) {

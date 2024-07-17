@@ -27,6 +27,7 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<annotatorMethod>  Tamguannotator::methods;
+static ThreadLock classlock;
 
 Exporting short Tamguannotator::idtype = 0;
 
@@ -52,7 +53,8 @@ void Tamguannotator::AddMethod(TamguGlobal* global, string name, annotatorMethod
 
 
 void Tamguannotator::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamguannotator::methods.isEmpty())
     Tamguannotator::InitialisationModule(global,"");
 }
 

@@ -480,12 +480,13 @@ public:
 	Tamgu* body;
 	Tamgu* recipient;
 	bool nonlimited;
+    bool predicate_rule;
 
 	bool Checkarity();
-	TamguCallThread(Tamgu* b, TamguGlobal* global = NULL, Tamgu* parent = NULL) : 
-		nonlimited(false),recipient(NULL), body(b), TamguCall(a_callthread, global, parent) {}
+	TamguCallThread(Tamgu* b, bool pred_rule = false, TamguGlobal* global = NULL, Tamgu* parent = NULL) :
+		nonlimited(false),recipient(NULL), body(b), predicate_rule(pred_rule), TamguCall(a_callthread, global, parent) {}
 
-	virtual Tamgu* Eval(Tamgu* context, Tamgu* domain, short idthread);
+	Tamgu* Eval(Tamgu* context, Tamgu* domain, short idthread);
 
 	short Name() {
 		return body->Name();
@@ -495,6 +496,10 @@ public:
 		return body->Body(idthread);
 	}
 
+    bool isThread() {
+        return true;
+    }
+    
 	Tamgu* Push(Tamgu* v) {
 		recipient = v;
 		recipient->Setreference();
@@ -546,12 +551,24 @@ public:
         }
     }
     
-	Tamgu* Eval(Tamgu* domain, Tamgu* value, short idthread);
+	virtual Tamgu* Eval(Tamgu* domain, Tamgu* value, short idthread);
 
 	short Name() {
 		return body->Name();
 	}
 
+};
+
+//This function call is used to call user declared functions
+class TamguThreadCallFromPredicate : public TamguThreadCall {
+public:
+
+    TamguThreadCallFromPredicate(Tamgu* b, Tamgu* r, Tamgu* d, bool c, bool e, short idt, short pid) : TamguThreadCall(b,r,d,c,e,idt,pid) {
+        joined = true;
+        ((TamguThread*)b)->joined = true;
+    }
+    Tamgu* Eval(Tamgu* domain, Tamgu* value, short idthread);
+    
 };
 
 //This function call is used to call user declared functions

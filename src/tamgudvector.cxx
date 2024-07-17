@@ -28,6 +28,7 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<dvectorMethod>  Tamgudvector::methods;
+static ThreadLock classlock;
 
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamgudvector::AddMethod(TamguGlobal* global, string name, dvectorMethod func, unsigned long arity, string infos) {
@@ -45,7 +46,8 @@ void Tamgudvector::AddMethod(TamguGlobal* global, string name, dvectorMethod fun
 
 
 void Tamgudvector::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamgudvector::methods.isEmpty())
     Tamgudvector::InitialisationModule(global,"");
 }
 

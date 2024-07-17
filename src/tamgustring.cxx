@@ -42,6 +42,7 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<stringMethod>  Tamgustring::methods;
+static ThreadLock classlock;
 
 #ifdef DOSOUTPUT
 static bool dosoutput = true;
@@ -68,14 +69,12 @@ void Tamgustring::AddMethod(TamguGlobal* global, string name, stringMethod func,
         global->returntypes[idname] = returntype;
 }
 
-
-
-
+ 
 void Tamgustring::Setidtype(TamguGlobal* global) {
-    if (methods.isEmpty())
+    Locking lock(classlock);
+    if (Tamgustring::methods.isEmpty())
         Tamgustring::InitialisationModule(global,"");
 }
-
 
 bool Tamgustring::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();

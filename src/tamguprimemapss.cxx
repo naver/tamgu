@@ -24,6 +24,7 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<primemapssMethod>  Tamguprimemapss::methods;
+static ThreadLock classlock;
 
 Exporting short Tamguprimemapss::idtype = 0;
 
@@ -44,7 +45,8 @@ void Tamguprimemapss::AddMethod(TamguGlobal* global, string name,primemapssMetho
 
 
 void Tamguprimemapss::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamguprimemapss::methods.isEmpty())
     Tamguprimemapss::InitialisationModule(global,"");
 }
 

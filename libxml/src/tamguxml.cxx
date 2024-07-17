@@ -56,6 +56,7 @@ void xmlnodeclear(xmlNodePtr n) {
 
 //We need to declare once again our local definitions.
 basebin_hash<xmlMethod>  Tamguxml::methods;
+static ThreadLock classlock;
 
 short Tamguxml::idtype = 0;
 
@@ -74,7 +75,8 @@ void Tamguxml::AddMethod(TamguGlobal* global, string name, xmlMethod func, unsig
 
 
 void Tamguxml::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamguxml::methods.isEmpty())
     Tamguxml::InitialisationModule(global,"");
 }
 

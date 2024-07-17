@@ -24,6 +24,7 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<ufileMethod>  Tamguufile::methods;
+static ThreadLock classlock;
 
 Exporting short Tamguufile::idtype = 0;
 
@@ -45,7 +46,8 @@ void Tamguufile::AddMethod(TamguGlobal* global, string name, ufileMethod func, u
 
 
 void Tamguufile::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamguufile::methods.isEmpty())
     Tamguufile::InitialisationModule(global,"");
 }
 

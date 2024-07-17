@@ -31,6 +31,7 @@ static map<string, int> solvers;
 
 //We need to declare once again our local definitions.
 basebin_hash<liblinearMethod>  Tamguliblinear::methods;
+static ThreadLock classlock;
 
 short Tamguliblinear::idtype = 0;
 
@@ -92,7 +93,8 @@ void Tamguliblinear::AddMethod(TamguGlobal* global, string name, liblinearMethod
 
 
 void Tamguliblinear::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamguliblinear::methods.isEmpty())
     Tamguliblinear::InitialisationModule(global,"");
 }
 

@@ -25,6 +25,7 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<mapuiMethod>  Tamgumapui::methods;
+static ThreadLock classlock;
 
 Exporting short Tamgumapui::idtype = 0;
 
@@ -45,7 +46,8 @@ void Tamgumapui::AddMethod(TamguGlobal* global, string name,mapuiMethod func, un
 
 
 void Tamgumapui::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamgumapui::methods.isEmpty())
     Tamgumapui::InitialisationModule(global,"");
 }
 

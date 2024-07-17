@@ -25,6 +25,7 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<mapsiMethod>  Tamgumapsi::methods;
+static ThreadLock classlock;
 
 Exporting short Tamgumapsi::idtype = 0;
 
@@ -45,7 +46,8 @@ void Tamgumapsi::AddMethod(TamguGlobal* global, string name,mapsiMethod func, un
 
 
 void Tamgumapsi::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamgumapsi::methods.isEmpty())
     Tamgumapsi::InitialisationModule(global,"");
 }
 

@@ -435,7 +435,10 @@ public:
         return true;
     }
 
-	//------------------------------------------------------------------
+    virtual void Setdomainlock() {}
+    virtual void Resetdomainlock() {}
+    
+    //------------------------------------------------------------------
 	virtual void SetVariablesWillBeCreated() {}
 	virtual void Forcedclean() {}
 	virtual void Setforced(bool v) {}
@@ -1816,7 +1819,7 @@ public:
 //This class is used to handle objects, which can be either cleaned or deleted...
 class TamguObject : public TamguReference {
 public:
-	ThreadLock* _locker;
+ 	ThreadLock* _locker;
 
     TamguObject(TamguGlobal* g, Tamgu* parent = NULL) : TamguReference(g, parent)  {
         _locker = new ThreadLock;

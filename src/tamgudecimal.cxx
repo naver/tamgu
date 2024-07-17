@@ -29,6 +29,7 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<decimalMethod>  Tamgudecimal::methods;
+static ThreadLock classlock;
 
 
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
@@ -51,7 +52,8 @@ void Tamgudecimal::AddMethod(TamguGlobal* global, string name, decimalMethod fun
 
 
 void Tamgudecimal::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamgudecimal::methods.isEmpty())
     Tamgudecimal::InitialisationModule(global,"");
 }
 
@@ -243,7 +245,8 @@ void Tamgucomplex::AddMethod(TamguGlobal* global, string name, complexMethod fun
 
 
 void Tamgucomplex::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamgucomplex::methods.isEmpty())
     Tamgucomplex::InitialisationModule(global,"");
 }
 

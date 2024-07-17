@@ -21,6 +21,7 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<synodeMethod>  Tamgusynode::methods;
+static ThreadLock classlock;
 
 Tamgumapss* Tamgusynode::validfeatures = NULL;
 bool Tamgusynode::testvalid = false;
@@ -41,7 +42,8 @@ Exporting void Tamgusynode::AddMethod(TamguGlobal* global, string name, synodeMe
 
 
 void Tamgusynode::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamgusynode::methods.isEmpty())
     Tamgusynode::InitialisationModule(global,"");
 }
 

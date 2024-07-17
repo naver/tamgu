@@ -38,6 +38,7 @@
 //------------------------------------------------------------------------------------------------------------------------
 //We need to declare once again our local definitions.
 Exporting basebin_hash<ustringMethod>  Tamguustring::methods;
+static ThreadLock classlock;
 
 #ifdef UNIX
 #define swprintf_s swprintf
@@ -69,7 +70,8 @@ void Tamguustring::AddMethod(TamguGlobal* global, string name, ustringMethod fun
 
 
 void Tamguustring::Setidtype(TamguGlobal* global) {
-    if (methods.isEmpty())
+    Locking lock(classlock);
+    if (Tamguustring::methods.isEmpty())
         Tamguustring::InitialisationModule(global,"");
 }
 

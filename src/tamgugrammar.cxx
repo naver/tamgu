@@ -26,7 +26,7 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<grammarMethod>  Tamgugrammar::methods;
-
+static ThreadLock classlock;
 
 Exporting short Tamgugrammar::idtype = 0;
 
@@ -36,9 +36,9 @@ void Tamgugrammar::AddMethod(TamguGlobal* global, string name, grammarMethod fun
     short idname = global->Getid(name);
     methods[idname] = func;
     if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
-    return;
-
+        global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+        return;
+    
     global->infomethods[idtype][name] = infos;
     global->RecordArity(idtype, idname, arity);
 }
@@ -46,13 +46,13 @@ void Tamgugrammar::AddMethod(TamguGlobal* global, string name, grammarMethod fun
 
 
 
-    void Tamgugrammar::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
-    Tamgugrammar::InitialisationModule(global,"");
+void Tamgugrammar::Setidtype(TamguGlobal* global) {
+    Locking lock(classlock);
+    if (Tamgugrammar::methods.isEmpty())
+        Tamgugrammar::InitialisationModule(global,"");
 }
 
-
-   bool Tamgugrammar::InitialisationModule(TamguGlobal* global, string version) {
+bool Tamgugrammar::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
     
     
@@ -829,8 +829,8 @@ char gramstate::compare(short idthread, GrammarBaseAutomaton* gram, vector<wstri
             i = c;
             continue;
         }
-
-		found = a->test(labels[i]);
+        
+        found = a->test(labels[i]);
         
         if (found) {
             if (found == 1 && v != aNULL) {
@@ -926,202 +926,202 @@ char gramstate::compare(short idthread, GrammarBaseAutomaton* gram, wstring& lab
     if (gram->function != NULL)
         callfunc = true;
     
-	for (long u = 0; u < arcs.size(); u++) {
-		gramarc* a = arcs[u];
-		if ((a->status&gfunction) == gfunction) {
-			Tamgu* kfunc = globalTamgu->Getdefinition(a->idrule, idthread);
-			if (v != aNULL) {
-				v->Setreference();
-				if (!gram->callfunction(kfunc, idthread, v, i)) {
-					v->Setprotect(1);
-					v->Resetreference();
-					v->Setprotect(1);
-					continue;
-				}
-				v->Setprotect(1);
-				v->Resetreference();
-				v->Setprotect(1);
-			}
-
-			if ((ret = a->state->compare(idthread, gram, labels, i, v, asstring)))
-				return ret;
-
-			i = c;
-			continue;
-		}
-
-		if ((a->status&grule) == grule) {
-			//then we need to apply a rule to it...
-			Tamgu* sube = aNULL;
-			Tamguvector* sub = NULL;
-			if (v != aNULL) {
-				sub = globalTamgu->Providevector();
-				sub->storevalue(a->wlabel);
-				sube = sub;
-			}
-
-
-			ret = gram->rules[a->idrule]->compare(idthread, gram, labels, i, sube, asstring);
-			found = false;
-			topop = false;
-
-			if ((a->status&gnegation) == gnegation) {
-				if (!ret) {
-					found = true;
-					if (!(a->status&gkeepout)) {
-						if (asstring) {
-							if (v->Size() == 1 || v->Last()->isVectorContainer()) {
-								v->storevalue(L"");
-								topop = true;
-							}
-							v->addstringto(labels[i++], -1);
-						}
-						else {
-							v->storevalue(labels[i++]);
-							topop = true;
-						}
-					}
-					else
-						++i;
-					sub->Clear();
-				}
-			}
-			else {
-				if (ret)
-					found = true;
-				else
-					sube->Release();
-			}
-
-			if (found) {
-				if (ret == gend) {
-					sube->Release();
-					return ret;
-				}
-
-				if (v != aNULL && !(a->status&gkeepout)) {
-					if (callfunc) {
-						sub->Setreference();
-						if (!gram->callfunction(idthread, a->wlabel, sub, i)) {
-							sub->Resetreference();
-							continue;
-						}
-
-						sub->protect = 1;
-						sub->Resetreference();
-						sub->protect = 1;
-					}
-
-					if (a->wlabel[0] == '_') {
-						//then we merge its content with the current structure
-						if (sub->values.size() > 0) {
-							sub->Pop(aZERO);
-							v->Merging(sub);
-							topop = true;
-						}
-						sub->Clear();
-					}
-					else
-						if (sub->values.size()) {
-							v->Push(sub);
-							topop = true;
-						}
-				}
-
-				sube->Release();
-
-				found = false;
-				//This is a loop, and we have gotten to here, it means that we had some succesfull loops...
-				//We do not need to go back into recursion...
-				if ((a->status&gloop) == gloop && a->state == this) {
-					//this could be a final state...
-					if (i == labels.size()) {
-						if ((status&gend) == gend)
-							found = true;
-					}
-					else {
-						c = i;
-						if ((a->status&gloopmax) == gloopmax) {
-							if ((ret = a->state->compare(idthread, gram, labels, i, v, asstring)))
-								return ret;
-							if (topop)
-								v->Pop(aMINUSONE);
-							i = c;
-						}
-						else
-							u = -1;
-						topop = false;
-						continue;
-					}
-				}
-
-				if (found || (ret = a->state->compare(idthread, gram, labels, i, v, asstring))) {
-					if (ret == gend)
-						return ret;
-
-					if (a->wlabel[0] == '_' && sub != NULL && !(a->status&gkeepout)) {
-						if (asstring) {
-							sub = (Tamguvector*)v;
-							long x;
-							//Then we try to merge the value together...
-							wstring mrg;
-							bool replace = true;
-							long sz = sub->values.size();
-							for (x = 1; x < sz; x++) {
-								if (!sub->values[x]->isString()) {
-									replace = false;
-									break;
-								}
-								mrg += sub->getustring(x);
-							}
-							if (replace) {
-								for (x = 1; x < sz; x++)
-									v->Pop(aMINUSONE);
-								v->storevalue(mrg);
-							}
-						}
-					}
-					return true;
-				}
-			}
-
-			if (topop)
-				v->Pop(aMINUSONE);
-
-			i = c;
-			continue;
-		}
-
-		wstring labelw;
-		if ((a->status&gmulti) == gmulti) {
-			found = true;
-			if (asstring) {
-				//a->idrule contains the label size in characters...
-				long limit = a->test(labels, labelw, i);
-				if (limit == -1)
-					found = false;
-				else
-					i = limit;
-			}
-			else {
-				if (labels[i] != a->wlabel[0])
-					found = false;
-			}
-		}
-		else {
+    for (long u = 0; u < arcs.size(); u++) {
+        gramarc* a = arcs[u];
+        if ((a->status&gfunction) == gfunction) {
+            Tamgu* kfunc = globalTamgu->Getdefinition(a->idrule, idthread);
+            if (v != aNULL) {
+                v->Setreference();
+                if (!gram->callfunction(kfunc, idthread, v, i)) {
+                    v->Setprotect(1);
+                    v->Resetreference();
+                    v->Setprotect(1);
+                    continue;
+                }
+                v->Setprotect(1);
+                v->Resetreference();
+                v->Setprotect(1);
+            }
+            
+            if ((ret = a->state->compare(idthread, gram, labels, i, v, asstring)))
+                return ret;
+            
+            i = c;
+            continue;
+        }
+        
+        if ((a->status&grule) == grule) {
+            //then we need to apply a rule to it...
+            Tamgu* sube = aNULL;
+            Tamguvector* sub = NULL;
+            if (v != aNULL) {
+                sub = globalTamgu->Providevector();
+                sub->storevalue(a->wlabel);
+                sube = sub;
+            }
+            
+            
+            ret = gram->rules[a->idrule]->compare(idthread, gram, labels, i, sube, asstring);
+            found = false;
+            topop = false;
+            
+            if ((a->status&gnegation) == gnegation) {
+                if (!ret) {
+                    found = true;
+                    if (!(a->status&gkeepout)) {
+                        if (asstring) {
+                            if (v->Size() == 1 || v->Last()->isVectorContainer()) {
+                                v->storevalue(L"");
+                                topop = true;
+                            }
+                            v->addstringto(labels[i++], -1);
+                        }
+                        else {
+                            v->storevalue(labels[i++]);
+                            topop = true;
+                        }
+                    }
+                    else
+                        ++i;
+                    sub->Clear();
+                }
+            }
+            else {
+                if (ret)
+                    found = true;
+                else
+                    sube->Release();
+            }
+            
+            if (found) {
+                if (ret == gend) {
+                    sube->Release();
+                    return ret;
+                }
+                
+                if (v != aNULL && !(a->status&gkeepout)) {
+                    if (callfunc) {
+                        sub->Setreference();
+                        if (!gram->callfunction(idthread, a->wlabel, sub, i)) {
+                            sub->Resetreference();
+                            continue;
+                        }
+                        
+                        sub->protect = 1;
+                        sub->Resetreference();
+                        sub->protect = 1;
+                    }
+                    
+                    if (a->wlabel[0] == '_') {
+                        //then we merge its content with the current structure
+                        if (sub->values.size() > 0) {
+                            sub->Pop(aZERO);
+                            v->Merging(sub);
+                            topop = true;
+                        }
+                        sub->Clear();
+                    }
+                    else
+                        if (sub->values.size()) {
+                            v->Push(sub);
+                            topop = true;
+                        }
+                }
+                
+                sube->Release();
+                
+                found = false;
+                //This is a loop, and we have gotten to here, it means that we had some succesfull loops...
+                //We do not need to go back into recursion...
+                if ((a->status&gloop) == gloop && a->state == this) {
+                    //this could be a final state...
+                    if (i == labels.size()) {
+                        if ((status&gend) == gend)
+                            found = true;
+                    }
+                    else {
+                        c = i;
+                        if ((a->status&gloopmax) == gloopmax) {
+                            if ((ret = a->state->compare(idthread, gram, labels, i, v, asstring)))
+                                return ret;
+                            if (topop)
+                                v->Pop(aMINUSONE);
+                            i = c;
+                        }
+                        else
+                            u = -1;
+                        topop = false;
+                        continue;
+                    }
+                }
+                
+                if (found || (ret = a->state->compare(idthread, gram, labels, i, v, asstring))) {
+                    if (ret == gend)
+                        return ret;
+                    
+                    if (a->wlabel[0] == '_' && sub != NULL && !(a->status&gkeepout)) {
+                        if (asstring) {
+                            sub = (Tamguvector*)v;
+                            long x;
+                            //Then we try to merge the value together...
+                            wstring mrg;
+                            bool replace = true;
+                            long sz = sub->values.size();
+                            for (x = 1; x < sz; x++) {
+                                if (!sub->values[x]->isString()) {
+                                    replace = false;
+                                    break;
+                                }
+                                mrg += sub->getustring(x);
+                            }
+                            if (replace) {
+                                for (x = 1; x < sz; x++)
+                                    v->Pop(aMINUSONE);
+                                v->storevalue(mrg);
+                            }
+                        }
+                    }
+                    return true;
+                }
+            }
+            
+            if (topop)
+                v->Pop(aMINUSONE);
+            
+            i = c;
+            continue;
+        }
+        
+        wstring labelw;
+        if ((a->status&gmulti) == gmulti) {
+            found = true;
+            if (asstring) {
+                //a->idrule contains the label size in characters...
+                long limit = a->test(labels, labelw, i);
+                if (limit == -1)
+                    found = false;
+                else
+                    i = limit;
+            }
+            else {
+                if (labels[i] != a->wlabel[0])
+                    found = false;
+            }
+        }
+        else {
 #ifdef WSTRING_IS_UTF16
-			if (!checklargeutf16(labels[i]))
-				found = a->test(labels[i]);
-			else {
-				uint32_t r;
-				c_utf16_to_unicode(r, labels[i], false);
-				c_utf16_to_unicode(r, labels[++i], true);
-				found = a->test(r);
-			}
+            if (!checklargeutf16(labels[i]))
+                found = a->test(labels[i]);
+            else {
+                uint32_t r;
+                c_utf16_to_unicode(r, labels[i], false);
+                c_utf16_to_unicode(r, labels[++i], true);
+                found = a->test(r);
+            }
 #else
-			found = a->test(labels[i]);
+            found = a->test(labels[i]);
 #endif
-		}
+        }
         if (found) {
             if (found == 1 && v != aNULL) {
                 if (asstring) {
@@ -1630,20 +1630,20 @@ char gramstate::comparemap(short idthread, wstring& lkey, GrammarBaseAutomaton* 
                     found = false;
             }
         }
-		else {
+        else {
 #ifdef WSTRING_IS_UTF16
-			if (!checklargeutf16(labels[i]))
-				found = a->test(labels[i]);
-			else {
-				uint32_t r;
-				c_utf16_to_unicode(r, labels[i], false);
-				c_utf16_to_unicode(r, labels[++i], true);
-				found = a->test(r);
-			}
+            if (!checklargeutf16(labels[i]))
+                found = a->test(labels[i]);
+            else {
+                uint32_t r;
+                c_utf16_to_unicode(r, labels[i], false);
+                c_utf16_to_unicode(r, labels[++i], true);
+                found = a->test(r);
+            }
 #else
-			found = a->test(labels[i]);
+            found = a->test(labels[i]);
 #endif
-		}
+        }
         if (found) {
             if (found == 1) {
                 if (asstring) {

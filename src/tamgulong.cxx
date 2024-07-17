@@ -12,7 +12,7 @@
  Purpose    : 
  Programmer : Claude ROUX (claude.roux@naverlabs.com)
  Reviewer   :
-*/
+ */
 
 #include "tamgu.h"
 #include "tamgulong.h"
@@ -22,15 +22,16 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<longMethod>  Tamgulong::methods;
+static ThreadLock classlock;
 
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamgulong::AddMethod(TamguGlobal* global, string name, longMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
     if (global->infomethods.find(a_long) != global->infomethods.end() &&
-            global->infomethods[a_long].find(name) != global->infomethods[a_long].end())
-    return;
-
+        global->infomethods[a_long].find(name) != global->infomethods[a_long].end())
+        return;
+    
     global->infomethods[a_long][name] = infos;
     global->RecordArity(a_long, idname, arity);
     global->RecordArity(a_longthrough, idname, arity);
@@ -41,23 +42,24 @@ void Tamgulong::AddMethod(TamguGlobal* global, string name, longMethod func, uns
 
 
 void Tamgulong::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
-    Tamgulong::InitialisationModule(global,"");
+    Locking lock(classlock);
+    if (Tamgulong::methods.isEmpty())
+        Tamgulong::InitialisationModule(global,"");
 }
 
 
-   bool Tamgulong::InitialisationModule(TamguGlobal* global, string version) {
+bool Tamgulong::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
     
     Tamgulong::AddMethod(global, "chr", &Tamgulong::Methodchr, P_NONE, "chr(): return the character matching the unicode code");
     Tamgulong::AddMethod(global, "format", &Tamgulong::MethodFormat, P_ONE, "format(string pattern): Return a string matching the C pattern.");
     Tamgulong::AddMethod(global, "isprime", &Tamgulong::MethodPrime, P_NONE, "prime(): return true is the number is a prime");
     Tamgulong::AddMethod(global, "factors", &Tamgulong::MethodPrimefactors, P_NONE, "factors(): return the list of prime factors");
-
+    
     Tamgulong::AddMethod(global, "succ", &Tamgulong::MethodSucc, P_NONE, "succ(): return the successor of an integer");
     Tamgulong::AddMethod(global, "pred", &Tamgulong::MethodPred, P_NONE, "pred(): Return the predecessor of a byte.");
-
-
+    
+    
     Tamgulong::AddMethod(global, "abs", &Tamgulong::Methodabs, P_NONE, "abs(): call fabs on the value");
     Tamgulong::AddMethod(global, "acos", &Tamgulong::Methodacos, P_NONE, "acos(): call acos on the value");
     Tamgulong::AddMethod(global, "acosh", &Tamgulong::Methodacosh, P_NONE, "acosh(): call acosh on the value");
@@ -92,9 +94,9 @@ void Tamgulong::Setidtype(TamguGlobal* global) {
     Tamgulong::AddMethod(global, "trunc", &Tamgulong::Methodtrunc, P_NONE, "trunc(): call trunc on the value");
     Tamgulong::AddMethod(global, "even", &Tamgulong::Methodeven, P_NONE, "even(): return true is the value is even");
     Tamgulong::AddMethod(global, "odd", &Tamgulong::Methododd, P_NONE, "odd(): return true is the value is odd");
-
-
-
+    
+    
+    
     if (version != "") {
         global->newInstance[a_long] = new Tamgulong(0, global);
         global->newInstance[a_longthrough] = global->newInstance[a_long];
@@ -107,25 +109,25 @@ void Tamgulong::Setidtype(TamguGlobal* global) {
 }
 
 Tamgu* Tamgulong::MethodFormat(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-
+    
     char buffer[101];
     Tamgu* kformat = callfunc->Evaluate(0, contextualpattern, idthread);
     string sformat = kformat->String();
-
-    #ifdef WIN32
+    
+#ifdef WIN32
     _set_invalid_parameter_handler(wrongSprintf);
-
+    
     errorsprintf = false;
     sprintf_s(buffer, 100, STR(sformat), Long());
     if (errorsprintf == true)
         return globalTamgu->Returnerror(e_incorrect_format_specifier, idthread);
-    #else
+#else
     int spres;
     spres = sprintf_s(buffer, 100, STR(sformat), Long());
     if (spres<0)
         return globalTamgu->Returnerror("TAMGUI(124):Incorrect format specifier or size too long", idthread);
-    #endif
-
+#endif
+    
     return globalTamgu->Providestring(buffer);
 }
 
@@ -140,9 +142,9 @@ Tamgu* Tamgulong::Methodchr(Tamgu* contextualpattern, short idthread, TamguCall*
 //--------------------------------------------------------------------------------------------
 
 void TamguLoopLong::Callfunction() {
-
+    
     TamguCallFunction2 kfunc(function);
-
+    
     Tamguint* ki = globalTamgu->Provideint(position);
     ki->Setreference();
     kfunc.arguments.push_back(this);
@@ -161,7 +163,7 @@ Tamgu* TamguLoopLong::Put(Tamgu* context, Tamgu* ke, short idthread) {
         value = interval[0];
         return aTRUE;
     }
-
+    
     if (ke->Type() == a_lloop) {
         TamguLoopLong* kl = (TamguLoopLong*)ke;
         interval = kl->interval;
@@ -169,13 +171,13 @@ Tamgu* TamguLoopLong::Put(Tamgu* context, Tamgu* ke, short idthread) {
         position = kl->position;
         return aTRUE;
     }
-
+    
     if (interval.size() == 0) {
         position = 0;
         value = 0;
         return aTRUE;
     }
-
+    
     position = ke->Integer();
     if (position >= interval.size())
         position = position % interval.size();

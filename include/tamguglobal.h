@@ -227,6 +227,7 @@ public:
 extern GlobalConstants globalConstants;
 
 #define aUNIVERSAL globalConstants.gUNIVERSAL
+#define aUNIVERSAL globalConstants.gUNIVERSAL
 #define aTRUE globalConstants.gTRUE
 #define aFALSE globalConstants.gFALSE
 #define aMINUSONE globalConstants.gMINUSONE

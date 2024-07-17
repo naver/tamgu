@@ -9,10 +9,10 @@
  Version    : See tamgu.cxx for the version number
  filename   : tamgufloat.cxx
  Date       : 2017/09/01
- Purpose    : 
+ Purpose    :
  Programmer : Claude ROUX (claude.roux@naverlabs.com)
  Reviewer   :
-*/
+ */
 
 #include "tamgu.h"
 #include "tamgufloat.h"
@@ -28,16 +28,16 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<floatMethod>  Tamgufloat::methods;
-
+static ThreadLock classlock;
 
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamgufloat::AddMethod(TamguGlobal* global, string name, floatMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
     if (global->infomethods.find(a_float) != global->infomethods.end() &&
-            global->infomethods[a_float].find(name) != global->infomethods[a_float].end())
-    return;
-
+        global->infomethods[a_float].find(name) != global->infomethods[a_float].end())
+        return;
+    
     global->infomethods[a_float][name] = infos;
     global->RecordArity(a_float, idname, arity);
     global->RecordArity(global->Getid("real"), idname, arity);
@@ -49,8 +49,9 @@ void Tamgufloat::AddMethod(TamguGlobal* global, string name, floatMethod func, u
 static const double M_GOLDEN = 1.61803398874989484820458683436563811772030917980576286213544862270526046281890244970720720418939113748475;
 
 void Tamgufloat::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
-    Tamgufloat::InitialisationModule(global,"");
+    Locking lock(classlock);
+    if (Tamgufloat::methods.isEmpty())
+        Tamgufloat::InitialisationModule(global,"");
 }
 
 
@@ -61,15 +62,15 @@ bool Tamgufloat::InitialisationModule(TamguGlobal* global, string version) {
     Tamgufloat::AddMethod(global, "invert", &Tamgufloat::MethodInvert, P_NONE, "invert(): value inversion as a fraction");
     Tamgufloat::AddMethod(global, "succ", &Tamgufloat::MethodSucc, P_NONE, "succ(): Return a successor of the current value");
     Tamgufloat::AddMethod(global, "pred", &Tamgufloat::MethodPred, P_NONE, "pred(): Return the predecessor of a byte.");
-
+    
     Tamgufloat::AddMethod(global, "format", &Tamgufloat::MethodFormat, P_ONE, "format(string pattern): Return a string matching the C pattern.");
     Tamgufloat::AddMethod(global, "radian", &Tamgufloat::MethodRadian, P_NONE, "radian(): return the radian value out of a degree value");
     Tamgufloat::AddMethod(global, "degree", &Tamgufloat::MethodDegree, P_NONE, "degree(): return the degree value out of a radian value");
-
+    
     Tamgufloat::AddMethod(global, "bits", &Tamgufloat::MethodBits, P_NONE|P_ONE, "bits(): return the bit representation or initialize a float number with a bit representation (bits(long v))");
     Tamgufloat::AddMethod(global, "mantissa", &Tamgufloat::MethodMantissa, P_NONE, "mantissa(): return the mantissa value as a float");
     Tamgufloat::AddMethod(global, "exponent", &Tamgufloat::MethodExponent, P_NONE, "exponent(): return the exponent value as an int");
-
+    
     Tamgufloat::AddMethod(global, "abs", &Tamgufloat::Methodabs, P_NONE, "abs(): call fabs on the value");
     Tamgufloat::AddMethod(global, "acos", &Tamgufloat::Methodacos, P_NONE, "acos(): call acos on the value");
     Tamgufloat::AddMethod(global, "acosh", &Tamgufloat::Methodacosh, P_NONE, "acosh(): call acosh on the value");
@@ -104,34 +105,34 @@ bool Tamgufloat::InitialisationModule(TamguGlobal* global, string version) {
     Tamgufloat::AddMethod(global, "trunc", &Tamgufloat::Methodtrunc, P_NONE, "trunc(): call trunc on the value");
     Tamgufloat::AddMethod(global, "even", &Tamgufloat::Methodeven, P_NONE, "even(): return true is the value is even");
     Tamgufloat::AddMethod(global, "odd", &Tamgufloat::Methododd, P_NONE, "odd(): return true is the value is odd");
-
+    
     short idreal = global->Getid("real");
-
-	if (version != "") {
-		global->newInstance[a_float] = new Tamgufloat(0, global);
-		global->newInstance[idreal] = new Tamgufloat(0, global);
-		global->newInstance[a_floatthrough] = global->newInstance[a_float];
-
-		global->RecordCompatibilities(a_float);
-		global->RecordCompatibilities(idreal);
-		global->RecordCompatibilities(a_floatthrough);
-
-		global->RecordCompatibilities(a_floop);
-
-		global->CreateSystemVariable(new TamguConstFloat(M_PI), "_pi", a_float);
-
-		global->CreateSystemVariable(new TamguConstFloat(M_PI), "π", a_float);
-
-		global->CreateSystemVariable(new TamguConstFloat(2 * M_PI), "_tau", a_float);
-		global->CreateSystemVariable(new TamguConstFloat(2 * M_PI), "τ", a_float);
-
-		global->CreateSystemVariable(new TamguConstFloat(M_E), "_e", a_float);
-		global->CreateSystemVariable(new TamguConstFloat(M_E), "ℯ", a_float);
-
-		global->CreateSystemVariable(new TamguConstFloat(M_GOLDEN), "_phi", a_float);
-		global->CreateSystemVariable(new TamguConstFloat(M_GOLDEN), "φ", a_float);
-	}
-
+    
+    if (version != "") {
+        global->newInstance[a_float] = new Tamgufloat(0, global);
+        global->newInstance[idreal] = new Tamgufloat(0, global);
+        global->newInstance[a_floatthrough] = global->newInstance[a_float];
+        
+        global->RecordCompatibilities(a_float);
+        global->RecordCompatibilities(idreal);
+        global->RecordCompatibilities(a_floatthrough);
+        
+        global->RecordCompatibilities(a_floop);
+        
+        global->CreateSystemVariable(new TamguConstFloat(M_PI), "_pi", a_float);
+        
+        global->CreateSystemVariable(new TamguConstFloat(M_PI), "π", a_float);
+        
+        global->CreateSystemVariable(new TamguConstFloat(2 * M_PI), "_tau", a_float);
+        global->CreateSystemVariable(new TamguConstFloat(2 * M_PI), "τ", a_float);
+        
+        global->CreateSystemVariable(new TamguConstFloat(M_E), "_e", a_float);
+        global->CreateSystemVariable(new TamguConstFloat(M_E), "ℯ", a_float);
+        
+        global->CreateSystemVariable(new TamguConstFloat(M_GOLDEN), "_phi", a_float);
+        global->CreateSystemVariable(new TamguConstFloat(M_GOLDEN), "φ", a_float);
+    }
+    
     Tamguatomicfloat::InitialisationModule(global, version);
     
     return true;
@@ -146,9 +147,9 @@ void Tamguatomicfloat::AddMethod(TamguGlobal* global, string name, atomicfloatMe
     short idname = global->Getid(name);
     methods[idname] = func;
     if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
-    return;
-
+        global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+        return;
+    
     global->infomethods[idtype][name] = infos;
     global->RecordArity(idtype, idname, arity);
 }
@@ -225,25 +226,25 @@ Tamgu* Tamgufloat::Methodchr(Tamgu* contextualpattern, short idthread, TamguCall
 
 
 Tamgu* Tamgufloat::MethodFormat(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-
+    
     char buffer[101];
     Tamgu* kformat = callfunc->Evaluate(0, contextualpattern, idthread);
     string sformat = kformat->String();
-
-    #ifdef WIN32
+    
+#ifdef WIN32
     _set_invalid_parameter_handler(wrongSprintf);
-
+    
     errorsprintf = false;
     sprintf_s(buffer, 100, STR(sformat), Float());
     if (errorsprintf == true)
         return globalTamgu->Returnerror(e_incorrect_format_specifier, idthread);
-    #else
+#else
     int spres;
     spres = sprintf_s(buffer, 100, STR(sformat), Float());
     if (spres<0)
         return globalTamgu->Returnerror("TAMGUI(124):Incorrect format specifier or size too long",idthread);
-    #endif
-
+#endif
+    
     return globalTamgu->Providestring(buffer);
 }
 
@@ -304,9 +305,9 @@ Tamgu* Tamguatomicfloat::MethodDegree(Tamgu* contextualpattern, short idthread, 
 }
 
 void TamguLoopFloat::Callfunction() {
-
+    
     TamguCallFunction2 kfunc(function);
-
+    
     Tamgu* ki = globalTamgu->ProvideConstint(position);
     ki->Setreference();
     kfunc.arguments.push_back(this);
@@ -324,7 +325,7 @@ Tamgu* TamguLoopFloat::Put(Tamgu* context, Tamgu* ke, short idthread) {
         value = interval[0];
         return aTRUE;
     }
-
+    
     if (ke->Type() == a_floop) {
         TamguLoopFloat* kl = (TamguLoopFloat*)ke;
         interval = kl->interval;
@@ -332,13 +333,13 @@ Tamgu* TamguLoopFloat::Put(Tamgu* context, Tamgu* ke, short idthread) {
         position = kl->position;
         return aTRUE;
     }
-
+    
     if (interval.size() == 0) {
         position = 0;
         value = 0;
         return aTRUE;
     }
-
+    
     position = ke->Integer();
     if (position >= interval.size())
         position = position % interval.size();

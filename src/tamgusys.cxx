@@ -67,6 +67,7 @@ static UINT codepage = 0;
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<sysMethod>  Tamgusys::methods;
+static ThreadLock classlock;
 
 Exporting short Tamgusys::idtype = 0;
 
@@ -532,7 +533,8 @@ void Tamgusys::AddMethod(TamguGlobal* global, string name, sysMethod func, unsig
 
 
 void Tamgusys::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamgusys::methods.isEmpty())
     Tamgusys::InitialisationModule(global,"");
 }
 

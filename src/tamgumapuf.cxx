@@ -25,6 +25,7 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<mapufMethod>  Tamgumapuf::methods;
+static ThreadLock classlock;
 
 Exporting short Tamgumapuf::idtype = 0;
 
@@ -45,7 +46,8 @@ void Tamgumapuf::AddMethod(TamguGlobal* global, string name,mapufMethod func, un
 
 
 void Tamgumapuf::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamgumapuf::methods.isEmpty())
     Tamgumapuf::InitialisationModule(global,"");
 }
 

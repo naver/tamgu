@@ -12,7 +12,7 @@
  Purpose    : 
  Programmer : Claude ROUX (claude.roux@naverlabs.com)
  Reviewer   :
-*/
+ */
 
 #include "tamgu.h"
 #include "tamgushort.h"
@@ -21,15 +21,16 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<shortMethod>  Tamgushort::methods;
+static ThreadLock classlock;
 
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamgushort::AddMethod(TamguGlobal* global, string name, shortMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
     if (global->infomethods.find(a_short) != global->infomethods.end() &&
-            global->infomethods[a_short].find(name) != global->infomethods[a_short].end())
-    return;
-
+        global->infomethods[a_short].find(name) != global->infomethods[a_short].end())
+        return;
+    
     global->infomethods[a_short][name] = infos;
     global->RecordArity(a_short, idname, arity);
 }
@@ -38,8 +39,9 @@ void Tamgushort::AddMethod(TamguGlobal* global, string name, shortMethod func, u
 
 
 void Tamgushort::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
-    Tamgushort::InitialisationModule(global,"");
+    Locking lock(classlock);
+    if (Tamgushort::methods.isEmpty())
+        Tamgushort::InitialisationModule(global,"");
 }
 
 
@@ -97,25 +99,25 @@ bool Tamgushort::InitialisationModule(TamguGlobal* global, string version) {
 }
 
 Tamgu* Tamgushort::MethodFormat(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-
+    
     char buffer[101];
     Tamgu* kformat = callfunc->Evaluate(0, contextualpattern, idthread);
     string sformat = kformat->String();
-
-    #ifdef WIN32
+    
+#ifdef WIN32
     _set_invalid_parameter_handler(wrongSprintf);
-
+    
     errorsprintf = false;
     sprintf_s(buffer, 100, STR(sformat), Short());
     if (errorsprintf == true)
         return globalTamgu->Returnerror(e_incorrect_format_specifier, idthread);
-    #else
+#else
     int spres;
     spres = sprintf_s(buffer, 100, STR(sformat), Short());
     if (spres<0)
         return globalTamgu->Returnerror("TAMGUI(124):Incorrect format specifier or size too long", idthread);
-    #endif
-
+#endif
+    
     return globalTamgu->Providestring(buffer);
 }
 
@@ -126,22 +128,22 @@ Tamgu* Tamgushort::plus(Tamgu* a, bool itself) {
         double v = value;
         return globalTamgu->ProvideConstfloat(v + a->Float());
     }
-
+    
     BLONG v = value;
     v += a->Long();
-
+    
     if (IsLong(v))
         return globalTamgu->Providelong(v);
-
+    
     if (!IsShort(v))
         return globalTamgu->ProvideConstint(v);
-
-
+    
+    
     if (itself) {
         value = v;
         return this;
     }
-
+    
     return new Tamgushort(v);
 }
 
@@ -150,22 +152,22 @@ Tamgu* Tamgushort::multiply(Tamgu* a, bool itself) {
         double v = value;
         return globalTamgu->ProvideConstfloat(v + a->Float());
     }
-
+    
     BLONG v = value;
     v *= a->Long();
-
+    
     if (IsLong(v))
         return globalTamgu->Providelong(v);
-
+    
     if (!IsShort(v))
         return globalTamgu->ProvideConstint(v);
-
-
+    
+    
     if (itself) {
         value = v;
         return this;
     }
-
+    
     return new Tamgushort(v);
 }
 
@@ -174,20 +176,20 @@ Tamgu* Tamgushort::shiftleft(Tamgu* a, bool itself) {
         double v = value;
         return globalTamgu->ProvideConstfloat(v + a->Float());
     }
-
+    
     BLONG v = value;
     v <<= a->Long();
-
+    
     if (IsLong(v))
         return globalTamgu->Providelong(v);
-
+    
     if (!IsShort(v))
         return globalTamgu->ProvideConstint(v);
-
+    
     if (itself) {
         value = v;
         return this;
     }
-
+    
     return new Tamgushort(v);
 }

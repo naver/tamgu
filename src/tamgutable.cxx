@@ -29,6 +29,7 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<tableMethod>  Tamgutable::methods;
+static ThreadLock classlock;
 
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamgutable::AddMethod(TamguGlobal* global, string name, tableMethod func, unsigned long arity, string infos) {
@@ -46,7 +47,8 @@ void Tamgutable::AddMethod(TamguGlobal* global, string name, tableMethod func, u
 
 
 void Tamgutable::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamgutable::methods.isEmpty())
     Tamgutable::InitialisationModule(global,"");
 }
 

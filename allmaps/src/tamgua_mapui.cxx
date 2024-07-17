@@ -24,6 +24,7 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<a_mapuiMethod>  Tamgua_mapui::methods;
+static ThreadLock classlock;
 
 Exporting short Tamgua_mapui::idtype = 0;
 
@@ -42,7 +43,8 @@ void Tamgua_mapui::AddMethod(TamguGlobal* global, string name, a_mapuiMethod fun
 
 
 void Tamgua_mapui::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamgua_mapui::methods.isEmpty())
     Tamgua_mapui::InitialisationModule(global,"");
 }
 

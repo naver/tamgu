@@ -24,6 +24,7 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<primemapMethod>  Tamguprimemap::methods;
+static ThreadLock classlock;
 
 //-------------------------------------------------------------------------
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
@@ -42,7 +43,8 @@ void Tamguprimemap::AddMethod(TamguGlobal* global, string name, primemapMethod f
 
 
 void Tamguprimemap::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamguprimemap::methods.isEmpty())
     Tamguprimemap::InitialisationModule(global,"");
 }
 

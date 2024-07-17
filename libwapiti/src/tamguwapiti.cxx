@@ -9,6 +9,7 @@
 
 //We need to declare once again our local definitions.
 basebin_hash<wapitiMethod>  Tamguwapiti::methods;
+static ThreadLock classlock;
 
 short Tamguwapiti::idtype = 0;
 
@@ -41,7 +42,8 @@ void Tamguwapiti::AddMethod(TamguGlobal* global, string name, wapitiMethod func,
 
 
 void Tamguwapiti::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamguwapiti::methods.isEmpty())
     Tamguwapiti::InitialisationModule(global,"");
 }
 

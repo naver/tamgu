@@ -130,6 +130,7 @@ static void XmlCleaningDoc(xmlDocPtr dx) {
 
 //We need to declare once again our local definitions.
 basebin_hash<xmldocMethod>  Tamguxmldoc::methods;
+static ThreadLock classlock;
 
 short Tamguxmldoc::idtype = 0;
 
@@ -164,7 +165,8 @@ void Tamguxmldoc::AddMethod(TamguGlobal* global, string name, xmldocMethod func,
 
 
 void Tamguxmldoc::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamguxmldoc::methods.isEmpty())
     Tamguxmldoc::InitialisationModule(global,"");
 }
 

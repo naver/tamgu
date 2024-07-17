@@ -28,6 +28,7 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<svectorMethod>  Tamgusvector::methods;
+static ThreadLock classlock;
 
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamgusvector::AddMethod(TamguGlobal* global, string name, svectorMethod func, unsigned long arity, string infos) {
@@ -46,7 +47,8 @@ void Tamgusvector::AddMethod(TamguGlobal* global, string name, svectorMethod fun
 
 
     void Tamgusvector::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamgusvector::methods.isEmpty())
     Tamgusvector::InitialisationModule(global,"");
 }
 

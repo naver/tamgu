@@ -23,6 +23,7 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<maplMethod>  Tamgumapl::methods;
+static ThreadLock classlock;
 
 Exporting short Tamgumapl::idtype = 0;
 
@@ -43,7 +44,8 @@ void Tamgumapl::AddMethod(TamguGlobal* global, string name, maplMethod func, uns
 
 
     void Tamgumapl::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamgumapl::methods.isEmpty())
     Tamgumapl::InitialisationModule(global,"");
 }
 

@@ -25,6 +25,7 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<treemapffMethod>  Tamgutreemapff::methods;
+static ThreadLock classlock;
 
 Exporting short Tamgutreemapff::idtype = 0;
 
@@ -45,7 +46,8 @@ void Tamgutreemapff::AddMethod(TamguGlobal* global, string name, treemapffMethod
 
 
     void Tamgutreemapff::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamgutreemapff::methods.isEmpty())
     Tamgutreemapff::InitialisationModule(global,"");
 }
 

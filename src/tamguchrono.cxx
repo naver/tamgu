@@ -27,6 +27,7 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<chronoMethod>  Tamguchrono::methods;
+static ThreadLock classlock;
 
 Exporting short Tamguchrono::idtype = 0;
 static ThreadLock clock_locker;
@@ -55,13 +56,14 @@ void Tamguchrono::AddMethod(TamguGlobal* global, string name, chronoMethod func,
 }
 
 void Tamguchrono::Setidtype(TamguGlobal* global) {
-    if (methods.isEmpty())
+    Locking lock(classlock);
+    if (Tamguchrono::methods.isEmpty())
         Tamguchrono::InitialisationModule(global,"");
 }
 
 bool Tamguchrono::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-
+    
     Tamguchrono::idtype = global->Getid("chrono");
     
     Tamguchrono::AddMethod(global, "_initial", &Tamguchrono::MethodUnit, P_ONE | P_NONE, "unit(int i): 1 is second. 2 is milliseconds. 3 is microsecond. 4 is nanosecond.");
@@ -69,7 +71,7 @@ bool Tamguchrono::InitialisationModule(TamguGlobal* global, string version) {
     Tamguchrono::AddMethod(global, "start", &Tamguchrono::MethodReset, P_NONE, "start(): start the chrono");
     Tamguchrono::AddMethod(global, "stop", &Tamguchrono::MethodStop, P_NONE, "stop(): stop the chrono and returns the intermediate time");
     Tamguchrono::AddMethod(global, "unit", &Tamguchrono::MethodUnit, P_ONE, "unit(int i): 1 is second. 2 is milliseconds. 3 is microsecond. 4 is nanosecond.");
-
+    
     if (version != "") {
         global->newInstance[Tamguchrono::idtype] = new Tamguchrono(global);
         global->RecordCompatibilities(Tamguchrono::idtype);
@@ -171,13 +173,14 @@ void Tamguclock::AddMethod(TamguGlobal* global, string name, clockMethod func, u
 }
 
 void Tamguclock::Setidtype(TamguGlobal* global) {
-    if (methods.isEmpty())
+    Locking lock(classlock);
+    if (Tamguclock::methods.isEmpty())
         Tamguclock::InitialisationModule(global,"");
 }
 
 bool Tamguclock::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
-
+    
     Tamguclock::idtype = global->Getid("clock");
     
     Tamguclock::AddMethod(global, "_initial", &Tamguclock::MethodUTC, P_NONE | P_ONE, "utc(string utc_str): Initializes a clock with a string.");
@@ -269,7 +272,7 @@ Tamgu* Tamguclock::MethodFormat(Tamgu* contextualpattern, short idthread, TamguC
             s.replace(pos, 2, os.str());
         }
     }
-
+    
     unlocking_clock(this);
     return globalTamgu->Providestring(s);
 }
@@ -362,7 +365,7 @@ Tamgu* Tamguclock::MethodTimezone(Tamgu* contextualpattern, short idthread, Tamg
     }
     else
         globalTamgu->Returnerror("Error: wrong value for time zone", idthread);
-
+    
     timezone_offset = timezone;
     return aTRUE;
 }
@@ -480,7 +483,7 @@ Tamgu* Tamguclock::minus(Tamgu* bb, bool autoself) {
 
 Tamgu* Tamguclock::multiply(Tamgu* bb, bool autoself) {
     double v = bb->Float();
-
+    
     auto epoch = value.time_since_epoch();
     
     
@@ -501,7 +504,7 @@ Tamgu* Tamguclock::multiply(Tamgu* bb, bool autoself) {
             return globalTamgu->Providefloat(val.count());
         }
     }
-
+    
     auto val = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);
     val *= v;
     return globalTamgu->Providefloat(val.count());
@@ -532,7 +535,7 @@ Tamgu* Tamguclock::divide(Tamgu* bb, bool autoself) {
             return globalTamgu->Providefloat(val.count());
         }
     }
-
+    
     auto val = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);
     val /= v;
     return globalTamgu->Providefloat(val.count());
@@ -563,7 +566,7 @@ Tamgu* Tamguclock::mod(Tamgu* bb, bool autoself) {
             return globalTamgu->Providefloat(val.count());
         }
     }
-
+    
     auto val = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);
     val %= v;
     return globalTamgu->Providefloat(val.count());
@@ -598,14 +601,14 @@ Tamgu* Tamguclock::set_the_utc_date(Tamgufvector* iv) {
     int v = (int)iv->values[7];
     
     double tm = (iv->values[7] - (double)v)*60;
-
+    
     char buffer[100];
     if (v >= 0)
         sprintf_s(buffer, 100, "+%02d:%02d", v, (int)tm);
     else
         sprintf_s(buffer, 100, "%02d:%02d", v - 1, (int)tm);
     timezone_offset = buffer;
-
+    
     auto now_ms = std::chrono::time_point_cast<std::chrono::microseconds>(value);
     auto epoch = now_ms.time_since_epoch();
     auto val = std::chrono::duration_cast<std::chrono::microseconds>(epoch);
@@ -649,7 +652,7 @@ Tamgu* Tamguclock::set_the_iso8601_date(Tamgufvector* iv) {
     else
         sprintf_s(buffer, 100, "%02d:%02d", v - 1, (int)tm);
     timezone_offset = buffer;
-
+    
     auto now_ms = std::chrono::time_point_cast<std::chrono::microseconds>(value);
     auto epoch = now_ms.time_since_epoch();
     auto val = std::chrono::duration_cast<std::chrono::microseconds>(epoch);
@@ -689,7 +692,7 @@ Tamgu* Tamguclock::set_the_utc_date(Tamgufvector* iv) {
     else
         sprintf_s(buffer, 100, "%02d:%02d", v - 1, (int)tm);
     timezone_offset = buffer;
-
+    
     auto now_ms = std::chrono::time_point_cast<std::chrono::microseconds>(value);
     auto epoch = now_ms.time_since_epoch();
     auto val = std::chrono::duration_cast<std::chrono::microseconds>(epoch);
@@ -729,14 +732,14 @@ Tamgu* Tamguclock::set_the_iso8601_date(Tamgufvector* iv) {
     else
         sprintf_s(buffer, 100, "%02d:%02d", v - 1, (int)tm);
     timezone_offset = buffer;
-
+    
     auto now_ms = std::chrono::time_point_cast<std::chrono::microseconds>(value);
     auto epoch = now_ms.time_since_epoch();
     auto val = std::chrono::duration_cast<std::chrono::microseconds>(epoch);
     
     int diff = iv->values[6] - (val.count()%1000000);
     value += std::chrono::microseconds(diff);
-
+    
     return aTRUE;
 }
 #endif
@@ -816,10 +819,10 @@ string Tamguclock::UTC(bool compute) {
     std::tm* utc_tm = std::gmtime(&currentTime);
     
     string tmoff = timezone_offset;
-
+    
     if (compute)
         tmoff = compute_time_zone();
-
+    
     os << std::put_time(utc_tm, "%FT%T");
     os << '.' << std::setw(6) << std::setfill('0') << val.count() % 1000000;
     
@@ -837,10 +840,10 @@ string Tamguclock::ISO8601(bool compute) {
     std::tm* utc_tm = std::localtime(&currentTime);
     
     string tmoff = timezone_offset;
-
+    
     if (compute)
         tmoff = compute_time_zone();
-
+    
     os << std::put_time(utc_tm, "%FT%T");
     os << '.' << std::setw(6) << std::setfill('0') << val.count() % 1000000;
     

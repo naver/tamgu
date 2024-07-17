@@ -20,6 +20,7 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<dateMethod>  Tamgudate::methods;
+static ThreadLock classlock;
 
 Exporting short Tamgudate::idtype = 0;
 
@@ -69,7 +70,8 @@ Tamgu* Tamgudate::CallMethod(short idname, Tamgu* contextualpattern, short idthr
 
 
 void Tamgudate::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamgudate::methods.isEmpty())
     Tamgudate::InitialisationModule(global,"");
 }
 

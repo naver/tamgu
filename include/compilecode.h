@@ -65,12 +65,12 @@ public:
 	bool compilemode;
     bool fullcompilemode;
     
-    bool predicate_rule;
+    bool building_predicate_rule;
 
 	Tamgu* EvaluateVariable(Tamgu* var);
 
 	TamguCode(short i, string& f, TamguGlobal* g) : idcode(i), filename(f), currentline(0), mainframe(a_mainframe, false, NULL) {
-        predicate_rule = false;
+        building_predicate_rule = false;
 		compilemode = true;
         fullcompilemode = false;
         insidecall = 0;

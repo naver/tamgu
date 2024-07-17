@@ -353,7 +353,7 @@ void Tamgupython::AddMethod(TamguGlobal *global, string name, pythonMethod func,
 
 void Tamgupython::Setidtype(TamguGlobal *global)
 {
-    if (methods.isEmpty())
+    if (Tamgupython::methods.isEmpty())
         Tamgupython::InitialisationModule(global, "");
 }
 

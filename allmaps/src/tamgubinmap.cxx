@@ -23,6 +23,7 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<binmapMethod>  Tamgubinmap::methods;
+static ThreadLock classlock;
 
 Exporting short Tamgubinmap::idtype = 0;
 
@@ -41,7 +42,8 @@ void Tamgubinmap::AddMethod(TamguGlobal* global, string name, binmapMethod func,
 
 
 void Tamgubinmap::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamgubinmap::methods.isEmpty())
     Tamgubinmap::InitialisationModule(global,"");
 }
 

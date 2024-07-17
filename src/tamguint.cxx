@@ -9,10 +9,10 @@
  Version    : See tamgu.cxx for the version number
  filename   : tamguint.cxx
  Date       : 2017/09/01
- Purpose    : 
+ Purpose    :
  Programmer : Claude ROUX (claude.roux@naverlabs.com)
  Reviewer   :
-*/
+ */
 
 #include "tamgu.h"
 #include "tamguint.h"
@@ -24,15 +24,16 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<intMethod>  Tamguint::methods;
+static ThreadLock classlock;
 
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamguint::AddMethod(TamguGlobal* global, string name, intMethod func, unsigned long arity, string infos) {
     short idname = global->Getid(name);
     methods[idname] = func;
     if (global->infomethods.find(a_int) != global->infomethods.end() &&
-            global->infomethods[a_int].find(name) != global->infomethods[a_int].end())
-    return;
-
+        global->infomethods[a_int].find(name) != global->infomethods[a_int].end())
+        return;
+    
     global->infomethods[a_int][name] = infos;
     global->RecordArity(a_int, idname, arity);
     global->RecordArity(a_intthrough, idname, arity);
@@ -42,8 +43,9 @@ void Tamguint::AddMethod(TamguGlobal* global, string name, intMethod func, unsig
 
 
 void Tamguint::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
-    Tamguint::InitialisationModule(global,"");
+    Locking lock(classlock);
+    if (Tamguint::methods.isEmpty())
+        Tamguint::InitialisationModule(global,"");
 }
 
 
@@ -53,19 +55,19 @@ bool Tamguint::InitialisationModule(TamguGlobal* global, string version) {
     Tamguint::AddMethod(global, "isemoji", &Tamguint::MethodIsemoji, P_NONE, "isemoji(): Test if a string only contains emoji characters");
     Tamguint::AddMethod(global, "emoji", &Tamguint::MethodEmoji, P_NONE, "emoji(): Return the textual description of an emoji");
     global->returntypes[global->Getid("emoji")] = a_string;
-
+    
     Tamguint::AddMethod(global, "chr", &Tamguint::Methodchr, P_NONE, "chr(): return the character matching the unicode code");
     Tamguint::AddMethod(global, "succ", &Tamguint::MethodSucc, P_NONE, "succ(): return the successor of an integer");
     Tamguint::AddMethod(global, "pred", &Tamguint::MethodPred, P_NONE, "pred(): Return the predecessor of a byte.");
-
+    
     Tamguint::AddMethod(global, "isprime", &Tamguint::MethodPrime, P_NONE, "prime(): return true is the number is a prime");
     Tamguint::AddMethod(global, "factors", &Tamguint::MethodPrimefactors, P_NONE, "factors(): return the list of prime factors");
     global->returntypes[global->Getid("factors")] = a_ivector;
     Tamguint::AddMethod(global, "bit", &Tamguint::MethodBit, P_ONE, "bit(int i): check if the ith bit is 0 or 1");
     Tamguint::AddMethod(global, "invert", &Tamguint::MethodInvert, P_NONE, "invert(): value inversion as a fraction");
-
+    
     Tamguint::AddMethod(global, "format", &Tamguint::MethodFormat, P_ONE, "format(string pattern): Return a string matching the C pattern.");
-
+    
     Tamguint::AddMethod(global, "abs", &Tamguint::Methodabs, P_NONE, "abs(): call fabs on the value");
     Tamguint::AddMethod(global, "acos", &Tamguint::Methodacos, P_NONE, "acos(): call acos on the value");
     Tamguint::AddMethod(global, "acosh", &Tamguint::Methodacosh, P_NONE, "acosh(): call acosh on the value");
@@ -100,8 +102,8 @@ bool Tamguint::InitialisationModule(TamguGlobal* global, string version) {
     Tamguint::AddMethod(global, "trunc", &Tamguint::Methodtrunc, P_NONE, "trunc(): call trunc on the value");
     Tamguint::AddMethod(global, "even", &Tamguint::Methodeven, P_NONE, "even(): return true is the value is even");
     Tamguint::AddMethod(global, "odd", &Tamguint::Methododd, P_NONE, "odd(): return true is the value is odd");
-
-
+    
+    
     if (version != "") {
         global->newInstance[a_int] = new Tamguint(0, global);
         global->newInstance[a_intthrough] = global->newInstance[a_int];
@@ -109,7 +111,7 @@ bool Tamguint::InitialisationModule(TamguGlobal* global, string version) {
         global->RecordCompatibilities(a_intthrough);
         global->RecordCompatibilities(a_iloop);
     }
-
+    
     Tamguatomicint::InitialisationModule(global, version);
     
     return true;
@@ -124,22 +126,22 @@ void Tamguatomicint::AddMethod(TamguGlobal* global, string name, atomicintMethod
     short idname = global->Getid(name);
     methods[idname] = func;
     if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
-    return;
-
+        global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+        return;
+    
     global->infomethods[idtype][name] = infos;
     global->RecordArity(idtype, idname, arity);
 }
 
 
 bool Tamguatomicint::InitialisationModule(TamguGlobal* global, string version) {
-
+    
     methods.clear();
     
     
     
     Tamguatomicint::idtype = global->Getid("a_int");
-
+    
     Tamguatomicint::AddMethod(global, "isemoji", &Tamguatomicint::MethodIsemoji, P_NONE, "isemoji(): Test if a string only contains emoji characters");
     Tamguatomicint::AddMethod(global, "emoji", &Tamguatomicint::MethodEmoji, P_NONE, "emoji(): Return the textual description of an emoji");
     global->returntypes[global->Getid("emoji")] = a_string;
@@ -197,7 +199,7 @@ bool Tamguatomicint::InitialisationModule(TamguGlobal* global, string version) {
         
         global->RecordCompatibilities(Tamguatomicint::idtype);
     }
-
+    
     return true;
 }
 
@@ -219,25 +221,25 @@ Tamgu* Tamguint::Methodchr(Tamgu* contextualpattern, short idthread, TamguCall* 
 }
 
 Tamgu* Tamguint::MethodFormat(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-
+    
     char buffer[101];
     Tamgu* kformat = callfunc->Evaluate(0, contextualpattern, idthread);
     string sformat = kformat->String();
-
-    #ifdef WIN32
+    
+#ifdef WIN32
     _set_invalid_parameter_handler(wrongSprintf);
-
+    
     errorsprintf = false;
     sprintf_s(buffer, 100, STR(sformat), Integer());
     if (errorsprintf == true)
         return globalTamgu->Returnerror(e_incorrect_format_specifier, idthread);
-    #else
+#else
     int spres;
     spres = sprintf_s(buffer, 100, STR(sformat), Integer());
     if (spres<0)
         return globalTamgu->Returnerror("TAMGUI(124):Incorrect format specifier or size too long", idthread);
-    #endif
-
+#endif
+    
     return globalTamgu->Providestring(buffer);
 }
 
@@ -307,9 +309,9 @@ Tamgu* Tamguatomicint::MethodBit(Tamgu* contextualpattern, short idthread, Tamgu
 
 
 void TamguLoopInteger::Callfunction() {
-
+    
     TamguCallFunction2 kfunc(function);
-
+    
     Tamgu* ki = globalTamgu->ProvideConstint(position);
     ki->Setreference();
     kfunc.arguments.push_back(this);
@@ -328,7 +330,7 @@ Tamgu* TamguLoopInteger::Put(Tamgu* context, Tamgu* ke, short idthread) {
         value = interval[0];
         return aTRUE;
     }
-
+    
     if (ke->Type() == a_iloop) {
         TamguLoopInteger* kl = (TamguLoopInteger*)ke;
         interval = kl->interval;
@@ -336,13 +338,13 @@ Tamgu* TamguLoopInteger::Put(Tamgu* context, Tamgu* ke, short idthread) {
         position = kl->position;
         return aTRUE;
     }
-
+    
     if (interval.size() == 0) {
         position = 0;
         value = 0;
         return aTRUE;
     }
-
+    
     position = ke->Integer();
     if (position >= interval.size())
         position = position % interval.size();
@@ -365,19 +367,19 @@ Exporting Tamgu* Tamguint::plus(Tamgu* a, bool itself) {
         double v = value;
         return globalTamgu->ProvideConstfloat(v + a->Float());
     }
-
+    
     BLONG v = value;
     v += a->Long();
-
+    
     if (IsLong(v))
         return globalTamgu->Providelong(v);
-
+    
     if (itself) {
         value = v;
         return this;
     }
-
-
+    
+    
     return globalTamgu->ProvideConstint(v);
 }
 
@@ -386,19 +388,19 @@ Exporting Tamgu* Tamguint::multiply(Tamgu* a, bool itself) {
         double v = value;
         return globalTamgu->ProvideConstfloat(v*a->Float());
     }
-
+    
     BLONG v = value;
     v *= a->Long();
-
+    
     if (IsLong(v))
         return globalTamgu->Providelong(v);
-
-
+    
+    
     if (itself) {
         value = v;
         return this;
     }
-
+    
     return globalTamgu->ProvideConstint(v);
 }
 
@@ -407,13 +409,13 @@ Exporting Tamgu* Tamguint::shiftleft(Tamgu* a, bool itself) {
     v <<= a->Integer();
     if (IsLong(v))
         return globalTamgu->Providelong(v);
-
+    
     if (itself) {
         value = v;
         return this;
     }
-
-
+    
+    
     return globalTamgu->ProvideConstint(v);
 }
 

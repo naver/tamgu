@@ -710,7 +710,7 @@ class Tamguvector : public TamguObjectLockContainer {
     Tamgu* CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         //This call is a bit cryptic. It takes the method (function) pointer that has been associated in our map with "name"
         //and run it with the proper parameters. This is the right call which should be invoked from within a class definition
-        return (this->*methods.get(idname))(contextualpattern, idthread, callfunc);
+        return (this->*Tamguvector::methods.get(idname))(contextualpattern, idthread, callfunc);
     }
 
     Tamgu* Last() {
@@ -1522,7 +1522,7 @@ public:
     Tamgu* CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
             //This call is a bit cryptic. It takes the method (function) pointer that has been associated in our map with "name"
             //and run it with the proper parameters. This is the right call which should be invoked from within a class definition
-        return (this->*methods.get(idname))(contextualpattern, idthread, callfunc);
+        return (this->*Tamgua_vector::methods.get(idname))(contextualpattern, idthread, callfunc);
     }
     
     Tamgu* Last() {
@@ -2429,7 +2429,7 @@ class Tamguframevector : public Tamguvector {
             case a_insert:
                 return MethodInsertinFrame(contextualpattern, idthread, callfunc);
             default:
-                return (this->*methods.get(idname))(contextualpattern, idthread, callfunc);
+                return (this->*Tamguframevector::methods.get(idname))(contextualpattern, idthread, callfunc);
         }
     }
 };

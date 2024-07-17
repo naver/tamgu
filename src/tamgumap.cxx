@@ -23,6 +23,7 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<mapMethod>  Tamgumap::methods;
+static ThreadLock classlock;
 
 //If we have variables in our map, we create them on the fly...
 //Else there might be some expected values or keys in the map...
@@ -457,7 +458,8 @@ void Tamgumap::AddMethod(TamguGlobal* global, string name, mapMethod func, unsig
 
 
     void Tamgumap::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamgumap::methods.isEmpty())
     Tamgumap::InitialisationModule(global,"");
 }
 

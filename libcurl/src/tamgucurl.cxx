@@ -18,7 +18,6 @@
 #pragma comment(lib, "legacy_stdio_definitions.lib")
 #endif
 
-
 #include "tamgu.h"
 #include "tamguversion.h"
 #include "tamgucurl.h"
@@ -26,9 +25,12 @@
 
 static map<string, CURLoption> curloptions;
 
-static void Init() {
+static void Init()
+{
 	static bool init = false;
-	if (!init) {
+	if (!init)
+	{
+		init = true;
 		curloptions["CURLOPT_ACCEPTTIMEOUT_MS"] = CURLOPT_ACCEPTTIMEOUT_MS;
 		curloptions["CURLOPT_ACCEPT_ENCODING"] = CURLOPT_ACCEPT_ENCODING;
 		curloptions["CURLOPT_ADDRESS_SCOPE"] = CURLOPT_ADDRESS_SCOPE;
@@ -250,83 +252,116 @@ static void Init() {
 		curloptions["CURLOPT_PROXY_SERVICE_NAME"] = CURLOPT_PROXY_SERVICE_NAME;
 		curloptions["CURLOPT_SSL_VERIFYSTATUS"] = CURLOPT_SSL_VERIFYSTATUS;
 #endif
-		init = true;
 	}
 }
 
+static size_t call_writing(char *ptr, size_t size, size_t nmemb, Tamgucurl *userdata)
+{
+	int max = size * nmemb;
 
-static size_t call_writing(char *ptr, size_t size, size_t nmemb, Tamgucurl* userdata) {
-	int max = size*nmemb;
+	TamguCallFunction kfunc(userdata->function);
+
 	string s;
 	for (int i = 0; i < max; i++)
 		s += ptr[i];
 
-	Tamgu* func = userdata->function;
-	TamguCallFunction kfunc(func);
-
-	Tamgustring* kstr = globalTamgu->Providestring(s);
+	Tamgustring *kstr = globalTamgu->Providestring(s);
 	kstr->Setreference();
 	userdata->object->Setreference();
 	kfunc.arguments.push_back(kstr);
 	kfunc.arguments.push_back(userdata->object);
 
-	kfunc.Eval(aNULL, aNULL, globalTamgu->GetThreadid());
+	kfunc.Eval(aNULL, aNULL, userdata->thread_id);
+
 	kstr->Resetreference();
-	userdata->object->Resetreference();
+	userdata->object->Protect();
+
 	return max;
 }
 
-
-//We need to declare once again our local definitions.
-basebin_hash<curlMethod>  Tamgucurl::methods;
-
+// We need to declare once again our local definitions.
+basebin_hash<curlMethod> Tamgucurl::methods;
+ThreadLock classlock;
 short Tamgucurl::idtype = 0;
 
+// MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
+void Tamgucurl::AddMethod(TamguGlobal *global, string name, curlMethod func, unsigned long arity, string infos)
+{
+	short idname = global->Getid(name);
+	methods[idname] = func;
+	if (global->infomethods.find(idtype) != global->infomethods.end() &&
+		global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
+		return;
 
-//MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
-void Tamgucurl::AddMethod(TamguGlobal* global, string name, curlMethod func, unsigned long arity, string infos) {
-    short idname = global->Getid(name);
-    methods[idname] = func;
-    if (global->infomethods.find(idtype) != global->infomethods.end() &&
-            global->infomethods[idtype].find(name) != global->infomethods[idtype].end())
-    return;
-
-    global->infomethods[idtype][name] = infos;
-    global->RecordArity(idtype, idname, arity);
+	global->infomethods[idtype][name] = infos;
+	global->RecordArity(idtype, idname, arity);
 }
 
-
+Tamgu *Tamgucurl::errormsg(short idthread, CURLcode res)
+{
+	classlock.Locking();
+	const char *errmsg = curl_easy_strerror(res);
+	classlock.Unlocking();
+	char ch[1024];
+	sprintf_s(ch, 1024, "URL(%d): %s", res, errmsg);
+	return globalTamgu->Returnerror(ch, idthread);
+}
 
 //------------------------------------------------------------------------------------------------------------------
-//If you need to implement an external library... Otherwise remove it...
-//When Tamgu (탐구) loads a library, it looks for this method in particular, which then make this object available into Tamgu (탐구)
-extern "C" {
-    Exporting bool tamgucurl_InitialisationModule(TamguGlobal* global, string version) {
-        if (version != TamguVersion())
-            return false;
+// If you need to implement an external library... Otherwise remove it...
+// When Tamgu (탐구) loads a library, it looks for this method in particular, which then make this object available into Tamgu (탐구)
+extern "C"
+{
+	Exporting bool tamgucurl_InitialisationModule(TamguGlobal *global, string version)
+	{
+		if (version != TamguVersion())
+			return false;
 
-        global->Update();
+		global->Update();
 
-        return Tamgucurl::InitialisationModule(global, version);
-    }
+		return Tamgucurl::InitialisationModule(global, version);
+	}
 }
 
-void Tamgucurl::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
-    Tamgucurl::InitialisationModule(global,"");
+Tamgucurl::Tamgucurl(Tamgu *f, TamguGlobal *g) : TamguReference(g)
+{
+	// Do not forget your variable initialisation
+	classlock.Locking();
+	curl = curl_easy_init();
+	classlock.Unlocking();
+	thread_id = 0;
+	function = f;
+	object = aNULL;
+	urlsize = 4096;
+	urlbuffer = (char *)malloc(urlsize);
 }
 
-bool Tamgucurl::InitialisationModule(TamguGlobal* global, string version) {
+Tamgucurl::~Tamgucurl()
+{
+	if (urlbuffer != NULL)
+		free(urlbuffer);
+	if (curl != NULL)
+	{
+		classlock.Locking();
+		curl_easy_cleanup(curl);
+		classlock.Unlocking();
+	}
+}
+
+void Tamgucurl::Setidtype(TamguGlobal *global)
+{
+	Locking lock(classlock);
+	if (Tamgucurl::methods.isEmpty())
+		Tamgucurl::InitialisationModule(global, "");
+}
+
+bool Tamgucurl::InitialisationModule(TamguGlobal *global, string version)
+{
 	methods.clear();
-	
-	
 
 	Init();
 	Tamgucurl::idtype = global->Getid("curl");
-
-
 	Tamgucurl::AddMethod(global, "_initial", &Tamgucurl::MethodInitial, P_ONE, "_initial(obj): catch an object for function call");
-
 	Tamgucurl::AddMethod(global, "proxy", &Tamgucurl::MethodProxy, P_ONE, "proxy(string prox): Proxy connection");
 	Tamgucurl::AddMethod(global, "password", &Tamgucurl::MethodPWD, P_TWO, "password(string user, string pwd): Provide the user password");
 	Tamgucurl::AddMethod(global, "url", &Tamgucurl::MethodURL, P_ONE | P_TWO, "url(string path): Load a URL\rurl(string pathstring filename): Load a url into a filename");
@@ -339,21 +374,20 @@ bool Tamgucurl::InitialisationModule(TamguGlobal* global, string version) {
 	return true;
 }
 
-
-
-Tamgu* Tamgucurl::Put(Tamgu* index, Tamgu* value, short idthread) {
+Tamgu *Tamgucurl::Put(Tamgu *index, Tamgu *value, short idthread)
+{
 	return this;
 }
 
-Tamgu* Tamgucurl::Eval(Tamgu* context, Tamgu* index, short idthread) {
+Tamgu *Tamgucurl::Eval(Tamgu *context, Tamgu *index, short idthread)
+{
 	return this;
 }
 
-
-
-Tamgu* Tamgucurl::MethodProxy(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-	//In our example, we have only two parameters
-	//0 is the first parameter and so on...
+Tamgu *Tamgucurl::MethodProxy(Tamgu *contextualpattern, short idthread, TamguCall *callfunc)
+{
+	// In our example, we have only two parameters
+	// 0 is the first parameter and so on...
 	string sproxy = callfunc->Evaluate(0, contextualpattern, idthread)->String();
 	strcpy_s(urlbuffer, urlsize, STR(sproxy));
 	CURLcode res = curl_easy_setopt(curl, CURLOPT_PROXY, urlbuffer);
@@ -362,9 +396,10 @@ Tamgu* Tamgucurl::MethodProxy(Tamgu* contextualpattern, short idthread, TamguCal
 	return errormsg(idthread, res);
 }
 
-Tamgu* Tamgucurl::MethodPWD(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-	//In our example, we have only two parameters
-	//0 is the first parameter and so on...
+Tamgu *Tamgucurl::MethodPWD(Tamgu *contextualpattern, short idthread, TamguCall *callfunc)
+{
+	// In our example, we have only two parameters
+	// 0 is the first parameter and so on...
 	string user = callfunc->Evaluate(0, contextualpattern, idthread)->String();
 	string pwd = callfunc->Evaluate(1, contextualpattern, idthread)->String();
 	user += ":";
@@ -376,27 +411,34 @@ Tamgu* Tamgucurl::MethodPWD(Tamgu* contextualpattern, short idthread, TamguCall*
 	return errormsg(idthread, res);
 }
 
-Tamgu* Tamgucurl::MethodURL(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-	//In our example, we have only two parameters
-	//0 is the first parameter and so on...
+Tamgu *Tamgucurl::MethodURL(Tamgu *contextualpattern, short idthread, TamguCall *callfunc)
+{
+	// In our example, we have only two parameters
+	// 0 is the first parameter and so on...
+	thread_id = idthread;
 	urlstr = callfunc->Evaluate(0, contextualpattern, idthread)->String();
-	if (urlstr != "") {
-		if (urlstr.size() >= urlsize) {
+	if (urlstr != "")
+	{
+		if (urlstr.size() >= urlsize)
+		{
 			free(urlbuffer);
-			urlsize = urlstr.size()*1.5;
-			urlbuffer = (char*)malloc(urlsize);
+			urlsize = urlstr.size() * 1.5;
+			urlbuffer = (char *)malloc(urlsize);
 		}
 		strcpy_s(urlbuffer, urlsize, STR(urlstr));
 		curl_easy_setopt(curl, CURLOPT_URL, urlbuffer);
 	}
-	FILE* tmp = NULL;
-	if (callfunc->Size() == 1) {
-		if (function != NULL) {
+	FILE *tmp = NULL;
+	if (callfunc->Size() == 1)
+	{
+		if (function != NULL)
+		{
 			curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, call_writing);
 			curl_easy_setopt(curl, CURLOPT_WRITEDATA, this);
 		}
 	}
-	else {
+	else
+	{
 		string filename = callfunc->Evaluate(1, contextualpattern, idthread)->String();
 #ifdef WIN32
 		fopen_s(&tmp, STR(filename), "w");
@@ -405,10 +447,13 @@ Tamgu* Tamgucurl::MethodURL(Tamgu* contextualpattern, short idthread, TamguCall*
 #endif
 
 		if (tmp == NULL)
+		{
 			return globalTamgu->Returnerror("URL(009): Wrong filename", idthread);
+		}
 		curl_easy_setopt(curl, CURLOPT_WRITEDATA, tmp);
 	}
 	CURLcode res = curl_easy_perform(curl);
+
 	if (tmp != NULL)
 		fclose(tmp);
 	if (res == 0)
@@ -416,30 +461,40 @@ Tamgu* Tamgucurl::MethodURL(Tamgu* contextualpattern, short idthread, TamguCall*
 	return errormsg(idthread, res);
 }
 
-Tamgu* Tamgucurl::MethodExecute(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-	Locking _lock(this);
+Tamgu *Tamgucurl::MethodExecute(Tamgu *contextualpattern, short idthread, TamguCall *callfunc)
+{
+	// In our example, we have only two parameters
+	// 0 is the first parameter and so on...
+	thread_id = idthread;
 
-	//In our example, we have only two parameters
-	//0 is the first parameter and so on...
-	FILE* tmp = NULL;
-	if (callfunc->Size() == 0) {
-		if (function != NULL) {
+	FILE *tmp = NULL;
+	if (callfunc->Size() == 0)
+	{
+		if (function != NULL)
+		{
 			curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, call_writing);
 			curl_easy_setopt(curl, CURLOPT_WRITEDATA, this);
 		}
 	}
-	else {
+	else
+	{
 		string filename = callfunc->Evaluate(0, contextualpattern, idthread)->String();
 #ifdef WIN32
 		fopen_s(&tmp, STR(filename), "w");
 #else
 		tmp = fopen(STR(filename), "w");
 #endif
+
 		if (tmp == NULL)
+		{
 			return globalTamgu->Returnerror("URL(009): Wrong filename", idthread);
+		}
+
 		curl_easy_setopt(curl, CURLOPT_WRITEDATA, tmp);
 	}
+
 	CURLcode res = curl_easy_perform(curl);
+
 	if (tmp != NULL)
 		fclose(tmp);
 	if (res == 0)
@@ -447,28 +502,32 @@ Tamgu* Tamgucurl::MethodExecute(Tamgu* contextualpattern, short idthread, TamguC
 	return errormsg(idthread, res);
 }
 
-Tamgu* Tamgucurl::MethodOptions(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+Tamgu *Tamgucurl::MethodOptions(Tamgu *contextualpattern, short idthread, TamguCall *callfunc)
+{
 	string option = callfunc->Evaluate(0, contextualpattern, idthread)->String();
 	if (curloptions.find(option) == curloptions.end())
 		return globalTamgu->Returnerror("URL(031): Unknown option", idthread);
 	CURLcode res;
 	CURLoption noption = curloptions[option];
-	Tamgu*  kdata = callfunc->Evaluate(1, contextualpattern, idthread);
-	if (kdata->isNumber()) {
+	Tamgu *kdata = callfunc->Evaluate(1, contextualpattern, idthread);
+	if (kdata->isNumber())
+	{
 		long data = kdata->Integer();
 		res = curl_easy_setopt(curl, noption, data);
 	}
-	else {
+	else
+	{
 		string data;
 		if (kdata->isContainer())
 			data = kdata->JSonString();
 		else
 			data = kdata->String();
-			
-		if (data.size() >= urlsize) {
+
+		if (data.size() >= urlsize)
+		{
 			free(urlbuffer);
-			urlsize = data.size()*1.5;
-			urlbuffer = (char*)malloc(urlsize);
+			urlsize = data.size() * 1.5;
+			urlbuffer = (char *)malloc(urlsize);
 		}
 		strcpy_s(urlbuffer, urlsize, STR(data));
 		res = curl_easy_setopt(curl, noption, urlbuffer);
@@ -478,4 +537,3 @@ Tamgu* Tamgucurl::MethodOptions(Tamgu* contextualpattern, short idthread, TamguC
 		return aTRUE;
 	return errormsg(idthread, res);
 }
-

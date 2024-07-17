@@ -27,6 +27,7 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<fvectorMethod>  Tamgufvector::methods;
+static ThreadLock classlock;
 
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
 void Tamgufvector::AddMethod(TamguGlobal* global, string name, fvectorMethod func, unsigned long arity, string infos) {
@@ -44,7 +45,8 @@ void Tamgufvector::AddMethod(TamguGlobal* global, string name, fvectorMethod fun
 
 
 void Tamgufvector::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamgufvector::methods.isEmpty())
     Tamgufvector::InitialisationModule(global,"");
 }
 

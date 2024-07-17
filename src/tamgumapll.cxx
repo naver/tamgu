@@ -25,6 +25,7 @@
 
 //We need to declare once again our local definitions.
 Exporting basebin_hash<mapllMethod>  Tamgumapll::methods;
+static ThreadLock classlock;
 
 Exporting short Tamgumapll::idtype = 0;
 
@@ -45,7 +46,8 @@ void Tamgumapll::AddMethod(TamguGlobal* global, string name,mapllMethod func, un
 
 
     void Tamgumapll::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamgumapll::methods.isEmpty())
     Tamgumapll::InitialisationModule(global,"");
 }
 

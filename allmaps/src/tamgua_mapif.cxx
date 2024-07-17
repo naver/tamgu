@@ -24,6 +24,7 @@
 
     //We need to declare once again our local definitions.
 Exporting basebin_hash<a_mapifMethod>  Tamgua_mapif::methods;
+static ThreadLock classlock;
 
 Exporting short Tamgua_mapif::idtype = 0;
 
@@ -42,7 +43,8 @@ void Tamgua_mapif::AddMethod(TamguGlobal* global, string name, a_mapifMethod fun
 
 
 void Tamgua_mapif::Setidtype(TamguGlobal* global) {
-  if (methods.isEmpty())
+  Locking lock(classlock);
+  if (Tamgua_mapif::methods.isEmpty())
     Tamgua_mapif::InitialisationModule(global,"");
 }
 
