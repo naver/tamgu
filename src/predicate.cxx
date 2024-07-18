@@ -2579,6 +2579,26 @@ Tamgu* TamguBasePredicateVariable::ExtractPredicateVariables(Tamgu* context, Tam
     return kpvi->ExtractPredicateVariables(context, dom, previousinstance, NULL, idthread, root);
 }
 
+Tamgu* TamguPredicateVariableExchange::ExtractPredicateVariables(Tamgu* context, TamguDeclaration* dom, Tamgu* previousinstance, Tamgu* e, short idthread, bool root) {
+    //In this case, we are dealing with an element from the new rule to apply...
+    //The previousinstance is the element which has been extracted from the goal stack...
+    short sz = globalTamgu->Stacksize(idthread);
+    Tamgu* top = NULL;
+    short i = sz - 1;
+    while (i >= 0) {
+        top = globalTamgu->Stack(i--, idthread);
+        if (top->Type() == a_predicatedomain)
+            break;
+    }
+    TamguPredicateVariableInstanceExchange* kpvi = new TamguPredicateVariableInstanceExchange(top, exchange, globalTamgu->GetName(idthread), name, idthread);
+    dom->Setdomainlock();
+    context->Setdico(name, kpvi);
+    kpvi->Setreference();
+    dom->declarations[kpvi->Name()] = kpvi;
+    dom->Resetdomainlock();
+    return kpvi;
+}
+
 Tamgu* TamguPredicateVariableInstance::ExtractPredicateVariables(Tamgu* context, TamguDeclaration* dom,
                                                                  Tamgu* previousinstance, Tamgu* E, short thread_or_name, bool root) {
     if (previousinstance->Type() == a_instance) {
@@ -3453,6 +3473,16 @@ Tamgu* TamguPredicateVariableInstance::Getvalues(TamguDeclaration* dom, bool dup
     v = v->Getvalues(dom, duplicate);
     if (merge && v->Type() == a_vector)
         v->Setmerge();
+    return v;
+}
+
+Tamgu* TamguPredicateVariableInstanceExchange::Getvalues(TamguDeclaration* dom, bool duplicate) {
+    Tamgu* v = Value(dom);
+    v = v->Getvalues(dom, duplicate);
+    if (merge && v->Type() == a_vector)
+        v->Setmerge();
+    Tamgu* var = exchange->Eval(domain, aNULL, thread_id);
+    var->Put(domain, v, thread_id);
     return v;
 }
 

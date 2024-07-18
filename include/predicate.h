@@ -63,6 +63,10 @@ public:
 	bool Failed() {
 		return fail;
 	}
+    
+    short Type() {
+        return a_predicatedomain;
+    }
 
 };
 
@@ -172,13 +176,21 @@ public:
         return false;
     }
 
-	Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
-    Tamgu* Execute(Tamgu* environment, Tamgu* value, short idthread);
+	virtual Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
+    virtual Tamgu* Execute(Tamgu* environment, Tamgu* value, short idthread);
     
 	Tamgu* Function() {
 		return function;
 	}
 
+};
+
+class TamguPredicateVariableExchange : public TamguPredicateVariable {
+public:
+    Tamgu* exchange;
+    
+    TamguPredicateVariableExchange(short n, Tamgu* v, TamguGlobal* g, Tamgu* parent = NULL) : exchange(v), TamguPredicateVariable(g, n, parent) {}
+    Tamgu* ExtractPredicateVariables(Tamgu* context, TamguDeclaration* dom, Tamgu* val, Tamgu* e, short, bool root);
 };
 
 class TamguPredicateVariableInstance : public TamguBasePredicateVariable {
@@ -286,7 +298,7 @@ public:
 
 	Tamgu* ExtractPredicateVariables(Tamgu* context, TamguDeclaration* dom, Tamgu* val, Tamgu* e, short, bool root);
 	Tamgu* EvaluePredicateVariables(Tamgu* context, TamguDeclaration* dom, short idthread);
-	Tamgu* Getvalues(TamguDeclaration* dom, bool duplicate);
+	virtual Tamgu* Getvalues(TamguDeclaration* dom, bool duplicate);
 
 	Tamgu* Newvalue(Tamgu* a, short idthread) {
 		value->Resetreference(reference);
@@ -351,6 +363,15 @@ public:
 		return value->moreequal(a);
 	}
 
+};
+
+class TamguPredicateVariableInstanceExchange : public TamguPredicateVariableInstance {
+public:
+    Tamgu* domain;
+    Tamgu* exchange;
+    TamguPredicateVariableInstanceExchange(Tamgu* d, Tamgu* e, short n, short ln, short idthread) :
+        domain(d),exchange(e),TamguPredicateVariableInstance(n, ln, idthread) {}
+    Tamgu* Getvalues(TamguDeclaration* dom, bool duplicate);
 };
 
 class TamguPredicateVariableInstancebuff : public TamguPredicateVariableInstance {

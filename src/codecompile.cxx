@@ -10133,12 +10133,14 @@ void TamguCode::ComputePredicateParameters(x_node* xn, Tamgu* kcf) {
 		kbloc.idtype = id;
 		Traverse(xn->nodes[i], &kbloc);
         if (kbloc.instructions[0]->Typevariable() == a_instance) {
-            stringstream message;
-            message << "Error: You cannot use a '?_' variable in a predicate call: '" << global->Getsymbol(kbloc.instructions[0]->Name()) << "'";
-            throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
-
+            string nm = global->Getsymbol(kbloc.instructions[0]->Name());
+            nm += "_§%";
+            short n = global->Getid(nm);
+            TamguPredicateVariableExchange* v = new TamguPredicateVariableExchange(n, kbloc.instructions[0], global);
+            kcf->AddInstruction(v);
         }
-		kcf->AddInstruction(kbloc.instructions[0]);
+        else
+            kcf->AddInstruction(kbloc.instructions[0]);
 		kbloc.instructions.clear();
 	}
 }
