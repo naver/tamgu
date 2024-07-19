@@ -82,7 +82,7 @@ static bool init_python = false;
 
 // We need to declare once again our local definitions.
 basebin_hash<pythonMethod> Tamgupython::methods;
-
+ThreadLock classlock;
 short Tamgupython::idtype = 0;
 
 //------------------------------------------------------------------------------------------------------------------
@@ -353,6 +353,7 @@ void Tamgupython::AddMethod(TamguGlobal *global, string name, pythonMethod func,
 
 void Tamgupython::Setidtype(TamguGlobal *global)
 {
+    Locking lock(classlock);
     if (Tamgupython::methods.isEmpty())
         Tamgupython::InitialisationModule(global, "");
 }

@@ -31,8 +31,8 @@ class Tamgupython : public TamguObject {
     //this is a static object, which is common to everyone
     //We associate the method pointers with their names in the linkedmethods map
     Exchanging static basebin_hash<pythonMethod> methods;
-    static hmap<string, string> infomethods;
-    static  basebin_hash<unsigned long> exported;
+    
+    
 
     static short idtype;
 
@@ -90,9 +90,7 @@ class Tamgupython : public TamguObject {
     //Declaration
     //All our methods must have been declared in tamguexportedmethods... See MethodInitialization below
     bool isDeclared(short n) {
-        if (exported.find(n) != exported.end())
-            return true;
-        return false;
+        return methods.check(n);
     }
 
     Tamgu* Newinstance(short, Tamgu* f = NULL) {
@@ -106,17 +104,17 @@ class Tamgupython : public TamguObject {
     static void AddMethod(TamguGlobal* g, string name, pythonMethod func, unsigned long arity, string infos);
     static bool InitialisationModule(TamguGlobal* g, string version);
 
-    void Methods(Tamgu* v) {
-        hmap<string, string>::iterator it;
-        for (it = infomethods.begin(); it != infomethods.end(); it++)
-            v->storevalue(it->first);
-    }
+    
+     void Setidtype(TamguGlobal* global);
+     void Methods(Tamgu* v) {
+            for (const auto& it : globalTamgu->infomethods[idtype])
+                 v->storevalue(it.first);
+      }
 
-    string Info(string n) {
-
-        if (infomethods.find(n) != infomethods.end())
-            return infomethods[n];
-        return "Unknown method";
+      string Info(string n) {
+            if (globalTamgu->infomethods[idtype].find(n) !=  globalTamgu->infomethods[idtype].end())
+              return globalTamgu->infomethods[idtype][n];
+             return "Unknown method";
     }
 
 
@@ -142,7 +140,7 @@ class Tamgupython : public TamguObject {
     Tamgu* CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         //This call is a bit cryptic. It takes the method (function) pointer that has been associated in our map with "name"
         //and run it with the proper parameters. This is the right call which should be invoked from within a class definition
-        return (this->*methods.get(idname))(contextualpattern, idthread, callfunc);
+        return (this->*Tamgupython::methods.get(idname))(contextualpattern, idthread, callfunc);
     }
 
     void Clear(TamguGlobal* g) {
