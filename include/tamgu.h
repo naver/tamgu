@@ -4932,6 +4932,7 @@ public:
         
         value = v->GetLetValue();
         value->Enablelock(isToBelocked());
+        value->Setreference();
         return aTRUE;
     }
 

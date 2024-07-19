@@ -4709,6 +4709,7 @@ Tamgu* TamguPredicateVariableASSIGNMENT::Eval(Tamgu* contextualpattern, Tamgu* d
     Tamgu* value = instructions.vecteur[1]->Eval(&vself, aASSIGNMENT, idthread);
     if (vself.value != aNOELEMENT) {
         value = vself.value;
+        value->Protect();
         vself.value = aNOELEMENT;
     }
     if (value->isError())
