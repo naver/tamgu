@@ -1303,6 +1303,7 @@ Exporting void TamguGlobal::RecordCompatibilities() {
     compatibilities[a_let][a_const] = true;
     
     compatibilities[a_boolean][a_const] = true;
+    compatibilities[a_boolean][a_predicatelaunch] = true;
     compatibilities[a_predicate][a_predicatevar] = true;
     compatibilities[a_predicatevar][a_predicate] = true;
     compatibilities[a_predicatevar][a_predicatelaunch] = true;
@@ -1352,6 +1353,7 @@ Exporting void TamguGlobal::RecordCompatibilities() {
     strictcompatibilities[a_let][a_const] = true;
     
     strictcompatibilities[a_boolean][a_const] = true;
+    strictcompatibilities[a_boolean][a_predicatelaunch] = true;
     strictcompatibilities[a_predicate][a_predicatevar] = true;
     strictcompatibilities[a_predicatevar][a_predicate] = true;
     strictcompatibilities[a_predicatevar][a_predicatelaunch] = true;
