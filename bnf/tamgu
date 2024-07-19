@@ -403,7 +403,7 @@ modifcall := %^
 %dependencyresult := not^[predicatevariable [%, predicatevariable]*]^[dependency [%, dependency]*]
 %dependencyrule := [$IF^$If] %( ;62 dependance [orand dependance]* %) dependencyresult
 
-predicatevariable := [%? ;40 word]^[%# ;40 [%_^anumber] (features)]
+predicatevariable := [%? ;40 word (interval^indexes)]^[%# ;40 [%_^anumber] (features)]
 term := %? word %(;37 (predicateparameters) %)
 tuple := %( predicateparameters %)
 

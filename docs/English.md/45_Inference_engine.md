@@ -1,396 +1,307 @@
-# Inference Engine
+# Tamgu Inference Engine
 
-Tamgu embeds an inference engine, which can be freely mixed with regular Tamgu instructions. This inference engine is very similar to Prolog but with some particularities:
+Tamgu embeds a powerful inference engine that can be seamlessly integrated with regular Tamgu instructions. This engine shares similarities with Prolog but has several unique features and syntax differences.
 
-a) Predicates do not need to be declared beforehand in order for Tamgu to distinguish predicates from normal functions. However, if you need to use a predicate that will be implemented later in the code, you need to declare it beforehand.
+## Key Features
 
-b) You do not need to declare inference variables. However, their names are very different from traditional Prolog names: they must be preceded with a "?".
+1. **Flexible Predicate Declaration**: Predicates don't require prior declaration for Tamgu to distinguish them from normal functions. However, if you need to use a predicate that will be implemented later in the code, you should declare it beforehand.
 
-c) Each inference clause finishes with a "." and not a ";".
+2. **Unique Variable Syntax**: Inference variables are denoted by preceding their names with a "?". For example: `?X`, `?Y`, `?Z`.
 
-d) Terms can be declared beforehand (as term variables). However, if you do not want to declare them, you must precede their name with a "?" as for inference variables.
+3. **Clause Termination**: Each inference clause ends with a "." instead of a ";".
 
-e) Probabilities might be attached to predicates, which are used to choose as a first path the one with the highest probabilities.
-
-**Note**: For an adequate description of the Prolog language, please consult the appropriate documentation.
+4. **Term Declaration**: Terms can be declared beforehand as term variables. If not declared, their names must be preceded with a "?" like inference variables.
 
 ## Types
 
-Tamgu exposes three specific types for inference objects:
-
 ### Predicate
 
-This type is used to declare predicates, which will be used in inference clauses. This type exposes the following methods:
-
-1. `name()`: return the predicate label
-2. `size()`: return the number of arguments
-3. `_trace(bool)`: activate or deactivate the trace for this predicate when it is the calling predicate.
+Used to declare predicates for inference clauses. It offers methods like:
+- `name()`: Returns the predicate label
+- `size()`: Returns the number of arguments
+- `_trace(bool)`: Activates or deactivates tracing for this predicate when it's the calling predicate
 
 ### Term
 
-This type is used to declare terms, which will be used in inference clauses (see the NLP example below).
+Used to declare terms for inference clauses.
 
-### Other Inference Types: List and Associative Map
+### List and Associative Map
 
-Tamgu also provides the traditional lists à la Prolog, which can be used with the "|" operator to handle list decomposition (see the NLP example below for a demonstration of this operator).
+Tamgu provides Prolog-like lists with the "|" operator for list decomposition:
 
-**Example:**
-
-```C++
+```csharp
 predicate alist;
-// in this clause, C is the rest of the list...
-alist([?A,?B|?C],[?A,?B],?C) :- true.
-v=alist([1,2,3,4,5], ?X,?Y);
+alist([?A,?B|?C],[?A,?B],?C).
+v = alist([1,2,3,4,5], ?X, ?Y);
 println(v); // [alist([1,2,3,4,5],[1,2],[3,4,5])]
 ```
 
-Tamgu also provides an associative map, which is implemented as a Tamgu map, but in which the argument order is significant.
+Associative maps are implemented as Tamgu maps where argument order is significant:
 
-**Example:**
+```csharp
+avalue(1,1).
+avalue(10,2).
+avalue(100,3).
+avalue("fin",4).
 
-```C++
-predicate assign,avalue;
-avalue(1,1) :- true.
-avalue(10,2) :- true.
-avalue(100,3) :- true.
-avalue("fin",4) :- true.
 assign({?X:?Y,?Z:?V}) :- avalue(?X,1), avalue(?Y,2), avalue(?Z,3), avalue(?V,4).
-vector v=assign(?X);
+vector v = assign(?X);
 println(v); // [assign({'100':'fin','1':10})]
 ```
 
-As you can see in this example, both keys and values can depend on inference variables. However, the order in which these association key:value are declared is important. Thus, {?X:?Y,?Z:?V} is different from {?Z:?V,?X:?Y}.
+### predicatevar
 
-### PredicateVar
-
-This type is used to handle predicates to explore their names and values. A PredicateVar can be seen as a function, whose parameters are accessible through their position in the argument list as a vector. This type exposes the following methods:
-
-1. `map()`: return the predicate as a map: [name:name,'0':arg0,'1':arg1,...]
-2. `name()`: return the predicate name
-3. `query(predicate|name,v1,v2,v3)`: build and evaluate a predicate on the fly
-4. `remove()`: remove the predicate from memory
-5. `remove(db)`: remove the predicate from the database db
-6. `size()`: return the number of arguments
-7. `store()`: store the predicate in memory
-8. `store(db)`: store the predicate value into the database db
-9. `vector()`: return the predicate as a vector: [name,arg0,arg1,...]
-
-It should be noted that the method "predicate", which exists both for a map and a vector, transforms the content of a vector or a map back into a predicate as long as their content mimics the predicate output of vector() and map().
-
-**Example:**
-
-```C++
-vector v=['female','mary'];
-predicatevar fem;
-fem=v.predicate(); // we transform our vector into a predicate
-fem.store(); // we store it in the fact base
-v=fem.query(female,?X); // We build a predicate query on the fly
-v=fem.query(female,'mary'); // We build a predicate query with a string
-```
+Used to handle predicates and explore their names and values. It offers methods like:
+- `map()`: Returns the predicate as a map
+- `name()`: Returns the predicate name
+- `query(predicate|name,v1,v2,v3)`: Builds and evaluates a predicate on the fly
+- `remove()`: Removes the predicate from memory
+- `store()`: Stores the predicate in memory
+- `vector()`: Returns the predicate as a vector
 
 ## Clauses
 
-A clause is defined as follows:
+A basic clause structure:
 
-```C++
-predicate(arg1,arg2,...,argn) :- pred(arg...),pred(arg,...), etc. ;
+```csharp
+predicate(arg1, arg2, ..., argn) :- pred(arg...), pred(arg...), etc.
 ```
 
-Fact in a knowledge base. A fact can be declared in a program with the following instruction:
+Facts can be declared as:
 
-```C++
-predicate(val1,val2,...).
+```csharp
+predicate(val1, val2, ...) :- true.
+// or
+predicate(val1, val2, ...).
 ```
 
-or
+### Disjunction
 
-```C++
-predicate(val1,val2,...) :- true.
+Tamgu supports disjunctions in clauses using the ";" operator:
+
+```csharp
+parent(?X,?Y) :- mere(?X,?Y); pere(?X,?Y).
 ```
 
-is actually equivalent to the above syntax.
+### Cut, fail, and stop
 
-**loadfacts(pathname)**: loading a large knowledge base
+- Cut: Expressed with "!"
+- `fail`: Forces the failure of a clause
+- `stop`: Stops the whole evaluation
 
-If you have a file storing a very large knowledge base, containing only facts, it is more efficient to use `loadfacts` with the file pathname to speed up loading. This instruction should be placed at the very beginning of your file. It will start loading at compile time.
+## Functions
 
-**Disjunction**
+Tamgu provides Prolog-like functions such as:
 
-Tamgu also accepts disjunctions in clauses with the operator ";", which can be used in lieu of "," between predicates.
+- `asserta(pred(...))`: Inserts a predicate at the beginning of the knowledge base
+- `assertz(pred(...))`: Inserts a predicate at the end of the knowledge base
+- `retract(pred(...))`: Removes a predicate from the knowledge base
+- `retractall(pred)`: Removes all instances of a predicate from the knowledge base
+- `predicatedump(pred)` or `findall(pred)`: Returns predicates stored in memory as a vector
 
-**Example:**
+## Universal Predicate Name
 
-```C++
-predicate mere,pere;
-mere("jeanne","marie").
-mere("jeanne","rolande").
-pere("bertrand","marie").
-pere("bertrand","rolande").
-predicate parent;
-// We then declare our rule as a disjunction...
-parent(?X,?Y) :- mere(?X,?Y);pere(?X,?Y).
-parent._trace(true);
-vector v=parent(?X,?Y);
-println(v);
-```
+Use "_" as a wildcard for predicate names when querying the knowledge base:
 
-**Result:**
-
-```
-r:0=parent(?X,?Y) --> parent(?X6,?Y7)
-e:0=parent(?X8,?Y9) --> mere(?X8,?Y9)
-k:1=mere('jeanne','marie').
-success:2=parent('jeanne','marie')
-k:1=mere('jeanne','rolande').
-success:2=parent('jeanne','rolande')
-[parent('jeanne','marie'),parent('jeanne','rolande')]
-```
-
-**Cut, Fail, and Stop**
-
-Tamgu also provides a cut, which is expressed with the traditional "!". It also provides the keyword fail, which can be used to force the failure of a clause. Stop stops the whole evaluation.
-
-**Functions**
-
-Tamgu also provides some regular functions from the Prolog language such as:
-
-**Function asserta(pred(...))**
-
-This function asserts (inserts) a predicate at the beginning of the knowledge base. Note that this function can only be used within a clause declaration.
-
-**assertz(pred(...))**
-
-This function asserts (inserts) a predicate at the end of the knowledge base. Note that this function can only be used within a clause declaration.
-
-**retract(pred(...))**
-
-This function removes a predicate from the knowledge base. Note that this function can only be used within a clause declaration.
-
-**retractall(pred)**
-
-This function removes all instances of predicate "pred" from the knowledge base. If retractall is used without any parameters, then it cleans the whole knowledge base. Note that this function can only be used within a clause declaration.
-
-**Function: predicatedump(pred) or findall(pred)**
-
-This function, when used without any parameters, returns all predicates stored in memory as a vector. If you provide the name of a predicate as a string, then it dumps as a vector all the predicates with the specified name.
-
-**Example:**
-
-```C++
-// Note that you need to declare "parent" if you want to use it in an assert
-predicate parent;
-adding(?X,?Y) :- asserta(parent(?X,?Y)).
-adding("Pierre","Roland");
-println(predicatedump(parent));
-```
-
-**Universal Predicate Name**
-
-When looking for facts in a knowledge base, it is possible to query without a specific predicate name. In that case, one can use: "_" in lieu of the predicate name.
-
-**Example:**
-
-```C++
-// Our knowledge base
-father("george","sam").
-father("george","andy").
-mother("andy","mary").
-mother("sam","christine").
-// Our rule, it will match any facts above
+```csharp
 parent(?A,?B) :- _(?A,?B).
 ```
 
-We can also use some specific variables: _0.._9, which can return what was the predicate name it did match against.
+## Tail Recursion
 
-**Example:**
+To activate tail recursion, add "#" to the name of the last element in the rule:
 
-```C++
-// Our rule, it will match any facts above
-parent(?A,?B,?P) :- _1(?A,?B), ?P is _1.
-```
-
-This code returns:
-
-```
-parent("andy","mary","mother")
-parent("sam","christine","mother")
-parent("george","sam","father")
-parent("george","andy","father")
-```
-
-**Tail Recursion**
-
-Tail recursion is a mechanism that transforms a recursion into an iterative process. To activate the tail recursion mechanism, you need to modify the name of the last element of the rule by adding a "#". The tail recursion is then activated if this last element corresponds to the current rule.
-
-Tail recursion transforms the traversal of a vector for instance into an iterative process. However, at the end of the process, the initial value of the vector is lost.
-
-**Example:**
-
-```C++
-vector v = [1..10];
-// End of recursion
+```csharp
 traverse([],0).
-// The last element is marked for tail recursion
 traverse([?X|?Y],?A) :- println(?X,?Y), traverse#(?Y,?A).
-vector vv = traverse(v,?A);
-println(vv);
 ```
 
-**Result:**
+## Function Calls within Predicates and External Variable Unification
 
-```
-1 [2,3,4,5,6,7,8,9,10]
-2 [3,4,5,6,7,8,9,10]
-3 [4,5,6,7,8,9,10]
-4 [5,6,7,8,9,10]
-5 [6,7,8,9,10]
-6 [7,8,9,10]
-7 [8,9,10]
-8 [9,10]
-9 [10]
-10 [] // The first argument is now []
-[traverse([],0)]
-```
+One of Tamgu's most powerful features is its ability to seamlessly integrate function calls within predicate rules and unify variables in external functions.
 
-**Callback Function**
+### Calling Functions from Predicates
 
-A predicate can be declared with a callback function, whose signature is the following:
+You can call regular functions within predicate rules:
 
-```C++
-function OnSuccess(predicatevar p, string s) {
-    println(s,p);
-    return true;
+```csharp
+function calculate_price(int base_price, int nights) {
+    float total = base_price * nights;
+    return total;
 }
+
+hotel_stay(?nights, ?price) :- 
+    ?base_total is calculate_price(50, ?nights),
+    ?price is ?base_total * 1.1.  // Adding 10% tax
 ```
 
-The second argument in the function corresponds to the parameter given to parent in the declaration. If the function returns true, then the inference engine tries other solutions; otherwise, it stops.
+### Unifying Variables in External Functions
 
-It also possible to unify a variable in a call. In that case, the variable type should be: `?_`.
+Tamgu allows unifying variables within external functions using the special type `?_` for parameters that should be unified:
 
-```C++
-
-//We define a function, which is going to unify the variable x:
+```csharp
 function calling(string v, ?_ x) {        
-    x = v + 1;
+    x = v + "1";
     return true;
 }
 
-//In this call, the variable ?R will be unified within calling
-test(?X,?R) :-
-	calling(?X, ?R).
+predicate test;
+test(?X, ?R) :- calling(?X, ?R).
 
 vector v = test("Toto", ?R);
 println(v);
 ```
 
+### Advantages of This Approach
 
-**Result:**
+1. **Flexibility**: Leverage strengths of both logical and imperative programming paradigms.
+2. **Extensibility**: Easy integration with existing Tamgu libraries and functions.
+3. **Performance**: Offload computationally intensive tasks to optimized functions.
+4. **Clarity**: Encapsulate complex operations in functions, keeping logical rules clean.
 
-If we run our above example, we obtain:
+### Example: Database Integration
 
-```
-Parent: parent('John','Mary')
-Parent: parent('John','Peter')
-```
+```csharp
+function query_database(string user_id, ?_ user_data) {
+    // Simulating a database query
+    if (user_id == "12345") {
+        user_data = {"name": "John Doe", "age": 30, "balance": 1000};
+        return true;
+    }
+    return false;
+}
 
-**DCG**
+function calculate_discount(?_ discount) {
+    // Simulating some complex calculation
+    discount = 0.15;  // 15% discount
+    return true;
+}
 
-Tamgu also accepts DCG rules (Definite Clause Grammar) with a few modifications to the original definition. First, Prolog variables should be denoted with ?V as in the other rules. Third, atoms can only be declared as strings.
+predicate eligible_for_loan;
+eligible_for_loan(?user_id, ?loan_amount) :-
+    query_database(?user_id, ?user_data),
+    ?user_data["age"] >= 18,
+    ?user_data["balance"] >= 500,
+    calculate_discount(?discount),
+    ?loan_amount is ?user_data["balance"] * (1 + ?discount).
 
-**Example:**
-
-```C++
-predicate sentence,noun_phrase,verb_phrase;
-term s,np,vp,d,n,v;
-sentence(s(np(d("the"),n("cat")),vp(v("eats"),np(d("a"),n("bat"))))) --> [].
-```
-
-**Launching an Evaluation**
-
-Evaluations are launched exactly in the same way as a function would. You can of course provide as many inference variables as you want, but you can only launch one predicate at a time, which imposes that your expression should first be declared as a clause if you want it to include more than one predicate.
-
-**Important**: If the recipient variable is a vector, then all possible analyses will be provided. The evaluation tree will be fully traversed. If the recipient variable is anything else, then whenever a solution is found, the evaluation is stopped.
-
-**Mapping Methods to Predicates**
-
-Most object methods are mapped into predicates in a very simple way. For instance, if a string exports the method "trim", then a "p_trim" with two variables is created. Each method is mapped to a predicate in this fashion. For each method, we add a prefix: "p_" to transform this method into a predicate. The first argument of this predicate is the head object of the method, while the last parameter is the result of applying this method to that object. Hence, if s is a string, s.trim() becomes p_trim(s,?X), where ?X is the result of applying trim to s. If ?X is unified, then the predicate will check if ?X is the same as s.trim().
-
-**Example:**
-
-```C++
-compute(?X,?Y) :- p_log(?X,?Y).
-between(?X,?B,?E), succ(?X,?Y).
+vector v = eligible_for_loan("12345", ?loan);
+println(v);
 ```
 
-**Common Mistakes with Tamgu Variables**
+## Thread Execution within Predicates
 
-If you use common variables in predicates, such as string s, integer s, or any other sorts of variables, you need to remember that these variables are used in predicates as comparison values. An example might clarify a little bit what we mean.
+Tamgu allows for the execution of threads from within predicate rules, enabling concurrent execution of tasks within the logical framework of predicates.
 
-**Example 1**
+### Calling Threads in Predicates
 
-```C++
-string s="test";
-string sx="other";
-predicate comp;
-comp._trace(true);
-comp(s,3) :- println(s).
-comp(sx,?X);
+You can define and call threads within predicate rules, but you must use the `waitonjoined()` instruction after the thread calls to ensure proper synchronization:
+
+```csharp
+thread thread_name(parameters, ?_ result) {
+    // Thread operations
+    return true;
+}
+
+predicate predicate_name;
+predicate_name(args) :-
+    thread_name(args1, ?result1),
+    thread_name(args2, ?result2),
+    // More thread calls if needed
+    waitonjoined(),
+    // Further processing with results.
 ```
 
-Execution:
+### Example: Parallel API Calls
 
-```
-r:0=comp(s,3) --> comp(other,?X172) --> Fail
-```
+```csharp
+thread t_prompt(string model, string p, ?_ res) {
+    res = ollama.promptnostream(uri, model, p);
+    return true;
+}
 
-This clause has failed because s and sx have different values.
+string p1 = @"Return a Python function that iterates from 1 to 100 and displays each value on screen."@;
+string p2 = @"Return a Python function that computes the square of all odd numbers between 1 and 100 and stores them in a list."@;
+string p3 = @"Return a Python function that returns the last 10 characters of a string given as input."@;
 
-**Example 2**
+predicate appel;
+appel(?P1, ?P2, ?P3, [?Y1, ?Y2, ?Y3]) :-
+    t_prompt("phi3", ?P1, ?Y1),
+    t_prompt("phi3", ?P2, ?Y2),
+    t_prompt("phi3", ?P3, ?Y3),
+    waitonjoined().
 
-```C++
-string s="test"; // now they have the same values
-string sx="test";
-predicate comp;
-comp._trace(true);
-comp(s,3) :- println(s).
-comp(sx,?X);
-```
-
-Execution:
-
-```
-r:0=comp(s,3) --> comp(test,?X173)
-e:0=comp(test,3) --> println(s)test
-success:1=comp('test',3)
+vector v = appel(p1, p2, p3, ?V);
+println(v);
 ```
 
-Be careful when you design your clauses to use external variables as comparison sources and not as instantiation. If you want to pass a string value to your predicate, then the placeholder for that string should be a predicate variable.
+### Important Considerations
 
-**Example 3**
+1. **Use of `waitonjoined()`**: Crucial for ensuring all threads complete before the predicate continues.
+2. **Concurrency**: Allows for concurrent execution of multiple tasks.
+3. **Result Handling**: Results of thread executions can be captured in variables for further processing.
+4. **Error Handling**: Proper error handling in threads is important.
+5. **Resource Management**: Be mindful of resource usage when spawning multiple threads.
 
-```C++
-string sx="test";
-predicate comp;
-comp._trace(true);
-comp(?s,3) :- println(?s).
-comp(sx,?X);
+### Advantages of Threading in Predicates
+
+1. **Parallelism**: Perform multiple operations concurrently.
+2. **Integration**: Seamless integration of concurrent programming with logical programming.
+3. **Flexibility**: Handle time-consuming operations without blocking entire predicate execution.
+4. **Scalability**: Efficiently handle multiple similar tasks.
+
+## Examples
+
+### Ancestor Relationship
+
+```csharp
+ancestor(?X,?X).
+ancestor(?X,?Z) :- parent(?X,?Y), ancestor(?Y,?Z).
+parent("george","sam").
+parent("george","andy").
+parent("andy","mary").
+parent("sam","christine").
+male("george").
+male("sam").
+male("andy").
+female("mary").
+female("christine").
+test(?X,?Q) :- ancestor(?X,?Q), female(?Q), ?X is not ?Q.
+vector v = test(?X,?Z);
+println(v);
 ```
 
-Execution:
+### Natural Language Processing
 
+```csharp
+sentence(s(?NP,?VP)) --> noun_phrase(?NP), verb_phrase(?VP).
+noun_phrase(np(?D,?N)) --> det(?D), noun(?N).
+verb_phrase(vp(?V,?NP)) --> verb(?V), noun_phrase(?NP).
+det(d("the")) --> ["the"].
+det(d("a")) --> ["a"].
+noun(n("bat")) --> ["bat"].
+noun(n("cat")) --> ["cat"].
+verb(v("eats")) --> ["eats"].
+
+vector vr = sentence(["the", "bat", ?E, ?Y, ?N], [], ?X);
+printjln(vr);
 ```
-r:0=comp(?s,3) --> comp(test,?X176)
-e:0=comp('test',3) --> println(?s177:test)test
-success:1=comp('test',3)
+
+### List Concatenation
+
+```csharp
+predicate concat;
+concat([], ?X, ?X).
+concat([?H|?T], ?Y, [?H|?Z]) :- concat(?T, ?Y, ?Z).
+
+concat.trace(true);
+vector v = concat(["english", "russian", "french", "portuguese", "italian", "german"], ['spanish'], ?L);
+println(v);
 ```
 
-**Examples**
+### Simple Hanoi Tower Solver
 
-**Hanoi Tower**
-
-The following program solves the Hanoi tower problem for you.
-
-```C++
+```csharp
 predicate move;
 move(1,?X,?Y,_) :- println('Move the top disk from ',?X,' to ',?Y).
 move(?N,?X,?Y,?Z) :- ?N>1, ?M is ?N-1, move(?M,?X,?Z,?Y), move(1,?X,?Y,_), move(?M,?Z,?Y,?X).
@@ -399,62 +310,18 @@ res=move(3,"left","right","centre");
 println(res);
 ```
 
-**Ancestor**
+### Animated Hanoi Tower
 
-With this program, you can find the common female ancestor between different people parent relationships.
-
-```C++
-predicate ancestor,parent,male,female,test;
-ancestor(?X,?X) :- true.
-ancestor(?X,?Z) :- parent(?X,?Y),ancestor(?Y,?Z).
-parent("george","sam") :- true.
-parent("george","andy") :- true.
-parent("andy","mary") :- true.
-male("george") :- true.
-male("sam") :- true.
-male("andy") :- true.
-female("mary") :- true.
-test(?X,?Q) :- ancestor(?X,?Q), female(?Q).
-test._trace(true);
-vector v=test("george",?Z);
-println(v);
-```
-
-**An NLP Example**
-
-This example corresponds to the clauses that have been generated out of the previous DCG grammar given as an example.
-
-```C++
-predicate sentence,noun_phrase,det,noun,verb_phrase,verb;
-term P,SN,SV,dét,nom,verbe;
-sentence(?S1,?S3,P(?A,?B)) :- noun_phrase(?S1,?S2,?A), verb_phrase(?S2,?S3,?B).
-noun_phrase(?S1,?S3,SN(?A,?B)) :- det(?S1,?S2,?A), noun(?S2,?S3,?B).
-verb_phrase(?S1,?S3,SV(?A,?B)) :- verb(?S1,?S2,?A), noun_phrase(?S2,?S3,?B).
-det(["the"|?X],?X,dét("the")) :- true.
-det(["a"|?X],?X,dét("a")) :- true.
-noun(["cat"|?X],?X,nom("cat")) :- true.
-noun(["dog"|?X],?X,nom("dog")) :- true.
-verb(["eats"|?X],?X,verbe("eats")) :- true.
-vector v;
-v=sentence(?X,[],?A);
-println("All the sentences that can be generated:",v);
-// we analyze a sentence
-v=sentence(["the","dog","eats","a","bat"],[],?A);
-println("The analysis:",v);
-```
-
-**Animated Hanoi Tower**
-
-The code below displays an animation in which disks are moved from one column to another. It merges both graphics and predicates.
-
-```C++
+```csharp
 predicate move;
 map columns={'left':[70,50,30],'centre':[],'right':[]};
+
 function disk(window w,int x,int y,int sz,int position) {
     int start=x+100-sz;
     int level=y-50*position;
     w.rectanglefill(start,level,sz*2+20,30,FL_BLUE);
 }
+
 function displaying(window w,self o) {
     w.drawcolor(FL_BLACK);
     w.font(FL_HELVETICA,40);
@@ -478,7 +345,9 @@ function displaying(window w,self o) {
     for (i=0;i<right;i++)
         disk(w,700,740,right[i],i+1);
 }
+
 window w with displaying;
+
 function moving(string x,string y) {
     columns[y].push(columns[x][-1]);
     columns[x].pop();
@@ -486,17 +355,23 @@ function moving(string x,string y) {
     pause(0.5);
     return true;
 }
+
 move(1,?X,?Y,_) :- moving(?X,?Y).
 move(?N,?X,?Y,?Z) :- ?N>1, ?M is ?N-1, move(?M,?X,?Z,?Y), move(1,?X,?Y,_), move(?M,?Z,?Y,?X).
+
 thread hanoi() {
     move(3,"left","right","centre");
 }
+
 function launch(button b,self o) {
     hanoi();
 }
+
 button b with launch;
 w.begin(50,50,1000,800,"HANOI");
 b.create(20,20,60,30,FL_Regular,FL_NORMAL_BUTTON,"Launch");
 w.end();
 w.run();
 ```
+
+This comprehensive documentation covers all aspects of Tamgu's inference engine, including its basic features, advanced capabilities like function and thread integration, and various examples demonstrating its versatility in different problem domains.

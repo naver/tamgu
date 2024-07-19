@@ -502,9 +502,11 @@ class bnf_tamgu {
     char m_dependencyrule_0_2_3(string& lreturn,x_node** tree);
     char m_predicatevariable(string& lreturn,x_node** tree);
     char m_predicatevariable_0_1(string& lreturn,x_node** tree);
-    char m_predicatevariable_0_2(string& lreturn,x_node** tree);
-    char m_predicatevariable_0_2_3(string& lreturn,x_node** tree);
-    char m_predicatevariable_0_2_4(string& lreturn,x_node** tree);
+    char m_predicatevariable_0_1_2(string& lreturn,x_node** tree);
+    char m_predicatevariable_0_1_2_3(string& lreturn,x_node** tree);
+    char m_predicatevariable_0_4(string& lreturn,x_node** tree);
+    char m_predicatevariable_0_4_5(string& lreturn,x_node** tree);
+    char m_predicatevariable_0_4_6(string& lreturn,x_node** tree);
     char m_term(string& lreturn,x_node** tree);
     char m_term_0_1(string& lreturn,x_node** tree);
     char m_tuple(string& lreturn,x_node** tree);
@@ -898,7 +900,6 @@ class bnf_tamgu {
     char m_onetag_0_1(string& lreturn,x_node** tree);
     char m_tag(string& lreturn,x_node** tree);
     char m_tlvariable(string& lreturn,x_node** tree);
-    char m_tlvariable_0_1(string& lreturn,x_node** tree);
     char m_tlatom(string& lreturn,x_node** tree);
     char m_tlquote(string& lreturn,x_node** tree);
     char m_tlquote_0_1(string& lreturn,x_node** tree);

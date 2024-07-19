@@ -10848,18 +10848,28 @@ Tamgu* TamguCode::C_predicatevariable(x_node* xn, Tamgu* kf) {
 
     //We build the variable name as a concatenation with the predicate idname...
     //This is a simple way to get individual variables in predicates, which simplifies the matching...
+    if (name.find("[") != -1)
+        name = name.substr(0, name.size() - 2);
     name += currentpredicatename;
     idname = global->Getid(name);
 
-    if (!global->predicatevariables.check(idname)) {
-		var = new TamguPredicateVariable(global, idname, kf);
-		global->predicatevariables[idname] = var;
-	}
-	else {
-		var = global->predicatevariables[idname];
-		kf->AddInstruction(var);
-	}
-	return var;
+    if (xn->nodes.size() == 2) {
+        //indexes are possible here
+        var = new TamguPredicateVariable(global, idname, kf);
+        Traverse(xn->nodes[1], var);
+    }
+    else {
+        if (!global->predicatevariables.check(idname)) {
+            var = new TamguPredicateVariable(global, idname, kf);
+            global->predicatevariables[idname] = var;
+        }
+        else {
+            var = global->predicatevariables[idname];
+            kf->AddInstruction(var);
+        }
+    }
+
+    return var;
 }
 
 
