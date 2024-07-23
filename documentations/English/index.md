@@ -113,7 +113,7 @@
 
 `accuracy`: [Library word2vec type word2vec](https://github.com/naver/tamgu/tree/master/docs/English.md/59_Library_word2vec_type_word2vec.md)
 
-`add`: [Type  transducer](https://github.com/naver/tamgu/tree/master/docs/English.md/28_Type_transducer.md),[GUI ToolKit library libgui](https://github.com/naver/tamgu/tree/master/docs/English.md/53.2_GUI_ToolKit_library_libgui.md)
+`add`: [Type  transducer](https://github.com/naver/tamgu/tree/master/docs/English.md/28_Type_transducer.md); [GUI ToolKit library libgui](https://github.com/naver/tamgu/tree/master/docs/English.md/53.2_GUI_ToolKit_library_libgui.md)
 
 `addchild`: [dependency and synode](https://github.com/naver/tamgu/tree/master/docs/English.md/46_dependency_and_synode.md)
 
@@ -129,7 +129,7 @@
 
 `analogy`: [Library word2vec type word2vec](https://github.com/naver/tamgu/tree/master/docs/English.md/59_Library_word2vec_type_word2vec.md)
 
-`and`: [Frame](https://github.com/naver/tamgu/tree/master/docs/English.md/10_Frame.md),[Specific instructions](https://github.com/naver/tamgu/tree/master/docs/English.md/37_Specific_instructions.md),[Functional Language à la Lisp](https://github.com/naver/tamgu/tree/master/docs/English.md/41_Functional_Language_à_la_Lisp.md)
+`and`: [Frame](https://github.com/naver/tamgu/tree/master/docs/English.md/10_Frame.md); [Specific instructions](https://github.com/naver/tamgu/tree/master/docs/English.md/37_Specific_instructions.md); [Functional Language à la Lisp](https://github.com/naver/tamgu/tree/master/docs/English.md/41_Functional_Language_à_la_Lisp.md)
 
 `annotator`: [Type  annotator](https://github.com/naver/tamgu/tree/master/docs/English.md/29_Type_annotator.md)
 
@@ -167,7 +167,7 @@
 
 `body`: [Functional Language à la Lisp](https://github.com/naver/tamgu/tree/master/docs/English.md/41_Functional_Language_à_la_Lisp.md)
 
-`break`: [Specific instructions](https://github.com/naver/tamgu/tree/master/docs/English.md/37_Specific_instructions.md),[Functional Language à la Lisp](https://github.com/naver/tamgu/tree/master/docs/English.md/41_Functional_Language_à_la_Lisp.md),[Type  fibre](https://github.com/naver/tamgu/tree/master/docs/English.md/43_Type_fibre.md)
+`break`: [Specific instructions](https://github.com/naver/tamgu/tree/master/docs/English.md/37_Specific_instructions.md); [Functional Language à la Lisp](https://github.com/naver/tamgu/tree/master/docs/English.md/41_Functional_Language_à_la_Lisp.md); [Type  fibre](https://github.com/naver/tamgu/tree/master/docs/English.md/43_Type_fibre.md)
 
 `browser`: [GUI ToolKit library libgui](https://github.com/naver/tamgu/tree/master/docs/English.md/53.2_GUI_ToolKit_library_libgui.md)
 
@@ -195,7 +195,7 @@
 
 `chi_squared_distribution`: [Random](https://github.com/naver/tamgu/tree/master/docs/English.md/38_Random.md)
 
-`chrono`: [Type  chrono](https://github.com/naver/tamgu/tree/master/docs/English.md/34_Type_chrono.md),[Type  chrono](https://github.com/naver/tamgu/tree/master/docs/English.md/34_Type_chrono.md)
+`chrono`: [Type  chrono](https://github.com/naver/tamgu/tree/master/docs/English.md/34_Type_chrono.md); [Type  chrono](https://github.com/naver/tamgu/tree/master/docs/English.md/34_Type_chrono.md)
 
 `clientid`: [socket](https://github.com/naver/tamgu/tree/master/docs/English.md/48_socket.md)
 
@@ -297,11 +297,11 @@
 
 `fail`: [Inference engine](https://github.com/naver/tamgu/tree/master/docs/English.md/45_Inference_engine.md)
 
-`false`: [Type  rawstring, string, ustring](https://github.com/naver/tamgu/tree/master/docs/English.md/14_Type_rawstring_string_ustring.md),[Type  iloop, floop, bloop, sloop, uloop](https://github.com/naver/tamgu/tree/master/docs/English.md/17_Type_iloop_floop_bloop_sloop_uloop.md),[Type  annotator](https://github.com/naver/tamgu/tree/master/docs/English.md/29_Type_annotator.md),[Specific instructions](https://github.com/naver/tamgu/tree/master/docs/English.md/37_Specific_instructions.md)
+`false`: [Type  rawstring, string, ustring](https://github.com/naver/tamgu/tree/master/docs/English.md/14_Type_rawstring_string_ustring.md); [Type  iloop, floop, bloop, sloop, uloop](https://github.com/naver/tamgu/tree/master/docs/English.md/17_Type_iloop_floop_bloop_sloop_uloop.md); [Type  annotator](https://github.com/naver/tamgu/tree/master/docs/English.md/29_Type_annotator.md); [Specific instructions](https://github.com/naver/tamgu/tree/master/docs/English.md/37_Specific_instructions.md)
 
 `fibre`: [Type  fibre](https://github.com/naver/tamgu/tree/master/docs/English.md/43_Type_fibre.md)
 
-`file`: [Type  file, wfile](https://github.com/naver/tamgu/tree/master/docs/English.md/35_Type_file_wfile.md),[Python library pytamgu](https://github.com/naver/tamgu/tree/master/docs/English.md/56_Python_library_pytamgu.md)
+`file`: [Type  file, wfile](https://github.com/naver/tamgu/tree/master/docs/English.md/35_Type_file_wfile.md); [Python library pytamgu](https://github.com/naver/tamgu/tree/master/docs/English.md/56_Python_library_pytamgu.md)
 
 `find`: [GUI ToolKit library libgui](https://github.com/naver/tamgu/tree/master/docs/English.md/53.2_GUI_ToolKit_library_libgui.md)
 
@@ -343,11 +343,11 @@
 
 `floop`: [Type  iloop, floop, bloop, sloop, uloop](https://github.com/naver/tamgu/tree/master/docs/English.md/17_Type_iloop_floop_bloop_sloop_uloop.md)
 
-`for`: [Specific instructions](https://github.com/naver/tamgu/tree/master/docs/English.md/37_Specific_instructions.md),[Functional Language à la Lisp](https://github.com/naver/tamgu/tree/master/docs/English.md/41_Functional_Language_à_la_Lisp.md)
+`for`: [Specific instructions](https://github.com/naver/tamgu/tree/master/docs/English.md/37_Specific_instructions.md); [Functional Language à la Lisp](https://github.com/naver/tamgu/tree/master/docs/English.md/41_Functional_Language_à_la_Lisp.md)
 
 `Fraction`: [Type  fraction](https://github.com/naver/tamgu/tree/master/docs/English.md/18_Type_fraction.md)
 
-`frame`: [Tamgu an introduction](https://github.com/naver/tamgu/tree/master/docs/English.md/3_Tamgu_an_introduction.md),[Frame](https://github.com/naver/tamgu/tree/master/docs/English.md/10_Frame.md),[Frame](https://github.com/naver/tamgu/tree/master/docs/English.md/10_Frame.md)
+`frame`: [Tamgu an introduction](https://github.com/naver/tamgu/tree/master/docs/English.md/3_Tamgu_an_introduction.md); [Frame](https://github.com/naver/tamgu/tree/master/docs/English.md/10_Frame.md); [Frame](https://github.com/naver/tamgu/tree/master/docs/English.md/10_Frame.md)
 
 `frames`: [Frame](https://github.com/naver/tamgu/tree/master/docs/English.md/10_Frame.md)
 
@@ -357,7 +357,7 @@
 
 `function_name`: [Python library pytamgu](https://github.com/naver/tamgu/tree/master/docs/English.md/56_Python_library_pytamgu.md)
 
-`function`: [Tamgu an introduction](https://github.com/naver/tamgu/tree/master/docs/English.md/3_Tamgu_an_introduction.md),[Basic  Types](https://github.com/naver/tamgu/tree/master/docs/English.md/5_Basic_Types.md),[Function autorun thread](https://github.com/naver/tamgu/tree/master/docs/English.md/7_Function_autorun_thread.md)
+`function`: [Tamgu an introduction](https://github.com/naver/tamgu/tree/master/docs/English.md/3_Tamgu_an_introduction.md); [Basic  Types](https://github.com/naver/tamgu/tree/master/docs/English.md/5_Basic_Types.md); [Function autorun thread](https://github.com/naver/tamgu/tree/master/docs/English.md/7_Function_autorun_thread.md)
 
 `fvector`: [Random](https://github.com/naver/tamgu/tree/master/docs/English.md/38_Random.md)
 
@@ -391,7 +391,7 @@
 
 `initialization`: [Library word2vec type word2vec](https://github.com/naver/tamgu/tree/master/docs/English.md/59_Library_word2vec_type_word2vec.md)
 
-`int`: [Function autorun thread](https://github.com/naver/tamgu/tree/master/docs/English.md/7_Function_autorun_thread.md),[Random](https://github.com/naver/tamgu/tree/master/docs/English.md/38_Random.md)
+`int`: [Function autorun thread](https://github.com/naver/tamgu/tree/master/docs/English.md/7_Function_autorun_thread.md); [Random](https://github.com/naver/tamgu/tree/master/docs/English.md/38_Random.md)
 
 `ioredirect`: [Specific instructions](https://github.com/naver/tamgu/tree/master/docs/English.md/37_Specific_instructions.md)
 
@@ -403,15 +403,15 @@
 
 `join`: [Synchronization](https://github.com/naver/tamgu/tree/master/docs/English.md/44_Synchronization.md)
 
-`key`: [Type  tree, bin, prime, map](https://github.com/naver/tamgu/tree/master/docs/English.md/22_Type_tree_bin_prime_map.md),[Functional Language à la Lisp](https://github.com/naver/tamgu/tree/master/docs/English.md/41_Functional_Language_à_la_Lisp.md),[ sys](https://github.com/naver/tamgu/tree/master/docs/English.md/47__sys.md)
+`key`: [Type  tree, bin, prime, map](https://github.com/naver/tamgu/tree/master/docs/English.md/22_Type_tree_bin_prime_map.md); [Functional Language à la Lisp](https://github.com/naver/tamgu/tree/master/docs/English.md/41_Functional_Language_à_la_Lisp.md); [ sys](https://github.com/naver/tamgu/tree/master/docs/English.md/47__sys.md)
 
 `keys`: [Functional Language à la Lisp](https://github.com/naver/tamgu/tree/master/docs/English.md/41_Functional_Language_à_la_Lisp.md)
 
 `label`: [Functional Language à la Lisp](https://github.com/naver/tamgu/tree/master/docs/English.md/41_Functional_Language_à_la_Lisp.md)
 
-`labels`: [Type  annotator](https://github.com/naver/tamgu/tree/master/docs/English.md/29_Type_annotator.md),[Library LINEAR type linear](https://github.com/naver/tamgu/tree/master/docs/English.md/57_Library_LINEAR_type_linear.md)
+`labels`: [Type  annotator](https://github.com/naver/tamgu/tree/master/docs/English.md/29_Type_annotator.md); [Library LINEAR type linear](https://github.com/naver/tamgu/tree/master/docs/English.md/57_Library_LINEAR_type_linear.md)
 
-`lambda`: [Random](https://github.com/naver/tamgu/tree/master/docs/English.md/38_Random.md),[Functional Language à la Lisp](https://github.com/naver/tamgu/tree/master/docs/English.md/41_Functional_Language_à_la_Lisp.md)
+`lambda`: [Random](https://github.com/naver/tamgu/tree/master/docs/English.md/38_Random.md); [Functional Language à la Lisp](https://github.com/naver/tamgu/tree/master/docs/English.md/41_Functional_Language_à_la_Lisp.md)
 
 `launch`: [Synchronization](https://github.com/naver/tamgu/tree/master/docs/English.md/44_Synchronization.md)
 
@@ -421,7 +421,7 @@
 
 `lispmode`: [Functional Language à la Lisp](https://github.com/naver/tamgu/tree/master/docs/English.md/41_Functional_Language_à_la_Lisp.md)
 
-`list`: [Type  list](https://github.com/naver/tamgu/tree/master/docs/English.md/20_Type_list.md),[Functional Language à la Lisp](https://github.com/naver/tamgu/tree/master/docs/English.md/41_Functional_Language_à_la_Lisp.md)
+`list`: [Type  list](https://github.com/naver/tamgu/tree/master/docs/English.md/20_Type_list.md); [Functional Language à la Lisp](https://github.com/naver/tamgu/tree/master/docs/English.md/41_Functional_Language_à_la_Lisp.md)
 
 `load`: [Library LINEAR type linear](https://github.com/naver/tamgu/tree/master/docs/English.md/57_Library_LINEAR_type_linear.md)
 
@@ -457,7 +457,7 @@
 
 `multiply`: [Frame](https://github.com/naver/tamgu/tree/master/docs/English.md/10_Frame.md)
 
-`myfunc`: [Type  call](https://github.com/naver/tamgu/tree/master/docs/English.md/36_Type_call.md),[Type  fibre](https://github.com/naver/tamgu/tree/master/docs/English.md/43_Type_fibre.md)
+`myfunc`: [Type  call](https://github.com/naver/tamgu/tree/master/docs/English.md/36_Type_call.md); [Type  fibre](https://github.com/naver/tamgu/tree/master/docs/English.md/43_Type_fibre.md)
 
 `name`: [socket](https://github.com/naver/tamgu/tree/master/docs/English.md/48_socket.md)
 
@@ -497,7 +497,7 @@
 
 `poisson_distribution`: [Random](https://github.com/naver/tamgu/tree/master/docs/English.md/38_Random.md)
 
-`pos`: [Type  rawstring, string, ustring](https://github.com/naver/tamgu/tree/master/docs/English.md/14_Type_rawstring_string_ustring.md),[Type  grammar](https://github.com/naver/tamgu/tree/master/docs/English.md/30_Type_grammar.md),[GUI ToolKit library libgui](https://github.com/naver/tamgu/tree/master/docs/English.md/53.3_GUI_ToolKit_library_libgui.md)
+`pos`: [Type  rawstring, string, ustring](https://github.com/naver/tamgu/tree/master/docs/English.md/14_Type_rawstring_string_ustring.md); [Type  grammar](https://github.com/naver/tamgu/tree/master/docs/English.md/30_Type_grammar.md); [GUI ToolKit library libgui](https://github.com/naver/tamgu/tree/master/docs/English.md/53.3_GUI_ToolKit_library_libgui.md)
 
 `power`: [Frame](https://github.com/naver/tamgu/tree/master/docs/English.md/10_Frame.md)
 
@@ -547,7 +547,7 @@
 
 `reset`: [Type  chrono](https://github.com/naver/tamgu/tree/master/docs/English.md/34_Type_chrono.md)
 
-`return`: [Function autorun thread](https://github.com/naver/tamgu/tree/master/docs/English.md/7_Function_autorun_thread.md),[Alias](https://github.com/naver/tamgu/tree/master/docs/English.md/8_Alias.md),[Functional Language à la Lisp](https://github.com/naver/tamgu/tree/master/docs/English.md/41_Functional_Language_à_la_Lisp.md)
+`return`: [Function autorun thread](https://github.com/naver/tamgu/tree/master/docs/English.md/7_Function_autorun_thread.md); [Alias](https://github.com/naver/tamgu/tree/master/docs/English.md/8_Alias.md); [Functional Language à la Lisp](https://github.com/naver/tamgu/tree/master/docs/English.md/41_Functional_Language_à_la_Lisp.md)
 
 `rgbcolor`: [GUI ToolKit library libgui](https://github.com/naver/tamgu/tree/master/docs/English.md/53.1_GUI_ToolKit_library_libgui.md)
 
@@ -559,7 +559,7 @@
 
 `scan`: [Type  Tamgu, Regular, Expression, treg](https://github.com/naver/tamgu/tree/master/docs/English.md/15_Type_Tamgu_Regular_Expression_treg.md)
 
-`self`: [Function autorun thread](https://github.com/naver/tamgu/tree/master/docs/English.md/7_Function_autorun_thread.md),[Predefined  Types](https://github.com/naver/tamgu/tree/master/docs/English.md/13_Predefined_Types.md),[Functional Language à la Lisp](https://github.com/naver/tamgu/tree/master/docs/English.md/41_Functional_Language_à_la_Lisp.md)
+`self`: [Function autorun thread](https://github.com/naver/tamgu/tree/master/docs/English.md/7_Function_autorun_thread.md); [Predefined  Types](https://github.com/naver/tamgu/tree/master/docs/English.md/13_Predefined_Types.md); [Functional Language à la Lisp](https://github.com/naver/tamgu/tree/master/docs/English.md/41_Functional_Language_à_la_Lisp.md)
 
 `setpath`: [Python library pytamgu](https://github.com/naver/tamgu/tree/master/docs/English.md/56_Python_library_pytamgu.md)
 
@@ -587,7 +587,7 @@
 
 `sthrough`: [Specific instructions](https://github.com/naver/tamgu/tree/master/docs/English.md/37_Specific_instructions.md)
 
-`stop`: [Inference engine](https://github.com/naver/tamgu/tree/master/docs/English.md/45_Inference_engine.md),[dependency and synode](https://github.com/naver/tamgu/tree/master/docs/English.md/46_dependency_and_synode.md)
+`stop`: [Inference engine](https://github.com/naver/tamgu/tree/master/docs/English.md/45_Inference_engine.md); [dependency and synode](https://github.com/naver/tamgu/tree/master/docs/English.md/46_dependency_and_synode.md)
 
 `str`: [Type  rawstring, string, ustring](https://github.com/naver/tamgu/tree/master/docs/English.md/14_Type_rawstring_string_ustring.md)
 
@@ -611,7 +611,7 @@
 
 `TAMGULIBS`: [useOSlibrary](https://github.com/naver/tamgu/tree/master/docs/English.md/49_useOSlibrary.md)
 
-`Test`: [Frame](https://github.com/naver/tamgu/tree/master/docs/English.md/10_Frame.md),[Type  tree, bin, prime, map](https://github.com/naver/tamgu/tree/master/docs/English.md/22_Type_tree_bin_prime_map.md)
+`Test`: [Frame](https://github.com/naver/tamgu/tree/master/docs/English.md/10_Frame.md); [Type  tree, bin, prime, map](https://github.com/naver/tamgu/tree/master/docs/English.md/22_Type_tree_bin_prime_map.md)
 
 `thread`: [Function autorun thread](https://github.com/naver/tamgu/tree/master/docs/English.md/7_Function_autorun_thread.md)
 
@@ -631,7 +631,7 @@
 
 `treg`: [Type  Tamgu, Regular, Expression, treg](https://github.com/naver/tamgu/tree/master/docs/English.md/15_Type_Tamgu_Regular_Expression_treg.md)
 
-`true`: [Type  rawstring, string, ustring](https://github.com/naver/tamgu/tree/master/docs/English.md/14_Type_rawstring_string_ustring.md),[Type  iloop, floop, bloop, sloop, uloop](https://github.com/naver/tamgu/tree/master/docs/English.md/17_Type_iloop_floop_bloop_sloop_uloop.md),[Type  annotator](https://github.com/naver/tamgu/tree/master/docs/English.md/29_Type_annotator.md),[Specific instructions](https://github.com/naver/tamgu/tree/master/docs/English.md/37_Specific_instructions.md)
+`true`: [Type  rawstring, string, ustring](https://github.com/naver/tamgu/tree/master/docs/English.md/14_Type_rawstring_string_ustring.md); [Type  iloop, floop, bloop, sloop, uloop](https://github.com/naver/tamgu/tree/master/docs/English.md/17_Type_iloop_floop_bloop_sloop_uloop.md); [Type  annotator](https://github.com/naver/tamgu/tree/master/docs/English.md/29_Type_annotator.md); [Specific instructions](https://github.com/naver/tamgu/tree/master/docs/English.md/37_Specific_instructions.md)
 
 `try`: [try catch raise iferror](https://github.com/naver/tamgu/tree/master/docs/English.md/39_try_catch_raise_iferror.md)
 
@@ -647,13 +647,13 @@
 
 `use`: [Specialized maps](https://github.com/naver/tamgu/tree/master/docs/English.md/23_Specialized_maps.md)
 
-`ustring`: [Type  rawstring, string, ustring](https://github.com/naver/tamgu/tree/master/docs/English.md/14_Type_rawstring_string_ustring.md),[Type  annotator](https://github.com/naver/tamgu/tree/master/docs/English.md/29_Type_annotator.md)
+`ustring`: [Type  rawstring, string, ustring](https://github.com/naver/tamgu/tree/master/docs/English.md/14_Type_rawstring_string_ustring.md); [Type  annotator](https://github.com/naver/tamgu/tree/master/docs/English.md/29_Type_annotator.md)
 
 `uthrough`: [Specific instructions](https://github.com/naver/tamgu/tree/master/docs/English.md/37_Specific_instructions.md)
 
-`var`: [Synchronization](https://github.com/naver/tamgu/tree/master/docs/English.md/44_Synchronization.md),[ sys](https://github.com/naver/tamgu/tree/master/docs/English.md/47__sys.md)
+`var`: [Synchronization](https://github.com/naver/tamgu/tree/master/docs/English.md/44_Synchronization.md); [ sys](https://github.com/naver/tamgu/tree/master/docs/English.md/47__sys.md)
 
-`vector`: [Type  iloop, floop, bloop, sloop, uloop](https://github.com/naver/tamgu/tree/master/docs/English.md/17_Type_iloop_floop_bloop_sloop_uloop.md),[Type  list](https://github.com/naver/tamgu/tree/master/docs/English.md/20_Type_list.md)
+`vector`: [Type  iloop, floop, bloop, sloop, uloop](https://github.com/naver/tamgu/tree/master/docs/English.md/17_Type_iloop_floop_bloop_sloop_uloop.md); [Type  list](https://github.com/naver/tamgu/tree/master/docs/English.md/20_Type_list.md)
 
 `vlist`: [Type  list](https://github.com/naver/tamgu/tree/master/docs/English.md/20_Type_list.md)
 
@@ -669,11 +669,11 @@
 
 `wfile`: [Type  file, wfile](https://github.com/naver/tamgu/tree/master/docs/English.md/35_Type_file_wfile.md)
 
-`while`: [Specific instructions](https://github.com/naver/tamgu/tree/master/docs/English.md/37_Specific_instructions.md),[Functional Language à la Lisp](https://github.com/naver/tamgu/tree/master/docs/English.md/41_Functional_Language_à_la_Lisp.md)
+`while`: [Specific instructions](https://github.com/naver/tamgu/tree/master/docs/English.md/37_Specific_instructions.md); [Functional Language à la Lisp](https://github.com/naver/tamgu/tree/master/docs/English.md/41_Functional_Language_à_la_Lisp.md)
 
 `winput`: [GUI ToolKit library libgui](https://github.com/naver/tamgu/tree/master/docs/English.md/53.3_GUI_ToolKit_library_libgui.md)
 
-`with`: [GUI ToolKit library libgui](https://github.com/naver/tamgu/tree/master/docs/English.md/53.2_GUI_ToolKit_library_libgui.md),[GUI ToolKit library libgui](https://github.com/naver/tamgu/tree/master/docs/English.md/53.1_GUI_ToolKit_library_libgui.md)
+`with`: [GUI ToolKit library libgui](https://github.com/naver/tamgu/tree/master/docs/English.md/53.2_GUI_ToolKit_library_libgui.md); [GUI ToolKit library libgui](https://github.com/naver/tamgu/tree/master/docs/English.md/53.1_GUI_ToolKit_library_libgui.md)
 
 `wstring`: [Type  rawstring, string, ustring](https://github.com/naver/tamgu/tree/master/docs/English.md/14_Type_rawstring_string_ustring.md)
 
@@ -685,7 +685,7 @@
 
 `xmlNodePtr`: [Library xml type xml](https://github.com/naver/tamgu/tree/master/docs/English.md/51_Library_xml_type_xml.md)
 
-`xor`: [Frame](https://github.com/naver/tamgu/tree/master/docs/English.md/10_Frame.md),[Specific instructions](https://github.com/naver/tamgu/tree/master/docs/English.md/37_Specific_instructions.md),[Functional Language à la Lisp](https://github.com/naver/tamgu/tree/master/docs/English.md/41_Functional_Language_à_la_Lisp.md)
+`xor`: [Frame](https://github.com/naver/tamgu/tree/master/docs/English.md/10_Frame.md); [Specific instructions](https://github.com/naver/tamgu/tree/master/docs/English.md/37_Specific_instructions.md); [Functional Language à la Lisp](https://github.com/naver/tamgu/tree/master/docs/English.md/41_Functional_Language_à_la_Lisp.md)
 
 `zerop`: [Functional Language à la Lisp](https://github.com/naver/tamgu/tree/master/docs/English.md/41_Functional_Language_à_la_Lisp.md)
 
