@@ -1301,7 +1301,7 @@ void tokenizer_automaton::setrules() {
 
     // Rules start here
     //This character should be interpreted as one
-    rules.push_back(U"{%a %d %H}+=4");               //49    label a combination of alpha, digits and hangul characters
+    rules.push_back(U"{%a %d %H}{%a %d %H %#}*=4");               //49    label a combination of alpha, digits and hangul characters
     rules.push_back(U"%n=#");                        //1     non-breaking space (not kept)
     rules.push_back(U"%o=0");                        //51    operators
     rules.push_back(U"%p=0");                        //50    punctuation
@@ -2218,10 +2218,11 @@ Tamgu* TamguCode::EvaluateVariable(Tamgu* var) {
 		}
 
 		TamguActionVariable* act;
-		if (var->Typeinfered() == a_self || var->Typeinfered() == a_let)
-			act = new TamguActionLetVariable(n, var->Typeinfered());
+        short vty = var->Typeinfered();
+		if (vty == a_self || vty == a_let || vty == a_instance)
+            act = new TamguActionLetVariable(n, vty);
 		else
-			act = new TamguActionVariable(n, var->Typeinfered());
+            act = new TamguActionVariable(n, vty);
 		var->Remove();
 		variables[n] = act;
 		return act;
@@ -2387,24 +2388,25 @@ bool TamguInstructionAPPLYOPERATIONROOT::Stacking(TamguGlobal* global, Tamgu* in
             instructions.push_back(variables[n]);
         else {
             TamguActionVariable* act;
+            short vty = ins->Typeinfered();
             if (ins->isGlobalVariable()) {
                 if (global->globalvariables.check(n))
                     instructions.push_back(global->globalvariables[n]);
                 else {
-                    if (ins->Typeinfered() == a_self || ins->Typeinfered() == a_let)
-                        act = new TamguActionGlobalLetVariable(n, ins->Typeinfered());
+                    if (vty == a_self || vty == a_let)
+                        act = new TamguActionGlobalLetVariable(n, vty);
                     else
-                        act = new TamguActionGlobalVariable(n, ins->Typeinfered());
+                        act = new TamguActionGlobalVariable(n, vty);
                     remove = true;
                     global->globalvariables[n] = act;
                     instructions.push_back(act);
                 }
             }
             else {
-                if (ins->Typeinfered() == a_self || ins->Typeinfered() == a_let)
-                    act = new TamguActionLetVariable(n, ins->Typeinfered());
+                if (vty == a_self || vty == a_let  || vty == a_instance)
+                    act = new TamguActionLetVariable(n, vty);
                 else
-                    act = new TamguActionVariable(n, ins->Typeinfered());
+                    act = new TamguActionVariable(n, vty);
                 remove = true;
                 variables[n] = act;
                 instructions.push_back(act);
@@ -3127,6 +3129,8 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
     if (type == "window")
         windowmode = true;
 
+    if (type == "?_")
+        type = "predicatevar";
     
 	bool oldprive = isprivate;
 	bool oldcommon = iscommon;

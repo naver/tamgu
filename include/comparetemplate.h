@@ -150,8 +150,11 @@ public:
         l = left->Eval(r, aNULL, idthread);
         r = right->Eval(r, aNULL, idthread);
         
-        if (l->isNULL() || r->isNULL())
+        if (l->isNULL() || r->isNULL()) {
+            l->Release();
+            r->Release();
             return aFALSE;
+        }
         
         Tamgu* rp = l->less(r);
         l->Release();
@@ -173,6 +176,8 @@ public:
         if (l->isNULL() || r->isNULL()) {
             if (l == r)
                 return aTRUE;
+            l->Release();
+            r->Release();
             return aFALSE;
         }
 
