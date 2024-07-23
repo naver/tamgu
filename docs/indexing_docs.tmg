@@ -23,7 +23,7 @@ string doc;
 svector indexes;
 treemap m;
 string k, s;
-string u;
+string u, n;
 
 for (nom in ls) {
     doc.read(chemin+nom);
@@ -32,7 +32,15 @@ for (nom in ls) {
     indexes = indexes.unique();
     for (s in indexes) {
         k = s.lower();
-        u = "[" + nom["_":".md"][1:-2] +"]("+url+nom+")";
+        n = nom["_":".md"][1:-3];
+
+        if ("Type" in n) {
+            n = n.replace("_", ", ");
+            n[","] = " ";
+        }
+        else
+            n = n.replace("_", " ");
+        u = "[" + n +"]("+url+nom+")";
         if (k in m)
             m[k].push(u);
         else
@@ -46,7 +54,4 @@ for (s in m) {
     println(m[s][0]+":",m[s][1:].join(","));
     println();
 }
-
-
-
 
