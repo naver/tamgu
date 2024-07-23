@@ -19,6 +19,9 @@ $(LOBJPATH)/pytamgu/%.o: src/%.cxx
 pytamgu: install $(OBJECTPYTHON) $(OBJECTTamgu)
 	$(COMPPLUSPLUS) -shared -o $(LBINPATH)/pytamgu.so $(OBJECTPYTHON) $(SYSTEMSPATH) $(PYTHONPATH) $(PYTHONLIB) $(LIBREGEX) -L$(LBINPATH) -ltamgu
 
+mac: install $(OBJECTPYTHON) $(OBJECTTamgu)
+	$(COMPPLUSPLUS) -shared -o $(LBINPATH)/pytamgu.so $(OBJECTPYTHON) $(PYTHONPATH) $(PYTHONLIB) -L/usr/local/lib -ltamgu
+
 install:
 	mkdir -p $(LOBJPATH)/pytamgu
 
