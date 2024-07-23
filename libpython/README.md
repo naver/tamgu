@@ -21,4 +21,4 @@ In this case, we have chosen the version in `chaine`. We need the two lines: `LO
 
 You can then compile your new version: `make mac`.
 
-Once the version is compiled, launch: `sh update.sh` to update the new library in memory.
+Once the version is compiled, launch: `sh update.sh` to update the new library in your environment.
