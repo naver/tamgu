@@ -1,0 +1,51 @@
+/@
+Date: 23/07/2024
+Author: Claude Roux
+Description: indexation_docs.tmg
+@/
+
+string url = "https://github.com/naver/tamgu/tree/master/docs/English.md/";
+
+string chemin = _current +"English.md/";
+
+svector ls = <x | x <-_sys.ls(chemin), ".md" in x and "README" not in x>;
+
+function comp(string k1, string k2) {
+    int i = k1;
+    int j = k2;
+    return (i < j);
+}
+
+ls.sort(comp);
+
+string nom;
+string doc;
+svector indexes;
+treemap m;
+string k, s;
+string u;
+
+for (nom in ls) {
+    doc.read(chemin+nom);
+    indexes = r"`%a+`" in doc;
+    indexes = <x | x <- indexes, (x.size()>4)>;
+    indexes = indexes.unique();
+    for (s in indexes) {
+        k = s.lower();
+        u = "[" + nom["_":".md"][1:-2] +"]("+url+nom+")";
+        if (k in m)
+            m[k].push(u);
+        else
+            m[k] = [s, u];
+    }
+}
+
+
+println("# INDEX:");
+for (s in m) {
+    println(m[s][0]+":",m[s][1:].join(","));
+}
+
+
+
+
