@@ -436,8 +436,10 @@ tuple := %( predicateparameters %)
 
 predicateoperator := %,^%;
 
+predicatesep := %: (%:) %-
+
 %predicateexpression := [fail^cut^stop^assertpredicate^[(not) predicatecall]^predplusplus^affectationpredicate^comparepredicate^valpredicatevector^valmappredicate^expressions] (predicateoperator ;35 predicateexpression)
-%predicatedefinition := predicate %: %- ;20 [abool^predicateexpression]
+%predicatedefinition := predicate predicatesep ;20 [abool^predicateexpression]
 %predicatefact := [dependencyfact^predicate] %.
 
 dcgword := predicate^word

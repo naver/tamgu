@@ -11426,6 +11426,72 @@ char bnf_tamgu::m_predicateoperator(string& lreturn,x_node** tree) {
 }
 
 
+char bnf_tamgu::m_predicatesep_0_1(string& lreturn,x_node** tree) {
+    if (gFail==1) return(0);
+    string lret;
+    //long pos=currentpos;
+    //int itok=intoken;
+    x_node* subtree=NULL;
+    int addsubtree=0;
+    //bool exitonfail=false;
+    //BODYOPTIONAL
+    subtree=NULL;
+    if (x_test_char(lret,':'))
+        x_init_tree(tree,subtree,addsubtree);
+    else
+        lret="";
+    lreturn+=lret;
+    return(1);
+}
+
+
+char bnf_tamgu::m_predicatesep(string& lreturn,x_node** tree) {
+    if (gFail==1) return(0);
+    static const char* label="predicatesep";
+    string lret;
+    long pos=currentpos;
+    int itok=intoken;
+    x_node* subtree=NULL;
+    int addsubtree=0;
+    bool exitonfail=false;
+    //BODYSEQUENCE
+    subtree=NULL;
+    if (x_test_char(lret,':')) 
+        x_init_tree(tree,subtree,addsubtree);
+    else {
+        x_pop_node(tree,addsubtree);
+        currentpos=pos;
+        intoken=itok;
+        setfail(exitonfail);
+        return(0);
+    }
+    //BODYSEQUENCE
+    subtree=NULL;
+    if (m_predicatesep_0_1(lret,&subtree)) 
+        x_init_tree(tree,subtree,addsubtree);
+    else {
+        x_pop_node(tree,addsubtree);
+        currentpos=pos;
+        intoken=itok;
+        setfail(exitonfail);
+        return(0);
+    }
+    //BODYSEQUENCE
+    subtree=NULL;
+    if (x_test_char(lret,'-')) 
+        x_init_tree(tree,subtree,addsubtree);
+    else {
+        x_pop_node(tree,addsubtree);
+        currentpos=pos;
+        intoken=itok;
+        setfail(exitonfail);
+        return(0);
+    }
+    x_init_node(lreturn,lret,tree,label,pos,true);
+    return(1);
+}
+
+
 char bnf_tamgu::m_predicateexpression_0_1_2_3(string& lreturn,x_node** tree) {
     if (gFail==1) return(0);
     string lret;
@@ -11638,18 +11704,7 @@ char bnf_tamgu::m_predicatedefinition(string& lreturn,x_node** tree) {
     }
     //BODYSEQUENCE
     subtree=NULL;
-    if (x_test_char(lret,':')) 
-        x_init_tree(tree,subtree,addsubtree);
-    else {
-        x_pop_node(tree,addsubtree);
-        currentpos=pos;
-        intoken=itok;
-        setfail(exitonfail);
-        return(0);
-    }
-    //BODYSEQUENCE
-    subtree=NULL;
-    if (x_test_char(lret,'-')) 
+    if (m_predicatesep(lret,&subtree)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);

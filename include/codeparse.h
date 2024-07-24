@@ -552,6 +552,8 @@ class bnf_tamgu {
     char m_valmappredicate_0_1(string& lreturn,x_node** tree);
     char m_predicatedico(string& lreturn,x_node** tree);
     char m_predicateoperator(string& lreturn,x_node** tree);
+    char m_predicatesep(string& lreturn,x_node** tree);
+    char m_predicatesep_0_1(string& lreturn,x_node** tree);
     char m_predicateexpression(string& lreturn,x_node** tree);
     char m_predicateexpression_0_1(string& lreturn,x_node** tree);
     char m_predicateexpression_0_1_2(string& lreturn,x_node** tree);

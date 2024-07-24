@@ -1985,7 +1985,7 @@ void TamguGlobal::RecordCompileFunctions() {
 	parseFunctions["dcg"] = &TamguCode::C_dcg;
     parseFunctions["rawfact"] = &TamguCode::C_rawfact;
 	parseFunctions["predicatefact"] = &TamguCode::C_predicatefact;
-	parseFunctions["predicatedefinition"] = &TamguCode::C_predicatefact;
+    parseFunctions["predicatedefinition"] = &TamguCode::C_predicatefact;
 	parseFunctions["predicate"] = &TamguCode::C_predicate;
 	parseFunctions["predicateexpression"] = &TamguCode::C_predicateexpression;
 	parseFunctions["predicatevariable"] = &TamguCode::C_predicatevariable;
@@ -6451,7 +6451,7 @@ Tamgu* TamguCode::C_blocs(x_node* xn, Tamgu* kf) {
 			if (xn->nodes[i]->token == "bloc") {
 				x_node* nsub = xn->nodes[i]->nodes[0];
 				if (nsub->token == "predicatedefinition" || nsub->token == "predicatefact") {
-                    if (nsub->token == "predicatedefinition")
+                    if (nsub->token == "predicatedefinition" && nsub->nodes.size() == 3 && nsub->nodes[2]->value != "true")
                         global->predicate_definitions.insert(global->Getid(nsub->nodes[0]->nodes[0]->value));
 					if (nsub->nodes[0]->token == "predicate" || nsub->nodes[0]->token == "dependencyfact") {
 						short id = global->Getid(nsub->nodes[0]->nodes[0]->value);
@@ -10181,7 +10181,7 @@ Tamgu* TamguCode::C_predicatefact(x_node* xn, Tamgu* kf) {
     bool previous = global->Activategarbage(false);
 	if (global->predicate_definitions.find(name) == global->predicate_definitions.end() &&
         kpcont->rules.find(name) == kpcont->rules.end() &&
-        (xn->token == "predicatefact" || xn->nodes[1]->value == "true")) {
+        (xn->token == "predicatefact" || xn->nodes[2]->value == "true")) {
 		Tamgu* kbloc = new TamguInstructionPredicate(name, global);
 		TamguPredicateKnowledgeBase* kcf;
         sname = xn->nodes[0]->token;
@@ -10248,14 +10248,45 @@ Tamgu* TamguCode::C_predicatefact(x_node* xn, Tamgu* kf) {
 
 	TamguPredicateRuleElement* kblocelement = new TamguPredicateRuleElement(global, NULL);
 	//Else we need to browse our structure...
-    if (xn->nodes.size() > 1)
-        Traverse(xn->nodes[1], kblocelement);
+    if (xn->nodes.size() > 2)
+        Traverse(xn->nodes[2], kblocelement);
     else
         kblocelement->AddInstruction(aTRUE);
 	kbloc->Addtail(kpcont, kblocelement);
     currentpredicatename = "";
     global->Activategarbage(previous);
     building_predicate_rule = pred_rule;
+    if (xn->nodes.size() > 1 && xn->nodes[1]->value == "::-") { //tail recursion
+        Tamgu* item = kbloc->instructions.back()->Value();
+        if (item->Name() != name || item->Type() != a_predicate) {
+            stringstream message;
+            message << "Tail recursion requires that the last predicate has the same name as the head predicate";
+            throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
+        }
+        ((TamguPredicate*)item)->terminal = true;
+    }
+    
+    Tamgu* e;
+    short j = -1;
+    for (long i = 0; i < kbloc->instructions.size(); i++) {
+        e = kbloc->instructions[i]->Value();
+        if (e->isThread())
+            j = i;
+        else
+            if (e->Name() == a_waitonjoined) {
+                j = -1;
+                break;
+            }
+    }
+    
+    if (j != -1) {
+        j++;
+        //We must insert a waitonjoined instruction
+        e = new TamguCallProcedure(a_waitonjoined, global);
+        TamguPredicateRuleItem* item = new TamguPredicateRuleItem(global, e, false, false, j);
+        kbloc->instructions.insert(kbloc->instructions.begin() + j, item);
+    }
+    
 	return kbloc;
 }
 

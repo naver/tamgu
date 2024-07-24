@@ -1527,6 +1527,10 @@ public:
 		return a_predicateruleelement;
 	}
 
+    Tamgu* Value() {
+        return item;
+    }
+    
 	void Setdisjunction(bool v) {
 		item->Setdisjunction(v);
 		disjunction = v;

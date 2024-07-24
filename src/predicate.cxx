@@ -4541,7 +4541,6 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
         localres = aTRUE;
         incut = false;
         from = rb->instructions.size();
-        char threading = false;
         if (from) {
             for (j = 0; j < from; j++) {
                 e = ((TamguPredicateRuleItem*)rb->instructions[j])->Unify(this, dom, dico, threadowner);
@@ -4551,18 +4550,10 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
                 }
                 if (e == aCUT)
                     incut = true;
-                if (threading && e->Name() == a_waitonjoined)
-                    threading = 2;
-                if (e->isThread())
-                    threading = true;
                 rulegoals.push_back(e);
             }
         }
         
-        if (threading == true) {
-            localres = aFALSE;
-            globalTamgu->Returnerror("Missing 'waitonjoined' in predicate thread call.", threadowner);
-        }
         
         tail_recursion = NULL;
         if (localres == aTRUE) {
