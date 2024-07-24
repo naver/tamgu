@@ -27,4 +27,7 @@ Once the version is compiled, launch: `sh update.sh` to update the new library i
 
 ## DYLD_LIBRARY_PATH
 The `python library` should be accessible through the `DYLD_LIBRARY_PATH` variable.
-In your `.zshrc`, please check: `export DYLD_LIBRARY_PATH = your_python_path$DYLD_LIBRARY_PATH`.
+
+In your `.zshrc`, please check: `export DYLD_LIBRARY_PATH = python_library_path$DYLD_LIBRARY_PATH`.
+
+_python_library_path shoudl match LOCALPYTHONLIB_
