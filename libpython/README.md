@@ -24,5 +24,7 @@ You can then compile your new version: `make mac`.
 
 ## Update your environment
 Once the version is compiled, launch: `sh update.sh` to update the new library in your environment.
+
+## DYLD_LIBRARY_PATH
 The `python library` should be accessible through the `DYLD_LIBRARY_PATH` variable.
 In your `.zshrc`, please check: `export DYLD_LIBRARY_PATH = your_python_path$DYLD_LIBRARY_PATH`.
