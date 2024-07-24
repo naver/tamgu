@@ -49,7 +49,7 @@ vector v = assign(?X);
 println(v); // [assign({'100':'fin','1':10})]
 ```
 
-### predicatevar
+### predicatevar or ?_
 
 Used to handle predicates and explore their names and values. It offers methods like:
 - `map()`: Returns the predicate as a map
@@ -58,6 +58,12 @@ Used to handle predicates and explore their names and values. It offers methods 
 - `remove()`: Removes the predicate from memory
 - `store()`: Stores the predicate in memory
 - `vector()`: Returns the predicate as a vector
+
+```csharp
+test(?X,?Q) :- ancestor(?X,?Q), female(?Q).
+?_ var = test(?X,?Z);
+println(var);
+```
 
 ## Clauses
 
@@ -115,6 +121,15 @@ To activate tail recursion, add "#" to the name of the last element in the rule:
 traverse([],0).
 traverse([?X|?Y],?A) :- println(?X,?Y), traverse#(?Y,?A).
 ```
+
+Tail recursion can also be implemented with the `::-` operator:
+
+```csharp
+traverse([],0).
+traverse([?X|?Y],?A) ::- println(?X,?Y), traverse(?Y,?A).
+```
+
+The `#` is then no longer necessary.
 
 ## Function Calls within Predicates and External Variable Unification
 
