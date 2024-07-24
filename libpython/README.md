@@ -30,4 +30,4 @@ The `python library` should be accessible through the `DYLD_LIBRARY_PATH` variab
 
 In your `.zshrc`, please check: `export DYLD_LIBRARY_PATH = python_library_path$DYLD_LIBRARY_PATH`.
 
-_python_library_path shoudl match LOCALPYTHONLIB_
+_python_library_path should match LOCALPYTHONLIB_
