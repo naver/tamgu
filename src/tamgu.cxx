@@ -1270,7 +1270,7 @@ Exporting void TamguGlobal::RecordCompatibilities() {
     equto[a_or] = a_or;
     equto[a_xor] = a_xor;
     equto[a_and] = a_and;
-    
+        
     compatibilities[a_call][a_call] = true;
     compatibilities[a_call][a_callfunction] = true;
     compatibilities[a_call][a_callmethod] = true;
@@ -1470,10 +1470,37 @@ Exporting void TamguGlobal::RecordCompatibilities() {
         compatibilities[stringtypes[i]][a_const] = true;
         strictcompatibilities[stringtypes[i]][a_const] = true;
     }
-    
+
+    strictcompatibilities[a_sloop][a_svector] = true;
+    strictcompatibilities[a_sloop][a_uvector] = true;
+    strictcompatibilities[a_uloop][a_svector] = true;
+    strictcompatibilities[a_uloop][a_uvector] = true;
+    strictcompatibilities[a_sloop][a_vector] = true;
+    strictcompatibilities[a_uloop][a_vector] = true;
+
+    compatibilities[a_sloop][a_svector] = true;
+    compatibilities[a_sloop][a_uvector] = true;
+    compatibilities[a_uloop][a_svector] = true;
+    compatibilities[a_uloop][a_uvector] = true;
+    compatibilities[a_sloop][a_vector] = true;
+    compatibilities[a_uloop][a_vector] = true;
+
     for (i = 0; i < vectortypes.size(); i++) {
         for (j = 0; j < vectortypes.size(); j++)
             compatibilities[vectortypes[i]][vectortypes[j]] = true;
+
+        if (vectortypes[i] != a_svector && vectortypes[i] != a_uvector ) {
+            compatibilities[a_bloop][vectortypes[i]] = true;
+            compatibilities[a_iloop][vectortypes[i]] = true;
+            compatibilities[a_lloop][vectortypes[i]] = true;
+            compatibilities[a_dloop][vectortypes[i]] = true;
+            compatibilities[a_floop][vectortypes[i]] = true;
+            strictcompatibilities[a_bloop][vectortypes[i]] = true;
+            strictcompatibilities[a_iloop][vectortypes[i]] = true;
+            strictcompatibilities[a_lloop][vectortypes[i]] = true;
+            strictcompatibilities[a_dloop][vectortypes[i]] = true;
+            strictcompatibilities[a_floop][vectortypes[i]] = true;
+        }
         
         compatibilities[vectortypes[i]][a_predicatelaunch] = true;
         strictcompatibilities[a_vector][vectortypes[i]] = true;
