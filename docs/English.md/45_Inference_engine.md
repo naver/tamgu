@@ -113,7 +113,7 @@ Tamgu provides specific predicates to handle the knowledgebase:
 
 ### Knowledgebase Functions
 
-It also provides different ways to extract this database by name:
+Tamgu also provides different ways to extract this database by name:
 
 1. `predicatedump()`: Returns all knowledgebase predicates in memory
 2. `predicatedump(string p1, string p2, ...)`: Returns all knowledgebase predicates in memory corresponding to one of these names. 
