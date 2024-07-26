@@ -773,6 +773,8 @@
 
 `load`: [Library LINEAR type linear](https://github.com/naver/tamgu/tree/master/docs/English.md/57_Library_LINEAR_type_linear.md)
 
+`loadfacts(string path)`: [Inference engine](https://github.com/naver/tamgu/tree/master/docs/English.md/45_Inference_engine.md)
+
 `loadgif(string filename)`: [GUI ToolKit library libgui](https://github.com/naver/tamgu/tree/master/docs/English.md/53.1_GUI_ToolKit_library_libgui.md)
 
 `loadin(pathname)`: [Loading  external, files, Type, Tamgu, vs, loadin](https://github.com/naver/tamgu/tree/master/docs/English.md/9_Loading_external_files_Type_Tamgu_vs_loadin.md)

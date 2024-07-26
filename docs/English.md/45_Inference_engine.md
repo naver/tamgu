@@ -12,6 +12,11 @@ Tamgu embeds a powerful inference engine that can be seamlessly integrated with 
 
 4. **Term Declaration**: Terms can be declared beforehand as term variables. If not declared, their names must be preceded with a "?" like inference variables.
 
+## `loadfacts(string path)` : Loading a large knowledgebase
+
+If you have a file containing a very large knowledge base, consisting only of facts, it is more efficient to use loadfacts with the file path to speed up loading. This instruction should be placed at the very beginning of your file. It will start loading at compile time.
+
+
 ## Types
 
 ### Predicate
@@ -29,7 +34,7 @@ Used to declare terms for inference clauses.
 
 Tamgu provides Prolog-like lists with the "|" operator for list decomposition:
 
-```csharp
+```prolog
 predicate alist;
 alist([?A,?B|?C],[?A,?B],?C).
 v = alist([1,2,3,4,5], ?X, ?Y);
@@ -38,7 +43,7 @@ println(v); // [alist([1,2,3,4,5],[1,2],[3,4,5])]
 
 Associative maps are implemented as Tamgu maps where argument order is significant:
 
-```csharp
+```prolog
 avalue(1,1).
 avalue(10,2).
 avalue(100,3).
@@ -59,7 +64,7 @@ Used to handle predicates and explore their names and values. It offers methods 
 - `store()`: Stores the predicate in memory
 - `vector()`: Returns the predicate as a vector
 
-```csharp
+```prolog
 test(?X,?Q) :- ancestor(?X,?Q), female(?Q).
 ?:- var = test(?X,?Z);
 println(var);
@@ -69,13 +74,13 @@ println(var);
 
 A basic clause structure:
 
-```csharp
+```prolog
 predicate(arg1, arg2, ..., argn) :- pred(arg...), pred(arg...), etc.
 ```
 
 Facts can be declared as:
 
-```csharp
+```prolog
 predicate(val1, val2, ...) :- true.
 // or
 predicate(val1, val2, ...).
@@ -85,7 +90,7 @@ predicate(val1, val2, ...).
 
 Tamgu supports disjunctions in clauses using the ";" operator:
 
-```csharp
+```prolog
 parent(?X,?Y) :- mere(?X,?Y); pere(?X,?Y).
 ```
 
@@ -109,7 +114,7 @@ Tamgu provides Prolog-like functions such as:
 
 Use "_" as a wildcard for predicate names when querying the knowledge base:
 
-```csharp
+```prolog
 parent(?A,?B) :- _(?A,?B).
 ```
 
@@ -117,14 +122,14 @@ parent(?A,?B) :- _(?A,?B).
 
 To activate tail recursion, add "#" to the name of the last element in the rule:
 
-```csharp
+```prolog
 traverse([],0).
 traverse([?X|?Y],?A) :- println(?X,?Y), traverse#(?Y,?A).
 ```
 
 Tail recursion can also be implemented with the `::-` operator:
 
-```csharp
+```prolog
 traverse([],0).
 traverse([?X|?Y],?A) ::- println(?X,?Y), traverse(?Y,?A).
 ```
@@ -139,7 +144,7 @@ One of Tamgu's most powerful features is its ability to seamlessly integrate fun
 
 You can call regular functions within predicate rules:
 
-```csharp
+```prolog
 function calculate_price(int base_price, int nights) {
     float total = base_price * nights;
     return total;
@@ -154,7 +159,7 @@ hotel_stay(?nights, ?price) :-
 
 Tamgu allows unifying variables within external functions using the special type `?_` for parameters that should be unified:
 
-```csharp
+```prolog
 function calling(string v, ?_ x) {        
     x = v + "1";
     return true;
@@ -176,7 +181,7 @@ println(v);
 
 ### Example: Database Integration
 
-```csharp
+```prolog
 function query_database(string user_id, ?_ user_data) {
     // Simulating a database query
     if (user_id == "12345") {
@@ -212,7 +217,7 @@ Tamgu allows for the execution of threads from within predicate rules, enabling 
 
 You can define and call threads within predicate rules, but you must use the `waitonjoined()` instruction after the thread calls to ensure proper synchronization:
 
-```csharp
+```prolog
 thread thread_name(parameters, ?_ result) {
     // Thread operations
     return true;
@@ -229,7 +234,7 @@ predicate_name(args) :-
 
 ### Example: Parallel API Calls
 
-```csharp
+```prolog
 thread t_prompt(string model, string p, ?_ res) {
     res = ollama.promptnostream(uri, model, p);
     return true;
@@ -269,7 +274,7 @@ println(v);
 
 ### Ancestor Relationship
 
-```csharp
+```prolog
 ancestor(?X,?X).
 ancestor(?X,?Z) :- parent(?X,?Y), ancestor(?Y,?Z).
 parent("george","sam").
@@ -288,7 +293,7 @@ println(v);
 
 ### Natural Language Processing
 
-```csharp
+```prolog
 sentence(s(?NP,?VP)) --> noun_phrase(?NP), verb_phrase(?VP).
 noun_phrase(np(?D,?N)) --> det(?D), noun(?N).
 verb_phrase(vp(?V,?NP)) --> verb(?V), noun_phrase(?NP).
@@ -304,7 +309,7 @@ printjln(vr);
 
 ### List Concatenation
 
-```csharp
+```prolog
 predicate concat;
 concat([], ?X, ?X).
 concat([?H|?T], ?Y, [?H|?Z]) :- concat(?T, ?Y, ?Z).
@@ -316,7 +321,7 @@ println(v);
 
 ### Simple Hanoi Tower Solver
 
-```csharp
+```prolog
 predicate move;
 move(1,?X,?Y,_) :- println('Move the top disk from ',?X,' to ',?Y).
 move(?N,?X,?Y,?Z) :- ?N>1, ?M is ?N-1, move(?M,?X,?Z,?Y), move(1,?X,?Y,_), move(?M,?Z,?Y,?X).
@@ -327,7 +332,7 @@ println(res);
 
 ### Animated Hanoi Tower
 
-```csharp
+```prolog
 predicate move;
 map columns={'left':[70,50,30],'centre':[],'right':[]};
 
