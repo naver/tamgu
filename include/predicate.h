@@ -866,7 +866,7 @@ public:
         return false;
     }
 
-	bool Boolean();
+	virtual bool Boolean();
 
 	Tamgu* same(Tamgu* a);
 
@@ -1161,6 +1161,9 @@ public:
 		return new TamguPredicateVar(globalTamgu, name);
 	}
 
+    bool Boolean() {
+        return (name != a_fail);
+    }
 };
 
 class TamguPredicateKnowledgeBase : public TamguPredicate {

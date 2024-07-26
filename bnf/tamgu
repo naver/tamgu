@@ -245,7 +245,7 @@ private := $private
 common := $common
 const := $const
 
-instance_variable := %? %_
+instance_variable := %? [%_]^[%: %-]
 feature := [private (common)]^[common^const]
 
 type := (feature) notreserved [instance_variable^typename]

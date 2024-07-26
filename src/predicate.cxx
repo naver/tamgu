@@ -1600,10 +1600,8 @@ Tamgu* TamguPredicate::Put(Tamgu* dom, Tamgu* val, short idthread) {
 }
 
 Tamgu* TamguPredicateVar::Put(Tamgu* dom, Tamgu* val, short idthread) {
-    if (val->Type() != ptype) {
-        globalTamgu->Returnerror("PRE(001): Cannot instantiate a predicate with this value", idthread);
-        return aTRUE;
-    }
+    if (val->Type() != ptype)
+        val = aFAIL;
 
     //val cannot contain any PredicateVariable
     long i;
@@ -1613,9 +1611,12 @@ Tamgu* TamguPredicateVar::Put(Tamgu* dom, Tamgu* val, short idthread) {
     for (i = 0; i < val->Size(); i++) {
         e = val->Parameter(i)->Eval(dom, aNULL, idthread);
         if (!e->isUnified((TamguDeclaration*)dom)) {
-            string message("PRE(001): Cannot instantiate a predicate with this value");
-            globalTamgu->Returnerror(message, idthread);
-            return aTRUE;
+            for (i = 0; i < v.size(); i++) {
+                v[i]->Release();
+            }
+            v.clear();
+            val = aFAIL;
+            break;
         }
         v.push_back(e->Atom(true));
     }

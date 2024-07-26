@@ -3128,9 +3128,6 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
 	string& type = xn->nodes[0]->value;
     if (type == "window")
         windowmode = true;
-
-    if (type == "?_")
-        type = "predicatevar";
     
 	bool oldprive = isprivate;
 	bool oldcommon = iscommon;
@@ -10149,7 +10146,19 @@ void TamguCode::ComputePredicateParameters(x_node* xn, Tamgu* kcf) {
 	}
 }
 
-
+//We check for regular expressions in the arguments...
+//We cannot introduce any knowledge base elements that contain a regular expression as parameter...
+bool check_no_regs(x_node* x) {
+    if (x == NULL)
+        return true;
+    string type;
+    for (int i = 0; i < x->nodes.size(); i++) {
+        type = x->nodes[i]->nodes[0]->token;
+        if (type == "atreg" || type == "astreg" || type == "apreg" || type == "aspreg")
+            return false;
+    }
+    return true;
+}
 
 // A call to a predicate expression
 //We have three possibilities, which must be taken into account:
@@ -10179,8 +10188,13 @@ Tamgu* TamguCode::C_predicatefact(x_node* xn, Tamgu* kf) {
     
 	global->predicatevariables.clear();
     bool previous = global->Activategarbage(false);
-	if (global->predicate_definitions.find(name) == global->predicate_definitions.end() &&
+    x_node* xparameters = NULL;
+    if (xn->nodes[0]->nodes.back()->token == "predicateparameters")
+        xparameters = xn->nodes[0]->nodes.back();
+
+    if (global->predicate_definitions.find(name) == global->predicate_definitions.end() &&
         kpcont->rules.find(name) == kpcont->rules.end() &&
+        check_no_regs(xparameters) &&
         (xn->token == "predicatefact" || xn->nodes[2]->value == "true")) {
 		Tamgu* kbloc = new TamguInstructionPredicate(name, global);
 		TamguPredicateKnowledgeBase* kcf;
@@ -10194,8 +10208,8 @@ Tamgu* TamguCode::C_predicatefact(x_node* xn, Tamgu* kf) {
 		else
 			kcf = new TamguPredicateKnowledgeBase(global, name, kbloc);
 
-		if (xn->nodes[0]->nodes.back()->token == "predicateparameters")
-			ComputePredicateParameters(xn->nodes[0]->nodes.back(), kcf);
+		if (xparameters != NULL)
+			ComputePredicateParameters(xparameters, kcf);
         
         if (kcf->isUnified(NULL)) {
             TamguPredicate* pv;
@@ -10241,8 +10255,8 @@ Tamgu* TamguCode::C_predicatefact(x_node* xn, Tamgu* kf) {
 	TamguPredicateRule* kbloc = new TamguPredicateRule(name, global, kf);
 	TamguPredicate* kcf = new TamguPredicate(name, global);
 
-	if (xn->nodes[0]->nodes.back()->token == "predicateparameters")
-		ComputePredicateParameters(xn->nodes[0]->nodes.back(), kcf);
+    if (xparameters != NULL)
+		ComputePredicateParameters(xparameters, kcf);
     
 	kbloc->head = kcf;
 

@@ -45,7 +45,7 @@
 #include "tamgusocket.h"
 #include "tamgudate.h"
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2024.07.24.14";
+const char* tamgu_version = "Tamgu 1.2024.07.26.08";
 
 extern "C" {
 Exporting const char* TamguVersion(void) {
@@ -2193,6 +2193,8 @@ Exporting void TamguGlobal::RecordConstantNames() {
     symbolIds["xor"] = a_booleanxor;
     symbolIds["append"] = a_merge;
     symbolIds["auto"] = a_self;
+    
+    symbolIds["?:-"] = a_predicatevar;
     
     atomics[a_boolean] = a_boolean;
     atomics[a_byte] = a_boolean;

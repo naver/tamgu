@@ -521,7 +521,22 @@ public:
         v = reg;
     }
     
+    //--- Some important conversion methods...
+    bool Stringpredicatekey(string& v) {
+        return false;
+    }
 
+    bool Stringpredicatekeysecond(string& v) {
+        return false;
+    }
+
+    bool Stringpredicatekeythird(string& v) {
+        return false;
+    }
+
+    bool isUnified(TamguDeclaration* dom) {
+        return false;
+    }
 };
 
 class Tamguregularexpression : public Tamguregular {

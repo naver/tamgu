@@ -260,6 +260,8 @@ class bnf_tamgu {
     char m_common(string& lreturn,x_node** tree);
     char m_const(string& lreturn,x_node** tree);
     char m_instance_variable(string& lreturn,x_node** tree);
+    char m_instance_variable_0_1(string& lreturn,x_node** tree);
+    char m_instance_variable_0_1_2(string& lreturn,x_node** tree);
     char m_feature(string& lreturn,x_node** tree);
     char m_feature_0_1(string& lreturn,x_node** tree);
     char m_feature_0_1_2(string& lreturn,x_node** tree);

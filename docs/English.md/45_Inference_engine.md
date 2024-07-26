@@ -49,7 +49,7 @@ vector v = assign(?X);
 println(v); // [assign({'100':'fin','1':10})]
 ```
 
-### predicatevar or ?_
+### predicatevar or ?:-
 
 Used to handle predicates and explore their names and values. It offers methods like:
 - `map()`: Returns the predicate as a map
@@ -61,7 +61,7 @@ Used to handle predicates and explore their names and values. It offers methods 
 
 ```csharp
 test(?X,?Q) :- ancestor(?X,?Q), female(?Q).
-?_ var = test(?X,?Z);
+?:- var = test(?X,?Z);
 println(var);
 ```
 
@@ -91,7 +91,7 @@ parent(?X,?Y) :- mere(?X,?Y); pere(?X,?Y).
 
 ### Cut, fail, and stop
 
-- Cut: Expressed with "!"
+- `cut`: Expressed with "!"
 - `fail`: Forces the failure of a clause
 - `stop`: Stops the whole evaluation
 
