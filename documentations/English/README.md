@@ -1,5 +1,7 @@
 # Table of Contents
 
+0. [INDEX](https://github.com/naver/tamgu/blob/master/documentations/English.md/index.md)
+
 1. [Table of Contents](https://github.com/naver/tamgu/blob/master/docs/English.md/README.md)
 2. [Summary](https://github.com/naver/tamgu/blob/master/docs/English.md/2_Summary.md)
 3. [Tamgu: System Functions](https://github.com/naver/tamgu/blob/master/docs/English.md/3_Tamgu_an_introduction.md)
