@@ -12,7 +12,7 @@ Tamgu embeds a powerful inference engine that can be seamlessly integrated with 
 
 4. **Term Declaration**: Terms can be declared beforehand as term variables. If not declared, their names must be preceded with a "?" like inference variables.
 
-## `loadfacts(string path)` : Loading a large knowledgebase
+### `loadfacts(string path)` : Loading a large knowledgebase
 
 If you have a file containing a very large knowledge base, consisting only of facts, it is more efficient to use loadfacts with the file path to speed up loading. This instruction should be placed at the very beginning of your file. It will start loading at compile time.
 
