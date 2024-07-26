@@ -2,7 +2,7 @@
 
 ## (tree|prime|bin)maps
 
-These types are very similar to the "map" and "treemap" with one exception: they use integers (`mapI`, `treemapI`, `primemapI`), floats (`mapF`, `treemapf`, `primemapf`), or ustrings (`mapu`, `treemapu`, `primemapu`) as keys, while "map", "treemap", and "primemap" use strings.
+These types are very similar to the "map" and "treemap" with one exception: they use integers (`mapi`, `treemapi`, `primemapi`), floats (`mapf`, `treemapf`, `primemapf`), or ustrings (`mapu`, `treemapu`, `primemapu`) as keys, while "map", "treemap", and "primemap" use strings.
 
 Actually, for consistency reasons, "pap", "treemap", and "primemap" can also be named as "maps", "Binmaps", "treemaps", and "primemaps".
 
