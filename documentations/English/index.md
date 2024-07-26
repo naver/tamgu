@@ -819,15 +819,15 @@
 
 `ls(string path)`: [ sys](https://github.com/naver/tamgu/tree/master/docs/English.md/47__sys.md)
 
-`MapF`: [Specialized maps](https://github.com/naver/tamgu/tree/master/docs/English.md/23_Specialized_maps.md)
+`mapf`: [Specialized maps](https://github.com/naver/tamgu/tree/master/docs/English.md/23_Specialized_maps.md)
 
-`MapI`: [Specialized maps](https://github.com/naver/tamgu/tree/master/docs/English.md/23_Specialized_maps.md)
+`mapi`: [Specialized maps](https://github.com/naver/tamgu/tree/master/docs/English.md/23_Specialized_maps.md)
 
 `mapping`: [Python library pytamgu](https://github.com/naver/tamgu/tree/master/docs/English.md/56_Python_library_pytamgu.md)
 
 `mapsi`: [Tamgu an introduction](https://github.com/naver/tamgu/tree/master/docs/English.md/3_Tamgu_an_introduction.md)
 
-`MapU`: [Specialized maps](https://github.com/naver/tamgu/tree/master/docs/English.md/23_Specialized_maps.md)
+`mapu`: [Specialized maps](https://github.com/naver/tamgu/tree/master/docs/English.md/23_Specialized_maps.md)
 
 `marginleft(int s)`: [GUI ToolKit library libgui](https://github.com/naver/tamgu/tree/master/docs/English.md/53.2_GUI_ToolKit_library_libgui.md)
 
@@ -1025,11 +1025,11 @@
 
 `previous_line(int nb)`: [ sys](https://github.com/naver/tamgu/tree/master/docs/English.md/47__sys.md)
 
-`PrimeMapF`: [Specialized maps](https://github.com/naver/tamgu/tree/master/docs/English.md/23_Specialized_maps.md)
+`primemapf`: [Specialized maps](https://github.com/naver/tamgu/tree/master/docs/English.md/23_Specialized_maps.md)
 
-`PrimeMapI`: [Specialized maps](https://github.com/naver/tamgu/tree/master/docs/English.md/23_Specialized_maps.md)
+`primemapi`: [Specialized maps](https://github.com/naver/tamgu/tree/master/docs/English.md/23_Specialized_maps.md)
 
-`PrimeMapU`: [Specialized maps](https://github.com/naver/tamgu/tree/master/docs/English.md/23_Specialized_maps.md)
+`primemapu`: [Specialized maps](https://github.com/naver/tamgu/tree/master/docs/English.md/23_Specialized_maps.md)
 
 `principal`: [Synchronization](https://github.com/naver/tamgu/tree/master/docs/English.md/44_Synchronization.md)
 
@@ -1331,11 +1331,11 @@
 
 `translate(float x, float y)`: [GUI ToolKit library libgui](https://github.com/naver/tamgu/tree/master/docs/English.md/53.1_GUI_ToolKit_library_libgui.md)
 
-`TreeMapF`: [Specialized maps](https://github.com/naver/tamgu/tree/master/docs/English.md/23_Specialized_maps.md)
+`treemapf`: [Specialized maps](https://github.com/naver/tamgu/tree/master/docs/English.md/23_Specialized_maps.md)
 
-`TreeMapI`: [Specialized maps](https://github.com/naver/tamgu/tree/master/docs/English.md/23_Specialized_maps.md)
+`treemapi`: [Specialized maps](https://github.com/naver/tamgu/tree/master/docs/English.md/23_Specialized_maps.md)
 
-`TreeMapU`: [Specialized maps](https://github.com/naver/tamgu/tree/master/docs/English.md/23_Specialized_maps.md)
+`treemapu`: [Specialized maps](https://github.com/naver/tamgu/tree/master/docs/English.md/23_Specialized_maps.md)
 
 `treg`: [Type  Tamgu, Regular, Expression, treg](https://github.com/naver/tamgu/tree/master/docs/English.md/15_Type_Tamgu_Regular_Expression_treg.md)
 
