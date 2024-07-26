@@ -102,17 +102,27 @@ parent(?X,?Y) :- mere(?X,?Y); pere(?X,?Y).
 - `fail`: Forces the failure of a clause
 - `stop`: Stops the whole evaluation
 
-## Functions
+### Assert
 
-Tamgu provides Prolog-like functions such as:
+Tamgu provides specific predicates to handle the knowledgebase:
 
 - `asserta(pred(...))`: Inserts a predicate at the beginning of the knowledge base
 - `assertz(pred(...))`: Inserts a predicate at the end of the knowledge base
 - `retract(pred(...))`: Removes a predicate from the knowledge base
 - `retractall(pred)`: Removes all instances of a predicate from the knowledge base
-- `predicatedump(pred)` or `findall(pred)`: Returns predicates stored in memory as a vector
 
-## Universal Predicate Name
+### Knowledgebase Functions
+
+It also provides different ways to extract this database by name:
+
+1. `predicatedump()`: Returns all knowledgebase predicates in memory
+2. `predicatedump(string p1, string p2, ...)`: Returns all knowledgebase predicates in memory corresponding to one of these names. 
+3. `predicatedump(svector predicatenames)`: The predicates can also be provided as a vector.
+4. `findall(...)` : `findall` is actually another name for `predicatedump`.
+5. `predicatestore(string filename,...)` : Works in the same way as `predicatedump`, but stores the database in a file.
+
+
+### Universal Predicate Name
 
 Use "_" as a wildcard for predicate names when querying the knowledge base:
 
