@@ -541,20 +541,100 @@ Tamgu* ProcPredicateDump(Tamgu* context, short idthread, TamguCall* callfunc) {
         return kvect;
     }
     
-    label = callfunc->Evaluate(0, context, idthread)->String();
-    short name = globalTamgu->Getid(label);
-    if (knowledge.find(name) == knowledge.end()) {
-        _cleanlock(_lock);
-        return kvect;
+    short name;
+    Tamgu* val;
+    for (long i = 1; i < callfunc->Size(); i++) {
+        val = callfunc->Evaluate(i, context, idthread);
+        if (val->isVectorContainer()) {
+            for (long j = 0; j < val->Size(); j++) {
+                label = val->getstring(j);
+                name = globalTamgu->Getid(label);
+                if (knowledge.find(name) == knowledge.end())
+                    continue;
+
+                vector<TamguPredicate*>& vect = knowledge[name];
+                for (size_t k = 0; k < vect.size(); k++) {
+                    kvect->Push(vect[k]);
+                }
+            }
+        }
+        else {
+            label = val->String();
+            name = globalTamgu->Getid(label);
+            if (knowledge.find(name) == knowledge.end())
+                continue;
+            
+            vector<TamguPredicate*>& vect = knowledge[name];
+            for (size_t k = 0; k < vect.size(); k++) {
+                kvect->Push(vect[k]);
+            }
+        }
     }
-    
-    vector<TamguPredicate*>& vect = knowledge[name];
-    for (size_t i = 0; i < vect.size(); i++)
-        kvect->Push(vect[i]);
     
     _cleanlock(_lock);
     return kvect;
 }
+
+Tamgu* ProcPredicateStore(Tamgu* context, short idthread, TamguCall* callfunc) {
+    //We display all predicates or one...
+    string label;
+    
+    Locking* _lock = _getlock(globalTamgu->_knowledgelock);
+    
+    hmap<short, vector<TamguPredicate*> >& knowledge = globalTamgu->knowledgebase;
+    
+    string filename = callfunc->Evaluate(0, context, idthread)->String();
+    
+    ofstream file(filename, ofstream::binary);
+    if (file.fail())
+        return globalTamgu->Returnerror("Cannot open fail in 'predicatedump'", idthread);
+    
+    if (callfunc->Size() == 1) {
+        hmap<short, vector<TamguPredicate*> >::iterator it;
+        for (it = knowledge.begin(); it != knowledge.end(); it++) {
+            vector<TamguPredicate*>& vect = it->second;
+            for (size_t i = 0; i < vect.size(); i++)
+                file << vect[i]->String() << "." << endl;
+        }
+        _cleanlock(_lock);
+        file.close();
+        return aTRUE;
+    }
+    
+    short name;
+    Tamgu* val;
+    for (long i = 1; i < callfunc->Size(); i++) {
+        val = callfunc->Evaluate(i, context, idthread);
+        if (val->isVectorContainer()) {
+            for (long j = 0; j < val->Size(); j++) {
+                label = val->getstring(j);
+                name = globalTamgu->Getid(label);
+                if (knowledge.find(name) == knowledge.end())
+                    continue;
+
+                vector<TamguPredicate*>& vect = knowledge[name];
+                for (size_t k = 0; k < vect.size(); k++) {
+                    file << vect[k]->String() << "." << endl;
+                }
+            }
+        }
+        else {
+            label = val->String();
+            name = globalTamgu->Getid(label);
+            if (knowledge.find(name) == knowledge.end())
+                continue;
+            
+            vector<TamguPredicate*>& vect = knowledge[name];
+            for (size_t k = 0; k < vect.size(); k++) {
+                file << vect[k]->String() << "." << endl;
+            }
+        }
+    }
+    file.close();
+    _cleanlock(_lock);
+    return aTRUE;
+}
+
 
 void RemoveAPredicate(TamguPredicate* p, short idthread) {
     string argument_key;
@@ -779,8 +859,9 @@ void TamguGlobal::RecordPredicates() {
     
     RecordOneProcedure("asserta", "Assert a clause (fact or rule) into the database as the first clause of the predicate", &ProcPredicateAsserta, P_ONE | P_ONE);
     RecordOneProcedure("assertz", "Assert a clause (fact or rule) into the database as the last clause of the predicate", &ProcPredicateAssertz, P_ONE | P_ONE);
-    RecordOneProcedure("predicatedump", "Return all predicates in the knowledge base that match the given pattern", &ProcPredicateDump, P_NONE | P_ONE);
-    RecordOneProcedure("findall", "Return all predicates in the knowledge base  that match the given pattern", &ProcPredicateDump, P_NONE | P_ONE);
+    RecordOneProcedure("predicatedump", "predicatedump(string label1, string label2...): Return all predicates in the knowledge base that match the given pattern", &ProcPredicateDump, P_FULL);
+    RecordOneProcedure("predicatestore", "predicatestore(string path, string label1, string label2...): Store all predicates in the knowledge base that match the given pattern. If 'label' is not provided then the whole database is stored.", &ProcPredicateStore, P_ATLEASTONE);
+    RecordOneProcedure("findall", "findall(string label1, string label2...): Return all predicates in the knowledge base  that match the given pattern", &ProcPredicateDump, P_FULL);
     RecordOneProcedure("retract", "Retract a clause (fact or rule) from the database", &ProcPredicateRetract, P_ONE);
     RecordOneProcedure("retractall", "Retract all clauses (facts or rules) from the database that match the given pattern", &ProcRetractAll, P_NONE | P_ONE);
     RecordOneProcedure("succ", "The next element", &ProcPredicateSucc, P_ONE);

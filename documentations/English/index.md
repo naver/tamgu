@@ -35,6 +35,8 @@
 
 `_pi`: [Type  byte, short, int, float, real, long](https://github.com/naver/tamgu/tree/master/docs/English.md/16_Type_byte_short_int_float_real_long.md)
 
+`_pushevent(v1,v2,v3...)`: [Tamgu an introduction](https://github.com/naver/tamgu/tree/master/docs/English.md/3_Tamgu_an_introduction.md)
+
 `_pushevent`: [Tamgu an introduction](https://github.com/naver/tamgu/tree/master/docs/English.md/3_Tamgu_an_introduction.md)
 
 `_scanl`: [Functional Language à la Lisp](https://github.com/naver/tamgu/tree/master/docs/English.md/41_Functional_Language_à_la_Lisp.md)
@@ -188,6 +190,8 @@
 `arc(int x, int y, int x1, int y1, float a1, float a2)`: [GUI ToolKit library libgui](https://github.com/naver/tamgu/tree/master/docs/English.md/53.1_GUI_ToolKit_library_libgui.md)
 
 `arguments`: [Python library pytamgu](https://github.com/naver/tamgu/tree/master/docs/English.md/56_Python_library_pytamgu.md)
+
+`ask(string msg, string buttonmsg2, string buttonmsg1, ...)`: [GUI ToolKit library libgui](https://github.com/naver/tamgu/tree/master/docs/English.md/53.1_GUI_ToolKit_library_libgui.md)
 
 `assertz`: [dependency and synode](https://github.com/naver/tamgu/tree/master/docs/English.md/46_dependency_and_synode.md)
 
@@ -491,11 +495,15 @@
 
 `execute(string filename)`: [Library curl type curl WEB](https://github.com/naver/tamgu/tree/master/docs/English.md/55_Library_curl_type_curl_WEB.md)
 
+`execute(string funcname, p1, p2...)`: [Python library pytamgu](https://github.com/naver/tamgu/tree/master/docs/English.md/56_Python_library_pytamgu.md)
+
 `execute(string sqlcommand)`: [Library sqlite type sqlite](https://github.com/naver/tamgu/tree/master/docs/English.md/52_Library_sqlite_type_sqlite.md)
 
 `execute`: [Python library pytamgu](https://github.com/naver/tamgu/tree/master/docs/English.md/56_Python_library_pytamgu.md)
 
 `exponential_distribution`: [Random](https://github.com/naver/tamgu/tree/master/docs/English.md/38_Random.md)
+
+`extract(int pos, string from, string up1, string up2...)`: [Type  rawstring, string, ustring](https://github.com/naver/tamgu/tree/master/docs/English.md/14_Type_rawstring_string_ustring.md)
 
 `extreme_value_distribution`: [Random](https://github.com/naver/tamgu/tree/master/docs/English.md/38_Random.md)
 
@@ -523,7 +531,9 @@
 
 `find`: [GUI ToolKit library libgui](https://github.com/naver/tamgu/tree/master/docs/English.md/53.2_GUI_ToolKit_library_libgui.md)
 
-`findall(pred)`: [Inference engine](https://github.com/naver/tamgu/tree/master/docs/English.md/45_Inference_engine.md)
+`findall(...)`: [Inference engine](https://github.com/naver/tamgu/tree/master/docs/English.md/45_Inference_engine.md)
+
+`findall`: [Inference engine](https://github.com/naver/tamgu/tree/master/docs/English.md/45_Inference_engine.md)
 
 `firstB`: [Random](https://github.com/naver/tamgu/tree/master/docs/English.md/38_Random.md)
 
@@ -670,6 +680,8 @@
 `insert(l, label)`: [GUI ToolKit library libgui](https://github.com/naver/tamgu/tree/master/docs/English.md/53.2_GUI_ToolKit_library_libgui.md)
 
 `insert(string s, int p)`: [GUI ToolKit library libgui](https://github.com/naver/tamgu/tree/master/docs/English.md/53.3_GUI_ToolKit_library_libgui.md)
+
+`insert(table, column, value, ...)`: [Library sqlite type sqlite](https://github.com/naver/tamgu/tree/master/docs/English.md/52_Library_sqlite_type_sqlite.md)
 
 `insert(wtreeitem e, string label, int pos)`: [GUI ToolKit library libgui](https://github.com/naver/tamgu/tree/master/docs/English.md/53.2_GUI_ToolKit_library_libgui.md)
 
@@ -857,6 +869,8 @@
 
 `multiply`: [Frame](https://github.com/naver/tamgu/tree/master/docs/English.md/10_Frame.md)
 
+`multisplit(string sp1, string sp2...)`: [Type  rawstring, string, ustring](https://github.com/naver/tamgu/tree/master/docs/English.md/14_Type_rawstring_string_ustring.md)
+
 `multmatrix(float a, float b, float c, float d, float x, float y)`: [GUI ToolKit library libgui](https://github.com/naver/tamgu/tree/master/docs/English.md/53.1_GUI_ToolKit_library_libgui.md)
 
 `myfunc`: [Type  call](https://github.com/naver/tamgu/tree/master/docs/English.md/36_Type_call.md); [Type  fibre](https://github.com/naver/tamgu/tree/master/docs/English.md/43_Type_fibre.md)
@@ -991,7 +1005,13 @@
 
 `power`: [Frame](https://github.com/naver/tamgu/tree/master/docs/English.md/10_Frame.md)
 
-`predicatedump(pred)`: [Inference engine](https://github.com/naver/tamgu/tree/master/docs/English.md/45_Inference_engine.md)
+`predicatedump(string p1, string p2, ...)`: [Inference engine](https://github.com/naver/tamgu/tree/master/docs/English.md/45_Inference_engine.md)
+
+`predicatedump(svector predicatenames)`: [Inference engine](https://github.com/naver/tamgu/tree/master/docs/English.md/45_Inference_engine.md)
+
+`predicatedump`: [Inference engine](https://github.com/naver/tamgu/tree/master/docs/English.md/45_Inference_engine.md)
+
+`predicatestore(string filename,...)`: [Inference engine](https://github.com/naver/tamgu/tree/master/docs/English.md/45_Inference_engine.md)
 
 `predict(fvector labels, vector data, bool predict_probability, bool infos)`: [Library LINEAR type linear](https://github.com/naver/tamgu/tree/master/docs/English.md/57_Library_LINEAR_type_linear.md)
 
@@ -1182,6 +1202,8 @@
 `set_signature(bool s)`: [Type  file, wfile](https://github.com/naver/tamgu/tree/master/docs/English.md/35_Type_file_wfile.md)
 
 `setdate(year, month, day, hour, min, sec)`: [Type  date](https://github.com/naver/tamgu/tree/master/docs/English.md/32_Type_date.md)
+
+`setpath(string path1, string path2, etc...)`: [Python library pytamgu](https://github.com/naver/tamgu/tree/master/docs/English.md/56_Python_library_pytamgu.md)
 
 `setpath`: [Python library pytamgu](https://github.com/naver/tamgu/tree/master/docs/English.md/56_Python_library_pytamgu.md)
 
@@ -1385,6 +1407,8 @@
 
 `wfile`: [Type  file, wfile](https://github.com/naver/tamgu/tree/master/docs/English.md/35_Type_file_wfile.md)
 
+`when(int when1, int when2, ...)`: [GUI ToolKit library libgui](https://github.com/naver/tamgu/tree/master/docs/English.md/53.3_GUI_ToolKit_library_libgui.md)
+
 `while`: [Specific instructions](https://github.com/naver/tamgu/tree/master/docs/English.md/37_Specific_instructions.md); [Functional Language à la Lisp](https://github.com/naver/tamgu/tree/master/docs/English.md/41_Functional_Language_à_la_Lisp.md)
 
 `winput`: [GUI ToolKit library libgui](https://github.com/naver/tamgu/tree/master/docs/English.md/53.3_GUI_ToolKit_library_libgui.md)
@@ -1393,7 +1417,17 @@
 
 `word(int pos)`: [GUI ToolKit library libgui](https://github.com/naver/tamgu/tree/master/docs/English.md/53.3_GUI_ToolKit_library_libgui.md)
 
+`write(clientid, o1, o2...)`: [socket](https://github.com/naver/tamgu/tree/master/docs/English.md/48_socket.md)
+
+`write(o1, o2...)`: [socket](https://github.com/naver/tamgu/tree/master/docs/English.md/48_socket.md)
+
 `write(string file)`: [Type  rawstring, string, ustring](https://github.com/naver/tamgu/tree/master/docs/English.md/14_Type_rawstring_string_ustring.md); [Type  vector](https://github.com/naver/tamgu/tree/master/docs/English.md/19_Type_vector.md)
+
+`write(string s1, string s2, ...)`: [Type  file, wfile](https://github.com/naver/tamgu/tree/master/docs/English.md/35_Type_file_wfile.md)
+
+`writebin(int s1, int s2, ...)`: [Type  file, wfile](https://github.com/naver/tamgu/tree/master/docs/English.md/35_Type_file_wfile.md)
+
+`writelen(string s1, string s2, ...)`: [Type  file, wfile](https://github.com/naver/tamgu/tree/master/docs/English.md/35_Type_file_wfile.md)
 
 `wstring`: [Type  rawstring, string, ustring](https://github.com/naver/tamgu/tree/master/docs/English.md/14_Type_rawstring_string_ustring.md)
 
