@@ -407,11 +407,11 @@ predicatevariable := [%? ;40 word (interval^indexes)]^[%# ;40 [%_^anumber] (feat
 term := %? word %(;37 (predicateparameters) %)
 tuple := %( predicateparameters %)
 
-#affectexpression is called for an affectation such as "is" or "="
-%affectexpression := [anumber^pexpression] (operation^operationin^multiply)
-%comparepredicate := predvariable [comparator;14 affectexpression]
+#pformula is called for any complex expression in comparison or mathematical operation
+%pformula := [anumber^pexpression] (operation^operationin^multiply)
+%comparepredicate := pformula [comparator;14 pformula]
 
-%affectationpredicate := allvariable [operatoraffectation;14 affectexpression]
+%affectationpredicate := allvariable [operatoraffectation;14 pformula]
 %predplusplus := predvariable plusplus
 
 #For predicate vectors...

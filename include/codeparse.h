@@ -512,10 +512,10 @@ class bnf_tamgu {
     char m_term(string& lreturn,x_node** tree);
     char m_term_0_1(string& lreturn,x_node** tree);
     char m_tuple(string& lreturn,x_node** tree);
-    char m_affectexpression(string& lreturn,x_node** tree);
-    char m_affectexpression_0_1(string& lreturn,x_node** tree);
-    char m_affectexpression_0_2(string& lreturn,x_node** tree);
-    char m_affectexpression_0_2_3(string& lreturn,x_node** tree);
+    char m_pformula(string& lreturn,x_node** tree);
+    char m_pformula_0_1(string& lreturn,x_node** tree);
+    char m_pformula_0_2(string& lreturn,x_node** tree);
+    char m_pformula_0_2_3(string& lreturn,x_node** tree);
     char m_comparepredicate(string& lreturn,x_node** tree);
     char m_comparepredicate_0_1(string& lreturn,x_node** tree);
     char m_affectationpredicate(string& lreturn,x_node** tree);

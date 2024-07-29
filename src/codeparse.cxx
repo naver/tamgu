@@ -10009,7 +10009,7 @@ char bnf_tamgu::m_tuple(string& lreturn,x_node** tree) {
 }
 
 
-char bnf_tamgu::m_affectexpression_0_1(string& lreturn,x_node** tree) {
+char bnf_tamgu::m_pformula_0_1(string& lreturn,x_node** tree) {
     if (gFail==1) return(0);
     string lret;
     long pos=currentpos;
@@ -10032,7 +10032,7 @@ char bnf_tamgu::m_affectexpression_0_1(string& lreturn,x_node** tree) {
 }
 
 
-char bnf_tamgu::m_affectexpression_0_2_3(string& lreturn,x_node** tree) {
+char bnf_tamgu::m_pformula_0_2_3(string& lreturn,x_node** tree) {
     if (gFail==1) return(0);
     string lret;
     long pos=currentpos;
@@ -10055,7 +10055,7 @@ char bnf_tamgu::m_affectexpression_0_2_3(string& lreturn,x_node** tree) {
 }
 
 
-char bnf_tamgu::m_affectexpression_0_2(string& lreturn,x_node** tree) {
+char bnf_tamgu::m_pformula_0_2(string& lreturn,x_node** tree) {
     if (gFail==1) return(0);
     string lret;
     //long pos=currentpos;
@@ -10065,7 +10065,7 @@ char bnf_tamgu::m_affectexpression_0_2(string& lreturn,x_node** tree) {
     //bool exitonfail=false;
     //BODYOPTIONAL
     subtree=NULL;
-    if (m_affectexpression_0_2_3(lret,&subtree))
+    if (m_pformula_0_2_3(lret,&subtree))
         x_init_tree(tree,subtree,addsubtree);
     else
         lret="";
@@ -10073,9 +10073,9 @@ char bnf_tamgu::m_affectexpression_0_2(string& lreturn,x_node** tree) {
 }
 
 
-char bnf_tamgu::m_affectexpression(string& lreturn,x_node** tree) {
+char bnf_tamgu::m_pformula(string& lreturn,x_node** tree) {
     if (gFail==1) return(0);
-    static const char* label="affectexpression";
+    static const char* label="pformula";
     string lret;
     long pos=currentpos;
     int itok=intoken;
@@ -10084,7 +10084,7 @@ char bnf_tamgu::m_affectexpression(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYSEQUENCE
     subtree=NULL;
-    if (m_affectexpression_0_1(lret,&subtree)) 
+    if (m_pformula_0_1(lret,&subtree)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -10095,7 +10095,7 @@ char bnf_tamgu::m_affectexpression(string& lreturn,x_node** tree) {
     }
     //BODYSEQUENCE
     subtree=NULL;
-    if (m_affectexpression_0_2(lret,&subtree)) 
+    if (m_pformula_0_2(lret,&subtree)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -10134,7 +10134,7 @@ char bnf_tamgu::m_comparepredicate_0_1(string& lreturn,x_node** tree) {
     bnf_tamgu_pop pop0(this);
     //BODYSEQUENCE
     subtree=NULL;
-    if (m_affectexpression(lret,&subtree)) 
+    if (m_pformula(lret,&subtree)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -10158,7 +10158,7 @@ char bnf_tamgu::m_comparepredicate(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYSEQUENCE
     subtree=NULL;
-    if (m_predvariable(lret,&subtree)) 
+    if (m_pformula(lret,&subtree)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -10208,7 +10208,7 @@ char bnf_tamgu::m_affectationpredicate_0_1(string& lreturn,x_node** tree) {
     bnf_tamgu_pop pop0(this);
     //BODYSEQUENCE
     subtree=NULL;
-    if (m_affectexpression(lret,&subtree)) 
+    if (m_pformula(lret,&subtree)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -21597,7 +21597,7 @@ char bnf_tamgu::m_nocomparisonexpressions(string& lreturn,x_node** tree) {
     }
     //BODYSEQUENCE
     subtree=NULL;
-    if (m_affectexpression_0_2(lret,&subtree)) 
+    if (m_pformula_0_2(lret,&subtree)) 
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
