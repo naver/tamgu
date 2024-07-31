@@ -3588,6 +3588,17 @@ Tamgu* TamguPredicate::Getvalues(TamguDeclaration* dom, bool duplicate) {
     if (!duplicate || fully_unified)
         return this;
     
+    duplicate = false;
+    for (long i = 0; i < parameters.size(); i++) {
+        if (parameters[i]->Type() == a_instance) {
+            duplicate = true;
+            break;
+        }
+    }
+    
+    if (!duplicate)
+        return this;
+    
     TamguPredicate* term = new TamguPredicate(globalTamgu, name);
     term->fully_unified = true;
     Tamgu* e;
@@ -4163,14 +4174,14 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
 
     bool order = true;
     switch (kbaction) {
-        //--------------------------------------------------------------------------------
-        //We want to stop any further analysis...
+            //--------------------------------------------------------------------------------
+            //We want to stop any further analysis...
         case a_stop: {
             fulltraversal = STOPSEARCH;
             return aCUT;
         }
-        //--------------------------------------------------------------------------------
-        //If the unification went wrong...
+            //--------------------------------------------------------------------------------
+            //If the unification went wrong...
         case a_fail: {
             if (trace) {
                 stringstream scerr;
@@ -4179,9 +4190,9 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
             }
             return res;
         }
-        
-        //--------------------------------------------------------------------------------
-        //if we have a CUT...
+            
+            //--------------------------------------------------------------------------------
+            //if we have a CUT...
         case a_cut: {
             std::unique_ptr<localpredict> Oo(new localpredict(threadowner, sz + 1));
             
@@ -4202,8 +4213,8 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
                     return aCUT;
             }
         }
-        //--------------------------------------------------------------------------------
-        // Functions that have been constructed on the basis of existing methods...
+            //--------------------------------------------------------------------------------
+            // Functions that have been constructed on the basis of existing methods...
         case a_predicatemethod: {
             std::unique_ptr<localpredict> Oo(new localpredict(threadowner, sz + 1));
             
@@ -4251,8 +4262,8 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
             return headpredicate->PredicateEvalue(this, Oo->localgoals, currenthead, depth);
             //---------------------------------------------------------------
         }
-        //--------------------------------------------------------------------------------
-        // Assertion and dependency removal are treated here...
+            //--------------------------------------------------------------------------------
+            // Assertion and dependency removal are treated here...
         case a_asserta:
             order = false;
         case a_assertz: {
@@ -4297,47 +4308,68 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
             //---------------------------------------------------------------
         }
         case a_findall: {
-            kvpred = new TamguPredicate(globalTamgu, predicate_name);
-            
-            std::vector<short> free_variables;
-            for (i = 0; i < headpredicate_nb_parameters - 2; i++) {
-                res = headpredicate->parameters[i]->Eval(this, dom, threadowner);
-                if (res == aNOELEMENT) {
-                    kvpred->parameters.push_back(aUNIVERSAL);
-                    free_variables.push_back(i);
-                }
-                else
-                    kvpred->parameters.push_back(res->Atom(true));
-            }
-            
             std::vector<TamguPredicate*> facts;
-            // This section is used to test our current predicate against the knowledgebase...
-            if (!globalTamgu->GetPredicates(dom, kvpred, facts, false)) {
-                kvpred->Release();
-                return aFALSE;
-            }
-
-            //These positions correspond to free variables in the parameter lists of each fact
-            Tamguvector* v = globalTamgu->Providevector();
-            Tamgu* val;
-            for (short f = 0; f < facts.size(); f++) {
-                //First we unify our variables with their values from the fact
-                for (i = 0; i < free_variables.size(); i++) {
-                    val = facts[f]->parameters[free_variables[i]];
-                    headpredicate->parameters[free_variables[i]]->Put(dom, val, threadowner);
+            Tamguvector* v;
+            kvpred = new TamguPredicate(globalTamgu, predicate_name);
+            if (((TamguPredicateFindall*)headpredicate)->equal) {
+                for (i = 0; i < headpredicate_nb_parameters - 1; i++) {
+                    res = headpredicate->parameters[i]->Eval(this, dom, threadowner);
+                    if (res == aNOELEMENT)
+                        kvpred->parameters.push_back(aUNIVERSAL);
+                    else
+                        kvpred->parameters.push_back(res->Atom(true));
                 }
-                //Our pattern is on -2 position
-                val = headpredicate->parameters[headpredicate_nb_parameters - 2]->Getvalues(dom, true);
-                if (val == aNOELEMENT) {
-                    v->Release();
+                // This section is used to test our current predicate against the knowledgebase...
+                if (!globalTamgu->GetPredicates(dom, kvpred, facts, false)) {
+                    kvpred->Release();
                     return aFALSE;
                 }
-                v->Push(val);
+                v = globalTamgu->Providevector();
+                if (((TamguPredicateFindall*)headpredicate)->equal) {
+                    for (short f = 0; f < facts.size(); f++) {
+                        v->Push(facts[f]);
+                    }
+                }
             }
-            
-            //We clear these values
-            for (i = 0; i < free_variables.size(); i++) {
-                headpredicate->parameters[free_variables[i]]->Put(dom, aNOELEMENT, threadowner);
+            else {
+                std::vector<short> free_variables;
+                for (i = 0; i < headpredicate_nb_parameters - 2; i++) {
+                    res = headpredicate->parameters[i]->Eval(this, dom, threadowner);
+                    if (res == aNOELEMENT) {
+                        kvpred->parameters.push_back(aUNIVERSAL);
+                        free_variables.push_back(i);
+                    }
+                    else
+                        kvpred->parameters.push_back(res->Atom(true));
+                }
+                
+                // This section is used to test our current predicate against the knowledgebase...
+                if (!globalTamgu->GetPredicates(dom, kvpred, facts, false)) {
+                    kvpred->Release();
+                    return aFALSE;
+                }
+                
+                //These positions correspond to free variables in the parameter lists of each fact
+                v = globalTamgu->Providevector();
+                Tamgu* val;
+                for (short f = 0; f < facts.size(); f++) {
+                    //First we unify our variables with their values from the fact
+                    for (i = 0; i < free_variables.size(); i++) {
+                        val = facts[f]->parameters[free_variables[i]];
+                        headpredicate->parameters[free_variables[i]]->Put(dom, val, threadowner);
+                    }
+                    //Our pattern is on -2 position
+                    val = headpredicate->parameters[headpredicate_nb_parameters - 2]->Getvalues(dom, true);
+                    if (val == aNOELEMENT) {
+                        v->Release();
+                        return aFALSE;
+                    }
+                    v->Push(val);
+                }
+                //We clear these values
+                for (i = 0; i < free_variables.size(); i++) {
+                    headpredicate->parameters[free_variables[i]]->Put(dom, aNOELEMENT, threadowner);
+                }
             }
 
             res = headpredicate->parameters[headpredicate_nb_parameters - 1];

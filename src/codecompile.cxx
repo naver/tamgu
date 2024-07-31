@@ -10925,10 +10925,17 @@ Tamgu* TamguCode::C_predicatevariable(x_node* xn, Tamgu* kf) {
 
 Tamgu* TamguCode::C_findallpredicate(x_node* xn, Tamgu* kf) {
     short id = a_findall;
-    Tamgu* kbloc = new TamguPredicateFindall(global, id, kf);
-    Traverse(xn->nodes[0], kbloc);
-    Traverse(xn->nodes[1], kbloc);
-    Traverse(xn->nodes[2], kbloc);
+    TamguPredicateFindall* kbloc = new TamguPredicateFindall(global, id, kf);
+    if (xn->nodes[0]->equal(xn->nodes[1])) {
+        kbloc->equal = true;
+        Traverse(xn->nodes[0], kbloc);
+        Traverse(xn->nodes[2], kbloc);
+    }
+    else {
+        Traverse(xn->nodes[0], kbloc);
+        Traverse(xn->nodes[1], kbloc);
+        Traverse(xn->nodes[2], kbloc);
+    }
     return kbloc;
 }
 

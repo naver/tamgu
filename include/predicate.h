@@ -1249,27 +1249,46 @@ public:
 
 class TamguPredicateFindall : public TamguPredicateAction {
 public:
-    TamguPredicateFindall(TamguGlobal* g, short n, Tamgu* parent = NULL) : TamguPredicateAction(g, n, parent) {}
+    bool equal;
+    
+    TamguPredicateFindall(TamguGlobal* g, short n, Tamgu* parent = NULL) : TamguPredicateAction(g, n, parent) {
+        equal = false;
+    }
     
     void AddInstruction(Tamgu* e) {
-        if (parameters.size() == 1) {
-            TamguPredicate* p = (TamguPredicate*)e;
-            e = parameters[0];
-            name = p->name;
-            parameters = p->parameters;
-            //The template is pushed on second position
-            parameters.push_back(e);
-            negation = p->negation;
-            p->parameters.clear();
+        if (equal) {
+            if (!parameters.size()) {
+                TamguPredicate* p = (TamguPredicate*)e;
+                name = p->name;
+                parameters = p->parameters;
+                //The template is pushed on second position
+                negation = p->negation;
+                p->parameters.clear();
+            }
+            else
+                parameters.push_back(e);
         }
-        else
-            parameters.push_back(e);
+        else {
+            if (parameters.size() == 1) {
+                TamguPredicate* p = (TamguPredicate*)e;
+                e = parameters[0];
+                name = p->name;
+                parameters = p->parameters;
+                //The template is pushed on second position
+                parameters.push_back(e);
+                negation = p->negation;
+                p->parameters.clear();
+            }
+            else
+                parameters.push_back(e);
+        }
     }
     
     Tamgu* Newinstance(short idthread, Tamgu* f = NULL) {
         TamguPredicateFindall* p = new TamguPredicateFindall(globalTamgu, action);
         p->name = name;
         p->negation = negation;
+        p->equal = equal;
         return p;
     }
 };

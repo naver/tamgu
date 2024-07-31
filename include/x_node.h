@@ -92,6 +92,17 @@ public:
         }
     }
     
+    bool equal(x_node* n) {
+        if (token == n->token && value == n->value && nodes.size() == n->nodes.size()) {
+            for (long i = 0; i < nodes.size(); i++) {
+                if (!nodes[i]->equal(n->nodes[i]))
+                    return false;
+            }
+            return true;
+        }
+        return false;
+    }
+    
     void set(string& t, string& v) {
         token = t;
         value = v;
