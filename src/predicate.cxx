@@ -1792,18 +1792,21 @@ string TamguPredicateAction::String() {
     switch (name) {
         case a_asserta:
         case a_dependency_asserta:
-        s = "asserta";
-        break;
+            s = "asserta";
+            break;
         case a_assertz:
         case a_dependency_assertz:
-        s = "assertz";
-        break;
+            s = "assertz";
+            break;
         case a_retract:
         case a_dependency_retract:
-        s = "retract";
-        break;
+            s = "retract";
+            break;
+        case a_findall:
+            s = "findall";
+            break;
         default:
-        return("");
+            return("");
     }
 
     s += "(";
@@ -1964,6 +1967,7 @@ string TamguPredicateConcept::String() {
 
 string TamguPredicate::String() {
     string v = globalTamgu->Getsymbol(name);
+    string vsub;
     long sz = parameters.size();
 
     if (sz) {
@@ -1971,15 +1975,19 @@ string TamguPredicate::String() {
         for (long i = 0; i < sz; i++) {
             if (i)
                 v += ",";
+            if (parameters[i]->isString())
+                vsub = parameters[i]->JSonString();
+            else
+                vsub = parameters[i]->String();
+            
             if (globalTamgu->short_string) {
-                string vsub = parameters[i]->JSonString();
                 if (vsub.size() < globalTamgu->short_string)
                     v += vsub;
                 else
                     v += vsub.substr(0, globalTamgu->short_string) + "..";
             }
             else
-                v += parameters[i]->JSonString();
+                v += vsub;
         }
         v += ")";
     }
@@ -1995,7 +2003,10 @@ void TamguPredicateTerm::Setstring(string& v, short idthread) {
     for (long i = 0; i < parameters.size(); i++) {
         if (i)
             v += ",";
-        v += parameters[i]->JSonString();
+        if (parameters[i]->isString())
+            v += parameters[i]->JSonString();
+        else
+            v += parameters[i]->String();
     }
     v += ")";
 }
@@ -2009,7 +2020,10 @@ void TamguPredicateConcept::Setstring(string& v, short idthread) {
     for (long i = 0; i < parameters.size(); i++) {
         if (i)
             v += ",";
-        v += parameters[i]->JSonString();
+        if (parameters[i]->isString())
+            v += parameters[i]->JSonString();
+        else
+            v += parameters[i]->String();
     }
     v += ")";
 }
@@ -2024,7 +2038,10 @@ void TamguPredicate::Setstring(string& v, short idthread) {
         for (long i = 0; i < sz; i++) {
             if (i)
                 v += ",";
-            v += parameters[i]->JSonString();
+            if (parameters[i]->isString())
+                v += parameters[i]->JSonString();
+            else
+                v += parameters[i]->String();
         }
         v += ")";
     }
@@ -2034,7 +2051,7 @@ void TamguPredicate::Setstring(string& v, short idthread) {
 string TamguPredicate::JSonString() {
     stringstream res;
 
-    res << "[\"" << globalTamgu->Getsymbol(name) << "\",";
+    res << "[\"" << globalTamgu->Getsymbol(name) << "\"";
     for (long i = 0; i < parameters.size(); i++)
         res << "," << parameters[i]->JSonString();
     res << "]";
@@ -2052,21 +2069,26 @@ string TamguDependency::String() {
         v += x;
     }
 
+    string vsub;
     long sz = parameters.size();
     if (sz) {
         v += "(";
         for (long i = 0; i < sz; i++) {
             if (i)
                 v += ",";
+            if (parameters[i]->isString())
+                vsub = parameters[i]->JSonString();
+            else
+                vsub = parameters[i]->String();
+            
             if (globalTamgu->short_string) {
-                string vsub = parameters[i]->JSonString();
                 if (vsub.size() < globalTamgu->short_string)
                     v += vsub;
                 else
                     v += vsub.substr(0, globalTamgu->short_string) + "..";
             }
             else
-                v += parameters[i]->JSonString();
+                v += vsub;
         }
         v += ")";
     }
@@ -2088,7 +2110,10 @@ void TamguDependency::Setstring(string& v, short idthread) {
         for (long i = 0; i < sz; i++) {
             if (i)
                 v += ",";
-            v += parameters[i]->JSonString();
+            if (parameters[i]->isString())
+                v += parameters[i]->JSonString();
+            else
+                v += parameters[i]->String();
         }
         v += ")";
     }
@@ -2097,7 +2122,7 @@ void TamguDependency::Setstring(string& v, short idthread) {
 string TamguDependency::JSonString() {
     stringstream res;
 
-    res << "[\"" << globalTamgu->Getsymbol(name) << "\",";
+    res << "[\"" << globalTamgu->Getsymbol(name) << "\"";
     if (features == aNULL)
         res << "{}";
     else
@@ -2398,6 +2423,7 @@ Tamgu* Tamgu::Predicate(TamguDeclaration* dom, short idthread) {
 
 
 TamguPredicate::TamguPredicate(short n, TamguGlobal* g, short t, Tamgu* parent) : name(n), TamguReference(g, parent) {
+    fully_unified = false;
     shared = false;
     ptype = t;
     terminal = false;
@@ -2408,6 +2434,7 @@ TamguPredicate::TamguPredicate(short n, TamguGlobal* g, short t, Tamgu* parent) 
 
 //This is a hack (quite ugly) which is used to avoid recording into the tracker temporary elements...
 TamguPredicate::TamguPredicate(TamguGlobal* g, short n) : name(n) {
+    fully_unified = false;
     shared = false;
     terminal = false;
     ptype = a_predicate;
@@ -3046,6 +3073,73 @@ Tamgu* TamguConstmap::ExtractPredicateVariables(Tamgu* context, TamguDeclaration
     return kmap;
 }
 
+Tamgu* TamguPredicate::ExtractPredicateVariables(Tamgu* context, TamguDeclaration* dom, Tamgu* C, Tamgu* E, short idthread, bool root) {
+    Tamgu* c = C;
+    long i;
+    bool param = false;
+    TamguPredicate* pred;
+
+    if (C != NULL) {
+        if (C->Type() == a_predicate) {
+            if (!C->isName(name) || C->Size() != parameters.size()) {
+                return NULL;
+            }
+            param = true;
+        }
+        else {
+            if (C->Type() != a_instance)
+                return NULL;
+            c = C->Variable(dom);
+            Tamgu* val = c->VariableValue(dom, idthread);
+            if (val != aNOELEMENT) {
+                c = val;
+                if (c->Type() != a_predicate || !c->isName(name) || c->Size() != parameters.size())
+                    return NULL;
+            }
+
+            if (c->Type() == a_predicate)
+                param = true;
+        }
+    }
+
+    Tamgu* e;
+    //term = new TamguPredicateTerm(globalTamgu, name, label);
+    pred = (TamguPredicate*)Newinstance(idthread);
+    pred->name = name;
+
+    for (i = 0; i < parameters.size(); i++) {
+        e = parameters[i];
+        if (param)
+            e = e->ExtractPredicateVariables(context, dom, c->Parameter(i), NULL, idthread, false);
+        else
+            e = e->ExtractPredicateVariables(context, dom, NULL, NULL, idthread, false);
+
+        if (e == NULL) {
+            pred->Release();
+            return NULL;
+        }
+        pred->parameters.push_back(e);
+    }
+
+    if (root) {
+        TamguPredicateVariableInstance* kpvi = globalTamgu->Providevariableinstance(a_term, idthread);
+
+        dom->Setdomainlock();
+        kpvi->value = pred;
+        kpvi->Setreference();
+        dom->declarations[kpvi->name] = kpvi;
+
+        if (c != NULL && c->Type() == a_instance) {
+            context->Setdico(c->Name(), kpvi);
+            dom->declarations[c->Name()] = kpvi;
+            kpvi->Setreference();
+        }
+        dom->Resetdomainlock();
+        return kpvi;
+    }
+
+    return pred;
+}
 
 Tamgu* TamguPredicateTerm::ExtractPredicateVariables(Tamgu* context, TamguDeclaration* dom, Tamgu* C, Tamgu* E, short idthread, bool root) {
     Tamgu* c = C;
@@ -3487,6 +3581,27 @@ Tamgu* TamguPredicateVariableInstanceExchange::Getvalues(TamguDeclaration* dom, 
     return v;
 }
 
+//TamguPredicate can be extracted from a database, in that case, we want the values
+//to be fully unified. We also have to be carreful not to duplicate an already duplicated
+//value...
+Tamgu* TamguPredicate::Getvalues(TamguDeclaration* dom, bool duplicate) {
+    if (!duplicate || fully_unified)
+        return this;
+    
+    TamguPredicate* term = new TamguPredicate(globalTamgu, name);
+    term->fully_unified = true;
+    Tamgu* e;
+    for (long i = 0; i < parameters.size(); i++) {
+        e = parameters[i]->Getvalues(dom, duplicate);
+        if (e == aNOELEMENT) {
+            term->Release();
+            return aNOELEMENT;
+        }
+        term->parameters.push_back(e);
+    }
+    return term;
+}
+
 Tamgu* TamguPredicateTerm::Getvalues(TamguDeclaration* dom, bool duplicate) {
     TamguPredicateTerm* term = new TamguPredicateTerm(globalTamgu, name);
     Tamgu* e;
@@ -3886,6 +4001,12 @@ TamguPredicate* TamguInstructionEvaluate::PredicateUnification(VECTE<Tamgu*>& go
                         keep = true;
                     }
                     continue;
+                case a_findall:
+                    if (!keep) {
+                        headpredicate = (TamguPredicate*)e;
+                        from = i + 1;
+                    }
+                    return headpredicate;
                 default:
                     test = ((TamguPredicate*)e)->isUnified(dom);
                     if (test) {
@@ -4166,6 +4287,61 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
             if (!order)
                 return aFALSE;
             
+            std::unique_ptr<localpredict> Oo(new localpredict(threadowner, sz + 1));
+            for (j = from; j < sz; j++) {
+                if (j != posreplace && !goals[j]->hasbeenSuccesfull())
+                    Oo->localgoals.push_back(goals[j]);
+            }
+            //---------------------------------------------------------------
+            return PredicateEvalue(Oo->localgoals, currenthead, depth);
+            //---------------------------------------------------------------
+        }
+        case a_findall: {
+            kvpred = new TamguPredicate(globalTamgu, predicate_name);
+            
+            std::vector<short> free_variables;
+            for (i = 0; i < headpredicate_nb_parameters - 2; i++) {
+                res = headpredicate->parameters[i]->Eval(this, dom, threadowner);
+                if (res == aNOELEMENT) {
+                    kvpred->parameters.push_back(aUNIVERSAL);
+                    free_variables.push_back(i);
+                }
+                else
+                    kvpred->parameters.push_back(res->Atom(true));
+            }
+            
+            std::vector<TamguPredicate*> facts;
+            // This section is used to test our current predicate against the knowledgebase...
+            if (!globalTamgu->GetPredicates(dom, kvpred, facts, false)) {
+                kvpred->Release();
+                return aFALSE;
+            }
+
+            //These positions correspond to free variables in the parameter lists of each fact
+            Tamguvector* v = globalTamgu->Providevector();
+            Tamgu* val;
+            for (short f = 0; f < facts.size(); f++) {
+                //First we unify our variables with their values from the fact
+                for (i = 0; i < free_variables.size(); i++) {
+                    val = facts[f]->parameters[free_variables[i]];
+                    headpredicate->parameters[free_variables[i]]->Put(dom, val, threadowner);
+                }
+                //Our pattern is on -2 position
+                val = headpredicate->parameters[headpredicate_nb_parameters - 2]->Getvalues(dom, true);
+                if (val == aNOELEMENT) {
+                    v->Release();
+                    return aFALSE;
+                }
+                v->Push(val);
+            }
+            
+            //We clear these values
+            for (i = 0; i < free_variables.size(); i++) {
+                headpredicate->parameters[free_variables[i]]->Put(dom, aNOELEMENT, threadowner);
+            }
+
+            res = headpredicate->parameters[headpredicate_nb_parameters - 1];
+            res->Put(dom, v, threadowner);
             std::unique_ptr<localpredict> Oo(new localpredict(threadowner, sz + 1));
             for (j = from; j < sz; j++) {
                 if (j != posreplace && !goals[j]->hasbeenSuccesfull())

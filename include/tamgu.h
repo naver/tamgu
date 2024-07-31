@@ -1519,6 +1519,11 @@ public:
 	virtual Tamgu* multiply(Tamgu* a, bool itself) {
 		return this;
 	}
+    
+    virtual Tamgu* divideinteger(Tamgu* a, bool itself) {
+        return this;
+    }
+
 	virtual Tamgu* divide(Tamgu* a, bool itself) {
 		return this;
 	}
@@ -1997,7 +2002,10 @@ public:
     
     virtual Tamgu* car(short idthread);    
     virtual Tamgu* cdr(short idthread);
-
+    
+    virtual Tamgu* divideinteger(Tamgu* a, bool itself) {
+        return divide(a, itself);
+    }
 };
 
 class TamguObjectLockContainer : public TamguLockContainer {
@@ -2080,7 +2088,6 @@ public:
             Resetreference(0);
         }
     }
-    
 };
 //--------------------------------------------------------------------
 // These classes are used to declared code, which can be tracked in TamguGlobal
@@ -2649,6 +2656,16 @@ public:
 	virtual Tamgu* Eval(Tamgu* context, Tamgu* callfunction, short idthread);
 };
 
+class TamguInstructionList : public TamguInstruction {
+public:
+    TamguInstructionList(short t = a_instructions, TamguGlobal* g = NULL, Tamgu* parent = NULL) : TamguInstruction(t,g,parent) {}
+    TamguInstructionList(TamguGlobal* g, Tamgu* parent = NULL) : TamguInstruction(g, parent) {}
+
+    bool isObjectContainer() {
+        return true;
+    }
+    
+};
 
 class TamguBeforeLast : public TamguInstruction {
 public:
@@ -4491,7 +4508,7 @@ public:
         return a;
 	}
 
-	Tamgu* divide(Tamgu* a, bool itself) {
+    Tamgu* divide(Tamgu* a, bool itself) {
         locking();
         if (value == aNOELEMENT) {
             unlocking();
@@ -4500,7 +4517,19 @@ public:
         a = value->divide(a, itself);
         unlocking();
         return a;
-	}
+    }
+    
+    Tamgu* divideinteger(Tamgu* a, bool itself) {
+        locking();
+        if (value == aNOELEMENT) {
+            unlocking();
+            return globalTamgu->Returnerror(e_uninitialized_self_variable);
+        }
+        a = value->divideinteger(a, itself);
+        unlocking();
+        return a;
+    }
+    
 	Tamgu* power(Tamgu* a, bool itself) {
         locking();
         if (value == aNOELEMENT) {
@@ -5205,6 +5234,14 @@ public:
         }
         return value->divide(a, itself);
     }
+
+    Tamgu* divideinteger(Tamgu* a, bool itself) {
+        if (value == aNOELEMENT) {
+            return globalTamgu->Returnerror(e_uninitialized_self_variable);
+        }
+        return value->divideinteger(a, itself);
+    }
+
     Tamgu* power(Tamgu* a, bool itself) {
         if (value == aNOELEMENT) {
             return globalTamgu->Returnerror(e_uninitialized_self_variable);

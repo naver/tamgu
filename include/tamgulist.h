@@ -665,7 +665,18 @@ class Tamgulist : public TamguObjectLockContainer {
     //Basic operations
     Exporting long Size();
     Exporting Tamgu* in(Tamgu* context, Tamgu* a, short idthread);
-    Exporting Tamgu* andset(Tamgu* a, bool itself);Exporting Tamgu* orset(Tamgu* a, bool itself);Exporting Tamgu* xorset(Tamgu* a, bool itself);Exporting Tamgu* plus(Tamgu* a, bool itself);Exporting Tamgu* minus(Tamgu* a, bool itself);Exporting Tamgu* multiply(Tamgu* a, bool itself);Exporting Tamgu* divide(Tamgu* a, bool itself);Exporting Tamgu* power(Tamgu* a, bool itself);Exporting Tamgu* shiftleft(Tamgu* a, bool itself);Exporting Tamgu* shiftright(Tamgu* a, bool itself);Exporting Tamgu* mod(Tamgu* a, bool itself);
+    Exporting Tamgu* andset(Tamgu* a, bool itself);
+    Exporting Tamgu* orset(Tamgu* a, bool itself);
+    Exporting Tamgu* xorset(Tamgu* a, bool itself);
+    Exporting Tamgu* plus(Tamgu* a, bool itself);
+    Exporting Tamgu* minus(Tamgu* a, bool itself);
+    Exporting Tamgu* multiply(Tamgu* a, bool itself);
+    Exporting Tamgu* divide(Tamgu* a, bool itself);
+    Exporting Tamgu* divideinteger(Tamgu* a, bool itself);
+    Exporting Tamgu* power(Tamgu* a, bool itself);
+    Exporting Tamgu* shiftleft(Tamgu* a, bool itself);
+    Exporting Tamgu* shiftright(Tamgu* a, bool itself);
+    Exporting Tamgu* mod(Tamgu* a, bool itself);
     Exporting Tamgu* same(Tamgu* a);
 };
 
@@ -1461,6 +1472,7 @@ public:
     Exporting Tamgu* minus(Tamgu* a, bool itself);
     Exporting Tamgu* multiply(Tamgu* a, bool itself);
     Exporting Tamgu* divide(Tamgu* a, bool itself);
+    Exporting Tamgu* divideinteger(Tamgu* a, bool itself);
     Exporting Tamgu* power(Tamgu* a, bool itself);
     Exporting Tamgu* shiftleft(Tamgu* a, bool itself);
     Exporting Tamgu* shiftright(Tamgu* a, bool itself);
@@ -1891,6 +1903,7 @@ public:
     Exporting Tamgu* minus(Tamgu* a, bool itself);
     Exporting Tamgu* multiply(Tamgu* a, bool itself);
     Exporting Tamgu* divide(Tamgu* a, bool itself);
+    Exporting Tamgu* divideinteger(Tamgu* a, bool itself);
     Exporting Tamgu* power(Tamgu* a, bool itself);
     Exporting Tamgu* shiftleft(Tamgu* a, bool itself);
     Exporting Tamgu* shiftright(Tamgu* a, bool itself);

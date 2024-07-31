@@ -641,6 +641,18 @@ class Tamgushort : public TamguReference {
 		return globalTamgu->ProvideConstfloat(v);
 	}
 
+    Tamgu* divideinteger(Tamgu* a, bool itself) {
+        short v = a->Short();
+        if (v == 0)
+            return globalTamgu->Returnerror(e_error_divided_by);
+        if (itself) {
+            value /= v;
+            return this;
+        }
+        v = value / v;
+        return new Tamgushort(v);
+    }
+
 	Tamgu* power(Tamgu* a, bool itself) {
 		double v = value;
 		if (itself) {

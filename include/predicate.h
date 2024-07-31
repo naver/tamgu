@@ -331,6 +331,10 @@ public:
 		return value->divide(a, itself);
 	}
 
+    Tamgu* divideinteger(Tamgu* a, bool itself) {
+        return value->divideinteger(a, itself);
+    }
+
 	Tamgu* power(Tamgu* a, bool itself) {
 		return value->power(a, itself);
 	}
@@ -679,6 +683,7 @@ public:
 	bool negation;
 	bool disjunction;
     bool shared;
+    bool fully_unified;
 
 	static Exchanging basebin_hash<predicateMethod> methods;
 
@@ -708,6 +713,7 @@ public:
         return (terminal && name == n && parameters.size() == sz)?this:NULL;
     }
     
+    virtual Tamgu* Getvalues(TamguDeclaration* dom, bool duplicate);
     void Setidtype(TamguGlobal* global);
 
 	void Setnegation(bool v) {
@@ -801,6 +807,8 @@ public:
 	virtual TamguPredicate* Duplicate(Tamgu* context, TamguDeclaration* d, short idthread);
 	bool Copyfrom(TamguPredicate* p, Tamgu* context, TamguDeclaration* d, TamguPredicate* h, short);
 
+    Tamgu* ExtractPredicateVariables(Tamgu* contextualpattern, TamguDeclaration* dom, Tamgu* param, Tamgu* e, short idthread, bool root);
+    
 	Tamgu* Parameter(size_t i) {
 		return parameters[i];
 	}
@@ -1220,13 +1228,13 @@ public:
 	string String();
     void Setstring(string& v, short idthread);
 
-	void AddInstruction(Tamgu* e) {
-		TamguPredicate* p = (TamguPredicate*)e;
-		name = p->name;
-		parameters = p->parameters;
-		negation = p->negation;
-		p->parameters.clear();
-	}
+    virtual void AddInstruction(Tamgu* e) {
+        TamguPredicate* p = (TamguPredicate*)e;
+        name = p->name;
+        parameters = p->parameters;
+        negation = p->negation;
+        p->parameters.clear();
+    }
 
 	TamguPredicate* Duplicate(Tamgu* context, TamguDeclaration* d, short idthread);
 
@@ -1237,6 +1245,33 @@ public:
 		return p;
 	}
 
+};
+
+class TamguPredicateFindall : public TamguPredicateAction {
+public:
+    TamguPredicateFindall(TamguGlobal* g, short n, Tamgu* parent = NULL) : TamguPredicateAction(g, n, parent) {}
+    
+    void AddInstruction(Tamgu* e) {
+        if (parameters.size() == 1) {
+            TamguPredicate* p = (TamguPredicate*)e;
+            e = parameters[0];
+            name = p->name;
+            parameters = p->parameters;
+            //The template is pushed on second position
+            parameters.push_back(e);
+            negation = p->negation;
+            p->parameters.clear();
+        }
+        else
+            parameters.push_back(e);
+    }
+    
+    Tamgu* Newinstance(short idthread, Tamgu* f = NULL) {
+        TamguPredicateFindall* p = new TamguPredicateFindall(globalTamgu, action);
+        p->name = name;
+        p->negation = negation;
+        return p;
+    }
 };
 
 //The actions are: retract, asserta, assertz, remove

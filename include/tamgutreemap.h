@@ -558,6 +558,7 @@ class Tamgutreemap : public TamguObjectLockContainer {
     Exporting Tamgu* minus(Tamgu* a, bool itself);
     Exporting Tamgu* multiply(Tamgu* a, bool itself);
     Exporting Tamgu* divide(Tamgu* a, bool itself);
+    Exporting Tamgu* divideinteger(Tamgu* a, bool itself);
     Exporting Tamgu* power(Tamgu* a, bool itself);
     Exporting Tamgu* shiftleft(Tamgu* a, bool itself);
     Exporting Tamgu* shiftright(Tamgu* a, bool itself);

@@ -316,6 +316,7 @@ public:
 	Tamgu* C_predicateexpression(x_node* xn, Tamgu* kf);
 	Tamgu* C_predicatevariable(x_node* xn, Tamgu* kf);
 	Tamgu* C_assertpredicate(x_node* xn, Tamgu* kf);
+    Tamgu* C_findallpredicate(x_node* xn, Tamgu* kf);
 	Tamgu* C_term(x_node* xn, Tamgu* kf);
 	Tamgu* C_comparepredicate(x_node* xn, Tamgu* kf);
 

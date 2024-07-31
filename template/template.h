@@ -252,6 +252,9 @@ class Tamgu%1 : public TamguObject {
     Tamgu* divide(Tamgu* a, bool itself) {
         return this;
     }
+    Tamgu* divideinteger(Tamgu* a, bool itself) {
+        return this;
+    }
     Tamgu* power(Tamgu* a, bool itself) {
         return this;
     }

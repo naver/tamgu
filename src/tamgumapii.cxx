@@ -661,6 +661,7 @@ Exporting Tamgu* Tamgumapii::divide(Tamgu* b, bool itself) {
     Doublelocking _lock(this, b);
 
     Tamgumapii * res;
+    long v;
     if (b->isMapContainer()) {
         TamguIteration* itr = b->Newiteration(false);
 
@@ -668,8 +669,14 @@ Exporting Tamgu* Tamgumapii::divide(Tamgu* b, bool itself) {
         long k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
             k = itr->Keyinteger();
+            v = itr->Valueinteger();
+            if (v == 0) {
+                res->Release();
+                itr->Release();
+                return globalTamgu->Returnerror(e_error_divided_by);
+            }
             try {
-                res->values[k] = values.at(k) / itr->Valueinteger();
+                res->values[k] = values.at(k) / v;
             }
             catch (const std::out_of_range& oor) {
             }
@@ -684,7 +691,7 @@ Exporting Tamgu* Tamgumapii::divide(Tamgu* b, bool itself) {
     else
         res = (Tamgumapii*)Atom(true);
 
-    long v = b->Integer();
+    v = b->Integer();
     if (v == 0) {
         res->Release();
         return globalTamgu->Returnerror(e_error_divided_by);
@@ -699,6 +706,7 @@ Exporting Tamgu* Tamgumapii::mod(Tamgu* b, bool itself) {
     Doublelocking _lock(this, b);
 
     Tamgumapii * res;
+    long v;
     if (b->isMapContainer()) {
         TamguIteration* itr = b->Newiteration(false);
 
@@ -706,8 +714,14 @@ Exporting Tamgu* Tamgumapii::mod(Tamgu* b, bool itself) {
         long k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
             k = itr->Keyinteger();
+            v = itr->Valueinteger();
+            if (v == 0) {
+                res->Release();
+                itr->Release();
+                return globalTamgu->Returnerror(e_error_divided_by);
+            }
             try {
-                res->values[k] = values.at(k) % itr->Valueinteger();
+                res->values[k] = values.at(k) % v;
             }
             catch (const std::out_of_range& oor) {
             }
@@ -722,7 +736,7 @@ Exporting Tamgu* Tamgumapii::mod(Tamgu* b, bool itself) {
     else
         res = (Tamgumapii*)Atom(true);
 
-    long v = b->Integer();
+    v = b->Integer();
     if (v == 0) {
         res->Release();
         return globalTamgu->Returnerror(e_error_divided_by);

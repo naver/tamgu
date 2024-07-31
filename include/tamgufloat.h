@@ -569,20 +569,28 @@ public:
 		return globalTamgu->ProvideConstfloat(value * a->Float());
 	}
 
-	Tamgu* divide(Tamgu* a, bool itself) {
-		double v = a->Float();
-		if (v == 0)
-			return globalTamgu->Returnerror(e_error_divided_by);
-		if (itself) {
-			value /= v;
-			return this;
-		}
+    Tamgu* divide(Tamgu* a, bool itself) {
+        double v = a->Float();
+        if (v == 0)
+            return globalTamgu->Returnerror(e_error_divided_by);
+        if (itself) {
+            value /= v;
+            return this;
+        }
 
-		v = value / v;
-		return globalTamgu->ProvideConstfloat(v);
-	}
+        v = value / v;
+        return globalTamgu->ProvideConstfloat(v);
+    }
 
-	Tamgu* power(Tamgu* a, bool itself) {		
+    Tamgu* divideinteger(Tamgu* a, bool itself) {
+        long v = a->Integer();
+        if (v == 0)
+            return globalTamgu->Returnerror(e_error_divided_by);
+        v = value / v;
+        return globalTamgu->ProvideConstint(v);
+    }
+
+	Tamgu* power(Tamgu* a, bool itself) {
 		if (itself) {
 			value = pow(value, a->Float());
 			return this;
@@ -1270,7 +1278,15 @@ public:
         v = value / v;
         return new Tamguatomicfloat(v);
     }
-    
+
+    Tamgu* divideinteger(Tamgu* a, bool itself) {
+        long v = a->Integer();
+        if (v == 0)
+            return globalTamgu->Returnerror(e_error_divided_by);
+        v = value / v;
+        return new Tamguatomicfloat(v);
+    }
+
     Tamgu* power(Tamgu* a, bool itself) {
         if (itself) {
             value = pow(value, a->Float());

@@ -664,15 +664,23 @@ Exporting Tamgu* Tamgutreemapui::divide(Tamgu* b, bool itself) {
     Doublelocking _lock(this, b);
     
     Tamgutreemapui * res;
+    long v;
     if (b->isMapContainer()) {
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgutreemapui;
         wstring k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
+            v = itr->Valueinteger();
+            if (v == 0)
+            {
+                res->Release();
+                itr->Release();
+                return globalTamgu->Returnerror("Error: Divided by 0");
+            }
             k = itr->Keyustring();
             try {
-                res->values[k] = values.at(k) * itr->Valueinteger();
+                res->values[k] = values.at(k) / v;
             }
             catch (const std::out_of_range& oor) {
             }
@@ -687,7 +695,7 @@ Exporting Tamgu* Tamgutreemapui::divide(Tamgu* b, bool itself) {
     else
         res = (Tamgutreemapui*)Atom(true);
     
-    long v = b->Integer();
+    v = b->Integer();
     if (v == 0) {
         res->Release();
         return globalTamgu->Returnerror("Error: Divided by 0");
@@ -702,12 +710,20 @@ Exporting Tamgu* Tamgutreemapui::mod(Tamgu* b, bool itself) {
     Doublelocking _lock(this, b);
     
     Tamgutreemapui * res;
+    long v;
     if (b->isMapContainer()) {
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgutreemapui;
         wstring k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
+            v = itr->Valueinteger();
+            if (v == 0)
+            {
+                res->Release();
+                itr->Release();
+                return globalTamgu->Returnerror("Error: Divided by 0");
+            }
             k = itr->Keyustring();
             try {
                 res->values[k] = values.at(k)  % itr->Valueinteger();
@@ -725,7 +741,7 @@ Exporting Tamgu* Tamgutreemapui::mod(Tamgu* b, bool itself) {
     else
         res = (Tamgutreemapui*)Atom(true);
     
-    long v = b->Integer();
+    v = b->Integer();
     if (v == 0) {
         res->Release();
         return globalTamgu->Returnerror("Error: Divided by 0");

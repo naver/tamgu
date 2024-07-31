@@ -641,15 +641,23 @@ Exporting Tamgu* Tamgutreemapfl::divide(Tamgu* b, bool itself) {
     Doublelocking _lock(this, b);
 
     Tamgutreemapfl * res;
+    BLONG v;
     if (b->isMapContainer()) {
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgutreemapfl;
         double k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
+            v = itr->Valuelong();
+            if (v == 0)
+            {
+                itr->Release();
+                res->Release();
+                return globalTamgu->Returnerror("Error: Divided by 0");
+            }
             k = itr->Keyfloat();
             try {
-                res->values[k] = values.at(k) / itr->Valuelong();
+                res->values[k] = values.at(k) / v;
             }
             catch (const std::out_of_range& oor) {
             }
@@ -664,7 +672,7 @@ Exporting Tamgu* Tamgutreemapfl::divide(Tamgu* b, bool itself) {
     else
         res = (Tamgutreemapfl*)Atom(true);
 
-    BLONG v = b->Long();
+    v = b->Long();
     if (v == 0) {
         res->Release();
         return globalTamgu->Returnerror("Error: Divided by 0");
@@ -679,15 +687,23 @@ Exporting Tamgu* Tamgutreemapfl::mod(Tamgu* b, bool itself) {
     Doublelocking _lock(this, b);
 
     Tamgutreemapfl * res;
+    long v;
     if (b->isMapContainer()) {
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgutreemapfl;
         double k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
+            v = itr->Valueinteger();
+            if (v == 0)
+            {
+                itr->Release();
+                res->Release();
+                return globalTamgu->Returnerror("Error: Divided by 0");
+            }
             k = itr->Keyfloat();
             try {
-                res->values[k] = values.at(k) % itr->Valueinteger();
+                res->values[k] = values.at(k) % v;
             }
             catch (const std::out_of_range& oor) {
             }
@@ -702,7 +718,7 @@ Exporting Tamgu* Tamgutreemapfl::mod(Tamgu* b, bool itself) {
     else
         res = (Tamgutreemapfl*)Atom(true);
 
-    long v = b->Integer();
+    v = b->Integer();
     if (v == 0) {
         res->Release();
         return globalTamgu->Returnerror("Error: Divided by 0");

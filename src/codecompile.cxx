@@ -1989,7 +1989,8 @@ void TamguGlobal::RecordCompileFunctions() {
 	parseFunctions["predicate"] = &TamguCode::C_predicate;
 	parseFunctions["predicateexpression"] = &TamguCode::C_predicateexpression;
 	parseFunctions["predicatevariable"] = &TamguCode::C_predicatevariable;
-	parseFunctions["assertpredicate"] = &TamguCode::C_assertpredicate;
+	parseFunctions["findallpredicate"] = &TamguCode::C_findallpredicate;
+    parseFunctions["assertpredicate"] = &TamguCode::C_assertpredicate;
 	parseFunctions["term"] = &TamguCode::C_term;
 	parseFunctions["tuple"] = &TamguCode::C_term;
 	parseFunctions["predicatecall"] = &TamguCode::C_regularcall;
@@ -2105,6 +2106,7 @@ TamguInstruction* TamguCode::TamguCreateInstruction(Tamgu* parent, short op) {
         case a_minus:
         case a_multiply:
         case a_divide:
+        case a_divideinteger:
         case a_mod:
         case a_power:
         case a_shiftleft:
@@ -3863,7 +3865,7 @@ Tamgu* TamguCode::C_regularcall(x_node* xn, Tamgu* parent) {
 	//It could be a predicate, then two cases as part of an expression or as a call to evaluation
 	if (global->predicates.check(id) || (id == a_universal && params == "predicateparameters")) {
 		//then it is a PredicateInstance
-		if (parent->Type() != a_predicateruleelement && parent->Type() != a_parameterpredicate) {
+		if (parent->Type() != a_predicateruleelement && parent->Type() != a_parameterpredicate && !parent->isObjectContainer()) {
 			global->predicatevariables.clear();
 			TamguInstructionLaunch* kbloc = new TamguInstructionLaunch(global, parent);
 			parent = kbloc;
@@ -5172,7 +5174,7 @@ Tamgu* TamguCode::C_valmap(x_node* xn, Tamgu* kf) {
 	if (xn->token == "maptail" || xn->token == "mapmerging") {
 		kmap = (TamguConstmap*)kf;
 		kmap->keys.push_back(aPIPE);
-		TamguInstruction kbloc;
+		TamguInstructionList kbloc;
 		Traverse(xn->nodes[0], &kbloc);
 		kmap->values.push_back(kbloc.instructions[0]);
 		kmap->Setevaluate(true);
@@ -10081,7 +10083,7 @@ Tamgu* TamguCode::C_alist(x_node* xn, Tamgu* kf) {
 		return kbv;
 	}
 
-	TamguInstruction kbloc;
+    TamguInstructionList kbloc;
 	Traverse(xn->nodes[0], &kbloc);
 	Tamgu* ke = kbloc.instructions[0];
 	kf->push(ke);
@@ -10921,23 +10923,32 @@ Tamgu* TamguCode::C_predicatevariable(x_node* xn, Tamgu* kf) {
     return var;
 }
 
+Tamgu* TamguCode::C_findallpredicate(x_node* xn, Tamgu* kf) {
+    short id = a_findall;
+    Tamgu* kbloc = new TamguPredicateFindall(global, id, kf);
+    Traverse(xn->nodes[0], kbloc);
+    Traverse(xn->nodes[1], kbloc);
+    Traverse(xn->nodes[2], kbloc);
+    return kbloc;
+}
 
 Tamgu* TamguCode::C_assertpredicate(x_node* xn, Tamgu* kf) {
 	short id = a_assertz;
-	if (xn->nodes[0]->token == "assertcommandbefore")
+    string action = xn->nodes[0]->token;
+	if (action == "assertcommandbefore")
 		id = a_asserta;
 	else {
-		if (xn->nodes[0]->token == "retractcommand")
+		if (action == "retractcommand")
 			id = a_retract;
 	}
 
 	Tamgu* kbloc = new TamguPredicateAction(global, id, kf);
-	if (xn->nodes.size() != 2)  {
-		stringstream message;
-		message << e_error_wrong_assert;
-		throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
-	}
-	Traverse(xn->nodes.back(), kbloc);
+    if (xn->nodes.size() != 2)  {
+        stringstream message;
+        message << e_error_wrong_assert;
+        throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
+    }
+    Traverse(xn->nodes.back(), kbloc);
 	return kbloc;
 }
 

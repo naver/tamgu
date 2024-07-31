@@ -224,9 +224,9 @@ path := %/ word (path)
 ~notreserved := $IF^$If^$alias^$and^$autorun^$break^$continue^$deriving^$do^$elif^$else^$for^$frame^$function^$if^$in^$not^$or^$otherwise^$polynomial^$return^$switch^$thread^$where^$while^$xor^$iferror^$ifnot
 ########### OPERATORS ##############################################
 
-operator := $ifnot^$∧^$∨^$×^$÷^[%& %& %&]^[%| %| %|]^[%: %:]^[%< %<]^[%> %>]^[%^ %^]^[%* %*]^%&^%|^%+^%-^%*^%/^%%^%^
+operator := $ifnot^$∧^$∨^$×^$÷^[%& %& %&]^[%| %| %|]^[%: %:]^[%< %<]^[%> %>]^[%^ %^]^[%% %%]^[%* %*]^%&^%|^%+^%-^%*^%/^%%^%^
 
-operatoraffectation := [$× %=]^[$÷ %=]^[%& %& %& %=]^[%| %| %| %=]^[%: %: %=]^[%: %=]^[$is ($not)]^[%< %< %=]^[%> %> %=]^[%+ %=]^[%- %=]^[%* %* %=]^[%/ %=]^[%% %=]^[%& %=]^[%| %=]^[%^ %^ %=]^[%* %=]^[%^ %=]^[%< %< %<]^%=
+operatoraffectation := [$× %=]^[$÷ %=]^[%& %& %& %=]^[%| %| %| %=]^[%: %: %=]^[%: %=]^[$is ($not)]^[%< %< %=]^[%> %> %=]^[%+ %=]^[%- %=]^[%* %* %=]^[%% %% %=]^[%/ %=]^[%% %=]^[%& %=]^[%| %=]^[%^ %^ %=]^[%* %=]^[%^ %=]^[%< %< %<]^%=
 
 orand := [%| %|]^[%& %&]^$or^$and^$xor
 
@@ -388,7 +388,8 @@ retractcommand := $retract
 assertcommandbefore := $asserta
 assertcommandafter := $assertz^$assert
 
-%assertpredicate := [retractcommand^assertcommandbefore^assertcommandafter] %( ;39 [dependencyfact^predicate] (%, expression) %)
+%findallpredicate := $findall ;39 %( [predicate^expression] %, predicate %, expression %)
+%assertpredicate := [retractcommand^assertcommandbefore^assertcommandafter] ;39 %( [dependencyfact^predicate] (%, expression) %)
 
 compfeat := [%~ %- %:]^[%- %:]^[%~ %:]^%:^%=
 valplus := %+
@@ -438,7 +439,7 @@ predicateoperator := %,^%;
 
 predicatesep := %: (%:) %-
 
-%predicateexpression := [fail^cut^stop^assertpredicate^[(not) predicatecall]^predplusplus^affectationpredicate^comparepredicate^valpredicatevector^valmappredicate^expressions] (predicateoperator ;35 predicateexpression)
+%predicateexpression := [fail^cut^stop^findallpredicate^assertpredicate^[(not) predicatecall]^predplusplus^affectationpredicate^comparepredicate^valpredicatevector^valmappredicate^expressions] (predicateoperator ;35 predicateexpression)
 %predicatedefinition := predicate predicatesep ;20 [abool^predicateexpression]
 %predicatefact := [dependencyfact^predicate] %.
 

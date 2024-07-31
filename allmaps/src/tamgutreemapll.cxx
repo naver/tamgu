@@ -642,15 +642,23 @@ Exporting Tamgu* Tamgutreemapll::divide(Tamgu* b, bool itself) {
     Doublelocking _lock(this, b);
 
     Tamgutreemapll * res;
+    BLONG v;
     if (b->isMapContainer()) {
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgutreemapll;
         BLONG k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
-            k = itr->Keylong();
+            v = itr->Valuelong();
+            if (v == 0)
+            {
+                res->Release();
+                itr->Release();
+                return globalTamgu->Returnerror("Error: Divided by 0");
+            }
+           k = itr->Keylong();
             try {
-                res->values[k] = values.at(k) / itr->Valuelong();
+                res->values[k] = values.at(k) / v;
             }
             catch (const std::out_of_range& oor) {
             }
@@ -665,7 +673,7 @@ Exporting Tamgu* Tamgutreemapll::divide(Tamgu* b, bool itself) {
     else
         res = (Tamgutreemapll*)Atom(true);
 
-    BLONG v = b->Long();
+    v = b->Long();
     if (v == 0) {
         res->Release();
         return globalTamgu->Returnerror("Error: Divided by 0");
@@ -680,15 +688,23 @@ Exporting Tamgu* Tamgutreemapll::mod(Tamgu* b, bool itself) {
     Doublelocking _lock(this, b);
 
     Tamgutreemapll * res;
+    long v;
     if (b->isMapContainer()) {
         TamguIteration* itr = b->Newiteration(false);
 
         res = new Tamgutreemapll;
         BLONG k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
+            v = itr->Valueinteger();
+            if (v == 0)
+            {
+                res->Release();
+                itr->Release();
+                return globalTamgu->Returnerror("Error: Divided by 0");
+            }
             k = itr->Keylong();
             try {
-                res->values[k] = values.at(k) % itr->Valueinteger();
+                res->values[k] = values.at(k) % v;
             }
             catch (const std::out_of_range& oor) {
             }
@@ -703,7 +719,7 @@ Exporting Tamgu* Tamgutreemapll::mod(Tamgu* b, bool itself) {
     else
         res = (Tamgutreemapll*)Atom(true);
 
-    long v = b->Integer();
+    v = b->Integer();
     if (v == 0) {
         res->Release();
         return globalTamgu->Returnerror("Error: Divided by 0");

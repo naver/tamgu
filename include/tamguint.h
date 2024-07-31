@@ -640,9 +640,21 @@ public:
         if (v == 0)
             return globalTamgu->Returnerror(e_error_divided_by);
         v = (double)value / v;
-        return globalTamgu->ProvideConstfloat(v);
+        return globalTamgu->Providefloat(v);
     }
-    
+
+    Tamgu* divideinteger(Tamgu* a, bool itself) {
+        long v = a->Integer();
+        if (v == 0)
+            return globalTamgu->Returnerror(e_error_divided_by);
+        if (itself) {
+            value /= v;
+            return this;
+        }
+        v = value / v;
+        return globalTamgu->Provideint(v);
+    }
+
     Tamgu* power(Tamgu* a, bool itself) {
         double v = value;
         if (itself) {
@@ -651,7 +663,7 @@ public:
             return this;
         }
         v = pow(v, a->Float());
-        return globalTamgu->ProvideConstfloat(v);
+        return globalTamgu->Providefloat(v);
     }
     
     Exporting Tamgu* shiftleft(Tamgu* a, bool itself);
@@ -675,7 +687,7 @@ public:
         }
         
         v = value % v;
-        return globalTamgu->ProvideConstint(v);
+        return globalTamgu->Provideint(v);
     }
     
     //Comparison
@@ -1399,6 +1411,20 @@ public:
             return globalTamgu->Returnerror(e_error_divided_by);
         v = (double)value / v;
         return globalTamgu->ProvideConstfloat(v);
+    }
+
+    Tamgu* divideinteger(Tamgu* a, bool itself) {
+        long v = a->Integer();
+        if (v == 0)
+            return globalTamgu->Returnerror(e_error_divided_by);
+        if (itself) {
+            long e = value;
+            e /= v;
+            value = e;
+            return this;
+        }
+        v = value / v;
+        return globalTamgu->ProvideConstint(v);
     }
     
     Tamgu* power(Tamgu* a, bool itself) {

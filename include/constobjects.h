@@ -1034,6 +1034,14 @@ public:
 		return globalTamgu->ProvideConstfloat(v);
 	}
 
+    Tamgu* divideinteger(Tamgu* a, bool itself) {
+        long v = a->Integer();
+        if (v == 0)
+            return globalTamgu->Returnerror(e_error_divided_by);
+        v = value / v;
+        return globalTamgu->ProvideConstint(v);
+    }
+
 	Tamgu* power(Tamgu* a, bool itself) {
 		double v = value;
 		v = pow(v, a->Float());
@@ -1358,6 +1366,14 @@ public:
 		return globalTamgu->ProvideConstfloat(v);
 	}
 
+    Tamgu* divideinteger(Tamgu* a, bool itself) {
+        long v = a->Integer();
+        if (v == 0)
+            return globalTamgu->Returnerror(e_error_divided_by);
+        v = value / v;
+        return globalTamgu->ProvideConstint(v);
+    }
+
 	Tamgu* power(Tamgu* a, bool itself) {
 		double v = value;
 		v = pow(v, a->Float());
@@ -1662,6 +1678,14 @@ public:
 		return new Tamgudecimal(v);
 	}
 
+    Tamgu* divideinteger(Tamgu* a, bool itself) {
+        float v = a->Decimal();
+        if (v == 0)
+            return globalTamgu->Returnerror(e_error_divided_by);
+        v = value / v;
+        return globalTamgu->ProvideConstint((long)v);
+    }
+
 	Tamgu* power(Tamgu* a, bool itself) {
 		double v = value;
 		v = pow(v, a->Decimal());
@@ -1952,6 +1976,14 @@ public:
 		v = value / v;
 		return globalTamgu->ProvideConstfloat(v);
 	}
+
+    Tamgu* divideinteger(Tamgu* a, bool itself) {
+        double v = a->Float();
+        if (v == 0)
+            return globalTamgu->Returnerror(e_error_divided_by);
+        v = value / v;
+        return globalTamgu->ProvideConstint((long)v);
+    }
 
 	Tamgu* power(Tamgu* a, bool itself) {
 		double v = value;
@@ -2255,6 +2287,14 @@ public:
 		v = (double)value / v;
 		return globalTamgu->ProvideConstfloat(v);
 	}
+
+    Tamgu* divideinteger(Tamgu* a, bool itself) {
+        long v = a->Integer();
+        if (v == 0)
+            return globalTamgu->Returnerror(e_error_divided_by);
+        v = value / v;
+        return globalTamgu->ProvideConstint(v);
+    }
 
 	Tamgu* power(Tamgu* a, bool itself) {
 		double v = (double)value;

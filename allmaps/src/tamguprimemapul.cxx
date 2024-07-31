@@ -683,13 +683,14 @@ Exporting Tamgu* Tamguprimemapul::divide(Tamgu* b, bool itself) {
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
             v = itr->Valuelong();
             if (v == 0) {
+                itr->Release();
                 res->Release();
                 return globalTamgu->Returnerror("Error: Divided by 0");
             }
 
             it = values.find(itr->Keyustring());
             if (it != values.end()) {
-                res->values[it->first] = it->second * v;
+                res->values[it->first] = it->second / v;
             }
         }
         itr->Release();
@@ -725,6 +726,7 @@ Exporting Tamgu* Tamguprimemapul::mod(Tamgu* b, bool itself) {
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
             v = itr->Valueinteger();
             if (v == 0) {
+                itr->Release();
                 res->Release();
                 return globalTamgu->Returnerror("Error: Divided by 0");
             }

@@ -217,6 +217,7 @@ class bnf_tamgu {
     char m_operator_0_5(string& lreturn,x_node** tree);
     char m_operator_0_6(string& lreturn,x_node** tree);
     char m_operator_0_7(string& lreturn,x_node** tree);
+    char m_operator_0_8(string& lreturn,x_node** tree);
     char m_operatoraffectation(string& lreturn,x_node** tree);
     char m_operatoraffectation_0_1(string& lreturn,x_node** tree);
     char m_operatoraffectation_0_2(string& lreturn,x_node** tree);
@@ -239,6 +240,7 @@ class bnf_tamgu {
     char m_operatoraffectation_0_19(string& lreturn,x_node** tree);
     char m_operatoraffectation_0_20(string& lreturn,x_node** tree);
     char m_operatoraffectation_0_21(string& lreturn,x_node** tree);
+    char m_operatoraffectation_0_22(string& lreturn,x_node** tree);
     char m_orand(string& lreturn,x_node** tree);
     char m_orand_0_1(string& lreturn,x_node** tree);
     char m_orand_0_2(string& lreturn,x_node** tree);
@@ -463,6 +465,8 @@ class bnf_tamgu {
     char m_retractcommand(string& lreturn,x_node** tree);
     char m_assertcommandbefore(string& lreturn,x_node** tree);
     char m_assertcommandafter(string& lreturn,x_node** tree);
+    char m_findallpredicate(string& lreturn,x_node** tree);
+    char m_findallpredicate_0_1(string& lreturn,x_node** tree);
     char m_assertpredicate(string& lreturn,x_node** tree);
     char m_assertpredicate_0_1(string& lreturn,x_node** tree);
     char m_assertpredicate_0_2(string& lreturn,x_node** tree);

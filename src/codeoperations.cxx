@@ -118,6 +118,14 @@ Tamgu* TamguInstructionAPPLYOPERATIONEQU::Eval(Tamgu* context, Tamgu* value, sho
                 return globalTamgu->Errorobject(idthread);
             }
             break;
+        case a_divideinteger:
+            v = value->divideinteger(res, true);
+            if (v->isError()) {
+                value->Releasenonconst();
+                res->Release();
+                return globalTamgu->Errorobject(idthread);
+            }
+            break;
         case a_power:
             v = value->power(res, true);
             break;
@@ -277,6 +285,16 @@ Tamgu* TamguInstructionAPPLYOPERATIONEQUALIAS::Eval(Tamgu* context, Tamgu* value
                 return globalTamgu->Errorobject(idthread);
             }
             break;
+        case a_divideinteger:
+            v = value->divideinteger(res, true);
+            if (v->isError()) {
+                value->Releasenonconst();
+                res->Release();
+                globalTamgu->Popstack(idthread);
+                environment->Releasing();
+                return globalTamgu->Errorobject(idthread);
+            }
+            break;
         case a_power:
             v = value->power(res, true);
             break;
@@ -364,6 +382,7 @@ Tamgu* TamguInstructionAPPLYEQUSHORT::Eval(Tamgu* context, Tamgu* value, short i
             v *= res;
             break;
         case a_divide:
+        case a_divideinteger:
             if (res == 0)
                 return globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             v /= res;
@@ -416,6 +435,7 @@ Tamgu* TamguInstructionAPPLYEQUINT::Eval(Tamgu* context, Tamgu* value, short idt
             v *= res;
             break;
         case a_divide:
+        case a_divideinteger:
             if (res == 0)
                 return globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             v /= res;
@@ -467,6 +487,7 @@ Tamgu* TamguInstructionAPPLYEQULONG::Eval(Tamgu* context, Tamgu* value, short id
             v *= res;
             break;
         case a_divide:
+        case a_divideinteger:
             if (res == 0)
                 return globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             v /= res;
@@ -523,6 +544,12 @@ Tamgu* TamguInstructionAPPLYEQUDECIMAL::Eval(Tamgu* context, Tamgu* value, short
                 return globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             v /= res;
             break;
+        case a_divideinteger:
+            if (res == 0)
+                return globalTamgu->Returnerror(e_cannot_divide_by, idthread);
+            v /= res;
+            v = (long)v;
+            break;
         case a_power:
             v = pow(v, res);
             break;
@@ -573,6 +600,12 @@ Tamgu* TamguInstructionAPPLYEQUFLOAT::Eval(Tamgu* context, Tamgu* value, short i
             if (res == 0)
                 return globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             v /= res;
+            break;
+        case a_divideinteger:
+            if (res == 0)
+                return globalTamgu->Returnerror(e_cannot_divide_by, idthread);
+            v /= res;
+            v = (long)v;
             break;
         case a_power:
             v = pow(v,res);
@@ -661,6 +694,7 @@ Tamgu* TamguInstructionEQUShort::Eval(Tamgu* context, Tamgu* value, short idthre
             val *= valres;
             break;
         case a_divide:
+        case a_divideinteger:
             if (valres == 0)
                 return globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             val /= valres;
@@ -712,6 +746,7 @@ Tamgu* TamguInstructionEQUInteger::Eval(Tamgu* context, Tamgu* value, short idth
             val *= valres;
             break;
         case a_divide:
+        case a_divideinteger:
             if (valres == 0)
                 return globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             val /= valres;
@@ -763,6 +798,7 @@ Tamgu* TamguInstructionEQULong::Eval(Tamgu* context, Tamgu* value, short idthrea
             val *= valres;
             break;
         case a_divide:
+        case a_divideinteger:
             if (valres == 0)
                 return globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             val /= valres;
@@ -818,6 +854,12 @@ Tamgu* TamguInstructionEQUDecimal::Eval(Tamgu* context, Tamgu* value, short idth
                 return globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             val /= valres;
             break;
+        case a_divideinteger:
+            if (valres == 0)
+                return globalTamgu->Returnerror(e_cannot_divide_by, idthread);
+            val /= valres;
+            val = (long)val;
+            break;
         case a_power:
             val =pow(val,valres);
             break;
@@ -868,6 +910,12 @@ Tamgu* TamguInstructionEQUFloat::Eval(Tamgu* context, Tamgu* value, short idthre
             if (valres == 0)
                 return globalTamgu->Returnerror(e_cannot_divide_by, idthread);
             val /= valres;
+            break;
+        case a_divideinteger:
+            if (valres == 0)
+                return globalTamgu->Returnerror(e_cannot_divide_by, idthread);
+            val /= valres;
+            val = (long)val;
             break;
         case a_power:
             val =pow(val,valres);
@@ -1086,6 +1134,15 @@ Tamgu* TamguInstructionAPPLYOPERATIONROOT::ccompute(short idthread, uchar top, s
                     return aRAISEERROR;
                 }
                 break;
+            case a_divideinteger:
+                v = r->divideinteger(a, itself);
+                if (v->isError()) {
+                    r->Release();
+                    a->Release();
+                    d = DIVIDEDBYZERO;
+                    return aRAISEERROR;
+                }
+                break;
             case a_power:
                 v = r->power(a, itself);
                 break;
@@ -1230,6 +1287,15 @@ Tamgu* TamguInstructionFRACTION::Getfraction(Tamgu* r, Tamgu* value, short idthr
                     return aRAISEERROR;
                 }
                 break;
+            case a_divideinteger:
+                v = r->divideinteger(a, itself);
+                if (v->isError()) {
+                    r->Release();
+                    a->Release();
+                    d = DIVIDEDBYZERO;
+                    return aRAISEERROR;
+                }
+                break;
             case a_power:
                 v = r->power(a, itself);
                 break;
@@ -1272,6 +1338,14 @@ Tamgu* TamguInstructionFRACTION::Getfraction(Tamgu* r, Tamgu* value, short idthr
             break;
         case a_divide:
             v = r->divide(value, true);
+            if (v->isError()) {
+                r->Release();
+                d = DIVIDEDBYZERO;
+                return aRAISEERROR;
+            }
+            break;
+        case a_divideinteger:
+            v = r->divideinteger(value, true);
             if (v->isError()) {
                 r->Release();
                 d = DIVIDEDBYZERO;
@@ -1374,6 +1448,15 @@ Tamgu* TamguInstructionFRACTION::cfraction(short idthread, short& d) {
                 break;
             case a_divide:
                 v = r->divide(a, itself);
+                if (v->isError()) {
+                    r->Release();
+                    a->Release();
+                    d = DIVIDEDBYZERO;
+                    return aRAISEERROR;
+                }
+                break;
+            case a_divideinteger:
+                v = r->divideinteger(a, itself);
                 if (v->isError()) {
                     r->Release();
                     a->Release();

@@ -818,6 +818,53 @@ Exporting Tamgu* Tamgubinmap::divide(Tamgu* b, bool itself) {
     return res;
 }
 
+Exporting Tamgu* Tamgubinmap::divideinteger(Tamgu* b, bool itself) {
+    Doublelocking _lock(this, b);
+
+    Tamgubinmap* res;
+    Tamgu* v;
+    Tamgu* r;
+
+    if (b->isMapContainer()) {
+        TamguIteration* itr = b->Newiteration(false);
+
+        res = new Tamgubinmap;
+        ushort ikey;
+        for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
+            v = itr->IteratorValue();
+            ikey = itr->Keyshort();
+            if (values.check(ikey)) {
+                res->Push(ikey, values.get(ikey));
+                r = res->values[ikey]->divideinteger(v, true);
+                if (r->isError()) {
+                    res->Release();
+                    itr->Release();
+                    return r;
+                }
+            }
+        }
+        itr->Release();
+        return res;
+    }
+
+    if (itself)
+        res = this;
+    else
+        res = (Tamgubinmap*)Atom(true);
+
+    basebin_hash<Tamgu*>::iterator it;
+
+    for (it = values.begin(); it != values.end(); it++) {
+        r = it->second->divideinteger(b, true);
+        if (r->isError()) {
+            res->Release();
+            return r;
+        }
+    }
+
+    return res;
+}
+
 Exporting Tamgu* Tamgubinmap::mod(Tamgu* b, bool itself) {
     Doublelocking _lock(this, b);
 

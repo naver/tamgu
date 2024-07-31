@@ -430,6 +430,7 @@ class Tamguclock : public TamguReference {
     Tamgu* plus(Tamgu* bb, bool autoself);
     Tamgu* multiply(Tamgu* b, bool autoself);
     Tamgu* divide(Tamgu* b, bool autoself);
+    Tamgu* divideinteger(Tamgu* a, bool autoself);
     Tamgu* mod(Tamgu* b, bool autoself);
 
 

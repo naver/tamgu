@@ -687,13 +687,14 @@ Exporting Tamgu* Tamguprimemapuf::divide(Tamgu* b, bool itself) {
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
             v = itr->Valuefloat();
             if (v == 0) {
+                itr->Release();
                 res->Release();
                 return globalTamgu->Returnerror("Error: Divided by 0");
             }
 
             it = values.find(itr->Keyustring());
             if (it != values.end()) {
-                res->values[it->first] = it->second * v;
+                res->values[it->first] = it->second / v;
             }
         }
         itr->Release();
@@ -716,6 +717,49 @@ Exporting Tamgu* Tamguprimemapuf::divide(Tamgu* b, bool itself) {
 
 }
 
+Exporting Tamgu* Tamguprimemapuf::divideinteger(Tamgu* b, bool itself) {
+    Doublelocking _lock(this, b);
+
+    prime_hash<wstring,double>::iterator it;
+    Tamguprimemapuf * res;
+    if (b->isMapContainer()) {
+        TamguIteration* itr = b->Newiteration(false);
+
+        res = new Tamguprimemapuf;
+        double v;
+        for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
+            v = itr->Valuefloat();
+            if (v == 0) {
+                itr->Release();
+                res->Release();
+                return globalTamgu->Returnerror("Error: Divided by 0");
+            }
+
+            it = values.find(itr->Keyustring());
+            if (it != values.end()) {
+                res->values[it->first] = (long)(it->second / v);
+            }
+        }
+        itr->Release();
+        return res;
+    }
+
+    if (itself)
+        res = this;
+    else
+        res = (Tamguprimemapuf*)Atom(true);
+
+    double v = b->Float();
+    if (v == 0) {
+        res->Release();
+        return globalTamgu->Returnerror("Error: Divided by 0");
+    }
+    for (it = values.begin(); it != values.end(); it++)
+        it->second = (long)(it->second / v);
+    return res;
+
+}
+
 Exporting Tamgu* Tamguprimemapuf::mod(Tamgu* b, bool itself) {
     Doublelocking _lock(this, b);
 
@@ -729,6 +773,7 @@ Exporting Tamgu* Tamguprimemapuf::mod(Tamgu* b, bool itself) {
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
             v = itr->Valueinteger();
             if (v == 0) {
+                itr->Release();
                 res->Release();
                 return globalTamgu->Returnerror("Error: Divided by 0");
             }

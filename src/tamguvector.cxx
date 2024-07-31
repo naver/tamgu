@@ -851,6 +851,58 @@ Exporting Tamgu* Tamguvector::divide(Tamgu *b, bool itself) {
     return ref;
 }
 
+Exporting Tamgu* Tamguvector::divideinteger(Tamgu *b, bool itself) {
+    Tamguvector* ref;
+    locking();
+    if (itself) {
+        ref = this;
+    }
+    else
+        ref = (Tamguvector*)Atom(true);
+    
+    int it;
+    
+    long size = values.size();
+    Tamgu* ke;
+    
+    if (b->isContainer()) {
+        Tamgu* kv;
+        TamguIteration* itr = b->Newiteration(false);
+        itr->Begin();
+        for (it = 0; it < size; it++) {
+            if (itr->End() == aTRUE)
+                break;
+            kv = itr->IteratorValue();
+            ke = ref->values[it]->divideinteger(kv, true);
+            if (ke->isError()) {
+                ref->Release();
+                itr->Release();
+                unlocking();
+                return ke;
+            }
+            
+            ke->Release();
+            itr->Next();
+        }
+        itr->Release();
+        unlocking();
+        return ref;
+    }
+    
+    
+    for (it = 0; it < size; it++) {
+        ke = ref->values[it]->divideinteger(b, true);
+        if (ke->isError()) {
+            ref->Release();
+            unlocking();
+            return ke;
+        }
+    }
+    
+    unlocking();
+    return ref;
+}
+
 Exporting Tamgu* Tamguvector::power(Tamgu *b, bool itself) {
     Tamguvector* ref;
     if (itself) {
@@ -3670,6 +3722,55 @@ Exporting Tamgu* Tamgua_vector::divide(Tamgu *b, bool itself) {
     atomic_vector_iterator<Tamgu*> it(ref->values);
     while (!it.end()) {
         ke = it.second->divide(b, true);
+        if (ke->isError()) {
+            ref->Release();
+            return ke;
+        }
+        it.next();
+    }
+    unlockingmark();
+    return ref;
+}
+
+Exporting Tamgu* Tamgua_vector::divideinteger(Tamgu *b, bool itself) {
+    Tamgua_vector* ref;
+    if (itself)
+        ref = this;
+    else
+        ref = (Tamgua_vector*)Atom(true);
+    
+    Tamgu* ke;
+    Tamgu* kv;
+    if (!lockingmark())
+        return aNULL;
+    
+    if (b->isContainer()) {
+        TamguIteration* itr = b->Newiteration(false);
+        itr->Begin();
+        atomic_vector_iterator<Tamgu*> it(ref->values);
+        while (!it.end()) {
+            if (itr->End() == aTRUE)
+                break;
+            kv = itr->IteratorValue();
+            ke = it.second->divideinteger(kv, true);
+            if (ke->isError()) {
+                itr->Release();
+                ref->Release();
+                unlockingmark();
+                return ke;
+            }
+            itr->Next();
+            it.next();
+        }
+        itr->Release();
+        unlockingmark();
+        return ref;
+    }
+    
+    
+    atomic_vector_iterator<Tamgu*> it(ref->values);
+    while (!it.end()) {
+        ke = it.second->divideinteger(b, true);
         if (ke->isError()) {
             ref->Release();
             return ke;

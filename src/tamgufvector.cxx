@@ -1054,6 +1054,48 @@ Exporting Tamgu* Tamgufvector::divide(Tamgu* b, bool itself) {
     return ref;
 }
 
+Exporting Tamgu* Tamgufvector::divideinteger(Tamgu* b, bool itself) {
+    Tamgufvector* ref = this;
+    if (itself)
+        ref = this;
+    else
+        ref = (Tamgufvector*)Atom(true);
+
+    Doublelocking _lock(ref, b);
+    size_t it;
+    double v;
+    if (b->isContainer()) {
+        TamguIteration* itr = b->Newiteration(false);
+        itr->Begin();
+        for (it = 0; it < ref->values.size(); it++) {
+            if (itr->End() == aTRUE)
+                break;
+            v = itr->Valuefloat();
+            if (v == 0) {
+                ref->Release();
+                return globalTamgu->Returnerror(e_error_divided_by);
+            }
+            ref->values[it] /= v;
+            ref->values[it] = (long)ref->values[it];
+            itr->Next();
+        }
+        itr->Release();
+        return ref;
+    }
+
+    v = b->Float();
+    if (v == 0) {
+        ref->Release();
+        return globalTamgu->Returnerror(e_error_divided_by);
+    }
+
+    for (it = 0; it < ref->values.size(); it++) {
+        ref->values[it] /= v;
+        ref->values[it] = (long)ref->values[it];
+    }
+    return ref;
+}
+
 Exporting Tamgu* Tamgufvector::power(Tamgu* b, bool itself) {
     Tamgufvector* ref = this;
     if (itself)
@@ -1733,7 +1775,7 @@ Exporting Tamgu* Tamgua_fvector::divide(Tamgu* b, bool itself) {
     else
         ref = (Tamgua_fvector*)Atom(true);
     
-    long v;
+    double v;
     if (b->isContainer()) {
         Locking _lock(b);
         TamguIteration* itr = b->Newiteration(false);
@@ -1755,7 +1797,7 @@ Exporting Tamgu* Tamgua_fvector::divide(Tamgu* b, bool itself) {
         return ref;
     }
     
-    v = b->Integer();
+    v = b->Float();
     if (v == 0) {
         ref->Release();
         return globalTamgu->Returnerror(e_error_divided_by);
@@ -1763,6 +1805,49 @@ Exporting Tamgu* Tamgua_fvector::divide(Tamgu* b, bool itself) {
     atomic_value_vector_iterator<double> it(ref->values);
     for (; !it.end(); it.next())
         it.replace(it.second / v);
+    return ref;
+}
+
+Exporting Tamgu* Tamgua_fvector::divideinteger(Tamgu* b, bool itself) {
+    Tamgua_fvector* ref = this;
+    if (itself)
+        ref = this;
+    else
+        ref = (Tamgua_fvector*)Atom(true);
+    
+    double v;
+    double res;
+    if (b->isContainer()) {
+        Locking _lock(b);
+        TamguIteration* itr = b->Newiteration(false);
+        itr->Begin();
+        atomic_value_vector_iterator<double> it(ref->values);
+        for (; !it.end(); it.next()) {
+            if (itr->End() == aTRUE)
+                break;
+            v = itr->Valuefloat();
+            if (v == 0) {
+                ref->Release();
+                return globalTamgu->Returnerror(e_error_divided_by);
+            }
+            res = (long)(it.second / itr->Valuefloat());
+            it.replace(res);
+            itr->Next();
+        }
+        itr->Release();
+        return ref;
+    }
+    
+    v = b->Float();
+    if (v == 0) {
+        ref->Release();
+        return globalTamgu->Returnerror(e_error_divided_by);
+    }
+    atomic_value_vector_iterator<double> it(ref->values);
+    for (; !it.end(); it.next()) {
+        res = (long)(it.second / v);
+        it.replace(res);
+    }
     return ref;
 }
 

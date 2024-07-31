@@ -756,6 +756,60 @@ Exporting Tamgu* Tamgutable::divide(Tamgu *b, bool itself) {
     return ref;
 }
 
+Exporting Tamgu* Tamgutable::divideinteger(Tamgu *b, bool itself) {
+    Tamgutable* ref;
+    if (itself)
+        ref = this;
+    else
+        ref = (Tamgutable*)Atom(true);
+
+    int it;
+    Tamgu* ke;
+    Tamgu* kv;
+
+    if (!lockingmark())
+        return aNULL;
+    
+    Tamgu* e;
+    if (b->isContainer()) {
+        Locking _lock(b);
+        TamguIteration* itr = b->Newiteration(false);
+        itr->Begin();
+        for (it = 0; it < size; it++) {
+            if (itr->End() == aTRUE)
+                break;
+            kv = itr->IteratorValue();
+            e = ref->values[it];
+            ke = e->divideinteger(kv, true);
+            if (ke->isError()) {
+                ref->Release();
+                itr->Release();
+                unlockingmark();
+                return ke;
+            }
+
+            itr->Next();
+        }
+        itr->Release();
+        unlockingmark();
+        return ref;
+    }
+
+
+    for (it = 0; it < size; it++) {
+        e = ref->values[it];
+        ke = e->divideinteger(b, true);
+        if (ke->isError()) {
+            ref->Release();
+            unlockingmark();
+            return ke;
+        }
+    }
+
+    unlockingmark();
+    return ref;
+}
+
 Exporting Tamgu* Tamgutable::power(Tamgu *b, bool itself) {
     Tamgutable* ref;
     if (itself)

@@ -689,6 +689,7 @@ Exporting Tamgu* Tamgua_mapuf::divide(Tamgu* b, bool itself) {
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
             v = itr->Valuefloat();
             if (v == 0) {
+                itr->Release();
                 res->Release();
                 return globalTamgu->Returnerror("Error: Divided by 0");
             }
@@ -722,6 +723,58 @@ Exporting Tamgu* Tamgua_mapuf::divide(Tamgu* b, bool itself) {
     
 }
 
+Exporting Tamgu* Tamgua_mapuf::divideinteger(Tamgu* b, bool itself) {
+    Locking* _lock = _getlocktamgu(b);
+    
+    
+    Tamgua_mapuf * res;
+    long rval;
+    if (b->isMapContainer()) {
+        TamguIteration* itr = b->Newiteration(false);
+        
+        res = new Tamgua_mapuf;
+        double v, vl;
+        wstring ikey;
+        for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
+            v = itr->Valuefloat();
+            if (v == 0) {
+                itr->Release();
+                res->Release();
+                return globalTamgu->Returnerror("Error: Divided by 0");
+            }
+            
+            ikey = itr->Keyustring();
+            if (values.check(ikey)) {
+                values.get(ikey, vl);
+                rval = vl / v;
+                res->values.set(ikey, rval);
+            }
+        }
+        itr->Release();
+        _cleanlocktamgu(_lock);
+        return res;
+    }
+    
+    if (itself)
+        res = this;
+    else
+        res = (Tamgua_mapuf*)Atom(true);
+    
+    double v = b->Float();
+    if (v == 0) {
+        res->Release();
+        return globalTamgu->Returnerror("Error: Divided by 0");
+    }
+    TamguIterationa_mapuf it(this, false);
+    for (it.Begin(); it.End() == aFALSE; it.Next()) {
+        rval = it.second / v;
+        values.set(it.first,  rval);
+    }
+    _cleanlocktamgu(_lock);
+    return res;
+    
+}
+
 Exporting Tamgu* Tamgua_mapuf::mod(Tamgu* b, bool itself) {
     Locking* _lock = _getlocktamgu(b);
     
@@ -737,6 +790,7 @@ Exporting Tamgu* Tamgua_mapuf::mod(Tamgu* b, bool itself) {
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
             v = itr->Valueinteger();
             if (v == 0) {
+                itr->Release();
                 res->Release();
                 return globalTamgu->Returnerror("Error: Divided by 0");
             }

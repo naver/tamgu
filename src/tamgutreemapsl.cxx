@@ -676,6 +676,7 @@ Exporting Tamgu* Tamgutreemapsl::divide(Tamgu* b, bool itself) {
     Doublelocking _lock(this, b);
 
     Tamgutreemapsl * res;
+    BLONG v;
     if (b->isMapContainer()) {
         TamguIteration* itr = b->Newiteration(false);
 
@@ -683,8 +684,14 @@ Exporting Tamgu* Tamgutreemapsl::divide(Tamgu* b, bool itself) {
         string k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
             k = itr->Keystring();
+            v = itr->Valuelong();
+            if (v == 0) {
+                res->Release();
+                itr->Release();
+                return globalTamgu->Returnerror(e_error_divided_by);
+            }
             try {
-                res->values[k] = values.at(k) / itr->Valuelong();
+                res->values[k] = values.at(k) / v;
             }
             catch (const std::out_of_range& oor) {
             }
@@ -699,7 +706,7 @@ Exporting Tamgu* Tamgutreemapsl::divide(Tamgu* b, bool itself) {
     else
         res = (Tamgutreemapsl*)Atom(true);
 
-    BLONG v = b->Long();
+    v = b->Long();
     if (v == 0) {
         res->Release();
         return globalTamgu->Returnerror(e_error_divided_by);
@@ -714,6 +721,7 @@ Exporting Tamgu* Tamgutreemapsl::mod(Tamgu* b, bool itself) {
     Doublelocking _lock(this, b);
 
     Tamgutreemapsl * res;
+    long v;
     if (b->isMapContainer()) {
         TamguIteration* itr = b->Newiteration(false);
 
@@ -721,8 +729,14 @@ Exporting Tamgu* Tamgutreemapsl::mod(Tamgu* b, bool itself) {
         string k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
             k = itr->Keystring();
+            v = itr->Valueinteger();
+            if (v == 0) {
+                res->Release();
+                itr->Release();
+                return globalTamgu->Returnerror(e_error_divided_by);
+            }
             try {
-                res->values[k] = values.at(k) % itr->Valueinteger();
+                res->values[k] = values.at(k) % v;
             }
             catch (const std::out_of_range& oor) {
             }
@@ -737,7 +751,7 @@ Exporting Tamgu* Tamgutreemapsl::mod(Tamgu* b, bool itself) {
     else
         res = (Tamgutreemapsl*)Atom(true);
 
-    long v = b->Integer();
+    v = b->Integer();
     if (v == 0) {
         res->Release();
         return globalTamgu->Returnerror(e_error_divided_by);

@@ -367,7 +367,8 @@ class Tamgubyte : public TamguReference {
 		return new Tamgubyte(i);
 	}
 
-	Tamgu* divide(Tamgu* a, bool autoself);
+    Tamgu* divide(Tamgu* a, bool autoself);
+    Tamgu* divideinteger(Tamgu* a, bool autoself);
 	Tamgu* mod(Tamgu* a, bool autoself);
 
 	Tamgu* shiftleft(Tamgu* a, bool autoself) {

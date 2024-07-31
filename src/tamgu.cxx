@@ -45,7 +45,7 @@
 #include "tamgusocket.h"
 #include "tamgudate.h"
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2024.07.29.11";
+const char* tamgu_version = "Tamgu 1.2024.07.31.14";
 
 extern "C" {
 Exporting const char* TamguVersion(void) {
@@ -111,7 +111,7 @@ void GlobalConstants::clean() {
         gZEROPOINTZERO= NULL;
         gZERO= NULL;
         gONE= NULL;
-
+        
         gEMPTYLISP= NULL;
         gEMPTYSTRING= NULL;
         gEMPTYUSTRING= NULL;
@@ -127,7 +127,7 @@ void GlobalConstants::clean() {
         gBREAKTRUE= NULL;
         gBREAKZERO= NULL;
         gBREAKONE= NULL;
-
+        
         gASSIGNMENT= NULL;
         gITERNULL= NULL;
         gFAIL= NULL;
@@ -207,7 +207,7 @@ Exporting Tamgu::~Tamgu() {
         if (_tamgu_garbage_id > iddebug)
             _tamgu_garbage_id = iddebug;
     }
-
+    
     globalTamgu->Removefromlocalgarbageif_add(-1,-1,this);
 }
 
@@ -442,7 +442,7 @@ operator_strings(false), terms(false), booleanlocks(true), tracked(NULL, true), 
     
     TamguGlobal* globalSave = globalTamgu;
     globalTamgu = this;
-
+    
     short_string = 0;
     
     last_execution = std::chrono::system_clock::now();
@@ -602,7 +602,7 @@ operator_strings(false), terms(false), booleanlocks(true), tracked(NULL, true), 
 void Tamgu::Deletion(std::set<Tamgu*>& elements_to_delete) {
     if (idtracker != -1)
         return;
-
+    
     if (Candelete())
         elements_to_delete.insert(this);
     
@@ -624,7 +624,7 @@ TamguGlobal::~TamguGlobal() {
     TamguGlobal* resetToNUll = globalTamgu;
     if (globalTamgu != this)
         globalTamgu = this;
-
+    
     if (event_variable != NULL)
         event_variable->Resetreference();
     
@@ -632,7 +632,7 @@ TamguGlobal::~TamguGlobal() {
         stringbuffer->Resetreference();
     if (stringbuffererror != NULL)
         stringbuffererror->Resetreference();
-
+    
     stringbuffer = NULL;
     stringbuffererror = NULL;
     event_variable = NULL;
@@ -654,7 +654,7 @@ TamguGlobal::~TamguGlobal() {
     
     string_pool.clear();
     
-
+    
     clear_pattern();
     clear_automates();
     
@@ -682,7 +682,7 @@ TamguGlobal::~TamguGlobal() {
     
     Clearknowledgebase();
     spaces.clear();
-
+    
     //For the sockets, we do it in advance
     tracked.clean(elements_to_delete);
     
@@ -721,16 +721,16 @@ TamguGlobal::~TamguGlobal() {
     
     for (i = 0; i < lispreservoire.size(); i++)
         delete lispreservoire[i];
-
+    
     for (i = 0; i < longreservoire.size(); i++)
         delete longreservoire[i];
     
     for (i = 0; i < treemapreservoire.size(); i++)
         delete treemapreservoire[i];
-
+    
     for (i = 0; i < primemapreservoire.size(); i++)
         delete primemapreservoire[i];
-
+    
     for (i = 0; i < declarationreservoire.size(); i++)
         delete declarationreservoire[i];
     
@@ -795,7 +795,7 @@ TamguGlobal::~TamguGlobal() {
         delete gAutomatons;
     
     globalTamgu = resetToNUll;
-
+    
 #ifdef GARBAGEINDEBUG
     vector<Tamgu*> issues;
     vector<long> idissues;
@@ -1087,7 +1087,7 @@ Exporting Tamgu* TamguGlobal::Returnerror(Tamgu* err, short idthread) {
     
     if (!threads[idthread].embedded_try)
         stack_error = threads[idthread].stackinstructions;
-
+    
     errorraised[idthread] = (TamguError*)err;
     errors[idthread] = true;
     return err;
@@ -1246,6 +1246,7 @@ Exporting void TamguGlobal::RecordCompatibilities() {
     equto[a_minusequ] = a_minus;
     equto[a_multiplyequ] = a_multiply;
     equto[a_divideequ] = a_divide;
+    equto[a_divideintegerequ] = a_divideinteger;
     equto[a_powerequ] = a_power;
     equto[a_shiftleftequ] = a_shiftleft;
     equto[a_shiftrightequ] = a_shiftright;
@@ -1270,7 +1271,7 @@ Exporting void TamguGlobal::RecordCompatibilities() {
     equto[a_or] = a_or;
     equto[a_xor] = a_xor;
     equto[a_and] = a_and;
-        
+    
     compatibilities[a_call][a_call] = true;
     compatibilities[a_call][a_callfunction] = true;
     compatibilities[a_call][a_callmethod] = true;
@@ -1470,25 +1471,25 @@ Exporting void TamguGlobal::RecordCompatibilities() {
         compatibilities[stringtypes[i]][a_const] = true;
         strictcompatibilities[stringtypes[i]][a_const] = true;
     }
-
+    
     strictcompatibilities[a_sloop][a_svector] = true;
     strictcompatibilities[a_sloop][a_uvector] = true;
     strictcompatibilities[a_uloop][a_svector] = true;
     strictcompatibilities[a_uloop][a_uvector] = true;
     strictcompatibilities[a_sloop][a_vector] = true;
     strictcompatibilities[a_uloop][a_vector] = true;
-
+    
     compatibilities[a_sloop][a_svector] = true;
     compatibilities[a_sloop][a_uvector] = true;
     compatibilities[a_uloop][a_svector] = true;
     compatibilities[a_uloop][a_uvector] = true;
     compatibilities[a_sloop][a_vector] = true;
     compatibilities[a_uloop][a_vector] = true;
-
+    
     for (i = 0; i < vectortypes.size(); i++) {
         for (j = 0; j < vectortypes.size(); j++)
             compatibilities[vectortypes[i]][vectortypes[j]] = true;
-
+        
         if (vectortypes[i] != a_svector && vectortypes[i] != a_uvector ) {
             compatibilities[a_bloop][vectortypes[i]] = true;
             compatibilities[a_iloop][vectortypes[i]] = true;
@@ -1590,7 +1591,7 @@ void TamguGlobal::SetCompatibilities(short ty) {
     fullcompatibilities[ty][a_predicatevar] = true;
     
     fullcompatibilities[a_boolean][ty] = true;
-
+    
     bin_hash<Tamgu*>::iterator it;
     short type;
     Tamgu* ta;
@@ -1670,6 +1671,7 @@ Exporting void TamguGlobal::RecordConstantNames() {
     string_operators["/"] = a_divide;
     string_operators["÷"] = a_divide;
     string_operators["%"] = a_mod;
+    string_operators["%%"] = a_divideinteger;
     string_operators["^^"] = a_power;
     string_operators["**"] = a_power;
     string_operators["|"] = a_or;
@@ -1692,6 +1694,7 @@ Exporting void TamguGlobal::RecordConstantNames() {
     string_operators["::="] = a_addequ;
     string_operators["×="] = a_multiplyequ;
     string_operators["*="] = a_multiplyequ;
+    string_operators["//="] = a_divideintegerequ;
     string_operators["/="] = a_divideequ;
     string_operators["÷="] = a_divideequ;
     string_operators["%="] = a_modequ;
@@ -1745,6 +1748,7 @@ Exporting void TamguGlobal::RecordConstantNames() {
     operator_strings[a_minusequ] = "-=";
     operator_strings[a_minusminus] = "--";
     operator_strings[a_multiplyequ] = "*=";
+    operator_strings[a_divideintegerequ] = "//=";
     operator_strings[a_divideequ] = "/=";
     operator_strings[a_modequ] = "%=";
     operator_strings[a_powerequ] = "^^=";
@@ -1786,7 +1790,7 @@ Exporting void TamguGlobal::RecordConstantNames() {
         aZERO = new TamguConstInt(0);
         aZEROPOINTZERO = new TamguConstFloat(0.0);
         aONE = new TamguConstInt(1);
-
+        
         //They are created once for all...
         //Constants and ids
         aPIPE = new TamguConstPipe(a_pipe, ":", NULL);
@@ -1804,25 +1808,25 @@ Exporting void TamguGlobal::RecordConstantNames() {
         aBREAKFALSE = new TamguCallBreak(aFALSE, NULL);
         aBREAKONE = new TamguCallBreak(aONE, NULL);
         aBREAKZERO = new TamguCallBreak(aZERO, NULL);
-
+        
         aNULLDECLARATION = new TamguDeclaration((TamguGlobal*)NULL);
         aNULLLet = new TamguLet(NULL);
-
-
+        
+        
         //Since we need to set aNULL in vecte, we keep local instantiation of aNULL, which is related to gNULL
         aNULL = new TamguConst(Createid("null"), "null", NULL); //0 --> a_null
         //a hack to avoid this value to be stored in the tracker, when creating the corresponding system variable (see RecordSystemVariables() in codeexecute.cxx)
-
+        
         globalConstants.gNULL = aNULL;
-
+        
         aITERNULL = new TamguConstiteration(false, NULL);
         aITERNULL->Update(aNULL); //Horrible hack to have aITERNULL being deleted before aNULL, but benefiting from aNULL still
-
+        
         aMINUSONE->Protectfromtracker();
         aZERO->Protectfromtracker();
         aZEROPOINTZERO->Protectfromtracker();
         aONE->Protectfromtracker();
-
+        
         aITERNULL->Protectfromtracker();
         aPIPE->Protectfromtracker();
         
@@ -1839,12 +1843,12 @@ Exporting void TamguGlobal::RecordConstantNames() {
         aBREAKFALSE->Protectfromtracker();
         aBREAKONE->Protectfromtracker();
         aBREAKZERO->Protectfromtracker();
-
+        
         aNULLDECLARATION->Protectfromtracker();
         aNULLLet->Protectfromtracker();
         
         aNULL->Protectfromtracker();
-
+        
         booleantamgu[0] = aFALSE;
         booleantamgu[1] = aTRUE;
     }
@@ -1871,7 +1875,7 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("fraction");//12 --> a_fraction
     Createid("complex"); //13 a_complex
     Createid("float");//14 --> a_float
-
+    
     Createid("bloop");//15 --> a_bloop
     Createid("iloop");//16 --> a_iloop
     Createid("lloop");//17 --> a_lloop
@@ -1894,7 +1898,7 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("uloop");//31 --> a_uloop
     
     
-
+    
     Createid("constvector"); //32 --> a_constvector
     Createid("vector");//33 --> a_vector
     Createid("%frame_vector%");//34 --> a_framevector
@@ -1908,26 +1912,26 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("lvector");//42 --> a_lvector
     Createid("list"); //43 --> a_list
     
-
+    
     Createid("constmap"); //44 --> a_constmap
     Createid("map");//45 --> a_map
     Createid("treemap"); //46 --> a_treemap
-
+    
     Createid("primemap"); //47 --> a_primemap
     Createid("binmap"); //48 --> a_binmap
     Createid("mapss"); //49 --> a_mapss
-
+    
     Createid("mapi");//50 --> a_mapi
     Createid("treemapi"); //51 --> a_treemapi
     Createid("mapf");//52 --> a_mapi
-
+    
     Createid("%frame_map%");//53 --> a_framemap
     Createid("%frame_treemap%");//54 --> a_frametreemap
     Createid("%frame_primemap%");//55 --> a_frameprimemap
     Createid("%frame_mapi%");//56 --> a_framemapi
     Createid("%frame_treemapi%");//57 --> a_frametreemapi
     Createid("%frame_mapf%");//58 --> a_framemapf
-
+    
     Createid("&error");//59 --> a_error
     
     Createid("const"); //60 --> a_const
@@ -1939,7 +1943,7 @@ Exporting void TamguGlobal::RecordConstantNames() {
         aCONTINUE = new TamguConstContinue(Createid("continue"), "continue", NULL); //64 --> a_continue
         aRETURN = new TamguConst(Createid("return"), "return",  NULL); //65 --> a_return
         aNOELEMENT = new TamguConst(Createid("empty"), "empty", NULL); //66 --> a_empty
-
+        
         aBREAK->Protectfromtracker();
         aCONTINUE->Protectfromtracker();
         aRETURN->Protectfromtracker();
@@ -2011,14 +2015,14 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("&replicate"); //104 --> a_replicate
     Createid("fail");//105 --> a_fail
     Createid("&~!"); //106 --> a_cutfalse
-
-
+    
+    
     Createid("!"); //107 --> a_cut
     Createid("stop");//108 --> a_stop
-
-
+    
+    
     Createid("&PREDICATEENTREE"); //109 --> a_predicateentree
-
+    
     if (aUNIVERSAL == NULL) {
         aUNIVERSAL = new TamguConstUniversal(Createid("_"), "_", NULL); //110 --> a_universal
         aUNIVERSAL->Protectfromtracker(); //a hack to avoid this value to be stored in the tracker...
@@ -2029,183 +2033,187 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("asserta"); //111 --> a_asserta
     Createid("assertz"); //112 --> a_assertz
     Createid("retract"); //113 --> a_retract
-    Createid("&dependency_asserta&"); //114 --> a_dependency_asserta
-    Createid("&dependency_assertz&"); //115 --> a_dependency_assertz
-    Createid("&dependency_retract&"); //116 --> a_dependency_retract
-    Createid("&dependency_remove&"); //117 --> a_dependency_remove
-    Createid("predicatemethod"); //118 --> a_predicatemethod
-    Createid("predicatevar"); //119 --> a_predicatevar
-    Createid("predicate"); //120 --> a_predicate
-    Createid("term"); //121 --> a_term
-    Createid("?_"); //122 --> a_instance
-    Createid("p_predicateruleelement"); //123 --> a_predicateruleelement
-    Createid("p_predicatecontainer"); //124 --> a_predicatecontainer
-    Createid("p_predicaterule"); //125 --> a_predicaterule
-    Createid("p_predicateinstruction"); //126 --> a_predicateinstruction
-    Createid("p_knowledgebase"); //127 --> a_knowledgebase
-    Createid("p_dependencybase"); //128 --> a_dependencybase
-    Createid("p_predicatedomain"); //129 --> a_predicatedomain
-    Createid("p_launch"); //130 --> a_predicatelaunch
-    Createid("p_predicateelement"); //131 --> a_predicateelement
-    Createid("p_parameterpredicate"); //132 --> a_parameterpredicate
-    Createid("p_predicateevaluate"); //133 --> a_predicateevaluate
-    Createid("dependency"); //134 --> a_dependency
+    Createid("findall"); //114 --> a_findall
+    Createid("&dependency_asserta&"); //115 --> a_dependency_asserta
+    Createid("&dependency_assertz&"); //116 --> a_dependency_assertz
+    Createid("&dependency_retract&"); //117 --> a_dependency_retract
+    Createid("&dependency_remove&"); //118 --> a_dependency_remove
+    Createid("predicatemethod"); //119 --> a_predicatemethod
+    Createid("predicatevar"); //120 --> a_predicatevar
+    Createid("predicate"); //121 --> a_predicate
+    Createid("term"); //122 --> a_term
+    Createid("?_"); //123 --> a_instance
+    Createid("p_predicateruleelement"); //124 --> a_predicateruleelement
+    Createid("p_predicatecontainer"); //125 --> a_predicatecontainer
+    Createid("p_predicaterule"); //126 --> a_predicaterule
+    Createid("p_predicateinstruction"); //127 --> a_predicateinstruction
+    Createid("p_knowledgebase"); //128 --> a_knowledgebase
+    Createid("p_dependencybase"); //129 --> a_dependencybase
+    Createid("p_predicatedomain"); //130 --> a_predicatedomain
+    Createid("p_launch"); //131 --> a_predicatelaunch
+    Createid("p_predicateelement"); //132 --> a_predicateelement
+    Createid("p_parameterpredicate"); //133 --> a_parameterpredicate
+    Createid("p_predicateevaluate"); //134 --> a_predicateevaluate
+    Createid("dependency"); //135 --> a_dependency
     
-    Createid("tam_stream"); //135 --> a_stream
-    Createid("setq"); //136 --> a_assignement
+    Createid("tam_stream"); //136 --> a_stream
+    Createid("setq"); //137 --> a_assignement
     
-    Createid("tam_plusequ"); //137 --> a_plusequ
-    Createid("tam_minusequ"); //138 --> a_minusequ
-    Createid("tam_multiplyequ"); //139 --> a_multiplyequ
-    Createid("tam_divideequ"); //140 --> a_divideequ
-    Createid("tam_modequ"); //141 --> a_modequ
-    Createid("tam_powerequ"); //142 --> a_powerequ
-    Createid("tam_shiftleftequ"); //143 --> a_shiftleftequ
-    Createid("tam_shiftrightequ"); //144 --> a_shiftrightequ
-    Createid("tam_orequ"); //145 --> a_orequ
-    Createid("tam_xorequ"); //146 --> a_xorequ
-    Createid("tam_andequ"); //147 --> a_andequ
-    Createid("tam_mergeequ"); //148 --> a_mergeequ
-    Createid("tam_combineequ"); //149 --> a_combineequ
-    Createid("tam_addequ"); //150 --> a_addequ
+    Createid("tam_plusequ"); //138 --> a_plusequ
+    Createid("tam_minusequ"); //139 --> a_minusequ
+    Createid("tam_multiplyequ"); //140 --> a_multiplyequ
+    Createid("tam_divideequ"); //141 --> a_divideequ
+    Createid("tam_divideintegerequ"); //142 --> a_divideintegerequ
+    Createid("tam_modequ"); //143 --> a_modequ
+    Createid("tam_powerequ"); //144 --> a_powerequ
+    Createid("tam_shiftleftequ"); //145 --> a_shiftleftequ
+    Createid("tam_shiftrightequ"); //146 --> a_shiftrightequ
+    Createid("tam_orequ"); //147 --> a_orequ
+    Createid("tam_xorequ"); //148 --> a_xorequ
+    Createid("tam_andequ"); //149 --> a_andequ
+    Createid("tam_mergeequ"); //150 --> a_mergeequ
+    Createid("tam_combineequ"); //151 --> a_combineequ
+    Createid("tam_addequ"); //152 --> a_addequ
     
     //Operators
     
-    Createid("+"); //151 --> a_plus
-    Createid("-"); //152 --> a_minus
-    Createid("*"); //153 --> a_multiply
-    Createid("/"); //154 --> a_divide
-    Createid("^^"); //155 --> a_power
-    Createid("<<"); //156 --> a_shiftleft
-    Createid(">>"); //157 --> a_shiftright
-    Createid("%"); //158 --> a_mod
-    Createid("|"); //159 --> a_or
-    Createid("^"); //160 --> a_xor
-    Createid("&"); //161 --> a_and
-    Createid("&&&"); //162 --> a_merge
-    Createid("|||"); //163 --> a_combine
-    Createid("::"); //164 --> a_add
-    Createid("∧"); //165 --> a_conjunction
-    Createid("∨"); //166 --> a_disjunction
-    Createid("<"); //167
-    Createid(">"); //168
-    Createid("=="); //169
-    Createid("!="); //170
-    Createid("<="); //171
-    Createid(">="); //172
-    Createid("++"); //173
-    Createid("--"); //174
-    Createid("in"); //175
-    Createid("notin"); //176
+    Createid("+"); //153 --> a_plus
+    Createid("-"); //154 --> a_minus
+    Createid("*"); //155 --> a_multiply
+    Createid("/"); //156 --> a_divide
+    Createid("%%"); //157 --> a_divideinteger
+    Createid("^^"); //158 --> a_power
+    Createid("<<"); //159 --> a_shiftleft
+    Createid(">>"); //160 --> a_shiftright
+    Createid("%"); //161 --> a_mod
+    Createid("|"); //162 --> a_or
+    Createid("^"); //163 --> a_xor
+    Createid("&"); //164 --> a_and
+    Createid("&&&"); //165 --> a_merge
+    Createid("|||"); //166 --> a_combine
+    Createid("::"); //167 --> a_add
+    Createid("∧"); //168 --> a_conjunction
+    Createid("∨"); //169 --> a_disjunction
+    Createid("<"); //170
+    Createid(">"); //171
+    Createid("=="); //172
+    Createid("!="); //173
+    Createid("<="); //174
+    Createid(">="); //175
+    Createid("++"); //176
+    Createid("--"); //177
+    Createid("in"); //178
+    Createid("notin"); //179
     
     
-    Createid("tam_match"); //177
-    Createid("tam_bloc"); //178
-    Createid("tam_blocloopin"); //179
-    Createid("tam_filein"); //180
-    Createid("tam_blocboolean"); //181
-    Createid("tam_parameter"); //182
-    Createid("if"); //183
-    Createid("tam_try"); //184
-    Createid("tam_switch"); //185
-    Createid("while"); //186
-    Createid("for"); //187
-    Createid("tam_catchbloc"); //188
-    Createid("tam_booleanand"); //189
-    Createid("tam_booleanor"); //190
+    Createid("tam_match"); //180
+    Createid("tam_bloc"); //181
+    Createid("tam_blocloopin"); //182
+    Createid("tam_filein"); //183
+    Createid("tam_blocboolean"); //184
+    Createid("tam_parameter"); //185
+    Createid("if"); //186
+    Createid("tam_try"); //187
+    Createid("tam_switch"); //188
+    Createid("while"); //189
+    Createid("for"); //190
+    Createid("tam_catchbloc"); //191
+    Createid("tam_booleanand"); //192
+    Createid("tam_booleanor"); //193
     
     if (aHASKELL == NULL) {
-        aHASKELL = new TamguConst(Createid("&taskell"), "&taskell", NULL); //191
+        aHASKELL = new TamguConst(Createid("&taskell"), "&taskell", NULL); //194
         aHASKELL->Protectfromtracker();
     }
     else
         Createid("&taskell");
     
-    Createid("tam_forcedaffectation"); //192
-        
-    Createid("²"); //193
-    Createid("³"); //194
-    Createid("&counter;"); //195
+    Createid("tam_forcedaffectation"); //195
     
-    Createid("synode"); //196
+    Createid("²"); //196
+    Createid("³"); //197
+    Createid("&counter;"); //198
+    
+    Createid("synode"); //199
     //when we want to modify a dependency...
-    Createid("&modify_dependency"); //197
+    Createid("&modify_dependency"); //200
     
-    Createid("&action_var"); //198
-    Createid("&taskelldeclaration;"); //199
-    Createid("&drop;"); //200
+    Createid("&action_var"); //201
+    Createid("&taskelldeclaration;"); //202
+    Createid("&drop;"); //203
     
-    Createid("concept"); //201
-    Createid("~"); //202
-    Createid("taskellinstruction"); //203
-    Createid("methods"); //204
-    Createid("treg"); //205
-    Createid("table"); //206
-    Createid("ifnot"); //207
+    Createid("concept"); //204
+    Createid("~"); //205
+    Createid("taskellinstruction"); //206
+    Createid("methods"); //207
+    Createid("treg"); //208
+    Createid("table"); //209
+    Createid("ifnot"); //210
     
     if (aNOTHING == NULL) {
-        aNOTHING = new TamguConst(Createid("Nothing"), "Nothing", NULL); //208 --> a_Nothing
+        aNOTHING = new TamguConst(Createid("Nothing"), "Nothing", NULL); //211 --> a_Nothing
         aNOTHING->Protectfromtracker();
     }
     else
         Createid("Nothing");
-        
-    Createid("preg"); //209
-    Createid("&a_rules;"); //210
-    Createid("tam_iftaskell"); //211
-    Createid("tam_casetaskell"); //212
-    Createid("size"); //213
-    Createid("post"); //214
-    Createid("fibre"); //215
-    Createid("tam_booleanxor"); //216
-    Createid("push"); //217
     
-    Createid("quote"); //218 a_quote
-    Createid("cons"); //219 a_cons
-    Createid("cond"); //220 a_cond
-    Createid("atom"); //221 a_atom
-    Createid("eq"); //222 a_eq
-    Createid("cadr"); //223 a_cadr
-    Createid("defun"); //224 a_defun
-    Createid("label"); //225 a_label
-    Createid("atomp"); //226 a_atomp
-    Createid("numberp"); //227 a_numberp
-    Createid("consp"); //228 a_consp
-    Createid("zerop"); //229 a_zerop,
-    Createid("nullp"); //230 a_nullp,
-    Createid("block"); //231 a_block,
-    Createid("eval"); //232 a_eval,
-    Createid("key"); //233 a_key,
-    Createid("keys"); //234 a_keys,
-    Createid("load"); //235 a_load,
-    Createid("body"); //236 a_body,
-    Createid("apply"); //237 a_apply,
-    Createid("pair"); //238 a_pair,
-    Createid("calllisp"); //239 a_calllisp
-    Createid("callcommon"); //240 a_callcommon
-    Createid("insert"); //241 a_insert
-    Createid("_map"); //242 _map
-    Createid("_filter"); //243 _filter
-    Createid("_takewhile"); //244 _takewhile
-    Createid("_dropwhile"); //245 _dropwhile
-    Createid("_zip"); //246 _zip
-    Createid("_zipwith"); //247 _zipwith
-    Createid("_foldl"); //248 folding and scaning operations in Lisp
-    Createid("_scanl"); //249
-    Createid("_foldr"); //250
-    Createid("_scanr"); //251
-    Createid("_foldl1"); //252
-    Createid("_scanl1"); //253
-    Createid("_foldr1"); //254
-    Createid("_scanr1"); //255
-    Createid("iterator_java"); //256 --> a_iteration_java
-    Createid("java_vector"); //257 --> a_java_vector
-    Createid("&predicate_terminal&"); //258 --> a_terminal
-    Createid("_iferror"); //259 --> a_iferror
-    Createid("frametype"); //260 --> a_frametype
-    Createid("waitonjoined"); // 261 --> a_waitonjoined
-    Createid("lisp"); //262 a_lisp
-
+    Createid("preg"); //212
+    Createid("&a_rules;"); //213
+    Createid("tam_iftaskell"); //214
+    Createid("tam_casetaskell"); //215
+    Createid("size"); //216
+    Createid("post"); //217
+    Createid("fibre"); //218
+    Createid("tam_booleanxor"); //219
+    Createid("push"); //220
+    
+    Createid("quote"); //221 a_quote
+    Createid("cons"); //222 a_cons
+    Createid("cond"); //223 a_cond
+    Createid("atom"); //224 a_atom
+    Createid("eq"); //225 a_eq
+    Createid("cadr"); //226 a_cadr
+    Createid("defun"); //227 a_defun
+    Createid("label"); //228 a_label
+    Createid("atomp"); //229 a_atomp
+    Createid("numberp"); //230 a_numberp
+    Createid("consp"); //231 a_consp
+    Createid("zerop"); //232 a_zerop,
+    Createid("nullp"); //233 a_nullp,
+    Createid("block"); //234 a_block,
+    Createid("eval"); //235 a_eval,
+    Createid("key"); //236 a_key,
+    Createid("keys"); //237 a_keys,
+    Createid("load"); //238 a_load,
+    Createid("body"); //239 a_body,
+    Createid("apply"); //240 a_apply,
+    Createid("pair"); //241 a_pair,
+    Createid("calllisp"); //242 a_calllisp
+    Createid("callcommon"); //243 a_callcommon
+    Createid("insert"); //244 a_insert
+    Createid("_map"); //245 _map
+    Createid("_filter"); //246 _filter
+    Createid("_takewhile"); //247 _takewhile
+    Createid("_dropwhile"); //248 _dropwhile
+    Createid("_zip"); //249 _zip
+    Createid("_zipwith"); //250 _zipwith
+    Createid("_foldl"); //251 folding and scaning operations in Lisp
+    Createid("_scanl"); //252
+    Createid("_foldr"); //253
+    Createid("_scanr"); //254
+    Createid("_foldl1"); //255
+    Createid("_scanl1"); //256
+    Createid("_foldr1"); //257
+    Createid("_scanr1"); //258
+    Createid("iterator_java"); //259 --> a_iteration_java
+    Createid("java_vector"); //260 --> a_java_vector
+    Createid("&predicate_terminal&"); //261 --> a_terminal
+    Createid("_iferror"); //262 --> a_iferror
+    Createid("frametype"); //263 --> a_frametype
+    Createid("waitonjoined"); //264 --> a_waitonjoined
+    Createid("lisp"); //265 a_lisp
+    
+    
     //This is a simple hack to handle "length" a typical Haskell operator as "size"...
     //Note that there will be a useless index
     
@@ -2250,6 +2258,7 @@ Exporting void TamguGlobal::RecordConstantNames() {
     actions[a_shiftleft] = new TamguAction(this, a_shiftleft);
     actions[a_shiftright] = new TamguAction(this, a_shiftright);
     actions[a_divide] = new TamguAction(this, a_divide);
+    actions[a_divideinteger] = new TamguAction(this, a_divideinteger);
     actions[a_mod] = new TamguAction(this, a_mod);
     actions[a_or] = new TamguAction(this, a_or);
     actions[a_xor] = new TamguAction(this, a_xor);
@@ -4276,7 +4285,7 @@ string TamguGlobal::ErrorMessage() {
     }
     return threads[0].message.str();
 }
-    
+
 void TamguGlobal::PushErrorInEvent(Tamgu* a) {
     if (a->isError() && event_variable != NULL) {
         if (event_variable->Size())

@@ -673,6 +673,7 @@ Exporting Tamgu* Tamgubinmapf::divide(Tamgu* b, bool itself) {
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
             v = itr->Valuefloat();
             if (v == 0) {
+                itr->Release();
                 res->Release();
                 return globalTamgu->Returnerror("Error: Divided by 0");
             }
@@ -703,6 +704,50 @@ Exporting Tamgu* Tamgubinmapf::divide(Tamgu* b, bool itself) {
 
 }
 
+Exporting Tamgu* Tamgubinmapf::divideinteger(Tamgu* b, bool itself) {
+    Doublelocking _lock(this, b);
+
+    Tamgubinmapf * res;
+    if (b->isMapContainer()) {
+        TamguIteration* itr = b->Newiteration(false);
+
+        res = new Tamgubinmapf;
+        double v;
+        ushort ikey;
+        for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
+            v = itr->Valuefloat();
+            if (v == 0) {
+                itr->Release();
+                res->Release();
+                return globalTamgu->Returnerror("Error: Divided by 0");
+            }
+
+            ikey = itr->Keyshort();
+            if (values.check(ikey)) {
+                res->values[ikey] = (long)(values.get(ikey) / v);
+            }
+        }
+        itr->Release();
+        return res;
+    }
+
+    if (itself)
+        res = this;
+    else
+        res = (Tamgubinmapf*)Atom(true);
+
+    double v = b->Float();
+    if (v == 0) {
+        res->Release();
+        return globalTamgu->Returnerror("Error: Divided by 0");
+    }
+    basebin_hash<double>::iterator it;
+    for (it = values.begin(); it != values.end(); it++) 
+        it->second = (long)(it->second / v);
+    return res;
+
+}
+
 Exporting Tamgu* Tamgubinmapf::mod(Tamgu* b, bool itself) {
     Doublelocking _lock(this, b);
 
@@ -716,6 +761,7 @@ Exporting Tamgu* Tamgubinmapf::mod(Tamgu* b, bool itself) {
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
             v = itr->Valueinteger();
             if (v == 0) {
+                itr->Release();
                 res->Release();
                 return globalTamgu->Returnerror("Error: Divided by 0");
             }

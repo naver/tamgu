@@ -676,6 +676,7 @@ Exporting Tamgu* Tamgumapsf::divide(Tamgu* b, bool itself) {
     Doublelocking _lock(this, b);
 
     Tamgumapsf * res;
+    double v;
     if (b->isMapContainer()) {
         TamguIteration* itr = b->Newiteration(false);
 
@@ -683,8 +684,14 @@ Exporting Tamgu* Tamgumapsf::divide(Tamgu* b, bool itself) {
         string k;
         for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
             k = itr->Keystring();
+            v = itr->Valuefloat();
+            if (v == 0) {
+                res->Release();
+                itr->Release();
+                return globalTamgu->Returnerror(e_error_divided_by);
+            }
             try {
-                res->values[k] = values.at(k) / itr->Valuefloat();
+                res->values[k] = values.at(k) / v;
             }
             catch (const std::out_of_range& oor) {
             }
@@ -699,13 +706,58 @@ Exporting Tamgu* Tamgumapsf::divide(Tamgu* b, bool itself) {
     else
         res = (Tamgumapsf*)Atom(true);
 
-    double v = b->Float();
+    v = b->Float();
     if (v == 0) {
         res->Release();
         return globalTamgu->Returnerror(e_error_divided_by);
     }
     for (auto& it : res->values)
         it.second /= v;
+    return res;
+
+}
+
+Exporting Tamgu* Tamgumapsf::divideinteger(Tamgu* b, bool itself) {
+    Doublelocking _lock(this, b);
+
+    Tamgumapsf * res;
+    double v;
+    if (b->isMapContainer()) {
+        TamguIteration* itr = b->Newiteration(false);
+
+        res = new Tamgumapsf;
+        string k;
+        for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
+            k = itr->Keystring();
+            v = itr->Valuefloat();
+            if (v == 0) {
+                res->Release();
+                itr->Release();
+                return globalTamgu->Returnerror(e_error_divided_by);
+            }
+            try {
+               res->values[k] = (long)(values.at(k) / v);
+            }
+            catch (const std::out_of_range& oor) {
+            }
+        }
+        itr->Release();
+        return res;
+    }
+
+
+    if (itself)
+        res = this;
+    else
+        res = (Tamgumapsf*)Atom(true);
+
+    v = b->Float();
+    if (v == 0) {
+        res->Release();
+        return globalTamgu->Returnerror(e_error_divided_by);
+    }
+    for (auto& it : res->values)
+        it.second = (long)(it.second / v);
     return res;
 
 }

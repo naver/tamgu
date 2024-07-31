@@ -83,6 +83,7 @@ Tamgu supports various mathematical and bitwise operators:
 - `+`, `-`, `*`, `/`: Mathematical operators
 - `<<`, `>>`, `&`, `|`, `^`: Bitwise operators
 - `%`: Division modulo
+- `%%`: Integer Division
 - `^^`: Power (2^^2 = 4)
 - `+=`, `-=`, etc.: Self operators
 

@@ -787,6 +787,53 @@ Exporting Tamgu* Tamguprimemapi::divide(Tamgu* b, bool itself) {
     return res;
 }
 
+Exporting Tamgu* Tamguprimemapi::divideinteger(Tamgu* b, bool itself) {
+    Doublelocking _lock(this, b);
+
+    prime_hash<long, Tamgu*>::iterator it;
+    Tamguprimemapi* res;
+    Tamgu* v;
+    Tamgu* r;
+
+    if (b->isMapContainer()) {
+        TamguIteration* itr = b->Newiteration(false);
+
+        res = new Tamguprimemapi;
+        for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
+            v = itr->IteratorValue();
+            it = values.find(itr->Keyinteger());
+            if (it != values.end()) {
+                r = res->values[it->first]->divideinteger(v, true);
+                if (r->isError()) {
+                    res->Release();
+
+                    itr->Release();
+                    return r;
+                }
+            }
+
+        }
+        
+        itr->Release();
+        return res;
+    }
+
+    if (itself)
+        res = this;
+    else
+        res = (Tamguprimemapi*)Atom(true);
+
+    for (it = values.begin(); it != values.end(); it++) {
+        r = it->second->divideinteger(b, true);
+        if (r->isError()) {
+            res->Release();
+            return r;
+        }
+    }
+
+    return res;
+}
+
 Exporting Tamgu* Tamguprimemapi::mod(Tamgu* b, bool itself) {
     Doublelocking _lock(this, b);
 

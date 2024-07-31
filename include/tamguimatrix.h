@@ -813,6 +813,11 @@ public:
 
 	}
 
+    Tamgu* divideinteger(Tamgu* b, bool autoself) {
+        return divide(b, autoself);
+    }
+    
+
 };
 
 class TamguIterationimatrix : public TamguIteration {

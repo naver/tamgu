@@ -811,6 +811,57 @@ Exporting Tamgu* Tamgutreemapi::divide(Tamgu* b, bool itself) {
     return res;
 }
 
+Exporting Tamgu* Tamgutreemapi::divideinteger(Tamgu* b, bool itself) {
+    Doublelocking _lock(this, b);
+
+    Tamgutreemapi* res;
+    Tamgu* v;
+    Tamgu* r;
+
+    if (b->isMapContainer()) {
+
+        TamguIteration* itr = b->Newiteration(false);
+
+        res = new Tamgutreemapi;
+        long k;
+        Tamgu* inter;
+        for (itr->Begin(); itr->End() != aTRUE; itr->Next()) {
+            k = itr->Keyinteger();
+            try {
+                r = values.at(k);
+                v = itr->IteratorValue();
+                res->Push(k, r);
+                inter = res->values[k]->divideinteger(v, true);
+                if (inter->isError()) {
+                    res->Release();
+                    itr->Release();
+                    return inter;
+                }
+            }
+            catch (const std::out_of_range& oor) {
+            }
+        }
+
+        itr->Release();
+        return res;
+    }
+
+    if (itself)
+        res = this;
+    else
+        res = (Tamgutreemapi*)Atom(true);
+
+    for (auto& it : res->values) {
+        r = it.second->divideinteger(b, true);
+        if (r->isError()) {
+            res->Release();
+            return r;
+        }
+    }
+
+    return res;
+}
+
 Exporting Tamgu* Tamgutreemapi::mod(Tamgu* b, bool itself) {
     Doublelocking _lock(this, b);
 

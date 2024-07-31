@@ -101,6 +101,11 @@ public:
     Tamgu* divide(Tamgu* a, bool itself) {
         return globalTamgu->Returnerror(e_cannot_compute_with);
     }
+
+    Tamgu* divideinteger(Tamgu* a, bool itself) {
+        return globalTamgu->Returnerror(e_cannot_compute_with);
+    }
+
     Tamgu* power(Tamgu* a, bool itself) {
         return globalTamgu->Returnerror(e_cannot_compute_with);
     }
@@ -258,6 +263,9 @@ public:
         return globalTamgu->Returnerror(e_cannot_compute_with);
     }
     Tamgu* divide(Tamgu* a, bool itself) {
+        return globalTamgu->Returnerror(e_cannot_compute_with);
+    }
+    Tamgu* divideinteger(Tamgu* a, bool itself) {
         return globalTamgu->Returnerror(e_cannot_compute_with);
     }
     Tamgu* power(Tamgu* a, bool itself) {

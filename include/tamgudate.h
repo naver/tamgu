@@ -207,6 +207,13 @@ public:
         return globalTamgu->Provideint(value / b->Integer());
     }
     
+    Tamgu* divideinteger(Tamgu* b, bool autoself) {
+        long v = b->Integer();
+        if (!v)
+            return globalTamgu->Returnerror("MAT(203): Cannot divide by 0");
+        return globalTamgu->Provideint(value / b->Integer());
+    }
+    
     Tamgu* mod(Tamgu* b, bool autoself) {
         long v = b->Integer();
         if (!v)

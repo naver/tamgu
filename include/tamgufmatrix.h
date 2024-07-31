@@ -801,6 +801,74 @@ public:
 
 	}
 
+    Tamgu* divideinteger(Tamgu* b, bool autoself) {
+        if (b->Type() != idtype)
+            return this;
+
+        locking();
+        Tamgufmatrix* ma = this;
+        Tamgufmatrix* res = new Tamgufmatrix;
+
+        double v;
+        long r;
+        long c;
+
+        if (b->Type() != idtype) {
+            double vb = b->Float();
+            if (vb == 0) {
+                unlocking();
+                return globalTamgu->Returnerror("MAT(203): Cannot divide by 0", globalTamgu->GetThreadid());
+            }
+
+            for (r = 0; r < ma->rowsize; r++) {
+                if (ma->values.check(r)) {
+                    for (c = 0; c < ma->columnsize; c++) {
+                        if (ma->values[r].check(c)) {
+                            v = ma->values[r][c] / vb;
+                            v = (long)v;
+                            res->populate(r, c, v);
+                        }
+                    }
+                }
+            }
+            unlocking();
+            return res;
+        }
+
+        Tamgufmatrix* mb = (Tamgufmatrix*)b;
+
+        Tamgufmatrix inverted(NULL, NULL);
+
+        if (!mb->inversion(inverted)) {
+            unlocking();
+            return globalTamgu->Returnerror("MAT(202): Cannot divide with this matrix", globalTamgu->GetThreadid());
+        }
+        if (ma->columnsize != inverted.rowsize) {
+            unlocking();
+            return globalTamgu->Returnerror("MAT(202): Cannot divide with this matrix", globalTamgu->GetThreadid());
+        }
+
+        long k;
+        for (r = 0; r < ma->rowsize; r++) {
+            if (ma->values.check(r)) {
+                for (c = 0; c < inverted.columnsize; c++) {
+                    v = 0;
+                    for (k = 0; k < ma->columnsize; k++) {
+                        if (ma->values[r].check(k) && inverted.values.check(k) && inverted.values[k].check(c))
+                            v += ma->values[r][k] * inverted.values[k][c];
+                    }
+                    v = (long)v;
+                    res->populate(r, c, v);
+                }
+            }
+        }
+
+        res->rowsize = ma->rowsize;
+        res->columnsize = inverted.columnsize;
+        unlocking();
+        return res;
+    }
+
 };
 
 class TamguIterationfmatrix : public TamguIteration {

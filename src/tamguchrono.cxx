@@ -541,6 +541,37 @@ Tamgu* Tamguclock::divide(Tamgu* bb, bool autoself) {
     return globalTamgu->Providefloat(val.count());
 }
 
+Tamgu* Tamguclock::divideinteger(Tamgu* bb, bool autoself) {
+    double v = bb->Float();
+    if (!v)
+        return globalTamgu->Returnerror("MAT(203): Cannot divide by 0");
+    
+    auto epoch = value.time_since_epoch();
+    
+    
+    switch (unit) {
+        case 1: {
+            auto val = std::chrono::duration_cast<std::chrono::seconds>(epoch);
+            val /= v;
+            return globalTamgu->Providefloat(val.count());
+        }
+        case 2: {
+            auto val = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);
+            val /= v;
+            return globalTamgu->Providefloat(val.count());
+        }
+        case 3: {
+            auto val = std::chrono::duration_cast<std::chrono::microseconds>(epoch);
+            val /= v;
+            return globalTamgu->Providefloat(val.count());
+        }
+    }
+    
+    auto val = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);
+    val /= v;
+    return globalTamgu->Provideint(val.count());
+}
+
 Tamgu* Tamguclock::mod(Tamgu* bb, bool autoself) {
     long v = bb->Integer();
     if (!v)

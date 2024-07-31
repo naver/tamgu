@@ -68,6 +68,18 @@ Tamgu* Tamgubyte::divide(Tamgu* a, bool autoself) {
     return new Tamgubyte(i);
 }
 
+Tamgu* Tamgubyte::divideinteger(Tamgu* a, bool autoself) {
+    unsigned char ib = a->Byte();
+    if (ib == 0)
+        return globalTamgu->Returnerror(e_error_divided_by);
+    if (autoself) {
+        value /= ib;
+        return this;
+    }
+    unsigned char i = value / ib;
+    return new Tamgubyte(i);
+}
+
 
 
 Tamgu* Tamgubyte::mod(Tamgu* a, bool autoself) {

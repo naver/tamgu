@@ -861,9 +861,8 @@ void TamguGlobal::RecordPredicates() {
     RecordOneProcedure("assertz", "Assert a clause (fact or rule) into the database as the last clause of the predicate", &ProcPredicateAssertz, P_ONE | P_ONE);
     RecordOneProcedure("predicatedump", "predicatedump(string label1, string label2...): Return all predicates in the knowledge base that match the given pattern", &ProcPredicateDump, P_FULL);
     RecordOneProcedure("predicatestore", "predicatestore(string path, string label1, string label2...): Store all predicates in the knowledge base that match the given pattern. If 'label' is not provided then the whole database is stored.", &ProcPredicateStore, P_ATLEASTONE);
-    RecordOneProcedure("findall", "findall(string label1, string label2...): Return all predicates in the knowledge base  that match the given pattern", &ProcPredicateDump, P_FULL);
-    RecordOneProcedure("retract", "Retract a clause (fact or rule) from the database", &ProcPredicateRetract, P_ONE);
-    RecordOneProcedure("retractall", "Retract all clauses (facts or rules) from the database that match the given pattern", &ProcRetractAll, P_NONE | P_ONE);
+    RecordOneProcedure("retract", "Retract a clause (fact) from the database", &ProcPredicateRetract, P_ONE);
+    RecordOneProcedure("retractall", "Retract all clauses (facts) from the database that match the given pattern", &ProcRetractAll, P_NONE | P_ONE);
     RecordOneProcedure("succ", "The next element", &ProcPredicateSucc, P_ONE);
     RecordOneProcedure("pred", "The previous element", &ProcPredicatePred, P_ONE);
     RecordOneProcedure("_dependencies", "Return the list of dependencies in memory", &ProcDependencies, P_NONE | P_ONE);

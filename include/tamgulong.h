@@ -669,6 +669,18 @@ public:
 		return globalTamgu->ProvideConstfloat(v);
 	}
 
+    Tamgu* divideinteger(Tamgu* a, bool itself) {
+        BLONG v = a->Long();
+        if (v == 0)
+            return globalTamgu->Returnerror(e_error_divided_by);
+        if (itself) {
+            value /= v;
+            return this;
+        }
+        v = value / v;
+        return globalTamgu->Providelong(v);
+    }
+
 	Tamgu* power(Tamgu* a, bool itself) {
 		double v = (double)value;
 		v = pow(v, a->Float());

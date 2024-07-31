@@ -962,6 +962,45 @@ Exporting Tamgu* Tamgubvector::divide(Tamgu* b, bool itself) {
     return ref;
 }
 
+Exporting Tamgu* Tamgubvector::divideinteger(Tamgu* b, bool itself) {
+    Tamgubvector* ref = this;
+    if (itself)
+        ref = this;
+    else
+        ref = (Tamgubvector*)Atom(true);
+
+    Doublelocking _lock(ref, b);
+    size_t it;
+    uchar v;
+    if (b->isContainer()) {
+        TamguIteration* itr = b->Newiteration(false);
+        itr->Begin();
+        for (it = 0; it < ref->values.size(); it++) {
+            if (itr->End() == aTRUE)
+                break;
+            v = (uchar)itr->Valueinteger();
+            if (v == 0) {
+                ref->Release();
+                return globalTamgu->Returnerror(e_error_divided_by);
+            }
+            ref->values[it] /= v;
+            itr->Next();
+        }
+        itr->Release();
+        return ref;
+    }
+
+    v = (uchar)b->Integer();
+    if (v == 0) {
+        ref->Release();
+        return globalTamgu->Returnerror(e_error_divided_by);
+    }
+
+    for (it = 0; it < ref->values.size(); it++)
+        ref->values[it] /= v;
+    return ref;
+}
+
 Exporting Tamgu* Tamgubvector::power(Tamgu* b, bool itself) {
     Tamgubvector* ref = this;
     if (itself)

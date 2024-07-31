@@ -511,6 +511,10 @@ public:
 		return new Tamgufraction(nua, dea);
 	}
 
+    Tamgu* divideinteger(Tamgu* bb, bool autoself) {
+        return divide(bb, autoself);
+    }
+
 	Tamgu* mod(Tamgu* b, bool autoself) {
 		BLONG ib = b->Long();
 		if (ib == 0)

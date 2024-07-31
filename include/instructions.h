@@ -1000,6 +1000,10 @@ public:
         return value->divide(a, true);
     }
 
+    Tamgu* divideinteger(Tamgu* a, bool itself) {
+        return value->divideinteger(a, true);
+    }
+
     Tamgu* power(Tamgu* a, bool itself) {
         return value->power(a, true);
     }
@@ -1360,6 +1364,11 @@ public:
         return value->divide(a, itself);
     }
 
+    virtual Tamgu* divideinteger(Tamgu* a, bool itself) {
+        Tamgu* value = Eval(aNULL, aNULL, globalTamgu->GetThreadid());
+        return value->divideinteger(a, itself);
+    }
+
     virtual Tamgu* power(Tamgu* a, bool itself) {
         Tamgu* value = Eval(aNULL, aNULL, globalTamgu->GetThreadid());
         return value->power(a, itself);
@@ -1470,6 +1479,11 @@ public:
     Tamgu* divide(Tamgu* a, bool itself) {
         Tamgu* value = Eval(aNULL, aNULL, globalTamgu->GetThreadid());
         return value->divide(a, false);
+    }
+
+    Tamgu* divideinteger(Tamgu* a, bool itself) {
+        Tamgu* value = Eval(aNULL, aNULL, globalTamgu->GetThreadid());
+        return value->divideinteger(a, false);
     }
 
     Tamgu* power(Tamgu* a, bool itself) {

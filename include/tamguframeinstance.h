@@ -564,7 +564,7 @@ public:
         return res;
 	}
 
-	Tamgu* divide(Tamgu* a, bool itself) {
+    Tamgu* divide(Tamgu* a, bool itself) {
         Tamgu* res = Calloperation(a_divide, a);
         if (res == aNULL) {
             if (frame->theextensionvar) {
@@ -572,7 +572,17 @@ public:
             }
         }
         return res;
-	}
+    }
+
+    Tamgu* divideinteger(Tamgu* a, bool itself) {
+        Tamgu* res = Calloperation(a_divideinteger, a);
+        if (res == aNULL) {
+            if (frame->theextensionvar) {
+                return Declaration(frame->theextensionvar)->divide(a, itself);
+            }
+        }
+        return res;
+    }
 
 	Tamgu* power(Tamgu* a, bool itself) {
         Tamgu* res = Calloperation(a_power, a);

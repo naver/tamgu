@@ -588,7 +588,15 @@ public:
 		return new Tamgudecimal(v);
 	}
 
-	Tamgu* power(Tamgu* a, bool itself) {		
+    Tamgu* divideinteger(Tamgu* a, bool itself) {
+        long v = a->Integer();
+        if (v == 0)
+            return globalTamgu->Returnerror(e_error_divided_by);
+        v = value / v;
+        return globalTamgu->Provideint(v);
+    }
+
+	Tamgu* power(Tamgu* a, bool itself) {
 		if (itself) {
 			value = pow(value, a->Decimal());
 			return this;

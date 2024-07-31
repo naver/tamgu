@@ -1198,6 +1198,55 @@ Exporting Tamgu* Tamgulist::divide(Tamgu* b, bool itself) {
     return ref;
 }
 
+Exporting Tamgu* Tamgulist::divideinteger(Tamgu* b, bool itself) {
+    Tamgulist* ref;
+    if (itself)
+        ref = this;
+    else
+        ref = (Tamgulist*)Atom(true);
+
+
+    Tamgu* ke;
+    Tamgu* kv;
+
+    Doublelocking _lock(ref, b);
+    if (loopmark)
+        return aNULL;
+
+    TamguCircular _c(this);
+
+
+    if (b->isContainer()) {
+        TamguIteration* itr = b->Newiteration(false);
+        itr->Begin();
+        for (const auto& itl : ref->values) {
+            if (itr->End() == aTRUE)
+                break;
+            kv = itr->IteratorValue();
+            ke = itl->divideinteger(kv, true);
+            if (ke->isError()) {
+                ref->Release();
+                itr->Release();
+                return ke;
+            }
+            itr->Next();
+        }
+        itr->Release();
+        return ref;
+    }
+
+
+    for (const auto& itl : ref->values) {
+        ke = itl->divideinteger(b, true);
+        if (ke->isError()) {
+            ref->Release();
+            return ke;
+        }
+    }
+
+    return ref;
+}
+
 Exporting Tamgu* Tamgulist::power(Tamgu* b, bool itself) {
     Tamgulist* ref;
     if (itself)
@@ -2133,6 +2182,56 @@ Exporting Tamgu* Tamguring::divide(Tamgu *b, bool itself) {
     unlockingmark();
     return ref;
 }
+
+Exporting Tamgu* Tamguring::divideinteger(Tamgu *b, bool itself) {
+    Tamguring* ref;
+    if (itself)
+        ref = this;
+    else
+        ref = (Tamguring*)Atom(true);
+    
+    Tamgu* ke;
+    Tamgu* kv;
+    if (!lockingmark())
+        return aNULL;
+        
+    if (b->isContainer()) {
+        TamguIteration* itr = b->Newiteration(false);
+        itr->Begin();
+        atomic_ring_iterator<Tamgu*> it(ref->values);
+        while (!it.end()) {
+            if (itr->End() == aTRUE)
+                break;
+            kv = itr->IteratorValue();
+            ke = it.second->divideinteger(kv, true);
+            if (ke->isError()) {
+                itr->Release();
+                ref->Release();
+                unlockingmark();
+                return ke;
+            }
+            itr->Next();
+            it.next();
+        }
+        itr->Release();
+        unlockingmark();
+        return ref;
+    }
+    
+    
+    atomic_ring_iterator<Tamgu*> it(ref->values);
+    while (!it.end()) {
+        ke = it.second->divideinteger(b, true);
+        if (ke->isError()) {
+            ref->Release();
+            return ke;
+        }
+        it.next();
+    }
+    unlockingmark();
+    return ref;
+}
+
 
 Exporting Tamgu* Tamguring::power(Tamgu *b, bool itself) {
     Tamguring* ref;
@@ -3339,6 +3438,54 @@ Exporting Tamgu* Tamgujava_vector::divide(Tamgu *b, bool itself) {
     for (i = 0; i < sz; i++) {
         a = getvalue(i);
         kv = a->divide(b, true);
+        if (kv->isError()) {
+            a->Release();
+            ref->Release();
+            return kv;
+        }
+        ref->push(a);
+    }
+    return ref;
+}
+
+Exporting Tamgu* Tamgujava_vector::divideinteger(Tamgu *b, bool itself) {
+    if (iter == NULL)
+        return globalTamgu->Returnerror("Error: No Java Structure attached");
+
+    Tamguvector* ref = globalTamgu->Providevector();
+    Tamgu* kv;
+    long sz = Size();
+    long i;
+    
+    Tamgu* a;
+    if (b->isContainer()) {
+        TamguIteration* itr = b->Newiteration(false);
+        itr->Begin();
+        
+        for (i = 0; i < sz; i++) {
+            if (itr->End() == aTRUE)
+                break;
+            
+            a = getvalue(i);
+            kv = itr->IteratorValue();
+            kv = a->divideinteger(kv, true);
+            if (kv->isError()) {
+                itr->Release();
+                a->Release();
+                ref->Release();
+                return kv;
+            }
+            itr->Next();
+            ref->push(a);
+        }
+        itr->Release();
+        return ref;
+    }
+    
+    
+    for (i = 0; i < sz; i++) {
+        a = getvalue(i);
+        kv = a->divideinteger(b, true);
         if (kv->isError()) {
             a->Release();
             ref->Release();

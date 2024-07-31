@@ -107,6 +107,7 @@ bool Tamgulisp::InitialisationModule(TamguGlobal* global, string version) {
     global->lispactions[a_minus] = P_ATLEASTTWO;
     global->lispactions[a_multiply] = P_ATLEASTTWO;
     global->lispactions[a_divide] = P_ATLEASTTWO;
+    global->lispactions[a_divideinteger] = P_ATLEASTTWO;
     global->lispactions[a_power] = P_ATLEASTTWO;
     global->lispactions[a_mod] = P_ATLEASTTWO;
     global->lispactions[a_shiftleft] = P_ATLEASTTWO;
@@ -734,6 +735,44 @@ Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
                 }
             }
             return v0;
+        case a_divideinteger:
+            v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
+            checkerror(v0);
+            if (sz == 2 && v0->isContainer()) {
+                sz = v0->Size();
+                if (sz > 0) {
+                    Tamgu* value = v0->getvalue(0);
+                    value = value->AtomNoConst();
+                    Tamgu* val;
+                    Tamgu* err;
+                    for (i = 1; i < sz; i++) {
+                        val = v0->getvalue(i);
+                        err = value->divideinteger(val, true);
+                        val->Release();
+                        if (err->isError()) {
+                            value->Release();
+                            v0->Release();
+                            return err;
+                        }
+                    }
+                    v0->Release();
+                    return value;
+                }
+                return v0;
+            }
+            v0 = v0->Atom();
+            for (i = 2; i < sz; i++) {
+                v1 = values[i]->Eval(contextualpattern, aNULL, idthread);
+                checkerrorwithrelease(v1, v0);
+                a = v0->divideinteger(v1,true);
+                v1->Releasenonconst();
+                checkerrorwithrelease(a, v0);
+                if (a != v0) {
+                    v0->Releasenonconst();
+                    v0 = a;
+                }
+            }
+            return v0;        
         case a_power:
             v0 = values[1]->Eval(contextualpattern, aNULL, idthread);
             checkerror(v0);

@@ -1576,6 +1576,84 @@ public:
     }
 };
 
+class e_divideinteger2 : public e_operation  {
+public:
+    
+    e_divideinteger2(TamguGlobal* g) : e_operation(g) {}
+    
+    e_operation* update(vector<Tamgu*>& v, short ty) {
+        return simpleupdate(v);
+    }
+    
+    Tamgu* Eval(Tamgu* r1, Tamgu* r2, short idthread) {
+        r1 = values[0]->Eval(aNULL, aNULL, idthread);
+        r2 = values[1]->Eval(aNULL, aNULL, idthread);
+        Tamgu* v;
+        if (r1->isProtected()) {
+            v = r1->divideinteger(r2, true);
+            r2->Releasenonconst();
+            if (v != r1)
+                r1->Releasenonconst();
+            return v;
+        }
+        
+        v = r1->divideinteger(r2, false);
+        r1->Releasenonconst();
+        r2->Releasenonconst();
+        return v;
+    }
+
+    short Action() {
+        return a_divideinteger;
+    }
+
+    long Getinteger(short idthread) {
+        long v = values[1]->Getinteger(idthread);
+        if (v == 0) {
+            globalTamgu->Returnerror(e_cannot_divide_by, idthread);
+            return 0;
+        }
+        return (values[0]->Getinteger(idthread)/v);
+    }
+    
+    short Getshort(short idthread) {
+        short v = values[1]->Getshort(idthread);
+        if (v == 0) {
+            globalTamgu->Returnerror(e_cannot_divide_by, idthread);
+            return 0;
+        }
+        return (values[0]->Getshort(idthread)/v);
+    }
+    
+    double Getfloat(short idthread) {
+        double v = values[1]->Getfloat(idthread);
+        if (v == 0) {
+            globalTamgu->Returnerror(e_cannot_divide_by, idthread);
+            return 0;
+        }
+        return (values[0]->Getinteger(idthread)/v);
+    }
+    
+    float Getdecimal(short idthread) {
+        float v = values[1]->Getdecimal(idthread);
+        if (v == 0) {
+            globalTamgu->Returnerror(e_cannot_divide_by, idthread);
+            return 0;
+        }
+        return (values[0]->Getinteger(idthread)/v);
+    }
+    
+    
+    BLONG Getlong(short idthread) {
+        BLONG v = values[1]->Getlong(idthread);
+        if (v == 0) {
+            globalTamgu->Returnerror(e_cannot_divide_by, idthread);
+            return 0;
+        }
+        return (values[0]->Getlong(idthread)/v);
+    }
+};
+
 class e_mod_long2 : public e_operation  {
 public:
     BLONG v;
@@ -3436,6 +3514,132 @@ public:
     }
 };
 
+class e_divideinteger : public e_operation  {
+public:
+    
+    e_divideinteger(TamguGlobal* g) : e_operation(g) {}
+
+    
+    Tamgu* Eval(Tamgu* context, Tamgu* res, short idthread) {
+        Tamgu* v;
+        bool autoself = false;
+        res=values[0]->Eval(aNULL, aNULL, idthread);
+        if (res->isProtected())
+            autoself = true;
+        
+        for (long i=1;i<size; i++) {
+            context = values[i]->Eval(aNULL, aNULL, idthread);
+            v =  res->divideinteger(context, autoself);
+            context->Releasenonconst();
+            if (v != res) {
+                res->Releasenonconst();
+                res = v;
+            }
+        }
+        return res;
+    }
+
+    Tamgu* EvalComplex(Tamgu* context, Tamgu* res, short idthread) {
+        Tamgu* v;
+        bool autoself = false;
+        v=values[0]->EvalComplex(aNULL, aNULL, idthread);
+        res =  v->Complex();
+        if (res != v)
+            v->Release();
+        
+        if (res->isProtected())
+            autoself = true;
+
+        for (long i=1;i<size; i++) {
+            context = values[i]->EvalComplex(aNULL, aNULL, idthread);
+            v =  res->divideinteger(context, autoself);
+            context->Releasenonconst();
+            if (v != res) {
+                res->Releasenonconst();
+                res = v;
+            }
+        }
+        return res;
+    }
+
+    
+    short Action() {
+        return a_divideinteger;
+    }
+
+    long Getinteger(short idthread) {
+        long res=values[0]->Getinteger(idthread);
+        long v;
+        for (long i=1;i<size; i++) {
+            v = values[i]->Getinteger(idthread);
+            if (v == 0) {
+                globalTamgu->Returnerror(e_cannot_divide_by, idthread);
+                return 0;
+            }
+            res /=v;
+        }
+            
+        return res;
+    }
+    
+    short Getshort(short idthread) {
+        short res=values[0]->Getshort(idthread);
+        short v;
+        for (long i=1;i<size; i++) {
+            v = values[i]->Getshort(idthread);
+            if (v == 0) {
+                globalTamgu->Returnerror(e_cannot_divide_by, idthread);
+                return 0;
+            }
+            res /=v;
+        }
+        return res;
+    }
+    
+    double Getfloat(short idthread) {
+        double res=values[0]->Getfloat(idthread);
+        double v;
+        for (long i=1;i<size; i++) {
+            v = values[i]->Getfloat(idthread);
+            if (v == 0) {
+                globalTamgu->Returnerror(e_cannot_divide_by, idthread);
+                return 0;
+            }
+            res /=v;
+        }
+        return (long)res;
+    }
+    
+    float Getdecimal(short idthread) {
+        float res=values[0]->Getdecimal(idthread);
+        float v;
+        for (long i=1;i<size; i++) {
+            v = values[i]->Getdecimal(idthread);
+            if (v == 0) {
+                globalTamgu->Returnerror(e_cannot_divide_by, idthread);
+                return 0;
+            }
+            res /=v;
+        }
+        return (long)res;
+    }
+    
+    
+    BLONG Getlong(short idthread) {
+        BLONG res=values[0]->Getlong(idthread);
+        BLONG v;
+        for (long i=1;i<size; i++) {
+            v = values[i]->Getlong(idthread);
+            if (v == 0) {
+                globalTamgu->Returnerror(e_cannot_divide_by, idthread);
+                return 0;
+            }
+            res /=v;
+        }
+        return res;
+    }
+};
+
 class e_mod : public e_operation  {
 public:
     
@@ -4321,6 +4525,12 @@ public:
                     e=new e_divide2(g);
                 else
                     e=new e_divide(g);
+                break;
+            case a_divideinteger:
+                if (sz==2)
+                    e=new e_divideinteger2(g);
+                else
+                    e=new e_divideinteger(g);
                 break;
             case a_mod:
                 if (sz==2)
