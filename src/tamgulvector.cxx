@@ -73,6 +73,7 @@ bool Tamgulvector::InitialisationModule(TamguGlobal* global, string version) {
     Tamgulvector::AddMethod(global, "sort", &Tamgulvector::MethodSort, P_ONE, "sort(bool reverse): sort the elements within.");
     Tamgulvector::AddMethod(global, "shape", &Tamgulvector::MethodShape, P_NONE|P_ATLEASTONE, "shape(int s1, int s2...): defines the vector shape.");
     Tamgulvector::AddMethod(global, "matrixproduct", &Tamgulvector::MethodMatrixproduct, P_ONE, "matrixproduct(lvector): Matrix multiplication. The two vectors must have shapes");
+    Tamgulvector::AddMethod(global, "cosine", &Tamgulvector::MethodCosine, P_ONE, "cosine(fvector): cosine similarity between two vectors.");
     Tamgulvector::AddMethod(global, "transpose", &Tamgulvector::MethodTranspose, P_NONE, "transpose(lvector): Matrix transposition");
     Tamgulvector::AddMethod(global, "sum", &Tamgulvector::MethodSum, P_NONE, "sum(): return the sum of elements.");
     

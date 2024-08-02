@@ -230,6 +230,113 @@ eligible_for_loan(?user_id, ?loan_amount) :-
 vector v = eligible_for_loan("12345", ?loan);
 println(v);
 ```
+# Integrating Frames with Predicates in Tamgu
+
+Tamgu offers a powerful feature that allows seamless integration of object-oriented programming (using frames) with logic programming (using predicates). This section explores how to leverage this integration for complex data structures and operations within the inference engine.
+
+## Frames in Tamgu
+
+Frames in Tamgu are equivalent to classes in other object-oriented languages. They allow you to define complex data structures with associated methods.
+
+### Example: The `Embeddings` Frame
+
+```prolog
+frame Embeddings {
+    string key;
+    fvector embedding;
+    
+    function _initial(string k, fvector e) {
+        key = k;
+        embedding = e;
+    }
+    
+    function string() {
+        return key;
+    }
+    
+    function ==(fvector e) {
+        return (cosine(embedding, e) > 0.9);
+    }
+    
+    function ==(Embeddings e) {
+        return (cosine(embedding, e.embedding) > 0.9);
+    }
+}
+```
+
+This frame, `Embeddings` (which translates to "embedding" in English), demonstrates several key features:
+
+1. Data members: `key` (a string) and `embedding` (a float vector).
+2. An initializer method `_initial`.
+3. A string conversion method.
+4. Custom equality comparison methods using cosine similarity.
+
+## Integrating Frames with Predicates
+
+Frames can be used within predicates, allowing for complex operations and queries on structured data.
+
+### Automatic Unification with Custom Equality
+
+```prolog
+adding([], []).
+adding([?K | ?R], [?P| ?RP]) :-
+    ?X is Embeddings(?K, ?P),
+    assertz(embed(?X, ?K)),
+    adding(?R, ?RP).
+
+//Note that since `?P` is an `Embeddings` object, the `==` methods
+//in Embeddings will automatically be applied when querying `embed(?P, ?K)`.
+checking(?P, ?R) :-
+    findall(?K, embed(?P, ?K), ?R).
+```
+
+These predicates demonstrate how to work with frame objects:
+
+1. `adding`:
+   - Takes two lists: keys and embeddings.
+   - Creates `Embeddings` objects and asserts them into the knowledge base.
+   - Uses recursion to process all elements.
+
+2. `checking`:
+   - Takes an `Embeddings` object and finds all matching keys in the knowledge base.
+   - Utilizes the custom equality comparison defined in the frame.
+
+An important feature to note is how Tamgu's unification mechanism interacts with custom equality definitions in frames. When using predicates like `findall`, Tamgu automatically leverages the "==" functions defined in the frame.
+
+In our `Embeddings` example:
+
+```prolog
+checking(?P, ?R) :-
+    findall(?K, ajout(?P, ?K), ?R).
+```
+
+When this predicate is called, the `findall` operation automatically uses the "==" function defined in the `Embeddings` frame to compare the input `?P` with each `Embeddings` object stored in the knowledge base. This means:
+
+1. The cosine similarity comparison is automatically applied without explicit calls in the predicate.
+2. The threshold for similarity (>0.9 in our example) is respected without additional logic in the predicate.
+3. The same predicate can work with different frame types, as long as they define appropriate "==" functions.
+
+This automatic use of custom equality in unification showcases Tamgu's seamless integration of object-oriented concepts with logic programming. It allows for sophisticated matching and querying operations while maintaining clean and concise predicate definitions.
+
+## Usage Example
+
+```prolog
+bool x = adding(["clef1", "clef2", "clef3", "clef4", "clef5"], [[12,4,5], [1,4,3], [1,17,9], [1,3,7], [1,9,8]]);
+?:- r = checking(Embeddings("test", [1,2,3]), ?R);
+println(r);
+```
+
+This example shows how to:
+1. Add multiple key-embedding pairs to the knowledge base.
+2. Query the knowledge base for similar embeddings.
+
+## Key Benefits
+
+1. **Object-Oriented Logic Programming**: Combine the strengths of OOP and logic programming paradigms.
+2. **Custom Comparisons**: Define and use domain-specific comparison logic within predicates.
+3. **Dynamic Knowledge Base**: Easily add structured data to the knowledge base during runtime.
+4. **Complex Queries**: Perform sophisticated queries on structured data using predicate logic.
+
 
 ## Thread Execution within Predicates
 

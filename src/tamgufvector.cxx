@@ -68,6 +68,8 @@ bool Tamgufvector::InitialisationModule(TamguGlobal* global, string version) {
     
     Tamgufvector::AddMethod(global, "shape", &Tamgufvector::MethodShape, P_NONE|P_ATLEASTONE, "shape(int s1, int s2...): defines the vector shape.");
     Tamgufvector::AddMethod(global, "matrixproduct", &Tamgufvector::MethodMatrixproduct, P_ONE, "matrixproduct(fvector): Matrix multiplication. The two vectors must have shapes");
+
+    Tamgufvector::AddMethod(global, "cosine", &Tamgufvector::MethodCosine, P_ONE, "cosine(fvector): cosine similarity between two vectors.");
     Tamgufvector::AddMethod(global, "transpose", &Tamgufvector::MethodTranspose, P_NONE, "transpose(fvector): Matrix transposition");
 
     Tamgufvector::AddMethod(global, "last", &Tamgufvector::MethodLast, P_NONE, "last(): return the last element.");

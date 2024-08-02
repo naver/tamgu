@@ -273,20 +273,31 @@ Tamgu* TamguframeBaseInstance::Execute(Tamgu* body, VECTE<Tamgu*>& arguments, sh
         return callthread.Eval(this, NULL, idthread);
     }
 
+    long sz = arguments.size();
+    if (sz) {
+        bd = bd->FindFunction(arguments.vecteur[0]->Type());
+        if (bd == NULL) {
+            string err = "Could not find a match for: '";
+            err += globalTamgu->Getsymbol(Name());
+            err += "'";
+            return globalTamgu->Returnerror(err, idthread);
+        }
+    }
+    
     TamguDeclarationLocal* environment = globalTamgu->Providedeclaration(idthread);
     if (globalTamgu->debugmode)
         environment->idinfo = Currentinfo();
 
     bool error = true;
     while (bd != NULL) {
-        if (arguments.size() != bd->Size()) {
+        if (sz != bd->Size()) {
             bd = bd->next;
             continue;
         }
 
         locking();
         error = false;
-        for (size_t i = 0; i < arguments.size() && !error; i++) {
+        for (size_t i = 0; i < sz && !error; i++) {
             p = (TamguVariableDeclaration*)bd->Parameter(i);
             error = p->Setarguments(environment, arguments[i], idthread);
         }

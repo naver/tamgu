@@ -874,7 +874,7 @@
       <key>class-declaration</key>
       <dict>
         <key>begin</key>
-        <string>(?=(\brecord\b\s+)?\bclass\b)</string>
+        <string>(?=(\brecord\b\s+)?\bframe\b)</string>
         <key>end</key>
         <string>(?&lt;=\})|(?=;)</string>
         <key>patterns</key>
@@ -883,7 +883,7 @@
             <key>begin</key>
             <string>(?x)
 (\b(record)\b\s+)?
-\b(class)\b\s+
+\b(frame)\b\s+
 (@?[_[:alpha:]][_[:alnum:]]*)\s*</string>
             <key>beginCaptures</key>
             <dict>
@@ -1570,7 +1570,7 @@
             <key>name</key>
             <string>storage.type.class.cs</string>
             <key>match</key>
-            <string>\bclass\b</string>
+            <string>\bframe\b</string>
           </dict>
           <dict>
             <key>name</key>
@@ -1713,7 +1713,7 @@
 
 # The negative lookahead below ensures that we don't match nested types
 # or other declarations as properties.
-(?![[:word:][:space:]]*\b(?:class|interface|struct|enum|event)\b)
+(?![[:word:][:space:]]*\b(?:frame|interface|struct|enum|event)\b)
 
 (?&lt;return_type&gt;
   (?&lt;type_name&gt;
@@ -8357,7 +8357,7 @@
       <key>type-builtin</key>
       <dict>
         <key>match</key>
-        <string>\b(bool|byte|short|int|long|decimal|fraction|complex|float|bloop|iloop|lloop|dloop|floop|ithrough|lthrough|dthrough|fthrough|sthrough|uthrough|vthrough|mthrough|string|ustring|sloop|uloop|constvector|vector|bvector|fvector|ivector|hvector|svector|uvector|dvector|lvector|list|constmap|map|treemap|primemap|mapss|mapi|treemapi|mapf|call|frameinstance|iterator|self|let|tamgu|predicatevar|predicate|term|dependency|synode|treg|table|preg|fibre|java_vector|lisp|a_string|rawstring|a_int|real|a_float|a_ustring|a_bool|file|ufile|wfile|date|time|chrono|clock|socket|_stdin|transducer|grammar|sys|imatrix|fmatrix|annotator|a_vector|a_ivector|a_fvector|a_uvector|a_svector|ring|mapsf|mapsi|mapsl|mapff|mapfi|mapfl|mapfs|mapfu|mapif|mapii|mapis|mapiu|mapl|maplf|mapll|mapls|maplu|mapu|mapuf|mapui|mapul|mapuu|treemapls|treemapif|treemapsf|treemapsi|treemapss|treemapsl|primemapsf|primemapsi|primemapss|primemapsl)\b</string>
+        <string>\b(bool|byte|short|int|long|decimal|fraction|complex|float|bloop|iloop|lloop|dloop|floop|ithrough|lthrough|dthrough|fthrough|sthrough|uthrough|vthrough|mthrough|string|ustring|sloop|uloop|constvector|vector|bvector|fvector|ivector|hvector|svector|uvector|dvector|lvector|list|constmap|map|treemap|primemap|mapss|mapi|treemapi|mapf|call|iterator|self|let|tamgu|predicatevar|predicate|term|dependency|synode|treg|table|preg|fibre|java_vector|lisp|a_string|rawstring|a_int|real|a_float|a_ustring|a_bool|file|ufile|wfile|date|time|chrono|clock|socket|_stdin|transducer|grammar|sys|imatrix|fmatrix|annotator|a_vector|a_ivector|a_fvector|a_uvector|a_svector|ring|mapsf|mapsi|mapsl|mapff|mapfi|mapfl|mapfs|mapfu|mapif|mapii|mapis|mapiu|mapl|maplf|mapll|mapls|maplu|mapu|mapuf|mapui|mapul|mapuu|treemapls|treemapif|treemapsf|treemapsi|treemapss|treemapsl|primemapsf|primemapsi|primemapss|primemapsl)\b</string>
         <key>captures</key>
         <dict>
           <key>1</key>

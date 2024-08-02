@@ -484,7 +484,13 @@ class Tamgudvector : public TamguLockContainer {
     Tamgu* MethodShape(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodTranspose(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodMatrixproduct(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
-    
+    Tamgu* MethodCosine(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        Tamgu* v = callfunc->Evaluate(0, contextualpattern, idthread);
+        if (v->Type() != Type() || v->Size() != Size())
+            return globalTamgu->Returnerror("Error: Incompatible vectors", idthread);
+        return new Tamgudecimal(cosine_similarity(((Tamgudvector*)v)->values));
+    }
+
     //---------------------------------------------------------------------------------------------------------------------
     void Getshape(vector<long>& sh) {
         long nb = 1;
@@ -659,6 +665,26 @@ class Tamgudvector : public TamguLockContainer {
     
     //Basic operations
     Exporting long Size();
+    
+    float cosine_similarity(std::vector<float>& v) {
+        float dot_product = 0.0;
+        float magnitude_A = 0.0;
+        float magnitude_B = 0.0;
+        
+        for (size_t i = 0; i < values.size(); ++i) {
+            dot_product += values[i] * v[i];
+            magnitude_A += values[i] * values[i];
+            magnitude_B += v[i] * v[i];
+        }
+        
+        if (!magnitude_A || !magnitude_B)
+            return -1.0;
+        
+        float similarity = dot_product / (std::sqrt(magnitude_A) * std::sqrt(magnitude_B));
+        return similarity;
+    }
+
+    
     Exporting Tamgu* in(Tamgu* context, Tamgu* a, short idthread);
     Exporting Tamgu* andset(Tamgu* a, bool itself);
     Exporting Tamgu* orset(Tamgu* a, bool itself);

@@ -62,6 +62,7 @@ bool Tamguivector::InitialisationModule(TamguGlobal* global, string version) {
     Tamguivector::AddMethod(global, "remove", &Tamguivector::MethodRemove, P_ONE, "remove(int e): remove 'e' from the vector.");
     Tamguivector::AddMethod(global, "shape", &Tamguivector::MethodShape, P_NONE|P_ATLEASTONE, "shape(int s1, int s2...): defines the vector shape.");
     Tamguivector::AddMethod(global, "matrixproduct", &Tamguivector::MethodMatrixproduct, P_ONE, "matrixproduct(ivector): Matrix multiplication. The two vectors must have shapes");
+    Tamguivector::AddMethod(global, "cosine", &Tamguivector::MethodCosine, P_ONE, "cosine(fvector): cosine similarity between two vectors.");
     Tamguivector::AddMethod(global, "transpose", &Tamguivector::MethodTranspose, P_NONE, "transpose(fvector): Matrix transposition");
 
     

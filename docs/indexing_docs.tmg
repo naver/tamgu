@@ -28,8 +28,7 @@ string u, n;
 for (nom in ls) {
     doc.read(chemin+nom);
     indexes = r"`%a+`" in doc;
-    indexes &&&= r"`%a+%({%a%d%,%. }+%)`" in doc;
-    indexes = <x | x <- indexes, (x.size()>4)>;
+    indexes &&&= r"`%a+%({%a%d%,%. }*%)`" in doc;
     indexes = indexes.unique();
     for (s in indexes) {
         k = s.lower();
@@ -41,7 +40,7 @@ for (nom in ls) {
         }
         else
             n = n.replace("_", " ");
-        u = "[" + n +"]("+url+nom+")";
+        u = "<[" + n +"]("+url+nom+")>";
         if (k in m)
             m[k].push(u);
         else
@@ -52,9 +51,10 @@ for (nom in ls) {
 
 println("# INDEX:");
 for (s in m) {
-    println(m[s][0]+":",m[s][1:].join("; "));
+    println(m[s][0]+":",m[s][1:].join(";  "));
     println();
 }
+
 
 
 

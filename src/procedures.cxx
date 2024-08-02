@@ -2951,6 +2951,35 @@ Tamgu* ProcGPSDistance(Tamgu* contextualpattern, short idthread, TamguCall* call
     return globalTamgu->ProvideConstfloat(sqrt(distance));
 }
 
+Tamgu* ProcCosine(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    
+    Tamgu* A = callfunc->Evaluate(0, contextualpattern, idthread);
+    Tamgu* B = callfunc->Evaluate(1, contextualpattern, idthread);
+    
+    long sz = A->Size();
+    if (sz != B->Size())
+        return globalTamgu->Returnerror("Vectors should have the same size", idthread);
+
+    double dot_product = 0.0;
+    double magnitude_A = 0.0;
+    double magnitude_B = 0.0;
+    
+    double a, b;
+    
+    for (size_t i = 0; i < sz; ++i) {
+        a = A->getfloat(i);
+        b = B->getfloat(i);
+        dot_product += a * b;
+        magnitude_A += a * a;
+        magnitude_B += b * b;
+    }
+    
+    if (!magnitude_A || !magnitude_B)
+        return aMINUSONE;
+    
+    double similarity = dot_product / (std::sqrt(magnitude_A) * std::sqrt(magnitude_B));
+    return globalTamgu->Providefloat(similarity);
+}
 
 Tamgu* ProcMath(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     Tamgu* av = callfunc->Evaluate(0, contextualpattern, idthread);
@@ -3390,6 +3419,8 @@ Exporting void TamguGlobal::RecordProcedures() {
 
     RecordOneProcedure("evaljson", "Transforms a JSON string in a container", &ProcJSon, P_ONE, a_none);
 
+    RecordOneProcedure("cosine", "Returns the cosine similarity between two vectors", &ProcCosine, P_TWO, a_float);
+    
     RecordOneProcedure("abs", "Returns the absolute value of a number", &ProcMath, P_ONE, a_float);
     RecordOneProcedure("acos", "Returns the arccosine of a number", &ProcMath, P_ONE, a_float);
     RecordOneProcedure("acosh", "Returns the inverse hyperbolic cosine of a number", &ProcMath, P_ONE, a_float);

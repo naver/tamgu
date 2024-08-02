@@ -69,8 +69,6 @@ class Tamgufvector : public TamguLockContainer {
         return a_fvector;
     }
 
-    
-
     void Setidtype(TamguGlobal* global);
     
     string Typename() {
@@ -541,7 +539,13 @@ class Tamgufvector : public TamguLockContainer {
     Tamgu* MethodShape(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodTranspose(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
     Tamgu* MethodMatrixproduct(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
-    
+    Tamgu* MethodCosine(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+        Tamgu* v = callfunc->Evaluate(0, contextualpattern, idthread);
+        if (v->Type() != Type() || v->Size() != Size())
+            return globalTamgu->Returnerror("Error: Incompatible vectors", idthread);
+        return globalTamgu->Providefloat(cosine_similarity(((Tamgufvector*)v)->values));
+    }
+
     Tamgu* MethodRemove(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
         double a = callfunc->Evaluate(0, contextualpattern, idthread)->Float();
         for (size_t i = 0; i < values.size(); i++) {
@@ -737,6 +741,24 @@ class Tamgufvector : public TamguLockContainer {
 
     //Basic operations
     Exporting long Size();
+
+    double cosine_similarity(std::vector<double>& v) {
+        double dot_product = 0.0;
+        double magnitude_A = 0.0;
+        double magnitude_B = 0.0;
+        
+        for (size_t i = 0; i < values.size(); ++i) {
+            dot_product += values[i] * v[i];
+            magnitude_A += values[i] * values[i];
+            magnitude_B += v[i] * v[i];
+        }
+        
+        if (!magnitude_A || !magnitude_B)
+            return -1.0;
+        
+        double similarity = dot_product / (std::sqrt(magnitude_A) * std::sqrt(magnitude_B));
+        return similarity;
+    }
 
     Exporting Tamgu* in(Tamgu* context, Tamgu* a, short idthread);
     Exporting Tamgu* andset(Tamgu* a, bool itself);

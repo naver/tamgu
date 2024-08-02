@@ -83,6 +83,8 @@ bool Tamguhvector::InitialisationModule(TamguGlobal* global, string version) {
     
     Tamguhvector::AddMethod(global, "permute", &Tamguhvector::MethodPermute, P_NONE, "permute(): permute the values in the vector after each call.");
 
+    Tamguhvector::AddMethod(global, "cosine", &Tamguhvector::MethodCosine, P_ONE, "cosine(fvector): cosine similarity between two vectors.");
+
     if (version != "") {
         global->returnindextypes[a_hvector] = a_short;
         global->minimal_indexes[a_hvector] = true;

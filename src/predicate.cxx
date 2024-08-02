@@ -859,7 +859,7 @@ bool TamguGlobal::GetPredicates(TamguDeclaration* dom, TamguPredicate* p, vector
             _cleanlockg(_lock);
             return ret;
         }
-
+        
         if (p->Stringpredicatekeythird(argument_key)) {
             vector<TamguPredicate*>& v = knowledgebase_on_third[argument_key];
             sz = v.size();
@@ -4317,7 +4317,7 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
                     if (res == aNOELEMENT)
                         kvpred->parameters.push_back(aUNIVERSAL);
                     else
-                        kvpred->parameters.push_back(res->Atom(true));
+                        kvpred->parameters.push_back(res);
                 }
                 // This section is used to test our current predicate against the knowledgebase...
                 if (!globalTamgu->GetPredicates(dom, kvpred, facts, false)) {
@@ -4340,7 +4340,7 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
                         free_variables.push_back(i);
                     }
                     else
-                        kvpred->parameters.push_back(res->Atom(true));
+                        kvpred->parameters.push_back(res);
                 }
                 
                 // This section is used to test our current predicate against the knowledgebase...
@@ -4374,6 +4374,7 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
 
             res = headpredicate->parameters[headpredicate_nb_parameters - 1];
             res->Put(dom, v, threadowner);
+            kvpred->Release();
             std::unique_ptr<localpredict> Oo(new localpredict(threadowner, sz + 1));
             for (j = from; j < sz; j++) {
                 if (j != posreplace && !goals[j]->hasbeenSuccesfull())

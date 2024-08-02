@@ -1,6 +1,10 @@
-## Tamgu Vector and Table Containers
+# Tamgu Vector and Table Containers
 
-### Vector Containers
+## Methods
+
+1. `cosine(Nvector v)`: Computes the cosine similarity between two vectors. Note that `vector` should be a numerical vector. A version: `cosine(vector A, vector B)` also exists, which is more general.
+
+## Vector Containers
 Tamgu provides specialized vector containers for different types of data. These containers are efficient in terms of memory consumption and provide fast access to elements. The following are the available vector types:
 
 - **bvector**: A vector container for bytes.

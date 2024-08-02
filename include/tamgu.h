@@ -736,7 +736,7 @@ public:
     virtual char isCallTaskellFunction() {
         return 0;
     }
-    
+        
     virtual bool isLisp() {
         return false;
     }
@@ -2943,15 +2943,25 @@ public:
 class TamguFunctionMap : public TamguFunction {
 public:
     
-    basebin_hash<TamguFunction*> indexes;
-    TamguFunctionMap(short n, TamguGlobal* global) : TamguFunction(n, global) {}
+    basebin_hash<TamguFunction*>* indexes;
+    TamguFunctionMap(short n, TamguGlobal* global) : TamguFunction(n, global) {
+        indexes = NULL;
+    }
 
+    ~TamguFunctionMap() {
+        if (indexes != NULL)
+            delete indexes;
+    }
+    
     TamguFunction* FindFunction(short ty) {
-        if (indexes.check(ty))
-            return indexes[ty];
+        if (indexes == NULL)
+            return this;
+        
+        if (indexes->check(ty))
+            return (*indexes)[ty];
     
         basebin_hash<TamguFunction*>::iterator it;
-        for (it = indexes.begin(); it != indexes.end(); it++) {
+        for (it = indexes->begin(); it != indexes->end(); it++) {
             if (globalTamgu->Testcompatibility(it.first, ty, strict))
                 return it.second;
         }
@@ -2960,19 +2970,27 @@ public:
 
     void Indexing() {
         if (choice == 1) {
-            TamguFunction* l = this;
+            if (next == NULL)
+                return;
+            
             short ty;
+            TamguFunction* l = this;
             while (l != NULL) {
                 if (l->Size()) {
                     ty = l->Parameter(0)->Typevariable();
-                    if (!indexes.check(ty))
-                        indexes[ty] = l;
+                    if (indexes == NULL) {
+                        indexes = new basebin_hash<TamguFunction*>;
+                        (*indexes)[ty] = l;
+                    }
+                    else {
+                        if (!indexes->check(ty))
+                            (*indexes)[ty] = l;
+                    }
                 }
                 l = l->next;
             }
         }
     }
-
 };
 
 class TamguThread : public TamguFunction {
@@ -3100,9 +3118,12 @@ public:
 	VECTE<Tamgu*> variables;
     
     TamguFrame* topframe;
+    unsigned short investigating;
+    
     short thetype;
     short theextensionvar;
     short minvar, maxvar;
+    
     bool choosemin;
 	bool privee;
 	bool post;
@@ -3110,6 +3131,7 @@ public:
 	TamguFrame(short n, bool p, TamguGlobal* g = NULL, Tamgu* parent = NULL) : topframe(NULL),
 		post(false), privee(p), TamguDeclaration(n, a_frame, g) {
             investigate = is_tracked;
+            investigating = 0;
             thetype = n;
             minvar = 0;
             maxvar = 0;
@@ -3168,6 +3190,7 @@ public:
             k->declarations[it->first] = it->second;
         }
         
+        k->investigating = investigating;
         k->theextensionvar = theextensionvar;
         k->variables = variables;
         k->names = names;
@@ -3201,17 +3224,33 @@ public:
     }
     
 	void Declare(short idn, Tamgu* a) {
-		if (idn >= a_short && idn <= a_float) {
-			if (numbers.empty()) {
-				numbers[a_short] = a;
-				numbers[a_int] = a;
-				numbers[a_long] = a;
-				numbers[a_decimal] = a;
-				numbers[a_float] = a;
-			}
-			else
-				numbers[idn] = a;
-		}
+        switch (idn) {
+            case a_short:
+            case a_int:
+            case a_long:
+            case a_decimal:
+            case a_fraction:
+            case a_complex:
+            case a_float:
+                if (numbers.empty()) {
+                    numbers[a_short] = a;
+                    numbers[a_int] = a;
+                    numbers[a_long] = a;
+                    numbers[a_decimal] = a;
+                    numbers[a_float] = a;
+                }
+                else
+                    numbers[idn] = a;
+                investigating |= is_number;
+                break;
+            case a_string:
+            case a_ustring:
+                investigating |= is_string;
+                break;
+            case a_index:
+            case a_interval:
+                investigating |= is_container;
+        }
 
 		declarations[idn] = a;
 		if (a->isVariable()) {

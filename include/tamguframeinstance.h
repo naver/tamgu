@@ -126,6 +126,7 @@ public:
     TamguframeBaseInstance(TamguFrame* f)  {
         frame = f;
         investigate |= is_frameinstance;
+        investigate |= f->investigating;
         setReference = false;
     }
 
@@ -163,6 +164,34 @@ public:
 
     Tamgu* Atom(bool forced = false) {
         return this;
+    }
+    
+    bool isLong() {
+        return (frame->numbers[a_long] != NULL);
+    }
+    
+    bool isShort() {
+        return (frame->numbers[a_short] != NULL);
+    }
+
+    bool isFloat() {
+        return (frame->numbers[a_float] != NULL);
+    }
+
+    bool isInteger() {
+        return (frame->numbers[a_int] != NULL);
+    }
+
+    bool isDecimal() {
+        return (frame->numbers[a_decimal] != NULL);
+    }
+
+    bool isBoolean() {
+        return (frame->numbers[a_boolean] != NULL);
+    }
+
+    bool frameHasSame() {
+        return (frame->Declaration(a_same) != NULL);
     }
     
 	//---------------------------------------------------------------------------------------------------------------------
@@ -396,7 +425,29 @@ public:
 		//To set a variable back to empty
 	}
 
-	
+    bool Stringpredicatekey(string& v) {
+        if (!frameHasSame()) {
+            Setstring(v, 0);
+            return !v.empty();
+        }
+        return false;
+    }
+
+    bool Stringpredicatekeysecond(string& v) {
+        if (!frameHasSame()) {
+            Setstring(v, 0);
+            return !v.empty();
+        }
+        return false;
+    }
+
+    bool Stringpredicatekeythird(string& v) {
+        if (!frameHasSame()) {
+            Setstring(v, 0);
+            return !v.empty();
+        }
+        return false;
+    }
 
 	wstring UString() {
 		Tamgu* res = Callconversion(a_ustring);
@@ -404,12 +455,12 @@ public:
             if (frame->theextensionvar) {
                 return Declaration(frame->theextensionvar)->UString();
             }
+            return L"";
         }
 		wstring s = res->UString();
 		res->Release();
 		return s;
 	}
-
 
 	string String() {
 		Tamgu* res = Callconversion(a_string);
@@ -417,11 +468,49 @@ public:
             if (frame->theextensionvar) {
                 return Declaration(frame->theextensionvar)->String();
             }
+            return "";
         }
 		string s = res->String();
 		res->Release();
 		return s;
 	}
+
+    void Setstring(string& v, short idthread) {
+        Tamgu* res = Callconversion(a_string);
+        if (res == aNULL) {
+            if (frame->theextensionvar) {
+                return Declaration(frame->theextensionvar)->Setstring(v, idthread);
+            }
+            return;
+        }
+        res->Setstring(v, idthread);
+        res->Release();
+    }
+    
+    void Setstring(wstring& v, short idthread) {
+        Tamgu* res = Callconversion(a_ustring);
+        if (res == aNULL) {
+            if (frame->theextensionvar) {
+                return Declaration(frame->theextensionvar)->Setstring(v, idthread);
+            }
+            return;
+        }
+        res->Setstring(v, idthread);
+        res->Release();
+    }
+
+    string JSonString() {
+        Tamgu* res = Callconversion(a_string);
+        if (res == aNULL) {
+            if (frame->theextensionvar) {
+                return Declaration(frame->theextensionvar)->String();
+            }
+            return "";
+        }
+        string s = res->JSonString();
+        res->Release();
+        return s;
+    }
 
 	short Short() {
 		Tamgu* res = Callnumberconversion(a_short);
@@ -429,6 +518,7 @@ public:
             if (frame->theextensionvar) {
                 return Declaration(frame->theextensionvar)->Short();
             }
+            return 0;
         }
 		short s = res->Short();
 		res->Release();
@@ -441,6 +531,7 @@ public:
             if (frame->theextensionvar) {
                 return Declaration(frame->theextensionvar)->Integer();
             }
+            return 0;
         }
 		long s = res->Integer();
 		res->Release();
@@ -453,6 +544,7 @@ public:
             if (frame->theextensionvar) {
                 return Declaration(frame->theextensionvar)->Float();
             }
+            return 0;
         }
 		double s = res->Float();
 		res->Release();
@@ -465,6 +557,7 @@ public:
             if (frame->theextensionvar) {
                 return Declaration(frame->theextensionvar)->Long();
             }
+            return 0;
         }
 
 		BLONG s = res->Long();
@@ -478,6 +571,7 @@ public:
             if (frame->theextensionvar) {
                 return Declaration(frame->theextensionvar)->Boolean();
             }
+            return false;
         }
 
 		bool s = res->Boolean();
@@ -491,6 +585,7 @@ public:
             if (frame->theextensionvar) {
                 return Declaration(frame->theextensionvar)->Byte();
             }
+            return 0;
         }
 
 		uchar s = res->Byte();
