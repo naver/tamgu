@@ -21,16 +21,36 @@ If you have a file containing a very large knowledge base, consisting only of fa
 
 ## Types
 
-### Predicate
+### predicate
 
 Used to declare predicates for inference clauses. It offers methods like:
 - `name()`: Returns the predicate label
 - `size()`: Returns the number of arguments
 - `_trace(bool)`: Activates or deactivates tracing for this predicate when it's the calling predicate
 
-### Term
+```prolog
+predicate solve;
+
+solve(?X, ?Y) :-
+    ...
+
+vector v = solve(?X,?Y);
+```
+
+### term
 
 Used to declare terms for inference clauses.
+
+```prolog
+term one, second;
+
+pred(one(?X,?Y), ?L) :-
+    ...
+
+//Without declaration, you need to use ?..
+pred(?third(?X,?Y), ?M) :-
+    ...
+```
 
 ### List and Associative Map
 
@@ -56,7 +76,27 @@ vector v = assign(?X);
 println(v); // [assign({'100':'fin','1':10})]
 ```
 
-### predicatevar or ?:-
+## Recipient Types
+
+When calling a predicate in Tamgu, the type of recipient variable used affects how the inference engine processes the query. If a vector is used as the recipient, the engine explores all possible paths in the inference graph, returning multiple solutions if they exist. When a predicatevar is employed, the engine searches for just one solution, stopping after finding the first valid result. In cases where no variables need to be unified in the call (i.e., all arguments are ground terms), a Boolean recipient can be used to simply force the execution of the predicate without capturing any specific results. This flexibility allows users to tailor their queries to their specific needs, whether they require exhaustive search, single-solution efficiency, or mere execution of facts.
+
+
+### vector: Exploring All Possible Solutions
+
+When the recipient of a predicate call is a vector, Tamgu's inference engine explores all possible paths in the inference graph, returning multiple solutions if they exist. This is useful when you want to find all matching results for a given query.
+
+Example:
+```prolog
+predicate parent;
+parent("John", "Alice").
+parent("John", "Bob").
+parent("Mary", "Alice").
+
+vector v = parent("John", ?Child);
+println(v);  // Output: [parent("John", "Alice"), parent("John", "Bob")]
+```
+
+### predicatevar or ?:-: Finding One Solution
 
 Used to handle predicates and explore their names and values. It offers methods like:
 - `map()`: Returns the predicate as a map
@@ -66,11 +106,36 @@ Used to handle predicates and explore their names and values. It offers methods 
 - `store()`: Stores the predicate in memory
 - `vector()`: Returns the predicate as a vector
 
+When a predicatevar is used as the recipient, the engine searches for just one solution, stopping after finding the first valid result. This is efficient when you only need a single matching solution.
+
+Example:
 ```prolog
-test(?X,?Q) :- ancestor(?X,?Q), female(?Q).
-?:- var = test(?X,?Z);
-println(var);
+predicate sibling;
+sibling(?X, ?Y) :- parent(?Z, ?X), parent(?Z, ?Y), ?X != ?Y.
+
+?:- result = sibling("Alice", ?Sibling);
+println(result);  // Output: sibling("Alice", "Bob")
 ```
+
+### Boolean Recipient: Executing Without Variable Unification
+
+In cases where no variables need to be unified in the call (i.e., all arguments are ground terms), a Boolean recipient can be used to simply force the execution of the predicate without capturing any specific results. This is useful for predicates that perform actions or check conditions without needing to return a value.
+
+Example:
+```prolog
+predicate add_fact;
+add_fact(?X, ?Y) :- assertz(parent(?X, ?Y)).
+
+bool success = add_fact("Emma", "Olivia");
+println(success);  // Output: true
+
+// Now we can query the newly added fact
+vector check = parent("Emma", ?Child);
+println(check);  // Output: [parent("Emma", "Olivia")]
+```
+
+These different recipient types provide flexibility in how predicates are queried and how results are handled, allowing users to tailor their logic programming approach to their specific needs.
+
 
 ## Clauses
 
@@ -238,16 +303,18 @@ Tamgu offers a powerful feature that allows seamless integration of object-orien
 
 Frames in Tamgu are equivalent to classes in other object-oriented languages. They allow you to define complex data structures with associated methods.
 
-### Example: The `Embeddings` Frame
+### Example: The `Vectordb` Frame
 
 ```prolog
-frame Embeddings {
+frame Vectordb {
     string key;
     fvector embedding;
     
-    function _initial(string k, fvector e) {
+    function _initial(string k) {
         key = k;
-        embedding = e;
+        //We suppose the existence of a get_embedding method
+        //that transforms a string into a fvector
+        embedding = get_embedding(key);
     }
     
     function string() {
@@ -258,13 +325,13 @@ frame Embeddings {
         return (cosine(embedding, e) > 0.9);
     }
     
-    function ==(Embeddings e) {
+    function ==(Vectordb e) {
         return (cosine(embedding, e.embedding) > 0.9);
     }
 }
 ```
 
-This frame, `Embeddings` (which translates to "embedding" in English), demonstrates several key features:
+This frame, `Vectordb`, demonstrates several key features:
 
 1. Data members: `key` (a string) and `embedding` (a float vector).
 2. An initializer method `_initial`.
@@ -278,14 +345,14 @@ Frames can be used within predicates, allowing for complex operations and querie
 ### Automatic Unification with Custom Equality
 
 ```prolog
-adding([], []).
-adding([?K | ?R], [?P| ?RP]) :-
-    ?X is Embeddings(?K, ?P),
+adding([]).
+adding([?K | ?R]) :-
+    ?X is Vectordb(?K),
     assertz(embed(?X, ?K)),
-    adding(?R, ?RP).
+    adding(?R).
 
-//Note that since `?P` is an `Embeddings` object, the `==` methods
-//in Embeddings will automatically be applied when querying `embed(?P, ?K)`.
+//Note that since `?P` is an `Vectordb` object, the `==` methods
+//in Vectordb will automatically be applied when querying `embed(?P, ?K)`.
 checking(?P, ?R) :-
     findall(?K, embed(?P, ?K), ?R).
 ```
@@ -293,24 +360,24 @@ checking(?P, ?R) :-
 These predicates demonstrate how to work with frame objects:
 
 1. `adding`:
-   - Takes two lists: keys and embeddings.
-   - Creates `Embeddings` objects and asserts them into the knowledge base.
+   - Takes two lists: keys and Vectordb.
+   - Creates `Vectordb` objects and asserts them into the knowledge base.
    - Uses recursion to process all elements.
 
 2. `checking`:
-   - Takes an `Embeddings` object and finds all matching keys in the knowledge base.
+   - Takes an `Vectordb` object and finds all matching keys in the knowledge base.
    - Utilizes the custom equality comparison defined in the frame.
 
 An important feature to note is how Tamgu's unification mechanism interacts with custom equality definitions in frames. When using predicates like `findall`, Tamgu automatically leverages the "==" functions defined in the frame.
 
-In our `Embeddings` example:
+In our `Vectordb` example:
 
 ```prolog
 checking(?P, ?R) :-
-    findall(?K, ajout(?P, ?K), ?R).
+    findall(?K, embed(?P, ?K), ?R).
 ```
 
-When this predicate is called, the `findall` operation automatically uses the "==" function defined in the `Embeddings` frame to compare the input `?P` with each `Embeddings` object stored in the knowledge base. This means:
+When this predicate is called, the `findall` operation automatically uses the "==" function defined in the `Vectordb` frame to compare the input `?P` with each `Vectordb` object stored in the knowledge base. This means:
 
 1. The cosine similarity comparison is automatically applied without explicit calls in the predicate.
 2. The threshold for similarity (>0.9 in our example) is respected without additional logic in the predicate.
@@ -321,14 +388,17 @@ This automatic use of custom equality in unification showcases Tamgu's seamless 
 ## Usage Example
 
 ```prolog
-bool x = adding(["clef1", "clef2", "clef3", "clef4", "clef5"], [[12,4,5], [1,4,3], [1,17,9], [1,3,7], [1,9,8]]);
-?:- r = checking(Embeddings("test", [1,2,3]), ?R);
+//Note that since the call to this predicate has no variable, we use a Boolean recipient variable
+//to force the execution.
+bool x = adding(["This is a test", "This is a second test", "This is a third test"]);
+
+?:- r = checking(Vectordb("This is a test"), ?R);
 println(r);
 ```
 
 This example shows how to:
 1. Add multiple key-embedding pairs to the knowledge base.
-2. Query the knowledge base for similar embeddings.
+2. Query the knowledge base for similar Vectordb.
 
 ## Key Benefits
 
