@@ -115,6 +115,7 @@ sibling(?X, ?Y) :- parent(?Z, ?X), parent(?Z, ?Y), ?X != ?Y.
 
 ?:- result = sibling("Alice", ?Sibling);
 println(result);  // Output: sibling("Alice", "Bob")
+println(result.map());  // Output: {'0':'Alice', '1':'Bob', 'name':'sibling'}
 ```
 
 ### Boolean Recipient: Executing Without Variable Unification
