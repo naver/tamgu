@@ -18,8 +18,23 @@ If you have a file containing a very large knowledge base, consisting only of fa
 
 - `loadfacts(string path)`: Load a large knowledge base in memory
 
+## Clauses
 
-## Types
+A basic clause structure:
+
+```prolog
+predicate(arg1, arg2, ..., argn) :- pred(arg...), pred(arg...), etc.
+```
+
+Facts can be declared as:
+
+```prolog
+predicate(val1, val2, ...) :- true.
+// or
+predicate(val1, val2, ...).
+```
+
+## Different Specific Types
 
 ### predicate
 
@@ -137,22 +152,6 @@ println(check);  // Output: [parent("Emma", "Olivia")]
 
 These different recipient types provide flexibility in how predicates are queried and how results are handled, allowing users to tailor their logic programming approach to their specific needs.
 
-
-## Clauses
-
-A basic clause structure:
-
-```prolog
-predicate(arg1, arg2, ..., argn) :- pred(arg...), pred(arg...), etc.
-```
-
-Facts can be declared as:
-
-```prolog
-predicate(val1, val2, ...) :- true.
-// or
-predicate(val1, val2, ...).
-```
 
 ### Disjunction
 
