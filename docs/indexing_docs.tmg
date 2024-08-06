@@ -28,7 +28,7 @@ string u, n;
 for (nom in ls) {
     doc.read(chemin+nom);
     indexes = r"`%a+`" in doc;
-    indexes &&&= r"`%a+%({%a%d%,%. }*%)`" in doc;
+    indexes &&&= r"`%a+%({%a%d%,%.%? }*%)`" in doc;
     indexes = indexes.unique();
     for (s in indexes) {
         k = s.lower();
@@ -54,6 +54,7 @@ for (s in m) {
     println(m[s][0]+":",m[s][1:].join(";  "));
     println();
 }
+
 
 
 

@@ -49,7 +49,7 @@ Tamgu fournit également une map associative, qui est implémentée comme une ma
 **Exemple :**
 
 ```tamgu
-prédicat assign,avalue;
+predicate assign,avalue;
 avalue(1,1) :- true.
 avalue(10,2) :- true.
 avalue(100,3) :- true.
@@ -121,7 +121,7 @@ Tamgu accepte également les disjonctions dans les clauses avec l'opérateur ";"
 **Exemple :**
 
 ```tamgu
-prédicat mere,pere;
+predicate mere,pere;
 mere("jeanne","marie").
 mere("jeanne","rolande").
 pere("bertrand","marie").
@@ -281,7 +281,7 @@ Tamgu accepte également les règles DCG (Definite Clause Grammar) avec quelques
 **Exemple :**
 
 ```tamgu
-prédicat sentence,noun_phrase,verb_phrase;
+predicate sentence,noun_phrase,verb_phrase;
 term s,np,vp,d,n,v;
 sentence(s(np(d("the"),n("cat")),vp(v("eats"),np(d("a"),n("bat"))))) --> [].
 ```

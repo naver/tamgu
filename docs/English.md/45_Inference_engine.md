@@ -116,9 +116,6 @@ println(v);  // Output: [parent("John", "Alice"), parent("John", "Bob")]
 Used to handle predicates and explore their names and values. It offers methods like:
 - `map()`: Returns the predicate as a map
 - `name()`: Returns the predicate name
-- `query(predicate|name,v1,v2,v3)`: Builds and evaluates a predicate on the fly
-- `remove()`: Removes the predicate from memory
-- `store()`: Stores the predicate in memory
 - `vector()`: Returns the predicate as a vector
 
 When a predicatevar is used as the recipient, the engine searches for just one solution, stopping after finding the first valid result. This is efficient when you only need a single matching solution.
@@ -468,6 +465,101 @@ println(v);
 2. **Integration**: Seamless integration of concurrent programming with logical programming.
 3. **Flexibility**: Handle time-consuming operations without blocking entire predicate execution.
 4. **Scalability**: Efficiently handle multiple similar tasks.
+
+## DCG
+
+Tamgu also accepts DCG rules (Definite Clause Grammar), with a few modifications with the original definition. First, Prolog variables should be denoted with ?V as in the other rules. Third, atoms can only be declared as strings.
+
+### Example:
+```prolog
+
+term s,np,vp,d,n,v;
+
+sentence(s(?NP,?VP)) --> noun_phrase(?NP), verb_phrase(?VP).
+noun_phrase(np(?D,?N)) --> det(?D), noun(?N).
+verb_phrase(vp(?V,?NP)) --> verb(?V), noun_phrase(?NP).
+det(d("the")) --> ["the",?X], {?X is "big"}.
+det(d("a")) --> ["a"].
+noun(n("bat")) --> ["bat"].
+noun(n("cat")) --> ["cat"].
+verb(v("eats")) --> ["eats"].
+
+//we generate all possible interpretations...
+vector vr=sentence(?Y,[],?X);
+println(vr);
+```
+
+## Mapping methods to predicates.
+Most object methods are mapped into predicates, in a very simple way. For instance, if a string exports the method “trim”, then a “p_trim” with two variables is created. Each method is mapped to a predicate in this fashion. For each
+method, we add a prefix: “p_” to transform this method into a predicate.
+
+The first argument of this predicate is the head object of the method, while the last parameter is the result of applying this method to that object. Hence, if s is a string, s.trim() becomes p_trim(s,?X), where ?X is the result of applying trim to s. If ?X is unified, then the predicate will check if the ?X is the same as s.trim().
+
+### Example 1
+
+```prolog
+compute(?X,?Y) :- p_log(?X,?Y).
+```
+### Methods: between(?X,?B,?E), pred(?X,?Y) and succ(?X,?Y)
+
+- `between(?X,?B,?E)` checks if the value ?X is between ?B and ?E.
+- `pred(?X,?Y)` returns the predecessor of ?X. pred can also be used as term, but in that case, it only uses one argument.
+- `succ(?X,?Y)` returns the successor of ?X. succ can also be used as term, but in that case, it only uses one argument.
+
+### Common mistakes with Tamgu variables.
+
+If you use regular variables in predicates, such as strings, integers or any
+other sorts of variables, you need to remember that these variables are used
+in predicates as comparison values. An example might clarify a little bit what
+we mean.
+
+#### Example 1
+```prolog
+string s="test";
+string sx="other";
+predicate comp;
+comp._trace(true);
+comp(s,3) :- println(s).
+comp(sx,?X);
+Execution:
+r:0=comp(s,3) --> comp(other,?X172) --> Fail
+This clause has failed, because s and sx have different values.
+```
+
+#### Example 2
+
+```prolog
+string s="test"; //now they have the same values
+string sx="test";
+predicate comp;
+comp._trace(true);
+comp(s,3) :- println(s).
+comp(sx,?X);
+Execution:
+r:0=comp(s,3) --> comp(test,?X173)
+e:0=comp(test,3) --> println(s)test
+success:1=comp('test',3)
+```
+
+Be careful when you design your clauses, to use external variables as
+comparison sources and not as instantiation. If you want to pass a string value
+to your predicate, then the placeholder for that string should be a predicate
+variable.
+
+#### Example 3
+
+```prolog
+string sx="test";
+predicate comp;
+comp._trace(true);
+comp(?s,3) :- println(?s).
+comp(sx,?X);
+Execution:
+r:0=comp(?s,3) --> comp(test,?X176)
+e:0=comp('test',3) --> println(?s177:test)test
+success:1=comp('test',3)
+```
+
 
 ## Examples
 

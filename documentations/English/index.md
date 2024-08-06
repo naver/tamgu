@@ -277,6 +277,8 @@
 
 `beta`: <[Random](https://github.com/naver/tamgu/tree/master/docs/English.md/38_Random.md)>
 
+`between(?X,?B,?E)`: <[Inference engine](https://github.com/naver/tamgu/tree/master/docs/English.md/45_Inference_engine.md)>
+
 `bgcolor(int c)`: <[GUI ToolKit library libgui](https://github.com/naver/tamgu/tree/master/docs/English.md/53.2_GUI_ToolKit_library_libgui.md)>
 
 `bi`: <[Random](https://github.com/naver/tamgu/tree/master/docs/English.md/38_Random.md)>
@@ -455,7 +457,7 @@
 
 `cosine(element)`: <[Library word2vec type word2vec](https://github.com/naver/tamgu/tree/master/docs/English.md/59_Library_word2vec_type_word2vec.md)>
 
-`cosine([d|f|h|i|l]vector v)`: <[Type  bifsu, vector, table](https://github.com/naver/tamgu/tree/master/docs/English.md/21_Type_bifsu_vector_table.md)>
+`cosine(Nvector v)`: <[Type  bifsu, vector, table](https://github.com/naver/tamgu/tree/master/docs/English.md/21_Type_bifsu_vector_table.md)>
 
 `cosine(vector A, vector B)`: <[Type  bifsu, vector, table](https://github.com/naver/tamgu/tree/master/docs/English.md/21_Type_bifsu_vector_table.md)>
 
@@ -611,9 +613,9 @@
 
 `element`: <[Type  grammar](https://github.com/naver/tamgu/tree/master/docs/English.md/30_Type_grammar.md)>
 
-`embedding`: <[Inference engine](https://github.com/naver/tamgu/tree/master/docs/English.md/45_Inference_engine.md)>
+`embed(?P, ?K)`: <[Inference engine](https://github.com/naver/tamgu/tree/master/docs/English.md/45_Inference_engine.md)>
 
-`Embeddings`: <[Inference engine](https://github.com/naver/tamgu/tree/master/docs/English.md/45_Inference_engine.md)>
+`embedding`: <[Inference engine](https://github.com/naver/tamgu/tree/master/docs/English.md/45_Inference_engine.md)>
 
 `emoji()`: <[Type  rawstring, string, ustring](https://github.com/naver/tamgu/tree/master/docs/English.md/14_Type_rawstring_string_ustring.md)>;  <[Type  byte, short, int, float, real, long](https://github.com/naver/tamgu/tree/master/docs/English.md/16_Type_byte_short_int_float_real_long.md)>
 
@@ -1407,6 +1409,8 @@
 
 `power`: <[Frame](https://github.com/naver/tamgu/tree/master/docs/English.md/10_Frame.md)>
 
+`pred(?X,?Y)`: <[Inference engine](https://github.com/naver/tamgu/tree/master/docs/English.md/45_Inference_engine.md)>
+
 `pred`: <[Inference engine](https://github.com/naver/tamgu/tree/master/docs/English.md/45_Inference_engine.md)>
 
 `predicatedump()`: <[Inference engine](https://github.com/naver/tamgu/tree/master/docs/English.md/45_Inference_engine.md)>
@@ -1526,8 +1530,6 @@
 `redraw()`: <[GUI ToolKit library libgui](https://github.com/naver/tamgu/tree/master/docs/English.md/53.1_GUI_ToolKit_library_libgui.md)>
 
 `redrawing(float t)`: <[GUI ToolKit library libgui](https://github.com/naver/tamgu/tree/master/docs/English.md/53.1_GUI_ToolKit_library_libgui.md)>
-
-`remove()`: <[Inference engine](https://github.com/naver/tamgu/tree/master/docs/English.md/45_Inference_engine.md)>
 
 `remove(e)`: <[Type  vector](https://github.com/naver/tamgu/tree/master/docs/English.md/19_Type_vector.md)>;  <[Type  list](https://github.com/naver/tamgu/tree/master/docs/English.md/20_Type_list.md)>
 
@@ -1733,8 +1735,6 @@
 
 `stop`: <[Inference engine](https://github.com/naver/tamgu/tree/master/docs/English.md/45_Inference_engine.md)>;  <[dependency and synode](https://github.com/naver/tamgu/tree/master/docs/English.md/46_dependency_and_synode.md)>
 
-`store()`: <[Inference engine](https://github.com/naver/tamgu/tree/master/docs/English.md/45_Inference_engine.md)>
-
 `store(string output, bool norm, int encoding)`: <[Type  transducer](https://github.com/naver/tamgu/tree/master/docs/English.md/28_Type_transducer.md)>
 
 `str`: <[Type  rawstring, string, ustring](https://github.com/naver/tamgu/tree/master/docs/English.md/14_Type_rawstring_string_ustring.md)>
@@ -1748,6 +1748,8 @@
 `student_t_distribution`: <[Random](https://github.com/naver/tamgu/tree/master/docs/English.md/38_Random.md)>
 
 `sub`: <[Type  rawstring, string, ustring](https://github.com/naver/tamgu/tree/master/docs/English.md/14_Type_rawstring_string_ustring.md)>
+
+`succ(?X,?Y)`: <[Inference engine](https://github.com/naver/tamgu/tree/master/docs/English.md/45_Inference_engine.md)>
 
 `sum()`: <[Type  vector](https://github.com/naver/tamgu/tree/master/docs/English.md/19_Type_vector.md)>;  <[Type  list](https://github.com/naver/tamgu/tree/master/docs/English.md/20_Type_list.md)>;  <[Type  tree, bin, prime, map](https://github.com/naver/tamgu/tree/master/docs/English.md/22_Type_tree_bin_prime_map.md)>;  <[Type  fmatrix, imatrix](https://github.com/naver/tamgu/tree/master/docs/English.md/26_Type_fmatrix_imatrix.md)>
 
@@ -1916,6 +1918,8 @@
 `vector()`: <[Inference engine](https://github.com/naver/tamgu/tree/master/docs/English.md/45_Inference_engine.md)>
 
 `vector`: <[Type  iloop, floop, bloop, sloop, uloop](https://github.com/naver/tamgu/tree/master/docs/English.md/17_Type_iloop_floop_bloop_sloop_uloop.md)>;  <[Type  list](https://github.com/naver/tamgu/tree/master/docs/English.md/20_Type_list.md)>;  <[Type  bifsu, vector, table](https://github.com/naver/tamgu/tree/master/docs/English.md/21_Type_bifsu_vector_table.md)>
+
+`Vectordb`: <[Inference engine](https://github.com/naver/tamgu/tree/master/docs/English.md/45_Inference_engine.md)>
 
 `vertex(float x, float y)`: <[GUI ToolKit library libgui](https://github.com/naver/tamgu/tree/master/docs/English.md/53.1_GUI_ToolKit_library_libgui.md)>
 
