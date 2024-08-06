@@ -54,18 +54,13 @@ vector v = solve(?X,?Y);
 
 ### term
 
-Used to declare terms for inference clauses.
+Use to declare terms for inference clauses.
 
 ```prolog
 term one, second;
 
 pred(one(?X,?Y), ?L) :-
     ...
-
-//Without declaration, you need to use ?..
-pred(?third(?X,?Y), ?M) :-
-    ...
-```
 
 ### List and Associative Map
 
