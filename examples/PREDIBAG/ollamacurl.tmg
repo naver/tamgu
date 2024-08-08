@@ -52,6 +52,7 @@ function fonclist(string content, auto o) {
 
 function promptnostream(string uri, string model,  string msg, int num_ctx = 1000, float temperature = 0.1) {
     uri += "/api/generate";
+    println(model);
     string res;
     curl c(res) with foncembed;
 
@@ -60,11 +61,11 @@ function promptnostream(string uri, string model,  string msg, int num_ctx = 100
 
     // Charger notre page web. Pour chaque bloc, fonc sera appelée...
     c.url(uri);
+
     c.options("CURLOPT_POSTFIELDS", m);
 
     c.execute();
     m = res;
-
     return m["response"];
 }
 

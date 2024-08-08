@@ -1,0 +1,38 @@
+loadin(_current+"prompting.tmg");
+
+frame Vectordb {
+    string key;
+    fvector embedding;
+
+    function _initial(string k) {
+        key = k;
+        embedding = get_embedding("command-r", k);
+        println(key);
+    }
+
+    function string() {
+        return key;
+    }
+
+    function ==(Vectordb e) {
+        println('Check:',cosine(embedding,e.embedding));
+        return (cosine(embedding,e.embedding) > 0.7);
+    }
+}
+
+append([]).
+append([?K | ?R]) :-
+    ?X is Vectordb(?K),
+    assertz(record(?X, ?K)),
+    append(?R).
+
+check(?P, ?R) :-
+    findall(?K, record(?P, ?K), ?R).
+
+//We use a Boolean recipient variable to force the execution when all variables are unified
+bool x  = append(["This is a test", "This is another test", "This is a third test"]);
+
+//We look for only one solution, ?R is not unified
+?:- r = check(Vectordb("This is not a nice test"), ?R);
+println(r);
+println(r.map());

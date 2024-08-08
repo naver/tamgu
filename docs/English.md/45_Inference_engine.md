@@ -577,7 +577,7 @@ vector v = test(?X,?Z);
 println(v);
 ```
 
-### Natural Language Processing
+### Natural Language Processing with DCG
 
 ```prolog
 sentence(s(?NP,?VP)) --> noun_phrase(?NP), verb_phrase(?VP).

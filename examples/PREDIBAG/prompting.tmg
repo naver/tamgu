@@ -4,9 +4,9 @@ Author: Claude Roux
 Description:  Prompting
 @/
 
-tamgu ollama(_current+"ollamacurl.tmg");
+tamgu ollama(_current + "ollamacurl.tmg");
 
-string uri = "http://localhost:11434";
+string uri = "http://carpo-03.int.europe.naverlabs.com:11434";
 
 function prompt(string p) {
     return ollama.promptnostream(uri, "mixtral", p);
@@ -79,4 +79,13 @@ function vcheck(string model, string prompt, string r1, string r2, string r3, st
     prompt += '<response id="3">'+r3+"</response></responses>";
     res = ollama.promptnostream(uri, model, prompt, 3000);
     return true;
+}
+
+thread t_prompt(string model, string p, ?_ res) {
+    res = ollama.promptnostream(uri, model, p);
+    return true;
+}
+
+function get_embedding(string model, string prompt) {
+    return ollama.embeddings(uri, model, prompt);
 }
