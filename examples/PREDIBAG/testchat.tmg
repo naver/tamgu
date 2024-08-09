@@ -1,0 +1,16 @@
+tamgu ollama(_current + "ollamacurl.tmg");
+
+string uri = "http://localhost:11434";
+
+string system_prompt = "You are a virtuose of Python programming.";
+string prompt = "Give the code to count prime numbers between 1 and 100";
+
+vector messages = ollama.chat_first(uri, "mixtral",system_prompt, prompt, 3000, 0.3);
+
+prompt = "Could you use another method than **0.5?";
+ollama.chat(uri, "mixtral", messages, prompt, 10000, 0.3);
+
+for (auto e in messages) {
+    println(e["role"], e["content"]);
+    println();
+}

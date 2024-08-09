@@ -6,6 +6,8 @@ Description: Calling ollama through cURL
 	  "model": "llama3",
 	  "prompt": "Why is the sky blue?"
 	}'
+
+    By default uri = "http://localhost:11434";
 @/
 
 use('tamgucurl');
@@ -33,6 +35,7 @@ function foncchat(string content, auto o) {
     try {
         map m;
         m = content;
+        m["message"]["content"] = m["message"]["content"].replace("\n", '\n');
         o.push(m["message"]);
     }
     catch();
@@ -87,18 +90,47 @@ function prompting(string uri, string model,  string msg, int num_ctx = 1000, fl
     return res;
 }
 
-function chat(string uri, string model, string msg, int num_ctx, float temperature) {    
+//You need to call chat_first in order to initialize your chat completion
+function chat_first(string uri, string model, string system_prompt, string msg, int num_ctx, float temperature) {    
     uri += "/api/chat";
-    vector res;
-    curl c(res) with foncchat;
+
+    msg = msg.replace("\n", '\n');
+
+    vector messages;
+    if (system_prompt != "") {
+        system_prompt = system_prompt.replace("\n", '\n');
+        messages = [{"role": "system","content": system_prompt}, {"role": "user","content": msg}];
+    }
+    else
+        messages = [{"role": "user","content": msg}];
+        
+    curl c(messages) with foncchat;
+
     map m = {
         "model": model, 
-        "messages": [
-            {
-                "role": "user",
-                "content": msg                
-            }
-        ],
+        "messages": messages,
+        "options":{"temperature":temperature, "num_ctx": num_ctx},
+        "stream" : false
+    };
+    // Charger notre page web. Pour chaque bloc, fonc sera appelée...
+    c.url(uri);
+    c.options("CURLOPT_POSTFIELDS", m);
+
+    c.execute();
+    return messages;
+}
+
+//You provide your current list of messages as an input to chat as returned by chat_first
+function chat(string uri, string model, vector messages, string msg, int num_ctx, float temperature) {    
+    uri += "/api/chat";
+
+    msg = msg.replace("\n", '\n');
+    messages.push({"role": "user","content": msg});
+    curl c(messages) with foncchat;
+   
+    map m = {
+        "model": model, 
+        "messages": messages,
         "options":{"temperature":temperature, "num_ctx": num_ctx},
         "stream" : false
     };
@@ -108,7 +140,7 @@ function chat(string uri, string model, string msg, int num_ctx, float temperatu
     c.options("CURLOPT_POSTFIELDS", m);
 
     c.execute();
-    return res;
+    return messages;
 }
 
 function embeddings(string uri, string model, string msg) {

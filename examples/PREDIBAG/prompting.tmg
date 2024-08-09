@@ -6,7 +6,7 @@ Description:  Prompting
 
 tamgu ollama(_current + "ollamacurl.tmg");
 
-string uri = "http://carpo-03.int.europe.naverlabs.com:11434";
+string uri = "http://localhost:11434";
 
 function prompt(string p) {
     return ollama.promptnostream(uri, "mixtral", p);
