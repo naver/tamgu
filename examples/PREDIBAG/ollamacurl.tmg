@@ -117,7 +117,7 @@ function chat_first(string uri, string model, string system_prompt, string msg, 
     c.options("CURLOPT_POSTFIELDS", m);
 
     c.execute();
-    return messages;
+    return true;
 }
 
 //You provide your current list of messages as an input to chat as returned by chat_first
