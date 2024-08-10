@@ -12,6 +12,16 @@ Description: Calling ollama through cURL
 
 use('tamgucurl');
 
+function convert(string s) {
+    svector r = r"u%x%x%x%x"  in s;
+    if (r) {
+        for (string e in r) {
+            s = s.replace(e, chr(int("0x" + e[1:])));
+        }
+    }
+    return s;
+}
+
 function fonc(string content, auto o) {
     content = content.trim();    
     try {
@@ -36,7 +46,7 @@ function foncchat(string content, auto o) {
         map m;
         m = content;
         if (m.test("message")) {
-            printerr(m["message"]["content"]);
+            printerr(convert(m["message"]["content"]));
             m["message"]["content"] = m["message"]["content"].replace("\n", '\n');
             if (o[-1]["role"] == "assistant")
                 o[-1]["content"] += m["message"]["content"];
@@ -181,3 +191,5 @@ function modellist(string uri) {
     }
     return lst;
 }
+
+
