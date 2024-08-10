@@ -35,8 +35,16 @@ function foncchat(string content, auto o) {
     try {
         map m;
         m = content;
-        m["message"]["content"] = m["message"]["content"].replace("\n", '\n');
-        o.push(m["message"]);
+        if (m.test("message")) {
+            printerr(m["message"]["content"]);
+            m["message"]["content"] = m["message"]["content"].replace("\n", '\n');
+            if (o[-1]["role"] == "assistant")
+                o[-1]["content"] += m["message"]["content"];
+            else 
+                o.push(m["message"]);
+        }
+        else
+            println(content);
     }
     catch();
 }
@@ -91,7 +99,6 @@ function prompting(string uri, string model,  string msg, int num_ctx = 1000, fl
 }
 
 //You need to call chat_first in order to initialize your chat completion
-//see testchat.tmg for an example
 function chat_first(string uri, string model, string system_prompt, string msg, int num_ctx, float temperature) {    
     uri += "/api/chat";
 
@@ -104,24 +111,24 @@ function chat_first(string uri, string model, string system_prompt, string msg, 
     }
     else
         messages = [{"role": "user","content": msg}];
-        
+
     curl c(messages) with foncchat;
 
     map m = {
         "model": model, 
         "messages": messages,
         "options":{"temperature":temperature, "num_ctx": num_ctx},
-        "stream" : false
+        "stream" : true
     };
     // Charger notre page web. Pour chaque bloc, fonc sera appelée...
     c.url(uri);
     c.options("CURLOPT_POSTFIELDS", m);
 
     c.execute();
-    return true;
+    printlnerr();
+    return messages;
 }
 
-//You provide your current list of messages as an input to chat as returned by chat_first
 function chat(string uri, string model, vector messages, string msg, int num_ctx, float temperature) {    
     uri += "/api/chat";
 
@@ -133,7 +140,7 @@ function chat(string uri, string model, vector messages, string msg, int num_ctx
         "model": model, 
         "messages": messages,
         "options":{"temperature":temperature, "num_ctx": num_ctx},
-        "stream" : false
+        "stream" : true
     };
 
     // Charger notre page web. Pour chaque bloc, fonc sera appelée...
@@ -141,6 +148,7 @@ function chat(string uri, string model, vector messages, string msg, int num_ctx
     c.options("CURLOPT_POSTFIELDS", m);
 
     c.execute();
+    printlnerr();
     return messages;
 }
 
@@ -173,5 +181,3 @@ function modellist(string uri) {
     }
     return lst;
 }
-
-
