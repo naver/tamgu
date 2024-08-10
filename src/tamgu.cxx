@@ -45,7 +45,7 @@
 #include "tamgusocket.h"
 #include "tamgudate.h"
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2024.08.02.10";
+const char* tamgu_version = "Tamgu 1.2024.08.10.17";
 
 extern "C" {
 Exporting const char* TamguVersion(void) {
@@ -1487,8 +1487,11 @@ Exporting void TamguGlobal::RecordCompatibilities() {
     compatibilities[a_uloop][a_vector] = true;
     
     for (i = 0; i < vectortypes.size(); i++) {
-        for (j = 0; j < vectortypes.size(); j++)
+        for (j = 0; j < vectortypes.size(); j++) {
             compatibilities[vectortypes[i]][vectortypes[j]] = true;
+            compatibilities[vectortypes[i]][a_string] = true;
+            compatibilities[vectortypes[i]][a_ustring] = true;
+        }
         
         if (vectortypes[i] != a_svector && vectortypes[i] != a_uvector ) {
             compatibilities[a_bloop][vectortypes[i]] = true;
@@ -1511,8 +1514,11 @@ Exporting void TamguGlobal::RecordCompatibilities() {
     }
     
     for (i = 0; i < maptypes.size(); i++) {
-        for (j = 0; j < maptypes.size(); j++)
+        for (j = 0; j < maptypes.size(); j++) {
             compatibilities[maptypes[i]][maptypes[j]] = true;
+            compatibilities[maptypes[i]][a_string] = true;
+            compatibilities[maptypes[i]][a_ustring] = true;
+        }
         
         strictcompatibilities[a_map][maptypes[i]] = true;
         strictcompatibilities[a_primemap][maptypes[i]] = true;

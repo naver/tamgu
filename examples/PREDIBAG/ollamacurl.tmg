@@ -47,11 +47,14 @@ function foncchat(string content, auto o) {
         m = content;
         if (m.test("message")) {
             printerr(convert(m["message"]["content"]));
-            m["message"]["content"] = m["message"]["content"].replace("\n", '\n');
+            string msg = m["message"]["content"];
+            msg = msg.replace("\n", '\n');
             if (o[-1]["role"] == "assistant")
-                o[-1]["content"] += m["message"]["content"];
-            else 
+                o[-1]["content"] += msg;
+            else {
+                m["message"]["content"] = msg;
                 o.push(m["message"]);
+            }
         }
         else
             println(content);
