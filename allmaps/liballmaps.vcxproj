@@ -199,7 +199,6 @@
     <ClCompile Include="src\tamguprimemapui.cxx" />
     <ClCompile Include="src\tamguprimemapul.cxx" />
     <ClCompile Include="src\tamguprimemapuu.cxx" />
-    <ClCompile Include="src\tamgutreemapf.cxx" />
     <ClCompile Include="src\tamgutreemapff.cxx" />
     <ClCompile Include="src\tamgutreemapfi.cxx" />
     <ClCompile Include="src\tamgutreemapfl.cxx" />

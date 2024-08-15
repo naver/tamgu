@@ -11,7 +11,7 @@ tamguprimemapfu.cxx tamguprimemapi.cxx tamguprimemapif.cxx tamguprimemapii.cxx \
 tamguprimemapis.cxx tamguprimemapiu.cxx tamguprimemapl.cxx tamguprimemaplf.cxx \
 tamguprimemapll.cxx tamguprimemapls.cxx tamguprimemaplu.cxx tamguprimemapu.cxx \
 tamguprimemapuf.cxx tamguprimemapui.cxx tamguprimemapul.cxx tamguprimemapuu.cxx \
-tamgutreemapf.cxx tamgutreemapff.cxx tamgutreemapfi.cxx tamgutreemapfl.cxx \
+tamgutreemapff.cxx tamgutreemapfi.cxx tamgutreemapfl.cxx \
 tamgutreemapfs.cxx tamgutreemapfu.cxx \
 tamgutreemapii.cxx tamgutreemapis.cxx tamgutreemapiu.cxx tamgutreemapl.cxx \
 tamgutreemaplf.cxx tamgutreemapll.cxx tamgutreemaplu.cxx tamgutreemapu.cxx \

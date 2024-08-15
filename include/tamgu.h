@@ -3515,6 +3515,12 @@ public:
 	virtual Tamgu* Evaluate(long i, Tamgu* context, short idthread) {
 		return arguments[i]->Eval(context, aNULL, idthread);
 	}
+    
+    virtual Tamgu* Evaluatedefault(long i, Tamgu* context, Tamgu* default_value, short idthread) {
+        if (i < arguments.size())
+            return arguments[i]->Eval(context, aNULL, idthread);
+        return default_value;
+    }
 };
 
 class TamguCallClean : public TamguCall {
@@ -3532,6 +3538,16 @@ public:
             cleaning.push_back(context);
 		return context;
 	}
+
+    Tamgu* Evaluatedefault(long ipar, Tamgu* context, Tamgu* default_value, short idthread) {
+        if (ipar < arguments.size()) {
+            context = arguments[ipar]->Eval(context, aNULL, idthread);
+            if (!context->isConst())
+                cleaning.push_back(context);
+            return context;
+        }
+        return default_value;
+    }
 
 	//This function will automatically clean all these arguments...
 	inline void Releasing(Tamgu* returnobject) {

@@ -58,7 +58,6 @@
 #include "tamguprimemapui.h"
 #include "tamguprimemapul.h"
 #include "tamguprimemapuu.h"
-#include "tamgutreemapf.h"
 #include "tamgutreemapff.h"
 #include "tamgutreemapfi.h"
 #include "tamgutreemapfl.h"
@@ -129,7 +128,6 @@ extern "C" {
         Tamguprimemapui::InitialisationModule(global, version);
         Tamguprimemapul::InitialisationModule(global, version);
         Tamguprimemapuu::InitialisationModule(global, version);
-        Tamgutreemapf::InitialisationModule(global, version);
         Tamgutreemapff::InitialisationModule(global, version);
         Tamgutreemapfi::InitialisationModule(global, version);
         Tamgutreemapfl::InitialisationModule(global, version);

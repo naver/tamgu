@@ -12,7 +12,7 @@ tamgushort.cxx tamgusocket.cxx tamgustdin.cxx tamgustring.cxx tamgusvector.cxx t
 tamguustring.cxx tamguuvector.cxx tamguvector.cxx automaton.cxx codeparse.cxx codecompile.cxx codeexecute.cxx codeoperations.cxx\
 tamgurawstring.cxx containerrecording.cxx globaltamgu.cxx objectrecording.cxx predicate.cxx predicatefunctions.cxx procedures.cxx tools.cxx\
 tamguhvector.cxx tamgumapfl.cxx tamgumapl.cxx tamgumaplf.cxx tamgumapll.cxx tamgumapls.cxx tamgumaplu.cxx tamgumapsl.cxx tamgumapul.cxx\
-tamgutreemapsf.cxx tamgutreemapsi.cxx tamgutreemapss.cxx tamguprimemapsl.cxx tamgutreemapls.cxx tamgutreemapsl.cxx tamguautomaton.cxx tamguannotator.cxx
+tamgutreemapf.cxx tamgutreemapsf.cxx tamgutreemapsi.cxx tamgutreemapss.cxx tamguprimemapsl.cxx tamgutreemapls.cxx tamgutreemapsl.cxx tamguautomaton.cxx tamguannotator.cxx
 #------------------------------------------------------------
 SOURCETAMGUMAIN = maintamgu.cxx jag.cxx
 SOURCEJAG = jagmain.cxx jag.cxx conversion.cxx jagrgx.cxx

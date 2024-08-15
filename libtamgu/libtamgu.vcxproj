@@ -334,6 +334,7 @@
     <ClCompile Include="..\src\tamgutime.cxx" />
     <ClCompile Include="..\src\tamgutransducer.cxx" />
     <ClCompile Include="..\src\tamgutreemap.cxx" />
+    <ClCompile Include="..\src\tamgutreemapf.cxx" />
     <ClCompile Include="..\src\tamgutreemapi.cxx" />
     <ClCompile Include="..\src\tamgutreemapif.cxx" />
     <ClCompile Include="..\src\tamgutreemapls.cxx" />

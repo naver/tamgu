@@ -88,15 +88,10 @@ Tamgu* Proc_uniform_int(Tamgu* contextualpattern, short idthread, TamguCall* cal
 
     long nb = callfunc->Evaluate(0, aNULL, idthread)->Integer();
 
-    long alpha = 0;
+    Tamguint mx(std::numeric_limits<long>::max());
 
-    long beta = std::numeric_limits<long>::max();
-    
-    if (callfunc->Size() >= 2) {
-        alpha = callfunc->Evaluate(1, aNULL, idthread)->Integer();
-        if (callfunc->Size() == 3)
-            beta = callfunc->Evaluate(2, aNULL, idthread)->Integer();
-    }
+    long alpha = callfunc->Evaluatedefault(1, aNULL, aZERO, idthread)->Integer();
+    long beta = callfunc->Evaluatedefault(2, aNULL, &mx, idthread)->Integer();
 
     std::uniform_int_distribution<long> dis(alpha, beta);
     if (nb == 1)
@@ -117,14 +112,8 @@ Tamgu* Proc_uniform_real(Tamgu* contextualpattern, short idthread, TamguCall* ca
     
     long nb = callfunc->Evaluate(0, aNULL, idthread)->Integer();
 
-    double alpha = 0;
-    double beta = 1;
-    
-    if (callfunc->Size() >= 2) {
-        alpha = callfunc->Evaluate(1, aNULL, idthread)->Float();
-        if (callfunc->Size() == 3)
-            beta = callfunc->Evaluate(2, aNULL, idthread)->Float();
-    }
+    double alpha = callfunc->Evaluatedefault(1, aNULL, aZERO, idthread)->Float();
+    double beta = callfunc->Evaluatedefault(2, aNULL, aONE, idthread)->Float();
 
     std::uniform_real_distribution<double> d(alpha, beta);
     if (nb == 1)
@@ -145,14 +134,9 @@ Tamgu* Proc_binomial_distribution(Tamgu* contextualpattern, short idthread, Tamg
 
     long nb = callfunc->Evaluate(0, aNULL, idthread)->Integer();
 
-    long alpha = 1;
-    double beta = 0.5;
-    
-    if (callfunc->Size() >= 2) {
-        alpha = callfunc->Evaluate(1, aNULL, idthread)->Integer();
-        if (callfunc->Size() == 3)
-            beta = callfunc->Evaluate(2, aNULL, idthread)->Float();
-    }
+    Tamgufloat half(0.5);
+    long alpha = callfunc->Evaluatedefault(1, aNULL, aONE, idthread)->Integer();
+    double beta = callfunc->Evaluatedefault(2, aNULL, &half, idthread)->Float();
 
     std::binomial_distribution<long> dis(alpha, beta);
     if (nb == 1)
@@ -173,10 +157,9 @@ Tamgu* Proc_bernoulli_distribution(Tamgu* contextualpattern, short idthread, Tam
     static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
     
     long nb = callfunc->Evaluate(0, aNULL, idthread)->Integer();
-    double alpha = 0.5;
-    if (callfunc->Size() == 2)
-        alpha = callfunc->Evaluate(1, aNULL, idthread)->Float();
-    
+    Tamgufloat half(0.5);
+    double alpha = callfunc->Evaluatedefault(1, aNULL, &half, idthread)->Float();
+
     std::bernoulli_distribution d(alpha);
     if (nb == 1)
         return globalTamgu->ProvideConstint((long)d(gen));
@@ -197,14 +180,8 @@ Tamgu* Proc_normal_distribution(Tamgu* contextualpattern, short idthread, TamguC
     
     long nb = callfunc->Evaluate(0, aNULL, idthread)->Integer();
 
-    double alpha = 0;
-    double beta = 1;
-    
-    if (callfunc->Size() >= 2) {
-        alpha = callfunc->Evaluate(1, aNULL, idthread)->Float();
-        if (callfunc->Size() == 3)
-            beta = callfunc->Evaluate(2, aNULL, idthread)->Float();
-    }
+    double alpha = callfunc->Evaluatedefault(1, aNULL, aZERO, idthread)->Float();
+    double beta = callfunc->Evaluatedefault(2, aNULL, aONE, idthread)->Float();
 
     std::normal_distribution<double> d(alpha, beta);
     if (nb == 1)
@@ -223,17 +200,14 @@ Tamgu* Proc_normal_distribution(Tamgu* contextualpattern, short idthread, TamguC
 Tamgu* Proc_negative_binomial_distribution(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     static std::random_device rd;  //Will be used to obtain a seed for the random number engine
     static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-    
+
+    Tamgufloat half(0.5);
+
     long nb = callfunc->Evaluate(0, aNULL, idthread)->Integer();
     
-    long alpha = 1;
-    double beta = 0.5;
+    long alpha = callfunc->Evaluatedefault(1, aNULL, aONE, idthread)->Integer();
+    double beta = callfunc->Evaluatedefault(2, aNULL, &half, idthread)->Float();
     
-    if (callfunc->Size() >= 2) {
-        alpha = callfunc->Evaluate(1, aNULL, idthread)->Integer();
-        if (callfunc->Size() == 3)
-            beta = callfunc->Evaluate(2, aNULL, idthread)->Float();
-    }
 
     std::negative_binomial_distribution<long> d(alpha, beta);
     if (nb == 1)
@@ -423,14 +397,8 @@ Tamgu* Proc_lognormal_distribution(Tamgu* contextualpattern, short idthread, Tam
     
     long nb = callfunc->Evaluate(0, aNULL, idthread)->Integer();
 
-    double alpha = 0;
-    double beta = 1;
-    
-    if (callfunc->Size() >= 2) {
-        alpha = callfunc->Evaluate(1, aNULL, idthread)->Float();
-        if (callfunc->Size() == 3)
-            beta = callfunc->Evaluate(2, aNULL, idthread)->Float();
-    }
+    double alpha = callfunc->Evaluatedefault(1, aNULL, aZERO, idthread)->Float();
+    double beta = callfunc->Evaluatedefault(2, aNULL, aONE, idthread)->Float();
 
     std::lognormal_distribution<double> d(alpha, beta);
 
@@ -450,10 +418,9 @@ Tamgu* Proc_geometric_distribution(Tamgu* contextualpattern, short idthread, Tam
     static std::random_device rd;  //Will be used to obtain a seed for the random number engine
     static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
     
+    Tamgufloat half(0.5);
     long nb = callfunc->Evaluate(0, aNULL, idthread)->Integer();
-    double alpha = 0.5;
-    if (callfunc->Size()==2)
-        alpha = callfunc->Evaluate(1, aNULL, idthread)->Float();
+    double alpha = callfunc->Evaluatedefault(1, aNULL, &half, idthread)->Float();
     
     std::geometric_distribution<long> d(alpha);
     if (nb == 1)
@@ -475,15 +442,9 @@ Tamgu* Proc_cauchy_distribution(Tamgu* contextualpattern, short idthread, TamguC
     
     long nb = callfunc->Evaluate(0, aNULL, idthread)->Integer();
     
-    double alpha = 0;
-    double beta = 1;
+    double alpha = callfunc->Evaluatedefault(1, aNULL, aZERO, idthread)->Float();
+    double beta = callfunc->Evaluatedefault(2, aNULL, aONE, idthread)->Float();
     
-    if (callfunc->Size() >= 2) {
-        alpha = callfunc->Evaluate(1, aNULL, idthread)->Float();
-        if (callfunc->Size() == 3)
-            beta = callfunc->Evaluate(2, aNULL, idthread)->Float();
-    }
-
     std::cauchy_distribution<double> d(alpha, beta);
 
     if (nb == 1)
@@ -559,14 +520,8 @@ Tamgu* Proc_extreme_value_distribution(Tamgu* contextualpattern, short idthread,
     
     long nb = callfunc->Evaluate(0, aNULL, idthread)->Integer();
     
-    double alpha = 0;
-    double beta = 1;
-    
-    if (callfunc->Size() >= 2) {
-        alpha = callfunc->Evaluate(1, aNULL, idthread)->Float();
-        if (callfunc->Size() == 3)
-            beta = callfunc->Evaluate(2, aNULL, idthread)->Float();
-    }
+    double alpha = callfunc->Evaluatedefault(1, aNULL, aZERO, idthread)->Float();
+    double beta = callfunc->Evaluatedefault(2, aNULL, aONE, idthread)->Float();
 
     std::extreme_value_distribution<double> d(alpha, beta);
     if (nb == 1)
