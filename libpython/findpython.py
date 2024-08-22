@@ -14,11 +14,17 @@ def traverse(libpath, v):
                 return True
     return False
 
-home = os.getenv("HOME")
-path = home+"/opt/anaconda3/"
-v = []
-traverse(path, v)
-path = home+"/opt/anaconda3/envs/"
+# You can provide your own path on the command line
+# By default we will investigate the /opt/anaconda3 directory on Mac OS
+if len(sys.argv) == 1:
+    home = os.getenv("HOME")
+    path = home+"/opt/anaconda3/"
+    v = []
+    traverse(path, v)
+    path = home+"/opt/anaconda3/envs/"
+else:
+    path = sys.argv[1]
+
 ls = os.listdir(path)
 for e in ls:
     traverse(path+e, v)
@@ -30,7 +36,7 @@ FORLINKED = -undefined dynamic_lookup
 LOCALPYTHONLIB = $(FORLINKED) -L$(HOME)/opt/anaconda3/lib -lpython
 
 #If ANACONDA is not installed on your machine, uncomment the following lines
-#Don't forget to comment the above lines
+#Don't forget to comment the above lines (Only for MAC OS)
 #LOCALINCLUDEPYTHON = -I/Library/Frameworks/Python.framework/Headers
 #LOCALPYTHONLIB = /Library/Frameworks/Python.framework/Python
 """
