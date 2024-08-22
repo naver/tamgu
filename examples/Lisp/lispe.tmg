@@ -1,0 +1,42 @@
+use('tamgulispe');
+
+lispe l;
+
+l.execute("(defun xx (u) (+ u 3))");
+println(l.execute("(xx 10)"));
+int a = 100;
+int b = 1000;
+println(\(xx a));
+
+
+println(\(+ (xx a) 3));
+
+println(\((lambda (x) (+ x 2)) 20));
+
+println(l.eval("(+", a,b,"(xx",a,"))"));
+
+treemapif p;
+
+p[0] = 20;
+p[1] = 100;
+
+println(l.eval("(type",p,")"));
+l.eval("(println",p,")");
+
+
+treemap m;
+
+m["test"] = 10;
+m["truc"] = 20;
+
+l.eval(m,a,b);
+println(l.eval("(type m)"));
+
+println(l.eval("(loop i p (println i (key p i)))"));
+l.eval('(println a b p)');
+
+
+println(l.eval('p'));
+
+println(l.eval('xx'));
+
