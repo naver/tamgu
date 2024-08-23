@@ -759,46 +759,40 @@ Element *Tamgulispe::convert_to_lispe(Tamgu *e, short idthread)
 //------------------------------------------------------------------------------------------------------------------
 void Tamgulispe::build(Tamgu *contextualpattern, TamguCall *callfunc, short idthread, string &code)
 {
-    Tamgu *a;
-    Element *e;
-    string name;
-
     long nbelements = callfunc->Size();
 
     if (nbelements == 1)
     {
-        a = callfunc->Argument(0);
-        if (a->isCallVariable())
-        {
-            name = globalTamgu->Getsymbol(a->Name());
+        Tamgu* var = callfunc->Argument(0);
+        Tamgu* a = callfunc->Evaluate(0, contextualpattern, idthread);
+        code = a->String();
+        if (var->isCallVariable() && code.find(" ") == string::npos) {
+            string name = globalTamgu->Getsymbol(var->Name());
             short label = lisp->encode(name);
-            a = callfunc->Evaluate(0, contextualpattern, idthread);
-            e = convert_to_lispe(a, idthread);
+            Element* e = convert_to_lispe(a, idthread);
             lisp->storing_variable(e, label);
-            return;
-        }
-        
-        code = callfunc->Evaluate(0, contextualpattern, idthread)->String();
+            code = "";
+        }        
         return;
     }
 
     bool encoded = false;
     binSet variables;
-    for (long i = 0; i < callfunc->Size(); i++)
+    for (long i = 0; i < nbelements; i++)
     {
         if (i)
             code += " ";
-        a = callfunc->Argument(i);
+        Tamgu* a = callfunc->Argument(i);
         if (a->isCallVariable())
         {
-            name = globalTamgu->Getsymbol(a->Name());
+            string name = globalTamgu->Getsymbol(a->Name());
             code += name;
             short label = lisp->encode(name);
             if (!variables.check(label))
             {
                 a = callfunc->Evaluate(i, contextualpattern, idthread);
                 variables.push(label);
-                e = convert_to_lispe(a, idthread);
+                Element* e = convert_to_lispe(a, idthread);
                 lisp->storing_variable(e, label);
             }
         }
