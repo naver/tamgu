@@ -403,6 +403,7 @@ Tamgu *Tamgulispe::convert_to_tamgu(Element *e, short idthread)
         return v;
     }
     case t_dictionary:
+    case t_set:
     {
         Tamgumap *m = globalTamgu->Providemap();
         Dictionary *d = (Dictionary *)e;
@@ -436,6 +437,37 @@ Tamgu *Tamgulispe::convert_to_tamgu(Element *e, short idthread)
         for (it = d->dictionary.begin(); it != d->dictionary.end(); it++)
         {
             m->Push(it->first, convert_to_tamgu(it->second, idthread));
+        }
+        return m;
+    }
+    case t_sets:
+    {
+        Tamgumap *m = globalTamgu->Providemap();
+        Set_s *d = (Set_s *)e;
+        string v;
+        u_ustring u;
+        for (auto& a : d->ensemble) {
+            u = a;
+            s_unicode_to_utf8(v, u);
+            m->Push(v, aTRUE);
+        }
+        return m;
+    }
+    case t_seti:
+    {
+        Tamgumapi *m = new Tamgumapi();
+        Set_i *d = (Set_i *)e;
+        for (auto& a : d->ensemble) {
+            m->Push(a, aTRUE);
+        }
+        return m;
+    }
+    case t_setn:
+    {
+        Tamgumapf *m = new Tamgumapf();
+        Set_n *d = (Set_n *)e;
+        for (auto& a : d->ensemble) {
+            m->Push(a, aTRUE);
         }
         return m;
     }

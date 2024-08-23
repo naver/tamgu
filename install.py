@@ -79,7 +79,7 @@ libs: install
 	$(MAKE) -C allmaps all
 	$(MAKE) -C pdf all
 	$(MAKE) -C liblinear linear
-    $(MAKE) -C lispe tamgulispe
+	$(MAKE) -C lispe tamgulispe
 	$(MAKE) -C libword2vec word2vec
 	$(MAKE) -C libwapiti wapiti
 	$(MAKE) -C libpython pytamgu
@@ -91,7 +91,7 @@ cleanlibs:
 	$(MAKE) -C pdf clean
 	$(MAKE) -C libpython clean
 	$(MAKE) -C liblinear clean
-    $(MAKE) -C lispe clean
+	$(MAKE) -C lispe clean
 	$(MAKE) -C libword2vec clean
 	$(MAKE) -C libwapiti clean
 """
@@ -193,8 +193,8 @@ libs: install
 	$(MAKE) -C libsqlite sqlite
 	$(MAKE) -C libcurl curl
 	$(MAKE) -C libxml xml
+	$(MAKE) -C lispe tamgulispe
 	$(MAKE) -C liblinear linear
-    $(MAKE) -C lispe tamgulispe
 	$(MAKE) -C libword2vec word2vec
 	$(MAKE) -C libwapiti wapiti
 	$(MAKE) -C pdf all
@@ -208,7 +208,7 @@ cleanlibs:
 	$(MAKE) -C libcurl clean
 	$(MAKE) -C libxml clean
 	$(MAKE) -C liblinear clean
-    $(MAKE) -C lispe clean
+	$(MAKE) -C lispe clean
 	$(MAKE) -C libword2vec clean
 	$(MAKE) -C libwapiti clean
 	$(MAKE) -C pdf clean

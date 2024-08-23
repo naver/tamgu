@@ -456,6 +456,7 @@ public:
 class TamguGlobal;
 class TamguSystemVariable;
 typedef void(*DisplayFunctionCall)(string s, void* object);
+typedef Tamgu* (*LispeCall)(Tamgulisp*, short);
 typedef Tamgu* (*TamguProcedure)(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 typedef Tamgu* (*TamguDebug)(vector<Tamgu*>& stack, short idthread, void* data);
 typedef void (*TamguTermination)(TamguGlobal* global);
@@ -582,6 +583,7 @@ public:
 	ostream* os;
 	bool doubledisplay;
 	DisplayFunctionCall displayfunction;
+    LispeCall lispe;
 	void* displayobject;
 	Tamgu* kstd;
 	Tamgu* kerr;

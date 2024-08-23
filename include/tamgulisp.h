@@ -390,12 +390,17 @@ class Tamgulisp : public Tamguvector {
     //Your personal variables here...
     bool used;
     long idinfo;
+    Tamgu* lispe;
 
     //---------------------------------------------------------------------------------------------------------------------
-    Tamgulisp(TamguGlobal* g, Tamgu* parent) : used(false), Tamguvector(g, parent) {}
+    Tamgulisp(TamguGlobal* g, Tamgu* parent) : used(false), Tamguvector(g, parent) {
+        lispe = NULL;
+    }
 
-    Tamgulisp(long i) : used(false), idinfo(i) {}
-
+    Tamgulisp(long i) : used(false), idinfo(i) {
+        lispe = NULL;
+    }
+    
     //----------------------------------------------------------------------------------------------------------------------
     Tamgu* Eval(Tamgu* context, Tamgu* v, short idthread);
     Tamgu* Put(Tamgu* c, Tamgu* v, short idthread);

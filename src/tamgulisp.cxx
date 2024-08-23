@@ -384,6 +384,9 @@ Tamgu* Tamgulisp::MethodLoad(Tamgu* contextualpattern, short idthread, TamguCall
 
     //For once it is the original historical Eval...
 Tamgu* Tamgulisp::Eval(Tamgu* contextualpattern, Tamgu* v0, short idthread) {
+    if (globalTamgu->lispe != NULL)
+        return (*globalTamgu->lispe)(this, idthread);
+    
     if (v0->isIndex())
         return Tamguvector::Eval(contextualpattern, v0, idthread);
     

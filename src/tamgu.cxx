@@ -538,6 +538,7 @@ operator_strings(false), terms(false), booleanlocks(true), tracked(NULL, true), 
     doubledisplay = false;
     displayfunction = NULL;
     displayobject = NULL;
+    lispe = NULL;
     //---------------------------------
     debugfunction = NULL;
     debugdata = NULL;
