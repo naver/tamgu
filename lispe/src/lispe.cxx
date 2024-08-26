@@ -114,10 +114,6 @@ bool Stackelement::recordargument(LispE* lisp, Element* e, int16_t label) {
     return true;
 }
 //------------------------------------------------------------
-jag_get* get_jag_handler();
-void clean_get_handler(jag_get*);
-void lispe_readfromkeyboard(string& code, void*);
-
 void lispe_displaystring(string& code, void*) {
     cout << code;
 }
@@ -136,15 +132,9 @@ Delegation::Delegation() : main_tokenizer(NULL) {
     current_error = NULL;
     windowmode = NULL;
     
-#ifdef LISPE_WASM
     input_handler = NULL;
     reading_string_function = NULL;
     reading_string_function_object = NULL;
-#else
-    input_handler = get_jag_handler();
-    reading_string_function = &lispe_readfromkeyboard;
-    reading_string_function_object = input_handler;
-#endif
 
     display_string_function = &lispe_displaystring;
 
@@ -187,9 +177,6 @@ Delegation::Delegation() : main_tokenizer(NULL) {
 }
 
 Delegation::~Delegation() {
-#ifndef LISPE_WASM
-    clean_get_handler(input_handler);
-#endif
     //In the case, some residual threads have left some data
     clean_threads();
 

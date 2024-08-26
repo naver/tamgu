@@ -1,7 +1,7 @@
 ###################################################################
 include ../Makefile.in
 #------------------------------------------------------------
-sourcelispe = tamgulispe.cxx lispe.cxx jagget.cxx eval.cxx elements.cxx lispetools.cxx systems.cxx maths.cxx strings.cxx randoms.cxx rgx.cxx sockets.cxx composing.cxx ontology.cxx sets.cxx lists.cxx dictionaries.cxx straight_eval.cxx tensors.cxx
+sourcelispe = tamgulispe.cxx lispe.cxx eval.cxx elements.cxx lispetools.cxx systems.cxx maths.cxx strings.cxx randoms.cxx rgx.cxx sockets.cxx composing.cxx ontology.cxx sets.cxx lists.cxx dictionaries.cxx straight_eval.cxx tensors.cxx
 #------------------------------------------------------------
 LBINPATH = ../$(BINPATH)
 LOBJPATH = ../$(LIBOBJPATH)
@@ -17,7 +17,7 @@ Tamguincludes= -Iinclude -I../include $(INCLUDEPATH)
 $(LOBJPATH)/lispe/%.o: src/%.cxx
 	$(COMP) -Iinclude $(TamguFLAGS) $(Tamguincludes) $< -o $@
 #------------------------------------------------------------
-all: install $(objectlispe)
+tamgulispe: install $(objectlispe)
 	$(COMPPLUSPLUS) -shared -o $(LBINPATH)/libtamgulispe.so $(objectlispe) $(SYSTEMSPATH) $(LIBREGEX) -L$(LBINPATH) -ltamgu
 
 install:

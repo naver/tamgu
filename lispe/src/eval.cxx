@@ -3269,8 +3269,7 @@ Element* List::evall_defun(LispE* lisp) {
 }
 
 Element* List::evall_getchar(LispE* lisp) {
-    string code = get_char(lisp->delegation->input_handler);
-    return lisp->provideString(code);
+    return null_;
 }
 
 Element* List::evall_if(LispE* lisp) {
@@ -3442,7 +3441,7 @@ Element* List::evall_input(LispE* lisp) {
         s_unicode_to_utf8(code, wcode);
     }
     
-    lisp->delegation->reading_string_function(code, lisp->delegation->reading_string_function_object);
+    //lisp->delegation->reading_string_function(code, lisp->delegation->reading_string_function_object);
 #ifdef WIN32
     cout << std::endl;
 #endif
