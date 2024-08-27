@@ -1,5 +1,6 @@
 ###################################################################
 include ../Makefile.in
+include Makefile.py
 ################ To compile Tamgu#################################
 SOURCEPYTHON = tamgupython.cxx
 #------------------------------------------------------------
@@ -19,8 +20,11 @@ $(LOBJPATH)/pytamgu/%.o: src/%.cxx
 pytamgu: install $(OBJECTPYTHON) $(OBJECTTamgu)
 	$(COMPPLUSPLUS) -shared -o $(LBINPATH)/pytamgu.so $(OBJECTPYTHON) $(SYSTEMSPATH) $(PYTHONPATH) $(PYTHONLIB) $(LIBREGEX) -L$(LBINPATH) -ltamgu
 
-local: install $(OBJECTPYTHON) $(OBJECTTamgu)
+mac: install $(OBJECTPYTHON) $(OBJECTTamgu)
 	$(COMPPLUSPLUS) -shared -o $(LBINPATH)/pytamgu.so $(OBJECTPYTHON) $(PYTHONPATH) $(PYTHONLIB) -L/usr/local/lib -ltamgu
+
+local: install $(OBJECTPYTHON) $(OBJECTTamgu)
+	$(COMPPLUSPLUS) -shared -o $(LBINPATH)/pytamgu.so $(OBJECTPYTHON) $(PYTHONPATH) $(PYTHONLIB) -L$(LBINPATH) -ltamgu
 
 install:
 	mkdir -p $(LOBJPATH)/pytamgu
