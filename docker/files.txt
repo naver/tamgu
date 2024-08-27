@@ -1,0 +1,12 @@
+liballmaps.so
+liblinear.so
+libsqlite.so
+libtamgucurl.so
+libtamgulispe.so
+libtamgupdf.so
+libtamgu.so
+libwapiti.so
+libword2vec.so
+libxml.so
+pytamgu.so
+tamgu
