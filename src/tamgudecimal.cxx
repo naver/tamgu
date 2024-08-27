@@ -224,11 +224,11 @@ Tamgu* TamguLoopDecimal::Vector(short idthread) {
 // Tamgu complex implementation
 
 //We need to declare once again our local definitions.
-Exporting basebin_hash<complexMethod>  Tamgucomplex::methods;
+Exporting basebin_hash<complexMethod>  Tamgucomplexe::methods;
 
 
 //MethodInitialization will add the right references to "name", which is always a new method associated to the object we are creating
-void Tamgucomplex::AddMethod(TamguGlobal* global, string name, complexMethod func, unsigned long arity, string infos, short typereturn) {
+void Tamgucomplexe::AddMethod(TamguGlobal* global, string name, complexMethod func, unsigned long arity, string infos, short typereturn) {
     short idname = global->Getid(name);
     methods[idname] = func;
     if (global->infomethods.find(a_complex) != global->infomethods.end() &&
@@ -244,35 +244,35 @@ void Tamgucomplex::AddMethod(TamguGlobal* global, string name, complexMethod fun
 
 
 
-void Tamgucomplex::Setidtype(TamguGlobal* global) {
+void Tamgucomplexe::Setidtype(TamguGlobal* global) {
   Locking lock(classlock);
-  if (Tamgucomplex::methods.isEmpty())
-    Tamgucomplex::InitialisationModule(global,"");
+  if (Tamgucomplexe::methods.isEmpty())
+    Tamgucomplexe::InitialisationModule(global,"");
 }
 
 
-   bool Tamgucomplex::InitialisationModule(TamguGlobal* global, string version) {
+   bool Tamgucomplexe::InitialisationModule(TamguGlobal* global, string version) {
     methods.clear();
 
-    Tamgucomplex::AddMethod(global, "_initial", &Tamgucomplex::MethodUnit, P_TWO | P_NONE, "complex(double r, double i)", a_none);
-    Tamgucomplex::AddMethod(global, "invert", &Tamgucomplex::MethodInvert, P_NONE, "", a_float);
-    Tamgucomplex::AddMethod(global, "succ", &Tamgucomplex::MethodSucc, P_NONE, "succ(): Return a successor of the current value", a_float);
-    Tamgucomplex::AddMethod(global, "pred", &Tamgucomplex::MethodPred, P_NONE, "pred(): Return the predecessor of a byte.", a_float);
+    Tamgucomplexe::AddMethod(global, "_initial", &Tamgucomplexe::MethodUnit, P_TWO | P_NONE, "complex(double r, double i)", a_none);
+    Tamgucomplexe::AddMethod(global, "invert", &Tamgucomplexe::MethodInvert, P_NONE, "", a_float);
+    Tamgucomplexe::AddMethod(global, "succ", &Tamgucomplexe::MethodSucc, P_NONE, "succ(): Return a successor of the current value", a_float);
+    Tamgucomplexe::AddMethod(global, "pred", &Tamgucomplexe::MethodPred, P_NONE, "pred(): Return the predecessor of a byte.", a_float);
 
-    Tamgucomplex::AddMethod(global, "real", &Tamgucomplex::MethodReal, P_NONE, "real(): return the real part of the value", a_float);
-    Tamgucomplex::AddMethod(global, "imaginary", &Tamgucomplex::MethodImaginary, P_NONE, "imaginary(): return the imaginary part of the value", a_float);
+    Tamgucomplexe::AddMethod(global, "real", &Tamgucomplexe::MethodReal, P_NONE, "real(): return the real part of the value", a_float);
+    Tamgucomplexe::AddMethod(global, "imaginary", &Tamgucomplexe::MethodImaginary, P_NONE, "imaginary(): return the imaginary part of the value", a_float);
 
 
 
     if (version != "") {
-        global->newInstance[a_complex] = new Tamgucomplex(0, 0, global);
+        global->newInstance[a_complex] = new Tamgucomplexe(0, 0, global);
         global->RecordCompatibilities(a_complex);
     }
     
     return true;
 }
 
-Tamgu* Tamgucomplex::MethodUnit(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+Tamgu* Tamgucomplexe::MethodUnit(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     if (callfunc->Size()) {
         double real = callfunc->Evaluate(0, contextualpattern, idthread)->Float();
         double imaginary = callfunc->Evaluate(1, contextualpattern, idthread)->Float();

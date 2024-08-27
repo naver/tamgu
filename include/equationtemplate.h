@@ -2667,18 +2667,18 @@ public:
         return res;
     }
 
-    Tamgu* EvalComplex(Tamgu* context, Tamgu* res, short idthread) {
+    Tamgu* EvalComplexe(Tamgu* context, Tamgu* res, short idthread) {
         Tamgu* v;
         bool autoself = false;
-        v=values[0]->EvalComplex(aNULL, aNULL, idthread);
-        res =  v->Complex();
+        v=values[0]->EvalComplexe(aNULL, aNULL, idthread);
+        res =  v->Complexe();
         if (res != v)
             v->Release();
         if (res->isProtected())
             autoself = true;
         
         for (long i=1;i<size; i++) {
-            context = values[i]->EvalComplex(aNULL, aNULL, idthread);
+            context = values[i]->EvalComplexe(aNULL, aNULL, idthread);
             v =  res->plus(context, autoself);
             context->Releasenonconst();
             if (v != res) {
@@ -3048,18 +3048,18 @@ public:
         return res;
     }
 
-    Tamgu* EvalComplex(Tamgu* context, Tamgu* res, short idthread) {
+    Tamgu* EvalComplexe(Tamgu* context, Tamgu* res, short idthread) {
         Tamgu* v;
         bool autoself = false;
-        v=values[0]->EvalComplex(aNULL, aNULL, idthread);
-        res =  v->Complex();
+        v=values[0]->EvalComplexe(aNULL, aNULL, idthread);
+        res =  v->Complexe();
         if (res != v)
             v->Release();
         if (res->isProtected())
             autoself = true;
         
         for (long i=1;i<size; i++) {
-            context = values[i]->EvalComplex(aNULL, aNULL, idthread);
+            context = values[i]->EvalComplexe(aNULL, aNULL, idthread);
             v =  res->minus(context, autoself);
             context->Releasenonconst();
             if (v != res) {
@@ -3324,11 +3324,11 @@ public:
         return res;
     }
 
-    Tamgu* EvalComplex(Tamgu* context, Tamgu* res, short idthread) {
+    Tamgu* EvalComplexe(Tamgu* context, Tamgu* res, short idthread) {
         Tamgu* v;
         bool autoself = false;
-        v=values[0]->EvalComplex(aNULL, aNULL, idthread);
-        res =  v->Complex();
+        v=values[0]->EvalComplexe(aNULL, aNULL, idthread);
+        res =  v->Complexe();
         if (res != v)
             v->Release();
         
@@ -3336,7 +3336,7 @@ public:
             autoself = true;
         
         for (long i=1;i<size; i++) {
-            context = values[i]->EvalComplex(aNULL, aNULL, idthread);
+            context = values[i]->EvalComplexe(aNULL, aNULL, idthread);
             v =  res->multiply(context, autoself);
             context->Releasenonconst();
             if (v != res) {
@@ -3413,11 +3413,11 @@ public:
         return res;
     }
 
-    Tamgu* EvalComplex(Tamgu* context, Tamgu* res, short idthread) {
+    Tamgu* EvalComplexe(Tamgu* context, Tamgu* res, short idthread) {
         Tamgu* v;
         bool autoself = false;
-        v=values[0]->EvalComplex(aNULL, aNULL, idthread);
-        res =  v->Complex();
+        v=values[0]->EvalComplexe(aNULL, aNULL, idthread);
+        res =  v->Complexe();
         if (res != v)
             v->Release();
         
@@ -3425,7 +3425,7 @@ public:
             autoself = true;
 
         for (long i=1;i<size; i++) {
-            context = values[i]->EvalComplex(aNULL, aNULL, idthread);
+            context = values[i]->EvalComplexe(aNULL, aNULL, idthread);
             v =  res->divide(context, autoself);
             context->Releasenonconst();
             if (v != res) {
@@ -3539,11 +3539,11 @@ public:
         return res;
     }
 
-    Tamgu* EvalComplex(Tamgu* context, Tamgu* res, short idthread) {
+    Tamgu* EvalComplexe(Tamgu* context, Tamgu* res, short idthread) {
         Tamgu* v;
         bool autoself = false;
-        v=values[0]->EvalComplex(aNULL, aNULL, idthread);
-        res =  v->Complex();
+        v=values[0]->EvalComplexe(aNULL, aNULL, idthread);
+        res =  v->Complexe();
         if (res != v)
             v->Release();
         
@@ -3551,7 +3551,7 @@ public:
             autoself = true;
 
         for (long i=1;i<size; i++) {
-            context = values[i]->EvalComplex(aNULL, aNULL, idthread);
+            context = values[i]->EvalComplexe(aNULL, aNULL, idthread);
             v =  res->divideinteger(context, autoself);
             context->Releasenonconst();
             if (v != res) {
@@ -3668,18 +3668,18 @@ public:
         return res;
     }
 
-    Tamgu* EvalComplex(Tamgu* context, Tamgu* res, short idthread) {
+    Tamgu* EvalComplexe(Tamgu* context, Tamgu* res, short idthread) {
         Tamgu* v;
         bool autoself = false;
-        v=values[0]->EvalComplex(aNULL, aNULL, idthread);
-        res =  v->Complex();
+        v=values[0]->EvalComplexe(aNULL, aNULL, idthread);
+        res =  v->Complexe();
         if (res != v)
             v->Release();
         if (res->isProtected())
             autoself = true;
         
         for (long i=1;i<size; i++) {
-            context = values[i]->EvalComplex(aNULL, aNULL, idthread);
+            context = values[i]->EvalComplexe(aNULL, aNULL, idthread);
             v =  res->mod(context, autoself);
             context->Releasenonconst();
             if (v != res) {
@@ -4283,18 +4283,18 @@ public:
         return res;
     }
 
-    Tamgu* EvalComplex(Tamgu* context, Tamgu* res, short idthread) {
+    Tamgu* EvalComplexe(Tamgu* context, Tamgu* res, short idthread) {
         Tamgu* v;
         bool autoself = false;
-        v=values[0]->EvalComplex(aNULL, aNULL, idthread);
-        res =  v->Complex();
+        v=values[0]->EvalComplexe(aNULL, aNULL, idthread);
+        res =  v->Complexe();
         if (res != v)
             v->Release();
         if (res->isProtected())
             autoself = true;
         
         for (long i=1;i<size; i++) {
-            context = values[i]->EvalComplex(aNULL, aNULL, idthread);
+            context = values[i]->EvalComplexe(aNULL, aNULL, idthread);
             v =  res->power(context, autoself);
             context->Releasenonconst();
             if (v != res) {
@@ -4719,14 +4719,14 @@ public:
 
 };
 
-class TamguInstructionComplex : public TamguComputeValue {
+class TamguInstructionComplexe : public TamguComputeValue {
 public:
 
-    TamguInstructionComplex(TamguInstructionAPPLYOPERATIONROOT* r, TamguGlobal* g, Tamgu* parent = NULL) : TamguComputeValue(r, true,  a_short, g, parent) {}
+    TamguInstructionComplexe(TamguInstructionAPPLYOPERATIONROOT* r, TamguGlobal* g, Tamgu* parent = NULL) : TamguComputeValue(r, true,  a_short, g, parent) {}
     
     Tamgu* Eval(Tamgu* res, Tamgu* inter, short idthread) {
         _setcurrentinstruction(idthread);
-        Tamgu* r = op->EvalComplex(res, aNULL, idthread);
+        Tamgu* r = op->EvalComplexe(res, aNULL, idthread);
         
         if (inter == aASSIGNMENT) {
             res->Put(aNULL, r, idthread);

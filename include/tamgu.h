@@ -158,7 +158,7 @@ public:
 		return this;
 	}
 
-    virtual Tamgu* EvalComplex(Tamgu* context, Tamgu* value, short idthread) {
+    virtual Tamgu* EvalComplexe(Tamgu* context, Tamgu* value, short idthread) {
         return Eval(context, value, idthread);
     }
 
@@ -1438,7 +1438,7 @@ public:
     int Int() {return (int)Integer();}
 	virtual long Integer() { return 0; }
 	virtual short Short() { return (short)Integer(); }
-    virtual Tamgu* Complex();
+    virtual Tamgu* Complexe();
     
 	virtual double Float() { return 0; }
 	

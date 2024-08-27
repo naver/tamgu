@@ -2676,8 +2676,8 @@ void TamguGlobal::TamguAllObjects(vector<string>& vs) {
 }
 
 //----------------------------------------------------------------------------------------
-Tamgu* Tamgu::Complex() {
-    return new Tamgucomplex((double)Float(), 0);
+Tamgu* Tamgu::Complexe() {
+    return new Tamgucomplexe((double)Float(), 0);
 }
 
 Exporting Tamgu* Tamgu::Succ() {

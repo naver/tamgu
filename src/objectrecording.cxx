@@ -103,7 +103,7 @@ void TamguGlobal::RecordObjects() {
     Tamgurawstring::InitialisationModule(this, TamguVersion());
     Tamguint::InitialisationModule(this, TamguVersion());
     Tamgushort::InitialisationModule(this, TamguVersion());
-    Tamgucomplex::InitialisationModule(this, TamguVersion());
+    Tamgucomplexe::InitialisationModule(this, TamguVersion());
     Tamgulong::InitialisationModule(this, TamguVersion());
     Tamgudecimal::InitialisationModule(this, TamguVersion());
     Tamgufloat::InitialisationModule(this, TamguVersion());

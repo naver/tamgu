@@ -21,13 +21,13 @@
 #include "tamguint.h"
 //We create a map between our methods, which have been declared in our class below. See MethodInitialization for an example
 //of how to declare a new method.
-class Tamgucomplex;
+class Tamgucomplexe;
 //This typedef defines a type "floatMethod", which expose the typical parameters of a new Tamgu method implementation
-typedef Tamgu* (Tamgucomplex::*complexMethod)(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+typedef Tamgu* (Tamgucomplexe::*complexMethod)(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
 //---------------------------------------------------------------------------------------------------------------------
 
-class Tamgucomplex : public TamguReference {
+class Tamgucomplexe : public TamguReference {
 public:
 	//We export the methods that will be exposed for our new object
 	//this is a static object, which is common to everyone
@@ -40,15 +40,15 @@ public:
     std::complex<double> value;
 
 	//---------------------------------------------------------------------------------------------------------------------
-	Tamgucomplex(double d, double i, TamguGlobal* g, Tamgu* parent = NULL) : TamguReference(g, parent), value(d,i) {
+	Tamgucomplexe(double d, double i, TamguGlobal* g, Tamgu* parent = NULL) : TamguReference(g, parent), value(d,i) {
         investigate |= is_number;
 	}
 
-    Tamgucomplex(double d, double i) : value(d,i) {
+    Tamgucomplexe(double d, double i) : value(d,i) {
         investigate |= is_number;
     }
 
-	Tamgucomplex(std::complex<double> v) : value(v) {
+	Tamgucomplexe(std::complex<double> v) : value(v) {
      investigate |= is_number;
 		//Do not forget your variable initialisation
 	}
@@ -56,14 +56,14 @@ public:
 	//----------------------------------------------------------------------------------------------------------------------
     void Putatomicvalue(Tamgu* v) {
         if (v->Type() == a_complex)
-            value = ((Tamgucomplex*)v)->value;
+            value = ((Tamgucomplexe*)v)->value;
         else
             value = v->Float();
     }
 
 	Tamgu* Put(Tamgu* index, Tamgu* v, short idthread) {
         if (v->Type() == a_complex)
-            value = ((Tamgucomplex*)v)->value;
+            value = ((Tamgucomplexe*)v)->value;
         else
             value = v->Float();
 		return this;
@@ -71,7 +71,7 @@ public:
 
 	Tamgu* Putvalue(Tamgu* v, short idthread) {
         if (v->Type() == a_complex)
-            value = ((Tamgucomplex*)v)->value;
+            value = ((Tamgucomplexe*)v)->value;
         else
             value = v->Float();
 		return this;
@@ -117,7 +117,7 @@ public:
 
 	Tamgu* Atom(bool forced = false) {
 		if (forced || !protect || reference)
-			return new Tamgucomplex(value);
+			return new Tamgucomplexe(value);
 		return this;
 	}
 
@@ -156,11 +156,11 @@ public:
 	}
 
 	Tamgu* Succ() {
-		return new Tamgucomplex(value + 1.0);
+		return new Tamgucomplexe(value + 1.0);
 	}
 
 	Tamgu* Pred() {
-		return new Tamgucomplex(value - 1.0);
+		return new Tamgucomplexe(value - 1.0);
 	}
 
 	//---------------------------------------------------------------------------------------------------------------------
@@ -171,14 +171,14 @@ public:
 	}
 
 	Tamgu* Newinstance(short, Tamgu* f = NULL) {
-		return new Tamgucomplex(0, 0);
+		return new Tamgucomplexe(0, 0);
 	}
 
 	Tamgu* Newvalue(Tamgu* a, short idthread) {
         if (a->Type() == a_complex)
-            return new Tamgucomplex(((Tamgucomplex*)a)->value);
+            return new Tamgucomplexe(((Tamgucomplexe*)a)->value);
         
-		return new Tamgucomplex(a->Float());
+		return new Tamgucomplexe(a->Float());
 	}
 
 	TamguIteration* Newiteration(bool direction) {
@@ -207,17 +207,17 @@ public:
 	//This is an example of a function that could be implemented for your needs.
 
 	Tamgu* MethodSucc(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-		return new Tamgucomplex(value + 1.0);
+		return new Tamgucomplexe(value + 1.0);
 	}
 
 	Tamgu* MethodPred(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-		return new Tamgucomplex(value - 1.0);
+		return new Tamgucomplexe(value - 1.0);
 	}
 
     Tamgu* MethodUnit(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
 	Tamgu* MethodInvert(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-        return new Tamgucomplex(value.imag(), value.real());
+        return new Tamgucomplexe(value.imag(), value.real());
 	}
 
     Tamgu* MethodReal(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
@@ -235,7 +235,7 @@ public:
 	Tamgu* CallMethod(short idname, Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 		//This call is a bit cryptic. It takes the method (function) pointer that has been associated in our map with "name"
 		//and run it with the proper parameters. This is the right call which should be invoked from within a class definition
-		return (this->*Tamgucomplex::methods.get(idname))(contextualpattern, idthread, callfunc);
+		return (this->*Tamgucomplexe::methods.get(idname))(contextualpattern, idthread, callfunc);
 	}
 
 	void Clear() {
@@ -373,61 +373,61 @@ public:
 	Tamgu* plus(Tamgu* a, bool itself) {
         if (a->Type() == a_complex) {
             if (itself) {
-                value += ((Tamgucomplex*)a)->value;
+                value += ((Tamgucomplexe*)a)->value;
                 return this;
             }
-            return new Tamgucomplex(value + ((Tamgucomplex*)a)->value);
+            return new Tamgucomplexe(value + ((Tamgucomplexe*)a)->value);
         }
 
 		if (itself) {
 			value += a->Float();
 			return this;
 		}
-		return new Tamgucomplex(value + a->Float());
+		return new Tamgucomplexe(value + a->Float());
 	}
 
 	virtual Tamgu* minus(Tamgu* a, bool itself) {
         if (a->Type() == a_complex) {
             if (itself) {
-                value -= ((Tamgucomplex*)a)->value;
+                value -= ((Tamgucomplexe*)a)->value;
                 return this;
             }
-            return new Tamgucomplex(value - ((Tamgucomplex*)a)->value);
+            return new Tamgucomplexe(value - ((Tamgucomplexe*)a)->value);
         }
 
         if (itself) {
 			value -= a->Float();
 			return this;
 		}
-		return new Tamgucomplex(value - a->Float());
+		return new Tamgucomplexe(value - a->Float());
 	}
 
 	Tamgu* multiply(Tamgu* a, bool itself) {
         if (a->Type() == a_complex) {
             if (itself) {
-                value *= ((Tamgucomplex*)a)->value;
+                value *= ((Tamgucomplexe*)a)->value;
                 return this;
             }
-            return new Tamgucomplex(value * ((Tamgucomplex*)a)->value);
+            return new Tamgucomplexe(value * ((Tamgucomplexe*)a)->value);
         }
 
 		if (itself) {
-            value *= ((Tamgucomplex*)a)->value;
+            value *= ((Tamgucomplexe*)a)->value;
 			return this;
 		}
-		return new Tamgucomplex(value * a->Float());
+		return new Tamgucomplexe(value * a->Float());
 	}
 
 	Tamgu* divide(Tamgu* a, bool itself) {
         if (a->Type() == a_complex) {
-            Tamgucomplex* c = (Tamgucomplex*)a;
+            Tamgucomplexe* c = (Tamgucomplexe*)a;
             if (c->value == 0.0)
                 return globalTamgu->Returnerror(e_error_divided_by);
             if (itself) {
                 value /= c->value;
                 return this;
             }
-            return new Tamgucomplex(value / c->value);
+            return new Tamgucomplexe(value / c->value);
         }
 
         double v = a->Float();
@@ -440,7 +440,7 @@ public:
 
         std::complex<double> c;
 		c = value / v;
-		return new Tamgucomplex(c);
+		return new Tamgucomplexe(c);
 	}
 
 	Tamgu* less(Tamgu* a) {
@@ -454,13 +454,13 @@ public:
 	Tamgu* same(Tamgu* a) {
         if (a->Type() != a_complex)
             return aFALSE;
-        return booleantamgu[value == ((Tamgucomplex*)a)->value];
+        return booleantamgu[value == ((Tamgucomplexe*)a)->value];
 	}
 
 	Tamgu* different(Tamgu* a) {
         if (a->Type() != a_complex)
             return aTRUE;
-		if (value != ((Tamgucomplex*)a)->value)
+		if (value != ((Tamgucomplexe*)a)->value)
 			return aTRUE;
 		return aFALSE;
 	}

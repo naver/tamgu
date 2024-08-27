@@ -2554,7 +2554,7 @@ Tamgu* TamguInstructionAPPLYOPERATIONROOT::Returnlocal(TamguGlobal* global, Tamg
 
     try {
         if (complex)
-            return new TamguInstructionComplex(this, global);
+            return new TamguInstructionComplexe(this, global);
         
         return new TamguInstructionCompute(this, global);
     }
@@ -4825,7 +4825,7 @@ Tamgu* TamguCode::C_anumber(x_node* xn, Tamgu* parent) {
                 i = 1;
             else
                 i = convertfloat(name);
-        return new Tamgucomplex(r, i, global, parent);
+        return new Tamgucomplexe(r, i, global, parent);
     }
     
     Tamgu* kv = NULL;
@@ -4872,7 +4872,7 @@ Tamgu* TamguCode::C_axnumber(x_node* xn, Tamgu* parent) {
                 i = 1;
             else
                 i = convertfloat(name);
-        return new Tamgucomplex(r, i, global, parent);
+        return new Tamgucomplexe(r, i, global, parent);
     }
 
 	BLONG v = conversionintegerhexa(STR(name));
