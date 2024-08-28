@@ -3400,6 +3400,11 @@ bool TamguCode::Loadlibrary(string n, string& library_name) {
     }
     
     LoadMe = LoadLibraryA(STR(lname));
+    string pathenv;
+    if (Getenv("PATH") != NULL) {
+        pathenv = Getenv("PATH");
+    }
+    
     if (LoadMe == 0) {
         string atanlib;
         if (Getenv("TAMGULIBS") != NULL)
@@ -3410,21 +3415,42 @@ bool TamguCode::Loadlibrary(string n, string& library_name) {
             throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
         }
         
-        if (Getenv("PATH") != NULL) {
-            string path = "Path=";
-            path += atanlib;
-            path += ";";
-            path += Getenv("PATH");
-            _putenv(STR(path));
+        vector<string> tamgupaths;
+        string sp;
+        if (atanlib.find(";") != string::npos) {
+            sp = ";";
+            s_split(atanlib, sp, tamgupaths);
         }
-        
-        atanlib += "\\";
-        atanlib += subname;
-        atanlib += ".dll";
-        atanlib = NormalizeFileName(atanlib);
-        library_name = atanlib;
-        LoadMe = LoadLibraryA(STR(library_name));
+        else {
+            if (atanlib.find(":") != string::npos) {
+                sp = ":";
+                s_split(atanlib, sp, tamgupaths);
+            }
+            else
+                tamgupaths.push_back(atanlib);
+        }
+
+        for (auto& attan: tamgupaths) {
+            string path = "Path=";
+            path += attan;
+            if (pathenv != "") {
+                path += ";";
+                path += pathenv;
+            }
+            
+            _putenv(STR(path));
+
+            library_name = attan;
+            library_name += "\\";
+            library_name += subname;
+            library_name += ".dll";
+            library_name = NormalizeFileName(library_name);
+            LoadMe = LoadLibraryA(STR(library_name));
+            if (LoadMe != 0)
+                break;
+        }
     }
+    
     // Check to see if the library was loaded successfully
     
     if (LoadMe == 0) {
@@ -3538,45 +3564,56 @@ bool TamguCode::Loadlibrary(string n, string& library_name) {
         }
         
         string ldlibpath;
-        if (Getenv("LD_LIBRARY_PATH") != NULL) {
+        if (Getenv("LD_LIBRARY_PATH") != NULL)
             ldlibpath = Getenv("LD_LIBRARY_PATH");
-        }
-        
-        if (ldlibpath.find(atanlib) == -1) {
-            ldlibpath = atanlib + ":" + ldlibpath;
-            setenv("LD_LIBRARY_PATH", ldlibpath.c_str(), 1);
-        }
         
 #ifdef APPLE
-        ldlibpath="";
+        string dyldlibpath;
         if (Getenv("DYLD_LIBRARY_PATH") != NULL) {
-            ldlibpath = Getenv("DYLD_LIBRARY_PATH");
-        }
-        
-        if (ldlibpath.find(atanlib) == -1) {
-            ldlibpath = "/usr/local/lib:" + atanlib + ":" + ldlibpath;
-            setenv("DYLD_LIBRARY_PATH", ldlibpath.c_str(), 1);
+            dyldlibpath = Getenv("DYLD_LIBRARY_PATH");
         }
 #endif
         
-        ldlibpath = "";
-        if (Getenv("PATH") != NULL) {
-            ldlibpath = Getenv("PATH");
+        vector<string> tamgupaths;
+        string sp;
+        if (atanlib.find(";") != string::npos) {
+            sp = ";";
+            s_split(atanlib, sp, tamgupaths);
         }
-        
-        if (ldlibpath.find(atanlib) == -1) {
-            ldlibpath = atanlib + ":" + ldlibpath;
-            setenv("PATH", ldlibpath.c_str(), 1);
+        else {
+            if (atanlib.find(":") != string::npos) {
+                sp = ":";
+                s_split(atanlib, sp, tamgupaths);
+            }
+            else
+                tamgupaths.push_back(atanlib);
         }
-        
-        if (atanlib.back() != '/')
-            atanlib += "/";
-        
-        baselib = atanlib;
-        atanlib += basename;
-        atanlib = NormalizeFileName(atanlib);
-        library_name = atanlib;
-        LoadMe = dlopen(STR(atanlib), RTLD_LAZY | RTLD_GLOBAL);
+
+
+        for (auto& attan: tamgupaths) {
+            if (ldlibpath.find(attan) == -1) {
+                sp = attan + ":" + ldlibpath;
+                setenv("LD_LIBRARY_PATH", sp.c_str(), 1);
+            }
+            
+    #ifdef APPLE
+            if (dyldlibpath.find(attan) == -1) {
+                sp = "/usr/local/lib:" + attan + ":" + dyldlibpath;
+                setenv("DYLD_LIBRARY_PATH", sp.c_str(), 1);
+            }
+    #endif
+
+
+            
+            baselib = attan;
+            if (baselib.back() != '/')
+                baselib += "/";
+            sp = baselib + basename;
+            library_name = NormalizeFileName(sp);
+            LoadMe = dlopen(STR(sp), RTLD_LAZY | RTLD_GLOBAL);
+            if (LoadMe != NULL)
+                break;
+        }
     }
     
     // Check to see if the library was loaded successfully

@@ -37,7 +37,7 @@
 #include <math.h>
 
 
-#ifdef INTELINTRINSICS
+#ifdef LSPINTELINTRINSICS
 #ifdef WIN32
 #include <intrin.h>
 #else
@@ -2099,7 +2099,7 @@ Element* Floats::plus_direct(LispE* lisp, Element* e) {
             long i = n->liste.size();
             szl = lmin(szl, i);
             
-#ifdef INTELINTRINSICS
+#ifdef LSPINTELINTRINSICS
             if (szl >= 24) {
                 long nb = (szl>>3)<<3;
                 for (i = 0; i < nb; i += 8) {
@@ -2133,7 +2133,7 @@ Element* Floats::plus_direct(LispE* lisp, Element* e) {
         case t_number:
         case t_integer: {
             float v = e->asFloat();
-#ifdef INTELINTRINSICS
+#ifdef LSPINTELINTRINSICS
             long szl = liste.size();
             if (szl >= 24) {
                 long i;
@@ -2212,7 +2212,7 @@ Element* Floats::minus_direct(LispE* lisp, Element* e) {
             long i = n->liste.size();
             szl = lmin(szl, i);
             
-#ifdef INTELINTRINSICS
+#ifdef LSPINTELINTRINSICS
             if (szl >= 24) {
                 long nb = (szl>>3)<<3;
                 for (i = 0; i < nb; i += 8) {
@@ -2246,7 +2246,7 @@ Element* Floats::minus_direct(LispE* lisp, Element* e) {
         case t_float:
         case t_integer: {
             float v = e->asFloat();
-#ifdef INTELINTRINSICS
+#ifdef LSPINTELINTRINSICS
             long szl = liste.size();
             if (szl >= 24) {
                 long i;
@@ -2324,7 +2324,7 @@ Element* Floats::multiply_direct(LispE* lisp, Element* e) {
             long i = n->liste.size();
             szl = lmin(szl, i);
             
-#ifdef INTELINTRINSICS
+#ifdef LSPINTELINTRINSICS
             if (szl >= 24) {
                 long nb = (szl>>3)<<3;
                 for (i = 0; i < nb; i += 8) {
@@ -2359,7 +2359,7 @@ Element* Floats::multiply_direct(LispE* lisp, Element* e) {
         case t_float:
         case t_integer: {
             float v = e->asFloat();
-#ifdef INTELINTRINSICS
+#ifdef LSPINTELINTRINSICS
             long szl = liste.size();
             if (szl >= 24) {
                 __m256 vb = {v, v, v, v, v, v, v, v};
@@ -2439,7 +2439,7 @@ Element* Floats::divide_direct(LispE* lisp, Element* e) {
             long i = n->liste.size();
             szl = lmin(szl, i);
             
-#ifdef INTELINTRINSICS
+#ifdef LSPINTELINTRINSICS
             if (szl >= 24) {
                 long nb = (szl>>3)<<3;
                 for (i = 0; i < nb; i += 8) {
@@ -2482,7 +2482,7 @@ Element* Floats::divide_direct(LispE* lisp, Element* e) {
             float v = e->asFloat();
             if (!v)
                 throw new Error("Error: division by zero");
-#ifdef INTELINTRINSICS
+#ifdef LSPINTELINTRINSICS
             long szl = liste.size();
             if (szl >= 24) {
                 __m256 vb = {v, v, v, v, v, v, v, v};
@@ -2575,7 +2575,7 @@ Element* Numbers::plus_direct(LispE* lisp, Element* e) {
             long i = n->liste.size();
             szl = lmin(szl, i);
             
-#ifdef INTELINTRINSICS
+#ifdef LSPINTELINTRINSICS
             if (szl >= 20) {
                 long nb = (szl>>2)<<2;
                 for (i = 0; i < nb; i += 4) {
@@ -2609,7 +2609,7 @@ Element* Numbers::plus_direct(LispE* lisp, Element* e) {
         case t_short:
         case t_integer: {
             double v = e->asNumber();
-#ifdef INTELINTRINSICS
+#ifdef LSPINTELINTRINSICS
             long szl = liste.size();
             if (szl >= 20) {
                 __m256d vb = {v, v, v, v};
@@ -2687,7 +2687,7 @@ Element* Numbers::minus_direct(LispE* lisp, Element* e) {
             long i = n->liste.size();
             szl = lmin(szl, i);
             
-#ifdef INTELINTRINSICS
+#ifdef LSPINTELINTRINSICS
             if (szl >= 20) {
                 long nb = (szl>>2)<<2;
                 for (i = 0; i < nb; i += 4) {
@@ -2721,7 +2721,7 @@ Element* Numbers::minus_direct(LispE* lisp, Element* e) {
         case t_float:
         case t_integer: {
             double v = e->asNumber();
-#ifdef INTELINTRINSICS
+#ifdef LSPINTELINTRINSICS
             long szl = liste.size();
             if (szl >= 20) {
                 __m256d vb = {v, v, v, v};
@@ -2798,7 +2798,7 @@ Element* Numbers::multiply_direct(LispE* lisp, Element* e) {
             long i = n->liste.size();
             szl = lmin(szl, i);
             
-#ifdef INTELINTRINSICS
+#ifdef LSPINTELINTRINSICS
             if (szl >= 20) {
                 long nb = (szl>>2)<<2;
                 for (i = 0; i < nb; i += 4) {
@@ -2833,7 +2833,7 @@ Element* Numbers::multiply_direct(LispE* lisp, Element* e) {
         case t_float:
         case t_integer: {
             double v = e->asNumber();
-#ifdef INTELINTRINSICS
+#ifdef LSPINTELINTRINSICS
             long szl = liste.size();
             if (szl >= 20) {
                 __m256d vb = {v, v, v, v};
@@ -2913,7 +2913,7 @@ Element* Numbers::divide_direct(LispE* lisp, Element* e) {
             long i = n->liste.size();
             szl = lmin(szl, i);
             
-#ifdef INTELINTRINSICS
+#ifdef LSPINTELINTRINSICS
             if (szl >= 20) {
                 long nb = (szl>>2)<<2;
                 for (i = 0; i < nb; i += 4) {
@@ -2956,7 +2956,7 @@ Element* Numbers::divide_direct(LispE* lisp, Element* e) {
             double v = e->asNumber();
             if (!v)
                 throw new Error("Error: division by zero");
-#ifdef INTELINTRINSICS
+#ifdef LSPINTELINTRINSICS
             long szl = liste.size();
             if (szl >= 20) {
                 __m256d vb = {v, v, v, v};
@@ -3071,7 +3071,7 @@ Element* Integers::plus_direct(LispE* lisp, Element* e) {
             long i = n->liste.size();
             szl = lmin(szl, i);
             
-#ifdef INTELINTRINSICS
+#ifdef LSPINTELINTRINSICS
             if (szl >= 20) {
                 //if a number can be divided by 4, then the last two bits should be 0
                 //we then compute how many elements are missing to make a vector with a size divisible by 4
@@ -3097,7 +3097,7 @@ Element* Integers::plus_direct(LispE* lisp, Element* e) {
         case t_float:
         case t_integer: {
             long v = e->asInteger();
-#ifdef INTELINTRINSICS
+#ifdef LSPINTELINTRINSICS
             long szl = liste.size();
             if (szl >= 20) {
                 long i;
@@ -3191,7 +3191,7 @@ Element* Integers::minus_direct(LispE* lisp, Element* e) {
             long i = n->liste.size();
             szl = lmin(szl, i);
             
-#ifdef INTELINTRINSICS
+#ifdef LSPINTELINTRINSICS
             if (szl >= 20) {
                 //if a number can be divided by 4, then the last two bits should be 0
                 //we then compute how many elements are missing to make a vector with a size divisible by 4
@@ -3217,7 +3217,7 @@ Element* Integers::minus_direct(LispE* lisp, Element* e) {
         case t_float:
         case t_integer: {
             long v = e->asInteger();
-#ifdef INTELINTRINSICS
+#ifdef LSPINTELINTRINSICS
             long szl = liste.size();
             if (szl >= 20) {
                 __m256i vb = {v, v, v, v};

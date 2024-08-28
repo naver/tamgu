@@ -314,7 +314,7 @@ Tamgu *Tamgulispe::convert_to_tamgu(Element *e, short idthread)
     case t_number:
         return globalTamgu->Providefloat(e->asNumber());
     case t_complex:
-        return new Tamgucomplex(((Complexe *)e)->content);
+        return new Tamgucomplexe(((Complexnumber *)e)->content);
     case t_string:
         return new Tamguustring(e->asString(lisp));
     case t_stringbyte:
@@ -527,7 +527,7 @@ Element *Tamgulispe::convert_to_lispe(Tamgu *e, short idthread)
     case a_float:
         return lisp->provideNumber(e->Float());
     case a_complex:
-        return new Complexe(((Tamgucomplex *)e)->value);
+        return lisp->provideComplex(((Tamgucomplexe *)e)->value);
     case a_string:
     {
         string v = e->String();
