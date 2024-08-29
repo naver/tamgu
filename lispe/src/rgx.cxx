@@ -47,7 +47,7 @@ using std::wsregex_iterator;
 static Au_automatons* gAutomatons = NULL;
 
 //--------------------------------------------------------------------
-UTF8_Handler* Au_meta::met = NULL;
+UTF8_Handler_l* Au_meta::met = NULL;
 //--------------------------------------------------------------------
 #define au_error -1
 #define au_stop -2
@@ -179,13 +179,13 @@ static bool tokenize(u_ustring& rg, vector<u_ustring>& stack, vector<aut_actions
     return true;
 }
 //an epsilon, which points to a final state with no arcs attached
-bool Au_arc::checkfinalepsilon() {
+bool Au_arc_l::checkfinalepsilon() {
     if (action->Type() == an_epsilon && state->isend() && !state->arcs.last)
         return true;
     return false;
 }
 
-void Au_state::removeepsilon() {
+void Au_state_l::removeepsilon() {
     if (mark)
         return;
     
@@ -208,7 +208,7 @@ void Au_state::removeepsilon() {
 }
 //----------------------------------------------------------------
 
-void Au_state::addrule(Au_arc* r) {
+void Au_state_l::addrule(Au_arc_l* r) {
     if (mark)
         return;
     
@@ -224,7 +224,7 @@ void Au_state::addrule(Au_arc* r) {
 }
 
 //----------------------------------------------------------------
-bool Au_state::match(u_ustring& w, long i) {
+bool Au_state_l::match(u_ustring& w, long i) {
     if ((status&an_error) == an_error)
         return false;
 
@@ -259,7 +259,7 @@ bool Au_automaton::match(u_ustring& w) {
 
 //----------------------------------------------------------------
 
-void Au_state::storerulearcs(std::unordered_map<long,bool>& rules) {
+void Au_state_l::storerulearcs(std::unordered_map<long,bool>& rules) {
     if (mark)
         return;
     
@@ -274,7 +274,7 @@ void Au_state::storerulearcs(std::unordered_map<long,bool>& rules) {
 
 //----------------------------------------------------------------
 
-long Au_state::loop(u_ustring& w, long i) {
+long Au_state_l::loop(u_ustring& w, long i) {
     if ((status & an_error) == an_error)
         return au_stop;
     
@@ -400,7 +400,7 @@ void Au_automaton::searchall(u_ustring& w, vecter_a<long>& res, long init) {
 }
 
 //----------------------------------------------------------------
-bool Au_arc::find(u_ustring& w, u_ustring& wsep, long i, vector<long>& res) {
+bool Au_arc_l::find(u_ustring& w, u_ustring& wsep, long i, vector<long>& res) {
     if (i==w.size())
         return false;
     
@@ -419,7 +419,7 @@ bool Au_arc::find(u_ustring& w, u_ustring& wsep, long i, vector<long>& res) {
     return false;
 }
 
-bool Au_state::find(u_ustring& w, u_ustring& wsep, long i, vector<long>& res) {
+bool Au_state_l::find(u_ustring& w, u_ustring& wsep, long i, vector<long>& res) {
     long ps=res.size();
     long j;
     
@@ -482,7 +482,7 @@ void Au_automaton::bytesearchall(u_ustring& w, vecter_a<long>& res) {
 
 //----------------------------------------------------------------
 
-void Au_state::merge(Au_state* a) {
+void Au_state_l::merge(Au_state_l* a) {
     if (a->mark)
         return;
     a->mark=true;
@@ -514,21 +514,21 @@ void Au_state::merge(Au_state* a) {
 }
 //----------------------------------------------------------------
 
-Au_automate::Au_automate(u_ustring& wrgx) {
+Au_automate_l::Au_automate_l(u_ustring& wrgx) {
     first=NULL;
     if (!parse(wrgx,&garbage))
         first = NULL;
 }
 
 #ifdef WIN32
-Au_automate::Au_automate(wstring& wrgx) {
+Au_automate_l::Au_automate_l(wstring& wrgx) {
     first=NULL;
 	u_ustring u = _w_to_u(wrgx);
     if (!parse(u, &garbage))
         first = NULL;
 }
 #else
-Au_automate::Au_automate(wstring& wrgx) {
+Au_automate_l::Au_automate_l(wstring& wrgx) {
 	first = NULL;
 	if (!parse(_w_to_u(wrgx), &garbage))
 		first = NULL;
@@ -561,7 +561,7 @@ bool Au_automaton::parse(u_ustring& w, Au_automatons* aus) {
     if (first==NULL)
         first=aus->state();
     
-    Au_state base;
+    Au_state_l base;
     long ab,sb;
     aus->boundaries(sb,ab);
     
@@ -578,7 +578,7 @@ bool Au_automaton::parse(u_ustring& w, Au_automatons* aus) {
     return true;
 }
 
-bool Au_automate::compiling(u_ustring& w,long r) {
+bool Au_automate_l::compiling(u_ustring& w,long r) {
     //static x_wautomaton xtok;
     //first we tokenize
     
@@ -590,15 +590,15 @@ bool Au_automate::compiling(u_ustring& w,long r) {
     if (first==NULL)
         first=garbage.state();
     
-    Au_state base;
+    Au_state_l base;
     long ab,sb;
     garbage.boundaries(sb,ab);
     
     if (base.build(&garbage, 0, toks,types,NULL)==NULL)
         return false;
     
-    Au_state* af=garbage.statefinal(r);
-    Au_arc* fin=garbage.arc(new Au_epsilon(),af);
+    Au_state_l* af=garbage.statefinal(r);
+    Au_arc_l* fin=garbage.arc(new Au_epsilon(),af);
     base.addrule(fin);
     
     base.mark=false;
@@ -612,9 +612,9 @@ bool Au_automate::compiling(u_ustring& w,long r) {
 //----------------------------------------------------------------------------------------
 #define an_mandatory 8
 
-Au_state* Au_state::build(Au_automatons* aus, long i,vector<u_ustring>& toks, vector<aut_actions>& types, Au_state* common) {
+Au_state_l* Au_state_l::build(Au_automatons* aus, long i,vector<u_ustring>& toks, vector<aut_actions>& types, Au_state_l* common) {
     mark=false;
-    Au_arc* ar;
+    Au_arc_l* ar;
     bool nega = false;
 
     if (i==toks.size()) {
@@ -637,14 +637,14 @@ Au_state* Au_state::build(Au_automatons* aus, long i,vector<u_ustring>& toks, ve
     int16_t count;
     vector<u_ustring> ltoks;
     vector<aut_actions> ltypes;
-    Au_state* ret = NULL;
+    Au_state_l* ret = NULL;
     uchar localtype = types[i];
     
     switch(localtype) {
         case aut_ocrl_brk: { //{..}
             i++;
-            Au_state* commonend=aus->state();
-            vecter<Au_arc*> locals;
+            Au_state_l* commonend=aus->state();
+            vecter<Au_arc_l*> locals;
             stop=false;
             while (i<toks.size() && !stop) {
                 switch(types[i]) {
@@ -681,7 +681,7 @@ Au_state* Au_state::build(Au_automatons* aus, long i,vector<u_ustring>& toks, ve
                         if (i==toks.size() || !ltoks.size()) //We could not find the closing character, this is an error...
                             return NULL;
                         
-                        Au_state s;
+                        Au_state_l s;
                         ret=s.build(aus, 0,ltoks,ltypes,commonend);
                         if (ret==NULL)
                             return NULL;
@@ -802,7 +802,7 @@ Au_state* Au_state::build(Au_automatons* aus, long i,vector<u_ustring>& toks, ve
             if (i==toks.size() || !ltoks.size())
                 return NULL;
             
-            Au_state s;
+            Au_state_l s;
             ret=s.build(aus, 0,ltoks,ltypes,NULL);
             if (ret==NULL)
                 return NULL;
@@ -837,7 +837,7 @@ Au_state* Au_state::build(Au_automatons* aus, long i,vector<u_ustring>& toks, ve
         }
     }
     
-    Au_state* next;
+    Au_state_l* next;
     if ((i+1)==toks.size())
         next=common;
     else
@@ -854,7 +854,7 @@ Au_state* Au_state::build(Au_automatons* aus, long i,vector<u_ustring>& toks, ve
         return ret;
     }
 
-    Au_arc* retarc=build(aus, toks[i], localtype,next, nega);
+    Au_arc_l* retarc=build(aus, toks[i], localtype,next, nega);
     if (retarc==NULL)
         return NULL;
 
@@ -898,7 +898,7 @@ bool checkmeta(u_ustring& tok) {
     }
 }
 
-Au_arc* Au_state::build(Au_automatons* aus, u_ustring& token, uchar type, Au_state* common, bool nega) {
+Au_arc_l* Au_state_l::build(Au_automatons* aus, u_ustring& token, uchar type, Au_state_l* common, bool nega) {
     //First we scan the arcs, in case, it was already created...
     Au_any* a=NULL;
     
@@ -939,8 +939,8 @@ Au_arc* Au_state::build(Au_automatons* aus, u_ustring& token, uchar type, Au_sta
     
     //Different case...
     //first if a is not NULL and a is a loop
-    Au_arc* current=aus->arc(a, common);
-    Au_arc* ar;
+    Au_arc_l* current=aus->arc(a, common);
+    Au_arc_l* ar;
     switch(type) {
         case aut_meta_plus: //+
         case aut_reg_plus:
@@ -971,7 +971,7 @@ Au_arc* Au_state::build(Au_automatons* aus, u_ustring& token, uchar type, Au_sta
 class LispERegularExpressions : public Element {
 public:
     
-    Au_automate au;
+    Au_automate_l au;
     u_ustring strvalue;
  
     LispERegularExpressions(u_ustring str, int16_t l_rgx) : au(str), strvalue(str), Element(l_rgx) {}

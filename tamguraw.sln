@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.40629.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.1062
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tamgu", "libtamgu\libtamgu.vcxproj", "{1F625741-494B-48FD-B527-8E8A34D8CB77}"
 EndProject
@@ -39,6 +39,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libxml", "libxml\libxml.vcx
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "liballmaps", "allmaps\liballmaps.vcxproj", "{D501E577-A65E-4DE2-B5A0-BA969BF4AC69}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "liblispe", "lispe\liblispe.vcxproj", "{E2E2826E-C142-4D5E-9FA2-9571D025B249}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -168,8 +170,23 @@ Global
 		{D501E577-A65E-4DE2-B5A0-BA969BF4AC69}.Release|Win32.Build.0 = Release|Win32
 		{D501E577-A65E-4DE2-B5A0-BA969BF4AC69}.Release|x64.ActiveCfg = Release|x64
 		{D501E577-A65E-4DE2-B5A0-BA969BF4AC69}.Release|x64.Build.0 = Release|x64
+		{E2E2826E-C142-4D5E-9FA2-9571D025B249}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{E2E2826E-C142-4D5E-9FA2-9571D025B249}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{E2E2826E-C142-4D5E-9FA2-9571D025B249}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E2E2826E-C142-4D5E-9FA2-9571D025B249}.Debug|Win32.Build.0 = Debug|Win32
+		{E2E2826E-C142-4D5E-9FA2-9571D025B249}.Debug|x64.ActiveCfg = Debug|x64
+		{E2E2826E-C142-4D5E-9FA2-9571D025B249}.Debug|x64.Build.0 = Debug|x64
+		{E2E2826E-C142-4D5E-9FA2-9571D025B249}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{E2E2826E-C142-4D5E-9FA2-9571D025B249}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{E2E2826E-C142-4D5E-9FA2-9571D025B249}.Release|Win32.ActiveCfg = Release|Win32
+		{E2E2826E-C142-4D5E-9FA2-9571D025B249}.Release|Win32.Build.0 = Release|Win32
+		{E2E2826E-C142-4D5E-9FA2-9571D025B249}.Release|x64.ActiveCfg = Release|x64
+		{E2E2826E-C142-4D5E-9FA2-9571D025B249}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {03D937A2-2DDA-4CD3-9091-8D22868BA978}
 	EndGlobalSection
 EndGlobal

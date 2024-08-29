@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{737869BE-F707-41FC-97FC-CC3A26F394D8}</ProjectGuid>
+    <ProjectGuid>{E2E2826E-C142-4D5E-9FA2-9571D025B249}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>liblispe</RootNamespace>
   </PropertyGroup>
@@ -46,7 +46,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -104,7 +104,8 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>AVXSUPPORT;INTELINTRINSICS;TAMGU_EXPORTS;WIN32;_DEBUG;_WINDOWS;_USRDLL;LIBlispe_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)lispe\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>    </ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)lispe\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -141,7 +142,8 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>AVXSUPPORT;INTELINTRINSICS;TAMGU_EXPORTS;WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBlispe_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)lispe\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>    </ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)lispe\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -178,4 +180,3 @@
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
 </Project>
-

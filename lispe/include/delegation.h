@@ -336,7 +336,7 @@ public:
         string s;
         if (code_to_string.check(c)) {
             u_ustring w = code_to_string.at(c);
-            s_unicode_to_utf8(s, w);
+            str_unicode_to_utf8(s, w, 0);
             return s;
         }
         return "nil";

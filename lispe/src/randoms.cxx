@@ -35,7 +35,7 @@
 // UUID
 //---------------------------------------------------------
 
-uint32_t random32() {
+uint32_t l_random32() {
     static bool lisperestrandom = true;
     static uint64_t x = 123456789;
     static uint64_t y = 362436069;
@@ -54,7 +54,7 @@ uint32_t random32() {
     return (uint32_t)w;
 }
 
-uint16_t random16() {
+uint16_t l_random16() {
     static bool lisperestrandom = true;
     static uint64_t x = 123456789;
     static uint64_t y = 362436069;
@@ -82,11 +82,11 @@ public:
     uint32_t dernier;
     
     UUID_base() {
-        premier = random32();
-        dernier = random32();
-        second = random16();
-        troisieme = random16();
-        quatrieme = random16();
+        premier = l_random32();
+        dernier = l_random32();
+        second = l_random16();
+        troisieme = l_random16();
+        quatrieme = l_random16();
     }
     
     string str() {
@@ -118,12 +118,12 @@ typedef enum {rnd_random, rnd_shuffle, rnd_uuid, rnd_random_choice,rnd_uniform,r
  */
 
 #ifdef WIN32
-long unaryfunc(double v) {
+long l_unaryfunc(double v) {
     return v;
 }
 #endif
 
-double localrandom(long mx) {
+double l_localrandom(long mx) {
     static bool lisperestrandom = true;
     
     if (!mx)
@@ -188,7 +188,7 @@ public:
         
         
 #ifdef WIN32
-        std::discrete_distribution<long> d(sz, 0, 100, unaryfunc);
+        std::discrete_distribution<long> d(sz, 0, 100, l_unaryfunc);
 #else
         double val = initial / sz;
         vector<double> vect;
@@ -757,7 +757,7 @@ public:
         switch (rnd) {
             case rnd_random: {
                 long nb = lisp->get_variable(v_nb)->asInteger();
-                return lisp->provideInteger(localrandom(nb));
+                return lisp->provideInteger(l_localrandom(nb));
             }
             case rnd_shuffle:
                 return Proc_shuffle(lisp);

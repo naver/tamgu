@@ -325,7 +325,7 @@ public:
         arcs.push_back(a);
     }
     
-    bool check(u_uchar chr, UTF8_Handler* access, std::set<u_uchar>& operators, bool not_neg);
+    bool check(u_uchar chr, UTF8_Handler_l* access, std::set<u_uchar>& operators, bool not_neg);
     
     inline void getnext(u_ustring& w, u_uchar& res, long& pos, long& l) {
         if (pos>=w.size()) {
@@ -356,7 +356,7 @@ public:
     
     std::set<u_uchar> operators;
     
-    UTF8_Handler* access;
+    UTF8_Handler_l* access;
     tokeniser_node* initial;
     
     tokeniser_flag negation;
@@ -364,7 +364,7 @@ public:
     bool loaded;
     bool displayautomata;
     
-    Tokenizer_Automaton(UTF8_Handler* a) {
+    Tokenizer_Automaton(UTF8_Handler_l* a) {
         disjunction =  false;
         displayautomata = false;
         negation = flagl_none;
@@ -442,7 +442,7 @@ public:
             if (line.find(k.first) != -1) {
                 fd = k.first;
                 rep = k.second;
-                line = s_ureplacestring(line, fd, rep);
+                line = str_ureplacestring(line, fd, rep);
             }
         }
     }
@@ -792,7 +792,7 @@ public:
 class Lispe_Tokenizer : public Tokenizer_Automaton {
 public:
     
-    Lispe_Tokenizer(UTF8_Handler* a) : Tokenizer_Automaton(a) {}
+    Lispe_Tokenizer(UTF8_Handler_l* a) : Tokenizer_Automaton(a) {}
     
     void setrules() {
         Tokenizer_Automaton::setrules();
@@ -819,7 +819,7 @@ public:
     char decimal_separator;
     bool blanks;
     
-    Segmenter_Automaton(UTF8_Handler* a) : Tokenizer_Automaton(a) {
+    Segmenter_Automaton(UTF8_Handler_l* a) : Tokenizer_Automaton(a) {
         decimal_separator = 0;
         blanks = false;
     }

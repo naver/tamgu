@@ -17,7 +17,7 @@
 using std::u32string;
 
 Exporting void c_unicode_to_utf16(wstring& w, char32_t c);
-Exporting char* unicode_2_utf8(long code, char* utf);
+Exporting char* u_unicode_2_utf8(long code, char* utf);
 
 const char32_t emoji_sequences[][11] = {
     {8986,0,0,0,0,0,0,0,0,0,0},{8987,0,0,0,0,0,0,0,0,0,0},{9193,0,0,0,0,0,0,0,0,0,0},
@@ -2188,10 +2188,10 @@ public:
         char utf_c[5];
         while (emoji_sequences[i][0]) {
             utf32_c = emoji_sequences[i][0];
-            utf8 = unicode_2_utf8(utf32_c, utf_c);
+            utf8 = u_unicode_2_utf8(utf32_c, utf_c);
             j = 1;
             while (emoji_sequences[i][j]) {
-                utf8 += unicode_2_utf8(emoji_sequences[i][j], utf_c);
+                utf8 += u_unicode_2_utf8(emoji_sequences[i][j], utf_c);
                 j++;
             }
             

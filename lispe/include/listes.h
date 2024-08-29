@@ -11170,7 +11170,7 @@ public:
     Stringbytes(Strings* s) : exchange_value(""), Element(t_stringbytes) {
         string v;
         for (long i = 0; i < s->size(); i++) {
-            s_unicode_to_utf8(v,s->liste[i]);
+            str_unicode_to_utf8(v,s->liste[i], 0);
             liste.push_back(v);
         }
     }
@@ -11475,13 +11475,13 @@ public:
     
     void append(wstring& w) {
         string u;
-        s_unicode_to_utf8(u, w);
+        str_unicode_to_utf8(u, w);
         liste.push_back(u);
     }
     
     void append(u_ustring& k) {
         string u;
-        s_unicode_to_utf8(u, k);
+        str_unicode_to_utf8(u, k, 0);
         liste.push_back(u);
     }
     

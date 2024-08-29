@@ -28,10 +28,10 @@ aut_actions;
 //------------------------character automatons---------------------------------------------------
 class Au_automaton;
 class Au_automatons;
-class Au_automate;
+class Au_automate_l;
 //-----------------------------------------------------------------------------------------------
 
-class Au_state;
+class Au_state_l;
 class Au_any {
 public:
     bool vero;
@@ -102,7 +102,7 @@ public:
 
 class Au_meta : public Au_any {
 public:
-    static UTF8_Handler* met;
+    static UTF8_Handler_l* met;
     
     wchar_t action;
     
@@ -184,19 +184,19 @@ public:
     }
 };
 
-class Au_arc {
+class Au_arc_l {
 public:
     Au_any* action;
-    Au_state* state;
+    Au_state_l* state;
     unsigned char mark;
     
-    Au_arc(Au_any* a) {
+    Au_arc_l(Au_any* a) {
         action=a;
         state=NULL;
         mark=false;
     }
     
-    ~Au_arc() {
+    ~Au_arc_l() {
         delete action;
     }
     
@@ -204,7 +204,7 @@ public:
         return action->Type();
     }
 
-    bool same(Au_arc* a) {
+    bool same(Au_arc_l* a) {
         return action->same(a->action);
     }
     
@@ -214,13 +214,13 @@ public:
 
 };
 
-class Au_state {
+class Au_state_l {
 public:
-    vecter<Au_arc*> arcs;
+    vecter<Au_arc_l*> arcs;
     uchar status;
     unsigned char mark;
     
-    Au_state() {
+    Au_state_l() {
         status=0;
         mark=false;
     }
@@ -259,14 +259,14 @@ public:
     long loop(u_ustring& w, long i);
     
     void removeepsilon();
-    void addrule(Au_arc*);
-    void merge(Au_state*);
+    void addrule(Au_arc_l*);
+    void merge(Au_state_l*);
     
-    Au_arc* build(Au_automatons* g, u_ustring& token, uchar type, Au_state* common, bool nega);
-    Au_state* build(Au_automatons* g, long i,vector<u_ustring>& tokens, vector<aut_actions>& types, Au_state* common);
+    Au_arc_l* build(Au_automatons* g, u_ustring& token, uchar type, Au_state_l* common, bool nega);
+    Au_state_l* build(Au_automatons* g, long i,vector<u_ustring>& tokens, vector<aut_actions>& types, Au_state_l* common);
 };
 
-class Au_state_final : public Au_state {
+class Au_state_final : public Au_state_l {
 public:
     
     long rule;
@@ -283,7 +283,7 @@ public:
 class Au_automaton {
 public:
     
-    Au_state* first;
+    Au_state_l* first;
     
     Au_automaton() {
         first=NULL;
@@ -353,23 +353,23 @@ public:
 
 class Au_automatons {
 public:
-    vecter<Au_state*> states;
-    vecter<Au_arc*> arcs;
+    vecter<Au_state_l*> states;
+    vecter<Au_arc_l*> arcs;
 
-    Au_state* state() {
-        Au_state* s=new Au_state;
+    Au_state_l* state() {
+        Au_state_l* s=new Au_state_l;
         states.push_back(s);
         return s;
     }
 
-    Au_state* statefinal(long r) {
+    Au_state_l* statefinal(long r) {
         Au_state_final* s=new Au_state_final(r);
         states.push_back(s);
         return s;
     }
 
-    Au_arc* arc(Au_any* a, Au_state* s=NULL) {
-        Au_arc* ac=new Au_arc(a);
+    Au_arc_l* arc(Au_any* a, Au_state_l* s=NULL) {
+        Au_arc_l* ac=new Au_arc_l(a);
         arcs.push_back(ac);
         if (s==NULL)
             ac->state=state();
@@ -468,17 +468,17 @@ public:
     }
 };
 
-class Au_automate : public Au_automaton {
+class Au_automate_l : public Au_automaton {
 public:
     Au_automatons garbage;
 
-    Au_automate() {
+    Au_automate_l() {
         first=NULL;
     }
 
-    Au_automate(wstring& rgx);
+    Au_automate_l(wstring& rgx);
     
-    Au_automate(u_ustring& rgx);
+    Au_automate_l(u_ustring& rgx);
 
     bool compile(u_ustring& rgx) {
         return parse(rgx, &garbage);
@@ -488,12 +488,12 @@ public:
 };
 
 
-class Jag_automaton :  public Au_automate {
+class Jag_automaton :  public Au_automate_l {
 public:
     
     wstring regularexpression;
     
-    Jag_automaton(wstring& rgx) : Au_automate(rgx) {
+    Jag_automaton(wstring& rgx) : Au_automate_l(rgx) {
         regularexpression = rgx;
     }
 

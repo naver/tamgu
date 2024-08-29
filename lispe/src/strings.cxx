@@ -290,9 +290,9 @@ void IndenteCode(string& codestr, string& indentedcode, bool lispmode) {
     
     s_trimright(codestr);
     codestr+="\n";
-    cr_normalise(codestr);
+    cr_normalise_l(codestr);
     if (lispmode)
-        IndentCode(codestr, indentedcode, GetBlankSize(), true, false);
+        IndentCode_l(codestr, indentedcode, GetBlankSize_l(), true, false);
     else
         IndentatingCode(codestr, indentedcode);
     indentedcode += "\n";
@@ -377,7 +377,7 @@ public:
             if (e == null_)
                 continue;
             v[0] = U'%';
-            sformat = s_ureplacestring(sformat, v, e->asUString(lisp));
+            sformat = str_ureplacestring(sformat, v, e->asUString(lisp));
             v[0] = U'n';
         }
         return lisp->provideString(sformat);
@@ -725,7 +725,7 @@ public:
         if (end == null_) {
             cherche = lisp->get_variable(v_fnd)->asUString(lisp);
             u_ustring remplacement = lisp->get_variable(v_rep)->asUString(lisp);
-            strvalue = s_ureplacestring(strvalue,cherche, remplacement);
+            strvalue = str_ureplacestring(strvalue,cherche, remplacement);
             return lisp->provideString(strvalue);
         }
         //In this case, we have indexes...
@@ -1166,7 +1166,7 @@ public:
                 long n = lisp->get_variable(v_nb)->asInteger();
                 if (v->type == t_stringbyte) {
                     string s = v->toString(lisp);
-                    s = s_left(s,n);
+                    s = s_left_l(s,n);
                     return new Stringbyte(s);
                 }
                 u_ustring s =  v->asUString(lisp);
@@ -1178,7 +1178,7 @@ public:
                 long n = lisp->get_variable(v_nb)->asInteger();
                 if (v->type == t_stringbyte) {
                     string s = v->toString(lisp);
-                    s = s_right(s,n);
+                    s = s_right_l(s,n);
                     return new Stringbyte(s);
                 }
                 u_ustring s =  v->asUString(lisp);
@@ -1191,7 +1191,7 @@ public:
                 long n = lisp->get_variable(v_nb)->asInteger();
                 if (v->type == t_stringbyte) {
                     string strvalue =  v->toString(lisp);
-                    strvalue = s_middle(strvalue,p,n);
+                    strvalue = s_middle_l(strvalue,p,n);
                     return new Stringbyte(strvalue);
                 }
                 u_ustring strvalue =  v->asUString(lisp);

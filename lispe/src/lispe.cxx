@@ -76,7 +76,7 @@ Element* Error::check_if_error(LispE* lisp) {
 string Stackelement::toString(LispE* lisp) {
     wstring w = asString(lisp);
     string s;
-    s_unicode_to_utf8(s, w);
+    str_unicode_to_utf8(s, w);
     return s;
 }
 
@@ -216,13 +216,7 @@ void moduleChaines(LispE* lisp);
 void moduleMaths(LispE* lisp);
 void moduleAleatoire(LispE* lisp);
 void moduleRGX(LispE* lisp);
-#ifndef LISPE_WASM
-void moduleSocket(LispE* lisp);
-#endif
 void moduleOntology(LispE* lisp);
-#ifdef FLTKGUI
-void moduleGUI(LispE* lisp);
-#endif
 //------------------------------------------------------------
 //We initialize our structures
 void Delegation::initialisation(LispE* lisp) {
@@ -1080,13 +1074,7 @@ void Delegation::initialisation(LispE* lisp) {
     moduleMaths(lisp);
     moduleAleatoire(lisp);
     moduleRGX(lisp);
-#ifndef LISPE_WASM
-    moduleSocket(lisp);
-#endif
     moduleOntology(lisp);
-#ifdef FLTKGUI
-    moduleGUI(lisp);
-#endif
     
     thread_stack.function = null_;
     
@@ -1315,7 +1303,7 @@ lisp_code LispE::segmenting(u_ustring& code, Tokenizer& infos) {
                 buffer = code.substr(lg_value, culprit - lg_value + 1);
                 if (buffer != U"") {
                     s = "";
-                    s_unicode_to_utf8(s, buffer);
+                    str_unicode_to_utf8(s, buffer);
                     add_to_listing(line_number, s);
                 }
                 lg_value = culprit + 1;
@@ -1328,7 +1316,7 @@ lisp_code LispE::segmenting(u_ustring& code, Tokenizer& infos) {
         buffer = code.substr(lg_value, code.size() - lg_value);
         if (buffer != U"") {
             s = "";
-            s_unicode_to_utf8(s, buffer);
+            str_unicode_to_utf8(s, buffer);
             add_to_listing(line_number, s);
         }
         

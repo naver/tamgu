@@ -4539,7 +4539,7 @@ void Stringbytes::flatten(LispE* lisp, Strings* l) {
 void Strings::flatten(LispE* lisp, Stringbytes* l) {
     string v;
     for (long i = 0; i < size(); i++) {
-        s_unicode_to_utf8(v, liste[i]);
+        str_unicode_to_utf8(v, liste[i]);
         l->liste.push_back(v);
     }
 }
@@ -5572,7 +5572,7 @@ void Stringbytes::storevalue(LispE* lisp,long v) {
 
 void Stringbytes::storevalue(LispE* lisp, u_ustring& k) {
     string v;
-    s_unicode_to_utf8(v, k);
+    str_unicode_to_utf8(v, k);
     liste.push_back(v);
 }
 
@@ -5586,7 +5586,7 @@ void Stringbytes::append(LispE* lisp, long v) {
 
 void Stringbytes::append(LispE* lisp, u_ustring& v) {
     string s;
-    s_unicode_to_utf8(s, v);
+    str_unicode_to_utf8(s, v);
     liste.push_back(s);
 }
 
@@ -5947,7 +5947,7 @@ Element* Stringbytes::protected_index(LispE* lisp, Element* ix) {
 
 Element* Stringbytes::join_in_list(LispE* lisp, u_ustring& usep) {
     string sep;
-    s_unicode_to_utf8(sep, usep);
+    str_unicode_to_utf8(sep, usep);
     string str;
     string beg;
     for (long i = 0; i < liste.size(); i++) {

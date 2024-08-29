@@ -614,7 +614,7 @@ public:
     virtual string toString(LispE* lisp) {
         string s;
         u_ustring w = asUString(lisp);
-        s_unicode_to_utf8(s, w);
+        str_unicode_to_utf8(s, w, 0);
         return s;
     }
 
@@ -2781,22 +2781,22 @@ public:
     }
     Stringbyte(string c) : Element(t_stringbyte), content(c) {}
     Stringbyte(wstring c) : Element(t_stringbyte) {
-        s_unicode_to_utf8(content, c);
+        str_unicode_to_utf8(content, c);
     }
     Stringbyte(wstring c, uint16_t s) : Element(t_stringbyte, s) {
-        s_unicode_to_utf8(content, c);
+        str_unicode_to_utf8(content, c);
     }
     
     Stringbyte(u_ustring c) : Element(t_stringbyte) {
-        s_unicode_to_utf8(content, c);
+        str_unicode_to_utf8(content, c, 0);
     }
     
     Stringbyte(u_ustring c, uint16_t s) : Element(t_stringbyte, s) {
-        s_unicode_to_utf8(content, c);
+        str_unicode_to_utf8(content, c, 0);
     }
 
     Stringbyte(String* c) : Element(t_stringbyte) {
-        s_unicode_to_utf8(content, c->content);
+        str_unicode_to_utf8(content, c->content, 0);
     }
     
     Element* duplicate_constant(LispE* lisp);
@@ -2829,7 +2829,7 @@ public:
     
     bool compare_string(LispE*, u_ustring& u) {
         string e;
-        s_unicode_to_utf8(e, u);
+        str_unicode_to_utf8(e, u, 0);
         return (content == e);
     }
         
@@ -2915,7 +2915,7 @@ public:
     Element* last_element(LispE* lisp);
     
     long size() {
-        return size_c(content);
+        return size_l_c(content);
     }
     
     Element* extraction(LispE* lisp, List*);

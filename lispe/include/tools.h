@@ -68,11 +68,11 @@ using std::endl;
 //Lines extracted from the function "mk_wcwidth": https://www.cl.cam.ac.uk/~mgk25/ucs/wcwidth.c
 bool ckjchar(wchar_t ucs);
 
-void s_unicode_to_utf16(wstring& w, u_ustring& u);
-void s_unicode_to_utf16(std::u16string& w, u_ustring& u);
+void str_unicode_to_utf16(wstring& w, u_ustring& u);
+void str_unicode_to_utf16(std::u16string& w, u_ustring& u);
 void s_utf16_to_unicode(u_ustring& u, wstring& w);
-Exporting void s_utf16_to_utf8(string& s, u_ustring& str);
-Exporting void s_utf16_to_utf8(string& s, int32_t* str, long sz);
+Exporting void str_utf16_to_utf8(string& s, u_ustring& str);
+Exporting void str_utf16_to_utf8(string& s, int32_t* str, long sz);
 void s_utf16_to_unicode(u_ustring& u, int32_t* str, long sz);
 
 Exporting string jsonstring(string value);
@@ -84,13 +84,13 @@ Exporting string cs_unicode_to_utf8(UWCHAR code);
 UWCHAR getonechar(string& s, long& i);
 
 string NormalizePathname(string n);
-long size_c(string& s);
+long size_l_c(string& s);
 Exporting long size_raw_c(string& contenu, long sz);
-Exporting void SetBlankSize(long sz);
-Exporting long GetBlankSize();
+Exporting void SetBlankSize_l(long sz);
+Exporting long GetBlankSize_l();
 long VirtualIndentation(string& codestr, bool lisp, bool python);
-void IndentCode(string& codestr, string& codeindente, long blancs, bool lisp, bool python);
-void cr_normalise(string& code);
+void IndentCode_l(string& codestr, string& codeindente, long blancs, bool lisp, bool python);
+void cr_normalise_l(string& code);
 
 long convertinginteger(u_ustring& number);
 long convertinginteger(wstring& number);
@@ -99,7 +99,7 @@ void noconvertingfloathexa(wchar_t* s, long& l);
 
 void str_split(wstring& s, wstring& splitter, vector<wstring>& strs, bool keepblanks = false);
 void str_split(string& s, string& splitter, vector<string>& vs, bool keepblanks = false);
-long getindex(unsigned char* contenu, long lg, long i);
+long getindex_l(unsigned char* contenu, long lg, long i);
 
 void noconvertingfloathexa(const char* s, int16_t& l);
 double convertingfloathexa(const char* s, long& l);
@@ -142,16 +142,16 @@ u_ustring convertToUString(float d);
 
 string s_replacingstring(string& s, string reg, string rep);
 wstring s_wreplacestring(wstring& s, wstring reg, wstring rep);
-u_ustring s_ureplacestring(u_ustring& s, u_ustring reg, u_ustring rep);
+u_ustring str_ureplacestring(u_ustring& s, u_ustring reg, u_ustring rep);
 u_ustring s_ureplacechar(u_ustring& s, u_uchar reg, u_ustring rep);
 
 long nb_ureplacestring(u_ustring& s, u_ustring reg, u_ustring rep);
 long nb_replacestring(string& s, string reg, string rep);
 
 
-string s_left(string& s, long nb);
-string s_right(string& s, long nb);
-string s_middle(string& s, long g, long nb);
+string s_left_l(string& s, long nb);
+string s_right_l(string& s, long nb);
+string s_middle_l(string& s, long g, long nb);
 
 wstring s_wleft(wstring& s, long nb);
 wstring s_wright(wstring& s, long nb);
@@ -183,39 +183,39 @@ Exporting void s_utf8_to_utf16(wstring& w, string& str , long sz);
 Exporting void s_utf8_to_unicode(wstring& s, string& str, long sz);
 Exporting void s_utf8_to_unicode(u_ustring& s, string& str, long sz);
 Exporting void s_utf8_to_unicode_clean(wstring& s, string& str, long sz);
-Exporting unsigned char c_utf8_to_unicode(string& utf, long i, UWCHAR& code);
-Exporting unsigned char c_utf8_to_unicode(string* utf, long i, UWCHAR& code);
+Exporting unsigned char chr_utf8_to_unicode(string& utf, long i, UWCHAR& code);
+Exporting unsigned char chr_utf8_to_unicode(string* utf, long i, UWCHAR& code);
 
 Exporting void s_utf8_to_unicode_u(wstring& w, unsigned char* str , long sz);
-Exporting unsigned char c_utf8_to_unicode(unsigned char* utf, UWCHAR& code);
+Exporting unsigned char chr_utf8_to_unicode(unsigned char* utf, UWCHAR& code);
 
-Exporting void s_utf16_to_utf8(string& s, wchar_t* str, long sz);
-Exporting void s_utf16_to_utf8(string& s, wstring& str);
+Exporting void str_utf16_to_utf8(string& s, wchar_t* str, long sz);
+Exporting void str_utf16_to_utf8(string& s, wstring& str);
 Exporting void s_utf16_to_utf8_clean(string& s, wstring& str);
 
-Exporting void s_unicode_to_utf8(string& s, wchar_t* str, long sz);
-Exporting void s_unicode_to_utf8(string& s, wstring& str);
+Exporting void str_unicode_to_utf8(string& s, wchar_t* str, long sz);
+Exporting void str_unicode_to_utf8(string& s, wstring& str);
 Exporting void s_unicode_to_utf8_clean(string& s, wstring& str);
 
-Exporting void s_unicode_to_utf8(string& s, u_ustring& str);
+Exporting void str_unicode_to_utf8(string& s, u_ustring& str, long i = 0);
 Exporting bool s_is_utf8(string& contenu, long longueur);
-Exporting bool c_utf16_to_unicode(u_uchar& r, u_uchar code, bool second);
+Exporting bool chr_utf16_to_unicode(u_uchar& r, u_uchar code, bool second);
 Exporting bool c_unicode_to_utf16(u_uchar& res, u_uchar code);
 Exporting bool c_utf16(u_uchar code);
-Exporting char* unicode_2_utf8(long code, char* utf);
+Exporting char* u_unicode_2_utf8(long code, char* utf);
 
 Exporting void get_one_char(string& utf, string& res, long& i);
 
-Exporting char c_test_utf8(string& utf, long i);
-Exporting char c_test_utf8(unsigned char* utf);
+Exporting char chr_test_utf8(string& utf, long i);
+Exporting char chr_test_utf8(unsigned char* utf);
 
 #define c_is_digit(c) (c >= '0' && c <= '9')
 
 #ifdef WIN32
 inline UWCHAR getonewchar(wstring& s, long& i) {
     UWCHAR c;
-    if (c_utf16_to_unicode(c, s[i], false))
-        c_utf16_to_unicode(c, s[++i], true);
+    if (chr_utf16_to_unicode(c, s[i], false))
+        chr_utf16_to_unicode(c, s[++i], true);
     return c;
 }
 Exporting void concat_to_wstring(wstring& res, UWCHAR code);
@@ -239,7 +239,7 @@ inline bool c_is_space_or_cr(u_uchar code) {
 //--------------------------------------------------------------------
 Exporting bool c_is_hexa(wchar_t code);
 //------------------------------------------------------------------------------------
-class UTF8_Handler {
+class UTF8_Handler_l {
 public:
     binHash<u_uchar> utf8codemin;
     binHash<u_uchar> utf8codemaj;
@@ -410,8 +410,8 @@ public:
         return v;
     }
 
-    UTF8_Handler();
-    ~UTF8_Handler();
+    UTF8_Handler_l();
+    ~UTF8_Handler_l();
 };
 
 //------------------------------------------------------------

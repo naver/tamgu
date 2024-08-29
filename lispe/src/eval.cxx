@@ -3438,7 +3438,7 @@ Element* List::evall_input(LispE* lisp) {
     if (liste.size() == 2) {
         u_ustring wcode;
         evalAsUString(1, lisp, wcode);
-        s_unicode_to_utf8(code, wcode);
+        str_unicode_to_utf8(code, wcode);
     }
     
     //lisp->delegation->reading_string_function(code, lisp->delegation->reading_string_function_object);

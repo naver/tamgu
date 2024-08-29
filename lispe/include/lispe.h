@@ -107,7 +107,7 @@ public:
     //Delegation is a class that records any data
     //related to compilation
     Delegation* delegation;
-    UTF8_Handler* handlingutf8;
+    UTF8_Handler_l* handlingutf8;
 
     List* current_thread;
     List* current_body;
@@ -138,7 +138,7 @@ public:
     bool check_thread_stack;
 	bool current_path_set;
     
-    LispE(UTF8_Handler* hnd = NULL) : segmenter(hnd) {
+    LispE(UTF8_Handler_l* hnd = NULL) : segmenter(hnd) {
         macro_mode = false;
         max_size = 50;
         larger_max_size = 200;
@@ -165,7 +165,7 @@ public:
         current_thread = NULL;
         current_body = NULL;
         if (hnd == NULL) {
-            handlingutf8 = new UTF8_Handler;
+            handlingutf8 = new UTF8_Handler_l;
             segmenter.access = handlingutf8;
             clean_utf8 = true;
         }

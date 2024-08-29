@@ -1030,7 +1030,7 @@ void Element::prettyfying(LispE* lisp, string& code, long mx) {
                 for (const auto& a: dico) {
                     local = "";
                     key = a.first;
-                    s_unicode_to_utf8(local, key);
+                    str_unicode_to_utf8(local, key);
                     code += local;
                     code += ":";
                     a.second->prettyfying(lisp, code, mx);
@@ -1074,7 +1074,7 @@ string Element::prettify(LispE* lisp, long mx) {
     string code;
     prettyfying(lisp, code, mx);
     string body;
-    IndentCode(code, body, GetBlankSize(), true, false);
+    IndentCode_l(code, body, GetBlankSize_l(), true, false);
     return body;
 }
 
@@ -1898,7 +1898,7 @@ Element* Stringbyte::rotating(LispE* lisp, bool left) {
         return s;
     }
     s->content = content.back();
-    nb = size_c(content) - 1;
+    nb = size_l_c(content) - 1;
     nb = lisp->handlingutf8->charTobyte(content, nb);
     s->content += content.substr(0, nb);
     return s;
@@ -3844,7 +3844,7 @@ Element* Stringbyte::car(LispE* lisp) {
 Element* Stringbyte::cdr(LispE* lisp) {
     if (content.size() == 0)
         throw new Error("Error: Empty string");
-    long i = c_test_utf8(content, 0) + 1;
+    long i = chr_test_utf8(content, 0) + 1;
     string w = content.substr(i, content.size()-i);
     return new Stringbyte(w);
 }
@@ -3909,7 +3909,7 @@ Element* Stringbyte::cadr(LispE* lisp, u_ustring& action) {
         else {
             if (pos >= sz)
                 throw new Error("Error: No more elements to traverse with 'cad..r'");
-            pos += c_test_utf8(content, pos) + 1;
+            pos += chr_test_utf8(content, pos) + 1;
         }
     }
     

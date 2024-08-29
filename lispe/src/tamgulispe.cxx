@@ -16,10 +16,11 @@ Programmer : Claude ROUX (claude.roux@naverlabs.com)
 
 #include "tamgu.h"
 #include "tamguversion.h"
+#include "tamgulispe.h"
+
 #include "instructions.h"
 
 #include "tamgustring.h"
-#include "tamgulispe.h"
 #include "tamgustring.h"
 #include "tamgushort.h"
 #include "tamgufloat.h"
@@ -413,7 +414,7 @@ Tamgu *Tamgulispe::convert_to_tamgu(Element *e, short idthread)
         for (it = d->dictionary.begin(); it != d->dictionary.end(); it++)
         {
             u = it->first;
-            s_unicode_to_utf8(v, u);
+            str_unicode_to_utf8(v, u, 0);
             m->push(v, convert_to_tamgu(it->second, idthread));
         }
         return m;
@@ -448,7 +449,7 @@ Tamgu *Tamgulispe::convert_to_tamgu(Element *e, short idthread)
         u_ustring u;
         for (auto& a : d->ensemble) {
             u = a;
-            s_unicode_to_utf8(v, u);
+            str_unicode_to_utf8(v, u, 0);
             m->Push(v, aTRUE);
         }
         return m;
@@ -481,7 +482,7 @@ Tamgu *Tamgulispe::convert_to_tamgu(Element *e, short idthread)
         for (it = d->tree.begin(); it != d->tree.end(); it++)
         {
             u = it->first;
-            s_unicode_to_utf8(v, u);
+            str_unicode_to_utf8(v, u, 0);
             m->Push(v, convert_to_tamgu(it->second, idthread));
         }
         return m;
@@ -949,7 +950,7 @@ static Tamgu *Calllispe(Tamgulisp *v, short idthread)
 // When Tamgu (탐구) loads a library, it looks for this method in particular, which then make this object available into Tamgu (탐구)
 extern "C"
 {
-    Exporting bool tamgulispe_InitialisationModule(TamguGlobal *global, string version)
+	Exporting bool tamgulispe_InitialisationModule(TamguGlobal *global, string version)
     {
         if (version != TamguVersion())
             return false;
