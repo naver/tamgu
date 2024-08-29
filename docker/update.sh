@@ -1,0 +1,2 @@
+cp ../bin/linux/* bin
+

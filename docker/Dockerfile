@@ -1,6 +1,8 @@
 # Use Ubuntu 20.04 as the base image
 FROM ubuntu:20.04
 
+ENV DEBIAN_FRONTEND=noninteractive
+
 # Update packages and install system dependencies
 RUN apt-get update && apt-get install -y \
     libao-dev \
@@ -12,7 +14,7 @@ RUN apt-get update && apt-get install -y \
     libgmp-dev \
     libldap2-dev \
     libmpg123-dev \
-    libpython3.10-dev \
+    libpython3.10 \
     libsndfile1-dev \
     libsqlite3-dev \
     libx11-dev \
@@ -46,5 +48,8 @@ COPY bin/libxml.so /app/
 COPY bin/pytamgu.so /app/
 COPY bin/tamgu /app/
 
+ENV LD_LIBRARY_PATH=/app:$LD_LIBRARY_PATH
+
 # Define the default command to run the tamgu interpreter
 CMD ["/app/tamgu"]
+
