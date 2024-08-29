@@ -1,7 +1,7 @@
 ###################################################################
 include ../Makefile.in
 #------------------------------------------------------------
-sourcelispe = tamgulispe.cxx lispe.cxx eval.cxx elements.cxx lispetools.cxx systems.cxx maths.cxx strings.cxx randoms.cxx rgx.cxx sockets.cxx composing.cxx ontology.cxx sets.cxx lists.cxx dictionaries.cxx straight_eval.cxx tensors.cxx
+sourcelispe = tamgulispe.cxx lispe.cxx eval.cxx elements.cxx lispetools.cxx systems.cxx maths.cxx strings.cxx randoms.cxx rgx.cxx composing.cxx ontology.cxx sets.cxx lists.cxx dictionaries.cxx straight_eval.cxx tensors.cxx
 #------------------------------------------------------------
 LBINPATH = ../$(BINPATH)
 LOBJPATH = ../$(LIBOBJPATH)
