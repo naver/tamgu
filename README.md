@@ -115,6 +115,18 @@ vector v = r.parse(sentence);
 __Note__: _Releases_ for Windows, Mac OS and Linux are available at: https://github.com/naver/tamgu/releases
 
 
+## Docker
+
+We also provide a [Dockerfile](https://github.com/naver/tamgu/tree/master/docker), together with precompiled versions of Tamgu and its libraries for Ubuntu 22.04.
+
+Move into the docker directory.
+You can then create your own docker with the command:
+
+```bash
+docker build -t tamgu-interpreter .
+```
+
+
 ## Examples
 
 Examples are available both as a folder: https://github.com/naver/tamgu/tree/master/examples or as an archive in: https://github.com/naver/tamgu/releases/tag/tamgu.examples.
