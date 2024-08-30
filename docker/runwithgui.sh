@@ -12,7 +12,8 @@
 # -e DISPLAY=$DISPLAY  sets the DISPLAY to our local display
 #  -v /tmp/.X11-unix:/tmp/.X11-unix Mount the X11 socket from the host into the container.
 #  -v ~/.Xauthority:/root/.Xauthority Mount the X11 authentication file from the host into the container. 
+# -console: launch tamgu in a GUI
 
-docker run -it -v $(pwd):/app/host -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix -v ~/.Xauthority:/root/.Xauthority tamgu-interpreter /app/host/birds.tmg
+docker run -it -v $(pwd):/app/host -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix -v ~/.Xauthority:/root/.Xauthority tamgu-interpreter -console
 
 
