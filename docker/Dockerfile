@@ -25,6 +25,8 @@ RUN apt-get update && apt-get install -y \
     libxinerama-dev \
     libxml2-dev \
     libxrender-dev \
+    x11-apps \
+    xauth \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -32,10 +34,11 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Define the TAMGULIBS environment variable
-ENV TAMGULIBS=/app
+ENV TAMGULIBS=/app/
 
 # Copy the interpreter and its libraries from the bin directory to the container
 COPY bin/liballmaps.so /app/
+COPY bin/libgui.so /app/
 COPY bin/liblinear.so /app/
 COPY bin/libsqlite.so /app/
 COPY bin/libtamgucurl.so /app/
@@ -45,11 +48,12 @@ COPY bin/libtamgu.so /app/
 COPY bin/libwapiti.so /app/
 COPY bin/libword2vec.so /app/
 COPY bin/libxml.so /app/
+COPY bin/libsound.so /app/
 COPY bin/pytamgu.so /app/
-COPY bin/tamgu /app/
+COPY bin/tamgu /usr/local/bin/tamgu
 
-ENV LD_LIBRARY_PATH=/app:$LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH=/app:/usr/local/lib:$LD_LIBRARY_PATH
 
 # Define the default command to run the tamgu interpreter
-ENTRYPOINT ["/app/tamgu"]
+ENTRYPOINT ["/usr/local/bin/tamgu"]
 
