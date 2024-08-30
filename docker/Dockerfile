@@ -51,5 +51,5 @@ COPY bin/tamgu /app/
 ENV LD_LIBRARY_PATH=/app:$LD_LIBRARY_PATH
 
 # Define the default command to run the tamgu interpreter
-CMD ["/app/tamgu"]
+ENTRYPOINT ["/app/tamgu"]
 
