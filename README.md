@@ -120,7 +120,7 @@ __Note__: _Releases_ for Windows, Mac OS and Linux are available at: https://git
 We also provide a [Dockerfile](https://github.com/naver/tamgu/tree/master/docker), together with precompiled versions of Tamgu and its libraries for Ubuntu 22.04.
 
 Move into the docker directory.
-You can then create your own docker with the command:
+You can then create your own docker image with the command:
 
 ```bash
 docker build -t tamgu-interpreter .
