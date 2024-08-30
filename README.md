@@ -126,6 +126,12 @@ You can then create your own docker with the command:
 docker build -t tamgu-interpreter .
 ```
 
+To execute the docker:
+
+```bash
+docker run -it tamgu-interpreter
+```
+
 
 ## Examples
 
