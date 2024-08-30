@@ -50,10 +50,10 @@ COPY bin/libword2vec.so /app/
 COPY bin/libxml.so /app/
 COPY bin/libsound.so /app/
 COPY bin/pytamgu.so /app/
-COPY bin/tamgu /usr/local/bin/tamgu
+COPY bin/tamguconsole /usr/local/bin/tamguconsole
 
 ENV LD_LIBRARY_PATH=/app:/usr/local/lib:$LD_LIBRARY_PATH
 
 # Define the default command to run the tamgu interpreter
-ENTRYPOINT ["/usr/local/bin/tamgu"]
+ENTRYPOINT ["/usr/local/bin/tamguconsole"]
 
