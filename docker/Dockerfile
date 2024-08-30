@@ -1,5 +1,5 @@
-# Use Ubuntu 20.04 as the base image
-FROM ubuntu:20.04
+# Use Ubuntu 22.04 as the base image
+FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
