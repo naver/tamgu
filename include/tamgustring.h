@@ -539,7 +539,7 @@ public:
         return r;
 	}
 
-	Tamgu* Push(Tamgu* a) {
+	virtual Tamgu* Push(Tamgu* a) {
         locking();
         value += a->String();
         unlocking();
@@ -1957,7 +1957,14 @@ public:
         return true;
     }
     
-
+    Tamgu* Push(Tamgu* a) {
+        locking();
+        interval.push_back(a->String());
+        value = interval[0];
+        unlocking();
+        return this;
+    }
+    
     void Callfunction();
 
     void Addfunction(Tamgu* f) {

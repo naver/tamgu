@@ -1076,7 +1076,7 @@ public:
 		return buffer[0];
 	}
     
-	Tamgu* Push(Tamgu* a) {
+	virtual Tamgu* Push(Tamgu* a) {
         if (!globalTamgu->threadMODE) {
             value += a->UString();
             return this;
@@ -2109,7 +2109,14 @@ public:
         return true;
     }
     
-    
+    Tamgu* Push(Tamgu* a) {
+        locking();
+        interval.push_back(a->UString());
+        value = interval[0];
+        unlocking();
+        return this;
+    }
+
     void Callfunction();
 
     unsigned long CallBackArity() {

@@ -3430,7 +3430,7 @@ Exporting void TamguGlobal::RecordProcedures() {
     RecordOneProcedure("random", "Returns a random value", ProcRandom, P_NONE | P_ONE, a_float);
     RecordOneProcedure("a_random", "Returns a random value", Proca_Random, P_NONE | P_ONE, a_float);
 
-    RecordOneProcedure("pause", "Pauses the code in seconds", ProcPause, P_ONE);
+    RecordOneProcedure("pause", "Pauses the code in seconds", ProcPause, P_ONE|P_TWO);
 
     RecordOneProcedure("kget", "Reads a value on keyboard", ProcKeyboardGet, P_NONE | P_ONE);
 
