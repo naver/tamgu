@@ -3713,33 +3713,34 @@ Tamgu* TamguCode::C_subfunc(x_node* xn, Tamgu* parent) {
                     function = CreateCallFunction(function, parent);
             }
         }
-        else
-		if (global->commons.check(id) && !global->extensionmethods.check(id))
-			function = new TamguCallCommonMethod(id, global, parent);
-		else {
-            if (global->extensions.check(tyvar) && global->extensions[tyvar]->isDeclared(id))
-				function = new TamguCallCommonMethod(id, global, parent);
-			else {
-                if (global->checkmethod(tyvar, id)) {
-					function = new TamguCallMethod(id, global, parent);
-                    checkmethodarity = true;
+        else {
+            if (global->commons.check(id) && !global->extensionmethods.check(id))
+                function = new TamguCallCommonMethod(id, global, parent);
+            else {
+                if (global->extensions.check(tyvar) && global->extensions[tyvar]->isDeclared(id))
+                    function = new TamguCallCommonMethod(id, global, parent);
+                else {
+                    if (global->checkmethod(tyvar, id)) {
+                        function = new TamguCallMethod(id, global, parent);
+                        checkmethodarity = true;
+                    }
+                    else {
+                        if (global->allmethods.check(id)) {
+                            if (tyvar == a_self || tyvar == a_let || xn->token == "subfunc" || xn->token == "subfuncbis") {
+                                if (global->extensionmethods.check(id))
+                                    function = new TamguCallCommonMethod(id, global, parent);
+                                else
+                                    function = new TamguCallFromCall(id, global, parent);
+                            }
+                        }
+                        else {
+                            if (global->framemethods.check(id))
+                                function = new TamguCallFrameFunction(NULL, id, global, parent);
+                        }
+                    }
                 }
-				else {
-					if (global->allmethods.check(id)) {
-						if (tyvar == a_self || tyvar == a_let || xn->token == "subfunc" || xn->token == "subfuncbis") {
-							if (global->extensionmethods.check(id))
-								function = new TamguCallCommonMethod(id, global, parent);
-							else
-								function = new TamguCallFromCall(id, global, parent);
-						}
-					}
-					else {
-						if (global->framemethods.check(id))
-							function = new TamguCallFrameFunction(NULL, id, global, parent);
-					}
-				}
-			}
-		}
+            }
+        }
 	}
 
 	if (function == NULL) {
@@ -6740,8 +6741,11 @@ Tamgu* TamguCode::C_parenthetic(x_node* xn, Tamgu* kf) {
         TamguInstruction* ki = new TamguSequence(global);
         Tamgu* ke;
         
+        bool pred_rule = building_predicate_rule;
+        building_predicate_rule = false;
         for (size_t i = 0; i < xn->nodes.size(); i++)
             Traverse(xn->nodes[i], ki);
+        building_predicate_rule = pred_rule;
         
         if (ki->action == a_bloc && ki->instructions.size() == 1) {
             ke = ki->instructions[0];

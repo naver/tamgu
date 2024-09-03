@@ -524,6 +524,14 @@ test(?X) :-
     etc...
 ```
 
+The other solution is to put the expression into parentheses:
+
+```prolog
+string s;
+test(?X) :-
+    ?o is (s.size()), 
+    etc...
+```
 
 ### Common mistakes with Tamgu variables.
 
