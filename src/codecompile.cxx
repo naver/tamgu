@@ -7948,13 +7948,16 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
 	if (kf->Type() == a_calltaskell)
 		kint = (TamguCallFunctionTaskell*)kf;
 
-
+    bool bpr = building_predicate_rule;
+    building_predicate_rule = false;
+    
 	//hmetafunctions: filter, map, zipWith, takeWhile, scan, fold
 	if (xn->nodes.size() && xn->nodes[0]->token == "hmetafunctions") {
 		if (kint == NULL)
 			kint = new TamguCallFunctionTaskell(global, kf);
 		kint->Init(NULL);
 		kf = Traverse(xn->nodes[0]->nodes[0], kint);
+        building_predicate_rule = bpr;
         return kf;
 	}
 
@@ -8000,6 +8003,7 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
             }
 
             kf = Traverse(xn->nodes[0]->nodes[0], kint);
+            building_predicate_rule = bpr;
             return kf;
         }
 	}
@@ -8026,6 +8030,7 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
 		if (global->procedures.check(idname)) {
 			stringstream message;
 			message << e_error_predefined_procedure << name << "'";
+            building_predicate_rule = bpr;
 			throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 		}
 
@@ -8052,6 +8057,7 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
 			if (taskelldeclarationfound || kprevious->Type() != a_lambda) {
 				stringstream message;
 				message << e_error_a_function << name << "'";
+                building_predicate_rule = bpr;
 				throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 			}
 
@@ -8096,6 +8102,7 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
 
 		if (taskelldeclarationfound) {
 			Traverse(xn->nodes[0]->nodes[1], kfuncbase);
+            building_predicate_rule = bpr;
 			return kfuncbase;
 		}
 
@@ -8145,6 +8152,7 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
 			if (sz != localtaskelldeclarations.size()) {
 				stringstream message;
 				message << e_the_declaration_does;
+                building_predicate_rule = bpr;
 				throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 			}
 			short argtype;
@@ -8170,6 +8178,7 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
 						if (!local->isVectorContainer()) {
 							stringstream message;
 							message << "The argument: " << (i - first) + 1 << " does not match the hdeclared description";
+                            building_predicate_rule = bpr;
 							throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 						}
 					}
@@ -8177,6 +8186,7 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
 						if (!local->isMapContainer()) {
 							stringstream message;
 							message << "The argument: " << (i - first) + 1 << " does not match the hdeclared description";
+                            building_predicate_rule = bpr;
 							throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 						}
 					}					
@@ -8192,18 +8202,21 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
 			if (concept == 1 && kfuncbase->Size() != 1) {
 				stringstream message;
 				message << "Concept requires one single parameter:" << name;
+                building_predicate_rule = bpr;
 				throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 			}
 
 			if (concept == 2 && kfuncbase->Size() != 2) {
 				stringstream message;
 				message << e_property_requires_two << name;
+                building_predicate_rule = bpr;
 				throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 			}
 
 			if (concept == 3 && kfuncbase->Size() == 0) {
 				stringstream message;
 				message << e_role_requires_at << name;
+                building_predicate_rule = bpr;
 				throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 			}
 		}
@@ -8219,12 +8232,14 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
                 kint->Init(kfuncbase);
 				Traverse(xn->nodes[1], kint);
 				global->Popstack();
+                building_predicate_rule = bpr;
 				return kf;
 			}
 
 			if (xn->nodes[1]->token == "hbloc") {
 				Traverse(xn->nodes[1], kfuncbase);
 				global->Popstack();
+                building_predicate_rule = bpr;
 				return kf;
 			}
 
@@ -8239,6 +8254,7 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
 					if (global->Compatiblestrict(kfuncbase->Returntype(), return_type) == false) {
 						stringstream message;
 						message << e_type_mismatch_expected << global->Getsymbol(kfuncbase->Returntype()) << "' Proposed: '" << global->Getsymbol(return_type) << "'";
+                        building_predicate_rule = bpr;
 						throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 					}
 				}
@@ -8248,6 +8264,7 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
             
 			//In that case, we do not need anything else...
 			global->Popstack();
+            building_predicate_rule = bpr;
 			return kf;
 		}
 
@@ -8269,6 +8286,7 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
 		if (localtaskelldeclarations.size() != 0) {
 			stringstream message;
 			message << e_only_a_return;
+            building_predicate_rule = bpr;
 			throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 		}
         kint->returntype = return_type;
@@ -8554,6 +8572,7 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
 						if (global->Compatiblestrict(kfunc->Returntype(), return_type) == false) {
 							stringstream message;
 							message << e_type_mismatch_expected << global->Getsymbol(kfunc->Returntype()) << "' Proposed: '" << global->Getsymbol(return_type) << "'";
+                            building_predicate_rule = bpr;
 							throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
 						}
 					}
@@ -8572,6 +8591,7 @@ Tamgu* TamguCode::C_telque(x_node* xn, Tamgu* kf) {
 		//in funcbase, for them to be accessible from the code...			
 		global->Popstack();
 
+    building_predicate_rule = bpr;
 	return kint;
 }
 
@@ -11387,6 +11407,8 @@ Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
     //We have four cases: tlatom, tlquote, tlist
 
     Tamgu* kf = parent;
+    bool bpr = building_predicate_rule;
+    building_predicate_rule = false;
 
     if (compilemode) {
         if (!xn->nodes.size()) {
@@ -11403,6 +11425,7 @@ Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
                     nx.nodes.clear();
                 }
                 catch (TamguRaiseError* a) {
+                    building_predicate_rule = bpr;
                     nx.nodes.clear();
                     throw a;
                 }
@@ -11410,6 +11433,7 @@ Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
                 //if the value stored in systemfunctions is true, then it means that we have
                 //a local call otherwise, it means that the function should be called twice.
                 //At compile time and at run time
+                building_predicate_rule = bpr;
                 return parent;
             }
             kf = new Tamgulispcode(global, parent);
@@ -11426,7 +11450,7 @@ Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
     long i;
     for (i = 0; i < xn->nodes.size(); i++)
         Traverse(xn->nodes[i], kf);
-    
+
     //The next section deals with idea of precompiling some function calls
     //there are three cases, when we do not want to evaluate a specific list
     //defun: if the list is 3, then kf is the list of parameters, no evaluation
@@ -11455,6 +11479,7 @@ Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
                 if (!l->isFunction()) {
                     stringstream message;
                     message << e_wrong_definition_of;
+                    building_predicate_rule = bpr;
                     throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
                 }
             }
@@ -11490,6 +11515,7 @@ Tamgu* TamguCode::C_tamgulisp(x_node* xn, Tamgu* parent) {
         }
     }
     
+    building_predicate_rule = bpr;
     return kf;
 }
 //------------------------------------------------------------------------------------------------------
