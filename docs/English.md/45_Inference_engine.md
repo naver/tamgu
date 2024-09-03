@@ -501,6 +501,30 @@ compute(?X,?Y) :- p_log(?X,?Y).
 - `pred(?X,?Y)` returns the predecessor of ?X. pred can also be used as term, but in that case, it only uses one argument.
 - `succ(?X,?Y)` returns the successor of ?X. succ can also be used as term, but in that case, it only uses one argument.
 
+## Calling `dot` functions
+
+You cannot call methods in a `is` assignment.
+
+```prolog
+string s;
+//ERROR
+test(?X) :-
+    ?o is s.size(), 
+    etc...
+```
+
+In the example above, the compiler will confuse the `.` with an end of a predicate definition and will return an error at the execution.
+
+If you want to apply this method to s, you can replace it with a call to taskell instruction:
+
+```prolog
+string s;
+test(?X) :-
+    ?o is <size s>,
+    etc...
+```
+
+
 ### Common mistakes with Tamgu variables.
 
 If you use regular variables in predicates, such as strings, integers or any

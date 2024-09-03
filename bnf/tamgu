@@ -426,7 +426,7 @@ tuple := %( predicateparameters %)
 %apredicatelist := pexpression ([%, ;25 apredicatelist]^[%| ;25 merging {%]}])
 %valpredicatevector := %[ (apredicatelist) %]
 
-%pexpression := term^tuple^parenthetic^predicatevariable^pintentionvect^valpredicatevector^valmappredicate^abool^astringdouble^afullstring^astringsimple^apreg^aspreg^atreg^astreg^fstring^festring^anumber^purecall^purevariable
+%pexpression := term^tuple^parenthetic^predicatevariable^pintentionvect^valpredicatevector^valmappredicate^abool^astringdouble^afullstring^astringsimple^apreg^aspreg^atreg^astreg^fstring^festring^anumber^tamgulisp^telque^purecall^purevariable
 %predicateparameters := pexpression [%, pexpression]*
 
 #For predicate map... The order is important for the unification

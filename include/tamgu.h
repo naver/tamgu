@@ -965,6 +965,10 @@ public:
         return (investigate == is_callvariable);
     }
     
+    inline bool isDeclaration() {
+        return (is_declaration == (investigate & is_declaration));
+    }
+    
     inline bool isConst() {
         return ( is_constante == (investigate & is_constante));
     }

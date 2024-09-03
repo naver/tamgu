@@ -5131,6 +5131,9 @@ Tamgu* TamguPredicateKnowledgeBase::Eval(Tamgu* contextualpattern, Tamgu* dom, s
 
 
 Tamgu* TamguInstructionPredicate::Eval(Tamgu* contextualpattern, Tamgu* dom, short idthread) {
+    if (!dom->isDeclaration())
+        return globalTamgu->Returnerror("Error: Wrong predicate call", idthread);
+    
     return instructions[0]->Eval(contextualpattern, dom, idthread);
 }
 

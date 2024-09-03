@@ -11216,6 +11216,14 @@ char bnf_tamgu::m_pexpression(string& lreturn,x_node** tree) {
             if (m_astringsimple(lret,&subtree) || m_aspreg(lret,&subtree) || m_astreg(lret,&subtree) || m_festring(lret,&subtree)) 
                 found=true;
             break;
+        case '\\':
+            if (m_tamgulisp(lret,&subtree)) 
+                found=true;
+            break;
+        case '<':
+            if (m_telque(lret,&subtree)) 
+                found=true;
+            break;
         case '0':
             if (m_anumber(lret,&subtree)) 
                 found=true;
