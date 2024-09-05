@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { formatDocument } from './formatter.js';
 
 export function activate(context: vscode.ExtensionContext) {
     let disposableCommand = vscode.commands.registerCommand('extension.runTamgu', () => {
@@ -6,6 +7,11 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     context.subscriptions.push(disposableCommand);
+    context.subscriptions.push(
+        vscode.languages.registerDocumentFormattingEditProvider('Tamgu', {
+            provideDocumentFormattingEdits: formatDocument
+        })
+    );
 
 }
 
@@ -26,7 +32,7 @@ function runTamguFile(filePath: string) {
     if (filePath.endsWith('.tmg')) {
         // Chercher un terminal existant nommé "Tamgu"
         let terminal = vscode.window.terminals.find(t => t.name === 'Tamgu');
-        
+
         // Si le terminal "Tamgu" n'existe pas, créer un nouveau terminal
         if (!terminal) {
             terminal = vscode.window.createTerminal('Tamgu');
@@ -39,4 +45,7 @@ function runTamguFile(filePath: string) {
     }
 }
 
-export function deactivate() {}
+export function deactivate() { }
+
+
+

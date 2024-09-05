@@ -3,11 +3,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.activate = activate;
 exports.deactivate = deactivate;
 const vscode = require("vscode");
+const formatter_js_1 = require("./formatter.js");
 function activate(context) {
     let disposableCommand = vscode.commands.registerCommand('extension.runTamgu', () => {
         runCurrentTamguFile();
     });
     context.subscriptions.push(disposableCommand);
+    context.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider('Tamgu', {
+        provideDocumentFormattingEdits: formatter_js_1.formatDocument
+    }));
 }
 function runCurrentTamguFile() {
     const editor = vscode.window.activeTextEditor;

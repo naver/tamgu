@@ -37,7 +37,19 @@
                 "scopeName": "source.cs",
                 "path": "./grammars/tamgu.tmLanguage"
             }
-        ]
+        ],
+        "configuration": {
+            "type": "object",
+            "title": "tamgu configuration",
+            "properties": {
+              "votre-langage.format.enable": {
+                "type": "boolean",
+                "default": true,
+                "description": "Enable/disable default tamgu formatter."
+              }
+            }
+          }
+      
     },
     "scripts": {
         "vscode:prepublish": "npm run compile",
