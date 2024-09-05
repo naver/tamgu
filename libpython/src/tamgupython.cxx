@@ -78,6 +78,12 @@ string PyAsString(PyObject *po)
 
 #include "tamgupython.h"
 
+void clean_signal() {
+#ifndef WIN32
+    signal(SIGINT,NULL);
+#endif
+}
+
 static bool init_python = false;
 
 // We need to declare once again our local definitions.
@@ -471,6 +477,7 @@ Tamgu *Tamgupython::MethodRun(Tamgu *contextualpattern, short idthread, TamguCal
                 return_variable = "PYT(997):";
                 return_variable += python_error_string();
                 // Imprime l'erreur ou la traite selon vos besoins.
+                clean_signal();
                 return globalTamgu->Returnerror(return_variable, idthread);
             }
         }
@@ -480,11 +487,12 @@ Tamgu *Tamgupython::MethodRun(Tamgu *contextualpattern, short idthread, TamguCal
         }
     }
 
+    clean_signal();
+
     if (return_variable != "") {
          PyObject* py_result_val = PyDict_GetItemString(py_dict, return_variable.c_str());
          if (py_result_val != NULL) {
-            Tamgu* o = toTamgu(py_result_val);
-            return o;
+            return toTamgu(py_result_val);
          }
          else {
             return_variable += ": This Python variable is unknown";
@@ -550,6 +558,8 @@ Tamgu *Tamgupython::MethodExecute(Tamgu *contextualpattern, short idthread, Tamg
     }
     pe = PyObject_CallObject(pFunc, pArgs);
     Py_DECREF(pArgs);
+    clean_signal();
+    
     if (PyErr_Occurred())
     {
         if (pe != NULL)

@@ -49,6 +49,7 @@ char* Getenv(char* name);
 #endif
 
 bool darkmode = false;
+void reset_signal();
 //------------------------------------------------------------------------
 static string _variable_declaration("bool a,b,c; date d; int i,j,k; float f,g,h; string s,t,u; map m; vector v; self x,y,z;");
 static wstring _wvariable_declaration(L"bool a,b,c; date d; int i,j,k; float f,g,h; string s,t,u; map m; vector v; self x,y,z;");
@@ -1226,6 +1227,7 @@ public:
                 }
                 else
                     cerr << m_redbold << e_cannot_load << thecurrentfilename << m_current << endl;
+                reset_signal();
                 return pos;
             case cmd_cls:
                 clearscreen();
@@ -1824,6 +1826,7 @@ public:
                         RetrieveThroughVariables(cde);
                     idcode = TamguCompile(cde, THEMAIN);
                     TamguRun(idcode);
+                    reset_signal();
                     code = TamguUListing();
                     lines.setcode(code, false);
                 }
@@ -1851,6 +1854,7 @@ public:
                 idcode = TamguCompile(cde, THEMAIN);
             }
                 TamguRun(idcode);
+                reset_signal();
                 code = TamguUListing();
                 lines.setcode(code, false);
                 pos = 0;
@@ -2665,12 +2669,8 @@ public:
         cerr << "Copyright 2019-present NAVER Corp." << endl;
         cerr << "64 bits" << endl;
         
-#ifdef WIN32
-		SetConsoleCtrlHandler(handle_ctrl_c, TRUE);
-#else
-        signal(SIGINT,handle_ctrl_c);
-#endif
-
+        reset_signal();
+        
         bool dsp = true;
         
         if (ifilenames.size() > 1) {
@@ -2934,7 +2934,7 @@ public:
         cout << m_current;
         
         lispmode=isLispmode();
-        
+        reset_signal();
         return true;
     }
 
@@ -2958,6 +2958,7 @@ public:
 #endif
 		}
             
+        reset_signal();
         return true;
     }
     
@@ -2998,6 +2999,14 @@ static void handle_ctrl_c(int theSignal) {
         JAGEDITOR->clear();
 }
 #endif
+
+void reset_signal() {
+#ifdef WIN32
+        SetConsoleCtrlHandler(handle_ctrl_c, TRUE);
+#else
+        signal(SIGINT,handle_ctrl_c);
+#endif
+}
 
 //This is a specific case, when the use of _getchar on UNix may interfere with the debuggger
 //We force getchar in Tamgusys to reinitialize itself
