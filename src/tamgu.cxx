@@ -458,14 +458,16 @@ operator_strings(false), terms(false), booleanlocks(true), tracked(NULL, true), 
     ULONG_PTR highLimit;
 
     GetCurrentThreadStackLimits(&lowLimit, &highLimit);
-    max_inner_stack = fabs(highLimit - lowLimit) - 15000;
+    max_inner_stack = fabs(highLimit - lowLimit);
+    max_inner_stack -= max_inner_stack * 0.002;
 #else
 #ifdef TAMGUWASM
     max_inner_stack = 8360000;
 #else
     struct rlimit rl;
     getrlimit(RLIMIT_STACK, &rl);
-    max_inner_stack = rl.rlim_cur - 12000;
+    max_inner_stack = rl.rlim_cur;
+    max_inner_stack -= max_inner_stack * 0.002;
 #endif
 #endif
 

@@ -466,7 +466,17 @@ void TamguGlobal::Getstack(std::stringstream& message) {
         lines = codelines;
     
     if (stack_error.size() > 1) {
-        for (long i = 0; i < stack_error.size(); i++) {
+        long sz = stack_error.size();
+        bool check = false;
+        if (sz > 10)
+            check = true;
+        for (long i = 0; i < sz; i++) {
+            if (i == 1 && check) {
+                i = sz - 10;
+                message << "..." << endl;
+                check = false;
+                continue;
+            }            
             a = stack_error[i];
             ln = a->Currentline();
             if (ln != -1) {
