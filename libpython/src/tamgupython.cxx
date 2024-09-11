@@ -28,6 +28,10 @@ Programmer : Claude ROUX (claude.roux@naverlabs.com)
 
 #include <Python.h>
 
+#ifdef UNIX
+#include <signal.h>
+#endif
+
 #if PY_MAJOR_VERSION >= 3
 #define PyCheck_String PyUnicode_Check
 #define ConvertToPythonLong(i) PyLong_FromLong(i)
