@@ -456,9 +456,13 @@ operator_strings(false), terms(false), booleanlocks(true), tracked(NULL, true), 
 #ifdef WIN32
     max_inner_stack = 8360000;
 #else
+#ifdef TAMGUWASM
+    max_inner_stack = 8360000;
+#else
     struct rlimit rl;
     getrlimit(RLIMIT_STACK, &rl);
     max_inner_stack = rl.rlim_cur - 12000;
+#endif
 #endif
 
     
