@@ -45,7 +45,7 @@
 #include "tamgusocket.h"
 #include "tamgudate.h"
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2024.09.05.11";
+const char* tamgu_version = "Tamgu 1.2024.09.11.10";
 
 extern "C" {
 Exporting const char* TamguVersion(void) {
@@ -362,6 +362,7 @@ TamguRaiseError::TamguRaiseError(stringstream& mes, string file, size_t l, size_
 
 //----------------------------------------------------------------------------------
 ThreadStruct::ThreadStruct() : stack(1000), variables(false) {
+    base_address = NULL;
     fstcompanion = NULL;
     prologstack = 0;
     returnvalue = NULL;
@@ -444,7 +445,6 @@ operator_strings(false), terms(false), booleanlocks(true), tracked(NULL, true), 
     globalTamgu = this;
     
     short_string = 0;
-    
     last_execution = std::chrono::system_clock::now();
     
 #ifdef TAMGULOOSEARGUMENTCOMPATIBILITIES
@@ -452,6 +452,15 @@ operator_strings(false), terms(false), booleanlocks(true), tracked(NULL, true), 
 #else
     loosecompability = false;
 #endif
+
+#ifdef WIN32
+    max_inner_stack = 8360000;
+#else
+    struct rlimit rl;
+    getrlimit(RLIMIT_STACK, &rl);
+    max_inner_stack = rl.rlim_cur - 12000;
+#endif
+
     
     global_constants = &globalConstants;
     
@@ -486,7 +495,7 @@ operator_strings(false), terms(false), booleanlocks(true), tracked(NULL, true), 
     threadMODE = false;
     isthreading = false;
     
-    maxstack = 1000;
+    maxstack = 1000000;
     
     debugmode = false;
     currentbnf = NULL;
@@ -1111,6 +1120,28 @@ Exporting Tamgu* TamguGlobal::Returnerror(string msgerr, short idthread) {
             stack_error = threads[idthread].stackinstructions;
         
         errorraised[idthread] = new TamguError(msgerr);
+        errors[idthread] = true;
+    }
+    return errorraised[idthread];
+}
+
+Exporting Tamgu* TamguGlobal::Returnerror(const char* msgerr, short idthread) {
+    if (!errors[idthread]) {
+        if (!threads[idthread].embedded_try)
+            stack_error = threads[idthread].stackinstructions;
+        
+        errorraised[idthread] = new TamguError(msgerr);
+        errors[idthread] = true;
+    }
+    return errorraised[idthread];
+}
+
+Exporting Tamgu* TamguGlobal::Returnstackoverflow(short idthread) {
+    if (!errors[idthread]) {
+        if (!threads[idthread].embedded_try)
+            stack_error = threads[idthread].stackinstructions;
+        
+        errorraised[idthread] = new TamguError(e_stack_overflow);
         errors[idthread] = true;
     }
     return errorraised[idthread];

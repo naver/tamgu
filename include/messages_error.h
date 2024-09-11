@@ -264,4 +264,5 @@ const char e_error_on_frame_vector[] = "Pushing an incompatible value into a fra
 const char e_error_on_frame_map[] = "Pushing an incompatible value into a frame map";
 const char e_error_frame_container[] = "Error: incompatible variable type: '";
 const char e_error_loop_frame_container[] = "' to loop in a frame container: '";
+const char e_error_name_space_saturated[] = "Cannot create anymore variables, name space saturated";
 #endif

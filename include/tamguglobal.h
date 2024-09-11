@@ -49,6 +49,7 @@ class TamguPredicateContainer;
 class TamguCallBreak;
 class TamguObject;
 class Tamgulongbuff;
+class Tamgudebug;
 class Tamgulong;
 class Tamguintbuff;
 class Tamguint;
@@ -329,7 +330,11 @@ public:
     vector<Tamgu*> localgarbage;
 	bin_hash<VECTE<Tamgu*> > variables;
     hmap<string, ThreadLock*> locks;
+    
+    vector<Tamgudebug*> debug_values;
 
+    uintptr_t base_address;
+    
 	string nonblockingerror;
 
 	stringstream message;
@@ -356,8 +361,7 @@ public:
 	Exporting ~ThreadStruct();
 
     FstCompanion* Companion();
-    
-    
+        
     void Pushinstruction(Tamgu* a) {
         currentinstruction = a;
         stackinstructions.push_back(a);
@@ -366,6 +370,9 @@ public:
     void Popinstruction() {
         stackinstructions.pop_back();
     }
+    
+    void push_debug(Tamgu* a);
+    void pop_debug();
     
     void SetPredicateVariableFlags(short base) {
         gpredicatename = base;
@@ -867,8 +874,22 @@ public:
     bool add_to_tamgu_garbage;
     //--------------------------------
 	long maxstack;
+    long max_inner_stack;
 	//--------------------------------
 
+    inline void push_debug(short idthread, Tamgu* a) {
+        if (debugmode)
+            threads[idthread].push_debug(a);
+    }
+    
+    inline void pop_debug(short idthread) {
+        if (debugmode)
+            threads[idthread].pop_debug();
+    }
+    
+    void debugpush(Tamgu* a, short idthread);
+    void debugpop(short idthread);
+    
 	basebin_hash<TamguPredicateVariable*> predicatevariables;
 	map<string, Tamgu*> dependencyvariables;
 	Tamgu* modifieddependency;
@@ -1064,11 +1085,24 @@ public:
 
 	Exporting void Getdebuginfo(string& localvariables, string& allvariables, string& stack, bool, long sz, short idthread);
 
-	void Pushpredicate(short idthread) {
-		threads[idthread].prologstack++;
-		if (threads[idthread].Size() >= maxstack)
-			Returnerror(e_stack_overflow, idthread);
+	inline void Pushpredicate(short idthread) {
+		//threads[idthread].prologstack++;
+		//if (threads[idthread].Size() >= maxstack)
+			//Returnerror(e_stack_overflow, idthread);
 	}
+
+    inline void Pushstack(Tamgu* a, short idthread = 0) {
+        //if (threads[idthread].pushtracked(a, maxstack))
+        //    Seterror(e_stack_overflow, idthread);
+        
+        threads[idthread].pushtracked(a, maxstack);
+    }
+
+    inline void Pushstackraw(Tamgu* a, short idthread = 0) {
+        //if (threads[idthread].push(a, maxstack))
+          //  Seterror(e_stack_overflow, idthread);
+        threads[idthread].push(a, maxstack);
+    }
 
 	void Poppredicate(short idthread) {
 		threads[idthread].prologstack--;
@@ -1078,9 +1112,6 @@ public:
         threads[idthread].previousinstruction=NULL;
     }
 
-    inline bool Checkstack(short idthread) {
-        return (threads[idthread].Size() >= maxstack);
-    }
     
 	//Push on stack a function or a domain
     inline bool Pushstacklisp(Tamgu* a, short idthread) {
@@ -1101,16 +1132,6 @@ public:
         return threads[idthread].stacklisp.back();
     }
     
-    inline void Pushstack(Tamgu* a, short idthread = 0) {
-        if (threads[idthread].pushtracked(a, maxstack))
-            Seterror(e_stack_overflow, idthread);
-    }
-
-    inline void Pushstackraw(Tamgu* a, short idthread = 0) {
-        if (threads[idthread].push(a, maxstack))
-            Seterror(e_stack_overflow, idthread);
-    }
-
 	inline void Popstack(short idthread = 0) {
 		threads[idthread].stack.pop_back();
 	}
@@ -1120,6 +1141,11 @@ public:
 	}
 
     Tamgu* GetTopFrame();
+    
+    
+    bool check_stack_base_address(short idthread, uintptr_t ptr) {
+        return (max_inner_stack > threads[idthread].base_address - ptr);
+    }
     
 	inline size_t Stacksize(short idthread = 0) {
 		return threads[idthread].stack.size();
@@ -1418,6 +1444,8 @@ public:
 
 	Exporting Tamgu* Returnerror(Tamgu* err, short idthread);
 	Exporting Tamgu* Returnerror(string err, short idthread);
+    Exporting Tamgu* Returnerror(const char* err, short idthread);
+    Exporting Tamgu* Returnstackoverflow(short idthread);
     Exporting void Seterror(string err, short idthread);
 	Exporting Tamgu* Returnerror(string err);
 

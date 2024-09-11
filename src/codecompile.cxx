@@ -2935,6 +2935,29 @@ inline Tamgu* ThreadStruct::GetTopFrame() {
 	return NULL;
 }
 
+void ThreadStruct::push_debug(Tamgu* a) {
+    Tamgudebug* d = new Tamgudebug(idthread, a);
+    debug_values.push_back(d);
+}
+
+void ThreadStruct::pop_debug() {
+    Tamgudebug* d = debug_values.back();
+    debug_values.pop_back();
+    delete d;
+}
+
+void TamguGlobal::debugpush(Tamgu* a, short idthread) {
+    Pushinstruction(a, idthread);
+    if (debugmode)
+        threads[idthread].debug_values.back()->push();
+}
+
+void TamguGlobal::debugpop(short idthread) {
+    Popinstruction(idthread);
+    if (debugmode)
+        threads[idthread].debug_values.back()->pop();
+}
+
 Tamgu* TamguGlobal::GetTopFrame(short idthread) {
 	return threads[idthread].GetTopFrame();
 }

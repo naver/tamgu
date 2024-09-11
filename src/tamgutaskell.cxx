@@ -362,6 +362,9 @@ Tamgu* TamguFunctionLambda::DirectEval(Tamgu* environment, Tamgu* a, short idthr
         Checkreturnonly();
     
     bool testcond = false;
+    if (!globalTamgu->check_stack_base_address(idthread, reinterpret_cast<uintptr_t>(&testcond)))
+        return globalTamgu->Returnstackoverflow(idthread);
+
     switch(returnonly) {
         case 1:
             a = instructionreturn->DirectEval(environment, aNULL, idthread);
@@ -452,7 +455,9 @@ Tamgu* TamguFunctionLambda::Eval(Tamgu* environment, Tamgu* a, short idthread) {
         Checkreturnonly();
     
     bool testcond = false;
-    
+    if (!globalTamgu->check_stack_base_address(idthread, reinterpret_cast<uintptr_t>(&testcond)))
+        return globalTamgu->Returnstackoverflow(idthread);
+
     switch(returnonly) {
         case 1:
             a = instructionreturn->DirectEval(environment, aNULL, idthread);
@@ -1583,10 +1588,12 @@ Tamgu* TamguCallFibre::Put(Tamgu* context, Tamgu* v, short idthread) {
 Tamgu* TamguCallFibre::Eval(Tamgu* context, Tamgu* res, short idthread) {
     _setcurrentinstruction(idthread);
     
-    Tamgu** args = NULL;
-    
     short i, sz = arguments.size();
-    
+    if (!globalTamgu->check_stack_base_address(idthread, reinterpret_cast<uintptr_t>(&sz)))
+        return globalTamgu->Returnstackoverflow(idthread);
+
+    Tamgu** args = NULL;
+        
     //In this case, we need to get rid of this value for context
     //Otherwise there might be some issue at cleaning, since mainframe would have been deleted
     //we before the new fibre.
@@ -1622,7 +1629,6 @@ Tamgu* TamguCallFibre::Eval(Tamgu* context, Tamgu* res, short idthread) {
     
     TamguFunctionLambda* bd = (TamguFunctionLambda*)res;
     
-    Tamgu* arg;
     
     short param_name, typevariable;
     bool execute = false;
@@ -1633,7 +1639,7 @@ Tamgu* TamguCallFibre::Eval(Tamgu* context, Tamgu* res, short idthread) {
         globalTamgu->threads[idthread].nonblockingerror = "";
     
     bool cleanenv = true;
-    
+    Tamgu* arg;
     while (bd != NULL) {
         if (sz != bd->parameters.size()) {
             bd = bd->Following();

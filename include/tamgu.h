@@ -2828,6 +2828,7 @@ public:
 	VECTE<Tamgu*> parameters;
 	TamguFunction* next;
 
+    long instruction_size;
 	short returntype;
 
 	char choice;
@@ -2839,6 +2840,7 @@ public:
 	bool adding;
 
 	TamguFunction(short n, TamguGlobal* global) : returntype(a_null), TamguDeclaration(n, a_function, global) {
+        instruction_size = 0;
 		adding = true;
 		idtype = a_function;
 		autorun = false;
@@ -2877,8 +2879,10 @@ public:
 		if (choice == 0)
 			parameters.push_back(a);
 		else
-		if (adding)
-			instructions.push_back(a);
+            if (adding) {
+                instructions.push_back(a);
+                instruction_size++;
+            }
 	}
 
 	virtual Tamgu* Eval(Tamgu* context, Tamgu* callfunction, short idthread);

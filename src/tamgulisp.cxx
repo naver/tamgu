@@ -2502,7 +2502,7 @@ Tamgu* TamguCallLispFunction::Eval(Tamgu* domain, Tamgu* a, short idthread) {
     }
     
     if (!globalTamgu->Pushstacklisp(this, idthread))
-        return globalTamgu->Returnerror(e_stack_overflow, idthread);
+        return globalTamgu->Returnstackoverflow(idthread);
 
     globalTamgu->Pushstackraw(environment, idthread);
     //We then apply our function within this environment

@@ -43,23 +43,19 @@ const uchar b_longdecimal = b_long | b_decimal;
 const uchar b_floats = b_decimal | b_float;
 //--------------------------------------------------------------------
 #ifdef MULTIGLOBALTAMGU
-#define _setdebugfull(i,j)
-#define _setdebugfulli(i,j)
-#define _setdebugmin(i)
+#define _setdebugfulli(a)
 #define _setdebugmini(i)
 #define _debugpush(a) globalTamgu->Pushinstruction(a, idthread)
 #define _debugpop() globalTamgu->Popinstruction(idthread)
 #define _cleandebugfull
 #define _cleandebugmin
 #else
-#define _setdebugfull(i,j) Tamgudebug* _d=NULL; bool _db = globalTamgu->debugmode; if (_db) _d=new Tamgudebug(i,j); Tamgu** _current_ = globalTamgu->Currentinstruction(idthread)
-#define _setdebugfulli(i,j) Tamgudebug* _d=NULL; bool _db = globalTamgu->debugmode; if (_db) _d=new Tamgudebug(i,j);
-#define _setdebugmin(i) Tamgudebug* _d=NULL; bool _db = globalTamgu->debugmode; if (_db) _d=new Tamgudebug(i); Tamgu** _current_ = globalTamgu->Currentinstruction(idthread)
-#define _setdebugmini(i) Tamgudebug* _d=NULL; bool _db = globalTamgu->debugmode; if (_db) _d=new Tamgudebug(i)
-#define _debugpush(a) globalTamgu->Pushinstruction(a, idthread); if (_db) _d->push()
-#define _debugpop() globalTamgu->Popinstruction(idthread); if (_db) _d->pop()
-#define _cleandebugfull if (_db) delete _d
-#define _cleandebugmin if (_db) delete _d
+#define _setdebugfulli(a) globalTamgu->push_debug(idthread,a);
+#define _setdebugmini(i) globalTamgu->push_debug(i,NULL);
+#define _debugpush(a) globalTamgu->debugpush(a, idthread)
+#define _debugpop() globalTamgu->debugpop(idthread)
+#define _cleandebugfull globalTamgu->pop_debug(idthread)
+#define _cleandebugmin globalTamgu->pop_debug(idthread)
 #endif
 
 #define _setcurrentinstruction(id) globalTamgu->threads[id].currentinstruction = this

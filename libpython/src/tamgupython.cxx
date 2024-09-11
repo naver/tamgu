@@ -14,7 +14,6 @@ Programmer : Claude ROUX (claude.roux@naverlabs.com)
     Reviewer   :
 */
 
-#include <stdio.h>
 #include "tamgu.h"
 #include "globaltamgu.h"
 #include "compilecode.h"
@@ -28,10 +27,6 @@ Programmer : Claude ROUX (claude.roux@naverlabs.com)
 #include "tamgustring.h"
 
 #include <Python.h>
-
-#ifdef UNIX
-#include <signal.h>
-#endif
 
 #if PY_MAJOR_VERSION >= 3
 #define PyCheck_String PyUnicode_Check

@@ -651,12 +651,14 @@ Tamgu* TamguCode::Run(bool glock) {
     
 	short idthread = 0;
 	global->InitThreadid(idthread);
-
+    
 	global->Pushstack(&mainframe);
 	_setdebugmini(0);
 
 	Tamgu* a = aNULL;
 	size_t sz = mainframe.instructions.size();
+    
+    global->threads[idthread].base_address = reinterpret_cast<uintptr_t>(&idthread);
     
     bool testcond = false;
     
@@ -2277,11 +2279,12 @@ Exporting Tamgu* TamguCallFunction::Eval(Tamgu* domain, Tamgu* a, short idthread
 	TamguVariableDeclaration* p = NULL;
 
 	short i, sz = 0, sza = arguments.size();
-	bool strict = bd->strict;
 
     VECTE<Tamgu*>* values = &bvalues;
     if (idthread)
         values = new VECTE<Tamgu*>(sza);
+    else
+        bvalues.clear();
     
     bool error = false;
     for (i = 0; i < sza && !error; i++) {
@@ -2296,6 +2299,9 @@ Exporting Tamgu* TamguCallFunction::Eval(Tamgu* domain, Tamgu* a, short idthread
             if (!a-isError())
                 a->Releasenonconst();
         }
+
+        if (idthread)
+            delete values;
         return globalTamgu->Errorobject(idthread);
     }
     
@@ -2305,6 +2311,8 @@ Exporting Tamgu* TamguCallFunction::Eval(Tamgu* domain, Tamgu* a, short idthread
             string err = "Could not find a match for: '";
             err += globalTamgu->Getsymbol(Name());
             err += "'";
+            if (idthread)
+                delete values;
             return globalTamgu->Returnerror(err, idthread);
         }
     }
@@ -2321,7 +2329,7 @@ Exporting Tamgu* TamguCallFunction::Eval(Tamgu* domain, Tamgu* a, short idthread
 		if (sza == sz) {
             error = false;
             for (i = 0; i < sz && !error; i++) {
-                error = ((TamguVariableDeclaration*)bd->parameters[i])->Setarguments(environment, values->vecteur[i], idthread, strict);
+                error = ((TamguVariableDeclaration*)bd->parameters[i])->Setarguments(environment, values->vecteur[i], idthread, bd->strict);
             }
         }
         else {
@@ -2336,7 +2344,7 @@ Exporting Tamgu* TamguCallFunction::Eval(Tamgu* domain, Tamgu* a, short idthread
                 if (i < sza) {
                     a = values->vecteur[i];
                     type_a = a->Type();
-                    error = p->Setarguments(environment, a, idthread, strict);
+                    error = p->Setarguments(environment, a, idthread, bd->strict);
                 }
                 else {
                     a = p->Initialisation();
@@ -2345,7 +2353,7 @@ Exporting Tamgu* TamguCallFunction::Eval(Tamgu* domain, Tamgu* a, short idthread
                         break;
                     }
                     type_a = a->Type();
-                    error = p->Setarguments(environment, a, idthread, strict);
+                    error = p->Setarguments(environment, a, idthread, bd->strict);
                     a->Releasenonconst();
                 }
             }
@@ -2364,8 +2372,6 @@ Exporting Tamgu* TamguCallFunction::Eval(Tamgu* domain, Tamgu* a, short idthread
     
     if (idthread)
         delete values;
-    else
-        values->clear();
     
 	if (error) {
         environment->Releasing();
@@ -2436,13 +2442,7 @@ Tamgu* TamguCallFunction1::Eval(Tamgu* domain, Tamgu* a, short idthread) {
     TamguDeclarationLocal* environment = globalTamgu->Providedeclaration(idthread);
     if (globalTamgu->debugmode)
         environment->idinfo = Currentinfo();
-
-    TamguFunction* bd = (TamguFunction*)body;
-    
-    bool strict = false;
-    if (bd != NULL)
-        strict = bd->strict;
-    
+        
     a = arguments[0]->Eval(domain, aNULL, idthread);
 
     if (globalTamgu->Error(idthread)) {
@@ -2451,8 +2451,8 @@ Tamgu* TamguCallFunction1::Eval(Tamgu* domain, Tamgu* a, short idthread) {
         return globalTamgu->Errorobject(idthread);
     }
 
-    TamguVariableDeclaration* p = (TamguVariableDeclaration*)bd->parameters[0];
-    if (p->Setarguments(environment, a, idthread, strict)) {
+    TamguVariableDeclaration* p = (TamguVariableDeclaration*)((TamguFunction*)body)->parameters[0];
+    if (p->Setarguments(environment, a, idthread, ((TamguFunction*)body)->strict)) {
         short type_a  = a->Type();
         a->Releasenonconst();
         string err = "Check the argument '1' of: '";
@@ -2465,7 +2465,7 @@ Tamgu* TamguCallFunction1::Eval(Tamgu* domain, Tamgu* a, short idthread) {
     
     globalTamgu->Pushstackraw(environment, idthread);
     //We then apply our function within this environment
-    a = bd->Run(environment, idthread);
+    a = ((TamguFunction*)body)->Run(environment, idthread);
     globalTamgu->Popstack(idthread);
     
     //if a has no reference, then it means that it was recorded into the environment
@@ -2490,18 +2490,16 @@ Tamgu* TamguCallFunction2::Eval(Tamgu* domain, Tamgu* a, short idthread) {
     if (globalTamgu->debugmode)
         environment->idinfo = Currentinfo();
 
-    TamguFunction* bd = (TamguFunction*)body;
-    
     bool error = false;
     TamguVariableDeclaration* p = NULL;
     short i;
     short type_a = 0, type_p = 0;
     for (i = 0; i < 2 && !error; i++) {
         a = arguments[i]->Eval(domain, aNULL, idthread);
-        p = (TamguVariableDeclaration*)bd->parameters[i];
+        p = (TamguVariableDeclaration*)((TamguFunction*)body)->parameters[i];
         type_a = a->Type();
         type_p = p->typevariable;
-        error = a->isError() || p->Setarguments(environment, a, idthread, bd->strict);
+        error = a->isError() || p->Setarguments(environment, a, idthread, ((TamguFunction*)body)->strict);
     }
 
     if (error) {
@@ -2522,7 +2520,7 @@ Tamgu* TamguCallFunction2::Eval(Tamgu* domain, Tamgu* a, short idthread) {
 
     globalTamgu->Pushstackraw(environment, idthread);
     //We then apply our function within this environment
-    a = bd->Run(environment, idthread);
+    a = ((TamguFunction*)body)->Run(environment, idthread);
     globalTamgu->Popstack(idthread);
     
     //if a has no reference, then it means that it was recorded into the environment
@@ -2546,13 +2544,6 @@ Tamgu* TamguCallFunction3::Eval(Tamgu* domain, Tamgu* a, short idthread) {
     TamguDeclarationLocal* environment = globalTamgu->Providedeclaration(idthread);
     if (globalTamgu->debugmode)
         environment->idinfo = Currentinfo();
-
-    TamguFunction* bd = (TamguFunction*)body;
-    
-    bool strict = false;
-    if (bd != NULL)
-        strict = bd->strict;
-
     
     bool error = false;
     TamguVariableDeclaration* p = NULL;
@@ -2560,10 +2551,10 @@ Tamgu* TamguCallFunction3::Eval(Tamgu* domain, Tamgu* a, short idthread) {
     short type_a = 0, type_p = 0;
     for (i = 0; i < 3 && !error; i++) {
         a = arguments[i]->Eval(domain, aNULL, idthread);
-        p = (TamguVariableDeclaration*)bd->parameters[i];
+        p = (TamguVariableDeclaration*)((TamguFunction*)body)->parameters[i];
         type_a = a->Type();
         type_p = p->typevariable;
-        error = a->isError() || p->Setarguments(environment, a, idthread, bd->strict);
+        error = a->isError() || p->Setarguments(environment, a, idthread, ((TamguFunction*)body)->strict);
     }
 
     if (error) {
@@ -2584,7 +2575,7 @@ Tamgu* TamguCallFunction3::Eval(Tamgu* domain, Tamgu* a, short idthread) {
 
     globalTamgu->Pushstackraw(environment, idthread);
     //We then apply our function within this environment
-    a = bd->Run(environment, idthread);
+    a = ((TamguFunction*)body)->Run(environment, idthread);
     globalTamgu->Popstack(idthread);
     
     //if a has no reference, then it means that it was recorded into the environment
@@ -2607,23 +2598,17 @@ Tamgu* TamguCallFunction4::Eval(Tamgu* domain, Tamgu* a, short idthread) {
     TamguDeclarationLocal* environment = globalTamgu->Providedeclaration(idthread);
     if (globalTamgu->debugmode)
         environment->idinfo = Currentinfo();
-
-    TamguFunction* bd = (TamguFunction*)body;
-    
-    bool strict = false;
-    if (bd != NULL)
-        strict = bd->strict;
-    
+        
     bool error = false;
     TamguVariableDeclaration* p = NULL;
     short i;
     short type_a = 0, type_p = 0;
     for (i = 0; i < 4 && !error; i++) {
         a = arguments[i]->Eval(domain, aNULL, idthread);
-        p = (TamguVariableDeclaration*)bd->parameters[i];
+        p = (TamguVariableDeclaration*)((TamguFunction*)body)->parameters[i];
         type_a = a->Type();
         type_p = p->typevariable;
-        error = a->isError() || p->Setarguments(environment, a, idthread, bd->strict);
+        error = a->isError() || p->Setarguments(environment, a, idthread, ((TamguFunction*)body)->strict);
     }
 
     if (error) {
@@ -2644,7 +2629,7 @@ Tamgu* TamguCallFunction4::Eval(Tamgu* domain, Tamgu* a, short idthread) {
     
     globalTamgu->Pushstackraw(environment, idthread);
     //We then apply our function within this environment
-    a = bd->Run(environment, idthread);
+    a = ((TamguFunction*)body)->Run(environment, idthread);
     globalTamgu->Popstack(idthread);
     
     //if a has no reference, then it means that it was recorded into the environment
@@ -2667,12 +2652,6 @@ Tamgu* TamguCallFunction5::Eval(Tamgu* domain, Tamgu* a, short idthread) {
     TamguDeclarationLocal* environment = globalTamgu->Providedeclaration(idthread);
     if (globalTamgu->debugmode)
         environment->idinfo = Currentinfo();
-
-    TamguFunction* bd = (TamguFunction*)body;
-    
-    bool strict = false;
-    if (bd != NULL)
-        strict = bd->strict;
     
     bool error = false;
     TamguVariableDeclaration* p = NULL;
@@ -2680,10 +2659,10 @@ Tamgu* TamguCallFunction5::Eval(Tamgu* domain, Tamgu* a, short idthread) {
     short type_a = 0, type_p = 0;
     for (i = 0; i < 5 && !error; i++) {
         a = arguments[i]->Eval(domain, aNULL, idthread);
-        p = (TamguVariableDeclaration*)bd->parameters[i];
+        p = (TamguVariableDeclaration*)((TamguFunction*)body)->parameters[i];
         type_a = a->Type();
         type_p = p->typevariable;
-        error = a->isError() || p->Setarguments(environment, a, idthread, bd->strict);
+        error = a->isError() || p->Setarguments(environment, a, idthread, ((TamguFunction*)body)->strict);
     }
 
     if (error) {
@@ -2704,7 +2683,7 @@ Tamgu* TamguCallFunction5::Eval(Tamgu* domain, Tamgu* a, short idthread) {
     
     globalTamgu->Pushstackraw(environment, idthread);
     //We then apply our function within this environment
-    a = bd->Run(environment, idthread);
+    a = ((TamguFunction*)body)->Run(environment, idthread);
     globalTamgu->Popstack(idthread);
     
     //if a has no reference, then it means that it was recorded into the environment
@@ -3100,7 +3079,7 @@ Tamgu* TamguAlias::Eval(Tamgu* environment, Tamgu* a, short idthread) {
     if (!size)
         return aNULL;
 
-    _setdebugfulli(idthread, this);
+    _setdebugfulli(this);
 
     bool testcond = false;
 
@@ -3134,18 +3113,18 @@ Tamgu* TamguAlias::Eval(Tamgu* environment, Tamgu* a, short idthread) {
 
 
 Tamgu* TamguFunction::Run(Tamgu* environment, short idthread) {
-    long size = instructions.size();
-    if (!size)
-        return aNULL;
+    instruction_size = instructions.last;
 
-    _setdebugfulli(idthread, this);
+    bool testcond = false;
+    if (!globalTamgu->check_stack_base_address(idthread, reinterpret_cast<uintptr_t>(&testcond)))
+        return globalTamgu->Returnstackoverflow(idthread);
+
+    _setdebugfulli(this);
 
     Tamgu* a = aNULL;
-    bool continue_on_tail = true;
-    bool testcond = false;
-
-    while (continue_on_tail) {
-        for (long i = 0; i < size && !testcond; i++) {
+    long i;
+    while (true) {
+        for (i = 0; i < instruction_size && !testcond; i++) {
             
             a->Releasenonconst();
             
@@ -3220,6 +3199,8 @@ void AThread(TamguThreadCall* call) {
 	short idthread = call->idthread;
     bool waitonjoin = call->joined;
 
+    global->threads[idthread].base_address = reinterpret_cast<uintptr_t>(&idthread);
+    
 	if (global->Error(idparent)) {
 		for (short i = 0; i < call->arguments.size(); i++)
 			call->arguments[i]->Resetreference();
@@ -3383,7 +3364,7 @@ Tamgu* TamguThread::Eval(Tamgu* environment, Tamgu* a, short idthread) {
 	if (_locker != NULL)
 		_lock = new Locking(*_locker);
 
-	_setdebugfulli(idthread, this);
+    _setdebugfulli(this);
 	long size = instructions.size();
     a = aNULL;
     bool testcond = false;
@@ -4141,7 +4122,7 @@ Tamgu* TamguInstructionWHILE::Eval(Tamgu* context, Tamgu* result, short idthread
     result = aNULL;
     negation = ktest->isNegation();
 
-	_setdebugfulli(idthread, this);
+    _setdebugfulli(this);
 
     bool testcond = false;
 	while (!testcond && ktest->Eval(aTRUE, aNULL, idthread)->Boolean() != negation) {
@@ -5421,7 +5402,7 @@ Tamgu* TamguInstructionCATCH::Eval(Tamgu* context, Tamgu* a, short idthread) {
 
 	if (size == 1) {
         a = instructions.vecteur[0];
-        _setdebugfulli(idthread, a);
+        _setdebugfulli(a);
 		a = a->Eval(context, aNULL, idthread);
 		_cleandebugfull;
 		return a;
