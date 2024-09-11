@@ -454,7 +454,11 @@ operator_strings(false), terms(false), booleanlocks(true), tracked(NULL, true), 
 #endif
 
 #ifdef WIN32
-    max_inner_stack = 8360000;
+    ULONG_PTR lowLimit;
+    ULONG_PTR highLimit;
+
+    GetCurrentThreadStackLimits(&lowLimit, &highLimit);
+    max_inner_stack = fabs(highLimit - lowLimit) - 15000;
 #else
 #ifdef TAMGUWASM
     max_inner_stack = 8360000;
