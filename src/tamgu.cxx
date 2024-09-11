@@ -47,6 +47,10 @@
 //----------------------------------------------------------------------------------
 const char* tamgu_version = "Tamgu 1.2024.09.11.10";
 
+#ifdef UNIX
+#include <sys/resource.h>
+#endif
+
 extern "C" {
 Exporting const char* TamguVersion(void) {
     return tamgu_version;
