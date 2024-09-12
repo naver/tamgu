@@ -524,6 +524,8 @@ Tamgu* TamguCode::Executing() {
 	short idthread = 0;
 	global->InitThreadid(idthread);
 
+    global->threads[idthread].set_base_address(reinterpret_cast<uintptr_t>(&idthread));
+    
 	global->Pushstack(&mainframe);
 	_setdebugmini(0);
 
@@ -564,6 +566,8 @@ Tamgu* TamguCode::ExecuteExpression(TamguLocalEvaluation& local, short idthread)
     _setdebugmini(idthread);
     size_t i;
 
+    global->threads[idthread].set_base_address(reinterpret_cast<uintptr_t>(&sz));
+    
     for (i = 0; i < sz; i++) {
         a = local.instructions.vecteur[i];
 
@@ -603,6 +607,7 @@ Tamgu* TamguCode::Eval(long begin_instruction) {
 
     Tamgu* a = aNULL;
     size_t sz = mainframe.instructions.size();
+    global->threads[0].set_base_address(reinterpret_cast<uintptr_t>(&sz));
     
     bool testcond = false;
     
@@ -650,6 +655,8 @@ Tamgu* TamguCode::Run(bool glock) {
     global->Cleanerror(0);
     
 	short idthread = 0;
+    global->threads[idthread].set_base_address(reinterpret_cast<uintptr_t>(&idthread));
+    
 	global->InitThreadid(idthread);
     
 	global->Pushstack(&mainframe);
@@ -657,8 +664,6 @@ Tamgu* TamguCode::Run(bool glock) {
 
 	Tamgu* a = aNULL;
 	size_t sz = mainframe.instructions.size();
-    
-    global->threads[idthread].base_address = reinterpret_cast<uintptr_t>(&idthread);
     
     bool testcond = false;
     
@@ -3199,8 +3204,6 @@ void AThread(TamguThreadCall* call) {
 	short idthread = call->idthread;
     bool waitonjoin = call->joined;
 
-    global->threads[idthread].base_address = reinterpret_cast<uintptr_t>(&idthread);
-    
 	if (global->Error(idparent)) {
 		for (short i = 0; i < call->arguments.size(); i++)
 			call->arguments[i]->Resetreference();
@@ -3217,6 +3220,7 @@ void AThread(TamguThreadCall* call) {
     global->InitThreadid(idthread);
     call->tid = global->threads[idthread].handle;
     
+    global->threads[idthread].set_base_address(reinterpret_cast<uintptr_t>(&idthread));
     
 	Locking* _exclusive = NULL;
 	if (call->exclusive && call->cleandom)

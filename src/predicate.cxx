@@ -2743,23 +2743,28 @@ Tamgu* TamguConstvectormerge::ExtractPredicateVariables(Tamgu* context, TamguDec
     csend = c;
     long i;
     Tamguvector* localvect = NULL;
-    if (c != NULL && c->Type() == a_vector) {
-        szc = c->Size();
-        if (szc) {
-            Tamgu* lst = c->Last();
-            if (lst->isMerge()) {
-                localvect = globalTamgu->Providevector();
-                for (i = 0; i < szc - 1; i++)
-                    localvect->values.push_back(c->getvalue(i));
-                lst = lst->VariableValue(dom, idthread)->getvalue(0)->VariableValue(dom, idthread);
-                for (i = 0; i < lst->Size(); i++)
-                    localvect->values.push_back(lst->getvalue(i));
-                c = localvect;
-                szc = c->Size();
+    if (c != NULL) {
+        if (c->Type() == a_vector) {
+            szc = c->Size();
+            if (szc) {
+                Tamgu* lst = c->Last();
+                if (lst->isMerge()) {
+                    localvect = globalTamgu->Providevector();
+                    for (i = 0; i < szc - 1; i++)
+                        localvect->values.push_back(c->getvalue(i));
+                    lst = lst->VariableValue(dom, idthread)->getvalue(0)->VariableValue(dom, idthread);
+                    for (i = 0; i < lst->Size(); i++)
+                        localvect->values.push_back(lst->getvalue(i));
+                    c = localvect;
+                    szc = c->Size();
+                }
+                else
+                    localvect = NULL;
             }
-            else
-                localvect = NULL;
         }
+        else
+            if (!c->isPredicateVariable())
+                return NULL;
     }
 
     Tamguvector* vect = globalTamgu->Providevector();
@@ -2849,37 +2854,41 @@ Tamgu* Tamguvector::ExtractPredicateVariables(Tamgu* context, TamguDeclaration* 
     Tamgu* kval;
     TamguPredicateVariableInstance* kpvi;
     Tamguvector* localvect = NULL;
-    if (local_source != NULL && local_source->isVectorContainer()) {
-        source_size = local_source->Size();
-        if (source_size) {
-            if (local_source->Last()->isMerge()) {
-                if (!container_size)
-                    return NULL;
-                kpvi = (TamguPredicateVariableInstance*)local_source->Last();
-                localvect = globalTamgu->Providevector();
-                for (i = 0; i < source_size - 1; i++)
-                    localvect->values.push_back(local_source->getvalue(i));
-                kval = kpvi->value->getvalue(0)->VariableValue(dom, idthread);
-                source_size = kval->Size();
-                for (i = 0; i < source_size; i++)
-                    localvect->values.push_back(kval->getvalue(i));
-                local_source = localvect;
-                source_size = localvect->values.size();
-            }
-            else
-                localvect = NULL;
-        }
-        if (!container_size || !values.back()->isMerge()) {
-            if (source_size != container_size) {
-                if (localvect != NULL) {
-                    localvect->values.clear();
-                    localvect->Release();
+    if (local_source != NULL) {
+        if (local_source->isVectorContainer()) {
+            source_size = local_source->Size();
+            if (source_size) {
+                if (local_source->Last()->isMerge()) {
+                    if (!container_size)
+                        return NULL;
+                    kpvi = (TamguPredicateVariableInstance*)local_source->Last();
+                    localvect = globalTamgu->Providevector();
+                    for (i = 0; i < source_size - 1; i++)
+                        localvect->values.push_back(local_source->getvalue(i));
+                    kval = kpvi->value->getvalue(0)->VariableValue(dom, idthread);
+                    source_size = kval->Size();
+                    for (i = 0; i < source_size; i++)
+                        localvect->values.push_back(kval->getvalue(i));
+                    local_source = localvect;
+                    source_size = localvect->values.size();
                 }
-                return NULL;
+                else
+                    localvect = NULL;
+            }
+            if (!container_size || !values.back()->isMerge()) {
+                if (source_size != container_size) {
+                    if (localvect != NULL) {
+                        localvect->values.clear();
+                        localvect->Release();
+                    }
+                    return NULL;
+                }
             }
         }
+        else
+            if (!local_source->isPredicateVariable())
+                return NULL;
     }
-
 
     Tamgu* e;
     Tamguvector* vect = globalTamgu->Providevector();
@@ -2985,15 +2994,20 @@ Tamgu* TamguConstmap::ExtractPredicateVariables(Tamgu* context, TamguDeclaration
 
     long sz = values.size();
     long szc = -1;
-    if (c != NULL && c->isMapContainer()) {
-        szc = c->Size();
-        if ((!szc && sz) || (szc && !sz))
-            return NULL;
-        //No merge, then the size should be equal
-        if (!sz || keys.back()->Name() != a_pipe) {
-            if (sz != szc)
+    if (c != NULL) {
+        if (c->isMapContainer()) {
+            szc = c->Size();
+            if ((!szc && sz) || (szc && !sz))
                 return NULL;
+            //No merge, then the size should be equal
+            if (!sz || keys.back()->Name() != a_pipe) {
+                if (sz != szc)
+                    return NULL;
+            }
         }
+        else
+            if (!c->isPredicateVariable())
+                return NULL;
     }
 
     TamguIteration* iter;

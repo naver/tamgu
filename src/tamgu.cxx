@@ -45,7 +45,7 @@
 #include "tamgusocket.h"
 #include "tamgudate.h"
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2024.09.11.10";
+const char* tamgu_version = "Tamgu 1.2024.09.12.10";
 
 #ifdef UNIX
 #include <sys/resource.h>
@@ -300,6 +300,27 @@ void TamguGlobal::Removefromlocalgarbage(short idthread, long i, Tamgu* a) {
     
 }
 
+void ThreadStruct::set_base_address(uintptr_t b) {
+#ifdef WIN32
+    ULONG_PTR lowLimit;
+    ULONG_PTR highLimit;
+    
+    GetCurrentThreadStackLimits(&lowLimit, &highLimit);
+    max_inner_stack = fabs(highLimit - lowLimit);
+    max_inner_stack -= max_inner_stack * 0.002;
+#else
+#ifdef TAMGUWASM
+    max_inner_stack = 8360000;
+#else
+    struct rlimit rl;
+    getrlimit(RLIMIT_STACK, &rl);
+    max_inner_stack = rl.rlim_cur;
+    max_inner_stack -= max_inner_stack * 0.002;
+#endif
+#endif
+    baseaddress = b;
+}
+
 void ThreadStruct::Cleanfromgarbageposition(Tamgu* declaration,
                                             short idthread,
                                             long p,
@@ -366,7 +387,8 @@ TamguRaiseError::TamguRaiseError(stringstream& mes, string file, size_t l, size_
 
 //----------------------------------------------------------------------------------
 ThreadStruct::ThreadStruct() : stack(1000), variables(false) {
-    base_address = NULL;
+    max_inner_stack = 0;
+    baseaddress = 0;
     fstcompanion = NULL;
     prologstack = 0;
     returnvalue = NULL;
@@ -440,7 +462,6 @@ void TamguGlobal::Clearknowledgebase() {
 }
 
 //----------------------------------------------------------------------------------
-
 TamguGlobal::TamguGlobal(long nb, bool setglobal) :
 idSymbols(false), methods(false), compatibilities(false), strictcompatibilities(false),
 operator_strings(false), terms(false), booleanlocks(true), tracked(NULL, true), trackerslots(-1, true) {
@@ -456,25 +477,6 @@ operator_strings(false), terms(false), booleanlocks(true), tracked(NULL, true), 
 #else
     loosecompability = false;
 #endif
-
-#ifdef WIN32
-    ULONG_PTR lowLimit;
-    ULONG_PTR highLimit;
-
-    GetCurrentThreadStackLimits(&lowLimit, &highLimit);
-    max_inner_stack = fabs(highLimit - lowLimit);
-    max_inner_stack -= max_inner_stack * 0.002;
-#else
-#ifdef TAMGUWASM
-    max_inner_stack = 8360000;
-#else
-    struct rlimit rl;
-    getrlimit(RLIMIT_STACK, &rl);
-    max_inner_stack = rl.rlim_cur;
-    max_inner_stack -= max_inner_stack * 0.002;
-#endif
-#endif
-
     
     global_constants = &globalConstants;
     
@@ -508,9 +510,7 @@ operator_strings(false), terms(false), booleanlocks(true), tracked(NULL, true), 
     
     threadMODE = false;
     isthreading = false;
-    
-    maxstack = 1000000;
-    
+        
     debugmode = false;
     currentbnf = NULL;
     maxthreads = nb;
@@ -1171,9 +1171,9 @@ Exporting void TamguGlobal::Seterror(string msgerr, short idthread) {
     }
 }
 
-bool ThreadStruct::pushtracked(Tamgu* a, long mx) {
+void ThreadStruct::pushtracked(Tamgu* a) {
     currentinstruction = (a->isTracked())?a:currentinstruction;
-    return stack.push_size(a,mx);
+    stack.push_back(a);
 }
 
 Tamgu* TamguGlobal::GetTopFrame() {

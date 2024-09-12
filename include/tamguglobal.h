@@ -333,7 +333,7 @@ public:
     
     vector<Tamgudebug*> debug_values;
 
-    uintptr_t base_address;
+    uintptr_t baseaddress;
     
 	string nonblockingerror;
 
@@ -349,6 +349,7 @@ public:
 
     long embedded_try;
     long parentthreads;
+    long max_inner_stack;
 
     short idthread;
     short gpredicatename;
@@ -371,6 +372,12 @@ public:
         stackinstructions.pop_back();
     }
     
+    void set_base_address(uintptr_t b);
+
+    bool check_stack_base_address(uintptr_t ptr) {
+        return (max_inner_stack > baseaddress - ptr);
+    }
+
     void push_debug(Tamgu* a);
     void pop_debug();
     
@@ -394,11 +401,10 @@ public:
 		return (prologstack + stack.size() + stacklisp.size());
 	}
     
-    bool pushtracked(Tamgu* a, long mx);
+    void pushtracked(Tamgu* a);
     
-    inline bool push(Tamgu* a, long mx) {
+    inline void push(Tamgu* a) {
         stack.push_back(a);
-        return (stack.size() >= mx);
     }
     
 	void Update(short idthread);
@@ -873,9 +879,6 @@ public:
     std::atomic<short> number_of_current_eval;
     bool add_to_tamgu_garbage;
     //--------------------------------
-	long maxstack;
-    long max_inner_stack;
-	//--------------------------------
 
     inline void push_debug(short idthread, Tamgu* a) {
         if (debugmode)
@@ -1095,13 +1098,13 @@ public:
         //if (threads[idthread].pushtracked(a, maxstack))
         //    Seterror(e_stack_overflow, idthread);
         
-        threads[idthread].pushtracked(a, maxstack);
+        threads[idthread].pushtracked(a);
     }
 
     inline void Pushstackraw(Tamgu* a, short idthread = 0) {
         //if (threads[idthread].push(a, maxstack))
           //  Seterror(e_stack_overflow, idthread);
-        threads[idthread].push(a, maxstack);
+        threads[idthread].push(a);
     }
 
 	void Poppredicate(short idthread) {
@@ -1115,9 +1118,6 @@ public:
     
 	//Push on stack a function or a domain
     inline bool Pushstacklisp(Tamgu* a, short idthread) {
-        if (threads[idthread].Size() >= maxstack)
-            return false;
-        
         threads[idthread].stacklisp.push_back(a);
         return true;
     }
@@ -1144,7 +1144,7 @@ public:
     
     
     bool check_stack_base_address(short idthread, uintptr_t ptr) {
-        return (max_inner_stack > threads[idthread].base_address - ptr);
+        return threads[idthread].check_stack_base_address(ptr);
     }
     
 	inline size_t Stacksize(short idthread = 0) {
