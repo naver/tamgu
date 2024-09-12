@@ -1,0 +1,9 @@
+function appel(int i) {
+    printerr(i, " ");
+    appel(i+1);
+}
+
+appel(0);
+
+    
+
