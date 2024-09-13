@@ -9642,8 +9642,9 @@ Tamgu* TamguCode::C_predicatevariable(x_node* xn, Tamgu* kf) {
 
     //We build the variable name as a concatenation with the predicate idname...
     //This is a simple way to get individual variables in predicates, which simplifies the matching...
-    if (name.find("[") != -1)
-        name = name.substr(0, name.size() - 2);
+    idname = name.find("[");
+    if (idname != -1)
+        name = name.substr(0, idname);
     name += currentpredicatename;
     idname = global->Getid(name);
 

@@ -45,7 +45,7 @@
 #include "tamgusocket.h"
 #include "tamgudate.h"
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2024.09.12.10";
+const char* tamgu_version = "Tamgu 1.2024.09.13.09";
 
 #ifdef UNIX
 #include <sys/resource.h>
