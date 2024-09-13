@@ -1144,6 +1144,22 @@ Tamgu* ProcSetEnv(Tamgu* contextualpattern, short idthread, TamguCall* callfunc)
     return aTRUE;
 }
 //------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+Tamgu* ProcStackSize(Tamgu* domain, short idthread, TamguCall* callfunc) {
+    if (callfunc->Size() == 0) {
+        return globalTamgu->Provideint(globalTamgu->threads[idthread].max_inner_stack);
+    }
+
+    /*
+     //we deactivate this option from the language to avoid having some weakness in the language itself
+    long sz = callfunc->Evaluate(0, domain, idthread)->Integer();
+    if (sz > globalTamgu->threads[idthread].max_inner_stack)
+        globalTamgu->threads[idthread].max_inner_stack = sz;
+     return aTRUE;
+    */
+    return globalTamgu->Returnerror("Forbidden option", idthread);
+}
+//------------------------------------------------------------------------------------------------------------------------
 Tamgu* ProcMaxThreads(Tamgu* domain, short idthread, TamguCall* callfunc) {
     long sz = callfunc->Evaluate(0, domain, idthread)->Integer();
     globalTamgu->Reallocatemaxthreads(sz);
@@ -3274,6 +3290,7 @@ Exporting void TamguGlobal::RecordProcedures() {
     systemfunctions["_setvalidfeatures"] = true;
     systemfunctions["grammar_macros"] = true;
 
+    RecordOneProcedure("_stacksize", "Set the maximum size of the stack", ProcStackSize, P_NONE|P_ONE);
     RecordOneProcedure("_seteventvariable", "Associate a variable with event message", ProcSetEventVariable, P_ONE);
     RecordOneProcedure("_pushevent", "Push a string value into the event variable", ProcPushEvent, P_ATLEASTONE);
     RecordOneProcedure("_setmaxthreads", "Set the maximum number of threads in memory",ProcMaxThreads, P_ONE);
