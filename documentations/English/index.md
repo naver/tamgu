@@ -565,6 +565,8 @@
 
 `dot(element)`: <[Library word2vec type word2vec](https://github.com/naver/tamgu/tree/master/docs/English.md/59_Library_word2vec_type_word2vec.md)>
 
+`dot`: <[Inference engine](https://github.com/naver/tamgu/tree/master/docs/English.md/45_Inference_engine.md)>
+
 `doublemetaphone()`: <[Type  rawstring, string, ustring](https://github.com/naver/tamgu/tree/master/docs/English.md/14_Type_rawstring_string_ustring.md)>
 
 `down(int nb)`: <[ sys](https://github.com/naver/tamgu/tree/master/docs/English.md/47__sys.md)>
@@ -863,6 +865,8 @@
 
 `getHostname()`: <[socket](https://github.com/naver/tamgu/tree/master/docs/English.md/48_socket.md)>
 
+`getmodule(string name, string var)`: <[Python library pytamgu](https://github.com/naver/tamgu/tree/master/docs/English.md/56_Python_library_pytamgu.md)>
+
 `getstd()`: <[Type  rawstring, string, ustring](https://github.com/naver/tamgu/tree/master/docs/English.md/14_Type_rawstring_string_ustring.md)>
 
 `GPSdistance`: <[Specific instructions](https://github.com/naver/tamgu/tree/master/docs/English.md/37_Specific_instructions.md)>
@@ -954,6 +958,8 @@
 `ioredirect`: <[Specific instructions](https://github.com/naver/tamgu/tree/master/docs/English.md/37_Specific_instructions.md)>
 
 `iorestate`: <[Specific instructions](https://github.com/naver/tamgu/tree/master/docs/English.md/37_Specific_instructions.md)>
+
+`is`: <[Inference engine](https://github.com/naver/tamgu/tree/master/docs/English.md/45_Inference_engine.md)>
 
 `isa(typename)`: <[Predefined  Types](https://github.com/naver/tamgu/tree/master/docs/English.md/13_Predefined_Types.md)>
 
@@ -1231,7 +1237,7 @@
 
 `name(string n)`: <[Library xml type xml](https://github.com/naver/tamgu/tree/master/docs/English.md/51_Library_xml_type_xml.md)>
 
-`name`: <[socket](https://github.com/naver/tamgu/tree/master/docs/English.md/48_socket.md)>
+`name`: <[socket](https://github.com/naver/tamgu/tree/master/docs/English.md/48_socket.md)>;  <[Python library pytamgu](https://github.com/naver/tamgu/tree/master/docs/English.md/56_Python_library_pytamgu.md)>
 
 `namespace()`: <[Library xml type xml](https://github.com/naver/tamgu/tree/master/docs/English.md/51_Library_xml_type_xml.md)>
 
@@ -1601,9 +1607,13 @@
 
 `run(int client, string stopstring)`: <[socket](https://github.com/naver/tamgu/tree/master/docs/English.md/48_socket.md)>
 
-`run(string code)`: <[Python library pytamgu](https://github.com/naver/tamgu/tree/master/docs/English.md/56_Python_library_pytamgu.md)>
+`run(string code, string var)`: <[Python library pytamgu](https://github.com/naver/tamgu/tree/master/docs/English.md/56_Python_library_pytamgu.md)>
 
 `run(string sqlcommand)`: <[Library sqlite type sqlite](https://github.com/naver/tamgu/tree/master/docs/English.md/52_Library_sqlite_type_sqlite.md)>
+
+`run`: <[Python library pytamgu](https://github.com/naver/tamgu/tree/master/docs/English.md/56_Python_library_pytamgu.md)>
+
+`runmodule(string name, string code, string var)`: <[Python library pytamgu](https://github.com/naver/tamgu/tree/master/docs/English.md/56_Python_library_pytamgu.md)>
 
 `s`: <[Type  rawstring, string, ustring](https://github.com/naver/tamgu/tree/master/docs/English.md/14_Type_rawstring_string_ustring.md)>;  <[Type  Tamgu, Regular, Expression, treg](https://github.com/naver/tamgu/tree/master/docs/English.md/15_Type_Tamgu_Regular_Expression_treg.md)>;  <[Type  list](https://github.com/naver/tamgu/tree/master/docs/English.md/20_Type_list.md)>;  <[Type  file, wfile](https://github.com/naver/tamgu/tree/master/docs/English.md/35_Type_file_wfile.md)>;  <[Random](https://github.com/naver/tamgu/tree/master/docs/English.md/38_Random.md)>;  <[ sys](https://github.com/naver/tamgu/tree/master/docs/English.md/47__sys.md)>;  <[GUI ToolKit library libgui](https://github.com/naver/tamgu/tree/master/docs/English.md/53.3_GUI_ToolKit_library_libgui.md)>;  <[Library LINEAR type linear](https://github.com/naver/tamgu/tree/master/docs/English.md/57_Library_LINEAR_type_linear.md)>
 
@@ -1917,7 +1927,7 @@
 
 `values()`: <[Type  tree, bin, prime, map](https://github.com/naver/tamgu/tree/master/docs/English.md/22_Type_tree_bin_prime_map.md)>
 
-`var`: <[Synchronization](https://github.com/naver/tamgu/tree/master/docs/English.md/44_Synchronization.md)>;  <[ sys](https://github.com/naver/tamgu/tree/master/docs/English.md/47__sys.md)>
+`var`: <[Synchronization](https://github.com/naver/tamgu/tree/master/docs/English.md/44_Synchronization.md)>;  <[ sys](https://github.com/naver/tamgu/tree/master/docs/English.md/47__sys.md)>;  <[Python library pytamgu](https://github.com/naver/tamgu/tree/master/docs/English.md/56_Python_library_pytamgu.md)>
 
 `vector()`: <[Inference engine](https://github.com/naver/tamgu/tree/master/docs/English.md/45_Inference_engine.md)>
 
