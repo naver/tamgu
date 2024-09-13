@@ -11,10 +11,14 @@ The `python` type exposes the following methods:
 1. `close()`: Close the current Python session.
 2. `execute(string funcname, p1, p2...)`: Execute a Python function with `p1`, `p2`, etc. as parameters.
 3. `import(string python)`: Import a Python file.
-4. `run(string code)`: Execute Python code.
-5. `setpath(string path1, string path2, etc...)`: Add system paths to Python.
+4. `run(string code, string var)`: Execute Python code, `var` (optional) is the name of the result Python variable 
+5. `runmodule(string name, string code, string var)`: Execute Python code in the module `name`
+6. `getmodule(string name, string var)`: return all the variables in the module `name` or the one named: `var`.
+7. `setpath(string path1, string path2, etc...)`: Add system paths to Python.
 
 The `setpath` method is crucial for using the `import` method, which works the same way as the `import` keyword in Python. If you want to import a Python program at a specific location that has not been referenced through `PYTHONPATH`, you need to add it with `setpath` first.
+
+__Note__ that `run` cleans the interpreter once executed.
 
 ### Example
 
