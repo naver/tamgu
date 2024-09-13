@@ -378,6 +378,8 @@ bool Tamgupython::InitialisationModule(TamguGlobal *global, string version)
 
     Tamgupython::AddMethod(global, "setpath", &Tamgupython::MethodSetpath, P_ONE, "setpath(path1,path2...): Set paths to look for Python imports.");
     Tamgupython::AddMethod(global, "run", &Tamgupython::MethodRun, P_ONE | P_TWO, "run(string code, string return_variable): Execute python code");
+    Tamgupython::AddMethod(global, "runmodule", &Tamgupython::MethodRunModule, P_TWO | P_THREE, "runmodule(string module, string code, string return_variable): Execute python code in a module");
+    Tamgupython::AddMethod(global, "getmodule", &Tamgupython::MethodGetModule, P_ONE | P_TWO, "getmodule(string module, string name): Get all variables or one variable from the module");
     Tamgupython::AddMethod(global, "import", &Tamgupython::MethodImport, P_ONE, "import(string python): import a python file");
     Tamgupython::AddMethod(global, "execute", &Tamgupython::MethodExecute, P_ATLEASTONE, "execute(string funcname,p1,p2...): execute a python function with p1,p2 as parameters");
     Tamgupython::AddMethod(global, "close", &Tamgupython::MethodClose, P_NONE, "close(): close the current session");
@@ -386,6 +388,15 @@ bool Tamgupython::InitialisationModule(TamguGlobal *global, string version)
     global->RecordCompatibilities(Tamgupython::idtype);
 
     return true;
+}
+
+void Tamgupython::Clean() {
+    if (init_python) {
+        Py_Finalize();
+        init_python = false;
+        dictionaries.clear();
+        pModule = NULL;
+    }
 }
 
 Tamgu *Tamgupython::Put(Tamgu *idx, Tamgu *kval, short idthread)
@@ -402,6 +413,7 @@ Tamgu *Tamgupython::Eval(Tamgu *context, Tamgu *idx, short idthread)
 Tamgu *Tamgupython::MethodSetpath(Tamgu *contextualpattern, short idthread, TamguCall *callfunc)
 {
 
+    Locking lock(classlock);
     if (!init_python)
     {
         Py_Initialize();
@@ -442,15 +454,16 @@ Tamgu *Tamgupython::MethodClose(Tamgu *contextualpattern, short idthread, TamguC
 {
     if (init_python == false)
         return aFALSE;
-    Py_Finalize();
-    init_python = false;
-    pModule = NULL;
+
+    Locking lock(classlock);
+    Clean();
     return aTRUE;
 }
 
 Tamgu *Tamgupython::MethodRun(Tamgu *contextualpattern, short idthread, TamguCall *callfunc)
 {
 
+    Locking lock(classlock);
     if (!init_python)
     {
         Py_Initialize();
@@ -491,20 +504,155 @@ Tamgu *Tamgupython::MethodRun(Tamgu *contextualpattern, short idthread, TamguCal
         }
     }
 
-    clean_signal();
-
+    Tamgu* return_value = aTRUE;
     if (return_variable != "") {
+        
          PyObject* py_result_val = PyDict_GetItemString(py_dict, return_variable.c_str());
          if (py_result_val != NULL) {
-            return toTamgu(py_result_val);
+            return_value = toTamgu(py_result_val);
          }
          else {
             return_variable += ": This Python variable is unknown";
-            return globalTamgu->Returnerror(return_variable, idthread);
+            return_value = globalTamgu->Returnerror(return_variable, idthread);
          }
     }
+
+    Clean(),    
+    clean_signal();
+
     // you may return any value of course...
-    return aTRUE;
+    return return_value;
+}
+
+Tamgu *Tamgupython::MethodRunModule(Tamgu *contextualpattern, short idthread, TamguCall *callfunc)
+{
+
+    Locking lock(classlock);
+    if (!init_python)
+    {
+        Py_Initialize();
+        init_python = true;
+    }
+
+    // 0 is the first parameter and so on...
+    Tamgu *module_name = callfunc->Evaluate(0, contextualpattern, idthread);
+    Tamgu *kcmd = callfunc->Evaluate(1, contextualpattern, idthread);
+
+    string name = module_name->String();
+    string code = kcmd->String();
+
+    PyObject *py_main = PyImport_AddModule("__main__");
+    PyObject *py_dict = PyModule_GetDict(py_main);
+
+    string return_variable;
+    if (callfunc->Size() == 3)
+        return_variable = callfunc->Evaluate(2, contextualpattern, idthread)->String();
+
+    PyObject *local_dict = NULL;
+
+    if (code != "")
+    {
+
+        local_dict = PyDict_New();
+        PyObject *py_result = PyRun_StringFlags(code.c_str(), Py_file_input, py_dict, local_dict, nullptr);
+
+        if (!py_result)
+        {
+            if (PyErr_Occurred())
+            {
+                Py_DECREF(local_dict);
+                return_variable = "PYT(997):";
+                return_variable += python_error_string();
+                // Imprime l'erreur ou la traite selon vos besoins.
+                clean_signal();
+                return globalTamgu->Returnerror(return_variable, idthread);
+            }
+        }
+        else
+        {
+            Py_DECREF(py_result); // Nettoie le résultat si rien ne s'est mal passé
+        }
+        dictionaries[name] = local_dict;
+    }
+
+    Tamgu* return_value = aTRUE;
+    if (return_variable != "") {
+        
+         PyObject* py_result_val = PyDict_GetItemString(local_dict, return_variable.c_str());
+         if (py_result_val != NULL) {
+            return_value = toTamgu(py_result_val);
+         }
+         else {
+            return_variable += ": This Python variable is unknown";
+            return_value = globalTamgu->Returnerror(return_variable, idthread);
+         }
+    }
+
+    clean_signal();
+    // you may return any value of course...
+    return return_value;
+}
+
+Tamgu *Tamgupython::MethodGetModule(Tamgu *contextualpattern, short idthread, TamguCall *callfunc)
+{
+
+    Locking lock(classlock);
+    if (!init_python)    
+    {
+        return globalTamgu->Returnerror("No Python interpreter has been initialized", idthread);
+    }
+
+    // 0 is the first parameter and so on...
+    string module_name = callfunc->Evaluate(0, contextualpattern, idthread)->String();
+    if (dictionaries.find(module_name) == dictionaries.end()) {
+        module_name += "is unknown";
+        return globalTamgu->Returnerror(module_name, idthread);
+    }
+
+    PyObject *local_dict = dictionaries[module_name];
+    Tamgu *tmg;
+
+    if (callfunc->Size() == 1)
+    {
+        Tamgumap *variables = globalTamgu->Providemap();
+        // Access local variables in local_dict
+        PyObject *local_keys = PyDict_Keys(local_dict);
+        Py_ssize_t num_locals = PyList_Size(local_keys);
+        for (Py_ssize_t i = 0; i < num_locals; i++)
+        {
+            PyObject *key = PyList_GetItem(local_keys, i);     // Get each variable name (key)
+            PyObject *value = PyDict_GetItem(local_dict, key); // Get the corresponding value
+
+            // Convert the key (variable name) to a string and print the variable name and value
+            const char *variable_name = PyUnicode_AsUTF8(key);
+
+            if (variable_name != NULL && value != NULL)
+            {
+                module_name = variable_name;
+                tmg = toTamgu(value);
+                variables->pushing(module_name, tmg);
+            }
+        }
+
+        Py_DECREF(local_keys); // Clean up the keys list
+
+        clean_signal();
+        return variables;
+    }
+
+    string return_variable = callfunc->Evaluate(1, contextualpattern, idthread)->String();
+
+    if (return_variable != "")
+    {
+        PyObject *py_result_val = PyDict_GetItemString(local_dict, return_variable.c_str());
+        if (py_result_val != NULL)
+        {
+            return toTamgu(py_result_val);
+        }
+    }
+
+    return_variable += ": This Python variable is unknown";
+    return globalTamgu->Returnerror(return_variable, idthread);
 }
 
 Tamgu *Tamgupython::MethodImport(Tamgu *contextualpattern, short idthread, TamguCall *callfunc)
@@ -512,6 +660,7 @@ Tamgu *Tamgupython::MethodImport(Tamgu *contextualpattern, short idthread, Tamgu
     if (pModule != NULL)
         return globalTamgu->Returnerror("PYT(020): Module already imported", idthread);
 
+    Locking lock(classlock);
     if (!init_python)
     {
         Py_Initialize();
@@ -543,6 +692,8 @@ Tamgu *Tamgupython::MethodExecute(Tamgu *contextualpattern, short idthread, Tamg
 {
     if (pModule == NULL)
         return globalTamgu->Returnerror("PYT(002): No Python file in memory", idthread);
+
+    Locking lock(classlock);
     int nbelements = callfunc->Size();
     if (nbelements == 0)
         return globalTamgu->Returnerror("PYT(003): Missing parameters", idthread);

@@ -42,6 +42,8 @@ class Tamgupython : public TamguObject {
     string pythonfilename;
     PyObject* pModule;
 
+    hmap<string, PyObject*> dictionaries;
+
 
     //---------------------------------------------------------------------------------------------------------------------
     Tamgupython(TamguGlobal* g, Tamgu* parent = NULL) : TamguObject(g, parent) {
@@ -128,6 +130,8 @@ class Tamgupython : public TamguObject {
 
 
     Tamgu* MethodRun(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodRunModule(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
+    Tamgu* MethodGetModule(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);    
 
     Tamgu* MethodImport(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
@@ -147,9 +151,7 @@ class Tamgupython : public TamguObject {
         //To set a variable back to empty
     }
 
-    void Clean() {
-        //Your cleaning code
-    }
+    void Clean();
 
 
 };
