@@ -153,11 +153,16 @@ Tamgu supports disjunctions in clauses using the ";" operator:
 parent(?X,?Y) :- mere(?X,?Y); pere(?X,?Y).
 ```
 
-### Cut, fail, and stop
+### _var, cut, fail, and stop
 
 - `cut`: Expressed with "!"
 - `fail`: Forces the failure of a clause
 - `stop`: Stops the whole evaluation
+- `_var(?X)`: Returns true if the variable `?X` is bound (see example below)
+
+```Prolog
+check(?X) :- _var(?X).
+```
 
 ### Assert
 
