@@ -32,6 +32,7 @@ The `file` type is used to manage input and output files. The `wfile` type is sp
 18. `write(string s1, string s2, ...)`: Writes string `s` to the file.
 19. `writelen(string s1, string s2, ...)`: Writes strings to the file, separating each string with a space and adding a carriage return at the end of the line.
 20. `writebin(int s1, int s2, ...)`: Writes bytes to the file. If the value is a container, it writes the list of bytes from that container.
+21. writejson(auto v)`: Stores `v` as a JSON structure in the file.
 
 ## Signature
 
