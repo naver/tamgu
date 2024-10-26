@@ -146,9 +146,8 @@ void TamguLoopLong::Callfunction() {
     TamguCallFunction2 kfunc(function);
     
     Tamguint* ki = globalTamgu->Provideint(position);
-    ki->Setreference();
     kfunc.arguments.push_back(this);
-    kfunc.arguments.push_back(ki);
+    kfunc.Push(ki);
     Tamgu* ke = kfunc.Eval(aNULL, aNULL, globalTamgu->GetThreadid());
     ke->Release();
     ki->Resetreference();

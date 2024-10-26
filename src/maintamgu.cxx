@@ -126,6 +126,7 @@ static void displayhelp(string wh) {
     #endif
     cout << "-vt100: VT100 mode for mouse for some Linux platforms" << endl << endl;
     cout << "-m: Activates mouse" << endl << endl;
+    cout << "-n: Line numbering" << endl << endl;
     cout << "-e 'filename' load filename into the terminal console in edit mode" << endl << endl;
     cout << "-l 'filename' load filename into the terminal console" << endl << endl;
     cout << "-lisp activate lisp mode" << endl << endl;
@@ -214,8 +215,6 @@ class tamgu_editor : public jag_editor {
     long lastline;
     
     bool editmode;
-    
-
     
 public:
     LockedThread editor_loquet;
@@ -593,10 +592,18 @@ public:
                 if (lines.status[i] == concat_line)
                     blk << space << coloringline(lines[i], i) << endl;
                 else {
-                    if (lines.check(i))
-                        blk << m_dore << "▶▶" << m_current << m_lightgray << std::setw(prefixsize) << lines.numeros[i] << "> " << m_current << coloringline(lines[i], i) << endl;
-                    else
-                        blk << m_dore << prefix << m_current << m_lightgray << std::setw(prefixsize) << lines.numeros[i] << "> " << m_current << coloringline(lines[i], i) << endl;
+                    if (noprefix) {
+                        if (lines.check(i))
+                            blk << m_dore << "▶▶" << coloringline(lines[i], i) << endl;
+                        else
+                            blk << coloringline(lines[i], i) << endl;
+                    }
+                    else {
+                        if (lines.check(i))
+                            blk << m_dore << "▶▶" << m_current << m_lightgray << std::setw(prefixsize) << lines.numeros[i] << "> " << m_current << coloringline(lines[i], i) << endl;
+                        else
+                            blk << m_dore << prefix << m_current << m_lightgray << std::setw(prefixsize) << lines.numeros[i] << "> " << m_current << coloringline(lines[i], i) << endl;
+                    }
                 }
 				poslines.push_back(i);
 				if (poslines.size() > row_size)
@@ -625,10 +632,18 @@ public:
             if (lines.status[i] == concat_line)
                 blk << space << coloringline(lines[i], i) << endl;
             else {
-                if (lines.check(i))
-                    blk << m_dore << "▶▶" << m_current << m_lightgray << std::setw(prefixsize) << lines.numeros[i] << "> " << m_current << coloringline(lines[i], i);
-                else
-                    blk << m_dore << prefix << m_current << m_lightgray << std::setw(prefixsize) << lines.numeros[i] << "> " << m_current << coloringline(lines[i], i);
+                if (noprefix) {
+                    if (lines.check(i))
+                        blk << m_dore << "▶▶" << coloringline(lines[i], i) << endl;
+                    else
+                        blk << coloringline(lines[i], i) << endl;
+                }
+                else {
+                    if (lines.check(i))
+                        blk << m_dore << "▶▶" << m_current << m_lightgray << std::setw(prefixsize) << lines.numeros[i] << "> " << m_current << coloringline(lines[i], i);
+                    else
+                        blk << m_dore << prefix << m_current << m_lightgray << std::setw(prefixsize) << lines.numeros[i] << "> " << m_current << coloringline(lines[i], i);
+                }
             }
             asz = blk.str().size();
             thesz = col_size - (asz - lastsz);
@@ -1159,6 +1174,7 @@ public:
                 currentline = 0;
                 dsp = false;
                 
+                noprefix = current_no_prefix;
                 pos = lastline;
                 option = x_none;
                 posinstring = 0;
@@ -2644,7 +2660,7 @@ public:
         return false;
     }
     
-    void launchterminal(char noinit, vector<string>& newcolors) {
+    void launchterminal(char noinit, vector<string>& newcolors, bool no_numbering) {
 		clearscreen();
 
         if (darkmode)
@@ -2680,6 +2696,9 @@ public:
             TamguSetCode(codes[0]);
         }
 
+        noprefix = no_numbering;
+        current_no_prefix = no_numbering;
+        
         switch (noinit) {
             case 1:
 #ifdef WIN32
@@ -3114,7 +3133,8 @@ int main(int argc, char *argv[]) {
 
     bool mouse_action = false;
     bool vt100 = false;
-    
+    bool no_line_numbering = true;
+
 	char* v = Getenv("TAMGULIBS");
     if (v != NULL)
         lnstr = v;
@@ -3151,7 +3171,7 @@ int main(int argc, char *argv[]) {
 	if (argc <= 1) {
 		JAGEDITOR = new tamgu_editor;
         JAGEDITOR->activate_mouse = mouse_action;
-		JAGEDITOR->launchterminal(2, newcolors);
+        JAGEDITOR->launchterminal(2, newcolors, no_line_numbering);
 	}
 
 	lnstr = "";
@@ -3198,6 +3218,11 @@ int main(int argc, char *argv[]) {
         if (console) {
             cerr << e_unknown_command << args << endl;
             exit(-1);
+        }
+
+        if (args == "-n") {
+            no_line_numbering = false;
+            continue;
         }
 
         if (args == "-m") {
@@ -3351,9 +3376,9 @@ int main(int argc, char *argv[]) {
                 }
                 
                 if (args == "-e")
-                    JAGEDITOR->launchterminal(init, newcolors);
+                    JAGEDITOR->launchterminal(init, newcolors, no_line_numbering);
                 else
-                    JAGEDITOR->launchterminal(0, newcolors);
+                    JAGEDITOR->launchterminal(0, newcolors, no_line_numbering);
             }
             else {
                 cerr << endl << e_missing_filename << endl << endl;
@@ -3462,7 +3487,7 @@ int main(int argc, char *argv[]) {
                 initconsoleterminal = 1;
             }
             
-            JAGEDITOR->launchterminal(initconsoleterminal, newcolors);
+            JAGEDITOR->launchterminal(initconsoleterminal, newcolors, no_line_numbering);
         }
 
         name = Normalizefilename(name);

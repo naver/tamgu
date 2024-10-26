@@ -287,6 +287,57 @@ template <class Z> class bin_hash {
         return true;
     }
 
+    inline void getkeys(std::vector<short>& keys) {
+        long i = 0;
+        binuint64 filter = 0;
+        short first;
+        long j = 0;
+        
+        while (i < tsize) {
+            filter = indexes[i];
+
+            while (filter) {
+#ifdef INTELINTRINSICS
+                if (!(filter & 1)) {
+                    if (!(filter & 0x00000000FFFFFFFF)) {
+                        filter >>= 32;
+                        j += 32;
+                    }
+                    unsigned long qj = 0;
+                    bitscanforward(qj, (uint32_t)(filter & 0x00000000FFFFFFFF));
+                    filter >>= qj;
+                    j += qj;
+                }
+#else
+                if (!(filter & 1)) {
+                    while (!(filter & 65535)) {
+                        filter >>= 16;
+                        j += 16;
+                    }
+                    while (!(filter & 255)) {
+                        filter >>= 8;
+                        j += 8;
+                    }
+                    while (!(filter & 15)) {
+                        filter >>= 4;
+                        j = j + 4;
+                    }
+                    while (!(filter & 1)) {
+                        filter >>= 1;
+                        j++;
+                    }
+                }
+#endif
+                first = ((i << binbits) + j);
+                keys.push_back(first);
+                filter >>= 1;
+                j++;
+            }
+            j = 0;
+            i++;
+        }
+    }
+
     void erase(unsigned short r) {
         bushort i = r >> binbits;
         if (table[i] == NULL)

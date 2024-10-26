@@ -24,8 +24,7 @@ class TamguInstructionTaskellIF;
 class TamguDeclarationAutoClean : public Tamgu {
 public:
 
-	VECTE<short> names;
-	VECTE<Tamgu*> declarations;
+	BVECTE<short, Tamgu*> declarations;
     Tamgu* a;
     short idthread;
     short idx;
@@ -35,7 +34,7 @@ public:
     TamguDeclarationAutoClean(short ix) : idx(ix), idthread(-1), used(false) {}
 
 	void Replacedeclaration(short id, Tamgu* a) {
-		i = names.search(id);
+		i = declarations.search(id);
 		if (i != -1) {
 			if (a != declarations.vecteur[i]) {
 				if (declarations.vecteur[i]->isLetSelf())
@@ -49,33 +48,27 @@ public:
 			}
 		}
 		else {
-			names.push_back(id);
-			declarations.push_back(a);
+			declarations.push_back(id, a);
 		}
 	}
 
     bool FindAndClean(Tamgu* a) {
-        for (short i = 0; i < declarations.last; i++) {
-            if (declarations[i] == a) {
-                return false;
-            }
-        }
-        return true;
+        return !declarations.check(a);
     }
 
     void Initializevariable(short idt) {
-        for (i = 0; i < names.last; i++)
-            globalTamgu->Storevariable(idt, names.vecteur[i], declarations.vecteur[i]);
+        for (i = 0; i < declarations.last; i++)
+            globalTamgu->Storevariable(idt, declarations.index[i], declarations.vecteur[i]);
         idthread = idt;
     }
 
     void Removevariable(short idt) {
-        for (i = 0; i < names.last; i++)
-            globalTamgu->Removevariable(idt, names.vecteur[i]);
+        for (i = 0; i < declarations.last; i++)
+            globalTamgu->Removevariable(idt, declarations.index[i]);
     }
     
 	void Declare(short id, Tamgu* a) {
-        i = names.search(id);
+        i = declarations.search(id);
         if (i != -1) {
             globalTamgu->Removevariable(idthread, id);
             declarations.vecteur[i]->Resetreference();
@@ -83,8 +76,7 @@ public:
             return;
         }
 
-		names.push_back(id);
-		declarations.push_back(a);
+		declarations.push_back(id, a);
 	}
 
 	bool hasDeclaration() {
@@ -92,37 +84,33 @@ public:
 	}
 
     char Declarelocal(short idthread, short id, Tamgu* a) {
-        if (names.search(id) != -1)
+        if (declarations.check(id))
             return a_declaration;
 
-        names.push_back(id);
-        declarations.push_back(a);
+        declarations.push_back(id, a);
         return true;
     }
 
     void Replacedeclaration(short idthread, short id, Tamgu* a) {
-        i = names.search(id);
-        declarations.vecteur[i] = a;
+        declarations.replace(id, a);
         globalTamgu->Replacevariable(idthread, id, a);
     }
 
 	void Cleaning() {
-		for (i = 0; i < names.last; i++) {
+		for (i = 0; i < declarations.last; i++) {
 			declarations.vecteur[i]->Resetreference();
-			globalTamgu->Removevariable(idthread, names.vecteur[i]);
+			globalTamgu->Removevariable(idthread, declarations.index[i]);
 		}
 
-		names.last = 0;
 		declarations.last = 0;
 	}
 
     void Cleanenvironment() {
-        for (i = 0; i < names.last; i++) {
+        for (i = 0; i < declarations.last; i++) {
             declarations.vecteur[i]->Resetreference();
-            globalTamgu->Removevariable(idthread, names.vecteur[i]);
+            globalTamgu->Removevariable(idthread, declarations.index[i]);
         }
         
-        names.last = 0;
         declarations.last = 0;
 
         if (used) {
@@ -136,10 +124,9 @@ public:
 
     void Cleanforfibre() {
         //In this case, the variables are removed at each step...
-        for (i = 0; i < names.last; i++)
+        for (i = 0; i < declarations.last; i++)
             declarations.vecteur[i]->Resetreference();
         
-        names.last = 0;
         declarations.last = 0;
 
         if (used) {
@@ -156,16 +143,11 @@ public:
     }
     
     Tamgu* Declaration(short id) {
-        i = names.search(id);
-        if (i != -1)
-            return declarations.vecteur[i];
-        return NULL;
+        return declarations.find(id);
     }
 
 	bool isEmpty() {
-		if (!names.last)
-			return true;
-		return false;
+        return (!declarations.last);
 	}
 
 	short Type() {
@@ -173,13 +155,12 @@ public:
 	}
     
     Tamgu* Declarationself(short id) {
-        i = names.search(id);
+        i = declarations.search(id);
         if (i == -1) {
             a = globalTamgu->Provideself();
             globalTamgu->Storevariable(idthread, id, a);
             a->Setreference();
-            names.push_back(id);
-            declarations.push_back(a);
+            declarations.push_back(id, a);
             return a;
         }
 
@@ -187,7 +168,7 @@ public:
     }
     
     Tamgu* Declarationvalue(short name, Tamgu* v, short typevariable) {
-        i = names.search(name);
+        i = declarations.search(name);
         if (i != -1) {
             a = declarations.vecteur[i];
             a->Putvalue(v, idthread);
@@ -202,15 +183,13 @@ public:
                 a->Putvalue(v, idthread);
                 v->Releasenonconst();
             }
-            names.push_back(name);
-            declarations.push_back(a);
+            declarations.push_back(name, a);
             globalTamgu->Storevariable(idthread, name, a);
             a->Setaffectation(true);
             return a;
         }
         
-        names.push_back(name);
-        declarations.push_back(v);
+        declarations.push_back(name, v);
         globalTamgu->Storevariable(idthread, name, v);
         v->Setreference(1);
         v->Setaffectation(true);
@@ -481,9 +460,8 @@ public:
 
 class TamguFunctionLambda : public TamguFunction {
 public:
-    VECTE<Tamgu*> localvariables;
+    BVECTE<short, Tamgu*> localvariables;
     VECTE<Tamgu*> wherevariables;
-    VECTE<short> names;
     vector<Taskelldeclaration*> taskelldeclarations;
 
 	TamguLambdaDomain* lambdadomain;
@@ -594,7 +572,7 @@ public:
     }
 
     bool isDeclared(short idname) {
-        if (names.check(idname))
+        if (localvariables.check(idname))
             return true;
         
         return TamguFunction::isDeclared(idname);
@@ -602,10 +580,9 @@ public:
     
     void Declare(short idname, Tamgu* a) {
         if (storage) {
-            long i = names.search(idname);
+            long i = localvariables.search(idname);
             if (i == -1) {
-                localvariables.push_back(a);
-                names.push_back(idname);
+                localvariables.push_back(idname, a);
             }
             else
                 localvariables.vecteur[i] = a;
@@ -615,7 +592,7 @@ public:
     }
     
     Tamgu* Declaration(short idname) {
-        long i = names.search(idname);
+        long i = localvariables.search(idname);
         if (i != -1)
             return localvariables[i];
         

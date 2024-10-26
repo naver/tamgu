@@ -316,10 +316,8 @@ public:
 
         short i;
         TamguCallFunction call(func);
-        for (i = 0; i < params.size(); i++) {
-            call.arguments.push_back(params[i]);
-            params[i]->Setreference();
-        }
+        for (i = 0; i < params.size(); i++)
+            call.Push(params[i]);
 
         globalTamgu->Pushstack(code->Mainframe(), 0);
         
@@ -328,7 +326,7 @@ public:
         globalTamgu->Popstack(0);
 
         for (i = 0; i < params.size(); i++)
-            params[i]->Resetreference();
+            call.Pop();
 
         globalTamgu->last_execution = std::chrono::system_clock::now();
         cv.notify_all(); // Notifie que la valeur a été mise à jour
@@ -422,8 +420,7 @@ Exporting Tamgu* TamguExecute(TamguCode* code, string name, vector<Tamgu*>& para
 	short i;
 	TamguCallFunction call(func);
 	for (i = 0; i < params.size(); i++) {
-		call.arguments.push_back(params[i]);
-		params[i]->Setreference();
+		call.Push(params[i]);
 	}
 
 	globalTamgu->Pushstack(code->Mainframe(), idthread);
@@ -431,7 +428,7 @@ Exporting Tamgu* TamguExecute(TamguCode* code, string name, vector<Tamgu*>& para
 	globalTamgu->Popstack(idthread);
 
 	for (i = 0; i < params.size(); i++)
-		params[i]->Resetreference();
+        call.Pop();
 	return func;
 }
 
@@ -454,8 +451,7 @@ Exporting Tamgu* TamguExecute(TamguCode* code, string name, vector<Tamgu*>& para
 	short i;
 	TamguCallFunction call(func);
 	for (i = 0; i < params.size(); i++) {
-		call.arguments.push_back(params[i]);
-		params[i]->Setreference();
+		call.Push(params[i]);
 	}
 	
 	globalTamgu->Pushstack(main, idthread);
@@ -463,7 +459,7 @@ Exporting Tamgu* TamguExecute(TamguCode* code, string name, vector<Tamgu*>& para
 	globalTamgu->Popstack(idthread);
 
 	for (i = 0; i < params.size(); i++)
-		params[i]->Resetreference();
+        call.Pop();
 	return func;
 }
 
@@ -1277,6 +1273,8 @@ Tamgu* TamguVariableDeclaration::Eval(Tamgu* domain, Tamgu* value, short idthrea
 				return value;
 			if (value != a)
 				a->Put(aNULL, value, idthread);
+            else
+                value = aNULL;
             if (!aff)
                 a->Setaffectation(false);
 		}
@@ -1368,6 +1366,8 @@ Tamgu* TamguFrameVariableDeclaration::Eval(Tamgu* domain, Tamgu* value, short id
 				return value;
 			if (value != a)
 				a->Put(aNULL, value, idthread);
+            else
+                value = aNULL;
             if (!aff)
                 a->Setaffectation(false);
 		}
@@ -1565,7 +1565,7 @@ bool TamguAtomicVariableDeclaration::Setarguments(TamguDeclarationLocal* domain,
 Tamgu* TamguGlobalVariableDeclaration::Eval(Tamgu* domain, Tamgu* value, short idthread) {
 	//we create our instance...
 	if (alreadydeclared)
-		return globalTamgu->Getmaindeclaration(name, idthread);
+		return globalTamgu->Getmaindeclaration(name);
 
     bool activated = globalTamgu->Activategarbage(false);
 	alreadydeclared = true;
@@ -1620,6 +1620,8 @@ Tamgu* TamguThroughVariableDeclaration::Eval(Tamgu* domain, Tamgu* value, short 
 			return value;
 		if (value != a)
 			a->Putvalue(value, idthread);
+        else
+            value = aNULL;
         if (!aff)
             a->Setaffectation(false);
 		value->Releasenonconst();
@@ -2868,7 +2870,7 @@ Tamgu* TamguCallGlobalVariable::Eval(Tamgu* context, Tamgu* v, short idthread) {
         return value;
     
     if (first == true) {
-        value = globalTamgu->Getmaindeclaration(name, idthread);
+        value = globalTamgu->Getmaindeclaration(name);
         
         if (value == NULL) {
             value = aNOELEMENT;
@@ -3446,6 +3448,18 @@ void TamguGlobal::Cleanthreads(TamguThreadCall* current) {
     }
 }
     
+//We move the global variables to the threads for easier access
+void TamguGlobal::GlobalVariablesToThread(short idthread) {
+    Tamgu* value;
+    short n;
+    for (short i = 0; i < globalvariablenames.size(); i++) {
+        n = globalvariablenames[i];
+        value = threads[0].variables[n].stable[1];
+        value->Enablelock(is_tobelocked);
+        threads[idthread].variables[n].setstable(value);
+    }
+}
+    
 Tamgu* TamguCallThread::Eval(Tamgu* environment, Tamgu* domain, short idthread) {
 	//We enter a thread... //Now Locks will be created...
 	globalTamgu->Sethreading();
@@ -3455,25 +3469,16 @@ Tamgu* TamguCallThread::Eval(Tamgu* environment, Tamgu* domain, short idthread) 
 		return globalTamgu->Returnerror(e_too_many_threads, idthread);
 
 	Tamgu* main = globalTamgu->Getmainframe(Currentspace());
-    Tamgu* value;
     
 	globalTamgu->Pushstack(main, id);
-	short i;
-	vector<short> vars;
-	main->Variables(vars);
-    for (i = 0; i < vars.size(); i++) {
-        //this is a hack, which help maintain compatibility with the main thread, where global variables are stored at position 1
-        globalTamgu->threads[id].variables[vars[i]].push_back(aNULL);
-        value = main->Declaration(vars[i]);
-        value->Enablelock(is_tobelocked);
-		globalTamgu->threads[id].variables[vars[i]].push_back(value);
-    }
+
+    globalTamgu->GlobalVariablesToThread(id);
     
 	//Then we copy the current knowledge base into the new thread own knowledge base as they must share it...
     globalTamgu->threads[id].stackinstructions = globalTamgu->threads[idthread].stackinstructions;
     
+    Tamgu* dom = main;
 	bool cleandom = false;
-	Tamgu* dom = main;
 	if (environment != main) {
 		if (environment->isFrameinstance()) {
 			//We are in a frame...
@@ -3501,6 +3506,7 @@ Tamgu* TamguCallThread::Eval(Tamgu* environment, Tamgu* domain, short idthread) 
 	//we need to evaluate our arguments beforehand
 	Tamgu* a;
     bool error = false;
+    short i;
 	for (i = 0; i < arguments.size() && !error; i++) {
         a = arguments[i]->Eval(environment, aNULL, idthread);
         if (predicate_rule) {
@@ -3554,7 +3560,7 @@ Tamgu* TamguCallThread::Eval(Tamgu* environment, Tamgu* domain, short idthread) 
 //____________________________________________________________________________________
 Tamgu* TamguInstructionGlobalVariableASSIGNMENT::Eval(Tamgu* context, Tamgu* value, short idthread) {
     if (first) {
-        variable = globalTamgu->Getmaindeclaration(varname, idthread);
+        variable = globalTamgu->Getmaindeclaration(varname);
         first = false;
     }
 

@@ -710,6 +710,7 @@ class TamguConstmap : public TamguObjectLockContainer {
     }
 
     Tamgu* Getvalues(TamguDeclaration* dom, bool duplicate);
+    Tamgu* Unifies(TamguDeclaration* dom);
     bool isUnified(TamguDeclaration* dom);
     bool Unify(TamguDeclaration* dom, Tamgu* a);
     bool Insertvalue(Tamgu* dom, Tamgu* v, basebin_hash<Tamgu*>&);

@@ -78,6 +78,7 @@ class Tamguvector : public TamguObjectLockContainer {
     }
 
     Exporting Tamgu* Getvalues(TamguDeclaration* dom, bool duplicate);
+    Tamgu* Unifies(TamguDeclaration* dom);
     Exporting bool isUnified(TamguDeclaration* dom);
     Exporting bool Unify(TamguDeclaration* dom, Tamgu* a);
     Exporting bool Insertvalue(Tamgu* dom, Tamgu* v, basebin_hash<Tamgu*>&);

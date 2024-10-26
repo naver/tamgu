@@ -51,6 +51,12 @@
 #include <sys/time.h>
 #endif
 
+#ifdef TERMINALMODE
+#include <unistd.h>   //_getch
+#include <termios.h>  //_getch
+#include "jag.h"
+#endif
+
 //---------------------------------------------------------
 bool store_pattern(uchar,wstring&);
 //---------------------------------------------------------
@@ -2760,14 +2766,22 @@ Tamgu* ProcCast(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
 
 //----------------------------------------------------------------------------------------------------------
 Tamgu* ProcKeyboardGet(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    string label;
     if (callfunc->Size()) {
-        string label = callfunc->Evaluate(0, aNULL, idthread)->String();
-        cerr << label;
+        label = callfunc->Evaluate(0, aNULL, idthread)->String();
     }
 
+    
+#ifdef TERMINALMODE
+    static jag_editor jag("initialisation");
+    wstring s = jag.kbget(label);
+    return globalTamgu->Providewithustring(s);
+#else
     string s;
+    cerr << label;
     getline(cin, s);
     return globalTamgu->Providewithstring(s);
+#endif
 }
 //----------------------------------------------------------------------------------------------------------
 Tamgu* ProcRaise(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {

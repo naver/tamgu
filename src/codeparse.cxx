@@ -17672,7 +17672,7 @@ char bnf_tamgu::m_hitem(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYOR
     subtree=NULL;
-    if (m_taskellcase(lret,&subtree) || m_localif(lret,&subtree) || m_abool(lret,&subtree) || m_astringdouble(lret,&subtree) || m_afullstring(lret,&subtree) || m_astringsimple(lret,&subtree) || m_apreg(lret,&subtree) || m_aspreg(lret,&subtree) || m_atreg(lret,&subtree) || m_astreg(lret,&subtree) || m_fstring(lret,&subtree) || m_festring(lret,&subtree) || m_anumber(lret,&subtree) || m_negcall(lret,&subtree) || m_call(lret,&subtree) || m_valtuple(lret,&subtree) || m_parenthetic(lret,&subtree) || m_increment(lret,&subtree) || m_variable(lret,&subtree) || m_subtelque(lret,&subtree) || m_telque(lret,&subtree) || m_intentionvect(lret,&subtree) || m_valvector(lret,&subtree) || m_valmap(lret,&subtree))
+    if (m_taskellcase(lret,&subtree) || m_localif(lret,&subtree) || m_abool(lret,&subtree) || m_astringdouble(lret,&subtree) || m_afullstring(lret,&subtree) || m_astringsimple(lret,&subtree) || m_apreg(lret,&subtree) || m_aspreg(lret,&subtree) || m_atreg(lret,&subtree) || m_astreg(lret,&subtree) || m_fstring(lret,&subtree) || m_festring(lret,&subtree) || m_anumber(lret,&subtree) || m_negcall(lret,&subtree) || m_call(lret,&subtree) || m_valtuple(lret,&subtree) || m_parenthetic(lret,&subtree) || m_increment(lret,&subtree) || m_variable(lret,&subtree) || m_predicatevariable(lret,&subtree) || m_subtelque(lret,&subtree) || m_telque(lret,&subtree) || m_intentionvect(lret,&subtree) || m_valvector(lret,&subtree) || m_valmap(lret,&subtree))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);

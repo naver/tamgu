@@ -135,7 +135,14 @@ class Tamgutamgu : public TamguObject {
 		Tamgu* domain = acode->Mainframe();
         globalTamgu->Pushstack(domain, idthread);
         Tamgu* a = callfunc->Eval(domain, aNULL, idthread);
-		globalTamgu->Popstack(idthread);
+        if (callfunc->function != NULL) {
+            contextualpattern = callfunc->function->Eval(domain, a, idthread);
+            contextualpattern->Setreference();
+            a->Release();
+            contextualpattern->Protect();
+            a = contextualpattern;
+        }
+        globalTamgu->Popstack(idthread);
 		return a;
 	}
 

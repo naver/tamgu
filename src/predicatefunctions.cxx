@@ -343,6 +343,7 @@ Exporting Tamgu* TamguPredicateMethod::PredicateEvalue(TamguInstructionEvaluate*
     }
 
     Tamgu* res = aFALSE;
+    Tamgu* val;
     Tamgu* v;
     Tamgu* r;
     if (parameters[last]->isUnified(context->dom)) {
@@ -358,46 +359,31 @@ Exporting Tamgu* TamguPredicateMethod::PredicateEvalue(TamguInstructionEvaluate*
         for (i = 1; i < last; i++)
             call.arguments.push_back(args[i]);
 
-        res = call.Eval(context->dom, args[0], context->threadowner);
-        if (res->isVectorContainer()) {
-            bool found = false;
-            for (i = 0; i < res->Size(); i++) {
-                r = res->getvalue(i);
+        val = call.Eval(context->dom, args[0], context->threadowner);
+        if (val->isError()) {
+            globalTamgu->Cleanerror(context->threadowner);
+            v->Release();
+            return aFALSE;
+        }
+        
+        if (val->isVectorContainer()) {
+            for (i = 0; i < val->Size(); i++) {
+                r = val->getvalue(i);
                 if (r->same(v) == aTRUE) {
-                    found = true;
-                    res->Release();
-                    if (negation)
-                        res = aFALSE;
-                    else
-                        res = context->PredicateEvalue(stack, currenthead, depth);
+                    r->Release();
+                    res = context->PredicateEvalue(stack, currenthead, depth);
                     break;
                 }
-            }
-
-            if (!found) {
-                res->Release();
-                if (negation)
-                    res = aTRUE;
-                else
-                    res = aFALSE;
+                r->Release();
             }
         }
         else {
-            if (res->same(v) == aTRUE) {
-                res->Release();
-                if (negation)
-                    res = aFALSE;
-                else
-                    res = context->PredicateEvalue(stack, currenthead, depth);
-            }
-            else {
-                if (res->isError())
-                    globalTamgu->Cleanerror(context->threadowner);
-                res->Release();
-                res = aFALSE;
-            }
+            res = val->same(v);
+            if (res == aTRUE)
+                res = context->PredicateEvalue(stack, currenthead, depth);
         }
-
+        
+        val->Release();
         v->Release();
         for (i = 0; i < last; i++)
             args[i]->Release();
@@ -418,58 +404,47 @@ Exporting Tamgu* TamguPredicateMethod::PredicateEvalue(TamguInstructionEvaluate*
         parameters[last]->Setvalue(aNULL, aNOELEMENT, 0, true);
     }
 
-    r = call.Eval(context->dom, args[0], context->threadowner);
-
-    if (r != aNOELEMENT && r != aNULL) {
-        if (!negation) {
-            long iter = 0;
-            long mx = 1;
-
-            if (r->isVectorContainer()) {
-                v = aNOELEMENT;
-                mx = r->Size();
+    val = call.Eval(context->dom, args[0], context->threadowner);
+    if (val->isError()) {
+        globalTamgu->Cleanerror(context->threadowner);
+        if (prev != aNOELEMENT)
+            parameters[last]->Setvalue(aNULL, prev, 0, false);
+        return aFALSE;
+    }
+    
+    if (val == aNOELEMENT || val == aNULL) {
+        if (prev != aNOELEMENT)
+            parameters[last]->Setvalue(aNULL, prev, 0, false);
+        return aFALSE;
+    }
+    
+    if (val->isVectorContainer()) {
+        for (i = 0; i < val->Size(); i++) {
+            r = val->getvalue(i);
+            parameters[last]->Newvalue(r, context->threadowner);
+            r = context->PredicateEvalue(stack, currenthead, depth);
+            if (r == aTRUE) {
+                res = aTRUE;
+                continue;
             }
-            else
-                v = r;
-
-            while (iter < mx) {
-                if (r->isVectorContainer())
-                    v = r->getvalue(iter);
-
-                parameters[last]->Newvalue(v, context->threadowner);
-
-                v = context->PredicateEvalue(stack, currenthead, depth);
-
-                if (v == aCUT) {
-                    res = aTRUE;
-                    break;
-                }
-
-                if (v->isError()) {
-                    globalTamgu->Cleanerror(context->threadowner);
-                    res = aFALSE;
-                    break;
-                }
-
-                if (v == aTRUE)
-                    res = aTRUE;
-
-                iter++;
+            if (r == aCUT) {
+                res = aTRUE;
+                break;
             }
+            if (r == aFALSE)
+                break;
         }
-        r->Release();
     }
     else {
-        if (negation)
-            res = aTRUE;
+        parameters[last]->Newvalue(val, context->threadowner);
+        res = context->PredicateEvalue(stack, currenthead, depth);
     }
+    val->Release();
 
     for (i = 0; i < last; i++)
         args[i]->Release();
         
-    //we put back our initial value...
     parameters[last]->Setvalue(aNULL, prev, 0, false);
-    
     return res;
 }
 
@@ -781,6 +756,11 @@ Tamgu* ProcPredicateAssertz(Tamgu* context, short idthread, TamguCall* callfunc)
     return aTRUE;
 }
 
+Tamgu* ProcBound(Tamgu* context, short idthread, TamguCall* callfunc) {
+    Tamgu* a = callfunc->arguments[0];
+    return a->isBound(context, idthread);
+}
+
 Tamgu* ProcPredicateSucc(Tamgu* context, short idthread, TamguCall* callfunc) {
     return callfunc->Evaluate(0, context, idthread)->Succ();
 }
@@ -790,62 +770,73 @@ Tamgu* ProcPredicatePred(Tamgu* context, short idthread, TamguCall* callfunc) {
 }
 
 
-Tamgu* ProcDependencies(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
-    int i;
+class PredicateFunctionEnvironment {
+public:
+    TamguDeclarationPredicate domain;
+    PredicateInstanceDeclaration localdico;
+    TamguPredicateFunction pv;
+    TamguInstructionEvaluate kl;
+    short idthread;
     
+    PredicateFunctionEnvironment(short idt, bool trace) :
+    pv(globalTamgu, globalTamgu->predicates[a_dependency]->Function(), a_dependency),
+    kl(&pv, idt, trace, true),
+    localdico(5) {
+        pv.reference = 1;
+        idthread = idt;
+
+        //Important variables...
+        globalTamgu->SetPredicateVariableFlags(idthread);
+        kl.dico = &localdico;
+
+        TamguPredicateContainer* kpcont = globalTamgu->GetPredicatecontainer(idthread);
+        if (kpcont != NULL)
+            kl.rules = kpcont->rules;
+    }
+    
+    ~PredicateFunctionEnvironment() {
+        basebin_hash<Tamgu*>::iterator it;
+        for (it = domain.declarations.begin(); it != domain.declarations.end(); it++) {
+            it->second->Resetreferencenoprotect();
+        }
+
+        for (long i = 0; i < pv.Size(); i++)
+            pv.parameters[i]->Resetreference();
+    }
+    
+    
+   inline Tamgu* eval(Tamgu* context) {
+       TamguPredicateVariable v1(NULL, globalTamgu->Getid("#1"));
+       TamguPredicateVariable v2(NULL, globalTamgu->Getid("#2"));
+
+       Tamgu* e = v1.ExtractPredicateVariables(&kl, &domain, NULL, NULL, idthread, true);
+       e->Setreference();
+       pv.parameters.push_back(e);
+
+       e = v2.ExtractPredicateVariables(&kl, &domain, NULL, NULL, idthread, true);
+       e->Setreference();
+       pv.parameters.push_back(e);
+
+       //We force in this case the full traversal of all rules...
+       kl.fulltraversal = FULLSEARCH;
+
+       return kl.Eval(context, &domain, idthread);
+    }
+};
+
+
+Tamgu* ProcDependencies(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+    if (globalTamgu->predicates.check(a_dependency) == false)
+        return aNULL;
+
     bool trace = false;
     if (callfunc->Size())
         trace = callfunc->Evaluate(0, contextualpattern, idthread)->Boolean();
 
-    if (globalTamgu->predicates.check(a_dependency) == false)
-        return aNULL;
+    std::unique_ptr<PredicateFunctionEnvironment> pfe(new PredicateFunctionEnvironment(idthread, trace));
 
-    TamguPredicateFunction pv(globalTamgu, globalTamgu->predicates[a_dependency]->Function(), a_dependency);
-    pv.reference = 1;
-
-    TamguInstructionEvaluate kl(&pv, idthread, trace, true);
-
-    //Important variables...
-    globalTamgu->SetPredicateVariableFlags(idthread);
-
-    TamguDeclarationPredicate domain;
-
-    basebin_hash<TamguPredicateVariableInstance*> localdico;
-    kl.dico = &localdico;
-
-    TamguPredicateContainer* kpcont = globalTamgu->GetPredicatecontainer(idthread);
-
-    if (kpcont != NULL)
-        kl.rules = kpcont->rules;
-
-    Tamgu* e;
-    TamguPredicateVariable v1(NULL, globalTamgu->Getid("#1"));
-    TamguPredicateVariable v2(NULL, globalTamgu->Getid("#2"));
-
-    e = v1.ExtractPredicateVariables(&kl, &domain, NULL, NULL, idthread, true);
-    e->Setreference();
-    pv.parameters.push_back(e);
-
-    e = v2.ExtractPredicateVariables(&kl, &domain, NULL, NULL, idthread, true);
-    e->Setreference();
-    pv.parameters.push_back(e);
-
-    //We force in this case the full traversal of all rules...
-    kl.fulltraversal = FULLSEARCH;
-
-    e = kl.Eval(contextualpattern, &domain, idthread);
-
-    basebin_hash<Tamgu*>::iterator it;
-    for (it = domain.declarations.begin(); it != domain.declarations.end(); it++) {
-        it->second->Resetreferencenoprotect();
-    }
-
-    for (i = 0; i < pv.Size(); i++)
-        pv.parameters[i]->Resetreference();
-
-    return e;
+    return pfe->eval(contextualpattern);
 }
-
 
 //----------------------------------------------------------------------------------------------------
 void TamguGlobal::RecordPredicates() {
@@ -855,6 +846,7 @@ void TamguGlobal::RecordPredicates() {
         aCUTFALSE = new TamguConstPredicate(NULL, a_cutfalse);
         aCUT = new TamguConstPredicate(NULL, a_cut);
         aSTOP = new TamguConstPredicate(NULL, a_stop);
+        aPREDICATETRUE = new TamguConstPredicateTrue(a_true);
     }
     
     RecordOneProcedure("asserta", "Assert a clause (fact or rule) into the database as the first clause of the predicate", &ProcPredicateAsserta, P_ONE | P_ONE);
@@ -866,6 +858,7 @@ void TamguGlobal::RecordPredicates() {
     RecordOneProcedure("succ", "The next element", &ProcPredicateSucc, P_ONE);
     RecordOneProcedure("pred", "The previous element", &ProcPredicatePred, P_ONE);
     RecordOneProcedure("_dependencies", "Return the list of dependencies in memory", &ProcDependencies, P_NONE | P_ONE);
+    RecordOneProcedure("_var", "Checks if a variable is bound.", &ProcBound, P_ONE);
 
     char buffer[20];
     for (long i = 0; i < 100; i++) {
@@ -883,3 +876,69 @@ void TamguGlobal::RecordPredicates() {
         Getid(var_predicate_name);
     }
 }
+
+/*
+ class PredicateFunctionEnvironment {
+ public:
+     TamguDeclarationPredicate domain;
+     PredicateInstanceDeclaration localdico;
+     TamguPredicateFunction pv;
+     TamguInstructionEvaluate kl;
+     short idthread;
+     
+     PredicateFunctionEnvironment(short idt, bool trace) :
+     pv(globalTamgu, globalTamgu->predicates[a_dependency]->Function(), a_dependency),
+     kl(&pv, idt, trace, true),
+     localdico(5) {
+         pv.reference = 1;
+         idthread = idt;
+
+         //Important variables...
+         globalTamgu->SetPredicateVariableFlags(idthread);
+         kl.dico = &localdico;
+
+         TamguPredicateContainer* kpcont = globalTamgu->GetPredicatecontainer(idthread);
+         if (kpcont != NULL)
+             kl.rules = kpcont->rules;
+     }
+     
+     ~PredicateFunctionEnvironment() {
+         basebin_hash<Tamgu*>::iterator it;
+         for (it = domain.declarations.begin(); it != domain.declarations.end(); it++) {
+             it->second->Resetreferencenoprotect();
+         }
+
+         for (long i = 0; i < pv.Size(); i++)
+             pv.parameters[i]->Resetreference();
+     }
+     
+     
+    inline Tamgu* eval(Tamgu* context) {
+        TamguPredicateVariable v1(NULL, globalTamgu->Getid("#1"));
+        TamguPredicateVariable v2(NULL, globalTamgu->Getid("#2"));
+
+        Tamgu* e = v1.ExtractPredicateVariables(&kl, &domain, NULL, NULL, idthread, true);
+        e->Setreference();
+        pv.parameters.push_back(e);
+
+        e = v2.ExtractPredicateVariables(&kl, &domain, NULL, NULL, idthread, true);
+        e->Setreference();
+        pv.parameters.push_back(e);
+
+        //We force in this case the full traversal of all rules...
+        kl.fulltraversal = FULLSEARCH;
+
+        return kl.Eval(context, &domain, idthread);
+     }
+ };
+
+ Tamgu* ProcDependencies(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
+     if (globalTamgu->predicates.check(a_dependency) == false)
+         return aNULL;
+
+     std::unique_ptr<PredicateFunctionEnvironment> pfe(new PredicateFunctionEnvironment(idthread, callfunc->Evaluate(0, contextualpattern, idthread)->Boolean()));
+
+     return pfe->eval(contextualpattern);
+ }
+
+ */

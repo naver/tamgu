@@ -755,7 +755,7 @@ public:
     
 };
 
-typedef enum { x_none, x_goto, x_find, x_replace, x_write, x_count, x_delete, x_copy, x_cut, x_copying, x_deleting, x_cutting, x_load, x_exitprint} x_option;
+typedef enum { x_none, x_goto, x_find, x_replace, x_write, x_count, x_delete, x_copy, x_cut, x_copying, x_deleting, x_cutting, x_load, x_exitprint, x_exitprompt} x_option;
 class Jag_automaton;
 
 class jag_editor {
@@ -826,6 +826,9 @@ public:
     bool tooglehelp;
     bool updateline;
     bool noprefix;
+    bool current_no_prefix;
+    bool promptmode;
+
     bool insertaline;
     bool taskel;
     
@@ -841,6 +844,7 @@ public:
     char regularexpressionfind;
     
     jag_editor();
+    jag_editor(string);
     ~jag_editor();
     
     
@@ -903,7 +907,7 @@ public:
     }
     
     virtual bool emode() {
-        if (option == x_none)
+        if (option == x_none && !promptmode)
             return true;
         return false;
     }
@@ -912,12 +916,20 @@ public:
     //Undo/Redo
     //------------------------------------------------------------------------------------------------
     
+    long size_of_prefix();
+    
     void setnoprefix() {
         noprefix = 1-noprefix;
+        current_no_prefix = noprefix;
         if (noprefix) {
-            prefix = "";
-            wprefix = L"";
-            prefixsize = 0;
+            if (promptmode) {
+                prefixsize = size_of_prefix();
+            }
+            else {
+                prefix = "";
+                wprefix = L"";
+                prefixsize = 0;
+            }
             margin = 2;
         }
         else {
@@ -1028,22 +1040,31 @@ public:
     //Since there is always a prefix at the beginning of the line, we compute it here...
     
     long prefixesize(long sz) {
-        if (noprefix)
+        if (noprefix) {
+            if (promptmode)
+                return size_of_prefix();
             return 0;
+        }
         return (sz > 9999 ? 5 : sz > 999 ? 4: sz > 99 ? 3 : sz > 9 ? 2 : 1);
     }
     
     void setprefixesize(long sz) {
         if (noprefix) {
-            prefixsize = 0;
+            if (promptmode)
+                prefixsize = size_of_prefix();
+            else
+                prefixsize = 0;
             return;
         }
         prefixsize = sz > 9999 ? 5 : sz > 999 ? 4: sz > 99 ? 3 : sz > 9 ? 2 : 1 ;
     }
     
     long prefixe() {
-        if (noprefix)
+        if (noprefix) {
+            if (promptmode)
+                return size_of_prefix();
             return 0;
+        }
         return (4 + prefixsize);
     }
     
@@ -1196,22 +1217,34 @@ public:
     void displaylist(long beg);
     
     virtual void printline(long n, string l) {
-        if (noprefix)
-            cout << back << l;
+        if (noprefix) {
+            if (promptmode)
+                cout << back << prefix << l;
+            else
+                cout << back << l;
+        }
         else
             cout << back << m_dore << prefix << m_current << m_lightgray << std::setw(prefixsize) << n << "> " << m_current << l;
     }
     
     virtual void printline(long n) {
-        if (noprefix)
-            cout << back;
+        if (noprefix) {
+            if (promptmode)
+                cout << back << prefix;
+            else
+                cout << back;
+        }
         else
             cout << back << m_dore << prefix << m_current << m_lightgray << std::setw(prefixsize) << n << "> " << m_current;
     }
     
     virtual void printline(long n, wstring& l, long i = -1) {
-        if (noprefix)
-            cout << back << coloringline(l, i);
+        if (noprefix) {
+            if (promptmode)
+                cout << back << prefix << convert(l);
+            else
+                cout << back << coloringline(l, i);
+        }
         else {
             if (n == -1) {
                 string space(prefixe(), ' ');
@@ -1438,7 +1471,8 @@ public:
     //This a case of copy/paste within the editor, we need to remove the prefixes
     void cleanheaders(wstring& w);
     //This is the main method that launches the terminal
-    virtual void launchterminal(char loadedcode, vector<string>& newcolors);
+    virtual void launchterminal(char loadedcode, vector<string>& newcolors, bool no_numbering = false);
+    wstring kbget(string);
     bool checkaction(string&, long& first, long& last, bool lsp = false);
     
     virtual void addcommandline(wstring& w) {}

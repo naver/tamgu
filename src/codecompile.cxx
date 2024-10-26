@@ -1803,6 +1803,7 @@ Tamgu* TamguCode::C_parameterdeclaration(x_node* xn, Tamgu* parent) {
     }
 	else {
 		if (parent->isMainFrame()) {
+            global->globalvariablenames.push_back(idname);
 			a = new TamguGlobalVariableDeclaration(global, idname, tid, isprivate, false, parent);
 			global->Storevariable(0, idname, aNOELEMENT); //a dummy version to avoid certain bugs in the console
 			//Basically, if a program fails before allocating this variable, and the variable is still requested in the console, it might crash...
@@ -1909,7 +1910,21 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
     else
         name = name_space + xn->nodes[1]->value;
     
-	short idname = global->Getid(name);
+    short idname;
+    if (idcode && parent->isMainFrame()) {
+        //If a piece of code is loaded with a tamgu variable
+        //then we might have a problem with global variables names that could collide
+        //in this case, we modify slightly the variable name in order to avoid this problem...
+        char ch[10];
+        sprintf_s(ch,10,"&%d",idcode);
+        string nm(name);
+        nm+=ch;
+        idname=global->Getid(nm);
+        global->idSymbols[idname]=name;
+    }
+    else
+        idname = global->Getid(name);
+    
     if (global->newInstance.check(idname)) {
         stringstream message;
         message << e_variable_name_cannot << name << "'";
@@ -1976,17 +1991,7 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
             }
             else {
                 if (parent->isMainFrame()) {
-                    if (idcode) {
-                        //If a piece of code is loaded with a tamgu variable
-                        //then we might have a problem with global variables names that could collide
-                        //in this case, we modify slightly the variable name in order to avoid this problem...
-                        char ch[10];
-                        sprintf_s(ch,10,"&%d",idcode);
-                        string nm(name);
-                        nm+=ch;
-                        idname=global->Getid(nm);
-                        global->idSymbols[idname]=name;
-                    }
+                    global->globalvariablenames.push_back(idname);
                     a = new TamguGlobalVariableDeclaration(global, idname, tid, isprivate, isconstant, parent);
                     global->Storevariable(0, idname, aNOELEMENT); //a dummy version to avoid certain bugs in the console
                 }
@@ -2159,6 +2164,7 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
                     idname=global->Getid(nm);
                     global->idSymbols[idname]=name;
                 }
+                global->globalvariablenames.push_back(idname);
                 a = new TamguGlobalVariableDeclaration(global, idname, tid, isprivate, isconstant, parent);
                 global->Storevariable(0, idname, aNOELEMENT); //a dummy version to avoid certain bugs in the console
             }
@@ -2334,6 +2340,7 @@ Tamgu* TamguCode::C_framecontainer(x_node* xn, Tamgu* parent) {
             idname=global->Getid(nm);
             global->idSymbols[idname]=name;
         }
+        global->globalvariablenames.push_back(idname);
         a = new TamguGlobalVariableDeclaration(global, idname, tid, isprivate, isconstant, parent);
         global->Storevariable(0, idname, aNOELEMENT); //a dummy version to avoid certain bugs in the console
     }
@@ -10256,7 +10263,31 @@ bool TamguCode::Load(tokenizer_result<string>& xr) {
 	bnf.baseline = global->linereference;
 	global->lineerror = -1;
 
-	x_node* xn = bnf.x_parsing(&xr, FULL);
+    x_node* xn;
+    
+    if (xr.lispmode) {
+        bnf.initialize(&xr);
+        bnf.baseline = global->linereference;
+        string lret;
+        xn = new x_node;
+        if (bnf.m_tamgupurelisp(lret, &xn) != 1 || bnf.currentpos != bnf.fx->stack.size()) {
+            delete xn;
+            cerr << " in " << filename << endl;
+            stringstream& message = global->threads[0].message;
+            global->lineerror = bnf.lineerror;
+            currentline = global->lineerror;
+            message << e_error_while_parsing02;
+            if (bnf.errornumber != -1)
+                message << bnf.x_errormsg(bnf.errornumber);
+            else
+                message << bnf.labelerror;
+
+            throw new TamguRaiseError(message, filename, global->lineerror, bnf.lineerror);
+        }
+    }
+    else
+        xn = bnf.x_parsing(&xr, FULL);
+    
 	if (xn == NULL) {
 		cerr << " in " << filename << endl;
 		stringstream message;
@@ -10330,7 +10361,7 @@ bool TamguCode::CompileFull(string& body, vector<TamguFullError*>& errors) {
         body[1] = '/';
     }
 
-    body += "\n";
+    body += Endl;
     global->tamgu_tokenizer.tokenize<string>(body, xr);
     
     if (!xr.size())
@@ -10459,7 +10490,7 @@ bool TamguCode::Compile(string& body) {
 
     before = std::chrono::high_resolution_clock::now();
     
-    body += "\n";
+    body += Endl;
     global->tamgu_tokenizer.tokenize<string>(body, xr);
     
     after = std::chrono::high_resolution_clock::now();

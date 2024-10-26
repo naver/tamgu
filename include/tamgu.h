@@ -47,6 +47,7 @@ class TamguPredicateContainer;
 class TamguPredicateVariableInstance;
 class TamguInstructionEvaluate;
 class An_any;
+class PredicateInstanceDeclaration;
 
 #include "tamguconstants.h"
 
@@ -217,10 +218,6 @@ public:
         return false;
     }
     
-    virtual short checkTypePredicate() {
-        return a_null;
-    }
-    
     virtual void add(An_any* e) {}
     virtual void push(An_any* e) {}
 	virtual void InstructionClear() {}
@@ -249,6 +246,9 @@ public:
 		return false;
 	}
 
+    
+    virtual Tamgu* Getpredicatezone(short);
+    
     //We check if all variables are accessible for computing (see where variables Haskell)
     virtual bool Computevariablecheck(short idthread) {
         return false;
@@ -395,6 +395,14 @@ public:
 	virtual bool isComputable(TamguDeclaration* dom) {
 		return isUnified(dom);
 	}
+
+    virtual short checkTypePredicate() {
+        return a_null;
+    }
+    
+    virtual bool Checkparameters(TamguDeclaration*) {
+        return false;
+    }
 
 	virtual void Cleans(Tamgu* v, bool localvalue) {}
 
@@ -645,7 +653,7 @@ public:
     }
 	//-----------------------------------------------
 	virtual void Setdisjunction(bool v) {}
-	virtual basebin_hash<TamguPredicateVariableInstance*>* Dico() {
+	virtual PredicateInstanceDeclaration* Dico() {
 		return NULL;
 	}
 
@@ -681,6 +689,14 @@ public:
 	}
 
 	Exporting virtual Tamgu* Getvalues(TamguDeclaration* dom, bool duplicate);
+    virtual Tamgu* Unifies(TamguDeclaration* dom) {
+        return this;
+    }
+    
+    virtual Tamgu* isBound(Tamgu*, short) {
+        return aTRUE;
+    }
+    
 	virtual void Setmerge() {}
 
 	virtual bool Checkprecision(Tamgu* r) {
@@ -1433,9 +1449,8 @@ public:
 	}
 
 	virtual string JSonString() {
-		string value = String();
         string res;
-        jstringing(res, value);
+        jstringing(res, String());
         return res;
 	}
 
@@ -3381,59 +3396,59 @@ public:
 //The basic Call, with its arguments...
 class TamguCall : public TamguTracked {
 public:
-	VECTE<Tamgu*> arguments;
-	Tamgu* function;
-	short name;
-	bool addarg;
-	bool negation;
+    VECTE<Tamgu*> arguments;
+    Tamgu* function;
+    short name;
+    bool addarg;
+    bool negation;
     bool curryfied;
-
-	TamguCall(short t, TamguGlobal* global = NULL, Tamgu* parent = NULL) : name(-1), function(NULL), addarg(true), negation(false), curryfied(false), TamguTracked(t, global, parent) {}
-	TamguCall(short n, short t, TamguGlobal* global = NULL, Tamgu* parent = NULL) : function(NULL), addarg(true), name(n), negation(false), curryfied(false), TamguTracked(t, global, parent) {}
-
-	short Name() {
-		return name;
-	}
+    
+    TamguCall(short t, TamguGlobal* global = NULL, Tamgu* parent = NULL) : name(-1), function(NULL), addarg(true), negation(false), curryfied(false), TamguTracked(t, global, parent) {}
+    TamguCall(short n, short t, TamguGlobal* global = NULL, Tamgu* parent = NULL) : function(NULL), addarg(true), name(n), negation(false), curryfied(false), TamguTracked(t, global, parent) {}
+    
+    short Name() {
+        return name;
+    }
     
     bool Computevariablecheck(short idthread) {
         vector<short> vars;
         ScanVariables(vars);
-
+        
         for (long i = 0; i < vars.size(); i++) {
             if (!globalTamgu->threads[idthread].variables.check(vars[i]))
                 return false;
             
-            VECTE<Tamgu*>& e = globalTamgu->threads[idthread].variables.get(vars[i]);
+            VECTES<Tamgu*,2>& e = globalTamgu->threads[idthread].variables.get(vars[i]);
             if (e.size() == 0)
                 return false;
         }
         return true;
     }
     
-	bool isNegation() {
-		return negation;
-	}
-
-	void Setnegation(bool n) {
-		negation = n;
-	}
-
+    bool isNegation() {
+        return negation;
+    }
+    
+    void Setnegation(bool n) {
+        negation = n;
+    }
+    
     void ScanVariables(vector<short>& vars) {
         for (long i=0; i<arguments.size();i++)
             arguments[i]->ScanVariables(vars);
     }
-
-	void CheckTaskellComposition() {
-		Tamgu* a;
-		for (short i = 0; i < arguments.size(); i++) {
-			a = arguments[i]->Composition();
-			if (a != aNOELEMENT) {
-				arguments[i]->Remove();
-				arguments.vecteur[i] = a;
-			}
-		}
-	}
-
+    
+    void CheckTaskellComposition() {
+        Tamgu* a;
+        for (short i = 0; i < arguments.size(); i++) {
+            a = arguments[i]->Composition();
+            if (a != aNOELEMENT) {
+                arguments[i]->Remove();
+                arguments.vecteur[i] = a;
+            }
+        }
+    }
+    
     virtual string String() {
         string v = "[";
         v += globalTamgu->Getsymbol(name);
@@ -3468,67 +3483,89 @@ public:
     }
     
     virtual void AddInstruction(Tamgu* a) {
-		if (addarg)
-			arguments.push_back(a);
-		else
-			function = a;
-	}
-
-	bool isCall() {
-		return true;
-	}
-
-	bool isCallFunction() {
-		return true;
-	}
-
+        if (addarg)
+            arguments.push_back(a);
+        else
+            function = a;
+    }
+    
+    bool isCall() {
+        return true;
+    }
+    
+    bool isCallFunction() {
+        return true;
+    }
+    
     virtual bool Setstopindex() {
         if (function !=NULL)
             function->Setstopindex();
         return false;
     }
-
+    
     bool isDirectIndex() {
         return (function != NULL && function->isIndex() && !function->Function());
     }
-
-	Tamgu* Getindex() {
-		if (function != NULL)
-			return function->Getindex();
-		return NULL;
-	}
-
-	void Addargmode() {
-		addarg = true;
-	}
-
-	void Addfunctionmode() {
-		addarg = false;
-	}
-
-	long Size() {
-		return (long)arguments.size();
-	}
-
-	Tamgu* Argument(size_t i) {
-		if (i >= arguments.size())
-			return aNOELEMENT;
-		return arguments[i];
-	}
-
-	virtual Tamgu* Eval(Tamgu* context, Tamgu* callfunction, short idthread) {
-		return this;
-	}
-
-	virtual Tamgu* Evaluate(long i, Tamgu* context, short idthread) {
-		return arguments[i]->Eval(context, aNULL, idthread);
-	}
+    
+    Tamgu* Getindex() {
+        if (function != NULL)
+            return function->Getindex();
+        return NULL;
+    }
+    
+    void Addargmode() {
+        addarg = true;
+    }
+    
+    void Addfunctionmode() {
+        addarg = false;
+    }
+    
+    long Size() {
+        return (long)arguments.size();
+    }
+    
+    Tamgu* Argument(size_t i) {
+        if (i >= arguments.size())
+            return aNOELEMENT;
+        return arguments[i];
+    }
+    
+    virtual Tamgu* Eval(Tamgu* context, Tamgu* callfunction, short idthread) {
+        return this;
+    }
+    
+    virtual Tamgu* Evaluate(long i, Tamgu* context, short idthread) {
+        return arguments[i]->Eval(context, aNULL, idthread);
+    }
     
     virtual Tamgu* Evaluatedefault(long i, Tamgu* context, Tamgu* default_value, short idthread) {
         if (i < arguments.size())
             return arguments[i]->Eval(context, aNULL, idthread);
         return default_value;
     }
+    
+    Tamgu* Push(Tamgu* a) {
+        arguments.push_back(a);
+        a->Setreference();
+        return a;
+    }
+    
+    //The object is removed from the arguments
+    //and deleted if necessary
+    Tamgu* Pop() {
+        arguments.back()->Resetreference();
+        arguments.pop_back();
+        return this;
+    }
+
+    //The object is removed from the arguments
+    //but we do not delete it
+    void Popping() {
+        arguments.back()->Protect();
+        arguments.pop_back();
+    }
+
 };
 
 class TamguCallClean : public TamguCall {

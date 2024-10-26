@@ -421,7 +421,19 @@ public:
 		}
 
 		string s = callfunc->Evaluate(0, aNULL, idthread)->String();
-		fwrite(STR(s), 1, s.size(), thefile);
+        string sub;
+        long i;
+        long sz = s.size();
+        for (i = 0; i < sz; i+= 4096) {
+            sub = s.substr(i, 4096);
+            fwrite(STR(sub), 1, sub.size(), thefile);
+        }
+        
+        if (i > sz) {
+            i -= 4096;
+            sub = s.substr(i,string::npos);
+            fwrite(STR(sub), 1, sub.size(), thefile);
+        }
         unlocking();
 		return aTRUE;
 	}
@@ -443,9 +455,21 @@ public:
 			first = false;
 		}
 
-		string s = callfunc->Evaluate(0, aNULL, idthread)->String();
-		s += Endl;
-		fwrite(STR(s), 1, s.size(), thefile);
+        string s = callfunc->Evaluate(0, aNULL, idthread)->String();
+        string sub;
+        long i;
+        long sz = s.size();
+        for (i = 0; i < sz; i+= 4096) {
+            sub = s.substr(i, 4096);
+            fwrite(STR(sub), 1, sub.size(), thefile);
+        }
+        
+        if (i > sz) {
+            i -= 4096;
+            sub = s.substr(i,string::npos);
+            sub += Endl;
+            fwrite(STR(sub), 1, sub.size(), thefile);
+        }
         unlocking();
 		return aTRUE;
 	}
@@ -529,6 +553,10 @@ public:
 		return aTRUE;
 	}
 
+    Tamgu* MethodWriteJSON(Tamgu* context, short idthread, TamguCall* callfunc);
+    Tamgu* storevector(Tamgu* value, short idthread);
+    Tamgu* storemap(Tamgu* value, short idthread);
+    
 	Tamgu* MethodReadoneline(Tamgu* context, short idthread, TamguCall* callfunc) {
         locking();
         if (thefile == NULL || feof(thefile) || op != "rb") {

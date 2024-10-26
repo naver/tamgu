@@ -697,8 +697,8 @@ Tamgu* TamguCallFunctionTaskell::Eval(Tamgu* context, Tamgu* res, short idthread
     if (globalTamgu->debugmode)
         globalTamgu->threads[idthread].nonblockingerror = "";
     
-    for (long i = 0; i < body->names.size(); i++)
-        body->localvariables[i]->Eval(environment, aHASKELL, idthread);
+    for (long i = 0; i < body->localvariables.size(); i++)
+        body->localvariables.vecteur[i]->Eval(environment, aHASKELL, idthread);
     
     switch (body->lambdadomain->instructions.last) {
         case 0:
@@ -927,8 +927,8 @@ Tamgu* TamguCallFunctionArgsTaskell::Eval(Tamgu* context, Tamgu* res, short idth
         }
         
         if (res != aRAISEERROR) {
-            for (i = 0; i < bd->names.size(); i++)
-                bd->localvariables[i]->Eval(environment, aHASKELL, idthread);
+            for (i = 0; i < bd->localvariables.size(); i++)
+                bd->localvariables.vecteur[i]->Eval(environment, aHASKELL, idthread);
             
             switch (bd->lambdadomain->instructions.last) {
                 case 0:
@@ -1025,13 +1025,11 @@ Tamgu* TamguCallFunctionArgsTaskell::Eval(Tamgu* context, Tamgu* res, short idth
         if (func != NULL) {
             TamguCallFunction2 callfunc(func);
             Tamgu* fname = globalTamgu->Providestring(globalTamgu->Getsymbol(name));
-            callfunc.arguments.push_back(fname);
-            callfunc.arguments.push_back(res);
-            res->Setreference();
-            fname->Setreference();
+            callfunc.Push(fname);
+            callfunc.Push(res);
             Tamgu* rval = callfunc.Eval(aNULL, aNULL, idthread);
+            fname->Resetreference();
             if (rval != aNULL) {
-                fname->Resetreference();
                 res->Resetreference();
                 return rval;
             }
@@ -1771,8 +1769,8 @@ Tamgu* TamguCallFibre::Eval(Tamgu* context, Tamgu* res, short idthread) {
         
         cleanenv = true;
         if (res != aRAISEERROR) {
-            for (i = 0; i < bd->names.size(); i++)
-                bd->localvariables[i]->Eval(environment, aHASKELL, idthread);
+            for (i = 0; i < bd->localvariables.size(); i++)
+                bd->localvariables.vecteur[i]->Eval(environment, aHASKELL, idthread);
             
             switch (bd->lambdadomain->instructions.last) {
                 case 0:
@@ -2348,18 +2346,15 @@ Tamgu* TamguCallFrameMethod::Eval(Tamgu* context, Tamgu* value, short idthread) 
         return globalTamgu->Returnerror(e_expecting_object, idthread);
     
     TamguCallFrameFunction callfunc((TamguFrame*)value->Frame(), name);
-    Tamgu* a;
     int i;
     for (i = 1; i < arguments.size(); i++) {
-        a = arguments[i]->Eval(context, aNULL, idthread);
-        callfunc.arguments.push_back(a);
-        a->Setreference();
+        callfunc.Push(arguments[i]->Eval(context, aNULL, idthread));
     }
     
-    a = callfunc.Eval(context, value, idthread);
+    Tamgu* a = callfunc.Eval(context, value, idthread);
     
     for (i = 0; i < callfunc.arguments.size(); i++)
-        callfunc.arguments[i]->Resetreference();
+        callfunc.Pop();
     
     return a;
 }

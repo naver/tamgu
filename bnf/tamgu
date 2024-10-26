@@ -547,7 +547,7 @@ hoper := $∧^$∨^$×^$÷^[%& %& %&]^[%| %| %|]^[%: %:]^[%^ %^]^[%* %*]^%&^%+^%
 %hoperation := hoper hoperations
 
 negcall := negation call
-%hitem := taskellcase^localif^abool^astringdouble^afullstring^astringsimple^apreg^aspreg^atreg^astreg^fstring^festring^anumber^negcall^call^valtuple^parenthetic^increment^variable^subtelque^telque^intentionvect^valvector^valmap
+%hitem := taskellcase^localif^abool^astringdouble^afullstring^astringsimple^apreg^aspreg^atreg^astreg^fstring^festring^anumber^negcall^call^valtuple^parenthetic^increment^variable^predicatevariable^subtelque^telque^intentionvect^valvector^valmap
 %hnegated := %- hitem
 %hmultiply := variable (power) (hoperation)
 %hoperations := [[hnegated^hitem] (power) (hoperation)]|[anumber hmultiply]

@@ -2276,15 +2276,10 @@ public:
         line = 0;
         sz = pos.size();
         
-        if (kf->Type() == a_primemap) {
-            if (!buildprimemap(kf) || r != pos.size())
-                return false;
-            return true;
-        }
+        if (kf->Type() == a_primemap)
+            return (buildprimemap(kf) && r == pos.size());
         
-        if (!buildexpression(kf) || r != pos.size())
-            return false;
-        return true;
+        return (buildexpression(kf) && r == pos.size());
     }
     
     char buildexpression(Tamgu* kf);
@@ -3589,26 +3584,50 @@ bool TamguCode::Loadlibrary(string n, string& library_name) {
                 tamgupaths.push_back(atanlib);
         }
 
-
+        bool add = false;
         for (auto& attan: tamgupaths) {
             if (ldlibpath.find(attan) == -1) {
-                sp = attan + ":" + ldlibpath;
-                setenv("LD_LIBRARY_PATH", sp.c_str(), 1);
+                if (ldlibpath == "")
+                    ldlibpath = attan;
+                else
+                    ldlibpath += ":" + attan;
+                add = true;
             }
-            
-    #ifdef APPLE
+        }
+        if (add) {
+            setenv("LD_LIBRARY_PATH", ldlibpath.c_str(), 1);
+        }
+
+#ifdef APPLE
+        add = false;
+        for (auto& attan: tamgupaths) {
             if (dyldlibpath.find(attan) == -1) {
-                sp = "/usr/local/lib:" + attan + ":" + dyldlibpath;
-                setenv("DYLD_LIBRARY_PATH", sp.c_str(), 1);
+                if (dyldlibpath == "")
+                    dyldlibpath = attan;
+                else
+                    dyldlibpath += ":" + attan;
+                add = true;
             }
-    #endif
-
+        }
+        if (add) {
+            setenv("DYLD_LIBRARY_PATH", dyldlibpath.c_str(), 1);
+            setenv("DYLD_FALLBACK_LIBRARY_PATH", dyldlibpath.c_str(), 1);
+        }
+#endif
 
             
+        for (auto& attan: tamgupaths) {
             baselib = attan;
             if (baselib.back() != '/')
                 baselib += "/";
             sp = baselib + basename;
+            library_name = NormalizeFileName(sp);
+            LoadMe = dlopen(STR(sp), RTLD_LAZY | RTLD_GLOBAL);
+            if (LoadMe != NULL)
+                break;
+            sp = baselib + n;
+            if (addso)
+                sp += ".so";
             library_name = NormalizeFileName(sp);
             LoadMe = dlopen(STR(sp), RTLD_LAZY | RTLD_GLOBAL);
             if (LoadMe != NULL)

@@ -26,6 +26,7 @@
 #include "instructions.h"
 
 class TamguPredicateRule;
+class predictenvironment;
 
 typedef enum { SEARCHONE, FULLSEARCH, STOPSEARCH } predicatesearch;
 
@@ -68,6 +69,32 @@ public:
         return a_predicatedomain;
     }
 
+    Tamgu* Getpredicatezone(short) {
+        return this;
+    }
+};
+
+class PredicateInstanceDeclaration {
+public:
+    BVECTE<short, TamguPredicateVariableInstance*> declarations;
+    
+    PredicateInstanceDeclaration(long nb) : declarations(nb) {}
+    
+    void set(short id, TamguPredicateVariableInstance* a) {
+        declarations.push_back(id, a);
+    }
+    
+    TamguPredicateVariableInstance* get(short id) {
+        return declarations.find(id);
+    }
+    
+    bool check(short id) {
+        return declarations.check(id);
+    }
+
+    void clear() {
+        declarations.clear();
+    }
 };
 
 //A PredicateVariable such as: ?val
@@ -175,7 +202,8 @@ public:
         affectation = true;
         return false;
     }
-
+    
+    Tamgu* isBound(Tamgu*, short);
 	virtual Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread);
     virtual Tamgu* Execute(Tamgu* environment, Tamgu* value, short idthread);
     
@@ -756,6 +784,10 @@ public:
 		return 0;
 	}
     
+    virtual short checkTypePredicate() {
+        return a_predicate;
+    }
+    
     virtual char setPredicateNameVariable(TamguPredicate*, short idthread) {
         return true;
     }
@@ -805,7 +837,7 @@ public:
 
 
 	virtual TamguPredicate* Duplicate(Tamgu* context, TamguDeclaration* d, short idthread);
-	bool Copyfrom(TamguPredicate* p, Tamgu* context, TamguDeclaration* d, TamguPredicate* h, short);
+	bool Copyfrom(TamguPredicate* p, Tamgu* context, TamguDeclaration* d, VECTE<Tamgu*>& headpredicatevalues, short);
 
     Tamgu* ExtractPredicateVariables(Tamgu* contextualpattern, TamguDeclaration* dom, Tamgu* param, Tamgu* e, short idthread, bool root);
     
@@ -973,6 +1005,7 @@ public:
 		return object;
 	}
 	void Setname(short n);
+    
 };
 
 class TamguConstPredicate : public TamguPredicate {
@@ -1002,6 +1035,16 @@ public:
 	}
 	void Resetreference(short inc = 1) {}
     
+};
+
+class TamguConstPredicateTrue : public TamguConstPredicate {
+public:
+    TamguConstPredicateTrue(short n) : TamguConstPredicate(NULL, n) {}
+    
+    bool hasbeenSuccesfull() {
+        return true;
+    }
+
 };
 
 class TamguPredicateAsVariable : public TamguPredicate {
@@ -1388,7 +1431,7 @@ public:
 class TamguInstructionEvaluate : public Tamgu {
 public:
 	hmap<unsigned short, vector<TamguPredicateRule*> > rules;
-	basebin_hash<TamguPredicateVariableInstance*>* dico;	
+    PredicateInstanceDeclaration* dico;
 	VECTE<TamguPredicate*> results;
 
 	TamguPredicate* head;
@@ -1431,16 +1474,16 @@ public:
         return P_TWO;
     }
 
-	basebin_hash<TamguPredicateVariableInstance*>* Dico() {
+    PredicateInstanceDeclaration* Dico() {
 		return dico;
 	}
 
 	void Setdico(short n, TamguPredicateVariableInstance* a) {
-		(*dico)[n] = a;
+        dico->set(n, a);
 	}
 
 	TamguPredicateVariableInstance* Getdico(short n) {
-		return (*dico)[n];
+        return dico->get(n);
 	}
 
 	bool Checkdico(short n) {
@@ -1452,6 +1495,14 @@ public:
 	TamguPredicate* PredicateUnification(VECTE<Tamgu*>& goals, long& posreplace, long& from);
 	Tamgu* PredicateCreate(TamguPredicate* headrule, long depth);
 
+    Tamgu* Predpredicatemethod(VECTE<Tamgu*>& stack, TamguPredicate* headpredicate,TamguPredicate* currenthead,long depth);
+    Tamgu* Predassertaz(TamguPredicate* headpredicate, bool order);
+    Tamgu* Predretract(TamguPredicate* headpredicate);
+    Tamgu* Predfindall(TamguPredicate* headpredicate);
+    Tamgu* Preddependency_assertaz(TamguPredicate* headpredicate, bool order);
+    Tamgu* Preddependency_retract(TamguPredicate* headpredicate);
+    Tamgu* Preddependency_remove(TamguPredicate* headpredicate);
+    Tamgu* Checkfacts(predictenvironment* Oo,long posreplace,TamguPredicate* currenthead,long depth);
 };
 
 
@@ -1601,12 +1652,12 @@ public:
 		return disjunction;
 	}
 
-    Tamgu* Unify(Tamgu* context, TamguDeclaration* dom, basebin_hash<TamguPredicateVariableInstance*>* dico, short idthread);
+    Tamgu* Unify(Tamgu* context, TamguDeclaration* dom, PredicateInstanceDeclaration* dico, short idthread);
 };
 
 class TamguPredicateLocalInstruction : public TamguReference {
 public:
-	basebin_hash<TamguPredicateVariableInstance*>* dico;
+    PredicateInstanceDeclaration* dico;
 	Tamgu* instruction;
 	bool negation;
 	bool success;
@@ -1614,7 +1665,7 @@ public:
     bool keep;
 
 
-	TamguPredicateLocalInstruction(TamguGlobal* g, basebin_hash<TamguPredicateVariableInstance*>* context, Tamgu* e, bool n, bool d)  {
+	TamguPredicateLocalInstruction(TamguGlobal* g, PredicateInstanceDeclaration* context, Tamgu* e, bool n, bool d)  {
 		dico = context;
 		negation = n;
 		disjunction = d;
@@ -1630,17 +1681,21 @@ public:
         return instruction->isThread();
     }
 
-	basebin_hash<TamguPredicateVariableInstance*>* Dico() {
+    PredicateInstanceDeclaration* Dico() {
 		return dico;
 	}
 
 	void Setdico(short n, TamguPredicateVariableInstance* a) {
-		(*dico)[n] = a;
+        dico->set(n, a);
 	}
 
 	TamguPredicateVariableInstance* Getdico(short n) {
-		return (*dico)[n];
+        return dico->get(n);
 	}
+
+    short checkTypePredicate() {
+        return a_instructions;
+    }
 
 	bool Checkdico(short n) {
 		return dico->check(n);

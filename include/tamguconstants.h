@@ -316,7 +316,7 @@ inline bool Istring(short a) {
 	return false;
 }
 
-inline void jstringing(string& res, string& value) {
+inline void jstringing(string& res, string value) {
 	if (value.find("\\") != -1)
 		value = s_replacestrings(value, "\\", "\\\\");
 
@@ -326,19 +326,31 @@ inline void jstringing(string& res, string& value) {
 		res += "\"";
 	}
 	else {
-		string v = s_replacestrings(value, "\"", "\\\"");
+		value = s_replacestrings(value, "\"", "\\\"");
 		res += "\"";
-		res += v;
+		res += value;
 		res += "\"";
 	}
 }
 
-inline void stringing(string& res, string& value) {
+inline void jstringing_c(string& res, string value) {
+    if (value.find("\\") != -1)
+        value = s_replacestrings(value, "\\", "\\\\");
+
+    if (value.find("\"") != -1)
+        value = s_replacestrings(value, "\"", "\\\"");
+    
+    res = "\"";
+    res += value;
+    res += "\"";
+}
+
+inline void stringing(string& res, string value) {
 	if (value.find("'") != -1) {
 		if (value.find("\"") != -1) {
-			string v = s_replacestrings(value, "\"", "\\\"");
+			value = s_replacestrings(value, "\"", "\\\"");
 			res += "\"";
-			res += v;
+			res += value;
 			res += "\"";
 		}
 		else {
@@ -354,12 +366,12 @@ inline void stringing(string& res, string& value) {
 	}
 }
 
-inline void ustringing(wstring& res, wstring& value) {
+inline void ustringing(wstring& res, wstring value) {
 	if (value.find(L"'") != -1) {
 		if (value.find(L"\"") != -1) {
-			wstring v = s_replacestring(value, L"\"", L"\\\"");
+			value = s_replacestring(value, L"\"", L"\\\"");
 			res += L"\"";
-			res += v;
+			res += value;
 			res += L"\"";
 		}
 		else {
@@ -378,9 +390,9 @@ inline void ustringing(wstring& res, wstring& value) {
 inline void sstringing(string& res, string value) {
 	if (value.find("'") != -1) {
 		if (value.find("\"") != -1) {
-			string v = s_replacestrings(value, "\"", "\\\"");
+			value = s_replacestrings(value, "\"", "\\\"");
 			res += "\"";
-			res += v;
+			res += value;
 			res += "\"";
 		}
 		else {
@@ -396,12 +408,12 @@ inline void sstringing(string& res, string value) {
 	}
 }
 
-inline void jstringing(stringstream& res, string& value) {
+inline void jstringing(stringstream& res, string value) {
 	if (value.find("\"") == -1)
 		res << "\"" << value << "\"";
 	else {
-		string v = s_replacestrings(value, "\"", "\\\"");
-		res << "\"" << v << "\"";
+		value = s_replacestrings(value, "\"", "\\\"");
+		res << "\"" << value << "\"";
 	}
 }
 

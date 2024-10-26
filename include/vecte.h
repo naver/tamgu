@@ -344,6 +344,105 @@ public:
 
 };
 
+
+template <class Z, int number_of_elements> class VECTES {
+public:
+
+    //Un vecteur de Fonction
+    Z stable[number_of_elements];
+    Z* vecteur;
+    //sz est la sz actuelle de la liste
+    long sz;
+    //last element entre... Pour gerer les ajouts en fin de liste...
+    long last;
+
+    VECTES(long t = 3) {
+        vecteur = NULL;
+        if (t > 0)
+            vecteur = (Z*)malloc(sizeof(Z)*t);
+
+        sz = t;
+        bint i;
+        for (i = 0; i < number_of_elements; i++)
+            stable[i] = NULL;
+        
+        for (i = 0; i < sz; i++)
+            vecteur[i] = NULL;
+        
+        last = 0;
+    }
+    
+    ~VECTES() {
+        free(vecteur);
+    }
+
+    long size() {
+        return last;
+    }
+
+    void clear() {
+        last = 0;
+    }
+
+    void resize(long t) {
+        Z* tfs;
+        
+        if (t <= sz)
+            return;
+        //on realloue par bloc de t
+        tfs = (Z*)malloc(sizeof(Z)*t);
+        for (bint i = 0; i< t; i++) {
+            tfs[i] = (i < last) ? vecteur[i] : NULL;
+        }
+        
+        free(vecteur);
+        vecteur = tfs;
+        sz = t;
+    }
+
+    inline bool empty() {
+        return !last;
+    }
+    
+    inline void pop_back() {
+        last--;
+    }
+
+    inline Z backpop() {
+        return (last <= number_of_elements)?stable[--last]:vecteur[(--last)-number_of_elements];
+    }
+
+    inline Z back() {
+        return (last <= number_of_elements)?stable[last-1]:vecteur[last-number_of_elements-1];
+    }
+
+    inline void setstable(Z val) {
+        stable[0] = val;
+        last = 1;
+    }
+    
+    inline void push_back(Z val) {
+        if (last < number_of_elements)
+            stable[last++] = val;
+        else {
+            if (last >= sz+number_of_elements)
+                resize(sz<<1);
+            
+            //sinon on ajoute l'element en queue...
+            vecteur[last-number_of_elements] = val;
+            last++;
+        }
+    }
+
+    inline Z operator [](long pos) {
+        return pos < number_of_elements?stable[pos]:vecteur[pos-number_of_elements];
+    }
+
+    void atlast(Z val) {
+        (last <= number_of_elements)?stable[last-1] = val:vecteur[last-number_of_elements-1] = val;
+    }
+};
+
 //-------------------------------------------------------
 //atomic_vector
 //-------------------------------------------------------
@@ -1869,6 +1968,128 @@ public:
     }
 
 };
+
+template <class I, class Z> class BVECTE {
+public:
+
+    //Un vecteur de Fonction
+    I* index;
+    Z* vecteur;
+    //sz est la sz actuelle de la liste
+    long sz;
+    //last element entre... Pour gerer les ajouts en fin de liste...
+    long last;
+
+    BVECTE(long t = 3) {
+        index = NULL;
+        vecteur = NULL;
+        if (t > 0) {
+            index  = (I*)malloc(sizeof(I)*t);
+            vecteur = (Z*)malloc(sizeof(Z)*t);
+        }
+
+        sz = t;
+        for (bint i = 0; i< sz; i++) {
+            vecteur[i] = NULL;
+            index[i] = NULL;
+        }
+        
+        last = 0;
+    }
+    
+    ~BVECTE() {
+        free(vecteur);
+        free(index);
+    }
+
+    long size() {
+        return last;
+    }
+
+    void clear() {
+        last = 0;
+    }
+
+    void taillor(long t) {
+        if (t <= sz)
+            return;
+        
+
+        I* tfi = (I*)malloc(sizeof(I)*t);
+        Z* tfs = (Z*)malloc(sizeof(Z)*t);
+
+        for (bint i = 0; i < t; i++) {
+            tfi[i] = (i < last) ? index[i] : NULL;
+            tfs[i] = (i < last) ? vecteur[i] : NULL;
+        }
+        
+        free(vecteur);
+        free(index);
+        index = tfi;
+        vecteur = tfs;
+        sz = t;
+    }
+    
+    void reserve(long t) {
+        taillor(t);
+    }
+
+    void resize(long t) {
+        taillor(t);
+    }
+
+    inline void push_back(I idx, Z val) {
+
+        if (last >= sz)
+            taillor(sz<<1);
+
+        //sinon on ajoute l'element en queue...
+        index[last] =  idx;
+        vecteur[last++] = val;
+    }
+
+    inline Z operator [](long pos) {
+        return vecteur[pos];
+    }
+
+    inline Z find(I v) {
+        bint i;
+        for (i = 0; i< last && index[i] != v; i++) {}
+        return (i != last) ?vecteur[i]:NULL;
+    }
+    
+    inline long search(I v) {
+        bint i;
+        for (i = 0; i< last && index[i] != v; i++) {}
+        return (i != last)?i:-1;
+    }
+
+    inline long search(Z v) {
+        bint i;
+        for (i = 0; i< last && vecteur[i] != v; i++) {}
+        return (i != last)?i:-1;
+    }
+
+    inline bool check(I v) {
+        bint i;
+        for (i = 0; i< last && index[i] != v; i++) {}
+        return (i != last);
+    }
+
+    inline bool check(Z v) {
+        bint i;
+        for (i = 0; i< last && vecteur[i] != v; i++) {}
+        return (i != last);
+    }
+
+    inline void replace(I idx, Z v) {
+        bint i;
+        for (i = 0; i< last && index[i] != idx; i++) {}
+        if (i != last)
+            vecteur[i] = v;
+    }
+};
+
 
 #endif
 

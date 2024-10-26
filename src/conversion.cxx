@@ -8228,7 +8228,7 @@ char laccolade(string& ligne) {
                 trouve = ',';
                 break;
             case ':':
-                if ((i + 1) < mx && ligne[i + 1] == '-') { //inference rules
+                if ((i + 1) < mx && ligne[i + 1] == '-' && i > 1 && ligne[i-1] != '?') { //inference rules
                     i++;
                     trouve = '-';
                     break;
@@ -8521,7 +8521,7 @@ Exporting void IndentationCode(string& str, string& codeindente, bool lisp, bool
                 codeindente += c;
                 break;
             case ':':
-                if (!iblank && codestr[i] == '-') {
+                if (!iblank && codestr[i] == '-' && i > 2 && codestr[i-2] != '?') {
                     prologmode = true;
                     iblank += blanksize;
                 }
@@ -8949,7 +8949,7 @@ Exporting long IndentationCode(string& codestr, bool lisp) {
                 }
                 break;
             case ':':
-                if (!iblank && codestr[i] == '-') {
+                if (!iblank && codestr[i] == '-' && i > 2 && codestr[i-2] != '?') {
                     prologmode = true;
                     iblank += blanksize;
                 }

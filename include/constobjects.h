@@ -633,8 +633,7 @@ public:
 
     string JSonString() {
         string res;
-        string v = String();
-        jstringing(res, v);
+        jstringing(res, String());
         return res;
     }
     

@@ -309,10 +309,10 @@ void TamguLoopFloat::Callfunction() {
     TamguCallFunction2 kfunc(function);
     
     Tamgu* ki = globalTamgu->ProvideConstint(position);
-    ki->Setreference();
     kfunc.arguments.push_back(this);
-    kfunc.arguments.push_back(ki);
+    kfunc.Push(ki);
     Tamgu* ke = kfunc.Eval(aNULL, aNULL, globalTamgu->GetThreadid());
+    ki->Resetreference();
     ke->Release();
 }
 

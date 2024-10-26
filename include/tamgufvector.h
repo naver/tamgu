@@ -897,11 +897,11 @@ class Tamgufvectorbuff : public Tamgufvector {
         if (r <= 0) {
             reference.store(0);
             if (!protect) {
-                protect = true;
-
-                values.clear();
                 if (!globalTamgu->threadMODE && used)
                     globalTamgu->fvectorempties.push_back(idx);
+                protect = true;
+                shape.clear();
+                values.clear();
                 used = false;
             }
         }

@@ -1724,8 +1724,7 @@ public:
     
     string JSonString() {
         string res;
-        string v = value.value();
-        jstringing(res, v);
+        jstringing(res, value.value());
         return res;
     }
     

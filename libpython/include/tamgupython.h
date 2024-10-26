@@ -43,19 +43,21 @@ class Tamgupython : public TamguObject {
     PyObject* pModule;
 
     hmap<string, PyObject*> dictionaries;
-
+    bool init_python;
 
     //---------------------------------------------------------------------------------------------------------------------
     Tamgupython(TamguGlobal* g, Tamgu* parent = NULL) : TamguObject(g, parent) {
         //Do not forget your variable initialisation
         pModule = NULL;
         pythonfilename = "";
+        init_python = false;
     }
 
     Tamgupython() {
         //Do not forget your variable initialisation
         pModule = NULL;
         pythonfilename = "";
+        init_python = false;
     }
 
     //----------------------------------------------------------------------------------------------------------------------
@@ -137,6 +139,8 @@ class Tamgupython : public TamguObject {
 
     Tamgu* MethodExecute(Tamgu* contextualpattern, short idthread, TamguCall* callfunc);
 
+    Tamgu* Run(string& code, short idthread, PyObject* py_dict);
+    Tamgu* Run_elapse(string& code, int elapse_time, short idthread, PyObject* py_dict);
     //---------------------------------------------------------------------------------------------------------------------
 
     //ExecuteMethod must be implemented in order to execute our new Tamgu methods. This method is called when a TamguCallMethodMethod object

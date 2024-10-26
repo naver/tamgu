@@ -41,6 +41,11 @@ inline long hmax(long a, long b) {
 }
 //-------------------------------------------------------------------------------------------------
 
+Tamgu* Tamgu::Getpredicatezone(short idthread) {
+    return globalTamgu->Declarator(predicatezone, idthread);
+}
+
+
 //A little bit of explanation.
 //To avoid creating useless elements in the binmap, we initialize the actual name of a "^dependency" (code is a_modifydependency)
 //with predicatedependency, which allows for a much more compact storage in the declaration map.
@@ -121,17 +126,6 @@ Tamgu* TamguCallFromPredicateRule::Eval(Tamgu* domain, Tamgu* a, short idthread)
     short i, sz = arguments.size();
     bool strict = bd->strict;
     
-    while (bd != NULL && bd->parameters.size() != sz) {
-        bd = bd->next;
-    }
-    
-    if (bd == NULL) {
-        string err = "Could not find a match for: '";
-        err += globalTamgu->Getsymbol(Name());
-        err += "'";
-        return globalTamgu->Returnerror(err, idthread);
-    }
-    
     VECTE<Tamgu*>* values = &bvalues;
     if (idthread)
         values = new VECTE<Tamgu*>(sz);
@@ -174,26 +168,46 @@ Tamgu* TamguCallFromPredicateRule::Eval(Tamgu* domain, Tamgu* a, short idthread)
     if (globalTamgu->debugmode)
         environment->idinfo = Currentinfo();
     
-    error = false;
+    
     short type_a = 0, type_p = 0;
     vector<Tamgu*> instances;
-    for (i = 0; i < sz && !error; i++) {
-        p = (TamguVariableDeclaration*)bd->parameters[i];
-        a = values->vecteur[i];
-        type_a = a->Type();
-        type_p = p->typevariable;
-        //The reason why we have a specific case...
-        if (type_p == a_instance) {
-            environment->Declaring(p->Name(), a);
-            globalTamgu->Storevariable(idthread, p->Name(), a);
-            a->Setreference();
-            instances.push_back(a);
+    vector<short> names;
+    while (bd != NULL) {
+        if (bd->parameters.size() != sz) {
+            bd = bd->next;
+            type_a = 0;
+            error = true;
+            continue;
         }
-        else
-            error = p->Setarguments(environment, a, idthread, strict);
-    }
-    if (error)
+        error = false;
+        for (i = 0; i < sz && !error; i++) {
+            p = (TamguVariableDeclaration*)bd->parameters[i];
+            a = values->vecteur[i];
+            type_a = a->Type();
+            type_p = p->typevariable;
+            //The reason why we have a specific case...
+            if (type_p == a_instance) {
+                names.push_back(p->Name());
+                environment->Declaring(names.back(), a);
+                instances.push_back(a);
+                a->Setreference();
+            }
+            else
+                error = p->Setarguments(environment, a, idthread, strict);
+        }
+        
+        if (!error)
+            break;
+        
+        for (i = 0; i < instances.size(); i++) {
+            instances[i]->Resetreference();
+        }
         environment->Cleaning();
+        instances.clear();
+        names.clear();
+        bd = bd->next;
+    }
+        
     
     for (i = 0; i < sz; i++)
         values->vecteur[i]->Releasenonconst();
@@ -203,6 +217,13 @@ Tamgu* TamguCallFromPredicateRule::Eval(Tamgu* domain, Tamgu* a, short idthread)
     
     if (error) {
         environment->Releasing();
+        if (bd == NULL && !type_a) {
+            string err = "Could not find a match for: '";
+            err += globalTamgu->Getsymbol(Name());
+            err += "'";
+            return globalTamgu->Returnerror(err, idthread);
+        }
+
         string err = "Check the argument '";
         err += (char)(i+48);
         err += "' of: '";
@@ -212,7 +233,12 @@ Tamgu* TamguCallFromPredicateRule::Eval(Tamgu* domain, Tamgu* a, short idthread)
         err += "' is incompatible with parameter: '" + globalTamgu->Getsymbol(type_p) + "'";
         return globalTamgu->Returnerror(err, idthread);
     }
+
     
+    //We store the instances in memory
+    for (i = 0; i < instances.size();i++)
+        globalTamgu->Storevariable(idthread, names[i], instances[i]);
+
     globalTamgu->Pushstackraw(environment, idthread);
     //We then apply our function within this environment
     a = bd->Run(environment, idthread);
@@ -1535,65 +1561,60 @@ Tamgu* TamguBasePredicateVariable::Put(Tamgu* ke, Tamgu* dom, short idthread) {
 
 
 Tamgu* TamguPredicateVariableInstance::Put(Tamgu* dom, Tamgu* ke, short idthread) {
-    if (!dom->isDeclared(predicatezone)) {
-        dom = globalTamgu->Declarator(predicatezone, idthread);
-        if (dom == aNULL)
-            return globalTamgu->Returnerror(e_unknown_predicate_variable, idthread);
+    dom = dom->Getpredicatezone(idthread);
+    if (dom != aNULL) {
+        dom->Setdomainlock();
+        TamguPredicateVariableInstance* v = (TamguPredicateVariableInstance*)Variable((TamguDeclaration*)dom);
+        if (v->value == ke) {
+            dom->Resetdomainlock();
+            return aTRUE;
+        }
+        
+        Tamgu* val = v->value;
+        v->value = ke->Atom(true);
+        val->Resetreference(reference);
+        v->value->Setreference(reference);
+        dom->Resetdomainlock();
+        return v->value;
     }
-    
-    dom->Setdomainlock();
-    TamguPredicateVariableInstance* v = (TamguPredicateVariableInstance*)Variable((TamguDeclaration*)dom);
-    if (v->value == ke)
-        return aTRUE;
-    
-    Tamgu* val = v->value;
-    v->value = ke->Atom(true);
-    val->Resetreference(reference);
-    v->value->Setreference(reference);
-    dom->Resetdomainlock();
-    return v->value;
+    else
+        return globalTamgu->Returnerror(e_unknown_predicate_variable, idthread);
 }
 
 Tamgu* TamguPredicateTerm::Put(Tamgu* dom, Tamgu* ke, short idthread) {
-    if (!dom->isDeclared(predicatezone)) {
-        dom = globalTamgu->Declarator(predicatezone, idthread);
-        if (dom == aNULL)
-            return aFALSE;
-    }
-    
-    dom->Setdomainlock();
-    if (ke->Type() != a_term || ke->Size() != parameters.size() || !ke->isName(name)) {
-        dom->Setfail(true);
+    dom = dom->Getpredicatezone(idthread);
+    if (dom != aNULL) {
+        dom->Setdomainlock();
+        if (ke->Type() != a_term || ke->Size() != parameters.size() || !ke->isName(name)) {
+            dom->Setfail(true);
+            dom->Resetdomainlock();
+            return aTRUE;
+        }
+        TamguPredicateTerm* kpf = (TamguPredicateTerm*)ke;
+        
+        for (long i = 0; i < parameters.size(); i++)
+            parameters[i]->Put(dom, kpf->parameters[i], idthread);
         dom->Resetdomainlock();
-        return aTRUE;
     }
-    TamguPredicateTerm* kpf = (TamguPredicateTerm*)ke;
-    
-    for (long i = 0; i < parameters.size(); i++)
-        parameters[i]->Put(dom, kpf->parameters[i], idthread);
-    dom->Resetdomainlock();
     return aTRUE;
 }
 
 Tamgu* TamguPredicateConcept::Put(Tamgu* dom, Tamgu* ke, short idthread) {
-    if (!dom->isDeclared(predicatezone)) {
-        dom = globalTamgu->Declarator(predicatezone, idthread);
-        if (dom == aNULL)
-            return aFALSE;
-    }
-    
-    dom->Setdomainlock();
-    if (ke->Type() != a_concept || ke->Size() != parameters.size() || globalTamgu->Checkhierarchy(name, ke->Name())) {
-        dom->Setfail(true);
+    dom = dom->Getpredicatezone(idthread);
+    if (dom != aNULL) {
+        dom->Setdomainlock();
+        if (ke->Type() != a_concept || ke->Size() != parameters.size() || globalTamgu->Checkhierarchy(name, ke->Name())) {
+            dom->Setfail(true);
+            dom->Resetdomainlock();
+            return aTRUE;
+        }
+        
+        TamguPredicateConcept* kpf = (TamguPredicateConcept*)ke;
+        
+        for (long i = 0; i < parameters.size(); i++)
+            parameters[i]->Put(dom, kpf->parameters[i], idthread);
         dom->Resetdomainlock();
-        return aTRUE;
     }
-    
-    TamguPredicateConcept* kpf = (TamguPredicateConcept*)ke;
-    
-    for (long i = 0; i < parameters.size(); i++)
-        parameters[i]->Put(dom, kpf->parameters[i], idthread);
-    dom->Resetdomainlock();
     return aTRUE;
 }
 
@@ -2725,62 +2746,66 @@ Tamgu* Tamgu::ExtractPredicateVariables(Tamgu* contextualpattern, TamguDeclarati
 }
 
 
-Tamgu* TamguConstvectormerge::ExtractPredicateVariables(Tamgu* context, TamguDeclaration* dom, Tamgu* csend, Tamgu* c, short idthread, bool root) {
-    c = csend;
-    if (csend != NULL) {
-        if (csend->Type() != a_vector) {
-            if (csend->Type() != a_instance)
+Tamgu* TamguConstvectormerge::ExtractPredicateVariables(Tamgu* context, TamguDeclaration* dom,
+                                                        Tamgu* source_variable, Tamgu* local_source,
+                                                        short idthread, bool root) {
+    local_source = source_variable;
+    Tamgu* kval;
+
+    if (source_variable != NULL) {
+        if (source_variable->Type() != a_vector) {
+            if (source_variable->Type() != a_instance)
                 return NULL;
-            c = csend->Variable(dom);
-            Tamgu* val = c->VariableValue(dom, idthread);
-            if (val != aNOELEMENT)
-                c = val;
+            local_source = source_variable->Variable(dom);
+            kval = local_source->VariableValue(dom, idthread);
+            if (kval != aNOELEMENT)
+                local_source = kval;
         }
     }
     
     long szc = -1;
-    Tamgu* e;
-    csend = c;
+    source_variable = local_source;
     long i;
     Tamguvector* localvect = NULL;
-    if (c != NULL) {
-        if (c->Type() == a_vector) {
-            szc = c->Size();
+    if (local_source != NULL) {
+        if (local_source->Type() == a_vector) {
+            szc = local_source->Size();
             if (szc) {
-                Tamgu* lst = c->Last();
+                Tamgu* lst = local_source->Last();
                 if (lst->isMerge()) {
                     localvect = globalTamgu->Providevector();
                     for (i = 0; i < szc - 1; i++)
-                        localvect->values.push_back(c->getvalue(i));
+                        localvect->values.push_back(local_source->getvalue(i));
                     lst = lst->VariableValue(dom, idthread)->getvalue(0)->VariableValue(dom, idthread);
                     for (i = 0; i < lst->Size(); i++)
                         localvect->values.push_back(lst->getvalue(i));
-                    c = localvect;
-                    szc = c->Size();
+                    local_source = localvect;
+                    szc = local_source->Size();
                 }
                 else
                     localvect = NULL;
             }
         }
         else
-            if (!c->isPredicateVariable())
+            if (!local_source->isPredicateVariable()) {
                 return NULL;
+            }
     }
     
     Tamguvector* vect = globalTamgu->Providevector();
     for (i = 0; i < values.size(); i++) {
-        e = values[i];
+        kval = values[i];
         if (szc != -1) {
             //then, if it is the last element, then we associate our element with the rest of the vector
             if (i == (long)values.size() - 1) {
                 if (values.size() == 1)
-                    e = e->ExtractPredicateVariables(context, dom, c, NULL, idthread, false);
+                    kval = kval->ExtractPredicateVariables(context, dom, local_source, NULL, idthread, false);
                 else {
                     //Else we need to extract a subset of that vector
                     Tamguvector subvect;
-                    for (long j = i; j < c->Size(); j++)
-                        subvect.values.push_back(((Tamguvector*)c)->values[j]);
-                    e = e->ExtractPredicateVariables(context, dom, &subvect, NULL, idthread, false);
+                    for (long j = i; j < local_source->Size(); j++)
+                        subvect.values.push_back(((Tamguvector*)local_source)->values[j]);
+                    kval = kval->ExtractPredicateVariables(context, dom, &subvect, NULL, idthread, false);
                 }
             }
             else {
@@ -2792,13 +2817,13 @@ Tamgu* TamguConstvectormerge::ExtractPredicateVariables(Tamgu* context, TamguDec
                     vect->Release();
                     return NULL;
                 }
-                e = e->ExtractPredicateVariables(context, dom, ((Tamguvector*)c)->values[i], NULL, idthread, false);
+                kval = kval->ExtractPredicateVariables(context, dom, ((Tamguvector*)local_source)->values[i], NULL, idthread, false);
             }
         }
         else
-            e = e->ExtractPredicateVariables(context, dom, NULL, NULL, idthread, false);
+            kval = kval->ExtractPredicateVariables(context, dom, NULL, NULL, idthread, false);
         
-        if (e == NULL) {
+        if (kval == NULL) {
             if (localvect != NULL) {
                 localvect->values.clear();
                 localvect->Release();
@@ -2806,7 +2831,7 @@ Tamgu* TamguConstvectormerge::ExtractPredicateVariables(Tamgu* context, TamguDec
             vect->Release();
             return NULL;
         }
-        vect->Push(e);
+        vect->Push(kval);
     }
     
     if (localvect != NULL) {
@@ -2824,34 +2849,34 @@ Tamgu* TamguConstvectormerge::ExtractPredicateVariables(Tamgu* context, TamguDec
     kpvi->Setreference();
     dom->declarations[kpvi->name] = kpvi;
     
-    if (csend != NULL && csend->Type() == a_instance) {
-        context->Setdico(csend->Name(), kpvi);
-        dom->declarations[csend->Name()] = kpvi;
+    if (source_variable != NULL && source_variable->Type() == a_instance) {
+        context->Setdico(source_variable->Name(), kpvi);
+        dom->declarations[source_variable->Name()] = kpvi;
         kpvi->Setreference();
     }
     dom->Resetdomainlock();
     return kpvi;
 }
 
-Tamgu* Tamguvector::ExtractPredicateVariables(Tamgu* context, TamguDeclaration* dom, Tamgu* source_predicate, Tamgu* local_source, short idthread, bool root) {
-    local_source = source_predicate;
-    if (source_predicate != NULL) {
-        if (!source_predicate->isVectorContainer()) {
-            if (source_predicate->Type() != a_instance)
+Tamgu* Tamguvector::ExtractPredicateVariables(Tamgu* context, TamguDeclaration* dom, Tamgu* source_variable, Tamgu* local_source, short idthread, bool root) {
+    local_source = source_variable;
+    Tamgu* kval;
+
+    if (source_variable != NULL) {
+        if (!source_variable->isVectorContainer()) {
+            if (source_variable->Type() != a_instance)
                 return NULL;
-            local_source = source_predicate->Variable(dom);
-            Tamgu* val = local_source->VariableValue(dom, idthread);
-            if (val != aNOELEMENT)
-                local_source = val;
+            local_source = source_variable->Variable(dom);
+            kval = local_source->VariableValue(dom, idthread);
+            if (kval != aNOELEMENT)
+                local_source = kval;
         }
     }
     
-    
-    source_predicate = local_source;
+    source_variable = local_source;
     long i, j;
     long container_size = values.size();
     long source_size = -1;
-    Tamgu* kval;
     TamguPredicateVariableInstance* kpvi;
     Tamguvector* localvect = NULL;
     if (local_source != NULL) {
@@ -2859,8 +2884,9 @@ Tamgu* Tamguvector::ExtractPredicateVariables(Tamgu* context, TamguDeclaration* 
             source_size = local_source->Size();
             if (source_size) {
                 if (local_source->Last()->isMerge()) {
-                    if (!container_size)
+                    if (!container_size) {
                         return NULL;
+                    }
                     kpvi = (TamguPredicateVariableInstance*)local_source->Last();
                     localvect = globalTamgu->Providevector();
                     for (i = 0; i < source_size - 1; i++)
@@ -2886,8 +2912,9 @@ Tamgu* Tamguvector::ExtractPredicateVariables(Tamgu* context, TamguDeclaration* 
             }
         }
         else
-            if (!local_source->isPredicateVariable())
+            if (!local_source->isPredicateVariable()) {
                 return NULL;
+            }
     }
     
     Tamgu* e;
@@ -2967,9 +2994,9 @@ Tamgu* Tamguvector::ExtractPredicateVariables(Tamgu* context, TamguDeclaration* 
         kpvi->value = vect;
         dom->declarations[kpvi->name] = kpvi;
         kpvi->Setreference();
-        if (source_predicate != NULL && source_predicate->Type() == a_instance) {
-            context->Setdico(source_predicate->Name(), kpvi);
-            dom->declarations[source_predicate->Name()] = kpvi;
+        if (source_variable != NULL && source_variable->Type() == a_instance) {
+            context->Setdico(source_variable->Name(), kpvi);
+            dom->declarations[source_variable->Name()] = kpvi;
             kpvi->Setreference();
         }
         dom->Resetdomainlock();
@@ -2978,48 +3005,52 @@ Tamgu* Tamguvector::ExtractPredicateVariables(Tamgu* context, TamguDeclaration* 
     return vect;
 }
 
-Tamgu* TamguConstmap::ExtractPredicateVariables(Tamgu* context, TamguDeclaration* dom, Tamgu* C, Tamgu* E, short idthread, bool root) {
-    Tamgu* c = C;
-    if (C != NULL) {
-        if (!C->isMapContainer()) {
-            if (C->Type() != a_instance)
+Tamgu* TamguConstmap::ExtractPredicateVariables(Tamgu* context, TamguDeclaration* dom, Tamgu* source_variable, Tamgu* local_source, short idthread, bool root) {
+    local_source = source_variable;
+    Tamgu* ck;
+
+    if (source_variable != NULL) {
+        if (!source_variable->isMapContainer()) {
+            if (source_variable->Type() != a_instance)
                 return NULL;
-            c = C->Variable(dom);
-            Tamgu* val = c->VariableValue(dom, idthread);
-            if (val != aNOELEMENT)
-                c = val;
+            local_source = source_variable->Variable(dom);
+            ck = local_source->VariableValue(dom, idthread);
+            if (ck != aNOELEMENT)
+                local_source = ck;
         }
     }
     
     
     long sz = values.size();
     long szc = -1;
-    if (c != NULL) {
-        if (c->isMapContainer()) {
-            szc = c->Size();
-            if ((!szc && sz) || (szc && !sz))
+    if (local_source != NULL) {
+        if (local_source->isMapContainer()) {
+            szc = local_source->Size();
+            if ((!szc && sz) || (szc && !sz)) {
                 return NULL;
+            }
             //No merge, then the size should be equal
             if (!sz || keys.back()->Name() != a_pipe) {
-                if (sz != szc)
+                if (sz != szc) {
                     return NULL;
+                }
             }
         }
         else
-            if (!c->isPredicateVariable())
+            if (!local_source->isPredicateVariable()) {
                 return NULL;
+            }
     }
     
     TamguIteration* iter;
-    if (c == NULL)
+    if (local_source == NULL)
         iter = new TamguIteration(false);
     else
-        iter = c->Newiteration(false);
+        iter = local_source->Newiteration(false);
     iter->Begin();
     TamguConstmap* kmap = new TamguConstmap;
     Tamgu* ek;
     Tamgu* ev;
-    Tamgu* ck;
     Tamgu* cv;
     long i;
     for (i = 0; i < sz; i++) {
@@ -3030,7 +3061,7 @@ Tamgu* TamguConstmap::ExtractPredicateVariables(Tamgu* context, TamguDeclaration
             if (ek->Name() == a_pipe) {
                 //A merge...
                 //We need to access all the remaining elements...
-                Tamgu* remaining = c->Newinstance(idthread);
+                Tamgu* remaining = local_source->Newinstance(idthread);
                 while (iter->End() == aFALSE) {
                     ck = iter->IteratorKey();
                     cv = iter->IteratorValue();
@@ -3080,9 +3111,9 @@ Tamgu* TamguConstmap::ExtractPredicateVariables(Tamgu* context, TamguDeclaration
         kpvi->value = kmap;
         dom->declarations[kpvi->name] = kpvi;
         kpvi->Setreference();
-        if (c != NULL && c->Type() == a_instance) {
-            context->Setdico(c->Name(), kpvi);
-            dom->declarations[c->Name()] = kpvi;
+        if (local_source != NULL && local_source->Type() == a_instance) {
+            context->Setdico(local_source->Name(), kpvi);
+            dom->declarations[local_source->Name()] = kpvi;
             kpvi->Setreference();
         }
         dom->Resetdomainlock();
@@ -3467,11 +3498,11 @@ TamguPredicate* TamguDependency::Duplicate(Tamgu* context, TamguDeclaration* dom
     return p;
 }
 
-bool TamguPredicate::Copyfrom(TamguPredicate* new_predicate, Tamgu* context, TamguDeclaration* dom, TamguPredicate* headpredicate, short idthread) {
+bool TamguPredicate::Copyfrom(TamguPredicate* new_predicate, Tamgu* context, TamguDeclaration* dom, VECTE<Tamgu*>& headpredicatevalues, short idthread) {
     Tamgu* e;
     
     for (long i = 0; i < parameters.size(); i++) {
-        e = parameters[i]->ExtractPredicateVariables(context, dom, headpredicate->parameters[i], NULL, idthread, true);
+        e = parameters[i]->ExtractPredicateVariables(context, dom, headpredicatevalues[i], NULL, idthread, true);
         if (e == NULL) {
             new_predicate->Clear();
             return false;
@@ -3584,7 +3615,7 @@ Tamgu* Tamgusynode::Getvalues(TamguDeclaration* dom, bool duplicate) {
 Tamgu* TamguPredicateVariableInstance::Getvalues(TamguDeclaration* dom, bool duplicate) {
     Tamgu* v = Value(dom);
     v = v->Getvalues(dom, duplicate);
-    if (merge && v->Type() == a_vector)
+    if (merge && v->isVectorContainer())
         v->Setmerge();
     return v;
 }
@@ -3592,7 +3623,7 @@ Tamgu* TamguPredicateVariableInstance::Getvalues(TamguDeclaration* dom, bool dup
 Tamgu* TamguPredicateVariableInstanceExchange::Getvalues(TamguDeclaration* dom, bool duplicate) {
     Tamgu* v = Value(dom);
     v = v->Getvalues(dom, duplicate);
-    if (merge && v->Type() == a_vector)
+    if (merge && v->isVectorContainer())
         v->Setmerge();
     Tamgu* var = exchange->Eval(domain, aNULL, thread_id);
     var->Put(domain, v, thread_id);
@@ -3694,21 +3725,40 @@ Tamgu* Tamguvector::Getvalues(TamguDeclaration* dom, bool duplicate) {
         if (e == NULL || e == aUNIVERSAL)
             continue;
         if (e->isMerge()) {
-            Tamgu* kv = e->getvalue(0);
-            if (kv->Type() == a_vector) {
-                Tamguvector* vect = (Tamguvector*)kv;
-                for (BLONG v = 0; v < vect->values.size(); v++)
-                    kvect->Push(vect->values[v]);
-                if (!e->isObject())
-                    kv->Resetreference();
+            Tamgu* kv;
+            size_t v;
+            for (v = 0; v < e->Size(); v++) {
+                kv = e->getvalue(v);
+                if (kv->Type() == a_vector) {
+                    Tamguvector* vect = (Tamguvector*)kv;
+                    for (v = 0; v < vect->values.size(); v++)
+                        kvect->Push(vect->values[v]);
+                    
+                    if (!e->isObject())
+                        kv->Resetreference();
+                    break;
+                }
                 else
-                    e->Release();
+                    kvect->Push(kv);
             }
+            if (e->isObject())
+                e->Release();
         }
         else
             kvect->Push(e);
     }
     return kvect;
+}
+
+Tamgu* Tamguvector::Unifies(TamguDeclaration* dom) {
+    long sz = values.size();
+    if (sz < 2)
+        return this;
+    for (long i = 0; i < sz; i++) {
+        if (values[i]->Type() == a_instance)
+            return Getvalues(dom, false);
+    }
+    return this;
 }
 
 Tamgu* TamguConstmap::Getvalues(TamguDeclaration* dom, bool duplicate) {
@@ -3758,6 +3808,18 @@ Tamgu* TamguConstmap::Getvalues(TamguDeclaration* dom, bool duplicate) {
     return kmap;
 }
 
+Tamgu* TamguConstmap::Unifies(TamguDeclaration* dom) {
+    long sz = values.size();
+    if (sz < 2)
+        return this;
+    for (long i = 0; i < sz; i++) {
+        if (keys[i]->Type() == a_instance || values[i]->Type() == a_instance)
+            return Getvalues(dom, false);
+    }
+    return this;
+}
+
+
 Tamgu* TamguInstructionEvaluate::PredicateCreate(TamguPredicate* headrule, long depth) {
     //This a specific case, when the system is looking for a subgoal (as in a negation)
     if (headrule == NULL)
@@ -3790,11 +3852,10 @@ Tamgu* TamguInstructionEvaluate::PredicateCreate(TamguPredicate* headrule, long 
     if (func != NULL) {
         TamguCallFunction2 kfunc(func);
         func = ((TamguPredicateFunction*)headrule)->object;
-        func->Setreference();
         kfunc.arguments.push_back(pv);
-        kfunc.arguments.push_back(func);
+        kfunc.Push(func);
         e = kfunc.Eval(this, dom, threadowner);
-        func->Resetreference();
+        func->Protect();
         if (!e->Boolean()) {
             pv->Resetreference();
             if (e->isError())
@@ -3891,7 +3952,7 @@ void Displaypredicatestack(const char* ty, TamguDeclaration* dom, TamguPredicate
 
 //---------------------------------------------------------------------
 
-Tamgu* TamguPredicateRuleItem::Unify(Tamgu* context, TamguDeclaration* dom, basebin_hash<TamguPredicateVariableInstance*>* dico, short idthread) {
+Tamgu* TamguPredicateRuleItem::Unify(Tamgu* context, TamguDeclaration* dom, PredicateInstanceDeclaration* dico, short idthread) {
     if (item->isConst())
         return item;
     
@@ -3907,24 +3968,6 @@ Tamgu* TamguPredicateRuleItem::Unify(Tamgu* context, TamguDeclaration* dom, base
 }
 
 //---------------------------------------------------------------------
-
-class localpredict {
-public:
-    VECTE<Tamgu*> localgoals;
-    short idthread;
-    
-    localpredict(short idt, long sz) : localgoals(sz) {
-        idthread = idt;
-        globalTamgu->Pushpredicate(idt);
-        
-    }
-    
-    ~localpredict() {
-        globalTamgu->Poppredicate(idthread);
-    }
-    
-};
-
 class kbpredict {
 public:
     
@@ -3934,36 +3977,57 @@ public:
 };
 
 
-class predictvalue {
+class predictenvironment {
 public:
     
     VECTE<Tamgu*> localgoals;
     VECTE<Tamgu*> currentgoals;
-    basebin_hash<TamguPredicateVariableInstance*> refdico;
+    VECTE<Tamgu*> headpredicatevalues;
+    PredicateInstanceDeclaration refdico;
     TamguPredicate head_predicate;
+    TamguPredicate* current_head;
     
     VECTE<Tamgu*> rulegoals;
     basebin_hash<Tamgu*> basedomain;
     
     kbpredict* KnowledgeBaseFacts;
-    short idthread;
     
-    predictvalue(long idt, long sz, short name, TamguDeclarationPredicate* dom) :
+    predictenvironment(long sz, TamguPredicate* head, TamguDeclarationPredicate* dom) :
+    refdico(head->parameters.size()),
     localgoals(sz),
     currentgoals(sz),
     basedomain(dom->declarations),
-    head_predicate(name) {
-        idthread = idt;
+    head_predicate(head->name) {
+        current_head = head;
         KnowledgeBaseFacts = NULL;
-        globalTamgu->Pushpredicate(idt);
         head_predicate.reference = 1;
     }
     
-    ~predictvalue() {
+    ~predictenvironment() {
+        for (long i = 0; i < headpredicatevalues.size(); i++) {
+            //if (headpredicatevalues[i] != current_head->parameters[i])
+                headpredicatevalues[i]->Release();
+        }
         if (KnowledgeBaseFacts != NULL)
             delete KnowledgeBaseFacts;
-        globalTamgu->Poppredicate(idthread);
     }
+    
+    void unifyparameters(TamguDeclaration* dom, short idthread) {
+        Tamgu* var;
+        Tamgu* val;
+        for (long i = 0; i< current_head->parameters.size(); i++) {
+            var = current_head->parameters[i];
+            val = var->Variable(dom);
+            if (val != NULL) {
+                val = val->VariableValue(dom, idthread);
+                if (val != aNOELEMENT) {
+                    var = val->Unifies(dom);
+                }
+            }
+            headpredicatevalues.push_back(var);
+        }
+    }
+    
 };
 
 #define storing_fact_name 2
@@ -3987,152 +4051,502 @@ void TamguPredicateAsVariable::resetPredicateNameVariable(short idthread) {
 //--------------------------------------------------------------------------------
 
 TamguPredicate* TamguInstructionEvaluate::PredicateUnification(VECTE<Tamgu*>& goals, long& posreplace, long& from) {
-    posreplace = -1;
-    from = 0;
     TamguPredicate* headpredicate = NULL;
     Tamgu* e;
-    short eval;
+    char test;
     bool keep = false;
-    bool test;
     
+
+    posreplace = -1;
+    from = 0;
+
     for (long i = 0; i < goals.last; i++) {
         e = goals[i];
-        if (e->isPredicate()) {
-            eval = e->checkTypePredicate();
-            switch (eval) {
-                case a_fail:
-                case a_stop:
-                    return headpredicate == NULL?(TamguPredicate*)e:headpredicate;
-                case a_cut:
-                    if (headpredicate == NULL && ((TamguPredicate*)e)->Checkparameters(dom)) {
-                        headpredicate = (TamguPredicate*)e;
-                        posreplace = i;
+        switch (e->checkTypePredicate()) {
+            case a_true:
+                continue;
+            case a_fail:
+            case a_stop:
+                return headpredicate == NULL?(TamguPredicate*)e:headpredicate;
+            case a_cut:
+                if (headpredicate == NULL && e->Checkparameters(dom)) {
+                    headpredicate = (TamguPredicate*)e;
+                    posreplace = i;
+                    keep = true;
+                }
+                continue;
+            case a_instructions:
+                if (headpredicate == NULL) {
+                    /*
+                     T -> TRUE
+                     F -> FALSE
+                     N -> NOELEMENT (no unified variable)
+                     
+                     neg  T T T F F F
+                     res  T F N T F N
+                     test F T T T F F
+                     SUCC F T T T F T
+                     */
+                    bool neg = e->isNegation();
+                    Tamgu* res = e->Eval(this, dom, threadowner);
+                    test = res->Boolean() ^ neg;
+                    while (e->checkDisjunction()) {
+                        e = goals[++i];
+                        if (!test) {
+                            res = e->Eval(this, dom, threadowner);
+                            neg = e->isNegation();
+                            test = res->Boolean() ^ neg;
+                        }
+                    }
+                    if (!test) {
+                        if (res != aNOELEMENT)
+                            return aFAIL;
                         keep = true;
                     }
-                    continue;
-                case a_asserta:
-                case a_assertz:
-                case a_dependency_asserta:
-                case a_dependency_assertz:
-                    if (((TamguPredicate*)e)->isUnified(dom)) {
-                        if (!keep) {
-                            headpredicate = (TamguPredicate*)e;
+                    else {
+                        if (!keep)
                             from = i + 1;
-                        }
-                        return headpredicate;
                     }
-                    if (headpredicate == NULL && ((TamguPredicate*)e)->Checkparameters(dom))
-                        return aFAIL;
-                    continue;
-                case a_retract:
-                case a_dependency_retract:
-                case a_dependency_remove:
-                    if (((TamguPredicate*)e)->isUnified(dom)) {
-                        if (!keep) {
-                            headpredicate = (TamguPredicate*)e;
-                            from = i + 1;
-                        }
-                        return headpredicate;
-                    }
-                    if (headpredicate == NULL && ((TamguPredicate*)e)->Checkparameters(dom)) {
-                        headpredicate = (TamguPredicate*)e;
-                        posreplace = i;
-                        keep = true;
-                    }
-                    continue;
-                case a_findall:
+                }
+                else
+                    e->setSucessfull(false);
+                continue;
+            case a_asserta:
+            case a_assertz:
+            case a_dependency_asserta:
+            case a_dependency_assertz:
+                if (e->isUnified(dom)) {
                     if (!keep) {
                         headpredicate = (TamguPredicate*)e;
                         from = i + 1;
                     }
                     return headpredicate;
-                default:
-                    test = ((TamguPredicate*)e)->isUnified(dom);
-                    if (test) {
-                        //We then evaluate it... This function returns 3 values:
-                        // 0: fail
-                        // 1: does not match any fact in the knowledgebase fact
-                        // 2: found a matching fact in the knowledge base
-                        eval = globalTamgu->isaValidPredicate(dom, ((TamguPredicate*)e), rules) + (3 * e->isNegation());
-                        switch (eval) {
-                            case 0:
-                            case 5: //eval == 2 + negation*3
-                                return aFAIL;
-                            case 1:
-                                test = false;
-                                break;
-                            case 2:
-                                test = !((TamguPredicate*)e)->Idvar();
-                                break;
-                            case 4: //eval == 1 + negation*3
-                                if (!keep) {
-                                    headpredicate = (TamguPredicate*)e;
-                                    keep = true;
-                                    from = i + 1;
-                                }
-                                continue;
-                        }
+                }
+                if (headpredicate == NULL && e->Checkparameters(dom))
+                    return aFAIL;
+                continue;
+            case a_retract:
+            case a_dependency_retract:
+            case a_dependency_remove:
+                if (e->isUnified(dom)) {
+                    if (!keep) {
+                        headpredicate = (TamguPredicate*)e;
+                        from = i + 1;
                     }
-            }
-            
-            if (!test) { //still some variables to go
-                if (headpredicate == NULL && ((TamguPredicate*)e)->Checkparameters(dom)) {
+                    return headpredicate;
+                }
+                if (headpredicate == NULL && e->Checkparameters(dom)) {
                     headpredicate = (TamguPredicate*)e;
                     posreplace = i;
                     keep = true;
                 }
-            }
-            else {
-                //If we have not found anything yet as a head, we will start the evaluation from the following element...
+                continue;
+            case a_findall:
                 if (!keep) {
-                    if (e->isPredicateNameVariable()) {
-                        headpredicate = (TamguPredicate*)e;
-                        posreplace = i;
-                        keep = true;
-                    }
-                    else
-                        from = i + 1;
+                    headpredicate = (TamguPredicate*)e;
+                    from = i + 1;
                 }
+                return headpredicate;
+            case a_predicatemethod:
+                test = false;
+                break;
+            case a_predicate:
+                test = e->isUnified(dom);
+                if (test) {
+                    //We then evaluate it... This function returns 3 values:
+                    // 0: fail
+                    // 1: does not match any fact in the knowledgebase fact
+                    // 2: found a matching fact in the knowledge base
+                    test = globalTamgu->isaValidPredicate(dom, ((TamguPredicate*)e), rules) + (3 * e->isNegation());
+                    switch (test) {
+                        case 0:
+                        case 5: //eval == 2 + negation*3
+                            return aFAIL;
+                        case 1:
+                            test = false;
+                            break;
+                        case 2:
+                            test = !((TamguPredicate*)e)->Idvar();
+                            break;
+                        case 4: //eval == 1 + negation*3
+                            if (!keep) {
+                                headpredicate = (TamguPredicate*)e;
+                                keep = true;
+                                from = i + 1;
+                            }
+                            continue;
+                    }
+                }
+                break;
+            default:
+                return aFAIL;
+        }
+
+        if (!test) { //still some variables to go
+            if (headpredicate == NULL && e->Checkparameters(dom)) {
+                headpredicate = (TamguPredicate*)e;
+                posreplace = i;
+                keep = true;
             }
         }
         else {
-            if (headpredicate == NULL) {
-                /*
-                 T -> TRUE
-                 F -> FALSE
-                 N -> NOELEMENT (no unified variable)
-                 
-                 neg  T T T F F F
-                 res  T F N T F N
-                 test F T T T F F
-                 SUCC F T T T F T
-                 */
-                bool neg = e->isNegation();
-                Tamgu* res = e->Eval(this, dom, threadowner);
-                test = res->Boolean() ^ neg;
-                while (e->checkDisjunction()) {
-                    e = goals[++i];
-                    if (!test) {
-                        res = e->Eval(this, dom, threadowner);
-                        neg = e->isNegation();
-                        test = res->Boolean() ^ neg;
-                    }
-                }
-                if (!test) {
-                    if (res != aNOELEMENT)
-                        return aFAIL;
+            //If we have not found anything yet as a head, we will start the evaluation from the following element...
+            if (!keep) {
+                if (e->isPredicateNameVariable()) {
+                    headpredicate = (TamguPredicate*)e;
+                    posreplace = i;
                     keep = true;
                 }
-                else {
-                    if (!keep)
-                        from = i + 1;
-                }
+                else
+                    from = i + 1;
             }
-            else
-                e->setSucessfull(false);
         }
     }
     return headpredicate;
+}
+
+///--------------------------------------------------------------------------------------------------------
+Tamgu* TamguInstructionEvaluate::Predpredicatemethod(VECTE<Tamgu*>& stack, TamguPredicate* headpredicate,TamguPredicate* currenthead,long depth) {
+    //--------------------------------------------------------------------------------
+    if (headpredicate->negation) {
+        headpredicate->Setnegation(false);
+        TamguPredicate* prev = headrule;
+        headrule = NULL;
+        //---------------------------------------------------------------
+        VECTE<Tamgu*>* localstack = new VECTE<Tamgu*>(3);
+        localstack->push_back(aCUT);
+        Tamgu* result = headpredicate->PredicateEvalue(this, *localstack, currenthead, depth);
+        delete localstack;
+        //---------------------------------------------------------------
+        headpredicate->Setnegation(true);
+        headrule = prev;
+        //---------------------------------------------------------------
+        //It was TRUE then it is FALSE or conversely
+        if (result == aFALSE)
+            return PredicateEvalue(stack, currenthead, depth);
+        return aFALSE;
+    }
+    
+    return headpredicate->PredicateEvalue(this, stack, currenthead, depth);
+}
+
+Tamgu* TamguInstructionEvaluate::Predassertaz(TamguPredicate* headpredicate, bool order) {
+    TamguPredicate* predicate_value = new TamguPredicate(globalTamgu, headpredicate->name);
+    Tamgu* result;
+    
+    for (long i = 0; i < headpredicate->parameters.size(); i++) {
+        result = headpredicate->parameters[i]->Eval(this, dom, threadowner);
+        predicate_value->parameters.push_back(result->Atom(true));
+    }
+    
+    globalTamgu->StorePredicate(dom, predicate_value, order);
+    return aTRUE;
+}
+
+Tamgu* TamguInstructionEvaluate::Predretract(TamguPredicate* headpredicate) {
+    TamguPredicate* predicate_value = new TamguPredicate(globalTamgu, headpredicate->name);
+    Tamgu* result;
+    
+    for (long i = 0; i < headpredicate->parameters.size(); i++) {
+        result = headpredicate->parameters[i]->Eval(this, dom, threadowner);
+        predicate_value->parameters.push_back(result->Atom(true));
+    }
+    
+    bool order = globalTamgu->RemovePredicates(dom, predicate_value);
+    predicate_value->Release();
+    return booleantamgu[order];
+}
+
+Tamgu* TamguInstructionEvaluate::Predfindall(TamguPredicate* headpredicate) {
+    std::vector<TamguPredicate*> facts;
+    Tamguvector* v;
+    Tamgu* result;
+    TamguPredicate* predicate_value = new TamguPredicate(globalTamgu, headpredicate->name);
+    long i;
+    if (((TamguPredicateFindall*)headpredicate)->equal) {
+        for (i = 0; i < headpredicate->parameters.size() - 1; i++) {
+            result = headpredicate->parameters[i]->Eval(this, dom, threadowner);
+            if (result == aNOELEMENT)
+                predicate_value->parameters.push_back(aUNIVERSAL);
+            else
+                predicate_value->parameters.push_back(result);
+        }
+        // This section is used to test our current predicate against the knowledgebase...
+        if (!globalTamgu->GetPredicates(dom, predicate_value, facts, false)) {
+            predicate_value->Release();
+            return aFALSE;
+        }
+        v = globalTamgu->Providevector();
+        if (((TamguPredicateFindall*)headpredicate)->equal) {
+            for (short f = 0; f < facts.size(); f++) {
+                v->Push(facts[f]);
+            }
+        }
+    }
+    else {
+        std::vector<short> free_variables;
+        for (i = 0; i < headpredicate->parameters.size() - 2; i++) {
+            result = headpredicate->parameters[i]->Eval(this, dom, threadowner);
+            if (result == aNOELEMENT) {
+                predicate_value->parameters.push_back(aUNIVERSAL);
+                free_variables.push_back(i);
+            }
+            else
+                predicate_value->parameters.push_back(result);
+        }
+        
+        // This section is used to test our current predicate against the knowledgebase...
+        if (!globalTamgu->GetPredicates(dom, predicate_value, facts, false)) {
+            predicate_value->Release();
+            return aFALSE;
+        }
+        
+        //These positions correspond to free variables in the parameter lists of each fact
+        v = globalTamgu->Providevector();
+        Tamgu* val;
+        for (short f = 0; f < facts.size(); f++) {
+            //First we unify our variables with their values from the fact
+            for (i = 0; i < free_variables.size(); i++) {
+                val = facts[f]->parameters[free_variables[i]];
+                headpredicate->parameters[free_variables[i]]->Put(dom, val, threadowner);
+            }
+            //Our pattern is on -2 position
+            val = headpredicate->parameters[headpredicate->parameters.size() - 2]->Getvalues(dom, true);
+            if (val == aNOELEMENT) {
+                v->Release();
+                return aFALSE;
+            }
+            v->Push(val);
+        }
+        //We clear these values
+        for (i = 0; i < free_variables.size(); i++) {
+            headpredicate->parameters[free_variables[i]]->Put(dom, aNOELEMENT, threadowner);
+        }
+    }
+    
+    result = headpredicate->parameters[headpredicate->parameters.size() - 1];
+    result->Put(dom, v, threadowner);
+    predicate_value->Release();
+    return aTRUE;
+}
+
+Tamgu* TamguInstructionEvaluate::Preddependency_assertaz(TamguPredicate* headpredicate, bool order) {
+    Tamgu* a = dom->Declaration(predicatefeature);
+    TamguPredicate* predicate_value;
+    if (a != NULL) {//we clear it...
+        dom->declarations.erase(predicatefeature);
+        predicate_value = new TamguDependency(globalTamgu,
+                                                ((TamguPredicate*)a)->Features(),
+                                                headpredicate->name,
+                                                headpredicate->Idvar());
+        
+        predicate_value->Setfeatures(headpredicate->Features());
+    }
+    else {
+        predicate_value = new TamguDependency(globalTamgu,
+                                                headpredicate->Features(),
+                                                headpredicate->name,
+                                                headpredicate->Idvar());
+    }
+    predicate_value->Setidrule(headpredicate->Idrule());
+    
+    Tamgu* result;
+    for (long i = 0; i < headpredicate->parameters.size(); i++) {
+        result = headpredicate->parameters[i]->Eval(this, dom, threadowner);
+        predicate_value->parameters.push_back(result->Atom(true));
+    }
+    
+    globalTamgu->StorePredicate(dom, predicate_value, order);
+    
+    if (a != NULL) {
+        a->Resetreference();
+        //we then reinject our novel dependency into our dom
+        //it might be usefull for other loops...
+        dom->Declare(predicatedependency, predicate_value);
+    }
+    
+    return aTRUE;
+}
+
+Tamgu* TamguInstructionEvaluate::Preddependency_retract(TamguPredicate* headpredicate) {
+    Tamgu* a = dom->Declaration(predicatefeature);
+    TamguPredicate* predicate_value;
+    if (a != NULL) {//we clear it...
+        dom->declarations.erase(predicatefeature);
+        predicate_value = new TamguDependency(globalTamgu,
+                                                ((TamguPredicate*)a)->Features(),
+                                                headpredicate->name,
+                                                headpredicate->Idvar());
+        
+        predicate_value->Setfeatures(headpredicate->Features());
+    }
+    else {
+        predicate_value = new TamguDependency(globalTamgu,
+                                                headpredicate->Features(),
+                                                headpredicate->name,
+                                                headpredicate->Idvar());
+    }
+    predicate_value->Setidrule(headpredicate->Idrule());
+    
+    Tamgu* result;
+    for (long i = 0; i < headpredicate->parameters.size(); i++) {
+        result = headpredicate->parameters[i]->Eval(this, dom, threadowner);
+        predicate_value->parameters.push_back(result->Atom(true));
+    }
+    
+    bool order = globalTamgu->RemovePredicates(dom, predicate_value);
+    predicate_value->Release();
+    if (!order)
+        return aFALSE;
+    
+    if (a != NULL) {
+        a->Resetreference();
+        //we then reinject our novel dependency into our dom
+        //it might be usefull for other loops...
+        dom->Declare(predicatedependency, predicate_value);
+    }
+    return aTRUE;
+}
+
+Tamgu* TamguInstructionEvaluate::Preddependency_remove(TamguPredicate* headpredicate) {
+    Tamgu* a = dom->Declaration(predicatedependency);
+    if (a == NULL || !a->isPredicate())
+        return aFALSE;
+    
+    if (headpredicate->Idvar()) {
+        //If it is a dependency modification
+        //we remove it from the database...
+        dom->Declare(predicatefeature, a);
+        a->Setreference(); //we do not want this object to be fully deleted here
+    }
+    
+    return booleantamgu[globalTamgu->RemoveThePredicate(dom, (TamguPredicate*)a)];
+}
+
+//--------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+//This is the main loop to handle fact checking
+//--------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
+
+Tamgu* TamguInstructionEvaluate::Checkfacts(predictenvironment* Oo,long posreplace,TamguPredicate* currenthead,long depth) {
+    Oo->KnowledgeBaseFacts = new kbpredict();
+    TamguPredicate* predicate_value;
+    Tamgu* result;
+    long sz, i, j;
+    char check_predicate_name;
+    bool order = false;
+    
+    // This section is used to test our current predicate against the knowledgebase...
+    if (globalTamgu->GetPredicates(dom, Oo->current_head, Oo->KnowledgeBaseFacts->kbase, false)) {
+        //we set the res value to aTRUE, which will be considered as an error
+        if (Oo->current_head->isNegation())
+            result = aTRUE;
+        else {
+            sz = Oo->currentgoals.size();
+            if (sz) {
+                Oo->localgoals.reserve(sz);
+                Oo->localgoals.last = sz - 1;
+            }
+            i = 0;
+            for (j = 0; j < sz; j++) {
+                if (j != posreplace)
+                    Oo->localgoals.vecteur[i++] = Oo->currentgoals.vecteur[j];
+            }
+            
+            sz = Oo->KnowledgeBaseFacts->kbase.size();
+                        
+            //we remove our element at the position posreplace in goal stack
+            for (i = 0; i < sz; i++) {
+                predicate_value = Oo->KnowledgeBaseFacts->kbase[i];
+                dico = &Oo->refdico;
+                check_predicate_name = Oo->current_head->setPredicateNameVariable(predicate_value, threadowner);
+                
+                
+                predicate_value->Setchosen(true);
+                
+                //we then unify our values in dom with respect to the element in the goal stack (stored in headpredicate) and the extracted elements
+                for (j = 0; j < Oo->current_head->parameters.size(); j++)
+                    Oo->current_head->parameters[j]->Insertvalue(dom, predicate_value->parameters[j], Oo->KnowledgeBaseFacts->kept);
+                
+                if (trace)
+                    Displaypredicatestack(d_kb, dom, Oo->current_head, Oo->localgoals, depth, this);
+                
+                //---------------------------------------------------------------
+                //In the case of dependency goals, we might need to store in a variable the current goal...
+                Oo->current_head->Setinvariable(predicate_value, dom, threadowner);
+                //If it is a potential dependency modification, then we protect it ahead of processing...
+                //Otherwise, the dependency could linger in kbase, being deleted...
+                //The explanation is that, we could have many occurrences of the same dependency name in the rule.
+                //If we store the current one as being a potential modification, and we go into recursion, then this current dependency might be
+                //deleted, however, since there are more than one loop in the knwoeledge base with the same query on the these dependencies,
+                //the current dependency might find itself in this second survey...
+                predicate_value->Setreference();
+                //---------------------------------------------------------------
+                //We then continue on the rest of the goals...
+                Tamgu* localresult = PredicateEvalue(Oo->localgoals, currenthead, depth);
+                //---------------------------------------------------------------
+                //we then remove it, if it was inserted
+                Oo->current_head->Resetintvariable(dom, threadowner);
+                if (check_predicate_name == storing_fact_name)
+                    Oo->current_head->resetPredicateNameVariable(threadowner);
+                
+                predicate_value->Setchosen(false);
+                
+                //we can safely return back to the actual reference of that dependency...
+                predicate_value->Resetreference();
+                //---------------------------------------------------------------
+                
+                short kbaction = localresult->checkTypePredicate();
+                basebin_hash<Tamgu*>::iterator& it = Oo->KnowledgeBaseFacts->it;
+                switch (kbaction) {
+                    case a_cutfalse:
+                        if (order) {
+                            for (it = Oo->KnowledgeBaseFacts->kept.begin(); it.table != NULL; it++)
+                                dom->declarations[it->first]->Cleans(it->second, false);
+                            return aFALSE;
+                        }
+                        break;
+                    case a_cut:
+                        if (order) {
+                            for (it = Oo->KnowledgeBaseFacts->kept.begin(); it.table != NULL; it++)
+                                dom->declarations[it->first]->Cleans(it->second, false);
+                            return aTRUE;
+                        }
+                        break;
+                    case a_true:
+                        if (order) {
+                            for (it = Oo->KnowledgeBaseFacts->kept.begin(); it.table != NULL; it++)
+                                dom->declarations[it->first]->Cleans(it->second, false);
+                            return aTRUE;
+                        }
+                        result = aTRUE;
+                        break;
+                }
+                
+                //We clean them, then...
+                for (it = Oo->KnowledgeBaseFacts->kept.begin(); it.table != NULL; it++)
+                    dom->declarations[it->first]->Cleans(it->second, true);
+                
+                Oo->KnowledgeBaseFacts->kept.clear();
+                
+                switch (kbaction) {
+                    case a_terminal:
+                        return aTERMINAL;
+                    case a_cutfalse:
+                        return aCUTFALSE;
+                    case a_cut:
+                        return dependency_mode?aTRUE:aCUT;
+                    case a_break:
+                        return aBREAK;
+                    default:
+                        if (globalTamgu->Error(threadowner))
+                            return aFALSE;
+                }
+            }
+        }
+    }
+    return aNULL;
 }
 
 //--------------------------------------------------------------------------------
@@ -4148,31 +4562,20 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
     if (!globalTamgu->check_stack_base_address(threadowner, reinterpret_cast<uintptr_t>(&sz)))
         return globalTamgu->Returnstackoverflow(threadowner);
     
-    Tamgu* result = aFALSE;
-    Tamgu* localresult;
-    Tamgu* element;
-    
-    TamguPredicate* headpredicate;
-    TamguPredicate* predicate_value;
-    TamguPredicateRule* predicate_rule;
-    
-    long i, posreplace, from, j;
-    short kbaction, predicate_name, headpredicate_nb_parameters;
-    
-    bool order = true;
-    
+    long i;
     //--------------------------------------------------------------------------------
     // Disjunction
     //If the top element in the goal stack is a disjunction, we then evaluate the next one...
     //The current one will be evaluated after... The disjunction is evaluated backward...
     if (sz && goals[0]->isDisjunction()) {
-        std::unique_ptr<localpredict> Oo(new localpredict(threadowner, sz + 1));
+        VECTE<Tamgu*>* localgoals = new VECTE<Tamgu*>(sz + 1);
         for (i = 1; i < sz; i++)
-            Oo->localgoals.vecteur[i - 1] = goals.vecteur[i];
-        Oo->localgoals.last = sz - 1;
+            localgoals->vecteur[i - 1] = goals.vecteur[i];
+        localgoals->last = sz - 1;
         //---------------------------------------------------------------
-        result = PredicateEvalue(Oo->localgoals, currenthead, depth);
+        Tamgu* result = PredicateEvalue(*localgoals, currenthead, depth);
         //---------------------------------------------------------------
+        delete localgoals;
         switch (result->checkTypePredicate()) {
             case a_true:
             case a_break:
@@ -4184,18 +4587,20 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
         }
     }
     
+    Tamgu* result = aNULL;
+    long posreplace, from;
     //--------------------------------------------------------------------------------
     //The evaluation of the goals, in which we detect which are the goals that full unified...
     // It returns NULL if everything has been unified, or the next predicate to be unified...
-    headpredicate = PredicateUnification(goals, posreplace, from);
+    TamguPredicate* headpredicate = PredicateUnification(goals, posreplace, from);
     //--------------------------------------------------------------------------------
     //It is already all unified... The goal list is now empty, we can create our resulting predicates.
     if (headpredicate == NULL) {
         if (trace)
             PreLocalPrint(Endl);
-        for (j = from; j < sz; j++) {
-            if (!goals[j]->hasbeenSuccesfull())
-                return result;
+        for (i = from; i < sz; i++) {
+            if (!goals[i]->hasbeenSuccesfull())
+                return aFALSE;
         }
         result = PredicateCreate(headrule, depth);
         if (result == aTRUE && fulltraversal == SEARCHONE) {
@@ -4207,12 +4612,9 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
     }
     
     //--------------------------------------------------------------------------------
-    kbaction = headpredicate->checkTypePredicate();
-    predicate_name = headpredicate->name;
-    headpredicate_nb_parameters = headpredicate->parameters.size();
-    order = true;
-    
-    switch (kbaction) {
+    bool order = true;
+
+    switch (headpredicate->checkTypePredicate()) {
         case a_stop: {
             //--------------------------------------------------------------------------------
             //We want to stop any further analysis...
@@ -4225,478 +4627,132 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
             if (trace) {
                 PreLocalPrint(" --> Fail\n");
             }
-            return result;
+            return aFALSE;
         }
         case a_cut: {
             //--------------------------------------------------------------------------------
             //if we have a CUT...
-            std::unique_ptr<localpredict> Oo(new localpredict(threadowner, sz + 1));
-            
-            for (j = from; j < sz; j++) {
-                if (j != posreplace && !goals[j]->hasbeenSuccesfull())
-                    Oo->localgoals.push_back(goals[j]);
+            VECTE<Tamgu*>* localgoals = new VECTE<Tamgu*>(sz);
+            for (i = from; i < sz; i++) {
+                if (i != posreplace && !goals[i]->hasbeenSuccesfull())
+                    localgoals->push_back(goals.vecteur[i]);
             }
             //---------------------------------------------------------------
-            result = PredicateEvalue(Oo->localgoals, currenthead, depth);
-            //---------------------------------------------------------------
-            switch (result->checkTypePredicate()) {
+            switch (PredicateEvalue(*localgoals, currenthead, depth)->checkTypePredicate()) {
                 case a_false:
                 case a_fail:
+                    delete localgoals;
                     return aCUTFALSE;
                 case a_terminal:
+                    delete localgoals;
                     return aTERMINAL;
                 default:
+                    delete localgoals;
                     return aCUT;
             }
         }
         case a_predicatemethod: {
-            //--------------------------------------------------------------------------------
-            // Functions that have been constructed on the basis of existing methods...
-            std::unique_ptr<localpredict> Oo(new localpredict(threadowner, sz + 1));
-            
-            if (headpredicate->negation) {
-                
-                Oo->localgoals.push_back(headpredicate);
-                //We do not need to explore the whole world, one TRUE is enough to decide
-                Oo->localgoals.push_back(aCUT);
-                
-                headpredicate->Setnegation(false);
-                TamguPredicate* rec = headrule;
-                //We do not need to build anything, the headrule is set to NULL to tell the system
-                //That we are only interested in a local evaluation...
-                headrule = NULL;
-                //---------------------------------------------------------------
-                result = PredicateEvalue(Oo->localgoals, currenthead, depth);
-                //---------------------------------------------------------------
-                headrule = rec;
-                headpredicate->Setnegation(true);
-                
-                //---------------------------------------------------------------
-                if (result == aFALSE) {//Ok we can continue with our remaining goals...
-                    Oo->localgoals.clear();
-                    for (j = from; j < sz; j++) {
-                        if (j == posreplace || goals[j]->hasbeenSuccesfull())
-                            continue;
-                        Oo->localgoals.push_back(goals[j]);
-                    }
-                    
-                    return PredicateEvalue(Oo->localgoals, currenthead, depth);
-                }
-                
-                //---------------------------------------------------------------
-                //It was TRUE then it is FALSE...
-                return aFALSE;
+            VECTE<Tamgu*>* localgoals = new VECTE<Tamgu*>(sz);
+            for (i = from; i < sz; i++) {
+                if (i != posreplace && !goals[i]->hasbeenSuccesfull())
+                    localgoals->push_back(goals.vecteur[i]);
             }
-            
-            
-            for (j = from; j < sz; j++) {
-                if (j != posreplace && !goals[j]->hasbeenSuccesfull())
-                    Oo->localgoals.push_back(goals[j]);
-            }
-            
-            //---------------------------------------------------------------
-            return headpredicate->PredicateEvalue(this, Oo->localgoals, currenthead, depth);
-            //---------------------------------------------------------------
+            result = Predpredicatemethod(*localgoals, headpredicate, currenthead, depth);
+            delete localgoals;
+            return result;
         }
         case a_asserta:
-            //--------------------------------------------------------------------------------
-            // Assertion and dependency removal are treated here...
-            order = false;
+            result = Predassertaz(headpredicate, false);
+            break;
         case a_assertz: {
-            predicate_value = new TamguPredicate(globalTamgu, predicate_name);
-            
-            for (i = 0; i < headpredicate_nb_parameters; i++) {
-                result = headpredicate->parameters[i]->Eval(this, dom, threadowner);
-                predicate_value->parameters.push_back(result->Atom(true));
-            }
-            
-            globalTamgu->StorePredicate(dom, predicate_value, order);
-            
-            std::unique_ptr<localpredict> Oo(new localpredict(threadowner, sz + 1));
-            for (j = from; j < sz; j++) {
-                if (j != posreplace && !goals[j]->hasbeenSuccesfull())
-                    Oo->localgoals.push_back(goals[j]);
-            }
-            //---------------------------------------------------------------
-            return PredicateEvalue(Oo->localgoals, currenthead, depth);
-            //---------------------------------------------------------------
+            result = Predassertaz(headpredicate, true);
+            break;
         }
         case a_retract: {
-            predicate_value = new TamguPredicate(globalTamgu, predicate_name);
-            
-            for (i = 0; i < headpredicate_nb_parameters; i++) {
-                result = headpredicate->parameters[i]->Eval(this, dom, threadowner);
-                predicate_value->parameters.push_back(result->Atom(true));
-            }
-            
-            order = globalTamgu->RemovePredicates(dom, predicate_value);
-            predicate_value->Release();
-            if (!order)
-                return aFALSE;
-            
-            std::unique_ptr<localpredict> Oo(new localpredict(threadowner, sz + 1));
-            for (j = from; j < sz; j++) {
-                if (j != posreplace && !goals[j]->hasbeenSuccesfull())
-                    Oo->localgoals.push_back(goals[j]);
-            }
-            //---------------------------------------------------------------
-            return PredicateEvalue(Oo->localgoals, currenthead, depth);
-            //---------------------------------------------------------------
+            result = Predretract(headpredicate);
+            break;
         }
         case a_findall: {
-            std::vector<TamguPredicate*> facts;
-            Tamguvector* v;
-            predicate_value = new TamguPredicate(globalTamgu, predicate_name);
-            if (((TamguPredicateFindall*)headpredicate)->equal) {
-                for (i = 0; i < headpredicate_nb_parameters - 1; i++) {
-                    result = headpredicate->parameters[i]->Eval(this, dom, threadowner);
-                    if (result == aNOELEMENT)
-                        predicate_value->parameters.push_back(aUNIVERSAL);
-                    else
-                        predicate_value->parameters.push_back(result);
-                }
-                // This section is used to test our current predicate against the knowledgebase...
-                if (!globalTamgu->GetPredicates(dom, predicate_value, facts, false)) {
-                    predicate_value->Release();
-                    return aFALSE;
-                }
-                v = globalTamgu->Providevector();
-                if (((TamguPredicateFindall*)headpredicate)->equal) {
-                    for (short f = 0; f < facts.size(); f++) {
-                        v->Push(facts[f]);
-                    }
-                }
-            }
-            else {
-                std::vector<short> free_variables;
-                for (i = 0; i < headpredicate_nb_parameters - 2; i++) {
-                    result = headpredicate->parameters[i]->Eval(this, dom, threadowner);
-                    if (result == aNOELEMENT) {
-                        predicate_value->parameters.push_back(aUNIVERSAL);
-                        free_variables.push_back(i);
-                    }
-                    else
-                        predicate_value->parameters.push_back(result);
-                }
-                
-                // This section is used to test our current predicate against the knowledgebase...
-                if (!globalTamgu->GetPredicates(dom, predicate_value, facts, false)) {
-                    predicate_value->Release();
-                    return aFALSE;
-                }
-                
-                //These positions correspond to free variables in the parameter lists of each fact
-                v = globalTamgu->Providevector();
-                Tamgu* val;
-                for (short f = 0; f < facts.size(); f++) {
-                    //First we unify our variables with their values from the fact
-                    for (i = 0; i < free_variables.size(); i++) {
-                        val = facts[f]->parameters[free_variables[i]];
-                        headpredicate->parameters[free_variables[i]]->Put(dom, val, threadowner);
-                    }
-                    //Our pattern is on -2 position
-                    val = headpredicate->parameters[headpredicate_nb_parameters - 2]->Getvalues(dom, true);
-                    if (val == aNOELEMENT) {
-                        v->Release();
-                        return aFALSE;
-                    }
-                    v->Push(val);
-                }
-                //We clear these values
-                for (i = 0; i < free_variables.size(); i++) {
-                    headpredicate->parameters[free_variables[i]]->Put(dom, aNOELEMENT, threadowner);
-                }
-            }
-            
-            result = headpredicate->parameters[headpredicate_nb_parameters - 1];
-            result->Put(dom, v, threadowner);
-            predicate_value->Release();
-            std::unique_ptr<localpredict> Oo(new localpredict(threadowner, sz + 1));
-            for (j = from; j < sz; j++) {
-                if (j != posreplace && !goals[j]->hasbeenSuccesfull())
-                    Oo->localgoals.push_back(goals[j]);
-            }
-            //---------------------------------------------------------------
-            return PredicateEvalue(Oo->localgoals, currenthead, depth);
-            //---------------------------------------------------------------
+            result = Predfindall(headpredicate);
+            break;
         }
         case a_dependency_asserta:
-            order = false;
+            result = Preddependency_assertaz(headpredicate, false);
+            break;
         case a_dependency_assertz: {
-            Tamgu* a = dom->Declaration(predicatefeature);
-            if (a != NULL) {//we clear it...
-                dom->declarations.erase(predicatefeature);
-                predicate_value = new TamguDependency(globalTamgu,
-                                                      ((TamguPredicate*)a)->Features(),
-                                                      predicate_name,
-                                                      headpredicate->Idvar());
-                
-                predicate_value->Setfeatures(headpredicate->Features());
-            }
-            else {
-                predicate_value = new TamguDependency(globalTamgu,
-                                                      headpredicate->Features(),
-                                                      predicate_name,
-                                                      headpredicate->Idvar());
-            }
-            predicate_value->Setidrule(headpredicate->Idrule());
-            
-            for (i = 0; i < headpredicate_nb_parameters; i++) {
-                result = headpredicate->parameters[i]->Eval(this, dom, threadowner);
-                predicate_value->parameters.push_back(result->Atom(true));
-            }
-            
-            globalTamgu->StorePredicate(dom, predicate_value, order);
-            
-            if (a != NULL) {
-                a->Resetreference();
-                //we then reinject our novel dependency into our dom
-                //it might be usefull for other loops...
-                dom->Declare(predicatedependency, predicate_value);
-            }
-            
-            
-            std::unique_ptr<localpredict> Oo(new localpredict(threadowner, sz + 1));
-            for (j = from; j < sz; j++) {
-                if (j != posreplace && !goals[j]->hasbeenSuccesfull())
-                    Oo->localgoals.push_back(goals[j]);
-            }
-            //---------------------------------------------------------------
-            return PredicateEvalue(Oo->localgoals, currenthead, depth);
-            //---------------------------------------------------------------
+            result = Preddependency_assertaz(headpredicate, true);
+            break;
         }
         case a_dependency_retract: {
-            Tamgu* a = dom->Declaration(predicatefeature);
-            if (a != NULL) {//we clear it...
-                dom->declarations.erase(predicatefeature);
-                predicate_value = new TamguDependency(globalTamgu,
-                                                      ((TamguPredicate*)a)->Features(),
-                                                      predicate_name,
-                                                      headpredicate->Idvar());
-                
-                predicate_value->Setfeatures(headpredicate->Features());
-            }
-            else {
-                predicate_value = new TamguDependency(globalTamgu,
-                                                      headpredicate->Features(),
-                                                      predicate_name,
-                                                      headpredicate->Idvar());
-            }
-            predicate_value->Setidrule(headpredicate->Idrule());
-            
-            for (i = 0; i < headpredicate_nb_parameters; i++) {
-                result = headpredicate->parameters[i]->Eval(this, dom, threadowner);
-                predicate_value->parameters.push_back(result->Atom(true));
-            }
-            
-            order = globalTamgu->RemovePredicates(dom, predicate_value);
-            predicate_value->Release();
-            if (!order)
-                return aFALSE;
-            
-            if (a != NULL) {
-                a->Resetreference();
-                //we then reinject our novel dependency into our dom
-                //it might be usefull for other loops...
-                dom->Declare(predicatedependency, predicate_value);
-            }
-            
-            
-            std::unique_ptr<localpredict> Oo(new localpredict(threadowner, sz + 1));
-            for (j = from; j < sz; j++) {
-                if (j != posreplace && !goals[j]->hasbeenSuccesfull())
-                    Oo->localgoals.push_back(goals[j]);
-            }
-            //---------------------------------------------------------------
-            return PredicateEvalue(Oo->localgoals, currenthead, depth);
-            //---------------------------------------------------------------
+            result = Preddependency_retract(headpredicate);
+            break;
         }
         case a_dependency_remove: {
-            Tamgu* a = dom->Declaration(predicatedependency);
-            if (a == NULL || !a->isPredicate())
-                return aFALSE;
-            
-            if (headpredicate->Idvar()) {
-                //If it is a dependency modification
-                //we remove it from the database...
-                dom->Declare(predicatefeature, a);
-                a->Setreference(); //we do not want this object to be fully deleted here
+            result = Preddependency_remove(headpredicate);
+            break;
+        }
+        default:
+            order = false;
+    }
+    
+    if (order) {
+        if (result == aTRUE) {
+            VECTE<Tamgu*>* localgoals = new VECTE<Tamgu*>(sz);
+            for (i = from; i < sz; i++) {
+                if (i != posreplace && !goals[i]->hasbeenSuccesfull())
+                    localgoals->push_back(goals.vecteur[i]);
             }
-            
-            if (!globalTamgu->RemoveThePredicate(dom, (TamguPredicate*)a))
-                return aFALSE;
-            
-            
-            std::unique_ptr<localpredict> Oo(new localpredict(threadowner, sz + 1));
-            for (j = from; j < sz; j++) {
-                if (j != posreplace && !goals[j]->hasbeenSuccesfull())
-                    Oo->localgoals.push_back(goals[j]);
-            }
+
             //---------------------------------------------------------------
-            return PredicateEvalue(Oo->localgoals, currenthead, depth);
+            result = PredicateEvalue(*localgoals, currenthead, depth);
+            delete localgoals;
+            return result;
             //---------------------------------------------------------------
         }
+        return aFALSE;
     }
     
     if (trace)
         PreLocalPrint(Endl);
-    
+
+    //--------------------------------------------------------------------------------
+    if (headpredicate->isTerminal())
+        return aTERMINAL;
     //--------------------------------------------------------------------------------
     // We use this specific structure to handle as many variables out of the execution stack.
-    std::unique_ptr<predictvalue> Oo(new predictvalue(threadowner, hmax(sz + 1, 10), predicate_name, dom));
+    std::unique_ptr<predictenvironment> Oo(new predictenvironment(hmax(sz + 1, 10), headpredicate, dom));
     //Some variables still need to be evaluated
     
     //We will try to solve headpredicate...
     //first it could be part of the knowledgebase
     
     //We only keep the elements that are still to be evaluated...
-    order = false;
-    for (j = from; j < sz; j++) {
-        if (!goals[j]->hasbeenSuccesfull()) {
+    for (i = from; i < sz; i++) {
+        if (!goals[i]->hasbeenSuccesfull()) {
             if (!order) {
-                if (j == posreplace)
+                if (i == posreplace)
                     posreplace = Oo->currentgoals.size();
-                Oo->currentgoals.push_back(goals[j]);
+                Oo->currentgoals.push_back(goals[i]);
             }
-            order = goals[j]->isDisjunction();
+            order = goals[i]->isDisjunction();
         }
     }
-    
-    if (headpredicate->isTerminal())
-        return aTERMINAL;
-    
-    order = false;
-    
+            
     //--------------------------------------------------------------------------------
-    if (globalTamgu->Checkpredicate(predicate_name)) {
-        Oo->KnowledgeBaseFacts = new kbpredict();
-        // This section is used to test our current predicate against the knowledgebase...
-        if (globalTamgu->GetPredicates(dom, headpredicate, Oo->KnowledgeBaseFacts->kbase, false)) {
-            //we set the res value to aTRUE, which will be considered as an error
-            if (headpredicate->isNegation())
-                result = aTRUE;
-            else {
-                sz = Oo->currentgoals.size();
-                if (sz) {
-                    Oo->localgoals.reserve(sz);
-                    Oo->localgoals.last = sz - 1;
-                }
-                i = 0;
-                for (j = 0; j < sz; j++) {
-                    if (j != posreplace)
-                        Oo->localgoals.vecteur[i++] = Oo->currentgoals.vecteur[j];
-                }
-                
-                sz = Oo->KnowledgeBaseFacts->kbase.size();
-                
-                char check_predicate_name;
-                
-                //we remove our element at the position posreplace in goal stack
-                for (i = 0; i < sz; i++) {
-                    predicate_value = Oo->KnowledgeBaseFacts->kbase[i];
-                    dico = &Oo->refdico;
-                    check_predicate_name = headpredicate->setPredicateNameVariable(predicate_value, threadowner);
-                    
-                    
-                    predicate_value->Setchosen(true);
-                    
-                    //we then unify our values in dom with respect to the element in the goal stack (stored in headpredicate) and the extracted elements
-                    for (j = 0; j < headpredicate_nb_parameters; j++)
-                        headpredicate->parameters[j]->Insertvalue(dom, predicate_value->parameters[j], Oo->KnowledgeBaseFacts->kept);
-                    
-                    if (trace)
-                        Displaypredicatestack(d_kb, dom, headpredicate, Oo->localgoals, depth, this);
-                    
-                    //---------------------------------------------------------------
-                    //In the case of dependency goals, we might need to store in a variable the current goal...
-                    headpredicate->Setinvariable(predicate_value, dom, threadowner);
-                    //If it is a potential dependency modification, then we protect it ahead of processing...
-                    //Otherwise, the dependency could linger in kbase, being deleted...
-                    //The explanation is that, we could have many occurrences of the same dependency name in the rule.
-                    //If we store the current one as being a potential modification, and we go into recursion, then this current dependency might be
-                    //deleted, however, since there are more than one loop in the knwoeledge base with the same query on the these dependencies,
-                    //the current dependency might find itself in this second survey...
-                    predicate_value->Setreference();
-                    //---------------------------------------------------------------
-                    //We then continue on the rest of the goals...
-                    localresult = PredicateEvalue(Oo->localgoals, currenthead, depth);
-                    //---------------------------------------------------------------
-                    //we then remove it, if it was inserted
-                    headpredicate->Resetintvariable(dom, threadowner);
-                    if (check_predicate_name == storing_fact_name)
-                        headpredicate->resetPredicateNameVariable(threadowner);
-                    
-                    predicate_value->Setchosen(false);
-                    
-                    //we can safely return back to the actual reference of that dependency...
-                    predicate_value->Resetreference();
-                    //---------------------------------------------------------------
-                    
-                    kbaction = localresult->checkTypePredicate();
-                    basebin_hash<Tamgu*>::iterator& it = Oo->KnowledgeBaseFacts->it;
-                    switch (kbaction) {
-                        case a_cutfalse:
-                            if (order) {
-                                for (it = Oo->KnowledgeBaseFacts->kept.begin(); it.table != NULL; it++)
-                                    dom->declarations[it->first]->Cleans(it->second, false);
-                                return aFALSE;
-                            }
-                            break;
-                        case a_cut:
-                            if (order) {
-                                for (it = Oo->KnowledgeBaseFacts->kept.begin(); it.table != NULL; it++)
-                                    dom->declarations[it->first]->Cleans(it->second, false);
-                                return aTRUE;
-                            }
-                            break;
-                        case a_true:
-                            if (order) {
-                                for (it = Oo->KnowledgeBaseFacts->kept.begin(); it.table != NULL; it++)
-                                    dom->declarations[it->first]->Cleans(it->second, false);
-                                return aTRUE;
-                            }
-                            result = aTRUE;
-                            break;
-                    }
-                    
-                    //We clean them, then...
-                    for (it = Oo->KnowledgeBaseFacts->kept.begin(); it.table != NULL; it++)
-                        dom->declarations[it->first]->Cleans(it->second, true);
-                    
-                    Oo->KnowledgeBaseFacts->kept.clear();
-                    
-                    switch (kbaction) {
-                        case a_terminal:
-                            return aTERMINAL;
-                        case a_cutfalse:
-                            return aCUTFALSE;
-                        case a_cut:
-                            return dependency_mode?aTRUE:aCUT;
-                        case a_break:
-                            return aBREAK;
-                        default:
-                            if (globalTamgu->Error(threadowner))
-                                return aFALSE;
-                    }
-                }
-            }
-        }
+    if (globalTamgu->Checkpredicate(headpredicate->name)) {
+        result = Checkfacts(Oo.get(), posreplace, currenthead, depth);
+        if (result != aNULL)
+            return result;
     }
     
     //--------------------------------------------------------------------------------
     //Else there is no rules matching this predicate...
     //--------------------------------------------------------------------------------
-    if (rules.find(predicate_name) == rules.end() || !rules[predicate_name].size()) {
-        if (headpredicate->negation) {
-            //---------------------------------------------------------------
-            if (result == aFALSE) {
-                //we then continue to analyse the rest of the goal stack
-                return PredicateEvalue(Oo->currentgoals, currenthead, depth);
-            }
-            //---------------------------------------------------------------
+    if (rules.find(headpredicate->name) == rules.end() || !rules[headpredicate->name].size()) {
+        if (headpredicate->negation)
+            return PredicateEvalue(Oo->currentgoals, currenthead, depth);
+        else
             return aFALSE;
-        }
-        return result; //no rule available
     }
     
     //--------------------------------------------------------------------------------
@@ -4712,22 +4768,21 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
         Oo->localgoals.push_back(aCUT);
         
         headpredicate->Setnegation(false);
-        predicate_value = headrule;
+        TamguPredicate* predicate_value = headrule;
         //We do not need to build anything, the headrule is set to NULL to tell the system
         //That we are only interested in a local evaluation...
         headrule = NULL;
         //---------------------------------------------------------------
-        result = PredicateEvalue(Oo->localgoals, currenthead, depth);
-        //---------------------------------------------------------------
-        headrule = predicate_value;
-        headpredicate->Setnegation(true);
-        
-        //---------------------------------------------------------------
-        if (result == aFALSE) { //Ok we can continue with our remaining goals...
+        if (!PredicateEvalue(Oo->localgoals, currenthead, depth)->Boolean()) {
+            headrule = predicate_value;
+            headpredicate->Setnegation(true);
             return PredicateEvalue(Oo->currentgoals, currenthead, depth);
         }
+        
         //---------------------------------------------------------------
         //It was TRUE then it is FALSE...
+        headrule = predicate_value;
+        headpredicate->Setnegation(true);
         return aFALSE;
     }
     
@@ -4737,7 +4792,7 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
     //This is the section where we evaluate one rule after the other
     //--------------------------------------------------------------------------------
     //we extract the rules matching our current target predicate...
-    sz = rules[predicate_name].size();
+    sz = rules[headpredicate->name].size();
     
     //--------------------------------------------------------------------------------
     //Now in the following section we evaluate which rules to enrich our goals with...
@@ -4745,11 +4800,18 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
     
     //We get rid of the predicate at posreplace, since we are going to evaluate it...
     Oo->currentgoals.eraseraw(posreplace);
+
+    TamguPredicateRule* predicate_rule;
+    TamguPredicate* tail_recursion = NULL;
+    result = aFALSE;
+    Tamgu* localresult;
+    long j;
     
+    Oo->unifyparameters(dom, threadowner);
     
     for (i = 0; i < sz; i++) {
-        predicate_rule = rules[predicate_name][i];
-        if (predicate_rule->head->parameters.size() != headpredicate_nb_parameters)
+        predicate_rule = rules[headpredicate->name][i];
+        if (predicate_rule->head->parameters.size() != headpredicate->parameters.size())
             continue;
         
         //Variable management
@@ -4760,7 +4822,7 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
         //with its arguments unified when possible.
         //Note that if the next call to PredicateEvalue is the last one, then this element will be used as its
         //final result.
-        if (!predicate_rule->head->Copyfrom(&Oo->head_predicate, this, dom, headpredicate, threadowner)) {
+        if (!predicate_rule->head->Copyfrom(&Oo->head_predicate, this, dom, Oo->headpredicatevalues, threadowner)) {
             dom->declarations.clearcommon(Oo->basedomain);
             dom->declarations = Oo->basedomain;
             
@@ -4787,23 +4849,20 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
         from = predicate_rule->instructions.size();
         if (from) {
             for (j = 0; j < from; j++) {
-                element = ((TamguPredicateRuleItem*)predicate_rule->instructions[j])->Unify(this, dom, dico, threadowner);
-                if (element ==  NULL) {
-                    localresult = aFALSE;
+                localresult = ((TamguPredicateRuleItem*)predicate_rule->instructions[j])->Unify(this, dom, dico, threadowner);
+                if (localresult ==  NULL)
                     break;
-                }
-                if (element == aTRUE)
+                if (localresult == aTRUE)
                     continue;
-                if (element == aCUT)
+                if (localresult == aCUT)
                     order = true;
-                Oo->rulegoals.push_back(element);
+                Oo->rulegoals.push_back(localresult);
             }
         }
         
-        
         //We use a_predicate to handle tail recursion
-        predicate_value = NULL;
-        if (localresult == aTRUE) {
+        tail_recursion = NULL;
+        if (localresult != NULL) {
             from = Oo->rulegoals.size();
             if (from) {
                 if (from == 1)
@@ -4813,7 +4872,7 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
                     for (j = from - 1; j >= 0; j--)
                         Oo->localgoals.vecteur[posreplace + j] = Oo->rulegoals[j];
                 }
-                predicate_value = Oo->rulegoals.back()->checkTerminal(predicate_name, headpredicate_nb_parameters);
+                tail_recursion = Oo->rulegoals.back()->checkTerminal(headpredicate->name, headpredicate->parameters.size());
             }
             if (trace)
                 Displaypredicatestack(d_eval, dom, &Oo->head_predicate, Oo->localgoals, depth, this);
@@ -4825,10 +4884,10 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
         }
         
         from = Oo->rulegoals.size();
-        if (localresult == aTERMINAL && predicate_value != NULL) {
-            for (j = 0; j < headpredicate_nb_parameters; j++) {
-                element = predicate_value->parameters[j]->Value();
-                headpredicate->Replaceparameter(j, element, threadowner);
+        if (localresult == aTERMINAL && tail_recursion != NULL) {
+            for (j = 0; j < headpredicate->parameters.size(); j++) {
+                localresult = tail_recursion->parameters[j]->Value();
+                headpredicate->Replaceparameter(j, localresult, threadowner);
             }
             i = -1;
             localresult = aFALSE;
@@ -4846,8 +4905,7 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
         //We clean the parameters
         dom->declarations.clearcommon(Oo->basedomain);
         Oo->head_predicate.Clear();
-        
-        
+                
         Oo->rulegoals.clear();
         
         Oo->refdico.clear();
@@ -5013,6 +5071,17 @@ Tamgu* TamguPredicateVariableASSIGNMENTCall::Eval(Tamgu* contextualpattern, Tamg
         globalTamgu->Triggeronfalse(var);
     
     return aTRUE;
+}
+
+Tamgu* TamguPredicateVariable::isBound(Tamgu* dom, short idthread) {
+    if (!dom->isDeclared(predicatedico)) {
+        dom = globalTamgu->Declarator(predicatedico, idthread);
+        if (dom == aNULL)
+            return aNOELEMENT;
+    }
+    dom = dom->Declaration(predicatedico);
+    dom = dom->Getdico(name);
+    return (dom == NULL || dom->Value() == aNOELEMENT)?aFALSE:aTRUE;
 }
 
 Tamgu* TamguPredicateVariable::Eval(Tamgu* contextualpattern, Tamgu* dom, short idthread) {
@@ -5344,33 +5413,35 @@ Tamgu* TamguInstructionEvaluate::Eval(Tamgu* contextualpattern, Tamgu* domcall, 
         cut = false;
     
     //we use our current element as a way to transfer our stuff...
-    TamguDeclarationPredicate domain;
+    TamguDeclarationPredicate* domain = new TamguDeclarationPredicate;
     
-    domain.declarations = ((TamguDeclaration*)domcall)->declarations;
+    domain->declarations = ((TamguDeclaration*)domcall)->declarations;
     VECTE<Tamgu*> goals;
     goals.push_back(head);
     headrule = head;
     
-    domain.Declare(predicatezone, this);
-    globalTamgu->Pushstack(&domain, threadowner);
+    domain->Declare(predicatezone, this);
+    globalTamgu->Pushstack(domain, threadowner);
     
     if (contextualpattern->isContainer())
         fulltraversal = FULLSEARCH;
     
-    dom = &domain;
+    dom = domain;
     PredicateEvalue(goals, NULL, 0);
     
     globalTamgu->Popstack(threadowner);
-    domain.declarations.erase(predicatezone);
+    domain->declarations.erase(predicatezone);
     
     basebin_hash<Tamgu*>::iterator it;
     
-    for (it = domain.declarations.begin(); it != domain.declarations.end(); it++) {
+    for (it = domain->declarations.begin(); it != domain->declarations.end(); it++) {
         if (!domcall->isDeclared(it->first)) {
             it->second->Setprotect(0);
             it->second->Resetreference();
         }
     }
+    
+    delete domain;
     
     long i;
     
@@ -5416,74 +5487,66 @@ Tamgu* TamguInstructionEvaluate::Eval(Tamgu* contextualpattern, Tamgu* domcall, 
     return aTRUE;
 }
 
+
+class PredicateEnvironment {
+public:
+    TamguDeclarationPredicate domain;
+    PredicateInstanceDeclaration localdico;
+    TamguPredicateFunction pv;
+    TamguInstructionEvaluate kl;
+    short idthread;
+    
+    PredicateEnvironment(TamguPredicate* head, short idt, bool trace) :
+    pv(globalTamgu, globalTamgu->predicates[head->name]->Function(), head->name),
+    localdico(head->parameters.size()),
+    kl(&pv, idt, trace) {
+        idthread = idt;
+        pv.reference = 1;
+        if (pv.function != NULL)
+            pv.object = globalTamgu->predicates[head->name]->Returnobject();
+        kl.dico = &localdico;
+        
+        //Important variables...
+        globalTamgu->SetPredicateVariableFlags(idthread);
+        
+        TamguPredicateContainer* kpcont = globalTamgu->GetPredicatecontainer(idthread);
+        
+        if (kpcont != NULL)
+            kl.rules = kpcont->rules;
+
+        Tamgu* e;
+        for (short i = 0; i < head->parameters.size(); i++) {
+            e = head->parameters[i]->ExtractPredicateVariables(&kl, &domain, NULL, NULL, idthread, true);
+            e->Setreference();
+            pv.parameters.push_back(e);
+        }
+    }
+    
+    ~PredicateEnvironment() {
+        basebin_hash<Tamgu*>::iterator it;
+        for (it = domain.declarations.begin(); it != domain.declarations.end(); it++) {
+            it->second->Resetreferencenoprotect();
+        }
+        
+        for (short i = 0; i < pv.Size(); i++)
+            pv.parameters[i]->Resetreference();
+    }
+    
+    
+   inline  Tamgu* eval(Tamgu* context) {
+        return kl.Eval(context, &domain, idthread);
+    }
+};
+
 Tamgu* TamguInstructionLaunch::Eval(Tamgu* context, Tamgu* val, short idthread) {
     //head is our definition
     //First we create an actionable TamguPredicate
-    long i;
+    bool trace = globalTamgu->predicateTrace(head->name);
+    std::unique_ptr<PredicateEnvironment> pe(new PredicateEnvironment(head, idthread, trace));
     
-    Tamgu* dom;
-    if (val == aASSIGNMENT)
-        dom = globalTamgu->Topstack(idthread);
-    else
-        dom = context;
-    
-    TamguPredicateFunction pv(globalTamgu, globalTamgu->predicates[head->name]->Function(), head->name);
-    pv.reference = 1;
-    if (pv.function != NULL)
-        pv.object = globalTamgu->predicates[head->name]->Returnobject();
-    
-    bool trace = false;
-    if (globalTamgu->predicateTrace(head->name))
-        trace = true;
-    
-    TamguInstructionEvaluate kl(&pv, idthread, trace);
-    
-    //Important variables...
-    globalTamgu->SetPredicateVariableFlags(idthread);
-    
-    TamguDeclarationPredicate domain;
-    
-    basebin_hash<TamguPredicateVariableInstance*> localdico;
-    kl.dico = &localdico;
-    TamguPredicateContainer* kpcont = globalTamgu->GetPredicatecontainer(idthread);
-    
-    if (kpcont != NULL)
-        kl.rules = kpcont->rules;
-    
-    Tamgu* e;
-    for (i = 0; i < head->parameters.size(); i++) {
-        e = head->parameters[i]->ExtractPredicateVariables(&kl, &domain, NULL, NULL, idthread, true);
-        e->Setreference();
-        pv.parameters.push_back(e);
-    }
-    
-    globalTamgu->short_string = 10;
-    e = kl.Eval(context, &domain, idthread);
+    globalTamgu->short_string = 20;
+    Tamgu* e = pe->eval(context);
     globalTamgu->short_string = 0;
-    
-    
-    basebin_hash<Tamgu*>::iterator it;
-    for (it = domain.declarations.begin(); it != domain.declarations.end(); it++) {
-        it->second->Resetreferencenoprotect();
-    }
-    
-    for (i = 0; i < pv.Size(); i++)
-        pv.parameters[i]->Resetreference();
-    
-    
-    /* Check for variable final cleaning
-     for (i = 0; i < globalTamgu->pvireservoire.size(); i++) {
-     if (globalTamgu->pvireservoire[i]->Reference())
-     cerr << i << ":" << globalTamgu->pvireservoire[i]->Reference()<<endl;
-     }
-     
-     map<long,long> compte;
-     for (i = 0; i < globalTamgu->threads[0].basepredicatename.size(); i++)
-     compte[globalTamgu->threads[0].basepredicatename[i]]++;
-     
-     for (auto a : compte)
-     cerr << a.first << ":" << a.second << endl;
-     */
-    
+        
     return e;
 }

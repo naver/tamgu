@@ -25,6 +25,9 @@ Programmer : Claude ROUX (claude.roux@naverlabs.com)
 #include "tamgumap.h"
 #include "tamgubool.h"
 #include "tamgustring.h"
+#include <thread>
+#include <chrono>
+#include <atomic>
 
 #include <Python.h>
 
@@ -88,11 +91,10 @@ void clean_signal() {
 #endif
 }
 
-static bool init_python = false;
-
 // We need to declare once again our local definitions.
 basebin_hash<pythonMethod> Tamgupython::methods;
-ThreadLock classlock;
+static ThreadLock classlock;
+static ThreadLock cleanlock;
 short Tamgupython::idtype = 0;
 
 //------------------------------------------------------------------------------------------------------------------
@@ -372,12 +374,10 @@ bool Tamgupython::InitialisationModule(TamguGlobal *global, string version)
 {
     methods.clear();
 
-    init_python = false;
-
     Tamgupython::idtype = global->Getid("python");
 
     Tamgupython::AddMethod(global, "setpath", &Tamgupython::MethodSetpath, P_ONE, "setpath(path1,path2...): Set paths to look for Python imports.");
-    Tamgupython::AddMethod(global, "run", &Tamgupython::MethodRun, P_ONE | P_TWO, "run(string code, string return_variable): Execute python code");
+    Tamgupython::AddMethod(global, "run", &Tamgupython::MethodRun, P_ONE | P_TWO | P_THREE, "run(string code, string return_variable): Execute python code");
     Tamgupython::AddMethod(global, "runmodule", &Tamgupython::MethodRunModule, P_TWO | P_THREE, "runmodule(string module, string code, string return_variable): Execute python code in a module");
     Tamgupython::AddMethod(global, "getmodule", &Tamgupython::MethodGetModule, P_ONE | P_TWO, "getmodule(string module, string name): Get all variables or one variable from the module");
     Tamgupython::AddMethod(global, "import", &Tamgupython::MethodImport, P_ONE, "import(string python): import a python file");
@@ -391,6 +391,7 @@ bool Tamgupython::InitialisationModule(TamguGlobal *global, string version)
 }
 
 void Tamgupython::Clean() {
+    Locking lock(cleanlock);
     if (init_python) {
         Py_Finalize();
         init_python = false;
@@ -460,68 +461,126 @@ Tamgu *Tamgupython::MethodClose(Tamgu *contextualpattern, short idthread, TamguC
     return aTRUE;
 }
 
-Tamgu *Tamgupython::MethodRun(Tamgu *contextualpattern, short idthread, TamguCall *callfunc)
+Tamgu* Tamgupython::Run(string& code, short idthread, PyObject* py_dict)
 {
 
-    Locking lock(classlock);
-    if (!init_python)
+    PyObject *py_result = PyRun_StringFlags(code.c_str(), Py_file_input, py_dict, py_dict, nullptr);
+
+    if (!py_result)
     {
+        if (PyErr_Occurred())
+        {
+            string return_variable = "PYT(997):";
+            return_variable += python_error_string();
+            // Imprime l'erreur ou la traite selon vos besoins.
+            return globalTamgu->Returnerror(return_variable, idthread);
+        }
+    }
+    else
+    {
+        Py_DECREF(py_result); // Nettoie le résultat si rien ne s'est mal passé
+    }
+    return aTRUE;
+}
+
+// Function to run the Python script in a separate thread
+Tamgu* Tamgupython::Run_elapse(string& code, int elapse_time, short idthread, PyObject* py_dict) {
+    static char* import_code = "import signal\nimport time\n";
+    static char* func_code = "def timeout_handler(signum, frame):\n  signal.signal(signal.SIGALRM, signal.SIG_DFL)\n  signal.alarm(0)\n  raise TimeoutError(\"Time out\")\n";
+    static char* init_code = "signal.signal(signal.SIGALRM, timeout_handler)\nsignal.alarm(";
+    const char* clean_code = "signal.signal(signal.SIGALRM, signal.SIG_DFL)\nsignal.alarm(0)\n";
+    
+    stringstream c;
+    c << import_code << func_code << init_code << elapse_time << ")\n";
+    string cde = c.str();
+    PyRun_StringFlags(cde.c_str(), Py_file_input, py_dict, py_dict, nullptr);
+
+    PyObject* py_result = PyRun_StringFlags(code.c_str(), Py_file_input, py_dict, py_dict, nullptr);
+
+    if (!py_result) {
+        if (PyErr_Occurred()) {
+            cde = "PYT(997):";
+            cde += python_error_string();
+            cerr << cde << endl;
+            if (cde.find("Time out") == -1)
+                PyRun_StringFlags(clean_code, Py_file_input, py_dict, py_dict, nullptr);
+            // Handle the error as needed
+            return globalTamgu->Returnerror(cde, idthread);
+        }
+    } else {
+        Py_DECREF(py_result); // Clean up the result if nothing went wrong
+    }
+
+    //we clean our signal before leaving
+    PyRun_StringFlags(clean_code, Py_file_input, py_dict, py_dict, nullptr);
+    return aTRUE;
+}
+
+Tamgu *Tamgupython::MethodRun(Tamgu *contextualpattern, short idthread, TamguCall *callfunc) {
+    Locking lock(classlock);
+    if (!init_python) { 
         Py_Initialize();
         init_python = true;
     }
 
     // 0 is the first parameter and so on...
     Tamgu *kcmd = callfunc->Evaluate(0, contextualpattern, idthread);
-    string code = kcmd->String();
-    string return_variable;
-    if (callfunc->Size() == 2) {
+    std::string code = kcmd->String();
+    std::string return_variable;
+    
+    int elapse_time = -1;
+    if (callfunc->Size() >= 2) {
         kcmd = callfunc->Evaluate(1, contextualpattern, idthread);
-        return_variable =  kcmd->String();
+        return_variable = kcmd->String();
+        if (callfunc->Size() == 3)
+            elapse_time = callfunc->Evaluate(2, contextualpattern, idthread)->Int();
     }
 
-    PyObject *py_main = PyImport_AddModule("__main__");
-    PyObject *py_dict = PyModule_GetDict(py_main);
+    PyObject* py_main = PyImport_AddModule("__main__");
+    PyObject* py_dict = PyModule_GetDict(py_main);
 
-    if (code != "")
-    {
-
-        PyObject *py_result = PyRun_StringFlags(code.c_str(), Py_file_input, py_dict, py_dict, nullptr);
-
-        if (!py_result)
-        {
-            if (PyErr_Occurred())
-            {
-                return_variable = "PYT(997):";
-                return_variable += python_error_string();
-                // Imprime l'erreur ou la traite selon vos besoins.
-                clean_signal();
-                return globalTamgu->Returnerror(return_variable, idthread);
+    if (code != "") {
+        //First, we test if the syntax is correct:
+        PyObject *compiled_code = Py_CompileString(code.c_str(), "<string>", Py_file_input);
+        if (compiled_code == NULL) {
+            return_variable = "PYT(996):";
+            return_variable += python_error_string();
+            // Imprime l'erreur ou la traite selon vos besoins.
+            kcmd = globalTamgu->Returnerror(return_variable, idthread);
+        } else {
+            Py_DECREF(compiled_code);
+            if (elapse_time == -1)
+                kcmd = Run(code, idthread, py_dict);
+            else {
+                struct sigaction old_action;
+                sigaction(SIGALRM, nullptr, &old_action);
+                kcmd = Run_elapse(code, elapse_time, idthread, py_dict);
+                sigaction(SIGALRM, &old_action, nullptr);
             }
         }
-        else
-        {
-            Py_DECREF(py_result); // Nettoie le résultat si rien ne s'est mal passé
+        if (kcmd->isError()) {
+            clean_signal();
+            Clean();
+            return kcmd;
         }
     }
 
-    Tamgu* return_value = aTRUE;
+    Tamgu* returning_value = aTRUE;
     if (return_variable != "") {
-        
-         PyObject* py_result_val = PyDict_GetItemString(py_dict, return_variable.c_str());
-         if (py_result_val != NULL) {
-            return_value = toTamgu(py_result_val);
-         }
-         else {
+        PyObject* py_result_val = PyDict_GetItemString(py_dict, return_variable.c_str());
+        if (py_result_val != NULL) {
+            returning_value = toTamgu(py_result_val);
+        } else {
             return_variable += ": This Python variable is unknown";
-            return_value = globalTamgu->Returnerror(return_variable, idthread);
-         }
+            returning_value = globalTamgu->Returnerror(return_variable, idthread);
+        }
     }
 
-    Clean(),    
+    Clean();
     clean_signal();
 
-    // you may return any value of course...
-    return return_value;
+    // You may return any value of course...
+    return returning_value;
 }
 
 Tamgu *Tamgupython::MethodRunModule(Tamgu *contextualpattern, short idthread, TamguCall *callfunc)
@@ -552,6 +611,16 @@ Tamgu *Tamgupython::MethodRunModule(Tamgu *contextualpattern, short idthread, Ta
 
     if (code != "")
     {
+
+        PyObject *compiled_code = Py_CompileString(code.c_str(), "<string>", Py_file_input);
+        if (compiled_code == NULL) {
+            return_variable = "PYT(996):";
+            return_variable += python_error_string();
+            // Imprime l'erreur ou la traite selon vos besoins.
+            clean_signal();
+            return globalTamgu->Returnerror(return_variable, idthread);
+        }
+        Py_DECREF(compiled_code);
 
         local_dict = PyDict_New();
         PyObject *py_result = PyRun_StringFlags(code.c_str(), Py_file_input, py_dict, local_dict, nullptr);

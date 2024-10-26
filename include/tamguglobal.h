@@ -134,6 +134,7 @@ public:
     Tamgu* gASSIGNMENT;
     TamguConstiteration* gITERNULL;
     TamguPredicate* gFAIL;
+    TamguPredicate* gPREDICATETRUE;
     TamguPredicate* gTERMINAL;
     TamguPredicate* gCUTFALSE;
     TamguPredicate* gCUT;
@@ -173,6 +174,7 @@ public:
         gASSIGNMENT= NULL;
         gITERNULL= NULL;
         gFAIL= NULL;
+        gPREDICATETRUE = NULL;
         gTERMINAL= NULL;
         gCUTFALSE= NULL;
         gCUT= NULL;
@@ -212,6 +214,7 @@ public:
         gASSIGNMENT = g->gASSIGNMENT;
         gITERNULL = g->gITERNULL;
         gFAIL = g->gFAIL;
+        gPREDICATETRUE = g->gPREDICATETRUE;
         gTERMINAL = g->gTERMINAL;
         gCUTFALSE = g->gCUTFALSE;
         gCUT = g->gCUT;
@@ -253,6 +256,7 @@ extern GlobalConstants globalConstants;
 #define aASSIGNMENT globalConstants.gASSIGNMENT
 #define aITERNULL globalConstants.gITERNULL
 #define aFAIL globalConstants.gFAIL
+#define aPREDICATETRUE globalConstants.gPREDICATETRUE
 #define aTERMINAL globalConstants.gTERMINAL
 #define aCUTFALSE globalConstants.gCUTFALSE
 #define aCUT globalConstants.gCUT
@@ -328,7 +332,7 @@ public:
     VECTE<TamguCallFibre*> fibres;
     vector<Tamgu*> debugstack;
     vector<Tamgu*> localgarbage;
-	bin_hash<VECTE<Tamgu*> > variables;
+	bin_hash<VECTES<Tamgu*,2> > variables;
     hmap<string, ThreadLock*> locks;
     
     vector<Tamgudebug*> debug_values;
@@ -434,7 +438,7 @@ public:
 	
     inline void Removevariable(short n) {
 		if (variables.check(n)) {
-			VECTE<Tamgu*>& v = variables.get(n);
+			VECTES<Tamgu*,2>& v = variables.get(n);
 			if (v.last)
 				v.pop_back();
 		}
@@ -442,9 +446,9 @@ public:
 
 	inline void Replacevariable(short name, Tamgu* var) {
 		if (variables.check(name)) {
-			VECTE<Tamgu*>& v = variables.get(name);
+			VECTES<Tamgu*,2>& v = variables.get(name);
 			if (v.last) {
-				v.vecteur[v.last - 1] = var;
+				v.atlast(var);
                 return;
 			}
 		}
@@ -867,6 +871,8 @@ public:
 	basebin_hash<bool> extensionmethods;
 
 	TamguPredicateContainer* predicateContainer;
+    
+    std::vector<short> globalvariablenames;
 
 	hmap<string, Au_automaton*> rules;
     //--------------------------------
@@ -912,6 +918,8 @@ public:
     //Predicate Functions
     bool Checkpredicate(short name);    
     void Clearknowledgebase();
+    
+    void GlobalVariablesToThread(short idthread);
 
     bool TestPredicate(TamguDeclaration* dom, TamguPredicate* p);
     char isaValidPredicate(TamguDeclaration* dom, TamguPredicate* p, hmap<unsigned short, vector<TamguPredicateRule*> >& rulebase);
@@ -1088,12 +1096,6 @@ public:
 
 	Exporting void Getdebuginfo(string& localvariables, string& allvariables, string& stack, bool, long sz, short idthread);
 
-	inline void Pushpredicate(short idthread) {
-		//threads[idthread].prologstack++;
-		//if (threads[idthread].Size() >= maxstack)
-			//Returnerror(e_stack_overflow, idthread);
-	}
-
     inline void Pushstack(Tamgu* a, short idthread = 0) {
         //if (threads[idthread].pushtracked(a, maxstack))
         //    Seterror(e_stack_overflow, idthread);
@@ -1174,8 +1176,8 @@ public:
         return threads[idthread].variables.get(id).back();
     }
     
-    inline Tamgu* Getmaindeclaration(short id, short idthread) {
-        return threads[idthread].variables.get(id).vecteur[1];
+    inline Tamgu* Getmaindeclaration(short id) {
+        return threads[0].variables.get(id).stable[1];
     }
 
     Tamgu* Getframedefinition(short frname, short name, short idthread);
@@ -1193,7 +1195,7 @@ public:
 
     void Displaystack(short idthread) {
         auto& a = threads[idthread].variables;
-        bin_iter<short, VECTE<Tamgu*> > iter(a.table, a.indexes, a.tsize);
+        bin_iter<short, VECTES<Tamgu*,2> > iter(a.table, a.indexes, a.tsize);
         
         for (;iter.table; iter++) {
             cerr << Getsymbol(iter->first) << ":" << iter->second.size() << endl;

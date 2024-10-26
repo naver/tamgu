@@ -32,8 +32,7 @@ class Tamgutamgu;
 class TamguDeclarationLocal : public TamguTracked {
 public:
 
-	VECTE<short> names;
-    VECTE<Tamgu*> declarations;
+    BVECTE<short, Tamgu*> declarations;
     VECTE<Tamgu*> toclean;
 
     short idx;
@@ -46,11 +45,7 @@ public:
     }
 
     bool FindAndClean(Tamgu* a) {
-         for (short i = 0; i < declarations.last; i++) {
-             if (declarations[i] == a)
-                 return false;
-         }
-        return true;
+        return !declarations.check(a);
      }
 
 	bool hasDeclaration() {
@@ -58,18 +53,16 @@ public:
 	}
 
 	bool isEmpty() {
-		if (!names.last)
-			return true;
-		return false;
+        return (!declarations.last);
 	}
 
 	bool isDeclared(short id) {
-        return (names.check(id));
+        return (declarations.check(id));
 	}
 
     void Replacedeclaration(short idthread, short id, Tamgu* a) {
         globalTamgu->Replacevariable(idthread, id, a);
-        declarations.vecteur[names.search(id)] = a;
+        declarations.replace(id, a);
     }
 
     char Declarelocal(short idthread, short n, Tamgu* a) {
@@ -80,51 +73,44 @@ public:
     }
 
 	void Variables(vector<short>& vars) {
-		for (short i = 0; i < names.last; i++)
-			vars.push_back(names[i]);
+		for (short i = 0; i < declarations.last; i++)
+			vars.push_back(declarations.index[i]);
 	}
 
 	void Declare(short id, Tamgu* a) {
-		names.push_back(id);
-        declarations.push_back(a);
+        declarations.push_back(id, a);
         toclean.push_back(a);
 	}
 
     inline void Declaring(short id, Tamgu* a) {
-        names.push_back(id);
-        declarations.push_back(a);
+        declarations.push_back(id, a);
         toclean.push_back(a);
     }
 
     inline void Declaringmin(short id, Tamgu* a) {
-        names.push_back(id);
-        declarations.push_back(a);
+        declarations.push_back(id, a);
     }
 
     Tamgu* Declaration(short idname) {
-        idname = names.search(idname);
-        if (idname == -1)
-            return NULL;
-        return declarations[idname];
+        return declarations.find(idname);
     }
 
 	void Cleaning() {
         short i;
-        for (i = 0; i < names.last; i++)
-            globalTamgu->Removingvariable(idthread, names.vecteur[i]);
+        for (i = 0; i < declarations.last; i++)
+            globalTamgu->Removingvariable(idthread, declarations.index[i]);
         
         for (i = 0; i < toclean.last; i++)
             toclean.vecteur[i]->Resetreference();
         
-		names.last = 0;
         declarations.last = 0;
         toclean.last = 0;
 	}
 
     void Release() {
         short i;
-        for (i = 0; i < names.last; i++)
-            globalTamgu->Removingvariable(idthread, names.vecteur[i]);
+        for (i = 0; i < declarations.last; i++)
+            globalTamgu->Removingvariable(idthread, declarations.index[i]);
         
         for (i = 0; i < toclean.last; i++)
             toclean.vecteur[i]->Resetreference();
@@ -132,7 +118,6 @@ public:
         if (pushed)
             globalTamgu->Popstack(idthread);
         if (used) {
-            names.last = 0;
             declarations.last = 0;
             toclean.last = 0;
             used = false;
@@ -146,14 +131,13 @@ public:
 
     inline void Releasing() {
         short i;
-        for (i = 0; i < names.last; i++)
-            globalTamgu->Removingvariable(idthread, names.vecteur[i]);
+        for (i = 0; i < declarations.last; i++)
+            globalTamgu->Removingvariable(idthread, declarations.index[i]);
         
         for (i = 0; i < toclean.last; i++)
             toclean.vecteur[i]->Resetreference();
         
         if (used) {
-            names.last = 0;
             declarations.last = 0;
             toclean.last = 0;
             used = false;
@@ -3192,7 +3176,7 @@ public:
     
     long Integer() {
         if (first) {
-            val = (Tamguint*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamguint*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3200,7 +3184,7 @@ public:
     
     BLONG Long() {
         if (first) {
-            val = (Tamguint*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamguint*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3208,7 +3192,7 @@ public:
     
     short Short() {
         if (first) {
-            val = (Tamguint*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamguint*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3216,7 +3200,7 @@ public:
     
     float Decimal() {
         if (first) {
-            val = (Tamguint*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamguint*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3224,7 +3208,7 @@ public:
     
     double Float() {
         if (first) {
-            val = (Tamguint*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamguint*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3232,7 +3216,7 @@ public:
     
     string String() {
         if (first) {
-            val = (Tamguint*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamguint*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return convertfromnumber(val->value);
@@ -3240,7 +3224,7 @@ public:
     
     wstring UString() {
         if (first) {
-            val = (Tamguint*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamguint*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return wconvertfromnumber(val->value);
@@ -3248,7 +3232,7 @@ public:
 
     void Setstring(string& v, short idthread) {
         if (first) {
-            val = (Tamguint*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamguint*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         convertnumber(val->value, v);
@@ -3256,7 +3240,7 @@ public:
     
     void Setstring(wstring& v, short idthread) {
         if (first) {
-            val = (Tamguint*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamguint*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         convertnumber(val->value, v);
@@ -3264,7 +3248,7 @@ public:
 
     Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread) {
         if (first) {
-            val = (Tamguint*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamguint*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val;
@@ -3272,7 +3256,7 @@ public:
     
     long Getinteger(short idthread) {
         if (first) {
-            val = (Tamguint*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamguint*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3280,7 +3264,7 @@ public:
     
     BLONG Getlong(short idthread) {
         if (first) {
-            val = (Tamguint*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamguint*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3288,7 +3272,7 @@ public:
     
     short Getshort(short idthread) {
         if (first) {
-            val = (Tamguint*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamguint*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3296,7 +3280,7 @@ public:
     
     float Getdecimal(short idthread) {
         if (first) {
-            val = (Tamguint*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamguint*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3304,7 +3288,7 @@ public:
     
     double Getfloat(short idthread) {
         if (first) {
-            val = (Tamguint*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamguint*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3312,7 +3296,7 @@ public:
     
     string Getstring(short idthread) {
         if (first) {
-            val = (Tamguint*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamguint*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return convertfromnumber(val->value);
@@ -3320,7 +3304,7 @@ public:
     
     wstring Getustring(short idthread) {
         if (first) {
-            val = (Tamguint*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamguint*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return wconvertfromnumber(val->value);
@@ -3337,7 +3321,7 @@ public:
     
     long Integer() {
         if (first) {
-            val = (Tamgushort*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamgushort*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3345,7 +3329,7 @@ public:
     
     BLONG Long() {
         if (first) {
-            val = (Tamgushort*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamgushort*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3353,7 +3337,7 @@ public:
     
     short Short() {
         if (first) {
-            val = (Tamgushort*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamgushort*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3361,7 +3345,7 @@ public:
     
     float Decimal() {
         if (first) {
-            val = (Tamgushort*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamgushort*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3369,7 +3353,7 @@ public:
     
     double Float() {
         if (first) {
-            val = (Tamgushort*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamgushort*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3377,7 +3361,7 @@ public:
     
     string String() {
         if (first) {
-            val = (Tamgushort*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamgushort*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return convertfromnumber(val->value);
@@ -3385,7 +3369,7 @@ public:
     
     wstring UString() {
         if (first) {
-            val = (Tamgushort*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamgushort*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return wconvertfromnumber(val->value);
@@ -3393,7 +3377,7 @@ public:
 
     void Setstring(string& v, short idthread) {
         if (first) {
-            val = (Tamgushort*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgushort*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         v = convertfromnumber(val->value);
@@ -3401,7 +3385,7 @@ public:
     
     void Setstring(wstring& v, short idthread) {
         if (first) {
-            val = (Tamgushort*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgushort*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         v = wconvertfromnumber(val->value);
@@ -3409,7 +3393,7 @@ public:
 
     Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread) {
         if (first) {
-            val = (Tamgushort*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgushort*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val;
@@ -3417,7 +3401,7 @@ public:
     
     long Getinteger(short idthread) {
         if (first) {
-            val = (Tamgushort*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgushort*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3425,7 +3409,7 @@ public:
     
     BLONG Getlong(short idthread) {
         if (first) {
-            val = (Tamgushort*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgushort*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3433,7 +3417,7 @@ public:
     
     short Getshort(short idthread) {
         if (first) {
-            val = (Tamgushort*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgushort*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3441,7 +3425,7 @@ public:
     
     float Getdecimal(short idthread) {
         if (first) {
-            val = (Tamgushort*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgushort*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3449,7 +3433,7 @@ public:
     
     double Getfloat(short idthread) {
         if (first) {
-            val = (Tamgushort*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgushort*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3457,7 +3441,7 @@ public:
     
     string Getstring(short idthread) {
         if (first) {
-            val = (Tamgushort*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgushort*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return convertfromnumber(val->value);
@@ -3465,7 +3449,7 @@ public:
     
     wstring Getustring(short idthread) {
         if (first) {
-            val = (Tamgushort*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgushort*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return wconvertfromnumber(val->value);
@@ -3483,7 +3467,7 @@ public:
     
     long Integer() {
         if (first) {
-            val = (Tamgudecimal*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamgudecimal*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3491,7 +3475,7 @@ public:
     
     BLONG Long() {
         if (first) {
-            val = (Tamgudecimal*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamgudecimal*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3499,7 +3483,7 @@ public:
     
     short Short() {
         if (first) {
-            val = (Tamgudecimal*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamgudecimal*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3507,7 +3491,7 @@ public:
     
     float Decimal() {
         if (first) {
-            val = (Tamgudecimal*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamgudecimal*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3515,7 +3499,7 @@ public:
     
     double Float() {
         if (first) {
-            val = (Tamgudecimal*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamgudecimal*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3523,7 +3507,7 @@ public:
     
     string String() {
         if (first) {
-            val = (Tamgudecimal*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamgudecimal*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return convertfromnumber(val->value);
@@ -3531,7 +3515,7 @@ public:
     
     wstring UString() {
         if (first) {
-            val = (Tamgudecimal*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamgudecimal*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return wconvertfromnumber(val->value);
@@ -3539,7 +3523,7 @@ public:
     
     void Setstring(string& v, short idthread) {
         if (first) {
-            val = (Tamgudecimal*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgudecimal*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         v = convertfromnumber(val->value);
@@ -3547,7 +3531,7 @@ public:
     
     void Setstring(wstring& v, short idthread) {
         if (first) {
-            val = (Tamgudecimal*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgudecimal*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         v = wconvertfromnumber(val->value);
@@ -3556,7 +3540,7 @@ public:
 
     Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread) {
         if (first) {
-            val = (Tamgudecimal*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgudecimal*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val;
@@ -3564,7 +3548,7 @@ public:
     
     long Getinteger(short idthread) {
         if (first) {
-            val = (Tamgudecimal*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgudecimal*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3572,7 +3556,7 @@ public:
     
     BLONG Getlong(short idthread) {
         if (first) {
-            val = (Tamgudecimal*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgudecimal*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3580,7 +3564,7 @@ public:
     
     short Getshort(short idthread) {
         if (first) {
-            val = (Tamgudecimal*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgudecimal*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3588,7 +3572,7 @@ public:
     
     float Getdecimal(short idthread) {
         if (first) {
-            val = (Tamgudecimal*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgudecimal*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3596,7 +3580,7 @@ public:
     
     double Getfloat(short idthread) {
         if (first) {
-            val = (Tamgudecimal*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgudecimal*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3604,7 +3588,7 @@ public:
     
     string Getstring(short idthread) {
         if (first) {
-            val = (Tamgudecimal*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgudecimal*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return convertfromnumber(val->value);
@@ -3612,7 +3596,7 @@ public:
     
     wstring Getustring(short idthread) {
         if (first) {
-            val = (Tamgudecimal*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgudecimal*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return wconvertfromnumber(val->value);
@@ -3630,7 +3614,7 @@ public:
     
     long Integer() {
         if (first) {
-            val = (Tamgufloat*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamgufloat*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3638,7 +3622,7 @@ public:
     
     BLONG Long() {
         if (first) {
-            val = (Tamgufloat*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamgufloat*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3646,7 +3630,7 @@ public:
     
     short Short() {
         if (first) {
-            val = (Tamgufloat*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamgufloat*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3654,7 +3638,7 @@ public:
     
     float Decimal() {
         if (first) {
-            val = (Tamgufloat*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamgufloat*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3662,7 +3646,7 @@ public:
     
     double Float() {
         if (first) {
-            val = (Tamgufloat*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamgufloat*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3670,7 +3654,7 @@ public:
     
     string String() {
         if (first) {
-            val = (Tamgufloat*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamgufloat*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return convertfromnumber(val->value);
@@ -3678,7 +3662,7 @@ public:
     
     wstring UString() {
         if (first) {
-            val = (Tamgufloat*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamgufloat*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return wconvertfromnumber(val->value);
@@ -3686,7 +3670,7 @@ public:
     
     void Setstring(string& v, short idthread) {
         if (first) {
-            val = (Tamgufloat*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgufloat*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         convertnumber(val->value, v);
@@ -3694,7 +3678,7 @@ public:
     
     void Setstring(wstring& v, short idthread) {
         if (first) {
-            val = (Tamgufloat*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgufloat*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         convertnumber(val->value, v);
@@ -3702,7 +3686,7 @@ public:
 
     Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread) {
         if (first) {
-            val = (Tamgufloat*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgufloat*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val;
@@ -3710,7 +3694,7 @@ public:
     
     long Getinteger(short idthread) {
         if (first) {
-            val = (Tamgufloat*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgufloat*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3718,7 +3702,7 @@ public:
     
     BLONG Getlong(short idthread) {
         if (first) {
-            val = (Tamgufloat*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgufloat*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3726,7 +3710,7 @@ public:
     
     short Getshort(short idthread) {
         if (first) {
-            val = (Tamgufloat*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgufloat*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3734,7 +3718,7 @@ public:
     
     float Getdecimal(short idthread) {
         if (first) {
-            val = (Tamgufloat*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgufloat*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3742,7 +3726,7 @@ public:
     
     double Getfloat(short idthread) {
         if (first) {
-            val = (Tamgufloat*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgufloat*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3750,7 +3734,7 @@ public:
     
     string Getstring(short idthread) {
         if (first) {
-            val = (Tamgufloat*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgufloat*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return convertfromnumber(val->value);
@@ -3758,7 +3742,7 @@ public:
     
     wstring Getustring(short idthread) {
         if (first) {
-            val = (Tamgufloat*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgufloat*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return wconvertfromnumber(val->value);
@@ -3776,7 +3760,7 @@ public:
     
     long Integer() {
         if (first) {
-            val = (Tamgulong*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamgulong*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3784,7 +3768,7 @@ public:
     
     BLONG Long() {
         if (first) {
-            val = (Tamgulong*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamgulong*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3792,7 +3776,7 @@ public:
     
     short Short() {
         if (first) {
-            val = (Tamgulong*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamgulong*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3800,7 +3784,7 @@ public:
     
     float Decimal() {
         if (first) {
-            val = (Tamgulong*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamgulong*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3808,7 +3792,7 @@ public:
     
     double Float() {
         if (first) {
-            val = (Tamgulong*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamgulong*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3816,7 +3800,7 @@ public:
     
     string String() {
         if (first) {
-            val = (Tamgulong*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamgulong*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return convertfromnumber(val->value);
@@ -3824,7 +3808,7 @@ public:
     
     wstring UString() {
         if (first) {
-            val = (Tamgulong*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamgulong*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return wconvertfromnumber(val->value);
@@ -3832,7 +3816,7 @@ public:
     
     void Setstring(string& v, short idthread) {
         if (first) {
-            val = (Tamgulong*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgulong*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         v = convertfromnumber(val->value);
@@ -3840,7 +3824,7 @@ public:
     
     void Setstring(wstring& v, short idthread) {
         if (first) {
-            val = (Tamgulong*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgulong*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         v = wconvertfromnumber(val->value);
@@ -3848,7 +3832,7 @@ public:
 
     Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread) {
         if (first) {
-            val = (Tamgulong*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgulong*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val;
@@ -3856,7 +3840,7 @@ public:
     
     long Getinteger(short idthread) {
         if (first) {
-            val = (Tamgulong*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgulong*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3864,7 +3848,7 @@ public:
     
     BLONG Getlong(short idthread) {
         if (first) {
-            val = (Tamgulong*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgulong*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3872,7 +3856,7 @@ public:
     
     short Getshort(short idthread) {
         if (first) {
-            val = (Tamgulong*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgulong*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3880,7 +3864,7 @@ public:
     
     float Getdecimal(short idthread) {
         if (first) {
-            val = (Tamgulong*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgulong*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3888,7 +3872,7 @@ public:
     
     double Getfloat(short idthread) {
         if (first) {
-            val = (Tamgulong*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgulong*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3896,7 +3880,7 @@ public:
     
     string Getstring(short idthread) {
         if (first) {
-            val = (Tamgulong*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgulong*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return convertfromnumber(val->value);
@@ -3904,7 +3888,7 @@ public:
     
     wstring Getustring(short idthread) {
         if (first) {
-            val = (Tamgulong*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgulong*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return wconvertfromnumber(val->value);
@@ -3921,7 +3905,7 @@ public:
     
     long Integer() {
         if (first) {
-            val = (Tamgustring*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamgustring*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->Integer();
@@ -3929,7 +3913,7 @@ public:
     
     BLONG Long() {
         if (first) {
-            val = (Tamgustring*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamgustring*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->Long();
@@ -3937,7 +3921,7 @@ public:
     
     short Short() {
         if (first) {
-            val = (Tamgustring*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamgustring*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->Short();
@@ -3945,7 +3929,7 @@ public:
     
     float Decimal() {
         if (first) {
-            val = (Tamgustring*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamgustring*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->Decimal();
@@ -3953,7 +3937,7 @@ public:
     
     double Float() {
         if (first) {
-            val = (Tamgustring*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamgustring*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->Float();
@@ -3961,7 +3945,7 @@ public:
     
     string String() {
         if (first) {
-            val = (Tamgustring*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamgustring*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -3969,7 +3953,7 @@ public:
     
     wstring UString() {
         if (first) {
-            val = (Tamgustring*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamgustring*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->UString();
@@ -3977,7 +3961,7 @@ public:
     
     void Setstring(string& v, short idthread) {
         if (first) {
-            val = (Tamgustring*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgustring*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         val->Setstring(v, idthread);
@@ -3985,7 +3969,7 @@ public:
     
     void Setstring(wstring& v, short idthread) {
         if (first) {
-            val = (Tamgustring*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgustring*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         val->Setstring(v, idthread);
@@ -3993,7 +3977,7 @@ public:
 
     Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread) {
         if (first) {
-            val = (Tamgustring*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgustring*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val;
@@ -4001,7 +3985,7 @@ public:
     
     long Getinteger(short idthread) {
         if (first) {
-            val = (Tamgustring*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgustring*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->Integer();
@@ -4009,7 +3993,7 @@ public:
     
     BLONG Getlong(short idthread) {
         if (first) {
-            val = (Tamgustring*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgustring*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->Long();
@@ -4017,7 +4001,7 @@ public:
     
     short Getshort(short idthread) {
         if (first) {
-            val = (Tamgustring*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgustring*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->Short();
@@ -4025,7 +4009,7 @@ public:
     
     float Getdecimal(short idthread) {
         if (first) {
-            val = (Tamgustring*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgustring*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->Decimal();
@@ -4033,7 +4017,7 @@ public:
     
     double Getfloat(short idthread) {
         if (first) {
-            val = (Tamgustring*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgustring*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->Float();
@@ -4041,7 +4025,7 @@ public:
     
     wstring Getustring(short idthread) {
         if (first) {
-            val = (Tamgustring*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgustring*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->UString();
@@ -4049,7 +4033,7 @@ public:
     
     string Getstring(short idthread) {
         if (first) {
-            val = (Tamgustring*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamgustring*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->String();
@@ -4066,7 +4050,7 @@ public:
     
     Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread) {
         if (first) {
-            val = (Tamguustring*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamguustring*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val;
@@ -4074,7 +4058,7 @@ public:
     
     long Integer() {
         if (first) {
-            val = (Tamguustring*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamguustring*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->Integer();
@@ -4082,7 +4066,7 @@ public:
     
     BLONG Long() {
         if (first) {
-            val = (Tamguustring*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamguustring*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->Long();
@@ -4090,7 +4074,7 @@ public:
     
     short Short() {
         if (first) {
-            val = (Tamguustring*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamguustring*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->Short();
@@ -4098,7 +4082,7 @@ public:
     
     float Decimal() {
         if (first) {
-            val = (Tamguustring*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamguustring*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->Decimal();
@@ -4106,7 +4090,7 @@ public:
     
     double Float() {
         if (first) {
-            val = (Tamguustring*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamguustring*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->Float();
@@ -4114,7 +4098,7 @@ public:
     
     string String() {
         if (first) {
-            val = (Tamguustring*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamguustring*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->String();
@@ -4122,7 +4106,7 @@ public:
     
     wstring UString() {
         if (first) {
-            val = (Tamguustring*)globalTamgu->threads[globalTamgu->GetThreadid()].variables.get(name).vecteur[1];
+            val = (Tamguustring*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->value;
@@ -4130,7 +4114,7 @@ public:
     
     void Setstring(string& v, short idthread) {
         if (first) {
-            val = (Tamguustring*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamguustring*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         val->Setstring(v, idthread);
@@ -4138,7 +4122,7 @@ public:
     
     void Setstring(wstring& v, short idthread) {
         if (first) {
-            val = (Tamguustring*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamguustring*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         val->Setstring(v, idthread);
@@ -4146,7 +4130,7 @@ public:
 
     long Getinteger(short idthread) {
         if (first) {
-            val = (Tamguustring*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamguustring*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->Integer();
@@ -4154,7 +4138,7 @@ public:
     
     BLONG Getlong(short idthread) {
         if (first) {
-            val = (Tamguustring*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamguustring*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->Long();
@@ -4162,7 +4146,7 @@ public:
     
     short Getshort(short idthread) {
         if (first) {
-            val = (Tamguustring*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamguustring*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->Short();
@@ -4170,7 +4154,7 @@ public:
     
     float Getdecimal(short idthread) {
         if (first) {
-            val = (Tamguustring*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamguustring*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->Decimal();
@@ -4178,7 +4162,7 @@ public:
     
     double Getfloat(short idthread) {
         if (first) {
-            val = (Tamguustring*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamguustring*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->Float();
@@ -4186,7 +4170,7 @@ public:
     
     wstring Getustring(short idthread) {
         if (first) {
-            val = (Tamguustring*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamguustring*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->UString();
@@ -4194,7 +4178,7 @@ public:
     
     string Getstring(short idthread) {
         if (first) {
-            val = (Tamguustring*)globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+            val = (Tamguustring*)globalTamgu->threads[0].variables.get(name).stable[1];
             first = false;
         }
         return val->String();
@@ -4208,43 +4192,43 @@ public:
     
     
     Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread) {
-        return globalTamgu->threads[idthread].variables.get(name).vecteur[1];
+        return globalTamgu->threads[0].variables.get(name).stable[1];
     }
     
     long Getinteger(short idthread) {
-        return globalTamgu->threads[idthread].variables.get(name).vecteur[1]->Integer();
+        return globalTamgu->threads[0].variables.get(name).stable[1]->Integer();
     }
     
     BLONG Getlong(short idthread) {
-        return globalTamgu->threads[idthread].variables.get(name).vecteur[1]->Long();
+        return globalTamgu->threads[0].variables.get(name).stable[1]->Long();
     }
     
     short Getshort(short idthread) {
-        return globalTamgu->threads[idthread].variables.get(name).vecteur[1]->Short();
+        return globalTamgu->threads[0].variables.get(name).stable[1]->Short();
     }
     
     float Getdecimal(short idthread) {
-        return globalTamgu->threads[idthread].variables.get(name).vecteur[1]->Decimal();
+        return globalTamgu->threads[0].variables.get(name).stable[1]->Decimal();
     }
     
     double Getfloat(short idthread) {
-        return globalTamgu->threads[idthread].variables.get(name).vecteur[1]->Float();
+        return globalTamgu->threads[0].variables.get(name).stable[1]->Float();
     }
     
     string Getstring(short idthread) {
-        return globalTamgu->threads[idthread].variables.get(name).vecteur[1]->String();
+        return globalTamgu->threads[0].variables.get(name).stable[1]->String();
     }
     
     wstring Getustring(short idthread) {
-        return globalTamgu->threads[idthread].variables.get(name).vecteur[1]->UString();
+        return globalTamgu->threads[0].variables.get(name).stable[1]->UString();
     }
     
     void Setstring(string& v, short idthread) {
-        globalTamgu->threads[idthread].variables.get(name).vecteur[1]->Setstring(v, idthread);
+        globalTamgu->threads[0].variables.get(name).stable[1]->Setstring(v, idthread);
     }
     
     void Setstring(wstring& v, short idthread) {
-        globalTamgu->threads[idthread].variables.get(name).vecteur[1]->Setstring(v, idthread);
+        globalTamgu->threads[0].variables.get(name).stable[1]->Setstring(v, idthread);
     }
 
     Tamgu* update(short idthread) {
@@ -4275,43 +4259,43 @@ public:
     
     
     Tamgu* Eval(Tamgu* context, Tamgu* value, short idthread) {
-        return globalTamgu->threads[idthread].variables.get(name).vecteur[1]->Value();
+        return globalTamgu->threads[0].variables.get(name).stable[1]->Value();
     }
     
     long Getinteger(short idthread) {
-        return globalTamgu->threads[idthread].variables.get(name).vecteur[1]->Value()->Integer();
+        return globalTamgu->threads[0].variables.get(name).stable[1]->Value()->Integer();
     }
     
     BLONG Getlong(short idthread) {
-        return globalTamgu->threads[idthread].variables.get(name).vecteur[1]->Value()->Long();
+        return globalTamgu->threads[0].variables.get(name).stable[1]->Value()->Long();
     }
     
     short Getshort(short idthread) {
-        return globalTamgu->threads[idthread].variables.get(name).vecteur[1]->Value()->Short();
+        return globalTamgu->threads[0].variables.get(name).stable[1]->Value()->Short();
     }
     
     float Getdecimal(short idthread) {
-        return globalTamgu->threads[idthread].variables.get(name).vecteur[1]->Value()->Decimal();
+        return globalTamgu->threads[0].variables.get(name).stable[1]->Value()->Decimal();
     }
     
     double Getfloat(short idthread) {
-        return globalTamgu->threads[idthread].variables.get(name).vecteur[1]->Value()->Float();
+        return globalTamgu->threads[0].variables.get(name).stable[1]->Value()->Float();
     }
     
     string Getstring(short idthread) {
-        return globalTamgu->threads[idthread].variables.get(name).vecteur[1]->Value()->String();
+        return globalTamgu->threads[0].variables.get(name).stable[1]->Value()->String();
     }
     
     wstring Getustring(short idthread) {
-        return globalTamgu->threads[idthread].variables.get(name).vecteur[1]->Value()->UString();
+        return globalTamgu->threads[0].variables.get(name).stable[1]->Value()->UString();
     }
     
     void Setstring(string& v, short idthread) {
-        globalTamgu->threads[idthread].variables.get(name).vecteur[1]->Value()->Setstring(v, idthread);
+        globalTamgu->threads[0].variables.get(name).stable[1]->Value()->Setstring(v, idthread);
     }
     
     void Setstring(wstring& v, short idthread) {
-        globalTamgu->threads[idthread].variables.get(name).vecteur[1]->Value()->Setstring(v, idthread);
+        globalTamgu->threads[0].variables.get(name).stable[1]->Value()->Setstring(v, idthread);
     }
 
 

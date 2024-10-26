@@ -1138,10 +1138,8 @@ class BComp {
     Tamgubyte s;
 
     BComp(TamguFunction* comp, short idt) : compare(comp), p(0), s(0), idthread(idt) {
-        p.Setreference();
-        s.Setreference();
-        compare.arguments.push_back(&p);
-        compare.arguments.push_back(&s);
+        compare.Push(&p);
+        compare.Push(&s);
     }
 
     bool get() {

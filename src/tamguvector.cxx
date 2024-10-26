@@ -237,12 +237,14 @@ Exporting void Tamguvectorbuff::Resetreference(short inc) {
     else {
         resetVector(this, inc + 1 - protect);
         if (!protect) {
-            reference = 0;
-            protect = true;
-            
-            values.clear();
             if (!globalTamgu->threadMODE && used)
                 globalTamgu->vectorempties.push_back(idx);
+
+            values.clear();
+            shape.clear();            
+            reference = 0;
+            protect = true;
+            merge = false;
             used = false;
         }
     }

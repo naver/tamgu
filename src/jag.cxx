@@ -610,7 +610,8 @@ jag_editor::jag_editor() : lines(this) {
     freopen("/dev/tty", "rw", stdin);
 
     tcgetattr(0, &oldterm);
-
+    promptmode = false;
+    
     //We enable ctrl-s and ctrl-q within the editor
     termios theterm;
     tcgetattr(0, &theterm);
@@ -639,6 +640,7 @@ jag_editor::jag_editor() : lines(this) {
     margin = 3;
 
     noprefix = false;
+    current_no_prefix = false;
     tooglehelp = false;
     regularexpressionfind = false;
     findrgx = NULL;
@@ -690,6 +692,70 @@ jag_editor::jag_editor() : lines(this) {
     taskel = true;
 
     JAGEDITOR = this;
+}
+
+
+jag_editor::jag_editor(string prf) : lines(this) {
+    activate_mouse = false;
+    vt100 = false;
+    mouse_status = false;
+    
+    linematch = -1;
+    selected_x = -1;
+    selected_firstline = -1;
+    selected_y = -1;
+    selected_pos = -1;
+    selected_posnext = -1;
+    double_click = 0;
+    nbclicks = 0;
+
+    insertaline = false;
+    margin = 3;
+
+    noprefix = false;
+    current_no_prefix = false;
+    tooglehelp = false;
+    regularexpressionfind = false;
+    findrgx = NULL;
+
+    #ifdef Tamgu_REGEX
+        wpattern = NULL;
+    #endif
+
+    promptmode = true;
+
+    xcursor = 0;
+    ycursor = 0;
+
+    colors.push_back(m_red);
+    colors.push_back(m_dore);
+    colors.push_back(m_blue);
+    colors.push_back(m_gray);
+    colors.push_back(m_green);
+    colors.push_back(m_selectgray);
+
+    poscommand = 0;
+    echochar = false;
+    option = x_none;
+    pos = 0;
+    posinstring  = 0;
+    currentline = 0;
+    currentfindpos = 0;
+    currentposinstring = -1;
+
+    prefix = prf;
+    wprefix = wconvert(prf);
+    prefixsize = (int)size_of_prefix();
+    
+    replaceall = false;
+    modified = true;
+    tobesaved = false;
+    inittableutf8();
+    row_size = -1;
+    col_size = -1;
+    screensizes();
+    updateline = true;
+    taskel = true;
 }
 
 jag_editor::~jag_editor() {
@@ -1093,13 +1159,15 @@ void jag_editor::screensizes() {
 	if (col_size < 0)
 		col_size = 190;
 #endif
-	//We set the botton limit for scrolling
-	char buff[] = { 0,0,0,0,0,0 };
-	sprintf_s(buff,4, "%0.3ld", row_size+2);
-	m_scrollmargin[6] = buff[0];
-	m_scrollmargin[7] = buff[1];
-	m_scrollmargin[8] = buff[2];
-	cout << m_scrollmargin;
+    if (!promptmode) {
+        //We set the botton limit for scrolling
+        char buff[] = { 0,0,0,0,0,0 };
+        sprintf_s(buff,4, "%0.3ld", row_size+2);
+        m_scrollmargin[6] = buff[0];
+        m_scrollmargin[7] = buff[1];
+        m_scrollmargin[8] = buff[2];
+        cout << m_scrollmargin;
+    }
 }
 
 void jag_editor::reset() {
@@ -1138,6 +1206,10 @@ long jag_editor::sizestring(wstring& s) {
     long sz = s.size();
     long szstr = 0;
     for (long i = 0; i < sz; i++) {
+        if (s[i] == 27) {
+            while (i < sz && s[i] != 'm') i++;
+            continue;
+        }
         if (!scan_emoji(s, i)) {
             getachar(s, i);
         }
@@ -1151,6 +1223,10 @@ long jag_editor::size_upto(wstring& s, long p) {
     long pos = pref;
     TAMGUCHAR c;
     for (long i = 0; i < p; i++) {
+        if (s[i] == 27) {
+            while (i < p && s[i] != 'm') i++;
+            continue;
+        }
         if (scan_emoji(s, i))
             pos += 2;
         else {
@@ -1174,6 +1250,11 @@ long jag_editor::taille(wstring& s) {
     long pos = pref;
     TAMGUCHAR c;
     for (long i = 0; i < sz; i++) {
+        if (s[i] == 27) {
+            while (i < sz && s[i] != 'm') i++;
+            continue;
+        }
+
         if (scan_emoji(s, i))
             pos += 2;
         else {
@@ -1191,10 +1272,34 @@ long jag_editor::taille(wstring& s) {
     return (pos-pref);
 }
 
+long jag_editor::size_of_prefix() {
+    long sz = 0;
+    TAMGUCHAR c;
+    for (long i = 0; i < wprefix.size(); i++) {
+        if (wprefix[i] == 27) {
+            while (i < wprefix.size() && wprefix[i] != 'm') i++;
+            continue;
+        }
+        if (scan_emoji(wprefix, i))
+            sz += 2;
+        else {
+            c = getachar(wprefix, i);
+            if (ckjchar(c)) {
+                sz += 2;
+            }
+            else {
+                if (c == 9) //tab position
+                    sz += (8 - (pos%8))%8;
+                sz++;
+            }
+        }
+    }
+    return sz;
+}
+
 
 string jag_editor::coloringline(wstring& l, long current_pos, bool select) {
     string line = convert(l);
-
     string sub;
     string substring;
 
@@ -1409,6 +1514,17 @@ bool jag_editor::updown(char drt, long& pos) {
 
     char exec = 0;
     if (drt == is_up) { // we are going up
+        if (promptmode) {
+            if (pos > 0) {
+                --pos;
+                line = lines[pos];
+            }
+            posinstring = linesize();
+            clearline();
+            printline(pos, line);
+            return true;
+        }
+        
         currentline--;
         if (currentline < 0) {
                 //we need to scroll down...
@@ -1434,6 +1550,21 @@ bool jag_editor::updown(char drt, long& pos) {
         }
     }
     else {
+        if (promptmode) {
+            if (pos < lines.size()) {
+                ++pos;
+                if (pos < lines.size()) {
+                    line = lines[pos];
+                }
+                else
+                    line = L"";
+            }
+            posinstring = linesize();
+            clearline();
+            printline(pos, line);
+            return true;
+        }
+
         if ((currentline+1) >= poslines.size()) {
             if (pos < (sz -1)) {
 				resetlist(poslines[0] + 1);
@@ -1955,11 +2086,13 @@ void jag_editor::displaylist(long beg) {
         string space(prefixe(), ' ');
         if (noprefix)
             blk << coloringline(lines[i], i) << endl;
-        else
-        if (lines.status[i] == concat_line)
-            blk << space << coloringline(lines[i], i) << endl;
-        else
-            blk << m_dore << prefix << m_current << m_lightgray << std::setw(prefixsize) << lines.numeros[i] << "> " << m_current << coloringline(lines[i], i) << endl;
+        else {
+            if (lines.status[i] == concat_line)
+                blk << space << coloringline(lines[i], i) << endl;
+            else {
+                blk << m_dore << prefix << m_current << m_lightgray << std::setw(prefixsize) << lines.numeros[i] << "> " << m_current << coloringline(lines[i], i) << endl;
+            }
+        }
         nb++;
         if (nb > row_size) // we have displayed all lines
             break;
@@ -2893,6 +3026,7 @@ bool jag_editor::evaluateescape(string& buff) {
 }
 
 void jag_editor::init() {
+    promptmode = false;
     lines.clear();
     lines.push(L"");
     poslines.clear();
@@ -3173,8 +3307,13 @@ bool jag_editor::checkaction(string& buff, long& first, long& last, bool lisp) {
 #endif
                  //we need to check the different options...
             switch (option) {
-                case x_none:
+                case x_none: {
+                    if (promptmode) {
+                        option = x_exitprompt;
+                        return true;
+                    }
                     break;
+                }
                 case x_goto: //go to
                     processgo();
                     option = x_none;
@@ -3540,19 +3679,21 @@ void jag_editor::addabuffer(wstring& b, bool instring) {
 
         clearline();
         line = code;
-        displaygo(true);
-        if (b[0] == ')' || b[0] == '}' || b[0] == ']') {
-            string ln = convert(line);
-            long posmatch = computeparenthesis(ln, b[0], posinstring);
-            if (posmatch != -1) {
-                linematch = pos;
-                lines[pos] = line;
-                string res = ln.substr(0, posmatch);
-                res += m_redbold;
-                res += ln[posmatch];
-                res += m_current;
-                res += ln.substr(posmatch+1,ln.size());
-                printline(pos+1, res);
+        if (!promptmode) {
+            displaygo(true);
+            if (b[0] == ')' || b[0] == '}' || b[0] == ']') {
+                string ln = convert(line);
+                long posmatch = computeparenthesis(ln, b[0], posinstring);
+                if (posmatch != -1) {
+                    linematch = pos;
+                    lines[pos] = line;
+                    string res = ln.substr(0, posmatch);
+                    res += m_redbold;
+                    res += ln[posmatch];
+                    res += m_current;
+                    res += ln.substr(posmatch+1,ln.size());
+                    printline(pos+1, res);
+                }
             }
         }
         posinstring += b.size();
@@ -3564,54 +3705,57 @@ void jag_editor::addabuffer(wstring& b, bool instring) {
     //We extend our line...
     line += b;
 
-    if (b[0]=='"' || b[0]=='\'')
-        instring = 1 - instring;
-
     bool fndchr =  false;
-    if (b[0] == ')' || b[0] == '}' || b[0] == ']') {
-        fndchr = true;
-        if (!instring && emode() && isitempty(line, b[0])) {
-            long sp = lines.indent(pos) - GetBlankSize();
-            if (sp > 0) {
-                wstring space(sp, ' ');
-                line = space;
-                posinstring = sp;
-                line += b;
+    
+    if (!promptmode) {
+        if (b[0]=='"' || b[0]=='\'')
+            instring = 1 - instring;
+        
+        if (b[0] == ')' || b[0] == '}' || b[0] == ']') {
+            fndchr = true;
+            if (!instring && emode() && isitempty(line, b[0])) {
+                long sp = lines.indent(pos) - GetBlankSize();
+                if (sp > 0) {
+                    wstring space(sp, ' ');
+                    line = space;
+                    posinstring = sp;
+                    line += b;
+                }
+                else {
+                    line = b;
+                    posinstring = 0;
+                }
+                printline(pos, line, -1);
             }
             else {
-                line = b;
-                posinstring = 0;
-            }
-            printline(pos, line, -1);
-        }
-        else {
-            string ln = convert(line);
-            long posmatch = computeparenthesis(ln, b[0], ln.size()-1);
-
-            if (posmatch != -1) {
-                if (emode()) {
-                    linematch = pos;
-                    lines[pos] = line;
+                string ln = convert(line);
+                long posmatch = computeparenthesis(ln, b[0], ln.size()-1);
+                
+                if (posmatch != -1) {
+                    if (emode()) {
+                        linematch = pos;
+                        lines[pos] = line;
+                    }
+                    else
+                        linematch = -2;
+                    string res = ln.substr(0, posmatch);
+                    res += m_redbold;
+                    res += ln[posmatch];
+                    res += m_current;
+                    res += ln.substr(posmatch+1,ln.size());
+                    wstring lsave = line;
+                    line = L"";
+                    s_utf8_to_unicode(line, USTR(res), res.size());
+                    displaygo(true);
+                    line = lsave;
+                    posinstring += b.size();
+                    movetoposition();
+                    return;
                 }
-                else
-                    linematch = -2;
-                string res = ln.substr(0, posmatch);
-                res += m_redbold;
-                res += ln[posmatch];
-                res += m_current;
-                res += ln.substr(posmatch+1,ln.size());
-                wstring lsave = line;
-                line = L"";
-                s_utf8_to_unicode(line, USTR(res), res.size());
-                displaygo(true);
-                line = lsave;
-                posinstring += b.size();
-                movetoposition();
-                return;
             }
         }
     }
-
+    
     posinstring += b.size();
 
     if (emode()) {
@@ -3654,8 +3798,99 @@ void jag_editor::addabuffer(wstring& b, bool instring) {
     }
 }
 
+wstring jag_editor::kbget(string prf) {
+
+    prefix = prf;
+    wprefix = wconvert(prf);
+    prefixsize = (int)size_of_prefix();
+    line = L"";
+    noprefix = true;
+    promptmode = true;
+    if (!lines.size()) {
+        lines.push(L"");
+        poslines.push_back(0);
+        pos = 0;
+    }
+    
+    posinstring = 0;
+    kbuffer = L"";
+    currentline = 0;
+    printline(1);
+
+    option = x_none;
+    
+    wstring bl;
+    wstring b;
+    
+    wstring code;
+    string buffer;
+    bool inbuffer = false;
+    
+    bool instring = false;
+    string buff;
+    long first = 0, last;
+    
+    
+    double_click = 0;
+    selected_x = -1;
+    selected_y = -1;
+    selected_pos = -1;
+    
+    while (1) {
+        if (option == x_exitprompt) {
+            cout << endl;
+            if (line != L"") {
+                lines.push(line);
+                pos = lines.size();
+            }
+            return line;
+        }
+
+        buff = getch();
+        
+        if (checkaction(buff, first, last)) {
+            double_click = 0;
+            if (buff[0] != 24) {
+                selected_x = -1;
+                selected_y = -1;
+                selected_pos = -1;
+            }
+            continue;
+        }
+        
+        if (inbuffer) {
+            buffer += buff;
+            buff = buffer;
+            inbuffer = false;
+        }
+        
+        if (buff.size() == _getbuffsize)
+            inbuffer = check_utf8(buff, buffer);
+        
+        bl = wconvert(buff);
+        cleanheaders(bl);
+        
+        //Only one character to add, no need for further inspection, no CR in the string as well
+        if (bl.size() == 1 || buff.find(10) == -1) {
+            addabuffer(bl, instring);
+            continue;
+        }
+        
+        for (long j = 0; j < bl.size(); j++) {
+            b = bl[j];
+            if (b[0] == 10) {
+                pos = handlingeditorline(false);
+                continue;
+            }
+            addabuffer(b, instring);
+        }
+    }
+    return L"";
+}
+    
+    
 //This is the main method that launches the terminal
-void jag_editor::launchterminal(char loadedcode, vector<string>& newcolors) {
+void jag_editor::launchterminal(char loadedcode, vector<string>& newcolors, bool no_numbering) {
 
     if (newcolors.size())
         colors = newcolors;
@@ -3685,6 +3920,9 @@ void jag_editor::launchterminal(char loadedcode, vector<string>& newcolors) {
     string buff;
     long first = 0, last;
 
+    if (no_numbering)
+        noprefix = true;
+    
     while (1) {
         buff = getch();
 

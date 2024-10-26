@@ -257,26 +257,22 @@ static void Init()
 
 static size_t call_writing(char *ptr, size_t size, size_t nmemb, Tamgucurl *userdata)
 {
-	int max = size * nmemb;
-
+	size_t real_size = size * nmemb;
+	
 	TamguCallFunction kfunc(userdata->function);
 
-	string s;
-	for (int i = 0; i < max; i++)
-		s += ptr[i];
-
-	Tamgustring *kstr = globalTamgu->Providestring(s);
-	kstr->Setreference();
-	userdata->object->Setreference();
-	kfunc.arguments.push_back(kstr);
-	kfunc.arguments.push_back(userdata->object);
+	Tamgustring *kstr = globalTamgu->Providestring();
+	kstr->value.append(static_cast<char*>(ptr), real_size);
+	
+	kfunc.Push(kstr);
+	kfunc.Push(userdata->object);
 
 	kfunc.Eval(aNULL, aNULL, userdata->thread_id);
 
-	kstr->Resetreference();
-	userdata->object->Protect();
+	kfunc.Popping(); //we remove the object with protection (we do not want to delete it)
+	kfunc.Pop(); //We remove the object and deletes it if necessary...
 
-	return max;
+	return real_size;
 }
 
 // We need to declare once again our local definitions.

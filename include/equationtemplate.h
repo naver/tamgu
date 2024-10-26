@@ -4472,16 +4472,12 @@ public:
         return b_type;
     }
 
-    bool Computevariablecheck(short idthread) {        
-        for (long i = 0; i < vars.size(); i++) {
-            if (!globalTamgu->threads[idthread].variables.check(vars[i]))
-                return false;
-            
-            VECTE<Tamgu*>& e = globalTamgu->threads[idthread].variables.get(vars[i]);
-            if (e.size() == 0)
-                return false;
+    bool Computevariablecheck(short idthread) {
+        bool check = true;
+        for (long i = 0; i < vars.size() && check; i++) {
+            check = globalTamgu->threads[idthread].variables.check(vars[i]) && !globalTamgu->threads[idthread].variables.get(vars[i]).empty();
         }
-        return true;
+        return check;
     }
 
     void ScanVariables(vector<short>& variables) {

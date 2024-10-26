@@ -69,6 +69,7 @@ void Tamgufile::Setidtype(TamguGlobal* global) {
     Tamgufile::AddMethod(global, "seek", &Tamgufile::MethodSeek, P_ONE, "seek(int p): position the curson at p in the file.");
     Tamgufile::AddMethod(global, "unget", &Tamgufile::MethodUnget, P_ONE, "unget(int c): return character c in the file.");
     Tamgufile::AddMethod(global, "write", &Tamgufile::MethodWrite, P_ONE, "write(string c): write string s in the file.");
+    Tamgufile::AddMethod(global, "writejson", &Tamgufile::MethodWriteJSON, P_ONE, "writejson(auto c): write a JSON structure in file.");
     Tamgufile::AddMethod(global, "writeln", &Tamgufile::MethodWriteln, P_ONE, "writeln(string c): write string s in the file, with a final carriage return.");
     Tamgufile::AddMethod(global, "writebin", &Tamgufile::MethodWritebin, P_ONE, "writebin(byte c|bvector b): write one byte to the file or the content of a byte vector.");
     Tamgufile::AddMethod(global, "writeutf16", &Tamgufile::MethodWriteutf16, P_ONE | P_TWO, "writeutf16(ustring s, bool addln): write UTF16 characters to the file. when addln is true, works as writeln.");
@@ -347,3 +348,97 @@ Tamgu* Tamgufile::Filter(short idthread, Tamgu* env, TamguFunctionLambda* bd, Ta
     return accu->Value();
 }
 
+Tamgu* Tamgufile::MethodWriteJSON(Tamgu* context, short idthread, TamguCall* callfunc) {
+    locking();
+    if (thefile == NULL || feof(thefile) || op == "rb") {
+        unlocking();
+        return globalTamgu->Returnerror(e_wrong_access_to, idthread);
+    }
+
+
+    if (first) {
+        if (signature) {
+            putc(239, thefile);
+            putc(187, thefile);
+            putc(191, thefile);
+        }
+        first = false;
+    }
+
+    Tamgu* a  = callfunc->Evaluate(0, context, idthread);
+    if (a->isVectorContainer())
+        a = storevector(a, idthread);
+    else {
+        if (a->isMapContainer())
+            a = storemap(a, idthread);
+        else {
+            string s = a->JSonString();
+            fwrite(STR(s), 1, s.size(), thefile);
+        }
+    }
+    unlocking();
+    return aTRUE;
+}
+
+Tamgu* Tamgufile::storevector(Tamgu* a, short idthread) {
+    TamguIteration* it = a->Newiteration(false);
+    string key = "[";
+    fwrite(STR(key), 1, key.size(), thefile);
+    bool first = true;
+    for (it->Begin(); it->End() == aFALSE; it->Next()) {
+        if (!first) {
+            key = ",";
+            fwrite(STR(key), 1, key.size(), thefile);
+        }
+        else
+            first = false;
+        a = it->Value();
+        if (a->isVectorContainer())
+            storevector(a, idthread);
+        else {
+            if (a->isMapContainer())
+                storemap(a, idthread);
+            else {
+                key = a->JSonString();
+                fwrite(STR(key), 1, key.size(), thefile);
+            }
+        }
+    }
+    key = "]";
+    fwrite(STR(key), 1, key.size(), thefile);
+    it->Release();
+    return aTRUE;
+}
+
+Tamgu* Tamgufile::storemap(Tamgu* a, short idthread) {
+    TamguIteration* it = a->Newiteration(false);
+    string key = "{";
+    fwrite(STR(key), 1, key.size(), thefile);
+    bool first = true;
+    for (it->Begin(); it->End() == aFALSE; it->Next()) {
+        if (!first) {
+            key = ",";
+            fwrite(STR(key), 1, key.size(), thefile);
+        }
+        else
+            first = false;
+        jstringing_c(key, it->Keystring());
+        key += ":";
+        fwrite(STR(key), 1, key.size(), thefile);
+        a = it->Value();
+        if (a->isVectorContainer())
+            storevector(a, idthread);
+        else {
+            if (a->isMapContainer())
+                storemap(a, idthread);
+            else {
+                key = a->JSonString();
+                fwrite(STR(key), 1, key.size(), thefile);
+            }
+        }
+    }
+    key = "}";
+    fwrite(STR(key), 1, key.size(), thefile);
+    it->Release();
+    return aTRUE;
+}

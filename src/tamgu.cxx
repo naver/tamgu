@@ -45,7 +45,7 @@
 #include "tamgusocket.h"
 #include "tamgudate.h"
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2024.09.13.14";
+const char* tamgu_version = "Tamgu 1.2024.10.25.16";
 
 #ifdef UNIX
 #include <sys/resource.h>
@@ -97,6 +97,7 @@ void GlobalConstants::clean() {
         delete gBREAKONE;
         delete gASSIGNMENT;
         delete gFAIL;
+        delete gPREDICATETRUE;
         delete gTERMINAL;
         delete gCUTFALSE;
         delete gCUT;
@@ -135,6 +136,7 @@ void GlobalConstants::clean() {
         gASSIGNMENT= NULL;
         gITERNULL= NULL;
         gFAIL= NULL;
+        gPREDICATETRUE = NULL;
         gTERMINAL= NULL;
         gCUTFALSE= NULL;
         gCUT= NULL;
@@ -1425,7 +1427,9 @@ Exporting void TamguGlobal::RecordCompatibilities() {
         compatibilities[a_let][ty] = true;
         compatibilities[ty][a_self] = true;
         compatibilities[ty][a_let] = true;
-        
+
+        compatibilities[ty][a_lisp] = true;
+
         compatibilities[ty][a_call] = true;
         compatibilities[ty][a_function] = true;
         compatibilities[ty][a_callfunction] = true;
@@ -1440,6 +1444,8 @@ Exporting void TamguGlobal::RecordCompatibilities() {
         compatibilities[a_boolean][ty] = true;
         
         strictcompatibilities[ty][ty] = true;
+        
+        strictcompatibilities[ty][a_lisp] = true;
         
         strictcompatibilities[a_self][ty] = true;
         strictcompatibilities[a_let][ty] = true;
@@ -2523,11 +2529,19 @@ TamguCode* TamguGlobal::Loadfile(string filename) {
     }
     
     file.close();
+
+    if (code[0] == '(' && code[1] == ')') {
+        xr.lispmode = true;
+        code[0] = '/';
+        code[1] = '/';
+    }
+
+    code += Endl;
     
     long sp = spaceid;
     spaceid=spaces.size();
     TamguCode* a = GetNewCodeSpace(filename);
-    
+
     std::chrono::high_resolution_clock::time_point before;
     std::chrono::high_resolution_clock::time_point after;
     
