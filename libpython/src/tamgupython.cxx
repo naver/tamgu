@@ -552,10 +552,14 @@ Tamgu *Tamgupython::MethodRun(Tamgu *contextualpattern, short idthread, TamguCal
             if (elapse_time == -1)
                 kcmd = Run(code, idthread, py_dict);
             else {
+#ifndef WIN32
                 struct sigaction old_action;
                 sigaction(SIGALRM, nullptr, &old_action);
                 kcmd = Run_elapse(code, elapse_time, idthread, py_dict);
                 sigaction(SIGALRM, &old_action, nullptr);
+#else
+				kcmd = Run_elapse(code, elapse_time, idthread, py_dict);
+#endif
             }
         }
         if (kcmd->isError()) {
