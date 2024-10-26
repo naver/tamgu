@@ -54,6 +54,11 @@
 #ifdef TERMINALMODE
 #include <unistd.h>   //_getch
 #include <termios.h>  //_getch
+#include <sys/ioctl.h>
+#include <signal.h>
+#include <iomanip>
+#include <string>
+#include <iomanip>
 #include "jag.h"
 #endif
 
