@@ -454,7 +454,7 @@ public:
         }
     }
 
-    void printline(long n, wstring& l, long i = -1) {
+    void printline(long n, wstring l, long i = -1) {
         if (debugmode && debuginfo.running)
             cout << back << m_dore << prefix << m_current << convert(l);
         else {
@@ -2661,6 +2661,7 @@ public:
     }
     
     void launchterminal(char noinit, vector<string>& newcolors, bool no_numbering) {
+        promptmode = false;
 		clearscreen();
 
         if (darkmode)

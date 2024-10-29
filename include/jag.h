@@ -437,6 +437,10 @@ public:
                             if (lines[i].find(L"\"@") == -1) {
                                 l_strings = 1;
                                 checkspace(pos, i, l_strings);
+                                if (longlines.back() == 0) {
+                                    longlines.pop_back();
+                                    longlines.push_back(10);
+                                }
                             }
                             else
                                 longlines.push_back(0);
@@ -816,6 +820,7 @@ public:
     
     int prefixsize;
     int xcursor, ycursor;
+    int initial_x, initial_y;
     
     x_option option;
     
@@ -907,7 +912,7 @@ public:
     }
     
     virtual bool emode() {
-        if (option == x_none && !promptmode)
+        if (option == x_none)
             return true;
         return false;
     }
@@ -1016,6 +1021,7 @@ public:
     virtual bool updown(char drt, long& pos);
     
     void getcursor();
+    void getcursorxy(int& x, int& y);
     
     void toggletopbottom() {
         if (poslines.size() == 0)
@@ -1238,7 +1244,7 @@ public:
             cout << back << m_dore << prefix << m_current << m_lightgray << std::setw(prefixsize) << n << "> " << m_current;
     }
     
-    virtual void printline(long n, wstring& l, long i = -1) {
+    virtual void printline(long n, wstring l, long i = -1) {
         if (noprefix) {
             if (promptmode)
                 cout << back << prefix << convert(l);
