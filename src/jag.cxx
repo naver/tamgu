@@ -1222,7 +1222,11 @@ long jag_editor::size_upto(wstring& s, long p) {
     long pref = prefixego() + 1;
     long pos = pref;
     TAMGUCHAR c;
+#ifdef WIN32
+	p = min(p, (long)s.size());
+#else
     p = std::min(p, (long)s.size());
+#endif
     for (long i = 0; i < p; i++) {
         if (s[i] == 27) {
             while (i < p && s[i] != 'm') i++;
