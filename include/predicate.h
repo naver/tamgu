@@ -326,7 +326,7 @@ public:
 
 	Tamgu* ExtractPredicateVariables(Tamgu* context, TamguDeclaration* dom, Tamgu* val, Tamgu* e, short, bool root);
 	Tamgu* EvaluePredicateVariables(Tamgu* context, TamguDeclaration* dom, short idthread);
-	virtual Tamgu* Getvalues(TamguDeclaration* dom, bool duplicate);
+	virtual Tamgu* Getvalues(TamguDeclaration* dom, char duplicate);
 
 	Tamgu* Newvalue(Tamgu* a, short idthread) {
 		value->Resetreference(reference);
@@ -403,7 +403,7 @@ public:
     Tamgu* exchange;
     TamguPredicateVariableInstanceExchange(Tamgu* d, Tamgu* e, short n, short ln, short idthread) :
         domain(d),exchange(e),TamguPredicateVariableInstance(n, ln, idthread) {}
-    Tamgu* Getvalues(TamguDeclaration* dom, bool duplicate);
+    Tamgu* Getvalues(TamguDeclaration* dom, char duplicate);
 };
 
 class TamguPredicateVariableInstancebuff : public TamguPredicateVariableInstance {
@@ -517,7 +517,7 @@ public:
 	void Popping();
 
 
-	virtual Tamgu* Getvalues(TamguDeclaration* dom, bool duplicate);
+	virtual Tamgu* Getvalues(TamguDeclaration* dom, char duplicate);
 
 	virtual void AddInstruction(Tamgu* e) {
 		parameters.push_back(e);
@@ -652,8 +652,8 @@ public:
 	void Popping();
 
 
-	Tamgu* Evalue(TamguDeclaration* dom, short idthread, bool duplicate);
-	Tamgu* Getvalues(TamguDeclaration* dom, bool duplicate);
+	Tamgu* Evalue(TamguDeclaration* dom, short idthread, char duplicate);
+	Tamgu* Getvalues(TamguDeclaration* dom, char duplicate);
 
 	void AddInstruction(Tamgu* e) {
 		parameters.push_back(e);
@@ -737,11 +737,11 @@ public:
         return terminal;
     }
 
-    TamguPredicate* checkTerminal(short n, short sz) {
-        return (terminal && name == n && parameters.size() == sz)?this:NULL;
+    bool checkTerminal(short n, short sz) {
+        return (terminal && name == n && parameters.size() == sz)?true:false;
     }
     
-    virtual Tamgu* Getvalues(TamguDeclaration* dom, bool duplicate);
+    virtual Tamgu* Getvalues(TamguDeclaration* dom, char duplicate);
     void Setidtype(TamguGlobal* global);
 
 	void Setnegation(bool v) {
@@ -837,7 +837,7 @@ public:
 
 
 	virtual TamguPredicate* Duplicate(Tamgu* context, TamguDeclaration* d, short idthread);
-	bool Copyfrom(TamguPredicate* p, Tamgu* context, TamguDeclaration* d, VECTE<Tamgu*>& headpredicatevalues, short);
+	bool Copyfrom(TamguPredicate* p, Tamgu* context, TamguDeclaration* d, vector<Tamgu*>& headpredicatevalues, short);
 
     Tamgu* ExtractPredicateVariables(Tamgu* contextualpattern, TamguDeclaration* dom, Tamgu* param, Tamgu* e, short idthread, bool root);
     

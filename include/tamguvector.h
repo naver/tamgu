@@ -77,7 +77,7 @@ class Tamguvector : public TamguObjectLockContainer {
         return merge;
     }
 
-    Exporting Tamgu* Getvalues(TamguDeclaration* dom, bool duplicate);
+    Exporting Tamgu* Getvalues(TamguDeclaration* dom, char duplicate);
     Tamgu* Unifies(TamguDeclaration* dom);
     Exporting bool isUnified(TamguDeclaration* dom);
     Exporting bool Unify(TamguDeclaration* dom, Tamgu* a);

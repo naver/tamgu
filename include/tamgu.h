@@ -684,13 +684,13 @@ public:
 		return false;
 	}
 
-	virtual Tamgu* Evalue(TamguDeclaration* dom, short idthread, bool duplicate) {
+	virtual Tamgu* Evalue(TamguDeclaration* dom, short idthread, char duplicate) {
 		return Getvalues(dom, idthread);
 	}
 
-	Exporting virtual Tamgu* Getvalues(TamguDeclaration* dom, bool duplicate);
+	Exporting virtual Tamgu* Getvalues(TamguDeclaration* dom, char duplicate);
     virtual Tamgu* Unifies(TamguDeclaration* dom) {
-        return this;
+        return Getvalues(dom, 2);
     }
     
     virtual Tamgu* isBound(Tamgu*, short) {
@@ -1053,8 +1053,8 @@ public:
         return false;
     }
     
-    virtual TamguPredicate* checkTerminal(short n, short sz) {
-        return NULL;
+    virtual bool checkTerminal(short n, short sz) {
+        return false;
     }
     
     virtual void Indexing() {}

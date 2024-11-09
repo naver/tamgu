@@ -3498,7 +3498,7 @@ TamguPredicate* TamguDependency::Duplicate(Tamgu* context, TamguDeclaration* dom
     return p;
 }
 
-bool TamguPredicate::Copyfrom(TamguPredicate* new_predicate, Tamgu* context, TamguDeclaration* dom, VECTE<Tamgu*>& headpredicatevalues, short idthread) {
+bool TamguPredicate::Copyfrom(TamguPredicate* new_predicate, Tamgu* context, TamguDeclaration* dom, vector<Tamgu*>& headpredicatevalues, short idthread) {
     Tamgu* e;
     
     for (long i = 0; i < parameters.size(); i++) {
@@ -3602,17 +3602,17 @@ Tamgu* TamguPredicateConcept::EvaluePredicateVariables(Tamgu* context, TamguDecl
 }
 
 //-------------------------------------------------------------------
-Tamgu* Tamgu::Getvalues(TamguDeclaration* dom, bool duplicate) {
-    if (duplicate && !isConst())
+Tamgu* Tamgu::Getvalues(TamguDeclaration* dom, char duplicate) {
+    if (duplicate == true && !isConst())
         return Atom(true);
     return this;
 }
 
-Tamgu* Tamgusynode::Getvalues(TamguDeclaration* dom, bool duplicate) {
+Tamgu* Tamgusynode::Getvalues(TamguDeclaration* dom, char duplicate) {
     return this;
 }
 
-Tamgu* TamguPredicateVariableInstance::Getvalues(TamguDeclaration* dom, bool duplicate) {
+Tamgu* TamguPredicateVariableInstance::Getvalues(TamguDeclaration* dom, char duplicate) {
     Tamgu* v = Value(dom);
     v = v->Getvalues(dom, duplicate);
     if (merge && v->isVectorContainer())
@@ -3620,7 +3620,7 @@ Tamgu* TamguPredicateVariableInstance::Getvalues(TamguDeclaration* dom, bool dup
     return v;
 }
 
-Tamgu* TamguPredicateVariableInstanceExchange::Getvalues(TamguDeclaration* dom, bool duplicate) {
+Tamgu* TamguPredicateVariableInstanceExchange::Getvalues(TamguDeclaration* dom, char duplicate) {
     Tamgu* v = Value(dom);
     v = v->Getvalues(dom, duplicate);
     if (merge && v->isVectorContainer())
@@ -3633,8 +3633,8 @@ Tamgu* TamguPredicateVariableInstanceExchange::Getvalues(TamguDeclaration* dom, 
 //TamguPredicate can be extracted from a database, in that case, we want the values
 //to be fully unified. We also have to be carreful not to duplicate an already duplicated
 //value...
-Tamgu* TamguPredicate::Getvalues(TamguDeclaration* dom, bool duplicate) {
-    if (!duplicate || fully_unified)
+Tamgu* TamguPredicate::Getvalues(TamguDeclaration* dom, char duplicate) {
+    if (duplicate != true || fully_unified)
         return this;
     
     duplicate = false;
@@ -3654,6 +3654,10 @@ Tamgu* TamguPredicate::Getvalues(TamguDeclaration* dom, bool duplicate) {
     for (long i = 0; i < parameters.size(); i++) {
         e = parameters[i]->Getvalues(dom, duplicate);
         if (e == aNOELEMENT) {
+            if (!duplicate) {
+                term->parameters.push_back(parameters[i]);
+                continue;
+            }
             term->Release();
             return aNOELEMENT;
         }
@@ -3662,12 +3666,17 @@ Tamgu* TamguPredicate::Getvalues(TamguDeclaration* dom, bool duplicate) {
     return term;
 }
 
-Tamgu* TamguPredicateTerm::Getvalues(TamguDeclaration* dom, bool duplicate) {
+Tamgu* TamguPredicateTerm::Getvalues(TamguDeclaration* dom, char duplicate) {
     TamguPredicateTerm* term = new TamguPredicateTerm(globalTamgu, name);
     Tamgu* e;
     for (long i = 0; i < parameters.size(); i++) {
         e = parameters[i]->Getvalues(dom, duplicate);
         if (e == aNOELEMENT) {
+            if (duplicate == 2) {
+                term->parameters.push_back(parameters[i]);
+                continue;
+            }
+
             term->Release();
             return aNOELEMENT;
         }
@@ -3676,14 +3685,19 @@ Tamgu* TamguPredicateTerm::Getvalues(TamguDeclaration* dom, bool duplicate) {
     return term;
 }
 
-Tamgu* TamguPredicateConcept::Evalue(TamguDeclaration* dom, short idthread, bool duplicate) {
+Tamgu* TamguPredicateConcept::Evalue(TamguDeclaration* dom, short idthread, char duplicate) {
     TamguCallFunctionArgsTaskell hfunc(fconcept);
     
     Tamgu* e;
     for (long i = 0; i < parameters.size(); i++) {
         e = parameters[i]->Evalue(dom, idthread, duplicate);
-        if (e == aNOELEMENT)
+        if (e == aNOELEMENT) {
+            if (duplicate == 2) {
+                hfunc.arguments.push_back(parameters[i]);
+                continue;
+            }
             return aNOELEMENT;
+        }
         
         if (value != NULL) {
             if (e != args[i])
@@ -3709,16 +3723,20 @@ Tamgu* TamguPredicateConcept::Evalue(TamguDeclaration* dom, short idthread, bool
 }
 
 
-Tamgu* TamguPredicateConcept::Getvalues(TamguDeclaration* dom, bool duplicate) {
+Tamgu* TamguPredicateConcept::Getvalues(TamguDeclaration* dom, char duplicate) {
     return Evalue(dom, globalTamgu->GetThreadid(), duplicate);
 }
 
-Tamgu* Tamguvector::Getvalues(TamguDeclaration* dom, bool duplicate) {
+Tamgu* Tamguvector::Getvalues(TamguDeclaration* dom, char duplicate) {
     Tamguvector* kvect = globalTamgu->Providevector();
     Tamgu* e;
     for (BLONG i = 0; i < values.size(); i++) {
         e = values[i]->Getvalues(dom, duplicate);
         if (e == aNOELEMENT) {
+            if (duplicate == 2) {
+                kvect->Push(values[i]);
+                continue;
+            }
             kvect->Release();
             return aNOELEMENT;
         }
@@ -3756,12 +3774,12 @@ Tamgu* Tamguvector::Unifies(TamguDeclaration* dom) {
         return this;
     for (long i = 0; i < sz; i++) {
         if (values[i]->Type() == a_instance)
-            return Getvalues(dom, false);
+            return Getvalues(dom, 2);
     }
     return this;
 }
 
-Tamgu* TamguConstmap::Getvalues(TamguDeclaration* dom, bool duplicate) {
+Tamgu* TamguConstmap::Getvalues(TamguDeclaration* dom, char duplicate) {
     Tamgutreemap* kmap = globalTamgu->Providetreemap();
     Tamgu* ev = aNULL;
     Tamgu* ek;
@@ -3777,9 +3795,14 @@ Tamgu* TamguConstmap::Getvalues(TamguDeclaration* dom, bool duplicate) {
         
         ev = values[i]->Getvalues(dom, duplicate);
         if (ev == aNOELEMENT) {
+            if (duplicate == 2) {
+                kmap->Push(STR(ek->String()), values[i]);
+                continue;
+            }
             kmap->Release();
             return aNOELEMENT;
         }
+        
         if (ev == NULL || ev == aUNIVERSAL)
             continue;
         
@@ -3814,7 +3837,7 @@ Tamgu* TamguConstmap::Unifies(TamguDeclaration* dom) {
         return this;
     for (long i = 0; i < sz; i++) {
         if (keys[i]->Type() == a_instance || values[i]->Type() == a_instance)
-            return Getvalues(dom, false);
+            return Getvalues(dom, 2);
     }
     return this;
 }
@@ -3982,12 +4005,12 @@ public:
     
     VECTE<Tamgu*> localgoals;
     VECTE<Tamgu*> currentgoals;
-    VECTE<Tamgu*> headpredicatevalues;
+    vector<Tamgu*> headpredicatevalues;
     PredicateInstanceDeclaration refdico;
     TamguPredicate head_predicate;
     TamguPredicate* current_head;
     
-    VECTE<Tamgu*> rulegoals;
+    vector<Tamgu*> rulegoals;
     basebin_hash<Tamgu*> basedomain;
     
     kbpredict* KnowledgeBaseFacts;
@@ -4011,8 +4034,43 @@ public:
         if (KnowledgeBaseFacts != NULL)
             delete KnowledgeBaseFacts;
     }
+
+    void unify(TamguPredicate* predicate_value, TamguDeclaration* dom, short idthread) {
+        Tamgu* val;
+        for (long i = 0; i< predicate_value->parameters.size(); i++) {
+            val = predicate_value->parameters[i]->Value();
+            if (val != aNOELEMENT) {
+                headpredicatevalues[i]->Release();
+                headpredicatevalues[i] = val;
+            }
+            
+            headpredicatevalues[i]->Setreference();
+        }
+    }
     
-    void unifyparameters(TamguDeclaration* dom, short idthread) {
+    void protect() {
+        for (long i = 0; i< headpredicatevalues.size(); i++) {
+            headpredicatevalues[i]->Protect();
+        }
+    }
+    
+    void unifyheadpredicate(TamguDeclaration* dom, short idthread) {
+        Tamgu* var;
+        Tamgu* val;
+        for (long i = 0; i< current_head->parameters.size(); i++) {
+            var = current_head->parameters[i];
+            val = var->Variable(dom);
+            if (val != NULL) {
+                val = val->VariableValue(dom, idthread);
+                if (val != aNOELEMENT) {
+                    var = val->Unifies(dom);
+                }
+            }
+            current_head->Replaceparameter(i, var, idthread);
+        }
+    }
+
+    void unifyheadpredicatevalue(TamguDeclaration* dom, short idthread) {
         Tamgu* var;
         Tamgu* val;
         for (long i = 0; i< current_head->parameters.size(); i++) {
@@ -4802,12 +4860,11 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
     Oo->currentgoals.eraseraw(posreplace);
 
     TamguPredicateRule* predicate_rule;
-    TamguPredicate* tail_recursion = NULL;
     result = aFALSE;
     Tamgu* localresult;
     long j;
     
-    Oo->unifyparameters(dom, threadowner);
+    Oo->unifyheadpredicatevalue(dom, threadowner);
     
     for (i = 0; i < sz; i++) {
         predicate_rule = rules[headpredicate->name][i];
@@ -4817,6 +4874,11 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
         //Variable management
         dico = &Oo->refdico;
         
+        if (trace) {
+            Displaypredicatestack(d_rule, dom, predicate_rule->head, Oo->localgoals, depth, this);
+            PreLocalPrint(Endl);
+        }
+
         //The first step consists of unifying when possible the different arguments of the head rule
         //We build a head_predicate, which is a new predicate sharing the same name as the predicate rule head
         //with its arguments unified when possible.
@@ -4839,10 +4901,6 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
         //We apply the rule with currentgoals...
         Oo->localgoals = Oo->currentgoals;
         
-        if (trace) {
-            Displaypredicatestack(d_rule, dom, predicate_rule->head, Oo->localgoals, depth, this);
-            PreLocalPrint(Endl);
-        }
         
         localresult = aTRUE;
         order = false;
@@ -4861,7 +4919,7 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
         }
         
         //We use a_predicate to handle tail recursion
-        tail_recursion = NULL;
+        bool terminal_recursion = false;
         if (localresult != NULL) {
             from = Oo->rulegoals.size();
             if (from) {
@@ -4872,7 +4930,7 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
                     for (j = from - 1; j >= 0; j--)
                         Oo->localgoals.vecteur[posreplace + j] = Oo->rulegoals[j];
                 }
-                tail_recursion = Oo->rulegoals.back()->checkTerminal(headpredicate->name, headpredicate->parameters.size());
+                terminal_recursion = Oo->rulegoals.back()->checkTerminal(headpredicate->name, headpredicate->parameters.size());
             }
             if (trace)
                 Displaypredicatestack(d_eval, dom, &Oo->head_predicate, Oo->localgoals, depth, this);
@@ -4884,13 +4942,14 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
         }
         
         from = Oo->rulegoals.size();
-        if (localresult == aTERMINAL && tail_recursion != NULL) {
-            for (j = 0; j < headpredicate->parameters.size(); j++) {
-                localresult = tail_recursion->parameters[j]->Value();
-                headpredicate->Replaceparameter(j, localresult, threadowner);
+        if (localresult == aTERMINAL) {
+            if (terminal_recursion) {
+                Oo->unify((TamguPredicate*)Oo->rulegoals.back(), dom, threadowner);
+                i = -1;
+                localresult = aFALSE;
             }
-            i = -1;
-            localresult = aFALSE;
+            else
+              Oo->unifyheadpredicate(dom, threadowner);
         }
         
         from = Oo->rulegoals.size();
@@ -4927,6 +4986,8 @@ Tamgu* TamguInstructionEvaluate::PredicateEvalue(VECTE<Tamgu*>& goals, TamguPred
             case a_terminal:
                 return aTERMINAL;
             default: {
+                if (i == -1)
+                    Oo->protect();
                 if (globalTamgu->Error(threadowner)) {
                     return aFALSE;
                 }

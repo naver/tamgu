@@ -8900,6 +8900,16 @@ void TamguCode::ComputePredicateParameters(x_node* xn, Tamgu* kcf) {
 
 //We check for regular expressions in the arguments...
 //We cannot introduce any knowledge base elements that contain a regular expression as parameter...
+bool find_var(x_node* x) {
+    if (x->token == "predicatevariable")
+        return true;
+    for (long i = 0; i < x->nodes.size(); i++) {
+        if (find_var(x->nodes[i]))
+            return true;
+    }
+    return false;
+}
+
 bool check_no_regs(x_node* x) {
     if (x == NULL)
         return true;
@@ -8907,6 +8917,8 @@ bool check_no_regs(x_node* x) {
     for (int i = 0; i < x->nodes.size(); i++) {
         type = x->nodes[i]->nodes[0]->token;
         if (type == "atreg" || type == "astreg" || type == "apreg" || type == "aspreg")
+            return false;
+        if (find_var(x))
             return false;
     }
     return true;

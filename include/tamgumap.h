@@ -709,7 +709,7 @@ class TamguConstmap : public TamguObjectLockContainer {
         evaluate = v;
     }
 
-    Tamgu* Getvalues(TamguDeclaration* dom, bool duplicate);
+    Tamgu* Getvalues(TamguDeclaration* dom, char duplicate);
     Tamgu* Unifies(TamguDeclaration* dom);
     bool isUnified(TamguDeclaration* dom);
     bool Unify(TamguDeclaration* dom, Tamgu* a);

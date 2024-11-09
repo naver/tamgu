@@ -136,10 +136,13 @@ Exporting TamguPredicate* TamguPredicateBetween::Duplicate(Tamgu* context, Tamgu
 }
 
 //----------------------------------------------------------------------------------------------------
-Exporting Tamgu* TamguPredicateTermSucc::Getvalues(TamguDeclaration* dom, bool duplicate) {
+Exporting Tamgu* TamguPredicateTermSucc::Getvalues(TamguDeclaration* dom, char duplicate) {
     Tamgu* e = parameters[0]->Getvalues(dom, duplicate);
-    if (e == aNOELEMENT)
+    if (e == aNOELEMENT) {
+        if (duplicate == 2)
+            return parameters[0];
         return aNOELEMENT;
+    }
     return e->Succ();
 }
 
@@ -214,10 +217,13 @@ Exporting TamguPredicate* TamguPredicateSucc::Duplicate(Tamgu* context, TamguDec
 }
 
 //----------------------------------------------------------------------------------------------------
-Exporting Tamgu* TamguPredicateTermPred::Getvalues(TamguDeclaration* dom, bool duplicate) {
+Exporting Tamgu* TamguPredicateTermPred::Getvalues(TamguDeclaration* dom, char duplicate) {
     Tamgu* e = parameters[0]->Getvalues(dom, duplicate);
-    if (e == aNOELEMENT)
+    if (e == aNOELEMENT) {
+        if (duplicate == 2)
+            return parameters[0];
         return aNOELEMENT;
+    }
     return e->Pred();
 }
 
@@ -292,7 +298,7 @@ Exporting TamguPredicate* TamguPredicatePred::Duplicate(Tamgu* context, TamguDec
 }
 
 //----------------------------------------------------------------------------------------------------
-Exporting Tamgu* TamguPredicateTermMethod::Getvalues(TamguDeclaration* dom, bool duplicate) {
+Exporting Tamgu* TamguPredicateTermMethod::Getvalues(TamguDeclaration* dom, char duplicate) {
     Tamgu* head = parameters[0]->Getvalues(dom, duplicate);
     if (head == aNOELEMENT)
         return aNOELEMENT;
@@ -303,6 +309,10 @@ Exporting Tamgu* TamguPredicateTermMethod::Getvalues(TamguDeclaration* dom, bool
     for (i = 1; i < parameters.size(); i++) {
         e = parameters[i]->Getvalues(dom, duplicate);
         if (e == aNOELEMENT) {
+            if (duplicate == 2) {
+                call.arguments.push_back(parameters[i]);
+                continue;
+            }
             head->Release();
             return aNOELEMENT;
         }

@@ -1790,7 +1790,8 @@ void jag_editor::deletechar(bool left) {
 void jag_editor::deleteline(char movingup) {
 
     if (lines.size() == 1 && lines[0].size() == 0) {
-        init();
+        if (!promptmode)
+            init();
         return;
     }
 

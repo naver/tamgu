@@ -205,7 +205,7 @@ public:
 	Exporting static bool Checkattribute(string key);
 	Exporting static bool Checkfeature(string key, string value);
 
-	Tamgu* Getvalues(TamguDeclaration* dom, bool duplicate);
+	Tamgu* Getvalues(TamguDeclaration* dom, char duplicate);
 
 	bool Checkfeatures(Tamgu* m, short idthread) {
 		if (!testvalid)

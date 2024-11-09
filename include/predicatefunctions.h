@@ -50,7 +50,7 @@ class TamguPredicateTermSucc : public TamguPredicateTerm {
 public:
 
 	TamguPredicateTermSucc(TamguGlobal* g, short n, Tamgu* parent = NULL) : TamguPredicateTerm(g, n, parent) {}
-	Exporting Tamgu* Getvalues(TamguDeclaration* dom, bool duplicate);
+	Exporting Tamgu* Getvalues(TamguDeclaration* dom, char duplicate);
 
 	Tamgu* Newinstance(short idthread, Tamgu* parent = NULL) {
 		return new TamguPredicateTermSucc(NULL, name);
@@ -99,7 +99,7 @@ class TamguPredicateTermPred : public TamguPredicateTerm {
 public:
 
 	TamguPredicateTermPred(TamguGlobal* g, short n, Tamgu* parent = NULL) : TamguPredicateTerm(g, n, parent) {}
-	Exporting Tamgu* Getvalues(TamguDeclaration* dom, bool duplicate);
+	Exporting Tamgu* Getvalues(TamguDeclaration* dom, char duplicate);
 
 	Tamgu* Newinstance(short idthread, Tamgu* parent = NULL) {
 		return new TamguPredicateTermPred(NULL, name);
@@ -151,7 +151,7 @@ public:
 	unsigned long size;
 
 	TamguPredicateTermMethod(TamguGlobal* g, short n, unsigned long sz, Tamgu* parent = NULL) : size(sz), TamguPredicateTerm(g, n, parent) {}
-	Exporting Tamgu* Getvalues(TamguDeclaration* dom, bool duplicate);
+	Exporting Tamgu* Getvalues(TamguDeclaration* dom, char duplicate);
 
 	Tamgu* Newinstance(short idthread, Tamgu* parent = NULL) {
 		return new TamguPredicateTermMethod(globalTamgu, name, size);

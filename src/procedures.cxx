@@ -2777,7 +2777,7 @@ Tamgu* ProcKeyboardGet(Tamgu* contextualpattern, short idthread, TamguCall* call
     }
 
     
-#ifdef TERMINALMODE
+#if defined(TERMINALMODE) &&  !defined(DBUG)
     static jag_editor jag("initialisation");
     wstring s = jag.kbget(label);
     return globalTamgu->Providewithustring(s);
