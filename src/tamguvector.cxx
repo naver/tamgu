@@ -1130,7 +1130,6 @@ Tamgu* Tamguvector::MethodRead(Tamgu* contextualpattern, short idthread, TamguCa
 Tamgu* Tamguvector::MethodWrite(Tamgu* contextualpattern, short idthread, TamguCall* callfunc) {
     //The separator between values
     string filename = callfunc->Evaluate(0, contextualpattern, idthread)->String();
-    Clear();
     Tamgufile file;
     
 #ifdef WIN32
