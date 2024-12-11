@@ -3455,8 +3455,10 @@ void TamguGlobal::GlobalVariablesToThread(short idthread) {
     for (short i = 0; i < globalvariablenames.size(); i++) {
         n = globalvariablenames[i];
         value = threads[0].variables[n].stable[1];
-        value->Enablelock(is_tobelocked);
-        threads[idthread].variables[n].setstable(value);
+        if (value != NULL) {
+            value->Enablelock(is_tobelocked);
+            threads[idthread].variables[n].setstable(value);
+        }
     }
 }
     

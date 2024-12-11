@@ -270,7 +270,7 @@ cleanlibs:
     f.write("OBJPATH = objs/"+vname+"\n")
     f.write("LIBOBJPATH = libobjs/"+vname+"\n")
     f.write(incpath)
-    MACLIBS= "MACLIBS= -framework Cocoa -framework AudioToolbox -framework AudioUnit -framework CoreAudio\n"
+    MACLIBS= "MACLIBS= -framework Cocoa -framework AudioToolbox -framework AudioUnit -framework CoreAudio -framework ScreenCaptureKit\n"
     if compilejava:
         if garbagescan:
             f.write("MULTIGA=-stdlib=libc++ -DMULTIGLOBALTAMGU -DGARBAGESCAN\n");
@@ -326,7 +326,7 @@ cleanlibs:
         if compilejava:
            f.write("C++11Flag = -std=c++14 -DTamgu_REGEX -DMAVERICK -DAPPLE\n")
         else:
-           f.write("C++11Flag = -std=c++14 -DTamgu_REGEX -mavx2 -DMAVERICK -DAPPLE -DFLTK14\n")
+           f.write("C++11Flag = -std=c++14 -DTamgu_REGEX -mavx2 -DMAVERICK -DAPPLE\n") # -DFLTK14 when ready
         f.write("INTELINT =\n")
     else:
         if compilejava:

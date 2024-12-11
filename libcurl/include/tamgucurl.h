@@ -48,6 +48,7 @@ public:
     char *urlbuffer;
     int urlsize;
     short thread_id;
+    struct curl_slist *headers;
 
     //---------------------------------------------------------------------------------------------------------------------
     Tamgucurl(TamguGlobal *g, Tamgu *parent = NULL) : TamguReference(g, parent)
@@ -58,6 +59,7 @@ public:
         object = aNULL;
         urlsize = 0;
         urlbuffer = NULL;
+        headers = NULL;
     }
 
     Tamgucurl(Tamgu *f, TamguGlobal *g);
@@ -174,6 +176,7 @@ public:
     Tamgu *MethodURL(Tamgu *contextualpattern, short idthread, TamguCall *callfunc);
     Tamgu *MethodExecute(Tamgu *contextualpattern, short idthread, TamguCall *callfunc);
     Tamgu *MethodOptions(Tamgu *contextualpattern, short idthread, TamguCall *callfunc);
+    Tamgu *MethodHeaders(Tamgu *contextualpattern, short idthread, TamguCall *callfunc);
 
     //---------------------------------------------------------------------------------------------------------------------
 

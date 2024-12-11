@@ -330,6 +330,7 @@ Tamgucurl::Tamgucurl(Tamgu *f, TamguGlobal *g) : TamguReference(g)
 	object = aNULL;
 	urlsize = 4096;
 	urlbuffer = (char *)malloc(urlsize);
+	headers = NULL;
 }
 
 Tamgucurl::~Tamgucurl()
@@ -340,6 +341,8 @@ Tamgucurl::~Tamgucurl()
 	{
 		classlock.Locking();
 		curl_easy_cleanup(curl);
+		if (headers != NULL)
+			curl_slist_free_all(headers);
 		classlock.Unlocking();
 	}
 }
@@ -363,6 +366,7 @@ bool Tamgucurl::InitialisationModule(TamguGlobal *global, string version)
 	Tamgucurl::AddMethod(global, "url", &Tamgucurl::MethodURL, P_ONE | P_TWO, "url(string path): Load a URL\rurl(string pathstring filename): Load a url into a filename");
 	Tamgucurl::AddMethod(global, "execute", &Tamgucurl::MethodExecute, P_NONE | P_ONE, "execute(string filename): Execute a curl action filename is optional.");
 	Tamgucurl::AddMethod(global, "options", &Tamgucurl::MethodOptions, P_TWO, "options(string option, string parameter): Set the options of the curl object");
+	Tamgucurl::AddMethod(global, "headers", &Tamgucurl::MethodHeaders, P_ONE, "setheaders(string data): Set the header values for CURLOPT_HTTPHEADER");
 
 	global->newInstance[Tamgucurl::idtype] = new Tamgucurl(global);
 	global->RecordCompatibilities(Tamgucurl::idtype);
@@ -505,31 +509,52 @@ Tamgu *Tamgucurl::MethodOptions(Tamgu *contextualpattern, short idthread, TamguC
 		return globalTamgu->Returnerror("URL(031): Unknown option", idthread);
 	CURLcode res;
 	CURLoption noption = curloptions[option];
-	Tamgu *kdata = callfunc->Evaluate(1, contextualpattern, idthread);
-	if (kdata->isNumber())
-	{
-		long data = kdata->Integer();
-		res = curl_easy_setopt(curl, noption, data);
+	if (noption == CURLOPT_HTTPHEADER) {
+		if (headers == NULL)
+			return globalTamgu->Returnerror("Missing headers. Use 'setheaders'", idthread);
+		res = curl_easy_setopt(curl, noption, headers);
 	}
-	else
-	{
-		string data;
-		if (kdata->isContainer())
-			data = kdata->JSonString();
-		else
-			data = kdata->String();
+	else {
+		Tamgu *kdata = callfunc->Evaluate(1, contextualpattern, idthread);
 
-		if (data.size() >= urlsize)
+		if (kdata->isNumber())
 		{
-			free(urlbuffer);
-			urlsize = data.size() * 1.5;
-			urlbuffer = (char *)malloc(urlsize);
+			long data = kdata->Integer();
+			res = curl_easy_setopt(curl, noption, data);
 		}
-		strcpy_s(urlbuffer, urlsize, STR(data));
-		res = curl_easy_setopt(curl, noption, urlbuffer);
-	}
+		else
+		{
+			string data;
+			if (kdata->isContainer())
+				data = kdata->JSonString();
+			else
+				data = kdata->String();
 
+			if (data.size() >= urlsize)
+			{
+				free(urlbuffer);
+				urlsize = data.size() * 1.5;
+				urlbuffer = (char *)malloc(urlsize);
+			}
+			strcpy_s(urlbuffer, urlsize, STR(data));
+			res = curl_easy_setopt(curl, noption, urlbuffer);
+		}
+	}
 	if (res == 0)
 		return aTRUE;
 	return errormsg(idthread, res);
+}
+
+Tamgu *Tamgucurl::MethodHeaders(Tamgu *contextualpattern, short idthread, TamguCall *callfunc)
+{
+	string data = callfunc->Evaluate(0, contextualpattern, idthread)->String();
+	if (data.size() >= urlsize)
+	{
+		free(urlbuffer);
+		urlsize = data.size() * 1.5;
+		urlbuffer = (char *)malloc(urlsize);
+	}
+	strcpy_s(urlbuffer, urlsize, STR(data));
+	headers = curl_slist_append(headers, urlbuffer);
+	return aTRUE;
 }
