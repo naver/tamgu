@@ -192,7 +192,8 @@ static const char* varstring98="false";
 static const char* varstring99="namespace";
 static const char* varstring100="try";
 static const char* varstring101="catch";
-static const char* varstring102="default";
+static const char* varstring102="maybe";
+static const char* varstring103="default";
 
 
 char bnf_tamgu::m_path_0_1(string& lreturn,x_node** tree) {
@@ -5006,7 +5007,7 @@ char bnf_tamgu::m_complexbloc(string& lreturn,x_node** tree) {
     bool exitonfail=false;
     //BODYOR
     subtree=NULL;
-    if (m_switch(lret,&subtree) || m_trycatch(lret,&subtree) || m_loop(lret,&subtree) || m_doloop(lret,&subtree) || m_iftest(lret,&subtree) || m_forin(lret,&subtree) || m_for(lret,&subtree) || m_namespace(lret,&subtree) || m_catchon(lret,&subtree))
+    if (m_switch(lret,&subtree) || m_trymaybe(lret,&subtree) || m_trycatch(lret,&subtree) || m_loop(lret,&subtree) || m_doloop(lret,&subtree) || m_iftest(lret,&subtree) || m_forin(lret,&subtree) || m_for(lret,&subtree) || m_namespace(lret,&subtree) || m_catchon(lret,&subtree))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);
@@ -7460,7 +7461,6 @@ char bnf_tamgu::m_intentionvect(string& lreturn,x_node** tree) {
     x_init_node(lreturn,lret,tree,label,pos,false);
     return(1);
 }
-
 char bnf_tamgu::m_dico(string& lreturn,x_node** tree) {
     if (gFail==1) return(0);
     static const char* label="dico";
@@ -10892,7 +10892,6 @@ char bnf_tamgu::m_pintentionvect(string& lreturn,x_node** tree) {
     x_init_node(lreturn,lret,tree,label,pos,false);
     return(1);
 }
-
 char bnf_tamgu::m_merging(string& lreturn,x_node** tree) {
     if (gFail==1) return(0);
     static const char* label="merging";
@@ -23953,6 +23952,67 @@ char bnf_tamgu::m_trycatch(string& lreturn,x_node** tree) {
 }
 
 
+char bnf_tamgu::m_trymaybe(string& lreturn,x_node** tree) {
+    if (gFail==1) return(0);
+    static const char* label="trymaybe";
+    string lret;
+    long pos=currentpos;
+    int itok=intoken;
+    x_node* subtree=NULL;
+    int addsubtree=0;
+    bool exitonfail=false;
+    //BODYSEQUENCE
+    subtree=NULL;
+    if (x_test_string(lret,varstring102)) 
+        x_init_tree(tree,subtree,addsubtree);
+    else {
+        x_pop_node(tree,addsubtree);
+        currentpos=pos;
+        intoken=itok;
+        setfail(exitonfail);
+        return(0);
+    }
+    //BODYSEQUENCE
+    subtree=NULL;
+    if (x_test_char(lret,'{')) 
+        x_init_tree(tree,subtree,addsubtree);
+    else {
+        x_pop_node(tree,addsubtree);
+        currentpos=pos;
+        intoken=itok;
+        setfail(exitonfail);
+        return(0);
+    }
+    exitonfail=true;
+    initfail(label,currentpos,22);
+    bnf_tamgu_pop pop0(this);
+    //BODYSEQUENCE
+    subtree=NULL;
+    if (m_blocs(lret,&subtree)) 
+        x_init_tree(tree,subtree,addsubtree);
+    else {
+        x_pop_node(tree,addsubtree);
+        currentpos=pos;
+        intoken=itok;
+        setfail(exitonfail);
+        return(0);
+    }
+    //BODYSEQUENCE
+    subtree=NULL;
+    if (x_test_char(lret,'}')) 
+        x_init_tree(tree,subtree,addsubtree);
+    else {
+        x_pop_node(tree,addsubtree);
+        currentpos=pos;
+        intoken=itok;
+        setfail(exitonfail);
+        return(0);
+    }
+    x_init_node(lreturn,lret,tree,label,pos,false);
+    return(1);
+}
+
+
 char bnf_tamgu::m_testswitch_0_1(string& lreturn,x_node** tree) {
     if (gFail==1) return(0);
     string lret;
@@ -24147,7 +24207,7 @@ char bnf_tamgu::m_default(string& lreturn,x_node** tree) {
     x_node* subtree=NULL;
     int addsubtree=0;
     bool exitonfail=false;
-    if (x_test_string(lret,varstring102))
+    if (x_test_string(lret,varstring103))
         x_init_tree(tree,subtree,addsubtree);
     else {
         x_pop_node(tree,addsubtree);

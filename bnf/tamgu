@@ -313,7 +313,7 @@ sep := %:
 %blocs := [extension^frame^complexbloc^function^aliasdeclaration^bloc]+
 %bloc :=  annotationrule^predicatefact^[dcg ;45 %.]^[[dependencyrule^predicatedefinition] ;46 %.]^sousbloc
 %sousbloc := [[tamgulisp^hdata^hontology^telque] (%;)]^[[conceptfunction^framecontainer^multideclaration^increment^affectation^call^variable]  ;30 %;]
-%complexbloc := switch^trycatch^loop^doloop^iftest^forin^for^namespace^catchon
+%complexbloc := switch^trymaybe^trycatch^loop^doloop^iftest^forin^for^namespace^catchon
 %singleinstruction := tamgulisp^hdata^hontology^telque^increment^affectation^call^variable
 
 ### Our entry point ####
@@ -628,6 +628,7 @@ declarationfor := [variable $in]^[type variable $in]
 %namespace := $namespace word instruction
 %switch := $switch %( ;16 expression %) (depend) %{ ;31 testswitch+ %}
 %trycatch := $try %{ ;22 blocs %} $catch ;22 (%( (word) %)) [%;^[%{ ;22 blocs %}]]
+%trymaybe := $maybe %{ ;22 blocs %}
 %testswitch := [default^astringdouble^afullstring^astringsimple^anumber^abool] %: ;17 [instruction^complexbloc^bloc]
 %catchon := $iferror %( ;70 singleinstruction %) [instruction^complexbloc^bloc]
 default := $default

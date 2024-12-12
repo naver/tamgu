@@ -45,7 +45,7 @@
 #include "tamgusocket.h"
 #include "tamgudate.h"
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2024.12.11.11";
+const char* tamgu_version = "Tamgu 1.2024.12.12.11";
 
 #ifdef UNIX
 #include <sys/resource.h>
@@ -2689,6 +2689,7 @@ void TamguGlobal::TamguAllObjects(vector<string>& vs) {
     vs.push_back("let");
     vs.push_back("length");
     vs.push_back("map");
+    vs.push_back("maybe");
     vs.push_back("Maybe");
     vs.push_back("Nothing");
     vs.push_back("namespace");

@@ -893,6 +893,7 @@ class bnf_tamgu {
     char m_trycatch_0_1_2_3(string& lreturn,x_node** tree);
     char m_trycatch_0_4(string& lreturn,x_node** tree);
     char m_trycatch_0_4_5(string& lreturn,x_node** tree);
+    char m_trymaybe(string& lreturn,x_node** tree);
     char m_testswitch(string& lreturn,x_node** tree);
     char m_testswitch_0_1(string& lreturn,x_node** tree);
     char m_catchon(string& lreturn,x_node** tree);

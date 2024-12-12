@@ -424,16 +424,13 @@ public:
         string sub;
         long i;
         long sz = s.size();
+        long mn;
         for (i = 0; i < sz; i+= 4096) {
-            sub = s.substr(i, 4096);
+            mn = ((sz - i) < 4096)?(sz - i):4096;
+            sub = s.substr(i, mn);
             fwrite(STR(sub), 1, sub.size(), thefile);
         }
         
-        if (i > sz) {
-            i -= 4096;
-            sub = s.substr(i,string::npos);
-            fwrite(STR(sub), 1, sub.size(), thefile);
-        }
         unlocking();
 		return aTRUE;
 	}
@@ -459,17 +456,13 @@ public:
         string sub;
         long i;
         long sz = s.size();
+        long mn;
         for (i = 0; i < sz; i+= 4096) {
-            sub = s.substr(i, 4096);
+            mn = ((sz - i) < 4096)?(sz - i):4096;
+            sub = s.substr(i, mn);
             fwrite(STR(sub), 1, sub.size(), thefile);
         }
         
-        if (i > sz) {
-            i -= 4096;
-            sub = s.substr(i,string::npos);
-            sub += Endl;
-            fwrite(STR(sub), 1, sub.size(), thefile);
-        }
         unlocking();
 		return aTRUE;
 	}

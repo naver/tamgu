@@ -666,6 +666,7 @@ void TamguGlobal::RecordCompileFunctions() {
     parseFunctions["namespace"] = &TamguCode::C_namespace;
 
 	parseFunctions["trycatch"] = &TamguCode::C_trycatch;
+    parseFunctions["trymaybe"] = &TamguCode::C_trymaybe;
     parseFunctions["catchon"] = &TamguCode::C_catchon;
 
 	parseFunctions["alist"] = &TamguCode::C_alist;
@@ -6162,6 +6163,88 @@ Tamgu* TamguCode::C_trycatch(x_node* xn, Tamgu* kf) {
 	}
 
 	return ktry;
+}
+
+Tamgu* TamguCode::C_trymaybe(x_node* xn, Tamgu* kf) {
+    long sz = xn->nodes[0]->nodes.size();
+
+    if (sz < 2) {
+        stringstream message;
+        message << "Missing line for error handling";
+        throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
+    }
+
+    Tamgu* ktry = new TamguInstructionTRY(global, kf);
+
+    string name;
+    Tamgu* declaration = NULL;
+    TamguCallVariable* ki;
+
+    short id=0;
+    Tamgu* dom = NULL;
+    if (xn->nodes.size() != 1 && xn->nodes[1]->token == "word") {
+        name = xn->nodes[1]->value;
+        id = global->Getid(name);
+        declaration = Declaration(id, kf);
+        
+        if (idcode && declaration==NULL) {
+            char ch[10];
+            sprintf_s(ch,10,"&%d",idcode);
+            string nm(name);
+            nm+=ch;
+            id=global->Getid(nm);
+            declaration = Declaration(id, kf);
+            global->idSymbols[id]=name;
+        }
+
+        if (declaration == NULL || !declaration->isVariable()) {
+            stringstream message;
+            message << e_unknown_variable << name << "'";
+            throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
+        }
+
+        TamguInstruction* kaff = TamguCreateInstruction(ktry, a_assignement);
+
+        dom = Declaror(id, kf);
+
+        if (dom->isMainFrame())
+            ki = new TamguCallGlobalVariable(id, declaration->Type(), global, kaff);
+        else
+            if (dom->isFunction())
+                ki = new TamguCallFunctionVariable(id, declaration->Type(), global, kaff);
+            else
+                if (dom->isFrame())
+                    ki = new TamguCallFrameVariable(id, (TamguFrame*)dom, declaration->Typevariable(), global, kaff);
+                else
+                    ki = new TamguCallVariable(id, declaration->Type(), global, kaff);
+
+        kaff->AddInstruction(aNULL);
+        kaff->Instruction(0)->Setaffectation(true);
+    }
+
+    x_node* error_instruction = xn->nodes[0]->nodes[sz - 1];
+    xn->nodes[0]->nodes.pop_back();
+    global->Pushstack(ktry);
+    try {
+        Traverse(xn->nodes[0], ktry);
+    }
+    catch(TamguRaiseError* msg) {
+        xn->nodes[0]->nodes.push_back(error_instruction);
+        global->Popstack();
+        throw  msg;
+    }
+    
+    xn->nodes[0]->nodes.push_back(error_instruction);
+    global->Popstack();
+
+    TamguCallProcedure* kcatchproc = new TamguCallProcedure(global->Getid("catch"), global, ktry);
+    Tamgu* kbloc = new TamguInstructionCATCH(global, ktry);
+    //Instruction
+    global->Pushstack(kbloc);
+    Traverse(error_instruction, kbloc);
+    global->Popstack();
+
+    return ktry;
 }
 
 
