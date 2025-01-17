@@ -56,7 +56,7 @@ string txt;
 maybe {
     txt.read("filename");
     println(txt);
-    println("Error: could not read:",filname);
+    println("Error: could not read:",filename);
 }
 ```
 
