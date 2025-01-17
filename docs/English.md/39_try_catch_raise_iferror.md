@@ -34,7 +34,7 @@ iferror(txt.read(path)):
     print("Error:", _iferror)
 ```
 
-## Example
+### Example
 
 Here is an example that demonstrates the usage of the `raise` and `iferror` statements:
 
@@ -46,3 +46,17 @@ iferror(txt.read(path)):
 ```
 
 In this example, the `raise` statement raises an error with the message "201 My error". The `iferror` statement checks if the `txt.read(path)` instruction fails. If it does, the code block is executed and the error message is printed.
+
+## The `maybe` Statement
+
+`maybe` takes a list of instructions and will default to the last instruction in the list if one these instructions fail:
+
+```python
+string txt;
+maybe {
+    txt.read("filename");
+    println(txt);
+    println("Error: could not read:",filname);
+}
+```
+
