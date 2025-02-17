@@ -15,19 +15,19 @@
 
 #include "lispe.h"
 #include "elements.h"
-#include "tools.h"
+#include "lispetools.h"
 #include "rgx.h"
-#include "lispetokens.h"
+#include "lispe_tokens.h"
 
 //------------------------------------------------------------
 //String method implementation
 //------------------------------------------------------------
 
 typedef enum {str_lowercase, str_uppercase, str_is_vowel, str_is_consonant, str_deaccentuate, str_is_emoji, str_is_lowercase, str_is_uppercase, str_is_alpha, str_remplace, str_left, str_right, str_middle, str_trim, str_trim0, str_trimleft, str_trimright, str_base, str_is_digit,
-    str_segment_lispe, str_segment_empty, str_c_split, str_split_c_empty, str_ord, str_chr, str_is_punctuation,
-    str_format, str_padding, str_fill, str_getstruct, str_startwith, str_endwith,
+    str_segment_lispe, str_segment_empty, str_split, str_split_empty, str_ord, str_chr, str_is_punctuation,
+    str_format, str_padding, str_fill, str_getstruct, str_startwith, str_endwith, str_sprintf,
     str_edit_distance, str_read_json, str_parse_json, str_string_json, str_ngrams,
-    str_tokeniser_rules, str_tokeniser_display_rules, str_tokenize_rules, str_tokeniser_main,
+    str_tokenizer_rules, str_tokenizer_display_rules, str_tokenize_rules, str_tokenizer_main,
     str_get_rules, str_set_rules, str_get_operators, str_set_operators, str_segmenter, str_indent
     
 } string_method;
@@ -85,11 +85,11 @@ public:
 
 class Tokenizermethod : public Rulemethod {
 public:
-    Tokenizer_Automaton* tok;
+    tokenizer_theautomaton* tok;
     bool main;
     
     Tokenizermethod(LispE* lisp, int16_t l_rule_tokenize) : Rulemethod(lisp, l_rule_tokenize) {
-        tok = new Tokenizer_Automaton(lisp->handlingutf8);
+        tok = new tokenizer_theautomaton(lisp->handlingutf8);
         tok->setrules();
         tok->compile();
         main = false;
@@ -194,7 +194,7 @@ public:
 
 class Segmentmethod : public Rulemethod {
 public:
-    Segmenter_Automaton tok;
+    segmenter_theautomaton tok;
     
     Segmentmethod(LispE* l, int16_t l_rule_tokenize, bool keepblanks, char decimalpoint) : Rulemethod(l, l_rule_tokenize), tok(l->handlingutf8) {
         tok.setrules();
@@ -290,9 +290,9 @@ void IndenteCode(string& codestr, string& indentedcode, bool lispmode) {
     
     s_trimright(codestr);
     codestr+="\n";
-    cr_normalise_l(codestr);
+    cr_normalise(codestr);
     if (lispmode)
-        IndentCode_l(codestr, indentedcode, GetBlankSize_l(), true, false);
+        IndentCode(codestr, indentedcode, GetBlankSize(), true, false);
     else
         IndentatingCode(codestr, indentedcode);
     indentedcode += "\n";
@@ -361,6 +361,44 @@ public:
         return new Stringbyte(sformat);
     }
 
+    Element* methodSprintf(LispE* lisp) {
+        string sformat =  lisp->get_variable(v_str)->toString(lisp);
+        Element* e = lisp->get_variable(v_nb);
+        char value[100];
+        
+        try {
+            switch (e->type) {
+                case t_integer: {
+                    long nb = e->asInteger();
+                    sprintf_s(value, 100, STR(sformat), nb);
+                    break;
+                }
+                case t_float: {
+                    float nb = e->asFloat();
+                    sprintf_s(value, 100, STR(sformat), nb);
+                    break;
+                }
+                case t_short: {
+                    short nb = e->asShort();
+                    sprintf_s(value, 100, STR(sformat), nb);
+                    break;
+                }
+                case t_number: {
+                    double nb = e->asNumber();
+                    sprintf_s(value, 100, STR(sformat), nb);
+                    break;
+                }
+                default:
+                    throw new Error("Error: 'spritnf' can only be used with numerical values");
+            }
+        }
+        catch(...) {
+            throw new Error("Error: wrong format");
+        }
+        sformat = value;
+        return lisp->provideString(sformat);
+    }
+    
     Element* methodFormat(LispE* lisp) {
         Element* val = lisp->get_variable(v_str);
         if (val->type == t_stringbyte)
@@ -1166,7 +1204,7 @@ public:
                 long n = lisp->get_variable(v_nb)->asInteger();
                 if (v->type == t_stringbyte) {
                     string s = v->toString(lisp);
-                    s = s_left_l(s,n);
+                    s = s_left(s,n);
                     return new Stringbyte(s);
                 }
                 u_ustring s =  v->asUString(lisp);
@@ -1178,7 +1216,7 @@ public:
                 long n = lisp->get_variable(v_nb)->asInteger();
                 if (v->type == t_stringbyte) {
                     string s = v->toString(lisp);
-                    s = s_right_l(s,n);
+                    s = s_right(s,n);
                     return new Stringbyte(s);
                 }
                 u_ustring s =  v->asUString(lisp);
@@ -1191,7 +1229,7 @@ public:
                 long n = lisp->get_variable(v_nb)->asInteger();
                 if (v->type == t_stringbyte) {
                     string strvalue =  v->toString(lisp);
-                    strvalue = s_middle_l(strvalue,p,n);
+                    strvalue = s_middle(strvalue,p,n);
                     return new Stringbyte(strvalue);
                 }
                 u_ustring strvalue =  v->asUString(lisp);
@@ -1252,11 +1290,11 @@ public:
                 strvalue = u_trimright(strvalue);
                 return lisp->provideString(strvalue);
             }
-            case str_split_c_empty:
+            case str_split_empty:
                 return method_splite(lisp);
             case str_getstruct:
                 return getstruct(lisp);
-            case str_c_split:
+            case str_split:
                 return method_split(lisp);
             case str_startwith:
                 return method_startwith(lisp);
@@ -1330,10 +1368,10 @@ public:
                 u_ustring strvalue =  vstr->asUString(lisp);
                 return lisp->tokenize(strvalue, true, point);
             }
-            case str_tokeniser_main: {
+            case str_tokenizer_main: {
                 return new Tokenizermethod(v_tokenize, lisp);
             }
-            case str_tokeniser_rules: {
+            case str_tokenizer_rules: {
                 return new Tokenizermethod(lisp, v_tokenize);
             }
             case str_segmenter: {
@@ -1341,7 +1379,7 @@ public:
                 short point = lisp->get_variable("point")->asShort();
                 return new Segmentmethod(lisp, v_tokenize, keep, point);
             }
-            case str_tokeniser_display_rules: {
+            case str_tokenizer_display_rules: {
                 Element* rtok = lisp->get_variable(U"rules");
                 if (rtok->type != v_tokenize)
                     throw new Error("Error: the first element should be a string_rule object");
@@ -1410,6 +1448,9 @@ public:
             }
             case str_format: {
                 return methodFormat(lisp);
+            }
+            case str_sprintf: {
+                return methodSprintf(lisp);
             }
             case str_fill: {
                 return methodFill(lisp);
@@ -1482,10 +1523,10 @@ public:
             case str_trimright:  {
                 return L"Trim all 'space' characters to right";
             }
-            case str_c_split: {
+            case str_split: {
                 return L"Splits the string into sub-strings according to a given string";
             }
-            case str_split_c_empty: {
+            case str_split_empty: {
                 return L"Splits the string into sub-strings according to a given string. Keeps empty values";
             }
             case str_ord: {
@@ -1515,7 +1556,7 @@ public:
                 return L"Tokenize a string into a list of tokens with LispE tokenizer";
             case str_segment_empty:
                 return L"Tokenize a string into a list of tokens with LispE tokenize. Keep also the blanks";
-            case str_tokeniser_display_rules:
+            case str_tokenizer_display_rules:
                 return L"Display the underlying automata, into which rules were compiled";
             case str_tokenize_rules:
                 return L"Tokenize a string into a list of tokens with internal rules";
@@ -1523,12 +1564,14 @@ public:
                 return L"Return the internal tokenization rules";
             case str_set_rules:
                 return L"Set the internal tokenization rules";
-            case str_tokeniser_rules:
+            case str_tokenizer_rules:
                 return L"Return a rule object";
-            case str_tokeniser_main:
+            case str_tokenizer_main:
                 return L"Return LispE internal tokenizer";
             case str_format:
                 return L"Takes as input a format and a list of variables. Variables in the format of the form: %n, where 1<=n<=9 are replaced with their corresponding arguments";
+            case str_sprintf:
+                return L"Uses 'sprintf' format to display values";
             case str_padding:
                 return L"(padding str c nb): padds the string str with c up to 'nb' characters";
             case str_fill:
@@ -1566,6 +1609,7 @@ void moduleChaines(LispE* lisp) {
     lisp->extension("deflib trimright (str)", new Stringmethod(lisp, str_trimright));
     lisp->extension("deflib lower (str)", new Stringmethod(lisp, str_lowercase));
     lisp->extension("deflib format (str n1 (n2) (n3) (n4) (n5) (n6) (n7) (n8) (n9))", new Stringmethod(lisp, str_format));
+    lisp->extension("deflib sprintf (nb str)", new Stringmethod(lisp, str_sprintf));
     lisp->extension("deflib upper (str)", new Stringmethod(lisp, str_uppercase));
     lisp->extension("deflib replace (str fnd rep (index))", new Stringmethod(lisp, str_remplace));
     lisp->extension("deflib convert_in_base (str b (convert))", new Stringmethod(lisp, str_base));
@@ -1574,8 +1618,8 @@ void moduleChaines(LispE* lisp) {
     lisp->extension("deflib right (str nb)", new Stringmethod(lisp, str_right));
     lisp->extension("deflib middle (str pos nb)", new Stringmethod(lisp, str_middle));
     lisp->extension("deflib getstruct (str open close (pos 0))", new Stringmethod(lisp, str_getstruct));
-    lisp->extension("deflib split (str (fnd))", new Stringmethod(lisp, str_c_split));
-    lisp->extension("deflib splite (str (fnd))", new Stringmethod(lisp, str_split_c_empty));
+    lisp->extension("deflib split (str (fnd))", new Stringmethod(lisp, str_split));
+    lisp->extension("deflib splite (str (fnd))", new Stringmethod(lisp, str_split_empty));
     lisp->extension("deflib ord (str)", new Stringmethod(lisp, str_ord));
     lisp->extension("deflib chr (nb)", new Stringmethod(lisp, str_chr));
     lisp->extension("deflib padding (str c nb)", new Stringmethod(lisp, str_padding));
@@ -1608,17 +1652,17 @@ void moduleChaines(LispE* lisp) {
     //Tokenization methods
     lisp->extension("deflib segment (str (point 0))", new Stringmethod(lisp, str_segment_lispe));
     lisp->extension("deflib segment_e (str (point 0))", new Stringmethod(lisp, str_segment_empty));
-    lisp->extension("deflib tokeniser_main ()", new Stringmethod(lisp, str_tokeniser_main));
+    lisp->extension("deflib tokenizer_main ()", new Stringmethod(lisp, str_tokenizer_main));
     lisp->extension("deflib segmenter (keepblanks point)", new Stringmethod(lisp, str_segmenter));
-    lisp->extension("deflib tokeniser_rules ()", new Stringmethod(lisp, str_tokeniser_rules));
+    lisp->extension("deflib tokenizer_rules ()", new Stringmethod(lisp, str_tokenizer_rules));
     lisp->extension("deflib tokenize_rules (rules str (types))", new Stringmethod(lisp, str_tokenize_rules));
-    lisp->extension("deflib tokenizer ()", new Stringmethod(lisp, str_tokeniser_rules));
-    lisp->extension("deflib tokeniser_display (rules)", new Stringmethod(lisp, str_tokeniser_display_rules));
+    lisp->extension("deflib tokenizer ()", new Stringmethod(lisp, str_tokenizer_rules));
+    lisp->extension("deflib tokenizer_display (rules)", new Stringmethod(lisp, str_tokenizer_display_rules));
     lisp->extension("deflib tokenize (rules str (types))", new Stringmethod(lisp, str_tokenize_rules));
-    lisp->extension("deflib get_tokeniser_rules (rules)", new Stringmethod(lisp, str_get_rules));
-    lisp->extension("deflib set_tokeniser_rules (rules lst)", new Stringmethod(lisp, str_set_rules));
-    lisp->extension("deflib get_tokeniser_operators (rules)", new Stringmethod(lisp, str_get_operators));
-    lisp->extension("deflib set_tokeniser_operators (rules a_set)", new Stringmethod(lisp, str_set_operators));
+    lisp->extension("deflib get_tokenizer_rules (rules)", new Stringmethod(lisp, str_get_rules));
+    lisp->extension("deflib set_tokenizer_rules (rules lst)", new Stringmethod(lisp, str_set_rules));
+    lisp->extension("deflib get_tokenizer_operators (rules)", new Stringmethod(lisp, str_get_operators));
+    lisp->extension("deflib set_tokenizer_operators (rules a_set)", new Stringmethod(lisp, str_set_operators));
     
     lisp->extension("deflib json_read (filename)", new Stringmethod(lisp, str_read_json));
     lisp->extension("deflib json_parse (str)", new Stringmethod(lisp, str_parse_json));

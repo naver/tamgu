@@ -14,7 +14,7 @@
 #include <atomic>
 #include <condition_variable>
 #include "mapbin.h"
-#include "lispetokens.h"
+#include "lispe_tokens.h"
 
 //------------------------------------------------------------
 class LispE;
@@ -53,11 +53,11 @@ public:
     }
 };
 
-class Threadlock {
+class LockingThread {
 public:
     std::recursive_mutex* lock;
 
-    inline Threadlock() {
+    inline LockingThread() {
         lock = new std::recursive_mutex;
     }
 
@@ -79,7 +79,7 @@ public:
         lock->unlock();
     }
     
-    ~Threadlock() {
+    ~LockingThread() {
         delete lock;
     }
     
@@ -114,8 +114,8 @@ typedef void (*reading_string)(string&, void*);
 class Delegation {
 public:
     BlockThread trace_lock;
-    Threadlock lock;
-    Threadlock lock_thread;
+    LockingThread lock;
+    LockingThread lock_thread;
 
     methodEval evals[l_final];
     Listincode* straight_eval[l_final];
@@ -150,7 +150,7 @@ public:
     binSet number_types;
     
     Stackelement thread_stack;
-    Lispe_Tokenizer main_tokenizer;
+    lispe_tokenizer main_tokenizer;
     
     //------------------------------------------
     binHash<uint16_t> namespaces;
@@ -161,7 +161,7 @@ public:
     unordered_map<string, long> allfiles;
     unordered_map<long, Element*> entrypoints;
 
-    unordered_map<u_ustring, Threadlock*> locks;
+    unordered_map<u_ustring, LockingThread*> locks;
     unordered_map<u_ustring, BlockThread*> waitons;
     
     unordered_map<u_ustring, List> thread_pool;
@@ -176,6 +176,7 @@ public:
     std::atomic<long> id_pool;
 
     Error* current_error;
+    Error predicate_error;
     
     reading_string reading_string_function;
     reading_string display_string_function;
@@ -191,6 +192,7 @@ public:
     Atome* _EMPTYATOM;
     Atome* _LISTSEPARATOR;
     Atome* _DEFPAT;
+    Atome* _DEFPRED;
     Atome* _DICO_INTEGER;
     Atome* _DICO_NUMBER;
     Atome* _DICO_STRING;
@@ -336,7 +338,7 @@ public:
         string s;
         if (code_to_string.check(c)) {
             u_ustring w = code_to_string.at(c);
-            str_unicode_to_utf8(s, w, 0);
+            str_unicode_to_utf8(s, w);
             return s;
         }
         return "nil";
@@ -568,7 +570,7 @@ public:
         u_ustring n;
         s_utf8_to_unicode(n, name, name.size());
         code_to_string[instruction_code] = n;
-        cln->multiple = (AP_ATLEASTFIVE == (AP_ATLEASTFIVE & arity));
+        cln->multiple = (LP_ATLEASTFIVE == (LP_ATLEASTFIVE & arity));
     }
 
     inline void set_instruction(lisp_code instruction_code,
@@ -582,7 +584,7 @@ public:
         u_ustring n;
         s_utf8_to_unicode(n, name, name.size());
         code_to_string[instruction_code] = n;
-        cln->multiple = (AP_ATLEASTFIVE == (AP_ATLEASTFIVE & arity));
+        cln->multiple = (LP_ATLEASTFIVE == (LP_ATLEASTFIVE & arity));
     }
 
     inline void set_pure_instruction(lisp_code instruction_code, string name,  unsigned long arity) {
@@ -762,11 +764,11 @@ public:
         lock.unlocking(tobelocked);
     }
 
-    Threadlock* getlock(u_ustring& w) {
+    LockingThread* getlock(u_ustring& w) {
         lock.locking();
-        Threadlock* l = locks[w];
+        LockingThread* l = locks[w];
         if (l == NULL) {
-            l = new Threadlock;
+            l = new LockingThread;
             locks[w] = l;
         }
         lock.unlocking();

@@ -16,11 +16,11 @@
 #include "segmentation.h"
 #include "listes.h"
 #include "llistes.h"
-#include "tools.h"
+#include "lispetools.h"
 #include "stack.h"
 #include "delegation.h"
 #include <stack>
-#include "lispetokens.h"
+#include "lispe_tokens.h"
 
 //------------------------------------------------------------
 #define debug_none 0
@@ -100,14 +100,14 @@ public:
     
     unordered_map<short, char> depths;
     
-    Segmenter_Automaton segmenter;
+    segmenter_theautomaton segmenter;
 
     long depth_stack;
     
     //Delegation is a class that records any data
     //related to compilation
     Delegation* delegation;
-    UTF8_Handler_l* handlingutf8;
+    utf8_handler* handlingutf8;
 
     List* current_thread;
     List* current_body;
@@ -138,7 +138,7 @@ public:
     bool check_thread_stack;
 	bool current_path_set;
     
-    LispE(UTF8_Handler_l* hnd = NULL) : segmenter(hnd) {
+    LispE(utf8_handler* hnd = NULL) : segmenter(hnd) {
         macro_mode = false;
         max_size = 50;
         larger_max_size = 200;
@@ -165,7 +165,7 @@ public:
         current_thread = NULL;
         current_body = NULL;
         if (hnd == NULL) {
-            handlingutf8 = new UTF8_Handler_l;
+            handlingutf8 = new utf8_handler;
             segmenter.access = handlingutf8;
             clean_utf8 = true;
         }
@@ -530,7 +530,7 @@ public:
     void precompile(string chemin);
     lisp_code segmenting(string& code, Tokenizer& s);
     lisp_code segmenting(u_ustring& code, Tokenizer& s);
-    Element* tokenize(wstring& code, bool keepblanks = false);
+    Element* tokenize(wstring& code, bool keepblanks);
     Element* tokenize(u_ustring& code, bool keepblanks, short decimalpoint);
     Element* tokenize(string& code, bool keepblanks, short decimalpoint);
     Element* compileLocalStructure(Element* current_program, Element* element, Tokenizer& parse, Element*& check_composition_depth, uint16_t currentspace, bool& cont);
@@ -833,9 +833,18 @@ public:
     
     //We borrow from the class a copy that will share the same liste.item object
     List* borrowing(List* l, long sz) {
-        return delegation->straight_eval[check_arity(l, sz)]->borrowing(l);
+        delegation->lock_thread.locking(isThread);
+        l = delegation->straight_eval[check_arity(l, sz)]->borrowing(l);
+        delegation->lock_thread.unlocking(isThread);
+        return l;
     }
-    
+
+    void relax(List* l) {
+        delegation->lock_thread.locking(isThread);
+        delete l;
+        delegation->lock_thread.unlocking(isThread);
+    }
+
     Element* check_error(List* l,Error* err, int idxinfo);
     
     inline void trace_and_context(Listincode* e) {
@@ -1521,6 +1530,8 @@ public:
         return numbers_pool.last?numbers_pool.backpop()->set(n, pos):new Numberspool(this, n, pos);
     }
 
+    inline Short* provideShort(int16_t v) { return new Short(v);}
+
     inline Integers* provideIntegers(long nb, long v) {
         return integers_pool.last?integers_pool.backpop()->set(nb, v):new Integerspool(this, nb, v);
     }
@@ -1567,10 +1578,6 @@ public:
 
     inline Float* provideFloat(float d) {
         return float_pool.last?float_pool.backpop()->set(d):new Floatpool(this, d);
-    }
-
-    inline Short* provideShort(int16_t d) {
-        return new Short(d);
     }
 
     inline Integer* provideInteger(long d) {

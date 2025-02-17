@@ -42,7 +42,7 @@
 #include <iomanip>
 
 #include <map>
-#include "tools.h"
+#include "lispetools.h"
 #include "jag.h"
 
 #include "lispe.h"
@@ -79,8 +79,8 @@ class lispe_editor : public jag_editor {
 
     
 public:
-    Threadlock lock;
-    Threadlock printlock;
+    LockingThread lock;
+    LockingThread printlock;
 
     unordered_map<string, unordered_map<long, bool> > editor_breakpoints;
 

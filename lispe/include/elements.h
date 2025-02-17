@@ -11,7 +11,7 @@
 #ifndef elements_h
 #define elements_h
 
-#include "tools.h"
+#include "lispetools.h"
 #include "vecter.h"
 #include <set>
 #include <complex>
@@ -68,7 +68,7 @@ typedef enum {
     t_dictionary, t_dictionaryi, t_dictionaryn,
     t_tree, t_treei, t_treen,
     t_heap, t_data, t_maybe,
-    t_error, t_function, t_library_function, t_pattern, t_lambda, t_thread,
+    t_error, t_function, t_library_function, t_predicate, t_pattern, t_lambda, t_thread,
     t_action, t_condition, t_conditiontake, t_conditiondrop, t_initialisation, t_counter, t_countertake, t_counterdrop, t_code,
     t_call, t_call_lambda, t_eval, t_fileelement,
     
@@ -84,7 +84,7 @@ typedef enum {
     
     //Recording in the stack or in memory
     l_sleep, l_wait, l_infix,
-    l_lambda, l_defun, l_dethread, l_deflib, l_deflibpat, l_defpat, l_defmacro, l_defspace, l_space, l_lib, l_self,l_label,
+    l_lambda, l_defun, l_dethread, l_deflib, l_deflibpat, l_defpred, l_defpat, l_defmacro, l_defspace, l_space, l_lib, l_self,l_label,
     l_set_const, l_setq, l_setg, l_seth, l_at, l_set_at, l_extract, l_set_range, l_at_shape, l_set_shape, l_let,
     l_block, l_root, l_elapse, l_code,
     l_if, l_ife,  l_ncheck, l_check, l_cond, l_select, l_switch,
@@ -119,7 +119,7 @@ typedef enum {
     
     //Comparisons
         
-    l_in, l_search, l_revertsearch, l_count, l_replaceall, l_searchall, l_cyclic, l_car, l_cdr, l_cadr, l_last, l_flip,
+    l_in, l_search, l_revertsearch, l_count, l_replaceall, l_searchall, l_cyclic, l_car, l_cdr, l_cadr, l_last, l_flip, l_swap,
     l_fread, l_fwrite, l_fappend, l_fget, l_fput, l_fsize, l_fseek, l_ftell, l_fopen, l_fclose,
     l_bread, l_bwrite, l_bappend,
     
@@ -140,7 +140,7 @@ typedef enum {
     l_while, l_loop, l_loopcount, l_range, l_rangein, l_irange, l_irangein, l_mloop, l_lloop,
     l_atoms, l_atomise, l_join, l_sort, l_whilein,
     l_compile, l_load, l_input, l_getchar, l_pipe, l_type,  l_return, l_break, l_reverse,
-    l_apply, l_over, l_slice,
+    l_apply, l_over, l_slice, l_shift,
     l_maplist, l_filterlist, l_droplist, l_takelist, l_takenb, l_scanlist,
     l_mapcar, l_filtercar, l_dropcar, l_takecar,
     l_checking, l_data, l_replicate, l_data_eval,
@@ -156,41 +156,41 @@ typedef enum {
 
 //------------------------------------------------------------------------------------------
 
-const unsigned long AP_NONE = 1 << 0;
-const unsigned long AP_ONE = 1 << 1;
-const unsigned long AP_TWO = 1 << 2;
-const unsigned long AP_THREE = 1 << 3;
-const unsigned long AP_FOUR = 1 << 4;
-const unsigned long AP_FIVE = 1 << 5;
-const unsigned long AP_SIX = 1 << 6;
-const unsigned long AP_SEVEN = 1 << 7;
-const unsigned long AP_EIGHT = 1 << 8;
-const unsigned long AP_NINE = 1 << 9;
-const unsigned long AP_TEN = 1 << 10;
-const unsigned long AP_ELEVEN = 1 << 11;
-const unsigned long AP_TWELVE = 1 << 12;
-const unsigned long AP_THIRTEEN = 1 << 13;
-const unsigned long AP_FOURTEEN = 1 << 14;
-const unsigned long AP_FIFTEEN = 1 << 15;
-const unsigned long AP_FULL = -1;
-const unsigned long AP_ATLEASTONE = AP_FULL^AP_NONE;
-const unsigned long AP_ATLEASTTWO = AP_ATLEASTONE^AP_ONE;
-const unsigned long AP_ATLEASTTHREE = AP_ATLEASTTWO^AP_TWO;
-const unsigned long AP_ATLEASTFOUR = AP_ATLEASTTHREE^AP_THREE;
-const unsigned long AP_ATLEASTFIVE = AP_ATLEASTFOUR^AP_FOUR;
-const unsigned long AP_ATLEASTSIX = AP_ATLEASTFIVE^AP_FIVE;
-const unsigned long AP_ATLEASTSEVEN = AP_ATLEASTSIX^AP_SIX;
-const unsigned long AP_ATLEASTEIGHT = AP_ATLEASTSEVEN^AP_SEVEN;
-const unsigned long AP_ATLEASTNINE = AP_ATLEASTEIGHT^AP_EIGHT;
-const unsigned long AP_ATLEASTTEN = AP_ATLEASTNINE^AP_NINE;
-const unsigned long AP_ATLEASTELEVEN = AP_ATLEASTTEN^AP_TEN;
-const unsigned long AP_ATLEASTTWELVE = AP_ATLEASTELEVEN^AP_ELEVEN;
-const unsigned long AP_ATLEASTTHIRTEEN = AP_ATLEASTTWELVE^AP_TWELVE;
-const unsigned long AP_ATLEASTFOURTEEN = AP_ATLEASTTHIRTEEN^AP_THIRTEEN;
-const unsigned long AP_ATLEASTFIFTEEN = AP_ATLEASTFOURTEEN^AP_FOURTEEN;
+const unsigned long LP_NONE = 1 << 0;
+const unsigned long LP_ONE = 1 << 1;
+const unsigned long LP_TWO = 1 << 2;
+const unsigned long LP_THREE = 1 << 3;
+const unsigned long LP_FOUR = 1 << 4;
+const unsigned long LP_FIVE = 1 << 5;
+const unsigned long LP_SIX = 1 << 6;
+const unsigned long LP_SEVEN = 1 << 7;
+const unsigned long LP_EIGHT = 1 << 8;
+const unsigned long LP_NINE = 1 << 9;
+const unsigned long LP_TEN = 1 << 10;
+const unsigned long LP_ELEVEN = 1 << 11;
+const unsigned long LP_TWELVE = 1 << 12;
+const unsigned long LP_THIRTEEN = 1 << 13;
+const unsigned long LP_FOURTEEN = 1 << 14;
+const unsigned long LP_FIFTEEN = 1 << 15;
+const unsigned long LP_FULL = -1;
+const unsigned long LP_ATLEASTONE = LP_FULL^LP_NONE;
+const unsigned long LP_ATLEASTTWO = LP_ATLEASTONE^LP_ONE;
+const unsigned long LP_ATLEASTTHREE = LP_ATLEASTTWO^LP_TWO;
+const unsigned long LP_ATLEASTFOUR = LP_ATLEASTTHREE^LP_THREE;
+const unsigned long LP_ATLEASTFIVE = LP_ATLEASTFOUR^LP_FOUR;
+const unsigned long LP_ATLEASTSIX = LP_ATLEASTFIVE^LP_FIVE;
+const unsigned long LP_ATLEASTSEVEN = LP_ATLEASTSIX^LP_SIX;
+const unsigned long LP_ATLEASTEIGHT = LP_ATLEASTSEVEN^LP_SEVEN;
+const unsigned long LP_ATLEASTNINE = LP_ATLEASTEIGHT^LP_EIGHT;
+const unsigned long LP_ATLEASTTEN = LP_ATLEASTNINE^LP_NINE;
+const unsigned long LP_ATLEASTELEVEN = LP_ATLEASTTEN^LP_TEN;
+const unsigned long LP_ATLEASTTWELVE = LP_ATLEASTELEVEN^LP_ELEVEN;
+const unsigned long LP_ATLEASTTHIRTEEN = LP_ATLEASTTWELVE^LP_TWELVE;
+const unsigned long LP_ATLEASTFOURTEEN = LP_ATLEASTTHIRTEEN^LP_THIRTEEN;
+const unsigned long LP_ATLEASTFIFTEEN = LP_ATLEASTFOURTEEN^LP_FOURTEEN;
 
 inline const unsigned long _arity(long sz) {
-    return (sz > 15)?AP_FULL:1<<sz;
+    return (sz > 15)?LP_FULL:1<<sz;
 }
 //------------------------------------------------------------------------------------------
 //false_ is actually a bit misleading as it is an alias to null_
@@ -404,7 +404,7 @@ public:
     virtual void swap(long, long) {}
     
     virtual Element* last_element(LispE* lisp);
-    virtual Element* last() {
+    virtual Element* last(LispE*) {
         return this;
     }
     
@@ -465,7 +465,7 @@ public:
      
      */
 
-    virtual bool element_container() {
+    virtual bool element_container(Element* e) {
         return false;
     }
     
@@ -614,7 +614,7 @@ public:
     virtual string toString(LispE* lisp) {
         string s;
         u_ustring w = asUString(lisp);
-        str_unicode_to_utf8(s, w, 0);
+        str_unicode_to_utf8(s, w);
         return s;
     }
 
@@ -1229,7 +1229,6 @@ public:
     }
     
     wstring jsonString(LispE* lisp) {
-        return wjsonstring(name);
         switch (atome) {
             case v_null:
                 return L"false";
@@ -1241,7 +1240,7 @@ public:
                 return wjsonstring(name);
         }
     }
-        
+    
     Element* eval(LispE* lisp);
     
     int16_t label() {
@@ -2798,15 +2797,15 @@ public:
     }
     
     Stringbyte(u_ustring c) : Element(t_stringbyte) {
-        str_unicode_to_utf8(content, c, 0);
+        str_unicode_to_utf8(content, c);
     }
     
     Stringbyte(u_ustring c, uint16_t s) : Element(t_stringbyte, s) {
-        str_unicode_to_utf8(content, c, 0);
+        str_unicode_to_utf8(content, c);
     }
 
     Stringbyte(String* c) : Element(t_stringbyte) {
-        str_unicode_to_utf8(content, c->content, 0);
+        str_unicode_to_utf8(content, c->content);
     }
     
     Element* duplicate_constant(LispE* lisp);
@@ -2839,7 +2838,7 @@ public:
     
     bool compare_string(LispE*, u_ustring& u) {
         string e;
-        str_unicode_to_utf8(e, u, 0);
+        str_unicode_to_utf8(e, u);
         return (content == e);
     }
         
@@ -2925,7 +2924,7 @@ public:
     Element* last_element(LispE* lisp);
     
     long size() {
-        return size_l_c(content);
+        return size_c(content);
     }
     
     Element* extraction(LispE* lisp, List*);
@@ -3323,7 +3322,12 @@ public:
         return dictionary.empty();
     }
 
-    bool element_container() {
+    bool element_container(Element* e) {
+        if (!status) {
+            e->increment();
+            release();
+            e->decrementkeep();
+        }
         return true;
     }
     
@@ -3773,10 +3777,15 @@ public:
         return new Dictionary_n;
     }
 
-    bool element_container() {
+    bool element_container(Element* e) {
+        if (!status) {
+            e->increment();
+            release();
+            e->decrementkeep();
+        }
         return true;
     }
-    
+
     bool isContainer() {
         return true;
     }
@@ -4193,10 +4202,15 @@ public:
         return new Dictionary_i;
     }
 
-    bool element_container() {
+    bool element_container(Element* e) {
+        if (!status) {
+            e->increment();
+            release();
+            e->decrementkeep();
+        }
         return true;
     }
-    
+
     bool isContainer() {
         return true;
     }
@@ -5784,10 +5798,15 @@ public:
         return tree.empty();
     }
 
-    bool element_container() {
+    bool element_container(Element* e) {
+        if (!status) {
+            e->increment();
+            release();
+            e->decrementkeep();
+        }
         return true;
     }
-    
+
     bool isDictionary() {
         return true;
     }
@@ -6233,10 +6252,15 @@ public:
         return new Tree_n;
     }
 
-    bool element_container() {
+    bool element_container(Element* e) {
+        if (!status) {
+            e->increment();
+            release();
+            e->decrementkeep();
+        }
         return true;
     }
-    
+
     bool isContainer() {
         return true;
     }
@@ -6653,10 +6677,15 @@ public:
         return new Tree_i;
     }
 
-    bool element_container() {
+    bool element_container(Element* e) {
+        if (!status) {
+            e->increment();
+            release();
+            e->decrementkeep();
+        }
         return true;
     }
-    
+
     bool isContainer() {
         return true;
     }

@@ -759,7 +759,7 @@ public:
 
     // We recover the default values described as a list
     //in the parameters of the deflib functions (see below)
-    int extract_value(LispE* lisp, int16_t identifier) {
+    int extractl_value(LispE* lisp, int16_t identifier) {
         return (int)lisp->get_variable(identifier)->asInteger();
     }
 
@@ -775,7 +775,7 @@ public:
         if (e->type != type)
             throw new Error("Error: wrong type for 'year'");
         Dateitem* dt = (Dateitem*)e;
-        int vl = extract_value(lisp, v_d);
+        int vl = extractl_value(lisp, v_d);
         return dt->year(lisp, vl);
     }
 
@@ -784,7 +784,7 @@ public:
         if (e->type != type)
             throw new Error("Error: wrong type for 'month'");
         Dateitem* dt = (Dateitem*)e;
-        int vl = extract_value(lisp, v_d);
+        int vl = extractl_value(lisp, v_d);
         return dt->month(lisp, vl);
     }
 
@@ -793,7 +793,7 @@ public:
         if (e->type != type)
             throw new Error("Error: wrong type for 'day'");
         Dateitem* dt = (Dateitem*)e;
-        int vl = extract_value(lisp, v_d);
+        int vl = extractl_value(lisp, v_d);
         return dt->day(lisp, vl);
     }
 
@@ -802,7 +802,7 @@ public:
         if (e->type != type)
             throw new Error("Error: wrong type for 'hour'");
         Dateitem* dt = (Dateitem*)e;
-        int vl = extract_value(lisp, v_d);
+        int vl = extractl_value(lisp, v_d);
         return dt->hour(lisp, vl);
     }
 
@@ -811,7 +811,7 @@ public:
         if (e->type != type)
             throw new Error("Error: Wrong type for 'minute'");
         Dateitem* dt = (Dateitem*)e;
-        int vl = extract_value(lisp, v_d);
+        int vl = extractl_value(lisp, v_d);
         return dt->minute(lisp, vl);
     }
 
@@ -820,7 +820,7 @@ public:
         if (e->type != type)
             throw new Error("Error: wrong type for 'second'");
         Dateitem* dt = (Dateitem*)e;
-        int vl = extract_value(lisp, v_d);
+        int vl = extractl_value(lisp, v_d);
         return dt->second(lisp, vl);
     }
 
@@ -845,7 +845,7 @@ public:
 
         int y = valeur(lisp, U"y");
         int m = valeur(lisp, U"m");
-        int d = extract_value(lisp, v_d);
+        int d = extractl_value(lisp, v_d);
         int H = valeur(lisp, U"H");
         int M = valeur(lisp, U"M");
         int S = valeur(lisp, U"S");

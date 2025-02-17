@@ -42,6 +42,7 @@ class Tamgulispe : public TamguObject {
 
     //---------------------------------------------------------------------------------------------------------------------
     Tamgulispe(TamguGlobal* g, Tamgu* parent = NULL) : lisp(NULL), TamguObject(g, parent) {}
+    Tamgulispe(TamguGlobal* g, short p);
     Tamgulispe();
     ~Tamgulispe();
     //----------------------------------------------------------------------------------------------------------------------

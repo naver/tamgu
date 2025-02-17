@@ -277,7 +277,7 @@ public:
         }
     }
     
-    Element* rank(LispE* lisp, vecte<long>& positions);
+    Element* rank(LispE* lisp, vecter<long>& positions);
     
     Element* newInstance(Element* e) {
         return new Matrix((lisp_code)type, size_x, size_y, e);
@@ -292,34 +292,34 @@ public:
 
 class Tensor : public List {
 public:
-    vecte<long> shape;
+    vecter<long> shape;
 
     Tensor(lisp_code t) {
         type = t;
     }
     
-    Tensor(lisp_code t, vecte<long>& sz, Element* n) {
+    Tensor(lisp_code t, vecter<long>& sz, Element* n) {
         type = t;
         shape = sz;
         if (shape.size())
             build(0,this, n->asNumber());
     }
     
-    Tensor(lisp_code t, vecte<long>& sz, double n) {
+    Tensor(lisp_code t, vecter<long>& sz, double n) {
         type = t;
         shape = sz;
         if (shape.size())
             build(0,this, n);
     }
 
-    Tensor(lisp_code t, LispE* lisp, vecte<long>& sz, Element* n) {
+    Tensor(lisp_code t, LispE* lisp, vecter<long>& sz, Element* n) {
         type = t;
         shape = sz;
         if (shape.size())
             build(lisp, 0,this, n->asNumber());
     }
     
-    Tensor(lisp_code t, LispE* lisp, Element* lst, vecte<long>& sz) {
+    Tensor(lisp_code t, LispE* lisp, Element* lst, vecter<long>& sz) {
         type = t;
         shape = sz;
         if (shape.size()) {
@@ -465,7 +465,7 @@ public:
         return new Tensor(this);
     }
 
-    Element* storeRank(Element* current, vecte<long>& positions, long idx) {
+    Element* storeRank(Element* current, vecter<long>& positions, long idx) {
         bool last = false;
         if (idx == shape.size() - 1) {
             last = true;
@@ -498,7 +498,7 @@ public:
         return storeRank(current->index(p_idx), positions, idx+1);
     }
     
-    Element* rank(LispE* lisp, vecte<long>& positions);
+    Element* rank(LispE* lisp, vecter<long>& positions);
     
     void build(LispE* lisp, long isz, Element* res, double n);
     void build(LispE* lisp, long isz, Element* res, Element* lst, long& idx);
@@ -577,7 +577,7 @@ public:
         }
     }
 
-    void combine(LispE* lisp, vecte<long>& isz1, vecte<long>& isz2, Element* l1, Element* l2, List* action) {
+    void combine(LispE* lisp, vecter<long>& isz1, vecter<long>& isz2, Element* l1, Element* l2, List* action) {
         if (!l1->isList() && !l2->isList()) {
             if (isz1.size() && isz2.size()) {
                 action->liste[1] = l1;
@@ -614,8 +614,8 @@ public:
     }
     
     void combine(LispE* lisp, Element* l1, Element* l2, List* action) {
-        vecte<long> isz1;
-        vecte<long> isz2;
+        vecter<long> isz1;
+        vecter<long> isz2;
         combine(lisp, isz1, isz2, l1, l2, action);
     }
     
@@ -625,7 +625,7 @@ public:
         return 1;
     }
 
-    void getShape(vecte<long>& sz) {
+    void getShape(vecter<long>& sz) {
         sz = shape;
     }
     
@@ -664,7 +664,7 @@ public:
     
     void concatenate(LispE* lisp, Element* e) {
         if (e->isList()) {
-            vecte<long> sz;
+            vecter<long> sz;
             e->getShape(sz);
             for (long i = 0; i < sz.size()-1; i++) {
                 if (sz[i] != shape[i])

@@ -341,7 +341,7 @@ public:
 
     void push_front(Element* v, bool is_final);
 
-#ifdef LISAP_WASM
+#ifdef LISLP_WASM
     bool push_back(Element* v) {
         u_link* e = last_raw();
         if (e == NULL) {
@@ -521,7 +521,12 @@ public:
     
     Element* negate(LispE* lisp);
     
-    bool element_container() {
+    bool element_container(Element* e) {
+        if (!status) {
+            e->increment();
+            release();
+            e->decrementkeep();
+        }
         return true;
     }
 
@@ -1124,7 +1129,7 @@ public:
     
 
     Element* newInstance() {
-        return new List;
+        return new LList(liste.mark);
     }
 
     Element* bit_not(LispE* l);

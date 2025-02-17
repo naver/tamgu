@@ -16,7 +16,7 @@
 
 #include "lispe.h"
 #include "elements.h"
-#include "tools.h"
+#include "lispetools.h"
 #include "vecter.h"
 #include <algorithm>
 
@@ -225,7 +225,7 @@ void List::combine(LispE* lisp, Element* res, Element* l1, Element* l2, List* ac
         else {
             char_tensor |= e->isPureList();            
             if (res->size())
-                char_tensor |= !e->is_same_tensor(res->last());
+                char_tensor |= !e->is_same_tensor(res->last(lisp));
         }
 
         res->append(e->copying(false));
@@ -5584,7 +5584,8 @@ Element* List_divide3::eval(LispE* lisp) {
         lisp->checkState(this);
         second_element = liste[2]->eval(lisp);
         first_element = first_element->divide_direct(lisp, second_element);
-        second_element->release();
+        if (first_element != second_element)
+            second_element->release();
     }
     catch (Error* err) {
         second_element->release();
@@ -5783,7 +5784,8 @@ Element* List_minus3::eval(LispE* lisp) {
         lisp->checkState(this);
         Element* second_element = liste[2]->eval(lisp);
         first_element = first_element->minus_direct(lisp, second_element);
-        second_element->release();
+        if (first_element != second_element)
+            second_element->release();
     }
     catch (Error* err) {
         lisp->resetStack();
@@ -6003,7 +6005,8 @@ Element* List_multiply3::eval(LispE* lisp) {
         lisp->checkState(this);
         Element* second_element = liste[2]->eval(lisp);
         first_element = first_element->multiply_direct(lisp, second_element);
-        second_element->release();
+        if (first_element != second_element)
+            second_element->release();
     }
     catch (Error* err) {
         first_element->release();
@@ -6228,7 +6231,8 @@ Element* List_plus3::eval(LispE* lisp) {
         lisp->checkState(this);
         Element* second_element = liste[2]->eval(lisp);
         first_element = first_element->plus_direct(lisp, second_element);
-        second_element->release();
+        if (first_element != second_element)
+            second_element->release();
     }
     catch (Error* err) {
         first_element->release();
@@ -8701,7 +8705,7 @@ Element* List::evall_powerequal2(LispE* lisp) {
 
 //------------------------------------------------------------------------------------------
 
-typedef enum {math_fabs,math_acos,math_acosh,math_asin,math_asinh,math_atan,math_atanh,math_cbrt,math_cos,math_cosh,math_erf,math_erfc,math_exp,math_exp2,math_expm1,math_floor,math_lgamma,math_log,math_log10,math_log1p,math_log2,math_logb,math_nearbyint,math_rint,math_round,math_sin,math_sinh,math_sqrt,math_tan,math_tanh,math_tgamma,math_trunc, math_radian, math_degree, math_gcd, math_hcf} math;
+typedef enum {math_fabs,math_acos,math_acosh,math_asin,math_asinh,math_atan,math_atanh,math_cbrt,math_cos,math_cosh,math_erf,math_erfc,math_exp,math_exp2,math_expm1,math_floor,math_iabs,math_lgamma,math_log,math_log10,math_log1p,math_log2,math_logb,math_nearbyint,math_rint,math_round,math_sin,math_sinh,math_sqrt,math_tan,math_tanh,math_tgamma,math_trunc, math_radian, math_degree, math_gcd, math_hcf} math;
 
 
 long gcd_math(long a, long b)
@@ -8906,6 +8910,11 @@ public:
                 v = val_v->asNumber();
                 v = fabs(v);
                 return lisp->provideNumber(v);
+            }
+            case math_iabs: {
+                long v = val_v->asInteger();
+                v = (v < 0)?v*-1:v;
+                return lisp->provideInteger(v);
             }
             case math_acos: {
                 v = val_v->asNumber();
@@ -9225,6 +9234,7 @@ void moduleMaths(LispE* lisp) {
     lisp->extension("deflib floor (val)", new Math(lisp, math_floor));
     lisp->extension("deflib gcd (val vaal)", new Math(lisp, math_gcd));
     lisp->extension("deflib hcf (val vaal)", new Math(lisp, math_hcf));
+    lisp->extension("deflib iabs (val)", new Math(lisp, math_iabs));
     lisp->extension("deflib lgamma (val)", new Math(lisp, math_lgamma));
     lisp->extension("deflib log (val)", new Math(lisp, math_log));
     lisp->extension("deflib log10 (val)", new Math(lisp, math_log10));

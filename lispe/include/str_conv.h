@@ -14,20 +14,20 @@
 
 //Function Prototypes
 //character based functions
-bool c_utf16_to_unicode(char32_t& r, char32_t code, bool second);
+bool chr_utf16_to_unicode(char32_t& r, char32_t code, bool second);
 void c_unicode_to_utf16(wstring& w, char32_t c);
 bool c_unicode_to_utf16(char32_t& res, char32_t code);
-unsigned char c_utf8_to_unicode(unsigned char* utf, char32_t& code);
+unsigned char chr_utf8_to_unicode(unsigned char* utf, char32_t& code);
 unsigned char c_unicode_to_utf8(char32_t code, unsigned char* utf);
 char* unicode_2_utf8(long code, char* utf);
 
 //string based functions
 void s_utf16_to_unicode(u32string& u, wstring& w);
 void s_unicode_to_utf16(wstring& w, u32string& u);
-void s_utf16_to_utf8(string& s, wstring& str);
+void str_utf16_to_utf8(string& s, wstring& str);
 void s_utf8_to_utf16(wstring& w, string& str);
 void s_utf8_to_unicode(u32string& w, string& str);
-void s_unicode_to_utf8(string& s, u32string& str);
+void str_unicode_to_utf8(string& s, u32string& str);
 
 void get_one_char(string& utf, string& res, long& i);
 void get_one_char16(wstring& utf, wstring& res, long& i);
@@ -98,7 +98,7 @@ unsigned char c_unicode_to_utf8(char32_t code, unsigned char* utf) {
     }
 }
 
-bool c_utf16_to_unicode(char32_t& r, char32_t code, bool second) {
+bool chr_utf16_to_unicode(char32_t& r, char32_t code, bool second) {
     // If you need an additional UTF-16 code
     if (second) {
         //Or it with r
@@ -151,7 +151,7 @@ bool c_unicode_to_utf16(char32_t& res, char32_t code) {
     return true;
 }
 
-unsigned char c_utf8_to_unicode(unsigned char* utf, char32_t& code) {
+unsigned char chr_utf8_to_unicode(unsigned char* utf, char32_t& code) {
     code = utf[0];
 
     unsigned char check = utf[0] & 0xF0;
@@ -189,8 +189,8 @@ unsigned char c_utf8_to_unicode(unsigned char* utf, char32_t& code) {
 void s_utf16_to_unicode(u32string& u, wstring& w) {
     char32_t c;
     for (long i = 0; i < w.size(); i++) {
-        if (c_utf16_to_unicode(c, w[i], false))
-            c_utf16_to_unicode(c, w[++i], true);
+        if (chr_utf16_to_unicode(c, w[i], false))
+            chr_utf16_to_unicode(c, w[++i], true);
         u += c;
     }
 }
@@ -212,7 +212,7 @@ void s_unicode_to_utf16(wstring& w, u32string& u) {
     }
 }
 
-void s_utf16_to_utf8(string& s, wstring& str) {
+void str_utf16_to_utf8(string& s, wstring& str) {
     long sz = str.size();
     if (!sz)
         return;
@@ -231,8 +231,8 @@ void s_utf16_to_utf8(string& s, wstring& str) {
             continue;
         }
 
-        if (c_utf16_to_unicode(c, str[i], false))
-            c_utf16_to_unicode(c, str[++i], true);
+        if (chr_utf16_to_unicode(c, str[i], false))
+            chr_utf16_to_unicode(c, str[++i], true);
 
         nb = c_unicode_to_utf8(c, (unsigned char*)inter);
         neo += inter;
@@ -253,7 +253,7 @@ void s_utf8_to_utf16(wstring& w, unsigned char* str , long sz) {
     char32_t c16;
     while (sz--) {
         if (*str & 0x80) {
-            nb = c_utf8_to_unicode(str, c);
+            nb = chr_utf8_to_unicode(str, c);
             str += nb + 1;
             sz = (sz >= nb)?sz-nb:0;
             if (!(c & 0xFFFF0000)) {
@@ -288,7 +288,7 @@ void s_utf8_to_unicode(u32string& w, unsigned char* str , long sz) {
 
     while (sz--) {
         if (*str & 0x80) {
-            nb = c_utf8_to_unicode(str, c);
+            nb = chr_utf8_to_unicode(str, c);
             str += nb+1;
             sz = (sz >= nb)?sz-nb:0;
             neo += c;
@@ -305,7 +305,7 @@ void s_utf8_to_unicode(u32string& w, string& str) {
     s_utf8_to_unicode(w, (unsigned char*)str.c_str(), str.size());
 }
 
-void s_unicode_to_utf8(string& s, u32string& str) {
+void str_unicode_to_utf8(string& s, u32string& str) {
     long i = 0;
     char inter[5];
     long sz = str.size();

@@ -16,6 +16,7 @@ Programmer : Claude ROUX (claude.roux@naverlabs.com)
 
 #include "tamgu.h"
 #include "tamguversion.h"
+#include "lispetools.h"
 #include "tamgulispe.h"
 
 #include "instructions.h"
@@ -50,7 +51,9 @@ Programmer : Claude ROUX (claude.roux@naverlabs.com)
 
 #include "tamgulisp.h"
 
+
 // We need to declare once again our local definitions.
+void str_unicode_to_utf8(string& s, u_ustring& str, long i);
 basebin_hash<lispeMethod> Tamgulispe::methods;
 static ThreadLock classlock;
 
@@ -210,6 +213,10 @@ Tamgulispe::Tamgulispe()
     lisp = new LispE();
     if (local_lispe == NULL)
         local_lispe = this;
+}
+
+Tamgulispe::Tamgulispe(TamguGlobal* g, short p) : TamguObject(g) {
+    lisp = new LispE();
 }
 
 Tamgulispe::~Tamgulispe()
@@ -410,7 +417,7 @@ Tamgu *Tamgulispe::convert_to_tamgu(Element *e, short idthread)
         Dictionary *d = (Dictionary *)e;
         std::unordered_map<u_ustring, Element *>::iterator it;
         string v;
-        u_ustring u;
+        std::u32string u;
         for (it = d->dictionary.begin(); it != d->dictionary.end(); it++)
         {
             u = it->first;
@@ -925,7 +932,7 @@ static Tamgu *Calllispe(Tamgulisp *v, short idthread)
     if (v->lispe == NULL)
     {
         if (local_lispe == NULL)
-            local_lispe = new Tamgulispe(globalTamgu);
+            local_lispe = new Tamgulispe(globalTamgu, idthread);
         try
         {
             e = parcours(v, local_lispe->lisp, idthread);

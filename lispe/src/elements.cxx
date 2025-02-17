@@ -10,7 +10,7 @@
 //
 
 #include "lispe.h"
-#include "tools.h"
+#include "lispetools.h"
 #include <math.h>
 #include <algorithm>
 
@@ -888,14 +888,14 @@ void Element::prettyfying(LispE* lisp, string& code, long mx) {
         
         Element* params;
         
-        if (type == l_defun || type == l_defpat || type == l_deflib) {
+        if (type == l_defun || type == l_defpat || type == l_deflib || type == l_defpred) {
             code += "(";
             code += lisp->toString(type);
             code += " ";
             code += index(1)->toString(lisp);
             code += " ";
             params = index(2);
-            if (type == l_defpat) {
+            if (type == l_defpat || type == l_defpred) {
                 code += "(";
                 string local;
                 for (long i = 0; i < params->size(); i++) {
@@ -1074,7 +1074,7 @@ string Element::prettify(LispE* lisp, long mx) {
     string code;
     prettyfying(lisp, code, mx);
     string body;
-    IndentCode_l(code, body, GetBlankSize_l(), true, false);
+    IndentCode(code, body, GetBlankSize(), true, false);
     return body;
 }
 
@@ -1898,7 +1898,7 @@ Element* Stringbyte::rotating(LispE* lisp, bool left) {
         return s;
     }
     s->content = content.back();
-    nb = size_l_c(content) - 1;
+    nb = size_c(content) - 1;
     nb = lisp->handlingutf8->charTobyte(content, nb);
     s->content += content.substr(0, nb);
     return s;
@@ -1958,8 +1958,7 @@ Element* String::search_element(LispE* lisp, Element* valeur, long ix) {
 Element* Stringbyte::search_element(LispE* lisp, Element* valeur, long ix) {
     string val = valeur->toString(lisp);
     ix =  content.find(val, ix);
-    ix = lisp->handlingutf8->byteTochar(content, ix);
-    return (ix == -1)?null_:lisp->provideInteger(ix);
+    return (ix == -1)?null_:lisp->provideInteger(lisp->handlingutf8->byteTochar(content, ix));
 }
 
 //------------------------------------------------------------------------------------------
@@ -3734,8 +3733,10 @@ void Listincode::protecting(bool protection, LispE* lisp) {
             status = s_protect;
     }
     else {
-        if (status == s_protect)
+        if (status == s_protect) {
             status = s_constant;
+            //lisp->storeforgarbage(this);
+        }
     }
     
     for (long i = 0; i < liste.size(); i++)

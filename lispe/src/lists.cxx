@@ -11,7 +11,7 @@
 
 
 #include "lispe.h"
-#include "tools.h"
+#include "lispetools.h"
 #include <math.h>
 #include <algorithm>
 
@@ -24,7 +24,59 @@ List_eval::List_eval(LispE* lisp, Element* a) : met(lisp->delegation->evals[a->t
     liste.push_element(a);
 }
 //--------------------------------------------------------------------------------
+Element* List::last(LispE* lisp) {
+    return (size())?liste.back():null_;
+}
 
+Element* Floats::last(LispE* lisp) {
+    if (size()) {
+        exchange_value.content = liste.back();
+        return &exchange_value;
+    }
+    return null_;
+}
+
+Element* Integers::last(LispE* lisp) {
+    if (size()) {
+        exchange_value.content = liste.back();
+        return &exchange_value;
+    }
+    return null_;
+}
+
+Element* Numbers::last(LispE* lisp) {
+    if (size()) {
+        exchange_value.content = liste.back();
+        return &exchange_value;
+    }
+    return null_;
+}
+
+Element* Shorts::last(LispE* lisp) {
+    if (size()) {
+        exchange_value.content = liste.back();
+        return &exchange_value;
+    }
+    return null_;
+}
+
+Element* Strings::last(LispE* lisp) {
+    if (size()) {
+        exchange_value.content = liste.back();
+        return &exchange_value;
+    }
+    return null_;
+}
+
+Element* Stringbytes::last(LispE* lisp) {
+    if (size()) {
+        exchange_value.content = liste.back();
+        return &exchange_value;
+    }
+    return null_;
+}
+
+//--------------------------------------------------------------------------------
 void u_links::push_front(Element* v, bool is_final) {
     u_link* e;
     if (is_final)
@@ -926,8 +978,7 @@ Element* LList::loop(LispE* lisp, int16_t label, List* code) {
     Element* element;
     long sz = code->liste.size();
     for (u_link* a = liste.begin(); a != NULL; a = a->next()) {
-        element = a->value->copying(false);
-        lisp->replacestackvalue(element, label);
+        lisp->replacestackvalue(a->value, label);
         _releasing(e);
         //We then execute our instructions
         for (i_loop = 3; i_loop < sz && e->type != l_return; i_loop++) {
@@ -950,8 +1001,7 @@ Element* List::loop(LispE* lisp, int16_t label, List* code) {
     Element* element;
     long sz = code->liste.size();
     for (long i = 0; i < liste.size(); i++) {
-        element = liste[i]->copyatom(lisp, 1);
-        lisp->replacestackvalue(element, label);
+        lisp->replacestackvalue(liste[i], label);
         _releasing(e);
         //We then execute our instructions
         for (i_loop = 3; i_loop < sz && e->type != l_return; i_loop++) {
@@ -2802,7 +2852,7 @@ Element* List::duplicate_constant(LispE* lisp) {
 
 //If we are dealing with a cdr, we need to copy it
 Element* List::duplicate_cdr(LispE* lisp) {
-    if (liste.home || status == s_constant) {
+    if (liste.home || status) {
         List* l = lisp->provideList();
         for (long i = 0; i < liste.size(); i++) {
             l->append(liste[i]->copying(true));

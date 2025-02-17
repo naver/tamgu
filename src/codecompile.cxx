@@ -1941,6 +1941,11 @@ Tamgu* TamguCode::C_multideclaration(x_node* xn, Tamgu* parent) {
 
 		Tamgu* ret = Callingprocedure(xn->nodes[2], tid);
 		top->Declare(idname, ret);
+        if (global->Error(0)) {
+            stringstream message;
+            message << global->Errorstring(0) << " ";
+            throw new TamguRaiseError(message, filename, current_start, current_end, left_position, right_position);
+        }
 		return parent;
 	}
 
