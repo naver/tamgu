@@ -1373,7 +1373,7 @@ Element* List_numbers_eval::eval(LispE* lisp) {
     if (listsz == 1)
         return lisp->provideNumbers();
 
-    Numbers* n;
+    Numbers* n = NULL;
     Element* values;
 
 
@@ -1420,7 +1420,7 @@ Element* List_integers_eval::eval(LispE* lisp) {
     if (listsz == 1)
         return lisp->provideIntegers();
 
-    Integers* n;
+    Integers* n = NULL;
     Element* values;
 
 
@@ -1467,7 +1467,7 @@ Element* List_strings_eval::eval(LispE* lisp) {
     if (listsz == 1)
         return lisp->provideStrings();
 
-    Strings* n;
+    Strings* n = NULL;
     Element* values;
 
 
@@ -1514,7 +1514,7 @@ Element* List_stringbytes_eval::eval(LispE* lisp) {
     if (listsz == 1)
         return new Stringbytes();
 
-    Stringbytes* n;
+    Stringbytes* n = NULL;
     Element* values;
 
 
@@ -5415,7 +5415,7 @@ Element* List_shorts_eval::eval(LispE* lisp) {
     long listsz = size();
     if (listsz == 1)
         return new Shorts();
-    Shorts* n;
+    Shorts* n = NULL;
     Element* values;
     try {
         lisp->checkState(this);
@@ -5788,7 +5788,7 @@ Element* List_floats_eval::eval(LispE* lisp) {
     long listsz = size();
     if (listsz == 1)
         return lisp->provideFloats();
-    Floats* n;
+    Floats* n = NULL;
     Element* values;
     try {
         lisp->checkState(this);
