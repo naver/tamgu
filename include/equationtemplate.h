@@ -4648,6 +4648,10 @@ public:
         op->Setstring(v, idthread);
     }
     
+    short Typeinfered() {
+        return Typevariable();
+    }
+
 
 };
 

@@ -110,6 +110,7 @@ public:
 //and won't budge after loading or compilation
 //The only exception is when creating new atoms
 typedef void (*reading_string)(string&, void*);
+class List_class_definition;
 
 class Delegation {
 public:
@@ -124,7 +125,9 @@ public:
     binHashe<string> instructions;
     
     binHash<int16_t> data_ancestor;
+    binHash<Element*> class_pool;
     vecter<binHash<Element*>* > function_pool;
+    binHash<int16_t> function_spaces;
     vecter<binHash<Element*>* > bodies;
     vecter<unordered_map<int16_t, unordered_map<int16_t, vector<Element*> > >* > method_pool;
 
@@ -132,6 +135,9 @@ public:
     
     binHash<Element*> data_pool;
     vector<long> idxinfos;
+    
+    tokeniser_result<u_ustring> r_parse;
+    segmenter_theautomaton segmenter;
     
     binSet assignors;
     binSet operators;
@@ -153,6 +159,10 @@ public:
     lispe_tokenizer main_tokenizer;
     
     //------------------------------------------
+    Element* _BOOLEANS[2][2];
+
+    List* void_function;
+
     binHash<uint16_t> namespaces;
     unordered_map<u_ustring, int16_t> string_to_code;
     unordered_map<int16_t, vector<int16_t> > data_descendant;
@@ -164,7 +174,7 @@ public:
     unordered_map<u_ustring, LockingThread*> locks;
     unordered_map<u_ustring, BlockThread*> waitons;
     
-    unordered_map<u_ustring, List> thread_pool;
+    unordered_map<u_ustring, List*> thread_pool;
 
     //this is an all-purpose pool for internal usage
 
@@ -189,10 +199,12 @@ public:
     Atome* _TERMINAL;
     Atome* _TRUE;
     Atome* _NULL;
+    Atome* _CUT;
     Atome* _EMPTYATOM;
     Atome* _LISTSEPARATOR;
     Atome* _DEFPAT;
     Atome* _DEFPRED;
+    Atome* _defprol;
     Atome* _DICO_INTEGER;
     Atome* _DICO_NUMBER;
     Atome* _DICO_STRING;
@@ -226,6 +238,8 @@ public:
     long i_current_file;
     int16_t stop_execution;
     
+    int current_idx_info;
+
     bool* windowmode;
 
     bool next_stop;
@@ -235,7 +249,7 @@ public:
     std::atomic<bool> endtrace;
     bool trace_on;
     
-    Delegation();
+    Delegation(utf8_handler* hnd = NULL);
     
     void initialisation(LispE*);
     
@@ -251,6 +265,9 @@ public:
         return trace_lock.check();
     }
     
+    Element* tokenize(LispE*, u_ustring& code, bool keepblanks, short decimalseparator, bool lock);
+    Element* tokenize(string& code, bool keepblanks, short decimalseparator, bool lock);
+
     void clean_threads(ThreadElement* the = NULL) {
         lock_thread.locking(true);
         long sz = currentthreads.size() - 1;
@@ -602,6 +619,17 @@ public:
     inline bool check_breakpoints(long i_file, long i_line) {
         return (breakpoints.count(i_file) && breakpoints[i_file].count(i_line));
     }
+    
+    inline string breakpoints_string() {
+        std::stringstream str;
+        for (const auto& a : breakpoints) {
+            str << "File:" << a.first;
+            for (auto& b : a.second) {
+                str << " break:" << b.first;
+            }
+        }
+        return str.str();
+    }
 
     inline bool activate_on_breakpoints(LispE* lisp, List* e) {
         if (next_stop) {
@@ -620,12 +648,26 @@ public:
         }
         return false;
     }
-    
-    
-    bool recordingFunction(Element* e, int16_t label, uint16_t space) {
-        if (function_pool[space]->check(label))
+
+    bool recordingClass(List_class_definition* e, int16_t label) {
+        if (class_pool.check(label))
             return false;
         
+        class_pool[label] = e;
+        return true;
+    }
+
+    bool recordingFunction(Element* e, int16_t label, uint16_t space) {
+        if (!space) {
+            if (function_pool[space]->check(label))
+                return false;
+            
+            function_spaces[label] = space;
+            (*function_pool[space])[label] = e;
+            return true;
+        }
+        
+        function_spaces[label] = space;
         (*function_pool[space])[label] = e;
         return true;
     }
@@ -725,7 +767,7 @@ public:
         lock.unlocking(true);
     }
     
-#ifdef LISPE_WASM
+#ifdef LISPE_WASM_NO_EXCEPTION
     void throwError() {
         //We need to  check if the error has not be thrown yet
         stop_execution &= 0xFFFE;
@@ -803,8 +845,12 @@ public:
     void thread_store(u_ustring& key, Element* e) {
         e = e->fullcopy();
         lock.locking();
-        thread_pool[key].status = 1;
-        thread_pool[key].append(e);
+        if (thread_pool.find(key) == thread_pool.end()) {
+            thread_pool[key] = new List();
+            thread_pool[key]->increment();
+        }
+        thread_pool[key]->status = 1;
+        thread_pool[key]->append(e);
         lock.unlocking();
     }
     
@@ -814,7 +860,7 @@ public:
         lock.locking();
         for (auto& a: thread_pool) {
             key = a.first;
-            d->recording(key, a.second.copying(true));
+            d->recording(key, a.second->copying(true));
         }
         lock.unlocking();
         return d;
@@ -825,7 +871,7 @@ public:
         lock.locking();
         const auto& a = thread_pool.find(key);
         if (a != thread_pool.end())
-            v = a->second.copying(true);
+            v = a->second->copying(true);
         lock.unlocking();
         return v;
     }
@@ -833,7 +879,7 @@ public:
     void thread_clear_all() {
         lock.locking();
         for (auto& a: thread_pool) {
-            a.second.clear();
+            a.second->decrement();
         }
         thread_pool.clear();
         lock.unlocking();
@@ -843,7 +889,7 @@ public:
         lock.locking();
         const auto& a = thread_pool.find(key);
         if (a != thread_pool.end()) {
-            a->second.clear();
+            a->second->clear();
             lock.unlocking();
             return true;
         }
@@ -945,7 +991,7 @@ public:
             current_error->decrement();
         current_error = NULL;
     }
-
+    
     inline void reset_context() {
         if (current_error != NULL)
             current_error->decrement();
@@ -953,10 +999,9 @@ public:
         i_current_line = -1;
         i_current_file = -1;
     }
-    
-    
+       
     inline void set_context(int idxinfo) {
-        if (!current_error && idxinfo >= 0 && idxinfo < idxinfos.size()) {
+        if (!current_error && idxinfo >= 0 && idxinfo < idxinfos.size() && idxinfos[idxinfo + 1] != -1) {
             i_current_line = idxinfos[idxinfo];
             i_current_file = idxinfos[idxinfo + 1];
         }
@@ -978,6 +1023,12 @@ public:
         if (current_error != NULL)
             current_error->decrement();
         current_error = _THEEND;
+    }
+    
+    inline Error* set_new_error(string message) {
+        current_idx_info = set_idx_info(i_current_line);
+        set_error_context(new Error(message), current_idx_info);
+        return current_error;
     }
     
     inline void set_error_context(Error* err, int idx_info) {

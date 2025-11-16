@@ -45,7 +45,7 @@
 #include "tamgusocket.h"
 #include "tamgudate.h"
 //----------------------------------------------------------------------------------
-const char* tamgu_version = "Tamgu 1.2025.02.17.10";
+const char* tamgu_version = "Tamgu 1.2025.11.16.11";
 
 #ifdef UNIX
 #include <sys/resource.h>
@@ -1408,7 +1408,47 @@ Exporting void TamguGlobal::RecordCompatibilities() {
     
     maptypes.push_back(a_constmap);
     vectortypes.push_back(a_constvector);
-    
+
+    compatibilities[a_sset][a_svector] = true;
+    compatibilities[a_uset][a_svector] = true;
+    compatibilities[a_sset][a_uvector] = true;
+    compatibilities[a_uset][a_uvector] = true;
+
+    compatibilities[a_iset][a_ivector] = true;
+    compatibilities[a_fset][a_fvector] = true;
+    compatibilities[a_fset][a_ivector] = true;
+    compatibilities[a_iset][a_fvector] = true;
+
+    strictcompatibilities[a_sset][a_svector] = true;
+    strictcompatibilities[a_uset][a_svector] = true;
+    strictcompatibilities[a_sset][a_uvector] = true;
+    strictcompatibilities[a_uset][a_uvector] = true;
+
+    strictcompatibilities[a_iset][a_ivector] = true;
+    strictcompatibilities[a_fset][a_fvector] = true;
+    strictcompatibilities[a_fset][a_ivector] = true;
+    strictcompatibilities[a_iset][a_fvector] = true;
+
+    compatibilities[a_svector][a_sset] = true;
+    compatibilities[a_svector][a_uset] = true;
+    compatibilities[a_uvector][a_sset] = true;
+    compatibilities[a_uvector][a_uset] = true;
+
+    compatibilities[a_ivector][a_iset] = true;
+    compatibilities[a_fvector][a_fset] = true;
+    compatibilities[a_ivector][a_fset] = true;
+    compatibilities[a_fvector][a_iset] = true;
+
+    strictcompatibilities[a_svector][a_sset] = true;
+    strictcompatibilities[a_svector][a_uset] = true;
+    strictcompatibilities[a_uvector][a_sset] = true;
+    strictcompatibilities[a_uvector][a_uset] = true;
+
+    strictcompatibilities[a_ivector][a_iset] = true;
+    strictcompatibilities[a_fvector][a_fset] = true;
+    strictcompatibilities[a_ivector][a_fset] = true;
+    strictcompatibilities[a_fvector][a_iset] = true;
+
     short ty;
     for (it = newInstance.begin(); it != newInstance.end(); it++) {
         if (it->second->isFrame()) //this type is only used to produce frames...
@@ -2269,7 +2309,10 @@ Exporting void TamguGlobal::RecordConstantNames() {
     Createid("frametype"); //263 --> a_frametype
     Createid("waitonjoined"); //264 --> a_waitonjoined
     Createid("lisp"); //265 a_lisp
-    
+    Createid("sset"); //266 a_lisp
+    Createid("iset"); //267 a_lisp
+    Createid("fset"); //268 a_lisp
+    Createid("uset"); //269 a_lisp
     
     //This is a simple hack to handle "length" a typical Haskell operator as "size"...
     //Note that there will be a useless index

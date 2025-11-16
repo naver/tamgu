@@ -21,7 +21,10 @@ typedef Element* (List::*methodEval)(LispE*);
 typedef enum {a_various_list, a_flat_list, a_valuelist, a_structured_list, a_tensor} liste_type;
 
 class Matrice_number;
+class Stackelement;
 class Shorts;
+class List_instance;
+class List_class_definition;
 
 class Atomefonction : public Element {
 public:
@@ -40,6 +43,10 @@ public:
     
     int16_t label() {
         return function_label;
+    }
+    
+    List* asBody() {
+        return (List*)body;
     }
 };
 
@@ -60,7 +67,18 @@ public:
         //hence buffer[sz] does exist even though
         //it cannot be accessed through normal means
     }
-    
+
+    ITEM(Element* e, long t) {
+        status = 0; //this is the reference counter
+        last = 0; //this is the last element
+        sz = t; //this is the size
+        //We always create one more element
+        //to handle some room for exchange
+        buffer = (Element**)malloc(sizeof(Element*)*(sz + 1));
+        while (last < t)
+            buffer[last++] = e;
+    }
+
     inline void reserve(long t) {
         if (t > sz) {
             sz = t;
@@ -224,7 +242,7 @@ class LIST {
 public:
     
     //It is always the same
-    ITEM* item;
+    ITEM* items;
     Element* object;
     long home;
     bool marking;
@@ -235,9 +253,9 @@ public:
         marking = false;
         usermarking = false;
         home  = pos + l.home;
-        item = l.item;
+        items = l.items;
         //We modify the common reference counter
-        item->status++;
+        items->status++;
     }
     
     LIST(long t) {
@@ -245,46 +263,54 @@ public:
         marking = false;
         usermarking = false;
         home = 0;
-        item = new ITEM(t);
+        items = new ITEM(t);
+    }
+    
+    LIST(long t, Element* e) {
+        object = NULL;
+        marking = false;
+        usermarking = false;
+        home = 0;
+        items = new ITEM(e, t);
     }
     
     ~LIST() {
-        if (!item->status)
-            delete item;
+        if (!items->status)
+            delete items;
         else
-            item->status--;
+            items->status--;
     }
     
     inline bool equal(LIST& l) {
-        return ((item->last == 0 && l.item->last == 0) || (l.item == item && home == l.home));
+        return ((items->last == 0 && l.items->last == 0) || (l.items == items && home == l.home));
     }
     
     inline void reserve(long sz) {
-        item->reserve(sz);
+        items->reserve(sz);
     }
     
     inline void swap(long i, long j) {
-        item->swap(i + home, j + home);
+        items->swap(i + home, j + home);
     }
     
     inline void put(long pos, Element* val) {
-        item->buffer[pos + home] = val;
+        items->buffer[pos + home] = val;
     }
     
     inline Element* exchange(long pos, Element* val) {
-        Element* e = item->buffer[pos + home];
-        item->buffer[pos + home] = val;
+        Element* e = items->buffer[pos + home];
+        items->buffer[pos + home] = val;
         return e;
     }
     
     inline Element* exchangelast(Element* val) {
-        Element* e = item->buffer[item->last - 1];
-        item->buffer[item->last - 1] = val;
+        Element* e = items->buffer[items->last - 1];
+        items->buffer[items->last - 1] = val;
         return e;
     }
     
     uint16_t shared(uint16_t status) {
-        return status + (item->status != 0);
+        return status + (items->status != 0);
     }
     
     inline void setmark(bool v) {
@@ -296,8 +322,8 @@ public:
     }
     
     inline bool cleanfromhome() {
-        item->clean(home);
-        item->last = home;
+        items->clean(home);
+        items->last = home;
         home--;
         return (home >= 0);
     }
@@ -311,74 +337,81 @@ public:
     }
     
     long _size() {
-        return item == NULL?0:item->last - home;
+        return items == NULL?0:items->last - home;
     }
     
     long size() {
-        return item->last - home;
+        return items->last - home;
     }
     
     void clear() {
         home = 0;
-        if (item->status) {
+        if (items->status) {
             //In this case it is a shared buffer
             //We have no right to it anymore
             //We need to provide a new one
-            item->status--;
-            item = new ITEM(8);
+            items->status--;
+            items = new ITEM(3);
         }
-        else
-            item->last = 0;
+        else {
+            if (items->sz > 10) {
+                delete items;
+                items = new ITEM(3);
+            }
+            else
+                items->last = 0;
+
+        }
     }
     
     void clean() {
-        item->decrement();
-        item->last = home;
+        items->decrement();
+        items->last = home;
     }
     
     inline void pop_back() {
-        item->pop_back();
+        items->pop_back();
     }
     
     inline void insert(long pos, Element* val) {
-        item->insert(pos + home, val);
+        items->insert(pos + home, val);
     }
     
     inline Element* back() {
-        return item->back();
+        return items->back();
     }
     
     inline Element* popback() {
-        return item->popback();
+        return items->popback();
     }
     
     inline void push_element(Element* val) {
-        item->push_back(val, home);
+        items->push_back(val, home);
     }
     
     inline void extend(LIST* val) {
-        item->extend(val->item, val->home, home);
+        items->extend(val->items, val->home, home);
     }
     
     inline void push_raw(Element* val) {
-        item->push_raw(val);
+        items->push_raw(val);
     }
     
     inline Element*& operator[](long pos) {
-        return item->buffer[pos+home];
+        return items->buffer[pos+home];
     }
     
     inline int16_t get0() {
-        return item->buffer[home]->type;
+        return items->buffer[home]->type;
     }
     
     void erase(long pos) {
-        item->erase(pos +home);
+        items->erase(pos +home);
     }
     
     void reverse() {
-        long sz = item->last - 1;
-        for (long i = home; i < sz && item->reverse(i,sz); i++) {
+        long sz = items->last - 1;
+        for (long i = home; i < sz && items->reverse(i,sz); i++) {
             sz--;
         }
     }
@@ -388,13 +421,13 @@ public:
         for (long i = rmin; i <= rmax; i++) {
             if (i != rmin)
                 cout << " ";
-            cout << item->buffer[i]->toString(lisp);
+            cout << items->buffer[i]->toString(lisp);
         }
         cout << ")" << endl;
     }
     
     inline void setAndQuote(long i, Element* v) {
-        item->setAndQuote(home + i, v);
+        items->setAndQuote(home + i, v);
     }
     
     bool compare(LispE*, List* compare, int16_t instruction, long i, long j);
@@ -402,7 +435,7 @@ public:
     void sorting(LispE*, List* f);
     
     void operator =(LIST& z) {
-        item->last = home;
+        items->last = home;
         for (long i = 0; i < z.size(); i++)
             push_element(z[i]);
     }
@@ -410,7 +443,7 @@ public:
     inline void increment() {
         if (!marking) {
             marking = true;
-            item->increment(home);
+            items->increment(home);
             marking = false;
         }
     }
@@ -418,7 +451,7 @@ public:
     inline void decrement() {
         if (!marking) {
             marking = true;
-            item->decrement();
+            items->decrement();
             marking = false;
         }
     }
@@ -426,7 +459,7 @@ public:
     inline void increment(uint16_t nb) {
         if (!marking) {
             marking = true;
-            item->increment(nb);
+            items->increment(nb);
             marking = false;
         }
     }
@@ -434,7 +467,7 @@ public:
     inline void decrement(uint16_t nb) {
         if (!marking) {
             marking = true;
-            item->decrement(nb);
+            items->decrement(nb);
             marking = false;
         }
     }
@@ -442,7 +475,7 @@ public:
     inline void decrement(Element* e) {
         if (!marking) {
             marking = true;
-            item->decrement(e);
+            items->decrement(e);
             marking = false;
         }
     }
@@ -453,16 +486,16 @@ public:
         //on the current one...
         //otherwise, we clean the current structure
         //since, this is the only access...
-        if (item->status) {
-            item->status--;
-            item = new ITEM(item->sz);
+        if (items->status) {
+            items->status--;
+            items = new ITEM(items->sz);
             home = 0;
         }
         else {
             //We clean the whole structure
             //and reset last to its first element
-            item->decrement();
-            item->last = home;
+            items->decrement();
+            items->last = home;
         }
     }
     
@@ -472,53 +505,53 @@ public:
         //on the current one...
         //otherwise, we clean the current structure
         //since, this is the only access...
-        if (item->status) {
-            item->status--;
-            item = new ITEM(item->sz);
+        if (items->status) {
+            items->status--;
+            items = new ITEM(items->sz);
             home = 0;
         }
         else {
             //We clean the whole structure
             //and reset last to its first element
-            item->decrement(e);
-            item->last = home;
+            items->decrement(e);
+            items->last = home;
         }
     }
     
     inline Element* at(long i) {
         i += home;
-        if (i < 0 || i >= item->last)
+        if (i < 0 || i >= items->last)
             throw new Error("LIST error");
-        return item->buffer[i];
+        return items->buffer[i];
     }
     
     inline bool is_not_empty() {
-        return (home != item->last);
+        return (home != items->last);
     }
     
     inline bool empty() {
-        return (home == item->last);
+        return (home == items->last);
     }
     
     inline bool checkType() {
-        return (home != item->last && item->buffer[0]->type < l_final);
+        return (home != items->last && items->buffer[0]->type < l_final);
     }
     
     void get(std::vector<Element*>& v) {
-        for (long i = home; i < item->last; i++)
-            v.push_back(item->buffer[i]);
+        for (long i = home; i < items->last; i++)
+            v.push_back(items->buffer[i]);
     }
     
     void set(std::vector<Element*>& v) {
-        item->last = home;
+        items->last = home;
         for (long i = 0; i < v.size(); i++) {
-            item->buffer[item->last++] = v[i];
+            items->buffer[items->last++] = v[i];
         }
     }
     
     inline void to_vector(std::vector<Element*>& v) {
-        for (long i = home; i < item->last; i++)
-            v.push_back(item->buffer[i]);
+        for (long i = home; i < items->last; i++)
+            v.push_back(items->buffer[i]);
     }
     
 };
@@ -539,6 +572,7 @@ public:
     //When a CDR is called, it will share this list's item, but with a different "home" value.
     //The "home value" in a LIST object defines where it starts in the internal buffer of ITEM
     List(List* l, long p) : terminal(0), liste(l->liste, p), Element(t_list) {}
+    List(long sz, Element* v) : terminal(0), liste(sz, v), Element(t_list) {}
     
     bool isContainer() {
         return true;
@@ -568,7 +602,7 @@ public:
         
     }
     bool equal_item(ITEM* i, long home) {
-        return (liste.home == home && liste.item == i);
+        return (liste.home == home && liste.items == i);
     }
     
     virtual Element* loop(LispE* lisp, int16_t label,  List* code);
@@ -586,10 +620,10 @@ public:
     }
     
     void set_in(LispE* lisp, Element* e, long i) {
+        e->increment();
         if (i < size())
             liste[i]->decrement();
         liste[i] = e;
-        e->increment();
     }
     
     bool check_element(LispE* lisp, Element* element_value);
@@ -634,7 +668,7 @@ public:
     Element* rank(LispE* lisp, vecter<long>& positions);
     
     int16_t label(long i) {
-        return ((Atome*)liste.item->buffer[i])->atome;
+        return ((Atome*)liste.items->buffer[i])->atome;
     }
     
     Element* thekeys(LispE* lisp);
@@ -712,7 +746,7 @@ public:
     
     Element* release_but_last() {
         Element* e = liste.back();
-        liste.item->last--;
+        liste.items->last--;
         release();
         e->decrementkeep();
         return e;
@@ -729,6 +763,8 @@ public:
     void flatten(LispE*, Strings* l);
     void flatten(LispE*, Stringbytes* l);
     
+    Element* execute_instance_function(LispE*, List_instance*);
+    Element* create_class_instance(LispE*, List_class_definition*);
     //In the case of a container for push, key and keyn
     // We must force the copy when it is a constant
     virtual Element* duplicate_constant(LispE* lisp);
@@ -748,7 +784,7 @@ public:
     }
 
     bool isLambda() {
-        return (liste.size() && liste.item->buffer[0]->type == l_lambda);
+        return (liste.size() && liste.items->buffer[0]->type == l_lambda);
     }
     
     bool isNULL() {
@@ -906,6 +942,31 @@ public:
         }
     }
     
+    void jsonStream(LispE* lisp, std::ostream& os) {
+        long sz = liste.size();
+        if (!sz) {
+            os << "[]";
+            return;
+        }
+        
+        if (liste.mark()) {
+            os << "#inf";
+            return;
+        }
+        
+        liste.setmark(true);
+        
+        sz -= 1;
+        os << "[";
+        for (long i = 0; i <= sz; i++) {
+            if (i && i <= sz)
+                os << L",";
+            liste[i]->jsonStream(lisp, os);
+        }
+        os << "]";
+        liste.setmark(false);
+    }
+    
     wstring jsonString(LispE* lisp) {
         long sz = liste.size();
         if (!sz)
@@ -937,7 +998,7 @@ public:
         
         if (liste[0]->type == l_quote && sz == 2) {
             wstring buffer(L"'");
-            buffer += liste[1]->stringInList(lisp);
+            buffer += liste[1]->wstringInList(lisp);
             return buffer;
         }
         
@@ -953,7 +1014,7 @@ public:
         for (long i = 0; i <= sz; i++) {
             if (i && i <= sz)
                 buffer += L" ";
-            buffer += liste[i]->stringInList(lisp);
+            buffer += liste[i]->wstringInList(lisp);
         }
         buffer += L")";
         liste.setmark(false);
@@ -1024,7 +1085,7 @@ public:
         liste[i] = e;
         e->increment();
     }
-    
+
     void changelast(Element* e) {
         liste.back()->decrement();
         liste[liste.size()-1] = e;
@@ -1063,8 +1124,9 @@ public:
         return (liste.size());
     }
     
-    Element* eval_pattern(LispE* lisp, int16_t function_name);
-    Element* eval_predicate(LispE* lisp, int16_t function_name);
+    Element* eval_pattern(LispE* lisp, List* body);
+    Element* eval_predicate(LispE* lisp, List* body);
+    Element* eval_prolog(LispE* lisp, List* body);
     
     void evalthread(LispE*, List* body);
     Element* evalfunction(LispE*, Element* body);
@@ -1089,7 +1151,7 @@ public:
         return liste.get0();
     }
     
-    int16_t function_label(LispE* lisp) {
+    virtual int16_t function_label(LispE* lisp) {
         return (liste.empty()?0:liste[0]->label());
     }
     
@@ -1276,7 +1338,7 @@ public:
     
     void copyfrom(Element* x) {
         List* l = (List*)x;
-        if (l->liste.item == liste.item) {
+        if (l->liste.items == liste.items) {
             liste.home = l->liste.home;
             return;
         }
@@ -1308,6 +1370,8 @@ public:
     Element* eval_list_instruction(LispE* lisp);
     
     Element* evall_maplist(LispE* lisp);
+    
+    Element* evall_toclean(LispE* lisp);
     
     Element* evall_equal(LispE* lisp);
     Element* evall_equalonezero(LispE* lisp);
@@ -1342,12 +1406,14 @@ public:
     Element* evall_converttostring(LispE* lisp);
     Element* evall_converttostringbyte(LispE* lisp);
     Element* evall_cyclicp(LispE* lisp);
+    Element* evall_class(LispE* lisp);
     Element* evall_data(LispE* lisp);
     Element* evall_deflib(LispE* lisp);
     Element* evall_deflibpat(LispE* lisp);
     Element* evall_defmacro(LispE* lisp);
     Element* evall_defpat(LispE* lisp);
     Element* evall_defpred(LispE* lisp);
+    Element* evall_defprol(LispE* lisp);
     Element* evall_defspace(LispE* lisp);
     Element* evall_defun(LispE* lisp);
     Element* evall_divide(LispE* lisp);
@@ -1360,6 +1426,10 @@ public:
     Element* evall_ife(LispE* lisp);
     Element* evall_index_zero(LispE* lisp);
     Element* evall_input(LispE* lisp);
+#ifdef LISPE_WASM
+    Element* evall_js(LispE* lisp);
+    Element* evall_js_sync(LispE* lisp);
+#endif
     Element* evall_lambda(LispE* lisp);
     Element* evall_last(LispE* lisp);
     Element* evall_leftshiftequal(LispE* lisp);
@@ -1391,6 +1461,8 @@ public:
     Element* evall_set_const(LispE* lisp);
     Element* evall_setg(LispE* lisp);
     Element* evall_setq(LispE* lisp);
+    Element* evall_setqi(LispE* lisp);
+    Element* evall_setqv(LispE* lisp);
     Element* evall_seth(LispE* lisp);
     Element* evall_size(LispE* lisp);
     Element* evall_sign(LispE* lisp);
@@ -1414,6 +1486,7 @@ public:
     Element* evall_void(LispE* lisp);
     Element* evall_wait(LispE* lisp);
     Element* evall_waiton(LispE* lisp);
+    Element* evall_withclass(LispE* lisp);
     Element* evall_zerop(LispE* lisp);
     Element* evall_zipwith(LispE* lisp);
     Element* evalt_list(LispE* lisp);
@@ -1438,6 +1511,7 @@ public:
     
     Element* evall_plus(LispE* lisp);
     Element* evall_infix(LispE* lisp);
+    Element* eval_infix(LispE* lisp);
     
     //Composable functions
     Element* evall_map_cps(LispE*);
@@ -1458,6 +1532,8 @@ public:
     Element* evall_foldr1_cps(LispE*);
     Element* evall_scanr1_cps(LispE*);
     
+    Element* evall_this(LispE*);
+    
     
 #ifdef MACDEBUG
     Element* evall_debug_function(LispE* lisp);
@@ -1468,32 +1544,32 @@ public:
     
     inline Element* evalt_function(LispE* lisp) {
         //In this case, it must be a function call (t_function)
-        return eval_function(lisp, (List*)((Atomefonction*)liste[0])->body);
+        return eval_function(lisp, ((Atomefonction*)liste[0])->asBody());
     }
     
     inline Element* evalt_library_function(LispE* lisp) {
         //In this case, it must be a function call (t_function)
-        return eval_library_function(lisp, (List*)((Atomefonction*)liste[0])->body);
+        return eval_library_function(lisp, ((Atomefonction*)liste[0])->asBody());
     }
     
     inline Element* evalt_pattern(LispE* lisp) {
         //In this case, it must be a pattern function call (t_pattern)
-        return eval_pattern(lisp, ((Atomefonction*)liste[0])->function_label);
+        return eval_pattern(lisp, ((Atomefonction*)liste[0])->asBody());
     }
 
     inline Element* evalt_predicate(LispE* lisp) {
         //In this case, it must be a pattern function call (t_predicate)
-        return eval_predicate(lisp, ((Atomefonction*)liste[0])->function_label);
+        return eval_predicate(lisp, ((Atomefonction*)liste[0])->asBody());
     }
 
     inline Element* evalt_lambda(LispE* lisp) {
         //In this case, it must be a self call (t_self)
-        return eval_lambda(lisp, (List*)((Atomefonction*)liste[0])->body);
+        return eval_lambda(lisp, ((Atomefonction*)liste[0])->asBody());
     }
     
     inline Element* evalt_thread(LispE* lisp) {
         //In this case, it must be a self call (t_self)
-        return eval_thread(lisp, (List*)((Atomefonction*)liste[0])->body);
+        return eval_thread(lisp, ((Atomefonction*)liste[0])->asBody());
     }
     
     inline Element* evalt_data(LispE* lisp) {
@@ -1507,9 +1583,6 @@ public:
     }
     
     virtual Element* newInstance(Element* v);
-    virtual bool incode() {
-        return false;
-    }
     
 };
 
@@ -1577,6 +1650,18 @@ class Listargumentdata : public List {
 public:
     
     Listargumentdata(List* l) : List(l, 0) {
+        terminal = l->terminal;
+    }
+    
+    bool unify(LispE* lisp, Element* value, bool record);
+};
+
+class Listargumentclass : public List {
+public:
+    int16_t class_label;
+    
+    Listargumentclass(List* l, int16_t lab) : List(l, 0) {
+        class_label = lab;
         terminal = l->terminal;
     }
     
@@ -1661,6 +1746,7 @@ public:
     Element* argumentvalue() {
         return argument;
     }
+        
 };
 
 //-------------------------------------------------------
@@ -1717,7 +1803,6 @@ public:
     }
     
     Element* eval(LispE*);
-    Element* eval_infix(LispE* lisp);
     Element* eval_call_self(LispE* lisp);
     Element* eval_call_function(LispE* lisp);
     
@@ -1751,6 +1836,15 @@ public:
     int infoIdx() {
         return idxinfo;
     }
+};
+
+class List_run_linear : public Listincode {
+public:
+    List components;
+    List_run_linear(int idx) : Listincode(idx) {}
+
+    void compose(LispE* lisp);
+    Element* eval(LispE*);
 };
 
 class List_switch_eval : public Listincode {
@@ -2420,6 +2514,23 @@ public:
     Element* eval(LispE* lisp) {
         return evall_block(lisp);
     }
+};
+
+class List_withclass_eval : public Listincode {
+public:
+
+    List_withclass_eval(Listincode* l) : Listincode(l) {}
+    List_withclass_eval() {}
+    
+    bool is_straight_eval() {
+        return true;
+    }
+    
+    List* cloning(Listincode* e, methodEval m) {
+        return new List_withclass_eval(e);
+    }
+    
+    Element* eval(LispE* lisp);
 };
 
 class List_set_at_eval : public Listincode {
@@ -4469,15 +4580,264 @@ public:
     
 };
 
+class List_from : public Listincode {
+public:
+    
+    List_from(Listincode* l) : Listincode(l) {
+        type = liste[1]->label();
+    }
+    
+    List_from(List* l) : Listincode(l) {
+        type = liste[1]->label();
+    }
+    
+    List_from() {
+        type = l_from;
+    }
+    
+    Element* eval(LispE* lisp);
+
+    bool is_straight_eval() {
+        return true;
+    }
+    
+    List* borrowing(List* e) {
+        return new List_from(e);
+    }
+    
+    List* cloning(Listincode* e, methodEval m) {
+        return new List_from(e);
+    }
+    
+    List* cloning() {
+        return new List_from(this);
+    }
+
+};
+
+class List_instance_eval : public Listincode {
+public:
+    int16_t class_label;
+    
+    List_instance_eval(Listincode* l, int16_t c) : Listincode(l) {
+        type = l->index(0)->label();
+        class_label = c;
+    }
+    
+    Element* eval(LispE*);
+};
+
+class List_instance;
+struct group_instance_clean {
+public:
+    LispE* lisp;
+    Element* clean_function;
+    int16_t space;
+
+    group_instance_clean(LispE* l, Element* f, int16_t s) : lisp(l), clean_function(f), space(s) {}    
+    void call_clean(List_instance*);
+};
+
+
+class List_instance : public List {
+public:
+    group_instance_clean* clean;
+    vecter<int16_t> names;
+    int16_t space;
+
+    List_instance(int16_t sp, int16_t lab, vecter<int16_t>& n, Element* v, long sz) : List(sz, v), names(n) {
+        clean = NULL;
+        type = lab;
+        space = sp;
+    }
+
+    List_instance(int16_t sp, int16_t lab, vecter<int16_t>& n) : names(n) {
+        clean = NULL;
+        type = lab;
+        space = sp;
+    }
+
+    ~List_instance() {
+        if (clean != NULL)
+            delete clean;
+    }
+    
+    bool get_variable(int16_t label, Element** res) {
+        long i = names.search(label);
+        if (i == -1)
+            return false;
+        
+        *res = liste[i];
+        return true;
+    }
+    
+    bool check_variable(int16_t label) {
+        return (names.check(label));
+    }
+    
+    Element* store_variable(int16_t label, Element* e) {
+        long i = names.search(label);
+        if (liste[i] == e)
+            return this;
+        e->increment();
+        liste[i]->decrement();
+        liste[i] = e;
+        return this;
+    }
+    
+    inline void call_clean() {
+        if (clean != NULL)
+            clean->call_clean(this);
+    }
+    
+    void release() {
+        if (!status) {
+            call_clean();
+            liste.decrement();
+            delete this;
+        }
+    }
+
+    void rawrelease() {
+        if (!status) {
+            call_clean();
+            liste.clear();
+            liste.decrement();
+            delete this;
+        }
+    }
+    
+    void release(Element* e) {
+        if (!status) {
+            call_clean();
+            liste.decrement(e);
+            e->decrementkeep();
+            delete this;
+        }
+    }
+
+    void decrement() {
+        status -= not_protected();
+        if (!status) {
+            call_clean();
+            liste.decrement();
+            delete this;
+        }
+    }
+
+    void decrementstatus(uint16_t nb) {
+        status -= nb * not_protected();
+        if (!status) {
+            call_clean();
+            liste.decrement();
+            delete this;
+        }
+    }
+
+    int16_t function_label(LispE* lisp) {
+        return t_class_instance;
+    }
+
+    int16_t label() {
+       return type;
+   }
+
+    Element* protected_index(LispE* lisp,long i) {
+        if (i < 0 || i >= size())
+            throw new Error("Error: index out of bounds");
+        return liste[i];
+    }
+    
+    Element* replace(LispE* lisp, Element* i, Element* e);
+    Element* protected_index(LispE* lisp, Element* k);
+    
+    void store_variables(Stackelement*);
+    void update_variables(LispE*);
+    u_ustring asUString(LispE* lisp);
+    
+    char check_match(LispE* lisp, Element* value);
+
+    Element* copying(bool duplicate = true) {
+        //If it is a CDR, we need to copy it...
+        if (!is_protected() && !duplicate)
+            return this;
+        List_instance* instance = new List_instance(space, type, names);
+        instance->names = names;
+        Element* e;
+        for (long i = 0; i < size(); i++) {
+            e = liste[i]->copying(duplicate);
+            instance->append(e);
+        }
+            
+        return instance;
+    }
+    
+    Element* copyatom(LispE* lisp, uint16_t s) {
+        if (status < s)
+            return this;
+
+        List_instance* instance = new List_instance(space, type, names);
+        instance->names = names;
+        Element* e;
+        for (long i = 0; i < size(); i++) {
+            e = liste[i]->copyatom(lisp, s);
+            instance->append(e);
+        }
+            
+        return instance;
+    }
+
+    Element* fullcopy() {
+        return copying(true);
+    }
+
+};
+
+
+class List_class_definition : public Listincode {
+public:
+    vecter<int16_t> names;
+    Element* parameters;
+    int16_t class_label;
+    int16_t space;
+    bool same;
+    
+    List_class_definition(LispE* lisp, List* l);
+        
+    bool is_straight_eval() {
+        return true;
+    }
+    
+    int16_t label() {
+        return t_class;
+    }
+};
+
+class List_class_eval : public Listincode {
+public:
+    List_class_definition* class_definition;
+    
+    List_class_eval(Listincode* l, List_class_definition* lcd) : Listincode(l) {
+        class_definition = lcd;
+    }
+    
+    List_class_eval(List* l, List_class_definition* lcd) : Listincode(l) {
+        class_definition = lcd;
+    }
+
+    Element* eval(LispE* lip);    
+};
+
+
 class List_function_eval : public Listincode {
 public:
     List* body;
     Element* parameters;
-    long nbarguments, defaultarguments;
+    int16_t space, nbarguments, defaultarguments;
     bool same;
     
-    List_function_eval(LispE* lisp, Listincode* l, List* b);
-    List_function_eval(LispE* lisp, List* b, long nbarguments);
+    List_function_eval(LispE* lisp, Listincode* l, List* b, int16_t s);
+    List_function_eval(LispE* lisp, List* b, int16_t nbarguments);
     
     bool eval_Boolean(LispE* lisp, int16_t instruction);
     Element* eval(LispE* lisp);
@@ -4490,17 +4850,43 @@ public:
         return t_call;
     }
     
+    void check_body(LispE* lisp, Element** e);
 };
+
+class List_thread_eval : public Listincode {
+public:
+    List* body;
+    Element* parameters;
+    int16_t space, nbarguments, defaultarguments;
+    bool same;
+    
+    List_thread_eval(LispE* lisp, Listincode* l, List* b, int16_t s);
+    List_thread_eval(LispE* lisp, List* b, int16_t nbarguments);
+    
+    Element* eval(LispE* lisp);
+    
+    bool is_straight_eval() {
+        return true;
+    }
+    
+    int16_t label() {
+        return t_call;
+    }
+    
+    void check_body(LispE* lisp, Element** e);
+};
+
 
 class List_pattern_eval : public Listincode {
 public:
     List* body;
-    int16_t function_label;
+    int16_t function_label, space;
     
-    List_pattern_eval(Listincode* l, List* b) : body(b), Listincode(l) {
+    List_pattern_eval(Listincode* l, List* b, int16_t s) : body(b), Listincode(l) {
         type = t_call;
         status = s_constant;
         function_label = body->liste[1]->label();
+        space = s;
     }
     
     List_pattern_eval(List* b) : body(b) {
@@ -4508,8 +4894,17 @@ public:
         type = t_eval;
         status = s_constant;
         function_label = body->liste[1]->label();
+        space = 0;
     }
-    
+
+    List_pattern_eval(List* l, List* b) : body(b), Listincode(l) {
+        type = t_call;
+        status = s_constant;
+        function_label = body->liste[1]->label();
+        space = 0;
+    }
+
+    void check_body(LispE* lisp, Element** e);
     bool eval_Boolean(LispE* lisp, int16_t instruction);
     Element* eval(LispE* lisp);
     
@@ -4526,12 +4921,13 @@ public:
 class List_predicate_eval : public Listincode {
 public:
     List* body;
-    int16_t function_label;
+    int16_t function_label, space;
     
-    List_predicate_eval(Listincode* l, List* b) : body(b), Listincode(l) {
+    List_predicate_eval(Listincode* l, List* b, int16_t s) : body(b), Listincode(l) {
         type = t_call;
         status = s_constant;
         function_label = body->liste[1]->label();
+        space = s;
     }
     
     List_predicate_eval(List* b) : body(b) {
@@ -4539,8 +4935,58 @@ public:
         type = t_eval;
         status = s_constant;
         function_label = body->liste[1]->label();
+        space = 0;
+    }
+
+    List_predicate_eval(List* l, List* b) : body(b), Listincode(l) {
+        type = t_call;
+        status = s_constant;
+        function_label = body->liste[1]->label();
+        space = 0;
+    }
+
+    void check_body(LispE* lisp, Element** e);
+    bool eval_Boolean(LispE* lisp, int16_t instruction);
+    Element* eval(LispE* lisp);
+    
+    bool is_straight_eval() {
+        return true;
     }
     
+    int16_t label() {
+        return t_call;
+    }
+    
+};
+
+class List_prolog_eval : public Listincode {
+public:
+    List* body;
+    int16_t space, function_label;
+    
+    List_prolog_eval(Listincode* l, List* b, int16_t s) : body(b), Listincode(l) {
+        type = t_call;
+        status = s_constant;
+        function_label = body->liste[1]->label();
+        space = s;
+    }
+    
+    List_prolog_eval(List* b) : body(b) {
+        liste.push_element(b);
+        type = t_eval;
+        status = s_constant;
+        function_label = body->liste[1]->label();
+        space = 0;
+    }
+
+    List_prolog_eval(List* l, List* b) : body(b), Listincode(l) {
+        type = t_call;
+        status = s_constant;
+        function_label = body->liste[1]->label();
+        space = 0;
+    }
+
+    void check_body(LispE* lisp, Element** e);
     bool eval_Boolean(LispE* lisp, int16_t instruction);
     Element* eval(LispE* lisp);
     
@@ -4620,6 +5066,101 @@ public:
         return new List_not_eval(multiple);
     }
     
+    Element* eval(LispE* lisp);
+};
+
+class List_setqv_eval : public Listincode {
+public:
+    
+    List_setqv_eval(Listincode* l) : Listincode(l) {}
+    List_setqv_eval() {}
+    List_setqv_eval(bool m)  {multiple = m;}
+    
+    bool is_straight_eval() {
+        return true;
+    }
+    
+    List* borrowing(List* e) {
+        return new List_setqv_eval(e);
+    }
+    
+    List* cloning(Listincode* e, methodEval m) {
+        return new List_setqv_eval(e);
+    }
+    
+    List* cloning() {
+        return new List_setqv_eval(multiple);
+    }
+    
+    Element* eval(LispE* lisp);
+};
+
+class List_setqi_eval : public Listincode {
+public:
+    
+    List_setqi_eval(Listincode* l) : Listincode(l) {}
+    List_setqi_eval() {}
+    List_setqi_eval(bool m)  {multiple = m;}
+    
+    bool is_straight_eval() {
+        return true;
+    }
+    
+    List* borrowing(List* e) {
+        return new List_setqi_eval(e);
+    }
+    
+    List* cloning(Listincode* e, methodEval m) {
+        return new List_setqi_eval(e);
+    }
+    
+    List* cloning() {
+        return new List_setqi_eval(multiple);
+    }
+    
+    Element* eval(LispE* lisp);
+};
+
+
+class List_getfast_eval : public Listincode {
+public:
+    
+    List_getfast_eval(List* l) : Listincode(l) {}
+    List_getfast_eval() {}
+    
+    bool is_straight_eval() {
+        return true;
+    }
+    
+    List* borrowing(List* e) {
+        return new List_getfast_eval(e);
+    }
+    
+    List* cloning(Listincode* e, methodEval m) {
+        return new List_getfast_eval(e);
+    }
+
+    Element* eval(LispE* lisp);
+};
+
+class List_setfast_eval : public Listincode {
+public:
+    
+    List_setfast_eval(List* l) : Listincode(l) {}
+    List_setfast_eval() {}
+    
+    bool is_straight_eval() {
+        return true;
+    }
+    
+    List* borrowing(List* e) {
+        return new List_setfast_eval(e);
+    }
+    
+    List* cloning(Listincode* e, methodEval m) {
+        return new List_setfast_eval(e);
+    }
+
     Element* eval(LispE* lisp);
 };
 
@@ -8344,97 +8885,6 @@ public:
     Element* eval(LispE* lisp);
 };
 
-class List_divide2 : public Listincode {
-public:
-    List_divide2(Listincode* l) : Listincode(l, 0) {
-        terminal = l->terminal;
-    }
-    Element* eval(LispE*);
-};
-
-class List_plus2 : public Listincode {
-public:
-    List_plus2(Listincode* l) : Listincode(l, 0) {
-        terminal = l->terminal;
-    }
-    Element* eval(LispE*);
-};
-
-class List_minus2 : public Listincode {
-public:
-    List_minus2(Listincode* l) : Listincode(l, 0) {
-        terminal = l->terminal;
-    }
-    Element* eval(LispE*);
-};
-
-class List_multiply2 : public Listincode {
-public:
-    List_multiply2(Listincode* l) : Listincode(l, 0) {
-        terminal = l->terminal;
-    }
-    Element* eval(LispE*);
-};
-
-class List_divide3 : public Listincode {
-public:
-    List_divide3(Listincode* l) : Listincode(l, 0) {
-        terminal = l->terminal;
-    }
-    Element* eval(LispE*);
-};
-
-class List_plus3 : public Listincode {
-public:
-    List_plus3(Listincode* l) : Listincode(l, 0) {
-        terminal = l->terminal;
-    }
-    Element* eval(LispE*);
-};
-
-class List_minus3 : public Listincode {
-public:
-    List_minus3(Listincode* l) : Listincode(l, 0) {
-        terminal = l->terminal;
-    }
-    Element* eval(LispE*);
-};
-
-class List_multiply3 : public Listincode {
-public:
-    List_multiply3(Listincode* l) : Listincode(l, 0) {
-        terminal = l->terminal;
-    }
-    Element* eval(LispE*);
-};
-
-class List_powern : public Listincode {
-public:
-    List_powern(Listincode* l) : Listincode(l) {}
-    List_powern(List* l) : Listincode(l) {
-        terminal = l->terminal;
-    }
-    List_powern() {}
-    bool is_straight_eval() {
-        return true;
-    }
-    
-    List* borrowing(List* e) {
-        return new List_powern(e);
-    }
-    
-    List* cloning(Listincode* e, methodEval m) {
-        return new List_powern(e);
-    }
-    
-    List* cloning() {
-        return new List_powern();
-    }
-    
-    Element* eval(LispE*);
-};
-
-
 class List_dividen : public Listincode {
 public:
     List_dividen(Listincode* l) : Listincode(l) {}
@@ -8536,6 +8986,114 @@ public:
     Element* eval(LispE*);
 };
 
+
+class List_divide3 : public Listincode {
+public:
+    List_divide3(Listincode* l) : Listincode(l, 0) {
+        terminal = l->terminal;
+    }
+    Element* eval(LispE*);
+    Element* change_to_n() {
+        return new List_dividen(this);
+    }
+
+};
+
+class List_plus3 : public Listincode {
+public:
+    List_plus3(Listincode* l) : Listincode(l, 0) {
+        terminal = l->terminal;
+    }
+    Element* eval(LispE*);
+    Element* change_to_n() {
+        return new List_plusn(this);
+    }
+
+};
+
+class List_minus3 : public Listincode {
+public:
+    List_minus3(Listincode* l) : Listincode(l, 0) {
+        terminal = l->terminal;
+    }
+    Element* eval(LispE*);
+    Element* change_to_n() {
+        return new List_minusn(this);
+    }
+
+};
+
+class List_multiply3 : public Listincode {
+public:
+    List_multiply3(Listincode* l) : Listincode(l, 0) {
+        terminal = l->terminal;
+    }
+    Element* eval(LispE*);
+    Element* change_to_n() {
+        return new List_multiplyn(this);
+    }
+
+};
+
+class List_divide2 : public Listincode {
+public:
+    List_divide2(Listincode* l) : Listincode(l, 0) {
+        terminal = l->terminal;
+    }
+    Element* eval(LispE*);
+};
+
+class List_plus2 : public Listincode {
+public:
+    List_plus2(Listincode* l) : Listincode(l, 0) {
+        terminal = l->terminal;
+    }
+    Element* eval(LispE*);
+};
+
+class List_minus2 : public Listincode {
+public:
+    List_minus2(Listincode* l) : Listincode(l, 0) {
+        terminal = l->terminal;
+    }
+    Element* eval(LispE*);
+};
+
+class List_multiply2 : public Listincode {
+public:
+    List_multiply2(Listincode* l) : Listincode(l, 0) {
+        terminal = l->terminal;
+    }
+    Element* eval(LispE*);
+};
+
+class List_powern : public Listincode {
+public:
+    List_powern(Listincode* l) : Listincode(l) {}
+    List_powern(List* l) : Listincode(l) {
+        terminal = l->terminal;
+    }
+    List_powern() {}
+    bool is_straight_eval() {
+        return true;
+    }
+    
+    List* borrowing(List* e) {
+        return new List_powern(e);
+    }
+    
+    List* cloning(Listincode* e, methodEval m) {
+        return new List_powern(e);
+    }
+    
+    List* cloning() {
+        return new List_powern();
+    }
+    
+    Element* eval(LispE*);
+};
+
+
 class List_mod_eval : public Listincode {
 public:
     
@@ -8624,6 +9182,9 @@ public:
         terminal = l->terminal;
     }
     Element* eval(LispE*);
+    Element* change_to_n() {
+        return new List_powern(this);
+    }
 };
 
 class List_divideequal_var : public Listincode {
@@ -9065,6 +9626,23 @@ public:
         }
     }
     
+    void jsonStream(LispE* lisp, std::ostream& os) {
+        long sz = liste.size();
+        if (!sz) {
+            os << "[]";
+            return;
+        }
+        
+        sz -= 1;
+        os << "[";
+        for (long i = 0; i <= sz; i++) {
+            if (i && i <= sz)
+                os << ",";
+            os << liste[i];
+        }
+        os << "]";
+    }
+
     wstring jsonString(LispE* lisp) {
         long sz = liste.size();
         if (!sz)
@@ -9177,7 +9755,7 @@ public:
     //The label of _EMPTYLIST is v_null
     //We can then compare with () as if it was nil
     int16_t label() {
-        return (liste.empty()?t_floats:v_null);
+        return (liste.empty()?v_null:t_floats);
     }
     
     Element* reverse(LispE*, bool duplique = true);
@@ -9567,6 +10145,23 @@ public:
         }
     }
     
+    void jsonStream(LispE* lisp, std::ostream& os) {
+        long sz = liste.size();
+        if (!sz) {
+            os << "[]";
+            return;
+        }
+        
+        sz -= 1;
+        os << "[";
+        for (long i = 0; i <= sz; i++) {
+            if (i && i <= sz)
+                os << ",";
+            os << liste[i];
+        }
+        os << "]";
+    }
+
     wstring jsonString(LispE* lisp) {
         long sz = liste.size();
         if (!sz)
@@ -9676,7 +10271,7 @@ public:
     //The label of _EMPTYLIST is v_null
     //We can then compare with () as if it was nil
     int16_t label() {
-        return (liste.empty()?t_numbers:v_null);
+        return (liste.empty()?v_null:t_numbers);
     }
     
     Element* reverse(LispE*, bool duplique = true);
@@ -10061,6 +10656,23 @@ public:
         }
     }
     
+    void jsonStream(LispE* lisp, std::ostream& os) {
+        long sz = liste.size();
+        if (!sz) {
+            os << "[]";
+            return;
+        }
+        
+        sz -= 1;
+        os << "[";
+        for (long i = 0; i <= sz; i++) {
+            if (i && i <= sz)
+                os << ",";
+            os << liste[i];
+        }
+        os << "]";
+    }
+
     wstring jsonString(LispE* lisp) {
         long sz = liste.size();
         if (!sz)
@@ -10170,7 +10782,7 @@ public:
     //The label of _EMPTYLIST is v_null
     //We can then compare with () as if it was nil
     int16_t label() {
-        return (liste.empty()?t_integers:v_null);
+        return (liste.empty()?v_null:t_integers);
     }
     
     Element* reverse(LispE*, bool duplique = true);
@@ -10507,6 +11119,23 @@ public:
         }
     }
     
+    void jsonStream(LispE* lisp, std::ostream& os) {
+        long sz = liste.size();
+        if (!sz) {
+            os << "[]";
+            return;
+        }
+        
+        sz -= 1;
+        os << "[";
+        for (long i = 0; i <= sz; i++) {
+            if (i && i <= sz)
+                os << ",";
+            os << liste[i];
+        }
+        os << "]";
+    }
+
     wstring jsonString(LispE* lisp) {
         long sz = liste.size();
         if (!sz)
@@ -10616,7 +11245,7 @@ public:
     //The label of _EMPTYLIST is v_null
     //We can then compare with () as if it was nil
     int16_t label() {
-        return (liste.empty()?t_integers:v_null);
+        return (liste.empty()?v_null:t_integers);
     }
     
     Element* reverse(LispE*, bool duplique = true);
@@ -11000,6 +11629,26 @@ public:
         }
     }
     
+    void jsonStream(LispE* lisp, std::ostream& os) {
+        long sz = liste.size();
+        if (!sz) {
+            os << "[]";
+            return;
+        }
+        
+        string s;
+        sz -= 1;
+        os << "[";
+        for (long i = 0; i <= sz; i++) {
+            if (i && i <= sz)
+                os << ",";
+            s = "";
+            str_unicode_to_utf8(s, liste[i]);
+            os << s;
+        }
+        os << "]";
+    }
+
     wstring jsonString(LispE* lisp) {
         long sz = liste.size();
         if (!sz)
@@ -11125,7 +11774,7 @@ public:
     //The label of _EMPTYLIST is v_null
     //We can then compare with () as if it was nil
     int16_t label() {
-        return (liste.empty()?t_strings:v_null);
+        return (liste.empty()?v_null:t_strings);
     }
     
     Element* reverse(LispE*, bool duplique = true);
@@ -11486,6 +12135,23 @@ public:
         }
     }
     
+    void jsonStream(LispE* lisp, std::ostream& os) {
+        long sz = liste.size();
+        if (!sz) {
+            os << "[]";
+            return;
+        }
+        
+        sz -= 1;
+        os << "[";
+        for (long i = 0; i <= sz; i++) {
+            if (i && i <= sz)
+                os << ",";
+            os << liste[i];
+        }
+        os << "]";
+    }
+
     wstring jsonString(LispE* lisp) {
         long sz = liste.size();
         if (!sz)
@@ -11636,7 +12302,7 @@ public:
     //The label of _EMPTYLIST is v_null
     //We can then compare with () as if it was nil
     int16_t label() {
-        return (liste.empty()?t_stringbytes:v_null);
+        return (liste.empty()?v_null:t_stringbytes);
     }
     
     Element* reverse(LispE*, bool duplique = true);

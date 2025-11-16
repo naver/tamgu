@@ -14,7 +14,7 @@
 
 const uint16_t binBits = 6;
 const uint16_t binSize = 1 << binBits;
-const uint16_t binMin = 0x3F;
+const uint16_t binMin = binSize - 1;
 const uint64_t binOne = 1;
  
 const uint64_t binVal64[] = { 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768,
@@ -912,6 +912,40 @@ template <class Z> class binHash {
             table[i] = new Z[binSize];
         indexes[i] |= binVal64[r];
         return table[i][r];
+    }
+
+    void push(uint16_t r, Z e) {
+        if (base == -1) {
+            base = r >> binBits;
+            r &= binMin;
+            table[0] = new Z[binSize];
+            indexes[0] |= binVal64[r];
+            table[0][r] = e;
+            return;
+        }
+        
+        uint16_t i = r >> binBits;
+        r &= binMin;
+        if (i < base) {
+            insert(i);
+            table[0] = new Z[binSize];
+            indexes[0] |= binVal64[r];
+            table[0][r] = e;
+            return;
+        }
+
+        i -= base;
+        if (i >= tsize) {
+            resize(i + (i >> 1) + 1);
+            table[i] = new Z[binSize];
+            indexes[i] |= binVal64[r];
+            table[i][r] = e;
+            return;
+        }
+        if (table[i] == NULL)
+            table[i] = new Z[binSize];
+        indexes[i] |= binVal64[r];
+        table[i][r] = e;
     }
 
     //intersection

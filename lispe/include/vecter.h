@@ -21,7 +21,7 @@ public:
 	Z* vecteur;
 	//sz is the vector size
 	long sz;
-	//last element appended... 
+	//last element appended...
 	long last;
 
 	vecter(long t = 3) {
@@ -37,24 +37,24 @@ public:
         for (last = 0; last < nb; last++)
             vecteur[last] = val;
     }
-    
+
     vecter(vecter<Z>& v) {
         sz = v.sz;
         last = v.last;
         vecteur = (Z*)malloc(sizeof(Z)*sz);
         memcpy(vecteur, v.vecteur, sizeof(Z)*sz);
     }
-    
+
 	~vecter() {
         if (sz)
             free(vecteur);
 	}
 
-    
+
     inline double get_(long pos) {
         return vecteur[pos];
     }
-    
+
     inline void set_(long pos, double v) {
         vecteur[pos] = v;
     }
@@ -81,7 +81,7 @@ public:
             delete vecteur[--last];
         }
     }
-    
+
     inline void clean() {
         for (last = 0; last < sz; last++) {
             if (vecteur[last] != NULL) {
@@ -104,7 +104,7 @@ public:
             memset(vecteur+last, NULL, sizeof(Z)*(sz-last));
         }
 	}
-    
+
     inline void trim() {
         if (!last) {
             free(vecteur);
@@ -114,20 +114,20 @@ public:
         }
         if (last == sz)
             return;
-        
+
         Z* trimmed = (Z*)malloc(sizeof(Z)*last);
         memcpy(trimmed, vecteur, sizeof(Z)*last);
         free(vecteur);
         vecteur = trimmed;
         sz = last;
     }
-    
+
     inline void setsize(long sze) {
         sz = sze;
         vecteur = (Z*)realloc(vecteur, sizeof(Z)*sz);
         memset(vecteur+last, NULL, sizeof(Z)*sz);
     }
-    
+
     inline void resize(long i) {
         if (i >= sz) {
             sz = i << 1;
@@ -137,7 +137,7 @@ public:
         }
     }
 
-    
+
 	inline Z remove(long pos = -1) {
 		Z v;
 		if (pos < 0) {
@@ -213,13 +213,13 @@ public:
         else
             vecteur[last++] = val;
     }
-    
+
 	inline void push_back(Z val) {
         resize(last);
 		//sinon on ajoute l'element en queue...
 		vecteur[last++] = val;
 	}
-    
+
     //On ajoute sans vérifier la taille
     inline void push_raw(Z val) {
         vecteur[last++] = val;
@@ -247,7 +247,7 @@ public:
 	inline Z operator [](long pos) {
 		return vecteur[pos];
 	}
-    
+
     void operator =(vecter<Z>& t) {
         if (sz < t.sz) {
             sz = t.sz;
@@ -256,15 +256,15 @@ public:
         last = t.last;
         memcpy(vecteur, t.vecteur, sizeof(Z)*last);
     }
-    
+
     inline bool empty() {
         return !last;
     }
-    
+
     inline Z get(long pos) {
         return (pos >= last)?NULL:vecteur[pos];
     }
-    
+
     void reverse() {
         Z e;
         long stop = last >> 1;
@@ -274,13 +274,13 @@ public:
             vecteur[last-i] = e;
         }
     }
-    
+
 	void erase(long i) {
         if (i == last) {
             vecteur[last--] = NULL;
             return;
         }
-        
+
         if (i >= 0 && i < last) {
             if (last == sz) {
                 last--;
@@ -291,7 +291,7 @@ public:
                 vecteur[last] = NULL;
                 return;
             }
-            
+
             while (i < last) {
                 vecteur[i] = vecteur[i+1];
                 i++;
@@ -328,7 +328,7 @@ public:
     inline void atlast(Z val) {
         vecteur[last-1] = val;
     }
-    
+
     inline void beforelast(Z val) {
         if (last) {
             reserve(last);
@@ -339,7 +339,7 @@ public:
         else
             vecteur[last++] = val;
     }
-    
+
 	inline void at(long pos, Z val) {
         reserve(pos + 1);
 		vecteur[pos] = val;
@@ -356,11 +356,11 @@ public:
         for (; i< last && v != vecteur[i]; i++) {}
         return (i != last);
     }
-    
+
     inline bool checkanderase(Z v) {
         long i = 0;
         for (; i< last && v != vecteur[i]; i++) {}
-        
+
         if (i != last) {
             last--;
             while (i < last) {
@@ -371,7 +371,7 @@ public:
         }
         return false;
     }
-    
+
     inline bool operator ==(vecter<Z>& v) {
         if (last != v.last)
             return false;
@@ -385,7 +385,7 @@ public:
         for (long i = 0; i < last; i++)
             v.push_back(vecteur[i]);
     }
-    
+
 };
 
 
@@ -408,7 +408,7 @@ public:
         //hence buffer[sz] does exist even though
         //it cannot be accessed through normal means
     }
-    
+
     inline void reserve(long t) {
         if (t > sz) {
             sz = t;
@@ -424,7 +424,7 @@ public:
             buffer = (Z*)realloc(buffer, sizeof(Z)*(sz + 1));
         }
     }
-    
+
     inline void swap(long left, long right) {
         //We use the fact that the last element exists
         //but cannot be accessed...
@@ -441,7 +441,7 @@ public:
         buffer[right] = buffer[sz];
         return true;
     }
-    
+
     inline void erase(long i) {
         if (i >= 0 && i < last) {
             last--;
@@ -642,11 +642,11 @@ public:
         }
         return nb;
     }
-        
+
     ~item_a() {
         free(buffer);
     }
-    
+
 };
 
 template <class Z> class vecter_a {
@@ -741,7 +741,7 @@ public:
     void clean() {
         items->last = home;
     }
-    
+
     inline void pop_back() {
         items->last--;
     }
@@ -749,7 +749,7 @@ public:
     inline void swap(long i, long j) {
         items->swap(i, j);
     }
-    
+
     inline void beforelast(Z val) {
         items->beforelast(val);
     }
@@ -771,13 +771,13 @@ public:
     }
 
     inline void extend(vecter_a<Z>* val) {
-        items->extend(val->item, val->home);
+        items->extend(val->items, val->home);
     }
 
     inline Z& operator[](long pos) {
         return items->buffer[pos+home];
     }
-    
+
     void erase(long pos) {
         items->erase(pos +home);
     }
@@ -788,7 +788,7 @@ public:
             sz--;
         }
     }
-        
+
     void operator =(vecter_a<Z>& z) {
         items->last = home;
         items->reserve(z.items->sz);
@@ -822,7 +822,7 @@ public:
     inline void padding(long nb, Z v) {
         items->padding(nb + home, v);
     }
-    
+
     inline long search(Z v, long i) {
         i += home;
         for (; i< items->last && v != items->buffer[i]; i++) {}
@@ -850,16 +850,16 @@ public:
         }
         return (v.items == items && v.home == home);
     }
-    
+
     inline void to_vector(vector<Z>& v) {
         for (long i = home; i < items->last; i++) {
             v.push_back(items->buffer[home+i]);
         }
     }
-    
+
     bool compare(LispE* lisp, List* comparison, int16_t instruction, long i, long j);
     void values_sorting(LispE* lisp, List* comparison, int16_t instruction, long rmin, long rmax);
-    
+
     Z sum() {
         return items->sum(home);
     }
@@ -867,7 +867,7 @@ public:
     Z product() {
         return items->product(home);
     }
-    
+
     Z mini() {
         return items->mini(home);
     }
@@ -875,11 +875,11 @@ public:
     Z maxi() {
         return items->maxi(home);
     }
-    
+
     bool minmax(Z& m, Z& M) {
         return items->minmax(home, m, M);
     }
-    
+
     long count(Z v) {
         return items->counting(home, v);
     }
@@ -887,7 +887,7 @@ public:
     long replaceall(Z test, Z value) {
         return items->replaceall(home, test, value);
     }
-    
+
     void plus(vecter_a<Z>& n, long nb) {
         items->plus(home, n.home, n.items->buffer, nb);
     }
@@ -922,7 +922,7 @@ public:
                 indexes.push_back(i - home);
         }
     }
-    
+
 };
 
 //We use the new method here. The alloc cannot work for strings...
@@ -944,7 +944,7 @@ public:
         //hence buffer[sz] does exist even though
         //it cannot be accessed through normal means
     }
-    
+
     inline void reserve(long t) {
         if (t > sz) {
             sz = t;
@@ -956,7 +956,7 @@ public:
             buffer = b;
         }
     }
-    
+
     inline void resize(long t) {
         if (t >= sz) {
             sz = t << 1;
@@ -968,7 +968,7 @@ public:
             buffer = b;
         }
     }
-    
+
     inline void swap(long left, long right) {
         //We use the fact that the last element exists
         //but cannot be accessed...
@@ -985,7 +985,7 @@ public:
         buffer[right] = buffer[sz];
         return true;
     }
-    
+
     inline void erase(long i) {
         if (i >= 0 && i < last) {
             last--;
@@ -1078,7 +1078,7 @@ public:
     Z mini(long home) {
         if (last == home)
             return vnull;
-        
+
         Z& m = buffer[sz];
         m = buffer[home];
         for (long i = home + 1; i < last; i++)
@@ -1109,7 +1109,7 @@ public:
     bool minmax(long home, Z& m, Z& M) {
         if (last == home)
             return false;
-        
+
         m = buffer[home];
         M = m;
         for (long i = home + 1; i < last; i++) {
@@ -1122,7 +1122,7 @@ public:
     ~item_n() {
         delete[] buffer;
     }
-    
+
 };
 
 template <class Z> class vecter_n {
@@ -1209,7 +1209,7 @@ public:
     void clean() {
         items->last = home;
     }
-    
+
     inline void pop_back() {
         items->last--;
     }
@@ -1217,7 +1217,7 @@ public:
     inline void swap(long i, long j) {
         items->swap(i, j);
     }
-    
+
     inline void beforelast(Z val) {
         items->beforelast(val);
     }
@@ -1239,13 +1239,13 @@ public:
     }
 
     inline void extend(vecter_n<Z>* val) {
-        items->extend(val->item, val->home);
+        items->extend(val->items, val->home);
     }
 
     inline Z& operator[](long pos) {
         return items->buffer[pos+home];
     }
-    
+
     void erase(long pos) {
         items->erase(pos +home);
     }
@@ -1253,21 +1253,21 @@ public:
     inline void reserve(long t) {
         items->reserve(t);
     }
-    
+
     void reverse() {
         long sz = items->last - 1;
         for (long i = home; i < sz && items->reverse(i,sz); i++) {
             sz--;
         }
     }
-        
+
     void operator =(vecter_n<Z>& z) {
         items->last = home;
         items->reserve(z.items->sz);
         for (long i = z.home; i < z.items->last; i++)
             items->buffer[items->last++] = z.items->buffer[i];
     }
-    
+
     inline bool empty() {
         return (home == items->last);
     }
@@ -1332,7 +1332,7 @@ public:
     bool minmax(Z& m, Z& M) {
         return items->minmax(home, m, M);
     }
-    
+
     long count(Z& v) {
         return items->counting(home, v);
     }
@@ -1354,9 +1354,4 @@ public:
 
 };
 #endif
-
-
-
-
-
 

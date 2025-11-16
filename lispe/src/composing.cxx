@@ -324,6 +324,13 @@ public:
                         action = a;
                         return this;
                     }
+                    case l_defprol: {
+                        List* a = new List_prolog_eval((List*)body);
+                        lisp->storeforgarbage(a);
+                        a->append(var);
+                        action = a;
+                        return this;
+                    }
                 }
             }
         }
@@ -1206,12 +1213,21 @@ void List_switch_eval::build(LispE* lisp) {
 
 //--------------------------------------------------------------------------------
 Element* Atome::transformargument(LispE* lisp) {
-    if (name.back() == '+' || name.back() == '*' || name.back() == '%') {
-        char a = name.back();
-        u_ustring bare_name = name.substr(0, name.size()-1);
-        int16_t l_name = lisp->encode(bare_name);
-        Element* e = new Atomekleene(l_name, bare_name, a);
-        return lisp->push_in_garbage(e);
+    char a = name.back();
+    Element* e;
+    switch (a) {
+        case '+':
+        case '*':
+        case '%': {
+            u_ustring bare_name = name.substr(0, name.size()-1);
+            e = new Atomekleene(lisp->encode(bare_name), bare_name, a);
+            return lisp->push_in_garbage(e);
+        }
+        case '@': {
+            u_ustring bare_name = name.substr(0, name.size()-1);
+            e = new Atomenotunifiable(lisp->encode(bare_name), bare_name);
+            return lisp->push_in_garbage(e);
+        }
     }
     return this;
 }
@@ -1293,6 +1309,12 @@ Element* List::transformargument(LispE* lisp) {
             return lisp->push_in_garbage(element);
         }
         
+        if (lisp->delegation->class_pool.check(label)) {
+            element = new Listargumentclass(this, label);
+            lisp->removefromgarbage(this);
+            return lisp->push_in_garbage(element);
+        }
+
         //This is an executable...
         //In this case, it could be an embedded list of calls...
         if (liste[0]->isExecutable(lisp)) {
@@ -1311,7 +1333,7 @@ Element* List::transformargument(LispE* lisp) {
                         }
                     }
                     if (!element->isAtom())
-                        throw new Error("Error: Missing argument in defpat/defpred function");
+                        throw new Error("Error: Missing argument in defpat/defpred/defprol function");
                 }
                 element = new Listargumentfunction(this, element);
             }
@@ -1361,6 +1383,8 @@ Element* LispE::for_composition(Element* current_program,Element* current_elemen
     long x = 0;
     List* stack = provideList();
     Element* sub = NULL;
+
+    //(filter '(< 10) . map '(* 2)  . range 1 10 1)
     for (x = 0; x < sz; x++) {
         if (list->liste[x] == n_compose) {
             if (sub != NULL) {
@@ -1391,6 +1415,8 @@ Element* LispE::for_composition(Element* current_program,Element* current_elemen
     Listincode* lic = NULL;
     bool cont = false;
     bool high_level = false;
+    List_run_linear* root_linear = NULL;
+    
     try {
         while (last >= 0) {
             label = stack->liste[last]->index(0)->label();
@@ -1412,7 +1438,20 @@ Element* LispE::for_composition(Element* current_program,Element* current_elemen
                 bool popvalue = false;
                 if (element != NULL) {
                     //We must push the current element into the list we are processing
-                    stack->liste[last]->append(element);
+                    if (root_linear != NULL) {
+                        if (root_linear->size() == 1) {
+                            element = root_linear->liste[0];
+                            removefromgarbage(root_linear);
+                            stack->liste[last]->append(element);
+                        }
+                        else {
+                            root_linear->compose(this);
+                            stack->liste[last]->append(root_linear);
+                        }
+                        root_linear = NULL;
+                    }
+                    else
+                        stack->liste[last]->append(element);
                     popvalue = true;
                 }
                 
@@ -1423,7 +1462,7 @@ Element* LispE::for_composition(Element* current_program,Element* current_elemen
                 
                 if (popvalue) {
                     //We remove the previous value without deleting it...
-                    ((List*)stack->liste[last])->liste.item->last--;
+                    ((List*)stack->liste[last])->liste.items->last--;
                 }
             }
             else {
@@ -1435,6 +1474,7 @@ Element* LispE::for_composition(Element* current_program,Element* current_elemen
                     element = lst.liste[0];
                     high_level = false;
                 }
+                
                 lic = new Listincode(list->infoIdx());
                 for (x  = 0; x < stack->liste[last]->size(); x++)
                     lic->append(stack->liste[last]->index(x));
@@ -1442,6 +1482,11 @@ Element* LispE::for_composition(Element* current_program,Element* current_elemen
                     lic->append(element);
                 storeforgarbage(lic);
                 element = compileLocalStructure(current_program, lic, parse, check_composition_depth, currentspace, cont);
+                if (root_linear == NULL) {
+                    root_linear = new List_run_linear(list->infoIdx());
+                    storeforgarbage(root_linear);
+                }
+                root_linear->append(element);
             }
             last--;
         }
@@ -1457,6 +1502,35 @@ Element* LispE::for_composition(Element* current_program,Element* current_elemen
         stack->release();
         throw err;
     }
+    
+    if (root_linear != NULL) {
+        if (root_linear->size() == 1) {
+            element = root_linear->liste[0];
+            removefromgarbage(root_linear);
+            return element;
+        }
+        root_linear->compose(this);
+        return root_linear;
+    }
+    
     return element;
 }
 
+void List_run_linear::compose(LispE* lisp) {
+    static u_uchar idx_var = l_var0;
+    Element* var = lisp->provideAtom(idx_var);
+    idx_var++;
+    if (idx_var > l_varF)
+        idx_var = l_var0;
+    Element* content = lisp->create_instruction(l_getfast, var);
+    
+    List* default_init = lisp->create_instruction(l_setfast, var, liste[0]);
+    List* current;
+    components.append(default_init);
+    for (long i = 1; i < size(); i++) {
+        List* l = (List*)liste[i];
+        l->liste.exchangelast(content);
+        current = lisp->create_instruction(l_setfast, var, l);
+        components.append(current);
+    }
+}

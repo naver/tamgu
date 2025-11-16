@@ -301,7 +301,8 @@ typedef enum{
     a_eval, a_key, a_keys, a_load, a_body, a_apply, a_pair, a_calllisp, a_callcommon, a_insert,
     a__map, a__filter, a__takewhile, a__dropwhile, a__zip, a__zipwith,
     a__foldl, a__scanl, a__foldr, a__scanr, a__foldl1, a__scanl1, a__foldr1, a__scanr1, a_iteration_java, a_java_vector, a_terminal, a_iferror, a_frametype, a_waitonjoined,
-    a_lisp
+    a_lisp,
+    a_sset, a_iset, a_fset, a_uset
 } tamgubasictypes;
 
 inline bool Isnumber(short a) {

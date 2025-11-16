@@ -326,7 +326,7 @@ cleanlibs:
         if compilejava:
            f.write("C++11Flag = -std=c++14 -DTamgu_REGEX -DMAVERICK -DAPPLE\n")
         else:
-           f.write("C++11Flag = -std=c++14 -DTamgu_REGEX -mavx2 -DMAVERICK -DAPPLE\n") # -DFLTK14 when ready
+           f.write("C++11Flag = -std=c++14 -DTamgu_REGEX -DMAVERICK -DAPPLE\n") # -DFLTK14 when ready
         f.write("INTELINT =\n")
     else:
         if compilejava:

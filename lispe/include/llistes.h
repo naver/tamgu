@@ -24,12 +24,12 @@ public:
     u_link* _previous;
     uint32_t mark;
     uint16_t status;
-#ifdef LISPE_WASM
+#ifdef LISPE_WASM_NO_EXCEPTION
     bool error;
 #endif
 
     u_link(Element* v) {
-#ifdef LISPE_WASM
+#ifdef LISPE_WASM_NO_EXCEPTION
         error = false;
 #endif
         status = 0;
@@ -131,7 +131,7 @@ class u_link_last : public u_link {
 public:
     u_link_last(Element* v) : u_link(v) {}
 
-#ifdef LISPE_WASM
+#ifdef LISPE_WASM_NO_EXCEPTION
     void u_push(u_link* e) {
         error = true;
     }
@@ -320,7 +320,7 @@ public:
             c->insert(new u_link(v));
         else {
             c->u_connect(v);
-#ifdef LISPE_WASM
+#ifdef LISPE_WASM_NO_EXCEPTION
             if (c->error) {
                 c->error = false;
                 return false;
@@ -873,6 +873,24 @@ public:
             a->value->protecting(protection, lisp);
     }
     
+    void jsonStream(LispE* lisp, std::ostream& os) {
+        if (liste.empty()) {
+            os << "[]";
+            return;
+        }
+        
+        long sz = liste.size() - 1;
+        os << "[";
+        long i = 0;
+        for (u_link* a = liste.begin(); a != NULL; a = a->next()) {
+            if (i && i <= sz)
+                os << ",";
+            a->value->jsonStream(lisp, os);
+            i++;
+        }
+        os << "]";
+    }
+
     wstring jsonString(LispE* lisp) {
         if (liste.empty())
             return L"[]";
@@ -907,7 +925,7 @@ public:
                 first = false;
             if (a->isFinal())
                 buffer += L". ";
-            buffer += a->value->stringInList(lisp);
+            buffer += a->value->wstringInList(lisp);
         }
         if (prev->_next)
             buffer += L" ...";
