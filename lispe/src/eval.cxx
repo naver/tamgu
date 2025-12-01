@@ -705,8 +705,7 @@ Element* Listreturn::eval(LispE* lisp) {
 }
 
 Element* Listreturnelement::eval(LispE* lisp) {
-    action->setterminal(terminal);
-    return lisp->provideReturn(action->eval(lisp));
+    return lisp->provideReturn(action->eval_terminal(lisp, terminal));
 }
 
 Element* List::evall_toclean(LispE* lisp) {
@@ -725,8 +724,7 @@ Element* List::evall_return(LispE* lisp) {
     if (liste.size() == 1)
         return lisp->provideReturn(null_);
     
-    liste[1]->setterminal(terminal);
-    return lisp->provideReturn(liste[1]->eval(lisp));
+    return lisp->provideReturn(liste[1]->eval_terminal(lisp, terminal));
 }
 
 Element* List::evall_atomise(LispE* lisp) {
@@ -1170,6 +1168,17 @@ Element* List::evall_deflibpat(LispE* lisp) {
         throw new Error(L"Error: Missing name in the declaration of a function");
     if (!liste[2]->isList())
         throw new Error(L"Error: List of missing parameters in a function declaration");
+    
+    Element* arguments = liste[2];
+    Element* a;
+    Element* idx;
+    for (long i = 0; i < arguments->size(); i++) {
+        idx = arguments->index(i);
+        a = idx->transformargument(lisp);
+        if (a != idx)
+            ((List*)arguments)->liste.put(i, a);
+    }
+
     return lisp->recordingMethod(this, label);
 }
 
@@ -1335,8 +1344,7 @@ Element* List::evall_if(LispE* lisp) {
     if (test >= liste.size())
         return null_;
     
-    liste[test]->setterminal(terminal);
-    return liste[test]->eval(lisp);
+    return liste[test]->eval_terminal(lisp, terminal);
 }
 
 Element* List::evall_ife(LispE* lisp) {
@@ -1344,8 +1352,7 @@ Element* List::evall_ife(LispE* lisp) {
 
     if (element->Boolean()) {
         element->release();
-        liste[2]->setterminal(terminal);
-        return liste[2]->eval(lisp);
+        return liste[2]->eval_terminal(lisp, terminal);
     }
 
     long listsize = liste.size();

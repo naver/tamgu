@@ -588,7 +588,7 @@ public:
         terminal |= v;
     }
     
-    Element* asList(LispE* lisp, List* l) {
+    virtual Element* asList(LispE* lisp, List* l) {
         l->release();
         return this;
     }
@@ -1132,6 +1132,7 @@ public:
     Element* evalfunction(LispE*, Element* body);
     Element* eval_function(LispE*, List* body);
     Element* eval_library_function(LispE*, List* body);
+    Element* eval_library_pattern_function(LispE*, List* body);
     Element* eval_thread(LispE*, List* body);
     Element* eval_data(LispE*, Element* body);
     Element* eval_lambda(LispE*, List* body);
@@ -4754,6 +4755,8 @@ public:
     void store_variables(Stackelement*);
     void update_variables(LispE*);
     u_ustring asUString(LispE* lisp);
+    Element* asList(LispE* lisp, List* l);
+    Element* asDictionary(LispE*);
     
     char check_match(LispE* lisp, Element* value);
 
@@ -4879,25 +4882,24 @@ public:
 
 class List_pattern_eval : public Listincode {
 public:
-    List* body;
     int16_t function_label, space;
     
-    List_pattern_eval(Listincode* l, List* b, int16_t s) : body(b), Listincode(l) {
+    List_pattern_eval(Listincode* l, List* body, int16_t s) : Listincode(l) {
         type = t_call;
         status = s_constant;
         function_label = body->liste[1]->label();
         space = s;
     }
     
-    List_pattern_eval(List* b) : body(b) {
-        liste.push_element(b);
+    List_pattern_eval(List* body) {
+        liste.push_element(body);
         type = t_eval;
         status = s_constant;
         function_label = body->liste[1]->label();
         space = 0;
     }
 
-    List_pattern_eval(List* l, List* b) : body(b), Listincode(l) {
+    List_pattern_eval(List* l, List* body) : Listincode(l) {
         type = t_call;
         status = s_constant;
         function_label = body->liste[1]->label();
@@ -4920,25 +4922,24 @@ public:
 
 class List_predicate_eval : public Listincode {
 public:
-    List* body;
     int16_t function_label, space;
     
-    List_predicate_eval(Listincode* l, List* b, int16_t s) : body(b), Listincode(l) {
+    List_predicate_eval(Listincode* l, List* body, int16_t s) : Listincode(l) {
         type = t_call;
         status = s_constant;
         function_label = body->liste[1]->label();
         space = s;
     }
     
-    List_predicate_eval(List* b) : body(b) {
-        liste.push_element(b);
+    List_predicate_eval(List* body) {
+        liste.push_element(body);
         type = t_eval;
         status = s_constant;
         function_label = body->liste[1]->label();
         space = 0;
     }
 
-    List_predicate_eval(List* l, List* b) : body(b), Listincode(l) {
+    List_predicate_eval(List* l, List* body) : Listincode(l) {
         type = t_call;
         status = s_constant;
         function_label = body->liste[1]->label();
@@ -4961,25 +4962,24 @@ public:
 
 class List_prolog_eval : public Listincode {
 public:
-    List* body;
     int16_t space, function_label;
     
-    List_prolog_eval(Listincode* l, List* b, int16_t s) : body(b), Listincode(l) {
+    List_prolog_eval(Listincode* l, List* body, int16_t s) : Listincode(l) {
         type = t_call;
         status = s_constant;
         function_label = body->liste[1]->label();
         space = s;
     }
     
-    List_prolog_eval(List* b) : body(b) {
-        liste.push_element(b);
+    List_prolog_eval(List* body) {
+        liste.push_element(body);
         type = t_eval;
         status = s_constant;
         function_label = body->liste[1]->label();
         space = 0;
     }
 
-    List_prolog_eval(List* l, List* b) : body(b), Listincode(l) {
+    List_prolog_eval(List* l, List* body) : Listincode(l) {
         type = t_call;
         status = s_constant;
         function_label = body->liste[1]->label();
@@ -5027,6 +5027,45 @@ public:
         parameters = (List*)body->liste[2];
         defaultarguments = parameters->argumentsize(nbarguments);
         same = (defaultarguments == parameters->size());
+    }
+    
+    bool eval_Boolean(LispE* lisp, int16_t instruction);
+    Element* eval(LispE* lisp);
+    
+    bool is_straight_eval() {
+        return true;
+    }
+    
+    int16_t label() {
+        return t_call;
+    }
+    
+};
+
+class List_library_pattern_eval : public Listincode {
+public:
+    List* body;
+    int16_t function_label, space;
+    
+    //the third element is the argument list .
+    //we need our body to be the same number
+    List_library_pattern_eval(Listincode* l, List* b) : body(b), Listincode(l) {
+        function_label = body->liste[1]->label();
+        type = t_call;
+        status = s_constant;
+    }
+
+    List_library_pattern_eval(List* l, List* b) : body(b), Listincode(l) {
+        function_label = body->liste[1]->label();
+        type = t_call;
+        status = s_constant;
+    }
+
+    List_library_pattern_eval(List* b, long nb) : body(b), Listincode() {
+        function_label = body->liste[1]->label();
+        liste.push_element(b);
+        type = t_eval;
+        status = s_constant;
     }
     
     bool eval_Boolean(LispE* lisp, int16_t instruction);

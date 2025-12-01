@@ -25,12 +25,12 @@ typedef enum{aut_reg=1,aut_reg_plus,aut_reg_star,
 aut_actions;
 
 //------------------------character automatons---------------------------------------------------
-class Au_theautomaton;
-class Au_theautomatons;
-class Au_automate;
+class Aul_theautomaton;
+class Aul_theautomatons;
+class Aul_automate;
 //-----------------------------------------------------------------------------------------------
 
-class Au_state;
+class Aul_state;
 class Au_any {
 public:
     bool vero;
@@ -99,18 +99,18 @@ public:
     
 };
 
-class Au_meta : public Au_any {
+class Aul_meta : public Au_any {
 public:
     static utf8_handler* met;
     
     wchar_t action;
     
-    Au_meta(uchar a, unsigned char t) : Au_any(t) {
+    Aul_meta(uchar a, unsigned char t) : Au_any(t) {
         action=a;
     }
     
     bool same(Au_any* a) {
-        if (a->Type()==type && a->vero == vero && ((Au_meta*)a)->action==action)
+        if (a->Type()==type && a->vero == vero && ((Aul_meta*)a)->action==action)
             return true;
         return false;
     }
@@ -175,19 +175,19 @@ public:
     }
 };
 
-class Au_arc {
+class Aul_arc {
 public:
     Au_any* action;
-    Au_state* state;
+    Aul_state* state;
     unsigned char mark;
     
-    Au_arc(Au_any* a) {
+    Aul_arc(Au_any* a) {
         action=a;
         state=NULL;
         mark=false;
     }
     
-    ~Au_arc() {
+    ~Aul_arc() {
         delete action;
     }
     
@@ -195,7 +195,7 @@ public:
         return action->Type();
     }
 
-    bool same(Au_arc* a) {
+    bool same(Aul_arc* a) {
         return action->same(a->action);
     }
     
@@ -205,13 +205,13 @@ public:
 
 };
 
-class Au_state {
+class Aul_state {
 public:
-    vecter<Au_arc*> arcs;
+    vecter<Aul_arc*> arcs;
     uchar status;
     unsigned char mark;
     
-    Au_state() {
+    Aul_state() {
         status=0;
         mark=false;
     }
@@ -250,19 +250,19 @@ public:
     long loop(wstring& w, long i);
     
     void removeepsilon();
-    void addrule(Au_arc*);
-    void merge(Au_state*);
+    void addrule(Aul_arc*);
+    void merge(Aul_state*);
     
-    Au_arc* build(Au_theautomatons* g, wstring& token, uchar type, Au_state* common, bool nega);
-    Au_state* build(Au_theautomatons* g, long i,vector<wstring>& tokens, vector<aut_actions>& types, Au_state* common);
+    Aul_arc* build(Aul_theautomatons* g, wstring& token, uchar type, Aul_state* common, bool nega);
+    Aul_state* build(Aul_theautomatons* g, long i,vector<wstring>& tokens, vector<aut_actions>& types, Aul_state* common);
 };
 
-class Au_state_final : public Au_state {
+class Aul_state_final : public Aul_state {
 public:
     
     long rule;
     
-    Au_state_final(long r) {
+    Aul_state_final(long r) {
         rule=r;
         status=an_rule;
     }
@@ -271,16 +271,16 @@ public:
 
 };
 
-class Au_theautomaton {
+class Aul_theautomaton {
 public:
     
-    Au_state* first;
+    Aul_state* first;
     
-    Au_theautomaton() {
+    Aul_theautomaton() {
         first=NULL;
     }
 
-    Au_theautomaton(wstring rgx);
+    Aul_theautomaton(wstring rgx);
     
     bool match(wstring& w);
     bool search(wstring& w);
@@ -297,30 +297,30 @@ public:
 
     void searchall(wstring& w, vector<long>& res, long init = 0);
     void find(wstring& w, wstring& sep, vector<long>& res);
-    virtual bool parse(wstring& rgx, Au_theautomatons* automatons=NULL);
+    virtual bool parse(wstring& rgx, Aul_theautomatons* automatons=NULL);
     
 };
 
 
-class Au_theautomatons {
+class Aul_theautomatons {
 public:
-    vecter<Au_state*> states;
-    vecter<Au_arc*> arcs;
+    vecter<Aul_state*> states;
+    vecter<Aul_arc*> arcs;
 
-    Au_state* state() {
-        Au_state* s=new Au_state;
+    Aul_state* state() {
+        Aul_state* s=new Aul_state;
         states.push_back(s);
         return s;
     }
 
-    Au_state* statefinal(long r) {
-        Au_state_final* s=new Au_state_final(r);
+    Aul_state* statefinal(long r) {
+        Aul_state_final* s=new Aul_state_final(r);
         states.push_back(s);
         return s;
     }
 
-    Au_arc* arc(Au_any* a, Au_state* s=NULL) {
-        Au_arc* ac=new Au_arc(a);
+    Aul_arc* arc(Au_any* a, Aul_state* s=NULL) {
+        Aul_arc* ac=new Aul_arc(a);
         arcs.push_back(ac);
         if (s==NULL)
             ac->state=state();
@@ -413,21 +413,21 @@ public:
         a=arcs.size();
     }
 
-    ~Au_theautomatons() {
+    ~Aul_theautomatons() {
         states.wipe();
         arcs.wipe();
     }
 };
 
-class Au_automate : public Au_theautomaton {
+class Aul_automate : public Aul_theautomaton {
 public:
-    Au_theautomatons garbage;
+    Aul_theautomatons garbage;
 
-    Au_automate() {
+    Aul_automate() {
         first=NULL;
     }
 
-    Au_automate(wstring& rgx);
+    Aul_automate(wstring& rgx);
 
     bool compile(wstring& rgx) {
         return parse(rgx, &garbage);
@@ -437,12 +437,12 @@ public:
 };
 
 
-class Jag_theautomaton :  public Au_automate {
+class Jag_theautomaton :  public Aul_automate {
 public:
     
     wstring regularexpression;
     
-    Jag_theautomaton(wstring& rgx) : Au_automate(rgx) {
+    Jag_theautomaton(wstring& rgx) : Aul_automate(rgx) {
         regularexpression = rgx;
     }
 

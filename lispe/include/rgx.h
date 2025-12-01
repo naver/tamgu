@@ -27,7 +27,7 @@ aut_actions;
 
 //------------------------character automatons---------------------------------------------------
 class Aul_theautomaton;
-class Au_theautomatons;
+class Aul_theautomatons;
 class Aul_automate;
 //-----------------------------------------------------------------------------------------------
 
@@ -262,16 +262,16 @@ public:
     void addrule(Aul_arc*);
     void merge(Aul_state*);
     
-    Aul_arc* build(Au_theautomatons* g, u_ustring& token, uchar type, Aul_state* common, bool nega);
-    Aul_state* build(Au_theautomatons* g, long i,vector<u_ustring>& tokens, vector<aut_actions>& types, Aul_state* common);
+    Aul_arc* build(Aul_theautomatons* g, u_ustring& token, uchar type, Aul_state* common, bool nega);
+    Aul_state* build(Aul_theautomatons* g, long i,vector<u_ustring>& tokens, vector<aut_actions>& types, Aul_state* common);
 };
 
-class Au_state_final : public Aul_state {
+class Aul_state_final : public Aul_state {
 public:
     
     long rule;
     
-    Au_state_final(long r) {
+    Aul_state_final(long r) {
         rule=r;
         status=an_rule;
     }
@@ -346,12 +346,12 @@ public:
     void searchall(u_ustring& w, vecter_a<long>& res, long init = 0);
 
     void find(u_ustring& w, u_ustring& sep, vector<long>& res);
-    virtual bool parse(u_ustring& rgx, Au_theautomatons* automatons=NULL);
+    virtual bool parse(u_ustring& rgx, Aul_theautomatons* automatons=NULL);
     
 };
 
 
-class Au_theautomatons {
+class Aul_theautomatons {
 public:
     vecter<Aul_state*> states;
     vecter<Aul_arc*> arcs;
@@ -363,7 +363,7 @@ public:
     }
 
     Aul_state* statefinal(long r) {
-        Au_state_final* s=new Au_state_final(r);
+        Aul_state_final* s=new Aul_state_final(r);
         states.push_back(s);
         return s;
     }
@@ -462,7 +462,7 @@ public:
         a=arcs.size();
     }
 
-    ~Au_theautomatons() {
+    ~Aul_theautomatons() {
         states.wipe();
         arcs.wipe();
     }
@@ -470,7 +470,7 @@ public:
 
 class Aul_automate : public Aul_theautomaton {
 public:
-    Au_theautomatons garbage;
+    Aul_theautomatons garbage;
 
     Aul_automate() {
         first=NULL;

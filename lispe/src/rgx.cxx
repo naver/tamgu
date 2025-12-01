@@ -44,7 +44,7 @@ using std::wsregex_iterator;
 
 #include "rgx.h"
 
-static Au_theautomatons* gAutomatons = NULL;
+static Aul_theautomatons* gAutomatons = NULL;
 
 //--------------------------------------------------------------------
 utf8_handler* Aul_meta::met = NULL;
@@ -541,7 +541,7 @@ Aul_theautomaton::Aul_theautomaton(u_ustring wrgx) {
         first = NULL;
 }
 
-bool Aul_theautomaton::parse(u_ustring& w, Au_theautomatons* aus) {
+bool Aul_theautomaton::parse(u_ustring& w, Aul_theautomatons* aus) {
     //static x_wautomaton xtok;
     //first we tokenize
     
@@ -554,7 +554,7 @@ bool Aul_theautomaton::parse(u_ustring& w, Au_theautomatons* aus) {
     
     if (aus==NULL) {
         if (gAutomatons==NULL)
-            gAutomatons=new Au_theautomatons;
+            gAutomatons=new Aul_theautomatons;
         aus=gAutomatons;
     }
     
@@ -612,7 +612,7 @@ bool Aul_automate::compiling(u_ustring& w,long r) {
 //----------------------------------------------------------------------------------------
 #define an_mandatory 8
 
-Aul_state* Aul_state::build(Au_theautomatons* aus, long i,vector<u_ustring>& toks, vector<aut_actions>& types, Aul_state* common) {
+Aul_state* Aul_state::build(Aul_theautomatons* aus, long i,vector<u_ustring>& toks, vector<aut_actions>& types, Aul_state* common) {
     mark=false;
     Aul_arc* ar;
     bool nega = false;
@@ -898,7 +898,7 @@ bool checkmeta(u_ustring& tok) {
     }
 }
 
-Aul_arc* Aul_state::build(Au_theautomatons* aus, u_ustring& token, uchar type, Aul_state* common, bool nega) {
+Aul_arc* Aul_state::build(Aul_theautomatons* aus, u_ustring& token, uchar type, Aul_state* common, bool nega) {
     //First we scan the arcs, in case, it was already created...
     Au_any* a=NULL;
     

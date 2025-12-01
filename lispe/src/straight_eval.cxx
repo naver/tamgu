@@ -718,8 +718,14 @@ Element* List_dictionary_eval::eval(LispE* lisp) {
 
     if (listsize == 2) {
         Element* d = liste[1]->eval(lisp);
-        if (!d->isDictionary())
+        if (!d->isDictionary()) {
+            if (d->function_label(lisp) == t_class_instance) {
+                Element* dico = d->asDictionary(lisp);
+                d->release();
+                return dico;
+            }
             throw new Error("Error: wrong arguments for 'dictionary'");
+        }
         if (d->type == t_dictionary)
             return d->copying(true);
         void* iter = d->begin_iter();
@@ -1331,9 +1337,8 @@ Element* List_ncheck_eval::eval(LispE* lisp) {
         
         if (!element->Boolean()) {
             element->release();
-            liste[2]->setterminal(terminal);
             lisp->resetStack();
-            return liste[2]->eval(lisp);
+            return liste[2]->eval_terminal(lisp, terminal);
         }
         
         
@@ -3509,8 +3514,7 @@ Element* List_select_eval::eval(LispE* lisp) {
     long listsize = liste.size();
     Element* second_element = null_;
     for (long i = 1; i < listsize && !second_element->Boolean(); i++) {
-        liste[i]->setterminal(terminal);
-        second_element = liste[i]->eval(lisp);
+        second_element = liste[i]->eval_terminal(lisp, terminal);
     }
     return second_element;
 }
@@ -6979,9 +6983,14 @@ Element* List_plusmultiply::eval(LispE* lisp) {
 
 Element* List_if_eval::eval(LispE* lisp) {
     Element* res;
+        
     try {
         lisp->checkState(this);
-        res = evall_if(lisp);
+        res = liste[1]->eval(lisp);
+        char test = 3 - res->Boolean();
+        res->release();
+        
+        res = liste[test]->eval_terminal(lisp, terminal);
     }
     catch(Error* err) {
         lisp->resetStack();
@@ -6993,9 +7002,24 @@ Element* List_if_eval::eval(LispE* lisp) {
 
 Element* List_ife_eval::eval(LispE* lisp) {
     Element* res;
+    
     try {
         lisp->checkState(this);
-        res = evall_ife(lisp);
+        
+        res = liste[1]->eval(lisp);
+        char test = res->Boolean();
+        res->release();
+
+        if (test)
+            return liste[2]->eval_terminal(lisp, terminal);
+        
+        long listsize = liste.size();
+        liste.back()->setterminal(terminal);
+        
+        for (long i = 3; i < listsize && res->type != l_return; i++) {
+            res->release();
+            res = liste[i]->eval(lisp);
+        }
     }
     catch(Error* err) {
         lisp->resetStack();

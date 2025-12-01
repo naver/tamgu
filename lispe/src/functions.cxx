@@ -67,6 +67,9 @@ Element* eval_body_as_argument_min(LispE* lisp, Element* function, unsigned long
             case l_deflib:
                 function = new List_library_eval((List*)function, arity_value(arity));
                 break;
+            case l_deflibpat:
+                function = new List_library_pattern_eval((List*)function, arity_value(arity));
+                break;
             case l_defun:
                 function = new List_function_eval(lisp, (List*)function, arity_value(arity));
                 break;
@@ -532,20 +535,25 @@ Element* List_function_eval::eval(LispE* lisp) {
     //When it corresponds to a function call, then it is processed here
     //We do not create any new stack element and we store our arguments back into the stack
     //with their new values in case of terminal recursion.
-    if (terminal && lisp->called() == body) {
-        if (same)
-            sameSizeTerminalArguments(lisp, (List*)parameters);
-        else
-            differentSizeTerminalArguments(lisp, (List*)parameters, nbarguments, defaultarguments);
-        lisp->check_end_trace(lisp->check_trace_in_function(), lisp->trace);
-        return terminal_;
-    }
-    
-    if (same)
-        sameSizeNoTerminalArguments(lisp, body, (List*)parameters);
-    else
-        differentSizeNoTerminalArguments(lisp, body, (List*)parameters, nbarguments, defaultarguments);
+    try {
+        if (terminal && lisp->called() == body) {
+            if (same)
+                sameSizeTerminalArguments(lisp, (List*)parameters);
+            else
+                differentSizeTerminalArguments(lisp, (List*)parameters, nbarguments, defaultarguments);
+            lisp->check_end_trace(lisp->check_trace_in_function(), lisp->trace);
+            return terminal_;
+        }
         
+        if (same)
+            sameSizeNoTerminalArguments(lisp, body, (List*)parameters);
+        else
+            differentSizeNoTerminalArguments(lisp, body, (List*)parameters, nbarguments, defaultarguments);
+    }
+    catch(Error* err) {
+        return lisp->check_error(this, err, idxinfo);
+    }
+
     //We check if the current function belongs to the current space, to avoid using variables from the current_instance, which should be out of range.
     lisp->check_space(space);
 
@@ -638,17 +646,164 @@ Element* List_thread_eval::eval(LispE* lisp) {
     return True_;
 }
 
-
 Element* List_library_eval::eval(LispE* lisp) {
-    if (same)
-        sameSizeNoTerminalArguments(lisp, body, parameters);
-    else
-        differentSizeNoTerminalArguments(lisp, body, parameters, nbarguments, defaultarguments);
-        
+    try {
+        if (same)
+            sameSizeNoTerminalArguments(lisp, body, parameters);
+        else
+            differentSizeNoTerminalArguments(lisp, body, parameters, nbarguments, defaultarguments);
+    }
+    catch(Error* err) {
+        return lisp->check_error(this, err, idxinfo);
+    }
+
     Element* element;
     try {
         lisp->checkState(this);
         element = body->liste[3]->eval(lisp);
+    }
+    catch (Error* err) {
+        lisp->pop();
+        return lisp->check_error(this, err, idxinfo);
+    }
+#ifndef LISPE_WASM_NO_EXCEPTION
+    catch (void* x) {
+        lisp->pop();
+        if (((Error*)x)->type == t_error)
+            return lisp->check_error(this, (Error*)x, idxinfo);
+        return lisp->check_error(this, new Error("Unknown error"), idxinfo);
+    }
+#endif
+    lisp->resetStack();
+    //This version protects 'e' from being destroyed in the stack.
+    return lisp->pop(element);
+}
+
+Element* List_library_pattern_eval::eval(LispE* lisp) {
+    List* arguments = lisp->provideList();
+    Element* element;
+    Element* current_body;
+    
+    long i;
+    //We calculate our values in advance, in the case of a recursive call, we must
+    //use current values on the stack
+    long nbarguments = liste.size()-1;
+    int16_t ilabel = -1;
+    int16_t sublabel = -1;
+    char match;
+    char depth = lisp->depths[function_label] - 1;
+    lisp->checkState(this);
+    char localtrace = lisp->trace;
+
+    try {
+        for (i = 1; i <= nbarguments; i++) {
+            element = liste[i]->eval(lisp);
+            
+            ilabel = lisp->extractdynamiclabel(element, depth);
+            if (ilabel > l_final && element->type != t_data) {
+                match = lisp->getDataStructure(ilabel)->check_match(lisp,element);
+                if (match != check_ok) {
+                    arguments->clear();
+                    if (match == check_mismatch)
+                        throw new Error(L"Error: Size mismatch between argument list and data structure definition");
+                    else {
+                        std::wstringstream message;
+                        message << L"Error: Mismatch on argument: " << match;
+                        message << " (" << lisp->asString(lisp->getDataStructure(ilabel)->index(match)->label()) << " required)";
+                        throw new Error(message.str());
+                    }
+                }
+            }
+            //We keep the track of the first element as it used as an index to gather pattern methods
+            if (i == 1)
+                sublabel = ilabel;
+            arguments->append(element->duplicate_constant(lisp));
+        }
+    }
+    catch (Error* err) {
+        arguments->release();
+        return lisp->check_error(this, err, idxinfo);
+    }
+
+    char tr = lisp->check_trace_in_function();
+
+    current_body = NULL;
+    auto& functions = lisp->delegation->method_pool[0]->at(function_label);
+    auto subfunction = functions.find(sublabel);
+    if (subfunction == functions.end()) {
+        sublabel = v_null;
+        //We check, if we have a rollback function
+        subfunction = functions.find(sublabel);
+        if (subfunction == functions.end()) {
+            arguments->release();
+            wstring message = L"Error: Could not find a match for function: '";
+            message += lisp->asString(function_label);
+            message += L"'";
+            lisp->check_end_trace(tr, localtrace);
+            return lisp->check_error(this, new Error(message), idxinfo);
+        }
+    }
+
+    current_body = subfunction->second[0];
+
+    ilabel = 1;
+    match = 0;
+    long sz = subfunction->second.size();
+    Stackelement* sta = lisp->topstack();
+    lisp->push(current_body);
+    
+    while (current_body != NULL) {
+        element = current_body->index(2);
+        if (element->size() == nbarguments) {
+            //if (lisp->current_instance)
+            //    lisp->current_instance->store_variables(lisp->topstack());
+            match = true;
+            for (i = 0; i < nbarguments && match; i++) {
+                match = element->index(i)->unify(lisp, arguments->liste[i], true);
+            }
+            
+            if (match) {
+                if (terminal && sta->called() == current_body) {
+                    lisp->remove_sub_stack(sta);
+                    arguments->release();
+                    lisp->resetStack();
+                    lisp->check_end_trace(tr, localtrace);
+                    return terminal_;
+                }
+                lisp->setstackfunction(current_body, space);
+                break;
+            }
+            
+            lisp->clear_top_stack();
+        }
+        current_body = NULL;
+        if (ilabel < sz)
+            current_body = subfunction->second[ilabel++];
+        else {
+            if (sublabel != v_null) {
+                sublabel = v_null;
+                ilabel = 1;
+                //We check, if we have a rollback function
+                subfunction = functions.find(sublabel);
+                if (subfunction != functions.end()) {
+                    current_body = subfunction->second[0];
+                    sz = subfunction->second.size();
+                }
+            }
+        }
+    }
+
+    if (!match) {
+        lisp->pop();
+        arguments->release();
+        wstring message = L"Error: Could not find a match for function: '";
+        message += lisp->asString(function_label);
+        message += L"'";
+        return lisp->check_error(this, new Error(message), idxinfo);
+    }
+    try {
+        lisp->checkState(this);
+        element = ((List*)current_body)->liste[3]->eval(lisp);
     }
     catch (Error* err) {
         lisp->pop();
@@ -715,7 +870,7 @@ Element* List_data_eval::eval(LispE* lisp) {
 Element* List_pattern_eval::eval(LispE* lisp) {
     List* arguments = lisp->provideList();
     Element* element;
-    Element* body;
+    Element* current_body;
     
     long i;
     //We calculate our values in advance, in the case of a recursive call, we must
@@ -760,8 +915,17 @@ Element* List_pattern_eval::eval(LispE* lisp) {
 
     char tr = lisp->check_trace_in_function();
 
-    body = NULL;
-    auto& functions = lisp->delegation->method_pool[lisp->current_space]->at(function_label);
+    current_body = NULL;
+    int16_t space = lisp->delegation->getPatternMethods(function_label, lisp->current_space);
+    if (space == -1) {
+        arguments->release();
+        wstring message = L"Error: Could not find a match for function: '";
+        message += lisp->asString(function_label);
+        message += L"'";
+        return lisp->check_error(this, new Error(message), idxinfo);
+    }
+    
+    auto& functions = lisp->delegation->method_pool[space]->at(function_label);
     auto subfunction = functions.find(sublabel);
     if (subfunction == functions.end()) {
         sublabel = v_null;
@@ -777,16 +941,16 @@ Element* List_pattern_eval::eval(LispE* lisp) {
         }
     }
 
-    body = subfunction->second[0];
+    current_body = subfunction->second[0];
 
     ilabel = 1;
     match = 0;
     long sz = subfunction->second.size();
     Stackelement* sta = lisp->topstack();
-    lisp->push(body);
+    lisp->push(current_body);
     
-    while (body != NULL) {
-        element = body->index(2);
+    while (current_body != NULL) {
+        element = current_body->index(2);
         if (element->size() == nbarguments) {
             //if (lisp->current_instance)
             //    lisp->current_instance->store_variables(lisp->topstack());
@@ -796,22 +960,22 @@ Element* List_pattern_eval::eval(LispE* lisp) {
             }
             
             if (match) {
-                if (terminal && sta->called() == body) {
+                if (terminal && sta->called() == current_body) {
                     lisp->remove_sub_stack(sta);
                     arguments->release();
                     lisp->resetStack();
                     lisp->check_end_trace(tr, localtrace);
                     return terminal_;
                 }
-                lisp->setstackfunction(body, space);
+                lisp->setstackfunction(current_body, space);
                 break;
             }
             
             lisp->clear_top_stack();
         }
-        body = NULL;
+        current_body = NULL;
         if (ilabel < sz)
-            body = subfunction->second[ilabel++];
+            current_body = subfunction->second[ilabel++];
         else {
             if (sublabel != v_null) {
                 sublabel = v_null;
@@ -819,7 +983,7 @@ Element* List_pattern_eval::eval(LispE* lisp) {
                 //We check, if we have a rollback function
                 subfunction = functions.find(sublabel);
                 if (subfunction != functions.end()) {
-                    body = subfunction->second[0];
+                    current_body = subfunction->second[0];
                     sz = subfunction->second.size();
                 }
             }
@@ -836,25 +1000,25 @@ Element* List_pattern_eval::eval(LispE* lisp) {
     }
             
     try {
-        nbarguments = body->size();
+        nbarguments = current_body->size();
         do {
             if (nbarguments == 4)
-                element = body->index(3)->eval(lisp);
+                element = current_body->index(3)->eval(lisp);
             else {
                 element = null_;
                 for (i = 3; i < nbarguments && element != terminal_ && element->type != l_return; i++) {
                     element->release();
-                    element = body->index(i)->eval(lisp);
+                    element = current_body->index(i)->eval(lisp);
                 }
             }
             if (element->type == l_return) {
-                body = element->eval(lisp);
+                current_body = element->eval(lisp);
                 element->release();
                 //This version protects 'e' from being destroyed in the stack.
-                arguments->release(body);
+                arguments->release(current_body);
                 lisp->resetStack();
                 lisp->check_end_trace(tr, localtrace);
-                return lisp->pop(body);
+                return lisp->pop(current_body);
             }
         }
         while (element == terminal_);
@@ -882,7 +1046,7 @@ Element* List_pattern_eval::eval(LispE* lisp) {
 Element* List_predicate_eval::eval(LispE* lisp) {
     List* arguments = lisp->provideList();
     Element* element;
-    Element* body;
+    Element* current_body;
     
     long i;
     //We calculate our values in advance, in the case of a recursive call, we must
@@ -924,8 +1088,17 @@ Element* List_predicate_eval::eval(LispE* lisp) {
 
     char tr = lisp->check_trace_in_function();
 
-    body = NULL;
-    auto& functions = lisp->delegation->method_pool[lisp->current_space]->at(function_label);
+    current_body = NULL;
+    int16_t space = lisp->delegation->getPatternMethods(function_label, lisp->current_space);
+    if (space == -1) {
+        arguments->release();
+        wstring message = L"Error: Could not find a match for function: '";
+        message += lisp->asString(function_label);
+        message += L"'";
+        return lisp->check_error(this, new Error(message), idxinfo);
+    }
+
+    auto& functions = lisp->delegation->method_pool[space]->at(function_label);
     auto subfunction = functions.find(sublabel);
     if (subfunction == functions.end()) {
         sublabel = v_null;
@@ -939,19 +1112,19 @@ Element* List_predicate_eval::eval(LispE* lisp) {
         }
     }
 
-    body = subfunction->second[0];
+    current_body = subfunction->second[0];
 
     ilabel = 1;
     match = 0;
     long sz = subfunction->second.size();
-    lisp->push(body);
+    lisp->push(current_body);
     Element* copying;
     Element* ele;
     
-    while (body != NULL) {
+    while (current_body != NULL) {
         match = false;
-        while (!match && body != NULL) {
-            element = body->index(2);
+        while (!match && current_body != NULL) {
+            element = current_body->index(2);
             if (element->size() == nbarguments) {
                 //if (lisp->current_instance)
                 //    lisp->current_instance->store_variables(lisp->topstack());
@@ -971,15 +1144,15 @@ Element* List_predicate_eval::eval(LispE* lisp) {
                 }
                 
                 if (match) {
-                    lisp->setstackfunction(body, space);
+                    lisp->setstackfunction(current_body, space);
                     break;
                 }
                 copying->release();
                 lisp->clear_top_stack();
             }
-            body = NULL;
+            current_body = NULL;
             if (ilabel < sz)
-                body = subfunction->second[ilabel++];
+                current_body = subfunction->second[ilabel++];
             else {
                 if (sublabel != v_null) {
                     sublabel = v_null;
@@ -987,7 +1160,7 @@ Element* List_predicate_eval::eval(LispE* lisp) {
                     //We check, if we have a rollback function
                     subfunction = functions.find(sublabel);
                     if (subfunction != functions.end()) {
-                        body = subfunction->second[0];
+                        current_body = subfunction->second[0];
                         sz = subfunction->second.size();
                     }
                 }
@@ -1004,9 +1177,9 @@ Element* List_predicate_eval::eval(LispE* lisp) {
         bool success = true;
         element = true_;
         try {
-            long nbinstructions = body->size();
+            long nbinstructions = current_body->size();
             if (nbinstructions == 4) {
-                element = body->index(3)->eval(lisp);
+                element = current_body->index(3)->eval(lisp);
                 success = element->Boolean();
             }
             else {
@@ -1014,18 +1187,18 @@ Element* List_predicate_eval::eval(LispE* lisp) {
                 success = true;
                 for (i = 3; i < nbinstructions && element->type != l_return && success; i++) {
                     element->release();
-                    element = body->index(i)->eval(lisp);
+                    element = current_body->index(i)->eval(lisp);
                     success = element->Boolean();
                 }
             }
             if (element->type == l_return) {
-                body = element->eval(lisp);
+                current_body = element->eval(lisp);
                 element->release();
                 //This version protects 'e' from being destroyed in the stack.
                 arguments->release();
                 lisp->resetStack();
                 lisp->check_end_trace(tr, localtrace);
-                return lisp->pop(body);
+                return lisp->pop(current_body);
             }
         }
         catch (Error* err) {
@@ -1042,10 +1215,10 @@ Element* List_predicate_eval::eval(LispE* lisp) {
             return lisp->pop(element);
         }
         element->release();
-        body = NULL;
+        current_body = NULL;
         if (ilabel < sz) {
             lisp->clear_top_stack();
-            body = subfunction->second[ilabel++];
+            current_body = subfunction->second[ilabel++];
         }
         else {
             if (sublabel != v_null) {
@@ -1055,7 +1228,7 @@ Element* List_predicate_eval::eval(LispE* lisp) {
                 subfunction = functions.find(sublabel);
                 if (subfunction != functions.end()) {
                     lisp->clear_top_stack();
-                    body = subfunction->second[0];
+                    current_body = subfunction->second[0];
                     sz = subfunction->second.size();
                 }
             }
@@ -1079,7 +1252,7 @@ Element* List_predicate_eval::eval(LispE* lisp) {
 Element* List_prolog_eval::eval(LispE* lisp) {
     List* arguments = lisp->provideList();
     Element* element;
-    Element* body;
+    Element* current_body;
     
     long i;
     //We calculate our values in advance, in the case of a recursive call, we must
@@ -1121,8 +1294,17 @@ Element* List_prolog_eval::eval(LispE* lisp) {
 
     char tr = lisp->check_trace_in_function();
 
-    body = NULL;
-    auto& functions = lisp->delegation->method_pool[lisp->current_space]->at(function_label);
+    current_body = NULL;
+    int16_t space = lisp->delegation->getPatternMethods(function_label, lisp->current_space);
+    if (space == -1) {
+        arguments->release();
+        wstring message = L"Error: Could not find a match for function: '";
+        message += lisp->asString(function_label);
+        message += L"'";
+        return lisp->check_error(this, new Error(message), idxinfo);
+    }
+
+    auto& functions = lisp->delegation->method_pool[space]->at(function_label);
     auto subfunction = functions.find(sublabel);
     if (subfunction == functions.end()) {
         sublabel = v_null;
@@ -1136,22 +1318,22 @@ Element* List_prolog_eval::eval(LispE* lisp) {
         }
     }
 
-    body = subfunction->second[0];
+    current_body = subfunction->second[0];
 
     ilabel = 1;
     match = 0;
     long sz = subfunction->second.size();
-    lisp->push(body);
+    lisp->push(current_body);
     Element* copying;
     Element* ele;
     
     List* final_result = lisp->provideList();
     bool end_of_execution = false;
     
-    while (body != NULL) {
+    while (current_body != NULL) {
         match = false;
-        while (!match && body != NULL) {
-            element = body->index(2);
+        while (!match && current_body != NULL) {
+            element = current_body->index(2);
             if (element->size() == nbarguments) {
                 //if (lisp->current_instance)
                 //    lisp->current_instance->store_variables(lisp->topstack());
@@ -1171,15 +1353,15 @@ Element* List_prolog_eval::eval(LispE* lisp) {
                 }
                 
                 if (match) {
-                    lisp->setstackfunction(body, space);
+                    lisp->setstackfunction(current_body, space);
                     break;
                 }
                 copying->release();
                 lisp->clear_top_stack();
             }
-            body = NULL;
+            current_body = NULL;
             if (ilabel < sz)
-                body = subfunction->second[ilabel++];
+                current_body = subfunction->second[ilabel++];
             else {
                 if (sublabel != v_null) {
                     sublabel = v_null;
@@ -1187,7 +1369,7 @@ Element* List_prolog_eval::eval(LispE* lisp) {
                     //We check, if we have a rollback function
                     subfunction = functions.find(sublabel);
                     if (subfunction != functions.end()) {
-                        body = subfunction->second[0];
+                        current_body = subfunction->second[0];
                         sz = subfunction->second.size();
                     }
                 }
@@ -1204,9 +1386,9 @@ Element* List_prolog_eval::eval(LispE* lisp) {
         bool success = true;
         element = true_;
         try {
-            long nbinstructions = body->size();
+            long nbinstructions = current_body->size();
             if (nbinstructions == 4) {
-                element = body->index(3)->eval(lisp);
+                element = current_body->index(3)->eval(lisp);
                 success = element->Boolean();
             }
             else {
@@ -1214,7 +1396,7 @@ Element* List_prolog_eval::eval(LispE* lisp) {
                 success = true;
                 for (i = 3; i < nbinstructions && element->type != l_return && success; i++) {
                     element->release();
-                    element = body->index(i)->eval(lisp);
+                    element = current_body->index(i)->eval(lisp);
                     if (element->label() == v_cut)
                         end_of_execution = true;
                     else
@@ -1222,9 +1404,9 @@ Element* List_prolog_eval::eval(LispE* lisp) {
                 }
             }
             if (element->type == l_return) {
-                body = element->eval(lisp);
+                current_body = element->eval(lisp);
                 element->release();
-                element = body;
+                element = current_body;
                 break;
             }
         }
@@ -1240,10 +1422,10 @@ Element* List_prolog_eval::eval(LispE* lisp) {
             element->release();
         if (end_of_execution)
             break;
-        body = NULL;
+        current_body = NULL;
         if (ilabel < sz) {
             lisp->clear_top_stack();
-            body = subfunction->second[ilabel++];
+            current_body = subfunction->second[ilabel++];
         }
         else {
             if (sublabel != v_null) {
@@ -1253,7 +1435,7 @@ Element* List_prolog_eval::eval(LispE* lisp) {
                 subfunction = functions.find(sublabel);
                 if (subfunction != functions.end()) {
                     lisp->clear_top_stack();
-                    body = subfunction->second[0];
+                    current_body = subfunction->second[0];
                     sz = subfunction->second.size();
                 }
             }
@@ -1284,7 +1466,6 @@ Element* List::eval_pattern(LispE* lisp, List* body) {
 */
 
 Element* List::eval_predicate(LispE* lisp, List* body) {
-    //if (lisp->delegation->function_pool[lisp->current_space]->check(function_label)) {
     List_predicate_eval lpe(this, body);
     return lpe.eval(lisp);
 }
@@ -1296,7 +1477,6 @@ Element* List::eval_predicate(LispE* lisp, List* body) {
 */
 
 Element* List::eval_prolog(LispE* lisp, List* body) {
-    //if (lisp->delegation->function_pool[lisp->current_space]->check(function_label)) {
     List_prolog_eval lpe(this, body);
     return lpe.eval(lisp);
 }
@@ -1485,6 +1665,12 @@ void List::sameSizeNoTerminalArguments(LispE* lisp, Element* data, List* paramet
     lisp->pushing(s);
 }
 
+
+Element* Element::duplicate_for_thread() {
+    Element* e = duplicate();
+    return (e == this)?new Error("Error: Cannot use this value in a thread"):e;
+}
+
 void List::sameSizeNoTerminalArguments_thread(LispE* lisp, LispE* thread_lisp, Element* data, List* parameters) {
     //We then push a new stack element...
     //We cannot push it before, or the system will not be able to resolve
@@ -1501,7 +1687,7 @@ void List::sameSizeNoTerminalArguments_thread(LispE* lisp, LispE* thread_lisp, E
             //if we are dealing with a new thread, variables will be stored onto
             //the stack of this new thread environment
             //containers should be duplicated...
-            data = liste[i+1]->eval(lisp)->duplicate();
+            data = liste[i+1]->eval(lisp)->duplicate_for_thread();
             thread_lisp->record_argument(data, parameters->liste[i]->label());
         }
     }
@@ -1642,7 +1828,7 @@ void List::differentSizeNoTerminalArguments_thread(LispE* lisp, LispE* thread_li
                     label = element->label();
                     if (data == NULL)
                         throw new Error(L"Error: Wrong parameter description");
-                    data = data->duplicate();
+                    data = data->duplicate_for_thread();
                     break;
                 case 1:
                     label = element->index(0)->label();
@@ -1654,7 +1840,7 @@ void List::differentSizeNoTerminalArguments_thread(LispE* lisp, LispE* thread_li
                         label = element->index(0)->label();
                         if (data == NULL)
                             data = element->index(1)->eval(lisp);
-                        data = data->duplicate();
+                        data = data->duplicate_for_thread();
                         break;
                     }
                     label = element->index(1)->label();
@@ -1662,7 +1848,7 @@ void List::differentSizeNoTerminalArguments_thread(LispE* lisp, LispE* thread_li
                     l = lisp->provideList();
                     //We store the rest of the arguments in it...
                     if (data != NULL) {
-                        l->append(data->duplicate());
+                        l->append(data->duplicate_for_thread());
                         i++;
                         while (i < nbarguments) {
                             l->append(liste[i+1]->eval(lisp));
@@ -1841,7 +2027,12 @@ Element* List::eval_function(LispE* lisp, List* body) {
     lisp->resetStack();
     return lisp->pop(element);
 }
-    
+
+Element* List::eval_library_pattern_function(LispE* lisp, List* body) {
+    List_library_pattern_eval lpe(this, body);
+    return lpe.eval(lisp);
+}
+
 Element* List::eval_library_function(LispE* lisp, List* body) {
     // It is either a lambda or a function
     //otherwise it's an error
@@ -2074,6 +2265,8 @@ Element* List::evalfunction(LispE* lisp, Element* body) {
             return eval_thread(lisp, (List*)body);
         case l_deflib:
             return eval_library_function(lisp, (List*)body);
+        case l_deflibpat:
+            return eval_library_pattern_function(lisp, (List*)body);
         case l_defun:
             return eval_function(lisp, (List*)body);
         case l_lambda:
@@ -2309,6 +2502,13 @@ bool List_pattern_eval::eval_Boolean(LispE* lisp, int16_t instruction) {
 }
 
 bool List_library_eval::eval_Boolean(LispE* lisp, int16_t instruction) {
+    Element* e = eval(lisp);
+    bool b = e->Boolean();
+    e->release();
+    return b;
+}
+
+bool List_library_pattern_eval::eval_Boolean(LispE* lisp, int16_t instruction) {
     Element* e = eval(lisp);
     bool b = e->Boolean();
     e->release();

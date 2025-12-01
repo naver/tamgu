@@ -2336,8 +2336,8 @@ public:
         compare = c;
     }
     
-    bool failcheck(Tamgu* i) {
-        return compare->get(i,i);
+    bool failcheck(Tamgu* i, Tamgu* j) {
+        return compare->get(i,j);
     }
     
     bool operator() (Tamgu* i, Tamgu* j) {
@@ -2398,9 +2398,9 @@ public:
         idthread = idt;
     }
     
-    bool failcheck(Tamgu* i) {
+    bool failcheck(Tamgu* i, Tamgu* j) {
         args->arguments.push_back(i);
-        args->arguments.push_back(i);
+        args->arguments.push_back(j);
         return compare->Execute(aNULL, args, idthread)->Boolean();
     }
     
@@ -2552,9 +2552,15 @@ Exporting Tamgu* Tamguvector::Sort(Tamgu* comp, short idthread, bool d) {
                 
                 TamguCallFunction cmp(NULL);
                 Comparisontaskell kfcomp((TamguParameterFunction*)comp, &cmp, idthread, d);
-                if (kfcomp.failcheck(values[0]))
+                if (kfcomp.failcheck(values[0], values[0]))
                     return globalTamgu->Returnerror(e_the_comparison_function, idthread);
                 
+                for (long ij = 0; ij < values.size()-1; ij++) {
+                    if (kfcomp.failcheck(values[ij], values[ij+1]) &&
+                        kfcomp.failcheck(values[ij+1], values[ij]))
+                        return globalTamgu->Returnerror(e_the_comparison_function, idthread);
+                }
+
                 locking();
                 sort(values.begin(), values.end(), kfcomp);
                 unlocking();
@@ -2563,9 +2569,15 @@ Exporting Tamgu* Tamguvector::Sort(Tamgu* comp, short idthread, bool d) {
             
             Comp kcomp((TamguFunction*)comp, idthread);
             Comparison kfcomp(&kcomp);
-            if (kfcomp.failcheck(values[0]))
+            if (kfcomp.failcheck(values[0], values[0]))
                 return globalTamgu->Returnerror(e_the_comparison_function, idthread);
             
+            for (long ij = 0; ij < values.size()-1; ij++) {
+                if (kfcomp.failcheck(values[ij], values[ij+1]) &&
+                    kfcomp.failcheck(values[ij+1], values[ij]))
+                    return globalTamgu->Returnerror(e_the_comparison_function, idthread);
+            }
+
             locking();
             sort(values.begin(), values.end(), kfcomp);
             unlocking();

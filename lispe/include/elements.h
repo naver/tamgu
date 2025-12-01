@@ -418,6 +418,9 @@ public:
     }
 
     virtual Element* asList(LispE* lisp, List* l);
+    virtual Element* asDictionary(LispE*) {
+        return this;
+    }
     
     virtual void concatenate(LispE* lisp, Element* e) {}
 
@@ -496,6 +499,8 @@ public:
     virtual bool element_container(Element* e) {
         return false;
     }
+    
+    Element* duplicate_for_thread();
     
     Element* duplicate() {
         if (!status)
@@ -785,7 +790,12 @@ public:
 #endif
     
     virtual Element* eval_lambda_min(LispE*);
-    
+
+    inline Element* eval_terminal(LispE* lisp, char terminal) {
+        setterminal(terminal);
+        return eval(lisp);
+    }
+
     virtual Element* eval(LispE*) {
         return this;
     }

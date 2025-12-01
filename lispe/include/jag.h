@@ -734,7 +734,7 @@ public:
     bool taskel;
     bool moveup;
 
-    Au_automate* rgx;
+    Aul_automate* rgx;
 
 #ifdef POSIXREGEX
     wregex* posixrgx;
