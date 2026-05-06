@@ -10,6 +10,8 @@ TAMGU is a _multithreaded programming language_ that provides:
 
 _For each specific problem in your programming, choose the most appropriate formalism and freely mix functional, imperative and logical approaches to implement the most expressive but also the most compact code possible._
 
+I owe a lot of respect to _Lipovača_, whose work on Haskell was a great source to inspiration: [Learn Haskell](https://learnyouahaskell.github.io/introduction.html).
+
 ### Annotation
 TAMGU provides also an annotation language implementation (see below for an example), which allows for an efficient way to detect complex patterns in text. 
 
